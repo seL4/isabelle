@@ -1465,12 +1465,20 @@ fun generic_code_pred prep_const raw_const lthy =
       let
         val nparams = nparams_of thy' const
         val intros = intros_of thy' const
-      in mk_casesrule lthy' nparams intros end
+      in mk_casesrule lthy' nparams intros end  
     val cases_rules = map mk_cases preds
+    val cases =
+      map (fn case_rule => RuleCases.Case {fixes = [],
+        assumes = [("", Logic.strip_imp_prems case_rule)],
+        binds = [], cases = []}) cases_rules
+    val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
+    val _ = Output.tracing (commas (map fst case_env))
+    val lthy'' = ProofContext.add_cases true case_env lthy'
+    
     fun after_qed thms =
       LocalTheory.theory (fold set_elim (map the_single thms) #> add_equations const)
   in
-    Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy'
+    Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy''
   end;
 
 structure P = OuterParse

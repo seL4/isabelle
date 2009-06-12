@@ -61,34 +61,12 @@ lemma [code_pred_intros]:
 "r a b ==> tranclp r b c ==> tranclp r a c" 
 by auto
 
-
-lemma converse_tranclpE:
-  assumes "tranclp r x z "
-  assumes "r x z ==> P"
-  assumes "\<And> y. [| r x y; tranclp r y z |] ==> P"
-  shows P
-proof -
-  from tranclpD[OF assms(1)]
-  obtain y where "r x y" and "rtranclp r y z" by iprover
-  with assms(2-3) rtranclpD[OF this(2)] this(1)
-  show P by iprover
-qed  
-
 (* Setup requires quick and dirty proof *)
 (*
 code_pred tranclp
 proof -
-  assume tranclp: "tranclp r a1 a2"
-     and step: "\<And> a c b. a1 = a ==> a2 = c ==> r a b ==> tranclp r b c ==> thesis"
-     and base: "\<And> a b. a1 = a ==> a2 = b ==> r a b ==> thesis"
-  show thesis
-  proof (cases rule: converse_tranclpE[OF tranclp])
-    case 1
-    from 1 base show thesis by auto
-  next
-    case 2
-    from 2 step show thesis by auto
-  qed
+  case tranclp
+  from this converse_tranclpE[OF this(1)] show thesis by metis
 qed
 
 thm tranclp.equation
