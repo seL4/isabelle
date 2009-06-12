@@ -72,6 +72,37 @@ qed
 
 end
 
+lemma open_Times: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<times> T)"
+unfolding open_prod_def by auto
+
+lemma fst_vimage_eq_Times: "fst -` S = S \<times> UNIV"
+by auto
+
+lemma snd_vimage_eq_Times: "snd -` S = UNIV \<times> S"
+by auto
+
+lemma open_vimage_fst: "open S \<Longrightarrow> open (fst -` S)"
+by (simp add: fst_vimage_eq_Times open_Times)
+
+lemma open_vimage_snd: "open S \<Longrightarrow> open (snd -` S)"
+by (simp add: snd_vimage_eq_Times open_Times)
+
+lemma closed_vimage_fst: "closed S \<Longrightarrow> closed (fst -` S)"
+unfolding closed_open vimage_Compl [symmetric]
+by (rule open_vimage_fst)
+
+lemma closed_vimage_snd: "closed S \<Longrightarrow> closed (snd -` S)"
+unfolding closed_open vimage_Compl [symmetric]
+by (rule open_vimage_snd)
+
+lemma closed_Times: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<times> T)"
+proof -
+  have "S \<times> T = (fst -` S) \<inter> (snd -` T)" by auto
+  thus "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<times> T)"
+    by (simp add: closed_vimage_fst closed_vimage_snd closed_Int)
+qed
+
+
 subsection {* Product is a metric space *}
 
 instantiation
@@ -87,25 +118,21 @@ lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<twosuperior> + (di
 instance proof
   fix x y :: "'a \<times> 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
-    unfolding dist_prod_def
-    by (simp add: expand_prod_eq)
+    unfolding dist_prod_def expand_prod_eq by simp
 next
   fix x y z :: "'a \<times> 'b"
   show "dist x y \<le> dist x z + dist y z"
     unfolding dist_prod_def
-    apply (rule order_trans [OF _ real_sqrt_sum_squares_triangle_ineq])
-    apply (rule real_sqrt_le_mono)
-    apply (rule order_trans [OF add_mono])
-    apply (rule power_mono [OF dist_triangle2 [of _ _ "fst z"] zero_le_dist])
-    apply (rule power_mono [OF dist_triangle2 [of _ _ "snd z"] zero_le_dist])
-    apply (simp only: real_sum_squared_expand)
-    done
+    by (intro order_trans [OF _ real_sqrt_sum_squares_triangle_ineq]
+        real_sqrt_le_mono add_mono power_mono dist_triangle2 zero_le_dist)
 next
   (* FIXME: long proof! *)
   (* Maybe it would be easier to define topological spaces *)
   (* in terms of neighborhoods instead of open sets? *)
   fix S :: "('a \<times> 'b) set"
   show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  proof
+    assume "open S" thus "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S"
     unfolding open_prod_def open_dist
     apply safe
     apply (drule (1) bspec)
@@ -121,7 +148,11 @@ next
     apply (erule le_less_trans [OF real_sqrt_sum_squares_ge1])
     apply (drule spec, erule mp)
     apply (erule le_less_trans [OF real_sqrt_sum_squares_ge2])
-
+    done
+  next
+    assume "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S" thus "open S"
+    unfolding open_prod_def open_dist
+    apply safe
     apply (drule (1) bspec)
     apply clarify
     apply (subgoal_tac "\<exists>r>0. \<exists>s>0. e = sqrt (r\<twosuperior> + s\<twosuperior>)")
@@ -132,14 +163,14 @@ next
     apply clarify
     apply (rule_tac x="r - dist x a" in exI, rule conjI, simp)
     apply clarify
-    apply (rule le_less_trans [OF dist_triangle])
-    apply (erule less_le_trans [OF add_strict_right_mono], simp)
+    apply (simp add: less_diff_eq)
+    apply (erule le_less_trans [OF dist_triangle])
     apply (rule conjI)
     apply clarify
     apply (rule_tac x="s - dist x b" in exI, rule conjI, simp)
     apply clarify
-    apply (rule le_less_trans [OF dist_triangle])
-    apply (erule less_le_trans [OF add_strict_right_mono], simp)
+    apply (simp add: less_diff_eq)
+    apply (erule le_less_trans [OF dist_triangle])
     apply (rule conjI)
     apply simp
     apply (clarify, rename_tac c d)
@@ -149,6 +180,7 @@ next
     apply (rule_tac x="e / sqrt 2" in exI, simp add: divide_pos_pos)
     apply (simp add: power_divide)
     done
+  qed
 qed
 
 end
@@ -161,7 +193,7 @@ unfolding dist_prod_def by simp
 lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
 unfolding dist_prod_def by simp
 
-lemma tendsto_fst:
+lemma tendsto_fst [tendsto_intros]:
   assumes "(f ---> a) net"
   shows "((\<lambda>x. fst (f x)) ---> fst a) net"
 proof (rule topological_tendstoI)
@@ -180,7 +212,7 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
-lemma tendsto_snd:
+lemma tendsto_snd [tendsto_intros]:
   assumes "(f ---> a) net"
   shows "((\<lambda>x. snd (f x)) ---> snd a) net"
 proof (rule topological_tendstoI)
@@ -199,7 +231,7 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
-lemma tendsto_Pair:
+lemma tendsto_Pair [tendsto_intros]:
   assumes "(f ---> a) net" and "(g ---> b) net"
   shows "((\<lambda>x. (f x, g x)) ---> (a, b)) net"
 proof (rule topological_tendstoI)

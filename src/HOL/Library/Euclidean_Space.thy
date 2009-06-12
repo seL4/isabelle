@@ -369,19 +369,33 @@ qed
 
 end
 
-lemma tendsto_Cart_nth:
-  fixes f :: "'a \<Rightarrow> 'b::topological_space ^ 'n::finite"
+lemma open_vector_box: "\<forall>i. open (S i) \<Longrightarrow> open {x. \<forall>i. x $ i \<in> S i}"
+unfolding open_vector_def by auto
+
+lemma open_vimage_Cart_nth: "open S \<Longrightarrow> open ((\<lambda>x. x $ i) -` S)"
+unfolding open_vector_def
+apply clarify
+apply (rule_tac x="\<lambda>k. if k = i then S else UNIV" in exI, simp)
+done
+
+lemma closed_vimage_Cart_nth: "closed S \<Longrightarrow> closed ((\<lambda>x. x $ i) -` S)"
+unfolding closed_open vimage_Compl [symmetric]
+by (rule open_vimage_Cart_nth)
+
+lemma closed_vector_box: "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
+proof -
+  have "{x. \<forall>i. x $ i \<in> S i} = (\<Inter>i. (\<lambda>x. x $ i) -` S i)" by auto
+  thus "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
+    by (simp add: closed_INT closed_vimage_Cart_nth)
+qed
+
+lemma tendsto_Cart_nth [tendsto_intros]:
   assumes "((\<lambda>x. f x) ---> a) net"
   shows "((\<lambda>x. f x $ i) ---> a $ i) net"
 proof (rule topological_tendstoI)
-  fix S :: "'b set" assume "open S" "a $ i \<in> S"
+  fix S assume "open S" "a $ i \<in> S"
   then have "open ((\<lambda>y. y $ i) -` S)" "a \<in> ((\<lambda>y. y $ i) -` S)"
-    unfolding open_vector_def
-    apply simp_all
-    apply clarify
-    apply (rule_tac x="\<lambda>k. if k = i then S else UNIV" in exI)
-    apply simp
-    done
+    by (simp_all add: open_vimage_Cart_nth)
   with assms have "eventually (\<lambda>x. f x \<in> (\<lambda>y. y $ i) -` S) net"
     by (rule topological_tendstoD)
   then show "eventually (\<lambda>x. f x $ i \<in> S) net"

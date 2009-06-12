@@ -358,6 +358,14 @@ definition
 where [code del]:
   "(f ---> l) net \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
 
+ML{*
+structure TendstoIntros =
+  NamedThmsFun(val name = "tendsto_intros"
+               val description = "introduction rules for tendsto");
+*}
+
+setup TendstoIntros.setup
+
 lemma topological_tendstoI:
   "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net)
     \<Longrightarrow> (f ---> l) net"
@@ -395,12 +403,38 @@ using tendstoI tendstoD by fast
 lemma tendsto_Zfun_iff: "(f ---> a) net = Zfun (\<lambda>x. f x - a) net"
 by (simp only: tendsto_iff Zfun_def dist_norm)
 
-lemma tendsto_const: "((\<lambda>x. k) ---> k) net"
+lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a)"
+unfolding tendsto_def eventually_at_topological by auto
+
+lemma tendsto_ident_at_within [tendsto_intros]:
+  "a \<in> S \<Longrightarrow> ((\<lambda>x. x) ---> a) (at a within S)"
+unfolding tendsto_def eventually_within eventually_at_topological by auto
+
+lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) net"
 by (simp add: tendsto_def)
 
-lemma tendsto_norm:
-  fixes a :: "'a::real_normed_vector"
-  shows "(f ---> a) net \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) net"
+lemma tendsto_dist [tendsto_intros]:
+  assumes f: "(f ---> l) net" and g: "(g ---> m) net"
+  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) net"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  hence e2: "0 < e/2" by simp
+  from tendstoD [OF f e2] tendstoD [OF g e2]
+  show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) net"
+  proof (rule eventually_elim2)
+    fix x assume "dist (f x) l < e/2" "dist (g x) m < e/2"
+    then show "dist (dist (f x) (g x)) (dist l m) < e"
+      unfolding dist_real_def
+      using dist_triangle2 [of "f x" "g x" "l"]
+      using dist_triangle2 [of "g x" "l" "m"]
+      using dist_triangle3 [of "l" "m" "f x"]
+      using dist_triangle [of "f x" "m" "g x"]
+      by arith
+  qed
+qed
+
+lemma tendsto_norm [tendsto_intros]:
+  "(f ---> a) net \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) net"
 apply (simp add: tendsto_iff dist_norm, safe)
 apply (drule_tac x="e" in spec, safe)
 apply (erule eventually_elim1)
@@ -417,12 +451,12 @@ lemma minus_diff_minus:
   shows "(- a) - (- b) = - (a - b)"
 by simp
 
-lemma tendsto_add:
+lemma tendsto_add [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) net"
 by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
 
-lemma tendsto_minus:
+lemma tendsto_minus [tendsto_intros]:
   fixes a :: "'a::real_normed_vector"
   shows "(f ---> a) net \<Longrightarrow> ((\<lambda>x. - f x) ---> - a) net"
 by (simp only: tendsto_Zfun_iff minus_diff_minus Zfun_minus)
@@ -432,16 +466,16 @@ lemma tendsto_minus_cancel:
   shows "((\<lambda>x. - f x) ---> - a) net \<Longrightarrow> (f ---> a) net"
 by (drule tendsto_minus, simp)
 
-lemma tendsto_diff:
+lemma tendsto_diff [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) net"
 by (simp add: diff_minus tendsto_add tendsto_minus)
 
-lemma (in bounded_linear) tendsto:
+lemma (in bounded_linear) tendsto [tendsto_intros]:
   "(g ---> a) net \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) net"
 by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
 
-lemma (in bounded_bilinear) tendsto:
+lemma (in bounded_bilinear) tendsto [tendsto_intros]:
   "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) net"
 by (simp only: tendsto_Zfun_iff prod_diff_prod
                Zfun_add Zfun Zfun_left Zfun_right)
@@ -556,7 +590,7 @@ apply (erule (1) Bfun_inverse)
 apply (simp add: tendsto_Zfun_iff)
 done
 
-lemma tendsto_inverse:
+lemma tendsto_inverse [tendsto_intros]:
   fixes a :: "'a::real_normed_div_algebra"
   assumes f: "(f ---> a) net"
   assumes a: "a \<noteq> 0"
@@ -571,7 +605,7 @@ proof -
     by (rule tendsto_inverse_lemma)
 qed
 
-lemma tendsto_divide:
+lemma tendsto_divide [tendsto_intros]:
   fixes a b :: "'a::real_normed_field"
   shows "\<lbrakk>(f ---> a) net; (g ---> b) net; b \<noteq> 0\<rbrakk>
     \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) net"
