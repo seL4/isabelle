@@ -1102,7 +1102,7 @@ subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
   text{* Notation Lim to avoid collition with lim defined in analysis *}
 definition
-  Lim :: "'a net \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b" where
+  Lim :: "'a net \<Rightarrow> ('a \<Rightarrow> 'b::t2_space) \<Rightarrow> 'b" where
   "Lim net f = (THE l. (f ---> l) net)"
 
 lemma Lim:
@@ -1402,36 +1402,32 @@ qed
 text{* Uniqueness of the limit, when nontrivial. *}
 
 lemma Lim_unique:
-  fixes f :: "'a \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a \<Rightarrow> 'b::t2_space"
   assumes "\<not> trivial_limit net"  "(f ---> l) net"  "(f ---> l') net"
   shows "l = l'"
 proof (rule ccontr)
-  let ?d = "dist l l' / 2"
   assume "l \<noteq> l'"
-  then have "0 < ?d" by (simp add: dist_nz)
-  have "eventually (\<lambda>x. dist (f x) l < ?d) net"
-    using `(f ---> l) net` `0 < ?d` by (rule tendstoD)
+  obtain U V where "open U" "open V" "l \<in> U" "l' \<in> V" "U \<inter> V = {}"
+    using hausdorff [OF `l \<noteq> l'`] by fast
+  have "eventually (\<lambda>x. f x \<in> U) net"
+    using `(f ---> l) net` `open U` `l \<in> U` by (rule topological_tendstoD)
   moreover
-  have "eventually (\<lambda>x. dist (f x) l' < ?d) net"
-    using `(f ---> l') net` `0 < ?d` by (rule tendstoD)
+  have "eventually (\<lambda>x. f x \<in> V) net"
+    using `(f ---> l') net` `open V` `l' \<in> V` by (rule topological_tendstoD)
   ultimately
   have "eventually (\<lambda>x. False) net"
   proof (rule eventually_elim2)
     fix x
-    assume *: "dist (f x) l < ?d" "dist (f x) l' < ?d"
-    have "dist l l' \<le> dist (f x) l + dist (f x) l'"
-      by (rule dist_triangle_alt)
-    also from * have "\<dots> < ?d + ?d"
-      by (rule add_strict_mono)
-    also have "\<dots> = dist l l'" by simp
-    finally show "False" by simp
+    assume "f x \<in> U" "f x \<in> V"
+    hence "f x \<in> U \<inter> V" by simp
+    with `U \<inter> V = {}` show "False" by simp
   qed
   with `\<not> trivial_limit net` show "False"
     by (simp add: eventually_False)
 qed
 
 lemma tendsto_Lim:
-  fixes f :: "'a \<Rightarrow> 'b::metric_space"
+  fixes f :: "'a \<Rightarrow> 'b::t2_space"
   shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
   unfolding Lim_def using Lim_unique[of net f] by auto
 
