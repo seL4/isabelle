@@ -5169,12 +5169,11 @@ lemma continuous_on_dot:
   by auto
 
 lemma continuous_on_inner:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::real_inner set"
   shows "continuous_on s (inner a)"
   unfolding continuous_on by (rule ballI) (intro tendsto_intros)
 
-lemma closed_halfspace_le: fixes a::"real^'n::finite"
-  shows "closed {x. inner a x \<le> b}"
+lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
 proof-
   have *:"{x \<in> UNIV. inner a x \<in> {r. \<exists>x. inner a x = r \<and> r \<le> b}} = {x. inner a x \<le> b}" by auto
   let ?T = "{..b}"
@@ -5188,10 +5187,10 @@ proof-
   thus ?thesis unfolding closed_closedin[THEN sym] and * by auto
 qed
 
-lemma closed_halfspace_ge: "closed {x::real^_. inner a x \<ge> b}"
+lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
   using closed_halfspace_le[of "-a" "-b"] unfolding inner_minus_left by auto
 
-lemma closed_hyperplane: "closed {x::real^_. inner a x = b}"
+lemma closed_hyperplane: "closed {x. inner a x = b}"
 proof-
   have "{x. inner a x = b} = {x. inner a x \<ge> b} \<inter> {x. inner a x \<le> b}" by auto
   thus ?thesis using closed_halfspace_le[of a b] and closed_halfspace_ge[of b a] using closed_Int by auto
@@ -5207,13 +5206,13 @@ lemma closed_halfspace_component_ge:
 
 text{* Openness of halfspaces.                                                   *}
 
-lemma open_halfspace_lt: "open {x::real^_. inner a x < b}"
+lemma open_halfspace_lt: "open {x. inner a x < b}"
 proof-
   have "UNIV - {x. b \<le> inner a x} = {x. inner a x < b}" by auto
   thus ?thesis using closed_halfspace_ge[unfolded closed_def Compl_eq_Diff_UNIV, of b a] by auto
 qed
 
-lemma open_halfspace_gt: "open {x::real^_. inner a x > b}"
+lemma open_halfspace_gt: "open {x. inner a x > b}"
 proof-
   have "UNIV - {x. b \<ge> inner a x} = {x. inner a x > b}" by auto
   thus ?thesis using closed_halfspace_le[unfolded closed_def Compl_eq_Diff_UNIV, of a b] by auto
@@ -5297,13 +5296,13 @@ qed
 
 text{* Some more convenient intermediate-value theorem formulations.             *}
 
-lemma connected_ivt_hyperplane: fixes y :: "real^'n::finite"
+lemma connected_ivt_hyperplane:
   assumes "connected s" "x \<in> s" "y \<in> s" "inner a x \<le> b" "b \<le> inner a y"
   shows "\<exists>z \<in> s. inner a z = b"
 proof(rule ccontr)
   assume as:"\<not> (\<exists>z\<in>s. inner a z = b)"
-  let ?A = "{x::real^'n. inner a x < b}"
-  let ?B = "{x::real^'n. inner a x > b}"
+  let ?A = "{x. inner a x < b}"
+  let ?B = "{x. inner a x > b}"
   have "open ?A" "open ?B" using open_halfspace_lt and open_halfspace_gt by auto
   moreover have "?A \<inter> ?B = {}" by auto
   moreover have "s \<subseteq> ?A \<union> ?B" using as by auto
