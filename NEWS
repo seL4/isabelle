@@ -27,6 +27,9 @@ by the code generator; see Predicate.thy for an example.
 
 * New method "linarith" invokes existing linear arithmetic decision procedure only.
 
+* Implementation of quickcheck using generic code generator; default generators
+are provided for all suitable HOL types, records and datatypes.
+
 
 *** ML ***
 
