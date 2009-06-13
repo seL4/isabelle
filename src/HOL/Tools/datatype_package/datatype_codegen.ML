@@ -15,13 +15,7 @@ end;
 structure DatatypeCodegen : DATATYPE_CODEGEN =
 struct
 
-(** SML code generator **)
-
-open Codegen;
-
-(**** datatype definition ****)
-
-(* find shortest path to constructor with no recursive arguments *)
+(** find shortest path to constructor with no recursive arguments **)
 
 fun find_nonempty (descr: DatatypeAux.descr) is i =
   let
@@ -40,6 +34,13 @@ fun find_nonempty (descr: DatatypeAux.descr) is i =
   in case xs of [] => NONE | x :: _ => SOME x end;
 
 fun find_shortest_path descr i = find_nonempty descr [i] i;
+
+
+(** SML code generator **)
+
+open Codegen;
+
+(* datatype definition *)
 
 fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
   let
@@ -210,7 +211,7 @@ fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
   end;
 
 
-(**** case expressions ****)
+(* case expressions *)
 
 fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
   let val i = length constrs
@@ -252,7 +253,7 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
   end;
 
 
-(**** constructors ****)
+(* constructors *)
 
 fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
   let val i = length args
@@ -271,7 +272,7 @@ fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
   end;
 
 
-(**** code generators for terms and types ****)
+(* code generators for terms and types *)
 
 fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
    (c as Const (s, T), ts) =>
@@ -312,6 +313,18 @@ fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
 
 
 (** generic code generator **)
+
+(* liberal addition of code data for datatypes *)
+
+fun mk_constr_consts thy vs dtco cos =
+  let
+    val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
+    val cs' = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) cs;
+  in if is_some (try (Code.constrset_of_consts thy) cs')
+    then SOME cs
+    else NONE
+  end;
+
 
 (* case certificates *)
 
@@ -371,7 +384,7 @@ fun mk_eq_eqns thy dtco =
     val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss
       addsimps (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms))
       addsimprocs [DatatypePackage.distinct_simproc]);
-    fun prove prop = Goal.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
+    fun prove prop = SkipProof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
   in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
 
@@ -411,16 +424,7 @@ fun add_equality vs dtcos thy =
   end;
 
 
-(* liberal addition of code data for datatypes *)
-
-fun mk_constr_consts thy vs dtco cos =
-  let
-    val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
-    val cs' = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) cs;
-  in if is_some (try (Code.constrset_of_consts thy) cs')
-    then SOME cs
-    else NONE
-  end;
+(* register a datatype etc. *)
 
 fun add_all_code dtcos thy =
   let
@@ -433,12 +437,12 @@ fun add_all_code dtcos thy =
   in
     if null css then thy
     else thy
+      |> tap (fn _ => DatatypeAux.message "Registering datatype for code generator ...")
       |> fold Code.add_datatype css
       |> fold_rev Code.add_default_eqn case_rewrites
       |> fold Code.add_case certs
       |> add_equality vs dtcos
    end;
-
 
 
 (** theory setup **)

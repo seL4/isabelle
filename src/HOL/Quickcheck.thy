@@ -93,15 +93,15 @@ axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('
   \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> (Random.seed \<Rightarrow> Random.seed \<times> Random.seed)
   \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 
-definition random_fun_lift :: "(code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
-  \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_fun_lift f i = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (f i) Random.split_seed"
+definition random_fun_lift :: "(Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
+  \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+  "random_fun_lift f = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of f Random.split_seed"
 
 instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
 begin
 
 definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random = random_fun_lift random"
+  "random i = random_fun_lift (random i)"
 
 instance ..
 

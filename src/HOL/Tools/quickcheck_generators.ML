@@ -170,9 +170,9 @@ fun random_aux_primrec eq lthy =
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, eqs2), lthy') = PrimrecPackage.add_primrec_simple
       [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
-    val eq_tac = ALLGOALS Goal.conjunction_tac THEN ALLGOALS (simp_tac rew_ss)
+    val eq_tac = ALLGOALS (simp_tac rew_ss)
       THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
-    val eqs3 = Goal.prove_multi lthy' [v] [] eqs0 (K eq_tac);
+    val eqs3 = map (fn prop => SkipProof.prove lthy' [v] [] prop (K eq_tac)) eqs0;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
@@ -180,7 +180,7 @@ fun random_aux_primrec eq lthy =
            [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)])
       |> (fn thm => thm OF eqs3);
     val tac = ALLGOALS (rtac rule);
-    val simp = Goal.prove lthy' [v] [] eq (K tac);
+    val simp = SkipProof.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
 
 end;
@@ -212,11 +212,11 @@ fun random_aux_primrec_multi prefix [eq] lthy =
         fun prove_eqs aux_simp proj_defs lthy = 
           let
             val proj_simps = map (snd o snd) proj_defs;
-            fun tac { context = ctxt, ... } = ALLGOALS Goal.conjunction_tac
-              THEN ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
+            fun tac { context = ctxt, ... } =
+              ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
               THEN ALLGOALS (simp_tac (HOL_ss addsimps [fst_conv, snd_conv]));
-          in (Goal.prove_multi lthy [v] [] eqs tac, lthy) end;
+          in (map (fn prop => SkipProof.prove lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy
         |> random_aux_primrec aux_eq'
@@ -235,10 +235,9 @@ fun random_aux_specification prefix eqs lthy =
     val proto_eqs = map mk_proto_eq eqs;
     fun prove_simps proto_simps lthy =
       let
-        val ext_simps = map (fn thm => fun_cong OF [fun_cong OF  [thm]]) proto_simps;
-        val tac = ALLGOALS Goal.conjunction_tac
-          THEN ALLGOALS (ProofContext.fact_tac ext_simps);
-      in (Goal.prove_multi lthy vs [] eqs (K tac), lthy) end;
+        val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
+        val tac = ALLGOALS (ProofContext.fact_tac ext_simps);
+      in (map (fn prop => SkipProof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
     val b = Binding.qualify true prefix (Binding.name "simps");
   in
     lthy
@@ -253,8 +252,6 @@ fun random_aux_specification prefix eqs lthy =
 
 
 (* constructing random instances on datatypes *)
-
-exception Datatype_Fun; (*FIXME*)
 
 fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
   let
@@ -274,19 +271,20 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
     val random_auxT = sizeT o random_resultT;
     val random_auxs = map2 (fn s => fn rT => Free (s, random_auxT rT))
       random_auxsN rTs;
-
     fun mk_random_call T = (NONE, (HOLogic.mk_random T j, T));
     fun mk_random_aux_call fTs (k, _) (tyco, Ts) =
       let
-        val _ = if null fTs then () else raise Datatype_Fun; (*FIXME*)
-        val random = nth random_auxs k;
+        val T = Type (tyco, Ts);
+        fun mk_random_fun_lift [] t = t
+          | mk_random_fun_lift (fT :: fTs) t =
+              mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
+                mk_random_fun_lift fTs t;
+        val t = mk_random_fun_lift fTs (nth random_auxs k $ i1 $ j);
         val size = Option.map snd (DatatypeCodegen.find_shortest_path descr k)
           |> the_default 0;
-      in (SOME size, (random $ i1 $ j, Type (tyco, Ts))) end;
-
+      in (SOME size, (t, fTs ---> T)) end;
     val tss = DatatypeAux.interpret_construction descr vs
       { atyp = mk_random_call, dtyp = mk_random_aux_call };
-
     fun mk_consexpr simpleT (c, xs) =
       let
         val (ks, simple_tTs) = split_list xs;
@@ -324,6 +322,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
 
 fun mk_random_datatype descr vs tycos (names, auxnames) (Ts, Us) thy =
   let
+    val _ = DatatypeAux.message "Creating quickcheck generators ...";
     val i = @{term "i\<Colon>code_numeral"};
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
     fun mk_size_arg k = case DatatypeCodegen.find_shortest_path descr k
@@ -347,35 +346,39 @@ fun mk_random_datatype descr vs tycos (names, auxnames) (Ts, Us) thy =
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 
+fun perhaps_constrain thy insts raw_vs =
+  let
+    fun meet_random (T, sort) = Sorts.meet_sort (Sign.classes_of thy) 
+      (Logic.varifyT T, sort);
+    val vtab = Vartab.empty
+      |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
+      |> fold meet_random insts;
+  in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
+  end handle CLASS_ERROR => NONE;
+
 fun ensure_random_datatype raw_tycos thy =
   let
     val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, (names, auxnames), raw_TUs) =
       DatatypePackage.the_datatype_descr thy raw_tycos;
-    val aTs = (flat o maps snd o maps snd) (DatatypeAux.interpret_construction descr raw_vs
-      { atyp = single, dtyp = K o K });
-    fun meet_random T = Sorts.meet_sort (Sign.classes_of thy) (Logic.varifyT T, @{sort random});
-    val vtab = (Vartab.empty
-      |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
-      |> fold meet_random aTs
-      |> SOME) handle CLASS_ERROR => NONE;
-    val vconstrain = case vtab of SOME vtab => (fn (v, _) =>
-          (v, (the o Vartab.lookup vtab) (v, 0)))
-      | NONE => I;
-    val vs = map vconstrain raw_vs;
-    val constrain = map_atyps (fn TFree v => TFree (vconstrain v));
+    val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
+      (DatatypeAux.interpret_construction descr raw_vs { atyp = single, dtyp = (K o K o K) [] });
+    val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
+      (DatatypeAux.interpret_construction descr raw_vs { atyp = K [], dtyp = K o K });
     val has_inst = exists (fn tyco =>
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
-  in if is_some vtab andalso not has_inst then
-    (mk_random_datatype descr vs tycos (names, auxnames)
-      ((pairself o map) constrain raw_TUs) thy
-    (*FIXME ephemeral handles*)
-    handle Datatype_Fun => thy
-         | e as TERM (msg, ts) => (tracing (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts)); raise e)
-         | e as TYPE (msg, _, _) =>  (tracing msg; raise e)
-         | e as ERROR msg =>  (tracing msg; raise e))
-  else thy end;
+  in if has_inst then thy
+    else case perhaps_constrain thy (random_insts @ term_of_insts) raw_vs
+     of SOME constrain => (mk_random_datatype descr
+          (map constrain raw_vs) tycos (names, auxnames)
+            ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
+            (*FIXME ephemeral handles*)
+          handle e as TERM (msg, ts) => (tracing (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts)); raise e)
+               | e as TYPE (msg, _, _) => (tracing msg; raise e)
+               | e as ERROR msg => (tracing msg; raise e))
+      | NONE => thy
+  end;
 
 
 (** setup **)
