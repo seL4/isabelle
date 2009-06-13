@@ -141,14 +141,14 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Sum_Type.thy \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
-  Tools/datatype_abs_proofs.ML \
-  Tools/datatype_aux.ML \
-  Tools/datatype_case.ML \
-  Tools/datatype_codegen.ML \
-  Tools/datatype_package.ML \
-  Tools/datatype_prop.ML \
-  Tools/datatype_realizer.ML \
-  Tools/datatype_rep_proofs.ML \
+  Tools/datatype_package/datatype_abs_proofs.ML \
+  Tools/datatype_package/datatype_aux.ML \
+  Tools/datatype_package/datatype_case.ML \
+  Tools/datatype_package/datatype_codegen.ML \
+  Tools/datatype_package/datatype_package.ML \
+  Tools/datatype_package/datatype_prop.ML \
+  Tools/datatype_package/datatype_realizer.ML \
+  Tools/datatype_package/datatype_rep_proofs.ML \
   Tools/dseq.ML \
   Tools/function_package/auto_term.ML \
   Tools/function_package/context_tree.ML \
@@ -854,7 +854,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy		\
   ex/Meson_Test.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
   ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
-  ex/Quickcheck_Examples.thy ex/Quickcheck_Generators.thy ex/ROOT.ML	\
+  ex/Quickcheck_Examples.thy ex/ROOT.ML	\
   ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy			\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy \

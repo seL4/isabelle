@@ -127,22 +127,21 @@ datatype class_data = ClassData of {
 
 };
 
-fun rep_class_data (ClassData data) = data;
-fun mk_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+fun make_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (defs, operations)) =
   ClassData { consts = consts, base_sort = base_sort,
     base_morph = base_morph, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
     defs = defs, operations = operations };
 fun map_class_data f (ClassData { consts, base_sort, base_morph, assm_intro,
     of_class, axiom, defs, operations }) =
-  mk_class_data (f ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+  make_class_data (f ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (defs, operations)));
 fun merge_class_data _ (ClassData { consts = consts,
     base_sort = base_sort, base_morph = base_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs1, operations = operations1 },
   ClassData { consts = _, base_sort = _, base_morph = _, assm_intro = _,
     of_class = _, axiom = _, defs = defs2, operations = operations2 }) =
-  mk_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+  make_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (Thm.merge_thms (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
@@ -158,7 +157,9 @@ structure ClassData = TheoryDataFun
 
 (* queries *)
 
-val lookup_class_data = Option.map rep_class_data oo try o Graph.get_node o ClassData.get;
+fun lookup_class_data thy class = case try (Graph.get_node (ClassData.get thy)) class
+ of SOME (ClassData data) => SOME data
+  | NONE => NONE;
 
 fun the_class_data thy class = case lookup_class_data thy class
  of NONE => error ("Undeclared class " ^ quote class)
@@ -188,8 +189,8 @@ fun rules thy class =
   in (axiom, of_class) end;
 
 fun all_assm_intros thy =
-  Graph.fold (fn (_, (data, _)) => fold (insert Thm.eq_thm)
-    ((the_list o #assm_intro o rep_class_data) data)) (ClassData.get thy) [];
+  Graph.fold (fn (_, (ClassData { assm_intro, ... }, _)) => fold (insert Thm.eq_thm)
+    (the_list assm_intro)) (ClassData.get thy) [];
 
 fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
@@ -240,7 +241,7 @@ fun register class sups params base_sort morph
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
-        mk_class_data (((map o pairself) fst params, base_sort,
+        make_class_data (((map o pairself) fst params, base_sort,
           morph, assm_intro, of_class, axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) sups;
   in ClassData.map add_class thy end;
