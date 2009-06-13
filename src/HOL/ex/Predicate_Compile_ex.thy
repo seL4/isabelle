@@ -7,8 +7,6 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "even n \<Longrightarrow> odd (Suc n)"
   | "odd n \<Longrightarrow> even (Suc n)"
 
-
-
 code_pred even .
 
 thm odd.equation
@@ -57,19 +55,23 @@ ML {* set Predicate_Compile.do_proofs *}
 (*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
   [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}" *)
 
-thm tranclp.intros
 
-(*
 lemma [code_pred_intros]:
 "r a b ==> tranclp r a b"
 "r a b ==> tranclp r b c ==> tranclp r a c" 
 by auto
-*)
+
+(* Setup requires quick and dirty proof *)
 (*
-code_pred tranclp .
+code_pred tranclp
+proof -
+  case tranclp
+  from this converse_tranclpE[OF this(1)] show thesis by metis
+qed
 
 thm tranclp.equation
 *)
+
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
@@ -77,8 +79,7 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred succ .
 
 thm succ.equation
-
-(* TODO: requires alternative rules for trancl *)
+(* FIXME: why does this not terminate? *)
 (*
 values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Gerwin Klein, TU Muenchen
 #
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
@@ -14,7 +13,6 @@ MAIL=$HOME/bin/pmail
 MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=tar
-CVS2CL="$HOME/bin/cvs2cl --follow-only TRUNK"
 
 SSH="ssh -f"
 
@@ -46,7 +44,6 @@ rm -f $ERRORDIR/isatest-*.log
 rm -f $RUNNING/*.runnning
 
 export DISTPREFIX
-export CVS2CL
 
 DATE=$(date "+%Y-%m-%d")
 DISTLOG=$LOGPREFIX/isatest-makedist-$DATE.log
@@ -109,9 +106,11 @@ $SSH macbroy23 "$MAKEALL $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
+$SSH macbroy2 "$MAKEALL $HOME/settings/at-mac-poly-5.1-para; $MAKEALL $HOME/settings/mac-poly-M8"
+sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
-$SSH macbroy6 "/usr/stud/isatest/bin/isatest-makeall $HOME/settings/at-mac-poly-5.1-para"
+$SSH macbroy6 "$MAKEALL $HOME/settings/mac-poly-M4"
 sleep 15
 $SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 

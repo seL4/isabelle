@@ -1,5 +1,5 @@
 # -*- shell-script -*- :mode=shellscript:
-# $Id$
+#
 # Author: Gerwin Klein, NICTA
 #
 # DESCRIPTION: common settings for the isatest-* scripts
