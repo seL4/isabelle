@@ -136,26 +136,26 @@ fun get_first boundary f tab =
   let
     val check =
       (case boundary of
-        NONE => (fn p => f p)
-      | SOME b => (fn p as (k, _) =>
-          (case Key.ord (b, k) of GREATER => f p | _ => NONE)));
-
-    fun get Empty = NONE
-      | get (Branch2 (left, p, right)) =
-          (case get left of
+        NONE => K true
+      | SOME b => (fn k => Key.ord (b, k) = GREATER));
+    fun apply (k, x) = if check k then f (k, x) else NONE;
+    fun get_bounded tb k = if check k then get tb else NONE
+    and get Empty = NONE
+      | get (Branch2 (left, (k, x), right)) =
+          (case get_bounded left k of
             NONE =>
-              (case check p of
+              (case apply (k, x) of
                 NONE => get right
               | some => some)
           | some => some)
-      | get (Branch3 (left, p, mid, q, right)) =
-          (case get left of
+      | get (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+          (case get_bounded left k1 of
             NONE =>
-              (case check p of
+              (case apply (k1, x1) of
                 NONE =>
-                  (case get mid of
+                  (case get_bounded mid k2 of
                     NONE =>
-                      (case check q of
+                      (case apply (k2, x2) of
                         NONE => get right
                       | some => some)
                   | some => some)
