@@ -26,13 +26,13 @@ sig
   val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
-  val exists: (key * 'a -> bool) -> 'a table -> bool
-  val forall: (key * 'a -> bool) -> 'a table -> bool
-  val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
   val min_key: 'a table -> key option
   val max_key: 'a table -> key option
-  val defined: 'a table -> key -> bool
+  val get_first: key option -> (key * 'a -> 'b option) -> 'a table -> 'b option
+  val exists: (key * 'a -> bool) -> 'a table -> bool
+  val forall: (key * 'a -> bool) -> 'a table -> bool
   val lookup: 'a table -> key -> 'a option
+  val defined: 'a table -> key -> bool
   val update: key * 'a -> 'a table -> 'a table
   val update_new: key * 'a -> 'a table -> 'a table                     (*exception DUP*)
   val default: key * 'a -> 'a table -> 'a table
@@ -114,17 +114,6 @@ fun fold_rev_table f =
 fun dest tab = fold_rev_table cons tab [];
 fun keys tab = fold_rev_table (cons o #1) tab [];
 
-fun get_first f tab =
-  let
-    exception FOUND of 'b option;
-    fun get entry () = (case f entry of NONE => () | some => raise FOUND some);
-  in (fold_table get tab (); NONE) handle FOUND res => res end;
-
-fun exists pred =
-  is_some o get_first (fn entry => if pred entry then SOME () else NONE);
-
-fun forall pred = not o exists (not o pred);
-
 
 (* min/max keys *)
 
@@ -139,6 +128,45 @@ fun max_key Empty = NONE
   | max_key (Branch3 (_, _, _, (k, _), Empty)) = SOME k
   | max_key (Branch2 (_, _, right)) = max_key right
   | max_key (Branch3 (_, _, _, _, right)) = max_key right;
+
+
+(* get_first *)
+
+fun get_first boundary f tab =
+  let
+    val check =
+      (case boundary of
+        NONE => (fn p => f p)
+      | SOME b => (fn p as (k, _) =>
+          (case Key.ord (b, k) of GREATER => f p | _ => NONE)));
+
+    fun get Empty = NONE
+      | get (Branch2 (left, p, right)) =
+          (case get left of
+            NONE =>
+              (case check p of
+                NONE => get right
+              | some => some)
+          | some => some)
+      | get (Branch3 (left, p, mid, q, right)) =
+          (case get left of
+            NONE =>
+              (case check p of
+                NONE =>
+                  (case get mid of
+                    NONE =>
+                      (case check q of
+                        NONE => get right
+                      | some => some)
+                  | some => some)
+              | some => some)
+          | some => some);
+  in get tab end;
+
+fun exists pred =
+  is_some o get_first NONE (fn entry => if pred entry then SOME () else NONE);
+
+fun forall pred = not o exists (not o pred);
 
 
 (* lookup *)
