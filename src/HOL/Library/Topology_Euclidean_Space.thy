@@ -5168,59 +5168,64 @@ lemma continuous_on_dot:
   using continuous_at_dot
   by auto
 
+lemma continuous_on_inner:
+  fixes s :: "(real ^ _) set"
+  shows "continuous_on s (inner a)"
+  unfolding continuous_on by (rule ballI) (intro tendsto_intros)
+
 lemma closed_halfspace_le: fixes a::"real^'n::finite"
-  shows "closed {x. a \<bullet> x \<le> b}"
+  shows "closed {x. inner a x \<le> b}"
 proof-
-  have *:"{x \<in> UNIV. (op \<bullet> a) x \<in> {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}} = {x. a \<bullet> x \<le> b}" by auto
+  have *:"{x \<in> UNIV. inner a x \<in> {r. \<exists>x. inner a x = r \<and> r \<le> b}} = {x. inner a x \<le> b}" by auto
   let ?T = "{..b}"
   have "closed ?T" by (rule closed_real_atMost)
-  moreover have "{r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (op \<bullet> a) \<inter> ?T"
+  moreover have "{r. \<exists>x. inner a x = r \<and> r \<le> b} = range (inner a) \<inter> ?T"
     unfolding image_def by auto
-  ultimately have "\<exists>T. closed T \<and> {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (op \<bullet> a) \<inter> T" by fast
-  hence "closedin euclidean {x \<in> UNIV. (op \<bullet> a) x \<in> {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}}"
-    using continuous_on_dot[of UNIV a, unfolded continuous_on_closed subtopology_UNIV] unfolding closedin_closed
-    by (fast elim!: allE[where x="{r. (\<exists>x. a \<bullet> x = r \<and> r \<le> b)}"])
+  ultimately have "\<exists>T. closed T \<and> {r. \<exists>x. inner a x = r \<and> r \<le> b} = range (inner a) \<inter> T" by fast
+  hence "closedin euclidean {x \<in> UNIV. inner a x \<in> {r. \<exists>x. inner a x = r \<and> r \<le> b}}"
+    using continuous_on_inner[of UNIV a, unfolded continuous_on_closed subtopology_UNIV] unfolding closedin_closed
+    by (fast elim!: allE[where x="{r. (\<exists>x. inner a x = r \<and> r \<le> b)}"])
   thus ?thesis unfolding closed_closedin[THEN sym] and * by auto
 qed
 
-lemma closed_halfspace_ge: "closed {x::real^_. a \<bullet> x \<ge> b}"
-  using closed_halfspace_le[of "-a" "-b"] unfolding dot_lneg by auto
+lemma closed_halfspace_ge: "closed {x::real^_. inner a x \<ge> b}"
+  using closed_halfspace_le[of "-a" "-b"] unfolding inner_minus_left by auto
 
-lemma closed_hyperplane: "closed {x::real^_. a \<bullet> x = b}"
+lemma closed_hyperplane: "closed {x::real^_. inner a x = b}"
 proof-
-  have "{x. a \<bullet> x = b} = {x. a \<bullet> x \<ge> b} \<inter> {x. a \<bullet> x \<le> b}" by auto
+  have "{x. inner a x = b} = {x. inner a x \<ge> b} \<inter> {x. inner a x \<le> b}" by auto
   thus ?thesis using closed_halfspace_le[of a b] and closed_halfspace_ge[of b a] using closed_Int by auto
 qed
 
 lemma closed_halfspace_component_le:
   shows "closed {x::real^'n::finite. x$i \<le> a}"
-  using closed_halfspace_le[of "(basis i)::real^'n" a] unfolding dot_basis[OF assms] by auto
+  using closed_halfspace_le[of "(basis i)::real^'n" a] unfolding inner_basis[OF assms] by auto
 
 lemma closed_halfspace_component_ge:
   shows "closed {x::real^'n::finite. x$i \<ge> a}"
-  using closed_halfspace_ge[of a "(basis i)::real^'n"] unfolding dot_basis[OF assms] by auto
+  using closed_halfspace_ge[of a "(basis i)::real^'n"] unfolding inner_basis[OF assms] by auto
 
 text{* Openness of halfspaces.                                                   *}
 
-lemma open_halfspace_lt: "open {x::real^_. a \<bullet> x < b}"
+lemma open_halfspace_lt: "open {x::real^_. inner a x < b}"
 proof-
-  have "UNIV - {x. b \<le> a \<bullet> x} = {x. a \<bullet> x < b}" by auto
+  have "UNIV - {x. b \<le> inner a x} = {x. inner a x < b}" by auto
   thus ?thesis using closed_halfspace_ge[unfolded closed_def Compl_eq_Diff_UNIV, of b a] by auto
 qed
 
-lemma open_halfspace_gt: "open {x::real^_. a \<bullet> x > b}"
+lemma open_halfspace_gt: "open {x::real^_. inner a x > b}"
 proof-
-  have "UNIV - {x. b \<ge> a \<bullet> x} = {x. a \<bullet> x > b}" by auto
+  have "UNIV - {x. b \<ge> inner a x} = {x. inner a x > b}" by auto
   thus ?thesis using closed_halfspace_le[unfolded closed_def Compl_eq_Diff_UNIV, of a b] by auto
 qed
 
 lemma open_halfspace_component_lt:
   shows "open {x::real^'n::finite. x$i < a}"
-  using open_halfspace_lt[of "(basis i)::real^'n" a] unfolding dot_basis[OF assms] by auto
+  using open_halfspace_lt[of "(basis i)::real^'n" a] unfolding inner_basis[OF assms] by auto
 
 lemma open_halfspace_component_gt:
   shows "open {x::real^'n::finite. x$i  > a}"
-  using open_halfspace_gt[of a "(basis i)::real^'n"] unfolding dot_basis[OF assms] by auto
+  using open_halfspace_gt[of a "(basis i)::real^'n"] unfolding inner_basis[OF assms] by auto
 
 text{* This gives a simple derivation of limit component bounds.                 *}
 
@@ -5228,8 +5233,8 @@ lemma Lim_component_le: fixes f :: "'a \<Rightarrow> real^'n::finite"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$i \<le> b) net"
   shows "l$i \<le> b"
 proof-
-  { fix x have "x \<in> {x::real^'n. basis i \<bullet> x \<le> b} \<longleftrightarrow> x$i \<le> b" unfolding dot_basis by auto } note * = this
-  show ?thesis using Lim_in_closed_set[of "{x. basis i \<bullet> x \<le> b}" f net l] unfolding *
+  { fix x have "x \<in> {x::real^'n. inner (basis i) x \<le> b} \<longleftrightarrow> x$i \<le> b" unfolding inner_basis by auto } note * = this
+  show ?thesis using Lim_in_closed_set[of "{x. inner (basis i) x \<le> b}" f net l] unfolding *
     using closed_halfspace_le[of "(basis i)::real^'n" b] and assms(1,2,3) by auto
 qed
 
@@ -5237,8 +5242,8 @@ lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> real^'n::finite"
   assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$i) net"
   shows "b \<le> l$i"
 proof-
-  { fix x have "x \<in> {x::real^'n. basis i \<bullet> x \<ge> b} \<longleftrightarrow> x$i \<ge> b" unfolding dot_basis by auto } note * = this
-  show ?thesis using Lim_in_closed_set[of "{x. basis i \<bullet> x \<ge> b}" f net l] unfolding *
+  { fix x have "x \<in> {x::real^'n. inner (basis i) x \<ge> b} \<longleftrightarrow> x$i \<ge> b" unfolding inner_basis by auto } note * = this
+  show ?thesis using Lim_in_closed_set[of "{x. inner (basis i) x \<ge> b}" f net l] unfolding *
     using closed_halfspace_ge[of b "(basis i)::real^'n"] and assms(1,2,3) by auto
 qed
 
@@ -5293,12 +5298,12 @@ qed
 text{* Some more convenient intermediate-value theorem formulations.             *}
 
 lemma connected_ivt_hyperplane: fixes y :: "real^'n::finite"
-  assumes "connected s" "x \<in> s" "y \<in> s" "a \<bullet> x \<le> b" "b \<le> a \<bullet> y"
-  shows "\<exists>z \<in> s. a \<bullet> z = b"
+  assumes "connected s" "x \<in> s" "y \<in> s" "inner a x \<le> b" "b \<le> inner a y"
+  shows "\<exists>z \<in> s. inner a z = b"
 proof(rule ccontr)
-  assume as:"\<not> (\<exists>z\<in>s. a \<bullet> z = b)"
-  let ?A = "{x::real^'n. a \<bullet> x < b}"
-  let ?B = "{x::real^'n. a \<bullet> x > b}"
+  assume as:"\<not> (\<exists>z\<in>s. inner a z = b)"
+  let ?A = "{x::real^'n. inner a x < b}"
+  let ?B = "{x::real^'n. inner a x > b}"
   have "open ?A" "open ?B" using open_halfspace_lt and open_halfspace_gt by auto
   moreover have "?A \<inter> ?B = {}" by auto
   moreover have "s \<subseteq> ?A \<union> ?B" using as by auto
@@ -5307,7 +5312,7 @@ qed
 
 lemma connected_ivt_component: fixes x::"real^'n::finite" shows
  "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$k \<le> a \<Longrightarrow> a \<le> y$k \<Longrightarrow> (\<exists>z\<in>s.  z$k = a)"
-  using connected_ivt_hyperplane[of s x y "(basis k)::real^'n" a] by (auto simp add: dot_basis)
+  using connected_ivt_hyperplane[of s x y "(basis k)::real^'n" a] by (auto simp add: inner_basis)
 
 text{* Also more convenient formulations of monotone convergence.                *}
 
@@ -5594,16 +5599,16 @@ lemma closed_substandard:
  "closed {x::real^'n::finite. \<forall>i. P i --> x$i = 0}" (is "closed ?A")
 proof-
   let ?D = "{i. P i}"
-  let ?Bs = "{{x::real^'n. basis i \<bullet> x = 0}| i. i \<in> ?D}"
+  let ?Bs = "{{x::real^'n. inner (basis i) x = 0}| i. i \<in> ?D}"
   { fix x
     { assume "x\<in>?A"
       hence x:"\<forall>i\<in>?D. x $ i = 0" by auto
-      hence "x\<in> \<Inter> ?Bs" by(auto simp add: dot_basis x) }
+      hence "x\<in> \<Inter> ?Bs" by(auto simp add: inner_basis x) }
     moreover
     { assume x:"x\<in>\<Inter>?Bs"
       { fix i assume i:"i \<in> ?D"
-	then obtain B where BB:"B \<in> ?Bs" and B:"B = {x::real^'n. basis i \<bullet> x = 0}" by auto
-	hence "x $ i = 0" unfolding B using x unfolding dot_basis by auto  }
+	then obtain B where BB:"B \<in> ?Bs" and B:"B = {x::real^'n. inner (basis i) x = 0}" by auto
+	hence "x $ i = 0" unfolding B using x unfolding inner_basis by auto  }
       hence "x\<in>?A" by auto }
     ultimately have "x\<in>?A \<longleftrightarrow> x\<in> \<Inter>?Bs" by auto }
   hence "?A = \<Inter> ?Bs" by auto

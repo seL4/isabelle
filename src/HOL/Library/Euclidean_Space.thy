@@ -750,7 +750,7 @@ subsection {* Norms *}
 instantiation "^" :: (real_normed_vector, finite) real_normed_vector
 begin
 
-definition vector_norm_def:
+definition norm_vector_def:
   "norm (x::'a^'b) = setL2 (\<lambda>i. norm (x$i)) UNIV"
 
 definition vector_sgn_def:
@@ -759,30 +759,30 @@ definition vector_sgn_def:
 instance proof
   fix a :: real and x y :: "'a ^ 'b"
   show "0 \<le> norm x"
-    unfolding vector_norm_def
+    unfolding norm_vector_def
     by (rule setL2_nonneg)
   show "norm x = 0 \<longleftrightarrow> x = 0"
-    unfolding vector_norm_def
+    unfolding norm_vector_def
     by (simp add: setL2_eq_0_iff Cart_eq)
   show "norm (x + y) \<le> norm x + norm y"
-    unfolding vector_norm_def
+    unfolding norm_vector_def
     apply (rule order_trans [OF _ setL2_triangle_ineq])
     apply (simp add: setL2_mono norm_triangle_ineq)
     done
   show "norm (scaleR a x) = \<bar>a\<bar> * norm x"
-    unfolding vector_norm_def
+    unfolding norm_vector_def
     by (simp add: setL2_right_distrib)
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule vector_sgn_def)
   show "dist x y = norm (x - y)"
-    unfolding dist_vector_def vector_norm_def
+    unfolding dist_vector_def norm_vector_def
     by (simp add: dist_norm)
 qed
 
 end
 
 lemma norm_nth_le: "norm (x $ i) \<le> norm x"
-unfolding vector_norm_def
+unfolding norm_vector_def
 by (rule member_le_setL2) simp_all
 
 interpretation Cart_nth: bounded_linear "\<lambda>x. x $ i"
@@ -799,28 +799,28 @@ subsection {* Inner products *}
 instantiation "^" :: (real_inner, finite) real_inner
 begin
 
-definition vector_inner_def:
+definition inner_vector_def:
   "inner x y = setsum (\<lambda>i. inner (x$i) (y$i)) UNIV"
 
 instance proof
   fix r :: real and x y z :: "'a ^ 'b"
   show "inner x y = inner y x"
-    unfolding vector_inner_def
+    unfolding inner_vector_def
     by (simp add: inner_commute)
   show "inner (x + y) z = inner x z + inner y z"
-    unfolding vector_inner_def
+    unfolding inner_vector_def
     by (simp add: inner_add_left setsum_addf)
   show "inner (scaleR r x) y = r * inner x y"
-    unfolding vector_inner_def
+    unfolding inner_vector_def
     by (simp add: setsum_right_distrib)
   show "0 \<le> inner x x"
-    unfolding vector_inner_def
+    unfolding inner_vector_def
     by (simp add: setsum_nonneg)
   show "inner x x = 0 \<longleftrightarrow> x = 0"
-    unfolding vector_inner_def
+    unfolding inner_vector_def
     by (simp add: Cart_eq setsum_nonneg_eq_0_iff)
   show "norm x = sqrt (inner x x)"
-    unfolding vector_inner_def vector_norm_def setL2_def
+    unfolding inner_vector_def norm_vector_def setL2_def
     by (simp add: power2_norm_eq_inner)
 qed
 
@@ -878,7 +878,7 @@ lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x.
   done
 
 lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
-  by (simp add: vector_norm_def UNIV_1)
+  by (simp add: norm_vector_def UNIV_1)
 
 lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
   by (simp add: norm_vector_1)
@@ -997,12 +997,12 @@ lemma norm_0: "norm (0::real ^ _) = 0"
   by (rule norm_zero)
 
 lemma norm_mul[simp]: "norm(a *s x) = abs(a) * norm x"
-  by (simp add: vector_norm_def vector_component setL2_right_distrib
+  by (simp add: norm_vector_def vector_component setL2_right_distrib
            abs_mult cong: strong_setL2_cong)
 lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (x \<bullet> x = (0::real))"
-  by (simp add: vector_norm_def dot_def setL2_def power2_eq_square)
+  by (simp add: norm_vector_def dot_def setL2_def power2_eq_square)
 lemma real_vector_norm_def: "norm x = sqrt (x \<bullet> x)"
-  by (simp add: vector_norm_def setL2_def dot_def power2_eq_square)
+  by (simp add: norm_vector_def setL2_def dot_def power2_eq_square)
 lemma norm_pow_2: "norm x ^ 2 = x \<bullet> x"
   by (simp add: real_vector_norm_def)
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n::finite)" by (metis norm_eq_zero)
@@ -1078,7 +1078,7 @@ proof-
 qed
 
 lemma component_le_norm: "\<bar>x$i\<bar> <= norm (x::real ^ 'n::finite)"
-  apply (simp add: vector_norm_def)
+  apply (simp add: norm_vector_def)
   apply (rule member_le_setL2, simp_all)
   done
 
@@ -1091,7 +1091,7 @@ lemma norm_bound_component_lt: "norm(x::real ^ 'n::finite) < e
   by (metis component_le_norm basic_trans_rules(21))
 
 lemma norm_le_l1: "norm (x:: real ^'n::finite) <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
-  by (simp add: vector_norm_def setL2_le_setsum)
+  by (simp add: norm_vector_def setL2_le_setsum)
 
 lemma real_abs_norm: "\<bar>norm x\<bar> = norm (x :: real ^ _)"
   by (rule abs_norm_cancel)
@@ -1535,6 +1535,13 @@ lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
 lemma dot_basis:
   shows "basis i \<bullet> x = x$i" "x \<bullet> (basis i :: 'a^'n::finite) = (x$i :: 'a::semiring_1)"
   by (auto simp add: dot_def basis_def cond_application_beta  cond_value_iff setsum_delta cong del: if_weak_cong)
+
+lemma inner_basis:
+  fixes x :: "'a::{real_inner, real_algebra_1} ^ 'n::finite"
+  shows "inner (basis i) x = inner 1 (x $ i)"
+    and "inner x (basis i) = inner (x $ i) 1"
+  unfolding inner_vector_def basis_def
+  by (auto simp add: cond_application_beta  cond_value_iff setsum_delta cong del: if_weak_cong)
 
 lemma basis_eq_0: "basis i = (0::'a::semiring_1^'n) \<longleftrightarrow> False"
   by (auto simp add: Cart_eq)
@@ -2931,7 +2938,7 @@ apply (simp add: add_nonneg_nonneg x y)
 done
 
 lemma norm_pastecart: "norm (pastecart x y) <= norm x + norm y"
-  unfolding vector_norm_def setL2_def setsum_UNIV_sum
+  unfolding norm_vector_def setL2_def setsum_UNIV_sum
   by (simp add: sqrt_add_le_add_sqrt setsum_nonneg)
 
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}

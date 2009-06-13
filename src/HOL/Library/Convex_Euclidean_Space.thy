@@ -384,28 +384,28 @@ lemma convex_Inter: "(\<forall>s\<in>f. convex s) ==> convex(\<Inter> f)"
 lemma convex_Int: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<inter> t)"
   unfolding convex_def by auto
 
-lemma convex_halfspace_le: "convex {x. a \<bullet> x \<le> b}"
+lemma convex_halfspace_le: "convex {x. inner a x \<le> b}"
   unfolding convex_def apply auto
-  unfolding dot_radd dot_rmult [where 'a=real, unfolded smult_conv_scaleR]
+  unfolding inner_add inner_scaleR
   by (metis real_convex_bound_le)
 
-lemma convex_halfspace_ge: "convex {x. a \<bullet> x \<ge> b}"
-proof- have *:"{x. a \<bullet> x \<ge> b} = {x. -a \<bullet> x \<le> -b}" by auto
+lemma convex_halfspace_ge: "convex {x. inner a x \<ge> b}"
+proof- have *:"{x. inner a x \<ge> b} = {x. inner (-a) x \<le> -b}" by auto
   show ?thesis apply(unfold *) using convex_halfspace_le[of "-a" "-b"] by auto qed
 
-lemma convex_hyperplane: "convex {x. a \<bullet> x = b}"
+lemma convex_hyperplane: "convex {x. inner a x = b}"
 proof-
-  have *:"{x. a \<bullet> x = b} = {x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x \<ge> b}" by auto
+  have *:"{x. inner a x = b} = {x. inner a x \<le> b} \<inter> {x. inner a x \<ge> b}" by auto
   show ?thesis unfolding * apply(rule convex_Int)
     using convex_halfspace_le convex_halfspace_ge by auto
 qed
 
-lemma convex_halfspace_lt: "convex {x. a \<bullet> x < b}"
+lemma convex_halfspace_lt: "convex {x. inner a x < b}"
   unfolding convex_def
-  by(auto simp add: real_convex_bound_lt dot_radd dot_rmult [where 'a=real, unfolded smult_conv_scaleR])
+  by(auto simp add: real_convex_bound_lt inner_add)
 
-lemma convex_halfspace_gt: "convex {x. a \<bullet> x > b}"
-   using convex_halfspace_lt[of "-a" "-b"] by(auto simp add: dot_lneg neg_less_iff_less)
+lemma convex_halfspace_gt: "convex {x. inner a x > b}"
+   using convex_halfspace_lt[of "-a" "-b"] by auto
 
 lemma convex_positive_orthant: "convex {x::real^'n::finite. (\<forall>i. 0 \<le> x$i)}"
   unfolding convex_def apply auto apply(erule_tac x=i in allE)+
@@ -1360,16 +1360,16 @@ lemma dist_increases_online:
   fixes a b d :: "real ^ 'n::finite"
   assumes "d \<noteq> 0"
   shows "dist a (b + d) > dist a b \<or> dist a (b - d) > dist a b"
-proof(cases "a \<bullet> d - b \<bullet> d > 0")
-  case True hence "0 < d \<bullet> d + (a \<bullet> d * 2 - b \<bullet> d * 2)" 
+proof(cases "inner a d - inner b d > 0")
+  case True hence "0 < inner d d + (inner a d * 2 - inner b d * 2)" 
     apply(rule_tac add_pos_pos) using assms by auto
-  thus ?thesis apply(rule_tac disjI2) unfolding dist_norm and real_vector_norm_def and real_sqrt_less_iff
-    by(simp add: dot_rsub dot_radd dot_lsub dot_ladd dot_sym field_simps)
+  thus ?thesis apply(rule_tac disjI2) unfolding dist_norm and norm_eq_sqrt_inner and real_sqrt_less_iff
+    by (simp add: algebra_simps inner_commute)
 next
-  case False hence "0 < d \<bullet> d + (b \<bullet> d * 2 - a \<bullet> d * 2)" 
+  case False hence "0 < inner d d + (inner b d * 2 - inner a d * 2)" 
     apply(rule_tac add_pos_nonneg) using assms by auto
-  thus ?thesis apply(rule_tac disjI1) unfolding dist_norm and real_vector_norm_def and real_sqrt_less_iff
-    by(simp add: dot_rsub dot_radd dot_lsub dot_ladd dot_sym field_simps)
+  thus ?thesis apply(rule_tac disjI1) unfolding dist_norm and norm_eq_sqrt_inner and real_sqrt_less_iff
+    by (simp add: algebra_simps inner_commute)
 qed
 
 lemma norm_increases_online:
@@ -1504,19 +1504,27 @@ lemma closest_point_refl:
  "closed s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> (closest_point s x = x \<longleftrightarrow> x \<in> s)"
   using closest_point_in_set[of s x] closest_point_self[of x s] by auto
 
+(* TODO: move *)
+lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
+  unfolding norm_eq_sqrt_inner by simp
+
+(* TODO: move *)
+lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> inner x x \<le> inner y y"
+  unfolding norm_eq_sqrt_inner by simp
+
 lemma closer_points_lemma: fixes y::"real^'n::finite"
-  assumes "y \<bullet> z > 0"
+  assumes "inner y z > 0"
   shows "\<exists>u>0. \<forall>v>0. v \<le> u \<longrightarrow> norm(v *\<^sub>R z - y) < norm y"
-proof- have z:"z \<bullet> z > 0" unfolding dot_pos_lt using assms by auto
-  thus ?thesis using assms apply(rule_tac x="(y \<bullet> z) / (z \<bullet> z)" in exI) apply(rule) defer proof(rule+)
-    fix v assume "0<v" "v \<le> y \<bullet> z / (z \<bullet> z)"
+proof- have z:"inner z z > 0" unfolding inner_gt_zero_iff using assms by auto
+  thus ?thesis using assms apply(rule_tac x="inner y z / inner z z" in exI) apply(rule) defer proof(rule+)
+    fix v assume "0<v" "v \<le> inner y z / inner z z"
     thus "norm (v *\<^sub>R z - y) < norm y" unfolding norm_lt using z and assms
-      by (simp add: field_simps dot_sym  mult_strict_left_mono[OF _ `0<v`] dot_rmult [where 'a=real, unfolded smult_conv_scaleR])
+      by (simp add: field_simps inner_diff inner_commute mult_strict_left_mono[OF _ `0<v`])
   qed(rule divide_pos_pos, auto) qed
 
 lemma closer_point_lemma:
   fixes x y z :: "real ^ 'n::finite"
-  assumes "(y - x) \<bullet> (z - x) > 0"
+  assumes "inner (y - x) (z - x) > 0"
   shows "\<exists>u>0. u \<le> 1 \<and> dist (x + u *\<^sub>R (z - x)) y < dist x y"
 proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> norm (v *\<^sub>R (z - x) - (y - x)) < norm (y - x)"
     using closer_points_lemma[OF assms] by auto
@@ -1525,17 +1533,30 @@ proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> nor
 
 lemma any_closest_point_dot:
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s" "\<forall>z\<in>s. dist a x \<le> dist a z"
-  shows "(a - x) \<bullet> (y - x) \<le> 0"
-proof(rule ccontr) assume "\<not> (a - x) \<bullet> (y - x) \<le> 0"
+  shows "inner (a - x) (y - x) \<le> 0"
+proof(rule ccontr) assume "\<not> inner (a - x) (y - x) \<le> 0"
   then obtain u where u:"u>0" "u\<le>1" "dist (x + u *\<^sub>R (y - x)) a < dist x a" using closer_point_lemma[of a x y] by auto
   let ?z = "(1 - u) *\<^sub>R x + u *\<^sub>R y" have "?z \<in> s" using mem_convex[OF assms(1,3,4), of u] using u by auto
   thus False using assms(5)[THEN bspec[where x="?z"]] and u(3) by (auto simp add: dist_commute algebra_simps) qed
+
+(* TODO: move *)
+lemma norm_le_square: "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> inner x x \<le> a\<twosuperior>"
+proof -
+  have "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> norm x \<le> a"
+    using norm_ge_zero [of x] by arith
+  also have "\<dots> \<longleftrightarrow> 0 \<le> a \<and> (norm x)\<twosuperior> \<le> a\<twosuperior>"
+    by (auto intro: power_mono dest: power2_le_imp_le)
+  also have "\<dots> \<longleftrightarrow> 0 \<le> a \<and> inner x x \<le> a\<twosuperior>"
+    unfolding power2_norm_eq_inner ..
+  finally show ?thesis .
+qed
 
 lemma any_closest_point_unique:
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s"
   "\<forall>z\<in>s. dist a x \<le> dist a z" "\<forall>z\<in>s. dist a y \<le> dist a z"
   shows "x = y" using any_closest_point_dot[OF assms(1-4,5)] and any_closest_point_dot[OF assms(1-2,4,3,6)]
-  unfolding norm_pths(1) and norm_le_square by auto
+  unfolding norm_pths(1) and norm_le_square
+  by (auto simp add: algebra_simps)
 
 lemma closest_point_unique:
   assumes "convex s" "closed s" "x \<in> s" "\<forall>z\<in>s. dist a x \<le> dist a z"
@@ -1545,7 +1566,7 @@ lemma closest_point_unique:
 
 lemma closest_point_dot:
   assumes "convex s" "closed s" "x \<in> s"
-  shows "(a - closest_point s a) \<bullet> (x - closest_point s a) \<le> 0"
+  shows "inner (a - closest_point s a) (x - closest_point s a) \<le> 0"
   apply(rule any_closest_point_dot[OF assms(1,2) _ assms(3)])
   using closest_point_exists[OF assms(2)] and assms(3) by auto
 
@@ -1560,13 +1581,13 @@ lemma closest_point_lipschitz:
   assumes "convex s" "closed s" "s \<noteq> {}"
   shows "dist (closest_point s x) (closest_point s y) \<le> dist x y"
 proof-
-  have "(x - closest_point s x) \<bullet> (closest_point s y - closest_point s x) \<le> 0"
-       "(y - closest_point s y) \<bullet> (closest_point s x - closest_point s y) \<le> 0"
+  have "inner (x - closest_point s x) (closest_point s y - closest_point s x) \<le> 0"
+       "inner (y - closest_point s y) (closest_point s x - closest_point s y) \<le> 0"
     apply(rule_tac[!] any_closest_point_dot[OF assms(1-2)])
     using closest_point_exists[OF assms(2-3)] by auto
   thus ?thesis unfolding dist_norm and norm_le
-    using dot_pos_le[of "(x - closest_point s x) - (y - closest_point s y)"]
-    by (auto simp add: dot_sym dot_ladd dot_radd) qed
+    using inner_ge_zero[of "(x - closest_point s x) - (y - closest_point s y)"]
+    by (simp add: inner_add inner_diff inner_commute) qed
 
 lemma continuous_at_closest_point:
   assumes "convex s" "closed s" "s \<noteq> {}"
@@ -1583,50 +1604,50 @@ subsection {* Various point-to-set separating/supporting hyperplane theorems. *}
 
 lemma supporting_hyperplane_closed_point:
   assumes "convex s" "closed s" "s \<noteq> {}" "z \<notin> s"
-  shows "\<exists>a b. \<exists>y\<in>s. a \<bullet> z < b \<and> (a \<bullet> y = b) \<and> (\<forall>x\<in>s. a \<bullet> x \<ge> b)"
+  shows "\<exists>a b. \<exists>y\<in>s. inner a z < b \<and> (inner a y = b) \<and> (\<forall>x\<in>s. inner a x \<ge> b)"
 proof-
   from distance_attains_inf[OF assms(2-3)] obtain y where "y\<in>s" and y:"\<forall>x\<in>s. dist z y \<le> dist z x" by auto
-  show ?thesis apply(rule_tac x="y - z" in exI, rule_tac x="(y - z) \<bullet> y" in exI, rule_tac x=y in bexI)
+  show ?thesis apply(rule_tac x="y - z" in exI, rule_tac x="inner (y - z) y" in exI, rule_tac x=y in bexI)
     apply rule defer apply rule defer apply(rule, rule ccontr) using `y\<in>s` proof-
-    show "(y - z) \<bullet> z < (y - z) \<bullet> y" apply(subst diff_less_iff(1)[THEN sym])
-      unfolding dot_rsub[THEN sym] and dot_pos_lt using `y\<in>s` `z\<notin>s` by auto
+    show "inner (y - z) z < inner (y - z) y" apply(subst diff_less_iff(1)[THEN sym])
+      unfolding inner_diff_right[THEN sym] and inner_gt_zero_iff using `y\<in>s` `z\<notin>s` by auto
   next
     fix x assume "x\<in>s" have *:"\<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> dist z y \<le> dist z ((1 - u) *\<^sub>R y + u *\<^sub>R x)"
       using assms(1)[unfolded convex_alt] and y and `x\<in>s` and `y\<in>s` by auto
-    assume "\<not> (y - z) \<bullet> y \<le> (y - z) \<bullet> x" then obtain v where
-      "v>0" "v\<le>1" "dist (y + v *\<^sub>R (x - y)) z < dist y z" using closer_point_lemma[of z y x] by auto
+    assume "\<not> inner (y - z) y \<le> inner (y - z) x" then obtain v where
+      "v>0" "v\<le>1" "dist (y + v *\<^sub>R (x - y)) z < dist y z" using closer_point_lemma[of z y x] apply - by (auto simp add: inner_diff)
     thus False using *[THEN spec[where x=v]] by(auto simp add: dist_commute algebra_simps)
   qed auto
 qed
 
 lemma separating_hyperplane_closed_point:
   assumes "convex s" "closed s" "z \<notin> s"
-  shows "\<exists>a b. a \<bullet> z < b \<and> (\<forall>x\<in>s. a \<bullet> x > b)"
+  shows "\<exists>a b. inner a z < b \<and> (\<forall>x\<in>s. inner a x > b)"
 proof(cases "s={}")
   case True thus ?thesis apply(rule_tac x="-z" in exI, rule_tac x=1 in exI)
-    using less_le_trans[OF _ dot_pos_le[of z]] by auto
+    using less_le_trans[OF _ inner_ge_zero[of z]] by auto
 next
   case False obtain y where "y\<in>s" and y:"\<forall>x\<in>s. dist z y \<le> dist z x"
     using distance_attains_inf[OF assms(2) False] by auto
-  show ?thesis apply(rule_tac x="y - z" in exI, rule_tac x="(y - z) \<bullet> z + (norm(y - z))\<twosuperior> / 2" in exI)
+  show ?thesis apply(rule_tac x="y - z" in exI, rule_tac x="inner (y - z) z + (norm(y - z))\<twosuperior> / 2" in exI)
     apply rule defer apply rule proof-
     fix x assume "x\<in>s"
-    have "\<not> 0 < (z - y) \<bullet> (x - y)" apply(rule_tac notI) proof(drule closer_point_lemma)
+    have "\<not> 0 < inner (z - y) (x - y)" apply(rule_tac notI) proof(drule closer_point_lemma)
       assume "\<exists>u>0. u \<le> 1 \<and> dist (y + u *\<^sub>R (x - y)) z < dist y z"
       then obtain u where "u>0" "u\<le>1" "dist (y + u *\<^sub>R (x - y)) z < dist y z" by auto
       thus False using y[THEN bspec[where x="y + u *\<^sub>R (x - y)"]]
 	using assms(1)[unfolded convex_alt, THEN bspec[where x=y]]
 	using `x\<in>s` `y\<in>s` by (auto simp add: dist_commute algebra_simps) qed
     moreover have "0 < norm (y - z) ^ 2" using `y\<in>s` `z\<notin>s` by auto
-    hence "0 < (y - z) \<bullet> (y - z)" unfolding norm_pow_2 by simp
-    ultimately show "(y - z) \<bullet> z + (norm (y - z))\<twosuperior> / 2 < (y - z) \<bullet> x"
-      unfolding norm_pow_2 and dlo_simps(3) by (auto simp add: field_simps dot_sym)
+    hence "0 < inner (y - z) (y - z)" unfolding power2_norm_eq_inner by simp
+    ultimately show "inner (y - z) z + (norm (y - z))\<twosuperior> / 2 < inner (y - z) x"
+      unfolding power2_norm_eq_inner and not_less by (auto simp add: field_simps inner_commute inner_diff)
   qed(insert `y\<in>s` `z\<notin>s`, auto)
 qed
 
 lemma separating_hyperplane_closed_0:
   assumes "convex (s::(real^'n::finite) set)" "closed s" "0 \<notin> s"
-  shows "\<exists>a b. a \<noteq> 0 \<and> 0 < b \<and> (\<forall>x\<in>s. a \<bullet> x > b)"
+  shows "\<exists>a b. a \<noteq> 0 \<and> 0 < b \<and> (\<forall>x\<in>s. inner a x > b)"
   proof(cases "s={}") guess a using UNIV_witness[where 'a='n] ..
   case True have "norm ((basis a)::real^'n::finite) = 1" 
     using norm_basis and dimindex_ge_1 by auto
@@ -1638,41 +1659,41 @@ subsection {* Now set-to-set for closed/compact sets. *}
 
 lemma separating_hyperplane_closed_compact:
   assumes "convex (s::(real^'n::finite) set)" "closed s" "convex t" "compact t" "t \<noteq> {}" "s \<inter> t = {}"
-  shows "\<exists>a b. (\<forall>x\<in>s. a \<bullet> x < b) \<and> (\<forall>x\<in>t. a \<bullet> x > b)"
+  shows "\<exists>a b. (\<forall>x\<in>s. inner a x < b) \<and> (\<forall>x\<in>t. inner a x > b)"
 proof(cases "s={}")
   case True
   obtain b where b:"b>0" "\<forall>x\<in>t. norm x \<le> b" using compact_imp_bounded[OF assms(4)] unfolding bounded_pos by auto
   obtain z::"real^'n" where z:"norm z = b + 1" using vector_choose_size[of "b + 1"] and b(1) by auto
   hence "z\<notin>t" using b(2)[THEN bspec[where x=z]] by auto
-  then obtain a b where ab:"a \<bullet> z < b" "\<forall>x\<in>t. b < a \<bullet> x"
+  then obtain a b where ab:"inner a z < b" "\<forall>x\<in>t. b < inner a x"
     using separating_hyperplane_closed_point[OF assms(3) compact_imp_closed[OF assms(4)], of z] by auto
   thus ?thesis using True by auto
 next
   case False then obtain y where "y\<in>s" by auto
-  obtain a b where "0 < b" "\<forall>x\<in>{x - y |x y. x \<in> s \<and> y \<in> t}. b < a \<bullet> x"
+  obtain a b where "0 < b" "\<forall>x\<in>{x - y |x y. x \<in> s \<and> y \<in> t}. b < inner a x"
     using separating_hyperplane_closed_point[OF convex_differences[OF assms(1,3)], of 0]
     using closed_compact_differences[OF assms(2,4)] using assms(6) by(auto, blast)
-  hence ab:"\<forall>x\<in>s. \<forall>y\<in>t. b + a \<bullet> y < a \<bullet> x" apply- apply(rule,rule) apply(erule_tac x="x - y" in ballE) by auto
-  def k \<equiv> "rsup ((\<lambda>x. a \<bullet> x) ` t)"
+  hence ab:"\<forall>x\<in>s. \<forall>y\<in>t. b + inner a y < inner a x" apply- apply(rule,rule) apply(erule_tac x="x - y" in ballE) by (auto simp add: inner_diff)
+  def k \<equiv> "rsup ((\<lambda>x. inner a x) ` t)"
   show ?thesis apply(rule_tac x="-a" in exI, rule_tac x="-(k + b / 2)" in exI)
-    apply(rule,rule) defer apply(rule) unfolding dot_lneg and neg_less_iff_less proof-
-    from ab have "((\<lambda>x. a \<bullet> x) ` t) *<= (a \<bullet> y - b)"
+    apply(rule,rule) defer apply(rule) unfolding inner_minus_left and neg_less_iff_less proof-
+    from ab have "((\<lambda>x. inner a x) ` t) *<= (inner a y - b)"
       apply(erule_tac x=y in ballE) apply(rule setleI) using `y\<in>s` by auto
-    hence k:"isLub UNIV ((\<lambda>x. a \<bullet> x) ` t) k" unfolding k_def apply(rule_tac rsup) using assms(5) by auto
-    fix x assume "x\<in>t" thus "a \<bullet> x < (k + b / 2)" using `0<b` and isLubD2[OF k, of "a \<bullet> x"] by auto
+    hence k:"isLub UNIV ((\<lambda>x. inner a x) ` t) k" unfolding k_def apply(rule_tac rsup) using assms(5) by auto
+    fix x assume "x\<in>t" thus "inner a x < (k + b / 2)" using `0<b` and isLubD2[OF k, of "inner a x"] by auto
   next
     fix x assume "x\<in>s" 
-    hence "k \<le> a \<bullet> x - b" unfolding k_def apply(rule_tac rsup_le) using assms(5)
+    hence "k \<le> inner a x - b" unfolding k_def apply(rule_tac rsup_le) using assms(5)
       unfolding setle_def
       using ab[THEN bspec[where x=x]] by auto
-    thus "k + b / 2 < a \<bullet> x" using `0 < b` by auto
+    thus "k + b / 2 < inner a x" using `0 < b` by auto
   qed
 qed
 
 lemma separating_hyperplane_compact_closed:
   assumes "convex s" "compact s" "s \<noteq> {}" "convex t" "closed t" "s \<inter> t = {}"
-  shows "\<exists>a b. (\<forall>x\<in>s. a \<bullet> x < b) \<and> (\<forall>x\<in>t. a \<bullet> x > b)"
-proof- obtain a b where "(\<forall>x\<in>t. a \<bullet> x < b) \<and> (\<forall>x\<in>s. b < a \<bullet> x)"
+  shows "\<exists>a b. (\<forall>x\<in>s. inner a x < b) \<and> (\<forall>x\<in>t. inner a x > b)"
+proof- obtain a b where "(\<forall>x\<in>t. inner a x < b) \<and> (\<forall>x\<in>s. b < inner a x)"
     using separating_hyperplane_closed_compact[OF assms(4-5,1-2,3)] and assms(6) by auto
   thus ?thesis apply(rule_tac x="-a" in exI, rule_tac x="-b" in exI) by auto qed
 
@@ -1680,33 +1701,33 @@ subsection {* General case without assuming closure and getting non-strict separ
 
 lemma separating_hyperplane_set_0:
   assumes "convex s" "(0::real^'n::finite) \<notin> s"
-  shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>x\<in>s. 0 \<le> a \<bullet> x)"
-proof- let ?k = "\<lambda>c. {x::real^'n. 0 \<le> c \<bullet> x}"
+  shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>x\<in>s. 0 \<le> inner a x)"
+proof- let ?k = "\<lambda>c. {x::real^'n. 0 \<le> inner c x}"
   have "frontier (cball 0 1) \<inter> (\<Inter> (?k ` s)) \<noteq> {}"
     apply(rule compact_imp_fip) apply(rule compact_frontier[OF compact_cball])
     defer apply(rule,rule,erule conjE) proof-
     fix f assume as:"f \<subseteq> ?k ` s" "finite f"
     obtain c where c:"f = ?k ` c" "c\<subseteq>s" "finite c" using finite_subset_image[OF as(2,1)] by auto
-    then obtain a b where ab:"a \<noteq> 0" "0 < b"  "\<forall>x\<in>convex hull c. b < a \<bullet> x"
+    then obtain a b where ab:"a \<noteq> 0" "0 < b"  "\<forall>x\<in>convex hull c. b < inner a x"
       using separating_hyperplane_closed_0[OF convex_convex_hull, of c]
       using finite_imp_compact_convex_hull[OF c(3), THEN compact_imp_closed] and assms(2)
       using subset_hull[unfolded mem_def, of convex, OF assms(1), THEN sym, of c] by auto
-    hence "\<exists>x. norm x = 1 \<and> (\<forall>y\<in>c. 0 \<le> y \<bullet> x)" apply(rule_tac x="inverse(norm a) *\<^sub>R a" in exI)
-       using hull_subset[of c convex] unfolding subset_eq and dot_rmult [where 'a=real, unfolded smult_conv_scaleR]
+    hence "\<exists>x. norm x = 1 \<and> (\<forall>y\<in>c. 0 \<le> inner y x)" apply(rule_tac x="inverse(norm a) *\<^sub>R a" in exI)
+       using hull_subset[of c convex] unfolding subset_eq and inner_scaleR
        apply- apply rule defer apply rule apply(rule mult_nonneg_nonneg)
-       by(auto simp add: dot_sym elim!: ballE)
+       by(auto simp add: inner_commute elim!: ballE)
     thus "frontier (cball 0 1) \<inter> \<Inter>f \<noteq> {}" unfolding c(1) frontier_cball dist_norm by auto
   qed(insert closed_halfspace_ge, auto)
   then obtain x where "norm x = 1" "\<forall>y\<in>s. x\<in>?k y" unfolding frontier_cball dist_norm by auto
-  thus ?thesis apply(rule_tac x=x in exI) by(auto simp add: dot_sym) qed
+  thus ?thesis apply(rule_tac x=x in exI) by(auto simp add: inner_commute) qed
 
 lemma separating_hyperplane_sets:
   assumes "convex s" "convex (t::(real^'n::finite) set)" "s \<noteq> {}" "t \<noteq> {}" "s \<inter> t = {}"
-  shows "\<exists>a b. a \<noteq> 0 \<and> (\<forall>x\<in>s. a \<bullet> x \<le> b) \<and> (\<forall>x\<in>t. a \<bullet> x \<ge> b)"
+  shows "\<exists>a b. a \<noteq> 0 \<and> (\<forall>x\<in>s. inner a x \<le> b) \<and> (\<forall>x\<in>t. inner a x \<ge> b)"
 proof- from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
-  obtain a where "a\<noteq>0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> a \<bullet> x"  using assms(3-5) by auto 
-  hence "\<forall>x\<in>t. \<forall>y\<in>s. a \<bullet> y \<le> a \<bullet> x" apply- apply(rule, rule) apply(erule_tac x="x - y" in ballE) by auto
-  thus ?thesis apply(rule_tac x=a in exI, rule_tac x="rsup ((\<lambda>x. a \<bullet> x) ` s)" in exI) using `a\<noteq>0`
+  obtain a where "a\<noteq>0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x"  using assms(3-5) by auto 
+  hence "\<forall>x\<in>t. \<forall>y\<in>s. inner a y \<le> inner a x" apply- apply(rule, rule) apply(erule_tac x="x - y" in ballE) by (auto simp add: inner_diff)
+  thus ?thesis apply(rule_tac x=a in exI, rule_tac x="rsup ((\<lambda>x. inner a x) ` s)" in exI) using `a\<noteq>0`
     apply(rule) apply(rule,rule) apply(rule rsup[THEN isLubD2]) prefer 4 apply(rule,rule rsup_le) unfolding setle_def
     prefer 4 using assms(3-5) by blast+ qed
 
@@ -1769,10 +1790,10 @@ subsection {* Convex set as intersection of halfspaces. *}
 
 lemma convex_halfspace_intersection:
   assumes "closed s" "convex s"
-  shows "s = \<Inter> {h. s \<subseteq> h \<and> (\<exists>a b. h = {x. a \<bullet> x \<le> b})}"
+  shows "s = \<Inter> {h. s \<subseteq> h \<and> (\<exists>a b. h = {x. inner a x \<le> b})}"
   apply(rule set_ext, rule) unfolding Inter_iff Ball_def mem_Collect_eq apply(rule,rule,erule conjE) proof- 
-  fix x  assume "\<forall>xa. s \<subseteq> xa \<and> (\<exists>a b. xa = {x. a \<bullet> x \<le> b}) \<longrightarrow> x \<in> xa"
-  hence "\<forall>a b. s \<subseteq> {x. a \<bullet> x \<le> b} \<longrightarrow> x \<in> {x. a \<bullet> x \<le> b}" by blast
+  fix x  assume "\<forall>xa. s \<subseteq> xa \<and> (\<exists>a b. xa = {x. inner a x \<le> b}) \<longrightarrow> x \<in> xa"
+  hence "\<forall>a b. s \<subseteq> {x. inner a x \<le> b} \<longrightarrow> x \<in> {x. inner a x \<le> b}" by blast
   thus "x\<in>s" apply(rule_tac ccontr) apply(drule separating_hyperplane_closed_point[OF assms(2,1)])
     apply(erule exE)+ apply(erule_tac x="-a" in allE, erule_tac x="-b" in allE) by auto
 qed auto
@@ -2217,10 +2238,10 @@ lemma is_interval_connected_1: "is_interval s \<longleftrightarrow> connected (s
   apply(rule,rule,rule,rule,erule conjE,rule ccontr) proof-
   fix a b x assume as:"connected s" "a \<in> s" "b \<in> s" "dest_vec1 a \<le> dest_vec1 x" "dest_vec1 x \<le> dest_vec1 b" "x\<notin>s"
   hence *:"dest_vec1 a < dest_vec1 x" "dest_vec1 x < dest_vec1 b" apply(rule_tac [!] ccontr) unfolding not_less by auto
-  let ?halfl = "{z. basis 1 \<bullet> z < dest_vec1 x} " and ?halfr = "{z. basis 1 \<bullet> z > dest_vec1 x} "
+  let ?halfl = "{z. inner (basis 1) z < dest_vec1 x} " and ?halfr = "{z. inner (basis 1) z > dest_vec1 x} "
   { fix y assume "y \<in> s" have "y \<in> ?halfr \<union> ?halfl" apply(rule ccontr)
-    using as(6) `y\<in>s` by (auto simp add: basis_component field_simps dest_vec1_eq[unfolded dest_vec1_def One_nat_def] dest_vec1_def) }
-  moreover have "a\<in>?halfl" "b\<in>?halfr" using * by (auto simp add: basis_component field_simps dest_vec1_def) 
+    using as(6) `y\<in>s` by (auto simp add: inner_vector_def dest_vec1_eq [unfolded dest_vec1_def] dest_vec1_def) }
+  moreover have "a\<in>?halfl" "b\<in>?halfr" using * by (auto simp add: inner_vector_def dest_vec1_def)
   hence "?halfl \<inter> s \<noteq> {}" "?halfr \<inter> s \<noteq> {}"  using as(2-3) by auto
   ultimately show False apply(rule_tac notE[OF as(1)[unfolded connected_def]])
     apply(rule_tac x="?halfl" in exI, rule_tac x="?halfr" in exI) 
@@ -2667,8 +2688,8 @@ proof- let ?D = "UNIV::'n set"
     qed(insert as(2)[unfolded **], auto)
   next fix x::"real^'n" assume as:"\<forall>i. 0 \<le> x $ i" "setsum (op $ x) ?D \<le> 1"
     show "\<exists>u. (\<forall>x\<in>{basis i |i. i \<in> ?D}. 0 \<le> u x) \<and> setsum u {basis i |i. i \<in> ?D} \<le> 1 \<and> (\<Sum>x\<in>{basis i |i. i \<in> ?D}. u x *\<^sub>R x) = x"
-      apply(rule_tac x="\<lambda>y. y \<bullet> x" in exI) apply(rule,rule) unfolding mem_Collect_eq apply(erule exE) using as(1) apply(erule_tac x=i in allE) 
-      unfolding sumbas using as(2) and basis_expansion_unique [where 'a=real, unfolded smult_conv_scaleR] by(auto simp add:dot_basis) qed qed 
+      apply(rule_tac x="\<lambda>y. inner y x" in exI) apply(rule,rule) unfolding mem_Collect_eq apply(erule exE) using as(1) apply(erule_tac x=i in allE) 
+      unfolding sumbas using as(2) and basis_expansion_unique [where 'a=real, unfolded smult_conv_scaleR] by(auto simp add:inner_basis) qed qed 
 
 lemma interior_std_simplex:
   "interior (convex hull (insert 0 { basis i| i. i\<in>UNIV})) =
@@ -3203,18 +3224,18 @@ lemma path_connected_punctured_universe:
   obtain \<psi> where \<psi>:"bij_betw \<psi> {1..CARD('n)} (UNIV::'n set)" using ex_bij_betw_nat_finite_1[OF finite_UNIV] by auto
   let ?U = "UNIV::(real^'n) set" let ?u = "?U - {0}"
   let ?basis = "\<lambda>k. basis (\<psi> k)"
-  let ?A = "\<lambda>k. {x::real^'n. \<exists>i\<in>{1..k}. (basis (\<psi> i)) \<bullet> x \<noteq> 0}"
+  let ?A = "\<lambda>k. {x::real^'n. \<exists>i\<in>{1..k}. inner (basis (\<psi> i)) x \<noteq> 0}"
   have "\<forall>k\<in>{2..CARD('n)}. path_connected (?A k)" proof
-    have *:"\<And>k. ?A (Suc k) = {x. ?basis (Suc k) \<bullet> x < 0} \<union> {x. ?basis (Suc k) \<bullet> x > 0} \<union> ?A k" apply(rule set_ext,rule) defer
+    have *:"\<And>k. ?A (Suc k) = {x. inner (?basis (Suc k)) x < 0} \<union> {x. inner (?basis (Suc k)) x > 0} \<union> ?A k" apply(rule set_ext,rule) defer
       apply(erule UnE)+  unfolding mem_Collect_eq apply(rule_tac[1-2] x="Suc k" in bexI)
       by(auto elim!: ballE simp add: not_less le_Suc_eq)
     fix k assume "k \<in> {2..CARD('n)}" thus "path_connected (?A k)" proof(induct k)
       case (Suc k) show ?case proof(cases "k = 1")
 	case False from Suc have d:"k \<in> {1..CARD('n)}" "Suc k \<in> {1..CARD('n)}" by auto
 	hence "\<psi> k \<noteq> \<psi> (Suc k)" using \<psi>[unfolded bij_betw_def inj_on_def, THEN conjunct1, THEN bspec[where x=k]] by auto
-	hence **:"?basis k + ?basis (Suc k) \<in> {x. 0 < ?basis (Suc k) \<bullet> x} \<inter> (?A k)" 
-          "?basis k - ?basis (Suc k) \<in> {x. 0 > ?basis (Suc k) \<bullet> x} \<inter> ({x. 0 < ?basis (Suc k) \<bullet> x} \<union> (?A k))" using d
-	  by(auto simp add: dot_basis vector_component_simps intro!:bexI[where x=k])
+	hence **:"?basis k + ?basis (Suc k) \<in> {x. 0 < inner (?basis (Suc k)) x} \<inter> (?A k)" 
+          "?basis k - ?basis (Suc k) \<in> {x. 0 > inner (?basis (Suc k)) x} \<inter> ({x. 0 < inner (?basis (Suc k)) x} \<union> (?A k))" using d
+	  by(auto simp add: inner_basis vector_component_simps intro!:bexI[where x=k])
 	show ?thesis unfolding * Un_assoc apply(rule path_connected_Un) defer apply(rule path_connected_Un) 
 	  prefer 5 apply(rule_tac[1-2] convex_imp_path_connected, rule convex_halfspace_lt, rule convex_halfspace_gt)
 	  apply(rule Suc(1)) apply(rule_tac[2-3] ccontr) using d ** False by auto
@@ -3227,18 +3248,18 @@ lemma path_connected_punctured_universe:
 	  apply(rule_tac[5] x=" ?basis 1 + ?basis 2" in nequals0I)
 	  apply(rule_tac[6] x="-?basis 1 + ?basis 2" in nequals0I)
 	  apply(rule_tac[7] x="-?basis 1 - ?basis 2" in nequals0I)
-	  using d unfolding *** by(auto intro!: convex_halfspace_gt convex_halfspace_lt, auto simp add:vector_component_simps dot_basis)
+	  using d unfolding *** by(auto intro!: convex_halfspace_gt convex_halfspace_lt, auto simp add:vector_component_simps inner_basis)
   qed qed auto qed note lem = this
 
-  have ***:"\<And>x::real^'n. (\<exists>i\<in>{1..CARD('n)}. basis (\<psi> i) \<bullet> x \<noteq> 0) \<longleftrightarrow> (\<exists>i. basis i \<bullet> x \<noteq> 0)"
+  have ***:"\<And>x::real^'n. (\<exists>i\<in>{1..CARD('n)}. inner (basis (\<psi> i)) x \<noteq> 0) \<longleftrightarrow> (\<exists>i. inner (basis i) x \<noteq> 0)"
     apply rule apply(erule bexE) apply(rule_tac x="\<psi> i" in exI) defer apply(erule exE) proof- 
-    fix x::"real^'n" and i assume as:"basis i \<bullet> x \<noteq> 0"
+    fix x::"real^'n" and i assume as:"inner (basis i) x \<noteq> 0"
     have "i\<in>\<psi> ` {1..CARD('n)}" using \<psi>[unfolded bij_betw_def, THEN conjunct2] by auto
     then obtain j where "j\<in>{1..CARD('n)}" "\<psi> j = i" by auto
-    thus "\<exists>i\<in>{1..CARD('n)}. basis (\<psi> i) \<bullet> x \<noteq> 0" apply(rule_tac x=j in bexI) using as by auto qed auto
+    thus "\<exists>i\<in>{1..CARD('n)}. inner (basis (\<psi> i)) x \<noteq> 0" apply(rule_tac x=j in bexI) using as by auto qed auto
   have *:"?U - {a} = (\<lambda>x. x + a) ` {x. x \<noteq> 0}" apply(rule set_ext) unfolding image_iff 
     apply rule apply(rule_tac x="x - a" in bexI) by auto
-  have **:"\<And>x::real^'n. x\<noteq>0 \<longleftrightarrow> (\<exists>i. basis i \<bullet> x \<noteq> 0)" unfolding Cart_eq by(auto simp add: dot_basis)
+  have **:"\<And>x::real^'n. x\<noteq>0 \<longleftrightarrow> (\<exists>i. inner (basis i) x \<noteq> 0)" unfolding Cart_eq by(auto simp add: inner_basis)
   show ?thesis unfolding * apply(rule path_connected_continuous_image) apply(rule continuous_on_intros)+ 
     unfolding ** apply(rule lem[THEN bspec[where x="CARD('n)"], unfolded ***]) using assms by auto qed
 
