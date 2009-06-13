@@ -7,7 +7,7 @@
   ML_OPTIONS="--mutable 800 --immutable 2000"
 
 
-ISABELLE_HOME_USER=~/isabelle-mac-poly-M4-e
+ISABELLE_HOME_USER=~/isabelle-mac-poly-M4
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
