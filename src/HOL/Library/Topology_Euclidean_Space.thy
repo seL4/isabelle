@@ -1492,29 +1492,19 @@ qed
 text{* It's also sometimes useful to extract the limit point from the net.  *}
 
 definition
-  netlimit :: "'a::metric_space net \<Rightarrow> 'a" where
-  "netlimit net = (SOME a. \<forall>r>0. eventually (\<lambda>x. dist x a < r) net)"
+  netlimit :: "'a::t2_space net \<Rightarrow> 'a" where
+  "netlimit net = (SOME a. ((\<lambda>x. x) ---> a) net)"
 
 lemma netlimit_within:
   assumes "\<not> trivial_limit (at a within S)"
   shows "netlimit (at a within S) = a"
-using assms
-apply (simp add: trivial_limit_within)
-apply (simp add: netlimit_def eventually_within zero_less_dist_iff)
-apply (rule some_equality, fast)
-apply (rename_tac b)
-apply (rule ccontr)
-apply (drule_tac x="dist b a / 2" in spec, drule mp, simp add: dist_nz)
-apply (clarify, rename_tac r)
-apply (simp only: islimpt_approachable)
-apply (drule_tac x="min r (dist b a / 2)" in spec, drule mp, simp add: dist_nz)
-apply (clarify)
-apply (drule_tac x=x' in bspec, simp)
-apply (drule mp, simp)
-apply (subgoal_tac "dist b a < dist b a / 2 + dist b a / 2", simp)
-apply (rule le_less_trans [OF dist_triangle3])
-apply (erule add_strict_mono)
-apply simp
+unfolding netlimit_def
+apply (rule some_equality)
+apply (rule Lim_at_within)
+apply (rule Lim_ident_at)
+apply (erule Lim_unique [OF assms])
+apply (rule Lim_at_within)
+apply (rule Lim_ident_at)
 done
 
 lemma netlimit_at:
@@ -3144,17 +3134,16 @@ qed
 subsection{* Define continuity over a net to take in restrictions of the set. *}
 
 definition
-  continuous :: "'a::metric_space net \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> bool" where
+  continuous :: "'a::t2_space net \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where
   "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
-  (* FIXME: generalize 'b to topological_space *)
 
 lemma continuous_trivial_limit:
  "trivial_limit net ==> continuous net f"
-  unfolding continuous_def tendsto_iff trivial_limit_eq by auto
+  unfolding continuous_def tendsto_def trivial_limit_eq by auto
 
 lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f(x)) (at x within s)"
   unfolding continuous_def
-  unfolding tendsto_iff
+  unfolding tendsto_def
   using netlimit_within[of x s]
   by (cases "trivial_limit (at x within s)") (auto simp add: trivial_limit_eventually)
 
@@ -3162,17 +3151,9 @@ lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (a
   using continuous_within [of x UNIV f] by (simp add: within_UNIV)
 
 lemma continuous_at_within:
-  fixes x :: "'a::perfect_space"
   assumes "continuous (at x) f"  shows "continuous (at x within s) f"
-  (* FIXME: generalize *)
-proof(cases "x islimpt s")
-  case True show ?thesis using assms unfolding continuous_def and netlimit_at
-    using Lim_at_within[of f "f x" "at x" s]
-    unfolding netlimit_within[unfolded trivial_limit_within not_not, OF True] by blast
-next
-  case False thus ?thesis unfolding continuous_def and netlimit_at
-    unfolding Lim and trivial_limit_within by auto
-qed
+  using assms unfolding continuous_at continuous_within
+  by (rule Lim_at_within)
 
 text{* Derive the epsilon-delta forms, which we often use as "definitions" *}
 
@@ -3304,8 +3285,10 @@ lemma continuous_on_eq:
 
 text{* Characterization of various kinds of continuity in terms of sequences.  *}
 
+(* \<longrightarrow> could be generalized, but \<longleftarrow> requires metric space *)
 lemma continuous_within_sequentially:
- "continuous (at a within s) f \<longleftrightarrow>
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows "continuous (at a within s) f \<longleftrightarrow>
                 (\<forall>x. (\<forall>n::nat. x n \<in> s) \<and> (x ---> a) sequentially
                      --> ((f o x) ---> f a) sequentially)" (is "?lhs = ?rhs")
 proof
@@ -3345,7 +3328,8 @@ next
 qed
 
 lemma continuous_at_sequentially:
- "continuous (at a) f \<longleftrightarrow> (\<forall>x. (x ---> a) sequentially
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows "continuous (at a) f \<longleftrightarrow> (\<forall>x. (x ---> a) sequentially
                   --> ((f o x) ---> f a) sequentially)"
   using continuous_within_sequentially[of a UNIV f] unfolding within_UNIV by auto
 
@@ -3445,22 +3429,22 @@ lemma continuous_const: "continuous net (\<lambda>x. c)"
   by (auto simp add: continuous_def Lim_const)
 
 lemma continuous_cmul:
-  fixes f :: "'a::metric_space \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a::t2_space \<Rightarrow> real ^ 'n::finite"
   shows "continuous net f ==> continuous net (\<lambda>x. c *\<^sub>R f x)"
   by (auto simp add: continuous_def Lim_cmul)
 
 lemma continuous_neg:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f ==> continuous net (\<lambda>x. -(f x))"
   by (auto simp add: continuous_def Lim_neg)
 
 lemma continuous_add:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f \<Longrightarrow> continuous net g \<Longrightarrow> continuous net (\<lambda>x. f x + g x)"
   by (auto simp add: continuous_def Lim_add)
 
 lemma continuous_sub:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f \<Longrightarrow> continuous net g \<Longrightarrow> continuous net (\<lambda>x. f x - g x)"
   by (auto simp add: continuous_def Lim_sub)
 
@@ -3547,11 +3531,11 @@ text{* Identity function is continuous in every sense. *}
 
 lemma continuous_within_id:
  "continuous (at a within s) (\<lambda>x. x)"
-  unfolding continuous_within Lim_within by auto
+  unfolding continuous_within by (rule Lim_at_within [OF Lim_ident_at])
 
 lemma continuous_at_id:
  "continuous (at a) (\<lambda>x. x)"
-  unfolding continuous_at Lim_at by auto
+  unfolding continuous_at by (rule Lim_ident_at)
 
 lemma continuous_on_id:
  "continuous_on s (\<lambda>x. x)"
@@ -3564,6 +3548,8 @@ lemma uniformly_continuous_on_id:
 text{* Continuity of all kinds is preserved under composition. *}
 
 lemma continuous_within_compose:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  fixes g :: "'b::metric_space \<Rightarrow> 'c::metric_space"
   assumes "continuous (at x within s) f"   "continuous (at (f x) within f ` s) g"
   shows "continuous (at x within s) (g o f)"
 proof-
@@ -3578,6 +3564,8 @@ proof-
 qed
 
 lemma continuous_at_compose:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  fixes g :: "'b::metric_space \<Rightarrow> 'c::metric_space"
   assumes "continuous (at x) f"  "continuous (at (f x)) g"
   shows "continuous (at x) (g o f)"
 proof-
@@ -3603,7 +3591,8 @@ qed
 text{* Continuity in terms of open preimages. *}
 
 lemma continuous_at_open:
- "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t --> (\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x' \<in> s. (f x') \<in> t)))" (is "?lhs = ?rhs")
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  shows "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t --> (\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x' \<in> s. (f x') \<in> t)))" (is "?lhs = ?rhs")
 proof
   assume ?lhs
   { fix t assume as: "open t" "f x \<in> t"
@@ -3732,11 +3721,13 @@ proof-
 qed
 
 lemma continuous_open_preimage_univ:
-  "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  shows "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
   using continuous_open_preimage[of UNIV f s] open_UNIV continuous_at_imp_continuous_on by auto
 
 lemma continuous_closed_preimage_univ:
-  "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  shows "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
   using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
 
 text{* Equality of continuous functions on closure and related results.          *}
@@ -3782,6 +3773,7 @@ qed
 text{* Making a continuous function avoid some value in a neighbourhood.         *}
 
 lemma continuous_within_avoid:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
   assumes "continuous (at x within s) f"  "x \<in> s"  "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y \<in> s. dist x y < e --> f y \<noteq> a"
 proof-
@@ -3794,6 +3786,7 @@ proof-
 qed
 
 lemma continuous_at_avoid:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
   assumes "continuous (at x) f"  "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
 using assms using continuous_within_avoid[of x UNIV f a, unfolded within_UNIV] by auto
