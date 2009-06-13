@@ -1238,7 +1238,7 @@ qed
 
 text{* Basic arithmetical combining theorems for limits. *}
 
-lemma Lim_linear: fixes f :: "('a \<Rightarrow> real^'n::finite)" and h :: "(real^'n \<Rightarrow> real^'m::finite)"
+lemma Lim_linear:
   assumes "(f ---> l) net" "bounded_linear h"
   shows "((\<lambda>x. h (f x)) ---> h l) net"
 using `bounded_linear h` `(f ---> l) net`
@@ -1251,7 +1251,7 @@ lemma Lim_const: "((\<lambda>x. a) ---> a) net"
   by (rule tendsto_const)
 
 lemma Lim_cmul:
-  fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) net ==> ((\<lambda>x. c *\<^sub>R f x) ---> c *\<^sub>R l) net"
   by (intro tendsto_intros)
 
@@ -1433,7 +1433,6 @@ lemma tendsto_Lim:
 text{* Limit under bilinear function *}
 
 lemma Lim_bilinear:
-  fixes net :: "'a net" and h:: "real ^'m::finite \<Rightarrow> real ^'n::finite \<Rightarrow> real ^'p::finite"
   assumes "(f ---> l) net" and "(g ---> m) net" and "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) ---> (h l m)) net"
 using `bounded_bilinear h` `(f ---> l) net` `(g ---> m) net`
@@ -2062,7 +2061,6 @@ proof(auto simp add: bounded_pos not_le)
 qed
 
 lemma bounded_linear_image:
-  fixes f :: "real^'m::finite \<Rightarrow> real^'n::finite"
   assumes "bounded S" "bounded_linear f"
   shows "bounded(f ` S)"
 proof-
@@ -2078,7 +2076,7 @@ proof-
 qed
 
 lemma bounded_scaling:
-  fixes S :: "(real ^ 'n::finite) set"
+  fixes S :: "'a::real_normed_vector set"
   shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. c *\<^sub>R x) ` S)"
   apply (rule bounded_linear_image, assumption)
   apply (rule scaleR.bounded_linear_right)
@@ -3426,7 +3424,7 @@ lemma continuous_const: "continuous net (\<lambda>x. c)"
   by (auto simp add: continuous_def Lim_const)
 
 lemma continuous_cmul:
-  fixes f :: "'a::t2_space \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f ==> continuous net (\<lambda>x. c *\<^sub>R f x)"
   by (auto simp add: continuous_def Lim_cmul)
 
@@ -3452,7 +3450,7 @@ lemma continuous_on_const:
   unfolding continuous_on_eq_continuous_within using continuous_const by blast
 
 lemma continuous_on_cmul:
-  fixes f :: "'a::metric_space \<Rightarrow> real ^ _"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f ==>  continuous_on s (\<lambda>x. c *\<^sub>R (f x))"
   unfolding continuous_on_eq_continuous_within using continuous_cmul by blast
 
@@ -3480,7 +3478,8 @@ lemma uniformly_continuous_on_const:
   unfolding uniformly_continuous_on_def by simp
 
 lemma uniformly_continuous_on_cmul:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize 'a to metric_space *)
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. c *\<^sub>R f(x))"
 proof-
@@ -3869,7 +3868,7 @@ proof-
 qed
 
 lemma open_affinity:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "open s"  "c \<noteq> 0"
   shows "open ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof-
@@ -4021,7 +4020,7 @@ qed
 
 subsection{* Topological properties of linear functions.                               *}
 
-lemma linear_lim_0: fixes f::"real^'a::finite \<Rightarrow> real^'b::finite"
+lemma linear_lim_0:
   assumes "bounded_linear f" shows "(f ---> 0) (at (0))"
 proof-
   interpret f: bounded_linear f by fact
@@ -4030,44 +4029,34 @@ proof-
   thus ?thesis unfolding f.zero .
 qed
 
-lemma bounded_linear_continuous_at:
+lemma linear_continuous_at:
   assumes "bounded_linear f"  shows "continuous (at a) f"
   unfolding continuous_at using assms
   apply (rule bounded_linear.tendsto)
   apply (rule tendsto_ident_at)
   done
 
-lemma linear_continuous_at:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
-  assumes "bounded_linear f"  shows "continuous (at a) f"
-  using assms by (rule bounded_linear_continuous_at)
-
 lemma linear_continuous_within:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   shows "bounded_linear f ==> continuous (at x within s) f"
   using continuous_at_imp_continuous_within[of x f s] using linear_continuous_at[of f] by auto
 
 lemma linear_continuous_on:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   shows "bounded_linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
 text{* Also bilinear functions, in composition form.                             *}
 
 lemma bilinear_continuous_at_compose:
-  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
   shows "continuous (at x) f \<Longrightarrow> continuous (at x) g \<Longrightarrow> bounded_bilinear h
         ==> continuous (at x) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_at using Lim_bilinear[of f "f x" "(at x)" g "g x" h] by auto
 
 lemma bilinear_continuous_within_compose:
-  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
   shows "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bounded_bilinear h
         ==> continuous (at x within s) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_within using Lim_bilinear[of f "f x"] by auto
 
 lemma bilinear_continuous_on_compose:
-  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> bounded_bilinear h
              ==> continuous_on s (\<lambda>x. h (f x) (g x))"
   unfolding continuous_on_eq_continuous_within apply auto apply(erule_tac x=x in ballE) apply auto apply(erule_tac x=x in ballE) apply auto
@@ -4224,10 +4213,10 @@ qed
 subsection{* We can now extend limit compositions to consider the scalar multiplier.   *}
 
 lemma Lim_mul:
-  fixes f :: "'a \<Rightarrow> real ^ _"
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "(c ---> d) net"  "(f ---> l) net"
   shows "((\<lambda>x. c(x) *\<^sub>R f x) ---> (d *\<^sub>R l)) net"
-  unfolding smult_conv_scaleR using assms by (rule scaleR.tendsto)
+  using assms by (rule scaleR.tendsto)
 
 lemma Lim_vmul:
   fixes c :: "'a \<Rightarrow> real" and v :: "'b::real_normed_vector"
@@ -4358,25 +4347,20 @@ done
 
 text{* Hence some useful properties follow quite easily.                         *}
 
-lemma compact_scaleR_image:
+lemma compact_scaling:
   fixes s :: "'a::real_normed_vector set"
-  assumes "compact s"  shows "compact ((\<lambda>x. scaleR c x) ` s)"
+  assumes "compact s"  shows "compact ((\<lambda>x. c *\<^sub>R x) ` s)"
 proof-
   let ?f = "\<lambda>x. scaleR c x"
   have *:"bounded_linear ?f" by (rule scaleR.bounded_linear_right)
   show ?thesis using compact_continuous_image[of s ?f] continuous_at_imp_continuous_on[of s ?f]
-    using bounded_linear_continuous_at[OF *] assms by auto
+    using linear_continuous_at[OF *] assms by auto
 qed
-
-lemma compact_scaling:
-  fixes s :: "(real ^ _) set"
-  assumes "compact s"  shows "compact ((\<lambda>x. c *\<^sub>R x) ` s)"
-  using assms unfolding smult_conv_scaleR by (rule compact_scaleR_image)
 
 lemma compact_negations:
   fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  shows "compact ((\<lambda>x. -x) ` s)"
-  using compact_scaleR_image [OF assms, of "- 1"] by auto
+  using compact_scaling [OF assms, of "- 1"] by auto
 
 lemma compact_sums:
   fixes s t :: "'a::real_normed_vector set"
@@ -4407,7 +4391,7 @@ proof-
 qed
 
 lemma compact_affinity:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  shows "compact ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof-
   have "op + a ` op *\<^sub>R c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
@@ -4481,9 +4465,9 @@ qed
 
 text{* Related results with closure as the conclusion.                           *}
 
-lemma closed_scaleR_image:
+lemma closed_scaling:
   fixes s :: "'a::real_normed_vector set"
-  assumes "closed s" shows "closed ((\<lambda>x. scaleR c x) ` s)"
+  assumes "closed s" shows "closed ((\<lambda>x. c *\<^sub>R x) ` s)"
 proof(cases "s={}")
   case True thus ?thesis by auto
 next
@@ -4515,15 +4499,10 @@ next
   qed
 qed
 
-lemma closed_scaling:
-  fixes s :: "(real ^ _) set"
-  assumes "closed s" shows "closed ((\<lambda>x. c *\<^sub>R x) ` s)"
-  using assms unfolding smult_conv_scaleR by (rule closed_scaleR_image)
-
 lemma closed_negations:
   fixes s :: "'a::real_normed_vector set"
   assumes "closed s"  shows "closed ((\<lambda>x. -x) ` s)"
-  using closed_scaleR_image[OF assms, of "- 1"] by simp
+  using closed_scaling[OF assms, of "- 1"] by simp
 
 lemma compact_closed_sums:
   fixes s :: "'a::real_normed_vector set"
@@ -5140,24 +5119,12 @@ lemma is_interval_univ:
 
 subsection{* Closure of halfspaces and hyperplanes.                                    *}
 
-lemma Lim_dot: fixes f :: "real^'m \<Rightarrow> real^'n::finite"
-  assumes "(f ---> l) net"  shows "((\<lambda>y. a \<bullet> (f y)) ---> a \<bullet> l) net"
-  unfolding dot_def by (intro tendsto_intros assms)
+lemma Lim_inner:
+  assumes "(f ---> l) net"  shows "((\<lambda>y. inner a (f y)) ---> inner a l) net"
+  by (intro tendsto_intros assms)
 
-lemma continuous_at_dot:
-  fixes x :: "real ^ _"
-  shows "continuous (at x) (\<lambda>y. a \<bullet> y)"
-proof-
-  have "((\<lambda>x. x) ---> x) (at x)" unfolding Lim_at by auto
-  thus ?thesis unfolding continuous_at and o_def using Lim_dot[of "\<lambda>x. x" x "at x" a] by auto
-qed
-
-lemma continuous_on_dot:
-  fixes s :: "(real ^ _) set"
-  shows "continuous_on s (\<lambda>y. a \<bullet> y)"
-  using continuous_at_imp_continuous_on[of s "\<lambda>y. a \<bullet> y"]
-  using continuous_at_dot
-  by auto
+lemma continuous_at_inner: "continuous (at x) (inner a)"
+  unfolding continuous_at by (intro tendsto_intros)
 
 lemma continuous_on_inner:
   fixes s :: "'a::real_inner set"
@@ -5266,7 +5233,7 @@ lemma continuous_on_union:
   using assms unfolding continuous_on unfolding Lim_within_union
   unfolding Lim unfolding trivial_limit_within unfolding closed_limpt by auto
 
-lemma continuous_on_cases: fixes g :: "real^'m::finite \<Rightarrow> real ^'n::finite"
+lemma continuous_on_cases:
   assumes "closed s" "closed t" "continuous_on s f" "continuous_on t g"
           "\<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x"
   shows "continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
@@ -5322,22 +5289,24 @@ definition "homeomorphism s t f g \<equiv>
      (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
      (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
-definition homeomorphic :: "((real^'a::finite) set) \<Rightarrow> ((real^'b::finite) set) \<Rightarrow> bool" (infixr "homeomorphic" 60) where
+definition
+  homeomorphic :: "'a::metric_space set \<Rightarrow> 'b::metric_space set \<Rightarrow> bool"
+    (infixr "homeomorphic" 60) where
   homeomorphic_def: "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
 lemma homeomorphic_refl: "s homeomorphic s"
   unfolding homeomorphic_def
   unfolding homeomorphism_def
   using continuous_on_id
-  apply(rule_tac x = "(\<lambda>x::real^'a.x)" in exI)
-  apply(rule_tac x = "(\<lambda>x::real^'b.x)" in exI)
+  apply(rule_tac x = "(\<lambda>x. x)" in exI)
+  apply(rule_tac x = "(\<lambda>x. x)" in exI)
   by blast
 
 lemma homeomorphic_sym:
  "s homeomorphic t \<longleftrightarrow> t homeomorphic s"
 unfolding homeomorphic_def
 unfolding homeomorphism_def
-by blast
+by blast (* FIXME: slow *)
 
 lemma homeomorphic_trans:
   assumes "s homeomorphic t" "t homeomorphic u" shows "s homeomorphic u"
@@ -5379,7 +5348,8 @@ lemma assumes "inj_on f s" "x\<in>s"
  using assms unfolding inj_on_def inv_on_def by auto
 
 lemma homeomorphism_compact:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
+    (* class constraint due to continuous_on_inverse *)
   assumes "compact s" "continuous_on s f"  "f ` s = t"  "inj_on f s"
   shows "\<exists>g. homeomorphism s t f g"
 proof-
@@ -5406,7 +5376,9 @@ proof-
 qed
 
 lemma homeomorphic_compact:
- "compact s \<Longrightarrow> continuous_on s f \<Longrightarrow> (f ` s = t) \<Longrightarrow> inj_on f s
+  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
+    (* class constraint due to continuous_on_inverse *)
+  shows "compact s \<Longrightarrow> continuous_on s f \<Longrightarrow> (f ` s = t) \<Longrightarrow> inj_on f s
           \<Longrightarrow> s homeomorphic t"
   unfolding homeomorphic_def by(metis homeomorphism_compact)
 
@@ -5420,6 +5392,7 @@ by (metis compact_continuous_image)
 text{* Results on translation, scaling etc.                                      *}
 
 lemma homeomorphic_scaling:
+  fixes s :: "'a::real_normed_vector set"
   assumes "c \<noteq> 0"  shows "s homeomorphic ((\<lambda>x. c *\<^sub>R x) ` s)"
   unfolding homeomorphic_minimal
   apply(rule_tac x="\<lambda>x. c *\<^sub>R x" in exI)
@@ -5428,13 +5401,15 @@ lemma homeomorphic_scaling:
   using continuous_on_cmul[OF continuous_on_id] by auto
 
 lemma homeomorphic_translation:
- "s homeomorphic ((\<lambda>x. a + x) ` s)"
+  fixes s :: "'a::real_normed_vector set"
+  shows "s homeomorphic ((\<lambda>x. a + x) ` s)"
   unfolding homeomorphic_minimal
   apply(rule_tac x="\<lambda>x. a + x" in exI)
   apply(rule_tac x="\<lambda>x. -a + x" in exI)
   using continuous_on_add[OF continuous_on_const continuous_on_id] by auto
 
 lemma homeomorphic_affinity:
+  fixes s :: "'a::real_normed_vector set"
   assumes "c \<noteq> 0"  shows "s homeomorphic ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof-
   have *:"op + a ` op *\<^sub>R c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
@@ -5444,7 +5419,8 @@ proof-
     using homeomorphic_translation[of "(\<lambda>x. c *\<^sub>R x) ` s" a] unfolding * by auto
 qed
 
-lemma homeomorphic_balls: fixes a b ::"real^'a::finite"
+lemma homeomorphic_balls:
+  fixes a b ::"'a::real_normed_vector" (* FIXME: generalize to metric_space *)
   assumes "0 < d"  "0 < e"
   shows "(ball a d) homeomorphic  (ball b e)" (is ?th)
         "(cball a d) homeomorphic (cball b e)" (is ?cth)
