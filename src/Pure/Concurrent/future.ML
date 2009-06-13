@@ -286,7 +286,7 @@ fun join_next pending = (*requires SYNCHRONIZED*)
 fun join_loop name pending =
   (case SYNCHRONIZED name (fn () => join_next pending) of
     NONE => ()
-  | SOME work => (execute name work; join_loop name pending));
+  | SOME work => (execute name work; join_loop name (filter_out is_finished pending)));
 
 in
 
@@ -298,13 +298,6 @@ fun join_results xs =
       val _ = Multithreading.self_critical () andalso
         error "Cannot join future values within critical section";
 
-      fun join_deps _ [] = ()
-        | join_deps name deps =
-            (case SYNCHRONIZED name (fn () =>
-                change_result queue (Task_Queue.dequeue_towards deps)) of
-              NONE => ()
-            | SOME (work, deps') => (execute name work; join_deps name deps'));
-
       val _ =
         (case thread_data () of
           NONE =>
@@ -312,14 +305,13 @@ fun join_results xs =
             while not (forall is_finished xs)
             do SYNCHRONIZED "join_thread" (fn () => wait ())
         | SOME (name, task) =>
-            (*proper task -- actively work towards results*)
+            (*proper task -- continue work*)
             let
               val pending = filter_out is_finished xs;
               val deps = map task_of pending;
               val _ = SYNCHRONIZED "join" (fn () =>
                 (change queue (Task_Queue.depend deps task); notify_all ()));
-              val _ = join_deps ("join_deps: " ^ name) deps;
-              val _ = join_loop ("join_loop: " ^ name) (filter_out is_finished pending);
+              val _ = join_loop ("join_loop: " ^ name) pending;
             in () end);
 
     in map get_result xs end) ();
