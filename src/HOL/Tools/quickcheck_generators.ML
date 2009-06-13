@@ -170,9 +170,9 @@ fun random_aux_primrec eq lthy =
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, eqs2), lthy') = PrimrecPackage.add_primrec_simple
       [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
-    val eq_tac = ALLGOALS Goal.conjunction_tac THEN ALLGOALS (simp_tac rew_ss)
+    val eq_tac = ALLGOALS (simp_tac rew_ss)
       THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
-    val eqs3 = Goal.prove_multi lthy' [v] [] eqs0 (K eq_tac);
+    val eqs3 = map (fn prop => SkipProof.prove lthy' [v] [] prop (K eq_tac)) eqs0;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
@@ -180,7 +180,7 @@ fun random_aux_primrec eq lthy =
            [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)])
       |> (fn thm => thm OF eqs3);
     val tac = ALLGOALS (rtac rule);
-    val simp = Goal.prove lthy' [v] [] eq (K tac);
+    val simp = SkipProof.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
 
 end;
@@ -212,11 +212,11 @@ fun random_aux_primrec_multi prefix [eq] lthy =
         fun prove_eqs aux_simp proj_defs lthy = 
           let
             val proj_simps = map (snd o snd) proj_defs;
-            fun tac { context = ctxt, ... } = ALLGOALS Goal.conjunction_tac
-              THEN ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
+            fun tac { context = ctxt, ... } =
+              ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
               THEN ALLGOALS (simp_tac (HOL_ss addsimps [fst_conv, snd_conv]));
-          in (Goal.prove_multi lthy [v] [] eqs tac, lthy) end;
+          in (map (fn prop => SkipProof.prove lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy
         |> random_aux_primrec aux_eq'
@@ -235,10 +235,9 @@ fun random_aux_specification prefix eqs lthy =
     val proto_eqs = map mk_proto_eq eqs;
     fun prove_simps proto_simps lthy =
       let
-        val ext_simps = map (fn thm => fun_cong OF [fun_cong OF  [thm]]) proto_simps;
-        val tac = ALLGOALS Goal.conjunction_tac
-          THEN ALLGOALS (ProofContext.fact_tac ext_simps);
-      in (Goal.prove_multi lthy vs [] eqs (K tac), lthy) end;
+        val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
+        val tac = ALLGOALS (ProofContext.fact_tac ext_simps);
+      in (map (fn prop => SkipProof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
     val b = Binding.qualify true prefix (Binding.name "simps");
   in
     lthy
@@ -323,6 +322,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
 
 fun mk_random_datatype descr vs tycos (names, auxnames) (Ts, Us) thy =
   let
+    val _ = DatatypeAux.message "Creating quickcheck generators ...";
     val i = @{term "i\<Colon>code_numeral"};
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
     fun mk_size_arg k = case DatatypeCodegen.find_shortest_path descr k
