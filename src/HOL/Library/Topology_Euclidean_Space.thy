@@ -3730,6 +3730,16 @@ lemma continuous_closed_preimage_univ:
   shows "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
   using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
 
+lemma continuous_open_vimage:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  shows "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open (f -` s)"
+  unfolding vimage_def by (rule continuous_open_preimage_univ)
+
+lemma continuous_closed_vimage:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  shows "\<forall>x. continuous (at x) f \<Longrightarrow> closed s \<Longrightarrow> closed (f -` s)"
+  unfolding vimage_def by (rule continuous_closed_preimage_univ)
+
 text{* Equality of continuous functions on closure and related results.          *}
 
 lemma continuous_closed_in_preimage_constant:
@@ -5164,16 +5174,12 @@ lemma continuous_on_inner:
 
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
 proof-
-  have *:"{x \<in> UNIV. inner a x \<in> {r. \<exists>x. inner a x = r \<and> r \<le> b}} = {x. inner a x \<le> b}" by auto
-  let ?T = "{..b}"
-  have "closed ?T" by (rule closed_real_atMost)
-  moreover have "{r. \<exists>x. inner a x = r \<and> r \<le> b} = range (inner a) \<inter> ?T"
-    unfolding image_def by auto
-  ultimately have "\<exists>T. closed T \<and> {r. \<exists>x. inner a x = r \<and> r \<le> b} = range (inner a) \<inter> T" by fast
-  hence "closedin euclidean {x \<in> UNIV. inner a x \<in> {r. \<exists>x. inner a x = r \<and> r \<le> b}}"
-    using continuous_on_inner[of UNIV a, unfolded continuous_on_closed subtopology_UNIV] unfolding closedin_closed
-    by (fast elim!: allE[where x="{r. (\<exists>x. inner a x = r \<and> r \<le> b)}"])
-  thus ?thesis unfolding closed_closedin[THEN sym] and * by auto
+  have "\<forall>x. continuous (at x) (inner a)"
+    unfolding continuous_at by (rule allI) (intro tendsto_intros)
+  hence "closed (inner a -` {..b})"
+    using closed_real_atMost by (rule continuous_closed_vimage)
+  moreover have "{x. inner a x \<le> b} = inner a -` {..b}" by auto
+  ultimately show ?thesis by simp
 qed
 
 lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
