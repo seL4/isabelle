@@ -1239,10 +1239,9 @@ qed
 text{* Basic arithmetical combining theorems for limits. *}
 
 lemma Lim_linear: fixes f :: "('a \<Rightarrow> real^'n::finite)" and h :: "(real^'n \<Rightarrow> real^'m::finite)"
-  assumes "(f ---> l) net" "linear h"
+  assumes "(f ---> l) net" "bounded_linear h"
   shows "((\<lambda>x. h (f x)) ---> h l) net"
-using `linear h` `(f ---> l) net`
-unfolding linear_conv_bounded_linear
+using `bounded_linear h` `(f ---> l) net`
 by (rule bounded_linear.tendsto)
 
 lemma Lim_ident_at: "((\<lambda>x. x) ---> a) (at a)"
@@ -1435,10 +1434,9 @@ text{* Limit under bilinear function *}
 
 lemma Lim_bilinear:
   fixes net :: "'a net" and h:: "real ^'m::finite \<Rightarrow> real ^'n::finite \<Rightarrow> real ^'p::finite"
-  assumes "(f ---> l) net" and "(g ---> m) net" and "bilinear h"
+  assumes "(f ---> l) net" and "(g ---> m) net" and "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) ---> (h l m)) net"
-using `bilinear h` `(f ---> l) net` `(g ---> m) net`
-unfolding bilinear_conv_bounded_bilinear
+using `bounded_bilinear h` `(f ---> l) net` `(g ---> m) net`
 by (rule bounded_bilinear.tendsto)
 
 text{* These are special for limits out of the same vector space. *}
@@ -2065,11 +2063,11 @@ qed
 
 lemma bounded_linear_image:
   fixes f :: "real^'m::finite \<Rightarrow> real^'n::finite"
-  assumes "bounded S" "linear f"
+  assumes "bounded S" "bounded_linear f"
   shows "bounded(f ` S)"
 proof-
   from assms(1) obtain b where b:"b>0" "\<forall>x\<in>S. norm x \<le> b" unfolding bounded_pos by auto
-  from assms(2) obtain B where B:"B>0" "\<forall>x. norm (f x) \<le> B * norm x"  using linear_bounded_pos by auto
+  from assms(2) obtain B where B:"B>0" "\<forall>x. norm (f x) \<le> B * norm x" using bounded_linear.pos_bounded by (auto simp add: mult_ac)
   { fix x assume "x\<in>S"
     hence "norm x \<le> b" using b by auto
     hence "norm (f x) \<le> B * b" using B(2) apply(erule_tac x=x in allE)
@@ -2083,7 +2081,6 @@ lemma bounded_scaling:
   fixes S :: "(real ^ 'n::finite) set"
   shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. c *\<^sub>R x) ` S)"
   apply (rule bounded_linear_image, assumption)
-  apply (simp only: linear_conv_bounded_linear)
   apply (rule scaleR.bounded_linear_right)
   done
 
@@ -4025,58 +4022,53 @@ qed
 subsection{* Topological properties of linear functions.                               *}
 
 lemma linear_lim_0: fixes f::"real^'a::finite \<Rightarrow> real^'b::finite"
-  assumes "linear f" shows "(f ---> 0) (at (0))"
+  assumes "bounded_linear f" shows "(f ---> 0) (at (0))"
 proof-
-  obtain B where "B>0" and B:"\<forall>x. norm (f x) \<le> B * norm x" using linear_bounded_pos[OF assms] by auto
-  { fix e::real assume "e>0"
-    { fix x::"real^'a" assume "norm x < e / B"
-      hence "B * norm x < e" using `B>0` using mult_strict_right_mono[of "norm x" " e / B" B] unfolding real_mult_commute by auto
-      hence "norm (f x) < e" using B[THEN spec[where x=x]] `B>0` using order_le_less_trans[of "norm (f x)" "B * norm x" e] by auto   }
-    moreover have "e / B > 0" using `e>0` `B>0` divide_pos_pos by auto
-    ultimately have "\<exists>d>0. \<forall>x. 0 < dist x 0 \<and> dist x 0 < d \<longrightarrow> dist (f x) 0 < e" unfolding dist_norm by auto  }
-  thus ?thesis unfolding Lim_at by auto
+  interpret f: bounded_linear f by fact
+  have "(f ---> f 0) (at 0)"
+    using tendsto_ident_at by (rule f.tendsto)
+  thus ?thesis unfolding f.zero .
 qed
 
 lemma bounded_linear_continuous_at:
   assumes "bounded_linear f"  shows "continuous (at a) f"
   unfolding continuous_at using assms
   apply (rule bounded_linear.tendsto)
-  apply (rule Lim_at_id [unfolded id_def])
+  apply (rule tendsto_ident_at)
   done
 
 lemma linear_continuous_at:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
-  assumes "linear f"  shows "continuous (at a) f"
-  using assms unfolding linear_conv_bounded_linear
-  by (rule bounded_linear_continuous_at)
+  assumes "bounded_linear f"  shows "continuous (at a) f"
+  using assms by (rule bounded_linear_continuous_at)
 
 lemma linear_continuous_within:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
-  shows "linear f ==> continuous (at x within s) f"
+  shows "bounded_linear f ==> continuous (at x within s) f"
   using continuous_at_imp_continuous_within[of x f s] using linear_continuous_at[of f] by auto
 
 lemma linear_continuous_on:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
-  shows "linear f ==> continuous_on s f"
+  shows "bounded_linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
 text{* Also bilinear functions, in composition form.                             *}
 
 lemma bilinear_continuous_at_compose:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
-  shows "continuous (at x) f \<Longrightarrow> continuous (at x) g \<Longrightarrow> bilinear h
+  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
+  shows "continuous (at x) f \<Longrightarrow> continuous (at x) g \<Longrightarrow> bounded_bilinear h
         ==> continuous (at x) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_at using Lim_bilinear[of f "f x" "(at x)" g "g x" h] by auto
 
 lemma bilinear_continuous_within_compose:
   fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
-  shows "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bilinear h
+  shows "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bounded_bilinear h
         ==> continuous (at x within s) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_within using Lim_bilinear[of f "f x"] by auto
 
 lemma bilinear_continuous_on_compose:
   fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> bilinear h
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> bounded_bilinear h
              ==> continuous_on s (\<lambda>x. h (f x) (g x))"
   unfolding continuous_on_eq_continuous_within apply auto apply(erule_tac x=x in ballE) apply auto apply(erule_tac x=x in ballE) apply auto
   using bilinear_continuous_within_compose[of _ s f g h] by auto
@@ -5482,14 +5474,15 @@ text{* "Isometry" (up to constant bounds) of injective linear map etc.          
 
 lemma cauchy_isometric:
   fixes x :: "nat \<Rightarrow> real ^ 'n::finite"
-  assumes e:"0 < e" and s:"subspace s" and f:"linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and xs:"\<forall>n::nat. x n \<in> s" and cf:"Cauchy(f o x)"
+  assumes e:"0 < e" and s:"subspace s" and f:"bounded_linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and xs:"\<forall>n::nat. x n \<in> s" and cf:"Cauchy(f o x)"
   shows "Cauchy x"
 proof-
+  interpret f: bounded_linear f by fact
   { fix d::real assume "d>0"
     then obtain N where N:"\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
       using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] and e and mult_pos_pos[of e d] by auto
     { fix n assume "n\<ge>N"
-      hence "norm (f (x n - x N)) < e * d" using N[THEN spec[where x=n]] unfolding linear_sub[OF f, THEN sym] by auto
+      hence "norm (f (x n - x N)) < e * d" using N[THEN spec[where x=n]] unfolding f.diff[THEN sym] by auto
       moreover have "e * norm (x n - x N) \<le> norm (f (x n - x N))"
 	using subspace_sub[OF s, of "x n" "x N"] using xs[THEN spec[where x=N]] and xs[THEN spec[where x=n]]
 	using normf[THEN bspec[where x="x n - x N"]] by auto
@@ -5501,7 +5494,7 @@ qed
 
 lemma complete_isometric_image:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
-  assumes "0 < e" and s:"subspace s" and f:"linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and cs:"complete s"
+  assumes "0 < e" and s:"subspace s" and f:"bounded_linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and cs:"complete s"
   shows "complete(f ` s)"
 proof-
   { fix g assume as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"Cauchy g"
@@ -5524,7 +5517,7 @@ lemma dist_0_norm:
 unfolding dist_norm by simp
 
 lemma injective_imp_isometric: fixes f::"real^'m::finite \<Rightarrow> real^'n::finite"
-  assumes s:"closed s"  "subspace s"  and f:"linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
+  assumes s:"closed s"  "subspace s"  and f:"bounded_linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
   shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm(x)"
 proof(cases "s \<subseteq> {0::real^'m}")
   case True
@@ -5533,6 +5526,7 @@ proof(cases "s \<subseteq> {0::real^'m}")
     hence "norm x \<le> norm (f x)" by auto  }
   thus ?thesis by(auto intro!: exI[where x=1])
 next
+  interpret f: bounded_linear f by fact
   case False
   then obtain a where a:"a\<noteq>0" "a\<in>s" by auto
   from False have "s \<noteq> {}" by auto
@@ -5566,7 +5560,7 @@ next
       have "\<forall>c. \<forall>x\<in>s. c *\<^sub>R x \<in> s" using s[unfolded subspace_def smult_conv_scaleR] by auto
       hence "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}" using `x\<in>s` and `x\<noteq>0` by auto
       thus "norm (f b) / norm b * norm x \<le> norm (f x)" using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
-	unfolding linear_cmul[OF f(1), unfolded smult_conv_scaleR] and ba using `x\<noteq>0` `a\<noteq>0`
+	unfolding f.scaleR and ba using `x\<noteq>0` `a\<noteq>0`
 	by (auto simp add: real_mult_commute pos_le_divide_eq pos_divide_le_eq)
     qed }
   ultimately
@@ -5574,8 +5568,8 @@ next
 qed
 
 lemma closed_injective_image_subspace:
-  fixes s :: "(real ^ _) set"
-  assumes "subspace s" "linear f" "\<forall>x\<in>s. f x = 0 --> x = 0" "closed s"
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  assumes "subspace s" "bounded_linear f" "\<forall>x\<in>s. f x = 0 --> x = 0" "closed s"
   shows "closed(f ` s)"
 proof-
   obtain e where "e>0" and e:"\<forall>x\<in>s. e * norm x \<le> norm (f x)" using injective_imp_isometric[OF assms(4,1,2,3)] by auto
@@ -5683,10 +5677,11 @@ proof-
   then obtain d::"'n set" where t: "card d = dim s"
     using closed_subspace_lemma by auto
   let ?t = "{x::real^'n. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0}"
-  obtain f where f:"linear f"  "f ` ?t = s" "inj_on f ?t"
-    using subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"] assms]
+  obtain f where f:"bounded_linear f"  "f ` ?t = s" "inj_on f ?t"
+    using subspace_isomorphism[unfolded linear_conv_bounded_linear, OF subspace_substandard[of "\<lambda>i. i \<notin> d"] assms]
     using dim_substandard[of d] and t by auto
-  have "\<forall>x\<in>?t. f x = 0 \<longrightarrow> x = 0" using linear_0[OF f(1)] using f(3)[unfolded inj_on_def]
+  interpret f: bounded_linear f by fact
+  have "\<forall>x\<in>?t. f x = 0 \<longrightarrow> x = 0" using f.zero using f(3)[unfolded inj_on_def]
     by(erule_tac x=0 in ballE) auto
   moreover have "closed ?t" using closed_substandard .
   moreover have "subspace ?t" using subspace_substandard .

@@ -714,13 +714,16 @@ lemma convex_affinity: assumes "convex (s::(real^'n::finite) set)" shows "convex
 proof- have "(\<lambda>x. a + c *\<^sub>R x) ` s = op + a ` op *\<^sub>R c ` s" by auto
   thus ?thesis using convex_translation[OF convex_scaling[OF assms], of a c] by auto qed
 
-lemma convex_linear_image: assumes c:"convex s" and l:"linear f" shows "convex(f ` s)"
+lemma convex_linear_image:
+  assumes c:"convex s" and l:"bounded_linear f"
+  shows "convex(f ` s)"
 proof(auto simp add: convex_def)
+  interpret f: bounded_linear f by fact
   fix x y assume xy:"x \<in> s" "y \<in> s"
   fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
   show "u *\<^sub>R f x + v *\<^sub>R f y \<in> f ` s" unfolding image_iff
     apply(rule_tac x="u *\<^sub>R x + v *\<^sub>R y" in bexI)
-    unfolding linear_add[OF l] linear_cmul[OF l, unfolded smult_conv_scaleR] 
+    unfolding f.add f.scaleR
     using c[unfolded convex_def] xy uv by auto
 qed
 
@@ -1915,20 +1918,23 @@ lemma helly: fixes f::"(real^'n::finite) set set"
 subsection {* Convex hull is "preserved" by a linear function. *}
 
 lemma convex_hull_linear_image:
-  assumes "linear f"
+  assumes "bounded_linear f"
   shows "f ` (convex hull s) = convex hull (f ` s)"
   apply rule unfolding subset_eq ball_simps apply(rule_tac[!] hull_induct, rule hull_inc) prefer 3  
   apply(erule imageE)apply(rule_tac x=xa in image_eqI) apply assumption
   apply(rule hull_subset[unfolded subset_eq, rule_format]) apply assumption
-proof- show "convex {x. f x \<in> convex hull f ` s}" 
-  unfolding convex_def by(auto simp add: linear_cmul[OF assms, unfolded smult_conv_scaleR]  linear_add[OF assms]
-    convex_convex_hull[unfolded convex_def, rule_format]) next
+proof-
+  interpret f: bounded_linear f by fact
+  show "convex {x. f x \<in> convex hull f ` s}" 
+  unfolding convex_def by(auto simp add: f.scaleR f.add convex_convex_hull[unfolded convex_def, rule_format]) next
+  interpret f: bounded_linear f by fact
   show "convex {x. x \<in> f ` (convex hull s)}" using  convex_convex_hull[unfolded convex_def, of s] 
-    unfolding convex_def by (auto simp add: linear_cmul[OF assms, THEN sym, unfolded smult_conv_scaleR]  linear_add[OF assms, THEN sym])
+    unfolding convex_def by (auto simp add: f.scaleR [symmetric] f.add [symmetric])
 qed auto
 
 lemma in_convex_hull_linear_image:
-  assumes "linear f" "x \<in> convex hull s" shows "(f x) \<in> convex hull (f ` s)"
+  assumes "bounded_linear f" "x \<in> convex hull s"
+  shows "(f x) \<in> convex hull (f ` s)"
 using convex_hull_linear_image[OF assms(1)] assms(2) by auto
 
 subsection {* Homeomorphism of all convex compact sets with nonempty interior. *}
