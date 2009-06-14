@@ -889,7 +889,7 @@ lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
 subsection {* A connectedness or intermediate value lemma with several applications. *}
 
 lemma connected_real_lemma:
-  fixes f :: "real \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "real \<Rightarrow> 'a::metric_space"
   assumes ab: "a \<le> b" and fa: "f a \<in> e1" and fb: "f b \<in> e2"
   and dst: "\<And>e x. a <= x \<Longrightarrow> x <= b \<Longrightarrow> 0 < e ==> \<exists>d > 0. \<forall>y. abs(y - x) < d \<longrightarrow> dist(f y) (f x) < e"
   and e1: "\<forall>y \<in> e1. \<exists>e > 0. \<forall>y'. dist y' y < e \<longrightarrow> y' \<in> e1"
