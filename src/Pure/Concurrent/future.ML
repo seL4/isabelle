@@ -301,19 +301,10 @@ fun join_results xs =
       val _ = scheduler_check "join check";
       val _ = Multithreading.self_critical () andalso
         error "Cannot join future values within critical section";
-
       val _ =
-        (case thread_data () of
-          NONE => List.app join_wait xs  (*alien thread -- refrain from contending for resources*)
-        | SOME (name, task) =>           (*proper task -- continue work*)
-            let
-              val pending = filter_out is_finished xs;
-              val deps = map task_of pending;
-              val _ = SYNCHRONIZED "join" (fn () =>
-                (change queue (Task_Queue.depend deps task); notify_all ()));
-              val _ = List.app join_loop pending;
-            in () end);
-
+        if is_some (thread_data ())
+        then List.app join_loop xs   (*proper task -- continue work*)
+        else List.app join_wait xs;  (*alien thread -- refrain from contending for resources*)
     in map get_result xs end) ();
 
 end;
