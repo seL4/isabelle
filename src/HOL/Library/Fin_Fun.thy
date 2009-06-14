@@ -76,10 +76,13 @@ qed
 subsection {* The finfun type *}
 
 typedef ('a,'b) finfun = "{f::'a\<Rightarrow>'b. \<exists>b. finite {a. f a \<noteq> b}}"
-apply(auto)
-apply(rule_tac x="\<lambda>x. arbitrary" in exI)
-apply(auto)
-done
+proof -
+  have "\<exists>f. finite {x. f x \<noteq> undefined}"
+  proof
+    show "finite {x. (\<lambda>y. undefined) x \<noteq> undefined}" by auto
+  qed
+  then show ?thesis by auto
+qed
 
 syntax
   "finfun"      :: "type \<Rightarrow> type \<Rightarrow> type"         ("(_ \<Rightarrow>\<^isub>f /_)" [22, 21] 21)
@@ -318,32 +321,27 @@ definition (in term_syntax) valtermify_finfun_update_code ::
 instantiation finfun :: (random, random) random
 begin
 
-primrec random_finfun' :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
-    "random_finfun' 0 j = Quickcheck.collapse (Random.select_default 0
-       (random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))
-       (random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y))))"
-  | "random_finfun' (Suc_code_numeral i) j = Quickcheck.collapse (Random.select_default i
-       (random j o\<rightarrow> (\<lambda>x. random j o\<rightarrow> (\<lambda>y. random_finfun' i j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f)))))
-       (random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y))))"
-                         
+primrec random_finfun_aux :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
+    "random_finfun_aux 0 j = Quickcheck.collapse (Random.select_weight
+       [(1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
+  | "random_finfun_aux (Suc_code_numeral i) j = Quickcheck.collapse (Random.select_weight
+       [(Suc_code_numeral i, random j o\<rightarrow> (\<lambda>x. random j o\<rightarrow> (\<lambda>y. random_finfun_aux i j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f))))),
+         (1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
+
 definition 
-  "random i = random_finfun' i i"
+  "random i = random_finfun_aux i i"
 
 instance ..
 
 end
 
-lemma select_default_zero:
-  "Random.select_default 0 y y = Random.select_default 0 x y"
-  by (simp add: select_default_def)
-
-lemma random_finfun'_code [code]:
-  "random_finfun' i j = Quickcheck.collapse (Random.select_default (i - 1)
-    (random j o\<rightarrow> (\<lambda>x. random j o\<rightarrow> (\<lambda>y. random_finfun' (i - 1) j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f)))))
-    (random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y))))"
+lemma random_finfun_aux_code [code]:
+  "random_finfun_aux i j = Quickcheck.collapse (Random.select_weight
+     [(i, random j o\<rightarrow> (\<lambda>x. random j o\<rightarrow> (\<lambda>y. random_finfun_aux (i - 1) j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f))))),
+       (1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
   apply (cases i rule: code_numeral.exhaust)
-  apply (simp_all only: random_finfun'.simps code_numeral_zero_minus_one Suc_code_numeral_minus_one)
-  apply (subst select_default_zero) apply (simp only:)
+  apply (simp_all only: random_finfun_aux.simps code_numeral_zero_minus_one Suc_code_numeral_minus_one)
+  apply (subst select_weight_cons_zero) apply (simp only:)
   done
 
 no_notation fcomp (infixl "o>" 60)
