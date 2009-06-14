@@ -137,7 +137,7 @@ fun get_first boundary f tab =
     val check =
       (case boundary of
         NONE => K true
-      | SOME b => (fn k => Key.ord (b, k) = GREATER));
+      | SOME b => (fn k => Key.ord (b, k) = LESS));
     fun apply (k, x) = if check k then f (k, x) else NONE;
     fun get_bounded tb k = if check k then get tb else NONE
     and get Empty = NONE
