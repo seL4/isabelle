@@ -370,13 +370,9 @@ fun ensure_random_datatype raw_tycos thy =
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
   in if has_inst then thy
     else case perhaps_constrain thy (random_insts @ term_of_insts) raw_vs
-     of SOME constrain => (mk_random_datatype descr
+     of SOME constrain => mk_random_datatype descr
           (map constrain raw_vs) tycos (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
-            (*FIXME ephemeral handles*)
-          handle e as TERM (msg, ts) => (tracing (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts)); raise e)
-               | e as TYPE (msg, _, _) => (tracing msg; raise e)
-               | e as ERROR msg => (tracing msg; raise e))
       | NONE => thy
   end;
 
