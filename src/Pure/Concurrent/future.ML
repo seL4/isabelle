@@ -276,17 +276,21 @@ local
 
 fun get_result x = the_default (Exn.Exn (SYS_ERROR "unfinished future")) (peek x);
 
-fun join_next pending = (*requires SYNCHRONIZED*)
-  if forall is_finished pending then NONE
+fun join_wait x =
+  while not (is_finished x)
+  do SYNCHRONIZED "join_wait" (fn () => wait ());
+
+fun join_next x = (*requires SYNCHRONIZED*)
+  if is_finished x then NONE
   else
     (case change_result queue Task_Queue.dequeue of
-      NONE => (worker_wait (); join_next pending)
+      NONE => (worker_wait (); join_next x)
     | some => some);
 
-fun join_loop name pending =
-  (case SYNCHRONIZED name (fn () => join_next pending) of
+fun join_loop x =
+  (case SYNCHRONIZED "join" (fn () => join_next x) of
     NONE => ()
-  | SOME work => (execute name work; join_loop name (filter_out is_finished pending)));
+  | SOME work => (execute "join" work; join_loop x));
 
 in
 
@@ -300,18 +304,14 @@ fun join_results xs =
 
       val _ =
         (case thread_data () of
-          NONE =>
-            (*alien thread -- refrain from contending for resources*)
-            while not (forall is_finished xs)
-            do SYNCHRONIZED "join_thread" (fn () => wait ())
-        | SOME (name, task) =>
-            (*proper task -- continue work*)
+          NONE => List.app join_wait xs  (*alien thread -- refrain from contending for resources*)
+        | SOME (name, task) =>           (*proper task -- continue work*)
             let
               val pending = filter_out is_finished xs;
               val deps = map task_of pending;
               val _ = SYNCHRONIZED "join" (fn () =>
                 (change queue (Task_Queue.depend deps task); notify_all ()));
-              val _ = join_loop ("join_loop: " ^ name) pending;
+              val _ = List.app join_loop pending;
             in () end);
 
     in map get_result xs end) ();
