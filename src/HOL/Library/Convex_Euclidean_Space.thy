@@ -46,7 +46,8 @@ lemma setsum_delta_notmem: assumes "x\<notin>s"
         "setsum (\<lambda>y. if (x = y) then P y else Q y) s = setsum Q s"
   apply(rule_tac [!] setsum_cong2) using assms by auto
 
-lemma setsum_delta'': fixes s::"(real^'n) set" assumes "finite s"
+lemma setsum_delta'':
+  fixes s::"'a::real_vector set" assumes "finite s"
   shows "(\<Sum>x\<in>s. (if y = x then f x else 0) *\<^sub>R x) = (if y\<in>s then (f y) *\<^sub>R y else 0)"
 proof-
   have *:"\<And>x y. (if y = x then f x else (0::real)) *\<^sub>R x = (if x=y then (f x) *\<^sub>R x else 0)" by auto
@@ -107,8 +108,8 @@ lemma real_dimindex_gt_0:"real (CARD('n::finite)) > 0" apply(rule less_le_trans[
 subsection {* Affine set and affine hull.*}
 
 definition
-  affine :: "(real ^ 'n::finite) set \<Rightarrow> bool" where
-  "affine s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u v::real. u + v = 1 \<longrightarrow> (u *\<^sub>R x + v *\<^sub>R y) \<in> s)"
+  affine :: "'a::real_vector set \<Rightarrow> bool" where
+  "affine s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
 
 lemma affine_alt: "affine s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u::real. (1 - u) *\<^sub>R x + u *\<^sub>R y \<in> s)"
 proof- have *:"\<And>u v ::real. u + v = 1 \<longleftrightarrow> v = 1 - u" by auto
@@ -149,7 +150,7 @@ lemma setsum_restrict_set'': assumes "finite A"
 
 subsection {* Some explicit formulations (from Lars Schewe). *}
 
-lemma affine: fixes V::"(real^'n::finite) set"
+lemma affine: fixes V::"'a::real_vector set"
   shows "affine V \<longleftrightarrow> (\<forall>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> V \<and> setsum u s = 1 \<longrightarrow> (setsum (\<lambda>x. (u x) *\<^sub>R x)) s \<in> V)"
 unfolding affine_def apply rule apply(rule, rule, rule) apply(erule conjE)+ 
 defer apply(rule, rule, rule, rule, rule) proof-
@@ -169,7 +170,7 @@ next
     thus ?thesis using as(1)[THEN bspec[where x=a], THEN bspec[where x=b]] using as(4,5)
       by(auto simp add: setsum_clauses(2))
   next assume "card s > 2" thus ?thesis using as and n_def proof(induct n arbitrary: u s)
-      case (Suc n) fix s::"(real^'n) set" and u::"real^'n\<Rightarrow> real"
+      case (Suc n) fix s::"'a set" and u::"'a \<Rightarrow> real"
       assume IA:"\<And>u s.  \<lbrakk>2 < card s; \<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V; finite s;
                s \<noteq> {}; s \<subseteq> V; setsum u s = 1; n \<equiv> card s \<rbrakk> \<Longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V" and
 	as:"Suc n \<equiv> card s" "2 < card s" "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
@@ -251,7 +252,8 @@ lemma affine_hull_empty[simp]: "affine hull {} = {}"
   apply(rule hull_unique) unfolding mem_def by auto
 
 lemma affine_hull_finite_step:
-  shows "(\<exists>u::real^'n=>real. setsum u {} = w \<and> setsum (\<lambda>x. u x *\<^sub>R x) {} = y) \<longleftrightarrow> w = 0 \<and> y = 0" (is ?th1)
+  fixes y :: "'a::real_vector"
+  shows "(\<exists>u. setsum u {} = w \<and> setsum (\<lambda>x. u x *\<^sub>R x) {} = y) \<longleftrightarrow> w = 0 \<and> y = 0" (is ?th1)
   "finite s \<Longrightarrow> (\<exists>u. setsum u (insert a s) = w \<and> setsum (\<lambda>x. u x *\<^sub>R x) (insert a s) = y) \<longleftrightarrow>
                 (\<exists>v u. setsum u s = w - v \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y - v *\<^sub>R a)" (is "?as \<Longrightarrow> (?lhs = ?rhs)")
 proof-
@@ -288,10 +290,12 @@ proof-
   ultimately show "?lhs = ?rhs" by blast
 qed
 
-lemma affine_hull_2:"affine hull {a,b::real^'n::finite} = {u *\<^sub>R a + v *\<^sub>R b| u v. (u + v = 1)}" (is "?lhs = ?rhs")
+lemma affine_hull_2:
+  fixes a b :: "'a::real_vector"
+  shows "affine hull {a,b} = {u *\<^sub>R a + v *\<^sub>R b| u v. (u + v = 1)}" (is "?lhs = ?rhs")
 proof-
   have *:"\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::real)" 
-         "\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::real^'n)" by auto
+         "\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::'a)" by auto
   have "?lhs = {y. \<exists>u. setsum u {a, b} = 1 \<and> (\<Sum>v\<in>{a, b}. u v *\<^sub>R v) = y}"
     using affine_hull_finite[of "{a,b}"] by auto
   also have "\<dots> = {y. \<exists>v u. u b = 1 - v \<and> u b *\<^sub>R b = y - v *\<^sub>R a}"
@@ -300,10 +304,12 @@ proof-
   finally show ?thesis by auto
 qed
 
-lemma affine_hull_3: "affine hull {a,b,c::real^'n::finite} = { u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c| u v w. u + v + w = 1}" (is "?lhs = ?rhs")
+lemma affine_hull_3:
+  fixes a b c :: "'a::real_vector"
+  shows "affine hull {a,b,c} = { u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c| u v w. u + v + w = 1}" (is "?lhs = ?rhs")
 proof-
   have *:"\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::real)" 
-         "\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::real^'n)" by auto
+         "\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::'a)" by auto
   show ?thesis apply(simp add: affine_hull_finite affine_hull_finite_step)
     unfolding * apply auto
     apply(rule_tac x=v in exI) apply(rule_tac x=va in exI) apply auto
@@ -313,7 +319,8 @@ qed
 subsection {* Some relations between affine hull and subspaces. *}
 
 lemma affine_hull_insert_subset_span:
-  "affine hull (insert a s) \<subseteq> {a + v| v . v \<in> span {x - a | x . x \<in> s}}"
+  fixes a :: "real ^ _"
+  shows "affine hull (insert a s) \<subseteq> {a + v| v . v \<in> span {x - a | x . x \<in> s}}"
   unfolding subset_eq Ball_def unfolding affine_hull_explicit span_explicit mem_Collect_eq smult_conv_scaleR
   apply(rule,rule) apply(erule exE)+ apply(erule conjE)+ proof-
   fix x t u assume as:"finite t" "t \<noteq> {}" "t \<subseteq> insert a s" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = x"
@@ -330,6 +337,7 @@ lemma affine_hull_insert_subset_span:
     unfolding as by simp qed
 
 lemma affine_hull_insert_span:
+  fixes a :: "real ^ _"
   assumes "a \<notin> s"
   shows "affine hull (insert a s) =
             {a + v | v . v \<in> span {x - a | x.  x \<in> s}}"
@@ -349,14 +357,16 @@ lemma affine_hull_insert_span:
     by (auto simp add: setsum_subtractf scaleR_left.setsum algebra_simps) qed
 
 lemma affine_hull_span:
+  fixes a :: "real ^ _"
   assumes "a \<in> s"
   shows "affine hull s = {a + v | v. v \<in> span {x - a | x. x \<in> s - {a}}}"
   using affine_hull_insert_span[of a "s - {a}", unfolded insert_Diff[OF assms]] by auto
 
 subsection {* Convexity. *}
 
-definition "convex (s::(real^'n::finite) set) \<longleftrightarrow>
-        (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. (u + v = 1) \<longrightarrow> (u *\<^sub>R x + v *\<^sub>R y) \<in> s)"
+definition
+  convex :: "'a::real_vector set \<Rightarrow> bool" where
+  "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
 
 lemma convex_alt: "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
 proof- have *:"\<And>u v::real. u + v = 1 \<longleftrightarrow> u = 1 - v" by auto
@@ -445,7 +455,9 @@ next
     thus ?thesis unfolding setsum_cl_ivl_Suc and *** and scaleR_right.setsum [symmetric] using nn by auto qed qed auto qed
 
 
-lemma convex_explicit: "convex (s::(real^'n::finite) set) \<longleftrightarrow>
+lemma convex_explicit:
+  fixes s :: "'a::real_vector set"
+  shows "convex s \<longleftrightarrow>
   (\<forall>t u. finite t \<and> t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) t \<in> s)"
   unfolding convex_def apply(rule,rule,rule) apply(subst imp_conjL,rule) defer apply(rule,rule,rule,rule,rule,rule,rule) proof-
   fix x y u v assume as:"\<forall>t u. finite t \<and> t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" "x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
@@ -453,7 +465,7 @@ lemma convex_explicit: "convex (s::(real^'n::finite) set) \<longleftrightarrow>
     case True show ?thesis unfolding True and scaleR_left_distrib[THEN sym] using as(3,6) by auto next
     case False thus ?thesis using as(1)[THEN spec[where x="{x,y}"], THEN spec[where x="\<lambda>z. if z=x then u else v"]] and as(2-) by auto qed
 next 
-  fix t u assume asm:"\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s" "finite (t::(real^'n) set)"
+  fix t u assume asm:"\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s" "finite (t::'a set)"
   (*"finite t" "t \<subseteq> s" "\<forall>x\<in>t. (0::real) \<le> u x" "setsum u t = 1"*)
   from this(2) have "\<forall>u. t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" apply(induct_tac t rule:finite_induct)
     prefer 3 apply (rule,rule) apply(erule conjE)+ proof-
@@ -493,7 +505,9 @@ qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
 
 subsection {* Cones. *}
 
-definition "cone (s::(real^'n) set) \<longleftrightarrow> (\<forall>x\<in>s. \<forall>c\<ge>0. (c *\<^sub>R x) \<in> s)"
+definition
+  cone :: "'a::real_vector set \<Rightarrow> bool" where
+  "cone s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>c\<ge>0. (c *\<^sub>R x) \<in> s)"
 
 lemma cone_empty[intro, simp]: "cone {}"
   unfolding cone_def by auto
@@ -517,7 +531,7 @@ lemma cone_hull_eq: "(cone hull s = s) \<longleftrightarrow> cone s"
 subsection {* Affine dependence and consequential theorems (from Lars Schewe). *}
 
 definition
-  affine_dependent :: "(real ^ 'n::finite) set \<Rightarrow> bool" where
+  affine_dependent :: "'a::real_vector set \<Rightarrow> bool" where
   "affine_dependent s \<longleftrightarrow> (\<exists>x\<in>s. x \<in> (affine hull (s - {x})))"
 
 lemma affine_dependent_explicit:
@@ -537,21 +551,21 @@ next
   have "s \<noteq> {v}" using as(3,6) by auto
   thus "\<exists>x\<in>p. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p - {x} \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x" 
     apply(rule_tac x=v in bexI, rule_tac x="s - {v}" in exI, rule_tac x="\<lambda>x. - (1 / u v) * u x" in exI)
-    unfolding scaleR_scaleR[THEN sym] and scaleR_right.setsum [symmetric] unfolding setsum_right_distrib[THEN sym] and setsum_diff1_ring[OF as(1,5)] using as by auto
+    unfolding scaleR_scaleR[THEN sym] and scaleR_right.setsum [symmetric] unfolding setsum_right_distrib[THEN sym] and setsum_diff1[OF as(1)] using as by auto
 qed
 
 lemma affine_dependent_explicit_finite:
-  assumes "finite (s::(real^'n::finite) set)"
+  fixes s :: "'a::real_vector set" assumes "finite s"
   shows "affine_dependent s \<longleftrightarrow> (\<exists>u. setsum u s = 0 \<and> (\<exists>v\<in>s. u v \<noteq> 0) \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = 0)"
   (is "?lhs = ?rhs")
 proof
-  have *:"\<And>vt u v. (if vt then u v else 0) *\<^sub>R v = (if vt then (u v) *\<^sub>R v else (0::real^'n))" by auto
+  have *:"\<And>vt u v. (if vt then u v else 0) *\<^sub>R v = (if vt then (u v) *\<^sub>R v else (0::'a))" by auto
   assume ?lhs
   then obtain t u v where "finite t" "t \<subseteq> s" "setsum u t = 0" "v\<in>t" "u v \<noteq> 0"  "(\<Sum>v\<in>t. u v *\<^sub>R v) = 0"
     unfolding affine_dependent_explicit by auto
   thus ?rhs apply(rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
     apply auto unfolding * and setsum_restrict_set[OF assms, THEN sym]
-    unfolding Int_absorb2[OF `t\<subseteq>s`, unfolded Int_commute] by auto
+    unfolding Int_absorb1[OF `t\<subseteq>s`] by auto
 next
   assume ?rhs
   then obtain u v where "setsum u s = 0"  "v\<in>s" "u v \<noteq> 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0" by auto
@@ -561,6 +575,7 @@ qed
 subsection {* A general lemma. *}
 
 lemma convex_connected:
+  fixes s :: "'a::real_normed_vector set"
   assumes "convex s" shows "connected s"
 proof-
   { fix e1 e2 assume as:"open e1" "open e2" "e1 \<inter> e2 \<inter> s = {}" "s \<subseteq> e1 \<union> e2" 
@@ -595,12 +610,14 @@ qed
 
 subsection {* One rather trivial consequence. *}
 
-lemma connected_UNIV: "connected (UNIV :: (real ^ _) set)"
+lemma connected_UNIV: "connected (UNIV :: 'a::real_normed_vector set)"
   by(simp add: convex_connected convex_UNIV)
 
 subsection {* Convex functions into the reals. *}
 
-definition "convex_on s (f::real^'n \<Rightarrow> real) = 
+definition
+  convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool" where
+  "convex_on s f \<longleftrightarrow>
   (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
 
 lemma convex_on_subset: "convex_on t f \<Longrightarrow> s \<subseteq> t \<Longrightarrow> convex_on s f"
@@ -641,6 +658,7 @@ proof-
 qed
 
 lemma convex_local_global_minimum:
+  fixes s :: "'a::real_normed_vector set"
   assumes "0<e" "convex_on s f" "ball x e \<subseteq> s" "\<forall>y\<in>ball x e. f x \<le> f y"
   shows "\<forall>y\<in>s. f x \<le> f y"
 proof(rule ccontr)
@@ -661,7 +679,9 @@ proof(rule ccontr)
   ultimately show False using mult_strict_left_mono[OF y `u>0`] unfolding left_diff_distrib by auto
 qed
 
-lemma convex_distance: "convex_on s (\<lambda>x. dist a x)"
+lemma convex_distance:
+  fixes s :: "'a::real_normed_vector set"
+  shows "convex_on s (\<lambda>x. dist a x)"
 proof(auto simp add: convex_on_def dist_norm)
   fix x y assume "x\<in>s" "y\<in>s"
   fix u v ::real assume "0 \<le> u" "0 \<le> v" "u + v = 1"
@@ -710,7 +730,7 @@ lemma convex_translation: assumes "convex s" shows "convex ((\<lambda>x. a + x) 
 proof- have "{a + y |y. y \<in> s} = (\<lambda>x. a + x) ` s" by auto
   thus ?thesis using convex_sums[OF convex_singleton[of a] assms] by auto qed
 
-lemma convex_affinity: assumes "convex (s::(real^'n::finite) set)" shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` s)"
+lemma convex_affinity: assumes "convex s" shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof- have "(\<lambda>x. a + c *\<^sub>R x) ` s = op + a ` op *\<^sub>R c ` s" by auto
   thus ?thesis using convex_translation[OF convex_scaling[OF assms], of a c] by auto qed
 
@@ -729,7 +749,9 @@ qed
 
 subsection {* Balls, being convex, are connected. *}
 
-lemma convex_ball: "convex (ball x e)" 
+lemma convex_ball:
+  fixes x :: "'a::real_normed_vector"
+  shows "convex (ball x e)" 
 proof(auto simp add: convex_def)
   fix y z assume yz:"dist x y < e" "dist x z < e"
   fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
@@ -738,7 +760,9 @@ proof(auto simp add: convex_def)
   thus "dist x (u *\<^sub>R y + v *\<^sub>R z) < e" using real_convex_bound_lt[OF yz uv] by auto 
 qed
 
-lemma convex_cball: "convex(cball x e)"
+lemma convex_cball:
+  fixes x :: "'a::real_normed_vector"
+  shows "convex(cball x e)"
 proof(auto simp add: convex_def Ball_def mem_cball)
   fix y z assume yz:"dist x y \<le> e" "dist x z \<le> e"
   fix u v ::real assume uv:" 0 \<le> u" "0 \<le> v" "u + v = 1"
@@ -747,10 +771,14 @@ proof(auto simp add: convex_def Ball_def mem_cball)
   thus "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e" using real_convex_bound_le[OF yz uv] by auto 
 qed
 
-lemma connected_ball: "connected(ball (x::real^_) e)" (* FIXME: generalize *)
+lemma connected_ball:
+  fixes x :: "'a::real_normed_vector"
+  shows "connected (ball x e)"
   using convex_connected convex_ball by auto
 
-lemma connected_cball: "connected(cball (x::real^_) e)" (* FIXME: generalize *)
+lemma connected_cball:
+  fixes x :: "'a::real_normed_vector"
+  shows "connected(cball x e)"
   using convex_connected convex_cball by auto
 
 subsection {* Convex hull. *}
@@ -762,14 +790,17 @@ lemma convex_convex_hull: "convex(convex hull s)"
 lemma convex_hull_eq: "(convex hull s = s) \<longleftrightarrow> convex s" apply(rule hull_eq[unfolded mem_def])
   using convex_Inter[unfolded Ball_def mem_def] by auto
 
-lemma bounded_convex_hull: assumes "bounded s" shows "bounded(convex hull s)"
+lemma bounded_convex_hull:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "bounded s" shows "bounded(convex hull s)"
 proof- from assms obtain B where B:"\<forall>x\<in>s. norm x \<le> B" unfolding bounded_iff by auto
   show ?thesis apply(rule bounded_subset[OF bounded_cball, of _ 0 B])
     unfolding subset_hull[unfolded mem_def, of convex, OF convex_cball]
     unfolding subset_eq mem_cball dist_norm using B by auto qed
 
 lemma finite_imp_bounded_convex_hull:
-  "finite s \<Longrightarrow> bounded(convex hull s)"
+  fixes s :: "'a::real_normed_vector set"
+  shows "finite s \<Longrightarrow> bounded(convex hull s)"
   using bounded_convex_hull finite_imp_bounded by auto
 
 subsection {* Stepping theorems for convex hulls of finite sets. *}
@@ -781,6 +812,7 @@ lemma convex_hull_singleton[simp]: "convex hull {a} = {a}"
   apply(rule hull_unique) unfolding mem_def by auto
 
 lemma convex_hull_insert:
+  fixes s :: "'a::real_vector set"
   assumes "s \<noteq> {}"
   shows "convex hull (insert a s) = {x. \<exists>u\<ge>0. \<exists>v\<ge>0. \<exists>b. (u + v = 1) \<and>
                                     b \<in> (convex hull s) \<and> (x = u *\<^sub>R a + v *\<^sub>R b)}" (is "?xyz = ?hull")
@@ -800,10 +832,10 @@ next
     fix x y u v assume as:"(0::real) \<le> u" "0 \<le> v" "u + v = 1" "x\<in>?hull" "y\<in>?hull"
     from as(4) obtain u1 v1 b1 where obt1:"u1\<ge>0" "v1\<ge>0" "u1 + v1 = 1" "b1 \<in> convex hull s" "x = u1 *\<^sub>R a + v1 *\<^sub>R b1" by auto
     from as(5) obtain u2 v2 b2 where obt2:"u2\<ge>0" "v2\<ge>0" "u2 + v2 = 1" "b2 \<in> convex hull s" "y = u2 *\<^sub>R a + v2 *\<^sub>R b2" by auto
-    have *:"\<And>(x::real^_) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x" by (auto simp add: algebra_simps)
+    have *:"\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x" by (auto simp add: algebra_simps)
     have "\<exists>b \<in> convex hull s. u *\<^sub>R x + v *\<^sub>R y = (u * u1) *\<^sub>R a + (v * u2) *\<^sub>R a + (b - (u * u1) *\<^sub>R b - (v * u2) *\<^sub>R b)"
     proof(cases "u * v1 + v * v2 = 0")
-      have *:"\<And>(x::real^_) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x" by (auto simp add: algebra_simps)
+      have *:"\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x" by (auto simp add: algebra_simps)
       case True hence **:"u * v1 = 0" "v * v2 = 0" apply- apply(rule_tac [!] ccontr)
 	using mult_nonneg_nonneg[OF `u\<ge>0` `v1\<ge>0`] mult_nonneg_nonneg[OF `v\<ge>0` `v2\<ge>0`] by auto
       hence "u * u1 + v * u2 = 1" using as(3) obt1(3) obt2(3) by auto
@@ -837,7 +869,8 @@ qed
 subsection {* Explicit expression for convex hull. *}
 
 lemma convex_hull_indexed:
-  "convex hull s = {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> s) \<and>
+  fixes s :: "'a::real_vector set"
+  shows "convex hull s = {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> s) \<and>
                             (setsum u {1..k} = 1) \<and>
                             (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} = y)}" (is "?xyz = ?hull")
   apply(rule hull_unique) unfolding mem_def[of _ convex] apply(rule) defer
@@ -855,7 +888,7 @@ next
   fix x y u v assume uv:"0\<le>u" "0\<le>v" "u+v=(1::real)" and xy:"x\<in>?hull" "y\<in>?hull"
   from xy obtain k1 u1 x1 where x:"\<forall>i\<in>{1::nat..k1}. 0\<le>u1 i \<and> x1 i \<in> s" "setsum u1 {Suc 0..k1} = 1" "(\<Sum>i = Suc 0..k1. u1 i *\<^sub>R x1 i) = x" by auto
   from xy obtain k2 u2 x2 where y:"\<forall>i\<in>{1::nat..k2}. 0\<le>u2 i \<and> x2 i \<in> s" "setsum u2 {Suc 0..k2} = 1" "(\<Sum>i = Suc 0..k2. u2 i *\<^sub>R x2 i) = y" by auto
-  have *:"\<And>P x1 x2 s1 s2 i.(if P i then s1 else s2) *\<^sub>R (if P i then x1 else x2) = (if P i then s1 *\<^sub>R x1 else s2 *\<^sub>R x2)"
+  have *:"\<And>P (x1::'a) x2 s1 s2 i.(if P i then s1 else s2) *\<^sub>R (if P i then x1 else x2) = (if P i then s1 *\<^sub>R x1 else s2 *\<^sub>R x2)"
     "{1..k1 + k2} \<inter> {1..k1} = {1..k1}" "{1..k1 + k2} \<inter> - {1..k1} = (\<lambda>i. i + k1) ` {1..k2}"
     prefer 3 apply(rule,rule) unfolding image_iff apply(rule_tac x="x - k1" in bexI) by(auto simp add: not_le)
   have inj:"inj_on (\<lambda>i. i + k1) {1..k2}" unfolding inj_on_def by auto  
@@ -876,7 +909,8 @@ next
 qed
 
 lemma convex_hull_finite:
-  assumes "finite (s::(real^'n::finite)set)"
+  fixes s :: "'a::real_vector set"
+  assumes "finite s"
   shows "convex hull s = {y. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and>
          setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}" (is "?HULL = ?set")
 proof(rule hull_unique, auto simp add: mem_def[of _ convex] convex_def[of ?set])
@@ -905,8 +939,17 @@ qed
 
 subsection {* Another formulation from Lars Schewe. *}
 
+lemma setsum_constant_scaleR:
+  fixes y :: "'a::real_vector"
+  shows "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
+apply (cases "finite A")
+apply (induct set: finite)
+apply (simp_all add: algebra_simps)
+done
+
 lemma convex_hull_explicit:
-  "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and>
+  fixes p :: "'a::real_vector set"
+  shows "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and>
              (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}" (is "?lhs = ?rhs")
 proof-
   { fix x assume "x\<in>?lhs"
@@ -943,7 +986,9 @@ proof-
       then obtain i where "i\<in>{1..card s}" "f i = y" using f using image_iff[of y f "{1..card s}"] by auto
       hence "{x. Suc 0 \<le> x \<and> x \<le> card s \<and> f x = y} = {i}" apply auto using f(1)[unfolded inj_on_def] apply(erule_tac x=x in ballE) by auto
       hence "card {x. Suc 0 \<le> x \<and> x \<le> card s \<and> f x = y} = 1" by auto
-      hence "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x)) = u y" "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x) = u y *\<^sub>R y" by auto   }
+      hence "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x)) = u y"
+            "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x) = u y *\<^sub>R y"
+        by (auto simp add: setsum_constant_scaleR)   }
 
     hence "(\<Sum>x = 1..card s. u (f x)) = 1" "(\<Sum>i = 1..card s. u (f i) *\<^sub>R f i) = y"
       unfolding setsum_image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f] and setsum_image_gen[OF *(1), of "\<lambda>x. u (f x)" f] 
@@ -959,7 +1004,7 @@ qed
 subsection {* A stepping theorem for that expansion. *}
 
 lemma convex_hull_finite_step:
-  assumes "finite (s::(real^'n) set)"
+  fixes s :: "'a::real_vector set" assumes "finite s"
   shows "(\<exists>u. (\<forall>x\<in>insert a s. 0 \<le> u x) \<and> setsum u (insert a s) = w \<and> setsum (\<lambda>x. u x *\<^sub>R x) (insert a s) = y)
      \<longleftrightarrow> (\<exists>v\<ge>0. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = w - v \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y - v *\<^sub>R a)" (is "?lhs = ?rhs")
 proof(rule, case_tac[!] "a\<in>s")
@@ -998,7 +1043,7 @@ proof(rule ext) have *:"\<And>x y ::real. x + y = 1 \<longleftrightarrow> x = 1 
     unfolding * apply auto apply(rule_tac[!] x=u in exI) by (auto simp add: algebra_simps) qed
 
 lemma convex_hull_3:
-  "convex hull {a::real^'n::finite,b,c} = { u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c | u v w. 0 \<le> u \<and> 0 \<le> v \<and> 0 \<le> w \<and> u + v + w = 1}"
+  "convex hull {a,b,c} = { u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c | u v w. 0 \<le> u \<and> 0 \<le> v \<and> 0 \<le> w \<and> u + v + w = 1}"
 proof-
   have fin:"finite {a,b,c}" "finite {b,c}" "finite {c}" by auto
   have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z"
@@ -1016,20 +1061,27 @@ proof- have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y
 
 subsection {* Relations among closure notions and corresponding hulls. *}
 
-lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
+text {* TODO: Generalize linear algebra concepts defined in @{text
+Euclidean_Space.thy} so that we can generalize these lemmas. *}
+
+lemma subspace_imp_affine:
+  fixes s :: "(real ^ _) set" shows "subspace s \<Longrightarrow> affine s"
   unfolding subspace_def affine_def smult_conv_scaleR by auto
 
 lemma affine_imp_convex: "affine s \<Longrightarrow> convex s"
   unfolding affine_def convex_def by auto
 
-lemma subspace_imp_convex: "subspace s \<Longrightarrow> convex s"
+lemma subspace_imp_convex:
+  fixes s :: "(real ^ _) set" shows "subspace s \<Longrightarrow> convex s"
   using subspace_imp_affine affine_imp_convex by auto
 
-lemma affine_hull_subset_span: "(affine hull s) \<subseteq> (span s)"
+lemma affine_hull_subset_span:
+  fixes s :: "(real ^ _) set" shows "(affine hull s) \<subseteq> (span s)"
   unfolding span_def apply(rule hull_antimono) unfolding subset_eq Ball_def mem_def
   using subspace_imp_affine  by auto
 
-lemma convex_hull_subset_span: "(convex hull s) \<subseteq> (span s)"
+lemma convex_hull_subset_span:
+  fixes s :: "(real ^ _) set" shows "(convex hull s) \<subseteq> (span s)"
   unfolding span_def apply(rule hull_antimono) unfolding subset_eq Ball_def mem_def
   using subspace_imp_convex by auto
 
@@ -1037,11 +1089,13 @@ lemma convex_hull_subset_affine_hull: "(convex hull s) \<subseteq> (affine hull 
   unfolding span_def apply(rule hull_antimono) unfolding subset_eq Ball_def mem_def
   using affine_imp_convex by auto
 
-lemma affine_dependent_imp_dependent: "affine_dependent s \<Longrightarrow> dependent s"
+lemma affine_dependent_imp_dependent:
+  fixes s :: "(real ^ _) set" shows "affine_dependent s \<Longrightarrow> dependent s"
   unfolding affine_dependent_def dependent_def 
   using affine_hull_subset_span by auto
 
 lemma dependent_imp_affine_dependent:
+  fixes s :: "(real ^ _) set"
   assumes "dependent {x - a| x . x \<in> s}" "a \<notin> s"
   shows "affine_dependent (insert a s)"
 proof-
@@ -1191,6 +1245,7 @@ qed
 subsection {* Openness and compactness are preserved by convex hull operation. *}
 
 lemma open_convex_hull:
+  fixes s :: "'a::real_normed_vector set"
   assumes "open s"
   shows "open(convex hull s)"
   unfolding open_contains_cball convex_hull_explicit unfolding mem_Collect_eq ball_simps(10) 
@@ -1258,7 +1313,7 @@ proof -
 qed
 
 lemma compact_convex_combinations:
-  fixes s t :: "(real ^ 'n::finite) set"
+  fixes s t :: "'a::real_normed_vector set"
   assumes "compact s" "compact t"
   shows "compact { (1 - u) *\<^sub>R x + u *\<^sub>R y | x y u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> t}"
 proof-
@@ -1354,13 +1409,14 @@ next
 qed
 
 lemma finite_imp_compact_convex_hull:
- "finite s \<Longrightarrow> compact(convex hull s)"
+  fixes s :: "(real ^ _) set"
+  shows "finite s \<Longrightarrow> compact(convex hull s)"
   apply(drule finite_imp_compact, drule compact_convex_hull) by assumption
 
 subsection {* Extremal points of a simplex are some vertices. *}
 
 lemma dist_increases_online:
-  fixes a b d :: "real ^ 'n::finite"
+  fixes a b d :: "'a::real_inner"
   assumes "d \<noteq> 0"
   shows "dist a (b + d) > dist a b \<or> dist a (b - d) > dist a b"
 proof(cases "inner a d - inner b d > 0")
@@ -1376,11 +1432,12 @@ next
 qed
 
 lemma norm_increases_online:
- "(d::real^'n::finite) \<noteq> 0 \<Longrightarrow> norm(a + d) > norm a \<or> norm(a - d) > norm a"
+  fixes d :: "'a::real_inner"
+  shows "d \<noteq> 0 \<Longrightarrow> norm(a + d) > norm a \<or> norm(a - d) > norm a"
   using dist_increases_online[of d a 0] unfolding dist_norm by auto
 
 lemma simplex_furthest_lt:
-  fixes s::"(real^'n::finite) set" assumes "finite s"
+  fixes s::"'a::real_inner set" assumes "finite s"
   shows "\<forall>x \<in> (convex hull s).  x \<notin> s \<longrightarrow> (\<exists>y\<in>(convex hull s). norm(x - a) < norm(y - a))"
 proof(induct_tac rule: finite_induct[of s])
   fix x s assume as:"finite s" "x\<notin>s" "\<forall>x\<in>convex hull s. x \<notin> s \<longrightarrow> (\<exists>y\<in>convex hull s. norm (x - a) < norm (y - a))"
@@ -1435,6 +1492,7 @@ proof(induct_tac rule: finite_induct[of s])
 qed (auto simp add: assms)
 
 lemma simplex_furthest_le:
+  fixes s :: "(real ^ _) set"
   assumes "finite s" "s \<noteq> {}"
   shows "\<exists>y\<in>s. \<forall>x\<in>(convex hull s). norm(x - a) \<le> norm(y - a)"
 proof-
@@ -1450,10 +1508,12 @@ proof-
 qed
 
 lemma simplex_furthest_le_exists:
-  "finite s \<Longrightarrow> (\<forall>x\<in>(convex hull s). \<exists>y\<in>s. norm(x - a) \<le> norm(y - a))"
+  fixes s :: "(real ^ _) set"
+  shows "finite s \<Longrightarrow> (\<forall>x\<in>(convex hull s). \<exists>y\<in>s. norm(x - a) \<le> norm(y - a))"
   using simplex_furthest_le[of s] by (cases "s={}")auto
 
 lemma simplex_extremal_le:
+  fixes s :: "(real ^ _) set"
   assumes "finite s" "s \<noteq> {}"
   shows "\<exists>u\<in>s. \<exists>v\<in>s. \<forall>x\<in>convex hull s. \<forall>y \<in> convex hull s. norm(x - y) \<le> norm(u - v)"
 proof-
@@ -1474,7 +1534,8 @@ proof-
 qed 
 
 lemma simplex_extremal_le_exists:
-  "finite s \<Longrightarrow> x \<in> convex hull s \<Longrightarrow> y \<in> convex hull s
+  fixes s :: "(real ^ _) set"
+  shows "finite s \<Longrightarrow> x \<in> convex hull s \<Longrightarrow> y \<in> convex hull s
   \<Longrightarrow> (\<exists>u\<in>s. \<exists>v\<in>s. norm(x - y) \<le> norm(u - v))"
   using convex_hull_empty simplex_extremal_le[of s] by(cases "s={}")auto
 
@@ -1535,6 +1596,7 @@ proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> nor
     unfolding dist_norm by(auto simp add: norm_minus_commute field_simps) qed
 
 lemma any_closest_point_dot:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s" "\<forall>z\<in>s. dist a x \<le> dist a z"
   shows "inner (a - x) (y - x) \<le> 0"
 proof(rule ccontr) assume "\<not> inner (a - x) (y - x) \<le> 0"
@@ -1555,6 +1617,7 @@ proof -
 qed
 
 lemma any_closest_point_unique:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s"
   "\<forall>z\<in>s. dist a x \<le> dist a z" "\<forall>z\<in>s. dist a y \<le> dist a z"
   shows "x = y" using any_closest_point_dot[OF assms(1-4,5)] and any_closest_point_dot[OF assms(1-2,4,3,6)]
@@ -1606,6 +1669,7 @@ lemma continuous_on_closest_point:
 subsection {* Various point-to-set separating/supporting hyperplane theorems. *}
 
 lemma supporting_hyperplane_closed_point:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "closed s" "s \<noteq> {}" "z \<notin> s"
   shows "\<exists>a b. \<exists>y\<in>s. inner a z < b \<and> (inner a y = b) \<and> (\<forall>x\<in>s. inner a x \<ge> b)"
 proof-
@@ -1624,6 +1688,7 @@ proof-
 qed
 
 lemma separating_hyperplane_closed_point:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "closed s" "z \<notin> s"
   shows "\<exists>a b. inner a z < b \<and> (\<forall>x\<in>s. inner a x > b)"
 proof(cases "s={}")
@@ -1694,6 +1759,7 @@ next
 qed
 
 lemma separating_hyperplane_compact_closed:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "compact s" "s \<noteq> {}" "convex t" "closed t" "s \<inter> t = {}"
   shows "\<exists>a b. (\<forall>x\<in>s. inner a x < b) \<and> (\<forall>x\<in>t. inner a x > b)"
 proof- obtain a b where "(\<forall>x\<in>t. inner a x < b) \<and> (\<forall>x\<in>s. b < inner a x)"
@@ -1736,14 +1802,18 @@ proof- from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
 
 subsection {* More convexity generalities. *}
 
-lemma convex_closure: assumes "convex s" shows "convex(closure s)"
+lemma convex_closure:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "convex s" shows "convex(closure s)"
   unfolding convex_def Ball_def closure_sequential
   apply(rule,rule,rule,rule,rule,rule,rule,rule,rule) apply(erule_tac exE)+
   apply(rule_tac x="\<lambda>n. u *\<^sub>R xb n + v *\<^sub>R xc n" in exI) apply(rule,rule)
   apply(rule assms[unfolded convex_def, rule_format]) prefer 6
   apply(rule Lim_add) apply(rule_tac [1-2] Lim_cmul) by auto
 
-lemma convex_interior: assumes "convex s" shows "convex(interior s)"
+lemma convex_interior:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "convex s" shows "convex(interior s)"
   unfolding convex_alt Ball_def mem_interior apply(rule,rule,rule,rule,rule,rule) apply(erule exE | erule conjE)+ proof-
   fix x y u assume u:"0 \<le> u" "u \<le> (1::real)"
   fix e d assume ed:"ball x e \<subseteq> s" "ball y d \<subseteq> s" "0<d" "0<e" 
@@ -1792,6 +1862,7 @@ lemma convex_hull_affinity:
 subsection {* Convex set as intersection of halfspaces. *}
 
 lemma convex_halfspace_intersection:
+  fixes s :: "(real ^ _) set"
   assumes "closed s" "convex s"
   shows "s = \<Inter> {h. s \<subseteq> h \<and> (\<exists>a b. h = {x. inner a x \<le> b})}"
   apply(rule set_ext, rule) unfolding Inter_iff Ball_def mem_Collect_eq apply(rule,rule,erule conjE) proof- 
@@ -2194,6 +2265,7 @@ lemma forall_of_dest_vec1': "(\<forall>v. P (dest_vec1 v)) \<longleftrightarrow>
   apply(erule_tac x="dest_vec1 v" in allE) unfolding o_def vec1_dest_vec1 by auto
 
 lemma convex_on:
+  fixes s :: "(real ^ _) set"
   assumes "convex s"
   shows "convex_on s f \<longleftrightarrow> (\<forall>k u x. (\<forall>i\<in>{1..k::nat}. 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow>
    f (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} ) \<le> setsum (\<lambda>i. u i * f(x i)) {1..k} ) "
@@ -2209,7 +2281,9 @@ lemma convex_on:
 
 subsection {* Convexity of general and special intervals. *}
 
-lemma is_interval_convex: assumes "is_interval s" shows "convex s"
+lemma is_interval_convex:
+  fixes s :: "(real ^ _) set"
+  assumes "is_interval s" shows "convex s"
   unfolding convex_def apply(rule,rule,rule,rule,rule,rule,rule) proof-
   fix x y u v assume as:"x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
   hence *:"u = 1 - v" "1 - v \<ge> 0" and **:"v = 1 - u" "1 - u \<ge> 0" by auto
@@ -2294,6 +2368,7 @@ lemma ivt_decreasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n::finite
 subsection {* A bound within a convex hull, and so an interval. *}
 
 lemma convex_on_convex_hull_bound:
+  fixes s :: "(real ^ _) set"
   assumes "convex_on (convex hull s) f" "\<forall>x\<in>s. f x \<le> b"
   shows "\<forall>x\<in> convex hull s. f x \<le> b" proof
   fix x assume "x\<in>convex hull s"
@@ -2396,6 +2471,7 @@ lemma cube_convex_hull:
 subsection {* Bounded convex function on open set is continuous. *}
 
 lemma convex_on_bounded_continuous:
+  fixes s :: "(real ^ _) set"
   assumes "open s" "convex_on s f" "\<forall>x\<in>s. abs(f x) \<le> b"
   shows "continuous_on s f"
   apply(rule continuous_at_imp_continuous_on) unfolding continuous_at_real_range proof(rule,rule,rule)
@@ -2446,6 +2522,7 @@ lemma convex_on_bounded_continuous:
 subsection {* Upper bound on a ball implies upper and lower bounds. *}
 
 lemma convex_bounds_lemma:
+  fixes x :: "real ^ _"
   assumes "convex_on (cball x e) f"  "\<forall>y \<in> cball x e. f y \<le> b"
   shows "\<forall>y \<in> cball x e. abs(f y) \<le> b + 2 * abs(f x)"
   apply(rule) proof(cases "0 \<le> e") case True
@@ -2625,6 +2702,7 @@ lemma between_mem_convex_hull:
 subsection {* Shrinking towards the interior of a convex set. *}
 
 lemma mem_interior_convex_shrink:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "c \<in> interior s" "x \<in> s" "0 < e" "e \<le> 1"
   shows "x - e *\<^sub>R (x - c) \<in> interior s"
 proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfolding mem_interior by auto
@@ -2643,6 +2721,7 @@ proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfold
   qed(rule mult_pos_pos, insert `e>0` `d>0`, auto) qed
 
 lemma mem_interior_closure_convex_shrink:
+  fixes s :: "(real ^ _) set"
   assumes "convex s" "c \<in> interior s" "x \<in> closure s" "0 < e" "e \<le> 1"
   shows "x - e *\<^sub>R (x - c) \<in> interior s"
 proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfolding mem_interior by auto
