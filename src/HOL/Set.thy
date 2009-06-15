@@ -23,8 +23,6 @@ consts
   Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
   Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
   Bex1          :: "'a set => ('a => bool) => bool"      -- "bounded unique existential quantifiers"
-  Pow           :: "'a set => 'a set set"                -- "powerset"
-  image         :: "('a => 'b) => 'a set => 'b set"      (infixr "`" 90)
 
 local
 
@@ -215,9 +213,6 @@ notation (xsymbols)
   supset_eq  ("op \<supseteq>") and
   supset_eq  ("(_/ \<supseteq> _)" [50, 51] 50)
 
-abbreviation
-  range :: "('a => 'b) => 'b set" where -- "of function"
-  "range f == f ` UNIV"
 
 
 subsubsection "Bounded quantifiers"
@@ -408,9 +403,15 @@ instance ..
 
 end
 
-defs
-  Pow_def:      "Pow A          == {B. B <= A}"
-  image_def:    "f`A            == {y. EX x:A. y = f(x)}"
+definition Pow :: "'a set => 'a set set" where
+  Pow_def: "Pow A = {B. B \<le> A}"
+
+definition image :: "('a => 'b) => 'a set => 'b set" (infixr "`" 90) where
+  image_def: "f ` A = {y. EX x:A. y = f(x)}"
+
+abbreviation
+  range :: "('a => 'b) => 'b set" where -- "of function"
+  "range f == f ` UNIV"
 
 
 subsection {* Lemmas and proof tool setup *}
