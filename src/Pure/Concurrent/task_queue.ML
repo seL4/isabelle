@@ -21,7 +21,6 @@ sig
   val is_empty: queue -> bool
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
-  val depend: task list -> task -> queue -> queue
   val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
   val interrupt: queue -> task -> unit
   val interrupt_external: queue -> string -> unit
@@ -74,9 +73,6 @@ fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (
 fun add_job task dep (jobs: jobs) =
   Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
 
-fun add_job_acyclic task dep (jobs: jobs) =
-  Task_Graph.add_edge_acyclic (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
-
 
 (* queue of grouped jobs *)
 
@@ -95,21 +91,24 @@ fun is_empty (Queue {jobs, ...}) = Task_Graph.is_empty jobs;
 
 (* enqueue *)
 
-fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs, ...}) =
+fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs, cache}) =
   let
     val task = new_task pri;
     val groups' = Inttab.cons_list (gid, task) groups;
     val jobs' = jobs
       |> Task_Graph.new_node (task, (group, Job [job])) |> fold (add_job task) deps;
-  in (task, make_queue groups' jobs' Unknown) end;
+    val cache' =
+      (case cache of
+        Result last =>
+          if task_ord (last, task) = LESS
+          then cache else Unknown
+      | _ => Unknown);
+  in (task, make_queue groups' jobs' cache') end;
 
 fun extend task job (Queue {groups, jobs, cache}) =
   (case try (get_job jobs) task of
     SOME (Job list) => SOME (make_queue groups (set_job task (Job (job :: list)) jobs) cache)
   | _ => NONE);
-
-fun depend deps task (Queue {groups, jobs, ...}) =
-  make_queue groups (fold (add_job_acyclic task) deps jobs) Unknown;
 
 
 (* dequeue *)
@@ -168,11 +167,14 @@ fun cancel_all (Queue {jobs, ...}) =
     val _ = List.app SimpleThread.interrupt running;
   in groups end;
 
-fun finish task (Queue {groups, jobs, ...}) =
+fun finish task (Queue {groups, jobs, cache}) =
   let
     val Group (gid, _) = get_group jobs task;
     val groups' = Inttab.remove_list (op =) (gid, task) groups;
     val jobs' = Task_Graph.del_node task jobs;
-  in make_queue groups' jobs' Unknown end;
+    val cache' =
+      if null (Task_Graph.imm_succs jobs task) then cache
+      else Unknown;
+  in make_queue groups' jobs' cache' end;
 
 end;
