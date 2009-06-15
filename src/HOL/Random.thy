@@ -176,7 +176,7 @@ end;
 
 hide (open) type seed
 hide (open) const inc_shift minus_shift log "next" seed_invariant split_seed
-  iterate range select pick select_weight select_default
+  iterate range select pick select_weight
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)
