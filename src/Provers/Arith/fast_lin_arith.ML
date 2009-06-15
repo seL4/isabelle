@@ -122,7 +122,7 @@ structure Data = GenericDataFun
 
   val empty = {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
                lessD = [], neqE = [], simpset = Simplifier.empty_ss,
-               number_of = (serial (), no_number_of) };
+               number_of = (serial (), no_number_of) } : T;
   val extend = I;
   fun merge _
     ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,
