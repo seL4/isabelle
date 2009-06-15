@@ -212,7 +212,7 @@ fun random_aux_primrec_multi prefix [eq] lthy =
         fun prove_eqs aux_simp proj_defs lthy = 
           let
             val proj_simps = map (snd o snd) proj_defs;
-            fun tac { context = ctxt, ... } =
+            fun tac { context = ctxt, prems = _ } =
               ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
               THEN ALLGOALS (simp_tac (HOL_ss addsimps [fst_conv, snd_conv]));
