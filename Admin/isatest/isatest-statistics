@@ -51,7 +51,7 @@ TIMESPAN="$1"; shift
 SESSIONS="$@"
 
 case "$PLATFORM" in
-  *para*)
+  *para* | *-M*)
     PARALLEL=true
     ;;
   *)
