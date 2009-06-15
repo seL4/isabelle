@@ -49,7 +49,7 @@ fun mk_generator_expr thy prop tys =
       mk_scomp (mk_termtyp ty) @{typ "term list option"} @{typ Random.seed} t
         (mk_split ty $ Abs ("", ty, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, ty) = mk_scomp_split ty
-      (Sign.mk_const thy (@{const_name random}, [ty]) $ Bound i);
+      (Sign.mk_const thy (@{const_name Quickcheck.random}, [ty]) $ Bound i);
   in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
 
 fun compile_generator_expr thy t =
@@ -98,7 +98,7 @@ fun mk_random_typecopy tyco vs constr typ thy =
     val Ttm = mk_termifyT T;
     val typtm = mk_termifyT typ;
     fun mk_const c Ts = Const (c, Sign.const_instance thy (c, Ts));
-    fun mk_random T = mk_const @{const_name random} [T];
+    fun mk_random T = mk_const @{const_name Quickcheck.random} [T];
     val size = @{term "j::code_numeral"};
     val v = "x";
     val t_v = Free (v, typtm);

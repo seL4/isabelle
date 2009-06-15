@@ -137,7 +137,7 @@ code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
 code_reserved Quickcheck Quickcheck_Generators
 
 
-hide (open) const collapse beyond random_fun_aux random_fun_lift
+hide (open) const random collapse beyond random_fun_aux random_fun_lift
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)

@@ -329,7 +329,7 @@ primrec random_finfun_aux :: "code_numeral \<Rightarrow> code_numeral \<Rightarr
          (1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
 
 definition 
-  "random i = random_finfun_aux i i"
+  "Quickcheck.random i = random_finfun_aux i i"
 
 instance ..
 

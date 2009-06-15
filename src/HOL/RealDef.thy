@@ -1137,7 +1137,7 @@ instantiation real :: random
 begin
 
 definition
-  "random i = random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
+  "Quickcheck.random i = Quickcheck.random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
 
 instance ..
 
