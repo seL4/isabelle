@@ -4,15 +4,6 @@
 Pure theory and ML toplevel setup.
 *)
 
-(* ML toplevel use commands *)
-
-fun use name          = Toplevel.program (fn () => ThyInfo.use name);
-fun use_thys name     = Toplevel.program (fn () => ThyInfo.use_thys name);
-fun use_thy name      = Toplevel.program (fn () => ThyInfo.use_thy name);
-fun time_use name     = Toplevel.program (fn () => ThyInfo.time_use name);
-fun time_use_thy name = Toplevel.program (fn () => ThyInfo.time_use_thy name);
-
-
 (* the Pure theories *)
 
 val theory = ThyInfo.get_theory;
@@ -47,6 +38,15 @@ then use "ML-Systems/install_pp_polyml-5.3.ML"
 else if String.isPrefix "polyml" ml_system
 then use "ML-Systems/install_pp_polyml.ML"
 else ();
+
+
+(* ML toplevel use commands *)
+
+fun use name          = Toplevel.program (fn () => ThyInfo.use name);
+fun use_thys name     = Toplevel.program (fn () => ThyInfo.use_thys name);
+fun use_thy name      = Toplevel.program (fn () => ThyInfo.use_thy name);
+fun time_use name     = Toplevel.program (fn () => ThyInfo.time_use name);
+fun time_use_thy name = Toplevel.program (fn () => ThyInfo.time_use_thy name);
 
 
 (* misc *)
