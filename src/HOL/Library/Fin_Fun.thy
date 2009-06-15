@@ -323,10 +323,10 @@ begin
 
 primrec random_finfun_aux :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
     "random_finfun_aux 0 j = Quickcheck.collapse (Random.select_weight
-       [(1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
+       [(1, Quickcheck.random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
   | "random_finfun_aux (Suc_code_numeral i) j = Quickcheck.collapse (Random.select_weight
-       [(Suc_code_numeral i, random j o\<rightarrow> (\<lambda>x. random j o\<rightarrow> (\<lambda>y. random_finfun_aux i j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f))))),
-         (1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
+       [(Suc_code_numeral i, Quickcheck.random j o\<rightarrow> (\<lambda>x. Quickcheck.random j o\<rightarrow> (\<lambda>y. random_finfun_aux i j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f))))),
+         (1, Quickcheck.random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
 
 definition 
   "Quickcheck.random i = random_finfun_aux i i"
@@ -337,8 +337,8 @@ end
 
 lemma random_finfun_aux_code [code]:
   "random_finfun_aux i j = Quickcheck.collapse (Random.select_weight
-     [(i, random j o\<rightarrow> (\<lambda>x. random j o\<rightarrow> (\<lambda>y. random_finfun_aux (i - 1) j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f))))),
-       (1, random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
+     [(i, Quickcheck.random j o\<rightarrow> (\<lambda>x. Quickcheck.random j o\<rightarrow> (\<lambda>y. random_finfun_aux (i - 1) j o\<rightarrow> (\<lambda>f. Pair (valtermify_finfun_update_code x y f))))),
+       (1, Quickcheck.random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
   apply (cases i rule: code_numeral.exhaust)
   apply (simp_all only: random_finfun_aux.simps code_numeral_zero_minus_one Suc_code_numeral_minus_one)
   apply (subst select_weight_cons_zero) apply (simp only:)
