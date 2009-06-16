@@ -106,11 +106,9 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
               |> pr_bind tyvars thm BR ((NONE, SOME pat), ty)
               |>> (fn p => semicolon [p, str "=", pr_term tyvars thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
-          in 
-            Pretty.block_enclose (
-              str "(let {",
-              concat [str "}", str "in", pr_term tyvars thm vars' NOBR body, str ")"]
-            ) ps
+          in brackify_block fxy (str "let {")
+            ps
+            (concat [str "}", str "in", pr_term tyvars thm vars' NOBR body])
           end
       | pr_case tyvars thm vars fxy (((t, ty), clauses as _ :: _), _) =
           let
@@ -118,11 +116,10 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
               let
                 val (p, vars') = pr_bind tyvars thm NOBR ((NONE, SOME pat), ty) vars;
               in semicolon [p, str "->", pr_term tyvars thm vars' NOBR body] end;
-          in
-            Pretty.block_enclose (
-              concat [str "(case", pr_term tyvars thm vars NOBR t, str "of", str "{"],
-              str "})"
-            ) (map pr clauses)
+          in brackify_block fxy
+            (concat [str "case", pr_term tyvars thm vars NOBR t, str "of", str "{"])
+            (map pr clauses)
+            (str "}") 
           end
       | pr_case tyvars thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""];
