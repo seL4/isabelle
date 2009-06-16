@@ -1,5 +1,5 @@
 /*
- * Independent prover sessions
+ * Independent prover sessions for each buffer
  *
  * @author Fabian Immler, TU Munich
  */
@@ -32,9 +32,10 @@ class ProverSetup(buffer: JEditBuffer)
 
   val output_text_view = new JTextArea
 
-  def activate(view: View) {
+  def activate(view: View)
+  {
     prover = new Prover(Isabelle.system, Isabelle.default_logic)
-    prover.start() //start actor
+    prover.start() // start actor
     val buffer = view.getBuffer
     val path = buffer.getPath
 
@@ -43,18 +44,19 @@ class ProverSetup(buffer: JEditBuffer)
       if (path.startsWith(Isabelle.VFS_PREFIX)) path.substring(Isabelle.VFS_PREFIX.length)
       else path)
     theory_view.activate
-    val MCL = TheoryView.MAX_CHANGE_LENGTH
-    for (i <- 0 to buffer.getLength / MCL)
+    val MAX = TheoryView.MAX_CHANGE_LENGTH
+    for (i <- 0 to buffer.getLength / MAX) {
       prover ! new isabelle.proofdocument.Text.Change(
-        Isabelle.system.id(), i * MCL,
-        buffer.getText(i * MCL, MCL min buffer.getLength - i * MCL),0)
+        Isabelle.system.id(), i * MAX,
+        buffer.getText(i * MAX, MAX min buffer.getLength - i * MAX), 0)
+    }
 
-    //register output-view
+    // register output-view
     prover.output_info += (text =>
       {
         output_text_view.append(text + "\n")
         val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
-        //link process output if dockable is active
+        // link process output if dockable is active
         if (dockable != null) {
           val output_dockable = dockable.asInstanceOf[OutputDockable]
           if (output_dockable.getComponent(0) != output_text_view ) {
@@ -65,7 +67,7 @@ class ProverSetup(buffer: JEditBuffer)
         }
       })
 
-    //register for state-view
+    // register for state-view
     state_update += (state => {
       val state_view = view.getDockableWindowManager.getDockable("isabelle-state")
       val state_panel =
@@ -81,7 +83,8 @@ class ProverSetup(buffer: JEditBuffer)
 
   }
 
-  def deactivate {
+  def deactivate
+  {
     buffer.setTokenMarker(buffer.getMode.getTokenMarker)
     theory_view.deactivate
     prover.stop
