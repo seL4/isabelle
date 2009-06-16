@@ -1059,13 +1059,10 @@ apply (rule iffI)
 done
 
 lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
-  by (auto elim!: dvdE simp add: mod_mult_mult1)
+  by (rule dvd_mod) (* TODO: remove *)
 
 lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
-  apply (subgoal_tac "k dvd n * (m div n) + m mod n")
-   apply (simp add: zmod_zdiv_equality [symmetric])
-  apply (simp only: dvd_add dvd_mult2)
-  done
+  by (rule dvd_mod_imp_dvd) (* TODO: remove *)
 
 lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
   apply (auto elim!: dvdE)
