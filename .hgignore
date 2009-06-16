@@ -8,6 +8,7 @@ syntax: glob
 
 syntax: regexp
 
+^contrib
 ^heaps/
 ^browser_info/
 ^doc-src/.*\.aux
