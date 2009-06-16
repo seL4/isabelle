@@ -632,6 +632,25 @@ lemma dvd_smult_iff:
   shows "a \<noteq> 0 \<Longrightarrow> p dvd smult a q \<longleftrightarrow> p dvd q"
   by (safe elim!: dvd_smult dvd_smult_cancel)
 
+lemma smult_dvd_cancel:
+  "smult a p dvd q \<Longrightarrow> p dvd q"
+proof -
+  assume "smult a p dvd q"
+  then obtain k where "q = smult a p * k" ..
+  then have "q = p * smult a k" by simp
+  then show "p dvd q" ..
+qed
+
+lemma smult_dvd:
+  fixes a :: "'a::field"
+  shows "p dvd q \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> smult a p dvd q"
+  by (rule smult_dvd_cancel [where a="inverse a"]) simp
+
+lemma smult_dvd_iff:
+  fixes a :: "'a::field"
+  shows "smult a p dvd q \<longleftrightarrow> (if a = 0 then q = 0 else p dvd q)"
+  by (auto elim: smult_dvd smult_dvd_cancel)
+
 lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
 by (induct n, simp, auto intro: order_trans degree_mult_le)
 
@@ -1102,6 +1121,109 @@ apply (rule pdivmod_rel_pCons [OF pdivmod_rel y refl])
 done
 
 
+subsection {* GCD of polynomials *}
+
+function
+  poly_gcd :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
+  "poly_gcd x 0 = smult (inverse (coeff x (degree x))) x"
+| "y \<noteq> 0 \<Longrightarrow> poly_gcd x y = poly_gcd y (x mod y)"
+by auto
+
+termination poly_gcd
+by (relation "measure (\<lambda>(x, y). if y = 0 then 0 else Suc (degree y))")
+   (auto dest: degree_mod_less)
+
+declare poly_gcd.simps [simp del, code del]
+
+lemma poly_gcd_dvd1 [iff]: "poly_gcd x y dvd x"
+  and poly_gcd_dvd2 [iff]: "poly_gcd x y dvd y"
+  apply (induct x y rule: poly_gcd.induct)
+  apply (simp_all add: poly_gcd.simps)
+  apply (fastsimp simp add: smult_dvd_iff dest: inverse_zero_imp_zero)
+  apply (blast dest: dvd_mod_imp_dvd)
+  done
+
+lemma poly_gcd_greatest: "k dvd x \<Longrightarrow> k dvd y \<Longrightarrow> k dvd poly_gcd x y"
+  by (induct x y rule: poly_gcd.induct)
+     (simp_all add: poly_gcd.simps dvd_mod dvd_smult)
+
+lemma dvd_poly_gcd_iff [iff]:
+  "k dvd poly_gcd x y \<longleftrightarrow> k dvd x \<and> k dvd y"
+  by (blast intro!: poly_gcd_greatest intro: dvd_trans)
+
+lemma poly_gcd_monic:
+  "coeff (poly_gcd x y) (degree (poly_gcd x y)) =
+    (if x = 0 \<and> y = 0 then 0 else 1)"
+  by (induct x y rule: poly_gcd.induct)
+     (simp_all add: poly_gcd.simps nonzero_imp_inverse_nonzero)
+
+lemma poly_gcd_zero_iff [simp]:
+  "poly_gcd x y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (simp only: dvd_0_left_iff [symmetric] dvd_poly_gcd_iff)
+
+lemma poly_gcd_0_0 [simp]: "poly_gcd 0 0 = 0"
+  by simp
+
+lemma poly_dvd_antisym:
+  fixes p q :: "'a::idom poly"
+  assumes coeff: "coeff p (degree p) = coeff q (degree q)"
+  assumes dvd1: "p dvd q" and dvd2: "q dvd p" shows "p = q"
+proof (cases "p = 0")
+  case True with coeff show "p = q" by simp
+next
+  case False with coeff have "q \<noteq> 0" by auto
+  have degree: "degree p = degree q"
+    using `p dvd q` `q dvd p` `p \<noteq> 0` `q \<noteq> 0`
+    by (intro order_antisym dvd_imp_degree_le)
+
+  from `p dvd q` obtain a where a: "q = p * a" ..
+  with `q \<noteq> 0` have "a \<noteq> 0" by auto
+  with degree a `p \<noteq> 0` have "degree a = 0"
+    by (simp add: degree_mult_eq)
+  with coeff a show "p = q"
+    by (cases a, auto split: if_splits)
+qed
+
+lemma poly_gcd_unique:
+  assumes dvd1: "d dvd x" and dvd2: "d dvd y"
+    and greatest: "\<And>k. k dvd x \<Longrightarrow> k dvd y \<Longrightarrow> k dvd d"
+    and monic: "coeff d (degree d) = (if x = 0 \<and> y = 0 then 0 else 1)"
+  shows "poly_gcd x y = d"
+proof -
+  have "coeff (poly_gcd x y) (degree (poly_gcd x y)) = coeff d (degree d)"
+    by (simp_all add: poly_gcd_monic monic)
+  moreover have "poly_gcd x y dvd d"
+    using poly_gcd_dvd1 poly_gcd_dvd2 by (rule greatest)
+  moreover have "d dvd poly_gcd x y"
+    using dvd1 dvd2 by (rule poly_gcd_greatest)
+  ultimately show ?thesis
+    by (rule poly_dvd_antisym)
+qed
+
+lemma poly_gcd_commute: "poly_gcd x y = poly_gcd y x"
+by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
+
+lemma poly_gcd_assoc: "poly_gcd (poly_gcd x y) z = poly_gcd x (poly_gcd y z)"
+by (rule poly_gcd_unique) (auto intro: dvd_trans simp add: poly_gcd_monic)
+
+lemmas poly_gcd_left_commute =
+  mk_left_commute [where f=poly_gcd, OF poly_gcd_assoc poly_gcd_commute]
+
+lemmas poly_gcd_ac = poly_gcd_assoc poly_gcd_commute poly_gcd_left_commute
+
+lemma poly_gcd_1_left [simp]: "poly_gcd 1 y = 1"
+by (rule poly_gcd_unique) simp_all
+
+lemma poly_gcd_1_right [simp]: "poly_gcd x 1 = 1"
+by (rule poly_gcd_unique) simp_all
+
+lemma poly_gcd_minus_left [simp]: "poly_gcd (- x) y = poly_gcd x y"
+by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
+
+lemma poly_gcd_minus_right [simp]: "poly_gcd x (- y) = poly_gcd x y"
+by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
+
+
 subsection {* Evaluation of polynomials *}
 
 definition
@@ -1471,5 +1593,11 @@ apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
 apply (rule mod_poly_eq)
 apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
 done
+
+lemma poly_gcd_code [code]:
+  "poly_gcd x y =
+    (if y = 0 then smult (inverse (coeff x (degree x))) x
+              else poly_gcd y (x mod y))"
+  by (simp add: poly_gcd.simps)
 
 end
