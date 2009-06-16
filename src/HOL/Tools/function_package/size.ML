@@ -218,7 +218,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       (new_type_names ~~ size_names)) thy''
   end;
 
-fun add_size_thms (new_type_names as name :: _) thy =
+fun add_size_thms config (new_type_names as name :: _) thy =
   let
     val info as {descr, alt_names, ...} = DatatypePackage.the_datatype thy name;
     val prefix = Long_Name.map_base_name (K (space_implode "_"

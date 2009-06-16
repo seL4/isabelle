@@ -6,6 +6,7 @@ Datatype package for Isabelle/HOL.
 
 signature DATATYPE_PACKAGE =
 sig
+  type datatype_config = DatatypeAux.datatype_config
   type datatype_info = DatatypeAux.datatype_info
   type descr = DatatypeAux.descr
   val get_datatypes : theory -> datatype_info Symtab.table
@@ -24,39 +25,23 @@ sig
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
   val read_typ: theory ->
     (typ list * (string * sort) list) * string -> typ list * (string * sort) list
-  val interpretation : (string list -> theory -> theory) -> theory -> theory
-  val rep_datatype : ({distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       simps : thm list} -> Proof.context -> Proof.context) -> string list option -> term list
-    -> theory -> Proof.state;
-  val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state;
-  val add_datatype : bool -> bool -> string list -> (string list * binding * mixfix *
-    (binding * typ list * mixfix) list) list -> theory ->
-      {distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       simps : thm list} * theory
-  val add_datatype_cmd : bool -> string list -> (string list * binding * mixfix *
-    (binding * string list * mixfix) list) list -> theory ->
-      {distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       simps : thm list} * theory
+  val interpretation : (datatype_config -> string list -> theory -> theory) -> theory -> theory
+  type rules = {distinct : thm list list,
+    inject : thm list list,
+    exhaustion : thm list,
+    rec_thms : thm list,
+    case_thms : thm list list,
+    split_thms : (thm * thm) list,
+    induction : thm,
+    simps : thm list}
+  val rep_datatype : datatype_config -> (rules -> Proof.context -> Proof.context)
+    -> string list option -> term list -> theory -> Proof.state;
+  val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state
+  val add_datatype : datatype_config -> string list -> (string list * binding * mixfix *
+    (binding * typ list * mixfix) list) list -> theory -> rules * theory
+  val add_datatype_cmd : string list -> (string list * binding * mixfix *
+    (binding * string list * mixfix) list) list -> theory -> rules * theory
   val setup: theory -> theory
-  val quiet_mode : bool ref
   val print_datatypes : theory -> unit
 end;
 
@@ -64,8 +49,6 @@ structure DatatypePackage : DATATYPE_PACKAGE =
 struct
 
 open DatatypeAux;
-
-val quiet_mode = quiet_mode;
 
 
 (* theory data *)
@@ -358,31 +341,41 @@ fun make_dt_info alt_names descr sorts induct reccomb_names rec_thms
     case_cong = case_cong,
     weak_case_cong = weak_case_cong});
 
-structure DatatypeInterpretation = InterpretationFun(type T = string list val eq = op =);
-val interpretation = DatatypeInterpretation.interpretation;
+type rules = {distinct : thm list list,
+  inject : thm list list,
+  exhaustion : thm list,
+  rec_thms : thm list,
+  case_thms : thm list list,
+  split_thms : (thm * thm) list,
+  induction : thm,
+  simps : thm list}
+
+structure DatatypeInterpretation = InterpretationFun
+  (type T = datatype_config * string list val eq = eq_snd op =);
+fun interpretation f = DatatypeInterpretation.interpretation (uncurry f);
 
 
 (******************* definitional introduction of datatypes *******************)
 
-fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
+fun add_datatype_def (config : datatype_config) new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
   let
-    val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
+    val _ = message config ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
     val ((inject, distinct, dist_rewrites, simproc_dists, induct), thy2) = thy |>
-      DatatypeRepProofs.representation_proofs flat_names dt_info new_type_names descr sorts
+      DatatypeRepProofs.representation_proofs config dt_info new_type_names descr sorts
         types_syntax constr_syntax case_names_induct;
 
-    val (casedist_thms, thy3) = DatatypeAbsProofs.prove_casedist_thms new_type_names descr
+    val (casedist_thms, thy3) = DatatypeAbsProofs.prove_casedist_thms config new_type_names descr
       sorts induct case_names_exhausts thy2;
     val ((reccomb_names, rec_thms), thy4) = DatatypeAbsProofs.prove_primrec_thms
-      flat_names new_type_names descr sorts dt_info inject dist_rewrites
+      config new_type_names descr sorts dt_info inject dist_rewrites
       (Simplifier.theory_context thy3 dist_ss) induct thy3;
     val ((case_thms, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
-      flat_names new_type_names descr sorts reccomb_names rec_thms thy4;
-    val (split_thms, thy7) = DatatypeAbsProofs.prove_split_thms new_type_names
+      config new_type_names descr sorts reccomb_names rec_thms thy4;
+    val (split_thms, thy7) = DatatypeAbsProofs.prove_split_thms config new_type_names
       descr sorts inject dist_rewrites casedist_thms case_thms thy6;
-    val (nchotomys, thy8) = DatatypeAbsProofs.prove_nchotomys new_type_names
+    val (nchotomys, thy8) = DatatypeAbsProofs.prove_nchotomys config new_type_names
       descr sorts casedist_thms thy7;
     val (case_congs, thy9) = DatatypeAbsProofs.prove_case_congs new_type_names
       descr sorts nchotomys case_thms thy8;
@@ -406,7 +399,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       |> add_cases_induct dt_infos induct
       |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
-      |> DatatypeInterpretation.data (map fst dt_infos);
+      |> DatatypeInterpretation.data (config, map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -421,7 +414,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
 (*********************** declare existing type as datatype *********************)
 
-fun prove_rep_datatype alt_names new_type_names descr sorts induct inject half_distinct thy =
+fun prove_rep_datatype (config : datatype_config) alt_names new_type_names descr sorts induct inject half_distinct thy =
   let
     val ((_, [induct']), _) =
       Variable.importT_thms [induct] (Variable.thm_context induct);
@@ -440,19 +433,19 @@ fun prove_rep_datatype alt_names new_type_names descr sorts induct inject half_d
     val (case_names_induct, case_names_exhausts) =
       (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames));
 
-    val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
+    val _ = message config ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
     val (casedist_thms, thy2) = thy |>
-      DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induct
+      DatatypeAbsProofs.prove_casedist_thms config new_type_names [descr] sorts induct
         case_names_exhausts;
     val ((reccomb_names, rec_thms), thy3) = DatatypeAbsProofs.prove_primrec_thms
-      false new_type_names [descr] sorts dt_info inject distinct
+      config new_type_names [descr] sorts dt_info inject distinct
       (Simplifier.theory_context thy2 dist_ss) induct thy2;
-    val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms false
-      new_type_names [descr] sorts reccomb_names rec_thms thy3;
+    val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms
+      config new_type_names [descr] sorts reccomb_names rec_thms thy3;
     val (split_thms, thy5) = DatatypeAbsProofs.prove_split_thms
-      new_type_names [descr] sorts inject distinct casedist_thms case_thms thy4;
-    val (nchotomys, thy6) = DatatypeAbsProofs.prove_nchotomys new_type_names
+      config new_type_names [descr] sorts inject distinct casedist_thms case_thms thy4;
+    val (nchotomys, thy6) = DatatypeAbsProofs.prove_nchotomys config new_type_names
       [descr] sorts casedist_thms thy5;
     val (case_congs, thy7) = DatatypeAbsProofs.prove_case_congs new_type_names
       [descr] sorts nchotomys case_thms thy6;
@@ -482,7 +475,7 @@ fun prove_rep_datatype alt_names new_type_names descr sorts induct inject half_d
       |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
-      |> DatatypeInterpretation.data (map fst dt_infos);
+      |> DatatypeInterpretation.data (config, map fst dt_infos);
   in
     ({distinct = distinct,
       inject = inject,
@@ -494,7 +487,7 @@ fun prove_rep_datatype alt_names new_type_names descr sorts induct inject half_d
       simps = simps}, thy11)
   end;
 
-fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
+fun gen_rep_datatype prep_term (config : datatype_config) after_qed alt_names raw_ts thy =
   let
     fun constr_of_term (Const (c, T)) = (c, T)
       | constr_of_term t =
@@ -550,7 +543,7 @@ fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
             (*FIXME somehow dubious*)
       in
         ProofContext.theory_result
-          (prove_rep_datatype alt_names new_type_names descr vs induct injs half_distincts)
+          (prove_rep_datatype config alt_names new_type_names descr vs induct injs half_distincts)
         #-> after_qed
       end;
   in
@@ -560,13 +553,13 @@ fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
-val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global (K I);
+val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global default_datatype_config (K I);
 
 
 
 (******************************** add datatype ********************************)
 
-fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
+fun gen_add_datatype prep_typ (config : datatype_config) new_type_names dts thy =
   let
     val _ = Theory.requires thy "Datatype" "datatype definitions";
 
@@ -598,7 +591,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
             val _ = (case fold (curry OldTerm.add_typ_tfree_names) cargs' [] \\ tvs of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
-          in (constrs @ [((if flat_names then Sign.full_name tmp_thy else
+          in (constrs @ [((if #flat_names config then Sign.full_name tmp_thy else
                 Sign.full_name_path tmp_thy tname')
                   (Binding.map_name (Syntax.const_name mx') cname),
                    map (dtyp_of_typ new_dts) cargs')],
@@ -626,7 +619,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
     val dt_info = get_datatypes thy;
     val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
-      if err then error ("Nonemptiness check failed for datatype " ^ s)
+      if #strict config then error ("Nonemptiness check failed for datatype " ^ s)
       else raise exn;
 
     val descr' = flat descr;
@@ -634,12 +627,12 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
     val case_names_exhausts = mk_case_names_exhausts descr' (map #1 new_dts);
   in
     add_datatype_def
-      flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
+      (config : datatype_config) new_type_names descr sorts types_syntax constr_syntax dt_info
       case_names_induct case_names_exhausts thy
   end;
 
 val add_datatype = gen_add_datatype cert_typ;
-val add_datatype_cmd = gen_add_datatype read_typ true;
+val add_datatype_cmd = gen_add_datatype read_typ default_datatype_config;
 
 
 
@@ -668,7 +661,7 @@ fun mk_datatype args =
       (fn ((((NONE, _), t), _), _) => Binding.name_of t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in snd o add_datatype_cmd false names specs end;
+  in snd o add_datatype_cmd names specs end;
 
 val _ =
   OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
