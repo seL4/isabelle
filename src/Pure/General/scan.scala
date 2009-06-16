@@ -38,36 +38,52 @@ object Scan
     val max_entry = -1
 
 
+    /* auxiliary operations */
+
+    private def content(tree: Tree, result: List[String]): List[String] =
+      (result /: tree.branches.toList) ((res, entry) =>
+        entry match { case (_, (s, tr)) =>
+          if (s.isEmpty) content(tr, res) else content(tr, s :: res) })
+
+    private def lookup(str: CharSequence): Option[(Boolean, Tree)] =
+    {
+      val len = str.length
+      def look(tree: Tree, tip: Boolean, i: Int): Option[(Boolean, Tree)] =
+      {
+        if (i < len) {
+          tree.branches.get(str.charAt(i)) match {
+            case Some((s, tr)) => look(tr, !s.isEmpty, i + 1)
+            case None => None
+          }
+        } else Some(tip, tree)
+      }
+      look(main_tree, false, 0)
+    }
+
+    def completions(str: CharSequence): List[String] =
+    {
+      (lookup(str) match {
+        case Some((true, tree)) => content(tree, List(str.toString))
+        case Some((false, tree)) => content(tree, Nil)
+        case None => Nil
+      }).sort((s1, s2) => s1.length < s2.length || s1.length == s2.length && s1 <= s2)
+    }
+
+
     /* Set methods */
 
     override def stringPrefix = "Lexicon"
 
-    override def isEmpty: Boolean = (max_entry < 0)
+    override def isEmpty: Boolean = { max_entry < 0 }
 
-    private def destruct: List[String] =
-    {
-      def dest(tree: Tree, result: List[String]): List[String] =
-        (result /: tree.branches.toList) ((res, entry) =>
-          entry match { case (_, (s, tr)) =>
-            if (s.isEmpty) dest(tr, res) else dest(tr, s :: res) })
-      dest(main_tree, Nil).sort(_ <= _)
-    }
-
-    def size: Int = destruct.length
-    def elements: Iterator[String] = destruct.elements
+    def size: Int = content(main_tree, Nil).length
+    def elements: Iterator[String] = content(main_tree, Nil).sort(_ <= _).elements
 
     def contains(str: String): Boolean =
-    {
-      val len = str.length
-      def check(tree: Tree, i: Int): Boolean =
-        i < len && {
-          tree.branches.get(str.charAt(i)) match {
-            case Some((s, tr)) => !s.isEmpty && i + 1 == len || check(tr, i + 1)
-            case None => false
-          }
-        }
-      check(main_tree, 0)
-    }
+      lookup(str) match {
+        case Some((tip, _)) => tip
+        case _ => false
+      }
 
     def +(str: String): Lexicon =
     {
@@ -104,18 +120,18 @@ object Scan
         val offset = in.offset
         val len = source.length - offset
 
-        def scan(tree: Tree, i: Int, res: String): String =
+        def scan(tree: Tree, text: String, i: Int): String =
         {
           if (i < len) {
             tree.branches.get(source.charAt(offset + i)) match {
-              case Some((s, tr)) => scan(tr, i + 1, if (s.isEmpty) res else s)
-              case None => res
+              case Some((s, tr)) => scan(tr, if (s.isEmpty) text else s, i + 1)
+              case None => text
             }
-          } else res
+          } else text
         }
-        val res = scan(main_tree, 0, "")
-        if (res.isEmpty) Failure("keyword expected", in)
-        else Success(res, in.drop(res.length))
+        val text = scan(main_tree, "", 0)
+        if (text.isEmpty) Failure("keyword expected", in)
+        else Success(text, in.drop(text.length))
       }
     }.named("keyword")
 
