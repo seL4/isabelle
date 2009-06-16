@@ -76,17 +76,10 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   }
 
 
-  /* completions */
+  /* completions */  // FIXME add symbols, symbol names, symbol abbrevs
 
-  var _completions = new TreeSet[String]
-  def completions = _completions
-  /* // TODO: ask Makarius to make Interpretation.symbols public (here: read-only as 'symbol_map')
-  val map = isabelle.jedit.Isabelle.symbols.symbol_map
-  for (xsymb <- map.keys) {
-    _completions += xsymb
-    if (map(xsymb).get("abbrev").isDefined) _completions += map(xsymb)("abbrev")
-  }
-  */
+  var _completions = Scan.Lexicon()
+  def completions(word: CharSequence) = _completions.completions(word)
   decl_info += (p => _completions += p._1)
 
 
