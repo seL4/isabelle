@@ -331,17 +331,16 @@ lemma mod_mult_mult2:
   "(a * c) mod (b * c) = (a mod b) * c"
   using mod_mult_mult1 [of c a b] by (simp add: mult_commute)
 
-end
-
 lemma div_power:
-  "(y::'a::{semiring_div,no_zero_divisors,power}) dvd x \<Longrightarrow>
-    (x div y) ^ n = x ^ n div y ^ n"
+  "y dvd x \<Longrightarrow> (x div y) ^ n = x ^ n div y ^ n"
 apply (induct n)
  apply simp
 apply(simp add: div_mult_div_if_dvd dvd_power_same)
 done
 
-class ring_div = semiring_div + comm_ring_1
+end
+
+class ring_div = semiring_div + idom
 begin
 
 text {* Negation respects modular equivalence. *}
