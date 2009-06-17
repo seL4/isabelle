@@ -16,7 +16,7 @@ class plus =
 text {* \noindent This introduces a new class @{class [source] plus},
 along with a constant @{const [source] plus} with nice infix syntax.
 @{const [source] plus} is also named \emph{class operation}.  The type
-of @{const [source] plus} carries a sort constraint @{typ [source] "'a
+of @{const [source] plus} carries a class constraint @{typ [source] "'a
 :: plus"} on its type variable, meaning that only types of class
 @{class [source] plus} can be instantiated for @{typ [source] "'a"}.
 To breathe life into @{class [source] plus} we need to declare a type

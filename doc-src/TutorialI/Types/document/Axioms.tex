@@ -36,8 +36,7 @@ covered in this tutorial; but see \cite{Nipkow-TYPES02}.%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-We specify \emph{semigroups} as subclass of \isa{plus}
-where certain axioms need to hold:%
+We specify \emph{semigroups} as subclass of \isa{plus}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{class}\isamarkupfalse%
@@ -75,8 +74,8 @@ relative to class \isa{semigroup}:%
 \noindent The \isa{semigroup} constraint on type \isa{{\isacharprime}a} restricts instantiations of \isa{{\isacharprime}a} to types of class
 \isa{semigroup} and during the proof enables us to use the fact
 \hyperlink{fact.assoc}{\mbox{\isa{assoc}}} whose type parameter is itself constrained to class
-\isa{semigroup}.  The main advantage is that theorems can be proved
-in the abstract and freely reused for each instance.
+\isa{semigroup}.  The main advantage of classes is that theorems
+can be proved in the abstract and freely reused for each instance.
 
 On instantiation, we have to give a proof that the given operations
 obey the class axioms:%
@@ -220,7 +219,7 @@ specifications.%
 \isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-\noindent Unless in the above examples, we here have both
+\noindent In contrast to the examples above, we here have both
 specification of class operations and a non-trivial instance proof.
 
 This covers products as well:%

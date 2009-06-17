@@ -13,8 +13,7 @@ covered in this tutorial; but see \cite{Nipkow-TYPES02}.%
 
 subsubsection {* Semigroups *}
 
-text{* We specify \emph{semigroups} as subclass of @{class plus}
-where certain axioms need to hold: *}
+text{* We specify \emph{semigroups} as subclass of @{class plus}: *}
 
 class semigroup = plus +
   assumes assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
@@ -35,8 +34,8 @@ text {* \noindent The @{class semigroup} constraint on type @{typ
 "'a"} restricts instantiations of @{typ "'a"} to types of class
 @{class semigroup} and during the proof enables us to use the fact
 @{fact assoc} whose type parameter is itself constrained to class
-@{class semigroup}.  The main advantage is that theorems can be proved
-in the abstract and freely reused for each instance.
+@{class semigroup}.  The main advantage of classes is that theorems
+can be proved in the abstract and freely reused for each instance.
 
 On instantiation, we have to give a proof that the given operations
 obey the class axioms: *}
@@ -107,7 +106,7 @@ qed
 
 end
 
-text {* \noindent Unless in the above examples, we here have both
+text {* \noindent In contrast to the examples above, we here have both
 specification of class operations and a non-trivial instance proof.
 
 This covers products as well:
