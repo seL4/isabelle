@@ -182,8 +182,8 @@ end %quote
 text {*
   \noindent Note the occurence of the name @{text mult_nat}
   in the primrec declaration;  by default, the local name of
-  a class operation @{text f} to instantiate on type constructor
-  @{text \<kappa>} are mangled as @{text f_\<kappa>}.  In case of uncertainty,
+  a class operation @{text f} to be instantiated on type constructor
+  @{text \<kappa>} is mangled as @{text f_\<kappa>}.  In case of uncertainty,
   these names may be inspected using the @{command "print_context"} command
   or the corresponding ProofGeneral button.
 *}
@@ -191,7 +191,7 @@ text {*
 subsection {* Lifting and parametric types *}
 
 text {*
-  Overloaded definitions giving on class instantiation
+  Overloaded definitions given on class instantiation
   may include recursion over the syntactic structure of types.
   As a canonical example, we model product semigroups
   using our simple algebra:
@@ -212,8 +212,7 @@ qed
 end %quote
 
 text {*
-  \noindent Associativity from product semigroups is
-  established using
+  \noindent Associativity of product semigroups is established using
   the definition of @{text "(\<otimes>)"} on products and the hypothetical
   associativity of the type components;  these hypotheses
   are facts due to the @{class semigroup} constraints imposed
