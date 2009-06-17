@@ -351,7 +351,7 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
     val c' = Sign.full_name thy b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';
-    val rhs'' = map_types ((*Type.strip_sorts o *)Logic.varifyT) rhs';
+    val rhs'' = map_types Logic.varifyT rhs';
   in
     thy
     |> Sign.add_abbrev (#1 prmode) pos (b, rhs'')
