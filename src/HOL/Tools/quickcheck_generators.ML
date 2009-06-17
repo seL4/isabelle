@@ -12,7 +12,11 @@ sig
     -> seed -> (('a -> 'b) * (unit -> Term.term)) * seed
   val ensure_random_typecopy: string -> theory -> theory
   val random_aux_specification: string -> term list -> local_theory -> local_theory
-  val eval_ref: (unit -> int -> int * int -> term list option * (int * int)) option ref
+  val mk_random_aux_eqs: theory -> DatatypeAux.descr -> (string * sort) list
+    -> string list -> string list * string list -> typ list * typ list
+    -> string * (term list * (term * term) list)
+  val ensure_random_datatype: string list -> theory -> theory
+  val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
   val setup: theory -> theory
 end;
 
@@ -45,7 +49,7 @@ fun mk_generator_expr thy prop tys =
       mk_scomp (mk_termtyp ty) @{typ "term list option"} @{typ Random.seed} t
         (mk_split ty $ Abs ("", ty, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, ty) = mk_scomp_split ty
-      (Sign.mk_const thy (@{const_name random}, [ty]) $ Bound i);
+      (Sign.mk_const thy (@{const_name Quickcheck.random}, [ty]) $ Bound i);
   in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
 
 fun compile_generator_expr thy t =
@@ -61,10 +65,7 @@ fun compile_generator_expr thy t =
 
 type seed = Random_Engine.seed;
 
-fun random_fun (T1 : typ) (T2 : typ) (eq : 'a -> 'a -> bool) (term_of : 'a -> term)
-    (random : seed -> ('b * (unit -> term)) * seed)
-    (random_split : seed -> seed * seed)
-    (seed : seed) =
+fun random_fun T1 T2 eq term_of random random_split seed =
   let
     val (seed', seed'') = random_split seed;
     val state = ref (seed', [], Const (@{const_name undefined}, T1 --> T2));
@@ -97,7 +98,7 @@ fun mk_random_typecopy tyco vs constr typ thy =
     val Ttm = mk_termifyT T;
     val typtm = mk_termifyT typ;
     fun mk_const c Ts = Const (c, Sign.const_instance thy (c, Ts));
-    fun mk_random T = mk_const @{const_name random} [T];
+    fun mk_random T = mk_const @{const_name Quickcheck.random} [T];
     val size = @{term "j::code_numeral"};
     val v = "x";
     val t_v = Free (v, typtm);
@@ -137,35 +138,52 @@ fun ensure_random_typecopy tyco thy =
 (* definitional scheme for random instances on datatypes *)
 
 (*FIXME avoid this low-level proving*)
-val rct = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg
-  |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_fun;
+local
+
 fun dest_ctyp_nth k cT = nth (Thm.dest_ctyp cT) k;
-val aT = rct |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
+val eq = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg |> Thm.dest_arg;
+val lhs = eq |> Thm.dest_arg1;
+val pt_random_aux = lhs |> Thm.dest_fun;
+val ct_k = lhs |> Thm.dest_arg;
+val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
+val aT = pt_random_aux |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
+
+val rew_thms = map mk_meta_eq [@{thm code_numeral_zero_minus_one},
+  @{thm Suc_code_numeral_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
+val rew_ts = map (Logic.dest_equals o Thm.prop_of) rew_thms;
+val rew_ss = HOL_ss addsimps rew_thms;
+
+in
 
 fun random_aux_primrec eq lthy =
   let
     val thy = ProofContext.theory_of lthy;
-    val rews = map mk_meta_eq [@{thm code_numeral_zero_minus_one},
-      @{thm Suc_code_numeral_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
-    val (rt as Free (random_aux, T)) $ (vt as Free (v, _)) =
-      (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
+    val ((t_random_aux as Free (random_aux, T)) $ (t_k as Free (v, _)), proto_t_rhs) =
+      (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     val Type (_, [_, iT]) = T;
     val icT = Thm.ctyp_of thy iT;
+    val cert = Thm.cterm_of thy;
+    val inst = Thm.instantiate_cterm ([(aT, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
-    val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ vt) eq];
-    val eqs1 = map (Pattern.rewrite_term thy (map (Logic.dest_equals o Thm.prop_of) rews) []) eqs0
+    val t_rhs = lambda t_k proto_t_rhs;
+    val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
+    val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, eqs2), lthy') = PrimrecPackage.add_primrec_simple
       [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
-    val eq_tac = ALLGOALS Goal.conjunction_tac THEN ALLGOALS (simp_tac (HOL_ss addsimps rews))
+    val eq_tac = ALLGOALS (simp_tac rew_ss)
       THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
-    val eqs3 = Goal.prove_multi lthy' [v] [] eqs0 (K eq_tac);
-    val rct' = Thm.instantiate_cterm ([(aT, icT)], []) rct
+    val eqs3 = map (fn prop => SkipProof.prove lthy' [v] [] prop (K eq_tac)) eqs0;
+    val cT_random_aux = inst pt_random_aux;
+    val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
-      |> Drule.instantiate ([(aT, icT)], [(rct', Thm.cterm_of thy rt)])
-      |> (fn thm => thm OF eqs3)
+      |> Drule.instantiate ([(aT, icT)],
+           [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)])
+      |> (fn thm => thm OF eqs3);
     val tac = ALLGOALS (rtac rule);
-    val simp = Goal.prove lthy' [v] [] eq (K tac);
+    val simp = SkipProof.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
+
+end;
 
 fun random_aux_primrec_multi prefix [eq] lthy =
       lthy
@@ -194,11 +212,11 @@ fun random_aux_primrec_multi prefix [eq] lthy =
         fun prove_eqs aux_simp proj_defs lthy = 
           let
             val proj_simps = map (snd o snd) proj_defs;
-            fun tac { context = ctxt, ... } = ALLGOALS Goal.conjunction_tac
-              THEN ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
+            fun tac { context = ctxt, prems = _ } =
+              ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
               THEN ALLGOALS (simp_tac (HOL_ss addsimps [fst_conv, snd_conv]));
-          in (Goal.prove_multi lthy [v] [] eqs tac, lthy) end;
+          in (map (fn prop => SkipProof.prove lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy
         |> random_aux_primrec aux_eq'
@@ -208,19 +226,18 @@ fun random_aux_primrec_multi prefix [eq] lthy =
 
 fun random_aux_specification prefix eqs lthy =
   let
-    val _ $ Free (v, _) $ Free (w, _) =
-      (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o hd) eqs;
+    val vs = fold Term.add_free_names ((snd o strip_comb o fst o HOLogic.dest_eq
+      o HOLogic.dest_Trueprop o hd) eqs) [];
     fun mk_proto_eq eq =
       let
-        val (head $ arg, rhs) = (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
-      in ((HOLogic.mk_Trueprop o HOLogic.mk_eq) (head, lambda arg rhs)) end;
+        val (head $ t $ u, rhs) = (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
+      in ((HOLogic.mk_Trueprop o HOLogic.mk_eq) (head, lambda t (lambda u rhs))) end;
     val proto_eqs = map mk_proto_eq eqs;
     fun prove_simps proto_simps lthy =
       let
-        val ext_simps = map (fn thm => fun_cong OF [thm]) proto_simps;
-        val tac = ALLGOALS Goal.conjunction_tac
-          THEN ALLGOALS (ProofContext.fact_tac ext_simps);
-      in (Goal.prove_multi lthy [v, w] [] eqs (K tac), lthy) end;
+        val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
+        val tac = ALLGOALS (ProofContext.fact_tac ext_simps);
+      in (map (fn prop => SkipProof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
     val b = Binding.qualify true prefix (Binding.name "simps");
   in
     lthy
@@ -236,13 +253,135 @@ fun random_aux_specification prefix eqs lthy =
 
 (* constructing random instances on datatypes *)
 
-(*still under construction*)
+fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
+  let
+    val mk_const = curry (Sign.mk_const thy);
+    val i = @{term "i\<Colon>code_numeral"};
+    val i1 = @{term "(i\<Colon>code_numeral) - 1"};
+    val j = @{term "j\<Colon>code_numeral"};
+    val seed = @{term "s\<Colon>Random.seed"};
+    val random_auxN = "random_aux";
+    val random_auxsN = map (prefix (random_auxN ^ "_")) (names @ auxnames);
+    fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit \<Rightarrow> term"});
+    val rTs = Ts @ Us;
+    fun random_resultT T = @{typ Random.seed}
+      --> HOLogic.mk_prodT (termifyT T,@{typ Random.seed});
+    val pTs = map random_resultT rTs;
+    fun sizeT T = @{typ code_numeral} --> @{typ code_numeral} --> T;
+    val random_auxT = sizeT o random_resultT;
+    val random_auxs = map2 (fn s => fn rT => Free (s, random_auxT rT))
+      random_auxsN rTs;
+    fun mk_random_call T = (NONE, (HOLogic.mk_random T j, T));
+    fun mk_random_aux_call fTs (k, _) (tyco, Ts) =
+      let
+        val T = Type (tyco, Ts);
+        fun mk_random_fun_lift [] t = t
+          | mk_random_fun_lift (fT :: fTs) t =
+              mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
+                mk_random_fun_lift fTs t;
+        val t = mk_random_fun_lift fTs (nth random_auxs k $ i1 $ j);
+        val size = Option.map snd (DatatypeCodegen.find_shortest_path descr k)
+          |> the_default 0;
+      in (SOME size, (t, fTs ---> T)) end;
+    val tss = DatatypeAux.interpret_construction descr vs
+      { atyp = mk_random_call, dtyp = mk_random_aux_call };
+    fun mk_consexpr simpleT (c, xs) =
+      let
+        val (ks, simple_tTs) = split_list xs;
+        val T = termifyT simpleT;
+        val tTs = (map o apsnd) termifyT simple_tTs;
+        val is_rec = exists is_some ks;
+        val k = fold (fn NONE => I | SOME k => curry Int.max k) ks 0;
+        val vs = Name.names Name.context "x" (map snd simple_tTs);
+        val vs' = (map o apsnd) termifyT vs;
+        val tc = HOLogic.mk_return T @{typ Random.seed}
+          (HOLogic.mk_valtermify_app c vs simpleT);
+        val t = HOLogic.mk_ST (map (fn (t, _) => (t, @{typ Random.seed})) tTs ~~ map SOME vs')
+          tc @{typ Random.seed} (SOME T, @{typ Random.seed});
+        val tk = if is_rec
+          then if k = 0 then i
+            else @{term "Quickcheck.beyond :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
+             $ HOLogic.mk_number @{typ code_numeral} k $ i
+          else @{term "1::code_numeral"}
+      in (is_rec, HOLogic.mk_prod (tk, t)) end;
+    fun sort_rec xs =
+      map_filter (fn (true, t) => SOME t | _ =>  NONE) xs
+      @ map_filter (fn (false, t) => SOME t | _ =>  NONE) xs;
+    val gen_exprss = tss
+      |> (map o apfst) Type
+      |> map (fn (T, cs) => (T, (sort_rec o map (mk_consexpr T)) cs));
+    fun mk_select (rT, xs) =
+      mk_const @{const_name Quickcheck.collapse} [@{typ "Random.seed"}, termifyT rT]
+      $ (mk_const @{const_name Random.select_weight} [random_resultT rT]
+        $ HOLogic.mk_list (HOLogic.mk_prodT (@{typ code_numeral}, random_resultT rT)) xs)
+          $ seed;
+    val auxs_lhss = map (fn t => t $ i $ j $ seed) random_auxs;
+    val auxs_rhss = map mk_select gen_exprss;
+    val prefix = space_implode "_" (random_auxN :: names);
+  in (prefix, (random_auxs, auxs_lhss ~~ auxs_rhss)) end;
+
+fun mk_random_datatype descr vs tycos (names, auxnames) (Ts, Us) thy =
+  let
+    val _ = DatatypeAux.message "Creating quickcheck generators ...";
+    val i = @{term "i\<Colon>code_numeral"};
+    val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+    fun mk_size_arg k = case DatatypeCodegen.find_shortest_path descr k
+     of SOME (_, l) => if l = 0 then i
+          else @{term "max :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
+            $ HOLogic.mk_number @{typ code_numeral} l $ i
+      | NONE => i;
+    val (prefix, (random_auxs, auxs_eqs)) = (apsnd o apsnd o map) mk_prop_eq
+      (mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us));
+    val random_defs = map_index (fn (k, T) => mk_prop_eq
+      (HOLogic.mk_random T i, nth random_auxs k $ mk_size_arg k $ i)) Ts;
+  in
+    thy
+    |> TheoryTarget.instantiation (tycos, vs, @{sort random})
+    |> random_aux_specification prefix auxs_eqs
+    |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
+    |-> (fn random_defs' => fold_map (fn random_def =>
+          Specification.definition (NONE, (Attrib.empty_binding,
+            random_def))) random_defs')
+    |> snd
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end;
+
+fun perhaps_constrain thy insts raw_vs =
+  let
+    fun meet_random (T, sort) = Sorts.meet_sort (Sign.classes_of thy) 
+      (Logic.varifyT T, sort);
+    val vtab = Vartab.empty
+      |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
+      |> fold meet_random insts;
+  in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
+  end handle CLASS_ERROR => NONE;
+
+fun ensure_random_datatype raw_tycos thy =
+  let
+    val pp = Syntax.pp_global thy;
+    val algebra = Sign.classes_of thy;
+    val (descr, raw_vs, tycos, (names, auxnames), raw_TUs) =
+      DatatypePackage.the_datatype_descr thy raw_tycos;
+    val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
+      (DatatypeAux.interpret_construction descr raw_vs { atyp = single, dtyp = (K o K o K) [] });
+    val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
+      (DatatypeAux.interpret_construction descr raw_vs { atyp = K [], dtyp = K o K });
+    val has_inst = exists (fn tyco =>
+      can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
+  in if has_inst then thy
+    else case perhaps_constrain thy (random_insts @ term_of_insts) raw_vs
+     of SOME constrain => mk_random_datatype descr
+          (map constrain raw_vs) tycos (names, auxnames)
+            ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
+      | NONE => thy
+  end;
 
 
 (** setup **)
 
 val setup = Code_Target.extend_target (target, (Code_ML.target_Eval, K I))
   #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of)
-  #> TypecopyPackage.interpretation ensure_random_typecopy;
+  #> TypecopyPackage.interpretation ensure_random_typecopy
+  #> DatatypePackage.interpretation ensure_random_datatype;
 
 end;

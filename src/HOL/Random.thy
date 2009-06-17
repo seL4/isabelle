@@ -143,28 +143,6 @@ proof -
       expand_fun_eq pick_same [symmetric])
 qed
 
-definition select_default :: "code_numeral \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
-  [code del]: "select_default k x y = range k
-     o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y))"
-
-lemma select_default_zero:
-  "fst (select_default 0 x y s) = y"
-  by (simp add: scomp_apply split_beta select_default_def)
-
-lemma select_default_code [code]:
-  "select_default k x y = (if k = 0
-    then range 1 o\<rightarrow> (\<lambda>_. Pair y)
-    else range k o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y)))"
-proof
-  fix s
-  have "snd (range (Code_Numeral.of_nat 0) s) = snd (range (Code_Numeral.of_nat 1) s)"
-    by (simp add: range_def scomp_Pair scomp_apply split_beta)
-  then show "select_default k x y s = (if k = 0
-    then range 1 o\<rightarrow> (\<lambda>_. Pair y)
-    else range k o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y))) s"
-    by (cases "k = 0") (simp_all add: select_default_def scomp_apply split_beta)
-qed
-
 
 subsection {* @{text ML} interface *}
 
@@ -198,7 +176,7 @@ end;
 
 hide (open) type seed
 hide (open) const inc_shift minus_shift log "next" seed_invariant split_seed
-  iterate range select pick select_weight select_default
+  iterate range select pick select_weight
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)

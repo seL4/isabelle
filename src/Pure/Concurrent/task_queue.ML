@@ -21,10 +21,7 @@ sig
   val is_empty: queue -> bool
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
-  val depend: task list -> task -> queue -> queue
   val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
-  val dequeue_towards: task list -> queue ->
-    (((task * group * (bool -> bool) list) * task list) option * queue)
   val interrupt: queue -> task -> unit
   val interrupt_external: queue -> string -> unit
   val cancel: queue -> group -> bool
@@ -76,74 +73,64 @@ fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (
 fun add_job task dep (jobs: jobs) =
   Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
 
-fun add_job_acyclic task dep (jobs: jobs) =
-  Task_Graph.add_edge_acyclic (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
-
 
 (* queue of grouped jobs *)
 
+datatype result = Unknown | Result of task | No_Result;
+
 datatype queue = Queue of
  {groups: task list Inttab.table,   (*groups with presently active members*)
-  jobs: jobs};                      (*job dependency graph*)
+  jobs: jobs,                       (*job dependency graph*)
+  cache: result};                   (*last dequeue result*)
 
-fun make_queue groups jobs = Queue {groups = groups, jobs = jobs};
+fun make_queue groups jobs cache = Queue {groups = groups, jobs = jobs, cache = cache};
 
-val empty = make_queue Inttab.empty Task_Graph.empty;
+val empty = make_queue Inttab.empty Task_Graph.empty No_Result;
 fun is_empty (Queue {jobs, ...}) = Task_Graph.is_empty jobs;
 
 
 (* enqueue *)
 
-fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs}) =
+fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs, cache}) =
   let
     val task = new_task pri;
     val groups' = Inttab.cons_list (gid, task) groups;
     val jobs' = jobs
       |> Task_Graph.new_node (task, (group, Job [job])) |> fold (add_job task) deps;
-  in (task, make_queue groups' jobs') end;
+    val cache' =
+      (case cache of
+        Result last =>
+          if task_ord (last, task) = LESS
+          then cache else Unknown
+      | _ => Unknown);
+  in (task, make_queue groups' jobs' cache') end;
 
-fun extend task job (Queue {groups, jobs}) =
+fun extend task job (Queue {groups, jobs, cache}) =
   (case try (get_job jobs) task of
-    SOME (Job list) => SOME (make_queue groups (set_job task (Job (job :: list)) jobs))
+    SOME (Job list) => SOME (make_queue groups (set_job task (Job (job :: list)) jobs) cache)
   | _ => NONE);
-
-fun depend deps task (Queue {groups, jobs}) =
-  make_queue groups (fold (add_job_acyclic task) deps jobs);
 
 
 (* dequeue *)
 
-local
-
-fun dequeue_result NONE queue = (NONE, queue)
-  | dequeue_result (SOME (result as (task, _, _))) (Queue {groups, jobs}) =
-      (SOME result, make_queue groups (set_job task (Running (Thread.self ())) jobs));
-
-in
-
-fun dequeue (queue as Queue {jobs, ...}) =
+fun dequeue (queue as Queue {groups, jobs, cache}) =
   let
     fun ready (task, ((group, Job list), ([], _))) = SOME (task, group, rev list)
       | ready _ = NONE;
-  in dequeue_result (Task_Graph.get_first ready jobs) queue end;
-
-fun dequeue_towards tasks (queue as Queue {jobs, ...}) =
-  let
-    val tasks' = filter (can (Task_Graph.get_node jobs)) tasks;
-
-    fun ready task =
-      (case Task_Graph.get_node jobs task of
-        (group, Job list) =>
-          if null (Task_Graph.imm_preds jobs task) then SOME (task, group, rev list)
-          else NONE
-      | _ => NONE);
+    fun deq boundary =
+      (case Task_Graph.get_first boundary ready jobs of
+        NONE => (NONE, make_queue groups jobs No_Result)
+      | SOME (result as (task, _, _)) =>
+          let
+            val jobs' = set_job task (Running (Thread.self ())) jobs;
+            val cache' = Result task;
+          in (SOME result, make_queue groups jobs' cache') end);
   in
-    (case dequeue_result (get_first ready (Task_Graph.all_preds jobs tasks')) queue of
-      (NONE, queue') => (NONE, queue')
-    | (SOME work, queue') => (SOME (work, tasks'), queue'))
+    (case cache of
+      Unknown => deq NONE
+    | Result last => deq (SOME last)
+    | No_Result => (NONE, queue))
   end;
-
-end;
 
 
 (* sporadic interrupts *)
@@ -154,7 +141,7 @@ fun interrupt (Queue {jobs, ...}) task =
 fun interrupt_external (queue as Queue {jobs, ...}) str =
   (case Int.fromString str of
     SOME i =>
-      (case Task_Graph.get_first
+      (case Task_Graph.get_first NONE
           (fn (task as Task (_, j), _) => if i = j then SOME task else NONE) jobs
         of SOME task => interrupt queue task | NONE => ())
   | NONE => ());
@@ -180,11 +167,14 @@ fun cancel_all (Queue {jobs, ...}) =
     val _ = List.app SimpleThread.interrupt running;
   in groups end;
 
-fun finish task (Queue {groups, jobs}) =
+fun finish task (Queue {groups, jobs, cache}) =
   let
     val Group (gid, _) = get_group jobs task;
     val groups' = Inttab.remove_list (op =) (gid, task) groups;
     val jobs' = Task_Graph.del_node task jobs;
-  in make_queue groups' jobs' end;
+    val cache' =
+      if null (Task_Graph.imm_succs jobs task) then cache
+      else Unknown;
+  in make_queue groups' jobs' cache' end;
 
 end;

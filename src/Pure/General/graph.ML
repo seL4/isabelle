@@ -15,7 +15,8 @@ sig
   val is_empty: 'a T -> bool
   val keys: 'a T -> key list
   val dest: 'a T -> (key * key list) list
-  val get_first: (key * ('a * (key list * key list)) -> 'b option) -> 'a T -> 'b option
+  val get_first: key option -> (key * ('a * (key list * key list)) -> 'b option) ->
+    'a T -> 'b option
   val fold: (key * ('a * (key list * key list)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
@@ -88,7 +89,7 @@ fun is_empty (Graph tab) = Table.is_empty tab;
 fun keys (Graph tab) = Table.keys tab;
 fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, succs)) (Table.dest tab);
 
-fun get_first f (Graph tab) = Table.get_first f tab;
+fun get_first b f (Graph tab) = Table.get_first b f tab;
 fun fold_graph f (Graph tab) = Table.fold f tab;
 
 fun minimals G = fold_graph (fn (m, (_, ([], _))) => cons m | _ => I) G [];

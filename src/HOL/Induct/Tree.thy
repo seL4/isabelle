@@ -1,12 +1,13 @@
 (*  Title:      HOL/Induct/Tree.thy
-    ID:         $Id$
     Author:     Stefan Berghofer,  TU Muenchen
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
 header {* Infinitely branching trees *}
 
-theory Tree imports Main begin
+theory Tree
+imports Main
+begin
 
 datatype 'a tree =
     Atom 'a

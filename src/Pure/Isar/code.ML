@@ -30,6 +30,7 @@ sig
 
   (*code equations*)
   val mk_eqn: theory -> (string -> bool) -> thm * bool -> thm * bool
+  val mk_eqn_warning: theory -> (string -> bool) -> thm -> (thm * bool) option
   val mk_eqn_liberal: theory -> (string -> bool) -> thm -> (thm * bool) option
   val assert_eqn: theory -> thm * bool -> thm * bool
   val assert_eqns_const: theory -> string
@@ -72,6 +73,7 @@ sig
   val get_datatype_of_constr: theory -> string -> string option
   val default_typscheme: theory -> string -> (string * sort) list * typ
   val these_eqns: theory -> string -> (thm * bool) list
+  val all_eqns: theory -> (thm * bool) list
   val get_case_scheme: theory -> string -> (int * (int * string list)) option
   val is_undefined: theory -> string -> bool
   val print_codesetup: theory -> unit
@@ -363,6 +365,7 @@ fun constrset_of_consts thy cs =
 exception BAD_THM of string;
 fun bad_thm msg = raise BAD_THM msg;
 fun error_thm f thm = f thm handle BAD_THM msg => error msg;
+fun warning_thm f thm = SOME (f thm) handle BAD_THM msg => (warning msg; NONE)
 fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
 
 fun is_linear thm =
@@ -444,6 +447,10 @@ val const_typ_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Th
 
 fun mk_eqn thy is_constr_head = error_thm (gen_assert_eqn thy is_constr_head (K true)) o
   apfst (LocalDefs.meta_rewrite_rule (ProofContext.init thy));
+
+fun mk_eqn_warning thy is_constr_head = Option.map (fn (thm, _) => (thm, is_linear thm))
+  o warning_thm (gen_assert_eqn thy is_constr_head (K true))
+  o rpair false o LocalDefs.meta_rewrite_rule (ProofContext.init thy);
 
 fun mk_eqn_liberal thy is_constr_head = Option.map (fn (thm, _) => (thm, is_linear thm))
   o try_thm (gen_assert_eqn thy is_constr_head (K true))
@@ -580,13 +587,11 @@ datatype spec = Spec of {
   cases: (int * (int * string list)) Symtab.table * unit Symtab.table
 };
 
-fun mk_spec ((concluded_history, eqns), (dtyps, cases)) =
+fun make_spec ((concluded_history, eqns), (dtyps, cases)) =
   Spec { concluded_history = concluded_history, eqns = eqns, dtyps = dtyps, cases = cases };
-val empty_spec =
-  mk_spec ((false, Symtab.empty), (Symtab.empty, (Symtab.empty, Symtab.empty)));
 fun map_spec f (Spec { concluded_history = concluded_history, eqns = eqns,
   dtyps = dtyps, cases = cases }) =
-  mk_spec (f ((concluded_history, eqns), (dtyps, cases)));
+  make_spec (f ((concluded_history, eqns), (dtyps, cases)));
 fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, cases = (cases1, undefs1) },
   Spec { concluded_history = _, eqns = eqns2, dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
@@ -602,15 +607,16 @@ fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, case
     val dtyps = Symtab.join (K (AList.merge (op =) (K true))) (dtyps1, dtyps2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
-  in mk_spec ((false, eqns), (dtyps, cases)) end;
+  in make_spec ((false, eqns), (dtyps, cases)) end;
 
 
 (* code setup data *)
 
 fun the_spec (Spec x) = x;
-val the_eqns = #eqns o the_spec;
-val the_dtyps = #dtyps o the_spec;
-val the_cases = #cases o the_spec;
+fun the_eqns (Spec { eqns, ... }) = eqns;
+fun the_dtyps (Spec { dtyps, ... }) = dtyps;
+fun the_cases (Spec { cases, ... }) = cases;
+fun history_concluded (Spec { concluded_history, ... }) = concluded_history;
 val map_concluded_history = map_spec o apfst o apfst;
 val map_eqns = map_spec o apfst o apsnd;
 val map_dtyps = map_spec o apsnd o apfst;
@@ -665,7 +671,8 @@ val empty_data = Datatab.empty : data;
 structure Code_Data = TheoryDataFun
 (
   type T = spec * data ref;
-  val empty = (empty_spec, ref empty_data);
+  val empty = (make_spec ((false, Symtab.empty),
+    (Symtab.empty, (Symtab.empty, Symtab.empty))), ref empty_data);
   fun copy (spec, data) = (spec, ref (! data));
   val extend = copy;
   fun merge pp ((spec1, data1), (spec2, data2)) =
@@ -706,13 +713,13 @@ fun get_eqns thy c =
   |> Option.map (Lazy.force o snd o snd o fst)
   |> these;
 
-fun continue_history thy = if (#concluded_history o the_spec o the_exec) thy
+fun continue_history thy = if (history_concluded o the_exec) thy
   then thy
     |> (Code_Data.map o apfst o map_concluded_history) (K false)
     |> SOME
   else NONE;
 
-fun conclude_history thy = if (#concluded_history o the_spec o the_exec) thy
+fun conclude_history thy = if (history_concluded o the_exec) thy
   then NONE
   else thy
     |> (Code_Data.map o apfst)
@@ -861,6 +868,11 @@ fun gen_add_eqn default (eqn as (thm, _)) thy =
 fun add_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (is_constr thy) (thm, true)) thy;
 
+fun add_warning_eqn thm thy =
+  case mk_eqn_warning thy (is_constr thy) thm
+   of SOME eqn => gen_add_eqn false eqn thy
+    | NONE => thy;
+
 fun add_default_eqn thm thy =
   case mk_eqn_liberal thy (is_constr thy) thm
    of SOME eqn => gen_add_eqn true eqn thy
@@ -938,7 +950,7 @@ val _ = Context.>> (Context.map_theory
         || Scan.succeed (mk_attribute add))
   in
     TypeInterpretation.init
-    #> add_del_attribute ("", (add_eqn, del_eqn))
+    #> add_del_attribute ("", (add_warning_eqn, del_eqn))
     #> add_simple_attribute ("nbe", add_nbe_eqn)
   end));
 
@@ -946,6 +958,10 @@ fun these_eqns thy c =
   get_eqns thy c
   |> (map o apfst) (Thm.transfer thy)
   |> burrow_fst (common_typ_eqns thy);
+
+fun all_eqns thy =
+  Symtab.dest ((the_eqns o the_exec) thy)
+  |> maps (Lazy.force o snd o snd o fst o snd);
 
 fun default_typscheme thy c =
   let

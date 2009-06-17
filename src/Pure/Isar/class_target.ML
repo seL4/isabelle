@@ -10,8 +10,6 @@ sig
   val register: class -> class list -> ((string * typ) * (string * typ)) list
     -> sort -> morphism -> thm option -> thm option -> thm
     -> theory -> theory
-  val register_subclass: class * class -> morphism option -> Element.witness option
-    -> morphism -> theory -> theory
 
   val is_class: theory -> class -> bool
   val base_sort: theory -> class -> sort
@@ -46,8 +44,16 @@ sig
   val instantiation_param: local_theory -> binding -> string option
   val confirm_declaration: binding -> local_theory -> local_theory
   val pretty_instantiation: local_theory -> Pretty.T
+  val instance_arity_cmd: xstring * xstring list * xstring -> theory -> Proof.state
   val type_name: string -> string
 
+  (*subclasses*)
+  val register_subclass: class * class -> morphism option -> Element.witness option
+    -> morphism -> theory -> theory
+  val classrel: class * class -> theory -> Proof.state
+  val classrel_cmd: xstring * xstring -> theory -> Proof.state
+
+  (*tactics*)
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
 
@@ -55,57 +61,10 @@ sig
   val axclass_cmd: binding * xstring list
     -> (Attrib.binding * string list) list
     -> theory -> class * theory
-  val classrel_cmd: xstring * xstring -> theory -> Proof.state
-  val instance_arity: (theory -> theory) -> arity -> theory -> Proof.state
-  val instance_arity_cmd: xstring * xstring list * xstring -> theory -> Proof.state
 end;
 
 structure Class_Target : CLASS_TARGET =
 struct
-
-(** primitive axclass and instance commands **)
-
-fun axclass_cmd (class, raw_superclasses) raw_specs thy =
-  let
-    val ctxt = ProofContext.init thy;
-    val superclasses = map (Sign.read_class thy) raw_superclasses;
-    val name_atts = map ((apsnd o map) (Attrib.attribute thy) o fst)
-      raw_specs;
-    val axiomss = ProofContext.read_propp (ctxt, map (map (rpair []) o snd)
-          raw_specs)
-      |> snd
-      |> (map o map) fst;
-  in
-    AxClass.define_class (class, superclasses) []
-      (name_atts ~~ axiomss) thy
-  end;
-
-local
-
-fun gen_instance mk_prop add_thm after_qed insts thy =
-  let
-    fun after_qed' results =
-      ProofContext.theory ((fold o fold) add_thm results #> after_qed);
-  in
-    thy
-    |> ProofContext.init
-    |> Proof.theorem_i NONE after_qed' ((map (fn t => [(t, [])])
-        o mk_prop thy) insts)
-  end;
-
-in
-
-val instance_arity =
-  gen_instance (Logic.mk_arities oo Sign.cert_arity) AxClass.add_arity;
-val instance_arity_cmd =
-  gen_instance (Logic.mk_arities oo Sign.read_arity) AxClass.add_arity I;
-val classrel =
-  gen_instance (single oo (Logic.mk_classrel oo AxClass.cert_classrel)) AxClass.add_classrel I;
-val classrel_cmd =
-  gen_instance (single oo (Logic.mk_classrel oo AxClass.read_classrel)) AxClass.add_classrel I;
-
-end; (*local*)
-
 
 (** class data **)
 
@@ -127,22 +86,21 @@ datatype class_data = ClassData of {
 
 };
 
-fun rep_class_data (ClassData data) = data;
-fun mk_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+fun make_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (defs, operations)) =
   ClassData { consts = consts, base_sort = base_sort,
     base_morph = base_morph, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
     defs = defs, operations = operations };
 fun map_class_data f (ClassData { consts, base_sort, base_morph, assm_intro,
     of_class, axiom, defs, operations }) =
-  mk_class_data (f ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+  make_class_data (f ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (defs, operations)));
 fun merge_class_data _ (ClassData { consts = consts,
     base_sort = base_sort, base_morph = base_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs1, operations = operations1 },
   ClassData { consts = _, base_sort = _, base_morph = _, assm_intro = _,
     of_class = _, axiom = _, defs = defs2, operations = operations2 }) =
-  mk_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+  make_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (Thm.merge_thms (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
@@ -158,7 +116,9 @@ structure ClassData = TheoryDataFun
 
 (* queries *)
 
-val lookup_class_data = Option.map rep_class_data oo try o Graph.get_node o ClassData.get;
+fun lookup_class_data thy class = case try (Graph.get_node (ClassData.get thy)) class
+ of SOME (ClassData data) => SOME data
+  | NONE => NONE;
 
 fun the_class_data thy class = case lookup_class_data thy class
  of NONE => error ("Undeclared class " ^ quote class)
@@ -188,8 +148,8 @@ fun rules thy class =
   in (axiom, of_class) end;
 
 fun all_assm_intros thy =
-  Graph.fold (fn (_, (data, _)) => fold (insert Thm.eq_thm)
-    ((the_list o #assm_intro o rep_class_data) data)) (ClassData.get thy) [];
+  Graph.fold (fn (_, (ClassData { assm_intro, ... }, _)) => fold (insert Thm.eq_thm)
+    (the_list assm_intro)) (ClassData.get thy) [];
 
 fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
@@ -240,7 +200,7 @@ fun register class sups params base_sort morph
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
-        mk_class_data (((map o pairself) fst params, base_sort,
+        make_class_data (((map o pairself) fst params, base_sort,
           morph, assm_intro, of_class, axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) sups;
   in ClassData.map add_class thy end;
@@ -275,7 +235,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
     val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
-    val classrel = Goal.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
+    val classrel = SkipProof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
       (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
@@ -400,6 +360,30 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
   end;
+
+
+(* simple subclasses *)
+
+local
+
+fun gen_classrel mk_prop classrel thy =
+  let
+    fun after_qed results =
+      ProofContext.theory ((fold o fold) AxClass.add_classrel results);
+  in
+    thy
+    |> ProofContext.init
+    |> Proof.theorem_i NONE after_qed [[(mk_prop thy classrel, [])]]
+  end;
+
+in
+
+val classrel =
+  gen_classrel (Logic.mk_classrel oo AxClass.cert_classrel);
+val classrel_cmd =
+  gen_classrel (Logic.mk_classrel oo AxClass.read_classrel);
+
+end; (*local*)
 
 
 (** instantiation target **)
@@ -592,6 +576,20 @@ fun pretty_instantiation lthy =
   end;
 
 
+(* simplified instantiation interface with no class parameter *)
+
+fun instance_arity_cmd arities thy =
+  let
+    fun after_qed results = ProofContext.theory
+      ((fold o fold) AxClass.add_arity results);
+  in
+    thy
+    |> ProofContext.init
+    |> Proof.theorem_i NONE after_qed ((map (fn t => [(t, [])])
+        o Logic.mk_arities o Sign.read_arity thy) arities)
+  end;
+
+
 (** tactics and methods **)
 
 fun intro_classes_tac facts st =
@@ -618,6 +616,25 @@ val _ = Context.>> (Context.map_theory
     "back-chain introduction rules of classes" #>
   Method.setup (Binding.name "default") (Attrib.thms >> (METHOD oo default_tac))
     "apply some intro/elim rule"));
+
+
+(** old axclass command **)
+
+fun axclass_cmd (class, raw_superclasses) raw_specs thy =
+  let
+    val _ = Output.legacy_feature "command \"axclass\" deprecated; use \"class\" instead.";
+    val ctxt = ProofContext.init thy;
+    val superclasses = map (Sign.read_class thy) raw_superclasses;
+    val name_atts = map ((apsnd o map) (Attrib.attribute thy) o fst)
+      raw_specs;
+    val axiomss = ProofContext.read_propp (ctxt, map (map (rpair []) o snd)
+          raw_specs)
+      |> snd
+      |> (map o map) fst;
+  in
+    AxClass.define_class (class, superclasses) []
+      (name_atts ~~ axiomss) thy
+  end;
 
 end;
 

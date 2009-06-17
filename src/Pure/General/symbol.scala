@@ -118,6 +118,18 @@ object Symbol
         yield read_decl(decl)
 
 
+    /* misc properties */
+
+    val names: Map[String, String] = {
+      val name = new Regex("""\\<([A-Za-z][A-Za-z0-9_']*)>""")
+      Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
+    }
+
+    val abbrevs: Map[String, String] = Map((
+      for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
+        yield (sym -> props("abbrev"))): _*)
+
+
     /* main recoder methods */
 
     private val (decoder, encoder) =
