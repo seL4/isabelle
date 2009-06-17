@@ -154,10 +154,6 @@ fun end_timing (timer, {gc, sys, usr}) =
     val message = "User " ^ toString user ^ "  All "^ toString all ^ " secs" handle Time => "";
   in {message = message, user = user, all = all} end;
 
-fun check_timer timer =
-  let val {sys, usr, gc} = Timer.checkCPUTimer timer
-  in (sys, usr, gc) end;
-
 
 (* SML basis library fixes *)
 

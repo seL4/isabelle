@@ -14,26 +14,29 @@ injectivity / distinctness of constructors and induction)
 
 signature DATATYPE_ABS_PROOFS =
 sig
-  val prove_casedist_thms : string list ->
-    DatatypeAux.descr list -> (string * sort) list -> thm ->
+  type datatype_config = DatatypeAux.datatype_config
+  type descr = DatatypeAux.descr
+  type datatype_info = DatatypeAux.datatype_info
+  val prove_casedist_thms : datatype_config -> string list ->
+    descr list -> (string * sort) list -> thm ->
     attribute list -> theory -> thm list * theory
-  val prove_primrec_thms : bool -> string list ->
-    DatatypeAux.descr list -> (string * sort) list ->
-      DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->
+  val prove_primrec_thms : datatype_config -> string list ->
+    descr list -> (string * sort) list ->
+      datatype_info Symtab.table -> thm list list -> thm list list ->
         simpset -> thm -> theory -> (string list * thm list) * theory
-  val prove_case_thms : bool -> string list ->
-    DatatypeAux.descr list -> (string * sort) list ->
+  val prove_case_thms : datatype_config -> string list ->
+    descr list -> (string * sort) list ->
       string list -> thm list -> theory -> (thm list list * string list) * theory
-  val prove_split_thms : string list ->
-    DatatypeAux.descr list -> (string * sort) list ->
+  val prove_split_thms : datatype_config -> string list ->
+    descr list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
         (thm * thm) list * theory
-  val prove_nchotomys : string list -> DatatypeAux.descr list ->
+  val prove_nchotomys : datatype_config -> string list -> descr list ->
     (string * sort) list -> thm list -> theory -> thm list * theory
-  val prove_weak_case_congs : string list -> DatatypeAux.descr list ->
+  val prove_weak_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> thm list * theory
   val prove_case_congs : string list ->
-    DatatypeAux.descr list -> (string * sort) list ->
+    descr list -> (string * sort) list ->
       thm list -> thm list list -> theory -> thm list * theory
 end;
 
@@ -44,9 +47,9 @@ open DatatypeAux;
 
 (************************ case distinction theorems ***************************)
 
-fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts thy =
+fun prove_casedist_thms (config : datatype_config) new_type_names descr sorts induct case_names_exhausts thy =
   let
-    val _ = message "Proving case distinction theorems ...";
+    val _ = message config "Proving case distinction theorems ...";
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
@@ -86,13 +89,13 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
 
 (*************************** primrec combinators ******************************)
 
-fun prove_primrec_thms flat_names new_type_names descr sorts
+fun prove_primrec_thms (config : datatype_config) new_type_names descr sorts
     (dt_info : datatype_info Symtab.table) constr_inject dist_rewrites dist_ss induct thy =
   let
-    val _ = message "Constructing primrec combinators ...";
+    val _ = message config "Constructing primrec combinators ...";
 
     val big_name = space_implode "_" new_type_names;
-    val thy0 = add_path flat_names big_name thy;
+    val thy0 = add_path (#flat_names config) big_name thy;
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
@@ -153,7 +156,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
         InductivePackage.add_inductive_global (serial_string ())
-          {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
+          {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
             alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
@@ -162,7 +165,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     (* prove uniqueness and termination of primrec combinators *)
 
-    val _ = message "Proving termination and uniqueness of primrec functions ...";
+    val _ = message config "Proving termination and uniqueness of primrec functions ...";
 
     fun mk_unique_tac ((tac, intrs), ((((i, (tname, _, constrs)), elim), T), T')) =
       let
@@ -242,13 +245,13 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
-      ||> parent_path flat_names
+      ||> parent_path (#flat_names config) 
       ||> Theory.checkpoint;
 
 
     (* prove characteristic equations for primrec combinators *)
 
-    val _ = message "Proving characteristic theorems for primrec combinators ..."
+    val _ = message config "Proving characteristic theorems for primrec combinators ..."
 
     val rec_thms = map (fn t => SkipProof.prove_global thy2 [] [] t
       (fn _ => EVERY
@@ -272,11 +275,11 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
 (***************************** case combinators *******************************)
 
-fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
+fun prove_case_thms (config : datatype_config) new_type_names descr sorts reccomb_names primrec_thms thy =
   let
-    val _ = message "Proving characteristic theorems for case combinators ...";
+    val _ = message config "Proving characteristic theorems for case combinators ...";
 
-    val thy1 = add_path flat_names (space_implode "_" new_type_names) thy;
+    val thy1 = add_path (#flat_names config) (space_implode "_" new_type_names) thy;
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
@@ -338,7 +341,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     thy2
     |> Context.the_theory o fold (fold Nitpick_Const_Simp_Thms.add_thm) case_thms
        o Context.Theory
-    |> parent_path flat_names
+    |> parent_path (#flat_names config)
     |> store_thmss "cases" new_type_names case_thms
     |-> (fn thmss => pair (thmss, case_names))
   end;
@@ -346,12 +349,12 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
 (******************************* case splitting *******************************)
 
-fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
+fun prove_split_thms (config : datatype_config) new_type_names descr sorts constr_inject dist_rewrites
     casedist_thms case_thms thy =
   let
-    val _ = message "Proving equations for case splitting ...";
+    val _ = message config "Proving equations for case splitting ...";
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
 
@@ -395,9 +398,9 @@ fun prove_weak_case_congs new_type_names descr sorts thy =
 
 (************************* additional theorems for TFL ************************)
 
-fun prove_nchotomys new_type_names descr sorts casedist_thms thy =
+fun prove_nchotomys (config : datatype_config) new_type_names descr sorts casedist_thms thy =
   let
-    val _ = message "Proving additional theorems for TFL ...";
+    val _ = message config "Proving additional theorems for TFL ...";
 
     fun prove_nchotomy (t, exhaustion) =
       let

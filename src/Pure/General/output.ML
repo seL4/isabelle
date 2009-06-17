@@ -18,7 +18,6 @@ sig
   val timeap: ('a -> 'b) -> 'a -> 'b
   val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
   val timing: bool ref
-  val time_accumulator: string -> ('a -> 'b) -> 'a -> 'b
 end;
 
 signature OUTPUT =
@@ -47,7 +46,6 @@ sig
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
-  val accumulated_time: unit -> unit
 end;
 
 structure Output: OUTPUT =
@@ -141,78 +139,8 @@ fun timeit e = cond_timeit true "" e;
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
-
 (*global timing mode*)
 val timing = ref false;
-
-
-(* accumulated timing *)
-
-local
-
-datatype time_info = TI of
-  {name: string,
-   timer: Timer.cpu_timer,
-   sys: Time.time,
-   usr: Time.time,
-   gc: Time.time,
-   count: int};
-
-fun time_init name = ref (TI
- {name = name,
-  timer = Timer.startCPUTimer (),
-  sys = Time.zeroTime,
-  usr = Time.zeroTime,
-  gc = Time.zeroTime,
-  count = 0});
-
-fun time_reset (r as ref (TI {name, ...})) = r := ! (time_init name);
-
-fun time_check (ref (TI r)) = r;
-
-fun time_add ti f x =
-  let
-    fun add_diff time time1 time2 =
-      Time.+ (time, Time.- (time2, time1) handle Time.Time => Time.zeroTime);
-    val {name, timer, sys, usr, gc, count} = time_check ti;
-    val (sys1, usr1, gc1) = check_timer timer;
-    val result = Exn.capture f x;
-    val (sys2, usr2, gc2) = check_timer timer;
-  in
-    ti := TI
-     {name = name,
-      timer = timer,
-      sys = add_diff sys sys1 sys2,
-      usr = add_diff usr usr1 usr2,
-      gc = add_diff gc gc1 gc2,
-      count = count + 1};
-    Exn.release result
-  end;
-
-fun time_finish ti =
-  let
-    fun secs prfx time = prfx ^ Time.toString time;
-    val {name, timer, sys, usr, gc, count} = time_check ti;
-  in
-    warning ("Total of " ^ quote name ^ ": " ^
-      secs "User " usr ^ secs "  GC " gc ^ secs "  All " (Time.+ (sys, Time.+ (usr, gc))) ^
-      " secs in " ^ string_of_int count ^ " calls");
-    time_reset ti
-  end;
-
-val time_finish_hooks = ref ([]: (unit -> unit) list);
-
-in
-
-fun time_accumulator name =
-  let val ti = time_init name in
-    CRITICAL (fn () => change time_finish_hooks (cons (fn () => time_finish ti)));
-    time_add ti
-  end;
-
-fun accumulated_time () = List.app (fn f => f ()) (! time_finish_hooks);
-
-end;
 
 end;
 

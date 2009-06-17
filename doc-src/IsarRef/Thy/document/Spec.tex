@@ -599,6 +599,7 @@ A class is a particular locale with \emph{exactly one} type variable
     \indexdef{}{command}{class}\hypertarget{command.class}{\hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{instantiation}\hypertarget{command.instantiation}{\hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{instance}\hypertarget{command.instance}{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{instance}\hypertarget{command.instance}{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
     \indexdef{}{command}{subclass}\hypertarget{command.subclass}{\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{print\_classes}\hypertarget{command.print-classes}{\hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{class\_deps}\hypertarget{command.class-deps}{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
@@ -613,7 +614,11 @@ A class is a particular locale with \emph{exactly one} type variable
     ;
     'instance'
     ;
+    'instance' nameref '::' arity
+    ;
     'subclass' target? nameref
+    ;
+    'instance' nameref ('<' | subseteq) nameref
     ;
     'print\_classes'
     ;
@@ -656,10 +661,21 @@ A class is a particular locale with \emph{exactly one} type variable
   the type classes involved.  After finishing the proof, the
   background theory will be augmented by the proven type arities.
 
+  On the theory level, \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}~\isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlsub n{\isacharparenright}s{\isachardoublequote}} provides a convenient way to instantiate a type class with no
+  need to specifify operations: one can continue with the
+  instantiation proof immediately.
+
   \item \hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}}~\isa{c} in a class context for class
   \isa{d} sets up a goal stating that class \isa{c} is logically
   contained in class \isa{d}.  After finishing the proof, class
   \isa{d} is proven to be subclass \isa{c} and the locale \isa{c} is interpreted into \isa{d} simultaneously.
+
+  A weakend form of this is available through a further variant of
+  \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}:  \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}} opens
+  a proof that class \isa{{\isachardoublequote}c\isactrlisub {\isadigit{2}}{\isachardoublequote}} implies \isa{{\isachardoublequote}c\isactrlisub {\isadigit{1}}{\isachardoublequote}} without reference
+  to the underlying locales;  this is useful if the properties to prove
+  the logical connection are not sufficent on the locale level but on
+  the theory level.
 
   \item \hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}} prints all classes in the current
   theory.
@@ -713,8 +729,7 @@ A class is a particular locale with \emph{exactly one} type variable
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{axclass}\hypertarget{command.axclass}{\hyperlink{command.axclass}{\mbox{\isa{\isacommand{axclass}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{instance}\hypertarget{command.instance}{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{axclass}\hypertarget{command.axclass}{\hyperlink{command.axclass}{\mbox{\isa{\isacommand{axclass}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}}
   \end{matharray}
 
   Axiomatic type classes are Isabelle/Pure's primitive
@@ -724,8 +739,6 @@ A class is a particular locale with \emph{exactly one} type variable
 
   \begin{rail}
     'axclass' classdecl (axmdecl prop +)
-    ;
-    'instance' (nameref ('<' | subseteq) nameref | nameref '::' arity)
     ;
   \end{rail}
 
@@ -743,12 +756,6 @@ A class is a particular locale with \emph{exactly one} type variable
   specifications; the name space prefix \isa{{\isachardoublequote}c{\isacharunderscore}class{\isachardoublequote}} is added
   here.  The full collection of these facts is also stored as \isa{c{\isacharunderscore}class{\isachardot}axioms}.
   
-  \item \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}} and \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}~\isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlsub n{\isacharparenright}s{\isachardoublequote}} setup a goal stating a class
-  relation or type arity.  The proof would usually proceed by \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}}, and then establish the characteristic theorems of
-  the type classes involved.  After finishing the proof, the theory
-  will be augmented by a type signature declaration corresponding to
-  the resulting theorem.
-
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%

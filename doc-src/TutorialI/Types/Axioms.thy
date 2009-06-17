@@ -1,258 +1,261 @@
-(*<*)theory Axioms imports Overloading begin(*>*)
+(*<*)theory Axioms imports Overloading Setup begin(*>*)
 
-subsection{*Axioms*}
+subsection {* Axioms *}
+
+text {* Attaching axioms to our classes lets us reason on the level of
+classes.  The results will be applicable to all types in a class, just
+as in axiomatic mathematics.
+
+\begin{warn}
+Proofs in this section use structured \emph{Isar} proofs, which are not
+covered in this tutorial; but see \cite{Nipkow-TYPES02}.%
+\end{warn} *}
+
+subsubsection {* Semigroups *}
+
+text{* We specify \emph{semigroups} as subclass of @{class plus}: *}
+
+class semigroup = plus +
+  assumes assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
+
+text {* \noindent This @{command class} specification requires that
+all instances of @{class semigroup} obey @{fact "assoc:"}~@{prop
+[source] "\<And>x y z \<Colon> 'a\<Colon>semigroup. (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"}.
+
+We can use this class axiom to derive further abstract theorems
+relative to class @{class semigroup}: *}
+
+lemma assoc_left:
+  fixes x y z :: "'a\<Colon>semigroup"
+  shows "x \<oplus> (y \<oplus> z) = (x \<oplus> y) \<oplus> z"
+  using assoc by (rule sym)
+
+text {* \noindent The @{class semigroup} constraint on type @{typ
+"'a"} restricts instantiations of @{typ "'a"} to types of class
+@{class semigroup} and during the proof enables us to use the fact
+@{fact assoc} whose type parameter is itself constrained to class
+@{class semigroup}.  The main advantage of classes is that theorems
+can be proved in the abstract and freely reused for each instance.
+
+On instantiation, we have to give a proof that the given operations
+obey the class axioms: *}
+
+instantiation nat :: semigroup
+begin
+
+instance proof
+
+txt {* \noindent The proof opens with a default proof step, which for
+instance judgements invokes method @{method intro_classes}. *}
 
 
-text{*Attaching axioms to our classes lets us reason on the
-level of classes.  The results will be applicable to all types in a class,
-just as in axiomatic mathematics.  These ideas are demonstrated by means of
-our ordering relations.
+  fix m n q :: nat
+  show "(m \<oplus> n) \<oplus> q = m \<oplus> (n \<oplus> q)"
+    by (induct m) simp_all
+qed
+
+end
+
+text {* \noindent Again, the interesting things enter the stage with
+parametric types: *}
+
+instantiation * :: (semigroup, semigroup) semigroup
+begin
+
+instance proof
+  fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
+  show "p\<^isub>1 \<oplus> p\<^isub>2 \<oplus> p\<^isub>3 = p\<^isub>1 \<oplus> (p\<^isub>2 \<oplus> p\<^isub>3)"
+    by (cases p\<^isub>1, cases p\<^isub>2, cases p\<^isub>3) (simp add: assoc)
+
+txt {* \noindent Associativity of product semigroups is established
+using the hypothetical associativity @{fact assoc} of the type
+components, which holds due to the @{class semigroup} constraints
+imposed on the type components by the @{command instance} proposition.
+Indeed, this pattern often occurs with parametric types and type
+classes. *}
+
+qed
+
+end
+
+subsubsection {* Monoids *}
+
+text {* We define a subclass @{text monoidl} (a semigroup with a
+left-hand neutral) by extending @{class semigroup} with one additional
+parameter @{text neutral} together with its property: *}
+
+class monoidl = semigroup +
+  fixes neutral :: "'a" ("\<zero>")
+  assumes neutl: "\<zero> \<oplus> x = x"
+
+text {* \noindent Again, we prove some instances, by providing
+suitable parameter definitions and proofs for the additional
+specifications. *}
+
+instantiation nat :: monoidl
+begin
+
+definition
+  neutral_nat_def: "\<zero> = (0\<Colon>nat)"
+
+instance proof
+  fix n :: nat
+  show "\<zero> \<oplus> n = n"
+    unfolding neutral_nat_def by simp
+qed
+
+end
+
+text {* \noindent In contrast to the examples above, we here have both
+specification of class operations and a non-trivial instance proof.
+
+This covers products as well:
 *}
 
-subsubsection{*Partial Orders*}
+instantiation * :: (monoidl, monoidl) monoidl
+begin
 
-text{*
-A \emph{partial order} is a subclass of @{text ordrel}
-where certain axioms need to hold:
-*}
+definition
+  neutral_prod_def: "\<zero> = (\<zero>, \<zero>)"
 
-axclass parord < ordrel
-refl:    "x <<= x"
-trans:   "\<lbrakk> x <<= y; y <<= z \<rbrakk> \<Longrightarrow> x <<= z"
-antisym: "\<lbrakk> x <<= y; y <<= x \<rbrakk> \<Longrightarrow> x = y"
-lt_le:   "x << y = (x <<= y \<and> x \<noteq> y)"
+instance proof
+  fix p :: "'a\<Colon>monoidl \<times> 'b\<Colon>monoidl"
+  show "\<zero> \<oplus> p = p"
+    by (cases p) (simp add: neutral_prod_def neutl)
+qed
 
-text{*\noindent
-The first three axioms are the familiar ones, and the final one
-requires that @{text"<<"} and @{text"<<="} are related as expected.
-Note that behind the scenes, Isabelle has restricted the axioms to class
-@{text parord}. For example, the axiom @{thm[source]refl} really is
-@{thm[show_sorts]refl}.
+end
 
-We have not made @{thm[source] lt_le} a global definition because it would
-fix once and for all that @{text"<<"} is defined in terms of @{text"<<="} and
-never the other way around. Below you will see why we want to avoid this
-asymmetry. The drawback of our choice is that
-we need to define both @{text"<<="} and @{text"<<"} for each instance.
+text {* \noindent Fully-fledged monoids are modelled by another
+subclass which does not add new parameters but tightens the
+specification: *}
 
-We can now prove simple theorems in this abstract setting, for example
-that @{text"<<"} is not symmetric:
-*}
+class monoid = monoidl +
+  assumes neutr: "x \<oplus> \<zero> = x"
 
-lemma [simp]: "(x::'a::parord) << y \<Longrightarrow> (\<not> y << x) = True";
+text {* \noindent Corresponding instances for @{typ nat} and products
+are left as an exercise to the reader. *}
 
-txt{*\noindent
-The conclusion is not just @{prop"\<not> y << x"} because the 
-simplifier's preprocessor (see \S\ref{sec:simp-preprocessor})
-would turn it into @{prop"y << x = False"}, yielding
-a nonterminating rewrite rule.  
-(It would be used to try to prove its own precondition \emph{ad
-    infinitum}.)
-In the form above, the rule is useful.
-The type constraint is necessary because otherwise Isabelle would only assume
-@{text"'a::ordrel"} (as required in the type of @{text"<<"}), 
-when the proposition is not a theorem.  The proof is easy:
-*}
+subsubsection {* Groups *}
 
-by(simp add: lt_le antisym);
+text {* \noindent To finish our small algebra example, we add a @{text
+group} class: *}
 
-text{* We could now continue in this vein and develop a whole theory of
-results about partial orders. Eventually we will want to apply these results
-to concrete types, namely the instances of the class. Thus we first need to
-prove that the types in question, for example @{typ bool}, are indeed
-instances of @{text parord}:*}
+class group = monoidl +
+  fixes inv :: "'a \<Rightarrow> 'a" ("\<div> _" [81] 80)
+  assumes invl: "\<div> x \<oplus> x = \<zero>"
 
-instance bool :: parord
-apply intro_classes;
+text {* \noindent We continue with a further example for abstract
+proofs relative to type classes: *}
 
-txt{*\noindent
-This time @{text intro_classes} leaves us with the four axioms,
-specialized to type @{typ bool}, as subgoals:
-@{subgoals[display,show_types,indent=0]}
-Fortunately, the proof is easy for \isa{blast}
-once we have unfolded the definitions
-of @{text"<<"} and @{text"<<="} at type @{typ bool}:
-*}
+lemma left_cancel:
+  fixes x y z :: "'a\<Colon>group"
+  shows "x \<oplus> y = x \<oplus> z \<longleftrightarrow> y = z"
+proof
+  assume "x \<oplus> y = x \<oplus> z"
+  then have "\<div> x \<oplus> (x \<oplus> y) = \<div> x \<oplus> (x \<oplus> z)" by simp
+  then have "(\<div> x \<oplus> x) \<oplus> y = (\<div> x \<oplus> x) \<oplus> z" by (simp add: assoc)
+  then show "y = z" by (simp add: invl neutl)
+next
+  assume "y = z"
+  then show "x \<oplus> y = x \<oplus> z" by simp
+qed
 
-apply(simp_all (no_asm_use) only: le_bool_def lt_bool_def);
-by(blast, blast, blast, blast);
+text {* \noindent Any @{text "group"} is also a @{text "monoid"}; this
+can be made explicit by claiming an additional subclass relation,
+together with a proof of the logical difference: *}
 
-text{*\noindent
-Can you figure out why we have to include @{text"(no_asm_use)"}?
+instance group \<subseteq> monoid
+proof
+  fix x
+  from invl have "\<div> x \<oplus> x = \<zero>" .
+  then have "\<div> x \<oplus> (x \<oplus> \<zero>) = \<div> x \<oplus> x"
+    by (simp add: neutl invl assoc [symmetric])
+  then show "x \<oplus> \<zero> = x" by (simp add: left_cancel)
+qed
 
-We can now apply our single lemma above in the context of booleans:
-*}
-
-lemma "(P::bool) << Q \<Longrightarrow> \<not>(Q << P)";
-by simp;
-
-text{*\noindent
-The effect is not stunning, but it demonstrates the principle.  It also shows
-that tools like the simplifier can deal with generic rules.
-The main advantage of the axiomatic method is that
-theorems can be proved in the abstract and freely reused for each instance.
-*}
-
-subsubsection{*Linear Orders*}
-
-text{* If any two elements of a partial order are comparable it is a
-\textbf{linear} or \textbf{total} order: *}
-
-axclass linord < parord
-linear: "x <<= y \<or> y <<= x"
-
-text{*\noindent
-By construction, @{text linord} inherits all axioms from @{text parord}.
-Therefore we can show that linearity can be expressed in terms of @{text"<<"}
-as follows:
-*}
-
-lemma "\<And>x::'a::linord. x << y \<or> x = y \<or> y << x";
-apply(simp add: lt_le);
-apply(insert linear);
-apply blast;
-done
-
-text{*
-Linear orders are an example of subclassing\index{subclasses}
-by construction, which is the most
-common case.  Subclass relationships can also be proved.  
-This is the topic of the following
-paragraph.
-*}
-
-subsubsection{*Strict Orders*}
-
-text{*
-An alternative axiomatization of partial orders takes @{text"<<"} rather than
-@{text"<<="} as the primary concept. The result is a \textbf{strict} order:
-*}
-
-axclass strord < ordrel
-irrefl:     "\<not> x << x"
-lt_trans:   "\<lbrakk> x << y; y << z \<rbrakk> \<Longrightarrow> x << z"
-le_less:    "x <<= y = (x << y \<or> x = y)"
-
-text{*\noindent
-It is well known that partial orders are the same as strict orders. Let us
-prove one direction, namely that partial orders are a subclass of strict
-orders. *}
-
-instance parord < strord
-apply intro_classes;
-
-txt{*\noindent
-@{subgoals[display,show_sorts]}
-Because of @{text"'a :: parord"}, the three axioms of class @{text strord}
-are easily proved:
-*}
-
-  apply(simp_all (no_asm_use) add: lt_le);
- apply(blast intro: trans antisym);
-apply(blast intro: refl);
-done
-
-text{*
-The subclass relation must always be acyclic. Therefore Isabelle will
-complain if you also prove the relationship @{text"strord < parord"}.
-*}
-
-
-(*
-instance strord < parord
-apply intro_classes;
-apply(simp_all (no_asm_use) add: le_lt);
-apply(blast intro: lt_trans);
-apply(erule disjE);
-apply(erule disjE);
-apply(rule irrefl[THEN notE]);
-apply(rule lt_trans, assumption, assumption);
-apply blast;apply blast;
-apply(blast intro: irrefl[THEN notE]);
-done
-*)
-
-subsubsection{*Multiple Inheritance and Sorts*}
-
-text{*
-A class may inherit from more than one direct superclass. This is called
-\bfindex{multiple inheritance}.  For example, we could define
-the classes of well-founded orderings and well-orderings:
-*}
-
-axclass wford < parord
-wford: "wf {(y,x). y << x}"
-
-axclass wellord < linord, wford
-
-text{*\noindent
-The last line expresses the usual definition: a well-ordering is a linear
-well-founded ordering. The result is the subclass diagram in
+text {* \noindent The proof result is propagated to the type system,
+making @{text group} an instance of @{text monoid} by adding an
+additional edge to the graph of subclass relation; see also
 Figure~\ref{fig:subclass}.
 
 \begin{figure}[htbp]
-\[
-\begin{array}{r@ {}r@ {}c@ {}l@ {}l}
-& & \isa{type}\\
-& & |\\
-& & \isa{ordrel}\\
-& & |\\
-& & \isa{strord}\\
-& & |\\
-& & \isa{parord} \\
-& / & & \backslash \\
-\isa{linord} & & & & \isa{wford} \\
-& \backslash & & / \\
-& & \isa{wellord}
-\end{array}
-\]
-\caption{Subclass Diagram}
-\label{fig:subclass}
+ \begin{center}
+   \small
+   \unitlength 0.6mm
+   \begin{picture}(40,60)(0,0)
+     \put(20,60){\makebox(0,0){@{text semigroup}}}
+     \put(20,40){\makebox(0,0){@{text monoidl}}}
+     \put(00,20){\makebox(0,0){@{text monoid}}}
+     \put(40,00){\makebox(0,0){@{text group}}}
+     \put(20,55){\vector(0,-1){10}}
+     \put(15,35){\vector(-1,-1){10}}
+     \put(25,35){\vector(1,-3){10}}
+   \end{picture}
+   \hspace{8em}
+   \begin{picture}(40,60)(0,0)
+     \put(20,60){\makebox(0,0){@{text semigroup}}}
+     \put(20,40){\makebox(0,0){@{text monoidl}}}
+     \put(00,20){\makebox(0,0){@{text monoid}}}
+     \put(40,00){\makebox(0,0){@{text group}}}
+     \put(20,55){\vector(0,-1){10}}
+     \put(15,35){\vector(-1,-1){10}}
+     \put(05,15){\vector(3,-1){30}}
+   \end{picture}
+   \caption{Subclass relationship of monoids and groups:
+      before and after establishing the relationship
+      @{text "group \<subseteq> monoid"};  transitive edges are left out.}
+   \label{fig:subclass}
+ \end{center}
 \end{figure}
-
-Since class @{text wellord} does not introduce any new axioms, it can simply
-be viewed as the intersection of the two classes @{text linord} and @{text
-wford}. Such intersections need not be given a new name but can be created on
-the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
-represents the intersection of the $C@i$. Such an expression is called a
-\textbf{sort},\index{sorts} and sorts can appear in most places where we have only shown
-classes so far, for example in type constraints: @{text"'a::{linord,wford}"}.
-In fact, @{text"'a::C"} is short for @{text"'a::{C}"}.
-However, we do not pursue this rarefied concept further.
-
-This concludes our demonstration of type classes based on orderings.  We
-remind our readers that \isa{Main} contains a theory of
-orderings phrased in terms of the usual @{text"\<le>"} and @{text"<"}.
-If possible, base your own ordering relations on this theory.
 *}
 
-subsubsection{*Inconsistencies*}
+subsubsection {* Inconsistencies *}
 
-text{* The reader may be wondering what happens if we
-attach an inconsistent set of axioms to a class. So far we have always
-avoided to add new axioms to HOL for fear of inconsistencies and suddenly it
+text {* The reader may be wondering what happens if we attach an
+inconsistent set of axioms to a class. So far we have always avoided
+to add new axioms to HOL for fear of inconsistencies and suddenly it
 seems that we are throwing all caution to the wind. So why is there no
 problem?
 
-The point is that by construction, all type variables in the axioms of an
-\isacommand{axclass} are automatically constrained with the class being
-defined (as shown for axiom @{thm[source]refl} above). These constraints are
-always carried around and Isabelle takes care that they are never lost,
-unless the type variable is instantiated with a type that has been shown to
-belong to that class. Thus you may be able to prove @{prop False}
-from your axioms, but Isabelle will remind you that this
-theorem has the hidden hypothesis that the class is non-empty.
+The point is that by construction, all type variables in the axioms of
+a \isacommand{class} are automatically constrained with the class
+being defined (as shown for axiom @{thm[source]refl} above). These
+constraints are always carried around and Isabelle takes care that
+they are never lost, unless the type variable is instantiated with a
+type that has been shown to belong to that class. Thus you may be able
+to prove @{prop False} from your axioms, but Isabelle will remind you
+that this theorem has the hidden hypothesis that the class is
+non-empty.
 
-Even if each individual class is consistent, intersections of (unrelated)
-classes readily become inconsistent in practice. Now we know this need not
-worry us.
-*}
+Even if each individual class is consistent, intersections of
+(unrelated) classes readily become inconsistent in practice. Now we
+know this need not worry us. *}
 
-(*
-axclass false<"term"
-false: "x \<noteq> x";
 
-lemma "False";
-by(rule notE[OF false HOL.refl]);
-*)
+subsubsection{* Syntactic Classes and Predefined Overloading *}
+
+text {* In our algebra example, we have started with a \emph{syntactic
+class} @{class plus} which only specifies operations but no axioms; it
+would have been also possible to start immediately with class @{class
+semigroup}, specifying the @{text "\<oplus>"} operation and associativity at
+the same time.
+
+Which approach is more appropriate depends.  Usually it is more
+convenient to introduce operations and axioms in the same class: then
+the type checker will automatically insert the corresponding class
+constraints whenever the operations occur, reducing the need of manual
+annotations.  However, when operations are decorated with popular
+syntax, syntactic classes can be an option to re-use the syntax in
+different contexts; this is indeed the way most overloaded constants
+in HOL are introduced, of which the most important are listed in
+Table~\ref{tab:overloading} in the appendix.  Section
+\ref{sec:numeric-classes} covers a range of corresponding classes
+\emph{with} axioms.
+
+Further note that classes may contain axioms but \emph{no} operations.
+An example is class @{class finite} from theory @{theory Finite_Set}
+which specifies a type to be finite: @{lemma [source] "finite (UNIV \<Colon> 'a\<Colon>finite
+set)" by (fact finite_UNIV)}. *}
+
 (*<*)end(*>*)

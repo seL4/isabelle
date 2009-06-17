@@ -1,4 +1,3 @@
-% $Id$
 
 \section{Numbers}
 \label{sec:numbers}
@@ -12,7 +11,7 @@ recursive function definitions.  HOL also provides the type
 \isa{int} of \textbf{integers}, which lack induction but support true
 subtraction.  With subtraction, arithmetic reasoning is easier, which makes
 the integers preferable to the natural numbers for
-complicated arithmetic expressions, even if they are non-negative.  The logic HOL-Complex also has the types
+complicated arithmetic expressions, even if they are non-negative.  There are also the types
 \isa{rat}, \isa{real} and \isa{complex}: the rational, real and complex numbers.  Isabelle has no 
 subtyping,  so the numeric
 types are distinct and there are functions to convert between them.
@@ -82,14 +81,14 @@ constraint such as \isa{nat}, \isa{int} or \isa{real}, it becomes trivial.
 \end{warn}
 
 \begin{warn}
-\index{recdef@\isacommand {recdef} (command)!and numeric literals}  
+\index{function@\isacommand {function} (command)!and numeric literals}  
 Numeric literals are not constructors and therefore
 must not be used in patterns.  For example, this declaration is
 rejected:
 \begin{isabelle}
-\isacommand{recdef}\ h\ "\isacharbraceleft \isacharbraceright "\isanewline
+\isacommand{function}\ h\ \isakeyword{where}\isanewline
 "h\ 3\ =\ 2"\isanewline
-"h\ i\ \ =\ i"
+\isacharbar "h\ i\ \ =\ i"
 \end{isabelle}
 
 You should use a conditional expression instead:
@@ -107,7 +106,7 @@ This type requires no introduction: we have been using it from the
 beginning.  Hundreds of theorems about the natural numbers are
 proved in the theories \isa{Nat} and \isa{Divides}.  
 Basic properties of addition and multiplication are available through the
-axiomatic type class for semirings (\S\ref{sec:numeric-axclasses}).
+axiomatic type class for semirings (\S\ref{sec:numeric-classes}).
 
 \subsubsection{Literals}
 \index{numeric literals!for type \protect\isa{nat}}%
@@ -242,7 +241,7 @@ the constant \isa{Suc} are not available.  HOL provides many lemmas for
 proving inequalities involving integer multiplication and division, similar
 to those shown above for type~\isa{nat}. The laws of addition, subtraction
 and multiplication are available through the axiomatic type class for rings
-(\S\ref{sec:numeric-axclasses}).
+(\S\ref{sec:numeric-classes}).
 
 The \rmindex{absolute value} function \cdx{abs} is overloaded, and is 
 defined for all types that involve negative numbers, including the integers.
@@ -337,8 +336,7 @@ is bounded above has a least upper bound.  Completeness distinguishes the
 reals from the rationals, for which the set $\{x\mid x^2<2\}$ has no least
 upper bound.  (It could only be $\surd2$, which is irrational.) The
 formalization of completeness, which is complicated, 
-can be found in theory \texttt{RComplete} of directory
-\texttt{Real}.
+can be found in theory \texttt{RComplete}.
 
 Numeric literals\index{numeric literals!for type \protect\isa{real}}
 for type \isa{real} have the same syntax as those for type
@@ -354,15 +352,13 @@ Exponentiation can express floating-point values such as
 is performed.
 
 \begin{warn}
-Type \isa{real} is only available in the logic HOL-Complex, which is
-HOL extended with a definitional development of the real and complex
+Types \isa{rat}, \isa{real} and \isa{complex} are provided by theory HOL-Complex, which is
+Main extended with a definitional development of the rational, real and complex
 numbers.  Base your theory upon theory \thydx{Complex_Main}, not the
-usual \isa{Main}, and set the Proof General menu item \pgmenu{Isabelle} $>$
-\pgmenu{Logics} $>$ \pgmenu{HOL-Complex}.%
-\index{real numbers|)}\index{*real (type)|)}
+usual \isa{Main}.%
 \end{warn}
 
-Also available in HOL-Complex is the
+Available in the logic HOL-NSA is the
 theory \isa{Hyperreal}, which define the type \tydx{hypreal} of 
 \rmindex{non-standard reals}.  These
 \textbf{hyperreals} include infinitesimals, which represent infinitely
@@ -379,7 +375,7 @@ cosine, exponential and logarithm --- even the versions for type
 \index{complex numbers|)}\index{*complex (type)|)}
 
 
-\subsection{The Numeric Type Classes}\label{sec:numeric-axclasses}
+\subsection{The Numeric Type Classes}\label{sec:numeric-classes}
 
 Isabelle/HOL organises its numeric theories using axiomatic type classes.
 Hundreds of basic properties are proved in the theory \isa{Ring_and_Field}.
@@ -534,7 +530,7 @@ get \isa{\isasymbar x\isasymbar}.
 
 \subsubsection{Raising to a Power}
 
-Another type class, \tcdx{ringppower}, specifies rings that also have 
+Another type class, \tcdx{ordered\_idom}, specifies rings that also have 
 exponentation to a natural number power, defined using the obvious primitive
 recursion. Theory \thydx{Power} proves various theorems, such as the 
 following.

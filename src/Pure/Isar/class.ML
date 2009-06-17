@@ -78,7 +78,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val ((_, [thm']), _) = Variable.import_thms true [thm] empty_ctxt;
         val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
         val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
-      in Goal.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
+      in SkipProof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
     val assm_intro = Option.map prove_assm_intro
       (fst (Locale.intros_of thy class));
 
@@ -95,7 +95,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (Tactic.match_tac (axclass_intro :: sup_of_classes
          @ loc_axiom_intros @ base_sort_trivs)
            ORELSE' Tactic.assume_tac));
-    val of_class = Goal.prove_global thy [] [] of_class_prop (K tac);
+    val of_class = SkipProof.prove_global thy [] [] of_class_prop (K tac);
 
   in (base_morph, morph, export_morph, axiom, assm_intro, of_class) end;
 
@@ -281,6 +281,7 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     |> Expression.add_locale bname Binding.empty supexpr elems
     |> snd |> LocalTheory.exit_global
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax
+    ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, morph, export_morph, axiom, assm_intro, of_class) =>

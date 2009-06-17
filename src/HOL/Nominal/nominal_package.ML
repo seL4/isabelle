@@ -6,8 +6,9 @@ Nominal datatype package for Isabelle/HOL.
 
 signature NOMINAL_PACKAGE =
 sig
-  val add_nominal_datatype : bool -> string list -> (string list * bstring * mixfix *
-    (bstring * string list * mixfix) list) list -> theory -> theory
+  val add_nominal_datatype : DatatypeAux.datatype_config -> string list ->
+    (string list * bstring * mixfix *
+      (bstring * string list * mixfix) list) list -> theory -> theory
   type descr
   type nominal_datatype_info
   val get_nominal_datatypes : theory -> nominal_datatype_info Symtab.table
@@ -190,7 +191,7 @@ fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
 fun fresh_star_const T U =
   Const ("Nominal.fresh_star", HOLogic.mk_setT T --> U --> HOLogic.boolT);
 
-fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
+fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
   let
     (* this theory is used just for parsing *)
 
@@ -243,7 +244,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val full_new_type_names' = map (Sign.full_bname thy) new_type_names';
 
     val ({induction, ...},thy1) =
-      DatatypePackage.add_datatype err flat_names new_type_names' dts'' thy;
+      DatatypePackage.add_datatype config new_type_names' dts'' thy;
 
     val SOME {descr, ...} = Symtab.lookup
       (DatatypePackage.get_datatypes thy1) (hd full_new_type_names');
@@ -815,7 +816,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
           ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
       in
-        (parent_path flat_names thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
+        (parent_path (#flat_names config) thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
       end;
 
     val (thy8, constr_defs, constr_rep_eqns, dist_lemmas) = Library.foldl dt_constr_defs
@@ -1509,7 +1510,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>
         InductivePackage.add_inductive_global (serial_string ())
-          {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
+          {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rec_name, coind = false, no_elim = false, no_ind = false,
            skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
@@ -2067,7 +2068,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     thy13
   end;
 
-val add_nominal_datatype = gen_add_nominal_datatype DatatypePackage.read_typ true;
+val add_nominal_datatype = gen_add_nominal_datatype DatatypePackage.read_typ;
 
 
 (* FIXME: The following stuff should be exported by DatatypePackage *)
@@ -2083,7 +2084,7 @@ fun mk_datatype args =
     val names = map (fn ((((NONE, _), t), _), _) => t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in add_nominal_datatype false names specs end;
+  in add_nominal_datatype DatatypeAux.default_datatype_config names specs end;
 
 val _ =
   OuterSyntax.command "nominal_datatype" "define inductive datatypes" K.thy_decl

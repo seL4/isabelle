@@ -282,7 +282,7 @@ fun app_filters thm =
           in app (opt_add r r', consts', fs) end;
   in app end;
 
- 
+
 in
 
 fun filter_criterion ctxt opt_goal (b, c) =
@@ -417,7 +417,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val (foundo, thms) = find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria;
     val returned = length thms;
-    
+
     val tally_msg =
       (case foundo of
         NONE => "displaying " ^ string_of_int returned ^ " theorems"
@@ -427,7 +427,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
 
-    val end_msg = " in " ^ Time.toString (#all (end_timing start)) ^ " secs";
+    val end_msg = " in " ^ Time.toString (#cpu (end_timing start)) ^ " secs";
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria)
         :: Pretty.str "" ::

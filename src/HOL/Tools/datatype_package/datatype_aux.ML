@@ -6,8 +6,9 @@ Auxiliary functions for defining datatypes.
 
 signature DATATYPE_AUX =
 sig
-  val quiet_mode : bool ref
-  val message : string -> unit
+  type datatype_config
+  val default_datatype_config : datatype_config
+  val message : datatype_config -> string -> unit
   
   val add_path : bool -> string -> theory -> theory
   val parent_path : bool -> theory -> theory
@@ -67,8 +68,13 @@ end;
 structure DatatypeAux : DATATYPE_AUX =
 struct
 
-val quiet_mode = ref false;
-fun message s = if !quiet_mode then () else writeln s;
+(* datatype option flags *)
+
+type datatype_config = { strict: bool, flat_names: bool, quiet: bool };
+val default_datatype_config : datatype_config =
+  { strict = true, flat_names = false, quiet = false };
+fun message ({ quiet, ...} : datatype_config) s =
+  if quiet then () else writeln s;
 
 fun add_path flat_names s = if flat_names then I else Sign.add_path s;
 fun parent_path flat_names = if flat_names then I else Sign.parent_path;

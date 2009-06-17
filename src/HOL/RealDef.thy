@@ -1170,7 +1170,7 @@ fun gen_real i =
     val p' = p div g;
     val q' = q div g;
     val r = (if one_of [true, false] then p' else ~ p',
-      if p' = 0 then 0 else q')
+      if p' = 0 then 1 else q')
   in
     (r, fn () => term_of_real r)
   end;
@@ -1182,8 +1182,7 @@ consts_code
 consts_code
   "of_int :: int \<Rightarrow> real" ("\<module>real'_of'_int")
 attach {*
-fun real_of_int 0 = (0, 0)
-  | real_of_int i = (i, 1);
+fun real_of_int i = (i, 1);
 *}
 
 end

@@ -91,12 +91,17 @@ fun improve_term_check ts ctxt =
       |> mark_passed)
   end;
 
+fun rewrite_liberal thy unchecks t =
+  case try (Pattern.rewrite_term thy unchecks []) t
+   of NONE => NONE
+    | SOME t' => if t aconv t' then NONE else SOME t';
+
 fun improve_term_uncheck ts ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val unchecks = (#unchecks o ImprovableSyntax.get) ctxt;
-    val ts' = map (Pattern.rewrite_term thy unchecks []) ts;
-  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt) end;
+    val ts' = map (rewrite_liberal thy unchecks) ts;
+  in if exists is_some ts' then SOME (map2 the_default ts ts', ctxt) else NONE end;
 
 fun set_primary_constraints ctxt =
   let

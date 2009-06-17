@@ -12,6 +12,7 @@ use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
+use "ML-Systems/timing.ML";
 use "ML-Systems/system_shell.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
@@ -57,30 +58,6 @@ in
     Control.Print.printDepth := dest_int n div 2;
     Control.Print.printLength := dest_int n);
 end;
-
-
-(* compiler-independent timing functions *)
-
-fun start_timing () =
-  let
-    val timer = Timer.startCPUTimer ();
-    val time = Timer.checkCPUTimer timer;
-  in (timer, time) end;
-
-fun end_timing (timer, {sys, usr}) =
-  let
-    open Time;  (*...for Time.toString, Time.+ and Time.- *)
-    val {sys = sys2, usr = usr2} = Timer.checkCPUTimer timer;
-    val user = usr2 - usr;
-    val all = user + sys2 - sys;
-    val message = "User " ^ toString user ^ "  All "^ toString all ^ " secs" handle Time => "";
-  in {message = message, user = user, all = all} end;
-
-fun check_timer timer =
-  let
-    val {sys, usr} = Timer.checkCPUTimer timer;
-    val gc = Timer.checkGCTime timer;    (* FIXME already included in usr? *)
-  in (sys, usr, gc) end;
 
 
 (*prompts*)

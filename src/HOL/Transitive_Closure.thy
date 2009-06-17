@@ -294,6 +294,20 @@ lemma r_comp_rtrancl_eq: "r O r^* = r^* O r"
 lemma rtrancl_unfold: "r^* = Id Un r O r^*"
   by (auto intro: rtrancl_into_rtrancl elim: rtranclE)
 
+lemma rtrancl_Un_separatorE:
+  "(a,b) : (P \<union> Q)^* \<Longrightarrow> \<forall>x y. (a,x) : P^* \<longrightarrow> (x,y) : Q \<longrightarrow> x=y \<Longrightarrow> (a,b) : P^*"
+apply (induct rule:rtrancl.induct)
+ apply blast
+apply (blast intro:rtrancl_trans)
+done
+
+lemma rtrancl_Un_separator_converseE:
+  "(a,b) : (P \<union> Q)^* \<Longrightarrow> \<forall>x y. (x,b) : P^* \<longrightarrow> (y,x) : Q \<longrightarrow> y=x \<Longrightarrow> (a,b) : P^*"
+apply (induct rule:converse_rtrancl_induct)
+ apply blast
+apply (blast intro:rtrancl_trans)
+done
+
 
 subsection {* Transitive closure *}
 

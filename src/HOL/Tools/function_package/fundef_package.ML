@@ -191,9 +191,7 @@ fun add_case_cong n thy =
                            |> safe_mk_meta_eq)))
                        thy
 
-val case_cong = fold add_case_cong
-
-val setup_case_cong = DatatypePackage.interpretation case_cong
+val setup_case_cong = DatatypePackage.interpretation (K (fold add_case_cong))
 
 
 (* setup *)

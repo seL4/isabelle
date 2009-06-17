@@ -585,6 +585,7 @@ text {*
     @{command_def "class"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "instantiation"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "instance"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "instance"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "subclass"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "print_classes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "class_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -599,7 +600,11 @@ text {*
     ;
     'instance'
     ;
+    'instance' nameref '::' arity
+    ;
     'subclass' target? nameref
+    ;
+    'instance' nameref ('<' | subseteq) nameref
     ;
     'print\_classes'
     ;
@@ -649,11 +654,23 @@ text {*
   the type classes involved.  After finishing the proof, the
   background theory will be augmented by the proven type arities.
 
+  On the theory level, @{command "instance"}~@{text "t :: (s\<^sub>1, \<dots>,
+  s\<^sub>n)s"} provides a convenient way to instantiate a type class with no
+  need to specifify operations: one can continue with the
+  instantiation proof immediately.
+
   \item @{command "subclass"}~@{text c} in a class context for class
   @{text d} sets up a goal stating that class @{text c} is logically
   contained in class @{text d}.  After finishing the proof, class
   @{text d} is proven to be subclass @{text c} and the locale @{text
   c} is interpreted into @{text d} simultaneously.
+
+  A weakend form of this is available through a further variant of
+  @{command instance}:  @{command instance}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} opens
+  a proof that class @{text "c\<^isub>2"} implies @{text "c\<^isub>1"} without reference
+  to the underlying locales;  this is useful if the properties to prove
+  the logical connection are not sufficent on the locale level but on
+  the theory level.
 
   \item @{command "print_classes"} prints all classes in the current
   theory.
@@ -703,19 +720,16 @@ subsection {* Old-style axiomatic type classes \label{sec:axclass} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "axclass"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "instance"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def "axclass"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
   Axiomatic type classes are Isabelle/Pure's primitive
-  \emph{definitional} interface to type classes.  For practical
+  interface to type classes.  For practical
   applications, you should consider using classes
   (cf.~\secref{sec:classes}) which provide high level interface.
 
   \begin{rail}
     'axclass' classdecl (axmdecl prop +)
-    ;
-    'instance' (nameref ('<' | subseteq) nameref | nameref '::' arity)
     ;
   \end{rail}
 
@@ -736,14 +750,6 @@ text {*
   here.  The full collection of these facts is also stored as @{text
   c_class.axioms}.
   
-  \item @{command "instance"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} and @{command
-  "instance"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)s"} setup a goal stating a class
-  relation or type arity.  The proof would usually proceed by @{method
-  intro_classes}, and then establish the characteristic theorems of
-  the type classes involved.  After finishing the proof, the theory
-  will be augmented by a type signature declaration corresponding to
-  the resulting theorem.
-
   \end{description}
 *}
 
