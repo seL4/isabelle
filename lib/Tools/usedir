@@ -31,6 +31,7 @@ function usage()
   echo "    -p LEVEL     set level of detail for proof objects"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
+  echo "    -t BOOL      internal session timing (default false)"
   echo "    -v BOOL      be verbose (default false)"
   echo
   echo "  Build object-logic or run examples. Also creates browsing"
@@ -84,12 +85,13 @@ MODES=""
 RESET=false
 SESSION=""
 PROOFS=0
+TIMING=false
 VERBOSE=false
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "C:D:M:P:Q:T:V:bd:f:g:i:m:p:rs:v:" OPT
+  while getopts "C:D:M:P:Q:T:V:bd:f:g:i:m:p:rs:t:v:" OPT
   do
     case "$OPT" in
       C)
@@ -157,6 +159,10 @@ function getoptions()
         ;;
       s)
         SESSION="$OPTARG"
+        ;;
+      t)
+        check_bool "$OPTARG"
+        TIMING="$OPTARG"
         ;;
       v)
         check_bool "$OPTARG"
@@ -229,7 +235,7 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE_PROCESS" \
-    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS;" \
+    -e "Session.use_dir \"$ITEM\" \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $TIMING $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS;" \
     -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -238,7 +244,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE_PROCESS" \
-    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS; quit();" \
+    -e "Session.use_dir \"$ITEM\" \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $TIMING $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
