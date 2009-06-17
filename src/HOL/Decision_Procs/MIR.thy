@@ -642,9 +642,9 @@ lemma maxcoeff_pos: "maxcoeff t \<ge> 0"
   done
 
 recdef numgcdh "measure size"
-  "numgcdh (C i) = (\<lambda>g. zgcd i g)"
-  "numgcdh (CN n c t) = (\<lambda>g. zgcd c (numgcdh t g))"
-  "numgcdh (CF c s t) = (\<lambda>g. zgcd c (numgcdh t g))"
+  "numgcdh (C i) = (\<lambda>g. gcd i g)"
+  "numgcdh (CN n c t) = (\<lambda>g. gcd c (numgcdh t g))"
+  "numgcdh (CF c s t) = (\<lambda>g. gcd c (numgcdh t g))"
   "numgcdh t = (\<lambda>g. 1)"
 
 definition
@@ -687,13 +687,13 @@ lemma numgcd0:
   shows "Inum bs t = 0"
 proof-
   have "\<And>x. numgcdh t x= 0 \<Longrightarrow> Inum bs t = 0"
-    by (induct t rule: numgcdh.induct, auto simp add: zgcd_def gcd_zero natabs0 max_def maxcoeff_pos)
+    by (induct t rule: numgcdh.induct, auto)
   thus ?thesis using g0[simplified numgcd_def] by blast
 qed
 
 lemma numgcdh_pos: assumes gp: "g \<ge> 0" shows "numgcdh t g \<ge> 0"
   using gp
-  by (induct t rule: numgcdh.induct, auto simp add: zgcd_def)
+  by (induct t rule: numgcdh.induct, auto)
 
 lemma numgcd_pos: "numgcd t \<ge>0"
   by (simp add: numgcd_def numgcdh_pos maxcoeff_pos)
@@ -738,8 +738,8 @@ next
   from ismaxcoeff_mono[OF H1 thh1] show ?case by (simp add: le_maxI1)
 qed simp_all
 
-lemma zgcd_gt1: "zgcd i j > 1 \<Longrightarrow> ((abs i > 1 \<and> abs j > 1) \<or> (abs i = 0 \<and> abs j > 1) \<or> (abs i > 1 \<and> abs j = 0))"
-  apply (unfold zgcd_def)
+lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow> ((abs i > 1 \<and> abs j > 1) \<or> (abs i = 0 \<and> abs j > 1) \<or> (abs i > 1 \<and> abs j = 0))"
+  apply (unfold gcd_int_def)
   apply (cases "i = 0", simp_all)
   apply (cases "j = 0", simp_all)
   apply (cases "abs i = 1", simp_all)
@@ -747,7 +747,7 @@ lemma zgcd_gt1: "zgcd i j > 1 \<Longrightarrow> ((abs i > 1 \<and> abs j > 1) \<
   apply auto
   done
 lemma numgcdh0:"numgcdh t m = 0 \<Longrightarrow>  m =0"
-  by (induct t rule: numgcdh.induct, auto simp add:zgcd0)
+  by (induct t rule: numgcdh.induct, auto)
 
 lemma dvdnumcoeff_aux:
   assumes "ismaxcoeff t m" and mp:"m \<ge> 0" and "numgcdh t m > 1"
@@ -756,17 +756,17 @@ using prems
 proof(induct t rule: numgcdh.induct)
   case (2 n c t) 
   let ?g = "numgcdh t m"
-  from prems have th:"zgcd c ?g > 1" by simp
+  from prems have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
   moreover {assume "abs c > 1" and gp: "?g > 1" with prems
     have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)}
+    have th': "gcd c ?g dvd ?g" by simp
+    from dvdnumcoeff_trans[OF th' th] have ?case by simp }
   moreover {assume "abs c = 0 \<and> ?g > 1"
     with prems have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)
+    have th': "gcd c ?g dvd ?g" by simp
+    from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
     from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
@@ -774,22 +774,22 @@ proof(induct t rule: numgcdh.induct)
 next
   case (3 c s t) 
   let ?g = "numgcdh t m"
-  from prems have th:"zgcd c ?g > 1" by simp
+  from prems have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
   moreover {assume "abs c > 1" and gp: "?g > 1" with prems
     have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)}
+    have th': "gcd c ?g dvd ?g" by simp
+    from dvdnumcoeff_trans[OF th' th] have ?case by simp }
   moreover {assume "abs c = 0 \<and> ?g > 1"
     with prems have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)
+    have th': "gcd c ?g dvd ?g" by simp
+    from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
     from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
   ultimately show ?case by blast
-qed(auto simp add: zgcd_zdvd1)
+qed auto
 
 lemma dvdnumcoeff_aux2:
   assumes "numgcd t > 1" shows "dvdnumcoeff t (numgcd t) \<and> numgcd t > 0"
@@ -1041,7 +1041,7 @@ qed
 constdefs simp_num_pair:: "(num \<times> int) \<Rightarrow> num \<times> int"
   "simp_num_pair \<equiv> (\<lambda> (t,n). (if n = 0 then (C 0, 0) else
    (let t' = simpnum t ; g = numgcd t' in 
-      if g > 1 then (let g' = zgcd n g in 
+      if g > 1 then (let g' = gcd n g in 
         if g' = 1 then (t',n) 
         else (reducecoeffh t' g', n div g')) 
       else (t',n))))"
@@ -1052,23 +1052,23 @@ lemma simp_num_pair_ci:
 proof-
   let ?t' = "simpnum t"
   let ?g = "numgcd ?t'"
-  let ?g' = "zgcd n ?g"
+  let ?g' = "gcd n ?g"
   {assume nz: "n = 0" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
   moreover
   { assume nnz: "n \<noteq> 0"
     {assume "\<not> ?g > 1" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
-      from zgcd0 g1 nnz have gp0: "?g' \<noteq> 0" by simp
-      hence g'p: "?g' > 0" using zgcd_pos[where i="n" and j="numgcd ?t'"] by arith
+      from g1 nnz have gp0: "?g' \<noteq> 0" by simp
+      hence g'p: "?g' > 0" using int_gcd_ge_0[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
       moreover {assume g'1:"?g'>1"
 	from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff ?t' ?g" ..
 	let ?tt = "reducecoeffh ?t' ?g'"
 	let ?t = "Inum bs ?tt"
-	have gpdg: "?g' dvd ?g" by (simp add: zgcd_zdvd2)
-	have gpdd: "?g' dvd n" by (simp add: zgcd_zdvd1) 
+	have gpdg: "?g' dvd ?g" by simp
+	have gpdd: "?g' dvd n" by simp
 	have gpdgp: "?g' dvd ?g'" by simp
 	from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
 	have th2:"real ?g' * ?t = Inum bs ?t'" by simp
@@ -1088,21 +1088,21 @@ lemma simp_num_pair_l: assumes tnb: "numbound0 t" and np: "n >0" and tn: "simp_n
 proof-
     let ?t' = "simpnum t"
   let ?g = "numgcd ?t'"
-  let ?g' = "zgcd n ?g"
+  let ?g' = "gcd n ?g"
   {assume nz: "n = 0" hence ?thesis using prems by (simp add: Let_def simp_num_pair_def)}
   moreover
   { assume nnz: "n \<noteq> 0"
     {assume "\<not> ?g > 1" hence ?thesis  using prems by (auto simp add: Let_def simp_num_pair_def)}
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
-      from zgcd0 g1 nnz have gp0: "?g' \<noteq> 0" by simp
-      hence g'p: "?g' > 0" using zgcd_pos[where i="n" and j="numgcd ?t'"] by arith
+      from g1 nnz have gp0: "?g' \<noteq> 0" by simp
+      hence g'p: "?g' > 0" using int_gcd_ge_0[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis using prems 
 	  by (auto simp add: Let_def simp_num_pair_def)}
       moreover {assume g'1:"?g'>1"
-	have gpdg: "?g' dvd ?g" by (simp add: zgcd_zdvd2)
-	have gpdd: "?g' dvd n" by (simp add: zgcd_zdvd1) 
+	have gpdg: "?g' dvd ?g" by simp
+	have gpdd: "?g' dvd n" by simp
 	have gpdgp: "?g' dvd ?g'" by simp
 	from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
 	from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
@@ -1219,7 +1219,7 @@ qed
 constdefs simpdvd:: "int \<Rightarrow> num \<Rightarrow> (int \<times> num)"
   "simpdvd d t \<equiv> 
    (let g = numgcd t in 
-      if g > 1 then (let g' = zgcd d g in 
+      if g > 1 then (let g' = gcd d g in 
         if g' = 1 then (d, t) 
         else (d div g',reducecoeffh t g')) 
       else (d, t))"
@@ -1228,20 +1228,20 @@ lemma simpdvd:
   shows "Ifm bs (Dvd (fst (simpdvd d t)) (snd (simpdvd d t))) = Ifm bs (Dvd d t)"
 proof-
   let ?g = "numgcd t"
-  let ?g' = "zgcd d ?g"
+  let ?g' = "gcd d ?g"
   {assume "\<not> ?g > 1" hence ?thesis by (simp add: Let_def simpdvd_def)}
   moreover
   {assume g1:"?g>1" hence g0: "?g > 0" by simp
-    from zgcd0 g1 dnz have gp0: "?g' \<noteq> 0" by simp
-    hence g'p: "?g' > 0" using zgcd_pos[where i="d" and j="numgcd t"] by arith
+    from g1 dnz have gp0: "?g' \<noteq> 0" by simp
+    hence g'p: "?g' > 0" using int_gcd_ge_0[where x="d" and y="numgcd t"] by arith
     hence "?g'= 1 \<or> ?g' > 1" by arith
     moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simpdvd_def)}
     moreover {assume g'1:"?g'>1"
       from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff t ?g" ..
       let ?tt = "reducecoeffh t ?g'"
       let ?t = "Inum bs ?tt"
-      have gpdg: "?g' dvd ?g" by (simp add: zgcd_zdvd2)
-      have gpdd: "?g' dvd d" by (simp add: zgcd_zdvd1) 
+      have gpdg: "?g' dvd ?g" by simp
+      have gpdd: "?g' dvd d" by simp
       have gpdgp: "?g' dvd ?g'" by simp
       from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
       have th2:"real ?g' * ?t = Inum bs t" by simp
@@ -2093,8 +2093,8 @@ recdef plusinf "measure size"
   "plusinf p = p"
 
 recdef \<delta> "measure size"
-  "\<delta> (And p q) = zlcm (\<delta> p) (\<delta> q)" 
-  "\<delta> (Or p q) = zlcm (\<delta> p) (\<delta> q)" 
+  "\<delta> (And p q) = lcm (\<delta> p) (\<delta> q)" 
+  "\<delta> (Or p q) = lcm (\<delta> p) (\<delta> q)" 
   "\<delta> (Dvd i (CN 0 c e)) = i"
   "\<delta> (NDvd i (CN 0 c e)) = i"
   "\<delta> p = 1"
@@ -2126,20 +2126,20 @@ using lin
 proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
-  from prems zlcm_pos have dp: "?d >0" by simp
+  from prems int_lcm_pos have dp: "?d >0" by simp
   have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp 
    hence th: "d\<delta> p ?d" 
-     using delta_mono prems by (auto simp del: dvd_zlcm_self1)
+     using delta_mono prems by (auto simp del: int_lcm_dvd1)
   have "\<delta> q dvd \<delta> (And p q)" using prems  by simp 
-  hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: dvd_zlcm_self2)
+  hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: int_lcm_dvd2)
   from th th' dp show ?case by simp 
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
-  from prems zlcm_pos have dp: "?d >0" by simp
+  from prems int_lcm_pos have dp: "?d >0" by simp
   have "\<delta> p dvd \<delta> (And p q)" using prems by simp hence th: "d\<delta> p ?d" using delta_mono prems 
-    by (auto simp del: dvd_zlcm_self1)
-  have "\<delta> q dvd \<delta> (And p q)" using prems by simp hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: dvd_zlcm_self2)
+    by (auto simp del: int_lcm_dvd1)
+  have "\<delta> q dvd \<delta> (And p q)" using prems by simp hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: int_lcm_dvd2)
   from th th' dp show ?case by simp 
 qed simp_all
 
@@ -2388,8 +2388,8 @@ recdef d\<beta> "measure size"
   "d\<beta> p = (\<lambda> k. True)"
 
 recdef \<zeta> "measure size"
-  "\<zeta> (And p q) = zlcm (\<zeta> p) (\<zeta> q)" 
-  "\<zeta> (Or p q) = zlcm (\<zeta> p) (\<zeta> q)" 
+  "\<zeta> (And p q) = lcm (\<zeta> p) (\<zeta> q)" 
+  "\<zeta> (Or p q) = lcm (\<zeta> p) (\<zeta> q)" 
   "\<zeta> (Eq  (CN 0 c e)) = c"
   "\<zeta> (NEq (CN 0 c e)) = c"
   "\<zeta> (Lt  (CN 0 c e)) = c"
@@ -2510,19 +2510,19 @@ lemma \<zeta>:
 using linp
 proof(induct p rule: iszlfm.induct)
   case (1 p q)
-  from prems have dl1: "\<zeta> p dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems have dl2: "\<zeta> q dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: zlcm_pos)
+  from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
 next
   case (2 p q)
-  from prems have dl1: "\<zeta> p dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems have dl2: "\<zeta> q dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: zlcm_pos)
-qed (auto simp add: zlcm_pos)
+  from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
+qed (auto simp add: int_lcm_pos)
 
 lemma a\<beta>: assumes linp: "iszlfm p (a #bs)" and d: "d\<beta> p l" and lp: "l > 0"
   shows "iszlfm (a\<beta> p l) (a #bs) \<and> d\<beta> (a\<beta> p l) 1 \<and> (Ifm (real (l * x) #bs) (a\<beta> p l) = Ifm ((real x)#bs) p)"
@@ -4173,9 +4173,9 @@ recdef rlfm "measure fmsize"
 
 lemma bound0at_l : "\<lbrakk>isatom p ; bound0 p\<rbrakk> \<Longrightarrow> isrlfm p"
   by (induct p rule: isrlfm.induct, auto)
-lemma zgcd_le1: assumes ip: "0 < i" shows "zgcd i j \<le> i"
+lemma zgcd_le1: assumes ip: "(0::int) < i" shows "gcd i j \<le> i"
 proof-
-  from zgcd_zdvd1 have th: "zgcd i j dvd i" by blast
+  from int_gcd_dvd1 have th: "gcd i j dvd i" by blast
   from zdvd_imp_le[OF th ip] show ?thesis .
 qed
 
@@ -5119,9 +5119,9 @@ proof-
   let ?M = "?I x (minusinf ?rq)"
   let ?P = "?I x (plusinf ?rq)"
   have MF: "?M = False"
-    apply (simp add: Let_def reducecoeff_def numgcd_def zgcd_def rsplit_def ge_def lt_def conj_def disj_def)
+    apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
     by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C -1)))", simp_all)
-  have PF: "?P = False" apply (simp add: Let_def reducecoeff_def numgcd_def zgcd_def rsplit_def ge_def lt_def conj_def disj_def)
+  have PF: "?P = False" apply (simp add: Let_def reducecoeff_def numgcd_def rsplit_def ge_def lt_def conj_def disj_def)
     by (cases "rlfm p = And (Ge (CN 0 1 (C 0))) (Lt (CN 0 1 (C -1)))", simp_all)
   have "(\<exists> x. ?I x ?q ) = 
     ((?I x (minusinf ?rq)) \<or> (?I x (plusinf ?rq )) \<or> (\<exists> (t,n) \<in> set (\<Upsilon> ?rq). \<exists> (s,m) \<in> set (\<Upsilon> ?rq ). ?I x (\<upsilon> ?rq (Add (Mul m t) (Mul n s), 2*n*m))))"
@@ -5286,7 +5286,7 @@ proof-
   let ?F = "\<lambda> p. \<exists> a \<in> set (\<Upsilon> p). \<exists> b \<in> set (\<Upsilon> p). ?I x (\<upsilon> p (?g(a,b)))"
   let ?ep = "evaldjf (\<upsilon> ?q) ?Y"
   from rlfm_l[OF qf] have lq: "isrlfm ?q" 
-    by (simp add: rsplit_def lt_def ge_def conj_def disj_def Let_def reducecoeff_def numgcd_def zgcd_def)
+    by (simp add: rsplit_def lt_def ge_def conj_def disj_def Let_def reducecoeff_def numgcd_def)
   from alluopairs_set1[where xs="?U"] have UpU: "set ?Up \<le> (set ?U \<times> set ?U)" by simp
   from \<Upsilon>_l[OF lq] have U_l: "\<forall> (t,n) \<in> set ?U. numbound0 t \<and> n > 0" .
   from U_l UpU 

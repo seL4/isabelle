@@ -851,11 +851,11 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]:
 
 subsection {* Implementation of rational numbers as pairs of integers *}
 
-lemma Fract_norm: "Fract (a div zgcd a b) (b div zgcd a b) = Fract a b"
+lemma Fract_norm: "Fract (a div gcd a b) (b div gcd a b) = Fract a b"
 proof (cases "a = 0 \<or> b = 0")
   case True then show ?thesis by (auto simp add: eq_rat)
 next
-  let ?c = "zgcd a b"
+  let ?c = "gcd a b"
   case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
   then have "?c \<noteq> 0" by simp
   then have "Fract ?c ?c = Fract 1 1" by (simp add: eq_rat)
@@ -870,7 +870,7 @@ qed
 definition Fract_norm :: "int \<Rightarrow> int \<Rightarrow> rat" where
   [simp, code del]: "Fract_norm a b = Fract a b"
 
-lemma Fract_norm_code [code]: "Fract_norm a b = (if a = 0 \<or> b = 0 then 0 else let c = zgcd a b in
+lemma Fract_norm_code [code]: "Fract_norm a b = (if a = 0 \<or> b = 0 then 0 else let c = gcd a b in
   if b > 0 then Fract (a div c) (b div c) else Fract (- (a div c)) (- (b div c)))"
   by (simp add: eq_rat Zero_rat_def Let_def Fract_norm)
 

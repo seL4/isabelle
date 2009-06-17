@@ -6,8 +6,10 @@
 header {* Primality on nat *}
 
 theory Primes
-imports Complex_Main
+imports Complex_Main Legacy_GCD
 begin
+
+hide (open) const GCD.gcd GCD.coprime GCD.prime
 
 definition
   coprime :: "nat => nat => bool" where

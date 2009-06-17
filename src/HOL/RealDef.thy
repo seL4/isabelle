@@ -895,14 +895,15 @@ qed
 
 lemma Rats_abs_nat_div_natE:
   assumes "x \<in> \<rat>"
-  obtains m n where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
+  obtains m n :: nat
+  where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
 proof -
   from `x \<in> \<rat>` obtain i::int and n::nat where "n \<noteq> 0" and "x = real i / real n"
     by(auto simp add: Rats_eq_int_div_nat)
   hence "\<bar>x\<bar> = real(nat(abs i)) / real n" by simp
   then obtain m :: nat where x_rat: "\<bar>x\<bar> = real m / real n" by blast
   let ?gcd = "gcd m n"
-  from `n\<noteq>0` have gcd: "?gcd \<noteq> 0" by (simp add: gcd_zero)
+  from `n\<noteq>0` have gcd: "?gcd \<noteq> 0" by simp
   let ?k = "m div ?gcd"
   let ?l = "n div ?gcd"
   let ?gcd' = "gcd ?k ?l"
@@ -924,9 +925,9 @@ proof -
   have "?gcd' = 1"
   proof -
     have "?gcd * ?gcd' = gcd (?gcd * ?k) (?gcd * ?l)"
-      by (rule gcd_mult_distrib2)
+      by (rule nat_gcd_mult_distrib)
     with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
-    with gcd show ?thesis by simp
+    with gcd show ?thesis by auto
   qed
   ultimately show ?thesis ..
 qed
