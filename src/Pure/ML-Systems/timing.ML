@@ -23,10 +23,10 @@ fun end_timing (real_timer, real_time, cpu_timer, cpu_times) =
     val elapsed = real_time2 - real_time;
     val gc = gc_usr2 - gc_usr + gc_sys2 - gc_sys;
     val cpu = usr2 - usr + sys2 - sys + gc;
-    val gc_ratio = Real.fmt (StringCvt.FIX (SOME 2)) (toReal gc / toReal cpu);
+    val gc_percent = Real.fmt (StringCvt.FIX (SOME 1)) (100.0 * toReal gc / toReal cpu);
     val factor = Real.fmt (StringCvt.FIX (SOME 2)) (toReal cpu / toReal elapsed);
     val message =
       (toString elapsed ^ "s elapsed time, " ^ toString cpu ^ "s cpu time, " ^
-        gc_ratio ^ "% GC time, factor " ^ factor) handle Time => "";
+        gc_percent ^ "% GC time, factor " ^ factor) handle Time => "";
   in {message = message, elapsed = elapsed, cpu = cpu, gc = gc} end;
 
