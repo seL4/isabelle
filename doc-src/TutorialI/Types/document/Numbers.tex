@@ -257,7 +257,7 @@ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isach
 \rulename{mod_mult2_eq}
 
 \begin{isabelle}%
-{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ c\ {\isacharasterisk}\ a\ div\ {\isacharparenleft}c\ {\isacharasterisk}\ b{\isacharparenright}\ {\isacharequal}\ a\ div\ b%
+c\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymLongrightarrow}\ c\ {\isacharasterisk}\ a\ div\ {\isacharparenleft}c\ {\isacharasterisk}\ b{\isacharparenright}\ {\isacharequal}\ a\ div\ b%
 \end{isabelle}
 \rulename{div_mult_mult1}
 
@@ -607,17 +607,17 @@ absolute value
 \rulename{abs_triangle_ineq}
 
 \begin{isabelle}%
-a\ {\isacharcircum}\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}\ {\isacharequal}\ a\ {\isacharcircum}\ m\ {\isacharasterisk}\ a\ {\isacharcircum}\ n%
+a\isactrlbsup m\ {\isacharplus}\ n\isactrlesup \ {\isacharequal}\ a\isactrlbsup m\isactrlesup \ {\isacharasterisk}\ a\isactrlbsup n\isactrlesup %
 \end{isabelle}
 \rulename{power_add}
 
 \begin{isabelle}%
-a\ {\isacharcircum}\ {\isacharparenleft}m\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a\ {\isacharcircum}\ m{\isacharparenright}\ {\isacharcircum}\ n%
+a\isactrlbsup m\ {\isacharasterisk}\ n\isactrlesup \ {\isacharequal}\ a\isactrlbsup m\isactrlesup \isactrlbsup n\isactrlesup %
 \end{isabelle}
 \rulename{power_mult}
 
 \begin{isabelle}%
-{\isasymbar}a\ {\isacharcircum}\ n{\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\ {\isacharcircum}\ n%
+{\isasymbar}a\isactrlbsup n\isactrlesup {\isasymbar}\ {\isacharequal}\ {\isasymbar}a{\isasymbar}\isactrlbsup n\isactrlesup %
 \end{isabelle}
 \rulename{power_abs}%
 \end{isamarkuptext}%

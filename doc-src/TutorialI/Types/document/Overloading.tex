@@ -14,16 +14,69 @@
 \isadelimtheory
 %
 \endisadelimtheory
+%
+\begin{isamarkuptext}%
+Type classes allow \emph{overloading}; thus a constant may
+have multiple definitions at non-overlapping types.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Overloading%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We can introduce a binary infix addition operator \isa{{\isasymotimes}}
+for arbitrary types by means of a type class:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{class}\isamarkupfalse%
+\ plus\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent This introduces a new class \isa{plus},
+along with a constant \isa{plus} with nice infix syntax.
+\isa{plus} is also named \emph{class operation}.  The type
+of \isa{plus} carries a sort constraint \isa{{\isachardoublequote}{\isacharprime}a\ {\isacharcolon}{\isacharcolon}\ plus{\isachardoublequote}} on its type variable, meaning that only types of class
+\isa{plus} can be instantiated for \isa{{\isachardoublequote}{\isacharprime}a{\isachardoublequote}}.
+To breathe life into \isa{plus} we need to declare a type
+to be an \bfindex{instance} of \isa{plus}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instantiation}\isamarkupfalse%
+\ nat\ {\isacharcolon}{\isacharcolon}\ plus\isanewline
+\isakeyword{begin}%
+\begin{isamarkuptext}%
+\noindent Command \isacommand{instantiation} opens a local
+theory context.  Here we can now instantiate \isa{plus} on
+\isa{nat}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
+\ plus{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymoplus}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}Suc\ m\ {\isasymoplus}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}m\ {\isasymoplus}\ n{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Note that the name \isa{plus} carries a
+suffix \isa{{\isacharunderscore}nat}; by default, the local name of a class operation
+\isa{f} to be instantiated on type constructor \isa{{\isasymkappa}} is mangled
+as \isa{f{\isacharunderscore}{\isasymkappa}}.  In case of uncertainty, these names may be inspected
+using the \hyperlink{command.print-context}{\mbox{\isa{\isacommand{print{\isacharunderscore}context}}}} command or the corresponding
+ProofGeneral button.
+
+Although class \isa{plus} has no axioms, the instantiation must be
+formally concluded by a (trivial) instantiation proof ``..'':%
+\end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{instance}\isamarkupfalse%
-\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharparenright}ordrel\isanewline
 %
 \isadelimproof
-%
+\ %
 \endisadelimproof
 %
 \isatagproof
-\isacommand{by}\isamarkupfalse%
-\ intro{\isacharunderscore}classes%
+\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -32,21 +85,60 @@
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent
-This \isacommand{instance} declaration can be read like the declaration of
-a function on types.  The constructor \isa{list} maps types of class \isa{type} (all HOL types), to types of class \isa{ordrel};
-in other words,
-if \isa{ty\ {\isacharcolon}{\isacharcolon}\ type} then \isa{ty\ list\ {\isacharcolon}{\isacharcolon}\ ordrel}.
-Of course we should also define the meaning of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
-\isa{{\isacharless}{\isacharless}} on lists:%
+\noindent More interesting \isacommand{instance} proofs will
+arise below.
+
+The instantiation is finished by an explicit%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{defs}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-prefix{\isacharunderscore}def{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a\ list{\isacharparenright}\ \ {\isasymequiv}\ \ {\isasymexists}zs{\isachardot}\ ys\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequoteclose}\isanewline
-strict{\isacharunderscore}prefix{\isacharunderscore}def{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}xs\ {\isacharless}{\isacharless}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a\ list{\isacharparenright}\ \ \ {\isasymequiv}\ \ xs\ {\isacharless}{\isacharless}{\isacharequal}\ ys\ {\isasymand}\ xs\ {\isasymnoteq}\ ys{\isachardoublequoteclose}\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent From now on, terms like \isa{Suc\ {\isacharparenleft}m\ {\isasymoplus}\ {\isadigit{2}}{\isacharparenright}} are
+legal.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instantiation}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharasterisk}{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}plus{\isacharcomma}\ plus{\isacharparenright}\ plus\isanewline
+\isakeyword{begin}%
+\begin{isamarkuptext}%
+\noindent Here we instantiate the product type \isa{{\isacharasterisk}} to
+class \isa{plus}, given that its type arguments are of
+class \isa{plus}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ plus{\isacharunderscore}prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymoplus}\ {\isacharparenleft}w{\isacharcomma}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymoplus}\ w{\isacharcomma}\ y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Obviously, overloaded specifications may include
+recursion over the syntactic structure of types.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent This way we have encoded the canonical lifting of
+binary operations to products by means of type classes.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %

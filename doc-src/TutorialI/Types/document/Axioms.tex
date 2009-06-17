@@ -20,70 +20,50 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Attaching axioms to our classes lets us reason on the
-level of classes.  The results will be applicable to all types in a class,
-just as in axiomatic mathematics.  These ideas are demonstrated by means of
-our ordering relations.%
+Attaching axioms to our classes lets us reason on the level of
+classes.  The results will be applicable to all types in a class, just
+as in axiomatic mathematics.
+
+\begin{warn}
+Proofs in this section use structured \emph{Isar} proofs, which are not
+covered in this tutorial; but see \cite{Nipkow-TYPES02}.%
+\end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsubsection{Partial Orders%
+\isamarkupsubsubsection{Semigroups%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A \emph{partial order} is a subclass of \isa{ordrel}
+We specify \emph{semigroups} as subclass of \isa{plus}
 where certain axioms need to hold:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{axclass}\isamarkupfalse%
-\ parord\ {\isacharless}\ ordrel\isanewline
-refl{\isacharcolon}\ \ \ \ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-trans{\isacharcolon}\ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ z{\isachardoublequoteclose}\isanewline
-antisym{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-lt{\isacharunderscore}le{\isacharcolon}\ \ \ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}%
+\isacommand{class}\isamarkupfalse%
+\ semigroup\ {\isacharequal}\ plus\ {\isacharplus}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\noindent
-The first three axioms are the familiar ones, and the final one
-requires that \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isacharequal}} are related as expected.
-Note that behind the scenes, Isabelle has restricted the axioms to class
-\isa{parord}. For example, the axiom \isa{refl} really is
-\isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isasymColon}parord{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
+\noindent This \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} specification requires that
+all instances of \isa{semigroup} obey \hyperlink{fact.assoc:}{\mbox{\isa{assoc{\isacharcolon}}}}~\isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ {\isacharprime}a{\isasymColon}semigroup{\isachardot}\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequote}}.
 
-We have not made \isa{lt{\isacharunderscore}le} a global definition because it would
-fix once and for all that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
-never the other way around. Below you will see why we want to avoid this
-asymmetry. The drawback of our choice is that
-we need to define both \isa{{\isacharless}{\isacharless}{\isacharequal}} and \isa{{\isacharless}{\isacharless}} for each instance.
-
-We can now prove simple theorems in this abstract setting, for example
-that \isa{{\isacharless}{\isacharless}} is not symmetric:%
+We can use this class axiom to derive further abstract theorems
+relative to class \isa{semigroup}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}parord{\isacharparenright}\ {\isacharless}{\isacharless}\ y\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymnot}\ y\ {\isacharless}{\isacharless}\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}%
-\isadelimproof
+\ assoc{\isacharunderscore}left{\isacharcolon}\isanewline
+\ \ \isakeyword{fixes}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}semigroup{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z{\isachardoublequoteclose}\isanewline
 %
+\isadelimproof
+\ \ %
 \endisadelimproof
 %
 \isatagproof
-%
-\begin{isamarkuptxt}%
-\noindent
-The conclusion is not just \isa{{\isasymnot}\ y\ {\isacharless}{\isacharless}\ x} because the 
-simplifier's preprocessor (see \S\ref{sec:simp-preprocessor})
-would turn it into \isa{{\isacharparenleft}y\ {\isacharless}{\isacharless}\ x{\isacharparenright}\ {\isacharequal}\ False}, yielding
-a nonterminating rewrite rule.  
-(It would be used to try to prove its own precondition \emph{ad
-    infinitum}.)
-In the form above, the rule is useful.
-The type constraint is necessary because otherwise Isabelle would only assume
-\isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel} (as required in the type of \isa{{\isacharless}{\isacharless}}), 
-when the proposition is not a theorem.  The proof is easy:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ lt{\isacharunderscore}le\ antisym{\isacharparenright}%
+\isacommand{using}\isamarkupfalse%
+\ assoc\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ sym{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -92,253 +72,345 @@ when the proposition is not a theorem.  The proof is easy:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-We could now continue in this vein and develop a whole theory of
-results about partial orders. Eventually we will want to apply these results
-to concrete types, namely the instances of the class. Thus we first need to
-prove that the types in question, for example \isa{bool}, are indeed
-instances of \isa{parord}:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{instance}\isamarkupfalse%
-\ bool\ {\isacharcolon}{\isacharcolon}\ parord\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ intro{\isacharunderscore}classes%
-\begin{isamarkuptxt}%
-\noindent
-This time \isa{intro{\isacharunderscore}classes} leaves us with the four axioms,
-specialized to type \isa{bool}, as subgoals:
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isasymColon}bool{\isachardot}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ x\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}bool{\isacharparenright}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}\ z{\isasymColon}bool{\isachardot}\ {\isasymlbrakk}x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}{\isacharequal}\ z\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}bool{\isacharparenright}\ y{\isasymColon}bool{\isachardot}\ {\isasymlbrakk}x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}bool{\isacharparenright}\ y{\isasymColon}bool{\isachardot}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}%
-\end{isabelle}
-Fortunately, the proof is easy for \isa{blast}
-once we have unfolded the definitions
-of \isa{{\isacharless}{\isacharless}} and \isa{{\isacharless}{\isacharless}{\isacharequal}} at type \isa{bool}:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ only{\isacharcolon}\ le{\isacharunderscore}bool{\isacharunderscore}def\ lt{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
-\isacommand{by}\isamarkupfalse%
-{\isacharparenleft}blast{\isacharcomma}\ blast{\isacharcomma}\ blast{\isacharcomma}\ blast{\isacharparenright}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-\noindent
-Can you figure out why we have to include \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}}?
+\noindent The \isa{semigroup} constraint on type \isa{{\isacharprime}a} restricts instantiations of \isa{{\isacharprime}a} to types of class
+\isa{semigroup} and during the proof enables us to use the fact
+\hyperlink{fact.assoc}{\mbox{\isa{assoc}}} whose type parameter is itself constrained to class
+\isa{semigroup}.  The main advantage is that theorems can be proved
+in the abstract and freely reused for each instance.
 
-We can now apply our single lemma above in the context of booleans:%
+On instantiation, we have to give a proof that the given operations
+obey the class axioms:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}P{\isacharcolon}{\isacharcolon}bool{\isacharparenright}\ {\isacharless}{\isacharless}\ Q\ {\isasymLongrightarrow}\ {\isasymnot}{\isacharparenleft}Q\ {\isacharless}{\isacharless}\ P{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-\noindent
-The effect is not stunning, but it demonstrates the principle.  It also shows
-that tools like the simplifier can deal with generic rules.
-The main advantage of the axiomatic method is that
-theorems can be proved in the abstract and freely reused for each instance.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Linear Orders%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-If any two elements of a partial order are comparable it is a
-\textbf{linear} or \textbf{total} order:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{axclass}\isamarkupfalse%
-\ linord\ {\isacharless}\ parord\isanewline
-linear{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymor}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\noindent
-By construction, \isa{linord} inherits all axioms from \isa{parord}.
-Therefore we can show that linearity can be expressed in terms of \isa{{\isacharless}{\isacharless}}
-as follows:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymAnd}x{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}linord{\isachardot}\ x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y\ {\isasymor}\ y\ {\isacharless}{\isacharless}\ x{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ lt{\isacharunderscore}le{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}insert\ linear{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ blast\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-Linear orders are an example of subclassing\index{subclasses}
-by construction, which is the most
-common case.  Subclass relationships can also be proved.  
-This is the topic of the following
-paragraph.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Strict Orders%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-An alternative axiomatization of partial orders takes \isa{{\isacharless}{\isacharless}} rather than
-\isa{{\isacharless}{\isacharless}{\isacharequal}} as the primary concept. The result is a \textbf{strict} order:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{axclass}\isamarkupfalse%
-\ strord\ {\isacharless}\ ordrel\isanewline
-irrefl{\isacharcolon}\ \ \ \ \ {\isachardoublequoteopen}{\isasymnot}\ x\ {\isacharless}{\isacharless}\ x{\isachardoublequoteclose}\isanewline
-lt{\isacharunderscore}trans{\isacharcolon}\ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isacharless}{\isacharless}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}\ z{\isachardoublequoteclose}\isanewline
-le{\isacharunderscore}less{\isacharcolon}\ \ \ \ {\isachardoublequoteopen}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\noindent
-It is well known that partial orders are the same as strict orders. Let us
-prove one direction, namely that partial orders are a subclass of strict
-orders.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{instance}\isamarkupfalse%
-\ parord\ {\isacharless}\ strord\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ intro{\isacharunderscore}classes%
-\begin{isamarkuptxt}%
-\noindent
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isasymColon}{\isacharprime}a{\isachardot}\ {\isasymnot}\ x\ {\isacharless}{\isacharless}\ x\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharparenleft}y{\isasymColon}{\isacharprime}a{\isacharparenright}\ z{\isasymColon}{\isacharprime}a{\isachardot}\ {\isasymlbrakk}x\ {\isacharless}{\isacharless}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}\ z\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ y{\isasymColon}{\isacharprime}a{\isachardot}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y{\isacharparenright}\isanewline
-type\ variables{\isacharcolon}\isanewline
-\isaindent{\ \ }{\isacharprime}a\ {\isacharcolon}{\isacharcolon}\ parord%
-\end{isabelle}
-Because of \isa{{\isacharprime}a\ {\isacharcolon}{\isacharcolon}\ parord}, the three axioms of class \isa{strord}
-are easily proved:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ add{\isacharcolon}\ lt{\isacharunderscore}le{\isacharparenright}\isanewline
-\ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}blast\ intro{\isacharcolon}\ trans\ antisym{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}blast\ intro{\isacharcolon}\ refl{\isacharparenright}\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-The subclass relation must always be acyclic. Therefore Isabelle will
-complain if you also prove the relationship \isa{strord\ {\isacharless}\ parord}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Multiple Inheritance and Sorts%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-A class may inherit from more than one direct superclass. This is called
-\bfindex{multiple inheritance}.  For example, we could define
-the classes of well-founded orderings and well-orderings:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{axclass}\isamarkupfalse%
-\ wford\ {\isacharless}\ parord\isanewline
-wford{\isacharcolon}\ {\isachardoublequoteopen}wf\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ y\ {\isacharless}{\isacharless}\ x{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\isacommand{instantiation}\isamarkupfalse%
+\ nat\ {\isacharcolon}{\isacharcolon}\ semigroup\isanewline
+\isakeyword{begin}\isanewline
 \isanewline
-\isacommand{axclass}\isamarkupfalse%
-\ wellord\ {\isacharless}\ linord{\isacharcomma}\ wford%
+\isacommand{instance}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent The proof opens with a default proof step, which for
+instance judgements invokes method \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}}.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{fix}\isamarkupfalse%
+\ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}m\ {\isasymoplus}\ n{\isacharparenright}\ {\isasymoplus}\ q\ {\isacharequal}\ m\ {\isasymoplus}\ {\isacharparenleft}n\ {\isasymoplus}\ q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ m{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
-\noindent
-The last line expresses the usual definition: a well-ordering is a linear
-well-founded ordering. The result is the subclass diagram in
+\noindent Again, the interesting things enter the stage with
+parametric types:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instantiation}\isamarkupfalse%
+\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ p\isactrlisub {\isadigit{1}}\ p\isactrlisub {\isadigit{2}}\ p\isactrlisub {\isadigit{3}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}semigroup\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}semigroup{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}p\isactrlisub {\isadigit{1}}\ {\isasymoplus}\ p\isactrlisub {\isadigit{2}}\ {\isasymoplus}\ p\isactrlisub {\isadigit{3}}\ {\isacharequal}\ p\isactrlisub {\isadigit{1}}\ {\isasymoplus}\ {\isacharparenleft}p\isactrlisub {\isadigit{2}}\ {\isasymoplus}\ p\isactrlisub {\isadigit{3}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}cases\ p\isactrlisub {\isadigit{1}}{\isacharcomma}\ cases\ p\isactrlisub {\isadigit{2}}{\isacharcomma}\ cases\ p\isactrlisub {\isadigit{3}}{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent Associativity of product semigroups is established
+using the hypothetical associativity \hyperlink{fact.assoc}{\mbox{\isa{assoc}}} of the type
+components, which holds due to the \isa{semigroup} constraints
+imposed on the type components by the \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} proposition.
+Indeed, this pattern often occurs with parametric types and type
+classes.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Monoids%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We define a subclass \isa{monoidl} (a semigroup with a
+left-hand neutral) by extending \isa{semigroup} with one additional
+parameter \isa{neutral} together with its property:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{class}\isamarkupfalse%
+\ monoidl\ {\isacharequal}\ semigroup\ {\isacharplus}\isanewline
+\ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymzero}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymzero}\ {\isasymoplus}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Again, we prove some instances, by providing
+suitable parameter definitions and proofs for the additional
+specifications.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instantiation}\isamarkupfalse%
+\ nat\ {\isacharcolon}{\isacharcolon}\ monoidl\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymzero}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ n\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymzero}\ {\isasymoplus}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ neutral{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Unless in the above examples, we here have both
+specification of class operations and a non-trivial instance proof.
+
+This covers products as well:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instantiation}\isamarkupfalse%
+\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}monoidl{\isacharcomma}\ monoidl{\isacharparenright}\ monoidl\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ neutral{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymzero}\ {\isacharequal}\ {\isacharparenleft}{\isasymzero}{\isacharcomma}\ {\isasymzero}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ p\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}monoidl\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}monoidl{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymzero}\ {\isasymoplus}\ p\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}cases\ p{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutral{\isacharunderscore}prod{\isacharunderscore}def\ neutl{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Fully-fledged monoids are modelled by another
+subclass which does not add new parameters but tightens the
+specification:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{class}\isamarkupfalse%
+\ monoid\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
+\ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymoplus}\ {\isasymzero}\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Corresponding instances for \isa{nat} and products
+are left as an exercise to the reader.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Groups%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\noindent To finish our small algebra example, we add a \isa{group} class:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{class}\isamarkupfalse%
+\ group\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
+\ \ \isakeyword{fixes}\ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymdiv}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{1}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ invl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ x\ {\isacharequal}\ {\isasymzero}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent We continue with a further example for abstract
+proofs relative to type classes:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ left{\isacharunderscore}cancel{\isacharcolon}\isanewline
+\ \ \isakeyword{fixes}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}group{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isasymoplus}\ y\ {\isacharequal}\ x\ {\isasymoplus}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymoplus}\ y\ {\isacharequal}\ x\ {\isasymoplus}\ z{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isacharequal}\ {\isasymdiv}\ x\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymdiv}\ x\ {\isasymoplus}\ x{\isacharparenright}\ {\isasymoplus}\ y\ {\isacharequal}\ {\isacharparenleft}{\isasymdiv}\ x\ {\isasymoplus}\ x{\isacharparenright}\ {\isasymoplus}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ invl\ neutl{\isacharparenright}\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymoplus}\ y\ {\isacharequal}\ x\ {\isasymoplus}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent Any \isa{group} is also a \isa{monoid}; this
+can be made explicit by claiming an additional subclass relation,
+together with a proof of the logical difference:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{instance}\isamarkupfalse%
+\ group\ {\isasymsubseteq}\ monoid\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ invl\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ x\ {\isacharequal}\ {\isasymzero}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ {\isasymzero}{\isacharparenright}\ {\isacharequal}\ {\isasymdiv}\ x\ {\isasymoplus}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutl\ invl\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymoplus}\ {\isasymzero}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ left{\isacharunderscore}cancel{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent The proof result is propagated to the type system,
+making \isa{group} an instance of \isa{monoid} by adding an
+additional edge to the graph of subclass relation; see also
 Figure~\ref{fig:subclass}.
 
 \begin{figure}[htbp]
-\[
-\begin{array}{r@ {}r@ {}c@ {}l@ {}l}
-& & \isa{type}\\
-& & |\\
-& & \isa{ordrel}\\
-& & |\\
-& & \isa{strord}\\
-& & |\\
-& & \isa{parord} \\
-& / & & \backslash \\
-\isa{linord} & & & & \isa{wford} \\
-& \backslash & & / \\
-& & \isa{wellord}
-\end{array}
-\]
-\caption{Subclass Diagram}
-\label{fig:subclass}
-\end{figure}
-
-Since class \isa{wellord} does not introduce any new axioms, it can simply
-be viewed as the intersection of the two classes \isa{linord} and \isa{wford}. Such intersections need not be given a new name but can be created on
-the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
-represents the intersection of the $C@i$. Such an expression is called a
-\textbf{sort},\index{sorts} and sorts can appear in most places where we have only shown
-classes so far, for example in type constraints: \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}linord{\isacharcomma}wford{\isacharbraceright}}.
-In fact, \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}C} is short for \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}C{\isacharbraceright}}.
-However, we do not pursue this rarefied concept further.
-
-This concludes our demonstration of type classes based on orderings.  We
-remind our readers that \isa{Main} contains a theory of
-orderings phrased in terms of the usual \isa{{\isasymle}} and \isa{{\isacharless}}.
-If possible, base your own ordering relations on this theory.%
+ \begin{center}
+   \small
+   \unitlength 0.6mm
+   \begin{picture}(40,60)(0,0)
+     \put(20,60){\makebox(0,0){\isa{semigroup}}}
+     \put(20,40){\makebox(0,0){\isa{monoidl}}}
+     \put(00,20){\makebox(0,0){\isa{monoid}}}
+     \put(40,00){\makebox(0,0){\isa{group}}}
+     \put(20,55){\vector(0,-1){10}}
+     \put(15,35){\vector(-1,-1){10}}
+     \put(25,35){\vector(1,-3){10}}
+   \end{picture}
+   \hspace{8em}
+   \begin{picture}(40,60)(0,0)
+     \put(20,60){\makebox(0,0){\isa{semigroup}}}
+     \put(20,40){\makebox(0,0){\isa{monoidl}}}
+     \put(00,20){\makebox(0,0){\isa{monoid}}}
+     \put(40,00){\makebox(0,0){\isa{group}}}
+     \put(20,55){\vector(0,-1){10}}
+     \put(15,35){\vector(-1,-1){10}}
+     \put(05,15){\vector(3,-1){30}}
+   \end{picture}
+   \caption{Subclass relationship of monoids and groups:
+      before and after establishing the relationship
+      \isa{group\ {\isasymsubseteq}\ monoid};  transitive edges are left out.}
+   \label{fig:subclass}
+ \end{center}
+\end{figure}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -347,24 +419,53 @@ If possible, base your own ordering relations on this theory.%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The reader may be wondering what happens if we
-attach an inconsistent set of axioms to a class. So far we have always
-avoided to add new axioms to HOL for fear of inconsistencies and suddenly it
+The reader may be wondering what happens if we attach an
+inconsistent set of axioms to a class. So far we have always avoided
+to add new axioms to HOL for fear of inconsistencies and suddenly it
 seems that we are throwing all caution to the wind. So why is there no
 problem?
 
-The point is that by construction, all type variables in the axioms of an
-\isacommand{axclass} are automatically constrained with the class being
-defined (as shown for axiom \isa{refl} above). These constraints are
-always carried around and Isabelle takes care that they are never lost,
-unless the type variable is instantiated with a type that has been shown to
-belong to that class. Thus you may be able to prove \isa{False}
-from your axioms, but Isabelle will remind you that this
-theorem has the hidden hypothesis that the class is non-empty.
+The point is that by construction, all type variables in the axioms of
+a \isacommand{class} are automatically constrained with the class
+being defined (as shown for axiom \isa{refl} above). These
+constraints are always carried around and Isabelle takes care that
+they are never lost, unless the type variable is instantiated with a
+type that has been shown to belong to that class. Thus you may be able
+to prove \isa{False} from your axioms, but Isabelle will remind you
+that this theorem has the hidden hypothesis that the class is
+non-empty.
 
-Even if each individual class is consistent, intersections of (unrelated)
-classes readily become inconsistent in practice. Now we know this need not
-worry us.%
+Even if each individual class is consistent, intersections of
+(unrelated) classes readily become inconsistent in practice. Now we
+know this need not worry us.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Syntactic Classes and Predefined Overloading%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In our algebra example, we have started with a \emph{syntactic
+class} \isa{plus} which only specifies operations but no axioms; it
+would have been also possible to start immediately with class \isa{semigroup}, specifying the \isa{{\isasymoplus}} operation and associativity at
+the same time.
+
+Which approach is more appropriate depends.  Usually it is more
+convenient to introduce operations and axioms in the same class: then
+the type checker will automatically insert the corresponding class
+constraints whenever the operations occur, reducing the need of manual
+annotations.  However, when operations are decorated with popular
+syntax, syntactic classes can be an option to re-use the syntax in
+different contexts; this is indeed the way most overloaded constants
+in HOL are introduced, of which the most important are listed in
+Table~\ref{tab:overloading} in the appendix.  Section
+\ref{sec:numeric-classes} covers a range of corresponding classes
+\emph{with} axioms.
+
+Further note that classes may contain axioms but \emph{no} operations.
+An example is class \isa{finite} from theory \hyperlink{theory.Finite-Set}{\mbox{\isa{Finite{\isacharunderscore}Set}}}
+which specifies a type to be finite: \isa{{\isachardoublequote}finite\ {\isacharparenleft}UNIV\ {\isasymColon}\ {\isacharprime}a{\isasymColon}finite\ set{\isacharparenright}{\isachardoublequote}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

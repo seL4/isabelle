@@ -6,7 +6,8 @@ So far we have learned about a few basic types (for example \isa{bool} and
 (\isacommand{datatype}). This chapter will introduce more
 advanced material:
 \begin{itemize}
-\item Pairs ({\S}\ref{sec:products}) and records ({\S}\ref{sec:records}),and how to reason about them.
+\item Pairs ({\S}\ref{sec:products}) and records ({\S}\ref{sec:records}),
+and how to reason about them.
 \item Type classes: how to specify and reason about axiomatic collections of
   types ({\S}\ref{sec:axclass}). This section leads on to a discussion of
   Isabelle's numeric types ({\S}\ref{sec:numbers}).  
@@ -15,7 +16,10 @@ advanced material:
   ({\S}\ref{sec:adv-typedef}).
 \end{itemize}
 
-The material in this section goes beyond the needs of most novices.Serious users should at least skim the sections as far as type classes.That material is fairly advanced; read the beginning to understand what itis about, but consult the rest only when necessary.
+The material in this section goes beyond the needs of most novices.
+Serious users should at least skim the sections as far as type classes.
+That material is fairly advanced; read the beginning to understand what it
+is about, but consult the rest only when necessary.
 
 \index{pairs and tuples|(}
 \input{Types/document/Pairs}    %%%Section "Pairs and Tuples"
@@ -24,48 +28,41 @@ The material in this section goes beyond the needs of most novices.Serious user
 \input{Types/document/Records}  %%%Section "Records"
 
 
-\section{Axiomatic Type Classes} %%%Section
+\section{Type Classes} %%%Section
 \label{sec:axclass}
 \index{axiomatic type classes|(}
 \index{*axclass|(}
 
-The programming language Haskell has popularized the notion of type classes.
-In its simplest form, a type class is a set of types with a common interface:
-all types in that class must provide the functions in the interface.
-Isabelle offers the related concept of an \textbf{axiomatic type class}.
-Roughly speaking, an axiomatic type class is a type class with axioms, i.e.\ 
-an axiomatic specification of a class of types. Thus we can talk about a type
-$\tau$ being in a class $C$, which is written $\tau :: C$.  This is the case if
-$\tau$ satisfies the axioms of $C$. Furthermore, type classes can be
-organized in a hierarchy.  Thus there is the notion of a class $D$ being a
-\textbf{subclass}\index{subclasses}
-of a class $C$, written $D < C$. This is the case if all
-axioms of $C$ are also provable in $D$. We introduce these concepts
-by means of a running example, ordering relations.
+The programming language Haskell has popularized the notion of type
+classes: a type class is a set of types with a
+common interface: all types in that class must provide the functions
+in the interface.  Isabelle offers a similar type class concept: in
+addition, properties (\emph{class axioms}) can be specified which any
+instance of this type class must obey.  Thus we can talk about a type
+$\tau$ being in a class $C$, which is written $\tau :: C$.  This is the case
+if $\tau$ satisfies the axioms of $C$. Furthermore, type classes can be
+organized in a hierarchy.  Thus there is the notion of a class $D$
+being a subclass\index{subclasses} of a class $C$, written $D
+< C$. This is the case if all axioms of $C$ are also provable in $D$.
 
-\begin{warn}
-The material in this section describes a low-level approach to type classes.
-It is recommended to use the new \isacommand{class} command instead.
-For details see the appropriate tutorial~\cite{isabelle-classes} and the
-related article~\cite{Haftmann-Wenzel:2006:classes}.
-\end{warn}
-
+In this section we introduce the most important concepts behind type
+classes by means of a running example from algebra.  This should give
+you an intuition how to use type classes and to understand
+specifications involving type classes.  Type classes are covered more
+deeply in a separate tutorial \cite{isabelle-classes}.
 
 \subsection{Overloading}
 \label{sec:overloading}
 \index{overloading|(}
 
-\input{Types/document/Overloading0}
-\input{Types/document/Overloading1}
 \input{Types/document/Overloading}
-\input{Types/document/Overloading2}
 
 \index{overloading|)}
 
 \input{Types/document/Axioms}
 
-\index{axiomatic type classes|)}
-\index{*axclass|)}
+\index{type classes|)}
+\index{*class|)}
 
 \input{Types/numerics}             %%%Section "Numbers"
 
