@@ -22,7 +22,8 @@ FILES = tutorial.tex basics.tex fp.tex appendix.tex			\
 	Protocol/document/Event.tex Protocol/document/Message.tex	\
 	Protocol/document/Public.tex Protocol/document/NS_Public.tex	\
 	Rules/rules.tex Sets/sets.tex Types/numerics.tex		\
-	Types/types.tex Documents/documents.tex ../iman.sty		\
+	Types/types.tex Types/document/Overloading.tex \
+	Types/document/Axioms.tex Documents/documents.tex Misc/document/appendix.tex ../iman.sty	\
 	../ttbox.sty ../extra.sty ../isabelle.sty ../isabellesym.sty	\
 	../pdfsetup.sty
 
