@@ -1048,7 +1048,7 @@ fun gen_rat i =
     val p' = p div g;
     val q' = q div g;
     val r = (if one_of [true, false] then p' else ~ p',
-      if p' = 0 then 0 else q')
+      if p' = 0 then 1 else q')
   in
     (r, fn () => term_of_rat r)
   end;
@@ -1060,8 +1060,7 @@ consts_code
 consts_code
   "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")
 attach {*
-fun rat_of_int 0 = (0, 0)
-  | rat_of_int i = (i, 1);
+fun = rat_of_int i (i, 1);
 *}
 
 end

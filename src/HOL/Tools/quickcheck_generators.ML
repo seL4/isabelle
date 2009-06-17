@@ -15,7 +15,7 @@ sig
   val mk_random_aux_eqs: theory -> DatatypeAux.descr -> (string * sort) list
     -> string list -> string list * string list -> typ list * typ list
     -> string * (term list * (term * term) list)
-  val ensure_random_datatype: string list -> theory -> theory
+  val ensure_random_datatype: DatatypeAux.datatype_config -> string list -> theory -> theory
   val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
   val setup: theory -> theory
 end;
@@ -320,9 +320,9 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
     val prefix = space_implode "_" (random_auxN :: names);
   in (prefix, (random_auxs, auxs_lhss ~~ auxs_rhss)) end;
 
-fun mk_random_datatype descr vs tycos (names, auxnames) (Ts, Us) thy =
+fun mk_random_datatype config descr vs tycos (names, auxnames) (Ts, Us) thy =
   let
-    val _ = DatatypeAux.message "Creating quickcheck generators ...";
+    val _ = DatatypeAux.message config "Creating quickcheck generators ...";
     val i = @{term "i\<Colon>code_numeral"};
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
     fun mk_size_arg k = case DatatypeCodegen.find_shortest_path descr k
@@ -356,7 +356,7 @@ fun perhaps_constrain thy insts raw_vs =
   in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
   end handle CLASS_ERROR => NONE;
 
-fun ensure_random_datatype raw_tycos thy =
+fun ensure_random_datatype config raw_tycos thy =
   let
     val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
@@ -370,7 +370,7 @@ fun ensure_random_datatype raw_tycos thy =
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
   in if has_inst then thy
     else case perhaps_constrain thy (random_insts @ term_of_insts) raw_vs
-     of SOME constrain => mk_random_datatype descr
+     of SOME constrain => mk_random_datatype config descr
           (map constrain raw_vs) tycos (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy

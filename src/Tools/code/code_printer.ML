@@ -45,6 +45,7 @@ sig
   val APP: fixity
   val brackify: fixity -> Pretty.T list -> Pretty.T
   val brackify_infix: int * lrx -> fixity -> Pretty.T list -> Pretty.T
+  val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
 
   type itype = Code_Thingol.itype
   type iterm = Code_Thingol.iterm
@@ -174,6 +175,13 @@ fun brackify fxy_ctxt =
 
 fun brackify_infix infx fxy_ctxt =
   gen_brackify (fixity (INFX infx) fxy_ctxt) o Pretty.breaks;
+
+fun brackify_block fxy_ctxt p1 ps p2 =
+  let val p = Pretty.block_enclose (p1, p2) ps
+  in if fixity BR fxy_ctxt
+    then Pretty.enclose "(" ")" [p]
+    else p
+  end;
 
 
 (* generic syntax *)

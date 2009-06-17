@@ -7,7 +7,7 @@ Realizers for induction and case analysis
 
 signature DATATYPE_REALIZER =
 sig
-  val add_dt_realizers: string list -> theory -> theory
+  val add_dt_realizers: DatatypeAux.datatype_config -> string list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -213,10 +213,10 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
      (exh_name, ([], Extraction.nullt, prf_of exhaustion))] thy'
   end;
 
-fun add_dt_realizers names thy =
+fun add_dt_realizers config names thy =
   if ! Proofterm.proofs < 2 then thy
   else let
-    val _ = message "Adding realizers for induction and case analysis ..."
+    val _ = message config "Adding realizers for induction and case analysis ..."
     val infos = map (DatatypePackage.the_datatype thy) names;
     val info :: _ = infos;
   in

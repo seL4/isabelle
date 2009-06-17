@@ -151,7 +151,7 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
                 concat [str delim, p, str "=>", pr_term is_closure thm vars' NOBR body]
               end;
           in
-            (Pretty.enclose "(" ")" o single o brackify fxy) (
+            brackets (
               str "case"
               :: pr_term is_closure thm vars NOBR t
               :: pr "of" clause
@@ -441,8 +441,10 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
               |>> (fn p => concat
                   [str "let", p, str "=", pr_term is_closure thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
-            fun mk_brack (p :: ps) = Pretty.block [str "(", p] :: ps;
-          in Pretty.chunks (mk_brack ps @| Pretty.block [pr_term is_closure thm vars' NOBR body, str ")"]) end
+          in
+            brackify_block fxy (Pretty.chunks ps) []
+              (pr_term is_closure thm vars' NOBR body)
+          end
       | pr_case is_closure thm vars fxy (((t, ty), clause :: clauses), _) =
           let
             fun pr delim (pat, body) =
@@ -450,7 +452,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
                 val (p, vars') = pr_bind is_closure thm NOBR ((NONE, SOME pat), ty) vars;
               in concat [str delim, p, str "->", pr_term is_closure thm vars' NOBR body] end;
           in
-            (Pretty.enclose "(" ")" o single o brackify fxy) (
+            brackets (
               str "match"
               :: pr_term is_closure thm vars NOBR t
               :: pr "with" clause

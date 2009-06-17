@@ -426,7 +426,7 @@ fun add_equality vs dtcos thy =
 
 (* register a datatype etc. *)
 
-fun add_all_code dtcos thy =
+fun add_all_code config dtcos thy =
   let
     val (vs :: _, coss) = (split_list o map (DatatypePackage.the_datatype_spec thy)) dtcos;
     val any_css = map2 (mk_constr_consts thy vs) dtcos coss;
@@ -437,7 +437,7 @@ fun add_all_code dtcos thy =
   in
     if null css then thy
     else thy
-      |> tap (fn _ => DatatypeAux.message "Registering datatype for code generator ...")
+      |> tap (fn _ => DatatypeAux.message config "Registering datatype for code generator ...")
       |> fold Code.add_datatype css
       |> fold_rev Code.add_default_eqn case_rewrites
       |> fold Code.add_case certs
