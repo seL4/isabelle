@@ -299,8 +299,8 @@ text {*
 
   \begin{center}\small
   \begin{tabular}{rcl}
-    @{text graph} & @{text "="} & @{text "{ vertex"}~@{verbatim ";"}~@{text "}\<^sup>+"} \\
-    @{text vertex} & @{text "="} & @{text "vertex_name vertex_ID dir_name ["}~@{verbatim "+"}~@{text "] path ["}~@{verbatim "<"}~@{text "|"}~@{verbatim ">"}~@{text "] { vertex_ID }\<^sup>*"}
+    @{text graph} & @{text "="} & @{text "{ vertex"}~@{verbatim ";"}~@{text "}+"} \\
+    @{text vertex} & @{text "="} & @{text "vertex_name vertex_ID dir_name ["}~@{verbatim "+"}~@{text "] path ["}~@{verbatim "<"}~@{text "|"}~@{verbatim ">"}~@{text "] { vertex_ID }*"}
   \end{tabular}
   \end{center}
 
@@ -454,6 +454,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -p LEVEL     set level of detail for proof objects
     -r           reset session path
     -s NAME      override session NAME
+    -t BOOL      internal session timing (default false)
     -v BOOL      be verbose (default false)
 
   Build object-logic or run examples. Also creates browsing
@@ -562,6 +563,9 @@ text {*
   \medskip The @{verbatim "-p"} option determines the level of detail
   for internal proof objects, see also the \emph{Isabelle Reference
   Manual}~\cite{isabelle-ref}.
+
+  \medskip The @{verbatim "-t"} option produces a more detailed
+  internal timing report of the session.
 
   \medskip The @{verbatim "-v"} option causes additional information
   to be printed while running the session, notably the location of

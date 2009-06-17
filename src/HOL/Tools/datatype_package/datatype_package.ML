@@ -351,7 +351,7 @@ type rules = {distinct : thm list list,
   simps : thm list}
 
 structure DatatypeInterpretation = InterpretationFun
-  (type T = datatype_config * string list val eq = eq_snd op =);
+  (type T = datatype_config * string list val eq: T * T -> bool = eq_snd op =);
 fun interpretation f = DatatypeInterpretation.interpretation (uncurry f);
 
 
