@@ -29,7 +29,8 @@ BOOTSTRAP_FILES = ML-Systems/compiler_polyml-5.0.ML			\
   ML-Systems/polyml.ML ML-Systems/polyml_common.ML			\
   ML-Systems/pp_polyml.ML ML-Systems/proper_int.ML ML-Systems/smlnj.ML	\
   ML-Systems/system_shell.ML ML-Systems/thread_dummy.ML			\
-  ML-Systems/time_limit.ML ML-Systems/universal.ML
+  ML-Systems/timing.ML ML-Systems/time_limit.ML				\
+  ML-Systems/universal.ML
 
 RAW: $(OUT)/RAW
 

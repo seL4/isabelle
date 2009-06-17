@@ -323,8 +323,8 @@ A graph definition file has the following syntax:
 
   \begin{center}\small
   \begin{tabular}{rcl}
-    \isa{graph} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharbraceleft}\ vertex{\isachardoublequote}}~\verb|;|~\isa{{\isachardoublequote}{\isacharbraceright}\isactrlsup {\isacharplus}{\isachardoublequote}} \\
-    \isa{vertex} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}vertex{\isacharunderscore}name\ vertex{\isacharunderscore}ID\ dir{\isacharunderscore}name\ {\isacharbrackleft}{\isachardoublequote}}~\verb|+|~\isa{{\isachardoublequote}{\isacharbrackright}\ path\ {\isacharbrackleft}{\isachardoublequote}}~\verb|<|~\isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}}~\verb|>|~\isa{{\isachardoublequote}{\isacharbrackright}\ {\isacharbraceleft}\ vertex{\isacharunderscore}ID\ {\isacharbraceright}\isactrlsup {\isacharasterisk}{\isachardoublequote}}
+    \isa{graph} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharbraceleft}\ vertex{\isachardoublequote}}~\verb|;|~\isa{{\isachardoublequote}{\isacharbraceright}{\isacharplus}{\isachardoublequote}} \\
+    \isa{vertex} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}vertex{\isacharunderscore}name\ vertex{\isacharunderscore}ID\ dir{\isacharunderscore}name\ {\isacharbrackleft}{\isachardoublequote}}~\verb|+|~\isa{{\isachardoublequote}{\isacharbrackright}\ path\ {\isacharbrackleft}{\isachardoublequote}}~\verb|<|~\isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}}~\verb|>|~\isa{{\isachardoublequote}{\isacharbrackright}\ {\isacharbraceleft}\ vertex{\isacharunderscore}ID\ {\isacharbraceright}{\isacharasterisk}{\isachardoublequote}}
   \end{tabular}
   \end{center}
 
@@ -480,6 +480,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -p LEVEL     set level of detail for proof objects
     -r           reset session path
     -s NAME      override session NAME
+    -t BOOL      internal session timing (default false)
     -v BOOL      be verbose (default false)
 
   Build object-logic or run examples. Also creates browsing
@@ -579,6 +580,9 @@ Basically, there are two different modes of operation: \emph{build
   \medskip The \verb|-p| option determines the level of detail
   for internal proof objects, see also the \emph{Isabelle Reference
   Manual}~\cite{isabelle-ref}.
+
+  \medskip The \verb|-t| option produces a more detailed
+  internal timing report of the session.
 
   \medskip The \verb|-v| option causes additional information
   to be printed while running the session, notably the location of
