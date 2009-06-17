@@ -1060,7 +1060,7 @@ consts_code
 consts_code
   "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")
 attach {*
-fun = rat_of_int i (i, 1);
+fun rat_of_int i = (i, 1);
 *}
 
 end
