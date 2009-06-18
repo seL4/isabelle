@@ -148,7 +148,10 @@ object Scan
 
     def length: Int = end - start
     def charAt(i: Int): Char = text.charAt(end - i - 1)
-    def subSequence(i: Int, j: Int): CharSequence = new Reverse(text, end - j, end - i)
+
+    def subSequence(i: Int, j: Int): CharSequence =
+      if (0 <= i && i <= j && j <= length) new Reverse(text, end - j, end - i)
+      else throw new IndexOutOfBoundsException
 
     override def toString: String =
     {
