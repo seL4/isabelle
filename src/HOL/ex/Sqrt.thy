@@ -5,7 +5,7 @@
 header {*  Square roots of primes are irrational *}
 
 theory Sqrt
-imports Complex_Main Primes
+imports Complex_Main
 begin
 
 text {*
@@ -14,12 +14,12 @@ text {*
 *}
 
 theorem sqrt_prime_irrational:
-  assumes "prime p"
+  assumes "prime (p::nat)"
   shows "sqrt (real p) \<notin> \<rat>"
 proof
-  from `prime p` have p: "1 < p" by (simp add: prime_def)
+  from `prime p` have p: "1 < p" by (simp add: prime_nat_def)
   assume "sqrt (real p) \<in> \<rat>"
-  then obtain m n where
+  then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
     and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
   have eq: "m\<twosuperior> = p * n\<twosuperior>"
@@ -34,12 +34,12 @@ proof
   have "p dvd m \<and> p dvd n"
   proof
     from eq have "p dvd m\<twosuperior>" ..
-    with `prime p` show "p dvd m" by (rule prime_dvd_power_two)
+    with `prime p` pos2 show "p dvd m" by (rule nat_prime_dvd_power)
     then obtain k where "m = p * k" ..
     with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
     with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
     then have "p dvd n\<twosuperior>" ..
-    with `prime p` show "p dvd n" by (rule prime_dvd_power_two)
+    with `prime p` pos2 show "p dvd n" by (rule nat_prime_dvd_power)
   qed
   then have "p dvd gcd m n" ..
   with gcd have "p dvd 1" by simp
@@ -48,7 +48,7 @@ proof
 qed
 
 corollary "sqrt (real (2::nat)) \<notin> \<rat>"
-  by (rule sqrt_prime_irrational) (rule two_is_prime)
+  by (rule sqrt_prime_irrational) (rule nat_two_is_prime)
 
 
 subsection {* Variations *}
@@ -60,12 +60,12 @@ text {*
 *}
 
 theorem
-  assumes "prime p"
+  assumes "prime (p::nat)"
   shows "sqrt (real p) \<notin> \<rat>"
 proof
-  from `prime p` have p: "1 < p" by (simp add: prime_def)
+  from `prime p` have p: "1 < p" by (simp add: prime_nat_def)
   assume "sqrt (real p) \<in> \<rat>"
-  then obtain m n where
+  then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
     and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
   from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
@@ -75,13 +75,13 @@ proof
   also have "\<dots> * real (n\<twosuperior>) = real (p * n\<twosuperior>)" by simp
   finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
   then have "p dvd m\<twosuperior>" ..
-  with `prime p` have dvd_m: "p dvd m" by (rule prime_dvd_power_two)
+  with `prime p` pos2 have dvd_m: "p dvd m" by (rule nat_prime_dvd_power)
   then obtain k where "m = p * k" ..
   with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
   with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
   then have "p dvd n\<twosuperior>" ..
-  with `prime p` have "p dvd n" by (rule prime_dvd_power_two)
-  with dvd_m have "p dvd gcd m n" by (rule gcd_greatest)
+  with `prime p` pos2 have "p dvd n" by (rule nat_prime_dvd_power)
+  with dvd_m have "p dvd gcd m n" by (rule nat_gcd_greatest)
   with gcd have "p dvd 1" by simp
   then have "p \<le> 1" by (simp add: dvd_imp_le)
   with p show False by simp

@@ -284,6 +284,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Ln.thy \
   Log.thy \
   MacLaurin.thy \
+  NatTransfer.thy \
   NthRoot.thy \
   SEQ.thy \
   Series.thy \
@@ -300,6 +301,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Real.thy \
   RealVector.thy \
   Tools/float_syntax.ML \
+  Tools/transfer_data.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
@@ -325,6 +327,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/FrechetDeriv.thy \
   Library/Fundamental_Theorem_Algebra.thy \
   Library/Inner_Product.thy Library/Lattice_Syntax.thy \
+  Library/Legacy_GCD.thy \
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
