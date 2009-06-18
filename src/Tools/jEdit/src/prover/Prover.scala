@@ -91,17 +91,6 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   
   private def handle_result(result: IsabelleProcess.Result)
   {
-    // helper-function (move to XML?)
-    def get_attr(attrs: List[(String, String)], name: String): Option[String] =
-      attrs.find(p => p._1 == name).map(_._2)
-
-    def get_offsets(attrs: List[(String, String)]): (Option[Int], Option[Int]) =
-    {
-      val begin = get_attr(attrs, Markup.OFFSET).map(_.toInt - 1)
-      val end = get_attr(attrs, Markup.END_OFFSET).map(_.toInt - 1)
-      (begin, if (end.isDefined) end else begin.map(_ + 1))
-    }
-
     def command_change(c: Command) = this ! c
     val (running, command) =
       result.props.find(p => p._1 == Markup.ID) match {
@@ -187,23 +176,27 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     command_change(command)
                   case XML.Elem(kind, attr, body)
                   if command != null =>
-                    val (begin, end) = get_offsets(attr)
+                    val (begin, end) = Position.offsets_of(attr)
                     if (begin.isDefined && end.isDefined) {
                       if (kind == Markup.ML_TYPING) {
                         val info = body.first.asInstanceOf[XML.Text].content
-                        command.markup_root += command.markup_node(begin.get, end.get, TypeInfo(info))
+                        command.markup_root +=
+                          command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info))
                       } else if (kind == Markup.ML_REF) {
                         body match {
                           case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                            command.markup_root += command.markup_node(begin.get, end.get,
-                              RefInfo(get_attr(attr, Markup.FILE),
-                                      get_attr(attr, Markup.LINE).map(_.toInt),
-                                      get_attr(attr, Markup.ID),
-                                      get_attr(attr, Markup.OFFSET).map(_.toInt)))
+                            command.markup_root += command.markup_node(
+                              begin.get - 1, end.get - 1,
+                              RefInfo(
+                                Position.file_of(attr),
+                                Position.line_of(attr),
+                                Position.id_of(attr),
+                                Position.offset_of(attr)))
                           case _ =>
                         }
                       } else {
-                        command.markup_root += command.markup_node(begin.get, end.get, HighlightInfo(kind))
+                        command.markup_root +=
+                          command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind))
                       }
                     }
                     command_change(command)
@@ -211,12 +204,13 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                   if command == null =>
                     // TODO: This is mostly irrelevant information on removed commands, but it can
                     // also be outer-syntax-markup since there is no id in props (fix that?)
-                    val (begin, end) = get_offsets(attr)
-                    val markup_id = get_attr(attr, Markup.ID)
+                    val (begin, end) = Position.offsets_of(attr)
+                    val markup_id = Position.id_of(attr)
                     val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
                     if (outer && !running && begin.isDefined && end.isDefined && markup_id.isDefined)
                       commands.get(markup_id.get).map (cmd => {
-                        cmd.markup_root += cmd.markup_node(begin.get, end.get, OuterInfo(kind))
+                        cmd.markup_root +=
+                          cmd.markup_node(begin.get - 1, end.get - 1, OuterInfo(kind))
                         command_change(cmd)
                       })
                   case _ =>
