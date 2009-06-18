@@ -21,17 +21,17 @@ where "i\<^sub>N \<equiv> (i, 1)"
 definition
   isnormNum :: "Num \<Rightarrow> bool"
 where
-  "isnormNum = (\<lambda>(a,b). (if a = 0 then b = 0 else b > 0 \<and> zgcd a b = 1))"
+  "isnormNum = (\<lambda>(a,b). (if a = 0 then b = 0 else b > 0 \<and> gcd a b = 1))"
 
 definition
   normNum :: "Num \<Rightarrow> Num"
 where
   "normNum = (\<lambda>(a,b). (if a=0 \<or> b = 0 then (0,0) else 
-  (let g = zgcd a b 
+  (let g = gcd a b 
    in if b > 0 then (a div g, b div g) else (- (a div g), - (b div g)))))"
 
-declare zgcd_zdvd1[presburger] 
-declare zgcd_zdvd2[presburger]
+declare int_gcd_dvd1[presburger]
+declare int_gcd_dvd2[presburger]
 lemma normNum_isnormNum [simp]: "isnormNum (normNum x)"
 proof -
   have " \<exists> a b. x = (a,b)" by auto
@@ -39,19 +39,19 @@ proof -
   {assume "a=0 \<or> b = 0" hence ?thesis by (simp add: normNum_def isnormNum_def)}  
   moreover
   {assume anz: "a \<noteq> 0" and bnz: "b \<noteq> 0" 
-    let ?g = "zgcd a b"
+    let ?g = "gcd a b"
     let ?a' = "a div ?g"
     let ?b' = "b div ?g"
-    let ?g' = "zgcd ?a' ?b'"
-    from anz bnz have "?g \<noteq> 0" by simp  with zgcd_pos[of a b] 
+    let ?g' = "gcd ?a' ?b'"
+    from anz bnz have "?g \<noteq> 0" by simp  with int_gcd_ge_0[of a b] 
     have gpos: "?g > 0"  by arith
     have gdvd: "?g dvd a" "?g dvd b" by arith+ 
     from zdvd_mult_div_cancel[OF gdvd(1)] zdvd_mult_div_cancel[OF gdvd(2)]
     anz bnz
-    have nz':"?a' \<noteq> 0" "?b' \<noteq> 0" 
-      by - (rule notI,simp add:zgcd_def)+
+    have nz':"?a' \<noteq> 0" "?b' \<noteq> 0"
+      by - (rule notI, simp)+
     from anz bnz have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith 
-    from div_zgcd_relprime[OF stupid] have gp1: "?g' = 1" .
+    from int_div_gcd_coprime[OF stupid] have gp1: "?g' = 1" .
     from bnz have "b < 0 \<or> b > 0" by arith
     moreover
     {assume b: "b > 0"
@@ -67,7 +67,7 @@ proof -
 	have False using b by arith }
       hence b': "?b' < 0" by (presburger add: linorder_not_le[symmetric]) 
       from anz bnz nz' b b' gp1 have ?thesis 
-	by (simp add: isnormNum_def normNum_def Let_def split_def fst_conv snd_conv)}
+	by (simp add: isnormNum_def normNum_def Let_def split_def)}
     ultimately have ?thesis by blast
   }
   ultimately show ?thesis by blast
@@ -85,7 +85,7 @@ where
 definition
   Nmul :: "Num \<Rightarrow> Num \<Rightarrow> Num" (infixl "*\<^sub>N" 60)
 where
-  "Nmul = (\<lambda>(a,b) (a',b'). let g = zgcd (a*a') (b*b') 
+  "Nmul = (\<lambda>(a,b) (a',b'). let g = gcd (a*a') (b*b') 
     in (a*a' div g, b*b' div g))"
 
 definition
@@ -121,11 +121,11 @@ proof-
   then obtain a b a' b' where ab: "x = (a,b)"  and ab': "y = (a',b')" by blast 
   {assume "a = 0"
     hence ?thesis using xn ab ab'
-      by (simp add: zgcd_def isnormNum_def Let_def Nmul_def split_def)}
+      by (simp add: isnormNum_def Let_def Nmul_def split_def)}
   moreover
   {assume "a' = 0"
     hence ?thesis using yn ab ab' 
-      by (simp add: zgcd_def isnormNum_def Let_def Nmul_def split_def)}
+      by (simp add: isnormNum_def Let_def Nmul_def split_def)}
   moreover
   {assume a: "a \<noteq>0" and a': "a'\<noteq>0"
     hence bp: "b > 0" "b' > 0" using xn yn ab ab' by (simp_all add: isnormNum_def)
@@ -137,11 +137,11 @@ qed
 
 lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
   by (simp add: Ninv_def isnormNum_def split_def)
-    (cases "fst x = 0", auto simp add: zgcd_commute)
+    (cases "fst x = 0", auto simp add: int_gcd_commute)
 
 lemma isnormNum_int[simp]: 
   "isnormNum 0\<^sub>N" "isnormNum (1::int)\<^sub>N" "i \<noteq> 0 \<Longrightarrow> isnormNum i\<^sub>N"
-  by (simp_all add: isnormNum_def zgcd_def)
+  by (simp_all add: isnormNum_def)
 
 
 text {* Relations over Num *}
@@ -202,8 +202,8 @@ proof
     from az bz a'z b'z na nb have pos: "b > 0" "b' > 0" by (simp_all add: isnormNum_def)
     from prems have eq:"a * b' = a'*b" 
       by (simp add: INum_def  eq_divide_eq divide_eq_eq of_int_mult[symmetric] del: of_int_mult)
-    from prems have gcd1: "zgcd a b = 1" "zgcd b a = 1" "zgcd a' b' = 1" "zgcd b' a' = 1"       
-      by (simp_all add: isnormNum_def add: zgcd_commute)
+    from prems have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"       
+      by (simp_all add: isnormNum_def add: int_gcd_commute)
     from eq have raw_dvd: "a dvd a'*b" "b dvd b'*a" "a' dvd a*b'" "b' dvd b*a'"
       apply - 
       apply algebra
@@ -211,8 +211,8 @@ proof
       apply simp
       apply algebra
       done
-    from zdvd_dvd_eq[OF bz zrelprime_dvd_mult[OF gcd1(2) raw_dvd(2)]
-      zrelprime_dvd_mult[OF gcd1(4) raw_dvd(4)]]
+    from zdvd_dvd_eq[OF bz int_coprime_dvd_mult[OF gcd1(2) raw_dvd(2)]
+      int_coprime_dvd_mult[OF gcd1(4) raw_dvd(4)]]
       have eq1: "b = b'" using pos by arith  
       with eq have "a = a'" using pos by simp
       with eq1 have ?rhs by simp}
@@ -258,7 +258,7 @@ proof-
       by (simp add: INum_def normNum_def split_def Let_def)}
   moreover 
   {assume a: "a\<noteq>0" and b: "b\<noteq>0"
-    let ?g = "zgcd a b"
+    let ?g = "gcd a b"
     from a b have g: "?g \<noteq> 0"by simp
     from of_int_div[OF g, where ?'a = 'a]
     have ?thesis by (auto simp add: INum_def normNum_def split_def Let_def)}
@@ -294,11 +294,11 @@ let ?z = "0:: 'a"
       from z aa' bb' have ?thesis 
 	by (simp add: th Nadd_def normNum_def INum_def split_def)}
     moreover {assume z: "a * b' + b * a' \<noteq> 0"
-      let ?g = "zgcd (a * b' + b * a') (b*b')"
+      let ?g = "gcd (a * b' + b * a') (b*b')"
       have gz: "?g \<noteq> 0" using z by simp
       have ?thesis using aa' bb' z gz
-	of_int_div[where ?'a = 'a, OF gz zgcd_zdvd1[where i="a * b' + b * a'" and j="b*b'"]]	of_int_div[where ?'a = 'a,
-	OF gz zgcd_zdvd2[where i="a * b' + b * a'" and j="b*b'"]]
+	of_int_div[where ?'a = 'a, OF gz int_gcd_dvd1[where x="a * b' + b * a'" and y="b*b'"]]	of_int_div[where ?'a = 'a,
+	OF gz int_gcd_dvd2[where x="a * b' + b * a'" and y="b*b'"]]
 	by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
     ultimately have ?thesis using aa' bb' 
       by (simp add: Nadd_def INum_def normNum_def x y Let_def) }
@@ -317,10 +317,10 @@ proof-
       done }
   moreover
   {assume z: "a \<noteq> 0" "a' \<noteq> 0" "b \<noteq> 0" "b' \<noteq> 0"
-    let ?g="zgcd (a*a') (b*b')"
+    let ?g="gcd (a*a') (b*b')"
     have gz: "?g \<noteq> 0" using z by simp
-    from z of_int_div[where ?'a = 'a, OF gz zgcd_zdvd1[where i="a*a'" and j="b*b'"]] 
-      of_int_div[where ?'a = 'a , OF gz zgcd_zdvd2[where i="a*a'" and j="b*b'"]] 
+    from z of_int_div[where ?'a = 'a, OF gz int_gcd_dvd1[where x="a*a'" and y="b*b'"]] 
+      of_int_div[where ?'a = 'a , OF gz int_gcd_dvd2[where x="a*a'" and y="b*b'"]] 
     have ?thesis by (simp add: Nmul_def x y Let_def INum_def)}
   ultimately show ?thesis by blast
 qed
@@ -478,7 +478,7 @@ proof-
 qed
 
 lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow> x *\<^sub>N y = y *\<^sub>N x"
-  by (simp add: Nmul_def split_def Let_def zgcd_commute mult_commute)
+  by (simp add: Nmul_def split_def Let_def int_gcd_commute mult_commute)
 
 lemma Nmul_assoc:
   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
