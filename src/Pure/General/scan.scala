@@ -136,5 +136,28 @@ object Scan
     }.named("keyword")
 
   }
+
+
+  /** reverse CharSequence **/
+
+  class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
+  {
+    require(0 <= start && start <= end && end <= text.length)
+
+    def this(text: CharSequence) = this(text, 0, text.length)
+
+    def length: Int = end - start
+    def charAt(i: Int): Char = text.charAt(end - i - 1)
+    def subSequence(i: Int, j: Int): CharSequence = new Reverse(text, end - j, end - i)
+
+    override def toString: String =
+    {
+      val buf = new StringBuffer(length)
+      for (i <- 0 until length)
+        buf.append(charAt(i))
+      buf.toString
+    }
+  }
+
 }
 
