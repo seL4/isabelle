@@ -98,7 +98,9 @@ class IsabelleSystem
           if (i <= 0) (entry -> "")
           else (entry.substring(0, i) -> entry.substring(i + 1))
         }
-      Map(entries: _*)
+      Map(entries: _*) +
+        ("HOME" -> java.lang.System.getenv("HOME")) +
+        ("PATH" -> java.lang.System.getenv("PATH"))
     }
     finally { dump.delete }
   }
