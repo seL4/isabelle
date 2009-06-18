@@ -1071,8 +1071,8 @@ recdef plusinf "measure size"
   "plusinf p = p"
 
 recdef \<delta> "measure size"
-  "\<delta> (And p q) = zlcm (\<delta> p) (\<delta> q)" 
-  "\<delta> (Or p q) = zlcm (\<delta> p) (\<delta> q)" 
+  "\<delta> (And p q) = lcm (\<delta> p) (\<delta> q)" 
+  "\<delta> (Or p q) = lcm (\<delta> p) (\<delta> q)" 
   "\<delta> (Dvd i (CN 0 c e)) = i"
   "\<delta> (NDvd i (CN 0 c e)) = i"
   "\<delta> p = 1"
@@ -1104,20 +1104,20 @@ using lin
 proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
-  from prems zlcm_pos have dp: "?d >0" by simp
+  from prems int_lcm_pos have dp: "?d >0" by simp
   have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp
-  hence th: "d\<delta> p ?d" using delta_mono prems(3-4) by(simp del:dvd_zlcm_self1)
+  hence th: "d\<delta> p ?d" using delta_mono prems(3-4) by(simp del:int_lcm_dvd1)
   have "\<delta> q dvd \<delta> (And p q)" using prems by simp
-  hence th': "d\<delta> q ?d" using delta_mono prems by(simp del:dvd_zlcm_self2)
+  hence th': "d\<delta> q ?d" using delta_mono prems by(simp del:int_lcm_dvd2)
   from th th' dp show ?case by simp
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
-  from prems zlcm_pos have dp: "?d >0" by simp
+  from prems int_lcm_pos have dp: "?d >0" by simp
   have "\<delta> p dvd \<delta> (And p q)" using prems by simp
-  hence th: "d\<delta> p ?d" using delta_mono prems by(simp del:dvd_zlcm_self1)
+  hence th: "d\<delta> p ?d" using delta_mono prems by(simp del:int_lcm_dvd1)
   have "\<delta> q dvd \<delta> (And p q)" using prems by simp
-  hence th': "d\<delta> q ?d" using delta_mono prems by(simp del:dvd_zlcm_self2)
+  hence th': "d\<delta> q ?d" using delta_mono prems by(simp del:int_lcm_dvd2)
   from th th' dp show ?case by simp
 qed simp_all
 
@@ -1156,8 +1156,8 @@ recdef d\<beta> "measure size"
   "d\<beta> p = (\<lambda> k. True)"
 
 recdef \<zeta> "measure size"
-  "\<zeta> (And p q) = zlcm (\<zeta> p) (\<zeta> q)" 
-  "\<zeta> (Or p q) = zlcm (\<zeta> p) (\<zeta> q)" 
+  "\<zeta> (And p q) = lcm (\<zeta> p) (\<zeta> q)" 
+  "\<zeta> (Or p q) = lcm (\<zeta> p) (\<zeta> q)" 
   "\<zeta> (Eq  (CN 0 c e)) = c"
   "\<zeta> (NEq (CN 0 c e)) = c"
   "\<zeta> (Lt  (CN 0 c e)) = c"
@@ -1406,19 +1406,19 @@ lemma \<zeta>:
 using linp
 proof(induct p rule: iszlfm.induct)
   case (1 p q)
-  from prems have dl1: "\<zeta> p dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems have dl2: "\<zeta> q dvd zlcm (\<zeta> p) (\<zeta> q)"  by simp
-  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: zlcm_pos)
+  from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)"  by simp
+  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
 next
   case (2 p q)
-  from prems have dl1: "\<zeta> p dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems have dl2: "\<zeta> q dvd zlcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="zlcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: zlcm_pos)
-qed (auto simp add: zlcm_pos)
+  from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
+qed (auto simp add: int_lcm_pos)
 
 lemma a\<beta>: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l > 0"
   shows "iszlfm (a\<beta> p l) \<and> d\<beta> (a\<beta> p l) 1 \<and> (Ifm bbs (l*x #bs) (a\<beta> p l) = Ifm bbs (x#bs) p)"
