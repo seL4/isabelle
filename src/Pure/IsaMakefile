@@ -12,6 +12,8 @@ all: images test
 
 ## global settings
 
+SHELL = /bin/bash
+
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
@@ -134,7 +136,7 @@ $(SCALA_TARGET): $(SCALA_FILES)
 	scaladoc -d classes $(SCALA_FILES)
 	@cp $(SCALA_FILES) classes/isabelle
 	@mkdir -p `dirname $@`
-	@cd classes; jar cf $@ isabelle
+	@cd classes; jar cf `jvmpath $@` isabelle
 	@rm -rf classes
 
 clean-jar:
