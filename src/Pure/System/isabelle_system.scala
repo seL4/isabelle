@@ -114,6 +114,8 @@ class IsabelleSystem
     if (value != "") value else error("Undefined environment variable: " + name)
   }
 
+  override def toString = getenv("ISABELLE_HOME")
+
 
   /* file path specifications */
 
