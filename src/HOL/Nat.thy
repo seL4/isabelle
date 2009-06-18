@@ -849,17 +849,20 @@ text{*An induction rule for estabilishing binary relations*}
 lemma less_Suc_induct:
   assumes less:  "i < j"
      and  step:  "!!i. P i (Suc i)"
-     and  trans: "!!i j k. P i j ==> P j k ==> P i k"
+     and  trans: "!!i j k. i < j ==> j < k ==>  P i j ==> P j k ==> P i k"
   shows "P i j"
 proof -
-  from less obtain k where j: "j = Suc(i+k)" by (auto dest: less_imp_Suc_add)
+  from less obtain k where j: "j = Suc (i + k)" by (auto dest: less_imp_Suc_add)
   have "P i (Suc (i + k))"
   proof (induct k)
     case 0
     show ?case by (simp add: step)
   next
     case (Suc k)
-    thus ?case by (auto intro: assms)
+    have "0 + i < Suc k + i" by (rule add_less_mono1) simp
+    hence "i < Suc (i + k)" by (simp add: add_commute)
+    from trans[OF this lessI Suc step]
+    show ?case by simp
   qed
   thus "P i j" by (simp add: j)
 qed
