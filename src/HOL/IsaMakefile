@@ -34,6 +34,7 @@ test: \
   HOL-Modelcheck \
   HOL-NanoJava \
   HOL-Nominal-Examples \
+  HOL-NewNumberTheory \
   HOL-NumberTheory \
   HOL-Prolog \
   HOL-SET-Protocol \
@@ -487,6 +488,18 @@ $(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
   Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy		\
   Import/HOLLight/ROOT.ML
 	@cd Import/HOLLight; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOLLight
+
+
+## HOL-NewNumberTheory
+
+HOL-NewNumberTheory: HOL $(LOG)/HOL-NewNumberTheory.gz
+
+$(LOG)/HOL-NewNumberTheory.gz: $(OUT)/HOL GCD.thy Library/Multiset.thy	\
+  NewNumberTheory/Fib.thy NewNumberTheory/Binomial.thy			\
+  NewNumberTheory/Residues.thy NewNumberTheory/UniqueFactorization.thy  \
+  NewNumberTheory/Cong.thy NewNumberTheory/MiscAlgebra.thy \
+  NewNumberTheory/ROOT.ML
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL NewNumberTheory
 
 
 ## HOL-NumberTheory
