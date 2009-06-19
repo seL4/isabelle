@@ -544,7 +544,7 @@ constdefs (structure G and H)
 lemma (in group) hom_compose:
      "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
 apply (auto simp add: hom_def funcset_compose) 
-apply (simp add: compose_def funcset_mem)
+apply (simp add: compose_def Pi_def)
 done
 
 constdefs
@@ -552,14 +552,14 @@ constdefs
   "G \<cong> H == {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
 
 lemma iso_refl: "(%x. x) \<in> G \<cong> G"
-by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
+by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
 lemma (in group) iso_sym:
      "h \<in> G \<cong> H \<Longrightarrow> Inv (carrier G) h \<in> H \<cong> G"
 apply (simp add: iso_def bij_betw_Inv) 
 apply (subgoal_tac "Inv (carrier G) h \<in> carrier H \<rightarrow> carrier G") 
  prefer 2 apply (simp add: bij_betw_imp_funcset [OF bij_betw_Inv]) 
-apply (simp add: hom_def bij_betw_def Inv_f_eq funcset_mem f_Inv_f) 
+apply (simp add: hom_def bij_betw_def Inv_f_eq f_Inv_f Pi_def)
 done
 
 lemma (in group) iso_trans: 
@@ -568,11 +568,11 @@ by (auto simp add: iso_def hom_compose bij_betw_compose)
 
 lemma DirProd_commute_iso:
   shows "(\<lambda>(x,y). (y,x)) \<in> (G \<times>\<times> H) \<cong> (H \<times>\<times> G)"
-by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
+by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
 lemma DirProd_assoc_iso:
   shows "(\<lambda>(x,y,z). (x,(y,z))) \<in> (G \<times>\<times> H \<times>\<times> I) \<cong> (G \<times>\<times> (H \<times>\<times> I))"
-by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def) 
+by (auto simp add: iso_def hom_def inj_on_def bij_betw_def)
 
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
@@ -592,7 +592,7 @@ lemma (in group_hom) hom_closed [simp]:
   "x \<in> carrier G ==> h x \<in> carrier H"
 proof -
   assume "x \<in> carrier G"
-  with homh [unfolded hom_def] show ?thesis by (auto simp add: funcset_mem)
+  with homh [unfolded hom_def] show ?thesis by (auto simp add: Pi_def)
 qed
 
 lemma (in group_hom) one_closed [simp]:
