@@ -476,7 +476,7 @@ fun occurs ix =
           | occ _           = false
     in occ end;
 
-fun is_recordtype T = not (null (RecordPackage.dest_recTs T));
+fun is_recordtype T = not (null (Record.dest_recTs T));
 
 (*Unwanted equalities include
   (1) those between a variable that does not properly occur in the second operand,

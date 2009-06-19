@@ -247,8 +247,8 @@ lemma "r (| xpos := x, ypos := y, xpos := x' |) = r (| ypos := y, xpos := x' |)"
 
 text {* In some cases its convenient to automatically split
 (quantified) records. For this purpose there is the simproc @{ML [source]
-"RecordPackage.record_split_simproc"} and the tactic @{ML [source]
-"RecordPackage.record_split_simp_tac"}.  The simplification procedure
+"Record.record_split_simproc"} and the tactic @{ML [source]
+"Record.record_split_simp_tac"}.  The simplification procedure
 only splits the records, whereas the tactic also simplifies the
 resulting goal with the standard record simplification rules. A
 (generalized) predicate on the record is passed as parameter that
@@ -257,51 +257,51 @@ subterm starting at the quantified occurrence of the record (including
 the quantifier). The value @{ML "0"} indicates no split, a value
 greater @{ML "0"} splits up to the given bound of record extension and
 finally the value @{ML "~1"} completely splits the record.
-@{ML [source] "RecordPackage.record_split_simp_tac"} additionally takes a list of
+@{ML [source] "Record.record_split_simp_tac"} additionally takes a list of
 equations for simplification and can also split fixed record variables.
 
 *}
 
 lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
   apply (tactic {* simp_tac
-          (HOL_basic_ss addsimprocs [RecordPackage.record_split_simproc (K ~1)]) 1*})
+          (HOL_basic_ss addsimprocs [Record.record_split_simproc (K ~1)]) 1*})
   apply simp
   done
 
 lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
-  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply (tactic {* Record.record_split_simp_tac [] (K ~1) 1*})
   apply simp
   done
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
   apply (tactic {* simp_tac
-          (HOL_basic_ss addsimprocs [RecordPackage.record_split_simproc (K ~1)]) 1*})
+          (HOL_basic_ss addsimprocs [Record.record_split_simproc (K ~1)]) 1*})
   apply simp
   done
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply (tactic {* Record.record_split_simp_tac [] (K ~1) 1*})
   apply simp
   done
 
 lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
   apply (tactic {* simp_tac
-          (HOL_basic_ss addsimprocs [RecordPackage.record_split_simproc (K ~1)]) 1*})
+          (HOL_basic_ss addsimprocs [Record.record_split_simproc (K ~1)]) 1*})
   apply auto
   done
 
 lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply (tactic {* Record.record_split_simp_tac [] (K ~1) 1*})
   apply auto
   done
 
 lemma "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply (tactic {* Record.record_split_simp_tac [] (K ~1) 1*})
   apply auto
   done
 
 lemma fixes r shows "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+  apply (tactic {* Record.record_split_simp_tac [] (K ~1) 1*})
   apply auto
   done
 
@@ -314,7 +314,7 @@ proof -
     have "\<exists>x. P x"
       using pre
       apply -
-      apply (tactic {* RecordPackage.record_split_simp_tac [] (K ~1) 1*})
+      apply (tactic {* Record.record_split_simp_tac [] (K ~1) 1*})
       apply auto 
       done
   }
@@ -322,13 +322,13 @@ proof -
 qed
 
 text {* The effect of simproc @{ML [source]
-"RecordPackage.record_ex_sel_eq_simproc"} is illustrated by the
+"Record.record_ex_sel_eq_simproc"} is illustrated by the
 following lemma.  
 *}
 
 lemma "\<exists>r. xpos r = x"
   apply (tactic {*simp_tac 
-           (HOL_basic_ss addsimprocs [RecordPackage.record_ex_sel_eq_simproc]) 1*})
+           (HOL_basic_ss addsimprocs [Record.record_ex_sel_eq_simproc]) 1*})
   done
 
 

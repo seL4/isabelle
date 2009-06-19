@@ -7,7 +7,7 @@ header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 theory Inductive 
 imports Lattices Sum_Type
 uses
-  ("Tools/inductive_package.ML")
+  ("Tools/inductive.ML")
   "Tools/dseq.ML"
   ("Tools/inductive_codegen.ML")
   ("Tools/datatype_package/datatype_aux.ML")
@@ -15,9 +15,9 @@ uses
   ("Tools/datatype_package/datatype_rep_proofs.ML")
   ("Tools/datatype_package/datatype_abs_proofs.ML")
   ("Tools/datatype_package/datatype_case.ML")
-  ("Tools/datatype_package/datatype_package.ML")
-  ("Tools/old_primrec_package.ML")
-  ("Tools/primrec_package.ML")
+  ("Tools/datatype_package/datatype.ML")
+  ("Tools/old_primrec.ML")
+  ("Tools/primrec.ML")
   ("Tools/datatype_package/datatype_codegen.ML")
 begin
 
@@ -320,8 +320,8 @@ val le_bool_def = @{thm le_bool_def} RS @{thm eq_reflection}
 val le_fun_def = @{thm le_fun_def} RS @{thm eq_reflection}
 *}
 
-use "Tools/inductive_package.ML"
-setup InductivePackage.setup
+use "Tools/inductive.ML"
+setup Inductive.setup
 
 theorems [mono] =
   imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
@@ -340,11 +340,11 @@ use "Tools/datatype_package/datatype_prop.ML"
 use "Tools/datatype_package/datatype_rep_proofs.ML"
 use "Tools/datatype_package/datatype_abs_proofs.ML"
 use "Tools/datatype_package/datatype_case.ML"
-use "Tools/datatype_package/datatype_package.ML"
-setup DatatypePackage.setup
+use "Tools/datatype_package/datatype.ML"
+setup Datatype.setup
 
-use "Tools/old_primrec_package.ML"
-use "Tools/primrec_package.ML"
+use "Tools/old_primrec.ML"
+use "Tools/primrec.ML"
 
 use "Tools/datatype_package/datatype_codegen.ML"
 setup DatatypeCodegen.setup
@@ -364,7 +364,7 @@ let
   fun fun_tr ctxt [cs] =
     let
       val x = Free (Name.variant (Term.add_free_names cs []) "x", dummyT);
-      val ft = DatatypeCase.case_tr true DatatypePackage.datatype_of_constr
+      val ft = DatatypeCase.case_tr true Datatype.datatype_of_constr
                  ctxt [x, cs]
     in lambda x ft end
 in [("_lam_pats_syntax", fun_tr)] end

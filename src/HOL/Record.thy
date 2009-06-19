@@ -1,5 +1,4 @@
 (*  Title:      HOL/Record.thy
-    ID:         $Id$
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
 *)
 
@@ -7,7 +6,7 @@ header {* Extensible records with structural subtyping *}
 
 theory Record
 imports Product_Type
-uses ("Tools/record_package.ML")
+uses ("Tools/record.ML")
 begin
 
 lemma prop_subst: "s = t \<Longrightarrow> PROP P t \<Longrightarrow> PROP P s"
@@ -56,7 +55,7 @@ syntax (xsymbols)
   "_record_scheme"      :: "[fields, 'a] => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
   "_record_update"      :: "['a, updates] => 'b"                ("_/(3\<lparr>_\<rparr>)" [900,0] 900)
 
-use "Tools/record_package.ML"
-setup RecordPackage.setup
+use "Tools/record.ML"
+setup Record.setup
 
 end

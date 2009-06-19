@@ -90,7 +90,7 @@ val cases_thm_of_induct_thm =
 (* get the case_thm (my version) from a type *)
 fun case_thm_of_ty sgn ty  =
     let
-      val dtypestab = DatatypePackage.get_datatypes sgn;
+      val dtypestab = Datatype.get_datatypes sgn;
       val ty_str = case ty of
                      Type(ty_str, _) => ty_str
                    | TFree(s,_)  => error ("Free type: " ^ s)

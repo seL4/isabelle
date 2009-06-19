@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/record_package.ML
+(*  Title:      HOL/Tools/record.ML
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
 
 Extensible records with structural subtyping in HOL.
 *)
 
 
-signature BASIC_RECORD_PACKAGE =
+signature BASIC_RECORD =
 sig
   val record_simproc: simproc
   val record_eq_simproc: simproc
@@ -20,9 +20,9 @@ sig
   val print_record_type_as_fields: bool ref
 end;
 
-signature RECORD_PACKAGE =
+signature RECORD =
 sig
-  include BASIC_RECORD_PACKAGE
+  include BASIC_RECORD
   val timing: bool ref
   val record_quick_and_dirty_sensitive: bool ref
   val updateN: string
@@ -52,7 +52,7 @@ sig
 end;
 
 
-structure RecordPackage: RECORD_PACKAGE =
+structure Record: RECORD =
 struct
 
 val eq_reflection = thm "eq_reflection";
@@ -84,7 +84,7 @@ val fields_selN = "fields";
 val extendN = "extend";
 val truncateN = "truncate";
 
-(*see typedef_package.ML*)
+(*see typedef.ML*)
 val RepN = "Rep_";
 val AbsN = "Abs_";
 
@@ -185,9 +185,9 @@ fun mk_upd sfx c v s = mk_upd' sfx c v (fastype_of s) $ s
 
 fun dest_recT (typ as Type (c_ext_type, Ts as (T::_))) =
       (case try (unsuffix ext_typeN) c_ext_type of
-        NONE => raise TYPE ("RecordPackage.dest_recT", [typ], [])
+        NONE => raise TYPE ("Record.dest_recT", [typ], [])
       | SOME c => ((c, Ts), List.last Ts))
-  | dest_recT typ = raise TYPE ("RecordPackage.dest_recT", [typ], []);
+  | dest_recT typ = raise TYPE ("Record.dest_recT", [typ], []);
 
 fun is_recT T =
   (case try dest_recT T of NONE => false | SOME _ => true);
@@ -1458,13 +1458,13 @@ fun extension_typedef name repT alphas thy =
     fun get_thms thy name =
       let
         val SOME { Abs_induct = abs_induct,
-          Abs_inject=abs_inject, Abs_inverse = abs_inverse, ...} = TypedefPackage.get_info thy name;
+          Abs_inject=abs_inject, Abs_inverse = abs_inverse, ...} = Typedef.get_info thy name;
         val rewrite_rule = MetaSimplifier.rewrite_rule [rec_UNIV_I, rec_True_simp];
       in map rewrite_rule [abs_inject, abs_inverse, abs_induct] end;
     val tname = Binding.name (Long_Name.base_name name);
   in
     thy
-    |> TypecopyPackage.typecopy (Binding.suffix_name ext_typeN tname, alphas) repT NONE
+    |> Typecopy.typecopy (Binding.suffix_name ext_typeN tname, alphas) repT NONE
     |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
 
@@ -2321,5 +2321,5 @@ end;
 end;
 
 
-structure BasicRecordPackage: BASIC_RECORD_PACKAGE = RecordPackage;
-open BasicRecordPackage;
+structure BasicRecord: BASIC_RECORD = Record;
+open BasicRecord;

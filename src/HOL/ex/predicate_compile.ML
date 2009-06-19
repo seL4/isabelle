@@ -50,7 +50,7 @@ fun remove_last_goal thy st =
 
 (* reference to preprocessing of InductiveSet package *)
 
-val ind_set_codegen_preproc = InductiveSetPackage.codegen_preproc;
+val ind_set_codegen_preproc = Inductive_Set.codegen_preproc;
 
 (** fundamentals **)
 
@@ -279,7 +279,7 @@ fun preprocess_elim thy nargs elimrule = let
  end;
 
 fun fetch_pred_data thy name =
-  case try (InductivePackage.the_inductive (ProofContext.init thy)) name of
+  case try (Inductive.the_inductive (ProofContext.init thy)) name of
     SOME (info as (_, result)) => 
       let
         fun is_intro_of intro =
@@ -288,7 +288,7 @@ fun fetch_pred_data thy name =
           in (fst (dest_Const const) = name) end;
         val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result)) 
         val elim = nth (#elims result) (find_index (fn s => s = name) (#names (fst info)))
-        val nparams = length (InductivePackage.params_of (#raw_induct result))
+        val nparams = length (Inductive.params_of (#raw_induct result))
       in (intros, elim, nparams) end
   | NONE => error ("No such predicate: " ^ quote name)
   
@@ -333,7 +333,7 @@ fun is_constrt thy =
   let
     val cnstrs = flat (maps
       (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (DatatypePackage.get_datatypes thy)));
+      (Symtab.dest (Datatype.get_datatypes thy)));
     fun check t = (case strip_comb t of
         (Free _, []) => true
       | (Const (s, T), ts) => (case (AList.lookup (op =) cnstrs s, body_type T) of
@@ -568,7 +568,7 @@ fun compile_match thy eqs eqs' out_ts success_t =
     val v = Free (name, T);
     val v' = Free (name', T);
   in
-    lambda v (fst (DatatypePackage.make_case
+    lambda v (fst (Datatype.make_case
       (ProofContext.init thy) false [] v
       [(mk_tuple out_ts,
         if null eqs'' then success_t
@@ -875,7 +875,7 @@ fun is_Type (Type _) = true
 (* else false *)
 fun is_constructor thy t =
   if (is_Type (fastype_of t)) then
-    (case DatatypePackage.get_datatype thy ((fst o dest_Type o fastype_of) t) of
+    (case Datatype.get_datatype thy ((fst o dest_Type o fastype_of) t) of
       NONE => false
     | SOME info => (let
       val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
@@ -954,7 +954,7 @@ fun SOLVEDALL tac st = FILTER (fn st' => nprems_of st' = 0) tac st
 fun prove_match thy (out_ts : term list) = let
   fun get_case_rewrite t =
     if (is_constructor thy t) then let
-      val case_rewrites = (#case_rewrites (DatatypePackage.the_datatype thy
+      val case_rewrites = (#case_rewrites (Datatype.the_datatype thy
         ((fst o dest_Type o fastype_of) t)))
       in case_rewrites @ (flat (map get_case_rewrite (snd (strip_comb t)))) end
     else []
@@ -1067,7 +1067,7 @@ fun select_sup 1 1 = []
   | select_sup n i = (rtac @{thm supI2})::(select_sup (n - 1) (i - 1));
 
 fun prove_one_direction thy all_vs param_vs modes clauses ((pred, T), mode) = let
-(*  val ind_result = InductivePackage.the_inductive (ProofContext.init thy) pred
+(*  val ind_result = Inductive.the_inductive (ProofContext.init thy) pred
   val index = find_index (fn s => s = pred) (#names (fst ind_result))
   val (_, T) = dest_Const (nth (#preds (snd ind_result)) index) *)
   val nargs = length (binder_types T) - nparams_of thy pred
@@ -1093,7 +1093,7 @@ fun prove_match2 thy out_ts = let
   fun split_term_tac (Free _) = all_tac
     | split_term_tac t =
       if (is_constructor thy t) then let
-        val info = DatatypePackage.the_datatype thy ((fst o dest_Type o fastype_of) t)
+        val info = Datatype.the_datatype thy ((fst o dest_Type o fastype_of) t)
         val num_of_constrs = length (#case_rewrites info)
         (* special treatment of pairs -- because of fishing *)
         val split_rules = case (fst o dest_Type o fastype_of) t of
@@ -1414,7 +1414,7 @@ fun mk_casesrule ctxt nparams introrules =
 fun dependencies_of thy name =
   let
     fun is_inductive_predicate thy name =
-      is_some (try (InductivePackage.the_inductive (ProofContext.init thy)) name)
+      is_some (try (Inductive.the_inductive (ProofContext.init thy)) name)
     val (intro, elim, nparams) = fetch_pred_data thy name 
     val data = mk_pred_data ((intro, SOME elim, nparams), [])
     val intros = map Thm.prop_of (#intros (rep_pred_data data))

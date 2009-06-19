@@ -1,8 +1,8 @@
-(*  Title:      HOL/Import/import_package.ML
+(*  Title:      HOL/Import/import.ML
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-signature IMPORT_PACKAGE =
+signature IMPORT =
 sig
     val debug      : bool ref
     val import_tac : Proof.context -> string * string -> tactic
@@ -18,7 +18,7 @@ structure ImportData = TheoryDataFun
   fun merge _ _ = NONE
 )
 
-structure ImportPackage :> IMPORT_PACKAGE =
+structure Import :> IMPORT =
 struct
 
 val debug = ref false

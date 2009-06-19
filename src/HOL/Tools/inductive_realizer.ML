@@ -151,7 +151,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
     fun is_meta (Const ("all", _) $ Abs (s, _, P)) = is_meta P
       | is_meta (Const ("==>", _) $ _ $ Q) = is_meta Q
       | is_meta (Const ("Trueprop", _) $ t) = (case head_of t of
-          Const (s, _) => can (InductivePackage.the_inductive ctxt) s
+          Const (s, _) => can (Inductive.the_inductive ctxt) s
         | _ => true)
       | is_meta _ = false;
 
@@ -277,13 +277,13 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val inducts = PureThy.get_thms thy (Long_Name.qualify qualifier "inducts");
     val iTs = OldTerm.term_tvars (prop_of (hd intrs));
     val ar = length vs + length iTs;
-    val params = InductivePackage.params_of raw_induct;
-    val arities = InductivePackage.arities_of raw_induct;
+    val params = Inductive.params_of raw_induct;
+    val arities = Inductive.arities_of raw_induct;
     val nparms = length params;
     val params' = map dest_Var params;
-    val rss = InductivePackage.partition_rules raw_induct intrs;
+    val rss = Inductive.partition_rules raw_induct intrs;
     val rss' = map (fn (((s, rs), (_, arity)), elim) =>
-      (s, (InductivePackage.infer_intro_vars elim arity rs ~~ rs)))
+      (s, (Inductive.infer_intro_vars elim arity rs ~~ rs)))
         (rss ~~ arities ~~ elims);
     val (prfx, _) = split_last (Long_Name.explode (fst (hd rss)));
     val tnames = map (fn s => space_implode "_" (s ^ "T" :: vs)) rsets;
@@ -307,7 +307,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     val ((dummies, dt_info), thy2) =
       thy1
-      |> add_dummies (DatatypePackage.add_datatype
+      |> add_dummies (Datatype.add_datatype
            { strict = false, flat_names = false, quiet = false } (map (Binding.name_of o #2) dts))
            (map (pair false) dts) []
       ||> Extraction.add_typeof_eqns_i ty_eqs
@@ -348,7 +348,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** realizability predicate **)
 
     val (ind_info, thy3') = thy2 |>
-      InductivePackage.add_inductive_global (serial_string ())
+      Inductive.add_inductive_global (serial_string ())
         {quiet_mode = false, verbose = false, kind = Thm.generatedK, alt_name = Binding.empty,
           coind = false, no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
@@ -483,7 +483,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 fun add_ind_realizers name rsets thy =
   let
     val (_, {intrs, induct, raw_induct, elims, ...}) =
-      InductivePackage.the_inductive (ProofContext.init thy) name;
+      Inductive.the_inductive (ProofContext.init thy) name;
     val vss = sort (int_ord o pairself length)
       (subsets (map fst (relevant_vars (concl_of (hd intrs)))))
   in

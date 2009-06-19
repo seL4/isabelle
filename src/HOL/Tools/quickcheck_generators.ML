@@ -122,7 +122,7 @@ fun mk_random_typecopy tyco vs constr typ thy =
 fun ensure_random_typecopy tyco thy =
   let
     val SOME { vs = raw_vs, constr, typ = raw_typ, ... } =
-      TypecopyPackage.get_info thy tyco;
+      Typecopy.get_info thy tyco;
     val constrain = curry (Sorts.inter_sort (Sign.classes_of thy));
     val typ = map_atyps (fn TFree (v, sort) =>
       TFree (v, constrain sort @{sort random})) raw_typ;
@@ -168,7 +168,7 @@ fun random_aux_primrec eq lthy =
     val t_rhs = lambda t_k proto_t_rhs;
     val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
-    val ((_, eqs2), lthy') = PrimrecPackage.add_primrec_simple
+    val ((_, eqs2), lthy') = Primrec.add_primrec_simple
       [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
     val eq_tac = ALLGOALS (simp_tac rew_ss)
       THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
@@ -361,7 +361,7 @@ fun ensure_random_datatype config raw_tycos thy =
     val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, (names, auxnames), raw_TUs) =
-      DatatypePackage.the_datatype_descr thy raw_tycos;
+      Datatype.the_datatype_descr thy raw_tycos;
     val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
       (DatatypeAux.interpret_construction descr raw_vs { atyp = single, dtyp = (K o K o K) [] });
     val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
@@ -381,7 +381,7 @@ fun ensure_random_datatype config raw_tycos thy =
 
 val setup = Code_Target.extend_target (target, (Code_ML.target_Eval, K I))
   #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of)
-  #> TypecopyPackage.interpretation ensure_random_typecopy
-  #> DatatypePackage.interpretation ensure_random_datatype;
+  #> Typecopy.interpretation ensure_random_typecopy
+  #> Datatype.interpretation ensure_random_datatype;
 
 end;

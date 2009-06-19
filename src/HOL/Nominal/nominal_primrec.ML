@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 
 Package for defining functions on nominal datatypes by primitive recursion.
-Taken from HOL/Tools/primrec_package.ML
+Taken from HOL/Tools/primrec.ML
 *)
 
 signature NOMINAL_PRIMREC =
@@ -223,7 +223,7 @@ fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
 
 (* find datatypes which contain all datatypes in tnames' *)
 
-fun find_dts (dt_info : NominalPackage.nominal_datatype_info Symtab.table) _ [] = []
+fun find_dts (dt_info : Nominal.nominal_datatype_info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname::tnames) =
       (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a nominal datatype")
@@ -247,7 +247,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
     val eqns' = map unquantify spec'
     val eqns = fold_rev (process_eqn lthy (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) spec' [];
-    val dt_info = NominalPackage.get_nominal_datatypes (ProofContext.theory_of lthy);
+    val dt_info = Nominal.get_nominal_datatypes (ProofContext.theory_of lthy);
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>
       map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) eqns
     val _ =

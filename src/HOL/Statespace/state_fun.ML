@@ -74,7 +74,7 @@ val lazy_conj_simproc =
 val string_eq_simp_tac =
      simp_tac (HOL_basic_ss 
                  addsimps (thms "list.inject"@thms "char.inject"@simp_thms)
-                 addsimprocs [DatatypePackage.distinct_simproc,lazy_conj_simproc]
+                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc]
                  addcongs [thm "block_conj_cong"])
 end;
 
@@ -89,7 +89,7 @@ val rules =
 in
 val lookup_ss = (HOL_basic_ss 
                  addsimps (thms "list.inject"@thms "char.inject"@simp_thms@rules)
-                 addsimprocs [DatatypePackage.distinct_simproc,lazy_conj_simproc]
+                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc]
                  addcongs [thm "block_conj_cong"]
                  addSolver StateSpace.distinctNameSolver) 
 end;
@@ -167,7 +167,7 @@ val update_apply = thm "StateFun.update_apply";
 val meta_ext = thm "StateFun.meta_ext";
 val o_apply = thm "Fun.o_apply";
 val ss' = (HOL_ss addsimps (update_apply::o_apply::thms "list.inject"@thms "char.inject")
-                 addsimprocs [DatatypePackage.distinct_simproc,lazy_conj_simproc,StateSpace.distinct_simproc]
+                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc,StateSpace.distinct_simproc]
                  addcongs [thm "block_conj_cong"]);
 in
 val update_simproc =
@@ -267,7 +267,7 @@ local
 val swap_ex_eq = thm "StateFun.swap_ex_eq";
 fun is_selector thy T sel =
      let 
-       val (flds,more) = RecordPackage.get_recT_fields thy T 
+       val (flds,more) = Record.get_recT_fields thy T 
      in member (fn (s,(n,_)) => n=s) (more::flds) sel
      end;
 in
@@ -340,7 +340,7 @@ fun mkName (Type (T,args)) = concat (map mkName args) ^ mkUpper (Long_Name.base_
   | mkName (TFree (x,_)) = mkUpper (Long_Name.base_name x)
   | mkName (TVar ((x,_),_)) = mkUpper (Long_Name.base_name x);
 
-fun is_datatype thy n = is_some (Symtab.lookup (DatatypePackage.get_datatypes thy) n);
+fun is_datatype thy n = is_some (Symtab.lookup (Datatype.get_datatypes thy) n);
 
 fun mk_map "List.list" = Syntax.const "List.map"
   | mk_map n = Syntax.const ("StateFun.map_" ^ Long_Name.base_name n);

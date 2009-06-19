@@ -40,7 +40,7 @@ fun check_pats ctxt geq =
           let
             val (hd, args) = strip_comb t
           in
-            (((case DatatypePackage.datatype_of_constr thy (fst (dest_Const hd)) of
+            (((case Datatype.datatype_of_constr thy (fst (dest_Const hd)) of
                  SOME _ => ()
                | NONE => err "Non-constructor pattern")
               handle TERM ("dest_Const", _) => err "Non-constructor patterns");
@@ -103,7 +103,7 @@ fun filter_pats thy cons pvars [] = []
 
 fun inst_constrs_of thy (T as Type (name, _)) =
         map (fn (Cn,CT) => Envir.subst_TVars (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
-            (the (DatatypePackage.get_datatype_constrs thy name))
+            (the (Datatype.get_datatype_constrs thy name))
   | inst_constrs_of thy _ = raise Match
 
 
@@ -144,7 +144,7 @@ and o_alg thy P idx [] (([], Pthm) :: _)  = Pthm
          let
              val T = fastype_of v
              val (tname, _) = dest_Type T
-             val {exhaustion=case_thm, ...} = DatatypePackage.the_datatype thy tname
+             val {exhaustion=case_thm, ...} = Datatype.the_datatype thy tname
              val constrs = inst_constrs_of thy T
              val c_cases = map (constr_case thy P idx (v :: vs) pts) constrs
          in
@@ -211,7 +211,7 @@ val by_pat_completeness_auto =
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 fun termination_by method int =
-    FundefPackage.termination_proof NONE
+    Fundef.termination_proof NONE
     #> Proof.global_future_terminal_proof
       (Method.Basic (method, Position.none), NONE) int
 
@@ -313,8 +313,8 @@ fun gen_fun add config fixes statements int lthy =
       |> termination_by (FundefCommon.get_termination_prover lthy) int
   end;
 
-val add_fun = gen_fun FundefPackage.add_fundef
-val add_fun_cmd = gen_fun FundefPackage.add_fundef_cmd
+val add_fun = gen_fun Fundef.add_fundef
+val add_fun_cmd = gen_fun Fundef.add_fundef_cmd
 
 
 

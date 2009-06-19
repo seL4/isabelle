@@ -95,7 +95,7 @@ print_translation {*
       | annbexp_tr' _ _ = raise Match;
 
     fun upd_tr' (x_upd, T) =
-      (case try (unsuffix RecordPackage.updateN) x_upd of
+      (case try (unsuffix Record.updateN) x_upd of
         SOME x => (x, if T = dummyT then T else Term.domain_type T)
       | NONE => raise Match);
 

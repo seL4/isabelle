@@ -24,7 +24,7 @@ fun typedef_codegen thy defs dep module brack t gr =
         val id = Codegen.mk_qual_id module (Codegen.get_const_id gr'' s)
       in SOME (Codegen.mk_app brack (Codegen.str id) ps, gr'') end;
     fun lookup f T =
-      (case TypedefPackage.get_info thy (get_name T) of
+      (case Typedef.get_info thy (get_name T) of
         NONE => ""
       | SOME info => f info);
   in
@@ -45,7 +45,7 @@ fun mk_tyexpr [] s = Codegen.str s
   | mk_tyexpr ps s = Pretty.list "(" (") " ^ s) ps;
 
 fun typedef_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
-      (case TypedefPackage.get_info thy s of
+      (case Typedef.get_info thy s of
          NONE => NONE
        | SOME {abs_type as newT as Type (tname, Us), rep_type = oldT, Abs_name, Rep_name, ...} =>
            if is_some (Codegen.get_assoc_type thy tname) then NONE else

@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/typedef_package.ML
+(*  Title:      HOL/Tools/typedef.ML
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Gordon/HOL-style type definitions: create a new syntactic type
 represented by a non-empty subset.
 *)
 
-signature TYPEDEF_PACKAGE =
+signature TYPEDEF =
 sig
   type info =
    {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, inhabited: thm,
@@ -23,7 +23,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure TypedefPackage: TYPEDEF_PACKAGE =
+structure Typedef: TYPEDEF =
 struct
 
 (** type definitions **)

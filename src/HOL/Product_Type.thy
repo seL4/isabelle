@@ -9,7 +9,7 @@ theory Product_Type
 imports Inductive
 uses
   ("Tools/split_rule.ML")
-  ("Tools/inductive_set_package.ML")
+  ("Tools/inductive_set.ML")
   ("Tools/inductive_realizer.ML")
   ("Tools/datatype_package/datatype_realizer.ML")
 begin
@@ -1151,8 +1151,8 @@ subsection {* Further inductive packages *}
 use "Tools/inductive_realizer.ML"
 setup InductiveRealizer.setup
 
-use "Tools/inductive_set_package.ML"
-setup InductiveSetPackage.setup
+use "Tools/inductive_set.ML"
+setup Inductive_Set.setup
 
 use "Tools/datatype_package/datatype_realizer.ML"
 setup DatatypeRealizer.setup

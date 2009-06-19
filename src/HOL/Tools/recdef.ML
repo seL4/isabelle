@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/recdef_package.ML
+(*  Title:      HOL/Tools/recdef.ML
     Author:     Markus Wenzel, TU Muenchen
 
 Wrapper module for Konrad Slind's TFL package.
 *)
 
-signature RECDEF_PACKAGE =
+signature RECDEF =
 sig
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
@@ -30,7 +30,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure RecdefPackage: RECDEF_PACKAGE =
+structure Recdef: RECDEF =
 struct
 
 

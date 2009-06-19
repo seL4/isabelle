@@ -7,8 +7,8 @@ header {* HOL type definitions *}
 theory Typedef
 imports Set
 uses
-  ("Tools/typedef_package.ML")
-  ("Tools/typecopy_package.ML")
+  ("Tools/typedef.ML")
+  ("Tools/typecopy.ML")
   ("Tools/typedef_codegen.ML")
 begin
 
@@ -115,8 +115,8 @@ qed
 
 end
 
-use "Tools/typedef_package.ML" setup TypedefPackage.setup
-use "Tools/typecopy_package.ML" setup TypecopyPackage.setup
+use "Tools/typedef.ML" setup Typedef.setup
+use "Tools/typecopy.ML" setup Typecopy.setup
 use "Tools/typedef_codegen.ML" setup TypedefCodegen.setup
 
 end

@@ -62,9 +62,9 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
           val nparms = (case optnparms of
             SOME k => k
           | NONE => (case rules of
-             [] => (case try (InductivePackage.the_inductive (ProofContext.init thy)) s of
+             [] => (case try (Inductive.the_inductive (ProofContext.init thy)) s of
                  SOME (_, {raw_induct, ...}) =>
-                   length (InductivePackage.params_of raw_induct)
+                   length (Inductive.params_of raw_induct)
                | NONE => 0)
             | xs => snd (snd (snd (split_last xs)))))
         in CodegenData.put
@@ -81,11 +81,11 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy
   in case Symtab.lookup intros s of
-      NONE => (case try (InductivePackage.the_inductive (ProofContext.init thy)) s of
+      NONE => (case try (Inductive.the_inductive (ProofContext.init thy)) s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
           SOME (names, Codegen.thyname_of_const thy s,
-            length (InductivePackage.params_of raw_induct),
+            length (Inductive.params_of raw_induct),
             preprocess thy intrs))
     | SOME _ =>
         let
@@ -103,7 +103,7 @@ fun is_constrt thy =
   let
     val cnstrs = List.concat (List.concat (map
       (map (fn (_, (_, _, cs)) => map (apsnd length) cs) o #descr o snd)
-      (Symtab.dest (DatatypePackage.get_datatypes thy))));
+      (Symtab.dest (Datatype.get_datatypes thy))));
     fun check t = (case strip_comb t of
         (Var _, []) => true
       | (Const (s, _), ts) => (case AList.lookup (op =) cnstrs s of

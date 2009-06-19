@@ -155,7 +155,7 @@ fun prove_primrec_thms (config : datatype_config) new_type_names descr sorts
         (([], 0), descr' ~~ recTs ~~ rec_sets');
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
-        InductivePackage.add_inductive_global (serial_string ())
+        Inductive.add_inductive_global (serial_string ())
           {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
             alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true, fork_mono = false}

@@ -43,6 +43,16 @@ are provided for all suitable HOL types, records and datatypes.
 * Constants Set.Pow and Set.image now with authentic syntax; object-logic definitions
 Set.Pow_def and Set.image_def.  INCOMPATIBILITY.
 
+* Discontinued ancient tradition to suffix certain ML module names with "_package", e.g.:
+
+    DatatypePackage ~> Datatype
+    InductivePackage ~> Inductive
+
+    etc.
+
+INCOMPATIBILITY.
+
+
 
 *** ML ***
 

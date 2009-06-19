@@ -1,31 +1,31 @@
-(*  Title:      HOL/Tools/inductive_set_package.ML
+(*  Title:      HOL/Tools/inductive_set.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Wrapper for defining inductive sets using package for inductive predicates,
 including infrastructure for converting between predicates and sets.
 *)
 
-signature INDUCTIVE_SET_PACKAGE =
+signature INDUCTIVE_SET =
 sig
   val to_set_att: thm list -> attribute
   val to_pred_att: thm list -> attribute
   val pred_set_conv_att: attribute
   val add_inductive_i:
-    InductivePackage.inductive_flags ->
+    Inductive.inductive_flags ->
     ((binding * typ) * mixfix) list ->
     (string * typ) list ->
     (Attrib.binding * term) list -> thm list ->
-    local_theory -> InductivePackage.inductive_result * local_theory
+    local_theory -> Inductive.inductive_result * local_theory
   val add_inductive: bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
-    bool -> local_theory -> InductivePackage.inductive_result * local_theory
+    bool -> local_theory -> Inductive.inductive_result * local_theory
   val codegen_preproc: theory -> thm list -> thm list
   val setup: theory -> theory
 end;
 
-structure InductiveSetPackage: INDUCTIVE_SET_PACKAGE =
+structure Inductive_Set: INDUCTIVE_SET =
 struct
 
 (**** simplify {(x1, ..., xn). (x1, ..., xn) : S} to S ****)
@@ -474,7 +474,7 @@ fun add_ind_set_def
     val cnames_syn' = map (fn (b, _) => (Binding.suffix_name "p" b, NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
-      InductivePackage.add_ind_def
+      Inductive.add_ind_def
         {quiet_mode = quiet_mode, verbose = verbose, kind = kind, alt_name = Binding.empty,
           coind = coind, no_elim = no_elim, no_ind = no_ind,
           skip_mono = skip_mono, fork_mono = fork_mono}
@@ -514,7 +514,7 @@ fun add_ind_set_def
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
     val (intrs', elims', induct, ctxt4) =
-      InductivePackage.declare_rules kind rec_name coind no_ind cnames
+      Inductive.declare_rules kind rec_name coind no_ind cnames
       (map (to_set [] (Context.Proof ctxt3)) intrs) intr_names intr_atts
       (map (fn th => (to_set [] (Context.Proof ctxt3) th,
          map fst (fst (RuleCases.get th)))) elims)
@@ -525,11 +525,11 @@ fun add_ind_set_def
      ctxt4)
   end;
 
-val add_inductive_i = InductivePackage.gen_add_inductive_i add_ind_set_def;
-val add_inductive = InductivePackage.gen_add_inductive add_ind_set_def;
+val add_inductive_i = Inductive.gen_add_inductive_i add_ind_set_def;
+val add_inductive = Inductive.gen_add_inductive add_ind_set_def;
 
-val mono_add_att = to_pred_att [] #> InductivePackage.mono_add;
-val mono_del_att = to_pred_att [] #> InductivePackage.mono_del;
+val mono_add_att = to_pred_att [] #> Inductive.mono_add;
+val mono_del_att = to_pred_att [] #> Inductive.mono_del;
 
 
 (** package setup **)
@@ -553,7 +553,7 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val ind_set_decl = InductivePackage.gen_ind_decl add_ind_set_def;
+val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 
 val _ =
   OuterSyntax.local_theory' "inductive_set" "define inductive sets" K.thy_decl (ind_set_decl false);

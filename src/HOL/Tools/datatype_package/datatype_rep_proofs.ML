@@ -183,7 +183,7 @@ fun representation_proofs (config : datatype_config) (dt_info : datatype_info Sy
         ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names');
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
-        InductivePackage.add_inductive_global (serial_string ())
+        Inductive.add_inductive_global (serial_string ())
           {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rec_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true, fork_mono = false}
@@ -195,7 +195,7 @@ fun representation_proofs (config : datatype_config) (dt_info : datatype_info Sy
     val (typedefs, thy3) = thy2 |>
       parent_path (#flat_names config) |>
       fold_map (fn ((((name, mx), tvs), c), name') =>
-          TypedefPackage.add_typedef false (SOME (Binding.name name')) (name, tvs, mx)
+          Typedef.add_typedef false (SOME (Binding.name name')) (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)

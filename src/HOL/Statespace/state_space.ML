@@ -585,8 +585,8 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
   end
   handle ERROR msg => cat_error msg ("Failed to define statespace " ^ quote name);
 
-val define_statespace = gen_define_statespace RecordPackage.read_typ NONE;
-val define_statespace_i = gen_define_statespace RecordPackage.cert_typ;
+val define_statespace = gen_define_statespace Record.read_typ NONE;
+val define_statespace_i = gen_define_statespace Record.cert_typ;
 
 
 (*** parse/print - translations ***)
