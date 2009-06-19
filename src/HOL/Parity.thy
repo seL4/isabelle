@@ -35,7 +35,7 @@ lemma odd_one_int[simp]: "odd (1::int)" by presburger
 
 lemma even_zero_nat[simp]: "even (0::nat)" by presburger
 
-lemma odd_zero_nat [simp]: "odd (1::nat)" by presburger
+lemma odd_1_nat [simp]: "odd (1::nat)" by presburger
 
 declare even_def[of "number_of v", standard, simp]
 
