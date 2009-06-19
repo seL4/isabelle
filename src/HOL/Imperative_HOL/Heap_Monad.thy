@@ -318,7 +318,7 @@ setup {* let
       val dummy_case_term = IVar dummy_name;
       (*assumption: dummy values are not relevant for serialization*)
       val unitt = IConst (unit', (([], []), []));
-      fun dest_abs ((v, ty) `|-> t, _) = ((v, ty), t)
+      fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
         | dest_abs (t, ty) =
             let
               val vs = Code_Thingol.fold_varnames cons t [];
@@ -337,7 +337,7 @@ setup {* let
                 then tr_bind' [(x1, ty1), (x2, ty2)]
                 else force t
             | _ => force t;
-    in (dummy_name, dummy_type) `|-> ICase (((IVar dummy_name, dummy_type),
+    in (dummy_name, dummy_type) `|=> ICase (((IVar dummy_name, dummy_type),
       [(unitt, tr_bind' ts)]), dummy_case_term) end
   and imp_monad_bind' bind' return' unit' (const as (c, (_, tys))) ts = if c = bind' then case (ts, tys)
      of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' bind' return' unit' [(t1, ty1), (t2, ty2)]
@@ -349,7 +349,7 @@ setup {* let
     | imp_monad_bind bind' return' unit' (t as _ `$ _) = (case unfold_app t
        of (IConst const, ts) => imp_monad_bind' bind' return' unit' const ts
         | (t, ts) => imp_monad_bind bind' return' unit' t `$$ map (imp_monad_bind bind' return' unit') ts)
-    | imp_monad_bind bind' return' unit' (v_ty `|-> t) = v_ty `|-> imp_monad_bind bind' return' unit' t
+    | imp_monad_bind bind' return' unit' (v_ty `|=> t) = v_ty `|=> imp_monad_bind bind' return' unit' t
     | imp_monad_bind bind' return' unit' (ICase (((t, ty), pats), t0)) = ICase
         (((imp_monad_bind bind' return' unit' t, ty), (map o pairself) (imp_monad_bind bind' return' unit') pats), imp_monad_bind bind' return' unit' t0);
 

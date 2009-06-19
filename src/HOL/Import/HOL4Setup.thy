@@ -1,10 +1,9 @@
 (*  Title:      HOL/Import/HOL4Setup.thy
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
 theory HOL4Setup imports MakeEqual ImportRecorder
-  uses ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import_package.ML") begin
+  uses ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import.ML") begin
 
 section {* General Setup *}
 
@@ -162,8 +161,8 @@ parse_ast_translation smarter_trueprop_parsing
 
 use "proof_kernel.ML"
 use "replay.ML"
-use "import_package.ML"
+use "import.ML"
 
-setup ImportPackage.setup
+setup Import.setup
 
 end

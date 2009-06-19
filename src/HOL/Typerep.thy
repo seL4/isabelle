@@ -64,7 +64,7 @@ fun ensure_typerep tyco thy = if not (can (Sorts.mg_domain (Sign.classes_of thy)
 in
 
 add_typerep @{type_name fun}
-#> TypedefPackage.interpretation ensure_typerep
+#> Typedef.interpretation ensure_typerep
 #> Code.type_interpretation (ensure_typerep o fst)
 
 end

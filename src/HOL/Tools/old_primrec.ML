@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/old_primrec_package.ML
+(*  Title:      HOL/Tools/old_primrec.ML
     Author:     Norbert Voelker, FernUni Hagen
     Author:     Stefan Berghofer, TU Muenchen
 
 Package for defining functions on datatypes by primitive recursion.
 *)
 
-signature OLD_PRIMREC_PACKAGE =
+signature OLD_PRIMREC =
 sig
   val unify_consts: theory -> term list -> term list -> term list * term list
   val add_primrec: string -> ((bstring * string) * Attrib.src list) list
@@ -18,7 +18,7 @@ sig
     -> theory -> thm list * theory
 end;
 
-structure OldPrimrecPackage : OLD_PRIMREC_PACKAGE =
+structure OldPrimrec : OLD_PRIMREC =
 struct
 
 open DatatypeAux;
@@ -246,7 +246,7 @@ local
 fun gen_primrec_i note def alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
-    val dt_info = DatatypePackage.get_datatypes thy;
+    val dt_info = Datatype.get_datatypes thy;
     val rec_eqns = fold_rev (process_eqn thy o snd) eqns [] ;
     val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
@@ -324,7 +324,7 @@ fun gen_primrec note def alt_name specs =
 end;
 
 
-(* see primrecr_package.ML (* outer syntax *)
+(* see primrec.ML (* outer syntax *)
 
 local structure P = OuterParse and K = OuterKeyword in
 

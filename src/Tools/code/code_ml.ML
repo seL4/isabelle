@@ -92,7 +92,7 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
            of SOME c_ts => pr_app is_closure thm vars fxy c_ts
             | NONE => brackify fxy
                [pr_term is_closure thm vars NOBR t1, pr_term is_closure thm vars BR t2])
-      | pr_term is_closure thm vars fxy (t as _ `|-> _) =
+      | pr_term is_closure thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
             fun pr ((v, pat), ty) =
@@ -401,7 +401,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
            of SOME c_ts => pr_app is_closure thm vars fxy c_ts
             | NONE =>
                 brackify fxy [pr_term is_closure thm vars NOBR t1, pr_term is_closure thm vars BR t2])
-      | pr_term is_closure thm vars fxy (t as _ `|-> _) =
+      | pr_term is_closure thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
             fun pr ((v, pat), ty) = pr_bind is_closure thm BR ((SOME v, pat), ty);

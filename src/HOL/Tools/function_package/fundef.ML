@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/function_package/fundef_package.ML
+(*  Title:      HOL/Tools/function_package/fundef.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.
 Isar commands.
 *)
 
-signature FUNDEF_PACKAGE =
+signature FUNDEF =
 sig
     val add_fundef :  (binding * typ option * mixfix) list
                        -> (Attrib.binding * term) list
@@ -28,7 +28,7 @@ sig
 end
 
 
-structure FundefPackage : FUNDEF_PACKAGE =
+structure Fundef : FUNDEF =
 struct
 
 open FundefLib
@@ -186,12 +186,12 @@ fun termination_cmd term_opt lthy =
 
 fun add_case_cong n thy =
     Context.theory_map (FundefCtxTree.map_fundef_congs (Thm.add_thm
-                          (DatatypePackage.get_datatype thy n |> the
+                          (Datatype.get_datatype thy n |> the
                            |> #case_cong
                            |> safe_mk_meta_eq)))
                        thy
 
-val setup_case_cong = DatatypePackage.interpretation (K (fold add_case_cong))
+val setup_case_cong = Datatype.interpretation (K (fold add_case_cong))
 
 
 (* setup *)

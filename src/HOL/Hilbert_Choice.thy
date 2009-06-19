@@ -7,7 +7,7 @@ header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
 imports Nat Wellfounded Plain
-uses ("Tools/meson.ML") ("Tools/specification_package.ML")
+uses ("Tools/meson.ML") ("Tools/choice_specification.ML")
 begin
 
 subsection {* Hilbert's epsilon *}
@@ -596,7 +596,7 @@ subsection {* Specification package -- Hilbertized version *}
 lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
   by (simp only: someI_ex)
 
-use "Tools/specification_package.ML"
+use "Tools/choice_specification.ML"
 
 
 end

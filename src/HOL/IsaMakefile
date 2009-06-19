@@ -146,7 +146,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/datatype_package/datatype_aux.ML \
   Tools/datatype_package/datatype_case.ML \
   Tools/datatype_package/datatype_codegen.ML \
-  Tools/datatype_package/datatype_package.ML \
+  Tools/datatype_package/datatype.ML \
   Tools/datatype_package/datatype_prop.ML \
   Tools/datatype_package/datatype_realizer.ML \
   Tools/datatype_package/datatype_rep_proofs.ML \
@@ -159,7 +159,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/function_package/fundef_core.ML \
   Tools/function_package/fundef_datatype.ML \
   Tools/function_package/fundef_lib.ML \
-  Tools/function_package/fundef_package.ML \
+  Tools/function_package/fundef.ML \
   Tools/function_package/induction_scheme.ML \
   Tools/function_package/inductive_wrap.ML \
   Tools/function_package/lexicographic_order.ML \
@@ -172,24 +172,24 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/function_package/sum_tree.ML \
   Tools/function_package/termination.ML \
   Tools/inductive_codegen.ML \
-  Tools/inductive_package.ML \
+  Tools/inductive.ML \
   Tools/inductive_realizer.ML \
-  Tools/inductive_set_package.ML \
+  Tools/inductive_set.ML \
   Tools/lin_arith.ML \
   Tools/nat_arith.ML \
-  Tools/old_primrec_package.ML \
-  Tools/primrec_package.ML \
+  Tools/old_primrec.ML \
+  Tools/primrec.ML \
   Tools/prop_logic.ML \
-  Tools/record_package.ML \
+  Tools/record.ML \
   Tools/refute.ML \
   Tools/refute_isar.ML \
   Tools/rewrite_hol_proof.ML \
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
   Tools/split_rule.ML \
-  Tools/typecopy_package.ML \
+  Tools/typecopy.ML \
   Tools/typedef_codegen.ML \
-  Tools/typedef_package.ML \
+  Tools/typedef.ML \
   Transitive_Closure.thy \
   Typedef.thy \
   Wellfounded.thy \
@@ -251,13 +251,13 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/generated_cooper.ML \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
-  Tools/recdef_package.ML \
+  Tools/recdef.ML \
   Tools/res_atp.ML \
   Tools/res_axioms.ML \
   Tools/res_clause.ML \
   Tools/res_hol_clause.ML \
   Tools/res_reconstruct.ML \
-  Tools/specification_package.ML \
+  Tools/choice_specification.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/TFL/casesplit.ML \
@@ -424,7 +424,7 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 IMPORTER_FILES = Import/lazy_seq.ML Import/proof_kernel.ML Import/replay.ML \
   Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
   Import/HOL4Syntax.thy Import/HOL4Compat.thy Import/import_syntax.ML \
-  Import/hol4rews.ML Import/import_package.ML Import/ROOT.ML
+  Import/hol4rews.ML Import/import.ML Import/ROOT.ML
 
 IMPORTER_HOLLIGHT_FILES = Import/proof_kernel.ML Import/replay.ML \
   Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
@@ -981,7 +981,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
   Nominal/nominal_induct.ML \
   Nominal/nominal_inductive.ML \
   Nominal/nominal_inductive2.ML \
-  Nominal/nominal_package.ML \
+  Nominal/nominal.ML \
   Nominal/nominal_permeq.ML \
   Nominal/nominal_primrec.ML \
   Nominal/nominal_thmdecls.ML \

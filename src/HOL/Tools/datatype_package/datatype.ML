@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/datatype_package.ML
+(*  Title:      HOL/Tools/datatype.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Datatype package for Isabelle/HOL.
 *)
 
-signature DATATYPE_PACKAGE =
+signature DATATYPE =
 sig
   type datatype_config = DatatypeAux.datatype_config
   type datatype_info = DatatypeAux.datatype_info
@@ -45,7 +45,7 @@ sig
   val print_datatypes : theory -> unit
 end;
 
-structure DatatypePackage : DATATYPE_PACKAGE =
+structure Datatype : DATATYPE =
 struct
 
 open DatatypeAux;

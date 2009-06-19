@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/primrec_package.ML
+(*  Title:      HOL/Tools/primrec.ML
     Author:     Stefan Berghofer, TU Muenchen; Norbert Voelker, FernUni Hagen;
                 Florian Haftmann, TU Muenchen
 
 Package for defining functions on datatypes by primitive recursion.
 *)
 
-signature PRIMREC_PACKAGE =
+signature PRIMREC =
 sig
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> thm list * local_theory
@@ -20,7 +20,7 @@ sig
     local_theory -> (string * thm list list) * local_theory
 end;
 
-structure PrimrecPackage : PRIMREC_PACKAGE =
+structure Primrec : PRIMREC =
 struct
 
 open DatatypeAux;
@@ -220,7 +220,7 @@ fun distill lthy fixes eqs =
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) eqs [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
-    val dts = find_dts (DatatypePackage.get_datatypes (ProofContext.theory_of lthy)) tnames tnames;
+    val dts = find_dts (Datatype.get_datatypes (ProofContext.theory_of lthy)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
       (index, (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns)) dts;
     val {descr, rec_names, rec_rewrites, ...} =
@@ -324,7 +324,7 @@ val _ =
       Toplevel.local_theory opt_target (add_primrec_cmd fixes specs #> snd)))
     || (old_primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
       Toplevel.theory (snd o
-        (if unchecked then OldPrimrecPackage.add_primrec_unchecked else OldPrimrecPackage.add_primrec)
+        (if unchecked then OldPrimrec.add_primrec_unchecked else OldPrimrec.add_primrec)
           alt_name (map P.triple_swap eqns)))));
 
 end;

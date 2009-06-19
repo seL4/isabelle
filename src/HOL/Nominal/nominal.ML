@@ -1,10 +1,10 @@
-(*  Title:      HOL/Nominal/nominal_package.ML
+(*  Title:      HOL/Nominal/nominal.ML
     Author:     Stefan Berghofer and Christian Urban, TU Muenchen
 
 Nominal datatype package for Isabelle/HOL.
 *)
 
-signature NOMINAL_PACKAGE =
+signature NOMINAL =
 sig
   val add_nominal_datatype : DatatypeAux.datatype_config -> string list ->
     (string list * bstring * mixfix *
@@ -21,7 +21,7 @@ sig
   val fresh_star_const: typ -> typ -> term
 end
 
-structure NominalPackage : NOMINAL_PACKAGE =
+structure Nominal : NOMINAL =
 struct
 
 val finite_emptyI = thm "finite.emptyI";
@@ -40,7 +40,7 @@ val empty_iff = thm "empty_iff";
 open DatatypeAux;
 open NominalAtoms;
 
-(** FIXME: DatatypePackage should export this function **)
+(** FIXME: Datatype should export this function **)
 
 local
 
@@ -244,10 +244,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val full_new_type_names' = map (Sign.full_bname thy) new_type_names';
 
     val ({induction, ...},thy1) =
-      DatatypePackage.add_datatype config new_type_names' dts'' thy;
+      Datatype.add_datatype config new_type_names' dts'' thy;
 
     val SOME {descr, ...} = Symtab.lookup
-      (DatatypePackage.get_datatypes thy1) (hd full_new_type_names');
+      (Datatype.get_datatypes thy1) (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts (DtRec i);
 
     val big_name = space_implode "_" new_type_names;
@@ -298,7 +298,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       end) descr;
 
     val (perm_simps, thy2) =
-      PrimrecPackage.add_primrec_overloaded
+      Primrec.add_primrec_overloaded
         (map (fn (s, sT) => (s, sT, false))
            (List.take (perm_names' ~~ perm_names_types, length new_type_names)))
         (map (fn s => (Binding.name s, NONE, NoSyn)) perm_names') perm_eqs thy1;
@@ -569,7 +569,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val rep_set_names'' = map (Sign.full_bname thy3) rep_set_names';
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
-        InductivePackage.add_inductive_global (serial_string ())
+        Inductive.add_inductive_global (serial_string ())
           {quiet_mode = false, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rep_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true, fork_mono = false}
@@ -616,7 +616,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val (typedefs, thy6) =
       thy4
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
-          TypedefPackage.add_typedef false (SOME (Binding.name name'))
+          Typedef.add_typedef false (SOME (Binding.name name'))
             (Binding.name name, map fst tvs, mx)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
@@ -1509,7 +1509,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>
-        InductivePackage.add_inductive_global (serial_string ())
+        Inductive.add_inductive_global (serial_string ())
           {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rec_name, coind = false, no_elim = false, no_ind = false,
            skip_mono = true, fork_mono = false}
@@ -2068,10 +2068,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     thy13
   end;
 
-val add_nominal_datatype = gen_add_nominal_datatype DatatypePackage.read_typ;
+val add_nominal_datatype = gen_add_nominal_datatype Datatype.read_typ;
 
 
-(* FIXME: The following stuff should be exported by DatatypePackage *)
+(* FIXME: The following stuff should be exported by Datatype *)
 
 local structure P = OuterParse and K = OuterKeyword in
 

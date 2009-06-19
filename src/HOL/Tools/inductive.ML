@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/inductive_package.ML
+(*  Title:      HOL/Tools/inductive.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
@@ -18,7 +18,7 @@ Features:
   Pj, Pk are two of the predicates being defined in mutual recursion
 *)
 
-signature BASIC_INDUCTIVE_PACKAGE =
+signature BASIC_INDUCTIVE =
 sig
   type inductive_result
   val morph_result: morphism -> inductive_result -> inductive_result
@@ -59,9 +59,9 @@ sig
   val setup: theory -> theory
 end;
 
-signature INDUCTIVE_PACKAGE =
+signature INDUCTIVE =
 sig
-  include BASIC_INDUCTIVE_PACKAGE
+  include BASIC_INDUCTIVE
   type add_ind_def
   val declare_rules: string -> binding -> bool -> bool -> string list ->
     thm list -> binding list -> Attrib.src list list -> (thm * string list) list ->
@@ -79,7 +79,7 @@ sig
     OuterParse.token list -> (bool -> local_theory -> local_theory) * OuterParse.token list
 end;
 
-structure InductivePackage: INDUCTIVE_PACKAGE =
+structure Inductive: INDUCTIVE =
 struct
 
 

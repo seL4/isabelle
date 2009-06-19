@@ -101,7 +101,7 @@ fun create_nom_typedecls ak_names thy =
     val (_,thy1) = 
     fold_map (fn ak => fn thy => 
           let val dt = ([], Binding.name ak, NoSyn, [(Binding.name ak, [@{typ nat}], NoSyn)])
-              val ({inject,case_thms,...},thy1) = DatatypePackage.add_datatype
+              val ({inject,case_thms,...},thy1) = Datatype.add_datatype
                 DatatypeAux.default_datatype_config [ak] [dt] thy
               val inject_flat = flat inject
               val ak_type = Type (Sign.intern_type thy1 ak,[])
@@ -191,7 +191,7 @@ fun create_nom_typedecls ak_names thy =
         thy |> Sign.add_consts_i [(Binding.name ("swap_" ^ ak_name), swapT, NoSyn)] 
             |> PureThy.add_defs_unchecked true [((Binding.name name, def2),[])]
             |> snd
-            |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]
+            |> OldPrimrec.add_primrec_unchecked_i "" [(("", def1),[])]
       end) ak_names_types thy1;
     
     (* declares a permutation function for every atom-kind acting  *)
@@ -219,7 +219,7 @@ fun create_nom_typedecls ak_names thy =
                     Const (swap_name, swapT) $ x $ (Const (qu_prm_name, prmT) $ xs $ a)));
       in
         thy |> Sign.add_consts_i [(Binding.name prm_name, mk_permT T --> T --> T, NoSyn)] 
-            |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1), []),(("", def2), [])]
+            |> OldPrimrec.add_primrec_unchecked_i "" [(("", def1), []),(("", def2), [])]
       end) ak_names_types thy3;
     
     (* defines permutation functions for all combinations of atom-kinds; *)

@@ -363,7 +363,7 @@ let
       val case2 = Syntax.const "_case1" $ Syntax.const Term.dummy_patternN
                                         $ NilC;
       val cs = Syntax.const "_case2" $ case1 $ case2
-      val ft = DatatypeCase.case_tr false DatatypePackage.datatype_of_constr
+      val ft = DatatypeCase.case_tr false Datatype.datatype_of_constr
                  ctxt [x, cs]
     in lambda x ft end;
 

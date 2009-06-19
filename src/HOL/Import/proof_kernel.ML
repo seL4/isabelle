@@ -2021,7 +2021,7 @@ fun new_specification thyname thmname names hth thy =
                                 snd (get_defname thyname name thy)) thy1 names
             fun new_name name = fst (get_defname thyname name thy1)
             val names' = map (fn name => (new_name name,name,false)) names
-            val (thy',res) = SpecificationPackage.add_specification NONE
+            val (thy',res) = Choice_Specification.add_specification NONE
                                  names'
                                  (thy1,th)
             val _ = ImportRecorder.add_specification names' th
@@ -2091,7 +2091,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
-              TypedefPackage.add_typedef false (SOME (Binding.name thmname))
+              Typedef.add_typedef false (SOME (Binding.name thmname))
                 (Binding.name tycname, tnames, tsyn) c NONE (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 
@@ -2179,7 +2179,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
             val ((_, typedef_info), thy') =
-              TypedefPackage.add_typedef false NONE (Binding.name tycname,tnames,tsyn) c
+              Typedef.add_typedef false NONE (Binding.name tycname,tnames,tsyn) c
                 (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
             val fulltyname = Sign.intern_type thy' tycname

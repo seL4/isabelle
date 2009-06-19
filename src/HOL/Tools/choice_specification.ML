@@ -1,16 +1,16 @@
-(*  Title:      HOL/Tools/specification_package.ML
+(*  Title:      HOL/Tools/choice_specification.ML
     Author:     Sebastian Skalberg, TU Muenchen
 
 Package for defining constants by specification.
 *)
 
-signature SPECIFICATION_PACKAGE =
+signature CHOICE_SPECIFICATION =
 sig
   val add_specification: string option -> (bstring * xstring * bool) list ->
     theory * thm -> theory * thm
 end
 
-structure SpecificationPackage: SPECIFICATION_PACKAGE =
+structure Choice_Specification: CHOICE_SPECIFICATION =
 struct
 
 (* actual code *)
@@ -104,11 +104,11 @@ fun process_spec axiomatic cos alt_props thy =
     let
         fun zip3 [] [] [] = []
           | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
-          | zip3 _ _ _ = error "SpecificationPackage.process_spec internal error"
+          | zip3 _ _ _ = error "Choice_Specification.process_spec internal error"
 
         fun myfoldr f [x] = x
           | myfoldr f (x::xs) = f (x,myfoldr f xs)
-          | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
+          | myfoldr f [] = error "Choice_Specification.process_spec internal error"
 
         val rew_imps = alt_props |>
           map (ObjectLogic.atomize o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
@@ -204,7 +204,7 @@ fun process_spec axiomatic cos alt_props thy =
                     in
                         process_all rest (thy',rest_th)
                     end
-                  | process_all [] _ = error "SpecificationPackage.process_spec internal error"
+                  | process_all [] _ = error "Choice_Specification.process_spec internal error"
                 val alt_names = map fst alt_props
                 val _ = if exists (fn(name,_) => not (name = "")) alt_names
                         then writeln "specification"

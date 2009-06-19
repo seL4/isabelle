@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/typecopy_package.ML
+(*  Title:      HOL/Tools/typecopy.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Introducing copies of types using trivial typedefs; datatype-like abstraction.
 *)
 
-signature TYPECOPY_PACKAGE =
+signature TYPECOPY =
 sig
   type info = {
     vs: (string * sort) list,
@@ -24,7 +24,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure TypecopyPackage: TYPECOPY_PACKAGE =
+structure Typecopy: TYPECOPY =
 struct
 
 (* theory data *)
@@ -82,7 +82,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
       Rep_name = c_rep, Abs_inject = inject,
-      Abs_inverse = inverse, ... } : TypedefPackage.info ) thy =
+      Abs_inverse = inverse, ... } : Typedef.info ) thy =
         let
           val exists_thm =
             UNIV_I
@@ -105,7 +105,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> TypedefPackage.add_typedef false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+    |> Typedef.add_typedef false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
       (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;
@@ -117,7 +117,7 @@ fun add_default_code tyco thy =
   let
     val SOME { constr = constr_name, proj = (proj, _), proj_def = proj_eq, vs = raw_vs,
       typ = ty_rep, ... } =  get_info thy tyco;
-    val SOME { Rep_inject = proj_inject, ... } = TypedefPackage.get_info thy tyco;
+    val SOME { Rep_inject = proj_inject, ... } = Typedef.get_info thy tyco;
     val constr = (constr_name, Logic.unvarifyT (Sign.the_const_type thy constr_name));
     val vs = (map dest_TFree o snd o dest_Type) (Type (tyco, map TFree raw_vs));
     val ty = Type (tyco, map TFree vs);

@@ -16,7 +16,7 @@ uses
   ("Tools/TFL/thry.ML")
   ("Tools/TFL/tfl.ML")
   ("Tools/TFL/post.ML")
-  ("Tools/recdef_package.ML")
+  ("Tools/recdef.ML")
 begin
 
 text{** This form avoids giant explosions in proofs.  NOTE USE OF ==*}
@@ -76,8 +76,8 @@ use "Tools/TFL/rules.ML"
 use "Tools/TFL/thry.ML"
 use "Tools/TFL/tfl.ML"
 use "Tools/TFL/post.ML"
-use "Tools/recdef_package.ML"
-setup RecdefPackage.setup
+use "Tools/recdef.ML"
+setup Recdef.setup
 
 lemmas [recdef_simp] =
   inv_image_def

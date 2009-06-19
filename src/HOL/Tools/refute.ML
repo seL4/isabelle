@@ -526,7 +526,7 @@ struct
   fun is_IDT_constructor thy (s, T) =
     (case body_type T of
       Type (s', _) =>
-      (case DatatypePackage.get_datatype_constrs thy s' of
+      (case Datatype.get_datatype_constrs thy s' of
         SOME constrs =>
         List.exists (fn (cname, cty) =>
           cname = s andalso Sign.typ_instance thy (T, cty)) constrs
@@ -545,7 +545,7 @@ struct
   fun is_IDT_recursor thy (s, T) =
   let
     val rec_names = Symtab.fold (append o #rec_names o snd)
-      (DatatypePackage.get_datatypes thy) []
+      (Datatype.get_datatypes thy) []
   in
     (* I'm not quite sure if checking the name 's' is sufficient, *)
     (* or if we should also check the type 'T'.                   *)
@@ -834,7 +834,7 @@ struct
       (* axiomatic type classes *)
       | Type ("itself", [T1])  => collect_type_axioms (axs, T1)
       | Type (s, Ts)           =>
-        (case DatatypePackage.get_datatype thy s of
+        (case Datatype.get_datatype thy s of
           SOME info =>  (* inductive datatype *)
             (* only collect relevant type axioms for the argument types *)
             Library.foldl collect_type_axioms (axs, Ts)
@@ -969,7 +969,7 @@ struct
         Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
       | Type ("prop", [])      => acc
       | Type (s, Ts)           =>
-        (case DatatypePackage.get_datatype thy s of
+        (case Datatype.get_datatype thy s of
           SOME info =>  (* inductive datatype *)
           let
             val index        = #index info
@@ -1181,7 +1181,7 @@ struct
       (* TODO: no warning needed for /positive/ occurrences of IDTs       *)
       val maybe_spurious = Library.exists (fn
           Type (s, _) =>
-          (case DatatypePackage.get_datatype thy s of
+          (case Datatype.get_datatype thy s of
             SOME info =>  (* inductive datatype *)
             let
               val index           = #index info
@@ -1986,7 +1986,7 @@ struct
     val (typs, terms) = model
     (* Term.typ -> (interpretation * model * arguments) option *)
     fun interpret_term (Type (s, Ts)) =
-      (case DatatypePackage.get_datatype thy s of
+      (case Datatype.get_datatype thy s of
         SOME info =>  (* inductive datatype *)
         let
           (* int option -- only recursive IDTs have an associated depth *)
@@ -2120,7 +2120,7 @@ struct
             HOLogic_empty_set) pairss
         end
       | Type (s, Ts) =>
-        (case DatatypePackage.get_datatype thy s of
+        (case Datatype.get_datatype thy s of
           SOME info =>
           (case AList.lookup (op =) typs T of
             SOME 0 =>
@@ -2185,7 +2185,7 @@ struct
         Const (s, T) =>
         (case body_type T of
           Type (s', Ts') =>
-          (case DatatypePackage.get_datatype thy s' of
+          (case Datatype.get_datatype thy s' of
             SOME info =>  (* body type is an inductive datatype *)
             let
               val index               = #index info
@@ -2675,7 +2675,7 @@ struct
             end
           else
             NONE  (* not a recursion operator of this datatype *)
-        ) (DatatypePackage.get_datatypes thy) NONE
+        ) (Datatype.get_datatypes thy) NONE
     | _ =>  (* head of term is not a constant *)
       NONE;
 
@@ -3224,7 +3224,7 @@ struct
   fun IDT_printer thy model T intr assignment =
     (case T of
       Type (s, Ts) =>
-      (case DatatypePackage.get_datatype thy s of
+      (case Datatype.get_datatype thy s of
         SOME info =>  (* inductive datatype *)
         let
           val (typs, _)           = model

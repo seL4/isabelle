@@ -70,7 +70,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 ])
       | pr_term tyvars thm vars fxy (IVar v) =
           (str o Code_Printer.lookup_var vars) v
-      | pr_term tyvars thm vars fxy (t as _ `|-> _) =
+      | pr_term tyvars thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
             fun pr ((v, pat), ty) = pr_bind tyvars thm BR ((SOME v, pat), ty);
@@ -240,7 +240,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
           let
-            val split_abs_pure = (fn (v, _) `|-> t => SOME (v, t) | _ => NONE);
+            val split_abs_pure = (fn (v, _) `|=> t => SOME (v, t) | _ => NONE);
             val unfold_abs_pure = Code_Thingol.unfoldr split_abs_pure;
             val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             fun pr_instdef ((classparam, c_inst), (thm, _)) = case syntax_const classparam

@@ -217,7 +217,7 @@ fun add_dt_realizers config names thy =
   if ! Proofterm.proofs < 2 then thy
   else let
     val _ = message config "Adding realizers for induction and case analysis ..."
-    val infos = map (DatatypePackage.the_datatype thy) names;
+    val infos = map (Datatype.the_datatype thy) names;
     val info :: _ = infos;
   in
     thy
@@ -225,6 +225,6 @@ fun add_dt_realizers config names thy =
     |> fold_rev (make_casedists (#sorts info)) infos
   end;
 
-val setup = DatatypePackage.interpretation add_dt_realizers;
+val setup = Datatype.interpretation add_dt_realizers;
 
 end;
