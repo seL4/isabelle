@@ -186,17 +186,13 @@ done
 lemma (in residues) prod_cong: 
   "finite A \<Longrightarrow> (\<Otimes> i:A. (f i) mod m) = (PROD i:A. f i) mod m"
   apply (induct set: finite)
-  apply (auto simp add: one_cong) 
-  apply (subst finprod_insert)
-  apply (auto intro!: funcsetI mult_cong)
+  apply (auto simp: one_cong mult_cong)
 done
 
 lemma (in residues) sum_cong:
   "finite A \<Longrightarrow> (\<Oplus> i:A. (f i) mod m) = (SUM i: A. f i) mod m"
   apply (induct set: finite)
-  apply (auto simp add: zero_cong) 
-  apply (subst finsum_insert)
-  apply (auto intro!: funcsetI add_cong)
+  apply (auto simp: zero_cong add_cong)
 done
 
 lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrightarrow> 

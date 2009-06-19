@@ -508,7 +508,6 @@ lemma finprod_const:
   apply force
   apply (subst finprod_insert)
   apply auto
-  apply (force simp add: Pi_def)
   apply (subst m_comm)
   apply auto
 done

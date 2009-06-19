@@ -934,8 +934,8 @@ qed
 
 lemma (in group_hom) FactGroup_hom:
      "(\<lambda>X. contents (h`X)) \<in> hom (G Mod (kernel G H h)) H"
-apply (simp add: hom_def FactGroup_contents_mem  normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)  
-proof (simp add: hom_def funcsetI FactGroup_contents_mem, intro ballI) 
+apply (simp add: hom_def FactGroup_contents_mem  normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)
+proof (intro ballI)
   fix X and X'
   assume X:  "X  \<in> carrier (G Mod kernel G H h)"
      and X': "X' \<in> carrier (G Mod kernel G H h)"
@@ -952,7 +952,7 @@ proof (simp add: hom_def funcsetI FactGroup_contents_mem, intro ballI)
              simp add: set_mult_def image_eq_UN 
                        subsetD [OF Xsub] subsetD [OF X'sub]) 
   thus "contents (h ` (X <#> X')) = contents (h ` X) \<otimes>\<^bsub>H\<^esub> contents (h ` X')"
-    by (simp add: all image_eq_UN FactGroup_nonempty X X')  
+    by (simp add: all image_eq_UN FactGroup_nonempty X X')
 qed
 
 

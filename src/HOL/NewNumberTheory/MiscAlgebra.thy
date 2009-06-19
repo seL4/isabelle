@@ -289,8 +289,6 @@ lemma (in comm_monoid) finprod_UN_disjoint:
   apply blast
   apply (fastsimp)
   apply (auto intro!: funcsetI finprod_closed) 
-  apply (subst finprod_insert)
-  apply (auto intro!: funcsetI finprod_closed)
 done
 
 lemma (in comm_monoid) finprod_Union_disjoint:
@@ -304,11 +302,7 @@ done
 lemma (in comm_monoid) finprod_one [rule_format]: 
   "finite A \<Longrightarrow> (ALL x:A. f x = \<one>) \<longrightarrow>
      finprod G f A = \<one>"
-  apply (induct set: finite)
-  apply auto
-  apply (subst finprod_insert)
-  apply (auto intro!: funcsetI)
-done
+by (induct set: finite) auto
 
 
 (* need better simplification rules for rings *)

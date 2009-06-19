@@ -51,7 +51,7 @@ definition
 
 subsection{*Basic Properties of @{term Pi}*}
 
-lemma Pi_I: "(!!x. x \<in> A ==> f x \<in> B x) ==> f \<in> Pi A B"
+lemma Pi_I[simp]: "(!!x. x \<in> A ==> f x \<in> B x) ==> f \<in> Pi A B"
   by (simp add: Pi_def)
 
 lemma funcsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f \<in> A -> B"
@@ -79,7 +79,10 @@ lemma Pi_empty [simp]: "Pi {} B = UNIV"
 
 lemma Pi_UNIV [simp]: "A -> UNIV = UNIV"
   by (simp add: Pi_def)
-
+(*
+lemma funcset_id [simp]: "(%x. x): A -> A"
+  by (simp add: Pi_def)
+*)
 text{*Covariance of Pi-sets in their second argument*}
 lemma Pi_mono: "(!!x. x \<in> A ==> B x <= C x) ==> Pi A B <= Pi A C"
   by (simp add: Pi_def, blast)
