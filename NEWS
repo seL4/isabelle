@@ -43,6 +43,8 @@ are provided for all suitable HOL types, records and datatypes.
 * Constants Set.Pow and Set.image now with authentic syntax; object-logic definitions
 Set.Pow_def and Set.image_def.  INCOMPATIBILITY.
 
+* NewNumberTheory: Jeremy Avigad's new version of part of NumberTheory.
+If possible, use NewNumberTheory, not NumberTheory.
 
 *** ML ***
 
