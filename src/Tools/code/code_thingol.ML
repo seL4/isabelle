@@ -8,8 +8,8 @@ Representation and translation.
 infix 8 `%%;
 infix 4 `$;
 infix 4 `$$;
-infixr 3 `|->;
-infixr 3 `|-->;
+infixr 3 `|=>;
+infixr 3 `|==>;
 
 signature BASIC_CODE_THINGOL =
 sig
@@ -25,11 +25,11 @@ sig
       IConst of const
     | IVar of vname
     | `$ of iterm * iterm
-    | `|-> of (vname * itype) * iterm
+    | `|=> of (vname * itype) * iterm
     | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
         (*((term, type), [(selector pattern, body term )]), primitive term)*)
   val `$$ : iterm * iterm list -> iterm;
-  val `|--> : (vname * itype) list * iterm -> iterm;
+  val `|==> : (vname * itype) list * iterm -> iterm;
   type typscheme = (vname * sort) list * itype;
 end;
 
@@ -128,21 +128,21 @@ datatype iterm =
     IConst of const
   | IVar of vname
   | `$ of iterm * iterm
-  | `|-> of (vname * itype) * iterm
+  | `|=> of (vname * itype) * iterm
   | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
     (*see also signature*)
 
 val op `$$ = Library.foldl (op `$);
-val op `|--> = Library.foldr (op `|->);
+val op `|==> = Library.foldr (op `|=>);
 
 val unfold_app = unfoldl
   (fn op `$ t => SOME t
     | _ => NONE);
 
 val split_abs =
-  (fn (v, ty) `|-> (t as ICase (((IVar w, _), [(p, t')]), _)) =>
+  (fn (v, ty) `|=> (t as ICase (((IVar w, _), [(p, t')]), _)) =>
         if v = w then SOME (((v, SOME p), ty), t') else SOME (((v, NONE), ty), t)
-    | (v, ty) `|-> t => SOME (((v, NONE), ty), t)
+    | (v, ty) `|=> t => SOME (((v, NONE), ty), t)
     | _ => NONE);
 
 val unfold_abs = unfoldr split_abs;
@@ -161,7 +161,7 @@ fun unfold_const_app t =
 fun fold_aiterms f (t as IConst _) = f t
   | fold_aiterms f (t as IVar _) = f t
   | fold_aiterms f (t1 `$ t2) = fold_aiterms f t1 #> fold_aiterms f t2
-  | fold_aiterms f (t as _ `|-> t') = f t #> fold_aiterms f t'
+  | fold_aiterms f (t as _ `|=> t') = f t #> fold_aiterms f t'
   | fold_aiterms f (ICase (_, t)) = fold_aiterms f t;
 
 fun fold_constnames f =
@@ -173,7 +173,7 @@ fun fold_constnames f =
 fun fold_varnames f =
   let
     fun add (IVar v) = f v
-      | add ((v, _) `|-> _) = f v
+      | add ((v, _) `|=> _) = f v
       | add _ = I;
   in fold_aiterms add end;
 
@@ -182,7 +182,7 @@ fun fold_unbound_varnames f =
     fun add _ (IConst _) = I
       | add vs (IVar v) = if not (member (op =) vs v) then f v else I
       | add vs (t1 `$ t2) = add vs t1 #> add vs t2
-      | add vs ((v, _) `|-> t) = add (insert (op =) v vs) t
+      | add vs ((v, _) `|=> t) = add (insert (op =) v vs) t
       | add vs (ICase (_, t)) = add vs t;
   in add [] end;
 
@@ -204,7 +204,7 @@ fun eta_expand k (c as (_, (_, tys)), ts) =
     val l = k - j;
     val ctxt = (fold o fold_varnames) Name.declare ts Name.context;
     val vs_tys = Name.names ctxt "a" ((curry Library.take l o curry Library.drop j) tys);
-  in vs_tys `|--> IConst c `$$ ts @ map (fn (v, _) => IVar v) vs_tys end;
+  in vs_tys `|==> IConst c `$$ ts @ map (fn (v, _) => IVar v) vs_tys end;
 
 fun contains_dictvar t =
   let
@@ -218,7 +218,7 @@ fun contains_dictvar t =
 fun locally_monomorphic (IConst _) = false
   | locally_monomorphic (IVar _) = true
   | locally_monomorphic (t `$ _) = locally_monomorphic t
-  | locally_monomorphic (_ `|-> t) = locally_monomorphic t
+  | locally_monomorphic (_ `|=> t) = locally_monomorphic t
   | locally_monomorphic (ICase ((_, ds), _)) = exists (locally_monomorphic o snd) ds;
 
 
@@ -397,8 +397,8 @@ fun map_terms_bottom_up f (t as IConst _) = f t
   | map_terms_bottom_up f (t as IVar _) = f t
   | map_terms_bottom_up f (t1 `$ t2) = f
       (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
-  | map_terms_bottom_up f ((v, ty) `|-> t) = f
-      ((v, ty) `|-> map_terms_bottom_up f t)
+  | map_terms_bottom_up f ((v, ty) `|=> t) = f
+      ((v, ty) `|=> map_terms_bottom_up f t)
   | map_terms_bottom_up f (ICase (((t, ty), ps), t0)) = f
       (ICase (((map_terms_bottom_up f t, ty), (map o pairself)
         (map_terms_bottom_up f) ps), map_terms_bottom_up f t0));
@@ -581,7 +581,7 @@ and translate_term thy algbr funcgr thm (Const (c, ty)) =
       in
         translate_typ thy algbr funcgr ty
         ##>> translate_term thy algbr funcgr thm t
-        #>> (fn (ty, t) => (v, ty) `|-> t)
+        #>> (fn (ty, t) => (v, ty) `|=> t)
       end
   | translate_term thy algbr funcgr thm (t as _ $ _) =
       case strip_comb t
@@ -636,12 +636,12 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
       else map (uncurry mk_clause)
         (AList.make (Code.no_args thy) case_pats ~~ ts_clause);
     fun retermify ty (_, (IVar x, body)) =
-          (x, ty) `|-> body
+          (x, ty) `|=> body
       | retermify _ (_, (pat, body)) =
           let
             val (IConst (_, (_, tys)), ts) = unfold_app pat;
             val vs = map2 (fn IVar x => fn ty => (x, ty)) ts tys;
-          in vs `|--> body end;
+          in vs `|==> body end;
     fun mk_icase const t ty clauses =
       let
         val (ts1, ts2) = chop t_pos (map (retermify ty) clauses);
@@ -668,7 +668,7 @@ and translate_app_case thy algbr funcgr thm (case_scheme as (num_args, _)) ((c, 
     in
       fold_map (translate_typ thy algbr funcgr) tys
       ##>> translate_case thy algbr funcgr thm case_scheme ((c, ty), ts @ map Free vs)
-      #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
+      #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|==> t)
     end
   else if length ts > num_args then
     translate_case thy algbr funcgr thm case_scheme ((c, ty), Library.take (num_args, ts))

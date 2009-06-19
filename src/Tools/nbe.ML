@@ -192,7 +192,7 @@ fun assemble_eqnss idx_of deps eqnss =
           in of_iapp match_cont t' (fold_rev (cons o of_iterm NONE) ts []) end
         and of_iapp match_cont (IConst (c, ((_, dss), _))) ts = constapp c dss ts
           | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound v) ts
-          | of_iapp match_cont ((v, _) `|-> t) ts =
+          | of_iapp match_cont ((v, _) `|=> t) ts =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm NONE t))) ts
           | of_iapp match_cont (ICase (((t, _), cs), t0)) ts =
               nbe_apps (ml_cases (of_iterm NONE t)
