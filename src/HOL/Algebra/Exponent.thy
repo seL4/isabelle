@@ -9,6 +9,8 @@ theory Exponent
 imports Main Primes Binomial
 begin
 
+hide (open) const GCD.gcd GCD.coprime GCD.prime
+
 section {*Sylow's Theorem*}
 
 subsection {*The Combinatorial Argument Underlying the First Sylow Theorem*}
