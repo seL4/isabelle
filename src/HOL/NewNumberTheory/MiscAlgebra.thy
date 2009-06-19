@@ -45,12 +45,6 @@ lemma "finite { 3 * x | x. 0 < x & x < 100 & prime (x::int) }"
 
 *)
 
-(* This could go in Set.thy *)
-
-lemma UNION_empty: "(UNION F A = {}) = (ALL x: F. (A x) = {})"
-  by auto
-
-
 (* The rest is for the algebra libraries *)
 
 (* This goes in FuncSet.thy. Any reason not to make it a simp rule? *)
@@ -293,11 +287,7 @@ lemma (in comm_monoid) finprod_UN_disjoint:
   apply blast
   apply (erule finite_UN_I)
   apply blast
-  apply (subst Int_UN_distrib)
-  apply (subst UNION_empty)
-  apply clarsimp
-  apply (drule_tac x = xa in bspec)back
-  apply (assumption, force)
+  apply (fastsimp)
   apply (auto intro!: funcsetI finprod_closed) 
   apply (subst finprod_insert)
   apply (auto intro!: funcsetI finprod_closed)
