@@ -1421,6 +1421,18 @@ lemma nat_lcm_dvd2 [iff]: "(n::nat) dvd lcm m n"
 lemma int_lcm_dvd2 [iff]: "(n::int) dvd lcm m n"
   by (subst int_lcm_commute, rule int_lcm_dvd1)
 
+lemma dvd_lcm_if_dvd1_nat: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
+by(metis nat_lcm_dvd1 dvd_trans)
+
+lemma dvd_lcm_if_dvd2_nat: "(k::nat) dvd n \<Longrightarrow> k dvd lcm m n"
+by(metis nat_lcm_dvd2 dvd_trans)
+
+lemma dvd_lcm_if_dvd1_int: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
+by(metis int_lcm_dvd1 dvd_trans)
+
+lemma dvd_lcm_if_dvd2_int: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
+by(metis int_lcm_dvd2 dvd_trans)
+
 lemma nat_lcm_unique: "(a::nat) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by (auto intro: dvd_anti_sym nat_lcm_least)
