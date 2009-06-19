@@ -73,7 +73,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
     fun make_po tac thy1 =
       let
         val ((_, {type_definition, set_def, ...}), thy2) = thy1
-          |> TypedefPackage.add_typedef def (SOME name) (t, vs, mx) set opt_morphs tac;
+          |> Typedef.add_typedef def (SOME name) (t, vs, mx) set opt_morphs tac;
         val lthy3 = thy2
           |> TheoryTarget.instantiation ([full_tname], lhs_tfrees, @{sort po});
         val below_def' = Syntax.check_term lthy3 below_def;
