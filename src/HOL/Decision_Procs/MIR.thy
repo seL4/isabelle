@@ -2129,18 +2129,18 @@ proof (induct p rule: iszlfm.induct)
   from prems int_lcm_pos have dp: "?d >0" by simp
   have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp 
    hence th: "d\<delta> p ?d" 
-     using delta_mono prems by (auto simp del: int_lcm_dvd1)
+     using delta_mono prems by(simp only: iszlfm.simps) blast
   have "\<delta> q dvd \<delta> (And p q)" using prems  by simp 
-  hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: int_lcm_dvd2)
+  hence th': "d\<delta> q ?d" using delta_mono prems by(simp only: iszlfm.simps) blast
   from th th' dp show ?case by simp 
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
   from prems int_lcm_pos have dp: "?d >0" by simp
   have "\<delta> p dvd \<delta> (And p q)" using prems by simp hence th: "d\<delta> p ?d" using delta_mono prems 
-    by (auto simp del: int_lcm_dvd1)
-  have "\<delta> q dvd \<delta> (And p q)" using prems by simp hence th': "d\<delta> q ?d" using delta_mono prems by (auto simp del: int_lcm_dvd2)
-  from th th' dp show ?case by simp 
+    by(simp only: iszlfm.simps) blast
+  have "\<delta> q dvd \<delta> (And p q)" using prems by simp hence th': "d\<delta> q ?d" using delta_mono prems by(simp only: iszlfm.simps) blast
+  from th th' dp show ?case by simp
 qed simp_all
 
 

@@ -283,6 +283,18 @@ lemma int_gcd_dvd2 [iff]: "gcd (x::int) y dvd y"
   apply auto
 done
 
+lemma dvd_gcd_D1_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd m"
+by(metis nat_gcd_dvd1 dvd_trans)
+
+lemma dvd_gcd_D2_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd n"
+by(metis nat_gcd_dvd2 dvd_trans)
+
+lemma dvd_gcd_D1_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd m"
+by(metis int_gcd_dvd1 dvd_trans)
+
+lemma dvd_gcd_D2_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd n"
+by(metis int_gcd_dvd2 dvd_trans)
+
 lemma nat_gcd_le1 [simp]: "a \<noteq> 0 \<Longrightarrow> gcd (a::nat) b \<le> a"
   by (rule dvd_imp_le, auto)
 
@@ -1386,7 +1398,7 @@ lemma int_lcm_least:
   using prems apply auto
 done
 
-lemma nat_lcm_dvd1 [iff]: "(m::nat) dvd lcm m n"
+lemma nat_lcm_dvd1: "(m::nat) dvd lcm m n"
 proof (cases m)
   case 0 then show ?thesis by simp
 next
@@ -1407,7 +1419,7 @@ next
   qed
 qed
 
-lemma int_lcm_dvd1 [iff]: "(m::int) dvd lcm m n"
+lemma int_lcm_dvd1: "(m::int) dvd lcm m n"
   apply (subst int_lcm_abs)
   apply (rule dvd_trans)
   prefer 2
@@ -1415,27 +1427,27 @@ lemma int_lcm_dvd1 [iff]: "(m::int) dvd lcm m n"
   apply auto
 done
 
-lemma nat_lcm_dvd2 [iff]: "(n::nat) dvd lcm m n"
+lemma nat_lcm_dvd2: "(n::nat) dvd lcm m n"
   by (subst nat_lcm_commute, rule nat_lcm_dvd1)
 
-lemma int_lcm_dvd2 [iff]: "(n::int) dvd lcm m n"
+lemma int_lcm_dvd2: "(n::int) dvd lcm m n"
   by (subst int_lcm_commute, rule int_lcm_dvd1)
 
-lemma dvd_lcm_if_dvd1_nat: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
+lemma dvd_lcm_I1_nat[simp]: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
 by(metis nat_lcm_dvd1 dvd_trans)
 
-lemma dvd_lcm_if_dvd2_nat: "(k::nat) dvd n \<Longrightarrow> k dvd lcm m n"
+lemma dvd_lcm_I2_nat[simp]: "(k::nat) dvd n \<Longrightarrow> k dvd lcm m n"
 by(metis nat_lcm_dvd2 dvd_trans)
 
-lemma dvd_lcm_if_dvd1_int: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
+lemma dvd_lcm_I1_int[simp]: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
 by(metis int_lcm_dvd1 dvd_trans)
 
-lemma dvd_lcm_if_dvd2_int: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
+lemma dvd_lcm_I2_int[simp]: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
 by(metis int_lcm_dvd2 dvd_trans)
 
 lemma nat_lcm_unique: "(a::nat) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  by (auto intro: dvd_anti_sym nat_lcm_least)
+  by (auto intro: dvd_anti_sym nat_lcm_least nat_lcm_dvd1 nat_lcm_dvd2)
 
 lemma int_lcm_unique: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
