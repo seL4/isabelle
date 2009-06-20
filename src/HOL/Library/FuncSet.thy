@@ -51,8 +51,11 @@ definition
 
 subsection{*Basic Properties of @{term Pi}*}
 
-lemma Pi_I[simp]: "(!!x. x \<in> A ==> f x \<in> B x) ==> f \<in> Pi A B"
+lemma Pi_I: "(!!x. x \<in> A ==> f x \<in> B x) ==> f \<in> Pi A B"
   by (simp add: Pi_def)
+
+lemma Pi_I'[simp]: "(!!x. x : A --> f x : B x) ==> f : Pi A B"
+by(simp add:Pi_def)
 
 lemma funcsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f \<in> A -> B"
   by (simp add: Pi_def)
