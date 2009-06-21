@@ -1,10 +1,10 @@
-(*  Title:      HOLCF/Tools/fixrec_package.ML
+(*  Title:      HOLCF/Tools/fixrec.ML
     Author:     Amber Telfer and Brian Huffman
 
 Recursive function definition package for HOLCF.
 *)
 
-signature FIXREC_PACKAGE =
+signature FIXREC =
 sig
   val add_fixrec: bool -> (binding * typ option * mixfix) list
     -> (Attrib.binding * term) list -> local_theory -> local_theory
@@ -16,7 +16,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure FixrecPackage :> FIXREC_PACKAGE =
+structure Fixrec :> FIXREC =
 struct
 
 val def_cont_fix_eq = @{thm def_cont_fix_eq};
@@ -327,7 +327,7 @@ fun make_simps lthy (unfold_thm, eqns : (Attrib.binding * term) list) =
 (*************************************************************************)
 
 local
-(* code adapted from HOL/Tools/primrec_package.ML *)
+(* code adapted from HOL/Tools/primrec.ML *)
 
 fun gen_fixrec
   (set_group : bool)

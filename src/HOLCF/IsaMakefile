@@ -67,8 +67,8 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/domain/domain_library.ML \
   Tools/domain/domain_syntax.ML \
   Tools/domain/domain_theorems.ML \
-  Tools/fixrec_package.ML \
-  Tools/pcpodef_package.ML \
+  Tools/fixrec.ML \
+  Tools/pcpodef.ML \
   holcf_logic.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
@@ -127,7 +127,7 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy        \
   IOA/meta_theory/TL.thy IOA/meta_theory/TLS.thy		       \
   IOA/meta_theory/LiveIOA.thy IOA/meta_theory/Pred.thy		       \
   IOA/meta_theory/Abstraction.thy IOA/meta_theory/Simulations.thy      \
-  IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/ioa_package.ML
+  IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/ioa.ML
 	@cd IOA; $(ISABELLE_TOOL) usedir -b $(OUT)/HOLCF IOA
 
 
