@@ -564,6 +564,41 @@ lemma nat_gcd_dvd_prod [iff]: "gcd (m::nat) n dvd k * n"
 
 (* to do: add the three variations of these, and for ints? *)
 
+lemma finite_divisors_nat:
+  assumes "(m::nat)~= 0" shows "finite{d. d dvd m}"
+proof-
+  have "finite{d. d <= m}" by(blast intro: bounded_nat_set_is_finite)
+  from finite_subset[OF _ this] show ?thesis using assms
+    by(bestsimp intro!:dvd_imp_le)
+qed
+
+lemma finite_divisors_int:
+  assumes "(i::int) ~= 0" shows "finite{d. d dvd i}"
+proof-
+  have "{d. abs d <= abs i} = {- abs i .. abs i}" by(auto simp:abs_if)
+  hence "finite{d. abs d <= abs i}" by simp
+  from finite_subset[OF _ this] show ?thesis using assms
+    by(bestsimp intro!:dvd_imp_le_int)
+qed
+
+lemma gcd_is_Max_divisors_nat:
+  "m ~= 0 \<Longrightarrow> n ~= 0 \<Longrightarrow> gcd (m::nat) n = (Max {d. d dvd m & d dvd n})"
+apply(rule Max_eqI[THEN sym])
+  apply (metis dvd.eq_iff finite_Collect_conjI finite_divisors_nat)
+ apply simp
+ apply(metis Suc_diff_1 Suc_neq_Zero dvd_imp_le nat_gcd_greatest_iff nat_gcd_pos)
+apply simp
+done
+
+lemma gcd_is_Max_divisors_int:
+  "m ~= 0 ==> n ~= 0 ==> gcd (m::int) n = (Max {d. d dvd m & d dvd n})"
+apply(rule Max_eqI[THEN sym])
+  apply (metis dvd.eq_iff finite_Collect_conjI finite_divisors_int)
+ apply simp
+ apply (metis int_gcd_greatest_iff int_gcd_pos zdvd_imp_le)
+apply simp
+done
+
 
 subsection {* Coprimality *}
 

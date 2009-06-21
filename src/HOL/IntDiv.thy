@@ -1064,6 +1064,16 @@ lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
 lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
   by (rule dvd_mod_imp_dvd) (* TODO: remove *)
 
+lemma dvd_imp_le_int: "(i::int) ~= 0 ==> d dvd i ==> abs d <= abs i"
+apply(auto simp:abs_if)
+   apply(clarsimp simp:dvd_def mult_less_0_iff)
+  using mult_le_cancel_left_neg[of _ "-1::int"]
+  apply(clarsimp simp:dvd_def mult_less_0_iff)
+ apply(clarsimp simp:dvd_def mult_less_0_iff
+         minus_mult_right simp del: mult_minus_right)
+apply(clarsimp simp:dvd_def mult_less_0_iff)
+done
+
 lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
   apply (auto elim!: dvdE)
   apply (subgoal_tac "0 < n")
