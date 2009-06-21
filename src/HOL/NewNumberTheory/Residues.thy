@@ -397,13 +397,13 @@ lemma (in residues_prime) wilson_theorem1:
   shows "[fact (p - 1) = - 1] (mod p)"
 proof -
   let ?InversePairs = "{ {x, inv x} | x. x : Units R - {\<one>, \<ominus> \<one>}}" 
-  have "Units R = {\<one>, \<ominus> \<one>} Un (Union ?InversePairs)"
+  have UR: "Units R = {\<one>, \<ominus> \<one>} Un (Union ?InversePairs)"
     by auto
-  hence "(\<Otimes>i: Units R. i) = 
+  have "(\<Otimes>i: Units R. i) = 
     (\<Otimes>i: {\<one>, \<ominus> \<one>}. i) \<otimes> (\<Otimes>i: Union ?InversePairs. i)"
-    apply (elim ssubst) back back
+    apply (subst UR)
     apply (subst finprod_Un_disjoint)
-    apply (auto intro!: funcsetI)
+    apply (auto intro:funcsetI)
     apply (drule sym, subst (asm) inv_eq_one_eq)
     apply auto
     apply (drule sym, subst (asm) inv_eq_neg_one_eq)
@@ -414,7 +414,6 @@ proof -
     apply auto
     apply (frule one_eq_neg_one)
     apply (insert a, force)
-    apply (auto intro!: funcsetI)
     done
   also have "(\<Otimes>i:(Union ?InversePairs). i) = 
       (\<Otimes> A: ?InversePairs. (\<Otimes> y:A. y))"
@@ -431,13 +430,13 @@ proof -
     apply (subst finprod_insert)
     apply auto
     apply (frule inv_eq_self)
-    apply (auto intro!: funcsetI)
+    apply (auto)
     done
   finally have "(\<Otimes>i: Units R. i) = \<ominus> \<one>"
     by simp
   also have "(\<Otimes>i: Units R. i) = (\<Otimes>i: Units R. i mod p)"
     apply (rule finprod_cong')
-    apply (auto intro!: funcsetI)
+    apply (auto)
     apply (subst (asm) res_prime_units_eq)
     apply auto
     done
