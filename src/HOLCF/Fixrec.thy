@@ -6,7 +6,7 @@ header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
 imports Sprod Ssum Up One Tr Fix
-uses ("Tools/fixrec_package.ML")
+uses ("Tools/fixrec.ML")
 begin
 
 subsection {* Maybe monad type *}
@@ -599,12 +599,12 @@ by simp
 
 subsection {* Initializing the fixrec package *}
 
-use "Tools/fixrec_package.ML"
+use "Tools/fixrec.ML"
 
-setup {* FixrecPackage.setup *}
+setup {* Fixrec.setup *}
 
 setup {*
-  FixrecPackage.add_matchers
+  Fixrec.add_matchers
     [ (@{const_name up}, @{const_name match_up}),
       (@{const_name sinl}, @{const_name match_sinl}),
       (@{const_name sinr}, @{const_name match_sinr}),

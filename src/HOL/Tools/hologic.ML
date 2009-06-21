@@ -603,8 +603,11 @@ fun dest_literal (Const ("String.literal.STR", _) $ t) =
 
 val typerepT = Type ("Typerep.typerep", []);
 
-fun mk_typerep T = Const ("Typerep.typerep_class.typerep",
-  Term.itselfT T --> typerepT) $ Logic.mk_type T;
+fun mk_typerep (Type (tyco, Ts)) = Const ("Typerep.typerep.Typerep",
+      literalT --> listT typerepT --> typerepT) $ mk_literal tyco
+        $ mk_list typerepT (map mk_typerep Ts)
+  | mk_typerep (T as TFree _) = Const ("Typerep.typerep_class.typerep",
+      Term.itselfT T --> typerepT) $ Logic.mk_type T;
 
 val termT = Type ("Code_Eval.term", []);
 

@@ -6,26 +6,7 @@ Datatype package for Isabelle/HOL.
 
 signature DATATYPE =
 sig
-  type datatype_config = DatatypeAux.datatype_config
-  type datatype_info = DatatypeAux.datatype_info
-  type descr = DatatypeAux.descr
-  val get_datatypes : theory -> datatype_info Symtab.table
-  val get_datatype : theory -> string -> datatype_info option
-  val the_datatype : theory -> string -> datatype_info
-  val datatype_of_constr : theory -> string -> datatype_info option
-  val datatype_of_case : theory -> string -> datatype_info option
-  val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
-  val the_datatype_descr : theory -> string list
-    -> descr * (string * sort) list * string list
-      * (string list * string list) * (typ list * typ list)
-  val get_datatype_constrs : theory -> string -> (string * typ) list option
-  val distinct_simproc : simproc
-  val make_case :  Proof.context -> bool -> string list -> term ->
-    (term * term) list -> term * (term * (int * bool)) list
-  val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
-  val read_typ: theory ->
-    (typ list * (string * sort) list) * string -> typ list * (string * sort) list
-  val interpretation : (datatype_config -> string list -> theory -> theory) -> theory -> theory
+  include DATATYPE_COMMON
   type rules = {distinct : thm list list,
     inject : thm list list,
     exhaustion : thm list,
@@ -34,15 +15,31 @@ sig
     split_thms : (thm * thm) list,
     induction : thm,
     simps : thm list}
-  val rep_datatype : datatype_config -> (rules -> Proof.context -> Proof.context)
-    -> string list option -> term list -> theory -> Proof.state;
-  val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state
-  val add_datatype : datatype_config -> string list -> (string list * binding * mixfix *
+  val add_datatype : config -> string list -> (string list * binding * mixfix *
     (binding * typ list * mixfix) list) list -> theory -> rules * theory
-  val add_datatype_cmd : string list -> (string list * binding * mixfix *
-    (binding * string list * mixfix) list) list -> theory -> rules * theory
+  val datatype_cmd : string list -> (string list * binding * mixfix *
+    (binding * string list * mixfix) list) list -> theory -> theory
+  val rep_datatype : config -> (rules -> Proof.context -> Proof.context)
+    -> string list option -> term list -> theory -> Proof.state
+  val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state
+  val get_datatypes : theory -> info Symtab.table
+  val get_datatype : theory -> string -> info option
+  val the_datatype : theory -> string -> info
+  val datatype_of_constr : theory -> string -> info option
+  val datatype_of_case : theory -> string -> info option
+  val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
+  val the_datatype_descr : theory -> string list
+    -> descr * (string * sort) list * string list
+      * (string list * string list) * (typ list * typ list)
+  val get_datatype_constrs : theory -> string -> (string * typ) list option
+  val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
+  val distinct_simproc : simproc
+  val make_case :  Proof.context -> bool -> string list -> term ->
+    (term * term) list -> term * (term * (int * bool)) list
+  val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
+  val read_typ: theory ->
+    (typ list * (string * sort) list) * string -> typ list * (string * sort) list
   val setup: theory -> theory
-  val print_datatypes : theory -> unit
 end;
 
 structure Datatype : DATATYPE =
@@ -56,9 +53,9 @@ open DatatypeAux;
 structure DatatypesData = TheoryDataFun
 (
   type T =
-    {types: datatype_info Symtab.table,
-     constrs: datatype_info Symtab.table,
-     cases: datatype_info Symtab.table};
+    {types: info Symtab.table,
+     constrs: info Symtab.table,
+     cases: info Symtab.table};
 
   val empty =
     {types = Symtab.empty, constrs = Symtab.empty, cases = Symtab.empty};
@@ -75,14 +72,10 @@ structure DatatypesData = TheoryDataFun
 val get_datatypes = #types o DatatypesData.get;
 val map_datatypes = DatatypesData.map;
 
-fun print_datatypes thy =
-  Pretty.writeln (Pretty.strs ("datatypes:" ::
-    map #1 (NameSpace.extern_table (Sign.type_space thy, get_datatypes thy))));
-
 
 (** theory information about datatypes **)
 
-fun put_dt_infos (dt_infos : (string * datatype_info) list) =
+fun put_dt_infos (dt_infos : (string * info) list) =
   map_datatypes (fn {types, constrs, cases} =>
     {types = fold Symtab.update dt_infos types,
      constrs = fold Symtab.default (*conservative wrt. overloaded constructors*)
@@ -207,7 +200,7 @@ fun add_cases_induct infos induction thy =
   let
     val inducts = ProjectRule.projections (ProofContext.init thy) induction;
 
-    fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
+    fun named_rules (name, {index, exhaustion, ...}: info) =
       [((Binding.empty, nth inducts index), [Induct.induct_type name]),
        ((Binding.empty, exhaustion), [Induct.cases_type name])];
     fun unnamed_rule i =
@@ -351,13 +344,13 @@ type rules = {distinct : thm list list,
   simps : thm list}
 
 structure DatatypeInterpretation = InterpretationFun
-  (type T = datatype_config * string list val eq: T * T -> bool = eq_snd op =);
+  (type T = config * string list val eq: T * T -> bool = eq_snd op =);
 fun interpretation f = DatatypeInterpretation.interpretation (uncurry f);
 
 
 (******************* definitional introduction of datatypes *******************)
 
-fun add_datatype_def (config : datatype_config) new_type_names descr sorts types_syntax constr_syntax dt_info
+fun add_datatype_def (config : config) new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
   let
     val _ = message config ("Proofs for datatype(s) " ^ commas_quote new_type_names);
@@ -414,7 +407,7 @@ fun add_datatype_def (config : datatype_config) new_type_names descr sorts types
 
 (*********************** declare existing type as datatype *********************)
 
-fun prove_rep_datatype (config : datatype_config) alt_names new_type_names descr sorts induct inject half_distinct thy =
+fun prove_rep_datatype (config : config) alt_names new_type_names descr sorts induct inject half_distinct thy =
   let
     val ((_, [induct']), _) =
       Variable.importT_thms [induct] (Variable.thm_context induct);
@@ -487,7 +480,7 @@ fun prove_rep_datatype (config : datatype_config) alt_names new_type_names descr
       simps = simps}, thy11)
   end;
 
-fun gen_rep_datatype prep_term (config : datatype_config) after_qed alt_names raw_ts thy =
+fun gen_rep_datatype prep_term (config : config) after_qed alt_names raw_ts thy =
   let
     fun constr_of_term (Const (c, T)) = (c, T)
       | constr_of_term t =
@@ -553,13 +546,13 @@ fun gen_rep_datatype prep_term (config : datatype_config) after_qed alt_names ra
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
-val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global default_datatype_config (K I);
+val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global default_config (K I);
 
 
 
 (******************************** add datatype ********************************)
 
-fun gen_add_datatype prep_typ (config : datatype_config) new_type_names dts thy =
+fun gen_add_datatype prep_typ (config : config) new_type_names dts thy =
   let
     val _ = Theory.requires thy "Datatype" "datatype definitions";
 
@@ -627,12 +620,12 @@ fun gen_add_datatype prep_typ (config : datatype_config) new_type_names dts thy 
     val case_names_exhausts = mk_case_names_exhausts descr' (map #1 new_dts);
   in
     add_datatype_def
-      (config : datatype_config) new_type_names descr sorts types_syntax constr_syntax dt_info
+      (config : config) new_type_names descr sorts types_syntax constr_syntax dt_info
       case_names_induct case_names_exhausts thy
   end;
 
 val add_datatype = gen_add_datatype cert_typ;
-val add_datatype_cmd = gen_add_datatype read_typ default_datatype_config;
+val datatype_cmd = snd ooo gen_add_datatype read_typ default_config;
 
 
 
@@ -649,23 +642,29 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
+local
 
-val datatype_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_infix --
-    (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix));
+structure P = OuterParse and K = OuterKeyword
 
-fun mk_datatype args =
+fun prep_datatype_decls args =
   let
     val names = map
       (fn ((((NONE, _), t), _), _) => Binding.name_of t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in snd o add_datatype_cmd names specs end;
+  in (names, specs) end;
+
+val parse_datatype_decl =
+  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_infix --
+    (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix)));
+
+val parse_datatype_decls = P.and_list1 parse_datatype_decl >> prep_datatype_decls;
+
+in
 
 val _ =
   OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
-    (P.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
+    (parse_datatype_decls >> (fn (names, specs) => Toplevel.theory (datatype_cmd names specs)));
 
 val _ =
   OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_goal

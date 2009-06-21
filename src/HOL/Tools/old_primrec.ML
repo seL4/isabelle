@@ -221,7 +221,7 @@ fun make_def thy fs (fname, ls, rec_name, tname) =
 
 (* find datatypes which contain all datatypes in tnames' *)
 
-fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
+fun find_dts (dt_info : info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname::tnames) =
       (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a datatype")
@@ -230,7 +230,7 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
-fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
+fun prepare_induct ({descr, induction, ...}: info) rec_eqns =
   let
     fun constrs_of (_, (_, _, cs)) =
       map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;
