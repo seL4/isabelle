@@ -6,7 +6,7 @@ Syntax generator for domain command.
 
 signature DOMAIN_AXIOMS =
 sig
-  val copy_of_dtyp : (int -> term) -> DatatypeAux.dtyp -> term
+  val copy_of_dtyp : (int -> term) -> Datatype.dtyp -> term
 
   val calc_axioms :
       string -> Domain_Library.eq list -> int -> Domain_Library.eq ->
@@ -171,7 +171,7 @@ fun add_matchers (((dname,_),cons) : eq) thy =
       val mat_names = map mat_name con_names;
       fun qualify n = Sign.full_name thy (Binding.name n);
       val ms = map qualify con_names ~~ map qualify mat_names;
-    in FixrecPackage.add_matchers ms thy end;
+    in Fixrec.add_matchers ms thy end;
 
 fun add_axioms comp_dnam (eqs : eq list) thy' =
     let

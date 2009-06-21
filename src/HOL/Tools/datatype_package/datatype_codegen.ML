@@ -6,7 +6,7 @@ Code generator facilities for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
-  val find_shortest_path: DatatypeAux.descr -> int -> (string * int) option
+  val find_shortest_path: Datatype.descr -> int -> (string * int) option
   val mk_eq_eqns: theory -> string -> (thm * bool) list
   val mk_case_cert: theory -> string -> thm
   val setup: theory -> theory
@@ -17,7 +17,7 @@ struct
 
 (** find shortest path to constructor with no recursive arguments **)
 
-fun find_nonempty (descr: DatatypeAux.descr) is i =
+fun find_nonempty (descr: Datatype.descr) is i =
   let
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
     fun arg_nonempty (_, DatatypeAux.DtRec i) = if member (op =) is i
@@ -42,7 +42,7 @@ open Codegen;
 
 (* datatype definition *)
 
-fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
+fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
   let
     val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
     val rtnames = map (#1 o snd) (List.filter (fn (_, (_, _, cs)) =>

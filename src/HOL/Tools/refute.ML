@@ -73,7 +73,7 @@ sig
   val specialize_type : theory -> (string * Term.typ) -> Term.term -> Term.term
   val string_of_typ : Term.typ -> string
   val typ_of_dtyp :
-    DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> DatatypeAux.dtyp
+    Datatype.descr -> (Datatype.dtyp * Term.typ) list -> Datatype.dtyp
     -> Term.typ
 end;  (* signature REFUTE *)
 
@@ -410,15 +410,6 @@ struct
 (* ------------------------------------------------------------------------- *)
 (* TRANSLATION HOL -> PROPOSITIONAL LOGIC, BOOLEAN ASSIGNMENT -> MODEL       *)
 (* ------------------------------------------------------------------------- *)
-
-(* ------------------------------------------------------------------------- *)
-(* typ_of_dtyp: converts a data type ('DatatypeAux.dtyp') into a type        *)
-(*              ('Term.typ'), given type parameters for the data type's type *)
-(*              arguments                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-  (* DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list ->
-    DatatypeAux.dtyp -> Term.typ *)
 
   fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
     (* replace a 'DtTFree' variable by the associated type *)
@@ -1660,10 +1651,6 @@ struct
 (*               their arguments) of the size of the argument types          *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> (Term.typ * int) list -> DatatypeAux.descr ->
-    (DatatypeAux.dtyp * Term.typ) list ->
-    (string * DatatypeAux.dtyp list) list -> int *)
-
   fun size_of_dtyp thy typ_sizes descr typ_assoc constructors =
     sum (map (fn (_, dtyps) =>
       product (map (size_of_type thy (typ_sizes, []) o
@@ -2144,7 +2131,6 @@ struct
               (* decrement depth for the IDT 'T' *)
               val typs' = (case AList.lookup (op =) typs T of NONE => typs
                 | SOME n => AList.update (op =) (T, n-1) typs)
-              (* Term.term list -> DatatypeAux.dtyp list -> Term.term list *)
               fun constructor_terms terms [] = terms
                 | constructor_terms terms (d::ds) =
                 let
@@ -2241,7 +2227,6 @@ struct
                     else ()
                   (* returns an interpretation where everything is mapped to *)
                   (* an "undefined" element of the datatype                  *)
-                  (* DatatypeAux.dtyp list -> interpretation *)
                   fun make_undef [] =
                     Leaf (replicate total False)
                     | make_undef (d::ds) =
@@ -2253,7 +2238,6 @@ struct
                       Node (replicate size (make_undef ds))
                     end
                   (* returns the interpretation for a constructor *)
-                  (* int * DatatypeAux.dtyp list -> int * interpretation *)
                   fun make_constr (offset, []) =
                     if offset<total then
                       (offset+1, Leaf ((replicate offset False) @ True ::
@@ -2421,9 +2405,6 @@ struct
                   (* mutually recursive types must have the same type   *)
                   (* parameters, unless the mutual recursion comes from *)
                   (* indirect recursion                                 *)
-                  (* (DatatypeAux.dtyp * Term.typ) list ->
-                    (DatatypeAux.dtyp * Term.typ) list ->
-                    (DatatypeAux.dtyp * Term.typ) list *)
                   fun rec_typ_assoc acc [] =
                     acc
                     | rec_typ_assoc acc ((d, T)::xs) =
@@ -2458,7 +2439,6 @@ struct
                       else
                         raise REFUTE ("IDT_recursion_interpreter",
                           "different type associations for the same dtyp"))
-                  (* (DatatypeAux.dtyp * Term.typ) list *)
                   val typ_assoc = filter
                     (fn (DatatypeAux.DtTFree _, _) => true | (_, _) => false)
                     (rec_typ_assoc []
@@ -2613,7 +2593,6 @@ struct
                         val rec_dtyps_args  = List.filter
                           (DatatypeAux.is_rec_type o fst) (dtyps ~~ args)
                         (* map those indices to interpretations *)
-                        (* (DatatypeAux.dtyp * interpretation) list *)
                         val rec_dtyps_intrs = map (fn (dtyp, arg) =>
                           let
                             val dT     = typ_of_dtyp descr typ_assoc dtyp
@@ -2625,8 +2604,6 @@ struct
                         (* takes the dtyp and interpretation of an element, *)
                         (* and computes the interpretation for the          *)
                         (* corresponding recursive argument                 *)
-                        (* DatatypeAux.dtyp -> interpretation ->
-                          interpretation *)
                         fun rec_intr (DatatypeAux.DtRec i) (Leaf xs) =
                           (* recursive argument is "rec_i params elem" *)
                           compute_array_entry i (find_index_eq True xs)
@@ -3252,8 +3229,6 @@ struct
             (* constructor generates the datatype's element that is given by *)
             (* 'element', returns the constructor (as a term) as well as the *)
             (* indices of the arguments                                      *)
-            (* string * DatatypeAux.dtyp list ->
-              (Term.term * int list) option *)
             fun get_constr_args (cname, cargs) =
               let
                 val cTerm      = Const (cname,
@@ -3281,7 +3256,6 @@ struct
               in
                 Option.map (fn args => (cTerm, cargs, args)) (get_args iC)
               end
-            (* Term.term * DatatypeAux.dtyp list * int list *)
             val (cTerm, cargs, args) =
               (* we could speed things up by computing the correct          *)
               (* constructor directly (rather than testing all              *)

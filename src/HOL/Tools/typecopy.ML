@@ -6,21 +6,13 @@ Introducing copies of types using trivial typedefs; datatype-like abstraction.
 
 signature TYPECOPY =
 sig
-  type info = {
-    vs: (string * sort) list,
-    constr: string,
-    typ: typ,
-    inject: thm,
-    proj: string * typ,
-    proj_def: thm
-  }
+  type info = { vs: (string * sort) list, constr: string, typ: typ,
+    inject: thm, proj: string * typ, proj_def: thm }
   val typecopy: binding * string list -> typ -> (binding * binding) option
     -> theory -> (string * info) * theory
-  val get_typecopies: theory -> string list
   val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val add_default_code: string -> theory -> theory
-  val print_typecopies: theory -> unit
   val setup: theory -> theory
 end;
 
@@ -47,22 +39,6 @@ structure TypecopyData = TheoryDataFun
   fun merge _ = Symtab.merge (K true);
 );
 
-fun print_typecopies thy =
-  let
-    val tab = TypecopyData.get thy;
-    fun mk (tyco, { vs, constr, typ, proj = (proj, _), ... } : info) =
-      (Pretty.block o Pretty.breaks) [
-        Syntax.pretty_typ_global thy (Type (tyco, map TFree vs)),
-        Pretty.str "=",
-        (Pretty.str o Sign.extern_const thy) constr,
-        Syntax.pretty_typ_global thy typ,
-        Pretty.block [Pretty.str "(", (Pretty.str o Sign.extern_const thy) proj, Pretty.str  ")"]];
-    in
-      (Pretty.writeln o Pretty.block o Pretty.fbreaks)
-        (Pretty.str "type copies:" :: map mk (Symtab.dest tab))
-    end;
-
-val get_typecopies = Symtab.keys o TypecopyData.get;
 val get_info = Symtab.lookup o TypecopyData.get;
 
 
@@ -72,7 +48,7 @@ structure TypecopyInterpretation = InterpretationFun(type T = string val eq = op
 val interpretation = TypecopyInterpretation.interpretation;
 
 
-(* declaring typecopies *)
+(* introducing typecopies *)
 
 fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let

@@ -1,9 +1,8 @@
-(*  Title:      HOLCF/IOA/meta_theory/ioa_package.ML
-    ID:         $Id$
+(*  Title:      HOLCF/IOA/meta_theory/ioa.ML
     Author:     Tobias Hamberger, TU Muenchen
 *)
 
-signature IOA_PACKAGE =
+signature IOA =
 sig
   val add_ioa: string -> string
     -> (string) list -> (string) list -> (string) list
@@ -16,7 +15,7 @@ sig
   val add_rename : string -> string -> string -> theory -> theory
 end;
 
-structure IoaPackage: IOA_PACKAGE =
+structure Ioa: IOA =
 struct
 
 val string_of_typ = PrintMode.setmp [] o Syntax.string_of_typ_global;

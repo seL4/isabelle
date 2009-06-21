@@ -7,7 +7,7 @@ Realizers for induction and case analysis
 
 signature DATATYPE_REALIZER =
 sig
-  val add_dt_realizers: DatatypeAux.datatype_config -> string list -> theory -> theory
+  val add_dt_realizers: Datatype.config -> string list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -38,7 +38,7 @@ fun tname_of (Type (s, _)) = s
 
 fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
-fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_info) is thy =
+fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : info) is thy =
   let
     val recTs = get_rec_types descr sorts;
     val pnames = if length descr = 1 then ["P"]
@@ -157,7 +157,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
 
-fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, ...} : datatype_info) thy =
+fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, ...} : info) thy =
   let
     val cert = cterm_of thy;
     val rT = TFree ("'P", HOLogic.typeS);

@@ -6,7 +6,7 @@ Nominal datatype package for Isabelle/HOL.
 
 signature NOMINAL =
 sig
-  val add_nominal_datatype : DatatypeAux.datatype_config -> string list ->
+  val add_nominal_datatype : Datatype.config -> string list ->
     (string list * bstring * mixfix *
       (bstring * string list * mixfix) list) list -> theory -> theory
   type descr
@@ -2084,7 +2084,7 @@ fun mk_datatype args =
     val names = map (fn ((((NONE, _), t), _), _) => t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in add_nominal_datatype DatatypeAux.default_datatype_config names specs end;
+  in add_nominal_datatype Datatype.default_config names specs end;
 
 val _ =
   OuterSyntax.command "nominal_datatype" "define inductive datatypes" K.thy_decl

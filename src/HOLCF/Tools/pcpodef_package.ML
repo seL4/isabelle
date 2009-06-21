@@ -1,11 +1,11 @@
-(*  Title:      HOLCF/Tools/pcpodef_package.ML
+(*  Title:      HOLCF/Tools/pcpodef.ML
     Author:     Brian Huffman
 
 Primitive domain definitions for HOLCF, similar to Gordon/HOL-style
-typedef (see also ~~/src/HOL/Tools/typedef_package.ML).
+typedef (see also ~~/src/HOL/Tools/typedef.ML).
 *)
 
-signature PCPODEF_PACKAGE =
+signature PCPODEF =
 sig
   val pcpodef_proof: (bool * binding) * (binding * string list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
@@ -17,7 +17,7 @@ sig
     * (binding * binding) option -> theory -> Proof.state
 end;
 
-structure PcpodefPackage :> PCPODEF_PACKAGE =
+structure Pcpodef :> PCPODEF =
 struct
 
 (** type definitions **)
