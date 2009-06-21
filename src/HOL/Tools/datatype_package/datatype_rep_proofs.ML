@@ -11,12 +11,10 @@ Proof of characteristic theorems:
 
 signature DATATYPE_REP_PROOFS =
 sig
-  type datatype_config = DatatypeAux.datatype_config
-  type descr = DatatypeAux.descr
-  type datatype_info = DatatypeAux.datatype_info
+  include DATATYPE_COMMON
   val distinctness_limit : int Config.T
   val distinctness_limit_setup : theory -> theory
-  val representation_proofs : datatype_config -> datatype_info Symtab.table ->
+  val representation_proofs : config -> info Symtab.table ->
     string list -> descr list -> (string * sort) list ->
       (binding * mixfix) list -> (binding * mixfix) list list -> attribute
         -> theory -> (thm list list * thm list list * thm list list *
@@ -43,12 +41,12 @@ val f_myinv_f = thm "f_myinv_f";
 val myinv_f_f = thm "myinv_f_f";
 
 
-fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
+fun exh_thm_of (dt_info : info Symtab.table) tname =
   #exhaustion (the (Symtab.lookup dt_info tname));
 
 (******************************************************************************)
 
-fun representation_proofs (config : datatype_config) (dt_info : datatype_info Symtab.table)
+fun representation_proofs (config : config) (dt_info : info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
   let
     val Datatype_thy = ThyInfo.the_theory "Datatype" thy;

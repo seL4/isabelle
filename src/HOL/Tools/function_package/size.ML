@@ -57,7 +57,7 @@ fun constrs_of thy name =
 
 val app = curry (list_comb o swap);
 
-fun prove_size_thms (info : datatype_info) new_type_names thy =
+fun prove_size_thms (info : info) new_type_names thy =
   let
     val {descr, alt_names, sorts, rec_names, rec_rewrites, induction, ...} = info;
     val l = length new_type_names;

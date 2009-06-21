@@ -12,10 +12,10 @@ sig
     -> seed -> (('a -> 'b) * (unit -> Term.term)) * seed
   val ensure_random_typecopy: string -> theory -> theory
   val random_aux_specification: string -> term list -> local_theory -> local_theory
-  val mk_random_aux_eqs: theory -> DatatypeAux.descr -> (string * sort) list
+  val mk_random_aux_eqs: theory -> Datatype.descr -> (string * sort) list
     -> string list -> string list * string list -> typ list * typ list
     -> string * (term list * (term * term) list)
-  val ensure_random_datatype: DatatypeAux.datatype_config -> string list -> theory -> theory
+  val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
   val setup: theory -> theory
 end;

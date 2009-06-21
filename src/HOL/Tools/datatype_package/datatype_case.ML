@@ -7,16 +7,16 @@ Nested case expressions on datatypes.
 
 signature DATATYPE_CASE =
 sig
-  val make_case: (string -> DatatypeAux.datatype_info option) ->
+  val make_case: (string -> DatatypeAux.info option) ->
     Proof.context -> bool -> string list -> term -> (term * term) list ->
     term * (term * (int * bool)) list
-  val dest_case: (string -> DatatypeAux.datatype_info option) -> bool ->
+  val dest_case: (string -> DatatypeAux.info option) -> bool ->
     string list -> term -> (term * (term * term) list) option
-  val strip_case: (string -> DatatypeAux.datatype_info option) -> bool ->
+  val strip_case: (string -> DatatypeAux.info option) -> bool ->
     term -> (term * (term * term) list) option
-  val case_tr: bool -> (theory -> string -> DatatypeAux.datatype_info option)
+  val case_tr: bool -> (theory -> string -> DatatypeAux.info option)
     -> Proof.context -> term list -> term
-  val case_tr': (theory -> string -> DatatypeAux.datatype_info option) ->
+  val case_tr': (theory -> string -> DatatypeAux.info option) ->
     string -> Proof.context -> term list -> term
 end;
 
@@ -31,7 +31,7 @@ fun match_type thy pat ob = Sign.typ_match thy (pat, ob) Vartab.empty;
  * Get information about datatypes
  *---------------------------------------------------------------------------*)
 
-fun ty_info (tab : string -> DatatypeAux.datatype_info option) s =
+fun ty_info (tab : string -> DatatypeAux.info option) s =
   case tab s of
     SOME {descr, case_name, index, sorts, ...} =>
       let
