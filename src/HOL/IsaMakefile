@@ -494,7 +494,8 @@ $(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
 
 HOL-NewNumberTheory: HOL $(LOG)/HOL-NewNumberTheory.gz
 
-$(LOG)/HOL-NewNumberTheory.gz: $(OUT)/HOL GCD.thy Library/Multiset.thy	\
+$(LOG)/HOL-NewNumberTheory.gz: $(OUT)/HOL $(LOG)/HOL-Algebra.gz \
+  GCD.thy Library/Multiset.thy	\
   NewNumberTheory/Fib.thy NewNumberTheory/Binomial.thy			\
   NewNumberTheory/Residues.thy NewNumberTheory/UniqueFactorization.thy  \
   NewNumberTheory/Cong.thy NewNumberTheory/MiscAlgebra.thy \
