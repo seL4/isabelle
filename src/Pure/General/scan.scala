@@ -19,11 +19,8 @@ object Scan
     private case class Tree(val branches: Map[Char, (String, Tree)])
     private val empty_tree = Tree(Map())
 
-    private def make(tree: Tree, max: Int): Lexicon =
-      new Lexicon {
-        override val main_tree = tree
-        override val max_entry = max
-      }
+    private def make(tree: Tree): Lexicon =
+      new Lexicon { override val main_tree = tree }
 
     val empty: Lexicon = new Lexicon
     def apply(strs: String*): Lexicon = (empty /: strs) ((lex, str) => lex + str)
@@ -35,7 +32,6 @@ object Scan
 
     import Lexicon.Tree
     val main_tree: Tree = Lexicon.empty_tree
-    val max_entry = -1
 
 
     /* auxiliary operations */
@@ -74,7 +70,7 @@ object Scan
 
     override def stringPrefix = "Lexicon"
 
-    override def isEmpty: Boolean = { max_entry < 0 }
+    override def isEmpty: Boolean = { main_tree.branches.isEmpty }
 
     def size: Int = content(main_tree, Nil).length
     def elements: Iterator[String] = content(main_tree, Nil).sort(_ <= _).elements
@@ -102,7 +98,7 @@ object Scan
         } else tree
       }
       if (contains(str)) this
-      else Lexicon.make(extend(main_tree, 0), max_entry max str.length)
+      else Lexicon.make(extend(main_tree, 0))
     }
 
     def empty[A]: Set[A] = error("Undefined")
