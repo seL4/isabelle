@@ -201,7 +201,7 @@ lemma
    "(cl,f) \<in> CLF ==> 
     CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
-by auto
+by fast
 (*??no longer terminates, with combinators
 by (metis Collect_mem_eq SigmaD2 subsetD)
 *)
