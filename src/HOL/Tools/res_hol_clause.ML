@@ -28,13 +28,18 @@ sig
   val strip_comb: combterm -> combterm * combterm list
   val literals_of_term: theory -> term -> literal list * typ list
   exception TOO_TRIVIAL
-  val count_constants: clause list * clause list * clause list * 'a * 'b ->
-    int Symtab.table * bool Symtab.table
-  val prepare_clauses: bool -> theory -> bool -> thm list -> (thm * (axiom_name * clause_id)) list ->
-    string list -> axiom_name list * (clause list * clause list * clause list)
-  val tptp_write_file: string -> int Symtab.table * bool Symtab.table ->
+  val make_conjecture_clauses:  bool -> theory -> thm list -> clause list (* dfg thy ccls *)
+  val make_axiom_clauses: bool ->
+       theory ->
+       (thm * (axiom_name * clause_id)) list -> (axiom_name * clause) list (* dfg thy axcls *)
+  val get_helper_clauses: bool ->
+       theory ->
+       bool ->
+       clause list * (thm * (axiom_name * clause_id)) list * string list ->
+       clause list
+  val tptp_write_file: string ->
     clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
-  val dfg_write_file: string -> int Symtab.table * bool Symtab.table ->
+  val dfg_write_file: string -> 
     clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
 end
 
@@ -403,10 +408,12 @@ fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) =
 fun cnf_helper_thms thy =
   ResAxioms.cnf_rules_pairs thy o map ResAxioms.pairname
 
-fun get_helper_clauses dfg thy isFO (conjectures, axclauses, user_lemmas) =
+fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
   if isFO then []  (*first-order*)
   else
-    let val ct0 = List.foldl count_clause init_counters conjectures
+    let
+        val axclauses = map #2 (make_axiom_clauses dfg thy axcls)
+        val ct0 = List.foldl count_clause init_counters conjectures
         val ct = List.foldl (count_user_clause user_lemmas) ct0 axclauses
         fun needed c = valOf (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK"
@@ -462,20 +469,12 @@ fun count_constants (conjectures, axclauses, helper_clauses, _, _) =
      in (const_min_arity, const_needs_hBOOL) end
   else (Symtab.empty, Symtab.empty);
 
-
-fun prepare_clauses dfg thy isFO thms ax_tuples user_lemmas =
-  let
-    val conjectures = make_conjecture_clauses dfg thy thms
-    val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses dfg thy ax_tuples)
-    val helper_clauses = get_helper_clauses dfg thy isFO (conjectures, axclauses, user_lemmas)
-  in
-    (clnames, (conjectures, axclauses, helper_clauses))
-  end
-
 (* tptp format *)
 
-fun tptp_write_file filename const_counts (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) =
+fun tptp_write_file filename clauses =
   let
+    val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
+    val const_counts = count_constants clauses
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp const_counts) conjectures)
     val tfree_clss = map RC.tptp_tfree_clause (List.foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
@@ -492,8 +491,10 @@ fun tptp_write_file filename const_counts (conjectures, axclauses, helper_clause
 
 (* dfg format *)
 
-fun dfg_write_file filename const_counts (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) =
+fun dfg_write_file filename clauses =
   let
+    val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
+    val const_counts = count_constants clauses
     val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg const_counts) conjectures)
     and probname = Path.implode (Path.base (Path.explode filename))
     val axstrs = map (#1 o (clause2dfg const_counts)) axclauses

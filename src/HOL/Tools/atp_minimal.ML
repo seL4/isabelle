@@ -83,9 +83,9 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun produce_answer (success, message, result_string, thm_name_vec, const_counts) =
+fun produce_answer (success, message, result_string, thm_name_vec, filtered) =
   if success then
-    (Success (Vector.foldr op:: [] thm_name_vec, const_counts), result_string)
+    (Success (Vector.foldr op:: [] thm_name_vec, filtered), result_string)
   else
     let
       val failure = failure_strings |> get_first (fn (s, t) =>
@@ -100,7 +100,7 @@ fun produce_answer (success, message, result_string, thm_name_vec, const_counts)
 
 (* wrapper for calling external prover *)
 
-fun sh_test_thms prover prover_name time_limit subgoalno state counts name_thms_pairs =
+fun sh_test_thms prover prover_name time_limit subgoalno state filtered name_thms_pairs =
   let
     val _ = println ("Testing " ^ (length_string name_thms_pairs) ^ " theorems... ")
     val name_thm_pairs =
@@ -109,7 +109,7 @@ fun sh_test_thms prover prover_name time_limit subgoalno state counts name_thms_
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val (result, proof) =
       produce_answer
-        (prover time_limit (SOME axclauses) counts prover_name subgoalno (Proof.get_goal state))
+        (prover time_limit (SOME axclauses) filtered prover_name subgoalno (Proof.get_goal state))
     val _ = println (string_of_result result)
     val _ = debug proof
   in
@@ -127,11 +127,12 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
     val _ = debug_fn (fn () => app (fn (n, tl) =>
         (debug n; app (fn t => debug ("  " ^ Display.string_of_thm t)) tl)) name_thms_pairs)
     val test_thms_fun = sh_test_thms prover prover_name time_limit 1 state
-    fun test_thms counts thms = case test_thms_fun counts thms of (Success _, _) => true | _ => false
+    fun test_thms filtered thms =
+      case test_thms_fun filtered thms of (Success _, _) => true | _ => false
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
-      (Success (used, const_counts), _) =>
+      (Success (used, filtered), _) =>
         let
           val ordered_used = order_unique used
           val to_use =
@@ -139,7 +140,7 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
             else
               name_thms_pairs
-          val min_thms = (minimal (test_thms (SOME const_counts)) to_use)
+          val min_thms = (minimal (test_thms (SOME filtered)) to_use)
           val min_names = order_unique (map fst min_thms)
           val _ = println ("Minimal " ^ (length_string min_thms) ^ " theorems")
           val _ = debug_fn (fn () => print_names min_thms)

@@ -41,7 +41,7 @@ val problem_name = ref "prob";
 (* basic template *)
 
 fun external_prover relevance_filter preparer writer (cmd, args) find_failure produce_answer
-  timeout axiom_clauses const_counts name subgoalno goal =
+  timeout axiom_clauses filtered_clauses name subgoalno goal =
   let
     (* path to unique problem file *)
     val destdir' = ! destdir
@@ -62,24 +62,20 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       handle THM ("assume: variables", _, _) =>
         error "Sledgehammer: Goal contains type variables (TVars)"
     val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) goal_cls
+    val the_filtered_clauses =
+      case filtered_clauses of
+          NONE => relevance_filter goal goal_cls
+        | SOME fcls => fcls
     val the_axiom_clauses =
       case axiom_clauses of
-          NONE => relevance_filter goal goal_cls
+          NONE => the_filtered_clauses
         | SOME axcls => axcls
-    val (thm_names, clauses) = preparer goal_cls chain_ths the_axiom_clauses thy
-    val the_const_counts = case const_counts of
-      NONE =>
-        ResHolClause.count_constants(
-          case axiom_clauses of
-            NONE => clauses
-            | SOME axcls => #2(preparer goal_cls chain_ths (relevance_filter goal goal_cls) thy)
-          )
-      | SOME ccs => ccs
+    val (thm_names, clauses) = preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
     val probfile = prob_pathname subgoalno
     val fname = File.platform_path probfile
-    val _ = writer fname the_const_counts clauses
+    val _ = writer fname clauses
     val cmdline =
       if File.exists cmd then "exec " ^ File.shell_path cmd ^ " " ^ args
       else error ("Bad executable: " ^ Path.implode cmd)
@@ -101,7 +97,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       else if rc <> 0 then "External prover failed: " ^ proof
       else "Try this command: " ^ produce_answer name (proof, thm_names, ctxt, th, subgoalno)
     val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
-  in (success, message, proof, thm_names, the_const_counts) end;
+  in (success, message, proof, thm_names, the_filtered_clauses) end;
 
 
 
@@ -109,7 +105,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
 
 (* generic TPTP-based provers *)
 
-fun tptp_prover_opts_full max_new theory_const full command timeout ax_clauses ccs name n goal =
+fun tptp_prover_opts_full max_new theory_const full command timeout ax_clauses fcls name n goal =
   external_prover
   (ResAtp.get_relevant max_new theory_const)
   (ResAtp.prepare_clauses false)
@@ -117,7 +113,7 @@ fun tptp_prover_opts_full max_new theory_const full command timeout ax_clauses c
   command
   ResReconstruct.find_failure
   (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
-  timeout ax_clauses ccs name n goal;
+  timeout ax_clauses fcls name n goal;
 
 (*arbitrary ATP with TPTP input/output and problemfile as last argument*)
 fun tptp_prover_opts max_new theory_const =
@@ -174,7 +170,7 @@ val eprover_full = eprover_opts_full 100 false;
 
 (* SPASS *)
 
-fun spass_opts max_new theory_const timeout ax_clauses ccs name n goal = external_prover
+fun spass_opts max_new theory_const timeout ax_clauses fcls name n goal = external_prover
   (ResAtp.get_relevant max_new theory_const)
   (ResAtp.prepare_clauses true)
   ResHolClause.dfg_write_file
@@ -182,7 +178,7 @@ fun spass_opts max_new theory_const timeout ax_clauses ccs name n goal = externa
     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
   ResReconstruct.find_failure
   ResReconstruct.lemma_list_dfg
-  timeout ax_clauses ccs name n goal;
+  timeout ax_clauses fcls name n goal;
 
 val spass = spass_opts 40 true;
 

@@ -9,6 +9,7 @@ sig
   val get_relevant : int -> bool -> Proof.context * (thm list * 'a) -> thm list ->
     (thm * (string * int)) list
   val prepare_clauses : bool -> thm list -> thm list ->
+    (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list ->
     (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list -> theory ->
     ResHolClause.axiom_name vector * (ResHolClause.clause list * ResHolClause.clause list *
     ResHolClause.clause list * ResClause.classrelClause list * ResClause.arityClause list)
@@ -526,26 +527,30 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
     relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
   end;
 
-(* prepare for passing to writer *)
-fun prepare_clauses dfg goal_cls chain_ths axcls thy =
+(* prepare for passing to writer,
+   create additional clauses based on the information from extra_cls *)
+fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
-    val white_thms = filter check_named (map ResAxioms.pairname (if null chain_ths then whitelist else chain_ths))
+    val white_thms =
+      filter check_named (map ResAxioms.pairname (if null chain_ths then whitelist else chain_ths))
     val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
-    val axcls = white_cls @ axcls
-    val ccls = subtract_cls goal_cls axcls
+    val extra_cls = white_cls @ extra_cls
+    val ccls = subtract_cls goal_cls extra_cls
     val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) ccls
     val ccltms = map prop_of ccls
-    and axtms = map (prop_of o #1) axcls
+    and axtms = map (prop_of o #1) extra_cls
     val subs = tfree_classes_of_terms ccltms
     and supers = tvar_classes_of_terms axtms
     and tycons = type_consts_of_terms thy (ccltms@axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val (clnames, (conjectures, axiom_clauses, helper_clauses)) =
-      ResHolClause.prepare_clauses dfg thy (isFO thy goal_cls) ccls axcls []
+    val conjectures = ResHolClause.make_conjecture_clauses dfg thy ccls
+    val (clnames,axiom_clauses) = ListPair.unzip (ResHolClause.make_axiom_clauses dfg thy axcls)
+    val helper_clauses = ResHolClause.get_helper_clauses dfg thy (isFO thy goal_cls) (conjectures, extra_cls, [])
     val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
     val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
   in
-    (Vector.fromList clnames, (conjectures, axiom_clauses, helper_clauses, classrel_clauses, arity_clauses))
+    (Vector.fromList clnames,
+      (conjectures, axiom_clauses, helper_clauses, classrel_clauses, arity_clauses))
   end
 
 end;

@@ -20,9 +20,9 @@ sig
   val info: unit -> unit
   val messages: int option -> unit
   type prover = int -> (thm * (string * int)) list option ->
-    (int Symtab.table * bool Symtab.table) option -> string -> int ->
+    (thm * (string * int)) list option -> string -> int ->
     Proof.context * (thm list * thm) ->
-    bool * string * string * string vector * (int Symtab.table * bool Symtab.table)
+    bool * string * string * string vector * (thm * (string * int)) list
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
   val get_prover: string -> theory -> prover option
@@ -292,9 +292,9 @@ fun messages opt_limit =
 (* named provers *)
 
 type prover = int -> (thm * (string * int)) list option ->
-  (int Symtab.table * bool Symtab.table) option -> string -> int ->
+  (thm * (string * int)) list option -> string -> int ->
   Proof.context * (thm list * thm) ->
-  bool * string * string * string vector * (int Symtab.table * bool Symtab.table)
+  bool * string * string * string vector * (thm * (string * int)) list
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
