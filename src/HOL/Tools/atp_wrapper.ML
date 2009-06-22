@@ -85,8 +85,13 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       else error ("Bad executable: " ^ Path.implode cmd)
     val (proof, rc) = system_out (cmdline ^ " " ^ fname)
 
-    (* remove *temporary* files *)
-    val _ = if destdir' = "" then OS.FileSys.remove fname else ()
+    (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
+    val _ =
+      if destdir' = "" then OS.FileSys.remove fname
+      else
+        let val out = TextIO.openOut (fname ^ "_proof")
+        val _ = TextIO.output (out, proof)
+        in TextIO.closeOut out end
     
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
