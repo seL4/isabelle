@@ -1,11 +1,12 @@
 (*  Title:      HOL/Isar_examples/Drinker.thy
-    ID:         $Id$
     Author:     Makarius
 *)
 
 header {* The Drinker's Principle *}
 
-theory Drinker imports Main begin
+theory Drinker
+imports Main
+begin
 
 text {*
   Here is another example of classical reasoning: the Drinker's

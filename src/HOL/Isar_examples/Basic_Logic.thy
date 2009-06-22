@@ -1,5 +1,4 @@
-(*  Title:      HOL/Isar_examples/BasicLogic.thy
-    ID:         $Id$
+(*  Title:      HOL/Isar_examples/Basic_Logic.thy
     Author:     Markus Wenzel, TU Muenchen
 
 Basic propositional and quantifier reasoning.
@@ -7,7 +6,9 @@ Basic propositional and quantifier reasoning.
 
 header {* Basic logical reasoning *}
 
-theory BasicLogic imports Main begin
+theory Basic_Logic
+imports Main
+begin
 
 
 subsection {* Pure backward reasoning *}

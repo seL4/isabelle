@@ -1,12 +1,13 @@
-(*  Title:      HOL/Isar_examples/MutilatedCheckerboard.thy
-    ID:         $Id$
+(*  Title:      HOL/Isar_examples/Mutilated_Checkerboard.thy
     Author:     Markus Wenzel, TU Muenchen (Isar document)
-                Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
 *)
 
 header {* The Mutilated Checker Board Problem *}
 
-theory MutilatedCheckerboard imports Main begin
+theory Mutilated_Checkerboard
+imports Main
+begin
 
 text {*
  The Mutilated Checker Board Problem, formalized inductively.  See

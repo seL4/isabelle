@@ -1,5 +1,4 @@
 (*  Title:      HOL/Isar_examples/Hoare.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 A formulation of Hoare logic suitable for Isar.
@@ -7,8 +6,10 @@ A formulation of Hoare logic suitable for Isar.
 
 header {* Hoare Logic *}
 
-theory Hoare imports Main
-uses ("~~/src/HOL/Hoare/hoare_tac.ML") begin
+theory Hoare
+imports Main
+uses ("~~/src/HOL/Hoare/hoare_tac.ML")
+begin
 
 subsection {* Abstract syntax and semantics *}
 

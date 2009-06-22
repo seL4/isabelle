@@ -1,11 +1,12 @@
 (*  Title:      HOL/Isar_examples/Peirce.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Peirce's Law *}
 
-theory Peirce imports Main begin
+theory Peirce
+imports Main
+begin
 
 text {*
  We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.  This is

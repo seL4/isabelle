@@ -1,5 +1,4 @@
-(*  Title:      HOL/Isar_examples/ExprCompiler.thy
-    ID:         $Id$
+(*  Title:      HOL/Isar_examples/Expr_Compiler.thy
     Author:     Markus Wenzel, TU Muenchen
 
 Correctness of a simple expression/stack-machine compiler.
@@ -7,7 +6,9 @@ Correctness of a simple expression/stack-machine compiler.
 
 header {* Correctness of a simple expression compiler *}
 
-theory ExprCompiler imports Main begin
+theory Expr_Compiler
+imports Main
+begin
 
 text {*
  This is a (rather trivial) example of program verification.  We model

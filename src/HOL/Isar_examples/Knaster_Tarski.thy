@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/KnasterTarski.thy
+(*  Title:      HOL/Isar_examples/Knaster_Tarski.thy
     Author:     Markus Wenzel, TU Muenchen
 
 Typical textbook proof example.
@@ -6,7 +6,7 @@ Typical textbook proof example.
 
 header {* Textbook-style reasoning: the Knaster-Tarski Theorem *}
 
-theory KnasterTarski
+theory Knaster_Tarski
 imports Main Lattice_Syntax
 begin
 

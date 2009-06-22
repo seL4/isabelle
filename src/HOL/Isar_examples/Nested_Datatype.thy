@@ -1,9 +1,8 @@
-
-(* $Id$ *)
-
 header {* Nested datatypes *}
 
-theory NestedDatatype imports Main begin
+theory Nested_Datatype
+imports Main
+begin
 
 subsection {* Terms and substitution *}
 

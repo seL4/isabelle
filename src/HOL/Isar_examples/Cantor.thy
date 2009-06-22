@@ -1,11 +1,12 @@
 (*  Title:      HOL/Isar_examples/Cantor.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Cantor's Theorem *}
 
-theory Cantor imports Main begin
+theory Cantor
+imports Main
+begin
 
 text_raw {*
   \footnote{This is an Isar version of the final example of the

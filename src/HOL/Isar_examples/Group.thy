@@ -1,11 +1,12 @@
 (*  Title:      HOL/Isar_examples/Group.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Basic group theory *}
 
-theory Group imports Main begin
+theory Group
+imports Main
+begin
 
 subsection {* Groups and calculational reasoning *} 
 

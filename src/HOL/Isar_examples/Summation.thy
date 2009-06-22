@@ -1,5 +1,4 @@
 (*  Title:      HOL/Isar_examples/Summation.thy
-    ID:         $Id$
     Author:     Markus Wenzel
 *)
 

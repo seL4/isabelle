@@ -1,7 +1,8 @@
-
 header {* Using Hoare Logic *}
 
-theory HoareEx imports Hoare begin
+theory Hoare_Ex
+imports Hoare
+begin
 
 subsection {* State spaces *}
 

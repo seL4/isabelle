@@ -886,13 +886,13 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
 
 HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
 
-$(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy	\
+$(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/Basic_Logic.thy	\
   Isar_examples/Cantor.thy Isar_examples/Drinker.thy			\
-  Isar_examples/ExprCompiler.thy Isar_examples/Fibonacci.thy		\
+  Isar_examples/Expr_Compiler.thy Isar_examples/Fibonacci.thy		\
   Isar_examples/Group.thy Isar_examples/Hoare.thy			\
-  Isar_examples/HoareEx.thy Isar_examples/KnasterTarski.thy		\
-  Isar_examples/MutilatedCheckerboard.thy				\
-  Isar_examples/NestedDatatype.thy Isar_examples/Peirce.thy		\
+  Isar_examples/Hoare_Ex.thy Isar_examples/Knaster_Tarski.thy		\
+  Isar_examples/Mutilated_Checkerboard.thy				\
+  Isar_examples/Nested_Datatype.thy Isar_examples/Peirce.thy		\
   Isar_examples/Puzzle.thy Isar_examples/Summation.thy			\
   Isar_examples/ROOT.ML Isar_examples/document/proof.sty		\
   Isar_examples/document/root.bib Isar_examples/document/root.tex	\
