@@ -63,6 +63,8 @@ fun report_parse_tree depth space =
 
 (* eval ML source tokens *)
 
+val offset_of = the_default 0 o Position.offset_of;
+
 fun eval verbose pos toks =
   let
     val _ = Secure.secure_mltext ();
@@ -80,25 +82,24 @@ fun eval verbose pos toks =
         val syms = Symbol.explode (ML_Lex.check_content_of tok);
         val (ps, _) = fold_map (fn s => fn p => (p, Position.advance s p)) syms
           (Position.reset_range (ML_Lex.pos_of tok));
-      in ps ~~ map (String.explode o Symbol.esc) syms end);
+      in
+        (ps ~~ syms) |> maps (fn (p, sym) =>
+          map (pair (offset_of p)) (String.explode (Symbol.esc sym)))
+      end);
 
     val end_pos =
       if null toks then Position.none
       else ML_Lex.end_pos_of (List.last toks);
 
-    val input_buffer = ref (input @ [(end_pos, [#"\n"])]);
+    val input_buffer = ref (input @ [(offset_of end_pos, #"\n")]);
     val line = ref (the_default 1 (Position.line_of pos));
 
-    fun get_offset () =
-      the_default 0
-        (get_first (fn (_, []) => NONE | (p, _) => Position.offset_of p) (! input_buffer));
-
+    fun get_offset () = (case ! input_buffer of [] => 0 | (i, _) :: _ => i);
     fun get () =
       (case ! input_buffer of
         [] => NONE
-      | (_, []) :: rest => (input_buffer := rest; get ())
-      | (p, c :: cs) :: rest =>
-          (input_buffer := (p, cs) :: rest;
+      | (_, c) :: rest =>
+          (input_buffer := rest;
            if c = #"\n" then line := ! line + 1 else ();
            SOME c));
 
