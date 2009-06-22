@@ -54,12 +54,10 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
         else error ("No such directory: " ^ destdir')
       end
 
-    (* write out problem file and call prover *)
+    (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal
     val thy = ProofContext.theory_of ctxt
     val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
-    val probfile = prob_pathname subgoalno
-    val fname = File.platform_path probfile
     val goal_cls = #1 (ResAxioms.neg_conjecture_clauses th subgoalno)
       handle THM ("assume: variables", _, _) =>
         error "Sledgehammer: Goal contains type variables (TVars)"
@@ -77,6 +75,10 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
             | SOME axcls => #2(preparer goal_cls chain_ths (relevance_filter goal goal_cls) thy)
           )
       | SOME ccs => ccs
+
+    (* write out problem file and call prover *)
+    val probfile = prob_pathname subgoalno
+    val fname = File.platform_path probfile
     val _ = writer fname the_const_counts clauses
     val cmdline =
       if File.exists cmd then "exec " ^ File.shell_path cmd ^ " " ^ args
