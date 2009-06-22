@@ -143,8 +143,8 @@ text {* Note that in Isabelle/HOL there is no symbol for strict
 
 interpretation nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
-    and nat_dvd_meet_eq: "lattice.meet op dvd = gcd"
-    and nat_dvd_join_eq: "lattice.join op dvd = lcm"
+    and nat_dvd_meet_eq: "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
+    and nat_dvd_join_eq: "lattice.join (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = lcm"
 proof -
   show "lattice (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     apply unfold_locales
@@ -152,23 +152,24 @@ proof -
     apply (rule_tac x = "gcd x y" in exI)
     apply auto [1]
     apply (rule_tac x = "lcm x y" in exI)
-    apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
+    apply (auto intro: nat_lcm_least)
     done
   then interpret nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool" .
   show "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
     by (rule nat_dvd_less_eq)
-  show "lattice.meet op dvd = gcd"
+  show "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
     apply (auto simp add: expand_fun_eq)
     apply (unfold nat_dvd.meet_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_inf_def)
     by auto
-  show "lattice.join op dvd = lcm"
+  show "lattice.join (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = lcm"
     apply (auto simp add: expand_fun_eq)
     apply (unfold nat_dvd.join_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_sup_def)
-    by (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
+    apply (auto intro: nat_lcm_least iff: nat_lcm_unique)
+    done
 qed
 
 text {* Equations @{thm [source] nat_dvd_meet_eq} and @{thm [source]
@@ -198,8 +199,8 @@ lemma %invisible gcd_lcm_distr:
 interpretation %visible nat_dvd:
   distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
-    and "lattice.meet op dvd = gcd"
-    and "lattice.join op dvd = lcm"
+    and "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
+    and "lattice.join (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = lcm"
 proof -
   show "distrib_lattice (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     apply unfold_locales

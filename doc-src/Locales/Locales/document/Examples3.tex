@@ -307,8 +307,8 @@ Note that in Isabelle/HOL there is no symbol for strict
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}join\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -330,7 +330,7 @@ Note that in Isabelle/HOL there is no symbol for strict
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}lcm\ x\ y{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}auto\ intro{\isacharcolon}\ lcm{\isacharunderscore}dvd{\isadigit{1}}\ lcm{\isacharunderscore}dvd{\isadigit{2}}\ lcm{\isacharunderscore}least{\isacharparenright}\isanewline
+\ {\isacharparenleft}auto\ intro{\isacharcolon}\ nat{\isacharunderscore}lcm{\isacharunderscore}least{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{done}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{then}\isamarkupfalse%
@@ -342,7 +342,7 @@ Note that in Isabelle/HOL there is no symbol for strict
 \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}rule\ nat{\isacharunderscore}dvd{\isacharunderscore}less{\isacharunderscore}eq{\isacharparenright}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ expand{\isacharunderscore}fun{\isacharunderscore}eq{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
@@ -354,7 +354,7 @@ Note that in Isabelle/HOL there is no symbol for strict
 \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}lattice{\isachardot}join\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ expand{\isacharunderscore}fun{\isacharunderscore}eq{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
@@ -363,8 +363,10 @@ Note that in Isabelle/HOL there is no symbol for strict
 \ {\isacharparenleft}rule\ the{\isacharunderscore}equality{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}unfold\ nat{\isacharunderscore}dvd{\isachardot}is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto\ intro{\isacharcolon}\ lcm{\isacharunderscore}dvd{\isadigit{1}}\ lcm{\isacharunderscore}dvd{\isadigit{2}}\ lcm{\isacharunderscore}least{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ intro{\isacharcolon}\ nat{\isacharunderscore}lcm{\isacharunderscore}least\ iff{\isacharcolon}\ nat{\isacharunderscore}lcm{\isacharunderscore}unique{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{done}\isamarkupfalse%
+\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -407,8 +409,8 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \ nat{\isacharunderscore}dvd{\isacharcolon}\isanewline
 \ \ distrib{\isacharunderscore}lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
