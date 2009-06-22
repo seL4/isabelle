@@ -371,4 +371,3 @@ apply (simp add: sylow_eq sylow_axioms_def)
 done
 
 end
-

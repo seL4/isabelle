@@ -51,7 +51,7 @@ definition
 
 subsection{*Basic Properties of @{term Pi}*}
 
-lemma Pi_I: "(!!x. x \<in> A ==> f x \<in> B x) ==> f \<in> Pi A B"
+lemma Pi_I[intro!]: "(!!x. x \<in> A ==> f x \<in> B x) ==> f \<in> Pi A B"
   by (simp add: Pi_def)
 
 lemma Pi_I'[simp]: "(!!x. x : A --> f x : B x) ==> f : Pi A B"
@@ -63,13 +63,17 @@ lemma funcsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f \<in> A -> B"
 lemma Pi_mem: "[|f: Pi A B; x \<in> A|] ==> f x \<in> B x"
   by (simp add: Pi_def)
 
+lemma ballE [elim]:
+  "f : Pi A B ==> (f x : B x ==> Q) ==> (x ~: A ==> Q) ==> Q"
+by(auto simp: Pi_def)
+
 lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
   by (simp add: Pi_def)
 
 lemma funcset_image: "f \<in> A\<rightarrow>B ==> f ` A \<subseteq> B"
-  by (auto simp add: Pi_def)
+by auto
 
-lemma Pi_eq_empty: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
+lemma Pi_eq_empty[simp]: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
 apply (simp add: Pi_def, auto)
 txt{*Converse direction requires Axiom of Choice to exhibit a function
 picking an element from each non-empty @{term "B x"}*}
@@ -78,36 +82,36 @@ apply (cut_tac P= "%y. y \<in> B x" in some_eq_ex, auto)
 done
 
 lemma Pi_empty [simp]: "Pi {} B = UNIV"
-  by (simp add: Pi_def)
+by (simp add: Pi_def)
 
 lemma Pi_UNIV [simp]: "A -> UNIV = UNIV"
-  by (simp add: Pi_def)
+by (simp add: Pi_def)
 (*
 lemma funcset_id [simp]: "(%x. x): A -> A"
   by (simp add: Pi_def)
 *)
 text{*Covariance of Pi-sets in their second argument*}
 lemma Pi_mono: "(!!x. x \<in> A ==> B x <= C x) ==> Pi A B <= Pi A C"
-  by (simp add: Pi_def, blast)
+by auto
 
 text{*Contravariance of Pi-sets in their first argument*}
 lemma Pi_anti_mono: "A' <= A ==> Pi A B <= Pi A' B"
-  by (simp add: Pi_def, blast)
+by auto
 
 
 subsection{*Composition With a Restricted Domain: @{term compose}*}
 
 lemma funcset_compose:
-    "[| f \<in> A -> B; g \<in> B -> C |]==> compose A g f \<in> A -> C"
-  by (simp add: Pi_def compose_def restrict_def)
+  "[| f \<in> A -> B; g \<in> B -> C |]==> compose A g f \<in> A -> C"
+by (simp add: Pi_def compose_def restrict_def)
 
 lemma compose_assoc:
     "[| f \<in> A -> B; g \<in> B -> C; h \<in> C -> D |]
       ==> compose A h (compose A g f) = compose A (compose B h g) f"
-  by (simp add: expand_fun_eq Pi_def compose_def restrict_def)
+by (simp add: expand_fun_eq Pi_def compose_def restrict_def)
 
 lemma compose_eq: "x \<in> A ==> compose A g f x = g(f(x))"
-  by (simp add: compose_def restrict_def)
+by (simp add: compose_def restrict_def)
 
 lemma surj_compose: "[| f ` A = B; g ` B = C |] ==> compose A g f ` A = C"
   by (auto simp add: image_def compose_eq)
@@ -118,7 +122,7 @@ subsection{*Bounded Abstraction: @{term restrict}*}
 lemma restrict_in_funcset: "(!!x. x \<in> A ==> f x \<in> B) ==> (\<lambda>x\<in>A. f x) \<in> A -> B"
   by (simp add: Pi_def restrict_def)
 
-lemma restrictI: "(!!x. x \<in> A ==> f x \<in> B x) ==> (\<lambda>x\<in>A. f x) \<in> Pi A B"
+lemma restrictI[intro!]: "(!!x. x \<in> A ==> f x \<in> B x) ==> (\<lambda>x\<in>A. f x) \<in> Pi A B"
   by (simp add: Pi_def restrict_def)
 
 lemma restrict_apply [simp]:
@@ -127,7 +131,7 @@ lemma restrict_apply [simp]:
 
 lemma restrict_ext:
     "(!!x. x \<in> A ==> f x = g x) ==> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
-  by (simp add: expand_fun_eq Pi_def Pi_def restrict_def)
+  by (simp add: expand_fun_eq Pi_def restrict_def)
 
 lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A = inj_on f A"
   by (simp add: inj_on_def restrict_def)
@@ -150,68 +154,66 @@ text{*The definition of @{const bij_betw} is in @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
 
 lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
-  by (auto simp add: bij_betw_def inj_on_Inv Pi_def)
+by (auto simp add: bij_betw_def inj_on_Inv)
 
 lemma inj_on_compose:
-    "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
-  by (auto simp add: bij_betw_def inj_on_def compose_eq)
+  "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
+by (auto simp add: bij_betw_def inj_on_def compose_eq)
 
 lemma bij_betw_compose:
-    "[| bij_betw f A B; bij_betw g B C |] ==> bij_betw (compose A g f) A C"
-  apply (simp add: bij_betw_def compose_eq inj_on_compose)
-  apply (auto simp add: compose_def image_def)
-  done
+  "[| bij_betw f A B; bij_betw g B C |] ==> bij_betw (compose A g f) A C"
+apply (simp add: bij_betw_def compose_eq inj_on_compose)
+apply (auto simp add: compose_def image_def)
+done
 
 lemma bij_betw_restrict_eq [simp]:
-     "bij_betw (restrict f A) A B = bij_betw f A B"
-  by (simp add: bij_betw_def)
+  "bij_betw (restrict f A) A B = bij_betw f A B"
+by (simp add: bij_betw_def)
 
 
 subsection{*Extensionality*}
 
 lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = undefined"
-  by (simp add: extensional_def)
+by (simp add: extensional_def)
 
 lemma restrict_extensional [simp]: "restrict f A \<in> extensional A"
-  by (simp add: restrict_def extensional_def)
+by (simp add: restrict_def extensional_def)
 
 lemma compose_extensional [simp]: "compose A f g \<in> extensional A"
-  by (simp add: compose_def)
+by (simp add: compose_def)
 
 lemma extensionalityI:
-    "[| f \<in> extensional A; g \<in> extensional A;
+  "[| f \<in> extensional A; g \<in> extensional A;
       !!x. x\<in>A ==> f x = g x |] ==> f = g"
-  by (force simp add: expand_fun_eq extensional_def)
+by (force simp add: expand_fun_eq extensional_def)
 
 lemma Inv_funcset: "f ` A = B ==> (\<lambda>x\<in>B. Inv A f x) : B -> A"
-  by (unfold Inv_def) (fast intro: restrict_in_funcset someI2)
+by (unfold Inv_def) (fast intro: someI2)
 
 lemma compose_Inv_id:
-    "bij_betw f A B ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
-  apply (simp add: bij_betw_def compose_def)
-  apply (rule restrict_ext, auto)
-  apply (erule subst)
-  apply (simp add: Inv_f_f)
-  done
+  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
+apply (simp add: bij_betw_def compose_def)
+apply (rule restrict_ext, auto)
+apply (erule subst)
+apply (simp add: Inv_f_f)
+done
 
 lemma compose_id_Inv:
-    "f ` A = B ==> compose B f (\<lambda>y\<in>B. Inv A f y) = (\<lambda>x\<in>B. x)"
-  apply (simp add: compose_def)
-  apply (rule restrict_ext)
-  apply (simp add: f_Inv_f)
-  done
+  "f ` A = B ==> compose B f (\<lambda>y\<in>B. Inv A f y) = (\<lambda>x\<in>B. x)"
+apply (simp add: compose_def)
+apply (rule restrict_ext)
+apply (simp add: f_Inv_f)
+done
 
 
 subsection{*Cardinality*}
 
 lemma card_inj: "[|f \<in> A\<rightarrow>B; inj_on f A; finite B|] ==> card(A) \<le> card(B)"
-  apply (rule card_inj_on_le)
-    apply (auto simp add: Pi_def)
-  done
+by (rule card_inj_on_le) auto
 
 lemma card_bij:
-     "[|f \<in> A\<rightarrow>B; inj_on f A;
-        g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
-  by (blast intro: card_inj order_antisym)
+  "[|f \<in> A\<rightarrow>B; inj_on f A;
+     g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
+by (blast intro: card_inj order_antisym)
 
 end

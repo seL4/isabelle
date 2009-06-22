@@ -50,7 +50,7 @@ apply (rule groupI)
     apply (simp add: compose_Bij)
    apply (simp add: id_Bij)
   apply (simp add: compose_Bij)
-  apply (blast intro: compose_assoc [symmetric] Bij_imp_funcset)
+  apply (blast intro: compose_assoc [symmetric] dest: Bij_imp_funcset)
  apply (simp add: id_Bij Bij_imp_funcset Bij_imp_extensional, simp)
 apply (blast intro: Bij_compose_restrict_eq restrict_Inv_Bij)
 done

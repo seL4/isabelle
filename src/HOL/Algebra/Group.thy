@@ -542,10 +542,8 @@ constdefs (structure G and H)
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
 lemma (in group) hom_compose:
-     "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
-apply (auto simp add: hom_def funcset_compose) 
-apply (simp add: compose_def Pi_def)
-done
+  "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
+by (fastsimp simp add: hom_def compose_def)
 
 constdefs
   iso :: "_ => _ => ('a => 'b) set"  (infixr "\<cong>" 60)
@@ -568,7 +566,7 @@ by (auto simp add: iso_def hom_compose bij_betw_compose)
 
 lemma DirProd_commute_iso:
   shows "(\<lambda>(x,y). (y,x)) \<in> (G \<times>\<times> H) \<cong> (H \<times>\<times> G)"
-by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
+by (auto simp add: iso_def hom_def inj_on_def bij_betw_def)
 
 lemma DirProd_assoc_iso:
   shows "(\<lambda>(x,y,z). (x,(y,z))) \<in> (G \<times>\<times> H \<times>\<times> I) \<cong> (G \<times>\<times> (H \<times>\<times> I))"
@@ -592,7 +590,7 @@ lemma (in group_hom) hom_closed [simp]:
   "x \<in> carrier G ==> h x \<in> carrier H"
 proof -
   assume "x \<in> carrier G"
-  with homh [unfolded hom_def] show ?thesis by (auto simp add: Pi_def)
+  with homh [unfolded hom_def] show ?thesis by auto
 qed
 
 lemma (in group_hom) one_closed [simp]:

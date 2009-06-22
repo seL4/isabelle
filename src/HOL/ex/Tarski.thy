@@ -824,11 +824,6 @@ apply (rule f_in_funcset [THEN funcset_mem])
 apply (simp add: intY1_def interval_def  intY1_elem)
 done
 
-lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1"
-apply (rule restrictI)
-apply (erule intY1_f_closed)
-done
-
 lemma (in Tarski) intY1_mono:
      "monotone (%x: intY1. f x) intY1 (induced intY1 r)"
 apply (auto simp add: monotone_def induced_def intY1_f_closed)
@@ -853,7 +848,7 @@ unfolding v_def
 apply (rule CLF.glbH_is_fixp [OF CLF.intro, unfolded CLF_set_def, of "\<lparr>pset = intY1, order = induced intY1 r\<rparr>", simplified])
 apply auto
 apply (rule intY1_is_cl)
-apply (rule intY1_func)
+apply (erule intY1_f_closed)
 apply (rule intY1_mono)
 done
 
