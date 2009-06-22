@@ -85,7 +85,9 @@ let
     end;
   fun add_term_of_code tyco raw_vs raw_cs thy =
     let
-      val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
+      val algebra = Sign.classes_of thy;
+      val vs = map (fn (v, sort) =>
+        (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
       val ty = Type (tyco, map TFree vs);
       val cs = (map o apsnd o map o map_atyps)
         (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
