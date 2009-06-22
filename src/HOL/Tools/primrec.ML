@@ -203,7 +203,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
 
 (* find datatypes which contain all datatypes in tnames' *)
 
-fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
+fun find_dts (dt_info : info Symtab.table) _ [] = []
   | find_dts dt_info tnames' (tname::tnames) =
       (case Symtab.lookup dt_info tname of
           NONE => primrec_error (quote tname ^ " is not a datatype")

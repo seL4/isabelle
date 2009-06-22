@@ -12,13 +12,13 @@ sig
     type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
     Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
     Rep_induct: thm, Abs_induct: thm}
-  val get_info: theory -> string -> info option
   val add_typedef: bool -> binding option -> binding * string list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
   val typedef: (bool * binding) * (binding * string list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
   val typedef_cmd: (bool * binding) * (binding * string list * mixfix) * string
     * (binding * binding) option -> theory -> Proof.state
+  val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
 end;

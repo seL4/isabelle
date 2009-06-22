@@ -135,10 +135,10 @@ sig
       eqtype arg;
   type cons = string * arg list;
   type eq = (string * typ list) * cons list;
-  val mk_arg : (bool * DatatypeAux.dtyp) * string option * string -> arg;
+  val mk_arg : (bool * Datatype.dtyp) * string option * string -> arg;
   val is_lazy : arg -> bool;
   val rec_of : arg -> int;
-  val dtyp_of : arg -> DatatypeAux.dtyp;
+  val dtyp_of : arg -> Datatype.dtyp;
   val sel_of : arg -> string option;
   val vname : arg -> string;
   val upd_vname : (string -> string) -> arg -> arg;
@@ -154,7 +154,7 @@ sig
   val idx_name : 'a list -> string -> int -> string;
   val app_rec_arg : (int -> term) -> arg -> term;
   val con_app : string -> arg list -> term;
-  val dtyp_of_eq : eq -> DatatypeAux.dtyp;
+  val dtyp_of_eq : eq -> Datatype.dtyp;
 
 
   (* Name mangling *)
@@ -215,7 +215,7 @@ fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 (* ----- constructor list handling ----- *)
 
 type arg =
-     (bool * DatatypeAux.dtyp) *   (*  (lazy, recursive element) *)
+     (bool * Datatype.dtyp) *   (*  (lazy, recursive element) *)
      string option *               (*   selector name    *)
      string;                       (*   argument name    *)
 

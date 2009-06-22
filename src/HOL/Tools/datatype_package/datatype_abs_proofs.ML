@@ -14,24 +14,22 @@ injectivity / distinctness of constructors and induction)
 
 signature DATATYPE_ABS_PROOFS =
 sig
-  type datatype_config = DatatypeAux.datatype_config
-  type descr = DatatypeAux.descr
-  type datatype_info = DatatypeAux.datatype_info
-  val prove_casedist_thms : datatype_config -> string list ->
+  include DATATYPE_COMMON
+  val prove_casedist_thms : config -> string list ->
     descr list -> (string * sort) list -> thm ->
     attribute list -> theory -> thm list * theory
-  val prove_primrec_thms : datatype_config -> string list ->
+  val prove_primrec_thms : config -> string list ->
     descr list -> (string * sort) list ->
-      datatype_info Symtab.table -> thm list list -> thm list list ->
+      info Symtab.table -> thm list list -> thm list list ->
         simpset -> thm -> theory -> (string list * thm list) * theory
-  val prove_case_thms : datatype_config -> string list ->
+  val prove_case_thms : config -> string list ->
     descr list -> (string * sort) list ->
       string list -> thm list -> theory -> (thm list list * string list) * theory
-  val prove_split_thms : datatype_config -> string list ->
+  val prove_split_thms : config -> string list ->
     descr list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
         (thm * thm) list * theory
-  val prove_nchotomys : datatype_config -> string list -> descr list ->
+  val prove_nchotomys : config -> string list -> descr list ->
     (string * sort) list -> thm list -> theory -> thm list * theory
   val prove_weak_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> thm list * theory
@@ -47,7 +45,7 @@ open DatatypeAux;
 
 (************************ case distinction theorems ***************************)
 
-fun prove_casedist_thms (config : datatype_config) new_type_names descr sorts induct case_names_exhausts thy =
+fun prove_casedist_thms (config : config) new_type_names descr sorts induct case_names_exhausts thy =
   let
     val _ = message config "Proving case distinction theorems ...";
 
@@ -89,8 +87,8 @@ fun prove_casedist_thms (config : datatype_config) new_type_names descr sorts in
 
 (*************************** primrec combinators ******************************)
 
-fun prove_primrec_thms (config : datatype_config) new_type_names descr sorts
-    (dt_info : datatype_info Symtab.table) constr_inject dist_rewrites dist_ss induct thy =
+fun prove_primrec_thms (config : config) new_type_names descr sorts
+    (dt_info : info Symtab.table) constr_inject dist_rewrites dist_ss induct thy =
   let
     val _ = message config "Constructing primrec combinators ...";
 
@@ -275,7 +273,7 @@ fun prove_primrec_thms (config : datatype_config) new_type_names descr sorts
 
 (***************************** case combinators *******************************)
 
-fun prove_case_thms (config : datatype_config) new_type_names descr sorts reccomb_names primrec_thms thy =
+fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names primrec_thms thy =
   let
     val _ = message config "Proving characteristic theorems for case combinators ...";
 
@@ -349,7 +347,7 @@ fun prove_case_thms (config : datatype_config) new_type_names descr sorts reccom
 
 (******************************* case splitting *******************************)
 
-fun prove_split_thms (config : datatype_config) new_type_names descr sorts constr_inject dist_rewrites
+fun prove_split_thms (config : config) new_type_names descr sorts constr_inject dist_rewrites
     casedist_thms case_thms thy =
   let
     val _ = message config "Proving equations for case splitting ...";
@@ -398,7 +396,7 @@ fun prove_weak_case_congs new_type_names descr sorts thy =
 
 (************************* additional theorems for TFL ************************)
 
-fun prove_nchotomys (config : datatype_config) new_type_names descr sorts casedist_thms thy =
+fun prove_nchotomys (config : config) new_type_names descr sorts casedist_thms thy =
   let
     val _ = message config "Proving additional theorems for TFL ...";
 

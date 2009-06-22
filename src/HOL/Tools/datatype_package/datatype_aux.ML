@@ -4,11 +4,23 @@
 Auxiliary functions for defining datatypes.
 *)
 
+signature DATATYPE_COMMON =
+sig
+  type config
+  val default_config : config
+  datatype dtyp =
+      DtTFree of string
+    | DtType of string * (dtyp list)
+    | DtRec of int;
+  type descr
+  type info
+end
+
 signature DATATYPE_AUX =
 sig
-  type datatype_config
-  val default_datatype_config : datatype_config
-  val message : datatype_config -> string -> unit
+  include DATATYPE_COMMON
+
+  val message : config -> string -> unit
   
   val add_path : bool -> string -> theory -> theory
   val parent_path : bool -> theory -> theory
@@ -33,12 +45,6 @@ sig
   datatype simproc_dist = FewConstrs of thm list
                         | ManyConstrs of thm * simpset;
 
-  datatype dtyp =
-      DtTFree of string
-    | DtType of string * (dtyp list)
-    | DtRec of int;
-  type descr
-  type datatype_info
 
   exception Datatype
   exception Datatype_Empty of string
@@ -61,7 +67,7 @@ sig
     -> ((string * Term.typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
   val unfold_datatypes : 
-    theory -> descr -> (string * sort) list -> datatype_info Symtab.table ->
+    theory -> descr -> (string * sort) list -> info Symtab.table ->
       descr -> int -> descr list * int
 end;
 
@@ -70,10 +76,10 @@ struct
 
 (* datatype option flags *)
 
-type datatype_config = { strict: bool, flat_names: bool, quiet: bool };
-val default_datatype_config : datatype_config =
+type config = { strict: bool, flat_names: bool, quiet: bool };
+val default_config : config =
   { strict = true, flat_names = false, quiet = false };
-fun message ({ quiet, ...} : datatype_config) s =
+fun message ({ quiet, ...} : config) s =
   if quiet then () else writeln s;
 
 fun add_path flat_names s = if flat_names then I else Sign.add_path s;
@@ -186,7 +192,7 @@ datatype dtyp =
 (* index, datatype name, type arguments, constructor name, types of constructor's arguments *)
 type descr = (int * (string * dtyp list * (string * dtyp list) list)) list;
 
-type datatype_info =
+type info =
   {index : int,
    alt_names : string list option,
    descr : descr,
@@ -317,7 +323,7 @@ fun check_nonempty descr =
 (* all types of the form DtType (dt_name, [..., DtRec _, ...]) *)
 (* need to be unfolded                                         *)
 
-fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table) descr i =
+fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i =
   let
     fun typ_error T msg = error ("Non-admissible type expression\n" ^
       Syntax.string_of_typ_global sign (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
