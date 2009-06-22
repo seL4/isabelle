@@ -526,7 +526,7 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
     relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
   end;
 
-(* prepare and count clauses before writing *)
+(* prepare for passing to writer *)
 fun prepare_clauses dfg goal_cls chain_ths axcls thy =
   let
     val white_thms = filter check_named (map ResAxioms.pairname (if null chain_ths then whitelist else chain_ths))

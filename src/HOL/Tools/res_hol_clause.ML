@@ -462,7 +462,6 @@ fun count_constants (conjectures, axclauses, helper_clauses, _, _) =
      in (const_min_arity, const_needs_hBOOL) end
   else (Symtab.empty, Symtab.empty);
 
-(* tptp format *)
 
 fun prepare_clauses dfg thy isFO thms ax_tuples user_lemmas =
   let
@@ -473,7 +472,8 @@ fun prepare_clauses dfg thy isFO thms ax_tuples user_lemmas =
     (clnames, (conjectures, axclauses, helper_clauses))
   end
 
-(* write TPTP format to a single file *)
+(* tptp format *)
+
 fun tptp_write_file filename const_counts (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) =
   let
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp const_counts) conjectures)
