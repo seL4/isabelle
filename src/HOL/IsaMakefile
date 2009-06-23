@@ -325,7 +325,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/FuncSet.thy Library/Permutations.thy Library/Determinants.thy\
   Library/Bit.thy Library/Topology_Euclidean_Space.thy \
   Library/Finite_Cartesian_Product.thy \
-  Library/FrechetDeriv.thy \
+  Library/FrechetDeriv.thy Library/Fraction_Field.thy\
   Library/Fundamental_Theorem_Algebra.thy \
   Library/Inner_Product.thy Library/Lattice_Syntax.thy \
   Library/Legacy_GCD.thy \

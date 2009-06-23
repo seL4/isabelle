@@ -25,6 +25,7 @@ imports
   Fin_Fun
   Float
   Formal_Power_Series
+  Fraction_Field
   FrechetDeriv
   FuncSet
   Fundamental_Theorem_Algebra
