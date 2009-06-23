@@ -52,30 +52,22 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
   override def complete(pane: EditPane, caret: Int): SideKickCompletion =
   {
     val buffer = pane.getBuffer
-    val ps = Isabelle.prover_setup(buffer)
-    if (ps.isDefined) {
-      val no_word_sep = "_'.?"
+    Isabelle.prover_setup(buffer) match {
+      case None => return null
+      case Some(setup) =>
+        val line = buffer.getLineOfOffset(caret)
+        val start = buffer.getLineStartOffset(line)
 
-      val caret_line = buffer.getLineOfOffset(caret)
-      val line = buffer.getLineSegment(caret_line)
+        if (caret == start) return null
+        val text = buffer.getSegment(start, caret - start)
 
-      val dot = caret - buffer.getLineStartOffset(caret_line)
-      if (dot == 0) return null
-
-      val ch = line.charAt(dot - 1)
-      if (!ch.isLetterOrDigit &&   // FIXME Isabelle word!?
-          no_word_sep.indexOf(ch) == -1) return null
-
-		  val word_start = TextUtilities.findWordStart(line, dot - 1, no_word_sep)
-      val word = line.subSequence(word_start, dot)
-  		if (word.length <= 1) return null   // FIXME property?
-
-      val completions = ps.get.prover.completions(word).filter(_ != word)
-      if (completions.isEmpty) return null
-
-      new SideKickCompletion(pane.getView, word.toString,
-        completions.toArray.asInstanceOf[Array[Object]]) {}
-    } else null
+        setup.prover.complete(text) match {
+          case None => null
+          case Some((word, cs)) =>
+            new SideKickCompletion(pane.getView, word,
+              cs.map(Isabelle.system.symbols.decode(_)).toArray.asInstanceOf[Array[Object]]) { }
+        }
+    }
   }
 
 }

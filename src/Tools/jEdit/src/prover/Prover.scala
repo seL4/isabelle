@@ -76,11 +76,11 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   }
 
 
-  /* completions */  // FIXME add symbols, symbol names, symbol abbrevs
+  /* completions */
 
-  var _completions = Scan.Lexicon()
-  def completions(word: CharSequence) = _completions.completions(word)
-  decl_info += (p => _completions += p._1)
+  private var completion = new Completion + isabelle_system.symbols
+  decl_info += (p => completion += p._1)
+  def complete(line: CharSequence): Option[(String, List[String])] = completion.complete(line)
 
 
   /* event handling */
