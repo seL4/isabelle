@@ -207,7 +207,7 @@
 \<bottom>               code: 0x0022a5  font: Isabelle
 \<top>                  code: 0x0022a4  font: Isabelle
 \<and>                  code: 0x002227  font: Isabelle  abbrev: /\
-\<And>                  code: 0x0022c0  font: Isabelle  abbreb: !!
+\<And>                  code: 0x0022c0  font: Isabelle  abbrev: !!
 \<or>                   code: 0x002228  font: Isabelle  abbrev: \/
 \<Or>                   code: 0x0022c1  font: Isabelle  abbrev: ??
 \<forall>               code: 0x002200  font: Isabelle  abbrev: !
