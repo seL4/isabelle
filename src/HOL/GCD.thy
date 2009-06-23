@@ -353,17 +353,11 @@ done
 lemma int_gcd_assoc: "gcd (gcd (k::int) m) n = gcd k (gcd m n)"
   by (auto simp add: gcd_int_def nat_gcd_assoc)
 
-lemma nat_gcd_left_commute: "gcd (k::nat) (gcd m n) = gcd m (gcd k n)"
-  apply (rule nat_gcd_commute [THEN trans])
-  apply (rule nat_gcd_assoc [THEN trans])
-  apply (rule nat_gcd_commute [THEN arg_cong])
-done
+lemmas nat_gcd_left_commute =
+  mk_left_commute[of gcd, OF nat_gcd_assoc nat_gcd_commute]
 
-lemma int_gcd_left_commute: "gcd (k::int) (gcd m n) = gcd m (gcd k n)"
-  apply (rule int_gcd_commute [THEN trans])
-  apply (rule int_gcd_assoc [THEN trans])
-  apply (rule int_gcd_commute [THEN arg_cong])
-done
+lemmas int_gcd_left_commute =
+  mk_left_commute[of gcd, OF int_gcd_assoc int_gcd_commute]
 
 lemmas nat_gcd_ac = nat_gcd_assoc nat_gcd_commute nat_gcd_left_commute
   -- {* gcd is an AC-operator *}
@@ -1352,7 +1346,6 @@ lemma nat_lcm_commute: "lcm (m::nat) n = lcm n m"
 lemma int_lcm_commute: "lcm (m::int) n = lcm n m"
   unfolding lcm_int_def by (subst nat_lcm_commute, rule refl)
 
-(* to do: show lcm is associative, and then declare ac simps *)
 
 lemma nat_lcm_pos:
   assumes mpos: "(m::nat) > 0"
@@ -1506,6 +1499,25 @@ lemma nat_lcm_dvd_eq' [simp]: "(x::nat) dvd y \<Longrightarrow> lcm y x = y"
 lemma int_lcm_dvd_eq' [simp]: "y >= 0 \<Longrightarrow> (x::int) dvd y \<Longrightarrow> lcm y x = y"
   by (subst int_lcm_commute, erule (1) int_lcm_dvd_eq)
 
+
+lemma lcm_assoc_nat: "lcm (lcm n m) (p::nat) = lcm n (lcm m p)"
+apply(rule nat_lcm_unique[THEN iffD1])
+apply (metis dvd.order_trans nat_lcm_unique)
+done
+
+lemma lcm_assoc_int: "lcm (lcm n m) (p::int) = lcm n (lcm m p)"
+apply(rule int_lcm_unique[THEN iffD1])
+apply (metis dvd_trans int_lcm_unique)
+done
+
+lemmas lcm_left_commute_nat =
+  mk_left_commute[of lcm, OF lcm_assoc_nat nat_lcm_commute]
+
+lemmas lcm_left_commute_int =
+  mk_left_commute[of lcm, OF lcm_assoc_int int_lcm_commute]
+
+lemmas lcm_ac_nat = lcm_assoc_nat nat_lcm_commute lcm_left_commute_nat
+lemmas lcm_ac_int = lcm_assoc_int int_lcm_commute lcm_left_commute_int
 
 
 subsection {* Primes *}
