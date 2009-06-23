@@ -7,19 +7,15 @@ Datatype package for Isabelle/HOL.
 signature DATATYPE =
 sig
   include DATATYPE_COMMON
-  type rules = {distinct : thm list list,
-    inject : thm list list,
-    exhaustion : thm list,
-    rec_thms : thm list,
-    case_thms : thm list list,
-    split_thms : (thm * thm) list,
-    induction : thm,
-    simps : thm list}
   val add_datatype : config -> string list -> (string list * binding * mixfix *
-    (binding * typ list * mixfix) list) list -> theory -> rules * theory
+    (binding * typ list * mixfix) list) list -> theory ->
+     (string list * {inject : thm list list,
+      rec_thms : thm list,
+      case_thms : thm list list,
+      induction : thm}) * theory
   val datatype_cmd : string list -> (string list * binding * mixfix *
     (binding * string list * mixfix) list) list -> theory -> theory
-  val rep_datatype : config -> (rules -> Proof.context -> Proof.context)
+  val rep_datatype : config -> (string list -> Proof.context -> Proof.context)
     -> string list option -> term list -> theory -> Proof.state
   val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state
   val get_datatypes : theory -> info Symtab.table
@@ -334,15 +330,6 @@ fun make_dt_info alt_names descr sorts induct reccomb_names rec_thms
     case_cong = case_cong,
     weak_case_cong = weak_case_cong});
 
-type rules = {distinct : thm list list,
-  inject : thm list list,
-  exhaustion : thm list,
-  rec_thms : thm list,
-  case_thms : thm list list,
-  split_thms : (thm * thm) list,
-  induction : thm,
-  simps : thm list}
-
 structure DatatypeInterpretation = InterpretationFun
   (type T = config * string list val eq: T * T -> bool = eq_snd op =);
 fun interpretation f = DatatypeInterpretation.interpretation (uncurry f);
@@ -377,10 +364,11 @@ fun add_datatype_def (config : config) new_type_names descr sorts types_syntax c
 
     val dt_infos = map
       (make_dt_info (SOME new_type_names) (flat descr) sorts induct reccomb_names rec_thms)
-      ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
+      ((0 upto length (hd descr) - 1) ~~ hd descr ~~ case_names ~~ case_thms ~~
         casedist_thms ~~ simproc_dists ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ rec_thms;
+    val dt_names = map fst dt_infos;
 
     val thy12 =
       thy10
@@ -394,14 +382,10 @@ fun add_datatype_def (config : config) new_type_names descr sorts types_syntax c
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
       |> DatatypeInterpretation.data (config, map fst dt_infos);
   in
-    ({distinct = distinct,
-      inject = inject,
-      exhaustion = casedist_thms,
+    ((dt_names, {inject = inject,
       rec_thms = rec_thms,
       case_thms = case_thms,
-      split_thms = split_thms,
-      induction = induct,
-      simps = simps}, thy12)
+      induction = induct}), thy12)
   end;
 
 
@@ -457,6 +441,7 @@ fun prove_rep_datatype (config : config) alt_names new_type_names descr sorts in
         map FewConstrs distinct ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ rec_thms;
+    val dt_names = map fst dt_infos;
 
     val thy11 =
       thy10
@@ -468,17 +453,8 @@ fun prove_rep_datatype (config : config) alt_names new_type_names descr sorts in
       |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
-      |> DatatypeInterpretation.data (config, map fst dt_infos);
-  in
-    ({distinct = distinct,
-      inject = inject,
-      exhaustion = casedist_thms,
-      rec_thms = rec_thms,
-      case_thms = case_thms,
-      split_thms = split_thms,
-      induction = induct',
-      simps = simps}, thy11)
-  end;
+      |> DatatypeInterpretation.data (config, dt_names);
+  in (dt_names, thy11) end;
 
 fun gen_rep_datatype prep_term (config : config) after_qed alt_names raw_ts thy =
   let
