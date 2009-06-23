@@ -9,25 +9,25 @@ imports Wellfounded
 uses
   "Tools/prop_logic.ML"
   "Tools/sat_solver.ML"
-  ("Tools/function_package/fundef_lib.ML")
-  ("Tools/function_package/fundef_common.ML")
-  ("Tools/function_package/inductive_wrap.ML")
-  ("Tools/function_package/context_tree.ML")
-  ("Tools/function_package/fundef_core.ML")
-  ("Tools/function_package/sum_tree.ML")
-  ("Tools/function_package/mutual.ML")
-  ("Tools/function_package/pattern_split.ML")
-  ("Tools/function_package/fundef.ML")
-  ("Tools/function_package/auto_term.ML")
-  ("Tools/function_package/measure_functions.ML")
-  ("Tools/function_package/lexicographic_order.ML")
-  ("Tools/function_package/fundef_datatype.ML")
-  ("Tools/function_package/induction_scheme.ML")
-  ("Tools/function_package/termination.ML")
-  ("Tools/function_package/decompose.ML")
-  ("Tools/function_package/descent.ML")
-  ("Tools/function_package/scnp_solve.ML")
-  ("Tools/function_package/scnp_reconstruct.ML")
+  ("Tools/Function/fundef_lib.ML")
+  ("Tools/Function/fundef_common.ML")
+  ("Tools/Function/inductive_wrap.ML")
+  ("Tools/Function/context_tree.ML")
+  ("Tools/Function/fundef_core.ML")
+  ("Tools/Function/sum_tree.ML")
+  ("Tools/Function/mutual.ML")
+  ("Tools/Function/pattern_split.ML")
+  ("Tools/Function/fundef.ML")
+  ("Tools/Function/auto_term.ML")
+  ("Tools/Function/measure_functions.ML")
+  ("Tools/Function/lexicographic_order.ML")
+  ("Tools/Function/fundef_datatype.ML")
+  ("Tools/Function/induction_scheme.ML")
+  ("Tools/Function/termination.ML")
+  ("Tools/Function/decompose.ML")
+  ("Tools/Function/descent.ML")
+  ("Tools/Function/scnp_solve.ML")
+  ("Tools/Function/scnp_reconstruct.ML")
 begin
 
 subsection {* Definitions with default value. *}
@@ -103,18 +103,18 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-use "Tools/function_package/fundef_lib.ML"
-use "Tools/function_package/fundef_common.ML"
-use "Tools/function_package/inductive_wrap.ML"
-use "Tools/function_package/context_tree.ML"
-use "Tools/function_package/fundef_core.ML"
-use "Tools/function_package/sum_tree.ML"
-use "Tools/function_package/mutual.ML"
-use "Tools/function_package/pattern_split.ML"
-use "Tools/function_package/auto_term.ML"
-use "Tools/function_package/fundef.ML"
-use "Tools/function_package/fundef_datatype.ML"
-use "Tools/function_package/induction_scheme.ML"
+use "Tools/Function/fundef_lib.ML"
+use "Tools/Function/fundef_common.ML"
+use "Tools/Function/inductive_wrap.ML"
+use "Tools/Function/context_tree.ML"
+use "Tools/Function/fundef_core.ML"
+use "Tools/Function/sum_tree.ML"
+use "Tools/Function/mutual.ML"
+use "Tools/Function/pattern_split.ML"
+use "Tools/Function/auto_term.ML"
+use "Tools/Function/fundef.ML"
+use "Tools/Function/fundef_datatype.ML"
+use "Tools/Function/induction_scheme.ML"
 
 setup {* 
   Fundef.setup 
@@ -127,7 +127,7 @@ subsection {* Measure Functions *}
 inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
 where is_measure_trivial: "is_measure f"
 
-use "Tools/function_package/measure_functions.ML"
+use "Tools/Function/measure_functions.ML"
 setup MeasureFunctions.setup
 
 lemma measure_size[measure_function]: "is_measure size"
@@ -138,7 +138,7 @@ by (rule is_measure_trivial)
 lemma measure_snd[measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (snd p))"
 by (rule is_measure_trivial)
 
-use "Tools/function_package/lexicographic_order.ML"
+use "Tools/Function/lexicographic_order.ML"
 setup LexicographicOrder.setup 
 
 
@@ -307,11 +307,11 @@ by (auto simp: pair_less_def pair_leq_def)
 
 subsection {* Tool setup *}
 
-use "Tools/function_package/termination.ML"
-use "Tools/function_package/decompose.ML"
-use "Tools/function_package/descent.ML"
-use "Tools/function_package/scnp_solve.ML"
-use "Tools/function_package/scnp_reconstruct.ML"
+use "Tools/Function/termination.ML"
+use "Tools/Function/decompose.ML"
+use "Tools/Function/descent.ML"
+use "Tools/Function/scnp_solve.ML"
+use "Tools/Function/scnp_reconstruct.ML"
 
 setup {* ScnpReconstruct.setup *}
 

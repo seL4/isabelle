@@ -1,5 +1,4 @@
-(*  Title:      HOL/Tools/function_package/sum_tree.ML
-    ID:         $Id$
+(*  Title:      HOL/Tools/Function/sum_tree.ML
     Author:     Alexander Krauss, TU Muenchen
 
 Some common tools for working with sum types in balanced tree form.

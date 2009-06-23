@@ -8,7 +8,7 @@ header {*Well-founded Recursion*}
 
 theory Wellfounded
 imports Finite_Set Transitive_Closure
-uses ("Tools/function_package/size.ML")
+uses ("Tools/Function/size.ML")
 begin
 
 subsection {* Basic Definitions *}
@@ -693,7 +693,7 @@ done
 lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
   by (auto simp:inv_image_def)
 
-text {* Measure functions into @{typ nat} *}
+text {* Measure Datatypes into @{typ nat} *}
 
 definition measure :: "('a => nat) => ('a * 'a)set"
 where "measure == inv_image less_than"
@@ -733,7 +733,7 @@ lemma trans_lex_prod [intro!]:
     "[| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)"
 by (unfold trans_def lex_prod_def, blast) 
 
-text {* lexicographic combinations with measure functions *}
+text {* lexicographic combinations with measure Datatypes *}
 
 definition 
   mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
@@ -948,7 +948,7 @@ done
 
 subsection {* size of a datatype value *}
 
-use "Tools/function_package/size.ML"
+use "Tools/Function/size.ML"
 
 setup Size.setup
 

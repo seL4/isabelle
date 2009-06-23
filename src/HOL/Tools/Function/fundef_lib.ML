@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/fundef_lib.ML
+(*  Title:      HOL/Tools/Function/fundef_lib.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions. 

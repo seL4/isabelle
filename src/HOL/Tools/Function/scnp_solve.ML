@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/scnp_solve.ML
+(*  Title:       HOL/Tools/Function/scnp_solve.ML
     Author:      Armin Heller, TU Muenchen
     Author:      Alexander Krauss, TU Muenchen
 

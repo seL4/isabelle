@@ -133,7 +133,7 @@ lemma injI:
   shows "inj f"
   using assms unfolding inj_on_def by auto
 
-text{*For Proofs in @{text "Tools/datatype_package/datatype_rep_proofs"}*}
+text{*For Proofs in @{text "Tools/Datatype/datatype_rep_proofs"}*}
 lemma datatype_injI:
     "(!! x. ALL y. f(x) = f(y) --> x=y) ==> inj(f)"
 by (simp add: inj_on_def)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/inductive_wrap.ML
+(*  Title:      HOL/Tools/Function/inductive_wrap.ML
     Author:     Alexander Krauss, TU Muenchen
 
 

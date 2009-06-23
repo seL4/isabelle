@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/mutual.ML
+(*  Title:      HOL/Tools/Function/mutual.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.

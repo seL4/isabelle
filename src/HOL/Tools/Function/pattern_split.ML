@@ -1,5 +1,4 @@
-(*  Title:      HOL/Tools/function_package/pattern_split.ML
-    ID:         $Id$
+(*  Title:      HOL/Tools/Function/pattern_split.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.

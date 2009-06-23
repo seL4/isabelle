@@ -9,12 +9,12 @@ imports Pure
 uses
   "~~/src/Tools/value.ML"
   "~~/src/Tools/quickcheck.ML"
-  "~~/src/Tools/code/code_preproc.ML" 
-  "~~/src/Tools/code/code_thingol.ML"
-  "~~/src/Tools/code/code_printer.ML"
-  "~~/src/Tools/code/code_target.ML"
-  "~~/src/Tools/code/code_ml.ML"
-  "~~/src/Tools/code/code_haskell.ML"
+  "~~/src/Tools/Code/code_preproc.ML" 
+  "~~/src/Tools/Code/code_thingol.ML"
+  "~~/src/Tools/Code/code_printer.ML"
+  "~~/src/Tools/Code/code_target.ML"
+  "~~/src/Tools/Code/code_ml.ML"
+  "~~/src/Tools/Code/code_haskell.ML"
   "~~/src/Tools/nbe.ML"
 begin
 
