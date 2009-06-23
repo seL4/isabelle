@@ -19,19 +19,16 @@ object Scan
     private case class Tree(val branches: Map[Char, (String, Tree)])
     private val empty_tree = Tree(Map())
 
-    private def make(tree: Tree): Lexicon =
-      new Lexicon { override val main_tree = tree }
-
     val empty: Lexicon = new Lexicon
-    def apply(strs: String*): Lexicon = (empty /: strs) ((lex, str) => lex + str)
+    def apply(elems: String*): Lexicon = empty ++ elems
   }
 
-  class Lexicon extends scala.collection.immutable.Set[String] with RegexParsers
+  class Lexicon extends scala.collection.Set[String] with RegexParsers
   {
     /* representation */
 
     import Lexicon.Tree
-    val main_tree: Tree = Lexicon.empty_tree
+    protected val main_tree: Tree = Lexicon.empty_tree
 
 
     /* auxiliary operations */
@@ -57,13 +54,11 @@ object Scan
     }
 
     def completions(str: CharSequence): List[String] =
-    {
-      (lookup(str) match {
+      lookup(str) match {
         case Some((true, tree)) => content(tree, List(str.toString))
         case Some((false, tree)) => content(tree, Nil)
         case None => Nil
-      }).sort((s1, s2) => s1.length < s2.length || s1.length == s2.length && s1 <= s2)
-    }
+      }
 
 
     /* Set methods */
@@ -75,34 +70,37 @@ object Scan
     def size: Int = content(main_tree, Nil).length
     def elements: Iterator[String] = content(main_tree, Nil).sort(_ <= _).elements
 
-    def contains(str: String): Boolean =
-      lookup(str) match {
+    def contains(elem: String): Boolean =
+      lookup(elem) match {
         case Some((tip, _)) => tip
         case _ => false
       }
 
-    def +(str: String): Lexicon =
-    {
-      val len = str.length
-      def extend(tree: Tree, i: Int): Tree =
-      {
-        if (i < len) {
-          val c = str.charAt(i)
-          val end = (i + 1 == len)
-          tree.branches.get(c) match {
-            case Some((s, tr)) =>
-              Tree(tree.branches + (c -> (if (end) str else s, extend(tr, i + 1))))
-            case None =>
-              Tree(tree.branches + (c -> (if (end) str else "", extend(Lexicon.empty_tree, i + 1))))
-          }
-        } else tree
+    def + (elem: String): Lexicon =
+      if (contains(elem)) this
+      else {
+        val len = elem.length
+        def extend(tree: Tree, i: Int): Tree =
+          if (i < len) {
+            val c = elem.charAt(i)
+            val end = (i + 1 == len)
+            tree.branches.get(c) match {
+              case Some((s, tr)) =>
+                Tree(tree.branches +
+                  (c -> (if (end) elem else s, extend(tr, i + 1))))
+              case None =>
+                Tree(tree.branches +
+                  (c -> (if (end) elem else "", extend(Lexicon.empty_tree, i + 1))))
+            }
+          } else tree
+        val old = this
+        new Lexicon { override val main_tree = extend(old.main_tree, 0) }
       }
-      if (contains(str)) this
-      else Lexicon.make(extend(main_tree, 0))
-    }
 
-    def empty[A]: Set[A] = error("Undefined")
-    def -(str: String): Lexicon = error("Undefined")
+    def + (elem1: String, elem2: String, elems: String*): Lexicon =
+      this + elem1 + elem2 ++ elems
+    def ++ (elems: Iterable[String]): Lexicon = (this /: elems) ((s, elem) => s + elem)
+    def ++ (elems: Iterator[String]): Lexicon = (this /: elems) ((s, elem) => s + elem)
 
 
     /* RegexParsers methods */
@@ -132,31 +130,5 @@ object Scan
     }.named("keyword")
 
   }
-
-
-  /** reverse CharSequence **/
-
-  class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
-  {
-    require(0 <= start && start <= end && end <= text.length)
-
-    def this(text: CharSequence) = this(text, 0, text.length)
-
-    def length: Int = end - start
-    def charAt(i: Int): Char = text.charAt(end - i - 1)
-
-    def subSequence(i: Int, j: Int): CharSequence =
-      if (0 <= i && i <= j && j <= length) new Reverse(text, end - j, end - i)
-      else throw new IndexOutOfBoundsException
-
-    override def toString: String =
-    {
-      val buf = new StringBuffer(length)
-      for (i <- 0 until length)
-        buf.append(charAt(i))
-      buf.toString
-    }
-  }
-
 }
 
