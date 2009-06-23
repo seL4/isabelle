@@ -241,13 +241,12 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         map replace_types cargs, NoSyn)) constrs)) dts';
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
-    val full_new_type_names' = map (Sign.full_bname thy) new_type_names';
 
-    val ((dt_names, {induction, ...}),thy1) =
+    val (full_new_type_names',thy1) =
       Datatype.add_datatype config new_type_names' dts'' thy;
 
-    val SOME {descr, ...} = Symtab.lookup
-      (Datatype.get_datatypes thy1) (hd full_new_type_names');
+    val {descr, induction, ...} =
+      Datatype.the_datatype thy1 (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts (DtRec i);
 
     val big_name = space_implode "_" new_type_names;

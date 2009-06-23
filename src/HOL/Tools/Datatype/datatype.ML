@@ -8,11 +8,7 @@ signature DATATYPE =
 sig
   include DATATYPE_COMMON
   val add_datatype : config -> string list -> (string list * binding * mixfix *
-    (binding * typ list * mixfix) list) list -> theory ->
-     (string list * {inject : thm list list,
-      rec_thms : thm list,
-      case_thms : thm list list,
-      induction : thm}) * theory
+    (binding * typ list * mixfix) list) list -> theory -> string list * theory
   val datatype_cmd : string list -> (string list * binding * mixfix *
     (binding * string list * mixfix) list) list -> theory -> theory
   val rep_datatype : config -> (string list -> Proof.context -> Proof.context)
@@ -381,12 +377,7 @@ fun add_datatype_def (config : config) new_type_names descr sorts types_syntax c
       |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms) |> snd
       |> DatatypeInterpretation.data (config, map fst dt_infos);
-  in
-    ((dt_names, {inject = inject,
-      rec_thms = rec_thms,
-      case_thms = case_thms,
-      induction = induct}), thy12)
-  end;
+  in (dt_names, thy12) end;
 
 
 (*********************** declare existing type as datatype *********************)
