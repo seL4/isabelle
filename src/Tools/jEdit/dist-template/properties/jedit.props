@@ -25,6 +25,7 @@ view.middleMousePaste=true
 view.showToolbar=false
 buffer.sidekick.keystroke-parse=true
 sidekick.buffer-save-parse=true
+sidekick.complete-delay=300
 mode.isabelle.sidekick.showStatusWindow.label=true
 sidekick-tree.dock-position=right
 isabelle-state.dock-position=bottom
