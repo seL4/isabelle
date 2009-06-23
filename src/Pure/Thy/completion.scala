@@ -49,18 +49,19 @@ private object Completion
   {
     override val whiteSpace = "".r
 
-    def rev_symb: Parser[String] = """>?[A-Za-z0-9_']+<\\""".r
+    def rev_symbol: Parser[String] = """>[A-Za-z0-9_']+<\\""".r
+    def rev_symb: Parser[String] = """[A-Za-z0-9_']{2,}<\\""".r
     def word: Parser[String] = "[a-zA-Z0-9_']{3,}".r
 
     def read(in: CharSequence): Option[String] =
     {
-      parse((rev_symb | word) ^^ (_.reverse), new Reverse(in)) match {
+      val rev_in = new Reverse(in)
+      parse((rev_symbol | rev_symb | word) ^^ (_.reverse), rev_in) match {
         case Success(result, _) => Some(result)
         case _ => None
       }
     }
   }
-
 }
 
 class Completion
@@ -96,12 +97,12 @@ class Completion
 
     val abbrs =
       (for ((x, y) <- symbols.abbrevs if !Completion.is_word(y))
-        yield (y.reverse.toString, (y, symbols.decode(x)))).toList
+        yield (y.reverse.toString, (y, x))).toList
 
     val old = this
     new Completion {
       override val words_lex = old.words_lex ++ words.map(_._1)
-      override val words_map = old.words_map ++ words.map(p => (p._1, symbols.decode(p._2)))
+      override val words_map = old.words_map ++ words
       override val abbrevs_lex = old.abbrevs_lex ++ abbrs.map(_._1)
       override val abbrevs_map = old.abbrevs_map ++ abbrs
     }
@@ -110,21 +111,21 @@ class Completion
 
   /* complete */
 
-  def complete(line: CharSequence): List[(String, String)] =
+  def complete(line: CharSequence): Option[(String, List[String])] =
   {
-    val abbrs =
-      abbrevs_lex.parse(abbrevs_lex.keyword, new Completion.Reverse(line)) match {
-        case abbrevs_lex.Success(rev_a, _) => List(abbrevs_map(rev_a))
-        case _ => Nil
-      }
-
-    val compls =
-      Completion.Parse.read(line) match {
-        case Some(word) => words_lex.completions(word).map(w => (word, words_map(w)))
-        case _ => Nil
-      }
-
-    (abbrs ::: compls).sort((p1, p2) => Completion.length_ord(p1._2, p2._2))
+    abbrevs_lex.parse(abbrevs_lex.keyword, new Completion.Reverse(line)) match {
+      case abbrevs_lex.Success(rev_a, _) =>
+        val (word, c) = abbrevs_map(rev_a)
+        Some(word, List(c))
+      case _ =>
+        Completion.Parse.read(line) match {
+          case Some(word) =>
+            words_lex.completions(word) match {
+              case Nil => None
+              case cs => Some(word, cs.map(words_map(_)).sort(Completion.length_ord _))
+            }
+          case None => None
+        }
+    }
   }
-
 }
