@@ -166,20 +166,19 @@ fun random_aux_primrec eq lthy =
     val inst = Thm.instantiate_cterm ([(aT, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
-    val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
+    val eqs0 = [subst_v @{term "0::code_numeral"} eq,
+      subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, eqs2), lthy') = Primrec.add_primrec_simple
       [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
-    val eq_tac = ALLGOALS (simp_tac rew_ss)
-      THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
-    val eqs3 = map (fn prop => SkipProof.prove lthy' [v] [] prop (K eq_tac)) eqs0;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
       |> Drule.instantiate ([(aT, icT)],
-           [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)])
-      |> (fn thm => thm OF eqs3);
-    val tac = ALLGOALS (rtac rule);
+           [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)]);
+    val tac = ALLGOALS (rtac rule)
+      THEN ALLGOALS (simp_tac rew_ss)
+      THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)))
     val simp = SkipProof.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
 
