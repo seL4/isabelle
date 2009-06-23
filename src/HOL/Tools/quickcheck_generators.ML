@@ -361,7 +361,7 @@ fun ensure_random_datatype config raw_tycos thy =
     val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, (names, auxnames), raw_TUs) =
-      Datatype.the_datatype_descr thy raw_tycos;
+      Datatype.the_descr thy raw_tycos;
     val typrep_vs = (map o apsnd)
       (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
     val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)

@@ -246,7 +246,7 @@ local
 fun gen_primrec_i note def alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
-    val dt_info = Datatype.get_datatypes thy;
+    val dt_info = Datatype.get_all thy;
     val rec_eqns = fold_rev (process_eqn thy o snd) eqns [] ;
     val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;

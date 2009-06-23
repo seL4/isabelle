@@ -44,14 +44,14 @@ and size_of_type' f g h T = (case size_of_type f g h T of
     | SOME t => t);
 
 fun is_poly thy (DtType (name, dts)) =
-      (case Datatype.get_datatype thy name of
+      (case Datatype.get_info thy name of
          NONE => false
        | SOME _ => exists (is_poly thy) dts)
   | is_poly _ _ = true;
 
 fun constrs_of thy name =
   let
-    val {descr, index, ...} = Datatype.the_datatype thy name
+    val {descr, index, ...} = Datatype.the_info thy name
     val SOME (_, _, constrs) = AList.lookup op = descr index
   in constrs end;
 
@@ -220,7 +220,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
 fun add_size_thms config (new_type_names as name :: _) thy =
   let
-    val info as {descr, alt_names, ...} = Datatype.the_datatype thy name;
+    val info as {descr, alt_names, ...} = Datatype.the_info thy name;
     val prefix = Long_Name.map_base_name (K (space_implode "_"
       (the_default (map Long_Name.base_name new_type_names) alt_names))) name;
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>

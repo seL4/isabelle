@@ -313,9 +313,9 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;
     val dt_names = these some_dt_names;
-    val case_thms = map (#case_rewrites o Datatype.the_datatype thy2) dt_names;
+    val case_thms = map (#case_rewrites o Datatype.the_info thy2) dt_names;
     val rec_thms = if null dt_names then []
-      else (#rec_rewrites o Datatype.the_datatype thy2) (hd dt_names);
+      else (#rec_rewrites o Datatype.the_info thy2) (hd dt_names);
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) rec_thms);
     val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>

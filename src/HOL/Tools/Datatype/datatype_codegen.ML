@@ -276,12 +276,12 @@ fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
 
 fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
    (c as Const (s, T), ts) =>
-     (case Datatype.datatype_of_case thy s of
+     (case Datatype.info_of_case thy s of
         SOME {index, descr, ...} =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           SOME (pretty_case thy defs dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts gr )
-      | NONE => case (Datatype.datatype_of_constr thy s, strip_type T) of
+      | NONE => case (Datatype.info_of_constr thy s, strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           let
@@ -296,7 +296,7 @@ fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
  | _ => NONE);
 
 fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
-      (case Datatype.get_datatype thy s of
+      (case Datatype.get_info thy s of
          NONE => NONE
        | SOME {descr, sorts, ...} =>
            if is_some (get_assoc_type thy s) then NONE else
@@ -331,7 +331,7 @@ fun mk_constr_consts thy vs dtco cos =
 fun mk_case_cert thy tyco =
   let
     val raw_thms =
-      (#case_rewrites o Datatype.the_datatype thy) tyco;
+      (#case_rewrites o Datatype.the_info thy) tyco;
     val thms as hd_thm :: _ = raw_thms
       |> Conjunction.intr_balanced
       |> Thm.unvarify
@@ -364,8 +364,8 @@ fun mk_case_cert thy tyco =
 
 fun mk_eq_eqns thy dtco =
   let
-    val (vs, cos) = Datatype.the_datatype_spec thy dtco;
-    val { descr, index, inject = inject_thms, ... } = Datatype.the_datatype thy dtco;
+    val (vs, cos) = Datatype.the_spec thy dtco;
+    val { descr, index, inject = inject_thms, ... } = Datatype.the_info thy dtco;
     val ty = Type (dtco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
@@ -428,11 +428,11 @@ fun add_equality vs dtcos thy =
 
 fun add_all_code config dtcos thy =
   let
-    val (vs :: _, coss) = (split_list o map (Datatype.the_datatype_spec thy)) dtcos;
+    val (vs :: _, coss) = (split_list o map (Datatype.the_spec thy)) dtcos;
     val any_css = map2 (mk_constr_consts thy vs) dtcos coss;
     val css = if exists is_none any_css then []
       else map_filter I any_css;
-    val case_rewrites = maps (#case_rewrites o Datatype.the_datatype thy) dtcos;
+    val case_rewrites = maps (#case_rewrites o Datatype.the_info thy) dtcos;
     val certs = map (mk_case_cert thy) dtcos;
   in
     if null css then thy

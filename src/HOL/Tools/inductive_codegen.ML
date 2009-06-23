@@ -101,9 +101,9 @@ fun get_clauses thy s =
 
 fun is_constrt thy =
   let
-    val cnstrs = List.concat (List.concat (map
+    val cnstrs = flat (maps
       (map (fn (_, (_, _, cs)) => map (apsnd length) cs) o #descr o snd)
-      (Symtab.dest (Datatype.get_datatypes thy))));
+      (Symtab.dest (Datatype.get_all thy)));
     fun check t = (case strip_comb t of
         (Var _, []) => true
       | (Const (s, _), ts) => (case AList.lookup (op =) cnstrs s of

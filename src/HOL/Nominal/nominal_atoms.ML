@@ -104,7 +104,7 @@ fun create_nom_typedecls ak_names thy =
               val (dt_names, thy1) = Datatype.add_datatype
                 Datatype.default_config [ak] [dt] thy;
             
-              val injects = maps (#inject o Datatype.the_datatype thy1) dt_names;
+              val injects = maps (#inject o Datatype.the_info thy1) dt_names;
               val ak_type = Type (Sign.intern_type thy1 ak,[])
               val ak_sign = Sign.intern_const thy1 ak 
               
