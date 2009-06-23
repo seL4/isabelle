@@ -101,7 +101,7 @@ fun create_nom_typedecls ak_names thy =
     val (_,thy1) = 
     fold_map (fn ak => fn thy => 
           let val dt = ([], Binding.name ak, NoSyn, [(Binding.name ak, [@{typ nat}], NoSyn)])
-              val ({inject,case_thms,...},thy1) = Datatype.add_datatype
+              val ((dt_names, {inject,case_thms,...}),thy1) = Datatype.add_datatype
                 Datatype.default_config [ak] [dt] thy
               val inject_flat = flat inject
               val ak_type = Type (Sign.intern_type thy1 ak,[])
