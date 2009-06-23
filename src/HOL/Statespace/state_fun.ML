@@ -340,7 +340,7 @@ fun mkName (Type (T,args)) = concat (map mkName args) ^ mkUpper (Long_Name.base_
   | mkName (TFree (x,_)) = mkUpper (Long_Name.base_name x)
   | mkName (TVar ((x,_),_)) = mkUpper (Long_Name.base_name x);
 
-fun is_datatype thy n = is_some (Symtab.lookup (Datatype.get_datatypes thy) n);
+fun is_datatype thy = is_some o Datatype.get_info thy;
 
 fun mk_map "List.list" = Syntax.const "List.map"
   | mk_map n = Syntax.const ("StateFun.map_" ^ Long_Name.base_name n);

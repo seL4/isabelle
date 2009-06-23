@@ -333,7 +333,7 @@ fun is_constrt thy =
   let
     val cnstrs = flat (maps
       (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (Datatype.get_datatypes thy)));
+      (Symtab.dest (Datatype.get_all thy)));
     fun check t = (case strip_comb t of
         (Free _, []) => true
       | (Const (s, T), ts) => (case (AList.lookup (op =) cnstrs s, body_type T) of
@@ -875,7 +875,7 @@ fun is_Type (Type _) = true
 (* else false *)
 fun is_constructor thy t =
   if (is_Type (fastype_of t)) then
-    (case Datatype.get_datatype thy ((fst o dest_Type o fastype_of) t) of
+    (case Datatype.get_info thy ((fst o dest_Type o fastype_of) t) of
       NONE => false
     | SOME info => (let
       val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
@@ -954,7 +954,7 @@ fun SOLVEDALL tac st = FILTER (fn st' => nprems_of st' = 0) tac st
 fun prove_match thy (out_ts : term list) = let
   fun get_case_rewrite t =
     if (is_constructor thy t) then let
-      val case_rewrites = (#case_rewrites (Datatype.the_datatype thy
+      val case_rewrites = (#case_rewrites (Datatype.the_info thy
         ((fst o dest_Type o fastype_of) t)))
       in case_rewrites @ (flat (map get_case_rewrite (snd (strip_comb t)))) end
     else []
@@ -1093,7 +1093,7 @@ fun prove_match2 thy out_ts = let
   fun split_term_tac (Free _) = all_tac
     | split_term_tac t =
       if (is_constructor thy t) then let
-        val info = Datatype.the_datatype thy ((fst o dest_Type o fastype_of) t)
+        val info = Datatype.the_info thy ((fst o dest_Type o fastype_of) t)
         val num_of_constrs = length (#case_rewrites info)
         (* special treatment of pairs -- because of fishing *)
         val split_rules = case (fst o dest_Type o fastype_of) t of

@@ -184,7 +184,7 @@ fun mk_sim_oracle (csubgoal, thl) =
     val subgoal = Thm.term_of csubgoal;
   in
  (let
-    val weak_case_congs = (map (#weak_case_cong o snd) o Symtab.dest o Datatype.get_datatypes) sign;
+    val weak_case_congs = (map (#weak_case_cong o snd) o Symtab.dest o Datatype.get_all) sign;
     val concl = Logic.strip_imp_concl subgoal;
     val ic_str = delete_ul_string(Syntax.string_of_term_global sign (IntC sign concl));
     val ia_str = delete_ul_string(Syntax.string_of_term_global sign (IntA sign concl));

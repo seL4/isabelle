@@ -52,9 +52,11 @@ Set.Pow_def and Set.image_def.  INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-
 * NewNumberTheory: Jeremy Avigad's new version of part of NumberTheory.
 If possible, use NewNumberTheory, not NumberTheory.
+
+* Simplified interfaces of datatype module.  INCOMPATIBILITY.
+
 
 *** ML ***
 

@@ -186,7 +186,7 @@ fun termination_cmd term_opt lthy =
 
 fun add_case_cong n thy =
     Context.theory_map (FundefCtxTree.map_fundef_congs (Thm.add_thm
-                          (Datatype.get_datatype thy n |> the
+                          (Datatype.the_info thy n
                            |> #case_cong
                            |> safe_mk_meta_eq)))
                        thy

@@ -101,9 +101,10 @@ fun create_nom_typedecls ak_names thy =
     val (_,thy1) = 
     fold_map (fn ak => fn thy => 
           let val dt = ([], Binding.name ak, NoSyn, [(Binding.name ak, [@{typ nat}], NoSyn)])
-              val ({inject,case_thms,...},thy1) = Datatype.add_datatype
-                Datatype.default_config [ak] [dt] thy
-              val inject_flat = flat inject
+              val (dt_names, thy1) = Datatype.add_datatype
+                Datatype.default_config [ak] [dt] thy;
+            
+              val injects = maps (#inject o Datatype.the_info thy1) dt_names;
               val ak_type = Type (Sign.intern_type thy1 ak,[])
               val ak_sign = Sign.intern_const thy1 ak 
               
@@ -115,7 +116,7 @@ fun create_nom_typedecls ak_names thy =
                   (Const (@{const_name "inj_on"},inj_on_type) $ 
                          Const (ak_sign,inj_type) $ HOLogic.mk_UNIV @{typ nat})
 
-              val simp1 = @{thm inj_on_def}::inject_flat
+              val simp1 = @{thm inj_on_def} :: injects;
               
               val proof1 = fn _ => EVERY [simp_tac (HOL_basic_ss addsimps simp1) 1,
                                           rtac @{thm ballI} 1,

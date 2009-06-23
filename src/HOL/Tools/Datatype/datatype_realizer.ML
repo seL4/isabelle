@@ -217,7 +217,7 @@ fun add_dt_realizers config names thy =
   if ! Proofterm.proofs < 2 then thy
   else let
     val _ = message config "Adding realizers for induction and case analysis ..."
-    val infos = map (Datatype.the_datatype thy) names;
+    val infos = map (Datatype.the_info thy) names;
     val info :: _ = infos;
   in
     thy

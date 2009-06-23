@@ -88,16 +88,13 @@ val cases_thm_of_induct_thm =
      Seq.hd o (ALLGOALS (fn i => REPEAT (etac Drule.thin_rl i)));
 
 (* get the case_thm (my version) from a type *)
-fun case_thm_of_ty sgn ty  =
+fun case_thm_of_ty thy ty  =
     let
-      val dtypestab = Datatype.get_datatypes sgn;
       val ty_str = case ty of
                      Type(ty_str, _) => ty_str
                    | TFree(s,_)  => error ("Free type: " ^ s)
                    | TVar((s,i),_) => error ("Free variable: " ^ s)
-      val dt = case Symtab.lookup dtypestab ty_str
-                of SOME dt => dt
-                 | NONE => error ("Not a Datatype: " ^ ty_str)
+      val dt = Datatype.the_info thy ty_str
     in
       cases_thm_of_induct_thm (#induction dt)
     end;

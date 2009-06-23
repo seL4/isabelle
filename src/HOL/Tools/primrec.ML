@@ -220,7 +220,7 @@ fun distill lthy fixes eqs =
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) eqs [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
-    val dts = find_dts (Datatype.get_datatypes (ProofContext.theory_of lthy)) tnames tnames;
+    val dts = find_dts (Datatype.get_all (ProofContext.theory_of lthy)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
       (index, (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns)) dts;
     val {descr, rec_names, rec_rewrites, ...} =
@@ -239,10 +239,12 @@ fun distill lthy fixes eqs =
     val prefix = space_implode "_" (map (Long_Name.base_name o #1) raw_defs);
     fun prove lthy defs =
       let
+        val frees = (fold o Term.fold_aterms) (fn Free (x, _) =>
+          if Variable.is_fixed lthy x then I else insert (op =) x | _ => I) eqs [];
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
         fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
         val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
-      in map (fn eq => [Goal.prove lthy [] [] eq tac]) eqs end;
+      in map (fn eq => [Goal.prove lthy frees [] eq tac]) eqs end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn

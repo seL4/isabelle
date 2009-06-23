@@ -305,16 +305,19 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     (** datatype representing computational content of inductive set **)
 
-    val ((dummies, dt_info), thy2) =
+    val ((dummies, some_dt_names), thy2) =
       thy1
       |> add_dummies (Datatype.add_datatype
            { strict = false, flat_names = false, quiet = false } (map (Binding.name_of o #2) dts))
            (map (pair false) dts) []
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;
-    fun get f = (these oo Option.map) f;
+    val dt_names = these some_dt_names;
+    val case_thms = map (#case_rewrites o Datatype.the_info thy2) dt_names;
+    val rec_thms = if null dt_names then []
+      else (#rec_rewrites o Datatype.the_info thy2) (hd dt_names);
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
-      HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) (get #rec_thms dt_info));
+      HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) rec_thms);
     val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>
       if member (op =) rsets s then
         let
@@ -324,7 +327,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) recs1, (recs2, dummies'))
         end
       else (replicate (length rs) Extraction.nullt, (recs, dummies)))
-        rss (get #rec_thms dt_info, dummies);
+        rss (rec_thms, dummies);
     val rintrs = map (fn (intr, c) => Envir.eta_contract
       (Extraction.realizes_of thy2 vs
         (if c = Extraction.nullt then c else list_comb (c, map Var (rev
@@ -386,8 +389,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           end) (rlzs ~~ rnames);
         val concl = HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map
           (fn (_, _ $ P, _ $ Q) => HOLogic.mk_imp (P, Q)) rlzs'));
-        val rews = map mk_meta_eq
-          (fst_conv :: snd_conv :: get #rec_thms dt_info);
+        val rews = map mk_meta_eq (fst_conv :: snd_conv :: rec_thms);
         val thm = Goal.prove_global thy [] prems concl (fn {prems, ...} => EVERY
           [rtac (#raw_induct ind_info) 1,
            rewrite_goals_tac rews,
@@ -417,7 +419,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** realizer for elimination rules **)
 
     val case_names = map (fst o dest_Const o head_of o fst o HOLogic.dest_eq o
-      HOLogic.dest_Trueprop o prop_of o hd) (get #case_thms dt_info);
+      HOLogic.dest_Trueprop o prop_of o hd) case_thms;
 
     fun add_elim_realizer Ps
       (((((elim, elimR), intrs), case_thms), case_name), dummy) thy =
@@ -476,7 +478,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val thy6 = Library.foldl (fn (thy, p as (((((elim, _), _), _), _), _)) => thy |>
       add_elim_realizer [] p |> add_elim_realizer [fst (fst (dest_Var
         (HOLogic.dest_Trueprop (concl_of elim))))] p) (thy5,
-           elimps ~~ get #case_thms dt_info ~~ case_names ~~ dummies)
+           elimps ~~ case_thms ~~ case_names ~~ dummies)
 
   in Sign.restore_naming thy thy6 end;
 
