@@ -239,10 +239,12 @@ fun distill lthy fixes eqs =
     val prefix = space_implode "_" (map (Long_Name.base_name o #1) raw_defs);
     fun prove lthy defs =
       let
+        val frees = (fold o Term.fold_aterms) (fn Free (x, _) =>
+          if Variable.is_fixed lthy x then I else insert (op =) x | _ => I) eqs [];
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
         fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
         val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
-      in map (fn eq => [Goal.prove lthy [] [] eq tac]) eqs end;
+      in map (fn eq => [Goal.prove lthy frees [] eq tac]) eqs end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn
