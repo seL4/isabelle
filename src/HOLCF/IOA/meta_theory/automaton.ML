@@ -1,8 +1,8 @@
-(*  Title:      HOLCF/IOA/meta_theory/ioa.ML
+(*  Title:      HOLCF/IOA/meta_theory/automaton.ML
     Author:     Tobias Hamberger, TU Muenchen
 *)
 
-signature IOA =
+signature AUTOMATON =
 sig
   val add_ioa: string -> string
     -> (string) list -> (string) list -> (string) list
@@ -15,7 +15,7 @@ sig
   val add_rename : string -> string -> string -> theory -> theory
 end;
 
-structure Ioa: IOA =
+structure Automaton: AUTOMATON =
 struct
 
 val string_of_typ = PrintMode.setmp [] o Syntax.string_of_typ_global;
