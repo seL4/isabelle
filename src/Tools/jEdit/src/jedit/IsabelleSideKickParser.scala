@@ -52,21 +52,19 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
   override def complete(pane: EditPane, caret: Int): SideKickCompletion =
   {
     val buffer = pane.getBuffer
-    Isabelle.prover_setup(buffer) match {
-      case None => return null
-      case Some(setup) =>
-        val line = buffer.getLineOfOffset(caret)
-        val start = buffer.getLineStartOffset(line)
 
-        if (caret == start) return null
-        val text = buffer.getSegment(start, caret - start)
+    val line = buffer.getLineOfOffset(caret)
+    val start = buffer.getLineStartOffset(line)
+    val text = buffer.getSegment(start, caret - start)
 
-        setup.prover.complete(text) match {
-          case None => null
-          case Some((word, cs)) =>
-            new SideKickCompletion(pane.getView, word,
-              cs.map(Isabelle.system.symbols.decode(_)).toArray.asInstanceOf[Array[Object]]) { }
-        }
+    val completion =
+      Isabelle.prover_setup(buffer).map(_.prover.completion) getOrElse Isabelle.completion
+
+    completion.complete(text) match {
+      case None => null
+      case Some((word, cs)) =>
+        new SideKickCompletion(pane.getView, word,
+          cs.map(Isabelle.system.symbols.decode(_)).toArray.asInstanceOf[Array[Object]]) { }
     }
   }
 

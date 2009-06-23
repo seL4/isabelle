@@ -78,9 +78,9 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
 
   /* completions */
 
-  private var completion = new Completion + isabelle_system.symbols
-  decl_info += (p => completion += p._1)
-  def complete(line: CharSequence): Option[(String, List[String])] = completion.complete(line)
+  private var _completion = Isabelle.completion
+  def completion = _completion
+  decl_info += (p => _completion += p._1)
 
 
   /* event handling */

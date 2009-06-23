@@ -38,6 +38,7 @@ object Isabelle {
   // Isabelle system instance
   var system: IsabelleSystem = null
   def symbols = system.symbols
+  lazy val completion = new Completion + symbols
 
   // settings
   def default_logic = {
