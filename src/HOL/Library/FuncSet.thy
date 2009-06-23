@@ -63,7 +63,7 @@ lemma funcsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f \<in> A -> B"
 lemma Pi_mem: "[|f: Pi A B; x \<in> A|] ==> f x \<in> B x"
   by (simp add: Pi_def)
 
-lemma ballE [elim]:
+lemma PiE [elim]:
   "f : Pi A B ==> (f x : B x ==> Q) ==> (x ~: A ==> Q) ==> Q"
 by(auto simp: Pi_def)
 
