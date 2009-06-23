@@ -285,6 +285,10 @@ lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
   -- {* The image of a finite set is finite. *}
   by (induct set: finite) simp_all
 
+lemma finite_image_set [simp]:
+  "finite {x. P x} \<Longrightarrow> finite { f x | x. P x }"
+  by (simp add: image_Collect [symmetric])
+
 lemma finite_surj: "finite A ==> B <= f ` A ==> finite B"
   apply (frule finite_imageI)
   apply (erule finite_subset, assumption)
