@@ -68,11 +68,11 @@ class Completion
 {
   /* representation */
 
-  val words_lex = Scan.Lexicon()
-  val words_map = Map[String, String]()
+  protected val words_lex = Scan.Lexicon()
+  protected val words_map = Map[String, String]()
 
-  val abbrevs_lex = Scan.Lexicon()
-  val abbrevs_map = Map[String, (String, String)]()
+  protected val abbrevs_lex = Scan.Lexicon()
+  protected val abbrevs_map = Map[String, (String, String)]()
 
 
   /* adding stuff */
