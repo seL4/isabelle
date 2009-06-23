@@ -6,7 +6,7 @@ header {* Abstraction Theory -- tailored for I/O automata *}
 
 theory Abstraction
 imports LiveIOA
-uses ("ioa.ML")
+uses ("automaton.ML")
 begin
 
 defaultsort type
@@ -613,6 +613,6 @@ fun abstraction_tac ctxt =
 
 method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *} ""
 
-use "ioa.ML"
+use "automaton.ML"
 
 end

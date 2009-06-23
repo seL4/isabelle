@@ -67,6 +67,9 @@ lemma PiE [elim]:
   "f : Pi A B ==> (f x : B x ==> Q) ==> (x ~: A ==> Q) ==> Q"
 by(auto simp: Pi_def)
 
+lemma funcset_id [simp]: "(\<lambda>x. x) \<in> A \<rightarrow> A"
+  by (auto intro: Pi_I)
+
 lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
   by (simp add: Pi_def)
 

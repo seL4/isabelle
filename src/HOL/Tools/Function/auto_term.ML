@@ -1,5 +1,4 @@
-(*  Title:      HOL/Tools/function_package/auto_term.ML
-    ID:         $Id$
+(*  Title:      HOL/Tools/Function/auto_term.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.

@@ -11,7 +11,7 @@ uses
   ("Tools/split_rule.ML")
   ("Tools/inductive_set.ML")
   ("Tools/inductive_realizer.ML")
-  ("Tools/datatype_package/datatype_realizer.ML")
+  ("Tools/Datatype/datatype_realizer.ML")
 begin
 
 subsection {* @{typ bool} is a datatype *}
@@ -399,7 +399,7 @@ lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
   by (simp add: split_def id_def)
 
 lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
-  -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
+  -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity Datatype. *}
   by (rule ext) auto
 
 lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
@@ -734,7 +734,7 @@ no_notation scomp (infixl "o\<rightarrow>" 60)
 
 text {*
   @{term prod_fun} --- action of the product functor upon
-  functions.
+  Datatypes.
 *}
 
 definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
@@ -1154,7 +1154,7 @@ setup InductiveRealizer.setup
 use "Tools/inductive_set.ML"
 setup Inductive_Set.setup
 
-use "Tools/datatype_package/datatype_realizer.ML"
+use "Tools/Datatype/datatype_realizer.ML"
 setup DatatypeRealizer.setup
 
 end

@@ -91,12 +91,12 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/auto_solve.ML \
-  $(SRC)/Tools/code/code_haskell.ML \
-  $(SRC)/Tools/code/code_ml.ML \
-  $(SRC)/Tools/code/code_preproc.ML \
-  $(SRC)/Tools/code/code_printer.ML \
-  $(SRC)/Tools/code/code_target.ML \
-  $(SRC)/Tools/code/code_thingol.ML \
+  $(SRC)/Tools/Code/code_haskell.ML \
+  $(SRC)/Tools/Code/code_ml.ML \
+  $(SRC)/Tools/Code/code_preproc.ML \
+  $(SRC)/Tools/Code/code_printer.ML \
+  $(SRC)/Tools/Code/code_target.ML \
+  $(SRC)/Tools/Code/code_thingol.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/eqsubst.ML \
   $(SRC)/Tools/induct.ML \
@@ -142,35 +142,35 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Sum_Type.thy \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
-  Tools/datatype_package/datatype_abs_proofs.ML \
-  Tools/datatype_package/datatype_aux.ML \
-  Tools/datatype_package/datatype_case.ML \
-  Tools/datatype_package/datatype_codegen.ML \
-  Tools/datatype_package/datatype.ML \
-  Tools/datatype_package/datatype_prop.ML \
-  Tools/datatype_package/datatype_realizer.ML \
-  Tools/datatype_package/datatype_rep_proofs.ML \
+  Tools/Datatype/datatype_abs_proofs.ML \
+  Tools/Datatype/datatype_aux.ML \
+  Tools/Datatype/datatype_case.ML \
+  Tools/Datatype/datatype_codegen.ML \
+  Tools/Datatype/datatype.ML \
+  Tools/Datatype/datatype_prop.ML \
+  Tools/Datatype/datatype_realizer.ML \
+  Tools/Datatype/datatype_rep_proofs.ML \
   Tools/dseq.ML \
-  Tools/function_package/auto_term.ML \
-  Tools/function_package/context_tree.ML \
-  Tools/function_package/decompose.ML \
-  Tools/function_package/descent.ML \
-  Tools/function_package/fundef_common.ML \
-  Tools/function_package/fundef_core.ML \
-  Tools/function_package/fundef_datatype.ML \
-  Tools/function_package/fundef_lib.ML \
-  Tools/function_package/fundef.ML \
-  Tools/function_package/induction_scheme.ML \
-  Tools/function_package/inductive_wrap.ML \
-  Tools/function_package/lexicographic_order.ML \
-  Tools/function_package/measure_functions.ML \
-  Tools/function_package/mutual.ML \
-  Tools/function_package/pattern_split.ML \
-  Tools/function_package/scnp_reconstruct.ML \
-  Tools/function_package/scnp_solve.ML \
-  Tools/function_package/size.ML \
-  Tools/function_package/sum_tree.ML \
-  Tools/function_package/termination.ML \
+  Tools/Function/auto_term.ML \
+  Tools/Function/context_tree.ML \
+  Tools/Function/decompose.ML \
+  Tools/Function/descent.ML \
+  Tools/Function/fundef_common.ML \
+  Tools/Function/fundef_core.ML \
+  Tools/Function/fundef_datatype.ML \
+  Tools/Function/fundef_lib.ML \
+  Tools/Function/fundef.ML \
+  Tools/Function/induction_scheme.ML \
+  Tools/Function/inductive_wrap.ML \
+  Tools/Function/lexicographic_order.ML \
+  Tools/Function/measure_functions.ML \
+  Tools/Function/mutual.ML \
+  Tools/Function/pattern_split.ML \
+  Tools/Function/scnp_reconstruct.ML \
+  Tools/Function/scnp_solve.ML \
+  Tools/Function/size.ML \
+  Tools/Function/sum_tree.ML \
+  Tools/Function/termination.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
@@ -429,7 +429,7 @@ IMPORTER_FILES = Import/lazy_seq.ML Import/proof_kernel.ML Import/replay.ML \
 IMPORTER_HOLLIGHT_FILES = Import/proof_kernel.ML Import/replay.ML \
   Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
   Import/HOL4Syntax.thy Import/HOLLightCompat.thy Import/import_syntax.ML \
-  Import/hol4rews.ML Import/import_package.ML Import/ROOT.ML
+  Import/hol4rews.ML Import/import.ML Import/ROOT.ML
 
 HOL-Import: HOL $(LOG)/HOL-Import.gz
 
@@ -494,11 +494,14 @@ $(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
 
 HOL-NewNumberTheory: HOL $(LOG)/HOL-NewNumberTheory.gz
 
-$(LOG)/HOL-NewNumberTheory.gz: $(OUT)/HOL $(LOG)/HOL-Algebra.gz \
-  GCD.thy Library/Multiset.thy	\
-  NewNumberTheory/Fib.thy NewNumberTheory/Binomial.thy			\
-  NewNumberTheory/Residues.thy NewNumberTheory/UniqueFactorization.thy  \
-  NewNumberTheory/Cong.thy NewNumberTheory/MiscAlgebra.thy \
+$(LOG)/HOL-NewNumberTheory.gz: $(OUT)/HOL $(ALGEBRA_DEPENDENCIES) \
+  Library/Multiset.thy \
+  NewNumberTheory/Binomial.thy \
+  NewNumberTheory/Cong.thy \
+  NewNumberTheory/Fib.thy \
+  NewNumberTheory/MiscAlgebra.thy \
+  NewNumberTheory/Residues.thy \
+  NewNumberTheory/UniqueFactorization.thy  \
   NewNumberTheory/ROOT.ML
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL NewNumberTheory
 
@@ -567,22 +570,46 @@ $(LOG)/HOL-MetisExamples.gz: $(OUT)/HOL MetisExamples/ROOT.ML	\
 
 HOL-Algebra: HOL $(LOG)/HOL-Algebra.gz
 
-$(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML			\
-  Library/Binomial.thy Library/FuncSet.thy				\
-  Library/Multiset.thy Library/Permutation.thy Library/Primes.thy	\
-  Algebra/AbelCoset.thy Algebra/Bij.thy	Algebra/Congruence.thy		\
-  Algebra/Coset.thy Algebra/Divisibility.thy Algebra/Exponent.thy	\
-  Algebra/FiniteProduct.thy						\
-  Algebra/Group.thy Algebra/Ideal.thy Algebra/IntRing.thy		\
-  Algebra/Lattice.thy Algebra/Module.thy Algebra/QuotRing.thy		\
-  Algebra/Ring.thy Algebra/RingHom.thy Algebra/Sylow.thy		\
-  Algebra/UnivPoly.thy Algebra/abstract/Abstract.thy			\
-  Algebra/abstract/Factor.thy Algebra/abstract/Field.thy		\
-  Algebra/abstract/Ideal2.thy Algebra/abstract/PID.thy			\
-  Algebra/abstract/Ring2.thy Algebra/abstract/RingHomo.thy		\
-  Algebra/document/root.tex Algebra/poly/LongDiv.thy			\
-  Algebra/poly/PolyHomo.thy Algebra/poly/Polynomial.thy			\
-  Algebra/poly/UnivPoly2.thy Algebra/ringsimp.ML
+ALGEBRA_DEPENDENCIES = $(OUT)/HOL \
+  Algebra/ROOT.ML \
+  Library/Binomial.thy \
+  Library/FuncSet.thy \
+  Library/Multiset.thy \
+  Library/Permutation.thy \
+  Library/Primes.thy \
+  Algebra/AbelCoset.thy \
+  Algebra/Bij.thy \
+  Algebra/Congruence.thy \
+  Algebra/Coset.thy \
+  Algebra/Divisibility.thy \
+  Algebra/Exponent.thy \
+  Algebra/FiniteProduct.thy \
+  Algebra/Group.thy \
+  Algebra/Ideal.thy \
+  Algebra/IntRing.thy \
+  Algebra/Lattice.thy \
+  Algebra/Module.thy \
+  Algebra/QuotRing.thy \
+  Algebra/Ring.thy \
+  Algebra/RingHom.thy \
+  Algebra/Sylow.thy \
+  Algebra/UnivPoly.thy \
+  Algebra/abstract/Abstract.thy \
+  Algebra/abstract/Factor.thy \
+  Algebra/abstract/Field.thy \
+  Algebra/abstract/Ideal2.thy \
+  Algebra/abstract/PID.thy \
+  Algebra/abstract/Ring2.thy \
+  Algebra/abstract/RingHomo.thy \
+  Algebra/document/root.tex \
+  Algebra/document/root.tex \
+  Algebra/poly/LongDiv.thy \
+  Algebra/poly/PolyHomo.thy \
+  Algebra/poly/Polynomial.thy \
+  Algebra/poly/UnivPoly2.thy \
+  Algebra/ringsimp.ML
+
+$(LOG)/HOL-Algebra.gz: $(ALGEBRA_DEPENDENCIES)
 	@cd Algebra; $(ISABELLE_TOOL) usedir -b -g true -V outline=/proof,/ML $(OUT)/HOL HOL-Algebra
 
 

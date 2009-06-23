@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/size.ML
+(*  Title:      HOL/Tools/Function/size.ML
     Author:     Stefan Berghofer, Florian Haftmann & Alexander Krauss, TU Muenchen
 
 Size functions for datatypes.

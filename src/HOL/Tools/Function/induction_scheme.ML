@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/induction_scheme.ML
+(*  Title:      HOL/Tools/Function/induction_scheme.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A method to prove induction schemes.

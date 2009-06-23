@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/decompose.ML
+(*  Title:       HOL/Tools/Function/decompose.ML
     Author:      Alexander Krauss, TU Muenchen
 
 Graph decomposition using "Shallow Dependency Pairs".

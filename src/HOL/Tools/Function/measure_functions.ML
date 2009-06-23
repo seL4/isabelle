@@ -1,5 +1,4 @@
-(*  Title:       HOL/Tools/function_package/measure_functions.ML
-    ID:          $Id$
+(*  Title:       HOL/Tools/Function/measure_functions.ML
     Author:      Alexander Krauss, TU Muenchen
 
 Measure functions, generated heuristically

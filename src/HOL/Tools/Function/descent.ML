@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/descent.ML
+(*  Title:       HOL/Tools/Function/descent.ML
     Author:      Alexander Krauss, TU Muenchen
 
 Descent proofs for termination

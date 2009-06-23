@@ -1204,10 +1204,6 @@ next
     apply simp
     unfolding One_nat_def[symmetric] natlist_trivial_1
     apply simp
-    unfolding image_Collect[symmetric]
-    unfolding Collect_def mem_def
-    apply (rule finite_imageI)
-    apply blast
     done
 qed
 

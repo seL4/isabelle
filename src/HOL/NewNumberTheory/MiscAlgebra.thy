@@ -1,21 +1,14 @@
 (*  Title:      MiscAlgebra.thy
-    ID:         
     Author:     Jeremy Avigad
 
-    These are things that can be added to the Algebra library,
-    as well as a few things that could possibly go in Main. 
+These are things that can be added to the Algebra library.
 *)
 
 theory MiscAlgebra
-imports 
+imports
   "~~/src/HOL/Algebra/Ring"
   "~~/src/HOL/Algebra/FiniteProduct"
 begin;
-
-declare One_nat_def [simp del] 
-
-
-(* Some things for Main? *)
 
 (* finiteness stuff *)
 
@@ -25,32 +18,8 @@ lemma int_bounded_set1 [intro]: "finite {(x::int). a < x & x < b & P x}"
   apply auto
 done
 
-lemma image_set_eq_image: "{ f x | x. P x} = f ` { x. P x}"
-  unfolding image_def apply auto
-done
-
-lemma finite_image_set [simp]: "finite {x. P x} \<Longrightarrow> 
-    finite { f x | x. P x}"
-  apply (subst image_set_eq_image)
-  apply auto
-done
-
-(* Examples:
-
-lemma "finite {x. 0 < x & x < 100 & prime (x::int)}"
-  by auto
-
-lemma "finite { 3 * x | x. 0 < x & x < 100 & prime (x::int) }"
-  by auto
-
-*)
 
 (* The rest is for the algebra libraries *)
-
-(* This goes in FuncSet.thy. Any reason not to make it a simp rule? *)
-
-lemma funcset_id [simp]: "(%x. x): A \<rightarrow> A"
-  by (auto simp add: Pi_def);
 
 (* These go in Group.thy. *)
 

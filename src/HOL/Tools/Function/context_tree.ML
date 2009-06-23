@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/function_package/context_tree.ML
+(*  Title:      HOL/Tools/Function/context_tree.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions. 
@@ -122,7 +122,7 @@ fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
    (cterm_instantiate inst r, dep, branches)
      end
     handle Pattern.MATCH => find_cong_rule ctx fvar h rs t)
-  | find_cong_rule _ _ _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
+  | find_cong_rule _ _ _ [] _ = sys_error "Function/context_tree.ML: No cong rule found!"
 
 
 fun mk_tree fvar h ctxt t =

@@ -10,15 +10,15 @@ uses
   ("Tools/inductive.ML")
   "Tools/dseq.ML"
   ("Tools/inductive_codegen.ML")
-  ("Tools/datatype_package/datatype_aux.ML")
-  ("Tools/datatype_package/datatype_prop.ML")
-  ("Tools/datatype_package/datatype_rep_proofs.ML")
-  ("Tools/datatype_package/datatype_abs_proofs.ML")
-  ("Tools/datatype_package/datatype_case.ML")
-  ("Tools/datatype_package/datatype.ML")
+  ("Tools/Datatype/datatype_aux.ML")
+  ("Tools/Datatype/datatype_prop.ML")
+  ("Tools/Datatype/datatype_rep_proofs.ML")
+  ("Tools/Datatype/datatype_abs_proofs.ML")
+  ("Tools/Datatype/datatype_case.ML")
+  ("Tools/Datatype/datatype.ML")
   ("Tools/old_primrec.ML")
   ("Tools/primrec.ML")
-  ("Tools/datatype_package/datatype_codegen.ML")
+  ("Tools/Datatype/datatype_codegen.ML")
 begin
 
 subsection {* Least and greatest fixed points *}
@@ -335,18 +335,18 @@ subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 
-use "Tools/datatype_package/datatype_aux.ML"
-use "Tools/datatype_package/datatype_prop.ML"
-use "Tools/datatype_package/datatype_rep_proofs.ML"
-use "Tools/datatype_package/datatype_abs_proofs.ML"
-use "Tools/datatype_package/datatype_case.ML"
-use "Tools/datatype_package/datatype.ML"
+use "Tools/Datatype/datatype_aux.ML"
+use "Tools/Datatype/datatype_prop.ML"
+use "Tools/Datatype/datatype_rep_proofs.ML"
+use "Tools/Datatype/datatype_abs_proofs.ML"
+use "Tools/Datatype/datatype_case.ML"
+use "Tools/Datatype/datatype.ML"
 setup Datatype.setup
 
 use "Tools/old_primrec.ML"
 use "Tools/primrec.ML"
 
-use "Tools/datatype_package/datatype_codegen.ML"
+use "Tools/Datatype/datatype_codegen.ML"
 setup DatatypeCodegen.setup
 
 use "Tools/inductive_codegen.ML"

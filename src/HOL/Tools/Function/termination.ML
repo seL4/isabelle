@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/termination.ML
+(*  Title:       HOL/Tools/Function/termination.ML
     Author:      Alexander Krauss, TU Muenchen
 
 Context data for termination proofs

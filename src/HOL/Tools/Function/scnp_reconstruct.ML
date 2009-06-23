@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/scnp_reconstruct.ML
+(*  Title:       HOL/Tools/Function/scnp_reconstruct.ML
     Author:      Armin Heller, TU Muenchen
     Author:      Alexander Krauss, TU Muenchen
 

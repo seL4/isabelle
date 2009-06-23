@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/lexicographic_order.ML
+(*  Title:       HOL/Tools/Function/lexicographic_order.ML
     Author:      Lukas Bulwahn, TU Muenchen
 
 Method for termination proofs with lexicographic orderings.
