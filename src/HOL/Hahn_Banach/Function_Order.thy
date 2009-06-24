@@ -1,11 +1,10 @@
-(*  Title:      HOL/Real/HahnBanach/FunctionOrder.thy
-    ID:         $Id$
+(*  Title:      HOL/Hahn_Banach/Function_Order.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* An order on functions *}
 
-theory FunctionOrder
+theory Function_Order
 imports Subspace Linearform
 begin
 

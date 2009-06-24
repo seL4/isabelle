@@ -1,11 +1,11 @@
-(*  Title:      HOL/Real/HahnBanach/FunctionNorm.thy
+(*  Title:      HOL/Hahn_Banach/Function_Norm.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* The norm of a function *}
 
-theory FunctionNorm
-imports NormedSpace FunctionOrder
+theory Function_Norm
+imports Normed_Space Function_Order
 begin
 
 subsection {* Continuous linear forms*}

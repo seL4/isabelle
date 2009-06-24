@@ -1,8 +1,7 @@
-(*  Title:      HOL/Real/HahnBanach/ROOT.ML
-    ID:         $Id$
+(*  Title:      HOL/Hahn_Banach/ROOT.ML
     Author:     Gertrud Bauer, TU Munich
 
 The Hahn-Banach theorem for real vector spaces (Isabelle/Isar).
 *)
 
-time_use_thy "HahnBanach";
+use_thy "Hahn_Banach";

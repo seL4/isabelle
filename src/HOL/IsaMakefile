@@ -16,7 +16,7 @@ test: \
   HOL-Bali \
   HOL-Decision_Procs \
   HOL-Extraction \
-  HOL-HahnBanach \
+  HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-Import \
@@ -360,21 +360,19 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
-## HOL-HahnBanach
+## HOL-Hahn_Banach
 
-HOL-HahnBanach: HOL $(LOG)/HOL-HahnBanach.gz
+HOL-Hahn_Banach: HOL $(LOG)/HOL-Hahn_Banach.gz
 
-$(LOG)/HOL-HahnBanach.gz: $(OUT)/HOL			\
-  HahnBanach/Bounds.thy HahnBanach/FunctionNorm.thy		\
-  HahnBanach/FunctionOrder.thy HahnBanach/HahnBanach.thy	\
-  HahnBanach/HahnBanachExtLemmas.thy				\
-  HahnBanach/HahnBanachSupLemmas.thy				\
-  HahnBanach/Linearform.thy HahnBanach/NormedSpace.thy	\
-  HahnBanach/README.html HahnBanach/ROOT.ML			\
-  HahnBanach/Subspace.thy HahnBanach/VectorSpace.thy		\
-  HahnBanach/ZornLemma.thy HahnBanach/document/root.bib	\
-  HahnBanach/document/root.tex
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HahnBanach
+$(LOG)/HOL-Hahn_Banach.gz: $(OUT)/HOL Hahn_Banach/Bounds.thy		\
+  Hahn_Banach/Function_Norm.thy Hahn_Banach/Function_Order.thy		\
+  Hahn_Banach/Hahn_Banach.thy Hahn_Banach/Hahn_Banach_Ext_Lemmas.thy	\
+  Hahn_Banach/Hahn_Banach_Sup_Lemmas.thy Hahn_Banach/Linearform.thy	\
+  Hahn_Banach/Normed_Space.thy Hahn_Banach/README.html			\
+  Hahn_Banach/ROOT.ML Hahn_Banach/Subspace.thy				\
+  Hahn_Banach/Vector_Space.thy Hahn_Banach/Zorn_Lemma.thy		\
+  Hahn_Banach/document/root.bib Hahn_Banach/document/root.tex
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hahn_Banach
 
 
 ## HOL-Subst
@@ -1138,7 +1136,7 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
-		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz	\
+		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET-Protocol.gz	\
 		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz			\
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\

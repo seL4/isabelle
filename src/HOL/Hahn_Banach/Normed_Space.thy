@@ -1,10 +1,10 @@
-(*  Title:      HOL/Real/HahnBanach/NormedSpace.thy
+(*  Title:      HOL/Hahn_Banach/Normed_Space.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* Normed vector spaces *}
 
-theory NormedSpace
+theory Normed_Space
 imports Subspace
 begin
 
@@ -108,8 +108,8 @@ proof -
   proof
     show "vectorspace F" by (rule vectorspace) unfold_locales
   next
-    have "NormedSpace.norm E norm" ..
-    with subset show "NormedSpace.norm F norm"
+    have "Normed_Space.norm E norm" ..
+    with subset show "Normed_Space.norm F norm"
       by (simp add: norm_def seminorm_def norm_axioms_def)
   qed
 qed

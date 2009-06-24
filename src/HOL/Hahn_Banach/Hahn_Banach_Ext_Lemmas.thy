@@ -1,11 +1,11 @@
-(*  Title:      HOL/Real/HahnBanach/HahnBanachExtLemmas.thy
+(*  Title:      HOL/Hahn_Banach/Hahn_Banach_Ext_Lemmas.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* Extending non-maximal functions *}
 
-theory HahnBanachExtLemmas
-imports FunctionNorm
+theory Hahn_Banach_Ext_Lemmas
+imports Function_Norm
 begin
 
 text {*

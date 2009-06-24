@@ -1,11 +1,10 @@
-(*  Title:      HOL/Real/HahnBanach/VectorSpace.thy
-    ID:         $Id$
+(*  Title:      HOL/Hahn_Banach/Vector_Space.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* Vector spaces *}
 
-theory VectorSpace
+theory Vector_Space
 imports Real Bounds Zorn
 begin
 

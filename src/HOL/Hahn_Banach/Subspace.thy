@@ -1,11 +1,11 @@
-(*  Title:      HOL/Real/HahnBanach/Subspace.thy
+(*  Title:      HOL/Hahn_Banach/Subspace.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* Subspaces *}
 
 theory Subspace
-imports VectorSpace
+imports Vector_Space
 begin
 
 subsection {* Definition *}

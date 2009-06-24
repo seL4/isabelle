@@ -1,4 +1,4 @@
-(*  Title:      HOL/Real/HahnBanach/Bounds.thy
+(*  Title:      HOL/Hahn_Banach/Bounds.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 

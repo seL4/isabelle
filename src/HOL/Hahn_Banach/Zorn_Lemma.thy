@@ -1,10 +1,10 @@
-(*  Title:      HOL/Real/HahnBanach/ZornLemma.thy
+(*  Title:      HOL/Hahn_Banach/Zorn_Lemma.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* Zorn's Lemma *}
 
-theory ZornLemma
+theory Zorn_Lemma
 imports Zorn
 begin
 

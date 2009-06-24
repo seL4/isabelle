@@ -1,12 +1,11 @@
-(*  Title:      HOL/Real/HahnBanach/HahnBanachSupLemmas.thy
-    ID:         $Id$
+(*  Title:      HOL/Hahn_Banach/Hahn_Banach_Sup_Lemmas.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* The supremum w.r.t.~the function order *}
 
-theory HahnBanachSupLemmas
-imports FunctionNorm ZornLemma
+theory Hahn_Banach_Sup_Lemmas
+imports Function_Norm Zorn_Lemma
 begin
 
 text {*
@@ -389,8 +388,8 @@ qed
 
 text {*
   \medskip The following lemma is a property of linear forms on real
-  vector spaces. It will be used for the lemma @{text abs_HahnBanach}
-  (see page \pageref{abs-HahnBanach}). \label{abs-ineq-iff} For real
+  vector spaces. It will be used for the lemma @{text abs_Hahn_Banach}
+  (see page \pageref{abs-Hahn_Banach}). \label{abs-ineq-iff} For real
   vector spaces the following inequations are equivalent:
   \begin{center}
   \begin{tabular}{lll}

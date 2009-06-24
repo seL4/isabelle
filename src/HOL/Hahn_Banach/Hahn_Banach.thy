@@ -1,11 +1,11 @@
-(*  Title:      HOL/Real/HahnBanach/HahnBanach.thy
+(*  Title:      HOL/Hahn_Banach/Hahn_Banach.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* The Hahn-Banach Theorem *}
 
-theory HahnBanach
-imports HahnBanachLemmas
+theory Hahn_Banach
+imports Hahn_Banach_Lemmas
 begin
 
 text {*
@@ -53,7 +53,7 @@ text {*
   \end{enumerate}
 *}
 
-theorem HahnBanach:
+theorem Hahn_Banach:
   assumes E: "vectorspace E" and "subspace F E"
     and "seminorm E p" and "linearform F f"
   assumes fp: "\<forall>x \<in> F. f x \<le> p x"
@@ -301,7 +301,7 @@ subsection  {* Alternative formulation *}
 
 text {*
   The following alternative formulation of the Hahn-Banach
-  Theorem\label{abs-HahnBanach} uses the fact that for a real linear
+  Theorem\label{abs-Hahn-Banach} uses the fact that for a real linear
   form @{text f} and a seminorm @{text p} the following inequations
   are equivalent:\footnote{This was shown in lemma @{thm [source]
   abs_ineq_iff} (see page \pageref{abs-ineq-iff}).}
@@ -313,7 +313,7 @@ text {*
   \end{center}
 *}
 
-theorem abs_HahnBanach:
+theorem abs_Hahn_Banach:
   assumes E: "vectorspace E" and FE: "subspace F E"
     and lf: "linearform F f" and sn: "seminorm E p"
   assumes fp: "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
@@ -327,7 +327,7 @@ proof -
   interpret seminorm E p by fact
   have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
     using E FE sn lf
-  proof (rule HahnBanach)
+  proof (rule Hahn_Banach)
     show "\<forall>x \<in> F. f x \<le> p x"
       using FE E sn lf and fp by (rule abs_ineq_iff [THEN iffD1])
   qed
@@ -350,7 +350,7 @@ text {*
   @{text g} on @{text E} such that @{text "\<parallel>f\<parallel> = \<parallel>g\<parallel>"}.
 *}
 
-theorem norm_HahnBanach:
+theorem norm_Hahn_Banach:
   fixes V and norm ("\<parallel>_\<parallel>")
   fixes B defines "\<And>V f. B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
   fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
@@ -438,7 +438,7 @@ proof -
       linearformE: "linearform E g"
     and a: "\<forall>x \<in> F. g x = f x"
     and b: "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
-    by (rule abs_HahnBanach [elim_format]) iprover
+    by (rule abs_Hahn_Banach [elim_format]) iprover
 
   txt {* We furthermore have to show that @{text g} is also continuous: *}
 

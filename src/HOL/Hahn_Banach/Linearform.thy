@@ -1,11 +1,11 @@
-(*  Title:      HOL/Real/HahnBanach/Linearform.thy
+(*  Title:      HOL/Hahn_Banach/Linearform.thy
     Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* Linearforms *}
 
 theory Linearform
-imports VectorSpace
+imports Vector_Space
 begin
 
 text {*
