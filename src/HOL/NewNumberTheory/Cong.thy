@@ -60,9 +60,7 @@ declare card_insert_disjoint [simp del]
 lemma nat_1' [simp]: "nat 1 = 1"
 by simp
 
-(* For those annoying moments where Suc reappears *)
-lemma Suc_remove: "Suc n = n + 1"
-by simp
+(* For those annoying moments where Suc reappears, use Suc_eq_plus1 *)
 
 declare nat_1 [simp del]
 declare add_2_eq_Suc [simp del] 

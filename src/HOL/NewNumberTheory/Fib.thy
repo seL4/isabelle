@@ -145,7 +145,7 @@ lemma nat_fib_add: "fib ((n::nat) + k + 1) = fib (k + 1) * fib (n + 1) +
   apply (subst nat_fib_reduce)
   apply (auto simp add: ring_simps)
   apply (subst (1 3 5) nat_fib_reduce)
-  apply (auto simp add: ring_simps Suc_remove)
+  apply (auto simp add: ring_simps Suc_eq_plus1)
 (* hmmm. Why doesn't "n + (1 + (1 + k))" simplify to "n + k + 2"? *)
   apply (subgoal_tac "n + (k + 2) = n + (1 + (1 + k))")
   apply (erule ssubst) back back
@@ -220,7 +220,7 @@ lemma nat_coprime_fib_plus_1: "coprime (fib (n::nat)) (fib (n + 1))"
   apply (induct n rule: nat_fib_induct)
   apply auto
   apply (subst (2) nat_fib_reduce)
-  apply (auto simp add: Suc_remove) (* again, natdiff_cancel *)
+  apply (auto simp add: Suc_eq_plus1) (* again, natdiff_cancel *)
   apply (subst add_commute, auto)
   apply (subst nat_gcd_commute, auto simp add: ring_simps)
 done
