@@ -61,7 +61,7 @@ val nat_add_conv =
     (HOL_basic_ss 
        addsimps @{thms arith_simps} @ natarith @ @{thms rel_simps}
              @ [if_False, if_True, @{thm add_0}, @{thm add_Suc},
-                 @{thm add_number_of_left}, @{thm Suc_eq_add_numeral_1}]
+                 @{thm add_number_of_left}, @{thm Suc_eq_plus1}]
              @ map (fn th => th RS sym) @{thms numerals}));
 
 val nat_mul_conv = nat_add_conv;

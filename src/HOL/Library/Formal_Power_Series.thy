@@ -1615,7 +1615,7 @@ proof-
 	  fix v assume v: "v \<in> {xs \<in> natpermute n (Suc k). n \<in> set xs}"
 	  let ?ths = "(\<Prod>j\<in>{0..k}. a $ v ! j) = a $ n * (?r$0)^k"
 	  from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
-	    unfolding Suc_plus1 natpermute_contain_maximal by (auto simp del: replicate.simps)
+	    unfolding Suc_eq_plus1 natpermute_contain_maximal by (auto simp del: replicate.simps)
 	  have "(\<Prod>j\<in>{0..k}. a $ v ! j) = (\<Prod>j\<in>{0..k}. if j = i then a $ n else r (Suc k) (b$0))"
 	    apply (rule setprod_cong, simp)
 	    using i a0 by (simp del: replicate.simps)
@@ -1651,7 +1651,7 @@ proof-
 	from H have "b$n = a^Suc k $ n" by (simp add: fps_eq_iff)
 	also have "a ^ Suc k$n = setsum ?g ?Pnkn + setsum ?g ?Pnknn"
 	  unfolding fps_power_nth_Suc
-	  using setsum_Un_disjoint[OF f d, unfolded Suc_plus1[symmetric],
+	  using setsum_Un_disjoint[OF f d, unfolded Suc_eq_plus1[symmetric],
 	    unfolded eq, of ?g] by simp
 	also have "\<dots> = of_nat (k+1) * a $ n * (?r $ 0)^k + setsum ?f ?Pnknn" unfolding th0 th1 ..
 	finally have "of_nat (k+1) * a $ n * (?r $ 0)^k = b$n - setsum ?f ?Pnknn" by simp

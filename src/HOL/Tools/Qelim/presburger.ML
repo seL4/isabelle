@@ -118,7 +118,7 @@ val ss1 = comp_ss
 val ss2 = HOL_basic_ss
   addsimps [@{thm "nat_0_le"}, @{thm "int_nat_number_of"},
             @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
-            @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_plus1"}]
+            @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
   addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
 val div_mod_ss = HOL_basic_ss addsimps simp_thms 
   @ map (symmetric o mk_meta_eq) 
@@ -129,7 +129,7 @@ val div_mod_ss = HOL_basic_ss addsimps simp_thms
      @{thm "div_by_0"}, @{thm "DIVISION_BY_ZERO"} RS conjunct1, 
      @{thm "DIVISION_BY_ZERO"} RS conjunct2, @{thm "zdiv_zero"}, @{thm "zmod_zero"}, 
      @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, 
-     @{thm "mod_1"}, @{thm "Suc_plus1"}]
+     @{thm "mod_1"}, @{thm "Suc_eq_plus1"}]
   @ @{thms add_ac}
  addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
  val splits_ss = comp_ss addsimps [@{thm "mod_div_equality'"}] addsplits 

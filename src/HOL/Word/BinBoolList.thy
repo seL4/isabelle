@@ -658,7 +658,7 @@ lemma mask_lem: "(bl_to_bin (True # replicate n False)) =
   apply (unfold bl_to_bin_def)
   apply (induct n)
    apply simp
-  apply (simp only: Suc_eq_add_numeral_1 replicate_add
+  apply (simp only: Suc_eq_plus1 replicate_add
                     append_Cons [symmetric] bl_to_bin_aux_append)
   apply simp
   done

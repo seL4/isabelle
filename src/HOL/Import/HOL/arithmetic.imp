@@ -43,7 +43,7 @@ thm_maps
   "TWO" > "HOL4Base.arithmetic.TWO"
   "TIMES2" > "NatSimprocs.nat_mult_2"
   "SUC_SUB1" > "HOL4Base.arithmetic.SUC_SUB1"
-  "SUC_ONE_ADD" > "Nat_Numeral.Suc_eq_add_numeral_1_left"
+  "SUC_ONE_ADD" > "Nat_Numeral.Suc_eq_plus1_left"
   "SUC_NOT" > "Nat.nat.simps_2"
   "SUC_ELIM_THM" > "HOL4Base.arithmetic.SUC_ELIM_THM"
   "SUC_ADD_SYM" > "HOL4Base.arithmetic.SUC_ADD_SYM"
@@ -265,7 +265,7 @@ thm_maps
   "ADD_CLAUSES" > "HOL4Base.arithmetic.ADD_CLAUSES"
   "ADD_ASSOC" > "Finite_Set.AC_add.f.AC_1"
   "ADD_0" > "Finite_Set.AC_add.f_e.ident"
-  "ADD1" > "Presburger.Suc_plus1"
+  "ADD1" > "Nat_Numeral.Suc_eq_plus1"
   "ADD" > "HOL4Compat.ADD"
 
 end

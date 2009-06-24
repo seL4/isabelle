@@ -31,7 +31,7 @@ val split_zdiv = @{thm split_zdiv};
 val split_zmod = @{thm split_zmod};
 val mod_div_equality' = @{thm mod_div_equality'};
 val split_div' = @{thm split_div'};
-val Suc_plus1 = @{thm Suc_plus1};
+val Suc_eq_plus1 = @{thm Suc_eq_plus1};
 val imp_le_cong = @{thm imp_le_cong};
 val conj_le_cong = @{thm conj_le_cong};
 val mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
@@ -81,11 +81,11 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
 				  @{thm mod_by_0}, @{thm div_by_0},
 				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
 				  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
-				  Suc_plus1]
+				  Suc_eq_plus1]
 			addsimps @{thms add_ac}
 			addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
     val simpset0 = HOL_basic_ss
-      addsimps [mod_div_equality', Suc_plus1]
+      addsimps [mod_div_equality', Suc_eq_plus1]
       addsimps comp_arith
       addsplits [split_zdiv, split_zmod, split_div', @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)

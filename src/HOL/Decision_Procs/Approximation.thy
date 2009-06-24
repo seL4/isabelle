@@ -422,7 +422,7 @@ proof -
 
     have "\<bar> real x \<bar> \<le> 1"  using `0 \<le> real x` `real x \<le> 1` by auto
     from mp[OF summable_Leibniz(2)[OF zeroseq_arctan_series[OF this] monoseq_arctan_series[OF this]] prem, THEN spec, of m, unfolded `2 * m = n`]
-    show ?thesis unfolding arctan_series[OF `\<bar> real x \<bar> \<le> 1`] Suc_plus1  .
+    show ?thesis unfolding arctan_series[OF `\<bar> real x \<bar> \<le> 1`] Suc_eq_plus1  .
   qed auto
   note arctan_bounds = this[unfolded atLeastAtMost_iff]
 
@@ -1179,7 +1179,7 @@ lemma cos_periodic_nat[simp]: fixes n :: nat shows "cos (x + real n * 2 * pi) = 
 proof (induct n arbitrary: x)
   case (Suc n)
   have split_pi_off: "x + real (Suc n) * 2 * pi = (x + real n * 2 * pi) + 2 * pi"
-    unfolding Suc_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
+    unfolding Suc_eq_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed auto
 
@@ -1676,7 +1676,7 @@ proof -
     using ln_series[of "x + 1"] `0 \<le> x` `x < 1` by auto
 
   have "norm x < 1" using assms by auto
-  have "?a ----> 0" unfolding Suc_plus1[symmetric] inverse_eq_divide[symmetric] 
+  have "?a ----> 0" unfolding Suc_eq_plus1[symmetric] inverse_eq_divide[symmetric] 
     using LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_Suc[OF LIMSEQ_power_zero[OF `norm x < 1`]]] by auto
   { fix n have "0 \<le> ?a n" by (rule mult_nonneg_nonneg, auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`) }
   { fix n have "?a (Suc n) \<le> ?a n" unfolding inverse_eq_divide[symmetric]

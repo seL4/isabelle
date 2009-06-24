@@ -152,7 +152,7 @@ structure CancelNumeralsCommon =
   fun trans_tac _       = Arith_Data.trans_tac
 
   val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    [@{thm Suc_eq_add_numeral_1_left}] @ @{thms add_ac}
+    [@{thm Suc_eq_plus1_left}] @ @{thms add_ac}
   val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss = 
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
@@ -240,7 +240,7 @@ structure CombineNumeralsData =
   val prove_conv        = Arith_Data.prove_conv_nohyps
   fun trans_tac _       = Arith_Data.trans_tac
 
-  val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1}] @ @{thms add_ac}
+  val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms add_ac}
   val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
@@ -266,7 +266,7 @@ structure CancelNumeralFactorCommon =
   fun trans_tac _       = Arith_Data.trans_tac
 
   val norm_ss1 = Numeral_Simprocs.num_ss addsimps
-    numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1_left}] @ @{thms add_ac}
+    numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms add_ac}
   val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))

@@ -521,10 +521,10 @@ lemmas expand_Suc = Suc_pred' [of "number_of v", standard]
 
 subsubsection{*Arith *}
 
-lemma Suc_eq_add_numeral_1: "Suc n = n + 1"
+lemma Suc_eq_plus1: "Suc n = n + 1"
 by (simp add: numerals)
 
-lemma Suc_eq_add_numeral_1_left: "Suc n = 1 + n"
+lemma Suc_eq_plus1_left: "Suc n = 1 + n"
 by (simp add: numerals)
 
 (* These two can be useful when m = number_of... *)

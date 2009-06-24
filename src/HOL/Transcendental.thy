@@ -2242,7 +2242,7 @@ lemma tan_periodic_pi[simp]: "tan (x + pi) = tan x"
 lemma tan_periodic_nat[simp]: fixes n :: nat shows "tan (x + real n * pi) = tan x" 
 proof (induct n arbitrary: x)
   case (Suc n)
-  have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi" unfolding Suc_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
+  have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi" unfolding Suc_eq_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed auto
 
@@ -2779,12 +2779,12 @@ next
     show ?thesis
     proof (cases "0 \<le> x")
       case True from mono[OF this `x \<le> 1`, THEN allI]
-      show ?thesis unfolding Suc_plus1[symmetric] by (rule mono_SucI2)
+      show ?thesis unfolding Suc_eq_plus1[symmetric] by (rule mono_SucI2)
     next
       case False hence "0 \<le> -x" and "-x \<le> 1" using `-1 \<le> x` by auto
       from mono[OF this]
       have "\<And>n. 1 / real (Suc (Suc n * 2)) * x ^ Suc (Suc n * 2) \<ge> 1 / real (Suc (n * 2)) * x ^ Suc (n * 2)" using `0 \<le> -x` by auto
-      thus ?thesis unfolding Suc_plus1[symmetric] by (rule mono_SucI1[OF allI])
+      thus ?thesis unfolding Suc_eq_plus1[symmetric] by (rule mono_SucI1[OF allI])
     qed
   qed
 qed
@@ -2800,13 +2800,13 @@ next
     case True hence "norm x < 1" by auto
     from LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_power_zero[OF `norm x < 1`, THEN LIMSEQ_Suc]]
     have "(\<lambda>n. 1 / real (n + 1) * x ^ (n + 1)) ----> 0"
-      unfolding inverse_eq_divide Suc_plus1 by simp
+      unfolding inverse_eq_divide Suc_eq_plus1 by simp
     then show ?thesis using pos2 by (rule LIMSEQ_linear)
   next
     case False hence "x = -1 \<or> x = 1" using `\<bar>x\<bar> \<le> 1` by auto
     hence n_eq: "\<And> n. x ^ (n * 2 + 1) = x" unfolding One_nat_def by auto
     from LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat[THEN LIMSEQ_linear, OF pos2, unfolded inverse_eq_divide] LIMSEQ_const[of x]]
-    show ?thesis unfolding n_eq Suc_plus1 by auto
+    show ?thesis unfolding n_eq Suc_eq_plus1 by auto
   qed
 qed
 
@@ -2921,7 +2921,7 @@ proof -
     qed
     
     have suminf_arctan_zero: "suminf (?c 0) - arctan 0 = 0"
-      unfolding Suc_plus1[symmetric] power_Suc2 mult_zero_right arctan_zero_zero suminf_zero by auto
+      unfolding Suc_eq_plus1[symmetric] power_Suc2 mult_zero_right arctan_zero_zero suminf_zero by auto
     
     have "suminf (?c x) - arctan x = 0"
     proof (cases "x = 0")

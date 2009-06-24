@@ -180,7 +180,7 @@ lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
 lemmas comp_arith =
   Let_def arith_simps nat_arith rel_simps neg_simps if_False
   if_True add_0 add_Suc add_number_of_left mult_number_of_left
-  numeral_1_eq_1[symmetric] Suc_eq_add_numeral_1
+  numeral_1_eq_1[symmetric] Suc_eq_plus1
   numeral_0_eq_0[symmetric] numerals[symmetric]
   iszero_simps not_iszero_Numeral1
 

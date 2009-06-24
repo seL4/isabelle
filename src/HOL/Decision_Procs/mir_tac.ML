@@ -26,7 +26,7 @@ val nT = HOLogic.natT;
 
   val comp_arith = (map thm ["Let_def", "if_False", "if_True", "add_0", 
                  "add_Suc", "add_number_of_left", "mult_number_of_left", 
-                 "Suc_eq_add_numeral_1"])@
+                 "Suc_eq_plus1"])@
                  (map (fn s => thm s RS sym) ["numeral_1_eq_1", "numeral_0_eq_0"])
                  @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
@@ -50,7 +50,6 @@ val split_zdiv = @{thm "split_zdiv"};
 val split_zmod = @{thm "split_zmod"};
 val mod_div_equality' = @{thm "mod_div_equality'"};
 val split_div' = @{thm "split_div'"};
-val Suc_plus1 = @{thm "Suc_plus1"};
 val imp_le_cong = @{thm "imp_le_cong"};
 val conj_le_cong = @{thm "conj_le_cong"};
 val mod_add_eq = @{thm "mod_add_eq"} RS sym;
@@ -104,11 +103,11 @@ fun mir_tac ctxt q i =
                                   @{thm "mod_self"}, @{thm "zmod_self"},
                                   @{thm "zdiv_zero"},@{thm "zmod_zero"},@{thm "div_0"}, @{thm "mod_0"},
                                   @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
-                                  @{thm "Suc_plus1"}]
+                                  @{thm "Suc_eq_plus1"}]
                         addsimps @{thms add_ac}
                         addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
     val simpset0 = HOL_basic_ss
-      addsimps [mod_div_equality', Suc_plus1]
+      addsimps [mod_div_equality', @{thm Suc_eq_plus1}]
       addsimps comp_ths
       addsplits [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)

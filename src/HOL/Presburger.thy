@@ -399,7 +399,6 @@ lemma zdiff_int_split: "P (int (x - y)) =
 lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (Int.Bit0 n) \<and> (0::int) <= number_of (Int.Bit1 n)"
 by simp
 lemma number_of2: "(0::int) <= Numeral0" by simp
-lemma Suc_plus1: "Suc n = n + 1" by simp
 
 text {*
   \medskip Specific instances of congruence rules, to prevent

@@ -171,7 +171,7 @@ lemma depth_bt_map [simp]: "depth (bt_map f t) = depth t"
 ML {*AtpWrapper.problem_name := "BT__n_leaves_bt_map"*}
 lemma n_leaves_bt_map [simp]: "n_leaves (bt_map f t) = n_leaves t"
   apply (induct t)
-  apply (metis One_nat_def Suc_eq_add_numeral_1 bt_map.simps(1) less_add_one less_antisym linorder_neq_iff n_leaves.simps(1))
+  apply (metis One_nat_def Suc_eq_plus1 bt_map.simps(1) less_add_one less_antisym linorder_neq_iff n_leaves.simps(1))
   apply (metis bt_map.simps(2) n_leaves.simps(2))
   done
 
