@@ -17,6 +17,7 @@ sig
   val get_timeout: unit -> int
   val set_timeout: int -> unit
   val get_full_types: unit -> bool
+  val set_full_types: bool -> unit
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
@@ -57,6 +58,7 @@ fun get_timeout () = CRITICAL (fn () => ! timeout);
 fun set_timeout time = CRITICAL (fn () => timeout := time);
 
 fun get_full_types () = CRITICAL (fn () => ! full_types);
+fun set_full_types bool = CRITICAL (fn () => full_types := bool);
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
