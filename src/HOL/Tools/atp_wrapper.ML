@@ -109,7 +109,7 @@ fun tptp_prover_opts_full max_new theory_const full command timeout ax_clauses f
   external_prover
   (ResAtp.get_relevant max_new theory_const)
   (ResAtp.prepare_clauses false)
-  (ResHolClause.tptp_write_file)
+  (ResHolClause.tptp_write_file (AtpManager.get_full_types()))
   command
   ResReconstruct.find_failure
   (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
@@ -173,7 +173,7 @@ val eprover_full = eprover_opts_full 100 false;
 fun spass_opts max_new theory_const timeout ax_clauses fcls name n goal = external_prover
   (ResAtp.get_relevant max_new theory_const)
   (ResAtp.prepare_clauses true)
-  ResHolClause.dfg_write_file
+  (ResHolClause.dfg_write_file (AtpManager.get_full_types()))
   (Path.explode "$SPASS_HOME/SPASS",
     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
   ResReconstruct.find_failure

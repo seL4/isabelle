@@ -37,9 +37,9 @@ sig
        bool ->
        clause list * (thm * (axiom_name * clause_id)) list * string list ->
        clause list
-  val tptp_write_file: string ->
+  val tptp_write_file: bool -> string ->
     clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
-  val dfg_write_file: string -> 
+  val dfg_write_file: bool -> string -> 
     clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
 end
 
@@ -227,8 +227,8 @@ val type_wrapper = "ti";
 fun head_needs_hBOOL const_needs_hBOOL (CombConst(c,_,_)) = needs_hBOOL const_needs_hBOOL c
   | head_needs_hBOOL const_needs_hBOOL _ = true;
 
-fun wrap_type (s, tp) =
-  if typ_level=T_FULL then
+fun wrap_type t_full (s, tp) =
+  if t_full then
       type_wrapper ^ RC.paren_pack [s, RC.string_of_fol_type tp]
   else s;
 
@@ -241,7 +241,7 @@ fun string_apply (v, args) = rev_apply (v, rev args);
 
 (*Apply an operator to the argument strings, using either the "apply" operator or
   direct function application.*)
-fun string_of_applic cma (CombConst(c,tp,tvars), args) =
+fun string_of_applic t_full cma (CombConst(c,tp,tvars), args) =
       let val c = if c = "equal" then "c_fequal" else c
           val nargs = min_arity_of cma c
           val args1 = List.take(args, nargs)
@@ -249,35 +249,37 @@ fun string_of_applic cma (CombConst(c,tp,tvars), args) =
                                          Int.toString nargs ^ " but is applied to " ^
                                          space_implode ", " args)
           val args2 = List.drop(args, nargs)
-          val targs = if typ_level = T_CONST then map RC.string_of_fol_type tvars
+          val targs = if not t_full then map RC.string_of_fol_type tvars
                       else []
       in
           string_apply (c ^ RC.paren_pack (args1@targs), args2)
       end
-  | string_of_applic cma (CombVar(v,tp), args) = string_apply (v, args)
-  | string_of_applic _ _ = error "string_of_applic";
+  | string_of_applic _ cma (CombVar(v,tp), args) = string_apply (v, args)
+  | string_of_applic _ _ _ = error "string_of_applic";
 
-fun wrap_type_if cnh (head, s, tp) = if head_needs_hBOOL cnh head then wrap_type (s, tp) else s;
+fun wrap_type_if t_full cnh (head, s, tp) =
+  if head_needs_hBOOL cnh head then wrap_type t_full (s, tp) else s;
 
-fun string_of_combterm cma cnh t =
+fun string_of_combterm t_full cma cnh t =
   let val (head, args) = strip_comb t
-  in  wrap_type_if cnh (head,
-                    string_of_applic cma (head, map (string_of_combterm cma cnh) args),
+  in  wrap_type_if t_full cnh (head,
+                    string_of_applic t_full cma (head, map (string_of_combterm t_full cma cnh) args),
                     type_of_combterm t)
   end;
 
 (*Boolean-valued terms are here converted to literals.*)
-fun boolify cma cnh t = "hBOOL" ^ RC.paren_pack [string_of_combterm cma cnh t];
+fun boolify t_full cma cnh t =
+  "hBOOL" ^ RC.paren_pack [string_of_combterm t_full cma cnh t];
 
-fun string_of_predicate cma cnh t =
+fun string_of_predicate t_full cma cnh t =
   case t of
       (CombApp(CombApp(CombConst("equal",_,_), t1), t2)) =>
           (*DFG only: new TPTP prefers infix equality*)
-          ("equal" ^ RC.paren_pack [string_of_combterm cma cnh t1, string_of_combterm cma cnh t2])
+          ("equal" ^ RC.paren_pack [string_of_combterm t_full cma cnh t1, string_of_combterm t_full cma cnh t2])
     | _ =>
           case #1 (strip_comb t) of
-              CombConst(c,_,_) => if needs_hBOOL cnh c then boolify cma cnh t else string_of_combterm cma cnh t
-            | _ => boolify cma cnh t;
+              CombConst(c,_,_) => if needs_hBOOL cnh c then boolify t_full cma cnh t else string_of_combterm t_full cma cnh t
+            | _ => boolify t_full cma cnh t;
 
 fun string_of_clausename (cls_id,ax_name) =
     RC.clause_prefix ^ RC.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -288,23 +290,23 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 
 (*** tptp format ***)
 
-fun tptp_of_equality cma cnh pol (t1,t2) =
+fun tptp_of_equality t_full cma cnh pol (t1,t2) =
   let val eqop = if pol then " = " else " != "
-  in  string_of_combterm cma cnh t1 ^ eqop ^ string_of_combterm cma cnh t2  end;
+  in  string_of_combterm t_full cma cnh t1 ^ eqop ^ string_of_combterm t_full cma cnh t2  end;
 
-fun tptp_literal cma cnh (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))) =
-      tptp_of_equality cma cnh pol (t1,t2)
-  | tptp_literal cma cnh (Literal(pol,pred)) =
-      RC.tptp_sign pol (string_of_predicate cma cnh pred);
+fun tptp_literal t_full cma cnh (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))) =
+      tptp_of_equality t_full cma cnh pol (t1,t2)
+  | tptp_literal t_full cma cnh (Literal(pol,pred)) =
+      RC.tptp_sign pol (string_of_predicate t_full cma cnh pred);
 
 (*Given a clause, returns its literals paired with a list of literals concerning TFrees;
   the latter should only occur in conjecture clauses.*)
-fun tptp_type_lits cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
-      (map (tptp_literal cma cnh) literals, 
+fun tptp_type_lits t_full cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
+      (map (tptp_literal t_full cma cnh) literals, 
        map (RC.tptp_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
-fun clause2tptp (cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-  let val (lits,tylits) = tptp_type_lits cma cnh (kind = RC.Conjecture) cls
+fun clause2tptp (t_full, cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+  let val (lits,tylits) = tptp_type_lits t_full cma cnh (kind = RC.Conjecture) cls
   in
       (RC.gen_tptp_cls(clause_id,axiom_name,kind,lits,tylits), tylits)
   end;
@@ -312,10 +314,10 @@ fun clause2tptp (cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts
 
 (*** dfg format ***)
 
-fun dfg_literal cma cnh (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate cma cnh pred);
+fun dfg_literal t_full cma cnh (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate t_full cma cnh pred);
 
-fun dfg_type_lits cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
-      (map (dfg_literal cma cnh) literals, 
+fun dfg_type_lits t_full cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
+      (map (dfg_literal t_full cma cnh) literals, 
        map (RC.dfg_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
 fun get_uvars (CombConst _) vars = vars
@@ -326,8 +328,8 @@ fun get_uvars_l (Literal(_,c)) = get_uvars c [];
 
 fun dfg_vars (Clause {literals,...}) = RC.union_all (map get_uvars_l literals);
 
-fun clause2dfg (cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-  let val (lits,tylits) = dfg_type_lits cma cnh (kind = RC.Conjecture) cls
+fun clause2dfg (t_full, cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+  let val (lits,tylits) = dfg_type_lits t_full cma cnh (kind = RC.Conjecture) cls
       val vars = dfg_vars cls
       val tvars = RC.get_tvar_strs ctypes_sorts
   in
@@ -339,30 +341,30 @@ fun clause2dfg (cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,
 
 fun addtypes tvars tab = List.foldl RC.add_foltype_funcs tab tvars;
 
-fun add_decls cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
+fun add_decls t_full cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
 	let val arity = min_arity_of cma c
-	    val ntys = if typ_level = T_CONST then length tvars else 0
+	    val ntys = if not t_full then length tvars else 0
 	    val addit = Symtab.update(c, arity+ntys)
 	in
 	    if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
 	    else (addtypes tvars funcs, addit preds)
 	end
-  | add_decls _ _ (CombVar(_,ctp), (funcs,preds)) =
+  | add_decls _ _ _ (CombVar(_,ctp), (funcs,preds)) =
       (RC.add_foltype_funcs (ctp,funcs), preds)
-  | add_decls cma cnh (CombApp(P,Q),decls) = add_decls cma cnh (P,add_decls cma cnh (Q,decls));
+  | add_decls t_full cma cnh (CombApp(P,Q),decls) = add_decls t_full cma cnh (P,add_decls t_full cma cnh (Q,decls));
 
-fun add_literal_decls cma cnh (Literal(_,c), decls) = add_decls cma cnh (c,decls);
+fun add_literal_decls t_full cma cnh (Literal(_,c), decls) = add_decls t_full cma cnh (c,decls);
 
-fun add_clause_decls cma cnh (Clause {literals, ...}, decls) =
-    List.foldl (add_literal_decls cma cnh) decls literals
+fun add_clause_decls t_full cma cnh (Clause {literals, ...}, decls) =
+    List.foldl (add_literal_decls t_full cma cnh) decls literals
     handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
-fun decls_of_clauses (cma, cnh) clauses arity_clauses =
+fun decls_of_clauses (t_full, cma, cnh) clauses arity_clauses =
   let val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",2) RC.init_functab)
       val init_predtab = Symtab.update ("hBOOL",1) Symtab.empty
-      val (functab,predtab) = (List.foldl (add_clause_decls cma cnh) (init_functab, init_predtab) clauses)
+      val (functab,predtab) = (List.foldl (add_clause_decls t_full cma cnh) (init_functab, init_predtab) clauses)
   in
       (Symtab.dest (List.foldl RC.add_arityClause_funcs functab arity_clauses),
        Symtab.dest predtab)
@@ -471,37 +473,39 @@ fun count_constants (conjectures, axclauses, helper_clauses, _, _) =
 
 (* tptp format *)
 
-fun tptp_write_file filename clauses =
+fun tptp_write_file t_full filename clauses =
   let
     val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
-    val const_counts = count_constants clauses
-    val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp const_counts) conjectures)
+    val (cma, cnh) = count_constants clauses
+    val params = (t_full, cma, cnh)
+    val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp params) conjectures)
     val tfree_clss = map RC.tptp_tfree_clause (List.foldl (op union_string) [] tfree_litss)
     val out = TextIO.openOut filename
   in
-    List.app (curry TextIO.output out o #1 o (clause2tptp const_counts)) axclauses;
+    List.app (curry TextIO.output out o #1 o (clause2tptp params)) axclauses;
     RC.writeln_strs out tfree_clss;
     RC.writeln_strs out tptp_clss;
     List.app (curry TextIO.output out o RC.tptp_classrelClause) classrel_clauses;
     List.app (curry TextIO.output out o RC.tptp_arity_clause) arity_clauses;
-    List.app (curry TextIO.output out o #1 o (clause2tptp const_counts)) helper_clauses;
+    List.app (curry TextIO.output out o #1 o (clause2tptp params)) helper_clauses;
     TextIO.closeOut out
   end;
 
 
 (* dfg format *)
 
-fun dfg_write_file filename clauses =
+fun dfg_write_file t_full filename clauses =
   let
     val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
-    val const_counts = count_constants clauses
-    val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg const_counts) conjectures)
+    val (cma, cnh) = count_constants clauses
+    val params = (t_full, cma, cnh)
+    val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg params) conjectures)
     and probname = Path.implode (Path.base (Path.explode filename))
-    val axstrs = map (#1 o (clause2dfg const_counts)) axclauses
+    val axstrs = map (#1 o (clause2dfg params)) axclauses
     val tfree_clss = map RC.dfg_tfree_clause (RC.union_all tfree_litss)
     val out = TextIO.openOut filename
-    val helper_clauses_strs = map (#1 o (clause2dfg const_counts)) helper_clauses
-    val (funcs,cl_preds) = decls_of_clauses const_counts (helper_clauses @ conjectures @ axclauses) arity_clauses
+    val helper_clauses_strs = map (#1 o (clause2dfg params)) helper_clauses
+    val (funcs,cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
     and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
   in
     TextIO.output (out, RC.string_of_start probname);

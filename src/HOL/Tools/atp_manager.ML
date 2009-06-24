@@ -16,6 +16,7 @@ sig
   val set_max_atps: int -> unit
   val get_timeout: unit -> int
   val set_timeout: int -> unit
+  val get_full_types: unit -> bool
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
@@ -42,6 +43,7 @@ local
 val atps = ref "e remote_vampire";
 val max_atps = ref 5;   (* ~1 means infinite number of atps *)
 val timeout = ref 60;
+val full_types = ref false;
 
 in
 
@@ -53,6 +55,8 @@ fun set_max_atps number = CRITICAL (fn () => max_atps := number);
 
 fun get_timeout () = CRITICAL (fn () => ! timeout);
 fun set_timeout time = CRITICAL (fn () => timeout := time);
+
+fun get_full_types () = CRITICAL (fn () => ! full_types);
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
@@ -68,6 +72,11 @@ val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
     (Preferences.int_pref timeout
       "ATP: timeout" "ATPs will be interrupted after this time (in seconds)");
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_proof
+    (Preferences.bool_pref full_types
+      "ATP: full types" "ATPs will use full type information");
 
 end;
 
