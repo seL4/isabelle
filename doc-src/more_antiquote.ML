@@ -81,7 +81,7 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 fun no_vars ctxt thm =
   let
     val ctxt' = Variable.set_body false ctxt;
-    val ((_, [thm]), _) = Variable.import_thms true [thm] ctxt';
+    val ((_, [thm]), _) = Variable.import true [thm] ctxt';
   in thm end;
 
 fun pretty_code_thm src ctxt raw_const =

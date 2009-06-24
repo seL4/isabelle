@@ -39,7 +39,7 @@ fun projects ctxt is raw_rule =
       (case try imp th of
         NONE => (k, th)
       | SOME th' => prems (k + 1) th');
-    val ((_, [rule]), ctxt') = Variable.import_thms true [raw_rule] ctxt;
+    val ((_, [rule]), ctxt') = Variable.import true [raw_rule] ctxt;
     fun result i =
       rule
       |> proj i
@@ -59,7 +59,7 @@ fun projections ctxt raw_rule =
       (case try conj2 th of
         NONE => k
       | SOME th' => projs (k + 1) th');
-    val ((_, [rule]), _) = Variable.import_thms true [raw_rule] ctxt;
+    val ((_, [rule]), _) = Variable.import true [raw_rule] ctxt;
   in projects ctxt (1 upto projs 1 rule) raw_rule end;
 
 end;

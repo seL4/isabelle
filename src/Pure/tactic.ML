@@ -91,7 +91,7 @@ fun trace_goalno_tac tac i st =
 fun rule_by_tactic tac rl =
   let
     val ctxt = Variable.thm_context rl;
-    val ((_, [st]), ctxt') = Variable.import_thms true [rl] ctxt;
+    val ((_, [st]), ctxt') = Variable.import true [rl] ctxt;
   in
     (case Seq.pull (tac st) of
       NONE => raise THM ("rule_by_tactic", 0, [rl])

@@ -93,7 +93,7 @@ text %mlref {*
   @{index_ML Variable.declare_constraints: "term -> Proof.context -> Proof.context"} \\
   @{index_ML Variable.export: "Proof.context -> Proof.context -> thm list -> thm list"} \\
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
-  @{index_ML Variable.import_thms: "bool -> thm list -> Proof.context ->
+  @{index_ML Variable.import: "bool -> thm list -> Proof.context ->
   ((ctyp list * cterm list) * thm list) * Proof.context"} \\
   @{index_ML Variable.focus: "cterm -> Proof.context -> (cterm list * cterm) * Proof.context"} \\
   \end{mldecls}
@@ -132,7 +132,7 @@ text %mlref {*
   with @{ML Variable.polymorphic}: here the given terms are detached
   from the context as far as possible.
 
-  \item @{ML Variable.import_thms}~@{text "open thms ctxt"} invents fixed
+  \item @{ML Variable.import}~@{text "open thms ctxt"} invents fixed
   type and term variables for the schematic ones occurring in @{text
   "thms"}.  The @{text "open"} flag indicates whether the fixed names
   should be accessible to the user, otherwise newly introduced names

@@ -54,7 +54,7 @@ fun simpset_of_entry injonly {inj = inj, emb = emb, ret = ret, cong = cg, guess 
 
 fun basic_transfer_rule injonly a0 D0 e leave ctxt0 th = 
  let 
-  val ([a,D], ctxt) = apfst (map Drule.dest_term o snd) (Variable.import_thms true (map Drule.mk_term [a0, D0]) ctxt0)
+  val ([a,D], ctxt) = apfst (map Drule.dest_term o snd) (Variable.import true (map Drule.mk_term [a0, D0]) ctxt0)
   val (aT,bT) = 
      let val T = typ_of (ctyp_of_term a) 
      in (Term.range_type T, Term.domain_type T)

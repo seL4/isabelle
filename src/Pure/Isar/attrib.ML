@@ -265,7 +265,7 @@ val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 val no_vars = Thm.rule_attribute (fn context => fn th =>
   let
     val ctxt = Variable.set_body false (Context.proof_of context);
-    val ((_, [th']), _) = Variable.import_thms true [th] ctxt;
+    val ((_, [th']), _) = Variable.import true [th] ctxt;
   in th' end);
 
 val eta_long =

@@ -34,7 +34,7 @@ fun mk_congeq ctxt fs th =
      |> fst |> strip_comb |> fst
    val thy = ProofContext.theory_of ctxt
    val cert = Thm.cterm_of thy
-   val (((_,_),[th']), ctxt') = Variable.import_thms true [th] ctxt
+   val (((_,_),[th']), ctxt') = Variable.import true [th] ctxt
    val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'))
    fun add_fterms (t as t1 $ t2) =
        if exists (fn f => Term.could_unify (t |> strip_comb |> fst, f)) fs then insert (op aconv) t

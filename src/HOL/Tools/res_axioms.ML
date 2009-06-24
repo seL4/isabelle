@@ -269,7 +269,7 @@ fun skolem_of_def def =
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
 fun to_nnf th ctxt0 =
   let val th1 = th |> transform_elim |> zero_var_indexes
-      val ((_,[th2]),ctxt) = Variable.import_thms true [th1] ctxt0
+      val ((_,[th2]),ctxt) = Variable.import true [th1] ctxt0
       val th3 = th2 |> Conv.fconv_rule ObjectLogic.atomize |> Meson.make_nnf |> strip_lambdas ~1
   in  (th3, ctxt)  end;
 

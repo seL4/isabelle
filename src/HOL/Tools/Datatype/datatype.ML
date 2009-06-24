@@ -385,7 +385,7 @@ fun add_datatype_def (config : config) new_type_names descr sorts types_syntax c
 fun prove_rep_datatype (config : config) alt_names new_type_names descr sorts induct inject half_distinct thy =
   let
     val ((_, [induct']), _) =
-      Variable.importT_thms [induct] (Variable.thm_context induct);
+      Variable.importT [induct] (Variable.thm_context induct);
 
     fun err t = error ("Ill-formed predicate in induction rule: " ^
       Syntax.string_of_term_global thy t);

@@ -333,7 +333,7 @@ fun mutual_rule _ [] = NONE
   | mutual_rule _ [th] = SOME ([0], th)
   | mutual_rule ctxt (ths as th :: _) =
       let
-        val ((_, ths'), ctxt') = Variable.import_thms true ths ctxt;
+        val ((_, ths'), ctxt') = Variable.import true ths ctxt;
         val rules as (prems, _) :: _ = map (prep_rule (get_consumes th)) ths';
         val (ns, rls) = split_list (map #2 rules);
       in

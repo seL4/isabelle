@@ -79,7 +79,7 @@ fun eliminate fix_ctxt rule xs As thm =
     val _ = ObjectLogic.is_judgment thy (Thm.concl_of thm) orelse
       error "Conclusion in obtained context must be object-logic judgment";
 
-    val ((_, [thm']), ctxt') = Variable.import_thms true [thm] fix_ctxt;
+    val ((_, [thm']), ctxt') = Variable.import true [thm] fix_ctxt;
     val prems = Drule.strip_imp_prems (#prop (Thm.crep_thm thm'));
   in
     ((Drule.implies_elim_list thm' (map Thm.assume prems)
@@ -196,7 +196,7 @@ fun result tac facts ctxt =
       | SOME th => check_result ctxt thesis (MetaSimplifier.norm_hhf (Goal.conclude th)));
 
     val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
-    val ((_, [rule']), ctxt') = Variable.import_thms false [closed_rule] ctxt;
+    val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
     val obtain_rule = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
     val ((params, stmt), fix_ctxt) = Variable.focus (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
@@ -249,7 +249,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
       |> Thm.forall_intr (cert (Free thesis_var))
       |> Thm.instantiate (instT, []);
 
-    val ((_, rule' :: terms'), ctxt') = Variable.import_thms false (closed_rule :: terms) ctxt;
+    val ((_, rule' :: terms'), ctxt') = Variable.import false (closed_rule :: terms) ctxt;
     val vars' =
       map (dest_Free o Thm.term_of o Drule.dest_term) terms' ~~
       (map snd vars @ replicate (length ys) NoSyn);

@@ -170,7 +170,7 @@ fun trans_list _ _ [] = raise Empty
       (case filter_out is_trivial raw_eqs of
         [] => th
       | eqs =>
-          let val ((_, th' :: eqs'), ctxt') = Variable.import_thms true (th :: eqs) ctxt
+          let val ((_, th' :: eqs'), ctxt') = Variable.import true (th :: eqs) ctxt
           in singleton (Variable.export ctxt' ctxt) (fold trans eqs' th') end);
 
 in

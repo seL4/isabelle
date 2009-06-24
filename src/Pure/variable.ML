@@ -51,9 +51,9 @@ sig
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
-  val importT_thms: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
+  val importT: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
-  val import_thms: bool -> thm list -> Proof.context ->
+  val import: bool -> thm list -> Proof.context ->
     ((ctyp list * cterm list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
@@ -424,7 +424,7 @@ fun import_terms is_open ts ctxt =
   let val (inst, ctxt') = import_inst is_open ts ctxt
   in (map (TermSubst.instantiate inst) ts, ctxt') end;
 
-fun importT_thms ths ctxt =
+fun importT ths ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val certT = Thm.ctyp_of thy;
@@ -439,7 +439,7 @@ fun import_prf is_open prf ctxt =
     val (insts, ctxt') = import_inst is_open ts ctxt;
   in (Proofterm.instantiate insts prf, ctxt') end;
 
-fun import_thms is_open ths ctxt =
+fun import is_open ths ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
@@ -457,8 +457,8 @@ fun gen_trade imp exp f ctxt ths =
   let val ((_, ths'), ctxt') = imp ths ctxt
   in exp ctxt' ctxt (f ctxt' ths') end;
 
-val tradeT = gen_trade importT_thms exportT;
-val trade = gen_trade (import_thms true) export;
+val tradeT = gen_trade importT exportT;
+val trade = gen_trade (import true) export;
 
 
 (* focus on outermost parameters *)

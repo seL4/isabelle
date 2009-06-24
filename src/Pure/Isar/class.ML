@@ -75,7 +75,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     (* assm_intro *)
     fun prove_assm_intro thm =
       let
-        val ((_, [thm']), _) = Variable.import_thms true [thm] empty_ctxt;
+        val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
         val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
         val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
       in SkipProof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
