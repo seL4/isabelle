@@ -1,6 +1,6 @@
 (*  Title:      GCD.thy
     Authors:    Christophe Tabacznyj, Lawrence C. Paulson, Amine Chaieb,
-                Thomas M. Rasmussen, Jeremy Avigad
+                Thomas M. Rasmussen, Jeremy Avigad, Tobias Nipkow
 
 
 This file deals with the functions gcd and lcm, and properties of
@@ -20,6 +20,7 @@ of results to "Primes" and "GCD". IntPrimes also defined and developed
 the congruence relations on the integers. The notion was extended to
 the natural numbers by Chiaeb.
 
+Tobias Nipkow cleaned up a lot.
 *)
 
 
@@ -247,11 +248,11 @@ lemma nat_gcd_Suc_0 [simp]: "gcd (m::nat) (Suc 0) = Suc 0"
 lemma int_gcd_1 [simp]: "gcd (m::int) 1 = 1"
   by (simp add: gcd_int_def)
 
-lemma nat_gcd_self [simp]: "gcd (x::nat) x = x"
-  by simp
+lemma nat_gcd_idem: "gcd (x::nat) x = x"
+by simp
 
-lemma int_gcd_def [simp]: "gcd (x::int) x = abs x"
-  by (subst int_gcd_abs, auto simp add: gcd_int_def)
+lemma int_gcd_idem: "gcd (x::int) x = abs x"
+by (subst int_gcd_abs, auto simp add: gcd_int_def)
 
 declare gcd_nat.simps [simp del]
 
@@ -266,8 +267,6 @@ lemma nat_gcd_dvd1 [iff]: "(gcd (m::nat)) n dvd m"
   apply (simp_all add: nat_gcd_non_0)
   apply (blast dest: dvd_mod_imp_dvd)
 done
-
-thm nat_gcd_dvd1 [transferred]
 
 lemma int_gcd_dvd1 [iff]: "gcd (x::int) y dvd x"
   apply (subst int_gcd_abs)
@@ -308,7 +307,7 @@ lemma int_gcd_le2 [simp]: "b > 0 \<Longrightarrow> gcd (a::int) b \<le> b"
   by (rule zdvd_imp_le, auto)
 
 lemma nat_gcd_greatest: "(k::nat) dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd gcd m n"
-  by (induct m n rule: nat_gcd_induct) (simp_all add: nat_gcd_non_0 dvd_mod)
+by (induct m n rule: nat_gcd_induct) (simp_all add: nat_gcd_non_0 dvd_mod)
 
 lemma int_gcd_greatest:
   assumes "(k::int) dvd m" and "k dvd n"
@@ -364,15 +363,6 @@ lemmas nat_gcd_ac = nat_gcd_assoc nat_gcd_commute nat_gcd_left_commute
 
 lemmas int_gcd_ac = int_gcd_assoc int_gcd_commute int_gcd_left_commute
 
-lemma nat_gcd_1_left [simp]: "gcd (1::nat) m = 1"
-  by (subst nat_gcd_commute, simp)
-
-lemma nat_gcd_Suc_0_left [simp]: "gcd (Suc 0) m = Suc 0"
-  by (subst nat_gcd_commute, simp add: One_nat_def)
-
-lemma int_gcd_1_left [simp]: "gcd (1::int) m = 1"
-  by (subst int_gcd_commute, simp)
-
 lemma nat_gcd_unique: "(d::nat) dvd a \<and> d dvd b \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
   apply auto
@@ -395,6 +385,19 @@ lemma int_gcd_unique: "d >= 0 & (d::int) dvd a \<and> d dvd b \<and>
   apply (auto intro: int_gcd_greatest)
 done
 
+lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x"
+by (metis dvd.eq_iff nat_gcd_unique)
+
+lemma gcd_proj2_if_dvd_nat [simp]: "(y::nat) dvd x \<Longrightarrow> gcd x y = y"
+by (metis dvd.eq_iff nat_gcd_unique)
+
+lemma gcd_proj1_if_dvd_int[simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = abs x"
+by (metis abs_dvd_iff abs_eq_0 int_gcd_0_left int_gcd_abs int_gcd_unique)
+
+lemma gcd_proj2_if_dvd_int[simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = abs y"
+by (metis gcd_proj1_if_dvd_int int_gcd_commute)
+
+
 text {*
   \medskip Multiplication laws
 *}
@@ -413,12 +416,6 @@ lemma int_gcd_mult_distrib: "abs (k::int) * gcd m n = gcd (k * m) (k * n)"
   apply (rule nat_gcd_mult_distrib [transferred])
   apply auto
 done
-
-lemma nat_gcd_mult [simp]: "gcd (k::nat) (k * n) = k"
-  by (rule nat_gcd_mult_distrib [of k 1 n, simplified, symmetric])
-
-lemma int_gcd_mult [simp]: "gcd (k::int) (k * n) = abs k"
-  by (rule int_gcd_mult_distrib [of k 1 n, simplified, symmetric])
 
 lemma nat_coprime_dvd_mult: "coprime (k::nat) n \<Longrightarrow> k dvd m * n \<Longrightarrow> k dvd m"
   apply (insert nat_gcd_mult_distrib [of m k n])
@@ -517,42 +514,22 @@ lemma int_gcd_red: "gcd (x::int) y = gcd y (x mod y)"
 done
 
 lemma int_gcd_add1 [simp]: "gcd ((m::int) + n) n = gcd m n"
-  apply (case_tac "n = 0", force)
-  apply (subst (1 2) int_gcd_red)
-  apply auto
-done
+by (metis int_gcd_red mod_add_self1 zadd_commute)
 
 lemma int_gcd_add2 [simp]: "gcd m ((m::int) + n) = gcd m n"
-  apply (subst int_gcd_commute)
-  apply (subst add_commute)
-  apply (subst int_gcd_add1)
-  apply (subst int_gcd_commute)
-  apply (rule refl)
-done
+by (metis int_gcd_add1 int_gcd_commute zadd_commute)
 
 lemma nat_gcd_add_mult: "gcd (m::nat) (k * m + n) = gcd m n"
-  by (induct k, simp_all add: ring_simps)
+by (metis mod_mult_self3 nat_gcd_commute nat_gcd_red)
 
 lemma int_gcd_add_mult: "gcd (m::int) (k * m + n) = gcd m n"
-  apply (subgoal_tac "ALL s. ALL m. ALL n.
-      gcd m (int (s::nat) * m + n) = gcd m n")
-  apply (case_tac "k >= 0")
-  apply (drule_tac x = "nat k" in spec, force)
-  apply (subst (1 2) int_gcd_neg2 [symmetric])
-  apply (drule_tac x = "nat (- k)" in spec)
-  apply (drule_tac x = "m" in spec)
-  apply (drule_tac x = "-n" in spec)
-  apply auto
-  apply (rule nat_induct)
-  apply auto
-  apply (auto simp add: left_distrib)
-  apply (subst add_assoc)
-  apply simp
-done
+by (metis int_gcd_commute int_gcd_red mod_mult_self1 zadd_commute)
+
 
 (* to do: differences, and all variations of addition rules
     as simplification rules for nat and int *)
 
+(* FIXME remove iff *)
 lemma nat_gcd_dvd_prod [iff]: "gcd (m::nat) n dvd k * n"
   using mult_dvd_mono [of 1] by auto
 
@@ -714,20 +691,20 @@ proof -
 qed
 
 lemma int_coprime_lmult:
-  assumes dab: "coprime (d::int) (a * b)" shows "coprime d a"
+  assumes "coprime (d::int) (a * b)" shows "coprime d a"
 proof -
   have "gcd d a dvd gcd d (a * b)"
     by (rule int_gcd_greatest, auto)
-  with dab show ?thesis
+  with assms show ?thesis
     by auto
 qed
 
 lemma nat_coprime_rmult:
-  assumes dab: "coprime (d::nat) (a * b)" shows "coprime d b"
+  assumes "coprime (d::nat) (a * b)" shows "coprime d b"
 proof -
   have "gcd d b dvd gcd d (a * b)"
     by (rule nat_gcd_greatest, auto intro: dvd_mult)
-  with dab show ?thesis
+  with assms show ?thesis
     by auto
 qed
 
@@ -937,6 +914,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
+(* FIXME move to Divides(?) *)
 lemma nat_pow_divides_eq [simp]: "n ~= 0 \<Longrightarrow> ((a::nat)^n dvd b^n) = (a dvd b)"
   by (auto intro: nat_pow_divides_pow dvd_power_same)
 
@@ -1316,28 +1294,10 @@ lemma nat_lcm_0 [simp]: "lcm (m::nat) 0 = 0"
 lemma int_lcm_0 [simp]: "lcm (m::int) 0 = 0"
   unfolding lcm_int_def by simp
 
-lemma nat_lcm_1 [simp]: "lcm (m::nat) 1 = m"
-  unfolding lcm_nat_def by simp
-
-lemma nat_lcm_Suc_0 [simp]: "lcm (m::nat) (Suc 0) = m"
-  unfolding lcm_nat_def by (simp add: One_nat_def)
-
-lemma int_lcm_1 [simp]: "lcm (m::int) 1 = abs m"
-  unfolding lcm_int_def by simp
-
 lemma nat_lcm_0_left [simp]: "lcm (0::nat) n = 0"
   unfolding lcm_nat_def by simp
 
 lemma int_lcm_0_left [simp]: "lcm (0::int) n = 0"
-  unfolding lcm_int_def by simp
-
-lemma nat_lcm_1_left [simp]: "lcm (1::nat) m = m"
-  unfolding lcm_nat_def by simp
-
-lemma nat_lcm_Suc_0_left [simp]: "lcm (Suc 0) m = m"
-  unfolding lcm_nat_def by (simp add: One_nat_def)
-
-lemma int_lcm_1_left [simp]: "lcm (1::int) m = abs m"
   unfolding lcm_int_def by simp
 
 lemma nat_lcm_commute: "lcm (m::nat) n = lcm n m"
@@ -1348,34 +1308,14 @@ lemma int_lcm_commute: "lcm (m::int) n = lcm n m"
 
 
 lemma nat_lcm_pos:
-  assumes mpos: "(m::nat) > 0"
-  and npos: "n>0"
-  shows "lcm m n > 0"
-proof(rule ccontr, simp add: lcm_nat_def nat_gcd_zero)
-  assume h:"m*n div gcd m n = 0"
-  from mpos npos have "gcd m n \<noteq> 0" using nat_gcd_zero by simp
-  hence gcdp: "gcd m n > 0" by simp
-  with h
-  have "m*n < gcd m n"
-    by (cases "m * n < gcd m n")
-       (auto simp add: div_if[OF gcdp, where m="m*n"])
-  moreover
-  have "gcd m n dvd m" by simp
-  with mpos dvd_imp_le have t1:"gcd m n \<le> m" by simp
-  with npos have t1:"gcd m n*n \<le> m*n" by simp
-  have "gcd m n \<le> gcd m n*n" using npos by simp
-  with t1 have "gcd m n \<le> m*n" by arith
-  ultimately show "False" by simp
-qed
+  "(m::nat) > 0 \<Longrightarrow> n>0 \<Longrightarrow> lcm m n > 0"
+by (metis gr0I mult_is_0 nat_prod_gcd_lcm)
 
 lemma int_lcm_pos:
-  assumes mneq0: "(m::int) ~= 0"
-  and npos: "n ~= 0"
-  shows "lcm m n > 0"
-
+  "(m::int) ~= 0 \<Longrightarrow> n ~= 0 \<Longrightarrow> lcm m n > 0"
   apply (subst int_lcm_abs)
   apply (rule nat_lcm_pos [transferred])
-  using prems apply auto
+  apply auto
 done
 
 lemma nat_dvd_pos:
@@ -1417,13 +1357,11 @@ next
 qed
 
 lemma int_lcm_least:
-  assumes "(m::int) dvd k" and "n dvd k"
-  shows "lcm m n dvd k"
-
-  apply (subst int_lcm_abs)
-  apply (rule dvd_trans)
-  apply (rule nat_lcm_least [transferred, of _ "abs k" _])
-  using prems apply auto
+  "(m::int) dvd k \<Longrightarrow> n dvd k \<Longrightarrow> lcm m n dvd k"
+apply (subst int_lcm_abs)
+apply (rule dvd_trans)
+apply (rule nat_lcm_least [transferred, of _ "abs k" _])
+apply auto
 done
 
 lemma nat_lcm_dvd1: "(m::nat) dvd lcm m n"
@@ -1481,23 +1419,23 @@ lemma int_lcm_unique: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by (auto intro: dvd_anti_sym [transferred] int_lcm_least)
 
-lemma nat_lcm_dvd_eq [simp]: "(x::nat) dvd y \<Longrightarrow> lcm x y = y"
+lemma lcm_proj2_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm x y = y"
   apply (rule sym)
   apply (subst nat_lcm_unique [symmetric])
   apply auto
 done
 
-lemma int_lcm_dvd_eq [simp]: "0 <= y \<Longrightarrow> (x::int) dvd y \<Longrightarrow> lcm x y = y"
+lemma lcm_proj2_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm x y = abs y"
   apply (rule sym)
   apply (subst int_lcm_unique [symmetric])
   apply auto
 done
 
-lemma nat_lcm_dvd_eq' [simp]: "(x::nat) dvd y \<Longrightarrow> lcm y x = y"
-  by (subst nat_lcm_commute, erule nat_lcm_dvd_eq)
+lemma lcm_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm y x = y"
+by (subst nat_lcm_commute, erule lcm_proj2_if_dvd_nat)
 
-lemma int_lcm_dvd_eq' [simp]: "y >= 0 \<Longrightarrow> (x::int) dvd y \<Longrightarrow> lcm y x = y"
-  by (subst int_lcm_commute, erule (1) int_lcm_dvd_eq)
+lemma lcm_proj1_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm y x = abs y"
+by (subst int_lcm_commute, erule lcm_proj2_if_dvd_int)
 
 
 lemma lcm_assoc_nat: "lcm (lcm n m) (p::nat) = lcm n (lcm m p)"
