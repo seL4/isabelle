@@ -202,9 +202,6 @@ lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrighta
   apply (subgoal_tac "a mod m ~= 0")
   apply arith
   apply auto
-  apply (subst (asm) int_gcd_commute)
-  apply (subst (asm) int_gcd_mult)
-  apply auto
   apply (subst (asm) int_gcd_red)
   apply (subst int_gcd_commute, assumption)
 done
