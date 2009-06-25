@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/isabelle_system.scala
     Author:     Makarius
 
-Isabelle system support -- basic Cygwin/Posix compatibility.
+Isabelle system support, with basic Cygwin/Posix compatibility.
 */
 
 package isabelle
@@ -13,7 +13,7 @@ import scala.io.Source
 import scala.util.matching.Regex
 
 
-object IsabelleSystem
+object Isabelle_System
 {
 
   val charset = "UTF-8"
@@ -48,20 +48,23 @@ object IsabelleSystem
 }
 
 
-class IsabelleSystem
+class Isabelle_System
 {
 
-  /* unique ids */
+  /** unique ids **/
 
   private var id_count: BigInt = 0
   def id(): String = synchronized { id_count += 1; "j" + id_count }
 
 
-  /* Isabelle settings environment */
+
+  /** Isabelle environment **/
+
+  /* platform prefixes */
 
   private val (platform_root, drive_prefix, shell_prefix) =
   {
-    if (IsabelleSystem.is_cygwin) {
+    if (Isabelle_System.is_cygwin) {
       val root = Cygwin.root() getOrElse "C:\\cygwin"
       val drive = Cygwin.cygdrive() getOrElse "/cygdrive"
       val shell = List(root + "\\bin\\bash", "-l")
@@ -69,6 +72,9 @@ class IsabelleSystem
     }
     else ("/", "", Nil)
   }
+
+
+  /* bash environment */
 
   private val environment: Map[String, String] =
   {
@@ -88,8 +94,8 @@ class IsabelleSystem
     val dump = File.createTempFile("isabelle", null)
     try {
       val cmdline = shell_prefix ::: List(isabelle, "getenv", "-d", dump.toString)
-      val proc = IsabelleSystem.raw_execute(env0, true, cmdline: _*)
-      val (output, rc) = IsabelleSystem.process_output(proc)
+      val proc = Isabelle_System.raw_execute(env0, true, cmdline: _*)
+      val (output, rc) = Isabelle_System.process_output(proc)
       if (rc != 0) error(output)
 
       val entries =
@@ -105,10 +111,11 @@ class IsabelleSystem
     finally { dump.delete }
   }
 
+
+  /* getenv */
+
   def getenv(name: String): String =
-  {
     environment.getOrElse(if (name == "HOME") "HOME_JVM" else name, "")
-  }
 
   def getenv_strict(name: String): String =
   {
@@ -119,7 +126,43 @@ class IsabelleSystem
   override def toString = getenv("ISABELLE_HOME")
 
 
-  /* file path specifications */
+
+  /** file path specifications **/
+
+  /* Isabelle paths */
+
+  def expand_path(source_path: String): String =
+  {
+    val result_path = new StringBuilder
+    def init(path: String)
+    {
+      if (path.startsWith("/")) {
+        result_path.clear
+        result_path += '/'
+      }
+    }
+    def append(path: String)
+    {
+      init(path)
+      for (p <- path.split("/") if p != "") {
+        val len = result_path.length
+        if (len > 0 && result_path(len - 1) != '/')
+          result_path += '/'
+        result_path ++= p
+      }
+    }
+    init(source_path)
+    for (p <- source_path.split("/")) {
+      if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
+      else if (p == "~") append(getenv_strict("HOME"))
+      else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))
+      else append(p)
+    }
+    result_path.toString
+  }
+
+
+  /* platform paths */
 
   private val Cygdrive = new Regex(
     if (drive_prefix == "") "\0"
@@ -128,39 +171,21 @@ class IsabelleSystem
   def platform_path(source_path: String): String =
   {
     val result_path = new StringBuilder
-
-    def init(path: String): String =
-    {
-      path match {
+    val rest =
+      expand_path(source_path) match {
         case Cygdrive(drive, rest) =>
-          result_path.length = 0
-          result_path.append(drive)
-          result_path.append(":")
-          result_path.append(File.separator)
+          result_path ++= (drive + ":" + File.separator)
           rest
-        case _ if (path.startsWith("/")) =>
-          result_path.length = 0
-          result_path.append(platform_root)
-          path.substring(1)
-        case _ => path
+        case path if path.startsWith("/") =>
+          result_path ++= platform_root
+          path
+        case path => path
       }
-    }
-    def append(path: String)
-    {
-      for (p <- init(path) split "/") {
-        if (p != "") {
-          val len = result_path.length
-          if (len > 0 && result_path(len - 1) != File.separatorChar)
-            result_path.append(File.separator)
-          result_path.append(p)
-        }
-      }
-    }
-    for (p <- init(source_path) split "/") {
-      if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
-      else if (p == "~") append(getenv_strict("HOME"))
-      else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))
-      else append(p)
+    for (p <- rest.split("/") if p != "") {
+      val len = result_path.length
+      if (len > 0 && result_path(len - 1) != File.separatorChar)
+        result_path += File.separatorChar
+      result_path ++= p
     }
     result_path.toString
   }
@@ -186,20 +211,22 @@ class IsabelleSystem
   }
 
 
+  /** system tools **/
+
   /* external processes */
 
   def execute(redirect: Boolean, args: String*): Process =
   {
     val cmdline =
-      if (IsabelleSystem.is_cygwin) List(platform_path("/bin/env")) ++ args
+      if (Isabelle_System.is_cygwin) List(platform_path("/bin/env")) ++ args
       else args
-    IsabelleSystem.raw_execute(environment, redirect, cmdline: _*)
+    Isabelle_System.raw_execute(environment, redirect, cmdline: _*)
   }
 
   def isabelle_tool(args: String*): (String, Int) =
   {
     val proc = execute(true, (List(getenv_strict("ISABELLE_TOOL")) ++ args): _*)
-    IsabelleSystem.process_output(proc)
+    Isabelle_System.process_output(proc)
   }
 
 
@@ -222,11 +249,13 @@ class IsabelleSystem
   {
     // blocks until writer is ready
     val stream =
-      if (IsabelleSystem.is_cygwin) execute(false, "cat", fifo).getInputStream
+      if (Isabelle_System.is_cygwin) execute(false, "cat", fifo).getInputStream
       else new FileInputStream(fifo)
-    new BufferedReader(new InputStreamReader(stream, IsabelleSystem.charset))
+    new BufferedReader(new InputStreamReader(stream, Isabelle_System.charset))
   }
 
+
+  /** Isabelle resources **/
 
   /* find logics */
 
