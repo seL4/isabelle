@@ -8,6 +8,7 @@ imports
   Complex_Main
   AssocList
   Binomial
+  Code_Set
   Commutative_Ring
   Enum
   List_Prefix
