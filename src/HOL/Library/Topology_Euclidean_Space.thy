@@ -533,18 +533,18 @@ proof
   fix x :: "'a ^ 'b"
   {
     fix e :: real assume "0 < e"
-    def a \<equiv> "x $ arbitrary"
+    def a \<equiv> "x $ undefined"
     have "a islimpt UNIV" by (rule islimpt_UNIV)
     with `0 < e` obtain b where "b \<noteq> a" and "dist b a < e"
       unfolding islimpt_approachable by auto
-    def y \<equiv> "Cart_lambda ((Cart_nth x)(arbitrary := b))"
+    def y \<equiv> "Cart_lambda ((Cart_nth x)(undefined := b))"
     from `b \<noteq> a` have "y \<noteq> x"
       unfolding a_def y_def by (simp add: Cart_eq)
     from `dist b a < e` have "dist y x < e"
       unfolding dist_vector_def a_def y_def
       apply simp
       apply (rule le_less_trans [OF setL2_le_setsum [OF zero_le_dist]])
-      apply (subst setsum_diff1' [where a=arbitrary], simp, simp, simp)
+      apply (subst setsum_diff1' [where a=undefined], simp, simp, simp)
       done
     from `y \<noteq> x` and `dist y x < e`
     have "\<exists>y\<in>UNIV. y \<noteq> x \<and> dist y x < e" by auto
@@ -2695,29 +2695,29 @@ subsection{* Complete the chain of compactness variants. *}
 
 primrec helper_2::"(real \<Rightarrow> 'a::metric_space) \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_2 beyond 0 = beyond 0" |
-  "helper_2 beyond (Suc n) = beyond (dist arbitrary (helper_2 beyond n) + 1 )"
+  "helper_2 beyond (Suc n) = beyond (dist undefined (helper_2 beyond n) + 1 )"
 
 lemma bolzano_weierstrass_imp_bounded: fixes s::"'a::metric_space set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "bounded s"
 proof(rule ccontr)
   assume "\<not> bounded s"
-  then obtain beyond where "\<forall>a. beyond a \<in>s \<and> \<not> dist arbitrary (beyond a) \<le> a"
-    unfolding bounded_any_center [where a=arbitrary]
-    apply simp using choice[of "\<lambda>a x. x\<in>s \<and> \<not> dist arbitrary x \<le> a"] by auto
-  hence beyond:"\<And>a. beyond a \<in>s" "\<And>a. dist arbitrary (beyond a) > a"
+  then obtain beyond where "\<forall>a. beyond a \<in>s \<and> \<not> dist undefined (beyond a) \<le> a"
+    unfolding bounded_any_center [where a=undefined]
+    apply simp using choice[of "\<lambda>a x. x\<in>s \<and> \<not> dist undefined x \<le> a"] by auto
+  hence beyond:"\<And>a. beyond a \<in>s" "\<And>a. dist undefined (beyond a) > a"
     unfolding linorder_not_le by auto
   def x \<equiv> "helper_2 beyond"
 
   { fix m n ::nat assume "m<n"
-    hence "dist arbitrary (x m) + 1 < dist arbitrary (x n)"
+    hence "dist undefined (x m) + 1 < dist undefined (x n)"
     proof(induct n)
       case 0 thus ?case by auto
     next
       case (Suc n)
-      have *:"dist arbitrary (x n) + 1 < dist arbitrary (x (Suc n))"
+      have *:"dist undefined (x n) + 1 < dist undefined (x (Suc n))"
         unfolding x_def and helper_2.simps
-	using beyond(2)[of "dist arbitrary (helper_2 beyond n) + 1"] by auto
+	using beyond(2)[of "dist undefined (helper_2 beyond n) + 1"] by auto
       thus ?case proof(cases "m < n")
 	case True thus ?thesis using Suc and * by auto
       next
@@ -2729,12 +2729,12 @@ proof(rule ccontr)
     have "1 < dist (x m) (x n)"
     proof(cases "m<n")
       case True
-      hence "1 < dist arbitrary (x n) - dist arbitrary (x m)" using *[of m n] by auto
-      thus ?thesis using dist_triangle [of arbitrary "x n" "x m"] by arith
+      hence "1 < dist undefined (x n) - dist undefined (x m)" using *[of m n] by auto
+      thus ?thesis using dist_triangle [of undefined "x n" "x m"] by arith
     next
       case False hence "n<m" using `m\<noteq>n` by auto
-      hence "1 < dist arbitrary (x m) - dist arbitrary (x n)" using *[of n m] by auto
-      thus ?thesis using dist_triangle2 [of arbitrary "x m" "x n"] by arith
+      hence "1 < dist undefined (x m) - dist undefined (x n)" using *[of n m] by auto
+      thus ?thesis using dist_triangle2 [of undefined "x m" "x n"] by arith
     qed  } note ** = this
   { fix a b assume "x a = x b" "a \<noteq> b"
     hence False using **[of a b] by auto  }

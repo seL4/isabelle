@@ -62,6 +62,9 @@ If possible, use NewNumberTheory, not NumberTheory.
 
 * Simplified interfaces of datatype module.  INCOMPATIBILITY.
 
+* Abbreviation "arbitrary" of "undefined" has disappeared; use "undefined" directly.
+INCOMPATIBILITY.
+
 
 *** ML ***
 

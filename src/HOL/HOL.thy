@@ -198,9 +198,6 @@ finalconsts
 axiomatization
   undefined :: 'a
 
-abbreviation (input)
-  "arbitrary \<equiv> undefined"
-
 
 subsubsection {* Generic classes and algebraic operations *}
 
