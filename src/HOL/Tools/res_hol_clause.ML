@@ -12,8 +12,6 @@ sig
   val comb_B: thm
   val comb_C: thm
   val comb_S: thm
-  datatype type_level = T_FULL | T_CONST
-  val typ_level: type_level
   val minimize_applies: bool
   type axiom_name = string
   type polarity = bool
@@ -59,10 +57,8 @@ val fequal_imp_equal = thm "ATP_Linkup.fequal_imp_equal";
 val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
 
 
-(*The different translations of types*)
-datatype type_level = T_FULL | T_CONST;
-
-val typ_level = T_CONST;
+(* Parameter t_full below indicates that full type information is to be
+exported *)
 
 (*If true, each function will be directly applied to as many arguments as possible, avoiding
   use of the "apply" operator. Use of hBOOL is also minimized.*)
@@ -260,26 +256,26 @@ fun string_of_applic t_full cma (CombConst(c,tp,tvars), args) =
 fun wrap_type_if t_full cnh (head, s, tp) =
   if head_needs_hBOOL cnh head then wrap_type t_full (s, tp) else s;
 
-fun string_of_combterm t_full cma cnh t =
+fun string_of_combterm (params as (t_full, cma, cnh)) t =
   let val (head, args) = strip_comb t
   in  wrap_type_if t_full cnh (head,
-                    string_of_applic t_full cma (head, map (string_of_combterm t_full cma cnh) args),
+                    string_of_applic t_full cma (head, map (string_of_combterm (params)) args),
                     type_of_combterm t)
   end;
 
 (*Boolean-valued terms are here converted to literals.*)
-fun boolify t_full cma cnh t =
-  "hBOOL" ^ RC.paren_pack [string_of_combterm t_full cma cnh t];
+fun boolify params t =
+  "hBOOL" ^ RC.paren_pack [string_of_combterm params t];
 
-fun string_of_predicate t_full cma cnh t =
+fun string_of_predicate (params as (_,_,cnh)) t =
   case t of
       (CombApp(CombApp(CombConst("equal",_,_), t1), t2)) =>
           (*DFG only: new TPTP prefers infix equality*)
-          ("equal" ^ RC.paren_pack [string_of_combterm t_full cma cnh t1, string_of_combterm t_full cma cnh t2])
+          ("equal" ^ RC.paren_pack [string_of_combterm params t1, string_of_combterm params t2])
     | _ =>
           case #1 (strip_comb t) of
-              CombConst(c,_,_) => if needs_hBOOL cnh c then boolify t_full cma cnh t else string_of_combterm t_full cma cnh t
-            | _ => boolify t_full cma cnh t;
+              CombConst(c,_,_) => if needs_hBOOL cnh c then boolify params t else string_of_combterm params t
+            | _ => boolify params t;
 
 fun string_of_clausename (cls_id,ax_name) =
     RC.clause_prefix ^ RC.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -290,23 +286,23 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 
 (*** tptp format ***)
 
-fun tptp_of_equality t_full cma cnh pol (t1,t2) =
+fun tptp_of_equality params pol (t1,t2) =
   let val eqop = if pol then " = " else " != "
-  in  string_of_combterm t_full cma cnh t1 ^ eqop ^ string_of_combterm t_full cma cnh t2  end;
+  in  string_of_combterm params t1 ^ eqop ^ string_of_combterm params t2  end;
 
-fun tptp_literal t_full cma cnh (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))) =
-      tptp_of_equality t_full cma cnh pol (t1,t2)
-  | tptp_literal t_full cma cnh (Literal(pol,pred)) =
-      RC.tptp_sign pol (string_of_predicate t_full cma cnh pred);
+fun tptp_literal params (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))) =
+      tptp_of_equality params pol (t1,t2)
+  | tptp_literal params (Literal(pol,pred)) =
+      RC.tptp_sign pol (string_of_predicate params pred);
 
 (*Given a clause, returns its literals paired with a list of literals concerning TFrees;
   the latter should only occur in conjecture clauses.*)
-fun tptp_type_lits t_full cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
-      (map (tptp_literal t_full cma cnh) literals, 
+fun tptp_type_lits params pos (Clause{literals, ctypes_sorts, ...}) =
+      (map (tptp_literal params) literals, 
        map (RC.tptp_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
-fun clause2tptp (t_full, cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-  let val (lits,tylits) = tptp_type_lits t_full cma cnh (kind = RC.Conjecture) cls
+fun clause2tptp params (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+  let val (lits,tylits) = tptp_type_lits params (kind = RC.Conjecture) cls
   in
       (RC.gen_tptp_cls(clause_id,axiom_name,kind,lits,tylits), tylits)
   end;
@@ -314,10 +310,10 @@ fun clause2tptp (t_full, cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctyp
 
 (*** dfg format ***)
 
-fun dfg_literal t_full cma cnh (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate t_full cma cnh pred);
+fun dfg_literal params (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate params pred);
 
-fun dfg_type_lits t_full cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
-      (map (dfg_literal t_full cma cnh) literals, 
+fun dfg_type_lits params pos (Clause{literals, ctypes_sorts, ...}) =
+      (map (dfg_literal params) literals, 
        map (RC.dfg_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
 fun get_uvars (CombConst _) vars = vars
@@ -328,8 +324,8 @@ fun get_uvars_l (Literal(_,c)) = get_uvars c [];
 
 fun dfg_vars (Clause {literals,...}) = RC.union_all (map get_uvars_l literals);
 
-fun clause2dfg (t_full, cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-  let val (lits,tylits) = dfg_type_lits t_full cma cnh (kind = RC.Conjecture) cls
+fun clause2dfg params (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+  let val (lits,tylits) = dfg_type_lits params (kind = RC.Conjecture) cls
       val vars = dfg_vars cls
       val tvars = RC.get_tvar_strs ctypes_sorts
   in
@@ -341,7 +337,7 @@ fun clause2dfg (t_full, cma, cnh) (cls as Clause{axiom_name,clause_id,kind,ctype
 
 fun addtypes tvars tab = List.foldl RC.add_foltype_funcs tab tvars;
 
-fun add_decls t_full cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
+fun add_decls (t_full, cma, cnh) (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
 	let val arity = min_arity_of cma c
@@ -351,20 +347,20 @@ fun add_decls t_full cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
 	    if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
 	    else (addtypes tvars funcs, addit preds)
 	end
-  | add_decls _ _ _ (CombVar(_,ctp), (funcs,preds)) =
+  | add_decls _ (CombVar(_,ctp), (funcs,preds)) =
       (RC.add_foltype_funcs (ctp,funcs), preds)
-  | add_decls t_full cma cnh (CombApp(P,Q),decls) = add_decls t_full cma cnh (P,add_decls t_full cma cnh (Q,decls));
+  | add_decls params (CombApp(P,Q),decls) = add_decls params (P,add_decls params (Q,decls));
 
-fun add_literal_decls t_full cma cnh (Literal(_,c), decls) = add_decls t_full cma cnh (c,decls);
+fun add_literal_decls params (Literal(_,c), decls) = add_decls params (c,decls);
 
-fun add_clause_decls t_full cma cnh (Clause {literals, ...}, decls) =
-    List.foldl (add_literal_decls t_full cma cnh) decls literals
+fun add_clause_decls params (Clause {literals, ...}, decls) =
+    List.foldl (add_literal_decls params) decls literals
     handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
-fun decls_of_clauses (t_full, cma, cnh) clauses arity_clauses =
+fun decls_of_clauses params clauses arity_clauses =
   let val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",2) RC.init_functab)
       val init_predtab = Symtab.update ("hBOOL",1) Symtab.empty
-      val (functab,predtab) = (List.foldl (add_clause_decls t_full cma cnh) (init_functab, init_predtab) clauses)
+      val (functab,predtab) = (List.foldl (add_clause_decls params) (init_functab, init_predtab) clauses)
   in
       (Symtab.dest (List.foldl RC.add_arityClause_funcs functab arity_clauses),
        Symtab.dest predtab)
