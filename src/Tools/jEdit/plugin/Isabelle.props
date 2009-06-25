@@ -29,7 +29,7 @@ plugin.isabelle.jedit.Plugin.depend.4=plugin gatchan.jedit.hyperlinks.Hyperlinks
 plugin.isabelle.jedit.Plugin.option-pane=isabelle
 options.isabelle.label=Isabelle
 options.isabelle.code=new isabelle.jedit.OptionPane();
-options.isabelle.font-path.title=Font Path
+options.isabelle.logic.title=Logic
 options.isabelle.font-size.title=Font Size
 options.isabelle.font-size=18
 

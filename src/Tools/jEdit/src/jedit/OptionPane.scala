@@ -6,75 +6,42 @@
 
 package isabelle.jedit
 
-import java.lang.Integer
-
-import java.awt.BorderLayout
-import java.awt.GridBagConstraints.HORIZONTAL
-import java.awt.BorderLayout.{WEST, CENTER, EAST}
-import java.awt.event.{ActionListener, ActionEvent}
-import javax.swing.{JTextField, JButton, JPanel, JLabel, JFileChooser, JSpinner, JComboBox}
+import javax.swing.{JComboBox, JSpinner}
 
 import org.gjt.sp.jedit.AbstractOptionPane
 
 
-class OptionPane extends AbstractOptionPane("isabelle") {
-  var pathName = new JTextField()
-  var fontSize = new JSpinner()
-  var logicName = new JComboBox()
-    
-  override def _init() {
-    addComponent(Isabelle.Property("font-path.title"), {
-      val pickPath = new JButton("...")
-      pickPath.addActionListener(new ActionListener() {
-        override def actionPerformed(e : ActionEvent) {
-          val chooser = new JFileChooser(pathName.getText())
-          if (chooser.showOpenDialog(OptionPane.this) == JFileChooser.APPROVE_OPTION)
-            pathName.setText(chooser.getSelectedFile().getAbsolutePath())
-        } 
-      })
+class OptionPane extends AbstractOptionPane("isabelle")
+{
+  private val logic_name = new JComboBox()
+  private val font_size = new JSpinner()
 
-      pathName.setText(Isabelle.Property("font-path"))
-      
-      val pathPanel = new JPanel(new BorderLayout())
-      pathPanel.add(pathName, CENTER)
-      pathPanel.add(pickPath, EAST)
-      pathPanel
-    }, HORIZONTAL)
-
-    addComponent(Isabelle.Property("font-size.title"), {
-      try {
-        if (Isabelle.Property("font-size") != null)
-          fontSize.setValue(Isabelle.Property("font-size").toInt)
-      }
-      catch {
-        case e : NumberFormatException => 
-          fontSize.setValue(14)
-      }
-      
-      fontSize
-    })
-
+  override def _init()
+  {
     addComponent(Isabelle.Property("logic.title"), {
       for (name <- Isabelle.system.find_logics()) {
-        logicName.addItem(name)
+        logic_name.addItem(name)
         if (name == Isabelle.Property("logic"))
-          logicName.setSelectedItem(name)
+          logic_name.setSelectedItem(name)
       }
-
-      logicName
+      logic_name
+    })
+    addComponent(Isabelle.Property("font-size.title"), {
+      font_size.setValue(Isabelle.Int_Property("font-size"))
+      font_size
     })
   }
-    
-  override def _save() {
-    val size = fontSize.getValue()
-    val name = pathName.getText()
-    if (Isabelle.Property("font-path") != name || Isabelle.Property("font-size") != size.toString) {
-      Isabelle.Property("font-path") = name
-      Isabelle.Property("font-size") = size.toString
-      Swing.later { Isabelle.plugin.set_font(name, size.asInstanceOf[Integer].intValue) }
-    }
-    
-    val logic = logicName.getSelectedItem.asInstanceOf[String]
+
+  override def _save()
+  {
+    val logic = logic_name.getSelectedItem.asInstanceOf[String]
     Isabelle.Property("logic") = logic
+
+    val size = font_size.getValue().asInstanceOf[Int]
+    if (Isabelle.Int_Property("font-size") != size)
+    {
+      Isabelle.Int_Property("font-size") = size
+      Swing.later { Isabelle.plugin.set_font(size) }
+    }
   }
 }
