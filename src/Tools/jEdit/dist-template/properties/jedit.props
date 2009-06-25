@@ -1,12 +1,12 @@
 #jEdit properties
 buffer.deepIndent=false
-buffer.encoding=UTF-8
+buffer.encoding=UTF-8-isabelle
 buffer.indentSize=2
 buffer.lineSeparator=\n
 buffer.maxLineLen=100
 buffer.noTabs=true
 buffer.tabSize=2
-fallbackEncodings=US-ASCII ISO-8859-15
+fallbackEncodings=UTF-8 ISO-8859-15 US-ASCII
 firstTime=false
 tip.show=false
 encodingDetectors=BOM XML-PI buffer-local-property
