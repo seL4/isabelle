@@ -14,7 +14,7 @@ object IsarDocument {
   type Document_ID = String
 }
 
-trait IsarDocument extends IsabelleProcess
+trait IsarDocument extends Isabelle_Process
 {
   import IsarDocument._
 

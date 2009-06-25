@@ -7,8 +7,9 @@ Isar document model.
 package isabelle
 
 
-class Isar(isabelle_system: IsabelleSystem, results: EventBus[IsabelleProcess.Result], args: String*)
-  extends IsabelleProcess(isabelle_system, results, args: _*)
+class Isar(isabelle_system: Isabelle_System,
+    results: EventBus[Isabelle_Process.Result], args: String*)
+  extends Isabelle_Process(isabelle_system, results, args: _*)
 {
   /* basic editor commands */
 
