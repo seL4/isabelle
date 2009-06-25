@@ -12,7 +12,7 @@ import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamW
   InputStream, OutputStream, IOException}
 
 
-object IsabelleProcess {
+object Isabelle_Process {
 
   /* results */
 
@@ -96,7 +96,7 @@ object IsabelleProcess {
     def is_system = Kind.is_system(kind)
   }
 
-  def parse_message(isabelle_system: IsabelleSystem, result: Result) =
+  def parse_message(isabelle_system: Isabelle_System, result: Result) =
   {
     XML.Elem(Markup.MESSAGE, (Markup.CLASS, Kind.markup(result.kind)) :: result.props,
       YXML.parse_body_failsafe(isabelle_system.symbols.decode(result.result)))
@@ -104,16 +104,16 @@ object IsabelleProcess {
 }
 
 
-class IsabelleProcess(isabelle_system: IsabelleSystem,
-  results: EventBus[IsabelleProcess.Result], args: String*)
+class Isabelle_Process(isabelle_system: Isabelle_System,
+  results: EventBus[Isabelle_Process.Result], args: String*)
 {
-  import IsabelleProcess._
+  import Isabelle_Process._
 
 
   /* demo constructor */
 
   def this(args: String*) =
-    this(new IsabelleSystem, new EventBus[IsabelleProcess.Result] + Console.println, args: _*)
+    this(new Isabelle_System, new EventBus[Isabelle_Process.Result] + Console.println, args: _*)
 
 
   /* process information */
@@ -128,7 +128,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
   /* results */
 
   def parse_message(result: Result): XML.Tree =
-    IsabelleProcess.parse_message(isabelle_system, result)
+    Isabelle_Process.parse_message(isabelle_system, result)
 
   private val result_queue = new LinkedBlockingQueue[Result]
 
@@ -230,7 +230,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
   private class StdinThread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
     override def run() = {
-      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, IsabelleSystem.charset))
+      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, Isabelle_System.charset))
       var finished = false
       while (!finished) {
         try {
@@ -260,7 +260,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
   private class StdoutThread(in_stream: InputStream) extends Thread("isabelle: stdout") {
     override def run() = {
-      val reader = new BufferedReader(new InputStreamReader(in_stream, IsabelleSystem.charset))
+      val reader = new BufferedReader(new InputStreamReader(in_stream, Isabelle_System.charset))
       var result = new StringBuilder(100)
 
       var finished = false

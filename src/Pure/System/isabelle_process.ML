@@ -27,7 +27,7 @@ sig
   val init: string -> unit
 end;
 
-structure IsabelleProcess: ISABELLE_PROCESS =
+structure Isabelle_Process: ISABELLE_PROCESS =
 struct
 
 (* print modes *)
