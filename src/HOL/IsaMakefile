@@ -319,7 +319,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy \
   Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
   Library/Euclidean_Space.thy Library/Sum_Of_Squares.thy Library/positivstellensatz.ML	\
-  Library/Convex_Euclidean_Space.thy \
+  Library/Code_Set.thy  Library/Convex_Euclidean_Space.thy \
   Library/sum_of_squares.ML Library/Glbs.thy Library/normarith.ML \
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy Library/Permutations.thy Library/Determinants.thy\
@@ -329,7 +329,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Fundamental_Theorem_Algebra.thy \
   Library/Inner_Product.thy Library/Lattice_Syntax.thy \
   Library/Legacy_GCD.thy \
-  Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
+  Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy Library/State_Monad.thy	\
   Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\

@@ -10,6 +10,7 @@ imports
   Char_ord
   Code_Char_chr
   Code_Integer
+  Code_Set
   Coinductive_List
   Commutative_Ring
   Continuity
