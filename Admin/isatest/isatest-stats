@@ -24,6 +24,7 @@ ISABELLE_SESSIONS="\
   HOL-MetisExamples \
   HOL-MicroJava \
   HOL-NSA \
+  HOL-NewNumberTheory \
   HOL-Nominal-Examples \
   HOL-NumberTheory \
   HOL-SET-Protocol \
