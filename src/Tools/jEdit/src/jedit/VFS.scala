@@ -88,12 +88,18 @@ class VFS extends io.VFS("isabelle", VFSManager.getFileVFS.getCapabilities)
   private def map_file(path: String, file: VFSFile): VFSFile =
     if (file == null) null else new VFS.File(this, path, file)
 
-  private def platform_path(path: String): String =
-    Isabelle.system.platform_path(
-      if (path.startsWith(Isabelle.VFS_PREFIX))
-        path.substring(Isabelle.VFS_PREFIX.length)
-      else path)
+  private def drop_prefix(path: String): String =
+    if (path.startsWith(Isabelle.VFS_PREFIX))
+      path.substring(Isabelle.VFS_PREFIX.length)
+    else path
 
+  private def expand_path(path: String): String =
+    Isabelle.VFS_PREFIX + Isabelle.system.expand_path(drop_prefix(path))
+  
+  private def platform_path(path: String): String =
+    Isabelle.system.platform_path(drop_prefix(path))
+
+  
   override def getCapabilities = base.getCapabilities
   override def getExtendedAttributes = base.getExtendedAttributes
 
@@ -116,11 +122,11 @@ class VFS extends io.VFS("isabelle", VFSManager.getFileVFS.getCapabilities)
 
   override def createVFSSession(path: String, comp: Component) = base.createVFSSession(path, comp)
 
-  override def _canonPath(session: Object, path: String, comp: Component) = path  // FIXME expand?
+  override def _canonPath(session: Object, path: String, comp: Component) = expand_path(path)
 
   override def _listFiles(session: Object, path: String, comp: Component): Array[VFSFile] =
     base._listFiles(session, platform_path(path), comp).map(file =>
-      map_file(constructPath(path, file.getName), file))
+      if (file == null) null else map_file(constructPath(path, file.getName), file))
 
   override def _getFile(session: Object, path: String, comp: Component) =
     map_file(path, base._getFile(session, platform_path(path), comp))
