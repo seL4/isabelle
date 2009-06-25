@@ -7,7 +7,7 @@
 package isabelle.jedit
 
 
-import isabelle.IsabelleProcess.Result
+import isabelle.Isabelle_Process.Result
 import isabelle.renderer.UserAgent
 
 
@@ -228,7 +228,7 @@ class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
         fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
       panel.relayout()
     })
-    val document = XML.document(IsabelleProcess.parse_message(Isabelle.system, r))
+    val document = XML.document(Isabelle_Process.parse_message(Isabelle.system, r))
     panel.setDocument(document, UserAgent.baseURL)
     val sa = new SelectionActions
     sa.install(panel)

@@ -15,7 +15,7 @@ import javax.swing.JScrollPane
 import scala.collection.mutable
 
 import isabelle.prover.{Prover, Command}
-import isabelle.IsabelleSystem
+import isabelle.Isabelle_System
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -36,7 +36,7 @@ object Isabelle {
   }
 
   // Isabelle system instance
-  var system: IsabelleSystem = null
+  var system: Isabelle_System = null
   def symbols = system.symbols
   lazy val completion = new Completion + symbols
 
@@ -129,7 +129,7 @@ class Plugin extends EBPlugin {
   }
 
   override def start() {
-    Isabelle.system = new IsabelleSystem
+    Isabelle.system = new Isabelle_System
     Isabelle.plugin = this
     
     if (Isabelle.Property("font-path") != null && Isabelle.Property("font-size") != null)

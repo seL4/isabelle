@@ -26,7 +26,7 @@ object VFS
 
   def input_converter(in: InputStream): ByteArrayInputStream =
   {
-    val reader = new InputStreamReader(in, IsabelleSystem.charset)
+    val reader = new InputStreamReader(in, Isabelle_System.charset)
     val buffer = new StringBuilder
     val array = new Array[Char](BUFFER_SIZE)
 
@@ -40,7 +40,7 @@ object VFS
     }
 
     val str = Isabelle.symbols.decode(buffer.toString)
-    new ByteArrayInputStream(str.getBytes(IsabelleSystem.charset))
+    new ByteArrayInputStream(str.getBytes(Isabelle_System.charset))
   }
 
   class OutputConverter(out: OutputStream) extends ByteArrayOutputStream

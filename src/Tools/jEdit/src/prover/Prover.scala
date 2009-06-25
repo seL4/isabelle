@@ -27,15 +27,15 @@ object ProverEvents {
   case class SetIsCommandKeyword(is_command_keyword: String => Boolean)
 }
 
-class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
+class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 {
   /* prover process */
 
   private val process =
   {
-    val results = new EventBus[IsabelleProcess.Result] + handle_result
+    val results = new EventBus[Isabelle_Process.Result] + handle_result
     results.logger = Log.log(Log.ERROR, null, _)
-    new IsabelleProcess(isabelle_system, results, "-m", "xsymbols", logic) with IsarDocument
+    new Isabelle_Process(isabelle_system, results, "-m", "xsymbols", logic) with IsarDocument
   }
 
   def stop() { process.kill }
@@ -89,7 +89,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   val output_info = new EventBus[String]
   var change_receiver: Actor = null
   
-  private def handle_result(result: IsabelleProcess.Result)
+  private def handle_result(result: Isabelle_Process.Result)
   {
     def command_change(c: Command) = this ! c
     val (running, command) =
@@ -101,18 +101,18 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
           else (false, null)
       }
 
-    if (result.kind == IsabelleProcess.Kind.STDOUT ||
-        result.kind == IsabelleProcess.Kind.STDIN)
+    if (result.kind == Isabelle_Process.Kind.STDOUT ||
+        result.kind == Isabelle_Process.Kind.STDIN)
       output_info.event(result.toString)
     else {
       result.kind match {
 
-        case IsabelleProcess.Kind.WRITELN
-        | IsabelleProcess.Kind.PRIORITY
-        | IsabelleProcess.Kind.WARNING
-        | IsabelleProcess.Kind.ERROR =>
+        case Isabelle_Process.Kind.WRITELN
+        | Isabelle_Process.Kind.PRIORITY
+        | Isabelle_Process.Kind.WARNING
+        | Isabelle_Process.Kind.ERROR =>
           if (command != null) {
-            if (result.kind == IsabelleProcess.Kind.ERROR)
+            if (result.kind == Isabelle_Process.Kind.ERROR)
               command.status = Command.Status.FAILED
             command.add_result(running, process.parse_message(result))
             command_change(command)
@@ -120,7 +120,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
             output_info.event(result.toString)
           }
 
-        case IsabelleProcess.Kind.STATUS =>
+        case Isabelle_Process.Kind.STATUS =>
           //{{{ handle all kinds of status messages here
           process.parse_message(result) match {
             case XML.Elem(Markup.MESSAGE, _, elems) =>
