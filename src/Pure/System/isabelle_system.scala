@@ -144,11 +144,25 @@ class Isabelle_System
     def append(path: String)
     {
       init(path)
-      for (p <- path.split("/") if p != "") {
-        val len = result_path.length
-        if (len > 0 && result_path(len - 1) != '/')
-          result_path += '/'
-        result_path ++= p
+      for (p <- path.split("/") if p != "" && p != ".") {
+        if (p == "..") {
+          val result = result_path.toString
+          val i = result.lastIndexOf("/")
+          if (result == "")
+            result_path ++= ".."
+          else if (result.substring(i + 1) == "..")
+            result_path ++= "/.."
+          else if (i < 1)
+            result_path.length = i + 1
+          else
+            result_path.length = i
+        }
+        else {
+          val len = result_path.length
+          if (len > 0 && result_path(len - 1) != '/')
+            result_path += '/'
+          result_path ++= p
+        }
       }
     }
     init(source_path)
