@@ -2088,6 +2088,36 @@ where
 "interpret_floatarith (Num f) vs      = real f" |
 "interpret_floatarith (Atom n) vs     = vs ! n"
 
+lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs = (interpret_floatarith a vs) / (interpret_floatarith b vs)"
+  unfolding real_divide_def interpret_floatarith.simps ..
+
+lemma interpret_floatarith_diff: "interpret_floatarith (Add a (Minus b)) vs = (interpret_floatarith a vs) - (interpret_floatarith b vs)"
+  unfolding real_diff_def interpret_floatarith.simps ..
+
+lemma interpret_floatarith_sin: "interpret_floatarith (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) vs =
+  sin (interpret_floatarith a vs)"
+  unfolding sin_cos_eq interpret_floatarith.simps
+            interpret_floatarith_divide interpret_floatarith_diff real_diff_def
+  by auto
+
+lemma interpret_floatarith_tan:
+  "interpret_floatarith (Mult (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) (Inverse (Cos a))) vs =
+   tan (interpret_floatarith a vs)"
+  unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def real_divide_def
+  by auto
+
+lemma interpret_floatarith_powr: "interpret_floatarith (Exp (Mult b (Ln a))) vs = (interpret_floatarith a vs) powr (interpret_floatarith b vs)"
+  unfolding powr_def interpret_floatarith.simps ..
+
+lemma interpret_floatarith_log: "interpret_floatarith ((Mult (Ln x) (Inverse (Ln b)))) vs = log (interpret_floatarith b vs) (interpret_floatarith x vs)"
+  unfolding log_def interpret_floatarith.simps real_divide_def ..
+
+lemma interpret_floatarith_num:
+  shows "interpret_floatarith (Num (Float 0 0)) vs = 0"
+  and "interpret_floatarith (Num (Float 1 0)) vs = 1"
+  and "interpret_floatarith (Num (Float (number_of a) 0)) vs = number_of a" by auto
+
+
 subsection "Implement approximation function"
 
 fun lift_bin' :: "(float * float) option \<Rightarrow> (float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> (float * float)) \<Rightarrow> (float * float) option" where
@@ -2103,32 +2133,47 @@ fun lift_un' :: "(float * float) option \<Rightarrow> (float \<Rightarrow> float
 "lift_un' (Some (l1, u1)) f = Some (f l1 u1)" |
 "lift_un' b f = None"
 
-fun bounded_by :: "real list \<Rightarrow> (float * float) list \<Rightarrow> bool " where
-bounded_by_Cons: "bounded_by (v#vs) ((l, u)#bs) = ((real l \<le> v \<and> v \<le> real u) \<and> bounded_by vs bs)" |
-bounded_by_Nil: "bounded_by [] [] = True" |
-"bounded_by _ _ = False"
+definition
+"bounded_by xs vs \<longleftrightarrow>
+  (\<forall> i < length vs. case vs ! i of None \<Rightarrow> True
+         | Some (l, u) \<Rightarrow> xs ! i \<in> { real l .. real u })"
 
-lemma bounded_by: assumes "bounded_by vs bs" and "i < length bs"
-  shows "real (fst (bs ! i)) \<le> vs ! i \<and> vs ! i \<le> real (snd (bs ! i))"
-  using `bounded_by vs bs` and `i < length bs`
-proof (induct arbitrary: i rule: bounded_by.induct)
-  fix v :: real and vs :: "real list" and l u :: float and bs :: "(float * float) list" and i :: nat
-  assume hyp: "\<And>i. \<lbrakk>bounded_by vs bs; i < length bs\<rbrakk> \<Longrightarrow> real (fst (bs ! i)) \<le> vs ! i \<and> vs ! i \<le> real (snd (bs ! i))"
-  assume bounded: "bounded_by (v # vs) ((l, u) # bs)" and length: "i < length ((l, u) # bs)"
-  show "real (fst (((l, u) # bs) ! i)) \<le> (v # vs) ! i \<and> (v # vs) ! i \<le> real (snd (((l, u) # bs) ! i))"
-  proof (cases i)
-    case 0
-    show ?thesis using bounded unfolding 0 nth_Cons_0 fst_conv snd_conv bounded_by.simps ..
-  next
-    case (Suc i) with length have "i < length bs" by auto
-    show ?thesis unfolding Suc nth_Cons_Suc bounded_by.simps
-      using hyp[OF bounded[unfolded bounded_by.simps, THEN conjunct2] `i < length bs`] .
-  qed
-qed auto
+lemma bounded_byE:
+  assumes "bounded_by xs vs"
+  shows "\<And> i. i < length vs \<Longrightarrow> case vs ! i of None \<Rightarrow> True
+         | Some (l, u) \<Rightarrow> xs ! i \<in> { real l .. real u }"
+  using assms bounded_by_def by blast
 
-fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float) list \<Rightarrow> (float * float) option" where
+lemma bounded_by_update:
+  assumes "bounded_by xs vs"
+  and bnd: "xs ! i \<in> { real l .. real u }"
+  shows "bounded_by xs (vs[i := Some (l,u)])"
+proof -
+{ fix j
+  let ?vs = "vs[i := Some (l,u)]"
+  assume "j < length ?vs" hence [simp]: "j < length vs" by simp
+  have "case ?vs ! j of None \<Rightarrow> True | Some (l, u) \<Rightarrow> xs ! j \<in> { real l .. real u }"
+  proof (cases "?vs ! j")
+    case (Some b)
+    thus ?thesis
+    proof (cases "i = j")
+      case True
+      thus ?thesis using `?vs ! j = Some b` and bnd by auto
+    next
+      case False
+      thus ?thesis using `bounded_by xs vs` unfolding bounded_by_def by auto
+    qed
+  qed auto }
+  thus ?thesis unfolding bounded_by_def by auto
+qed
+
+lemma bounded_by_None:
+  shows "bounded_by xs (replicate (length xs) None)"
+  unfolding bounded_by_def by auto
+
+fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float) option list \<Rightarrow> (float * float) option" where
 "approx' prec a bs          = (case (approx prec a bs) of Some (l, u) \<Rightarrow> Some (round_down prec l, round_up prec u) | None \<Rightarrow> None)" |
-"approx prec (Add a b) bs  = lift_bin' (approx' prec a bs) (approx' prec b bs) (\<lambda> l1 u1 l2 u2. (l1 + l2, u1 + u2))" |
+"approx prec (Add a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (\<lambda> l1 u1 l2 u2. (l1 + l2, u1 + u2))" |
 "approx prec (Minus a) bs   = lift_un' (approx' prec a bs) (\<lambda> l u. (-u, -l))" |
 "approx prec (Mult a b) bs  = lift_bin' (approx' prec a bs) (approx' prec b bs)
                                     (\<lambda> a1 a2 b1 b2. (float_nprt a1 * float_pprt b2 + float_nprt a2 * float_nprt b2 + float_pprt a1 * float_pprt b1 + float_pprt a2 * float_nprt b1,
@@ -2145,7 +2190,7 @@ fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float
 "approx prec (Ln a) bs      = lift_un (approx' prec a bs) (\<lambda> l u. (lb_ln prec l, ub_ln prec u))" |
 "approx prec (Power a n) bs = lift_un' (approx' prec a bs) (float_power_bnds n)" |
 "approx prec (Num f) bs     = Some (f, f)" |
-"approx prec (Atom i) bs    = (if i < length bs then Some (bs ! i) else None)"
+"approx prec (Atom i) bs    = (if i < length bs then bs ! i else None)"
 
 lemma lift_bin'_ex:
   assumes lift_bin'_Some: "Some (l, u) = lift_bin' a b f"
@@ -2421,118 +2466,175 @@ next case (Power a n) with lift_un'_bnds[OF bnds_power] show ?case by auto
 next case (Num f) thus ?case by auto
 next
   case (Atom n)
-  show ?case
-  proof (cases "n < length vs")
-    case True
-    with Atom have "vs ! n = (l, u)" by auto
-    thus ?thesis using bounded_by[OF assms(1) True] by auto
+  from this[symmetric] `bounded_by xs vs`[THEN bounded_byE, of n]
+  show ?case by (cases "n < length vs", auto)
+qed
+
+datatype form = Bound floatarith floatarith floatarith form
+              | Assign floatarith floatarith form
+              | Less floatarith floatarith
+              | LessEqual floatarith floatarith
+              | AtLeastAtMost floatarith floatarith floatarith
+
+fun interpret_form :: "form \<Rightarrow> real list \<Rightarrow> bool" where
+"interpret_form (Bound x a b f) vs = (interpret_floatarith x vs \<in> { interpret_floatarith a vs .. interpret_floatarith b vs } \<longrightarrow> interpret_form f vs)" |
+"interpret_form (Assign x a f) vs  = (interpret_floatarith x vs = interpret_floatarith a vs \<longrightarrow> interpret_form f vs)" |
+"interpret_form (Less a b) vs      = (interpret_floatarith a vs < interpret_floatarith b vs)" |
+"interpret_form (LessEqual a b) vs = (interpret_floatarith a vs \<le> interpret_floatarith b vs)" |
+"interpret_form (AtLeastAtMost x a b) vs = (interpret_floatarith x vs \<in> { interpret_floatarith a vs .. interpret_floatarith b vs })"
+
+fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float * float) option list \<Rightarrow> nat list \<Rightarrow> bool" where
+"approx_form' prec f 0 n l u bs ss = approx_form prec f (bs[n := Some (l, u)]) ss" |
+"approx_form' prec f (Suc s) n l u bs ss =
+  (let m = (l + u) * Float 1 -1
+   in approx_form' prec f s n l m bs ss \<and>
+      approx_form' prec f s n m u bs ss)" |
+"approx_form prec (Bound (Atom n) a b f) bs ss =
+   (case (approx prec a bs, approx prec b bs)
+   of (Some (l, _), Some (_, u)) \<Rightarrow> approx_form' prec f (ss ! n) n l u bs ss
+    | _ \<Rightarrow> False)" |
+"approx_form prec (Assign (Atom n) a f) bs ss =
+   (case (approx prec a bs)
+   of (Some (l, u)) \<Rightarrow> approx_form' prec f (ss ! n) n l u bs ss
+    | _ \<Rightarrow> False)" |
+"approx_form prec (Less a b) bs ss =
+   (case (approx prec a bs, approx prec b bs)
+   of (Some (l, u), Some (l', u')) \<Rightarrow> u < l'
+    | _ \<Rightarrow> False)" |
+"approx_form prec (LessEqual a b) bs ss =
+   (case (approx prec a bs, approx prec b bs)
+   of (Some (l, u), Some (l', u')) \<Rightarrow> u \<le> l'
+    | _ \<Rightarrow> False)" |
+"approx_form prec (AtLeastAtMost x a b) bs ss =
+   (case (approx prec x bs, approx prec a bs, approx prec b bs)
+   of (Some (lx, ux), Some (l, u), Some (l', u')) \<Rightarrow> u \<le> lx \<and> ux \<le> l'
+    | _ \<Rightarrow> False)" |
+"approx_form _ _ _ _ = False"
+
+lemma approx_form_approx_form':
+  assumes "approx_form' prec f s n l u bs ss" and "x \<in> { real l .. real u }"
+  obtains l' u' where "x \<in> { real l' .. real u' }"
+  and "approx_form prec f (bs[n := Some (l', u')]) ss"
+using assms proof (induct s arbitrary: l u)
+  case 0
+  from this(1)[of l u] this(2,3)
+  show thesis by auto
+next
+  case (Suc s)
+
+  let ?m = "(l + u) * Float 1 -1"
+  have "real l \<le> real ?m" and "real ?m \<le> real u"
+    unfolding le_float_def using Suc.prems by auto
+
+  with `x \<in> { real l .. real u }`
+  have "x \<in> { real l .. real ?m} \<or> x \<in> { real ?m .. real u }" by auto
+  thus thesis
+  proof (rule disjE)
+    assume *: "x \<in> { real l .. real ?m }"
+    with Suc.hyps[OF _ _ *] Suc.prems
+    show thesis by (simp add: Let_def)
   next
-    case False thus ?thesis using Atom by auto
+    assume *: "x \<in> { real ?m .. real u }"
+    with Suc.hyps[OF _ _ *] Suc.prems
+    show thesis by (simp add: Let_def)
   qed
 qed
 
-datatype inequality = Less floatarith floatarith
-                    | LessEqual floatarith floatarith
+lemma approx_form_aux:
+  assumes "approx_form prec f vs ss"
+  and "bounded_by xs vs"
+  shows "interpret_form f xs"
+using assms proof (induct f arbitrary: vs)
+  case (Bound x a b f)
+  then obtain n
+    where x_eq: "x = Atom n" by (cases x) auto
 
-fun interpret_inequality :: "inequality \<Rightarrow> real list \<Rightarrow> bool" where
-"interpret_inequality (Less a b) vs                   = (interpret_floatarith a vs < interpret_floatarith b vs)" |
-"interpret_inequality (LessEqual a b) vs              = (interpret_floatarith a vs \<le> interpret_floatarith b vs)"
+  with Bound.prems obtain l u' l' u
+    where l_eq: "Some (l, u') = approx prec a vs"
+    and u_eq: "Some (l', u) = approx prec b vs"
+    and approx_form': "approx_form' prec f (ss ! n) n l u vs ss"
+    by (cases "approx prec a vs", simp,
+        cases "approx prec b vs", auto) blast
 
-fun approx_inequality :: "nat \<Rightarrow> inequality \<Rightarrow> (float * float) list \<Rightarrow> bool" where
-"approx_inequality prec (Less a b) bs = (case (approx prec a bs, approx prec b bs) of (Some (l, u), Some (l', u')) \<Rightarrow> u < l' | _ \<Rightarrow> False)" |
-"approx_inequality prec (LessEqual a b) bs = (case (approx prec a bs, approx prec b bs) of (Some (l, u), Some (l', u')) \<Rightarrow> u \<le> l' | _ \<Rightarrow> False)"
+  { assume "xs ! n \<in> { interpret_floatarith a xs .. interpret_floatarith b xs }"
+    with approx[OF Bound.prems(2) l_eq] and approx[OF Bound.prems(2) u_eq]
+    have "xs ! n \<in> { real l .. real u}" by auto
 
-lemma approx_inequality: fixes m :: nat assumes "bounded_by vs bs" and "approx_inequality prec eq bs"
-  shows "interpret_inequality eq vs"
-proof (cases eq)
+    from approx_form_approx_form'[OF approx_form' this]
+    obtain lx ux where bnds: "xs ! n \<in> { real lx .. real ux }"
+      and approx_form: "approx_form prec f (vs[n := Some (lx, ux)]) ss" .
+
+    from `bounded_by xs vs` bnds
+    have "bounded_by xs (vs[n := Some (lx, ux)])" by (rule bounded_by_update)
+    with Bound.hyps[OF approx_form]
+    have "interpret_form f xs" by blast }
+  thus ?case using interpret_form.simps x_eq and interpret_floatarith.simps by simp
+next
+  case (Assign x a f)
+  then obtain n
+    where x_eq: "x = Atom n" by (cases x) auto
+
+  with Assign.prems obtain l u' l' u
+    where bnd_eq: "Some (l, u) = approx prec a vs"
+    and x_eq: "x = Atom n"
+    and approx_form': "approx_form' prec f (ss ! n) n l u vs ss"
+    by (cases "approx prec a vs") auto
+
+  { assume bnds: "xs ! n = interpret_floatarith a xs"
+    with approx[OF Assign.prems(2) bnd_eq]
+    have "xs ! n \<in> { real l .. real u}" by auto
+    from approx_form_approx_form'[OF approx_form' this]
+    obtain lx ux where bnds: "xs ! n \<in> { real lx .. real ux }"
+      and approx_form: "approx_form prec f (vs[n := Some (lx, ux)]) ss" .
+
+    from `bounded_by xs vs` bnds
+    have "bounded_by xs (vs[n := Some (lx, ux)])" by (rule bounded_by_update)
+    with Assign.hyps[OF approx_form]
+    have "interpret_form f xs" by blast }
+  thus ?case using interpret_form.simps x_eq and interpret_floatarith.simps by simp
+next
   case (Less a b)
-  show ?thesis
-  proof (cases "\<exists> u l u' l'. approx prec a bs = Some (l, u) \<and>
-                             approx prec b bs = Some (l', u')")
-    case True
-    then obtain l u l' u' where a_approx: "approx prec a bs = Some (l, u)"
-      and b_approx: "approx prec b bs = Some (l', u') " by auto
-    with `approx_inequality prec eq bs` have "real u < real l'"
-      unfolding Less approx_inequality.simps less_float_def by auto
-    moreover from a_approx[symmetric] and b_approx[symmetric] and `bounded_by vs bs`
-    have "interpret_floatarith a vs \<le> real u" and "real l' \<le> interpret_floatarith b vs"
-      using approx by auto
-    ultimately show ?thesis unfolding interpret_inequality.simps Less by auto
-  next
-    case False
-    hence "approx prec a bs = None \<or> approx prec b bs = None"
-      unfolding not_Some_eq[symmetric] by auto
-    hence "\<not> approx_inequality prec eq bs" unfolding Less approx_inequality.simps
-      by (cases "approx prec a bs = None", auto)
-    thus ?thesis using assms by auto
-  qed
+  then obtain l u l' u'
+    where l_eq: "Some (l, u) = approx prec a vs"
+    and u_eq: "Some (l', u') = approx prec b vs"
+    and inequality: "u < l'"
+    by (cases "approx prec a vs", auto,
+      cases "approx prec b vs", auto)
+  from inequality[unfolded less_float_def] approx[OF Less.prems(2) l_eq] approx[OF Less.prems(2) u_eq]
+  show ?case by auto
 next
   case (LessEqual a b)
-  show ?thesis
-  proof (cases "\<exists> u l u' l'. approx prec a bs = Some (l, u) \<and>
-                             approx prec b bs = Some (l', u')")
-    case True
-    then obtain l u l' u' where a_approx: "approx prec a bs = Some (l, u)"
-      and b_approx: "approx prec b bs = Some (l', u') " by auto
-    with `approx_inequality prec eq bs` have "real u \<le> real l'"
-      unfolding LessEqual approx_inequality.simps le_float_def by auto
-    moreover from a_approx[symmetric] and b_approx[symmetric] and `bounded_by vs bs`
-    have "interpret_floatarith a vs \<le> real u" and "real l' \<le> interpret_floatarith b vs"
-      using approx by auto
-    ultimately show ?thesis unfolding interpret_inequality.simps LessEqual by auto
-  next
-    case False
-    hence "approx prec a bs = None \<or> approx prec b bs = None"
-      unfolding not_Some_eq[symmetric] by auto
-    hence "\<not> approx_inequality prec eq bs" unfolding LessEqual approx_inequality.simps
-      by (cases "approx prec a bs = None", auto)
-    thus ?thesis using assms by auto
-  qed
+  then obtain l u l' u'
+    where l_eq: "Some (l, u) = approx prec a vs"
+    and u_eq: "Some (l', u') = approx prec b vs"
+    and inequality: "u \<le> l'"
+    by (cases "approx prec a vs", auto,
+      cases "approx prec b vs", auto)
+  from inequality[unfolded le_float_def] approx[OF LessEqual.prems(2) l_eq] approx[OF LessEqual.prems(2) u_eq]
+  show ?case by auto
+next
+  case (AtLeastAtMost x a b)
+  then obtain lx ux l u l' u'
+    where x_eq: "Some (lx, ux) = approx prec x vs"
+    and l_eq: "Some (l, u) = approx prec a vs"
+    and u_eq: "Some (l', u') = approx prec b vs"
+    and inequality: "u \<le> lx \<and> ux \<le> l'"
+    by (cases "approx prec x vs", auto,
+      cases "approx prec a vs", auto,
+      cases "approx prec b vs", auto, blast)
+  from inequality[unfolded le_float_def] approx[OF AtLeastAtMost.prems(2) l_eq] approx[OF AtLeastAtMost.prems(2) u_eq] approx[OF AtLeastAtMost.prems(2) x_eq]
+  show ?case by auto
 qed
 
-lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs = (interpret_floatarith a vs) / (interpret_floatarith b vs)"
-  unfolding real_divide_def interpret_floatarith.simps ..
-
-lemma interpret_floatarith_diff: "interpret_floatarith (Add a (Minus b)) vs = (interpret_floatarith a vs) - (interpret_floatarith b vs)"
-  unfolding real_diff_def interpret_floatarith.simps ..
-
-lemma interpret_floatarith_sin: "interpret_floatarith (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) vs =
-  sin (interpret_floatarith a vs)"
-  unfolding sin_cos_eq interpret_floatarith.simps
-            interpret_floatarith_divide interpret_floatarith_diff real_diff_def
-  by auto
-
-lemma interpret_floatarith_tan:
-  "interpret_floatarith (Mult (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) (Inverse (Cos a))) vs =
-   tan (interpret_floatarith a vs)"
-  unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def real_divide_def
-  by auto
-
-lemma interpret_floatarith_powr: "interpret_floatarith (Exp (Mult b (Ln a))) vs = (interpret_floatarith a vs) powr (interpret_floatarith b vs)"
-  unfolding powr_def interpret_floatarith.simps ..
-
-lemma interpret_floatarith_log: "interpret_floatarith ((Mult (Ln x) (Inverse (Ln b)))) vs = log (interpret_floatarith b vs) (interpret_floatarith x vs)"
-  unfolding log_def interpret_floatarith.simps real_divide_def ..
-
-lemma interpret_floatarith_num:
-  shows "interpret_floatarith (Num (Float 0 0)) vs = 0"
-  and "interpret_floatarith (Num (Float 1 0)) vs = 1"
-  and "interpret_floatarith (Num (Float (number_of a) 0)) vs = number_of a" by auto
+lemma approx_form:
+  assumes "n = length xs"
+  assumes "approx_form prec f (replicate n None) ss"
+  shows "interpret_form f xs"
+  using approx_form_aux[OF _ bounded_by_None] assms by auto
 
 subsection {* Implement proof method \texttt{approximation} *}
 
-lemma bounded_divl: assumes "real a / real b \<le> x" shows "real (float_divl p a b) \<le> x" by (rule order_trans[OF _ assms], rule float_divl)
-lemma bounded_divr: assumes "x \<le> real a / real b" shows "x \<le> real (float_divr p a b)" by (rule order_trans[OF assms _], rule float_divr)
-lemma bounded_num: shows "real (Float 5 1) = 10" and "real (Float 0 0) = 0" and "real (Float 1 0) = 1" and "real (Float (number_of n) 0) = (number_of n)"
-                     and "0 * pow2 e = real (Float 0 e)" and "1 * pow2 e = real (Float 1 e)" and "number_of m * pow2 e = real (Float (number_of m) e)"
-                     and "real (Float (number_of A) (int B)) = (number_of A) * 2^B"
-                     and "real (Float 1 (int B)) = 2^B"
-                     and "real (Float (number_of A) (- int B)) = (number_of A) / 2^B"
-                     and "real (Float 1 (- int B)) = 1 / 2^B"
-  by (auto simp add: real_of_float_simp pow2_def real_divide_def)
-
-lemmas bounded_by_equations = bounded_by_Cons bounded_by_Nil float_power bounded_divl bounded_divr bounded_num HOL.simp_thms
-lemmas interpret_inequality_equations = interpret_inequality.simps interpret_floatarith.simps interpret_floatarith_num
+lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simps interpret_floatarith_num
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
   interpret_floatarith_sin
 
@@ -2543,9 +2645,9 @@ struct
 @{code_datatype float = Float}
 @{code_datatype floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
                            | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Atom | Num }
-@{code_datatype inequality = Less | LessEqual }
+@{code_datatype form = Bound | Assign | Less | LessEqual | AtLeastAtMost}
 
-val approx_inequality = @{code approx_inequality}
+val approx_form = @{code approx_form}
 val approx' = @{code approx'}
 
 end
@@ -2566,103 +2668,109 @@ code_const Add and Minus and Mult and Inverse and Cos and Arctan and Abs and Max
         "Float'_Arith.Exp" and "Float'_Arith.Ln" and "Float'_Arith.Power/ (_,/ _)" and
         "Float'_Arith.Atom" and "Float'_Arith.Num")
 
-code_type inequality (Eval "Float'_Arith.inequality")
-code_const Less and LessEqual (Eval "Float'_Arith.Less/ (_,/ _)" and "Float'_Arith.LessEqual/ (_,/ _)")
+code_type form (Eval "Float'_Arith.form")
+code_const Bound and Assign and Less and LessEqual and AtLeastAtMost
+      (Eval "Float'_Arith.Bound/ (_,/ _,/ _,/ _)" and "Float'_Arith.Assign/ (_,/ _,/ _)" and
+            "Float'_Arith.Less/ (_,/ _)" and "Float'_Arith.LessEqual/ (_,/ _)"  and
+            "Float'_Arith.AtLeastAtMost/ (_,/ _,/ _)")
 
-code_const approx_inequality (Eval "Float'_Arith.approx'_inequality")
-code_const approx' (Eval "Float'_Arith.approx''")
+code_const approx_form (Eval "Float'_Arith.approx'_form")
+code_const approx' (Eval "Float'_Arith.approx'")
 
 ML {*
-  val ineq_equations = PureThy.get_thms @{theory} "interpret_inequality_equations";
-  val bounded_by_equations = PureThy.get_thms @{theory} "bounded_by_equations";
-  val bounded_by_simpset = (HOL_basic_ss addsimps bounded_by_equations)
-
-  fun reify_ineq ctxt i = (fn st =>
+  fun reorder_bounds_tac i prems =
     let
-      val to = HOLogic.dest_Trueprop (Logic.strip_imp_concl (List.nth (prems_of st, i - 1)))
-    in (Reflection.genreify_tac ctxt ineq_equations (SOME to) i) st
-    end)
+      fun variable_of_bound (Const ("Trueprop", _) $
+                             (Const (@{const_name "op :"}, _) $
+                              Free (name, _) $ _)) = name
+        | variable_of_bound (Const ("Trueprop", _) $
+                             (Const ("op =", _) $
+                              Free (name, _) $ _)) = name
+        | variable_of_bound t = raise TERM ("variable_of_bound", [t])
 
-  fun rule_ineq ctxt prec i thm = let
-    fun conv_num typ = HOLogic.dest_number #> snd #> HOLogic.mk_number typ
-    val to_natc = conv_num @{typ "nat"} #> Thm.cterm_of (ProofContext.theory_of ctxt)
-    val to_nat = conv_num @{typ "nat"}
-    val to_int = conv_num @{typ "int"}
-    fun int_to_float A = @{term "Float"} $ to_int A $ @{term "0 :: int"}
+      val variable_bounds
+        = map (` (variable_of_bound o prop_of)) prems
 
-    val prec' = to_nat prec
+      fun add_deps (name, bnds)
+        = Graph.add_deps_acyclic
+            (name, remove (op =) name (Term.add_free_names (prop_of bnds) []))
+      val order = Graph.empty
+                  |> fold Graph.new_node variable_bounds
+                  |> fold add_deps variable_bounds
+                  |> Graph.topological_order |> rev
+                  |> map_filter (AList.lookup (op =) variable_bounds)
 
-    fun bot_float (Const (@{const_name "times"}, _) $ mantisse $ (Const (@{const_name "pow2"}, _) $ exp))
-                   = @{term "Float"} $ to_int mantisse $ to_int exp
-      | bot_float (Const (@{const_name "divide"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
-                   = @{term "Float"} $ to_int mantisse $ (@{term "uminus :: int \<Rightarrow> int"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp))
-      | bot_float (Const (@{const_name "times"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
-                   = @{term "Float"} $ to_int mantisse $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
-      | bot_float (Const (@{const_name "divide"}, _) $ A $ (@{term "power 10 :: nat \<Rightarrow> real"} $ exp))
-                   = @{term "float_divl"} $ prec' $ (int_to_float A) $ (@{term "power (Float 5 1)"} $ to_nat exp)
-      | bot_float (Const (@{const_name "divide"}, _) $ A $ B)
-                   = @{term "float_divl"} $ prec' $ int_to_float A $ int_to_float B
-      | bot_float (@{term "power 2 :: nat \<Rightarrow> real"} $ exp)
-                   = @{term "Float 1"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
-      | bot_float A = int_to_float A
+      fun prepend_prem th tac
+        = tac THEN rtac (th RSN (2, @{thm mp})) i
+    in
+      fold prepend_prem order all_tac
+    end
 
-    fun top_float (Const (@{const_name "times"}, _) $ mantisse $ (Const (@{const_name "pow2"}, _) $ exp))
-                   = @{term "Float"} $ to_int mantisse $ to_int exp
-      | top_float (Const (@{const_name "divide"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
-                   = @{term "Float"} $ to_int mantisse $ (@{term "uminus :: int \<Rightarrow> int"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp))
-      | top_float (Const (@{const_name "times"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
-                   = @{term "Float"} $ to_int mantisse $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
-      | top_float (Const (@{const_name "divide"}, _) $ A $ (@{term "power 10 :: nat \<Rightarrow> real"} $ exp))
-                   = @{term "float_divr"} $ prec' $ (int_to_float A) $ (@{term "power (Float 5 1)"} $ to_nat exp)
-      | top_float (Const (@{const_name "divide"}, _) $ A $ B)
-                   = @{term "float_divr"} $ prec' $ int_to_float A $ int_to_float B
-      | top_float (@{term "power 2 :: nat \<Rightarrow> real"} $ exp)
-                   = @{term "Float 1"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
-      | top_float A = int_to_float A
-
-    val goal' : term = List.nth (prems_of thm, i - 1)
-
-    fun lift_bnd (t as (Const (@{const_name "op &"}, _) $
-                        (Const (@{const_name "less_eq"}, _) $
-                         bottom $ (Free (name, _))) $
-                        (Const (@{const_name "less_eq"}, _) $ _ $ top)))
-         = ((name, HOLogic.mk_prod (bot_float bottom, top_float top))
-            handle TERM (txt, ts) => raise TERM ("Invalid bound number format: " ^
-                                  (Syntax.string_of_term ctxt t), [t]))
-      | lift_bnd t = raise TERM ("Premisse needs format '<num> <= <var> & <var> <= <num>', but found " ^
-                                 (Syntax.string_of_term ctxt t), [t])
-    val bound_eqs = map (HOLogic.dest_Trueprop #> lift_bnd)  (Logic.strip_imp_prems goal')
-
-    fun lift_var (Free (varname, _)) = (case AList.lookup (op =) bound_eqs varname of
-                                          SOME bound => bound
-                                        | NONE => raise TERM ("No bound equations found for " ^ varname, []))
-      | lift_var t = raise TERM ("Can not convert expression " ^
-                                 (Syntax.string_of_term ctxt t), [t])
-
-    val _ $ vs = HOLogic.dest_Trueprop (Logic.strip_imp_concl goal')
-
-    val bs = (HOLogic.dest_list #> map lift_var #> HOLogic.mk_list @{typ "float * float"}) vs
-    val map = [(@{cpat "?prec::nat"}, to_natc prec),
-               (@{cpat "?bs::(float * float) list"}, Thm.cterm_of (ProofContext.theory_of ctxt) bs)]
-  in rtac (Thm.instantiate ([], map) @{thm "approx_inequality"}) i thm end
-
-  val eval_tac = CSUBGOAL (fn (ct, i) => rtac (eval_oracle ct) i)
-
+  (* Should be in HOL.thy ? *)
   fun gen_eval_tac conv ctxt = CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt)
                                THEN' rtac TrueI
 
+  val form_equations = PureThy.get_thms @{theory} "interpret_form_equations";
+
+  fun rewrite_interpret_form_tac ctxt prec splitting i st = let
+      val vs = nth (prems_of st) (i - 1)
+               |> Logic.strip_imp_concl
+               |> HOLogic.dest_Trueprop
+               |> Term.strip_comb |> snd |> List.last
+               |> HOLogic.dest_list
+      val n = vs |> length
+              |> HOLogic.mk_number @{typ nat}
+              |> Thm.cterm_of (ProofContext.theory_of ctxt)
+      val p = prec
+              |> HOLogic.mk_number @{typ nat}
+              |> Thm.cterm_of (ProofContext.theory_of ctxt)
+      val s = vs
+              |> map (fn Free (name, typ) =>
+                      case AList.lookup (op =) splitting name of
+                        SOME s => HOLogic.mk_number @{typ nat} s
+                      | NONE => @{term "0 :: nat"})
+              |> HOLogic.mk_list @{typ nat}
+              |> Thm.cterm_of (ProofContext.theory_of ctxt)
+    in
+      rtac (Thm.instantiate ([], [(@{cpat "?n::nat"}, n),
+                                  (@{cpat "?prec::nat"}, p),
+                                  (@{cpat "?ss::nat list"}, s)])
+           @{thm "approx_form"}) i st
+    end
+
+  (* copied from Tools/induct.ML should probably in args.ML *)
+  val free = Args.context -- Args.term >> (fn (_, Free (n, t)) => n | (ctxt, t) =>
+    error ("Bad free variable: " ^ Syntax.string_of_term ctxt t));
+
 *}
 
+lemma intervalE: "a \<le> x \<and> x \<le> b \<Longrightarrow> \<lbrakk> x \<in> { a .. b } \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  by auto
+
+lemma meta_eqE: "x \<equiv> a \<Longrightarrow> \<lbrakk> x = a \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  by auto
+
 method_setup approximation = {*
-  Args.term >>
-  (fn prec => fn ctxt =>
+  Scan.lift (OuterParse.nat) --
+  Scan.optional (Scan.lift (Args.$$$ "splitting" |-- Args.colon)
+    |-- OuterParse.and_list' (free --| Scan.lift (Args.$$$ "=") -- Scan.lift OuterParse.nat)) []
+  >>
+  (fn (prec, splitting) => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
-     (DETERM (reify_ineq ctxt i)
-      THEN rule_ineq ctxt prec i
-      THEN Simplifier.asm_full_simp_tac bounded_by_simpset i
-      THEN (TRY (filter_prems_tac (fn t => false) i))
-      THEN (gen_eval_tac eval_oracle ctxt) i)))
-*} "real number approximation"
+      REPEAT (FIRST' [etac @{thm intervalE},
+                      etac @{thm meta_eqE},
+                      rtac @{thm impI}] i)
+      THEN METAHYPS (reorder_bounds_tac i) i
+      THEN TRY (filter_prems_tac (K false) i)
+      THEN DETERM (Reflection.genreify_tac ctxt form_equations NONE i)
+      THEN print_tac "approximation"
+      THEN rewrite_interpret_form_tac ctxt prec splitting i
+      THEN simp_tac @{simpset} i
+      THEN gen_eval_tac eval_oracle ctxt i))
+ *} "real number approximation"
+
+lemma "\<phi> \<in> {0..1 :: real} \<Longrightarrow> \<phi> < \<phi> + 0.7"
+  by (approximation 10 splitting: "\<phi>" = 1)
 
 ML {*
   fun dest_interpret (@{const "interpret_floatarith"} $ b $ xs) = (b, xs)
@@ -2733,7 +2841,7 @@ ML {*
 
   fun approx prec ctxt t = let val t = realify t in
           t
-       |> Reflection.genreif ctxt ineq_equations
+       |> Reflection.genreif ctxt form_equations
        |> prop_of
        |> HOLogic.dest_Trueprop
        |> HOLogic.dest_eq |> snd

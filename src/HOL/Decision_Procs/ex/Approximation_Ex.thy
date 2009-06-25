@@ -40,6 +40,9 @@ section "Use variable ranges"
 lemma "0.5 \<le> x \<and> x \<le> 4.5 \<Longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
   by (approximation 10)
 
+lemma "x \<in> {0.5 .. 4.5} \<longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
+  by (approximation 10)
+
 lemma "0.49 \<le> x \<and> x \<le> 4.49 \<Longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
   by (approximation 20)
 
@@ -49,5 +52,9 @@ lemma "1 / 2^1 \<le> x \<and> x \<le> 9 / 2^1 \<Longrightarrow> \<bar> arctan x 
 lemma "3.2 \<le> x \<and> x \<le> 6.2 \<Longrightarrow> sin x \<le> 0"
   by (approximation 9)
 
-end
+lemma
+  defines "g \<equiv> 9.80665" and "v \<equiv> 128.61" and "d \<equiv> pi / 180"
+  shows "g / v * tan (35 * d) \<in> { 3 * d .. 3.1 * d }"
+  using assms by (approximation 80)
 
+end
