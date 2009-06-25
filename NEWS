@@ -68,6 +68,10 @@ INCOMPATIBILITY.
 * New evaluator "approximate" approximates an real valued term using the same method as the
 approximation method. 
 
+* "approximate" supports now arithmetic expressions as boundaries of intervals and implements
+interval splitting.
+
+
 *** ML ***
 
 * Eliminated old Attrib.add_attributes, Method.add_methods and related
