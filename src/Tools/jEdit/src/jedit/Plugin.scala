@@ -23,62 +23,86 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 
 
-object Isabelle {
-  // name
+object Isabelle
+{
+  /* name */
+
   val NAME = "Isabelle"
   val VFS_PREFIX = "isabelle:"
 
-  // properties
-  object Property {
-    private val OPTION_PREFIX = "options.isabelle."
-    def apply(name: String) = jEdit.getProperty(OPTION_PREFIX + name)
+
+  /* properties */
+
+  val OPTION_PREFIX = "options.isabelle."
+
+  object Property
+  {
+    def apply(name: String): String = jEdit.getProperty(OPTION_PREFIX + name)
     def update(name: String, value: String) = jEdit.setProperty(OPTION_PREFIX + name, value)
   }
 
-  // Isabelle system instance
+  object Boolean_Property
+  {
+    def apply(name: String): Boolean = jEdit.getBooleanProperty(OPTION_PREFIX + name)
+    def update(name: String, value: Boolean) = jEdit.setBooleanProperty(OPTION_PREFIX + name, value)
+  }
+
+  object Int_Property
+  {
+    def apply(name: String): Int = jEdit.getIntegerProperty(OPTION_PREFIX + name)
+    def update(name: String, value: Int) = jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
+  }
+
+
+  /* Isabelle system instance */
+
   var system: Isabelle_System = null
   def symbols = system.symbols
   lazy val completion = new Completion + symbols
 
-  // settings
-  def default_logic = {
+
+  /* settings */
+
+  def default_logic =
+  {
     val logic = Isabelle.Property("logic")
     if (logic != null) logic else Isabelle.system.getenv_strict("ISABELLE_LOGIC")
   }
 
-  // plugin instance
+
+  /* plugin instance */
+
   var plugin: Plugin = null
 
-  // running provers
+
+  /* running provers */
+
   def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer)
 }
 
 
-class Plugin extends EBPlugin {
-
-  // Isabelle font
+class Plugin extends EBPlugin
+{
+  /* Isabelle font */
 
   var font: Font = null
   val font_changed = new EventBus[Font]
 
-  def set_font(path: String, size: Float) {
-    font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(path)).
-      deriveFont(Font.PLAIN, size)
+  def set_font(size: Int)
+  {
+    font = Font.createFont(Font.TRUETYPE_FONT,
+        new FileInputStream(Isabelle.system.platform_path("~~/lib/fonts/IsabelleMono.ttf"))).
+      deriveFont(Font.PLAIN, size max 1)
     font_changed.event(font)
   }
 
 
-  /* unique ids */  // FIXME specific to "session" (!??)
-
-  private var id_count: BigInt = 0
-  def id() : String = synchronized { id_count += 1; "editor:" + id_count }
-
-
-  // mapping buffer <-> prover
+  /* mapping buffer <-> prover */
 
   private val mapping = new mutable.HashMap[JEditBuffer, ProverSetup]
 
-  private def install(view: View) {
+  private def install(view: View)
+  {
     val buffer = view.getBuffer
     val prover_setup = new ProverSetup(buffer)
     mapping.update(buffer, prover_setup)
@@ -88,62 +112,63 @@ class Plugin extends EBPlugin {
   private def uninstall(view: View) =
     mapping.removeKey(view.getBuffer).get.deactivate
 
-  def switch_active (view : View) =
+  def switch_active (view: View) =
     if (mapping.isDefinedAt(view.getBuffer)) uninstall(view)
     else install(view)
 
-  def prover_setup (buffer : JEditBuffer) : Option[ProverSetup] = mapping.get(buffer)
-  def is_active (buffer : JEditBuffer) = mapping.isDefinedAt(buffer)
-  
-  
-  // main plugin plumbing
+  def prover_setup(buffer: JEditBuffer): Option[ProverSetup] = mapping.get(buffer)
+  def is_active (buffer: JEditBuffer) = mapping.isDefinedAt(buffer)
 
-  override def handleMessage(msg: EBMessage) = msg match {
-    case epu: EditPaneUpdate => epu.getWhat match {
-      case EditPaneUpdate.BUFFER_CHANGED =>
-        mapping get epu.getEditPane.getBuffer match {
-          //only activate 'isabelle'-buffers!
-          case None =>
-          case Some(prover_setup) => 
-            prover_setup.theory_view.activate
-            val dockable = epu.getEditPane.getView.getDockableWindowManager.getDockable("isabelle-output")
-            if (dockable != null) {
-              val output_dockable = dockable.asInstanceOf[OutputDockable]
-              if (output_dockable.getComponent(0) != prover_setup.output_text_view ) {
-                output_dockable.asInstanceOf[OutputDockable].removeAll
-                output_dockable.asInstanceOf[OutputDockable].add(new JScrollPane(prover_setup.output_text_view))
-                output_dockable.revalidate
+
+  /* main plugin plumbing */
+
+  override def handleMessage(msg: EBMessage)
+  {
+    msg match {
+      case epu: EditPaneUpdate => epu.getWhat match {
+        case EditPaneUpdate.BUFFER_CHANGED =>
+          mapping get epu.getEditPane.getBuffer match {
+            // only activate 'isabelle' buffers
+            case None =>
+            case Some(prover_setup) =>
+              prover_setup.theory_view.activate
+              val dockable =
+                epu.getEditPane.getView.getDockableWindowManager.getDockable("isabelle-output")
+              if (dockable != null) {
+                val output_dockable = dockable.asInstanceOf[OutputDockable]
+                if (output_dockable.getComponent(0) != prover_setup.output_text_view ) {
+                  output_dockable.asInstanceOf[OutputDockable].removeAll
+                  output_dockable.asInstanceOf[OutputDockable].
+                    add(new JScrollPane(prover_setup.output_text_view))
+                  output_dockable.revalidate
+                }
               }
-            }
-        }
-      case EditPaneUpdate.BUFFER_CHANGING =>
-        val buffer = epu.getEditPane.getBuffer
-        if (buffer != null) mapping get buffer match {
-          //only deactivate 'isabelle'-buffers!
-          case None =>
-          case Some(prover_setup) => prover_setup.theory_view.deactivate
-        }
+          }
+        case EditPaneUpdate.BUFFER_CHANGING =>
+          val buffer = epu.getEditPane.getBuffer
+          if (buffer != null) mapping get buffer match {
+            // only deactivate 'isabelle' buffers
+            case None =>
+            case Some(prover_setup) => prover_setup.theory_view.deactivate
+          }
+        case _ =>
+      }
       case _ =>
     }
-    case _ =>
   }
 
-  override def start() {
+  override def start()
+  {
     Isabelle.system = new Isabelle_System
     Isabelle.plugin = this
-    
-    if (Isabelle.Property("font-path") != null && Isabelle.Property("font-size") != null)
-      try {
-        set_font(Isabelle.Property("font-path"), Isabelle.Property("font-size").toFloat)
-      }
-      catch {
-        case e: NumberFormatException =>
-      }
+    set_font(Isabelle.Int_Property("font-size"))
   }
-  
-  override def stop() {
+
+  override def stop()
+  {
     // TODO: proper cleanup
     Isabelle.system = null
     Isabelle.plugin = null
   }
+
 }
