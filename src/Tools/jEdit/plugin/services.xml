@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE SERVICES SYSTEM "services.dtd">
 <SERVICES>
-	<SERVICE NAME="isabelle" CLASS="org.gjt.sp.jedit.io.VFS">
-		new isabelle.jedit.VFS();
-	</SERVICE>
 	<SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
 		new isabelle.jedit.IsabelleEncoding();
 	</SERVICE>
