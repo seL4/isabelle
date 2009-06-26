@@ -48,6 +48,10 @@ Suc_eq_add_numeral_1 -> Suc_eq_plus1
 Suc_eq_add_numeral_1_left -> Suc_eq_plus1_left
 Suc_plus1 -> Suc_eq_plus1
 
+* New sledgehammer option "Full Types" in Proof General settings menu.
+Causes full type information to be output to the ATPs. This slows ATPs down
+considerably but eliminates a source of unsound "proofs" that fail later.
+
 * Discontinued ancient tradition to suffix certain ML module names with "_package", e.g.:
 
     DatatypePackage ~> Datatype

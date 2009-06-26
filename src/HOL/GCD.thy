@@ -214,6 +214,15 @@ lemma int_lcm_neg2: "lcm (x::int) (-y) = lcm x y"
 lemma int_lcm_abs: "lcm (x::int) y = lcm (abs x) (abs y)"
   by (simp add: lcm_int_def)
 
+lemma abs_lcm_int [simp]: "abs (lcm i j::int) = lcm i j"
+by(simp add:lcm_int_def)
+
+lemma lcm_abs1_int[simp]: "lcm (abs x) (y::int) = lcm x y"
+by (metis abs_idempotent lcm_int_def)
+
+lemma lcm_abs2_int[simp]: "lcm x (abs y::int) = lcm x y"
+by (metis abs_idempotent lcm_int_def)
+
 lemma int_lcm_cases:
   fixes x :: int and y
   assumes "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> P (lcm x y)"
