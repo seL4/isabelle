@@ -17,28 +17,28 @@ import errorlist.DefaultErrorSource
 import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion}
 
 
-class IsabelleSideKickParser extends SideKickParser("isabelle") {
-
+class IsabelleSideKickParser extends SideKickParser("isabelle")
+{
   /* parsing */
 
-  private var stopped = false
+  @volatile private var stopped = false
   override def stop() = { stopped = true }
 
-  def parse(buffer : Buffer, error_source : DefaultErrorSource): SideKickParsedData = {
+  def parse(buffer: Buffer, error_source: DefaultErrorSource): SideKickParsedData =
+  {
     stopped = false
-    
+
     val data = new SideKickParsedData(buffer.getName)
 
     val prover_setup = Isabelle.plugin.prover_setup(buffer)
     if (prover_setup.isDefined) {
-        val document = prover_setup.get.prover.document
-        for (command <- document.commands)
-          data.root.add(command.markup_root.swing_node(document))
-        
-        if (stopped) data.root.add(new DefaultMutableTreeNode("<parser stopped>"))
-    } else {
-      data.root.add(new DefaultMutableTreeNode("<buffer inactive>"))
+      val document = prover_setup.get.prover.document
+      for (command <- document.commands)
+        data.root.add(command.markup_root.swing_node(document))
+
+      if (stopped) data.root.add(new DefaultMutableTreeNode("<parser stopped>"))
     }
+    else data.root.add(new DefaultMutableTreeNode("<buffer inactive>"))
 
     data
   }
@@ -63,8 +63,11 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
     completion.complete(text) match {
       case None => null
       case Some((word, cs)) =>
-        new SideKickCompletion(pane.getView, word,
-          cs.map(Isabelle.system.symbols.decode(_)).toArray.asInstanceOf[Array[Object]]) { }
+        val ds =
+          if (IsabelleEncoding.is_active(buffer))
+            cs.map(Isabelle.system.symbols.decode(_)).sort(Completion.length_ord _)
+          else cs
+        new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) { }
     }
   }
 

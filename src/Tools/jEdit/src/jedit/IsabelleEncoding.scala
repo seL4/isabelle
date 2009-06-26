@@ -7,6 +7,7 @@
 package isabelle.jedit
 
 import org.gjt.sp.jedit.io.Encoding
+import org.gjt.sp.jedit.buffer.JEditBuffer
 
 import java.nio.charset.{Charset, CharsetDecoder, CodingErrorAction}
 import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, OutputStreamWriter,
@@ -18,6 +19,9 @@ import scala.io.{Source, BufferedSource}
 object IsabelleEncoding
 {
   val NAME = "UTF-8-Isabelle"
+
+  def is_active(buffer: JEditBuffer): Boolean =
+    buffer.getProperty(JEditBuffer.ENCODING).asInstanceOf[String] == NAME
 }
 
 class IsabelleEncoding extends Encoding
