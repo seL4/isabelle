@@ -37,12 +37,9 @@ class ProverSetup(buffer: JEditBuffer)
     prover = new Prover(Isabelle.system, Isabelle.default_logic)
     prover.start() // start actor
     val buffer = view.getBuffer
-    val path = buffer.getPath
 
     theory_view = new TheoryView(view.getTextArea, prover)
-    prover.set_document(theory_view.change_receiver,
-      if (path.startsWith(VFS.PREFIX)) path.substring(VFS.PREFIX.length)
-      else path)
+    prover.set_document(theory_view.change_receiver, buffer.getName)
     theory_view.activate
     val MAX = TheoryView.MAX_CHANGE_LENGTH
     for (i <- 0 to buffer.getLength / MAX) {
