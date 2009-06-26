@@ -30,6 +30,8 @@ object Isabelle
   val NAME = "Isabelle"
   val VFS_PREFIX = "isabelle:"
 
+  val ISABELLE_ENCODING = "UTF-8-Isabelle"
+
 
   /* properties */
 

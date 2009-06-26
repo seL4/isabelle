@@ -1,6 +1,6 @@
 #jEdit properties
 buffer.deepIndent=false
-buffer.encoding=UTF-8-isabelle
+buffer.encoding=UTF-8-Isabelle
 buffer.indentSize=2
 buffer.lineSeparator=\n
 buffer.maxLineLen=100
