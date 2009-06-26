@@ -15,6 +15,11 @@ import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, Ou
 import scala.io.{Source, BufferedSource}
 
 
+object IsabelleEncoding
+{
+  val NAME = "UTF-8-Isabelle"
+}
+
 class IsabelleEncoding extends Encoding
 {
   private val charset = Charset.forName(Isabelle_System.charset)

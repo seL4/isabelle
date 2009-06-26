@@ -22,6 +22,8 @@ import org.gjt.sp.jedit.io.{VFSFile, VFSManager}
 
 object VFS
 {
+  val PREFIX = "isabelle:"
+
   val BUFFER_SIZE = 1024
 
   def input_converter(in: InputStream): ByteArrayInputStream =
@@ -89,17 +91,16 @@ class VFS extends io.VFS("isabelle", VFSManager.getFileVFS.getCapabilities)
     if (file == null) null else new VFS.File(this, path, file)
 
   private def drop_prefix(path: String): String =
-    if (path.startsWith(Isabelle.VFS_PREFIX))
-      path.substring(Isabelle.VFS_PREFIX.length)
+    if (path.startsWith(VFS.PREFIX)) path.substring(VFS.PREFIX.length)
     else path
 
   private def expand_path(path: String): String =
-    Isabelle.VFS_PREFIX + Isabelle.system.expand_path(drop_prefix(path))
-  
+    VFS.PREFIX + Isabelle.system.expand_path(drop_prefix(path))
+
   private def platform_path(path: String): String =
     Isabelle.system.platform_path(drop_prefix(path))
 
-  
+
   override def getCapabilities = base.getCapabilities
   override def getExtendedAttributes = base.getExtendedAttributes
 

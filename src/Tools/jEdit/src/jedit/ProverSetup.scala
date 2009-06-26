@@ -41,7 +41,7 @@ class ProverSetup(buffer: JEditBuffer)
 
     theory_view = new TheoryView(view.getTextArea, prover)
     prover.set_document(theory_view.change_receiver,
-      if (path.startsWith(Isabelle.VFS_PREFIX)) path.substring(Isabelle.VFS_PREFIX.length)
+      if (path.startsWith(VFS.PREFIX)) path.substring(VFS.PREFIX.length)
       else path)
     theory_view.activate
     val MAX = TheoryView.MAX_CHANGE_LENGTH
