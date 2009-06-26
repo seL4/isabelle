@@ -73,7 +73,7 @@ shift $(($OPTIND - 1))
 declare -a FILES=()
 
 if [ "$#" -eq 0 ]; then
-  FILES+=($(jvmpath "$HOME/Scratch.thy"))
+  FILES+=(Scratch.thy)
 else
   while [ "$#" -gt 0 ]; do
     FILES+=($(jvmpath "$1"))
