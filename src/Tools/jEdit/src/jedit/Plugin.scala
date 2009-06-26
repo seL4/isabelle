@@ -90,8 +90,8 @@ class Plugin extends EBPlugin
   def set_font(size: Int)
   {
     font = Font.createFont(Font.TRUETYPE_FONT,
-        new FileInputStream(Isabelle.system.platform_path("~~/lib/fonts/IsabelleMono.ttf"))).
-      deriveFont(Font.PLAIN, size max 1)
+        Isabelle.system.platform_file("~~/lib/fonts/IsabelleMono.ttf")).
+      deriveFont(Font.PLAIN, (size max 1).toFloat)
     font_changed.event(font)
   }
 
