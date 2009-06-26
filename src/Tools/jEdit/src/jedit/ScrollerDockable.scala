@@ -229,7 +229,7 @@ class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
       panel.relayout()
     })
     val document = XML.document(Isabelle_Process.parse_message(Isabelle.system, r))
-    panel.setDocument(document, UserAgent.baseURL)
+    panel.setDocument(document, UserAgent.base_URL)
     val sa = new SelectionActions
     sa.install(panel)
     panel
