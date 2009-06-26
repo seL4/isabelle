@@ -181,8 +181,17 @@ lemma int_gcd_neg1 [simp]: "gcd (-x::int) y = gcd x y"
 lemma int_gcd_neg2 [simp]: "gcd (x::int) (-y) = gcd x y"
   by (simp add: gcd_int_def)
 
+lemma abs_gcd_int[simp]: "abs(gcd (x::int) y) = gcd x y"
+by(simp add: gcd_int_def)
+
 lemma int_gcd_abs: "gcd (x::int) y = gcd (abs x) (abs y)"
-  by (simp add: gcd_int_def)
+by (simp add: gcd_int_def)
+
+lemma gcd_abs1_int[simp]: "gcd (abs x) (y::int) = gcd x y"
+by (metis abs_idempotent int_gcd_abs)
+
+lemma gcd_abs2_int[simp]: "gcd x (abs y::int) = gcd x y"
+by (metis abs_idempotent int_gcd_abs)
 
 lemma int_gcd_cases:
   fixes x :: int and y
@@ -252,7 +261,7 @@ lemma nat_gcd_idem: "gcd (x::nat) x = x"
 by simp
 
 lemma int_gcd_idem: "gcd (x::int) x = abs x"
-by (subst int_gcd_abs, auto simp add: gcd_int_def)
+by (auto simp add: gcd_int_def)
 
 declare gcd_nat.simps [simp del]
 
@@ -269,18 +278,10 @@ lemma nat_gcd_dvd1 [iff]: "(gcd (m::nat)) n dvd m"
 done
 
 lemma int_gcd_dvd1 [iff]: "gcd (x::int) y dvd x"
-  apply (subst int_gcd_abs)
-  apply (rule dvd_trans)
-  apply (rule nat_gcd_dvd1 [transferred])
-  apply auto
-done
+by (metis gcd_int_def int_dvd_iff nat_gcd_dvd1)
 
 lemma int_gcd_dvd2 [iff]: "gcd (x::int) y dvd y"
-  apply (subst int_gcd_abs)
-  apply (rule dvd_trans)
-  apply (rule nat_gcd_dvd2 [transferred])
-  apply auto
-done
+by (metis gcd_int_def int_dvd_iff nat_gcd_dvd2)
 
 lemma dvd_gcd_D1_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd m"
 by(metis nat_gcd_dvd1 dvd_trans)
@@ -310,13 +311,11 @@ lemma nat_gcd_greatest: "(k::nat) dvd m \<Longrightarrow> k dvd n \<Longrightarr
 by (induct m n rule: nat_gcd_induct) (simp_all add: nat_gcd_non_0 dvd_mod)
 
 lemma int_gcd_greatest:
-  assumes "(k::int) dvd m" and "k dvd n"
-  shows "k dvd gcd m n"
-
+  "(k::int) dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd gcd m n"
   apply (subst int_gcd_abs)
   apply (subst abs_dvd_iff [symmetric])
   apply (rule nat_gcd_greatest [transferred])
-  using prems apply auto
+  apply auto
 done
 
 lemma nat_gcd_greatest_iff [iff]: "(k dvd gcd (m::nat) n) =
@@ -412,7 +411,7 @@ done
 
 lemma int_gcd_mult_distrib: "abs (k::int) * gcd m n = gcd (k * m) (k * n)"
   apply (subst (1 2) int_gcd_abs)
-  apply (simp add: abs_mult)
+  apply (subst (1 2) abs_mult)
   apply (rule nat_gcd_mult_distrib [transferred])
   apply auto
 done
@@ -425,16 +424,14 @@ lemma nat_coprime_dvd_mult: "coprime (k::nat) n \<Longrightarrow> k dvd m * n \<
   done
 
 lemma int_coprime_dvd_mult:
-  assumes "coprime (k::int) n" and "k dvd m * n"
-  shows "k dvd m"
-
-  using prems
-  apply (subst abs_dvd_iff [symmetric])
-  apply (subst dvd_abs_iff [symmetric])
-  apply (subst (asm) int_gcd_abs)
-  apply (rule nat_coprime_dvd_mult [transferred])
-  apply auto
-  apply (subst abs_mult [symmetric], auto)
+  "coprime (k::int) n \<Longrightarrow> k dvd m * n \<Longrightarrow> k dvd m"
+apply (subst abs_dvd_iff [symmetric])
+apply (subst dvd_abs_iff [symmetric])
+apply (subst (asm) int_gcd_abs)
+apply (rule nat_coprime_dvd_mult [transferred])
+    prefer 4 apply assumption
+   apply auto
+apply (subst abs_mult [symmetric], auto)
 done
 
 lemma nat_coprime_dvd_mult_iff: "coprime (k::nat) n \<Longrightarrow>
@@ -455,14 +452,10 @@ lemma nat_gcd_mult_cancel: "coprime k n \<Longrightarrow> gcd ((k::nat) * m) n =
 done
 
 lemma int_gcd_mult_cancel:
-  assumes "coprime (k::int) n"
-  shows "gcd (k * m) n = gcd m n"
-
-  using prems
-  apply (subst (1 2) int_gcd_abs)
-  apply (subst abs_mult)
-  apply (rule nat_gcd_mult_cancel [transferred])
-  apply (auto simp add: int_gcd_abs [symmetric])
+  "coprime (k::int) n \<Longrightarrow> gcd (k * m) n = gcd m n"
+apply (subst (1 2) int_gcd_abs)
+apply (subst abs_mult)
+apply (rule nat_gcd_mult_cancel [transferred], auto)
 done
 
 text {* \medskip Addition laws *}
@@ -573,7 +566,7 @@ done
 
 subsection {* Coprimality *}
 
-lemma nat_div_gcd_coprime [intro]:
+lemma nat_div_gcd_coprime:
   assumes nz: "(a::nat) \<noteq> 0 \<or> b \<noteq> 0"
   shows "coprime (a div gcd a b) (b div gcd a b)"
 proof -
@@ -597,16 +590,16 @@ proof -
   with dvd_mult_cancel1 [OF gp] show "?g' = 1" by simp
 qed
 
-lemma int_div_gcd_coprime [intro]:
+lemma int_div_gcd_coprime:
   assumes nz: "(a::int) \<noteq> 0 \<or> b \<noteq> 0"
   shows "coprime (a div gcd a b) (b div gcd a b)"
-
-  apply (subst (1 2 3) int_gcd_abs)
-  apply (subst (1 2) abs_div)
-  apply auto
-  prefer 3
-  apply (rule nat_div_gcd_coprime [transferred])
-  using nz apply (auto simp add: int_gcd_abs [symmetric])
+apply (subst (1 2 3) int_gcd_abs)
+apply (subst (1 2) abs_div)
+  apply simp
+ apply simp
+apply(subst (1 2) abs_gcd_int)
+apply (rule nat_div_gcd_coprime [transferred])
+using nz apply (auto simp add: int_gcd_abs [symmetric])
 done
 
 lemma nat_coprime: "coprime (a::nat) b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
@@ -771,7 +764,7 @@ proof (cases)
   thus ?thesis by simp
   next assume "~(a = 0 & b = 0)"
   hence "coprime ((a div gcd a b)^n) ((b div gcd a b)^n)"
-    by auto
+    by (auto simp:nat_div_gcd_coprime)
   hence "gcd ((a div gcd a b)^n * (gcd a b)^n)
       ((b div gcd a b)^n * (gcd a b)^n) = (gcd a b)^n"
     apply (subst (1 2) mult_commute)
