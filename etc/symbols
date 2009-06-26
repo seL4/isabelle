@@ -211,8 +211,8 @@
 \<or>                   code: 0x002228  font: Isabelle  abbrev: \/
 \<Or>                   code: 0x0022c1  font: Isabelle  abbrev: ??
 \<forall>               code: 0x002200  font: Isabelle  abbrev: !
-\<exists>               code: 0x002203  font: Isabelle  abbrev: ?.
-\<nexists>              code: 0x002204  font: Isabelle  abbrev: ?~
+\<exists>               code: 0x002203  font: Isabelle  abbrev: ?
+\<nexists>              code: 0x002204  font: Isabelle  abbrev: ~?
 \<not>                  code: 0x0000ac  font: Isabelle  abbrev: ~
 \<box>                  code: 0x0025a1  font: Isabelle
 \<diamond>              code: 0x0025c7  font: Isabelle
