@@ -306,11 +306,11 @@ val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 
 fun display_drafts files = Toplevel.imperative (fn () =>
   let val outfile = File.shell_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") files)
-  in File.isabelle_tool ("display -c " ^ outfile ^ " &"); () end);
+  in File.isabelle_tool "display" ("-c " ^ outfile ^ " &"); () end);
 
 fun print_drafts files = Toplevel.imperative (fn () =>
   let val outfile = File.shell_path (Present.drafts "ps" files)
-  in File.isabelle_tool ("print -c " ^ outfile); () end);
+  in File.isabelle_tool "print" ("-c " ^ outfile); () end);
 
 
 (* pretty_setmargin *)
