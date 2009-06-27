@@ -295,7 +295,7 @@ class Isabelle_System
   {
     getenv_strict("ISABELLE_TOOLS").split(":").find(dir => {
       val file = platform_file(dir + "/" + name)
-      try { file.isFile && file.canRead && file.canExecute }
+      try { file.isFile && file.canRead } //  file.canExecute requires Java 1.6
       catch { case _: SecurityException => false }
     }) match {
       case Some(dir) =>
