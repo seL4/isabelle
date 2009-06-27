@@ -237,10 +237,18 @@ class Isabelle_System
     Isabelle_System.raw_execute(environment, redirect, cmdline: _*)
   }
 
-  def isabelle_tool(args: String*): (String, Int) =
+  def isabelle_tool(name: String, args: String*): (String, Int) =
   {
-    val proc = execute(true, (List(getenv_strict("ISABELLE_TOOL")) ++ args): _*)
-    Isabelle_System.process_output(proc)
+    getenv_strict("ISABELLE_TOOLS").split(":").find(dir => {
+      val file = platform_file(dir + "/" + name)
+      try { file.isFile && file.canRead && file.canExecute }
+      catch { case _: SecurityException => false }
+    }) match {
+      case Some(dir) =>
+        val proc = execute(true, (List(platform_path(dir + "/" + name)) ++ args): _*)
+        Isabelle_System.process_output(proc)
+      case None => ("Unknown Isabelle tool: " + name, 2)
+    }
   }
 
 

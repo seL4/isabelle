@@ -12,7 +12,7 @@ sig
   val pwd: unit -> Path.T
   val full_path: Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
-  val isabelle_tool: string -> int
+  val isabelle_tool: string -> string -> int
   val system_command: string -> unit
   eqtype ident
   val rep_ident: ident -> string
@@ -65,7 +65,17 @@ fun tmp_path path =
 
 (* system commands *)
 
-fun isabelle_tool cmd = system ("\"$ISABELLE_TOOL\" " ^ cmd);
+fun isabelle_tool name args =
+  (case space_explode ":" (getenv "ISABELLE_TOOLS") |> get_first (fn dir =>
+      let val path = dir ^ "/" ^ name in
+        if can OS.FileSys.modTime path andalso
+          not (OS.FileSys.isDir path) andalso
+          OS.FileSys.access (path, [OS.FileSys.A_READ, OS.FileSys.A_EXEC])
+        then SOME path
+        else NONE
+      end handle OS.SysErr _ => NONE) of
+    SOME path => system (shell_quote path ^ " " ^ args)
+  | NONE => (writeln ("Unknown Isabelle tool: " ^ name); 2));
 
 fun system_command cmd =
   if system cmd <> 0 then error ("System command failed: " ^ cmd)
