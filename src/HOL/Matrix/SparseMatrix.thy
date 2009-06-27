@@ -27,8 +27,8 @@ lemma sparse_row_matrix_empty [simp]: "sparse_row_matrix [] = 0"
 
 lemmas [code] = sparse_row_vector_empty [symmetric]
 
-lemma foldl_distrstart[rule_format]: "! a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> ! x y. (foldl f (g x y) l = g x (foldl f y l))"
-  by (induct l, auto)
+lemma foldl_distrstart: "! a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> (foldl f (g x y) l = g x (foldl f y l))"
+  by (induct l arbitrary: x y, auto)
 
 lemma sparse_row_vector_cons[simp]:
   "sparse_row_vector (a # arr) = (singleton_matrix 0 (fst a) (snd a)) + (sparse_row_vector arr)"
@@ -85,14 +85,14 @@ lemma sorted_spvec_cons3: "sorted_spvec(a#b#t) \<Longrightarrow> fst a < fst b"
 apply (auto simp add: sorted_spvec.simps)
 done
 
-lemma sorted_sparse_row_vector_zero[rule_format]: "m <= n \<longrightarrow> sorted_spvec ((n,a)#arr) \<longrightarrow> Rep_matrix (sparse_row_vector arr) j m = 0"
+lemma sorted_sparse_row_vector_zero[rule_format]: "m <= n \<Longrightarrow> sorted_spvec ((n,a)#arr) \<longrightarrow> Rep_matrix (sparse_row_vector arr) j m = 0"
 apply (induct arr)
 apply (auto)
 apply (frule sorted_spvec_cons2,simp)+
 apply (frule sorted_spvec_cons3, simp)
 done
 
-lemma sorted_sparse_row_matrix_zero[rule_format]: "m <= n \<longrightarrow> sorted_spvec ((n,a)#arr) \<longrightarrow> Rep_matrix (sparse_row_matrix arr) m j = 0"
+lemma sorted_sparse_row_matrix_zero[rule_format]: "m <= n \<Longrightarrow> sorted_spvec ((n,a)#arr) \<longrightarrow> Rep_matrix (sparse_row_matrix arr) m j = 0"
   apply (induct arr)
   apply (auto)
   apply (frule sorted_spvec_cons2, simp)
@@ -188,11 +188,11 @@ lemma sparse_row_vector_smult: "sparse_row_vector (smult_spvec y a) = scalar_mul
 
 lemma sparse_row_vector_addmult_spvec: "sparse_row_vector (addmult_spvec (y::'a::lordered_ring) a b) = 
   (sparse_row_vector a) + (scalar_mult y (sparse_row_vector b))"
-  apply (rule addmult_spvec.induct[of _ y])
+  apply (induct y a b rule: addmult_spvec.induct)
   apply (simp add: scalar_mult_add smult_spvec_cons sparse_row_vector_smult singleton_matrix_add)+
   done
 
-lemma sorted_smult_spvec[rule_format]: "sorted_spvec a \<Longrightarrow> sorted_spvec (smult_spvec y a)"
+lemma sorted_smult_spvec: "sorted_spvec a \<Longrightarrow> sorted_spvec (smult_spvec y a)"
   apply (auto simp add: smult_spvec_def)
   apply (induct a)
   apply (auto simp add: sorted_spvec.simps split:list.split_asm)
@@ -218,8 +218,8 @@ lemma sorted_spvec_addmult_spvec_helper3[rule_format]:
   apply (simp_all add: sorted_spvec.simps smult_spvec_def split:list.split)
   done
 
-lemma sorted_addmult_spvec[rule_format]: "sorted_spvec a \<longrightarrow> sorted_spvec b \<longrightarrow> sorted_spvec (addmult_spvec y a b)"
-  apply (rule addmult_spvec.induct[of _ y a b])
+lemma sorted_addmult_spvec: "sorted_spvec a \<Longrightarrow> sorted_spvec b \<Longrightarrow> sorted_spvec (addmult_spvec y a b)"
+  apply (induct y a b rule: addmult_spvec.induct)
   apply (simp_all add: sorted_smult_spvec)
   apply (rule conjI, intro strip)
   apply (case_tac "~(i < j)")
@@ -262,7 +262,7 @@ proof -
   }
   note nrows_helper = this
   show ?thesis
-    apply (rule mult_spvec_spmat.induct)
+    apply (induct c a B rule: mult_spvec_spmat.induct)
     apply simp+
     apply (rule conjI)
     apply (intro strip)
@@ -339,7 +339,7 @@ qed
 
 lemma sorted_mult_spvec_spmat[rule_format]: 
   "sorted_spvec (c::('a::lordered_ring) spvec) \<longrightarrow> sorted_spmat B \<longrightarrow> sorted_spvec (mult_spvec_spmat c a B)"
-  apply (rule mult_spvec_spmat.induct[of _ c a B])
+  apply (induct c a B rule: mult_spvec_spmat.induct)
   apply (simp_all add: sorted_addmult_spvec)
   done
 
@@ -350,8 +350,9 @@ primrec
   "mult_spmat [] A = []"
   "mult_spmat (a#as) A = (fst a, mult_spvec_spmat [] (snd a) A)#(mult_spmat as A)"
 
-lemma sparse_row_mult_spmat[rule_format]: 
-  "sorted_spmat A \<longrightarrow> sorted_spvec B \<longrightarrow> sparse_row_matrix (mult_spmat A B) = (sparse_row_matrix A) * (sparse_row_matrix B)"
+lemma sparse_row_mult_spmat: 
+  "sorted_spmat A \<Longrightarrow> sorted_spvec B \<Longrightarrow>
+   sparse_row_matrix (mult_spmat A B) = (sparse_row_matrix A) * (sparse_row_matrix B)"
   apply (induct A)
   apply (auto simp add: sparse_row_matrix_cons sparse_row_mult_spvec_spmat algebra_simps move_matrix_mult)
   done
@@ -365,8 +366,8 @@ lemma sorted_spvec_mult_spmat[rule_format]:
   apply (auto simp add: sorted_spvec.simps)
   done
 
-lemma sorted_spmat_mult_spmat[rule_format]:
-  "sorted_spmat (B::('a::lordered_ring) spmat) \<longrightarrow> sorted_spmat (mult_spmat A B)"
+lemma sorted_spmat_mult_spmat:
+  "sorted_spmat (B::('a::lordered_ring) spmat) \<Longrightarrow> sorted_spmat (mult_spmat A B)"
   apply (induct A)
   apply (auto simp add: sorted_mult_spvec_spmat) 
   done
@@ -385,7 +386,7 @@ lemma add_spvec_empty1[simp]: "add_spvec [] a = a"
 by (cases a, auto)
 
 lemma sparse_row_vector_add: "sparse_row_vector (add_spvec a b) = (sparse_row_vector a) + (sparse_row_vector b)"
-  apply (rule add_spvec.induct[of _ a b])
+  apply (induct a b rule: add_spvec.induct)
   apply (simp_all add: singleton_matrix_add)
   done
 
@@ -405,7 +406,7 @@ lemma add_spmat_Nil2[simp]: "add_spmat as [] = as"
 by(cases as) auto
 
 lemma sparse_row_add_spmat: "sparse_row_matrix (add_spmat A B) = (sparse_row_matrix A) + (sparse_row_matrix B)"
-  apply (rule add_spmat.induct)
+  apply (induct A B rule: add_spmat.induct)
   apply (auto simp add: sparse_row_matrix_cons sparse_row_vector_add move_matrix_add)
   done
 
@@ -415,7 +416,7 @@ lemmas [code] = sparse_row_vector_add [symmetric]
 lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr) brr = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
   proof - 
     have "(! x ab a. x = (a,b)#arr \<longrightarrow> add_spvec x brr = (ab, bb) # list \<longrightarrow> (ab = a | (ab = fst (hd brr))))"
-      by (rule add_spvec.induct[of _ _ brr]) (auto split:if_splits)
+      by (induct brr rule: add_spvec.induct) (auto split:if_splits)
     then show ?thesis
       by (case_tac brr, auto)
   qed
@@ -423,26 +424,26 @@ lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr) brr = (ab, b
 lemma sorted_add_spmat_helper1[rule_format]: "add_spmat ((a,b)#arr) brr = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
   proof - 
     have "(! x ab a. x = (a,b)#arr \<longrightarrow> add_spmat x brr = (ab, bb) # list \<longrightarrow> (ab = a | (ab = fst (hd brr))))"
-      by (rule add_spmat.induct[of _ _ brr], auto split:if_splits)
+      by (rule add_spmat.induct) (auto split:if_splits)
     then show ?thesis
       by (case_tac brr, auto)
   qed
 
-lemma sorted_add_spvec_helper[rule_format]: "add_spvec arr brr = (ab, bb) # list \<longrightarrow> ((arr \<noteq> [] & ab = fst (hd arr)) | (brr \<noteq> [] & ab = fst (hd brr)))"
-  apply (rule add_spvec.induct[of _ arr brr])
-  apply (auto)
+lemma sorted_add_spvec_helper: "add_spvec arr brr = (ab, bb) # list \<Longrightarrow> ((arr \<noteq> [] & ab = fst (hd arr)) | (brr \<noteq> [] & ab = fst (hd brr)))"
+  apply (induct arr brr rule: add_spvec.induct)
+  apply (auto split:if_splits)
   done
 
-lemma sorted_add_spmat_helper[rule_format]: "add_spmat arr brr = (ab, bb) # list \<longrightarrow> ((arr \<noteq> [] & ab = fst (hd arr)) | (brr \<noteq> [] & ab = fst (hd brr)))"
-  apply (rule add_spmat.induct[of _ arr brr])
-  apply (auto)
+lemma sorted_add_spmat_helper: "add_spmat arr brr = (ab, bb) # list \<Longrightarrow> ((arr \<noteq> [] & ab = fst (hd arr)) | (brr \<noteq> [] & ab = fst (hd brr)))"
+  apply (induct arr brr rule: add_spmat.induct)
+  apply (auto split:if_splits)
   done
 
 lemma add_spvec_commute: "add_spvec a b = add_spvec b a"
-  by (rule add_spvec.induct[of _ a b], auto)
+by (induct a b rule: add_spvec.induct) auto
 
 lemma add_spmat_commute: "add_spmat a b = add_spmat b a"
-  apply (rule add_spmat.induct[of _ a b])
+  apply (induct a b rule: add_spmat.induct)
   apply (simp_all add: add_spvec_commute)
   done
   
@@ -465,7 +466,7 @@ lemma sorted_add_spmat_helper2: "add_spmat ((a,b)#arr) brr = (ab, bb) # list \<L
   done
 
 lemma sorted_spvec_add_spvec[rule_format]: "sorted_spvec a \<longrightarrow> sorted_spvec b \<longrightarrow> sorted_spvec (add_spvec a b)"
-  apply (rule add_spvec.induct[of _ a b])
+  apply (induct a b rule: add_spvec.induct)
   apply (simp_all)
   apply (rule conjI)
   apply (clarsimp)
@@ -495,7 +496,7 @@ lemma sorted_spvec_add_spvec[rule_format]: "sorted_spvec a \<longrightarrow> sor
   done
 
 lemma sorted_spvec_add_spmat[rule_format]: "sorted_spvec A \<longrightarrow> sorted_spvec B \<longrightarrow> sorted_spvec (add_spmat A B)"
-  apply (rule add_spmat.induct[of _ A B])
+  apply (induct A B rule: add_spmat.induct)
   apply (simp_all)
   apply (rule conjI)
   apply (intro strip)
@@ -527,8 +528,8 @@ lemma sorted_spvec_add_spmat[rule_format]: "sorted_spvec A \<longrightarrow> sor
   apply (simp)
   done
 
-lemma sorted_spmat_add_spmat[rule_format]: "sorted_spmat A \<longrightarrow> sorted_spmat B \<longrightarrow> sorted_spmat (add_spmat A B)"
-  apply (rule add_spmat.induct[of _ A B])
+lemma sorted_spmat_add_spmat[rule_format]: "sorted_spmat A \<Longrightarrow> sorted_spmat B \<Longrightarrow> sorted_spmat (add_spmat A B)"
+  apply (induct A B rule: add_spmat.induct)
   apply (simp_all add: sorted_spvec_add_spvec)
   done
 
@@ -663,7 +664,7 @@ lemma disj_move_sparse_row_vector_twice:
   done
 
 lemma le_spvec_iff_sparse_row_le[rule_format]: "(sorted_spvec a) \<longrightarrow> (sorted_spvec b) \<longrightarrow> (le_spvec a b) = (sparse_row_vector a <= sparse_row_vector b)"
-  apply (rule le_spvec.induct)
+  apply (induct a b rule: le_spvec.induct)
   apply (simp_all add: sorted_spvec_cons1 disj_matrices_add_le_zero disj_matrices_add_zero_le 
     disj_sparse_row_singleton[OF order_refl] disj_matrices_commute)
   apply (rule conjI, intro strip)
@@ -702,7 +703,7 @@ lemma le_spvec_empty1_sparse_row[rule_format]: "(sorted_spvec b) \<longrightarro
 
 lemma le_spmat_iff_sparse_row_le[rule_format]: "(sorted_spvec A) \<longrightarrow> (sorted_spmat A) \<longrightarrow> (sorted_spvec B) \<longrightarrow> (sorted_spmat B) \<longrightarrow> 
   le_spmat A B = (sparse_row_matrix A <= sparse_row_matrix B)"
-  apply (rule le_spmat.induct)
+  apply (induct A B rule: le_spmat.induct)
   apply (simp add: sparse_row_matrix_cons disj_matrices_add_le_zero disj_matrices_add_zero_le disj_move_sparse_vec_mat[OF order_refl] 
     disj_matrices_commute sorted_spvec_cons1 le_spvec_empty2_sparse_row le_spvec_empty1_sparse_row)+ 
   apply (rule conjI, intro strip)
@@ -731,16 +732,12 @@ lemma le_spmat_iff_sparse_row_le[rule_format]: "(sorted_spvec A) \<longrightarro
 
 declare [[simp_depth_limit = 999]]
 
-consts 
-   abs_spmat :: "('a::lordered_ring) spmat \<Rightarrow> 'a spmat"
-   minus_spmat :: "('a::lordered_ring) spmat \<Rightarrow> 'a spmat"
-
-primrec
-  "abs_spmat [] = []"
+primrec abs_spmat :: "('a::lordered_ring) spmat \<Rightarrow> 'a spmat" where
+  "abs_spmat [] = []" |
   "abs_spmat (a#as) = (fst a, abs_spvec (snd a))#(abs_spmat as)"
 
-primrec
-  "minus_spmat [] = []"
+primrec minus_spmat :: "('a::lordered_ring) spmat \<Rightarrow> 'a spmat" where
+  "minus_spmat [] = []" |
   "minus_spmat (a#as) = (fst a, minus_spvec (snd a))#(minus_spmat as)"
 
 lemma sparse_row_matrix_minus:
