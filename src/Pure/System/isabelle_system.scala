@@ -16,10 +16,43 @@ import scala.util.matching.Regex
 
 object Isabelle_System
 {
-
   val charset = "UTF-8"
 
+
+  /* platform identification */
+
   val is_cygwin = System.getProperty("os.name").startsWith("Windows")
+
+  private val X86 = new Regex("i.86|x86")
+  private val X86_64 = new Regex("amd64|x86_64")
+  private val Sparc = new Regex("sparc")
+  private val PPC = new Regex("PowerPC|ppc")
+
+  private val Solaris = new Regex("SunOS|Solaris")
+  private val Linux = new Regex("Linux")
+  private val Darwin = new Regex("Mac OS X")
+  private val Cygwin = new Regex("Windows.*")
+
+  val platform: Option[String] =
+  {
+    val name =
+      java.lang.System.getProperty("os.name") match {
+        case Solaris() => "solaris"
+        case Linux() => "linux"
+        case Darwin() => "darwin"
+        case Cygwin() => "cygwin"
+        case _ => ""
+      }
+    val arch =
+      java.lang.System.getProperty("os.arch") match {
+        case X86() | X86_64() => "x86"
+        case Sparc() => "sparc"
+        case PPC() => "ppc"
+        case _ => ""
+      }
+    if (arch == "" || name == "") None
+    else Some(arch + "-" + name)
+  }
 
 
   /* shell processes */
