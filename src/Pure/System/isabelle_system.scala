@@ -33,7 +33,7 @@ object Isabelle_System
   private val Darwin = new Regex("Mac OS X")
   private val Cygwin = new Regex("Windows.*")
 
-  val platform: Option[String] =
+  val default_platform: Option[String] =
   {
     val name =
       java.lang.System.getProperty("os.name") match {
