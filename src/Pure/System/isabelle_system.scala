@@ -7,6 +7,7 @@ Isabelle system support, with basic Cygwin/Posix compatibility.
 package isabelle
 
 import java.util.regex.Pattern
+import java.util.Locale
 import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOException}
 
 import scala.io.Source
@@ -129,9 +130,9 @@ class Isabelle_System
 
   /** file path specifications **/
 
-  /* Isabelle paths */
+  /* expand_path */
 
-  def expand_path(source_path: String): String =
+  def expand_path(isabelle_path: String): String =
   {
     val result_path = new StringBuilder
     def init(path: String)
@@ -165,8 +166,8 @@ class Isabelle_System
         }
       }
     }
-    init(source_path)
-    for (p <- source_path.split("/")) {
+    init(isabelle_path)
+    for (p <- isabelle_path.split("/")) {
       if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
       else if (p == "~") append(getenv_strict("HOME"))
       else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))
@@ -176,18 +177,17 @@ class Isabelle_System
   }
 
 
-  /* platform paths */
+  /* platform_path */
 
-  private val Cygdrive = new Regex(
-    if (drive_prefix == "") "\0"
-    else Pattern.quote(drive_prefix) + "/([a-zA-Z])($|/.*)")
+  private val Cygdrive =
+    new Regex(Pattern.quote(drive_prefix) + "/([a-zA-Z])($|/.*)")
 
-  def platform_path(source_path: String): String =
+  def platform_path(isabelle_path: String): String =
   {
     val result_path = new StringBuilder
     val rest =
-      expand_path(source_path) match {
-        case Cygdrive(drive, rest) =>
+      expand_path(isabelle_path) match {
+        case Cygdrive(drive, rest) if Isabelle_System.is_cygwin =>
           result_path ++= (drive + ":" + File.separator)
           rest
         case path if path.startsWith("/") =>
@@ -205,6 +205,27 @@ class Isabelle_System
   }
 
   def platform_file(path: String) = new File(platform_path(path))
+
+
+  /* isabelle_path */
+
+  private val Platform_Root = new Regex("(?i)" +
+    Pattern.quote(platform_root) + """(?:\\|\z)(.*)""")
+  private val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
+
+  def isabelle_path(platform_path: String): String =
+  {
+    if (Isabelle_System.is_cygwin) {
+      platform_path.replace('/', '\\') match {
+        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
+        case Drive(letter, rest) =>
+          drive_prefix + "/" + letter.toLowerCase(Locale.ENGLISH) +
+            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
+        case path => path.replace('\\', '/')
+      }
+    }
+    else platform_path
+  }
 
 
   /* source files */
