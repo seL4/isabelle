@@ -210,7 +210,7 @@ class Isabelle_System
   /* isabelle_path */
 
   private val Platform_Root = new Regex("(?i)" +
-    Pattern.quote(platform_root) + """(?:\\|\z)(.*)""")
+    Pattern.quote(platform_root) + """(?:\\+|\z)(.*)""")
   private val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
 
   def isabelle_path(platform_path: String): String =
