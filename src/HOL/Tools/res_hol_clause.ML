@@ -26,18 +26,18 @@ sig
   val strip_comb: combterm -> combterm * combterm list
   val literals_of_term: theory -> term -> literal list * typ list
   exception TOO_TRIVIAL
-  val make_conjecture_clauses:  bool -> theory -> thm list -> clause list (* dfg thy ccls *)
+  val make_conjecture_clauses:  bool -> theory -> thm list -> clause list
   val make_axiom_clauses: bool ->
        theory ->
-       (thm * (axiom_name * clause_id)) list -> (axiom_name * clause) list (* dfg thy axcls *)
+       (thm * (axiom_name * clause_id)) list -> (axiom_name * clause) list
   val get_helper_clauses: bool ->
        theory ->
        bool ->
        clause list * (thm * (axiom_name * clause_id)) list * string list ->
        clause list
-  val tptp_write_file: bool -> string ->
+  val tptp_write_file: bool -> Path.T ->
     clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
-  val dfg_write_file: bool -> string -> 
+  val dfg_write_file: bool -> Path.T ->
     clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
 end
 
@@ -469,59 +469,56 @@ fun count_constants (conjectures, axclauses, helper_clauses, _, _) =
 
 (* tptp format *)
 
-fun tptp_write_file t_full filename clauses =
+fun tptp_write_file t_full file clauses =
   let
     val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
     val params = (t_full, cma, cnh)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp params) conjectures)
     val tfree_clss = map RC.tptp_tfree_clause (List.foldl (op union_string) [] tfree_litss)
-    val out = TextIO.openOut filename
   in
-    List.app (curry TextIO.output out o #1 o (clause2tptp params)) axclauses;
-    RC.writeln_strs out tfree_clss;
-    RC.writeln_strs out tptp_clss;
-    List.app (curry TextIO.output out o RC.tptp_classrelClause) classrel_clauses;
-    List.app (curry TextIO.output out o RC.tptp_arity_clause) arity_clauses;
-    List.app (curry TextIO.output out o #1 o (clause2tptp params)) helper_clauses;
-    TextIO.closeOut out
+    File.write_list file (
+      map (#1 o (clause2tptp params)) axclauses @
+      tfree_clss @
+      tptp_clss @
+      map RC.tptp_classrelClause classrel_clauses @
+      map RC.tptp_arity_clause arity_clauses @
+      map (#1 o (clause2tptp params)) helper_clauses)
   end;
 
 
 (* dfg format *)
 
-fun dfg_write_file t_full filename clauses =
+fun dfg_write_file t_full file clauses =
   let
     val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
     val params = (t_full, cma, cnh)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg params) conjectures)
-    and probname = Path.implode (Path.base (Path.explode filename))
+    and probname = Path.implode (Path.base file)
     val axstrs = map (#1 o (clause2dfg params)) axclauses
     val tfree_clss = map RC.dfg_tfree_clause (RC.union_all tfree_litss)
-    val out = TextIO.openOut filename
     val helper_clauses_strs = map (#1 o (clause2dfg params)) helper_clauses
     val (funcs,cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
     and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
   in
-    TextIO.output (out, RC.string_of_start probname);
-    TextIO.output (out, RC.string_of_descrip probname);
-    TextIO.output (out, RC.string_of_symbols
-                          (RC.string_of_funcs funcs)
-                          (RC.string_of_preds (cl_preds @ ty_preds)));
-    TextIO.output (out, "list_of_clauses(axioms,cnf).\n");
-    RC.writeln_strs out axstrs;
-    List.app (curry TextIO.output out o RC.dfg_classrelClause) classrel_clauses;
-    List.app (curry TextIO.output out o RC.dfg_arity_clause) arity_clauses;
-    RC.writeln_strs out helper_clauses_strs;
-    TextIO.output (out, "end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n");
-    RC.writeln_strs out tfree_clss;
-    RC.writeln_strs out dfg_clss;
-    TextIO.output (out, "end_of_list.\n\n");
-    (*VarWeight=3 helps the HO problems, probably by counteracting the presence of hAPP*)
-    TextIO.output (out, "list_of_settings(SPASS).\n{*\nset_flag(VarWeight,3).\n*}\nend_of_list.\n\n");
-    TextIO.output (out, "end_problem.\n");
-    TextIO.closeOut out
+    File.write_list file (
+      RC.string_of_start probname ::
+      RC.string_of_descrip probname ::
+      RC.string_of_symbols (RC.string_of_funcs funcs)
+        (RC.string_of_preds (cl_preds @ ty_preds)) ::
+      "list_of_clauses(axioms,cnf).\n" ::
+      axstrs @
+      map RC.dfg_classrelClause classrel_clauses @
+      map RC.dfg_arity_clause arity_clauses @
+      helper_clauses_strs @
+      ["end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n"] @
+      tfree_clss @
+      dfg_clss @
+      ["end_of_list.\n\n",
+      (*VarWeight=3 helps the HO problems, probably by counteracting the presence of hAPP*)
+       "list_of_settings(SPASS).\n{*\nset_flag(VarWeight,3).\n*}\nend_of_list.\n\n",
+       "end_problem.\n"])
   end;
 
 end

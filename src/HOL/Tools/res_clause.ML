@@ -57,7 +57,6 @@ sig
   val add_foltype_funcs: fol_type * int Symtab.table -> int Symtab.table
   val add_arityClause_funcs: arityClause * int Symtab.table -> int Symtab.table
   val init_functab: int Symtab.table
-  val writeln_strs: TextIO.outstream -> string list -> unit
   val dfg_sign: bool -> string -> string
   val dfg_of_typeLit: bool -> type_literal -> string
   val gen_dfg_cls: int * string * kind * string list * string list * string list -> string
@@ -440,8 +439,6 @@ fun string_of_clausename (cls_id,ax_name) =
 
 fun string_of_type_clsname (cls_id,ax_name,idx) =
     string_of_clausename (cls_id,ax_name) ^ "_tcs" ^ (Int.toString idx);
-
-fun writeln_strs os = List.app (fn s => TextIO.output (os, s));
 
 
 (**** Producing DFG files ****)

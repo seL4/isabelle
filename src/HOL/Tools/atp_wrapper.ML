@@ -75,20 +75,16 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
 
     (* write out problem file and call prover *)
     val probfile = prob_pathname subgoalno
-    val fname = File.platform_path probfile
-    val _ = writer fname clauses
-    val cmdline =
-      if File.exists cmd then "exec " ^ File.shell_path cmd ^ " " ^ args
-      else error ("Bad executable: " ^ Path.implode cmd)
-    val (proof, rc) = system_out (cmdline ^ " " ^ fname)
+    val _ = writer probfile clauses
+    val (proof, rc) = system_out (
+      if File.exists cmd then
+        space_implode " " ["exec", File.shell_path cmd, args, File.platform_path probfile]
+      else error ("Bad executable: " ^ Path.implode cmd))
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
     val _ =
-      if destdir' = "" then OS.FileSys.remove fname
-      else
-        let val out = TextIO.openOut (fname ^ "_proof")
-        val _ = TextIO.output (out, proof)
-        in TextIO.closeOut out end
+      if destdir' = "" then File.rm probfile
+      else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
     
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
