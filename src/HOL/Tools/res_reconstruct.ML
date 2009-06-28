@@ -16,10 +16,11 @@ sig
   val setup: Context.theory -> Context.theory
   (* extracting lemma list*)
   val find_failure: string -> string option
-  val lemma_list_dfg: string -> string * string vector * Proof.context * Thm.thm * int -> string
-  val lemma_list_tstp: string -> string * string vector * Proof.context * Thm.thm * int -> string
+  val lemma_list: bool -> string ->
+    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string
   (* structured proofs *)
-  val structured_proof: string -> string * string vector * Proof.context * Thm.thm * int -> string
+  val structured_proof: string ->
+    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =
@@ -496,17 +497,17 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   (* === EXTRACTING LEMMAS === *)
   (* lines have the form "cnf(108, axiom, ...",
   the number (108) has to be extracted)*)
-  fun get_step_nums_tstp proofextract =
+  fun get_step_nums false proofextract =
     let val toks = String.tokens (not o Char.isAlphaNum)
     fun inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
+      | inputno ("cnf"::ntok::"negated"::"conjecture"::_) = Int.fromString ntok
       | inputno _ = NONE
     val lines = split_lines proofextract
     in  List.mapPartial (inputno o toks) lines  end
-    
-    (*String contains multiple lines. We want those of the form
+  (*String contains multiple lines. We want those of the form
     "253[0:Inp] et cetera..."
     A list consisting of the first number in each line is returned. *)
-  fun get_step_nums_dfg proofextract =
+  |  get_step_nums true proofextract =
     let val toks = String.tokens (not o Char.isAlphaNum)
     fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
       | inputno _ = NONE
@@ -514,15 +515,19 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     in  List.mapPartial (inputno o toks) lines  end
     
   (*extracting lemmas from tstp-output between the lines from above*)
-  fun extract_lemmas get_step_nums (proof, thm_names, _, _, _) =
+  fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =
     let
     (* get the names of axioms from their numbers*)
     fun get_axiom_names thm_names step_nums =
       let
-      fun is_axiom n = n <= Vector.length thm_names
+      val last_axiom = Vector.length thm_names
+      fun is_axiom n = n <= last_axiom
+      fun is_conj n = n >= #1 conj_count andalso n < #1 conj_count + #2 conj_count
       fun getname i = Vector.sub(thm_names, i-1)
       in
-        sort_distinct string_ord (filter (fn x => x <> "??.unknown") (map getname (filter is_axiom step_nums)))
+        (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
+          (map getname (filter is_axiom step_nums))),
+        exists is_conj step_nums)
       end
     val proofextract = get_proof_extract proof
     in
@@ -545,22 +550,23 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
 
   fun sendback_metis_nochained lemmas =
     (Markup.markup Markup.sendback o metis_line) (nochained lemmas)
-  fun lemma_list_tstp name result =
-    let val lemmas = extract_lemmas get_step_nums_tstp result
-    in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
-  fun lemma_list_dfg name result =
-    let val lemmas = extract_lemmas get_step_nums_dfg result
-    in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
+
+  fun lemma_list dfg name result =
+    let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
+    in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas ^
+      (if used_conj then ""
+       else "\nWarning: Goal is provable because context is inconsistent.")
+    end;
 
   (* === Extracting structured Isar-proof === *)
-  fun structured_proof name (result as (proof, thm_names, ctxt, goal, subgoalno)) =
+  fun structured_proof name (result as (proof, thm_names, conj_count, ctxt, goal, subgoalno)) =
     let
     (*Could use split_lines, but it can return blank lines...*)
     val lines = String.tokens (equal #"\n");
     val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
     val proofextract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-    val one_line_proof = lemma_list_tstp name result
+    val one_line_proof = lemma_list false name result
     val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
                 else decode_tstp_file cnfs ctxt goal subgoalno thm_names
     in

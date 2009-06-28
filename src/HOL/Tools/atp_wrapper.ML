@@ -75,7 +75,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
 
     (* write out problem file and call prover *)
     val probfile = prob_pathname subgoalno
-    val _ = writer probfile clauses
+    val conj_pos = writer probfile clauses
     val (proof, rc) = system_out (
       if File.exists cmd then
         space_implode " " ["exec", File.shell_path cmd, args, File.platform_path probfile]
@@ -92,7 +92,8 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
     val message =
       if is_some failure then "External prover failed."
       else if rc <> 0 then "External prover failed: " ^ proof
-      else "Try this command: " ^ produce_answer name (proof, thm_names, ctxt, th, subgoalno)
+      else "Try this command: " ^
+        produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno)
     val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
   in (success, message, proof, thm_names, the_filtered_clauses) end;
 
@@ -109,7 +110,7 @@ fun tptp_prover_opts_full max_new theory_const full command timeout ax_clauses f
   (ResHolClause.tptp_write_file (AtpManager.get_full_types()))
   command
   ResReconstruct.find_failure
-  (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
+  (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list false)
   timeout ax_clauses fcls name n goal;
 
 (*arbitrary ATP with TPTP input/output and problemfile as last argument*)
@@ -174,7 +175,7 @@ fun spass_opts max_new theory_const timeout ax_clauses fcls name n goal = extern
   (Path.explode "$SPASS_HOME/SPASS",
     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
   ResReconstruct.find_failure
-  ResReconstruct.lemma_list_dfg
+  (ResReconstruct.lemma_list true)
   timeout ax_clauses fcls name n goal;
 
 val spass = spass_opts 40 true;
