@@ -19,42 +19,6 @@ object Isabelle_System
   val charset = "UTF-8"
 
 
-  /* platform identification */
-
-  val is_cygwin = System.getProperty("os.name").startsWith("Windows")
-
-  private val X86 = new Regex("i.86|x86")
-  private val X86_64 = new Regex("amd64|x86_64")
-  private val Sparc = new Regex("sparc")
-  private val PPC = new Regex("PowerPC|ppc")
-
-  private val Solaris = new Regex("SunOS|Solaris")
-  private val Linux = new Regex("Linux")
-  private val Darwin = new Regex("Mac OS X")
-  private val Cygwin = new Regex("Windows.*")
-
-  val default_platform: Option[String] =
-  {
-    val name =
-      java.lang.System.getProperty("os.name") match {
-        case Solaris() => "solaris"
-        case Linux() => "linux"
-        case Darwin() => "darwin"
-        case Cygwin() => "cygwin"
-        case _ => ""
-      }
-    val arch =
-      java.lang.System.getProperty("os.arch") match {
-        case X86() | X86_64() => "x86"
-        case Sparc() => "sparc"
-        case PPC() => "ppc"
-        case _ => ""
-      }
-    if (arch == "" || name == "") None
-    else Some(arch + "-" + name)
-  }
-
-
   /* shell processes */
 
   private def raw_execute(env: Map[String, String], redirect: Boolean, args: String*): Process =
@@ -98,9 +62,9 @@ class Isabelle_System
 
   private val (platform_root, drive_prefix, shell_prefix) =
   {
-    if (Isabelle_System.is_cygwin) {
-      val root = Cygwin.root() getOrElse "C:\\cygwin"
-      val drive = Cygwin.cygdrive() getOrElse "/cygdrive"
+    if (Platform.is_windows) {
+      val (root, drive) = Cygwin.config()
+      if (!Cygwin.check(root)) error("Bad Cygwin installation: " + root)
       val shell = List(root + "\\bin\\bash", "-l")
       (root, drive, shell)
     }
@@ -220,7 +184,7 @@ class Isabelle_System
     val result_path = new StringBuilder
     val rest =
       expand_path(isabelle_path) match {
-        case Cygdrive(drive, rest) if Isabelle_System.is_cygwin =>
+        case Cygdrive(drive, rest) if Platform.is_windows =>
           result_path ++= (drive + ":" + File.separator)
           rest
         case path if path.startsWith("/") =>
@@ -248,7 +212,7 @@ class Isabelle_System
 
   def isabelle_path(platform_path: String): String =
   {
-    if (Isabelle_System.is_cygwin) {
+    if (Platform.is_windows) {
       platform_path.replace('/', '\\') match {
         case Platform_Root(rest) => "/" + rest.replace('\\', '/')
         case Drive(letter, rest) =>
@@ -286,7 +250,7 @@ class Isabelle_System
   def execute(redirect: Boolean, args: String*): Process =
   {
     val cmdline =
-      if (Isabelle_System.is_cygwin) List(platform_path("/bin/env")) ++ args
+      if (Platform.is_windows) List(platform_path("/bin/env")) ++ args
       else args
     Isabelle_System.raw_execute(environment, redirect, cmdline: _*)
   }
@@ -325,7 +289,7 @@ class Isabelle_System
   {
     // blocks until writer is ready
     val stream =
-      if (Isabelle_System.is_cygwin) execute(false, "cat", fifo).getInputStream
+      if (Platform.is_windows) execute(false, "cat", fifo).getInputStream
       else new FileInputStream(fifo)
     new BufferedReader(new InputStreamReader(stream, Isabelle_System.charset))
   }

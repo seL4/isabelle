@@ -7,6 +7,7 @@ Accessing the Cygwin installation.
 package isabelle
 
 import java.lang.reflect.Method
+import java.io.File
 
 
 object Cygwin
@@ -75,10 +76,31 @@ object Cygwin
 
   /* Cygwin installation */
 
+  // old-style mount points (Cygwin 1.5)
   private val CYGWIN_MOUNTS = "Software\\Cygnus Solutions\\Cygwin\\mounts v2"
 
-  def cygdrive(): Option[String] = query_registry(CYGWIN_MOUNTS, "cygdrive prefix")
-  def root(): Option[String] = query_registry(CYGWIN_MOUNTS + "\\/", "native")
+  // new-style setup (Cygwin 1.7)
+  private val CYGWIN_SETUP1 = "Software\\Cygwin\\setup"
+  private val CYGWIN_SETUP2 = "Software\\Wow6432Node\\Cygwin\\setup"  // !?
 
+  def config(): (String, String) =
+  {
+    query_registry(CYGWIN_SETUP1, "rootdir") match {
+      case Some(root) => (root, "/cygdrive")
+      case None =>
+        val root =
+          query_registry(CYGWIN_MOUNTS + "\\/", "native") getOrElse "C:\\cygwin"
+        val cygdrive =
+          query_registry(CYGWIN_MOUNTS, "cygdrive prefix") getOrElse "cygdrive"
+        (root, cygdrive)
+    }
+  }
+
+
+  /* basic sanity check */
+
+  def check(root: String): Boolean =
+    new File(root + "\\bin\\bash.exe").isFile &&
+    new File(root + "\\bin\\env.exe").isFile
 }
 
