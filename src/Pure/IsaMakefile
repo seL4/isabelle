@@ -121,9 +121,9 @@ SCALA_FILES = General/event_bus.scala General/markup.scala		\
   General/position.scala General/scan.scala General/swing.scala		\
   General/symbol.scala General/xml.scala General/yxml.scala		\
   Isar/isar.scala Isar/isar_document.scala Isar/outer_keyword.scala	\
-  System/cygwin.scala System/isabelle_process.scala			\
-  System/isabelle_system.scala System/platform.scala			\
-  Thy/completion.scala Thy/thy_header.scala				\
+  System/cygwin.scala System/gui_setup.scala				\
+  System/isabelle_process.scala System/isabelle_system.scala		\
+  System/platform.scala Thy/completion.scala Thy/thy_header.scala	\
   Tools/isabelle_syntax.scala
 
 
@@ -137,7 +137,7 @@ $(SCALA_TARGET): $(SCALA_FILES)
 	scaladoc -d classes $(SCALA_FILES)
 	@cp $(SCALA_FILES) classes/isabelle
 	@mkdir -p `dirname $@`
-	@cd classes; jar cf `jvmpath $@` isabelle
+	@cd classes; jar cfe `jvmpath $@` isabelle.GUI_Setup isabelle
 	@rm -rf classes
 
 clean-jar:
