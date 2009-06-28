@@ -127,22 +127,23 @@ SCALA_FILES = General/event_bus.scala General/markup.scala		\
   Tools/isabelle_syntax.scala
 
 
-SCALA_TARGET = $(ISABELLE_HOME)/lib/classes/Pure.jar
-ISABELLE_SCALA = $(ISABELLE_HOME)/lib/classes/isabelle-scala.jar
+JAR_DIR = $(ISABELLE_HOME)/lib/classes
+PURE_JAR = $(JAR_DIR)/Pure.jar
+FULL_JAR = $(JAR_DIR)/isabelle-scala.jar
 
-jars: $(SCALA_TARGET)
+jars: $(FULL_JAR)
 
-$(SCALA_TARGET): $(SCALA_FILES)
+$(FULL_JAR): $(SCALA_FILES)
 	@rm -rf classes && mkdir classes
-	$(SCALA_HOME)/bin/scalac -deprecation -d classes -target jvm-1.5 $(SCALA_FILES)
-	$(SCALA_HOME)/bin/scaladoc -d classes $(SCALA_FILES)
+	"$(SCALA_HOME)/bin/scalac" -deprecation -d classes -target jvm-1.5 $(SCALA_FILES)
+	"$(SCALA_HOME)/bin/scaladoc" -d classes $(SCALA_FILES)
 	@cp $(SCALA_FILES) classes/isabelle
-	@mkdir -p `dirname $@`
-	@cd classes; jar cfe `jvmpath $@` isabelle.GUI_Setup isabelle
-	@cd classes; jar xf `jvmpath $(SCALA_HOME)/lib/scala-swing.jar`; \
-          cp $(SCALA_HOME)/lib/scala-library.jar $(ISABELLE_SCALA); \
-          jar ufe `jvmpath $(ISABELLE_SCALA)` isabelle.GUI_Setup isabelle scala
+	@mkdir -p "$(JAR_DIR)"
+	@cd classes; jar cfe `jvmpath "$(PURE_JAR)"` isabelle.GUI_Setup isabelle
+	@cd classes; cp "$(SCALA_HOME)/lib/scala-swing.jar" .; jar xf scala-swing.jar; \
+          cp "$(SCALA_HOME)/lib/scala-library.jar" "$(FULL_JAR)"; \
+          jar ufe `jvmpath $(FULL_JAR)` isabelle.GUI_Setup isabelle scala
 	@rm -rf classes
 
 clean-jars:
-	@rm -f $(SCALA_TARGET) $(ISABELLE_SCALA)
+	@rm -f "$(PURE_JAR)" "$(FULL_JAR)"
