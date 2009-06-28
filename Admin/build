@@ -8,6 +8,9 @@
 PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
 
 PATH="/home/scala/current/bin:$PATH"
+if [ -z "$SCALA_HOME" ]; then
+  export SCALA_HOME="$(dirname "$(dirname "$(type -p scalac)")")"
+fi
 
 
 ## directory layout
@@ -32,7 +35,7 @@ Usage: $PRG [MODULES]
     all             all modules below
     browser         graph browser (requires jdk)
     doc             documentation (requires latex and rail)
-    jars            JVM components (requires jdk and scala)
+    jars            Scala/JVM components (requires scala)
 
 EOF
   exit 1
@@ -93,13 +96,13 @@ function build_doc ()
 function build_jars ()
 {
   echo "###"
-  echo "### Building JVM components ..."
+  echo "### Building Scala/JVM components ..."
   echo "###"
 
-  type -p scalac >/dev/null || fail "Scala compiler unavailable"
+  [ -z "$SCALA_HOME" ] && fail "Scala unavailable: unknown SCALA_HOME"
 
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
-  "$ISABELLE_TOOL" make jar || fail "Failed to build Pure.jar!"
+  "$ISABELLE_TOOL" make jars || fail "Failed to build isabelle-scala.jar"
   popd >/dev/null
 }
 
