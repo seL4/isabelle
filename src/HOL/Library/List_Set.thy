@@ -70,7 +70,7 @@ lemma remove_set:
   by (auto simp add: remove_def remove_all_def)
 
 lemma image_set:
-  "image f (set xs) = set (remdups (map f xs))"
+  "image f (set xs) = set (map f xs)"
   by simp
 
 lemma project_set:

@@ -12,6 +12,8 @@ lemma foldl_apply_inv:
   shows "foldl f (g s) xs = g (foldl (\<lambda>s x. h (f (g s) x)) s xs)"
   by (rule sym, induct xs arbitrary: s) (simp_all add: assms)
 
+declare mem_def [simp]
+
 subsection {* Lifting *}
 
 datatype 'a fset = Fset "'a set"
@@ -36,66 +38,98 @@ code_datatype Set
 subsection {* Basic operations *}
 
 definition is_empty :: "'a fset \<Rightarrow> bool" where
-  "is_empty A \<longleftrightarrow> List_Set.is_empty (member A)"
+  [simp]: "is_empty A \<longleftrightarrow> List_Set.is_empty (member A)"
 
 lemma is_empty_Set [code]:
   "is_empty (Set xs) \<longleftrightarrow> null xs"
-  by (simp add: is_empty_def is_empty_set)
+  by (simp add: is_empty_set)
 
 definition empty :: "'a fset" where
-  "empty = Fset {}"
+  [simp]: "empty = Fset {}"
 
 lemma empty_Set [code]:
   "empty = Set []"
-  by (simp add: empty_def Set_def)
+  by (simp add: Set_def)
 
 definition insert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  "insert x A = Fset (Set.insert x (member A))"
+  [simp]: "insert x A = Fset (Set.insert x (member A))"
 
 lemma insert_Set [code]:
   "insert x (Set xs) = Set (List_Set.insert x xs)"
-  by (simp add: insert_def Set_def insert_set)
+  by (simp add: Set_def insert_set)
 
 definition remove :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  "remove x A = Fset (List_Set.remove x (member A))"
+  [simp]: "remove x A = Fset (List_Set.remove x (member A))"
 
 lemma remove_Set [code]:
   "remove x (Set xs) = Set (remove_all x xs)"
-  by (simp add: remove_def Set_def remove_set)
+  by (simp add: Set_def remove_set)
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" where
-  "map f A = Fset (image f (member A))"
+  [simp]: "map f A = Fset (image f (member A))"
 
 lemma map_Set [code]:
   "map f (Set xs) = Set (remdups (List.map f xs))"
-  by (simp add: map_def Set_def)
+  by (simp add: Set_def)
 
 definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  "project P A = Fset (List_Set.project P (member A))"
+  [simp]: "project P A = Fset (List_Set.project P (member A))"
 
 lemma project_Set [code]:
   "project P (Set xs) = Set (filter P xs)"
-  by (simp add: project_def Set_def project_set)
+  by (simp add: Set_def project_set)
 
 definition forall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> bool" where
-  "forall P A \<longleftrightarrow> Ball (member A) P"
+  [simp]: "forall P A \<longleftrightarrow> Ball (member A) P"
 
 lemma forall_Set [code]:
   "forall P (Set xs) \<longleftrightarrow> list_all P xs"
-  by (simp add: forall_def Set_def ball_set)
+  by (simp add: Set_def ball_set)
 
 definition exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> bool" where
-  "exists P A \<longleftrightarrow> Bex (member A) P"
+  [simp]: "exists P A \<longleftrightarrow> Bex (member A) P"
 
 lemma exists_Set [code]:
   "exists P (Set xs) \<longleftrightarrow> list_ex P xs"
-  by (simp add: exists_def Set_def bex_set)
+  by (simp add: Set_def bex_set)
+
+
+subsection {* Derived operations *}
+
+lemma member_exists [code]:
+  "member A y \<longleftrightarrow> exists (\<lambda>x. y = x) A"
+  by simp
+
+definition subfset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
+  [simp]: "subfset_eq A B \<longleftrightarrow> member A \<subseteq> member B"
+
+lemma subfset_eq_forall [code]:
+  "subfset_eq A B \<longleftrightarrow> forall (\<lambda>x. member B x) A"
+  by (simp add: subset_eq)
+
+definition subfset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
+  [simp]: "subfset A B \<longleftrightarrow> member A \<subset> member B"
+
+lemma subfset_subfset_eq [code]:
+  "subfset A B \<longleftrightarrow> subfset_eq A B \<and> \<not> subfset_eq B A"
+  by (simp add: subset)
+
+lemma eq_fset_subfset_eq [code]:
+  "eq_class.eq A B \<longleftrightarrow> subfset_eq A B \<and> subfset_eq B A"
+  by (cases A, cases B) (simp add: eq set_eq)
+
+definition inter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "inter A B = Fset (List_Set.project (member A) (member B))"
+
+lemma inter_project [code]:
+  "inter A B = project (member A) B"
+  by (simp add: inter)
 
 
 subsection {* Functorial operations *}
 
 definition union :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  "union A B = Fset (member A \<union> member B)"
+  [simp]: "union A B = Fset (member A \<union> member B)"
 
 lemma union_insert [code]:
   "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
@@ -103,11 +137,11 @@ proof -
   have "foldl (\<lambda>A x. Set.insert x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (Set.insert x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show ?thesis by (simp add: union_def union_set insert_def)
+  then show ?thesis by (simp add: union_set)
 qed
 
 definition subtract :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  "subtract A B = Fset (member B - member A)"
+  [simp]: "subtract A B = Fset (member B - member A)"
 
 lemma subtract_remove [code]:
   "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
@@ -115,40 +149,36 @@ proof -
   have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show ?thesis by (simp add: subtract_def minus_set remove_def)
+  then show ?thesis by (simp add: minus_set)
 qed
 
+definition Inter :: "'a fset fset \<Rightarrow> 'a fset" where
+  [simp]: "Inter A = Fset (Set.Inter (member ` member A))"
 
-subsection {* Derived operations *}
+lemma Inter_inter [code]:
+  "Inter (Set (A # As)) = foldl inter A As"
+proof -
+  note Inter_image_eq [simp del] set_map [simp del] set.simps [simp del]
+  have "foldl (op \<inter>) (member A) (List.map member As) = 
+    member (foldl (\<lambda>B A. Fset (member B \<inter> A)) A (List.map member As))"
+    by (rule foldl_apply_inv) simp
+  then show ?thesis
+    by (simp add: Inter_set image_set inter_def_raw inter foldl_map)
+qed
 
-lemma member_exists [code]:
-  "member A y \<longleftrightarrow> exists (\<lambda>x. y = x) A"
-  by (simp add: exists_def mem_def)
+definition Union :: "'a fset fset \<Rightarrow> 'a fset" where
+  [simp]: "Union A = Fset (Set.Union (member ` member A))"
 
-definition subfset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
-  "subfset_eq A B \<longleftrightarrow> member A \<subseteq> member B"
-
-lemma subfset_eq_forall [code]:
-  "subfset_eq A B \<longleftrightarrow> forall (\<lambda>x. member B x) A"
-  by (simp add: subfset_eq_def subset_eq forall_def mem_def)
-
-definition subfset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
-  "subfset A B \<longleftrightarrow> member A \<subset> member B"
-
-lemma subfset_subfset_eq [code]:
-  "subfset A B \<longleftrightarrow> subfset_eq A B \<and> \<not> subfset_eq B A"
-  by (simp add: subfset_def subfset_eq_def subset)
-
-lemma eq_fset_subfset_eq [code]:
-  "eq_class.eq A B \<longleftrightarrow> subfset_eq A B \<and> subfset_eq B A"
-  by (cases A, cases B) (simp add: eq subfset_eq_def set_eq)
-
-definition inter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  "inter A B = Fset (List_Set.project (member A) (member B))"
-
-lemma inter_project [code]:
-  "inter A B = project (member A) B"
-  by (simp add: inter_def project_def inter)
+lemma Union_union [code]:
+  "Union (Set As) = foldl union empty As"
+proof -
+  note Union_image_eq [simp del] set_map [simp del]
+  have "foldl (op \<union>) (member empty) (List.map member As) = 
+    member (foldl (\<lambda>B A. Fset (member B \<union> A)) empty (List.map member As))"
+    by (rule foldl_apply_inv) simp
+  then show ?thesis
+    by (simp add: Union_set image_set union_def_raw foldl_map)
+qed
 
 
 subsection {* Misc operations *}
@@ -165,5 +195,30 @@ lemma fset_case_code [code]:
 lemma fset_rec_code [code]:
   "fset_rec f A = f (member A)"
   by (cases A) simp
+
+
+subsection {* Simplified simprules *}
+
+lemma is_empty_simp [simp]:
+  "is_empty A \<longleftrightarrow> member A = {}"
+  by (simp add: List_Set.is_empty_def)
+declare is_empty_def [simp del]
+
+lemma remove_simp [simp]:
+  "remove x A = Fset (member A - {x})"
+  by (simp add: List_Set.remove_def)
+declare remove_def [simp del]
+
+lemma project_simp [simp]:
+  "project P A = Fset {x \<in> member A. P x}"
+  by (simp add: List_Set.project_def)
+declare project_def [simp del]
+
+lemma inter_simp [simp]:
+  "inter A B = Fset (member A \<inter> member B)"
+  by (simp add: inter)
+declare inter_def [simp del]
+
+declare mem_def [simp del]
 
 end
