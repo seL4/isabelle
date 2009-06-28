@@ -72,11 +72,11 @@ lemma map_Set [code]:
   "map f (Set xs) = Set (remdups (List.map f xs))"
   by (simp add: Set_def)
 
-definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "project P A = Fset (List_Set.project P (member A))"
+definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "filter P A = Fset (List_Set.project P (member A))"
 
-lemma project_Set [code]:
-  "project P (Set xs) = Set (filter P xs)"
+lemma filter_Set [code]:
+  "filter P (Set xs) = Set (List.filter P xs)"
   by (simp add: Set_def project_set)
 
 definition forall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> bool" where
@@ -119,10 +119,10 @@ lemma eq_fset_subfset_eq [code]:
   by (cases A, cases B) (simp add: eq set_eq)
 
 definition inter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "inter A B = Fset (List_Set.project (member A) (member B))"
+  [simp]: "inter A B = Fset (project (member A) (member B))"
 
 lemma inter_project [code]:
-  "inter A B = project (member A) B"
+  "inter A B = filter (member A) B"
   by (simp add: inter)
 
 
@@ -209,10 +209,10 @@ lemma remove_simp [simp]:
   by (simp add: List_Set.remove_def)
 declare remove_def [simp del]
 
-lemma project_simp [simp]:
-  "project P A = Fset {x \<in> member A. P x}"
+lemma filter_simp [simp]:
+  "filter P A = Fset {x \<in> member A. P x}"
   by (simp add: List_Set.project_def)
-declare project_def [simp del]
+declare filter_def [simp del]
 
 lemma inter_simp [simp]:
   "inter A B = Fset (member A \<inter> member B)"
