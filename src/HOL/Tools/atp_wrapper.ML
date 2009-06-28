@@ -23,8 +23,9 @@ sig
   val eprover_full: AtpManager.prover
   val spass_opts: int -> bool  -> AtpManager.prover
   val spass: AtpManager.prover
-  val remote_prover_opts: int -> bool -> string -> AtpManager.prover
-  val remote_prover: string -> AtpManager.prover
+  val remote_prover_opts: int -> bool -> string -> string -> AtpManager.prover
+  val remote_prover: string -> string -> AtpManager.prover
+  val refresh_systems: unit -> unit
 end;
 
 structure AtpWrapper: ATP_WRAPPER =
@@ -185,10 +186,32 @@ val spass = spass_opts 40 true;
 
 (* remote prover invocation via SystemOnTPTP *)
 
-fun remote_prover_opts max_new theory_const args timeout =
-  tptp_prover_opts max_new theory_const
-  (Path.explode "$ISABELLE_HOME/lib/scripts/SystemOnTPTP", args ^ " -t " ^ string_of_int timeout)
-  timeout;
+val systems =
+  Synchronized.var "atp_wrapper_systems" ([]: string list);
+
+fun get_systems () =
+  let
+    val (answer, rc) = system_out (("$ISABELLE_HOME/lib/scripts/SystemOnTPTP" |>
+      Path.explode |> File.shell_path) ^ " -w")
+  in
+    if rc <> 0 then error ("Get available systems from SystemOnTPTP:\n" ^ answer)
+    else split_lines answer
+  end;
+
+fun refresh_systems () = Synchronized.change systems (fn _ =>
+  get_systems());
+
+fun get_system prefix = Synchronized.change_result systems (fn systems =>
+  let val systems = if null systems then get_systems() else systems
+  in (find_first (String.isPrefix prefix) systems, systems) end);
+
+fun remote_prover_opts max_new theory_const args prover_prefix timeout =
+  let val sys = case get_system prover_prefix of
+      NONE => error ("No system like " ^ quote prover_prefix ^ " at SystemOnTPTP")
+    | SOME sys => sys
+  in tptp_prover_opts max_new theory_const
+    (Path.explode "$ISABELLE_HOME/lib/scripts/SystemOnTPTP",
+      args ^ " -t " ^ string_of_int timeout ^ " -s " ^ sys) timeout end;
 
 val remote_prover = remote_prover_opts 60 false;
 
