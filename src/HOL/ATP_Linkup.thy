@@ -117,7 +117,7 @@ text {* remote provers via SystemOnTPTP *}
 setup {* AtpManager.add_prover "remote_vampire"
   (AtpWrapper.remote_prover "-s Vampire---9.0") *}
 setup {* AtpManager.add_prover "remote_spass"
-  (AtpWrapper.remote_prover "-s SPASS---3.01") *}
+  (AtpWrapper.remote_prover "-xs SPASS---3.01") *}
 setup {* AtpManager.add_prover "remote_e"
   (AtpWrapper.remote_prover "-s EP---1.0") *}
   

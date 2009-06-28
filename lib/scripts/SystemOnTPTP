@@ -10,20 +10,20 @@ use Getopt::Std;
 use HTTP::Request::Common;
 use LWP;
 
-my $SystemOnTPTPFormReplyURL = "http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTPFormReply";
+my $SystemOnTPTPFormReplyURL =
+  "http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTPFormReply";
 
 # default parameters
 my %URLParameters = (
     "NoHTML" => 1,
     "QuietFlag" => "-q01",
-    "X2TPTP" => "-S",
     "SubmitButton" => "RunSelectedSystems",
     "ProblemSource" => "UPLOAD",
     );
 
 #----Get format and transform options if specified
 my %Options;
-getopts("hws:t:c:",\%Options);
+getopts("hwxs:t:c:",\%Options);
 
 #----Usage
 sub usage() {
@@ -31,6 +31,7 @@ sub usage() {
   print("    <options> are ...\n");
   print("    -h            - print this help\n");
   print("    -w            - list available ATP systems\n");
+  print("    -x            - use X2TPTP to convert output of prover\n");
   print("    -s<system>    - specified system to use\n");
   print("    -t<timelimit> - CPU time limit for system\n");
   print("    -c<command>   - custom command for system\n");
@@ -40,11 +41,18 @@ sub usage() {
 if (exists($Options{'h'})) {
   usage();
 }
+
 #----What systems flag
 if (exists($Options{'w'})) {
     $URLParameters{"SubmitButton"} = "ListSystems";
     delete($URLParameters{"ProblemSource"});
 }
+
+#----X2TPTP
+if (exists($Options{'x'})) {
+    $URLParameters{"X2TPTP"} = "-S";
+}
+
 #----Selected system
 my $System;
 if (exists($Options{'s'})) {
@@ -86,7 +94,7 @@ my $Request = POST($SystemOnTPTPFormReplyURL,
 my $Response = $Agent->request($Request);
 
 #catch errors / failure
-if(! $Response->is_success){
+if(!$Response->is_success) {
   print "HTTP-Error: " . $Response->message . "\n";
   exit(-1);
 } elsif (exists($Options{'w'})) {
@@ -95,7 +103,12 @@ if(! $Response->is_success){
 } elsif ($Response->content =~ /WARNING: (\S*) does not exist/) {
   print "Specified System $1 does not exist\n";
   exit(-1);
-} elsif ($Response->content =~ /%\s*Result\s*:\s*Unsatisfiable.*\n%\s*Output\s*:\s*(CNF)?Refutation.*\n%/) {
+} elsif (exists($Options{'x'}) &&
+  $Response->content =~
+    /%\s*Result\s*:\s*Unsatisfiable.*\n%\s*Output\s*:\s*(CNF)?Refutation.*\n%/ &&
+  $Response->content !~ /ERROR: Could not form TPTP format derivation/ )
+{
+  # converted output: extract proof
   my @lines = split( /\n/, $Response->content);
   my $extract = "";
   foreach my $line (@lines){
@@ -108,12 +121,20 @@ if(! $Response->is_success){
   $extract =~ s/\s//g;
   $extract =~ s/\)\.cnf/\)\.\ncnf/g;
 
+  print "========== ~~/lib/scripts/SystemOnTPTP extracted proof: ==========\n";
   # orientation for res_reconstruct.ML
   print "# SZS output start CNFRefutation.\n";
   print "$extract\n";
   print "# SZS output end CNFRefutation.\n";
+  # can be useful for debugging; Isabelle ignores this
+  print "============== original response from SystemOnTPTP: ==============\n";
+  print $Response->content;
   exit(0);
-} else {
+} elsif (!exists($Options{'x'})) {
+  # pass output directly to Isabelle
+  print $Response->content;
+  exit(0);
+}else {
   print "Remote-script could not extract proof:\n".$Response->content;
   exit(-1);
 }
