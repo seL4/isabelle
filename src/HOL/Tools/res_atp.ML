@@ -532,9 +532,10 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
 fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
     val white_thms =
-      filter check_named (map ResAxioms.pairname (if null chain_ths then whitelist else chain_ths))
+      filter check_named (map ResAxioms.pairname (whitelist @ chain_ths))
     val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
     val extra_cls = white_cls @ extra_cls
+    val axcls = white_cls @ axcls
     val ccls = subtract_cls goal_cls extra_cls
     val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) ccls
     val ccltms = map prop_of ccls
