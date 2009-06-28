@@ -146,7 +146,7 @@ fun vampire_opts_full max_new theory_const timeout = full_prover_opts
                ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
   timeout;
 
-val vampire_full = vampire_opts 60 false;
+val vampire_full = vampire_opts_full 60 false;
 
 
 (* E prover *)
