@@ -6,12 +6,23 @@ GUI for basic system setup.
 
 package isabelle
 
+import javax.swing.UIManager
+
 import scala.swing._
 import scala.swing.event._
 
 
-object GUI_Setup extends SimpleGUIApplication
+object GUI_Setup extends GUIApplication
 {
+  def main(args: Array[String]) =
+  {
+    Swing.later {
+      UIManager.setLookAndFeel(Platform.look_and_feel)
+      top.pack()
+      top.visible = true
+    }
+  }
+
   def top = new MainFrame {
     title = "Isabelle setup"
     val ok = new Button { text = "OK" }

@@ -6,13 +6,20 @@ Raw platform identification.
 
 package isabelle
 
+import javax.swing.UIManager
+
 import scala.util.matching.Regex
 
 
 object Platform
 {
+  /* main OS variants */
+
   val is_macos = System.getProperty("os.name") == "Mac OS X"
   val is_windows = System.getProperty("os.name").startsWith("Windows")
+
+
+  /* Isabelle platform identifiers */
 
   private val Solaris = new Regex("SunOS|Solaris")
   private val Linux = new Regex("Linux")
@@ -42,6 +49,20 @@ object Platform
           case PPC() => Some(("ppc-" + name, None))
         }
       case None => None
+    }
+  }
+
+
+  /* Swing look-and-feel */
+
+  def look_and_feel(): String =
+  {
+    if (is_windows || is_macos) UIManager.getSystemLookAndFeelClassName()
+    else {
+      UIManager.getInstalledLookAndFeels().find(laf => laf.getName == "Nimbus") match {
+        case None => UIManager.getCrossPlatformLookAndFeelClassName()
+        case Some(laf) => laf.getClassName
+      }
     }
   }
 }
