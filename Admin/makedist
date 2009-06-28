@@ -116,7 +116,6 @@ fi
 DISTBASE="$DISTPREFIX/dist-$DISTNAME"
 mkdir -p "$DISTBASE" || { purge_tmp; fail "Unable to create distribution base dir $DISTBASE!"; }
 [ -e "$DISTBASE/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/$DISTNAME already exists!"; }
-[ -e "$DISTBASE/pdf/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/pdf/$DISTNAME already exists!"; }
 
 cd "$DISTBASE"
 mv "$DISTPREFIX/$TMP/isabelle-$IDENT" "$DISTNAME"
@@ -141,7 +140,7 @@ rm -rf Admin
 MOVE=$(find doc-src \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE doc
 rm doc/Isa-logics.eps
-rm doc/adaption.dvi doc/adaption.pdf doc/architecture.dvi doc/architecture.pdf
+rm doc/adaptation.dvi doc/adaptation.pdf doc/architecture.dvi doc/architecture.pdf
 rm -rf doc-src
 
 mkdir -p contrib
@@ -189,17 +188,8 @@ chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
 chgrp -R isabelle "$DISTNAME" Isabelle
 
-mkdir -p "pdf/$DISTNAME/doc"
-mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
-
 echo "$DISTNAME.tar.gz"
 tar -czf "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
-
-echo "${DISTNAME}_pdf.tar.gz"
-tar -C pdf -czf "${DISTNAME}_pdf.tar.gz" "$DISTNAME"
-
-mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
-rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
 
 
 # cleanup dist
