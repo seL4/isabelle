@@ -128,6 +128,7 @@ SCALA_FILES = General/event_bus.scala General/markup.scala		\
 
 
 SCALA_TARGET = $(ISABELLE_HOME)/lib/classes/Pure.jar
+ISABELLE_SCALA = $(ISABELLE_HOME)/lib/classes/isabelle-scala.jar
 
 jar: $(SCALA_TARGET)
 
@@ -137,8 +138,11 @@ $(SCALA_TARGET): $(SCALA_FILES)
 	scaladoc -d classes $(SCALA_FILES)
 	@cp $(SCALA_FILES) classes/isabelle
 	@mkdir -p `dirname $@`
-	@cd classes; jar cfe `jvmpath $@` isabelle.GUI_Setup isabelle
+	cd classes; jar cfe `jvmpath $@` isabelle.GUI_Setup isabelle
+	cd classes; jar xf `jvmpath $(SCALA_HOME)/lib/scala-swing.jar`; \
+          cp $(SCALA_HOME)/lib/scala-library.jar $(ISABELLE_SCALA); \
+          jar ufe `jvmpath $(ISABELLE_SCALA)` isabelle.GUI_Setup isabelle scala
 	@rm -rf classes
 
 clean-jar:
-	@rm -f $(SCALA_TARGET)
+	@rm -f $(SCALA_TARGET) $(ISABELLE_SCALA)
