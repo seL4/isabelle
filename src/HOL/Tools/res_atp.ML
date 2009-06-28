@@ -296,7 +296,11 @@ fun relevance_filter max_new theory_const thy axioms goals =
 
 (*The rule subsetI is frequently omitted by the relevance filter. This could be theory data
   or identified with ATPset (which however is too big currently)*)
-val whitelist = [subsetI];
+val whitelist_fo = [subsetI];
+(* ext has been a 'helper clause', always given to the atps.
+  As such it was not passed to metis, but metis does not include ext (in contrast
+  to the other helper_clauses *)
+val whitelist_ho = [ResHolClause.ext];
 
 (*** retrieve lemmas from clasimpset and atpset, may filter them ***)
 
@@ -531,8 +535,9 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
    create additional clauses based on the information from extra_cls *)
 fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
-    val white_thms =
-      filter check_named (map ResAxioms.pairname (whitelist @ chain_ths))
+    val isFO = isFO thy goal_cls
+    val white_thms = filter check_named (map ResAxioms.pairname
+      (whitelist_fo @ (if isFO then [] else whitelist_ho) @ chain_ths))
     val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
     val extra_cls = white_cls @ extra_cls
     val axcls = white_cls @ axcls
@@ -546,7 +551,7 @@ fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
     val conjectures = ResHolClause.make_conjecture_clauses dfg thy ccls
     val (clnames,axiom_clauses) = ListPair.unzip (ResHolClause.make_axiom_clauses dfg thy axcls)
-    val helper_clauses = ResHolClause.get_helper_clauses dfg thy (isFO thy goal_cls) (conjectures, extra_cls, [])
+    val helper_clauses = ResHolClause.get_helper_clauses dfg thy isFO (conjectures, extra_cls, [])
     val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
     val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
   in

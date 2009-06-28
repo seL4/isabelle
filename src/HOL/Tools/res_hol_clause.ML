@@ -423,7 +423,7 @@ fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
         val S = if needed "c_COMBS"
                 then (Output.debug (fn () => "Include combinator S"); cnf_helper_thms thy [comb_S])
                 else []
-        val other = cnf_helper_thms thy [ext,fequal_imp_equal,equal_imp_fequal]
+        val other = cnf_helper_thms thy [fequal_imp_equal,equal_imp_fequal]
     in
         map #2 (make_axiom_clauses dfg thy (other @ IK @ BC @ S))
     end;
