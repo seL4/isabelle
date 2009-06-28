@@ -36,9 +36,11 @@ sig
        clause list * (thm * (axiom_name * clause_id)) list * string list ->
        clause list
   val tptp_write_file: bool -> Path.T ->
-    clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
+    clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list ->
+    int * int
   val dfg_write_file: bool -> Path.T ->
-    clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list -> unit
+    clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list ->
+    int * int
 end
 
 structure ResHolClause: RES_HOL_CLAUSE =
@@ -476,14 +478,15 @@ fun tptp_write_file t_full file clauses =
     val params = (t_full, cma, cnh)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp params) conjectures)
     val tfree_clss = map RC.tptp_tfree_clause (List.foldl (op union_string) [] tfree_litss)
-  in
-    File.write_list file (
-      map (#1 o (clause2tptp params)) axclauses @
-      tfree_clss @
-      tptp_clss @
-      map RC.tptp_classrelClause classrel_clauses @
-      map RC.tptp_arity_clause arity_clauses @
-      map (#1 o (clause2tptp params)) helper_clauses)
+    val _ =
+      File.write_list file (
+        map (#1 o (clause2tptp params)) axclauses @
+        tfree_clss @
+        tptp_clss @
+        map RC.tptp_classrelClause classrel_clauses @
+        map RC.tptp_arity_clause arity_clauses @
+        map (#1 o (clause2tptp params)) helper_clauses)
+    in (length axclauses + 1, length tfree_clss + length tptp_clss)
   end;
 
 
@@ -501,24 +504,27 @@ fun dfg_write_file t_full file clauses =
     val helper_clauses_strs = map (#1 o (clause2dfg params)) helper_clauses
     val (funcs,cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
     and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
-  in
-    File.write_list file (
-      RC.string_of_start probname ::
-      RC.string_of_descrip probname ::
-      RC.string_of_symbols (RC.string_of_funcs funcs)
-        (RC.string_of_preds (cl_preds @ ty_preds)) ::
-      "list_of_clauses(axioms,cnf).\n" ::
-      axstrs @
-      map RC.dfg_classrelClause classrel_clauses @
-      map RC.dfg_arity_clause arity_clauses @
-      helper_clauses_strs @
-      ["end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n"] @
-      tfree_clss @
-      dfg_clss @
-      ["end_of_list.\n\n",
-      (*VarWeight=3 helps the HO problems, probably by counteracting the presence of hAPP*)
-       "list_of_settings(SPASS).\n{*\nset_flag(VarWeight,3).\n*}\nend_of_list.\n\n",
-       "end_problem.\n"])
+    val _ =
+      File.write_list file (
+        RC.string_of_start probname ::
+        RC.string_of_descrip probname ::
+        RC.string_of_symbols (RC.string_of_funcs funcs)
+          (RC.string_of_preds (cl_preds @ ty_preds)) ::
+        "list_of_clauses(axioms,cnf).\n" ::
+        axstrs @
+        map RC.dfg_classrelClause classrel_clauses @
+        map RC.dfg_arity_clause arity_clauses @
+        helper_clauses_strs @
+        ["end_of_list.\n\nlist_of_clauses(conjectures,cnf).\n"] @
+        tfree_clss @
+        dfg_clss @
+        ["end_of_list.\n\n",
+        (*VarWeight=3 helps the HO problems, probably by counteracting the presence of hAPP*)
+         "list_of_settings(SPASS).\n{*\nset_flag(VarWeight,3).\n*}\nend_of_list.\n\n",
+         "end_problem.\n"])
+
+    in (length axclauses + length classrel_clauses + length arity_clauses +
+      length helper_clauses + 1, length tfree_clss + length dfg_clss)
   end;
 
 end
