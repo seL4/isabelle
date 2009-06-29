@@ -5,7 +5,7 @@
 header {* Implementation of finite sets by lists *}
 
 theory Executable_Set
-imports Main Code_Set
+imports Main Fset
 begin
 
 subsection {* Derived set operations *}
@@ -45,41 +45,39 @@ declare List_Set.project_def [symmetric, code unfold]
 
 subsection {* code generator setup *}
 
-text {* eliminate popular infixes *}
-
 ML {*
 nonfix inter;
 nonfix union;
 nonfix subset;
 *}
 
-text {* type @{typ "'a fset"} *}
-
-types_code
-  fset ("(_/ list)")
-
-consts_code
-  Set ("_")
-
-text {* primitive operations *}
-
 definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
   "flip f a b = f b a"
 
+types_code
+  fset ("(_/ \<module>fset)")
+attach {*
+datatype 'a fset = Set of 'a list;
+*}
+
 consts_code
-  "Set.empty"         ("{*Code_Set.empty*}")
-  "List_Set.is_empty" ("{*Code_Set.is_empty*}")
-  "Set.insert"        ("{*Code_Set.insert*}")
-  "List_Set.remove"   ("{*Code_Set.remove*}")
-  "Set.image"         ("{*Code_Set.map*}")
-  "List_Set.project"  ("{*Code_Set.filter*}")
-  "Ball"              ("{*flip Code_Set.forall*}")
-  "Bex"               ("{*flip Code_Set.exists*}")
-  "op \<union>"              ("{*Code_Set.union*}")
-  "op \<inter>"              ("{*Code_Set.inter*}")
-  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip subtract*}")
-  "Set.Union"         ("{*Code_Set.union*}")
-  "Set.Inter"         ("{*Code_Set.inter*}")
+  Set ("\<module>Set")
+
+consts_code
+  "Set.empty"         ("{*Fset.empty*}")
+  "List_Set.is_empty" ("{*Fset.is_empty*}")
+  "Set.insert"        ("{*Fset.insert*}")
+  "List_Set.remove"   ("{*Fset.remove*}")
+  "Set.image"         ("{*Fset.map*}")
+  "List_Set.project"  ("{*Fset.filter*}")
+  "Ball"              ("{*flip Fset.forall*}")
+  "Bex"               ("{*flip Fset.exists*}")
+  "op \<union>"              ("{*Fset.union*}")
+  "op \<inter>"              ("{*Fset.inter*}")
+  "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip Fset.subtract*}")
+  "Set.Union"         ("{*Fset.Union*}")
+  "Set.Inter"         ("{*Fset.Inter*}")
+  card                ("{*Fset.card*}")
   fold                ("{*foldl o flip*}")
 
 end
