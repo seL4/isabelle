@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/BVExample.thy
-    ID:         $Id$
     Author:     Gerwin Klein
 *)
 
@@ -94,7 +93,7 @@ lemma wf_subcls1_E: "wfP ((subcls1 E)\<inverse>\<inverse>)"
 
 text {* Method and field lookup: *}
 lemma method_Object [simp]:
-  "method (E, Object) = empty"
+  "method (E, Object) = Map.empty"
   by (simp add: method_rec_lemma [OF class_Object wf_subcls1_E])
 
 lemma method_append [simp]:
@@ -436,7 +435,7 @@ definition some_elem :: "'a set \<Rightarrow> 'a" where
   "some_elem = (%S. SOME x. x : S)"
 
 consts_code
-  "some_elem" ("hd")
+  "some_elem" ("(case/ _ of/ {*Set*}/ xs/ =>/ hd/ xs)")
 
 text {* This code setup is just a demonstration and \emph{not} sound! *}
 
@@ -455,7 +454,7 @@ lemma [code]:
     (\<lambda>(ss, w).
         let p = some_elem w in propa f (step p (ss ! p)) ss (w - {p}))
     (ss, w)"
-  unfolding iter_def is_empty_def some_elem_def ..
+  unfolding iter_def List_Set.is_empty_def some_elem_def ..
 
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup
@@ -475,7 +474,6 @@ contains
   test1 = "test_kil E list_name [Class list_name] (PrimT Void) 3 0
     [(Suc 0, 2, 8, Xcpt NullPointer)] append_ins"
   test2 = "test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
-
 ML BV.test1
 ML BV.test2
 
