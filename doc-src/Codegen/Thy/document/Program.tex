@@ -966,9 +966,9 @@ Partiality usually enters the game by partial patterns, as
 \noindent%
 \hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
 \hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~(let {\char123}\\
+\hspace*{0pt} ~let {\char123}\\
 \hspace*{0pt} ~~~(y :~ys) = rev xs;\\
-\hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys) );\\
+\hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys);\\
 \hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%

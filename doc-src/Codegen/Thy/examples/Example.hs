@@ -23,9 +23,9 @@ dequeue :: forall a. Queue a -> (Maybe a, Queue a);
 dequeue (AQueue [] []) = (Nothing, AQueue [] []);
 dequeue (AQueue xs (y : ys)) = (Just y, AQueue xs ys);
 dequeue (AQueue (v : va) []) =
-  (let {
+  let {
     (y : ys) = rev (v : va);
-  } in (Just y, AQueue [] ys) );
+  } in (Just y, AQueue [] ys);
 
 enqueue :: forall a. a -> Queue a -> Queue a;
 enqueue x (AQueue xs ys) = AQueue (x : xs) ys;
