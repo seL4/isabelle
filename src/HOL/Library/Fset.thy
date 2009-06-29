@@ -3,7 +3,7 @@
 
 header {* Executable finite sets *}
 
-theory Code_Set
+theory Fset
 imports List_Set
 begin
 
@@ -13,6 +13,7 @@ lemma foldl_apply_inv:
   by (rule sym, induct xs arbitrary: s) (simp_all add: assms)
 
 declare mem_def [simp]
+
 
 subsection {* Lifting *}
 
@@ -92,6 +93,17 @@ definition exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow
 lemma exists_Set [code]:
   "exists P (Set xs) \<longleftrightarrow> list_ex P xs"
   by (simp add: Set_def bex_set)
+
+definition card :: "'a fset \<Rightarrow> nat" where
+  [simp]: "card A = Finite_Set.card (member A)"
+
+lemma card_Set [code]:
+  "card (Set xs) = length (remdups xs)"
+proof -
+  have "Finite_Set.card (set (remdups xs)) = length (remdups xs)"
+    by (rule distinct_card) simp
+  then show ?thesis by (simp add: Set_def card_def)
+qed
 
 
 subsection {* Derived operations *}
@@ -220,5 +232,9 @@ lemma inter_simp [simp]:
 declare inter_def [simp del]
 
 declare mem_def [simp del]
+
+
+hide (open) const is_empty empty insert remove map filter forall exists card
+  subfset_eq subfset inter union subtract Inter Union
 
 end

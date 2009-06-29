@@ -10,7 +10,6 @@ imports
   Char_ord
   Code_Char_chr
   Code_Integer
-  Code_Set
   Coinductive_List
   Commutative_Ring
   Continuity
@@ -28,6 +27,7 @@ imports
   Formal_Power_Series
   Fraction_Field
   FrechetDeriv
+  Fset
   FuncSet
   Fundamental_Theorem_Algebra
   Infinite_Set
