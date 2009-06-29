@@ -73,7 +73,7 @@ INCOMPATIBILITY.
 approximation method. 
 
 * "approximate" supports now arithmetic expressions as boundaries of intervals and implements
-interval splitting.
+interval splitting and taylor series expansion.
 
 
 *** ML ***

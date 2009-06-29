@@ -8,13 +8,28 @@ text {*
 
 Here are some examples how to use the approximation method.
 
-The parameter passed to the method specifies the precision used by the computations, it is specified
-as number of bits to calculate. When a variable is used it needs to be bounded by an interval. This
-interval is specified as a conjunction of the lower and upper bound. It must have the form
-@{text "\<lbrakk> l\<^isub>1 \<le> x\<^isub>1 \<and> x\<^isub>1 \<le> u\<^isub>1 ; \<dots> ; l\<^isub>n \<le> x\<^isub>n \<and> x\<^isub>n \<le> u\<^isub>n \<rbrakk> \<Longrightarrow> F"} where @{term F} is the formula, and
-@{text "x\<^isub>1, \<dots>, x\<^isub>n"} are the variables. The lower bounds @{text "l\<^isub>1, \<dots>, l\<^isub>n"} and the upper bounds
-@{text "u\<^isub>1, \<dots>, u\<^isub>n"} must either be integer numerals, floating point numbers or of the form
-@{term "m * pow2 e"} to specify a exact floating point value.
+The approximation method has the following syntax:
+
+\verb| approximate "prec" (splitting: "x" = "depth" and "y" = "depth" \<dots>)? (taylor: "z" = "derivates")? |
+
+Here "prec" specifies the precision used in all computations, it is specified as
+number of bits to calculate. In the proposition to prove an arbitrary amount of
+variables can be used, but each one need to be bounded by an upper and lower
+bound.
+
+To specify the bounds either @{term "l\<^isub>1 \<le> x \<and> x \<le> u\<^isub>1"},
+@{term "x \<in> { l\<^isub>1 .. u\<^isub>1 }"} or @{term "x = bnd"} can be used. Where the
+bound specification are again arithmetic formulas containing variables. They can
+be connected using either meta level or HOL equivalence.
+
+To use interval splitting add for each variable whos interval should be splitted
+to the "splitting:" parameter. The parameter specifies how often each interval
+should be divided, e.g. when x = 16 is specified, there will be $65536 = 2^16$ intervals
+to be calculated.
+
+To use taylor series expansion specify the variable to derive. You need to
+specify the amount of derivations to compute. When using taylor series expansion
+only one variable can be used.
 
 *}
 
@@ -56,5 +71,8 @@ lemma
   defines "g \<equiv> 9.80665" and "v \<equiv> 128.61" and "d \<equiv> pi / 180"
   shows "g / v * tan (35 * d) \<in> { 3 * d .. 3.1 * d }"
   using assms by (approximation 80)
+
+lemma "\<phi> \<in> { 0 .. 1 :: real } \<longrightarrow> \<phi> ^ 2 \<le> \<phi>"
+  by (approximation 30 splitting: \<phi>=1 taylor: \<phi> = 3)
 
 end
