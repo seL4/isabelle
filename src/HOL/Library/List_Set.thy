@@ -160,4 +160,7 @@ lemma inter:
   "A \<inter> B = project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
 
+
+hide (open) const insert
+
 end
