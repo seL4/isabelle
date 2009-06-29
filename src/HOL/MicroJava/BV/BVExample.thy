@@ -450,7 +450,7 @@ proof -
 qed
 
 lemma [code]:
-  "iter f step ss w = while (\<lambda>(ss, w). \<not> (is_empty w))
+  "iter f step ss w = while (\<lambda>(ss, w). \<not> is_empty w)
     (\<lambda>(ss, w).
         let p = some_elem w in propa f (step p (ss ! p)) ss (w - {p}))
     (ss, w)"
