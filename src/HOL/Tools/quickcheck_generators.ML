@@ -11,10 +11,10 @@ sig
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> Term.term)) * seed
   val ensure_random_typecopy: string -> theory -> theory
-  val random_aux_specification: string -> term list -> local_theory -> local_theory
+  val random_aux_specification: string -> string -> term list -> local_theory -> local_theory
   val mk_random_aux_eqs: theory -> Datatype.descr -> (string * sort) list
     -> string list -> string list * string list -> typ list * typ list
-    -> string * (term list * (term * term) list)
+    -> term list * (term * term) list
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
   val setup: theory -> theory
@@ -184,18 +184,18 @@ fun random_aux_primrec eq lthy =
 
 end;
 
-fun random_aux_primrec_multi prefix [eq] lthy =
+fun random_aux_primrec_multi auxname [eq] lthy =
       lthy
       |> random_aux_primrec eq
       |>> (fn simp => [simp])
-  | random_aux_primrec_multi prefix (eqs as _ :: _ :: _) lthy =
+  | random_aux_primrec_multi auxname (eqs as _ :: _ :: _) lthy =
       let
         val thy = ProofContext.theory_of lthy;
         val (lhss, rhss) = map_split (HOLogic.dest_eq o HOLogic.dest_Trueprop) eqs;
         val (vs, (arg as Free (v, _)) :: _) = map_split (fn (t1 $ t2) => (t1, t2)) lhss;
         val Ts = map fastype_of lhss;
         val tupleT = foldr1 HOLogic.mk_prodT Ts;
-        val aux_lhs = Free ("mutual_" ^ prefix, fastype_of arg --> tupleT) $ arg;
+        val aux_lhs = Free ("mutual_" ^ auxname, fastype_of arg --> tupleT) $ arg;
         val aux_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
           (aux_lhs, foldr1 HOLogic.mk_prod rhss);
         fun mk_proj t [T] = [t]
@@ -223,7 +223,7 @@ fun random_aux_primrec_multi prefix [eq] lthy =
         |-> (fn (aux_simp, proj_defs) => prove_eqs aux_simp proj_defs)
       end;
 
-fun random_aux_specification prefix eqs lthy =
+fun random_aux_specification prfx name eqs lthy =
   let
     val vs = fold Term.add_free_names ((snd o strip_comb o fst o HOLogic.dest_eq
       o HOLogic.dest_Trueprop o hd) eqs) [];
@@ -237,10 +237,10 @@ fun random_aux_specification prefix eqs lthy =
         val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
         val tac = ALLGOALS (ProofContext.fact_tac ext_simps);
       in (map (fn prop => SkipProof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
-    val b = Binding.qualify true prefix (Binding.name "simps");
+    val b = Binding.qualify true prfx (Binding.qualify true name (Binding.name "simps"));
   in
     lthy
-    |> random_aux_primrec_multi prefix proto_eqs
+    |> random_aux_primrec_multi (name ^ prfx) proto_eqs
     |-> (fn proto_simps => prove_simps proto_simps)
     |-> (fn simps => LocalTheory.note Thm.generatedK ((b,
            Code.add_default_eqn_attrib :: map (Attrib.internal o K)
@@ -252,6 +252,8 @@ fun random_aux_specification prefix eqs lthy =
 
 (* constructing random instances on datatypes *)
 
+val random_auxN = "random_aux";
+
 fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
   let
     val mk_const = curry (Sign.mk_const thy);
@@ -259,7 +261,6 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
     val i1 = @{term "(i\<Colon>code_numeral) - 1"};
     val j = @{term "j\<Colon>code_numeral"};
     val seed = @{term "s\<Colon>Random.seed"};
-    val random_auxN = "random_aux";
     val random_auxsN = map (prefix (random_auxN ^ "_")) (names @ auxnames);
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit \<Rightarrow> term"});
     val rTs = Ts @ Us;
@@ -316,10 +317,9 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
           $ seed;
     val auxs_lhss = map (fn t => t $ i $ j $ seed) random_auxs;
     val auxs_rhss = map mk_select gen_exprss;
-    val prefix = space_implode "_" (random_auxN :: names);
-  in (prefix, (random_auxs, auxs_lhss ~~ auxs_rhss)) end;
+  in (random_auxs, auxs_lhss ~~ auxs_rhss) end;
 
-fun mk_random_datatype config descr vs tycos (names, auxnames) (Ts, Us) thy =
+fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = DatatypeAux.message config "Creating quickcheck generators ...";
     val i = @{term "i\<Colon>code_numeral"};
@@ -329,14 +329,14 @@ fun mk_random_datatype config descr vs tycos (names, auxnames) (Ts, Us) thy =
           else @{term "max :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
             $ HOLogic.mk_number @{typ code_numeral} l $ i
       | NONE => i;
-    val (prefix, (random_auxs, auxs_eqs)) = (apsnd o apsnd o map) mk_prop_eq
+    val (random_auxs, auxs_eqs) = (apsnd o map) mk_prop_eq
       (mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us));
     val random_defs = map_index (fn (k, T) => mk_prop_eq
       (HOLogic.mk_random T i, nth random_auxs k $ mk_size_arg k $ i)) Ts;
   in
     thy
     |> TheoryTarget.instantiation (tycos, vs, @{sort random})
-    |> random_aux_specification prefix auxs_eqs
+    |> random_aux_specification prfx random_auxN auxs_eqs
     |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
     |-> (fn random_defs' => fold_map (fn random_def =>
           Specification.definition (NONE, (Attrib.empty_binding,
@@ -359,7 +359,7 @@ fun ensure_random_datatype config raw_tycos thy =
   let
     val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
-    val (descr, raw_vs, tycos, (names, auxnames), raw_TUs) =
+    val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) =
       Datatype.the_descr thy raw_tycos;
     val typrep_vs = (map o apsnd)
       (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
@@ -374,7 +374,7 @@ fun ensure_random_datatype config raw_tycos thy =
   in if has_inst then thy
     else case perhaps_constrain thy (random_insts @ term_of_insts) typrep_vs
      of SOME constrain => mk_random_datatype config descr
-          (map constrain typrep_vs) tycos (names, auxnames)
+          (map constrain typrep_vs) tycos prfx (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
   end;
