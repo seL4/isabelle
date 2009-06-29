@@ -58,11 +58,11 @@ ML {* set Predicate_Compile.do_proofs *}
 
 lemma [code_pred_intros]:
 "r a b ==> tranclp r a b"
-"r a b ==> tranclp r b c ==> tranclp r a c" 
+"r a b ==> tranclp r b c ==> tranclp r a c"
 by auto
 
 (* Setup requires quick and dirty proof *)
-(*
+
 code_pred tranclp
 proof -
   case tranclp
@@ -70,7 +70,6 @@ proof -
 qed
 
 thm tranclp.equation
-*)
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"

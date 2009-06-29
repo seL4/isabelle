@@ -9,6 +9,7 @@ sig
   type mode = int list option list * int list
   val add_equations_of: string list -> theory -> theory
   val register_predicate : (thm list * thm * int) -> theory -> theory
+  val fetch_pred_data : theory -> string -> (thm list * thm * int)  
   val predfun_intro_of: theory -> string -> mode -> thm
   val predfun_elim_of: theory -> string -> mode -> thm
   val strip_intro_concl: int -> term -> term * (term list * term list)
@@ -17,14 +18,18 @@ sig
   val modes_of: theory -> string -> mode list
   val intros_of: theory -> string -> thm list
   val nparams_of: theory -> string -> int
+  val add_intro: thm -> theory -> theory
+  val set_elim: thm -> theory -> theory
   val setup: theory -> theory
   val code_pred: string -> Proof.context -> Proof.state
   val code_pred_cmd: string -> Proof.context -> Proof.state
-(*  val print_alternative_rules: theory -> theory (*FIXME diagnostic command?*) *)
+  val print_stored_rules: theory -> unit
   val do_proofs: bool ref
+  val mk_casesrule : Proof.context -> int -> thm list -> term
   val analyze_compr: theory -> term -> term
   val eval_ref: (unit -> term Predicate.pred) option ref
   val add_equations : string -> theory -> theory
+  val code_pred_intros_attrib : attribute
 end;
 
 structure Predicate_Compile : PREDICATE_COMPILE =
@@ -223,25 +228,26 @@ val predfun_intro_of = #intro ooo the_predfun_data
 
 val predfun_elim_of = #elim ooo the_predfun_data
 
+fun print_stored_rules thy =
+  let
+    val preds = (Graph.keys o PredData.get) thy
+    fun print pred () = let
+      val _ = writeln ("predicate: " ^ pred)
+      val _ = writeln ("number of parameters: " ^ string_of_int (nparams_of thy pred))
+      val _ = writeln ("introrules: ")
+      val _ = fold (fn thm => fn u =>  writeln (Display.string_of_thm thm))
+        (rev (intros_of thy pred)) ()
+    in
+      if (has_elim thy pred) then
+        writeln ("elimrule: " ^ Display.string_of_thm (the_elim_of thy pred))
+      else
+        writeln ("no elimrule defined")
+    end
+  in
+    fold print preds ()
+  end;
 
-(* replaces print_alternative_rules *)
-(* TODO:
-fun print_alternative_rules thy = let
-    val d = IndCodegenData.get thy
-    val preds = (Symtab.keys (#intro_rules d)) union (Symtab.keys (#elim_rules d))
-    val _ = tracing ("preds: " ^ (makestring preds))
-    fun print pred = let
-      val _ = tracing ("predicate: " ^ pred)
-      val _ = tracing ("introrules: ")
-      val _ = fold (fn thm => fn u => tracing (makestring thm))
-        (rev (Symtab.lookup_list (#intro_rules d) pred)) ()
-      val _ = tracing ("casesrule: ")
-      val _ = tracing (makestring (Symtab.lookup (#elim_rules d) pred))
-    in () end
-    val _ = map print preds
- in thy end;
-*)
-
+(** preprocessing rules **)  
 
 fun imp_prems_conv cv ct =
   case Thm.term_of ct of
@@ -298,6 +304,23 @@ fun add_predfun name mode data = let
     val add = apsnd (cons (mode, mk_predfun_data data))
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
+fun is_inductive_predicate thy name =
+  is_some (try (Inductive.the_inductive (ProofContext.init thy)) name)
+
+fun depending_preds_of thy intros = fold Term.add_consts (map Thm.prop_of intros) [] |> map fst
+    |> filter (fn c => is_inductive_predicate thy c orelse is_pred thy c)
+
+(* code dependency graph *)    
+fun dependencies_of thy name =
+  let
+    val (intros, elim, nparams) = fetch_pred_data thy name 
+    val data = mk_pred_data ((intros, SOME elim, nparams), [])
+    val keys = depending_preds_of thy intros
+  in
+    (data, keys)
+  end;
+
+(* TODO: add_edges - by analysing dependencies *)
 fun add_intro thm thy = let
    val (name, _) = dest_Const (fst (strip_intro_concl 0 (prop_of thm)))
    fun cons_intro gr =
@@ -320,10 +343,13 @@ fun set_nparams name nparams = let
     fun set (intros, elim, _ ) = (intros, elim, nparams) 
   in PredData.map (Graph.map_node name (map_pred_data (apfst set))) end
 
-fun register_predicate (intros, elim, nparams) = let
+fun register_predicate (intros, elim, nparams) thy = let
     val (name, _) = dest_Const (fst (strip_intro_concl nparams (prop_of (hd intros))))
     fun set _ = (intros, SOME elim, nparams)
-  in PredData.map (Graph.new_node (name, mk_pred_data ((intros, SOME elim, nparams), []))) end
+  in
+    PredData.map (Graph.new_node (name, mk_pred_data ((intros, SOME elim, nparams), []))
+      #> fold Graph.add_edge (map (pair name) (depending_preds_of thy intros))) thy
+  end
 
   
 (* Mode analysis *)
@@ -1243,7 +1269,7 @@ fun prove_clause2 thy all_vs param_vs modes (iss, is) (ts, ps) pred i = let
     end;
   val prems_tac = prove_prems2 in_ts' param_vs ps 
 in
-  print_tac "starting prove_clause2"
+  new_print_tac "starting prove_clause2"
   THEN etac @{thm bindE} 1
   THEN (etac @{thm singleE'} 1)
   THEN (TRY (etac @{thm Pair_inject} 1))
@@ -1259,6 +1285,7 @@ in
   (DETERM (TRY (rtac @{thm unit.induct} 1)))
    THEN (REPEAT_DETERM (CHANGED (rewtac @{thm split_paired_all})))
    THEN (rtac (predfun_intro_of thy pred mode) 1)
+   THEN (REPEAT_DETERM (rtac @{thm refl} 2))
    THEN (EVERY (map prove_clause (clauses ~~ (1 upto (length clauses)))))
 end;
 
@@ -1409,21 +1436,6 @@ fun mk_casesrule ctxt nparams introrules =
     val cases = map mk_case intros
   in Logic.list_implies (assm :: cases, prop) end;
 
-(* code dependency graph *)
-
-fun dependencies_of thy name =
-  let
-    fun is_inductive_predicate thy name =
-      is_some (try (Inductive.the_inductive (ProofContext.init thy)) name)
-    val (intro, elim, nparams) = fetch_pred_data thy name 
-    val data = mk_pred_data ((intro, SOME elim, nparams), [])
-    val intros = map Thm.prop_of (#intros (rep_pred_data data))
-    val keys = fold Term.add_consts intros [] |> map fst
-    |> filter (is_inductive_predicate thy)
-  in
-    (data, keys)
-  end;
-
 fun add_equations name thy =
   let
     val thy' = PredData.map (Graph.extend (dependencies_of thy) name) thy |> Theory.checkpoint;
@@ -1437,16 +1449,14 @@ fun add_equations name thy =
       scc thy' |> Theory.checkpoint
   in thy'' end
 
+  
+fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+
+val code_pred_intros_attrib = attrib add_intro;
+
 (** user interface **)
 
 local
-
-fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-
-(*
-val add_elim_attrib = attrib set_elim;
-*)
-
 
 (* TODO: make TheoryDataFun to GenericDataFun & remove duplication of local theory and theory *)
 (* TODO: must create state to prove multiple cases *)
