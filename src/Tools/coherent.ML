@@ -110,9 +110,9 @@ fun inst_extra_vars ctxt dom cs =
 (* Check whether disjunction is valid in given state *)
 fun is_valid_disj ctxt facts [] = false
   | is_valid_disj ctxt facts ((Ts, ts) :: ds) =
-      let val vs = rev (map_index (fn (i, T) => Var (("x", i), T)) Ts)
+      let val vs = map_index (fn (i, T) => Var (("x", i), T)) Ts
       in case Seq.pull (valid_conj ctxt facts empty_env
-        (map (fn t => subst_bounds (vs, t)) ts)) of
+        (map (fn t => subst_bounds (rev vs, t)) ts)) of
           SOME _ => true
         | NONE => is_valid_disj ctxt facts ds
       end;
@@ -153,10 +153,10 @@ and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
   | valid_cases ctxt rules goal dom facts nfacts nparams ((Ts, ts) :: ds) =
       let
         val _ = message (fn () => "case " ^ commas (map (Syntax.string_of_term ctxt) ts));
-        val params = rev (map_index (fn (i, T) =>
-          Free ("par" ^ string_of_int (nparams + i), T)) Ts);
+        val params = map_index (fn (i, T) =>
+          Free ("par" ^ string_of_int (nparams + i), T)) Ts;
         val ts' = map_index (fn (i, t) =>
-          (subst_bounds (params, t), nfacts + i)) ts;
+          (subst_bounds (rev params, t), nfacts + i)) ts;
         val dom' = fold (fn (T, p) =>
           Typtab.map_default (T, []) (fn ps => ps @ [p]))
             (Ts ~~ params) dom;
