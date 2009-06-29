@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/dseq.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Sequences with recursion depth limit.
