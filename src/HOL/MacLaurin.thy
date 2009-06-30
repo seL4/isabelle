@@ -27,36 +27,6 @@ done
 lemma eq_diff_eq': "(x = y - z) = (y = x + (z::real))"
 by arith
 
-text{*A crude tactic to differentiate by proof.*}
-
-lemmas deriv_rulesI =
-  DERIV_ident DERIV_const DERIV_cos DERIV_cmult
-  DERIV_sin DERIV_exp DERIV_inverse DERIV_pow
-  DERIV_add DERIV_diff DERIV_mult DERIV_minus
-  DERIV_inverse_fun DERIV_quotient DERIV_fun_pow
-  DERIV_fun_exp DERIV_fun_sin DERIV_fun_cos
-  DERIV_ident DERIV_const DERIV_cos
-
-ML
-{*
-local
-exception DERIV_name;
-fun get_fun_name (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _)) = f
-|   get_fun_name (_ $ (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _))) = f
-|   get_fun_name _ = raise DERIV_name;
-
-in
-
-fun deriv_tac ctxt = SUBGOAL (fn (prem, i) =>
-  resolve_tac @{thms deriv_rulesI} i ORELSE
-    ((rtac (read_instantiate ctxt [(("f", 0), get_fun_name prem)]
-                     @{thm DERIV_chain2}) i) handle DERIV_name => no_tac));
-
-fun DERIV_tac ctxt = ALLGOALS (fn i => REPEAT (deriv_tac ctxt i));
-
-end
-*}
-
 lemma Maclaurin_lemma2:
   assumes diff: "\<forall>m t. m < n \<and> 0\<le>t \<and> t\<le>h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
   assumes n: "n = Suc k"
@@ -96,7 +66,6 @@ unfolding difg
  apply (subst real_of_nat_mult)
  apply (simp add: mult_ac)
 done
-
 
 lemma Maclaurin:
   assumes h: "0 < h"
