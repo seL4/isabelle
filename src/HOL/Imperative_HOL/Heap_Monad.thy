@@ -320,9 +320,9 @@ fun imp_program naming =
       | NONE => K false;
     val is_bindM = is_const @{const_name bindM};
     val is_return = is_const @{const_name return};
-    val dummy_name = "X";
+    val dummy_name = "";
     val dummy_type = ITyVar dummy_name;
-    val dummy_case_term = IVar "";
+    val dummy_case_term = IVar NONE;
     (*assumption: dummy values are not relevant for serialization*)
     val unitt = case lookup_const naming @{const_name Unity}
      of SOME unit' => IConst (unit', (([], []), []))
@@ -333,7 +333,7 @@ fun imp_program naming =
             val vs = fold_varnames cons t [];
             val v = Name.variant vs "x";
             val ty' = (hd o fst o unfold_fun) ty;
-          in ((v, ty'), t `$ IVar v) end;
+          in ((SOME v, ty'), t `$ IVar (SOME v)) end;
     fun force (t as IConst (c, _) `$ t') = if is_return c
           then t' else t `$ unitt
       | force t = t `$ unitt;
@@ -346,7 +346,7 @@ fun imp_program naming =
               then tr_bind' [(x1, ty1), (x2, ty2)]
               else force t
           | _ => force t;
-    fun imp_monad_bind'' ts = (dummy_name, dummy_type) `|=> ICase (((IVar dummy_name, dummy_type),
+    fun imp_monad_bind'' ts = (SOME dummy_name, dummy_type) `|=> ICase (((IVar (SOME dummy_name), dummy_type),
       [(unitt, tr_bind' ts)]), dummy_case_term)
     and imp_monad_bind' (const as (c, (_, tys))) ts = if is_bindM c then case (ts, tys)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
