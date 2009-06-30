@@ -41,7 +41,7 @@ class OptionPane extends AbstractOptionPane("isabelle")
     if (Isabelle.Int_Property("font-size") != size)
     {
       Isabelle.Int_Property("font-size") = size
-      Swing.later { Isabelle.plugin.set_font(size) }
+      Swing_Thread.later { Isabelle.plugin.set_font(size) }
     }
   }
 }

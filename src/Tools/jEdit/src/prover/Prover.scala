@@ -138,7 +138,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                   case XML.Elem(Markup.READY, _, _)
                   if !initialized =>
                     initialized = true
-                    Swing.now { this ! ProverEvents.Activate }
+                    Swing_Thread.now { this ! ProverEvents.Activate }
 
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
@@ -262,20 +262,20 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     process.begin_document(document_id0, path)
   }
 
-  private def edit_document(old_id: String, document_id: String, changes: StructureChange) = Swing.now
-  {
-    val removes =
-      for (cmd <- changes.removed_commands) yield {
-        commands -= cmd.id
-        if (cmd.state_id != null) states -= cmd.state_id
-        changes.before_change.map(_.id).getOrElse(document_id0) -> None
-      }
-    val inserts =
-      for (cmd <- changes.added_commands) yield {
-        commands += (cmd.id -> cmd)
-        process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
-        (document.commands.prev(cmd).map(_.id).getOrElse(document_id0)) -> Some(cmd.id)
-      }
-    process.edit_document(old_id, document_id, removes.reverse ++ inserts)
-  }
+  private def edit_document(old_id: String, document_id: String, changes: StructureChange) =
+    Swing_Thread.now {
+      val removes =
+        for (cmd <- changes.removed_commands) yield {
+          commands -= cmd.id
+          if (cmd.state_id != null) states -= cmd.state_id
+          changes.before_change.map(_.id).getOrElse(document_id0) -> None
+        }
+      val inserts =
+        for (cmd <- changes.added_commands) yield {
+          commands += (cmd.id -> cmd)
+          process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
+          (document.commands.prev(cmd).map(_.id).getOrElse(document_id0)) -> Some(cmd.id)
+        }
+      process.edit_document(old_id, document_id, removes.reverse ++ inserts)
+    }
 }
