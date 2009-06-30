@@ -36,10 +36,12 @@ sig
        clause list * (thm * (axiom_name * clause_id)) list * string list ->
        clause list
   val tptp_write_file: bool -> Path.T ->
-    clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list ->
+    clause list * clause list * clause list * clause list *
+    ResClause.classrelClause list * ResClause.arityClause list ->
     int * int
   val dfg_write_file: bool -> Path.T ->
-    clause list * clause list * clause list * ResClause.classrelClause list * ResClause.arityClause list ->
+    clause list * clause list * clause list * clause list *
+    ResClause.classrelClause list * ResClause.arityClause list ->
     int * int
 end
 
@@ -459,11 +461,11 @@ fun display_arity const_needs_hBOOL (c,n) =
   Output.debug (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
                 (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
 
-fun count_constants (conjectures, axclauses, helper_clauses, _, _) =
+fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =
   if minimize_applies then
      let val (const_min_arity, const_needs_hBOOL) =
           fold count_constants_clause conjectures (Symtab.empty, Symtab.empty)
-       |> fold count_constants_clause axclauses
+       |> fold count_constants_clause extra_clauses
        |> fold count_constants_clause helper_clauses
      val _ = List.app (display_arity const_needs_hBOOL) (Symtab.dest (const_min_arity))
      in (const_min_arity, const_needs_hBOOL) end
@@ -473,7 +475,8 @@ fun count_constants (conjectures, axclauses, helper_clauses, _, _) =
 
 fun tptp_write_file t_full file clauses =
   let
-    val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
+    val (conjectures, axclauses, _, helper_clauses,
+      classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
     val params = (t_full, cma, cnh)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp params) conjectures)
@@ -494,7 +497,8 @@ fun tptp_write_file t_full file clauses =
 
 fun dfg_write_file t_full file clauses =
   let
-    val (conjectures, axclauses, helper_clauses, classrel_clauses, arity_clauses) = clauses
+    val (conjectures, axclauses, _, helper_clauses,
+      classrel_clauses, arity_clauses) = clauses
     val (cma, cnh) = count_constants clauses
     val params = (t_full, cma, cnh)
     val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg params) conjectures)

@@ -11,8 +11,9 @@ sig
   val prepare_clauses : bool -> thm list -> thm list ->
     (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list ->
     (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list -> theory ->
-    ResHolClause.axiom_name vector * (ResHolClause.clause list * ResHolClause.clause list *
-    ResHolClause.clause list * ResClause.classrelClause list * ResClause.arityClause list)
+    ResHolClause.axiom_name vector *
+      (ResHolClause.clause list * ResHolClause.clause list * ResHolClause.clause list *
+      ResHolClause.clause list * ResClause.classrelClause list * ResClause.arityClause list)
 end;
 
 structure ResAtp: RES_ATP =
@@ -550,13 +551,14 @@ fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
     and tycons = type_consts_of_terms thy (ccltms@axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
     val conjectures = ResHolClause.make_conjecture_clauses dfg thy ccls
+    val (_, extra_clauses) = ListPair.unzip (ResHolClause.make_axiom_clauses dfg thy extra_cls)
     val (clnames,axiom_clauses) = ListPair.unzip (ResHolClause.make_axiom_clauses dfg thy axcls)
     val helper_clauses = ResHolClause.get_helper_clauses dfg thy isFO (conjectures, extra_cls, [])
     val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
     val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
-      (conjectures, axiom_clauses, helper_clauses, classrel_clauses, arity_clauses))
+      (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))
   end
 
 end;
