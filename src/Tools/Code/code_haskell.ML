@@ -251,10 +251,11 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                       then NONE else (SOME o Long_Name.base_name o deresolve) c_inst_name;
                     val proto_rhs = Code_Thingol.eta_expand k (c_inst, []);
                     val (vs, rhs) = (apfst o map) fst (Code_Thingol.unfold_abs proto_rhs);
+                    val vs' = map the vs;
                     val vars = init_syms
                       |> Code_Printer.intro_vars (the_list const)
-                      |> Code_Printer.intro_vars vs;
-                    val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
+                      |> Code_Printer.intro_vars vs';
+                    val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs';
                       (*dictionaries are not relevant at this late stage*)
                   in
                     semicolon [
