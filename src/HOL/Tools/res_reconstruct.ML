@@ -457,23 +457,8 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     in  trace msg; msg  end;
 
 
-    
-  (* ==== CHECK IF PROOF OF E OR VAMPIRE WAS SUCCESSFUL === *)
-  
-  val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable",
-    "SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
-  val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
-  val failure_strings_SPASS = ["SPASS beiseite: Completion found.",
-    "SPASS beiseite: Ran out of time.", "SPASS beiseite: Maximal number of loops exceeded."];
-  val failure_strings_remote = ["Remote-script could not extract proof"];
-  fun find_failure proof =
-    let val failures =
-      map_filter (fn s => if String.isSubstring s proof then SOME s else NONE)
-         (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS @ failure_strings_remote)
-    in if null failures then NONE else SOME (hd failures) end;
-    
   (*=== EXTRACTING PROOF-TEXT === *)
-  
+
   val begin_proof_strings = ["# SZS output start CNFRefutation.",
       "=========== Refutation ==========",
   "Here is a proof"];
@@ -483,17 +468,35 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   fun get_proof_extract proof =
     let
     (*splits to_split by the first possible of a list of splitters*)
-    fun first_field_any [] to_split = NONE
-      | first_field_any (splitter::splitters) to_split =
-      let
-      val result = (first_field splitter to_split)
-      in
-        if isSome result then result else first_field_any splitters to_split
-      end
-    val (a:string, b:string) = valOf (first_field_any begin_proof_strings proof)
-    val (proofextract:string, c:string) = valOf (first_field_any end_proof_strings b)
-    in proofextract end;
-  
+    val (begin_string, end_string) =
+      (find_first (fn s => String.isSubstring s proof) begin_proof_strings,
+      find_first (fn s => String.isSubstring s proof) end_proof_strings)
+    in
+      if is_none begin_string orelse is_none end_string
+      then error "Could not extract proof (no substring indicating a proof)"
+      else proof |> first_field (the begin_string) |> the |> snd
+                 |> first_field (the end_string) |> the |> fst end;
+
+(* ==== CHECK IF PROOF OF E OR VAMPIRE WAS SUCCESSFUL === *)
+
+  val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable",
+    "SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
+  val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
+  val failure_strings_SPASS = ["SPASS beiseite: Completion found.",
+    "SPASS beiseite: Ran out of time.", "SPASS beiseite: Maximal number of loops exceeded."];
+  val failure_strings_remote = ["Remote-script could not extract proof"];
+  fun find_failure proof =
+    let val failures =
+      map_filter (fn s => if String.isSubstring s proof then SOME s else NONE)
+        (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS @ failure_strings_remote)
+    val correct = null failures andalso
+      exists (fn s => String.isSubstring s proof) begin_proof_strings andalso
+      exists (fn s => String.isSubstring s proof) end_proof_strings
+    in
+      if correct then NONE
+      else if null failures then SOME "Output of ATP not in proper format"
+      else SOME (hd failures) end;
+
   (* === EXTRACTING LEMMAS === *)
   (* lines have the form "cnf(108, axiom, ...",
   the number (108) has to be extracted)*)
