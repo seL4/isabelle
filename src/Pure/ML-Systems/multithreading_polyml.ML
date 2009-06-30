@@ -38,7 +38,7 @@ fun tracing level msg =
 
 val available = true;
 
-val max_threads = ref 1;
+val max_threads = ref 0;
 
 val tested_platform =
   let val ml_platform = getenv "ML_PLATFORM"
