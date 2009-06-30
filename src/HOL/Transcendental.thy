@@ -784,9 +784,8 @@ proof -
 	  also have "\<dots> = \<bar>f n * real (Suc n) * R' ^ n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult real_mult_assoc[symmetric] by algebra
 	  finally show ?thesis .
 	qed }
-      { fix n
-	from DERIV_pow[of "Suc n" x0, THEN DERIV_cmult[where c="f n"]]
-	show "DERIV (\<lambda> x. ?f x n) x0 :> (?f' x0 n)" unfolding real_mult_assoc by auto }
+      { fix n show "DERIV (\<lambda> x. ?f x n) x0 :> (?f' x0 n)"
+	  by (auto intro!: DERIV_intros simp del: power_Suc) }
       { fix x assume "x \<in> {-R' <..< R'}" hence "R' \<in> {-R <..< R}" and "norm x < norm R'" using assms `R' < R` by auto
 	have "summable (\<lambda> n. f n * x^n)"
 	proof (rule summable_le2[THEN conjunct1, OF _ powser_insidea[OF converges[OF `R' \<in> {-R <..< R}`] `norm x < norm R'`]], rule allI)
@@ -1416,24 +1415,17 @@ lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
 by auto
 
 lemma DERIV_cos_realpow2b: "DERIV (%x. (cos x)\<twosuperior>) x :> -(2 * cos(x) * sin(x))"
-apply (rule lemma_DERIV_subst)
-apply (rule DERIV_cos_realpow2a, auto)
-done
+  by (auto intro!: DERIV_intros)
 
 (* most useful *)
 lemma DERIV_cos_cos_mult3 [simp]:
      "DERIV (%x. cos(x)*cos(x)) x :> -(2 * cos(x) * sin(x))"
-apply (rule lemma_DERIV_subst)
-apply (rule DERIV_cos_cos_mult2, auto)
-done
+  by (auto intro!: DERIV_intros)
 
 lemma DERIV_sin_circle_all: 
      "\<forall>x. DERIV (%x. (sin x)\<twosuperior> + (cos x)\<twosuperior>) x :>  
              (2*cos(x)*sin(x) - 2*cos(x)*sin(x))"
-apply (simp only: diff_minus, safe)
-apply (rule DERIV_add) 
-apply (auto simp add: numeral_2_eq_2)
-done
+  by (auto intro!: DERIV_intros)
 
 lemma DERIV_sin_circle_all_zero [simp]:
      "\<forall>x. DERIV (%x. (sin x)\<twosuperior> + (cos x)\<twosuperior>) x :> 0"
@@ -1524,11 +1516,7 @@ lemma lemma_DERIV_sin_cos_add:
      "\<forall>x.  
          DERIV (%x. (sin (x + y) - (sin x * cos y + cos x * sin y)) ^ 2 +  
                (cos (x + y) - (cos x * cos y - sin x * sin y)) ^ 2) x :> 0"
-apply (safe, rule lemma_DERIV_subst)
-apply (best intro!: DERIV_intros intro: DERIV_chain2) 
-  --{*replaces the old @{text DERIV_tac}*}
-apply (auto simp add: algebra_simps)
-done
+  by (auto intro!: DERIV_intros simp add: algebra_simps)
 
 lemma sin_cos_add [simp]:
      "(sin (x + y) - (sin x * cos y + cos x * sin y)) ^ 2 +  
@@ -1550,10 +1538,8 @@ done
 
 lemma lemma_DERIV_sin_cos_minus:
     "\<forall>x. DERIV (%x. (sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2) x :> 0"
-apply (safe, rule lemma_DERIV_subst)
-apply (best intro!: DERIV_intros intro: DERIV_chain2)
-apply (simp add: algebra_simps)
-done
+  by (auto intro!: DERIV_intros simp add: algebra_simps)
+
 
 lemma sin_cos_minus: 
     "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0"
@@ -2121,10 +2107,7 @@ qed
 
 lemma lemma_DERIV_tan:
      "cos x \<noteq> 0 ==> DERIV (%x. sin(x)/cos(x)) x :> inverse((cos x)\<twosuperior>)"
-apply (rule lemma_DERIV_subst)
-apply (best intro!: DERIV_intros intro: DERIV_chain2) 
-apply (auto simp add: divide_inverse numeral_2_eq_2)
-done
+  by (auto intro!: DERIV_intros simp add: field_simps numeral_2_eq_2)
 
 lemma DERIV_tan [simp]: "cos x \<noteq> 0 ==> DERIV tan x :> inverse((cos x)\<twosuperior>)"
 by (auto dest: lemma_DERIV_tan simp add: tan_def [symmetric])
@@ -2594,11 +2577,7 @@ lemma [simp]:
 by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib left_distrib, auto)
 
 lemma DERIV_sin_add [simp]: "DERIV (%x. sin (x + k)) xa :> cos (xa + k)"
-apply (rule lemma_DERIV_subst)
-apply (rule_tac f = sin and g = "%x. x + k" in DERIV_chain2)
-apply (best intro!: DERIV_intros intro: DERIV_chain2)+
-apply (simp (no_asm))
-done
+  by (auto intro!: DERIV_intros)
 
 lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
 proof -
@@ -2639,11 +2618,7 @@ lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
 by (simp only: cos_add sin_add real_of_nat_Suc left_distrib right_distrib add_divide_distrib, auto)
 
 lemma DERIV_cos_add [simp]: "DERIV (%x. cos (x + k)) xa :> - sin (xa + k)"
-apply (rule lemma_DERIV_subst)
-apply (rule_tac f = cos and g = "%x. x + k" in DERIV_chain2)
-apply (best intro!: DERIV_intros intro: DERIV_chain2)+
-apply (simp (no_asm))
-done
+  by (auto intro!: DERIV_intros)
 
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
 by (auto simp add: sin_zero_iff even_mult_two_ex)

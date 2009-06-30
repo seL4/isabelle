@@ -2670,11 +2670,6 @@ fun DERIV_floatarith :: "nat \<Rightarrow> floatarith \<Rightarrow> floatarith" 
 "DERIV_floatarith x (Num f)           = Num 0" |
 "DERIV_floatarith x (Atom n)          = (if x = n then Num 1 else Num 0)"
 
-lemma DERIV_chain'': "\<lbrakk>DERIV g (f x) :> E ; DERIV f x :> D; x' = E * D \<rbrakk> \<Longrightarrow>
-  DERIV (\<lambda>x. g (f x)) x :> x'" using DERIV_chain' by auto
-
-lemma DERIV_cong: "\<lbrakk> DERIV f x :> X ; X = X' \<rbrakk> \<Longrightarrow> DERIV f x :> X'" by simp
-
 lemma DERIV_floatarith:
   assumes "n < length vs"
   assumes isDERIV: "isDERIV n f (vs[n := x])"
@@ -2682,31 +2677,20 @@ lemma DERIV_floatarith:
                interpret_floatarith (DERIV_floatarith n f) (vs[n := x])"
    (is "DERIV (?i f) x :> _")
 using isDERIV proof (induct f arbitrary: x)
-  case (Add a b) thus ?case by (auto intro: DERIV_add)
-next case (Mult a b) thus ?case by (auto intro!: DERIV_mult[THEN DERIV_cong])
-next case (Minus a) thus ?case by (auto intro!: DERIV_minus[THEN DERIV_cong])
-next case (Inverse a) thus ?case
-    by (auto intro!: DERIV_inverse_fun[THEN DERIV_cong] DERIV_inverse[THEN DERIV_cong]
+     case (Inverse a) thus ?case
+    by (auto intro!: DERIV_intros
              simp add: algebra_simps power2_eq_square)
 next case (Cos a) thus ?case
-  by (auto intro!: DERIV_chain''[of cos "?i a"]
-                   DERIV_cos[THEN DERIV_cong]
+  by (auto intro!: DERIV_intros
            simp del: interpret_floatarith.simps(5)
            simp add: interpret_floatarith_sin interpret_floatarith.simps(5)[of a])
-next case (Arctan a) thus ?case
-  by (auto intro!: DERIV_chain''[of arctan "?i a"] DERIV_arctan[THEN DERIV_cong])
-next case (Exp a) thus ?case
-  by (auto intro!: DERIV_chain''[of exp "?i a"] DERIV_exp[THEN DERIV_cong])
 next case (Power a n) thus ?case
-  by (cases n, auto intro!: DERIV_power_Suc[THEN DERIV_cong]
+  by (cases n, auto intro!: DERIV_intros
                     simp del: power_Suc simp add: real_eq_of_nat)
-next case (Sqrt a) thus ?case
-    by (auto intro!: DERIV_chain''[of sqrt "?i a"] DERIV_real_sqrt[THEN DERIV_cong])
 next case (Ln a) thus ?case
-    by (auto intro!: DERIV_chain''[of ln "?i a"] DERIV_ln[THEN DERIV_cong]
-                     simp add: divide_inverse)
+    by (auto intro!: DERIV_intros simp add: divide_inverse)
 next case (Atom i) thus ?case using `n < length vs` by auto
-qed auto
+qed (auto intro!: DERIV_intros)
 
 declare approx.simps[simp del]
 

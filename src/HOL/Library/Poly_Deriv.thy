@@ -85,13 +85,7 @@ lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: 'a::real_norme
 by (rule lemma_DERIV_subst, rule DERIV_add, auto)
 
 lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
-apply (induct p)
-apply simp
-apply (simp add: pderiv_pCons)
-apply (rule lemma_DERIV_subst)
-apply (rule DERIV_add DERIV_mult DERIV_const DERIV_ident | assumption)+
-apply simp
-done
+  by (induct p, auto intro!: DERIV_intros simp add: pderiv_pCons)
 
 text{* Consequences of the derivative theorem above*}
 

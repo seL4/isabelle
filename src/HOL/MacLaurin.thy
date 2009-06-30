@@ -91,7 +91,7 @@ unfolding difg
  apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc power_Suc)
  apply (rule DERIV_cmult)
  apply (rule lemma_DERIV_subst)
-  apply (best intro: DERIV_chain2 intro!: DERIV_intros)
+  apply (best intro!: DERIV_intros)
  apply (subst fact_Suc)
  apply (subst real_of_nat_mult)
  apply (simp add: mult_ac)
@@ -565,9 +565,7 @@ proof -
     apply (clarify)
     apply (subst (1 2 3) mod_Suc_eq_Suc_mod)
     apply (cut_tac m=m in mod_exhaust_less_4)
-    apply (safe, simp_all)
-    apply (rule DERIV_minus, simp)
-    apply (rule lemma_DERIV_subst, rule DERIV_minus, rule DERIV_cos, simp)
+    apply (safe, auto intro!: DERIV_intros)
     done
   from Maclaurin_all_le [OF diff_0 DERIV_diff]
   obtain t where t1: "\<bar>t\<bar> \<le> \<bar>x\<bar>" and
