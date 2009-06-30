@@ -75,6 +75,14 @@ approximation method.
 * "approximate" supports now arithmetic expressions as boundaries of intervals and implements
 interval splitting and taylor series expansion.
 
+* Changed DERIV_intros to a NamedThmsFun. Each of the theorems in DERIV_intros
+assumes composition with an additional function and matches a variable to the
+derivative, which has to be solved by the simplifier. Hence
+(auto intro!: DERIV_intros) computes the derivative of most elementary terms.
+
+* Maclauren.DERIV_tac and Maclauren.deriv_tac was removed, they are replaced by:
+(auto intro!: DERIV_intros)
+INCOMPATIBILITY.
 
 *** ML ***
 
