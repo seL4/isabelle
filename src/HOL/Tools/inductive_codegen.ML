@@ -378,7 +378,7 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
           end
       | compile_prems out_ts vs names ps gr =
           let
-            val vs' = distinct (op =) (List.concat (vs :: map term_vs out_ts));
+            val vs' = distinct (op =) (flat (vs :: map term_vs out_ts));
             val SOME (p, mode as SOME (Mode (_, js, _))) =
               select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;
@@ -404,7 +404,9 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
                          (compile_expr thy defs dep module false modes
                            (mode, t) gr2)
                      else
-                       apfst (fn p => [str "DSeq.of_list", Pretty.brk 1, p])
+                       apfst (fn p => Pretty.breaks [str "DSeq.of_list", str "(case", p,
+                         str "of", str "Set", str "xs", str "=>", str "xs)"])
+                         (*this is a very strong assumption about the generated code!*)
                            (invoke_codegen thy defs dep module true t gr2);
                    val (rest, gr4) = compile_prems out_ts''' vs' (fst nvs) ps' gr3;
                  in
@@ -661,8 +663,10 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
                     let val (call_p, gr') = mk_ind_call thy defs dep module true
                       s T (ts1 @ ts2') names thyname k intrs gr 
                     in SOME ((if brack then parens else I) (Pretty.block
-                      [str "DSeq.list_of", Pretty.brk 1, str "(",
-                       conv_ntuple fs ots call_p, str ")"]), gr')
+                      [str "Set", Pretty.brk 1, str "(DSeq.list_of", Pretty.brk 1, str "(",
+                       conv_ntuple fs ots call_p, str "))"]),
+                       (*this is a very strong assumption about the generated code!*)
+                       gr')
                     end
                   else NONE
                 end

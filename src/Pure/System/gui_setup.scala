@@ -29,8 +29,8 @@ object GUI_Setup extends GUIApplication
     // components
     val text = new TextArea {
       editable = false
-      columns = 40
-      rows = 15
+      columns = 80
+      rows = 20
       xLayoutAlignment = 0.5
     }
     val ok = new Button {
@@ -53,6 +53,7 @@ object GUI_Setup extends GUIApplication
         text.append("Main platform: " + name1 + "\n")
         text.append("Alternative platform: " + name2 + "\n")
     }
+    text.append("Isabelle home: " + java.lang.System.getProperty("isabelle.home"))
 
     // reactions
     listenTo(ok)

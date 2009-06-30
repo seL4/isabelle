@@ -70,7 +70,7 @@ lemma remove_set:
   by (auto simp add: remove_def remove_all_def)
 
 lemma image_set:
-  "image f (set xs) = set (remdups (map f xs))"
+  "image f (set xs) = set (map f xs)"
   by simp
 
 lemma project_set:
@@ -159,5 +159,8 @@ lemma set_eq:
 lemma inter:
   "A \<inter> B = project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
+
+
+hide (open) const insert
 
 end

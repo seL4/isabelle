@@ -330,15 +330,6 @@ fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
        else I)}
 and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
 
-fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
-  let
-    val all_arities = map (fn raw_tyco => Sign.read_arity thy
-      (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
-    val tycos = map #1 all_arities;
-    val (_, sorts, sort) = hd all_arities;
-    val vs = Name.names Name.context Name.aT sorts;
-  in (tycos, vs, sort) end;
-
 fun gen_overloading prep_const raw_ops thy =
   let
     val ctxt = ProofContext.init thy;
@@ -356,7 +347,7 @@ fun context "-" thy = init NONE thy
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false arities []);
 fun instantiation_cmd raw_arities thy =
-  instantiation (read_multi_arity thy raw_arities) thy;
+  instantiation (Class_Target.read_multi_arity thy raw_arities) thy;
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
 val overloading_cmd = gen_overloading Syntax.read_term;

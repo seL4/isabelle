@@ -94,9 +94,9 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
                [pr_term is_closure thm vars NOBR t1, pr_term is_closure thm vars BR t2])
       | pr_term is_closure thm vars fxy (t as _ `|=> _) =
           let
-            val (binds, t') = Code_Thingol.unfold_abs t;
-            fun pr ((v, pat), ty) =
-              pr_bind is_closure thm NOBR ((SOME v, pat), ty)
+            val (binds, t') = Code_Thingol.unfold_pat_abs t;
+            fun pr (some_pat, ty) =
+              pr_bind is_closure thm NOBR (some_pat, ty)
               #>> (fn p => concat [str "fn", p, str "=>"]);
             val (ps, vars') = fold_map pr binds vars;
           in brackets (ps @ [pr_term is_closure thm vars' NOBR t']) end
@@ -122,17 +122,15 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
           :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term is_closure thm vars BR) ts
     and pr_app is_closure thm vars = gen_pr_app (pr_app' is_closure) (pr_term is_closure)
       syntax_const thm vars
-    and pr_bind' ((NONE, NONE), _) = str "_"
-      | pr_bind' ((SOME v, NONE), _) = str v
-      | pr_bind' ((NONE, SOME p), _) = p
-      | pr_bind' ((SOME v, SOME p), _) = concat [str v, str "as", p]
+    and pr_bind' (NONE, _) = str "_"
+      | pr_bind' (SOME p, _) = p
     and pr_bind is_closure = gen_pr_bind pr_bind' (pr_term is_closure)
     and pr_case is_closure thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
-              |> pr_bind is_closure thm NOBR ((NONE, SOME pat), ty)
+              |> pr_bind is_closure thm NOBR (SOME pat, ty)
               |>> (fn p => semicolon [str "val", p, str "=", pr_term is_closure thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in
@@ -146,7 +144,7 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
           let
             fun pr delim (pat, body) =
               let
-                val (p, vars') = pr_bind is_closure thm NOBR ((NONE, SOME pat), ty) vars;
+                val (p, vars') = pr_bind is_closure thm NOBR (SOME pat, ty) vars;
               in
                 concat [str delim, p, str "=>", pr_term is_closure thm vars' NOBR body]
               end;
@@ -403,9 +401,8 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
                 brackify fxy [pr_term is_closure thm vars NOBR t1, pr_term is_closure thm vars BR t2])
       | pr_term is_closure thm vars fxy (t as _ `|=> _) =
           let
-            val (binds, t') = Code_Thingol.unfold_abs t;
-            fun pr ((v, pat), ty) = pr_bind is_closure thm BR ((SOME v, pat), ty);
-            val (ps, vars') = fold_map pr binds vars;
+            val (binds, t') = Code_Thingol.unfold_pat_abs t;
+            val (ps, vars') = fold_map (pr_bind is_closure thm BR) binds vars;
           in brackets (str "fun" :: ps @ str "->" @@ pr_term is_closure thm vars' NOBR t') end
       | pr_term is_closure thm vars fxy (ICase (cases as (_, t0))) = (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
@@ -427,17 +424,15 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
         :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term is_closure thm vars BR) ts)
     and pr_app is_closure = gen_pr_app (pr_app' is_closure) (pr_term is_closure)
       syntax_const
-    and pr_bind' ((NONE, NONE), _) = str "_"
-      | pr_bind' ((SOME v, NONE), _) = str v
-      | pr_bind' ((NONE, SOME p), _) = p
-      | pr_bind' ((SOME v, SOME p), _) = brackets [p, str "as", str v]
+    and pr_bind' (NONE, _) = str "_"
+      | pr_bind' (SOME p, _) = p
     and pr_bind is_closure = gen_pr_bind pr_bind' (pr_term is_closure)
     and pr_case is_closure thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
-              |> pr_bind is_closure thm NOBR ((NONE, SOME pat), ty)
+              |> pr_bind is_closure thm NOBR (SOME pat, ty)
               |>> (fn p => concat
                   [str "let", p, str "=", pr_term is_closure thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
@@ -449,7 +444,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
           let
             fun pr delim (pat, body) =
               let
-                val (p, vars') = pr_bind is_closure thm NOBR ((NONE, SOME pat), ty) vars;
+                val (p, vars') = pr_bind is_closure thm NOBR (SOME pat, ty) vars;
               in concat [str delim, p, str "->", pr_term is_closure thm vars' NOBR body] end;
           in
             brackets (

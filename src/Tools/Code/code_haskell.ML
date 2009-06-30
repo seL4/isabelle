@@ -25,10 +25,8 @@ infixr 5 @|;
 
 fun pr_haskell_bind pr_term =
   let
-    fun pr_bind ((NONE, NONE), _) = str "_"
-      | pr_bind ((SOME v, NONE), _) = str v
-      | pr_bind ((NONE, SOME p), _) = p
-      | pr_bind ((SOME v, SOME p), _) = brackets [str v, str "@", p];
+    fun pr_bind (NONE, _) = str "_"
+      | pr_bind (SOME p, _) = p;
   in gen_pr_bind pr_bind pr_term end;
 
 fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
@@ -72,9 +70,8 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           (str o Code_Printer.lookup_var vars) v
       | pr_term tyvars thm vars fxy (t as _ `|=> _) =
           let
-            val (binds, t') = Code_Thingol.unfold_abs t;
-            fun pr ((v, pat), ty) = pr_bind tyvars thm BR ((SOME v, pat), ty);
-            val (ps, vars') = fold_map pr binds vars;
+            val (binds, t') = Code_Thingol.unfold_pat_abs t;
+            val (ps, vars') = fold_map (pr_bind tyvars thm BR) binds vars;
           in brackets (str "\\" :: ps @ str "->" @@ pr_term tyvars thm vars' NOBR t') end
       | pr_term tyvars thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
@@ -103,7 +100,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
-              |> pr_bind tyvars thm BR ((NONE, SOME pat), ty)
+              |> pr_bind tyvars thm BR (SOME pat, ty)
               |>> (fn p => semicolon [p, str "=", pr_term tyvars thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in brackify_block fxy (str "let {")
@@ -114,7 +111,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           let
             fun pr (pat, body) =
               let
-                val (p, vars') = pr_bind tyvars thm NOBR ((NONE, SOME pat), ty) vars;
+                val (p, vars') = pr_bind tyvars thm NOBR (SOME pat, ty) vars;
               in semicolon [p, str "->", pr_term tyvars thm vars' NOBR body] end;
           in brackify_block fxy
             (concat [str "case", pr_term tyvars thm vars NOBR t, str "of", str "{"])
@@ -240,8 +237,6 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
           let
-            val split_abs_pure = (fn (v, _) `|=> t => SOME (v, t) | _ => NONE);
-            val unfold_abs_pure = Code_Thingol.unfoldr split_abs_pure;
             val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             fun pr_instdef ((classparam, c_inst), (thm, _)) = case syntax_const classparam
              of NONE => semicolon [
@@ -255,7 +250,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                     val const = if (is_some o syntax_const) c_inst_name
                       then NONE else (SOME o Long_Name.base_name o deresolve) c_inst_name;
                     val proto_rhs = Code_Thingol.eta_expand k (c_inst, []);
-                    val (vs, rhs) = unfold_abs_pure proto_rhs;
+                    val (vs, rhs) = (apfst o map) fst (Code_Thingol.unfold_abs proto_rhs);
                     val vars = init_syms
                       |> Code_Printer.intro_vars (the_list const)
                       |> Code_Printer.intro_vars vs;
@@ -447,16 +442,16 @@ in Literals {
 
 fun pretty_haskell_monad c_bind =
   let
-    fun dest_bind t1 t2 = case Code_Thingol.split_abs t2
-     of SOME (((v, pat), ty), t') =>
-          SOME ((SOME (((SOME v, pat), ty), true), t1), t')
+    fun dest_bind t1 t2 = case Code_Thingol.split_pat_abs t2
+     of SOME ((some_pat, ty), t') =>
+          SOME ((SOME ((some_pat, ty), true), t1), t')
       | NONE => NONE;
     fun dest_monad c_bind_name (IConst (c, _) `$ t1 `$ t2) =
           if c = c_bind_name then dest_bind t1 t2
           else NONE
       | dest_monad _ t = case Code_Thingol.split_let t
          of SOME (((pat, ty), tbind), t') =>
-              SOME ((SOME (((NONE, SOME pat), ty), false), tbind), t')
+              SOME ((SOME ((SOME pat, ty), false), tbind), t')
           | NONE => NONE;
     fun implode_monad c_bind_name = Code_Thingol.unfoldr (dest_monad c_bind_name);
     fun pr_monad pr_bind pr (NONE, t) vars =

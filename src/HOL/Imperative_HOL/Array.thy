@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/Array.thy
-    ID:         $Id$
+(*  Title:      HOL/Imperative_HOL/Array.thy
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 

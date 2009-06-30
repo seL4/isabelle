@@ -59,6 +59,12 @@ lemma Float_num[simp]: shows
    "real (Float -1 0) = -1" and "real (Float (number_of n) 0) = number_of n"
   by auto
 
+lemma float_number_of[simp]: "real (number_of x :: float) = number_of x"
+  by (simp only:number_of_float_def Float_num[unfolded number_of_is_id])
+
+lemma float_number_of_int[simp]: "real (Float n 0) = real n"
+  by (simp add: Float_num[unfolded number_of_is_id] real_of_float_simp pow2_def)
+
 lemma pow2_0[simp]: "pow2 0 = 1" by simp
 lemma pow2_1[simp]: "pow2 1 = 2" by simp
 lemma pow2_neg: "pow2 x = inverse (pow2 (-x))" by simp
