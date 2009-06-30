@@ -372,6 +372,41 @@ proof (rule DERIV_inverse_function)
     using odd_pos [OF n] by (rule isCont_real_root)
 qed
 
+lemma DERIV_even_real_root:
+  assumes n: "0 < n" and "even n"
+  assumes x: "x < 0"
+  shows "DERIV (root n) x :> inverse (- real n * root n x ^ (n - Suc 0))"
+proof (rule DERIV_inverse_function)
+  show "x - 1 < x" by simp
+  show "x < 0" using x .
+next
+  show "\<forall>y. x - 1 < y \<and> y < 0 \<longrightarrow> - (root n y ^ n) = y"
+  proof (rule allI, rule impI, erule conjE)
+    fix y assume "x - 1 < y" and "y < 0"
+    hence "root n (-y) ^ n = -y" using `0 < n` by simp
+    with real_root_minus[OF `0 < n`] and `even n`
+    show "- (root n y ^ n) = y" by simp
+  qed
+next
+  show "DERIV (\<lambda>x. - (x ^ n)) (root n x) :> - real n * root n x ^ (n - Suc 0)"
+    by  (auto intro!: DERIV_intros)
+  show "- real n * root n x ^ (n - Suc 0) \<noteq> 0"
+    using n x by simp
+  show "isCont (root n) x"
+    using n by (rule isCont_real_root)
+qed
+
+lemma DERIV_real_root_generic:
+  assumes "0 < n" and "x \<noteq> 0"
+  and even: "\<lbrakk> even n ; 0 < x \<rbrakk> \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
+  and even: "\<lbrakk> even n ; x < 0 \<rbrakk> \<Longrightarrow> D = - inverse (real n * root n x ^ (n - Suc 0))"
+  and odd: "odd n \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
+  shows "DERIV (root n) x :> D"
+using assms by (cases "even n", cases "0 < x",
+  auto intro: DERIV_real_root[THEN DERIV_cong]
+              DERIV_odd_real_root[THEN DERIV_cong]
+              DERIV_even_real_root[THEN DERIV_cong])
+
 subsection {* Square Root *}
 
 definition
@@ -456,9 +491,21 @@ lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, simplified]
 lemma isCont_real_sqrt: "isCont sqrt x"
 unfolding sqrt_def by (rule isCont_real_root [OF pos2])
 
+lemma DERIV_real_sqrt_generic:
+  assumes "x \<noteq> 0"
+  assumes "x > 0 \<Longrightarrow> D = inverse (sqrt x) / 2"
+  assumes "x < 0 \<Longrightarrow> D = - inverse (sqrt x) / 2"
+  shows "DERIV sqrt x :> D"
+  using assms unfolding sqrt_def
+  by (auto intro!: DERIV_real_root_generic)
+
 lemma DERIV_real_sqrt:
   "0 < x \<Longrightarrow> DERIV sqrt x :> inverse (sqrt x) / 2"
-unfolding sqrt_def by (rule DERIV_real_root [OF pos2, simplified])
+  using DERIV_real_sqrt_generic by simp
+
+declare
+  DERIV_real_sqrt_generic[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_real_root_generic[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
 
 lemma not_real_square_gt_zero [simp]: "(~ (0::real) < x*x) = (x = 0)"
 apply auto

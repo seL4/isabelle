@@ -1362,6 +1362,12 @@ lemma isCont_cos [simp]: "isCont cos x"
 by (rule DERIV_cos [THEN DERIV_isCont])
 
 
+declare
+  DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_ln[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_sin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_cos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+
 subsection {* Properties of Sine and Cosine *}
 
 lemma sin_zero [simp]: "sin 0 = 0"
@@ -1512,12 +1518,6 @@ apply (rule lemma_DERIV_subst)
 apply (rule_tac f = cos in DERIV_chain2)
 apply (rule DERIV_cos, auto)
 done
-
-lemmas DERIV_intros = DERIV_ident DERIV_const DERIV_cos DERIV_cmult 
-                    DERIV_sin  DERIV_exp  DERIV_inverse DERIV_pow 
-                    DERIV_add  DERIV_diff  DERIV_mult  DERIV_minus 
-                    DERIV_inverse_fun DERIV_quotient DERIV_fun_pow 
-                    DERIV_fun_exp DERIV_fun_sin DERIV_fun_cos 
 
 (* lemma *)
 lemma lemma_DERIV_sin_cos_add:
@@ -1722,7 +1722,7 @@ apply (drule_tac y1 = xa in order_le_less_trans [THEN sin_gt_zero])
 apply (assumption, rule_tac y=y in order_less_le_trans, simp_all) 
 apply (drule_tac y1 = y in order_le_less_trans [THEN sin_gt_zero], assumption, simp_all) 
 done
-    
+
 lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
 by (simp add: pi_def)
 
@@ -2499,6 +2499,11 @@ apply (subgoal_tac "0 < 1 + x\<twosuperior>", simp)
 apply (simp add: add_pos_nonneg)
 apply (simp, simp, simp, rule isCont_arctan)
 done
+
+declare
+  DERIV_arcsin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_arccos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_arctan[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
 
 subsection {* More Theorems about Sin and Cos *}
 

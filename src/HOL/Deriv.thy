@@ -115,12 +115,16 @@ done
 
 text{*Differentiation of finite sum*}
 
+lemma DERIV_setsum:
+  assumes "finite S"
+  and "\<And> n. n \<in> S \<Longrightarrow> DERIV (%x. f x n) x :> (f' x n)"
+  shows "DERIV (%x. setsum (f x) S) x :> setsum (f' x) S"
+  using assms by induct (auto intro!: DERIV_add)
+
 lemma DERIV_sumr [rule_format (no_asm)]:
      "(\<forall>r. m \<le> r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x))
       --> DERIV (%x. \<Sum>n=m..<n::nat. f n x :: real) x :> (\<Sum>r=m..<n. f' r x)"
-apply (induct "n")
-apply (auto intro: DERIV_add)
-done
+  by (auto intro: DERIV_setsum)
 
 text{*Alternative definition for differentiability*}
 
@@ -216,7 +220,6 @@ lemma DERIV_power:
   shows "DERIV (\<lambda>x. f x ^ n) x :> of_nat n * (D * f x ^ (n - Suc 0))"
 by (cases "n", simp, simp add: DERIV_power_Suc f del: power_Suc)
 
-
 text {* Caratheodory formulation of derivative at a point *}
 
 lemma CARAT_DERIV:
@@ -308,6 +311,30 @@ by (drule (2) DERIV_divide) (simp add: mult_commute)
 lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
 by auto
 
+text {* DERIV_intros *}
+
+ML{*
+structure DerivIntros =
+  NamedThmsFun(val name = "DERIV_intros"
+               val description = "DERIV introduction rules");
+*}
+setup DerivIntros.setup
+
+lemma DERIV_cong: "\<lbrakk> DERIV f x :> X ; X = Y \<rbrakk> \<Longrightarrow> DERIV f x :> Y"
+  by simp
+
+declare
+  DERIV_const[THEN DERIV_cong, DERIV_intros]
+  DERIV_ident[THEN DERIV_cong, DERIV_intros]
+  DERIV_add[THEN DERIV_cong, DERIV_intros]
+  DERIV_minus[THEN DERIV_cong, DERIV_intros]
+  DERIV_mult[THEN DERIV_cong, DERIV_intros]
+  DERIV_diff[THEN DERIV_cong, DERIV_intros]
+  DERIV_inverse'[THEN DERIV_cong, DERIV_intros]
+  DERIV_divide[THEN DERIV_cong, DERIV_intros]
+  DERIV_power[where 'a=real, THEN DERIV_cong,
+              unfolded real_of_nat_def[symmetric], DERIV_intros]
+  DERIV_setsum[THEN DERIV_cong, DERIV_intros]
 
 subsection {* Differentiability predicate *}
 
