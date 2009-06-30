@@ -16,7 +16,7 @@ object GUI_Setup extends GUIApplication
 {
   def main(args: Array[String]) =
   {
-    Swing.later {
+    Swing_Thread.later {
       UIManager.setLookAndFeel(Platform.look_and_feel)
       top.pack()
       top.visible = true

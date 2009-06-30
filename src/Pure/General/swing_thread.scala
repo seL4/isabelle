@@ -1,14 +1,14 @@
-/*  Title:      Pure/General/swing.scala
+/*  Title:      Pure/General/swing_thread.scala
     Author:     Makarius
 
-Swing utilities.
+Evaluation within the AWT/Swing thread.
 */
 
 package isabelle
 
 import javax.swing.SwingUtilities
 
-object Swing
+object Swing_Thread
 {
   def now[A](body: => A): A = {
     var result: Option[A] = None
