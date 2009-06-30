@@ -1404,7 +1404,7 @@ let
   val _ = map (Output.tracing o (Syntax.string_of_term_global thy')) (flat ts)
   val pred_mode =
     maps (fn (s, (T, _)) => map (pair (s, T)) ((the o AList.lookup (op =) modes) s)) clauses' 
-  val _ = tracing "Proving equations..."
+  val _ = Output.tracing "Proving equations..."
   val result_thms =
     prove_preds thy' all_vs param_vs (extra_modes @ modes) clauses (pred_mode ~~ (flat ts))
   val thy'' = fold (fn (name, result_thms) => fn thy => snd (PureThy.add_thmss
