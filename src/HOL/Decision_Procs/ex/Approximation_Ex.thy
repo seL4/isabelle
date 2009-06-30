@@ -10,7 +10,7 @@ Here are some examples how to use the approximation method.
 
 The approximation method has the following syntax:
 
-\verb| approximate "prec" (splitting: "x" = "depth" and "y" = "depth" \<dots>)? (taylor: "z" = "derivates")? |
+approximate "prec" (splitting: "x" = "depth" and "y" = "depth" ...)? (taylor: "z" = "derivates")?
 
 Here "prec" specifies the precision used in all computations, it is specified as
 number of bits to calculate. In the proposition to prove an arbitrary amount of
@@ -24,8 +24,8 @@ be connected using either meta level or HOL equivalence.
 
 To use interval splitting add for each variable whos interval should be splitted
 to the "splitting:" parameter. The parameter specifies how often each interval
-should be divided, e.g. when x = 16 is specified, there will be $65536 = 2^16$ intervals
-to be calculated.
+should be divided, e.g. when x = 16 is specified, there will be @{term "65536 = 2^16"}
+intervals to be calculated.
 
 To use taylor series expansion specify the variable to derive. You need to
 specify the amount of derivations to compute. When using taylor series expansion
