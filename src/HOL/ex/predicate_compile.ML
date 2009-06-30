@@ -9,6 +9,7 @@ sig
   type mode = int list option list * int list
   val add_equations_of: string list -> theory -> theory
   val register_predicate : (thm list * thm * int) -> theory -> theory
+  val is_registered : theory -> string -> bool
   val fetch_pred_data : theory -> string -> (thm list * thm * int)  
   val predfun_intro_of: theory -> string -> mode -> thm
   val predfun_elim_of: theory -> string -> mode -> thm
@@ -192,7 +193,7 @@ fun the_pred_data thy name = case lookup_pred_data thy name
  of NONE => error ("No such predicate " ^ quote name)  
   | SOME data => data;
 
-val is_pred = is_some oo lookup_pred_data 
+val is_registered = is_some oo lookup_pred_data 
 
 val all_preds_of = Graph.keys o PredData.get
 
@@ -308,7 +309,7 @@ fun is_inductive_predicate thy name =
   is_some (try (Inductive.the_inductive (ProofContext.init thy)) name)
 
 fun depending_preds_of thy intros = fold Term.add_consts (map Thm.prop_of intros) [] |> map fst
-    |> filter (fn c => is_inductive_predicate thy c orelse is_pred thy c)
+    |> filter (fn c => is_inductive_predicate thy c orelse is_registered thy c)
 
 (* code dependency graph *)    
 fun dependencies_of thy name =
@@ -651,10 +652,11 @@ fun compile_param_ext thy modes (NONE, t) = t
 
 and compile_param thy modes (NONE, t) = t
  | compile_param thy modes (m as SOME (Mode ((iss, is'), is, ms)), t) =
-   (case t of
-     Abs _ => compile_param_ext thy modes (m, t)
-   |  _ => let
-     val (f, args) = strip_comb t
+   (* (case t of
+     Abs _ => error "compile_param: Invalid term" *) (* compile_param_ext thy modes (m, t) *)
+   (*  |  _ => let *)
+   let  
+     val (f, args) = strip_comb (Envir.eta_contract t)
      val (params, args') = chop (length ms) args
      val params' = map (compile_param thy modes) (ms ~~ params)
      val f' = case f of
@@ -663,7 +665,7 @@ and compile_param thy modes (NONE, t) = t
              Const (predfun_name_of thy name (iss, is'), funT'_of (iss, is') T)
           else error "compile param: Not an inductive predicate with correct mode"
       | Free (name, T) => Free (name, funT_of T (SOME is'))
-   in list_comb (f', params' @ args') end)
+   in list_comb (f', params' @ args') end
  | compile_param _ _ _ = error "compile params"
   
   
@@ -1142,7 +1144,7 @@ fun prove_match2 thy out_ts = let
 (* VERY LARGE SIMILIRATIY to function prove_param 
 -- join both functions
 *)
-(*
+
 fun prove_param2 thy modes (NONE, t) = all_tac 
   | prove_param2 thy modes (m as SOME (Mode (mode, is, ms)), t) = let
     val  (f, args) = strip_comb t
@@ -1158,7 +1160,7 @@ fun prove_param2 thy modes (NONE, t) = all_tac
     THEN print_tac "after simplification in prove_args"
     THEN (EVERY (map (prove_param2 thy modes) (ms ~~ params)))
   end
-*)
+
 
 fun prove_expr2 thy modes (SOME (Mode (mode, is, ms)), t) = 
   (case strip_comb t of
@@ -1166,14 +1168,16 @@ fun prove_expr2 thy modes (SOME (Mode (mode, is, ms)), t) =
       if AList.defined op = modes name then
         etac @{thm bindE} 1
         THEN (REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"})))
+        THEN new_print_tac "prove_expr2-before"
         THEN (debug_tac (Syntax.string_of_term_global thy
           (prop_of (predfun_elim_of thy name mode))))
         THEN (etac (predfun_elim_of thy name mode) 1)
         THEN new_print_tac "prove_expr2"
         (* TODO -- FIXME: replace remove_last_goal*)
-        THEN (EVERY (replicate (length args) (remove_last_goal thy)))
+        (* THEN (EVERY (replicate (length args) (remove_last_goal thy))) *)
+        THEN (EVERY (map (prove_param thy modes) (ms ~~ args)))
         THEN new_print_tac "finished prove_expr2"
-        (* THEN (EVERY (map (prove_param thy modes) (ms ~~ args))) *)
+      
       else error "Prove expr2 if case not implemented"
     | _ => etac @{thm bindE} 1)
   | prove_expr2 _ _ _ = error "Prove expr2 not implemented"
@@ -1348,7 +1352,7 @@ fun prepare_intrs thy prednames =
         | Negprem _ => error ("Double negation not allowed in premise: " ^ (Syntax.string_of_term_global thy (c $ t))) 
         | Sidecond t => Sidecond (c $ t))
       | (c as Const (s, _), ts) =>
-        if is_pred thy s then
+        if is_registered thy s then
           let val (ts1, ts2) = chop (nparams_of thy s) ts
           in Prem (ts2, list_comb (c, ts1)) end
         else Sidecond t
