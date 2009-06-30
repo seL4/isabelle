@@ -68,10 +68,10 @@ sig
     -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> (string -> const_syntax option)
     -> thm -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
-  val gen_pr_bind: ((string option * Pretty.T option) * itype -> Pretty.T)
+  val gen_pr_bind: (Pretty.T option * itype -> Pretty.T)
     -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> fixity
-    -> (string option * iterm option) * itype -> var_ctxt -> Pretty.T * var_ctxt
+    -> iterm option * itype -> var_ctxt -> Pretty.T * var_ctxt
 
   val mk_name_module: Name.context -> string option -> (string -> string option)
     -> 'a Graph.T -> string -> string
@@ -216,16 +216,14 @@ fun gen_pr_app pr_app pr_term syntax_const thm vars fxy (app as ((c, (_, tys)), 
           else pr_term thm vars fxy (Code_Thingol.eta_expand k app)
         end;
 
-fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) ((v, pat), ty : itype) vars =
+fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) (some_pat, ty : itype) vars =
   let
-    val vs = case pat
+    val vs = case some_pat
      of SOME pat => Code_Thingol.fold_varnames (insert (op =)) pat []
       | NONE => [];
-    val vars' = intro_vars (the_list v) vars;
-    val vars'' = intro_vars vs vars';
-    val v' = Option.map (lookup_var vars') v;
-    val pat' = Option.map (pr_term thm vars'' fxy) pat;
-  in (pr_bind ((v', pat'), ty), vars'') end;
+    val vars' = intro_vars vs vars;
+    val some_pat' = Option.map (pr_term thm vars' fxy) some_pat;
+  in (pr_bind (some_pat', ty), vars') end;
 
 
 (* mixfix syntax *)
