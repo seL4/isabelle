@@ -118,7 +118,7 @@ clean:
 ## Scala material
 
 SCALA_FILES = General/event_bus.scala General/markup.scala		\
-  General/position.scala General/scan.scala General/swing.scala		\
+  General/position.scala General/scan.scala General/swing_thread.scala	\
   General/symbol.scala General/xml.scala General/yxml.scala		\
   Isar/isar.scala Isar/isar_document.scala Isar/outer_keyword.scala	\
   System/cygwin.scala System/gui_setup.scala				\
