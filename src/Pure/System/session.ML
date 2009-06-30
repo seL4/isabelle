@@ -103,7 +103,10 @@ fun use_dir item root build modes reset info doc doc_graph doc_versions parent
           val start = start_timing ();
           val _ = use root;
           val stop = end_timing start;
-          val _ = Output.std_error ("Timing " ^ item ^ " (" ^ #message stop ^ ")\n");
+          val _ =
+            Output.std_error ("Timing " ^ item ^ " (" ^
+              string_of_int (Multithreading.max_threads_value ()) ^ " threads, " ^
+              #message stop ^ ")\n");
         in () end
       else use root;
       finish ()))
