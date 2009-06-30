@@ -306,66 +306,74 @@ code_const return (OCaml "!(fun/ ()/ ->/ _)")
 code_const "Heap_Monad.Fail" (OCaml "Failure")
 code_const "Heap_Monad.raise_exc" (OCaml "!(fun/ ()/ ->/ raise/ _)")
 
-setup {* let
-  open Code_Thingol;
+setup {*
 
-  fun lookup naming = the o Code_Thingol.lookup_const naming;
+let
 
-  fun imp_monad_bind'' bind' return' unit' ts =
-    let
-      val dummy_name = "";
-      val dummy_type = ITyVar dummy_name;
-      val dummy_case_term = IVar dummy_name;
-      (*assumption: dummy values are not relevant for serialization*)
-      val unitt = IConst (unit', (([], []), []));
-      fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
-        | dest_abs (t, ty) =
-            let
-              val vs = Code_Thingol.fold_varnames cons t [];
-              val v = Name.variant vs "x";
-              val ty' = (hd o fst o Code_Thingol.unfold_fun) ty;
-            in ((v, ty'), t `$ IVar v) end;
-      fun force (t as IConst (c, _) `$ t') = if c = return'
-            then t' else t `$ unitt
-        | force t = t `$ unitt;
-      fun tr_bind' [(t1, _), (t2, ty2)] =
-        let
-          val ((v, ty), t) = dest_abs (t2, ty2);
-        in ICase (((force t1, ty), [(IVar v, tr_bind'' t)]), dummy_case_term) end
-      and tr_bind'' t = case Code_Thingol.unfold_app t
-           of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if c = bind'
-                then tr_bind' [(x1, ty1), (x2, ty2)]
-                else force t
-            | _ => force t;
-    in (dummy_name, dummy_type) `|=> ICase (((IVar dummy_name, dummy_type),
-      [(unitt, tr_bind' ts)]), dummy_case_term) end
-  and imp_monad_bind' bind' return' unit' (const as (c, (_, tys))) ts = if c = bind' then case (ts, tys)
-     of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' bind' return' unit' [(t1, ty1), (t2, ty2)]
-      | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' bind' return' unit' [(t1, ty1), (t2, ty2)] `$ t3
-      | (ts, _) => imp_monad_bind bind' return' unit' (eta_expand 2 (const, ts))
-    else IConst const `$$ map (imp_monad_bind bind' return' unit') ts
-  and imp_monad_bind bind' return' unit' (IConst const) = imp_monad_bind' bind' return' unit' const []
-    | imp_monad_bind bind' return' unit' (t as IVar _) = t
-    | imp_monad_bind bind' return' unit' (t as _ `$ _) = (case unfold_app t
-       of (IConst const, ts) => imp_monad_bind' bind' return' unit' const ts
-        | (t, ts) => imp_monad_bind bind' return' unit' t `$$ map (imp_monad_bind bind' return' unit') ts)
-    | imp_monad_bind bind' return' unit' (v_ty `|=> t) = v_ty `|=> imp_monad_bind bind' return' unit' t
-    | imp_monad_bind bind' return' unit' (ICase (((t, ty), pats), t0)) = ICase
-        (((imp_monad_bind bind' return' unit' t, ty), (map o pairself) (imp_monad_bind bind' return' unit') pats), imp_monad_bind bind' return' unit' t0);
+open Code_Thingol;
 
-  fun imp_program naming = (Graph.map_nodes o map_terms_stmt)
-    (imp_monad_bind (lookup naming @{const_name bindM})
-      (lookup naming @{const_name return})
-      (lookup naming @{const_name Unity}));
+fun imp_program naming =
+
+  let
+    fun is_const c = case lookup_const naming c
+     of SOME c' => (fn c'' => c' = c'')
+      | NONE => K false;
+    val is_bindM = is_const @{const_name bindM};
+    val is_return = is_const @{const_name return};
+    val dummy_name = "X";
+    val dummy_type = ITyVar dummy_name;
+    val dummy_case_term = IVar "";
+    (*assumption: dummy values are not relevant for serialization*)
+    val unitt = case lookup_const naming @{const_name Unity}
+     of SOME unit' => IConst (unit', (([], []), []))
+      | NONE => error ("Must include " ^ @{const_name Unity} ^ " in generated constants.");
+    fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
+      | dest_abs (t, ty) =
+          let
+            val vs = fold_varnames cons t [];
+            val v = Name.variant vs "x";
+            val ty' = (hd o fst o unfold_fun) ty;
+          in ((v, ty'), t `$ IVar v) end;
+    fun force (t as IConst (c, _) `$ t') = if is_return c
+          then t' else t `$ unitt
+      | force t = t `$ unitt;
+    fun tr_bind' [(t1, _), (t2, ty2)] =
+      let
+        val ((v, ty), t) = dest_abs (t2, ty2);
+      in ICase (((force t1, ty), [(IVar v, tr_bind'' t)]), dummy_case_term) end
+    and tr_bind'' t = case unfold_app t
+         of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if is_bindM c
+              then tr_bind' [(x1, ty1), (x2, ty2)]
+              else force t
+          | _ => force t;
+    fun imp_monad_bind'' ts = (dummy_name, dummy_type) `|=> ICase (((IVar dummy_name, dummy_type),
+      [(unitt, tr_bind' ts)]), dummy_case_term)
+    and imp_monad_bind' (const as (c, (_, tys))) ts = if is_bindM c then case (ts, tys)
+       of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
+        | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)] `$ t3
+        | (ts, _) => imp_monad_bind (eta_expand 2 (const, ts))
+      else IConst const `$$ map imp_monad_bind ts
+    and imp_monad_bind (IConst const) = imp_monad_bind' const []
+      | imp_monad_bind (t as IVar _) = t
+      | imp_monad_bind (t as _ `$ _) = (case unfold_app t
+         of (IConst const, ts) => imp_monad_bind' const ts
+          | (t, ts) => imp_monad_bind t `$$ map imp_monad_bind ts)
+      | imp_monad_bind (v_ty `|=> t) = v_ty `|=> imp_monad_bind t
+      | imp_monad_bind (ICase (((t, ty), pats), t0)) = ICase
+          (((imp_monad_bind t, ty),
+            (map o pairself) imp_monad_bind pats),
+              imp_monad_bind t0);
+
+  in (Graph.map_nodes o map_terms_stmt) imp_monad_bind end;
 
 in
 
-  Code_Target.extend_target ("SML_imp", ("SML", imp_program))
-  #> Code_Target.extend_target ("OCaml_imp", ("OCaml", imp_program))
+Code_Target.extend_target ("SML_imp", ("SML", imp_program))
+#> Code_Target.extend_target ("OCaml_imp", ("OCaml", imp_program))
 
 end
-*}
 
+*}
 
 code_reserved OCaml Failure raise
 

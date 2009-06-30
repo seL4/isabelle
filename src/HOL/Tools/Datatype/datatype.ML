@@ -18,7 +18,7 @@ sig
   val the_info : theory -> string -> info
   val the_descr : theory -> string list
     -> descr * (string * sort) list * string list
-      * (string list * string list) * (typ list * typ list)
+      * string * (string list * string list) * (typ list * typ list)
   val the_spec : theory -> string -> (string * sort) list * (string * typ list) list
   val get_constrs : theory -> string -> (string * typ) list option
   val get_all : theory -> info Symtab.table
@@ -125,9 +125,10 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
     val names = map Long_Name.base_name (the_default tycos (#alt_names info));
     val (auxnames, _) = Name.make_context names
-      |> fold_map (yield_singleton Name.variants o name_of_typ) Us
+      |> fold_map (yield_singleton Name.variants o name_of_typ) Us;
+    val prefix = space_implode "_" names;
 
-  in (descr, vs, tycos, (names, auxnames), (Ts, Us)) end;
+  in (descr, vs, tycos, prefix, (names, auxnames), (Ts, Us)) end;
 
 fun get_constrs thy dtco =
   case try (the_spec thy) dtco

@@ -40,13 +40,12 @@ sig
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a
   val unfold_fun: itype -> itype list * itype
   val unfold_app: iterm -> iterm * iterm list
-  val split_abs: iterm -> (((vname * iterm option) * itype) * iterm) option
-  val unfold_abs: iterm -> ((vname * iterm option) * itype) list * iterm
+  val unfold_abs: iterm -> (vname * itype) list * iterm
   val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm
+  val split_pat_abs: iterm -> ((iterm option * itype) * iterm) option
+  val unfold_pat_abs: iterm -> (iterm option * itype) list * iterm
   val unfold_const_app: iterm -> (const * iterm list) option
-  val collapse_let: ((vname * itype) * iterm) * iterm
-    -> (iterm * itype) * (iterm * iterm) list
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dictvar: iterm -> bool
   val locally_monomorphic: iterm -> bool
@@ -139,13 +138,9 @@ val unfold_app = unfoldl
   (fn op `$ t => SOME t
     | _ => NONE);
 
-val split_abs =
-  (fn (v, ty) `|=> (t as ICase (((IVar w, _), [(p, t')]), _)) =>
-        if v = w then SOME (((v, SOME p), ty), t') else SOME (((v, NONE), ty), t)
-    | (v, ty) `|=> t => SOME (((v, NONE), ty), t)
+val unfold_abs = unfoldr
+  (fn op `|=> t => SOME t
     | _ => NONE);
-
-val unfold_abs = unfoldr split_abs;
 
 val split_let = 
   (fn ICase (((td, ty), [(p, t)]), _) => SOME (((p, ty), td), t)
@@ -186,17 +181,17 @@ fun fold_unbound_varnames f =
       | add vs (ICase (_, t)) = add vs t;
   in add [] end;
 
-fun collapse_let (((v, ty), se), be as ICase (((IVar w, _), ds), _)) =
-      let
-        fun exists_v t = fold_unbound_varnames (fn w => fn b =>
-          b orelse v = w) t false;
-      in if v = w andalso forall (fn (t1, t2) =>
-        exists_v t1 orelse not (exists_v t2)) ds
-        then ((se, ty), ds)
-        else ((se, ty), [(IVar v, be)])
-      end
-  | collapse_let (((v, ty), se), be) =
-      ((se, ty), [(IVar v, be)])
+fun exists_var t v = fold_unbound_varnames (fn w => fn b => v = w orelse b) t false;
+
+val split_pat_abs = (fn (v, ty) `|=> t => (case t
+   of ICase (((IVar w, _), [(p, t')]), _) =>
+        if v = w andalso (exists_var p v orelse not (exists_var t' v))
+        then SOME ((SOME p, ty), t')
+        else SOME ((SOME (IVar v), ty), t)
+    | _ => SOME ((if exists_var t v then SOME (IVar v) else NONE, ty), t))
+  | _ => NONE);
+
+val unfold_pat_abs = unfoldr split_pat_abs;
 
 fun eta_expand k (c as (_, (_, tys)), ts) =
   let

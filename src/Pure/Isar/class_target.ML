@@ -32,6 +32,7 @@ sig
   (*instances*)
   val init_instantiation: string list * (string * sort) list * sort
     -> theory -> local_theory
+  val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
   val instantiation_instance: (local_theory -> local_theory)
     -> local_theory -> Proof.state
   val prove_instantiation_instance: (Proof.context -> tactic)
@@ -44,7 +45,8 @@ sig
   val instantiation_param: local_theory -> binding -> string option
   val confirm_declaration: binding -> local_theory -> local_theory
   val pretty_instantiation: local_theory -> Pretty.T
-  val instance_arity_cmd: xstring * xstring list * xstring -> theory -> Proof.state
+  val read_multi_arity: theory -> xstring list * xstring list * xstring
+    -> string list * (string * sort) list * sort
   val type_name: string -> string
 
   (*subclasses*)
@@ -419,6 +421,15 @@ fun instantiation_param lthy b = instantiation_params lthy
   |> find_first (fn (_, (v, _)) => Binding.name_of b = v)
   |> Option.map (fst o fst);
 
+fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
+  let
+    val all_arities = map (fn raw_tyco => Sign.read_arity thy
+      (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
+    val tycos = map #1 all_arities;
+    val (_, sorts, sort) = hd all_arities;
+    val vs = Name.names Name.context Name.aT sorts;
+  in (tycos, vs, sort) end;
+
 
 (* syntax *)
 
@@ -578,15 +589,17 @@ fun pretty_instantiation lthy =
 
 (* simplified instantiation interface with no class parameter *)
 
-fun instance_arity_cmd arities thy =
+fun instance_arity_cmd raw_arities thy =
   let
+    val (tycos, vs, sort) = read_multi_arity thy raw_arities;
+    val sorts = map snd vs;
+    val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
     fun after_qed results = ProofContext.theory
       ((fold o fold) AxClass.add_arity results);
   in
     thy
     |> ProofContext.init
-    |> Proof.theorem_i NONE after_qed ((map (fn t => [(t, [])])
-        o Logic.mk_arities o Sign.read_arity thy) arities)
+    |> Proof.theorem_i NONE after_qed (map (fn t => [(t, [])]) arities)
   end;
 
 
