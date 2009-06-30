@@ -23,12 +23,6 @@ infixr 5 @|;
 
 (** Haskell serializer **)
 
-fun pr_haskell_bind pr_term =
-  let
-    fun pr_bind (NONE, _) = str "_"
-      | pr_bind (SOME p, _) = p;
-  in gen_pr_bind pr_bind pr_term end;
-
 fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
     init_syms deresolve is_cons contr_classparam_typs deriving_show =
   let
@@ -66,12 +60,14 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                   pr_term tyvars thm vars NOBR t1,
                   pr_term tyvars thm vars BR t2
                 ])
-      | pr_term tyvars thm vars fxy (IVar v) =
+      | pr_term tyvars thm vars fxy (IVar NONE) =
+          str "_"
+      | pr_term tyvars thm vars fxy (IVar (SOME v)) =
           (str o Code_Printer.lookup_var vars) v
       | pr_term tyvars thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
-            val (ps, vars') = fold_map (pr_bind tyvars thm BR) binds vars;
+            val (ps, vars') = fold_map (pr_bind tyvars thm BR o fst) binds vars;
           in brackets (str "\\" :: ps @ str "->" @@ pr_term tyvars thm vars' NOBR t') end
       | pr_term tyvars thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
@@ -94,13 +90,13 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           else (str o deresolve) c :: map (pr_term tyvars thm vars BR) ts
         end
     and pr_app tyvars = gen_pr_app (pr_app' tyvars) (pr_term tyvars) syntax_const
-    and pr_bind tyvars = pr_haskell_bind (pr_term tyvars)
+    and pr_bind tyvars thm fxy p = gen_pr_bind (pr_term tyvars) thm fxy p
     and pr_case tyvars thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
-              |> pr_bind tyvars thm BR (SOME pat, ty)
+              |> pr_bind tyvars thm BR pat
               |>> (fn p => semicolon [p, str "=", pr_term tyvars thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in brackify_block fxy (str "let {")
@@ -111,7 +107,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           let
             fun pr (pat, body) =
               let
-                val (p, vars') = pr_bind tyvars thm NOBR (SOME pat, ty) vars;
+                val (p, vars') = pr_bind tyvars thm NOBR pat vars;
               in semicolon [p, str "->", pr_term tyvars thm vars' NOBR body] end;
           in brackify_block fxy
             (concat [str "case", pr_term tyvars thm vars NOBR t, str "of", str "{"])
@@ -253,7 +249,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                     val (vs, rhs) = (apfst o map) fst (Code_Thingol.unfold_abs proto_rhs);
                     val vars = init_syms
                       |> Code_Printer.intro_vars (the_list const)
-                      |> Code_Printer.intro_vars vs;
+                      |> Code_Printer.intro_vars (map_filter I vs);
                     val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
                       (*dictionaries are not relevant at this late stage*)
                   in
@@ -443,29 +439,29 @@ in Literals {
 fun pretty_haskell_monad c_bind =
   let
     fun dest_bind t1 t2 = case Code_Thingol.split_pat_abs t2
-     of SOME ((some_pat, ty), t') =>
-          SOME ((SOME ((some_pat, ty), true), t1), t')
+     of SOME ((pat, ty), t') =>
+          SOME ((SOME ((pat, ty), true), t1), t')
       | NONE => NONE;
     fun dest_monad c_bind_name (IConst (c, _) `$ t1 `$ t2) =
           if c = c_bind_name then dest_bind t1 t2
           else NONE
       | dest_monad _ t = case Code_Thingol.split_let t
          of SOME (((pat, ty), tbind), t') =>
-              SOME ((SOME ((SOME pat, ty), false), tbind), t')
+              SOME ((SOME ((pat, ty), false), tbind), t')
           | NONE => NONE;
     fun implode_monad c_bind_name = Code_Thingol.unfoldr (dest_monad c_bind_name);
     fun pr_monad pr_bind pr (NONE, t) vars =
           (semicolon [pr vars NOBR t], vars)
-      | pr_monad pr_bind pr (SOME (bind, true), t) vars = vars
+      | pr_monad pr_bind pr (SOME ((bind, _), true), t) vars = vars
           |> pr_bind NOBR bind
           |>> (fn p => semicolon [p, str "<-", pr vars NOBR t])
-      | pr_monad pr_bind pr (SOME (bind, false), t) vars = vars
+      | pr_monad pr_bind pr (SOME ((bind, _), false), t) vars = vars
           |> pr_bind NOBR bind
           |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
     fun pretty _ [c_bind'] pr thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
           val (binds, t'') = implode_monad c_bind' t'
-          val (ps, vars') = fold_map (pr_monad (pr_haskell_bind (K pr) thm) pr) (bind :: binds) vars;
+          val (ps, vars') = fold_map (pr_monad (gen_pr_bind (K pr) thm) pr) (bind :: binds) vars;
         in (brackify fxy o single o Pretty.enclose "do {" "}" o Pretty.breaks) (ps @| pr vars' NOBR t'') end
       | NONE => brackify_infix (1, L) fxy
           [pr vars (INFX (1, L)) t1, str ">>=", pr vars (INFX (1, X)) t2]
