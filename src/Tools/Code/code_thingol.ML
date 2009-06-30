@@ -202,7 +202,7 @@ fun unfold_abs_eta [] t = ([], t)
       let
         val (vs_tys, t') = unfold_abs_eta tys t;
       in (v_ty :: vs_tys, t') end
-  | unfold_abs_eta (_ :: tys) t =
+  | unfold_abs_eta tys t =
       let
         val ctxt = fold_varnames Name.declare t Name.context;
         val vs_tys = (map o apfst) SOME (Name.names ctxt "a" tys);
@@ -631,86 +631,38 @@ and translate_app_const thy algbr funcgr thm (c_ty, ts) =
   #>> (fn (t, ts) => t `$$ ts)
 and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
-    val (tys, _) = (chop num_args o fst o strip_type o snd) c_ty;
-    val t = nth ts t_pos;
+    fun arg_types num_args ty = (fst o chop num_args o fst o strip_type) ty;
+    val tys = arg_types num_args (snd c_ty);
     val ty = nth tys t_pos;
-    val ts_clause = nth_drop t_pos ts;
-    val undefineds = Code.undefineds thy;
-    fun mk_clause (co, num_co_args) t =
-      let
-        val (vs, body) = Term.strip_abs_eta num_co_args t;
-        val not_undefined = case body
-         of (Const (c, _)) => not (member (op =) undefineds c)
-          | _ => true;
-        val pat = list_comb (Const (co, map snd vs ---> ty), map Free vs);
-      in (not_undefined, (pat, body)) end;
-    val clauses = if null case_pats then let val ([v_ty], body) =
-        Term.strip_abs_eta 1 (the_single ts_clause)
-      in [(true, (Free v_ty, body))] end
-      else map (uncurry mk_clause)
-        (AList.make (Code.no_args thy) case_pats ~~ ts_clause);
-    fun retermify ty (_, (IVar v, body)) =
-          (v, ty) `|=> body
-      | retermify _ (_, (pat, body)) =
-          let
-            val (IConst (_, (_, tys)), ts) = unfold_app pat;
-            val vs = map2 (fn IVar v => fn ty => (v, ty)) ts tys;
-          in vs `|==> body end;
-    fun mk_icase const t ty clauses =
-      let
-        val (ts1, ts2) = chop t_pos (map (retermify ty) clauses);
-      in
-        ICase (((t, ty), map_filter (fn (b, d) => if b then SOME d else NONE) clauses),
-          const `$$ (ts1 @ t :: ts2))
-      end;
-  in
-    translate_const thy algbr funcgr thm c_ty
-    ##>> translate_term thy algbr funcgr thm t
-    ##>> translate_typ thy algbr funcgr ty
-    ##>> fold_map (fn (b, (pat, body)) => translate_term thy algbr funcgr thm pat
-      ##>> translate_term thy algbr funcgr thm body
-      #>> pair b) clauses
-    #>> (fn (((const, t), ty), ds) => mk_icase const t ty ds)
-  end
-
-(*and translate_case' thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
-  let
-    fun casify naming ts tys =
+    fun mk_constr c t = let val n = Code.no_args thy c
+      in ((c, arg_types (Code.no_args thy c) (fastype_of t) ---> ty), n) end;
+    val constrs = if null case_pats then []
+      else map2 mk_constr case_pats (nth_drop t_pos ts);
+    fun casify naming constrs ty ts =
       let
         val t = nth ts t_pos;
-        val ty = nth tys t_pos;
         val ts_clause = nth_drop t_pos ts;
-        val tyss_clause = map (fst o unfold_fun) (nth_drop t_pos tys);
-
-        val undefineds = map_filter (lookup_const naming) (*Code.undefineds thy*) [];
-
-        fun mk_clause co (tys, t) =
+        val undefineds = map_filter (lookup_const naming) (Code.undefineds thy);
+        fun mk_clause ((constr as IConst (_, (_, tys)), n), t) =
           let
-            val (vs, t') = unfold_abs_eta tys t;
+            val (vs, t') = unfold_abs_eta (curry Library.take n tys) t;
             val is_undefined = case t
-             of Const (c, _) => member (op =) undefineds c
+             of IConst (c, _) => member (op =) undefineds c
               | _ => false;
-          in if is_undefined then NONE else (_, t) end;
-
-            val not_undefined = case body
-             of (Const (c, _)) => not (Code.is_undefined thy c)
-              | _ => true;
-            val pat = list_comb (Const (co, map snd vs ---> ty), map Free vs);
-          in (not_undefined, (pat, body)) end;
-
+          in if is_undefined then NONE else SOME (constr `$$ map (IVar o fst) vs, t') end;
         val clauses = if null case_pats then let val ([(v, _)], t) =
-            unfold_abs_eta (the_single tyss_clause) (the_single ts_clause) 
+            unfold_abs_eta [ty] (the_single ts_clause)
           in [(IVar v, t)] end
-          else map2 mk_clause case_pats (tyss_clause ~~ ts_clause);
-
-      in ((t, ty), map_filter (fn (b, d) => if b then SOME d else NONE) clauses) end;
+          else map_filter mk_clause (constrs ~~ ts_clause);
+      in ((t, ty), clauses) end;
   in
     translate_const thy algbr funcgr thm c_ty
+    ##>> fold_map (fn (constr, n) => translate_const thy algbr funcgr thm constr #>> rpair n) constrs
+    ##>> translate_typ thy algbr funcgr ty
     ##>> fold_map (translate_term thy algbr funcgr thm) ts
-    #-> (fn (t as IConst (c, (_, tys)), ts) =>
-      `(fn (naming, _) => pair (ICase (casify naming ts tys, t `$$ ts))))
-  end*)
-
+    #-> (fn (((t, constrs), ty), ts) =>
+      `(fn (_, (naming, _)) => ICase (casify naming constrs ty ts, t `$$ ts)))
+  end
 and translate_app_case thy algbr funcgr thm (case_scheme as (num_args, _)) ((c, ty), ts) =
   if length ts < num_args then
     let
