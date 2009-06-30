@@ -343,43 +343,7 @@ lemma abs_ln_one_plus_x_minus_x_bound:
 done
 
 lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
-  apply (unfold deriv_def, unfold LIM_eq, clarsimp)
-  apply (rule exI)
-  apply (rule conjI)
-  prefer 2
-  apply clarsimp
-  apply (subgoal_tac "(ln (x + xa) - ln x) / xa - (1 / x) = 
-      (ln (1 + xa / x) - xa / x) / xa")
-  apply (erule ssubst)
-  apply (subst abs_divide)
-  apply (rule mult_imp_div_pos_less)
-  apply force
-  apply (rule order_le_less_trans)
-  apply (rule abs_ln_one_plus_x_minus_x_bound)
-  apply (subst abs_divide)
-  apply (subst abs_of_pos, assumption)
-  apply (erule mult_imp_div_pos_le)
-  apply (subgoal_tac "abs xa < min (x / 2) (r * x^2 / 2)")
-  apply force
-  apply assumption
-  apply (simp add: power2_eq_square mult_compare_simps)
-  apply (rule mult_imp_div_pos_less)
-  apply (rule mult_pos_pos, assumption, assumption)
-  apply (subgoal_tac "xa * xa = abs xa * abs xa")
-  apply (erule ssubst)
-  apply (subgoal_tac "abs xa * (abs xa * 2) < abs xa * (r * (x * x))")
-  apply (simp only: mult_ac)
-  apply (rule mult_strict_left_mono)
-  apply (erule conjE, assumption)
-  apply force
-  apply simp
-  apply (subst ln_div [THEN sym])
-  apply arith
-  apply (auto simp add: algebra_simps add_frac_eq frac_eq_eq 
-    add_divide_distrib power2_eq_square)
-  apply (rule mult_pos_pos, assumption)+
-  apply assumption
-done
+  by (rule DERIV_ln[THEN DERIV_cong], simp, simp add: divide_inverse)
 
 lemma ln_x_over_x_mono: "exp 1 <= x ==> x <= y ==> (ln y / y) <= (ln x / x)"  
 proof -
