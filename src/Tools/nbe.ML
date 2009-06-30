@@ -135,6 +135,8 @@ fun nbe_fun 0 "" = "nbe_value"
   | nbe_fun i c = "c_" ^ translate_string (fn "." => "_" | c => c) c ^ "_" ^ string_of_int i;
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
+fun nbe_bound_optional NONE = "_"
+  | nbe_bound_optional  (SOME v) = nbe_bound v;
 fun nbe_default v = "w_" ^ v;
 
 (*note: these three are the "turning spots" where proper argument order is established!*)
@@ -191,9 +193,9 @@ fun assemble_eqnss idx_of deps eqnss =
             val (t', ts) = Code_Thingol.unfold_app t
           in of_iapp match_cont t' (fold_rev (cons o of_iterm NONE) ts []) end
         and of_iapp match_cont (IConst (c, ((_, dss), _))) ts = constapp c dss ts
-          | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound v) ts
+          | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound_optional v) ts
           | of_iapp match_cont ((v, _) `|=> t) ts =
-              nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm NONE t))) ts
+              nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound_optional v]) (of_iterm NONE t))) ts
           | of_iapp match_cont (ICase (((t, _), cs), t0)) ts =
               nbe_apps (ml_cases (of_iterm NONE t)
                 (map (fn (p, t) => (of_iterm NONE p, of_iterm match_cont t)) cs
@@ -212,8 +214,9 @@ fun assemble_eqnss idx_of deps eqnss =
           else pair (v, [])) vs names;
         val samepairs = maps (fn (v, vs) => map (pair v) vs) vs_renames;
         fun subst_vars (t as IConst _) samepairs = (t, samepairs)
-          | subst_vars (t as IVar v) samepairs = (case AList.lookup (op =) samepairs v
-             of SOME v' => (IVar v', AList.delete (op =) v samepairs)
+          | subst_vars (t as IVar NONE) samepairs = (t, samepairs)
+          | subst_vars (t as IVar (SOME v)) samepairs = (case AList.lookup (op =) samepairs v
+             of SOME v' => (IVar (SOME v'), AList.delete (op =) v samepairs)
               | NONE => (t, samepairs))
           | subst_vars (t1 `$ t2) samepairs = samepairs
               |> subst_vars t1
@@ -295,7 +298,8 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
         val params = Name.invent_list [] "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
-            [([IConst (class, (([], []), [])) `$$ map IVar params], IVar (nth params k))]));
+            [([IConst (class, (([], []), [])) `$$ map (IVar o SOME) params],
+              IVar (SOME (nth params k)))]));
       in map_index mk names end
   | eqns_of_stmt (_, Code_Thingol.Classrel _) =
       []

@@ -631,9 +631,9 @@ definition "qsort a = do
 
 ML {* @{code qsort} (Array.fromList [42, 2, 3, 5, 0, 1705, 8, 3, 15]) () *}
 
-(*export_code qsort in SML_imp module_name QSort*)
+export_code qsort in SML_imp module_name QSort
 export_code qsort in OCaml module_name QSort file -
-(*export_code qsort in OCaml_imp module_name QSort file -*)
+export_code qsort in OCaml_imp module_name QSort file -
 export_code qsort in Haskell module_name QSort file -
 
 end

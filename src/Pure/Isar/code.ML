@@ -75,7 +75,7 @@ sig
   val these_eqns: theory -> string -> (thm * bool) list
   val all_eqns: theory -> (thm * bool) list
   val get_case_scheme: theory -> string -> (int * (int * string list)) option
-  val is_undefined: theory -> string -> bool
+  val undefineds: theory -> string list
   val print_codesetup: theory -> unit
 end;
 
@@ -898,7 +898,7 @@ fun del_eqns c = change_eqns true c (K (false, Lazy.value []));
 
 fun get_case_scheme thy = Symtab.lookup ((fst o the_cases o the_exec) thy);
 
-val is_undefined = Symtab.defined o snd o the_cases o the_exec;
+val undefineds = Symtab.keys o snd o the_cases o the_exec;
 
 structure TypeInterpretation = InterpretationFun(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
 
