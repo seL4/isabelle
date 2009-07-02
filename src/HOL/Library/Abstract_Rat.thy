@@ -5,7 +5,7 @@
 header {* Abstract rational numbers *}
 
 theory Abstract_Rat
-imports GCD Main
+imports GCD Complex_Main
 begin
 
 types Num = "int \<times> int"
@@ -404,16 +404,14 @@ proof-
 qed
 
 lemma Nadd_commute:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "x +\<^sub>N y = y +\<^sub>N x"
 proof-
   have n: "isnormNum (x +\<^sub>N y)" "isnormNum (y +\<^sub>N x)" by simp_all
-  have "(INum (x +\<^sub>N y)::'a) = INum (y +\<^sub>N x)" by simp
+  have "(INum (x +\<^sub>N y)::rat) = INum (y +\<^sub>N x)" by simp
   with isnormNum_unique[OF n] show ?thesis by simp
 qed
 
 lemma [simp]:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "(0, b) +\<^sub>N y = normNum y"
     and "(a, 0) +\<^sub>N y = normNum y" 
     and "x +\<^sub>N (0, b) = normNum x"
@@ -425,19 +423,17 @@ lemma [simp]:
   done
 
 lemma normNum_nilpotent_aux[simp]:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   assumes nx: "isnormNum x" 
   shows "normNum x = x"
 proof-
   let ?a = "normNum x"
   have n: "isnormNum ?a" by simp
-  have th:"INum ?a = (INum x ::'a)" by simp
+  have th:"INum ?a = (INum x :: 'a::{ring_char_0, division_by_zero, field})" by simp
   with isnormNum_unique[OF n nx]  
   show ?thesis by simp
 qed
 
 lemma normNum_nilpotent[simp]:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "normNum (normNum x) = normNum x"
   by simp
 
@@ -445,35 +441,31 @@ lemma normNum0[simp]: "normNum (0,b) = 0\<^sub>N" "normNum (a,0) = 0\<^sub>N"
   by (simp_all add: normNum_def)
 
 lemma normNum_Nadd:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "normNum (x +\<^sub>N y) = x +\<^sub>N y" by simp
 
 lemma Nadd_normNum1[simp]:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "normNum x +\<^sub>N y = x +\<^sub>N y"
 proof-
   have n: "isnormNum (normNum x +\<^sub>N y)" "isnormNum (x +\<^sub>N y)" by simp_all
-  have "INum (normNum x +\<^sub>N y) = INum x + (INum y :: 'a)" by simp
+  have "INum (normNum x +\<^sub>N y) = INum x + (INum y :: real)" by simp
   also have "\<dots> = INum (x +\<^sub>N y)" by simp
   finally show ?thesis using isnormNum_unique[OF n] by simp
 qed
 
 lemma Nadd_normNum2[simp]:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "x +\<^sub>N normNum y = x +\<^sub>N y"
 proof-
   have n: "isnormNum (x +\<^sub>N normNum y)" "isnormNum (x +\<^sub>N y)" by simp_all
-  have "INum (x +\<^sub>N normNum y) = INum x + (INum y :: 'a)" by simp
+  have "INum (x +\<^sub>N normNum y) = INum x + (INum y :: real)" by simp
   also have "\<dots> = INum (x +\<^sub>N y)" by simp
   finally show ?thesis using isnormNum_unique[OF n] by simp
 qed
 
 lemma Nadd_assoc:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   shows "x +\<^sub>N y +\<^sub>N z = x +\<^sub>N (y +\<^sub>N z)"
 proof-
   have n: "isnormNum (x +\<^sub>N y +\<^sub>N z)" "isnormNum (x +\<^sub>N (y +\<^sub>N z))" by simp_all
-  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)" by simp
+  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: real)" by simp
   with isnormNum_unique[OF n] show ?thesis by simp
 qed
 
@@ -481,24 +473,22 @@ lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow>
   by (simp add: Nmul_def split_def Let_def int_gcd_commute mult_commute)
 
 lemma Nmul_assoc:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   assumes nx: "isnormNum x" and ny:"isnormNum y" and nz:"isnormNum z"
   shows "x *\<^sub>N y *\<^sub>N z = x *\<^sub>N (y *\<^sub>N z)"
 proof-
   from nx ny nz have n: "isnormNum (x *\<^sub>N y *\<^sub>N z)" "isnormNum (x *\<^sub>N (y *\<^sub>N z))" 
     by simp_all
-  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)" by simp
+  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: real)" by simp
   with isnormNum_unique[OF n] show ?thesis by simp
 qed
 
 lemma Nsub0:
-  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
   assumes x: "isnormNum x" and y:"isnormNum y" shows "(x -\<^sub>N y = 0\<^sub>N) = (x = y)"
 proof-
   { fix h :: 'a
-    from isnormNum_unique[where 'a = 'a, OF Nsub_normN[OF y], where y="0\<^sub>N"] 
-    have "(x -\<^sub>N y = 0\<^sub>N) = (INum (x -\<^sub>N y) = (INum 0\<^sub>N :: 'a)) " by simp
-    also have "\<dots> = (INum x = (INum y :: 'a))" by simp
+    from isnormNum_unique[where 'a = real, OF Nsub_normN[OF y], where y="0\<^sub>N"] 
+    have "(x -\<^sub>N y = 0\<^sub>N) = (INum (x -\<^sub>N y) = (INum 0\<^sub>N :: real)) " by simp
+    also have "\<dots> = (INum x = (INum y :: real))" by simp
     also have "\<dots> = (x = y)" using x y by simp
     finally show ?thesis . }
 qed
