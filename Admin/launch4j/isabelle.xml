@@ -1,7 +1,7 @@
 <launch4jConfig>
   <dontWrapJar>true</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>lib/classes/isabelle-scala.jar</jar>
+  <jar>lib\classes\isabelle-scala.jar</jar>
   <outfile>Isabelle.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
@@ -10,7 +10,7 @@
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
   <customProcName>false</customProcName>
-  <stayAlive>false</stayAlive>
+  <stayAlive>true</stayAlive>
   <manifest></manifest>
   <icon>isabelle.ico</icon>
   <jre>
