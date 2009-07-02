@@ -487,7 +487,8 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
         val extra' =
           Sorts.subtract (map #2 (Sign.witness_sorts thy present extra)) extra
           |> Sorts.minimal_sorts (Sign.classes_of thy);
-        val shyps' = Sorts.union present extra';
+        val shyps' = Sorts.union present extra'
+          |> Sorts.remove_sort [];
       in
         Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
