@@ -15,6 +15,8 @@ fi
 ISABELLE_HOME="$(cd "$(dirname "$0")"; pwd -P)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
+unset ISABELLE_SETTINGS_PRESENT
+
 
 ## main
 
