@@ -528,7 +528,7 @@ instance "+" :: (finite, finite) finite
 subsection {* A fold functional for finite sets *}
 
 text {* The intended behaviour is
-@{text "fold f z {x1, ..., xn} = f x1 (\<dots> (f xn z)\<dots>)"}
+@{text "fold f z {x\<^isub>1, ..., x\<^isub>n} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
 if @{text f} is ``left-commutative'':
 *}
 
@@ -1890,7 +1890,7 @@ by (erule finite_induct) auto
 
 lemma setprod_dividef:
   fixes f :: "'b \<Rightarrow> 'a::{field,division_by_zero}"
-  shows  "finite A
+  shows "finite A
     ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
 apply (subgoal_tac
          "setprod (%x. f x / g x) A = setprod (%x. f x * (inverse \<circ> g) x) A")
@@ -2725,16 +2725,16 @@ context lattice
 begin
 
 definition
-  Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>fin_" [900] 900)
+  Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^bsub>fin\<^esub>_" [900] 900)
 where
   "Inf_fin = fold1 inf"
 
 definition
-  Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>fin_" [900] 900)
+  Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^bsub>fin\<^esub>_" [900] 900)
 where
   "Sup_fin = fold1 sup"
 
-lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>finA \<le> \<Squnion>finA"
+lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<le> \<Squnion>\<^bsub>fin\<^esub>A"
 apply(unfold Sup_fin_def Inf_fin_def)
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
@@ -2745,13 +2745,13 @@ apply(erule (1) lower_semilattice.fold1_belowI [OF dual_lattice])
 done
 
 lemma sup_Inf_absorb [simp]:
-  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a (\<Sqinter>finA) = a"
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a (\<Sqinter>\<^bsub>fin\<^esub>A) = a"
 apply(subst sup_commute)
 apply(simp add: Inf_fin_def sup_absorb2 fold1_belowI)
 done
 
 lemma inf_Sup_absorb [simp]:
-  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>finA) = a"
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^bsub>fin\<^esub>A) = a"
 by (simp add: Sup_fin_def inf_absorb1
   lower_semilattice.fold1_belowI [OF dual_lattice])
 
@@ -2763,7 +2763,7 @@ begin
 lemma sup_Inf1_distrib:
   assumes "finite A"
     and "A \<noteq> {}"
-  shows "sup x (\<Sqinter>finA) = \<Sqinter>fin{sup x a|a. a \<in> A}"
+  shows "sup x (\<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{sup x a|a. a \<in> A}"
 proof -
   interpret ab_semigroup_idem_mult inf
     by (rule ab_semigroup_idem_mult_inf)
@@ -2775,7 +2775,7 @@ qed
 
 lemma sup_Inf2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-  shows "sup (\<Sqinter>finA) (\<Sqinter>finB) = \<Sqinter>fin{sup a b|a b. a \<in> A \<and> b \<in> B}"
+  shows "sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B) = \<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by (simp add: sup_Inf1_distrib [OF B] fold1_singleton_def [OF Inf_fin_def])
@@ -2792,13 +2792,13 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{sup a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "sup (\<Sqinter>fin(insert x A)) (\<Sqinter>finB) = sup (inf x (\<Sqinter>finA)) (\<Sqinter>finB)"
+  have "sup (\<Sqinter>\<^bsub>fin\<^esub>(insert x A)) (\<Sqinter>\<^bsub>fin\<^esub>B) = sup (inf x (\<Sqinter>\<^bsub>fin\<^esub>A)) (\<Sqinter>\<^bsub>fin\<^esub>B)"
     using insert by (simp add: fold1_insert_idem_def [OF Inf_fin_def])
-  also have "\<dots> = inf (sup x (\<Sqinter>finB)) (sup (\<Sqinter>finA) (\<Sqinter>finB))" by(rule sup_inf_distrib2)
-  also have "\<dots> = inf (\<Sqinter>fin{sup x b|b. b \<in> B}) (\<Sqinter>fin{sup a b|a b. a \<in> A \<and> b \<in> B})"
+  also have "\<dots> = inf (sup x (\<Sqinter>\<^bsub>fin\<^esub>B)) (sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B))" by(rule sup_inf_distrib2)
+  also have "\<dots> = inf (\<Sqinter>\<^bsub>fin\<^esub>{sup x b|b. b \<in> B}) (\<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:sup_Inf1_distrib[OF B])
-  also have "\<dots> = \<Sqinter>fin({sup x b |b. b \<in> B} \<union> {sup a b |a b. a \<in> A \<and> b \<in> B})"
-    (is "_ = \<Sqinter>fin?M")
+  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>({sup x b |b. b \<in> B} \<union> {sup a b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Sqinter>\<^bsub>fin\<^esub>?M")
     using B insert
     by (simp add: Inf_fin_def fold1_Un2 [OF finB _ finAB ne])
   also have "?M = {sup a b |a b. a \<in> insert x A \<and> b \<in> B}"
@@ -2808,7 +2808,7 @@ qed
 
 lemma inf_Sup1_distrib:
   assumes "finite A" and "A \<noteq> {}"
-  shows "inf x (\<Squnion>finA) = \<Squnion>fin{inf x a|a. a \<in> A}"
+  shows "inf x (\<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{inf x a|a. a \<in> A}"
 proof -
   interpret ab_semigroup_idem_mult sup
     by (rule ab_semigroup_idem_mult_sup)
@@ -2819,7 +2819,7 @@ qed
 
 lemma inf_Sup2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-  shows "inf (\<Squnion>finA) (\<Squnion>finB) = \<Squnion>fin{inf a b|a b. a \<in> A \<and> b \<in> B}"
+  shows "inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B) = \<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by(simp add: inf_Sup1_distrib [OF B] fold1_singleton_def [OF Sup_fin_def])
@@ -2836,13 +2836,13 @@ next
   have ne: "{inf a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
   interpret ab_semigroup_idem_mult sup
     by (rule ab_semigroup_idem_mult_sup)
-  have "inf (\<Squnion>fin(insert x A)) (\<Squnion>finB) = inf (sup x (\<Squnion>finA)) (\<Squnion>finB)"
+  have "inf (\<Squnion>\<^bsub>fin\<^esub>(insert x A)) (\<Squnion>\<^bsub>fin\<^esub>B) = inf (sup x (\<Squnion>\<^bsub>fin\<^esub>A)) (\<Squnion>\<^bsub>fin\<^esub>B)"
     using insert by (simp add: fold1_insert_idem_def [OF Sup_fin_def])
-  also have "\<dots> = sup (inf x (\<Squnion>finB)) (inf (\<Squnion>finA) (\<Squnion>finB))" by(rule inf_sup_distrib2)
-  also have "\<dots> = sup (\<Squnion>fin{inf x b|b. b \<in> B}) (\<Squnion>fin{inf a b|a b. a \<in> A \<and> b \<in> B})"
+  also have "\<dots> = sup (inf x (\<Squnion>\<^bsub>fin\<^esub>B)) (inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B))" by(rule inf_sup_distrib2)
+  also have "\<dots> = sup (\<Squnion>\<^bsub>fin\<^esub>{inf x b|b. b \<in> B}) (\<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:inf_Sup1_distrib[OF B])
-  also have "\<dots> = \<Squnion>fin({inf x b |b. b \<in> B} \<union> {inf a b |a b. a \<in> A \<and> b \<in> B})"
-    (is "_ = \<Squnion>fin?M")
+  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>({inf x b |b. b \<in> B} \<union> {inf a b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Squnion>\<^bsub>fin\<^esub>?M")
     using B insert
     by (simp add: Sup_fin_def fold1_Un2 [OF finB _ finAB ne])
   also have "?M = {inf a b |a b. a \<in> insert x A \<and> b \<in> B}"
@@ -2861,7 +2861,7 @@ text {*
 
 lemma Inf_fin_Inf:
   assumes "finite A" and "A \<noteq> {}"
-  shows "\<Sqinter>finA = Inf A"
+  shows "\<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
 proof -
     interpret ab_semigroup_idem_mult inf
     by (rule ab_semigroup_idem_mult_inf)
@@ -2872,7 +2872,7 @@ qed
 
 lemma Sup_fin_Sup:
   assumes "finite A" and "A \<noteq> {}"
-  shows "\<Squnion>finA = Sup A"
+  shows "\<Squnion>\<^bsub>fin\<^esub>A = Sup A"
 proof -
   interpret ab_semigroup_idem_mult sup
     by (rule ab_semigroup_idem_mult_sup)
