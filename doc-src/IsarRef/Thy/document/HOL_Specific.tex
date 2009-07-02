@@ -98,7 +98,7 @@
   \end{matharray}
 
   \begin{rail}
-    'split\_format' (((name *) + 'and') | ('(' 'complete' ')'))
+    'split\_format' ((( name * ) + 'and') | ('(' 'complete' ')'))
     ;
   \end{rail}
 
@@ -374,7 +374,7 @@ The record package proves several results internally, declaring
 
     dtspec: parname? typespec infix? '=' (cons + '|')
     ;
-    cons: name (type *) mixfix?
+    cons: name ( type * ) mixfix?
   \end{rail}
 
   \begin{description}
@@ -520,7 +520,7 @@ The record package proves several results internally, declaring
   \begin{rail}
     'relation' term
     ;
-    'lexicographic\_order' (clasimpmod *)
+    'lexicographic\_order' ( clasimpmod * )
     ;
   \end{rail}
 
@@ -570,7 +570,7 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
     ;
     recdeftc thmdecl? tc
     ;
-    hints: '(' 'hints' (recdefmod *) ')'
+    hints: '(' 'hints' ( recdefmod * ) ')'
     ;
     recdefmod: (('recdef\_simp' | 'recdef\_cong' | 'recdef\_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
     ;
@@ -793,7 +793,7 @@ Each theory contains a default set of theorems that are used in
   \end{matharray}
 
   \begin{rail}
-    'iprover' ('!' ?) (rulemod *)
+    'iprover' ('!' ?) ( rulemod * )
     ;
   \end{rail}
 
@@ -835,6 +835,76 @@ Each theory contains a default set of theorems that are used in
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Checking and refuting propositions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Identifying incorrect propositions usually involves evaluation of
+  particular assignments and systematic counter example search.  This
+  is supported by the following commands.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{value}\hypertarget{command.HOL.value}{\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{quickcheck}\hypertarget{command.HOL.quickcheck}{\hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{quickcheck\_params}\hypertarget{command.HOL.quickcheck-params}{\hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isacharunderscore}params}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}}
+  \end{matharray}
+
+  \begin{rail}
+    'value' ( ( '[' name ']' ) ? ) modes? term
+    ;
+
+    'quickcheck' ( ( '[' args ']' ) ? ) nat?
+    ;
+
+    'quickcheck_params' ( ( '[' args ']' ) ? )
+    ;
+
+    modes: '(' (name + ) ')'
+    ;
+
+    args: ( name '=' value + ',' )
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}~\isa{t} evaluates and prints a
+    term; optionally \isa{modes} can be specified, which are
+    appended to the current print mode (see also \cite{isabelle-ref}).
+    Internally, the evaluation is performed by registered evaluators,
+    which are invoked sequentially until a result is returned.
+    Alternatively a specific evaluator can be selected using square
+    brackets; available evaluators include \isa{nbe} for
+    \emph{normalization by evaluation} and \emph{code} for code
+    generation in SML.
+
+  \item \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}} tests the current goal for
+    counter examples using a series of arbitrary assignments for its
+    free variables; by default the first subgoal is tested, an other
+    can be selected explicitly using an optional goal index.
+    A number of configuration options are supported for
+    \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}}, notably:
+
+    \begin{description}
+
+      \item[size] specifies the maximum size of the search space for
+        assignment values.
+
+      \item[iterations] sets how many sets of assignments are
+        generated for each particular size.
+
+    \end{description}
+
+    These option can be given within square brackets.
+
+  \item \hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isacharunderscore}params}}}} changes quickcheck
+    configuration options persitently.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Invoking automated reasoning tools -- The Sledgehammer%
 }
 \isamarkuptrue%
@@ -873,7 +943,7 @@ Isabelle/HOL includes a generic \emph{ATP manager} that allows
   \end{matharray}
 
   \begin{rail}
-  'sledgehammer' (nameref *)
+  'sledgehammer' ( nameref * )
   ;
   'atp\_messages' ('(' nat ')')?
   ;
@@ -998,7 +1068,6 @@ Isabelle/Pure provides two generic frameworks to support code
   (this actually covers the new-style theory format as well).
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{value}\hypertarget{command.HOL.value}{\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{HOL}{command}{code\_module}\hypertarget{command.HOL.code-module}{\hyperlink{command.HOL.code-module}{\mbox{\isa{\isacommand{code{\isacharunderscore}module}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{HOL}{command}{code\_library}\hypertarget{command.HOL.code-library}{\hyperlink{command.HOL.code-library}{\mbox{\isa{\isacommand{code{\isacharunderscore}library}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{HOL}{command}{consts\_code}\hypertarget{command.HOL.consts-code}{\hyperlink{command.HOL.consts-code}{\mbox{\isa{\isacommand{consts{\isacharunderscore}code}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
@@ -1007,9 +1076,6 @@ Isabelle/Pure provides two generic frameworks to support code
   \end{matharray}
 
   \begin{rail}
-  'value' term
-  ;
-
   ( 'code\_module' | 'code\_library' ) modespec ? name ? \\
     ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
     'contains' ( ( name '=' term ) + | term + )
@@ -1042,13 +1108,6 @@ Isabelle/Pure provides two generic frameworks to support code
   'code' (name)?
   ;
   \end{rail}
-
-  \begin{description}
-
-  \item \hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}~\isa{t} evaluates and prints a term
-  using the code generator.
-
-  \end{description}
 
   \medskip The other framework generates code from functional programs
   (including overloading using type classes) to SML \cite{SML}, OCaml

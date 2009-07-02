@@ -600,7 +600,7 @@ text {*
     ;
     'instance'
     ;
-    'instance' nameref '::' arity
+    'instance' (nameref + 'and') '::' arity
     ;
     'subclass' target? nameref
     ;
@@ -644,7 +644,7 @@ text {*
   concluded by an @{command_ref (local) "end"} command.
 
   Note that a list of simultaneous type constructors may be given;
-  this corresponds nicely to mutual recursive type definitions, e.g.\
+  this corresponds nicely to mutually recursive type definitions, e.g.\
   in Isabelle/HOL.
 
   \item @{command "instance"} in an instantiation target body sets
