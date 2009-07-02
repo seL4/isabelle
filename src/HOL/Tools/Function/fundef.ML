@@ -37,12 +37,12 @@ open FundefCommon
 val simp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Code.add_default_eqn_attribute,
-     Nitpick_Const_Simp_Thms.add,
-     Quickcheck_RecFun_Simp_Thms.add]
+     Nitpick_Const_Simps.add,
+     Quickcheck_RecFun_Simps.add]
 
 val psimp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
-     Nitpick_Const_Psimp_Thms.add]
+     Nitpick_Const_Psimps.add]
 
 fun note_theorem ((name, atts), ths) =
   LocalTheory.note Thm.generatedK ((Binding.qualified_name name, atts), ths)
@@ -202,7 +202,7 @@ val setup =
     "declaration of congruence rule for function definitions"
   #> setup_case_cong
   #> FundefRelation.setup
-  #> FundefCommon.TerminationSimps.setup
+  #> FundefCommon.Termination_Simps.setup
 
 val get_congs = FundefCtxTree.get_fundef_congs
 

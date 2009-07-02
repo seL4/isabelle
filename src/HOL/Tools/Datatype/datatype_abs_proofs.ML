@@ -264,7 +264,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
     |> PureThy.add_thmss [((Binding.name "recs", rec_thms),
-         [Nitpick_Const_Simp_Thms.add])]
+         [Nitpick_Const_Simps.add])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
     |-> (fn thms => pair (reccomb_names, Library.flat thms))
@@ -337,7 +337,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
   in
     thy2
-    |> Context.the_theory o fold (fold Nitpick_Const_Simp_Thms.add_thm) case_thms
+    |> Context.the_theory o fold (fold Nitpick_Const_Simps.add_thm) case_thms
        o Context.Theory
     |> parent_path (#flat_names config)
     |> store_thmss "cases" new_type_names case_thms

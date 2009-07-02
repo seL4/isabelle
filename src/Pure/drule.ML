@@ -108,7 +108,6 @@ sig
   val dummy_thm: thm
   val sort_constraintI: thm
   val sort_constraint_eq: thm
-  val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
   val comp_no_flatten: thm * int -> int -> thm -> thm
@@ -208,15 +207,6 @@ fun types_sorts thm =
 (** Standardization of rules **)
 
 (* type classes and sorts *)
-
-fun sort_triv thy (T, S) =
-  let
-    val certT = Thm.ctyp_of thy;
-    val cT = certT T;
-    fun class_triv c =
-      Thm.class_triv thy c
-      |> Thm.instantiate ([(certT (TVar ((Name.aT, 0), [c])), cT)], []);
-  in map class_triv S end;
 
 fun unconstrainTs th =
   fold (Thm.unconstrainT o Thm.ctyp_of (Thm.theory_of_thm th) o TVar)

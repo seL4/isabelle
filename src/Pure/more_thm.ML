@@ -26,6 +26,7 @@ sig
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
+  val sort_triv: theory -> typ * sort -> thm list
   val check_shyps: sort list -> thm -> thm
   val is_dummy: thm -> bool
   val plain_prop_of: thm -> term
@@ -168,7 +169,16 @@ fun equiv_thm ths =
   Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
 
 
-(* sort hypotheses *)
+(* type classes and sorts *)
+
+fun sort_triv thy (T, S) =
+  let
+    val certT = Thm.ctyp_of thy;
+    val cT = certT T;
+    fun class_triv c =
+      Thm.class_triv thy c
+      |> Thm.instantiate ([(certT (TVar ((Name.aT, 0), [c])), cT)], []);
+  in map class_triv S end;
 
 fun check_shyps sorts raw_th =
   let

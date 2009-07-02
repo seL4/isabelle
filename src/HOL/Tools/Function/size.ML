@@ -209,7 +209,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     val ([size_thms], thy'') =  PureThy.add_thmss
       [((Binding.name "size", size_eqns),
-        [Simplifier.simp_add, Nitpick_Const_Simp_Thms.add,
+        [Simplifier.simp_add, Nitpick_Const_Simps.add,
          Thm.declaration_attribute
              (fn thm => Context.mapping (Code.add_default_eqn thm) I)])] thy'
 

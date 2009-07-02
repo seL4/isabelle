@@ -93,11 +93,14 @@ text {*
 subsection {* Numeral operations *}
 
 ML {*
-structure DigSimps =
-  NamedThmsFun(val name = "numeral"; val description = "Simplification rules for numerals")
+structure Dig_Simps = Named_Thms
+(
+  val name = "numeral"
+  val description = "Simplification rules for numerals"
+)
 *}
 
-setup DigSimps.setup
+setup Dig_Simps.setup
 
 instantiation num :: "{plus,times,ord}"
 begin

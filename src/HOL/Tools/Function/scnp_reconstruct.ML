@@ -405,7 +405,7 @@ fun sizechange_tac ctxt autom_tac =
 
 fun decomp_scnp orders ctxt =
   let
-    val extra_simps = FundefCommon.TerminationSimps.get ctxt
+    val extra_simps = FundefCommon.Termination_Simps.get ctxt
     val autom_tac = auto_tac (local_clasimpset_of ctxt addsimps2 extra_simps)
   in
     SIMPLE_METHOD

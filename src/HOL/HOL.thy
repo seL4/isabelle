@@ -923,9 +923,11 @@ open BasicClassical;
 ML_Antiquote.value "claset"
   (Scan.succeed "Classical.local_claset_of (ML_Context.the_local_context ())");
 
-structure ResAtpset = NamedThmsFun(val name = "atp" val description = "ATP rules");
+structure ResAtpset = Named_Thms
+  (val name = "atp" val description = "ATP rules");
 
-structure ResBlacklist = NamedThmsFun(val name = "noatp" val description = "theorems blacklisted for ATP");
+structure ResBlacklist = Named_Thms
+  (val name = "noatp" val description = "theorems blacklisted for ATP");
 *}
 
 text {*ResBlacklist holds theorems blacklisted to sledgehammer. 
@@ -1982,19 +1984,18 @@ method_setup normalization = {*
   Scan.succeed (K (SIMPLE_METHOD' (CONVERSION Nbe.norm_conv THEN' (fn k => TRY (rtac TrueI k)))))
 *} "solve goal by normalization"
 
+
 subsubsection {* Quickcheck *}
 
 ML {*
-structure Quickcheck_RecFun_Simp_Thms = NamedThmsFun
+structure Quickcheck_RecFun_Simps = Named_Thms
 (
   val name = "quickcheck_recfun_simp"
   val description = "simplification rules of recursive functions as needed by Quickcheck"
 )
 *}
 
-setup {*
-  Quickcheck_RecFun_Simp_Thms.setup
-*}
+setup Quickcheck_RecFun_Simps.setup
 
 setup {*
   Quickcheck.add_generator ("SML", Codegen.test_term)
@@ -2008,22 +2009,22 @@ subsection {* Nitpick setup *}
 text {* This will be relocated once Nitpick is moved to HOL. *}
 
 ML {*
-structure Nitpick_Const_Def_Thms = NamedThmsFun
+structure Nitpick_Const_Defs = Named_Thms
 (
   val name = "nitpick_const_def"
   val description = "alternative definitions of constants as needed by Nitpick"
 )
-structure Nitpick_Const_Simp_Thms = NamedThmsFun
+structure Nitpick_Const_Simps = Named_Thms
 (
   val name = "nitpick_const_simp"
   val description = "equational specification of constants as needed by Nitpick"
 )
-structure Nitpick_Const_Psimp_Thms = NamedThmsFun
+structure Nitpick_Const_Psimps = Named_Thms
 (
   val name = "nitpick_const_psimp"
   val description = "partial equational specification of constants as needed by Nitpick"
 )
-structure Nitpick_Ind_Intro_Thms = NamedThmsFun
+structure Nitpick_Ind_Intros = Named_Thms
 (
   val name = "nitpick_ind_intro"
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
@@ -2031,10 +2032,10 @@ structure Nitpick_Ind_Intro_Thms = NamedThmsFun
 *}
 
 setup {*
-  Nitpick_Const_Def_Thms.setup
-  #> Nitpick_Const_Simp_Thms.setup
-  #> Nitpick_Const_Psimp_Thms.setup
-  #> Nitpick_Ind_Intro_Thms.setup
+  Nitpick_Const_Defs.setup
+  #> Nitpick_Const_Simps.setup
+  #> Nitpick_Const_Psimps.setup
+  #> Nitpick_Ind_Intros.setup
 *}
 
 

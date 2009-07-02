@@ -216,7 +216,8 @@ fun lex_order_tac ctxt solve_tac (st: thm) =
 
 fun lexicographic_order_tac ctxt =
   TRY (FundefCommon.apply_termination_rule ctxt 1)
-  THEN lex_order_tac ctxt (auto_tac (local_clasimpset_of ctxt addsimps2 FundefCommon.TerminationSimps.get ctxt))
+  THEN lex_order_tac ctxt
+    (auto_tac (local_clasimpset_of ctxt addsimps2 FundefCommon.Termination_Simps.get ctxt))
 
 val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac
 

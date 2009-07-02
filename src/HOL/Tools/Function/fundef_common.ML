@@ -144,7 +144,7 @@ fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
 
 (* Simp rules for termination proofs *)
 
-structure TerminationSimps = NamedThmsFun
+structure Termination_Simps = Named_Thms
 (
   val name = "termination_simp" 
   val description = "Simplification rule for termination proofs"

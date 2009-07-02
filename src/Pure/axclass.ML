@@ -580,7 +580,7 @@ fun derive_type _ (_, []) = []
               | T as TVar (_, S) => insert (eq_fst op =) (T, S)
               | _ => I) typ [];
         val hyps = vars
-          |> map (fn (T, S) => (T, Drule.sort_triv thy (T, S) ~~ S));
+          |> map (fn (T, S) => (T, Thm.sort_triv thy (T, S) ~~ S));
         val ths = (typ, sort)
           |> Sorts.of_sort_derivation (Syntax.pp_global thy) (Sign.classes_of thy)
            {class_relation =
