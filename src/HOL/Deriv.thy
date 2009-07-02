@@ -264,21 +264,23 @@ proof (unfold DERIV_iff2)
     by (simp add: d dfx real_scaleR_def)
 qed
 
-(* let's do the standard proof though theorem *)
-(* LIM_mult2 follows from a NS proof          *)
+text {*
+ Let's do the standard proof, though theorem
+ @{text "LIM_mult2"} follows from a NS proof
+*}
 
 lemma DERIV_cmult:
       "DERIV f x :> D ==> DERIV (%x. c * f x) x :> c*D"
 by (drule DERIV_mult' [OF DERIV_const], simp)
 
-(* standard version *)
+text {* Standard version *}
 lemma DERIV_chain: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (f o g) x :> Da * Db"
 by (drule (1) DERIV_chain', simp add: o_def real_scaleR_def mult_commute)
 
 lemma DERIV_chain2: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (%x. f (g x)) x :> Da * Db"
 by (auto dest: DERIV_chain simp add: o_def)
 
-(*derivative of linear multiplication*)
+text {* Derivative of linear multiplication *}
 lemma DERIV_cmult_Id [simp]: "DERIV (op * c) x :> c"
 by (cut_tac c = c and x = x in DERIV_ident [THEN DERIV_cmult], simp)
 
@@ -287,21 +289,21 @@ apply (cut_tac DERIV_power [OF DERIV_ident])
 apply (simp add: real_scaleR_def real_of_nat_def)
 done
 
-text{*Power of -1*}
+text {* Power of @{text "-1"} *}
 
 lemma DERIV_inverse:
   fixes x :: "'a::{real_normed_field}"
   shows "x \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ Suc (Suc 0)))"
 by (drule DERIV_inverse' [OF DERIV_ident]) simp
 
-text{*Derivative of inverse*}
+text {* Derivative of inverse *}
 lemma DERIV_inverse_fun:
   fixes x :: "'a::{real_normed_field}"
   shows "[| DERIV f x :> d; f(x) \<noteq> 0 |]
       ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
 by (drule (1) DERIV_inverse') (simp add: mult_ac nonzero_inverse_mult_distrib)
 
-text{*Derivative of quotient*}
+text {* Derivative of quotient *}
 lemma DERIV_quotient:
   fixes x :: "'a::{real_normed_field}"
   shows "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
@@ -311,13 +313,15 @@ by (drule (2) DERIV_divide) (simp add: mult_commute)
 lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
 by auto
 
-text {* DERIV_intros *}
-
-ML{*
-structure DerivIntros =
-  NamedThmsFun(val name = "DERIV_intros"
-               val description = "DERIV introduction rules");
+text {* @{text "DERIV_intros"} *}
+ML {*
+structure DerivIntros = NamedThmsFun
+(
+  val name = "DERIV_intros"
+  val description = "DERIV introduction rules"
+)
 *}
+
 setup DerivIntros.setup
 
 lemma DERIV_cong: "\<lbrakk> DERIV f x :> X ; X = Y \<rbrakk> \<Longrightarrow> DERIV f x :> Y"
@@ -335,6 +339,7 @@ declare
   DERIV_power[where 'a=real, THEN DERIV_cong,
               unfolded real_of_nat_def[symmetric], DERIV_intros]
   DERIV_setsum[THEN DERIV_cong, DERIV_intros]
+
 
 subsection {* Differentiability predicate *}
 
