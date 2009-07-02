@@ -19,6 +19,7 @@ sig
    | op %% of proof * proof
    | Hyp of term
    | PAxm of string * term * typ list option
+   | Inclass of typ * class
    | Oracle of string * term * typ list option
    | Promise of serial * term * typ list
    | PThm of serial * ((string * term * typ list option) * proof_body future)
@@ -140,6 +141,7 @@ datatype proof =
  | op %% of proof * proof
  | Hyp of term
  | PAxm of string * term * typ list option
+ | Inclass of typ * class
  | Oracle of string * term * typ list option
  | Promise of serial * term * typ list
  | PThm of serial * ((string * term * typ list option) * proof_body future)
@@ -290,6 +292,7 @@ fun map_proof_terms_option f g =
       | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
           handle SAME => prf1 %% mapp prf2)
       | mapp (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (map_typs Ts))
+      | mapp (Inclass (T, c)) = Inclass (apsome g (SOME T) |> the, c)
       | mapp (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (map_typs Ts))
       | mapp (Promise (i, prop, Ts)) = Promise (i, prop, map_typs Ts)
       | mapp (PThm (i, ((a, prop, SOME Ts), body))) =
@@ -317,6 +320,7 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms f g (prf1 %% prf2) =
       fold_proof_terms f g prf1 #> fold_proof_terms f g prf2
   | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms _ g (Inclass (T, _)) = g T
   | fold_proof_terms _ g (Oracle (_, _, SOME Ts)) = fold g Ts
   | fold_proof_terms _ g (Promise (_, _, Ts)) = fold g Ts
   | fold_proof_terms _ g (PThm (_, ((_, _, SOME Ts), _))) = fold g Ts
@@ -331,6 +335,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof _ = 1;
 
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
+  | change_type (SOME [T]) (Inclass (_, c)) = Inclass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
   | change_type opTs (Promise _) = error "change_type: unexpected promise"
   | change_type opTs (PThm (i, ((name, prop, _), body))) = PThm (i, ((name, prop, opTs), body))
@@ -468,6 +473,7 @@ fun norm_proof env =
       | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
           handle SAME => prf1 %% norm prf2)
       | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (htypeTs norm_types_same) Ts)
+      | norm (Inclass (T, c)) = Inclass (htypeT norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) = Oracle (s, prop, apsome' (htypeTs norm_types_same) Ts)
       | norm (Promise (i, prop, Ts)) = Promise (i, prop, htypeTs norm_types_same Ts)
       | norm (PThm (i, ((s, t, Ts), body))) =
@@ -713,6 +719,8 @@ fun lift_proof Bi inc prop prf =
           handle SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PAxm (s, prop, Ts)) =
           PAxm (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
+      | lift' _ _ (Inclass (T, c)) =
+          Inclass (same (op =) (Logic.incr_tvar inc) T, c)
       | lift' _ _ (Oracle (s, prop, Ts)) =
           Oracle (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ (Promise (i, prop, Ts)) =
@@ -967,8 +975,9 @@ fun shrink_proof thy =
              orelse has_duplicates (op =)
                (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
-      | shrink' ls lev ts prfs (Hyp t) = ([], false, map (pair false) ts, Hyp t)
-      | shrink' ls lev ts prfs MinProof = ([], false, map (pair false) ts, MinProof)
+      | shrink' ls lev ts prfs (prf as Hyp _) = ([], false, map (pair false) ts, prf)
+      | shrink' ls lev ts prfs (prf as MinProof) = ([], false, map (pair false) ts, prf)
+      | shrink' ls lev ts prfs (prf as Inclass _) = ([], false, map (pair false) ts, prf)
       | shrink' ls lev ts prfs prf =
           let
             val prop =
@@ -1060,6 +1069,9 @@ fun match_proof Ts tymatch =
       | mtch Ts i j inst (PAxm (s1, _, opTs), PAxm (s2, _, opUs)) =
           if s1 = s2 then optmatch matchTs inst (opTs, opUs)
           else raise PMatch
+      | mtch Ts i j inst (Inclass (T1, c1), Inclass (T2, c2)) =
+          if c1 = c2 then matchT inst (T1, T2)
+          else raise PMatch
       | mtch Ts i j inst (PThm (_, ((name1, prop1, opTs), _)), PThm (_, ((name2, prop2, opUs), _))) =
           if name1 = name2 andalso prop1 = prop2 then
             optmatch matchTs inst (opTs, opUs)
@@ -1091,6 +1103,7 @@ fun prf_subst (pinst, (tyinsts, insts)) =
           NONE => prf
         | SOME prf' => incr_pboundvars plev tlev prf')
       | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Option.map (map substT) Ts)
+      | subst _ _ (Inclass (T, c)) = Inclass (substT T, c)
       | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Option.map (map substT) Ts)
       | subst _ _ (Promise (i, prop, Ts)) = Promise (i, prop, (map substT) Ts)
       | subst _ _ (PThm (i, ((id, prop, Ts), body))) =
@@ -1117,6 +1130,7 @@ fun could_unify prf1 prf2 =
         (_, Hyp (Var _)) => true
       | (Hyp (Var _), _) => true
       | (PAxm (a, _, _), PAxm (b, _, _)) => a = b andalso matchrands prf1 prf2
+      | (Inclass (_, c), Inclass (_, d)) => c = d andalso matchrands prf1 prf2
       | (PThm (_, ((a, propa, _), _)), PThm (_, ((b, propb, _), _))) =>
           a = b andalso propa = propb andalso matchrands prf1 prf2
       | (PBound i, PBound j) => i = j andalso matchrands prf1 prf2

@@ -140,7 +140,8 @@ fun make_constraints_cprf thy env cprf =
           let
             val tvars = OldTerm.term_tvars prop;
             val tfrees = OldTerm.term_tfrees prop;
-            val (env', Ts) = (case opTs of
+            val (env', Ts) =
+              (case opTs of
                 NONE => Library.foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
@@ -222,6 +223,8 @@ fun make_constraints_cprf thy env cprf =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (prf as PAxm (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
+      | mk_cnstrts env _ _ vTs (prf as Inclass (T, c)) =
+          mk_cnstrts_atom env vTs (Logic.mk_inclass (T, c)) NONE prf
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
@@ -318,6 +321,7 @@ fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (Hyp t) = t
   | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts), _))) = prop_of_atom prop Ts
   | prop_of0 Hs (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (Inclass (T, c)) = Logic.mk_inclass (T, c)
   | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 

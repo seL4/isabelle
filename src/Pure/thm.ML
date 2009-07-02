@@ -1110,15 +1110,21 @@ fun trivial (Cterm {thy_ref, t =A, T, maxidx, sorts}) =
       prop = Logic.mk_implies (A, A)});
 
 (*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
-fun class_triv thy c =
+fun class_triv thy raw_c =
   let
-    val Cterm {t, maxidx, sorts, ...} =
-      cterm_of thy (Logic.mk_inclass (TVar ((Name.aT, 0), [c]), Sign.certify_class thy c))
-        handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
-    val der = deriv_rule0 (Pt.PAxm ("Pure.class_triv:" ^ c, t, SOME []));
+    val c = Sign.certify_class thy raw_c;
+    val T = TVar ((Name.aT, 0), [c]);
+    val Cterm {t = prop, maxidx, sorts, ...} = cterm_of thy (Logic.mk_inclass (T, c))
+      handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
   in
-    Thm (der, {thy_ref = Theory.check_thy thy, tags = [], maxidx = maxidx,
-      shyps = sorts, hyps = [], tpairs = [], prop = t})
+    Thm (deriv_rule0 (Pt.Inclass (T, c)),
+     {thy_ref = Theory.check_thy thy,
+      tags = [],
+      maxidx = maxidx,
+      shyps = sorts,
+      hyps = [],
+      tpairs = [],
+      prop = prop})
   end;
 
 (*Internalize sort constraints of type variable*)
