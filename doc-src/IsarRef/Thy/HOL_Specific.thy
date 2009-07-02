@@ -81,7 +81,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'split\_format' (((name *) + 'and') | ('(' 'complete' ')'))
+    'split\_format' ((( name * ) + 'and') | ('(' 'complete' ')'))
     ;
   \end{rail}
 
@@ -369,7 +369,7 @@ text {*
 
     dtspec: parname? typespec infix? '=' (cons + '|')
     ;
-    cons: name (type *) mixfix?
+    cons: name ( type * ) mixfix?
   \end{rail}
 
   \begin{description}
@@ -515,7 +515,7 @@ text {*
   \begin{rail}
     'relation' term
     ;
-    'lexicographic\_order' (clasimpmod *)
+    'lexicographic\_order' ( clasimpmod * )
     ;
   \end{rail}
 
@@ -565,7 +565,7 @@ text {*
     ;
     recdeftc thmdecl? tc
     ;
-    hints: '(' 'hints' (recdefmod *) ')'
+    hints: '(' 'hints' ( recdefmod * ) ')'
     ;
     recdefmod: (('recdef\_simp' | 'recdef\_cong' | 'recdef\_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
     ;
@@ -783,7 +783,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'iprover' ('!' ?) (rulemod *)
+    'iprover' ('!' ?) ( rulemod * )
     ;
   \end{rail}
 
@@ -824,6 +824,74 @@ text {*
 *}
 
 
+section {* Checking and refuting propositions *}
+
+text {*
+  Identifying incorrect propositions usually involves evaluation of
+  particular assignments and systematic counter example search.  This
+  is supported by the following commands.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "quickcheck"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"}
+  \end{matharray}
+
+  \begin{rail}
+    'value' ( ( '[' name ']' ) ? ) modes? term
+    ;
+
+    'quickcheck' ( ( '[' args ']' ) ? ) nat?
+    ;
+
+    'quickcheck_params' ( ( '[' args ']' ) ? )
+    ;
+
+    modes: '(' (name + ) ')'
+    ;
+
+    args: ( name '=' value + ',' )
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{command (HOL) "value"}~@{text t} evaluates and prints a
+    term; optionally @{text modes} can be specified, which are
+    appended to the current print mode (see also \cite{isabelle-ref}).
+    Internally, the evaluation is performed by registered evaluators,
+    which are invoked sequentially until a result is returned.
+    Alternatively a specific evaluator can be selected using square
+    brackets; available evaluators include @{text nbe} for
+    \emph{normalization by evaluation} and \emph{code} for code
+    generation in SML.
+
+  \item @{command (HOL) "quickcheck"} tests the current goal for
+    counter examples using a series of arbitrary assignments for its
+    free variables; by default the first subgoal is tested, an other
+    can be selected explicitly using an optional goal index.
+    A number of configuration options are supported for
+    @{command (HOL) "quickcheck"}, notably:
+
+    \begin{description}
+
+      \item[size] specifies the maximum size of the search space for
+        assignment values.
+
+      \item[iterations] sets how many sets of assignments are
+        generated for each particular size.
+
+    \end{description}
+
+    These option can be given within square brackets.
+
+  \item @{command (HOL) "quickcheck_params"} changes quickcheck
+    configuration options persitently.
+
+  \end{description}
+*}
+
+
 section {* Invoking automated reasoning tools -- The Sledgehammer *}
 
 text {*
@@ -860,7 +928,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-  'sledgehammer' (nameref *)
+  'sledgehammer' ( nameref * )
   ;
   'atp\_messages' ('(' nat ')')?
   ;
@@ -989,7 +1057,6 @@ text {*
   (this actually covers the new-style theory format as well).
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_module"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_library"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "consts_code"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -998,9 +1065,6 @@ text {*
   \end{matharray}
 
   \begin{rail}
-  'value' term
-  ;
-
   ( 'code\_module' | 'code\_library' ) modespec ? name ? \\
     ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
     'contains' ( ( name '=' term ) + | term + )
@@ -1033,13 +1097,6 @@ text {*
   'code' (name)?
   ;
   \end{rail}
-
-  \begin{description}
-
-  \item @{command (HOL) "value"}~@{text t} evaluates and prints a term
-  using the code generator.
-
-  \end{description}
 
   \medskip The other framework generates code from functional programs
   (including overloading using type classes) to SML \cite{SML}, OCaml
