@@ -14,7 +14,7 @@ sig
   val setup: theory -> theory
 end;
 
-functor NamedThmsFun(val name: string val description: string): NAMED_THMS =
+functor Named_Thms(val name: string val description: string): NAMED_THMS =
 struct
 
 structure Data = GenericDataFun

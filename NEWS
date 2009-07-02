@@ -80,7 +80,7 @@ the same method as the approximation method.
 boundaries of intervals and implements interval splitting and Taylor
 series expansion.
 
-* Changed DERIV_intros to a dynamic fact (via NamedThmsFun).  Each of
+* Changed DERIV_intros to a dynamic fact (via Named_Thms).  Each of
 the theorems in DERIV_intros assumes composition with an additional
 function and matches a variable to the derivative, which has to be
 solved by the simplifier.  Hence (auto intro!: DERIV_intros) computes
@@ -91,6 +91,8 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Renamed NamedThmsFun to Named_Thms.  INCOMPATIBILITY.
 
 * Eliminated old Attrib.add_attributes, Method.add_methods and related
 cominators for "args".  INCOMPATIBILITY, need to use simplified
