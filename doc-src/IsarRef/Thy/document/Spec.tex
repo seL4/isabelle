@@ -614,7 +614,7 @@ A class is a particular locale with \emph{exactly one} type variable
     ;
     'instance'
     ;
-    'instance' nameref '::' arity
+    'instance' (nameref + 'and') '::' arity
     ;
     'subclass' target? nameref
     ;
@@ -653,7 +653,7 @@ A class is a particular locale with \emph{exactly one} type variable
   concluded by an \indexref{local}{command}{end}\hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}} command.
 
   Note that a list of simultaneous type constructors may be given;
-  this corresponds nicely to mutual recursive type definitions, e.g.\
+  this corresponds nicely to mutually recursive type definitions, e.g.\
   in Isabelle/HOL.
 
   \item \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} in an instantiation target body sets
