@@ -66,14 +66,14 @@ ML_SOURCES="$ML_HOME/../src"
 ### JVM components (Scala or Java)
 ###
 
-ISABELLE_SCALA="scala"
 ISABELLE_JAVA="java"
+ISABELLE_SCALA="scala"
 
-if [ -e "$ISABELLE_HOME/contrib/scala" ]; then
-  classpath "$ISABELLE_HOME/contrib/scala/lib/scala-library.jar"
-elif [ -e "$ISABELLE_HOME/../scala" ]; then
-  classpath "$ISABELLE_HOME/../scala/lib/scala-library.jar"
-fi
+[ -z "$SCALA_HOME" ] && SCALA_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/scala"
+  "$ISABELLE_HOME/../scala"
+  "")
+[ -n "$SCALA_HOME" ] && ISABELLE_SCALA="$SCALA_HOME/bin/scala"
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
