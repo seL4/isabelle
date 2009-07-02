@@ -381,8 +381,6 @@ fun iter_type_class_pairs thy tycons [] = ([], [])
   | iter_type_class_pairs thy tycons classes =
       let val cpairs = type_class_pairs thy tycons classes
           val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs))) \\ classes \\ HOLogic.typeS
-          val _ = if null newclasses then ()
-                  else Output.debug (fn _ => "New classes: " ^ space_implode ", " newclasses)
           val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
       in  (classes' union classes, cpairs' union cpairs)  end;
 

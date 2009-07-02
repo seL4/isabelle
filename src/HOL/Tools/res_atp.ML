@@ -219,8 +219,7 @@ fun defines thy (thm,(name,n)) gctypes =
 	    handle ConstFree => false
     in    
 	case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ rhs) => 
-		   defs lhs rhs andalso
-		   (Output.debug (fn () => "Definition found: " ^ name ^ "_" ^ Int.toString n); true)
+		   defs lhs rhs 
 		 | _ => false
     end;
 
@@ -276,8 +275,7 @@ fun relevant_clauses max_new thy ctab p rel_consts =
 fun relevance_filter max_new theory_const thy axioms goals = 
  if run_relevance_filter andalso pass_mark >= 0.1
  then
-  let val _ = Output.debug (fn () => "Start of relevance filtering");
-      val const_tab = List.foldl (count_axiom_consts theory_const thy) Symtab.empty axioms
+  let val const_tab = List.foldl (count_axiom_consts theory_const thy) Symtab.empty axioms
       val goal_const_tab = get_goal_consts_typs thy goals
       val _ = Output.debug (fn () => ("Initial constants: " ^
                                  space_implode ", " (Symtab.keys goal_const_tab)));
@@ -406,8 +404,6 @@ fun name_thm_pairs ctxt =
 fun check_named ("",th) = (warning ("No name for theorem " ^ Display.string_of_thm th); false)
   | check_named (_,th) = true;
 
-fun display_thm (name,th) = Output.debug (fn () => name ^ ": " ^ Display.string_of_thm th);
-
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt =
   let val included_thms =
@@ -419,7 +415,6 @@ fun get_clasimp_atp_lemmas ctxt =
     let val atpset_thms =
             if include_atpset then ResAxioms.atpset_rules_of ctxt
             else []
-        val _ = (Output.debug (fn () => "ATP theorems: ");  app display_thm atpset_thms)
     in  atpset_thms  end
   in
     filter check_named included_thms

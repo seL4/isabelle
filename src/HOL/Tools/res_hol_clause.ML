@@ -419,13 +419,13 @@ fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
         val ct = List.foldl (count_user_clause user_lemmas) ct0 axclauses
         fun needed c = valOf (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK"
-                 then (Output.debug (fn () => "Include combinator I K"); cnf_helper_thms thy [comb_I,comb_K])
+                 then cnf_helper_thms thy [comb_I,comb_K]
                  else []
         val BC = if needed "c_COMBB" orelse needed "c_COMBC"
-                 then (Output.debug (fn () => "Include combinator B C"); cnf_helper_thms thy [comb_B,comb_C])
+                 then cnf_helper_thms thy [comb_B,comb_C]
                  else []
         val S = if needed "c_COMBS"
-                then (Output.debug (fn () => "Include combinator S"); cnf_helper_thms thy [comb_S])
+                then cnf_helper_thms thy [comb_S]
                 else []
         val other = cnf_helper_thms thy [fequal_imp_equal,equal_imp_fequal]
     in
