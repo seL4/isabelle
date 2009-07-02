@@ -1,7 +1,7 @@
 (*  Title:       HOL/Tools/Function/measure_functions.ML
     Author:      Alexander Krauss, TU Muenchen
 
-Measure functions, generated heuristically
+Measure functions, generated heuristically.
 *)
 
 signature MEASURE_FUNCTIONS =
@@ -16,7 +16,8 @@ structure MeasureFunctions : MEASURE_FUNCTIONS =
 struct 
 
 (** User-declared size functions **)
-structure MeasureHeuristicRules = NamedThmsFun(
+structure Measure_Heuristic_Rules = Named_Thms
+(
   val name = "measure_function" 
   val description = "Rules that guide the heuristic generation of measure functions"
 );
@@ -24,7 +25,7 @@ structure MeasureHeuristicRules = NamedThmsFun(
 fun mk_is_measures t = Const (@{const_name "is_measure"}, fastype_of t --> HOLogic.boolT) $ t
 
 fun find_measures ctxt T =
-  DEPTH_SOLVE (resolve_tac (MeasureHeuristicRules.get ctxt) 1) 
+  DEPTH_SOLVE (resolve_tac (Measure_Heuristic_Rules.get ctxt) 1) 
     (HOLogic.mk_Trueprop (mk_is_measures (Var (("f",0), T --> HOLogic.natT)))
       |> cterm_of (ProofContext.theory_of ctxt) |> Goal.init)
   |> Seq.map (prop_of #> (fn _ $ (_ $ (_ $ f)) => f))
@@ -41,7 +42,7 @@ fun mk_funorder_funs (Type ("+", [fT, sT])) =
     @ map (fn m => SumTree.mk_sumcase fT sT HOLogic.natT (constant_0 fT) m) (mk_funorder_funs sT)
   | mk_funorder_funs T = [ constant_1 T ]
 
-fun mk_ext_base_funs ctxt (Type("+", [fT, sT])) =
+fun mk_ext_base_funs ctxt (Type ("+", [fT, sT])) =
       map_product (SumTree.mk_sumcase fT sT HOLogic.natT)
                   (mk_ext_base_funs ctxt fT) (mk_ext_base_funs ctxt sT)
   | mk_ext_base_funs ctxt T = find_measures ctxt T
@@ -52,7 +53,7 @@ fun mk_all_measure_funs ctxt (T as Type ("+", _)) =
 
 val get_measure_functions = mk_all_measure_funs
 
-val setup = MeasureHeuristicRules.setup
+val setup = Measure_Heuristic_Rules.setup
 
 end
 

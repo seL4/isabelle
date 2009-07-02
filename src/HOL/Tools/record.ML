@@ -2192,7 +2192,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       thms_thy
       |> (snd oo PureThy.add_thmss)
           [((Binding.name "simps", sel_upd_simps),
-            [Simplifier.simp_add, Nitpick_Const_Simp_Thms.add]),
+            [Simplifier.simp_add, Nitpick_Const_Simps.add]),
            ((Binding.name "iffs", iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme')
       |> put_sel_upd (names @ [full_moreN]) sel_upd_simps

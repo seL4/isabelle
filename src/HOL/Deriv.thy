@@ -315,14 +315,14 @@ by auto
 
 text {* @{text "DERIV_intros"} *}
 ML {*
-structure DerivIntros = NamedThmsFun
+structure Deriv_Intros = Named_Thms
 (
   val name = "DERIV_intros"
   val description = "DERIV introduction rules"
 )
 *}
 
-setup DerivIntros.setup
+setup Deriv_Intros.setup
 
 lemma DERIV_cong: "\<lbrakk> DERIV f x :> X ; X = Y \<rbrakk> \<Longrightarrow> DERIV f x :> Y"
   by simp

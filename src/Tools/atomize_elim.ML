@@ -20,7 +20,9 @@ structure AtomizeElim : ATOMIZE_ELIM =
 struct
 
 (* theory data *)
-structure AtomizeElimData = NamedThmsFun(
+
+structure AtomizeElimData = Named_Thms
+(
   val name = "atomize_elim";
   val description = "atomize_elim rewrite rule";
 );

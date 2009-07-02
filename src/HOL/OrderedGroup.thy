@@ -22,13 +22,15 @@ text {*
   \end{itemize}
 *}
 
-ML{*
-structure AlgebraSimps =
-  NamedThmsFun(val name = "algebra_simps"
-               val description = "algebra simplification rules");
+ML {*
+structure Algebra_Simps = Named_Thms
+(
+  val name = "algebra_simps"
+  val description = "algebra simplification rules"
+)
 *}
 
-setup AlgebraSimps.setup
+setup Algebra_Simps.setup
 
 text{* The rewrites accumulated in @{text algebra_simps} deal with the
 classical algebraic structures of groups, rings and family. They simplify

@@ -495,7 +495,7 @@ subsection {* Evaluation *}
 ML {*
 
 local
-  structure Data = NamedThmsFun(val name = "eval" val description = "evaluation rules");
+  structure Data = Named_Thms(val name = "eval" val description = "evaluation rules");
 in
 
 fun eval_tac ctxt ths =

@@ -462,7 +462,11 @@ val Always_Int_tac = dtac @{thm Always_Int_I} THEN' assume_tac THEN' etac @{thm 
 val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS @{thm Always_Int_I});
 
 (*To allow expansion of the program's definition when appropriate*)
-structure ProgramDefs = NamedThmsFun(val name = "program" val description = "program definitions");
+structure Program_Defs = Named_Thms
+(
+  val name = "program"
+  val description = "program definitions"
+);
 
 (*proves "co" properties when the program is specified*)
 
@@ -478,7 +482,7 @@ fun constrains_tac ctxt =
               (* Three subgoals *)
               rewrite_goal_tac [@{thm st_set_def}] 3,
               REPEAT (force_tac css 2),
-              full_simp_tac (ss addsimps (ProgramDefs.get ctxt)) 1,
+              full_simp_tac (ss addsimps (Program_Defs.get ctxt)) 1,
               ALLGOALS (clarify_tac cs),
               REPEAT (FIRSTGOAL (etac disjE)),
               ALLGOALS (clarify_tac cs),
@@ -493,7 +497,7 @@ fun always_tac ctxt i =
     rtac @{thm AlwaysI} i THEN force_tac (local_clasimpset_of ctxt) i THEN constrains_tac ctxt i;
 *}
 
-setup ProgramDefs.setup
+setup Program_Defs.setup
 
 method_setup safety = {*
   Scan.succeed (SIMPLE_METHOD' o constrains_tac) *}

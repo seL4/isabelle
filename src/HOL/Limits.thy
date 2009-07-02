@@ -350,7 +350,7 @@ lemmas Zfun_mult_right = mult.Zfun_right
 lemmas Zfun_mult_left = mult.Zfun_left
 
 
-subsection{* Limits *}
+subsection {* Limits *}
 
 definition
   tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
@@ -358,13 +358,15 @@ definition
 where [code del]:
   "(f ---> l) net \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
 
-ML{*
-structure TendstoIntros =
-  NamedThmsFun(val name = "tendsto_intros"
-               val description = "introduction rules for tendsto");
+ML {*
+structure Tendsto_Intros = Named_Thms
+(
+  val name = "tendsto_intros"
+  val description = "introduction rules for tendsto"
+)
 *}
 
-setup TendstoIntros.setup
+setup Tendsto_Intros.setup
 
 lemma topological_tendstoI:
   "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net)

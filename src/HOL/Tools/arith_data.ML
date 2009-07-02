@@ -28,7 +28,8 @@ struct
 
 (* slots for plugging in arithmetic facts and tactics *)
 
-structure Arith_Facts = NamedThmsFun(
+structure Arith_Facts = Named_Thms
+(
   val name = "arith"
   val description = "arith facts - only ground formulas"
 );

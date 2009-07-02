@@ -140,8 +140,11 @@ done
 subsection {* Continuity simproc *}
 
 ML {*
-structure Cont2ContData = NamedThmsFun
-  ( val name = "cont2cont" val description = "continuity intro rule" )
+structure Cont2ContData = Named_Thms
+(
+  val name = "cont2cont"
+  val description = "continuity intro rule"
+)
 *}
 
 setup Cont2ContData.setup
