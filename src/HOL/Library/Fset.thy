@@ -7,11 +7,6 @@ theory Fset
 imports List_Set
 begin
 
-lemma foldl_apply_inv:
-  assumes "\<And>x. g (h x) = x"
-  shows "foldl f (g s) xs = g (foldl (\<lambda>s x. h (f (g s) x)) s xs)"
-  by (rule sym, induct xs arbitrary: s) (simp_all add: assms)
-
 declare mem_def [simp]
 
 
