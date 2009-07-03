@@ -80,18 +80,19 @@ class Isabelle_System
 
     val env0 = Map(java.lang.System.getenv.toList: _*)
 
-    val isabelle =
-      env0.get("ISABELLE_TOOL") match {
+    val isabelle_home =
+      env0.get("ISABELLE_HOME") match {
         case None | Some("") =>
-          val isabelle = java.lang.System.getProperty("isabelle.tool")
-          if (isabelle == null || isabelle == "") "isabelle"
-          else isabelle
-        case Some(isabelle) => isabelle
+          val path = java.lang.System.getProperty("isabelle.home")
+          if (path == null || path == "") error("Unknown Isabelle home directory")
+          else path
+        case Some(path) => path
       }
 
     val dump = File.createTempFile("isabelle", null)
     try {
-      val cmdline = shell_prefix ::: List(isabelle, "getenv", "-d", dump.toString)
+      val cmdline = shell_prefix :::
+        List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
       val proc = Isabelle_System.raw_execute(env0, true, cmdline: _*)
       val (output, rc) = Isabelle_System.process_output(proc)
       if (rc != 0) error(output)
