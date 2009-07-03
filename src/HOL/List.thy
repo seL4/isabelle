@@ -2080,6 +2080,11 @@ lemma foldl_map[code unfold]:
   "foldl g a (map f xs) = foldl (%a x. g a (f x)) a xs"
 by(induct xs arbitrary:a) simp_all
 
+lemma foldl_apply_inv:
+  assumes "\<And>x. g (h x) = x"
+  shows "foldl f (g s) xs = g (foldl (\<lambda>s x. h (f (g s) x)) s xs)"
+  by (rule sym, induct xs arbitrary: s) (simp_all add: assms)
+
 lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
   ==> foldl f a l = foldl g b k"
