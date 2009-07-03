@@ -43,9 +43,6 @@ object GUI_Setup extends GUIApplication
     }
 
     // values
-    if (Platform.is_windows) {
-      text.append("Cygwin root: " + Cygwin.config()._1 + "\n")
-    }
     Platform.defaults match {
       case None =>
       case Some((name, None)) => text.append("Platform: " + name + "\n")
@@ -53,7 +50,15 @@ object GUI_Setup extends GUIApplication
         text.append("Main platform: " + name1 + "\n")
         text.append("Alternative platform: " + name2 + "\n")
     }
-    text.append("Isabelle home: " + java.lang.System.getProperty("isabelle.home"))
+    if (Platform.is_windows) {
+      text.append("Cygwin root: " + Cygwin.config()._1 + "\n")
+    }
+    try {
+      val isabelle_system = new Isabelle_System
+      text.append("Isabelle home: " + isabelle_system.getenv("ISABELLE_HOME") + "\n")
+    } catch {
+      case e: RuntimeException => text.append(e.getMessage + "\n")
+    }
 
     // reactions
     listenTo(ok)
