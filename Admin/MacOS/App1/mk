@@ -10,7 +10,7 @@ COCOADIALOG_APP="/Applications/CocoaDialog.app"
 "$PLATYPUS_APP/Contents/Resources/platypus" \
   -a Isabelle -u Isabelle \
   -I "de.tum.in.isabelle" \
-  -i "$THIS/isabelle.icns" \
+  -i "$THIS/../isabelle.icns" \
   -p /bin/bash \
   -c "$THIS/script" \
   -o None \
