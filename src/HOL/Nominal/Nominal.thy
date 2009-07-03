@@ -3,7 +3,7 @@ imports Main Infinite_Set
 uses
   ("nominal_thmdecls.ML")
   ("nominal_atoms.ML")
-  ("nominal.ML")
+  ("nominal_datatype.ML")
   ("nominal_induct.ML") 
   ("nominal_permeq.ML")
   ("nominal_fresh_fun.ML")
@@ -3670,7 +3670,7 @@ method_setup fresh_fun_simp =
 lemma allE_Nil: assumes "\<forall>x. P x" obtains "P []"
   using assms ..
 
-use "nominal.ML"
+use "nominal_datatype.ML"
 
 (******************************************************)
 (* primitive recursive functions on nominal datatypes *)

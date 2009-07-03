@@ -1003,11 +1003,11 @@ HOL-Nominal: HOL $(OUT)/HOL-Nominal
 $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
   Nominal/Nominal.thy \
   Nominal/nominal_atoms.ML \
+  Nominal/nominal_datatype.ML \
   Nominal/nominal_fresh_fun.ML \
   Nominal/nominal_induct.ML \
   Nominal/nominal_inductive.ML \
   Nominal/nominal_inductive2.ML \
-  Nominal/nominal.ML \
   Nominal/nominal_permeq.ML \
   Nominal/nominal_primrec.ML \
   Nominal/nominal_thmdecls.ML \
