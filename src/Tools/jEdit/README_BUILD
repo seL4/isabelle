@@ -5,10 +5,10 @@ Requirements to build from sources
 * Proper Java JRE/JDK from Sun, e.g. 1.6.0_10
   http://java.sun.com/javase/downloads/index.jsp
 
-* Netbeans 6.5 or 6.7
+* Netbeans 6.7
   http://www.netbeans.org/downloads/index.html
 
-* Scala for Netbeans: version 0.15.1 for NB 6.5, or version 6.7v1 for NB 6.7
+* Scala for Netbeans: version 6.7v1 for NB 6.7
   http://sourceforge.net/project/showfiles.php?group_id=192439&package_id=256544
   http://blogtrader.net/dcaoyuan/category/NetBeans
   http://wiki.netbeans.org/Scala
@@ -16,7 +16,12 @@ Requirements to build from sources
 * jEdit 4.3pre16
   http://www.jedit.org/
 
-  Netbeans Project "jEdit": unpack official sources in ./contrib/jEdit
+  Netbeans Project "jEdit": install official sources as ./contrib/jEdit
+
+* jEdit plugins:
+    Netbeans Library "Sidekick" = $HOME/.jedit/jars/SideKick.jar
+    Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
+    Netbeans Library "HyperLink" = $HOME/.jedit/jars/Hyperlinks.jar
 
 * Flying Saucer XHTML renderer
   https://xhtmlrenderer.dev.java.net/
@@ -32,16 +37,15 @@ Running the application within Netbeans
 * Project properties: add "Run" argument like
     -noserver -nobackground -settings=/home/makarius/isabelle/isabelle-jedit/dist
 
-* The Isabelle environment is obtained automatically via "isabelle
-  getenv", which is determined as follows:
+* The Isabelle environment is obtained automatically via
+  "$ISABELLE_HOME/bin/isabelle getenv", where ISABELLE_HOME is determined as follows:
 
-    (1) via ISABELLE_TOOL from regular Isabelle settings,
-    	e.g. "isabelle env netbeans"
+    (1) via regular Isabelle settings,
+    e.g. "isabelle env netbeans"
 
-    (2) or via ISABELLE_TOOL from raw process environment,
-    	e.g. "env ISABELLE_TOOL=.../bin/isabelle netbeans"
+    (2) or via ISABELLE_HOME from raw process environment,
+    	e.g. "env ISABELLE_HOME=.../Isabelle netbeans"
 
     (3) or via JVM system properties (cf. "Run / VM Options")
-    	e.g. -Disabelle.tool=.../bin/isabelle
+    	e.g. -Disabelle.home=.../Isabelle
 
-    (4) or via "isabelle" found in PATH
