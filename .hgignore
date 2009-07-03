@@ -17,9 +17,11 @@ syntax: regexp
 ^doc-src/.*\.dvi
 ^doc-src/.*\.idx
 ^doc-src/.*\.ind
+^doc-src/.*\.lof
 ^doc-src/.*\.log
 ^doc-src/.*\.out
 ^doc-src/.*\.rai
 ^doc-src/.*\.rao
 ^doc-src/.*\.toc
+
 
