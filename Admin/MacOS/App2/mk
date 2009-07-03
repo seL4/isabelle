@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# Make Isabelle/JVM application bundle
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+
+APP="$THIS/Isabelle.app"
+
+mkdir -p "$APP/Contents/Resources/Java"
+cp "$THIS/../../../lib/classes/isabelle-scala.jar" "$APP/Contents/Resources/Java"
+cp "$THIS/../isabelle.icns" "$APP/Contents/Resources"
+
