@@ -95,16 +95,16 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   /* painting */
 
-  val update_delay = Delay(500){ buffer.propertiesChanged() }
-  val repaint_delay = Delay(100){ repaint_all() }
+  val update_delay = Swing_Thread.delay(500){ buffer.propertiesChanged() }
+  val repaint_delay = Swing_Thread.delay(100){ repaint_all() }
   
   val change_receiver = actor {
     loop {
       react {
         case _ =>
-          update_delay.prod()
-          repaint_delay.prod()
-          phase_overview.repaint_delay.prod()
+          update_delay()
+          repaint_delay()
+          phase_overview.repaint_delay()
       }
     }
   }
