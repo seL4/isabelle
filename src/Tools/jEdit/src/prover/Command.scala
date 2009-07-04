@@ -20,8 +20,10 @@ import isabelle.XML
 import sidekick.{SideKickParsedData, IAsset}
 
 
-object Command {
-  object Status extends Enumeration {
+object Command
+{
+  object Status extends Enumeration
+  {
     val UNPROCESSED = Value("UNPROCESSED")
     val FINISHED = Value("FINISHED")
     val FAILED = Value("FAILED")
@@ -31,7 +33,10 @@ object Command {
 
 class Command(val tokens: List[Token], val starts: Map[Token, Int])
 {
+  require(!tokens.isEmpty)
+
   val id = Isabelle.system.id()
+
 
   /* content */
 
@@ -39,13 +44,15 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
 
   val name = tokens.head.content
   val content: String = Token.string_from_tokens(tokens, starts)
+  val symbol_index = new Symbol.Index(content)
 
   def start(doc: ProofDocument) = doc.token_start(tokens.first)
   def stop(doc: ProofDocument) = doc.token_start(tokens.last) + tokens.last.length
 
   def contains(p: Token) = tokens.contains(p)
 
-  /* command status */
+
+  /* command status */   // FIXME class Command_State, multiple states per command
 
   var state_id: IsarDocument.State_ID = null
 
@@ -88,7 +95,8 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
 
   var markup_root = empty_root_node
 
-  def highlight_node: MarkupNode = {
+  def highlight_node: MarkupNode =
+  {
     import MarkupNode._
     markup_root.filter(_.info match {
       case RootInfo() | OuterInfo(_) | HighlightInfo(_) => true
@@ -102,7 +110,8 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
       else "wrong indices??",
       info)
 
-  def type_at(pos: Int): String = {
+  def type_at(pos: Int): String =
+  {
     val types = markup_root.filter(_.info match { case TypeInfo(_) => true case _ => false })
     types.flatten(_.flatten).
       find(t => t.start <= pos && t.stop > pos).
