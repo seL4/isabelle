@@ -26,19 +26,19 @@ object DynamicTokenMarker
   private val choose_byte: Map[String, Byte] =
   {
     import JToken._
-    Map(
+    Map[String, Byte](
       // logical entities
-      Markup.TCLASS -> DIGIT,
-      Markup.TYCON -> DIGIT,
-      Markup.FIXED_DECL -> DIGIT,
-      Markup.FIXED -> DIGIT,
-      Markup.CONST_DECL -> DIGIT,
-      Markup.CONST -> DIGIT,
-      Markup.FACT_DECL -> DIGIT,
-      Markup.FACT -> DIGIT,
-      Markup.DYNAMIC_FACT -> DIGIT,
-      Markup.LOCAL_FACT_DECL -> DIGIT,
-      Markup.LOCAL_FACT -> DIGIT,
+      Markup.TCLASS -> LABEL,
+      Markup.TYCON -> LABEL,
+      Markup.FIXED_DECL -> LABEL,
+      Markup.FIXED -> LABEL,
+      Markup.CONST_DECL -> LABEL,
+      Markup.CONST -> LABEL,
+      Markup.FACT_DECL -> LABEL,
+      Markup.FACT -> LABEL,
+      Markup.DYNAMIC_FACT -> LABEL,
+      Markup.LOCAL_FACT_DECL -> LABEL,
+      Markup.LOCAL_FACT -> LABEL,
       // inner syntax
       Markup.TFREE -> LITERAL2,
       Markup.FREE -> LITERAL2,
@@ -46,12 +46,12 @@ object DynamicTokenMarker
       Markup.SKOLEM -> LITERAL3,
       Markup.BOUND -> LITERAL3,
       Markup.VAR -> LITERAL3,
-      Markup.NUM -> LITERAL4,
-      Markup.FLOAT -> LITERAL4,
-      Markup.XNUM -> LITERAL4,
+      Markup.NUM -> DIGIT,
+      Markup.FLOAT -> DIGIT,
+      Markup.XNUM -> DIGIT,
       Markup.XSTR -> LITERAL4,
       Markup.LITERAL -> LITERAL4,
-      Markup.INNER_COMMENT -> LITERAL4,
+      Markup.INNER_COMMENT -> COMMENT1,
       Markup.SORT -> FUNCTION,
       Markup.TYP -> FUNCTION,
       Markup.TERM -> FUNCTION,
@@ -60,9 +60,9 @@ object DynamicTokenMarker
       Markup.METHOD -> FUNCTION,
       // ML syntax
       Markup.ML_KEYWORD -> KEYWORD2,
-      Markup.ML_IDENT -> KEYWORD3,
+      Markup.ML_IDENT -> 0,
       Markup.ML_TVAR -> LITERAL3,
-      Markup.ML_NUMERAL -> LITERAL4,
+      Markup.ML_NUMERAL -> DIGIT,
       Markup.ML_CHAR -> LITERAL1,
       Markup.ML_STRING -> LITERAL1,
       Markup.ML_COMMENT -> COMMENT1,
@@ -74,14 +74,14 @@ object DynamicTokenMarker
       Markup.ML_ANTIQ -> COMMENT4,
       Markup.DOC_ANTIQ -> COMMENT4,
       // outer syntax
-      Markup.IDENT -> KEYWORD3,
-      Markup.COMMAND -> KEYWORD1,
-      Markup.KEYWORD -> KEYWORD2,
-      Markup.VERBATIM -> COMMENT1,
-      Markup.COMMENT -> COMMENT2,
+      Markup.IDENT -> 0,
+      Markup.COMMAND -> OPERATOR,
+      Markup.KEYWORD -> KEYWORD4,
+      Markup.VERBATIM -> COMMENT3,
+      Markup.COMMENT -> COMMENT1,
       Markup.CONTROL -> COMMENT3,
       Markup.MALFORMED -> INVALID,
-      Markup.STRING -> LITERAL1,
+      Markup.STRING -> LITERAL3,
       Markup.ALTSTRING -> LITERAL1
     ).withDefaultValue(0)
   }
