@@ -60,7 +60,7 @@ object DynamicTokenMarker
       Markup.METHOD -> FUNCTION,
       // ML syntax
       Markup.ML_KEYWORD -> KEYWORD2,
-      Markup.ML_IDENT -> 0,
+      Markup.ML_IDENT -> NULL,
       Markup.ML_TVAR -> LITERAL3,
       Markup.ML_NUMERAL -> DIGIT,
       Markup.ML_CHAR -> LITERAL1,
@@ -74,7 +74,7 @@ object DynamicTokenMarker
       Markup.ML_ANTIQ -> COMMENT4,
       Markup.DOC_ANTIQ -> COMMENT4,
       // outer syntax
-      Markup.IDENT -> 0,
+      Markup.IDENT -> NULL,
       Markup.COMMAND -> OPERATOR,
       Markup.KEYWORD -> KEYWORD4,
       Markup.VERBATIM -> COMMENT3,
@@ -83,7 +83,7 @@ object DynamicTokenMarker
       Markup.MALFORMED -> INVALID,
       Markup.STRING -> LITERAL3,
       Markup.ALTSTRING -> LITERAL1
-    ).withDefaultValue(0)
+    ).withDefaultValue(NULL)
   }
 
   def choose_color(kind: String, styles: Array[SyntaxStyle]): Color =
