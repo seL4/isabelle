@@ -95,15 +95,15 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   /* painting */
 
-  val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
+  val repaint_delay = Delay(100){ repaint_all() }
   
   val change_receiver = actor {
     loop {
       react {
         case _ => {       // FIXME potentially blocking within loop/react!?!?!?!
           Swing_Thread.now {
-            repaint_delay.delay_or_ignore()
-            phase_overview.repaint_delay.delay_or_ignore()
+            repaint_delay.prod()
+            phase_overview.repaint_delay.prod()
           }
         }
       }

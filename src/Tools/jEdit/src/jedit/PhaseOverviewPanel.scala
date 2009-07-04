@@ -25,7 +25,7 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover,
   private val WIDTH = 10
 	private val HILITE_HEIGHT = 2
 
-  val repaint_delay = new isabelle.utils.Delay(100, () => repaint())
+  val repaint_delay = Delay(100){ repaint() }
 
   setRequestFocusEnabled(false);
 
