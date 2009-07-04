@@ -7,7 +7,7 @@ Detecting and recoding Isabelle symbols.
 package isabelle
 
 import scala.io.Source
-import scala.collection.jcl
+import scala.collection.{jcl, mutable}
 import scala.util.matching.Regex
 
 
@@ -34,14 +34,59 @@ object Symbol
   def is_open(s: String): Boolean =
   {
     val len = s.length
-    len == 1 && Character.isHighSurrogate(s(0)) ||
+    len == 1 && Character.isLowSurrogate(s(0)) ||
     s == "\\" ||
     s == "\\<" ||
     len > 2 && s(len - 1) != '>'
   }
 
 
-  /** Recoding **/
+  /** Decoding offsets **/
+
+  class Index(text: String)
+  {
+    case class Entry(chr: Int, sym: Int)
+    val index: Array[Entry] =
+    {
+      val length = text.length
+      val matcher = regex.pattern.matcher(text)
+      val buf = new mutable.ArrayBuffer[Entry]
+      var chr = 0
+      var sym = 0
+      while (chr < length) {
+        val c = text(chr)
+        val len =
+          if (c == '\\' || Character.isHighSurrogate(c)) {
+            matcher.region(chr, length).lookingAt
+            matcher.group.length
+          } else 1
+        chr += len
+        sym += 1
+        if (len > 1) buf += Entry(chr, sym)
+      }
+      buf.toArray
+    }
+    def decode(sym: Int): Int =
+    {
+      val end = index.length
+      def bisect(a: Int, b: Int): Int =
+      {
+        if (a < b) {
+          val c = (a + b) / 2
+          if (sym < index(c).sym) bisect(a, c)
+          else if (c + 1 == end || sym < index(c + 1).sym) c
+          else bisect(c + 1, b)
+        }
+        else -1
+      }
+      val i = bisect(0, end)
+      if (i < 0) sym
+      else index(i).chr + sym - index(i).sym
+    }
+  }
+
+
+  /** Recoding text **/
 
   private class Recoder(list: List[(String, String)])
   {
@@ -71,8 +116,7 @@ object Symbol
       while (i < len) {
         val c = text(i)
         if (min <= c && c <= max) {
-          matcher.region(i, len)
-          matcher.lookingAt
+          matcher.region(i, len).lookingAt
           val x = matcher.group
           result.append(table.get(x) getOrElse x)
           i = matcher.end
