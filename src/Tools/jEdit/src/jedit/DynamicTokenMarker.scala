@@ -11,7 +11,8 @@ import isabelle.prover.{Command, MarkupNode, Prover}
 import isabelle.Markup
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.syntax._
+import org.gjt.sp.jedit.syntax.{Token => JToken,
+  TokenMarker, TokenHandler, SyntaxStyle, ParserRuleSet}
 
 import java.awt.Color
 import java.awt.Font
@@ -20,61 +21,85 @@ import javax.swing.text.Segment;
 
 object DynamicTokenMarker
 {
-
   // Mapping to jEdit token types
-  def choose_byte(kind: String): Byte = {
-    // TODO: as properties or CSS style sheet
-    kind match {
+  // TODO: as properties or CSS style sheet
+  private val choose_byte: Map[String, Byte] =
+  {
+    import JToken._
+    Map(
       // logical entities
-      case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
-        | Markup.CONST | Markup.FACT_DECL | Markup.FACT | Markup.DYNAMIC_FACT
-        | Markup.LOCAL_FACT_DECL | Markup.LOCAL_FACT => Token.DIGIT
+      Markup.TCLASS -> DIGIT,
+      Markup.TYCON -> DIGIT,
+      Markup.FIXED_DECL -> DIGIT,
+      Markup.FIXED -> DIGIT,
+      Markup.CONST_DECL -> DIGIT,
+      Markup.CONST -> DIGIT,
+      Markup.FACT_DECL -> DIGIT,
+      Markup.FACT -> DIGIT,
+      Markup.DYNAMIC_FACT -> DIGIT,
+      Markup.LOCAL_FACT_DECL -> DIGIT,
+      Markup.LOCAL_FACT -> DIGIT,
       // inner syntax
-      case Markup.TFREE | Markup.FREE => Token.LITERAL2
-      case Markup.TVAR | Markup.SKOLEM | Markup.BOUND | Markup.VAR => Token.LITERAL3
-      case Markup.NUM | Markup.FLOAT | Markup.XNUM | Markup.XSTR | Markup.LITERAL
-        | Markup.INNER_COMMENT => Token.LITERAL4
-      case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
-        | Markup.ATTRIBUTE | Markup.METHOD => Token.FUNCTION
+      Markup.TFREE -> LITERAL2,
+      Markup.FREE -> LITERAL2,
+      Markup.TVAR -> LITERAL3,
+      Markup.SKOLEM -> LITERAL3,
+      Markup.BOUND -> LITERAL3,
+      Markup.VAR -> LITERAL3,
+      Markup.NUM -> LITERAL4,
+      Markup.FLOAT -> LITERAL4,
+      Markup.XNUM -> LITERAL4,
+      Markup.XSTR -> LITERAL4,
+      Markup.LITERAL -> LITERAL4,
+      Markup.INNER_COMMENT -> LITERAL4,
+      Markup.SORT -> FUNCTION,
+      Markup.TYP -> FUNCTION,
+      Markup.TERM -> FUNCTION,
+      Markup.PROP -> FUNCTION,
+      Markup.ATTRIBUTE -> FUNCTION,
+      Markup.METHOD -> FUNCTION,
       // ML syntax
-      case Markup.ML_KEYWORD => Token.KEYWORD2
-      case Markup.ML_IDENT => Token.KEYWORD3
-      case Markup.ML_TVAR => Token.LITERAL3
-      case Markup.ML_NUMERAL => Token.LITERAL4
-      case Markup.ML_CHAR | Markup.ML_STRING => Token.LITERAL1
-      case Markup.ML_COMMENT => Token.COMMENT1
-      case Markup.ML_MALFORMED => Token.INVALID
+      Markup.ML_KEYWORD -> KEYWORD2,
+      Markup.ML_IDENT -> KEYWORD3,
+      Markup.ML_TVAR -> LITERAL3,
+      Markup.ML_NUMERAL -> LITERAL4,
+      Markup.ML_CHAR -> LITERAL1,
+      Markup.ML_STRING -> LITERAL1,
+      Markup.ML_COMMENT -> COMMENT1,
+      Markup.ML_MALFORMED -> INVALID,
       // embedded source text
-      case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
-        | Markup.DOC_ANTIQ => Token.COMMENT4
+      Markup.ML_SOURCE -> COMMENT4,
+      Markup.DOC_SOURCE -> COMMENT4,
+      Markup.ANTIQ -> COMMENT4,
+      Markup.ML_ANTIQ -> COMMENT4,
+      Markup.DOC_ANTIQ -> COMMENT4,
       // outer syntax
-      case Markup.IDENT => Token.KEYWORD3
-      case Markup.COMMAND => Token.KEYWORD1
-      case Markup.KEYWORD => Token.KEYWORD2
-      case Markup.VERBATIM => Token.COMMENT1
-      case Markup.COMMENT => Token.COMMENT2
-      case Markup.CONTROL => Token.COMMENT3
-      case Markup.MALFORMED => Token.INVALID
-      case Markup.STRING | Markup.ALTSTRING => Token.LITERAL1
-      // other
-      case _ => 0
-    }
+      Markup.IDENT -> KEYWORD3,
+      Markup.COMMAND -> KEYWORD1,
+      Markup.KEYWORD -> KEYWORD2,
+      Markup.VERBATIM -> COMMENT1,
+      Markup.COMMENT -> COMMENT2,
+      Markup.CONTROL -> COMMENT3,
+      Markup.MALFORMED -> INVALID,
+      Markup.STRING -> LITERAL1,
+      Markup.ALTSTRING -> LITERAL1
+    ).withDefaultValue(0)
   }
 
-  def is_outer(kind: String) =
-    List(Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
-         Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING).exists(kind == _)
+  def choose_color(kind: String, styles: Array[SyntaxStyle]): Color =
+    styles(choose_byte(kind)).getForegroundColor
 
-  def choose_color(kind : String, styles: Array[SyntaxStyle]): Color =
-    styles((choose_byte(kind).asInstanceOf[Byte])).getForegroundColor
-
+  private val outer: Set[String] =
+    Set(Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
+      Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING)
+  def is_outer(kind: String) = outer.contains(kind)
 }
 
 class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarker
 {
-
   override def markTokens(prev: TokenMarker.LineContext,
-      handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext = {
+      handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
+  {
     val previous = prev.asInstanceOf[IndexLineContext]
     val line = if (prev == null) 0 else previous.line + 1
     val context = new IndexLineContext(line, previous)
@@ -82,9 +107,9 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
     val stop = start + line_segment.count
 
     val document = prover.document
-
-    def to: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.to_current(document.id, _)
-    def from: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.from_current(document.id, _)
+    val theory_view = Isabelle.prover_setup(buffer).get.theory_view
+    def to: Int => Int = theory_view.to_current(document.id, _)
+    def from: Int => Int = theory_view.from_current(document.id, _)
 
     var next_x = start
 
@@ -102,8 +127,10 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
             (to(markup.abs_stop(document)) - stop max 0)
       } {
         if (start + token_start > next_x)
-          handler.handleToken(line_segment, 1, next_x - start, start + token_start - next_x, context)
-        handler.handleToken(line_segment, byte, token_start, token_length, context)
+          handler.handleToken(line_segment, 1,
+            next_x - start, start + token_start - next_x, context)
+        handler.handleToken(line_segment, byte,
+          token_start, token_length, context)
         next_x = start + token_start + token_length
       }
       command = document.commands.next(command).getOrElse(null)
@@ -111,7 +138,7 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
     if (next_x < stop)
       handler.handleToken(line_segment, 1, next_x - start, stop - next_x, context)
 
-    handler.handleToken(line_segment,Token.END, line_segment.count, 0, context)
+    handler.handleToken(line_segment, JToken.END, line_segment.count, 0, context)
     handler.setLineContext(context)
     return context
   }
