@@ -147,10 +147,10 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 val consts = map_filter
                   (fn c => if (is_some o syntax_const) c
                     then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                    ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
+                    (fold Code_Thingol.add_constnames (t :: ts) []);
                 val vars = init_syms
                   |> Code_Printer.intro_vars consts
-                  |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                  |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_varnames)
                        (insert (op =)) ts []);
               in
                 semicolon (

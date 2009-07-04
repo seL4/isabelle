@@ -1,10 +1,10 @@
-(*  Title:      HOL/Nominal/nominal.ML
+(*  Title:      HOL/Nominal/nominal_datatype.ML
     Author:     Stefan Berghofer and Christian Urban, TU Muenchen
 
 Nominal datatype package for Isabelle/HOL.
 *)
 
-signature NOMINAL =
+signature NOMINAL_DATATYPE =
 sig
   val add_nominal_datatype : Datatype.config -> string list ->
     (string list * bstring * mixfix *
@@ -21,7 +21,7 @@ sig
   val fresh_star_const: typ -> typ -> term
 end
 
-structure Nominal : NOMINAL =
+structure NominalDatatype : NOMINAL_DATATYPE =
 struct
 
 val finite_emptyI = thm "finite.emptyI";

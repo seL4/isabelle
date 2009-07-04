@@ -388,10 +388,10 @@ definition
   "P \<squnion> Q = Pred (eval P \<squnion> eval Q)"
 
 definition
-  "\<Sqinter>A = Pred (INFI A eval)"
+  [code del]: "\<Sqinter>A = Pred (INFI A eval)"
 
 definition
-  "\<Squnion>A = Pred (SUPR A eval)"
+  [code del]: "\<Squnion>A = Pred (SUPR A eval)"
 
 instance by default
   (auto simp add: less_eq_pred_def less_pred_def

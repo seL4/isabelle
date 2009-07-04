@@ -49,9 +49,8 @@ sig
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dictvar: iterm -> bool
   val locally_monomorphic: iterm -> bool
-  val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
+  val add_constnames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
-  val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
 
   type naming
   val empty_naming: naming
@@ -153,38 +152,30 @@ fun unfold_const_app t =
   of (IConst c, ts) => SOME (c, ts)
    | _ => NONE;
 
-fun fold_aiterms f (t as IConst _) = f t
-  | fold_aiterms f (t as IVar _) = f t
-  | fold_aiterms f (t1 `$ t2) = fold_aiterms f t1 #> fold_aiterms f t2
-  | fold_aiterms f (t as _ `|=> t') = f t #> fold_aiterms f t'
-  | fold_aiterms f (ICase (_, t)) = fold_aiterms f t;
-
-fun fold_constnames f =
-  let
-    fun add (IConst (c, _)) = f c
-      | add _ = I;
-  in fold_aiterms add end;
+fun add_constnames (IConst (c, _)) = insert (op =) c
+  | add_constnames (IVar _) = I
+  | add_constnames (t1 `$ t2) = add_constnames t1 #> add_constnames t2
+  | add_constnames (_ `|=> t) = add_constnames t
+  | add_constnames (ICase (((t, _), ds), _)) = add_constnames t
+      #> fold (fn (pat, body) => add_constnames pat #> add_constnames body) ds;
 
 fun fold_varnames f =
   let
-    fun add (IVar (SOME v)) = f v
-      | add ((SOME v, _) `|=> _) = f v
-      | add _ = I;
-  in fold_aiterms add end;
+    fun fold_aux add f =
+      let
+        fun fold_term _ (IConst _) = I
+          | fold_term vs (IVar (SOME v)) = if member (op =) vs v then I else f v
+          | fold_term _ (IVar NONE) = I
+          | fold_term vs (t1 `$ t2) = fold_term vs t1 #> fold_term vs t2
+          | fold_term vs ((SOME v, _) `|=> t) = fold_term (insert (op =) v vs) t
+          | fold_term vs ((NONE, _) `|=> t) = fold_term vs t
+          | fold_term vs (ICase (((t, _), ds), _)) = fold_term vs t #> fold (fold_case vs) ds
+        and fold_case vs (p, t) = fold_term (add p vs) t;
+      in fold_term [] end;
+    fun add t = fold_aux add (insert (op =)) t;
+  in fold_aux add f end;
 
-fun fold_unbound_varnames f =
-  let
-    fun add _ (IConst _) = I
-      | add vs (IVar (SOME v)) = if not (member (op =) vs v) then f v else I
-      | add _ (IVar NONE) = I
-      | add vs (t1 `$ t2) = add vs t1 #> add vs t2
-      | add vs ((SOME v, _) `|=> t) = add (insert (op =) v vs) t
-      | add vs ((NONE, _) `|=> t) = add vs t
-      | add vs (ICase (((t, _), ds), _)) = add vs t #> fold (add_case vs) ds
-    and add_case vs (p, t) = add (fold_varnames (insert (op =)) p vs) t;
-  in add [] end;
-
-fun exists_var t v = fold_unbound_varnames (fn w => fn b => v = w orelse b) t false;
+fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
 fun split_pat_abs ((NONE, ty) `|=> t) = SOME ((IVar NONE, ty), t)
   | split_pat_abs ((SOME v, ty) `|=> t) = SOME (case t
@@ -219,12 +210,14 @@ fun eta_expand k (c as (_, (_, tys)), ts) =
 
 fun contains_dictvar t =
   let
-    fun contains (DictConst (_, dss)) = (fold o fold) contains dss
-      | contains (DictVar _) = K true;
-  in
-    fold_aiterms
-      (fn IConst (_, ((_, dss), _)) => (fold o fold) contains dss | _ => I) t false
-  end;
+    fun cont_dict (DictConst (_, dss)) = (exists o exists) cont_dict dss
+      | cont_dict (DictVar _) = true;
+    fun cont_term (IConst (_, ((_, dss), _))) = (exists o exists) cont_dict dss
+      | cont_term (IVar _) = false
+      | cont_term (t1 `$ t2) = cont_term t1 orelse cont_term t2
+      | cont_term (_ `|=> t) = cont_term t
+      | cont_term (ICase (_, t)) = cont_term t;
+  in cont_term t end;
   
 fun locally_monomorphic (IConst _) = false
   | locally_monomorphic (IVar _) = true
@@ -640,20 +633,37 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
       else map2 mk_constr case_pats (nth_drop t_pos ts);
     fun casify naming constrs ty ts =
       let
+        val undefineds = map_filter (lookup_const naming) (Code.undefineds thy);
+        fun collapse_clause vs_map ts body =
+          let
+          in case body
+           of IConst (c, _) => if member (op =) undefineds c
+                then []
+                else [(ts, body)]
+            | ICase (((IVar (SOME v), _), subclauses), _) =>
+                if forall (fn (pat', body') => exists_var pat' v
+                  orelse not (exists_var body' v)) subclauses
+                then case AList.lookup (op =) vs_map v
+                 of SOME i => maps (fn (pat', body') =>
+                      collapse_clause (AList.delete (op =) v vs_map)
+                        (nth_map i (K pat') ts) body') subclauses
+                  | NONE => [(ts, body)]
+                else [(ts, body)]
+            | _ => [(ts, body)]
+          end;
+        fun mk_clause mk tys t =
+          let
+            val (vs, body) = unfold_abs_eta tys t;
+            val vs_map = fold_index (fn (i, (SOME v, _)) => cons (v, i) | _ => I) vs [];
+            val ts = map (IVar o fst) vs;
+          in map mk (collapse_clause vs_map ts body) end;
         val t = nth ts t_pos;
         val ts_clause = nth_drop t_pos ts;
-        val undefineds = map_filter (lookup_const naming) (Code.undefineds thy);
-        fun mk_clause ((constr as IConst (_, (_, tys)), n), t) =
-          let
-            val (vs, t') = unfold_abs_eta (curry Library.take n tys) t;
-            val is_undefined = case t
-             of IConst (c, _) => member (op =) undefineds c
-              | _ => false;
-          in if is_undefined then NONE else SOME (constr `$$ map (IVar o fst) vs, t') end;
-        val clauses = if null case_pats then let val ([(v, _)], t) =
-            unfold_abs_eta [ty] (the_single ts_clause)
-          in [(IVar v, t)] end
-          else map_filter mk_clause (constrs ~~ ts_clause);
+        val clauses = if null case_pats
+          then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
+          else maps (fn ((constr as IConst (_, (_, tys)), n), t) =>
+            mk_clause (fn (ts, body) => (constr `$$ ts, body)) (curry Library.take n tys) t)
+              (constrs ~~ ts_clause);
       in ((t, ty), clauses) end;
   in
     translate_const thy algbr funcgr thm c_ty

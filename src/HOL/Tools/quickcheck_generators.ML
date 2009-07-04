@@ -67,10 +67,11 @@ type seed = Random_Engine.seed;
 
 fun random_fun T1 T2 eq term_of random random_split seed =
   let
-    val (seed', seed'') = random_split seed;
-    val state = ref (seed', [], Const (@{const_name undefined}, T1 --> T2));
     val fun_upd = Const (@{const_name fun_upd},
       (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
+    val (seed', seed'') = random_split seed;
+
+    val state = ref (seed', [], fn () => Const (@{const_name undefined}, T1 --> T2));
     fun random_fun' x =
       let
         val (seed, fun_map, f_t) = ! state;
@@ -80,11 +81,11 @@ fun random_fun T1 T2 eq term_of random random_split seed =
               val t1 = term_of x;
               val ((y, t2), seed') = random seed;
               val fun_map' = (x, y) :: fun_map;
-              val f_t' = fun_upd $ f_t $ t1 $ t2 ();
+              val f_t' = fn () => fun_upd $ f_t () $ t1 $ t2 ();
               val _ = state := (seed', fun_map', f_t');
             in y end
       end;
-    fun term_fun' () = #3 (! state);
+    fun term_fun' () = #3 (! state) ();
   in ((random_fun', term_fun'), seed'') end;
 
 
