@@ -8,7 +8,6 @@ package isabelle.jedit
 
 import isabelle.prover.Command
 import isabelle.proofdocument.ProofDocument
-import isabelle.utils.Delay
 
 import javax.swing._
 import java.awt.event._
