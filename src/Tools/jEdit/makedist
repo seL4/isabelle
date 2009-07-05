@@ -11,7 +11,7 @@ SUPER=$(cd "$THIS/.."; pwd)
 
 ## diagnostics
 
-JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre16"
+JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre17"
 
 function usage()
 {
@@ -88,6 +88,7 @@ cp -R "$THIS/dist-template/." "$JEDIT/."
 perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
   print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,; }
   print; }' "$JEDIT/modes/catalog"
+
 
 # build archive
 
