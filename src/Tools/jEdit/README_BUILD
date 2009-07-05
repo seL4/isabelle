@@ -13,10 +13,10 @@ Requirements to build from sources
   http://blogtrader.net/dcaoyuan/category/NetBeans
   http://wiki.netbeans.org/Scala
 
-* jEdit 4.3pre16
+* jEdit 4.3pre17
   http://www.jedit.org/
 
-  Netbeans Project "jEdit": install official sources as ./contrib/jEdit
+  Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
 
 * jEdit plugins:
     Netbeans Library "Sidekick" = $HOME/.jedit/jars/SideKick.jar
