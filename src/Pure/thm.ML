@@ -92,7 +92,7 @@ signature BASIC_THM =
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
   val trivial: cterm -> thm
-  val class_triv: theory -> class -> thm
+  val of_class: ctyp * class -> thm
   val unconstrainT: ctyp -> thm -> thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -1110,22 +1110,28 @@ fun trivial (Cterm {thy_ref, t =A, T, maxidx, sorts}) =
       tpairs = [],
       prop = Logic.mk_implies (A, A)});
 
-(*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
-fun class_triv thy raw_c =
+(*Axiom-scheme reflecting signature contents
+        T :: c
+  -------------------
+  OFCLASS(T, c_class)
+*)
+fun of_class (cT, raw_c) =
   let
+    val Ctyp {thy_ref, T, ...} = cT;
+    val thy = Theory.deref thy_ref;
     val c = Sign.certify_class thy raw_c;
-    val T = TVar ((Name.aT, 0), [c]);
-    val Cterm {t = prop, maxidx, sorts, ...} = cterm_of thy (Logic.mk_of_class (T, c))
-      handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
+    val Cterm {t = prop, maxidx, sorts, ...} = cterm_of thy (Logic.mk_of_class (T, c));
   in
-    Thm (deriv_rule0 (Pt.OfClass (T, c)),
-     {thy_ref = Theory.check_thy thy,
-      tags = [],
-      maxidx = maxidx,
-      shyps = sorts,
-      hyps = [],
-      tpairs = [],
-      prop = prop})
+    if Sign.of_sort thy (T, [c]) then
+      Thm (deriv_rule0 (Pt.OfClass (T, c)),
+       {thy_ref = Theory.check_thy thy,
+        tags = [],
+        maxidx = maxidx,
+        shyps = sorts,
+        hyps = [],
+        tpairs = [],
+        prop = prop})
+    else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
   end;
 
 (*Internalize sort constraints of type variable*)

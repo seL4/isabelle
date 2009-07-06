@@ -26,7 +26,8 @@ sig
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
-  val sort_triv: theory -> typ * sort -> thm list
+  val class_triv: theory -> class -> thm
+  val of_sort: ctyp * sort -> thm list
   val check_shyps: sort list -> thm -> thm
   val is_dummy: thm -> bool
   val plain_prop_of: thm -> term
@@ -171,14 +172,10 @@ fun equiv_thm ths =
 
 (* type classes and sorts *)
 
-fun sort_triv thy (T, S) =
-  let
-    val certT = Thm.ctyp_of thy;
-    val cT = certT T;
-    fun class_triv c =
-      Thm.class_triv thy c
-      |> Thm.instantiate ([(certT (TVar ((Name.aT, 0), [c])), cT)], []);
-  in map class_triv S end;
+fun class_triv thy c =
+  Thm.of_class (Thm.ctyp_of thy (TVar ((Name.aT, 0), [c])), c);
+
+fun of_sort (T, S) = map (fn c => Thm.of_class (T, c)) S;
 
 fun check_shyps sorts raw_th =
   let

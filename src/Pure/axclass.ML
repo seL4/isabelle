@@ -214,7 +214,7 @@ fun put_arity ((t, Ss, c), th) thy =
       |> snd))
   end;
 
-fun complete_arities thy = 
+fun complete_arities thy =
   let
     val arities = snd (get_instances thy);
     val (completions, arities') = arities
@@ -575,12 +575,13 @@ fun insert_type T der (Types cache) = Types (Typtab.insert_list (eq_fst op =) (T
 fun derive_type _ (_, []) = []
   | derive_type thy (typ, sort) =
       let
+        val certT = Thm.ctyp_of thy;
         val vars = Term.fold_atyps
             (fn T as TFree (_, S) => insert (eq_fst op =) (T, S)
               | T as TVar (_, S) => insert (eq_fst op =) (T, S)
               | _ => I) typ [];
         val hyps = vars
-          |> map (fn (T, S) => (T, Thm.sort_triv thy (T, S) ~~ S));
+          |> map (fn (T, S) => (T, Thm.of_sort (certT T, S) ~~ S));
         val ths = (typ, sort)
           |> Sorts.of_sort_derivation (Syntax.pp_global thy) (Sign.classes_of thy)
            {class_relation =
