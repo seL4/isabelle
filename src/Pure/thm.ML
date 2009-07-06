@@ -115,6 +115,7 @@ sig
   val incr_indexes_cterm: int -> cterm -> cterm
   val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
+  val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val maxidx_of: thm -> int
@@ -367,6 +368,9 @@ fun crep_thm (Thm (_, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
     prop = cterm maxidx prop}
   end;
 
+fun fold_terms f (Thm (_, {tpairs, prop, hyps, ...})) =
+  fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps;
+
 fun terms_of_tpairs tpairs = fold_rev (fn (t, u) => cons t o cons u) tpairs [];
 
 fun eq_tpairs ((t, u), (t', u')) = t aconv t' andalso u aconv u';
@@ -473,29 +477,28 @@ fun weaken_sorts raw_sorts ct =
 
 (** sort contexts of theorems **)
 
-fun present_sorts (Thm (_, {hyps, tpairs, prop, ...})) =
-  fold (fn (t, u) => Sorts.insert_term t o Sorts.insert_term u) tpairs
-    (Sorts.insert_terms hyps (Sorts.insert_term prop []));
-
-(*remove extra sorts that are non-empty by virtue of type signature information*)
+(*remove extra sorts that are witnessed by type signature information*)
 fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
   | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
       let
         val thy = Theory.deref thy_ref;
-        val present = present_sorts thm;
-        val extra = Sorts.subtract present shyps;
-        val extra' =
-          Sorts.subtract (map #2 (Sign.witness_sorts thy present extra)) extra
+        val present =
+          (fold_terms o fold_types o fold_atyps)
+            (fn T as TFree (_, S) => insert (eq_snd op =) (T, S)
+              | T as TVar (_, S) => insert (eq_snd op =) (T, S)) thm [];
+        val extra = fold (Sorts.remove_sort o #2) present shyps;
+        val witnessed = Sign.witness_sorts thy present extra;
+        val extra' = fold (Sorts.remove_sort o #2) witnessed extra
           |> Sorts.minimal_sorts (Sign.classes_of thy);
-        val shyps' = Sorts.union present extra'
-          |> Sorts.remove_sort [];
+        val shyps' = fold (Sorts.insert_sort o #2) present extra';
       in
         Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end;
 
 (*dangling sort constraints of a thm*)
-fun extra_shyps (th as Thm (_, {shyps, ...})) = Sorts.subtract (present_sorts th) shyps;
+fun extra_shyps (th as Thm (_, {shyps, ...})) =
+  Sorts.subtract (fold_terms Sorts.insert_term th []) shyps;
 
 
 
