@@ -209,7 +209,7 @@ fun dup_intr th = zero_var_indexes (th RS classical);
 
 fun dup_elim th =
     rule_by_tactic (TRYALL (etac revcut_rl))
-      ((th RSN (2, revcut_rl)) |> assumption 2 |> Seq.hd);
+      ((th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd);
 
 (**** Classical rule sets ****)
 

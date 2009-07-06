@@ -55,7 +55,7 @@ fun import_tac ctxt (thyname, thmname) =
                             then message "import: Terms match up"
                             else message "import: Terms DO NOT match up"
                     val thm' = equal_elim (symmetric prew) thm
-                    val res = bicompose true (false,thm',0) 1 th
+                    val res = Thm.bicompose true (false,thm',0) 1 th
                 in
                     res
                 end

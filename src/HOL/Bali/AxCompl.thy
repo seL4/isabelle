@@ -1402,7 +1402,7 @@ using finU uA
 apply -
 apply (induct_tac "n")
 apply  (tactic "ALLGOALS (clarsimp_tac @{clasimpset})")
-apply  (tactic {* dtac (permute_prems 0 1 (thm "card_seteq")) 1 *})
+apply  (tactic {* dtac (Thm.permute_prems 0 1 (thm "card_seteq")) 1 *})
 apply    simp
 apply   (erule finite_imageI)
 apply  (simp add: MGF_asm ax_derivs_asm)

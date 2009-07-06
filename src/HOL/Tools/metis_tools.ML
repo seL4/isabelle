@@ -339,7 +339,7 @@ fun infer_types ctxt =
     could then fail. See comment on mk_var.*)
   fun resolve_inc_tyvars(tha,i,thb) =
     let val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
-	val ths = Seq.list_of (bicompose false (false,tha,nprems_of tha) i thb)
+	val ths = Seq.list_of (Thm.bicompose false (false,tha,nprems_of tha) i thb)
     in
 	case distinct Thm.eq_thm ths of
 	  [th] => th

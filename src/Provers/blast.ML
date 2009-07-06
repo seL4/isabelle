@@ -473,7 +473,7 @@ fun convertRule vars t =
 
 
 (*Like dup_elim, but puts the duplicated major premise FIRST*)
-fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> assumption 2 |> Seq.hd;
+fun rev_dup_elim th = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
 
 
 (*Rotate the assumptions in all new subgoals for the LIFO discipline*)
@@ -485,7 +485,7 @@ local
 
   fun rot_tac [] i st      = Seq.single st
     | rot_tac (0::ks) i st = rot_tac ks (i+1) st
-    | rot_tac (k::ks) i st = rot_tac ks (i+1) (rotate_rule (~k) i st);
+    | rot_tac (k::ks) i st = rot_tac ks (i+1) (Thm.rotate_rule (~k) i st);
 in
 fun rot_subgoals_tac (rot, rl) =
      rot_tac (if rot then map nNewHyps rl else [])

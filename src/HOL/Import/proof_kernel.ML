@@ -977,7 +977,7 @@ fun import_proof thyname thmname thy =
 
 fun uniq_compose m th i st =
     let
-        val res = bicompose false (false,th,m) i st
+        val res = Thm.bicompose false (false,th,m) i st
     in
         case Seq.pull res of
             SOME (th,rest) => (case Seq.pull rest of
@@ -1065,14 +1065,12 @@ fun mk_GEN v th sg =
         res
     end
 
-val permute_prems = Thm.permute_prems
-
 fun rearrange sg tm th =
     let
         val tm' = Envir.beta_eta_contract tm
-        fun find []      n = permute_prems 0 1 (implies_intr (Thm.cterm_of sg tm) th)
+        fun find []      n = Thm.permute_prems 0 1 (implies_intr (Thm.cterm_of sg tm) th)
           | find (p::ps) n = if tm' aconv (Envir.beta_eta_contract p)
-                             then permute_prems n 1 th
+                             then Thm.permute_prems n 1 th
                              else find ps (n+1)
     in
         find (prems_of th) 0
@@ -1193,7 +1191,7 @@ val debug = ref false
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
 
-val conjE_helper = permute_prems 0 1 conjE
+val conjE_helper = Thm.permute_prems 0 1 conjE
 
 fun get_hol4_thm thyname thmname thy =
     case get_hol4_theorem thyname thmname thy of

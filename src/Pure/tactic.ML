@@ -105,24 +105,24 @@ fun rule_by_tactic tac rl =
      thus (REPEAT (resolve_tac rules i)) stops once subgoal i disappears. *)
 
 (*Solve subgoal i by assumption*)
-fun assume_tac i = PRIMSEQ (assumption i);
+fun assume_tac i = PRIMSEQ (Thm.assumption i);
 
 (*Solve subgoal i by assumption, using no unification*)
-fun eq_assume_tac i = PRIMITIVE (eq_assumption i);
+fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
 
 
 (** Resolution/matching tactics **)
 
 (*The composition rule/state: no lifting or var renaming.
-  The arg = (bires_flg, orule, m) ;  see bicompose for explanation.*)
-fun compose_tac arg i = PRIMSEQ (bicompose false arg i);
+  The arg = (bires_flg, orule, m);  see Thm.bicompose for explanation.*)
+fun compose_tac arg i = PRIMSEQ (Thm.bicompose false arg i);
 
 (*Converts a "destruct" rule like P&Q==>P to an "elimination" rule
   like [| P&Q; P==>R |] ==> R *)
 fun make_elim rl = zero_var_indexes (rl RS revcut_rl);
 
 (*Attack subgoal i by resolution, using flags to indicate elimination rules*)
-fun biresolve_tac brules i = PRIMSEQ (biresolution false brules i);
+fun biresolve_tac brules i = PRIMSEQ (Thm.biresolution false brules i);
 
 (*Resolution: the simple case, works for introduction rules*)
 fun resolve_tac rules = biresolve_tac (map (pair false) rules);
@@ -152,7 +152,7 @@ fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;
 fun solve_tac rules = resolve_tac rules THEN_ALL_NEW assume_tac;
 
 (*Matching tactics -- as above, but forbid updating of state*)
-fun bimatch_tac brules i = PRIMSEQ (biresolution true brules i);
+fun bimatch_tac brules i = PRIMSEQ (Thm.biresolution true brules i);
 fun match_tac rules  = bimatch_tac (map (pair false) rules);
 fun ematch_tac rules = bimatch_tac (map (pair true) rules);
 fun dmatch_tac rls   = ematch_tac (map make_elim rls);
@@ -295,7 +295,7 @@ fun biresolution_from_nets_tac order match (inet,enet) =
       let val hyps = Logic.strip_assums_hyp prem
           and concl = Logic.strip_assums_concl prem
           val kbrls = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps
-      in PRIMSEQ (biresolution match (order kbrls) i) end);
+      in PRIMSEQ (Thm.biresolution match (order kbrls) i) end);
 
 (*versions taking pre-built nets.  No filtering of brls*)
 val biresolve_from_nets_tac = biresolution_from_nets_tac order_list false;
@@ -326,7 +326,7 @@ fun filt_resolution_from_net_tac match pred net =
       in
          if pred krls
          then PRIMSEQ
-                (biresolution match (map (pair false) (order_list krls)) i)
+                (Thm.biresolution match (map (pair false) (order_list krls)) i)
          else no_tac
       end);
 
@@ -359,15 +359,15 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 fun rename_tac xs i =
   case Library.find_first (not o Syntax.is_identifier) xs of
       SOME x => error ("Not an identifier: " ^ x)
-    | NONE => PRIMITIVE (rename_params_rule (xs, i));
+    | NONE => PRIMITIVE (Thm.rename_params_rule (xs, i));
 
 (*rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
   right to left if n is positive, and from left to right if n is negative.*)
 fun rotate_tac 0 i = all_tac
-  | rotate_tac k i = PRIMITIVE (rotate_rule k i);
+  | rotate_tac k i = PRIMITIVE (Thm.rotate_rule k i);
 
 (*Rotates the given subgoal to be the last.*)
-fun defer_tac i = PRIMITIVE (permute_prems (i-1) 1);
+fun defer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1);
 
 (* remove premises that do not satisfy p; fails if all prems satisfy p *)
 fun filter_prems_tac p =

@@ -354,7 +354,7 @@ fun make_elim_preserve rl =
       instantiate ([], [(cvar ("V", 0), cvar ("V", maxidx + 1)),
         (cvar ("W", 0), cvar ("W", maxidx + 1))]) Drule.revcut_rl;
   in
-    (case Seq.list_of (bicompose false (false, rl, Thm.nprems_of rl) 1 revcut_rl') of
+    (case Seq.list_of (Thm.bicompose false (false, rl, Thm.nprems_of rl) 1 revcut_rl') of
       [th] => th
     | _ => raise THM ("make_elim_preserve", 1, [rl]))
   end;

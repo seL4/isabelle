@@ -110,7 +110,7 @@ i.e. solves some subgoal of th that is identical to sol.
 fun solve_with sol th = 
     let fun solvei 0 = Seq.empty
           | solvei i = 
-            Seq.append (bicompose false (false,sol,0) i th) (solvei (i - 1))
+            Seq.append (Thm.bicompose false (false,sol,0) i th) (solvei (i - 1))
     in
       solvei (Thm.nprems_of th)
     end;
@@ -337,7 +337,7 @@ fun export_back (export {fixes = vs, assumes = hprems,
 
       val newth' = Drule.implies_intr_list sgallcts allified_newth
     in
-      bicompose false (false, newth', (length sgallcts)) i gth
+      Thm.bicompose false (false, newth', (length sgallcts)) i gth
     end;
 
 (* 

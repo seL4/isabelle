@@ -463,8 +463,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
                   (forall_intr_list cparams (implies_intr_list chyps Cth)))
         end
       (*function to replace the current subgoal*)
-      fun next st = bicompose false (false, relift st, nprems_of st)
-                    gno state
+      fun next st = Thm.bicompose false (false, relift st, nprems_of st) gno state
   in Seq.maps next (tacf subprems (trivial (cterm concl))) end;
 
 end;

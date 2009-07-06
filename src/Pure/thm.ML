@@ -97,14 +97,6 @@ signature BASIC_THM =
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
-  val assumption: int -> thm -> thm Seq.seq
-  val eq_assumption: int -> thm -> thm
-  val rotate_rule: int -> int -> thm -> thm
-  val permute_prems: int -> int -> thm -> thm
-  val rename_params_rule: string list * int -> thm -> thm
-  val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
-  val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
-  val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
 end;
 
 signature THM =
@@ -117,37 +109,45 @@ sig
   val dest_fun2: cterm -> cterm
   val dest_arg1: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
-  val adjust_maxidx_cterm: int -> cterm -> cterm
   val capply: cterm -> cterm -> cterm
   val cabs: cterm -> cterm -> cterm
-  val major_prem_of: thm -> term
-  val no_prems: thm -> bool
+  val adjust_maxidx_cterm: int -> cterm -> cterm
+  val incr_indexes_cterm: int -> cterm -> cterm
+  val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
+  val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
   val terms_of_tpairs: (term * term) list -> term list
+  val full_prop_of: thm -> term
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
   val hyps_of: thm -> term list
-  val full_prop_of: thm -> term
+  val no_prems: thm -> bool
+  val major_prem_of: thm -> term
   val axiom: theory -> string -> thm
   val axioms_of: theory -> (string * thm) list
-  val get_name: thm -> string
-  val put_name: string -> thm -> thm
   val get_tags: thm -> Properties.T
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
-  val rename_boundvars: term -> term -> thm -> thm
-  val match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-  val first_order_match: cterm * cterm -> (ctyp * ctyp) list * (cterm * cterm) list
-  val incr_indexes_cterm: int -> cterm -> cterm
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
+  val assumption: int -> thm -> thm Seq.seq
+  val eq_assumption: int -> thm -> thm
+  val rotate_rule: int -> int -> thm -> thm
+  val permute_prems: int -> int -> thm -> thm
+  val rename_params_rule: string list * int -> thm -> thm
+  val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
+  val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
+  val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
+  val rename_boundvars: term -> term -> thm -> thm
   val future: thm future -> cterm -> thm
   val pending_groups: thm -> Task_Queue.group list -> Task_Queue.group list
   val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proof: thm -> unit
+  val get_name: thm -> string
+  val put_name: string -> thm -> thm
   val extern_oracles: theory -> xstring list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;

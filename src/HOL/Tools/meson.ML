@@ -470,7 +470,7 @@ fun has_reps [] = false
 (*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
 fun TRYING_eq_assume_tac 0 st = Seq.single st
   | TRYING_eq_assume_tac i st =
-       TRYING_eq_assume_tac (i-1) (eq_assumption i st)
+       TRYING_eq_assume_tac (i-1) (Thm.eq_assumption i st)
        handle THM _ => TRYING_eq_assume_tac (i-1) st;
 
 fun TRYALL_eq_assume_tac st = TRYING_eq_assume_tac (nprems_of st) st;

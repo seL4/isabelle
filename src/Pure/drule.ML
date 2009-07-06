@@ -373,23 +373,25 @@ fun freeze_thaw th =
 
 (*Rotates a rule's premises to the left by k*)
 fun rotate_prems 0 = I
-  | rotate_prems k = permute_prems 0 k;
+  | rotate_prems k = Thm.permute_prems 0 k;
 
 fun with_subgoal i f = rotate_prems (i - 1) #> f #> rotate_prems (1 - i);
 
-(* permute prems, where the i-th position in the argument list (counting from 0)
-   gives the position within the original thm to be transferred to position i.
-   Any remaining trailing positions are left unchanged. *)
-val rearrange_prems = let
-  fun rearr new []      thm = thm
-  |   rearr new (p::ps) thm = rearr (new+1)
-     (map (fn q => if new<=q andalso q<p then q+1 else q) ps)
-     (permute_prems (new+1) (new-p) (permute_prems new (p-new) thm))
+(*Permute prems, where the i-th position in the argument list (counting from 0)
+  gives the position within the original thm to be transferred to position i.
+  Any remaining trailing positions are left unchanged.*)
+val rearrange_prems =
+  let
+    fun rearr new [] thm = thm
+      | rearr new (p :: ps) thm =
+          rearr (new + 1)
+            (map (fn q => if new <= q andalso q < p then q + 1 else q) ps)
+            (Thm.permute_prems (new + 1) (new - p) (Thm.permute_prems new (p - new) thm))
   in rearr 0 end;
 
 (*Resolution: exactly one resolvent must be produced.*)
 fun tha RSN (i,thb) =
-  case Seq.chop 2 (biresolution false [(false,tha)] i thb) of
+  case Seq.chop 2 (Thm.biresolution false [(false,tha)] i thb) of
       ([th],_) => th
     | ([],_)   => raise THM("RSN: no unifiers", i, [tha,thb])
     |      _   => raise THM("RSN: multiple unifiers", i, [tha,thb]);
@@ -399,7 +401,7 @@ fun tha RS thb = tha RSN (1,thb);
 
 (*For joining lists of rules*)
 fun thas RLN (i,thbs) =
-  let val resolve = biresolution false (map (pair false) thas) i
+  let val resolve = Thm.biresolution false (map (pair false) thas) i
       fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
   in maps resb thbs end;
 
@@ -425,7 +427,7 @@ fun bottom_rl OF rls = rls MRS bottom_rl;
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
 fun compose(tha,i,thb) =
-    distinct Thm.eq_thm (Seq.list_of (bicompose false (false,tha,0) i thb));
+    distinct Thm.eq_thm (Seq.list_of (Thm.bicompose false (false,tha,0) i thb));
 
 fun compose_single (tha,i,thb) =
   case compose (tha,i,thb) of

@@ -519,14 +519,14 @@ fun get ([],_,L) = rev L
             handle TERM _ => get (rst, n+1, L)
               | U.ERR _ => get (rst, n+1, L);
 
-(* Note: rename_params_rule counts from 1, not 0 *)
+(* Note: Thm.rename_params_rule counts from 1, not 0 *)
 fun rename thm =
   let val thy = Thm.theory_of_thm thm
       val tych = cterm_of thy
       val ants = Logic.strip_imp_prems (Thm.prop_of thm)
       val news = get (ants,1,[])
   in
-  fold rename_params_rule news thm
+  fold Thm.rename_params_rule news thm
   end;
 
 

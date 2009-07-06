@@ -595,7 +595,7 @@ fun set_prop thy t =
                 val norm_th = Thm.varifyT (norm_thm thy (close_thm (Thm.transfer thy th)))
                 val triv_th = trivial rhs
                 val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
-                val mod_th = case Seq.pull (bicompose false (*true*) (false,norm_th,0) 1 triv_th) of
+                val mod_th = case Seq.pull (Thm.bicompose false (*true*) (false,norm_th,0) 1 triv_th) of
                                  SOME(th,_) => SOME th
                                | NONE => NONE
             in
