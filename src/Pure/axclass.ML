@@ -338,10 +338,11 @@ fun define_overloaded b (c, t) thy =
 
 (* primitive rules *)
 
-fun add_classrel th thy =
+fun add_classrel raw_th thy =
   let
+    val th = Thm.strip_shyps (Thm.transfer thy raw_th);
+    val prop = Thm.plain_prop_of th;
     fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
-    val prop = Thm.plain_prop_of (Thm.transfer thy th);
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
   in
@@ -351,10 +352,11 @@ fun add_classrel th thy =
     |> perhaps complete_arities
   end;
 
-fun add_arity th thy =
+fun add_arity raw_th thy =
   let
+    val th = Thm.strip_shyps (Thm.transfer thy raw_th);
+    val prop = Thm.plain_prop_of th;
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
-    val prop = Thm.plain_prop_of (Thm.transfer thy th);
     val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
     val T = Type (t, map TFree (Name.names Name.context Name.aT Ss));
     val missing_params = Sign.complete_sort thy [c]
