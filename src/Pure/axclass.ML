@@ -470,9 +470,9 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 
     (* definition *)
 
-    val conjs = map (curry Logic.mk_inclass (Term.aT [])) super @ flat axiomss;
+    val conjs = map (curry Logic.mk_of_class (Term.aT [])) super @ flat axiomss;
     val class_eq =
-      Logic.mk_equals (Logic.mk_inclass (Term.aT [], class), Logic.mk_conjunction_balanced conjs);
+      Logic.mk_equals (Logic.mk_of_class (Term.aT [], class), Logic.mk_conjunction_balanced conjs);
 
     val ([def], def_thy) =
       thy
@@ -605,7 +605,7 @@ fun of_sort thy (typ, sort) cache =
     val ths =
       sort |> map (fn c =>
         Goal.finish (the (lookup_type cache' typ c) RS
-          Goal.init (Thm.cterm_of thy (Logic.mk_inclass (typ, c))))
+          Goal.init (Thm.cterm_of thy (Logic.mk_of_class (typ, c))))
         |> Thm.adjust_maxidx_thm ~1);
   in (ths, cache') end;
 

@@ -1115,10 +1115,10 @@ fun class_triv thy raw_c =
   let
     val c = Sign.certify_class thy raw_c;
     val T = TVar ((Name.aT, 0), [c]);
-    val Cterm {t = prop, maxidx, sorts, ...} = cterm_of thy (Logic.mk_inclass (T, c))
+    val Cterm {t = prop, maxidx, sorts, ...} = cterm_of thy (Logic.mk_of_class (T, c))
       handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
   in
-    Thm (deriv_rule0 (Pt.Inclass (T, c)),
+    Thm (deriv_rule0 (Pt.OfClass (T, c)),
      {thy_ref = Theory.check_thy thy,
       tags = [],
       maxidx = maxidx,
@@ -1137,7 +1137,7 @@ fun unconstrainT
       raise THM ("unconstrainT: not a type variable", 0, [th]);
     val T' = TVar ((x, i), []);
     val unconstrain = Term.map_types (Term.map_atyps (fn U => if U = T then T' else U));
-    val constraints = map (curry Logic.mk_inclass T') S;
+    val constraints = map (curry Logic.mk_of_class T') S;
   in
     Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
      {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),

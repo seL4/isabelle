@@ -54,7 +54,7 @@ fun add_proof_syntax thy =
        (Binding.name "AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn),
        (Binding.name "Hyp", propT --> proofT, NoSyn),
        (Binding.name "Oracle", propT --> proofT, NoSyn),
-       (Binding.name "Inclass", (Term.a_itselfT --> propT) --> proofT, NoSyn),
+       (Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT, NoSyn),
        (Binding.name "MinProof", proofT, Delimfix "?")]
   |> Sign.add_nonterminals [Binding.name "param", Binding.name "params"]
   |> Sign.add_syntax_i
@@ -113,11 +113,11 @@ fun proof_of_term thy ty =
                    | NONE => error ("Unknown theorem " ^ quote name))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
-      | prf_of Ts (Const ("Inclass", _) $ Const (c_class, _)) =
+      | prf_of Ts (Const ("OfClass", _) $ Const (c_class, _)) =
           (case try Logic.class_of_const c_class of
             SOME c =>
               change_type (if ty then SOME Ts else NONE)
-                (Inclass (TVar ((Name.aT, 0), []), c))
+                (OfClass (TVar ((Name.aT, 0), []), c))
           | NONE => error ("Bad class constant: " ^ quote c_class))
       | prf_of Ts (Const ("Hyp", _) $ prop) = Hyp prop
       | prf_of Ts (v as Var ((_, Type ("proof", _)))) = Hyp v
@@ -148,7 +148,7 @@ val AbsPt = Const ("AbsP", [propT, proofT --> proofT] ---> proofT);
 val AppPt = Const ("AppP", [proofT, proofT] ---> proofT);
 val Hypt = Const ("Hyp", propT --> proofT);
 val Oraclet = Const ("Oracle", propT --> proofT);
-val Inclasst = Const ("Inclass", (Term.itselfT dummyT --> propT) --> proofT);
+val OfClasst = Const ("OfClass", (Term.itselfT dummyT --> propT) --> proofT);
 val MinProoft = Const ("MinProof", proofT);
 
 val mk_tyapp = fold (fn T => fn prf => Const ("Appt",
@@ -161,8 +161,8 @@ fun term_of _ (PThm (_, ((name, _, NONE), _))) =
   | term_of _ (PAxm (name, _, NONE)) = Const (Long_Name.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =
       mk_tyapp Ts (Const (Long_Name.append "axm" name, proofT))
-  | term_of _ (Inclass (T, c)) =
-      mk_tyapp [T] (Inclasst $ Const (Logic.const_of_class c, Term.itselfT dummyT --> propT))
+  | term_of _ (OfClass (T, c)) =
+      mk_tyapp [T] (OfClasst $ Const (Logic.const_of_class c, Term.itselfT dummyT --> propT))
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) =
       let val T = the_default dummyT opT

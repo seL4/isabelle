@@ -223,8 +223,8 @@ fun make_constraints_cprf thy env cprf =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (prf as PAxm (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
-      | mk_cnstrts env _ _ vTs (prf as Inclass (T, c)) =
-          mk_cnstrts_atom env vTs (Logic.mk_inclass (T, c)) NONE prf
+      | mk_cnstrts env _ _ vTs (prf as OfClass (T, c)) =
+          mk_cnstrts_atom env vTs (Logic.mk_of_class (T, c)) NONE prf
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
@@ -321,7 +321,7 @@ fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (Hyp t) = t
   | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts), _))) = prop_of_atom prop Ts
   | prop_of0 Hs (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
-  | prop_of0 Hs (Inclass (T, c)) = Logic.mk_inclass (T, c)
+  | prop_of0 Hs (OfClass (T, c)) = Logic.mk_of_class (T, c)
   | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 

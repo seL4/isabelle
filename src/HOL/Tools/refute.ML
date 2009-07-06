@@ -909,8 +909,8 @@ struct
             (* and the class definition                               *)
             let
               val class   = Logic.class_of_const s
-              val inclass = Logic.mk_inclass (TVar (("'a", 0), [class]), class)
-              val ax_in   = SOME (specialize_type thy (s, T) inclass)
+              val of_class = Logic.mk_of_class (TVar (("'a", 0), [class]), class)
+              val ax_in   = SOME (specialize_type thy (s, T) of_class)
                 (* type match may fail due to sort constraints *)
                 handle Type.TYPE_MATCH => NONE
               val ax_1 = Option.map (fn ax => (Syntax.string_of_term_global thy ax, ax))

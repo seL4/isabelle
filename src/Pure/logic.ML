@@ -36,8 +36,8 @@ sig
   val type_map: (term -> term) -> typ -> typ
   val const_of_class: class -> string
   val class_of_const: string -> class
-  val mk_inclass: typ * class -> term
-  val dest_inclass: term -> typ * class
+  val mk_of_class: typ * class -> term
+  val dest_of_class: term -> typ * class
   val name_classrel: string * string -> string
   val mk_classrel: class * class -> term
   val dest_classrel: term -> class * class
@@ -219,13 +219,13 @@ fun class_of_const c = unsuffix classN c
   handle Fail _ => raise TERM ("class_of_const: bad name " ^ quote c, []);
 
 
-(* class constraints *)
+(* class membership *)
 
-fun mk_inclass (ty, c) =
+fun mk_of_class (ty, c) =
   Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
 
-fun dest_inclass (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
-  | dest_inclass t = raise TERM ("dest_inclass", [t]);
+fun dest_of_class (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
+  | dest_of_class t = raise TERM ("dest_of_class", [t]);
 
 
 (* class relations *)
@@ -233,10 +233,10 @@ fun dest_inclass (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const 
 fun name_classrel (c1, c2) =
   Long_Name.base_name c1 ^ "_" ^ Long_Name.base_name c2;
 
-fun mk_classrel (c1, c2) = mk_inclass (Term.aT [c1], c2);
+fun mk_classrel (c1, c2) = mk_of_class (Term.aT [c1], c2);
 
 fun dest_classrel tm =
-  (case dest_inclass tm of
+  (case dest_of_class tm of
     (TVar (_, [c1]), c2) => (c1, c2)
   | _ => raise TERM ("dest_classrel", [tm]));
 
@@ -251,13 +251,13 @@ fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 
 fun mk_arities (t, Ss, S) =
   let val T = Type (t, ListPair.map TFree (Name.invents Name.context Name.aT (length Ss), Ss))
-  in map (fn c => mk_inclass (T, c)) S end;
+  in map (fn c => mk_of_class (T, c)) S end;
 
 fun dest_arity tm =
   let
     fun err () = raise TERM ("dest_arity", [tm]);
 
-    val (ty, c) = dest_inclass tm;
+    val (ty, c) = dest_of_class tm;
     val (t, tvars) =
       (case ty of
         Type (t, tys) => (t, map dest_TVar tys handle TYPE _ => err ())

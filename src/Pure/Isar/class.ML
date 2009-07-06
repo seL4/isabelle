@@ -83,7 +83,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (fst (Locale.intros_of thy class));
 
     (* of_class *)
-    val of_class_prop_concl = Logic.mk_inclass (aT, class);
+    val of_class_prop_concl = Logic.mk_of_class (aT, class);
     val of_class_prop = case prop of NONE => of_class_prop_concl
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
           ((map_types o map_atyps) (K aT) prop), of_class_prop_concl);
