@@ -496,6 +496,40 @@ by (simp add: bij_def)
 
 hide (open) const swap
 
+
+subsection {* Inversion of injective functions *}
+
+definition inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" where
+  "inv f y = (THE x. f x = y)"
+
+lemma inv_f_f:
+  assumes "inj f"
+  shows "inv f (f x) = x"
+proof -
+  from assms have "(THE x'. f x' = f x) = (THE x'. x' = x)"
+    by (simp only: inj_eq)
+  also have "... = x" by (rule the_eq_trivial)
+  finally show ?thesis by (unfold inv_def)
+qed
+
+lemma f_inv_f:
+  assumes "inj f"
+  and "y \<in> range f"
+  shows "f (inv f y) = y"
+proof (unfold inv_def)
+  from `y \<in> range f` obtain x where "y = f x" ..
+  then have "f x = y" ..
+  then show "f (THE x. f x = y) = y"
+  proof (rule theI)
+    fix x' assume "f x' = y"
+    with `f x = y` have "f x' = f x" by simp
+    with `inj f` show "x' = x" by (rule injD)
+  qed
+qed
+
+hide (open) const inv
+
+
 subsection {* Proof tool setup *} 
 
 text {* simplifies terms of the form
