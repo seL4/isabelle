@@ -27,7 +27,7 @@ sig
   val inter_sort: tsig -> sort * sort -> sort
   val cert_class: tsig -> class -> class
   val cert_sort: tsig -> sort -> sort
-  val witness_sorts: tsig -> sort list -> sort list -> (typ * sort) list
+  val witness_sorts: tsig -> (typ * sort) list -> sort list -> (typ * sort) list
   type mode
   val mode_default: mode
   val mode_syntax: mode

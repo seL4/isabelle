@@ -62,7 +62,7 @@ sig
      type_constructor: string -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
-  val witness_sorts: algebra -> string list -> sort list -> sort list -> (typ * sort) list
+  val witness_sorts: algebra -> string list -> (typ * sort) list -> sort list -> (typ * sort) list
 end;
 
 structure Sorts: SORTS =
@@ -432,18 +432,17 @@ fun of_sort_derivation pp algebra {class_relation, type_constructor, type_variab
 fun witness_sorts algebra types hyps sorts =
   let
     fun le S1 S2 = sort_le algebra (S1, S2);
-    fun get_solved S2 (T, S1) = if le S1 S2 then SOME (T, S2) else NONE;
-    fun get_hyp S2 S1 = if le S1 S2 then SOME (TFree ("'hyp", S1), S2) else NONE;
+    fun get S2 (T, S1) = if le S1 S2 then SOME (T, S2) else NONE;
     fun mg_dom t S = SOME (mg_domain algebra t S) handle CLASS_ERROR _ => NONE;
 
     fun witn_sort _ [] solved_failed = (SOME (propT, []), solved_failed)
       | witn_sort path S (solved, failed) =
           if exists (le S) failed then (NONE, (solved, failed))
           else
-            (case get_first (get_solved S) solved of
+            (case get_first (get S) solved of
               SOME w => (SOME w, (solved, failed))
             | NONE =>
-                (case get_first (get_hyp S) hyps of
+                (case get_first (get S) hyps of
                   SOME w => (SOME w, (w :: solved, failed))
                 | NONE => witn_types path types S (solved, failed)))
 

@@ -27,7 +27,7 @@ sig
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
   val of_sort: theory -> typ * sort -> bool
-  val witness_sorts: theory -> sort list -> sort list -> (typ * sort) list
+  val witness_sorts: theory -> (typ * sort) list -> sort list -> (typ * sort) list
   val is_logtype: theory -> string -> bool
   val typ_instance: theory -> typ * typ -> bool
   val typ_equiv: theory -> typ * typ -> bool
