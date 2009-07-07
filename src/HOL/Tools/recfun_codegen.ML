@@ -29,7 +29,7 @@ fun add_thm NONE thm thy = Code.add_eqn thm thy
         val (thm', _) = Code.mk_eqn thy (K false) (thm, true)
       in
         thy
-        |> ModuleData.map (Symtab.update (Code.const_eqn thy thm', module_name))
+        |> ModuleData.map (Symtab.update (fst (Code.const_typ_eqn thy thm'), module_name))
         |> Code.add_eqn thm'
       end;
 
@@ -44,7 +44,7 @@ fun meta_eq_to_obj_eq thy thm =
 fun expand_eta thy [] = []
   | expand_eta thy (thms as thm :: _) =
       let
-        val (_, ty) = Code.const_typ_eqn thm;
+        val (_, ty) = Code.const_typ_eqn thy thm;
       in if null (Term.add_tvarsT ty []) orelse (null o fst o strip_type) ty
         then thms
         else map (Code.expand_eta thy 1) thms

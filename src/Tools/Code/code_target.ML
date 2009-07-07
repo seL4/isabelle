@@ -286,7 +286,7 @@ fun gen_add_syntax_tyco prep_tyco target raw_tyco raw_syn thy =
 fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
   let
     val c = prep_const thy raw_c;
-    fun check_args (syntax as (n, _)) = if n > Code.no_args thy c
+    fun check_args (syntax as (n, _)) = if n > Code.args_number thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
       else syntax;
   in case raw_syn

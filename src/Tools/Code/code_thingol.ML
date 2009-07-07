@@ -627,8 +627,8 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
     fun arg_types num_args ty = (fst o chop num_args o fst o strip_type) ty;
     val tys = arg_types num_args (snd c_ty);
     val ty = nth tys t_pos;
-    fun mk_constr c t = let val n = Code.no_args thy c
-      in ((c, arg_types (Code.no_args thy c) (fastype_of t) ---> ty), n) end;
+    fun mk_constr c t = let val n = Code.args_number thy c
+      in ((c, arg_types n (fastype_of t) ---> ty), n) end;
     val constrs = if null case_pats then []
       else map2 mk_constr case_pats (nth_drop t_pos ts);
     fun casify naming constrs ty ts =
