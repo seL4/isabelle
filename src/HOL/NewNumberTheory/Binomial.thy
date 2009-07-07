@@ -109,68 +109,68 @@ declare TransferMorphism_int_nat[transfer add return:
 
 subsection {* Factorial *}
 
-lemma nat_fact_zero [simp]: "fact (0::nat) = 1"
+lemma fact_zero_nat [simp]: "fact (0::nat) = 1"
   by simp
 
-lemma int_fact_zero [simp]: "fact (0::int) = 1"
+lemma fact_zero_int [simp]: "fact (0::int) = 1"
   by (simp add: fact_int_def)
 
-lemma nat_fact_one [simp]: "fact (1::nat) = 1"
+lemma fact_one_nat [simp]: "fact (1::nat) = 1"
   by simp
 
-lemma nat_fact_Suc_0 [simp]: "fact (Suc 0) = Suc 0"
+lemma fact_Suc_0_nat [simp]: "fact (Suc 0) = Suc 0"
   by (simp add: One_nat_def)
 
-lemma int_fact_one [simp]: "fact (1::int) = 1"
+lemma fact_one_int [simp]: "fact (1::int) = 1"
   by (simp add: fact_int_def)
 
-lemma nat_fact_plus_one: "fact ((n::nat) + 1) = (n + 1) * fact n"
+lemma fact_plus_one_nat: "fact ((n::nat) + 1) = (n + 1) * fact n"
   by simp
 
-lemma nat_fact_Suc: "fact (Suc n) = (Suc n) * fact n"
+lemma fact_Suc_nat: "fact (Suc n) = (Suc n) * fact n"
   by (simp add: One_nat_def)
 
-lemma int_fact_plus_one: 
+lemma fact_plus_one_int: 
   assumes "n >= 0"
   shows "fact ((n::int) + 1) = (n + 1) * fact n"
 
-  using prems by (rule nat_fact_plus_one [transferred])
+  using prems by (rule fact_plus_one_nat [transferred])
 
-lemma nat_fact_reduce: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
+lemma fact_reduce_nat: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
   by simp
 
-lemma int_fact_reduce: 
+lemma fact_reduce_int: 
   assumes "(n::int) > 0"
   shows "fact n = n * fact (n - 1)"
 
   using prems apply (subst tsub_eq [symmetric], auto)
-  apply (rule nat_fact_reduce [transferred])
+  apply (rule fact_reduce_nat [transferred])
   using prems apply auto
 done
 
 declare fact_nat.simps [simp del]
 
-lemma nat_fact_nonzero [simp]: "fact (n::nat) \<noteq> 0"
-  apply (induct n rule: nat_induct')
-  apply (auto simp add: nat_fact_plus_one)
+lemma fact_nonzero_nat [simp]: "fact (n::nat) \<noteq> 0"
+  apply (induct n rule: induct'_nat)
+  apply (auto simp add: fact_plus_one_nat)
 done
 
-lemma int_fact_nonzero [simp]: "n >= 0 \<Longrightarrow> fact (n::int) ~= 0"
+lemma fact_nonzero_int [simp]: "n >= 0 \<Longrightarrow> fact (n::int) ~= 0"
   by (simp add: fact_int_def)
 
-lemma nat_fact_gt_zero [simp]: "fact (n :: nat) > 0"
-  by (insert nat_fact_nonzero [of n], arith)
+lemma fact_gt_zero_nat [simp]: "fact (n :: nat) > 0"
+  by (insert fact_nonzero_nat [of n], arith)
 
-lemma int_fact_gt_zero [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) > 0"
+lemma fact_gt_zero_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) > 0"
   by (auto simp add: fact_int_def)
 
-lemma nat_fact_ge_one [simp]: "fact (n :: nat) >= 1"
-  by (insert nat_fact_nonzero [of n], arith)
+lemma fact_ge_one_nat [simp]: "fact (n :: nat) >= 1"
+  by (insert fact_nonzero_nat [of n], arith)
 
-lemma nat_fact_ge_Suc_0 [simp]: "fact (n :: nat) >= Suc 0"
-  by (insert nat_fact_nonzero [of n], arith)
+lemma fact_ge_Suc_0_nat [simp]: "fact (n :: nat) >= Suc 0"
+  by (insert fact_nonzero_nat [of n], arith)
 
-lemma int_fact_ge_one [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) >= 1"
+lemma fact_ge_one_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) >= 1"
   apply (auto simp add: fact_int_def)
   apply (subgoal_tac "1 = int 1")
   apply (erule ssubst)
@@ -178,41 +178,41 @@ lemma int_fact_ge_one [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) >= 1"
   apply auto
 done
 
-lemma nat_dvd_fact [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::nat)"
-  apply (induct n rule: nat_induct')
-  apply (auto simp add: nat_fact_plus_one)
+lemma dvd_fact_nat [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::nat)"
+  apply (induct n rule: induct'_nat)
+  apply (auto simp add: fact_plus_one_nat)
   apply (subgoal_tac "m = n + 1")
   apply auto
 done
 
-lemma int_dvd_fact [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::int)"
+lemma dvd_fact_int [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::int)"
   apply (case_tac "1 <= n")
   apply (induct n rule: int_ge_induct)
-  apply (auto simp add: int_fact_plus_one)
+  apply (auto simp add: fact_plus_one_int)
   apply (subgoal_tac "m = i + 1")
   apply auto
 done
 
-lemma nat_interval_plus_one: "(i::nat) <= j + 1 \<Longrightarrow> 
+lemma interval_plus_one_nat: "(i::nat) <= j + 1 \<Longrightarrow> 
   {i..j+1} = {i..j} Un {j+1}"
   by auto
 
-lemma int_interval_plus_one: "(i::int) <= j + 1 \<Longrightarrow> {i..j+1} = {i..j} Un {j+1}"
+lemma interval_plus_one_int: "(i::int) <= j + 1 \<Longrightarrow> {i..j+1} = {i..j} Un {j+1}"
   by auto
 
-lemma nat_fact_altdef: "fact (n::nat) = (PROD i:{1..n}. i)"
-  apply (induct n rule: nat_induct')
+lemma fact_altdef_nat: "fact (n::nat) = (PROD i:{1..n}. i)"
+  apply (induct n rule: induct'_nat)
   apply force
-  apply (subst nat_fact_plus_one)
-  apply (subst nat_interval_plus_one)
+  apply (subst fact_plus_one_nat)
+  apply (subst interval_plus_one_nat)
   apply auto
 done
 
-lemma int_fact_altdef: "n >= 0 \<Longrightarrow> fact (n::int) = (PROD i:{1..n}. i)"
+lemma fact_altdef_int: "n >= 0 \<Longrightarrow> fact (n::int) = (PROD i:{1..n}. i)"
   apply (induct n rule: int_ge_induct)
   apply force
-  apply (subst int_fact_plus_one, assumption)
-  apply (subst int_interval_plus_one)
+  apply (subst fact_plus_one_int, assumption)
+  apply (subst interval_plus_one_int)
   apply auto
 done
 
@@ -220,8 +220,8 @@ subsection {* Infinitely many primes *}
 
 lemma next_prime_bound: "\<exists>(p::nat). prime p \<and> n < p \<and> p <= fact n + 1"
 proof-
-  have f1: "fact n + 1 \<noteq> 1" using nat_fact_ge_one [of n] by arith 
-  from nat_prime_factor [OF f1]
+  have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith 
+  from prime_factor_nat [OF f1]
       obtain p where "prime p" and "p dvd fact n + 1" by auto
   hence "p \<le> fact n + 1" 
     by (intro dvd_imp_le, auto)
@@ -229,9 +229,9 @@ proof-
     from `prime p` have "p \<ge> 1" 
       by (cases p, simp_all)
     with `p <= n` have "p dvd fact n" 
-      by (intro nat_dvd_fact)
+      by (intro dvd_fact_nat)
     with `p dvd fact n + 1` have "p dvd fact n + 1 - fact n"
-      by (rule nat_dvd_diff)
+      by (rule dvd_diff_nat)
     hence "p dvd 1" by simp
     hence "p <= 1" by auto
     moreover from `prime p` have "p > 1" by auto
@@ -256,95 +256,94 @@ qed
 
 subsection {* Binomial coefficients *}
 
-lemma nat_choose_zero [simp]: "(n::nat) choose 0 = 1"
+lemma choose_zero_nat [simp]: "(n::nat) choose 0 = 1"
   by simp
 
-lemma int_choose_zero [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 0 = 1"
+lemma choose_zero_int [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 0 = 1"
   by (simp add: binomial_int_def)
 
-lemma nat_zero_choose [rule_format,simp]: "ALL (k::nat) > n. n choose k = 0"
-  by (induct n rule: nat_induct', auto)
+lemma zero_choose_nat [rule_format,simp]: "ALL (k::nat) > n. n choose k = 0"
+  by (induct n rule: induct'_nat, auto)
 
-lemma int_zero_choose [rule_format,simp]: "(k::int) > n \<Longrightarrow> n choose k = 0"
+lemma zero_choose_int [rule_format,simp]: "(k::int) > n \<Longrightarrow> n choose k = 0"
   unfolding binomial_int_def apply (case_tac "n < 0")
   apply force
   apply (simp del: binomial_nat.simps)
 done
 
-lemma nat_choose_reduce: "(n::nat) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
+lemma choose_reduce_nat: "(n::nat) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
     (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
   by simp
 
-lemma int_choose_reduce: "(n::int) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
+lemma choose_reduce_int: "(n::int) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
     (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
-  unfolding binomial_int_def apply (subst nat_choose_reduce)
+  unfolding binomial_int_def apply (subst choose_reduce_nat)
     apply (auto simp del: binomial_nat.simps 
       simp add: nat_diff_distrib)
 done
 
-lemma nat_choose_plus_one: "((n::nat) + 1) choose (k + 1) = 
+lemma choose_plus_one_nat: "((n::nat) + 1) choose (k + 1) = 
     (n choose (k + 1)) + (n choose k)"
-  by (simp add: nat_choose_reduce)
+  by (simp add: choose_reduce_nat)
 
-lemma nat_choose_Suc: "(Suc n) choose (Suc k) = 
+lemma choose_Suc_nat: "(Suc n) choose (Suc k) = 
     (n choose (Suc k)) + (n choose k)"
-  by (simp add: nat_choose_reduce One_nat_def)
+  by (simp add: choose_reduce_nat One_nat_def)
 
-lemma int_choose_plus_one: "n \<ge> 0 \<Longrightarrow> k \<ge> 0 \<Longrightarrow> ((n::int) + 1) choose (k + 1) = 
+lemma choose_plus_one_int: "n \<ge> 0 \<Longrightarrow> k \<ge> 0 \<Longrightarrow> ((n::int) + 1) choose (k + 1) = 
     (n choose (k + 1)) + (n choose k)"
-  by (simp add: binomial_int_def nat_choose_plus_one nat_add_distrib 
-    del: binomial_nat.simps)
+  by (simp add: binomial_int_def choose_plus_one_nat nat_add_distrib del: binomial_nat.simps)
 
 declare binomial_nat.simps [simp del]
 
-lemma nat_choose_self [simp]: "((n::nat) choose n) = 1"
-  by (induct n rule: nat_induct', auto simp add: nat_choose_plus_one)
+lemma choose_self_nat [simp]: "((n::nat) choose n) = 1"
+  by (induct n rule: induct'_nat, auto simp add: choose_plus_one_nat)
 
-lemma int_choose_self [simp]: "n \<ge> 0 \<Longrightarrow> ((n::int) choose n) = 1"
+lemma choose_self_int [simp]: "n \<ge> 0 \<Longrightarrow> ((n::int) choose n) = 1"
   by (auto simp add: binomial_int_def)
 
-lemma nat_choose_one [simp]: "(n::nat) choose 1 = n"
-  by (induct n rule: nat_induct', auto simp add: nat_choose_reduce)
+lemma choose_one_nat [simp]: "(n::nat) choose 1 = n"
+  by (induct n rule: induct'_nat, auto simp add: choose_reduce_nat)
 
-lemma int_choose_one [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 1 = n"
+lemma choose_one_int [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 1 = n"
   by (auto simp add: binomial_int_def)
 
-lemma nat_plus_one_choose_self [simp]: "(n::nat) + 1 choose n = n + 1"
-  apply (induct n rule: nat_induct', force)
+lemma plus_one_choose_self_nat [simp]: "(n::nat) + 1 choose n = n + 1"
+  apply (induct n rule: induct'_nat, force)
   apply (case_tac "n = 0")
   apply auto
-  apply (subst nat_choose_reduce)
+  apply (subst choose_reduce_nat)
   apply (auto simp add: One_nat_def)  
   (* natdiff_cancel_numerals introduces Suc *)
 done
 
-lemma nat_Suc_choose_self [simp]: "(Suc n) choose n = Suc n"
-  using nat_plus_one_choose_self by (simp add: One_nat_def)
+lemma Suc_choose_self_nat [simp]: "(Suc n) choose n = Suc n"
+  using plus_one_choose_self_nat by (simp add: One_nat_def)
 
-lemma int_plus_one_choose_self [rule_format, simp]: 
+lemma plus_one_choose_self_int [rule_format, simp]: 
     "(n::int) \<ge> 0 \<longrightarrow> n + 1 choose n = n + 1"
    by (auto simp add: binomial_int_def nat_add_distrib)
 
 (* bounded quantification doesn't work with the unicode characters? *)
-lemma nat_choose_pos [rule_format]: "ALL k <= (n::nat). 
+lemma choose_pos_nat [rule_format]: "ALL k <= (n::nat). 
     ((n::nat) choose k) > 0"
-  apply (induct n rule: nat_induct') 
+  apply (induct n rule: induct'_nat) 
   apply force
   apply clarify
   apply (case_tac "k = 0")
   apply force
-  apply (subst nat_choose_reduce)
+  apply (subst choose_reduce_nat)
   apply auto
 done
 
-lemma int_choose_pos: "n \<ge> 0 \<Longrightarrow> k >= 0 \<Longrightarrow> k \<le> n \<Longrightarrow>
+lemma choose_pos_int: "n \<ge> 0 \<Longrightarrow> k >= 0 \<Longrightarrow> k \<le> n \<Longrightarrow>
     ((n::int) choose k) > 0"
-  by (auto simp add: binomial_int_def nat_choose_pos)
+  by (auto simp add: binomial_int_def choose_pos_nat)
 
 lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow> 
     (ALL n. P (n + 1) 0) \<longrightarrow> (ALL n. (ALL k < n. P n k \<longrightarrow> P n (k + 1) \<longrightarrow>
     P (n + 1) (k + 1))) \<longrightarrow> (ALL k <= n. P n k)"
-  apply (induct n rule: nat_induct')
+  apply (induct n rule: induct'_nat)
   apply auto
   apply (case_tac "k = 0")
   apply auto
@@ -355,7 +354,7 @@ lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow>
   apply auto
 done
 
-lemma nat_choose_altdef_aux: "(k::nat) \<le> n \<Longrightarrow> 
+lemma choose_altdef_aux_nat: "(k::nat) \<le> n \<Longrightarrow> 
     fact k * fact (n - k) * (n choose k) = fact n"
   apply (rule binomial_induct [of _ k n])
   apply auto
@@ -364,22 +363,22 @@ proof -
   assume less: "k < n"
   assume ih1: "fact k * fact (n - k) * (n choose k) = fact n"
   hence one: "fact (k + 1) * fact (n - k) * (n choose k) = (k + 1) * fact n"
-    by (subst nat_fact_plus_one, auto)
+    by (subst fact_plus_one_nat, auto)
   assume ih2: "fact (k + 1) * fact (n - (k + 1)) * (n choose (k + 1)) = 
       fact n"
   with less have "fact (k + 1) * fact ((n - (k + 1)) + 1) * 
       (n choose (k + 1)) = (n - k) * fact n"
-    by (subst (2) nat_fact_plus_one, auto)
+    by (subst (2) fact_plus_one_nat, auto)
   with less have two: "fact (k + 1) * fact (n - k) * (n choose (k + 1)) = 
       (n - k) * fact n" by simp
   have "fact (k + 1) * fact (n - k) * (n + 1 choose (k + 1)) =
       fact (k + 1) * fact (n - k) * (n choose (k + 1)) + 
       fact (k + 1) * fact (n - k) * (n choose k)" 
-    by (subst nat_choose_reduce, auto simp add: ring_simps)
+    by (subst choose_reduce_nat, auto simp add: ring_simps)
   also note one
   also note two
   also with less have "(n - k) * fact n + (k + 1) * fact n= fact (n + 1)" 
-    apply (subst nat_fact_plus_one)
+    apply (subst fact_plus_one_nat)
     apply (subst left_distrib [symmetric])
     apply simp
     done
@@ -387,43 +386,43 @@ proof -
     fact (n + 1)" .
 qed
 
-lemma nat_choose_altdef: "(k::nat) \<le> n \<Longrightarrow> 
+lemma choose_altdef_nat: "(k::nat) \<le> n \<Longrightarrow> 
     n choose k = fact n div (fact k * fact (n - k))"
-  apply (frule nat_choose_altdef_aux)
+  apply (frule choose_altdef_aux_nat)
   apply (erule subst)
   apply (simp add: mult_ac)
 done
 
 
-lemma int_choose_altdef: 
+lemma choose_altdef_int: 
   assumes "(0::int) <= k" and "k <= n"
   shows "n choose k = fact n div (fact k * fact (n - k))"
   
   apply (subst tsub_eq [symmetric], rule prems)
-  apply (rule nat_choose_altdef [transferred])
+  apply (rule choose_altdef_nat [transferred])
   using prems apply auto
 done
 
-lemma nat_choose_dvd: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
-  unfolding dvd_def apply (frule nat_choose_altdef_aux)
+lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
+  unfolding dvd_def apply (frule choose_altdef_aux_nat)
   (* why don't blast and auto get this??? *)
   apply (rule exI)
   apply (erule sym)
 done
 
-lemma int_choose_dvd: 
+lemma choose_dvd_int: 
   assumes "(0::int) <= k" and "k <= n"
   shows "fact k * fact (n - k) dvd fact n"
  
   apply (subst tsub_eq [symmetric], rule prems)
-  apply (rule nat_choose_dvd [transferred])
+  apply (rule choose_dvd_nat [transferred])
   using prems apply auto
 done
 
 (* generalizes Tobias Nipkow's proof to any commutative semiring *)
 theorem binomial: "(a+b::'a::{comm_ring_1,power})^n = 
   (SUM k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
-proof (induct n rule: nat_induct')
+proof (induct n rule: induct'_nat)
   show "?P 0" by simp
 next
   fix n
@@ -455,7 +454,7 @@ next
       "... = a^(n+1) + b^(n+1) + 
          (SUM k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
     by (auto simp add: ring_simps setsum_addf [symmetric]
-      nat_choose_reduce)
+      choose_reduce_nat)
   also have "... = (SUM k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
     using decomp by (simp add: ring_simps)
   finally show "?P (n + 1)" by simp
@@ -464,7 +463,7 @@ qed
 lemma set_explicit: "{S. S = T \<and> P S} = (if P T then {T} else {})"
   by auto
 
-lemma nat_card_subsets [rule_format]:
+lemma card_subsets_nat [rule_format]:
   fixes S :: "'a set"
   assumes "finite S"
   shows "ALL k. card {T. T \<le> S \<and> card T = k} = card S choose k" 
@@ -480,7 +479,7 @@ proof (induct set: finite)
     fix k
     show "card {T. T \<subseteq> (insert x F) \<and> card T = k} = 
         card (insert x F) choose k" (is "?Q k")
-    proof (induct k rule: nat_induct')
+    proof (induct k rule: induct'_nat)
       from iassms have "{T. T \<le> (insert x F) \<and> card T = 0} = {{}}"
         apply auto
         apply (subst (asm) card_0_eq)
@@ -530,7 +529,7 @@ proof (induct set: finite)
           by auto
         finally have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
           card F choose (k + 1) + (card F choose k)".
-        with iassms nat_choose_plus_one show ?thesis
+        with iassms choose_plus_one_nat show ?thesis
           by auto
       qed
     qed

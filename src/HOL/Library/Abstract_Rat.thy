@@ -30,8 +30,8 @@ where
   (let g = gcd a b 
    in if b > 0 then (a div g, b div g) else (- (a div g), - (b div g)))))"
 
-declare int_gcd_dvd1[presburger]
-declare int_gcd_dvd2[presburger]
+declare gcd_dvd1_int[presburger]
+declare gcd_dvd2_int[presburger]
 lemma normNum_isnormNum [simp]: "isnormNum (normNum x)"
 proof -
   have " \<exists> a b. x = (a,b)" by auto
@@ -43,7 +43,7 @@ proof -
     let ?a' = "a div ?g"
     let ?b' = "b div ?g"
     let ?g' = "gcd ?a' ?b'"
-    from anz bnz have "?g \<noteq> 0" by simp  with int_gcd_ge_0[of a b] 
+    from anz bnz have "?g \<noteq> 0" by simp  with gcd_ge_0_int[of a b] 
     have gpos: "?g > 0"  by arith
     have gdvd: "?g dvd a" "?g dvd b" by arith+ 
     from zdvd_mult_div_cancel[OF gdvd(1)] zdvd_mult_div_cancel[OF gdvd(2)]
@@ -51,7 +51,7 @@ proof -
     have nz':"?a' \<noteq> 0" "?b' \<noteq> 0"
       by - (rule notI, simp)+
     from anz bnz have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith 
-    from int_div_gcd_coprime[OF stupid] have gp1: "?g' = 1" .
+    from div_gcd_coprime_int[OF stupid] have gp1: "?g' = 1" .
     from bnz have "b < 0 \<or> b > 0" by arith
     moreover
     {assume b: "b > 0"
@@ -137,7 +137,7 @@ qed
 
 lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
   by (simp add: Ninv_def isnormNum_def split_def)
-    (cases "fst x = 0", auto simp add: int_gcd_commute)
+    (cases "fst x = 0", auto simp add: gcd_commute_int)
 
 lemma isnormNum_int[simp]: 
   "isnormNum 0\<^sub>N" "isnormNum (1::int)\<^sub>N" "i \<noteq> 0 \<Longrightarrow> isnormNum i\<^sub>N"
@@ -203,7 +203,7 @@ proof
     from prems have eq:"a * b' = a'*b" 
       by (simp add: INum_def  eq_divide_eq divide_eq_eq of_int_mult[symmetric] del: of_int_mult)
     from prems have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"       
-      by (simp_all add: isnormNum_def add: int_gcd_commute)
+      by (simp_all add: isnormNum_def add: gcd_commute_int)
     from eq have raw_dvd: "a dvd a'*b" "b dvd b'*a" "a' dvd a*b'" "b' dvd b*a'"
       apply - 
       apply algebra
@@ -211,8 +211,8 @@ proof
       apply simp
       apply algebra
       done
-    from zdvd_dvd_eq[OF bz int_coprime_dvd_mult[OF gcd1(2) raw_dvd(2)]
-      int_coprime_dvd_mult[OF gcd1(4) raw_dvd(4)]]
+    from zdvd_dvd_eq[OF bz coprime_dvd_mult_int[OF gcd1(2) raw_dvd(2)]
+      coprime_dvd_mult_int[OF gcd1(4) raw_dvd(4)]]
       have eq1: "b = b'" using pos by arith  
       with eq have "a = a'" using pos by simp
       with eq1 have ?rhs by simp}
@@ -297,8 +297,8 @@ let ?z = "0:: 'a"
       let ?g = "gcd (a * b' + b * a') (b*b')"
       have gz: "?g \<noteq> 0" using z by simp
       have ?thesis using aa' bb' z gz
-	of_int_div[where ?'a = 'a, OF gz int_gcd_dvd1[where x="a * b' + b * a'" and y="b*b'"]]	of_int_div[where ?'a = 'a,
-	OF gz int_gcd_dvd2[where x="a * b' + b * a'" and y="b*b'"]]
+	of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a * b' + b * a'" and y="b*b'"]]	of_int_div[where ?'a = 'a,
+	OF gz gcd_dvd2_int[where x="a * b' + b * a'" and y="b*b'"]]
 	by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
     ultimately have ?thesis using aa' bb' 
       by (simp add: Nadd_def INum_def normNum_def x y Let_def) }
@@ -319,8 +319,8 @@ proof-
   {assume z: "a \<noteq> 0" "a' \<noteq> 0" "b \<noteq> 0" "b' \<noteq> 0"
     let ?g="gcd (a*a') (b*b')"
     have gz: "?g \<noteq> 0" using z by simp
-    from z of_int_div[where ?'a = 'a, OF gz int_gcd_dvd1[where x="a*a'" and y="b*b'"]] 
-      of_int_div[where ?'a = 'a , OF gz int_gcd_dvd2[where x="a*a'" and y="b*b'"]] 
+    from z of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a*a'" and y="b*b'"]] 
+      of_int_div[where ?'a = 'a , OF gz gcd_dvd2_int[where x="a*a'" and y="b*b'"]] 
     have ?thesis by (simp add: Nmul_def x y Let_def INum_def)}
   ultimately show ?thesis by blast
 qed
@@ -478,7 +478,7 @@ proof-
 qed
 
 lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow> x *\<^sub>N y = y *\<^sub>N x"
-  by (simp add: Nmul_def split_def Let_def int_gcd_commute mult_commute)
+  by (simp add: Nmul_def split_def Let_def gcd_commute_int mult_commute)
 
 lemma Nmul_assoc:
   assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"

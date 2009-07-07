@@ -887,7 +887,7 @@ text {* @{term "op dvd"} is a partial order *}
 interpretation dvd: order "op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"
   proof qed (auto intro: dvd_refl dvd_trans dvd_anti_sym)
 
-lemma nat_dvd_diff[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
+lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
 unfolding dvd_def
 by (blast intro: diff_mult_distrib2 [symmetric])
 
@@ -897,7 +897,7 @@ lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
   done
 
 lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
-by (drule_tac m = m in nat_dvd_diff, auto)
+by (drule_tac m = m in dvd_diff_nat, auto)
 
 lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
   apply (rule iffI)
@@ -906,7 +906,7 @@ lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
   apply (subgoal_tac "n = (n+k) -k")
    prefer 2 apply simp
   apply (erule ssubst)
-  apply (erule nat_dvd_diff)
+  apply (erule dvd_diff_nat)
   apply (rule dvd_refl)
   done
 

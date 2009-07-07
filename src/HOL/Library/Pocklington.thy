@@ -846,7 +846,7 @@ next
       from lh[unfolded nat_mod]
       obtain q1 q2 where q12:"a ^ d + n * q1 = 1 + n * q2" by blast
       hence "a ^ d + n * q1 - n * q2 = 1" by simp
-      with nat_dvd_diff [OF dvd_add [OF divides_rexp[OF p(2), of d'] dvd_mult2[OF p(1), of q1]] dvd_mult2[OF p(1), of q2]] d' have "p dvd 1" by simp
+      with dvd_diff_nat [OF dvd_add [OF divides_rexp[OF p(2), of d'] dvd_mult2[OF p(1), of q1]] dvd_mult2[OF p(1), of q2]] d' have "p dvd 1" by simp
       with p(3) have False by simp
       hence ?rhs ..}
     ultimately have ?rhs by blast}

@@ -189,7 +189,7 @@ proof -
       assume pn: "p \<le> n"
       from `prime p` have "0 < p" by (rule prime_g_zero)
       then have "p dvd n!" using pn by (rule dvd_factorial)
-      with dvd have "p dvd ?k - n!" by (rule nat_dvd_diff)
+      with dvd have "p dvd ?k - n!" by (rule dvd_diff_nat)
       then have "p dvd 1" by simp
       with prime show False using prime_nd_one by auto
     qed

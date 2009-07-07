@@ -1060,7 +1060,7 @@ proof-
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
-      hence g'p: "?g' > 0" using int_gcd_ge_0[where x="n" and y="numgcd ?t'"] by arith
+      hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
       moreover {assume g'1:"?g'>1"
@@ -1096,7 +1096,7 @@ proof-
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
-      hence g'p: "?g' > 0" using int_gcd_ge_0[where x="n" and y="numgcd ?t'"] by arith
+      hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis using prems 
 	  by (auto simp add: Let_def simp_num_pair_def)}
@@ -1233,7 +1233,7 @@ proof-
   moreover
   {assume g1:"?g>1" hence g0: "?g > 0" by simp
     from g1 dnz have gp0: "?g' \<noteq> 0" by simp
-    hence g'p: "?g' > 0" using int_gcd_ge_0[where x="d" and y="numgcd t"] by arith
+    hence g'p: "?g' > 0" using gcd_ge_0_int[where x="d" and y="numgcd t"] by arith
     hence "?g'= 1 \<or> ?g' > 1" by arith
     moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simpdvd_def)}
     moreover {assume g'1:"?g'>1"
@@ -2126,7 +2126,7 @@ using lin
 proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
-  from prems int_lcm_pos have dp: "?d >0" by simp
+  from prems lcm_pos_int have dp: "?d >0" by simp
   have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp 
    hence th: "d\<delta> p ?d" 
      using delta_mono prems by(simp only: iszlfm.simps) blast
@@ -2136,7 +2136,7 @@ proof (induct p rule: iszlfm.induct)
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
-  from prems int_lcm_pos have dp: "?d >0" by simp
+  from prems lcm_pos_int have dp: "?d >0" by simp
   have "\<delta> p dvd \<delta> (And p q)" using prems by simp hence th: "d\<delta> p ?d" using delta_mono prems 
     by(simp only: iszlfm.simps) blast
   have "\<delta> q dvd \<delta> (And p q)" using prems by simp hence th': "d\<delta> q ?d" using delta_mono prems by(simp only: iszlfm.simps) blast
@@ -2514,15 +2514,15 @@ proof(induct p rule: iszlfm.induct)
   from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
+    dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
 next
   case (2 p q)
   from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
-qed (auto simp add: int_lcm_pos)
+    dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
+qed (auto simp add: lcm_pos_int)
 
 lemma a\<beta>: assumes linp: "iszlfm p (a #bs)" and d: "d\<beta> p l" and lp: "l > 0"
   shows "iszlfm (a\<beta> p l) (a #bs) \<and> d\<beta> (a\<beta> p l) 1 \<and> (Ifm (real (l * x) #bs) (a\<beta> p l) = Ifm ((real x)#bs) p)"
@@ -4175,7 +4175,7 @@ lemma bound0at_l : "\<lbrakk>isatom p ; bound0 p\<rbrakk> \<Longrightarrow> isrl
   by (induct p rule: isrlfm.induct, auto)
 lemma zgcd_le1: assumes ip: "(0::int) < i" shows "gcd i j \<le> i"
 proof-
-  from int_gcd_dvd1 have th: "gcd i j dvd i" by blast
+  from gcd_dvd1_int have th: "gcd i j dvd i" by blast
   from zdvd_imp_le[OF th ip] show ?thesis .
 qed
 

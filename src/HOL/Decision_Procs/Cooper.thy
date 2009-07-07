@@ -1042,7 +1042,7 @@ qed auto
 consts 
   plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
   minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
-  \<delta> :: "fm \<Rightarrow> int" (* Compute lcm {d| N\<^isup>?\<^isup> Dvd c*x+t \<in> p}*)
+  \<delta> :: "fm \<Rightarrow> int" (* Compute lcm {d| N\<^isup>? Dvd c*x+t \<in> p}*)
   d\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* checks if a given l divides all the ds above*)
 
 recdef minusinf "measure size"
@@ -1104,7 +1104,7 @@ using lin
 proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
-  from prems int_lcm_pos have dp: "?d >0" by simp
+  from prems lcm_pos_int have dp: "?d >0" by simp
   have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp
   hence th: "d\<delta> p ?d" using delta_mono prems(3-4) by(simp only: iszlfm.simps)
   have "\<delta> q dvd \<delta> (And p q)" using prems by simp
@@ -1113,7 +1113,7 @@ proof (induct p rule: iszlfm.induct)
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
-  from prems int_lcm_pos have dp: "?d >0" by simp
+  from prems lcm_pos_int have dp: "?d >0" by simp
   have "\<delta> p dvd \<delta> (And p q)" using prems by simp
   hence th: "d\<delta> p ?d" using delta_mono prems by(simp only: iszlfm.simps)
   have "\<delta> q dvd \<delta> (And p q)" using prems by simp
@@ -1410,15 +1410,15 @@ proof(induct p rule: iszlfm.induct)
   from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)"  by simp
   from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
+    dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
 next
   case (2 p q)
   from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
-    dl1 dl2 show ?case by (auto simp add: int_lcm_pos)
-qed (auto simp add: int_lcm_pos)
+    dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
+qed (auto simp add: lcm_pos_int)
 
 lemma a\<beta>: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l > 0"
   shows "iszlfm (a\<beta> p l) \<and> d\<beta> (a\<beta> p l) 1 \<and> (Ifm bbs (l*x #bs) (a\<beta> p l) = Ifm bbs (x#bs) p)"
