@@ -925,7 +925,7 @@ proof -
   have "?gcd' = 1"
   proof -
     have "?gcd * ?gcd' = gcd (?gcd * ?k) (?gcd * ?l)"
-      by (rule nat_gcd_mult_distrib)
+      by (rule gcd_mult_distrib_nat)
     with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
     with gcd show ?thesis by auto
   qed

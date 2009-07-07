@@ -746,7 +746,7 @@ proof-
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
-      hence g'p: "?g' > 0" using int_gcd_ge_0[where x="n" and y="numgcd ?t'"] by arith 
+      hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith 
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simp_num_pair_def simpnum_ci)}
       moreover {assume g'1:"?g'>1"
@@ -782,7 +782,7 @@ proof-
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
-      hence g'p: "?g' > 0" using int_gcd_ge_0[where x="n" and y="numgcd ?t'"] by arith
+      hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis using prems 
 	  by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0)}

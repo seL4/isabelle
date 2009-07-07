@@ -12,7 +12,7 @@ begin;
 
 (* finiteness stuff *)
 
-lemma int_bounded_set1 [intro]: "finite {(x::int). a < x & x < b & P x}" 
+lemma bounded_set1_int [intro]: "finite {(x::int). a < x & x < b & P x}" 
   apply (subgoal_tac "{x. a < x & x < b & P x} <= {a<..<b}")
   apply (erule finite_subset)
   apply auto

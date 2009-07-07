@@ -105,10 +105,10 @@ lemma res_units_eq: "Units R = { x. 0 < x & x < m & coprime x m}"
   apply auto
   apply (subgoal_tac "x ~= 0")
   apply auto
-  apply (rule int_invertible_coprime)
+  apply (rule invertible_coprime_int)
   apply (subgoal_tac "x ~= 0")
   apply auto
-  apply (subst (asm) int_coprime_iff_invertible')
+  apply (subst (asm) coprime_iff_invertible'_int)
   apply (rule m_gt_one)
   apply (auto simp add: cong_int_def mult_commute)
 done
@@ -202,8 +202,8 @@ lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrighta
   apply (subgoal_tac "a mod m ~= 0")
   apply arith
   apply auto
-  apply (subst (asm) int_gcd_red)
-  apply (subst int_gcd_commute, assumption)
+  apply (subst (asm) gcd_red_int)
+  apply (subst gcd_commute_int, assumption)
 done
 
 lemma res_eq_to_cong: "((a mod m) = (b mod m)) = [a = b] (mod (m::int))" 
@@ -254,8 +254,8 @@ lemma is_field: "field R"
     res_units_eq)
   apply (rule classical)
   apply (erule notE)
-  apply (subst int_gcd_commute)
-  apply (rule int_prime_imp_coprime)
+  apply (subst gcd_commute_int)
+  apply (rule prime_imp_coprime_int)
   apply (rule p_prime)
   apply (rule notI)
   apply (frule zdvd_imp_le)
@@ -265,8 +265,8 @@ done
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (subst res_units_eq)
   apply auto
-  apply (subst int_gcd_commute)
-  apply (rule int_prime_imp_coprime)
+  apply (subst gcd_commute_int)
+  apply (rule prime_imp_coprime_int)
   apply (rule p_prime)
   apply (rule zdvd_not_zless)
   apply auto
@@ -367,8 +367,8 @@ proof -
     apply (intro euler_theorem)
     (* auto should get this next part. matching across
        substitutions is needed. *)
-    apply (frule int_prime_gt_1, arith)
-    apply (subst int_gcd_commute, erule int_prime_imp_coprime, assumption)
+    apply (frule prime_gt_1_int, arith)
+    apply (subst gcd_commute_int, erule prime_imp_coprime_int, assumption)
     done
   also have "phi p = nat p - 1"
     by (rule phi_prime, rule prems)
@@ -442,7 +442,7 @@ proof -
     apply auto
     done
   also have "\<dots> = fact (p - 1) mod p"
-    apply (subst int_fact_altdef)
+    apply (subst fact_altdef_int)
     apply (insert prems, force)
     apply (subst res_prime_units_eq, rule refl)
     done
@@ -452,9 +452,9 @@ proof -
 qed
 
 lemma wilson_theorem: "prime (p::int) \<Longrightarrow> [fact (p - 1) = - 1] (mod p)"
-  apply (frule int_prime_gt_1)
+  apply (frule prime_gt_1_int)
   apply (case_tac "p = 2")
-  apply (subst int_fact_altdef, simp)
+  apply (subst fact_altdef_int, simp)
   apply (subst cong_int_def)
   apply simp
   apply (rule residues_prime.wilson_theorem1)

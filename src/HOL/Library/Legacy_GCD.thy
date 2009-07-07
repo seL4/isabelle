@@ -409,7 +409,7 @@ proof-
   {fix x y assume H: "a * x - b * y = d \<or> b * x - a * y = d"
     have dv: "?g dvd a*x" "?g dvd b * y" "?g dvd b*x" "?g dvd a * y"
       using dvd_mult2[OF gcd_dvd1[of a b]] dvd_mult2[OF gcd_dvd2[of a b]] by simp_all
-    from nat_dvd_diff[OF dv(1,2)] nat_dvd_diff[OF dv(3,4)] H
+    from dvd_diff_nat[OF dv(1,2)] dvd_diff_nat[OF dv(3,4)] H
     have ?rhs by auto}
   ultimately show ?thesis by blast
 qed
