@@ -1869,7 +1869,27 @@ text {* Equality *}
 declare simp_thms(6) [code nbe]
 
 setup {*
-  Code.add_const_alias @{thm equals_eq}
+  Sign.add_const_constraint (@{const_name eq}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"})
+*}
+
+lemma equals_alias_cert: "OFCLASS('a, eq_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> eq)" (is "?ofclass \<equiv> ?eq")
+proof
+  assume "PROP ?ofclass"
+  show "PROP ?eq"
+    by (tactic {* ALLGOALS (rtac (Drule.unconstrainTs @{thm equals_eq})) *}) 
+      (fact `PROP ?ofclass`)
+next
+  assume "PROP ?eq"
+  show "PROP ?ofclass" proof
+  qed (simp add: `PROP ?eq`)
+qed
+  
+setup {*
+  Sign.add_const_constraint (@{const_name eq}, SOME @{typ "'a\<Colon>eq \<Rightarrow> 'a \<Rightarrow> bool"})
+*}
+
+setup {*
+  Code.add_const_alias @{thm equals_alias_cert}
 *}
 
 hide (open) const eq
