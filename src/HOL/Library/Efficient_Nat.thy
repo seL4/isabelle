@@ -105,15 +105,9 @@ text {*
   This can be accomplished by applying the following transformation rules:
 *}
 
-lemma Suc_if_eq': "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
-  f n = (if n = 0 then g else h (n - 1))"
-  by (cases n) simp_all
-
 lemma Suc_if_eq: "(\<And>n. f (Suc n) \<equiv> h n) \<Longrightarrow> f 0 \<equiv> g \<Longrightarrow>
   f n \<equiv> if n = 0 then g else h (n - 1)"
-  by (rule eq_reflection, rule Suc_if_eq')
-    (rule meta_eq_to_obj_eq, assumption,
-     rule meta_eq_to_obj_eq, assumption)
+  by (rule eq_reflection) (cases n, simp_all)
 
 lemma Suc_clause: "(\<And>n. P n (Suc n)) \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> P (n - 1) n"
   by (cases n) simp_all
@@ -129,14 +123,14 @@ text {*
 setup {*
 let
 
-fun gen_remove_suc Suc_if_eq dest_judgement thy thms =
+fun remove_suc thy thms =
   let
     val vname = Name.variant (map fst
       (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "n";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
-      (fst (Thm.dest_comb (dest_judgement (cprop_of th)))));
-    fun rhs_of th = snd (Thm.dest_comb (dest_judgement (cprop_of th)));
+      (fst (Thm.dest_comb (cprop_of th))));
+    fun rhs_of th = snd (Thm.dest_comb (cprop_of th));
     fun find_vars ct = (case term_of ct of
         (Const (@{const_name Suc}, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
@@ -156,7 +150,7 @@ fun gen_remove_suc Suc_if_eq dest_judgement thy thms =
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
                  SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
-               Suc_if_eq)) (Thm.forall_intr cv' th)
+               @{thm Suc_if_eq})) (Thm.forall_intr cv' th)
       in
         case map_filter (fn th'' =>
             SOME (th'', singleton
@@ -169,21 +163,19 @@ fun gen_remove_suc Suc_if_eq dest_judgement thy thms =
       end
   in get_first mk_thms eqs end;
 
-fun gen_eqn_suc_preproc Suc_if_eq dest_judgement dest_lhs thy thms =
+fun eqn_suc_preproc thy thms =
   let
-    val dest = dest_lhs o prop_of;
+    val dest = fst o Logic.dest_equals o prop_of;
     val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
     if forall (can dest) thms andalso exists (contains_suc o dest) thms
-      then perhaps_loop (gen_remove_suc Suc_if_eq dest_judgement thy) thms
+      then perhaps_loop (remove_suc thy) thms
        else NONE
   end;
 
-val eqn_suc_preproc = Code_Preproc.simple_functrans (gen_eqn_suc_preproc
-  @{thm Suc_if_eq} I (fst o Logic.dest_equals));
+val eqn_suc_preproc1 = Code_Preproc.simple_functrans eqn_suc_preproc;
 
-fun eqn_suc_preproc' thy thms = gen_eqn_suc_preproc
-  @{thm Suc_if_eq'} (snd o Thm.dest_comb) (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) thy thms
+fun eqn_suc_preproc2 thy thms = eqn_suc_preproc thy thms
   |> the_default thms;
 
 fun remove_suc_clause thy thms =
@@ -227,9 +219,9 @@ fun clause_suc_preproc thy ths =
   end;
 in
 
-  Codegen.add_preprocessor eqn_suc_preproc'
+  Codegen.add_preprocessor eqn_suc_preproc2
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc)
+  #> Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc1)
 
 end;
 *}
