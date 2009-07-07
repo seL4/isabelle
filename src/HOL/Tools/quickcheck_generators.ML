@@ -5,7 +5,6 @@ Quickcheck generators for various types.
 
 signature QUICKCHECK_GENERATORS =
 sig
-  val compile_generator_expr: theory -> term -> int -> term list option
   type seed = Random_Engine.seed
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
@@ -16,6 +15,7 @@ sig
     -> string list -> string list * string list -> typ list * typ list
     -> term list * (term * term) list
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
+  val compile_generator_expr: theory -> term -> int -> term list option
   val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
   val setup: theory -> theory
 end;
@@ -23,42 +23,13 @@ end;
 structure Quickcheck_Generators : QUICKCHECK_GENERATORS =
 struct
 
-(** building and compiling generator expressions **)
+(** abstract syntax **)
 
-val eval_ref : (unit -> int -> int * int -> term list option * (int * int)) option ref = ref NONE;
-
-val target = "Quickcheck";
-
-fun mk_generator_expr thy prop tys =
-  let
-    val bound_max = length tys - 1;
-    val bounds = map_index (fn (i, ty) =>
-      (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) tys;
-    val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
-    val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
-    val check = @{term "If :: bool => term list option => term list option => term list option"}
-      $ result $ @{term "None :: term list option"} $ (@{term "Some :: term list => term list option "} $ terms);
-    val return = @{term "Pair :: term list option => Random.seed => term list option * Random.seed"};
-    fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
-    fun mk_termtyp ty = HOLogic.mk_prodT (ty, @{typ "unit => term"});
-    fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
-      liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
-    fun mk_split ty = Sign.mk_const thy
-      (@{const_name split}, [ty, @{typ "unit => term"}, liftT @{typ "term list option"} @{typ Random.seed}]);
-    fun mk_scomp_split ty t t' =
-      mk_scomp (mk_termtyp ty) @{typ "term list option"} @{typ Random.seed} t
-        (mk_split ty $ Abs ("", ty, Abs ("", @{typ "unit => term"}, t')));
-    fun mk_bindclause (_, _, i, ty) = mk_scomp_split ty
-      (Sign.mk_const thy (@{const_name Quickcheck.random}, [ty]) $ Bound i);
-  in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
-
-fun compile_generator_expr thy t =
-  let
-    val tys = (map snd o fst o strip_abs) t;
-    val t' = mk_generator_expr thy t tys;
-    val f = Code_ML.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
-      (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
-  in f #> Random_Engine.run end;
+fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"})
+val size = @{term "i::code_numeral"};
+val size1 = @{term "(i::code_numeral) - 1"};
+val size' = @{term "j::code_numeral"};
+val seed = @{term "s::Random.seed"};
 
 
 (** typ "'a => 'b" **)
@@ -91,25 +62,22 @@ fun random_fun T1 T2 eq term_of random random_split seed =
 
 (** type copies **)
 
-fun mk_random_typecopy tyco vs constr typ thy =
+fun mk_random_typecopy tyco vs constr T' thy =
   let
     val Ts = map TFree vs;  
     val T = Type (tyco, Ts);
-    fun mk_termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"})
-    val Ttm = mk_termifyT T;
-    val typtm = mk_termifyT typ;
+    val Tm = termifyT T;
+    val Tm' = termifyT T';
     fun mk_const c Ts = Const (c, Sign.const_instance thy (c, Ts));
-    fun mk_random T = mk_const @{const_name Quickcheck.random} [T];
-    val size = @{term "j::code_numeral"};
     val v = "x";
-    val t_v = Free (v, typtm);
+    val t_v = Free (v, Tm');
     val t_constr = mk_const constr Ts;
-    val lhs = mk_random T $ size;
-    val rhs = HOLogic.mk_ST [(((mk_random typ) $ size, @{typ Random.seed}), SOME (v, typtm))]
-      (HOLogic.mk_return Ttm @{typ Random.seed}
-      (mk_const "Code_Eval.valapp" [typ, T]
+    val lhs = HOLogic.mk_random T size;
+    val rhs = HOLogic.mk_ST [((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, Tm'))]
+      (HOLogic.mk_return Tm @{typ Random.seed}
+      (mk_const "Code_Eval.valapp" [T', T]
         $ HOLogic.mk_prod (t_constr, Abs ("u", @{typ unit}, HOLogic.reflect_term t_constr)) $ t_v))
-      @{typ Random.seed} (SOME Ttm, @{typ Random.seed});
+      @{typ Random.seed} (SOME Tm, @{typ Random.seed});
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in   
     thy
@@ -122,16 +90,16 @@ fun mk_random_typecopy tyco vs constr typ thy =
 
 fun ensure_random_typecopy tyco thy =
   let
-    val SOME { vs = raw_vs, constr, typ = raw_typ, ... } =
+    val SOME { vs = raw_vs, constr, typ = raw_T, ... } =
       Typecopy.get_info thy tyco;
     val constrain = curry (Sorts.inter_sort (Sign.classes_of thy));
-    val typ = map_atyps (fn TFree (v, sort) =>
-      TFree (v, constrain sort @{sort random})) raw_typ;
-    val vs' = Term.add_tfreesT typ [];
+    val T = map_atyps (fn TFree (v, sort) =>
+      TFree (v, constrain sort @{sort random})) raw_T;
+    val vs' = Term.add_tfreesT T [];
     val vs = map (fn (v, sort) =>
       (v, the_default (constrain sort @{sort typerep}) (AList.lookup (op =) vs' v))) raw_vs;
-    val do_inst = Sign.of_sort thy (typ, @{sort random});
-  in if do_inst then mk_random_typecopy tyco vs constr typ thy else thy end;
+    val can_inst = Sign.of_sort thy (T, @{sort random});
+  in if can_inst then mk_random_typecopy tyco vs constr T thy else thy end;
 
 
 (** datatypes **)
@@ -258,12 +226,7 @@ val random_auxN = "random_aux";
 fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
   let
     val mk_const = curry (Sign.mk_const thy);
-    val i = @{term "i\<Colon>code_numeral"};
-    val i1 = @{term "(i\<Colon>code_numeral) - 1"};
-    val j = @{term "j\<Colon>code_numeral"};
-    val seed = @{term "s\<Colon>Random.seed"};
     val random_auxsN = map (prefix (random_auxN ^ "_")) (names @ auxnames);
-    fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit \<Rightarrow> term"});
     val rTs = Ts @ Us;
     fun random_resultT T = @{typ Random.seed}
       --> HOLogic.mk_prodT (termifyT T,@{typ Random.seed});
@@ -272,7 +235,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
     val random_auxT = sizeT o random_resultT;
     val random_auxs = map2 (fn s => fn rT => Free (s, random_auxT rT))
       random_auxsN rTs;
-    fun mk_random_call T = (NONE, (HOLogic.mk_random T j, T));
+    fun mk_random_call T = (NONE, (HOLogic.mk_random T size', T));
     fun mk_random_aux_call fTs (k, _) (tyco, Ts) =
       let
         val T = Type (tyco, Ts);
@@ -280,7 +243,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
           | mk_random_fun_lift (fT :: fTs) t =
               mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
                 mk_random_fun_lift fTs t;
-        val t = mk_random_fun_lift fTs (nth random_auxs k $ i1 $ j);
+        val t = mk_random_fun_lift fTs (nth random_auxs k $ size1 $ size');
         val size = Option.map snd (DatatypeCodegen.find_shortest_path descr k)
           |> the_default 0;
       in (SOME size, (t, fTs ---> T)) end;
@@ -300,9 +263,9 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
         val t = HOLogic.mk_ST (map (fn (t, _) => (t, @{typ Random.seed})) tTs ~~ map SOME vs')
           tc @{typ Random.seed} (SOME T, @{typ Random.seed});
         val tk = if is_rec
-          then if k = 0 then i
+          then if k = 0 then size
             else @{term "Quickcheck.beyond :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
-             $ HOLogic.mk_number @{typ code_numeral} k $ i
+             $ HOLogic.mk_number @{typ code_numeral} k $ size
           else @{term "1::code_numeral"}
       in (is_rec, HOLogic.mk_prod (tk, t)) end;
     fun sort_rec xs =
@@ -316,24 +279,23 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
       $ (mk_const @{const_name Random.select_weight} [random_resultT rT]
         $ HOLogic.mk_list (HOLogic.mk_prodT (@{typ code_numeral}, random_resultT rT)) xs)
           $ seed;
-    val auxs_lhss = map (fn t => t $ i $ j $ seed) random_auxs;
+    val auxs_lhss = map (fn t => t $ size $ size' $ seed) random_auxs;
     val auxs_rhss = map mk_select gen_exprss;
   in (random_auxs, auxs_lhss ~~ auxs_rhss) end;
 
 fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = DatatypeAux.message config "Creating quickcheck generators ...";
-    val i = @{term "i\<Colon>code_numeral"};
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
     fun mk_size_arg k = case DatatypeCodegen.find_shortest_path descr k
-     of SOME (_, l) => if l = 0 then i
+     of SOME (_, l) => if l = 0 then size
           else @{term "max :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
-            $ HOLogic.mk_number @{typ code_numeral} l $ i
-      | NONE => i;
+            $ HOLogic.mk_number @{typ code_numeral} l $ size
+      | NONE => size;
     val (random_auxs, auxs_eqs) = (apsnd o map) mk_prop_eq
       (mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us));
     val random_defs = map_index (fn (k, T) => mk_prop_eq
-      (HOLogic.mk_random T i, nth random_auxs k $ mk_size_arg k $ i)) Ts;
+      (HOLogic.mk_random T size, nth random_auxs k $ mk_size_arg k $ size)) Ts;
   in
     thy
     |> TheoryTarget.instantiation (tycos, vs, @{sort random})
@@ -381,11 +343,49 @@ fun ensure_random_datatype config raw_tycos thy =
   end;
 
 
+(** building and compiling generator expressions **)
+
+val eval_ref : (unit -> int -> int * int -> term list option * (int * int)) option ref = ref NONE;
+
+val target = "Quickcheck";
+
+fun mk_generator_expr thy prop Ts =
+  let
+    val bound_max = length Ts - 1;
+    val bounds = map_index (fn (i, ty) =>
+      (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
+    val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
+    val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
+    val check = @{term "If :: bool => term list option => term list option => term list option"}
+      $ result $ @{term "None :: term list option"} $ (@{term "Some :: term list => term list option "} $ terms);
+    val return = @{term "Pair :: term list option => Random.seed => term list option * Random.seed"};
+    fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
+    fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
+    fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
+      liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
+    fun mk_split T = Sign.mk_const thy
+      (@{const_name split}, [T, @{typ "unit => term"}, liftT @{typ "term list option"} @{typ Random.seed}]);
+    fun mk_scomp_split T t t' =
+      mk_scomp (mk_termtyp T) @{typ "term list option"} @{typ Random.seed} t
+        (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
+    fun mk_bindclause (_, _, i, T) = mk_scomp_split T
+      (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
+  in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
+
+fun compile_generator_expr thy t =
+  let
+    val Ts = (map snd o fst o strip_abs) t;
+    val t' = mk_generator_expr thy t Ts;
+    val compile = Code_ML.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
+      (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
+  in compile #> Random_Engine.run end;
+
+
 (** setup **)
 
-val setup = Code_Target.extend_target (target, (Code_ML.target_Eval, K I))
-  #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of)
-  #> Typecopy.interpretation ensure_random_typecopy
-  #> Datatype.interpretation ensure_random_datatype;
+val setup = Typecopy.interpretation ensure_random_typecopy
+  #> Datatype.interpretation ensure_random_datatype
+  #> Code_Target.extend_target (target, (Code_ML.target_Eval, K I))
+  #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of);
 
 end;
