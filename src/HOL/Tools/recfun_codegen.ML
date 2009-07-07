@@ -33,14 +33,6 @@ fun add_thm NONE thm thy = Code.add_eqn thm thy
         |> Code.add_eqn thm'
       end;
 
-fun meta_eq_to_obj_eq thy thm =
-  let
-    val T = (fastype_of o fst o Logic.dest_equals o Thm.prop_of) thm;
-  in if Sign.of_sort thy (T, @{sort type})
-    then SOME (Conv.fconv_rule Drule.beta_eta_conversion (@{thm meta_eq_to_obj_eq} OF [thm]))
-    else NONE
-  end;
-
 fun expand_eta thy [] = []
   | expand_eta thy (thms as thm :: _) =
       let
@@ -57,12 +49,11 @@ fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
     val thms = Code.these_eqns thy c'
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> expand_eta thy
-      |> map_filter (meta_eq_to_obj_eq thy)
       |> Code.norm_varnames thy
       |> map (rpair opt_name)
   in if null thms then NONE else SOME thms end;
 
-val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
+val dest_eqn = Logic.dest_equals;
 val const_of = dest_Const o head_of o fst o dest_eqn;
 
 fun get_equations thy defs (s, T) =
