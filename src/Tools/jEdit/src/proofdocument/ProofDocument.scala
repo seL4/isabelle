@@ -40,7 +40,7 @@ object ProofDocument
 
  val empty =
   new ProofDocument(isabelle.jedit.Isabelle.system.id(),
-    LinearSet(), Map(), LinearSet(), false, _ => false)
+    LinearSet(), Map(), LinearSet(), _ => false)
 
 }
 
@@ -49,19 +49,11 @@ class ProofDocument(
   val tokens: LinearSet[Token],
   val token_start: Map[Token, Int],
   val commands: LinearSet[Command],
-  val active: Boolean,
   is_command_keyword: String => Boolean)
 {
 
-  def mark_active: ProofDocument =
-    new ProofDocument(id, tokens, token_start, commands, true, is_command_keyword)
-  def activate: (ProofDocument, StructureChange) = {
-    val (doc, change) =
-      text_changed(new Text.Change(isabelle.jedit.Isabelle.system.id(), 0, content, content))
-    return (doc.mark_active, change)
-  }
   def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(isabelle.jedit.Isabelle.system.id(), tokens, token_start, commands, active, f)
+    new ProofDocument(id, tokens, token_start, commands, f)
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
   /** token view **/
@@ -222,7 +214,7 @@ class ProofDocument(
 
     val doc =
       new ProofDocument(new_id, new_tokenset, new_token_start,
-        new_commandset, active, is_command_keyword)
+        new_commandset, is_command_keyword)
     return (doc, change)
   }
 

@@ -12,7 +12,7 @@ import scala.actors.Actor
 import scala.actors.Actor._
 
 import isabelle.proofdocument.Text
-import isabelle.prover.{Prover, Command}
+import isabelle.prover.{Prover, ProverEvents, Command}
 
 import java.awt.Graphics2D
 import java.awt.event.{ActionEvent, ActionListener}
@@ -22,7 +22,7 @@ import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.SyntaxStyle
+import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
 
 
 object TheoryView
@@ -51,7 +51,6 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   
   private val buffer = text_area.getBuffer
   private val prover = Isabelle.prover_setup(buffer).get.prover
-  buffer.addBufferListener(this)
 
 
   private var col: Text.Change = null
@@ -84,9 +83,19 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     text_area.addLeftOfScrollBar(phase_overview)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
+    buffer.addBufferListener(this)
+
+    val MAX = TheoryView.MAX_CHANGE_LENGTH
+    for (i <- 0 to buffer.getLength / MAX) {
+      prover ! new isabelle.proofdocument.Text.Change(
+        Isabelle.system.id(), i * MAX,
+        buffer.getText(i * MAX, MAX min buffer.getLength - i * MAX), "")
+    }
   }
 
   def deactivate() {
+    buffer.setTokenMarker(buffer.getMode.getTokenMarker)
+    buffer.removeBufferListener(this)
     text_area.getPainter.removeExtension(this)
     text_area.removeLeftOfScrollBar(phase_overview)
     text_area.removeCaretListener(selected_state_controller)
@@ -101,10 +110,13 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   val change_receiver = actor {
     loop {
       react {
-        case _ =>
+        case ProverEvents.Activate =>
+          activate()
+        case c: Command =>
           update_delay()
           repaint_delay()
           phase_overview.repaint_delay()
+        case x => System.err.println("warning: change_receiver ignored " + x)
       }
     }
   }

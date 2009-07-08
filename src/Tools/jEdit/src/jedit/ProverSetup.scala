@@ -40,13 +40,6 @@ class ProverSetup(buffer: JEditBuffer)
 
     theory_view = new TheoryView(view.getTextArea, prover)
     prover.set_document(theory_view.change_receiver, buffer.getName)
-    theory_view.activate
-    val MAX = TheoryView.MAX_CHANGE_LENGTH
-    for (i <- 0 to buffer.getLength / MAX) {
-      prover ! new isabelle.proofdocument.Text.Change(
-        Isabelle.system.id(), i * MAX,
-        buffer.getText(i * MAX, MAX min buffer.getLength - i * MAX), "")
-    }
 
     // register output-view
     prover.output_info += (text =>
@@ -82,7 +75,6 @@ class ProverSetup(buffer: JEditBuffer)
 
   def deactivate
   {
-    buffer.setTokenMarker(buffer.getMode.getTokenMarker)
     theory_view.deactivate
     prover.stop
   }

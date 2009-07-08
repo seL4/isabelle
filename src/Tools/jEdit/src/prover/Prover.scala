@@ -47,7 +47,8 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     mutable.SynchronizedMap[IsarDocument.State_ID, Command]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command] with
     mutable.SynchronizedMap[IsarDocument.Command_ID, Command]
-  private var document_versions = List(ProofDocument.empty)
+  private var document_versions =
+    List(ProofDocument.empty.set_command_keyword(command_decls.contains))
   private val document_id0 = ProofDocument.empty.id
 
   def command(id: IsarDocument.Command_ID): Option[Command] = commands.get(id)
@@ -85,7 +86,6 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 
   /* event handling */
 
-  val activated = new EventBus[Unit]
   val output_info = new EventBus[String]
   var change_receiver: Actor = null
   
@@ -138,7 +138,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                   case XML.Elem(Markup.READY, _, _)
                   if !initialized =>
                     initialized = true
-                    Swing_Thread.now { this ! ProverEvents.Activate }
+                    change_receiver ! ProverEvents.Activate
 
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
@@ -230,18 +230,6 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     import ProverEvents._
     loop {
       react {
-        case Activate => {
-            val old = document
-            val (doc, structure_change) = old.activate
-            document_versions ::= doc
-            edit_document(old.id, doc.id, structure_change)
-        }
-        case SetIsCommandKeyword(f) => {
-            val old = document
-            val doc = old.set_command_keyword(f)
-            document_versions ::= doc
-            edit_document(old.id, doc.id, StructureChange(None, Nil, Nil))
-        }
         case change: Text.Change => {
             val old = document
             val (doc, structure_change) = old.text_changed(change)
@@ -258,7 +246,6 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
   
   def set_document(change_receiver: Actor, path: String) {
     this.change_receiver = change_receiver
-    this ! ProverEvents.SetIsCommandKeyword(command_decls.contains)
     process.begin_document(document_id0, path)
   }
 
