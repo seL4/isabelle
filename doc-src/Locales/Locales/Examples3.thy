@@ -152,7 +152,7 @@ proof -
     apply (rule_tac x = "gcd x y" in exI)
     apply auto [1]
     apply (rule_tac x = "lcm x y" in exI)
-    apply (auto intro: nat_lcm_least)
+    apply (auto intro: lcm_least_nat)
     done
   then interpret nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool" .
   show "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
@@ -168,7 +168,7 @@ proof -
     apply (unfold nat_dvd.join_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_sup_def)
-    apply (auto intro: nat_lcm_least iff: nat_lcm_unique)
+    apply (auto intro: lcm_least_nat iff: lcm_unique_nat)
     done
 qed
 
