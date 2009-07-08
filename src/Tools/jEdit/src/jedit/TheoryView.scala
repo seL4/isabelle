@@ -147,14 +147,31 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       }
     }
 
-  def to_current(from_id: String, pos: Int) =
-    _to_current(from_id, if (col == null) changes else col :: changes, pos)
-  def from_current(to_id: String, pos: Int) =
-    _from_current(to_id, if (col == null) changes else col :: changes, pos)
-  def to_current(document: isabelle.proofdocument.ProofDocument, pos: Int): Int =
-    to_current(document.id, pos)
-  def from_current(document: isabelle.proofdocument.ProofDocument, pos: Int): Int =
-    from_current(document.id, pos)
+  def to_current(from_id: String, pos: Int) = _to_current(from_id,
+    if (col == null) current_changes else col :: current_changes, pos)
+  def from_current(to_id: String, pos: Int) = _from_current(to_id,
+    if (col == null) current_changes else col :: current_changes, pos)
+  def to_current(doc: isabelle.proofdocument.ProofDocument, pos: Int): Int =
+    to_current(doc.id, pos)
+  def from_current(doc: isabelle.proofdocument.ProofDocument, pos: Int): Int =
+    from_current(doc.id, pos)
+
+  /* update to desired version */
+
+  def set_version(id: String) {
+    // changes in buffer must be ignored
+    buffer.removeBufferListener(this)
+    buffer.remove(0, buffer.getLength)
+    val to_undo = changes.takeWhile(_.id != id)
+    to_undo.map { c =>
+      buffer.remove(c.start, c.added.length)
+      buffer.insert(c.start, c.removed)
+    }
+    doc_id = id
+    /* listen for changes again (TODO: can it be that Listener gets events that
+      happenend prior to registration??) */
+    buffer.addBufferListener(this)
+  }
 
   def repaint(cmd: Command) =
   {
@@ -233,6 +250,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   /* BufferListener methods */
 
   private var changes: List[Text.Change] = Nil
+  private def current_changes = changes.dropWhile(_.id != doc_id)
 
   private def commit: Unit = synchronized {
     if (col != null) {
@@ -243,7 +261,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
           split_changes(new Text.Change(c.id, id(), c.start + MAX, c.added.substring(MAX), ""))
       }
       val new_changes = split_changes(col)
-      changes = new_changes.reverse ::: changes
+      changes = new_changes.reverse ::: current_changes
+      doc_id = new_changes.head.id
       new_changes map (document_actor ! _)
       doc_id = new_changes.last.id
     }
