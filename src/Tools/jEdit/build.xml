@@ -88,10 +88,14 @@
       <!-- dist-template -->
       <copy file="dist-template/properties/jedit.props" tofile="${dist.dir}/properties" />
       <copy todir="${dist.dir}/modes">
-        <fileset dir="dist-template/modes">
-          <exclude name="catalog-template" />
-        </fileset>
+        <fileset dir="dist-template/modes" />
       </copy>
-      <copy file="dist-template/modes/catalog-template" tofile="${dist.dir}/modes/catalog" />
+      <copy todir="${dist.dir}/modes" overwrite="true">
+        <fileset dir="${project.jEdit}/modes" />
+      </copy>
+      <replaceregexp byline="true" file="${dist.dir}/modes/catalog">
+        <regexp pattern='(^.*NAME="javacc".*$)'/>
+        <substitution expression="&lt;MODE NAME=&quot;isabelle&quot; FILE=&quot;isabelle.xml&quot; FILE_NAME_GLOB=&quot;*.thy&quot;/&gt;${line.separator}${line.separator}\1"/>
+      </replaceregexp>
     </target>
 </project>
