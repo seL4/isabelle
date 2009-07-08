@@ -35,16 +35,18 @@ options.isabelle.font-size=18
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-state isabelle.show-output isabelle.show-scroller
+plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-state isabelle.show-output isabelle.show-scroller isabelle.show-browser
 isabelle.activate.label=Activate current buffer
 isabelle.show-state.label=Show State
 isabelle.show-output.label=Show Output
 isabelle.show-scroller.label=Show Scroller
+isabelle.show-browser.label=Show Version-Browser
 
 #dockables
 isabelle-output.title=Isabelle Output
 isabelle-state.title=Isabelle State
 isabelle-scroller.title=Isabelle Scroller
+isabelle-browser.title=Isabelle Browse-Version
 
 #SideKick
 sidekick.parser.isabelle.label=Isabelle

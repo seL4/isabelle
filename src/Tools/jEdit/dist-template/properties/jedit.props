@@ -187,3 +187,5 @@ sidekick.complete-delay=300
 mode.isabelle.sidekick.showStatusWindow.label=true
 sidekick-tree.dock-position=right
 isabelle-state.dock-position=bottom
+isabelle-output.dock-position=bottom
+isabelle-browser.dock-position=bottom

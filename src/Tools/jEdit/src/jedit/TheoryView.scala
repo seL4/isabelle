@@ -161,12 +161,20 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   def set_version(id: String) {
     // changes in buffer must be ignored
     buffer.removeBufferListener(this)
-    buffer.remove(0, buffer.getLength)
-    val to_undo = changes.takeWhile(_.id != id)
-    to_undo.map { c =>
-      buffer.remove(c.start, c.added.length)
-      buffer.insert(c.start, c.removed)
-    }
+
+    val base = changes.find(_.id == doc_id).get
+    val goal = changes.find(_.id == id).get
+
+    if (changes.indexOf(base) < changes.indexOf(goal))
+      changes.dropWhile(_ != base).takeWhile(_ != goal).map { c =>
+        buffer.remove(c.start, c.added.length)
+        buffer.insert(c.start, c.removed)}
+    else
+      changes.dropWhile(_ != goal).takeWhile(_ != base).reverse.map { c =>
+        buffer.remove(c.start, c.removed.length)
+        buffer.insert(c.start, c.added)}
+
+    val content = buffer.getText(0, buffer.getLength)
     doc_id = id
     /* listen for changes again (TODO: can it be that Listener gets events that
       happenend prior to registration??) */
@@ -251,6 +259,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   private var changes: List[Text.Change] = Nil
   private def current_changes = changes.dropWhile(_.id != doc_id)
+  def get_changes = changes
 
   private def commit: Unit = synchronized {
     if (col != null) {

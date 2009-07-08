@@ -12,4 +12,7 @@
 	<DOCKABLE NAME="isabelle-scroller" MOVABLE="TRUE">
 		new isabelle.jedit.ScrollerDockable(view, position);
 	</DOCKABLE>
+	<DOCKABLE NAME="isabelle-browser" MOVABLE="TRUE">
+		new isabelle.jedit.BrowseVersionDockable(view, position).peer();
+	</DOCKABLE>
 </DOCKABLES>

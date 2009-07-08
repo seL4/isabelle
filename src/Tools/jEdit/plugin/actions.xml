@@ -9,12 +9,17 @@
 			wm.addDockableWindow("isabelle-state");
 		</CODE>
 	</ACTION>
-    <ACTION NAME="isabelle.show-scroller">
+  <ACTION NAME="isabelle.show-scroller">
 		<CODE>
 			wm.addDockableWindow("isabelle-scroller");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.activate">
+  <ACTION NAME="isabelle.show-browser">
+		<CODE>
+			wm.addDockableWindow("isabelle-browser");
+		</CODE>
+	</ACTION>
+  <ACTION NAME="isabelle.activate">
 		<CODE>
 			isabelle.jedit.Isabelle.plugin().switch_active(view);
 		</CODE>

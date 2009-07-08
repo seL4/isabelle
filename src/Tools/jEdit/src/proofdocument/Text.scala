@@ -14,6 +14,6 @@ object Text {
     start: Int,
     added: String,
     removed: String) {
-    override def toString = "start: " + start + " added: " + added + " removed: " + removed
+    override def toString = id + ": added '" + added + "'; removed '" + removed + "'"
   }
 }
