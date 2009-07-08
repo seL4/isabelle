@@ -8,7 +8,12 @@ package isabelle.proofdocument
 
 
 object Text {
-  case class Change(id: String, start: Int, val added: String, val removed: String) {
+  case class Change(
+    base_id: String,
+    id: String,
+    start: Int,
+    added: String,
+    removed: String) {
     override def toString = "start: " + start + " added: " + added + " removed: " + removed
   }
 }

@@ -23,8 +23,6 @@ import isabelle.IsarDocument
 
 object ProverEvents {
   case class Activate
-  case class SetEventBus(bus: EventBus[StructureChange])
-  case class SetIsCommandKeyword(is_command_keyword: String => Boolean)
 }
 
 class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
@@ -47,12 +45,13 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     mutable.SynchronizedMap[IsarDocument.State_ID, Command]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command] with
     mutable.SynchronizedMap[IsarDocument.Command_ID, Command]
-  private var document_versions =
-    List(ProofDocument.empty.set_command_keyword(command_decls.contains))
-  private val document_id0 = ProofDocument.empty.id
+  private val document_0 =
+    ProofDocument.empty.set_command_keyword(command_decls.contains)
+  private var document_versions = List(document_0)
 
   def command(id: IsarDocument.Command_ID): Option[Command] = commands.get(id)
-  def document = document_versions.head
+  def document(id: IsarDocument.Document_ID) =
+    document_versions.find(_.id == id).getOrElse(document_0)
 
   private var initialized = false
 
@@ -91,7 +90,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
   
   private def handle_result(result: Isabelle_Process.Result)
   {
-    def command_change(c: Command) = this ! c
+    def command_change(c: Command) = change_receiver ! c
     val (running, command) =
       result.props.find(p => p._1 == Markup.ID) match {
         case None => (false, null)
@@ -231,38 +230,34 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     loop {
       react {
         case change: Text.Change => {
-            val old = document
+            val old = document(change.base_id)
             val (doc, structure_change) = old.text_changed(change)
             document_versions ::= doc
-            edit_document(old.id, doc.id, structure_change)
+            edit_document(old, doc, structure_change)
         }
-        case command: Command => {
-            //state of command has changed
-            change_receiver ! command
-        }
+        case x => System.err.println("warning: ignored " + x)
       }
     }
   }
   
   def set_document(change_receiver: Actor, path: String) {
     this.change_receiver = change_receiver
-    process.begin_document(document_id0, path)
+    process.begin_document(document_0.id, path)
   }
 
-  private def edit_document(old_id: String, document_id: String, changes: StructureChange) =
-    Swing_Thread.now {
-      val removes =
-        for (cmd <- changes.removed_commands) yield {
-          commands -= cmd.id
-          if (cmd.state_id != null) states -= cmd.state_id
-          changes.before_change.map(_.id).getOrElse(document_id0) -> None
-        }
-      val inserts =
-        for (cmd <- changes.added_commands) yield {
-          commands += (cmd.id -> cmd)
-          process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
-          (document.commands.prev(cmd).map(_.id).getOrElse(document_id0)) -> Some(cmd.id)
-        }
-      process.edit_document(old_id, document_id, removes.reverse ++ inserts)
-    }
+  private def edit_document(old: ProofDocument, doc: ProofDocument, changes: StructureChange) = {
+    val removes =
+      for (cmd <- changes.removed_commands) yield {
+        commands -= cmd.id
+        if (cmd.state_id != null) states -= cmd.state_id
+        changes.before_change.map(_.id).getOrElse(document_0.id) -> None
+      }
+    val inserts =
+      for (cmd <- changes.added_commands) yield {
+        commands += (cmd.id -> cmd)
+        process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
+        (doc.commands.prev(cmd).map(_.id).getOrElse(document_0.id)) -> Some(cmd.id)
+      }
+    process.edit_document(old.id, doc.id, removes.reverse ++ inserts)
+  }
 }

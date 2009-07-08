@@ -48,8 +48,8 @@ class IsabelleHyperlinkSource extends HyperlinkSource
     if (!prover.isDefined || !theory_view_opt.isDefined) null
     else if (prover.get == null || theory_view_opt.get == null) null
     else {
-      val document = prover.get.document
       val theory_view = theory_view_opt.get
+      val document = theory_view.current_document()
       val offset = theory_view.from_current(document, original_offset)
       val cmd = document.find_command_at(offset)
       if (cmd != null) {

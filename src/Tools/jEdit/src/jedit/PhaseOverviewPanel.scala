@@ -79,9 +79,9 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover,
 
 	override def paintComponent(gfx : Graphics) {
 		super.paintComponent(gfx)
-
 		val buffer = textarea.getBuffer
-    val document = prover.document
+    val theory_view = Isabelle.prover_setup(buffer).get.theory_view
+    val document = theory_view.current_document()
     for (c <- document.commands)
       paintCommand(c, buffer, document, gfx)
 
