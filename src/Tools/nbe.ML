@@ -408,7 +408,7 @@ fun term_of_univ thy program idx_tab t =
 
 (* function store *)
 
-structure Nbe_Functions = CodeDataFun
+structure Nbe_Functions = Code_Data_Fun
 (
   type T = Code_Thingol.naming * ((Univ option * int) Graph.T * (int * string Inttab.table));
   val empty = (Code_Thingol.empty_naming, (Graph.empty, (0, Inttab.empty)));

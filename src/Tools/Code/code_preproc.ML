@@ -450,7 +450,7 @@ fun extend_arities_eqngr thy cs ts (arities, eqngr) =
 
 (** store for preprocessed arities and code equations **)
 
-structure Wellsorted = CodeDataFun
+structure Wellsorted = Code_Data_Fun
 (
   type T = ((string * class) * sort list) list * code_graph;
   val empty = ([], Graph.empty);

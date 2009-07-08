@@ -26,7 +26,7 @@ structure ModuleData = TheoryDataFun
 fun add_thm NONE thm thy = Code.add_eqn thm thy
   | add_thm (SOME module_name) thm thy =
       let
-        val (thm', _) = Code.mk_eqn thy (K false) (thm, true)
+        val (thm', _) = Code.mk_eqn thy (thm, true)
       in
         thy
         |> ModuleData.map (Symtab.update (fst (Code.const_typ_eqn thy thm'), module_name))

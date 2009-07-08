@@ -722,15 +722,15 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
           ensure_inst thy algbr funcgr inst
           ##>> (fold_map o fold_map) mk_dict yss
           #>> (fn (inst, dss) => DictConst (inst, dss))
-      | mk_dict (Local (classrels, (v, (k, sort)))) =
+      | mk_dict (Local (classrels, (v, (n, sort)))) =
           fold_map (ensure_classrel thy algbr funcgr) classrels
-          #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (k, length sort))))
+          #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (n, length sort))))
   in fold_map mk_dict typargs end;
 
 
 (* store *)
 
-structure Program = CodeDataFun
+structure Program = Code_Data_Fun
 (
   type T = naming * program;
   val empty = (empty_naming, Graph.empty);
