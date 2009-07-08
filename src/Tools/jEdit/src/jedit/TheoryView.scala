@@ -116,7 +116,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
         val shifted =
           if (start <= pos)
             if (pos < start + added.length) start
-            else pos - added.length + removed
+            else pos - added.length + removed.length
           else pos
         if (id == to_id) pos
         else _from_current(to_id, rest_changes, shifted)
@@ -130,8 +130,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
         val shifted = _to_current(from_id, rest_changes, pos)
         if (id == from_id) pos
         else if (start <= shifted) {
-          if (shifted < start + removed) start
-          else shifted + added.length - removed
+          if (shifted < start + removed.length) start
+          else shifted + added.length - removed.length
         } else shifted
       }
     }
@@ -259,22 +259,23 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   {
     val text = buffer.getText(offset, length)
     if (col == null)
-      col = new Text.Change(id(), offset, text, 0)
+      col = new Text.Change(id(), offset, text, "")
     else if (col.start <= offset && offset <= col.start + col.added.length)
       col = new Text.Change(col.id, col.start, col.added + text, col.removed)
     else {
       commit
-      col = new Text.Change(id(), offset, text, 0)
+      col = new Text.Change(id(), offset, text, "")
     }
     delay_commit
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
-    start_line: Int, start: Int, num_lines: Int, removed: Int)
+    start_line: Int, start: Int, num_lines: Int, removed_length: Int)
   {
+    val removed = buffer.getText(start, removed_length)
     if (col == null)
       col = new Text.Change(id(), start, "", removed)
-    else if (col.start > start + removed || start > col.start + col.added.length) {
+    else if (col.start > start + removed_length || start > col.start + col.added.length) {
       commit
       col = new Text.Change(id(), start, "", removed)
     }

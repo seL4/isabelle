@@ -45,7 +45,7 @@ class ProverSetup(buffer: JEditBuffer)
     for (i <- 0 to buffer.getLength / MAX) {
       prover ! new isabelle.proofdocument.Text.Change(
         Isabelle.system.id(), i * MAX,
-        buffer.getText(i * MAX, MAX min buffer.getLength - i * MAX), 0)
+        buffer.getText(i * MAX, MAX min buffer.getLength - i * MAX), "")
     }
 
     // register output-view

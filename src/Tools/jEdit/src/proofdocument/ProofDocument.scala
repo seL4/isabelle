@@ -57,7 +57,7 @@ class ProofDocument(
     new ProofDocument(id, tokens, token_start, commands, true, is_command_keyword)
   def activate: (ProofDocument, StructureChange) = {
     val (doc, change) =
-      text_changed(new Text.Change(isabelle.jedit.Isabelle.system.id(), 0, content, content.length))
+      text_changed(new Text.Change(isabelle.jedit.Isabelle.system.id(), 0, content, content))
     return (doc.mark_active, change)
   }
   def set_command_keyword(f: String => Boolean): ProofDocument =
@@ -74,10 +74,10 @@ class ProofDocument(
     // split old token lists
     val tokens = Nil ++ this.tokens
     val (begin, remaining) = tokens.span(stop(_) < change.start)
-    val (removed, end) = remaining.span(token_start(_) <= change.start + change.removed)
+    val (removed, end) = remaining.span(token_start(_) <= change.start + change.removed.length)
     // update indices
     start = end.foldLeft(start)((s, t) =>
-      s + (t -> (s(t) + change.added.length - change.removed)))
+      s + (t -> (s(t) + change.added.length - change.removed.length)))
 
     val split_begin = removed.takeWhile(start(_) < change.start).
       map (t => {
@@ -86,10 +86,10 @@ class ProofDocument(
           split_tok
         })
 
-    val split_end = removed.dropWhile(stop(_) < change.start + change.removed).
+    val split_end = removed.dropWhile(stop(_) < change.start + change.removed.length).
       map (t => {
           val split_tok =
-            new Token(t.content.substring(change.start + change.removed - start(t)), t.kind)
+            new Token(t.content.substring(change.start + change.removed.length - start(t)), t.kind)
           start += (split_tok -> start(t))
           split_tok
         })
