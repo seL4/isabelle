@@ -58,16 +58,17 @@ class ProverSetup(buffer: JEditBuffer)
       })
 
     // register for state-view
-    state_update += (state => {
+    state_update += (cmd => {
       val state_view = view.getDockableWindowManager.getDockable("isabelle-state")
       val state_panel =
         if (state_view != null) state_view.asInstanceOf[StateViewDockable].panel
         else null
       if (state_panel != null) {
-        if (state == null)
+        if (cmd == null)
           state_panel.setDocument(null: Document)
         else
-          state_panel.setDocument(state.result_document, UserAgent.base_URL)
+          state_panel.setDocument(cmd.result_document(theory_view.current_document()),
+            UserAgent.base_URL)
       }
     })
 

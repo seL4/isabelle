@@ -11,7 +11,7 @@ package isabelle.jedit
 import scala.actors.Actor
 import scala.actors.Actor._
 
-import isabelle.proofdocument.Text
+import isabelle.proofdocument.{ProofDocument, Text}
 import isabelle.prover.{Prover, ProverEvents, Command}
 
 import java.awt.Graphics2D
@@ -30,15 +30,13 @@ object TheoryView
 
   val MAX_CHANGE_LENGTH = 1500
   
-  def choose_color(state: Command): Color = {
-    if (state == null) Color.red
-    else
-      state.status match {
-        case Command.Status.UNPROCESSED => new Color(255, 228, 225)
-        case Command.Status.FINISHED => new Color(234, 248, 255)
-        case Command.Status.FAILED => new Color(255, 192, 192)
-        case _ => Color.red
-      }
+  def choose_color(cmd: Command, doc: ProofDocument): Color = {
+    cmd.status(doc) match {
+      case Command.Status.UNPROCESSED => new Color(255, 228, 225)
+      case Command.Status.FINISHED => new Color(234, 248, 255)
+      case Command.Status.FAILED => new Color(255, 192, 192)
+      case _ => Color.red
+    }
   }
 }
 
@@ -176,8 +174,11 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
     val content = buffer.getText(0, buffer.getLength)
     doc_id = id
-    /* listen for changes again (TODO: can it be that Listener gets events that
-      happenend prior to registration??) */
+    // invoke repaint
+    update_delay()
+    repaint_delay()
+    phase_overview.repaint_delay()
+
     buffer.addBufferListener(this)
   }
 
@@ -238,7 +239,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     while (e != null && e.start(document) < end) {
       val begin = start max to_current(e.start(document))
       val finish = end - 1 min to_current(e.stop(document))
-      encolor(gfx, y, metrics.getHeight, begin, finish, TheoryView.choose_color(e), true)
+      encolor(gfx, y, metrics.getHeight, begin, finish,
+        TheoryView.choose_color(e, document), true)
       e = document.commands.next(e).getOrElse(null)
     }
 
@@ -251,7 +253,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     val cmd = document.find_command_at(offset)
     if (cmd != null) {
       document.token_start(cmd.tokens.first)
-      cmd.type_at(offset - cmd.start(document))
+      cmd.type_at(document, offset - cmd.start(document))
     } else null
   }
 

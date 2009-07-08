@@ -63,7 +63,7 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover,
     val line2 = buffer.getLineOfOffset(to_current(doc.id, command.stop(doc))) + 1
     val y = lineToY(line1)
     val height = lineToY(line2) - y - 1
-    val (light, dark) = command.status match {
+    val (light, dark) = command.status(doc) match {
       case Command.Status.UNPROCESSED => (Color.yellow, new Color(128,128,0))
       case Command.Status.FINISHED => (Color.green, new Color(0, 128, 0))
       case Command.Status.FAILED => (Color.red, new Color(128,0,0))

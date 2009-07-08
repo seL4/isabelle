@@ -115,7 +115,7 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
     var next_x = start
     while (command != null && command.start(document) < from(stop)) {
       for {
-        markup <- command.highlight_node.flatten
+        markup <- command.highlight_node(document).flatten
         if (to(markup.abs_stop(document)) > start)
         if (to(markup.abs_start(document)) < stop)
         byte = DynamicTokenMarker.choose_byte(markup.info.toString)

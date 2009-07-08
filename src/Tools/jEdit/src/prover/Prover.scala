@@ -91,13 +91,13 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
   private def handle_result(result: Isabelle_Process.Result)
   {
     def command_change(c: Command) = change_receiver ! c
-    val (running, command) =
+    val (state, command) =
       result.props.find(p => p._1 == Markup.ID) match {
-        case None => (false, null)
+        case None => (null, null)
         case Some((_, id)) =>
-          if (commands.contains(id)) (false, commands(id))
-          else if (states.contains(id)) (true, states(id))
-          else (false, null)
+          if (commands.contains(id)) (null, commands(id))
+          else if (states.contains(id)) (id, states(id))
+          else (null, null)
       }
 
     if (result.kind == Isabelle_Process.Kind.STDOUT ||
@@ -112,8 +112,8 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
         | Isabelle_Process.Kind.ERROR =>
           if (command != null) {
             if (result.kind == Isabelle_Process.Kind.ERROR)
-              command.status = Command.Status.FAILED
-            command.add_result(running, process.parse_message(result))
+              command.set_status(state, Command.Status.FAILED)
+            command.add_result(state, process.parse_message(result))
             command_change(command)
           } else {
             output_info.event(result.toString)
@@ -143,16 +143,16 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
                   if document_versions.exists(_.id == doc_id) =>
                     output_info.event(result.toString)
+                    val doc = document_versions.find(_.id == doc_id).get
                     for {
                       XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
                         <- edits
                     } {
                       if (commands.contains(cmd_id)) {
                         val cmd = commands(cmd_id)
-                        if (cmd.state_id != null) states -= cmd.state_id
                         states(state_id) = cmd
-                        cmd.state_id = state_id
-                        cmd.status = Command.Status.UNPROCESSED
+                        doc.states += (cmd -> state_id)
+                        cmd.states += (state_id -> new Command_State(cmd))
                         command_change(cmd)
                       }
 
@@ -161,17 +161,17 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                   case XML.Elem(Markup.UNPROCESSED, _, _)
                   if command != null =>
                     output_info.event(result.toString)
-                    command.status = Command.Status.UNPROCESSED
+                    command.set_status(state, Command.Status.UNPROCESSED)
                     command_change(command)
                   case XML.Elem(Markup.FINISHED, _, _)
                   if command != null =>
                     output_info.event(result.toString)
-                    command.status = Command.Status.FINISHED
+                    command.set_status(state, Command.Status.FINISHED)
                     command_change(command)
                   case XML.Elem(Markup.FAILED, _, _)
                   if command != null =>
                     output_info.event(result.toString)
-                    command.status = Command.Status.FAILED
+                    command.set_status(state, Command.Status.FAILED)
                     command_change(command)
                   case XML.Elem(kind, attr, body)
                   if command != null =>
@@ -179,23 +179,23 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                     if (begin.isDefined && end.isDefined) {
                       if (kind == Markup.ML_TYPING) {
                         val info = body.first.asInstanceOf[XML.Text].content
-                        command.markup_root +=
-                          command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info))
+                        command.add_markup(state,
+                          command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
                       } else if (kind == Markup.ML_REF) {
                         body match {
                           case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                            command.markup_root += command.markup_node(
+                            command.add_markup(state, command.markup_node(
                               begin.get - 1, end.get - 1,
                               RefInfo(
                                 Position.file_of(attr),
                                 Position.line_of(attr),
                                 Position.id_of(attr),
-                                Position.offset_of(attr)))
+                                Position.offset_of(attr))))
                           case _ =>
                         }
                       } else {
-                        command.markup_root +=
-                          command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind))
+                        command.add_markup(state,
+                          command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
                       }
                     }
                     command_change(command)
@@ -206,10 +206,10 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                     val (begin, end) = Position.offsets_of(attr)
                     val markup_id = Position.id_of(attr)
                     val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
-                    if (outer && !running && begin.isDefined && end.isDefined && markup_id.isDefined)
+                    if (outer && state == null && begin.isDefined && end.isDefined && markup_id.isDefined)
                       commands.get(markup_id.get).map (cmd => {
-                        cmd.markup_root +=
-                          cmd.markup_node(begin.get - 1, end.get - 1, OuterInfo(kind))
+                        cmd.add_markup(state,
+                          cmd.markup_node(begin.get - 1, end.get - 1, OuterInfo(kind)))
                         command_change(cmd)
                       })
                   case _ =>
@@ -249,7 +249,6 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     val removes =
       for (cmd <- changes.removed_commands) yield {
         commands -= cmd.id
-        if (cmd.state_id != null) states -= cmd.state_id
         changes.before_change.map(_.id).getOrElse(document_0.id) -> None
       }
     val inserts =

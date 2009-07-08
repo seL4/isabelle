@@ -34,7 +34,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
     if (prover_setup.isDefined) {
       val document = prover_setup.get.theory_view.current_document()
       for (command <- document.commands)
-        data.root.add(command.markup_root.swing_node(document))
+        data.root.add(command.markup_root(document).swing_node(document))
 
       if (stopped) data.root.add(new DefaultMutableTreeNode("<parser stopped>"))
     }
