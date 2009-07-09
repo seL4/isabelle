@@ -64,7 +64,7 @@ fun fixate_params name_context ts =
       else (inst, used);
     val name_context' = (fold o fold_types) Term.declare_typ_names ts name_context;
     val (inst, _) = fold_rev subst_param (fold Term.add_tvars ts []) ([], name_context');
-  in (map o map_types) (TermSubst.instantiateT inst) ts end;
+  in (map o map_types) (Term_Subst.instantiateT inst) ts end;
 
 
 

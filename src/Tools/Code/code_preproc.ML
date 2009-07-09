@@ -224,7 +224,7 @@ fun consts_of thy eqns = [] |> (fold o fold o fold_aterms)
 
 fun default_typscheme_of thy c =
   let
-    val ty = (snd o dest_Const o TermSubst.zero_var_indexes o curry Const c
+    val ty = (snd o dest_Const o Term_Subst.zero_var_indexes o curry Const c
       o Type.strip_sorts o Sign.the_const_type thy) c;
   in case AxClass.class_of_param thy c
    of SOME class => ([(Name.aT, [class])], ty)

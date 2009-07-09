@@ -25,7 +25,7 @@ sig
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
 end;
 
-structure TermSubst: TERM_SUBST =
+structure Term_Subst: TERM_SUBST =
 struct
 
 (* generalization of fixed variables *)

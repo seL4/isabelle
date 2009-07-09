@@ -130,7 +130,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val instT = map_filter (fn (TVar v, T) => SOME (v, T) | _ => NONE) (tvars ~~ tfrees);
     val inst = filter (is_Var o fst) (vars ~~ frees);
     val cinstT = map (pairself certT o apfst TVar) instT;
-    val cinst = map (pairself (cert o Term.map_types (TermSubst.instantiateT instT))) inst;
+    val cinst = map (pairself (cert o Term.map_types (Term_Subst.instantiateT instT))) inst;
     val result' = Thm.instantiate (cinstT, cinst) result;
 
     (*import assumes/defines*)

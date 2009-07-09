@@ -441,12 +441,12 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 
 (**** substitutions ****)
 
-fun del_conflicting_tvars envT T = TermSubst.instantiateT
+fun del_conflicting_tvars envT T = Term_Subst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (OldTerm.typ_tvars T)) T;
 
-fun del_conflicting_vars env t = TermSubst.instantiate
+fun del_conflicting_vars env t = Term_Subst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (type_env env) ixnS; NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (OldTerm.term_tvars t),
@@ -689,16 +689,16 @@ fun permute_prems_prf prems j k prf =
 
 fun generalize (tfrees, frees) idx =
   map_proof_terms_option
-    (TermSubst.generalize_option (tfrees, frees) idx)
-    (TermSubst.generalizeT_option tfrees idx);
+    (Term_Subst.generalize_option (tfrees, frees) idx)
+    (Term_Subst.generalizeT_option tfrees idx);
 
 
 (***** instantiation *****)
 
 fun instantiate (instT, inst) =
   map_proof_terms_option
-    (TermSubst.instantiate_option (instT, map (apsnd remove_types) inst))
-    (TermSubst.instantiateT_option instT);
+    (Term_Subst.instantiate_option (instT, map (apsnd remove_types) inst))
+    (Term_Subst.instantiateT_option instT);
 
 
 (***** lifting *****)
