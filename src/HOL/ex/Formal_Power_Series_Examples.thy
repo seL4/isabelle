@@ -184,9 +184,10 @@ proof-
 qed
 
 lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c "
-  unfolding minus_mult_right Eii_sin_cos by simp
+  unfolding minus_mult_right Eii_sin_cos by (simp add: fps_sin_even fps_cos_odd)
 
-lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)  "by (simp add: fps_eq_iff fps_const_def)
+lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)"
+  by (simp add: fps_eq_iff fps_const_def)
 
 lemma fps_number_of_fps_const: "number_of i = fps_const (number_of i :: 'a:: {comm_ring_1, number_ring})"
   apply (subst (2) number_of_eq)
@@ -201,7 +202,8 @@ proof-
     by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
   show ?thesis
   unfolding Eii_sin_cos minus_mult_commute
-  by (simp add: fps_number_of_fps_const fps_divide_def fps_const_inverse th complex_number_of_def[symmetric])
+  by (simp add: fps_sin_even fps_cos_odd fps_number_of_fps_const
+    fps_divide_def fps_const_inverse th complex_number_of_def[symmetric])
 qed
 
 lemma fps_sin_Eii:
@@ -211,7 +213,7 @@ proof-
     by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
   show ?thesis
   unfolding Eii_sin_cos minus_mult_commute
-  by (simp add: fps_divide_def fps_const_inverse th)
+  by (simp add: fps_sin_even fps_cos_odd fps_divide_def fps_const_inverse th)
 qed
 
 lemma fps_const_mult_2: "fps_const (2::'a::number_ring) * a = a +a"
