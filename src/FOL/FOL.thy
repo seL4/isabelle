@@ -1,5 +1,4 @@
 (*  Title:      FOL/FOL.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 *)
 

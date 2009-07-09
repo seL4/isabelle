@@ -1,5 +1,4 @@
 (*  Title:      FOL/cladata.ML
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1996  University of Cambridge
 

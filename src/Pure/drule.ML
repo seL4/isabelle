@@ -278,7 +278,7 @@ fun zero_var_indexes_list [] = []
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
         val certT = Thm.ctyp_of thy and cert = Thm.cterm_of thy;
-        val (instT, inst) = TermSubst.zero_var_indexes_inst (map Thm.full_prop_of ths);
+        val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
         val cinstT = map (fn (v, T) => (certT (TVar v), certT T)) instT;
         val cinst = map (fn (v, t) => (cert (Var v), cert t)) inst;
       in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (cinstT, cinst)) ths end;

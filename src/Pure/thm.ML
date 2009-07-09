@@ -995,7 +995,7 @@ fun generalize ([], []) _ th = th
         val _ = exists bad_term hyps andalso
           raise THM ("generalize: variable free in assumptions", 0, [th]);
 
-        val gen = TermSubst.generalize (tfrees, frees) idx;
+        val gen = Term_Subst.generalize (tfrees, frees) idx;
         val prop' = gen prop;
         val tpairs' = map (pairself gen) tpairs;
         val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
@@ -1066,7 +1066,7 @@ fun instantiate ([], []) th = th
         val Thm (der, {thy_ref, hyps, shyps, tpairs, prop, ...}) = th;
         val (inst', (instT', (thy_ref', shyps'))) =
           (thy_ref, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT;
-        val subst = TermSubst.instantiate_maxidx (instT', inst');
+        val subst = Term_Subst.instantiate_maxidx (instT', inst');
         val (prop', maxidx1) = subst prop ~1;
         val (tpairs', maxidx') =
           fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
@@ -1088,8 +1088,8 @@ fun instantiate_cterm ([], []) ct = ct
         val Cterm {thy_ref, t, T, sorts, ...} = ct;
         val (inst', (instT', (thy_ref', sorts'))) =
           (thy_ref, sorts) |> fold_map add_inst inst ||> fold_map add_instT instT;
-        val subst = TermSubst.instantiate_maxidx (instT', inst');
-        val substT = TermSubst.instantiateT_maxidx instT';
+        val subst = Term_Subst.instantiate_maxidx (instT', inst');
+        val substT = Term_Subst.instantiateT_maxidx instT';
         val (t', maxidx1) = subst t ~1;
         val (T', maxidx') = substT T maxidx1;
       in Cterm {thy_ref = thy_ref', t = t', T = T', sorts = sorts', maxidx = maxidx'} end

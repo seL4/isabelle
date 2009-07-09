@@ -360,14 +360,14 @@ fun exportT_inst inner outer = #1 (export_inst inner outer);
 fun exportT_terms inner outer =
   let val mk_tfrees = exportT_inst inner outer in
     fn ts => ts |> map
-      (TermSubst.generalize (mk_tfrees ts, [])
+      (Term_Subst.generalize (mk_tfrees ts, [])
         (fold (Term.fold_types Term.maxidx_typ) ts ~1 + 1))
   end;
 
 fun export_terms inner outer =
   let val (mk_tfrees, tfrees) = export_inst inner outer in
     fn ts => ts |> map
-      (TermSubst.generalize (mk_tfrees ts, tfrees)
+      (Term_Subst.generalize (mk_tfrees ts, tfrees)
         (fold Term.maxidx_term ts ~1 + 1))
   end;
 
@@ -376,8 +376,8 @@ fun export_prf inner outer prf =
     val (mk_tfrees, frees) = export_inst (declare_prf prf inner) outer;
     val tfrees = mk_tfrees [];
     val idx = Proofterm.maxidx_proof prf ~1 + 1;
-    val gen_term = TermSubst.generalize_option (tfrees, frees) idx;
-    val gen_typ = TermSubst.generalizeT_option tfrees idx;
+    val gen_term = Term_Subst.generalize_option (tfrees, frees) idx;
+    val gen_typ = Term_Subst.generalizeT_option tfrees idx;
   in Proofterm.map_proof_terms_option gen_term gen_typ prf end;
 
 
@@ -411,18 +411,18 @@ fun import_inst is_open ts ctxt =
   let
     val ren = Name.clean #> (if is_open then I else Name.internal);
     val (instT, ctxt') = importT_inst ts ctxt;
-    val vars = map (apsnd (TermSubst.instantiateT instT)) (rev (fold Term.add_vars ts []));
+    val vars = map (apsnd (Term_Subst.instantiateT instT)) (rev (fold Term.add_vars ts []));
     val (xs, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst = vars ~~ map Free (xs ~~ map #2 vars);
   in ((instT, inst), ctxt'') end;
 
 fun importT_terms ts ctxt =
   let val (instT, ctxt') = importT_inst ts ctxt
-  in (map (TermSubst.instantiate (instT, [])) ts, ctxt') end;
+  in (map (Term_Subst.instantiate (instT, [])) ts, ctxt') end;
 
 fun import_terms is_open ts ctxt =
   let val (inst, ctxt') = import_inst is_open ts ctxt
-  in (map (TermSubst.instantiate inst) ts, ctxt') end;
+  in (map (Term_Subst.instantiate inst) ts, ctxt') end;
 
 fun importT ths ctxt =
   let
@@ -527,9 +527,9 @@ fun polymorphic_types ctxt ts =
     val idx = maxidx_of ctxt' + 1;
     val Ts' = (fold o fold_types o fold_atyps)
       (fn T as TFree _ =>
-          (case TermSubst.generalizeT types idx T of TVar v => insert (op =) v | _ => I)
+          (case Term_Subst.generalizeT types idx T of TVar v => insert (op =) v | _ => I)
         | _ => I) ts [];
-    val ts' = map (TermSubst.generalize (types, []) idx) ts;
+    val ts' = map (Term_Subst.generalize (types, []) idx) ts;
   in (rev Ts', ts') end;
 
 fun polymorphic ctxt ts = snd (polymorphic_types ctxt ts);

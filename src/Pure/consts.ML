@@ -215,7 +215,7 @@ fun instance consts (c, Ts) =
     val vars = map Term.dest_TVar (typargs consts (c, declT));
     val inst = vars ~~ Ts handle UnequalLengths =>
       raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
-  in declT |> TermSubst.instantiateT inst end;
+  in declT |> Term_Subst.instantiateT inst end;
 
 
 

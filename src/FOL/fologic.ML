@@ -1,5 +1,4 @@
 (*  Title:      FOL/fologic.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson
 
 Abstract syntax operations for FOL.

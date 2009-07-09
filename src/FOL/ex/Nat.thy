@@ -1,5 +1,4 @@
 (*  Title:      FOL/ex/Nat.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)

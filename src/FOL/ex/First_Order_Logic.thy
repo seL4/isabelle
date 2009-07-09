@@ -1,5 +1,4 @@
 (*  Title:      FOL/ex/First_Order_Logic.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Munich
 *)
 
