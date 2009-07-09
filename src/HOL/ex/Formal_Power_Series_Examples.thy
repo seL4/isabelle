@@ -6,7 +6,7 @@
 header{* Some applications of formal power series and some properties over complex numbers*}
 
 theory Formal_Power_Series_Examples
-  imports Formal_Power_Series Binomial Complex
+  imports Formal_Power_Series Binomial 
 begin
 
 section{* The generalized binomial theorem *}
@@ -183,11 +183,6 @@ proof-
   then show ?thesis by (simp add: fps_eq_iff)
 qed
 
-lemma fps_sin_neg[simp]: "fps_sin (- c) = - fps_sin c"
-by (simp add: fps_eq_iff fps_sin_def)
-
-lemma fps_cos_neg[simp]: "fps_cos (- c) = fps_cos c"
-  by (simp add: fps_eq_iff fps_cos_def)
 lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c "
   unfolding minus_mult_right Eii_sin_cos by simp
 
@@ -236,6 +231,7 @@ lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat 
   by (simp add: mult_ac)
 
 text{* Now some trigonometric identities *}
+
 lemma fps_sin_add: 
   "fps_sin (a+b) = fps_sin (a::complex) * fps_cos b + fps_cos a * fps_sin b"
 proof-
