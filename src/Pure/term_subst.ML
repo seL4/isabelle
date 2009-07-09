@@ -1,11 +1,15 @@
 (*  Title:      Pure/term_subst.ML
     Author:     Makarius
 
-Efficient term substitution -- avoids copying.
+Efficient type/term substitution -- avoids copying.
 *)
 
 signature TERM_SUBST =
 sig
+  val map_atypsT_option: (typ -> typ option) -> typ -> typ option
+  val map_atyps_option: (typ -> typ option) -> term -> term option
+  val map_types_option: (typ -> typ option) -> term -> term option
+  val map_aterms_option: (term -> term option) -> term -> term option
   val generalize: string list * string list -> int -> term -> term
   val generalizeT: string list -> int -> typ -> typ
   val generalize_option: string list * string list -> int -> term -> term option
@@ -28,11 +32,63 @@ end;
 structure Term_Subst: TERM_SUBST =
 struct
 
-(* generalization of fixed variables *)
+(* indication of same result *)
+
+exception SAME;
+
+fun same_fn f x =
+  (case f x of
+    NONE => raise SAME
+  | SOME y => y);
+
+fun option_fn f x =
+  SOME (f x) handle SAME => NONE;
+
+
+(* generic mapping *)
 
 local
 
-exception SAME;
+fun map_atypsT_same f =
+  let
+    fun typ (Type (a, Ts)) = Type (a, typs Ts)
+      | typ T = f T
+    and typs (T :: Ts) = (typ T :: (typs Ts handle SAME => Ts) handle SAME => T :: typs Ts)
+      | typs [] = raise SAME;
+  in typ end;
+
+fun map_types_same f =
+  let
+    fun term (Const (a, T)) = Const (a, f T)
+      | term (Free (a, T)) = Free (a, f T)
+      | term (Var (v, T)) = Var (v, f T)
+      | term (Bound _)  = raise SAME
+      | term (Abs (x, T, t)) =
+          (Abs (x, f T, term t handle SAME => t)
+            handle SAME => Abs (x, T, term t))
+      | term (t $ u) = (term t $ (term u handle SAME => u) handle SAME => t $ term u);
+  in term end;
+
+fun map_aterms_same f =
+  let
+    fun term (Abs (x, T, t)) = Abs (x, T, term t)
+      | term (t $ u) = (term t $ (term u handle SAME => u) handle SAME => t $ term u)
+      | term a = f a;
+  in term end;
+
+in
+
+val map_atypsT_option = option_fn o map_atypsT_same o same_fn;
+val map_atyps_option = option_fn o map_types_same o map_atypsT_same o same_fn;
+val map_types_option = option_fn o map_types_same o same_fn;
+val map_aterms_option = option_fn o map_aterms_same o same_fn;
+
+end;
+
+
+(* generalization of fixed variables *)
+
+local
 
 fun generalizeT_same [] _ _ = raise SAME
   | generalizeT_same tfrees idx ty =
@@ -83,8 +139,6 @@ local
 fun no_index (x, y) = (x, (y, ~1));
 fun no_indexes1 inst = map no_index inst;
 fun no_indexes2 (inst1, inst2) = (map no_index inst1, map no_index inst2);
-
-exception SAME;
 
 fun instantiateT_same maxidx instT ty =
   let
