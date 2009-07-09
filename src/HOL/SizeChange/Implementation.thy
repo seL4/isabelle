@@ -100,7 +100,7 @@ lemma mk_tcl_finite_tcl:
   assumes fA: "finite_acg A"
   shows "mk_tcl A A = tcl A"
   using mk_tcl_finite_terminates[OF fA]
-  by (simp only: tcl_def mk_tcl_correctness star_commute)
+  by (simp only: tcl_def mk_tcl_correctness star_simulation)
 
 definition test_SCT :: "nat acg \<Rightarrow> bool"
 where
