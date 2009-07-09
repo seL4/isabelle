@@ -9,17 +9,19 @@ theory Kleene_Algebras
 imports Main 
 begin
 
-text {* A type class of kleene algebras *}
+text {* A type class of Kleene algebras *}
 
 class star =
   fixes star :: "'a \<Rightarrow> 'a"
 
 class idem_add = ab_semigroup_add +
   assumes add_idem [simp]: "x + x = x"
+begin
 
-lemma add_idem2[simp]: "(x::'a::idem_add) + (x + y) = x + y"
-  unfolding add_assoc[symmetric]
-  by simp
+lemma add_idem2[simp]: "(x::'a) + (x + y) = x + y"
+unfolding add_assoc[symmetric] by simp
+
+end
 
 class order_by_add = idem_add + ord +
   assumes order_def: "a \<le> b \<longleftrightarrow> a + b = b"
@@ -54,6 +56,15 @@ qed
 lemma plus_leI: 
   "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x + y \<le> z"
   unfolding order_def by (simp add: add_assoc)
+
+lemma less_add[simp]: "a \<le> a + b" "b \<le> a + b"
+unfolding order_def by (auto simp:add_ac)
+
+lemma add_est1: "a + b \<le> c \<Longrightarrow> a \<le> c"
+using less_add(1) by (rule order_trans)
+
+lemma add_est2: "a + b \<le> c \<Longrightarrow> b \<le> c"
+using less_add(2) by (rule order_trans)
 
 end
 
@@ -96,21 +107,18 @@ class kleene = pre_kleene + star +
   and star3: "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
   and star4: "x * a \<le> x \<Longrightarrow> x * star a \<le> x"
 
-class kleene_by_complete_lattice = pre_kleene
-  + complete_lattice + power + star +
-  assumes star_cont: "a * star b * c = SUPR UNIV (\<lambda>n. a * b ^ n * c)"
-begin
-
 lemma (in complete_lattice) le_SUPI':
   assumes "l \<le> M i"
   shows "l \<le> (SUP i. M i)"
   using assms by (rule order_trans) (rule le_SUPI [OF UNIV_I])
 
-end
+class kleene_by_complete_lattice = pre_kleene
+  + complete_lattice + power + star +
+  assumes star_cont: "a * star b * c = SUPR UNIV (\<lambda>n. a * b ^ n * c)"
+begin
 
-instance kleene_by_complete_lattice < kleene
+subclass kleene
 proof
-
   fix a x :: 'a
   
   have [simp]: "1 \<le> star a"
@@ -201,27 +209,7 @@ proof
   qed
 qed
 
-lemma less_add[simp]:  
-  fixes a b :: "'a :: order_by_add"
-  shows "a \<le> a + b"
-  and "b \<le> a + b"
-  unfolding order_def 
-  by (auto simp:add_ac)
-
-lemma add_est1:
-  fixes a b c :: "'a :: order_by_add"
-  assumes a: "a + b \<le> c"
-  shows "a \<le> c"
-  using less_add(1) a
-  by (rule order_trans)
-
-lemma add_est2:
-  fixes a b c :: "'a :: order_by_add"
-  assumes a: "a + b \<le> c"
-  shows "b \<le> c"
-  using less_add(2) a
-  by (rule order_trans)
-
+end
 
 lemma star3':
   fixes a b x :: "'a :: kleene"
@@ -251,7 +239,7 @@ proof (rule order_trans)
 qed
 
 
-lemma star_idemp:
+lemma star_idemp[simp]:
   fixes x :: "'a :: kleene"
   shows "star (star x) = star x"
   oops
@@ -296,7 +284,6 @@ lemma star_commute:
   assumes a: "a * x = x * b"
   shows "star a * x = x * star b"
 proof (rule order_antisym)
-
   show "star a * x \<le> x * star b"
   proof (rule star3', rule order_trans)
 
@@ -305,7 +292,6 @@ proof (rule order_antisym)
       by (rule mult_mono) auto
     thus "x + a * (x * star b) \<le> x + x * b * star b"
       using add_mono by (auto simp: mult_assoc)
-
     show "\<dots> \<le> x * star b"
     proof -
       have "x * (1 + b * star b) \<le> x * star b"
@@ -317,14 +303,12 @@ proof (rule order_antisym)
 
   show "x * star b \<le> star a * x"
   proof (rule star4', rule order_trans)
-
     from a have b: "x * b \<le> a * x" by simp
     have "star a * x * b \<le> star a * a * x"
       unfolding mult_assoc
       by (rule mult_mono[OF _ b]) auto
     thus "x + star a * x * b \<le> x + star a * a * x"
       using add_mono by auto
-
     show "\<dots> \<le> star a * x"
     proof -
       have "(1 + star a * a) * x \<le> star a * x"
