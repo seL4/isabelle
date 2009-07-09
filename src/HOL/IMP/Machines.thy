@@ -2,31 +2,15 @@ theory Machines
 imports Natural
 begin
 
-lemma rtrancl_eq: "R^* = Id \<union> (R O R^*)"
-  by (fast intro: rtrancl_into_rtrancl elim: rtranclE)
-
-lemma converse_rtrancl_eq: "R^* = Id \<union> (R^* O R)"
-  by (subst r_comp_rtrancl_eq[symmetric], rule rtrancl_eq)
-
-lemmas converse_rel_powE = rel_pow_E2
-
-lemma R_O_Rn_commute: "R O R ^^ n = R ^^ n O R"
+lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
   by (induct n) (simp, simp add: O_assoc [symmetric])
 
 lemma converse_in_rel_pow_eq:
   "((x,z) \<in> R ^^ n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R ^^ m))"
 apply(rule iffI)
- apply(blast elim:converse_rel_powE)
-apply (fastsimp simp add:gr0_conv_Suc R_O_Rn_commute)
+ apply(blast elim:rel_pow_E2)
+apply (fastsimp simp add:gr0_conv_Suc rel_pow_commute)
 done
-
-lemma rel_pow_plus:
-  "R ^^ (m+n) = R ^^ n O R ^^ m"
-  by (induct n) (simp, simp add: O_assoc)
-
-lemma rel_pow_plusI:
-  "\<lbrakk> (x,y) \<in> R ^^ m; (y,z) \<in> R ^^ n \<rbrakk> \<Longrightarrow> (x,z) \<in> R ^^ (m+n)"
-  by (simp add: rel_pow_plus rel_compI)
 
 subsection "Instructions"
 

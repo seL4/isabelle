@@ -58,7 +58,7 @@ inductive_cases [elim!]: "(([],p,s),(is',p',s')) : stepa1"
 
 lemma [simp]: "(\<langle>[],q,s\<rangle> -n\<rightarrow> \<langle>p',q',t\<rangle>) = (n=0 \<and> p' = [] \<and> q' = q \<and> t = s)"
 apply(rule iffI)
- apply(erule converse_rel_powE, simp, fast)
+ apply(erule rel_pow_E2, simp, fast)
 apply simp
 done
 
@@ -143,7 +143,7 @@ next
     from H C2 obtain p' q' r'
       where 1: "\<langle>instr # tlC2 @ p1 @ p2, C1 @ q,r\<rangle> -1\<rightarrow> \<langle>p',q',r'\<rangle>"
       and n: "\<langle>p',q',r'\<rangle> -n\<rightarrow> \<langle>p2,rev p1 @ rev C2 @ C1 @ q,t\<rangle>"
-      by(fastsimp simp add:R_O_Rn_commute)
+      by(fastsimp simp add:rel_pow_commute)
     from CL closed_exec1[OF _ 1] C2
     obtain C2' C1' where pq': "p' = C2' @ p1 @ p2 \<and> q' = C1' @ q"
       and same: "rev C1' @ C2' = rev C1 @ C2"
