@@ -2,9 +2,6 @@ theory Machines
 imports Natural
 begin
 
-lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
-  by (induct n) (simp, simp add: O_assoc [symmetric])
-
 lemma converse_in_rel_pow_eq:
   "((x,z) \<in> R ^^ n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R ^^ m))"
 apply(rule iffI)

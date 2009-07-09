@@ -737,6 +737,9 @@ lemma rel_pow_E2:
 lemma rel_pow_add: "R ^^ (m+n) = R^^n O R^^m"
 by(induct n) auto
 
+lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
+  by (induct n) (simp, simp add: O_assoc [symmetric])
+
 lemma rtrancl_imp_UN_rel_pow:
   assumes "p \<in> R^*"
   shows "p \<in> (\<Union>n. R ^^ n)"
