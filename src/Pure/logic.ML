@@ -476,30 +476,35 @@ fun assum_problems (nasms, A) =
 fun bad_schematic xi = "Illegal schematic variable: " ^ quote (Term.string_of_vname xi);
 fun bad_fixed x = "Illegal fixed variable: " ^ quote x;
 
-fun varifyT ty = ty |> Term.map_atyps
-  (fn TFree (a, S) => TVar ((a, 0), S)
-    | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], []));
+fun varifyT_option ty = ty
+  |> Term_Subst.map_atypsT_option
+    (fn TFree (a, S) => SOME (TVar ((a, 0), S))
+      | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], []));
 
-fun unvarifyT ty = ty |> Term.map_atyps
-  (fn TVar ((a, 0), S) => TFree (a, S)
-    | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], [])
-    | TFree (a, _) => raise TYPE (bad_fixed a, [ty], []));
+fun unvarifyT_option ty = ty
+  |> Term_Subst.map_atypsT_option
+    (fn TVar ((a, 0), S) => SOME (TFree (a, S))
+      | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], [])
+      | TFree (a, _) => raise TYPE (bad_fixed a, [ty], []));
 
-fun varify tm =
-  tm |> Term.map_aterms
-    (fn Free (x, T) => Var ((x, 0), T)
+val varifyT = perhaps varifyT_option;
+val unvarifyT = perhaps unvarifyT_option;
+
+fun varify tm = tm
+  |> perhaps (Term_Subst.map_aterms_option
+    (fn Free (x, T) => SOME (Var ((x, 0), T))
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
-      | t => t)
-  |> Term.map_types varifyT
+      | _ => NONE))
+  |> perhaps (Term_Subst.map_types_option varifyT_option)
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
-fun unvarify tm =
-  tm |> Term.map_aterms
-    (fn Var ((x, 0), T) => Free (x, T)
+fun unvarify tm = tm
+  |> perhaps (Term_Subst.map_aterms_option
+    (fn Var ((x, 0), T) => SOME (Free (x, T))
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])
-      | t => t)
-  |> Term.map_types unvarifyT
+      | _ => NONE))
+  |> perhaps (Term_Subst.map_types_option unvarifyT_option)
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 val legacy_varifyT = Term.map_atyps (fn TFree (a, S) => TVar ((a, 0), S) | T => T);
