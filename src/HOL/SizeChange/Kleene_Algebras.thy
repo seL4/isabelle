@@ -106,6 +106,193 @@ class kleene = pre_kleene + star +
   and star2: "1 + star a * a \<le> star a"
   and star3: "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
   and star4: "x * a \<le> x \<Longrightarrow> x * star a \<le> x"
+begin
+
+lemma star3':
+  assumes a: "b + a * x \<le> x"
+  shows "star a * b \<le> x"
+proof (rule order_trans)
+  from a have "b \<le> x" by (rule add_est1)
+  show "star a * b \<le> star a * x"
+    by (rule mult_mono) (auto simp:`b \<le> x`)
+
+  from a have "a * x \<le> x" by (rule add_est2)
+  with star3 show "star a * x \<le> x" .
+qed
+
+lemma star4':
+  assumes a: "b + x * a \<le> x"
+  shows "b * star a \<le> x"
+proof (rule order_trans)
+  from a have "b \<le> x" by (rule add_est1)
+  show "b * star a \<le> x * star a"
+    by (rule mult_mono) (auto simp:`b \<le> x`)
+
+  from a have "x * a \<le> x" by (rule add_est2)
+  with star4 show "x * star a \<le> x" .
+qed
+
+lemma star_unfold_left:
+  shows "1 + a * star a = star a"
+proof (rule antisym, rule star1)
+  have "1 + a * (1 + a * star a) \<le> 1 + a * star a"
+    apply (rule add_mono, rule)
+    apply (rule mult_mono, auto)
+    apply (rule star1)
+    done
+  with star3' have "star a * 1 \<le> 1 + a * star a" .
+  thus "star a \<le> 1 + a * star a" by simp
+qed
+
+lemma star_unfold_right: "1 + star a * a = star a"
+proof (rule antisym, rule star2)
+  have "1 + (1 + star a * a) * a \<le> 1 + star a * a"
+    apply (rule add_mono, rule)
+    apply (rule mult_mono, auto)
+    apply (rule star2)
+    done
+  with star4' have "1 * star a \<le> 1 + star a * a" .
+  thus "star a \<le> 1 + star a * a" by simp
+qed
+
+lemma star_zero[simp]: "star 0 = 1"
+by (fact star_unfold_left[of 0, simplified, symmetric])
+
+lemma star_one[simp]: "star 1 = 1"
+by (metis add_idem2 eq_iff mult_1_right ord_simp2 star3 star_unfold_left)
+
+lemma one_less_star: "1 \<le> star x"
+by (metis less_add(1) star_unfold_left)
+
+lemma ka1: "x * star x \<le> star x"
+by (metis less_add(2) star_unfold_left)
+
+lemma star_mult_idem[simp]: "star x * star x = star x"
+by (metis add_commute add_est1 eq_iff mult_1_right right_distrib star3 star_unfold_left)
+
+lemma less_star: "x \<le> star x"
+by (metis less_add(2) mult_1_right mult_left_mono one_less_star order_trans star_unfold_left zero_minimum)
+
+lemma star_simulation:
+  assumes a: "a * x = x * b"
+  shows "star a * x = x * star b"
+proof (rule antisym)
+  show "star a * x \<le> x * star b"
+  proof (rule star3', rule order_trans)
+    from a have "a * x \<le> x * b" by simp
+    hence "a * x * star b \<le> x * b * star b"
+      by (rule mult_mono) auto
+    thus "x + a * (x * star b) \<le> x + x * b * star b"
+      using add_mono by (auto simp: mult_assoc)
+    show "\<dots> \<le> x * star b"
+    proof -
+      have "x * (1 + b * star b) \<le> x * star b"
+        by (rule mult_mono[OF _ star1]) auto
+      thus ?thesis
+        by (simp add:right_distrib mult_assoc)
+    qed
+  qed
+  show "x * star b \<le> star a * x"
+  proof (rule star4', rule order_trans)
+    from a have b: "x * b \<le> a * x" by simp
+    have "star a * x * b \<le> star a * a * x"
+      unfolding mult_assoc
+      by (rule mult_mono[OF _ b]) auto
+    thus "x + star a * x * b \<le> x + star a * a * x"
+      using add_mono by auto
+    show "\<dots> \<le> star a * x"
+    proof -
+      have "(1 + star a * a) * x \<le> star a * x"
+        by (rule mult_mono[OF star2]) auto
+      thus ?thesis
+        by (simp add:left_distrib mult_assoc)
+    qed
+  qed
+qed
+
+lemma star_slide2[simp]: "star x * x = x * star x"
+by (metis star_simulation)
+
+lemma star_idemp[simp]: "star (star x) = star x"
+by (metis add_idem2 eq_iff less_star mult_1_right star3' star_mult_idem star_unfold_left)
+
+lemma star_slide[simp]: "star (x * y) * x = x * star (y * x)"
+by (auto simp: mult_assoc star_simulation)
+
+lemma star_one':
+  assumes "p * p' = 1" "p' * p = 1"
+  shows "p' * star a * p = star (p' * a * p)"
+proof -
+  from assms
+  have "p' * star a * p = p' * star (p * p' * a) * p"
+    by simp
+  also have "\<dots> = p' * p * star (p' * a * p)"
+    by (simp add: mult_assoc)
+  also have "\<dots> = star (p' * a * p)"
+    by (simp add: assms)
+  finally show ?thesis .
+qed
+
+lemma x_less_star[simp]: "x \<le> x * star a"
+proof -
+  have "x \<le> x * (1 + a * star a)" by (simp add: right_distrib)
+  also have "\<dots> = x * star a" by (simp only: star_unfold_left)
+  finally show ?thesis .
+qed
+
+lemma star_mono:  "x \<le> y \<Longrightarrow>  star x \<le> star y"
+by (metis add_commute eq_iff less_star ord_simp2 order_trans star3 star4' star_idemp star_mult_idem x_less_star)
+
+lemma star_sub: "x \<le> 1 \<Longrightarrow> star x = 1"
+by (metis add_commute ord_simp1 star_idemp star_mono star_mult_idem star_one star_unfold_left)
+
+lemma star_unfold2: "star x * y = y + x * star x * y"
+by (subst star_unfold_right[symmetric]) (simp add: mult_assoc left_distrib)
+
+lemma star_absorb_one[simp]: "star (x + 1) = star x"
+by (metis add_commute eq_iff left_distrib less_add(1) less_add(2) mult_1_left mult_assoc star3 star_mono star_mult_idem star_unfold2 x_less_star)
+
+lemma star_absorb_one'[simp]: "star (1 + x) = star x"
+by (subst add_commute) (fact star_absorb_one)
+
+lemma ka16: "(y * star x) * star (y * star x) \<le> star x * star (y * star x)"
+by (metis ka1 less_add(1) mult_assoc order_trans star_unfold2)
+
+lemma ka16': "(star x * y) * star (star x * y) \<le> star (star x * y) * star x"
+by (metis ka1 mult_assoc order_trans star_slide x_less_star)
+
+lemma ka17: "(x * star x) * star (y * star x) \<le> star x * star (y * star x)"
+by (metis ka1 mult_assoc mult_right_mono zero_minimum)
+
+lemma ka18: "(x * star x) * star (y * star x) + (y * star x) * star (y * star x)
+  \<le> star x * star (y * star x)"
+by (metis ka16 ka17 left_distrib mult_assoc plus_leI)
+
+lemma kleene_church_rosser: 
+  "star y * star x \<le> star x * star y \<Longrightarrow> star (x + y) \<le> star x * star y"
+oops
+
+lemma star_decomp: "star (a + b) = star a * star (b * star a)"
+oops
+
+lemma ka22: "y * star x \<le> star x * star y \<Longrightarrow>  star y * star x \<le> star x * star y"
+by (metis mult_assoc mult_right_mono plus_leI star3' star_mult_idem x_less_star zero_minimum)
+
+lemma ka23: "star y * star x \<le> star x * star y \<Longrightarrow> y * star x \<le> star x * star y"
+by (metis less_star mult_right_mono order_trans zero_minimum)
+
+lemma ka24: "star (x + y) \<le> star (star x * star y)"
+by (metis add_est1 add_est2 less_add(1) mult_assoc order_def plus_leI star_absorb_one star_mono star_slide2 star_unfold2 star_unfold_left x_less_star)
+
+lemma ka25: "star y * star x \<le> star x * star y \<Longrightarrow> star (star y * star x) \<le> star x * star y"
+oops
+
+lemma kleene_bubblesort: "y * x \<le> x * y \<Longrightarrow> star (x + y) \<le> star x * star y"
+oops
+
+end
+
+subsection {* Complete lattices are Kleene algebras *}
 
 lemma (in complete_lattice) le_SUPI':
   assumes "l \<le> M i"
@@ -211,167 +398,17 @@ qed
 
 end
 
-lemma star3':
-  fixes a b x :: "'a :: kleene"
-  assumes a: "b + a * x \<le> x"
-  shows "star a * b \<le> x"
-proof (rule order_trans)
-  from a have "b \<le> x" by (rule add_est1)
-  show "star a * b \<le> star a * x"
-    by (rule mult_mono) (auto simp:`b \<le> x`)
-
-  from a have "a * x \<le> x" by (rule add_est2)
-  with star3 show "star a * x \<le> x" .
-qed
-
-
-lemma star4':
-  fixes a b x :: "'a :: kleene"
-  assumes a: "b + x * a \<le> x"
-  shows "b * star a \<le> x"
-proof (rule order_trans)
-  from a have "b \<le> x" by (rule add_est1)
-  show "b * star a \<le> x * star a"
-    by (rule mult_mono) (auto simp:`b \<le> x`)
-
-  from a have "x * a \<le> x" by (rule add_est2)
-  with star4 show "x * star a \<le> x" .
-qed
-
-
-lemma star_idemp[simp]:
-  fixes x :: "'a :: kleene"
-  shows "star (star x) = star x"
-  oops
-
-lemma star_unfold_left:
-  fixes a :: "'a :: kleene"
-  shows "1 + a * star a = star a"
-proof (rule order_antisym, rule star1)
-
-  have "1 + a * (1 + a * star a) \<le> 1 + a * star a"
-    apply (rule add_mono, rule)
-    apply (rule mult_mono, auto)
-    apply (rule star1)
-    done
-
-  with star3' have "star a * 1 \<le> 1 + a * star a" .
-  thus "star a \<le> 1 + a * star a" by simp
-qed
-
-
-lemma star_unfold_right:  
-  fixes a :: "'a :: kleene"
-  shows "1 + star a * a = star a"
-proof (rule order_antisym, rule star2)
-
-  have "1 + (1 + star a * a) * a \<le> 1 + star a * a"
-    apply (rule add_mono, rule)
-    apply (rule mult_mono, auto)
-    apply (rule star2)
-    done
-
-  with star4' have "1 * star a \<le> 1 + star a * a" .
-  thus "star a \<le> 1 + star a * a" by simp
-qed
-
-lemma star_zero[simp]:
-  shows "star (0::'a::kleene) = 1"
-  by (rule star_unfold_left[of 0, simplified])
-
-lemma star_commute:
-  fixes a b x :: "'a :: kleene"
-  assumes a: "a * x = x * b"
-  shows "star a * x = x * star b"
-proof (rule order_antisym)
-  show "star a * x \<le> x * star b"
-  proof (rule star3', rule order_trans)
-
-    from a have "a * x \<le> x * b" by simp
-    hence "a * x * star b \<le> x * b * star b"
-      by (rule mult_mono) auto
-    thus "x + a * (x * star b) \<le> x + x * b * star b"
-      using add_mono by (auto simp: mult_assoc)
-    show "\<dots> \<le> x * star b"
-    proof -
-      have "x * (1 + b * star b) \<le> x * star b"
-        by (rule mult_mono[OF _ star1]) auto
-      thus ?thesis
-        by (simp add:right_distrib mult_assoc)
-    qed
-  qed
-
-  show "x * star b \<le> star a * x"
-  proof (rule star4', rule order_trans)
-    from a have b: "x * b \<le> a * x" by simp
-    have "star a * x * b \<le> star a * a * x"
-      unfolding mult_assoc
-      by (rule mult_mono[OF _ b]) auto
-    thus "x + star a * x * b \<le> x + star a * a * x"
-      using add_mono by auto
-    show "\<dots> \<le> star a * x"
-    proof -
-      have "(1 + star a * a) * x \<le> star a * x"
-        by (rule mult_mono[OF star2]) auto
-      thus ?thesis
-        by (simp add:left_distrib mult_assoc)
-    qed
-  qed
-qed
-
-lemma star_assoc:
-  fixes c d :: "'a :: kleene"
-  shows "star (c * d) * c = c * star (d * c)"
-  by (auto simp:mult_assoc star_commute)  
-
-lemma star_dist:
-  fixes a b :: "'a :: kleene"
-  shows "star (a + b) = star a * star (b * star a)"
-  oops
-
-lemma star_one:
-  fixes a p p' :: "'a :: kleene"
-  assumes "p * p' = 1" and "p' * p = 1"
-  shows "p' * star a * p = star (p' * a * p)"
-proof -
-  from assms
-  have "p' * star a * p = p' * star (p * p' * a) * p"
-    by simp
-  also have "\<dots> = p' * p * star (p' * a * p)"
-    by (simp add: mult_assoc star_assoc)
-  also have "\<dots> = star (p' * a * p)"
-    by (simp add: assms)
-  finally show ?thesis .
-qed
-
-lemma star_mono:
-  fixes x y :: "'a :: kleene"
-  assumes "x \<le> y"
-  shows "star x \<le> star y"
-  oops
-
-
-
-(* Own lemmas *)
-
-
-lemma x_less_star[simp]: 
-  fixes x :: "'a :: kleene"
-  shows "x \<le> x * star a"
-proof -
-  have "x \<le> x * (1 + a * star a)" by (simp add:right_distrib)
-  also have "\<dots> = x * star a" by (simp only: star_unfold_left)
-  finally show ?thesis .
-qed
 
 subsection {* Transitive Closure *}
 
-definition 
-  "tcl (x::'a::kleene) = star x * x"
+context kleene
+begin
 
-lemma tcl_zero: 
-  "tcl (0::'a::kleene) = 0"
-  unfolding tcl_def by simp
+definition 
+  tcl_def:  "tcl x = star x * x"
+
+lemma tcl_zero: "tcl 0 = 0"
+unfolding tcl_def by simp
 
 lemma tcl_unfold_right: "tcl a = a + tcl a * a"
 proof -
@@ -379,7 +416,7 @@ proof -
   have "a * (1 + star a * a) = a * star a" by simp
   from this[simplified right_distrib, simplified]
   show ?thesis
-    by (simp add:tcl_def star_commute mult_ac)
+    by (simp add:tcl_def mult_assoc)
 qed
 
 lemma less_tcl: "a \<le> tcl a"
@@ -388,6 +425,9 @@ proof -
   also have "\<dots> = tcl a" by (rule tcl_unfold_right[symmetric])
   finally show ?thesis .
 qed
+
+end
+
 
 subsection {* Naive Algorithm to generate the transitive closure *}
 
@@ -405,31 +445,32 @@ lemma mk_tcl_code[code]:
   in if XA \<le> X then X else mk_tcl A (X + XA))"
   unfolding mk_tcl.simps[of A X] Let_def ..
 
+context kleene
+begin
+
 lemma mk_tcl_lemma1:
-  fixes X :: "'a :: kleene"
-  shows "(X + X * A) * star A = X * star A"
+  "(X + X * A) * star A = X * star A"
 proof -
   have "A * star A \<le> 1 + A * star A" by simp
   also have "\<dots> = star A" by (simp add:star_unfold_left)
   finally have "star A + A * star A = star A" by simp
   hence "X * (star A + A * star A) = X * star A" by simp
-  thus ?thesis by (simp add:left_distrib right_distrib mult_ac)
+  thus ?thesis by (simp add:left_distrib right_distrib mult_assoc)
 qed
 
 lemma mk_tcl_lemma2:
-  fixes X :: "'a :: kleene"
   shows "X * A \<le> X \<Longrightarrow> X * star A = X"
-  by (rule order_antisym) (auto simp:star4)
+  by (rule antisym) (auto simp:star4)
 
-
-
+end
 
 lemma mk_tcl_correctness:
-  fixes A X :: "'a :: {kleene}"
+  fixes X :: "'a::kleene"
   assumes "mk_tcl_dom (A, X)"
   shows "mk_tcl A X = X * star A"
   using assms
-  by induct (auto simp:mk_tcl_lemma1 mk_tcl_lemma2)
+  by induct (auto simp: mk_tcl_lemma1 mk_tcl_lemma2)
+
 
 lemma graph_implies_dom: "mk_tcl_graph x y \<Longrightarrow> mk_tcl_dom x"
   by (rule mk_tcl_graph.induct) (auto intro:accp.accI elim:mk_tcl_rel.cases)
@@ -448,6 +489,6 @@ lemma mk_tcl_correctness2:
   shows "mk_tcl A A = tcl A"
   using assms mk_tcl_default mk_tcl_correctness
   unfolding tcl_def 
-  by (auto simp:star_commute)
+  by auto
 
 end
