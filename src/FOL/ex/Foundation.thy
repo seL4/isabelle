@@ -1,5 +1,4 @@
-(*  Title:      FOL/ex/Foundation.ML
-    ID:         $Id$
+(*  Title:      FOL/ex/Foundation.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 *)

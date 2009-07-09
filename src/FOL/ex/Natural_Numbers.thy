@@ -1,11 +1,12 @@
 (*  Title:      FOL/ex/Natural_Numbers.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Munich
 *)
 
 header {* Natural numbers *}
 
-theory Natural_Numbers imports FOL begin
+theory Natural_Numbers
+imports FOL
+begin
 
 text {*
   Theory of the natural numbers: Peano's axioms, primitive recursion.

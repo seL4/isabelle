@@ -1,5 +1,4 @@
-(*  Title:      FOL/ex/Classical
-    ID:         $Id$
+(*  Title:      FOL/ex/Classical.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 *)
