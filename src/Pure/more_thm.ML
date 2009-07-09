@@ -414,4 +414,4 @@ end;
 
 val op aconvc = Thm.aconvc;
 
-structure Thmtab = TableFun(type key = thm val ord = Thm.thm_ord);
+structure Thmtab = Table(type key = thm val ord = Thm.thm_ord);

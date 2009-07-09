@@ -253,7 +253,7 @@ fun const_ord (Fun c1, Fun c2) = fast_string_ord (c1, c2)
 type var = const * int;
 
 structure Vargraph =
-  GraphFun(type key = var val ord = prod_ord const_ord int_ord);
+  Graph(type key = var val ord = prod_ord const_ord int_ord);
 
 datatype styp = Tyco of string * styp list | Var of var | Free;
 

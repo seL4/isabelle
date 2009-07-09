@@ -97,7 +97,7 @@ struct
 (* data kinds and access methods *)
 
 (*private copy avoids potential conflict of table exceptions*)
-structure Datatab = TableFun(type key = int val ord = int_ord);
+structure Datatab = Table(type key = int val ord = int_ord);
 
 local
 

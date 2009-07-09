@@ -355,7 +355,7 @@ val map_cases = map_spec o apsnd o apsnd o apsnd;
 (* data slots dependent on executable code *)
 
 (*private copy avoids potential conflict of table exceptions*)
-structure Datatab = TableFun(type key = int val ord = int_ord);
+structure Datatab = Table(type key = int val ord = int_ord);
 
 local
 

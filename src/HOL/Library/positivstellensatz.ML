@@ -33,7 +33,7 @@ functor FuncFun(Key: KEY) : FUNC=
 struct
 
 type key = Key.key;
-structure Tab = TableFun(Key);
+structure Tab = Table(Key);
 type 'a T = 'a Tab.table;
 
 val undefined = Tab.empty;

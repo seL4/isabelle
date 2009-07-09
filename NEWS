@@ -92,6 +92,10 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* Renamed functor TableFun to Table, and GraphFun to Graph.  (Since
+functors have their own ML name space there is no point to mark them
+separately.)  Minor INCOMPATIBILITY.
+
 * Renamed NamedThmsFun to Named_Thms.  INCOMPATIBILITY.
 
 * Eliminated old Attrib.add_attributes, Method.add_methods and related

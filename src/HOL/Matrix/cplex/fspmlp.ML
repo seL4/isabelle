@@ -1,5 +1,4 @@
 (*  Title:      HOL/Matrix/cplex/fspmlp.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 
@@ -45,9 +44,9 @@ fun intbound_ord ((i1: int, b1),(i2,b2)) =
         (if b1 = b2 then EQUAL else if b1=LOWER then LESS else GREATER)
     else GREATER
 
-structure Inttab = TableFun(type key = int val ord = (rev_order o int_ord));
+structure Inttab = Table(type key = int val ord = (rev_order o int_ord));
 
-structure VarGraph = TableFun(type key = int*bound_type val ord = intbound_ord);
+structure VarGraph = Table(type key = int*bound_type val ord = intbound_ord);
 (* key -> (float option) * (int -> (float * (((float * float) * key) list)))) *)
 (* dest_key -> (sure_bound * (row_index -> (row_bound * (((coeff_lower * coeff_upper) * src_key) list)))) *)
 

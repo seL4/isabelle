@@ -16,7 +16,7 @@ datatype closure = CDummy | CVar of int | CConst of int
                  | CApp of closure * closure | CAbs of closure
                  | Closure of (closure list) * closure
 
-structure prog_struct = TableFun(type key = int*int val ord = prod_ord int_ord int_ord);
+structure prog_struct = Table(type key = int*int val ord = prod_ord int_ord int_ord);
 
 datatype program = Program of ((pattern * closure * (closure*closure) list) list) prog_struct.table
 

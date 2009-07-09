@@ -58,7 +58,7 @@ sig
     'a list table * 'a list table -> 'a list table                     (*exception DUP*)
 end;
 
-functor TableFun(Key: KEY): TABLE =
+functor Table(Key: KEY): TABLE =
 struct
 
 
@@ -409,8 +409,8 @@ val fold_rev = fold_rev_table;
 
 end;
 
-structure Inttab = TableFun(type key = int val ord = int_ord);
-structure Symtab = TableFun(type key = string val ord = fast_string_ord);
-structure Symreltab = TableFun(type key = string * string
+structure Inttab = Table(type key = int val ord = int_ord);
+structure Symtab = Table(type key = string val ord = fast_string_ord);
+structure Symreltab = Table(type key = string * string
   val ord = prod_ord fast_string_ord fast_string_ord);
 
