@@ -222,7 +222,7 @@ fun dest_predicate cs params t =
     val k = length params;
     val (c, ts) = strip_comb t;
     val (xs, ys) = chop k ts;
-    val i = find_index_eq c cs;
+    val i = find_index (fn c' => c' = c) cs;
   in
     if xs = params andalso i >= 0 then
       SOME (c, i, ys, chop (length ys)

@@ -111,7 +111,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
             else
               Const ("Sum_Type.Inr", T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
           end
-      in mk_inj' sumT (length leafTs) (1 + find_index_eq T' leafTs)
+      in mk_inj' sumT (length leafTs) (1 + find_index (fn T'' => T'' = T') leafTs)
       end;
 
     (* make injections for constructors *)
@@ -137,7 +137,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
             if i <= n2 then Const (Suml_name, mkT T1) $ mk_inj T1 n2 i
             else Const (Sumr_name, mkT T2) $ mk_inj T2 (n - n2) (i - n2)
           end
-      in mk_inj branchT (length branchTs) (1 + find_index_eq T' branchTs)
+      in mk_inj branchT (length branchTs) (1 + find_index (fn T'' => T'' = T') branchTs)
       end;
 
     val mk_lim = List.foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));

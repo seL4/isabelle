@@ -204,9 +204,9 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
 fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs dummies =
   let
     val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct));
-    val premss = List.mapPartial (fn (s, rs) => if s mem rsets then
-      SOME (rs, map (fn (_, r) => List.nth (prems_of raw_induct,
-        find_index_eq (prop_of r) (map prop_of intrs))) rs) else NONE) rss;
+    val premss = map_filter (fn (s, rs) => if member (op =) rsets s then
+      SOME (rs, map (fn (_, r) => nth (prems_of raw_induct)
+        (find_index (fn prp => prp = prop_of r) (map prop_of intrs))) rs) else NONE) rss;
     val fs = maps (fn ((intrs, prems), dummy) =>
       let
         val fs = map (fn (rule, (ivs, intr)) =>
