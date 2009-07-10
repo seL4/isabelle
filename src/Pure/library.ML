@@ -97,7 +97,6 @@ sig
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val split_last: 'a list -> 'a list * 'a
   val find_index: ('a -> bool) -> 'a list -> int
-  val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
   val get_index: ('a -> 'b option) -> 'a list -> (int * 'b) option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
@@ -502,8 +501,6 @@ fun find_index pred =
   let fun find (_: int) [] = ~1
         | find n (x :: xs) = if pred x then n else find (n + 1) xs;
   in find 0 end;
-
-fun find_index_eq x = find_index (equal x);
 
 (*find first element satisfying predicate*)
 val find_first = List.find;

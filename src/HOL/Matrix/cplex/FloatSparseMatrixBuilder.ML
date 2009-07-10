@@ -1,5 +1,4 @@
 (*  Title:      HOL/Matrix/cplex/FloatSparseMatrixBuilder.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 
@@ -49,7 +48,7 @@ structure FloatSparseMatrixBuilder : FLOAT_SPARSE_MATIRX_BUILDER =
 struct
 
 type float = Float.float
-structure Inttab = TableFun(type key = int val ord = rev_order o int_ord);
+structure Inttab = Table(type key = int val ord = rev_order o int_ord);
 
 type vector = string Inttab.table
 type matrix = vector Inttab.table

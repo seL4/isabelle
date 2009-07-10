@@ -41,7 +41,7 @@ fun polex_pow t = Const ("Commutative_Ring.polex.Pow", polexT t --> HOLogic.natT
 fun reif_pol T vs (t as Free _) =
       let
         val one = @{term "1::nat"};
-        val i = find_index_eq t vs
+        val i = find_index (fn t' => t' = t) vs
       in if i = 0
         then pol_PX T $ (pol_Pc T $ cring_one T)
           $ one $ (pol_Pc T $ cring_zero T)

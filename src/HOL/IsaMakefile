@@ -327,7 +327,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Finite_Cartesian_Product.thy \
   Library/FrechetDeriv.thy Library/Fraction_Field.thy\
   Library/Fundamental_Theorem_Algebra.thy \
-  Library/Inner_Product.thy Library/Lattice_Syntax.thy \
+  Library/Inner_Product.thy Library/Kleene_Algebra.thy Library/Lattice_Syntax.thy \
   Library/Legacy_GCD.thy \
   Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy Library/State_Monad.thy	\
   Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
@@ -710,7 +710,7 @@ $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Heap.thy \
 
 HOL-SizeChange: HOL $(LOG)/HOL-SizeChange.gz
 
-$(LOG)/HOL-SizeChange.gz: $(OUT)/HOL SizeChange/Kleene_Algebras.thy	\
+$(LOG)/HOL-SizeChange.gz: $(OUT)/HOL Library/Kleene_Algebra.thy	\
   SizeChange/Graphs.thy SizeChange/Misc_Tools.thy			\
   SizeChange/Criterion.thy SizeChange/Correctness.thy			\
   SizeChange/Interpretation.thy SizeChange/Implementation.thy		\

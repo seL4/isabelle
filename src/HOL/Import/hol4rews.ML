@@ -1,9 +1,8 @@
 (*  Title:      HOL/Import/hol4rews.ML
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-structure StringPair = TableFun(type key = string * string val ord = prod_ord string_ord string_ord);
+structure StringPair = Table(type key = string * string val ord = prod_ord string_ord string_ord);
 
 type holthm = (term * term) list * thm
 

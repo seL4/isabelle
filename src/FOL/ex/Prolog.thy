@@ -1,5 +1,4 @@
-(*  Title:      FOL/ex/prolog.thy
-    ID:         $Id$
+(*  Title:      FOL/ex/Prolog.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)

@@ -23,8 +23,8 @@ instantiation bool :: random
 begin
 
 definition
-  "random i = Random.range i o\<rightarrow>
-    (\<lambda>k. Pair (if (k div 2 = 0) then Code_Eval.valtermify True else Code_Eval.valtermify False))"
+  "random i = Random.range 2 o\<rightarrow>
+    (\<lambda>k. Pair (if k = 0 then Code_Eval.valtermify False else Code_Eval.valtermify True))"
 
 instance ..
 
@@ -97,7 +97,7 @@ definition random_fun_lift :: "(Random.seed \<Rightarrow> ('b \<times> (unit \<R
   \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
   "random_fun_lift f = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of f Random.split_seed"
 
-instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
+instantiation "fun" :: ("{eq, term_of}", random) random
 begin
 
 definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where

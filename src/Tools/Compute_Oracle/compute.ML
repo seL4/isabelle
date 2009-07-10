@@ -167,8 +167,6 @@ fun machine_of_prog (ProgBarras _) = BARRAS
   | machine_of_prog (ProgHaskell _) = HASKELL
   | machine_of_prog (ProgSML _) = SML
 
-structure Sorttab = TableFun(type key = sort val ord = TermOrd.sort_ord)
-
 type naming = int -> string
 
 fun default_naming i = "v_" ^ Int.toString i

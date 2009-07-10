@@ -274,7 +274,7 @@ fun unvarify th =
     val instT0 = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
     val instT = map (fn (v, T) => (certT (TVar v), certT T)) instT0;
     val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
-      let val T' = TermSubst.instantiateT instT0 T
+      let val T' = Term_Subst.instantiateT instT0 T
       in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
   in Thm.instantiate (instT, inst) th end;
 
@@ -414,4 +414,4 @@ end;
 
 val op aconvc = Thm.aconvc;
 
-structure Thmtab = TableFun(type key = thm val ord = Thm.thm_ord);
+structure Thmtab = Table(type key = thm val ord = Thm.thm_ord);

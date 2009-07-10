@@ -52,7 +52,7 @@ sig
   val extend: (key -> 'a * key list) -> key -> 'a T -> 'a T
 end;
 
-functor GraphFun(Key: KEY): GRAPH =
+functor Graph(Key: KEY): GRAPH =
 struct
 
 (* keys *)
@@ -67,7 +67,7 @@ val remove_key = remove eq_key;
 
 (* tables and sets of keys *)
 
-structure Table = TableFun(Key);
+structure Table = Table(Key);
 type keys = unit Table.table;
 
 val empty_keys = Table.empty: keys;
@@ -299,5 +299,5 @@ val fold = fold_graph;
 
 end;
 
-structure Graph = GraphFun(type key = string val ord = fast_string_ord);
-structure IntGraph = GraphFun(type key = int val ord = int_ord);
+structure Graph = Graph(type key = string val ord = fast_string_ord);
+structure IntGraph = Graph(type key = int val ord = int_ord);

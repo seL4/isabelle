@@ -492,7 +492,7 @@ fun prep_goal_expression prep expression context =
 
     val export = Variable.export_morphism goal_ctxt context;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
-    val exp_term = TermSubst.zero_var_indexes o Morphism.term export;
+    val exp_term = Term_Subst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;
     val export' = Morphism.morphism {binding = I, typ = exp_typ, term = exp_term, fact = exp_fact};
   in ((propss, deps, export'), goal_ctxt) end;
@@ -796,14 +796,9 @@ fun gen_sublocale prep_expr intern raw_target expression thy =
   let
     val target = intern thy raw_target;
     val target_ctxt = Locale.init target thy;
-
     val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
-
     fun after_qed witss = ProofContext.theory
-      (fold2 (fn (name, morph) => fn wits => Locale.add_dependency target
-        (name, morph $> Element.satisfy_morphism wits $> export)) deps witss #>
-      (fn thy => fold_rev (Context.theory_map o Locale.activate_facts)
-        (Locale.get_registrations thy) thy));
+      (Locale.add_dependencies target (deps ~~ witss) export);
   in Element.witness_proof after_qed propss goal_ctxt end;
 
 in
@@ -860,7 +855,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
           end;
 
     fun after_qed wits eqs = ProofContext.theory (fold_map store_reg (regs ~~ wits)
-        #-> (fn regs => store_eqns_activate regs eqs));
+      #-> (fn regs => store_eqns_activate regs eqs));
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
 

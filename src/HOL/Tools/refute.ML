@@ -2401,7 +2401,7 @@ struct
                   (* by our assumption on the order of recursion operators *)
                   (* and datatypes, this is the index of the datatype      *)
                   (* corresponding to the given recursion operator         *)
-                  val idt_index = find_index_eq s (#rec_names info)
+                  val idt_index = find_index (fn s' => s' = s) (#rec_names info)
                   (* mutually recursive types must have the same type   *)
                   (* parameters, unless the mutual recursion comes from *)
                   (* indirect recursion                                 *)
@@ -2535,7 +2535,7 @@ struct
                   (* returned                                              *)
                   (* interpretation -> int -> int list option *)
                   fun get_args (Leaf xs) elem =
-                    if find_index_eq True xs = elem then
+                    if find_index (fn x => x = True) xs = elem then
                       SOME []
                     else
                       NONE
@@ -2606,7 +2606,7 @@ struct
                         (* corresponding recursive argument                 *)
                         fun rec_intr (DatatypeAux.DtRec i) (Leaf xs) =
                           (* recursive argument is "rec_i params elem" *)
-                          compute_array_entry i (find_index_eq True xs)
+                          compute_array_entry i (find_index (fn x => x = True) xs)
                           | rec_intr (DatatypeAux.DtRec _) (Node _) =
                           raise REFUTE ("IDT_recursion_interpreter",
                             "interpretation for IDT is a node")
@@ -3237,7 +3237,7 @@ struct
                   def_eq=false, next_idx=1, bounds=[], wellformed=True} cTerm
                 (* interpretation -> int list option *)
                 fun get_args (Leaf xs) =
-                  if find_index_eq True xs = element then
+                  if find_index (fn x => x = True) xs = element then
                     SOME []
                   else
                     NONE

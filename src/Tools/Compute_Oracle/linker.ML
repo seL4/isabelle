@@ -54,8 +54,8 @@ fun constant_ord (Constant (x1,x2,x3), Constant (y1,y2,y3)) = (prod_ord (prod_or
 fun constant_modty_ord (Constant (x1,x2,_), Constant (y1,y2,_)) = (prod_ord bool_ord fast_string_ord) ((x1,x2), (y1,y2))
 
 
-structure Consttab = TableFun(type key = constant val ord = constant_ord);
-structure ConsttabModTy = TableFun(type key = constant val ord = constant_modty_ord);
+structure Consttab = Table(type key = constant val ord = constant_ord);
+structure ConsttabModTy = Table(type key = constant val ord = constant_modty_ord);
 
 fun typ_of_constant (Constant (_, _, ty)) = ty
 
@@ -72,7 +72,7 @@ fun merge_subst (A:Type.tyenv) (B:Type.tyenv) =
 fun subst_ord (A:Type.tyenv, B:Type.tyenv) =
     (list_ord (prod_ord TermOrd.fast_indexname_ord (prod_ord TermOrd.sort_ord TermOrd.typ_ord))) (Vartab.dest A, Vartab.dest B)
 
-structure Substtab = TableFun(type key = Type.tyenv val ord = subst_ord);
+structure Substtab = Table(type key = Type.tyenv val ord = subst_ord);
 
 fun substtab_union c = Substtab.fold Substtab.update c
 fun substtab_unions [] = Substtab.empty
@@ -382,7 +382,7 @@ val cthm_ord' = prod_ord (prod_ord (list_ord TermOrd.term_ord) (list_ord TermOrd
 
 fun cthm_ord (ComputeThm (h1, sh1, p1), ComputeThm (h2, sh2, p2)) = cthm_ord' (((h1,sh1), p1), ((h2, sh2), p2))
 
-structure CThmtab = TableFun (type key = cthm val ord = cthm_ord)
+structure CThmtab = Table(type key = cthm val ord = cthm_ord)
 
 fun remove_duplicates ths =
     let

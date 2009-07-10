@@ -1,12 +1,13 @@
-(*  Title:      FOL/ex/Intuitionistic
-    ID:         $Id$
+(*  Title:      FOL/ex/Intuitionistic.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 *)
 
-header{*Intuitionistic First-Order Logic*}
+header {* Intuitionistic First-Order Logic *}
 
-theory Intuitionistic imports IFOL begin
+theory Intuitionistic
+imports IFOL
+begin
 
 (*
 Single-step ML commands:
@@ -421,5 +422,4 @@ lemma "ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))"
 by (tactic{*IntPr.fast_tac 1*})
 
 end
-
 

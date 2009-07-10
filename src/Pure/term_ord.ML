@@ -204,6 +204,7 @@ end;
 
 end;
 
-structure Vartab = TableFun(type key = indexname val ord = TermOrd.fast_indexname_ord);
-structure Typtab = TableFun(type key = typ val ord = TermOrd.typ_ord);
-structure Termtab = TableFun(type key = term val ord = TermOrd.fast_term_ord);
+structure Vartab = Table(type key = indexname val ord = TermOrd.fast_indexname_ord);
+structure Sorttab = Table(type key = sort val ord = TermOrd.sort_ord);
+structure Typtab = Table(type key = typ val ord = TermOrd.typ_ord);
+structure Termtab = Table(type key = term val ord = TermOrd.fast_term_ord);

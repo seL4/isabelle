@@ -19,7 +19,7 @@ end
 structure Decompose : DECOMPOSE =
 struct
 
-structure TermGraph = GraphFun(type key = term val ord = TermOrd.fast_term_ord);
+structure TermGraph = Graph(type key = term val ord = TermOrd.fast_term_ord);
 
 
 fun derive_chains ctxt chain_tac cont D = Termination.CALLS (fn (cs, i) =>

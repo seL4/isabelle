@@ -250,7 +250,7 @@ proof (intro equalityI subsetI)
 
     have "tcl A = A * star A"
       unfolding tcl_def
-      by (simp add: star_commute[of A A A, simplified])
+      by (simp add: star_simulation[of A A A, simplified])
 
     with edge
     have "has_edge (A * star A) x G y" by simp
@@ -272,7 +272,7 @@ proof (intro equalityI subsetI)
     have "has_edge (star A * A) x G y" by (simp add:tcl_def)
     then obtain H H' z
       where AH': "has_edge A z H' y" and G: "G = H * H'"
-      by (auto simp:in_grcomp)
+      by (auto simp:in_grcomp simp del: star_slide2)
     from B
     obtain m' e' where "has_edge H' m' e' n"
       by (auto simp:G in_grcomp)

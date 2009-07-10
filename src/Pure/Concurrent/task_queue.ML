@@ -41,7 +41,7 @@ fun pri_of_task (Task (pri, _)) = pri;
 fun str_of_task (Task (_, i)) = string_of_int i;
 
 fun task_ord (Task t1, Task t2) = prod_ord (rev_order o int_ord) int_ord (t1, t2);
-structure Task_Graph = GraphFun(type key = task val ord = task_ord);
+structure Task_Graph = Graph(type key = task val ord = task_ord);
 
 
 (* groups *)

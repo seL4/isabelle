@@ -1,5 +1,4 @@
-(*  Title:      FOL/int-prover
-    ID:         $Id$
+(*  Title:      FOL/intprover.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 

@@ -45,7 +45,6 @@ sig
   val instance_of: theory -> string -> morphism -> term list
   val specification_of: theory -> string -> term option * term list
   val declarations_of: theory -> string -> declaration list * declaration list
-  val dependencies_of: theory -> string -> (string * morphism) list
 
   (* Storing results *)
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -53,7 +52,6 @@ sig
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
-  val add_dependency: string -> string * morphism -> theory -> theory
 
   (* Activation *)
   val activate_declarations: string * morphism -> Proof.context -> Proof.context
@@ -69,10 +67,11 @@ sig
   val unfold_add: attribute
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
-  (* Registrations *)
+  (* Registrations and dependencies *)
   val add_registration: string * (morphism * morphism) -> theory -> theory
   val amend_registration: morphism -> string * morphism -> theory -> theory
-  val get_registrations: theory -> (string * morphism) list
+  val add_dependencies: string -> ((string * morphism) * Element.witness list) list ->
+    morphism  -> theory -> theory
 
   (* Diagnostic *)
   val print_locales: theory -> unit
@@ -338,13 +337,19 @@ structure Registrations = TheoryDataFun
     (* FIXME consolidate with dependencies, consider one data slot only *)
 );
 
-val get_registrations =
-  Registrations.get #> map (#1 #> apsnd op $>);
+fun reg_morph ((name, (base, export)), _) = (name, base $> export);
+
+fun these_registrations thy name = Registrations.get thy
+  |> filter (curry (op =) name o fst o fst)
+  |> map reg_morph;
+
+fun all_registrations thy = Registrations.get thy
+  |> map reg_morph;
 
 fun add_registration (name, (base_morph, export)) thy =
   roundup thy (fn (name', morph') => Registrations.map (cons ((name', (morph', export)), stamp ())))
-    (name, base_morph) (get_idents (Context.Theory thy), thy) |> snd;
-    (* FIXME |-> put_global_idents ?*)
+    (name, base_morph) (get_idents (Context.Theory thy), thy)
+  (* FIXME |-> (Context.theory_map o put_idents_diag)*) |> snd;
 
 fun amend_registration morph (name, base_morph) thy =
   let
@@ -364,6 +369,17 @@ fun amend_registration morph (name, base_morph) thy =
   end;
 
 
+(*** Dependencies ***)
+
+fun add_dependencies loc deps_witss export thy =
+  thy
+  |> fold (fn ((dep, morph), wits) => (change_locale loc o apsnd)
+      (cons ((dep, morph $> Element.satisfy_morphism wits $> export), stamp ())))
+        deps_witss
+  |> (fn thy => fold_rev (Context.theory_map o activate_facts)
+      (all_registrations thy) thy);
+
+
 (*** Storing results ***)
 
 (* Theorems *)
@@ -375,12 +391,12 @@ fun add_thmss loc kind args ctxt =
       (change_locale loc o apfst o apsnd) (cons (args', stamp ()))
         #>
       (* Registrations *)
-      (fn thy => fold_rev (fn (name, morph) =>
+      (fn thy => fold_rev (fn (_, morph) =>
             let
               val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
             in PureThy.note_thmss kind args'' #> snd end)
-        (get_registrations thy |> filter (fn (name, _) => name = loc)) thy))
+        (these_registrations thy loc) thy))
   in ctxt'' end;
 
 
@@ -402,11 +418,6 @@ val add_term_syntax = add_decls (apsnd o cons);
 val add_declaration = add_decls (K I);
 
 end;
-
-
-(* Dependencies *)
-
-fun add_dependency loc dep = (change_locale loc o apsnd) (cons (dep, stamp ()));
 
 
 (*** Reasoning about locales ***)

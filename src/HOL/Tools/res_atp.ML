@@ -152,7 +152,7 @@ fun const_typ_ord TU =
 
 end;
 
-structure CTtab = TableFun(type key = const_typ list val ord = dict_ord const_typ_ord);
+structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_ord);
 
 fun count_axiom_consts theory_const thy ((thm,_), tab) = 
   let fun count_const (a, T, tab) =
