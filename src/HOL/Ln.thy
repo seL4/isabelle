@@ -31,13 +31,13 @@ proof -
 qed
 
 lemma aux1: assumes a: "0 <= x" and b: "x <= 1"
-    shows "inverse (real (fact (n + 2))) * x ^ (n + 2) <= (x^2/2) * ((1/2)^n)"
+    shows "inverse (real (fact ((n::nat) + 2))) * x ^ (n + 2) <= (x^2/2) * ((1/2)^n)"
 proof (induct n)
-  show "inverse (real (fact (0 + 2))) * x ^ (0 + 2) <= 
+  show "inverse (real (fact ((0::nat) + 2))) * x ^ (0 + 2) <= 
       x ^ 2 / 2 * (1 / 2) ^ 0"
     by (simp add: real_of_nat_Suc power2_eq_square)
 next
-  fix n
+  fix n :: nat
   assume c: "inverse (real (fact (n + 2))) * x ^ (n + 2)
        <= x ^ 2 / 2 * (1 / 2) ^ n"
   show "inverse (real (fact (Suc n + 2))) * x ^ (Suc n + 2)
