@@ -20,6 +20,9 @@ of results to "Primes" and "GCD". IntPrimes also defined and developed
 the congruence relations on the integers. The notion was extended to
 the natural numbers by Chiaeb.
 
+Jeremy Avigad combined all of these, made everything uniform for the
+natural numbers and the integers, and added a number of new theorems.
+
 Tobias Nipkow cleaned up a lot.
 *)
 
@@ -27,7 +30,7 @@ Tobias Nipkow cleaned up a lot.
 header {* GCD *}
 
 theory GCD
-imports NatTransfer
+imports Fact
 begin
 
 declare One_nat_def [simp del]
@@ -1729,5 +1732,43 @@ proof-
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
 qed
+
+subsection {* Infinitely many primes *}
+
+lemma next_prime_bound: "\<exists>(p::nat). prime p \<and> n < p \<and> p <= fact n + 1"
+proof-
+  have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith 
+  from prime_factor_nat [OF f1]
+      obtain p where "prime p" and "p dvd fact n + 1" by auto
+  hence "p \<le> fact n + 1" 
+    by (intro dvd_imp_le, auto)
+  {assume "p \<le> n"
+    from `prime p` have "p \<ge> 1" 
+      by (cases p, simp_all)
+    with `p <= n` have "p dvd fact n" 
+      by (intro dvd_fact_nat)
+    with `p dvd fact n + 1` have "p dvd fact n + 1 - fact n"
+      by (rule dvd_diff_nat)
+    hence "p dvd 1" by simp
+    hence "p <= 1" by auto
+    moreover from `prime p` have "p > 1" by auto
+    ultimately have False by auto}
+  hence "n < p" by arith
+  with `prime p` and `p <= fact n + 1` show ?thesis by auto
+qed
+
+lemma bigger_prime: "\<exists>p. prime p \<and> p > (n::nat)" 
+using next_prime_bound by auto
+
+lemma primes_infinite: "\<not> (finite {(p::nat). prime p})"
+proof
+  assume "finite {(p::nat). prime p}"
+  with Max_ge have "(EX b. (ALL x : {(p::nat). prime p}. x <= b))"
+    by auto
+  then obtain b where "ALL (x::nat). prime x \<longrightarrow> x <= b"
+    by auto
+  with bigger_prime [of b] show False by auto
+qed
+
 
 end
