@@ -121,7 +121,7 @@ fun gen_add_domain
       val thy' = thy'' |> Domain_Syntax.add_syntax comp_dnam eqs';
       val dts  = map (Type o fst) eqs';
       val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
-      fun strip ss = Library.drop (find_index_eq "'" ss +1, ss);
+      fun strip ss = Library.drop (find_index (fn s => s = "'") ss + 1, ss);
       fun typid (Type  (id,_)) =
           let val c = hd (Symbol.explode (Long_Name.base_name id))
           in if Symbol.is_letter c then c else "t" end

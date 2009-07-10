@@ -311,7 +311,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val proto_sub = case TheoryTarget.peek lthy
      of {is_class = false, ...} => error "Not in a class context"
       | {target, ...} => target;
-    val (sub, sup) = AxClass.cert_classrel thy (proto_sub, proto_sup)
+    val (sub, sup) = AxClass.cert_classrel thy (proto_sub, proto_sup);
 
     val expr = ([(sup, (("", false), Expression.Positional []))], []);
     val (([props], deps, export), goal_ctxt) =

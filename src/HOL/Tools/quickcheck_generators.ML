@@ -27,7 +27,7 @@ struct
 
 fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"})
 val size = @{term "i::code_numeral"};
-val size1 = @{term "(i::code_numeral) - 1"};
+val size_pred = @{term "(i::code_numeral) - 1"};
 val size' = @{term "j::code_numeral"};
 val seed = @{term "s::Random.seed"};
 
@@ -243,7 +243,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
           | mk_random_fun_lift (fT :: fTs) t =
               mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
                 mk_random_fun_lift fTs t;
-        val t = mk_random_fun_lift fTs (nth random_auxs k $ size1 $ size');
+        val t = mk_random_fun_lift fTs (nth random_auxs k $ size_pred $ size');
         val size = Option.map snd (DatatypeCodegen.find_shortest_path descr k)
           |> the_default 0;
       in (SOME size, (t, fTs ---> T)) end;

@@ -796,14 +796,9 @@ fun gen_sublocale prep_expr intern raw_target expression thy =
   let
     val target = intern thy raw_target;
     val target_ctxt = Locale.init target thy;
-
     val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
-
     fun after_qed witss = ProofContext.theory
-      (fold2 (fn (name, morph) => fn wits => Locale.add_dependency target
-        (name, morph $> Element.satisfy_morphism wits $> export)) deps witss #>
-      (fn thy => fold_rev (Context.theory_map o Locale.activate_facts)
-        (Locale.get_registrations thy) thy));
+      (Locale.add_dependencies target (deps ~~ witss) export);
   in Element.witness_proof after_qed propss goal_ctxt end;
 
 in
@@ -860,7 +855,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
           end;
 
     fun after_qed wits eqs = ProofContext.theory (fold_map store_reg (regs ~~ wits)
-        #-> (fn regs => store_eqns_activate regs eqs));
+      #-> (fn regs => store_eqns_activate regs eqs));
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
 

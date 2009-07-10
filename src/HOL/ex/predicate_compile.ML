@@ -419,8 +419,8 @@ fun modes_of_param default modes t = let
               error ("Too few arguments for inductive predicate " ^ name)
             else chop (length iss) args;
           val k = length args2;
-          val perm = map (fn i => (find_index_eq (Bound (b - i)) args2) + 1)
-            (1 upto b)  
+          val perm = map (fn i => (find_index (fn t => t = Bound (b - i)) args2) + 1)
+            (1 upto b)
           val partial_mode = (1 upto k) \\ perm
         in
           if not (partial_mode subset is) then [] else
@@ -627,7 +627,7 @@ fun compile_param_ext thy modes (NONE, t) = t
         val (params, args') = chop (length ms) args
         val (inargs, outargs) = get_args is' args'
         val b = length vs
-        val perm = map (fn i => (find_index_eq (Bound (b - i)) args') + 1) (1 upto b)
+        val perm = map (fn i => find_index (fn t => t = Bound (b - i)) args' + 1) (1 upto b)
         val outp_perm =
           snd (get_args is perm)
           |> map (fn i => i - length (filter (fn x => x < i) is'))

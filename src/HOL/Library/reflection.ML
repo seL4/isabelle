@@ -103,8 +103,8 @@ fun genreif ctxt raw_eqs t =
           NONE => error "index_of : type not found in environements!"
         | SOME (tbs,tats) =>
           let
-            val i = find_index_eq t tats
-            val j = find_index_eq t tbs
+            val i = find_index (fn t' => t' = t) tats
+            val j = find_index (fn t' => t' = t) tbs
           in (if j = ~1 then
               if i = ~1
               then (length tbs + length tats,

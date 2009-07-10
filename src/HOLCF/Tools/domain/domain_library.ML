@@ -365,7 +365,7 @@ fun mk_maybeT T = Type ("Fixrec.maybe",[T]);
 fun cpair_pat (p1,p2) = %%: @{const_name cpair_pat} $ p1 $ p2;
 val mk_ctuple_pat = foldr1 cpair_pat;
 fun lift_defined f = lift (fn x => defined (f x));
-fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
+fun bound_arg vns v = Bound (length vns - find_index (fn v' => v' = v) vns - 1);
 
 fun cont_eta_contract (Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body)) = 
     (case cont_eta_contract body  of
