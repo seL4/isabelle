@@ -1,13 +1,14 @@
-(*  Title:      HOL/Library/Kleene_Algebras.thy
-    ID:         $Id$
+(*  Title:      HOL/Library/Kleene_Algebra.thy
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header "Kleene Algebras"
+header "Kleene Algebra"
 
-theory Kleene_Algebras
+theory Kleene_Algebra
 imports Main 
 begin
+
+text {* WARNING: This is work in progress. Expect changes in the future *}
 
 text {* A type class of Kleene algebras *}
 

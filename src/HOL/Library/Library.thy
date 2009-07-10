@@ -34,6 +34,7 @@ imports
   Inner_Product
   Lattice_Syntax
   ListVector
+  Kleene_Algebra
   Mapping
   Multiset
   Nat_Infinity
