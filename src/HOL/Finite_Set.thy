@@ -2719,7 +2719,7 @@ end
 lemma (in upper_semilattice) ab_semigroup_idem_mult_sup:
   "ab_semigroup_idem_mult sup"
   by (rule lower_semilattice.ab_semigroup_idem_mult_inf)
-    (rule dual_lattice)
+    (rule dual_semilattice)
 
 context lattice
 begin
@@ -2741,7 +2741,7 @@ prefer 2 apply blast
 apply(erule exE)
 apply(rule order_trans)
 apply(erule (1) fold1_belowI)
-apply(erule (1) lower_semilattice.fold1_belowI [OF dual_lattice])
+apply(erule (1) lower_semilattice.fold1_belowI [OF dual_semilattice])
 done
 
 lemma sup_Inf_absorb [simp]:
@@ -2753,7 +2753,7 @@ done
 lemma inf_Sup_absorb [simp]:
   "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^bsub>fin\<^esub>A) = a"
 by (simp add: Sup_fin_def inf_absorb1
-  lower_semilattice.fold1_belowI [OF dual_lattice])
+  lower_semilattice.fold1_belowI [OF dual_semilattice])
 
 end
 

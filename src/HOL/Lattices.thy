@@ -29,7 +29,7 @@ begin
 
 text {* Dual lattice *}
 
-lemma dual_lattice:
+lemma dual_semilattice:
   "lower_semilattice (op \<ge>) (op >) sup"
 by (rule lower_semilattice.intro, rule dual_order)
   (unfold_locales, simp_all add: sup_least)
@@ -180,6 +180,11 @@ end
 context lattice
 begin
 
+lemma dual_lattice:
+  "lattice (op \<ge>) (op >) sup inf"
+  by (rule lattice.intro, rule dual_semilattice, rule upper_semilattice.intro, rule dual_order)
+    (unfold_locales, auto)
+
 lemma inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
   by (blast intro: antisym inf_le1 inf_greatest sup_ge1)
 
@@ -252,8 +257,144 @@ lemma inf_sup_distrib2:
  "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
 by(simp add:ACI inf_sup_distrib1)
 
+lemma dual_distrib_lattice:
+  "distrib_lattice (op \<ge>) (op >) sup inf"
+  by (rule distrib_lattice.intro, rule dual_lattice)
+    (unfold_locales, fact inf_sup_distrib1)
+
 lemmas distrib =
   sup_inf_distrib1 sup_inf_distrib2 inf_sup_distrib1 inf_sup_distrib2
+
+end
+
+
+subsection {* Boolean algebras *}
+
+class boolean_algebra = distrib_lattice + top + bot + minus + uminus +
+  assumes inf_compl_bot: "x \<sqinter> - x = bot"
+    and sup_compl_top: "x \<squnion> - x = top"
+  assumes diff_eq: "x - y = x \<sqinter> - y"
+begin
+
+lemma dual_boolean_algebra:
+  "boolean_algebra (\<lambda>x y. x \<squnion> - y) uminus (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) top bot"
+  by (rule boolean_algebra.intro, rule dual_distrib_lattice)
+    (unfold_locales,
+      auto simp add: inf_compl_bot sup_compl_top diff_eq less_le_not_le)
+
+lemma compl_inf_bot:
+  "- x \<sqinter> x = bot"
+  by (simp add: inf_commute inf_compl_bot)
+
+lemma compl_sup_top:
+  "- x \<squnion> x = top"
+  by (simp add: sup_commute sup_compl_top)
+
+lemma inf_bot_left [simp]:
+  "bot \<sqinter> x = bot"
+  by (rule inf_absorb1) simp
+
+lemma inf_bot_right [simp]:
+  "x \<sqinter> bot = bot"
+  by (rule inf_absorb2) simp
+
+lemma sup_top_left [simp]:
+  "top \<squnion> x = top"
+  by (rule sup_absorb1) simp
+
+lemma sup_top_right [simp]:
+  "x \<squnion> top = top"
+  by (rule sup_absorb2) simp
+
+lemma inf_top_left [simp]:
+  "top \<sqinter> x = x"
+  by (rule inf_absorb2) simp
+
+lemma inf_top_right [simp]:
+  "x \<sqinter> top = x"
+  by (rule inf_absorb1) simp
+
+lemma sup_bot_left [simp]:
+  "bot \<squnion> x = x"
+  by (rule sup_absorb2) simp
+
+lemma sup_bot_right [simp]:
+  "x \<squnion> bot = x"
+  by (rule sup_absorb1) simp
+
+lemma compl_unique:
+  assumes "x \<sqinter> y = bot"
+    and "x \<squnion> y = top"
+  shows "- x = y"
+proof -
+  have "(x \<sqinter> - x) \<squnion> (- x \<sqinter> y) = (x \<sqinter> y) \<squnion> (- x \<sqinter> y)"
+    using inf_compl_bot assms(1) by simp
+  then have "(- x \<sqinter> x) \<squnion> (- x \<sqinter> y) = (y \<sqinter> x) \<squnion> (y \<sqinter> - x)"
+    by (simp add: inf_commute)
+  then have "- x \<sqinter> (x \<squnion> y) = y \<sqinter> (x \<squnion> - x)"
+    by (simp add: inf_sup_distrib1)
+  then have "- x \<sqinter> top = y \<sqinter> top"
+    using sup_compl_top assms(2) by simp
+  then show "- x = y" by (simp add: inf_top_right)
+qed
+
+lemma double_compl [simp]:
+  "- (- x) = x"
+  using compl_inf_bot compl_sup_top by (rule compl_unique)
+
+lemma compl_eq_compl_iff [simp]:
+  "- x = - y \<longleftrightarrow> x = y"
+proof
+  assume "- x = - y"
+  then have "- x \<sqinter> y = bot"
+    and "- x \<squnion> y = top"
+    by (simp_all add: compl_inf_bot compl_sup_top)
+  then have "- (- x) = y" by (rule compl_unique)
+  then show "x = y" by simp
+next
+  assume "x = y"
+  then show "- x = - y" by simp
+qed
+
+lemma compl_bot_eq [simp]:
+  "- bot = top"
+proof -
+  from sup_compl_top have "bot \<squnion> - bot = top" .
+  then show ?thesis by simp
+qed
+
+lemma compl_top_eq [simp]:
+  "- top = bot"
+proof -
+  from inf_compl_bot have "top \<sqinter> - top = bot" .
+  then show ?thesis by simp
+qed
+
+lemma compl_inf [simp]:
+  "- (x \<sqinter> y) = - x \<squnion> - y"
+proof (rule compl_unique)
+  have "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = ((x \<sqinter> y) \<sqinter> - x) \<squnion> ((x \<sqinter> y) \<sqinter> - y)"
+    by (rule inf_sup_distrib1)
+  also have "... = (y \<sqinter> (x \<sqinter> - x)) \<squnion> (x \<sqinter> (y \<sqinter> - y))"
+    by (simp only: inf_commute inf_assoc inf_left_commute)
+  finally show "(x \<sqinter> y) \<sqinter> (- x \<squnion> - y) = bot"
+    by (simp add: inf_compl_bot)
+next
+  have "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = (x \<squnion> (- x \<squnion> - y)) \<sqinter> (y \<squnion> (- x \<squnion> - y))"
+    by (rule sup_inf_distrib2)
+  also have "... = (- y \<squnion> (x \<squnion> - x)) \<sqinter> (- x \<squnion> (y \<squnion> - y))"
+    by (simp only: sup_commute sup_assoc sup_left_commute)
+  finally show "(x \<sqinter> y) \<squnion> (- x \<squnion> - y) = top"
+    by (simp add: sup_compl_top)
+qed
+
+lemma compl_sup [simp]:
+  "- (x \<squnion> y) = - x \<sqinter> - y"
+proof -
+  interpret boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
+    by (rule dual_boolean_algebra)
+  then show ?thesis by simp
+qed
 
 end
 
@@ -330,8 +471,14 @@ lemmas [rule del] = min_max.le_infI min_max.le_supI
 
 subsection {* Bool as lattice *}
 
-instantiation bool :: distrib_lattice
+instantiation bool :: boolean_algebra
 begin
+
+definition
+  bool_Compl_def: "uminus = Not"
+
+definition
+  bool_diff_def: "A - B \<longleftrightarrow> A \<and> \<not> B"
 
 definition
   inf_bool_eq: "P \<sqinter> Q \<longleftrightarrow> P \<and> Q"
@@ -339,8 +486,9 @@ definition
 definition
   sup_bool_eq: "P \<squnion> Q \<longleftrightarrow> P \<or> Q"
 
-instance
-  by intro_classes (auto simp add: inf_bool_eq sup_bool_eq le_bool_def)
+instance proof
+qed (simp_all add: inf_bool_eq sup_bool_eq le_bool_def
+  bot_bool_eq top_bool_eq bool_Compl_def bool_diff_def, auto)
 
 end
 
@@ -369,7 +517,33 @@ done
 end
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
-  by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+proof
+qed (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+
+instantiation "fun" :: (type, uminus) uminus
+begin
+
+definition
+  fun_Compl_def: "- A = (\<lambda>x. - A x)"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, minus) minus
+begin
+
+definition
+  fun_diff_def: "A - B = (\<lambda>x. A x - B x)"
+
+instance ..
+
+end
+
+instance "fun" :: (type, boolean_algebra) boolean_algebra
+proof
+qed (simp_all add: inf_fun_eq sup_fun_eq bot_fun_eq top_fun_eq fun_Compl_def fun_diff_def
+  inf_compl_bot sup_compl_top diff_eq)
 
 
 text {* redundant bindings *}
