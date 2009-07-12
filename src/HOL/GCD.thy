@@ -545,7 +545,7 @@ proof-
     by(bestsimp intro!:dvd_imp_le)
 qed
 
-lemma finite_divisors_int:
+lemma finite_divisors_int[simp]:
   assumes "(i::int) ~= 0" shows "finite{d. d dvd i}"
 proof-
   have "{d. abs d <= abs i} = {- abs i .. abs i}" by(auto simp:abs_if)
@@ -554,10 +554,25 @@ proof-
     by(bestsimp intro!:dvd_imp_le_int)
 qed
 
+lemma Max_divisors_self_nat[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::nat. d dvd n} = n"
+apply(rule antisym)
+ apply (fastsimp intro: Max_le_iff[THEN iffD2] simp: dvd_imp_le)
+apply simp
+done
+
+lemma Max_divisors_self_int[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = abs n"
+apply(rule antisym)
+ apply(rule Max_le_iff[THEN iffD2])
+   apply simp
+  apply fastsimp
+ apply (metis Collect_def abs_ge_self dvd_imp_le_int mem_def zle_trans)
+apply simp
+done
+
 lemma gcd_is_Max_divisors_nat:
   "m ~= 0 \<Longrightarrow> n ~= 0 \<Longrightarrow> gcd (m::nat) n = (Max {d. d dvd m & d dvd n})"
 apply(rule Max_eqI[THEN sym])
-  apply (metis dvd.eq_iff finite_Collect_conjI finite_divisors_nat)
+  apply (metis finite_Collect_conjI finite_divisors_nat)
  apply simp
  apply(metis Suc_diff_1 Suc_neq_Zero dvd_imp_le gcd_greatest_iff_nat gcd_pos_nat)
 apply simp
@@ -566,7 +581,7 @@ done
 lemma gcd_is_Max_divisors_int:
   "m ~= 0 ==> n ~= 0 ==> gcd (m::int) n = (Max {d. d dvd m & d dvd n})"
 apply(rule Max_eqI[THEN sym])
-  apply (metis dvd.eq_iff finite_Collect_conjI finite_divisors_int)
+  apply (metis finite_Collect_conjI finite_divisors_int)
  apply simp
  apply (metis gcd_greatest_iff_int gcd_pos_int zdvd_imp_le)
 apply simp
@@ -1474,6 +1489,21 @@ proof qed (auto simp add: lcm_ac_nat)
 
 lemma fun_left_comm_idem_lcm_int: "fun_left_comm_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
 proof qed (auto simp add: lcm_ac_int)
+
+
+(* FIXME introduce selimattice_bot/top and derive the following lemmas in there: *)
+
+lemma lcm_0_iff_nat[simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
+by (metis lcm_0_left_nat lcm_0_nat mult_is_0 prod_gcd_lcm_nat)
+
+lemma lcm_0_iff_int[simp]: "lcm (m::int) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
+by (metis lcm_0_int lcm_0_left_int lcm_pos_int zless_le)
+
+lemma lcm_1_iff_nat[simp]: "lcm (m::nat) n = 1 \<longleftrightarrow> m=1 \<and> n=1"
+by (metis gcd_1_nat lcm_unique_nat nat_mult_1 prod_gcd_lcm_nat)
+
+lemma lcm_1_iff_int[simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> m = -1) \<and> (n=1 \<or> n = -1)"
+by (metis abs_minus_one abs_mult_self lcm_proj1_if_dvd_int lcm_unique_int one_dvd zmult_eq_1_iff)
 
 
 subsection {* Primes *}
