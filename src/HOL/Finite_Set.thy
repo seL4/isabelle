@@ -835,7 +835,7 @@ lemma ab_semigroup_idem_mult_sup: "ab_semigroup_idem_mult sup"
 by (rule lower_semilattice.ab_semigroup_idem_mult_inf)(rule dual_semilattice)
 
 lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> fold sup b (insert a A) = sup a (fold sup b A)"
-by(rule lower_semilattice.fold_inf_insert)(rule dual_semlattice)
+by(rule lower_semilattice.fold_inf_insert)(rule dual_semilattice)
 
 lemma fold_sup_le_sup: "finite A \<Longrightarrow> ALL a:A. a \<le> b \<Longrightarrow> fold sup c A \<le> sup b c"
 by(rule lower_semilattice.inf_le_fold_inf)(rule dual_semilattice)
