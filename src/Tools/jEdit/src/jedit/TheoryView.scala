@@ -52,9 +52,6 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
 
   private var col: Text.Change = null
-  private var doc_id: IsarDocument.Document_ID = prover.document(null).id
-  def current_document() = prover.document(doc_id)
-
   private val col_timer = new Timer(300, new ActionListener() {
     override def actionPerformed(e: ActionEvent) = commit
   })
@@ -85,7 +82,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
     buffer.addBufferListener(this)
 
-    col = Text.Change(doc_id, Isabelle.system.id(), 0,
+    col = Text.Change(Some(current_change), Isabelle.system.id(), 0,
       buffer.getText(0, buffer.getLength), "")
     commit
   }
@@ -118,76 +115,45 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     }
   }
 
-  def _from_current(to_id: String, changes: List[Text.Change], pos: Int): Int =
-    changes match {
-      case Nil => pos
-      case Text.Change(_, id, start, added, removed) :: rest_changes => {
-        val shifted =
-          if (start <= pos)
-            if (pos < start + added.length) start
-            else pos - added.length + removed.length
-          else pos
-        if (id == to_id) pos
-        else _from_current(to_id, rest_changes, shifted)
-      }
+
+  def transform_back(from: Text.Change, to: Text.Change, pos: Int): Int =
+    if (from.id == to.id) pos
+    else {
+      val shifted =
+        if (from.start <= pos)
+          if (pos < from.start + from.added.length) from.start
+          else pos - from.added.length + from.removed.length
+        else pos
+      transform_back(from.base.get, to, shifted)
     }
 
-  def _to_current(from_id: String, changes: List[Text.Change], pos: Int): Int =
-    changes match {
-      case Nil => pos
-      case Text.Change(_, id, start, added, removed) :: rest_changes => {
-        val shifted = _to_current(from_id, rest_changes, pos)
-        if (id == from_id) pos
-        else if (start <= shifted) {
-          if (shifted < start + removed.length) start
-          else shifted + added.length - removed.length
-        } else shifted
-      }
+  def transform_forward(from: Text.Change, to: Text.Change, pos: Int): Int = 
+    if (from.id == to.id) pos
+    else {
+      val shifted = transform_forward(from, to.base.get, pos)
+      if (to.start <= shifted) {
+        if (shifted < to.start + to.removed.length) to.start
+        else shifted + to.added.length - to.removed.length
+      } else shifted
     }
-
-  def to_current(from_id: String, pos: Int) = _to_current(from_id,
-    if (col == null) current_changes else col :: current_changes, pos)
-  def from_current(to_id: String, pos: Int) = _from_current(to_id,
-    if (col == null) current_changes else col :: current_changes, pos)
-  def to_current(doc: isabelle.proofdocument.ProofDocument, pos: Int): Int =
-    to_current(doc.id, pos)
-  def from_current(doc: isabelle.proofdocument.ProofDocument, pos: Int): Int =
-    from_current(doc.id, pos)
-
-  /* update to desired version */
-
-  def set_version(id: String) {
-    // changes in buffer must be ignored
-    buffer.removeBufferListener(this)
-
-    val base = changes.find(_.id == doc_id).get
-    val goal = changes.find(_.id == id).get
-
-    if (changes.indexOf(base) < changes.indexOf(goal))
-      changes.dropWhile(_ != base).takeWhile(_ != goal).map { c =>
-        buffer.remove(c.start, c.added.length)
-        buffer.insert(c.start, c.removed)}
-    else
-      changes.dropWhile(_ != goal).takeWhile(_ != base).reverse.map { c =>
-        buffer.remove(c.start, c.removed.length)
-        buffer.insert(c.start, c.added)}
-
-    val content = buffer.getText(0, buffer.getLength)
-    doc_id = id
-    // invoke repaint
-    update_delay()
-    repaint_delay()
-    phase_overview.repaint_delay()
-
-    buffer.addBufferListener(this)
+  
+  def from_current(doc: ProofDocument, pos: Int) = {
+    val from = if (col == null) current_change else col
+    val to = changes.find(_.id == doc.id).get
+    transform_back(from, to, pos)
+  }
+  def to_current(doc: ProofDocument, pos: Int) = {
+    val from = changes.find(_.id == doc.id).get
+    val to = if (col == null) current_change else col
+    transform_forward(from, to, pos)
   }
 
   def repaint(cmd: Command) =
   {
     val document = current_document()
     if (text_area != null) {
-      val start = text_area.getLineOfOffset(to_current(document.id, cmd.start(document)))
-      val stop = text_area.getLineOfOffset(to_current(document.id, cmd.stop(document)) - 1)
+      val start = text_area.getLineOfOffset(to_current(document, cmd.start(document)))
+      val stop = text_area.getLineOfOffset(to_current(document, cmd.stop(document)) - 1)
       text_area.invalidateLineRange(start, stop)
 
       if (Isabelle.prover_setup(buffer).get.selected_state == cmd)
@@ -228,8 +194,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
   {
     val document = current_document()
-    def from_current(pos: Int) = this.from_current(document.id, pos)
-    def to_current(pos: Int) = this.to_current(document.id, pos)
+    def from_current(pos: Int) = this.from_current(document, pos)
+    def to_current(pos: Int) = this.to_current(document, pos)
     val saved_color = gfx.getColor
 
     val metrics = text_area.getPainter.getFontMetrics
@@ -249,7 +215,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   override def getToolTipText(x: Int, y: Int) = {
     val document = current_document()
-    val offset = from_current(document.id, text_area.xyToOffset(x, y))
+    val offset = from_current(document, text_area.xyToOffset(x, y))
     val cmd = document.find_command_at(offset)
     if (cmd != null) {
       document.token_start(cmd.tokens.first)
@@ -257,25 +223,77 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     } else null
   }
 
-  /* BufferListener methods */
+  /* history of changes - TODO: seperate class?*/
 
-  private var changes: List[Text.Change] = Nil
-  private def current_changes = changes.dropWhile(_.id != doc_id)
+  val change_0 = Text.Change(None, prover.document_0.id, 0, "", "")
+  private var changes = List(change_0)
+  private var current_change = change_0
   def get_changes = changes
+  
+  private def doc_or_pred(c: Text.Change): ProofDocument =
+    prover.document(c.id).getOrElse(doc_or_pred(c.base.get))
+  def current_document() = doc_or_pred(current_change)
+
+  /* update to desired version */
+
+  def set_version(goal: Text.Change) {
+    // changes in buffer must be ignored
+    buffer.removeBufferListener(this)
+
+    def apply(c: Text.Change) = {
+        buffer.remove(c.start, c.removed.length)
+        buffer.insert(c.start, c.added)}
+    def unapply(c: Text.Change) = {
+      buffer.remove(c.start, c.added.length)
+      buffer.insert(c.start, c.removed)}
+
+    // undo/redo changes
+    val ancs_current = current_change.ancestors
+    val ancs_goal = goal.ancestors
+    val paired = ancs_current.reverse zip ancs_goal.reverse
+    def last_common[A](xs: List[(A, A)]): Option[A] = {
+      xs match {
+        case (x, y) :: xs =>
+          if (x == y)
+            xs match {
+              case (a, b) :: ys =>
+                if (a == b) last_common(xs)
+                else Some(x)
+              case _ => Some(x)
+            }
+          else None
+        case _ => None
+      }
+    }
+    val common_anc = last_common(paired).get
+
+    ancs_current.takeWhile(_ != common_anc) map unapply
+    ancs_goal.takeWhile(_ != common_anc).reverse map apply
+
+    current_change = goal
+    // invoke repaint
+    update_delay()
+    repaint_delay()
+    phase_overview.repaint_delay()
+
+    //track changes in buffer
+    buffer.addBufferListener(this)
+  }
+
+  /* BufferListener methods */
 
   private def commit: Unit = synchronized {
     if (col != null) {
       def split_changes(c: Text.Change): List[Text.Change] = {
         val MAX = TheoryView.MAX_CHANGE_LENGTH
         if (c.added.length <= MAX) List(c)
-        else Text.Change(c.base_id, c.id, c.start, c.added.substring(0, MAX), c.removed) ::
-          split_changes(new Text.Change(c.id, id(), c.start + MAX, c.added.substring(MAX), ""))
+        else Text.Change(c.base, c.id, c.start, c.added.substring(0, MAX), c.removed) ::
+          split_changes(Text.Change(Some(c), id(), c.start + MAX, c.added.substring(MAX), ""))
       }
       val new_changes = split_changes(col)
-      changes = new_changes.reverse ::: current_changes
-      doc_id = new_changes.head.id
+      changes ++= new_changes
       new_changes map (document_actor ! _)
-      doc_id = new_changes.last.id
+      current_change = new_changes.last
     }
     col = null
     if (col_timer.isRunning())
@@ -301,12 +319,13 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   {
     val text = buffer.getText(offset, length)
     if (col == null)
-      col = new Text.Change(doc_id, id(), offset, text, "")
+      col = new Text.Change(Some(current_change), id(), offset, text, "")
     else if (col.start <= offset && offset <= col.start + col.added.length)
-      col = new Text.Change(doc_id, col.id, col.start, col.added + text, col.removed)
+      col = new Text.Change(Some(current_change), col.id,
+              col.start, col.added + text, col.removed)
     else {
       commit
-      col = new Text.Change(doc_id, id(), offset, text, "")
+      col = new Text.Change(Some(current_change), id(), offset, text, "")
     }
     delay_commit
   }
@@ -316,10 +335,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   {
     val removed = buffer.getText(start, removed_length)
     if (col == null)
-      col = new Text.Change(doc_id, id(), start, "", removed)
+      col = new Text.Change(Some(current_change), id(), start, "", removed)
     else if (col.start > start + removed_length || start > col.start + col.added.length) {
       commit
-      col = new Text.Change(doc_id, id(), start, "", removed)
+      col = new Text.Change(Some(current_change), id(), start, "", removed)
     }
     else {
 /*      val offset = start - col.start
@@ -331,7 +350,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
           (diff - (offset min 0), offset min 0)
       col = new Text.Changed(start min col.start, added, col.removed - add_removed)*/
       commit
-      col = new Text.Change(doc_id, id(), start, "", removed)
+      col = new Text.Change(Some(current_change), id(), start, "", removed)
     }
     delay_commit
   }

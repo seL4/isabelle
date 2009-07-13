@@ -45,13 +45,12 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     mutable.SynchronizedMap[IsarDocument.State_ID, Command]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command] with
     mutable.SynchronizedMap[IsarDocument.Command_ID, Command]
-  private val document_0 =
+  val document_0 =
     ProofDocument.empty.set_command_keyword(command_decls.contains)
   private var document_versions = List(document_0)
 
   def command(id: IsarDocument.Command_ID): Option[Command] = commands.get(id)
-  def document(id: IsarDocument.Document_ID) =
-    document_versions.find(_.id == id).getOrElse(document_0)
+  def document(id: IsarDocument.Document_ID) = document_versions.find(_.id == id)
 
   private var initialized = false
 
@@ -230,7 +229,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     loop {
       react {
         case change: Text.Change => {
-            val old = document(change.base_id)
+            val old = document(change.base.get.id).get
             val (doc, structure_change) = old.text_changed(change)
             document_versions ::= doc
             edit_document(old, doc, structure_change)
