@@ -458,12 +458,6 @@ lemmas max_ac = min_max.sup_assoc min_max.sup_commute
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
   mk_left_commute [of min, OF min_max.inf_assoc min_max.inf_commute]
 
-text {*
-  Now we have inherited antisymmetry as an intro-rule on all
-  linear orders. This is a problem because it applies to bool, which is
-  undesirable.
-*}
-
 lemmas [rule del] = min_max.le_infI min_max.le_supI
   min_max.le_supE min_max.le_infE min_max.le_supI1 min_max.le_supI2
   min_max.le_infI1 min_max.le_infI2
