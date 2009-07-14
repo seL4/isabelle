@@ -153,14 +153,14 @@ text {*
   out: \emph{preprocessing}.  In essence, the preprocessor
   consists of two components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} allows to employ the full generality of the Isabelle
-  simplifier.  Due to the interpretation of theorems
-  as code equations, rewrites are applied to the right
-  hand side and the arguments of the left hand side of an
-  equation, but never to the constant heading the left hand side.
-  An important special case are \emph{inline theorems} which may be
-  declared and undeclared using the
-  \emph{code inline} or \emph{code inline del} attribute respectively.
+  The \emph{simpset} allows to employ the full generality of the
+  Isabelle simplifier.  Due to the interpretation of theorems as code
+  equations, rewrites are applied to the right hand side and the
+  arguments of the left hand side of an equation, but never to the
+  constant heading the left hand side.  An important special case are
+  \emph{unfold theorems} which may be declared and undeclared using
+  the @{attribute code_unfold} or \emph{@{attribute code_unfold} del}
+  attribute respectively.
 
   Some common applications:
 *}
@@ -173,21 +173,21 @@ text {*
      \item replacing non-executable constructs by executable ones:
 *}     
 
-lemma %quote [code inline]:
+lemma %quote [code_inline]:
   "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
 
 text {*
      \item eliminating superfluous constants:
 *}
 
-lemma %quote [code inline]:
+lemma %quote [code_inline]:
   "1 = Suc 0" by simp
 
 text {*
      \item replacing executable but inconvenient constructs:
 *}
 
-lemma %quote [code inline]:
+lemma %quote [code_inline]:
   "xs = [] \<longleftrightarrow> List.null xs" by (induct xs) simp_all
 
 text_raw {*
@@ -210,10 +210,10 @@ text {*
   on code equations.
 
   \begin{warn}
-    The attribute \emph{code unfold}
-    associated with the @{text "SML code generator"} also applies to
-    the @{text "generic code generator"}:
-    \emph{code unfold} implies \emph{code inline}.
+
+    Attribute @{attribute code_unfold} also applies to the
+    preprocessor of the ancient @{text "SML code generator"}; in case
+    this is not what you intend, use @{attribute code_inline} instead.
   \end{warn}
 *}
 
