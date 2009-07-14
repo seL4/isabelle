@@ -58,7 +58,7 @@ instance nat :: countable
 subclass (in finite) countable
 proof
   have "finite (UNIV\<Colon>'a set)" by (rule finite_UNIV)
-  with finite_conv_nat_seg_image [of UNIV]
+  with finite_conv_nat_seg_image [of "UNIV::'a set"]
   obtain n and f :: "nat \<Rightarrow> 'a" 
     where "UNIV = f ` {i. i < n}" by auto
   then have "surj f" unfolding surj_def by auto

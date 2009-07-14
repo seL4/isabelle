@@ -218,6 +218,12 @@ lemma finite_Union[simp, intro]:
  "\<lbrakk> finite A; !!M. M \<in> A \<Longrightarrow> finite M \<rbrakk> \<Longrightarrow> finite(\<Union>A)"
 by (induct rule:finite_induct) simp_all
 
+lemma finite_Inter[intro]: "EX A:M. finite(A) \<Longrightarrow> finite(Inter M)"
+by (blast intro: Inter_lower finite_subset)
+
+lemma finite_INT[intro]: "EX x:I. finite(A x) \<Longrightarrow> finite(INT x:I. A x)"
+by (blast intro: INT_lower finite_subset)
+
 lemma finite_empty_induct:
   assumes "finite A"
     and "P A"
@@ -784,6 +790,62 @@ by(simp add:fold_fun_comm)
 
 end
 
+context ab_semigroup_idem_mult
+begin
+
+lemma fun_left_comm_idem: "fun_left_comm_idem(op *)"
+apply unfold_locales
+ apply (simp add: mult_ac)
+apply (simp add: mult_idem mult_assoc[symmetric])
+done
+
+end
+
+context lower_semilattice
+begin
+
+lemma ab_semigroup_idem_mult_inf: "ab_semigroup_idem_mult inf"
+proof qed (rule inf_assoc inf_commute inf_idem)+
+
+lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A) = inf a (fold inf b A)"
+by(rule fun_left_comm_idem.fold_insert_idem[OF ab_semigroup_idem_mult.fun_left_comm_idem[OF ab_semigroup_idem_mult_inf]])
+
+lemma inf_le_fold_inf: "finite A \<Longrightarrow> ALL a:A. b \<le> a \<Longrightarrow> inf b c \<le> fold inf c A"
+by (induct pred:finite) auto
+
+lemma fold_inf_le_inf: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> fold inf b A \<le> inf a b"
+proof(induct arbitrary: a pred:finite)
+  case empty thus ?case by simp
+next
+  case (insert x A)
+  show ?case
+  proof cases
+    assume "A = {}" thus ?thesis using insert by simp
+  next
+    assume "A \<noteq> {}" thus ?thesis using insert by auto
+  qed
+qed
+
+end
+
+context upper_semilattice
+begin
+
+lemma ab_semigroup_idem_mult_sup: "ab_semigroup_idem_mult sup"
+by (rule lower_semilattice.ab_semigroup_idem_mult_inf)(rule dual_semilattice)
+
+lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> fold sup b (insert a A) = sup a (fold sup b A)"
+by(rule lower_semilattice.fold_inf_insert)(rule dual_semilattice)
+
+lemma fold_sup_le_sup: "finite A \<Longrightarrow> ALL a:A. a \<le> b \<Longrightarrow> fold sup c A \<le> sup b c"
+by(rule lower_semilattice.inf_le_fold_inf)(rule dual_semilattice)
+
+lemma sup_le_fold_sup: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a b \<le> fold sup b A"
+by(rule lower_semilattice.fold_inf_le_inf)(rule dual_semilattice)
+
+end
+
+
 subsubsection{* The derived combinator @{text fold_image} *}
 
 definition fold_image :: "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"
@@ -801,7 +863,7 @@ shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
 proof -
   interpret I: fun_left_comm "%x y. (g x) * y"
     by unfold_locales (simp add: mult_ac)
-  show ?thesis using assms by(simp add:fold_image_def I.fold_insert)
+  show ?thesis using assms by(simp add:fold_image_def)
 qed
 
 (*
@@ -829,10 +891,7 @@ lemma fold_nest_Un_disjoint:
 lemma fold_image_reindex:
 assumes fin: "finite A"
 shows "inj_on h A \<Longrightarrow> fold_image times g z (h`A) = fold_image times (g\<circ>h) z A"
-using fin apply induct
- apply simp
-apply simp
-done
+using fin by induct auto
 
 (*
 text{*
@@ -2351,14 +2410,15 @@ lemma finite_UNIV_inj_surj: fixes f :: "'a \<Rightarrow> 'a"
 shows "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Longrightarrow> surj f"
 by(fastsimp simp:surj_def dest!: endo_inj_surj)
 
-corollary infinite_UNIV_nat: "~finite(UNIV::nat set)"
+corollary infinite_UNIV_nat[iff]: "~finite(UNIV::nat set)"
 proof
   assume "finite(UNIV::nat set)"
   with finite_UNIV_inj_surj[of Suc]
   show False by simp (blast dest: Suc_neq_Zero surjD)
 qed
 
-lemma infinite_UNIV_char_0:
+(* Often leads to bogus ATP proofs because of reduced type information, hence noatp *)
+lemma infinite_UNIV_char_0[noatp]:
   "\<not> finite (UNIV::'a::semiring_char_0 set)"
 proof
   assume "finite (UNIV::'a set)"
@@ -2498,13 +2558,6 @@ end
 
 context ab_semigroup_idem_mult
 begin
-
-lemma fun_left_comm_idem: "fun_left_comm_idem(op *)"
-apply unfold_locales
- apply (simp add: mult_ac)
-apply (simp add: mult_idem mult_assoc[symmetric])
-done
-
 
 lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 
@@ -2667,10 +2720,6 @@ text{*
 context lower_semilattice
 begin
 
-lemma ab_semigroup_idem_mult_inf:
-  "ab_semigroup_idem_mult inf"
-  proof qed (rule inf_assoc inf_commute inf_idem)+
-
 lemma below_fold1_iff:
   assumes "finite A" "A \<noteq> {}"
   shows "x \<le> fold1 inf A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
@@ -2716,11 +2765,6 @@ qed
 
 end
 
-lemma (in upper_semilattice) ab_semigroup_idem_mult_sup:
-  "ab_semigroup_idem_mult sup"
-  by (rule lower_semilattice.ab_semigroup_idem_mult_inf)
-    (rule dual_lattice)
-
 context lattice
 begin
 
@@ -2741,7 +2785,7 @@ prefer 2 apply blast
 apply(erule exE)
 apply(rule order_trans)
 apply(erule (1) fold1_belowI)
-apply(erule (1) lower_semilattice.fold1_belowI [OF dual_lattice])
+apply(erule (1) lower_semilattice.fold1_belowI [OF dual_semilattice])
 done
 
 lemma sup_Inf_absorb [simp]:
@@ -2753,7 +2797,7 @@ done
 lemma inf_Sup_absorb [simp]:
   "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^bsub>fin\<^esub>A) = a"
 by (simp add: Sup_fin_def inf_absorb1
-  lower_semilattice.fold1_belowI [OF dual_lattice])
+  lower_semilattice.fold1_belowI [OF dual_semilattice])
 
 end
 

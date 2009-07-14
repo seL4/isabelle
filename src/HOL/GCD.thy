@@ -37,7 +37,7 @@ declare One_nat_def [simp del]
 
 subsection {* gcd *}
 
-class gcd = one +
+class gcd = zero + one + dvd +
 
 fixes
   gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" and
@@ -540,15 +540,15 @@ lemma gcd_dvd_prod_nat [iff]: "gcd (m::nat) n dvd k * n"
 
 (* to do: add the three variations of these, and for ints? *)
 
-lemma finite_divisors_nat:
-  assumes "(m::nat)~= 0" shows "finite{d. d dvd m}"
+lemma finite_divisors_nat[simp]:
+  assumes "(m::nat) ~= 0" shows "finite{d. d dvd m}"
 proof-
   have "finite{d. d <= m}" by(blast intro: bounded_nat_set_is_finite)
   from finite_subset[OF _ this] show ?thesis using assms
     by(bestsimp intro!:dvd_imp_le)
 qed
 
-lemma finite_divisors_int:
+lemma finite_divisors_int[simp]:
   assumes "(i::int) ~= 0" shows "finite{d. d dvd i}"
 proof-
   have "{d. abs d <= abs i} = {- abs i .. abs i}" by(auto simp:abs_if)
@@ -557,10 +557,25 @@ proof-
     by(bestsimp intro!:dvd_imp_le_int)
 qed
 
+lemma Max_divisors_self_nat[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::nat. d dvd n} = n"
+apply(rule antisym)
+ apply (fastsimp intro: Max_le_iff[THEN iffD2] simp: dvd_imp_le)
+apply simp
+done
+
+lemma Max_divisors_self_int[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = abs n"
+apply(rule antisym)
+ apply(rule Max_le_iff[THEN iffD2])
+   apply simp
+  apply fastsimp
+ apply (metis Collect_def abs_ge_self dvd_imp_le_int mem_def zle_trans)
+apply simp
+done
+
 lemma gcd_is_Max_divisors_nat:
   "m ~= 0 \<Longrightarrow> n ~= 0 \<Longrightarrow> gcd (m::nat) n = (Max {d. d dvd m & d dvd n})"
 apply(rule Max_eqI[THEN sym])
-  apply (metis dvd.eq_iff finite_Collect_conjI finite_divisors_nat)
+  apply (metis finite_Collect_conjI finite_divisors_nat)
  apply simp
  apply(metis Suc_diff_1 Suc_neq_Zero dvd_imp_le gcd_greatest_iff_nat gcd_pos_nat)
 apply simp
@@ -569,7 +584,7 @@ done
 lemma gcd_is_Max_divisors_int:
   "m ~= 0 ==> n ~= 0 ==> gcd (m::int) n = (Max {d. d dvd m & d dvd n})"
 apply(rule Max_eqI[THEN sym])
-  apply (metis dvd.eq_iff finite_Collect_conjI finite_divisors_int)
+  apply (metis finite_Collect_conjI finite_divisors_int)
  apply simp
  apply (metis gcd_greatest_iff_int gcd_pos_int zdvd_imp_le)
 apply simp
@@ -1442,31 +1457,61 @@ by (subst lcm_commute_nat, erule lcm_proj2_if_dvd_nat)
 lemma lcm_proj1_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm y x = abs y"
 by (subst lcm_commute_int, erule lcm_proj2_if_dvd_int)
 
+lemma lcm_proj1_iff_nat[simp]: "lcm m n = (m::nat) \<longleftrightarrow> n dvd m"
+by (metis lcm_proj1_if_dvd_nat lcm_unique_nat)
+
+lemma lcm_proj2_iff_nat[simp]: "lcm m n = (n::nat) \<longleftrightarrow> m dvd n"
+by (metis lcm_proj2_if_dvd_nat lcm_unique_nat)
+
+lemma lcm_proj1_iff_int[simp]: "lcm m n = abs(m::int) \<longleftrightarrow> n dvd m"
+by (metis dvd_abs_iff lcm_proj1_if_dvd_int lcm_unique_int)
+
+lemma lcm_proj2_iff_int[simp]: "lcm m n = abs(n::int) \<longleftrightarrow> m dvd n"
+by (metis dvd_abs_iff lcm_proj2_if_dvd_int lcm_unique_int)
 
 lemma lcm_assoc_nat: "lcm (lcm n m) (p::nat) = lcm n (lcm m p)"
-apply(rule lcm_unique_nat[THEN iffD1])
-apply (metis dvd.order_trans lcm_unique_nat)
-done
+by(rule lcm_unique_nat[THEN iffD1])(metis dvd.order_trans lcm_unique_nat)
 
 lemma lcm_assoc_int: "lcm (lcm n m) (p::int) = lcm n (lcm m p)"
-apply(rule lcm_unique_int[THEN iffD1])
-apply (metis dvd_trans lcm_unique_int)
-done
+by(rule lcm_unique_int[THEN iffD1])(metis dvd_trans lcm_unique_int)
 
-lemmas lcm_left_commute_nat =
-  mk_left_commute[of lcm, OF lcm_assoc_nat lcm_commute_nat]
-
-lemmas lcm_left_commute_int =
-  mk_left_commute[of lcm, OF lcm_assoc_int lcm_commute_int]
+lemmas lcm_left_commute_nat = mk_left_commute[of lcm, OF lcm_assoc_nat lcm_commute_nat]
+lemmas lcm_left_commute_int = mk_left_commute[of lcm, OF lcm_assoc_int lcm_commute_int]
 
 lemmas lcm_ac_nat = lcm_assoc_nat lcm_commute_nat lcm_left_commute_nat
 lemmas lcm_ac_int = lcm_assoc_int lcm_commute_int lcm_left_commute_int
 
+lemma fun_left_comm_idem_gcd_nat: "fun_left_comm_idem (gcd :: nat\<Rightarrow>nat\<Rightarrow>nat)"
+proof qed (auto simp add: gcd_ac_nat)
+
+lemma fun_left_comm_idem_gcd_int: "fun_left_comm_idem (gcd :: int\<Rightarrow>int\<Rightarrow>int)"
+proof qed (auto simp add: gcd_ac_int)
+
+lemma fun_left_comm_idem_lcm_nat: "fun_left_comm_idem (lcm :: nat\<Rightarrow>nat\<Rightarrow>nat)"
+proof qed (auto simp add: lcm_ac_nat)
+
+lemma fun_left_comm_idem_lcm_int: "fun_left_comm_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
+proof qed (auto simp add: lcm_ac_int)
+
+
+(* FIXME introduce selimattice_bot/top and derive the following lemmas in there: *)
+
+lemma lcm_0_iff_nat[simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
+by (metis lcm_0_left_nat lcm_0_nat mult_is_0 prod_gcd_lcm_nat)
+
+lemma lcm_0_iff_int[simp]: "lcm (m::int) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
+by (metis lcm_0_int lcm_0_left_int lcm_pos_int zless_le)
+
+lemma lcm_1_iff_nat[simp]: "lcm (m::nat) n = 1 \<longleftrightarrow> m=1 \<and> n=1"
+by (metis gcd_1_nat lcm_unique_nat nat_mult_1 prod_gcd_lcm_nat)
+
+lemma lcm_1_iff_int[simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> m = -1) \<and> (n=1 \<or> n = -1)"
+by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric] zmult_eq_1_iff)
+
 
 subsection {* Primes *}
 
-(* Is there a better way to handle these, rather than making them
-   elim rules? *)
+(* FIXME Is there a better way to handle these, rather than making them elim rules? *)
 
 lemma prime_ge_0_nat [elim]: "prime (p::nat) \<Longrightarrow> p >= 0"
   by (unfold prime_nat_def, auto)
@@ -1490,7 +1535,7 @@ lemma prime_ge_2_nat [elim]: "prime (p::nat) \<Longrightarrow> p >= 2"
   by (unfold prime_nat_def, auto)
 
 lemma prime_ge_0_int [elim]: "prime (p::int) \<Longrightarrow> p >= 0"
-  by (unfold prime_int_def prime_nat_def, auto)
+  by (unfold prime_int_def prime_nat_def) auto
 
 lemma prime_gt_0_int [elim]: "prime (p::int) \<Longrightarrow> p > 0"
   by (unfold prime_int_def prime_nat_def, auto)
@@ -1504,8 +1549,6 @@ lemma prime_gt_1_int [elim]: "prime (p::int) \<Longrightarrow> p > 1"
 lemma prime_ge_2_int [elim]: "prime (p::int) \<Longrightarrow> p >= 2"
   by (unfold prime_int_def prime_nat_def, auto)
 
-thm prime_nat_def;
-thm prime_nat_def [transferred];
 
 lemma prime_int_altdef: "prime (p::int) = (1 < p \<and> (\<forall>m \<ge> 0. m dvd p \<longrightarrow>
     m = 1 \<or> m = p))"
@@ -1566,35 +1609,13 @@ lemma prime_dvd_mult_eq_int [simp]: "prime (p::int) \<Longrightarrow>
 lemma not_prime_eq_prod_nat: "(n::nat) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
     EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
   unfolding prime_nat_def dvd_def apply auto
-  apply (subgoal_tac "k > 1")
-  apply force
-  apply (subgoal_tac "k ~= 0")
-  apply force
-  apply (rule notI)
-  apply force
-done
+  by(metis mult_commute linorder_neq_iff linorder_not_le mult_1 n_less_n_mult_m one_le_mult_iff less_imp_le_nat)
 
-(* there's a lot of messing around with signs of products here --
-   could this be made more automatic? *)
 lemma not_prime_eq_prod_int: "(n::int) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
     EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
   unfolding prime_int_altdef dvd_def
   apply auto
-  apply (rule_tac x = m in exI)
-  apply (rule_tac x = k in exI)
-  apply (auto simp add: mult_compare_simps)
-  apply (subgoal_tac "k > 0")
-  apply arith
-  apply (case_tac "k <= 0")
-  apply (subgoal_tac "m * k <= 0")
-  apply force
-  apply (subst zero_compare_simps(8))
-  apply auto
-  apply (subgoal_tac "m * k <= 0")
-  apply force
-  apply (subst zero_compare_simps(8))
-  apply auto
-done
+  by(metis div_mult_self1_is_id div_mult_self2_is_id int_div_less_self int_one_le_iff_zero_less zero_less_mult_pos zless_le)
 
 lemma prime_dvd_power_nat [rule_format]: "prime (p::nat) -->
     n > 0 --> (p dvd x^n --> p dvd x)"
