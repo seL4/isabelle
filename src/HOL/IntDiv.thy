@@ -36,7 +36,7 @@ termination by (relation "measure (\<lambda>(a, b). nat (- a - b))") auto
 
 text{*algorithm for the general case @{term "b\<noteq>0"}*}
 definition negateSnd :: "int \<times> int \<Rightarrow> int \<times> int" where
-  [code inline]: "negateSnd = apsnd uminus"
+  [code_inline]: "negateSnd = apsnd uminus"
 
 definition divmod :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
     --{*The full division algorithm considers all possible signs for a, b

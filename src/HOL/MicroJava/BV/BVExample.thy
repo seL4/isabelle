@@ -467,7 +467,7 @@ lemma JVM_sup_unfold [code]:
 
 lemmas [code] = JType.sup_def [unfolded exec_lub_def] JVM_le_unfold
 
-lemmas [code ind] = rtranclp.rtrancl_refl converse_rtranclp_into_rtranclp
+lemmas [code_ind] = rtranclp.rtrancl_refl converse_rtranclp_into_rtranclp
 
 code_module BV
 contains

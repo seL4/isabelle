@@ -93,10 +93,10 @@ instantiation fract :: (idom) "{comm_ring_1, power}"
 begin
 
 definition
-  Zero_fract_def [code, code unfold]: "0 = Fract 0 1"
+  Zero_fract_def [code, code_unfold]: "0 = Fract 0 1"
 
 definition
-  One_fract_def [code, code unfold]: "1 = Fract 1 1"
+  One_fract_def [code, code_unfold]: "1 = Fract 1 1"
 
 definition
   add_fract_def [code del]:
@@ -196,14 +196,14 @@ lemma of_nat_fract: "of_nat k = Fract (of_nat k) 1"
 lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
   by (rule of_nat_fract [symmetric])
 
-lemma fract_collapse [code post]:
+lemma fract_collapse [code_post]:
   "Fract 0 k = 0"
   "Fract 1 1 = 1"
   "Fract k 0 = 0"
   by (cases "k = 0")
     (simp_all add: Zero_fract_def One_fract_def eq_fract Fract_def)
 
-lemma fract_expand [code unfold]:
+lemma fract_expand [code_unfold]:
   "0 = Fract 0 1"
   "1 = Fract 1 1"
   by (simp_all add: fract_collapse)

@@ -24,11 +24,11 @@ lemma [code]:
 
 lemmas [code del] = char.recs char.cases char.size
 
-lemma [code, code inline]:
+lemma [code, code_inline]:
   "char_rec f c = split f (nibble_pair_of_nat (nat_of_char c))"
   by (cases c) (auto simp add: nibble_pair_of_nat_char)
 
-lemma [code, code inline]:
+lemma [code, code_inline]:
   "char_case f c = split f (nibble_pair_of_nat (nat_of_char c))"
   by (cases c) (auto simp add: nibble_pair_of_nat_char)
 

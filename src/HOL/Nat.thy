@@ -1200,9 +1200,9 @@ end
 text {* for code generation *}
 
 definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-  funpow_code_def [code post]: "funpow = compow"
+  funpow_code_def [code_post]: "funpow = compow"
 
-lemmas [code unfold] = funpow_code_def [symmetric]
+lemmas [code_unfold] = funpow_code_def [symmetric]
 
 lemma [code]:
   "funpow 0 f = id"
@@ -1265,7 +1265,7 @@ qed
 
 end
 
-declare of_nat_code [code, code unfold, code inline del]
+declare of_nat_code [code, code_unfold, code_inline del]
 
 text{*Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
