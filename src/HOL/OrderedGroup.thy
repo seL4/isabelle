@@ -1075,16 +1075,16 @@ lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
 lemma pprt_eq_id [simp, noatp]: "0 \<le> x \<Longrightarrow> pprt x = x"
-by (simp add: pprt_def le_iff_sup sup_ACI)
+by (simp add: pprt_def le_iff_sup sup_aci)
 
 lemma nprt_eq_id [simp, noatp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
-by (simp add: nprt_def le_iff_inf inf_ACI)
+by (simp add: nprt_def le_iff_inf inf_aci)
 
 lemma pprt_eq_0 [simp, noatp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
-by (simp add: pprt_def le_iff_sup sup_ACI)
+by (simp add: pprt_def le_iff_sup sup_aci)
 
 lemma nprt_eq_0 [simp, noatp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
-by (simp add: nprt_def le_iff_inf inf_ACI)
+by (simp add: nprt_def le_iff_inf inf_aci)
 
 lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
 proof -
@@ -1120,7 +1120,7 @@ proof
   assume "0 <= a + a"
   hence a:"inf (a+a) 0 = 0" by (simp add: le_iff_inf inf_commute)
   have "(inf a 0)+(inf a 0) = inf (inf (a+a) 0) a" (is "?l=_")
-    by (simp add: add_sup_inf_distribs inf_ACI)
+    by (simp add: add_sup_inf_distribs inf_aci)
   hence "?l = 0 + inf a 0" by (simp add: a, simp add: inf_commute)
   hence "inf a 0 = 0" by (simp only: add_right_cancel)
   then show "0 <= a" by (simp add: le_iff_inf inf_commute)    
@@ -1206,10 +1206,10 @@ lemma zero_le_iff_nprt_id: "a \<le> 0 \<longleftrightarrow> nprt a = a"
 by (simp add: le_iff_inf nprt_def inf_commute)
 
 lemma pprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> pprt a \<le> pprt b"
-by (simp add: le_iff_sup pprt_def sup_ACI sup_assoc [symmetric, of a])
+by (simp add: le_iff_sup pprt_def sup_aci sup_assoc [symmetric, of a])
 
 lemma nprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> nprt a \<le> nprt b"
-by (simp add: le_iff_inf nprt_def inf_ACI inf_assoc [symmetric, of a])
+by (simp add: le_iff_inf nprt_def inf_aci inf_assoc [symmetric, of a])
 
 end
 
@@ -1230,7 +1230,7 @@ proof -
   then have "0 \<le> sup a (- a)" unfolding abs_lattice .
   then have "sup (sup a (- a)) 0 = sup a (- a)" by (rule sup_absorb1)
   then show ?thesis
-    by (simp add: add_sup_inf_distribs sup_ACI
+    by (simp add: add_sup_inf_distribs sup_aci
       pprt_def nprt_def diff_minus abs_lattice)
 qed
 
@@ -1254,7 +1254,7 @@ proof
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
   proof -
     have g:"abs a + abs b = sup (a+b) (sup (-a-b) (sup (-a+b) (a + (-b))))" (is "_=sup ?m ?n")
-      by (simp add: abs_lattice add_sup_inf_distribs sup_ACI diff_minus)
+      by (simp add: abs_lattice add_sup_inf_distribs sup_aci diff_minus)
     have a:"a+b <= sup ?m ?n" by (simp)
     have b:"-a-b <= ?n" by (simp) 
     have c:"?n <= sup ?m ?n" by (simp)

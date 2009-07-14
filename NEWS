@@ -18,6 +18,14 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* Refinements to lattices classes:
+  - added boolean_algebra type class
+  - less default intro/elim rules in locale variant, more default
+    intro/elim rules in class variant: more uniformity
+  - lemma ge_sup_conv renamed to le_sup_iff, in accordance with le_inf_iff
+  - dropped lemma alias inf_ACI for inf_aci (same for sup_ACI and sup_aci)
+  - renamed ACI to inf_sup_aci
+
 * Class semiring_div requires superclass no_zero_divisors and proof of
 div_mult_mult1; theorems div_mult_mult1, div_mult_mult2,
 div_mult_mult1_if, div_mult_mult1 and div_mult_mult2 have been

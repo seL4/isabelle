@@ -113,8 +113,8 @@ done
 lemma Bseq_conv_Bfun: "Bseq X \<longleftrightarrow> Bfun X sequentially"
 unfolding Bfun_def eventually_sequentially
 apply (rule iffI)
-apply (simp add: Bseq_def, fast)
-apply (fast intro: BseqI2')
+apply (simp add: Bseq_def)
+apply (auto intro: BseqI2')
 done
 
 
@@ -762,13 +762,25 @@ by (auto simp add: Bseq_def)
 lemma lemma_NBseq_def:
      "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) =
       (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
-apply auto
- prefer 2 apply force
-apply (cut_tac x = K in reals_Archimedean2, clarify)
-apply (rule_tac x = n in exI, clarify)
-apply (drule_tac x = na in spec)
-apply (auto simp add: real_of_nat_Suc)
-done
+proof auto
+  fix K :: real
+  from reals_Archimedean2 obtain n :: nat where "K < real n" ..
+  then have "K \<le> real (Suc n)" by auto
+  assume "\<forall>m. norm (X m) \<le> K"
+  have "\<forall>m. norm (X m) \<le> real (Suc n)"
+  proof
+    fix m :: 'a
+    from `\<forall>m. norm (X m) \<le> K` have "norm (X m) \<le> K" ..
+    with `K \<le> real (Suc n)` show "norm (X m) \<le> real (Suc n)" by auto
+  qed
+  then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
+next
+  fix N :: nat
+  have "real (Suc N) > 0" by (simp add: real_of_nat_Suc)
+  moreover assume "\<forall>n. norm (X n) \<le> real (Suc N)"
+  ultimately show "\<exists>K>0. \<forall>n. norm (X n) \<le> K" by blast
+qed
+
 
 text{* alternative definition for Bseq *}
 lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
@@ -1105,7 +1117,7 @@ qed
 lemma (in real_Cauchy) isLub_ex: "\<exists>u. isLub UNIV S u"
 proof (rule reals_complete)
   obtain N where "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (X m - X n) < 1"
-    using CauchyD [OF X zero_less_one] by fast
+    using CauchyD [OF X zero_less_one] by auto
   hence N: "\<forall>n\<ge>N. norm (X n - X N) < 1" by simp
   show "\<exists>x. x \<in> S"
   proof
@@ -1129,7 +1141,7 @@ proof (rule LIMSEQ_I)
   fix r::real assume "0 < r"
   hence r: "0 < r/2" by simp
   obtain N where "\<forall>n\<ge>N. \<forall>m\<ge>N. norm (X n - X m) < r/2"
-    using CauchyD [OF X r] by fast
+    using CauchyD [OF X r] by auto
   hence "\<forall>n\<ge>N. norm (X n - X N) < r/2" by simp
   hence N: "\<forall>n\<ge>N. X N - r/2 < X n \<and> X n < X N + r/2"
     by (simp only: real_norm_def real_abs_diff_less_iff)
