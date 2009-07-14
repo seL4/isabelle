@@ -58,11 +58,11 @@ in
 end
 *}
 
-lemma char_case_nibble_pair [code, code_inline]:
+lemma char_case_nibble_pair [code, code_unfold]:
   "char_case f = split f o nibble_pair_of_char"
   by (simp add: expand_fun_eq split: char.split)
 
-lemma char_rec_nibble_pair [code, code_inline]:
+lemma char_rec_nibble_pair [code, code_unfold]:
   "char_rec f = split f o nibble_pair_of_char"
   unfolding char_case_nibble_pair [symmetric]
   by (simp add: expand_fun_eq split: char.split)

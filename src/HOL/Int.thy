@@ -2126,11 +2126,11 @@ lemma [code]: "nat i = nat_aux i 0"
 
 hide (open) const nat_aux
 
-lemma zero_is_num_zero [code, code_inline, symmetric, code_post]:
+lemma zero_is_num_zero [code, code_unfold_post]:
   "(0\<Colon>int) = Numeral0" 
   by simp
 
-lemma one_is_num_one [code, code_inline, symmetric, code_post]:
+lemma one_is_num_one [code, code_unfold_post]:
   "(1\<Colon>int) = Numeral1" 
   by simp
 

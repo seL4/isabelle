@@ -26,15 +26,13 @@ text {*
 
 code_datatype number_nat_inst.number_of_nat
 
-lemma zero_nat_code [code, code_inline]:
+lemma zero_nat_code [code, code_unfold_post]:
   "0 = (Numeral0 :: nat)"
   by simp
-lemmas [code_post] = zero_nat_code [symmetric]
 
-lemma one_nat_code [code, code_inline]:
+lemma one_nat_code [code, code_unfold_post]:
   "1 = (Numeral1 :: nat)"
   by simp
-lemmas [code_post] = one_nat_code [symmetric]
 
 lemma Suc_code [code]:
   "Suc n = n + 1"
@@ -302,7 +300,7 @@ text {*
   Natural numerals.
 *}
 
-lemma [code_inline, symmetric, code_post]:
+lemma [code_unfold_post]:
   "nat (number_of i) = number_nat_inst.number_of_nat i"
   -- {* this interacts as desired with @{thm nat_number_of_def} *}
   by (simp add: number_nat_inst.number_of_nat)
@@ -335,9 +333,8 @@ lemma nat_code' [code]:
   "nat (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
   unfolding nat_number_of_def number_of_is_id neg_def by simp
 
-lemma of_nat_int [code_unfold]:
+lemma of_nat_int [code_unfold_post]:
   "of_nat = int" by (simp add: int_def)
-declare of_nat_int [symmetric, code_post]
 
 code_const int
   (SML "_")

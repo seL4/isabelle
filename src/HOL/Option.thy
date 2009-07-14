@@ -105,7 +105,7 @@ lemma is_none_none:
   "is_none x \<longleftrightarrow> x = None"
   by (simp add: is_none_def)
 
-lemma [code_inline]:
+lemma [code_unfold]:
   "eq_class.eq x None \<longleftrightarrow> is_none x"
   by (simp add: eq is_none_none)
 

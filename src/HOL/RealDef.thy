@@ -946,7 +946,7 @@ instance
 
 end
 
-lemma [code_unfold, symmetric, code_post]:
+lemma [code_unfold_post]:
   "number_of k = real_of_int (number_of k)"
   unfolding number_of_is_id real_number_of_def ..
 
@@ -1129,7 +1129,7 @@ lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
 
 definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code_inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
+  [code_unfold]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
 
 notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)

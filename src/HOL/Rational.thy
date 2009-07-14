@@ -1003,7 +1003,7 @@ lemma rat_divide_code [code]:
 
 definition (in term_syntax)
   valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code_inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
+  [code_unfold]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
 notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)
