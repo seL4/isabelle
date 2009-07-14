@@ -886,7 +886,9 @@ fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) => change_eqns true (const_eqn thy thm) (del_thm thm) thy
   | NONE => thy;
 
-structure Code_Attr = TheoryDataFun (
+(* c.f. src/HOL/Tools/recfun_codegen.ML *)
+
+structure Code_Target_Attr = TheoryDataFun (
   type T = (string -> thm -> theory -> theory) option;
   val empty = NONE;
   val copy = I;
@@ -895,7 +897,14 @@ structure Code_Attr = TheoryDataFun (
     | merge _ (f1, _) = f1;
 );
 
-fun set_code_target_attr f = Code_Attr.map (K (SOME f));
+fun set_code_target_attr f = Code_Target_Attr.map (K (SOME f));
+
+fun code_target_attr prefix thm thy =
+  let
+    val attr = the_default ((K o K) I) (Code_Target_Attr.get thy);
+  in thy |> add_warning_eqn thm |> attr prefix thm end;
+
+(* setup *)
 
 val _ = Context.>> (Context.map_theory
   (let
@@ -904,9 +913,7 @@ val _ = Context.>> (Context.map_theory
       Args.del |-- Scan.succeed (mk_attribute del_eqn)
       || Args.$$$ "nbe" |-- Scan.succeed (mk_attribute add_nbe_eqn)
       || (Args.$$$ "target" |-- Args.colon |-- Args.name >>
-           (fn prefix => mk_attribute (fn thm => fn thy => thy
-             |> add_warning_eqn thm
-             |> the_default ((K o K) I) (Code_Attr.get thy) prefix thm)))
+           (mk_attribute o code_target_attr))
       || Scan.succeed (mk_attribute add_warning_eqn);
   in
     Type_Interpretation.init
