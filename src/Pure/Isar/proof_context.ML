@@ -523,16 +523,17 @@ fun contract_abbrevs ctxt t =
 
 (* patterns *)
 
-fun prepare_patternT ctxt =
-  let val Mode {pattern, schematic, ...} = get_mode ctxt in
-    if pattern orelse schematic then I
-    else Term.map_atyps
-      (fn T as TVar (xi, _) =>
-            if not (TypeInfer.is_param xi)
-            then error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
-            else T
-        | T => T)
-  end;
+fun prepare_patternT ctxt T =
+  let
+    val Mode {pattern, schematic, ...} = get_mode ctxt;
+    val _ =
+      pattern orelse schematic orelse
+        T |> Term.exists_subtype
+          (fn TVar (xi, _) =>
+            not (TypeInfer.is_param xi) andalso
+              error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
+          | _ => false)
+  in T end;
 
 
 local
