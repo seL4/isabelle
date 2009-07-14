@@ -2,7 +2,7 @@
     Authors:    Lawrence C. Paulson, Jeremy Avigad, Tobias Nipkow
 
 
-Defines factorial and the "choose" function, and establishes basic properties.
+Defines the "choose" function, and establishes basic properties.
 
 The original theory "Binomial" was by Lawrence C. Paulson, based on
 the work of Andy Gordon and Florian Kammueller. The approach here,
@@ -16,7 +16,7 @@ formalized by Tobias Nipkow.
 header {* Binomial *}
 
 theory Binomial
-imports Cong
+imports Cong Fact
 begin
 
 
@@ -25,7 +25,6 @@ subsection {* Main definitions *}
 class binomial =
 
 fixes 
-  fact :: "'a \<Rightarrow> 'a" and
   binomial :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "choose" 65)
 
 (* definitions for the natural numbers *)
@@ -33,13 +32,6 @@ fixes
 instantiation nat :: binomial
 
 begin 
-
-fun
-  fact_nat :: "nat \<Rightarrow> nat"
-where
-  "fact_nat x = 
-   (if x = 0 then 1 else
-                  x * fact(x - 1))"
 
 fun
   binomial_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -60,11 +52,6 @@ instantiation int :: binomial
 begin 
 
 definition
-  fact_int :: "int \<Rightarrow> int"
-where  
-  "fact_int x = (if x >= 0 then int (fact (nat x)) else 0)"
-
-definition
   binomial_int :: "int => int \<Rightarrow> int"
 where
   "binomial_int n k = (if n \<ge> 0 \<and> k \<ge> 0 then int (binomial (nat n) (nat k))
@@ -76,182 +63,29 @@ end
 
 subsection {* Set up Transfer *}
 
-
 lemma transfer_nat_int_binomial:
-  "(x::int) >= 0 \<Longrightarrow> fact (nat x) = nat (fact x)"
   "(n::int) >= 0 \<Longrightarrow> k >= 0 \<Longrightarrow> binomial (nat n) (nat k) = 
       nat (binomial n k)"
-  unfolding fact_int_def binomial_int_def 
+  unfolding binomial_int_def 
   by auto
 
-
-lemma transfer_nat_int_binomial_closures:
-  "x >= (0::int) \<Longrightarrow> fact x >= 0"
+lemma transfer_nat_int_binomial_closure:
   "n >= (0::int) \<Longrightarrow> k >= 0 \<Longrightarrow> binomial n k >= 0"
-  by (auto simp add: fact_int_def binomial_int_def)
+  by (auto simp add: binomial_int_def)
 
 declare TransferMorphism_nat_int[transfer add return: 
-    transfer_nat_int_binomial transfer_nat_int_binomial_closures]
+    transfer_nat_int_binomial transfer_nat_int_binomial_closure]
 
 lemma transfer_int_nat_binomial:
-  "fact (int x) = int (fact x)"
   "binomial (int n) (int k) = int (binomial n k)"
   unfolding fact_int_def binomial_int_def by auto
 
-lemma transfer_int_nat_binomial_closures:
-  "is_nat x \<Longrightarrow> fact x >= 0"
+lemma transfer_int_nat_binomial_closure:
   "is_nat n \<Longrightarrow> is_nat k \<Longrightarrow> binomial n k >= 0"
-  by (auto simp add: fact_int_def binomial_int_def)
+  by (auto simp add: binomial_int_def)
 
 declare TransferMorphism_int_nat[transfer add return: 
-    transfer_int_nat_binomial transfer_int_nat_binomial_closures]
-
-
-subsection {* Factorial *}
-
-lemma fact_zero_nat [simp]: "fact (0::nat) = 1"
-  by simp
-
-lemma fact_zero_int [simp]: "fact (0::int) = 1"
-  by (simp add: fact_int_def)
-
-lemma fact_one_nat [simp]: "fact (1::nat) = 1"
-  by simp
-
-lemma fact_Suc_0_nat [simp]: "fact (Suc 0) = Suc 0"
-  by (simp add: One_nat_def)
-
-lemma fact_one_int [simp]: "fact (1::int) = 1"
-  by (simp add: fact_int_def)
-
-lemma fact_plus_one_nat: "fact ((n::nat) + 1) = (n + 1) * fact n"
-  by simp
-
-lemma fact_Suc_nat: "fact (Suc n) = (Suc n) * fact n"
-  by (simp add: One_nat_def)
-
-lemma fact_plus_one_int: 
-  assumes "n >= 0"
-  shows "fact ((n::int) + 1) = (n + 1) * fact n"
-
-  using prems by (rule fact_plus_one_nat [transferred])
-
-lemma fact_reduce_nat: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
-  by simp
-
-lemma fact_reduce_int: 
-  assumes "(n::int) > 0"
-  shows "fact n = n * fact (n - 1)"
-
-  using prems apply (subst tsub_eq [symmetric], auto)
-  apply (rule fact_reduce_nat [transferred])
-  using prems apply auto
-done
-
-declare fact_nat.simps [simp del]
-
-lemma fact_nonzero_nat [simp]: "fact (n::nat) \<noteq> 0"
-  apply (induct n rule: induct'_nat)
-  apply (auto simp add: fact_plus_one_nat)
-done
-
-lemma fact_nonzero_int [simp]: "n >= 0 \<Longrightarrow> fact (n::int) ~= 0"
-  by (simp add: fact_int_def)
-
-lemma fact_gt_zero_nat [simp]: "fact (n :: nat) > 0"
-  by (insert fact_nonzero_nat [of n], arith)
-
-lemma fact_gt_zero_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) > 0"
-  by (auto simp add: fact_int_def)
-
-lemma fact_ge_one_nat [simp]: "fact (n :: nat) >= 1"
-  by (insert fact_nonzero_nat [of n], arith)
-
-lemma fact_ge_Suc_0_nat [simp]: "fact (n :: nat) >= Suc 0"
-  by (insert fact_nonzero_nat [of n], arith)
-
-lemma fact_ge_one_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) >= 1"
-  apply (auto simp add: fact_int_def)
-  apply (subgoal_tac "1 = int 1")
-  apply (erule ssubst)
-  apply (subst zle_int)
-  apply auto
-done
-
-lemma dvd_fact_nat [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::nat)"
-  apply (induct n rule: induct'_nat)
-  apply (auto simp add: fact_plus_one_nat)
-  apply (subgoal_tac "m = n + 1")
-  apply auto
-done
-
-lemma dvd_fact_int [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::int)"
-  apply (case_tac "1 <= n")
-  apply (induct n rule: int_ge_induct)
-  apply (auto simp add: fact_plus_one_int)
-  apply (subgoal_tac "m = i + 1")
-  apply auto
-done
-
-lemma interval_plus_one_nat: "(i::nat) <= j + 1 \<Longrightarrow> 
-  {i..j+1} = {i..j} Un {j+1}"
-  by auto
-
-lemma interval_plus_one_int: "(i::int) <= j + 1 \<Longrightarrow> {i..j+1} = {i..j} Un {j+1}"
-  by auto
-
-lemma fact_altdef_nat: "fact (n::nat) = (PROD i:{1..n}. i)"
-  apply (induct n rule: induct'_nat)
-  apply force
-  apply (subst fact_plus_one_nat)
-  apply (subst interval_plus_one_nat)
-  apply auto
-done
-
-lemma fact_altdef_int: "n >= 0 \<Longrightarrow> fact (n::int) = (PROD i:{1..n}. i)"
-  apply (induct n rule: int_ge_induct)
-  apply force
-  apply (subst fact_plus_one_int, assumption)
-  apply (subst interval_plus_one_int)
-  apply auto
-done
-
-subsection {* Infinitely many primes *}
-
-lemma next_prime_bound: "\<exists>(p::nat). prime p \<and> n < p \<and> p <= fact n + 1"
-proof-
-  have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith 
-  from prime_factor_nat [OF f1]
-      obtain p where "prime p" and "p dvd fact n + 1" by auto
-  hence "p \<le> fact n + 1" 
-    by (intro dvd_imp_le, auto)
-  {assume "p \<le> n"
-    from `prime p` have "p \<ge> 1" 
-      by (cases p, simp_all)
-    with `p <= n` have "p dvd fact n" 
-      by (intro dvd_fact_nat)
-    with `p dvd fact n + 1` have "p dvd fact n + 1 - fact n"
-      by (rule dvd_diff_nat)
-    hence "p dvd 1" by simp
-    hence "p <= 1" by auto
-    moreover from `prime p` have "p > 1" by auto
-    ultimately have False by auto}
-  hence "n < p" by arith
-  with `prime p` and `p <= fact n + 1` show ?thesis by auto
-qed
-
-lemma bigger_prime: "\<exists>p. prime p \<and> p > (n::nat)" 
-using next_prime_bound by auto
-
-lemma primes_infinite: "\<not> (finite {(p::nat). prime p})"
-proof
-  assume "finite {(p::nat). prime p}"
-  with Max_ge have "(EX b. (ALL x : {(p::nat). prime p}. x <= b))"
-    by auto
-  then obtain b where "ALL (x::nat). prime x \<longrightarrow> x <= b"
-    by auto
-  with bigger_prime [of b] show False by auto
-qed
+    transfer_int_nat_binomial transfer_int_nat_binomial_closure]
 
 
 subsection {* Binomial coefficients *}

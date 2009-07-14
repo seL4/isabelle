@@ -621,19 +621,19 @@ qed
 
 subsection{* Some properties of factorials *}
 
-lemma real_of_nat_fact_not_zero [simp]: "real (fact n) \<noteq> 0"
+lemma real_of_nat_fact_not_zero [simp]: "real (fact (n::nat)) \<noteq> 0"
 by auto
 
-lemma real_of_nat_fact_gt_zero [simp]: "0 < real(fact n)"
+lemma real_of_nat_fact_gt_zero [simp]: "0 < real(fact (n::nat))"
 by auto
 
-lemma real_of_nat_fact_ge_zero [simp]: "0 \<le> real(fact n)"
+lemma real_of_nat_fact_ge_zero [simp]: "0 \<le> real(fact (n::nat))"
 by simp
 
-lemma inv_real_of_nat_fact_gt_zero [simp]: "0 < inverse (real (fact n))"
+lemma inv_real_of_nat_fact_gt_zero [simp]: "0 < inverse (real (fact (n::nat)))"
 by (auto simp add: positive_imp_inverse_positive)
 
-lemma inv_real_of_nat_fact_ge_zero [simp]: "0 \<le> inverse (real (fact n))"
+lemma inv_real_of_nat_fact_ge_zero [simp]: "0 \<le> inverse (real (fact (n::nat)))"
 by (auto intro: order_less_imp_le)
 
 subsection {* Derivability of power series *}
@@ -1604,11 +1604,11 @@ apply (subgoal_tac
 apply (rotate_tac 2)
 apply (drule sin_paired [THEN sums_unique, THEN ssubst])
 unfolding One_nat_def
-apply (auto simp del: fact_Suc)
+apply (auto simp del: fact_Suc_nat)
 apply (frule sums_unique)
-apply (auto simp del: fact_Suc)
+apply (auto simp del: fact_Suc_nat)
 apply (rule_tac n1 = 0 in series_pos_less [THEN [2] order_le_less_trans])
-apply (auto simp del: fact_Suc)
+apply (auto simp del: fact_Suc_nat)
 apply (erule sums_summable)
 apply (case_tac "m=0")
 apply (simp (no_asm_simp))
@@ -1617,24 +1617,24 @@ apply (simp only: mult_less_cancel_left, simp)
 apply (simp (no_asm_simp) add: numeral_2_eq_2 [symmetric] mult_assoc [symmetric])
 apply (subgoal_tac "x*x < 2*3", simp) 
 apply (rule mult_strict_mono)
-apply (auto simp add: real_0_less_add_iff real_of_nat_Suc simp del: fact_Suc)
-apply (subst fact_Suc)
-apply (subst fact_Suc)
-apply (subst fact_Suc)
-apply (subst fact_Suc)
+apply (auto simp add: real_0_less_add_iff real_of_nat_Suc simp del: fact_Suc_nat)
+apply (subst fact_Suc_nat)
+apply (subst fact_Suc_nat)
+apply (subst fact_Suc_nat)
+apply (subst fact_Suc_nat)
 apply (subst real_of_nat_mult)
 apply (subst real_of_nat_mult)
 apply (subst real_of_nat_mult)
 apply (subst real_of_nat_mult)
-apply (simp (no_asm) add: divide_inverse del: fact_Suc)
-apply (auto simp add: mult_assoc [symmetric] simp del: fact_Suc)
+apply (simp (no_asm) add: divide_inverse del: fact_Suc_nat)
+apply (auto simp add: mult_assoc [symmetric] simp del: fact_Suc_nat)
 apply (rule_tac c="real (Suc (Suc (4*m)))" in mult_less_imp_less_right) 
-apply (auto simp add: mult_assoc simp del: fact_Suc)
+apply (auto simp add: mult_assoc simp del: fact_Suc_nat)
 apply (rule_tac c="real (Suc (Suc (Suc (4*m))))" in mult_less_imp_less_right) 
-apply (auto simp add: mult_assoc mult_less_cancel_left simp del: fact_Suc)
+apply (auto simp add: mult_assoc mult_less_cancel_left simp del: fact_Suc_nat)
 apply (subgoal_tac "x * (x * x ^ (4*m)) = (x ^ (4*m)) * (x * x)") 
 apply (erule ssubst)+
-apply (auto simp del: fact_Suc)
+apply (auto simp del: fact_Suc_nat)
 apply (subgoal_tac "0 < x ^ (4 * m) ")
  prefer 2 apply (simp only: zero_less_power) 
 apply (simp (no_asm_simp) add: mult_less_cancel_left)
@@ -1670,24 +1670,24 @@ apply (frule sums_unique, auto)
 apply (rule_tac y =
  "\<Sum>n=0..< Suc(Suc(Suc 0)). - (-1 ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
        in order_less_trans)
-apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc)
+apply (simp (no_asm) add: fact_num_eq_if_nat realpow_num_eq_if del: fact_Suc_nat)
 apply (simp (no_asm) add: mult_assoc del: setsum_op_ivl_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
 unfolding One_nat_def
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] 
-            del: fact_Suc)
+            del: fact_Suc_nat)
 apply (rule real_mult_inverse_cancel2)
 apply (rule real_of_nat_fact_gt_zero)+
-apply (simp (no_asm) add: mult_assoc [symmetric] del: fact_Suc)
+apply (simp (no_asm) add: mult_assoc [symmetric] del: fact_Suc_nat)
 apply (subst fact_lemma) 
-apply (subst fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
+apply (subst fact_Suc_nat [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
 apply (simp only: real_of_nat_mult)
 apply (rule mult_strict_mono, force)
   apply (rule_tac [3] real_of_nat_ge_zero)
  prefer 2 apply force
 apply (rule real_of_nat_less_iff [THEN iffD2])
-apply (rule fact_less_mono, auto)
+apply (rule fact_less_mono_nat, auto)
 done
 
 lemmas cos_two_neq_zero [simp] = cos_two_less_zero [THEN less_imp_neq]
