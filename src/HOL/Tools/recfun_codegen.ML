@@ -23,15 +23,13 @@ structure ModuleData = TheoryDataFun
   fun merge _ = Symtab.merge (K true);
 );
 
-fun add_thm NONE thm thy = Code.add_eqn thm thy
-  | add_thm (SOME module_name) thm thy =
-      let
-        val (thm', _) = Code.mk_eqn thy (thm, true)
-      in
-        thy
-        |> ModuleData.map (Symtab.update (fst (Code.const_typ_eqn thy thm'), module_name))
-        |> Code.add_eqn thm'
-      end;
+fun add_thm_target module_name thm thy =
+  let
+    val (thm', _) = Code.mk_eqn thy (thm, true)
+  in
+    thy
+    |> ModuleData.map (Symtab.update (fst (Code.const_typ_eqn thy thm'), module_name))
+  end;
 
 fun expand_eta thy [] = []
   | expand_eta thy (thms as thm :: _) =
@@ -163,15 +161,8 @@ fun recfun_codegen thy defs dep module brack t gr = (case strip_comb t of
         end)
   | _ => NONE);
 
-val setup = let
-  fun add opt_module = Thm.declaration_attribute (fn thm => Context.mapping
-    (add_thm opt_module thm) I);
-  val del = Thm.declaration_attribute (fn thm => Context.mapping
-    (Code.del_eqn thm) I);
-in
+val setup = 
   add_codegen "recfun" recfun_codegen
-  #> Code.add_attribute ("", Args.del |-- Scan.succeed del
-     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add)
-end;
+  #> Code.set_code_target_attr add_thm_target;
 
 end;

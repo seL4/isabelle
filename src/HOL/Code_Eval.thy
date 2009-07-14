@@ -32,7 +32,7 @@ definition valapp :: "('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)
   \<Rightarrow> 'a \<times> (unit \<Rightarrow> term) \<Rightarrow> 'b \<times> (unit \<Rightarrow> term)" where
   "valapp f x = (fst f (fst x), \<lambda>u. App (snd f ()) (snd x ()))"
 
-lemma valapp_code [code, code inline]:
+lemma valapp_code [code, code_inline]:
   "valapp (f, tf) (x, tx) = (f x, \<lambda>u. App (tf ()) (tx ()))"
   by (simp only: valapp_def fst_conv snd_conv)
 

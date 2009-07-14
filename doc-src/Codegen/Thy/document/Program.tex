@@ -395,14 +395,14 @@ Before selected function theorems are turned into abstract
   out: \emph{preprocessing}.  In essence, the preprocessor
   consists of two components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} allows to employ the full generality of the Isabelle
-  simplifier.  Due to the interpretation of theorems
-  as code equations, rewrites are applied to the right
-  hand side and the arguments of the left hand side of an
-  equation, but never to the constant heading the left hand side.
-  An important special case are \emph{inline theorems} which may be
-  declared and undeclared using the
-  \emph{code inline} or \emph{code inline del} attribute respectively.
+  The \emph{simpset} allows to employ the full generality of the
+  Isabelle simplifier.  Due to the interpretation of theorems as code
+  equations, rewrites are applied to the right hand side and the
+  arguments of the left hand side of an equation, but never to the
+  constant heading the left hand side.  An important special case are
+  \emph{unfold theorems} which may be declared and undeclared using
+  the \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} or \emph{\hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} del}
+  attribute respectively.
 
   Some common applications:%
 \end{isamarkuptext}%
@@ -421,7 +421,7 @@ Before selected function theorems are turned into abstract
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharunderscore}inline{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
 \endisatagquote
@@ -442,7 +442,7 @@ Before selected function theorems are turned into abstract
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharunderscore}inline{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp%
 \endisatagquote
@@ -463,7 +463,7 @@ Before selected function theorems are turned into abstract
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharunderscore}inline{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongleftrightarrow}\ List{\isachardot}null\ xs{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
 \endisatagquote
@@ -491,10 +491,10 @@ Before selected function theorems are turned into abstract
   on code equations.
 
   \begin{warn}
-    The attribute \emph{code unfold}
-    associated with the \isa{SML\ code\ generator} also applies to
-    the \isa{generic\ code\ generator}:
-    \emph{code unfold} implies \emph{code inline}.
+
+    Attribute \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} also applies to the
+    preprocessor of the ancient \isa{SML\ code\ generator}; in case
+    this is not what you intend, use \hyperlink{attribute.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} instead.
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%

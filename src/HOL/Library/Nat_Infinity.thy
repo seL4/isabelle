@@ -40,10 +40,10 @@ definition
   "0 = Fin 0"
 
 definition
-  [code inline]: "1 = Fin 1"
+  [code_inline]: "1 = Fin 1"
 
 definition
-  [code inline, code del]: "number_of k = Fin (number_of k)"
+  [code_inline, code del]: "number_of k = Fin (number_of k)"
 
 instance ..
 

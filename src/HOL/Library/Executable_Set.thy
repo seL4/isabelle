@@ -15,7 +15,7 @@ declare member [code]
 definition subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   "subset = op \<le>"
 
-declare subset_def [symmetric, code unfold]
+declare subset_def [symmetric, code_unfold]
 
 lemma [code]:
   "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
@@ -25,7 +25,7 @@ definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   [code del]: "eq_set = op ="
 
 (* FIXME allow for Stefan's code generator:
-declare set_eq_subset[code unfold]
+declare set_eq_subset[code_unfold]
 *)
 
 lemma [code]:
@@ -40,7 +40,7 @@ declare Union_image_eq [symmetric, code]
 
 subsection {* Rewrites for primitive operations *}
 
-declare List_Set.project_def [symmetric, code unfold]
+declare List_Set.project_def [symmetric, code_unfold]
 
 
 subsection {* code generator setup *}

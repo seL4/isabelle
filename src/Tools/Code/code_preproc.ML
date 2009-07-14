@@ -526,14 +526,16 @@ fun eval thy prep_sort postproc evaluator = gen_eval thy (Thm.cterm_of thy)
 val setup = 
   let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-    fun add_del_attribute (name, (add, del)) =
-      Code.add_attribute (name, Args.del |-- Scan.succeed (mk_attribute del)
-        || Scan.succeed (mk_attribute add))
+    fun add_del_attribute_parser (add, del) =
+      Attrib.add_del (mk_attribute add) (mk_attribute del);
   in
-    add_del_attribute ("inline", (add_inline, del_inline))
-    #> add_del_attribute ("post", (add_post, del_post))
-    #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
-       (fn thm => Context.mapping (Codegen.add_unfold thm #> add_inline thm) I)))
+    Attrib.setup @{binding code_inline} (add_del_attribute_parser (add_inline, del_inline))
+        "preprocessing equations for code generator"
+    #> Attrib.setup @{binding code_post} (add_del_attribute_parser (add_post, del_post))
+        "postprocessing equations for code generator"
+    #> Attrib.setup @{binding code_unfold} (Scan.succeed (mk_attribute
+       (fn thm => Codegen.add_unfold thm #> add_inline thm)))
+        "preprocessing equations for code generators"
   end;
 
 val _ =

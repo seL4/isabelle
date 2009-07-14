@@ -124,19 +124,13 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{Code.read\_const}\verb|Code.read_const: theory -> string -> string| \\
-  \indexdef{}{ML}{Code.rewrite\_eqn}\verb|Code.rewrite_eqn: simpset -> thm -> thm| \\
+  \indexdef{}{ML}{Code.read\_const}\verb|Code.read_const: theory -> string -> string|
   \end{mldecls}
 
   \begin{description}
 
   \item \verb|Code.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.
-
-  \item \verb|Code.rewrite_eqn|~\isa{ss}~\isa{thm}
-     rewrites a code equation \isa{thm} with a simpset \isa{ss};
-     only arguments and right hand side are rewritten,
-     not the head of the code equation.
 
   \end{description}%
 \end{isamarkuptext}%

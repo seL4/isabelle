@@ -1190,7 +1190,13 @@ text {*
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
     ;
 
-    'code' ( 'inline' ) ? ( 'del' ) ?
+    'code' ( 'del' ) ?
+    ;
+
+    'code_unfold' ( 'del' ) ?
+    ;
+
+    'code_post' ( 'del' ) ?
     ;
   \end{rail}
 
@@ -1280,10 +1286,14 @@ text {*
   generation.  Usually packages introducing code equations provide
   a reasonable default setup for selection.
 
-  \item @{attribute (HOL) code}~@{text inline} declares (or with
+  \item @{attribute (HOL) code_inline} declares (or with
   option ``@{text "del"}'' removes) inlining theorems which are
   applied as rewrite rules to any code equation during
   preprocessing.
+
+  \item @{attribute (HOL) code_post} declares (or with
+  option ``@{text "del"}'' removes) theorems which are
+  applied as rewrite rules to any result of an evaluation.
 
   \item @{command (HOL) "print_codesetup"} gives an overview on
   selected code equations and code generator datatypes.

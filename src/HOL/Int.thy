@@ -650,11 +650,11 @@ lemmas numeral_simps =
 
 text {* Removal of leading zeroes *}
 
-lemma Bit0_Pls [simp, code post]:
+lemma Bit0_Pls [simp, code_post]:
   "Bit0 Pls = Pls"
   unfolding numeral_simps by simp
 
-lemma Bit1_Min [simp, code post]:
+lemma Bit1_Min [simp, code_post]:
   "Bit1 Min = Min"
   unfolding numeral_simps by simp
 
@@ -2126,11 +2126,11 @@ lemma [code]: "nat i = nat_aux i 0"
 
 hide (open) const nat_aux
 
-lemma zero_is_num_zero [code, code inline, symmetric, code post]:
+lemma zero_is_num_zero [code, code_inline, symmetric, code_post]:
   "(0\<Colon>int) = Numeral0" 
   by simp
 
-lemma one_is_num_one [code, code inline, symmetric, code post]:
+lemma one_is_num_one [code, code_inline, symmetric, code_post]:
   "(1\<Colon>int) = Numeral1" 
   by simp
 

@@ -1787,7 +1787,7 @@ class eq =
   assumes eq_equals: "eq x y \<longleftrightarrow> x = y"
 begin
 
-lemma eq [code unfold, code inline del]: "eq = (op =)"
+lemma eq [code_unfold, code_inline del]: "eq = (op =)"
   by (rule ext eq_equals)+
 
 lemma eq_refl: "eq x x \<longleftrightarrow> True"
@@ -1796,7 +1796,7 @@ lemma eq_refl: "eq x x \<longleftrightarrow> True"
 lemma equals_eq: "(op =) \<equiv> eq"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
 
-declare equals_eq [symmetric, code post]
+declare equals_eq [symmetric, code_post]
 
 end
 
@@ -1847,7 +1847,7 @@ lemma [code]:
 
 lemmas [code] = Let_def if_True if_False
 
-lemmas [code, code unfold, symmetric, code post] = imp_conv_disj
+lemmas [code, code_unfold, symmetric, code_post] = imp_conv_disj
 
 instantiation itself :: (type) eq
 begin

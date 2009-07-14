@@ -93,10 +93,10 @@ instantiation rat :: comm_ring_1
 begin
 
 definition
-  Zero_rat_def [code, code unfold]: "0 = Fract 0 1"
+  Zero_rat_def [code, code_unfold]: "0 = Fract 0 1"
 
 definition
-  One_rat_def [code, code unfold]: "1 = Fract 1 1"
+  One_rat_def [code, code_unfold]: "1 = Fract 1 1"
 
 definition
   add_rat_def [code del]:
@@ -211,7 +211,7 @@ qed (simp add: rat_number_of_def of_int_rat)
 
 end
 
-lemma rat_number_collapse [code post]:
+lemma rat_number_collapse [code_post]:
   "Fract 0 k = 0"
   "Fract 1 1 = 1"
   "Fract (number_of k) 1 = number_of k"
@@ -219,7 +219,7 @@ lemma rat_number_collapse [code post]:
   by (cases "k = 0")
     (simp_all add: Zero_rat_def One_rat_def number_of_is_id number_of_eq of_int_rat eq_rat Fract_def)
 
-lemma rat_number_expand [code unfold]:
+lemma rat_number_expand [code_unfold]:
   "0 = Fract 0 1"
   "1 = Fract 1 1"
   "number_of k = Fract (number_of k) 1"
@@ -291,11 +291,11 @@ lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
 lemma Fract_of_int_quotient: "Fract k l = of_int k / of_int l"
   by (simp add: Fract_of_int_eq [symmetric])
 
-lemma Fract_number_of_quotient [code post]:
+lemma Fract_number_of_quotient [code_post]:
   "Fract (number_of k) (number_of l) = number_of k / number_of l"
   unfolding Fract_of_int_quotient number_of_is_id number_of_eq ..
 
-lemma Fract_1_number_of [code post]:
+lemma Fract_1_number_of [code_post]:
   "Fract 1 (number_of k) = 1 / number_of k"
   unfolding Fract_of_int_quotient number_of_eq by simp
 
@@ -1003,7 +1003,7 @@ lemma rat_divide_code [code]:
 
 definition (in term_syntax)
   valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
+  [code_inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
 notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)

@@ -20,13 +20,13 @@ instantiation nat :: number
 begin
 
 definition
-  nat_number_of_def [code inline, code del]: "number_of v = nat (number_of v)"
+  nat_number_of_def [code_inline, code del]: "number_of v = nat (number_of v)"
 
 instance ..
 
 end
 
-lemma [code post]:
+lemma [code_post]:
   "nat (number_of v) = number_of v"
   unfolding nat_number_of_def ..
 
@@ -316,13 +316,13 @@ declare nat_0 [simp] nat_1 [simp]
 lemma nat_number_of [simp]: "nat (number_of w) = number_of w"
 by (simp add: nat_number_of_def)
 
-lemma nat_numeral_0_eq_0 [simp, code post]: "Numeral0 = (0::nat)"
+lemma nat_numeral_0_eq_0 [simp, code_post]: "Numeral0 = (0::nat)"
 by (simp add: nat_number_of_def)
 
 lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
 by (simp add: nat_1 nat_number_of_def)
 
-lemma numeral_1_eq_Suc_0 [code post]: "Numeral1 = Suc 0"
+lemma numeral_1_eq_Suc_0 [code_post]: "Numeral1 = Suc 0"
 by (simp add: nat_numeral_1_eq_1)
 
 

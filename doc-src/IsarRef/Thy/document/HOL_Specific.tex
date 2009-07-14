@@ -1201,7 +1201,13 @@ Isabelle/Pure provides two generic frameworks to support code
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
     ;
 
-    'code' ( 'inline' ) ? ( 'del' ) ?
+    'code' ( 'del' ) ?
+    ;
+
+    'code_unfold' ( 'del' ) ?
+    ;
+
+    'code_post' ( 'del' ) ?
     ;
   \end{rail}
 
@@ -1288,10 +1294,14 @@ Isabelle/Pure provides two generic frameworks to support code
   generation.  Usually packages introducing code equations provide
   a reasonable default setup for selection.
 
-  \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}~\isa{inline} declares (or with
+  \item \hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} declares (or with
   option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) inlining theorems which are
   applied as rewrite rules to any code equation during
   preprocessing.
+
+  \item \hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isacharunderscore}post}}} declares (or with
+  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) theorems which are
+  applied as rewrite rules to any result of an evaluation.
 
   \item \hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} gives an overview on
   selected code equations and code generator datatypes.
