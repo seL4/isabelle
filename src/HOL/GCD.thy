@@ -1503,7 +1503,7 @@ lemma lcm_1_iff_nat[simp]: "lcm (m::nat) n = 1 \<longleftrightarrow> m=1 \<and> 
 by (metis gcd_1_nat lcm_unique_nat nat_mult_1 prod_gcd_lcm_nat)
 
 lemma lcm_1_iff_int[simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> m = -1) \<and> (n=1 \<or> n = -1)"
-by (metis abs_minus_one abs_mult_self lcm_proj1_if_dvd_int lcm_unique_int one_dvd zmult_eq_1_iff)
+by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric] zmult_eq_1_iff)
 
 
 subsection {* Primes *}
