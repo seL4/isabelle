@@ -187,8 +187,8 @@ axioms
   True_or_False:  "(P=True) | (P=False)"
 
 defs
-  Let_def:      "Let s f == f(s)"
-  if_def:       "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
+  Let_def [code]: "Let s f == f(s)"
+  if_def:         "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
 finalconsts
   "op ="
@@ -1029,8 +1029,8 @@ lemma simp_thms:
     "(P ~= Q) = (P = (~Q))"
     "(P | ~P) = True"    "(~P | P) = True"
     "(x = x) = True"
-  and not_True_eq_False: "(\<not> True) = False"
-  and not_False_eq_True: "(\<not> False) = True"
+  and not_True_eq_False [code]: "(\<not> True) = False"
+  and not_False_eq_True [code]: "(\<not> False) = True"
   and
     "(~P) ~= P"  "P ~= (~P)"
     "(True=P) = P"
@@ -1157,10 +1157,10 @@ lemma disj_cong:
 
 text {* \medskip if-then-else rules *}
 
-lemma if_True: "(if True then x else y) = x"
+lemma if_True [code]: "(if True then x else y) = x"
   by (unfold if_def) blast
 
-lemma if_False: "(if False then x else y) = y"
+lemma if_False [code]: "(if False then x else y) = y"
   by (unfold if_def) blast
 
 lemma if_P: "P ==> (if P then x else y) = x"
@@ -1722,6 +1722,7 @@ use "Tools/recfun_codegen.ML"
 setup {*
   Codegen.setup
   #> RecfunCodegen.setup
+  #> Codegen.map_unfold (K HOL_basic_ss)
 *}
 
 types_code
@@ -1841,13 +1842,7 @@ lemma [code]:
     and "x \<or> False \<longleftrightarrow> x"
     and "x \<or> True \<longleftrightarrow> True" by simp_all
 
-lemma [code]:
-  shows "\<not> True \<longleftrightarrow> False"
-    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
-
-lemmas [code] = Let_def if_True if_False
-
-lemmas [code, code_unfold, symmetric, code_post] = imp_conv_disj
+declare imp_conv_disj [code, code_unfold_post]
 
 instantiation itself :: (type) eq
 begin
