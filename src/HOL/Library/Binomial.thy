@@ -243,14 +243,8 @@ proof-
 ultimately show ?thesis by blast
 qed
 
-lemma fact_setprod: "fact n = setprod id {1 .. n}"
-  apply (induct n, simp)
-  apply (simp only: fact_Suc atLeastAtMostSuc_conv)
-  apply (subst setprod_insert)
-  by simp_all
-
 lemma pochhammer_fact: "of_nat (fact n) = pochhammer 1 n"
-  unfolding fact_setprod
+  unfolding fact_altdef_nat
   
   apply (cases n, simp_all add: of_nat_setprod pochhammer_Suc_setprod)
   apply (rule setprod_reindex_cong[where f=Suc])
@@ -347,7 +341,7 @@ lemma binomial_fact:
   assumes kn: "k \<le> n" 
   shows "(of_nat (n choose k) :: 'a::field_char_0) = of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
   using binomial_fact_lemma[OF kn]
-  by (simp add: field_simps fact_not_eq_zero of_nat_mult[symmetric])
+  by (simp add: field_simps of_nat_mult[symmetric])
 
 lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
 proof-
@@ -377,7 +371,7 @@ proof-
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
 	gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
-      apply (simp add: pochhammer_Suc_setprod fact_setprod h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
+      apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric] 
       unfolding setprod_timesf[symmetric]
@@ -404,7 +398,7 @@ lemma gbinomial_mult_1: "a * (a gchoose n) = of_nat n * (a gchoose n) + of_nat (
 proof-
   have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
     unfolding gbinomial_pochhammer
-    pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
+    pochhammer_Suc fact_Suc_nat of_nat_mult right_diff_distrib power_Suc
     by (simp add:  field_simps del: of_nat_Suc)
   also have "\<dots> = ?l" unfolding gbinomial_pochhammer
     by (simp add: ring_simps)
@@ -420,7 +414,7 @@ lemma gbinomial_Suc: "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0
 lemma gbinomial_mult_fact:
   "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::field_char_0) gchoose (Suc k)) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
   unfolding gbinomial_Suc
-  by (simp_all add: field_simps del: fact_Suc)
+  by (simp_all add: field_simps del: fact_Suc_nat)
 
 lemma gbinomial_mult_fact':
   "((a::'a::field_char_0) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
@@ -438,9 +432,9 @@ proof-
 
     have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) = ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)" 
       unfolding h
-      apply (simp add: ring_simps del: fact_Suc)
+      apply (simp add: ring_simps del: fact_Suc_nat)
       unfolding gbinomial_mult_fact'
-      apply (subst fact_Suc)
+      apply (subst fact_Suc_nat)
       unfolding of_nat_mult 
       apply (subst mult_commute)
       unfolding mult_assoc
@@ -455,7 +449,7 @@ proof-
       by simp
     also have "\<dots> = of_nat (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
       unfolding gbinomial_mult_fact ..
-    finally have ?thesis by (simp del: fact_Suc) }
+    finally have ?thesis by (simp del: fact_Suc_nat) }
   ultimately show ?thesis by (cases k, auto)
 qed
 
