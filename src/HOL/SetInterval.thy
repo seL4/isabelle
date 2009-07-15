@@ -284,8 +284,8 @@ by(simp add:lessThan_def atLeastLessThan_def)
 lemma atLeast0AtMost: "{0..n::nat} = {..n}"
 by(simp add:atMost_def atLeastAtMost_def)
 
-declare atLeast0LessThan[symmetric, code unfold]
-        atLeast0AtMost[symmetric, code unfold]
+declare atLeast0LessThan[symmetric, code_unfold]
+        atLeast0AtMost[symmetric, code_unfold]
 
 lemma atLeastLessThan0: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)

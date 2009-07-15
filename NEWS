@@ -18,6 +18,16 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* Code generator attributes follow the usual underscore convention:
+    code_unfold     replaces    code unfold
+    code_post       replaces    code post
+    etc.
+  INCOMPATIBILITY.
+
+* New quickcheck implementation using new code generator.
+
+* New type class boolean_algebra.
+
 * Class semiring_div requires superclass no_zero_divisors and proof of
 div_mult_mult1; theorems div_mult_mult1, div_mult_mult2,
 div_mult_mult1_if, div_mult_mult1 and div_mult_mult2 have been

@@ -2076,7 +2076,7 @@ lemma foldr_map: "foldr g (map f xs) a = foldr (g o f) xs a"
 by(induct xs) simp_all
 
 text{* For efficient code generation: avoid intermediate list. *}
-lemma foldl_map[code unfold]:
+lemma foldl_map[code_unfold]:
   "foldl g a (map f xs) = foldl (%a x. g a (f x)) a xs"
 by(induct xs arbitrary:a) simp_all
 
@@ -2198,7 +2198,7 @@ by (induct xss) simp_all
 
 text{* For efficient code generation ---
        @{const listsum} is not tail recursive but @{const foldl} is. *}
-lemma listsum[code unfold]: "listsum xs = foldl (op +) 0 xs"
+lemma listsum[code_unfold]: "listsum xs = foldl (op +) 0 xs"
 by(simp add:listsum_foldr foldl_foldr1)
 
 lemma distinct_listsum_conv_Setsum:
@@ -3746,32 +3746,32 @@ next
   show ?case by (induct xs) (auto simp add: Cons aux)
 qed
 
-lemma mem_iff [code post]:
+lemma mem_iff [code_post]:
   "x mem xs \<longleftrightarrow> x \<in> set xs"
 by (induct xs) auto
 
-lemmas in_set_code [code unfold] = mem_iff [symmetric]
+lemmas in_set_code [code_unfold] = mem_iff [symmetric]
 
 lemma empty_null:
   "xs = [] \<longleftrightarrow> null xs"
 by (cases xs) simp_all
 
-lemma [code inline]:
+lemma [code_inline]:
   "eq_class.eq xs [] \<longleftrightarrow> null xs"
 by (simp add: eq empty_null)
 
-lemmas null_empty [code post] =
+lemmas null_empty [code_post] =
   empty_null [symmetric]
 
 lemma list_inter_conv:
   "set (list_inter xs ys) = set xs \<inter> set ys"
 by (induct xs) auto
 
-lemma list_all_iff [code post]:
+lemma list_all_iff [code_post]:
   "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
 by (induct xs) auto
 
-lemmas list_ball_code [code unfold] = list_all_iff [symmetric]
+lemmas list_ball_code [code_unfold] = list_all_iff [symmetric]
 
 lemma list_all_append [simp]:
   "list_all P (xs @ ys) \<longleftrightarrow> (list_all P xs \<and> list_all P ys)"
@@ -3785,11 +3785,11 @@ lemma list_all_length:
   "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
   unfolding list_all_iff by (auto intro: all_nth_imp_all_set)
 
-lemma list_ex_iff [code post]:
+lemma list_ex_iff [code_post]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
 by (induct xs) simp_all
 
-lemmas list_bex_code [code unfold] =
+lemmas list_bex_code [code_unfold] =
   list_ex_iff [symmetric]
 
 lemma list_ex_length:
@@ -3804,7 +3804,7 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
 by (induct xs) auto
 
-lemma length_remdups_length_unique [code inline]:
+lemma length_remdups_length_unique [code_inline]:
   "length (remdups xs) = length_unique xs"
   by (induct xs) simp_all
 
@@ -3813,43 +3813,43 @@ hide (open) const length_unique
 
 text {* Code for bounded quantification and summation over nats. *}
 
-lemma atMost_upto [code unfold]:
+lemma atMost_upto [code_unfold]:
   "{..n} = set [0..<Suc n]"
 by auto
 
-lemma atLeast_upt [code unfold]:
+lemma atLeast_upt [code_unfold]:
   "{..<n} = set [0..<n]"
 by auto
 
-lemma greaterThanLessThan_upt [code unfold]:
+lemma greaterThanLessThan_upt [code_unfold]:
   "{n<..<m} = set [Suc n..<m]"
 by auto
 
-lemma atLeastLessThan_upt [code unfold]:
+lemma atLeastLessThan_upt [code_unfold]:
   "{n..<m} = set [n..<m]"
 by auto
 
-lemma greaterThanAtMost_upt [code unfold]:
+lemma greaterThanAtMost_upt [code_unfold]:
   "{n<..m} = set [Suc n..<Suc m]"
 by auto
 
-lemma atLeastAtMost_upt [code unfold]:
+lemma atLeastAtMost_upt [code_unfold]:
   "{n..m} = set [n..<Suc m]"
 by auto
 
-lemma all_nat_less_eq [code unfold]:
+lemma all_nat_less_eq [code_unfold]:
   "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
 by auto
 
-lemma ex_nat_less_eq [code unfold]:
+lemma ex_nat_less_eq [code_unfold]:
   "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
 by auto
 
-lemma all_nat_less [code unfold]:
+lemma all_nat_less [code_unfold]:
   "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
 by auto
 
-lemma ex_nat_less [code unfold]:
+lemma ex_nat_less [code_unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
 by auto
 
@@ -3857,30 +3857,30 @@ lemma setsum_set_distinct_conv_listsum:
   "distinct xs \<Longrightarrow> setsum f (set xs) = listsum (map f xs)"
 by (induct xs) simp_all
 
-lemma setsum_set_upt_conv_listsum [code unfold]:
+lemma setsum_set_upt_conv_listsum [code_unfold]:
   "setsum f (set [m..<n]) = listsum (map f [m..<n])"
 by (rule setsum_set_distinct_conv_listsum) simp
 
 
 text {* Code for summation over ints. *}
 
-lemma greaterThanLessThan_upto [code unfold]:
+lemma greaterThanLessThan_upto [code_unfold]:
   "{i<..<j::int} = set [i+1..j - 1]"
 by auto
 
-lemma atLeastLessThan_upto [code unfold]:
+lemma atLeastLessThan_upto [code_unfold]:
   "{i..<j::int} = set [i..j - 1]"
 by auto
 
-lemma greaterThanAtMost_upto [code unfold]:
+lemma greaterThanAtMost_upto [code_unfold]:
   "{i<..j::int} = set [i+1..j]"
 by auto
 
-lemma atLeastAtMost_upto [code unfold]:
+lemma atLeastAtMost_upto [code_unfold]:
   "{i..j::int} = set [i..j]"
 by auto
 
-lemma setsum_set_upto_conv_listsum [code unfold]:
+lemma setsum_set_upto_conv_listsum [code_unfold]:
   "setsum f (set [i..j::int]) = listsum (map f [i..j])"
 by (rule setsum_set_distinct_conv_listsum) simp
 

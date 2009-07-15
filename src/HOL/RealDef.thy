@@ -559,8 +559,8 @@ consts
   real :: "'a => real"
 
 defs (overloaded)
-  real_of_nat_def [code unfold]: "real == real_of_nat"
-  real_of_int_def [code unfold]: "real == real_of_int"
+  real_of_nat_def [code_unfold]: "real == real_of_nat"
+  real_of_int_def [code_unfold]: "real == real_of_int"
 
 lemma real_eq_of_nat: "real = of_nat"
   unfolding real_of_nat_def ..
@@ -946,7 +946,7 @@ instance
 
 end
 
-lemma [code unfold, symmetric, code post]:
+lemma [code_unfold, symmetric, code_post]:
   "number_of k = real_of_int (number_of k)"
   unfolding number_of_is_id real_number_of_def ..
 
@@ -1061,29 +1061,29 @@ definition Ratreal :: "rat \<Rightarrow> real" where
 
 code_datatype Ratreal
 
-lemma Ratreal_number_collapse [code post]:
+lemma Ratreal_number_collapse [code_post]:
   "Ratreal 0 = 0"
   "Ratreal 1 = 1"
   "Ratreal (number_of k) = number_of k"
 by simp_all
 
-lemma zero_real_code [code, code unfold]:
+lemma zero_real_code [code, code_unfold]:
   "0 = Ratreal 0"
 by simp
 
-lemma one_real_code [code, code unfold]:
+lemma one_real_code [code, code_unfold]:
   "1 = Ratreal 1"
 by simp
 
-lemma number_of_real_code [code unfold]:
+lemma number_of_real_code [code_unfold]:
   "number_of k = Ratreal (number_of k)"
 by simp
 
-lemma Ratreal_number_of_quotient [code post]:
+lemma Ratreal_number_of_quotient [code_post]:
   "Ratreal (number_of r) / Ratreal (number_of s) = number_of r / number_of s"
 by simp
 
-lemma Ratreal_number_of_quotient2 [code post]:
+lemma Ratreal_number_of_quotient2 [code_post]:
   "Ratreal (number_of r / number_of s) = number_of r / number_of s"
 unfolding Ratreal_number_of_quotient [symmetric] Ratreal_def of_rat_divide ..
 
@@ -1129,7 +1129,7 @@ lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
 
 definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
+  [code_inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
 
 notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)

@@ -7,6 +7,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* July 2009: Florian Haftmann, TUM
+  New quickcheck implementation using new code generator
+
+* July 2009: Florian Haftmann, TUM
+  HOL/Library/FSet: an explicit type of sets; finite sets ready to use for code generation
+
 * June 2009: Andreas Lochbihler, Uni Karlsruhe
   HOL/Library/Fin_Fun: almost everywhere constant functions
 

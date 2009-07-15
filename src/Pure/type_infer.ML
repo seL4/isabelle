@@ -39,7 +39,8 @@ val constrain = Syntax.type_constraint;
 fun is_param (x, _: int) = String.isPrefix "?" x;
 fun param i (x, S) = TVar (("?" ^ x, i), S);
 
-val paramify_vars = Term.map_atyps (fn TVar ((x, i), S) => param i (x, S) | T => T);
+val paramify_vars =
+  perhaps (Term_Subst.map_atypsT_option (fn TVar ((x, i), S) => SOME (param i (x, S)) | _ => NONE));
 
 val paramify_dummies =
   let

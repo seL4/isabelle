@@ -541,8 +541,9 @@ val setup =
     "declare rules for converting between predicate and set notation" #>
   Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att) "convert rule to set notation" #>
   Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att) "convert rule to predicate notation" #>
-  Code.add_attribute ("ind_set",
-    Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att) #>
+  Attrib.setup @{binding code_ind_set}
+    (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att))
+    "introduction rules for executable predicates" #>
   Codegen.add_preprocessor codegen_preproc #>
   Attrib.setup @{binding mono_set} (Attrib.add_del mono_add_att mono_del_att)
     "declaration of monotonicity rule for set operators" #>

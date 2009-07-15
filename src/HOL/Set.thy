@@ -10,7 +10,6 @@ begin
 
 text {* A set in HOL is simply a predicate. *}
 
-
 subsection {* Basic syntax *}
 
 global
@@ -362,46 +361,6 @@ defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
   Bex_def:      "Bex A P        == EX x. x:A & P(x)"
   Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
-
-instantiation "fun" :: (type, minus) minus
-begin
-
-definition
-  fun_diff_def: "A - B = (%x. A x - B x)"
-
-instance ..
-
-end
-
-instantiation bool :: minus
-begin
-
-definition
-  bool_diff_def: "A - B = (A & ~ B)"
-
-instance ..
-
-end
-
-instantiation "fun" :: (type, uminus) uminus
-begin
-
-definition
-  fun_Compl_def: "- A = (%x. - A x)"
-
-instance ..
-
-end
-
-instantiation bool :: uminus
-begin
-
-definition
-  bool_Compl_def: "- A = (~ A)"
-
-instance ..
-
-end
 
 definition Pow :: "'a set => 'a set set" where
   Pow_def: "Pow A = {B. B \<le> A}"

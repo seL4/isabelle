@@ -455,7 +455,7 @@ qed
 
 subsection {* Code generator tweak *}
 
-lemma power_power_power [code, code unfold, code inline del]:
+lemma power_power_power [code, code_unfold, code_inline del]:
   "power = power.power (1::'a::{power}) (op *)"
   unfolding power_def power.power_def ..
 

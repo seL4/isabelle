@@ -71,9 +71,7 @@ sig
   val varify: term -> term
   val unvarify: term -> term
   val legacy_varifyT: typ -> typ
-  val legacy_unvarifyT: typ -> typ
   val legacy_varify: term -> term
-  val legacy_unvarify: term -> term
   val get_goal: term -> int -> term
   val goal_params: term -> int -> term * term list
   val prems_of_goal: term -> int -> term list
@@ -508,15 +506,10 @@ fun unvarify tm = tm
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 val legacy_varifyT = Term.map_atyps (fn TFree (a, S) => TVar ((a, 0), S) | T => T);
-val legacy_unvarifyT = Term.map_atyps (fn TVar ((a, 0), S) => TFree (a, S) | T => T);
 
 val legacy_varify =
   Term.map_aterms (fn Free (x, T) => Var ((x, 0), T) | t => t) #>
   Term.map_types legacy_varifyT;
-
-val legacy_unvarify =
-  Term.map_aterms (fn Var ((x, 0), T) => Free (x, T) | t => t) #>
-  Term.map_types legacy_unvarifyT;
 
 
 (* goal states *)

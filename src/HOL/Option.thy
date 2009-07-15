@@ -94,7 +94,7 @@ hide (open) const set map
 subsubsection {* Code generator setup *}
 
 definition is_none :: "'a option \<Rightarrow> bool" where
-  [code post]: "is_none x \<longleftrightarrow> x = None"
+  [code_post]: "is_none x \<longleftrightarrow> x = None"
 
 lemma is_none_code [code]:
   shows "is_none None \<longleftrightarrow> True"
@@ -105,7 +105,7 @@ lemma is_none_none:
   "is_none x \<longleftrightarrow> x = None"
   by (simp add: is_none_def)
 
-lemma [code inline]:
+lemma [code_inline]:
   "eq_class.eq x None \<longleftrightarrow> is_none x"
   by (simp add: eq is_none_none)
 

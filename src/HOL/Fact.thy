@@ -261,7 +261,7 @@ lemma fact_add_num_eq_if2_nat:
 by (cases m) auto
 
 
-subsection {* fact and of_nat *}
+subsection {* @{term fact} and @{term of_nat} *}
 
 lemma of_nat_fact_not_zero [simp]: "of_nat (fact n) \<noteq> (0::'a::semiring_char_0)"
 by auto

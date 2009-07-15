@@ -62,7 +62,7 @@ sig
   val print_codesetup: theory -> unit
 
   (*infrastructure*)
-  val add_attribute: string * attribute parser -> theory -> theory
+  val set_code_target_attr: (string -> thm -> theory -> theory) -> theory -> theory
   val purge_data: theory -> theory
 end;
 
@@ -233,31 +233,6 @@ fun norm_varnames thy thms =
     |> burrow_thms (canonical_tvars thy)
     |> Drule.zero_var_indexes_list
   end;
-
-
-(** code attributes **)
-
-structure Code_Attr = TheoryDataFun (
-  type T = (string * attribute parser) list;
-  val empty = [];
-  val copy = I;
-  val extend = I;
-  fun merge _ = AList.merge (op = : string * string -> bool) (K true);
-);
-
-fun add_attribute (attr as (name, _)) =
-  let
-    fun add_parser ("", parser) attrs = attrs |> rev |> AList.update (op =) ("", parser) |> rev
-      | add_parser (name, parser) attrs = (name, Args.$$$ name |-- parser) :: attrs;
-  in Code_Attr.map (fn attrs => if not (name = "") andalso AList.defined (op =) attrs name
-    then error ("Code attribute " ^ name ^ " already declared") else add_parser attr attrs)
-  end;
-
-val _ = Context.>> (Context.map_theory
-  (Attrib.setup (Binding.name "code")
-    (Scan.peek (fn context =>
-      List.foldr op || Scan.fail (map snd (Code_Attr.get (Context.theory_of context)))))
-    "declare theorems for code generation"));
 
 
 (** data store **)
@@ -543,7 +518,7 @@ fun constrset_of_consts thy cs =
       in ((tyco, map snd vs), (c, (map fst vs, ty))) end;
     fun add ((tyco', sorts'), c) ((tyco, sorts), cs) =
       let
-        val _ = if tyco' <> tyco
+        val _ = if (tyco' : string) <> tyco
           then error "Different type constructors in constructor set"
           else ();
         val sorts'' = map2 (curry (Sorts.inter_sort (Sign.classes_of thy))) sorts' sorts
@@ -911,18 +886,32 @@ fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) => change_eqns true (const_eqn thy thm) (del_thm thm) thy
   | NONE => thy;
 
+structure Code_Attr = TheoryDataFun (
+  type T = (string -> thm -> theory -> theory) option;
+  val empty = NONE;
+  val copy = I;
+  val extend = I;
+  fun merge _ (NONE, f2) = f2
+    | merge _ (f1, _) = f1;
+);
+
+fun set_code_target_attr f = Code_Attr.map (K (SOME f));
+
 val _ = Context.>> (Context.map_theory
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-    fun add_simple_attribute (name, f) =
-      add_attribute (name, Scan.succeed (mk_attribute f));
-    fun add_del_attribute (name, (add, del)) =
-      add_attribute (name, Args.del |-- Scan.succeed (mk_attribute del)
-        || Scan.succeed (mk_attribute add))
+    val code_attribute_parser =
+      Args.del |-- Scan.succeed (mk_attribute del_eqn)
+      || Args.$$$ "nbe" |-- Scan.succeed (mk_attribute add_nbe_eqn)
+      || (Args.$$$ "target" |-- Args.colon |-- Args.name >>
+           (fn prefix => mk_attribute (fn thm => fn thy => thy
+             |> add_warning_eqn thm
+             |> the_default ((K o K) I) (Code_Attr.get thy) prefix thm)))
+      || Scan.succeed (mk_attribute add_warning_eqn);
   in
     Type_Interpretation.init
-    #> add_del_attribute ("", (add_warning_eqn, del_eqn))
-    #> add_simple_attribute ("nbe", add_nbe_eqn)
+    #> Attrib.setup (Binding.name "code") (Scan.lift code_attribute_parser)
+        "declare theorems for code generation"
   end));
 
 
