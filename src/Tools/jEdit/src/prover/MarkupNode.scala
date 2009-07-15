@@ -55,6 +55,10 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
   val children: List[MarkupNode],
   val id: String, val content: String, val info: MarkupInfo)
 {
+
+  def transform(f: Int => Int): MarkupNode = new MarkupNode(base,
+    f(start), f(stop), children map (_ transform f), id, content, info)
+
   def swing_node(doc: ProofDocument): DefaultMutableTreeNode = {
     val node = MarkupNode.markup2default_node (this, base, doc)
     children.map(node add _.swing_node(doc))
