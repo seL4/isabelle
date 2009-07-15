@@ -2268,6 +2268,8 @@ lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
 -- {* simp does not terminate! *}
 by (induct j) auto
 
+lemmas upt_rec_number_of[simp] = upt_rec[of "number_of m" "number_of n", standard]
+
 lemma upt_conv_Nil [simp]: "j <= i ==> [i..<j] = []"
 by (subst upt_rec) simp
 
@@ -3201,6 +3203,8 @@ hide (open) const successor
 
 lemma upto_rec2_int: "(i::int) \<le> j \<Longrightarrow> [i..j+1] = [i..j] @ [j+1]"
 by(rule upto_rec2[where 'a = int, simplified successor_int_def])
+
+lemmas upto_rec_number_of_int[simp] = upto_rec[of "number_of m :: int" "number_of n", standard]
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
