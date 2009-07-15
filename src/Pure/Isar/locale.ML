@@ -70,8 +70,8 @@ sig
   (* Registrations and dependencies *)
   val add_registration: string * (morphism * morphism) -> theory -> theory
   val amend_registration: morphism -> string * morphism -> theory -> theory
-  val add_dependencies: string -> ((string * morphism) * Element.witness list) list ->
-    morphism  -> theory -> theory
+  val add_registration_eqs: string * morphism -> thm list -> morphism -> theory -> theory
+  val add_dependency: string -> string * morphism -> morphism -> theory -> theory
 
   (* Diagnostic *)
   val print_locales: theory -> unit
@@ -368,14 +368,22 @@ fun amend_registration morph (name, base_morph) thy =
       (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
   end;
 
+fun add_registration_eqs (dep, proto_morph) eqns export thy =
+  let
+    val morph = if null eqns then proto_morph
+      else proto_morph $> Element.eq_morphism thy eqns;
+  in
+    thy
+    |> add_registration (dep, (morph, export))
+    |> Context.theory_map (activate_facts (dep, morph $> export))
+  end;
+
 
 (*** Dependencies ***)
 
-fun add_dependencies loc deps_witss export thy =
+fun add_dependency loc (dep, morph) export thy =
   thy
-  |> fold (fn ((dep, morph), wits) => (change_locale loc o apsnd)
-      (cons ((dep, morph $> Element.satisfy_morphism wits $> export), stamp ())))
-        deps_witss
+  |> (change_locale loc o apsnd) (cons ((dep, morph $> export), stamp ()))
   |> (fn thy => fold_rev (Context.theory_map o activate_facts)
       (all_registrations thy) thy);
 
