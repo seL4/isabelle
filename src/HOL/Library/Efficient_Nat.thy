@@ -320,9 +320,7 @@ text {*
   returns @{text "0"}.
 *}
 
-definition
-  int :: "nat \<Rightarrow> int"
-where
+definition int :: "nat \<Rightarrow> int" where
   [code del]: "int = of_nat"
 
 lemma int_code' [code]:
@@ -335,6 +333,10 @@ lemma nat_code' [code]:
 
 lemma of_nat_int [code_unfold_post]:
   "of_nat = int" by (simp add: int_def)
+
+lemma of_nat_aux_int [code_unfold]:
+  "of_nat_aux (\<lambda>i. i + 1) k 0 = int k"
+  by (simp add: int_def Nat.of_nat_code)
 
 code_const int
   (SML "_")
