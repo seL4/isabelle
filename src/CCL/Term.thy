@@ -1,5 +1,4 @@
 (*  Title:      CCL/Term.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1993  University of Cambridge
 *)
@@ -274,8 +273,9 @@ subsection {* Constructors are injective *}
 
 ML {*
 
-bind_thms ("term_injs", map (mk_inj_rl (the_context ())
-  [thm "applyB", thm "splitB", thm "whenBinl", thm "whenBinr", thm "ncaseBsucc", thm "lcaseBcons"])
+bind_thms ("term_injs", map (mk_inj_rl @{theory}
+  [@{thm applyB}, @{thm splitB}, @{thm whenBinl}, @{thm whenBinr},
+    @{thm ncaseBsucc}, @{thm lcaseBcons}])
     ["(inl(a) = inl(a')) <-> (a=a')",
      "(inr(a) = inr(a')) <-> (a=a')",
      "(succ(a) = succ(a')) <-> (a=a')",
@@ -287,7 +287,7 @@ subsection {* Constructors are distinct *}
 
 ML {*
 bind_thms ("term_dstncts",
-  mkall_dstnct_thms (the_context ()) (thms "data_defs") (thms "ccl_injs" @ thms "term_injs")
+  mkall_dstnct_thms @{theory} @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
     [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
 *}
 
@@ -297,8 +297,8 @@ subsection {* Rules for pre-order @{text "[="} *}
 ML {*
 
 local
-  fun mk_thm s = prove_goalw (the_context ()) (thms "data_defs") s (fn _ =>
-    [simp_tac (@{simpset} addsimps (thms "ccl_porews")) 1])
+  fun mk_thm s = prove_goalw @{theory} @{thms data_defs} s (fn _ =>
+    [simp_tac (@{simpset} addsimps @{thms ccl_porews}) 1])
 in
   val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
                                 "inr(b) [= inr(b') <-> b [= b'",

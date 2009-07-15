@@ -39,7 +39,7 @@ val one = @{cpat "1"};
 val oneT = Thm.ctyp_of_term one;
 
 val number_of = @{cpat "number_of"};
-val numberT = Thm.ctyp_of (the_context ()) (Term.range_type (Thm.typ_of (Thm.ctyp_of_term number_of)));
+val numberT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of (Thm.ctyp_of_term number_of)));
 
 fun instT T V = Thm.instantiate_cterm ([(V, T)], []);
 

@@ -676,7 +676,7 @@ Theory.add_consts_i const_decls
 
 
 ML {* 
- val ct' = cterm_of (the_context ()) t';
+ val ct' = cterm_of @{theory} t';
 *}
 
 ML {*
@@ -706,7 +706,7 @@ ML {* timeit (fn () => (DistinctTreeProver.deleteProver (!da) p1;())) *}
 
 
 ML {*
-val cdist' = cterm_of (the_context ()) dist';
+val cdist' = cterm_of @{theory} dist';
 DistinctTreeProver.distinct_implProver (!da) cdist';
 *}
 

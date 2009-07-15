@@ -19,7 +19,7 @@ val numeral_syms = [@{thm nat_numeral_0_eq_0} RS sym, @{thm nat_numeral_1_eq_1} 
 val numeral_sym_ss = HOL_ss addsimps numeral_syms;
 
 fun rename_numerals th =
-    simplify numeral_sym_ss (Thm.transfer (the_context ()) th);
+    simplify numeral_sym_ss (Thm.transfer @{theory} th);
 
 (*Utilities*)
 

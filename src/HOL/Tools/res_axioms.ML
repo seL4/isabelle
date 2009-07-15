@@ -154,9 +154,9 @@ val lambda_free = not o Term.has_abs;
 
 val monomorphic = not o Term.exists_type (Term.exists_subtype Term.is_TVar);
 
-val [f_B,g_B] = map (cterm_of (the_context ())) (OldTerm.term_vars (prop_of @{thm abs_B}));
-val [g_C,f_C] = map (cterm_of (the_context ())) (OldTerm.term_vars (prop_of @{thm abs_C}));
-val [f_S,g_S] = map (cterm_of (the_context ())) (OldTerm.term_vars (prop_of @{thm abs_S}));
+val [f_B,g_B] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_B}));
+val [g_C,f_C] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_C}));
+val [f_S,g_S] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_S}));
 
 (*FIXME: requires more use of cterm constructors*)
 fun abstract ct =

@@ -655,7 +655,7 @@ end)
 
 in
 
-val cancel_div_mod_nat_proc = Simplifier.simproc (the_context ())
+val cancel_div_mod_nat_proc = Simplifier.simproc @{theory}
   "cancel_div_mod" ["(m::nat) + n"] (K CancelDivMod.proc);
 
 val _ = Addsimprocs [cancel_div_mod_nat_proc];

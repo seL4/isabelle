@@ -15,8 +15,8 @@ struct
 
 open Proofterm;
 
-val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) true) o
-    Logic.dest_equals o Logic.varify o ProofSyntax.read_term (the_context ()) propT)
+val rews = map (pairself (ProofSyntax.proof_of_term @{theory} true) o
+    Logic.dest_equals o Logic.varify o ProofSyntax.read_term @{theory} propT)
 
   (** eliminate meta-equality rules **)
 

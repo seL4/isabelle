@@ -428,7 +428,7 @@ lemma PO_refl: "<a,a> : PO"
 
 ML {*
 
-val POgenIs = map (mk_genIs (the_context ()) (thms "data_defs") (thm "POgenXH") (thm "POgen_mono"))
+val POgenIs = map (mk_genIs @{theory} @{thms data_defs} @{thm POgenXH} @{thm POgen_mono})
   ["<true,true> : POgen(R)",
    "<false,false> : POgen(R)",
    "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : POgen(R)",
@@ -443,9 +443,9 @@ val POgenIs = map (mk_genIs (the_context ()) (thms "data_defs") (thm "POgenXH") 
 
 fun POgen_tac ctxt (rla,rlb) i =
   SELECT_GOAL (safe_tac (local_claset_of ctxt)) i THEN
-  rtac (rlb RS (rla RS (thm "ssubst_pair"))) i THEN
-  (REPEAT (resolve_tac (POgenIs @ [thm "PO_refl" RS (thm "POgen_mono" RS ci3_AI)] @
-    (POgenIs RL [thm "POgen_mono" RS ci3_AgenI]) @ [thm "POgen_mono" RS ci3_RI]) i));
+  rtac (rlb RS (rla RS @{thm ssubst_pair})) i THEN
+  (REPEAT (resolve_tac (POgenIs @ [@{thm PO_refl} RS (@{thm POgen_mono} RS ci3_AI)] @
+    (POgenIs RL [@{thm POgen_mono} RS ci3_AgenI]) @ [@{thm POgen_mono} RS ci3_RI]) i));
 
 *}
 
@@ -458,7 +458,7 @@ lemma EQ_refl: "<a,a> : EQ"
 
 ML {*
 
-val EQgenIs = map (mk_genIs (the_context ()) (thms "data_defs") (thm "EQgenXH") (thm "EQgen_mono"))
+val EQgenIs = map (mk_genIs @{theory} @{thms data_defs} @{thm EQgenXH} @{thm EQgen_mono})
   ["<true,true> : EQgen(R)",
    "<false,false> : EQgen(R)",
    "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)",

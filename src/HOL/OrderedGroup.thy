@@ -1380,7 +1380,7 @@ local
         if termless_agrp (y, x) then SOME ac2 else NONE
     | solve_add_ac thy _ _ = NONE
 in
-  val add_ac_proc = Simplifier.simproc (the_context ())
+  val add_ac_proc = Simplifier.simproc @{theory}
     "add_ac_proc" ["x + y::'a::ab_semigroup_add"] solve_add_ac;
 end;
 
