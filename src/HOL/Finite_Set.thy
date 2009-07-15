@@ -93,6 +93,7 @@ proof -
   qed
 qed
 
+
 text{* A finite choice principle. Does not need the SOME choice operator. *}
 lemma finite_set_choice:
   "finite A \<Longrightarrow> ALL x:A. (EX y. P x y) \<Longrightarrow> EX f. ALL x:A. P x (f x)"
@@ -2122,6 +2123,18 @@ lemma insert_partition:
   \<Longrightarrow> x \<inter> \<Union> F = {}"
 by auto
 
+lemma finite_psubset_induct[consumes 1, case_names psubset]:
+  assumes "finite A" and "!!A. finite A \<Longrightarrow> (!!B. finite B \<Longrightarrow> B \<subset> A \<Longrightarrow> P(B)) \<Longrightarrow> P(A)" shows "P A"
+using assms(1)
+proof (induct A rule: measure_induct_rule[where f=card])
+  case (less A)
+  show ?case
+  proof(rule assms(2)[OF less(2)])
+    fix B assume "finite B" "B \<subset> A"
+    show "P B" by(rule less(1)[OF psubset_card_mono[OF less(2) `B \<subset> A`] `finite B`])
+  qed
+qed
+
 text{* main cardinality theorem *}
 lemma card_partition [rule_format]:
   "finite C ==>
@@ -3252,13 +3265,13 @@ proof -
     by (simp add: Max fold1_antimono [folded dual_max])
 qed
 
-lemma finite_linorder_induct[consumes 1, case_names empty insert]:
+lemma finite_linorder_max_induct[consumes 1, case_names empty insert]:
  "finite A \<Longrightarrow> P {} \<Longrightarrow>
   (!!A b. finite A \<Longrightarrow> ALL a:A. a < b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))
   \<Longrightarrow> P A"
-proof (induct A rule: measure_induct_rule[where f=card])
+proof (induct rule: finite_psubset_induct)
   fix A :: "'a set"
-  assume IH: "!! B. card B < card A \<Longrightarrow> finite B \<Longrightarrow> P {} \<Longrightarrow>
+  assume IH: "!! B. finite B \<Longrightarrow> B < A \<Longrightarrow> P {} \<Longrightarrow>
                  (!!A b. finite A \<Longrightarrow> (\<forall>a\<in>A. a<b) \<Longrightarrow> P A \<Longrightarrow> P (insert b A))
                   \<Longrightarrow> P B"
   and "finite A" and "P {}"
@@ -3271,15 +3284,16 @@ proof (induct A rule: measure_induct_rule[where f=card])
     assume "A \<noteq> {}"
     with `finite A` have "Max A : A" by auto
     hence A: "?A = A" using insert_Diff_single insert_absorb by auto
-    note card_Diff1_less[OF `finite A` `Max A : A`]
     moreover have "finite ?B" using `finite A` by simp
     ultimately have "P ?B" using `P {}` step IH by blast
-    moreover have "\<forall>a\<in>?B. a < Max A"
-      using Max_ge [OF `finite A`] by fastsimp
-    ultimately show "P A"
-      using A insert_Diff_single step[OF `finite ?B`] by fastsimp
+    moreover have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF `finite A`] by fastsimp
+    ultimately show "P A" using A insert_Diff_single step[OF `finite ?B`] by fastsimp
   qed
 qed
+
+lemma finite_linorder_min_induct[consumes 1, case_names empty insert]:
+  "\<lbrakk>finite A; P {}; \<And>A b. \<lbrakk>finite A; \<forall>a\<in>A. b < a; P A\<rbrakk> \<Longrightarrow> P (insert b A)\<rbrakk> \<Longrightarrow> P A"
+by(rule linorder.finite_linorder_max_induct[OF dual_linorder])
 
 end
 

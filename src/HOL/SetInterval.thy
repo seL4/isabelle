@@ -425,7 +425,7 @@ lemma subset_card_intvl_is_intvl:
 proof cases
   assume "finite A"
   thus "PROP ?P"
-  proof(induct A rule:finite_linorder_induct)
+  proof(induct A rule:finite_linorder_max_induct)
     case empty thus ?case by auto
   next
     case (insert A b)
