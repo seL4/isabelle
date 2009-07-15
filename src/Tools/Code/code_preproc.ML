@@ -9,7 +9,7 @@ signature CODE_PREPROC =
 sig
   val map_pre: (simpset -> simpset) -> theory -> theory
   val map_post: (simpset -> simpset) -> theory -> theory
-  val add_inline: thm -> theory -> theory
+  val add_unfold: thm -> theory -> theory
   val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
   val simple_functrans: (theory -> thm list -> thm list option)
@@ -77,14 +77,24 @@ fun map_data f thy =
   |> Code.purge_data
   |> (Code_Preproc_Data.map o map_thmproc) f;
 
-val map_pre = map_data o apfst o apfst;
-val map_post = map_data o apfst o apsnd;
+val map_pre_post = map_data o apfst;
+val map_pre = map_pre_post o apfst;
+val map_post = map_pre_post o apsnd;
 
-val add_inline = map_pre o MetaSimplifier.add_simp;
-val del_inline = map_pre o MetaSimplifier.del_simp;
+val add_unfold = map_pre o MetaSimplifier.add_simp;
+val del_unfold = map_pre o MetaSimplifier.del_simp;
 val add_post = map_post o MetaSimplifier.add_simp;
 val del_post = map_post o MetaSimplifier.del_simp;
-  
+
+fun add_unfold_post raw_thm thy =
+  let
+    val thm = LocalDefs.meta_rewrite_rule (ProofContext.init thy) raw_thm;
+    val thm_sym = Thm.symmetric thm;
+  in
+    thy |> map_pre_post (fn (pre, post) =>
+      (pre |> MetaSimplifier.add_simp thm, post |> MetaSimplifier.del_simp thm_sym))
+  end;
+
 fun add_functrans (name, f) = (map_data o apsnd)
   (AList.update (op =) (name, (serial (), f)));
 
@@ -526,16 +536,19 @@ fun eval thy prep_sort postproc evaluator = gen_eval thy (Thm.cterm_of thy)
 val setup = 
   let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-    fun add_del_attribute_parser (add, del) =
+    fun add_del_attribute_parser add del =
       Attrib.add_del (mk_attribute add) (mk_attribute del);
+    fun both f g thm = f thm #> g thm;
   in
-    Attrib.setup @{binding code_inline} (add_del_attribute_parser (add_inline, del_inline))
-        "preprocessing equations for code generator"
-    #> Attrib.setup @{binding code_post} (add_del_attribute_parser (add_post, del_post))
-        "postprocessing equations for code generator"
-    #> Attrib.setup @{binding code_unfold} (Scan.succeed (mk_attribute
-       (fn thm => Codegen.add_unfold thm #> add_inline thm)))
+    Attrib.setup @{binding code_unfold} (add_del_attribute_parser 
+       (both Codegen.add_unfold add_unfold) (both Codegen.del_unfold del_unfold))
         "preprocessing equations for code generators"
+    #> Attrib.setup @{binding code_inline} (add_del_attribute_parser add_unfold del_unfold)
+        "preprocessing equations for code generator"
+    #> Attrib.setup @{binding code_post} (add_del_attribute_parser add_post del_post)
+        "postprocessing equations for code generator"
+    #> Attrib.setup @{binding code_unfold_post} (Scan.succeed (mk_attribute add_unfold_post))
+        "pre- and postprocessing equations for code generator"
   end;
 
 val _ =

@@ -3760,7 +3760,7 @@ lemma empty_null:
   "xs = [] \<longleftrightarrow> null xs"
 by (cases xs) simp_all
 
-lemma [code_inline]:
+lemma [code_unfold]:
   "eq_class.eq xs [] \<longleftrightarrow> null xs"
 by (simp add: eq empty_null)
 
@@ -3808,7 +3808,7 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
 by (induct xs) auto
 
-lemma length_remdups_length_unique [code_inline]:
+lemma length_remdups_length_unique [code_unfold]:
   "length (remdups xs) = length_unique xs"
   by (induct xs) simp_all
 

@@ -40,10 +40,10 @@ definition
   "0 = Fin 0"
 
 definition
-  [code_inline]: "1 = Fin 1"
+  [code_unfold]: "1 = Fin 1"
 
 definition
-  [code_inline, code del]: "number_of k = Fin (number_of k)"
+  [code_unfold, code del]: "number_of k = Fin (number_of k)"
 
 instance ..
 

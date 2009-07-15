@@ -758,7 +758,7 @@ definition Mns :: "num \<Rightarrow> int" where
 
 code_datatype "0::int" Pls Mns
 
-lemmas [code_inline] = Pls_def [symmetric] Mns_def [symmetric]
+lemmas [code_unfold] = Pls_def [symmetric] Mns_def [symmetric]
 
 definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
   [simp, code del]: "sub m n = (of_num m - of_num n)"
@@ -874,10 +874,10 @@ lemma less_int_code [code]:
   using of_num_pos [of l, where ?'a = int] of_num_pos [of k, where ?'a = int]
   by (simp_all add: of_num_less_iff)
 
-lemma [code_inline del]: "(0::int) \<equiv> Numeral0" by simp
-lemma [code_inline del]: "(1::int) \<equiv> Numeral1" by simp
-declare zero_is_num_zero [code_inline del]
-declare one_is_num_one [code_inline del]
+lemma [code_unfold del]: "(0::int) \<equiv> Numeral0" by simp
+lemma [code_unfold del]: "(1::int) \<equiv> Numeral1" by simp
+declare zero_is_num_zero [code_unfold del]
+declare one_is_num_one [code_unfold del]
 
 hide (open) const sub dup
 

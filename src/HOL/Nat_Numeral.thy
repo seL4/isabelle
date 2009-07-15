@@ -20,7 +20,7 @@ instantiation nat :: number
 begin
 
 definition
-  nat_number_of_def [code_inline, code del]: "number_of v = nat (number_of v)"
+  nat_number_of_def [code_unfold, code del]: "number_of v = nat (number_of v)"
 
 instance ..
 

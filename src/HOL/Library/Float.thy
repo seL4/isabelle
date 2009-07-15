@@ -42,7 +42,7 @@ definition number_of_float where "number_of n = Float n 0"
 instance ..
 end
 
-lemma number_of_float_Float [code_inline, symmetric, code_post]:
+lemma number_of_float_Float [code_unfold_post]:
   "number_of k = Float (number_of k) 0"
   by (simp add: number_of_float_def number_of_is_id)
 
