@@ -115,7 +115,7 @@ class ProofDocument(
       start += (new_token -> (match_start + matcher.start))
       new_tokens ::= new_token
 
-      invalid_tokens = invalid_tokens dropWhile (stop(_) < stop(new_token))
+      invalid_tokens = invalid_tokens dropWhile (stop(_) <= stop(new_token))
       invalid_tokens match {
         case t :: ts =>
           if (start(t) == start(new_token) &&
