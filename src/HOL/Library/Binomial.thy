@@ -459,4 +459,14 @@ proof-
   ultimately show ?thesis by (cases k, auto)
 qed
 
+
+lemma binomial_symmetric: assumes kn: "k \<le> n" 
+  shows "n choose k = n choose (n - k)"
+proof-
+  from kn have kn': "n - k \<le> n" by arith
+  from binomial_fact_lemma[OF kn] binomial_fact_lemma[OF kn']
+  have "fact k * fact (n - k) * (n choose k) = fact (n - k) * fact (n - (n - k)) * (n choose (n - k))" by simp
+  then show ?thesis using kn by simp
+qed
+
 end
