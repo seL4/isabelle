@@ -3190,7 +3190,7 @@ instantiation int:: finite_intvl_succ
 begin
 
 definition
-successor_int_def: "successor = (%i\<Colon>int. i+1)"
+successor_int_def[simp]: "successor = (%i\<Colon>int. i+1)"
 
 instance
 by intro_classes (simp_all add: successor_int_def)

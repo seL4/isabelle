@@ -159,7 +159,6 @@ declare TransferMorphism_int_nat[transfer add return:
     transfer_int_nat_gcd transfer_int_nat_gcd_closures]
 
 
-
 subsection {* GCD *}
 
 (* was gcd_induct *)
@@ -1553,32 +1552,6 @@ lemma prime_int_altdef: "prime (p::int) = (1 < p \<and> (\<forall>m \<ge> 0. m d
     apply (case_tac "p >= 0")
     by (blast, auto simp add: prime_ge_0_int)
 
-(* To do: determine primality of any numeral *)
-
-lemma zero_not_prime_nat [simp]: "~prime (0::nat)"
-  by (simp add: prime_nat_def)
-
-lemma zero_not_prime_int [simp]: "~prime (0::int)"
-  by (simp add: prime_int_def)
-
-lemma one_not_prime_nat [simp]: "~prime (1::nat)"
-  by (simp add: prime_nat_def)
-
-lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
-  by (simp add: prime_nat_def One_nat_def)
-
-lemma one_not_prime_int [simp]: "~prime (1::int)"
-  by (simp add: prime_int_def)
-
-lemma two_is_prime_nat [simp]: "prime (2::nat)"
-  apply (auto simp add: prime_nat_def)
-  apply (case_tac m)
-  apply (auto dest!: dvd_imp_le)
-  done
-
-lemma two_is_prime_int [simp]: "prime (2::int)"
-  by (rule two_is_prime_nat [transferred direction: nat "op <= (0::int)"])
-
 lemma prime_imp_coprime_nat: "prime (p::nat) \<Longrightarrow> \<not> p dvd n \<Longrightarrow> coprime p n"
   apply (unfold prime_nat_def)
   apply (metis gcd_dvd1_nat gcd_dvd2_nat)
@@ -1625,15 +1598,70 @@ lemma prime_dvd_power_int [rule_format]: "prime (p::int) -->
   apply auto
 done
 
-lemma prime_imp_power_coprime_nat: "prime (p::nat) \<Longrightarrow> ~ p dvd a \<Longrightarrow>
-    coprime a (p^m)"
+subsubsection{* Make prime naively executable *}
+
+lemma zero_not_prime_nat [simp]: "~prime (0::nat)"
+  by (simp add: prime_nat_def)
+
+lemma zero_not_prime_int [simp]: "~prime (0::int)"
+  by (simp add: prime_int_def)
+
+lemma one_not_prime_nat [simp]: "~prime (1::nat)"
+  by (simp add: prime_nat_def)
+
+lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
+  by (simp add: prime_nat_def One_nat_def)
+
+lemma one_not_prime_int [simp]: "~prime (1::int)"
+  by (simp add: prime_int_def)
+
+lemma prime_nat_code[code]:
+ "prime(p::nat) = (p > 1 & (ALL n : {1<..<p}. ~(n dvd p)))"
+apply(simp add: Ball_def)
+apply (metis less_not_refl prime_nat_def dvd_triv_right not_prime_eq_prod_nat)
+done
+
+lemma prime_nat_simp:
+ "prime(p::nat) = (p > 1 & (list_all (%n. ~ n dvd p) [2..<p]))"
+apply(simp only:prime_nat_code list_ball_code greaterThanLessThan_upt)
+apply(simp add:nat_number One_nat_def)
+done
+
+lemmas prime_nat_simp_number_of[simp] = prime_nat_simp[of "number_of m", standard]
+
+lemma prime_int_code[code]:
+  "prime(p::int) = (p > 1 & (ALL n : {1<..<p}. ~(n dvd p)))" (is "?L = ?R")
+proof
+  assume "?L" thus "?R"
+    by (clarsimp simp: prime_gt_1_int) (metis int_one_le_iff_zero_less prime_int_altdef zless_le)
+next
+    assume "?R" thus "?L" by (clarsimp simp:Ball_def) (metis dvdI not_prime_eq_prod_int)
+qed
+
+lemma prime_int_simp:
+  "prime(p::int) = (p > 1 & (list_all (%n. ~ n dvd p) [2..p - 1]))"
+apply(simp only:prime_int_code list_ball_code greaterThanLessThan_upto)
+apply simp
+done
+
+lemmas prime_int_simp_number_of[simp] = prime_int_simp[of "number_of m", standard]
+
+declare successor_int_def[simp]
+
+lemma two_is_prime_nat [simp]: "prime (2::nat)"
+by simp
+
+lemma two_is_prime_int [simp]: "prime (2::int)"
+by simp
+
+
+lemma prime_imp_power_coprime_nat: "prime (p::nat) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
   apply (rule coprime_exp_nat)
   apply (subst gcd_commute_nat)
   apply (erule (1) prime_imp_coprime_nat)
 done
 
-lemma prime_imp_power_coprime_int: "prime (p::int) \<Longrightarrow> ~ p dvd a \<Longrightarrow>
-    coprime a (p^m)"
+lemma prime_imp_power_coprime_int: "prime (p::int) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
   apply (rule coprime_exp_int)
   apply (subst gcd_commute_int)
   apply (erule (1) prime_imp_coprime_int)
@@ -1652,12 +1680,10 @@ lemma primes_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrighta
   apply auto
 done
 
-lemma primes_imp_powers_coprime_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow>
-    coprime (p^m) (q^n)"
+lemma primes_imp_powers_coprime_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
   by (rule coprime_exp2_nat, rule primes_coprime_nat)
 
-lemma primes_imp_powers_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow>
-    coprime (p^m) (q^n)"
+lemma primes_imp_powers_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
   by (rule coprime_exp2_int, rule primes_coprime_int)
 
 lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prime p \<and> p dvd n"
