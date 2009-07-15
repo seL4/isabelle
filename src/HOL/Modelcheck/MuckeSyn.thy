@@ -1,5 +1,4 @@
 (*  Title:      HOL/Modelcheck/MuckeSyn.thy
-    ID:         $Id$
     Author:     Tobias Hamberger
     Copyright   1999  TU Muenchen
 *)
@@ -119,7 +118,7 @@ case t of
 
 local
 
-  val move_thm = prove_goal (the_context ()) "[| a = b ==> P a; a = b |] ==> P b"
+  val move_thm = prove_goal @{theory} "[| a = b ==> P a; a = b |] ==> P b"
 	(fn prems => [cut_facts_tac prems 1, dtac sym 1, hyp_subst_tac 1,
 		     REPEAT (resolve_tac prems 1)]);
 
@@ -214,7 +213,7 @@ end;
 val pair_eta_expand = Thm.symmetric (mk_meta_eq (thm "split_eta"));
 
 val pair_eta_expand_proc =
-  Simplifier.simproc (the_context ()) "pair_eta_expand" ["f::'a*'b=>'c"]
+  Simplifier.simproc @{theory} "pair_eta_expand" ["f::'a*'b=>'c"]
   (fn _ => fn _ => fn t => case t of Abs _ => SOME pair_eta_expand | _ => NONE);
 
 val Mucke_ss = @{simpset} addsimprocs [pair_eta_expand_proc] addsimps [Let_def];

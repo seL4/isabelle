@@ -1,5 +1,4 @@
 (*  Title:      HOL/Modelcheck/EindhovenSyn.thy
-    ID:         $Id$
     Author:     Olaf Mueller, Jan Philipps, Robert Sandner
     Copyright   1997  TU Muenchen
 *)
@@ -70,7 +69,7 @@ fun mc_eindhoven_tac i state = SUBGOAL (fn (goal, _) =>
 val pair_eta_expand = Thm.symmetric (mk_meta_eq (thm "split_eta"));
 
 val pair_eta_expand_proc =
-  Simplifier.simproc (the_context ()) "pair_eta_expand" ["f::'a*'b=>'c"]
+  Simplifier.simproc @{theory} "pair_eta_expand" ["f::'a*'b=>'c"]
   (fn _ => fn _ => fn t => case t of Abs _ => SOME pair_eta_expand | _ => NONE);
 
 val Eindhoven_ss =

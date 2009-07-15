@@ -66,16 +66,10 @@ val solver = ref "zchaff_with_proofs";  (* see HOL/Tools/sat_solver.ML for possi
 
 val counter = ref 0;
 
-val resolution_thm =  (* "[| ?P ==> False; ~ ?P ==> False |] ==> False" *)
-	let
-		val cterm = cterm_of (the_context ())
-		val Q     = Var (("Q", 0), HOLogic.boolT)
-		val False = HOLogic.false_const
-	in
-		Thm.instantiate ([], [(cterm Q, cterm False)]) @{thm case_split}
-	end;
+val resolution_thm =
+  @{lemma "(P ==> False) ==> (~ P ==> False) ==> False" by (rule case_split)}
 
-val cP = cterm_of (theory_of_thm resolution_thm) (Var (("P", 0), HOLogic.boolT));
+val cP = cterm_of @{theory} (Var (("P", 0), HOLogic.boolT));
 
 (* ------------------------------------------------------------------------- *)
 (* lit_ord: an order on integers that considers their absolute values only,  *)

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/WeakNorm.thy
-    ID:         $Id$
     Author:     Stefan Berghofer
     Copyright   2003 TU Muenchen
 *)
@@ -430,11 +429,11 @@ fun dummyf _ = error "dummy";
 
 val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
 val (dB1, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct1));
-val ct1' = cterm_of (the_context ()) (term_of_dB [] (#T (rep_cterm ct1)) dB1);
+val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct2));
-val ct2' = cterm_of (the_context ()) (term_of_dB [] (#T (rep_cterm ct2)) dB2);
+val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 
 text {*
@@ -505,11 +504,11 @@ We now try out the extracted program @{text "type_NF"} on some example terms.
 ML {*
 val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
 val (dB1, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct1));
-val ct1' = cterm_of (the_context ()) (term_of_dB [] (#T (rep_cterm ct1)) dB1);
+val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
-val ct2' = cterm_of (the_context ()) (term_of_dB [] (#T (rep_cterm ct2)) dB2);
+val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 
 end

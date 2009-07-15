@@ -117,7 +117,7 @@ fun perm_simproc_app' sg ss redex =
       | _ => NONE
   end
 
-val perm_simproc_app = Simplifier.simproc (the_context ()) "perm_simproc_app"
+val perm_simproc_app = Simplifier.simproc @{theory} "perm_simproc_app"
   ["Nominal.perm pi x"] perm_simproc_app';
 
 (* a simproc that deals with permutation instances in front of functions  *)
@@ -137,7 +137,7 @@ fun perm_simproc_fun' sg ss redex =
       | _ => NONE
    end
 
-val perm_simproc_fun = Simplifier.simproc (the_context ()) "perm_simproc_fun"
+val perm_simproc_fun = Simplifier.simproc @{theory} "perm_simproc_fun"
   ["Nominal.perm pi x"] perm_simproc_fun';
 
 (* function for simplyfying permutations          *)
@@ -217,7 +217,7 @@ fun perm_compose_simproc' sg ss redex =
     end
   | _ => NONE);
 
-val perm_compose_simproc = Simplifier.simproc (the_context ()) "perm_compose"
+val perm_compose_simproc = Simplifier.simproc @{theory} "perm_compose"
   ["Nominal.perm pi1 (Nominal.perm pi2 t)"] perm_compose_simproc';
 
 fun perm_compose_tac ss i = 

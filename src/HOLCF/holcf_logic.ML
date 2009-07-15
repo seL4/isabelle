@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/holcf_logic.ML
-    ID:         $Id$
     Author:     David von Oheimb
 
 Abstract syntax operations for HOLCF.
@@ -10,7 +9,6 @@ infixr 6 ->>;
 signature HOLCF_LOGIC =
 sig
   val mk_btyp: string -> typ * typ -> typ
-  val pcpoC: class
   val pcpoS: sort
   val mk_TFree: string -> typ
   val cfun_arrow: string
@@ -27,8 +25,7 @@ struct
 
 (* sort pcpo *)
 
-val pcpoC = Sign.intern_class (the_context ()) "pcpo";
-val pcpoS = [pcpoC];
+val pcpoS = @{sort pcpo};
 fun mk_TFree s = TFree ("'" ^ s, pcpoS);
 
 

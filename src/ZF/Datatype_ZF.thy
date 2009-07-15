@@ -1,8 +1,6 @@
 (*  Title:      ZF/Datatype.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
-
 *)
 
 header{*Datatype and CoDatatype Definitions*}
@@ -103,7 +101,7 @@ struct
    handle Match => NONE;
 
 
- val conv = Simplifier.simproc (the_context ()) "data_free" ["(x::i) = y"] proc;
+ val conv = Simplifier.simproc @{theory} "data_free" ["(x::i) = y"] proc;
 
 end;
 

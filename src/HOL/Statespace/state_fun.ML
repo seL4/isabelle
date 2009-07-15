@@ -115,7 +115,7 @@ val init_state_fun_data =
   Context.theory_map (StateFunData.put (lookup_ss,ex_lookup_ss,false));
 
 val lookup_simproc =
-  Simplifier.simproc (the_context ()) "lookup_simp" ["lookup d n (update d' c m v s)"]
+  Simplifier.simproc @{theory} "lookup_simp" ["lookup d n (update d' c m v s)"]
     (fn thy => fn ss => fn t =>
       (case t of (Const ("StateFun.lookup",lT)$destr$n$
                    (s as Const ("StateFun.update",uT)$_$_$_$_$_)) =>
@@ -171,7 +171,7 @@ val ss' = (HOL_ss addsimps (update_apply::o_apply::thms "list.inject"@thms "char
                  addcongs [thm "block_conj_cong"]);
 in
 val update_simproc =
-  Simplifier.simproc (the_context ()) "update_simp" ["update d c n v s"]
+  Simplifier.simproc @{theory} "update_simp" ["update d c n v s"]
     (fn thy => fn ss => fn t =>
       (case t of ((upd as Const ("StateFun.update", uT)) $ d $ c $ n $ v $ s) =>
          let 

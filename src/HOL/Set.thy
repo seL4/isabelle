@@ -478,9 +478,9 @@ ML {*
     fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
     val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
   in
-    val defBEX_regroup = Simplifier.simproc (the_context ())
+    val defBEX_regroup = Simplifier.simproc @{theory}
       "defined BEX" ["EX x:A. P x & Q x"] rearrange_bex;
-    val defBALL_regroup = Simplifier.simproc (the_context ())
+    val defBALL_regroup = Simplifier.simproc @{theory}
       "defined BALL" ["ALL x:A. P x --> Q x"] rearrange_ball;
   end;
 
@@ -1014,7 +1014,7 @@ ML{*
     ALLGOALS(EVERY'[REPEAT_DETERM o (etac @{thm conjE}),
                     DEPTH_SOLVE_1 o (ares_tac [@{thm conjI}])])
   in
-    val defColl_regroup = Simplifier.simproc (the_context ())
+    val defColl_regroup = Simplifier.simproc @{theory}
       "defined Collect" ["{x. P x & Q x}"]
       (Quantifier1.rearrange_Coll Coll_perm_tac)
   end;

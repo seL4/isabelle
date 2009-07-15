@@ -679,7 +679,7 @@ fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
 in
 
 val list_eq_simproc =
-  Simplifier.simproc (the_context ()) "list_eq" ["(xs::'a list) = ys"] (K list_eq);
+  Simplifier.simproc @{theory} "list_eq" ["(xs::'a list) = ys"] (K list_eq);
 
 end;
 

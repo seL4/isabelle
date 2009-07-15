@@ -424,6 +424,8 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
       a $ Abs(c, T, list_rename_params (cs, t))
   | list_rename_params (cs, B) = B;
 
+
+
 (*** Treatment of "assume", "erule", etc. ***)
 
 (*Strips assumptions in goal yielding
@@ -440,8 +442,7 @@ fun strip_assums_imp (0, Hs, B) = (Hs, B)  (*recursion terminated by nasms*)
       strip_assums_imp (nasms-1, H::Hs, B)
   | strip_assums_imp (_, Hs, B) = (Hs, B); (*recursion terminated by B*)
 
-
-(*Strips OUTER parameters only, unlike similar legacy versions.*)
+(*Strips OUTER parameters only.*)
 fun strip_assums_all (params, Const("all",_)$Abs(a,T,t)) =
       strip_assums_all ((a,T)::params, t)
   | strip_assums_all (params, B) = (params, B);

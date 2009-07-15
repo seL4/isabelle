@@ -470,8 +470,8 @@ local
         | NONE => NONE)
   |   eta_proc _ _ = NONE;
 in
-  val split_beta_proc = Simplifier.simproc (the_context ()) "split_beta" ["split f z"] (K beta_proc);
-  val split_eta_proc = Simplifier.simproc (the_context ()) "split_eta" ["split f"] (K eta_proc);
+  val split_beta_proc = Simplifier.simproc @{theory} "split_beta" ["split f z"] (K beta_proc);
+  val split_eta_proc = Simplifier.simproc @{theory} "split_eta" ["split f"] (K eta_proc);
 end;
 
 Addsimprocs [split_beta_proc, split_eta_proc];

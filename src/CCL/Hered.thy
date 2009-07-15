@@ -1,5 +1,4 @@
 (*  Title:      CCL/Hered.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1993  University of Cambridge
 *)
@@ -113,7 +112,7 @@ fun HTT_coinduct3_tac ctxt s i =
   res_inst_tac ctxt [(("R", 0), s)] @{thm HTT_coinduct3} i
 
 val HTTgenIs =
-  map (mk_genIs (the_context ()) @{thms data_defs} @{thm HTTgenXH} @{thm HTTgen_mono})
+  map (mk_genIs @{theory} @{thms data_defs} @{thm HTTgenXH} @{thm HTTgen_mono})
   ["true : HTTgen(R)",
    "false : HTTgen(R)",
    "[| a : R;  b : R |] ==> <a,b> : HTTgen(R)",

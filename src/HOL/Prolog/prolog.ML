@@ -1,5 +1,4 @@
 (*  Title:    HOL/Prolog/prolog.ML
-    ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
@@ -60,7 +59,7 @@ fun atomizeD ctxt thm = let
 in map zero_var_indexes (at thm) end;
 
 val atomize_ss =
-  Simplifier.theory_context (the_context ()) empty_ss
+  Simplifier.theory_context @{theory} empty_ss
   setmksimps (mksimps mksimps_pairs)
   addsimps [
         all_conj_distrib, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)

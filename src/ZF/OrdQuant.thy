@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/OrdQuant.thy
-    ID:         $Id$
     Authors:    Krzysztof Grabczewski and L C Paulson
 *)
 
@@ -382,9 +381,9 @@ val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
 
 in
 
-val defREX_regroup = Simplifier.simproc (the_context ())
+val defREX_regroup = Simplifier.simproc @{theory}
   "defined REX" ["EX x[M]. P(x) & Q(x)"] rearrange_bex;
-val defRALL_regroup = Simplifier.simproc (the_context ())
+val defRALL_regroup = Simplifier.simproc @{theory}
   "defined RALL" ["ALL x[M]. P(x) --> Q(x)"] rearrange_ball;
 
 end;

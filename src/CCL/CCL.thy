@@ -1,5 +1,4 @@
 (*  Title:      CCL/CCL.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1993  University of Cambridge
 *)
@@ -249,13 +248,13 @@ end
 
 ML {*
 
-val caseB_lemmas = mk_lemmas (thms "caseBs")
+val caseB_lemmas = mk_lemmas @{thms caseBs}
 
 val ccl_dstncts =
         let fun mk_raw_dstnct_thm rls s =
-                  prove_goal (the_context ()) s (fn _=> [rtac notI 1,eresolve_tac rls 1])
+                  prove_goal @{theory} s (fn _=> [rtac notI 1,eresolve_tac rls 1])
         in map (mk_raw_dstnct_thm caseB_lemmas)
-                (mk_dstnct_rls (the_context ()) ["bot","true","false","pair","lambda"]) end
+                (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 
 fun mk_dstnct_thms thy defs inj_rls xs =
           let fun mk_dstnct_thm rls s = prove_goalw thy defs s
@@ -273,9 +272,9 @@ val XH_to_Is = map XH_to_I
 val XH_to_Ds = map XH_to_D
 val XH_to_Es = map XH_to_E;
 
-bind_thms ("ccl_rews", thms "caseBs" @ ccl_injs @ ccl_dstncts);
+bind_thms ("ccl_rews", @{thms caseBs} @ ccl_injs @ ccl_dstncts);
 bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [notE]);
-bind_thms ("ccl_injDs", XH_to_Ds (thms "ccl_injs"));
+bind_thms ("ccl_injDs", XH_to_Ds @{thms ccl_injs});
 *}
 
 lemmas [simp] = ccl_rews
@@ -388,13 +387,13 @@ lemma npo_lam_pair: "~ lam x. f(x) [= <a,b>"
 ML {*
 
 local
-  fun mk_thm s = prove_goal (the_context ()) s (fn _ =>
-                          [rtac notI 1,dtac (thm "case_pocong") 1,etac rev_mp 5,
+  fun mk_thm s = prove_goal @{theory} s (fn _ =>
+                          [rtac notI 1, dtac @{thm case_pocong} 1, etac rev_mp 5,
                            ALLGOALS (simp_tac @{simpset}),
-                           REPEAT (resolve_tac [thm "po_refl", thm "npo_lam_bot"] 1)])
+                           REPEAT (resolve_tac [@{thm po_refl}, @{thm npo_lam_bot}] 1)])
 in
 
-val npo_rls = [thm "npo_pair_lam", thm "npo_lam_pair"] @ map mk_thm
+val npo_rls = [@{thm npo_pair_lam}, @{thm npo_lam_pair}] @ map mk_thm
             ["~ true [= false",          "~ false [= true",
              "~ true [= <a,b>",          "~ <a,b> [= true",
              "~ true [= lam x. f(x)","~ lam x. f(x) [= true",
