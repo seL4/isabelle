@@ -180,7 +180,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);
 
-    val y = Var (("y", 0), Logic.legacy_varifyT T);
+    val y = Var (("y", 0), Logic.varifyT T);
     val y' = Free ("y", T);
 
     val thm = OldGoals.prove_goalw_cterm [] (cert (Logic.list_implies (prems,
@@ -201,10 +201,10 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
       List.foldr (fn ((p, r), prf) =>
-        forall_intr_prf (Logic.legacy_varify r, AbsP ("H", SOME (Logic.varify p),
+        forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p),
           prf))) (Proofterm.proof_combP (prf_of thm',
             map PBound (length prems - 1 downto 0))) (prems ~~ rs)));
-    val r' = Logic.legacy_varify (Abs ("y", Logic.legacy_varifyT T,
+    val r' = Logic.varify (Abs ("y", T,
       list_abs (map dest_Free rs, list_comb (r,
         map Bound ((length rs - 1 downto 0) @ [length rs])))));
 
