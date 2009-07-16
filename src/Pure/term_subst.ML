@@ -1,11 +1,14 @@
 (*  Title:      Pure/term_subst.ML
     Author:     Makarius
 
-Efficient type/term substitution -- avoids copying.
+Efficient type/term substitution.
 *)
 
 signature TERM_SUBST =
 sig
+  val map_atypsT_same: typ Same.operation -> typ Same.operation
+  val map_types_same: typ Same.operation -> term Same.operation
+  val map_aterms_same: term Same.operation -> term Same.operation
   val map_atypsT_option: (typ -> typ option) -> typ -> typ option
   val map_atyps_option: (typ -> typ option) -> term -> term option
   val map_types_option: (typ -> typ option) -> term -> term option
@@ -32,29 +35,14 @@ end;
 structure Term_Subst: TERM_SUBST =
 struct
 
-(* indication of same result *)
-
-exception SAME;
-
-fun same_fn f x =
-  (case f x of
-    NONE => raise SAME
-  | SOME y => y);
-
-fun option_fn f x =
-  SOME (f x) handle SAME => NONE;
-
-
 (* generic mapping *)
-
-local
 
 fun map_atypsT_same f =
   let
     fun typ (Type (a, Ts)) = Type (a, typs Ts)
       | typ T = f T
-    and typs (T :: Ts) = (typ T :: (typs Ts handle SAME => Ts) handle SAME => T :: typs Ts)
-      | typs [] = raise SAME;
+    and typs (T :: Ts) = (typ T :: Same.commit typs Ts handle Same.SAME => T :: typs Ts)
+      | typs [] = raise Same.SAME;
   in typ end;
 
 fun map_types_same f =
@@ -62,72 +50,68 @@ fun map_types_same f =
     fun term (Const (a, T)) = Const (a, f T)
       | term (Free (a, T)) = Free (a, f T)
       | term (Var (v, T)) = Var (v, f T)
-      | term (Bound _)  = raise SAME
+      | term (Bound _)  = raise Same.SAME
       | term (Abs (x, T, t)) =
-          (Abs (x, f T, term t handle SAME => t)
-            handle SAME => Abs (x, T, term t))
-      | term (t $ u) = (term t $ (term u handle SAME => u) handle SAME => t $ term u);
+          (Abs (x, f T, Same.commit term t)
+            handle Same.SAME => Abs (x, T, term t))
+      | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u);
   in term end;
 
 fun map_aterms_same f =
   let
     fun term (Abs (x, T, t)) = Abs (x, T, term t)
-      | term (t $ u) = (term t $ (term u handle SAME => u) handle SAME => t $ term u)
+      | term (t $ u) = (term t $ Same.commit term u handle Same.SAME => t $ term u)
       | term a = f a;
   in term end;
 
-in
-
-val map_atypsT_option = option_fn o map_atypsT_same o same_fn;
-val map_atyps_option = option_fn o map_types_same o map_atypsT_same o same_fn;
-val map_types_option = option_fn o map_types_same o same_fn;
-val map_aterms_option = option_fn o map_aterms_same o same_fn;
-
-end;
+val map_atypsT_option = Same.capture o map_atypsT_same o Same.function;
+val map_atyps_option = Same.capture o map_types_same o map_atypsT_same o Same.function;
+val map_types_option = Same.capture o map_types_same o Same.function;
+val map_aterms_option = Same.capture o map_aterms_same o Same.function;
 
 
 (* generalization of fixed variables *)
 
 local
 
-fun generalizeT_same [] _ _ = raise SAME
+fun generalizeT_same [] _ _ = raise Same.SAME
   | generalizeT_same tfrees idx ty =
       let
         fun gen_typ (Type (a, Ts)) = Type (a, gen_typs Ts)
           | gen_typ (TFree (a, S)) =
               if member (op =) tfrees a then TVar ((a, idx), S)
-              else raise SAME
-          | gen_typ _ = raise SAME
+              else raise Same.SAME
+          | gen_typ _ = raise Same.SAME
         and gen_typs (T :: Ts) =
-            (gen_typ T :: (gen_typs Ts handle SAME => Ts)
-              handle SAME => T :: gen_typs Ts)
-          | gen_typs [] = raise SAME;
+            (gen_typ T :: Same.commit gen_typs Ts
+              handle Same.SAME => T :: gen_typs Ts)
+          | gen_typs [] = raise Same.SAME;
       in gen_typ ty end;
 
-fun generalize_same ([], []) _ _ = raise SAME
+fun generalize_same ([], []) _ _ = raise Same.SAME
   | generalize_same (tfrees, frees) idx tm =
       let
         val genT = generalizeT_same tfrees idx;
         fun gen (Free (x, T)) =
               if member (op =) frees x then
-                Var (Name.clean_index (x, idx), genT T handle SAME => T)
+                Var (Name.clean_index (x, idx), Same.commit genT T)
               else Free (x, genT T)
           | gen (Var (xi, T)) = Var (xi, genT T)
           | gen (Const (c, T)) = Const (c, genT T)
-          | gen (Bound _) = raise SAME
+          | gen (Bound _) = raise Same.SAME
           | gen (Abs (x, T, t)) =
-              (Abs (x, genT T, gen t handle SAME => t)
-                handle SAME => Abs (x, T, gen t))
-          | gen (t $ u) = (gen t $ (gen u handle SAME => u) handle SAME => t $ gen u);
+              (Abs (x, genT T, Same.commit gen t)
+                handle Same.SAME => Abs (x, T, gen t))
+          | gen (t $ u) = (gen t $ Same.commit gen u handle Same.SAME => t $ gen u);
       in gen tm end;
 
 in
 
-fun generalize names i tm = generalize_same names i tm handle SAME => tm;
-fun generalizeT names i ty = generalizeT_same names i ty handle SAME => ty;
+fun generalize names i tm = generalize_same names i tm handle Same.SAME => tm;
+fun generalizeT names i ty = generalizeT_same names i ty handle Same.SAME => ty;
 
-fun generalize_option names i tm = SOME (generalize_same names i tm) handle SAME => NONE;
-fun generalizeT_option names i ty = SOME (generalizeT_same names i ty) handle SAME => NONE;
+fun generalize_option names i tm = SOME (generalize_same names i tm) handle Same.SAME => NONE;
+fun generalizeT_option names i ty = SOME (generalizeT_same names i ty) handle Same.SAME => NONE;
 
 end;
 
@@ -148,12 +132,12 @@ fun instantiateT_same maxidx instT ty =
       | subst_typ (TVar ((a, i), S)) =
           (case AList.lookup Term.eq_tvar instT ((a, i), S) of
             SOME (T, j) => (maxify j; T)
-          | NONE => (maxify i; raise SAME))
-      | subst_typ _ = raise SAME
+          | NONE => (maxify i; raise Same.SAME))
+      | subst_typ _ = raise Same.SAME
     and subst_typs (T :: Ts) =
-        (subst_typ T :: (subst_typs Ts handle SAME => Ts)
-          handle SAME => T :: subst_typs Ts)
-      | subst_typs [] = raise SAME;
+        (subst_typ T :: Same.commit subst_typs Ts
+          handle Same.SAME => T :: subst_typs Ts)
+      | subst_typs [] = raise Same.SAME;
   in subst_typ ty end;
 
 fun instantiate_same maxidx (instT, inst) tm =
@@ -164,43 +148,43 @@ fun instantiate_same maxidx (instT, inst) tm =
     fun subst (Const (c, T)) = Const (c, substT T)
       | subst (Free (x, T)) = Free (x, substT T)
       | subst (Var ((x, i), T)) =
-          let val (T', same) = (substT T, false) handle SAME => (T, true) in
+          let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
             (case AList.lookup Term.eq_var inst ((x, i), T') of
                SOME (t, j) => (maxify j; t)
-             | NONE => (maxify i; if same then raise SAME else Var ((x, i), T')))
+             | NONE => (maxify i; if same then raise Same.SAME else Var ((x, i), T')))
           end
-      | subst (Bound _) = raise SAME
+      | subst (Bound _) = raise Same.SAME
       | subst (Abs (x, T, t)) =
-          (Abs (x, substT T, subst t handle SAME => t)
-            handle SAME => Abs (x, T, subst t))
-      | subst (t $ u) = (subst t $ (subst u handle SAME => u) handle SAME => t $ subst u);
+          (Abs (x, substT T, Same.commit subst t)
+            handle Same.SAME => Abs (x, T, subst t))
+      | subst (t $ u) = (subst t $ Same.commit subst u handle Same.SAME => t $ subst u);
   in subst tm end;
 
 in
 
 fun instantiateT_maxidx instT ty i =
   let val maxidx = ref i
-  in (instantiateT_same maxidx instT ty handle SAME => ty, ! maxidx) end;
+  in (instantiateT_same maxidx instT ty handle Same.SAME => ty, ! maxidx) end;
 
 fun instantiate_maxidx insts tm i =
   let val maxidx = ref i
-  in (instantiate_same maxidx insts tm handle SAME => tm, ! maxidx) end;
+  in (instantiate_same maxidx insts tm handle Same.SAME => tm, ! maxidx) end;
 
 fun instantiateT [] ty = ty
   | instantiateT instT ty =
-      (instantiateT_same (ref ~1) (no_indexes1 instT) ty handle SAME => ty);
+      (instantiateT_same (ref ~1) (no_indexes1 instT) ty handle Same.SAME => ty);
 
 fun instantiate ([], []) tm = tm
   | instantiate insts tm =
-      (instantiate_same (ref ~1) (no_indexes2 insts) tm handle SAME => tm);
+      (instantiate_same (ref ~1) (no_indexes2 insts) tm handle Same.SAME => tm);
 
 fun instantiateT_option [] _ = NONE
   | instantiateT_option instT ty =
-      (SOME (instantiateT_same (ref ~1) (no_indexes1 instT) ty) handle SAME => NONE);
+      (SOME (instantiateT_same (ref ~1) (no_indexes1 instT) ty) handle Same.SAME => NONE);
 
 fun instantiate_option ([], []) _ = NONE
   | instantiate_option insts tm =
-      (SOME (instantiate_same (ref ~1) (no_indexes2 insts) tm) handle SAME => NONE);
+      (SOME (instantiate_same (ref ~1) (no_indexes2 insts) tm) handle Same.SAME => NONE);
 
 end;
 
