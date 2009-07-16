@@ -353,8 +353,6 @@ fun expand_proof thy thms prf =
               | (b, SOME prop') => a = b andalso prop = prop') thms)
           then (maxidx, prfs, prf) else
           let
-            fun inc i =
-              map_proof_terms (Logic.incr_indexes ([], i)) (Logic.incr_tvar i);
             val (maxidx', prf, prfs') =
               (case AList.lookup (op =) prfs (a, prop) of
                 NONE =>
@@ -365,11 +363,11 @@ fun expand_proof thy thms prf =
                       (reconstruct_proof thy prop (join_proof body));
                     val (maxidx', prfs', prf) = expand
                       (maxidx_proof prf' ~1) prfs prf'
-                  in (maxidx' + maxidx + 1, inc (maxidx + 1) prf,
+                  in (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf,
                     ((a, prop), (maxidx', prf)) :: prfs')
                   end
               | SOME (maxidx', prf) => (maxidx' + maxidx + 1,
-                  inc (maxidx + 1) prf, prfs));
+                  incr_indexes (maxidx + 1) prf, prfs));
             val tfrees = OldTerm.term_tfrees prop;
             val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
               (OldTerm.term_tvars prop) @ map (rpair ~1 o fst) tfrees ~~ Ts;
