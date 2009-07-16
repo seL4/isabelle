@@ -1232,7 +1232,7 @@ fun incr_indexes i (thm as Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop
   if i < 0 then raise THM ("negative increment", 0, [thm])
   else if i = 0 then thm
   else
-    Thm (deriv_rule1 (Pt.map_proof_terms (Logic.incr_indexes ([], i)) (Logic.incr_tvar i)) der,
+    Thm (deriv_rule1 (Pt.incr_indexes i) der,
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx + i,

@@ -88,6 +88,7 @@ sig
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
   val lift_proof: term -> int -> term -> proof -> proof
+  val incr_indexes: int -> proof -> proof
   val assumption_proof: term list -> term -> int -> proof -> proof
   val bicompose_proof: bool -> term list -> term list -> term list -> term option ->
     int -> int -> proof -> proof -> proof
@@ -746,6 +747,11 @@ fun lift_proof Bi inc prop prf =
   in
     mk_AbsP (k, lift [] [] 0 0 Bi)
   end;
+
+fun incr_indexes i =
+  map_proof_terms_option
+    (Same.capture (Logic.incr_indexes_same ([], i)))
+    (Same.capture (Logic.incr_tvar_same i));
 
 
 (***** proof by assumption *****)
