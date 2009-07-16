@@ -127,9 +127,6 @@ end
 structure Proofterm : PROOFTERM =
 struct
 
-open Envir;
-
-
 (***** datatype proof *****)
 
 datatype proof =
@@ -269,10 +266,10 @@ fun strip_thm (body as PBody {proof, ...}) =
 val mk_Abst = fold_rev (fn (s, T:typ) => fn prf => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
-fun apsome f NONE = raise SAME
-  | apsome f (SOME x) = (case f x of NONE => raise SAME | some => some);
+fun apsome f NONE = raise Same.SAME
+  | apsome f (SOME x) = (case f x of NONE => raise Same.SAME | some => some);
 
-fun apsome' f NONE = raise SAME
+fun apsome' f NONE = raise Same.SAME
   | apsome' f (SOME x) = SOME (f x);
 
 fun map_proof_terms_option f g =
@@ -280,36 +277,36 @@ fun map_proof_terms_option f g =
     fun map_typs (T :: Ts) =
           (case g T of
             NONE => T :: map_typs Ts
-          | SOME T' => T' :: (map_typs Ts handle SAME => Ts))
-      | map_typs [] = raise SAME;
+          | SOME T' => T' :: (map_typs Ts handle Same.SAME => Ts))
+      | map_typs [] = raise Same.SAME;
 
     fun mapp (Abst (s, T, prf)) = (Abst (s, apsome g T, mapph prf)
-          handle SAME => Abst (s, T, mapp prf))
+          handle Same.SAME => Abst (s, T, mapp prf))
       | mapp (AbsP (s, t, prf)) = (AbsP (s, apsome f t, mapph prf)
-          handle SAME => AbsP (s, t, mapp prf))
-      | mapp (prf % t) = (mapp prf % (apsome f t handle SAME => t)
-          handle SAME => prf % apsome f t)
+          handle Same.SAME => AbsP (s, t, mapp prf))
+      | mapp (prf % t) = (mapp prf % (apsome f t handle Same.SAME => t)
+          handle Same.SAME => prf % apsome f t)
       | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
-          handle SAME => prf1 %% mapp prf2)
+          handle Same.SAME => prf1 %% mapp prf2)
       | mapp (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (map_typs Ts))
       | mapp (OfClass (T, c)) = OfClass (apsome g (SOME T) |> the, c)
       | mapp (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (map_typs Ts))
       | mapp (Promise (i, prop, Ts)) = Promise (i, prop, map_typs Ts)
       | mapp (PThm (i, ((a, prop, SOME Ts), body))) =
           PThm (i, ((a, prop, SOME (map_typs Ts)), body))
-      | mapp _ = raise SAME
-    and mapph prf = (mapp prf handle SAME => prf)
+      | mapp _ = raise Same.SAME
+    and mapph prf = (mapp prf handle Same.SAME => prf)
 
   in mapph end;
 
 fun same eq f x =
   let val x' = f x
-  in if eq (x, x') then raise SAME else x' end;
+  in if eq (x, x') then raise Same.SAME else x' end;
 
 fun map_proof_terms f g =
   map_proof_terms_option
-   (fn t => SOME (same (op =) f t) handle SAME => NONE)
-   (fn T => SOME (same (op =) g T) handle SAME => NONE);
+   (fn t => SOME (same (op =) f t) handle Same.SAME => NONE)
+   (fn T => SOME (same (op =) g T) handle Same.SAME => NONE);
 
 fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g prf
   | fold_proof_terms f g (Abst (_, NONE, prf)) = fold_proof_terms f g prf
@@ -359,20 +356,20 @@ fun prf_abstract_over v =
     fun abst' lev u = if v aconv u then Bound lev else
       (case u of
          Abs (a, T, t) => Abs (a, T, abst' (lev + 1) t)
-       | f $ t => (abst' lev f $ absth' lev t handle SAME => f $ abst' lev t)
-       | _ => raise SAME)
-    and absth' lev t = (abst' lev t handle SAME => t);
+       | f $ t => (abst' lev f $ absth' lev t handle Same.SAME => f $ abst' lev t)
+       | _ => raise Same.SAME)
+    and absth' lev t = (abst' lev t handle Same.SAME => t);
 
     fun abst lev (AbsP (a, t, prf)) =
           (AbsP (a, apsome' (abst' lev) t, absth lev prf)
-           handle SAME => AbsP (a, t, abst lev prf))
+           handle Same.SAME => AbsP (a, t, abst lev prf))
       | abst lev (Abst (a, T, prf)) = Abst (a, T, abst (lev + 1) prf)
       | abst lev (prf1 %% prf2) = (abst lev prf1 %% absth lev prf2
-          handle SAME => prf1 %% abst lev prf2)
+          handle Same.SAME => prf1 %% abst lev prf2)
       | abst lev (prf % t) = (abst lev prf % Option.map (absth' lev) t
-          handle SAME => prf % apsome' (abst' lev) t)
-      | abst _ _ = raise SAME
-    and absth lev prf = (abst lev prf handle SAME => prf)
+          handle Same.SAME => prf % apsome' (abst' lev) t)
+      | abst _ _ = raise Same.SAME
+    and absth lev prf = (abst lev prf handle Same.SAME => prf)
 
   in absth 0 end;
 
@@ -385,22 +382,22 @@ fun prf_abstract_over v =
 fun incr_bv' inct tlev t = incr_bv (inct, tlev, t);
 
 fun prf_incr_bv' incP inct Plev tlev (PBound i) =
-      if i >= Plev then PBound (i+incP) else raise SAME
+      if i >= Plev then PBound (i+incP) else raise Same.SAME
   | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
       (AbsP (a, apsome' (same (op =) (incr_bv' inct tlev)) t,
-         prf_incr_bv incP inct (Plev+1) tlev body) handle SAME =>
+         prf_incr_bv incP inct (Plev+1) tlev body) handle Same.SAME =>
            AbsP (a, t, prf_incr_bv' incP inct (Plev+1) tlev body))
   | prf_incr_bv' incP inct Plev tlev (Abst (a, T, body)) =
       Abst (a, T, prf_incr_bv' incP inct Plev (tlev+1) body)
   | prf_incr_bv' incP inct Plev tlev (prf %% prf') =
       (prf_incr_bv' incP inct Plev tlev prf %% prf_incr_bv incP inct Plev tlev prf'
-       handle SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
+       handle Same.SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
   | prf_incr_bv' incP inct Plev tlev (prf % t) =
       (prf_incr_bv' incP inct Plev tlev prf % Option.map (incr_bv' inct tlev) t
-       handle SAME => prf % apsome' (same (op =) (incr_bv' inct tlev)) t)
-  | prf_incr_bv' _ _ _ _ _ = raise SAME
+       handle Same.SAME => prf % apsome' (same (op =) (incr_bv' inct tlev)) t)
+  | prf_incr_bv' _ _ _ _ _ = raise Same.SAME
 and prf_incr_bv incP inct Plev tlev prf =
-      (prf_incr_bv' incP inct Plev tlev prf handle SAME => prf);
+      (prf_incr_bv' incP inct Plev tlev prf handle Same.SAME => prf);
 
 fun incr_pboundvars  0 0 prf = prf
   | incr_pboundvars incP inct prf = prf_incr_bv incP inct 0 0 prf;
@@ -448,7 +445,7 @@ fun del_conflicting_tvars envT T = Term_Subst.instantiateT
 
 fun del_conflicting_vars env t = Term_Subst.instantiate
   (map_filter (fn ixnS as (_, S) =>
-     (Type.lookup (type_env env) ixnS; NONE) handle TYPE _ =>
+     (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (OldTerm.term_tvars t),
    map_filter (fn Var (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
@@ -456,7 +453,7 @@ fun del_conflicting_vars env t = Term_Subst.instantiate
 
 fun norm_proof env =
   let
-    val envT = type_env env;
+    val envT = Envir.type_env env;
     fun msg s = warning ("type conflict in norm_proof:\n" ^ s);
     fun htype f t = f env t handle TYPE (s, _, _) =>
       (msg s; f env (del_conflicting_vars env t));
@@ -464,23 +461,30 @@ fun norm_proof env =
       (msg s; f envT (del_conflicting_tvars envT T));
     fun htypeTs f Ts = f envT Ts handle TYPE (s, _, _) =>
       (msg s; f envT (map (del_conflicting_tvars envT) Ts));
-    fun norm (Abst (s, T, prf)) = (Abst (s, apsome' (htypeT norm_type_same) T, normh prf)
-          handle SAME => Abst (s, T, norm prf))
-      | norm (AbsP (s, t, prf)) = (AbsP (s, apsome' (htype norm_term_same) t, normh prf)
-          handle SAME => AbsP (s, t, norm prf))
-      | norm (prf % t) = (norm prf % Option.map (htype norm_term) t
-          handle SAME => prf % apsome' (htype norm_term_same) t)
-      | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
-          handle SAME => prf1 %% norm prf2)
-      | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (htypeTs norm_types_same) Ts)
-      | norm (OfClass (T, c)) = OfClass (htypeT norm_type_same T, c)
-      | norm (Oracle (s, prop, Ts)) = Oracle (s, prop, apsome' (htypeTs norm_types_same) Ts)
-      | norm (Promise (i, prop, Ts)) = Promise (i, prop, htypeTs norm_types_same Ts)
+    fun norm (Abst (s, T, prf)) =
+          (Abst (s, apsome' (htypeT Envir.norm_type_same) T, Same.commit norm prf)
+            handle Same.SAME => Abst (s, T, norm prf))
+      | norm (AbsP (s, t, prf)) =
+          (AbsP (s, apsome' (htype Envir.norm_term_same) t, Same.commit norm prf)
+            handle Same.SAME => AbsP (s, t, norm prf))
+      | norm (prf % t) =
+          (norm prf % Option.map (htype Envir.norm_term) t
+            handle Same.SAME => prf % apsome' (htype Envir.norm_term_same) t)
+      | norm (prf1 %% prf2) =
+          (norm prf1 %% Same.commit norm prf2
+            handle Same.SAME => prf1 %% norm prf2)
+      | norm (PAxm (s, prop, Ts)) =
+          PAxm (s, prop, apsome' (htypeTs Envir.norm_types_same) Ts)
+      | norm (OfClass (T, c)) =
+          OfClass (htypeT Envir.norm_type_same T, c)
+      | norm (Oracle (s, prop, Ts)) =
+          Oracle (s, prop, apsome' (htypeTs Envir.norm_types_same) Ts)
+      | norm (Promise (i, prop, Ts)) =
+          Promise (i, prop, htypeTs Envir.norm_types_same Ts)
       | norm (PThm (i, ((s, t, Ts), body))) =
-          PThm (i, ((s, t, apsome' (htypeTs norm_types_same) Ts), body))
-      | norm _ = raise SAME
-    and normh prf = (norm prf handle SAME => prf);
-  in normh end;
+          PThm (i, ((s, t, apsome' (htypeTs Envir.norm_types_same) Ts), body))
+      | norm _ = raise Same.SAME;
+  in Same.commit norm end;
 
 
 (***** Remove some types in proof term (to save space) *****)
@@ -503,40 +507,40 @@ fun prf_subst_bounds args prf =
   let
     val n = length args;
     fun subst' lev (Bound i) =
-         (if i<lev then raise SAME    (*var is locally bound*)
+         (if i<lev then raise Same.SAME    (*var is locally bound*)
           else  incr_boundvars lev (nth args (i-lev))
                   handle Subscript => Bound (i-n))  (*loose: change it*)
       | subst' lev (Abs (a, T, body)) = Abs (a, T,  subst' (lev+1) body)
       | subst' lev (f $ t) = (subst' lev f $ substh' lev t
-          handle SAME => f $ subst' lev t)
-      | subst' _ _ = raise SAME
-    and substh' lev t = (subst' lev t handle SAME => t);
+          handle Same.SAME => f $ subst' lev t)
+      | subst' _ _ = raise Same.SAME
+    and substh' lev t = (subst' lev t handle Same.SAME => t);
 
     fun subst lev (AbsP (a, t, body)) = (AbsP (a, apsome' (subst' lev) t, substh lev body)
-          handle SAME => AbsP (a, t, subst lev body))
+          handle Same.SAME => AbsP (a, t, subst lev body))
       | subst lev (Abst (a, T, body)) = Abst (a, T, subst (lev+1) body)
       | subst lev (prf %% prf') = (subst lev prf %% substh lev prf'
-          handle SAME => prf %% subst lev prf')
+          handle Same.SAME => prf %% subst lev prf')
       | subst lev (prf % t) = (subst lev prf % Option.map (substh' lev) t
-          handle SAME => prf % apsome' (subst' lev) t)
-      | subst _ _ = raise SAME
-    and substh lev prf = (subst lev prf handle SAME => prf)
+          handle Same.SAME => prf % apsome' (subst' lev) t)
+      | subst _ _ = raise Same.SAME
+    and substh lev prf = (subst lev prf handle Same.SAME => prf)
   in case args of [] => prf | _ => substh 0 prf end;
 
 fun prf_subst_pbounds args prf =
   let
     val n = length args;
     fun subst (PBound i) Plev tlev =
-         (if i < Plev then raise SAME    (*var is locally bound*)
+         (if i < Plev then raise Same.SAME    (*var is locally bound*)
           else incr_pboundvars Plev tlev (nth args (i-Plev))
                  handle Subscript => PBound (i-n)  (*loose: change it*))
       | subst (AbsP (a, t, body)) Plev tlev = AbsP (a, t, subst body (Plev+1) tlev)
       | subst (Abst (a, T, body)) Plev tlev = Abst (a, T, subst body Plev (tlev+1))
       | subst (prf %% prf') Plev tlev = (subst prf Plev tlev %% substh prf' Plev tlev
-          handle SAME => prf %% subst prf' Plev tlev)
+          handle Same.SAME => prf %% subst prf' Plev tlev)
       | subst (prf % t) Plev tlev = subst prf Plev tlev % t
-      | subst  prf _ _ = raise SAME
-    and substh prf Plev tlev = (subst prf Plev tlev handle SAME => prf)
+      | subst  prf _ _ = raise Same.SAME
+    and substh prf Plev tlev = (subst prf Plev tlev handle Same.SAME => prf)
   in case args of [] => prf | _ => substh prf 0 0 end;
 
 
@@ -598,14 +602,14 @@ fun freeze_thaw_prf prf =
 
 fun implies_intr_proof h prf =
   let
-    fun abshyp i (Hyp t) = if h aconv t then PBound i else raise SAME
+    fun abshyp i (Hyp t) = if h aconv t then PBound i else raise Same.SAME
       | abshyp i (Abst (s, T, prf)) = Abst (s, T, abshyp i prf)
       | abshyp i (AbsP (s, t, prf)) = AbsP (s, t, abshyp (i+1) prf)
       | abshyp i (prf % t) = abshyp i prf % t
       | abshyp i (prf1 %% prf2) = (abshyp i prf1 %% abshyph i prf2
-          handle SAME => prf1 %% abshyp i prf2)
-      | abshyp _ _ = raise SAME
-    and abshyph i prf = (abshyp i prf handle SAME => prf)
+          handle Same.SAME => prf1 %% abshyp i prf2)
+      | abshyp _ _ = raise Same.SAME
+    and abshyph i prf = (abshyp i prf handle Same.SAME => prf)
   in
     AbsP ("H", NONE (*h*), abshyph 0 prf)
   end;
@@ -709,14 +713,14 @@ fun lift_proof Bi inc prop prf =
 
     fun lift' Us Ts (Abst (s, T, prf)) =
           (Abst (s, apsome' (same (op =) (Logic.incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
-           handle SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
+           handle Same.SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
       | lift' Us Ts (AbsP (s, t, prf)) =
           (AbsP (s, apsome' (same (op =) (lift'' Us Ts)) t, lifth' Us Ts prf)
-           handle SAME => AbsP (s, t, lift' Us Ts prf))
+           handle Same.SAME => AbsP (s, t, lift' Us Ts prf))
       | lift' Us Ts (prf % t) = (lift' Us Ts prf % Option.map (lift'' Us Ts) t
-          handle SAME => prf % apsome' (same (op =) (lift'' Us Ts)) t)
+          handle Same.SAME => prf % apsome' (same (op =) (lift'' Us Ts)) t)
       | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
-          handle SAME => prf1 %% lift' Us Ts prf2)
+          handle Same.SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PAxm (s, prop, Ts)) =
           PAxm (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ (OfClass (T, c)) =
@@ -727,8 +731,8 @@ fun lift_proof Bi inc prop prf =
           Promise (i, prop, same (op =) (map (Logic.incr_tvar inc)) Ts)
       | lift' _ _ (PThm (i, ((s, prop, Ts), body))) =
           PThm (i, ((s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts), body))
-      | lift' _ _ _ = raise SAME
-    and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
+      | lift' _ _ _ = raise Same.SAME
+    and lifth' Us Ts prf = (lift' Us Ts prf handle Same.SAME => prf);
 
     val ps = map (Logic.lift_all inc Bi) (Logic.strip_imp_prems prop);
     val k = length ps;
