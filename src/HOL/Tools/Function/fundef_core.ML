@@ -179,16 +179,17 @@ fun mk_clause_context x ctxt (pre_qs,pre_gs,pre_lhs,pre_rhs) =
 (* lowlevel term function *)
 fun abstract_over_list vs body =
   let
-    exception SAME;
     fun abs lev v tm =
       if v aconv tm then Bound lev
       else
         (case tm of
           Abs (a, T, t) => Abs (a, T, abs (lev + 1) v t)
-        | t $ u => (abs lev v t $ (abs lev v u handle SAME => u) handle SAME => t $ abs lev v u)
-        | _ => raise SAME);
+        | t $ u =>
+            (abs lev v t $ (abs lev v u handle Same.SAME => u)
+              handle Same.SAME => t $ abs lev v u)
+        | _ => raise Same.SAME);
   in
-    fold_index (fn (i,v) => fn t => abs i v t handle SAME => t) vs body
+    fold_index (fn (i, v) => fn t => abs i v t handle Same.SAME => t) vs body
   end
 
 
