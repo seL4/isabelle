@@ -33,11 +33,12 @@ use "General/antiquote.ML";
 use "ML/ml_lex.ML";
 use "ML/ml_parse.ML";
 use "General/secure.ML";
-(*----- basic ML bootstrap finished -----*)
+(*^^^^^ end of basic ML bootstrap ^^^^^*)
 use "General/integer.ML";
 use "General/stack.ML";
 use "General/queue.ML";
 use "General/heap.ML";
+use "General/same.ML";
 use "General/ord_list.ML";
 use "General/balanced_tree.ML";
 use "General/graph.ML";
