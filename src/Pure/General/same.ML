@@ -14,6 +14,7 @@ sig
   val function: ('a -> 'b option) -> ('a, 'b) function
   val capture: ('a, 'b) function -> 'a -> 'b option
   val map: 'a operation -> 'a list operation
+  val map_option: ('a, 'b) function -> ('a option, 'b option) function
 end;
 
 structure Same: SAME =
@@ -35,5 +36,8 @@ fun function f x =
 
 fun map f [] = raise SAME
   | map f (x :: xs) = (f x :: commit (map f) xs handle SAME => x :: map f xs);
+
+fun map_option f NONE = raise SAME
+  | map_option f (SOME x) = SOME (f x);
 
 end;
