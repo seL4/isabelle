@@ -13,6 +13,7 @@ sig
   val commit: 'a operation -> 'a -> 'a
   val function: ('a -> 'b option) -> ('a, 'b) function
   val capture: ('a, 'b) function -> 'a -> 'b option
+  val map: 'a operation -> 'a list operation
 end;
 
 structure Same: SAME =
@@ -32,5 +33,7 @@ fun function f x =
     NONE => raise SAME
   | SOME y => y);
 
+fun map f [] = raise SAME
+  | map f (x :: xs) = (f x :: commit (map f) xs handle SAME => x :: map f xs);
 
 end;
