@@ -54,8 +54,9 @@ sig
   val close_form: term -> term
   val combound: term * int * int -> term
   val rlist_abs: (string * typ) list * term -> term
-  val incr_indexes: typ list * int -> term -> term
+  val incr_tvar_same: int -> typ Same.operation
   val incr_tvar: int -> typ -> typ
+  val incr_indexes: typ list * int -> term -> term
   val lift_abs: int -> term -> term -> term
   val lift_all: int -> term -> term -> term
   val strip_assums_hyp: term -> term list
@@ -303,10 +304,12 @@ fun combound (t, n, k) =
 fun rlist_abs ([], body) = body
   | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
 
-
-fun incrT k = Term_Subst.map_atypsT_same
+fun incr_tvar_same k = Term_Subst.map_atypsT_same
   (fn TVar ((a, i), S) => TVar ((a, i + k), S)
     | _ => raise Same.SAME);
+
+fun incr_tvar 0 T = T
+  | incr_tvar k T = incr_tvar_same k T handle Same.SAME => T;
 
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
@@ -314,7 +317,7 @@ fun incr_indexes ([], 0) t = t
   | incr_indexes (Ts, k) t =
       let
         val n = length Ts;
-        val incrT = if k = 0 then I else incrT k;
+        val incrT = if k = 0 then I else incr_tvar_same k;
 
         fun incr lev (Var ((x, i), T)) =
               combound (Var ((x, i + k), Ts ---> Same.commit incrT T), lev, n)
@@ -328,9 +331,6 @@ fun incr_indexes ([], 0) t = t
           | incr _ (Free (x, T)) = Free (x, incrT T)
           | incr _ (t as Bound _) = t;
       in incr 0 t handle Same.SAME => t end;
-
-fun incr_tvar 0 T = T
-  | incr_tvar k T = incrT k T handle Same.SAME => T;
 
 
 (* Lifting functions from subgoal and increment:
