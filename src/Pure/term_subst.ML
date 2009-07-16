@@ -39,10 +39,8 @@ struct
 
 fun map_atypsT_same f =
   let
-    fun typ (Type (a, Ts)) = Type (a, typs Ts)
-      | typ T = f T
-    and typs (T :: Ts) = (typ T :: Same.commit typs Ts handle Same.SAME => T :: typs Ts)
-      | typs [] = raise Same.SAME;
+    fun typ (Type (a, Ts)) = Type (a, Same.map typ Ts)
+      | typ T = f T;
   in typ end;
 
 fun map_types_same f =
@@ -50,7 +48,7 @@ fun map_types_same f =
     fun term (Const (a, T)) = Const (a, f T)
       | term (Free (a, T)) = Free (a, f T)
       | term (Var (v, T)) = Var (v, f T)
-      | term (Bound _)  = raise Same.SAME
+      | term (Bound _) = raise Same.SAME
       | term (Abs (x, T, t)) =
           (Abs (x, f T, Same.commit term t)
             handle Same.SAME => Abs (x, T, term t))
@@ -77,16 +75,12 @@ local
 fun generalizeT_same [] _ _ = raise Same.SAME
   | generalizeT_same tfrees idx ty =
       let
-        fun gen_typ (Type (a, Ts)) = Type (a, gen_typs Ts)
-          | gen_typ (TFree (a, S)) =
+        fun gen (Type (a, Ts)) = Type (a, Same.map gen Ts)
+          | gen (TFree (a, S)) =
               if member (op =) tfrees a then TVar ((a, idx), S)
               else raise Same.SAME
-          | gen_typ _ = raise Same.SAME
-        and gen_typs (T :: Ts) =
-            (gen_typ T :: Same.commit gen_typs Ts
-              handle Same.SAME => T :: gen_typs Ts)
-          | gen_typs [] = raise Same.SAME;
-      in gen_typ ty end;
+          | gen _ = raise Same.SAME;
+      in gen ty end;
 
 fun generalize_same ([], []) _ _ = raise Same.SAME
   | generalize_same (tfrees, frees) idx tm =

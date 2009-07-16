@@ -304,44 +304,33 @@ fun rlist_abs ([], body) = body
   | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
 
 
-local exception SAME in
-
-fun incrT k =
-  let
-    fun incr (TVar ((a, i), S)) = TVar ((a, i + k), S)
-      | incr (Type (a, Ts)) = Type (a, incrs Ts)
-      | incr _ = raise SAME
-    and incrs (T :: Ts) =
-        (incr T :: (incrs Ts handle SAME => Ts)
-          handle SAME => T :: incrs Ts)
-      | incrs [] = raise SAME;
-  in incr end;
+fun incrT k = Term_Subst.map_atypsT_same
+  (fn TVar ((a, i), S) => TVar ((a, i + k), S)
+    | _ => raise Same.SAME);
 
 (*For all variables in the term, increment indexnames and lift over the Us
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
 fun incr_indexes ([], 0) t = t
   | incr_indexes (Ts, k) t =
-  let
-    val n = length Ts;
-    val incrT = if k = 0 then I else incrT k;
+      let
+        val n = length Ts;
+        val incrT = if k = 0 then I else incrT k;
 
-    fun incr lev (Var ((x, i), T)) =
-          combound (Var ((x, i + k), Ts ---> (incrT T handle SAME => T)), lev, n)
-      | incr lev (Abs (x, T, body)) =
-          (Abs (x, incrT T, incr (lev + 1) body handle SAME => body)
-            handle SAME => Abs (x, T, incr (lev + 1) body))
-      | incr lev (t $ u) =
-          (incr lev t $ (incr lev u handle SAME => u)
-            handle SAME => t $ incr lev u)
-      | incr _ (Const (c, T)) = Const (c, incrT T)
-      | incr _ (Free (x, T)) = Free (x, incrT T)
-      | incr _ (t as Bound _) = t;
-  in incr 0 t handle SAME => t end;
+        fun incr lev (Var ((x, i), T)) =
+              combound (Var ((x, i + k), Ts ---> Same.commit incrT T), lev, n)
+          | incr lev (Abs (x, T, body)) =
+              (Abs (x, incrT T, incr (lev + 1) body handle Same.SAME => body)
+                handle Same.SAME => Abs (x, T, incr (lev + 1) body))
+          | incr lev (t $ u) =
+              (incr lev t $ (incr lev u handle Same.SAME => u)
+                handle Same.SAME => t $ incr lev u)
+          | incr _ (Const (c, T)) = Const (c, incrT T)
+          | incr _ (Free (x, T)) = Free (x, incrT T)
+          | incr _ (t as Bound _) = t;
+      in incr 0 t handle Same.SAME => t end;
 
 fun incr_tvar 0 T = T
-  | incr_tvar k T = incrT k T handle SAME => T;
-
-end;
+  | incr_tvar k T = incrT k T handle Same.SAME => T;
 
 
 (* Lifting functions from subgoal and increment:
@@ -473,35 +462,35 @@ fun assum_problems (nasms, A) =
 fun bad_schematic xi = "Illegal schematic variable: " ^ quote (Term.string_of_vname xi);
 fun bad_fixed x = "Illegal fixed variable: " ^ quote x;
 
-fun varifyT_option ty = ty
-  |> Term_Subst.map_atypsT_option
-    (fn TFree (a, S) => SOME (TVar ((a, 0), S))
+fun varifyT_same ty = ty
+  |> Term_Subst.map_atypsT_same
+    (fn TFree (a, S) => TVar ((a, 0), S)
       | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], []));
 
-fun unvarifyT_option ty = ty
-  |> Term_Subst.map_atypsT_option
-    (fn TVar ((a, 0), S) => SOME (TFree (a, S))
+fun unvarifyT_same ty = ty
+  |> Term_Subst.map_atypsT_same
+    (fn TVar ((a, 0), S) => TFree (a, S)
       | TVar (ai, _) => raise TYPE (bad_schematic ai, [ty], [])
       | TFree (a, _) => raise TYPE (bad_fixed a, [ty], []));
 
-val varifyT = perhaps varifyT_option;
-val unvarifyT = perhaps unvarifyT_option;
+val varifyT = Same.commit varifyT_same;
+val unvarifyT = Same.commit unvarifyT_same;
 
 fun varify tm = tm
-  |> perhaps (Term_Subst.map_aterms_option
-    (fn Free (x, T) => SOME (Var ((x, 0), T))
+  |> Same.commit (Term_Subst.map_aterms_same
+    (fn Free (x, T) => Var ((x, 0), T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
-      | _ => NONE))
-  |> perhaps (Term_Subst.map_types_option varifyT_option)
+      | _ => raise Same.SAME))
+  |> Same.commit (Term_Subst.map_types_same varifyT_same)
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 fun unvarify tm = tm
-  |> perhaps (Term_Subst.map_aterms_option
-    (fn Var ((x, 0), T) => SOME (Free (x, T))
+  |> Same.commit (Term_Subst.map_aterms_same
+    (fn Var ((x, 0), T) => Free (x, T)
       | Var (xi, _) => raise TERM (bad_schematic xi, [tm])
       | Free (x, _) => raise TERM (bad_fixed x, [tm])
-      | _ => NONE))
-  |> perhaps (Term_Subst.map_types_option unvarifyT_option)
+      | _ => raise Same.SAME))
+  |> Same.commit (Term_Subst.map_types_same unvarifyT_same)
   handle TYPE (msg, _, _) => raise TERM (msg, [tm]);
 
 

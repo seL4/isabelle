@@ -634,31 +634,31 @@ fun loose_bvar1(Bound i,k) = i = k
 *)
 fun subst_bounds (args: term list, t) : term =
   let
-    exception SAME;
     val n = length args;
     fun subst (t as Bound i, lev) =
-         (if i < lev then raise SAME   (*var is locally bound*)
+         (if i < lev then raise Same.SAME   (*var is locally bound*)
           else incr_boundvars lev (nth args (i - lev))
             handle Subscript => Bound (i - n))  (*loose: change it*)
       | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
       | subst (f $ t, lev) =
-          (subst (f, lev) $ (subst (t, lev) handle SAME => t) handle SAME => f $ subst (t, lev))
-      | subst _ = raise SAME;
-  in case args of [] => t | _ => (subst (t, 0) handle SAME => t) end;
+          (subst (f, lev) $ (subst (t, lev) handle Same.SAME => t)
+            handle Same.SAME => f $ subst (t, lev))
+      | subst _ = raise Same.SAME;
+  in case args of [] => t | _ => (subst (t, 0) handle Same.SAME => t) end;
 
 (*Special case: one argument*)
 fun subst_bound (arg, t) : term =
   let
-    exception SAME;
     fun subst (Bound i, lev) =
-          if i < lev then raise SAME   (*var is locally bound*)
+          if i < lev then raise Same.SAME   (*var is locally bound*)
           else if i = lev then incr_boundvars lev arg
           else Bound (i - 1)   (*loose: change it*)
       | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
       | subst (f $ t, lev) =
-          (subst (f, lev) $ (subst (t, lev) handle SAME => t) handle SAME => f $ subst (t, lev))
-      | subst _ = raise SAME;
-  in subst (t, 0) handle SAME => t end;
+          (subst (f, lev) $ (subst (t, lev) handle Same.SAME => t)
+            handle Same.SAME => f $ subst (t, lev))
+      | subst _ = raise Same.SAME;
+  in subst (t, 0) handle Same.SAME => t end;
 
 (*beta-reduce if possible, else form application*)
 fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
@@ -708,15 +708,16 @@ fun subst_free [] = I
   The resulting term is ready to become the body of an Abs.*)
 fun abstract_over (v, body) =
   let
-    exception SAME;
     fun abs lev tm =
       if v aconv tm then Bound lev
       else
         (case tm of
           Abs (a, T, t) => Abs (a, T, abs (lev + 1) t)
-        | t $ u => (abs lev t $ (abs lev u handle SAME => u) handle SAME => t $ abs lev u)
-        | _ => raise SAME);
-  in abs 0 body handle SAME => body end;
+        | t $ u =>
+            (abs lev t $ (abs lev u handle Same.SAME => u)
+              handle Same.SAME => t $ abs lev u)
+        | _ => raise Same.SAME);
+  in abs 0 body handle Same.SAME => body end;
 
 fun lambda v t =
   let val x =
