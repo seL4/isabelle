@@ -8,11 +8,10 @@ since they may change the identity of a variable.
 
 signature ENVIR =
 sig
-  type tenv
+  type tenv = (typ * term) Vartab.table
   datatype env = Envir of {asol: tenv, iTs: Type.tyenv, maxidx: int}
   val type_env: env -> Type.tyenv
   val insert_sorts: env -> sort list -> sort list
-  exception SAME
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
   val lookup: env * (indexname * typ) -> term option
@@ -23,11 +22,11 @@ sig
   val above: env -> int -> bool
   val vupdate: ((indexname * typ) * term) * env -> env
   val alist_of: env -> (indexname * (typ * term)) list
-  val norm_term: env -> term -> term
-  val norm_term_same: env -> term -> term
+  val norm_type_same: Type.tyenv -> typ Same.operation
+  val norm_types_same: Type.tyenv -> typ list Same.operation
   val norm_type: Type.tyenv -> typ -> typ
-  val norm_type_same: Type.tyenv -> typ -> typ
-  val norm_types_same: Type.tyenv -> typ list -> typ list
+  val norm_term_same: env -> term Same.operation
+  val norm_term: env -> term -> term
   val beta_norm: term -> term
   val head_norm: env -> term -> term
   val eta_contract: term -> term
@@ -48,12 +47,12 @@ struct
 (*updating can destroy environment in 2 ways!!
    (1) variables out of range   (2) circular assignments
 *)
-type tenv = (typ * term) Vartab.table
+type tenv = (typ * term) Vartab.table;
 
 datatype env = Envir of
-    {maxidx: int,      (*maximum index of vars*)
-     asol: tenv,       (*table of assignments to Vars*)
-     iTs: Type.tyenv}  (*table of assignments to TVars*)
+ {maxidx: int,      (*maximum index of vars*)
+  asol: tenv,       (*assignments to Vars*)
+  iTs: Type.tyenv}; (*assignments to TVars*)
 
 fun type_env (Envir {iTs, ...}) = iTs;
 
@@ -63,27 +62,27 @@ val insert_sorts = Vartab.fold (fn (_, (_, T)) => Sorts.insert_typ T) o type_env
 (*Generate a list of distinct variables.
   Increments index to make them distinct from ALL present variables. *)
 fun genvars name (Envir{maxidx, asol, iTs}, Ts) : env * term list =
-  let fun genvs (_, [] : typ list) : term list = []
-        | genvs (n, [T]) = [ Var((name, maxidx+1), T) ]
-        | genvs (n, T::Ts) =
-            Var((name ^ radixstring(26,"a",n), maxidx+1), T)
-            :: genvs(n+1,Ts)
-  in  (Envir{maxidx=maxidx+1, asol=asol, iTs=iTs}, genvs (0,Ts))  end;
+  let
+    fun genvs (_, [] : typ list) : term list = []
+      | genvs (n, [T]) = [Var ((name, maxidx + 1), T)]
+      | genvs (n, T :: Ts) =
+          Var ((name ^ radixstring (26, "a" , n), maxidx + 1), T)
+            :: genvs (n + 1, Ts);
+  in (Envir {maxidx = maxidx + 1, asol = asol, iTs = iTs}, genvs (0, Ts)) end;
 
 (*Generate a variable.*)
-fun genvar name (env,T) : env * term =
-  let val (env',[v]) = genvars name (env,[T])
-  in  (env',v)  end;
+fun genvar name (env, T) : env * term =
+  let val (env', [v]) = genvars name (env, [T])
+  in (env', v) end;
 
 fun var_clash ixn T T' = raise TYPE ("Variable " ^
-  quote (Term.string_of_vname ixn) ^ " has two distinct types",
-  [T', T], []);
+    quote (Term.string_of_vname ixn) ^ " has two distinct types",
+    [T', T], []);
 
 fun gen_lookup f asol (xname, T) =
   (case Vartab.lookup asol xname of
-     NONE => NONE
-   | SOME (U, t) => if f (T, U) then SOME t
-       else var_clash xname T U);
+    NONE => NONE
+  | SOME (U, t) => if f (T, U) then SOME t else var_clash xname T U);
 
 (* When dealing with environments produced by matching instead *)
 (* of unification, there is no need to chase assigned TVars.   *)
@@ -99,10 +98,10 @@ fun lookup2 (iTs, asol) p =
 fun lookup (Envir {asol, iTs, ...}, p) = lookup2 (iTs, asol) p;
 
 fun update (((xname, T), t), Envir {maxidx, asol, iTs}) =
-  Envir{maxidx=maxidx, asol=Vartab.update_new (xname, (T, t)) asol, iTs=iTs};
+  Envir {maxidx = maxidx, asol = Vartab.update_new (xname, (T, t)) asol, iTs = iTs};
 
 (*The empty environment.  New variables will start with the given index+1.*)
-fun empty m = Envir{maxidx=m, asol=Vartab.empty, iTs=Vartab.empty};
+fun empty m = Envir {maxidx = m, asol = Vartab.empty, iTs = Vartab.empty};
 
 (*Test for empty environment*)
 fun is_empty (Envir {asol, iTs, ...}) = Vartab.is_empty asol andalso Vartab.is_empty iTs;
@@ -132,118 +131,123 @@ fun alist_of (Envir{asol,...}) = Vartab.dest asol;
      Chases variables in env;  Does not exploit sharing of variable bindings
      Does not check types, so could loop. ***)
 
-(*raised when norm has no effect on a term, to do sharing instead of copying*)
-exception SAME;
+local
 
-fun norm_term1 same (asol,t) : term =
-  let fun norm (Var wT) =
-            (case lookup' (asol, wT) of
-                SOME u => (norm u handle SAME => u)
-              | NONE   => raise SAME)
-        | norm (Abs(a,T,body)) =  Abs(a, T, norm body)
-        | norm (Abs(_,_,body) $ t) = normh(subst_bound (t, body))
-        | norm (f $ t) =
-            ((case norm f of
-               Abs(_,_,body) => normh(subst_bound (t, body))
-             | nf => nf $ (norm t handle SAME => t))
-            handle SAME => f $ norm t)
-        | norm _ =  raise SAME
-      and normh t = norm t handle SAME => t
-  in (if same then norm else normh) t end
+fun norm_type0 iTs : typ Same.operation =
+  let
+    fun norm (Type (a, Ts)) = Type (a, Same.map norm Ts)
+      | norm (TFree _) = raise Same.SAME
+      | norm (TVar v) =
+          (case Type.lookup iTs v of
+            SOME U => Same.commit norm U
+          | NONE => raise Same.SAME);
+  in norm end;
 
-fun normT iTs (Type (a, Ts)) = Type (a, normTs iTs Ts)
-  | normT iTs (TFree _) = raise SAME
-  | normT iTs (TVar vS) = (case Type.lookup iTs vS of
-          SOME U => normTh iTs U
-        | NONE => raise SAME)
-and normTh iTs T = ((normT iTs T) handle SAME => T)
-and normTs iTs [] = raise SAME
-  | normTs iTs (T :: Ts) =
-      ((normT iTs T :: (normTs iTs Ts handle SAME => Ts))
-       handle SAME => T :: normTs iTs Ts);
+fun norm_term1 asol : term Same.operation =
+  let
+    fun norm (Var v) =
+          (case lookup' (asol, v) of
+            SOME u => Same.commit norm u
+          | NONE => raise Same.SAME)
+      | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
+      | norm (Abs (_, _, body) $ t) = Same.commit norm (subst_bound (t, body))
+      | norm (f $ t) =
+          ((case norm f of
+             Abs (_, _, body) => Same.commit norm (subst_bound (t, body))
+           | nf => nf $ Same.commit norm t)
+          handle Same.SAME => f $ norm t)
+      | norm _ = raise Same.SAME;
+  in norm end;
 
-fun norm_term2 same (asol, iTs, t) : term =
-  let fun norm (Const (a, T)) = Const(a, normT iTs T)
-        | norm (Free (a, T)) = Free(a, normT iTs T)
-        | norm (Var (w, T)) =
-            (case lookup2 (iTs, asol) (w, T) of
-                SOME u => normh u
-              | NONE   => Var(w, normT iTs T))
-        | norm (Abs (a, T, body)) =
-               (Abs (a, normT iTs T, normh body) handle SAME => Abs (a, T, norm body))
-        | norm (Abs(_, _, body) $ t) = normh (subst_bound (t, body))
-        | norm (f $ t) =
-            ((case norm f of
-               Abs(_, _, body) => normh (subst_bound (t, body))
-             | nf => nf $ normh t)
-            handle SAME => f $ norm t)
-        | norm _ =  raise SAME
-      and normh t = (norm t) handle SAME => t
-  in (if same then norm else normh) t end;
+fun norm_term2 asol iTs : term Same.operation =
+  let
+    val normT = norm_type0 iTs;
+    fun norm (Const (a, T)) = Const (a, normT T)
+      | norm (Free (a, T)) = Free (a, normT T)
+      | norm (Var (xi, T)) =
+          (case lookup2 (iTs, asol) (xi, T) of
+            SOME u => Same.commit norm u
+          | NONE => Var (xi, normT T))
+      | norm (Abs (a, T, body)) =
+          (Abs (a, normT T, Same.commit norm body)
+            handle Same.SAME => Abs (a, T, norm body))
+      | norm (Abs (_, _, body) $ t) = Same.commit norm (subst_bound (t, body))
+      | norm (f $ t) =
+          ((case norm f of
+             Abs (_, _, body) => Same.commit norm (subst_bound (t, body))
+           | nf => nf $ Same.commit norm t)
+          handle Same.SAME => f $ norm t)
+      | norm _ = raise Same.SAME;
+  in norm end;
 
-fun gen_norm_term same (env as Envir{asol,iTs,...}) t : term =
-  if Vartab.is_empty iTs then norm_term1 same (asol, t)
-  else norm_term2 same (asol, iTs, t);
+in
 
-val norm_term = gen_norm_term false;
-val norm_term_same = gen_norm_term true;
+fun norm_type_same iTs T =
+  if Vartab.is_empty iTs then raise Same.SAME
+  else norm_type0 iTs T;
 
+fun norm_types_same iTs Ts =
+  if Vartab.is_empty iTs then raise Same.SAME
+  else Same.map (norm_type0 iTs) Ts;
+
+fun norm_type iTs T = norm_type_same iTs T handle Same.SAME => T;
+
+fun norm_term_same (Envir {asol, iTs, ...}) =
+  if Vartab.is_empty iTs then norm_term1 asol
+  else norm_term2 asol iTs;
+
+fun norm_term envir t = norm_term_same envir t handle Same.SAME => t;
 fun beta_norm t = if Term.has_abs t then norm_term (empty 0) t else t;
 
-fun norm_type iTs = normTh iTs;
-fun norm_type_same iTs =
-  if Vartab.is_empty iTs then raise SAME else normT iTs;
-
-fun norm_types_same iTs =
-  if Vartab.is_empty iTs then raise SAME else normTs iTs;
+end;
 
 
 (*Put a term into head normal form for unification.*)
 
-fun head_norm env t =
+fun head_norm env =
   let
-    fun hnorm (Var vT) = (case lookup (env, vT) of
+    fun norm (Var v) =
+        (case lookup (env, v) of
           SOME u => head_norm env u
-        | NONE => raise SAME)
-      | hnorm (Abs (a, T, body)) =  Abs (a, T, hnorm body)
-      | hnorm (Abs (_, _, body) $ t) =
-          head_norm env (subst_bound (t, body))
-      | hnorm (f $ t) = (case hnorm f of
-          Abs (_, _, body) => head_norm env (subst_bound (t, body))
-        | nf => nf $ t)
-          | hnorm _ =  raise SAME
-  in hnorm t handle SAME => t end;
+        | NONE => raise Same.SAME)
+      | norm (Abs (a, T, body)) = Abs (a, T, norm body)
+      | norm (Abs (_, _, body) $ t) = Same.commit norm (subst_bound (t, body))
+      | norm (f $ t) =
+          (case norm f of
+            Abs (_, _, body) => Same.commit norm (subst_bound (t, body))
+          | nf => nf $ t)
+      | norm _ = raise Same.SAME;
+  in Same.commit norm end;
 
 
 (*Eta-contract a term (fully)*)
 
 local
 
-fun decr lev (Bound i) = if i >= lev then Bound (i - 1) else raise SAME
+fun decr lev (Bound i) = if i >= lev then Bound (i - 1) else raise Same.SAME
   | decr lev (Abs (a, T, body)) = Abs (a, T, decr (lev + 1) body)
-  | decr lev (t $ u) = (decr lev t $ decrh lev u handle SAME => t $ decr lev u)
-  | decr _ _ = raise SAME
-and decrh lev t = (decr lev t handle SAME => t);
+  | decr lev (t $ u) = (decr lev t $ decrh lev u handle Same.SAME => t $ decr lev u)
+  | decr _ _ = raise Same.SAME
+and decrh lev t = (decr lev t handle Same.SAME => t);
 
 fun eta (Abs (a, T, body)) =
     ((case eta body of
         body' as (f $ Bound 0) =>
           if loose_bvar1 (f, 0) then Abs (a, T, body')
           else decrh 0 f
-     | body' => Abs (a, T, body')) handle SAME =>
+     | body' => Abs (a, T, body')) handle Same.SAME =>
         (case body of
           f $ Bound 0 =>
-            if loose_bvar1 (f, 0) then raise SAME
+            if loose_bvar1 (f, 0) then raise Same.SAME
             else decrh 0 f
-        | _ => raise SAME))
-  | eta (t $ u) = (eta t $ etah u handle SAME => t $ eta u)
-  | eta _ = raise SAME
-and etah t = (eta t handle SAME => t);
+        | _ => raise Same.SAME))
+  | eta (t $ u) = (eta t $ Same.commit eta u handle Same.SAME => t $ eta u)
+  | eta _ = raise Same.SAME;
 
 in
 
 fun eta_contract t =
-  if Term.has_abs t then etah t else t;
+  if Term.has_abs t then Same.commit eta t else t;
 
 val beta_eta_contract = eta_contract o beta_norm;
 
