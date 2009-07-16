@@ -266,38 +266,31 @@ fun strip_thm (body as PBody {proof, ...}) =
 val mk_Abst = fold_rev (fn (s, T:typ) => fn prf => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
-fun apsome f NONE = raise Same.SAME
-  | apsome f (SOME x) = (case f x of NONE => raise Same.SAME | some => some);
-
-fun apsome' f NONE = raise Same.SAME
-  | apsome' f (SOME x) = SOME (f x);
-
 fun map_proof_terms_option f g =
   let
-    fun map_typs (T :: Ts) =
-          (case g T of
-            NONE => T :: map_typs Ts
-          | SOME T' => T' :: (map_typs Ts handle Same.SAME => Ts))
-      | map_typs [] = raise Same.SAME;
+    val term = Same.function f;
+    val typ = Same.function g;
+    val typs = Same.map typ;
 
-    fun mapp (Abst (s, T, prf)) = (Abst (s, apsome g T, mapph prf)
-          handle Same.SAME => Abst (s, T, mapp prf))
-      | mapp (AbsP (s, t, prf)) = (AbsP (s, apsome f t, mapph prf)
-          handle Same.SAME => AbsP (s, t, mapp prf))
-      | mapp (prf % t) = (mapp prf % (apsome f t handle Same.SAME => t)
-          handle Same.SAME => prf % apsome f t)
-      | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
-          handle Same.SAME => prf1 %% mapp prf2)
-      | mapp (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (map_typs Ts))
-      | mapp (OfClass (T, c)) = OfClass (apsome g (SOME T) |> the, c)
-      | mapp (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (map_typs Ts))
-      | mapp (Promise (i, prop, Ts)) = Promise (i, prop, map_typs Ts)
-      | mapp (PThm (i, ((a, prop, SOME Ts), body))) =
-          PThm (i, ((a, prop, SOME (map_typs Ts)), body))
-      | mapp _ = raise Same.SAME
-    and mapph prf = (mapp prf handle Same.SAME => prf)
-
-  in mapph end;
+    fun proof (Abst (s, T, prf)) =
+          (Abst (s, Same.map_option typ T, Same.commit proof prf)
+            handle Same.SAME => Abst (s, T, proof prf))
+      | proof (AbsP (s, t, prf)) =
+          (AbsP (s, Same.map_option term t, Same.commit proof prf)
+            handle Same.SAME => AbsP (s, t, proof prf))
+      | proof (prf % t) =
+          (proof prf % Same.commit (Same.map_option term) t
+            handle Same.SAME => prf % Same.map_option term t)
+      | proof (prf1 %% prf2) =
+          (proof prf1 %% Same.commit proof prf2
+            handle Same.SAME => prf1 %% proof prf2)
+      | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
+      | proof (OfClass (T, c)) = OfClass (typ T, c)
+      | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
+      | proof (Promise (i, prop, Ts)) = Promise (i, prop, typs Ts)
+      | proof (PThm (i, ((a, prop, SOME Ts), body))) = PThm (i, ((a, prop, SOME (typs Ts)), body))
+      | proof _ = raise Same.SAME;
+  in Same.commit proof end;
 
 fun same eq f x =
   let val x' = f x
@@ -361,15 +354,15 @@ fun prf_abstract_over v =
     and absth' lev t = (abst' lev t handle Same.SAME => t);
 
     fun abst lev (AbsP (a, t, prf)) =
-          (AbsP (a, apsome' (abst' lev) t, absth lev prf)
+          (AbsP (a, Same.map_option (abst' lev) t, absth lev prf)
            handle Same.SAME => AbsP (a, t, abst lev prf))
       | abst lev (Abst (a, T, prf)) = Abst (a, T, abst (lev + 1) prf)
       | abst lev (prf1 %% prf2) = (abst lev prf1 %% absth lev prf2
           handle Same.SAME => prf1 %% abst lev prf2)
       | abst lev (prf % t) = (abst lev prf % Option.map (absth' lev) t
-          handle Same.SAME => prf % apsome' (abst' lev) t)
+          handle Same.SAME => prf % Same.map_option (abst' lev) t)
       | abst _ _ = raise Same.SAME
-    and absth lev prf = (abst lev prf handle Same.SAME => prf)
+    and absth lev prf = (abst lev prf handle Same.SAME => prf);
 
   in absth 0 end;
 
@@ -384,7 +377,7 @@ fun incr_bv' inct tlev t = incr_bv (inct, tlev, t);
 fun prf_incr_bv' incP inct Plev tlev (PBound i) =
       if i >= Plev then PBound (i+incP) else raise Same.SAME
   | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
-      (AbsP (a, apsome' (same (op =) (incr_bv' inct tlev)) t,
+      (AbsP (a, Same.map_option (same (op =) (incr_bv' inct tlev)) t,
          prf_incr_bv incP inct (Plev+1) tlev body) handle Same.SAME =>
            AbsP (a, t, prf_incr_bv' incP inct (Plev+1) tlev body))
   | prf_incr_bv' incP inct Plev tlev (Abst (a, T, body)) =
@@ -394,7 +387,7 @@ fun prf_incr_bv' incP inct Plev tlev (PBound i) =
        handle Same.SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
   | prf_incr_bv' incP inct Plev tlev (prf % t) =
       (prf_incr_bv' incP inct Plev tlev prf % Option.map (incr_bv' inct tlev) t
-       handle Same.SAME => prf % apsome' (same (op =) (incr_bv' inct tlev)) t)
+       handle Same.SAME => prf % Same.map_option (same (op =) (incr_bv' inct tlev)) t)
   | prf_incr_bv' _ _ _ _ _ = raise Same.SAME
 and prf_incr_bv incP inct Plev tlev prf =
       (prf_incr_bv' incP inct Plev tlev prf handle Same.SAME => prf);
@@ -461,28 +454,29 @@ fun norm_proof env =
       (msg s; f envT (del_conflicting_tvars envT T));
     fun htypeTs f Ts = f envT Ts handle TYPE (s, _, _) =>
       (msg s; f envT (map (del_conflicting_tvars envT) Ts));
+
     fun norm (Abst (s, T, prf)) =
-          (Abst (s, apsome' (htypeT Envir.norm_type_same) T, Same.commit norm prf)
+          (Abst (s, Same.map_option (htypeT Envir.norm_type_same) T, Same.commit norm prf)
             handle Same.SAME => Abst (s, T, norm prf))
       | norm (AbsP (s, t, prf)) =
-          (AbsP (s, apsome' (htype Envir.norm_term_same) t, Same.commit norm prf)
+          (AbsP (s, Same.map_option (htype Envir.norm_term_same) t, Same.commit norm prf)
             handle Same.SAME => AbsP (s, t, norm prf))
       | norm (prf % t) =
           (norm prf % Option.map (htype Envir.norm_term) t
-            handle Same.SAME => prf % apsome' (htype Envir.norm_term_same) t)
+            handle Same.SAME => prf % Same.map_option (htype Envir.norm_term_same) t)
       | norm (prf1 %% prf2) =
           (norm prf1 %% Same.commit norm prf2
             handle Same.SAME => prf1 %% norm prf2)
       | norm (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, apsome' (htypeTs Envir.norm_types_same) Ts)
+          PAxm (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
       | norm (OfClass (T, c)) =
           OfClass (htypeT Envir.norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, apsome' (htypeTs Envir.norm_types_same) Ts)
+          Oracle (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
       | norm (Promise (i, prop, Ts)) =
           Promise (i, prop, htypeTs Envir.norm_types_same Ts)
       | norm (PThm (i, ((s, t, Ts), body))) =
-          PThm (i, ((s, t, apsome' (htypeTs Envir.norm_types_same) Ts), body))
+          PThm (i, ((s, t, Same.map_option (htypeTs Envir.norm_types_same) Ts), body))
       | norm _ = raise Same.SAME;
   in Same.commit norm end;
 
@@ -516,15 +510,15 @@ fun prf_subst_bounds args prf =
       | subst' _ _ = raise Same.SAME
     and substh' lev t = (subst' lev t handle Same.SAME => t);
 
-    fun subst lev (AbsP (a, t, body)) = (AbsP (a, apsome' (subst' lev) t, substh lev body)
+    fun subst lev (AbsP (a, t, body)) = (AbsP (a, Same.map_option (subst' lev) t, substh lev body)
           handle Same.SAME => AbsP (a, t, subst lev body))
       | subst lev (Abst (a, T, body)) = Abst (a, T, subst (lev+1) body)
       | subst lev (prf %% prf') = (subst lev prf %% substh lev prf'
           handle Same.SAME => prf %% subst lev prf')
       | subst lev (prf % t) = (subst lev prf % Option.map (substh' lev) t
-          handle Same.SAME => prf % apsome' (subst' lev) t)
+          handle Same.SAME => prf % Same.map_option (subst' lev) t)
       | subst _ _ = raise Same.SAME
-    and substh lev prf = (subst lev prf handle Same.SAME => prf)
+    and substh lev prf = (subst lev prf handle Same.SAME => prf);
   in case args of [] => prf | _ => substh 0 prf end;
 
 fun prf_subst_pbounds args prf =
@@ -604,12 +598,13 @@ fun implies_intr_proof h prf =
   let
     fun abshyp i (Hyp t) = if h aconv t then PBound i else raise Same.SAME
       | abshyp i (Abst (s, T, prf)) = Abst (s, T, abshyp i prf)
-      | abshyp i (AbsP (s, t, prf)) = AbsP (s, t, abshyp (i+1) prf)
+      | abshyp i (AbsP (s, t, prf)) = AbsP (s, t, abshyp (i + 1) prf)
       | abshyp i (prf % t) = abshyp i prf % t
-      | abshyp i (prf1 %% prf2) = (abshyp i prf1 %% abshyph i prf2
-          handle Same.SAME => prf1 %% abshyp i prf2)
+      | abshyp i (prf1 %% prf2) =
+          (abshyp i prf1 %% abshyph i prf2
+            handle Same.SAME => prf1 %% abshyp i prf2)
       | abshyp _ _ = raise Same.SAME
-    and abshyph i prf = (abshyp i prf handle Same.SAME => prf)
+    and abshyph i prf = (abshyp i prf handle Same.SAME => prf);
   in
     AbsP ("H", NONE (*h*), abshyph 0 prf)
   end;
@@ -628,7 +623,7 @@ fun varify_proof t fixed prf =
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
-    val fmap = fs ~~ (#1 (Name.variants (map fst fs) used));
+    val fmap = fs ~~ #1 (Name.variants (map fst fs) used);
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
@@ -709,28 +704,29 @@ fun instantiate (instT, inst) =
 
 fun lift_proof Bi inc prop prf =
   let
-    fun lift'' Us Ts t = strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
+    fun lift'' Us Ts t =
+      strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
 
     fun lift' Us Ts (Abst (s, T, prf)) =
-          (Abst (s, apsome' (same (op =) (Logic.incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
+          (Abst (s, Same.map_option (Logic.incr_tvar_same inc) T, lifth' Us (dummyT::Ts) prf)
            handle Same.SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
       | lift' Us Ts (AbsP (s, t, prf)) =
-          (AbsP (s, apsome' (same (op =) (lift'' Us Ts)) t, lifth' Us Ts prf)
+          (AbsP (s, Same.map_option (same (op =) (lift'' Us Ts)) t, lifth' Us Ts prf)
            handle Same.SAME => AbsP (s, t, lift' Us Ts prf))
       | lift' Us Ts (prf % t) = (lift' Us Ts prf % Option.map (lift'' Us Ts) t
-          handle Same.SAME => prf % apsome' (same (op =) (lift'' Us Ts)) t)
+          handle Same.SAME => prf % Same.map_option (same (op =) (lift'' Us Ts)) t)
       | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
           handle Same.SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PAxm (s, prop, Ts)) =
-          PAxm (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
+          PAxm (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
       | lift' _ _ (OfClass (T, c)) =
-          OfClass (same (op =) (Logic.incr_tvar inc) T, c)
+          OfClass (Logic.incr_tvar_same inc T, c)
       | lift' _ _ (Oracle (s, prop, Ts)) =
-          Oracle (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
+          Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
       | lift' _ _ (Promise (i, prop, Ts)) =
-          Promise (i, prop, same (op =) (map (Logic.incr_tvar inc)) Ts)
+          Promise (i, prop, Same.map (Logic.incr_tvar_same inc) Ts)
       | lift' _ _ (PThm (i, ((s, prop, Ts), body))) =
-          PThm (i, ((s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts), body))
+          PThm (i, ((s, prop, (Same.map_option o Same.map) (Logic.incr_tvar inc) Ts), body))
       | lift' _ _ _ = raise Same.SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle Same.SAME => prf);
 
