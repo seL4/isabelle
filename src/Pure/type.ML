@@ -494,11 +494,14 @@ and could_unifys (T :: Ts, U :: Us) = could_unify (T, U) andalso could_unifys (T
 
 
 (*equality with respect to a type environment*)
-fun eq_type tye (T, T') =
+fun equal_type tye (T, T') =
   (case (devar tye T, devar tye T') of
      (Type (s, Ts), Type (s', Ts')) =>
-       s = s' andalso ListPair.all (eq_type tye) (Ts, Ts')
+       s = s' andalso ListPair.all (equal_type tye) (Ts, Ts')
    | (U, U') => U = U');
+
+fun eq_type tye =
+  if Vartab.is_empty tye then op = else equal_type tye;
 
 
 
