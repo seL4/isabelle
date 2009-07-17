@@ -2514,7 +2514,7 @@ lemma E_deriv[simp]: "fps_deriv (E a) = fps_const (a::'a::field_char_0) * E a" (
 proof-
   {fix n
     have "?l$n = ?r $ n"
-  apply (auto simp add: E_def field_simps power_Suc[symmetric]simp del: fact_Suc of_nat_Suc power_Suc)
+  apply (auto simp add: E_def field_simps power_Suc[symmetric]simp del: fact_Suc_nat of_nat_Suc power_Suc)
   by (simp add: of_nat_mult ring_simps)}
 then show ?thesis by (simp add: fps_eq_iff)
 qed
@@ -2530,8 +2530,8 @@ proof-
       apply (induct n)
       apply simp
       unfolding th
-      using fact_gt_zero
-      apply (simp add: field_simps del: of_nat_Suc fact.simps)
+      using fact_gt_zero_nat
+      apply (simp add: field_simps del: of_nat_Suc fact_Suc_nat)
       apply (drule sym)
       by (simp add: ring_simps of_nat_mult power_Suc)}
   note th' = this
@@ -2697,7 +2697,7 @@ proof (rule fps_ext)
       also have "\<dots> = of_nat (n+1) * ((- 1)^(n div 2) * c^Suc n / of_nat (fact (Suc n)))"
 	using en by (simp add: fps_sin_def)
       also have "\<dots> = (- 1)^(n div 2) * c^Suc n * (of_nat (n+1) / (of_nat (Suc n) * of_nat (fact n)))"
-	unfolding fact_Suc of_nat_mult
+	unfolding fact_Suc_nat of_nat_mult
 	by (simp add: field_simps del: of_nat_add of_nat_Suc)
       also have "\<dots> = (- 1)^(n div 2) *c^Suc n / of_nat (fact n)"
 	by (simp add: field_simps del: of_nat_add of_nat_Suc)
@@ -2721,7 +2721,7 @@ proof (rule fps_ext)
       also have "\<dots> = of_nat (n+1) * ((- 1)^((n + 1) div 2) * c^Suc n / of_nat (fact (Suc n)))"
 	using en by (simp add: fps_cos_def)
       also have "\<dots> = (- 1)^((n + 1) div 2)*c^Suc n * (of_nat (n+1) / (of_nat (Suc n) * of_nat (fact n)))"
-	unfolding fact_Suc of_nat_mult
+	unfolding fact_Suc_nat of_nat_mult
 	by (simp add: field_simps del: of_nat_add of_nat_Suc)
       also have "\<dots> = (- 1)^((n + 1) div 2) * c^Suc n / of_nat (fact n)"
 	by (simp add: field_simps del: of_nat_add of_nat_Suc)
@@ -2747,9 +2747,6 @@ proof-
   finally show ?thesis .
 qed
 
-lemma fact_1 [simp]: "fact 1 = 1"
-unfolding One_nat_def fact_Suc by simp
-
 lemma divide_eq_iff: "a \<noteq> (0::'a::field) \<Longrightarrow> x / a = y \<longleftrightarrow> x = y * a"
 by auto
 
@@ -2766,7 +2763,7 @@ lemma fps_sin_nth_add_2:
   "fps_sin c $ (n + 2) = - (c * c * fps_sin c $ n / (of_nat(n+1) * of_nat(n+2)))"
 unfolding fps_sin_def
 apply (cases n, simp)
-apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc)
+apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc_nat)
 apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
 done
 
@@ -2779,7 +2776,7 @@ unfolding fps_cos_def by simp
 lemma fps_cos_nth_add_2:
   "fps_cos c $ (n + 2) = - (c * c * fps_cos c $ n / (of_nat(n+1) * of_nat(n+2)))"
 unfolding fps_cos_def
-apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc)
+apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc_nat)
 apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
 done
 
