@@ -1087,34 +1087,47 @@ fun match_proof Ts tymatch =
 
 fun prf_subst (pinst, (tyinsts, insts)) =
   let
-    val substT = Envir.subst_type tyinsts;
+    val substT = Envir.subst_type_same tyinsts;
+    val substTs = Same.map substT;
 
-    fun subst' lev (t as Var (ixn, _)) = (case AList.lookup (op =) insts ixn of
-          NONE => t
+    fun subst' lev (Var (xi, _)) =
+        (case AList.lookup (op =) insts xi of
+          NONE => raise Same.SAME
         | SOME u => incr_boundvars lev u)
-      | subst' lev (Const (s, T)) = Const (s, substT T)
-      | subst' lev (Free (s, T)) = Free (s, substT T)
-      | subst' lev (Abs (a, T, body)) = Abs (a, substT T, subst' (lev+1) body)
-      | subst' lev (f $ t) = subst' lev f $ subst' lev t
-      | subst' _ t = t;
+      | subst' _ (Const (s, T)) = Const (s, substT T)
+      | subst' _ (Free (s, T)) = Free (s, substT T)
+      | subst' lev (Abs (a, T, body)) =
+          (Abs (a, substT T, Same.commit (subst' (lev + 1)) body)
+            handle Same.SAME => Abs (a, T, subst' (lev + 1) body))
+      | subst' lev (f $ t) =
+          (subst' lev f $ Same.commit (subst' lev) t
+            handle Same.SAME => f $ subst' lev t)
+      | subst' _ _ = raise Same.SAME;
 
     fun subst plev tlev (AbsP (a, t, body)) =
-          AbsP (a, Option.map (subst' tlev) t, subst (plev+1) tlev body)
+          (AbsP (a, Same.map_option (subst' tlev) t, Same.commit (subst (plev + 1) tlev) body)
+            handle Same.SAME => AbsP (a, t, subst (plev + 1) tlev body))
       | subst plev tlev (Abst (a, T, body)) =
-          Abst (a, Option.map substT T, subst plev (tlev+1) body)
-      | subst plev tlev (prf %% prf') = subst plev tlev prf %% subst plev tlev prf'
-      | subst plev tlev (prf % t) = subst plev tlev prf % Option.map (subst' tlev) t
-      | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case AList.lookup (op =) pinst ixn of
-          NONE => prf
-        | SOME prf' => incr_pboundvars plev tlev prf')
-      | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Option.map (map substT) Ts)
+          (Abst (a, Same.map_option substT T, Same.commit (subst plev (tlev + 1)) body)
+            handle Same.SAME => Abst (a, T, subst plev (tlev + 1) body))
+      | subst plev tlev (prf %% prf') =
+          (subst plev tlev prf %% Same.commit (subst plev tlev) prf'
+            handle Same.SAME => prf %% subst plev tlev prf')
+      | subst plev tlev (prf % t) =
+          (subst plev tlev prf % Same.commit (Same.map_option (subst' tlev)) t
+            handle Same.SAME => prf % Same.map_option (subst' tlev) t)
+      | subst plev tlev (Hyp (Var (xi, _))) =
+          (case AList.lookup (op =) pinst xi of
+            NONE => raise Same.SAME
+          | SOME prf' => incr_pboundvars plev tlev prf')
+      | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Same.map_option substTs Ts)
       | subst _ _ (OfClass (T, c)) = OfClass (substT T, c)
-      | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Option.map (map substT) Ts)
-      | subst _ _ (Promise (i, prop, Ts)) = Promise (i, prop, (map substT) Ts)
+      | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Same.map_option substTs Ts)
+      | subst _ _ (Promise (i, prop, Ts)) = Promise (i, prop, substTs Ts)
       | subst _ _ (PThm (i, ((id, prop, Ts), body))) =
-          PThm (i, ((id, prop, Option.map (map substT) Ts), body))
-      | subst _ _ t = t;
-  in subst 0 0 end;
+          PThm (i, ((id, prop, Same.map_option substTs Ts), body))
+      | subst _ _ _ = raise Same.SAME;
+  in fn t => subst 0 0 t handle Same.SAME => t end;
 
 (*A fast unification filter: true unless the two terms cannot be unified.
   Terms must be NORMAL.  Treats all Vars as distinct. *)
@@ -1215,7 +1228,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
               (case skel of AbsP (_, _, skel') => skel' | _ => skel0) prf of
             SOME prf' => SOME (AbsP (s, t, prf'))
           | NONE => NONE)
-      | rew2 _ _ _ = NONE
+      | rew2 _ _ _ = NONE;
 
   in the_default prf (rew1 [] skel0 prf) end;
 
