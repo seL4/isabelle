@@ -10,10 +10,10 @@ sig
   val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
-  val specifications_of: T -> string -> {is_def: bool, name: string,
-    lhs: typ list, rhs: (string * typ list) list} list
   val all_specifications_of: T -> (string * {is_def: bool, name: string,
     lhs: typ list, rhs: (string * typ list) list} list) list
+  val specifications_of: T -> string -> {is_def: bool, name: string,
+    lhs: typ list, rhs: (string * typ list) list} list
   val dest: T ->
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
@@ -75,9 +75,11 @@ fun lookup_list which defs c =
     SOME (def: def) => which def
   | NONE => []);
 
-fun specifications_of (Defs defs) = lookup_list (map snd o Inttab.dest o #specs) defs;
 fun all_specifications_of (Defs defs) =
-  ((map o apsnd) (map snd o Inttab.dest o #specs) o Symtab.dest) defs;
+  (map o apsnd) (map snd o Inttab.dest o #specs) (Symtab.dest defs);
+
+fun specifications_of (Defs defs) = lookup_list (map snd o Inttab.dest o #specs) defs;
+
 val restricts_of = lookup_list #restricts;
 val reducts_of = lookup_list #reducts;
 
