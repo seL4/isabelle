@@ -398,7 +398,7 @@ lemma gbinomial_mult_1: "a * (a gchoose n) = of_nat n * (a gchoose n) + of_nat (
 proof-
   have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
     unfolding gbinomial_pochhammer
-    pochhammer_Suc fact_Suc_nat of_nat_mult right_diff_distrib power_Suc
+    pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
     by (simp add:  field_simps del: of_nat_Suc)
   also have "\<dots> = ?l" unfolding gbinomial_pochhammer
     by (simp add: ring_simps)
@@ -414,7 +414,7 @@ lemma gbinomial_Suc: "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0
 lemma gbinomial_mult_fact:
   "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::field_char_0) gchoose (Suc k)) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
   unfolding gbinomial_Suc
-  by (simp_all add: field_simps del: fact_Suc_nat)
+  by (simp_all add: field_simps del: fact_Suc)
 
 lemma gbinomial_mult_fact':
   "((a::'a::field_char_0) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
@@ -432,9 +432,9 @@ proof-
 
     have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) = ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)" 
       unfolding h
-      apply (simp add: ring_simps del: fact_Suc_nat)
+      apply (simp add: ring_simps del: fact_Suc)
       unfolding gbinomial_mult_fact'
-      apply (subst fact_Suc_nat)
+      apply (subst fact_Suc)
       unfolding of_nat_mult 
       apply (subst mult_commute)
       unfolding mult_assoc
@@ -449,7 +449,7 @@ proof-
       by simp
     also have "\<dots> = of_nat (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
       unfolding gbinomial_mult_fact ..
-    finally have ?thesis by (simp del: fact_Suc_nat) }
+    finally have ?thesis by (simp del: fact_Suc) }
   ultimately show ?thesis by (cases k, auto)
 qed
 

@@ -24,7 +24,7 @@ fun
   fact_nat :: "nat \<Rightarrow> nat"
 where
   fact_0_nat: "fact_nat 0 = Suc 0"
-| fact_Suc_nat: "fact_nat (Suc x) = Suc x * fact x"
+| fact_Suc: "fact_nat (Suc x) = Suc x * fact x"
 
 instance proof qed
 
@@ -100,7 +100,7 @@ lemma fact_plus_one_int:
 lemma fact_reduce_nat: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
   apply (subgoal_tac "n = Suc (n - 1)")
   apply (erule ssubst)
-  apply (subst fact_Suc_nat)
+  apply (subst fact_Suc)
   apply simp_all
 done
 
@@ -142,7 +142,7 @@ done
 lemma dvd_fact_nat [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::nat)"
   apply (induct n)
   apply force
-  apply (auto simp only: fact_Suc_nat)
+  apply (auto simp only: fact_Suc)
   apply (subgoal_tac "m = Suc n")
   apply (erule ssubst)
   apply (rule dvd_triv_left)
@@ -170,7 +170,7 @@ lemma interval_plus_one_int: "(i::int) <= j + 1 \<Longrightarrow> {i..j+1} = {i.
 lemma fact_altdef_nat: "fact (n::nat) = (PROD i:{1..n}. i)"
   apply (induct n)
   apply force
-  apply (subst fact_Suc_nat)
+  apply (subst fact_Suc)
   apply (subst interval_Suc)
   apply auto
 done
