@@ -1247,12 +1247,12 @@ fun assumption i state =
     val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
     val thy = Theory.deref thy_ref;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
-    fun newth n (env as Envir.Envir {maxidx, ...}, tpairs) =
+    fun newth n (env, tpairs) =
       Thm (deriv_rule1
           ((if Envir.is_empty env then I else (Pt.norm_proof' env)) o
             Pt.assumption_proof Bs Bi n) der,
        {tags = [],
-        maxidx = maxidx,
+        maxidx = Envir.maxidx_of env,
         shyps = Envir.insert_sorts env shyps,
         hyps = hyps,
         tpairs =
@@ -1465,15 +1465,15 @@ fun strip_assums2 (Const("==>", _) $ _ $ B1,
 
 (*Faster normalization: skip assumptions that were lifted over*)
 fun norm_term_skip env 0 t = Envir.norm_term env t
-  | norm_term_skip env n (Const("all",_)$Abs(a,T,t)) =
-        let val Envir.Envir{iTs, ...} = env
-            val T' = Envir.typ_subst_TVars iTs T
-            (*Must instantiate types of parameters because they are flattened;
-              this could be a NEW parameter*)
-        in Term.all T' $ Abs(a, T', norm_term_skip env n t)  end
-  | norm_term_skip env n (Const("==>", _) $ A $ B) =
-        Logic.mk_implies (A, norm_term_skip env (n-1) B)
-  | norm_term_skip env n t = error"norm_term_skip: too few assumptions??";
+  | norm_term_skip env n (Const ("all", _) $ Abs (a, T, t)) =
+      let
+        val T' = Envir.typ_subst_TVars (Envir.type_env env) T
+        (*Must instantiate types of parameters because they are flattened;
+          this could be a NEW parameter*)
+      in Term.all T' $ Abs (a, T', norm_term_skip env n t) end
+  | norm_term_skip env n (Const ("==>", _) $ A $ B) =
+      Logic.mk_implies (A, norm_term_skip env (n - 1) B)
+  | norm_term_skip env n t = error "norm_term_skip: too few assumptions??";
 
 
 (*Composition of object rule r=(A1...Am/B) with proof state s=(B1...Bn/C)
@@ -1495,7 +1495,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
      and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
      val thy = Theory.deref (merge_thys2 state orule);
      (** Add new theorem with prop = '[| Bs; As |] ==> C' to thq **)
-     fun addth A (As, oldAs, rder', n) ((env as Envir.Envir {maxidx, ...}, tpairs), thq) =
+     fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
        let val normt = Envir.norm_term env;
            (*perform minimal copying here by examining env*)
            val (ntpairs, normp) =
@@ -1520,7 +1520,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                        curry op oo (Pt.norm_proof' env))
                     (Pt.bicompose_proof flatten Bs oldAs As A n (nlift+1))) rder' sder,
                 {tags = [],
-                 maxidx = maxidx,
+                 maxidx = Envir.maxidx_of env,
                  shyps = Envir.insert_sorts env (Sorts.union rshyps sshyps),
                  hyps = union_hyps rhyps shyps,
                  tpairs = ntpairs,

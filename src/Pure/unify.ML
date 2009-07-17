@@ -52,36 +52,48 @@ type binderlist = (string*typ) list;
 
 type dpair = binderlist * term * term;
 
-fun body_type(Envir.Envir{iTs,...}) =
-let fun bT(Type("fun",[_,T])) = bT T
-      | bT(T as TVar ixnS) = (case Type.lookup iTs ixnS of
-    NONE => T | SOME(T') => bT T')
-      | bT T = T
-in bT end;
+fun body_type env =
+  let
+    val tyenv = Envir.type_env env;
+    fun bT (Type ("fun", [_, T])) = bT T
+      | bT (T as TVar v) =
+          (case Type.lookup tyenv v of
+            NONE => T
+          | SOME T' => bT T')
+      | bT T = T;
+  in bT end;
 
-fun binder_types(Envir.Envir{iTs,...}) =
-let fun bTs(Type("fun",[T,U])) = T :: bTs U
-      | bTs(T as TVar ixnS) = (case Type.lookup iTs ixnS of
-    NONE => [] | SOME(T') => bTs T')
-      | bTs _ = []
-in bTs end;
+fun binder_types env =
+  let
+    val tyenv = Envir.type_env env;
+    fun bTs (Type ("fun", [T, U])) = T :: bTs U
+      | bTs (T as TVar v) =
+          (case Type.lookup tyenv v of
+            NONE => []
+          | SOME T' => bTs T')
+      | bTs _ = [];
+  in bTs end;
 
 fun strip_type env T = (binder_types env T, body_type env T);
 
 fun fastype env (Ts, t) = Envir.fastype env (map snd Ts) t;
 
 
-(*Eta normal form*)
-fun eta_norm(env as Envir.Envir{iTs,...}) =
-  let fun etif (Type("fun",[T,U]), t) =
-      Abs("", T, etif(U, incr_boundvars 1 t $ Bound 0))
-  | etif (TVar ixnS, t) =
-      (case Type.lookup iTs ixnS of
-      NONE => t | SOME(T) => etif(T,t))
-  | etif (_,t) = t;
-      fun eta_nm (rbinder, Abs(a,T,body)) =
-      Abs(a, T, eta_nm ((a,T)::rbinder, body))
-  | eta_nm (rbinder, t) = etif(fastype env (rbinder,t), t)
+(* eta normal form *)
+
+fun eta_norm env =
+  let
+    val tyenv = Envir.type_env env;
+    fun etif (Type ("fun", [T, U]), t) =
+          Abs ("", T, etif (U, incr_boundvars 1 t $ Bound 0))
+      | etif (TVar v, t) =
+          (case Type.lookup tyenv v of
+            NONE => t
+          | SOME T => etif (T, t))
+      | etif (_, t) = t;
+    fun eta_nm (rbinder, Abs (a, T, body)) =
+          Abs (a, T, eta_nm ((a, T) :: rbinder, body))
+      | eta_nm (rbinder, t) = etif (fastype env (rbinder, t), t);
   in eta_nm end;
 
 
@@ -186,11 +198,14 @@ exception CANTUNIFY;  (*Signals non-unifiability.  Does not signal errors!*)
 exception ASSIGN; (*Raised if not an assignment*)
 
 
-fun unify_types thy (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
-  if T=U then env
-  else let val (iTs',maxidx') = Sign.typ_unify thy (U, T) (iTs, maxidx)
-       in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
-       handle Type.TUNIFY => raise CANTUNIFY;
+fun unify_types thy (T, U, env) =
+  if T = U then env
+  else
+    let
+      val Envir.Envir {maxidx, tenv, tyenv} = env;
+      val (tyenv', maxidx') = Sign.typ_unify thy (U, T) (tyenv, maxidx);
+    in Envir.Envir {maxidx = maxidx', tenv = tenv, tyenv = tyenv'} end
+    handle Type.TUNIFY => raise CANTUNIFY;
 
 fun test_unify_types thy (args as (T,U,_)) =
 let val str_of = Syntax.string_of_typ_global thy;
@@ -636,9 +651,9 @@ fun smash_unifiers thy tus env =
 
 
 (*Pattern matching*)
-fun first_order_matchers thy pairs (Envir.Envir {asol = tenv, iTs = tyenv, maxidx}) =
+fun first_order_matchers thy pairs (Envir.Envir {maxidx, tenv, tyenv}) =
   let val (tyenv', tenv') = fold (Pattern.first_order_match thy) pairs (tyenv, tenv)
-  in Seq.single (Envir.Envir {asol = tenv', iTs = tyenv', maxidx = maxidx}) end
+  in Seq.single (Envir.Envir {maxidx = maxidx, tenv = tenv', tyenv = tyenv'}) end
   handle Pattern.MATCH => Seq.empty;
 
 (*General matching -- keeps variables disjoint*)
@@ -661,10 +676,12 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
           Term.map_aterms (fn t as Var ((x, i), T) =>
             if i > maxidx then Var ((x, i - offset), T) else t | t => t);
 
-        fun norm_tvar (Envir.Envir {iTs = tyenv, ...}) ((x, i), S) =
-          ((x, i - offset), (S, decr_indexesT (Envir.norm_type tyenv (TVar ((x, i), S)))));
-        fun norm_var (env as Envir.Envir {iTs = tyenv, ...}) ((x, i), T) =
+        fun norm_tvar env ((x, i), S) =
+          ((x, i - offset),
+            (S, decr_indexesT (Envir.norm_type (Envir.type_env env) (TVar ((x, i), S)))));
+        fun norm_var env ((x, i), T) =
           let
+            val tyenv = Envir.type_env env;
             val T' = Envir.norm_type tyenv T;
             val t' = Envir.norm_term env (Var ((x, i), T'));
           in ((x, i - offset), (decr_indexesT T', decr_indexes t')) end;
@@ -672,8 +689,8 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
         fun result env =
           if Envir.above env maxidx then   (* FIXME proper handling of generated vars!? *)
             SOME (Envir.Envir {maxidx = maxidx,
-              iTs = Vartab.make (map (norm_tvar env) pat_tvars),
-              asol = Vartab.make (map (norm_var env) pat_vars)})
+              tyenv = Vartab.make (map (norm_tvar env) pat_tvars),
+              tenv = Vartab.make (map (norm_var env) pat_vars)})
           else NONE;
 
         val empty = Envir.empty maxidx';

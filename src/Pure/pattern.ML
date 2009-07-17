@@ -141,8 +141,10 @@ fun split_type (T,0,Ts)                    = (Ts,T)
   | split_type (Type ("fun",[T1,T2]),n,Ts) = split_type (T2,n-1,T1::Ts)
   | split_type _                           = error("split_type");
 
-fun type_of_G (env as Envir.Envir {iTs, ...}) (T,n,is) =
-  let val (Ts, U) = split_type (Envir.norm_type iTs T, n, [])
+fun type_of_G env (T, n, is) =
+  let
+    val tyenv = Envir.type_env env;
+    val (Ts, U) = split_type (Envir.norm_type tyenv T, n, []);
   in map (nth Ts) is ---> U end;
 
 fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
@@ -225,11 +227,12 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
                  end;
   in if TermOrd.indexname_ord (G,F) = LESS then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
-fun unify_types thy (T,U) (env as Envir.Envir{asol,iTs,maxidx}) =
-  if T=U then env
-  else let val (iTs',maxidx') = Sign.typ_unify thy (U, T) (iTs, maxidx)
-       in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
-       handle Type.TUNIFY => (typ_clash thy (iTs,T,U); raise Unif);
+fun unify_types thy (T, U) (env as Envir.Envir {maxidx, tenv, tyenv}) =
+  if T = U then env
+  else
+    let val (tyenv', maxidx') = Sign.typ_unify thy (U, T) (tyenv, maxidx)
+    in Envir.Envir {maxidx = maxidx', tenv = tenv, tyenv = tyenv'} end
+    handle Type.TUNIFY => (typ_clash thy (tyenv, T, U); raise Unif);
 
 fun unif thy binders (s,t) env = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>

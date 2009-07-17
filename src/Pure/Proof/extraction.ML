@@ -105,9 +105,8 @@ fun condrew thy rules procs =
           val env as (Tenv, tenv) = Pattern.match thy (inc tm1, tm) (Vartab.empty, Vartab.empty);
           val prems' = map (pairself (Envir.subst_vars env o inc o ren)) prems;
           val env' = Envir.Envir
-            {maxidx = Library.foldl Int.max
-              (~1, map (Int.max o pairself maxidx_of_term) prems'),
-             iTs = Tenv, asol = tenv};
+            {maxidx = fold (fn (t, u) => Term.maxidx_term t #> Term.maxidx_term u) prems' ~1,
+             tenv = tenv, tyenv = Tenv};
           val env'' = fold (Pattern.unify thy o pairself (lookup rew)) prems' env';
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)

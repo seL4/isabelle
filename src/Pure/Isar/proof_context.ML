@@ -779,7 +779,7 @@ fun norm_export_morphism inner outer =
 fun simult_matches ctxt (t, pats) =
   (case Seq.pull (Unify.matchers (theory_of ctxt) (map (rpair t) pats)) of
     NONE => error "Pattern match failed!"
-  | SOME (env, _) => map (apsnd snd) (Envir.alist_of env));
+  | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
 
 
 (* bind_terms *)
