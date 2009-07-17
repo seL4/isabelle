@@ -27,6 +27,10 @@ done
 lemma eq_diff_eq': "(x = y - z) = (y = x + (z::real))"
 by arith
 
+lemma fact_diff_Suc [rule_format]:
+  "n < Suc m ==> fact (Suc m - n) = (Suc m - n) * fact (m - n)"
+  by (subst fact_reduce_nat, auto)
+
 lemma Maclaurin_lemma2:
   assumes diff: "\<forall>m t. m < n \<and> 0\<le>t \<and> t\<le>h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
   assumes n: "n = Suc k"
@@ -47,22 +51,24 @@ unfolding difg
    apply (rule_tac [2] DERIV_quotient)
      apply (rule_tac [3] DERIV_const)
     apply (rule_tac [2] DERIV_pow)
-   prefer 3 apply (simp add: fact_diff_Suc)
+   prefer 3 
+
+apply (simp add: fact_diff_Suc)
   prefer 2 apply simp
  apply (frule less_iff_Suc_add [THEN iffD1], clarify)
  apply (simp del: setsum_op_ivl_Suc)
  apply (insert sumr_offset4 [of "Suc 0"])
- apply (simp del: setsum_op_ivl_Suc fact_Suc power_Suc)
+ apply (simp del: setsum_op_ivl_Suc fact_Suc_nat power_Suc)
  apply (rule lemma_DERIV_subst)
   apply (rule DERIV_add)
    apply (rule_tac [2] DERIV_const)
   apply (rule DERIV_sumr, clarify)
   prefer 2 apply simp
- apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc power_Suc)
+ apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc_nat power_Suc)
  apply (rule DERIV_cmult)
  apply (rule lemma_DERIV_subst)
   apply (best intro!: DERIV_intros)
- apply (subst fact_Suc)
+ apply (subst fact_Suc_nat)
  apply (subst real_of_nat_mult)
  apply (simp add: mult_ac)
 done
@@ -114,7 +120,7 @@ proof -
     apply (frule less_iff_Suc_add [THEN iffD1], clarify)
     apply (simp del: setsum_op_ivl_Suc)
     apply (insert sumr_offset4 [of "Suc 0"])
-    apply (simp del: setsum_op_ivl_Suc fact_Suc)
+    apply (simp del: setsum_op_ivl_Suc fact_Suc_nat)
     done
 
   have isCont_difg: "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> isCont (difg m) x"
@@ -174,7 +180,7 @@ proof -
       (\<Sum>m = 0..<n. diff m 0 / real (fact m) * h ^ m) +
       diff n t / real (fact n) * h ^ n"
       using `difg (Suc m) t = 0`
-      by (simp add: m f_h difg_def del: fact_Suc)
+      by (simp add: m f_h difg_def del: fact_Suc_nat)
   qed
 
 qed
