@@ -34,10 +34,12 @@ sig
   val eta_contract: term -> term
   val beta_eta_contract: term -> term
   val fastype: env -> typ list -> term -> typ
-  val typ_subst_TVars: Type.tyenv -> typ -> typ
-  val subst_TVars: Type.tyenv -> term -> term
-  val subst_Vars: tenv -> term -> term
-  val subst_vars: Type.tyenv * tenv -> term -> term
+  val subst_type_same: Type.tyenv -> typ Same.operation
+  val subst_term_types_same: Type.tyenv -> term Same.operation
+  val subst_term_same: Type.tyenv * tenv -> term Same.operation
+  val subst_type: Type.tyenv -> typ -> typ
+  val subst_term_types: Type.tyenv -> term -> term
+  val subst_term: Type.tyenv * tenv -> term -> term
   val expand_atom: typ -> typ * term -> term
   val expand_term: (term -> (typ * term) option) -> term -> term
   val expand_term_frees: ((string * typ) * term) list -> term -> term
@@ -296,51 +298,68 @@ fun fastype (Envir {tyenv, ...}) =
   in fast end;
 
 
-(*Substitute for type Vars in a type*)
-fun typ_subst_TVars tyenv T =
-  if Vartab.is_empty tyenv then T
-  else
-    let
-      fun subst (Type (a, Ts)) = Type (a, map subst Ts)
-        | subst (T as TFree _) = T
-        | subst (T as TVar v) = (case Type.lookup tyenv v of NONE => T | SOME U => U);
-    in subst T end;
 
-(*Substitute for type Vars in a term*)
-val subst_TVars = map_types o typ_subst_TVars;
+(** plain substitution -- without variable chasing **)
 
-(*Substitute for Vars in a term *)
-fun subst_Vars tenv tm =
-  if Vartab.is_empty tenv then tm
-  else
-    let
-      fun subst (t as Var v) = the_default t (lookup' (tenv, v))
-        | subst (Abs (a, T, t)) = Abs (a, T, subst t)
-        | subst (t $ u) = subst t $ subst u
-        | subst t = t;
-    in subst tm end;
+local
 
-(*Substitute for type/term Vars in a term *)
-fun subst_vars (tyenv, tenv) =
-  if Vartab.is_empty tyenv then subst_Vars tenv
-  else
-    let
-      fun subst (Const (a, T)) = Const (a, typ_subst_TVars tyenv T)
-        | subst (Free (a, T)) = Free (a, typ_subst_TVars tyenv T)
-        | subst (Var (xi, T)) =
-            (case lookup' (tenv, (xi, T)) of
-              NONE => Var (xi, typ_subst_TVars tyenv T)
-            | SOME t => t)
-        | subst (t as Bound _) = t
-        | subst (Abs (a, T, t)) = Abs (a, typ_subst_TVars tyenv T, subst t)
-        | subst (t $ u) = subst t $ subst u;
-    in subst end;
+fun subst_type0 tyenv = Term_Subst.map_atypsT_same
+  (fn TVar v =>
+        (case Type.lookup tyenv v of
+          SOME U => U
+        | NONE => raise Same.SAME)
+    | _ => raise Same.SAME);
+
+fun subst_term1 tenv = Term_Subst.map_aterms_same
+  (fn Var v =>
+        (case lookup' (tenv, v) of
+          SOME u => u
+        | NONE => raise Same.SAME)
+    | _ => raise Same.SAME);
+
+fun subst_term2 tenv tyenv : term Same.operation =
+  let
+    val substT = subst_type0 tyenv;
+    fun subst (Const (a, T)) = Const (a, substT T)
+      | subst (Free (a, T)) = Free (a, substT T)
+      | subst (Var (xi, T)) =
+          (case lookup' (tenv, (xi, T)) of
+            SOME u => u
+          | NONE => Var (xi, substT T))
+      | subst (Bound _) = raise Same.SAME
+      | subst (Abs (a, T, t)) =
+          (Abs (a, substT T, Same.commit subst t)
+            handle Same.SAME => Abs (a, T, subst t))
+      | subst (t $ u) = (subst t $ Same.commit subst u handle Same.SAME => t $ subst u);
+  in subst end;
+
+in
+
+fun subst_type_same tyenv T =
+  if Vartab.is_empty tyenv then raise Same.SAME
+  else subst_type0 tyenv T;
+
+fun subst_term_types_same tyenv t =
+  if Vartab.is_empty tyenv then raise Same.SAME
+  else Term_Subst.map_types_same (subst_type0 tyenv) t;
+
+fun subst_term_same (tyenv, tenv) =
+  if Vartab.is_empty tenv then subst_term_types_same tyenv
+  else if Vartab.is_empty tyenv then subst_term1 tenv
+  else subst_term2 tenv tyenv;
+
+fun subst_type tyenv T = subst_type_same tyenv T handle Same.SAME => T;
+fun subst_term_types tyenv t = subst_term_types_same tyenv t handle Same.SAME => t;
+fun subst_term envs t = subst_term_same envs t handle Same.SAME => t;
+
+end;
 
 
-(* expand defined atoms -- with local beta reduction *)
+
+(** expand defined atoms -- with local beta reduction **)
 
 fun expand_atom T (U, u) =
-  subst_TVars (Type.raw_match (U, T) Vartab.empty) u
+  subst_term_types (Type.raw_match (U, T) Vartab.empty) u
     handle Type.TYPE_MATCH => raise TYPE ("expand_atom: ill-typed replacement", [T, U], [u]);
 
 fun expand_term get =
