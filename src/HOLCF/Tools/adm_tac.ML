@@ -117,8 +117,8 @@ fun inst_adm_subst_thm state i params s T subt t paths =
     val tye' = Sign.typ_match thy (PT, #T (rep_cterm Pt)) tye;
     val ctye = map (fn (ixn, (S, T)) =>
       (ctyp_of thy (TVar (ixn, S)), ctyp_of thy T)) (Vartab.dest tye');
-    val tv = cterm_of thy (Var (("t", j), Envir.typ_subst_TVars tye' tT));
-    val Pv = cterm_of thy (Var (("P", j), Envir.typ_subst_TVars tye' PT));
+    val tv = cterm_of thy (Var (("t", j), Envir.subst_type tye' tT));
+    val Pv = cterm_of thy (Var (("P", j), Envir.subst_type tye' PT));
     val rule' = instantiate (ctye, [(tv, tt), (Pv, Pt)]) rule
   in rule' end;
 

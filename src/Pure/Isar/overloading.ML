@@ -76,7 +76,7 @@ fun improve_term_check ts ctxt =
           | _ => I)
       | accumulate_improvements _ = I;
     val improvements = (fold o fold_aterms) accumulate_improvements ts Vartab.empty;
-    val ts' = (map o map_types) (Envir.typ_subst_TVars improvements) ts;
+    val ts' = (map o map_types) (Envir.subst_type improvements) ts;
     fun apply_subst t = Envir.expand_term (fn Const (c, ty) => (case subst (c, ty)
          of SOME (ty', t') =>
               if Type.typ_instance tsig (ty, ty')

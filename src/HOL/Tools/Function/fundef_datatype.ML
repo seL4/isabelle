@@ -102,7 +102,8 @@ fun filter_pats thy cons pvars [] = []
 
 
 fun inst_constrs_of thy (T as Type (name, _)) =
-        map (fn (Cn,CT) => Envir.subst_TVars (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
+        map (fn (Cn,CT) =>
+              Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
             (the (Datatype.get_constrs thy name))
   | inst_constrs_of thy _ = raise Match
 

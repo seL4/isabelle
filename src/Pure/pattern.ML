@@ -354,7 +354,7 @@ let
       Abs(ns,Ts,ts) =>
         (case obj of
            Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (ts,tt) env
-         | _ => let val Tt = Envir.typ_subst_TVars iTs Ts
+         | _ => let val Tt = Envir.subst_type iTs Ts
                 in mtch((ns,Tt)::binders) (ts,(incr obj)$Bound(0)) env end)
     | _ => (case obj of
               Abs(nt,Tt,tt) =>
@@ -428,7 +428,7 @@ fun pattern (Abs (_, _, t)) = pattern t
 
 fun match_rew thy tm (tm1, tm2) =
   let val rtm = the_default tm2 (Term.rename_abs tm1 tm tm2) in
-    SOME (Envir.subst_vars (match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
+    SOME (Envir.subst_term (match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
       handle MATCH => NONE
   end;
 

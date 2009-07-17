@@ -342,7 +342,7 @@ fun prove_strong_ind s avoids ctxt =
                  val env = Pattern.first_order_match thy (ihypt, prop_of ihyp)
                    (Vartab.empty, Vartab.empty);
                  val ihyp' = Thm.instantiate ([], map (pairself (cterm_of thy))
-                   (map (Envir.subst_vars env) vs ~~
+                   (map (Envir.subst_term env) vs ~~
                     map (fold_rev (NominalDatatype.mk_perm [])
                       (rev pis' @ pis)) params' @ [z])) ihyp;
                  fun mk_pi th =

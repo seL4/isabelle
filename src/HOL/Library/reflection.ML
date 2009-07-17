@@ -205,8 +205,8 @@ fun genreif ctxt raw_eqs t =
             val subst = map (fn (nt, xn) => (nt, Var ((xn,0), fastype_of nt))) xns_map
             val rhs_P = subst_free subst rhs
             val (tyenv, tmenv) = Pattern.match thy (rhs_P, t) (Vartab.empty, Vartab.empty)
-            val sbst = Envir.subst_vars (tyenv, tmenv)
-            val sbsT = Envir.typ_subst_TVars tyenv
+            val sbst = Envir.subst_term (tyenv, tmenv)
+            val sbsT = Envir.subst_type tyenv
             val subst_ty = map (fn (n,(s,t)) => (certT (TVar (n, s)), certT t))
                                (Vartab.dest tyenv)
             val tml = Vartab.dest tmenv

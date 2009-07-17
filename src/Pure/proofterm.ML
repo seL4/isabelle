@@ -1087,7 +1087,7 @@ fun match_proof Ts tymatch =
 
 fun prf_subst (pinst, (tyinsts, insts)) =
   let
-    val substT = Envir.typ_subst_TVars tyinsts;
+    val substT = Envir.subst_type tyinsts;
 
     fun subst' lev (t as Var (ixn, _)) = (case AList.lookup (op =) insts ixn of
           NONE => t

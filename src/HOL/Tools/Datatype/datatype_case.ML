@@ -293,7 +293,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt err used x clauses =
   end;
 
 fun make_case tab ctxt = gen_make_case
-  (match_type (ProofContext.theory_of ctxt)) Envir.subst_TVars fastype_of tab ctxt;
+  (match_type (ProofContext.theory_of ctxt)) Envir.subst_term_types fastype_of tab ctxt;
 val make_case_untyped = gen_make_case (K (K Vartab.empty))
   (K (Term.map_types (K dummyT))) (K dummyT);
 

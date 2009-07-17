@@ -317,7 +317,7 @@ fun gen_match match
       (Ctyp {T = TVar ((a, i), S), thy_ref = Theory.check_thy thy, maxidx = i, sorts = sorts},
        Ctyp {T = T, thy_ref = Theory.check_thy thy, maxidx = maxidx2, sorts = sorts});
     fun mk_ctinst ((x, i), (T, t)) =
-      let val T = Envir.typ_subst_TVars Tinsts T in
+      let val T = Envir.subst_type Tinsts T in
         (Cterm {t = Var ((x, i), T), T = T, thy_ref = Theory.check_thy thy,
           maxidx = i, sorts = sorts},
          Cterm {t = t, T = T, thy_ref = Theory.check_thy thy, maxidx = maxidx2, sorts = sorts})
@@ -1467,7 +1467,7 @@ fun strip_assums2 (Const("==>", _) $ _ $ B1,
 fun norm_term_skip env 0 t = Envir.norm_term env t
   | norm_term_skip env n (Const ("all", _) $ Abs (a, T, t)) =
       let
-        val T' = Envir.typ_subst_TVars (Envir.type_env env) T
+        val T' = Envir.subst_type (Envir.type_env env) T
         (*Must instantiate types of parameters because they are flattened;
           this could be a NEW parameter*)
       in Term.all T' $ Abs (a, T', norm_term_skip env n t) end

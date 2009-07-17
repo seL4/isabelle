@@ -341,7 +341,7 @@ fun add_monos thy monocs pats ths =
 	    let
 		val (newsubsts, instances) = Linker.add_instances thy instances monocs
 		val _ = if not (null newsubsts) then changed := true else ()
-		val newpats = map (fn subst => Envir.subst_TVars subst p) newsubsts
+		val newpats = map (fn subst => Envir.subst_term_types subst p) newsubsts
 	    in
 		PolyPattern (p, instances, instancepats@newpats)
 	    end 
