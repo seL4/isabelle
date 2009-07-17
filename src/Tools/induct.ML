@@ -423,14 +423,15 @@ fun internalize k th =
 
 local
 
-fun dest_env thy (env as Envir.Envir {iTs, ...}) =
+fun dest_env thy env =
   let
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
-    val pairs = Envir.alist_of env;
+    val pairs = Vartab.dest (Envir.term_env env);
+    val types = Vartab.dest (Envir.type_env env);
     val ts = map (cert o Envir.norm_term env o #2 o #2) pairs;
     val xs = map2 (curry (cert o Var)) (map #1 pairs) (map (#T o Thm.rep_cterm) ts);
-  in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) (Vartab.dest iTs), xs ~~ ts) end;
+  in (map (fn (xi, (S, T)) => (certT (TVar (xi, S)), certT T)) types, xs ~~ ts) end;
 
 in
 
@@ -450,8 +451,7 @@ fun guess_instance ctxt rule i st =
         val rule' = Thm.incr_indexes (maxidx + 1) rule;
         val concl = Logic.strip_assums_concl goal;
       in
-        Unify.smash_unifiers thy [(Thm.concl_of rule', concl)]
-          (Envir.empty (#maxidx (Thm.rep_thm rule')))
+        Unify.smash_unifiers thy [(Thm.concl_of rule', concl)] (Envir.empty (Thm.maxidx_of rule'))
         |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
       end
   end handle Subscript => Seq.empty;

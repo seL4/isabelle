@@ -131,7 +131,7 @@ fun valid ctxt rules goal dom facts nfacts nparams =
   let val seq = Seq.of_list rules |> Seq.maps (fn (th, ps, cs) =>
     valid_conj ctxt facts empty_env ps |> Seq.maps (fn (env as (tye, _), is) =>
       let val cs' = map (fn (Ts, ts) =>
-        (map (Envir.typ_subst_TVars tye) Ts, map (Envir.subst_vars env) ts)) cs
+        (map (Envir.subst_type tye) Ts, map (Envir.subst_term env) ts)) cs
       in
         inst_extra_vars ctxt dom cs' |>
           Seq.map_filter (fn (inst, cs'') =>
@@ -184,7 +184,7 @@ fun thm_of_cl_prf thy goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
             (Thm.ctyp_of thy (TVar ((ixn, S))), Thm.ctyp_of thy T))
                (Vartab.dest tye),
           map (fn (ixn, (T, t)) =>
-            (Thm.cterm_of thy (Var (ixn, Envir.typ_subst_TVars tye T)),
+            (Thm.cterm_of thy (Var (ixn, Envir.subst_type tye T)),
              Thm.cterm_of thy t)) (Vartab.dest env) @
           map (fn (ixnT, t) =>
             (Thm.cterm_of thy (Var ixnT), Thm.cterm_of thy t)) insts) th)

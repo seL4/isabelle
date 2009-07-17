@@ -402,7 +402,7 @@ fun infer_types pp tsig check_typs const_type var_type used maxidx raw_ts =
 
     (*convert to preterms*)
     val ts = burrow_types check_typs raw_ts;
-    val (ts', (vps, ps)) =
+    val (ts', _) =
       fold_map (preterm_of const_type is_param o constrain_vars) ts (Vartab.empty, Vartab.empty);
 
     (*do type inference*)

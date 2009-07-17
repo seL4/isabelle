@@ -231,9 +231,9 @@ fun clean_unify thry ix (a as (pat, tgt)) =
          or should I be using them somehow? *)
           fun mk_insts env =
             (Vartab.dest (Envir.type_env env),
-             Envir.alist_of env);
-          val initenv = Envir.Envir {asol = Vartab.empty,
-                                     iTs = typinsttab, maxidx = ix2};
+             Vartab.dest (Envir.term_env env));
+          val initenv =
+            Envir.Envir {maxidx = ix2, tenv = Vartab.empty, tyenv = typinsttab};
           val useq = Unify.smash_unifiers thry [a] initenv
 	            handle UnequalLengths => Seq.empty
 		               | Term.TERM _ => Seq.empty;

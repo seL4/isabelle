@@ -324,7 +324,7 @@ fun to_pred_simproc rules =
 fun to_pred_proc thy rules t = case lookup_rule thy I rules t of
     NONE => NONE
   | SOME (lhs, rhs) =>
-      SOME (Envir.subst_vars
+      SOME (Envir.subst_term
         (Pattern.match thy (lhs, t) (Vartab.empty, Vartab.empty)) rhs);
 
 fun to_pred thms ctxt thm =

@@ -35,12 +35,6 @@ fun forall_intr_prf t prf =
 fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_prf
   (vars_of prop @ frees_of prop) prf;
 
-fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
-  (Envir.Envir {asol=asol2, iTs=iTs2, maxidx=maxidx2}) =
-    Envir.Envir {asol=Vartab.merge (op =) (asol1, asol2),
-                 iTs=Vartab.merge (op =) (iTs1, iTs2),
-                 maxidx=Int.max (maxidx1, maxidx2)};
-
 
 (**** generate constraints for proof term ****)
 
@@ -48,31 +42,32 @@ fun mk_var env Ts T =
   let val (env', v) = Envir.genvar "a" (env, rev Ts ---> T)
   in (env', list_comb (v, map Bound (length Ts - 1 downto 0))) end;
 
-fun mk_tvar (Envir.Envir {iTs, asol, maxidx}, s) =
-  (Envir.Envir {iTs = iTs, asol = asol, maxidx = maxidx+1},
-   TVar (("'t", maxidx+1), s));
+fun mk_tvar (Envir.Envir {maxidx, tenv, tyenv}, s) =
+  (Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv},
+   TVar (("'t", maxidx + 1), s));
 
 val mk_abs = fold (fn T => fn u => Abs ("", T, u));
 
 fun unifyT thy env T U =
   let
-    val Envir.Envir {asol, iTs, maxidx} = env;
-    val (iTs', maxidx') = Sign.typ_unify thy (T, U) (iTs, maxidx)
-  in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end
-  handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
-    Syntax.string_of_typ_global thy T ^ "\n\n" ^ Syntax.string_of_typ_global thy U);
+    val Envir.Envir {maxidx, tenv, tyenv} = env;
+    val (tyenv', maxidx') = Sign.typ_unify thy (T, U) (tyenv, maxidx);
+  in Envir.Envir {maxidx = maxidx', tenv = tenv, tyenv = tyenv'} end;
 
-fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar ixnS) =
-      (case Type.lookup iTs ixnS of NONE => T | SOME T' => chaseT env T')
+fun chaseT env (T as TVar v) =
+      (case Type.lookup (Envir.type_env env) v of
+        NONE => T
+      | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
-fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
-      (t as Const (s, T)) = if T = dummyT then (case Sign.const_type thy s of
+fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
+      (t as Const (s, T)) = if T = dummyT then
+        (case Sign.const_type thy s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
         | SOME T =>
             let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T)
             in (Const (s, T'), T', vTs,
-              Envir.Envir {maxidx = maxidx + 1, asol = asol, iTs = iTs})
+              Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv})
             end)
       else (t, T, vTs, env)
   | infer_type thy env Ts vTs (t as Free (s, T)) =
@@ -236,20 +231,22 @@ fun make_constraints_cprf thy env cprf =
 
 fun upd_constrs env cs =
   let
-    val Envir.Envir {asol, iTs, ...} = env;
+    val tenv = Envir.term_env env;
+    val tyenv = Envir.type_env env;
     val dom = []
-      |> Vartab.fold (cons o #1) asol
-      |> Vartab.fold (cons o #1) iTs;
+      |> Vartab.fold (cons o #1) tenv
+      |> Vartab.fold (cons o #1) tyenv;
     val vran = []
-      |> Vartab.fold (Term.add_var_names o #2 o #2) asol
-      |> Vartab.fold (Term.add_tvar_namesT o #2 o #2) iTs;
+      |> Vartab.fold (Term.add_var_names o #2 o #2) tenv
+      |> Vartab.fold (Term.add_tvar_namesT o #2 o #2) tyenv;
     fun check_cs [] = []
-      | check_cs ((u, p, vs)::ps) =
-          let val vs' = subtract (op =) dom vs;
-          in if vs = vs' then (u, p, vs)::check_cs ps
-             else (true, p, fold (insert (op =)) vs' vran)::check_cs ps
-          end
+      | check_cs ((u, p, vs) :: ps) =
+          let val vs' = subtract (op =) dom vs in
+            if vs = vs' then (u, p, vs) :: check_cs ps
+            else (true, p, fold (insert op =) vs' vran) :: check_cs ps
+          end;
   in check_cs cs end;
+
 
 (**** solution of constraints ****)
 
@@ -280,7 +277,7 @@ fun solve _ [] bigenv = bigenv
         val Envir.Envir {maxidx, ...} = bigenv;
         val (env, cs') = search (Envir.empty maxidx) cs;
       in
-        solve thy (upd_constrs env cs') (merge_envs bigenv env)
+        solve thy (upd_constrs env cs') (Envir.merge (bigenv, env))
       end;
 
 

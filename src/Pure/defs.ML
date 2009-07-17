@@ -46,7 +46,7 @@ fun disjoint_args (Ts, Us) =
       handle Type.TUNIFY => true);
 
 fun match_args (Ts, Us) =
-  Option.map Envir.typ_subst_TVars
+  Option.map Envir.subst_type
     (SOME (Type.raw_matches (Ts, Us) Vartab.empty) handle Type.TYPE_MATCH => NONE);
 
 

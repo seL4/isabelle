@@ -489,9 +489,8 @@ fun remove_types (Abs (s, _, t)) = Abs (s, dummyT, remove_types t)
   | remove_types (Const (s, _)) = Const (s, dummyT)
   | remove_types t = t;
 
-fun remove_types_env (Envir.Envir {iTs, asol, maxidx}) =
-  Envir.Envir {iTs = iTs, asol = Vartab.map (apsnd remove_types) asol,
-    maxidx = maxidx};
+fun remove_types_env (Envir.Envir {maxidx, tenv, tyenv}) =
+  Envir.Envir {maxidx = maxidx, tenv = Vartab.map (apsnd remove_types) tenv, tyenv = tyenv};
 
 fun norm_proof' env prf = norm_proof (remove_types_env env) prf;
 
@@ -1088,7 +1087,7 @@ fun match_proof Ts tymatch =
 
 fun prf_subst (pinst, (tyinsts, insts)) =
   let
-    val substT = Envir.typ_subst_TVars tyinsts;
+    val substT = Envir.subst_type tyinsts;
 
     fun subst' lev (t as Var (ixn, _)) = (case AList.lookup (op =) insts ixn of
           NONE => t

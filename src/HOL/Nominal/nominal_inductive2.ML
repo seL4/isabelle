@@ -147,7 +147,7 @@ fun inst_params thy (vs, p) th cts =
   let val env = Pattern.first_order_match thy (p, prop_of th)
     (Vartab.empty, Vartab.empty)
   in Thm.instantiate ([],
-    map (Envir.subst_vars env #> cterm_of thy) vs ~~ cts) th
+    map (Envir.subst_term env #> cterm_of thy) vs ~~ cts) th
   end;
 
 fun prove_strong_ind s avoids ctxt =

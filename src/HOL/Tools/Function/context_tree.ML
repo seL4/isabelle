@@ -116,8 +116,9 @@ fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
        val (c, subs) = (concl_of r, prems_of r)
 
        val subst = Pattern.match (ProofContext.theory_of ctx) (c, tt') (Vartab.empty, Vartab.empty)
-       val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_vars subst) subs
-       val inst = map (fn v => (cterm_of thy (Var v), cterm_of thy (Envir.subst_vars subst (Var v)))) (Term.add_vars c [])
+       val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_term subst) subs
+       val inst = map (fn v =>
+        (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v)))) (Term.add_vars c [])
      in
    (cterm_instantiate inst r, dep, branches)
      end

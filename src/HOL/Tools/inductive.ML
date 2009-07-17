@@ -922,7 +922,7 @@ fun infer_intro_vars elim arity intros =
         val tab = fold (Pattern.first_order_match thy) (ts ~~ us)
           (Vartab.empty, Vartab.empty);
       in
-        map (Envir.subst_vars tab) vars
+        map (Envir.subst_term tab) vars
       end
   in
     map (mtch o apsnd prop_of) (cases ~~ intros)

@@ -153,8 +153,8 @@ fun genreif ctxt raw_eqs t =
             val certy = ctyp_of thy
             val (tyenv, tmenv) =
               Pattern.match thy
-              ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
-              (Envir.type_env (Envir.empty 0), Vartab.empty)
+                ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
+                (Vartab.empty, Vartab.empty)
             val (fnvs,invs) = List.partition (fn ((vn,_),_) => vn mem vns) (Vartab.dest tmenv)
             val (fts,its) =
 	      (map (snd o snd) fnvs,
@@ -204,11 +204,9 @@ fun genreif ctxt raw_eqs t =
             val xns_map = (fst (split_list nths)) ~~ xns
             val subst = map (fn (nt, xn) => (nt, Var ((xn,0), fastype_of nt))) xns_map
             val rhs_P = subst_free subst rhs
-            val (tyenv, tmenv) = Pattern.match
-                              thy (rhs_P, t)
-                              (Envir.type_env (Envir.empty 0), Vartab.empty)
-            val sbst = Envir.subst_vars (tyenv, tmenv)
-            val sbsT = Envir.typ_subst_TVars tyenv
+            val (tyenv, tmenv) = Pattern.match thy (rhs_P, t) (Vartab.empty, Vartab.empty)
+            val sbst = Envir.subst_term (tyenv, tmenv)
+            val sbsT = Envir.subst_type tyenv
             val subst_ty = map (fn (n,(s,t)) => (certT (TVar (n, s)), certT t))
                                (Vartab.dest tyenv)
             val tml = Vartab.dest tmenv

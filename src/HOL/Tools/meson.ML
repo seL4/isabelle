@@ -87,14 +87,12 @@ val disj_FalseD2 = thm "meson_disj_FalseD2";
 fun typ_pair_of (ix, (sort,ty)) = (TVar (ix,sort), ty);
 fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
 
-val Envir.Envir {asol = tenv0, iTs = tyenv0, ...} = Envir.empty 0
-
 (*FIXME: currently does not "rename variables apart"*)
 fun first_order_resolve thA thB =
   let val thy = theory_of_thm thA
       val tmA = concl_of thA
       val Const("==>",_) $ tmB $ _ = prop_of thB
-      val (tyenv,tenv) = Pattern.first_order_match thy (tmB,tmA) (tyenv0,tenv0)
+      val (tyenv, tenv) = Pattern.first_order_match thy (tmB, tmA) (Vartab.empty, Vartab.empty)
       val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
   in  thA RS (cterm_instantiate ct_pairs thB)  end
   handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);  (* FIXME avoid handle _ *)
@@ -104,8 +102,8 @@ fun flexflex_first_order th =
       [] => th
     | pairs =>
         let val thy = theory_of_thm th
-            val (tyenv,tenv) =
-                  List.foldl (uncurry (Pattern.first_order_match thy)) (tyenv0,tenv0) pairs
+            val (tyenv, tenv) =
+              fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
             val t_pairs = map term_pair_of (Vartab.dest tenv)
             val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
         in  th'  end
