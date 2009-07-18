@@ -133,7 +133,7 @@ fun trace_active () =
     val ws = ! workers;
     val m = string_of_int (length ws);
     val n = string_of_int (length (filter #2 ws));
-  in Multithreading.tracing 1 (fn () => "SCHEDULE: " ^ m ^ " workers, " ^ n ^ " active") end;
+  in Multithreading.tracing 2 (fn () => "SCHEDULE: " ^ m ^ " workers, " ^ n ^ " active") end;
 
 fun change_active active = (*requires SYNCHRONIZED*)
   change workers (AList.update Thread.equal (Thread.self (), active));
@@ -188,6 +188,15 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
+    (*queue status*)
+    val _ = Multithreading.tracing 1 (fn () =>
+      let val {ready, pending, running} = Task_Queue.status (! queue) in
+        "SCHEDULE: " ^
+          string_of_int ready ^ " ready, " ^
+          string_of_int pending ^ " pending, " ^
+          string_of_int running ^ " running"
+      end);
+
     (*worker threads*)
     val _ =
       (case List.partition (Thread.isActive o #1) (! workers) of
@@ -277,8 +286,8 @@ local
 fun get_result x = the_default (Exn.Exn (SYS_ERROR "unfinished future")) (peek x);
 
 fun join_wait x =
-  while not (is_finished x)
-  do SYNCHRONIZED "join_wait" (fn () => wait ());
+  if SYNCHRONIZED "join_wait" (fn () => is_finished x orelse (wait (); false))
+  then () else join_wait x;
 
 fun join_next x = (*requires SYNCHRONIZED*)
   if is_finished x then NONE
