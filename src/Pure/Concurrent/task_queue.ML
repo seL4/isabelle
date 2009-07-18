@@ -11,6 +11,7 @@ sig
   val pri_of_task: task -> int
   val str_of_task: task -> string
   type group
+  val group_id: group -> int
   val eq_group: group * group -> bool
   val new_group: unit -> group
   val is_valid: group -> bool
@@ -19,6 +20,7 @@ sig
   type queue
   val empty: queue
   val is_empty: queue -> bool
+  val status: queue -> {ready: int, pending: int, running: int}
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
@@ -47,6 +49,8 @@ structure Task_Graph = Graph(type key = task val ord = task_ord);
 (* groups *)
 
 datatype group = Group of serial * bool ref;
+
+fun group_id (Group (gid, _)) = gid;
 fun eq_group (Group (gid1, _), Group (gid2, _)) = gid1 = gid2;
 
 fun new_group () = Group (serial (), ref true);
@@ -87,6 +91,19 @@ fun make_queue groups jobs cache = Queue {groups = groups, jobs = jobs, cache = 
 
 val empty = make_queue Inttab.empty Task_Graph.empty No_Result;
 fun is_empty (Queue {jobs, ...}) = Task_Graph.is_empty jobs;
+
+
+(* status *)
+
+fun status (Queue {jobs, ...}) =
+  let
+    val (x, y, z) =
+      Task_Graph.fold (fn (task, ((_, job), (deps, _))) => fn (x, y, z) =>
+          (case job of
+            Job _ => if null deps then (x + 1, y, z) else (x, y + 1, z)
+          | Running _ => (x, y, z + 1)))
+        jobs (0, 0, 0);
+  in {ready = x, pending = y, running = z} end;
 
 
 (* enqueue *)
