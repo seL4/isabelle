@@ -120,6 +120,9 @@ Attrib/Method.setup introduced in Isabelle2009.
 * Removed "compress" option from isabelle-process and isabelle usedir;
 this is always enabled.
 
+* More fine-grained control of proof parallelism, cf.
+Goal.parallel_proofs in ML and usedir option -q LEVEL.
+
 
 
 New in Isabelle2009 (April 2009)
