@@ -1002,6 +1002,7 @@ fun future_proof done get_context fork_proof state =
     val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, propss, prop), messages, using, goal, before_qed, after_qed} = goal;
+    val goal_txt = prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt);
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
@@ -1017,13 +1018,13 @@ fun future_proof done get_context fork_proof state =
 
     val result_ctxt =
       state
-      |> map_contexts (Variable.declare_term prop)
+      |> map_contexts (fold Variable.declare_term goal_txt)
       |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
       |> fork_proof;
 
     val future_thm = result_ctxt |> Future.map (fn (_, x) =>
       ProofContext.get_fact_single (get_context x) (Facts.named this_name));
-    val finished_goal = exception_trace (fn () => Goal.future_result goal_ctxt future_thm prop');
+    val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
       |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
@@ -1045,7 +1046,7 @@ local
 fun future_terminal_proof proof1 proof2 meths int state =
   if int orelse is_relevant state orelse not (Goal.local_future_enabled ())
   then proof1 meths state
-  else snd (proof2 (fn state' => Future.fork_local ~1 (fn () => ((), proof1 meths state'))) state);
+  else snd (proof2 (fn state' => Future.fork_pri ~1 (fn () => ((), proof1 meths state'))) state);
 
 in
 
