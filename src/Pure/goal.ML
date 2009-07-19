@@ -98,7 +98,7 @@ val norm_result =
 val parallel_proofs = ref true;
 
 fun future_enabled () =
-  Future.enabled () andalso ! parallel_proofs andalso is_some (Future.thread_data ());
+  Future.enabled () andalso ! parallel_proofs andalso Future.is_worker ();
 
 
 (* future_result *)
@@ -185,7 +185,7 @@ fun prove_common immediate ctxt xs asms props tac =
     val res =
       if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (future_enabled ())
       then result ()
-      else future_result ctxt' (Future.fork_pri ~1 result) (Thm.term_of stmt);
+      else future_result ctxt' (Future.fork_local ~1 result) (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)

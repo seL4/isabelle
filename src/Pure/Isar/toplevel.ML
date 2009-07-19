@@ -652,7 +652,7 @@ fun proof_result immediate (tr, proof_trs) st =
 
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Future.fork_pri ~1 (fn () =>
+            Future.fork_local ~1 (fn () =>
               let val (states, result_state) =
                 (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
                   => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
