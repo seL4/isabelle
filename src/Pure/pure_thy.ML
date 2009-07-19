@@ -59,11 +59,11 @@ struct
 
 structure FactsData = TheoryDataFun
 (
-  type T = Facts.T * (unit lazy list * Task_Queue.group list);
-  val empty = (Facts.empty, ([], []));
+  type T = Facts.T * (unit lazy list * Task_Queue.group Inttab.table);
+  val empty = (Facts.empty, ([], Inttab.empty));
   val copy = I;
-  fun extend (facts, _) = (facts, ([], []));
-  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), ([], []));
+  fun extend (facts, _) = (facts, ([], Inttab.empty));
+  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), ([], Inttab.empty));
 );
 
 
@@ -84,7 +84,9 @@ fun lazy_proof thm = Lazy.lazy (fn () => Thm.join_proof thm);
 fun join_proofs thy =
   map_filter (Exn.get_exn o Lazy.force_result) (rev (#1 (#2 (FactsData.get thy))));
 
-fun cancel_proofs thy = List.app Future.cancel_group (#2 (#2 (FactsData.get thy)));
+fun cancel_proofs thy =
+  Inttab.fold (fn (_, group) => fn () => Future.cancel_group group)
+    (#2 (#2 (FactsData.get thy))) ();
 
 
 
@@ -144,9 +146,14 @@ fun name_thmss official pos name fact =
 
 (* enter_thms *)
 
+val pending_groups =
+  Thm.promises_of #> fold (fn (_, future) =>
+    if Future.is_finished future then I
+    else Inttab.update (`Task_Queue.group_id (Future.group_of future)));
+
 fun enter_proofs (thy, thms) =
   (FactsData.map (apsnd (fn (proofs, groups) =>
-    (fold (cons o lazy_proof) thms proofs, fold Thm.pending_groups thms groups))) thy, thms);
+    (fold (cons o lazy_proof) thms proofs, fold pending_groups thms groups))) thy, thms);
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b
