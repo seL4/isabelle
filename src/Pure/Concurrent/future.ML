@@ -285,21 +285,10 @@ local
 
 fun get_result x = the_default (Exn.Exn (SYS_ERROR "unfinished future")) (peek x);
 
-fun join_wait x =
-  if SYNCHRONIZED "join_wait" (fn () => is_finished x orelse (wait (); false))
-  then () else join_wait x;
-
-fun join_next x = (*requires SYNCHRONIZED*)
-  if is_finished x then NONE
-  else
-    (case change_result queue Task_Queue.dequeue of
-      NONE => (worker_wait (); join_next x)
-    | some => some);
-
-fun join_loop x =
-  (case SYNCHRONIZED "join" (fn () => join_next x) of
+fun join_deps deps =
+  (case SYNCHRONIZED "join" (fn () => change_result queue (Task_Queue.dequeue_towards deps)) of
     NONE => ()
-  | SOME work => (execute "join" work; join_loop x));
+  | SOME (work, deps') => (execute "join" work; join_deps deps'));
 
 in
 
@@ -310,10 +299,16 @@ fun join_results xs =
       val _ = scheduler_check "join check";
       val _ = Multithreading.self_critical () andalso
         error "Cannot join future values within critical section";
-      val _ =
-        if is_some (thread_data ())
-        then List.app join_loop xs   (*proper task -- continue work*)
-        else List.app join_wait xs;  (*alien thread -- refrain from contending for resources*)
+
+      val is_worker = is_some (thread_data ());
+      fun join_wait x =
+        if SYNCHRONIZED "join_wait" (fn () =>
+          is_finished x orelse (if is_worker then worker_wait () else wait (); false))
+        then () else join_wait x;
+
+      val _ = if is_worker then join_deps (map task_of xs) else ();
+      val _ = List.app join_wait xs;
+
     in map get_result xs end) ();
 
 end;

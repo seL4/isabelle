@@ -24,6 +24,8 @@ sig
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
+  val dequeue_towards: task list -> queue ->
+    (((task * group * (bool -> bool) list) * task list) option * queue)
   val interrupt: queue -> task -> unit
   val interrupt_external: queue -> string -> unit
   val cancel: queue -> group -> bool
@@ -147,6 +149,28 @@ fun dequeue (queue as Queue {groups, jobs, cache}) =
       Unknown => deq NONE
     | Result last => deq (SOME last)
     | No_Result => (NONE, queue))
+  end;
+
+
+(* dequeue_towards -- adhoc dependencies *)
+
+fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
+  let
+    fun ready task =
+      (case Task_Graph.get_node jobs task of
+        (group, Job list) =>
+          if null (Task_Graph.imm_preds jobs task) then SOME (task, group, rev list)
+          else NONE
+      | _ => NONE);
+    val tasks = filter (can (Task_Graph.get_node jobs)) deps;
+  in
+    (case get_first ready (Task_Graph.all_preds jobs tasks) of
+      NONE => (NONE, queue)
+    | SOME (result as (task, _, _)) =>
+        let
+          val jobs' = set_job task (Running (Thread.self ())) jobs;
+          val cache' = Unknown;
+        in (SOME (result, tasks), make_queue groups jobs' cache') end)
   end;
 
 
