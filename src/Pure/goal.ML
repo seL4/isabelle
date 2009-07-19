@@ -120,14 +120,15 @@ fun future_result ctxt result prop =
     val instT = map (fn (a, S) => (certT (TVar ((a, 0), S)), certT (TFree (a, S)))) tfrees;
 
     val global_prop =
-      Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop)));
+      cert (Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
+      |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
       (Thm.adjust_maxidx_thm ~1 #>
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
         Thm.generalize (map #1 tfrees, []) 0);
     val local_result =
-      Thm.future global_result (cert global_prop)
+      Thm.future global_result global_prop
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms;
