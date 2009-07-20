@@ -68,9 +68,8 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val base_morph = inst_morph
       $> Morphism.binding_morphism (Binding.prefix false (class_prefix class))
       $> Element.satisfy_morphism (the_list wit);
-    val defs = these_defs thy sups;
-    val eq_morph = Element.eq_morphism thy defs;
-    val morph = base_morph $> eq_morph;
+    val eqs = these_defs thy sups;
+    val eq_morph = Element.eq_morphism thy eqs;
 
     (* assm_intro *)
     fun prove_assm_intro thm =
@@ -97,7 +96,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
            ORELSE' Tactic.assume_tac));
     val of_class = SkipProof.prove_global thy [] [] of_class_prop (K tac);
 
-  in (base_morph, morph, export_morph, axiom, assm_intro, of_class) end;
+  in (base_morph, eqs, export_morph, axiom, assm_intro, of_class) end;
 
 
 (* reading and processing class specifications *)
@@ -284,9 +283,8 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
-    #-> (fn (base_morph, morph, export_morph, axiom, assm_intro, of_class) =>
-       Locale.add_registration (class, (morph, export_morph))
-    #> Context.theory_map (Locale.activate_facts (class, morph $> export_morph))
+    #-> (fn (base_morph, eqs, export_morph, axiom, assm_intro, of_class) =>
+       Locale.add_registration_eqs (class, base_morph) eqs export_morph
     #> register class sups params base_sort base_morph axiom assm_intro of_class))
     |> TheoryTarget.init (SOME class)
     |> pair class
