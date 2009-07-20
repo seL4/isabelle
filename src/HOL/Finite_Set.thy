@@ -812,7 +812,7 @@ lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A)
 by(rule fun_left_comm_idem.fold_insert_idem[OF ab_semigroup_idem_mult.fun_left_comm_idem[OF ab_semigroup_idem_mult_inf]])
 
 lemma inf_le_fold_inf: "finite A \<Longrightarrow> ALL a:A. b \<le> a \<Longrightarrow> inf b c \<le> fold inf c A"
-by (induct pred:finite) auto
+by (induct pred: finite) (auto intro: le_infI1)
 
 lemma fold_inf_le_inf: "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> fold inf b A \<le> inf a b"
 proof(induct arbitrary: a pred:finite)
@@ -823,7 +823,7 @@ next
   proof cases
     assume "A = {}" thus ?thesis using insert by simp
   next
-    assume "A \<noteq> {}" thus ?thesis using insert by auto
+    assume "A \<noteq> {}" thus ?thesis using insert by (auto intro: le_infI2)
   qed
 qed
 

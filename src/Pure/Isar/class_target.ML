@@ -242,15 +242,16 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);
-    val deps_witss = case some_dep_morph
-     of SOME dep_morph => [((sup, dep_morph), the_list some_wit)]
-      | NONE => []
+    val add_dependency = case some_dep_morph
+     of SOME dep_morph => Locale.add_dependency sub
+          (sup, dep_morph $> Element.satisfy_morphism (the_list some_wit)) export
+      | NONE => I
   in
     thy
     |> AxClass.add_classrel classrel
     |> ClassData.map (Graph.add_edge (sub, sup))
     |> activate_defs sub (these_defs thy diff_sort)
-    |> Locale.add_dependencies sub deps_witss export
+    |> add_dependency
   end;
 
 

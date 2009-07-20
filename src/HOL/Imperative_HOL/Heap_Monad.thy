@@ -283,7 +283,7 @@ definition
 where
   [code del]: "raise_exc e = raise []"
 
-lemma raise_raise_exc [code, code_inline]:
+lemma raise_raise_exc [code, code_unfold]:
   "raise s = raise_exc (Fail (STR s))"
   unfolding Fail_def raise_exc_def raise_def ..
 

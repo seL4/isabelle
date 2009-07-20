@@ -85,7 +85,9 @@ sig
   val num_args_of: 'a mixfix list -> int
   val replace_quotes: 'b list -> 'a mixfix list -> 'b mixfix list
   val mk_deftab: theory -> deftab
+  val map_unfold: (simpset -> simpset) -> theory -> theory
   val add_unfold: thm -> theory -> theory
+  val del_unfold: thm -> theory -> theory
 
   val get_node: codegr -> string -> node
   val add_edge: string * string -> codegr -> codegr
@@ -296,13 +298,9 @@ structure UnfoldData = TheoryDataFun
   fun merge _ = merge_ss;
 );
 
-fun add_unfold eqn =
-  let
-    val ctxt = ProofContext.init (Thm.theory_of_thm eqn);
-    val eqn' = LocalDefs.meta_rewrite_rule ctxt eqn;
-  in
-    UnfoldData.map (fn ss => ss addsimps [eqn'])
-  end;
+val map_unfold = UnfoldData.map;
+val add_unfold = map_unfold o MetaSimplifier.add_simp;
+val del_unfold = map_unfold o MetaSimplifier.del_simp;
 
 fun unfold_preprocessor thy =
   let val ss = Simplifier.theory_context thy (UnfoldData.get thy)
