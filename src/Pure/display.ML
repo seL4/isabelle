@@ -16,18 +16,17 @@ end;
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
-  val pretty_thm_aux: Pretty.pp -> {quote: bool, show_hyps: bool, show_status: bool} ->
+  val pretty_thm_raw: Pretty.pp -> {quote: bool, show_hyps: bool, show_status: bool} ->
     term list -> thm -> Pretty.T
-  val pretty_thm: thm -> Pretty.T
-  val string_of_thm: thm -> string
-  val pretty_thms: thm list -> Pretty.T
-  val pretty_thm_sg: theory -> thm -> Pretty.T
-  val pretty_thms_sg: theory -> thm list -> Pretty.T
-  val print_thm: thm -> unit
-  val print_thms: thm list -> unit
-  val prth: thm -> thm
-  val prthq: thm Seq.seq -> thm Seq.seq
-  val prths: thm list -> thm list
+  val pretty_thm_aux: Proof.context -> bool -> thm -> Pretty.T
+  val pretty_thm: Proof.context -> thm -> Pretty.T
+  val pretty_thm_global: theory -> thm -> Pretty.T
+  val pretty_thm_without_context: thm -> Pretty.T
+  val string_of_thm: Proof.context -> thm -> string
+  val string_of_thm_global: theory -> thm -> string
+  val string_of_thm_without_context: thm -> string
+  val pretty_thms_aux: Proof.context -> bool -> thm list -> Pretty.T
+  val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_ctyp: ctyp -> Pretty.T
   val string_of_ctyp: ctyp -> string
   val print_ctyp: ctyp -> unit
@@ -69,7 +68,7 @@ fun display_status false _ = ""
         else ""
       end;
 
-fun pretty_thm_aux pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
+fun pretty_thm_raw pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
   let
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
@@ -96,27 +95,33 @@ fun pretty_thm_aux pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
-fun pretty_thm th =
-  pretty_thm_aux (Syntax.pp_global (Thm.theory_of_thm th))
-    {quote = true, show_hyps = false, show_status = true} [] th;
-
-val string_of_thm = Pretty.string_of o pretty_thm;
-
-fun pretty_thms [th] = pretty_thm th
-  | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
-
-val pretty_thm_sg = pretty_thm oo Thm.transfer;
-val pretty_thms_sg = pretty_thms oo (map o Thm.transfer);
+fun pretty_thm_aux ctxt show_status th =
+  let
+    val flags = {quote = false, show_hyps = true, show_status = show_status};
+    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
+  in pretty_thm_raw (Syntax.pp ctxt) flags asms th end;
 
 
-(* top-level commands for printing theorems *)
+fun pretty_thm ctxt = pretty_thm_aux ctxt true;
 
-val print_thm = Pretty.writeln o pretty_thm;
-val print_thms = Pretty.writeln o pretty_thms;
+fun pretty_thm_global thy th =
+  pretty_thm_raw (Syntax.pp_global thy)
+    {quote = false, show_hyps = false, show_status = true} [] th;
 
-fun prth th = (print_thm th; th);
-fun prthq thq = (Seq.print (K print_thm) 100000 thq; thq);
-fun prths ths = (prthq (Seq.of_list ths); ths);
+fun pretty_thm_without_context th = pretty_thm_global (Thm.theory_of_thm th) th;
+
+val string_of_thm = Pretty.string_of oo pretty_thm;
+val string_of_thm_global = Pretty.string_of oo pretty_thm_global;
+val string_of_thm_without_context = Pretty.string_of o pretty_thm_without_context;
+
+
+(* multiple theorems *)
+
+fun pretty_thms_aux ctxt flag [th] = pretty_thm_aux ctxt flag th
+  | pretty_thms_aux ctxt flag ths =
+      Pretty.blk (0, Pretty.fbreaks (map (pretty_thm_aux ctxt flag) ths));
+
+fun pretty_thms ctxt = pretty_thms_aux ctxt true;
 
 
 (* other printing commands *)
