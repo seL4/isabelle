@@ -318,7 +318,7 @@ fun get_goal state =
 val show_main_goal = ref false;
 val verbose = ProofContext.verbose;
 
-val pretty_goals_local = Display.pretty_goals_aux o Syntax.pp;
+val pretty_goals_local = Display_Goal.pretty_goals_aux o Syntax.pp;
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =

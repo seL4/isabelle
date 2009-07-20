@@ -135,7 +135,7 @@ fun thy_error (thy,thy') =
 (*Default action is to print an error message; could be suppressed for
   special applications.*)
 fun result_error_default state msg : thm =
-  Pretty.str "Bad final proof state:" :: Display.pretty_goals (!goals_limit) state @
+  Pretty.str "Bad final proof state:" :: Display_Goal.pretty_goals (!goals_limit) state @
     [Pretty.str msg, Pretty.str "Proof failed!"] |> Pretty.chunks |> Pretty.string_of |> error;
 
 val result_error_fn = ref result_error_default;
@@ -277,7 +277,7 @@ fun print_top ((th, _), pairs) =
       (if ngoals > 0 then " (" ^ string_of_int ngoals ^ " subgoal" ^
         (if ngoals <> 1 then "s" else "") ^ ")"
       else ""))] @
-    Display.pretty_goals m th
+    Display_Goal.pretty_goals m th
   end |> Pretty.chunks |> Pretty.writeln;
 
 (*Printing can raise exceptions, so the assignment occurs last.

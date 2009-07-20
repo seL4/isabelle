@@ -195,7 +195,7 @@ fun print_tac msg =
     (fn st =>
      (tracing msg;
       tracing ((Pretty.string_of o Pretty.chunks o
-                 Display.pretty_goals (! Display.goals_limit)) st);
+                 Display_Goal.pretty_goals (! Display_Goal.goals_limit)) st);
       Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
@@ -233,7 +233,7 @@ fun exec_trace_command flag (tac, st) =
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
-           then (Display.print_goals (! Display.goals_limit) st;
+           then (Display_Goal.print_goals (! Display_Goal.goals_limit) st;
                  tracing "** Press RETURN to continue:";
                  exec_trace_command flag (tac,st))
   else tac st;
