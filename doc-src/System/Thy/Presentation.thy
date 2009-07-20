@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Presentation
 imports Pure
 begin

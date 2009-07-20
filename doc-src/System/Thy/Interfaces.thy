@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Interfaces
 imports Pure
 begin
