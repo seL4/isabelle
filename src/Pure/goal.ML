@@ -6,7 +6,7 @@ Goals in tactical theorem proving.
 
 signature BASIC_GOAL =
 sig
-  val parallel_proofs: bool ref
+  val parallel_proofs: int ref
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
@@ -21,6 +21,7 @@ sig
   val finish: thm -> thm
   val norm_result: thm -> thm
   val future_enabled: unit -> bool
+  val local_future_enabled: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
@@ -95,10 +96,12 @@ val norm_result =
 
 (* future_enabled *)
 
-val parallel_proofs = ref true;
+val parallel_proofs = ref 1;
 
 fun future_enabled () =
-  Future.enabled () andalso ! parallel_proofs andalso is_some (Future.thread_data ());
+  Future.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;
+
+fun local_future_enabled () = future_enabled () andalso ! parallel_proofs >= 2;
 
 
 (* future_result *)
@@ -120,14 +123,15 @@ fun future_result ctxt result prop =
     val instT = map (fn (a, S) => (certT (TVar ((a, 0), S)), certT (TFree (a, S)))) tfrees;
 
     val global_prop =
-      Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop)));
+      cert (Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
+      |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
       (Thm.adjust_maxidx_thm ~1 #>
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
         Thm.generalize (map #1 tfrees, []) 0);
     val local_result =
-      Thm.future global_result (cert global_prop)
+      Thm.future global_result global_prop
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms;

@@ -451,7 +451,8 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -g BOOL      generate session graph image for document (default false)
     -i BOOL      generate theory browser information (default false)
     -m MODE      add print mode for output
-    -p LEVEL     set level of detail for proof objects
+    -p LEVEL     set level of detail for proof objects (default 0)
+    -q LEVEL     set level of parallel proof checking (default 1)
     -r           reset session path
     -s NAME      override session NAME
     -t BOOL      internal session timing (default false)
@@ -564,6 +565,12 @@ text {*
   for internal proof objects, see also the \emph{Isabelle Reference
   Manual}~\cite{isabelle-ref}.
 
+  \medskip The @{verbatim "-q"} option specifies the level of parallel
+  proof checking: @{verbatim 0} no proofs, @{verbatim 1} toplevel
+  proofs (default), @{verbatim 2} toplevel and nested Isar proofs.
+  The resulting speedup may vary, depending on the number of worker
+  threads, granularity of proofs, and whether proof terms are enabled.
+
   \medskip The @{verbatim "-t"} option produces a more detailed
   internal timing report of the session.
 
@@ -582,13 +589,6 @@ text {*
   operation.  This may be helpful in isolating performance
   bottle-necks, e.g.\ due to excessive wait states when locking
   critical code sections.
-
-  \medskip The @{verbatim "-Q"} option tells whether individual proofs
-  should be checked in parallel; the default is @{verbatim true}.
-  Note that fine-grained proof parallelism requires considerable
-  amounts of extra memory, since full proof context information is
-  maintained for each independent derivation thread, until checking is
-  completed.
 
   \medskip Any @{tool usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend

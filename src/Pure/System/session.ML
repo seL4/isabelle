@@ -11,7 +11,7 @@ sig
   val welcome: unit -> string
   val use_dir: string -> string -> bool -> string list -> bool -> bool ->
     string -> bool -> string list -> string -> string -> bool * string ->
-    string -> int -> bool -> bool -> int -> int -> bool -> unit
+    string -> int -> bool -> bool -> int -> int -> int -> unit
   val finish: unit -> unit
 end;
 

@@ -207,7 +207,8 @@ fun status_of bodies =
                     in ((oracle, true, failed), seen') end)
               end);
       in ((oracle orelse not (null oracles), unfinished, failed), seen) end;
-    val (oracle, unfinished, failed) = #1 (fold status bodies ((false, false, false), Inttab.empty));
+    val (oracle, unfinished, failed) =
+      #1 (fold status bodies ((false, false, false), Inttab.empty));
   in {oracle = oracle, unfinished = unfinished, failed = failed} end;
 
 
@@ -221,13 +222,14 @@ val merge_thms = OrdList.union thm_ord;
 
 val all_oracles_of =
   let
-    fun collect (PBody {oracles, thms, ...}) = thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
-      if Inttab.defined seen i then (x, seen)
-      else
-        let
-          val body' = Future.join body;
-          val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
-        in (merge_oracles oracles x', seen') end);
+    fun collect (PBody {oracles, thms, ...}) =
+      thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
+        if Inttab.defined seen i then (x, seen)
+        else
+          let
+            val body' = Future.join body;
+            val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
+          in (merge_oracles oracles x', seen') end);
   in fn body => #1 (collect body ([], Inttab.empty)) end;
 
 fun approximate_proof_body prf =
@@ -292,7 +294,8 @@ fun map_proof_terms_option f g =
       | proof (OfClass (T, c)) = OfClass (typ T, c)
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
       | proof (Promise (i, prop, Ts)) = Promise (i, prop, typs Ts)
-      | proof (PThm (i, ((a, prop, SOME Ts), body))) = PThm (i, ((a, prop, SOME (typs Ts)), body))
+      | proof (PThm (i, ((a, prop, SOME Ts), body))) =
+          PThm (i, ((a, prop, SOME (typs Ts)), body))
       | proof _ = raise Same.SAME;
   in Same.commit proof end;
 
@@ -332,7 +335,8 @@ fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
   | change_type opTs (Promise _) = error "change_type: unexpected promise"
-  | change_type opTs (PThm (i, ((name, prop, _), body))) = PThm (i, ((name, prop, opTs), body))
+  | change_type opTs (PThm (i, ((name, prop, _), body))) =
+      PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
 
 
@@ -513,7 +517,8 @@ fun prf_subst_bounds args prf =
       | subst' _ _ = raise Same.SAME
     and substh' lev t = (subst' lev t handle Same.SAME => t);
 
-    fun subst lev (AbsP (a, t, body)) = (AbsP (a, Same.map_option (subst' lev) t, substh lev body)
+    fun subst lev (AbsP (a, t, body)) =
+        (AbsP (a, Same.map_option (subst' lev) t, substh lev body)
           handle Same.SAME => AbsP (a, t, subst lev body))
       | subst lev (Abst (a, T, body)) = Abst (a, T, subst (lev+1) body)
       | subst lev (prf %% prf') = (subst lev prf %% substh lev prf'

@@ -141,12 +141,12 @@ sig
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val rename_boundvars: term -> term -> thm -> thm
-  val future: thm future -> cterm -> thm
-  val pending_groups: thm -> Task_Queue.group list -> Task_Queue.group list
-  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proof: thm -> unit
+  val promises_of: thm -> (serial * thm future) list
+  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
+  val future: thm future -> cterm -> thm
   val get_name: thm -> string
   val put_name: string -> thm -> thm
   val extern_oracles: theory -> xstring list
@@ -345,9 +345,7 @@ datatype thm = Thm of
   tpairs: (term * term) list,                   (*flex-flex pairs*)
   prop: term}                                   (*conclusion*)
 and deriv = Deriv of
- {max_promise: serial,
-  open_promises: (serial * thm future) OrdList.T,
-  promises: (serial * thm future) OrdList.T,
+ {promises: (serial * thm future) OrdList.T,
   body: Pt.proof_body};
 
 type conv = cterm -> thm;
@@ -504,11 +502,10 @@ fun extra_shyps (th as Thm (_, {shyps, ...})) =
 
 (** derivations **)
 
-fun make_deriv max_promise open_promises promises oracles thms proof =
-  Deriv {max_promise = max_promise, open_promises = open_promises, promises = promises,
-    body = PBody {oracles = oracles, thms = thms, proof = proof}};
+fun make_deriv promises oracles thms proof =
+  Deriv {promises = promises, body = PBody {oracles = oracles, thms = thms, proof = proof}};
 
-val empty_deriv = make_deriv ~1 [] [] [] [] Pt.MinProof;
+val empty_deriv = make_deriv [] [] [] Pt.MinProof;
 
 
 (* inference rules *)
@@ -516,13 +513,9 @@ val empty_deriv = make_deriv ~1 [] [] [] [] Pt.MinProof;
 fun promise_ord ((i, _), (j, _)) = int_ord (j, i);
 
 fun deriv_rule2 f
-    (Deriv {max_promise = max1, open_promises = open_ps1, promises = ps1,
-      body = PBody {oracles = oras1, thms = thms1, proof = prf1}})
-    (Deriv {max_promise = max2, open_promises = open_ps2, promises = ps2,
-      body = PBody {oracles = oras2, thms = thms2, proof = prf2}}) =
+    (Deriv {promises = ps1, body = PBody {oracles = oras1, thms = thms1, proof = prf1}})
+    (Deriv {promises = ps2, body = PBody {oracles = oras2, thms = thms2, proof = prf2}}) =
   let
-    val max = Int.max (max1, max2);
-    val open_ps = OrdList.union promise_ord open_ps1 open_ps2;
     val ps = OrdList.union promise_ord ps1 ps2;
     val oras = Pt.merge_oracles oras1 oras2;
     val thms = Pt.merge_thms thms1 thms2;
@@ -532,10 +525,10 @@ fun deriv_rule2 f
       | 1 => MinProof
       | 0 => MinProof
       | i => error ("Illegal level of detail for proof objects: " ^ string_of_int i));
-  in make_deriv max open_ps ps oras thms prf end;
+  in make_deriv ps oras thms prf end;
 
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
-fun deriv_rule0 prf = deriv_rule1 I (make_deriv ~1 [] [] [] [] prf);
+fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
 
 
 
@@ -1614,6 +1607,36 @@ fun biresolution match brules i state =
 
 (*** Future theorems -- proofs with promises ***)
 
+(* fulfilled proofs *)
+
+fun raw_body (Thm (Deriv {body, ...}, _)) = body;
+
+fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
+  let val ps = map (apsnd (fulfill_body o Future.join)) promises
+  in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
+
+fun proof_body_of thm = (Pt.join_bodies [raw_body thm]; fulfill_body thm);
+val proof_of = Pt.proof_of o proof_body_of;
+val join_proof = ignore o proof_body_of;
+
+
+(* derivation status *)
+
+fun promises_of (Thm (Deriv {promises, ...}, _)) = promises;
+
+fun status_of (Thm (Deriv {promises, body}, _)) =
+  let
+    val ps = map (Future.peek o snd) promises;
+    val bodies = body ::
+      map_filter (fn SOME (Exn.Result th) => SOME (raw_body th) | _ => NONE) ps;
+    val {oracle, unfinished, failed} = Pt.status_of bodies;
+  in
+   {oracle = oracle,
+    unfinished = unfinished orelse exists is_none ps,
+    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
+  end;
+
+
 (* future rule *)
 
 fun future_result i orig_thy orig_shyps orig_prop raw_thm =
@@ -1623,12 +1646,13 @@ fun future_result i orig_thy orig_shyps orig_prop raw_thm =
     val _ = Theory.check_thy orig_thy;
     fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
 
-    val Thm (Deriv {max_promise, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
+    val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
     val _ = prop aconv orig_prop orelse err "bad prop";
     val _ = null tpairs orelse err "bad tpairs";
     val _ = null hyps orelse err "bad hyps";
     val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
-    val _ = max_promise < i orelse err "bad dependencies";
+    val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
+    val _ = List.app (ignore o fulfill_body o Future.join o #2) promises;
   in thm end;
 
 fun future future_thm ct =
@@ -1639,9 +1663,8 @@ fun future future_thm ct =
 
     val i = serial ();
     val future = future_thm |> Future.map (future_result i thy sorts prop);
-    val promise = (i, future);
   in
-    Thm (make_deriv i [promise] [promise] [] [] (Pt.promise_proof thy i prop),
+    Thm (make_deriv [(i, future)] [] [] (Pt.promise_proof thy i prop),
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
@@ -1652,57 +1675,21 @@ fun future future_thm ct =
   end;
 
 
-(* derivation status *)
-
-fun raw_proof_body_of (Thm (Deriv {body, ...}, _)) = body;
-val raw_proof_of = Proofterm.proof_of o raw_proof_body_of;
-
-fun pending_groups (Thm (Deriv {open_promises, ...}, _)) =
-  fold (insert Task_Queue.eq_group o Future.group_of o #2) open_promises;
-
-fun status_of (Thm (Deriv {promises, body, ...}, _)) =
-  let
-    val ps = map (Future.peek o snd) promises;
-    val bodies = body ::
-      map_filter (fn SOME (Exn.Result th) => SOME (raw_proof_body_of th) | _ => NONE) ps;
-    val {oracle, unfinished, failed} = Pt.status_of bodies;
-  in
-   {oracle = oracle,
-    unfinished = unfinished orelse exists is_none ps,
-    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
-  end;
-
-
-(* fulfilled proofs *)
-
-fun proof_body_of (Thm (Deriv {open_promises, promises, body, ...}, {thy_ref, ...})) =
-  let
-    val _ = Exn.release_all (map (Future.join_result o #2) (rev open_promises));
-    val ps = map (apsnd (raw_proof_body_of o Future.join)) promises;
-  in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
-
-val proof_of = Proofterm.proof_of o proof_body_of;
-val join_proof = ignore o proof_body_of;
-
-
 (* closed derivations with official name *)
 
 fun get_name thm =
-  Pt.get_name (hyps_of thm) (prop_of thm) (raw_proof_of thm);
+  Pt.get_name (hyps_of thm) (prop_of thm) (Pt.proof_of (raw_body thm));
 
 fun put_name name (thm as Thm (der, args)) =
   let
-    val Deriv {max_promise, open_promises, promises, body, ...} = der;
+    val Deriv {promises, body} = der;
     val {thy_ref, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
     val ps = map (apsnd (Future.map proof_body_of)) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
-
-    val open_promises' = open_promises |> filter (fn (_, p) =>
-      (case Future.peek p of SOME (Exn.Result _) => false | _ => true));
-    val der' = make_deriv max_promise open_promises' [] [] [pthm] proof;
+    val der' = make_deriv [] [] [pthm] proof;
     val _ = Theory.check_thy thy;
   in Thm (der', args) end;
 
@@ -1718,7 +1705,7 @@ fun invoke_oracle thy_ref1 name oracle arg =
       raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
     else
       let val (ora, prf) = Pt.oracle_proof name prop in
-        Thm (make_deriv ~1 [] [] [ora] [] prf,
+        Thm (make_deriv [] [ora] [] prf,
          {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
           tags = [],
           maxidx = maxidx,
