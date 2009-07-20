@@ -64,7 +64,7 @@ sig
   val new_name: term -> string -> string
   val if_library: 'a -> 'a -> 'a
   val get_defn: theory -> deftab -> string -> typ ->
-    ((typ * (string * (term list * term))) * int option) option
+    ((typ * (string * thm)) * int option) option
   val is_instance: typ -> typ -> bool
   val parens: Pretty.T -> Pretty.T
   val mk_app: bool -> Pretty.T -> Pretty.T list -> Pretty.T
@@ -147,8 +147,7 @@ fun num_args_of x = length (List.filter is_arg x);
 type deftab =
   (typ *              (* type of constant *)
     (string *         (* name of theory containing definition of constant *)
-      (term list *    (* parameters *)
-       term)))        (* right-hand side *)
+      thm))           (* definition theorem *)
   list Symtab.table;
 
 (* code dependency graph *)
@@ -490,27 +489,35 @@ fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
 fun get_aux_code xs = map_filter (fn (m, code) =>
   if m = "" orelse member (op =) (!mode) m then SOME code else NONE) xs;
 
+fun dest_prim_def t =
+  let
+    val (lhs, rhs) = Logic.dest_equals t;
+    val (c, args) = strip_comb lhs;
+    val (s, T) = dest_Const c
+  in if forall is_Var args then SOME (s, (T, (args, rhs))) else NONE
+  end handle TERM _ => NONE;
+
 fun mk_deftab thy =
   let
     val axmss = map (fn thy' => (Context.theory_name thy', Theory.axiom_table thy'))
       (thy :: Theory.ancestors_of thy);
     fun prep_def def = (case preprocess thy [def] of
       [def'] => prop_of def' | _ => error "mk_deftab: bad preprocessor");
-    fun dest t =
-      let
-        val (lhs, rhs) = Logic.dest_equals t;
-        val (c, args) = strip_comb lhs;
-        val (s, T) = dest_Const c
-      in if forall is_Var args then SOME (s, (T, (args, rhs))) else NONE
-      end handle TERM _ => NONE;
-    fun add_def thyname (name, t) = (case dest t of
+    fun add_def thyname (name, t) = (case dest_prim_def t of
         NONE => I
-      | SOME _ => (case dest (prep_def (Thm.axiom thy name)) of
-          NONE => I
-        | SOME (s, (T, (args, rhs))) => Symtab.map_default (s, [])
-            (cons (T, (thyname, split_last (rename_terms (args @ [rhs])))))))
+      | SOME (s, (T, _)) => Symtab.map_default (s, [])
+          (cons (T, (thyname, Thm.axiom thy name))));
   in
     fold (fn (thyname, axms) => Symtab.fold (add_def thyname) axms) axmss Symtab.empty
+  end;
+
+fun prep_prim_def thy thm =
+  let
+    val prop = case preprocess thy [thm]
+     of [thm'] => Thm.prop_of thm'
+      | _ => error "mk_deftab: bad preprocessor"
+  in ((Option.map o apsnd o apsnd)
+    (fn (args, rhs) => split_last (rename_terms (args @ [rhs]))) o dest_prim_def) prop
   end;
 
 fun get_defn thy defs s T = (case Symtab.lookup defs s of
@@ -518,7 +525,7 @@ fun get_defn thy defs s T = (case Symtab.lookup defs s of
   | SOME ds =>
       let val i = find_index (is_instance T o fst) ds
       in if i >= 0 then
-          SOME (List.nth (ds, i), if length ds = 1 then NONE else SOME i)
+          SOME (nth ds i, if length ds = 1 then NONE else SOME i)
         else NONE
       end);
 
@@ -655,8 +662,8 @@ fun default_codegen thy defs dep module brack t gr =
            end
        | NONE => (case get_defn thy defs s T of
            NONE => NONE
-         | SOME ((U, (thyname, (args, rhs))), k) =>
-             let
+         | SOME ((U, (thyname, thm)), k) => (case prep_prim_def thy thm
+            of SOME (_, (_, (args, rhs))) => let
                val module' = if_library thyname module;
                val suffix = (case k of NONE => "" | SOME i => " def" ^ string_of_int i);
                val node_id = s ^ suffix;
@@ -686,7 +693,8 @@ fun default_codegen thy defs dep module brack t gr =
                         [str " =", Pretty.brk 1, p', str ";"])) ^ "\n\n")) gr4)
                    end
                | SOME _ => (p, add_edge (node_id, dep) gr'))
-             end))
+             end
+             | NONE => NONE)))
 
     | Abs _ =>
       let
