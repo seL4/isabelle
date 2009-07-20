@@ -24,4 +24,4 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true -M 20"
 
-HOL_USEDIR_OPTIONS="-p 2 -Q false"
+HOL_USEDIR_OPTIONS="-p 2 -q 0"
