@@ -589,7 +589,7 @@ lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
   by blast
 
 lemma equals0D: "A = {} ==> a \<notin> A"
-    -- {* Use for reasoning about disjointness: @{prop "A Int B = {}"} *}
+    -- {* Use for reasoning about disjointness: @{text "A Int B = {}"} *}
   by blast
 
 lemma ball_empty [simp]: "Ball {} P = True"
