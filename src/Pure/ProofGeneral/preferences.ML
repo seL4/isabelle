@@ -84,6 +84,12 @@ val proof_pref = setmp Proofterm.proofs 1 (fn () =>
     fun set s = Proofterm.proofs := (if PgipTypes.read_pgipbool s then 2 else 1);
   in mkpref get set PgipTypes.Pgipbool "full-proofs" "Record full proof objects internally" end) ();
 
+val parallel_proof_pref =
+  let
+    fun get () = PgipTypes.bool_to_pgstring (! Goal.parallel_proofs >= 1);
+    fun set s = Goal.parallel_proofs := (if PgipTypes.read_pgipbool s then 1 else 0);
+  in mkpref get set PgipTypes.Pgipbool "parallel-proofs" "Check proofs in parallel" end;
+
 val thm_depsN = "thm_deps";
 val thm_deps_pref =
   let
@@ -171,9 +177,7 @@ val proof_preferences =
   nat_pref Multithreading.max_threads
     "max-threads"
     "Maximum number of threads",
-  bool_pref Goal.parallel_proofs
-    "parallel-proofs"
-    "Check proofs in parallel"];
+  parallel_proof_pref];
 
 val pure_preferences =
  [(category_display, display_preferences),

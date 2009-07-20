@@ -350,7 +350,7 @@ fun schedule_futures task_graph =
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
 
-    val par_proofs = ! parallel_proofs;
+    val par_proofs = ! parallel_proofs >= 1;
 
     fun fork (name, body) tab =
       let
