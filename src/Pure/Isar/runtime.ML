@@ -75,7 +75,7 @@ fun exn_message exn_position e =
       | exn_msg ctxt (exn as TERM (msg, ts)) = raised exn "TERM" (msg ::
             (if detailed then if_context ctxt Syntax.string_of_term ts else []))
       | exn_msg ctxt (exn as THM (msg, i, thms)) = raised exn ("THM " ^ string_of_int i) (msg ::
-            (if detailed then if_context ctxt ProofContext.string_of_thm thms else []))
+            (if detailed then if_context ctxt Display.string_of_thm thms else []))
       | exn_msg _ exn = raised exn (General.exnMessage exn) [];
   in exn_msg NONE e end;
 

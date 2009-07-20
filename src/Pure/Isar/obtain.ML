@@ -180,9 +180,9 @@ fun check_result ctxt thesis th =
     [prem] =>
       if Thm.concl_of th aconv thesis andalso
         Logic.strip_assums_concl prem aconv thesis then th
-      else error ("Guessed a different clause:\n" ^ ProofContext.string_of_thm ctxt th)
+      else error ("Guessed a different clause:\n" ^ Display.string_of_thm ctxt th)
   | [] => error "Goal solved -- nothing guessed."
-  | _ => error ("Guess split into several cases:\n" ^ ProofContext.string_of_thm ctxt th));
+  | _ => error ("Guess split into several cases:\n" ^ Display.string_of_thm ctxt th));
 
 fun result tac facts ctxt =
   let
@@ -218,7 +218,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val string_of_typ = Syntax.string_of_typ ctxt;
     val string_of_term = setmp show_types true (Syntax.string_of_term ctxt);
 
-    fun err msg th = error (msg ^ ":\n" ^ ProofContext.string_of_thm ctxt th);
+    fun err msg th = error (msg ^ ":\n" ^ Display.string_of_thm ctxt th);
 
     val maxidx = fold (Term.maxidx_typ o snd o fst) vars ~1;
     val rule = Thm.incr_indexes (maxidx + 1) raw_rule;

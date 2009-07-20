@@ -655,7 +655,7 @@ fun showid (Showid vs) =
                                   text=[XML.Elem("pgml",[],
                                                  maps YXML.parse_body strings)] })
 
-        fun string_of_thm th = Pretty.string_of (Display.pretty_thm_aux
+        fun string_of_thm th = Pretty.string_of (Display.pretty_thm_raw
             (Syntax.pp_global (Thm.theory_of_thm th))
             {quote = false, show_hyps = false, show_status = true} [] th)
 

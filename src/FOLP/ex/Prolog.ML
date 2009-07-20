@@ -13,7 +13,7 @@ by (resolve_tac [appNil,appCons] 1);
 by (resolve_tac [appNil,appCons] 1);
 by (resolve_tac [appNil,appCons] 1);
 by (resolve_tac [appNil,appCons] 1);
-prth (result());
+result();
 
 Goal "app(?x, c:d:Nil, a:b:c:d:Nil)";
 by (REPEAT (resolve_tac [appNil,appCons] 1));

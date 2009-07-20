@@ -408,7 +408,7 @@ fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
 fun pretty_thm ctxt (thmref, thm) = Pretty.block
   [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
-    ProofContext.pretty_thm ctxt thm];
+    Display.pretty_thm ctxt thm];
 
 fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let

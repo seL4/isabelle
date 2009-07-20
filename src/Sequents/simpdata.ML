@@ -40,7 +40,7 @@ fun mk_meta_eq th = case concl_of th of
                     | (Const("Not",_)$_)      => th RS @{thm iff_reflection_F}
                     | _                       => th RS @{thm iff_reflection_T})
            | _ => error ("addsimps: unable to use theorem\n" ^
-                         Display.string_of_thm th));
+                         Display.string_of_thm_without_context th));
 
 (*Replace premises x=y, X<->Y by X==Y*)
 val mk_meta_prems =

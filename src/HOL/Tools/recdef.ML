@@ -48,9 +48,9 @@ fun map_congs f = map_hints (fn (simps, congs, wfs) => (simps, f congs, wfs));
 fun map_wfs f = map_hints (fn (simps, congs, wfs) => (simps, congs, f wfs));
 
 fun pretty_hints ({simps, congs, wfs}: hints) =
- [Pretty.big_list "recdef simp hints:" (map Display.pretty_thm simps),
-  Pretty.big_list "recdef cong hints:" (map Display.pretty_thm (map snd congs)),
-  Pretty.big_list "recdef wf hints:" (map Display.pretty_thm wfs)];
+ [Pretty.big_list "recdef simp hints:" (map Display.pretty_thm_without_context simps),
+  Pretty.big_list "recdef cong hints:" (map Display.pretty_thm_without_context (map snd congs)),
+  Pretty.big_list "recdef wf hints:" (map Display.pretty_thm_without_context wfs)];
 
 
 (* congruence rules *)

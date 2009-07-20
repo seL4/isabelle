@@ -322,7 +322,7 @@ val pretty_goals_local = Display_Goal.pretty_goals_aux o Syntax.pp;
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
-      [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
+      [Pretty.big_list (s ^ "this:") (map (Display.pretty_thm ctxt) ths), Pretty.str ""];
 
 fun pretty_state nr state =
   let
@@ -470,7 +470,7 @@ fun conclude_goal ctxt goal propss =
   let
     val thy = ProofContext.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
-    val string_of_thm = ProofContext.string_of_thm ctxt;
+    val string_of_thm = Display.string_of_thm ctxt;
 
     val ngoals = Thm.nprems_of goal;
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks

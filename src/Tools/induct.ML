@@ -124,7 +124,7 @@ fun lookup_rule (rs: rules) = AList.lookup (op =) (Item_Net.content rs);
 
 fun pretty_rules ctxt kind rs =
   let val thms = map snd (Item_Net.content rs)
-  in Pretty.big_list kind (map (ProofContext.pretty_thm ctxt) thms) end;
+  in Pretty.big_list kind (map (Display.pretty_thm ctxt) thms) end;
 
 
 (* context data *)

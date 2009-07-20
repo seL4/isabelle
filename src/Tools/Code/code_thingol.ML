@@ -469,7 +469,7 @@ fun not_wellsorted thy thm ty sort e =
   let
     val err_class = Sorts.class_error (Syntax.pp_global thy) e;
     val err_thm = case thm
-     of SOME thm => "\n(in code equation " ^ Display.string_of_thm thm ^ ")" | NONE => "";
+     of SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")" | NONE => "";
     val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
       ^ Syntax.string_of_sort_global thy sort;
   in error ("Wellsortedness error" ^ err_thm ^ ":\n" ^ err_typ ^ "\n" ^ err_class) end;

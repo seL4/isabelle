@@ -88,7 +88,7 @@ fun dest_src (Src src) = src;
 
 fun pretty_src ctxt src =
   let
-    val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
+    val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt arg =
       (case T.get_value arg of
         SOME (T.Text s) => Pretty.str (quote s)

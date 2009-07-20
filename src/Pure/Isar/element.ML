@@ -163,7 +163,7 @@ fun pretty_ctxt ctxt =
   let
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
-    val prt_thm = Pretty.backquote o ProofContext.pretty_thm ctxt;
+    val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     val prt_name_atts = pretty_name_atts ctxt;
 
     fun prt_mixfix NoSyn = []

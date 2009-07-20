@@ -243,7 +243,7 @@ fun smart_string_of_cterm ct =
 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
-fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm th)
+fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm_without_context th)
 fun prc ct = writeln (PrintMode.setmp [] Display.string_of_cterm ct)
 fun prin t = writeln (PrintMode.setmp [] (fn () => Syntax.string_of_term_global (the_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =

@@ -177,7 +177,7 @@ and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
 fun thm_of_cl_prf thy goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
     val _ = message (fn () => space_implode "\n"
-      ("asms:" :: map Display.string_of_thm asms) ^ "\n\n");
+      ("asms:" :: map (Display.string_of_thm_global thy) asms) ^ "\n\n");
     val th' = Drule.implies_elim_list
       (Thm.instantiate
          (map (fn (ixn, (S, T)) =>

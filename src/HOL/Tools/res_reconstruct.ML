@@ -31,7 +31,7 @@ val trace_path = Path.basic "atp_trace";
 fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
               else ();
 
-val string_of_thm = PrintMode.setmp [] Display.string_of_thm;
+fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
 
 (*For generating structured proofs: keep every nth proof line*)
 val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" 1;
@@ -445,8 +445,9 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")
       val ccls = map forall_intr_vars ccls
-      val _ = if !Output.debugging then app (fn th => trace ("\nccl: " ^ string_of_thm th)) ccls
-              else ()
+      val _ =
+        if !Output.debugging then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
+        else ()
       val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
       val _ = trace "\ndecode_tstp_file: finishing\n"
   in

@@ -156,7 +156,7 @@ fun eqvt_add_del_aux flag orig_thm context =
       fold (fn thm => Data.map (flag thm)) thms_to_be_added context
   end
   handle EQVT_FORM s =>
-      error (Display.string_of_thm orig_thm ^ 
+      error (Display.string_of_thm (Context.proof_of context) orig_thm ^ 
                " does not comply with the form of an equivariance lemma (" ^ s ^").")
 
 

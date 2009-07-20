@@ -127,10 +127,10 @@ fun tryres (th, rls) =
 fun forward_res nf st =
   let fun forward_tacf [prem] = rtac (nf prem) 1
         | forward_tacf prems =
-            error ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:\n" ^
-                   Display.string_of_thm st ^
-                   "\nPremises:\n" ^
-                   ML_Syntax.print_list Display.string_of_thm prems)
+            error (cat_lines
+              ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
+                Display.string_of_thm_without_context st ::
+                "Premises:" :: map Display.string_of_thm_without_context prems))
   in
     case Seq.pull (ALLGOALS (METAHYPS forward_tacf) st)
     of SOME(th,_) => th
@@ -342,7 +342,7 @@ fun cnf skoths ctxt (th,ths) =
       and cnf_nil th = cnf_aux (th,[])
       val cls = 
 	    if too_many_clauses (SOME ctxt) (concl_of th)
-	    then (warning ("cnf is ignoring: " ^ Display.string_of_thm th); ths)
+	    then (warning ("cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
 	    else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
@@ -545,7 +545,7 @@ fun skolemize_nnf_list [] = []
   | skolemize_nnf_list (th::ths) = 
       skolemize th :: skolemize_nnf_list ths
       handle THM _ => (*RS can fail if Unify.search_bound is too small*)
-       (warning ("Failed to Skolemize " ^ Display.string_of_thm th);
+       (warning ("Failed to Skolemize " ^ Display.string_of_thm_without_context th);
         skolemize_nnf_list ths);
 
 fun add_clauses (th,cls) =
@@ -628,19 +628,17 @@ fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
 
 fun iter_deepen_meson_tac ths = MESON make_clauses
- (fn cls =>
-      case (gocls (cls@ths)) of
-           [] => no_tac  (*no goal clauses*)
-         | goes =>
-             let val horns = make_horns (cls@ths)
-                 val _ =
-                     Output.debug (fn () => ("meson method called:\n" ^
-                                  ML_Syntax.print_list Display.string_of_thm (cls@ths) ^
-                                  "\nclauses:\n" ^
-                                  ML_Syntax.print_list Display.string_of_thm horns))
-             in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
-             end
- );
+  (fn cls =>
+    (case (gocls (cls @ ths)) of
+      [] => no_tac  (*no goal clauses*)
+    | goes =>
+        let
+          val horns = make_horns (cls @ ths)
+          val _ = Output.debug (fn () =>
+            cat_lines ("meson method called:" ::
+              map Display.string_of_thm_without_context (cls @ ths) @
+              ["clauses:"] @ map Display.string_of_thm_without_context horns))
+        in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns) end));
 
 fun meson_claset_tac ths cs =
   SELECT_GOAL (TRY (safe_tac cs) THEN TRYALL (iter_deepen_meson_tac ths));

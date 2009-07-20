@@ -124,11 +124,11 @@ fun make_cs {safeIs,safeEs,hazIs,hazEs} =
 val empty_cs = make_cs{safeIs=[], safeEs=[], hazIs=[], hazEs=[]};
 
 fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
- (writeln"Introduction rules";  Display.prths hazIs;
-  writeln"Safe introduction rules";  Display.prths safeIs;
-  writeln"Elimination rules";  Display.prths hazEs;
-  writeln"Safe elimination rules";  Display.prths safeEs;
-  ());
+  writeln (cat_lines
+   (["Introduction rules"] @ map Display.string_of_thm_without_context hazIs @
+    ["Safe introduction rules"] @ map Display.string_of_thm_without_context safeIs @
+    ["Elimination rules"] @ map Display.string_of_thm_without_context hazEs @
+    ["Safe elimination rules"] @ map Display.string_of_thm_without_context safeEs));
 
 fun (CS{safeIs,safeEs,hazIs,hazEs,...}) addSIs ths =
   make_cs {safeIs=ths@safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};

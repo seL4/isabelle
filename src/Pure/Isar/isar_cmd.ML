@@ -442,8 +442,7 @@ fun string_of_stmts state args =
   |> Pretty.chunks2 |> Pretty.string_of;
 
 fun string_of_thms state args =
-  Pretty.string_of (ProofContext.pretty_thms (Proof.context_of state)
-    (Proof.get_thmss state args));
+  Pretty.string_of (Display.pretty_thms (Proof.context_of state) (Proof.get_thmss state args));
 
 fun string_of_prfs full state arg =
   Pretty.string_of (case arg of

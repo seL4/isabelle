@@ -270,7 +270,7 @@ fun infer_types ctxt =
   fun print_thpair (fth,th) =
     (Output.debug (fn () => "=============================================");
      Output.debug (fn () => "Metis: " ^ Metis.Thm.toString fth);
-     Output.debug (fn () => "Isabelle: " ^ Display.string_of_thm th));
+     Output.debug (fn () => "Isabelle: " ^ Display.string_of_thm_without_context th));
 
   fun lookth thpairs (fth : Metis.Thm.thm) =
     valOf (AList.lookup (uncurry Metis.Thm.equal) thpairs fth)
@@ -310,7 +310,7 @@ fun infer_types ctxt =
               in  SOME (cterm_of thy (Var v), t)  end
               handle Option =>
                   (Output.debug (fn() => "List.find failed for the variable " ^ x ^
-                                         " in " ^ Display.string_of_thm i_th);
+                                         " in " ^ Display.string_of_thm ctxt i_th);
                    NONE)
         fun remove_typeinst (a, t) =
               case Recon.strip_prefix ResClause.schematic_var_prefix a of
@@ -318,7 +318,7 @@ fun infer_types ctxt =
                 | NONE   => case Recon.strip_prefix ResClause.tvar_prefix a of
                   SOME _ => NONE          (*type instantiations are forbidden!*)
                 | NONE   => SOME (a,t)    (*internal Metis var?*)
-        val _ = Output.debug (fn () => "  isa th: " ^ Display.string_of_thm i_th)
+        val _ = Output.debug (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
         val substs = List.mapPartial remove_typeinst (Metis.Subst.toList fsubst)
         val (vars,rawtms) = ListPair.unzip (List.mapPartial subst_translation substs)
         val tms = infer_types ctxt rawtms;
@@ -350,8 +350,8 @@ fun infer_types ctxt =
     let
       val thy = ProofContext.theory_of ctxt
       val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
-      val _ = Output.debug (fn () => "  isa th1 (pos): " ^ Display.string_of_thm i_th1)
-      val _ = Output.debug (fn () => "  isa th2 (neg): " ^ Display.string_of_thm i_th2)
+      val _ = Output.debug (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
+      val _ = Output.debug (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
     in
       if is_TrueI i_th1 then i_th2 (*Trivial cases where one operand is type info*)
       else if is_TrueI i_th2 then i_th1
@@ -428,7 +428,7 @@ fun infer_types ctxt =
         val _ = Output.debug (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
         val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill typed but gives right max*)
         val subst' = incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
-        val _ = Output.debug (fn () => "subst' " ^ Display.string_of_thm subst')
+        val _ = Output.debug (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
         val eq_terms = map (pairself (cterm_of thy))
                            (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
     in  cterm_instantiate eq_terms subst'  end;
@@ -456,7 +456,7 @@ fun infer_types ctxt =
             val _ = Output.debug (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
             val _ = Output.debug (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
             val th = Meson.flexflex_first_order (step ctxt isFO thpairs (fol_th, inf))
-            val _ = Output.debug (fn () => "ISABELLE THM: " ^ Display.string_of_thm th)
+            val _ = Output.debug (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
             val _ = Output.debug (fn () => "=============================================")
             val n_metis_lits = length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
         in
@@ -576,9 +576,9 @@ fun infer_types ctxt =
         val th_cls_pairs = map (fn th => (Thm.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
         val ths = List.concat (map #2 th_cls_pairs)
         val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
-        val _ = app (fn th => Output.debug (fn () => Display.string_of_thm th)) cls
+        val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) cls
         val _ = Output.debug (fn () => "THEOREM CLAUSES")
-        val _ = app (fn th => Output.debug (fn () => Display.string_of_thm th)) ths
+        val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) ths
         val {isFO,axioms,tfrees} = build_map mode ctxt cls ths
         val _ = if null tfrees then ()
                 else (Output.debug (fn () => "TFREE CLAUSES");
@@ -604,14 +604,14 @@ fun infer_types ctxt =
                   val result = translate isFO ctxt' axioms proof
                   and used = List.mapPartial (used_axioms axioms) proof
                   val _ = Output.debug (fn () => "METIS COMPLETED...clauses actually used:")
-	          val _ = app (fn th => Output.debug (fn () => Display.string_of_thm th)) used
+	          val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) used
 	          val unused = filter (fn (a,cls) => not (common_thm used cls)) th_cls_pairs
               in
                   if null unused then ()
                   else warning ("Metis: unused theorems " ^ commas_quote (map #1 unused));
                   case result of
                       (_,ith)::_ => 
-                          (Output.debug (fn () => "success: " ^ Display.string_of_thm ith); 
+                          (Output.debug (fn () => "success: " ^ Display.string_of_thm ctxt ith); 
                            [ith])
                     | _ => (Output.debug (fn () => "Metis: no result"); 
                             [])
@@ -623,7 +623,7 @@ fun infer_types ctxt =
 
   fun metis_general_tac mode ctxt ths i st0 =
     let val _ = Output.debug (fn () =>
-          "Metis called with theorems " ^ cat_lines (map Display.string_of_thm ths))
+          "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
     in
        if exists_type ResAxioms.type_has_empty_sort (prop_of st0)  
        then (warning "Proof state contains the empty sort"; Seq.empty)

@@ -401,8 +401,9 @@ fun name_thm_pairs ctxt =
         (List.foldl add_single_names (List.foldl add_multi_names [] mults) singles)
   end;
 
-fun check_named ("",th) = (warning ("No name for theorem " ^ Display.string_of_thm th); false)
-  | check_named (_,th) = true;
+fun check_named ("", th) =
+      (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)
+  | check_named (_, th) = true;
 
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt =
@@ -538,7 +539,7 @@ fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
     val extra_cls = white_cls @ extra_cls
     val axcls = white_cls @ axcls
     val ccls = subtract_cls goal_cls extra_cls
-    val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) ccls
+    val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls
     and axtms = map (prop_of o #1) extra_cls
     val subs = tfree_classes_of_terms ccltms

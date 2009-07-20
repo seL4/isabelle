@@ -417,8 +417,8 @@ fun elim (ineqs, hist) =
 (* Translate back a proof.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-fun trace_thm msg th =
-  (if !trace then (tracing msg; tracing (Display.string_of_thm th)) else (); th);
+fun trace_thm ctxt msg th =
+  (if !trace then (tracing msg; tracing (Display.string_of_thm ctxt th)) else (); th);
 
 fun trace_term ctxt msg t =
   (if !trace then tracing (cat_lines [msg, Syntax.string_of_term ctxt t]) else (); t)
@@ -472,7 +472,7 @@ fun mkthm ss asms (just: injust) =
             NONE =>
               (the (try_add ([thm2] RL inj_thms) thm1)
                 handle Option =>
-                  (trace_thm "" thm1; trace_thm "" thm2;
+                  (trace_thm ctxt "" thm1; trace_thm ctxt "" thm2;
                    sys_error "Linear arithmetic: failed to add thms"))
           | SOME thm => thm)
       | SOME thm => thm);
@@ -511,24 +511,25 @@ fun mkthm ss asms (just: injust) =
       else mult n thm;
 
     fun simp thm =
-      let val thm' = trace_thm "Simplified:" (full_simplify simpset' thm)
+      let val thm' = trace_thm ctxt "Simplified:" (full_simplify simpset' thm)
       in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end;
 
-    fun mk (Asm i) = trace_thm ("Asm " ^ string_of_int i) (nth asms i)
-      | mk (Nat i) = trace_thm ("Nat " ^ string_of_int i) (LA_Logic.mk_nat_thm thy (nth atoms i))
-      | mk (LessD j)            = trace_thm "L" (hd ([mk j] RL lessD))
-      | mk (NotLeD j)           = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
-      | mk (NotLeDD j)          = trace_thm "NLeD" (hd ([mk j RS LA_Logic.not_leD] RL lessD))
-      | mk (NotLessD j)         = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
-      | mk (Added (j1, j2))     = simp (trace_thm "+" (add_thms (mk j1) (mk j2)))
-      | mk (Multiplied (n, j))  = (trace_msg ("*" ^ string_of_int n); trace_thm "*" (mult_thm (n, mk j)))
+    fun mk (Asm i) = trace_thm ctxt ("Asm " ^ string_of_int i) (nth asms i)
+      | mk (Nat i) = trace_thm ctxt ("Nat " ^ string_of_int i) (LA_Logic.mk_nat_thm thy (nth atoms i))
+      | mk (LessD j) = trace_thm ctxt "L" (hd ([mk j] RL lessD))
+      | mk (NotLeD j) = trace_thm ctxt "NLe" (mk j RS LA_Logic.not_leD)
+      | mk (NotLeDD j) = trace_thm ctxt "NLeD" (hd ([mk j RS LA_Logic.not_leD] RL lessD))
+      | mk (NotLessD j) = trace_thm ctxt "NL" (mk j RS LA_Logic.not_lessD)
+      | mk (Added (j1, j2)) = simp (trace_thm ctxt "+" (add_thms (mk j1) (mk j2)))
+      | mk (Multiplied (n, j)) =
+          (trace_msg ("*" ^ string_of_int n); trace_thm ctxt "*" (mult_thm (n, mk j)))
 
   in
     let
       val _ = trace_msg "mkthm";
-      val thm = trace_thm "Final thm:" (mk just);
+      val thm = trace_thm ctxt "Final thm:" (mk just);
       val fls = simplify simpset' thm;
-      val _ = trace_thm "After simplification:" fls;
+      val _ = trace_thm ctxt "After simplification:" fls;
       val _ =
         if LA_Logic.is_False fls then ()
         else
@@ -536,15 +537,15 @@ fun mkthm ss asms (just: injust) =
             if count > warning_count_max then ()
             else
               (tracing (cat_lines
-                (["Assumptions:"] @ map Display.string_of_thm asms @ [""] @
-                 ["Proved:", Display.string_of_thm fls, ""] @
+                (["Assumptions:"] @ map (Display.string_of_thm ctxt) asms @ [""] @
+                 ["Proved:", Display.string_of_thm ctxt fls, ""] @
                  (if count <> warning_count_max then []
                   else ["\n(Reached maximal message count -- disabling future warnings)"])));
                 warning "Linear arithmetic should have refuted the assumptions.\n\
                   \Please inform Tobias Nipkow (nipkow@in.tum.de).")
           end;
     in fls end
-    handle FalseE thm => trace_thm "False reached early:" thm
+    handle FalseE thm => trace_thm ctxt "False reached early:" thm
   end;
 
 end;
@@ -775,8 +776,9 @@ fun refute_tac ss (i, split_neq, justs) =
   fn state =>
     let
       val ctxt = Simplifier.the_context ss;
-      val _ = trace_thm ("refute_tac (on subgoal " ^ string_of_int i ^ ", with " ^
-                             string_of_int (length justs) ^ " justification(s)):") state
+      val _ = trace_thm ctxt
+        ("refute_tac (on subgoal " ^ string_of_int i ^ ", with " ^
+          string_of_int (length justs) ^ " justification(s)):") state
       val {neqE, ...} = get_data ctxt;
       fun just1 j =
         (* eliminate inequalities *)
@@ -784,7 +786,7 @@ fun refute_tac ss (i, split_neq, justs) =
           REPEAT_DETERM (eresolve_tac neqE i)
         else
           all_tac) THEN
-          PRIMITIVE (trace_thm "State after neqE:") THEN
+          PRIMITIVE (trace_thm ctxt "State after neqE:") THEN
           (* use theorems generated from the actual justifications *)
           METAHYPS (fn asms => rtac (mkthm ss asms j) 1) i
     in
@@ -792,7 +794,7 @@ fun refute_tac ss (i, split_neq, justs) =
       DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN
       (* user-defined preprocessing of the subgoal *)
       DETERM (LA_Data.pre_tac ctxt i) THEN
-      PRIMITIVE (trace_thm "State after pre_tac:") THEN
+      PRIMITIVE (trace_thm ctxt "State after pre_tac:") THEN
       (* prove every resulting subgoal, using its justification *)
       EVERY (map just1 justs)
     end  state;
@@ -881,7 +883,7 @@ fun prover ss thms Tconcl (js : injust list) split_neq pos : thm option =
     val (Falsethm, _) = fwdproof ss tree js
     val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
     val concl = implies_intr cnTconcl Falsethm COMP contr
-  in SOME (trace_thm "Proved by lin. arith. prover:" (LA_Logic.mk_Eq concl)) end
+  in SOME (trace_thm ctxt "Proved by lin. arith. prover:" (LA_Logic.mk_Eq concl)) end
   (*in case concl contains ?-var, which makes assume fail:*)   (* FIXME Variable.import_terms *)
   handle THM _ => NONE;
 

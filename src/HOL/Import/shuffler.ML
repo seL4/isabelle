@@ -40,7 +40,7 @@ fun print_sign_exn_unit sign e =
   case e of
      THM (msg,i,thms) =>
          (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-          List.app Display.print_thm thms)
+          List.app (writeln o Display.string_of_thm_global sign) thms)
    | THEORY (msg,thys) =>
          (writeln ("Exception THEORY raised:\n" ^ msg);
           List.app (writeln o Context.str_of_thy) thys)
@@ -56,7 +56,7 @@ fun print_sign_exn_unit sign e =
 (*Prints an exception, then fails*)
 fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise e)
 
-val string_of_thm = PrintMode.setmp [] Display.string_of_thm;
+val string_of_thm = PrintMode.setmp [] Display.string_of_thm_without_context;
 val string_of_cterm = PrintMode.setmp [] Display.string_of_cterm;
 
 fun mk_meta_eq th =
@@ -84,7 +84,7 @@ structure ShuffleData = TheoryDataFun
 
 fun print_shuffles thy =
   Pretty.writeln (Pretty.big_list "Shuffle theorems:"
-    (map Display.pretty_thm (ShuffleData.get thy)))
+    (map (Display.pretty_thm_global thy) (ShuffleData.get thy)))
 
 val weaken =
     let

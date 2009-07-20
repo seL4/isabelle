@@ -183,7 +183,7 @@ fun process_spec axiomatic cos alt_props thy =
                         fun add_final (arg as (thy, thm)) =
                             if name = ""
                             then arg |> Library.swap
-                            else (writeln ("  " ^ name ^ ": " ^ (Display.string_of_thm thm));
+                            else (writeln ("  " ^ name ^ ": " ^ Display.string_of_thm_global thy thm);
                                   PureThy.store_thm (Binding.name name, thm) thy)
                     in
                         args |> apsnd (remove_alls frees)

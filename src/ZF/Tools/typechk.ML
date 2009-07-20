@@ -27,7 +27,8 @@ datatype tcset = TC of
 
 fun add_rule th (tcs as TC {rules, net}) =
   if member Thm.eq_thm_prop rules th then
-    (warning ("Ignoring duplicate type-checking rule\n" ^ Display.string_of_thm th); tcs)
+    (warning ("Ignoring duplicate type-checking rule\n" ^
+        Display.string_of_thm_without_context th); tcs)
   else
     TC {rules = th :: rules,
         net = Net.insert_term (K false) (Thm.concl_of th, th) net};
@@ -36,7 +37,8 @@ fun del_rule th (tcs as TC {rules, net}) =
   if member Thm.eq_thm_prop rules th then
     TC {net = Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net,
         rules = remove Thm.eq_thm_prop th rules}
-  else (warning ("No such type-checking rule\n" ^ Display.string_of_thm th); tcs);
+  else (warning ("No such type-checking rule\n" ^
+    Display.string_of_thm_without_context th); tcs);
 
 
 (* generic data *)
@@ -60,7 +62,7 @@ val tcset_of = Data.get o Context.Proof;
 fun print_tcset ctxt =
   let val TC {rules, ...} = tcset_of ctxt in
     Pretty.writeln (Pretty.big_list "type-checking rules:"
-      (map (ProofContext.pretty_thm ctxt) rules))
+      (map (Display.pretty_thm ctxt) rules))
   end;
 
 

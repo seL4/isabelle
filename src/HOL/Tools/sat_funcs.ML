@@ -119,7 +119,7 @@ datatype CLAUSE = NO_CLAUSE
 (* (Thm.thm * (int * Thm.cterm) list) list -> Thm.thm * (int * Thm.cterm) list *)
 
 fun resolve_raw_clauses [] =
-	raise THM ("Proof reconstruction failed (empty list of resolvents)!", 0, [])
+      raise THM ("Proof reconstruction failed (empty list of resolvents)!", 0, [])
   | resolve_raw_clauses (c::cs) =
 	let
 		(* merges two sorted lists wrt. 'lit_ord', suppressing duplicates *)
@@ -134,9 +134,9 @@ fun resolve_raw_clauses [] =
 		(* find out which two hyps are used in the resolution *)
 		(* (int * Thm.cterm) list * (int * Thm.cterm) list -> (int * Thm.cterm) list -> bool * Thm.cterm * Thm.cterm * (int * Thm.cterm) list *)
 		fun find_res_hyps ([], _) _ =
-			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+          raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
 		  | find_res_hyps (_, []) _ =
-			raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
+          raise THM ("Proof reconstruction failed (no literal for resolution)!", 0, [])
 		  | find_res_hyps (h1 :: hyps1, h2 :: hyps2) acc =
 			(case (lit_ord o pairself fst) (h1, h2) of
 			  LESS  => find_res_hyps (hyps1, h2 :: hyps2) (h1 :: acc)
@@ -154,9 +154,12 @@ fun resolve_raw_clauses [] =
 		(* Thm.thm * (int * Thm.cterm) list -> Thm.thm * (int * Thm.cterm) list -> Thm.thm * (int * Thm.cterm) list *)
 		fun resolution (c1, hyps1) (c2, hyps2) =
 		let
-			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ Display.string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c1)) (#hyps (rep_thm c1))
-						^ ")\nwith clause: " ^ Display.string_of_thm c2 ^ " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
+			val _ =
+			  if ! trace_sat then
+					tracing ("Resolving clause: " ^ Display.string_of_thm_without_context c1 ^
+					  " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c1)) (#hyps (rep_thm c1))
+						^ ")\nwith clause: " ^ Display.string_of_thm_without_context c2 ^
+						" (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
 				else ()
 
 			(* the two literals used for resolution *)
@@ -172,8 +175,9 @@ fun resolve_raw_clauses [] =
 					Thm.instantiate ([], [(cP, cLit)]) resolution_thm
 				end
 
-			val _ = if !trace_sat then
-					tracing ("Resolution theorem: " ^ Display.string_of_thm res_thm)
+			val _ =
+			  if !trace_sat then
+					tracing ("Resolution theorem: " ^ Display.string_of_thm_without_context res_thm)
 				else ()
 
 			(* Gamma1, Gamma2 |- False *)
@@ -181,8 +185,11 @@ fun resolve_raw_clauses [] =
 				(Thm.implies_elim res_thm (if hyp1_is_neg then c2' else c1'))
 				(if hyp1_is_neg then c1' else c2')
 
-			val _ = if !trace_sat then
-					tracing ("Resulting clause: " ^ Display.string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
+			val _ =
+			  if !trace_sat then
+					tracing ("Resulting clause: " ^ Display.string_of_thm_without_context c_new ^
+					  " (hyps: " ^ ML_Syntax.print_list
+					      (Syntax.string_of_term_global (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
 			val _ = inc counter
 		in

@@ -125,7 +125,8 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
       println ("Minimize called with " ^ length_string name_thms_pairs ^ " theorems, prover: "
         ^ prover_name ^ ", time limit: " ^ Int.toString time_limit ^ " seconds")
     val _ = debug_fn (fn () => app (fn (n, tl) =>
-        (debug n; app (fn t => debug ("  " ^ Display.string_of_thm t)) tl)) name_thms_pairs)
+        (debug n; app (fn t =>
+          debug ("  " ^ Display.string_of_thm (Proof.context_of state) t)) tl)) name_thms_pairs)
     val test_thms_fun = sh_test_thms prover prover_name time_limit 1 state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of (Success _, _) => true | _ => false

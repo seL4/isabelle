@@ -105,7 +105,7 @@ fun range_type' T =
 (* messages *)
 
 fun trace_thm str thm =
-    tracing (str ^ (Pretty.string_of (Display.pretty_thm thm)));
+    tracing (str ^ (Pretty.string_of (Display.pretty_thm_without_context thm)));
 
 fun trace_thms str thms =
     (tracing str; map (trace_thm "") thms);

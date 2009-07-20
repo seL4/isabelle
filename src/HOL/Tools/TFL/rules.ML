@@ -552,7 +552,7 @@ val tracing = ref false;
 fun say s = if !tracing then writeln s else ();
 
 fun print_thms s L =
-  say (cat_lines (s :: map Display.string_of_thm L));
+  say (cat_lines (s :: map Display.string_of_thm_without_context L));
 
 fun print_cterms s L =
   say (cat_lines (s :: map Display.string_of_cterm L));
@@ -677,7 +677,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              val cntxt = Simplifier.prems_of_ss ss
              val dummy = print_thms "cntxt:" cntxt
              val dummy = say "cong rule:"
-             val dummy = say (Display.string_of_thm thm)
+             val dummy = say (Display.string_of_thm_without_context thm)
              val dummy = thm_ref := (thm :: !thm_ref)
              val dummy = ss_ref := (ss :: !ss_ref)
              (* Unquantified eliminate *)
