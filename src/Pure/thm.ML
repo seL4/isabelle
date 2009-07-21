@@ -141,10 +141,9 @@ sig
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val rename_boundvars: term -> term -> thm -> thm
+  val join_proofs: thm list -> unit
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
-  val join_proof: thm -> unit
-  val promises_of: thm -> (serial * thm future) list
   val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val get_name: thm -> string
@@ -1616,14 +1615,13 @@ fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
     (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
 and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
 
+val join_proofs = Pt.join_bodies o map fulfill_body;
+
 fun proof_body_of thm = (Pt.join_bodies [raw_body thm]; fulfill_body thm);
 val proof_of = Pt.proof_of o proof_body_of;
-val join_proof = ignore o proof_body_of;
 
 
 (* derivation status *)
-
-fun promises_of (Thm (Deriv {promises, ...}, _)) = promises;
 
 fun status_of (Thm (Deriv {promises, body}, _)) =
   let
@@ -1744,5 +1742,5 @@ fun add_oracle (b, oracle) thy =
 
 end;
 
-structure BasicThm: BASIC_THM = Thm;
-open BasicThm;
+structure Basic_Thm: BASIC_THM = Thm;
+open Basic_Thm;
