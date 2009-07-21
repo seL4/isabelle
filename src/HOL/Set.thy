@@ -1136,10 +1136,43 @@ lemma Sup_empty_fun:
   by rule (simp add: Sup_fun_def, simp add: empty_def)
 
 
+subsubsection {* Union *}
+
+definition Union :: "'a set set \<Rightarrow> 'a set" where
+  Union_eq [code del]: "Union A = {x. \<exists>B \<in> A. x \<in> B}"
+
+notation (xsymbols)
+  Union  ("\<Union>_" [90] 90)
+
+lemma Sup_set_eq:
+  "\<Squnion>S = \<Union>S"
+proof (rule set_ext)
+  fix x
+  have "(\<exists>Q\<in>{P. \<exists>A\<in>S. P \<longleftrightarrow> x \<in> A}. Q) \<longleftrightarrow> (\<exists>A\<in>S. x \<in> A)"
+    by auto
+  then show "x \<in> \<Squnion>S \<longleftrightarrow> x \<in> \<Union>S"
+    by (simp add: Sup_fun_def Sup_bool_def Union_eq) (simp add: mem_def)
+qed
+
+lemma Union_iff [simp, noatp]:
+  "A \<in> \<Union>C \<longleftrightarrow> (\<exists>X\<in>C. A\<in>X)"
+  by (unfold Union_eq) blast
+
+lemma UnionI [intro]:
+  "X \<in> C \<Longrightarrow> A \<in> X \<Longrightarrow> A \<in> \<Union>C"
+  -- {* The order of the premises presupposes that @{term C} is rigid;
+    @{term A} may be flexible. *}
+  by auto
+
+lemma UnionE [elim!]:
+  "A \<in> \<Union>C \<Longrightarrow> (\<And>X. A\<in>X \<Longrightarrow> X\<in>C \<Longrightarrow> R) \<Longrightarrow> R"
+  by auto
+
+
 subsubsection {* Unions of families *}
 
 definition UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "UNION A B \<equiv> {y. \<exists>x\<in>A. y \<in> B x}"
+  UNION_eq_Union_image: "UNION A B = \<Union>(B`A)"
 
 syntax
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
@@ -1177,8 +1210,22 @@ let
 in [(@{const_syntax UNION}, btr' "@UNION")] end
 *}
 
-declare UNION_def [noatp]
+lemma SUPR_set_eq:
+  "(SUP x:S. f x) = (\<Union>x\<in>S. f x)"
+  by (simp add: SUPR_def UNION_eq_Union_image Sup_set_eq)
 
+lemma Union_def:
+  "\<Union>S \<equiv> \<Union>x\<in>S. x"
+  by (simp add: UNION_eq_Union_image image_def)
+
+lemma UNION_def [noatp]:
+  "UNION A B \<equiv> {y. \<exists>x\<in>A. y \<in> B x}"
+  by (rule eq_reflection) (auto simp add: UNION_eq_Union_image Union_eq)
+  
+lemma Union_image_eq [simp]:
+  "\<Union>(B`A) = (\<Union>x\<in>A. B x)"
+  by (rule sym) (fact UNION_eq_Union_image)
+  
 lemma UN_iff [simp]: "(b: (UN x:A. B x)) = (EX x:A. b: B x)"
   by (unfold UNION_def) blast
 
@@ -1202,10 +1249,49 @@ lemma image_eq_UN: "f`A = (UN x:A. {f x})"
   by blast
 
 
+subsubsection {* Inter *}
+
+definition Inter :: "'a set set \<Rightarrow> 'a set" where
+  Inter_eq [code del]: "Inter A = {x. \<forall>B \<in> A. x \<in> B}"
+
+notation (xsymbols)
+  Inter  ("\<Inter>_" [90] 90)
+
+lemma Inf_set_eq:
+  "\<Sqinter>S = \<Inter>S"
+proof (rule set_ext)
+  fix x
+  have "(\<forall>Q\<in>{P. \<exists>A\<in>S. P \<longleftrightarrow> x \<in> A}. Q) \<longleftrightarrow> (\<forall>A\<in>S. x \<in> A)"
+    by auto
+  then show "x \<in> \<Sqinter>S \<longleftrightarrow> x \<in> \<Inter>S"
+    by (simp add: Inter_eq Inf_fun_def Inf_bool_def) (simp add: mem_def)
+qed
+
+lemma Inter_iff [simp,noatp]: "(A : Inter C) = (ALL X:C. A:X)"
+  by (unfold Inter_eq) blast
+
+lemma InterI [intro!]: "(!!X. X:C ==> A:X) ==> A : Inter C"
+  by (simp add: Inter_eq)
+
+text {*
+  \medskip A ``destruct'' rule -- every @{term X} in @{term C}
+  contains @{term A} as an element, but @{prop "A:X"} can hold when
+  @{prop "X:C"} does not!  This rule is analogous to @{text spec}.
+*}
+
+lemma InterD [elim]: "A : Inter C ==> X:C ==> A:X"
+  by auto
+
+lemma InterE [elim]: "A : Inter C ==> (X~:C ==> R) ==> (A:X ==> R) ==> R"
+  -- {* ``Classical'' elimination rule -- does not require proving
+    @{prop "X:C"}. *}
+  by (unfold Inter_eq) blast
+
+
 subsubsection {* Intersections of families *}
 
 definition INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "INTER A B \<equiv> {y. \<forall>x\<in>A. y \<in> B x}"
+  INTER_eq_Inter_image: "INTER A B = \<Inter>(B`A)"
 
 syntax
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
@@ -1234,6 +1320,22 @@ let
 in [(@{const_syntax INTER}, btr' "@INTER")] end
 *}
 
+lemma INFI_set_eq:
+  "(INF x:S. f x) = (\<Inter>x\<in>S. f x)"
+  by (simp add: INFI_def INTER_eq_Inter_image Inf_set_eq)
+
+lemma Inter_def:
+  "Inter S \<equiv> INTER S (\<lambda>x. x)"
+  by (simp add: INTER_eq_Inter_image image_def)
+
+lemma INTER_def:
+  "INTER A B \<equiv> {y. \<forall>x\<in>A. y \<in> B x}"
+  by (rule eq_reflection) (auto simp add: INTER_eq_Inter_image Inter_eq)
+
+lemma Inter_image_eq [simp]:
+  "\<Inter>(B`A) = (\<Inter>x\<in>A. B x)"
+  by (rule sym) (fact INTER_eq_Inter_image)
+
 lemma INT_iff [simp]: "(b: (INT x:A. B x)) = (ALL x:A. b: B x)"
   by (unfold INTER_def) blast
 
@@ -1250,99 +1352,6 @@ lemma INT_E [elim]: "b : (INT x:A. B x) ==> (b: B a ==> R) ==> (a~:A ==> R) ==> 
 lemma INT_cong [cong]:
     "A = B ==> (!!x. x:B ==> C x = D x) ==> (INT x:A. C x) = (INT x:B. D x)"
   by (simp add: INTER_def)
-
-
-subsubsection {* Union *}
-
-definition Union :: "'a set set \<Rightarrow> 'a set" where
-  "Union S \<equiv> UNION S (\<lambda>x. x)"
-
-notation (xsymbols)
-  Union  ("\<Union>_" [90] 90)
-
-lemma Union_image_eq [simp]:
-  "\<Union>(B`A) = (\<Union>x\<in>A. B x)"
-  by (auto simp add: Union_def UNION_def image_def)
-
-lemma Union_eq:
-  "\<Union>A = {x. \<exists>B \<in> A. x \<in> B}"
-  by (simp add: Union_def UNION_def)
-
-lemma Sup_set_eq:
-  "\<Squnion>S = \<Union>S"
-proof (rule set_ext)
-  fix x
-  have "(\<exists>Q\<in>{P. \<exists>A\<in>S. P \<longleftrightarrow> x \<in> A}. Q) \<longleftrightarrow> (\<exists>A\<in>S. x \<in> A)"
-    by auto
-  then show "x \<in> \<Squnion>S \<longleftrightarrow> x \<in> \<Union>S"
-    by (simp add: Union_eq Sup_fun_def Sup_bool_def) (simp add: mem_def)
-qed
-
-lemma SUPR_set_eq:
-  "(SUP x:S. f x) = (\<Union>x\<in>S. f x)"
-  by (simp add: SUPR_def Sup_set_eq)
-
-lemma Union_iff [simp,noatp]: "(A : Union C) = (EX X:C. A:X)"
-  by (unfold Union_def) blast
-
-lemma UnionI [intro]: "X:C ==> A:X ==> A : Union C"
-  -- {* The order of the premises presupposes that @{term C} is rigid;
-    @{term A} may be flexible. *}
-  by auto
-
-lemma UnionE [elim!]: "A : Union C ==> (!!X. A:X ==> X:C ==> R) ==> R"
-  by (unfold Union_def) blast
-
-
-subsubsection {* Inter *}
-
-definition Inter :: "'a set set \<Rightarrow> 'a set" where
-  "Inter S \<equiv> INTER S (\<lambda>x. x)"
-
-notation (xsymbols)
-  Inter  ("\<Inter>_" [90] 90)
-
-lemma Inter_image_eq [simp]:
-  "\<Inter>(B`A) = (\<Inter>x\<in>A. B x)"
-  by (auto simp add: Inter_def INTER_def image_def)
-
-lemma Inter_eq:
-  "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
-  by (simp add: Inter_def INTER_def)
-
-lemma Inf_set_eq:
-  "\<Sqinter>S = \<Inter>S"
-proof (rule set_ext)
-  fix x
-  have "(\<forall>Q\<in>{P. \<exists>A\<in>S. P \<longleftrightarrow> x \<in> A}. Q) \<longleftrightarrow> (\<forall>A\<in>S. x \<in> A)"
-    by auto
-  then show "x \<in> \<Sqinter>S \<longleftrightarrow> x \<in> \<Inter>S"
-    by (simp add: Inter_eq Inf_fun_def Inf_bool_def) (simp add: mem_def)
-qed
-
-lemma INFI_set_eq:
-  "(INF x:S. f x) = (\<Inter>x\<in>S. f x)"
-  by (simp add: INFI_def Inf_set_eq)
-
-lemma Inter_iff [simp,noatp]: "(A : Inter C) = (ALL X:C. A:X)"
-  by (unfold Inter_def) blast
-
-lemma InterI [intro!]: "(!!X. X:C ==> A:X) ==> A : Inter C"
-  by (simp add: Inter_def)
-
-text {*
-  \medskip A ``destruct'' rule -- every @{term X} in @{term C}
-  contains @{term A} as an element, but @{prop "A:X"} can hold when
-  @{prop "X:C"} does not!  This rule is analogous to @{text spec}.
-*}
-
-lemma InterD [elim]: "A : Inter C ==> X:C ==> A:X"
-  by auto
-
-lemma InterE [elim]: "A : Inter C ==> (X~:C ==> R) ==> (A:X ==> R) ==> R"
-  -- {* ``Classical'' elimination rule -- does not require proving
-    @{prop "X:C"}. *}
-  by (unfold Inter_def) blast
 
 
 no_notation
