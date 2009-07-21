@@ -1612,8 +1612,9 @@ fun biresolution match brules i state =
 fun raw_body (Thm (Deriv {body, ...}, _)) = body;
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  let val ps = map (apsnd (fulfill_body o Future.join)) promises
-  in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
+  Pt.fulfill_proof (Theory.deref thy_ref)
+    (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
+and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
 
 fun proof_body_of thm = (Pt.join_bodies [raw_body thm]; fulfill_body thm);
 val proof_of = Pt.proof_of o proof_body_of;
@@ -1652,7 +1653,7 @@ fun future_result i orig_thy orig_shyps orig_prop raw_thm =
     val _ = null hyps orelse err "bad hyps";
     val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
     val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
-    val _ = List.app (ignore o fulfill_body o Future.join o #2) promises;
+    val _ = fulfill_bodies (map #2 promises);
   in thm end;
 
 fun future future_thm ct =
