@@ -22,9 +22,6 @@ sig
 
   val message : config -> string -> unit
   
-  val add_path : bool -> string -> theory -> theory
-  val parent_path : bool -> theory -> theory
-
   val store_thmss_atts : string -> string list -> attribute list list -> thm list list
     -> theory -> thm list list * theory
   val store_thmss : string -> string list -> thm list list -> theory -> thm list list * theory
@@ -76,14 +73,11 @@ struct
 
 (* datatype option flags *)
 
-type config = { strict: bool, flat_names: bool, quiet: bool };
+type config = { strict: bool, quiet: bool };
 val default_config : config =
-  { strict = true, flat_names = false, quiet = false };
+  { strict = true, quiet = false };
 fun message ({ quiet, ...} : config) s =
   if quiet then () else writeln s;
-
-fun add_path flat_names s = if flat_names then I else Sign.add_path s;
-fun parent_path flat_names = if flat_names then I else Sign.parent_path;
 
 
 (* store theorems in theory *)

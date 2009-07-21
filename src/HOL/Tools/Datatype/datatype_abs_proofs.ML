@@ -93,7 +93,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val _ = message config "Constructing primrec combinators ...";
 
     val big_name = space_implode "_" new_type_names;
-    val thy0 = add_path (#flat_names config) big_name thy;
+    val thy0 = Sign.add_path big_name thy;
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
@@ -243,7 +243,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
-      ||> parent_path (#flat_names config) 
+      ||> Sign.parent_path
       ||> Theory.checkpoint;
 
 
@@ -277,7 +277,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
   let
     val _ = message config "Proving characteristic theorems for case combinators ...";
 
-    val thy1 = add_path (#flat_names config) (space_implode "_" new_type_names) thy;
+    val thy1 = Sign.add_path (space_implode "_" new_type_names) thy;
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
@@ -339,7 +339,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
     thy2
     |> Context.the_theory o fold (fold Nitpick_Const_Simps.add_thm) case_thms
        o Context.Theory
-    |> parent_path (#flat_names config)
+    |> Sign.parent_path
     |> store_thmss "cases" new_type_names case_thms
     |-> (fn thmss => pair (thmss, case_names))
   end;
