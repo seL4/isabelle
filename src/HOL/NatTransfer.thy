@@ -380,12 +380,16 @@ lemma transfer_int_nat_relations:
     "(even (int x)) = (even x)"
   by (auto simp add: zdvd_int even_nat_def)
 
+lemma UNIV_apply:
+  "UNIV x = True"
+  by (simp add: top_set_eq [symmetric] top_fun_eq top_bool_eq)
+
 declare TransferMorphism_int_nat[transfer add return:
   transfer_int_nat_numerals
   transfer_int_nat_functions
   transfer_int_nat_function_closures
   transfer_int_nat_relations
-  UNIV_code
+  UNIV_apply
 ]
 
 
