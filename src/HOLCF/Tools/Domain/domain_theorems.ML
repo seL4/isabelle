@@ -1,5 +1,4 @@
-(*  Title:      HOLCF/Tools/domain/domain_theorems.ML
-    ID:         $Id$
+(*  Title:      HOLCF/Tools/Domain/domain_theorems.ML
     Author:     David von Oheimb
                 New proofs/tactics by Brian Huffman
 
