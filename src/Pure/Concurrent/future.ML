@@ -157,14 +157,19 @@ fun overloaded () =
 fun future_job group (e: unit -> 'a) =
   let
     val result = ref (NONE: 'a Exn.result option);
-    val job = Multithreading.with_attributes Multithreading.restricted_interrupts
-      (fn _ => fn ok =>
-        let
-          val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
-          val _ = result := SOME res;
-          val _ = (case res of Exn.Exn exn => Task_Queue.cancel_group group exn | _ => ());
-          val res_ok = is_some (Exn.get_result res);
-        in res_ok end);
+    fun job ok =
+      let
+        val res =
+          if ok then
+            Multithreading.with_attributes Multithreading.restricted_interrupts
+              (fn _ => fn () => Exn.capture e ()) ()
+          else Exn.Exn Exn.Interrupt;
+        val _ = result := SOME res;
+      in
+        (case res of
+          Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
+        | Exn.Result _ => true)
+      end;
   in (result, job) end;
 
 fun do_cancel group = (*requires SYNCHRONIZED*)
@@ -203,7 +208,7 @@ fun worker_next () = (*requires SYNCHRONIZED*)
     | some => some);
 
 fun worker_loop name =
-  (case SYNCHRONIZED name worker_next of
+  (case SYNCHRONIZED name (fn () => worker_next ()) of
     NONE => ()
   | SOME work => (execute name work; worker_loop name));
 
@@ -259,7 +264,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end;
 
 fun scheduler_loop () =
-  while SYNCHRONIZED "scheduler" scheduler_next do ();
+  while SYNCHRONIZED "scheduler" (fn () => scheduler_next ()) do ();
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
