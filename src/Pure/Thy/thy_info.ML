@@ -23,6 +23,7 @@ sig
   val get_parents: string -> string list
   val touch_thy: string -> unit
   val touch_child_thys: string -> unit
+  val thy_ord: theory * theory -> order
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val provide_file: Path.T -> string -> unit
@@ -33,7 +34,6 @@ sig
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
-  val thy_ord: theory * theory -> order
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> unit
   val register_thy: string -> unit
@@ -231,17 +231,36 @@ fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
 end;
 
 
-(* manage pending proofs *)
+(* management data *)
+
+structure Management_Data = TheoryDataFun
+(
+  type T =
+    Task_Queue.group option *   (*worker thread group*)
+    int;                        (*abstract update time*)
+  val empty = (NONE, 0);
+  val copy = I;
+  fun extend _ = empty;
+  fun merge _ _ = empty;
+);
+
+val thy_ord = int_ord o pairself (#2 o Management_Data.get);
+
+
+(* pending proofs *)
 
 fun join_thy name =
   (case lookup_theory name of
-    NONE => []
+    NONE => ()
   | SOME thy => PureThy.join_proofs thy);
 
 fun cancel_thy name =
   (case lookup_theory name of
     NONE => ()
-  | SOME thy => PureThy.cancel_proofs thy);
+  | SOME thy =>
+      (case #1 (Management_Data.get thy) of
+        NONE => ()
+      | SOME group => Future.cancel_group group));
 
 
 (* remove theory *)
@@ -374,8 +393,7 @@ fun schedule_futures task_graph =
     val exns = tasks |> maps (fn (name, _) =>
       let
         val after_load = Future.join (the (Symtab.lookup futures name));
-        val proof_exns = join_thy name;
-        val _ = null proof_exns orelse raise Exn.EXCEPTIONS proof_exns;
+        val _ = join_thy name;
         val _ = after_load ();
       in [] end handle exn => (kill_thy name; [exn]));
 
@@ -509,20 +527,6 @@ val time_use_thy = gen_use_thy (require_thy true);
 end;
 
 
-(* update_time *)
-
-structure UpdateTime = TheoryDataFun
-(
-  type T = int;
-  val empty = 0;
-  val copy = I;
-  fun extend _ = empty;
-  fun merge _ _ = empty;
-);
-
-val thy_ord = int_ord o pairself UpdateTime.get;
-
-
 (* begin / end theory *)
 
 fun begin_theory name parents uses int =
@@ -542,7 +546,7 @@ fun begin_theory name parents uses int =
     val update_time = (case deps of NONE => 0 | SOME {update_time, ...} => update_time);
     val update_time = if update_time > 0 then update_time else serial ();
     val theory' = theory
-      |> UpdateTime.put update_time
+      |> Management_Data.put (Future.worker_group (), update_time)
       |> Present.begin_theory update_time dir uses;
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
@@ -569,7 +573,7 @@ fun register_thy name =
     val _ = check_unfinished error name;
     val _ = touch_thy name;
     val master = #master (ThyLoad.deps_thy Path.current name);
-    val upd_time = UpdateTime.get thy;
+    val upd_time = #2 (Management_Data.get thy);
   in
     CRITICAL (fn () =>
      (change_deps name (Option.map
