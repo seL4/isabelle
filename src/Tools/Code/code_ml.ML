@@ -966,7 +966,7 @@ fun eval some_target reff postproc thy t args =
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;
-  in Code_Thingol.eval thy I postproc evaluator t end;
+  in Code_Thingol.eval thy postproc evaluator t end;
 
 
 (* instrumentalization by antiquotation *)
