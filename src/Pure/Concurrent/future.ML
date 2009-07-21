@@ -324,12 +324,12 @@ fun join_results xs =
         error "Cannot join future values within critical section";
 
       val worker = is_worker ();
+      val _ = if worker then join_deps (map task_of xs) else ();
+
       fun join_wait x =
         if SYNCHRONIZED "join_wait" (fn () =>
           is_finished x orelse (if worker then worker_wait () else wait (); false))
         then () else join_wait x;
-
-      val _ = if worker then join_deps (map task_of xs) else ();
       val _ = List.app join_wait xs;
 
     in map get_result xs end) ();
