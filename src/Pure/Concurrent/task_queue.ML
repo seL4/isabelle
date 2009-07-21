@@ -14,8 +14,7 @@ sig
   val group_id: group -> int
   val eq_group: group * group -> bool
   val new_group: unit -> group
-  val is_valid: group -> bool
-  val invalidate_group: group -> unit
+  val group_exns: group -> exn list
   val str_of_group: group -> string
   type queue
   val empty: queue
@@ -28,6 +27,7 @@ sig
     (((task * group * (bool -> bool) list) * task list) option * queue)
   val interrupt: queue -> task -> unit
   val interrupt_external: queue -> string -> unit
+  val cancel_group: group -> exn -> unit
   val cancel: queue -> group -> bool
   val cancel_all: queue -> group list
   val finish: task -> queue -> queue
@@ -50,18 +50,17 @@ structure Task_Graph = Graph(type key = task val ord = task_ord);
 
 (* groups *)
 
-datatype group = Group of serial * bool ref;
+datatype group = Group of serial * exn list ref;
 
 fun group_id (Group (gid, _)) = gid;
 fun eq_group (Group (gid1, _), Group (gid2, _)) = gid1 = gid2;
 
-fun new_group () = Group (serial (), ref true);
+fun new_group () = Group (serial (), ref []);
 
-fun is_valid (Group (_, ref ok)) = ok;
-fun invalidate_group (Group (_, ok)) = ok := false;
+fun group_exns (Group (_, ref exns)) = exns;
 
-fun str_of_group (Group (i, ref ok)) =
-  if ok then string_of_int i else enclose "(" ")" (string_of_int i);
+fun str_of_group (Group (i, ref exns)) =
+  if null exns then string_of_int i else enclose "(" ")" (string_of_int i);
 
 
 (* jobs *)
@@ -195,9 +194,14 @@ fun interrupt_external (queue as Queue {jobs, ...}) str =
 
 (* termination *)
 
+fun cancel_group (Group (_, r)) exn = CRITICAL (fn () =>
+  (case exn of
+    Exn.Interrupt => if null (! r) then r := [exn] else ()
+  | _ => change r (cons exn)));
+
 fun cancel (Queue {groups, jobs, ...}) (group as Group (gid, _)) =
   let
-    val _ = invalidate_group group;
+    val _ = cancel_group group Exn.Interrupt;
     val tasks = Inttab.lookup_list groups gid;
     val running = fold (get_job jobs #> (fn Running t => insert Thread.equal t | _ => I)) tasks [];
     val _ = List.app SimpleThread.interrupt running;
@@ -206,7 +210,7 @@ fun cancel (Queue {groups, jobs, ...}) (group as Group (gid, _)) =
 fun cancel_all (Queue {jobs, ...}) =
   let
     fun cancel_job (group, job) (groups, running) =
-      (invalidate_group group;
+      (cancel_group group Exn.Interrupt;
         (case job of Running t => (insert eq_group group groups, insert Thread.equal t running)
         | _ => (groups, running)));
     val (groups, running) = Task_Graph.fold (cancel_job o #1 o #2) jobs ([], []);

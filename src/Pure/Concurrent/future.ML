@@ -151,7 +151,20 @@ fun overloaded () =
   count_active (! workers) > Multithreading.max_threads_value ();
 
 
-(* execute jobs *)
+(* execute future jobs *)
+
+fun future_job group (e: unit -> 'a) =
+  let
+    val result = ref (NONE: 'a Exn.result option);
+    val job = Multithreading.with_attributes Multithreading.restricted_interrupts
+      (fn _ => fn ok =>
+        let
+          val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
+          val _ = result := SOME res;
+          val _ = (case res of Exn.Exn exn => Task_Queue.cancel_group group exn | _ => ());
+          val res_ok = is_some (Exn.get_result res);
+        in res_ok end);
+  in (result, job) end;
 
 fun do_cancel group = (*requires SYNCHRONIZED*)
   change canceled (insert Task_Queue.eq_group group);
@@ -159,7 +172,7 @@ fun do_cancel group = (*requires SYNCHRONIZED*)
 fun execute name (task, group, jobs) =
   let
     val _ = trace_active ();
-    val valid = Task_Queue.is_valid group;
+    val valid = null (Task_Queue.group_exns group);
     val ok = setmp_thread_data (name, task, group) (fn () =>
       fold (fn job => fn ok => job valid andalso ok) jobs true) ();
     val _ = SYNCHRONIZED "execute" (fn () =>
@@ -260,25 +273,6 @@ fun scheduler_check name = SYNCHRONIZED name (fn () =>
 
 (** futures **)
 
-(* future job: fill result *)
-
-fun future_job group (e: unit -> 'a) =
-  let
-    val result = ref (NONE: 'a Exn.result option);
-    val job = Multithreading.with_attributes Multithreading.restricted_interrupts
-      (fn _ => fn ok =>
-        let
-          val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
-          val _ = result := SOME res;
-          val res_ok =
-            (case res of
-              Exn.Result _ => true
-            | Exn.Exn Exn.Interrupt => (Task_Queue.invalidate_group group; true)
-            | _ => false);
-        in res_ok end);
-  in (result, job) end;
-
-
 (* fork *)
 
 fun fork_future opt_group deps pri e =
@@ -302,7 +296,11 @@ fun fork_local pri e = fork_future (Option.map #3 (thread_data ())) [] pri e;
 
 local
 
-fun get_result x = the_default (Exn.Exn (SYS_ERROR "unfinished future")) (peek x);
+fun get_result x =
+  (case peek x of
+    SOME (Exn.Exn Exn.Interrupt) => Exn.Exn (Exn.EXCEPTIONS (Task_Queue.group_exns (group_of x)))
+  | SOME res => res
+  | NONE => Exn.Exn (SYS_ERROR "unfinished future"));
 
 fun join_next deps = (*requires SYNCHRONIZED*)
   if overloaded () then (worker_wait (); join_next deps)
@@ -356,7 +354,7 @@ fun map_future f x =
       | NONE => false));
   in
     if extended then Future {task = task, group = group, result = result}
-    else fork_future NONE [task] (Task_Queue.pri_of_task task) (fn () => f (join x))
+    else fork_future (SOME group) [task] (Task_Queue.pri_of_task task) (fn () => f (join x))
   end;
 
 
