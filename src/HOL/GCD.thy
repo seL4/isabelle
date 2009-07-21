@@ -1657,6 +1657,20 @@ by simp
 lemma two_is_prime_int [simp]: "prime (2::int)"
 by simp
 
+text{* A bit of regression testing: *}
+
+lemma "prime(97::nat)"
+by simp
+
+lemma "prime(97::int)"
+by simp
+
+lemma "prime(997::nat)"
+by eval
+
+lemma "prime(997::int)"
+by eval
+
 
 lemma prime_imp_power_coprime_nat: "prime (p::nat) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
   apply (rule coprime_exp_nat)
