@@ -28,7 +28,7 @@ struct
 
 fun raw_map f xs =
   if Future.enabled () then
-    let val group = Task_Queue.new_group ()
+    let val group = Task_Queue.new_group (Future.worker_group ())
     in Future.join_results (map (fn x => Future.fork_group group (fn () => f x)) xs) end
   else map (Exn.capture f) xs;
 
