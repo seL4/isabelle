@@ -801,7 +801,9 @@ fun add_const_alias thm thy =
      of SOME T_class => T_class
       | _ => error ("Bad certificate: " ^ Display.string_of_thm thm);
     val tvar = case try Term.dest_TVar T
-     of SOME tvar => tvar
+     of SOME (tvar as (_, sort)) => if null (filter (can (AxClass.get_info thy)) sort)
+          then tvar
+          else error ("Bad sort: " ^ Display.string_of_thm thm)
       | _ => error ("Bad type: " ^ Display.string_of_thm thm);
     val _ = if Term.add_tvars eqn [] = [tvar] then ()
       else error ("Inconsistent type: " ^ Display.string_of_thm thm);

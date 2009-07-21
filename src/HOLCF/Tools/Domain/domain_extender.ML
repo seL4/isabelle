@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/domain/domain_extender.ML
+(*  Title:      HOLCF/Tools/Domain/domain_extender.ML
     Author:     David von Oheimb
 
 Theory extender for domain command, including theory syntax.

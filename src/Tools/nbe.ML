@@ -439,9 +439,6 @@ fun compile_eval thy naming program vs_t deps =
 
 fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
   let
-    fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
-      | t => t);
-    val resubst_triv_consts = subst_const (Code.resubst_alias thy);
     val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
       singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
@@ -453,8 +450,8 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
     compile_eval thy naming program (vs, t) deps
+    |> Code_Preproc.resubst_triv_consts thy
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
-    |> resubst_triv_consts
     |> type_infer
     |> tracing (fn t => "Types inferred:\n" ^ string_of_term t)
     |> check_tvars
@@ -462,9 +459,6 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
   end;
 
 (* evaluation oracle *)
-
-fun add_triv_classes thy = curry (Sorts.inter_sort (Sign.classes_of thy))
-  (Code.triv_classes thy);
 
 fun mk_equals thy lhs raw_rhs =
   let
@@ -506,9 +500,9 @@ fun no_frees_rew rew t =
 val norm_conv = no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
-  in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end);
+  in Code_Thingol.eval_conv thy (norm_oracle thy) ct end);
 
-fun norm thy = no_frees_rew (Code_Thingol.eval thy (add_triv_classes thy) I (normalize thy));
+fun norm thy = no_frees_rew (Code_Thingol.eval thy I (normalize thy));
 
 (* evaluation command *)
 

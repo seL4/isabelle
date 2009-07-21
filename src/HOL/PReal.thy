@@ -52,7 +52,7 @@ definition
 
 definition
   psup :: "preal set => preal" where
-  "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
+  [code del]: "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
 
 definition
   add_set :: "[rat set,rat set] => rat set" where

@@ -62,11 +62,11 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/adm_tac.ML \
   Tools/cont_consts.ML \
   Tools/cont_proc.ML \
-  Tools/domain/domain_extender.ML \
-  Tools/domain/domain_axioms.ML \
-  Tools/domain/domain_library.ML \
-  Tools/domain/domain_syntax.ML \
-  Tools/domain/domain_theorems.ML \
+  Tools/Domain/domain_extender.ML \
+  Tools/Domain/domain_axioms.ML \
+  Tools/Domain/domain_library.ML \
+  Tools/Domain/domain_syntax.ML \
+  Tools/Domain/domain_theorems.ML \
   Tools/fixrec.ML \
   Tools/pcpodef.ML \
   holcf_logic.ML \

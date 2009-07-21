@@ -66,7 +66,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val descr' = flat descr;
 
     val big_name = space_implode "_" new_type_names;
-    val thy1 = add_path (#flat_names config) big_name thy;
+    val thy1 = Sign.add_path big_name thy;
     val big_rec_name = big_name ^ "_rep_set";
     val rep_set_names' =
       (if length descr' = 1 then [big_rec_name] else
@@ -187,7 +187,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     (********************************* typedef ********************************)
 
     val (typedefs, thy3) = thy2 |>
-      parent_path (#flat_names config) |>
+      Sign.parent_path |>
       fold_map (fn ((((name, mx), tvs), c), name') =>
           Typedef.add_typedef false (SOME (Binding.name name')) (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
@@ -196,7 +196,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               (resolve_tac rep_intrs 1)))
                 (types_syntax ~~ tyvars ~~
                   (Library.take (length newTs, rep_set_names)) ~~ new_type_names) ||>
-      add_path (#flat_names config) big_name;
+      Sign.add_path big_name;
 
     (*********************** definition of constructors ***********************)
 
@@ -254,14 +254,14 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val cong' = standard (cterm_instantiate [(cterm_of thy cong_f, rep_const)] arg_cong);
         val dist = standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns', _) = Library.foldl ((make_constr_def tname T) (length constrs))
-          ((add_path (#flat_names config) tname thy, defs, [], 1), constrs ~~ constr_syntax)
+          ((Sign.add_path tname thy, defs, [], 1), constrs ~~ constr_syntax)
       in
-        (parent_path (#flat_names config) thy', defs', eqns @ [eqns'],
+        (Sign.parent_path thy', defs', eqns @ [eqns'],
           rep_congs @ [cong'], dist_lemmas @ [dist])
       end;
 
     val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) = Library.foldl dt_constr_defs
-      ((thy3 |> Sign.add_consts_i iso_decls |> parent_path (#flat_names config), [], [], [], []),
+      ((thy3 |> Sign.add_consts_i iso_decls |> Sign.parent_path, [], [], [], []),
         hd descr ~~ new_type_names ~~ newTs ~~ constr_syntax);
 
     (*********** isomorphisms for new types (introduced by typedef) ***********)
@@ -355,7 +355,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       in (thy', char_thms' @ char_thms) end;
 
     val (thy5, iso_char_thms) = apfst Theory.checkpoint (List.foldr make_iso_defs
-      (add_path (#flat_names config) big_name thy4, []) (tl descr));
+      (Sign.add_path big_name thy4, []) (tl descr));
 
     (* prove isomorphism properties *)
 
@@ -565,7 +565,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val ((constr_inject', distinct_thms'), thy6) =
       thy5
-      |> parent_path (#flat_names config)
+      |> Sign.parent_path
       |> store_thmss "inject" new_type_names constr_inject
       ||>> store_thmss "distinct" new_type_names distinct_thms;
 
