@@ -856,6 +856,8 @@ fun prove_simple_subgoals_tac (cs, ss) i =
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
 
+fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
+
 (*Apply rules to break down assumptions of the form
   Y \<in> parts(insert X H)  and  Y \<in> analz(insert X H)
 *)
