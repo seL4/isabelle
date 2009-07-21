@@ -815,7 +815,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
           ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
       in
-        (parent_path (#flat_names config) thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
+        (Sign.parent_path thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
       end;
 
     val (thy8, constr_defs, constr_rep_eqns, dist_lemmas) = Library.foldl dt_constr_defs

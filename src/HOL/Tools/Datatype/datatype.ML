@@ -552,8 +552,7 @@ fun gen_add_datatype prep_typ (config : config) new_type_names dts thy =
             val _ = (case fold (curry OldTerm.add_typ_tfree_names) cargs' [] \\ tvs of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
-          in (constrs @ [((if #flat_names config then Sign.full_name tmp_thy else
-                Sign.full_name_path tmp_thy tname')
+          in (constrs @ [(Sign.full_name_path tmp_thy tname'
                   (Binding.map_name (Syntax.const_name mx') cname),
                    map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')

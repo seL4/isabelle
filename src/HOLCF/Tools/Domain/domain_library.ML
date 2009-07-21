@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/domain/domain_library.ML
+(*  Title:      HOLCF/Tools/Domain/domain_library.ML
     Author:     David von Oheimb
 
 Library for domain command.

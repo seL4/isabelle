@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/domain/domain_axioms.ML
+(*  Title:      HOLCF/Tools/Domain/domain_axioms.ML
     Author:     David von Oheimb
 
 Syntax generator for domain command.

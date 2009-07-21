@@ -291,14 +291,10 @@ parse_translation {*
   in [("@SetCompr", setcompr_tr)] end;
 *}
 
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn [A, Abs abs] =
-    let val (x, t) = atomic_abs_tr' abs
-    in Syntax.const syn $ x $ A $ t end
-in [(@{const_syntax Ball}, btr' "_Ball"), (@{const_syntax Bex}, btr' "_Bex")] end
-*}
+print_translation {* [
+Syntax.preserve_binder_abs2_tr' @{const_syntax Ball} "_Ball",
+Syntax.preserve_binder_abs2_tr' @{const_syntax Bex} "_Bex"
+] *} -- {* to avoid eta-contraction of body *}
 
 print_translation {*
 let
@@ -1036,17 +1032,10 @@ translations
   "INF x. B"     == "INF x:CONST UNIV. B"
   "INF x:A. B"   == "CONST INFI A (%x. B)"
 
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn (A :: Abs abs :: ts) =
-    let val (x,t) = atomic_abs_tr' abs
-    in list_comb (Syntax.const syn $ x $ A $ t, ts) end
-  val const_syntax_name = Sign.const_syntax_name @{theory} o fst o dest_Const
-in
-[(const_syntax_name @{term SUPR}, btr' "_SUP"),(const_syntax_name @{term "INFI"}, btr' "_INF")]
-end
-*}
+print_translation {* [
+Syntax.preserve_binder_abs2_tr' @{const_syntax SUPR} "_SUP",
+Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} "_INF"
+] *} -- {* to avoid eta-contraction of body *}
 
 context complete_lattice
 begin
@@ -1095,6 +1084,24 @@ lemma Inf_empty_bool [simp]:
 lemma not_Sup_empty_bool [simp]:
   "\<not> \<Squnion>{}"
   unfolding Sup_bool_def by auto
+
+lemma INFI_bool_eq:
+  "INFI = Ball"
+proof (rule ext)+
+  fix A :: "'a set"
+  fix P :: "'a \<Rightarrow> bool"
+  show "(INF x:A. P x) \<longleftrightarrow> (\<forall>x \<in> A. P x)"
+    by (auto simp add: Ball_def INFI_def Inf_bool_def)
+qed
+
+lemma SUPR_bool_eq:
+  "SUPR = Bex"
+proof (rule ext)+
+  fix A :: "'a set"
+  fix P :: "'a \<Rightarrow> bool"
+  show "(SUP x:A. P x) \<longleftrightarrow> (\<exists>x \<in> A. P x)"
+    by (auto simp add: Bex_def SUPR_def Sup_bool_def)
+qed
 
 instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
@@ -1185,14 +1192,9 @@ text {*
   subscripts in Proof General.
 *}
 
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn [A, Abs abs] =
-    let val (x, t) = atomic_abs_tr' abs
-    in Syntax.const syn $ x $ A $ t end
-in [(@{const_syntax UNION}, btr' "@UNION")] end
-*}
+print_translation {* [
+Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} "@UNION"
+] *} -- {* to avoid eta-contraction of body *}
 
 lemma SUPR_set_eq:
   "(SUP x:S. f x) = (\<Union>x\<in>S. f x)"
@@ -1295,14 +1297,9 @@ translations
   "INT x. B"    == "INT x:CONST UNIV. B"
   "INT x:A. B"  == "CONST INTER A (%x. B)"
 
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn [A, Abs abs] =
-    let val (x, t) = atomic_abs_tr' abs
-    in Syntax.const syn $ x $ A $ t end
-in [(@{const_syntax INTER}, btr' "@INTER")] end
-*}
+print_translation {* [
+Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} "@INTER"
+] *} -- {* to avoid eta-contraction of body *}
 
 lemma INFI_set_eq:
   "(INF x:S. f x) = (\<Inter>x\<in>S. f x)"

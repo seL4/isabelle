@@ -23,9 +23,10 @@ sig
   val all: code_graph -> string list
   val pretty: theory -> code_graph -> Pretty.T
   val obtain: theory -> string list -> term list -> code_algebra * code_graph
-  val eval_conv: theory -> (sort -> sort)
+  val resubst_triv_consts: theory -> term -> term
+  val eval_conv: theory
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
-  val eval: theory -> (sort -> sort) -> ((term -> term) -> 'a -> 'a)
+  val eval: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
 
   val setup: theory -> theory
@@ -161,7 +162,10 @@ fun postprocess_conv thy ct =
     |> rhs_conv (Simplifier.rewrite post)
   end;
 
-fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
+fun resubst_triv_consts thy = map_aterms (fn t as Const (c, ty) => Const (Code.resubst_alias thy c, ty)
+  | t => t);
+
+fun postprocess_term thy = term_of_conv thy (postprocess_conv thy) #> resubst_triv_consts thy;
 
 fun print_codeproc thy =
   let
@@ -495,7 +499,7 @@ fun prepare_sorts prep_sort (Const (c, ty)) =
       Abs (v, prepare_sorts_typ prep_sort ty, prepare_sorts prep_sort t)
   | prepare_sorts _ (t as Bound _) = t;
 
-fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
+fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
     val pp = Syntax.pp_global thy;
     val ct = cterm_of proto_ct;
@@ -507,8 +511,10 @@ fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
     val vs = Term.add_tfrees t' [];
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
- 
-    val t'' = prepare_sorts prep_sort t';
+
+    val add_triv_classes = curry (Sorts.inter_sort (Sign.classes_of thy))
+      (Code.triv_classes thy);
+    val t'' = prepare_sorts add_triv_classes t';
     val (algebra', eqngr') = obtain thy consts [t''];
   in conclude_evaluation (evaluator algebra' eqngr' vs t'' ct') thm end;
 
@@ -527,8 +533,8 @@ fun eval_conv thy =
       end;
   in gen_eval thy I conclude_evaluation end;
 
-fun eval thy prep_sort postproc evaluator = gen_eval thy (Thm.cterm_of thy)
-  (K o postproc (postprocess_term thy)) prep_sort (simple_evaluator evaluator);
+fun eval thy postproc evaluator = gen_eval thy (Thm.cterm_of thy)
+  (K o postproc (postprocess_term thy)) (simple_evaluator evaluator);
 
 
 (** setup **)

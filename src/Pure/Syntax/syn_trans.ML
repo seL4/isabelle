@@ -8,6 +8,8 @@ signature SYN_TRANS0 =
 sig
   val eta_contract: bool ref
   val atomic_abs_tr': string * typ * term -> term * term
+  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
+  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
@@ -308,6 +310,14 @@ fun abs_ast_tr' (*"_abs"*) asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
     ([], _) => raise Ast.AST ("abs_ast_tr'", asts)
   | (xs, body) => Ast.Appl [Ast.Constant "_lambda", Ast.fold_ast "_pttrns" xs, body]);
+
+fun preserve_binder_abs_tr' name syn = (name, fn (Abs abs :: ts) =>
+  let val (x, t) = atomic_abs_tr' abs
+  in list_comb (Lexicon.const syn $ x $ t, ts) end);
+
+fun preserve_binder_abs2_tr' name syn = (name, fn (A :: Abs abs :: ts) =>
+  let val (x, t) = atomic_abs_tr' abs
+  in list_comb (Lexicon.const syn $ x $ A $ t, ts) end);
 
 
 (* binder *)
