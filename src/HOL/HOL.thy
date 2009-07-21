@@ -107,7 +107,6 @@ abbreviation (iff)
 notation (xsymbols)
   iff  (infixr "\<longleftrightarrow>" 25)
 
-
 nonterminals
   letbinds  letbind
   case_syn  cases_syn
@@ -198,95 +197,8 @@ finalconsts
 axiomatization
   undefined :: 'a
 
-
-subsubsection {* Generic classes and algebraic operations *}
-
 class default =
   fixes default :: 'a
-
-class zero = 
-  fixes zero :: 'a  ("0")
-
-class one =
-  fixes one  :: 'a  ("1")
-
-hide (open) const zero one
-
-class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
-
-class minus =
-  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
-
-class uminus =
-  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
-
-class times =
-  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
-
-class inverse =
-  fixes inverse :: "'a \<Rightarrow> 'a"
-    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
-
-class abs =
-  fixes abs :: "'a \<Rightarrow> 'a"
-begin
-
-notation (xsymbols)
-  abs  ("\<bar>_\<bar>")
-
-notation (HTML output)
-  abs  ("\<bar>_\<bar>")
-
-end
-
-class sgn =
-  fixes sgn :: "'a \<Rightarrow> 'a"
-
-class ord =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-begin
-
-notation
-  less_eq  ("op <=") and
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
-  less  ("op <") and
-  less  ("(_/ < _)"  [51, 51] 50)
-  
-notation (xsymbols)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
-
-abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> y <= x"
-
-notation (input)
-  greater_eq  (infix "\<ge>" 50)
-
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> y < x"
-
-end
-
-syntax
-  "_index1"  :: index    ("\<^sub>1")
-translations
-  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
-
-typed_print_translation {*
-let
-  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-    if (not o null) ts orelse T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
-    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
-*} -- {* show types that are presumably too general *}
 
 
 subsection {* Fundamental rules *}
@@ -1605,24 +1517,8 @@ end;
 
 setup ReorientProc.init
 
-setup {*
-  ReorientProc.add
-    (fn Const(@{const_name HOL.zero}, _) => true
-      | Const(@{const_name HOL.one}, _) => true
-      | _ => false)
-*}
-
-simproc_setup reorient_zero ("0 = x") = ReorientProc.proc
-simproc_setup reorient_one ("1 = x") = ReorientProc.proc
-
 
 subsection {* Other simple lemmas and lemma duplicates *}
-
-lemma Let_0 [simp]: "Let 0 f = f 0"
-  unfolding Let_def ..
-
-lemma Let_1 [simp]: "Let 1 f = f 1"
-  unfolding Let_def ..
 
 lemma ex1_eq [iff]: "EX! x. x = t" "EX! x. t = x"
   by blast+
@@ -1643,13 +1539,6 @@ lemma choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (drule_tac [3] x = x in fun_cong, simp_all)
   done
 
-lemma mk_left_commute:
-  fixes f (infix "\<otimes>" 60)
-  assumes a: "\<And>x y z. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)" and
-          c: "\<And>x y. x \<otimes> y = y \<otimes> x"
-  shows "x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
-  by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
-
 lemmas eq_sym_conv = eq_commute
 
 lemma nnf_simps:
@@ -1657,6 +1546,118 @@ lemma nnf_simps:
   "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not>(P = Q)) = ((P \<and> \<not> Q) \<or> (\<not>P \<and> Q))" 
   "(\<not> \<not>(P)) = P"
 by blast+
+
+
+subsection {* Generic classes and algebraic operations *}
+
+class zero = 
+  fixes zero :: 'a  ("0")
+
+class one =
+  fixes one  :: 'a  ("1")
+
+lemma Let_0 [simp]: "Let 0 f = f 0"
+  unfolding Let_def ..
+
+lemma Let_1 [simp]: "Let 1 f = f 1"
+  unfolding Let_def ..
+
+setup {*
+  ReorientProc.add
+    (fn Const(@{const_name HOL.zero}, _) => true
+      | Const(@{const_name HOL.one}, _) => true
+      | _ => false)
+*}
+
+simproc_setup reorient_zero ("0 = x") = ReorientProc.proc
+simproc_setup reorient_one ("1 = x") = ReorientProc.proc
+
+typed_print_translation {*
+let
+  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
+    if (not o null) ts orelse T = dummyT
+      orelse not (! show_types) andalso can Term.dest_Type T
+    then raise Match
+    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
+in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
+*} -- {* show types that are presumably too general *}
+
+hide (open) const zero one
+
+class plus =
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
+
+class minus =
+  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
+
+class uminus =
+  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
+
+class times =
+  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
+
+class inverse =
+  fixes inverse :: "'a \<Rightarrow> 'a"
+    and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
+
+class abs =
+  fixes abs :: "'a \<Rightarrow> 'a"
+begin
+
+notation (xsymbols)
+  abs  ("\<bar>_\<bar>")
+
+notation (HTML output)
+  abs  ("\<bar>_\<bar>")
+
+end
+
+class sgn =
+  fixes sgn :: "'a \<Rightarrow> 'a"
+
+class ord =
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+begin
+
+notation
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less  ("op <") and
+  less  ("(_/ < _)"  [51, 51] 50)
+  
+notation (xsymbols)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+notation (HTML output)
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+
+abbreviation (input)
+  greater_eq  (infix ">=" 50) where
+  "x >= y \<equiv> y <= x"
+
+notation (input)
+  greater_eq  (infix "\<ge>" 50)
+
+abbreviation (input)
+  greater  (infix ">" 50) where
+  "x > y \<equiv> y < x"
+
+end
+
+syntax
+  "_index1"  :: index    ("\<^sub>1")
+translations
+  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
+
+lemma mk_left_commute:
+  fixes f (infix "\<otimes>" 60)
+  assumes a: "\<And>x y z. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)" and
+          c: "\<And>x y. x \<otimes> y = y \<otimes> x"
+  shows "x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
+  by (rule trans [OF trans [OF c a] arg_cong [OF c, of "f y"]])
 
 
 subsection {* Basic ML bindings *}
