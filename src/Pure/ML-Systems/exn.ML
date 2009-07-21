@@ -13,6 +13,8 @@ sig
   val release: 'a result -> 'a
   exception Interrupt
   exception EXCEPTIONS of exn list
+  val flatten: exn -> exn list
+  val flatten_list: exn list -> exn list
   val release_all: 'a result list -> 'a list
   val release_first: 'a result list -> 'a list
 end;
@@ -43,19 +45,15 @@ fun release (Result y) = y
 exception Interrupt = Interrupt;
 exception EXCEPTIONS of exn list;
 
-fun plain_exns (Result _) = []
-  | plain_exns (Exn Interrupt) = []
-  | plain_exns (Exn (EXCEPTIONS exns)) = List.concat (map (plain_exns o Exn) exns)
-  | plain_exns (Exn exn) = [exn];
-
+fun flatten Interrupt = []
+  | flatten (EXCEPTIONS exns) = flatten_list exns
+  | flatten exn = [exn]
+and flatten_list exns = List.concat (map flatten exns);
 
 fun release_all results =
   if List.all (fn Result _ => true | _ => false) results
   then map (fn Result x => x) results
-  else
-    (case List.concat (map plain_exns results) of
-      [] => raise Interrupt
-    | exns => raise EXCEPTIONS exns);
+  else raise EXCEPTIONS (flatten_list (List.mapPartial get_exn results));
 
 fun release_first results = release_all results
   handle EXCEPTIONS (exn :: _) => reraise exn;
