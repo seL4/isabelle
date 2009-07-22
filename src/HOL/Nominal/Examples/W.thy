@@ -25,6 +25,15 @@ lemma difference_fresh:
 using a
 by (induct Xs) (auto simp add: fresh_list_nil fresh_list_cons fresh_atm)
 
+lemma difference_supset:
+  fixes xs::"'a list"
+  and   ys::"'a list"
+  and   zs::"'a list"
+  assumes asm: "set xs \<subseteq> set ys"
+  shows "xs - ys = []"
+using asm
+by (induct xs) (auto)
+
 nominal_datatype ty = 
     TVar "tvar"
   | Fun "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
@@ -49,64 +58,43 @@ types
 
 text {* free type variables *}
 
-class ftv =
-  fixes ftv :: "'a \<Rightarrow> tvar list"
+consts ftv :: "'a \<Rightarrow> tvar list"
 
-instantiation * :: (ftv, ftv) ftv
+overloading 
+  ftv_prod \<equiv> "ftv :: ('a \<times> 'b) \<Rightarrow> tvar list"
+  ftv_tvar \<equiv> "ftv :: tvar \<Rightarrow> tvar list"
+  ftv_var  \<equiv> "ftv :: var \<Rightarrow> tvar list"
+  ftv_list \<equiv> "ftv :: 'a list \<Rightarrow> tvar list"
+  ftv_ty   \<equiv> "ftv :: ty \<Rightarrow> tvar list"
 begin
 
-primrec ftv_prod
+primrec 
+  ftv_prod
 where
- "ftv (x::'a::ftv, y::'b::ftv) = (ftv x)@(ftv y)"
-
-instance ..
-
-end
-
-instantiation tvar :: ftv
-begin
+ "ftv_prod (x, y) = (ftv x) @ (ftv y)"
 
 definition
-  ftv_of_tvar[simp]:  "ftv X \<equiv> [(X::tvar)]"
-
-instance ..
-
-end
-
-instantiation var :: ftv
-begin
+  ftv_tvar :: "tvar \<Rightarrow> tvar list"
+where
+[simp]: "ftv_tvar X \<equiv> [(X::tvar)]"
 
 definition
-  ftv_of_var[simp]:   "ftv (x::var) \<equiv> []" 
-
-instance ..
-
-end
-
-instantiation list :: (ftv) ftv
-begin
-
-primrec ftv_list
+  ftv_var :: "var \<Rightarrow> tvar list"
 where
-  "ftv [] = []"
-| "ftv (x#xs) = (ftv x)@(ftv xs)"
+[simp]: "ftv_var x \<equiv> []"
 
-instance ..
-
-end
-
-(* free type-variables of types *)
-
-instantiation ty :: ftv
-begin
-
-nominal_primrec ftv_ty
+primrec 
+  ftv_list
 where
-  "ftv (TVar X) = [X]"
-| "ftv (T\<^isub>1\<rightarrow>T\<^isub>2) = (ftv T\<^isub>1)@(ftv T\<^isub>2)"
+  "ftv_list [] = []"
+| "ftv_list (x#xs) = (ftv x)@(ftv_list xs)"
+
+nominal_primrec 
+  ftv_ty :: "ty \<Rightarrow> tvar list"
+where
+  "ftv_ty (TVar X) = [X]"
+| "ftv_ty (T1 \<rightarrow>T2) = (ftv_ty T1) @ (ftv_ty T2)"
 by (rule TrueI)+
-
-instance ..
 
 end
 
@@ -117,21 +105,21 @@ lemma ftv_ty_eqvt[eqvt]:
 by (nominal_induct T rule: ty.strong_induct)
    (perm_simp add: append_eqvt)+
 
-instantiation tyS :: ftv
+overloading 
+  ftv_tyS  \<equiv> "ftv :: tyS \<Rightarrow> tvar list"
 begin
 
-nominal_primrec ftv_tyS
+nominal_primrec 
+  ftv_tyS :: "tyS \<Rightarrow> tvar list"
 where
-  "ftv (Ty T)    = ftv T"
-| "ftv (\<forall>[X].S) = (ftv S) - [X]"
+  "ftv_tyS (Ty T)    = ((ftv (T::ty))::tvar list)"
+| "ftv_tyS (\<forall>[X].S) = (ftv_tyS S) - [X]"
 apply(finite_guess add: ftv_ty_eqvt fs_tvar1)+
 apply(rule TrueI)+
 apply(rule difference_fresh)
 apply(simp)
 apply(fresh_guess add: ftv_ty_eqvt fs_tvar1)+
 done
-
-instance ..
 
 end
 
@@ -174,6 +162,8 @@ lemma gen_eqvt[eqvt]:
   shows "pi\<bullet>(gen T Xs) = gen (pi\<bullet>T) (pi\<bullet>Xs)"
 by (induct Xs) (simp_all add: eqvts)
 
+
+
 abbreviation 
   close :: "Ctxt \<Rightarrow> ty \<Rightarrow> tyS"
 where 
@@ -188,11 +178,11 @@ text {* Substitution *}
 
 types Subst = "(tvar\<times>ty) list"
 
-class psubst =
-  fixes psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       ("_<_>" [100,60] 120)
+consts
+  psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       ("_<_>" [100,60] 120)
 
 abbreviation 
-  subst :: "'a::psubst \<Rightarrow> tvar \<Rightarrow> ty \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
+  subst :: "'a \<Rightarrow> tvar \<Rightarrow> ty \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
 where
   "smth[X::=T] \<equiv> ([(X,T)])<smth>" 
 
@@ -207,34 +197,163 @@ lemma lookup_eqvt[eqvt]:
   shows "pi\<bullet>(lookup \<theta> X) = lookup (pi\<bullet>\<theta>) (pi\<bullet>X)"
 by (induct \<theta>) (auto simp add: eqvts)
 
-instantiation ty :: psubst
+lemma lookup_fresh:
+  fixes X::"tvar"
+  assumes a: "X\<sharp>\<theta>"
+  shows "lookup \<theta> X = TVar X"
+using a
+by (induct \<theta>)
+   (auto simp add: fresh_list_cons fresh_prod fresh_atm)
+
+overloading 
+  psubst_ty \<equiv> "psubst :: Subst \<Rightarrow> ty \<Rightarrow> ty"
 begin
 
-nominal_primrec psubst_ty
+nominal_primrec 
+  psubst_ty
 where
   "\<theta><TVar X>   = lookup \<theta> X"
 | "\<theta><T\<^isub>1 \<rightarrow> T\<^isub>2> = (\<theta><T\<^isub>1>) \<rightarrow> (\<theta><T\<^isub>2>)"
 by (rule TrueI)+
 
-instance ..
-
 end
 
 lemma psubst_ty_eqvt[eqvt]:
-  fixes pi1::"tvar prm"
+  fixes pi::"tvar prm"
   and   \<theta>::"Subst"
   and   T::"ty"
-  shows "pi1\<bullet>(\<theta><T>) = (pi1\<bullet>\<theta>)<(pi1\<bullet>T)>"
+  shows "pi\<bullet>(\<theta><T>) = (pi\<bullet>\<theta>)<(pi\<bullet>T)>"
 by (induct T rule: ty.induct) (simp_all add: eqvts)
 
-text {* instance *}
-inductive
-  general :: "ty \<Rightarrow> tyS \<Rightarrow> bool"("_ \<prec> _" [50,51] 50)  
-where
-  G_Ty[intro]:  "T \<prec> (Ty T)" 
-| G_All[intro]: "\<lbrakk>X\<sharp>T'; (T::ty) \<prec> S\<rbrakk> \<Longrightarrow> T[X::=T'] \<prec> \<forall>[X].S"
+overloading 
+  psubst_tyS \<equiv> "psubst :: Subst \<Rightarrow> tyS \<Rightarrow> tyS"
+begin
 
-equivariance general[tvar] 
+nominal_primrec 
+  psubst_tyS :: "Subst \<Rightarrow> tyS \<Rightarrow> tyS"
+where 
+  "\<theta><(Ty T)> = Ty (\<theta><T>)"
+| "X\<sharp>\<theta> \<Longrightarrow> \<theta><(\<forall>[X].S)> = \<forall>[X].(\<theta><S>)"
+apply(finite_guess add: psubst_ty_eqvt fs_tvar1)+
+apply(rule TrueI)+
+apply(simp add: abs_fresh)
+apply(fresh_guess add: psubst_ty_eqvt fs_tvar1)+
+done
+
+end
+
+overloading 
+  psubst_Ctxt \<equiv> "psubst :: Subst \<Rightarrow> Ctxt \<Rightarrow> Ctxt"
+begin
+
+fun
+  psubst_Ctxt :: "Subst \<Rightarrow> Ctxt \<Rightarrow> Ctxt"
+where
+  "psubst_Ctxt \<theta> [] = []"
+| "psubst_Ctxt \<theta> ((x,S)#\<Gamma>) = (x,\<theta><S>)#(psubst_Ctxt \<theta> \<Gamma>)"
+
+end
+
+lemma fresh_lookup:
+  fixes X::"tvar"
+  and   \<theta>::"Subst"
+  and   Y::"tvar"
+  assumes asms: "X\<sharp>Y" "X\<sharp>\<theta>"
+  shows "X\<sharp>(lookup \<theta> Y)"
+  using asms
+  by (induct \<theta>)
+     (auto simp add: fresh_list_cons fresh_prod fresh_atm)
+
+lemma fresh_psubst_ty:
+  fixes X::"tvar"
+  and   \<theta>::"Subst"
+  and   T::"ty"
+  assumes asms: "X\<sharp>\<theta>" "X\<sharp>T"
+  shows "X\<sharp>\<theta><T>"
+  using asms
+  by (nominal_induct T rule: ty.strong_induct)
+     (auto simp add: fresh_list_append fresh_list_cons fresh_prod fresh_lookup)
+
+lemma fresh_psubst_tyS:
+  fixes X::"tvar"
+  and   \<theta>::"Subst"
+  and   S::"tyS"
+  assumes asms: "X\<sharp>\<theta>" "X\<sharp>S"
+  shows "X\<sharp>\<theta><S>"
+  using asms
+  by (nominal_induct S avoiding: \<theta>  X rule: tyS.strong_induct)
+     (auto simp add: fresh_psubst_ty abs_fresh)
+
+lemma fresh_psubst_Ctxt:
+  fixes X::"tvar"
+  and   \<theta>::"Subst"
+  and   \<Gamma>::"Ctxt"
+  assumes asms: "X\<sharp>\<theta>" "X\<sharp>\<Gamma>"
+  shows "X\<sharp>\<theta><\<Gamma>>"
+using asms
+by (induct \<Gamma>)
+   (auto simp add: fresh_psubst_tyS fresh_list_cons)
+
+lemma subst_freshfact2_ty: 
+  fixes   X::"tvar"
+  and     Y::"tvar"
+  and     T::"ty"
+  assumes asms: "X\<sharp>S"
+  shows "X\<sharp>T[X::=S]"
+  using asms
+by (nominal_induct T rule: ty.strong_induct)
+   (auto simp add: fresh_atm)
+
+text {* instance of a type scheme *}
+inductive
+  inst :: "ty \<Rightarrow> tyS \<Rightarrow> bool"("_ \<prec> _" [50,51] 50)  
+where
+  I_Ty[intro]:  "T \<prec> (Ty T)" 
+| I_All[intro]: "\<lbrakk>X\<sharp>T'; T \<prec> S\<rbrakk> \<Longrightarrow> T[X::=T'] \<prec> \<forall>[X].S"
+
+equivariance inst[tvar] 
+
+nominal_inductive inst
+  by (simp_all add: abs_fresh subst_freshfact2_ty)
+
+lemma subst_forget_ty:
+  fixes T::"ty"
+  and   X::"tvar"
+  assumes a: "X\<sharp>T"
+  shows "T[X::=S] = T"
+  using a
+  by  (nominal_induct T rule: ty.strong_induct)
+      (auto simp add: fresh_atm)
+
+lemma psubst_ty_lemma:
+  fixes \<theta>::"Subst"
+  and   X::"tvar"
+  and   T'::"ty"
+  and   T::"ty"
+  assumes a: "X\<sharp>\<theta>" 
+  shows "\<theta><T[X::=T']> = (\<theta><T>)[X::=\<theta><T'>]"
+using a
+apply(nominal_induct T avoiding: \<theta> X T' rule: ty.strong_induct)
+apply(auto simp add: ty.inject lookup_fresh)
+apply(rule sym)
+apply(rule subst_forget_ty)
+apply(rule fresh_lookup)
+apply(simp_all add: fresh_atm)
+done
+
+lemma general_preserved:
+  fixes \<theta>::"Subst"
+  assumes a: "T \<prec> S"
+  shows "\<theta><T> \<prec> \<theta><S>"
+using a
+apply(nominal_induct T S avoiding: \<theta> rule: inst.strong_induct)
+apply(auto)[1]
+apply(simp add: psubst_ty_lemma)
+apply(rule_tac I_All)
+apply(simp add: fresh_psubst_ty)
+apply(simp)
+done
+
 
 text{* typing judgements *}
 inductive
@@ -243,46 +362,64 @@ where
   T_VAR[intro]: "\<lbrakk>valid \<Gamma>; (x,S)\<in>set \<Gamma>; T \<prec> S\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | T_APP[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App t\<^isub>1 t\<^isub>2 : T\<^isub>2" 
 | T_LAM[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,Ty T\<^isub>1)#\<Gamma>) \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2"
-| T_LET[intro]: "\<lbrakk>x\<sharp>\<Gamma>; \<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1; ((x,close \<Gamma> T\<^isub>1)#\<Gamma>) \<turnstile> t\<^isub>2 : T\<^isub>2; set (ftv T\<^isub>1 - ftv \<Gamma>) \<sharp>* T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Let x be t\<^isub>1 in t\<^isub>2 : T\<^isub>2"
-
-lemma fresh_star_tvar_eqvt[eqvt]:
-  "(pi::tvar prm) \<bullet> ((Xs::tvar set) \<sharp>* (x::'a::{cp_tvar_tvar,pt_tvar})) = (pi \<bullet> Xs) \<sharp>* (pi \<bullet> x)"
-  by (simp only: pt_fresh_star_bij_ineq(1) [OF pt_tvar_inst pt_tvar_inst at_tvar_inst cp_tvar_tvar_inst] perm_bool)
+| T_LET[intro]: "\<lbrakk>x\<sharp>\<Gamma>; \<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1; ((x,close \<Gamma> T\<^isub>1)#\<Gamma>) \<turnstile> t\<^isub>2 : T\<^isub>2; set (ftv T\<^isub>1 - ftv \<Gamma>) \<sharp>* T\<^isub>2\<rbrakk> 
+                 \<Longrightarrow> \<Gamma> \<turnstile> Let x be t\<^isub>1 in t\<^isub>2 : T\<^isub>2"
 
 equivariance typing[tvar]
 
-lemma fresh_tvar_trm: "(X::tvar) \<sharp> (t::trm)"
-  by (nominal_induct t rule: trm.strong_induct) (simp_all add: fresh_atm abs_fresh)
+lemma fresh_tvar_trm: 
+  fixes X::"tvar"
+  and   t::"trm"
+  shows "X\<sharp>t"
+by (nominal_induct t rule: trm.strong_induct) 
+   (simp_all add: fresh_atm abs_fresh)
 
-lemma ftv_ty: "supp (T::ty) = set (ftv T)"
-  by (nominal_induct T rule: ty.strong_induct) (simp_all add: ty.supp supp_atm)
+lemma ftv_ty: 
+  fixes T::"ty"
+  shows "supp T = set (ftv T)"
+by (nominal_induct T rule: ty.strong_induct) 
+   (simp_all add: ty.supp supp_atm)
 
-lemma ftv_tyS: "supp (s::tyS) = set (ftv s)"
-  by (nominal_induct s rule: tyS.strong_induct) (auto simp add: tyS.supp abs_supp ftv_ty)
+lemma ftv_tyS: 
+  fixes S::"tyS"
+  shows "supp S = set (ftv S)"
+by (nominal_induct S rule: tyS.strong_induct) 
+   (auto simp add: tyS.supp abs_supp ftv_ty)
 
-lemma ftv_Ctxt: "supp (\<Gamma>::Ctxt) = set (ftv \<Gamma>)"
-  apply (induct \<Gamma>)
-  apply (simp_all add: supp_list_nil supp_list_cons)
-  apply (case_tac a)
-  apply (simp add: supp_prod supp_atm ftv_tyS)
-  done
+lemma ftv_Ctxt: 
+  fixes \<Gamma>::"Ctxt"
+  shows "supp \<Gamma> = set (ftv \<Gamma>)"
+apply (induct \<Gamma>)
+apply (simp_all add: supp_list_nil supp_list_cons)
+apply (case_tac a)
+apply (simp add: supp_prod supp_atm ftv_tyS)
+done
 
-lemma ftv_tvars: "supp (Tvs::tvar list) = set Tvs"
-  by (induct Tvs) (simp_all add: supp_list_nil supp_list_cons supp_atm)
+lemma ftv_tvars: 
+  fixes Tvs::"tvar list"
+  shows "supp Tvs = set Tvs"
+by (induct Tvs) 
+   (simp_all add: supp_list_nil supp_list_cons supp_atm)
 
-lemma difference_supp: "((supp ((xs::tvar list) - ys))::tvar set) = supp xs - supp ys"
-  by (induct xs) (auto simp add: supp_list_nil supp_list_cons ftv_tvars)
+lemma difference_supp: 
+  fixes xs ys::"tvar list"
+  shows "((supp (xs - ys))::tvar set) = supp xs - supp ys"
+by (induct xs) 
+   (auto simp add: supp_list_nil supp_list_cons ftv_tvars)
 
-lemma set_supp_eq: "set (xs::tvar list) = supp xs"
-  by (induct xs) (simp_all add: supp_list_nil supp_list_cons supp_atm)
+lemma set_supp_eq: 
+  fixes xs::"tvar list"
+  shows "set xs = supp xs"
+by (induct xs) 
+   (simp_all add: supp_list_nil supp_list_cons supp_atm)
 
 nominal_inductive2 typing
   avoids T_LET: "set (ftv T\<^isub>1 - ftv \<Gamma>)"
-  apply (simp add: fresh_star_def fresh_def ftv_Ctxt)
-  apply (simp add: fresh_star_def fresh_tvar_trm)
-  apply assumption
-  apply simp
-  done
+apply (simp add: fresh_star_def fresh_def ftv_Ctxt)
+apply (simp add: fresh_star_def fresh_tvar_trm)
+apply assumption
+apply simp
+done
 
 lemma perm_fresh_fresh_aux:
   "\<forall>(x,y)\<in>set (pi::tvar prm). x \<sharp> z \<and> y \<sharp> z \<Longrightarrow> pi \<bullet> (z::'a::pt_tvar) = z"
@@ -294,8 +431,12 @@ lemma perm_fresh_fresh_aux:
   apply (simp add: perm_fresh_fresh)
   done
 
-lemma freshs_mem: "x \<in> (S::tvar set) \<Longrightarrow> S \<sharp>* z \<Longrightarrow> x \<sharp> z"
-  by (simp add: fresh_star_def)
+lemma freshs_mem:
+  fixes S::"tvar set"
+  assumes "x \<in> S"
+  and     "S \<sharp>* z"
+  shows  "x \<sharp> z"
+using prems  by (simp add: fresh_star_def)
 
 lemma fresh_gen_set:
   fixes X::"tvar"
@@ -315,13 +456,17 @@ lemma close_fresh:
   shows "\<forall>(X::tvar)\<in>set ((ftv T) - (ftv \<Gamma>)). X\<sharp>(close \<Gamma> T)"
 by (simp add: fresh_gen_set)
 
-lemma gen_supp: "(supp (gen T Xs)::tvar set) = supp T - supp Xs"
-  by (induct Xs) (auto simp add: supp_list_nil supp_list_cons tyS.supp abs_supp supp_atm)
+lemma gen_supp: 
+  shows "(supp (gen T Xs)::tvar set) = supp T - supp Xs"
+by (induct Xs) 
+   (auto simp add: supp_list_nil supp_list_cons tyS.supp abs_supp supp_atm)
 
-lemma minus_Int_eq: "T - (T - U) = T \<inter> U"
+lemma minus_Int_eq: 
+  shows "T - (T - U) = T \<inter> U"
   by blast
 
-lemma close_supp: "supp (close \<Gamma> T) = set (ftv T) \<inter> set (ftv \<Gamma>)"
+lemma close_supp: 
+  shows "supp (close \<Gamma> T) = set (ftv T) \<inter> set (ftv \<Gamma>)"
   apply (simp add: gen_supp difference_supp ftv_ty ftv_Ctxt)
   apply (simp only: set_supp_eq minus_Int_eq)
   done
@@ -369,5 +514,163 @@ proof -
     by (simp only: eqvts fresh_star_prod perm_fresh_fresh_aux)
   ultimately show ?thesis by (rule T_LET)
 qed
+
+lemma ftv_ty_subst:
+  fixes T::"ty"
+  and   \<theta>::"Subst"
+  and   X Y ::"tvar"
+  assumes a1: "X \<in> set (ftv T)"
+  and     a2: "Y \<in> set (ftv (lookup \<theta> X))"
+  shows "Y \<in> set (ftv (\<theta><T>))"
+using a1 a2
+by (nominal_induct T rule: ty.strong_induct) (auto)
+
+lemma ftv_tyS_subst:
+  fixes S::"tyS"
+  and   \<theta>::"Subst"
+  and   X Y::"tvar"
+  assumes a1: "X \<in> set (ftv S)"
+  and     a2: "Y \<in> set (ftv (lookup \<theta> X))"
+  shows "Y \<in> set (ftv (\<theta><S>))"
+using a1 a2
+by (nominal_induct S avoiding: \<theta> Y rule: tyS.strong_induct) 
+   (auto simp add: ftv_ty_subst fresh_atm)
+
+lemma ftv_Ctxt_subst:
+  fixes \<Gamma>::"Ctxt"
+  and   \<theta>::"Subst"
+  assumes a1: "X \<in> set (ftv \<Gamma>)"
+  and     a2: "Y \<in> set (ftv (lookup \<theta> X))"
+  shows "Y \<in> set (ftv (\<theta><\<Gamma>>))"
+using a1 a2
+by (induct \<Gamma>)
+   (auto simp add: ftv_tyS_subst)
+
+lemma gen_preserved1:
+  assumes asm: "Xs \<sharp>* \<theta>"
+  shows "\<theta><gen T Xs> = gen (\<theta><T>) Xs"
+using asm
+by (induct Xs) 
+   (auto simp add: fresh_star_def)
+
+lemma gen_preserved2:
+  fixes T::"ty"
+  and   \<Gamma>::"Ctxt"
+  assumes asm: "((ftv T) - (ftv \<Gamma>)) \<sharp>* \<theta>"
+  shows "((ftv (\<theta><T>)) - (ftv (\<theta><\<Gamma>>))) = ((ftv T) - (ftv \<Gamma>))"
+using asm
+apply(nominal_induct T rule: ty.strong_induct)
+apply(auto simp add: fresh_star_def)
+apply(simp add: lookup_fresh)
+apply(simp add: ftv_Ctxt[symmetric])
+apply(fold fresh_def)
+apply(rule fresh_psubst_Ctxt)
+apply(assumption)
+apply(assumption)
+apply(rule difference_supset)
+apply(auto)
+apply(simp add: ftv_Ctxt_subst)
+done
+
+lemma close_preserved:
+  fixes \<Gamma>::"Ctxt"
+  assumes asm: "((ftv T) - (ftv \<Gamma>)) \<sharp>* \<theta>"
+  shows "\<theta><close \<Gamma> T> = close (\<theta><\<Gamma>>) (\<theta><T>)"
+using asm
+by (simp add: gen_preserved1 gen_preserved2)
+
+lemma var_fresh_for_ty:
+  fixes x::"var"
+  and   T::"ty"
+  shows "x\<sharp>T"
+by (nominal_induct T rule: ty.strong_induct)
+   (simp_all add: fresh_atm)
+
+lemma var_fresh_for_tyS:
+  fixes x::"var"
+  and   S::"tyS"
+  shows "x\<sharp>S"
+by (nominal_induct S rule: tyS.strong_induct)
+   (simp_all add: abs_fresh var_fresh_for_ty)
+
+lemma psubst_fresh_Ctxt:
+  fixes x::"var"
+  and   \<Gamma>::"Ctxt"
+  and   \<theta>::"Subst"
+  shows "x\<sharp>\<theta><\<Gamma>> = x\<sharp>\<Gamma>"
+by (induct \<Gamma>)
+   (auto simp add: fresh_list_cons fresh_list_nil fresh_prod var_fresh_for_tyS)
+
+lemma psubst_valid:
+  fixes \<theta>::Subst
+  and   \<Gamma>::Ctxt
+  assumes a: "valid \<Gamma>"
+  shows "valid (\<theta><\<Gamma>>)"
+using a
+by (induct) 
+   (auto simp add: psubst_fresh_Ctxt)
+
+lemma psubst_in:
+  fixes \<Gamma>::"Ctxt"
+  and   \<theta>::"Subst"
+  and   pi::"tvar prm"
+  and   S::"tyS"
+  assumes a: "(x,S)\<in>set \<Gamma>"
+  shows "(x,\<theta><S>)\<in>set (\<theta><\<Gamma>>)"
+using a
+by (induct \<Gamma>)
+   (auto simp add: calc_atm)
+
+
+lemma typing_preserved:
+  fixes \<theta>::"Subst"
+  and   pi::"tvar prm"
+  assumes a: "\<Gamma> \<turnstile> t : T"
+  shows "(\<theta><\<Gamma>>) \<turnstile> t : (\<theta><T>)"
+using a
+proof (nominal_induct \<Gamma> t T avoiding: \<theta> rule: typing.strong_induct)
+  case (T_VAR \<Gamma> x S T)
+  have a1: "valid \<Gamma>" by fact
+  have a2: "(x, S) \<in> set \<Gamma>" by fact
+  have a3: "T \<prec> S" by fact
+  have  "valid (\<theta><\<Gamma>>)" using a1 by (simp add: psubst_valid)
+  moreover
+  have  "(x,\<theta><S>)\<in>set (\<theta><\<Gamma>>)" using a2 by (simp add: psubst_in)
+  moreover
+  have "\<theta><T> \<prec> \<theta><S>" using a3 by (simp add: general_preserved)
+  ultimately show "(\<theta><\<Gamma>>) \<turnstile> Var x : (\<theta><T>)" by (simp add: typing.T_VAR)
+next
+  case (T_APP \<Gamma> t1 T1 T2 t2)
+  have "\<theta><\<Gamma>> \<turnstile> t1 : \<theta><T1 \<rightarrow> T2>" by fact
+  then have "\<theta><\<Gamma>> \<turnstile> t1 : (\<theta><T1>) \<rightarrow> (\<theta><T2>)" by simp
+  moreover
+  have "\<theta><\<Gamma>> \<turnstile> t2 : \<theta><T1>" by fact
+  ultimately show "\<theta><\<Gamma>> \<turnstile> App t1 t2 : \<theta><T2>" by (simp add: typing.T_APP)
+next
+  case (T_LAM x \<Gamma> T1 t T2)
+  fix pi::"tvar prm" and \<theta>::"Subst"
+  have "x\<sharp>\<Gamma>" by fact
+  then have "x\<sharp>\<theta><\<Gamma>>" by (simp add: psubst_fresh_Ctxt)
+  moreover
+  have "\<theta><((x, Ty T1)#\<Gamma>)> \<turnstile> t : \<theta><T2>" by fact
+  then have "((x, Ty (\<theta><T1>))#(\<theta><\<Gamma>>)) \<turnstile> t : \<theta><T2>" by (simp add: calc_atm)
+  ultimately show "\<theta><\<Gamma>> \<turnstile> Lam [x].t : \<theta><T1 \<rightarrow> T2>" by (simp add: typing.T_LAM)
+next
+  case (T_LET x \<Gamma> t1 T1 t2 T2)
+  have vc: "((ftv T1) - (ftv \<Gamma>)) \<sharp>* \<theta>" by fact
+  have "x\<sharp>\<Gamma>" by fact
+   then have a1: "x\<sharp>\<theta><\<Gamma>>" by (simp add: calc_atm psubst_fresh_Ctxt)
+  have a2: "\<theta><\<Gamma>> \<turnstile> t1 : \<theta><T1>" by fact 
+  have a3: "\<theta><((x, close \<Gamma> T1)#\<Gamma>)> \<turnstile> t2 : \<theta><T2>" by fact
+  from a2 a3 show "\<theta><\<Gamma>> \<turnstile> Let x be t1 in t2 : \<theta><T2>"
+    apply -
+    apply(rule better_T_LET)
+    apply(rule a1)
+    apply(rule a2)
+    apply(simp add: close_preserved vc)
+    done
+qed
+
+
 
 end
