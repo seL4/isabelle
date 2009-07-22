@@ -1263,7 +1263,7 @@ apply(rule Int_greatest)
  apply(simp add: Mul_Mutator_def mul_collector_defs mul_mutator_defs nth_append)
  apply force
 apply clarify
-apply(case_tac xa)
+apply(case_tac i)
  apply(simp add:Mul_Collector_def mul_mutator_defs mul_collector_defs nth_append)
 apply(simp add: Mul_Mutator_def mul_mutator_defs mul_collector_defs nth_append nth_map_upt)
 --{* Collector *}

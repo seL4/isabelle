@@ -161,7 +161,7 @@ fun is_f (Const ("split",_) $ (Abs(x,_,t))) = true
 (* assn_tr' & bexp_tr'*)
 ML{*  
 fun assn_tr' (Const ("Collect",_) $ T) = dest_abstuple T
-  | assn_tr' (Const (@{const_name Set.Int}, _) $ (Const ("Collect",_) $ T1) $ 
+  | assn_tr' (Const (@{const_name inter}, _) $ (Const ("Collect",_) $ T1) $ 
                                    (Const ("Collect",_) $ T2)) =  
             Syntax.const "Set.Int" $ dest_abstuple T1 $ dest_abstuple T2
   | assn_tr' t = t;
