@@ -79,7 +79,7 @@ open MetaSimplifier;
 fun pretty_ss ctxt ss =
   let
     val pretty_cterm = Syntax.pretty_term ctxt o Thm.term_of;
-    val pretty_thm = ProofContext.pretty_thm ctxt;
+    val pretty_thm = Display.pretty_thm ctxt;
     fun pretty_proc (name, lhss) = Pretty.big_list (name ^ ":") (map pretty_cterm lhss);
     fun pretty_cong (name, thm) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, pretty_thm thm];

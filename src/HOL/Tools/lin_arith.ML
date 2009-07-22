@@ -286,7 +286,7 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
 
 (* checks if splitting with 'thm' is implemented                             *)
 
-fun is_split_thm (thm : thm) : bool =
+fun is_split_thm thm =
   case concl_of thm of _ $ (_ $ (_ $ lhs) $ _) => (
     (* Trueprop $ ((op =) $ (?P $ lhs) $ rhs) *)
     case head_of lhs of
@@ -298,10 +298,10 @@ fun is_split_thm (thm : thm) : bool =
                                     "Divides.div_class.mod",
                                     "Divides.div_class.div"] a
     | _            => (warning ("Lin. Arith.: wrong format for split rule " ^
-                                 Display.string_of_thm thm);
+                                 Display.string_of_thm_without_context thm);
                        false))
   | _ => (warning ("Lin. Arith.: wrong format for split rule " ^
-                   Display.string_of_thm thm);
+                   Display.string_of_thm_without_context thm);
           false);
 
 (* substitute new for occurrences of old in a term, incrementing bound       *)

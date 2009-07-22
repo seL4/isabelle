@@ -1,34 +1,32 @@
 (*  Title:      Pure/display.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Author:     Makarius
 
-Printing of theorems, goals, results etc.
+Printing of theorems, results etc.
 *)
 
 signature BASIC_DISPLAY =
 sig
   val goals_limit: int ref
+  val show_consts: bool ref
   val show_hyps: bool ref
   val show_tags: bool ref
-  val show_consts: bool ref
 end;
 
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
-  val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
-  val pretty_thm_aux: Pretty.pp -> {quote: bool, show_hyps: bool, show_status: bool} ->
+  val pretty_thm_raw: Pretty.pp -> {quote: bool, show_hyps: bool, show_status: bool} ->
     term list -> thm -> Pretty.T
-  val pretty_thm: thm -> Pretty.T
-  val string_of_thm: thm -> string
-  val pretty_thms: thm list -> Pretty.T
-  val pretty_thm_sg: theory -> thm -> Pretty.T
-  val pretty_thms_sg: theory -> thm list -> Pretty.T
-  val print_thm: thm -> unit
-  val print_thms: thm list -> unit
-  val prth: thm -> thm
-  val prthq: thm Seq.seq -> thm Seq.seq
-  val prths: thm list -> thm list
+  val pretty_thm_aux: Proof.context -> bool -> thm -> Pretty.T
+  val pretty_thm: Proof.context -> thm -> Pretty.T
+  val pretty_thm_global: theory -> thm -> Pretty.T
+  val pretty_thm_without_context: thm -> Pretty.T
+  val string_of_thm: Proof.context -> thm -> string
+  val string_of_thm_global: theory -> thm -> string
+  val string_of_thm_without_context: thm -> string
+  val pretty_thms_aux: Proof.context -> bool -> thm list -> Pretty.T
+  val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_ctyp: ctyp -> Pretty.T
   val string_of_ctyp: ctyp -> string
   val print_ctyp: ctyp -> unit
@@ -37,26 +35,25 @@ sig
   val print_cterm: cterm -> unit
   val print_syntax: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T list
-  val pretty_goals_aux: Pretty.pp -> Markup.T -> bool * bool -> int -> thm -> Pretty.T list
-  val pretty_goals: int -> thm -> Pretty.T list
-  val print_goals: int -> thm -> unit
 end;
 
 structure Display: DISPLAY =
 struct
 
+(** options **)
 
-(** print thm **)
+val goals_limit = Display_Goal.goals_limit;
+val show_consts = Display_Goal.show_consts;
 
-val goals_limit = ref 10;       (*max number of goals to print*)
 val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
 
+
+
+(** print thm **)
+
 fun pretty_tag (name, arg) = Pretty.strs [name, quote arg];
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
-
-fun pretty_flexpair pp (t, u) = Pretty.block
-  [Pretty.term pp t, Pretty.str " =?=", Pretty.brk 1, Pretty.term pp u];
 
 fun display_status false _ = ""
   | display_status true th =
@@ -71,7 +68,7 @@ fun display_status false _ = ""
         else ""
       end;
 
-fun pretty_thm_aux pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
+fun pretty_thm_raw pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
   let
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
@@ -89,7 +86,7 @@ fun pretty_thm_aux pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
       if hlen = 0 andalso status = "" then []
       else if ! show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o pretty_flexpair pp) tpairs @ map prt_term hyps' @
+          (map (q o Display_Goal.pretty_flexpair pp) tpairs @ map prt_term hyps' @
            map (Pretty.sort pp) xshyps @
             (if status = "" then [] else [Pretty.str status]))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ status ^ "]")];
@@ -98,27 +95,33 @@ fun pretty_thm_aux pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
-fun pretty_thm th =
-  pretty_thm_aux (Syntax.pp_global (Thm.theory_of_thm th))
-    {quote = true, show_hyps = false, show_status = true} [] th;
-
-val string_of_thm = Pretty.string_of o pretty_thm;
-
-fun pretty_thms [th] = pretty_thm th
-  | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
-
-val pretty_thm_sg = pretty_thm oo Thm.transfer;
-val pretty_thms_sg = pretty_thms oo (map o Thm.transfer);
+fun pretty_thm_aux ctxt show_status th =
+  let
+    val flags = {quote = false, show_hyps = true, show_status = show_status};
+    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
+  in pretty_thm_raw (Syntax.pp ctxt) flags asms th end;
 
 
-(* top-level commands for printing theorems *)
+fun pretty_thm ctxt = pretty_thm_aux ctxt true;
 
-val print_thm = Pretty.writeln o pretty_thm;
-val print_thms = Pretty.writeln o pretty_thms;
+fun pretty_thm_global thy th =
+  pretty_thm_raw (Syntax.pp_global thy)
+    {quote = false, show_hyps = false, show_status = true} [] th;
 
-fun prth th = (print_thm th; th);
-fun prthq thq = (Seq.print (K print_thm) 100000 thq; thq);
-fun prths ths = (prthq (Seq.of_list ths); ths);
+fun pretty_thm_without_context th = pretty_thm_global (Thm.theory_of_thm th) th;
+
+val string_of_thm = Pretty.string_of oo pretty_thm;
+val string_of_thm_global = Pretty.string_of oo pretty_thm_global;
+val string_of_thm_without_context = Pretty.string_of o pretty_thm_without_context;
+
+
+(* multiple theorems *)
+
+fun pretty_thms_aux ctxt flag [th] = pretty_thm_aux ctxt flag th
+  | pretty_thms_aux ctxt flag ths =
+      Pretty.blk (0, Pretty.fbreaks (map (pretty_thm_aux ctxt flag) ths));
+
+fun pretty_thms ctxt = pretty_thms_aux ctxt true;
 
 
 (* other printing commands *)
@@ -242,109 +245,7 @@ fun pretty_full_theory verbose thy =
          Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)]]
   end;
 
-
-
-(** print_goals **)
-
-(* print_goals etc. *)
-
-val show_consts = ref false;  (*true: show consts with types in proof state output*)
-
-
-(*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
-
-local
-
-fun ins_entry (x, y) =
-  AList.default (op =) (x, []) #>
-  AList.map_entry (op =) x (insert (op =) y);
-
-val add_consts = Term.fold_aterms
-  (fn Const (c, T) => ins_entry (T, (c, T))
-    | _ => I);
-
-val add_vars = Term.fold_aterms
-  (fn Free (x, T) => ins_entry (T, (x, ~1))
-    | Var (xi, T) => ins_entry (T, xi)
-    | _ => I);
-
-val add_varsT = Term.fold_atyps
-  (fn TFree (x, S) => ins_entry (S, (x, ~1))
-    | TVar (xi, S) => ins_entry (S, xi)
-    | _ => I);
-
-fun sort_idxs vs = map (apsnd (sort (prod_ord string_ord int_ord))) vs;
-fun sort_cnsts cs = map (apsnd (sort_wrt fst)) cs;
-
-fun consts_of t = sort_cnsts (add_consts t []);
-fun vars_of t = sort_idxs (add_vars t []);
-fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
-
-in
-
-fun pretty_goals_aux pp markup (msg, main) maxgoals state =
-  let
-    fun prt_atoms prt prtT (X, xs) = Pretty.block
-      [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
-        Pretty.brk 1, prtT X];
-
-    fun prt_var (x, ~1) = Pretty.term pp (Syntax.free x)
-      | prt_var xi = Pretty.term pp (Syntax.var xi);
-
-    fun prt_varT (x, ~1) = Pretty.typ pp (TFree (x, []))
-      | prt_varT xi = Pretty.typ pp (TVar (xi, []));
-
-    val prt_consts = prt_atoms (Pretty.term pp o Const) (Pretty.typ pp);
-    val prt_vars = prt_atoms prt_var (Pretty.typ pp);
-    val prt_varsT = prt_atoms prt_varT (Pretty.sort pp);
-
-
-    fun pretty_list _ _ [] = []
-      | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
-
-    fun pretty_subgoal (n, A) = Pretty.markup markup
-      [Pretty.str (" " ^ string_of_int n ^ ". "), Pretty.term pp A];
-    fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
-
-    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair pp);
-
-    val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
-    val pretty_vars = pretty_list "variables:" prt_vars o vars_of;
-    val pretty_varsT = pretty_list "type variables:" prt_varsT o varsT_of;
-
-
-    val {prop, tpairs, ...} = Thm.rep_thm state;
-    val (As, B) = Logic.strip_horn prop;
-    val ngoals = length As;
-
-    fun pretty_gs (types, sorts) =
-      (if main then [Pretty.term pp B] else []) @
-       (if ngoals = 0 then [Pretty.str "No subgoals!"]
-        else if ngoals > maxgoals then
-          pretty_subgoals (Library.take (maxgoals, As)) @
-          (if msg then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
-           else [])
-        else pretty_subgoals As) @
-      pretty_ffpairs tpairs @
-      (if ! show_consts then pretty_consts prop else []) @
-      (if types then pretty_vars prop else []) @
-      (if sorts then pretty_varsT prop else []);
-  in
-    setmp show_no_free_types true
-      (setmp show_types (! show_types orelse ! show_sorts orelse ! show_all_types)
-        (setmp show_sorts false pretty_gs))
-   (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
-  end;
-
-fun pretty_goals n th =
-  pretty_goals_aux (Syntax.pp_global (Thm.theory_of_thm th)) Markup.none (true, true) n th;
-
-val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals;
-
 end;
 
-
-end;
-
-structure BasicDisplay: BASIC_DISPLAY = Display;
-open BasicDisplay;
+structure Basic_Display: BASIC_DISPLAY = Display;
+open Basic_Display;

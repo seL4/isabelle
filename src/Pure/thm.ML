@@ -141,10 +141,9 @@ sig
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val rename_boundvars: term -> term -> thm -> thm
+  val join_proofs: thm list -> unit
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
-  val join_proof: thm -> unit
-  val promises_of: thm -> (serial * thm future) list
   val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val get_name: thm -> string
@@ -1612,17 +1611,17 @@ fun biresolution match brules i state =
 fun raw_body (Thm (Deriv {body, ...}, _)) = body;
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  let val ps = map (apsnd (fulfill_body o Future.join)) promises
-  in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
+  Pt.fulfill_proof (Theory.deref thy_ref)
+    (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
+and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
+
+val join_proofs = Pt.join_bodies o map fulfill_body;
 
 fun proof_body_of thm = (Pt.join_bodies [raw_body thm]; fulfill_body thm);
 val proof_of = Pt.proof_of o proof_body_of;
-val join_proof = ignore o proof_body_of;
 
 
 (* derivation status *)
-
-fun promises_of (Thm (Deriv {promises, ...}, _)) = promises;
 
 fun status_of (Thm (Deriv {promises, body}, _)) =
   let
@@ -1652,7 +1651,7 @@ fun future_result i orig_thy orig_shyps orig_prop raw_thm =
     val _ = null hyps orelse err "bad hyps";
     val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
     val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
-    val _ = List.app (ignore o fulfill_body o Future.join o #2) promises;
+    val _ = fulfill_bodies (map #2 promises);
   in thm end;
 
 fun future future_thm ct =
@@ -1743,5 +1742,5 @@ fun add_oracle (b, oracle) thy =
 
 end;
 
-structure BasicThm: BASIC_THM = Thm;
-open BasicThm;
+structure Basic_Thm: BASIC_THM = Thm;
+open Basic_Thm;

@@ -40,8 +40,8 @@ structure CalculationData = GenericDataFun
 fun print_rules ctxt =
   let val ((trans, sym), _) = CalculationData.get (Context.Proof ctxt) in
     [Pretty.big_list "transitivity rules:"
-        (map (ProofContext.pretty_thm ctxt) (Item_Net.content trans)),
-      Pretty.big_list "symmetry rules:" (map (ProofContext.pretty_thm ctxt) sym)]
+        (map (Display.pretty_thm ctxt) (Item_Net.content trans)),
+      Pretty.big_list "symmetry rules:" (map (Display.pretty_thm ctxt) sym)]
     |> Pretty.chunks |> Pretty.writeln
   end;
 

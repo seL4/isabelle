@@ -236,11 +236,11 @@ fun print_stored_rules thy =
       val _ = writeln ("predicate: " ^ pred)
       val _ = writeln ("number of parameters: " ^ string_of_int (nparams_of thy pred))
       val _ = writeln ("introrules: ")
-      val _ = fold (fn thm => fn u =>  writeln (Display.string_of_thm thm))
+      val _ = fold (fn thm => fn u => writeln (Display.string_of_thm_global thy thm))
         (rev (intros_of thy pred)) ()
     in
       if (has_elim thy pred) then
-        writeln ("elimrule: " ^ Display.string_of_thm (the_elim_of thy pred))
+        writeln ("elimrule: " ^ Display.string_of_thm_global thy (the_elim_of thy pred))
       else
         writeln ("no elimrule defined")
     end

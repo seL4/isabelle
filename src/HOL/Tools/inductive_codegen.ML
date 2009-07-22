@@ -39,7 +39,7 @@ structure CodegenData = TheoryDataFun
 
 
 fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
-  Display.string_of_thm thm);
+  Display.string_of_thm_without_context thm);
 
 fun add_node (g, x) = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
 

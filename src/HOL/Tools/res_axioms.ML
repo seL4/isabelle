@@ -227,8 +227,9 @@ fun combinators th =
         val eqth = combinators_aux (cprop_of th)
     in  equal_elim eqth th   end
     handle THM (msg,_,_) =>
-      (warning ("Error in the combinator translation of " ^ Display.string_of_thm th);
-       warning ("  Exception message: " ^ msg);
+      (warning (cat_lines
+        ["Error in the combinator translation of " ^ Display.string_of_thm_without_context th,
+          "  Exception message: " ^ msg]);
        TrueI);  (*A type variable of sort {} will cause make abstraction fail.*)
 
 (*cterms are used throughout for efficiency*)
@@ -280,7 +281,7 @@ fun assume_skolem_of_def s th =
 fun assert_lambda_free ths msg =
   case filter (not o lambda_free o prop_of) ths of
       [] => ()
-    | ths' => error (msg ^ "\n" ^ cat_lines (map Display.string_of_thm ths'));
+    | ths' => error (cat_lines (msg :: map Display.string_of_thm_without_context ths'));
 
 
 (*** Blacklisting (duplicated in ResAtp?) ***)
@@ -336,7 +337,7 @@ fun fake_name th =
 
 fun name_or_string th =
   if Thm.has_name_hint th then Thm.get_name_hint th
-  else Display.string_of_thm th;
+  else Display.string_of_thm_without_context th;
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s, th) =

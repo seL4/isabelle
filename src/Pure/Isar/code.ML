@@ -243,7 +243,7 @@ type eqns = bool * (thm * bool) list lazy;
   (*default flag, theorems with proper flag (perhaps lazy)*)
 
 fun pretty_lthms ctxt r = case Lazy.peek r
- of SOME thms => map (ProofContext.pretty_thm ctxt o fst) (Exn.release thms)
+ of SOME thms => map (Display.pretty_thm ctxt o fst) (Exn.release thms)
   | NONE => [Pretty.str "[...]"];
 
 fun certificate thy f r =
@@ -263,7 +263,8 @@ fun add_drop_redundant thy (thm, proper) thms =
       Pattern.matchess thy (args, (map incr_idx o curry Library.take (length args)) args');
     fun drop (thm', proper') = if (proper orelse not proper')
       andalso matches_args (args_of thm') then 
-        (warning ("Code generator: dropping redundant code equation\n" ^ Display.string_of_thm thm'); true)
+        (warning ("Code generator: dropping redundant code equation\n" ^
+            Display.string_of_thm_global thy thm'); true)
       else false;
   in (thm, proper) :: filter_out drop thms end;
 
@@ -567,16 +568,16 @@ fun is_linear thm =
 fun gen_assert_eqn thy is_constr_pat (thm, proper) =
   let
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
-      handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm)
-           | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
+      handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm_global thy thm)
+           | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm_global thy thm);
     fun vars_of t = fold_aterms (fn Var (v, _) => insert (op =) v
       | Free _ => bad_thm ("Illegal free variable in equation\n"
-          ^ Display.string_of_thm thm)
+          ^ Display.string_of_thm_global thy thm)
       | _ => I) t [];
     fun tvars_of t = fold_term_types (fn _ =>
       fold_atyps (fn TVar (v, _) => insert (op =) v
         | TFree _ => bad_thm 
-      ("Illegal free type variable in equation\n" ^ Display.string_of_thm thm))) t [];
+      ("Illegal free type variable in equation\n" ^ Display.string_of_thm_global thy thm))) t [];
     val lhs_vs = vars_of lhs;
     val rhs_vs = vars_of rhs;
     val lhs_tvs = tvars_of lhs;
@@ -584,47 +585,48 @@ fun gen_assert_eqn thy is_constr_pat (thm, proper) =
     val _ = if null (subtract (op =) lhs_vs rhs_vs)
       then ()
       else bad_thm ("Free variables on right hand side of equation\n"
-        ^ Display.string_of_thm thm);
+        ^ Display.string_of_thm_global thy thm);
     val _ = if null (subtract (op =) lhs_tvs rhs_tvs)
       then ()
       else bad_thm ("Free type variables on right hand side of equation\n"
-        ^ Display.string_of_thm thm)    val (head, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
+        ^ Display.string_of_thm_global thy thm)
+    val (head, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
     val (c, ty) = case head
      of Const (c_ty as (_, ty)) => (AxClass.unoverload_const thy c_ty, ty)
-      | _ => bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm thm);
+      | _ => bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm_global thy thm);
     fun check _ (Abs _) = bad_thm
           ("Abstraction on left hand side of equation\n"
-            ^ Display.string_of_thm thm)
+            ^ Display.string_of_thm_global thy thm)
       | check 0 (Var _) = ()
       | check _ (Var _) = bad_thm
           ("Variable with application on left hand side of equation\n"
-            ^ Display.string_of_thm thm)
+            ^ Display.string_of_thm_global thy thm)
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
       | check n (Const (c_ty as (c, ty))) = if n = (length o fst o strip_type) ty
           then if not proper orelse is_constr_pat (AxClass.unoverload_const thy c_ty)
             then ()
             else bad_thm (quote c ^ " is not a constructor, on left hand side of equation\n"
-              ^ Display.string_of_thm thm)
+              ^ Display.string_of_thm_global thy thm)
           else bad_thm
             ("Partially applied constant " ^ quote c ^ " on left hand side of equation\n"
-               ^ Display.string_of_thm thm);
+               ^ Display.string_of_thm_global thy thm);
     val _ = map (check 0) args;
     val _ = if not proper orelse is_linear thm then ()
       else bad_thm ("Duplicate variables on left hand side of equation\n"
-        ^ Display.string_of_thm thm);
+        ^ Display.string_of_thm_global thy thm);
     val _ = if (is_none o AxClass.class_of_param thy) c
       then ()
       else bad_thm ("Polymorphic constant as head in equation\n"
-        ^ Display.string_of_thm thm)
+        ^ Display.string_of_thm_global thy thm)
     val _ = if not (is_constr thy c)
       then ()
       else bad_thm ("Constructor as head in equation\n"
-        ^ Display.string_of_thm thm)
+        ^ Display.string_of_thm_global thy thm)
     val ty_decl = Sign.the_const_type thy c;
     val _ = if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
       then () else bad_thm ("Type\n" ^ string_of_typ thy ty
            ^ "\nof equation\n"
-           ^ Display.string_of_thm thm
+           ^ Display.string_of_thm_global thy thm
            ^ "\nis incompatible with declared function type\n"
            ^ string_of_typ thy ty_decl)
   in (thm, proper) end;
@@ -657,7 +659,7 @@ fun assert_eqns_const thy c eqns =
   let
     fun cert (eqn as (thm, _)) = if c = const_eqn thy thm
       then eqn else error ("Wrong head of code equation,\nexpected constant "
-        ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm thm)
+        ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy thm)
   in map (cert o assert_eqn thy) eqns end;
 
 fun common_typ_eqns thy [] = []
@@ -674,7 +676,7 @@ fun common_typ_eqns thy [] = []
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
             error ("Type unificaton failed, while unifying code equations\n"
-            ^ (cat_lines o map Display.string_of_thm) thms
+            ^ (cat_lines o map (Display.string_of_thm_global thy)) thms
             ^ "\nwith types\n"
             ^ (cat_lines o map (string_of_typ thy)) (ty1 :: tys));
         val (env, _) = fold unify tys (Vartab.empty, maxidx)
@@ -796,17 +798,17 @@ fun add_const_alias thm thy =
   let
     val (ofclass, eqn) = case try Logic.dest_equals (Thm.prop_of thm)
      of SOME ofclass_eq => ofclass_eq
-      | _ => error ("Bad certificate: " ^ Display.string_of_thm thm);
+      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
     val (T, class) = case try Logic.dest_of_class ofclass
      of SOME T_class => T_class
-      | _ => error ("Bad certificate: " ^ Display.string_of_thm thm);
+      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
     val tvar = case try Term.dest_TVar T
      of SOME (tvar as (_, sort)) => if null (filter (can (AxClass.get_info thy)) sort)
           then tvar
-          else error ("Bad sort: " ^ Display.string_of_thm thm)
-      | _ => error ("Bad type: " ^ Display.string_of_thm thm);
+          else error ("Bad sort: " ^ Display.string_of_thm_global thy thm)
+      | _ => error ("Bad type: " ^ Display.string_of_thm_global thy thm);
     val _ = if Term.add_tvars eqn [] = [tvar] then ()
-      else error ("Inconsistent type: " ^ Display.string_of_thm thm);
+      else error ("Inconsistent type: " ^ Display.string_of_thm_global thy thm);
     val lhs_rhs = case try Logic.dest_equals eqn
      of SOME lhs_rhs => lhs_rhs
       | _ => error ("Not an equation: " ^ Syntax.string_of_term_global thy eqn);
@@ -815,7 +817,7 @@ fun add_const_alias thm thy =
       | _ => error ("Not an equation with two constants: "
           ^ Syntax.string_of_term_global thy eqn);
     val _ = if the_list (AxClass.class_of_param thy (snd c_c')) = [class] then ()
-      else error ("Inconsistent class: " ^ Display.string_of_thm thm);
+      else error ("Inconsistent class: " ^ Display.string_of_thm_global thy thm);
   in thy |>
     (map_exec_purge NONE o map_aliasses) (fn (alias, classes) =>
       ((c_c', thm) :: alias, insert (op =) class classes))

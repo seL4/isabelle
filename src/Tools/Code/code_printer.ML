@@ -82,7 +82,7 @@ struct
 
 open Code_Thingol;
 
-fun nerror thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm thm);
+fun nerror thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm);
 
 (** assembling text pieces **)
 

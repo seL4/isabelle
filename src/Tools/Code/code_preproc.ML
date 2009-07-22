@@ -214,7 +214,7 @@ fun pretty thy eqngr =
   |> map (fn (s, thms) =>
        (Pretty.block o Pretty.fbreaks) (
          Pretty.str s
-         :: map (Display.pretty_thm o fst) thms
+         :: map (Display.pretty_thm_global thy o fst) thms
        ))
   |> Pretty.chunks;
 
@@ -529,7 +529,7 @@ fun eval_conv thy =
       in
         Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
           error ("could not construct evaluation proof:\n"
-          ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
+          ^ (cat_lines o map (Display.string_of_thm_global thy)) [thm1, thm2, thm3])
       end;
   in gen_eval thy I conclude_evaluation end;
 

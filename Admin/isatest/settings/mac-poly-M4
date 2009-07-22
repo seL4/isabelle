@@ -4,7 +4,7 @@
   ML_SYSTEM="polyml-experimental"
   ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="--mutable 800 --immutable 2000"
+  ML_OPTIONS="--mutable 600 --immutable 1800"
 
 
 ISABELLE_HOME_USER=~/isabelle-mac-poly-M4
@@ -25,4 +25,4 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i false -d false -M 4"
 
-HOL_USEDIR_OPTIONS="-p 2 -q 1"
+HOL_USEDIR_OPTIONS="-p 2 -q 0"

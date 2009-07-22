@@ -90,13 +90,13 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/future.ML			\
   Tools/find_theorems.ML Tools/named_thms.ML Tools/xml_syntax.ML	\
   assumption.ML axclass.ML codegen.ML config.ML conjunction.ML		\
   consts.ML context.ML context_position.ML conv.ML defs.ML display.ML	\
-  drule.ML envir.ML facts.ML goal.ML interpretation.ML item_net.ML	\
-  library.ML logic.ML meta_simplifier.ML more_thm.ML morphism.ML	\
-  name.ML net.ML old_goals.ML old_term.ML pattern.ML primitive_defs.ML	\
-  proofterm.ML pure_setup.ML pure_thy.ML search.ML sign.ML		\
-  simplifier.ML sorts.ML subgoal.ML tactic.ML tctical.ML term.ML	\
-  term_ord.ML term_subst.ML theory.ML thm.ML type.ML type_infer.ML	\
-  unify.ML variable.ML
+  display_goal.ML drule.ML envir.ML facts.ML goal.ML interpretation.ML	\
+  item_net.ML library.ML logic.ML meta_simplifier.ML more_thm.ML	\
+  morphism.ML name.ML net.ML old_goals.ML old_term.ML pattern.ML	\
+  primitive_defs.ML proofterm.ML pure_setup.ML pure_thy.ML search.ML	\
+  sign.ML simplifier.ML sorts.ML subgoal.ML tactic.ML tctical.ML	\
+  term.ML term_ord.ML term_subst.ML theory.ML thm.ML type.ML		\
+  type_infer.ML unify.ML variable.ML
 	@./mk
 
 

@@ -92,10 +92,12 @@ fun with_attributes new_atts f x =
     val _ = Thread.setAttributes orig_atts;
   in Exn.release result end;
 
-fun interruptible f = with_attributes regular_interrupts (fn _ => f);
+fun interruptible f =
+  with_attributes regular_interrupts (fn _ => fn x => f x);
 
 fun uninterruptible f =
-  with_attributes no_interrupts (fn atts => f (fn g => with_attributes atts (fn _ => g)));
+  with_attributes no_interrupts (fn atts => fn x =>
+    f (fn g => with_attributes atts (fn _ => fn y => g y)) x);
 
 
 (* execution with time limit *)

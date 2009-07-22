@@ -529,9 +529,8 @@ fun lazyR_def thy fid tflCongs eqns =
      val f = #lhs(S.dest_eq proto_def)
      val (extractants,TCl) = ListPair.unzip extracta
      val dummy = if !trace
-                 then (writeln "Extractants = ";
-                       Display.prths extractants;
-                       ())
+                 then writeln (cat_lines ("Extractants =" ::
+                  map (Display.string_of_thm_global thy) extractants))
                  else ()
      val TCs = List.foldr (gen_union (op aconv)) [] TCl
      val full_rqt = WFR::TCs
@@ -551,8 +550,9 @@ fun lazyR_def thy fid tflCongs eqns =
        |> PureThy.add_defs false
             [Thm.no_attributes (Binding.name (fid ^ "_def"), defn)]
      val def = Thm.freezeT def0;
-     val dummy = if !trace then writeln ("DEF = " ^ Display.string_of_thm def)
-                           else ()
+     val dummy =
+       if !trace then writeln ("DEF = " ^ Display.string_of_thm_global theory def)
+       else ()
      (* val fconst = #lhs(S.dest_eq(concl def))  *)
      val tych = Thry.typecheck theory
      val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
@@ -560,7 +560,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val baz = R.DISCH_ALL
                  (fold_rev R.DISCH full_rqt_prop
                   (R.LIST_CONJ extractants))
-     val dum = if !trace then writeln ("baz = " ^ Display.string_of_thm baz)
+     val dum = if !trace then writeln ("baz = " ^ Display.string_of_thm_global theory baz)
                            else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val SV' = map tych SV;
@@ -909,7 +909,7 @@ fun elim_tc tcthm (rule,induction) =
 
 
 fun trace_thms s L =
-  if !trace then writeln (cat_lines (s :: map Display.string_of_thm L))
+  if !trace then writeln (cat_lines (s :: map Display.string_of_thm_without_context L))
   else ();
 
 fun trace_cterms s L =

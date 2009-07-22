@@ -36,13 +36,8 @@ sig
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
-  val pretty_thm_aux: Proof.context -> bool -> thm -> Pretty.T
-  val pretty_thms_aux: Proof.context -> bool -> thm list -> Pretty.T
   val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
-  val pretty_thm: Proof.context -> thm -> Pretty.T
-  val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
-  val string_of_thm: Proof.context -> thm -> string
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
   val read_typ_abbrev: Proof.context -> string -> typ
@@ -293,30 +288,17 @@ fun extern_fact ctxt name =
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
-fun pretty_thm_aux ctxt show_status th =
-  let
-    val flags = {quote = false, show_hyps = true, show_status = show_status};
-    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
-  in Display.pretty_thm_aux (Syntax.pp ctxt) flags asms th end;
-
-fun pretty_thms_aux ctxt flag [th] = pretty_thm_aux ctxt flag th
-  | pretty_thms_aux ctxt flag ths =
-      Pretty.blk (0, Pretty.fbreaks (map (pretty_thm_aux ctxt flag) ths));
-
 fun pretty_fact_name ctxt a = Pretty.block
   [Pretty.markup (Markup.fact a) [Pretty.str (extern_fact ctxt a)], Pretty.str ":"];
 
-fun pretty_fact_aux ctxt flag ("", ths) = pretty_thms_aux ctxt flag ths
+fun pretty_fact_aux ctxt flag ("", ths) =
+      Display.pretty_thms_aux ctxt flag ths
   | pretty_fact_aux ctxt flag (a, [th]) = Pretty.block
-      [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm_aux ctxt flag th]
+      [pretty_fact_name ctxt a, Pretty.brk 1, Display.pretty_thm_aux ctxt flag th]
   | pretty_fact_aux ctxt flag (a, ths) = Pretty.block
-      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (pretty_thm_aux ctxt flag) ths));
+      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (Display.pretty_thm_aux ctxt flag) ths));
 
-fun pretty_thm ctxt = pretty_thm_aux ctxt true;
-fun pretty_thms ctxt = pretty_thms_aux ctxt true;
 fun pretty_fact ctxt = pretty_fact_aux ctxt true;
-
-val string_of_thm = Pretty.string_of oo pretty_thm;
 
 
 
@@ -1369,7 +1351,7 @@ fun pretty_ctxt ctxt =
       val suppressed = len - ! prems_limit;
       val prt_prems = if null prems then []
         else [Pretty.big_list "prems:" ((if suppressed <= 0 then [] else [Pretty.str "..."]) @
-          map (pretty_thm ctxt) (Library.drop (suppressed, prems)))];
+          map (Display.pretty_thm ctxt) (Library.drop (suppressed, prems)))];
     in prt_structs @ prt_fixes @ prt_prems end;
 
 

@@ -78,7 +78,7 @@ fun finish th =
   (case Thm.nprems_of th of
     0 => conclude th
   | n => raise THM ("Proof failed.\n" ^
-      Pretty.string_of (Pretty.chunks (Display.pretty_goals n th)) ^
+      Pretty.string_of (Pretty.chunks (Display_Goal.pretty_goals n th)) ^
       ("\n" ^ string_of_int n ^ " unsolved goal(s)!"), 0, [th]));
 
 

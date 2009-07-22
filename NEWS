@@ -123,6 +123,11 @@ separately.)  Minor INCOMPATIBILITY.
 cominators for "args".  INCOMPATIBILITY, need to use simplified
 Attrib/Method.setup introduced in Isabelle2009.
 
+* Display.pretty_thm now requires a proper context (cf. former
+ProofContext.pretty_thm).  May fall back on Display.pretty_thm_global
+or even Display.pretty_thm_without_context as last resort.
+INCOMPATIBILITY.
+
 
 *** System ***
 

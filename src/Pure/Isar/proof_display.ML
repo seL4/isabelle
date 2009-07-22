@@ -35,7 +35,7 @@ fun pp_thm th =
   let
     val thy = Thm.theory_of_thm th;
     val flags = {quote = true, show_hyps = false, show_status = true};
-  in Display.pretty_thm_aux (Syntax.pp_global thy) flags [] th end;
+  in Display.pretty_thm_raw (Syntax.pp_global thy) flags [] th end;
 
 val pp_typ = Pretty.quote oo Syntax.pretty_typ_global;
 val pp_term = Pretty.quote oo Syntax.pretty_term_global;
@@ -68,7 +68,7 @@ val print_theory = Pretty.writeln o pretty_full_theory false;
 
 fun pretty_rule ctxt s thm =
   Pretty.block [Pretty.str (s ^ " attempt to solve goal by exported rule:"),
-    Pretty.fbrk, ProofContext.pretty_thm_aux ctxt false thm];
+    Pretty.fbrk, Display.pretty_thm_aux ctxt false thm];
 
 val string_of_rule = Pretty.string_of ooo pretty_rule;
 

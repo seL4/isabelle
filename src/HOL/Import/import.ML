@@ -44,9 +44,9 @@ fun import_tac ctxt (thyname, thmname) =
             val thm = equal_elim rew thm
             val prew = ProofKernel.rewrite_hol4_term prem thy
             val prem' = #2 (Logic.dest_equals (prop_of prew))
-            val _ = message ("Import proved " ^ Display.string_of_thm thm)
+            val _ = message ("Import proved " ^ Display.string_of_thm ctxt thm)
             val thm = ProofKernel.disambiguate_frees thm
-            val _ = message ("Disambiguate: " ^ Display.string_of_thm thm)
+            val _ = message ("Disambiguate: " ^ Display.string_of_thm ctxt thm)
         in
             case Shuffler.set_prop thy prem' [("",thm)] of
                 SOME (_,thm) =>

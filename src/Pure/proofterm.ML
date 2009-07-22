@@ -37,10 +37,8 @@ sig
 
   type oracle = string * term
   type pthm = serial * (string * term * proof_body future)
-  val join_body: proof_body future ->
-    {oracles: oracle OrdList.T, thms: pthm OrdList.T, proof: proof}
-  val join_proof: proof_body future -> proof
   val proof_of: proof_body -> proof
+  val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val join_bodies: proof_body list -> unit
@@ -152,10 +150,8 @@ and proof_body = PBody of
 type oracle = string * term;
 type pthm = serial * (string * term * proof_body future);
 
-val join_body = Future.join #> (fn PBody args => args);
-val join_proof = #proof o join_body;
-
 fun proof_of (PBody {proof, ...}) = proof;
+val join_proof = Future.join #> proof_of;
 
 
 (***** proof atoms *****)
@@ -177,13 +173,15 @@ fun fold_proof_atoms all f =
 
 fun fold_body_thms f =
   let
-    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
-      if Inttab.defined seen i then (x, seen)
-      else
-        let
-          val body' = Future.join body;
-          val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-        in (f (name, prop, body') x', seen') end);
+    fun app (PBody {thms, ...}) =
+     (Future.join_results (map (#3 o #2) thms);
+      thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+        if Inttab.defined seen i then (x, seen)
+        else
+          let
+            val body' = Future.join body;
+            val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
+          in (f (name, prop, body') x', seen') end));
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
 
 fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
@@ -223,13 +221,14 @@ val merge_thms = OrdList.union thm_ord;
 val all_oracles_of =
   let
     fun collect (PBody {oracles, thms, ...}) =
+     (Future.join_results (map (#3 o #2) thms);
       thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
           let
             val body' = Future.join body;
             val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
-          in (merge_oracles oracles x', seen') end);
+          in (merge_oracles oracles x', seen') end));
   in fn body => #1 (collect body ([], Inttab.empty)) end;
 
 fun approximate_proof_body prf =
@@ -1342,5 +1341,5 @@ fun get_name hyps prop prf =
 
 end;
 
-structure BasicProofterm : BASIC_PROOFTERM = Proofterm;
-open BasicProofterm;
+structure Basic_Proofterm : BASIC_PROOFTERM = Proofterm;
+open Basic_Proofterm;

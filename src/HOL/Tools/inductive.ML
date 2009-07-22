@@ -140,7 +140,7 @@ fun print_inductives ctxt =
     val space = Consts.space_of (ProofContext.consts_of ctxt);
   in
     [Pretty.strs ("(co)inductives:" :: map #1 (NameSpace.extern_table (space, tab))),
-     Pretty.big_list "monotonicity rules:" (map (ProofContext.pretty_thm ctxt) monos)]
+     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -179,7 +179,8 @@ fun mk_mono thm =
       [dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
          (resolve_tac [le_funI, le_boolI'])) thm))]
     | _ => [thm]
-  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm thm);
+  end handle THM _ =>
+    error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm_without_context thm);
 
 val mono_add = Thm.declaration_attribute (map_monos o fold Thm.add_thm o mk_mono);
 val mono_del = Thm.declaration_attribute (map_monos o fold Thm.del_thm o mk_mono);

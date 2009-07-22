@@ -247,8 +247,7 @@ let
     (intr_tms, map intro_tacsf (mk_disj_rls (length intr_tms)))
     |> ListPair.map (fn (t, tacs) =>
       Goal.prove_global thy1 [] [] t
-        (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs)))
-    handle MetaSimplifier.SIMPLIFIER (msg, thm) => (Display.print_thm thm; error msg);
+        (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs)));
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
@@ -318,11 +317,12 @@ let
      val ind_prems = map (induct_prem (map (rpair pred) rec_tms))
                          intr_tms;
 
-     val dummy = if !Ind_Syntax.trace then
-                 (writeln "ind_prems = ";
-                  List.app (writeln o Syntax.string_of_term ctxt1) ind_prems;
-                  writeln "raw_induct = "; Display.print_thm raw_induct)
-             else ();
+     val dummy =
+      if ! Ind_Syntax.trace then
+        writeln (cat_lines
+          (["ind_prems:"] @ map (Syntax.string_of_term ctxt1) ind_prems @
+           ["raw_induct:", Display.string_of_thm ctxt1 raw_induct]))
+      else ();
 
 
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
@@ -351,9 +351,10 @@ let
                                ORELSE' bound_hyp_subst_tac)),
             ind_tac (rev (map (rewrite_rule part_rec_defs) prems)) (length prems)]);
 
-     val dummy = if !Ind_Syntax.trace then
-                 (writeln "quant_induct = "; Display.print_thm quant_induct)
-             else ();
+     val dummy =
+      if ! Ind_Syntax.trace then
+        writeln ("quant_induct:\n" ^ Display.string_of_thm ctxt1 quant_induct)
+      else ();
 
 
      (*** Prove the simultaneous induction rule ***)
@@ -426,9 +427,10 @@ let
                 REPEAT (rewrite_goals_tac [Pr.split_eq] THEN lemma_tac 1)]))
        else (writeln "  [ No mutual induction rule needed ]"; @{thm TrueI});
 
-     val dummy = if !Ind_Syntax.trace then
-                 (writeln "lemma = "; Display.print_thm lemma)
-             else ();
+     val dummy =
+      if ! Ind_Syntax.trace then
+        writeln ("lemma: " ^ Display.string_of_thm ctxt1 lemma)
+      else ();
 
 
      (*Mutual induction follows by freeness of Inl/Inr.*)

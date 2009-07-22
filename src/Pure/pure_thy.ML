@@ -10,8 +10,7 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
-  val join_proofs: theory -> exn list
-  val cancel_proofs: theory -> unit
+  val join_proofs: theory -> unit
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -59,11 +58,11 @@ struct
 
 structure FactsData = TheoryDataFun
 (
-  type T = Facts.T * (unit lazy list * Task_Queue.group Inttab.table);
-  val empty = (Facts.empty, ([], Inttab.empty));
+  type T = Facts.T * thm list;
+  val empty = (Facts.empty, []);
   val copy = I;
-  fun extend (facts, _) = (facts, ([], Inttab.empty));
-  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), ([], Inttab.empty));
+  fun extend (facts, _) = (facts, []);
+  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), []);
 );
 
 
@@ -79,14 +78,9 @@ fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
 
 (* proofs *)
 
-fun lazy_proof thm = Lazy.lazy (fn () => Thm.join_proof thm);
+fun register_proofs (thy, thms) = (FactsData.map (apsnd (append thms)) thy, thms);
 
-fun join_proofs thy =
-  map_filter (Exn.get_exn o Lazy.force_result) (rev (#1 (#2 (FactsData.get thy))));
-
-fun cancel_proofs thy =
-  Inttab.fold (fn (_, group) => fn () => Future.cancel_group group)
-    (#2 (#2 (FactsData.get thy))) ();
+fun join_proofs thy = Thm.join_proofs (rev (#2 (FactsData.get thy)));
 
 
 
@@ -146,24 +140,15 @@ fun name_thmss official pos name fact =
 
 (* enter_thms *)
 
-val pending_groups =
-  Thm.promises_of #> fold (fn (_, future) =>
-    if Future.is_finished future then I
-    else Inttab.update (`Task_Queue.group_id (Future.group_of future)));
-
-fun enter_proofs (thy, thms) =
-  (FactsData.map (apsnd (fn (proofs, groups) =>
-    (fold (cons o lazy_proof) thms proofs, fold pending_groups thms groups))) thy, thms);
-
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b
-  then swap (enter_proofs (app_att (thy, thms)))
+  then swap (register_proofs (app_att (thy, thms)))
   else
     let
       val naming = Sign.naming_of thy;
       val name = NameSpace.full_name naming b;
       val (thy', thms') =
-        enter_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
+        register_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
       val thms'' = map (Thm.transfer thy') thms';
       val thy'' = thy' |> (FactsData.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
     in (thms'', thy'') end;

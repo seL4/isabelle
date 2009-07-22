@@ -269,9 +269,9 @@ fun splitto splitths genth =
       fun split th =
           (case find_thms_split splitths 1 th of
              NONE =>
-             (writeln "th:";
-              Display.print_thm th; writeln "split ths:";
-              Display.print_thms splitths; writeln "\n--";
+             (writeln (cat_lines
+              (["th:", Display.string_of_thm_without_context th, "split ths:"] @
+                map Display.string_of_thm_without_context splitths @ ["\n--"]));
               error "splitto: cannot find variable to split on")
             | SOME v =>
              let

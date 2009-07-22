@@ -62,7 +62,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
     val goal_cls = #1 (ResAxioms.neg_conjecture_clauses th subgoalno)
       handle THM ("assume: variables", _, _) =>
         error "Sledgehammer: Goal contains type variables (TVars)"
-    val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) goal_cls
+    val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm ctxt th)) goal_cls
     val the_filtered_clauses =
       case filtered_clauses of
           NONE => relevance_filter goal goal_cls

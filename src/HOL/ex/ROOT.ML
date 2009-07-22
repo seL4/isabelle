@@ -83,6 +83,7 @@ if_svc_enabled use_thy "svc_test";
 (* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)
 (* installed:                                                       *)
 try use_thy "SAT_Examples";
+Future.shutdown ();
 
 (* requires zChaff (or some other reasonably fast SAT solver) to be *)
 (* installed:                                                       *)
