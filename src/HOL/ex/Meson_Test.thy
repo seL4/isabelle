@@ -1,4 +1,3 @@
-(*ID:         $Id$*)
 
 header {* Meson test cases *}
 
@@ -11,7 +10,7 @@ text {*
   below and constants declared in HOL!
 *}
 
-hide const subset member quotient
+hide (open) const subset member quotient union inter
 
 text {*
   Test data for the MESON proof procedure
