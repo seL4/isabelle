@@ -161,8 +161,9 @@ fun future_job group (e: unit -> 'a) =
       let
         val res =
           if ok then
-            Multithreading.with_attributes Multithreading.restricted_interrupts
-              (fn _ => fn () => Exn.capture e ()) ()
+            Exn.capture
+              (Multithreading.with_attributes Multithreading.restricted_interrupts
+                (fn _ => fn () => e ())) ()
           else Exn.Exn Exn.Interrupt;
         val _ = result := SOME res;
       in
