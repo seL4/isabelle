@@ -441,7 +441,7 @@ apply(rule TrueI)+
       apply clarify
       apply(frule Parallel_length_post_PStar)
       apply clarify
-      apply(drule_tac j=xa in Parallel_Strong_Soundness)
+      apply(drule_tac j=xb in Parallel_Strong_Soundness)
          apply clarify
         apply simp
        apply force

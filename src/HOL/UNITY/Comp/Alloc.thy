@@ -1021,7 +1021,7 @@ lemma System_Alloc_Progress:
                    LeadsTo {s. h pfixLe (sub i o allocGiv) s})"
   apply (simp only: o_apply sub_def)
   apply (insert Alloc_Progress [THEN rename_guarantees_sysOfAlloc_I])
-  apply (simp add: o_def del: Set.INT_iff);
+  apply (simp add: o_def del: INT_iff)
   apply (erule component_guaranteesD)
   apply (auto simp add:
     System_Increasing_allocRel [simplified sub_apply o_def]

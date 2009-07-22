@@ -160,7 +160,7 @@ proof -
 qed
 
 definition Inter :: "'a fset fset \<Rightarrow> 'a fset" where
-  [simp]: "Inter A = Fset (Set.Inter (member ` member A))"
+  [simp]: "Inter A = Fset (Complete_Lattice.Inter (member ` member A))"
 
 lemma Inter_inter [code]:
   "Inter (Set (A # As)) = foldl inter A As"
@@ -174,7 +174,7 @@ proof -
 qed
 
 definition Union :: "'a fset fset \<Rightarrow> 'a fset" where
-  [simp]: "Union A = Fset (Set.Union (member ` member A))"
+  [simp]: "Union A = Fset (Complete_Lattice.Union (member ` member A))"
 
 lemma Union_union [code]:
   "Union (Set As) = foldl union empty As"

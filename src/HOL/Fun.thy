@@ -6,7 +6,7 @@
 header {* Notions about functions *}
 
 theory Fun
-imports Set
+imports Complete_Lattice
 begin
 
 text{*As a simplification rule, it replaces all function equalities by

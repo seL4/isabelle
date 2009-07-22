@@ -44,7 +44,7 @@ by (simp add: lattice_def)
 
 lemma UN_in_lattice:
      "[|lattice L; !!i. i\<in>I ==> r i \<in> L|] ==> (\<Union>i\<in>I. r i) \<in> L"
-apply (simp add: Set.UN_eq) 
+apply (simp add: UN_eq) 
 apply (blast intro: Union_in_lattice) 
 done
 
