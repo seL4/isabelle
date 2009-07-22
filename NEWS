@@ -18,6 +18,11 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* More convenient names for set intersection and union.  INCOMPATIBILITY:
+
+    Set.Int ~>  Set.inter
+    Set.Un ~>   Set.union
+
 * Code generator attributes follow the usual underscore convention:
     code_unfold     replaces    code unfold
     code_post       replaces    code post

@@ -1013,7 +1013,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (supp c,
                  if null dts then HOLogic.mk_set atomT []
-                 else foldr1 (HOLogic.mk_binop @{const_name Un}) (map supp args2)))))
+                 else foldr1 (HOLogic.mk_binop @{const_name union}) (map supp args2)))))
             (fn _ =>
               simp_tac (HOL_basic_ss addsimps (supp_def ::
                  Un_assoc :: de_Morgan_conj :: Collect_disj_eq :: finite_Un ::

@@ -648,7 +648,7 @@ where
            G \<turnstile>Method old member_of superNew
            \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
 
-| Indirect: "\<lbrakk>G\<turnstile>new overrides\<^sub>S inter; G\<turnstile>inter overrides\<^sub>S old\<rbrakk>
+| Indirect: "\<lbrakk>G\<turnstile>new overrides\<^sub>S intr; G\<turnstile>intr overrides\<^sub>S old\<rbrakk>
              \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
 
 text {* Dynamic overriding (used during the typecheck of the compiler) *}
@@ -668,7 +668,7 @@ where
            G\<turnstile>resTy new \<preceq> resTy old
            \<rbrakk> \<Longrightarrow> G\<turnstile>new overrides old"
 
-| Indirect: "\<lbrakk>G\<turnstile>new overrides inter; G\<turnstile>inter overrides old\<rbrakk>
+| Indirect: "\<lbrakk>G\<turnstile>new overrides intr; G\<turnstile>intr overrides old\<rbrakk>
             \<Longrightarrow> G\<turnstile>new overrides old"
 
 syntax
