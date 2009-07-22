@@ -75,8 +75,8 @@ consts_code
   "op \<union>"              ("{*Fset.union*}")
   "op \<inter>"              ("{*Fset.inter*}")
   "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip Fset.subtract*}")
-  "Set.Union"         ("{*Fset.Union*}")
-  "Set.Inter"         ("{*Fset.Inter*}")
+  "Complete_Lattice.Union" ("{*Fset.Union*}")
+  "Complete_Lattice.Inter" ("{*Fset.Inter*}")
   card                ("{*Fset.card*}")
   fold                ("{*foldl o flip*}")
 
