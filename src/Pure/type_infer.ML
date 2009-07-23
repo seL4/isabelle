@@ -40,7 +40,9 @@ fun is_param (x, _: int) = String.isPrefix "?" x;
 fun param i (x, S) = TVar (("?" ^ x, i), S);
 
 val paramify_vars =
-  perhaps (Term_Subst.map_atypsT_option (fn TVar ((x, i), S) => SOME (param i (x, S)) | _ => NONE));
+  Same.commit
+    (Term_Subst.map_atypsT_same
+      (fn TVar ((x, i), S) => (param i (x, S)) | _ => raise Same.SAME));
 
 val paramify_dummies =
   let
@@ -90,9 +92,10 @@ datatype preterm =
 
 (* utils *)
 
-fun deref tye (T as Param (i, S)) = (case Inttab.lookup tye i of
-      NONE => T
-    | SOME U => deref tye U)
+fun deref tye (T as Param (i, S)) =
+      (case Inttab.lookup tye i of
+        NONE => T
+      | SOME U => deref tye U)
   | deref tye T = T;
 
 fun fold_pretyps f (PConst (_, T)) x = f T x
@@ -194,32 +197,35 @@ fun preterm_of const_type is_para tm (vparams, params, idx) =
 
 (* add_parms *)
 
-fun add_parmsT tye T = case deref tye T of
+fun add_parmsT tye T =
+  (case deref tye T of
     PType (_, Ts) => fold (add_parmsT tye) Ts
   | Param (i, _) => insert (op =) i
-  | _ => I;
+  | _ => I);
 
 fun add_parms tye = fold_pretyps (add_parmsT tye);
 
 
 (* add_names *)
 
-fun add_namesT tye T = case deref tye T of
+fun add_namesT tye T =
+  (case deref tye T of
     PType (_, Ts) => fold (add_namesT tye) Ts
   | PTFree (x, _) => Name.declare x
   | PTVar ((x, _), _) => Name.declare x
-  | Param _ => I;
+  | Param _ => I);
 
 fun add_names tye = fold_pretyps (add_namesT tye);
 
 
 (* simple_typ/term_of *)
 
-fun simple_typ_of tye f T = case deref tye T of
+fun simple_typ_of tye f T =
+  (case deref tye T of
     PType (a, Ts) => Type (a, map (simple_typ_of tye f) Ts)
   | PTFree v => TFree v
   | PTVar v => TVar v
-  | Param (i, S) => TVar (f i, S);
+  | Param (i, S) => TVar (f i, S));
 
 (*convert types, drop constraints*)
 fun simple_term_of tye f (PConst (c, T)) = Const (c, simple_typ_of tye f T)
@@ -282,7 +288,8 @@ fun unify pp tsig =
 
     fun occurs_check tye i (Param (i', S)) =
           if i = i' then raise NO_UNIFIER ("Occurs check!", tye)
-          else (case Inttab.lookup tye i' of
+          else
+            (case Inttab.lookup tye i' of
               NONE => ()
             | SOME T => occurs_check tye i T)
       | occurs_check tye i (PType (_, Ts)) = List.app (occurs_check tye i) Ts
@@ -297,14 +304,15 @@ fun unify pp tsig =
 
     (* unification *)
 
-    fun unif (T1, T2) (tye_idx as (tye, idx)) = case (deref tye T1, deref tye T2) of
+    fun unif (T1, T2) (tye_idx as (tye, idx)) =
+      (case (deref tye T1, deref tye T2) of
         (Param (i, S), T) => assign i T S tye_idx
       | (T, Param (i, S)) => assign i T S tye_idx
       | (PType (a, Ts), PType (b, Us)) =>
           if a <> b then
             raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b, tye)
           else fold unif (Ts ~~ Us) tye_idx
-      | (T, U) => if T = U then tye_idx else raise NO_UNIFIER ("", tye);
+      | (T, U) => if T = U then tye_idx else raise NO_UNIFIER ("", tye));
 
   in unif end;
 
@@ -396,7 +404,7 @@ fun infer pp tsig =
           let val (T, tye_idx') = inf bs t tye_idx in
             (T,
              unif (T, U) tye_idx'
-             handle NO_UNIFIER (msg, tye) => err_constraint msg tye bs t T U)
+               handle NO_UNIFIER (msg, tye) => err_constraint msg tye bs t T U)
           end;
 
   in inf [] end;

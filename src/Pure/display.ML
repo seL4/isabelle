@@ -16,8 +16,8 @@ end;
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
-  val pretty_thm_raw: Pretty.pp -> {quote: bool, show_hyps: bool, show_status: bool} ->
-    term list -> thm -> Pretty.T
+  val pretty_thm_raw: Proof.context -> {quote: bool, show_hyps: bool, show_status: bool} ->
+    thm -> Pretty.T
   val pretty_thm_aux: Proof.context -> bool -> thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thm_global: theory -> thm -> Pretty.T
@@ -68,7 +68,7 @@ fun display_status false _ = ""
         else ""
       end;
 
-fun pretty_thm_raw pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
+fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps', show_status} raw_th =
   let
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
@@ -76,8 +76,9 @@ fun pretty_thm_raw pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
     val tags = Thm.get_tags th;
 
     val q = if quote then Pretty.quote else I;
-    val prt_term = q o Pretty.term pp;
+    val prt_term = q o Syntax.pretty_term ctxt;
 
+    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
     val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
     val status = display_status show_status th;
 
@@ -86,8 +87,8 @@ fun pretty_thm_raw pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
       if hlen = 0 andalso status = "" then []
       else if ! show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o Display_Goal.pretty_flexpair pp) tpairs @ map prt_term hyps' @
-           map (Pretty.sort pp) xshyps @
+          (map (q o Display_Goal.pretty_flexpair ctxt) tpairs @ map prt_term hyps' @
+           map (Syntax.pretty_sort ctxt) xshyps @
             (if status = "" then [] else [Pretty.str status]))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ status ^ "]")];
     val tsymbs =
@@ -95,18 +96,14 @@ fun pretty_thm_raw pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
-fun pretty_thm_aux ctxt show_status th =
-  let
-    val flags = {quote = false, show_hyps = true, show_status = show_status};
-    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
-  in pretty_thm_raw (Syntax.pp ctxt) flags asms th end;
-
+fun pretty_thm_aux ctxt show_status =
+  pretty_thm_raw ctxt {quote = false, show_hyps = true, show_status = show_status};
 
 fun pretty_thm ctxt = pretty_thm_aux ctxt true;
 
-fun pretty_thm_global thy th =
-  pretty_thm_raw (Syntax.pp_global thy)
-    {quote = false, show_hyps = false, show_status = true} [] th;
+fun pretty_thm_global thy =
+  pretty_thm_raw (Syntax.init_pretty_global thy)
+    {quote = false, show_hyps = false, show_status = true};
 
 fun pretty_thm_without_context th = pretty_thm_global (Thm.theory_of_thm th) th;
 

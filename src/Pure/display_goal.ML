@@ -9,10 +9,10 @@ signature DISPLAY_GOAL =
 sig
   val goals_limit: int ref
   val show_consts: bool ref
-  val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
-  val pretty_goals_aux: Pretty.pp -> Markup.T -> bool * bool -> int -> thm -> Pretty.T list
-  val pretty_goals: int -> thm -> Pretty.T list
-  val print_goals: int -> thm -> unit
+  val pretty_flexpair: Proof.context -> term * term -> Pretty.T
+  val pretty_goals: Proof.context -> Markup.T -> bool * bool -> int -> thm -> Pretty.T list
+  val pretty_goals_without_context: int -> thm -> Pretty.T list
+  val print_goals_without_context: int -> thm -> unit
 end;
 
 structure Display_Goal: DISPLAY_GOAL =
@@ -21,8 +21,8 @@ struct
 val goals_limit = ref 10;      (*max number of goals to print*)
 val show_consts = ref false;   (*true: show consts with types in proof state output*)
 
-fun pretty_flexpair pp (t, u) = Pretty.block
-  [Pretty.term pp t, Pretty.str " =?=", Pretty.brk 1, Pretty.term pp u];
+fun pretty_flexpair ctxt (t, u) = Pretty.block
+  [Syntax.pretty_term ctxt t, Pretty.str " =?=", Pretty.brk 1, Syntax.pretty_term ctxt u];
 
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
@@ -56,31 +56,35 @@ fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
 in
 
-fun pretty_goals_aux pp markup (msg, main) maxgoals state =
+fun pretty_goals ctxt markup (msg, main) maxgoals state =
   let
+    val prt_sort = Syntax.pretty_sort ctxt;
+    val prt_typ = Syntax.pretty_typ ctxt;
+    val prt_term = Syntax.pretty_term ctxt;
+
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
         Pretty.brk 1, prtT X];
 
-    fun prt_var (x, ~1) = Pretty.term pp (Syntax.free x)
-      | prt_var xi = Pretty.term pp (Syntax.var xi);
+    fun prt_var (x, ~1) = prt_term (Syntax.free x)
+      | prt_var xi = prt_term (Syntax.var xi);
 
-    fun prt_varT (x, ~1) = Pretty.typ pp (TFree (x, []))
-      | prt_varT xi = Pretty.typ pp (TVar (xi, []));
+    fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
+      | prt_varT xi = prt_typ (TVar (xi, []));
 
-    val prt_consts = prt_atoms (Pretty.term pp o Const) (Pretty.typ pp);
-    val prt_vars = prt_atoms prt_var (Pretty.typ pp);
-    val prt_varsT = prt_atoms prt_varT (Pretty.sort pp);
+    val prt_consts = prt_atoms (prt_term o Const) prt_typ;
+    val prt_vars = prt_atoms prt_var prt_typ;
+    val prt_varsT = prt_atoms prt_varT prt_sort;
 
 
     fun pretty_list _ _ [] = []
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
     fun pretty_subgoal (n, A) = Pretty.markup markup
-      [Pretty.str (" " ^ string_of_int n ^ ". "), Pretty.term pp A];
+      [Pretty.str (" " ^ string_of_int n ^ ". "), prt_term A];
     fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
-    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair pp);
+    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair ctxt);
 
     val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
     val pretty_vars = pretty_list "variables:" prt_vars o vars_of;
@@ -92,7 +96,7 @@ fun pretty_goals_aux pp markup (msg, main) maxgoals state =
     val ngoals = length As;
 
     fun pretty_gs (types, sorts) =
-      (if main then [Pretty.term pp B] else []) @
+      (if main then [prt_term B] else []) @
        (if ngoals = 0 then [Pretty.str "No subgoals!"]
         else if ngoals > maxgoals then
           pretty_subgoals (Library.take (maxgoals, As)) @
@@ -110,10 +114,11 @@ fun pretty_goals_aux pp markup (msg, main) maxgoals state =
    (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
   end;
 
-fun pretty_goals n th =
-  pretty_goals_aux (Syntax.pp_global (Thm.theory_of_thm th)) Markup.none (true, true) n th;
+fun pretty_goals_without_context n th =
+  pretty_goals (Syntax.init_pretty_global (Thm.theory_of_thm th)) Markup.none (true, true) n th;
 
-val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals;
+val print_goals_without_context =
+  (Pretty.writeln o Pretty.chunks) oo pretty_goals_without_context;
 
 end;
 
