@@ -1686,7 +1686,7 @@ CSUBGOAL (fn (P,i) =>
    NONE => no_tac
  | SOME (d,ord) => 
      let 
-      val ss = simpset_of (ProofContext.theory_of ctxt) addsimps @{thms field_simps} 
+      val ss = simpset_of ctxt addsimps @{thms field_simps} 
                addsimps [@{thm nonzero_power_divide}, @{thm power_divide}]
       val th = instantiate' [] [SOME d, SOME (Thm.dest_arg P)] 
          (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
