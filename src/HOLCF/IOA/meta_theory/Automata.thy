@@ -399,7 +399,7 @@ lemma input_enabled_par:
       ==> input_enabled (A||B)"
 apply (unfold input_enabled_def)
 apply (simp add: Let_def inputs_of_par trans_of_par)
-apply (tactic "safe_tac (claset_of @{theory Fun})")
+apply (tactic "safe_tac (global_claset_of @{theory Fun})")
 apply (simp add: inp_is_act)
 prefer 2
 apply (simp add: inp_is_act)
