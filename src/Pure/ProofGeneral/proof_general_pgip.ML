@@ -655,11 +655,8 @@ fun showid (Showid vs) =
                                   text=[XML.Elem("pgml",[],
                                                  maps YXML.parse_body strings)] })
 
-        fun string_of_thm th = Pretty.string_of (Display.pretty_thm_raw
-            (Syntax.pp_global (Thm.theory_of_thm th))
-            {quote = false, show_hyps = false, show_status = true} [] th)
-
-        fun strings_of_thm (thy, name) = map string_of_thm (PureThy.get_thms thy name)
+        fun strings_of_thm (thy, name) =
+          map (Display.string_of_thm_global thy) (PureThy.get_thms thy name)
 
         val string_of_thy = Pretty.string_of o ProofDisplay.pretty_full_theory false
     in
