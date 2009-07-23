@@ -76,8 +76,8 @@ fun prove_conv name tacs ctxt prems (t,u) =
         (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); NONE)
   end;
 
-fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (the_context ()) name pats proc;
+fun prep_simproc thy (name, pats, proc) =
+  Simplifier.simproc thy name pats proc;
 
 
 (*** Use CancelNumerals simproc without binary numerals,
@@ -198,7 +198,7 @@ structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);
 
 
 val nat_cancel =
-  map prep_simproc
+  map (prep_simproc @{theory})
    [("nateq_cancel_numerals",
      ["l #+ m = n", "l = m #+ n",
       "l #* m = n", "l = m #* n",

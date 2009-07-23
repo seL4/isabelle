@@ -68,7 +68,7 @@ fun safe_solver prems =
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
-  Simplifier.theory_context (the_context ()) empty_ss
+  Simplifier.theory_context @{theory} empty_ss
     setsubgoaler asm_simp_tac
     setSSolver (mk_solver "safe" safe_solver)
     setSolver (mk_solver "unsafe" unsafe_solver)

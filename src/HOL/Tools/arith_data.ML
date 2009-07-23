@@ -17,7 +17,7 @@ sig
   val simp_all_tac: thm list -> simpset -> tactic
   val simplify_meta_eq: thm list -> simpset -> thm -> thm
   val trans_tac: thm option -> tactic
-  val prep_simproc: string * string list * (theory -> simpset -> term -> thm option)
+  val prep_simproc: theory -> string * string list * (theory -> simpset -> term -> thm option)
     -> simproc
 
   val setup: theory -> theory
@@ -92,7 +92,7 @@ fun simplify_meta_eq rules =
 fun trans_tac NONE  = all_tac
   | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
 
-fun prep_simproc (name, pats, proc) = (*FIXME avoid the_context*)
-  Simplifier.simproc (the_context ()) name pats proc;
+fun prep_simproc thy (name, pats, proc) =
+  Simplifier.simproc thy name pats proc;
 
 end;

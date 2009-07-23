@@ -273,7 +273,7 @@ structure LeCancelNumerals = CancelNumeralsFun
 );
 
 val cancel_numerals =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("inteq_cancel_numerals",
      ["(l::'a::number_ring) + m = n",
       "(l::'a::number_ring) = m + n",
@@ -352,13 +352,13 @@ structure FieldCombineNumeralsData =
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
 
 val combine_numerals =
-  Arith_Data.prep_simproc
+  Arith_Data.prep_simproc @{theory}
     ("int_combine_numerals", 
      ["(i::'a::number_ring) + j", "(i::'a::number_ring) - j"], 
      K CombineNumerals.proc);
 
 val field_combine_numerals =
-  Arith_Data.prep_simproc
+  Arith_Data.prep_simproc @{theory}
     ("field_combine_numerals", 
      ["(i::'a::{number_ring,field,division_by_zero}) + j",
       "(i::'a::{number_ring,field,division_by_zero}) - j"], 
@@ -379,7 +379,7 @@ end;
 structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
 
 val assoc_fold_simproc =
-  Arith_Data.prep_simproc
+  Arith_Data.prep_simproc @{theory}
    ("semiring_assoc_fold", ["(a::'a::comm_semiring_1_cancel) * b"],
     K Semiring_Times_Assoc.proc);
 
@@ -453,7 +453,7 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
 )
 
 val cancel_numeral_factors =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("ring_eq_cancel_numeral_factor",
      ["(l::'a::{idom,number_ring}) * m = n",
       "(l::'a::{idom,number_ring}) = m * n"],
@@ -477,7 +477,7 @@ val cancel_numeral_factors =
      K DivideCancelNumeralFactor.proc)];
 
 val field_cancel_numeral_factors =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("field_eq_cancel_numeral_factor",
      ["(l::'a::{field,number_ring}) * m = n",
       "(l::'a::{field,number_ring}) = m * n"],
@@ -604,7 +604,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
 );
 
 val cancel_factors =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("ring_eq_cancel_factor",
      ["(l::'a::idom) * m = n",
       "(l::'a::idom) = m * n"],

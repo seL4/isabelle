@@ -337,7 +337,7 @@ let
 		val _ = if !trace_sat then
 				tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
 			else ()
-		val False_thm = SkipProof.make_thm (the_context ()) (HOLogic.Trueprop $ HOLogic.false_const)
+		val False_thm = SkipProof.make_thm @{theory} (HOLogic.Trueprop $ HOLogic.false_const)
 	in
 		(* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
 		(* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)
@@ -388,7 +388,7 @@ in
 			val msg = "SAT solver found a countermodel:\n"
 				^ (commas
 					o map (fn (term, idx) =>
-						Syntax.string_of_term_global (the_context ()) term ^ ": "
+						Syntax.string_of_term_global @{theory} term ^ ": "
 							^ (case assignment idx of NONE => "arbitrary" | SOME true => "true" | SOME false => "false")))
 					(Termtab.dest atom_table)
 		in

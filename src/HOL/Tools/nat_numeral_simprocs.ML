@@ -202,7 +202,7 @@ structure DiffCancelNumerals = CancelNumeralsFun
 
 
 val cancel_numerals =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("nateq_cancel_numerals",
      ["(l::nat) + m = n", "(l::nat) = m + n",
       "(l::nat) * m = n", "(l::nat) = m * n",
@@ -254,7 +254,8 @@ structure CombineNumeralsData =
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
-  Arith_Data.prep_simproc ("nat_combine_numerals", ["(i::nat) + j", "Suc (i + j)"], K CombineNumerals.proc);
+  Arith_Data.prep_simproc @{theory}
+    ("nat_combine_numerals", ["(i::nat) + j", "Suc (i + j)"], K CombineNumerals.proc);
 
 
 (*** Applying CancelNumeralFactorFun ***)
@@ -323,7 +324,7 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
 )
 
 val cancel_numeral_factors =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("nateq_cancel_numeral_factors",
      ["(l::nat) * m = n", "(l::nat) = m * n"],
      K EqCancelNumeralFactor.proc),
@@ -416,7 +417,7 @@ structure DvdCancelFactor = ExtractCommonTermFun
 );
 
 val cancel_factor =
-  map Arith_Data.prep_simproc
+  map (Arith_Data.prep_simproc @{theory})
    [("nat_eq_cancel_factor",
      ["(l::nat) * m = n", "(l::nat) = m * n"],
      K EqCancelFactor.proc),

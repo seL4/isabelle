@@ -166,7 +166,7 @@ val mksimps_pairs =
    ("HOL.If", [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
-  Simplifier.theory_context (the_context ()) empty_ss
+  Simplifier.theory_context @{theory} empty_ss
     setsubgoaler asm_simp_tac
     setSSolver safe_solver
     setSolver unsafe_solver

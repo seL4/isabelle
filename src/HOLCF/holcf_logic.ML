@@ -34,7 +34,7 @@ fun mk_TFree s = TFree ("'" ^ s, pcpoS);
 fun mk_btyp t (S,T) = Type (t,[S,T]);
 
 local
-  val intern_type = Sign.intern_type (the_context ());
+  val intern_type = Sign.intern_type @{theory};
   val u = intern_type "u";
 in
 

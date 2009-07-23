@@ -122,8 +122,8 @@ val int_minus_from_mult_simps =
 val int_mult_minus_simps =
     [@{thm zmult_assoc}, @{thm zmult_zminus} RS sym, int_minus_mult_eq_1_to_2];
 
-fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (the_context ()) name pats proc;
+fun prep_simproc thy (name, pats, proc) =
+  Simplifier.simproc thy name pats proc;
 
 structure CancelNumeralsCommon =
   struct
@@ -178,7 +178,7 @@ structure LeCancelNumerals = CancelNumeralsFun
 );
 
 val cancel_numerals =
-  map prep_simproc
+  map (prep_simproc @{theory})
    [("inteq_cancel_numerals",
      ["l $+ m = n", "l = m $+ n",
       "l $- m = n", "l = m $- n",
@@ -229,7 +229,8 @@ structure CombineNumeralsData =
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
-  prep_simproc ("int_combine_numerals", ["i $+ j", "i $- j"], K CombineNumerals.proc);
+  prep_simproc @{theory}
+    ("int_combine_numerals", ["i $+ j", "i $- j"], K CombineNumerals.proc);
 
 
 
@@ -272,7 +273,8 @@ val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
 structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
 
 val combine_numerals_prod =
-  prep_simproc ("int_combine_numerals_prod", ["i $* j"], K CombineNumeralsProd.proc);
+  prep_simproc @{theory}
+    ("int_combine_numerals_prod", ["i $* j"], K CombineNumeralsProd.proc);
 
 end;
 

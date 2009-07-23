@@ -684,7 +684,7 @@ fun reorient_proc sg _ (_ $ t $ u) =
 
 in
 val approx_reorient_simproc =
-  Arith_Data.prep_simproc
+  Arith_Data.prep_simproc @{theory}
     ("reorient_simproc", ["0@=x", "1@=x", "number_of w @= x"], reorient_proc);
 end;
 
