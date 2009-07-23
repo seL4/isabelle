@@ -35,7 +35,7 @@ fun pp_thm th =
   let
     val thy = Thm.theory_of_thm th;
     val flags = {quote = true, show_hyps = false, show_status = true};
-  in Display.pretty_thm_raw (Syntax.pp_global thy) flags [] th end;
+  in Display.pretty_thm_raw (Syntax.init_pretty_global thy) flags th end;
 
 val pp_typ = Pretty.quote oo Syntax.pretty_typ_global;
 val pp_term = Pretty.quote oo Syntax.pretty_term_global;

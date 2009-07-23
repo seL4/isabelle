@@ -191,12 +191,11 @@ fun RANGE [] _ = all_tac
 (*** Tracing tactics ***)
 
 (*Print the current proof state and pass it on.*)
-fun print_tac msg =
-    (fn st =>
-     (tracing msg;
-      tracing ((Pretty.string_of o Pretty.chunks o
-                 Display_Goal.pretty_goals (! Display_Goal.goals_limit)) st);
-      Seq.single st));
+fun print_tac msg st =
+ (tracing (msg ^ "\n" ^
+    Pretty.string_of (Pretty.chunks
+      (Display_Goal.pretty_goals_without_context (! Display_Goal.goals_limit) st)));
+  Seq.single st);
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =
@@ -232,10 +231,10 @@ fun exec_trace_command flag (tac, st) =
 
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag tac st =
-  if !flag andalso not (!suppress_tracing)
-           then (Display_Goal.print_goals (! Display_Goal.goals_limit) st;
-                 tracing "** Press RETURN to continue:";
-                 exec_trace_command flag (tac,st))
+  if !flag andalso not (!suppress_tracing) then
+   (Display_Goal.print_goals_without_context (! Display_Goal.goals_limit) st;
+    tracing "** Press RETURN to continue:";
+    exec_trace_command flag (tac, st))
   else tac st;
 
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
