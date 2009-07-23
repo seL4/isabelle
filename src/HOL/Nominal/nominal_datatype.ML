@@ -324,7 +324,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
              (perm_names_types ~~ perm_indnames))))
           (fn _ => EVERY [indtac induction perm_indnames 1,
             ALLGOALS (asm_full_simp_tac
-              (simpset_of thy2 addsimps [perm_fun_def]))])),
+              (global_simpset_of thy2 addsimps [perm_fun_def]))])),
         length new_type_names));
 
     (**** prove [] \<bullet> t = t ****)
@@ -344,7 +344,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                (perm_names ~~
                 map body_type perm_types ~~ perm_indnames)))))
           (fn _ => EVERY [indtac induction perm_indnames 1,
-            ALLGOALS (asm_full_simp_tac (simpset_of thy2))])),
+            ALLGOALS (asm_full_simp_tac (global_simpset_of thy2))])),
         length new_type_names))
       end)
       atoms);
@@ -379,7 +379,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames)))))
            (fn _ => EVERY [indtac induction perm_indnames 1,
-              ALLGOALS (asm_full_simp_tac (simpset_of thy2 addsimps [pt2', pt2_ax]))]))),
+              ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt2', pt2_ax]))]))),
          length new_type_names)
       end) atoms);
 
@@ -415,7 +415,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames))))))
            (fn _ => EVERY [indtac induction perm_indnames 1,
-              ALLGOALS (asm_full_simp_tac (simpset_of thy2 addsimps [pt3', pt3_rev', pt3_ax]))]))),
+              ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt3', pt3_rev', pt3_ax]))]))),
          length new_type_names)
       end) atoms);
 
@@ -437,7 +437,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val permT2 = mk_permT (Type (name2, []));
         val Ts = map body_type perm_types;
         val cp_inst = cp_inst_of thy name1 name2;
-        val simps = simpset_of thy addsimps (perm_fun_def ::
+        val simps = global_simpset_of thy addsimps (perm_fun_def ::
           (if name1 <> name2 then
              let val dj = dj_thm_of thy name2 name1
              in [dj RS (cp_inst RS dj_cp), dj RS dj_perm_perm_forget] end
@@ -601,7 +601,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                end) (rep_set_names'' ~~ recTs' ~~ perm_indnames')))))
         (fn _ => EVERY
            [indtac rep_induct [] 1,
-            ALLGOALS (simp_tac (simpset_of thy4 addsimps
+            ALLGOALS (simp_tac (global_simpset_of thy4 addsimps
               (symmetric perm_fun_def :: abs_perm))),
             ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac)])),
         length new_type_names));
@@ -661,8 +661,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               map (inter_sort thy sort o snd) tvs, [pt_class])
             (EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
-              asm_full_simp_tac (simpset_of thy addsimps [Rep_inverse]) 1,
-              asm_full_simp_tac (simpset_of thy addsimps
+              asm_full_simp_tac (global_simpset_of thy addsimps [Rep_inverse]) 1,
+              asm_full_simp_tac (global_simpset_of thy addsimps
                 [Rep RS perm_closed RS Abs_inverse]) 1,
               asm_full_simp_tac (HOL_basic_ss addsimps [PureThy.get_thm thy
                 ("pt_" ^ Long_Name.base_name atom ^ "3")]) 1]) thy
@@ -690,7 +690,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               map (inter_sort thy sort o snd) tvs, [cp_class])
             (EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
-              asm_full_simp_tac (simpset_of thy addsimps
+              asm_full_simp_tac (global_simpset_of thy addsimps
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
                  (if atom1 = atom2 then []
                   else [Rep RS perm_closed2 RS Abs_inverse]))) 1,
@@ -875,7 +875,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       | prove_distinct_thms (p as (rep_thms, dist_lemma)) (k, t :: ts) =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
-              simp_tac (simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
+              simp_tac (global_simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
           in dist_thm :: standard (dist_thm RS not_sym) ::
             prove_distinct_thms p (k, ts)
           end;
@@ -920,7 +920,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (perm (list_comb (c, l_args)), list_comb (c, r_args)))))
             (fn _ => EVERY
-              [simp_tac (simpset_of thy8 addsimps (constr_rep_thm :: perm_defs)) 1,
+              [simp_tac (global_simpset_of thy8 addsimps (constr_rep_thm :: perm_defs)) 1,
                simp_tac (HOL_basic_ss addsimps (Rep_thms @ Abs_inverse_thms @
                  constr_defs @ perm_closed_thms)) 1,
                TRY (simp_tac (HOL_basic_ss addsimps
@@ -973,7 +973,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                 (HOLogic.mk_eq (list_comb (c, args1), list_comb (c, args2)),
                  foldr1 HOLogic.mk_conj eqs))))
             (fn _ => EVERY
-               [asm_full_simp_tac (simpset_of thy8 addsimps (constr_rep_thm ::
+               [asm_full_simp_tac (global_simpset_of thy8 addsimps (constr_rep_thm ::
                   rep_inject_thms')) 1,
                 TRY (asm_full_simp_tac (HOL_basic_ss addsimps (fresh_def :: supp_def ::
                   alpha @ abs_perm @ abs_fresh @ rep_inject_thms @
@@ -1100,7 +1100,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                    (Const ("Nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T)))
                    (indnames ~~ recTs)))))
            (fn _ => indtac dt_induct indnames 1 THEN
-            ALLGOALS (asm_full_simp_tac (simpset_of thy8 addsimps
+            ALLGOALS (asm_full_simp_tac (global_simpset_of thy8 addsimps
               (abs_supp @ supp_atm @
                PureThy.get_thms thy8 ("fs_" ^ Long_Name.base_name atom ^ "1") @
                List.concat supp_thms))))),

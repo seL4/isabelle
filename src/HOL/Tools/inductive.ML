@@ -425,7 +425,7 @@ in
 fun mk_cases ctxt prop =
   let
     val thy = ProofContext.theory_of ctxt;
-    val ss = Simplifier.local_simpset_of ctxt;
+    val ss = simpset_of ctxt;
 
     fun err msg =
       error (Pretty.string_of (Pretty.block

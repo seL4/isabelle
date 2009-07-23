@@ -132,10 +132,10 @@ in
   fun mk_ncanT_tac ctxt defs top_crls crls s = prove_goalw (ProofContext.theory_of ctxt) defs s
     (fn major::prems => [(resolve_tac ([major] RL top_crls) 1),
                          (REPEAT_SOME (eresolve_tac (crls @ [exE,bexE,conjE,disjE]))),
-                         (ALLGOALS (asm_simp_tac (local_simpset_of ctxt))),
+                         (ALLGOALS (asm_simp_tac (simpset_of ctxt))),
                          (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE'
                                     etac bspec )),
-                         (safe_tac (local_claset_of ctxt addSIs prems))])
+                         (safe_tac (claset_of ctxt addSIs prems))])
 end
 *}
 
@@ -408,7 +408,7 @@ val ci3_AI    = mk_thm "[|  mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R U
 
 fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s
       (fn prems => [rtac (genXH RS iffD2) 1,
-                    simp_tac (simpset_of thy) 1,
+                    simp_tac (global_simpset_of thy) 1,
                     TRY (fast_tac (@{claset} addIs
                             ([genXH RS iffD2,gen_mono RS coinduct3_mono_lemma RS lfpI]
                              @ prems)) 1)])
@@ -442,7 +442,7 @@ val POgenIs = map (mk_genIs @{theory} @{thms data_defs} @{thm POgenXH} @{thm POg
    "[| <h,h'> : lfp(%x. POgen(x) Un R Un PO);  <t,t'> : lfp(%x. POgen(x) Un R Un PO) |] ==> <h$t,h'$t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"];
 
 fun POgen_tac ctxt (rla,rlb) i =
-  SELECT_GOAL (safe_tac (local_claset_of ctxt)) i THEN
+  SELECT_GOAL (safe_tac (claset_of ctxt)) i THEN
   rtac (rlb RS (rla RS @{thm ssubst_pair})) i THEN
   (REPEAT (resolve_tac (POgenIs @ [@{thm PO_refl} RS (@{thm POgen_mono} RS ci3_AI)] @
     (POgenIs RL [@{thm POgen_mono} RS ci3_AgenI]) @ [@{thm POgen_mono} RS ci3_RI]) i));
@@ -481,9 +481,9 @@ fun EQgen_raw_tac i =
 
 fun EQgen_tac ctxt rews i =
  SELECT_GOAL
-   (TRY (safe_tac (local_claset_of ctxt)) THEN
+   (TRY (safe_tac (claset_of ctxt)) THEN
     resolve_tac ((rews@[refl]) RL ((rews@[refl]) RL [@{thm ssubst_pair}])) i THEN
-    ALLGOALS (simp_tac (local_simpset_of ctxt)) THEN
+    ALLGOALS (simp_tac (simpset_of ctxt)) THEN
     ALLGOALS EQgen_raw_tac) i
 *}
 

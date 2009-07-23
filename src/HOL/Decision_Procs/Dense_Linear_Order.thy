@@ -692,7 +692,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val clt = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (local_simpset_of ctxt)
+        val cthp = Simplifier.rewrite (simpset_of ctxt)
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
@@ -715,7 +715,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val clt = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (local_simpset_of ctxt)
+        val cthp = Simplifier.rewrite (simpset_of ctxt)
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
@@ -736,7 +736,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val clt = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "op <"}
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (local_simpset_of ctxt)
+        val cthp = Simplifier.rewrite (simpset_of ctxt)
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
@@ -760,7 +760,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val clt = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "op <"}
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (local_simpset_of ctxt)
+        val cthp = Simplifier.rewrite (simpset_of ctxt)
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
@@ -779,7 +779,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val cr = dest_frac c
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
-        val cthp = Simplifier.rewrite (local_simpset_of ctxt)
+        val cthp = Simplifier.rewrite (simpset_of ctxt)
             (Thm.capply @{cterm "Trueprop"}
              (Thm.capply @{cterm "Not"} (Thm.capply (Thm.capply ceq c) cz)))
         val cth = equal_elim (symmetric cthp) TrueI
@@ -801,7 +801,7 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val cr = dest_frac c
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
-        val cthp = Simplifier.rewrite (local_simpset_of ctxt)
+        val cthp = Simplifier.rewrite (simpset_of ctxt)
             (Thm.capply @{cterm "Trueprop"}
              (Thm.capply @{cterm "Not"} (Thm.capply (Thm.capply ceq c) cz)))
         val cth = equal_elim (symmetric cthp) TrueI

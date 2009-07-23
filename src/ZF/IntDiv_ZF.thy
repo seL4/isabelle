@@ -1732,7 +1732,7 @@ done
            (if ~b | #0 $<= integ_of w                    
             then integ_of v zdiv (integ_of w)     
             else (integ_of v $+ #1) zdiv (integ_of w))"
- apply (simp_tac (simpset_of Int.thy add: zadd_assoc integ_of_BIT)
+ apply (simp_tac (global_simpset_of Int.thy add: zadd_assoc integ_of_BIT)
  apply (simp (no_asm_simp) del: bin_arith_extra_simps@bin_rel_simps add: zdiv_zmult_zmult1 pos_zdiv_mult_2 lemma neg_zdiv_mult_2)
  done
 
@@ -1778,7 +1778,7 @@ done
                  then #2 $* (integ_of v zmod integ_of w) $+ #1     
                  else #2 $* ((integ_of v $+ #1) zmod integ_of w) - #1   
             else #2 $* (integ_of v zmod integ_of w))"
- apply (simp_tac (simpset_of Int.thy add: zadd_assoc integ_of_BIT)
+ apply (simp_tac (global_simpset_of Int.thy add: zadd_assoc integ_of_BIT)
  apply (simp (no_asm_simp) del: bin_arith_extra_simps@bin_rel_simps add: zmod_zmult_zmult1 pos_zmod_mult_2 lemma neg_zmod_mult_2)
  done
 

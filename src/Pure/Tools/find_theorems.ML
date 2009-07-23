@@ -207,7 +207,7 @@ fun filter_solves ctxt goal =
 
 fun filter_simp ctxt t (_, thm) =
   let
-    val mksimps = Simplifier.mksimps (Simplifier.local_simpset_of ctxt);
+    val mksimps = Simplifier.mksimps (simpset_of ctxt);
     val extract_simp =
       (map Thm.full_prop_of o mksimps, #1 o Logic.dest_equals o Logic.strip_imp_concl);
     val ss = is_matching_thm false extract_simp ctxt false t thm;

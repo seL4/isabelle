@@ -278,14 +278,14 @@ Goal
 by (REPEAT (rtac impI 1));
 by (REPEAT (dtac eq_reflection 1));
 (* Bis hierher wird im Kapitel 4 erl"autert, ab hier im Kapitel 5 *)
-by (full_simp_tac ((simpset_of sign delcongs (if_weak_cong :: weak_case_congs)
+by (full_simp_tac ((global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs)
                               delsimps [not_iff,split_part])
 			      addsimps (thl @ comp_simps @ restrict_simps @ hide_simps @
                                         rename_simps @ ioa_simps @ asig_simps)) 1);
 by (full_simp_tac
   (Mucke_ss delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1);
 by (REPEAT (if_full_simp_tac
-  (simpset_of sign delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1));
+  (global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1));
 by (call_mucke_tac 1);
 (* Bis hierher wird im Kapitel 5 erl"autert, ab hier wieder im Kapitel 4 *)
 by (atac 1);

@@ -98,7 +98,7 @@ fun decompose_tac ctxt chain_tac cont err_cont =
 
 fun auto_decompose_tac ctxt =
     Termination.TERMINATION ctxt
-      (decompose_tac ctxt (auto_tac (local_clasimpset_of ctxt))
+      (decompose_tac ctxt (auto_tac (clasimpset_of ctxt))
                      (K (K all_tac)) (K (K no_tac)))
 
 

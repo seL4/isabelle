@@ -363,7 +363,7 @@ val print_attributes = Toplevel.unknown_theory o
 val print_simpset = Toplevel.unknown_context o
   Toplevel.keep (fn state =>
     let val ctxt = Toplevel.context_of state
-    in Pretty.writeln (Simplifier.pretty_ss ctxt (Simplifier.local_simpset_of ctxt)) end);
+    in Pretty.writeln (Simplifier.pretty_ss ctxt (simpset_of ctxt)) end);
 
 val print_rules = Toplevel.unknown_context o
   Toplevel.keep (ContextRules.print_rules o Toplevel.context_of);

@@ -239,7 +239,7 @@ method_setup vcg = {*
 
 method_setup vcg_simp = {*
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (hoare_tac ctxt (asm_full_simp_tac (local_simpset_of ctxt)))) *}
+    SIMPLE_METHOD' (hoare_tac ctxt (asm_full_simp_tac (simpset_of ctxt)))) *}
   "verification condition generator plus simplification"
 
 end

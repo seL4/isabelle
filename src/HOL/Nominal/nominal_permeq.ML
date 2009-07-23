@@ -404,19 +404,19 @@ val perm_simp_meth =
   Method.sections (Simplifier.simp_modifiers') >>
   (fn (prems, tac) => fn ctxt => METHOD (fn facts =>
     HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-      (CHANGED_PROP oo tac) (local_simpset_of ctxt))));
+      (CHANGED_PROP oo tac) (simpset_of ctxt))));
 
 (* setup so that the simpset is used which is active at the moment when the tactic is called *)
 fun local_simp_meth_setup tac =
   Method.sections (Simplifier.simp_modifiers' @ Splitter.split_modifiers) >>
-  (K (SIMPLE_METHOD' o tac o local_simpset_of));
+  (K (SIMPLE_METHOD' o tac o simpset_of));
 
 (* uses HOL_basic_ss only and fails if the tactic does not solve the subgoal *)
 
 fun basic_simp_meth_setup debug tac =
   Scan.depend (fn ctxt => Scan.succeed (Simplifier.map_ss (fn _ => HOL_basic_ss) ctxt, ())) --
   Method.sections (Simplifier.simp_modifiers' @ Splitter.split_modifiers) >>
-  (K (SIMPLE_METHOD' o (fn ss => if debug then tac ss else SOLVEI (tac ss)) o local_simpset_of));
+  (K (SIMPLE_METHOD' o (fn ss => if debug then tac ss else SOLVEI (tac ss)) o simpset_of));
 
 val perm_simp_meth_debug        = local_simp_meth_setup dperm_simp_tac;
 val perm_extend_simp_meth       = local_simp_meth_setup perm_extend_simp_tac;

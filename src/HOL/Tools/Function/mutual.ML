@@ -206,7 +206,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs) impo
                  (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
                  (fn _ => (LocalDefs.unfold_tac ctxt all_orig_fdefs)
                           THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
-                          THEN (simp_tac (local_simpset_of ctxt addsimps SumTree.proj_in_rules)) 1)
+                          THEN (simp_tac (simpset_of ctxt addsimps SumTree.proj_in_rules)) 1)
         |> restore_cond 
         |> export
     end

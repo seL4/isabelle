@@ -158,13 +158,13 @@ fun add_fixdefs
     val thy = ProofContext.theory_of lthy;
     val names = map (Binding.name_of o fst o fst) fixes;
     val all_names = space_implode "_" names;
-    val (lhss,rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
+    val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
     val functional = lambda_tuple lhss (mk_tuple rhss);
     val fixpoint = mk_fix (mk_cabs functional);
     
     val cont_thm =
       Goal.prove lthy [] [] (mk_trp (mk_cont functional))
-        (K (simp_tac (local_simpset_of lthy) 1));
+        (K (simp_tac (simpset_of lthy) 1));
 
     fun one_def (l as Free(n,_)) r =
           let val b = Long_Name.base_name n
@@ -311,12 +311,12 @@ fun compile_pats match_name eqs =
 (*************************************************************************)
 
 (* proves a block of pattern matching equations as theorems, using unfold *)
-fun make_simps lthy (unfold_thm, eqns : (Attrib.binding * term) list) =
+fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
     val tacs =
       [rtac (unfold_thm RS @{thm ssubst_lhs}) 1,
-       asm_simp_tac (local_simpset_of lthy) 1];
-    fun prove_term t = Goal.prove lthy [] [] t (K (EVERY tacs));
+       asm_simp_tac (simpset_of ctxt) 1];
+    fun prove_term t = Goal.prove ctxt [] [] t (K (EVERY tacs));
     fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t);
   in
     map prove_eqn eqns
@@ -399,7 +399,7 @@ fun fix_pat thy t =
               fixrec_err "function is not declared as constant in theory";
     val unfold_thm = PureThy.get_thm thy (cname^"_unfold");
     val simp = Goal.prove_global thy [] [] eq
-          (fn _ => EVERY [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
+          (fn _ => EVERY [stac unfold_thm 1, simp_tac (global_simpset_of thy) 1]);
   in simp end;
 
 fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =

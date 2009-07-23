@@ -833,7 +833,7 @@ structure BasicClassical: BASIC_CLASSICAL = Classical;
 open BasicClassical;
 
 ML_Antiquote.value "claset"
-  (Scan.succeed "Classical.local_claset_of (ML_Context.the_local_context ())");
+  (Scan.succeed "Classical.claset_of (ML_Context.the_local_context ())");
 
 structure ResAtpset = Named_Thms
   (val name = "atp" val description = "ATP rules");

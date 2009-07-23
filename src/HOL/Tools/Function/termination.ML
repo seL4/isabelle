@@ -303,7 +303,7 @@ fun wf_union_tac ctxt st =
           THEN' ((rtac @{thm refl})                       (* unification instantiates all Vars *)
                  ORELSE' ((rtac @{thm conjI})
                           THEN' (rtac @{thm refl})
-                          THEN' (blast_tac (local_claset_of ctxt))))  (* Solve rest of context... not very elegant *)
+                          THEN' (blast_tac (claset_of ctxt))))  (* Solve rest of context... not very elegant *)
           ) i
     in
       ((PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])

@@ -143,7 +143,7 @@ fun fresh_fun_tac no_asm i thm =
   let
     val thy = theory_of_thm thm;
     val ctx = Context.init_proof thy;
-    val ss = simpset_of thy;
+    val ss = global_simpset_of thy;
     val abs_fresh = PureThy.get_thms thy "abs_fresh";
     val fresh_perm_app = PureThy.get_thms thy "fresh_perm_app";
     val ss' = ss addsimps fresh_prod::abs_fresh;

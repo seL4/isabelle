@@ -438,7 +438,7 @@ fun prove_strong_ind s avoids ctxt =
           cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
-            asm_full_simp_tac (simpset_of thy) 1)
+            asm_full_simp_tac (simpset_of ctxt) 1)
         end) |>
         fresh_postprocess |>
         singleton (ProofContext.export ctxt' ctxt);

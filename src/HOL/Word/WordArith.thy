@@ -513,8 +513,8 @@ fun uint_arith_ss_of ss =
 fun uint_arith_tacs ctxt = 
   let
     fun arith_tac' n t = Arith_Data.verbose_arith_tac ctxt n t handle COOPER => Seq.empty;
-    val cs = local_claset_of ctxt;
-    val ss = local_simpset_of ctxt;
+    val cs = claset_of ctxt;
+    val ss = simpset_of ctxt;
   in 
     [ clarify_tac cs 1,
       full_simp_tac (uint_arith_ss_of ss) 1,
@@ -1075,8 +1075,8 @@ fun unat_arith_ss_of ss =
 fun unat_arith_tacs ctxt =   
   let
     fun arith_tac' n t = Arith_Data.verbose_arith_tac ctxt n t handle COOPER => Seq.empty;
-    val cs = local_claset_of ctxt;
-    val ss = local_simpset_of ctxt;
+    val cs = claset_of ctxt;
+    val ss = simpset_of ctxt;
   in 
     [ clarify_tac cs 1,
       full_simp_tac (unat_arith_ss_of ss) 1,

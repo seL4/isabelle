@@ -47,8 +47,7 @@ fun smart_cases thy ss read_prop s =
 
 fun inductive_cases args thy =
   let
-    val read_prop = Syntax.read_prop (ProofContext.init thy);
-    val mk_cases = smart_cases thy (Simplifier.simpset_of thy) read_prop;
+    val mk_cases = smart_cases thy (global_simpset_of thy) (Syntax.read_prop_global thy);
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.attribute thy) srcs),
         map (Thm.no_attributes o single o mk_cases) props));
@@ -62,7 +61,7 @@ val setup =
     (Scan.lift (Scan.repeat1 Args.name_source) >>
       (fn props => fn ctxt =>
         props
-        |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt) (Syntax.read_prop ctxt))
+        |> map (smart_cases (ProofContext.theory_of ctxt) (simpset_of ctxt) (Syntax.read_prop ctxt))
         |> Method.erule 0))
     "dynamic case analysis on sets";
 

@@ -285,7 +285,7 @@ fun genreif ctxt raw_eqs t =
     val th' = instantiate ([], cvs) th
     val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'
     val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
-	       (fn _ => simp_tac (local_simpset_of ctxt) 1)
+	       (fn _ => simp_tac (simpset_of ctxt) 1)
   in FWD trans [th'',th']
   end
 

@@ -184,7 +184,7 @@ fun rand (_ $ t) = t
 
 fun setup_probe_goal ctxt domT Dtab Mtab (i, j) =
     let
-      val css = local_clasimpset_of ctxt
+      val css = clasimpset_of ctxt
       val thy = ProofContext.theory_of ctxt
       val RD1 = get_elem (Dtab i)
       val RD2 = get_elem (Dtab j)
@@ -269,7 +269,7 @@ fun mk_edge m G n = HOLogic.mk_prod (m, HOLogic.mk_prod (G, n))
 
 fun in_graph_tac ctxt =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
-    THEN (simp_tac (local_simpset_of ctxt) 1) (* FIXME reduce simpset *)
+    THEN (simp_tac (simpset_of ctxt) 1) (* FIXME reduce simpset *)
 
 fun approx_tac _ (NoStep thm) = rtac disjI1 1 THEN rtac thm 1
   | approx_tac ctxt (Graph (G, thm)) =
@@ -334,7 +334,7 @@ fun mk_call_graph ctxt (st : thm) =
       val sound_int_goal = HOLogic.mk_Trueprop (mk_sound_int ACG RDlist mfuns)
 
       val tac =
-          unfold_tac [sound_int_def, len_simp] (local_simpset_of ctxt)
+          unfold_tac [sound_int_def, len_simp] (simpset_of ctxt)
             THEN all_less_tac (map (all_less_tac o map (approx_tac ctxt)) parts)
     in
       tac (instantiate' [] [SOME (cterm_of thy ACG), SOME (cterm_of thy mfuns)] st)

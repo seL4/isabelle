@@ -471,7 +471,7 @@ structure Program_Defs = Named_Thms
 (*proves "co" properties when the program is specified*)
 
 fun constrains_tac ctxt =
-  let val css as (cs, ss) = local_clasimpset_of ctxt in
+  let val css as (cs, ss) = clasimpset_of ctxt in
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
               REPEAT (etac @{thm Always_ConstrainsI} 1
@@ -494,7 +494,7 @@ fun constrains_tac ctxt =
 
 (*For proving invariants*)
 fun always_tac ctxt i = 
-    rtac @{thm AlwaysI} i THEN force_tac (local_clasimpset_of ctxt) i THEN constrains_tac ctxt i;
+    rtac @{thm AlwaysI} i THEN force_tac (clasimpset_of ctxt) i THEN constrains_tac ctxt i;
 *}
 
 setup Program_Defs.setup

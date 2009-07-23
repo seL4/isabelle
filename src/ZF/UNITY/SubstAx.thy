@@ -351,7 +351,7 @@ done
 ML {*
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac ctxt sact =
-  let val css as (cs, ss) = local_clasimpset_of ctxt in
+  let val css as (cs, ss) = clasimpset_of ctxt in
     SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
               etac @{thm Always_LeadsTo_Basis} 1 

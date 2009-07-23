@@ -101,7 +101,7 @@ ML {*
 fun B_prover s tac eqs =
   let val thy = the_context () in
     prove_goal thy s (fn prems => [cut_facts_tac prems 1,
-        tac 1, auto_tac (claset_of thy, simpset_of thy addsimps eqs)])
+        tac 1, auto_tac (global_claset_of thy, global_simpset_of thy addsimps eqs)])
   end;
 
 fun prove_forw  s thm     = B_prover s (dtac (thm RS iffD1)) [];

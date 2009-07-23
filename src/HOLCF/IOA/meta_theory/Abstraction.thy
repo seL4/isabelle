@@ -605,7 +605,7 @@ lemmas weak_strength_lemmas =
 
 ML {*
 fun abstraction_tac ctxt =
-  let val (cs, ss) = local_clasimpset_of ctxt in
+  let val (cs, ss) = clasimpset_of ctxt in
     SELECT_GOAL (auto_tac (cs addSIs @{thms weak_strength_lemmas},
         ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))
   end

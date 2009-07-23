@@ -164,6 +164,6 @@ structure Clasimp = ClasimpFun
 open Clasimp;
 
 ML_Antiquote.value "clasimpset"
-  (Scan.succeed "Clasimp.local_clasimpset_of (ML_Context.the_local_context ())");
+  (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
 
 val FOL_css = (FOL_cs, FOL_ss);

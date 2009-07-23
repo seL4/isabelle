@@ -204,7 +204,7 @@ struct
     such as  Nonce ?N \<notin> used evs that match Nonce_supply*)
 fun possibility_tac ctxt =
    (REPEAT 
-    (ALLGOALS (simp_tac (local_simpset_of ctxt
+    (ALLGOALS (simp_tac (simpset_of ctxt
           delsimps [@{thm used_Says}, @{thm used_Notes}, @{thm used_Gets}] 
           setSolver safe_solver))
      THEN
@@ -215,7 +215,7 @@ fun possibility_tac ctxt =
   nonces and keys initially*)
 fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (simpset_of ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 

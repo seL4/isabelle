@@ -757,7 +757,7 @@ fun parts_prepare_tac ctxt =
  (*SR9*)   dresolve_tac [@{thm Gets_imp_knows_Spy_parts_Snd}] 19 THEN 
  (*Oops1*) dresolve_tac [@{thm Outpts_B_Card_form_7}] 25    THEN               
  (*Oops2*) dresolve_tac [@{thm Outpts_A_Card_form_10}] 27 THEN                
- (*Base*)  (force_tac (local_clasimpset_of ctxt)) 1
+ (*Base*)  (force_tac (clasimpset_of ctxt)) 1
 
 val analz_prepare_tac = 
          prepare_tac THEN

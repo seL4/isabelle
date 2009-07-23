@@ -763,7 +763,7 @@ lemma Step1_4_7: "|- unchanged (e p, c p, r p, m p, rmhist!p)
 *)
 ML {*
 fun split_idle_tac ctxt simps i =
-  let val ss = Simplifier.local_simpset_of ctxt in
+  let val ss = simpset_of ctxt in
     TRY (rtac @{thm actionI} i) THEN
     InductTacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" i THEN
     rewrite_goals_tac @{thms action_rews} THEN

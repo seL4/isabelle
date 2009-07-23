@@ -702,7 +702,7 @@ fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
       Goal.init goal
       |> (SINGLE (resolve_tac [accI] 1)) |> the
       |> (SINGLE (eresolve_tac [Thm.forall_elim_vars 0 R_cases] 1))  |> the
-      |> (SINGLE (auto_tac (local_clasimpset_of ctxt))) |> the
+      |> (SINGLE (auto_tac (clasimpset_of ctxt))) |> the
       |> Goal.conclude
       |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
     end
@@ -831,7 +831,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
                          ((rtac (G_induct OF [a]))
                             THEN_ALL_NEW (rtac accI)
                             THEN_ALL_NEW (etac R_cases)
-                            THEN_ALL_NEW (asm_full_simp_tac (local_simpset_of octxt))) 1)
+                            THEN_ALL_NEW (asm_full_simp_tac (simpset_of octxt))) 1)
 
       val default_thm = (forall_intr_vars graph_implies_dom) COMP (f_def COMP fundef_default_value)
 
@@ -849,9 +849,9 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
                        (fn _ =>
                            rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
                                 THEN (rtac (Thm.forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
-                                THEN (simp_default_tac (local_simpset_of ctxt) 1)
+                                THEN (simp_default_tac (simpset_of ctxt) 1)
                                 THEN (etac not_acc_down 1)
-                                THEN ((etac R_cases) THEN_ALL_NEW (simp_default_tac (local_simpset_of ctxt))) 1)
+                                THEN ((etac R_cases) THEN_ALL_NEW (simp_default_tac (simpset_of ctxt))) 1)
               |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
           end
     in

@@ -257,9 +257,9 @@ val ccl_dstncts =
                 (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 
 fun mk_dstnct_thms thy defs inj_rls xs =
-          let fun mk_dstnct_thm rls s = prove_goalw thy defs s
-                               (fn _ => [simp_tac (simpset_of thy addsimps (rls@inj_rls)) 1])
-          in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
+  let fun mk_dstnct_thm rls s = prove_goalw thy defs s
+    (fn _ => [simp_tac (global_simpset_of thy addsimps (rls@inj_rls)) 1])
+  in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
 
 fun mkall_dstnct_thms thy defs i_rls xss = List.concat (map (mk_dstnct_thms thy defs i_rls) xss)
 

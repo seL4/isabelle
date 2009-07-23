@@ -158,7 +158,7 @@ structure Clasimp = ClasimpFun
 open Clasimp;
 
 val _ = ML_Antiquote.value "clasimpset"
-  (Scan.succeed "Clasimp.local_clasimpset_of (ML_Context.the_local_context ())");
+  (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
 
 val mksimps_pairs =
   [("op -->", [@{thm mp}]), ("op &", [@{thm conjunct1}, @{thm conjunct2}]),
