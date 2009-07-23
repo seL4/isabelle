@@ -282,6 +282,56 @@ lemma pochhammer_of_nat_eq_0_iff:
     pochhammer_of_nat_eq_0_lemma'[of k n, where ?'a = 'a]
   by (auto simp add: not_le[symmetric])
 
+
+lemma pochhammer_eq_0_iff: 
+  "pochhammer a n = (0::'a::field_char_0) \<longleftrightarrow> (EX k < n . a = - of_nat k) "
+  apply (auto simp add: pochhammer_of_nat_eq_0_iff)
+  apply (cases n, auto simp add: pochhammer_def algebra_simps group_add_class.eq_neg_iff_add_eq_0)
+  apply (rule_tac x=x in exI)
+  apply auto
+  done
+
+
+lemma pochhammer_eq_0_mono: 
+  "pochhammer a n = (0::'a::field_char_0) \<Longrightarrow> m \<ge> n \<Longrightarrow> pochhammer a m = 0"
+  unfolding pochhammer_eq_0_iff by auto 
+
+lemma pochhammer_neq_0_mono: 
+  "pochhammer a m \<noteq> (0::'a::field_char_0) \<Longrightarrow> m \<ge> n \<Longrightarrow> pochhammer a n \<noteq> 0"
+  unfolding pochhammer_eq_0_iff by auto 
+
+lemma pochhammer_minus:
+  assumes kn: "k \<le> n" 
+  shows "pochhammer (- b) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (b - of_nat k + 1) k"
+proof-
+  {assume k0: "k = 0" then have ?thesis by simp}
+  moreover 
+  {fix h assume h: "k = Suc h"
+    have eq: "((- 1) ^ Suc h :: 'a) = setprod (%i. - 1) {0 .. h}"
+      using setprod_constant[where A="{0 .. h}" and y="- 1 :: 'a"]
+      by auto
+    have ?thesis
+      unfolding h h pochhammer_Suc_setprod eq setprod_timesf[symmetric]
+      apply (rule strong_setprod_reindex_cong[where f = "%i. h - i"])
+      apply (auto simp add: inj_on_def image_def h )
+      apply (rule_tac x="h - x" in bexI)
+      by (auto simp add: expand_fun_eq h of_nat_diff)}
+  ultimately show ?thesis by (cases k, auto)
+qed
+
+lemma pochhammer_minus':
+  assumes kn: "k \<le> n" 
+  shows "pochhammer (b - of_nat k + 1) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (- b) k"
+  unfolding pochhammer_minus[OF kn, where b=b]
+  unfolding mult_assoc[symmetric]
+  unfolding power_add[symmetric]
+  apply simp
+  done
+
+lemma pochhammer_same: "pochhammer (- of_nat n) n = ((- 1) ^ n :: 'a::comm_ring_1) * of_nat (fact n)"
+  unfolding pochhammer_minus[OF le_refl[of n]]
+  by (simp add: of_nat_diff pochhammer_fact)
+
 subsection{* Generalized binomial coefficients *}
 
 definition gbinomial :: "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
@@ -451,6 +501,16 @@ proof-
       unfolding gbinomial_mult_fact ..
     finally have ?thesis by (simp del: fact_Suc) }
   ultimately show ?thesis by (cases k, auto)
+qed
+
+
+lemma binomial_symmetric: assumes kn: "k \<le> n" 
+  shows "n choose k = n choose (n - k)"
+proof-
+  from kn have kn': "n - k \<le> n" by arith
+  from binomial_fact_lemma[OF kn] binomial_fact_lemma[OF kn']
+  have "fact k * fact (n - k) * (n choose k) = fact (n - k) * fact (n - (n - k)) * (n choose (n - k))" by simp
+  then show ?thesis using kn by simp
 qed
 
 end

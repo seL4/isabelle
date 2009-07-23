@@ -5,7 +5,7 @@
 header{* A formalization of formal power series *}
 
 theory Formal_Power_Series
-imports Complex_Main
+imports Complex_Main Binomial
 begin
 
 
@@ -469,7 +469,6 @@ lemma dist_fps_ge0: "dist (a::'a fps) b \<ge> 0"
 
 lemma dist_fps_sym: "dist (a::'a fps) b = dist b a"
   apply (auto simp add: dist_fps_def)
-  thm cong[OF refl]
   apply (rule cong[OF refl, where x="(\<lambda>n\<Colon>nat. a $ n \<noteq> b $ n)"])
   apply (rule ext)
   by auto
@@ -2333,7 +2332,6 @@ proof-
 
 from a0 have ia0: "?ia $ 0 \<noteq> 0" by (simp )
 from a0 have ab0: "?ab $ 0 \<noteq> 0" by (simp add: fps_compose_def)
-thm inverse_mult_eq_1[OF ab0]
 have "(?ia oo b) *  (a oo b) = 1"
 unfolding fps_compose_mult_distrib[OF b0, symmetric]
 unfolding inverse_mult_eq_1[OF a0]
@@ -2606,7 +2604,8 @@ qed
 lemma E_power_mult: "(E (c::'a::field_char_0))^n = E (of_nat n * c)"
   by (induct n, auto simp add: ring_simps E_add_mult power_Suc)
 
-lemma assumes r: "r (Suc k) 1 = 1" 
+lemma radical_E:
+  assumes r: "r (Suc k) 1 = 1" 
   shows "fps_radical r (Suc k) (E (c::'a::{field_char_0})) = E (c / of_nat (Suc k))"
 proof-
   let ?ck = "(c / of_nat (Suc k))"
@@ -2624,6 +2623,29 @@ lemma Ec_E1_eq:
   "E (1::'a::{field_char_0}) oo (fps_const c * X) = E c"
   apply (auto simp add: fps_eq_iff E_def fps_compose_def power_mult_distrib)
   by (simp add: cond_value_iff cond_application_beta setsum_delta' cong del: if_weak_cong)
+
+text{* The generalized binomial theorem as a  consequence of @{thm E_add_mult} *}
+
+lemma gbinomial_theorem: 
+  "((a::'a::{field_char_0, division_by_zero})+b) ^ n = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+proof-
+  from E_add_mult[of a b] 
+  have "(E (a + b)) $ n = (E a * E b)$n" by simp
+  then have "(a + b) ^ n = (\<Sum>i\<Colon>nat = 0\<Colon>nat..n. a ^ i * b ^ (n - i)  * (of_nat (fact n) / of_nat (fact i * fact (n - i))))"
+    by (simp add: field_simps fps_mult_nth of_nat_mult[symmetric] setsum_right_distrib)
+  then show ?thesis 
+    apply simp
+    apply (rule setsum_cong2)
+    apply simp
+    apply (frule binomial_fact[where ?'a = 'a, symmetric])
+    by (simp add: field_simps of_nat_mult)
+qed
+
+text{* And the nat-form -- also available from Binomial.thy *}
+lemma binomial_theorem: "(a+b) ^ n = (\<Sum>k=0..n. (n choose k) * a^k * b^(n-k))"
+  using gbinomial_theorem[of "of_nat a" "of_nat b" n]
+  unfolding of_nat_add[symmetric] of_nat_power[symmetric] of_nat_mult[symmetric] of_nat_setsum[symmetric]
+  by simp
 
 subsubsection{* Logarithmic series *}
 
@@ -2677,6 +2699,278 @@ proof-
     by (simp add: fps_eq_iff eq)
   finally show ?thesis
     unfolding fps_deriv_eq_iff by simp
+qed
+
+subsubsection{* Binomial series *}
+
+definition "fps_binomial a = Abs_fps (\<lambda>n. a gchoose n)"
+
+lemma fps_binomial_nth[simp]: "fps_binomial a $ n = a gchoose n"
+  by (simp add: fps_binomial_def)
+
+lemma fps_binomial_ODE_unique:
+  fixes c :: "'a::field_char_0"
+  shows "fps_deriv a = (fps_const c * a) / (1 + X) \<longleftrightarrow> a = fps_const (a$0) * fps_binomial c"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof-
+  let ?da = "fps_deriv a"
+  let ?x1 = "(1 + X):: 'a fps"
+  let ?l = "?x1 * ?da"
+  let ?r = "fps_const c * a"
+  have x10: "?x1 $ 0 \<noteq> 0" by simp
+  have "?l = ?r \<longleftrightarrow> inverse ?x1 * ?l = inverse ?x1 * ?r" by simp
+  also have "\<dots> \<longleftrightarrow> ?da = (fps_const c * a) / ?x1"
+    apply (simp only: fps_divide_def  mult_assoc[symmetric] inverse_mult_eq_1[OF x10])
+    by (simp add: ring_simps)
+  finally have eq: "?l = ?r \<longleftrightarrow> ?lhs" by simp
+  moreover
+  {assume h: "?l = ?r" 
+    {fix n
+      from h have lrn: "?l $ n = ?r$n" by simp
+      
+      from lrn 
+      have "a$ Suc n = ((c - of_nat n) / of_nat (Suc n)) * a $n" 
+	apply (simp add: ring_simps del: of_nat_Suc)
+	by (cases n, simp_all add: field_simps del: of_nat_Suc)
+    }
+    note th0 = this
+    {fix n have "a$n = (c gchoose n) * a$0"
+      proof(induct n)
+	case 0 thus ?case by simp
+      next
+	case (Suc m)
+	thus ?case unfolding th0
+	  apply (simp add: field_simps del: of_nat_Suc)
+	  unfolding mult_assoc[symmetric] gbinomial_mult_1
+	  by (simp add: ring_simps)
+      qed}
+    note th1 = this
+    have ?rhs
+      apply (simp add: fps_eq_iff)
+      apply (subst th1)
+      by (simp add: ring_simps)}
+  moreover
+  {assume h: ?rhs
+  have th00:"\<And>x y. x * (a$0 * y) = a$0 * (x*y)" by (simp add: mult_commute)
+    have "?l = ?r" 
+      apply (subst h)
+      apply (subst (2) h)
+      apply (clarsimp simp add: fps_eq_iff ring_simps)
+      unfolding mult_assoc[symmetric] th00 gbinomial_mult_1
+      by (simp add: ring_simps gbinomial_mult_1)}
+  ultimately show ?thesis by blast
+qed
+
+lemma fps_binomial_deriv: "fps_deriv (fps_binomial c) = fps_const c * fps_binomial c / (1 + X)"
+proof-
+  let ?a = "fps_binomial c"
+  have th0: "?a = fps_const (?a$0) * ?a" by (simp)
+  from iffD2[OF fps_binomial_ODE_unique, OF th0] show ?thesis .
+qed
+
+lemma fps_binomial_add_mult: "fps_binomial (c+d) = fps_binomial c * fps_binomial d" (is "?l = ?r")
+proof-
+  let ?P = "?r - ?l"
+  let ?b = "fps_binomial"
+  let ?db = "\<lambda>x. fps_deriv (?b x)"
+  have "fps_deriv ?P = ?db c * ?b d + ?b c * ?db d - ?db (c + d)"  by simp
+  also have "\<dots> = inverse (1 + X) * (fps_const c * ?b c * ?b d + fps_const d * ?b c * ?b d - fps_const (c+d) * ?b (c + d))"
+    unfolding fps_binomial_deriv
+    by (simp add: fps_divide_def ring_simps)
+  also have "\<dots> = (fps_const (c + d)/ (1 + X)) * ?P"
+    by (simp add: ring_simps fps_divide_def fps_const_add[symmetric] del: fps_const_add)
+  finally have th0: "fps_deriv ?P = fps_const (c+d) * ?P / (1 + X)"
+    by (simp add: fps_divide_def)
+  have "?P = fps_const (?P$0) * ?b (c + d)"
+    unfolding fps_binomial_ODE_unique[symmetric]
+    using th0 by simp
+  hence "?P = 0" by (simp add: fps_mult_nth)
+  then show ?thesis by simp
+qed
+
+lemma fps_minomial_minus_one: "fps_binomial (- 1) = inverse (1 + X)"
+  (is "?l = inverse ?r")
+proof-
+  have th: "?r$0 \<noteq> 0" by simp
+  have th': "fps_deriv (inverse ?r) = fps_const (- 1) * inverse ?r / (1 + X)"
+    by (simp add: fps_inverse_deriv[OF th] fps_divide_def power2_eq_square mult_commute fps_const_neg[symmetric] del: fps_const_neg)
+  have eq: "inverse ?r $ 0 = 1"
+    by (simp add: fps_inverse_def)
+  from iffD1[OF fps_binomial_ODE_unique[of "inverse (1 + X)" "- 1"] th'] eq
+  show ?thesis by (simp add: fps_inverse_def)
+qed
+
+text{* Vandermonde's Identity as a consequence *}
+lemma gbinomial_Vandermonde: "setsum (\<lambda>k. (a gchoose k) * (b gchoose (n - k))) {0..n} = (a + b) gchoose n"
+proof-
+  let ?ba = "fps_binomial a"
+  let ?bb = "fps_binomial b"
+  let ?bab = "fps_binomial (a + b)"
+  from fps_binomial_add_mult[of a b] have "?bab $ n = (?ba * ?bb)$n" by simp
+  then show ?thesis by (simp add: fps_mult_nth)
+qed
+
+lemma binomial_Vandermonde: "setsum (\<lambda>k. (a choose k) * (b choose (n - k))) {0..n} = (a + b) choose n"
+  using gbinomial_Vandermonde[of "(of_nat a)" "of_nat b" n]
+  
+  apply (simp only: binomial_gbinomial[symmetric] of_nat_mult[symmetric] of_nat_setsum[symmetric] of_nat_add[symmetric])
+  by simp
+  
+lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)^2) {0..n} = (2*n) choose n"
+  using binomial_Vandermonde[of n n n,symmetric]
+  unfolding nat_mult_2 apply (simp add: power2_eq_square)
+  apply (rule setsum_cong2)
+  by (auto intro:  binomial_symmetric)
+
+lemma Vandermonde_pochhammer_lemma:
+  fixes a :: "'a::field_char_0"
+  assumes b: "\<forall> j\<in>{0 ..<n}. b \<noteq> of_nat j"
+  shows "setsum (%k. (pochhammer (- a) k * pochhammer (- (of_nat n)) k) / (of_nat (fact k) * pochhammer (b - of_nat n + 1) k)) {0..n} = pochhammer (- (a+ b)) n / pochhammer (- b) n" (is "?l = ?r")
+proof-
+  let ?m1 = "%m. (- 1 :: 'a) ^ m"
+  let ?f = "%m. of_nat (fact m)"
+  let ?p = "%(x::'a). pochhammer (- x)"
+  from b have bn0: "?p b n \<noteq> 0" unfolding pochhammer_eq_0_iff by simp
+  {fix k assume kn: "k \<in> {0..n}"
+    {assume c:"pochhammer (b - of_nat n + 1) n = 0"
+      then obtain j where j: "j < n" "b - of_nat n + 1 = - of_nat j"
+	unfolding pochhammer_eq_0_iff by blast
+      from j have "b = of_nat n - of_nat j - of_nat 1" 
+	by (simp add: algebra_simps)
+      then have "b = of_nat (n - j - 1)" 
+	using j kn by (simp add: of_nat_diff)
+      with b have False using j by auto}
+    then have nz: "pochhammer (1 + b - of_nat n) n \<noteq> 0" 
+      by (auto simp add: algebra_simps)
+    
+    from nz kn have nz': "pochhammer (1 + b - of_nat n) k \<noteq> 0" 
+      by (simp add: pochhammer_neq_0_mono)
+    {assume k0: "k = 0 \<or> n =0" 
+      then have "b gchoose (n - k) = (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)" 
+	using kn
+	by (cases "k=0", simp_all add: gbinomial_pochhammer)}
+    moreover
+    {assume n0: "n \<noteq> 0" and k0: "k \<noteq> 0" 
+      then obtain m where m: "n = Suc m" by (cases n, auto)
+      from k0 obtain h where h: "k = Suc h" by (cases k, auto)
+      {assume kn: "k = n"
+	then have "b gchoose (n - k) = (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
+	  using kn pochhammer_minus'[where k=k and n=n and b=b]
+	  apply (simp add:  pochhammer_same)
+	  using bn0
+	  by (simp add: field_simps power_add[symmetric])}
+      moreover
+      {assume nk: "k \<noteq> n"
+	have m1nk: "?m1 n = setprod (%i. - 1) {0..m}" 
+	  "?m1 k = setprod (%i. - 1) {0..h}"
+	  by (simp_all add: setprod_constant m h)
+	from kn nk have kn': "k < n" by simp
+	have bnz0: "pochhammer (b - of_nat n + 1) k \<noteq> 0"
+	  using bn0 kn 
+	  unfolding pochhammer_eq_0_iff
+	  apply auto
+	  apply (erule_tac x= "n - ka - 1" in allE)
+	  by (auto simp add: algebra_simps of_nat_diff)
+	have eq1: "setprod (%k. (1::'a) + of_nat m - of_nat k) {0 .. h} = setprod of_nat {Suc (m - h) .. Suc m}"	
+	  apply (rule strong_setprod_reindex_cong[where f="%k. Suc m - k "])
+	  using kn' h m
+	  apply (auto simp add: inj_on_def image_def)
+	  apply (rule_tac x="Suc m - x" in bexI)
+	  apply (simp_all add: of_nat_diff)
+	  done
+	
+	have th1: "(?m1 k * ?p (of_nat n) k) / ?f n = 1 / of_nat(fact (n - k))"
+	  unfolding m1nk 
+	  
+	  unfolding m h pochhammer_Suc_setprod
+	  apply (simp add: field_simps del: fact_Suc id_def)
+	  unfolding fact_altdef_nat id_def
+	  unfolding of_nat_setprod
+	  unfolding setprod_timesf[symmetric]
+	  apply auto
+	  unfolding eq1
+	  apply (subst setprod_Un_disjoint[symmetric])
+	  apply (auto)
+	  apply (rule setprod_cong)
+	  apply auto
+	  done
+	have th20: "?m1 n * ?p b n = setprod (%i. b - of_nat i) {0..m}"
+	  unfolding m1nk 
+	  unfolding m h pochhammer_Suc_setprod
+	  unfolding setprod_timesf[symmetric]
+	  apply (rule setprod_cong)
+	  apply auto
+	  done
+	have th21:"pochhammer (b - of_nat n + 1) k = setprod (%i. b - of_nat i) {n - k .. n - 1}"
+	  unfolding h m 
+	  unfolding pochhammer_Suc_setprod
+	  apply (rule strong_setprod_reindex_cong[where f="%k. n - 1 - k"])
+	  using kn
+	  apply (auto simp add: inj_on_def m h image_def)
+	  apply (rule_tac x= "m - x" in bexI)
+	  by (auto simp add: of_nat_diff)
+	
+	have "?m1 n * ?p b n = pochhammer (b - of_nat n + 1) k * setprod (%i. b - of_nat i) {0.. n - k - 1}"
+	  unfolding th20 th21
+	  unfolding h m
+	  apply (subst setprod_Un_disjoint[symmetric])
+	  using kn' h m
+	  apply auto
+	  apply (rule setprod_cong)
+	  apply auto
+	  done
+	then have th2: "(?m1 n * ?p b n)/pochhammer (b - of_nat n + 1) k = setprod (%i. b - of_nat i) {0.. n - k - 1}" 
+	  using nz' by (simp add: field_simps)
+	have "(?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k) = ((?m1 k * ?p (of_nat n) k) / ?f n) * ((?m1 n * ?p b n)/pochhammer (b - of_nat n + 1) k)"
+	  using bnz0
+	  by (simp add: field_simps)
+	also have "\<dots> = b gchoose (n - k)" 
+	  unfolding th1 th2
+	  using kn' by (simp add: gbinomial_def)
+	finally have "b gchoose (n - k) = (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)" by simp}
+      ultimately have "b gchoose (n - k) = (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)"
+	by (cases "k =n", auto)}
+    ultimately have "b gchoose (n - k) = (?m1 n * ?p b n * ?m1 k * ?p (of_nat n) k) / (?f n * pochhammer (b - of_nat n + 1) k)" "pochhammer (1 + b - of_nat n) k \<noteq> 0 "
+      using nz' 
+      apply (cases "n=0", auto)
+      by (cases "k", auto)}
+  note th00 = this
+  have "?r = ((a + b) gchoose n) * (of_nat (fact n)/ (?m1 n * pochhammer (- b) n))"
+    unfolding gbinomial_pochhammer 
+    using bn0 by (auto simp add: field_simps)
+  also have "\<dots> = ?l"
+    unfolding gbinomial_Vandermonde[symmetric]
+    apply (simp add: th00)
+    unfolding gbinomial_pochhammer
+    using bn0 apply (simp add: setsum_left_distrib setsum_right_distrib field_simps)
+    apply (rule setsum_cong2)
+    apply (drule th00(2))
+    by (simp add: field_simps power_add[symmetric])
+  finally show ?thesis by simp
+qed 
+
+    
+lemma Vandermonde_pochhammer:
+   fixes a :: "'a::field_char_0"
+  assumes c: "ALL i : {0..< n}. c \<noteq> - of_nat i"
+  shows "setsum (%k. (pochhammer a k * pochhammer (- (of_nat n)) k) / (of_nat (fact k) * pochhammer c k)) {0..n} = pochhammer (c - a) n / pochhammer c n"
+proof-
+  let ?a = "- a"
+  let ?b = "c + of_nat n - 1"
+  have h: "\<forall> j \<in>{0..< n}. ?b \<noteq> of_nat j" using c
+    apply (auto simp add: algebra_simps of_nat_diff)
+    apply (erule_tac x= "n - j - 1" in ballE)
+    by (auto simp add: of_nat_diff algebra_simps)
+  have th0: "pochhammer (- (?a + ?b)) n = (- 1)^n * pochhammer (c - a) n"
+    unfolding pochhammer_minus[OF le_refl]
+    by (simp add: algebra_simps)
+  have th1: "pochhammer (- ?b) n = (- 1)^n * pochhammer c n"
+    unfolding pochhammer_minus[OF le_refl]
+    by simp
+  have nz: "pochhammer c n \<noteq> 0" using c
+    by (simp add: pochhammer_eq_0_iff)
+  from Vandermonde_pochhammer_lemma[where a = "?a" and b="?b" and n=n, OF h, unfolded th0 th1]
+  show ?thesis using nz by (simp add: field_simps setsum_right_distrib)
 qed
 
 subsubsection{* Formal trigonometric functions  *}
@@ -2865,5 +3159,171 @@ proof-
     unfolding right_distrib[symmetric]
     by simp
 qed
+
+text {* Connection to E c over the complex numbers --- Euler and De Moivre*}
+lemma Eii_sin_cos:
+  "E (ii * c) = fps_cos c + fps_const ii * fps_sin c "
+  (is "?l = ?r")
+proof-
+  {fix n::nat
+    {assume en: "even n"
+      from en obtain m where m: "n = 2*m" 
+	unfolding even_mult_two_ex by blast
+      
+      have "?l $n = ?r$n" 
+	by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
+	  power_mult power_minus)}
+    moreover
+    {assume on: "odd n"
+      from on obtain m where m: "n = 2*m + 1" 
+	unfolding odd_nat_equiv_def2 by (auto simp add: nat_mult_2)  
+      have "?l $n = ?r$n" 
+	by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
+	  power_mult power_minus)}
+    ultimately have "?l $n = ?r$n"  by blast}
+  then show ?thesis by (simp add: fps_eq_iff)
+qed
+
+lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c "
+  unfolding minus_mult_right Eii_sin_cos by (simp add: fps_sin_even fps_cos_odd)
+
+lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)"
+  by (simp add: fps_eq_iff fps_const_def)
+
+lemma fps_number_of_fps_const: "number_of i = fps_const (number_of i :: 'a:: {comm_ring_1, number_ring})"
+  apply (subst (2) number_of_eq)
+apply(rule int_induct[of _ 0])
+apply (simp_all add: number_of_fps_def)
+by (simp_all add: fps_const_add[symmetric] fps_const_minus[symmetric])
+
+lemma fps_cos_Eii:
+  "fps_cos c = (E (ii * c) + E (- ii * c)) / fps_const 2"
+proof-
+  have th: "fps_cos c + fps_cos c = fps_cos c * fps_const 2" 
+    by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
+  show ?thesis
+  unfolding Eii_sin_cos minus_mult_commute
+  by (simp add: fps_sin_even fps_cos_odd fps_number_of_fps_const
+    fps_divide_def fps_const_inverse th complex_number_of_def[symmetric])
+qed
+
+lemma fps_sin_Eii:
+  "fps_sin c = (E (ii * c) - E (- ii * c)) / fps_const (2*ii)"
+proof-
+  have th: "fps_const \<i> * fps_sin c + fps_const \<i> * fps_sin c = fps_sin c * fps_const (2 * ii)" 
+    by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
+  show ?thesis
+  unfolding Eii_sin_cos minus_mult_commute
+  by (simp add: fps_sin_even fps_cos_odd fps_divide_def fps_const_inverse th)
+qed
+
+lemma fps_tan_Eii:
+  "fps_tan c = (E (ii * c) - E (- ii * c)) / (fps_const ii * (E (ii * c) + E (- ii * c)))"
+  unfolding fps_tan_def fps_sin_Eii fps_cos_Eii mult_minus_left E_neg
+  apply (simp add: fps_divide_def fps_inverse_mult fps_const_mult[symmetric] fps_const_inverse del: fps_const_mult)
+  by simp
+
+lemma fps_demoivre: "(fps_cos a + fps_const ii * fps_sin a)^n = fps_cos (of_nat n * a) + fps_const ii * fps_sin (of_nat n * a)"
+  unfolding Eii_sin_cos[symmetric] E_power_mult
+  by (simp add: mult_ac)
+
+subsection {* Hypergeometric series *}
+
+
+definition "F as bs (c::'a::{field_char_0, division_by_zero}) = Abs_fps (%n. (foldl (%r a. r* pochhammer a n) 1 as * c^n)/ (foldl (%r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
+
+lemma F_nth[simp]: "F as bs c $ n =  (foldl (%r a. r* pochhammer a n) 1 as * c^n)/ (foldl (%r b. r * pochhammer b n) 1 bs * of_nat (fact n))"
+  by (simp add: F_def)
+
+lemma foldl_mult_start:
+  "foldl (%r x. r * f x) (v::'a::comm_ring_1) as * x = foldl (%r x. r * f x) (v * x) as "
+  by (induct as arbitrary: x v, auto simp add: algebra_simps)
+
+lemma foldr_mult_foldl: "foldr (%x r. r * f x) as v = foldl (%r x. r * f x) (v :: 'a::comm_ring_1) as"
+  by (induct as arbitrary: v, auto simp add: foldl_mult_start)
+
+lemma F_nth_alt: "F as bs c $ n = foldr (\<lambda>a r. r * pochhammer a n) as (c ^ n) /
+    foldr (\<lambda>b r. r * pochhammer b n) bs (of_nat (fact n))"
+  by (simp add: foldl_mult_start foldr_mult_foldl)
+
+lemma F_E[simp]: "F [] [] c = E c" 
+  by (simp add: fps_eq_iff)
+
+lemma F_1_0[simp]: "F [1] [] c = 1/(1 - fps_const c * X)"
+proof-
+  let ?a = "(Abs_fps (\<lambda>n. 1)) oo (fps_const c * X)"
+  have th0: "(fps_const c * X) $ 0 = 0" by simp
+  show ?thesis unfolding gp[OF th0, symmetric]
+    by (auto simp add: fps_eq_iff pochhammer_fact[symmetric] fps_compose_nth power_mult_distrib cond_value_iff setsum_delta' cong del: if_weak_cong)
+qed
+
+lemma F_B[simp]: "F [-a] [] (- 1) = fps_binomial a"
+  by (simp add: fps_eq_iff gbinomial_pochhammer algebra_simps)
+
+lemma F_0[simp]: "F as bs c $0 = 1"
+  apply simp
+  apply (subgoal_tac "ALL as. foldl (%(r::'a) (a::'a). r) 1 as = 1")
+  apply auto
+  apply (induct_tac as, auto)
+  done
+
+lemma foldl_prod_prod: "foldl (%(r::'b::comm_ring_1) (x::'a::comm_ring_1). r * f x) v as * foldl (%r x. r * g x) w as = foldl (%r x. r * f x * g x) (v*w) as"
+  by (induct as arbitrary: v w, auto simp add: algebra_simps)
+
+
+lemma F_rec: "F as bs c $ Suc n = ((foldl (%r a. r* (a + of_nat n)) c as)/ (foldl (%r b. r * (b + of_nat n)) (of_nat (Suc n)) bs )) * F as bs c $ n"
+  apply (simp del: of_nat_Suc of_nat_add fact_Suc)
+  apply (simp add: foldl_mult_start del: fact_Suc of_nat_Suc)
+  unfolding foldl_prod_prod[unfolded foldl_mult_start] pochhammer_Suc
+  by (simp add: algebra_simps of_nat_mult)
+
+lemma XD_nth[simp]: "XD a $ n = (if n=0 then 0 else of_nat n * a$n)"
+  by (simp add: XD_def)
+
+lemma XD_0th[simp]: "XD a $ 0 = 0" by simp
+lemma XD_Suc[simp]:" XD a $ Suc n = of_nat (Suc n) * a $ Suc n" by simp
+
+definition "XDp c a = XD a + fps_const c * a"
+
+lemma XDp_nth[simp]: "XDp c a $ n = (c + of_nat n) * a$n"
+  by (simp add: XDp_def algebra_simps)
+
+lemma XDp_commute:
+  shows "XDp b o XDp (c::'a::comm_ring_1) = XDp c o XDp b"
+  by (auto simp add: XDp_def expand_fun_eq fps_eq_iff algebra_simps)
+
+lemma XDp0[simp]: "XDp 0 = XD"
+  by (simp add: expand_fun_eq fps_eq_iff)
+
+lemma XDp_fps_integral[simp]:"XDp 0 (fps_integral a c) = X * a"
+  by (simp add: fps_eq_iff fps_integral_def)
+
+lemma F_minus_nat: 
+  "F [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0, division_by_zero}) $ k = (if k <= n then pochhammer (- of_nat n) k * c ^ k /
+    (pochhammer (- of_nat (n + m)) k * of_nat (fact k)) else 0)"
+  "F [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0, division_by_zero}) $ k = (if k <= m then pochhammer (- of_nat m) k * c ^ k /
+    (pochhammer (- of_nat (m + n)) k * of_nat (fact k)) else 0)"
+  by (auto simp add: pochhammer_eq_0_iff)
+
+lemma setsum_eq_if: "setsum f {(n::nat) .. m} = (if m < n then 0 else f n + setsum f {n+1 .. m})"
+  apply simp
+  apply (subst setsum_insert[symmetric])
+  by (auto simp add: not_less setsum_head_Suc)
+
+lemma pochhammer_rec_if: 
+  "pochhammer a n = (if n = 0 then 1 else a * pochhammer (a + 1) (n - 1))"
+  by (cases n, simp_all add: pochhammer_rec)
+
+lemma XDp_foldr_nth[simp]: "foldr (%c r. XDp c o r) cs (%c. XDp c a) c0 $ n = 
+  foldr (%c r. (c + of_nat n) * r) cs (c0 + of_nat n) * a$n"
+  by (induct cs arbitrary: c0, auto simp add: algebra_simps)
+
+lemma genric_XDp_foldr_nth:
+  assumes 
+  f: "ALL n c a. f c a $ n = (of_nat n + k c) * a$n"
+
+  shows "foldr (%c r. f c o r) cs (%c. g c a) c0 $ n = 
+  foldr (%c r. (k c + of_nat n) * r) cs (g c0 a $ n)"
+  by (induct cs arbitrary: c0, auto simp add: algebra_simps f )
 
 end
