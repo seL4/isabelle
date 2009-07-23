@@ -128,6 +128,10 @@ separately.)  Minor INCOMPATIBILITY.
 cominators for "args".  INCOMPATIBILITY, need to use simplified
 Attrib/Method.setup introduced in Isabelle2009.
 
+* Proper context for simpset_of, claset_of, clasimpset_of.  May fall
+back on global_simpset_of, global_claset_of, global_clasimpset_of as
+last resort.  INCOMPATIBILITY.
+
 * Display.pretty_thm now requires a proper context (cf. former
 ProofContext.pretty_thm).  May fall back on Display.pretty_thm_global
 or even Display.pretty_thm_without_context as last resort.
