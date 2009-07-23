@@ -273,15 +273,12 @@ lemmas termBs = letB applyB applyBbot splitB splitBbot fstB fstBbot
 
 subsection {* Constructors are injective *}
 
-ML {*
-bind_thms ("term_injs", map (mk_inj_rl @{theory}
-  [@{thm applyB}, @{thm splitB}, @{thm whenBinl}, @{thm whenBinr},
-    @{thm ncaseBsucc}, @{thm lcaseBcons}])
-    ["(inl(a) = inl(a')) <-> (a=a')",
-     "(inr(a) = inr(a')) <-> (a=a')",
-     "(succ(a) = succ(a')) <-> (a=a')",
-     "(a$b = a'$b') <-> (a=a' & b=b')"])
-*}
+lemma term_injs:
+  "(inl(a) = inl(a')) <-> (a=a')"
+  "(inr(a) = inr(a')) <-> (a=a')"
+  "(succ(a) = succ(a')) <-> (a=a')"
+  "(a$b = a'$b') <-> (a=a' & b=b')"
+  by (inj_rl applyB splitB whenBinl whenBinr ncaseBsucc lcaseBcons)
 
 
 subsection {* Constructors are distinct *}
@@ -295,24 +292,13 @@ bind_thms ("term_dstncts",
 
 subsection {* Rules for pre-order @{text "[="} *}
 
-ML {*
+lemma term_porews:
+  "inl(a) [= inl(a') <-> a [= a'"
+  "inr(b) [= inr(b') <-> b [= b'"
+  "succ(n) [= succ(n') <-> n [= n'"
+  "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"
+  by (simp_all add: data_defs ccl_porews)
 
-local
-  fun mk_thm s =
-    Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
-      (fn _ =>
-        rewrite_goals_tac @{thms data_defs} THEN
-        simp_tac (@{simpset} addsimps @{thms ccl_porews}) 1);
-in
-  val term_porews =
-    map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
-      "inr(b) [= inr(b') <-> b [= b'",
-      "succ(n) [= succ(n') <-> n [= n'",
-      "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"]
-end;
-
-bind_thms ("term_porews", term_porews);
-*}
 
 subsection {* Rewriting and Proving *}
 

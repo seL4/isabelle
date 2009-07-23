@@ -188,22 +188,25 @@ lemma eq_lemma: "[| x=a;  y=b;  x=y |] ==> a=b"
   by simp
 
 ML {*
-  fun mk_inj_rl thy rews s =
+  fun inj_rl_tac ctxt rews i =
     let
       fun mk_inj_lemmas r = [@{thm arg_cong}] RL [r RS (r RS @{thm eq_lemma})]
       val inj_lemmas = maps mk_inj_lemmas rews
-      val tac = REPEAT (ares_tac [iffI, allI, conjI] 1 ORELSE
-        eresolve_tac inj_lemmas 1 ORELSE
-        asm_simp_tac (Simplifier.theory_context thy @{simpset} addsimps rews) 1)
-    in prove_goal thy s (fn _ => [tac]) end  
+    in
+      CHANGED (REPEAT (ares_tac [iffI, allI, conjI] i ORELSE
+        eresolve_tac inj_lemmas i ORELSE
+        asm_simp_tac (simpset_of ctxt addsimps rews) i))
+    end;
 *}
 
-ML {*
-  bind_thms ("ccl_injs",
-    map (mk_inj_rl @{theory} @{thms caseBs})
-      ["<a,b> = <a',b'> <-> (a=a' & b=b')",
-       "(lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"])
-*}
+method_setup inj_rl = {*
+  Attrib.thms >> (fn rews => fn ctxt => SIMPLE_METHOD' (inj_rl_tac ctxt rews))
+*} ""
+
+lemma ccl_injs:
+  "<a,b> = <a',b'> <-> (a=a' & b=b')"
+  "!!b b'. (lam x. b(x) = lam x. b'(x)) <-> ((ALL z. b(z)=b'(z)))"
+  by (inj_rl caseBs)
 
 
 lemma pair_inject: "<a,b> = <a',b'> \<Longrightarrow> (a = a' \<Longrightarrow> b = b' \<Longrightarrow> R) \<Longrightarrow> R"
@@ -273,7 +276,7 @@ val XH_to_Is = map XH_to_I
 val XH_to_Ds = map XH_to_D
 val XH_to_Es = map XH_to_E;
 
-bind_thms ("ccl_rews", @{thms caseBs} @ ccl_injs @ ccl_dstncts);
+bind_thms ("ccl_rews", @{thms caseBs} @ @{thms ccl_injs} @ ccl_dstncts);
 bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [notE]);
 bind_thms ("ccl_injDs", XH_to_Ds @{thms ccl_injs});
 *}
@@ -412,11 +415,6 @@ lemma po_coinduct: "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u"
   apply (rule PO_def [THEN def_coinduct, THEN PO_iff [THEN iffD2]])
    apply assumption+
   done
-
-ML {*
-  fun po_coinduct_tac ctxt s i =
-    res_inst_tac ctxt [(("R", 0), s)] @{thm po_coinduct} i
-*}
 
 
 subsection {* Equality *}

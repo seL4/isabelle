@@ -95,22 +95,11 @@ lemma HTT_coinduct: "[|  t : R;  R <= HTTgen(R) |] ==> t : HTT"
   apply assumption
   done
 
-ML {*
-  fun HTT_coinduct_tac ctxt s i = res_inst_tac ctxt [(("R", 0), s)] @{thm HTT_coinduct} i
-*}
-
 lemma HTT_coinduct3:
   "[|  t : R;   R <= HTTgen(lfp(%x. HTTgen(x) Un R Un HTT)) |] ==> t : HTT"
   apply (erule HTTgen_mono [THEN [3] HTT_def [THEN def_coinduct3]])
   apply assumption
   done
-
-ML {*
-val HTT_coinduct3_raw = rewrite_rule [@{thm HTTgen_def}] @{thm HTT_coinduct3}
-
-fun HTT_coinduct3_tac ctxt s i =
-  res_inst_tac ctxt [(("R", 0), s)] @{thm HTT_coinduct3} i
-*}
 
 lemma HTTgenIs:
   "true : HTTgen(R)"
