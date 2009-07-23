@@ -2884,7 +2884,7 @@ proof-
 	  
 	  unfolding m h pochhammer_Suc_setprod
 	  apply (simp add: field_simps del: fact_Suc id_def)
-	  unfolding fact_setprod id_def
+	  unfolding fact_altdef_nat id_def
 	  unfolding of_nat_setprod
 	  unfolding setprod_timesf[symmetric]
 	  apply auto
@@ -3252,7 +3252,6 @@ lemma F_E[simp]: "F [] [] c = E c"
 lemma F_1_0[simp]: "F [1] [] c = 1/(1 - fps_const c * X)"
 proof-
   let ?a = "(Abs_fps (\<lambda>n. 1)) oo (fps_const c * X)"
-  thm gp
   have th0: "(fps_const c * X) $ 0 = 0" by simp
   show ?thesis unfolding gp[OF th0, symmetric]
     by (auto simp add: fps_eq_iff pochhammer_fact[symmetric] fps_compose_nth power_mult_distrib cond_value_iff setsum_delta' cong del: if_weak_cong)
