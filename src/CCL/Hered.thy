@@ -110,23 +110,22 @@ val HTT_coinduct3_raw = rewrite_rule [@{thm HTTgen_def}] @{thm HTT_coinduct3}
 
 fun HTT_coinduct3_tac ctxt s i =
   res_inst_tac ctxt [(("R", 0), s)] @{thm HTT_coinduct3} i
-
-val HTTgenIs =
-  map (mk_genIs @{theory} @{thms data_defs} @{thm HTTgenXH} @{thm HTTgen_mono})
-  ["true : HTTgen(R)",
-   "false : HTTgen(R)",
-   "[| a : R;  b : R |] ==> <a,b> : HTTgen(R)",
-   "[| !!x. b(x) : R |] ==> lam x. b(x) : HTTgen(R)",
-   "one : HTTgen(R)",
-   "a : lfp(%x. HTTgen(x) Un R Un HTT) ==> inl(a) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
-   "b : lfp(%x. HTTgen(x) Un R Un HTT) ==> inr(b) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
-   "zero : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
-   "n : lfp(%x. HTTgen(x) Un R Un HTT) ==> succ(n) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
-   "[] : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
-   "[| h : lfp(%x. HTTgen(x) Un R Un HTT); t : lfp(%x. HTTgen(x) Un R Un HTT) |] ==> h$t : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"]
 *}
 
-ML {* bind_thms ("HTTgenIs", HTTgenIs) *}
+lemma HTTgenIs:
+  "true : HTTgen(R)"
+  "false : HTTgen(R)"
+  "[| a : R;  b : R |] ==> <a,b> : HTTgen(R)"
+  "!!b. [| !!x. b(x) : R |] ==> lam x. b(x) : HTTgen(R)"
+  "one : HTTgen(R)"
+  "a : lfp(%x. HTTgen(x) Un R Un HTT) ==> inl(a) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"
+  "b : lfp(%x. HTTgen(x) Un R Un HTT) ==> inr(b) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"
+  "zero : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"
+  "n : lfp(%x. HTTgen(x) Un R Un HTT) ==> succ(n) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"
+  "[] : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"
+  "[| h : lfp(%x. HTTgen(x) Un R Un HTT); t : lfp(%x. HTTgen(x) Un R Un HTT) |] ==>
+    h$t : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"
+  unfolding data_defs by (genIs HTTgenXH HTTgen_mono)+
 
 
 subsection {* Formation Rules for Types *}

@@ -1,5 +1,4 @@
 (*  Title:      CCL/ex/Flag.thy
-    ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 *)
@@ -55,12 +54,10 @@ lemma redT: "red : Colour"
   and blueT: "blue : Colour"
   unfolding ColourXH by blast+
 
-ML {*
-bind_thm ("ccaseT", mk_ncanT_tac @{context}
-  @{thms flag_defs} @{thms case_rls} @{thms case_rls}
-  "[| c:Colour; c=red ==> r : C(red); c=white ==> w : C(white); c=blue ==> b : C(blue) |] ==> ccase(c,r,w,b) : C(c)");
-*}
-
+lemma ccaseT:
+  "[| c:Colour; c=red ==> r : C(red); c=white ==> w : C(white); c=blue ==> b : C(blue) |]
+    ==> ccase(c,r,w,b) : C(c)"
+  unfolding flag_defs by ncanT
 
 lemma "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)"
   apply (unfold flag_def)

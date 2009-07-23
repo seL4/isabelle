@@ -1,7 +1,3 @@
-(*  Title:      CCL/Set.thy
-    ID:         $Id$
-*)
-
 header {* Extending FOL by a modified version of HOL set theory *}
 
 theory Set

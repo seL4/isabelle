@@ -123,39 +123,36 @@ lemma lem: "[| a:B(u);  u=v |] ==> a : B(v)"
 
 
 ML {*
-local
-  val lemma = thm "lem"
-  val bspec = thm "bspec"
-  val bexE = thm "bexE"
-in
-
-  fun mk_ncanT_tac ctxt defs top_crls crls s = prove_goalw (ProofContext.theory_of ctxt) defs s
-    (fn major::prems => [(resolve_tac ([major] RL top_crls) 1),
-                         (REPEAT_SOME (eresolve_tac (crls @ [exE,bexE,conjE,disjE]))),
-                         (ALLGOALS (asm_simp_tac (simpset_of ctxt))),
-                         (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE'
-                                    etac bspec )),
-                         (safe_tac (claset_of ctxt addSIs prems))])
-end
+fun mk_ncanT_tac top_crls crls =
+  SUBPROOF (fn {context = ctxt, prems = major :: prems, ...} =>
+    resolve_tac ([major] RL top_crls) 1 THEN
+    REPEAT_SOME (eresolve_tac (crls @ [exE, @{thm bexE}, conjE, disjE])) THEN
+    ALLGOALS (asm_simp_tac (simpset_of ctxt)) THEN
+    ALLGOALS (ares_tac (prems RL [@{thm lem}]) ORELSE' etac @{thm bspec}) THEN
+    safe_tac (claset_of ctxt addSIs prems))
 *}
 
-ML {*
-  val ncanT_tac = mk_ncanT_tac @{context} [] @{thms case_rls} @{thms case_rls}
-*}
+method_setup ncanT = {*
+  Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms case_rls} @{thms case_rls})
+*} ""
 
-ML {*
+lemma ifT:
+  "[| b:Bool; b=true ==> t:A(true); b=false ==> u:A(false) |] ==>
+    if b then t else u : A(b)"
+  by ncanT
 
-bind_thm ("ifT", ncanT_tac
-  "[| b:Bool; b=true ==> t:A(true); b=false ==> u:A(false) |] ==> if b then t else u : A(b)");
+lemma applyT: "[| f : Pi(A,B);  a:A |] ==> f ` a : B(a)"
+  by ncanT
 
-bind_thm ("applyT", ncanT_tac "[| f : Pi(A,B);  a:A |] ==> f ` a : B(a)");
+lemma splitT:
+  "[| p:Sigma(A,B); !!x y. [| x:A;  y:B(x); p=<x,y> |] ==> c(x,y):C(<x,y>) |]
+    ==> split(p,c):C(p)"
+  by ncanT
 
-bind_thm ("splitT", ncanT_tac
-  "[| p:Sigma(A,B); !!x y. [| x:A;  y:B(x); p=<x,y> |] ==> c(x,y):C(<x,y>) |] ==> split(p,c):C(p)");
-
-bind_thm ("whenT", ncanT_tac
-  "[| p:A+B; !!x.[| x:A;  p=inl(x) |] ==> a(x):C(inl(x)); !!y.[| y:B;  p=inr(y) |] ==> b(y):C(inr(y)) |] ==> when(p,a,b) : C(p)");
-*}
+lemma whenT:
+  "[| p:A+B; !!x.[| x:A;  p=inl(x) |] ==> a(x):C(inl(x)); !!y.[| y:B;  p=inr(y) |]
+    ==> b(y):C(inr(y)) |] ==> when(p,a,b) : C(p)"
+  by ncanT
 
 lemmas ncanTs = ifT applyT splitT whenT
 
@@ -275,17 +272,20 @@ lemma zeroT: "zero : Nat"
 
 lemmas icanTs = zeroT succT nilT consT
 
-ML {*
-val incanT_tac = mk_ncanT_tac @{context} [] @{thms icase_rls} @{thms case_rls};
-*}
 
-ML {*
-bind_thm ("ncaseT", incanT_tac
-  "[| n:Nat; n=zero ==> b:C(zero); !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |] ==> ncase(n,b,c) : C(n)");
+method_setup incanT = {*
+  Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms icase_rls} @{thms case_rls})
+*} ""
 
-bind_thm ("lcaseT", incanT_tac
-     "[| l:List(A); l=[] ==> b:C([]); !!h t.[| h:A;  t:List(A); l=h$t |] ==> c(h,t):C(h$t) |] ==> lcase(l,b,c) : C(l)");
-*}
+lemma ncaseT:
+  "[| n:Nat; n=zero ==> b:C(zero); !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |]
+    ==> ncase(n,b,c) : C(n)"
+  by incanT
+
+lemma lcaseT:
+  "[| l:List(A); l=[] ==> b:C([]); !!h t.[| h:A;  t:List(A); l=h$t |] ==>
+    c(h,t):C(h$t) |] ==> lcase(l,b,c) : C(l)"
+  by incanT
 
 lemmas incanTs = ncaseT lcaseT
 
@@ -337,7 +337,7 @@ lemma SgE2:
 (*         - intro rules are type rules for canonical terms                *)
 (*         - elim rules are case rules (no non-canonical terms appear)     *)
 
-ML {* bind_thms ("XHEs", XH_to_Es (thms "XHs")) *}
+ML {* bind_thms ("XHEs", XH_to_Es @{thms XHs}) *}
 
 lemmas [intro!] = SubtypeI canTs icanTs
   and [elim!] = SubtypeE XHEs
@@ -392,88 +392,103 @@ lemma ssubst_pair: "[| a=a';  b=b';  <a',b'> : A |] ==> <a,b> : A"
   by simp
 
 
-(***)
+ML {*
+  val coinduct3_tac = SUBPROOF (fn {context = ctxt, prems = mono :: prems, ...} =>
+    (fast_tac (claset_of ctxt addIs
+        (mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}) :: prems) 1));
+*}
+
+method_setup coinduct3 = {*
+  Scan.succeed (SIMPLE_METHOD' o coinduct3_tac)
+*} ""
+
+lemma ci3_RI: "[| mono(Agen);  a : R |] ==> a : lfp(%x. Agen(x) Un R Un A)"
+  by coinduct3
+
+lemma ci3_AgenI: "[| mono(Agen);  a : Agen(lfp(%x. Agen(x) Un R Un A)) |] ==>
+    a : lfp(%x. Agen(x) Un R Un A)"
+  by coinduct3
+
+lemma ci3_AI: "[| mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R Un A)"
+  by coinduct3
 
 ML {*
-
-local
-  val lfpI = thm "lfpI"
-  val coinduct3_mono_lemma = thm "coinduct3_mono_lemma"
-  fun mk_thm s = prove_goal (the_context ()) s (fn mono::prems =>
-       [fast_tac (@{claset} addIs ((mono RS coinduct3_mono_lemma RS lfpI)::prems)) 1])
-in
-val ci3_RI    = mk_thm "[|  mono(Agen);  a : R |] ==> a : lfp(%x. Agen(x) Un R Un A)"
-val ci3_AgenI = mk_thm "[|  mono(Agen);  a : Agen(lfp(%x. Agen(x) Un R Un A)) |] ==> a : lfp(%x. Agen(x) Un R Un A)"
-val ci3_AI    = mk_thm "[|  mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R Un A)"
-
-fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s
-      (fn prems => [rtac (genXH RS iffD2) 1,
-                    simp_tac (global_simpset_of thy) 1,
-                    TRY (fast_tac (@{claset} addIs
-                            ([genXH RS iffD2,gen_mono RS coinduct3_mono_lemma RS lfpI]
-                             @ prems)) 1)])
-end;
-
-bind_thm ("ci3_RI", ci3_RI);
-bind_thm ("ci3_AgenI", ci3_AgenI);
-bind_thm ("ci3_AI", ci3_AI);
+fun genIs_tac ctxt genXH gen_mono =
+  rtac (genXH RS iffD2) THEN'
+  simp_tac (simpset_of ctxt) THEN'
+  TRY o fast_tac (claset_of ctxt addIs
+        [genXH RS iffD2, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
 *}
+
+method_setup genIs = {*
+  Attrib.thm -- Attrib.thm >> (fn (genXH, gen_mono) => fn ctxt =>
+    SIMPLE_METHOD' (genIs_tac ctxt genXH gen_mono))
+*} ""
 
 
 subsection {* POgen *}
 
 lemma PO_refl: "<a,a> : PO"
-  apply (rule po_refl [THEN PO_iff [THEN iffD1]])
-  done
+  by (rule po_refl [THEN PO_iff [THEN iffD1]])
+
+lemma POgenIs:
+  "<true,true> : POgen(R)"
+  "<false,false> : POgen(R)"
+  "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : POgen(R)"
+  "!!b b'. [|!!x. <b(x),b'(x)> : R |] ==><lam x. b(x),lam x. b'(x)> : POgen(R)"
+  "<one,one> : POgen(R)"
+  "<a,a'> : lfp(%x. POgen(x) Un R Un PO) ==>
+    <inl(a),inl(a')> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  "<b,b'> : lfp(%x. POgen(x) Un R Un PO) ==>
+    <inr(b),inr(b')> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  "<zero,zero> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  "<n,n'> : lfp(%x. POgen(x) Un R Un PO) ==>
+    <succ(n),succ(n')> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  "<[],[]> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  "[| <h,h'> : lfp(%x. POgen(x) Un R Un PO);  <t,t'> : lfp(%x. POgen(x) Un R Un PO) |]
+    ==> <h$t,h'$t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"
+  unfolding data_defs by (genIs POgenXH POgen_mono)+
 
 ML {*
-
-val POgenIs = map (mk_genIs @{theory} @{thms data_defs} @{thm POgenXH} @{thm POgen_mono})
-  ["<true,true> : POgen(R)",
-   "<false,false> : POgen(R)",
-   "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : POgen(R)",
-   "[|!!x. <b(x),b'(x)> : R |] ==><lam x. b(x),lam x. b'(x)> : POgen(R)",
-   "<one,one> : POgen(R)",
-   "<a,a'> : lfp(%x. POgen(x) Un R Un PO) ==> <inl(a),inl(a')> : POgen(lfp(%x. POgen(x) Un R Un PO))",
-   "<b,b'> : lfp(%x. POgen(x) Un R Un PO) ==> <inr(b),inr(b')> : POgen(lfp(%x. POgen(x) Un R Un PO))",
-   "<zero,zero> : POgen(lfp(%x. POgen(x) Un R Un PO))",
-   "<n,n'> : lfp(%x. POgen(x) Un R Un PO) ==> <succ(n),succ(n')> : POgen(lfp(%x. POgen(x) Un R Un PO))",
-   "<[],[]> : POgen(lfp(%x. POgen(x) Un R Un PO))",
-   "[| <h,h'> : lfp(%x. POgen(x) Un R Un PO);  <t,t'> : lfp(%x. POgen(x) Un R Un PO) |] ==> <h$t,h'$t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"];
-
-fun POgen_tac ctxt (rla,rlb) i =
+fun POgen_tac ctxt (rla, rlb) i =
   SELECT_GOAL (safe_tac (claset_of ctxt)) i THEN
   rtac (rlb RS (rla RS @{thm ssubst_pair})) i THEN
-  (REPEAT (resolve_tac (POgenIs @ [@{thm PO_refl} RS (@{thm POgen_mono} RS ci3_AI)] @
-    (POgenIs RL [@{thm POgen_mono} RS ci3_AgenI]) @ [@{thm POgen_mono} RS ci3_RI]) i));
-
+  (REPEAT (resolve_tac
+      (@{thms POgenIs} @ [@{thm PO_refl} RS (@{thm POgen_mono} RS @{thm ci3_AI})] @
+        (@{thms POgenIs} RL [@{thm POgen_mono} RS @{thm ci3_AgenI}]) @
+        [@{thm POgen_mono} RS @{thm ci3_RI}]) i))
 *}
 
 
 subsection {* EQgen *}
 
 lemma EQ_refl: "<a,a> : EQ"
-  apply (rule refl [THEN EQ_iff [THEN iffD1]])
-  done
+  by (rule refl [THEN EQ_iff [THEN iffD1]])
+
+lemma EQgenIs:
+  "<true,true> : EQgen(R)"
+  "<false,false> : EQgen(R)"
+  "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)"
+  "!!b b'. [|!!x. <b(x),b'(x)> : R |] ==> <lam x. b(x),lam x. b'(x)> : EQgen(R)"
+  "<one,one> : EQgen(R)"
+  "<a,a'> : lfp(%x. EQgen(x) Un R Un EQ) ==>
+    <inl(a),inl(a')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  "<b,b'> : lfp(%x. EQgen(x) Un R Un EQ) ==>
+    <inr(b),inr(b')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  "<zero,zero> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  "<n,n'> : lfp(%x. EQgen(x) Un R Un EQ) ==>
+    <succ(n),succ(n')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  "<[],[]> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); <t,t'> : lfp(%x. EQgen(x) Un R Un EQ) |]
+    ==> <h$t,h'$t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"
+  unfolding data_defs by (genIs EQgenXH EQgen_mono)+
 
 ML {*
-
-val EQgenIs = map (mk_genIs @{theory} @{thms data_defs} @{thm EQgenXH} @{thm EQgen_mono})
-  ["<true,true> : EQgen(R)",
-   "<false,false> : EQgen(R)",
-   "[| <a,a'> : R;  <b,b'> : R |] ==> <<a,b>,<a',b'>> : EQgen(R)",
-   "[|!!x. <b(x),b'(x)> : R |] ==> <lam x. b(x),lam x. b'(x)> : EQgen(R)",
-   "<one,one> : EQgen(R)",
-   "<a,a'> : lfp(%x. EQgen(x) Un R Un EQ) ==> <inl(a),inl(a')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-   "<b,b'> : lfp(%x. EQgen(x) Un R Un EQ) ==> <inr(b),inr(b')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-   "<zero,zero> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-   "<n,n'> : lfp(%x. EQgen(x) Un R Un EQ) ==> <succ(n),succ(n')> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-   "<[],[]> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))",
-   "[| <h,h'> : lfp(%x. EQgen(x) Un R Un EQ); <t,t'> : lfp(%x. EQgen(x) Un R Un EQ) |] ==> <h$t,h'$t'> : EQgen(lfp(%x. EQgen(x) Un R Un EQ))"];
-
 fun EQgen_raw_tac i =
-  (REPEAT (resolve_tac (EQgenIs @ [@{thm EQ_refl} RS (@{thm EQgen_mono} RS ci3_AI)] @
-    (EQgenIs RL [@{thm EQgen_mono} RS ci3_AgenI]) @ [@{thm EQgen_mono} RS ci3_RI]) i))
+  (REPEAT (resolve_tac (@{thms EQgenIs} @
+        [@{thm EQ_refl} RS (@{thm EQgen_mono} RS @{thm ci3_AI})] @
+        (@{thms EQgenIs} RL [@{thm EQgen_mono} RS @{thm ci3_AgenI}]) @
+        [@{thm EQgen_mono} RS @{thm ci3_RI}]) i))
 
 (* Goals of the form R <= EQgen(R) - rewrite elements <a,b> : EQgen(R) using rews and *)
 (* then reduce this to a goal <a',b'> : R (hopefully?)                                *)
@@ -482,7 +497,7 @@ fun EQgen_raw_tac i =
 fun EQgen_tac ctxt rews i =
  SELECT_GOAL
    (TRY (safe_tac (claset_of ctxt)) THEN
-    resolve_tac ((rews@[refl]) RL ((rews@[refl]) RL [@{thm ssubst_pair}])) i THEN
+    resolve_tac ((rews @ [refl]) RL ((rews @ [refl]) RL [@{thm ssubst_pair}])) i THEN
     ALLGOALS (simp_tac (simpset_of ctxt)) THEN
     ALLGOALS EQgen_raw_tac) i
 *}

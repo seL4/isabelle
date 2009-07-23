@@ -199,80 +199,81 @@ lemma letrecB:
 
 lemmas rawBs = caseBs applyB applyBbot
 
-ML {*
-local
-  val letrecB = thm "letrecB"
-  val rawBs = thms "rawBs"
-  val data_defs = thms "data_defs"
-in
+method_setup beta_rl = {*
+  Scan.succeed (fn ctxt =>
+    SIMPLE_METHOD' (CHANGED o
+      simp_tac (simpset_of ctxt addsimps @{thms rawBs} setloop (stac @{thm letrecB}))))
+*} ""
 
-fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
-           (fn _ => [stac letrecB 1,
-                     simp_tac (@{simpset} addsimps rawBs) 1]);
-fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
+lemma ifBtrue: "if true then t else u = t"
+  and ifBfalse: "if false then t else u = u"
+  and ifBbot: "if bot then t else u = bot"
+  unfolding data_defs by beta_rl+
 
-fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
-           (fn _ => [simp_tac (@{simpset} addsimps rawBs
-                               setloop (stac letrecB)) 1]);
-fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
+lemma whenBinl: "when(inl(a),t,u) = t(a)"
+  and whenBinr: "when(inr(a),t,u) = u(a)"
+  and whenBbot: "when(bot,t,u) = bot"
+  unfolding data_defs by beta_rl+
 
-end
-*}
+lemma splitB: "split(<a,b>,h) = h(a,b)"
+  and splitBbot: "split(bot,h) = bot"
+  unfolding data_defs by beta_rl+
 
-ML {*
-bind_thm ("ifBtrue", mk_beta_rl "if true then t else u = t");
-bind_thm ("ifBfalse", mk_beta_rl "if false then t else u = u");
-bind_thm ("ifBbot", mk_beta_rl "if bot then t else u = bot");
+lemma fstB: "fst(<a,b>) = a"
+  and fstBbot: "fst(bot) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("whenBinl", mk_beta_rl "when(inl(a),t,u) = t(a)");
-bind_thm ("whenBinr", mk_beta_rl "when(inr(a),t,u) = u(a)");
-bind_thm ("whenBbot", mk_beta_rl "when(bot,t,u) = bot");
+lemma sndB: "snd(<a,b>) = b"
+  and sndBbot: "snd(bot) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("splitB", mk_beta_rl "split(<a,b>,h) = h(a,b)");
-bind_thm ("splitBbot", mk_beta_rl "split(bot,h) = bot");
-bind_thm ("fstB", mk_beta_rl "fst(<a,b>) = a");
-bind_thm ("fstBbot", mk_beta_rl "fst(bot) = bot");
-bind_thm ("sndB", mk_beta_rl "snd(<a,b>) = b");
-bind_thm ("sndBbot", mk_beta_rl "snd(bot) = bot");
-bind_thm ("thdB", mk_beta_rl "thd(<a,<b,c>>) = c");
-bind_thm ("thdBbot", mk_beta_rl "thd(bot) = bot");
+lemma thdB: "thd(<a,<b,c>>) = c"
+  and thdBbot: "thd(bot) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("ncaseBzero", mk_beta_rl "ncase(zero,t,u) = t");
-bind_thm ("ncaseBsucc", mk_beta_rl "ncase(succ(n),t,u) = u(n)");
-bind_thm ("ncaseBbot", mk_beta_rl "ncase(bot,t,u) = bot");
-bind_thm ("nrecBzero", mk_beta_rl "nrec(zero,t,u) = t");
-bind_thm ("nrecBsucc", mk_beta_rl "nrec(succ(n),t,u) = u(n,nrec(n,t,u))");
-bind_thm ("nrecBbot", mk_beta_rl "nrec(bot,t,u) = bot");
+lemma ncaseBzero: "ncase(zero,t,u) = t"
+  and ncaseBsucc: "ncase(succ(n),t,u) = u(n)"
+  and ncaseBbot: "ncase(bot,t,u) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("lcaseBnil", mk_beta_rl "lcase([],t,u) = t");
-bind_thm ("lcaseBcons", mk_beta_rl "lcase(x$xs,t,u) = u(x,xs)");
-bind_thm ("lcaseBbot", mk_beta_rl "lcase(bot,t,u) = bot");
-bind_thm ("lrecBnil", mk_beta_rl "lrec([],t,u) = t");
-bind_thm ("lrecBcons", mk_beta_rl "lrec(x$xs,t,u) = u(x,xs,lrec(xs,t,u))");
-bind_thm ("lrecBbot", mk_beta_rl "lrec(bot,t,u) = bot");
+lemma nrecBzero: "nrec(zero,t,u) = t"
+  and nrecBsucc: "nrec(succ(n),t,u) = u(n,nrec(n,t,u))"
+  and nrecBbot: "nrec(bot,t,u) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("letrec2B", raw_mk_beta_rl (thms "data_defs" @ [thm "letrec2_def"])
-  "letrec g x y be h(x,y,g) in g(p,q) = h(p,q,%u v. letrec g x y be h(x,y,g) in g(u,v))");
+lemma lcaseBnil: "lcase([],t,u) = t"
+  and lcaseBcons: "lcase(x$xs,t,u) = u(x,xs)"
+  and lcaseBbot: "lcase(bot,t,u) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("letrec3B", raw_mk_beta_rl (thms "data_defs" @ [thm "letrec3_def"])
-  "letrec g x y z be h(x,y,z,g) in g(p,q,r) = h(p,q,r,%u v w. letrec g x y z be h(x,y,z,g) in g(u,v,w))");
+lemma lrecBnil: "lrec([],t,u) = t"
+  and lrecBcons: "lrec(x$xs,t,u) = u(x,xs,lrec(xs,t,u))"
+  and lrecBbot: "lrec(bot,t,u) = bot"
+  unfolding data_defs by beta_rl+
 
-bind_thm ("napplyBzero", mk_beta_rl "f^zero`a = a");
-bind_thm ("napplyBsucc", mk_beta_rl "f^succ(n)`a = f(f^n`a)");
+lemma letrec2B:
+  "letrec g x y be h(x,y,g) in g(p,q) = h(p,q,%u v. letrec g x y be h(x,y,g) in g(u,v))"
+  unfolding data_defs letrec2_def by beta_rl+
 
-bind_thms ("termBs", [thm "letB", thm "applyB", thm "applyBbot", splitB,splitBbot,
-  fstB,fstBbot,sndB,sndBbot,thdB,thdBbot,
-  ifBtrue,ifBfalse,ifBbot,whenBinl,whenBinr,whenBbot,
-  ncaseBzero,ncaseBsucc,ncaseBbot,nrecBzero,nrecBsucc,nrecBbot,
-  lcaseBnil,lcaseBcons,lcaseBbot,lrecBnil,lrecBcons,lrecBbot,
-  napplyBzero,napplyBsucc]);
-*}
+lemma letrec3B:
+  "letrec g x y z be h(x,y,z,g) in g(p,q,r) =
+    h(p,q,r,%u v w. letrec g x y z be h(x,y,z,g) in g(u,v,w))"
+  unfolding data_defs letrec3_def by beta_rl+
+
+lemma napplyBzero: "f^zero`a = a"
+  and napplyBsucc: "f^succ(n)`a = f(f^n`a)"
+  unfolding data_defs by beta_rl+
+
+lemmas termBs = letB applyB applyBbot splitB splitBbot fstB fstBbot
+  sndB sndBbot thdB thdBbot ifBtrue ifBfalse ifBbot whenBinl whenBinr
+  whenBbot ncaseBzero ncaseBsucc ncaseBbot nrecBzero nrecBsucc
+  nrecBbot lcaseBnil lcaseBcons lcaseBbot lrecBnil lrecBcons lrecBbot
+  napplyBzero napplyBsucc
 
 
 subsection {* Constructors are injective *}
 
 ML {*
-
 bind_thms ("term_injs", map (mk_inj_rl @{theory}
   [@{thm applyB}, @{thm splitB}, @{thm whenBinl}, @{thm whenBinr},
     @{thm ncaseBsucc}, @{thm lcaseBcons}])
@@ -297,13 +298,17 @@ subsection {* Rules for pre-order @{text "[="} *}
 ML {*
 
 local
-  fun mk_thm s = prove_goalw @{theory} @{thms data_defs} s (fn _ =>
-    [simp_tac (@{simpset} addsimps @{thms ccl_porews}) 1])
+  fun mk_thm s =
+    Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
+      (fn _ =>
+        rewrite_goals_tac @{thms data_defs} THEN
+        simp_tac (@{simpset} addsimps @{thms ccl_porews}) 1);
 in
-  val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
-                                "inr(b) [= inr(b') <-> b [= b'",
-                                "succ(n) [= succ(n') <-> n [= n'",
-                                "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"]
+  val term_porews =
+    map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
+      "inr(b) [= inr(b') <-> b [= b'",
+      "succ(n) [= succ(n') <-> n [= n'",
+      "x$xs [= x'$xs' <-> x [= x'  & xs [= xs'"]
 end;
 
 bind_thms ("term_porews", term_porews);

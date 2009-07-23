@@ -1,5 +1,4 @@
 (*  Title:      CCL/Fix.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1993  University of Cambridge
 *)
