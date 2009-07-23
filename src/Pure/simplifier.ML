@@ -9,10 +9,10 @@ signature BASIC_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
   val change_simpset: (simpset -> simpset) -> unit
-  val simpset_of: theory -> simpset
+  val global_simpset_of: theory -> simpset
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
-  val local_simpset_of: Proof.context -> simpset
+  val simpset_of: Proof.context -> simpset
   val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
   val               simp_tac: simpset -> int -> tactic
@@ -125,7 +125,8 @@ val cong_del = attrib (op delcongs);
 
 fun map_simpset f = Context.theory_map (map_ss f);
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
-fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_ss (Context.Theory thy));
+fun global_simpset_of thy =
+  MetaSimplifier.context (ProofContext.init thy) (get_ss (Context.Theory thy));
 
 fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
 fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
@@ -133,10 +134,10 @@ fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
 
 (* local simpset *)
 
-fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_ss (Context.Proof ctxt));
+fun simpset_of ctxt = MetaSimplifier.context ctxt (get_ss (Context.Proof ctxt));
 
 val _ = ML_Antiquote.value "simpset"
-  (Scan.succeed "Simplifier.local_simpset_of (ML_Context.the_local_context ())");
+  (Scan.succeed "Simplifier.simpset_of (ML_Context.the_local_context ())");
 
 
 
@@ -331,7 +332,7 @@ in
 val simplified = conv_mode -- Attrib.thms >>
   (fn (f, ths) => Thm.rule_attribute (fn context =>
     f ((if null ths then I else MetaSimplifier.clear_ss)
-        (local_simpset_of (Context.proof_of context)) addsimps ths)));
+        (simpset_of (Context.proof_of context)) addsimps ths)));
 
 end;
 
@@ -390,12 +391,12 @@ fun method_setup more_mods =
   Method.setup (Binding.name simpN)
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
       HEADGOAL (Method.insert_tac facts THEN'
-        (CHANGED_PROP oo tac) (local_simpset_of ctxt))))
+        (CHANGED_PROP oo tac) (simpset_of ctxt))))
     "simplification" #>
   Method.setup (Binding.name "simp_all")
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
       ALLGOALS (Method.insert_tac facts) THEN
-        (CHANGED_PROP o ALLGOALS o tac) (local_simpset_of ctxt)))
+        (CHANGED_PROP o ALLGOALS o tac) (simpset_of ctxt)))
     "simplification (all goals)";
 
 fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn _ =>

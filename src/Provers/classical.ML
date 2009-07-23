@@ -69,8 +69,8 @@ sig
   val appSWrappers      : claset -> wrapper
   val appWrappers       : claset -> wrapper
 
-  val claset_of: theory -> claset
-  val local_claset_of   : Proof.context -> claset
+  val global_claset_of  : theory -> claset
+  val claset_of         : Proof.context -> claset
 
   val fast_tac          : claset -> int -> tactic
   val slow_tac          : claset -> int -> tactic
@@ -852,7 +852,7 @@ val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
 fun map_context_cs f = GlobalClaset.map (apsnd
   (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
-fun claset_of thy =
+fun global_claset_of thy =
   let val (cs, ctxt_cs) = GlobalClaset.get thy
   in context_cs (ProofContext.init thy) cs (ctxt_cs) end;
 
@@ -874,13 +874,13 @@ structure LocalClaset = ProofDataFun
   val init = get_claset;
 );
 
-fun local_claset_of ctxt =
+fun claset_of ctxt =
   context_cs ctxt (LocalClaset.get ctxt) (get_context_cs ctxt);
 
 
 (* generic clasets *)
 
-val get_cs = Context.cases claset_of local_claset_of;
+val get_cs = Context.cases global_claset_of claset_of;
 fun map_cs f = Context.mapping (map_claset f) (LocalClaset.map f);
 
 
@@ -930,7 +930,7 @@ local
 fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val [rules1, rules2, rules4] = ContextRules.find_rules false facts goal ctxt;
-    val CS {xtra_netpair, ...} = local_claset_of ctxt;
+    val CS {xtra_netpair, ...} = claset_of ctxt;
     val rules3 = ContextRules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves facts rules;
@@ -969,10 +969,10 @@ val cla_modifiers =
   Args.del -- Args.colon >> K (I, rule_del)];
 
 fun cla_meth tac prems ctxt = METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (local_claset_of ctxt));
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (claset_of ctxt));
 
 fun cla_meth' tac prems ctxt = METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_claset_of ctxt)));
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (claset_of ctxt)));
 
 fun cla_method tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth tac);
 fun cla_method' tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth' tac);
@@ -1014,6 +1014,6 @@ val _ =
   OuterSyntax.improper_command "print_claset" "print context of Classical Reasoner"
     OuterKeyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
-      Toplevel.keep (print_cs o local_claset_of o Toplevel.context_of)));
+      Toplevel.keep (print_cs o claset_of o Toplevel.context_of)));
 
 end;

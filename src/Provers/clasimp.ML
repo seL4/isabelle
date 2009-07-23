@@ -26,7 +26,7 @@ sig
   type clasimpset
   val get_css: Context.generic -> clasimpset
   val map_css: (clasimpset -> clasimpset) -> Context.generic -> Context.generic
-  val local_clasimpset_of: Proof.context -> clasimpset
+  val clasimpset_of: Proof.context -> clasimpset
   val addSIs2: clasimpset * thm list -> clasimpset
   val addSEs2: clasimpset * thm list -> clasimpset
   val addSDs2: clasimpset * thm list -> clasimpset
@@ -73,8 +73,7 @@ fun map_css f context =
   let val (cs', ss') = f (get_css context)
   in context |> Classical.map_cs (K cs') |> Simplifier.map_ss (K ss') end;
 
-fun local_clasimpset_of ctxt =
-  (Classical.local_claset_of ctxt, Simplifier.local_simpset_of ctxt);
+fun clasimpset_of ctxt = (Classical.claset_of ctxt, Simplifier.simpset_of ctxt);
 
 
 (* clasimpset operations *)
@@ -261,10 +260,10 @@ val clasimp_modifiers =
 (* methods *)
 
 fun clasimp_meth tac prems ctxt = METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (local_clasimpset_of ctxt));
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (clasimpset_of ctxt));
 
 fun clasimp_meth' tac prems ctxt = METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_clasimpset_of ctxt)));
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (clasimpset_of ctxt)));
 
 
 fun clasimp_method tac =
