@@ -107,11 +107,11 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{const Set.empty} & @{term_type_only "Set.empty" "'a set"}\\
-@{const insert} & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
+@{const Set.insert} & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
 @{const Collect} & @{term_type_only Collect "('a\<Rightarrow>bool)\<Rightarrow>'a set"}\\
 @{const "op :"} & @{term_type_only "op :" "'a\<Rightarrow>'a set\<Rightarrow>bool"} & (\texttt{:})\\
-@{const Set.Un} & @{term_type_only Set.Un "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Un})\\
-@{const Set.Int} & @{term_type_only Set.Int "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Int})\\
+@{const Set.union} & @{term_type_only Set.Un "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Un})\\
+@{const Set.inter} & @{term_type_only Set.Int "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Int})\\
 @{const UNION} & @{term_type_only UNION "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const INTER} & @{term_type_only INTER "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const Union} & @{term_type_only Union "'a set set\<Rightarrow>'a set"}\\
