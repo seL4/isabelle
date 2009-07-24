@@ -1390,7 +1390,7 @@ subsubsection {* Generic cases and induction *}
 text {* Rule projections: *}
 
 ML {*
-structure ProjectRule = ProjectRuleFun
+structure Project_Rule = Project_Rule
 (
   val conjunct1 = @{thm conjunct1}
   val conjunct2 = @{thm conjunct2}

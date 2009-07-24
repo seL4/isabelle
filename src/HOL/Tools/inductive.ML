@@ -712,7 +712,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
           map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
     val ctxt3 = if no_ind orelse coind then ctxt2 else
-      let val inducts = cnames ~~ ProjectRule.projects ctxt2 (1 upto length cnames) induct'
+      let val inducts = cnames ~~ Project_Rule.projects ctxt2 (1 upto length cnames) induct'
       in
         ctxt2 |>
         LocalTheory.notes kind [((rec_qualified (Binding.name "inducts"), []),

@@ -1033,7 +1033,7 @@ in
     in pg [] goal (K tacs) end;
 end; (* local *)
 
-val inducts = ProjectRule.projections (ProofContext.init thy) ind;
+val inducts = Project_Rule.projections (ProofContext.init thy) ind;
 fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
 val induct_failed = (Thm.prop_of ind = Thm.prop_of TrueI);
 

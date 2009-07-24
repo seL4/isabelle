@@ -191,7 +191,7 @@ fun add_rules simps case_thms rec_thms inject distinct
 
 fun add_cases_induct infos induction thy =
   let
-    val inducts = ProjectRule.projections (ProofContext.init thy) induction;
+    val inducts = Project_Rule.projections (ProofContext.init thy) induction;
 
     fun named_rules (name, {index, exhaustion, ...}: info) =
       [((Binding.empty, nth inducts index), [Induct.induct_type name]),

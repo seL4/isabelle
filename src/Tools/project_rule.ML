@@ -24,7 +24,7 @@ sig
   val projections: Proof.context -> thm -> thm list
 end;
 
-functor ProjectRuleFun(Data: PROJECT_RULE_DATA): PROJECT_RULE =
+functor Project_Rule(Data: PROJECT_RULE_DATA): PROJECT_RULE =
 struct
 
 fun conj1 th = th RS Data.conjunct1;

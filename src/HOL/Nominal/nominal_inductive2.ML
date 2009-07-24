@@ -466,7 +466,7 @@ fun prove_strong_ind s avoids ctxt =
             map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
           ctxt;
         val strong_inducts =
-          ProjectRule.projects ctxt' (1 upto length names) strong_induct'
+          Project_Rule.projects ctxt' (1 upto length names) strong_induct'
       in
         ctxt' |>
         LocalTheory.note Thm.generatedK

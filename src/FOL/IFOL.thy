@@ -591,12 +591,12 @@ lemma disj_imp_disj:
   done
 
 ML {*
-structure ProjectRule = ProjectRuleFun
-(struct
+structure Project_Rule = Project_Rule
+(
   val conjunct1 = @{thm conjunct1}
   val conjunct2 = @{thm conjunct2}
   val mp = @{thm mp}
-end)
+)
 *}
 
 use "fologic.ML"
