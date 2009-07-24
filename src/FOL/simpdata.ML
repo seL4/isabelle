@@ -95,27 +95,25 @@ val defALL_regroup =
 
 (*** Case splitting ***)
 
-structure SplitterData =
-  struct
-  structure Simplifier = Simplifier
-  val mk_eq          = mk_eq
+structure Splitter = Splitter
+(
+  val thy = @{theory}
+  val mk_eq = mk_eq
   val meta_eq_to_iff = @{thm meta_eq_to_iff}
-  val iffD           = @{thm iffD2}
-  val disjE          = @{thm disjE}
-  val conjE          = @{thm conjE}
-  val exE            = @{thm exE}
-  val contrapos      = @{thm contrapos}
-  val contrapos2     = @{thm contrapos2}
-  val notnotD        = @{thm notnotD}
-  end;
+  val iffD = @{thm iffD2}
+  val disjE = @{thm disjE}
+  val conjE = @{thm conjE}
+  val exE = @{thm exE}
+  val contrapos = @{thm contrapos}
+  val contrapos2 = @{thm contrapos2}
+  val notnotD = @{thm notnotD}
+);
 
-structure Splitter = SplitterFun(SplitterData);
-
-val split_tac        = Splitter.split_tac;
+val split_tac = Splitter.split_tac;
 val split_inside_tac = Splitter.split_inside_tac;
-val split_asm_tac    = Splitter.split_asm_tac;
-val op addsplits     = Splitter.addsplits;
-val op delsplits     = Splitter.delsplits;
+val split_asm_tac = Splitter.split_asm_tac;
+val op addsplits = Splitter.addsplits;
+val op delsplits = Splitter.delsplits;
 
 
 (*** Standard simpsets ***)

@@ -126,27 +126,25 @@ fun safe_solver_tac prems =
 
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
-structure SplitterData =
-struct
-  structure Simplifier = Simplifier
-  val mk_eq           = mk_eq
-  val meta_eq_to_iff  = @{thm meta_eq_to_obj_eq}
-  val iffD            = @{thm iffD2}
-  val disjE           = @{thm disjE}
-  val conjE           = @{thm conjE}
-  val exE             = @{thm exE}
-  val contrapos       = @{thm contrapos_nn}
-  val contrapos2      = @{thm contrapos_pp}
-  val notnotD         = @{thm notnotD}
-end;
+structure Splitter = Splitter
+(
+  val thy = @{theory}
+  val mk_eq = mk_eq
+  val meta_eq_to_iff = @{thm meta_eq_to_obj_eq}
+  val iffD = @{thm iffD2}
+  val disjE = @{thm disjE}
+  val conjE = @{thm conjE}
+  val exE = @{thm exE}
+  val contrapos = @{thm contrapos_nn}
+  val contrapos2 = @{thm contrapos_pp}
+  val notnotD = @{thm notnotD}
+);
 
-structure Splitter = SplitterFun(SplitterData);
-
-val split_tac        = Splitter.split_tac;
+val split_tac = Splitter.split_tac;
 val split_inside_tac = Splitter.split_inside_tac;
 
-val op addsplits     = Splitter.addsplits;
-val op delsplits     = Splitter.delsplits;
+val op addsplits = Splitter.addsplits;
+val op delsplits = Splitter.delsplits;
 
 
 (* integration of simplifier with classical reasoner *)

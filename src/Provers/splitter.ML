@@ -11,6 +11,7 @@ infix 4 addsplits delsplits;
 
 signature SPLITTER_DATA =
 sig
+  val thy           : theory
   val mk_eq         : thm -> thm
   val meta_eq_to_iff: thm (* "x == y ==> x = y"                      *)
   val iffD          : thm (* "[| P = Q; Q |] ==> P"                  *)
@@ -40,18 +41,18 @@ sig
   val setup: theory -> theory
 end;
 
-functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
+functor Splitter(Data: SPLITTER_DATA): SPLITTER =
 struct
 
 val Const (const_not, _) $ _ =
-  ObjectLogic.drop_judgment (OldGoals.the_context ())
+  ObjectLogic.drop_judgment Data.thy
     (#1 (Logic.dest_implies (Thm.prop_of Data.notnotD)));
 
 val Const (const_or , _) $ _ $ _ =
-  ObjectLogic.drop_judgment (OldGoals.the_context ())
+  ObjectLogic.drop_judgment Data.thy
     (#1 (Logic.dest_implies (Thm.prop_of Data.disjE)));
 
-val const_Trueprop = ObjectLogic.judgment_name (OldGoals.the_context ());
+val const_Trueprop = ObjectLogic.judgment_name Data.thy;
 
 
 fun split_format_err () = error "Wrong format for split rule";
