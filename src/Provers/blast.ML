@@ -39,7 +39,8 @@ Known problems:
 type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 
 signature BLAST_DATA =
-  sig
+sig
+  val thy: theory
   type claset
   val equality_name: string
   val not_name: string
@@ -57,11 +58,10 @@ signature BLAST_DATA =
                  haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: ContextRules.netpair}
   val cla_modifiers: Method.modifier parser list
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
-  end;
-
+end;
 
 signature BLAST =
-  sig
+sig
   type claset
   exception TRANS of string    (*reports translation errors*)
   datatype term =
@@ -90,10 +90,10 @@ signature BLAST =
   val tryInThy          : theory -> claset -> int -> string ->
                   (int->tactic) list * branch list list * (int*int*exn) list
   val normBr            : branch -> branch
-  end;
+end;
 
 
-functor BlastFun(Data: BLAST_DATA) : BLAST =
+functor Blast(Data: BLAST_DATA) : BLAST =
 struct
 
 type claset = Data.claset;
@@ -181,8 +181,8 @@ fun mkGoal P = Const ("*Goal*", []) $ P;
 fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _ = false;
 
-val TruepropC = ObjectLogic.judgment_name (OldGoals.the_context ());
-val TruepropT = Sign.the_const_type (OldGoals.the_context ()) TruepropC;
+val TruepropC = ObjectLogic.judgment_name Data.thy;
+val TruepropT = Sign.the_const_type Data.thy TruepropC;
 
 fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
 

@@ -910,8 +910,9 @@ apply iprover
 done
 
 ML {*
-structure Blast = BlastFun
+structure Blast = Blast
 (
+  val thy = @{theory}
   type claset = Classical.claset
   val equality_name = @{const_name "op ="}
   val not_name = @{const_name Not}

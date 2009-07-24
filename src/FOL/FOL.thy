@@ -12,7 +12,6 @@ uses
   "~~/src/Provers/clasimp.ML"
   "~~/src/Tools/induct.ML"
   ("cladata.ML")
-  ("blastdata.ML")
   ("simpdata.ML")
 begin
 
@@ -171,7 +170,25 @@ use "cladata.ML"
 setup Cla.setup
 setup cla_setup
 
-use "blastdata.ML"
+ML {*
+  structure Blast = Blast
+  (
+    val thy = @{theory}
+    type claset	= Cla.claset
+    val equality_name = @{const_name "op ="}
+    val not_name = @{const_name Not}
+    val notE	= @{thm notE}
+    val ccontr	= @{thm ccontr}
+    val contr_tac = Cla.contr_tac
+    val dup_intr	= Cla.dup_intr
+    val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
+    val rep_cs = Cla.rep_cs
+    val cla_modifiers = Cla.cla_modifiers
+    val cla_meth' = Cla.cla_meth'
+  );
+  val blast_tac = Blast.blast_tac;
+*}
+
 setup Blast.setup
 
 

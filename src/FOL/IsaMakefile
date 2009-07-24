@@ -36,8 +36,8 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
   $(SRC)/Provers/hypsubst.ML $(SRC)/Tools/induct.ML			\
   $(SRC)/Tools/intuitionistic.ML $(SRC)/Tools/atomize_elim.ML		\
   $(SRC)/Tools/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
-  $(SRC)/Provers/splitter.ML FOL.thy IFOL.thy ROOT.ML blastdata.ML	\
-  cladata.ML document/root.tex fologic.ML hypsubstdata.ML intprover.ML	\
+  $(SRC)/Provers/splitter.ML FOL.thy IFOL.thy ROOT.ML cladata.ML	\
+  document/root.tex fologic.ML hypsubstdata.ML intprover.ML		\
   simpdata.ML
 	@$(ISABELLE_TOOL) usedir -p 2 -b $(OUT)/Pure FOL
 
