@@ -47,51 +47,51 @@ function fail()
 # make file flags and nice setup for different target platforms
 case $HOSTNAME in
     atbroy51)
-        MFLAGS="-j 2"
+        MFLAGS="-k -j 2"
         NICE=""
         ;;
 
     atbroy98)
-        MFLAGS=""
+        MFLAGS="-k"
         NICE=""
         ;;
 
     atbroy31)
-        MFLAGS="-j 2"
+        MFLAGS="-k -j 2"
         ;;
   
     sunbroy2)
-        MFLAGS="-j 6"
+        MFLAGS="-k -j 6"
         NICE="nice"
         ;;
 
     sunbroy1)
-        MFLAGS="-j 2"
+        MFLAGS="-k -j 2"
         NICE="nice"
         ;;
 
     macbroy2)
-        MFLAGS=""
+        MFLAGS="-k"
         NICE=""
         ;;
 
     macbroy5)
-        MFLAGS="-j 2"
+        MFLAGS="-k -j 2"
         NICE=""
         ;;
 
     macbroy23)
-        MFLAGS="-j 2"
+        MFLAGS="-k -j 2"
         NICE="nice"
         ;;
 
     macbroy2[0-9])
-        MFLAGS="-j 2"
+        MFLAGS="-k -j 2"
         NICE=""
         ;;
 
     *)
-        MFLAGS=""
+        MFLAGS="-k"
         # be nice by default
         NICE=nice
         ;;
