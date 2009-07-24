@@ -10,7 +10,6 @@ may be a stack of pending proofs.
 
 signature OLD_GOALS =
 sig
-  val the_context: unit -> theory
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
@@ -62,11 +61,6 @@ end;
 
 structure OldGoals: OLD_GOALS =
 struct
-
-(* global context *)
-
-val the_context = ML_Context.the_global_context;
-
 
 (* old ways of reading terms *)
 
