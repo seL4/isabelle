@@ -116,7 +116,7 @@ val typecheck_setup =
     (Method.sections
       [Args.add -- Args.colon >> K (I, TC_add),
        Args.del -- Args.colon >> K (I, TC_del)]
-      >> (K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)))))
+      >> K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))))
     "ZF type-checking";
 
 val _ =
