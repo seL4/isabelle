@@ -27,7 +27,7 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-(* options *)
+(* tracing *)
 
 val trace = ref 0;
 
@@ -43,6 +43,15 @@ fun tracing_time time =
     else if Time.>= (time, Time.fromMilliseconds 10) then 3
     else if Time.>= (time, Time.fromMilliseconds 1) then 4 else 5);
 
+fun real_time f x =
+  let
+    val timer = Timer.startRealTimer ();
+    val () = f x;
+    val time = Timer.checkRealTimer timer;
+  in time end;
+
+
+(* options *)
 
 val available = true;
 
@@ -220,10 +229,8 @@ fun NAMED_CRITICAL name e =
           if Mutex.trylock critical_lock then ()
           else
             let
-              val timer = Timer.startRealTimer ();
               val _ = tracing 5 (fn () => "CRITICAL" ^ show name ^ show' name' ^ ": waiting");
-              val _ = Mutex.lock critical_lock;
-              val time = Timer.checkRealTimer timer;
+              val time = real_time Mutex.lock critical_lock;
               val _ = tracing_time time (fn () =>
                 "CRITICAL" ^ show name ^ show' name' ^ ": passed after " ^ Time.toString time);
             in () end;

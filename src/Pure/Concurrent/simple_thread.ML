@@ -29,12 +29,10 @@ fun synchronized name lock e = Exn.release (uninterruptible (fn restore_attribut
       if Mutex.trylock lock then true
       else
         let
-          val timer = Timer.startRealTimer ();
           val _ = Multithreading.tracing 5 (fn () => name ^ ": locking ...");
-          val _ = Mutex.lock lock;
-          val time = Timer.checkRealTimer timer;
-          val _ = Multithreading.tracing_time time (fn () =>
-            name ^ ": locked after " ^ Time.toString time);
+          val time = Multithreading.real_time Mutex.lock lock;
+          val _ = Multithreading.tracing_time time
+            (fn () => name ^ ": locked after " ^ Time.toString time);
         in false end;
     val result = Exn.capture (restore_attributes e) ();
     val _ =
