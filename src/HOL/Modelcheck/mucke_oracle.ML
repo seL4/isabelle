@@ -1,3 +1,4 @@
+open OldGoals;
 
 val trace_mc = ref false; 
 

@@ -1,5 +1,4 @@
-(*  Title:      Provers/splitter
-    ID:         $Id$
+(*  Title:      Provers/splitter.ML
     Author:     Tobias Nipkow
     Copyright   1995  TU Munich
 
@@ -45,14 +44,14 @@ functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
 struct
 
 val Const (const_not, _) $ _ =
-  ObjectLogic.drop_judgment (the_context ())
+  ObjectLogic.drop_judgment (OldGoals.the_context ())
     (#1 (Logic.dest_implies (Thm.prop_of Data.notnotD)));
 
 val Const (const_or , _) $ _ $ _ =
-  ObjectLogic.drop_judgment (the_context ())
+  ObjectLogic.drop_judgment (OldGoals.the_context ())
     (#1 (Logic.dest_implies (Thm.prop_of Data.disjE)));
 
-val const_Trueprop = ObjectLogic.judgment_name (the_context ());
+val const_Trueprop = ObjectLogic.judgment_name (OldGoals.the_context ());
 
 
 fun split_format_err () = error "Wrong format for split rule";

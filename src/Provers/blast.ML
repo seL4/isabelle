@@ -181,8 +181,8 @@ fun mkGoal P = Const ("*Goal*", []) $ P;
 fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _ = false;
 
-val TruepropC = ObjectLogic.judgment_name (the_context ());
-val TruepropT = Sign.the_const_type (the_context ()) TruepropC;
+val TruepropC = ObjectLogic.judgment_name (OldGoals.the_context ());
+val TruepropT = Sign.the_const_type (OldGoals.the_context ()) TruepropC;
 
 fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
 

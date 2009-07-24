@@ -5,6 +5,8 @@ theory Meson_Test
 imports Main
 begin
 
+ML {* open OldGoals *}
+
 text {*
   WARNING: there are many potential conflicts between variables used
   below and constants declared in HOL!
