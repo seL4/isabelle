@@ -831,7 +831,8 @@ fun gen_generate_code prep_term thy modules module xs =
   end;
 
 val generate_code_i = gen_generate_code Sign.cert_term;
-val generate_code = gen_generate_code OldGoals.read_term;
+val generate_code =
+  gen_generate_code (Syntax.read_term o ProofContext.allow_dummies o ProofContext.init);
 
 
 (**** Reflection ****)
