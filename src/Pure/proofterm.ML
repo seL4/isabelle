@@ -1334,8 +1334,7 @@ fun thm_proof thy name hyps prop promises body =
 fun get_name hyps prop prf =
   let val prop = Logic.list_implies (hyps, prop) in
     (case strip_combt (fst (strip_combP prf)) of
-      (PAxm (name, prop', _), _) => if prop = prop' then name else ""   (* FIXME !? *)
-    | (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
+      (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
     | _ => "")
   end;
 
