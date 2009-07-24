@@ -138,7 +138,7 @@ end;
 fun count_active ws =
   fold (fn (_, active) => fn i => if active then i + 1 else i) ws 0;
 
-fun trace_active () = Multithreading.tracing 1 (fn () =>
+fun trace_active () = Multithreading.tracing 6 (fn () =>
   let
     val ws = ! workers;
     val m = string_of_int (length ws);
@@ -222,7 +222,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
     (*queue status*)
-    val _ = Multithreading.tracing 1 (fn () =>
+    val _ = Multithreading.tracing 6 (fn () =>
       let val {ready, pending, running} = Task_Queue.status (! queue) in
         "SCHEDULE: " ^
           string_of_int ready ^ " ready, " ^
@@ -338,8 +338,12 @@ fun join_results xs =
         if SYNCHRONIZED "join_wait" (fn () =>
           is_finished x orelse (if worker then worker_wait () else wait (); false))
         then () else join_wait x;
-      val _ = List.app join_wait xs;
 
+      val _ = xs |> List.app (fn x =>
+        let val time = Multithreading.real_time join_wait x in
+          Multithreading.tracing_time true time
+            (fn () => "joined after " ^ Time.toString time)
+        end);
     in map get_result xs end) ();
 
 end;

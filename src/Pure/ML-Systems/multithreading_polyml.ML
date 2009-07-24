@@ -36,9 +36,10 @@ fun tracing level msg =
   else (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
     handle _ (*sic*) => ();
 
-fun tracing_time time =
+fun tracing_time detailed time =
   tracing
-   (if Time.>= (time, Time.fromMilliseconds 1000) then 1
+   (if not detailed then 5
+    else if Time.>= (time, Time.fromMilliseconds 1000) then 1
     else if Time.>= (time, Time.fromMilliseconds 100) then 2
     else if Time.>= (time, Time.fromMilliseconds 10) then 3
     else if Time.>= (time, Time.fromMilliseconds 1) then 4 else 5);
@@ -231,7 +232,7 @@ fun NAMED_CRITICAL name e =
             let
               val _ = tracing 5 (fn () => "CRITICAL" ^ show name ^ show' name' ^ ": waiting");
               val time = real_time Mutex.lock critical_lock;
-              val _ = tracing_time time (fn () =>
+              val _ = tracing_time true time (fn () =>
                 "CRITICAL" ^ show name ^ show' name' ^ ": passed after " ^ Time.toString time);
             in () end;
         val _ = critical_thread := SOME (Thread.self ());

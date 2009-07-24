@@ -15,7 +15,7 @@ sig
   include BASIC_MULTITHREADING
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
-  val tracing_time: Time.time -> (unit -> string) -> unit
+  val tracing_time: bool -> Time.time -> (unit -> string) -> unit
   val real_time: ('a -> unit) -> 'a -> Time.time
   val available: bool
   val max_threads: int ref
@@ -37,7 +37,7 @@ struct
 
 val trace = ref (0: int);
 fun tracing _ _ = ();
-fun tracing_time _ _ = ();
+fun tracing_time _ _ _ = ();
 fun real_time f x = (f x; Time.zeroTime);
 
 
