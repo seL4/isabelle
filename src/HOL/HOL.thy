@@ -1446,7 +1446,7 @@ hide const induct_forall induct_implies induct_equal induct_conj
 text {* Method setup. *}
 
 ML {*
-structure Induct = InductFun
+structure Induct = Induct
 (
   val cases_default = @{thm case_split}
   val atomize = @{thms induct_atomize}

@@ -70,7 +70,7 @@ sig
   val setup: theory -> theory
 end;
 
-functor InductFun(Data: INDUCT_DATA): INDUCT =
+functor Induct(Data: INDUCT_DATA): INDUCT =
 struct
 
 
