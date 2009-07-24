@@ -65,7 +65,6 @@ use_thys [
   "HarmonicSeries",
   "Refute_Examples",
   "Quickcheck_Examples",
-  "Formal_Power_Series_Examples",
   "Landau"
 ];
 
