@@ -6,19 +6,22 @@ header {* A decision method for universal multivariate real arithmetic with addi
           multiplication and ordering using semidefinite programming*}
 theory Sum_Of_Squares
   imports Complex_Main (* "~~/src/HOL/Decision_Procs/Dense_Linear_Order" *)
-  uses "positivstellensatz.ML" "sum_of_squares.ML"
+  uses "positivstellensatz.ML" "sum_of_squares.ML" "sos_wrapper.ML"
   begin
 
 (* Note: 
 
-In order to use the method sos, install CSDP (https://projects.coin-or.org/Csdp/) and put the executable csdp on your path. 
+In order to use the method sos, call it with (sos remote_csdp) to use the remote solver
+or install CSDP (https://projects.coin-or.org/Csdp/), put the executable csdp on your path,
+and call it with (sos csdp)
 
 *)
 
-method_setup sos = {* Scan.succeed (SIMPLE_METHOD' o Sos.sos_tac) *} 
-  "Prove universal problems over the reals using sums of squares"
+(* setup sos tactic *)
+setup SosWrapper.setup
 
-text{* Tests -- commented since they work only when csdp is installed -- see above *}
+text{* Tests -- commented since they work only when csdp is installed  or take too long with remote csdps *}
+
 (*
 lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<Longrightarrow> a < 0" by sos
 
@@ -115,3 +118,4 @@ lemma "4*r^2 = p^2 - 4*q & r >= (0::real) & x^2 + p*x + q = 0 --> 2*(x::real) = 
 *)
 
 end
+

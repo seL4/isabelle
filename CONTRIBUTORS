@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* July 2009: Philipp Meyer, TUM
+  HOL/Library/Sum_of_Squares: functionality to call a remote csdp prover
+
 * July 2009: Florian Haftmann, TUM
   New quickcheck implementation using new code generator
 
@@ -18,6 +21,9 @@ Contributions to this Isabelle version
 
 * June 2009: Florian Haftmann, TUM
   HOL/Library/Tree: searchtrees implementing mappings, ready to use for code generation
+
+* March 2009: Philipp Meyer, TUM
+  minimalization algorithm for results from sledgehammer call
 
 Contributions to Isabelle2009
 -----------------------------
