@@ -245,7 +245,8 @@ val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
 fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm_without_context th)
 fun prc ct = writeln (PrintMode.setmp [] Display.string_of_cterm ct)
-fun prin t = writeln (PrintMode.setmp [] (fn () => Syntax.string_of_term_global (OldGoals.the_context ()) t) ());
+fun prin t = writeln (PrintMode.setmp []
+  (fn () => Syntax.string_of_term (ML_Context.the_local_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =
     let
         (*val _ = writeln "Renaming:"
