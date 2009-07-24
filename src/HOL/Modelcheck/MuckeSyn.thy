@@ -118,7 +118,7 @@ case t of
 
 local
 
-  val move_thm = prove_goal @{theory} "[| a = b ==> P a; a = b |] ==> P b"
+  val move_thm = OldGoals.prove_goal @{theory} "[| a = b ==> P a; a = b |] ==> P b"
 	(fn prems => [cut_facts_tac prems 1, dtac sym 1, hyp_subst_tac 1,
 		     REPEAT (resolve_tac prems 1)]);
 
@@ -159,9 +159,9 @@ in cut_facts_tac [OraAss] i end);
 
 (* transforming fun-defs into lambda-defs *)
 
-val [eq] = goal Pure.thy "(!! x. f x == g x) ==> f == g";
- by (rtac (extensional eq) 1);
-qed "ext_rl";
+val [eq] = OldGoals.goal Pure.thy "(!! x. f x == g x) ==> f == g";
+ OldGoals.by (rtac (extensional eq) 1);
+OldGoals.qed "ext_rl";
 
 infix cc;
 
@@ -196,7 +196,7 @@ fun mk_lam_def (_::_) _ _ = NONE
 	val rhs = Syntax.string_of_term_global thy (freeze_thaw RHS)
 	val gl = delete_bold_string (fnam ^" == % " ^ (getargs LHS) ^" . " ^ rhs);
     in
-	SOME (prove_goal thy gl (fn prems =>
+	SOME (OldGoals.prove_goal thy gl (fn prems =>
   		[(REPEAT (rtac ext_rl 1)), (rtac t 1) ]))
     end
 | mk_lam_def [] _ t= NONE; 

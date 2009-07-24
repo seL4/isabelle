@@ -1,4 +1,3 @@
-open OldGoals;
 
 val trace_mc = ref false; 
 
@@ -110,9 +109,9 @@ in
 (
 OldGoals.push_proof();
 OldGoals.goalw_cterm [] (cterm_of sign trm);
-by (simp_tac (global_simpset_of sign) 1);
+OldGoals.by (simp_tac (global_simpset_of sign) 1);
         let
-        val if_tmp_result = result()
+        val if_tmp_result = OldGoals.result()
         in
         (
         OldGoals.pop_proof();

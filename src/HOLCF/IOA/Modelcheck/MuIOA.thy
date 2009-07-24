@@ -246,7 +246,7 @@ structured_tuple con_post_varlist (element_type(#T(rep_cterm(cterm_of sign (Star
 in
 (
 OldGoals.push_proof();
-Goal 
+OldGoals.Goal 
 ( "(Internal_of_A = (% a::(" ^ action_type_str ^ "). a:(" ^ ia_str^
   "))) --> (Internal_of_C = (% a::(" ^ action_type_str ^ "). a:(" ^ ic_str ^ 
   "))) --> (Start_of_A = (% (" ^ abs_pre_tupel_typed ^
@@ -275,21 +275,21 @@ Goal
  ") --> (! " ^ con_pre_str_typed ^ ". ! " ^ abs_pre_str_typed ^
 	". (Start_of_C (" ^ con_pre_tupel ^ ") & Start_of_A (" ^ abs_pre_tupel ^
 	")) --> isSimCA(" ^ con_pre_tupel ^ "," ^ abs_pre_tupel ^ "))");
-by (REPEAT (rtac impI 1));
-by (REPEAT (dtac eq_reflection 1));
+OldGoals.by (REPEAT (rtac impI 1));
+OldGoals.by (REPEAT (dtac eq_reflection 1));
 (* Bis hierher wird im Kapitel 4 erl"autert, ab hier im Kapitel 5 *)
-by (full_simp_tac ((global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs)
+OldGoals.by (full_simp_tac ((global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs)
                               delsimps [not_iff,split_part])
 			      addsimps (thl @ comp_simps @ restrict_simps @ hide_simps @
                                         rename_simps @ ioa_simps @ asig_simps)) 1);
-by (full_simp_tac
+OldGoals.by (full_simp_tac
   (Mucke_ss delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1);
-by (REPEAT (if_full_simp_tac
+OldGoals.by (REPEAT (if_full_simp_tac
   (global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1));
-by (call_mucke_tac 1);
+OldGoals.by (call_mucke_tac 1);
 (* Bis hierher wird im Kapitel 5 erl"autert, ab hier wieder im Kapitel 4 *)
-by (atac 1);
-result();
+OldGoals.by (atac 1);
+OldGoals.result();
 OldGoals.pop_proof();
 Thm.cterm_of sign (Logic.strip_imp_concl subgoal)
 )
