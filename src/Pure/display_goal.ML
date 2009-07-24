@@ -13,7 +13,6 @@ sig
   val pretty_goals: Proof.context -> {total: bool, main: bool, maxgoals: int} ->
     thm -> Pretty.T list
   val pretty_goals_without_context: int -> thm -> Pretty.T list
-  val print_goals_without_context: int -> thm -> unit
 end;
 
 structure Display_Goal: DISPLAY_GOAL =
@@ -118,9 +117,6 @@ fun pretty_goals ctxt {total, main, maxgoals} state =
 fun pretty_goals_without_context n th =
   pretty_goals (Syntax.init_pretty_global (Thm.theory_of_thm th))
     {total = true, main = true, maxgoals = n} th;
-
-val print_goals_without_context =
-  (Pretty.writeln o Pretty.chunks) oo pretty_goals_without_context;
 
 end;
 

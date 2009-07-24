@@ -232,9 +232,10 @@ fun exec_trace_command flag (tac, st) =
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing) then
-   (Display_Goal.print_goals_without_context (! Display_Goal.goals_limit) st;
-    tracing "** Press RETURN to continue:";
-    exec_trace_command flag (tac, st))
+    (tracing (Pretty.string_of (Pretty.chunks
+        (Display_Goal.pretty_goals_without_context (! Display_Goal.goals_limit) st @
+          [Pretty.str "** Press RETURN to continue:"])));
+     exec_trace_command flag (tac, st))
   else tac st;
 
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
