@@ -8,28 +8,48 @@ of levels.  The undo list is a list of goal stacks.  Finally, there
 may be a stack of pending proofs.
 *)
 
-signature GOALS =
+signature OLD_GOALS =
 sig
   val the_context: unit -> theory
+  val simple_read_term: theory -> typ -> string -> term
+  val read_term: theory -> string -> term
+  val read_prop: theory -> string -> term
+  type proof
   val premises: unit -> thm list
-  val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
+  val reset_goals: unit -> unit
+  val result_error_fn: (thm -> string -> thm) ref
+  val print_sign_exn: theory -> exn -> 'a
+  val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
+  val prove_goalw_cterm_nocheck: thm list->cterm->(thm list->tactic list)->thm
   val prove_goalw: theory -> thm list -> string -> (thm list -> tactic list) -> thm
+  val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
   val topthm: unit -> thm
   val result: unit -> thm
   val uresult: unit -> thm
   val getgoal: int -> term
   val gethyps: int -> thm list
+  val print_exn: exn -> 'a
+  val filter_goal: (term*term->bool) -> thm list -> int -> thm list
   val prlev: int -> unit
   val pr: unit -> unit
   val prlim: int -> unit
-  val goal: theory -> string -> thm list
+  val goalw_cterm: thm list -> cterm -> thm list
   val goalw: theory -> thm list -> string -> thm list
-  val Goal: string -> thm list
+  val goal: theory -> string -> thm list
   val Goalw: thm list -> string -> thm list
+  val Goal: string -> thm list
+  val simple_prove_goal_cterm: cterm->(thm list->tactic list)->thm
   val by: tactic -> unit
+  val byev: tactic list -> unit
   val back: unit -> unit
   val choplev: int -> unit
+  val chop: unit -> unit
   val undo: unit -> unit
+  val save_proof: unit -> proof
+  val restore_proof: proof -> thm list
+  val push_proof: unit -> unit
+  val pop_proof: unit -> thm list
+  val rotate_proof: unit -> thm list
   val qed: string -> unit
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory -> thm list -> string
@@ -38,31 +58,6 @@ sig
   val qed_goal_spec_mp: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw_spec_mp: string -> theory -> thm list -> string
     -> (thm list -> tactic list) -> unit
-end;
-
-signature OLD_GOALS =
-sig
-  include GOALS
-  val simple_read_term: theory -> typ -> string -> term
-  val read_term: theory -> string -> term
-  val read_prop: theory -> string -> term
-  type proof
-  val chop: unit -> unit
-  val reset_goals: unit -> unit
-  val result_error_fn: (thm -> string -> thm) ref
-  val print_sign_exn: theory -> exn -> 'a
-  val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
-  val prove_goalw_cterm_nocheck: thm list->cterm->(thm list->tactic list)->thm
-  val print_exn: exn -> 'a
-  val filter_goal: (term*term->bool) -> thm list -> int -> thm list
-  val goalw_cterm: thm list -> cterm -> thm list
-  val simple_prove_goal_cterm: cterm->(thm list->tactic list)->thm
-  val byev: tactic list -> unit
-  val save_proof: unit -> proof
-  val restore_proof: proof -> thm list
-  val push_proof: unit -> unit
-  val pop_proof: unit -> thm list
-  val rotate_proof: unit -> thm list
 end;
 
 structure OldGoals: OLD_GOALS =
@@ -457,12 +452,13 @@ fun pop_proof() =
   in proofstack := ps;  pr();  prems end;
 
 (* rotate the stack so that the top element goes to the bottom *)
-fun rotate_proof() = let val (p,ps) = top_proof()
-                    in proofstack := ps@[save_proof()];
-                       restore_proof p;
-                       pr();
-                       !curr_prems
-                    end;
+fun rotate_proof() =
+  let val (p,ps) = top_proof()
+  in proofstack := ps@[save_proof()];
+     restore_proof p;
+     pr();
+     !curr_prems
+  end;
 
 
 (** theorem bindings **)
@@ -480,5 +476,3 @@ fun qed_goalw_spec_mp name thy defs s p =
 
 end;
 
-structure Goals: GOALS = OldGoals;
-open Goals;
