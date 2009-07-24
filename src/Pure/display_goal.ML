@@ -10,7 +10,8 @@ sig
   val goals_limit: int ref
   val show_consts: bool ref
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
-  val pretty_goals: Proof.context -> Markup.T -> bool * bool -> int -> thm -> Pretty.T list
+  val pretty_goals: Proof.context -> {total: bool, main: bool, maxgoals: int} ->
+    thm -> Pretty.T list
   val pretty_goals_without_context: int -> thm -> Pretty.T list
   val print_goals_without_context: int -> thm -> unit
 end;
@@ -56,7 +57,7 @@ fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
 in
 
-fun pretty_goals ctxt markup (msg, main) maxgoals state =
+fun pretty_goals ctxt {total, main, maxgoals} state =
   let
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
@@ -80,7 +81,7 @@ fun pretty_goals ctxt markup (msg, main) maxgoals state =
     fun pretty_list _ _ [] = []
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
-    fun pretty_subgoal (n, A) = Pretty.markup markup
+    fun pretty_subgoal (n, A) = Pretty.markup Markup.subgoal
       [Pretty.str (" " ^ string_of_int n ^ ". "), prt_term A];
     fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
@@ -100,7 +101,7 @@ fun pretty_goals ctxt markup (msg, main) maxgoals state =
        (if ngoals = 0 then [Pretty.str "No subgoals!"]
         else if ngoals > maxgoals then
           pretty_subgoals (Library.take (maxgoals, As)) @
-          (if msg then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
+          (if total then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
            else [])
         else pretty_subgoals As) @
       pretty_ffpairs tpairs @
@@ -115,7 +116,8 @@ fun pretty_goals ctxt markup (msg, main) maxgoals state =
   end;
 
 fun pretty_goals_without_context n th =
-  pretty_goals (Syntax.init_pretty_global (Thm.theory_of_thm th)) Markup.none (true, true) n th;
+  pretty_goals (Syntax.init_pretty_global (Thm.theory_of_thm th))
+    {total = true, main = true, maxgoals = n} th;
 
 val print_goals_without_context =
   (Pretty.writeln o Pretty.chunks) oo pretty_goals_without_context;

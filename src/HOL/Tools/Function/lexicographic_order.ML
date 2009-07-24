@@ -140,7 +140,7 @@ fun prove_row (Less less_thm :: _) =
 fun pr_table table = writeln (cat_lines (map (fn r => concat (map pr_cell r)) table))
 
 fun pr_goals ctxt st =
-    Display_Goal.pretty_goals ctxt Markup.none (true, false) (Thm.nprems_of st) st
+    Display_Goal.pretty_goals ctxt {total = true, main = false, maxgoals = Thm.nprems_of st} st
      |> Pretty.chunks
      |> Pretty.string_of
 
