@@ -1,4 +1,4 @@
-(*  Title:      Pure/tctical.ML
+(*  Title:      Pure/tactical.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Tacticals.

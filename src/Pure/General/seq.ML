@@ -200,7 +200,7 @@ fun it_right f (xq, yq) =
 
 
 
-(** sequence functions **)      (*cf. Pure/tctical.ML*)
+(** sequence functions **)      (*cf. Pure/tactical.ML*)
 
 fun succeed x = single x;
 fun fail _ = empty;

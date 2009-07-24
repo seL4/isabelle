@@ -94,7 +94,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/future.ML			\
   item_net.ML library.ML logic.ML meta_simplifier.ML more_thm.ML	\
   morphism.ML name.ML net.ML old_goals.ML old_term.ML pattern.ML	\
   primitive_defs.ML proofterm.ML pure_setup.ML pure_thy.ML search.ML	\
-  sign.ML simplifier.ML sorts.ML subgoal.ML tactic.ML tctical.ML	\
+  sign.ML simplifier.ML sorts.ML subgoal.ML tactic.ML tactical.ML	\
   term.ML term_ord.ML term_subst.ML theory.ML thm.ML type.ML		\
   type_infer.ML unify.ML variable.ML
 	@./mk

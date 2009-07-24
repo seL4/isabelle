@@ -120,7 +120,7 @@ use "morphism.ML";
 use "variable.ML";
 use "conv.ML";
 use "display_goal.ML";
-use "tctical.ML";
+use "tactical.ML";
 use "search.ML";
 use "tactic.ML";
 use "meta_simplifier.ML";
