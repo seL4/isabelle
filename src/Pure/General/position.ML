@@ -36,7 +36,6 @@ sig
   val range: T -> T -> range
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
-  val setmp_thread_data_seq: T -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
 end;
 
 structure Position: POSITION =
@@ -175,9 +174,6 @@ fun thread_data () = the_default none (Thread.getLocal tag);
 fun setmp_thread_data pos f x =
   if ! Output.debugging then f x
   else Library.setmp_thread_data tag (thread_data ()) pos f x;
-
-fun setmp_thread_data_seq pos f x =
-  setmp_thread_data pos f x |> Seq.wrap (fn pull => setmp_thread_data pos pull ());
 
 end;
 
