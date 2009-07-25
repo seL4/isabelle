@@ -94,9 +94,6 @@ fun get_group (jobs: jobs) task = #1 (Task_Graph.get_node jobs task);
 fun get_job (jobs: jobs) task = #2 (Task_Graph.get_node jobs task);
 fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (group, job)) jobs;
 
-fun add_job task dep (jobs: jobs) =
-  Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
-
 
 (* queue of grouped jobs *)
 
@@ -150,6 +147,12 @@ fun cancel_all (Queue {jobs, ...}) =
 
 (* enqueue *)
 
+fun add_job task dep (jobs: jobs) =
+  Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
+
+fun get_deps (jobs: jobs) task =
+  Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
+
 fun enqueue group deps pri job (Queue {groups, jobs, cache}) =
   let
     val task = new_task pri;
@@ -157,7 +160,8 @@ fun enqueue group deps pri job (Queue {groups, jobs, cache}) =
       |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
     val jobs' = jobs
       |> Task_Graph.new_node (task, (group, Job [job]))
-      |> fold (add_job task) deps;
+      |> fold (add_job task) deps
+      |> fold (fold (add_job task) o get_deps jobs) deps;
     val cache' =
       (case cache of
         Result last =>
@@ -205,20 +209,15 @@ fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
           then SOME (task, group, rev list)
           else NONE
       | _ => NONE);
-
     val tasks = filter (can (Task_Graph.get_node jobs)) deps;
-    fun result (res as (task, _, _)) =
-      let
-        val jobs' = set_job task (Running (Thread.self ())) jobs;
-        val cache' = Unknown;
-      in (SOME (res, tasks), make_queue groups jobs' cache') end;
   in
     (case get_first ready tasks of
-      SOME res => result res
-    | NONE =>
-        (case get_first ready (Task_Graph.all_preds jobs tasks) of
-          SOME res => result res
-        | NONE => (NONE, queue)))
+      SOME (res as (task, _, _)) =>
+        let
+          val jobs' = set_job task (Running (Thread.self ())) jobs;
+          val cache' = Unknown;
+        in (SOME (res, tasks), make_queue groups jobs' cache') end
+    | NONE => (NONE, queue))
   end;
 
 
