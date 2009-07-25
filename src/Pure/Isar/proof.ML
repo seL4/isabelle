@@ -344,7 +344,7 @@ fun pretty_state nr state =
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
             description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
-          Display_Goal.pretty_goals ctxt
+          Goal_Display.pretty_goals ctxt
             {total = true, main = ! show_main_goal, maxgoals = ! Display.goals_limit} goal @
           (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
       | prt_goal NONE = [];
@@ -366,7 +366,7 @@ fun pretty_state nr state =
 
 fun pretty_goals main state =
   let val (ctxt, (_, goal)) = get_goal state in
-    Display_Goal.pretty_goals ctxt
+    Goal_Display.pretty_goals ctxt
       {total = false, main = main, maxgoals = ! Display.goals_limit} goal
   end;
 
@@ -474,7 +474,7 @@ fun conclude_goal ctxt goal propss =
 
     val ngoals = Thm.nprems_of goal;
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
-      (Display_Goal.pretty_goals ctxt
+      (Goal_Display.pretty_goals ctxt
           {total = true, main = ! show_main_goal, maxgoals = ! Display.goals_limit} goal @
         [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
 

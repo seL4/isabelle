@@ -119,7 +119,7 @@ use "drule.ML";
 use "morphism.ML";
 use "variable.ML";
 use "conv.ML";
-use "display_goal.ML";
+use "goal_display.ML";
 use "tactical.ML";
 use "search.ML";
 use "tactic.ML";

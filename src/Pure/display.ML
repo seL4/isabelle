@@ -42,8 +42,8 @@ struct
 
 (** options **)
 
-val goals_limit = Display_Goal.goals_limit;
-val show_consts = Display_Goal.show_consts;
+val goals_limit = Goal_Display.goals_limit;
+val show_consts = Goal_Display.show_consts;
 
 val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
@@ -87,7 +87,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps', show_status} raw_th =
       if hlen = 0 andalso status = "" then []
       else if ! show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o Display_Goal.pretty_flexpair ctxt) tpairs @ map prt_term hyps' @
+          (map (q o Goal_Display.pretty_flexpair ctxt) tpairs @ map prt_term hyps' @
            map (Syntax.pretty_sort ctxt) xshyps @
             (if status = "" then [] else [Pretty.str status]))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ status ^ "]")];

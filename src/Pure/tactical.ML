@@ -194,7 +194,7 @@ fun RANGE [] _ = all_tac
 fun print_tac msg st =
  (tracing (msg ^ "\n" ^
     Pretty.string_of (Pretty.chunks
-      (Display_Goal.pretty_goals_without_context (! Display_Goal.goals_limit) st)));
+      (Goal_Display.pretty_goals_without_context (! Goal_Display.goals_limit) st)));
   Seq.single st);
 
 (*Pause until a line is typed -- if non-empty then fail. *)
@@ -233,7 +233,7 @@ fun exec_trace_command flag (tac, st) =
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing) then
     (tracing (Pretty.string_of (Pretty.chunks
-        (Display_Goal.pretty_goals_without_context (! Display_Goal.goals_limit) st @
+        (Goal_Display.pretty_goals_without_context (! Goal_Display.goals_limit) st @
           [Pretty.str "** Press RETURN to continue:"])));
      exec_trace_command flag (tac, st))
   else tac st;

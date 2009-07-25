@@ -1,11 +1,11 @@
-(*  Title:      Pure/display_goal.ML
+(*  Title:      Pure/goal_display.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Makarius
 
 Display tactical goal state.
 *)
 
-signature DISPLAY_GOAL =
+signature GOAL_DISPLAY =
 sig
   val goals_limit: int ref
   val show_consts: bool ref
@@ -15,7 +15,7 @@ sig
   val pretty_goals_without_context: int -> thm -> Pretty.T list
 end;
 
-structure Display_Goal: DISPLAY_GOAL =
+structure Goal_Display: GOAL_DISPLAY =
 struct
 
 val goals_limit = ref 10;      (*max number of goals to print*)
