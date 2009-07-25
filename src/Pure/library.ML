@@ -109,7 +109,6 @@ sig
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
-  val multiply: 'a list -> 'a list list -> 'a list list
   val separate: 'a -> 'a list -> 'a list
   val surround: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
@@ -552,9 +551,6 @@ fun replicate (n: int) x =
     else rep (n, [])
   end;
 
-(*multiply [a, b, c, ...] * [xs, ys, zs, ...]*)
-fun multiply [] _ = []
-  | multiply (x :: xs) yss = map (cons x) yss @ multiply xs yss;
 
 (* direct product *)
 
@@ -1138,5 +1134,5 @@ structure Object = struct type T = exn end;
 
 end;
 
-structure BasicLibrary: BASIC_LIBRARY = Library;
-open BasicLibrary;
+structure Basic_Library: BASIC_LIBRARY = Library;
+open Basic_Library;
