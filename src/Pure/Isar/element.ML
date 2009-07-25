@@ -272,7 +272,7 @@ val refine_witness =
   Proof.refine (Method.Basic (K (RAW_METHOD
     (K (ALLGOALS
       (CONJUNCTS (ALLGOALS
-        (CONJUNCTS (TRYALL (Tactic.rtac Drule.protectI)))))))), Position.none));
+        (CONJUNCTS (TRYALL (Tactic.rtac Drule.protectI))))))))));
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =
   let

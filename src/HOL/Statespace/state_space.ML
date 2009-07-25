@@ -149,7 +149,7 @@ fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
    |> Expression.sublocale_cmd name expr
    |> Proof.global_terminal_proof
-         (Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt),Position.none), NONE)
+         (Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), NONE)
    |> ProofContext.theory_of
 
 fun add_locale name expr elems thy =

@@ -208,13 +208,12 @@ fun pat_completeness ctxt = SIMPLE_METHOD' (pat_completeness_tac ctxt)
 
 val by_pat_completeness_auto =
     Proof.global_future_terminal_proof
-      (Method.Basic (pat_completeness, Position.none),
+      (Method.Basic pat_completeness,
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 fun termination_by method int =
     Fundef.termination_proof NONE
-    #> Proof.global_future_terminal_proof
-      (Method.Basic (method, Position.none), NONE) int
+    #> Proof.global_future_terminal_proof (Method.Basic method, NONE) int
 
 fun mk_catchall fixes arity_of =
     let

@@ -380,7 +380,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       [goals] |>
     Proof.apply (Method.Basic (fn _ => RAW_METHOD (fn _ =>
       rewrite_goals_tac defs_thms THEN
-      compose_tac (false, rule, length rule_prems) 1), Position.none)) |>
+      compose_tac (false, rule, length rule_prems) 1)) |>
     Seq.hd
   end;
 
