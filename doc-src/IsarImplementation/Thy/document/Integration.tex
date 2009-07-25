@@ -300,19 +300,20 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{the\_context}\verb|the_context: unit -> theory| \\
+  \indexdef{}{ML}{ML\_Context.the\_generic\_context}\verb|ML_Context.the_generic_context: unit -> Context.generic| \\
   \indexdef{}{ML}{Context.$>$$>$ }\verb|Context.>> : (Context.generic -> Context.generic) -> unit| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|the_context ()| refers to the theory context of the
-  {\ML} toplevel --- at compile time!  {\ML} code needs to take care
-  to refer to \verb|the_context ()| correctly.  Recall that
-  evaluation of a function body is delayed until actual runtime.
-  Moreover, persistent {\ML} toplevel bindings to an unfinished theory
-  should be avoided: code should either project out the desired
-  information immediately, or produce an explicit \verb|theory_ref| (cf.\ \secref{sec:context-theory}).
+  \item \verb|ML_Context.the_generic_context ()| refers to the theory
+  context of the {\ML} toplevel --- at compile time!  {\ML} code needs
+  to take care to refer to \verb|ML_Context.the_generic_context ()|
+  correctly.  Recall that evaluation of a function body is delayed
+  until actual runtime.  Moreover, persistent {\ML} toplevel bindings
+  to an unfinished theory should be avoided: code should either
+  project out the desired information immediately, or produce an
+  explicit \verb|theory_ref| (cf.\ \secref{sec:context-theory}).
 
   \item \verb|Context.>>|~\isa{f} applies context transformation
   \isa{f} to the implicit context of the {\ML} toplevel.

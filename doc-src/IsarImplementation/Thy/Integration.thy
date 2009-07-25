@@ -239,20 +239,20 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML the_context: "unit -> theory"} \\
+  @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
   @{index_ML "Context.>> ": "(Context.generic -> Context.generic) -> unit"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML "the_context ()"} refers to the theory context of the
-  {\ML} toplevel --- at compile time!  {\ML} code needs to take care
-  to refer to @{ML "the_context ()"} correctly.  Recall that
-  evaluation of a function body is delayed until actual runtime.
-  Moreover, persistent {\ML} toplevel bindings to an unfinished theory
-  should be avoided: code should either project out the desired
-  information immediately, or produce an explicit @{ML_type
-  theory_ref} (cf.\ \secref{sec:context-theory}).
+  \item @{ML "ML_Context.the_generic_context ()"} refers to the theory
+  context of the {\ML} toplevel --- at compile time!  {\ML} code needs
+  to take care to refer to @{ML "ML_Context.the_generic_context ()"}
+  correctly.  Recall that evaluation of a function body is delayed
+  until actual runtime.  Moreover, persistent {\ML} toplevel bindings
+  to an unfinished theory should be avoided: code should either
+  project out the desired information immediately, or produce an
+  explicit @{ML_type theory_ref} (cf.\ \secref{sec:context-theory}).
 
   \item @{ML "Context.>>"}~@{text f} applies context transformation
   @{text f} to the implicit context of the {\ML} toplevel.
