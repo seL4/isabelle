@@ -15,7 +15,7 @@ signature METHOD =
 sig
   include BASIC_METHOD
   type method
-  val apply: Position.T -> (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
+  val apply: (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
   val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
   val RAW_METHOD: (thm list -> tactic) -> method
   val METHOD_CASES: (thm list -> cases_tactic) -> method
@@ -55,7 +55,7 @@ sig
   val raw_tactic: string * Position.T -> Proof.context -> method
   type src = Args.src
   datatype text =
-    Basic of (Proof.context -> method) * Position.T |
+    Basic of Proof.context -> method |
     Source of src |
     Source_i of src |
     Then of text list |
@@ -69,7 +69,7 @@ sig
   val this_text: text
   val done_text: text
   val sorry_text: bool -> text
-  val finish_text: text option * bool -> Position.T -> text
+  val finish_text: text option * bool -> text
   val print_methods: theory -> unit
   val intern: theory -> xstring -> string
   val defined: theory -> string -> bool
@@ -106,8 +106,7 @@ fun HEADGOAL tac = tac 1;
 
 datatype method = Meth of thm list -> cases_tactic;
 
-fun apply pos meth_fun ctxt facts goal = Position.setmp_thread_data_seq pos
-  (fn () => let val Meth meth = meth_fun ctxt in meth facts goal end) ();
+fun apply meth ctxt = let val Meth m = meth ctxt in m end;
 
 val RAW_METHOD_CASES = Meth;
 
@@ -297,7 +296,7 @@ fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
 type src = Args.src;
 
 datatype text =
-  Basic of (Proof.context -> method) * Position.T |
+  Basic of Proof.context -> method |
   Source of src |
   Source_i of src |
   Then of text list |
@@ -306,15 +305,15 @@ datatype text =
   Repeat1 of text |
   SelectGoals of int * text;
 
-fun primitive_text r = Basic (K (SIMPLE_METHOD (PRIMITIVE r)), Position.none);
-val succeed_text = Basic (K succeed, Position.none);
+fun primitive_text r = Basic (K (SIMPLE_METHOD (PRIMITIVE r)));
+val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src (("default", []), Position.none));
-val this_text = Basic (K this, Position.none);
-val done_text = Basic (K (SIMPLE_METHOD all_tac), Position.none);
-fun sorry_text int = Basic (cheating int, Position.none);
+val this_text = Basic (K this);
+val done_text = Basic (K (SIMPLE_METHOD all_tac));
+fun sorry_text int = Basic (cheating int);
 
-fun finish_text (NONE, immed) pos = Basic (close immed, pos)
-  | finish_text (SOME txt, immed) pos = Then [txt, Basic (close immed, pos)];
+fun finish_text (NONE, immed) = Basic (close immed)
+  | finish_text (SOME txt, immed) = Then [txt, Basic (close immed)];
 
 
 (* method definitions *)
@@ -477,8 +476,8 @@ val fold = fold_meth;
 
 end;
 
-structure BasicMethod: BASIC_METHOD = Method;
-open BasicMethod;
+structure Basic_Method: BASIC_METHOD = Method;
+open Basic_Method;
 
 val RAW_METHOD_CASES = Method.RAW_METHOD_CASES;
 val RAW_METHOD = Method.RAW_METHOD;

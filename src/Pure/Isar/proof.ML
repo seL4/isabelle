@@ -386,13 +386,13 @@ fun no_goal_cases st = map (rpair NONE) (goals st);
 fun goal_cases st =
   RuleCases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
-fun apply_method current_context pos meth state =
+fun apply_method current_context meth state =
   let
     val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
       find_goal state;
     val ctxt = if current_context then context_of state else goal_ctxt;
   in
-    Method.apply pos meth ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
+    Method.apply meth ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
@@ -410,16 +410,15 @@ fun select_goals n meth state =
     |> Seq.maps meth
     |> Seq.maps (fn state' => state'
       |> Seq.lift set_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
-    |> Seq.maps (apply_method true Position.none (K Method.succeed)));
+    |> Seq.maps (apply_method true (K Method.succeed)));
 
 fun apply_text cc text state =
   let
     val thy = theory_of state;
-    val pos_of = #2 o Args.dest_src;
 
-    fun eval (Method.Basic (m, pos)) = apply_method cc pos m
-      | eval (Method.Source src) = apply_method cc (pos_of src) (Method.method thy src)
-      | eval (Method.Source_i src) = apply_method cc (pos_of src) (Method.method_i thy src)
+    fun eval (Method.Basic m) = apply_method cc m
+      | eval (Method.Source src) = apply_method cc (Method.method thy src)
+      | eval (Method.Source_i src) = apply_method cc (Method.method_i thy src)
       | eval (Method.Then txts) = Seq.EVERY (map eval txts)
       | eval (Method.Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Method.Try txt) = Seq.TRY (eval txt)
@@ -433,7 +432,7 @@ val refine = apply_text true;
 val refine_end = apply_text false;
 
 fun refine_insert [] = I
-  | refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths), Position.none));
+  | refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
 
@@ -750,7 +749,7 @@ fun end_proof bot txt state =
   |> assert_current_goal true
   |> using_facts []
   |> `before_qed |-> (refine o the_default Method.succeed_text)
-  |> Seq.maps (refine (Method.finish_text txt (Position.thread_data ())));
+  |> Seq.maps (refine (Method.finish_text txt));
 
 fun check_result msg sq =
   (case Seq.pull sq of
@@ -762,8 +761,8 @@ fun check_finish sq = check_result "Failed to finish proof" sq;
 
 (* unstructured refinement *)
 
-fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i), Position.none));
-fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i), Position.none));
+fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i)));
+fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
 
 fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
 fun apply_end text = assert_forward #> refine_end text;
@@ -789,7 +788,7 @@ fun implicit_vars dest add props =
 fun refine_terms n =
   refine (Method.Basic (K (RAW_METHOD
     (K (HEADGOAL (PRECISE_CONJUNCTS n
-      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI)))))))), Position.none))
+      (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI))))))))))
   #> Seq.hd;
 
 in
@@ -832,7 +831,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     |> put_goal NONE
     |> enter_backward
     |> not (null vars) ? refine_terms (length goal_propss)
-    |> null props ? (refine (Method.Basic (Method.assumption, Position.none)) #> Seq.hd)
+    |> null props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
   end;
 
 fun generic_qed after_ctxt state =
