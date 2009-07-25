@@ -210,14 +210,18 @@ fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
           else NONE
       | _ => NONE);
     val tasks = filter (can (Task_Graph.get_node jobs)) deps;
+    fun result (res as (task, _, _)) =
+      let
+        val jobs' = set_job task (Running (Thread.self ())) jobs;
+        val cache' = Unknown;
+      in (SOME (res, tasks), make_queue groups jobs' cache') end;
   in
     (case get_first ready tasks of
-      SOME (res as (task, _, _)) =>
-        let
-          val jobs' = set_job task (Running (Thread.self ())) jobs;
-          val cache' = Unknown;
-        in (SOME (res, tasks), make_queue groups jobs' cache') end
-    | NONE => (NONE, queue))
+      SOME res => result res
+    | NONE =>
+        (case get_first (get_first ready o Task_Graph.imm_preds jobs) tasks of
+          SOME res => result res
+        | NONE => (NONE, queue)))
   end;
 
 
