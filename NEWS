@@ -118,6 +118,11 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* Tactical FOCUS is similar to SUBPROOF, but allows the body tactic to
+introduce new subgoals and schematic variables.  FOCUS_PARAMS is
+similar, but focuses on the parameter prefix only, leaving subgoal
+premises unchanged.
+
 * Renamed functor TableFun to Table, and GraphFun to Graph.  (Since
 functors have their own ML name space there is no point to mark them
 separately.)  Minor INCOMPATIBILITY.
