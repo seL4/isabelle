@@ -811,16 +811,16 @@ subsection {* Setup of transitivity reasoner *}
 
 ML {*
 
-structure Trancl_Tac = Trancl_Tac_Fun (
-  struct
-    val r_into_trancl = @{thm trancl.r_into_trancl};
-    val trancl_trans  = @{thm trancl_trans};
-    val rtrancl_refl = @{thm rtrancl.rtrancl_refl};
-    val r_into_rtrancl = @{thm r_into_rtrancl};
-    val trancl_into_rtrancl = @{thm trancl_into_rtrancl};
-    val rtrancl_trancl_trancl = @{thm rtrancl_trancl_trancl};
-    val trancl_rtrancl_trancl = @{thm trancl_rtrancl_trancl};
-    val rtrancl_trans = @{thm rtrancl_trans};
+structure Trancl_Tac = Trancl_Tac
+(
+  val r_into_trancl = @{thm trancl.r_into_trancl};
+  val trancl_trans  = @{thm trancl_trans};
+  val rtrancl_refl = @{thm rtrancl.rtrancl_refl};
+  val r_into_rtrancl = @{thm r_into_rtrancl};
+  val trancl_into_rtrancl = @{thm trancl_into_rtrancl};
+  val rtrancl_trancl_trancl = @{thm rtrancl_trancl_trancl};
+  val trancl_rtrancl_trancl = @{thm trancl_rtrancl_trancl};
+  val rtrancl_trans = @{thm rtrancl_trans};
 
   fun decomp (@{const Trueprop} $ t) =
     let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) =
@@ -832,19 +832,18 @@ structure Trancl_Tac = Trancl_Tac_Fun (
       | dec _ =  NONE
     in dec t end
     | decomp _ = NONE;
+);
 
-  end);
-
-structure Tranclp_Tac = Trancl_Tac_Fun (
-  struct
-    val r_into_trancl = @{thm tranclp.r_into_trancl};
-    val trancl_trans  = @{thm tranclp_trans};
-    val rtrancl_refl = @{thm rtranclp.rtrancl_refl};
-    val r_into_rtrancl = @{thm r_into_rtranclp};
-    val trancl_into_rtrancl = @{thm tranclp_into_rtranclp};
-    val rtrancl_trancl_trancl = @{thm rtranclp_tranclp_tranclp};
-    val trancl_rtrancl_trancl = @{thm tranclp_rtranclp_tranclp};
-    val rtrancl_trans = @{thm rtranclp_trans};
+structure Tranclp_Tac = Trancl_Tac
+(
+  val r_into_trancl = @{thm tranclp.r_into_trancl};
+  val trancl_trans  = @{thm tranclp_trans};
+  val rtrancl_refl = @{thm rtranclp.rtrancl_refl};
+  val r_into_rtrancl = @{thm r_into_rtranclp};
+  val trancl_into_rtrancl = @{thm tranclp_into_rtranclp};
+  val rtrancl_trancl_trancl = @{thm rtranclp_tranclp_tranclp};
+  val trancl_rtrancl_trancl = @{thm tranclp_rtranclp_tranclp};
+  val rtrancl_trans = @{thm rtranclp_trans};
 
   fun decomp (@{const Trueprop} $ t) =
     let fun dec (rel $ a $ b) =
@@ -856,31 +855,31 @@ structure Tranclp_Tac = Trancl_Tac_Fun (
       | dec _ =  NONE
     in dec t end
     | decomp _ = NONE;
-
-  end);
+);
 *}
 
 declaration {* fn _ =>
   Simplifier.map_ss (fn ss => ss
-    addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
-    addSolver (mk_solver "Rtrancl" (fn _ => Trancl_Tac.rtrancl_tac))
-    addSolver (mk_solver "Tranclp" (fn _ => Tranclp_Tac.trancl_tac))
-    addSolver (mk_solver "Rtranclp" (fn _ => Tranclp_Tac.rtrancl_tac)))
+    addSolver (mk_solver' "Trancl" (Trancl_Tac.trancl_tac o Simplifier.the_context))
+    addSolver (mk_solver' "Rtrancl" (Trancl_Tac.rtrancl_tac o Simplifier.the_context))
+    addSolver (mk_solver' "Tranclp" (Tranclp_Tac.trancl_tac o Simplifier.the_context))
+    addSolver (mk_solver' "Rtranclp" (Tranclp_Tac.rtrancl_tac o Simplifier.the_context)))
 *}
 
-(* Optional methods *)
+
+text {* Optional methods. *}
 
 method_setup trancl =
-  {* Scan.succeed (K (SIMPLE_METHOD' Trancl_Tac.trancl_tac)) *}
+  {* Scan.succeed (SIMPLE_METHOD' o Trancl_Tac.trancl_tac) *}
   {* simple transitivity reasoner *}
 method_setup rtrancl =
-  {* Scan.succeed (K (SIMPLE_METHOD' Trancl_Tac.rtrancl_tac)) *}
+  {* Scan.succeed (SIMPLE_METHOD' o Trancl_Tac.rtrancl_tac) *}
   {* simple transitivity reasoner *}
 method_setup tranclp =
-  {* Scan.succeed (K (SIMPLE_METHOD' Tranclp_Tac.trancl_tac)) *}
+  {* Scan.succeed (SIMPLE_METHOD' o Tranclp_Tac.trancl_tac) *}
   {* simple transitivity reasoner (predicate version) *}
 method_setup rtranclp =
-  {* Scan.succeed (K (SIMPLE_METHOD' Tranclp_Tac.rtrancl_tac)) *}
+  {* Scan.succeed (SIMPLE_METHOD' o Tranclp_Tac.rtrancl_tac) *}
   {* simple transitivity reasoner (predicate version) *}
 
 end

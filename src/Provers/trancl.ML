@@ -26,7 +26,7 @@ closures, and don't use rtrancl_tac!
 
 *)
 
-signature TRANCL_ARITH = 
+signature TRANCL_ARITH =
 sig
 
   (* theorems for transitive closure *)
@@ -63,25 +63,25 @@ sig
             "r":   the relation itself,
             "r^+": transitive closure of the relation,
             "r^*": reflexive-transitive closure of the relation
-  *)  
+  *)
 
-  val decomp: term ->  (term * term * term * string) option 
+  val decomp: term ->  (term * term * term * string) option
 
 end;
 
-signature TRANCL_TAC = 
+signature TRANCL_TAC =
 sig
-  val trancl_tac: int -> tactic;
-  val rtrancl_tac: int -> tactic;
+  val trancl_tac: Proof.context -> int -> tactic
+  val rtrancl_tac: Proof.context -> int -> tactic
 end;
 
-functor Trancl_Tac_Fun (Cls : TRANCL_ARITH): TRANCL_TAC = 
+functor Trancl_Tac(Cls: TRANCL_ARITH): TRANCL_TAC =
 struct
 
- 
+
 datatype proof
-  = Asm of int 
-  | Thm of proof list * thm; 
+  = Asm of int
+  | Thm of proof list * thm;
 
 exception Cannot; (* internal exception: raised if no proof can be found *)
 
@@ -89,7 +89,7 @@ fun decomp t = Option.map (fn (x, y, rel, r) =>
   (Envir.beta_eta_contract x, Envir.beta_eta_contract y,
    Envir.beta_eta_contract rel, r)) (Cls.decomp t);
 
-fun prove thy r asms = 
+fun prove thy r asms =
   let
     fun inst thm =
       let val SOME (_, _, r', _) = decomp (concl_of thm)
@@ -98,12 +98,12 @@ fun prove thy r asms =
       | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm
   in pr end;
 
-  
+
 (* Internal datatype for inequalities *)
-datatype rel 
+datatype rel
    = Trans  of term * term * proof  (* R^+ *)
    | RTrans of term * term * proof; (* R^* *)
-   
+
  (* Misc functions for datatype rel *)
 fun lower (Trans (x, _, _)) = x
   | lower (RTrans (x,_,_)) = x;
@@ -112,8 +112,8 @@ fun upper (Trans (_, y, _)) = y
   | upper (RTrans (_,y,_)) = y;
 
 fun getprf   (Trans   (_, _, p)) = p
-|   getprf   (RTrans (_,_, p)) = p; 
- 
+|   getprf   (RTrans (_,_, p)) = p;
+
 (* ************************************************************************ *)
 (*                                                                          *)
 (*  mkasm_trancl Rel (t,n): term -> (term , int) -> rel list                *)
@@ -127,16 +127,16 @@ fun getprf   (Trans   (_, _, p)) = p
 
 fun mkasm_trancl  Rel  (t, n) =
   case decomp t of
-    SOME (x, y, rel,r) => if rel aconv Rel then  
-    
+    SOME (x, y, rel,r) => if rel aconv Rel then
+
     (case r of
       "r"   => [Trans (x,y, Thm([Asm n], Cls.r_into_trancl))]
     | "r+"  => [Trans (x,y, Asm n)]
     | "r*"  => []
     | _     => error ("trancl_tac: unknown relation symbol"))
-    else [] 
+    else []
   | NONE => [];
-  
+
 (* ************************************************************************ *)
 (*                                                                          *)
 (*  mkasm_rtrancl Rel (t,n): term -> (term , int) -> rel list               *)
@@ -156,7 +156,7 @@ fun mkasm_rtrancl Rel (t, n) =
     | "r+"  => [ Trans (x,y, Asm n)]
     | "r*"  => [ RTrans(x,y, Asm n)]
     | _     => error ("rtrancl_tac: unknown relation symbol" ))
-   else [] 
+   else []
   | NONE => [];
 
 (* ************************************************************************ *)
@@ -204,7 +204,7 @@ fun mkconcl_rtrancl  t =
 fun makeStep (Trans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl_trans))
 (* refl. + trans. cls. rules *)
 |   makeStep (RTrans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.rtrancl_trancl_trancl))
-|   makeStep (Trans (a,_,p), RTrans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl_rtrancl_trancl))   
+|   makeStep (Trans (a,_,p), RTrans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl_rtrancl_trancl))
 |   makeStep (RTrans (a,_,p), RTrans(_,c,q))  = RTrans (a,c, Thm ([p,q], Cls.rtrancl_trans));
 
 (* ******************************************************************* *)
@@ -220,7 +220,7 @@ fun makeStep (Trans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl
 
 fun transPath ([],acc) = acc
 |   transPath (x::xs,acc) = transPath (xs, makeStep(acc,x))
-      
+
 (* ********************************************************************* *)
 (* Graph functions                                                       *)
 (* ********************************************************************* *)
@@ -232,7 +232,7 @@ fun transPath ([],acc) = acc
 fun addEdge (v,d,[]) = [(v,d)]
 |   addEdge (v,d,((u,dl)::el)) = if v aconv u then ((v,d@dl)::el)
     else (u,dl):: (addEdge(v,d,el));
-    
+
 (* ********************************************************************** *)
 (*                                                                        *)
 (* mkGraph constructs from a list of objects of type rel  a graph g       *)
@@ -241,13 +241,13 @@ fun addEdge (v,d,[]) = [(v,d)]
 (* ********************************************************************** *)
 
 fun mkGraph [] = ([],[])
-|   mkGraph ys =  
+|   mkGraph ys =
  let
   fun buildGraph ([],g,zs) = (g,zs)
-  |   buildGraph (x::xs, g, zs) = 
-        case x of (Trans (_,_,_)) => 
-	       buildGraph (xs, addEdge((upper x), [],(addEdge ((lower x),[((upper x),x)],g))), x::zs) 
-	| _ => buildGraph (xs, addEdge((upper x), [],(addEdge ((lower x),[((upper x),x)],g))), zs)
+  |   buildGraph (x::xs, g, zs) =
+        case x of (Trans (_,_,_)) =>
+               buildGraph (xs, addEdge((upper x), [],(addEdge ((lower x),[((upper x),x)],g))), x::zs)
+        | _ => buildGraph (xs, addEdge((upper x), [],(addEdge ((lower x),[((upper x),x)],g))), zs)
 in buildGraph (ys, [], []) end;
 
 (* *********************************************************************** *)
@@ -257,42 +257,42 @@ in buildGraph (ys, [], []) end;
 (* List of successors of u in graph g                                      *)
 (*                                                                         *)
 (* *********************************************************************** *)
- 
-fun adjacent eq_comp ((v,adj)::el) u = 
+
+fun adjacent eq_comp ((v,adj)::el) u =
     if eq_comp (u, v) then adj else adjacent eq_comp el u
-|   adjacent _  []  _ = []  
+|   adjacent _  []  _ = []
 
 (* *********************************************************************** *)
 (*                                                                         *)
 (* dfs eq_comp g u v:                                                      *)
 (* ('a * 'a -> bool) -> ('a  *( 'a * rel) list) list ->                    *)
-(* 'a -> 'a -> (bool * ('a * rel) list)                                    *) 
+(* 'a -> 'a -> (bool * ('a * rel) list)                                    *)
 (*                                                                         *)
 (* Depth first search of v from u.                                         *)
 (* Returns (true, path(u, v)) if successful, otherwise (false, []).        *)
 (*                                                                         *)
 (* *********************************************************************** *)
 
-fun dfs eq_comp g u v = 
- let 
+fun dfs eq_comp g u v =
+ let
     val pred = ref nil;
     val visited = ref nil;
-    
+
     fun been_visited v = exists (fn w => eq_comp (w, v)) (!visited)
-    
-    fun dfs_visit u' = 
+
+    fun dfs_visit u' =
     let val _ = visited := u' :: (!visited)
-    
+
     fun update (x,l) = let val _ = pred := (x,l) ::(!pred) in () end;
-    
-    in if been_visited v then () 
+
+    in if been_visited v then ()
     else (app (fn (v',l) => if been_visited v' then () else (
-       update (v',l); 
+       update (v',l);
        dfs_visit v'; ()) )) (adjacent eq_comp g u')
      end
-  in 
-    dfs_visit u; 
-    if (been_visited v) then (true, (!pred)) else (false , [])   
+  in
+    dfs_visit u;
+    if (been_visited v) then (true, (!pred)) else (false , [])
   end;
 
 (* *********************************************************************** *)
@@ -310,7 +310,7 @@ fun transpose eq_comp g =
    (* Compute list of reversed edges for each adjacency list *)
    fun flip (u,(v,l)::el) = (v,(u,l)) :: flip (u,el)
      | flip (_,nil) = nil
-   
+
    (* Compute adjacency list for node u from the list of edges
       and return a likewise reduced list of edges.  The list of edges
       is searches for edges starting from u, and these edges are removed. *)
@@ -334,23 +334,23 @@ fun transpose eq_comp g =
    (* Compute, for each adjacency list, the list with reversed edges,
       and concatenate these lists. *)
    val flipped = List.foldr (op @) nil (map flip g)
- 
- in assemble g flipped end    
- 
+
+ in assemble g flipped end
+
 (* *********************************************************************** *)
 (*                                                                         *)
 (* dfs_reachable eq_comp g u:                                              *)
-(* (int * int list) list -> int -> int list                                *) 
+(* (int * int list) list -> int -> int list                                *)
 (*                                                                         *)
 (* Computes list of all nodes reachable from u in g.                       *)
 (*                                                                         *)
 (* *********************************************************************** *)
 
-fun dfs_reachable eq_comp g u = 
+fun dfs_reachable eq_comp g u =
  let
   (* List of vertices which have been visited. *)
   val visited  = ref nil;
-  
+
   fun been_visited v = exists (fn w => eq_comp (w, v)) (!visited)
 
   fun dfs_visit g u  =
@@ -361,13 +361,13 @@ fun dfs_reachable eq_comp g u =
             else v :: dfs_visit g v @ ds)
         nil (adjacent eq_comp g u)
    in  descendents end
- 
+
  in u :: dfs_visit g u end;
 
 (* *********************************************************************** *)
 (*                                                                         *)
 (* dfs_term_reachable g u:                                                  *)
-(* (term * term list) list -> term -> term list                            *) 
+(* (term * term list) list -> term -> term list                            *)
 (*                                                                         *)
 (* Computes list of all nodes reachable from u in g.                       *)
 (*                                                                         *)
@@ -375,45 +375,45 @@ fun dfs_reachable eq_comp g u =
 
 fun dfs_term_reachable g u = dfs_reachable (op aconv) g u;
 
-(* ************************************************************************ *) 
+(* ************************************************************************ *)
 (*                                                                          *)
 (* findPath x y g: Term.term -> Term.term ->                                *)
-(*                  (Term.term * (Term.term * rel list) list) ->            *) 
+(*                  (Term.term * (Term.term * rel list) list) ->            *)
 (*                  (bool, rel list)                                        *)
 (*                                                                          *)
 (*  Searches a path from vertex x to vertex y in Graph g, returns true and  *)
 (*  the list of edges if path is found, otherwise false and nil.            *)
 (*                                                                          *)
-(* ************************************************************************ *) 
- 
-fun findPath x y g = 
-  let 
+(* ************************************************************************ *)
+
+fun findPath x y g =
+  let
    val (found, tmp) =  dfs (op aconv) g x y ;
    val pred = map snd tmp;
-	 
+
    fun path x y  =
     let
-	 (* find predecessor u of node v and the edge u -> v *)
-		
+         (* find predecessor u of node v and the edge u -> v *)
+
       fun lookup v [] = raise Cannot
       |   lookup v (e::es) = if (upper e) aconv v then e else lookup v es;
-		
-      (* traverse path backwards and return list of visited edges *)   
-      fun rev_path v = 
-	let val l = lookup v pred
-	    val u = lower l;
-	in
-	  if u aconv x then [l] else (rev_path u) @ [l] 
-	end
-       
-    in rev_path y end;
-		
-   in 
 
-     
+      (* traverse path backwards and return list of visited edges *)
+      fun rev_path v =
+        let val l = lookup v pred
+            val u = lower l;
+        in
+          if u aconv x then [l] else (rev_path u) @ [l]
+        end
+
+    in rev_path y end;
+
+   in
+
+
       if found then ( (found, (path x y) )) else (found,[])
-   
-     
+
+
 
    end;
 
@@ -426,143 +426,142 @@ fun findPath x y g =
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun findRtranclProof g tranclEdges subgoal = 
+fun findRtranclProof g tranclEdges subgoal =
    case subgoal of (RTrans (x,y,_)) => if x aconv y then [Thm ([], Cls.rtrancl_refl)] else (
      let val (found, path) = findPath (lower subgoal) (upper subgoal) g
-     in 
+     in
        if found then (
           let val path' = (transPath (tl path, hd path))
-	  in 
-	   
-	    case path' of (Trans (_,_,p)) => [Thm ([p], Cls.trancl_into_rtrancl )] 
-	    | _ => [getprf path']
-	   
-	  end
+          in
+
+            case path' of (Trans (_,_,p)) => [Thm ([p], Cls.trancl_into_rtrancl )]
+            | _ => [getprf path']
+
+          end
        )
        else raise Cannot
      end
    )
-   
+
 | (Trans (x,y,_)) => (
- 
+
   let
    val Vx = dfs_term_reachable g x;
    val g' = transpose (op aconv) g;
    val Vy = dfs_term_reachable g' y;
-   
-   fun processTranclEdges [] = raise Cannot
-   |   processTranclEdges (e::es) = 
-          if (upper e) mem Vx andalso (lower e) mem Vx
-	  andalso (upper e) mem Vy andalso (lower e) mem Vy
-	  then (
-	      
-	   
-	    if (lower e) aconv x then (
-	      if (upper e) aconv y then (
-	          [(getprf e)] 
-	      )
-	      else (
-	          let 
-		    val (found,path) = findPath (upper e) y g
-		  in
 
-		   if found then ( 
-		       [getprf (transPath (path, e))]
-		      ) else processTranclEdges es
-		  
-		  end 
-	      )   
-	    )
-	    else if (upper e) aconv y then (
-	       let val (xufound,xupath) = findPath x (lower e) g
-	       in 
-	       
-	          if xufound then (
-		  	    
-		    let val xuRTranclEdge = transPath (tl xupath, hd xupath)
-			    val xyTranclEdge = makeStep(xuRTranclEdge,e)
-				
-				in [getprf xyTranclEdge] end
-				
-	         ) else processTranclEdges es
-	       
-	       end
-	    )
-	    else ( 
-	   
-	        let val (xufound,xupath) = findPath x (lower e) g
-		    val (vyfound,vypath) = findPath (upper e) y g
-		 in 
-		    if xufound then (
-		         if vyfound then ( 
-			    let val xuRTranclEdge = transPath (tl xupath, hd xupath)
-			        val vyRTranclEdge = transPath (tl vypath, hd vypath)
-				val xyTranclEdge = makeStep (makeStep(xuRTranclEdge,e),vyRTranclEdge)
-				
-				in [getprf xyTranclEdge] end
-				
-			 ) else processTranclEdges es
-		    ) 
-		    else processTranclEdges es
-		 end
-	    )
-	  )
-	  else processTranclEdges es;
+   fun processTranclEdges [] = raise Cannot
+   |   processTranclEdges (e::es) =
+          if (upper e) mem Vx andalso (lower e) mem Vx
+          andalso (upper e) mem Vy andalso (lower e) mem Vy
+          then (
+
+
+            if (lower e) aconv x then (
+              if (upper e) aconv y then (
+                  [(getprf e)]
+              )
+              else (
+                  let
+                    val (found,path) = findPath (upper e) y g
+                  in
+
+                   if found then (
+                       [getprf (transPath (path, e))]
+                      ) else processTranclEdges es
+
+                  end
+              )
+            )
+            else if (upper e) aconv y then (
+               let val (xufound,xupath) = findPath x (lower e) g
+               in
+
+                  if xufound then (
+
+                    let val xuRTranclEdge = transPath (tl xupath, hd xupath)
+                            val xyTranclEdge = makeStep(xuRTranclEdge,e)
+
+                                in [getprf xyTranclEdge] end
+
+                 ) else processTranclEdges es
+
+               end
+            )
+            else (
+
+                let val (xufound,xupath) = findPath x (lower e) g
+                    val (vyfound,vypath) = findPath (upper e) y g
+                 in
+                    if xufound then (
+                         if vyfound then (
+                            let val xuRTranclEdge = transPath (tl xupath, hd xupath)
+                                val vyRTranclEdge = transPath (tl vypath, hd vypath)
+                                val xyTranclEdge = makeStep (makeStep(xuRTranclEdge,e),vyRTranclEdge)
+
+                                in [getprf xyTranclEdge] end
+
+                         ) else processTranclEdges es
+                    )
+                    else processTranclEdges es
+                 end
+            )
+          )
+          else processTranclEdges es;
    in processTranclEdges tranclEdges end )
 | _ => raise Cannot
 
-   
-fun solveTrancl (asms, concl) = 
+
+fun solveTrancl (asms, concl) =
  let val (g,_) = mkGraph asms
  in
   let val (_, subgoal, _) = mkconcl_trancl concl
       val (found, path) = findPath (lower subgoal) (upper subgoal) g
   in
     if found then  [getprf (transPath (tl path, hd path))]
-    else raise Cannot 
+    else raise Cannot
   end
  end;
-  
-fun solveRtrancl (asms, concl) = 
+
+fun solveRtrancl (asms, concl) =
  let val (g,tranclEdges) = mkGraph asms
      val (_, subgoal, _) = mkconcl_rtrancl concl
 in
   findRtranclProof g tranclEdges subgoal
 end;
- 
-   
-val trancl_tac =   SUBGOAL (fn (A, n) => fn st =>
+
+
+fun trancl_tac ctxt = SUBGOAL (fn (A, n) =>
  let
-  val thy = theory_of_thm st;
+  val thy = ProofContext.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
-  val (rel,subgoals, prf) = mkconcl_trancl C;
-  val prems = List.concat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)))
+  val (rel, subgoals, prf) = mkconcl_trancl C;
+
+  val prems = flat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveTrancl (prems, C);
-
  in
-  METAHYPS (fn asms =>
-    let val thms = map (prove thy rel asms) prfs
-    in rtac (prove thy rel thms prf) 1 end) n st
+  FOCUS (fn {prems, ...} =>
+    let val thms = map (prove thy rel prems) prfs
+    in rtac (prove thy rel thms prf) 1 end) ctxt n
  end
-handle  Cannot  => no_tac st);
+ handle Cannot => no_tac);
 
- 
- 
-val rtrancl_tac =   SUBGOAL (fn (A, n) => fn st =>
+
+fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = theory_of_thm st;
+  val thy = ProofContext.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
-  val (rel,subgoals, prf) = mkconcl_rtrancl C;
+  val (rel, subgoals, prf) = mkconcl_rtrancl C;
 
-  val prems = List.concat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)))
+  val prems = flat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveRtrancl (prems, C);
  in
-  METAHYPS (fn asms =>
-    let val thms = map (prove thy rel asms) prfs
-    in rtac (prove thy rel thms prf) 1 end) n st
+  FOCUS (fn {prems, ...} =>
+    let val thms = map (prove thy rel prems) prfs
+    in rtac (prove thy rel thms prf) 1 end) ctxt n st
  end
-handle  Cannot  => no_tac st);
+ handle Cannot => Seq.empty | Subscript => Seq.empty);
 
 end;

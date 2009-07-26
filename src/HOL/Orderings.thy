@@ -6,7 +6,9 @@ header {* Abstract orderings *}
 
 theory Orderings
 imports HOL
-uses "~~/src/Provers/order.ML"
+uses
+  "~~/src/Provers/order.ML"
+  "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 begin
 
 subsection {* Quasi orders *}
@@ -289,7 +291,7 @@ signature ORDERS =
 sig
   val print_structures: Proof.context -> unit
   val setup: theory -> theory
-  val order_tac: thm list -> Proof.context -> int -> tactic
+  val order_tac: Proof.context -> thm list -> int -> tactic
 end;
 
 structure Orders: ORDERS =
@@ -329,7 +331,7 @@ fun print_structures ctxt =
 
 (** Method **)
 
-fun struct_tac ((s, [eq, le, less]), thms) prems =
+fun struct_tac ((s, [eq, le, less]), thms) ctxt prems =
   let
     fun decomp thy (@{const Trueprop} $ t) =
       let
@@ -354,13 +356,13 @@ fun struct_tac ((s, [eq, le, less]), thms) prems =
       | decomp thy _ = NONE;
   in
     case s of
-      "order" => Order_Tac.partial_tac decomp thms prems
-    | "linorder" => Order_Tac.linear_tac decomp thms prems
+      "order" => Order_Tac.partial_tac decomp thms ctxt prems
+    | "linorder" => Order_Tac.linear_tac decomp thms ctxt prems
     | _ => error ("Unknown kind of order `" ^ s ^ "' encountered in transitivity reasoner.")
   end
 
-fun order_tac prems ctxt =
-  FIRST' (map (fn s => CHANGED o struct_tac s prems) (Data.get (Context.Proof ctxt)));
+fun order_tac ctxt prems =
+  FIRST' (map (fn s => CHANGED o struct_tac s ctxt prems) (Data.get (Context.Proof ctxt)));
 
 
 (** Attribute **)
@@ -394,7 +396,7 @@ val _ =
 (** Setup **)
 
 val setup =
-  Method.setup @{binding order} (Scan.succeed (SIMPLE_METHOD' o order_tac []))
+  Method.setup @{binding order} (Scan.succeed (fn ctxt => SIMPLE_METHOD' (order_tac ctxt [])))
     "transitivity reasoner" #>
   attrib_setup;
 
@@ -532,7 +534,7 @@ fun add_simprocs procs thy =
       Simplifier.simproc thy name raw_ts proc) procs)) thy;
 fun add_solver name tac =
   Simplifier.map_simpset (fn ss => ss addSolver
-    mk_solver' name (fn ss => tac (Simplifier.prems_of_ss ss) (Simplifier.the_context ss)));
+    mk_solver' name (fn ss => tac (Simplifier.the_context ss) (Simplifier.prems_of_ss ss)));
 
 in
   add_simprocs [
