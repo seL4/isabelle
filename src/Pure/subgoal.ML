@@ -10,9 +10,11 @@ sig
   type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
     asms: cterm list, concl: cterm, schematics: ctyp list * cterm list}
   val focus: Proof.context -> int -> thm -> focus * thm
+  val focus_params: Proof.context -> int -> thm -> focus * thm
   val retrofit: Proof.context -> Proof.context -> (string * cterm) list -> cterm list ->
     int -> thm -> thm -> thm Seq.seq
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
+  val FOCUS_PARAMS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
 end;
 
@@ -24,18 +26,22 @@ struct
 type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
   asms: cterm list, concl: cterm, schematics: ctyp list * cterm list};
 
-fun focus ctxt i st =
+fun gen_focus params_only ctxt i st =
   let
     val ((schematics, [st']), ctxt') =
       Variable.import true [Simplifier.norm_hhf_protect st] ctxt;
     val ((params, goal), ctxt'') = Variable.focus_subgoal i st' ctxt';
-    val asms = Drule.strip_imp_prems goal;
-    val concl = Drule.strip_imp_concl goal;
+    val (asms, concl) =
+      if params_only then ([], goal)
+      else (Drule.strip_imp_prems goal, Drule.strip_imp_concl goal);
     val (prems, context) = Assumption.add_assumes asms ctxt'';
   in
     ({context = context, params = params, prems = prems,
       asms = asms, concl = concl, schematics = schematics}, Goal.init concl)
   end;
+
+val focus = gen_focus false;
+val focus_params = gen_focus true;
 
 
 (* lift and retrofit *)
@@ -61,7 +67,7 @@ fun lift_import params th ctxt =
   in (th'', ctxt'') end;
 
 (*
-        [A x]
+      [x, A x]
           :
       B x ==> C
   ------------------
@@ -79,34 +85,38 @@ fun lift_subgoals params asms th =
     val th' = fold (Thm.elim_implies o unlift) subgoals th;
   in (subgoals, th') end;
 
-fun retrofit ctxt1 ctxt0 params asms i state1 state0 =
+fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
   let
     val ps = map #2 params;
-    val res = Goal.conclude state1;
-    val (res1, ctxt2) = lift_import ps res ctxt1;
-    val (subgoals, res2) = lift_subgoals params asms res1;
-    val result = res2
+    val (st2, ctxt2) = lift_import ps st1 ctxt1;
+    val (subgoals, st3) = lift_subgoals params asms st2;
+    val result = st3
+      |> Goal.conclude
       |> Drule.implies_intr_list asms
       |> Drule.forall_intr_list ps
       |> Drule.implies_intr_list subgoals
       |> singleton (Variable.export ctxt2 ctxt0)
       |> Drule.zero_var_indexes
-      |> Drule.incr_indexes state0;
-  in Thm.compose_no_flatten false (result, Thm.nprems_of state1) i state0 end;
+      |> Drule.incr_indexes st0;
+  in Thm.compose_no_flatten false (result, Thm.nprems_of st1) i st0 end;
 
 
 (* tacticals *)
 
-fun FOCUS tac ctxt i st =
+fun GEN_FOCUS params_only tac ctxt i st =
   if Thm.nprems_of st < i then Seq.empty
   else
-    let val (args as {context, params, asms, ...}, st') = focus ctxt i st;
+    let val (args as {context, params, asms, ...}, st') = gen_focus params_only ctxt i st;
     in Seq.lifts (retrofit context ctxt params asms i) (tac args st') st end;
+
+val FOCUS = GEN_FOCUS false;
+val FOCUS_PARAMS = GEN_FOCUS true;
 
 fun SUBPROOF tac = FOCUS (FILTER Thm.no_prems o tac);
 
 end;
 
 val FOCUS = Subgoal.FOCUS;
+val FOCUS_PARAMS = Subgoal.FOCUS_PARAMS;
 val SUBPROOF = Subgoal.SUBPROOF;
 
