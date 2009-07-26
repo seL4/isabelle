@@ -788,7 +788,7 @@ fun refute_tac ss (i, split_neq, justs) =
           all_tac) THEN
           PRIMITIVE (trace_thm ctxt "State after neqE:") THEN
           (* use theorems generated from the actual justifications *)
-          METAHYPS (fn asms => rtac (mkthm ss asms j) 1) i
+          FOCUS (fn {prems, ...} => rtac (mkthm ss prems j) 1) ctxt i
     in
       (* rewrite "[| A1; ...; An |] ==> B" to "[| A1; ...; An; ~B |] ==> False" *)
       DETERM (resolve_tac [LA_Logic.notI, LA_Logic.ccontr] i) THEN
