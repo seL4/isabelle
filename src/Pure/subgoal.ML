@@ -10,7 +10,7 @@ sig
   type focus = {context: Proof.context, params: (string * cterm) list, prems: thm list,
     asms: cterm list, concl: cterm, schematics: ctyp list * cterm list}
   val focus: Proof.context -> int -> thm -> focus * thm
-  val retrofit: Proof.context -> (string * cterm) list -> cterm list ->
+  val retrofit: Proof.context -> Proof.context -> (string * cterm) list -> cterm list ->
     int -> thm -> thm -> thm Seq.seq
   val FOCUS: (focus -> tactic) -> Proof.context -> int -> tactic
   val SUBPROOF: (focus -> tactic) -> Proof.context -> int -> tactic
@@ -79,18 +79,20 @@ fun lift_subgoals params asms th =
     val th' = fold (Thm.elim_implies o unlift) subgoals th;
   in (subgoals, th') end;
 
-fun retrofit ctxt params asms i th =
+fun retrofit ctxt1 ctxt0 params asms i state1 state0 =
   let
     val ps = map #2 params;
-    val res0 = Goal.conclude th;
-    val (res1, ctxt1) = lift_import ps res0 ctxt;
+    val res = Goal.conclude state1;
+    val (res1, ctxt2) = lift_import ps res ctxt1;
     val (subgoals, res2) = lift_subgoals params asms res1;
     val result = res2
       |> Drule.implies_intr_list asms
       |> Drule.forall_intr_list ps
       |> Drule.implies_intr_list subgoals
-      |> singleton (Variable.export ctxt1 ctxt);
-  in Thm.compose_no_flatten false (result, Thm.nprems_of res0) i end;
+      |> singleton (Variable.export ctxt2 ctxt0)
+      |> Drule.zero_var_indexes
+      |> Drule.incr_indexes state0;
+  in Thm.compose_no_flatten false (result, Thm.nprems_of state1) i state0 end;
 
 
 (* tacticals *)
@@ -99,7 +101,7 @@ fun FOCUS tac ctxt i st =
   if Thm.nprems_of st < i then Seq.empty
   else
     let val (args as {context, params, asms, ...}, st') = focus ctxt i st;
-    in Seq.lifts (retrofit context params asms i) (tac args st') st end;
+    in Seq.lifts (retrofit context ctxt params asms i) (tac args st') st end;
 
 fun SUBPROOF tac = FOCUS (FILTER Thm.no_prems o tac);
 
