@@ -79,8 +79,8 @@ latter in theory @{theory Set}).
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Lattices.inf} & @{typeof Lattices.inf}\\
 @{const Lattices.sup} & @{typeof Lattices.sup}\\
-@{const Set.Inf} & @{term_type_only Set.Inf "'a set \<Rightarrow> 'a::complete_lattice"}\\
-@{const Set.Sup} & @{term_type_only Set.Sup "'a set \<Rightarrow> 'a::complete_lattice"}\\
+@{const Complete_Lattice.Inf} & @{term_type_only Complete_Lattice.Inf "'a set \<Rightarrow> 'a::complete_lattice"}\\
+@{const Complete_Lattice.Sup} & @{term_type_only Complete_Lattice.Sup "'a set \<Rightarrow> 'a::complete_lattice"}\\
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -110,8 +110,8 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 @{const Set.insert} & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
 @{const Collect} & @{term_type_only Collect "('a\<Rightarrow>bool)\<Rightarrow>'a set"}\\
 @{const "op :"} & @{term_type_only "op :" "'a\<Rightarrow>'a set\<Rightarrow>bool"} & (\texttt{:})\\
-@{const Set.union} & @{term_type_only Set.Un "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Un})\\
-@{const Set.inter} & @{term_type_only Set.Int "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Int})\\
+@{const Set.union} & @{term_type_only Set.union "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Un})\\
+@{const Set.inter} & @{term_type_only Set.inter "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Int})\\
 @{const UNION} & @{term_type_only UNION "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const INTER} & @{term_type_only INTER "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const Union} & @{term_type_only Union "'a set set\<Rightarrow>'a set"}\\
