@@ -11,6 +11,8 @@ sig
   include THM
   val aconvc: cterm * cterm -> bool
   val add_cterm_frees: cterm -> cterm list -> cterm list
+  val all_name: string * cterm -> cterm -> cterm
+  val all: cterm -> cterm -> cterm
   val mk_binop: cterm -> cterm -> cterm -> cterm
   val dest_binop: cterm -> cterm * cterm
   val dest_implies: cterm -> cterm * cterm
@@ -101,6 +103,14 @@ fun add_cterm_frees ct =
 
 
 (* cterm constructors and destructors *)
+
+fun all_name (x, t) A =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_cterm t);
+    val T = #T (Thm.rep_cterm t);
+  in Thm.capply (cert (Const ("all", (T --> propT) --> propT))) (Thm.cabs_name (x, t) A) end;
+
+fun all t A = all_name ("", t) A;
 
 fun mk_binop c a b = Thm.capply (Thm.capply c a) b;
 fun dest_binop ct = (Thm.dest_arg1 ct, Thm.dest_arg ct);

@@ -57,8 +57,8 @@ sig
     ((ctyp list * cterm list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
-  val focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context
-  val focus_subgoal: int -> thm -> Proof.context -> (cterm list * cterm) * Proof.context
+  val focus: cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context
+  val focus_subgoal: int -> thm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context
   val warn_extra_tfrees: Proof.context -> Proof.context -> unit
   val polymorphic_types: Proof.context -> term list -> (indexname * sort) list * term list
   val polymorphic: Proof.context -> term list -> term list
@@ -477,7 +477,7 @@ fun focus goal ctxt =
     val ps' = ListPair.map (cert o Free) (xs', Ts);
     val goal' = fold forall_elim_prop ps' goal;
     val ctxt'' = ctxt' |> fold (declare_constraints o Thm.term_of) ps';
-  in ((ps', goal'), ctxt'') end;
+  in ((xs ~~ ps', goal'), ctxt'') end;
 
 fun focus_subgoal i st =
   let

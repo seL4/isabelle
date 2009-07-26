@@ -323,7 +323,7 @@ fun prove_strong_ind s avoids ctxt =
         val avoid_th = Drule.instantiate'
           [SOME (ctyp_of thy (fastype_of p))] [SOME (cterm_of thy p)]
           ([at_inst, fin, fs_atom] MRS @{thm at_set_avoiding});
-        val (([cx], th1 :: th2 :: ths), ctxt') = Obtain.result
+        val (([(_, cx)], th1 :: th2 :: ths), ctxt') = Obtain.result
           (fn _ => EVERY
             [rtac avoid_th 1,
              full_simp_tac (HOL_ss addsimps [@{thm fresh_star_prod_set}]) 1,
@@ -359,7 +359,7 @@ fun prove_strong_ind s avoids ctxt =
              SUBPROOF (fn {prems = gprems, params, concl, context = ctxt', ...} =>
                let
                  val (cparams', (pis, z)) =
-                   chop (length params - length atomTs - 1) params ||>
+                   chop (length params - length atomTs - 1) (map #2 params) ||>
                    (map term_of #> split_last);
                  val params' = map term_of cparams'
                  val sets' = map (apfst (curry subst_bounds (rev params'))) sets;

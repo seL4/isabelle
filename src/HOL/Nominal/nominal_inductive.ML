@@ -301,7 +301,7 @@ fun prove_strong_ind s avoids ctxt =
           (fn _ => EVERY
             [resolve_tac exists_fresh' 1,
              resolve_tac fs_atoms 1]);
-        val (([cx], ths), ctxt') = Obtain.result
+        val (([(_, cx)], ths), ctxt') = Obtain.result
           (fn _ => EVERY
             [etac exE 1,
              full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
@@ -319,7 +319,7 @@ fun prove_strong_ind s avoids ctxt =
              SUBPROOF (fn {prems = gprems, params, concl, context = ctxt', ...} =>
                let
                  val (params', (pis, z)) =
-                   chop (length params - length atomTs - 1) (map term_of params) ||>
+                   chop (length params - length atomTs - 1) (map (term_of o #2) params) ||>
                    split_last;
                  val bvars' = map
                    (fn (Bound i, T) => (nth params' (length params' - i), T)
@@ -474,7 +474,7 @@ fun prove_strong_ind s avoids ctxt =
                 rtac (first_order_mrs case_hyps case_hyp) 1
               else
                 let
-                  val params' = map (term_of o nth (rev params)) is;
+                  val params' = map (term_of o #2 o nth (rev params)) is;
                   val tab = params' ~~ map fst qs;
                   val (hyps1, hyps2) = chop (length args) case_hyps;
                   (* turns a = t and [x1 # t, ..., xn # t] *)
@@ -635,7 +635,7 @@ fun prove_eqvt s xatoms ctxt =
             val prems'' = map (fn th => Simplifier.simplify eqvt_ss
               (mk_perm_bool (cterm_of thy pi) th)) prems';
             val intr' = Drule.cterm_instantiate (map (cterm_of thy) vs ~~
-               map (cterm_of thy o NominalDatatype.mk_perm [] pi o term_of) params)
+               map (cterm_of thy o NominalDatatype.mk_perm [] pi o term_of o #2) params)
                intr
           in (rtac intr' THEN_ALL_NEW (TRY o resolve_tac prems'')) 1
           end) ctxt' 1 st

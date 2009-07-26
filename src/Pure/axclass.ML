@@ -607,8 +607,10 @@ fun of_sort thy (typ, sort) cache =
     val cache' = cache |> fold (insert_type typ) (sort' ~~ ths');
     val ths =
       sort |> map (fn c =>
-        Goal.finish (the (lookup_type cache' typ c) RS
-          Goal.init (Thm.cterm_of thy (Logic.mk_of_class (typ, c))))
+        Goal.finish
+          (Syntax.init_pretty_global thy)
+          (the (lookup_type cache' typ c) RS
+            Goal.init (Thm.cterm_of thy (Logic.mk_of_class (typ, c))))
         |> Thm.adjust_maxidx_thm ~1);
   in (ths, cache') end;
 

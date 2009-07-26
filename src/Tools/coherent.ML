@@ -215,7 +215,7 @@ and thm_of_case_prf thy goal asms ((params, prf), (_, asms')) =
 fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context, ...} =>
   rtac (rulify_elim_conv concl RS equal_elim_rule2) 1 THEN
   SUBPROOF (fn {prems = prems', concl, context, ...} =>
-    let val xs = map term_of params @
+    let val xs = map (term_of o #2) params @
       map (fn (_, s) => Free (s, the (Variable.default_type context s)))
         (Variable.fixes_of context)
     in

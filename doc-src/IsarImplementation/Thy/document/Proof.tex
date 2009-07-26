@@ -113,7 +113,7 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
   \indexdef{}{ML}{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
   \indexdef{}{ML}{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context ->|\isasep\isanewline%
 \verb|  ((ctyp list * cterm list) * thm list) * Proof.context| \\
-  \indexdef{}{ML}{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context| \\
+  \indexdef{}{ML}{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context| \\
   \end{mldecls}
 
   \begin{description}
@@ -324,9 +324,7 @@ Local results are established by monotonic reasoning from facts
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{SUBPROOF}\verb|SUBPROOF: ({context: Proof.context, schematics: ctyp list * cterm list,|\isasep\isanewline%
-\verb|    params: cterm list, asms: cterm list, concl: cterm,|\isasep\isanewline%
-\verb|    prems: thm list} -> tactic) -> Proof.context -> int -> tactic| \\
+  \indexdef{}{ML}{SUBPROOF}\verb|SUBPROOF: (Subgoal.focus -> tactic) -> Proof.context -> int -> tactic| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML}{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
@@ -336,7 +334,7 @@ Local results are established by monotonic reasoning from facts
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML}{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) ->|\isasep\isanewline%
-\verb|  thm list -> Proof.context -> (cterm list * thm list) * Proof.context| \\
+\verb|  thm list -> Proof.context -> ((string * cterm) list * thm list) * Proof.context| \\
   \end{mldecls}
 
   \begin{description}
