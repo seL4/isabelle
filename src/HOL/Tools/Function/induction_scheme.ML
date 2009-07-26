@@ -324,7 +324,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
                          THEN CONVERSION ind_rulify 1)
                      |> Seq.hd
                      |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
-                     |> Goal.finish
+                     |> Goal.finish ctxt
                      |> implies_intr (cprop_of branch_hyp)
                      |> fold_rev (forall_intr o cert) fxs
           in

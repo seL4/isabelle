@@ -18,7 +18,8 @@ sig
   val init: cterm -> thm
   val protect: thm -> thm
   val conclude: thm -> thm
-  val finish: thm -> thm
+  val check_finished: Proof.context -> thm -> unit
+  val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
   val future_enabled: unit -> bool
   val local_future_enabled: unit -> bool
@@ -74,12 +75,15 @@ fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
   --- (finish)
    C
 *)
-fun finish th =
+fun check_finished ctxt th =
   (case Thm.nprems_of th of
-    0 => conclude th
+    0 => ()
   | n => raise THM ("Proof failed.\n" ^
-      Pretty.string_of (Pretty.chunks (Goal_Display.pretty_goals_without_context n th)) ^
-      ("\n" ^ string_of_int n ^ " unsolved goal(s)!"), 0, [th]));
+      Pretty.string_of (Pretty.chunks
+        (Goal_Display.pretty_goals ctxt {total = true, main = true, maxgoals = n} th)) ^
+      "\n" ^ string_of_int n ^ " unsolved goal(s)!", 0, [th]));
+
+fun finish ctxt th = (check_finished ctxt th; conclude th);
 
 
 
@@ -145,7 +149,8 @@ fun future_result ctxt result prop =
 
 fun prove_internal casms cprop tac =
   (case SINGLE (tac (map Assumption.assume casms)) (init cprop) of
-    SOME th => Drule.implies_intr_list casms (finish th)
+    SOME th => Drule.implies_intr_list casms
+      (finish (Syntax.init_pretty_global (Thm.theory_of_thm th)) th)
   | NONE => error "Tactic failed.");
 
 
@@ -180,7 +185,7 @@ fun prove_common immediate ctxt xs asms props tac =
       (case SINGLE (tac {prems = prems, context = ctxt'}) (init stmt) of
         NONE => err "Tactic failed."
       | SOME st =>
-          let val res = finish st handle THM (msg, _, _) => err msg in
+          let val res = finish ctxt' st handle THM (msg, _, _) => err msg in
             if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res]
             then Thm.check_shyps sorts res
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))

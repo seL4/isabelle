@@ -126,7 +126,10 @@ datatype proof_attempt = Solved of thm | Stuck of thm | Fail
 fun try_proof cgoal tac = 
     case SINGLE tac (Goal.init cgoal) of
       NONE => Fail
-    | SOME st => if Thm.no_prems st then Solved (Goal.finish st) else Stuck st
+    | SOME st =>
+        if Thm.no_prems st
+        then Solved (Goal.finish (Syntax.init_pretty_global (Thm.theory_of_cterm cgoal)) st)
+        else Stuck st
 
 
 fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) = 

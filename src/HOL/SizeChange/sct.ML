@@ -210,7 +210,7 @@ fun setup_probe_goal ctxt domT Dtab Mtab (i, j) =
 
     in
       if Thm.no_prems no_step
-      then NoStep (Goal.finish no_step RS no_stepI)
+      then NoStep (Goal.finish ctxt no_step RS no_stepI)
       else
         let
           fun set_m1 i =
@@ -240,10 +240,10 @@ fun setup_probe_goal ctxt domT Dtab Mtab (i, j) =
                       val thm1 = decr with_m2
                     in
                       if Thm.no_prems thm1
-                      then ((rtac (inst_nums thy i j approx_less) 1) THEN (simp_nth_tac 1) THEN (rtac (Goal.finish thm1) 1))
+                      then ((rtac (inst_nums thy i j approx_less) 1) THEN (simp_nth_tac 1) THEN (rtac (Goal.finish ctxt thm1) 1))
                       else let val thm2 = decreq with_m2 in
                              if Thm.no_prems thm2
-                             then ((rtac (inst_nums thy i j approx_leq) 1) THEN (simp_nth_tac 1) THEN (rtac (Goal.finish thm2) 1))
+                             then ((rtac (inst_nums thy i j approx_leq) 1) THEN (simp_nth_tac 1) THEN (rtac (Goal.finish ctxt thm2) 1))
                              else all_tac end
                     end
               in set_m2 end
@@ -257,7 +257,7 @@ fun setup_probe_goal ctxt domT Dtab Mtab (i, j) =
                     |> cterm_of thy
                     |> Goal.init
                     |> tac |> Seq.hd
-                    |> Goal.finish
+                    |> Goal.finish ctxt
 
           val _ $ (_ $ G $ _ $ _ $ _ $ _) = prop_of approx_thm
         in
