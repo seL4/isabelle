@@ -1257,7 +1257,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             [resolve_tac exists_fresh' 1,
              simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms @
                fin_set_supp @ ths)) 1]);
-        val (([cx], ths), ctxt') = Obtain.result
+        val (([(_, cx)], ths), ctxt') = Obtain.result
           (fn _ => EVERY
             [etac exE 1,
              full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
@@ -1324,7 +1324,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                        val _ $ (_ $ _ $ u) = concl';
                        val U = fastype_of u;
                        val (xs, params') =
-                         chop (length cargs) (map term_of params);
+                         chop (length cargs) (map (term_of o #2) params);
                        val Ts = map fastype_of xs;
                        val cnstr = Const (cname, Ts ---> U);
                        val (pis, z) = split_last params';
@@ -1640,7 +1640,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     REPEAT_DETERM (resolve_tac [allI, impI] 1),
                     REPEAT_DETERM (etac conjE 1),
                     rtac unique 1,
-                    SUBPROOF (fn {prems = prems', params = [a, b], ...} => EVERY
+                    SUBPROOF (fn {prems = prems', params = [(_, a), (_, b)], ...} => EVERY
                       [cut_facts_tac [rec_prem] 1,
                        rtac (Thm.instantiate ([],
                          [(cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
@@ -1693,7 +1693,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
              REPEAT_DETERM (dresolve_tac (the (AList.lookup op = rec_fin_supp T)) 1),
              resolve_tac exists_fresh' 1,
              asm_simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
-        val (([cx], ths), ctxt') = Obtain.result
+        val (([(_, cx)], ths), ctxt') = Obtain.result
           (fn _ => EVERY
             [etac exE 1,
              full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
@@ -1763,7 +1763,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     val cargsr' = partition_cargs idxs cargsr;
                     val boundsr = List.concat (map fst cargsr');
                     val (params1, _ :: params2) =
-                      chop (length params div 2) (map term_of params);
+                      chop (length params div 2) (map (term_of o #2) params);
                     val params' = params1 @ params2;
                     val rec_prems = filter (fn th => case prop_of th of
                         _ $ p => (case head_of p of
