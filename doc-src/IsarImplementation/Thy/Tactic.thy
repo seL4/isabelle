@@ -63,7 +63,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML Goal.init: "cterm -> thm"} \\
-  @{index_ML Goal.finish: "thm -> thm"} \\
+  @{index_ML Goal.finish: "Proof.context -> thm -> thm"} \\
   @{index_ML Goal.protect: "thm -> thm"} \\
   @{index_ML Goal.conclude: "thm -> thm"} \\
   \end{mldecls}
@@ -73,9 +73,10 @@ text %mlref {*
   \item @{ML "Goal.init"}~@{text C} initializes a tactical goal from
   the well-formed proposition @{text C}.
 
-  \item @{ML "Goal.finish"}~@{text "thm"} checks whether theorem
+  \item @{ML "Goal.finish"}~@{text "ctxt thm"} checks whether theorem
   @{text "thm"} is a solved goal (no subgoals), and concludes the
-  result by removing the goal protection.
+  result by removing the goal protection.  The context is only
+  required for printing error messages.
 
   \item @{ML "Goal.protect"}~@{text "thm"} protects the full statement
   of theorem @{text "thm"}.

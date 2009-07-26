@@ -84,7 +84,7 @@ Isabelle/Pure represents a goal as a theorem stating that the
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML}{Goal.init}\verb|Goal.init: cterm -> thm| \\
-  \indexdef{}{ML}{Goal.finish}\verb|Goal.finish: thm -> thm| \\
+  \indexdef{}{ML}{Goal.finish}\verb|Goal.finish: Proof.context -> thm -> thm| \\
   \indexdef{}{ML}{Goal.protect}\verb|Goal.protect: thm -> thm| \\
   \indexdef{}{ML}{Goal.conclude}\verb|Goal.conclude: thm -> thm| \\
   \end{mldecls}
@@ -94,9 +94,10 @@ Isabelle/Pure represents a goal as a theorem stating that the
   \item \verb|Goal.init|~\isa{C} initializes a tactical goal from
   the well-formed proposition \isa{C}.
 
-  \item \verb|Goal.finish|~\isa{thm} checks whether theorem
+  \item \verb|Goal.finish|~\isa{ctxt\ thm} checks whether theorem
   \isa{thm} is a solved goal (no subgoals), and concludes the
-  result by removing the goal protection.
+  result by removing the goal protection.  The context is only
+  required for printing error messages.
 
   \item \verb|Goal.protect|~\isa{thm} protects the full statement
   of theorem \isa{thm}.

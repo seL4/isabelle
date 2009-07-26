@@ -95,7 +95,7 @@ text %mlref {*
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   @{index_ML Variable.import: "bool -> thm list -> Proof.context ->
   ((ctyp list * cterm list) * thm list) * Proof.context"} \\
-  @{index_ML Variable.focus: "cterm -> Proof.context -> (cterm list * cterm) * Proof.context"} \\
+  @{index_ML Variable.focus: "cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
@@ -284,10 +284,7 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML SUBPROOF:
-  "({context: Proof.context, schematics: ctyp list * cterm list,
-    params: cterm list, asms: cterm list, concl: cterm,
-    prems: thm list} -> tactic) -> Proof.context -> int -> tactic"} \\
+  @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Goal.prove: "Proof.context -> string list -> term list -> term ->
@@ -297,7 +294,7 @@ text %mlref {*
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Obtain.result: "(Proof.context -> tactic) ->
-  thm list -> Proof.context -> (cterm list * thm list) * Proof.context"} \\
+  thm list -> Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
