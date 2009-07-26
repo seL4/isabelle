@@ -3232,7 +3232,7 @@ code_const approx_tse_form (Eval "Float'_Arith.approx'_tse'_form")
 code_const approx' (Eval "Float'_Arith.approx'")
 
 ML {*
-  fun reorder_bounds_tac i prems =
+  fun reorder_bounds_tac prems i =
     let
       fun variable_of_bound (Const ("Trueprop", _) $
                              (Const (@{const_name "op :"}, _) $
@@ -3337,7 +3337,7 @@ method_setup approximation = {*
       REPEAT (FIRST' [etac @{thm intervalE},
                       etac @{thm meta_eqE},
                       rtac @{thm impI}] i)
-      THEN METAHYPS (reorder_bounds_tac i) i
+      THEN FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) @{context} i
       THEN TRY (filter_prems_tac (K false) i)
       THEN DETERM (Reflection.genreify_tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
