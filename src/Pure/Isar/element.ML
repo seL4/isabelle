@@ -213,7 +213,7 @@ fun obtain prop ctxt =
   let
     val ((xs, prop'), ctxt') = Variable.focus prop ctxt;
     val As = Logic.strip_imp_prems (Thm.term_of prop');
-  in ((Binding.empty, (map (fix o Term.dest_Free o Thm.term_of) xs, As)), ctxt') end;
+  in ((Binding.empty, (map (fix o Term.dest_Free o Thm.term_of o #2) xs, As)), ctxt') end;
 
 in
 

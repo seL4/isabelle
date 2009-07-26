@@ -44,7 +44,7 @@ sig
   val obtain_i: string -> (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
-    (cterm list * thm list) * Proof.context
+    ((string * cterm) list * thm list) * Proof.context
   val guess: (binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
   val guess_i: (binding * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
 end;
@@ -200,7 +200,7 @@ fun result tac facts ctxt =
     val obtain_rule = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
     val ((params, stmt), fix_ctxt) = Variable.focus (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
-      Assumption.add_assms (obtain_export fix_ctxt obtain_rule params)
+      Assumption.add_assms (obtain_export fix_ctxt obtain_rule (map #2 params))
         (Drule.strip_imp_prems stmt) fix_ctxt;
   in ((params, prems), ctxt'') end;
 
