@@ -2960,13 +2960,9 @@ lemma ab_semigroup_idem_mult_max:
   "ab_semigroup_idem_mult max"
   proof qed (auto simp add: max_def)
 
-lemma min_lattice:
-  "lower_semilattice (op \<le>) (op <) min"
-  proof qed (auto simp add: min_def)
-
 lemma max_lattice:
   "lower_semilattice (op \<ge>) (op >) max"
-  proof qed (auto simp add: max_def)
+  by (fact min_max.dual_semilattice)
 
 lemma dual_max:
   "ord.max (op \<ge>) = min"
@@ -3126,11 +3122,7 @@ qed
 lemma Min_le [simp]:
   assumes "finite A" and "x \<in> A"
   shows "Min A \<le> x"
-proof -
-  interpret lower_semilattice "op \<le>" "op <" min
-    by (rule min_lattice)
-  from assms show ?thesis by (simp add: Min_def fold1_belowI)
-qed
+  using assms by (simp add: Min_def min_max.fold1_belowI)
 
 lemma Max_ge [simp]:
   assumes "finite A" and "x \<in> A"
@@ -3144,11 +3136,7 @@ qed
 lemma Min_ge_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
-proof -
-  interpret lower_semilattice "op \<le>" "op <" min
-    by (rule min_lattice)
-  from assms show ?thesis by (simp add: Min_def below_fold1_iff)
-qed
+  using assms by (simp add: Min_def min_max.below_fold1_iff)
 
 lemma Max_le_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
@@ -3162,63 +3150,46 @@ qed
 lemma Min_gr_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
-proof -
-  interpret lower_semilattice "op \<le>" "op <" min
-    by (rule min_lattice)
-  from assms show ?thesis by (simp add: Min_def strict_below_fold1_iff)
-qed
+  using assms by (simp add: Min_def strict_below_fold1_iff)
 
 lemma Max_less_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
 proof -
-  note Max = Max_def
-  interpret linorder "op \<ge>" "op >"
+  interpret dual: linorder "op \<ge>" "op >"
     by (rule dual_linorder)
   from assms show ?thesis
-    by (simp add: Max strict_below_fold1_iff [folded dual_max])
+    by (simp add: Max_def dual.strict_below_fold1_iff [folded dual.dual_max])
 qed
 
 lemma Min_le_iff [noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
-proof -
-  interpret lower_semilattice "op \<le>" "op <" min
-    by (rule min_lattice)
-  from assms show ?thesis
-    by (simp add: Min_def fold1_below_iff)
-qed
+  using assms by (simp add: Min_def fold1_below_iff)
 
 lemma Max_ge_iff [noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
 proof -
-  note Max = Max_def
-  interpret linorder "op \<ge>" "op >"
+  interpret dual: linorder "op \<ge>" "op >"
     by (rule dual_linorder)
   from assms show ?thesis
-    by (simp add: Max fold1_below_iff [folded dual_max])
+    by (simp add: Max_def dual.fold1_below_iff [folded dual.dual_max])
 qed
 
 lemma Min_less_iff [noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
-proof -
-  interpret lower_semilattice "op \<le>" "op <" min
-    by (rule min_lattice)
-  from assms show ?thesis
-    by (simp add: Min_def fold1_strict_below_iff)
-qed
+  using assms by (simp add: Min_def fold1_strict_below_iff)
 
 lemma Max_gr_iff [noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
 proof -
-  note Max = Max_def
-  interpret linorder "op \<ge>" "op >"
+  interpret dual: linorder "op \<ge>" "op >"
     by (rule dual_linorder)
   from assms show ?thesis
-    by (simp add: Max fold1_strict_below_iff [folded dual_max])
+    by (simp add: Max_def dual.fold1_strict_below_iff [folded dual.dual_max])
 qed
 
 lemma Min_eqI:
@@ -3248,21 +3219,16 @@ qed
 lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Min N \<le> Min M"
-proof -
-  interpret distrib_lattice "op \<le>" "op <" min max
-    by (rule distrib_lattice_min_max)
-  from assms show ?thesis by (simp add: Min_def fold1_antimono)
-qed
+  using assms by (simp add: Min_def fold1_antimono)
 
 lemma Max_mono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Max M \<le> Max N"
 proof -
-  note Max = Max_def
-  interpret linorder "op \<ge>" "op >"
+  interpret dual: linorder "op \<ge>" "op >"
     by (rule dual_linorder)
   from assms show ?thesis
-    by (simp add: Max fold1_antimono [folded dual_max])
+    by (simp add: Max_def dual.fold1_antimono [folded dual.dual_max])
 qed
 
 lemma finite_linorder_max_induct[consumes 1, case_names empty insert]:

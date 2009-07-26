@@ -413,19 +413,13 @@ qed
 subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
 
-lemma (in linorder) distrib_lattice_min_max:
-  "distrib_lattice (op \<le>) (op <) min max"
+sublocale linorder < min_max!: distrib_lattice less_eq less "Orderings.ord.min less_eq" "Orderings.ord.max less_eq"
 proof
-  have aux: "\<And>x y \<Colon> 'a. x < y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
-    by (auto simp add: less_le antisym)
   fix x y z
-  show "max x (min y z) = min (max x y) (max x z)"
-  unfolding min_def max_def
-  by auto
+  show "Orderings.ord.max less_eq x (Orderings.ord.min less_eq y z) =
+    Orderings.ord.min less_eq (Orderings.ord.max less_eq x y) (Orderings.ord.max less_eq x z)"
+  unfolding min_def max_def by auto
 qed (auto simp add: min_def max_def not_le less_imp_le)
-
-interpretation min_max: distrib_lattice "op \<le> :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max
-  by (rule distrib_lattice_min_max)
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (rule ext)+ (auto intro: antisym)

@@ -187,8 +187,12 @@ text {* Well-foundedness of the empty relation *}
 lemma wf_empty [iff]: "wf({})"
   by (simp add: wf_def)
 
-lemmas wfP_empty [iff] =
-  wf_empty [to_pred bot_empty_eq2, simplified bot_fun_eq bot_bool_eq]
+lemma wfP_empty [iff]:
+  "wfP (\<lambda>x y. False)"
+proof -
+  have "wfP bot" by (fact wf_empty [to_pred bot_empty_eq2])
+  then show ?thesis by (simp add: bot_fun_eq bot_bool_eq)
+qed
 
 lemma wf_Int1: "wf r ==> wf (r Int r')"
   apply (erule wf_subset)
