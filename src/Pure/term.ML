@@ -151,6 +151,7 @@ sig
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val map_abs_vars: (string -> string) -> term -> term
   val rename_abs: term -> term -> term -> term option
+  val lambda_name: string * term -> term -> term
   val close_schematic_term: term -> term
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
@@ -719,14 +720,15 @@ fun abstract_over (v, body) =
         | _ => raise Same.SAME);
   in abs 0 body handle Same.SAME => body end;
 
-fun lambda v t =
-  let val x =
-    (case v of
-      Const (x, _) => Long_Name.base_name x
-    | Free (x, _) => x
-    | Var ((x, _), _) => x
-    | _ => Name.uu)
-  in Abs (x, fastype_of v, abstract_over (v, t)) end;
+fun term_name (Const (x, _)) = Long_Name.base_name x
+  | term_name (Free (x, _)) = x
+  | term_name (Var ((x, _), _)) = x
+  | term_name _ = Name.uu;
+
+fun lambda_name (x, v) t =
+  Abs (if x = "" then term_name v else x, fastype_of v, abstract_over (v, t));
+
+fun lambda v t = lambda_name ("", v) t;
 
 (*Form an abstraction over a free variable.*)
 fun absfree (a,T,body) = Abs (a, T, abstract_over (Free (a, T), body));

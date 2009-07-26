@@ -110,6 +110,7 @@ sig
   val dest_arg1: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
   val capply: cterm -> cterm -> cterm
+  val cabs_name: string * cterm -> cterm -> cterm
   val cabs: cterm -> cterm -> cterm
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val incr_indexes_cterm: int -> cterm -> cterm
@@ -274,15 +275,17 @@ fun capply
       else raise CTERM ("capply: types don't agree", [cf, cx])
   | capply cf cx = raise CTERM ("capply: first arg is not a function", [cf, cx]);
 
-fun cabs
-  (ct1 as Cterm {t = t1, T = T1, maxidx = maxidx1, sorts = sorts1, ...})
+fun cabs_name
+  (x, ct1 as Cterm {t = t1, T = T1, maxidx = maxidx1, sorts = sorts1, ...})
   (ct2 as Cterm {t = t2, T = T2, maxidx = maxidx2, sorts = sorts2, ...}) =
-    let val t = Term.lambda t1 t2 in
+    let val t = Term.lambda_name (x, t1) t2 in
       Cterm {thy_ref = merge_thys0 ct1 ct2,
         t = t, T = T1 --> T2,
         maxidx = Int.max (maxidx1, maxidx2),
         sorts = Sorts.union sorts1 sorts2}
     end;
+
+fun cabs t u = cabs_name ("", t) u;
 
 
 (* indexes *)
