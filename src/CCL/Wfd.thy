@@ -498,14 +498,13 @@ local
   structure Data = Named_Thms(val name = "eval" val description = "evaluation rules");
 in
 
-fun eval_tac ctxt ths =
-  METAHYPS (fn prems =>
-    DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Data.get ctxt) 1)) 1;
+fun eval_tac ctxt ths i =
+  DEPTH_SOLVE_1 (resolve_tac (ths @ Data.get ctxt) i ORELSE assume_tac i);
 
 val eval_setup =
   Data.setup #>
   Method.setup @{binding eval}
-    (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (CHANGED (eval_tac ctxt ths))))
+    (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED o eval_tac ctxt ths)))
     "evaluation";
 
 end;
