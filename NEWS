@@ -31,7 +31,7 @@ are formally declared.  INCOMPATIBILITY.
 
 * New quickcheck implementation using new code generator.
 
-* New type class boolean_algebra.
+* New class "boolean_algebra".
 
 * Refinements to lattices classes:
   - added boolean_algebra type class
@@ -40,6 +40,19 @@ are formally declared.  INCOMPATIBILITY.
   - lemma ge_sup_conv renamed to le_sup_iff, in accordance with le_inf_iff
   - dropped lemma alias inf_ACI for inf_aci (same for sup_ACI and sup_aci)
   - renamed ACI to inf_sup_aci
+  - class "complete_lattice" moved to separate theory "complete_lattice";
+    corresponding constants renamed:
+    
+    Set.Inf ~>      Complete_Lattice.Inf
+    Set.Sup ~>      Complete_Lattice.Sup
+    Set.INFI ~>     Complete_Lattice.INFI
+    Set.SUPR ~>     Complete_Lattice.SUPR
+    Set.Inter ~>    Complete_Lattice.Inter
+    Set.Union ~>    Complete_Lattice.Union
+    Set.INTER ~>    Complete_Lattice.INTER
+    Set.UNION ~>    Complete_Lattice.UNION
+
+  INCOMPATIBILITY.
 
 * Class semiring_div requires superclass no_zero_divisors and proof of
 div_mult_mult1; theorems div_mult_mult1, div_mult_mult2,
