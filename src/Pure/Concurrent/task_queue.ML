@@ -30,8 +30,6 @@ sig
   val dequeue_towards: task list -> queue ->
     (((task * group * (bool -> bool) list) * task list) option * queue)
   val finish: task -> queue -> bool * queue
-  val interrupt: queue -> task -> unit
-  val interrupt_external: queue -> string -> unit
 end;
 
 structure Task_Queue:> TASK_QUEUE =
@@ -239,21 +237,5 @@ fun finish task (Queue {groups, jobs, cache}) =
     val maximal = null (Task_Graph.imm_succs jobs task);
     val cache' = if maximal then cache else Unknown;
   in (maximal, make_queue groups' jobs' cache') end;
-
-
-(* sporadic interrupts *)
-
-fun interrupt (Queue {jobs, ...}) task =
-  (case try (get_job jobs) task of
-    SOME (Running thread) => SimpleThread.interrupt thread
-  | _ => ());
-
-fun interrupt_external (queue as Queue {jobs, ...}) str =
-  (case Int.fromString str of
-    SOME i =>
-      (case Task_Graph.get_first NONE
-          (fn (task as Task (_, j), _) => if i = j then SOME task else NONE) jobs
-        of SOME task => interrupt queue task | NONE => ())
-  | NONE => ());
 
 end;
