@@ -33,19 +33,20 @@
 
 signature CNF =
 sig
-	val is_atom           : Term.term -> bool
-	val is_literal        : Term.term -> bool
-	val is_clause         : Term.term -> bool
-	val clause_is_trivial : Term.term -> bool
+	val is_atom: term -> bool
+	val is_literal: term -> bool
+	val is_clause: term -> bool
+	val clause_is_trivial: term -> bool
 
-	val clause2raw_thm : Thm.thm -> Thm.thm
+	val clause2raw_thm: thm -> thm
 
-	val weakening_tac : int -> Tactical.tactic  (* removes the first hypothesis of a subgoal *)
+	val weakening_tac: int -> tactic  (* removes the first hypothesis of a subgoal *)
 
-	val make_cnf_thm  : theory -> Term.term -> Thm.thm
-	val make_cnfx_thm : theory -> Term.term ->  Thm.thm
-	val cnf_rewrite_tac  : int -> Tactical.tactic  (* converts all prems of a subgoal to CNF *)
-	val cnfx_rewrite_tac : int -> Tactical.tactic  (* converts all prems of a subgoal to (almost) definitional CNF *)
+	val make_cnf_thm: theory -> term -> thm
+	val make_cnfx_thm: theory -> term -> thm
+	val cnf_rewrite_tac: Proof.context -> int -> tactic  (* converts all prems of a subgoal to CNF *)
+	val cnfx_rewrite_tac: Proof.context -> int -> tactic
+	  (* converts all prems of a subgoal to (almost) definitional CNF *)
 end;
 
 structure cnf : CNF =
@@ -505,8 +506,6 @@ end;
 (* weakening_tac: removes the first hypothesis of the 'i'-th subgoal         *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
 fun weakening_tac i =
 	dtac weakening_thm i THEN atac (i+1);
 
@@ -516,17 +515,16 @@ fun weakening_tac i =
 (*      premise)                                                             *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
-fun cnf_rewrite_tac i =
+fun cnf_rewrite_tac ctxt i =
 	(* cut the CNF formulas as new premises *)
-	OldGoals.METAHYPS (fn prems =>
+	FOCUS (fn {prems, ...} =>
 		let
-			val cnf_thms = map (fn pr => make_cnf_thm (theory_of_thm pr) ((HOLogic.dest_Trueprop o prop_of) pr)) prems
+		  val thy = ProofContext.theory_of ctxt
+			val cnf_thms = map (make_cnf_thm thy o HOLogic.dest_Trueprop o Thm.prop_of) prems
 			val cut_thms = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnf_thms ~~ prems)
 		in
 			cut_facts_tac cut_thms 1
-		end) i
+		end) ctxt i
 	(* remove the original premises *)
 	THEN SELECT_GOAL (fn thm =>
 		let
@@ -540,17 +538,16 @@ fun cnf_rewrite_tac i =
 (*      (possibly introducing new literals)                                  *)
 (* ------------------------------------------------------------------------- *)
 
-(* int -> Tactical.tactic *)
-
-fun cnfx_rewrite_tac i =
+fun cnfx_rewrite_tac ctxt i =
 	(* cut the CNF formulas as new premises *)
-	OldGoals.METAHYPS (fn prems =>
+	FOCUS (fn {prems, ...} =>
 		let
-			val cnfx_thms = map (fn pr => make_cnfx_thm (theory_of_thm pr) ((HOLogic.dest_Trueprop o prop_of) pr)) prems
+		  val thy = ProofContext.theory_of ctxt;
+			val cnfx_thms = map (make_cnfx_thm thy o HOLogic.dest_Trueprop o prop_of) prems
 			val cut_thms  = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnfx_thms ~~ prems)
 		in
 			cut_facts_tac cut_thms 1
-		end) i
+		end) ctxt i
 	(* remove the original premises *)
 	THEN SELECT_GOAL (fn thm =>
 		let

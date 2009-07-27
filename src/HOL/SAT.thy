@@ -25,12 +25,12 @@ refute_params
   maxtime=60,
   satsolver="auto"]
 
-ML {* structure sat = SATFunc(structure cnf = cnf); *}
+ML {* structure sat = SATFunc(cnf) *}
 
-method_setup sat = {* Scan.succeed (K (SIMPLE_METHOD' sat.sat_tac)) *}
+method_setup sat = {* Scan.succeed (SIMPLE_METHOD' o sat.sat_tac) *}
   "SAT solver"
 
-method_setup satx = {* Scan.succeed (K (SIMPLE_METHOD' sat.satx_tac)) *}
+method_setup satx = {* Scan.succeed (SIMPLE_METHOD' o sat.satx_tac) *}
   "SAT solver (with definitional CNF)"
 
 end

@@ -48,16 +48,16 @@ Proof reconstruction from SAT solvers.
 
 signature SAT =
 sig
-	val trace_sat  : bool ref    (* input: print trace messages *)
-	val solver     : string ref  (* input: name of SAT solver to be used *)
-	val counter    : int ref     (* output: number of resolution steps during last proof replay *)
-	val rawsat_thm : cterm list -> thm
-	val rawsat_tac : int -> Tactical.tactic
-	val sat_tac    : int -> Tactical.tactic
-	val satx_tac   : int -> Tactical.tactic
+	val trace_sat: bool ref    (* input: print trace messages *)
+	val solver: string ref  (* input: name of SAT solver to be used *)
+	val counter: int ref     (* output: number of resolution steps during last proof replay *)
+	val rawsat_thm: cterm list -> thm
+	val rawsat_tac: Proof.context -> int -> tactic
+	val sat_tac: Proof.context -> int -> tactic
+	val satx_tac: Proof.context -> int -> tactic
 end
 
-functor SATFunc (structure cnf : CNF) : SAT =
+functor SATFunc(cnf : CNF) : SAT =
 struct
 
 val trace_sat = ref false;
@@ -410,7 +410,8 @@ end;
 (*      or "True"                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun rawsat_tac i = OldGoals.METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 1) i;
+fun rawsat_tac ctxt i =
+  FOCUS (fn {prems, ...} => rtac (rawsat_thm (map cprop_of prems)) 1) ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)
@@ -436,8 +437,8 @@ val pre_cnf_tac =
 (*      subgoal                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun cnfsat_tac i =
-	(etac FalseE i) ORELSE (REPEAT_DETERM (etac conjE i) THEN rawsat_tac i);
+fun cnfsat_tac ctxt i =
+	(etac FalseE i) ORELSE (REPEAT_DETERM (etac conjE i) THEN rawsat_tac ctxt i);
 
 (* ------------------------------------------------------------------------- *)
 (* cnfxsat_tac: checks if the empty clause "False" occurs among the          *)
@@ -446,9 +447,9 @@ fun cnfsat_tac i =
 (*      then applies 'rawsat_tac' to solve the subgoal                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun cnfxsat_tac i =
+fun cnfxsat_tac ctxt i =
 	(etac FalseE i) ORELSE
-		(REPEAT_DETERM (etac conjE i ORELSE etac exE i) THEN rawsat_tac i);
+		(REPEAT_DETERM (etac conjE i ORELSE etac exE i) THEN rawsat_tac ctxt i);
 
 (* ------------------------------------------------------------------------- *)
 (* sat_tac: tactic for calling an external SAT solver, taking as input an    *)
@@ -456,8 +457,8 @@ fun cnfxsat_tac i =
 (*      an exponential blowup.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun sat_tac i =
-	pre_cnf_tac i THEN cnf.cnf_rewrite_tac i THEN cnfsat_tac i;
+fun sat_tac ctxt i =
+	pre_cnf_tac i THEN cnf.cnf_rewrite_tac ctxt i THEN cnfsat_tac ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* satx_tac: tactic for calling an external SAT solver, taking as input an   *)
@@ -465,7 +466,7 @@ fun sat_tac i =
 (*      introducing new literals.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun satx_tac i =
-	pre_cnf_tac i THEN cnf.cnfx_rewrite_tac i THEN cnfxsat_tac i;
+fun satx_tac ctxt i =
+	pre_cnf_tac i THEN cnf.cnfx_rewrite_tac ctxt i THEN cnfxsat_tac ctxt i;
 
 end;
