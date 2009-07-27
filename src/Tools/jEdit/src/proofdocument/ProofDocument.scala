@@ -9,8 +9,6 @@
 package isabelle.proofdocument
 
 import scala.collection.mutable.ListBuffer
-import scala.actors.Actor
-import scala.actors.Actor._
 import java.util.regex.Pattern
 import isabelle.prover.{Prover, Command}
 import isabelle.utils.LinearSet
@@ -58,6 +56,8 @@ class ProofDocument(
     new ProofDocument(id, tokens, token_start, commands, states, f)
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
+
+
   /** token view **/
 
   def text_changed(change: Text.Change): (ProofDocument, StructureChange) =
