@@ -520,7 +520,7 @@ fun weakening_tac i =
 
 fun cnf_rewrite_tac i =
 	(* cut the CNF formulas as new premises *)
-	METAHYPS (fn prems =>
+	OldGoals.METAHYPS (fn prems =>
 		let
 			val cnf_thms = map (fn pr => make_cnf_thm (theory_of_thm pr) ((HOLogic.dest_Trueprop o prop_of) pr)) prems
 			val cut_thms = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnf_thms ~~ prems)
@@ -544,7 +544,7 @@ fun cnf_rewrite_tac i =
 
 fun cnfx_rewrite_tac i =
 	(* cut the CNF formulas as new premises *)
-	METAHYPS (fn prems =>
+	OldGoals.METAHYPS (fn prems =>
 		let
 			val cnfx_thms = map (fn pr => make_cnfx_thm (theory_of_thm pr) ((HOLogic.dest_Trueprop o prop_of) pr)) prems
 			val cut_thms  = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnfx_thms ~~ prems)
