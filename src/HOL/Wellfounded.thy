@@ -239,7 +239,7 @@ subsection {* Well-Foundedness Results for Unions *}
 
 lemma wf_union_compatible:
   assumes "wf R" "wf S"
-  assumes "S O R \<subseteq> R"
+  assumes "R O S \<subseteq> R"
   shows "wf (R \<union> S)"
 proof (rule wfI_min)
   fix x :: 'a and Q 
@@ -258,8 +258,8 @@ proof (rule wfI_min)
       assume "y \<in> Q"
       with `y \<notin> ?Q'` 
       obtain w where "(w, y) \<in> R" and "w \<in> Q" by auto
-      from `(w, y) \<in> R` `(y, z) \<in> S` have "(w, z) \<in> S O R" by (rule rel_compI)
-      with `S O R \<subseteq> R` have "(w, z) \<in> R" ..
+      from `(w, y) \<in> R` `(y, z) \<in> S` have "(w, z) \<in> R O S" by (rule rel_compI)
+      with `R O S \<subseteq> R` have "(w, z) \<in> R" ..
       with `z \<in> ?Q'` have "w \<notin> Q" by blast 
       with `w \<in> Q` show False by contradiction
     qed
@@ -312,7 +312,7 @@ lemma wf_Un:
   by (auto simp: Un_ac)
 
 lemma wf_union_merge: 
-  "wf (R \<union> S) = wf (R O R \<union> R O S \<union> S)" (is "wf ?A = wf ?B")
+  "wf (R \<union> S) = wf (R O R \<union> S O R \<union> S)" (is "wf ?A = wf ?B")
 proof
   assume "wf ?A"
   with wf_trancl have wfT: "wf (?A^+)" .
@@ -331,7 +331,7 @@ next
     obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q" 
       by (erule wfE_min)
     then have A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
-      and A2: "\<And>y. (y, z) \<in> R O S \<Longrightarrow> y \<notin> Q"
+      and A2: "\<And>y. (y, z) \<in> S O R \<Longrightarrow> y \<notin> Q"
       and A3: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> Q"
       by auto
     
@@ -353,7 +353,7 @@ next
           with A1 show "y \<notin> Q" .
         next
           assume "(y, z') \<in> S" 
-          then have "(y, z) \<in> R O S" using  `(z', z) \<in> R` ..
+          then have "(y, z) \<in> S O R" using  `(z', z) \<in> R` ..
           with A2 show "y \<notin> Q" .
         qed
       qed

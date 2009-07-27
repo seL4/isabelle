@@ -371,7 +371,7 @@ qed
 
 theorem eta_postponement:
   assumes "(sup beta eta)\<^sup>*\<^sup>* s t"
-  shows "(eta\<^sup>*\<^sup>* OO beta\<^sup>*\<^sup>*) s t" using assms
+  shows "(beta\<^sup>*\<^sup>* OO eta\<^sup>*\<^sup>*) s t" using assms
 proof induct
   case base
   show ?case by blast

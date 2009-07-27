@@ -221,11 +221,11 @@ subsection {* Predicates as relations *}
 subsubsection {* Composition  *}
 
 inductive
-  pred_comp  :: "['b => 'c => bool, 'a => 'b => bool] => 'a => 'c => bool"
+  pred_comp  :: "['a => 'b => bool, 'b => 'c => bool] => 'a => 'c => bool"
     (infixr "OO" 75)
-  for r :: "'b => 'c => bool" and s :: "'a => 'b => bool"
+  for r :: "'a => 'b => bool" and s :: "'b => 'c => bool"
 where
-  pred_compI [intro]: "s a b ==> r b c ==> (r OO s) a c"
+  pred_compI [intro]: "r a b ==> s b c ==> (r OO s) a c"
 
 inductive_cases pred_compE [elim!]: "(r OO s) a c"
 

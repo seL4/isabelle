@@ -21,9 +21,9 @@ notation (xsymbols)
   converse  ("(_\<inverse>)" [1000] 999)
 
 definition
-  rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"
+  rel_comp  :: "[('a * 'b) set, ('b * 'c) set] => ('a * 'c) set"
     (infixr "O" 75) where
-  "r O s == {(x,z). EX y. (x, y) : s & (y, z) : r}"
+  "r O s == {(x,z). EX y. (x, y) : r & (y, z) : s}"
 
 definition
   Image :: "[('a * 'b) set, 'a set] => 'b set"
@@ -140,15 +140,15 @@ by blast
 subsection {* Composition of two relations *}
 
 lemma rel_compI [intro]:
-  "(a, b) : s ==> (b, c) : r ==> (a, c) : r O s"
+  "(a, b) : r ==> (b, c) : s ==> (a, c) : r O s"
 by (unfold rel_comp_def) blast
 
 lemma rel_compE [elim!]: "xz : r O s ==>
-  (!!x y z. xz = (x, z) ==> (x, y) : s ==> (y, z) : r  ==> P) ==> P"
+  (!!x y z. xz = (x, z) ==> (x, y) : r ==> (y, z) : s  ==> P) ==> P"
 by (unfold rel_comp_def) (iprover elim!: CollectE splitE exE conjE)
 
 lemma rel_compEpair:
-  "(a, c) : r O s ==> (!!y. (a, y) : s ==> (y, c) : r ==> P) ==> P"
+  "(a, c) : r O s ==> (!!y. (a, y) : r ==> (y, c) : s ==> P) ==> P"
 by (iprover elim: rel_compE Pair_inject ssubst)
 
 lemma R_O_Id [simp]: "R O Id = R"
@@ -173,7 +173,7 @@ lemma rel_comp_mono: "r' \<subseteq> r ==> s' \<subseteq> s ==> (r' O s') \<subs
 by blast
 
 lemma rel_comp_subset_Sigma:
-    "s \<subseteq> A \<times> B ==> r \<subseteq> B \<times> C ==> (r O s) \<subseteq> A \<times> C"
+    "r \<subseteq> A \<times> B ==> s \<subseteq> B \<times> C ==> (r O s) \<subseteq> A \<times> C"
 by blast
 
 lemma rel_comp_distrib[simp]: "R O (S \<union> T) = (R O S) \<union> (R O T)" 

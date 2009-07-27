@@ -67,6 +67,13 @@ constant compow with infix syntax "^^".  Power operations on
 multiplicative monoids retains syntax "^" and is now defined generic
 in class power.  INCOMPATIBILITY.
 
+* Relation composition "R O S" now has a "more standard" argument order,
+i.e., "R O S = {(x,z). EX y. (x,y) : R & (y,z) : S }".
+INCOMPATIBILITY: Rewrite propositions with "S O R" --> "R O S". Proofs
+may occationally break, since the O_assoc rule was not rewritten like this.
+Fix using O_assoc[symmetric].
+The same applies to the curried version "R OO S".
+
 * GCD now has functions Gcd/GCD and Lcm/LCM for the gcd and lcm of finite and
 infinite sets. It is shown that they form a complete lattice.
 

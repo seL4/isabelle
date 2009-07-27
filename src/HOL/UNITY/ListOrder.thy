@@ -117,7 +117,7 @@ by (induct_tac "xs", auto)
 (*Lemma proving transitivity and more*)
 lemma genPrefix_trans_O [rule_format]: 
      "(x, y) : genPrefix r  
-      ==> ALL z. (y,z) : genPrefix s --> (x, z) : genPrefix (s O r)"
+      ==> ALL z. (y,z) : genPrefix s --> (x, z) : genPrefix (r O s)"
 apply (erule genPrefix.induct)
   prefer 3 apply (blast dest: append_genPrefix)
  prefer 2 apply (blast intro: genPrefix.prepend, blast)
@@ -134,13 +134,15 @@ done
 lemma prefix_genPrefix_trans [rule_format]: 
      "[| x<=y;  (y,z) : genPrefix r |] ==> (x, z) : genPrefix r"
 apply (unfold prefix_def)
-apply (subst R_O_Id [symmetric], erule genPrefix_trans_O, assumption)
+apply (drule genPrefix_trans_O, assumption)
+apply simp
 done
 
 lemma genPrefix_prefix_trans [rule_format]: 
      "[| (x,y) : genPrefix r;  y<=z |] ==> (x,z) : genPrefix r"
 apply (unfold prefix_def)
-apply (subst Id_O_R [symmetric], erule genPrefix_trans_O, assumption)
+apply (drule genPrefix_trans_O, assumption)
+apply simp
 done
 
 lemma trans_genPrefix: "trans r ==> trans (genPrefix r)"

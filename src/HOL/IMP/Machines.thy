@@ -6,7 +6,7 @@ lemma converse_in_rel_pow_eq:
   "((x,z) \<in> R ^^ n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R ^^ m))"
 apply(rule iffI)
  apply(blast elim:rel_pow_E2)
-apply (fastsimp simp add:gr0_conv_Suc rel_pow_commute)
+apply (auto simp: rel_pow_commute[symmetric])
 done
 
 subsection "Instructions"
