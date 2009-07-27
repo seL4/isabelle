@@ -11,7 +11,7 @@ Notes:
     processes.
 
   * Futures are grouped; failure of one group member causes the whole
-    group to be interrupted eventually.
+    group to be interrupted eventually.  Groups are block-structured.
 
   * Forked futures are evaluated spontaneously by a farm of worker
     threads in the background; join resynchronizes the computation and
@@ -248,9 +248,9 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       else
         (case List.partition (Thread.isActive o #1) (! workers) of
           (_, []) => ()
-        | (active, inactive) =>
-            (workers := active; Multithreading.tracing 0 (fn () =>
-              "SCHEDULE: disposed " ^ string_of_int (length inactive) ^ " dead worker threads")));
+        | (alive, dead) =>
+            (workers := alive; Multithreading.tracing 0 (fn () =>
+              "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")));
     val _ = trace_active ();
 
     val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
