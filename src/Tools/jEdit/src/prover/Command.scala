@@ -98,7 +98,7 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   def add_markup(state: IsarDocument.State_ID, raw_node: MarkupNode) = {
     // decode node
     val node = raw_node transform symbol_index.decode
-    if (state == null) _markup_root = _markup_root.add(node)
+    if (state == null) _markup_root += node
     else {
       val cmd_state = states.getOrElseUpdate(state, new Command_State(this))
       cmd_state.markup_root += node
