@@ -11,27 +11,25 @@ sig
   val pri_of_task: task -> int
   val str_of_task: task -> string
   type group
+  val new_group: group option -> group
   val group_id: group -> int
   val eq_group: group * group -> bool
-  val new_group: group option -> group
+  val cancel_group: group -> exn -> unit
+  val is_canceled: group -> bool
   val group_status: group -> exn list
   val str_of_group: group -> string
   type queue
   val empty: queue
   val is_empty: queue -> bool
   val status: queue -> {ready: int, pending: int, running: int}
-  val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> task * queue
+  val cancel: queue -> group -> bool
+  val cancel_all: queue -> group list
+  val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
   val dequeue_towards: task list -> queue ->
     (((task * group * (bool -> bool) list) * task list) option * queue)
-  val interrupt: queue -> task -> unit
-  val interrupt_external: queue -> string -> unit
-  val is_canceled: group -> bool
-  val cancel_group: group -> exn -> unit
-  val cancel: queue -> group -> bool
-  val cancel_all: queue -> group list
-  val finish: task -> queue -> queue
+  val finish: task -> queue -> bool * queue
 end;
 
 structure Task_Queue:> TASK_QUEUE =
@@ -67,16 +65,18 @@ fun group_ancestry (Group {parent, id, ...}) =
   id :: (case parent of NONE => [] | SOME group => group_ancestry group);
 
 
+(* group status *)
+
 fun cancel_group (Group {status, ...}) exn = CRITICAL (fn () =>
   (case exn of
     Exn.Interrupt => if null (! status) then status := [exn] else ()
   | _ => change status (cons exn)));
 
-fun group_status (Group {parent, status, ...}) = (*non-critical*)
-  ! status @ (case parent of NONE => [] | SOME group => group_status group);
-
 fun is_canceled (Group {parent, status, ...}) = (*non-critical*)
   not (null (! status)) orelse (case parent of NONE => false | SOME group => is_canceled group);
+
+fun group_status (Group {parent, status, ...}) = (*non-critical*)
+  ! status @ (case parent of NONE => [] | SOME group => group_status group);
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));
@@ -162,13 +162,14 @@ fun enqueue group deps pri job (Queue {groups, jobs, cache}) =
       |> Task_Graph.new_node (task, (group, Job [job]))
       |> fold (add_job task) deps
       |> fold (fold (add_job task) o get_deps jobs) deps;
+    val minimal = null (get_deps jobs' task);
     val cache' =
       (case cache of
         Result last =>
           if task_ord (last, task) = LESS
           then cache else Unknown
       | _ => Unknown);
-  in (task, make_queue groups' jobs' cache') end;
+  in ((task, minimal), make_queue groups' jobs' cache') end;
 
 fun extend task job (Queue {groups, jobs, cache}) =
   (case try (get_job jobs) task of
@@ -225,23 +226,7 @@ fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
   end;
 
 
-(* sporadic interrupts *)
-
-fun interrupt (Queue {jobs, ...}) task =
-  (case try (get_job jobs) task of
-    SOME (Running thread) => SimpleThread.interrupt thread
-  | _ => ());
-
-fun interrupt_external (queue as Queue {jobs, ...}) str =
-  (case Int.fromString str of
-    SOME i =>
-      (case Task_Graph.get_first NONE
-          (fn (task as Task (_, j), _) => if i = j then SOME task else NONE) jobs
-        of SOME task => interrupt queue task | NONE => ())
-  | NONE => ());
-
-
-(* termination *)
+(* finish *)
 
 fun finish task (Queue {groups, jobs, cache}) =
   let
@@ -249,9 +234,8 @@ fun finish task (Queue {groups, jobs, cache}) =
     val groups' = groups
       |> fold (fn gid => Inttab.remove_list (op =) (gid, task)) (group_ancestry group);
     val jobs' = Task_Graph.del_node task jobs;
-    val cache' =
-      if null (Task_Graph.imm_succs jobs task) then cache
-      else Unknown;
-  in make_queue groups' jobs' cache' end;
+    val maximal = null (Task_Graph.imm_succs jobs task);
+    val cache' = if maximal then cache else Unknown;
+  in (maximal, make_queue groups' jobs' cache') end;
 
 end;
