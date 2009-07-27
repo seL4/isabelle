@@ -1,3 +1,12 @@
+(*  Title:      doc-src/rail.ML
+    Author:     Michael Kerscher, TUM
+
+Railroad diagrams for LaTeX.
+*)
+
+structure Rail =
+struct
+
 datatype token =
   Identifier of string |
   Special_Identifier of string |
@@ -9,7 +18,7 @@ datatype token =
 fun is_identifier (Identifier _) = true
   | is_identifier (Special_Identifier _ ) = true
   | is_identifier _ = false;
-  
+
 fun is_text (Text _) = true
   | is_text _ = false;
 
@@ -65,7 +74,7 @@ val markup_table =
   ("executable", ("isatt", no_check, true)),
   ("tool", ("isatt", K check_tool, true)),
   ("file", ("isatt", K (File.exists o Path.explode), true)),
-  ("theory", ("", K ThyInfo.known_thy, true)) 
+  ("theory", ("", K ThyInfo.known_thy, true))
   ];
 
 in
@@ -123,7 +132,7 @@ val scan_link = (* @{kind{_def|_ref (logic) name} *)
 end;
 
 (* escaped version *)
-fun scan_identifier ctxt = 
+fun scan_identifier ctxt =
   let fun is_identifier_start s =
     Symbol.is_letter s orelse
     s = "_"
@@ -197,13 +206,13 @@ datatype body_kind =
   CR | EMPTY | ANNOTE | IDENT | STRING |
   Null_Kind;
 
-datatype body_type =	
+datatype body_type =
   Body of body_kind * string * string * id_type * body_type list |
   Body_Pos of body_kind * string * string * id_type * body_type list * int * int |
   Empty_Body |
   Null_Body;
 
-datatype rule = 
+datatype rule =
   Rule of id_type * body_type;
 
 fun new_id id kind = Id (id, kind);
@@ -219,7 +228,7 @@ fun is_kind_of kind (Body(bodyKind,_,_,_,_)) = kind = bodyKind
 fun add_list (Body(kind, text, annot, id, bodies), body) =
   Body(kind, text, annot, id, bodies @ [body]);
 
-fun cat_body_lists (Body(kind, text, annot, id, bodies1), Body(_,_,_,_, bodies2)) = 
+fun cat_body_lists (Body(kind, text, annot, id, bodies1), Body(_,_,_,_, bodies2)) =
       Body(kind, text, annot, id, bodies1 @ bodies2);
 
 fun add_body (kind, body1 as Body(kind1,_,_,_,_), body2 as Body(kind2,_,_,_,_)) =
@@ -299,7 +308,7 @@ and parse_body1 x =
 	add_body(PLUS, new_empty_body, rev_body body1)
       else
 	add_body(BAR, new_empty_body, add_body (PLUS, body1, rev_body body2)) ) ||
-  parse_body2 -- ($$$ "+" |-- !!! "body4e expected" (parse_body4e)) >> 
+  parse_body2 -- ($$$ "+" |-- !!! "body4e expected" (parse_body4e)) >>
     (fn (body1, body2) => new_body (PLUS, body1, rev_body body2) ) ||
   parse_body2e
   ) x
@@ -326,7 +335,7 @@ and parse_body4 x =
   (
   $$$ "(" |-- !!! "body0 or ')' expected" (parse_body --| $$$ ")") ||
   Scan.one is_text -- (Scan.optional (Scan.one is_anot) (Anot(""))) >>
-    (fn (text, anot) => new_text_annote_body (text,anot)) ||    
+    (fn (text, anot) => new_text_annote_body (text,anot)) ||
   Scan.one is_identifier -- (Scan.optional (Scan.one is_anot) (Anot(""))) >>
     (fn (id, anot) => new_ident_body (id,anot)) ||
   $$$ "\\" >> (fn _ => new_body (CR, Null_Body, Null_Body))
@@ -401,7 +410,7 @@ fun format_body (Body_Pos(EMPTY,_,_,_,_,_,_), _) = ""
     in
       format_bodies(bodies)
     end
-  | format_body (Body_Pos(BAR,_,_,_,bodies,_,_),cent) = 
+  | format_body (Body_Pos(BAR,_,_,_,bodies,_,_),cent) =
     let fun format_bodies([]) = "\\rail@endbar\n"
 	  | format_bodies(x::xs) =
 	      "\\rail@nextbar{" ^ string_of_int(getystart(x)) ^"}\n" ^
@@ -466,3 +475,6 @@ fun process txt ctxt =
 
 val _ = ThyOutput.antiquotation "rail" (Scan.lift ( OuterParse.position Args.name ))
   (fn {context = ctxt,...} => fn txt => process txt ctxt);
+
+end;
+
