@@ -307,6 +307,9 @@ by (rule ext) (simp add: map_add_def)
 lemma map_add_upds[simp]: "m1 ++ (m2(xs[\<mapsto>]ys)) = (m1++m2)(xs[\<mapsto>]ys)"
 by (simp add: map_upds_def)
 
+lemma map_add_upd_left: "m\<notin>dom e2 \<Longrightarrow> e1(m \<mapsto> u1) ++ e2 = (e1 ++ e2)(m \<mapsto> u1)"
+by (rule ext) (auto simp: map_add_def dom_def split: option.split)
+
 lemma map_of_append[simp]: "map_of (xs @ ys) = map_of ys ++ map_of xs"
 unfolding map_add_def
 apply (induct xs)
@@ -507,6 +510,12 @@ by(auto simp: dom_def override_on_def)
 
 lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
 by (rule ext) (force simp: map_add_def dom_def split: option.split)
+
+lemma map_add_dom_app_simps:
+  "\<lbrakk> m\<in>dom l2 \<rbrakk> \<Longrightarrow> (l1++l2) m = l2 m"
+  "\<lbrakk> m\<notin>dom l1 \<rbrakk> \<Longrightarrow> (l1++l2) m = l2 m"
+  "\<lbrakk> m\<notin>dom l2 \<rbrakk> \<Longrightarrow> (l1++l2) m = l1 m"
+by (auto simp add: map_add_def split: option.split_asm)
 
 lemma dom_const [simp]:
   "dom (\<lambda>x. Some y) = UNIV"
