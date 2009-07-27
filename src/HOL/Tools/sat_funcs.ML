@@ -410,7 +410,7 @@ end;
 (*      or "True"                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun rawsat_tac i = METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 1) i;
+fun rawsat_tac i = OldGoals.METAHYPS (fn prems => rtac (rawsat_thm (map cprop_of prems)) 1) i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)

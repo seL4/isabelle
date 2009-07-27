@@ -75,7 +75,7 @@ fun find_tname var Bi =
              (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
       val pairs = List.mapPartial (try (mk_pair o FOLogic.dest_Trueprop))
-          (#2 (strip_context Bi))
+          (#2 (OldGoals.strip_context Bi))
   in case AList.lookup (op =) pairs var of
        NONE => raise Find_tname ("Cannot determine datatype of " ^ quote var)
      | SOME t => t

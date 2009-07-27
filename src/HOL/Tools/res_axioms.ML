@@ -503,8 +503,8 @@ fun neg_clausify sts =
 
 fun neg_conjecture_clauses st0 n =
   let val st = Seq.hd (neg_skolemize_tac n st0)
-      val (params,_,_) = strip_context (Logic.nth_prem (n, Thm.prop_of st))
-  in (neg_clausify (the (metahyps_thms n st)), params) end
+      val (params,_,_) = OldGoals.strip_context (Logic.nth_prem (n, Thm.prop_of st))
+  in (neg_clausify (the (OldGoals.metahyps_thms n st)), params) end
   handle Option => error "unable to Skolemize subgoal";
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has
@@ -515,7 +515,7 @@ val neg_clausify_tac =
     (fn (prop,_) =>
      let val ts = Logic.strip_assums_hyp prop
      in EVERY1
-         [METAHYPS
+         [OldGoals.METAHYPS
             (fn hyps =>
               (Method.insert_tac
                 (map forall_intr_vars (neg_clausify hyps)) 1)),
