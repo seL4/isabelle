@@ -274,7 +274,19 @@ lemma kleene_church_rosser:
 oops
 
 lemma star_decomp: "star (a + b) = star a * star (b * star a)"
-oops
+proof (rule antisym)
+  have "1 + (a + b) * star a * star (b * star a) \<le>
+    1 + a * star a * star (b * star a) + b * star a * star (b * star a)"
+    by (metis add_commute add_left_commute eq_iff left_distrib mult_assoc)
+  also have "\<dots> \<le> star a * star (b * star a)"
+    by (metis add_commute add_est1 add_left_commute ka18 plus_leI star_unfold_left x_less_star)
+  finally show "star (a + b) \<le> star a * star (b * star a)"
+    by (metis mult_1_right mult_assoc star3')
+next
+  show "star a * star (b * star a) \<le> star (a + b)"
+    by (metis add_assoc add_est1 add_est2 add_left_commute less_star mult_mono'
+      star_absorb_one star_absorb_one' star_idemp star_mono star_mult_idem zero_minimum)
+qed
 
 lemma ka22: "y * star x \<le> star x * star y \<Longrightarrow>  star y * star x \<le> star x * star y"
 by (metis mult_assoc mult_right_mono plus_leI star3' star_mult_idem x_less_star zero_minimum)
