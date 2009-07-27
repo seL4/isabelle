@@ -165,9 +165,10 @@ fun future_job group (e: unit -> 'a) =
       let
         val res =
           if ok then
-            Exn.capture
-              (Multithreading.with_attributes Multithreading.restricted_interrupts
-                (fn _ => fn () => e ())) ()
+            Exn.capture (fn () =>
+             (Thread.testInterrupt ();
+              Multithreading.with_attributes Multithreading.restricted_interrupts
+                (fn _ => fn () => e ())) ()) ()
           else Exn.Exn Exn.Interrupt;
         val _ = result := SOME res;
       in
@@ -282,7 +283,9 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val delay =
       Time.fromMilliseconds (if not (! do_shutdown) andalso null (! canceled) then 500 else 50);
     val _ = wait_interruptible scheduler_event delay
-      handle Exn.Interrupt => List.app do_cancel (Task_Queue.cancel_all (! queue));
+      handle Exn.Interrupt =>
+        (Multithreading.tracing 1 (fn () => "Interrupt");
+          List.app do_cancel (Task_Queue.cancel_all (! queue)));
 
     (*shutdown*)
     val _ = if Task_Queue.is_empty (! queue) then do_shutdown := true else ();
