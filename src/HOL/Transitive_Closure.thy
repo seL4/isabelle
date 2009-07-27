@@ -159,7 +159,7 @@ lemma rtranclE [cases set: rtrancl]:
   apply (erule asm_rl exE disjE conjE base step)+
   done
 
-lemma rtrancl_Int_subset: "[| Id \<subseteq> s; r O (r^* \<inter> s) \<subseteq> s|] ==> r^* \<subseteq> s"
+lemma rtrancl_Int_subset: "[| Id \<subseteq> s; (r^* \<inter> s) O r \<subseteq> s|] ==> r^* \<subseteq> s"
   apply (rule subsetI)
   apply (rule_tac p="x" in PairE, clarify)
   apply (erule rtrancl_induct, auto) 
@@ -291,7 +291,7 @@ lemma r_comp_rtrancl_eq: "r O r^* = r^* O r"
   by (blast elim: rtranclE converse_rtranclE
     intro: rtrancl_into_rtrancl converse_rtrancl_into_rtrancl)
 
-lemma rtrancl_unfold: "r^* = Id Un r O r^*"
+lemma rtrancl_unfold: "r^* = Id Un r^* O r"
   by (auto intro: rtrancl_into_rtrancl elim: rtranclE)
 
 lemma rtrancl_Un_separatorE:
@@ -384,7 +384,7 @@ lemma tranclE [cases set: trancl]:
   | (step) c where "(a, c) : r^+" and "(c, b) : r"
   using assms by cases simp_all
 
-lemma trancl_Int_subset: "[| r \<subseteq> s; r O (r^+ \<inter> s) \<subseteq> s|] ==> r^+ \<subseteq> s"
+lemma trancl_Int_subset: "[| r \<subseteq> s; (r^+ \<inter> s) O r \<subseteq> s|] ==> r^+ \<subseteq> s"
   apply (rule subsetI)
   apply (rule_tac p = x in PairE)
   apply clarify
@@ -392,7 +392,7 @@ lemma trancl_Int_subset: "[| r \<subseteq> s; r O (r^+ \<inter> s) \<subseteq> s
    apply auto
   done
 
-lemma trancl_unfold: "r^+ = r Un r O r^+"
+lemma trancl_unfold: "r^+ = r Un r^+ O r"
   by (auto intro: trancl_into_trancl elim: tranclE)
 
 text {* Transitivity of @{term "r^+"} *}
@@ -676,7 +676,7 @@ begin
 
 primrec relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
     "relpow 0 R = Id"
-  | "relpow (Suc n) R = R O (R ^^ n)"
+  | "relpow (Suc n) R = (R ^^ n) O R"
 
 end
 
@@ -734,11 +734,11 @@ lemma rel_pow_E2:
   apply (cut_tac n=nat and R=R in rel_pow_Suc_D2', simp, blast)
   done
 
-lemma rel_pow_add: "R ^^ (m+n) = R^^n O R^^m"
+lemma rel_pow_add: "R ^^ (m+n) = R^^m O R^^n"
 by(induct n) auto
 
 lemma rel_pow_commute: "R O R ^^ n = R ^^ n O R"
-  by (induct n) (simp, simp add: O_assoc [symmetric])
+by (induct n) (simp, simp add: O_assoc [symmetric])
 
 lemma rtrancl_imp_UN_rel_pow:
   assumes "p \<in> R^*"

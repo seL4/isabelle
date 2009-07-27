@@ -12,14 +12,14 @@ types com_den = "(state\<times>state)set"
 
 definition
   Gamma :: "[bexp,com_den] => (com_den => com_den)" where
-  "Gamma b cd = (\<lambda>phi. {(s,t). (s,t) \<in> (phi O cd) \<and> b s} \<union>
+  "Gamma b cd = (\<lambda>phi. {(s,t). (s,t) \<in> (cd O phi) \<and> b s} \<union>
                        {(s,t). s=t \<and> \<not>b s})"
 
 primrec C :: "com => com_den"
 where
   C_skip:   "C \<SKIP>   = Id"
 | C_assign: "C (x :== a) = {(s,t). t = s[x\<mapsto>a(s)]}"
-| C_comp:   "C (c0;c1)   = C(c1) O C(c0)"
+| C_comp:   "C (c0;c1)   = C(c0) O C(c1)"
 | C_if:     "C (\<IF> b \<THEN> c1 \<ELSE> c2) = {(s,t). (s,t) \<in> C c1 \<and> b s} \<union>
                                                 {(s,t). (s,t) \<in> C c2 \<and> \<not>b s}"
 | C_while:  "C(\<WHILE> b \<DO> c) = lfp (Gamma b (C c))"

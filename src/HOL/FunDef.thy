@@ -193,9 +193,9 @@ by (auto simp add: wf_comp_self[of R])
 subsection {* Reduction Pairs *}
 
 definition
-  "reduction_pair P = (wf (fst P) \<and> snd P O fst P \<subseteq> fst P)"
+  "reduction_pair P = (wf (fst P) \<and> fst P O snd P \<subseteq> fst P)"
 
-lemma reduction_pairI[intro]: "wf R \<Longrightarrow> S O R \<subseteq> R \<Longrightarrow> reduction_pair (R, S)"
+lemma reduction_pairI[intro]: "wf R \<Longrightarrow> R O S \<subseteq> R \<Longrightarrow> reduction_pair (R, S)"
 unfolding reduction_pair_def by auto
 
 lemma reduction_pair_lemma:
@@ -205,7 +205,7 @@ lemma reduction_pair_lemma:
   assumes "wf S"
   shows "wf (R \<union> S)"
 proof -
-  from rp `S \<subseteq> snd P` have "wf (fst P)" "S O fst P \<subseteq> fst P"
+  from rp `S \<subseteq> snd P` have "wf (fst P)" "fst P O S \<subseteq> fst P"
     unfolding reduction_pair_def by auto
   with `wf S` have "wf (fst P \<union> S)" 
     by (auto intro: wf_union_compatible)
@@ -266,8 +266,8 @@ by (auto simp: min_strict_def min_weak_def min_ext_def)
 text {* Reduction Pairs *}
 
 lemma max_ext_compat: 
-  assumes "S O R \<subseteq> R"
-  shows "(max_ext S \<union> {({},{})}) O max_ext R \<subseteq> max_ext R"
+  assumes "R O S \<subseteq> R"
+  shows "max_ext R O (max_ext S \<union> {({},{})}) \<subseteq> max_ext R"
 using assms 
 apply auto
 apply (elim max_ext.cases)
@@ -287,8 +287,8 @@ apply (rule max_ext_compat)
 by (auto simp: pair_less_def pair_leq_def)
 
 lemma min_ext_compat: 
-  assumes "S O R \<subseteq> R"
-  shows "(min_ext S \<union> {({},{})}) O min_ext R \<subseteq> min_ext R"
+  assumes "R O S \<subseteq> R"
+  shows "min_ext R O  (min_ext S \<union> {({},{})}) \<subseteq> min_ext R"
 using assms 
 apply (auto simp: min_ext_def)
 apply (drule_tac x=ya in bspec, assumption)
