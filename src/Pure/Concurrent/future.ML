@@ -347,7 +347,6 @@ fun join_wait x =
 
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
-  else if overloaded () then (worker_wait scheduler_event; join_next deps)
   else
     (case change_result queue (Task_Queue.dequeue_towards deps) of
       (NONE, []) => NONE
