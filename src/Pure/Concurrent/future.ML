@@ -328,14 +328,24 @@ fun get_result x =
       Exn.Exn (Exn.EXCEPTIONS (Exn.flatten_list (Task_Queue.group_status (group_of x))))
   | SOME res => res);
 
-fun join_next deps = (*requires SYNCHRONIZED*)
-  if overloaded () then (worker_wait scheduler_event; join_next deps)
-  else change_result queue (Task_Queue.dequeue_towards deps);
+fun join_wait x =
+  if SYNCHRONIZED "join_wait" (fn () =>
+    is_finished x orelse (wait work_finished; false))
+  then () else join_wait x;
 
-fun join_deps deps =
+fun join_next deps = (*requires SYNCHRONIZED*)
+  if null deps then NONE
+  else if overloaded () then (worker_wait scheduler_event; join_next deps)
+  else
+    (case change_result queue (Task_Queue.dequeue_towards deps) of
+      (NONE, []) => NONE
+    | (NONE, deps') => (worker_wait work_finished; join_next deps')
+    | (SOME work, deps') => SOME (work, deps'));
+
+fun join_work deps =
   (case SYNCHRONIZED "join" (fn () => join_next deps) of
     NONE => ()
-  | SOME (work, deps') => (execute "join" work; join_deps deps'));
+  | SOME (work, deps') => (execute "join" work; join_work deps'));
 
 in
 
@@ -346,20 +356,9 @@ fun join_results xs =
       val _ = scheduler_check "join check";
       val _ = Multithreading.self_critical () andalso
         error "Cannot join future values within critical section";
-
-      val worker = is_worker ();
-      val _ = if worker then join_deps (map task_of xs) else ();
-
-      fun join_wait x =
-        if SYNCHRONIZED "join_wait" (fn () =>
-          is_finished x orelse ((if worker then worker_wait else wait) work_finished; false))
-        then () else join_wait x;
-
-      val _ = xs |> List.app (fn x =>
-        let val time = Multithreading.real_time join_wait x in
-          Multithreading.tracing_time true time
-            (fn () => "joined after " ^ Time.toString time)
-        end);
+      val _ =
+        if is_worker () then join_work (map task_of xs)
+        else List.app join_wait xs;
     in map get_result xs end) ();
 
 end;

@@ -28,7 +28,7 @@ sig
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
   val dequeue_towards: task list -> queue ->
-    (((task * group * (bool -> bool) list) * task list) option * queue)
+    (((task * group * (bool -> bool) list) option * task list) * queue)
   val finish: task -> queue -> bool * queue
 end;
 
@@ -215,14 +215,14 @@ fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
       let
         val jobs' = set_job task (Running (Thread.self ())) jobs;
         val cache' = Unknown;
-      in (SOME (res, tasks), make_queue groups jobs' cache') end;
+      in ((SOME res, tasks), make_queue groups jobs' cache') end;
   in
     (case get_first ready tasks of
       SOME res => result res
     | NONE =>
         (case get_first (get_first ready o Task_Graph.imm_preds jobs) tasks of
           SOME res => result res
-        | NONE => (NONE, queue)))
+        | NONE => ((NONE, tasks), queue)))
   end;
 
 
