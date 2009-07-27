@@ -124,10 +124,11 @@ in
 fun SYNCHRONIZED name = SimpleThread.synchronized name lock;
 
 fun wait cond = (*requires SYNCHRONIZED*)
-  ConditionVar.wait (cond, lock);
+  ConditionVar.wait (cond, lock) handle Exn.Interrupt => ();
 
-fun wait_timeout cond timeout = (*requires SYNCHRONIZED*)
-  ignore (ConditionVar.waitUntil (cond, lock, Time.+ (Time.now (), timeout)));
+fun wait_interruptible cond timeout = (*requires SYNCHRONIZED*)
+  interruptible (fn () =>
+    ignore (ConditionVar.waitUntil (cond, lock, Time.+ (Time.now (), timeout)))) ();
 
 fun signal cond = (*requires SYNCHRONIZED*)
   ConditionVar.signal cond;
@@ -280,7 +281,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     (*delay loop*)
     val delay =
       Time.fromMilliseconds (if not (! do_shutdown) andalso null (! canceled) then 500 else 50);
-    val _ = interruptible (fn () => wait_timeout scheduler_event delay) ()
+    val _ = wait_interruptible scheduler_event delay
       handle Exn.Interrupt => List.app do_cancel (Task_Queue.cancel_all (! queue));
 
     (*shutdown*)
