@@ -148,13 +148,6 @@ end;
 fun count_active ws =
   fold (fn (_, active) => fn i => if active then i + 1 else i) ws 0;
 
-fun trace_active () = Multithreading.tracing 6 (fn () =>
-  let
-    val ws = ! workers;
-    val m = string_of_int (length ws);
-    val n = string_of_int (count_active ws);
-  in "SCHEDULE: " ^ m ^ " workers, " ^ n ^ " active" end);
-
 fun change_active active = (*requires SYNCHRONIZED*)
   change workers (AList.update Thread.equal (Thread.self (), active));
 
@@ -188,7 +181,6 @@ fun do_cancel group = (*requires SYNCHRONIZED*)
 
 fun execute name (task, group, jobs) =
   let
-    val _ = trace_active ();
     val valid = not (Task_Queue.is_canceled group);
     val ok = setmp_thread_data (name, task, group) (fn () =>
       fold (fn job => fn ok => job valid andalso ok) jobs true) ();
@@ -235,16 +227,30 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 (* scheduler *)
 
+val last_status = ref Time.zeroTime;
+val next_status = Time.fromMilliseconds 450;
+
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
-    (*queue status*)
-    val _ = Multithreading.tracing 6 (fn () =>
-      let val {ready, pending, running} = Task_Queue.status (! queue) in
-        "SCHEDULE: " ^
-          string_of_int ready ^ " ready, " ^
-          string_of_int pending ^ " pending, " ^
-          string_of_int running ^ " running"
-      end);
+    (*queue and worker status*)
+    val _ =
+      let val now = Time.now () in
+        if Time.> (Time.+ (! last_status, next_status), now) then ()
+        else
+         (last_status := now; Multithreading.tracing 1 (fn () =>
+            let
+              val {ready, pending, running} = Task_Queue.status (! queue);
+              val total = length (! workers);
+              val active = count_active (! workers);
+            in
+              "SCHEDULE: " ^
+                string_of_int ready ^ " ready, " ^
+                string_of_int pending ^ " pending, " ^
+                string_of_int running ^ " running; " ^
+                string_of_int total ^ " workers, " ^
+                string_of_int active ^ " active"
+            end))
+      end;
 
     (*worker threads*)
     val _ =
@@ -255,7 +261,6 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
         | (alive, dead) =>
             (workers := alive; Multithreading.tracing 0 (fn () =>
               "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")));
-    val _ = trace_active ();
 
     val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
     val mm = (m * 3) div 2;
