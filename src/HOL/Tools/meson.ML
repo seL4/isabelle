@@ -132,7 +132,7 @@ fun forward_res nf st =
                 Display.string_of_thm_without_context st ::
                 "Premises:" :: map Display.string_of_thm_without_context prems))
   in
-    case Seq.pull (ALLGOALS (METAHYPS forward_tacf) st)
+    case Seq.pull (ALLGOALS (OldGoals.METAHYPS forward_tacf) st)
     of SOME(th,_) => th
      | NONE => raise THM("forward_res", 0, [st])
   end;
@@ -226,7 +226,7 @@ fun refl_clause th =
 fun forward_res2 nf hyps st =
   case Seq.pull
         (REPEAT
-         (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
+         (OldGoals.METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
          st)
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
@@ -335,8 +335,8 @@ fun cnf skoths ctxt (th,ths) =
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
               let val tac =
-                  (METAHYPS (resop cnf_nil) 1) THEN
-                   (fn st' => st' |> METAHYPS (resop cnf_nil) 1)
+                  (OldGoals.METAHYPS (resop cnf_nil) 1) THEN
+                   (fn st' => st' |> OldGoals.METAHYPS (resop cnf_nil) 1)
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
           | _ => nodups th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
@@ -584,9 +584,9 @@ fun MESON mkcl cltac i st =
   SELECT_GOAL
     (EVERY [ObjectLogic.atomize_prems_tac 1,
             rtac ccontr 1,
-            METAHYPS (fn negs =>
+            OldGoals.METAHYPS (fn negs =>
                       EVERY1 [skolemize_prems_tac negs,
-                              METAHYPS (cltac o mkcl)]) 1]) i st
+                              OldGoals.METAHYPS (cltac o mkcl)]) 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
 (** Best-first search versions **)
@@ -698,7 +698,7 @@ fun select_literal i cl = negate_head (make_last i cl);
 fun skolemize_tac i st =
   let val ts = Logic.strip_assums_hyp (List.nth (prems_of st, i-1))
   in
-     EVERY' [METAHYPS
+     EVERY' [OldGoals.METAHYPS
             (fn hyps => (cut_facts_tac (skolemize_nnf_list hyps) 1
                          THEN REPEAT (etac exE 1))),
             REPEAT_DETERM_N (length ts) o (etac thin_rl)] i st
