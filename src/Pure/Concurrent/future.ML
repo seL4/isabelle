@@ -135,6 +135,11 @@ fun signal cond = (*requires SYNCHRONIZED*)
 fun broadcast cond = (*requires SYNCHRONIZED*)
   ConditionVar.broadcast cond;
 
+fun broadcast_all () = (*requires SYNCHRONIZED*)
+ (ConditionVar.broadcast scheduler_event;
+  ConditionVar.broadcast work_available;
+  ConditionVar.broadcast work_finished);
+
 end;
 
 
@@ -179,7 +184,7 @@ fun future_job group (e: unit -> 'a) =
   in (result, job) end;
 
 fun do_cancel group = (*requires SYNCHRONIZED*)
-  change canceled (insert Task_Queue.eq_group group);
+ (change canceled (insert Task_Queue.eq_group group); broadcast scheduler_event);
 
 fun execute name (task, group, jobs) =
   let
@@ -263,7 +268,9 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       else ();
 
     (*canceled groups*)
-    val _ = change canceled (filter_out (Task_Queue.cancel (! queue)));
+    val _ =
+      if null (! canceled) then ()
+      else (change canceled (filter_out (Task_Queue.cancel (! queue))); broadcast_all ());
 
     val timeout =
       Time.fromMilliseconds (if not (! do_shutdown) andalso null (! canceled) then 500 else 50);
@@ -401,7 +408,7 @@ fun interruptible_task f x =
 (*cancel_group: present and future group members will be interrupted eventually*)
 fun cancel_group group =
  (scheduler_check "cancel check";
-  SYNCHRONIZED "cancel" (fn () => (do_cancel group; broadcast scheduler_event)));
+  SYNCHRONIZED "cancel" (fn () => do_cancel group));
 
 fun cancel x = cancel_group (group_of x);
 
@@ -415,10 +422,7 @@ fun shutdown () =
      (while not (scheduler_active ()) do wait scheduler_event;
       while not (Task_Queue.is_empty (! queue)) do wait scheduler_event;
       do_shutdown := true;
-      while scheduler_active () do
-       (broadcast work_available;
-        broadcast scheduler_event;
-        wait scheduler_event))))
+      while scheduler_active () do (broadcast_all (); wait scheduler_event))))
   else ();
 
 
