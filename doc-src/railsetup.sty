@@ -1,10 +1,4 @@
-
-\railalias{percent}{\%}
-\railalias{ppercent}{\%\%}
-\railalias{underscore}{\_}
-\railalias{lbrace}{\texttt{\ttlbrace}}
-\railalias{rbrace}{\texttt{\ttrbrace}}
-\railalias{atsign}{{\at}}
+%% dimensions
 
 \setlength\railextra{3.6ex}
 \setlength\railboxleft{0.9ex}
@@ -19,6 +13,22 @@
 \setlength\railboxskip{24pt}
 \setlength\railtextup{5pt}
 \setlength\railjoinsize{16pt}
+
+
+%% rail antiquotation environment
+
+\newenvironment{railoutput}%
+{\begin{list}{}{\rail@param}\def\rail@expand{\relax}\makeatletter}{\end{list}}
+
+
+%% old-style content markup
+
+\railalias{percent}{\%}
+\railalias{ppercent}{\%\%}
+\railalias{underscore}{\_}
+\railalias{lbrace}{\texttt{\ttlbrace}}
+\railalias{rbrace}{\texttt{\ttrbrace}}
+\railalias{atsign}{{\at}}
 
 \def\rail@termfont{\small\ttfamily\upshape}
 \def\rail@tokenfont{\small\ttfamily\upshape}
