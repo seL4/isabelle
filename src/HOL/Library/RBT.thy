@@ -916,9 +916,72 @@ where
   "alist_of Empty = []"
 | "alist_of (Tr _ l k v r) = alist_of l @ (k,v) # alist_of r"
 
+lemma map_of_alist_of_aux: "st (Tr c t1 k v t2) \<Longrightarrow> RBT.map_of (Tr c t1 k v t2) = RBT.map_of t2 ++ [k\<mapsto>v] ++ RBT.map_of t1"
+proof (rule ext)
+  fix x
+  assume ST: "st (Tr c t1 k v t2)"
+  let ?thesis = "RBT.map_of (Tr c t1 k v t2) x = (RBT.map_of t2 ++ [k \<mapsto> v] ++ RBT.map_of t1) x"
+
+  have DOM_T1: "!!k'. k'\<in>dom (RBT.map_of t1) \<Longrightarrow> k>k'"
+  proof -
+    fix k'
+    from ST have "t1 |\<guillemotleft> k" by simp
+    with tlt_prop have "\<forall>k'\<in>keys t1. k>k'" by auto
+    moreover assume "k'\<in>dom (RBT.map_of t1)"
+    ultimately show "k>k'" using RBT.mapof_keys ST by auto
+  qed
+
+  have DOM_T2: "!!k'. k'\<in>dom (RBT.map_of t2) \<Longrightarrow> k<k'"
+  proof -
+    fix k'
+    from ST have "k \<guillemotleft>| t2" by simp
+    with tgt_prop have "\<forall>k'\<in>keys t2. k<k'" by auto
+    moreover assume "k'\<in>dom (RBT.map_of t2)"
+    ultimately show "k<k'" using RBT.mapof_keys ST by auto
+  qed
+
+  {
+    assume C: "x<k"
+    hence "RBT.map_of (Tr c t1 k v t2) x = RBT.map_of t1 x" by simp
+    moreover from C have "x\<notin>dom [k\<mapsto>v]" by simp
+    moreover have "x\<notin>dom (RBT.map_of t2)" proof
+      assume "x\<in>dom (RBT.map_of t2)"
+      with DOM_T2 have "k<x" by blast
+      with C show False by simp
+    qed
+    ultimately have ?thesis by (simp add: map_add_upd_left map_add_dom_app_simps)
+  } moreover {
+    assume [simp]: "x=k"
+    hence "RBT.map_of (Tr c t1 k v t2) x = [k \<mapsto> v] x" by simp
+    moreover have "x\<notin>dom (RBT.map_of t1)" proof
+      assume "x\<in>dom (RBT.map_of t1)"
+      with DOM_T1 have "k>x" by blast
+      thus False by simp
+    qed
+    ultimately have ?thesis by (simp add: map_add_upd_left map_add_dom_app_simps)
+  } moreover {
+    assume C: "x>k"
+    hence "RBT.map_of (Tr c t1 k v t2) x = RBT.map_of t2 x" by (simp add: less_not_sym[of k x])
+    moreover from C have "x\<notin>dom [k\<mapsto>v]" by simp
+    moreover have "x\<notin>dom (RBT.map_of t1)" proof
+      assume "x\<in>dom (RBT.map_of t1)"
+      with DOM_T1 have "k>x" by simp
+      with C show False by simp
+    qed
+    ultimately have ?thesis by (simp add: map_add_upd_left map_add_dom_app_simps)
+  } ultimately show ?thesis using less_linear by blast
+qed
+
 lemma map_of_alist_of:
   shows "st t \<Longrightarrow> Map.map_of (alist_of t) = map_of t"
-  oops
+proof (induct t)
+  case Empty thus ?case by (simp add: RBT.map_of_Empty)
+next
+  case (Tr c t1 k v t2)
+  hence "Map.map_of (alist_of (Tr c t1 k v t2)) = RBT.map_of t2 ++ [k \<mapsto> v] ++ RBT.map_of t1" by simp
+  also note map_of_alist_of_aux[OF Tr.prems,symmetric]
+  finally show ?case .
+qed
 
 lemma fold_alist_fold:
   "foldwithkey f t x = foldl (\<lambda>x (k,v). f k v x) x (alist_of t)"
