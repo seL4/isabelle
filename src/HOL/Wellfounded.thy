@@ -283,8 +283,10 @@ apply (erule_tac x="{a. a:A & (EX b:A. (b,a) : r i) }" in allE)
 apply (blast elim!: allE)  
 done
 
-lemmas wfP_SUP = wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}",
-  to_pred SUP_UN_eq2 bot_empty_eq pred_equals_eq, simplified, standard]
+lemma wfP_SUP:
+  "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (DomainP (r i)) (RangeP (r j)) = bot \<Longrightarrow> wfP (SUPR UNIV r)"
+  by (rule wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}", to_pred SUP_UN_eq2 pred_equals_eq])
+    (simp_all add: bot_fun_eq bot_bool_eq)
 
 lemma wf_Union: 
  "[| ALL r:R. wf r;  

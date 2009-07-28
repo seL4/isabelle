@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/Listn.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 
@@ -8,7 +7,9 @@ Lists of a fixed length
 
 header {* \isaheader{Fixed Length Lists} *}
 
-theory Listn imports Err begin
+theory Listn
+imports Err
+begin
 
 constdefs
 
@@ -317,6 +318,10 @@ apply clarify
 apply (simp add: nth_Cons split: nat.split)
 done
 
+lemma equals0I_aux:
+  "(\<And>y. A y \<Longrightarrow> False) \<Longrightarrow> A = bot_class.bot"
+  by (rule equals0I) (auto simp add: mem_def)
+
 lemma acc_le_listI [intro!]:
   "\<lbrakk> order r; acc r \<rbrakk> \<Longrightarrow> acc(Listn.le r)"
 apply (unfold acc_def)
@@ -330,7 +335,7 @@ apply (rule wfP_SUP)
  apply (rename_tac m n)
  apply (case_tac "m=n")
   apply simp
- apply (fast intro!: equals0I [to_pred bot_empty_eq pred_equals_eq] dest: not_sym)
+ apply (fast intro!: equals0I_aux dest: not_sym)
 apply clarify
 apply (rename_tac n)
 apply (induct_tac n)
