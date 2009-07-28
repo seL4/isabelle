@@ -27,7 +27,6 @@ Notes:
 
 signature FUTURE =
 sig
-  val enabled: unit -> bool
   type task = Task_Queue.task
   type group = Task_Queue.group
   val is_worker: unit -> bool
@@ -56,11 +55,6 @@ structure Future: FUTURE =
 struct
 
 (** future values **)
-
-fun enabled () =
-  Multithreading.enabled () andalso
-    not (Multithreading.self_critical ());
-
 
 (* identifiers *)
 
