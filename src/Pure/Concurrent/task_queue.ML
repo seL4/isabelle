@@ -94,6 +94,12 @@ fun get_group (jobs: jobs) task = #1 (Task_Graph.get_node jobs task);
 fun get_job (jobs: jobs) task = #2 (Task_Graph.get_node jobs task);
 fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (group, job)) jobs;
 
+fun add_job task dep (jobs: jobs) =
+  Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
+
+fun get_deps (jobs: jobs) task =
+  Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
+
 
 (* queue of grouped jobs *)
 
@@ -146,12 +152,6 @@ fun cancel_all (Queue {jobs, ...}) =
 
 
 (* enqueue *)
-
-fun add_job task dep (jobs: jobs) =
-  Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
-
-fun get_deps (jobs: jobs) task =
-  Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
 
 fun enqueue group deps pri job (Queue {groups, jobs, cache}) =
   let
@@ -206,7 +206,7 @@ fun dequeue_towards thread deps (queue as Queue {groups, jobs, ...}) =
     fun ready task =
       (case Task_Graph.get_node jobs task of
         (group, Job list) =>
-          if null (Task_Graph.imm_preds jobs task)
+          if null (get_deps jobs task)
           then SOME (task, group, rev list)
           else NONE
       | _ => NONE);
@@ -220,7 +220,7 @@ fun dequeue_towards thread deps (queue as Queue {groups, jobs, ...}) =
     (case get_first ready tasks of
       SOME res => result res
     | NONE =>
-        (case get_first (get_first ready o Task_Graph.imm_preds jobs) tasks of
+        (case get_first (get_first ready o get_deps jobs) tasks of
           SOME res => result res
         | NONE => ((NONE, tasks), queue)))
   end;
