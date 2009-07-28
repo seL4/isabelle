@@ -52,11 +52,11 @@ structure Task_Graph = Graph(type key = task val ord = task_ord);
 datatype group = Group of
  {parent: group option,
   id: serial,
-  status: exn list ref};
+  status: exn list Synchronized.var};
 
 fun make_group (parent, id, status) = Group {parent = parent, id = id, status = status};
 
-fun new_group parent = make_group (parent, serial (), ref []);
+fun new_group parent = make_group (parent, serial (), Synchronized.var "group" []);
 
 fun group_id (Group {id, ...}) = id;
 fun eq_group (group1, group2) = group_id group1 = group_id group2;
@@ -67,16 +67,20 @@ fun group_ancestry (Group {parent, id, ...}) =
 
 (* group status *)
 
-fun cancel_group (Group {status, ...}) exn = CRITICAL (fn () =>
-  (case exn of
-    Exn.Interrupt => if null (! status) then status := [exn] else ()
-  | _ => change status (cons exn)));
+fun cancel_group (Group {status, ...}) exn =
+  Synchronized.change status
+    (fn exns =>
+      (case exn of
+        Exn.Interrupt => if null exns then [exn] else exns
+      | _ => exn :: exns));
 
-fun is_canceled (Group {parent, status, ...}) = (*non-critical*)
-  not (null (! status)) orelse (case parent of NONE => false | SOME group => is_canceled group);
+fun is_canceled (Group {parent, status, ...}) =
+  not (null (Synchronized.value status)) orelse
+    (case parent of NONE => false | SOME group => is_canceled group);
 
-fun group_status (Group {parent, status, ...}) = (*non-critical*)
-  ! status @ (case parent of NONE => [] | SOME group => group_status group);
+fun group_status (Group {parent, status, ...}) =
+  Synchronized.value status @
+    (case parent of NONE => [] | SOME group => group_status group);
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));
