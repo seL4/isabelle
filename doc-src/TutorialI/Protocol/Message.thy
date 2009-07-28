@@ -841,6 +841,8 @@ fun prove_simple_subgoals_tac (cs, ss) i =
 (*Apply rules to break down assumptions of the form
   Y \<in> parts(insert X H)  and  Y \<in> analz(insert X H)
 *)
+fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
+
 val Fake_insert_tac = 
     dresolve_tac [impOfSubs Fake_analz_insert,
                   impOfSubs Fake_parts_insert] THEN'
