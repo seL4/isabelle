@@ -68,7 +68,7 @@ use_thys [
   "Landau"
 ];
 
-setmp Proofterm.proofs 2 use_thy "Hilbert_Classical";
+setmp_noncritical proofs 2 use_thy "Hilbert_Classical";
 
 
 use_thy "SVC_Oracle";
