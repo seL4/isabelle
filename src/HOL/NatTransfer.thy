@@ -382,7 +382,7 @@ lemma transfer_int_nat_relations:
 
 lemma UNIV_apply:
   "UNIV x = True"
-  by (simp add: top_set_eq [symmetric] top_fun_eq top_bool_eq)
+  by (simp add: top_fun_eq top_bool_eq)
 
 declare TransferMorphism_int_nat[transfer add return:
   transfer_int_nat_numerals

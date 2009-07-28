@@ -100,8 +100,8 @@ lemmas CollectE = CollectD [elim_format]
 
 text {* Set enumerations *}
 
-definition empty :: "'a set" ("{}") where
-  bot_set_eq [symmetric]: "{} = bot"
+abbreviation empty :: "'a set" ("{}") where
+  "{} \<equiv> bot"
 
 definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   insert_compr: "insert a B = {x. x = a \<or> x \<in> B}"
@@ -541,12 +541,12 @@ lemma eqelem_imp_iff: "x = y ==> (x : A) = (y : A)"
 
 subsubsection {* The universal set -- UNIV *}
 
-definition UNIV :: "'a set" where
-  top_set_eq [symmetric]: "UNIV = top"
+abbreviation UNIV :: "'a set" where
+  "UNIV \<equiv> top"
 
 lemma UNIV_def:
   "UNIV = {x. True}"
-  by (simp add: top_set_eq [symmetric] top_fun_eq top_bool_eq Collect_def)
+  by (simp add: top_fun_eq top_bool_eq Collect_def)
 
 lemma UNIV_I [simp]: "x : UNIV"
   by (simp add: UNIV_def)
@@ -579,7 +579,7 @@ subsubsection {* The empty set *}
 
 lemma empty_def:
   "{} = {x. False}"
-  by (simp add: bot_set_eq [symmetric] bot_fun_eq bot_bool_eq Collect_def)
+  by (simp add: bot_fun_eq bot_bool_eq Collect_def)
 
 lemma empty_iff [simp]: "(c : {}) = False"
   by (simp add: empty_def)

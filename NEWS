@@ -18,6 +18,8 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* Set.UNIV and Set.empty are mere abbreviations for top and bot.  INCOMPATIBILITY.
+
 * More convenient names for set intersection and union.  INCOMPATIBILITY:
 
     Set.Int ~>  Set.inter
