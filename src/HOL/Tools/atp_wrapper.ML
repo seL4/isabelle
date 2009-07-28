@@ -59,9 +59,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
     val (ctxt, (chain_ths, th)) = goal
     val thy = ProofContext.theory_of ctxt
     val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
-    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses th subgoalno)
-      handle THM ("assume: variables", _, _) =>
-        error "Sledgehammer: Goal contains type variables (TVars)"
+    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses ctxt th subgoalno)
     val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm ctxt th)) goal_cls
     val the_filtered_clauses =
       case filtered_clauses of
@@ -71,7 +69,8 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       case axiom_clauses of
           NONE => the_filtered_clauses
         | SOME axcls => axcls
-    val (thm_names, clauses) = preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
+    val (thm_names, clauses) =
+      preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
     val probfile = prob_pathname subgoalno
@@ -85,7 +84,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
     val _ =
       if destdir' = "" then File.rm probfile
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
-    
+
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
     val success = rc = 0 andalso is_none failure
@@ -133,7 +132,7 @@ fun full_prover x = full_prover_opts 60 true x;
 fun vampire_opts max_new theory_const timeout = tptp_prover_opts
   max_new theory_const
   (Path.explode "$VAMPIRE_HOME/vampire",
-               ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
+    ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
   timeout;
 
 val vampire = vampire_opts 60 false;
@@ -141,7 +140,7 @@ val vampire = vampire_opts 60 false;
 fun vampire_opts_full max_new theory_const timeout = full_prover_opts
   max_new theory_const
   (Path.explode "$VAMPIRE_HOME/vampire",
-               ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
+    ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
   timeout;
 
 val vampire_full = vampire_opts_full 60 false;
@@ -173,7 +172,8 @@ fun spass_opts max_new theory_const timeout ax_clauses fcls name n goal = extern
   (ResAtp.prepare_clauses true)
   (ResHolClause.dfg_write_file (AtpManager.get_full_types()))
   (Path.explode "$SPASS_HOME/SPASS",
-    "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
+    "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^
+      string_of_int timeout)
   ResReconstruct.find_failure
   (ResReconstruct.lemma_list true)
   timeout ax_clauses fcls name n goal;
@@ -196,22 +196,23 @@ fun get_systems () =
   end;
 
 fun refresh_systems () = Synchronized.change systems (fn _ =>
-  get_systems());
+  get_systems ());
 
 fun get_system prefix = Synchronized.change_result systems (fn systems =>
   let val systems = if null systems then get_systems() else systems
   in (find_first (String.isPrefix prefix) systems, systems) end);
 
 fun remote_prover_opts max_new theory_const args prover_prefix timeout =
-  let val sys = case get_system prover_prefix of
+  let val sys =
+    case get_system prover_prefix of
       NONE => error ("No system like " ^ quote prover_prefix ^ " at SystemOnTPTP")
     | SOME sys => sys
   in tptp_prover_opts max_new theory_const
     (Path.explode "$ISABELLE_HOME/lib/scripts/SystemOnTPTP",
-      args ^ " -t " ^ string_of_int timeout ^ " -s " ^ sys) timeout end;
+      args ^ " -t " ^ string_of_int timeout ^ " -s " ^ sys) timeout
+  end;
 
 val remote_prover = remote_prover_opts 60 false;
 
 end;
-
 

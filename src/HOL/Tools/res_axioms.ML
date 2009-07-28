@@ -14,7 +14,7 @@ sig
   val neg_clausify: thm list -> thm list
   val expand_defs_tac: thm -> tactic
   val combinators: thm -> thm
-  val neg_conjecture_clauses: thm -> int -> thm list * (string * typ) list
+  val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
   val atpset_rules_of: Proof.context -> (string * thm) list
   val suppress_endtheory: bool ref     (*for emergency use where endtheory causes problems*)
   val setup: theory -> theory
@@ -498,32 +498,30 @@ val meson_method_setup =
 
 val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, Meson.skolemize_tac];
 
-fun neg_clausify sts =
-  sts |> Meson.make_clauses |> map combinators |> Meson.finish_cnf;
+val neg_clausify = Meson.make_clauses #> map combinators #> Meson.finish_cnf;
 
-fun neg_conjecture_clauses st0 n =
-  let val st = Seq.hd (neg_skolemize_tac n st0)
-      val (params,_,_) = OldGoals.strip_context (Logic.nth_prem (n, Thm.prop_of st))
-  in (neg_clausify (the (OldGoals.metahyps_thms n st)), params) end
-  handle Option => error "unable to Skolemize subgoal";
+fun neg_conjecture_clauses ctxt st0 n =
+  let
+    val st = Seq.hd (neg_skolemize_tac n st0)
+    val ({params, prems, ...}, _) = Subgoal.focus (Variable.set_body false ctxt) n st
+  in (neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params) end;
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has
   leading !!-bound universal variables, to express generality. *)
-val neg_clausify_tac =
+fun neg_clausify_tac ctxt =
   neg_skolemize_tac THEN'
-  SUBGOAL
-    (fn (prop,_) =>
-     let val ts = Logic.strip_assums_hyp prop
-     in EVERY1
-         [OldGoals.METAHYPS
-            (fn hyps =>
-              (Method.insert_tac
-                (map forall_intr_vars (neg_clausify hyps)) 1)),
-          REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+  SUBGOAL (fn (prop, i) =>
+    let val ts = Logic.strip_assums_hyp prop in
+      EVERY'
+       [FOCUS
+         (fn {prems, ...} =>
+           (Method.insert_tac
+             (map forall_intr_vars (neg_clausify prems)) i)) ctxt,
+        REPEAT_DETERM_N (length ts) o etac thin_rl] i
      end);
 
 val neg_clausify_setup =
-  Method.setup @{binding neg_clausify} (Scan.succeed (K (SIMPLE_METHOD' neg_clausify_tac)))
+  Method.setup @{binding neg_clausify} (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
   "conversion of goal to conjecture clauses";
 
 

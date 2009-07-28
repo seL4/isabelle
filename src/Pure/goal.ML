@@ -103,7 +103,7 @@ val norm_result =
 val parallel_proofs = ref 1;
 
 fun future_enabled () =
-  Future.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;
+  Multithreading.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;
 
 fun local_future_enabled () = future_enabled () andalso ! parallel_proofs >= 2;
 

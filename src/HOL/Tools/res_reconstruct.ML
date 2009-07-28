@@ -442,7 +442,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val _ = trace (Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
       val (_,lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
       val _ = trace (Int.toString (length lines) ^ " lines extracted\n")
-      val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
+      val (ccls,fixes) = ResAxioms.neg_conjecture_clauses ctxt th sgno
       val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")
       val ccls = map forall_intr_vars ccls
       val _ =
@@ -452,10 +452,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val _ = trace "\ndecode_tstp_file: finishing\n"
   in
     isar_header (map #1 fixes) ^ String.concat ilines ^ "qed\n"
-  end
-  handle e => (*FIXME: exn handler is too general!*)
-    let val msg = "Translation of TSTP raised an exception: " ^ ML_Compiler.exn_message e
-    in  trace msg; msg  end;
+  end;
 
 
   (*=== EXTRACTING PROOF-TEXT === *)

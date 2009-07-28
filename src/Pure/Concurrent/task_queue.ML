@@ -26,8 +26,8 @@ sig
   val cancel_all: queue -> group list
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
-  val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
-  val dequeue_towards: task list -> queue ->
+  val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
+  val dequeue_towards: Thread.thread -> task list -> queue ->
     (((task * group * (bool -> bool) list) option * task list) * queue)
   val finish: task -> queue -> bool * queue
 end;
@@ -52,11 +52,11 @@ structure Task_Graph = Graph(type key = task val ord = task_ord);
 datatype group = Group of
  {parent: group option,
   id: serial,
-  status: exn list ref};
+  status: exn list Synchronized.var};
 
 fun make_group (parent, id, status) = Group {parent = parent, id = id, status = status};
 
-fun new_group parent = make_group (parent, serial (), ref []);
+fun new_group parent = make_group (parent, serial (), Synchronized.var "group" []);
 
 fun group_id (Group {id, ...}) = id;
 fun eq_group (group1, group2) = group_id group1 = group_id group2;
@@ -67,16 +67,20 @@ fun group_ancestry (Group {parent, id, ...}) =
 
 (* group status *)
 
-fun cancel_group (Group {status, ...}) exn = CRITICAL (fn () =>
-  (case exn of
-    Exn.Interrupt => if null (! status) then status := [exn] else ()
-  | _ => change status (cons exn)));
+fun cancel_group (Group {status, ...}) exn =
+  Synchronized.change status
+    (fn exns =>
+      (case exn of
+        Exn.Interrupt => if null exns then [exn] else exns
+      | _ => exn :: exns));
 
-fun is_canceled (Group {parent, status, ...}) = (*non-critical*)
-  not (null (! status)) orelse (case parent of NONE => false | SOME group => is_canceled group);
+fun is_canceled (Group {parent, status, ...}) =
+  not (null (Synchronized.value status)) orelse
+    (case parent of NONE => false | SOME group => is_canceled group);
 
-fun group_status (Group {parent, status, ...}) = (*non-critical*)
-  ! status @ (case parent of NONE => [] | SOME group => group_status group);
+fun group_status (Group {parent, status, ...}) =
+  Synchronized.value status @
+    (case parent of NONE => [] | SOME group => group_status group);
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));
@@ -93,6 +97,12 @@ type jobs = (group * job) Task_Graph.T;
 fun get_group (jobs: jobs) task = #1 (Task_Graph.get_node jobs task);
 fun get_job (jobs: jobs) task = #2 (Task_Graph.get_node jobs task);
 fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (group, job)) jobs;
+
+fun add_job task dep (jobs: jobs) =
+  Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
+
+fun get_deps (jobs: jobs) task =
+  Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
 
 
 (* queue of grouped jobs *)
@@ -147,12 +157,6 @@ fun cancel_all (Queue {jobs, ...}) =
 
 (* enqueue *)
 
-fun add_job task dep (jobs: jobs) =
-  Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
-
-fun get_deps (jobs: jobs) task =
-  Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
-
 fun enqueue group deps pri job (Queue {groups, jobs, cache}) =
   let
     val task = new_task pri;
@@ -179,7 +183,7 @@ fun extend task job (Queue {groups, jobs, cache}) =
 
 (* dequeue *)
 
-fun dequeue (queue as Queue {groups, jobs, cache}) =
+fun dequeue thread (queue as Queue {groups, jobs, cache}) =
   let
     fun ready (task, ((group, Job list), ([], _))) = SOME (task, group, rev list)
       | ready _ = NONE;
@@ -188,7 +192,7 @@ fun dequeue (queue as Queue {groups, jobs, cache}) =
         NONE => (NONE, make_queue groups jobs No_Result)
       | SOME (result as (task, _, _)) =>
           let
-            val jobs' = set_job task (Running (Thread.self ())) jobs;
+            val jobs' = set_job task (Running thread) jobs;
             val cache' = Result task;
           in (SOME result, make_queue groups jobs' cache') end);
   in
@@ -201,26 +205,26 @@ fun dequeue (queue as Queue {groups, jobs, cache}) =
 
 (* dequeue_towards -- adhoc dependencies *)
 
-fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
+fun dequeue_towards thread deps (queue as Queue {groups, jobs, ...}) =
   let
     fun ready task =
       (case Task_Graph.get_node jobs task of
         (group, Job list) =>
-          if null (Task_Graph.imm_preds jobs task)
+          if null (get_deps jobs task)
           then SOME (task, group, rev list)
           else NONE
       | _ => NONE);
     val tasks = filter (can (Task_Graph.get_node jobs)) deps;
     fun result (res as (task, _, _)) =
       let
-        val jobs' = set_job task (Running (Thread.self ())) jobs;
+        val jobs' = set_job task (Running thread) jobs;
         val cache' = Unknown;
       in ((SOME res, tasks), make_queue groups jobs' cache') end;
   in
     (case get_first ready tasks of
       SOME res => result res
     | NONE =>
-        (case get_first (get_first ready o Task_Graph.imm_preds jobs) tasks of
+        (case get_first (get_first ready o get_deps jobs) tasks of
           SOME res => result res
         | NONE => ((NONE, tasks), queue)))
   end;
