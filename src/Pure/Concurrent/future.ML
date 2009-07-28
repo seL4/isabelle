@@ -401,11 +401,12 @@ fun map_future f x =
 
 fun interruptible_task f x =
   if Multithreading.available then
+   (Thread.testInterrupt ();
     Multithreading.with_attributes
       (if is_worker ()
        then Multithreading.restricted_interrupts
        else Multithreading.regular_interrupts)
-      (fn _ => f) x
+      (fn _ => fn x => f x) x)
   else interruptible f x;
 
 (*cancel: present and future group members will be interrupted eventually*)
