@@ -67,8 +67,8 @@ val atomize_ss =
         imp_conjR,        (* "(D1 & D2 :- G) = ((D1 :- G) & (D2 :- G))" *)
         imp_all];         (* "((!x. D) :- G) = (!x. D :- G)" *)
 
-(*val hyp_resolve_tac = METAHYPS (fn prems =>
-                                  resolve_tac (List.concat (map atomizeD prems)) 1);
+(*val hyp_resolve_tac = FOCUS (fn {prems, ...} =>
+                                  resolve_tac (maps atomizeD prems) 1);
   -- is nice, but cannot instantiate unknowns in the assumptions *)
 fun hyp_resolve_tac i st = let
         fun ap (Const("All",_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
