@@ -79,6 +79,32 @@ use "Tools/TFL/post.ML"
 use "Tools/recdef.ML"
 setup Recdef.setup
 
+text {*Wellfoundedness of @{text same_fst}*}
+
+definition
+ same_fst :: "('a => bool) => ('a => ('b * 'b)set) => (('a*'b)*('a*'b))set"
+where
+    "same_fst P R == {((x',y'),(x,y)) . x'=x & P x & (y',y) : R x}"
+   --{*For @{text rec_def} declarations where the first n parameters
+       stay unchanged in the recursive call. *}
+
+lemma same_fstI [intro!]:
+     "[| P x; (y',y) : R x |] ==> ((x,y'),(x,y)) : same_fst P R"
+by (simp add: same_fst_def)
+
+lemma wf_same_fst:
+  assumes prem: "(!!x. P x ==> wf(R x))"
+  shows "wf(same_fst P R)"
+apply (simp cong del: imp_cong add: wf_def same_fst_def)
+apply (intro strip)
+apply (rename_tac a b)
+apply (case_tac "wf (R a)")
+ apply (erule_tac a = b in wf_induct, blast)
+apply (blast intro: prem)
+done
+
+text {*Rule setup*}
+
 lemmas [recdef_simp] =
   inv_image_def
   measure_def
