@@ -210,7 +210,7 @@ fun worker_next () = (*requires SYNCHRONIZED*)
   else if count_active () > Multithreading.max_threads_value () then
     (worker_wait scheduler_event; worker_next ())
   else
-    (case change_result queue Task_Queue.dequeue of
+    (case change_result queue (Task_Queue.dequeue (Thread.self ())) of
       NONE => (worker_wait work_available; worker_next ())
     | some => some);
 
@@ -346,7 +346,7 @@ fun join_wait x =
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
   else
-    (case change_result queue (Task_Queue.dequeue_towards deps) of
+    (case change_result queue (Task_Queue.dequeue_towards (Thread.self ()) deps) of
       (NONE, []) => NONE
     | (NONE, deps') => (worker_wait work_finished; join_next deps')
     | (SOME work, deps') => SOME (work, deps'));

@@ -26,8 +26,8 @@ sig
   val cancel_all: queue -> group list
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
-  val dequeue: queue -> (task * group * (bool -> bool) list) option * queue
-  val dequeue_towards: task list -> queue ->
+  val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
+  val dequeue_towards: Thread.thread -> task list -> queue ->
     (((task * group * (bool -> bool) list) option * task list) * queue)
   val finish: task -> queue -> bool * queue
 end;
@@ -179,7 +179,7 @@ fun extend task job (Queue {groups, jobs, cache}) =
 
 (* dequeue *)
 
-fun dequeue (queue as Queue {groups, jobs, cache}) =
+fun dequeue thread (queue as Queue {groups, jobs, cache}) =
   let
     fun ready (task, ((group, Job list), ([], _))) = SOME (task, group, rev list)
       | ready _ = NONE;
@@ -188,7 +188,7 @@ fun dequeue (queue as Queue {groups, jobs, cache}) =
         NONE => (NONE, make_queue groups jobs No_Result)
       | SOME (result as (task, _, _)) =>
           let
-            val jobs' = set_job task (Running (Thread.self ())) jobs;
+            val jobs' = set_job task (Running thread) jobs;
             val cache' = Result task;
           in (SOME result, make_queue groups jobs' cache') end);
   in
@@ -201,7 +201,7 @@ fun dequeue (queue as Queue {groups, jobs, cache}) =
 
 (* dequeue_towards -- adhoc dependencies *)
 
-fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
+fun dequeue_towards thread deps (queue as Queue {groups, jobs, ...}) =
   let
     fun ready task =
       (case Task_Graph.get_node jobs task of
@@ -213,7 +213,7 @@ fun dequeue_towards deps (queue as Queue {groups, jobs, ...}) =
     val tasks = filter (can (Task_Graph.get_node jobs)) deps;
     fun result (res as (task, _, _)) =
       let
-        val jobs' = set_job task (Running (Thread.self ())) jobs;
+        val jobs' = set_job task (Running thread) jobs;
         val cache' = Unknown;
       in ((SOME res, tasks), make_queue groups jobs' cache') end;
   in
