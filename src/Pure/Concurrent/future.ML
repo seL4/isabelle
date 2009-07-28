@@ -84,18 +84,19 @@ val worker_group = Option.map #3 o thread_data;
 datatype 'a future = Future of
  {task: task,
   group: group,
-  result: 'a Exn.result option ref};
+  result: 'a Exn.result option Synchronized.var};
 
 fun task_of (Future {task, ...}) = task;
 fun group_of (Future {group, ...}) = group;
+fun result_of (Future {result, ...}) = result;
 
-fun peek (Future {result, ...}) = ! result;
+fun peek x = Synchronized.peek (result_of x);
 fun is_finished x = is_some (peek x);
 
 fun value x = Future
  {task = Task_Queue.new_task 0,
   group = Task_Queue.new_group NONE,
-  result = ref (SOME (Exn.Result x))};
+  result = Synchronized.var "future" (SOME (Exn.Result x))};
 
 
 
@@ -148,7 +149,7 @@ end;
 
 fun future_job group (e: unit -> 'a) =
   let
-    val result = ref (NONE: 'a Exn.result option);
+    val result = Synchronized.var "future" (NONE: 'a Exn.result option);
     fun job ok =
       let
         val res =
@@ -158,7 +159,7 @@ fun future_job group (e: unit -> 'a) =
               Multithreading.with_attributes Multithreading.restricted_interrupts
                 (fn _ => fn () => e ())) ()) ()
           else Exn.Exn Exn.Interrupt;
-        val _ = result := SOME res;
+        val _ = Synchronized.change result (K (SOME res));
       in
         (case res of
           Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
@@ -339,9 +340,7 @@ fun get_result x =
   | SOME res => res);
 
 fun join_wait x =
-  if SYNCHRONIZED "join_wait" (fn () =>
-    is_finished x orelse (wait work_finished; false))
-  then () else join_wait x;
+  Synchronized.guarded_access (result_of x) (fn NONE => NONE | some => SOME ((), some));
 
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
