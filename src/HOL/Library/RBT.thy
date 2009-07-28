@@ -13,7 +13,7 @@ begin
 datatype color = R | B
 datatype ('a,'b)"rbt" = Empty | Tr color "('a,'b)rbt" 'a 'b "('a,'b)rbt"
 
-(* Suchbaum-Eigenschaften *)
+text {* Search tree properties *}
 
 primrec
   pin_tree :: "'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> bool"
@@ -340,9 +340,6 @@ by (rule_tac ext) (simp add: map_of_insertwk split:option.split)
 
 subsection {* Deletion *}
 
-(*definition
-  [simp]: "ibn t = (bh t > 0 \<and> treec t = B)"
-*)
 lemma bh_paintR'[simp]: "treec t = B \<Longrightarrow> bh (paint R t) = bh t - 1"
 by (cases t rule: rbt_cases) auto
 
