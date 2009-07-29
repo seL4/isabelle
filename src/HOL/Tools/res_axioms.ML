@@ -270,8 +270,10 @@ fun skolem_of_def def =
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
 fun to_nnf th ctxt0 =
   let val th1 = th |> transform_elim |> zero_var_indexes
-      val ((_,[th2]),ctxt) = Variable.import true [th1] ctxt0
-      val th3 = th2 |> Conv.fconv_rule ObjectLogic.atomize |> Meson.make_nnf |> strip_lambdas ~1
+      val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
+      val th3 = th2
+        |> Conv.fconv_rule ObjectLogic.atomize
+        |> Meson.make_nnf ctxt |> strip_lambdas ~1
   in  (th3, ctxt)  end;
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
@@ -483,33 +485,35 @@ fun expand_defs_tac st0 st =
   in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 
-fun meson_general_tac ths i st0 =
+fun meson_general_tac ctxt ths i st0 =
   let
-    val thy = Thm.theory_of_thm st0
-  in  (Meson.meson_claset_tac (maps (cnf_axiom thy) ths) HOL_cs i THEN expand_defs_tac st0) st0 end;
+    val thy = ProofContext.theory_of ctxt
+    val ctxt0 = Classical.put_claset HOL_cs ctxt
+  in (Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) i THEN expand_defs_tac st0) st0 end;
 
 val meson_method_setup =
-  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn _ =>
-    SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)))
+  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
+    SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
     "MESON resolution proof procedure";
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
-val neg_skolemize_tac = EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, Meson.skolemize_tac];
+fun neg_skolemize_tac ctxt =
+  EVERY' [rtac ccontr, ObjectLogic.atomize_prems_tac, Meson.skolemize_tac ctxt];
 
 val neg_clausify = Meson.make_clauses #> map combinators #> Meson.finish_cnf;
 
 fun neg_conjecture_clauses ctxt st0 n =
   let
-    val st = Seq.hd (neg_skolemize_tac n st0)
+    val st = Seq.hd (neg_skolemize_tac ctxt n st0)
     val ({params, prems, ...}, _) = Subgoal.focus (Variable.set_body false ctxt) n st
   in (neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params) end;
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has
   leading !!-bound universal variables, to express generality. *)
 fun neg_clausify_tac ctxt =
-  neg_skolemize_tac THEN'
+  neg_skolemize_tac ctxt THEN'
   SUBGOAL (fn (prop, i) =>
     let val ts = Logic.strip_assums_hyp prop in
       EVERY'

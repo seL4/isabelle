@@ -113,8 +113,8 @@ sig
   val del_context_safe_wrapper: string -> theory -> theory
   val add_context_unsafe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
   val del_context_unsafe_wrapper: string -> theory -> theory
-  val get_claset: theory -> claset
-  val map_claset: (claset -> claset) -> theory -> theory
+  val get_claset: Proof.context -> claset
+  val put_claset: claset -> Proof.context -> Proof.context
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -845,8 +845,8 @@ structure GlobalClaset = TheoryDataFun
     (merge_cs (cs1, cs2), merge_context_cs (ctxt_cs1, ctxt_cs2));
 );
 
-val get_claset = #1 o GlobalClaset.get;
-val map_claset = GlobalClaset.map o apfst;
+val get_global_claset = #1 o GlobalClaset.get;
+val map_global_claset = GlobalClaset.map o apfst;
 
 val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
 fun map_context_cs f = GlobalClaset.map (apsnd
@@ -871,8 +871,11 @@ fun del_context_unsafe_wrapper name = map_context_cs (apsnd ((AList.delete (op =
 structure LocalClaset = ProofDataFun
 (
   type T = claset;
-  val init = get_claset;
+  val init = get_global_claset;
 );
+
+val get_claset = LocalClaset.get;
+val put_claset = LocalClaset.put;
 
 fun claset_of ctxt =
   context_cs ctxt (LocalClaset.get ctxt) (get_context_cs ctxt);
@@ -881,13 +884,13 @@ fun claset_of ctxt =
 (* generic clasets *)
 
 val get_cs = Context.cases global_claset_of claset_of;
-fun map_cs f = Context.mapping (map_claset f) (LocalClaset.map f);
+fun map_cs f = Context.mapping (map_global_claset f) (LocalClaset.map f);
 
 
 (* attributes *)
 
 fun attrib f = Thm.declaration_attribute (fn th =>
-  Context.mapping (map_claset (f th)) (LocalClaset.map (f th)));
+  Context.mapping (map_global_claset (f th)) (LocalClaset.map (f th)));
 
 fun safe_dest w = attrib (addSE w o make_elim);
 val safe_elim = attrib o addSE;

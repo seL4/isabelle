@@ -31,8 +31,8 @@ writeln"Problem 25";
 Goal "(\<exists>x. P x) & (\<forall>x. L x --> ~ (M x & R x)) & (\<forall>x. P x --> (M x & L x)) & ((\<forall>x. P x --> Q x) | (\<exists>x. P x & R x)) --> (\<exists>x. Q x & P x)";
 by (rtac ccontr 1);
 val [prem25] = gethyps 1;
-val nnf25 = Meson.make_nnf prem25;
-val xsko25 = Meson.skolemize nnf25;
+val nnf25 = Meson.make_nnf @{context} prem25;
+val xsko25 = Meson.skolemize @{context} nnf25;
 by (cut_facts_tac [xsko25] 1 THEN REPEAT (etac exE 1));
 val [_,sko25] = gethyps 1;
 val clauses25 = Meson.make_clauses [sko25];   (*7 clauses*)
@@ -51,8 +51,8 @@ writeln"Problem 26";
 Goal "((\<exists>x. p x) = (\<exists>x. q x)) & (\<forall>x. \<forall>y. p x & q y --> (r x = s y)) --> ((\<forall>x. p x --> r x) = (\<forall>x. q x --> s x))";
 by (rtac ccontr 1);
 val [prem26] = gethyps 1;
-val nnf26 = Meson.make_nnf prem26;
-val xsko26 = Meson.skolemize nnf26;
+val nnf26 = Meson.make_nnf @{context} prem26;
+val xsko26 = Meson.skolemize @{context} nnf26;
 by (cut_facts_tac [xsko26] 1 THEN REPEAT (etac exE 1));
 val [_,sko26] = gethyps 1;
 val clauses26 = Meson.make_clauses [sko26];                   (*9 clauses*)
@@ -72,8 +72,8 @@ writeln"Problem 43  NOW PROVED AUTOMATICALLY!!";  (*16 Horn clauses*)
 Goal "(\<forall>x. \<forall>y. q x y = (\<forall>z. p z x = (p z y::bool))) --> (\<forall>x. (\<forall>y. q x y = (q y x::bool)))";
 by (rtac ccontr 1);
 val [prem43] = gethyps 1;
-val nnf43 = Meson.make_nnf prem43;
-val xsko43 = Meson.skolemize nnf43;
+val nnf43 = Meson.make_nnf @{context} prem43;
+val xsko43 = Meson.skolemize @{context} nnf43;
 by (cut_facts_tac [xsko43] 1 THEN REPEAT (etac exE 1));
 val [_,sko43] = gethyps 1;
 val clauses43 = Meson.make_clauses [sko43];   (*6*)

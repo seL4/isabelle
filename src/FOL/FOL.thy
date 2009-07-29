@@ -168,7 +168,7 @@ section {* Classical Reasoner *}
 
 use "cladata.ML"
 setup Cla.setup
-setup cla_setup
+ML {* Context.>> (Cla.map_cs (K FOL_cs)) *}
 
 ML {*
   structure Blast = Blast
