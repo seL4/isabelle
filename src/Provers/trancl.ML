@@ -531,9 +531,9 @@ in
 end;
 
 
-fun trancl_tac ctxt = SUBGOAL (fn (A, n) =>
+fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = ProofContext.theory_of ctxt;
+  val thy = Thm.theory_of_thm st;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel, subgoals, prf) = mkconcl_trancl C;
@@ -543,14 +543,14 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) =>
  in
   FOCUS (fn {prems, ...} =>
     let val thms = map (prove thy rel prems) prfs
-    in rtac (prove thy rel thms prf) 1 end) ctxt n
+    in rtac (prove thy rel thms prf) 1 end) ctxt n st
  end
- handle Cannot => no_tac);
+ handle Cannot => Seq.empty);
 
 
 fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = ProofContext.theory_of ctxt;
+  val thy = Thm.theory_of_thm st;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel, subgoals, prf) = mkconcl_rtrancl C;

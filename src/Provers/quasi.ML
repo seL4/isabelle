@@ -549,9 +549,9 @@ fun solveQuasiOrder sign (asms, concl) =
 
 (* trans_tac - solves transitivity chains over <= *)
 
-fun trans_tac ctxt = SUBGOAL (fn (A, n) =>
+fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = ProofContext.theory_of ctxt;
+  val thy = Thm.theory_of_thm st;
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
@@ -562,17 +562,17 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) =>
  in
   FOCUS (fn {prems, ...} =>
     let val thms = map (prove prems) prfs
-    in rtac (prove thms prf) 1 end) ctxt n
+    in rtac (prove thms prf) 1 end) ctxt n st
  end
- handle Contr p => FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n
-  | Cannot  => no_tac);
+ handle Contr p => FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
+  | Cannot  => Seq.empty);
 
 
 (* quasi_tac - solves quasi orders *)
 
 fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = ProofContext.theory_of ctxt;
+  val thy = Thm.theory_of_thm st;
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
