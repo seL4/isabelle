@@ -14,30 +14,29 @@ sig
   val too_many_clauses: Proof.context option -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
-  val make_nnf: thm -> thm
-  val skolemize: thm -> thm
+  val make_nnf: Proof.context -> thm -> thm
+  val skolemize: Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses: thm list -> thm list
   val make_horns: thm list -> thm list
   val best_prolog_tac: (thm -> int) -> thm list -> tactic
   val depth_prolog_tac: thm list -> tactic
   val gocls: thm list -> thm list
-  val skolemize_prems_tac: thm list -> int -> tactic
-  val MESON: (thm list -> thm list) -> (thm list -> tactic) -> int -> tactic
-  val best_meson_tac: (thm -> int) -> int -> tactic
-  val safe_best_meson_tac: claset -> int -> tactic
-  val depth_meson_tac: int -> tactic
+  val skolemize_prems_tac: Proof.context -> thm list -> int -> tactic
+  val MESON: (thm list -> thm list) -> (thm list -> tactic) -> Proof.context -> int -> tactic
+  val best_meson_tac: (thm -> int) -> Proof.context -> int -> tactic
+  val safe_best_meson_tac: Proof.context -> int -> tactic
+  val depth_meson_tac: Proof.context -> int -> tactic
   val prolog_step_tac': thm list -> int -> tactic
   val iter_deepen_prolog_tac: thm list -> tactic
-  val iter_deepen_meson_tac: thm list -> int -> tactic
+  val iter_deepen_meson_tac: Proof.context -> thm list -> int -> tactic
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
-  val meson_claset_tac: thm list -> claset -> int -> tactic
-  val meson_tac: claset -> int -> tactic
+  val meson_tac: Proof.context -> thm list -> int -> tactic
   val negate_head: thm -> thm
   val select_literal: int -> thm -> thm
-  val skolemize_tac: int -> tactic
-  val setup: Context.theory -> Context.theory
+  val skolemize_tac: Proof.context -> int -> tactic
+  val setup: theory -> theory
 end
 
 structure Meson: MESON =
@@ -89,13 +88,16 @@ fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
 
 (*FIXME: currently does not "rename variables apart"*)
 fun first_order_resolve thA thB =
-  let val thy = theory_of_thm thA
-      val tmA = concl_of thA
-      val Const("==>",_) $ tmB $ _ = prop_of thB
-      val (tyenv, tenv) = Pattern.first_order_match thy (tmB, tmA) (Vartab.empty, Vartab.empty)
-      val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
-  in  thA RS (cterm_instantiate ct_pairs thB)  end
-  handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);  (* FIXME avoid handle _ *)
+  (case
+    try (fn () =>
+      let val thy = theory_of_thm thA
+          val tmA = concl_of thA
+          val Const("==>",_) $ tmB $ _ = prop_of thB
+          val (tyenv, tenv) = Pattern.first_order_match thy (tmB, tmA) (Vartab.empty, Vartab.empty)
+          val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
+      in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
+    SOME th => th
+  | NONE => raise THM ("first_order_resolve", 0, [thA, thB]));
 
 fun flexflex_first_order th =
   case (tpairs_of th) of
@@ -124,13 +126,13 @@ fun tryres (th, rls) =
   e.g. from conj_forward, should have the form
     "[| P' ==> ?P; Q' ==> ?Q |] ==> ?P & ?Q"
   and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
-fun forward_res nf st =
+fun forward_res ctxt nf st =
   let fun forward_tacf [prem] = rtac (nf prem) 1
         | forward_tacf prems =
             error (cat_lines
               ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
-                Display.string_of_thm_without_context st ::
-                "Premises:" :: map Display.string_of_thm_without_context prems))
+                Display.string_of_thm ctxt st ::
+                "Premises:" :: map (Display.string_of_thm ctxt) prems))
   in
     case Seq.pull (ALLGOALS (OldGoals.METAHYPS forward_tacf) st)
     of SOME(th,_) => th
@@ -223,7 +225,7 @@ fun refl_clause th =
 (*** Removal of duplicate literals ***)
 
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
-fun forward_res2 nf hyps st =
+fun forward_res2 ctxt nf hyps st =
   case Seq.pull
         (REPEAT
          (OldGoals.METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
@@ -233,16 +235,16 @@ fun forward_res2 nf hyps st =
 
 (*Remove duplicates in P|Q by assuming ~P in Q
   rls (initially []) accumulates assumptions of the form P==>False*)
-fun nodups_aux rls th = nodups_aux rls (th RS disj_assoc)
+fun nodups_aux ctxt rls th = nodups_aux ctxt rls (th RS disj_assoc)
     handle THM _ => tryres(th,rls)
-    handle THM _ => tryres(forward_res2 nodups_aux rls (th RS disj_forward2),
+    handle THM _ => tryres(forward_res2 ctxt (nodups_aux ctxt) rls (th RS disj_forward2),
                            [disj_FalseD1, disj_FalseD2, asm_rl])
     handle THM _ => th;
 
 (*Remove duplicate literals, if there are any*)
-fun nodups th =
+fun nodups ctxt th =
   if has_duplicates (op =) (literals (prop_of th))
-    then nodups_aux [] th
+    then nodups_aux ctxt [] th
     else th;
 
 
@@ -321,7 +323,7 @@ fun cnf skoths ctxt (th,ths) =
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns ["All","Ex","op &"] (prop_of th))
-        then nodups th :: ths (*no work to do, terminate*)
+        then nodups ctxt th :: ths (*no work to do, terminate*)
         else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
             Const ("op &", _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
@@ -335,10 +337,10 @@ fun cnf skoths ctxt (th,ths) =
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
               let val tac =
-                  (OldGoals.METAHYPS (resop cnf_nil) 1) THEN
+                  OldGoals.METAHYPS (resop cnf_nil) 1 THEN
                    (fn st' => st' |> OldGoals.METAHYPS (resop cnf_nil) 1)
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
-          | _ => nodups th :: ths  (*no work to do*)
+          | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
       val cls = 
 	    if too_many_clauses (SOME ctxt) (concl_of th)
@@ -499,11 +501,11 @@ fun ok4nnf (Const ("Trueprop",_) $ (Const ("Not", _) $ t)) = rigid t
   | ok4nnf (Const ("Trueprop",_) $ t) = rigid t
   | ok4nnf _ = false;
 
-fun make_nnf1 th =
+fun make_nnf1 ctxt th =
   if ok4nnf (concl_of th)
-  then make_nnf1 (tryres(th, nnf_rls))
+  then make_nnf1 ctxt (tryres(th, nnf_rls))
     handle THM ("tryres", _, _) =>
-        forward_res make_nnf1
+        forward_res ctxt (make_nnf1 ctxt)
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM ("tryres", _, _) => th
   else th;
@@ -521,32 +523,32 @@ val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
-fun make_nnf th = case prems_of th of
+fun make_nnf ctxt th = case prems_of th of
     [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
              |> simplify nnf_ss
-             |> make_nnf1
+             |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
   clauses that arise from a subgoal.*)
-fun skolemize1 th =
+fun skolemize1 ctxt th =
   if not (has_conns ["Ex"] (prop_of th)) then th
-  else (skolemize1 (tryres(th, [choice, conj_exD1, conj_exD2,
+  else (skolemize1 ctxt (tryres(th, [choice, conj_exD1, conj_exD2,
                               disj_exD, disj_exD1, disj_exD2])))
     handle THM ("tryres", _, _) =>
-        skolemize1 (forward_res skolemize1
+        skolemize1 ctxt (forward_res ctxt (skolemize1 ctxt)
                    (tryres (th, [conj_forward, disj_forward, all_forward])))
     handle THM ("tryres", _, _) => 
-        forward_res skolemize1 (rename_bvs_RS th ex_forward);
+        forward_res ctxt (skolemize1 ctxt) (rename_bvs_RS th ex_forward);
 
-fun skolemize th = skolemize1 (make_nnf th);
+fun skolemize ctxt th = skolemize1 ctxt (make_nnf ctxt th);
 
-fun skolemize_nnf_list [] = []
-  | skolemize_nnf_list (th::ths) = 
-      skolemize th :: skolemize_nnf_list ths
+fun skolemize_nnf_list _ [] = []
+  | skolemize_nnf_list ctxt (th::ths) =
+      skolemize ctxt th :: skolemize_nnf_list ctxt ths
       handle THM _ => (*RS can fail if Unify.search_bound is too small*)
-       (warning ("Failed to Skolemize " ^ Display.string_of_thm_without_context th);
-        skolemize_nnf_list ths);
+       (warning ("Failed to Skolemize " ^ Display.string_of_thm ctxt th);
+        skolemize_nnf_list ctxt ths);
 
 fun add_clauses (th,cls) =
   let val ctxt0 = Variable.thm_context th
@@ -574,19 +576,19 @@ fun depth_prolog_tac horns =
 (*Return all negative clauses, as possible goal clauses*)
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
-fun skolemize_prems_tac prems =
-    cut_facts_tac (skolemize_nnf_list prems) THEN'
+fun skolemize_prems_tac ctxt prems =
+    cut_facts_tac (skolemize_nnf_list ctxt prems) THEN'
     REPEAT o (etac exE);
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
-fun MESON mkcl cltac i st =
+fun MESON mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [ObjectLogic.atomize_prems_tac 1,
             rtac ccontr 1,
-            OldGoals.METAHYPS (fn negs =>
-                      EVERY1 [skolemize_prems_tac negs,
-                              OldGoals.METAHYPS (cltac o mkcl)]) 1]) i st
+            FOCUS (fn {context = ctxt', prems = negs, ...} =>
+                      EVERY1 [skolemize_prems_tac ctxt negs,
+                              FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
 (** Best-first search versions **)
@@ -600,9 +602,9 @@ fun best_meson_tac sizef =
                          (prolog_step_tac (make_horns cls) 1));
 
 (*First, breaks the goal into independent units*)
-fun safe_best_meson_tac cs =
-     SELECT_GOAL (TRY (safe_tac cs) THEN
-                  TRYALL (best_meson_tac size_of_subgoals));
+fun safe_best_meson_tac ctxt =
+     SELECT_GOAL (TRY (safe_tac (claset_of ctxt)) THEN
+                  TRYALL (best_meson_tac size_of_subgoals ctxt));
 
 (** Depth-first search version **)
 
@@ -627,7 +629,7 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ths = MESON make_clauses
+fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON make_clauses
   (fn cls =>
     (case (gocls (cls @ ths)) of
       [] => no_tac  (*no goal clauses*)
@@ -636,14 +638,12 @@ fun iter_deepen_meson_tac ths = MESON make_clauses
           val horns = make_horns (cls @ ths)
           val _ = Output.debug (fn () =>
             cat_lines ("meson method called:" ::
-              map Display.string_of_thm_without_context (cls @ ths) @
-              ["clauses:"] @ map Display.string_of_thm_without_context horns))
+              map (Display.string_of_thm ctxt) (cls @ ths) @
+              ["clauses:"] @ map (Display.string_of_thm ctxt) horns))
         in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns) end));
 
-fun meson_claset_tac ths cs =
-  SELECT_GOAL (TRY (safe_tac cs) THEN TRYALL (iter_deepen_meson_tac ths));
-
-val meson_tac = meson_claset_tac [];
+fun meson_tac ctxt ths =
+  SELECT_GOAL (TRY (safe_tac (claset_of ctxt)) THEN TRYALL (iter_deepen_meson_tac ctxt ths));
 
 
 (**** Code to support ordinary resolution, rather than Model Elimination ****)
@@ -695,14 +695,14 @@ fun select_literal i cl = negate_head (make_last i cl);
   leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
   might generate many subgoals.*)
 
-fun skolemize_tac i st =
-  let val ts = Logic.strip_assums_hyp (List.nth (prems_of st, i-1))
+fun skolemize_tac ctxt = SUBGOAL (fn (goal, i) =>
+  let val ts = Logic.strip_assums_hyp goal
   in
-     EVERY' [OldGoals.METAHYPS
-            (fn hyps => (cut_facts_tac (skolemize_nnf_list hyps) 1
-                         THEN REPEAT (etac exE 1))),
-            REPEAT_DETERM_N (length ts) o (etac thin_rl)] i st
-  end
-  handle Subscript => Seq.empty;
+    EVERY'
+     [OldGoals.METAHYPS (fn hyps =>
+        (cut_facts_tac (skolemize_nnf_list ctxt hyps) 1
+          THEN REPEAT (etac exE 1))),
+      REPEAT_DETERM_N (length ts) o (etac thin_rl)] i
+  end);
 
 end;

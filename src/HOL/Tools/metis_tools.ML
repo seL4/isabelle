@@ -628,7 +628,8 @@ fun infer_types ctxt =
        if exists_type ResAxioms.type_has_empty_sort (prop_of st0)  
        then (warning "Proof state contains the empty sort"; Seq.empty)
        else 
-	 (Meson.MESON ResAxioms.neg_clausify (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) i
+	 (Meson.MESON ResAxioms.neg_clausify
+	   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) ctxt i
 	  THEN ResAxioms.expand_defs_tac st0) st0
     end
     handle METIS s => (warning ("Metis: " ^ s); Seq.empty);
