@@ -579,15 +579,15 @@ and translate_term thy algbr funcgr thm (Const (c, ty)) =
       translate_app thy algbr funcgr thm ((c, ty), [])
   | translate_term thy algbr funcgr thm (Free (v, _)) =
       pair (IVar (SOME v))
-  | translate_term thy algbr funcgr thm (Abs (abs as (_, ty, _))) =
+  | translate_term thy algbr funcgr thm (Abs (v, ty, t)) =
       let
-        val (v, t) = Syntax.variant_abs abs;
-        val v' = if member (op =) (Term.add_free_names t []) v
-          then SOME v else NONE
+        val (v', t') = Syntax.variant_abs (Name.desymbolize false v, ty, t);
+        val v'' = if member (op =) (Term.add_free_names t' []) v'
+          then SOME v' else NONE
       in
         translate_typ thy algbr funcgr ty
-        ##>> translate_term thy algbr funcgr thm t
-        #>> (fn (ty, t) => (v', ty) `|=> t)
+        ##>> translate_term thy algbr funcgr thm t'
+        #>> (fn (ty, t) => (v'', ty) `|=> t)
       end
   | translate_term thy algbr funcgr thm (t as _ $ _) =
       case strip_comb t

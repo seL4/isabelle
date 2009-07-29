@@ -1000,11 +1000,11 @@ text {*
   Converting numerals 0 and 1 to their abstract versions.
 *}
 
-lemma numeral_0_eq_0 [simp]:
+lemma numeral_0_eq_0 [simp, code_post]:
   "Numeral0 = (0::'a::number_ring)"
   unfolding number_of_eq numeral_simps by simp
 
-lemma numeral_1_eq_1 [simp]:
+lemma numeral_1_eq_1 [simp, code_post]:
   "Numeral1 = (1::'a::number_ring)"
   unfolding number_of_eq numeral_simps by simp
 
