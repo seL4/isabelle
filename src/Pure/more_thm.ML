@@ -41,6 +41,11 @@ sig
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
+  val certify_inst: theory ->
+    ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
+    (ctyp * ctyp) list * (cterm * cterm) list
+  val certify_instantiate:
+    ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
   val unvarify: thm -> thm
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> thm * theory
@@ -269,24 +274,29 @@ fun forall_elim_var i th = forall_elim_vars_aux
 end;
 
 
+(* certify_instantiate *)
+
+fun certify_inst thy (instT, inst) =
+  (map (fn (v, T) => (Thm.ctyp_of thy (TVar v), Thm.ctyp_of thy T)) instT,
+    map (fn (v, t) => (Thm.cterm_of thy (Var v), Thm.cterm_of thy t)) inst);
+
+fun certify_instantiate insts th =
+  Thm.instantiate (certify_inst (Thm.theory_of_thm th) insts) th;
+
+
 (* unvarify: global schematic variables *)
 
 fun unvarify th =
   let
-    val thy = Thm.theory_of_thm th;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-
     val prop = Thm.full_prop_of th;
     val _ = map Logic.unvarify (prop :: Thm.hyps_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
 
-    val instT0 = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
-    val instT = map (fn (v, T) => (certT (TVar v), certT T)) instT0;
+    val instT = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
     val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
-      let val T' = Term_Subst.instantiateT instT0 T
-      in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
-  in Thm.instantiate (instT, inst) th end;
+      let val T' = Term_Subst.instantiateT instT T
+      in (((a, i), T'), Free ((a, T'))) end);
+  in certify_instantiate (instT, inst) th end;
 
 
 (* close_derivation *)
