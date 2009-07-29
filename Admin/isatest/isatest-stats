@@ -39,6 +39,7 @@ ISABELLE_SESSIONS="\
 
 AFP_SESSIONS="\
   CoreC++ \
+  Jinja-Slicing \
   HOL-BytecodeLogicJmlTypes \
   HOL-DiskPaxos \
   HOL-Fermat3_4 \
@@ -54,7 +55,6 @@ AFP_SESSIONS="\
   HOL-SATSolverVerification \
   HOL-SIFPL \
   HOL-SenSocialChoice \
-  HOL-Slicing \
   HOL-SumSquares \
   HOL-Topology \
   HOL-Valuation \
