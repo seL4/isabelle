@@ -1,5 +1,20 @@
-structure Sos = 
+(* Title:      sum_of_squares.ML
+   Authors:    Amine Chaieb, University of Cambridge
+               Philipp Meyer, TU Muenchen
+
+A tactic for proving nonlinear inequalities
+*)
+
+signature SOS =
+sig
+
+  val sos_tac : (string -> string) -> Proof.context -> int -> Tactical.tactic
+
+end
+
+structure Sos : SOS = 
 struct
+
 
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
@@ -500,11 +515,11 @@ fun sdpa_of_matrix k (m:matrix) =
 (*    Minimize obj_1 * v_1 + ... obj_m * v_m                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun sdpa_of_problem comment obj mats =
+fun sdpa_of_problem obj mats =
  let 
   val m = length mats - 1
   val (n,_) = dimensions (hd mats) 
- in "\"" ^ comment ^ "\"\n" ^
+ in
   string_of_int m ^ "\n" ^
   "1\n" ^
   string_of_int n ^ "\n" ^
@@ -586,6 +601,14 @@ fun listof prs sep err =
  fun csdpoutput inp =  ((decimal -- Scan.bulk (Scan.$$ " " |-- Scan.option decimal) >> (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
  val parse_sdpaoutput = mkparser sdpaoutput
  val parse_csdpoutput = mkparser csdpoutput
+
+(* Run prover on a problem in linear form.                       *)
+
+fun run_problem prover obj mats =
+  parse_csdpoutput (prover (sdpa_of_problem obj mats))
+
+(*
+UNUSED
 
 (* Also parse the SDPA output to test success (CSDP yields a return code).   *)
 
@@ -687,6 +710,8 @@ fun csdp obj mats =
    res)
  end;
 
+*)
+
 (* Try some apparently sensible scaling first. Note that this is purely to   *)
 (* get a cleaner translation to floating-point, and doesn't affect any of    *)
 (* the results, in principle. In practice it seems a lot better when there   *)
@@ -761,6 +786,8 @@ fun nice_vector n ((d,v) : vector) =
    in if c =/ rat_0 then a 
       else Intfunc.update (i,y) a end) v Intfunc.undefined):vector
 
+(*
+UNUSED
 
 (* Reduce linear program to SDP (diagonal matrices) and test with CSDP. This *)
 (* one tests A [-1;x1;..;xn] >= 0 (i.e. left column is negated constants).   *)
@@ -823,7 +850,11 @@ fun minimal_convex_hull mons =
  end
 end;
 
+*)
+
 fun dest_ord f x = is_equal (f x);
+
+
 
 (* Stuff for "equations" ((int*int*int)->num functions).                         *)
 
@@ -1072,6 +1103,9 @@ fun allpairs f l1 l2 =  fold_rev (fn x => (curry (op @)) (map (f x) l2)) l1 [];
 (* constant monomial is last; this gives an order in diagonalization of the  *)
 (* quadratic form that will tend to display constants.                       *)
 
+(*
+UNUSED
+
 fun newton_polytope pol =
  let 
   val vars = poly_variables pol
@@ -1085,6 +1119,8 @@ fun newton_polytope pol =
  in map (fn m => fold_rev2 (fn v => fn i => fn a => if i = 0 then a else Ctermfunc.update (v,i) a)
                         vars m monomial_1) (rev all')
  end;
+
+*)
 
 (* Diagonalize (Cholesky/LDU) the matrix corresponding to a quadratic form.  *)
 
@@ -1204,9 +1240,9 @@ fun sdpa_of_blockdiagonal k m =
 
 (* SDPA for problem using block diagonal (i.e. multiple SDPs)                *)
 
-fun sdpa_of_blockproblem comment nblocks blocksizes obj mats =
+fun sdpa_of_blockproblem nblocks blocksizes obj mats =
  let val m = length mats - 1 
- in  "\"" ^ comment ^ "\"\n" ^
+ in
   string_of_int m ^ "\n" ^
   string_of_int nblocks ^ "\n" ^
   (fold1 (fn s => fn t => s^" "^t) (map string_of_int blocksizes)) ^
@@ -1215,6 +1251,14 @@ fun sdpa_of_blockproblem comment nblocks blocksizes obj mats =
   fold_rev2 (fn k => fn m => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
     (1 upto length mats) mats ""
  end;
+
+(* Run prover on a problem in block diagonal form.                       *)
+
+fun run_blockproblem prover nblocks blocksizes obj mats=
+  parse_csdpoutput (prover (sdpa_of_blockproblem nblocks blocksizes obj mats))
+
+(*
+UNUSED
 
 (* Hence run CSDP on a problem in block diagonal form.                       *)
 
@@ -1248,6 +1292,7 @@ fun csdp nblocks blocksizes obj mats =
      else ());
      res)
  end;
+*)
 
 (* 3D versions of matrix operations to consider blocks separately.           *)
 
@@ -1270,17 +1315,25 @@ fun blocks blocksizes bm =
  (blocksizes ~~ (1 upto length blocksizes));;
 
 (* FIXME : Get rid of this !!!*)
+local
+  fun tryfind_with msg f [] = error msg
+    | tryfind_with msg f (x::xs) = (f x handle ERROR s => tryfind_with s f xs);
+in 
+  fun tryfind f = tryfind_with "tryfind" f
+end
+
+(*
 fun tryfind f [] = error "tryfind"
   | tryfind f (x::xs) = (f x handle ERROR _ => tryfind f xs);
-
+*)
 
 (* Positiv- and Nullstellensatz. Flag "linf" forces a linear representation. *)
 
-
+ 
 local
  open RealArith
 in
-fun real_positivnullstellensatz_general linf d eqs leqs pol =
+fun real_positivnullstellensatz_general prover linf d eqs leqs pol =
 let 
  val vars = fold_rev (curry (gen_union (op aconvc)) o poly_variables) 
               (pol::eqs @ map fst leqs) []
@@ -1344,7 +1397,7 @@ let
             itern 1 pvs (fn v => fn i => Intfunc.updatep iszero (i,Inttriplefunc.tryapplyd diagents v rat_0))
                         Intfunc.undefined)
   val raw_vec = if null pvs then vector_0 0
-                else tri_scale_then (csdp nblocks blocksizes) obj mats
+                else tri_scale_then (run_blockproblem prover nblocks blocksizes) obj mats
   fun int_element (d,v) i = Intfunc.tryapplyd v i rat_0
   fun cterm_element (d,v) i = Ctermfunc.tryapplyd v i rat_0
 
@@ -1464,7 +1517,7 @@ local
   fun simple_cterm_ord t u = TermOrd.fast_term_ord (term_of t, term_of u) = LESS
 in
   (* FIXME: Replace tryfind by get_first !! *)
-fun real_nonlinear_prover ctxt =
+fun real_nonlinear_prover prover ctxt =
  let 
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
       (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) 
@@ -1502,7 +1555,7 @@ fun real_nonlinear_prover ctxt =
       let val e = multidegree pol
           val k = if e = 0 then 0 else d div e
           val eq' = map fst eq 
-      in tryfind (fn i => (d,i,real_positivnullstellensatz_general false d eq' leq
+      in tryfind (fn i => (d,i,real_positivnullstellensatz_general prover false d eq' leq
                             (poly_neg(poly_pow pol i))))
               (0 upto k)
       end
@@ -1563,7 +1616,7 @@ local
    end 
 in
 
-fun real_nonlinear_subst_prover ctxt =
+fun real_nonlinear_subst_prover prover ctxt =
  let 
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
       (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) 
@@ -1596,7 +1649,7 @@ fun real_nonlinear_subst_prover ctxt =
                                    aconvc @{cterm "0::real"}) (map modify eqs),
                                    map modify les,map modify lts)
        end)
-       handle ERROR  _ => real_nonlinear_prover ctxt translator (rev eqs, rev les, rev lts))
+       handle ERROR  _ => real_nonlinear_prover prover ctxt translator (rev eqs, rev les, rev lts))
     in substfirst
    end
 
@@ -1606,7 +1659,7 @@ fun real_nonlinear_subst_prover ctxt =
 
 (* Overall function. *)
 
-fun real_sos ctxt t = gen_prover_real_arith ctxt (real_nonlinear_subst_prover ctxt) t;
+fun real_sos prover ctxt t = gen_prover_real_arith ctxt (real_nonlinear_subst_prover prover ctxt) t;
 end;
 
 (* A tactic *)
@@ -1618,7 +1671,7 @@ fun strip_all ct =
    end
 | _ => ([],ct)
 
-fun core_sos_conv ctxt t = Drule.arg_cong_rule @{cterm Trueprop} (real_sos ctxt (Thm.dest_arg t) RS @{thm Eq_TrueI})
+fun core_sos_conv prover ctxt t = Drule.arg_cong_rule @{cterm Trueprop} (real_sos prover ctxt (Thm.dest_arg t) RS @{thm Eq_TrueI})
 
 val known_sos_constants = 
   [@{term "op ==>"}, @{term "Trueprop"}, 
@@ -1654,10 +1707,10 @@ fun check_sos kcts ct =
               else error ("SOSO: Unknown constants in Subgoal:" ^ commas (map fst ukcs))
 in () end
 
-fun core_sos_tac ctxt = CSUBGOAL (fn (ct, i) => 
+fun core_sos_tac prover ctxt = CSUBGOAL (fn (ct, i) => 
   let val _ = check_sos known_sos_constants ct
       val (avs, p) = strip_all ct
-      val th = standard (fold_rev forall_intr avs (real_sos ctxt (Thm.dest_arg p)))
+      val th = standard (fold_rev forall_intr avs (real_sos prover ctxt (Thm.dest_arg p)))
   in rtac th i end);
 
 fun default_SOME f NONE v = SOME v
@@ -1695,7 +1748,7 @@ CSUBGOAL (fn (P,i) =>
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 
-fun sos_tac ctxt = ObjectLogic.full_atomize_tac THEN' elim_denom_tac ctxt THEN' core_sos_tac ctxt
+fun sos_tac prover ctxt = ObjectLogic.full_atomize_tac THEN' elim_denom_tac ctxt THEN' core_sos_tac prover ctxt
 
 
 end;
