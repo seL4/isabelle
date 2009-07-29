@@ -18,6 +18,14 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* New proof method "sos" (sum of squares) for nonlinear real arithmetic
+(originally due to John Harison). It requires Library/Sum_Of_Squares.
+It is not a complete decision procedure but works well in practice
+on quantifier-free real arithmetic with +, -, *, ^, =, <= and <,
+i.e. boolean combinations of equalities and inequalities between
+polynomials. It makes use of external semidefinite programming solvers.
+For more information and examples see Library/Sum_Of_Squares.
+
 * Set.UNIV and Set.empty are mere abbreviations for top and bot.  INCOMPATIBILITY.
 
 * More convenient names for set intersection and union.  INCOMPATIBILITY:
