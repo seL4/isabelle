@@ -17,7 +17,7 @@ fun reraise exn = raise exn;
 use "ML-Systems/polyml_common.ML";
 
 if ml_system = "polyml-5.2"
-then use "ML-Systems/thread_dummy.ML"
+then (use "ML-Systems/thread_dummy.ML"; use "ML-Systems/multithreading.ML")
 else use "ML-Systems/multithreading_polyml.ML";
 
 val pointer_eq = PolyML.pointerEq;
