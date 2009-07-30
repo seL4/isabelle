@@ -499,7 +499,7 @@ local
 in
 
 fun eval_tac ths =
-  FOCUS_PREMS (fn {context, prems, ...} =>
+  Subgoal.FOCUS_PREMS (fn {context, prems, ...} =>
     DEPTH_SOLVE_1 (resolve_tac (ths @ prems @ Data.get context) 1));
 
 val eval_setup =

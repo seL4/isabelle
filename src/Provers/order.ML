@@ -1235,12 +1235,12 @@ in
    val prfs = gen_solve mkconcl thy (lesss, C);
    val (subgoals, prf) = mkconcl decomp less_thms thy C;
   in
-   FOCUS (fn {prems = asms, ...} =>
+   Subgoal.FOCUS (fn {prems = asms, ...} =>
      let val thms = map (prove (prems @ asms)) prfs
      in rtac (prove thms prf) 1 end) ctxt n st
   end
   handle Contr p =>
-      (FOCUS (fn {prems = asms, ...} => rtac (prove asms p) 1) ctxt n st
+      (Subgoal.FOCUS (fn {prems = asms, ...} => rtac (prove asms p) 1) ctxt n st
         handle Subscript => Seq.empty)
    | Cannot => Seq.empty
    | Subscript => Seq.empty)

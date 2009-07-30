@@ -2161,7 +2161,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       fn st => let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
         st |> (res_inst_tac context [((rN, 0), s)] cases_scheme 1
         THEN res_inst_tac context [((rN, 0), s')] cases_scheme 1
-        THEN (FOCUS (fn {prems, ...} => equality_tac prems) context 1))
+        THEN (Subgoal.FOCUS (fn {prems, ...} => equality_tac prems) context 1))
              (* simp_all_tac ss (sel_convs) would also work but is less efficient *)
       end);
      val equality = timeit_msg "record equality proof:" equality_prf;

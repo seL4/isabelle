@@ -541,7 +541,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prems = flat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveTrancl (prems, C);
  in
-  FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove thy rel prems) prfs
     in rtac (prove thy rel thms prf) 1 end) ctxt n st
  end
@@ -558,7 +558,7 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prems = flat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveRtrancl (prems, C);
  in
-  FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove thy rel prems) prfs
     in rtac (prove thy rel thms prf) 1 end) ctxt n st
  end

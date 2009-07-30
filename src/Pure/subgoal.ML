@@ -133,8 +133,5 @@ fun SUBPROOF tac = FOCUS (FILTER Thm.no_prems o tac);
 
 end;
 
-val FOCUS_PARAMS = Subgoal.FOCUS_PARAMS;
-val FOCUS_PREMS = Subgoal.FOCUS_PREMS;
-val FOCUS = Subgoal.FOCUS;
 val SUBPROOF = Subgoal.SUBPROOF;
 
