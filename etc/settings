@@ -92,7 +92,7 @@ ISABELLE_LINE_EDITOR=""
 ### Batch sessions (cf. isabelle usedir)
 ###
 
-ISABELLE_USEDIR_OPTIONS="-M max -p 1 -v true -V outline=/proof,/ML"
+ISABELLE_USEDIR_OPTIONS="-M max -p 1 -q 2 -v true -V outline=/proof,/ML"
 
 # Specifically for the HOL image
 HOL_USEDIR_OPTIONS=""
