@@ -17,17 +17,11 @@ values "{x. odd 2}"
 values 10 "{n. even n}"
 values 10 "{n. odd n}"
 
-
 inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-    append_Nil: "append [] xs xs"
-  | append_Cons: "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
+    "append [] xs xs"
+  | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-inductive rev
-where
-"rev [] []"
-| "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
-
-code_pred rev .
+code_pred append .
 
 thm append.equation
 
@@ -35,6 +29,16 @@ values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
 
+inductive rev where
+    "rev [] []"
+  | "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
+
+code_pred rev .
+
+thm rev.equation
+
+values "{xs. rev [0, 1, 2, 3::nat] xs}"
+values "Collect (rev [0, 1, 2, 3::nat])"
 
 inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for f where
@@ -57,9 +61,9 @@ ML {* set Predicate_Compile.do_proofs *}
 
 
 lemma [code_pred_intros]:
-"r a b ==> tranclp r a b"
-"r a b ==> tranclp r b c ==> tranclp r a c"
-by auto
+  "r a b \<Longrightarrow> tranclp r a b"
+  "r a b \<Longrightarrow> tranclp r b c \<Longrightarrow> tranclp r a c"
+  by auto
 
 (* Setup requires quick and dirty proof *)
 (*
@@ -71,6 +75,7 @@ qed
 
 thm tranclp.equation
 *)
+
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
@@ -78,6 +83,11 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred succ .
 
 thm succ.equation
+
+values 10 "{(m, n). succ n m}"
+values "{m. succ 0 m}"
+values "{m. succ m 0}"
+
 (* FIXME: why does this not terminate? *)
 (*
 values 20 "{n. tranclp succ 10 n}"
