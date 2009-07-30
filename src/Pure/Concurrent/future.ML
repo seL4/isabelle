@@ -269,7 +269,11 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     (*canceled groups*)
     val _ =
       if null (! canceled) then ()
-      else (change canceled (filter_out (Task_Queue.cancel (! queue))); broadcast_work ());
+      else
+       (Multithreading.tracing 1 (fn () =>
+          string_of_int (length (! canceled)) ^ " canceled groups");
+        change canceled (filter_out (Task_Queue.cancel (! queue)));
+        broadcast_work ());
 
     (*delay loop*)
     val _ = wait_interruptible next_round scheduler_event
