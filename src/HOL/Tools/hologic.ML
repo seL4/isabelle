@@ -118,6 +118,8 @@ sig
   val mk_literal: string -> term
   val dest_literal: term -> string
   val mk_typerep: typ -> term
+  val termT: typ
+  val term_of_const: typ -> term
   val mk_term_of: typ -> term -> term
   val reflect_term: term -> term
   val mk_valtermify_app: string -> (string * typ) list -> typ -> term
@@ -591,7 +593,9 @@ fun mk_typerep (Type (tyco, Ts)) = Const ("Typerep.typerep.Typerep",
 
 val termT = Type ("Code_Eval.term", []);
 
-fun mk_term_of T t = Const ("Code_Eval.term_of_class.term_of", T --> termT) $ t;
+fun term_of_const T = Const ("Code_Eval.term_of_class.term_of", T --> termT);
+
+fun mk_term_of T t = term_of_const T $ t;
 
 fun reflect_term (Const (c, T)) =
       Const ("Code_Eval.Const", literalT --> typerepT --> termT)
