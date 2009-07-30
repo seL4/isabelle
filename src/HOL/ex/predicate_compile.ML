@@ -1531,7 +1531,7 @@ fun analyze_compr thy t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t_compr);
-    val (body, Ts, fp) = HOLogic.strip_split split;
+    val (body, Ts, fp) = HOLogic.strip_splits split;
       (*FIXME former order of tuple positions must be restored*)
     val (pred as Const (name, T), all_args) = strip_comb body
     val (params, args) = chop (nparams_of thy name) all_args

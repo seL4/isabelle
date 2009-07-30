@@ -50,13 +50,13 @@ fun ap_split (Type ("*", [T1, T2])) T3 u =
       internal_split_const (T1, T2, T3) $
       Abs ("v", T1,
           ap_split T2 T3
-             ((ap_split T1 (HOLogic.prodT_factors T2 ---> T3) (incr_boundvars 1 u)) $
+             ((ap_split T1 (HOLogic.flatten_tupleT T2 ---> T3) (incr_boundvars 1 u)) $
               Bound 0))
   | ap_split T T3 u = u;
 
 (*Curries any Var of function type in the rule*)
 fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
-      let val T' = HOLogic.prodT_factors T1 ---> T2;
+      let val T' = HOLogic.flatten_tupleT T1 ---> T2;
           val newt = ap_split T1 T2 (Var (v, T'));
           val cterm = Thm.cterm_of (Thm.theory_of_thm rl);
       in Thm.instantiate ([], [(cterm t, cterm newt)]) rl end
@@ -66,7 +66,7 @@ fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
 (* complete splitting of partially splitted rules *)
 
 fun ap_split' (T::Ts) U u = Abs ("v", T, ap_split' Ts U
-      (ap_split T (List.concat (map HOLogic.prodT_factors Ts) ---> U)
+      (ap_split T (maps HOLogic.flatten_tupleT Ts ---> U)
         (incr_boundvars 1 u) $ Bound 0))
   | ap_split' _ _ u = u;
 
@@ -76,12 +76,12 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
         val (Us', U') = strip_type T;
         val Us = Library.take (length ts, Us');
         val U = Library.drop (length ts, Us') ---> U';
-        val T' = List.concat (map HOLogic.prodT_factors Us) ---> U;
+        val T' = maps HOLogic.flatten_tupleT Us ---> U;
         fun mk_tuple (v as Var ((a, _), T)) (xs, insts) =
               let
-                val Ts = HOLogic.prodT_factors T;
+                val Ts = HOLogic.flatten_tupleT T;
                 val ys = Name.variant_list xs (replicate (length Ts) a);
-              in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple T
+              in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple (HOLogic.flat_tupleT_paths T) T
                 (map (Var o apfst (rpair 0)) (ys ~~ Ts))))::insts)
               end
           | mk_tuple _ x = x;
