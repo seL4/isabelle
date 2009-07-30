@@ -132,36 +132,42 @@ fun operation lthy b = get_overloading lthy
   |> get_first (fn ((c, _), (v, checked)) =>
       if Binding.name_of b = v then SOME (c, checked) else NONE);
 
-fun confirm b = map_overloading (filter_out (fn (_, (c', _)) => c' = Binding.name_of b));
 
+(* target *)
 
-(* overloaded declarations and definitions *)
+fun synchronize_syntax ctxt =
+  let
+    val overloading = OverloadingData.get ctxt;
+    fun subst (c, ty) = case AList.lookup (op =) overloading (c, ty)
+     of SOME (v, _) => SOME (ty, Free (v, ty))
+      | NONE => NONE;
+    val unchecks =
+      map (fn (c_ty as (_, ty), (v, _)) => (Free (v, ty), Const c_ty)) overloading;
+  in 
+    ctxt
+    |> map_improvable_syntax (K ((([], []), (((K NONE, subst), false), unchecks)), false))
+  end
+
+fun init raw_overloading thy =
+  let
+    val _ = if null raw_overloading then error "At least one parameter must be given" else ();
+    val overloading = map (fn (v, c_ty, checked) => (c_ty, (v, checked))) raw_overloading;
+  in
+    thy
+    |> ProofContext.init
+    |> OverloadingData.put overloading
+    |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
+    |> add_improvable_syntax
+    |> synchronize_syntax
+  end;
 
 fun declare c_ty = pair (Const c_ty);
 
 fun define checked b (c, t) = Thm.add_def (not checked) true
   (b, Logic.mk_equals (Const (c, Term.fastype_of t), t));
 
-
-(* target *)
-
-fun init raw_overloading thy =
-  let
-    val _ = if null raw_overloading then error "At least one parameter must be given" else ();
-    val overloading = map (fn (v, c_ty, checked) => (c_ty, (v, checked))) raw_overloading;
-    fun subst (c, ty) = case AList.lookup (op =) overloading (c, ty)
-     of SOME (v, _) => SOME (ty, Free (v, ty))
-      | NONE => NONE;
-    val unchecks =
-      map (fn (c_ty as (_, ty), (v, _)) => (Free (v, ty), Const c_ty)) overloading;
-  in
-    thy
-    |> ProofContext.init
-    |> OverloadingData.put overloading
-    |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
-    |> map_improvable_syntax (K ((([], []), (((K NONE, subst), false), unchecks)), false))
-    |> add_improvable_syntax
-  end;
+fun confirm b = map_overloading (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
+  #> LocalTheory.target synchronize_syntax
 
 fun conclude lthy =
   let
