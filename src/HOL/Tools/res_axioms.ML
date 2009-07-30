@@ -517,7 +517,7 @@ fun neg_clausify_tac ctxt =
   SUBGOAL (fn (prop, i) =>
     let val ts = Logic.strip_assums_hyp prop in
       EVERY'
-       [FOCUS
+       [Subgoal.FOCUS
          (fn {prems, ...} =>
            (Method.insert_tac
              (map forall_intr_vars (neg_clausify prems)) i)) ctxt,

@@ -67,7 +67,7 @@ val atomize_ss =
         imp_conjR,        (* "(D1 & D2 :- G) = ((D1 :- G) & (D2 :- G))" *)
         imp_all];         (* "((!x. D) :- G) = (!x. D :- G)" *)
 
-(*val hyp_resolve_tac = FOCUS (fn {prems, ...} =>
+(*val hyp_resolve_tac = Subgoal.FOCUS_PREMS (fn {prems, ...} =>
                                   resolve_tac (maps atomizeD prems) 1);
   -- is nice, but cannot instantiate unknowns in the assumptions *)
 fun hyp_resolve_tac i st = let

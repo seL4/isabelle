@@ -533,7 +533,7 @@ end;
 
 fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = Thm.theory_of_thm st;
+  val thy = ProofContext.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel, subgoals, prf) = mkconcl_trancl C;
@@ -541,7 +541,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prems = flat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveTrancl (prems, C);
  in
-  FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove thy rel prems) prfs
     in rtac (prove thy rel thms prf) 1 end) ctxt n st
  end
@@ -550,7 +550,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
 
 fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = Thm.theory_of_thm st;
+  val thy = ProofContext.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel, subgoals, prf) = mkconcl_rtrancl C;
@@ -558,7 +558,7 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prems = flat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveRtrancl (prems, C);
  in
-  FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove thy rel prems) prfs
     in rtac (prove thy rel thms prf) 1 end) ctxt n st
  end

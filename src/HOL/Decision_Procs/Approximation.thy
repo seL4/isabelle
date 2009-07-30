@@ -3337,7 +3337,7 @@ method_setup approximation = {*
       REPEAT (FIRST' [etac @{thm intervalE},
                       etac @{thm meta_eqE},
                       rtac @{thm impI}] i)
-      THEN FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) @{context} i
+      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) @{context} i
       THEN TRY (filter_prems_tac (K false) i)
       THEN DETERM (Reflection.genreify_tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
