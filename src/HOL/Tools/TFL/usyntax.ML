@@ -118,7 +118,7 @@ fun type_varsl L = distinct (op =) (fold (curry op @ o type_vars) L []);
 val alpha  = mk_vartype "'a"
 val beta   = mk_vartype "'b"
 
-val strip_prod_type = HOLogic.prodT_factors;
+val strip_prod_type = HOLogic.flatten_tupleT;
 
 
 

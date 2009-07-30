@@ -66,17 +66,15 @@ sig
   val mk_snd: term -> term
   val split_const: typ * typ * typ -> term
   val mk_split: term -> term
-  val prodT_factors: typ -> typ list
-  val mk_tuple: typ -> term list -> term
-  val dest_tuple: term -> term list
-  val ap_split: typ -> typ -> term -> term
-  val prod_factors: term -> int list list
-  val dest_tuple': int list list -> term -> term list
-  val prodT_factors': int list list -> typ -> typ list
-  val ap_split': int list list -> typ -> typ -> term -> term
-  val mk_tuple': int list list -> typ -> term list -> term
+  val flatten_tupleT: typ -> typ list
   val mk_tupleT: int list list -> typ list -> typ
-  val strip_split: term -> term * typ list * int list list
+  val strip_tupleT: int list list -> typ -> typ list
+  val flat_tupleT_paths: typ -> int list list
+  val mk_tuple: int list list -> typ -> term list -> term
+  val dest_tuple: int list list -> term -> term list
+  val flat_tuple_paths: term -> int list list
+  val mk_splits: int list list -> typ -> typ -> term -> term
+  val strip_splits: term -> term * typ list * int list list
   val natT: typ
   val zero: term
   val is_zero: term -> bool
@@ -320,94 +318,16 @@ fun mk_split t =
   | _ => raise TERM ("mk_split: bad body type", [t]));
 
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
-fun prodT_factors (Type ("*", [T1, T2])) = prodT_factors T1 @ prodT_factors T2
-  | prodT_factors T = [T];
+fun flatten_tupleT (Type ("*", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
+  | flatten_tupleT T = [T];
 
-(*Makes a nested tuple from a list, following the product type structure*)
-fun mk_tuple (Type ("*", [T1, T2])) tms =
-        mk_prod (mk_tuple T1 tms,
-                 mk_tuple T2 (Library.drop (length (prodT_factors T1), tms)))
-  | mk_tuple T (t::_) = t;
+(* tuples with specific arities
 
-fun dest_tuple (Const ("Pair", _) $ t $ u) = dest_tuple t @ dest_tuple u
-  | dest_tuple t = [t];
-
-(*In ap_split S T u, term u expects separate arguments for the factors of S,
-  with result type T.  The call creates a new term expecting one argument
-  of type S.*)
-fun ap_split T T3 u =
-  let
-    fun ap (T :: Ts) =
-          (case T of
-             Type ("*", [T1, T2]) =>
-               split_const (T1, T2, Ts ---> T3) $ ap (T1 :: T2 :: Ts)
-           | _ => Abs ("x", T, ap Ts))
-      | ap [] =
-          let val k = length (prodT_factors T)
-          in list_comb (incr_boundvars k u, map Bound (k - 1 downto 0)) end
-  in ap [T] end;
-
-
-(* operations on tuples with specific arities *)
-(*
   an "arity" of a tuple is a list of lists of integers
   ("factors"), denoting paths to subterms that are pairs
 *)
 
 fun prod_err s = raise TERM (s ^ ": inconsistent use of products", []);
-
-fun prod_factors t =
-  let
-    fun factors p (Const ("Pair", _) $ t $ u) =
-          p :: factors (1::p) t @ factors (2::p) u
-      | factors p _ = []
-  in factors [] t end;
-
-fun dest_tuple' ps =
-  let
-    fun dest p t = if p mem ps then (case t of
-        Const ("Pair", _) $ t $ u =>
-          dest (1::p) t @ dest (2::p) u
-      | _ => prod_err "dest_tuple'") else [t]
-  in dest [] end;
-
-fun prodT_factors' ps =
-  let
-    fun factors p T = if p mem ps then (case T of
-        Type ("*", [T1, T2]) =>
-          factors (1::p) T1 @ factors (2::p) T2
-      | _ => prod_err "prodT_factors'") else [T]
-  in factors [] end;
-
-(*In ap_split' ps S T u, term u expects separate arguments for the factors of S,
-  with result type T.  The call creates a new term expecting one argument
-  of type S.*)
-fun ap_split' ps T T3 u =
-  let
-    fun ap ((p, T) :: pTs) =
-          if p mem ps then (case T of
-              Type ("*", [T1, T2]) =>
-                split_const (T1, T2, map snd pTs ---> T3) $
-                  ap ((1::p, T1) :: (2::p, T2) :: pTs)
-            | _ => prod_err "ap_split'")
-          else Abs ("x", T, ap pTs)
-      | ap [] =
-          let val k = length ps
-          in list_comb (incr_boundvars (k + 1) u, map Bound (k downto 0)) end
-  in ap [([], T)] end;
-
-fun mk_tuple' ps =
-  let
-    fun mk p T ts =
-      if p mem ps then (case T of
-          Type ("*", [T1, T2]) =>
-            let
-              val (t, ts') = mk (1::p) T1 ts;
-              val (u, ts'') = mk (2::p) T2 ts'
-            in (pair_const T1 T2 $ t $ u, ts'') end
-        | _ => prod_err "mk_tuple'")
-      else (hd ts, tl ts)
-  in fst oo mk [] end;
 
 fun mk_tupleT ps =
   let
@@ -420,7 +340,67 @@ fun mk_tupleT ps =
       else (hd Ts, tl Ts)
   in fst o mk [] end;
 
-fun strip_split t =
+fun strip_tupleT ps =
+  let
+    fun factors p T = if p mem ps then (case T of
+        Type ("*", [T1, T2]) =>
+          factors (1::p) T1 @ factors (2::p) T2
+      | _ => prod_err "strip_tupleT") else [T]
+  in factors [] end;
+
+val flat_tupleT_paths =
+  let
+    fun factors p (Type ("*", [T1, T2])) =
+          p :: factors (1::p) T1 @ factors (2::p) T2
+      | factors p _ = []
+  in factors [] end;
+
+fun mk_tuple ps =
+  let
+    fun mk p T ts =
+      if p mem ps then (case T of
+          Type ("*", [T1, T2]) =>
+            let
+              val (t, ts') = mk (1::p) T1 ts;
+              val (u, ts'') = mk (2::p) T2 ts'
+            in (pair_const T1 T2 $ t $ u, ts'') end
+        | _ => prod_err "mk_tuple")
+      else (hd ts, tl ts)
+  in fst oo mk [] end;
+
+fun dest_tuple ps =
+  let
+    fun dest p t = if p mem ps then (case t of
+        Const ("Pair", _) $ t $ u =>
+          dest (1::p) t @ dest (2::p) u
+      | _ => prod_err "dest_tuple") else [t]
+  in dest [] end;
+
+val flat_tuple_paths =
+  let
+    fun factors p (Const ("Pair", _) $ t $ u) =
+          p :: factors (1::p) t @ factors (2::p) u
+      | factors p _ = []
+  in factors [] end;
+
+(*In mk_splits ps S T u, term u expects separate arguments for the factors of S,
+  with result type T.  The call creates a new term expecting one argument
+  of type S.*)
+fun mk_splits ps T T3 u =
+  let
+    fun ap ((p, T) :: pTs) =
+          if p mem ps then (case T of
+              Type ("*", [T1, T2]) =>
+                split_const (T1, T2, map snd pTs ---> T3) $
+                  ap ((1::p, T1) :: (2::p, T2) :: pTs)
+            | _ => prod_err "mk_splits")
+          else Abs ("x", T, ap pTs)
+      | ap [] =
+          let val k = length ps
+          in list_comb (incr_boundvars (k + 1) u, map Bound (k downto 0)) end
+  in ap [([], T)] end;
+
+val strip_splits =
   let
     fun strip [] qs Ts t = (t, Ts, qs)
       | strip (p :: ps) qs Ts (Const ("split", _) $ t) =
@@ -429,7 +409,7 @@ fun strip_split t =
       | strip (p :: ps) qs Ts t = strip ps qs
           (hd (binder_types (fastype_of1 (Ts, t))) :: Ts)
           (incr_boundvars 1 t $ Bound 0)
-  in strip [[]] [] [] t end;
+  in strip [[]] [] [] end;
 
 
 (* nat *)
