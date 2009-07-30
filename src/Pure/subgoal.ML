@@ -65,8 +65,9 @@ val focus = gen_focus (true, true);
   ----------------
   B ['b, y params]
 *)
-fun lift_import params th ctxt =
+fun lift_import idx params th ctxt =
   let
+    val cert = Thm.cterm_of (ProofContext.theory_of ctxt);
     val ((_, [th']), ctxt') = Variable.importT [th] ctxt;
 
     val Ts = map (#T o Thm.rep_cterm) params;
@@ -76,11 +77,19 @@ fun lift_import params th ctxt =
     val concl_vars = Term.add_vars (Logic.strip_imp_concl prop) [];
     val vars = rev (Term.add_vars prop []);
     val (ys, ctxt'') = Variable.variant_fixes (map (Name.clean o #1 o #1) vars) ctxt';
-    fun var_inst (v as (_, T)) y =
-      if member (op =) concl_vars v then (v, Free (y, T))
-      else (v, list_comb (Free (y, Ts ---> T), ts));
-    val th'' = Thm.certify_instantiate ([], map2 var_inst vars ys) th';
-  in (th'', ctxt'') end;
+
+    fun var_inst v y =
+      let
+        val ((x, i), T) = v;
+        val (U, args) =
+          if member (op =) concl_vars v then (T, [])
+          else (Ts ---> T, ts);
+        val u = Free (y, U);
+        in ((Var v, list_comb (u, args)), (u, Var ((x, i + idx), U))) end;
+    val (inst1, inst2) = split_list (map (pairself (pairself cert)) (map2 var_inst vars ys));
+
+    val th'' = Thm.instantiate ([], inst1) th';
+  in ((inst2, th''), ctxt'') end;
 
 (*
        [x, A x]
@@ -103,17 +112,19 @@ fun lift_subgoals params asms th =
 
 fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
   let
+    val idx = Thm.maxidx_of st0 + 1;
     val ps = map #2 params;
-    val (st2, ctxt2) = lift_import ps st1 ctxt1;
+    val ((subgoal_inst, st2), ctxt2) = lift_import idx ps st1 ctxt1;
     val (subgoals, st3) = lift_subgoals params asms st2;
     val result = st3
       |> Goal.conclude
       |> Drule.implies_intr_list asms
       |> Drule.forall_intr_list ps
       |> Drule.implies_intr_list subgoals
-      |> singleton (Variable.export ctxt2 ctxt0)
-      |> Drule.zero_var_indexes
-      |> Drule.incr_indexes st0;
+      |> fold_rev (Thm.forall_intr o #1) subgoal_inst
+      |> fold (Thm.forall_elim o #2) subgoal_inst
+      |> Thm.adjust_maxidx_thm idx
+      |> singleton (Variable.export ctxt2 ctxt0);
   in Thm.compose_no_flatten false (result, Thm.nprems_of st1) i st0 end;
 
 
