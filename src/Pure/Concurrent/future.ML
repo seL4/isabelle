@@ -120,11 +120,11 @@ in
 fun SYNCHRONIZED name = SimpleThread.synchronized name lock;
 
 fun wait cond = (*requires SYNCHRONIZED*)
-  ConditionVar.wait (cond, lock) handle Exn.Interrupt => ();
+  Multithreading.sync_wait NONE cond lock;
 
-fun wait_interruptible cond timeout = (*requires SYNCHRONIZED*)
+fun wait_interruptible timeout cond = (*requires SYNCHRONIZED*)
   interruptible (fn () =>
-    ignore (ConditionVar.waitUntil (cond, lock, Time.+ (Time.now (), timeout)))) ();
+    ignore (Multithreading.sync_wait (SOME (Time.+ (Time.now (), timeout))) cond lock)) ();
 
 fun signal cond = (*requires SYNCHRONIZED*)
   ConditionVar.signal cond;
@@ -194,7 +194,7 @@ fun change_active active = (*requires SYNCHRONIZED*)
 (* worker threads *)
 
 fun worker_wait cond = (*requires SYNCHRONIZED*)
- (change_active false; wait cond; change_active true);
+  (change_active false; wait cond; change_active true);
 
 fun worker_next () = (*requires SYNCHRONIZED*)
   if ! excessive > 0 then
@@ -272,7 +272,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       else (change canceled (filter_out (Task_Queue.cancel (! queue))); broadcast_work ());
 
     (*delay loop*)
-    val _ = wait_interruptible scheduler_event next_round
+    val _ = wait_interruptible next_round scheduler_event
       handle Exn.Interrupt =>
         (Multithreading.tracing 1 (fn () => "Interrupt");
           List.app do_cancel (Task_Queue.cancel_all (! queue)));

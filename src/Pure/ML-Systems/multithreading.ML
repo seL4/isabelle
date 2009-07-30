@@ -26,6 +26,7 @@ sig
   val restricted_interrupts: Thread.threadAttribute list
   val with_attributes: Thread.threadAttribute list ->
     (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
+  val sync_wait: Time.time option -> ConditionVar.conditionVar -> Mutex.mutex -> bool
   val self_critical: unit -> bool
   val serial: unit -> int
 end;
@@ -48,6 +49,9 @@ val max_threads = ref (1: int);
 fun max_threads_value () = 1: int;
 fun enabled () = false;
 
+
+(* attributes *)
+
 val no_interrupts =
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
 
@@ -58,6 +62,8 @@ val restricted_interrupts =
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptAsynchOnce];
 
 fun with_attributes _ f x = f [] x;
+
+fun sync_wait _ _ _ = false;
 
 
 (* critical section *)
@@ -74,5 +80,5 @@ in fun serial () = (count := ! count + 1; ! count) end;
 
 end;
 
-structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;
-open BasicMultithreading;
+structure Basic_Multithreading: BASIC_MULTITHREADING = Multithreading;
+open Basic_Multithreading;
