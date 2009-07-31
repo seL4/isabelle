@@ -285,9 +285,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end
   handle Exn.Interrupt =>
    (Multithreading.tracing 1 (fn () => "Interrupt");
-    List.app do_cancel (Task_Queue.cancel_all (! queue));
+    uninterruptible (fn _ => fn () => List.app do_cancel (Task_Queue.cancel_all (! queue))) ();
     scheduler_next ());
-
 
 fun scheduler_loop () =
   Multithreading.with_attributes
