@@ -411,7 +411,7 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 fun rawsat_tac ctxt i =
-  FOCUS (fn {prems, ...} => rtac (rawsat_thm (map cprop_of prems)) 1) ctxt i;
+  Subgoal.FOCUS (fn {prems, ...} => rtac (rawsat_thm (map cprop_of prems)) 1) ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)

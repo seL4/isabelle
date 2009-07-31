@@ -110,12 +110,38 @@ fun with_attributes new_atts f x =
     val _ = Thread.setAttributes orig_atts;
   in Exn.release result end;
 
+
+(* regular interruptibility *)
+
 fun interruptible f x =
   (Thread.testInterrupt (); with_attributes regular_interrupts (fn _ => fn x => f x) x);
 
 fun uninterruptible f =
   with_attributes no_interrupts (fn atts => fn x =>
     f (fn g => with_attributes atts (fn _ => fn y => g y)) x);
+
+
+(* synchronous wait *)
+
+fun sync_attributes e =
+  let
+    val orig_atts = Thread.getAttributes ();
+    val broadcast =
+      (case List.find (fn Thread.EnableBroadcastInterrupt _ => true | _ => false) orig_atts of
+        NONE => Thread.EnableBroadcastInterrupt false
+      | SOME att => att);
+    val interrupt_state =
+      (case List.find (fn Thread.InterruptState _ => true | _ => false) orig_atts of
+        NONE => Thread.InterruptState Thread.InterruptDefer
+      | SOME (state as Thread.InterruptState Thread.InterruptDefer) => state
+      | _ => Thread.InterruptState Thread.InterruptSynch);
+  in with_attributes [broadcast, interrupt_state] (fn _ => fn () => e ()) () end;
+
+fun sync_wait time cond lock =
+  sync_attributes (fn () =>
+    (case time of
+      SOME t => ConditionVar.waitUntil (cond, lock, t)
+    | NONE => (ConditionVar.wait (cond, lock); true)));
 
 
 (* execution with time limit *)
@@ -192,8 +218,9 @@ fun system_out script = uninterruptible (fn restore_attributes => fn () =>
 
     val _ = while ! result = Wait do
       restore_attributes (fn () =>
-        (ConditionVar.waitUntil (result_cond, result_mutex, Time.now () + Time.fromMilliseconds 100); ())
-          handle Exn.Interrupt => kill 10) ();
+        (ignore (sync_wait (SOME (Time.+ (Time.now (), Time.fromMilliseconds 100)))
+            result_cond result_mutex)
+          handle Exn.Interrupt => kill 10)) ();
 
     (*cleanup*)
     val output = read_file output_name handle IO.Io _ => "";
@@ -269,5 +296,5 @@ end;
 
 end;
 
-structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;
-open BasicMultithreading;
+structure Basic_Multithreading: BASIC_MULTITHREADING = Multithreading;
+open Basic_Multithreading;

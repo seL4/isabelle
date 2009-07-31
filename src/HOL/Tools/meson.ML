@@ -586,9 +586,9 @@ fun MESON mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [ObjectLogic.atomize_prems_tac 1,
             rtac ccontr 1,
-            FOCUS (fn {context = ctxt', prems = negs, ...} =>
+            Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
                       EVERY1 [skolemize_prems_tac ctxt negs,
-                              FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
+                              Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
 (** Best-first search versions **)

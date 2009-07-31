@@ -517,7 +517,7 @@ fun weakening_tac i =
 
 fun cnf_rewrite_tac ctxt i =
 	(* cut the CNF formulas as new premises *)
-	FOCUS (fn {prems, ...} =>
+	Subgoal.FOCUS (fn {prems, ...} =>
 		let
 		  val thy = ProofContext.theory_of ctxt
 			val cnf_thms = map (make_cnf_thm thy o HOLogic.dest_Trueprop o Thm.prop_of) prems
@@ -540,7 +540,7 @@ fun cnf_rewrite_tac ctxt i =
 
 fun cnfx_rewrite_tac ctxt i =
 	(* cut the CNF formulas as new premises *)
-	FOCUS (fn {prems, ...} =>
+	Subgoal.FOCUS (fn {prems, ...} =>
 		let
 		  val thy = ProofContext.theory_of ctxt;
 			val cnfx_thms = map (make_cnfx_thm thy o HOLogic.dest_Trueprop o prop_of) prems

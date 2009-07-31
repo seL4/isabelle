@@ -51,10 +51,10 @@ sig
     (((indexname * sort) * typ) list * ((indexname * typ) * term) list) * Proof.context
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
-  val importT: thm list -> Proof.context -> (ctyp list * thm list) * Proof.context
+  val importT: thm list -> Proof.context -> ((ctyp * ctyp) list * thm list) * Proof.context
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
   val import: bool -> thm list -> Proof.context ->
-    ((ctyp list * cterm list) * thm list) * Proof.context
+    (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val focus: cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context
@@ -427,11 +427,10 @@ fun import_terms is_open ts ctxt =
 fun importT ths ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val certT = Thm.ctyp_of thy;
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
-    val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
-    val ths' = map (Thm.instantiate (instT', [])) ths;
-  in ((map #2 instT', ths'), ctxt') end;
+    val insts' as (instT', _) = Thm.certify_inst thy (instT, []);
+    val ths' = map (Thm.instantiate insts') ths;
+  in ((instT', ths'), ctxt') end;
 
 fun import_prf is_open prf ctxt =
   let
@@ -442,13 +441,10 @@ fun import_prf is_open prf ctxt =
 fun import is_open ths ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-    val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
-    val instT' = map (fn (v, T) => (certT (TVar v), certT T)) instT;
-    val inst' = map (fn (v, t) => (cert (Var v), cert t)) inst;
-    val ths' = map (Thm.instantiate (instT', inst')) ths;
-  in (((map #2 instT', map #2 inst'), ths'), ctxt') end;
+    val (insts, ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
+    val insts' = Thm.certify_inst thy insts;
+    val ths' = map (Thm.instantiate insts') ths;
+  in ((insts', ths'), ctxt') end;
 
 
 (* import/export *)

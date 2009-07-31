@@ -551,7 +551,7 @@ fun solveQuasiOrder sign (asms, concl) =
 
 fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = Thm.theory_of_thm st;
+  val thy = ProofContext.theory_of ctxt;
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
@@ -560,11 +560,11 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
 
   val (subgoal, prf) = mkconcl_trans thy C;
  in
-  FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove prems) prfs
     in rtac (prove thms prf) 1 end) ctxt n st
  end
- handle Contr p => FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
+ handle Contr p => Subgoal.FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
   | Cannot  => Seq.empty);
 
 
@@ -572,7 +572,7 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
 
 fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = Thm.theory_of_thm st;
+  val thy = ProofContext.theory_of ctxt
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
@@ -580,12 +580,12 @@ fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val prfs = solveQuasiOrder thy (lesss, C);
   val (subgoals, prf) = mkconcl_quasi thy C;
  in
-  FOCUS (fn {prems, ...} =>
+  Subgoal.FOCUS (fn {prems, ...} =>
     let val thms = map (prove prems) prfs
     in rtac (prove thms prf) 1 end) ctxt n st
  end
  handle Contr p =>
-    (FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
+    (Subgoal.FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
       handle Subscript => Seq.empty)
   | Cannot => Seq.empty
   | Subscript => Seq.empty);
