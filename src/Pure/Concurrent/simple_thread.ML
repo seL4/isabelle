@@ -16,7 +16,7 @@ struct
 
 fun fork interrupts body =
   Thread.fork (fn () => exception_trace (fn () => body ()),
-    if interrupts then Multithreading.regular_interrupts else Multithreading.no_interrupts);
+    if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts);
 
 fun interrupt thread = Thread.interrupt thread handle Thread _ => ();
 
