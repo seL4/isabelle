@@ -145,28 +145,28 @@ fun expand_eta thy k thm =
     |> Conv.fconv_rule Drule.beta_eta_conversion
   end;
 
-fun mk_desymbolization pre post cert vs =
+fun mk_desymbolization pre post mk vs =
   let
     val names = map (pre o fst o fst) vs
       |> map (Name.desymbolize false)
       |> Name.variant_list []
       |> map post;
-    val subst_map = map_filter (fn (((v, i), x), v') =>
-      if v = v' andalso i = 0 then NONE
-      else SOME (((v, i), x), ((v', 0), x))) (vs ~~ names);
-  in (map o pairself) cert subst_map end;
+  in map_filter (fn (((v, i), x), v') =>
+    if v = v' andalso i = 0 then NONE
+    else SOME (((v, i), x), mk ((v', 0), x))) (vs ~~ names)
+  end;
 
 fun desymbolize_tvars thy thms =
   let
     val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
-    val tvar_subst = mk_desymbolization (unprefix "'") (prefix "'") (Thm.ctyp_of thy o TVar) tvs;
-  in map (Thm.instantiate (tvar_subst, [])) thms end;
+    val tvar_subst = mk_desymbolization (unprefix "'") (prefix "'") TVar tvs;
+  in map (Thm.certify_instantiate (tvar_subst, [])) thms end;
 
 fun desymbolize_vars thy thm =
   let
     val vs = Term.add_vars (Thm.prop_of thm) [];
-    val var_subst = mk_desymbolization I I (Thm.cterm_of thy o Var) vs;
-  in Thm.instantiate ([], var_subst) thm end;
+    val var_subst = mk_desymbolization I I Var vs;
+  in Thm.certify_instantiate ([], var_subst) thm end;
 
 fun desymbolize_all_vars thy = desymbolize_tvars thy #> map (desymbolize_vars thy);
 
