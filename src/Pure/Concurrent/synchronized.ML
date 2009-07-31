@@ -48,9 +48,10 @@ fun timed_access (Var {name, lock, cond, var}) time_limit f =
           (case f x of
             SOME (y, x') => (var := x'; SOME y)
           | NONE =>
-              if Multithreading.sync_wait (time_limit x) cond lock
-              then try_change ()
-              else NONE)
+              (case Multithreading.sync_wait NONE (time_limit x) cond lock of
+                Exn.Result true => try_change ()
+              | Exn.Result false => NONE
+              | Exn.Exn exn => reraise exn))
         end;
       val res = try_change ();
       val _ = ConditionVar.broadcast cond;
