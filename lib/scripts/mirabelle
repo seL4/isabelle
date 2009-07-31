@@ -1,0 +1,129 @@
+#!/usr/bin/perl -w
+
+use strict;
+use File::Basename;
+
+# Taken from http://www.skywayradio.com/tech/perl/trim_blanks.html
+sub trim {
+    my @out = @_;
+    for (@out) {
+        s/^\s+//;
+        s/\s+$//;
+    }
+    return wantarray ? @out : $out[0];
+}
+
+sub quote {
+    my $str = pop;
+    return "\"" . $str . "\"";
+}
+
+sub print_usage_and_quit {
+    print STDERR "Usage: mirabelle actions file1.thy...\n" .
+                 "  actions: action1:...:actionN\n" .
+                 "  action: name or name[key1=value1,...,keyM=valueM]\n";
+    exit 1;
+}
+
+my $num_args = $#ARGV + 1;
+if ($num_args < 2) {
+    print_usage_and_quit();
+}
+
+my @action_names;
+my @action_settings;
+
+foreach (split(/:/, $ARGV[0])) {
+    my %settings;
+
+    $_ =~ /([^[]*)(?:\[(.*)\])?/;
+    my ($name, $settings_str) = ($1, $2 || "");
+    my @setting_strs = split(/,/, $settings_str);
+    foreach (@setting_strs) {
+        $_ =~ /(.*)=(.*)/;
+	    my $key = $1;
+	    my $value = $2;
+	    $settings{trim($key)} = trim($value);
+    }
+
+    push @action_names, trim($name);
+    push @action_settings, \%settings;
+}
+
+my $output_path = "/tmp/mirabelle"; # FIXME: generate path
+my $mirabellesetup_thy_name = $output_path . "/MirabelleSetup";
+my $mirabellesetup_file = $mirabellesetup_thy_name . ".thy";
+my $mirabelle_log_file = $output_path . "/mirabelle.log";
+
+mkdir $output_path, 0755;
+
+open(FILE, ">$mirabellesetup_file")
+    || die "Could not create file '$mirabellesetup_file'";
+
+my $invoke_lines;
+
+for my $i (0 .. $#action_names) { 
+    my $settings_str = "";
+    my $settings = $action_settings[$i];
+    my $key;
+    my $value;
+
+    while (($key, $value) = each(%$settings)) {
+        $settings_str .= "(" . quote ($key) . ", " . quote ($value) . "), ";
+    }
+    $settings_str =~ s/, $//;
+
+    $invoke_lines .= "setup {* Mirabelle.invoke \"$action_names[$i]\" ";
+    $invoke_lines .= "[$settings_str] *}\n"
+}
+
+print FILE <<EOF;
+theory MirabelleSetup
+imports Mirabelle
+begin
+
+setup {* Mirabelle.set_logfile "$mirabelle_log_file" *}
+
+$invoke_lines
+
+end
+EOF
+
+my $root_text = "";
+my @new_thy_files;
+
+for my $i (1 .. $num_args - 1) {
+    my $old_thy_file = $ARGV[$i];
+    my ($base, $dir, $ext) = fileparse($old_thy_file, "\.thy");
+    my $new_thy_name = $base . "Mirabelle";
+    my $new_thy_file = $dir . $new_thy_name . $ext;
+
+    open(OLD_FILE, "<$old_thy_file")
+        || die "Cannot open file $old_thy_file";
+    my @lines = <OLD_FILE>;
+    close(OLD_FILE);
+
+    my $thy_text = join("", @lines);
+    my $old_len = length($thy_text);
+    $thy_text =~ s/\btheory\b[^\n]*\s*\bimports\s/theory $new_thy_name\nimports "$mirabellesetup_thy_name" /gm;
+    die "No 'imports' found" if length($thy_text) == $old_len;
+
+    open(NEW_FILE, ">$new_thy_file");
+    print NEW_FILE $thy_text;
+    close(NEW_FILE);
+
+    $root_text .= "use_thy \"" . $dir . $new_thy_name . "\";\n";
+
+    push @new_thy_files, $new_thy_file;
+}
+
+my $root_file = "ROOT_mirabelle.ML";
+open(ROOT_FILE, ">$root_file") || die "Cannot open file $root_file";
+print ROOT_FILE $root_text;
+close(ROOT_FILE);
+
+system "isabelle-process -e 'use \"ROOT_mirabelle.ML\";' -f -q HOL";
+
+# unlink $mirabellesetup_file;
+unlink $root_file;
+unlink @new_thy_files;

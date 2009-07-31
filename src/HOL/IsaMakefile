@@ -903,7 +903,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Sudoku.thy ex/Tarski.thy \
   ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
-  ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy
+  ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy \
+  ex/Mirabelle.thy ex/mirabelle.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
