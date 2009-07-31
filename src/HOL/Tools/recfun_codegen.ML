@@ -47,7 +47,7 @@ fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
     val thms = Code.these_eqns thy c'
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> expand_eta thy
-      |> Code.norm_varnames thy
+      |> Code.desymbolize_all_vars thy
       |> map (rpair opt_name)
   in if null thms then NONE else SOME thms end;
 

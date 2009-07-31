@@ -129,6 +129,12 @@ fun term_of_conv thy f =
   #> Logic.dest_equals
   #> snd;
 
+fun same_arity thy thms =
+  let
+    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
+    val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
+  in map (Code.expand_eta thy k) thms end;
+
 fun preprocess thy c eqns =
   let
     val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
@@ -140,8 +146,8 @@ fun preprocess thy c eqns =
     |> (map o apfst) (rewrite_eqn pre)
     |> (map o apfst) (AxClass.unoverload thy)
     |> map (Code.assert_eqn thy)
-    |> burrow_fst (Code.norm_args thy)
-    |> burrow_fst (Code.norm_varnames thy)
+    |> burrow_fst (same_arity thy)
+    |> burrow_fst (Code.desymbolize_all_vars thy)
   end;
 
 fun preprocess_conv thy ct =
