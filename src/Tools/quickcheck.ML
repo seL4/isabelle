@@ -11,6 +11,7 @@ sig
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
   val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
+  val quickcheck: (string * string) list -> int -> Proof.state -> (string * term) list option
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -215,18 +216,21 @@ fun quickcheck_params_cmd args thy =
     |> (Data.map o apsnd o map_test_params) f
   end;
 
-fun quickcheck_cmd args i state =
+fun quickcheck args i state =
   let
-    val prf = Toplevel.proof_of state;
-    val thy = Toplevel.theory_of state;
-    val ctxt = Toplevel.context_of state;
+    val thy = Proof.theory_of state;
+    val ctxt = Proof.context_of state;
     val default_params = (dest_test_params o snd o Data.get) thy;
     val f = fold (parse_test_param_inst ctxt) args;
     val (((size, iterations), default_type), (generator_name, insts)) =
       f (default_params, (NONE, []));
-    val counterex = test_goal false generator_name size iterations
-      default_type insts i [] prf;
-  in (Pretty.writeln o pretty_counterex ctxt) counterex end;
+  in
+    test_goal false generator_name size iterations default_type insts i [] state
+  end;
+
+fun quickcheck_cmd args i state =
+  quickcheck args i (Toplevel.proof_of state)
+  |> Pretty.writeln o pretty_counterex (Toplevel.context_of state);
 
 local structure P = OuterParse and K = OuterKeyword in
 
