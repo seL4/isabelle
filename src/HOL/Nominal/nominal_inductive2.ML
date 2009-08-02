@@ -150,7 +150,7 @@ fun inst_params thy (vs, p) th cts =
     map (Envir.subst_term env #> cterm_of thy) vs ~~ cts) th
   end;
 
-fun prove_strong_ind s rule_name avoids ctxt =
+fun prove_strong_ind s alt_name avoids ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
@@ -461,14 +461,13 @@ fun prove_strong_ind s rule_name avoids ctxt =
             (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
             [ind_case_names, RuleCases.consumes 1]);
-        val (thm_name1, thm_name2) = 
-         (case rule_name of
+        val (induct_name, inducts_name) =
+          case alt_name of
             NONE => (rec_qualified (Binding.name "strong_induct"),
                      rec_qualified (Binding.name "strong_inducts"))
-          | SOME s => (Binding.name s, Binding.name (s ^ "s"))
-         )
+          | SOME s => (Binding.name s, Binding.name (s ^ "s"));
         val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.generatedK
-          ((thm_name1,
+          ((induct_name,
             map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
           ctxt;
         val strong_inducts =
@@ -476,7 +475,7 @@ fun prove_strong_ind s rule_name avoids ctxt =
       in
         ctxt' |>
         LocalTheory.note Thm.generatedK
-          ((thm_name2,
+          ((inducts_name,
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (RuleCases.consumes 1))]),
            strong_inducts) |> snd
@@ -493,7 +492,7 @@ val _ =
   OuterSyntax.local_theory_to_proof "nominal_inductive2"
     "prove strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
     (P.xname -- 
-     Scan.option (P.$$$ "[" |-- P.name --| P.$$$ "]") --
+     Scan.option (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) --
      (Scan.optional (P.$$$ "avoids" |-- P.enum1 "|" (P.name --
       (P.$$$ ":" |-- P.and_list1 P.term))) []) >> (fn ((name, rule_name), avoids) =>
         prove_strong_ind name rule_name avoids));
