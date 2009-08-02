@@ -8,7 +8,7 @@ Experimental version that allows to avoid lists of atoms.
 
 signature NOMINAL_INDUCTIVE2 =
 sig
-  val prove_strong_ind: string -> (string * string list) list -> local_theory -> Proof.state
+  val prove_strong_ind: string -> string option -> (string * string list) list -> local_theory -> Proof.state
 end
 
 structure NominalInductive2 : NOMINAL_INDUCTIVE2 =
@@ -150,7 +150,7 @@ fun inst_params thy (vs, p) th cts =
     map (Envir.subst_term env #> cterm_of thy) vs ~~ cts) th
   end;
 
-fun prove_strong_ind s avoids ctxt =
+fun prove_strong_ind s rule_name avoids ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
@@ -461,8 +461,14 @@ fun prove_strong_ind s avoids ctxt =
             (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
             [ind_case_names, RuleCases.consumes 1]);
+        val (thm_name1, thm_name2) = 
+         (case rule_name of
+            NONE => (rec_qualified (Binding.name "strong_induct"),
+                     rec_qualified (Binding.name "strong_inducts"))
+          | SOME s => (Binding.name s, Binding.name (s ^ "s"))
+         )
         val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.generatedK
-          ((rec_qualified (Binding.name "strong_induct"),
+          ((thm_name1,
             map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
           ctxt;
         val strong_inducts =
@@ -470,7 +476,7 @@ fun prove_strong_ind s avoids ctxt =
       in
         ctxt' |>
         LocalTheory.note Thm.generatedK
-          ((rec_qualified (Binding.name "strong_inducts"),
+          ((thm_name2,
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (RuleCases.consumes 1))]),
            strong_inducts) |> snd
@@ -486,9 +492,11 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ =
   OuterSyntax.local_theory_to_proof "nominal_inductive2"
     "prove strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
-    (P.xname -- Scan.optional (P.$$$ "avoids" |-- P.enum1 "|" (P.name --
-      (P.$$$ ":" |-- P.and_list1 P.term))) [] >> (fn (name, avoids) =>
-        prove_strong_ind name avoids));
+    (P.xname -- 
+     Scan.option (P.$$$ "[" |-- P.name --| P.$$$ "]") --
+     (Scan.optional (P.$$$ "avoids" |-- P.enum1 "|" (P.name --
+      (P.$$$ ":" |-- P.and_list1 P.term))) []) >> (fn ((name, rule_name), avoids) =>
+        prove_strong_ind name rule_name avoids));
 
 end;
 
