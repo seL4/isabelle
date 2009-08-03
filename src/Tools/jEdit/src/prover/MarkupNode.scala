@@ -71,7 +71,7 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
   def set_children(newchildren: List[MarkupNode]): MarkupNode =
     new MarkupNode(base, start, stop, newchildren, id, content, info)
 
-  def add(child: MarkupNode) =
+  private def add(child: MarkupNode) =
     set_children ((child :: children) sort ((a, b) => a.start < b.start))
 
   def remove(nodes: List[MarkupNode]) = set_children(children diff nodes)
