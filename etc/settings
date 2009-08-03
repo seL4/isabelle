@@ -144,6 +144,7 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 # Site settings check -- just to make it a little bit harder to copy this file verbatim!
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
   { echo >&2 "### Isabelle site settings already present!  Maybe copied etc/settings in full?"; }
+ISABELLE_SITE_SETTINGS_PRESENT=true
 
 
 ###
