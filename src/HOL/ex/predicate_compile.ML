@@ -1911,37 +1911,37 @@ fun prepare_intrs thy prednames =
 (** main function of predicate compiler **)
 
 fun add_equations_of steps prednames thy =
-let
-  val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
-  val (preds, nparams, all_vs, param_vs, extra_modes, clauses, arities) =
-    prepare_intrs thy prednames
-  val _ = Output.tracing "Infering modes..."
-  val moded_clauses = #infer_modes steps thy extra_modes arities param_vs clauses 
-  val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
-  val _ = print_modes modes
-  val _ = print_moded_clauses thy moded_clauses
-  val _ = Output.tracing "Defining executable functions..."
-  val thy' = fold (#create_definitions steps preds) modes thy
-    |> Theory.checkpoint
-  val _ = Output.tracing "Compiling equations..."
-  val compiled_terms =
-    (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
-  val _ = print_compiled_terms thy' compiled_terms
-  val _ = Output.tracing "Proving equations..."
-  val result_thms = #prove steps thy' clauses preds (extra_modes @ modes)
-    moded_clauses compiled_terms
-  val qname = #qname steps
-  (* val attrib = gn thy => Attrib.attribute_i thy Code.add_eqn_attrib *)
-  val attrib = fn thy => Attrib.attribute_i thy (Attrib.internal (K (Thm.declaration_attribute
-    (fn thm => Context.mapping (Code.add_eqn thm) I))))
-  val thy'' = fold (fn (name, result_thms) => fn thy => snd (PureThy.add_thmss
-    [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
-      [attrib thy ])] thy))
-    (maps_modes result_thms) thy'
-    |> Theory.checkpoint
-in
-  thy''
-end
+  let
+    val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
+    val (preds, nparams, all_vs, param_vs, extra_modes, clauses, arities) =
+      prepare_intrs thy prednames
+    val _ = Output.tracing "Infering modes..."
+    val moded_clauses = #infer_modes steps thy extra_modes arities param_vs clauses 
+    val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
+    val _ = print_modes modes
+    val _ = print_moded_clauses thy moded_clauses
+    val _ = Output.tracing "Defining executable functions..."
+    val thy' = fold (#create_definitions steps preds) modes thy
+      |> Theory.checkpoint
+    val _ = Output.tracing "Compiling equations..."
+    val compiled_terms =
+      (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
+    val _ = print_compiled_terms thy' compiled_terms
+    val _ = Output.tracing "Proving equations..."
+    val result_thms = #prove steps thy' clauses preds (extra_modes @ modes)
+      moded_clauses compiled_terms
+    val qname = #qname steps
+    (* val attrib = gn thy => Attrib.attribute_i thy Code.add_eqn_attrib *)
+    val attrib = fn thy => Attrib.attribute_i thy (Attrib.internal (K (Thm.declaration_attribute
+      (fn thm => Context.mapping (Code.add_eqn thm) I))))
+    val thy'' = fold (fn (name, result_thms) => fn thy => snd (PureThy.add_thmss
+      [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
+        [attrib thy ])] thy))
+      (maps_modes result_thms) thy'
+      |> Theory.checkpoint
+  in
+    thy''
+  end
 
 fun extend' value_of edges_of key (G, visited) =
   let
