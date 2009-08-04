@@ -39,8 +39,10 @@ definition lift_pred :: "'a Predicate.pred \<Rightarrow> 'a rpred"
   where
   "lift_pred = Pair"
 
-definition lift_random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) rpred"
-  where "lift_random g = (\<lambda>s. let (v, s') = g s in (Predicate.single v, s'))"
+definition lift_random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> 'a rpred"
+  where "lift_random g = scomp g (Pair o (Predicate.single o fst))"
 
+definition map_rpred :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a rpred \<Rightarrow> 'b rpred)"
+where "map_rpred f P = P \<guillemotright>= (return o f)"
   
 end
