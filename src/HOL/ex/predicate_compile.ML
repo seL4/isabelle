@@ -2053,10 +2053,16 @@ fun generic_code_pred prep_const raw_const lthy =
         assumes = [("", Logic.strip_imp_prems case_rule)],
         binds = [], cases = []}) cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
-    val lthy'' = ProofContext.add_cases true case_env lthy'
-    
-    fun after_qed thms =
-      LocalTheory.theory (fold set_elim (map the_single thms) #> add_equations [const])
+    val lthy'' = lthy'
+      |> fold Variable.auto_fixes cases_rules 
+      |> ProofContext.add_cases true case_env
+    fun after_qed thms goal_ctxt =
+      let
+        val global_thms = ProofContext.export goal_ctxt
+          (ProofContext.init (ProofContext.theory_of goal_ctxt)) (map the_single thms)
+      in
+        goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #> add_equations [const])
+      end  
   in
     Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy''
   end;

@@ -1,5 +1,5 @@
 theory Predicate_Compile_ex
-imports Complex_Main Predicate_Compile
+imports Main Predicate_Compile
 begin
 
 inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" where
