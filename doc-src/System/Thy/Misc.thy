@@ -225,13 +225,13 @@ text {*
 
 section {* Make all logics *}
 
-text {*
-  The @{tool_def makeall} utility applies Isabelle make to all logic
-  directories of the distribution:
+text {* The @{tool_def makeall} utility applies Isabelle make to any
+  Isabelle component (cf.\ \secref{sec:components}) that contains an
+  @{verbatim IsaMakefile}:
 \begin{ttbox}
 Usage: makeall [ARGS ...]
 
-  Apply isabelle make to all logics (passing ARGS).
+  Apply isabelle make to all components with IsaMakefile (passing ARGS).
 \end{ttbox}
 
   The arguments @{verbatim ARGS} are just passed verbatim to each

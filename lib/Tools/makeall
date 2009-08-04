@@ -4,11 +4,6 @@
 #
 # DESCRIPTION: apply make utility to all logics
 
-## global settings
-
-ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP HOLCF LCF Sequents"
-
-
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -18,7 +13,7 @@ function usage()
   echo
   echo "Usage: isabelle $PRG [ARGS ...]"
   echo
-  echo "  Apply isabelle make to all logics (passing ARGS)."
+  echo "  Apply isabelle make to all components with IsaMakefile (passing ARGS)."
   echo
   exit 1
 }
@@ -29,6 +24,7 @@ function fail()
   exit 2
 }
 
+
 ## main
 
 [ "$1" = "-?" ] && usage
@@ -38,9 +34,14 @@ FAIL=""
 echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
-for L in $ALL_LOGICS
+ORIG_IFS="$IFS"; IFS=":"; declare -a COMPONENTS=($ISABELLE_COMPONENTS); IFS="$ORIG_IFS"
+
+for DIR in "${COMPONENTS[@]}"
 do
-  ( cd "$ISABELLE_HOME/src/$L"; "$ISABELLE_TOOL" make "$@" ) || FAIL="$FAIL$L "
+  if [ -f "$DIR/IsaMakefile" ]; then
+    NAME="$(basename "$DIR")"
+    ( cd "$DIR"; "$ISABELLE_TOOL" make "$@" ) || FAIL="$FAIL$NAME "
+  fi
 done
 
 echo -n "Finished at "; date
