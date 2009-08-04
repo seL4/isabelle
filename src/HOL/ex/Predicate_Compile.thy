@@ -1,5 +1,5 @@
 theory Predicate_Compile
-imports Complex_Main Lattice_Syntax Code_Eval
+imports Complex_Main Lattice_Syntax Code_Eval RPred
 uses "predicate_compile.ML"
 begin
 
