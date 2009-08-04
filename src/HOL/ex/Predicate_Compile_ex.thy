@@ -17,7 +17,6 @@ values "{x. odd 2}"
 values 10 "{n. even n}"
 values 10 "{n. odd n}"
 
-
 inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
     append_Nil: "append [] xs xs"
   | append_Cons: "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
@@ -42,26 +41,27 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-(* FIXME: correct handling of parameters *)
-(*
-ML {* reset Predicate_Compile.do_proofs *}
 code_pred partition .
 
 thm partition.equation
-ML {* set Predicate_Compile.do_proofs *}
-*)
+
+inductive is_even :: "nat \<Rightarrow> bool"
+where
+  "n mod 2 = 0 \<Longrightarrow> is_even n"
+
+code_pred is_even .
 
 (* TODO: requires to handle abstractions in parameter positions correctly *)
-(*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
-  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}" *)
+values 10 "{(ys, zs). partition is_even
+  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}"
 
+values 10 "{zs. partition is_even zs [0, 2] [3, 5]}"
+values 10 "{zs. partition is_even zs [0, 7] [3, 5]}"
 
 lemma [code_pred_intros]:
 "r a b ==> tranclp r a b"
 "r a b ==> tranclp r b c ==> tranclp r a c"
 by auto
-
-(* Setup requires quick and dirty proof *)
 
 code_pred tranclp
 proof -
@@ -78,7 +78,7 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred succ .
 
 thm succ.equation
-(* FIXME: why does this not terminate? *)
+(* FIXME: why does this not terminate? -- value chooses mode [] --> [1] and then starts enumerating all successors *)
 (*
 values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"
