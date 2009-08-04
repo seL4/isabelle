@@ -1154,9 +1154,7 @@ fun compile_expr size thy ((Mode (mode, is, ms)), t) =
   case strip_comb t of
     (Const (name, T), params) =>
        let
-         val _ = Output.tracing (Syntax.string_of_term_global thy t)
          val params' = map (compile_param size thy PredicateCompFuns.compfuns) (ms ~~ params)
-         val _ = Output.tracing "..."
          val mk_fun_of = case size of NONE => mk_fun_of | SOME _ => mk_sizelim_fun_of
        in
          list_comb (mk_fun_of PredicateCompFuns.compfuns thy (name, T) mode, params')
@@ -1870,9 +1868,6 @@ fun prepare_intrs thy prednames =
     val nparams = nparams_of thy (hd prednames)
     val extra_modes = all_modes_of thy |> filter_out (fn (name, _) => member (op =) prednames name)
     val preds = distinct (op =) (map (dest_Const o fst o (strip_intro_concl nparams)) intrs)
-    (*val _ = Output.tracing ("extra_modes are: " ^
-      cat_lines (map (fn (name, modes) => name ^ " has modes:" ^
-      (commas (map string_of_mode modes))) extra_modes)) *)
     val _ $ u = Logic.strip_imp_concl (hd intrs);
     val params = List.take (snd (strip_comb u), nparams);
     val param_vs = maps term_vs params
