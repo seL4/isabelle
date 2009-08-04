@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/atp_manager.ML
+(*  Title:      HOL/Tools/ATP_Manager/atp_manager.ML
     Author:     Fabian Immler, TU Muenchen
 
 ATP threads are registered here.

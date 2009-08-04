@@ -15,9 +15,9 @@ uses
   ("Tools/res_hol_clause.ML")
   ("Tools/res_reconstruct.ML")
   ("Tools/res_atp.ML")
-  ("Tools/atp_manager.ML")
-  ("Tools/atp_wrapper.ML")
-  ("Tools/atp_minimal.ML")
+  ("Tools/ATP_Manager/atp_manager.ML")
+  ("Tools/ATP_Manager/atp_wrapper.ML")
+  ("Tools/ATP_Manager/atp_minimal.ML")
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/metis_tools.ML")
 begin
@@ -96,10 +96,9 @@ use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML" setup ResReconstruct.setup
 use "Tools/res_atp.ML"
 
-use "Tools/atp_manager.ML"
-use "Tools/atp_wrapper.ML"
-
-use "Tools/atp_minimal.ML"
+use "Tools/ATP_Manager/atp_manager.ML"
+use "Tools/ATP_Manager/atp_wrapper.ML"
+use "Tools/ATP_Manager/atp_minimal.ML"
 
 text {* basic provers *}
 setup {* AtpManager.add_prover "spass" AtpWrapper.spass *}

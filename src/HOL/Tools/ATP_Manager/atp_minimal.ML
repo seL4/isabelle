@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/atp_minimal.ML
+(*  Title:      HOL/Tools/ATP_Manager/atp_minimal.ML
     Author:     Philipp Meyer, TU Muenchen
 
 Minimalization of theorem list for metis by using an external automated theorem prover
