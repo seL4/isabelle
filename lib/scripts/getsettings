@@ -102,9 +102,8 @@ function init_component ()
 init_component "$ISABELLE_HOME"
 
 [ "$ISABELLE_HOME" -ef "$ISABELLE_HOME_USER" ] && \
-  { echo >&2 "### ISABELLE_HOME and ISABELLE_HOME_USER should not be the same directory!"; }
-[ -z "$ISABELLE_IGNORE_USER_SETTINGS" -a -f "$ISABELLE_HOME_USER/etc/settings" ] && \
-  init_component "$ISABELLE_HOME_USER"
+  { echo >&2 "### ISABELLE_HOME and ISABELLE_HOME_USER must not be the same directory!"; }
+[ -d "$ISABELLE_HOME_USER" ] && init_component "$ISABELLE_HOME_USER"
 
 #ML system identifier
 if [ -z "$ML_PLATFORM" ]; then
