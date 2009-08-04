@@ -37,6 +37,8 @@ sig
   val funT_of : mode -> typ -> typ
   val mk_if_pred : term -> term
   val mk_Eval : term * term -> term
+  val mk_tupleT : typ list -> typ
+  val mk_predT : typ -> typ
 end;
 
 structure Predicate_Compile : PREDICATE_COMPILE =
@@ -48,8 +50,8 @@ struct
 
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
-fun print_tac s = (if ! Toplevel.debug then Tactical.print_tac s else Seq.single);
-fun debug_tac msg = (fn st => (tracing msg; Seq.single st));
+fun print_tac s = Seq.single; (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
+fun debug_tac msg = Seq.single; (* (fn st => (tracing msg; Seq.single st)); *)
 
 val do_proofs = ref true;
 
@@ -87,28 +89,28 @@ fun dest_tuple (Const (@{const_name Product_Type.Unity}, _)) = []
   | dest_tuple (Const (@{const_name Pair}, _) $ t1 $ t2) = t1 :: (dest_tuple t2)
   | dest_tuple t = [t]
 
-fun mk_pred_enumT T = Type (@{type_name "Predicate.pred"}, [T])
+fun mk_predT T = Type (@{type_name "Predicate.pred"}, [T])
 
-fun dest_pred_enumT (Type (@{type_name "Predicate.pred"}, [T])) = T
-  | dest_pred_enumT T = raise TYPE ("dest_pred_enumT", [T], []);
+fun dest_predT (Type (@{type_name "Predicate.pred"}, [T])) = T
+  | dest_predT T = raise TYPE ("dest_predT", [T], []);
 
 fun mk_Enum f =
   let val T as Type ("fun", [T', _]) = fastype_of f
   in
-    Const (@{const_name Predicate.Pred}, T --> mk_pred_enumT T') $ f    
+    Const (@{const_name Predicate.Pred}, T --> mk_predT T') $ f    
   end;
 
 fun mk_Eval (f, x) =
   let val T = fastype_of x
   in
-    Const (@{const_name Predicate.eval}, mk_pred_enumT T --> T --> HOLogic.boolT) $ f $ x
+    Const (@{const_name Predicate.eval}, mk_predT T --> T --> HOLogic.boolT) $ f $ x
   end;
 
-fun mk_empty T = Const (@{const_name Orderings.bot}, mk_pred_enumT T);
+fun mk_bot T = Const (@{const_name Orderings.bot}, mk_predT T);
 
 fun mk_single t =
   let val T = fastype_of t
-  in Const(@{const_name Predicate.single}, T --> mk_pred_enumT T) $ t end;
+  in Const(@{const_name Predicate.single}, T --> mk_predT T) $ t end;
 
 fun mk_bind (x, f) =
   let val T as Type ("fun", [_, U]) = fastype_of f
@@ -119,9 +121,9 @@ fun mk_bind (x, f) =
 val mk_sup = HOLogic.mk_binop @{const_name sup};
 
 fun mk_if_pred cond = Const (@{const_name Predicate.if_pred},
-  HOLogic.boolT --> mk_pred_enumT HOLogic.unitT) $ cond;
+  HOLogic.boolT --> mk_predT HOLogic.unitT) $ cond;
 
-fun mk_not_pred t = let val T = mk_pred_enumT HOLogic.unitT
+fun mk_not_pred t = let val T = mk_predT HOLogic.unitT
   in Const (@{const_name Predicate.not_pred}, T --> T) $ t end
 
 (* destruction of intro rules *)
@@ -534,12 +536,16 @@ fun check_mode_clause thy param_vs modes (iss, is) (ts, ps) =
     val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (get_args is ts));
     val in_vs = terms_vs in_ts;
     val concl_vs = terms_vs ts
-  in
-    forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
+    val _ = Output.tracing ("ts :" ^ (commas (map (Syntax.string_of_term_global thy) ts)))
+    val _ = ()
+    val ret = forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
     (case check_mode_prems (param_vs union in_vs) ps of
        NONE => false
      | SOME vs => concl_vs subset vs)
+  
+  in
+    ret
   end;
 
 fun check_modes_pred thy param_vs preds modes (p, ms) =
@@ -571,7 +577,7 @@ fun param_funT_of T NONE = T
   | param_funT_of T (SOME mode) = let
      val Ts = binder_types T;
      val (Us1, Us2) = get_args mode Ts
-   in Us1 ---> (mk_pred_enumT (mk_tupleT Us2)) end;
+   in Us1 ---> (mk_predT (mk_tupleT Us2)) end;
 
 fun funT_of (iss, is) T = let
     val Ts = binder_types T
@@ -579,7 +585,7 @@ fun funT_of (iss, is) T = let
     val paramTs' = map2 (fn SOME is => funT_of ([], is) | NONE => I) iss paramTs 
     val (inargTs, outargTs) = get_args is argTs
   in
-    (paramTs' @ inargTs) ---> (mk_pred_enumT (mk_tupleT outargTs))
+    (paramTs' @ inargTs) ---> (mk_predT (mk_tupleT outargTs))
   end; 
 
 
@@ -609,7 +615,7 @@ fun compile_match thy eqs eqs' out_ts success_t =
     val name' = Name.variant (name :: names) "y";
     val T = mk_tupleT (map fastype_of out_ts);
     val U = fastype_of success_t;
-    val U' = dest_pred_enumT U;
+    val U' = dest_predT U;
     val v = Free (name, T);
     val v' = Free (name', T);
   in
@@ -619,8 +625,8 @@ fun compile_match thy eqs eqs' out_ts success_t =
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $
           foldr1 HOLogic.mk_conj eqs'' $ success_t $
-            mk_empty U'),
-       (v', mk_empty U')]))
+            mk_bot U'),
+       (v', mk_bot U')]))
   end;
 
 (*FIXME function can be removed*)
@@ -657,7 +663,7 @@ fun compile_param_ext thy modes (NONE, t) = t
                 Const (predfun_name_of thy name (iss, is'), funT_of (iss, is') T)
               else error "compile param: Not an inductive predicate with correct mode"
           | Free (name, T) => Free (name, param_funT_of T (SOME is'))
-        val outTs = dest_tupleT (dest_pred_enumT (body_type (fastype_of f')))
+        val outTs = dest_tupleT (dest_predT (body_type (fastype_of f')))
         val out_vs = map Free (out_names ~~ outTs)
         val params' = map (compile_param thy modes) (ms ~~ params)
         val f_app = list_comb (f', params' @ inargs)
@@ -696,7 +702,7 @@ fun compile_expr thy modes (SOME (Mode (mode, is, ms)), t) =
                  (curry Library.drop (length ms) (fst (strip_type T)))
                val params' = map (compile_param thy modes) (ms ~~ params)
              in list_comb (Const (predfun_name_of thy name mode, ((map fastype_of params') @ Ts) --->
-               mk_pred_enumT (mk_tupleT Us)), params')
+               mk_predT (mk_tupleT Us)), params')
              end
            else error "not a valid inductive expression"
        | (Free (name, T), args) =>
@@ -791,7 +797,7 @@ fun compile_pred thy all_vs param_vs modes s T cls mode =
   in
     HOLogic.mk_Trueprop (HOLogic.mk_eq
       (list_comb (Const (mode_id, (Ts1' @ Us1) --->
-           mk_pred_enumT (mk_tupleT Us2)),
+           mk_predT (mk_tupleT Us2)),
          map2 (fn s => fn T => Free (s, T)) param_vs Ts1' @ xs),
        foldr1 mk_sup cl_ts))
   end;
@@ -893,7 +899,7 @@ fun create_definitions preds nparams (name, modes) thy =
            | mk_split_lambda' (x::xs) t = HOLogic.mk_split (lambda x (mk_split_lambda' xs t))
          in mk_split_lambda' xs t end;
       val predterm = mk_Enum (mk_split_lambda xouts (list_comb (Const (name, T), xparams' @ xargs)))
-      val funT = (Ts1' @ Us1) ---> (mk_pred_enumT (mk_tupleT Us2))
+      val funT = (Ts1' @ Us1) ---> (mk_predT (mk_tupleT Us2))
       val mode_id = Sign.full_bname thy (Long_Name.base_name mode_id)
       val lhs = list_comb (Const (mode_id, funT), xparams @ xins)
       val def = Logic.mk_equals (lhs, predterm)
@@ -1358,6 +1364,8 @@ fun prepare_intrs thy prednames =
     val nparams = nparams_of thy (hd prednames)
     val preds = distinct (op =) (map (dest_Const o fst o (strip_intro_concl nparams)) intrs)
     val extra_modes = all_modes_of thy |> filter_out (fn (name, _) => member (op =) prednames name)
+    val _ = Output.tracing ("extra_modes are: " ^
+      cat_lines (map (fn (name, modes) => name ^ " has modes:" ^ (commas (map string_of_mode modes))) extra_modes))
     val _ $ u = Logic.strip_imp_concl (hd intrs);
     val params = List.take (snd (strip_comb u), nparams);
     val param_vs = maps term_vs params
