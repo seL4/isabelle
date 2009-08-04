@@ -81,7 +81,7 @@ text {* Isabelle executables need to be run within a proper settings
   links are admissible, but a plain copy of the @{"file"
   "$ISABELLE_HOME/bin"} files will not work!
 
-  \item The file @{"file" "$ISABELLE_HOME/etc/settings"} ist run as a
+  \item The file @{"file" "$ISABELLE_HOME/etc/settings"} is run as a
   @{executable_ref bash} shell script with the auto-export option for
   variables enabled.
   
