@@ -62,7 +62,7 @@ lemma [code_pred_intros]:
 by auto
 
 (* Setup requires quick and dirty proof *)
-(*
+
 code_pred tranclp
 proof -
   case tranclp
@@ -70,7 +70,7 @@ proof -
 qed
 
 thm tranclp.equation
-*)
+
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
