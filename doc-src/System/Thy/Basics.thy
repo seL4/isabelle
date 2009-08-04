@@ -59,11 +59,14 @@ text {*
 *}
 
 
-subsection {* Building the environment *}
+subsection {* Bootstrapping the environment \label{sec:boot} *}
 
-text {*
-  Whenever any of the Isabelle executables is run, their settings
-  environment is put together as follows.
+text {* Isabelle executables need to be run within a proper settings
+  environment.  This is bootstrapped as described below, on the first
+  invocation of one of the outer wrapper scripts (such as
+  @{executable_ref isabelle}).  This happens only once for each
+  process tree, i.e.\ the environment is passed to subprocesses
+  according to regular Unix conventions.
 
   \begin{enumerate}
 
@@ -249,6 +252,52 @@ text {*
   somewhere in @{verbatim "/tmp"}.
   
   \end{description}
+*}
+
+
+subsection {* Additional components \label{sec:components} *}
+
+text {* Any directory may be registered as an explicit \emph{Isabelle
+  component}.  The general layout conventions are that of the main
+  Isabelle distribution itself, and the following two files (both
+  optional) have a special meaning:
+
+  \begin{itemize}
+
+  \item @{verbatim "etc/settings"} holds additional settings that are
+  initialized when bootstrapping the overall Isabelle environment,
+  cf.\ \secref{sec:boot}.  As usual, the content is interpreted as a
+  @{verbatim bash} script.  It may refer to the component's enclosing
+  directory via the @{verbatim "COMPONENT"} shell variable.
+
+  For example, the following setting allows to refer to files within
+  the component later on, without having to hardwire absolute paths:
+
+  \begin{ttbox}
+  MY_COMPONENT_HOME="$COMPONENT"
+  \end{ttbox}
+
+  Components can also add to existing Isabelle settings such as
+  @{setting_def ISABELLE_TOOLS}, in order to provide
+  component-specific tools that can be invoked by end-users.  For
+  example:
+
+  \begin{ttbox}
+  ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+  \end{ttbox}
+
+  \item @{verbatim "etc/components"} holds a list of further
+  sub-components of the same structure.  The directory specifications
+  given here can be either absolute (with leading @{verbatim "/"}) or
+  relative to the component's main directory.
+
+  \end{itemize}
+
+  The root of component initialization is @{setting ISABELLE_HOME}
+  itself.  After initializing all of its sub-components recursively,
+  @{setting ISABELLE_HOME_USER} is included in the same manner (if
+  that directory exists).  Thus users can easily add private
+  components to @{verbatim "$ISABELLE_HOME_USER/etc/components"}.
 *}
 
 
