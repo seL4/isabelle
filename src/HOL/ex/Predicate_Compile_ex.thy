@@ -71,6 +71,11 @@ qed
 
 thm tranclp.equation
 
+setup {* Predicate_Compile.add_sizelim_equations [@{const_name tranclp}] *}
+setup {* fn thy => exception_trace (fn () => Predicate_Compile.add_quickcheck_equations [@{const_name tranclp}] thy)  *}
+
+thm tranclp.rpred_equation
+
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
