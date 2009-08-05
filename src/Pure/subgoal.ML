@@ -102,7 +102,7 @@ fun lift_import idx params th ctxt =
 *)
 fun lift_subgoals params asms th =
   let
-    val lift = fold_rev Thm.all_name params o curry Drule.list_implies asms;
+    fun lift ct = fold_rev Thm.all_name params (Drule.list_implies (asms, ct));
     val unlift =
       fold (Thm.elim_implies o Thm.assume) asms o
       Drule.forall_elim_list (map #2 params) o Thm.assume;
@@ -133,14 +133,14 @@ fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
 fun GEN_FOCUS flags tac ctxt i st =
   if Thm.nprems_of st < i then Seq.empty
   else
-    let val (args as {context, params, asms, ...}, st') = gen_focus flags ctxt i st;
-    in Seq.lifts (retrofit context ctxt params asms i) (tac args st') st end;
+    let val (args as {context = ctxt', params, asms, ...}, st') = gen_focus flags ctxt i st;
+    in Seq.lifts (retrofit ctxt' ctxt params asms i) (tac args st') st end;
 
 val FOCUS_PARAMS = GEN_FOCUS (false, false);
 val FOCUS_PREMS = GEN_FOCUS (true, false);
 val FOCUS = GEN_FOCUS (true, true);
 
-fun SUBPROOF tac = FOCUS (FILTER Thm.no_prems o tac);
+fun SUBPROOF tac ctxt = FOCUS (Seq.map (tap (Goal.check_finished ctxt)) oo tac) ctxt;
 
 end;
 
