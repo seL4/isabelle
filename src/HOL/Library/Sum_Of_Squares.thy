@@ -1,26 +1,30 @@
-(* Title:      Library/Sum_Of_Squares
+(* Title:      HOL/Library/Sum_Of_Squares.thy
    Author:     Amine Chaieb, University of Cambridge
-
-In order to use the method sos, call it with (sos remote_csdp) to use the remote solver
-or install CSDP (https://projects.coin-or.org/Csdp/), set the Isabelle environment
-variable CSDP_EXE and call it with (sos csdp). By default, sos calls remote_csdp.
-This can take of the order of a minute for one sos call, because sos calls CSDP repeatedly.
-If you install CSDP locally, sos calls typically takes only a few seconds.
-
 *)
 
 header {* A decision method for universal multivariate real arithmetic with addition, 
-          multiplication and ordering using semidefinite programming*}
+  multiplication and ordering using semidefinite programming *}
 
 theory Sum_Of_Squares
 imports Complex_Main (* "~~/src/HOL/Decision_Procs/Dense_Linear_Order" *)
 uses
-  ("positivstellensatz.ML")
+  ("positivstellensatz.ML")  (* duplicate use!? -- cf. Euclidian_Space.thy *)
   ("Sum_Of_Squares/sum_of_squares.ML")
   ("Sum_Of_Squares/sos_wrapper.ML")
 begin
 
-(* setup sos tactic *)
+text {*
+  In order to use the method sos, call it with @{text "(sos
+  remote_csdp)"} to use the remote solver.  Or install CSDP
+  (https://projects.coin-or.org/Csdp), configure the Isabelle setting
+  @{text CSDP_EXE}, and call it with @{text "(sos csdp)"}.  By
+  default, sos calls @{text remote_csdp}.  This can take of the order
+  of a minute for one sos call, because sos calls CSDP repeatedly.  If
+  you install CSDP locally, sos calls typically takes only a few
+  seconds.
+*}
+
+text {* setup sos tactic *}
 
 use "positivstellensatz.ML"
 use "Sum_Of_Squares/sum_of_squares.ML"
@@ -28,7 +32,8 @@ use "Sum_Of_Squares/sos_wrapper.ML"
 
 setup SosWrapper.setup
 
-text{* Tests -- commented since they work only when csdp is installed  or take too long with remote csdps *}
+text {* Tests -- commented since they work only when csdp is installed
+  or take too long with remote csdps *}
 
 (*
 lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<Longrightarrow> a < 0" by sos
