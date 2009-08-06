@@ -222,7 +222,6 @@ JEDIT_JAVA_OPTIONS=""
 #JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
 JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 
-
 ###
 ### External reasoning tools
 ###
@@ -273,6 +272,9 @@ SPASS_HOME=$(choosefrom \
 
 # Jerusat 1.3 (SAT Solver, cf. Isabelle/src/HOL/Tools/sat_solver.ML)
 #JERUSAT_HOME=/usr/local/bin
+
+# CSDP (SDP Solver, cf. Isabelle/src/HOL/Library/Sum_of_Squares/sos_wrapper.ML)
+#CSDP_EXE=csdp
 
 # For configuring HOL/Matrix/cplex
 # LP_SOLVER is the default solver. It can be changed during runtime via Cplex.set_solver.

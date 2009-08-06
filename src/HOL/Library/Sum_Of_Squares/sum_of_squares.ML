@@ -10,11 +10,13 @@ sig
 
   val sos_tac : (string -> string) -> Proof.context -> int -> Tactical.tactic
 
+  val debugging : bool ref;
+  
+  exception Failure of string;
 end
 
 structure Sos : SOS = 
 struct
-
 
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
@@ -54,6 +56,8 @@ val debugging = ref false;
 exception Sanity;
 
 exception Unsolvable;
+
+exception Failure of string;
 
 (* Turn a rational into a decimal string with d sig digits.                  *)
 
@@ -578,139 +582,17 @@ end;
   in if null rst then x 
      else error "mkparser: unparsed input"
   end;;
-val parse_decimal = mkparser decimal;
 
-fun fix err prs = 
-  prs || (fn x=> error err);
+(* Parse back csdp output.                                                      *)
 
-fun listof prs sep err =
-  prs -- Scan.bulk (sep |-- fix err prs) >> uncurry cons;
-
-(* Parse back a vector.                                                      *)
-
- val vector = 
-    token "{" |-- listof decimal (token ",") "decimal" --| token "}"
-               >> vector_of_list 
- val parse_vector = mkparser vector
- fun skipupto dscr prs inp =
-   (dscr |-- prs 
-    || Scan.one (K true) |-- skipupto dscr prs) inp 
  fun ignore inp = ((),[])
- fun sdpaoutput inp =  skipupto (word "xVec" -- token "=")
-             (vector --| ignore) inp
  fun csdpoutput inp =  ((decimal -- Scan.bulk (Scan.$$ " " |-- Scan.option decimal) >> (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
- val parse_sdpaoutput = mkparser sdpaoutput
  val parse_csdpoutput = mkparser csdpoutput
 
 (* Run prover on a problem in linear form.                       *)
 
 fun run_problem prover obj mats =
   parse_csdpoutput (prover (sdpa_of_problem obj mats))
-
-(*
-UNUSED
-
-(* Also parse the SDPA output to test success (CSDP yields a return code).   *)
-
-local
- val prs = 
-  skipupto (word "phase.value" -- token "=")
-   (Scan.option (Scan.$$ "p") -- Scan.option (Scan.$$ "d") 
-    -- (word "OPT" || word "FEAS")) 
-in
- fun sdpa_run_succeeded s = 
-  (prs (explode s); true) handle _ => false
-end;
-
-(* The default parameters. Unfortunately this goes to a fixed file.          *)
-
-val sdpa_default_parameters =
-"100     unsigned int maxIteration; \n1.0E-7  double 0.0 < epsilonStar;\n1.0E2   double 0.0 < lambdaStar;\n2.0     double 1.0 < omegaStar;\n-1.0E5  double lowerBound;\n1.0E5   double upperBound;\n0.1     double 0.0 <= betaStar <  1.0;\n0.2     double 0.0 <= betaBar  <  1.0, betaStar <= betaBar;\n0.9     double 0.0 < gammaStar  <  1.0;\n1.0E-7  double 0.0 < epsilonDash;\n";;
-
-(* These were suggested by Makoto Yamashita for problems where we are        *)
-(* right at the edge of the semidefinite cone, as sometimes happens.         *)
-
-val sdpa_alt_parameters =
-"1000    unsigned int maxIteration;\n1.0E-7  double 0.0 < epsilonStar;\n1.0E4   double 0.0 < lambdaStar;\n2.0     double 1.0 < omegaStar;\n-1.0E5  double lowerBound;\n1.0E5   double upperBound;\n0.1     double 0.0 <= betaStar <  1.0;\n0.2     double 0.0 <= betaBar  <  1.0, betaStar <= betaBar;\n0.9     double 0.0 < gammaStar  <  1.0;\n1.0E-7  double 0.0 < epsilonDash;\n";;
-
-val sdpa_params = sdpa_alt_parameters;;
-
-(* CSDP parameters; so far I'm sticking with the defaults.                   *)
-
-val csdp_default_parameters =
-"axtol=1.0e-8\natytol=1.0e-8\nobjtol=1.0e-8\npinftol=1.0e8\ndinftol=1.0e8\nmaxiter=100\nminstepfrac=0.9\nmaxstepfrac=0.97\nminstepp=1.0e-8\nminstepd=1.0e-8\nusexzgap=1\ntweakgap=0\naffine=0\nprintlevel=1\n";;
-
-val csdp_params = csdp_default_parameters;;
-
-fun tmp_file pre suf =
- let val i = string_of_int (round (random()))
-   val name = Path.append (Path.variable "ISABELLE_TMP") (Path.explode (pre ^ i ^ suf))
- in 
-   if File.exists name then tmp_file pre suf 
-   else name 
- end;
-
-(* Now call SDPA on a problem and parse back the output.                     *)
-
-fun run_sdpa dbg obj mats =
- let 
-  val input_file = tmp_file "sos" ".dat-s"
-  val output_file = tmp_file "sos" ".out"
-  val params_file = tmp_file "param" ".sdpa" 
-  val current_dir = File.pwd()
-  val _ = File.write input_file 
-                         (sdpa_of_problem "" obj mats)
-  val _ = File.write params_file sdpa_params
-  val _ = File.cd (Path.variable "ISABELLE_TMP")
-  val _ = File.system_command ("sdpa "^ (Path.implode input_file) ^ " " ^ 
-                               (Path.implode output_file) ^
-                               (if dbg then "" else "> /dev/null"))
-  val opr = File.read output_file 
- in if not(sdpa_run_succeeded opr) then error "sdpa: call failed" 
-    else
-      let val res = parse_sdpaoutput opr 
-      in ((if dbg then ()
-           else (File.rm input_file; File.rm output_file ; File.cd current_dir));
-          res)
-      end
- end;
-
-fun sdpa obj mats = run_sdpa (!debugging) obj mats;
-
-(* The same thing with CSDP.                                                 *)
-
-fun run_csdp dbg obj mats =
- let 
-  val input_file = tmp_file "sos" ".dat-s"
-  val output_file = tmp_file "sos" ".out"
-  val params_file = tmp_file "param" ".csdp"
-  val current_dir = File.pwd()
-  val _ = File.write input_file (sdpa_of_problem "" obj mats)
-  val _ = File.write params_file csdp_params
-  val _ = File.cd (Path.variable "ISABELLE_TMP")
-  val rv = system ("csdp "^(Path.implode input_file) ^ " " 
-                   ^ (Path.implode output_file) ^
-                   (if dbg then "" else "> /dev/null"))
-  val  opr = File.read output_file 
-  val res = parse_csdpoutput opr 
- in
-    ((if dbg then ()
-      else (File.rm input_file; File.rm output_file ; File.cd current_dir));
-     (rv,res))
- end;
-
-fun csdp obj mats =
- let 
-  val (rv,res) = run_csdp (!debugging) obj mats 
- in
-   ((if rv = 1 orelse rv = 2 then error "csdp: Problem is infeasible"
-    else if rv = 3 then writeln "csdp warning: Reduced accuracy"
-    else if rv <> 0 then error ("csdp: error "^string_of_int rv)
-    else ());
-   res)
- end;
-
-*)
 
 (* Try some apparently sensible scaling first. Note that this is purely to   *)
 (* get a cleaner translation to floating-point, and doesn't affect any of    *)
@@ -786,75 +668,7 @@ fun nice_vector n ((d,v) : vector) =
    in if c =/ rat_0 then a 
       else Intfunc.update (i,y) a end) v Intfunc.undefined):vector
 
-(*
-UNUSED
-
-(* Reduce linear program to SDP (diagonal matrices) and test with CSDP. This *)
-(* one tests A [-1;x1;..;xn] >= 0 (i.e. left column is negated constants).   *)
-
-fun linear_program_basic a =
- let 
-  val (m,n) = dimensions a
-  val mats =  map (fn j => diagonal (column j a)) (1 upto n)
-  val obj = vector_const rat_1 m 
-  val (rv,res) = run_csdp false obj mats 
- in if rv = 1 orelse rv = 2 then false
-    else if rv = 0 then true
-    else error "linear_program: An error occurred in the SDP solver"
- end;
-
-(* Alternative interface testing A x >= b for matrix A, vector b.            *)
-
-fun linear_program a b =
- let val (m,n) = dimensions a 
- in if dim b <> m then error "linear_program: incompatible dimensions" 
-    else
-    let 
-     val mats = diagonal b :: map (fn j => diagonal (column j a)) (1 upto n)
-     val obj = vector_const rat_1 m 
-     val (rv,res) = run_csdp false obj mats 
-    in if rv = 1 orelse rv = 2 then false
-       else if rv = 0 then true
-       else error "linear_program: An error occurred in the SDP solver"
-    end
- end;
-
-(* Test whether a point is in the convex hull of others. Rather than use     *)
-(* computational geometry, express as linear inequalities and call CSDP.     *)
-(* This is a bit lazy of me, but it's easy and not such a bottleneck so far. *)
-
-fun in_convex_hull pts pt =
- let 
-  val pts1 = (1::pt) :: map (fn x => 1::x) pts 
-  val pts2 = map (fn p => map (fn x => ~x) p @ p) pts1
-  val n = length pts + 1
-  val v = 2 * (length pt + 1)
-  val m = v + n - 1 
-  val mat = ((m,n),
-  itern 1 pts2 (fn pts => fn j => itern 1 pts 
-               (fn x => fn i => Intpairfunc.update ((i,j), Rat.rat_of_int x)))
-  (iter (1,n) (fn i => Intpairfunc.update((v + i,i+1), rat_1)) 
-      Intpairfunc.undefined))
- in linear_program_basic mat
- end;
-
-(* Filter down a set of points to a minimal set with the same convex hull.   *)
-
-local
- fun augment1 (m::ms) = if in_convex_hull ms m then ms else ms@[m]
- fun augment m ms = funpow 3 augment1 (m::ms)
-in
-fun minimal_convex_hull mons =
- let val mons' = fold_rev augment (tl mons) [hd mons] 
- in funpow (length mons') augment1 mons'
- end
-end;
-
-*)
-
 fun dest_ord f x = is_equal (f x);
-
-
 
 (* Stuff for "equations" ((int*int*int)->num functions).                         *)
 
@@ -892,7 +706,7 @@ fun eliminate vars dun eqs = case vars of
      end
    in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.mapf elim dun)) (map elim oeqs)
    end)
-  handle ERROR _ => eliminate vs dun eqs)
+  handle Failure _ => eliminate vs dun eqs)
 in
 fun tri_eliminate_equations one vars eqs =
  let 
@@ -1010,7 +824,7 @@ fun eliminate vars dun eqs = case vars of
      end
    in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.mapf elim dun)) (map elim oeqs)
    end
-  handle ERROR _ => eliminate vs dun eqs
+  handle Failure _ => eliminate vs dun eqs
 in
 fun pi_eliminate_equations one vars eqs =
  let 
@@ -1103,25 +917,6 @@ fun allpairs f l1 l2 =  fold_rev (fn x => (curry (op @)) (map (f x) l2)) l1 [];
 (* constant monomial is last; this gives an order in diagonalization of the  *)
 (* quadratic form that will tend to display constants.                       *)
 
-(*
-UNUSED
-
-fun newton_polytope pol =
- let 
-  val vars = poly_variables pol
-  val mons = map (fn m => map (fn x => monomial_degree x m) vars) 
-             (Monomialfunc.dom pol)
-  val ds = map (fn x => (degree x pol + 1) div 2) vars
-  val all = fold_rev (fn n => allpairs cons (0 upto n)) ds [[]]
-  val mons' = minimal_convex_hull mons
-  val all' =
-    filter (fn m => in_convex_hull mons' (map (fn x => 2 * x) m)) all 
- in map (fn m => fold_rev2 (fn v => fn i => fn a => if i = 0 then a else Ctermfunc.update (v,i) a)
-                        vars m monomial_1) (rev all')
- end;
-
-*)
-
 (* Diagonalize (Cholesky/LDU) the matrix corresponding to a quadratic form.  *)
 
 local
@@ -1129,10 +924,10 @@ fun diagonalize n i m =
  if Intpairfunc.is_undefined (snd m) then [] 
  else
   let val a11 = Intpairfunc.tryapplyd (snd m) (i,i) rat_0 
-  in if a11 </ rat_0 then error "diagonalize: not PSD"
+  in if a11 </ rat_0 then raise Failure "diagonalize: not PSD"
     else if a11 =/ rat_0 then
           if Intfunc.is_undefined (snd (row i m)) then diagonalize n (i + 1) m
-          else error "diagonalize: not PSD ___ "
+          else raise Failure "diagonalize: not PSD ___ "
     else
      let 
       val v = row i m
@@ -1257,43 +1052,6 @@ fun sdpa_of_blockproblem nblocks blocksizes obj mats =
 fun run_blockproblem prover nblocks blocksizes obj mats=
   parse_csdpoutput (prover (sdpa_of_blockproblem nblocks blocksizes obj mats))
 
-(*
-UNUSED
-
-(* Hence run CSDP on a problem in block diagonal form.                       *)
-
-fun run_csdp dbg nblocks blocksizes obj mats =
- let 
-  val input_file = tmp_file "sos" ".dat-s" 
-  val output_file = tmp_file "sos" ".out"
-  val params_file = tmp_file "param" ".csdp" 
-  val _ = File.write input_file
-   (sdpa_of_blockproblem "" nblocks blocksizes obj mats)
-  val _ = File.write params_file csdp_params
-  val current_dir = File.pwd()
-  val _ = File.cd (Path.variable "ISABELLE_TMP")
-  val rv = system ("csdp "^(Path.implode input_file) ^ " " 
-                   ^ (Path.implode output_file) ^
-                   (if dbg then "" else "> /dev/null"))
-  val  opr = File.read output_file 
-  val res = parse_csdpoutput opr 
- in
-   ((if dbg then ()
-     else (File.rm input_file ; File.rm output_file ; File.cd current_dir));
-    (rv,res))
- end;
-
-fun csdp nblocks blocksizes obj mats =
- let 
-  val (rv,res) = run_csdp (!debugging) nblocks blocksizes obj mats 
- in ((if rv = 1 orelse rv = 2 then error "csdp: Problem is infeasible"
-     else if rv = 3 then writeln "csdp warning: Reduced accuracy"
-     else if rv <> 0 then error ("csdp: error "^string_of_int rv)
-     else ());
-     res)
- end;
-*)
-
 (* 3D versions of matrix operations to consider blocks separately.           *)
 
 val bmatrix_add = Inttriplefunc.combine (curry op +/) (fn x => x =/ rat_0);
@@ -1316,8 +1074,8 @@ fun blocks blocksizes bm =
 
 (* FIXME : Get rid of this !!!*)
 local
-  fun tryfind_with msg f [] = error msg
-    | tryfind_with msg f (x::xs) = (f x handle ERROR s => tryfind_with s f xs);
+  fun tryfind_with msg f [] = raise Failure msg
+    | tryfind_with msg f (x::xs) = (f x handle Failure s => tryfind_with s f xs);
 in 
   fun tryfind f = tryfind_with "tryfind" f
 end
@@ -1450,7 +1208,7 @@ end;
 (* Iterative deepening.                                                      *)
 
 fun deepen f n = 
-  (writeln ("Searching with depth limit " ^ string_of_int n) ; (f n handle ERROR s => (writeln ("failed with message: " ^ s) ; deepen f (n+1))))
+  (writeln ("Searching with depth limit " ^ string_of_int n) ; (f n handle Failure s => (writeln ("failed with message: " ^ s) ; deepen f (n+1))))
 
 (* The ordering so we can create canonical HOL polynomials.                  *)
 
@@ -1538,16 +1296,16 @@ fun real_nonlinear_prover prover ctxt =
    fun trivial_axiom (p,ax) =
     case ax of
        Axiom_eq n => if eval Ctermfunc.undefined p <>/ Rat.zero then nth eqs n 
-                     else error "trivial_axiom: Not a trivial axiom"
+                     else raise Failure "trivial_axiom: Not a trivial axiom"
      | Axiom_le n => if eval Ctermfunc.undefined p </ Rat.zero then nth les n 
-                     else error "trivial_axiom: Not a trivial axiom"
+                     else raise Failure "trivial_axiom: Not a trivial axiom"
      | Axiom_lt n => if eval Ctermfunc.undefined p <=/ Rat.zero then nth lts n 
-                     else error "trivial_axiom: Not a trivial axiom"
+                     else raise Failure "trivial_axiom: Not a trivial axiom"
      | _ => error "trivial_axiom: Not a trivial axiom"
    in 
   ((let val th = tryfind trivial_axiom (keq @ klep @ kltp)
    in fconv_rule (arg_conv (arg1_conv real_poly_conv) then_conv field_comp_conv) th end)
-   handle ERROR _ => (
+   handle Failure _ => (
     let 
      val pol = fold_rev poly_mul (map fst ltp) (poly_const Rat.one)
      val leq = lep @ ltp
@@ -1596,14 +1354,14 @@ local
     fconv_rule (rewr_conv @{lemma "(x + a == y) ==  (x == y - (a::real))" by (atomize (full)) (simp add: ring_simps)})
  fun substitutable_monomial fvs tm = case term_of tm of
     Free(_,@{typ real}) => if not (member (op aconvc) fvs tm) then (Rat.one,tm) 
-                           else error "substitutable_monomial"
+                           else raise Failure "substitutable_monomial"
   | @{term "op * :: real => _"}$c$(t as Free _ ) => 
      if is_ratconst (dest_arg1 tm) andalso not (member (op aconvc) fvs (dest_arg tm))
-         then (dest_ratconst (dest_arg1 tm),dest_arg tm) else error "substitutable_monomial"
+         then (dest_ratconst (dest_arg1 tm),dest_arg tm) else raise Failure "substitutable_monomial"
   | @{term "op + :: real => _"}$s$t => 
        (substitutable_monomial (add_cterm_frees (dest_arg tm) fvs) (dest_arg1 tm)
-        handle ERROR _ => substitutable_monomial (add_cterm_frees (dest_arg1 tm) fvs) (dest_arg tm))
-  | _ => error "substitutable_monomial"
+        handle Failure _ => substitutable_monomial (add_cterm_frees (dest_arg1 tm) fvs) (dest_arg tm))
+  | _ => raise Failure "substitutable_monomial"
 
   fun isolate_variable v th = 
    let val w = dest_arg1 (cprop_of th)
@@ -1649,7 +1407,7 @@ fun real_nonlinear_subst_prover prover ctxt =
                                    aconvc @{cterm "0::real"}) (map modify eqs),
                                    map modify les,map modify lts)
        end)
-       handle ERROR  _ => real_nonlinear_prover prover ctxt translator (rev eqs, rev les, rev lts))
+       handle Failure  _ => real_nonlinear_prover prover ctxt translator (rev eqs, rev les, rev lts))
     in substfirst
    end
 
