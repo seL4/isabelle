@@ -13,10 +13,6 @@ import java.util.regex.Pattern
 import isabelle.prover.{Prover, Command}
 import isabelle.utils.LinearSet
 
-case class StructureChange(
-  val before_change: Option[Command],
-  val added_commands: List[Command],
-  val removed_commands: List[Command])
 
 object ProofDocument
 {
@@ -36,9 +32,11 @@ object ProofDocument
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
- val empty =
-  new ProofDocument(isabelle.jedit.Isabelle.system.id(),
-    LinearSet(), Map(), LinearSet(), Map(), _ => false)
+  val empty =
+    new ProofDocument(isabelle.jedit.Isabelle.system.id(),
+      LinearSet(), Map(), LinearSet(), Map(), _ => false)
+
+  type StructureChange = List[(Option[Command], Option[Command])]
 
 }
 
@@ -50,7 +48,7 @@ class ProofDocument(
   var states: Map[Command, IsarDocument.State_ID],
   is_command_keyword: String => Boolean)
 {
-
+  import ProofDocument.StructureChange
 
   def set_command_keyword(f: String => Boolean): ProofDocument =
     new ProofDocument(id, tokens, token_start, commands, states, f)
@@ -60,8 +58,24 @@ class ProofDocument(
 
   /** token view **/
 
-  def text_changed(change: Text.Change): (ProofDocument, StructureChange) =
+  def text_changed(c: Change): (ProofDocument, StructureChange)  =
   {
+    def edit_doc(doc_chgs: (ProofDocument, StructureChange), edit: Edit) = {
+      val (doc, chgs) = doc_chgs
+      val (new_doc, chg) = doc.text_edit(edit, c.id)
+      (new_doc, chgs ++ chg)
+    }
+    ((this, Nil: StructureChange) /: c) (edit_doc)
+  }
+
+  def text_edit(e: Edit, id: String):
+    (ProofDocument,StructureChange) =
+  {
+    case class TextChange(start: Int, added: String, removed: String)
+    val change = e match {
+      case Insert(s, a) => TextChange(s, a, "")
+      case Remove(s, r) => TextChange(s, "", r)
+    }
     //indices of tokens
     var start: Map[Token, Int] = token_start
     def stop(t: Token) = start(t) + t.length
@@ -115,7 +129,7 @@ class ProofDocument(
       start += (new_token -> (match_start + matcher.start))
       new_tokens ::= new_token
 
-      invalid_tokens = invalid_tokens dropWhile (stop(_) <= stop(new_token))
+      invalid_tokens = invalid_tokens dropWhile (stop(_) < stop(new_token))
       invalid_tokens match {
         case t :: ts =>
           if (start(t) == start(new_token) &&
@@ -129,7 +143,7 @@ class ProofDocument(
     }
     val insert = new_tokens.reverse
     val new_token_list = begin ::: insert ::: old_suffix
-    token_changed(change.id, begin.lastOption, insert,
+    token_changed(id, begin.lastOption, insert,
       old_suffix.firstOption, new_token_list, start)
   }
 
@@ -142,7 +156,8 @@ class ProofDocument(
     inserted_tokens: List[Token],
     after_change: Option[Token],
     new_tokens: List[Token],
-    new_token_start: Map[Token, Int]): (ProofDocument, StructureChange) =
+    new_token_start: Map[Token, Int]):
+  (ProofDocument, StructureChange) =
   {
     val new_tokenset = (LinearSet() ++ new_tokens).asInstanceOf[LinearSet[Token]]
     val cmd_before_change = before_change match {
@@ -209,7 +224,6 @@ class ProofDocument(
         split_end
     val inserted_commands = tokens_to_commands(rescanning_tokens.toList)
 
-    val change = new StructureChange(cmd_before_change, inserted_commands, removed_commands.toList)
     // build new document
     val new_commandset = commands.delete_between(cmd_before_change, cmd_after_change).
         insert_after(cmd_before_change, inserted_commands)
@@ -217,7 +231,13 @@ class ProofDocument(
     val doc =
       new ProofDocument(new_id, new_tokenset, new_token_start,
         new_commandset, states -- removed_commands, is_command_keyword)
-    return (doc, change)
+
+    val removes =
+      for (cmd <- removed_commands) yield (cmd_before_change -> None)
+    val inserts =
+      for (cmd <- inserted_commands) yield (doc.commands.prev(cmd) -> Some(cmd))
+
+    return (doc, removes.toList ++ inserts)
   }
 
   val commands_offsets = {

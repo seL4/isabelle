@@ -11,7 +11,7 @@ package isabelle.jedit
 import scala.actors.Actor
 import scala.actors.Actor._
 
-import isabelle.proofdocument.{ProofDocument, Text}
+import isabelle.proofdocument.{ProofDocument, Change, Edit, Insert, Remove}
 import isabelle.prover.{Prover, ProverEvents, Command}
 
 import java.awt.Graphics2D
@@ -27,8 +27,6 @@ import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
 
 object TheoryView
 {
-
-  val MAX_CHANGE_LENGTH = 1500
   
   def choose_color(cmd: Command, doc: ProofDocument): Color = {
     cmd.status(doc) match {
@@ -51,7 +49,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   private val prover = Isabelle.prover_setup(buffer).get.prover
 
 
-  private var col: Text.Change = null
+  private var edits: List[Edit] = Nil
   private val col_timer = new Timer(300, new ActionListener() {
     override def actionPerformed(e: ActionEvent) = commit
   })
@@ -82,8 +80,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
     buffer.addBufferListener(this)
 
-    col = Text.Change(Some(current_change), Isabelle.system.id(), 0,
-      buffer.getText(0, buffer.getLength), "")
+    edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
     commit
   }
 
@@ -116,37 +113,14 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   }
 
 
-  def transform_back(from: Text.Change, to: Text.Change, pos: Int): Int =
-    if (from.id == to.id) pos
-    else {
-      val shifted =
-        if (from.start <= pos)
-          if (pos < from.start + from.added.length) from.start
-          else pos - from.added.length + from.removed.length
-        else pos
-      transform_back(from.base.get, to, shifted)
-    }
+  def changes_to(doc: ProofDocument) =
+    edits ::: current_change.ancestors(_.id == doc.id).flatten(_.toList)
 
-  def transform_forward(from: Text.Change, to: Text.Change, pos: Int): Int = 
-    if (from.id == to.id) pos
-    else {
-      val shifted = transform_forward(from, to.base.get, pos)
-      if (to.start <= shifted) {
-        if (shifted < to.start + to.removed.length) to.start
-        else shifted + to.added.length - to.removed.length
-      } else shifted
-    }
-  
-  def from_current(doc: ProofDocument, pos: Int) = {
-    val from = if (col == null) current_change else col
-    val to = changes.find(_.id == doc.id).get
-    transform_back(from, to, pos)
-  }
-  def to_current(doc: ProofDocument, pos: Int) = {
-    val from = changes.find(_.id == doc.id).get
-    val to = if (col == null) current_change else col
-    transform_forward(from, to, pos)
-  }
+  def from_current(doc: ProofDocument, pos: Int) =
+    (pos /: changes_to(doc)) ((p, c) => c from_where p)
+
+  def to_current(doc: ProofDocument, pos: Int) =
+    (pos /: changes_to(doc).reverse) ((p, c) => c where_to p)
 
   def repaint(cmd: Command) =
   {
@@ -225,27 +199,30 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   /* history of changes - TODO: seperate class?*/
 
-  val change_0 = Text.Change(None, prover.document_0.id, 0, "", "")
+  val change_0 = new Change(prover.document_0.id, None, Nil)
   private var changes = List(change_0)
   private var current_change = change_0
   def get_changes = changes
-  
-  private def doc_or_pred(c: Text.Change): ProofDocument =
-    prover.document(c.id).getOrElse(doc_or_pred(c.base.get))
+
+  private def doc_or_pred(c: Change): ProofDocument =
+    prover.document(c.id).getOrElse(doc_or_pred(c.parent.get))
   def current_document() = doc_or_pred(current_change)
 
   /* update to desired version */
 
-  def set_version(goal: Text.Change) {
+  def set_version(goal: Change) {
     // changes in buffer must be ignored
     buffer.removeBufferListener(this)
 
-    def apply(c: Text.Change) = {
-        buffer.remove(c.start, c.removed.length)
-        buffer.insert(c.start, c.added)}
-    def unapply(c: Text.Change) = {
-      buffer.remove(c.start, c.added.length)
-      buffer.insert(c.start, c.removed)}
+    def apply(c: Change) = c.map {
+      case Insert(start, added) => buffer.insert(start, added)
+      case Remove(start, removed) => buffer.remove(start, removed.length)
+    }
+
+    def unapply(c: Change) = c.map {
+      case Insert(start, added) => buffer.remove(start, added.length)
+      case Remove(start, removed) => buffer.insert(start, removed)
+    }
 
     // undo/redo changes
     val ancs_current = current_change.ancestors
@@ -283,19 +260,13 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   /* BufferListener methods */
 
   private def commit: Unit = synchronized {
-    if (col != null) {
-      def split_changes(c: Text.Change): List[Text.Change] = {
-        val MAX = TheoryView.MAX_CHANGE_LENGTH
-        if (c.added.length <= MAX) List(c)
-        else Text.Change(c.base, c.id, c.start, c.added.substring(0, MAX), c.removed) ::
-          split_changes(Text.Change(Some(c), id(), c.start + MAX, c.added.substring(MAX), ""))
-      }
-      val new_changes = split_changes(col)
-      changes ++= new_changes
-      new_changes map (document_actor ! _)
-      current_change = new_changes.last
+    if (!edits.isEmpty) {
+      val change = new Change(Isabelle.system.id(), Some(current_change), edits)
+      changes ::= change
+      document_actor ! change
+      current_change = change
     }
-    col = null
+    edits = Nil
     if (col_timer.isRunning())
       col_timer.stop()
   }
@@ -317,41 +288,14 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   override def preContentInserted(buffer: JEditBuffer,
     start_line: Int, offset: Int, num_lines: Int, length: Int)
   {
-    val text = buffer.getText(offset, length)
-    if (col == null)
-      col = new Text.Change(Some(current_change), id(), offset, text, "")
-    else if (col.start <= offset && offset <= col.start + col.added.length)
-      col = new Text.Change(Some(current_change), col.id,
-              col.start, col.added + text, col.removed)
-    else {
-      commit
-      col = new Text.Change(Some(current_change), id(), offset, text, "")
-    }
+    edits ::= Insert(offset, buffer.getText(offset, length))
     delay_commit
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
     start_line: Int, start: Int, num_lines: Int, removed_length: Int)
   {
-    val removed = buffer.getText(start, removed_length)
-    if (col == null)
-      col = new Text.Change(Some(current_change), id(), start, "", removed)
-    else if (col.start > start + removed_length || start > col.start + col.added.length) {
-      commit
-      col = new Text.Change(Some(current_change), id(), start, "", removed)
-    }
-    else {
-/*      val offset = start - col.start
-      val diff = col.added.length - removed
-      val (added, add_removed) =
-        if (diff < offset)
-          (offset max 0, diff - (offset max 0))
-        else
-          (diff - (offset min 0), offset min 0)
-      col = new Text.Changed(start min col.start, added, col.removed - add_removed)*/
-      commit
-      col = new Text.Change(Some(current_change), id(), start, "", removed)
-    }
+    edits ::= Remove(start, buffer.getText(start, removed_length))
     delay_commit
   }
 

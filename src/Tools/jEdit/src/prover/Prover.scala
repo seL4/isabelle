@@ -18,7 +18,7 @@ import scala.actors.Actor._
 import org.gjt.sp.util.Log
 
 import isabelle.jedit.Isabelle
-import isabelle.proofdocument.{StructureChange, ProofDocument, Text, Token}
+import isabelle.proofdocument.{ProofDocument, Change, Token}
 import isabelle.IsarDocument
 
 object ProverEvents {
@@ -228,8 +228,8 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     import ProverEvents._
     loop {
       react {
-        case change: Text.Change => {
-            val old = document(change.base.get.id).get
+        case change: Change => {
+            val old = document(change.parent.get.id).get
             val (doc, structure_change) = old.text_changed(change)
             document_versions ::= doc
             edit_document(old, doc, structure_change)
@@ -244,18 +244,18 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     process.begin_document(document_0.id, path)
   }
 
-  private def edit_document(old: ProofDocument, doc: ProofDocument, changes: StructureChange) = {
-    val removes =
-      for (cmd <- changes.removed_commands) yield {
-        commands -= cmd.id
-        changes.before_change.map(_.id).getOrElse(document_0.id) -> None
-      }
-    val inserts =
-      for (cmd <- changes.added_commands) yield {
-        commands += (cmd.id -> cmd)
-        process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
-        (doc.commands.prev(cmd).map(_.id).getOrElse(document_0.id)) -> Some(cmd.id)
-      }
-    process.edit_document(old.id, doc.id, removes.reverse ++ inserts)
+  private def edit_document(old: ProofDocument, doc: ProofDocument,
+                            changes: ProofDocument.StructureChange) = {
+    val id_changes = changes map {case (c1, c2) =>
+      (c1.map(_.id).getOrElse(document_0.id),
+      c2 match {
+        case None => None
+        case Some(cmd) =>
+          commands += (cmd.id -> cmd)
+          process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
+          Some(cmd.id)
+      })
+    }
+    process.edit_document(old.id, doc.id, id_changes)
   }
 }

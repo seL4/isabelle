@@ -6,7 +6,7 @@
 
 package isabelle.jedit
 
-import isabelle.proofdocument.Text
+import isabelle.proofdocument.Change
 
 import java.awt.Dimension
 import scala.swing.{ListView, FlowPanel}
@@ -21,7 +21,7 @@ class BrowseVersionDockable(view : View, position : String) extends FlowPanel {
   if (position == DockableWindowManager.FLOATING)
     preferredSize = new Dimension(500, 250)
 
-  val list = new ListView[Text.Change]
+  val list = new ListView[Change]
   list.fixedCellWidth = 500
 
   new javax.swing.Timer(1000, new java.awt.event.ActionListener {
