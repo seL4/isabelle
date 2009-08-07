@@ -4,7 +4,6 @@
 Extensible records with structural subtyping in HOL.
 *)
 
-
 signature BASIC_RECORD =
 sig
   val record_simproc: simproc
@@ -88,6 +87,8 @@ val truncateN = "truncate";
 val RepN = "Rep_";
 val AbsN = "Abs_";
 
+
+
 (*** utilities ***)
 
 fun but_last xs = fst (split_last xs);
@@ -102,6 +103,7 @@ fun domain_type' T =
 fun range_type' T =
     range_type T handle Match => T;
 
+
 (* messages *)
 
 fun trace_thm str thm =
@@ -113,11 +115,13 @@ fun trace_thms str thms =
 fun trace_term str t =
     tracing (str ^ Syntax.string_of_term_global Pure.thy t);
 
+
 (* timing *)
 
 val timing = ref false;
 fun timeit_msg s x = if !timing then (warning s; timeit x) else x ();
 fun timing_msg s = if !timing then warning s else ();
+
 
 (* syntax *)
 
@@ -136,6 +140,7 @@ val (op :==) = PrimitiveDefs.mk_defpair;
 val (op ===) = Trueprop o HOLogic.mk_eq;
 val (op ==>) = Logic.mk_implies;
 
+
 (* morphisms *)
 
 fun mk_RepN name = suffix ext_typeN (prefix_base RepN name);
@@ -147,6 +152,7 @@ fun mk_Rep name repT absT  =
 fun mk_Abs name repT absT =
   Const (mk_AbsN name,repT --> absT);
 
+
 (* constructor *)
 
 fun mk_extC (name,T) Ts  = (suffix extN name, Ts ---> T);
@@ -154,6 +160,7 @@ fun mk_extC (name,T) Ts  = (suffix extN name, Ts ---> T);
 fun mk_ext (name,T) ts =
   let val Ts = map fastype_of ts
   in list_comb (Const (mk_extC (name,T) Ts),ts) end;
+
 
 (* cases *)
 
@@ -163,6 +170,7 @@ fun mk_cases (name,T,vT) f =
   let val Ts = binder_types (fastype_of f)
   in Const (mk_casesC (name,T,vT) Ts) $ f end;
 
+
 (* selector *)
 
 fun mk_selC sT (c,T) = (c,sT --> T);
@@ -170,6 +178,7 @@ fun mk_selC sT (c,T) = (c,sT --> T);
 fun mk_sel s (c,T) =
   let val sT = fastype_of s
   in Const (mk_selC sT (c,T)) $ s end;
+
 
 (* updates *)
 
@@ -180,6 +189,7 @@ fun mk_upd' sfx c v sT =
   in Const (mk_updC sfx sT (c, vT)) $ v  end;
 
 fun mk_upd sfx c v s = mk_upd' sfx c v (fastype_of s) $ s
+
 
 (* types *)
 
@@ -208,6 +218,8 @@ fun rec_id i T =
   let val rTs = dest_recTs T
       val rTs' = if i < 0 then rTs else Library.take (i,rTs)
   in Library.foldl (fn (s,(c,T)) => s ^ c) ("",rTs') end;
+
+
 
 (*** extend theory by record definition ***)
 
@@ -766,20 +778,20 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt tm =
       fun match rT T = (Sign.typ_match thy (varifyT rT,T)
                                                 Vartab.empty);
 
-   in if !print_record_type_abbr
-      then (case last_extT T of
-             SOME (name,_)
-              => if name = lastExt
-                 then
-                  (let
-                     val subst = match schemeT T
-                   in
-                    if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree(zeta,Sign.defaultS thy))))
-                    then mk_type_abbr subst abbr alphas
-                    else mk_type_abbr subst (suffix schemeN abbr) (alphas@[zeta])
-                   end handle TYPE_MATCH => default_tr' ctxt tm)
-                 else raise Match (* give print translation of specialised record a chance *)
-            | _ => raise Match)
+   in
+     if !print_record_type_abbr then
+       (case last_extT T of
+         SOME (name, _) =>
+          if name = lastExt then
+            (let
+               val subst = match schemeT T
+             in
+              if HOLogic.is_unitT (Envir.norm_type subst (varifyT (TFree (zeta, Sign.defaultS thy))))
+              then mk_type_abbr subst abbr alphas
+              else mk_type_abbr subst (suffix schemeN abbr) (alphas @ [zeta])
+             end handle TYPE_MATCH => default_tr' ctxt tm)
+           else raise Match (* give print translation of specialised record a chance *)
+        | _ => raise Match)
        else default_tr' ctxt tm
   end
 
@@ -847,6 +859,8 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
           record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT ctxt
                                (list_comb (Syntax.const name_sfx,ts))
   in (name_sfx, tr') end;
+
+
 
 (** record simprocs **)
 
@@ -1279,8 +1293,6 @@ val record_ex_sel_eq_simproc =
          end)
 
 
-
-
 local
 val inductive_atomize = thms "induct_atomize";
 val inductive_rulify = thms "induct_rulify";
@@ -1363,6 +1375,7 @@ fun record_split_tac i st =
      else Seq.empty
   end handle Subscript => Seq.empty;
 
+
 (* wrapper *)
 
 val record_split_name = "record_split_tac";
@@ -1399,6 +1412,7 @@ fun cert_typ ctxt raw_T env =
 fun case_names_fields x = RuleCases.case_names ["fields"] x;
 fun induct_type_global name = [case_names_fields, Induct.induct_type name];
 fun cases_type_global name = [case_names_fields, Induct.cases_type name];
+
 
 (* tactics *)
 
@@ -1469,7 +1483,9 @@ fun extension_typedef name repT alphas thy =
   end;
 
 fun mixit convs refls =
-  let fun f ((res,lhs,rhs),refl) = ((refl,List.revAppend (lhs,refl::tl rhs))::res,hd rhs::lhs,tl rhs);
+  let
+    fun f ((res,lhs,rhs),refl) =
+      ((refl,List.revAppend (lhs,refl::tl rhs))::res,hd rhs::lhs,tl rhs);
   in #1 (Library.foldl f (([],[],convs),refls)) end;
 
 
@@ -2166,8 +2182,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       end);
      val equality = timeit_msg "record equality proof:" equality_prf;
 
-    val ((([sel_convs',upd_convs',sel_defs',upd_defs',[split_meta',split_object',split_ex'],derived_defs'],
-            [surjective',equality']),[induct_scheme',induct',cases_scheme',cases']), thms_thy) =
+    val ((([sel_convs', upd_convs', sel_defs', upd_defs',
+          [split_meta', split_object', split_ex'], derived_defs'],
+          [surjective', equality']),
+          [induct_scheme', induct', cases_scheme', cases']), thms_thy) =
       defs_thy
       |> (PureThy.add_thmss o map (Thm.no_attributes o apfst Binding.name))
          [("select_convs", sel_convs_standard),
@@ -2296,6 +2314,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 val add_record = gen_add_record read_typ read_raw_parent;
 val add_record_i = gen_add_record cert_typ (K I);
 
+
 (* setup theory *)
 
 val setup =
@@ -2303,6 +2322,7 @@ val setup =
   Sign.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
   Simplifier.map_simpset (fn ss =>
     ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]);
+
 
 (* outer syntax *)
 
@@ -2320,6 +2340,5 @@ end;
 
 end;
 
-
-structure BasicRecord: BASIC_RECORD = Record;
-open BasicRecord;
+structure Basic_Record: BASIC_RECORD = Record;
+open Basic_Record;
