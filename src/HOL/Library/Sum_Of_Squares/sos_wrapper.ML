@@ -11,6 +11,8 @@ sig
 
   val setup: theory -> theory
   val destdir: string ref
+  val get_prover_name: unit -> string
+  val set_prover_name: string -> unit
 end
 
 structure SosWrapper : SOS_WRAPPER=
@@ -24,7 +26,7 @@ fun str_of_result Success = "Success"
 (*** output control ***)
 
 fun debug s = if ! Sos.debugging then Output.writeln s else ()
-val write = Output.priority
+val write = Output.warning
 
 (*** calling provers ***)
 
@@ -109,6 +111,13 @@ fun find_neos_failure rv =
 
 val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
 
+(* default prover *)
+
+val prover_name = ref "remote_csdp"
+
+fun get_prover_name () = CRITICAL (fn () => ! prover_name);
+fun set_prover_name str = CRITICAL (fn () => prover_name := str);
+
 (* save provers in table *)
 
 val provers =
@@ -119,8 +128,9 @@ fun get_prover name =
     SOME prover => prover
   | NONE => error ("unknown prover: " ^ name)
 
-fun call_solver name =
+fun call_solver name_option =
   let
+    val name = the_default (get_prover_name()) name_option
     val (cmd, find_failure) = get_prover name
   in
     run_solver name (Path.explode cmd) find_failure
@@ -128,11 +138,9 @@ fun call_solver name =
 
 (* setup tactic *)
 
-val def_solver = "remote_csdp"
-
 fun sos_solver name = (SIMPLE_METHOD' o (Sos.sos_tac (call_solver name))) 
 
-val sos_method = Scan.optional (Scan.lift OuterParse.xname) def_solver >> sos_solver
+val sos_method = Scan.option (Scan.lift OuterParse.xname) >> sos_solver
 
 val setup = Method.setup @{binding sos} sos_method
   "Prove universal problems over the reals using sums of squares"
