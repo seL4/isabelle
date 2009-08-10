@@ -104,7 +104,7 @@ val csdp = ("$CSDP_EXE", find_csdp_failure)
 fun find_neos_failure rv =
   case rv of
     20 => (Error, "error submitting job")
-  | 21 => (Error, "no solution")
+  | 21 => (Error, "interrupt")
   |  _ => find_csdp_failure rv
 
 val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)

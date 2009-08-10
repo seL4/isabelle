@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import signal
 import xmlrpclib
 import time
 import re
@@ -8,16 +9,37 @@ import re
 NEOS_HOST="neos.mcs.anl.gov"
 NEOS_PORT=3332
 
-if len(sys.argv) < 3 or len(sys.argv) > 3:
-  sys.stderr.write("Usage: NeosCSDPClient <input_filename> <output_filename>\n")
-  sys.exit(1)
+jobNumber = 0
+password = ""
+neos = None
+inputfile = None
+outputfile = None
+# interrupt handler
+def cleanup(signal, frame):
+  sys.stdout.write("Caught interrupt, cleaning up\n")
+  if jobNumber != 0:
+    neos.killJob(jobNumber, password)
+  if inputfile != None:
+    inputfile.close()
+  if outputfile != None:
+    outputfile.close()
+  sys.exit(21)
+
+signal.signal(signal.SIGHUP, cleanup)
+signal.signal(signal.SIGINT, cleanup)
+signal.signal(signal.SIGQUIT, cleanup)
+signal.signal(signal.SIGTERM, cleanup)
+
+if len(sys.argv) <> 3:
+  sys.stderr.write("Usage: neos_csdp_client <input_filename> <output_filename>\n")
+  sys.exit(19)
 
 neos=xmlrpclib.Server("http://%s:%d" % (NEOS_HOST, NEOS_PORT))
 
-inputfile = open(sys.argv[1],"r")
 xml_pre = "<document>\n<category>sdp</category>\n<solver>csdp</solver>\n<inputMethod>SPARSE_SDPA</inputMethod>\n<dat><![CDATA["
 xml_post = "]]></dat>\n</document>\n"
 xml = xml_pre
+inputfile = open(sys.argv[1],"r")
 buffer = 1
 while buffer:
   buffer = inputfile.read()
@@ -50,9 +72,11 @@ sys.stdout.write(msg)
 # extract solution
 result = msg.split("Solution:")
 if len(result) > 1:
-  output = open(sys.argv[2],"w")
-  output.write(result[1].strip())
-  output.close()
+  solution = result[1].strip()
+  if solution != "":
+    output = open(sys.argv[2],"w")
+    output.write(solution)
+    output.close()
 
 # extract return code
 p = re.compile(r"^Error: Command exited with non-zero status (\d+)$", re.MULTILINE)
@@ -61,5 +85,4 @@ if m:
   sys.exit(int(m.group(1)))
 else:
   sys.exit(0)
-
 
