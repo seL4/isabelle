@@ -498,15 +498,15 @@ and ensure_const thy algbr funcgr c =
     fun stmt_classparam class =
       ensure_class thy algbr funcgr class
       #>> (fn class => Classparam (c, class));
-    fun stmt_fun ((vs, ty), raw_thms) =
+    fun stmt_fun ((vs, ty), raw_eqns) =
       let
-        val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
-          then raw_thms
-          else (map o apfst) (Code.expand_eta thy 1) raw_thms;
+        val eqns = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
+          then raw_eqns
+          else (map o apfst) (Code.expand_eta thy 1) raw_eqns;
       in
         fold_map (translate_tyvar_sort thy algbr funcgr) vs
         ##>> translate_typ thy algbr funcgr ty
-        ##>> fold_map (translate_eq thy algbr funcgr) thms
+        ##>> translate_eqns thy algbr funcgr eqns
         #>> (fn info => Fun (c, info))
       end;
     val stmt_const = case Code.get_datatype_of_constr thy c
@@ -597,7 +597,10 @@ and translate_term thy algbr funcgr thm (Const (c, ty)) =
             translate_term thy algbr funcgr thm t'
             ##>> fold_map (translate_term thy algbr funcgr thm) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eq thy algbr funcgr (thm, proper) =
+and translate_eqns thy algbr funcgr eqns =
+  fold_map (translate_eqn thy algbr funcgr)
+    (burrow_fst (Code.desymbolize_all_vars thy) eqns)
+and translate_eqn thy algbr funcgr (thm, proper) =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
       o Logic.unvarify o prop_of) thm;

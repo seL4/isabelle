@@ -150,7 +150,6 @@ fun preprocess thy c eqns =
     |> (map o apfst) (AxClass.unoverload thy)
     |> map (Code.assert_eqn thy)
     |> burrow_fst (same_arity thy)
-    |> burrow_fst (Code.desymbolize_all_vars thy)
   end;
 
 fun preprocess_conv thy ct =
