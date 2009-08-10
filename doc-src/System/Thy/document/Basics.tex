@@ -76,13 +76,17 @@ The Isabelle system heavily depends on the \emph{settings
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Building the environment%
+\isamarkupsubsection{Bootstrapping the environment \label{sec:boot}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Whenever any of the Isabelle executables is run, their settings
-  environment is put together as follows.
+Isabelle executables need to be run within a proper settings
+  environment.  This is bootstrapped as described below, on the first
+  invocation of one of the outer wrapper scripts (such as
+  \indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}).  This happens only once for each
+  process tree, i.e.\ the environment is passed to subprocesses
+  according to regular Unix conventions.
 
   \begin{enumerate}
 
@@ -96,7 +100,7 @@ Whenever any of the Isabelle executables is run, their settings
   executable objects created by the \hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}} utility.  Symbolic
   links are admissible, but a plain copy of the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}bin}}}} files will not work!
 
-  \item The file \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}etc{\isacharslash}settings}}}} ist run as a
+  \item The file \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}etc{\isacharslash}settings}}}} is run as a
   \indexref{}{executable}{bash}\hyperlink{executable.bash}{\mbox{\isa{\isatt{bash}}}} shell script with the auto-export option for
   variables enabled.
   
@@ -256,6 +260,55 @@ This is a reference of common Isabelle settings variables. Note that
   somewhere in \verb|/tmp|.
   
   \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Additional components \label{sec:components}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Any directory may be registered as an explicit \emph{Isabelle
+  component}.  The general layout conventions are that of the main
+  Isabelle distribution itself, and the following two files (both
+  optional) have a special meaning:
+
+  \begin{itemize}
+
+  \item \verb|etc/settings| holds additional settings that are
+  initialized when bootstrapping the overall Isabelle environment,
+  cf.\ \secref{sec:boot}.  As usual, the content is interpreted as a
+  \verb|bash| script.  It may refer to the component's enclosing
+  directory via the \verb|COMPONENT| shell variable.
+
+  For example, the following setting allows to refer to files within
+  the component later on, without having to hardwire absolute paths:
+
+  \begin{ttbox}
+  MY_COMPONENT_HOME="$COMPONENT"
+  \end{ttbox}
+
+  Components can also add to existing Isabelle settings such as
+  \indexdef{}{setting}{ISABELLE\_TOOLS}\hypertarget{setting.ISABELLE-TOOLS}{\hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}}}, in order to provide
+  component-specific tools that can be invoked by end-users.  For
+  example:
+
+  \begin{ttbox}
+  ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+  \end{ttbox}
+
+  \item \verb|etc/components| holds a list of further
+  sub-components of the same structure.  The directory specifications
+  given here can be either absolute (with leading \verb|/|) or
+  relative to the component's main directory.
+
+  \end{itemize}
+
+  The root of component initialization is \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}
+  itself.  After initializing all of its sub-components recursively,
+  \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} is included in the same manner (if
+  that directory exists).  Thus users can easily add private
+  components to \verb|$ISABELLE_HOME_USER/etc/components|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

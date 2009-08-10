@@ -4,53 +4,62 @@ import xmlrpclib
 import time
 import re
 
-from config import Variables
+# Neos server config
+NEOS_HOST="neos.mcs.anl.gov"
+NEOS_PORT=3332
 
 if len(sys.argv) < 3 or len(sys.argv) > 3:
   sys.stderr.write("Usage: NeosCSDPClient <input_filename> <output_filename>\n")
   sys.exit(1)
 
-neos=xmlrpclib.Server("http://%s:%d" % (Variables.NEOS_HOST, Variables.NEOS_PORT))
+neos=xmlrpclib.Server("http://%s:%d" % (NEOS_HOST, NEOS_PORT))
 
-xmlfile = open(sys.argv[1],"r")
+inputfile = open(sys.argv[1],"r")
 xml_pre = "<document>\n<category>sdp</category>\n<solver>csdp</solver>\n<inputMethod>SPARSE_SDPA</inputMethod>\n<dat><![CDATA["
 xml_post = "]]></dat>\n</document>\n"
 xml = xml_pre
 buffer = 1
 while buffer:
-  buffer = xmlfile.read()
+  buffer = inputfile.read()
   xml += buffer
-xmlfile.close()
+inputfile.close()
 xml += xml_post
 
 (jobNumber,password) = neos.submitJob(xml)
 
 if jobNumber == 0:
   sys.stdout.write("error submitting job: %s" % password)
-  sys.exit(-1)
+  sys.exit(20)
 else:
   sys.stdout.write("jobNumber = %d\tpassword = %s\n" % (jobNumber,password))
 
 offset=0
+messages = ""
 status="Waiting"
 while status == "Running" or status=="Waiting":
   time.sleep(1)
   (msg,offset) = neos.getIntermediateResults(jobNumber,password,offset)
+  messages += msg.data
   sys.stdout.write(msg.data)
   status = neos.getJobStatus(jobNumber, password)
 
 msg = neos.getFinalResults(jobNumber, password).data
+sys.stdout.write("---------- Begin CSDP Output -------------\n");
+sys.stdout.write(msg)
+
+# extract solution
 result = msg.split("Solution:")
-
-sys.stdout.write(result[0])
 if len(result) > 1:
-  plain_msg = result[1].strip()
-  if plain_msg != "":
-    output = open(sys.argv[2],"w")
-    output.write(plain_msg)
-    output.close()
-    sys.exit(0)
+  output = open(sys.argv[2],"w")
+  output.write(result[1].strip())
+  output.close()
 
-sys.exit(2)
+# extract return code
+p = re.compile(r"^Error: Command exited with non-zero status (\d+)$", re.MULTILINE)
+m = p.search(messages)
+if m:
+  sys.exit(int(m.group(1)))
+else:
+  sys.exit(0)
 
 

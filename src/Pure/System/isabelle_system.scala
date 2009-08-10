@@ -298,6 +298,12 @@ class Isabelle_System
 
   /** Isabelle resources **/
 
+  /* components */
+
+  def components(): List[String] =
+    getenv("ISABELLE_COMPONENTS").split(":").toList
+
+
   /* find logics */
 
   def find_logics(): List[String] =

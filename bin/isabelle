@@ -17,6 +17,8 @@ PRG="$(basename "$0")"
 ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
+ORIG_IFS="$IFS"; IFS=":"; declare -a TOOLS=($ISABELLE_TOOLS); IFS="$ORIG_IFS"
+
 
 ## diagnostics
 
@@ -28,24 +30,19 @@ function usage()
   echo "  Start Isabelle tool NAME with ARGS; pass \"-?\" for tool specific help."
   echo
   echo "  Available tools are:"
-  (
-    ORIG_IFS="$IFS"
-    IFS=":"
-    for DIR in $ISABELLE_TOOLS
-    do
-      if [ -d "$DIR" ]; then
-        cd "$DIR"
-        for T in *
-        do
-          if [ -f "$T" -a -x "$T" ]; then
-            DESCRLINE=$(fgrep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
-            echo "    $T - $DESCRLINE"
-          fi
-        done
-      fi
-    done
-    IFS="$ORIG_IFS"
-  )
+  for DIR in ${TOOLS[@]}
+  do
+    if [ -d "$DIR" ]; then
+      for TOOL in "$DIR"/*
+      do
+        if [ -f "$TOOL" -a -x "$TOOL" ]; then
+          NAME="$(basename "$TOOL")"
+          DESCRLINE="$(fgrep DESCRIPTION: "$TOOL" | sed -e 's/^.*DESCRIPTION: *//')"
+          echo "    $NAME - $DESCRLINE"
+        fi
+      done
+    fi
+  done
   exit 1
 }
 
@@ -66,13 +63,10 @@ shift
 
 ## main
 
-ORIG_IFS="$IFS"
-IFS=":"
-for DIR in $ISABELLE_TOOLS
+for DIR in "${TOOLS[@]}"
 do
   TOOL="$DIR/$TOOLNAME"
   [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
 done
-IFS="$ORIG_IFS"
 
 fail "Unknown Isabelle tool: $TOOLNAME"

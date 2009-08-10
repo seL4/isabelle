@@ -112,7 +112,7 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
   \indexdef{}{ML}{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
   \indexdef{}{ML}{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
   \indexdef{}{ML}{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context ->|\isasep\isanewline%
-\verb|  ((ctyp list * cterm list) * thm list) * Proof.context| \\
+\verb|  (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context| \\
   \indexdef{}{ML}{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> ((string * cterm) list * cterm) * Proof.context| \\
   \end{mldecls}
 

@@ -160,15 +160,13 @@ case "$INPUT" in
     INFILE=""
     ISA_PATH=""
 
-    ORIG_IFS="$IFS"
-    IFS=":"
-    for DIR in $ISABELLE_PATH
+    ORIG_IFS="$IFS"; IFS=":"; declare -a PATHS=($ISABELLE_PATH); IFS="$ORIG_IFS"
+    for DIR in "${PATHS[@]}"
     do
       DIR="$DIR/$ML_IDENTIFIER"
       ISA_PATH="$ISA_PATH  $DIR\n"
       [ -z "$INFILE" -a -f "$DIR/$INPUT" ] && INFILE="$DIR/$INPUT"
     done
-    IFS="$ORIG_IFS"
 
     if [ -z "$INFILE" ]; then
       echo "Unknown logic \"$INPUT\" -- no heap file found in:" >&2

@@ -34,28 +34,23 @@ DOC=""
 
 ## main
 
+ORIG_IFS="$IFS"; IFS=":"; declare -a DOCS=($ISABELLE_DOCS); IFS="$ORIG_IFS"
+
 if [ -z "$DOC" ]; then
-  ORIG_IFS="$IFS"
-  IFS=":"
-  for DIR in $ISABELLE_DOCS
+  for DIR in "${DOCS[@]}"
   do
     [ -d "$DIR" ] || fail "Bad document directory: $DIR"
     [ -f "$DIR/Contents" ] && grep -v "^>>" "$DIR/Contents"
   done
-  IFS="$ORIG_IFS"
 else
-  ORIG_IFS="$IFS"
-  IFS=":"
-  for DIR in $ISABELLE_DOCS
+  for DIR in "${DOCS[@]}"
   do
-    IFS="$ORIG_IFS"
     [ -d "$DIR" ] || fail "Bad document directory: $DIR"
     for FMT in "$ISABELLE_DOC_FORMAT" dvi
     do
       [ -f "$DIR/$DOC.$FMT" ] && { cd "$DIR"; exec "$ISABELLE_TOOL" display "$DOC.$FMT"; }
     done
   done
-  IFS="$ORIG_IFS"
   fail "Unknown Isabelle document: $DOC"  
 fi
 

@@ -22,22 +22,21 @@ function usage()
 
 [ "$#" -ne 0 ] && usage
 
+declare -a LOGICS=()
+declare -a ISABELLE_PATHS=()
 
-LOGICS=""
+ORIG_IFS="$IFS"; IFS=":"; ISABELLE_PATHS=($ISABELLE_PATH); IFS=$ORIG_IFS
 
-ORIG_IFS="$IFS"
-IFS=":"
-for DIR in $ISABELLE_PATH
+for DIR in "${ISABELLE_PATHS[@]}"
 do
   DIR="$DIR/$ML_IDENTIFIER"
   for FILE in "$DIR"/*
   do
     if [ -f "$FILE" ]; then
       NAME=$(basename "$FILE")
-      LOGICS="$LOGICS $NAME"
+      LOGICS+=("$NAME")
     fi
   done
 done
-IFS="$ORIG_IFS"
 
-echo $({ for L in $LOGICS; do echo "$L"; done; } | sort | uniq)
+echo $({ for L in ${LOGICS[@]}; do echo "$L"; done; } | sort | uniq)

@@ -1,5 +1,5 @@
 theory Predicate_Compile_ex
-imports Complex_Main Predicate_Compile
+imports Main Predicate_Compile
 begin
 
 inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" where
@@ -46,27 +46,28 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-(* FIXME: correct handling of parameters *)
-(*
-ML {* reset Predicate_Compile.do_proofs *}
 code_pred partition .
 
 thm partition.equation
-ML {* set Predicate_Compile.do_proofs *}
-*)
+
+inductive is_even :: "nat \<Rightarrow> bool"
+where
+  "n mod 2 = 0 \<Longrightarrow> is_even n"
+
+code_pred is_even .
 
 (* TODO: requires to handle abstractions in parameter positions correctly *)
-(*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
-  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}" *)
+values 10 "{(ys, zs). partition is_even
+  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}"
 
+values 10 "{zs. partition is_even zs [0, 2] [3, 5]}"
+values 10 "{zs. partition is_even zs [0, 7] [3, 5]}"
 
 lemma [code_pred_intros]:
   "r a b \<Longrightarrow> tranclp r a b"
   "r a b \<Longrightarrow> tranclp r b c \<Longrightarrow> tranclp r a c"
   by auto
 
-(* Setup requires quick and dirty proof *)
-(*
 code_pred tranclp
 proof -
   case tranclp
@@ -74,6 +75,11 @@ proof -
 qed
 
 thm tranclp.equation
+(*
+setup {* Predicate_Compile.add_sizelim_equations [@{const_name tranclp}] *}
+setup {* fn thy => exception_trace (fn () => Predicate_Compile.add_quickcheck_equations [@{const_name tranclp}] thy)  *}
+
+thm tranclp.rpred_equation
 *)
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
@@ -83,12 +89,16 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred succ .
 
 thm succ.equation
+<<<<<<< local
 
 values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
 values "{m. succ m 0}"
 
 (* FIXME: why does this not terminate? *)
+=======
+(* FIXME: why does this not terminate? -- value chooses mode [] --> [1] and then starts enumerating all successors *)
+>>>>>>> other
 (*
 values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"

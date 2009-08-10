@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/atp_wrapper.ML
+(*  Title:      HOL/Tools/ATP_Manager/atp_wrapper.ML
     Author:     Fabian Immler, TU Muenchen
 
 Wrapper functions for external ATPs.
@@ -188,10 +188,9 @@ val systems =
 
 fun get_systems () =
   let
-    val (answer, rc) = system_out (("$ISABELLE_HOME/lib/scripts/SystemOnTPTP" |>
-      Path.explode |> File.shell_path) ^ " -w")
+    val (answer, rc) = system_out ("\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w")
   in
-    if rc <> 0 then error ("Get available systems from SystemOnTPTP:\n" ^ answer)
+    if rc <> 0 then error ("Failed to get available systems from SystemOnTPTP:\n" ^ answer)
     else split_lines answer
   end;
 
@@ -208,7 +207,7 @@ fun remote_prover_opts max_new theory_const args prover_prefix timeout =
       NONE => error ("No system like " ^ quote prover_prefix ^ " at SystemOnTPTP")
     | SOME sys => sys
   in tptp_prover_opts max_new theory_const
-    (Path.explode "$ISABELLE_HOME/lib/scripts/SystemOnTPTP",
+    (Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
       args ^ " -t " ^ string_of_int timeout ^ " -s " ^ sys) timeout
   end;
 

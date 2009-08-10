@@ -38,7 +38,7 @@ function fail()
 CLEAN=""
 NAME="document"
 OUTFORMAT=dvi
-TAGS=""
+declare -a TAGS=()
 
 while getopts "cn:o:t:" OPT
 do
@@ -53,7 +53,7 @@ do
       OUTFORMAT="$OPTARG"
       ;;
     t)
-      TAGS="$OPTARG"
+      ORIG_IFS="$IFS"; IFS=","; TAGS=($OPTARG); IFS="$ORIG_IFS"
       ;;
     \?)
       usage
@@ -90,21 +90,20 @@ esac
 function prep_tags ()
 {
   (
-    IFS=","
-    for TAG in $TAGS
+    for TAG in "${TAGS[@]}"
     do
       case "$TAG" in
         /*)
-  	  echo "\\isafoldtag{${TAG:1}}"
+          echo "\\isafoldtag{${TAG:1}}"
           ;;
         -*)
-  	  echo "\\isadroptag{${TAG:1}}"
+          echo "\\isadroptag{${TAG:1}}"
           ;;
         +*)
-  	  echo "\\isakeeptag{${TAG:1}}"
+          echo "\\isakeeptag{${TAG:1}}"
           ;;
         *)
-  	  echo "\\isakeeptag{${TAG}}"
+          echo "\\isakeeptag{${TAG}}"
           ;;
       esac
     done

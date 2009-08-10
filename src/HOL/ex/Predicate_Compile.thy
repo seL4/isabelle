@@ -1,5 +1,5 @@
 theory Predicate_Compile
-imports Complex_Main
+imports Complex_Main RPred
 uses "predicate_compile.ML"
 begin
 

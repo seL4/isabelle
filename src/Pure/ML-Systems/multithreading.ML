@@ -13,34 +13,27 @@ end;
 signature MULTITHREADING =
 sig
   include BASIC_MULTITHREADING
-  val trace: int ref
-  val tracing: int -> (unit -> string) -> unit
-  val tracing_time: bool -> Time.time -> (unit -> string) -> unit
-  val real_time: ('a -> unit) -> 'a -> Time.time
   val available: bool
   val max_threads: int ref
   val max_threads_value: unit -> int
   val enabled: unit -> bool
   val no_interrupts: Thread.threadAttribute list
-  val regular_interrupts: Thread.threadAttribute list
-  val restricted_interrupts: Thread.threadAttribute list
-  val with_attributes: Thread.threadAttribute list ->
-    (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
-  val sync_wait: Time.time option -> ConditionVar.conditionVar -> Mutex.mutex -> bool
+  val public_interrupts: Thread.threadAttribute list
+  val private_interrupts: Thread.threadAttribute list
+  val sync_interrupts: Thread.threadAttribute list -> Thread.threadAttribute list
+  val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
+  val sync_wait: Thread.threadAttribute list option -> Time.time option ->
+    ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
+  val trace: int ref
+  val tracing: int -> (unit -> string) -> unit
+  val tracing_time: bool -> Time.time -> (unit -> string) -> unit
+  val real_time: ('a -> unit) -> 'a -> Time.time
   val self_critical: unit -> bool
   val serial: unit -> int
 end;
 
 structure Multithreading: MULTITHREADING =
 struct
-
-(* tracing *)
-
-val trace = ref (0: int);
-fun tracing _ _ = ();
-fun tracing_time _ _ _ = ();
-fun real_time f x = (f x; Time.zeroTime);
-
 
 (* options *)
 
@@ -52,18 +45,22 @@ fun enabled () = false;
 
 (* attributes *)
 
-val no_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
+val no_interrupts = [];
+val public_interrupts = [];
+val private_interrupts = [];
+fun sync_interrupts _ = [];
 
-val regular_interrupts =
-  [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
+fun with_attributes _ e = e [];
 
-val restricted_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptAsynchOnce];
+fun sync_wait _ _ _ _ = Exn.Result true;
 
-fun with_attributes _ f x = f [] x;
 
-fun sync_wait _ _ _ = false;
+(* tracing *)
+
+val trace = ref (0: int);
+fun tracing _ _ = ();
+fun tracing_time _ _ _ = ();
+fun real_time f x = (f x; Time.zeroTime);
 
 
 (* critical section *)

@@ -1,0 +1,140 @@
+(* Title:      sos_wrapper.ML
+   Author:     Philipp Meyer, TU Muenchen
+
+Added functionality for sums of squares, e.g. calling a remote prover
+*)
+
+signature SOS_WRAPPER =
+sig
+
+  datatype prover_result = Success | Failure | Error
+
+  val setup: theory -> theory
+  val destdir: string ref
+end
+
+structure SosWrapper : SOS_WRAPPER=
+struct
+
+datatype prover_result = Success | Failure | Error
+fun str_of_result Success = "Success"
+  | str_of_result Failure = "Failure"
+  | str_of_result Error = "Error"
+
+(*** output control ***)
+
+fun debug s = if ! Sos.debugging then Output.writeln s else ()
+val write = Output.priority
+
+(*** calling provers ***)
+
+val destdir = ref ""
+
+fun filename dir name =
+  let
+    val probfile = Path.basic (name ^ serial_string ())
+    val dir_path = Path.explode dir
+  in
+    if dir = "" then
+      File.tmp_path probfile
+    else
+      if File.exists dir_path then
+        Path.append dir_path probfile
+      else
+        error ("No such directory: " ^ dir)
+  end
+
+fun run_solver name cmd find_failure input =
+  let
+    val _ = write ("Calling solver: " ^ name)
+
+    (* create input file *)
+    val dir = ! destdir
+    val input_file = filename dir "sos_in" 
+    val _ = File.write input_file input
+
+    (* call solver *)
+    val output_file = filename dir "sos_out"
+    val (output, rv) = system_out (
+      if File.exists cmd then space_implode " "
+        [File.shell_path cmd, File.platform_path input_file, File.platform_path output_file]
+      else error ("Bad executable: " ^ File.shell_path cmd))
+ 
+    (* read and analysize output *)
+    val (res, res_msg) = find_failure rv
+    val result = if File.exists output_file then File.read output_file else ""
+
+    (* remove temporary files *)
+    val _ = if dir = "" then
+        (File.rm input_file ; if File.exists output_file then File.rm output_file else ())
+        else ()
+
+    val _ = debug ("Solver output:\n" ^ output)
+
+    val _ = write (str_of_result res ^ ": " ^ res_msg)
+  in
+    case res of
+      Success => result
+    | Failure => raise Sos.Failure res_msg
+    | Error => error ("Prover failed: " ^ res_msg)
+  end
+
+(*** various provers ***)
+
+(* local csdp client *)
+
+fun find_csdp_failure rv =
+  case rv of
+    0 => (Success, "SDP solved")
+  | 1 => (Failure, "SDP is primal infeasible")
+  | 2 => (Failure, "SDP is dual infeasible")
+  | 3 => (Success, "SDP solved with reduced accuracy")
+  | 4 => (Failure, "Maximum iterations reached")
+  | 5 => (Failure, "Stuck at edge of primal feasibility")
+  | 6 => (Failure, "Stuck at edge of dual infeasibility")
+  | 7 => (Failure, "Lack of progress")
+  | 8 => (Failure, "X, Z, or O was singular")
+  | 9 => (Failure, "Detected NaN or Inf values")
+  | _ => (Error, "return code is " ^ string_of_int rv)
+
+val csdp = ("$CSDP_EXE", find_csdp_failure)
+
+(* remote neos server *)
+
+fun find_neos_failure rv =
+  case rv of
+    20 => (Error, "error submitting job")
+  | 21 => (Error, "no solution")
+  |  _ => find_csdp_failure rv
+
+val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
+
+(* save provers in table *)
+
+val provers =
+     Symtab.make [("remote_csdp", neos_csdp),("csdp", csdp)]
+
+fun get_prover name =
+  case Symtab.lookup provers name of
+    SOME prover => prover
+  | NONE => error ("unknown prover: " ^ name)
+
+fun call_solver name =
+  let
+    val (cmd, find_failure) = get_prover name
+  in
+    run_solver name (Path.explode cmd) find_failure
+  end
+
+(* setup tactic *)
+
+val def_solver = "remote_csdp"
+
+fun sos_solver name = (SIMPLE_METHOD' o (Sos.sos_tac (call_solver name))) 
+
+val sos_method = Scan.optional (Scan.lift OuterParse.xname) def_solver >> sos_solver
+
+val setup = Method.setup @{binding sos} sos_method
+  "Prove universal problems over the reals using sums of squares"
+
+end

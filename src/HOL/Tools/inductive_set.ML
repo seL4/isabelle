@@ -9,6 +9,7 @@ signature INDUCTIVE_SET =
 sig
   val to_set_att: thm list -> attribute
   val to_pred_att: thm list -> attribute
+  val to_pred : thm list -> Context.generic -> thm -> thm
   val pred_set_conv_att: attribute
   val add_inductive_i:
     Inductive.inductive_flags ->

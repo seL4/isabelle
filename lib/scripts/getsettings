@@ -68,14 +68,42 @@ function classpath () {
   done
 }
 
-#get actual settings
-source "$ISABELLE_HOME/etc/settings" || exit 2
-ISABELLE_SITE_SETTINGS_PRESENT=true
+#nested components
+ISABELLE_COMPONENTS=""
+function init_component ()
+{
+  local COMPONENT="$1"
+
+  if [ ! -d "$COMPONENT" ]; then
+    echo >&2 "Bad Isabelle component: $COMPONENT"
+    exit 2
+  elif [ -z "$ISABELLE_COMPONENTS" ]; then
+    ISABELLE_COMPONENTS="$COMPONENT"
+  else
+    ISABELLE_COMPONENTS="$ISABELLE_COMPONENTS:$COMPONENT"
+  fi
+  if [ -f "$COMPONENT/etc/settings" ]; then
+    source "$COMPONENT/etc/settings" || exit 2
+  fi
+  if [ -f "$COMPONENT/etc/components" ]; then
+    {
+      while read; do
+        case "$REPLY" in
+          \#* | "") ;;
+          /*) init_component "$REPLY" ;;
+          *) init_component "$COMPONENT/$REPLY" ;;
+        esac
+      done
+    } < "$COMPONENT/etc/components"
+  fi
+}
+
+#main components
+init_component "$ISABELLE_HOME"
 
 [ "$ISABELLE_HOME" -ef "$ISABELLE_HOME_USER" ] && \
-  { echo >&2 "### ISABELLE_HOME and ISABELLE_HOME_USER should not be the same directory!"; }
-[ -z "$ISABELLE_IGNORE_USER_SETTINGS" -a -f "$ISABELLE_HOME_USER/etc/settings" ] && \
-  { source "$ISABELLE_HOME_USER/etc/settings" || exit 2; }
+  { echo >&2 "### ISABELLE_HOME and ISABELLE_HOME_USER must not be the same directory!"; }
+[ -d "$ISABELLE_HOME_USER" ] && init_component "$ISABELLE_HOME_USER"
 
 #ML system identifier
 if [ -z "$ML_PLATFORM" ]; then
