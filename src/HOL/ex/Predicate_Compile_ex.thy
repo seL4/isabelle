@@ -38,7 +38,6 @@ code_pred rev .
 thm rev.equation
 
 values "{xs. rev [0, 1, 2, 3::nat] xs}"
-values "Collect (rev [0, 1, 2, 3::nat])"
 
 inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for f where
@@ -56,10 +55,8 @@ where
 
 code_pred is_even .
 
-(* TODO: requires to handle abstractions in parameter positions correctly *)
 values 10 "{(ys, zs). partition is_even
   [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}"
-
 values 10 "{zs. partition is_even zs [0, 2] [3, 5]}"
 values 10 "{zs. partition is_even zs [0, 7] [3, 5]}"
 
@@ -89,16 +86,13 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred succ .
 
 thm succ.equation
-<<<<<<< local
 
 values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
 values "{m. succ m 0}"
 
-(* FIXME: why does this not terminate? *)
-=======
 (* FIXME: why does this not terminate? -- value chooses mode [] --> [1] and then starts enumerating all successors *)
->>>>>>> other
+
 (*
 values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"
