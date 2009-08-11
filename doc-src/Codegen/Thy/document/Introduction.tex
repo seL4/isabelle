@@ -229,14 +229,14 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
 \hspace*{0pt}\\
-\hspace*{0pt}foldla ::~forall a{\char95}1 b{\char95}1.~(a{\char95}1 -> b{\char95}1 -> a{\char95}1) -> a{\char95}1 -> [b{\char95}1] -> a{\char95}1;\\
+\hspace*{0pt}foldla ::~forall a b.~(a -> b -> a) -> a -> [b] -> a;\\
 \hspace*{0pt}foldla f a [] = a;\\
 \hspace*{0pt}foldla f a (x :~xs) = foldla f (f a x) xs;\\
 \hspace*{0pt}\\
 \hspace*{0pt}rev ::~forall a.~[a] -> [a];\\
 \hspace*{0pt}rev xs = foldla ({\char92}~xsa x -> x :~xsa) [] xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}list{\char95}case ::~forall t a.~t -> (a -> [a] -> t) -> [a] -> t;\\
+\hspace*{0pt}list{\char95}case ::~forall a b.~a -> (b -> [b] -> a) -> [b] -> a;\\
 \hspace*{0pt}list{\char95}case f1 f2 (a :~list) = f2 a list;\\
 \hspace*{0pt}list{\char95}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
