@@ -10,6 +10,8 @@ sig
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
+  val PARALLEL_CHOICE: tactic list -> tactic
+  val PARALLEL_GOALS: tactic -> tactic
 end;
 
 signature GOAL =
@@ -288,7 +290,34 @@ fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
       Tactic.etac (MetaSimplifier.norm_hhf (Thm.trivial R)) THEN_ALL_NEW assume_tac);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
+
+(* parallel tacticals *)
+
+(*parallel choice of single results*)
+fun PARALLEL_CHOICE tacs st =
+  (case Par_List.get_some (fn tac => SINGLE tac st) tacs of
+    NONE => Seq.empty
+  | SOME st' => Seq.single st');
+
+(*parallel refinement of non-schematic goal by single results*)
+fun PARALLEL_GOALS tac st =
+  let
+    val st0 = Thm.adjust_maxidx_thm ~1 st;
+    val _ = Thm.maxidx_of st0 >= 0 andalso
+      raise THM ("PARALLEL_GOALS: schematic goal state", 0, [st]);
+
+    exception FAILED;
+    fun try_tac g =
+      (case SINGLE tac g of
+        NONE => raise FAILED
+      | SOME g' => g');
+
+    val goals = Drule.strip_imp_prems (Thm.cprop_of st0);
+    val results = Par_List.map (try_tac o init) goals;
+  in ALLGOALS (fn i => retrofit i 1 (nth results (i - 1))) st0 end
+  handle FAILED => Seq.empty;
+
 end;
 
-structure BasicGoal: BASIC_GOAL = Goal;
-open BasicGoal;
+structure Basic_Goal: BASIC_GOAL = Goal;
+open Basic_Goal;

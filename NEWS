@@ -148,6 +148,9 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* PARALLEL_CHOICE and PARALLEL_GOALS provide basic support for
+parallel tactical reasoning.
+
 * Tactical FOCUS is similar to SUBPROOF, but allows the body tactic to
 introduce new subgoals and schematic variables.  FOCUS_PARAMS is
 similar, but focuses on the parameter prefix only, leaving subgoal
