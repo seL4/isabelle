@@ -4,5 +4,4 @@
 #
 # DESCRIPTION: display Isabelle version
 
-
-echo 'Isabelle repository version'    # filled in automatically!
+echo 'unidentified repository version'    # filled in automatically!

@@ -208,8 +208,8 @@ changesets that might become public at some point.
     two-dimensional presentation too much.
 
 
-Building Isabelle from the repository version
----------------------------------------------
+Building a repository version of Isabelle
+-----------------------------------------
 
 Compared to a proper distribution or development snapshot, a
 repository version of Isabelle lacks textual version identifiers in

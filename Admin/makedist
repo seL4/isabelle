@@ -165,8 +165,8 @@ fi
 perl -pi -e "s,val changelog = \"\",val changelog = \"$REPOS/log/$IDENT\",g" src/Pure/ROOT.ML
 perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
 perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
-perl -pi -e "s,Isabelle repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
-perl -pi -e "s,the internal repository version of Isabelle,$DISTVERSION,g" README
+perl -pi -e "s,unidentified repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
+perl -pi -e "s,some unidentified repository version of Isabelle,$DISTVERSION,g" README
 
 
 # create archives
