@@ -444,7 +444,7 @@ consts_code
   "default" ("(error \"default\")")
   "default :: 'a \<Rightarrow> 'b::default" ("(fn '_ => error \"default\")")
 
-code_module Norm
+(*code_module Norm
 contains
   test = "type_NF"
 
@@ -509,6 +509,6 @@ val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
-*}
+*}*)
 
 end

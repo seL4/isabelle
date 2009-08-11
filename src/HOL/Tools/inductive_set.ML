@@ -34,10 +34,10 @@ struct
 val collect_mem_simproc =
   Simplifier.simproc (theory "Set") "Collect_mem" ["Collect t"] (fn thy => fn ss =>
     fn S as Const ("Collect", Type ("fun", [_, T])) $ t =>
-         let val (u, Ts, ps) = HOLogic.strip_splits t
+         let val (u, Ts, ps) = HOLogic.strip_psplits t
          in case u of
            (c as Const ("op :", _)) $ q $ S' =>
-             (case try (HOLogic.dest_tuple ps) q of
+             (case try (HOLogic.strip_ptuple ps) q of
                 NONE => NONE
               | SOME ts =>
                   if not (loose_bvar (S', 0)) andalso
@@ -80,7 +80,7 @@ fun strong_ind_simproc tab =
       fun mk_collect p T t =
         let val U = HOLogic.dest_setT T
         in HOLogic.Collect_const U $
-          HOLogic.mk_splits (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
+          HOLogic.mk_psplits (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
         end;
       fun decomp (Const (s, _) $ ((m as Const ("op :",
             Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
@@ -224,11 +224,11 @@ fun mk_to_pred_inst thy fs =
   map (fn (x, ps) =>
     let
       val U = HOLogic.dest_setT (fastype_of x);
-      val x' = map_type (K (HOLogic.strip_tupleT ps U ---> HOLogic.boolT)) x
+      val x' = map_type (K (HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x
     in
       (cterm_of thy x,
        cterm_of thy (HOLogic.Collect_const U $
-         HOLogic.mk_splits ps U HOLogic.boolT x'))
+         HOLogic.mk_psplits ps U HOLogic.boolT x'))
     end) fs;
 
 fun mk_to_pred_eq p fs optfs' T thm =
@@ -241,7 +241,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
       | SOME fs' =>
           let
             val (_, U) = split_last (binder_types T);
-            val Ts = HOLogic.strip_tupleT fs' U;
+            val Ts = HOLogic.strip_ptupleT fs' U;
             (* FIXME: should cterm_instantiate increment indexes? *)
             val arg_cong' = Thm.incr_indexes (Thm.maxidx_of thm + 1) arg_cong;
             val (arg_cong_f, _) = arg_cong' |> cprop_of |> Drule.strip_imp_concl |>
@@ -249,7 +249,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
           in
             thm' RS (Drule.cterm_instantiate [(arg_cong_f,
               cterm_of thy (Abs ("P", Ts ---> HOLogic.boolT,
-                HOLogic.Collect_const U $ HOLogic.mk_splits fs' U
+                HOLogic.Collect_const U $ HOLogic.mk_psplits fs' U
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
   in
@@ -362,12 +362,12 @@ fun to_set thms ctxt thm =
     val insts = map (fn (x, ps) =>
       let
         val Ts = binder_types (fastype_of x);
-        val T = HOLogic.mk_tupleT ps Ts;
+        val T = HOLogic.mk_ptupleT ps Ts;
         val x' = map_type (K (HOLogic.mk_setT T)) x
       in
         (cterm_of thy x,
          cterm_of thy (list_abs (map (pair "x") Ts, HOLogic.mk_mem
-           (HOLogic.mk_tuple ps T (map Bound (length ps downto 0)), x'))))
+           (HOLogic.mk_ptuple ps T (map Bound (length ps downto 0)), x'))))
       end) fs
   in
     thm |>
@@ -423,14 +423,14 @@ fun add_ind_set_def
         SOME fs =>
           let
             val T = HOLogic.dest_setT (fastype_of x);
-            val Ts = HOLogic.strip_tupleT fs T;
+            val Ts = HOLogic.strip_ptupleT fs T;
             val x' = map_type (K (Ts ---> HOLogic.boolT)) x
           in
             (x, (x',
               (HOLogic.Collect_const T $
-                 HOLogic.mk_splits fs T HOLogic.boolT x',
+                 HOLogic.mk_psplits fs T HOLogic.boolT x',
                list_abs (map (pair "x") Ts, HOLogic.mk_mem
-                 (HOLogic.mk_tuple fs T (map Bound (length fs downto 0)),
+                 (HOLogic.mk_ptuple fs T (map Bound (length fs downto 0)),
                   x)))))
           end
        | NONE => (x, (x, (x, x))))) params;
@@ -449,13 +449,13 @@ fun add_ind_set_def
            Pretty.str ("of " ^ s ^ " do not agree with types"),
            Pretty.block (Pretty.commas (map (Syntax.pretty_typ ctxt) paramTs)),
            Pretty.str "of declared parameters"]));
-        val Ts = HOLogic.strip_tupleT fs U;
+        val Ts = HOLogic.strip_ptupleT fs U;
         val c' = Free (s ^ "p",
           map fastype_of params1 @ Ts ---> HOLogic.boolT)
       in
         ((c', (fs, U, Ts)),
          (list_comb (c, params2),
-          HOLogic.Collect_const U $ HOLogic.mk_splits fs U HOLogic.boolT
+          HOLogic.Collect_const U $ HOLogic.mk_psplits fs U HOLogic.boolT
             (list_comb (c', params1))))
       end) |> split_list |>> split_list;
     val eqns' = eqns @
@@ -485,7 +485,7 @@ fun add_ind_set_def
     val (defs, ctxt2) = fold_map (LocalTheory.define Thm.internalK)
       (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
          fold_rev lambda params (HOLogic.Collect_const U $
-           HOLogic.mk_splits fs U HOLogic.boolT (list_comb (p, params3))))))
+           HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
          (cnames_syn ~~ cs_info ~~ preds)) ctxt1;
 
     (* prove theorems for converting predicate to set notation *)
@@ -496,7 +496,7 @@ fun add_ind_set_def
             (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (list_comb (p, params3),
                list_abs (map (pair "x") Ts, HOLogic.mk_mem
-                 (HOLogic.mk_tuple fs U (map Bound (length fs downto 0)),
+                 (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
                   list_comb (c, params))))))
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, split_conv]) 1))

@@ -31,25 +31,18 @@ fun add_thm_target module_name thm thy =
     |> ModuleData.map (Symtab.update (fst (Code.const_typ_eqn thy thm'), module_name))
   end;
 
-fun expand_eta thy [] = []
-  | expand_eta thy (thms as thm :: _) =
-      let
-        val (_, ty) = Code.const_typ_eqn thy thm;
-      in if null (Term.add_tvarsT ty []) orelse (null o fst o strip_type) ty
-        then thms
-        else map (Code.expand_eta thy 1) thms
-      end;
-
 fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
   let
     val c' = AxClass.unoverload_const thy (c, T);
     val opt_name = Symtab.lookup (ModuleData.get thy) c';
-    val thms = Code.these_eqns thy c'
-      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
-      |> expand_eta thy
-      |> Code.norm_varnames thy
-      |> map (rpair opt_name)
-  in if null thms then NONE else SOME thms end;
+    val raw_thms = Code.these_eqns thy c'
+      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE);
+  in if null raw_thms then NONE else
+    raw_thms
+    |> Code_Thingol.clean_thms thy (snd (Code.const_typ_eqn thy (hd raw_thms)))
+    |> map (rpair opt_name)
+    |> SOME
+  end;
 
 val dest_eqn = Logic.dest_equals;
 val const_of = dest_Const o head_of o fst o dest_eqn;

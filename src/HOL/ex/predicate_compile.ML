@@ -54,6 +54,7 @@ sig
     mk_sup : term * term -> term,
     mk_if : term -> term,
     mk_not : term -> term,
+    mk_map : typ -> typ -> term -> term -> term,
     lift_pred : term -> term
   };  
   datatype tmode = Mode of mode * int list * tmode option list;
@@ -608,6 +609,7 @@ datatype compilation_funs = CompilationFuns of {
   mk_not : term -> term,
 (*  funT_of : mode -> typ -> typ, *)
 (*  mk_fun_of : theory -> (string * typ) -> mode -> term, *) 
+  mk_map : typ -> typ -> term -> term -> term,
   lift_pred : term -> term
 };
 
@@ -621,6 +623,7 @@ fun mk_if (CompilationFuns funs) = #mk_if funs
 fun mk_not (CompilationFuns funs) = #mk_not funs
 (*fun funT_of (CompilationFuns funs) = #funT_of funs*)
 (*fun mk_fun_of (CompilationFuns funs) = #mk_fun_of funs*)
+fun mk_map (CompilationFuns funs) = #mk_map funs
 fun lift_pred (CompilationFuns funs) = #lift_pred funs
 
 fun funT_of compfuns (iss, is) T =
@@ -691,12 +694,15 @@ fun mk_Eval (f, x) =
   in
     Const (@{const_name Predicate.eval}, mk_predT T --> T --> HOLogic.boolT) $ f $ x
   end;
-  
+
+fun mk_map T1 T2 tf tp = Const (@{const_name Predicate.map},
+  (T1 --> T2) --> mk_predT T1 --> mk_predT T2) $ tf $ tp;
+
 val lift_pred = I
 
 val compfuns = CompilationFuns {mk_predT = mk_predT, dest_predT = dest_predT, mk_bot = mk_bot,
   mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if, mk_not = mk_not,
-  lift_pred = lift_pred} 
+  mk_map = mk_map, lift_pred = lift_pred};
 
 end;
 
@@ -748,7 +754,9 @@ fun mk_if cond = Const (@{const_name RPred.if_rpred},
   HOLogic.boolT --> mk_rpredT HOLogic.unitT) $ cond;
 
 fun mk_not t = error "Negation is not defined for RPred"
-   
+
+fun mk_map t = error "FIXME" (*FIXME*)
+
 fun lift_pred t =
   let
     val T = PredicateCompFuns.dest_predT (fastype_of t)
@@ -759,7 +767,7 @@ fun lift_pred t =
 
 val compfuns = CompilationFuns {mk_predT = mk_rpredT, dest_predT = dest_rpredT, mk_bot = mk_bot,
     mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if, mk_not = mk_not,
-    lift_pred = lift_pred} 
+    mk_map = mk_map, lift_pred = lift_pred};
 
 end;
 (* for external use with interactive mode *)
@@ -2094,18 +2102,17 @@ end
 
 val eval_ref = ref (NONE : (unit -> term Predicate.pred) option);
 
+(*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr thy t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t_compr);
-    val (body, Ts, fp) = HOLogic.strip_splits split;
-      (*FIXME former order of tuple positions must be restored*)
-    val (pred as Const (name, T), all_args) = strip_comb body
-    val (params, args) = chop (nparams_of thy name) all_args
+    val (body, Ts, fp) = HOLogic.strip_psplits split;
+    val (pred as Const (name, T), all_args) = strip_comb body;
+    val (params, args) = chop (nparams_of thy name) all_args;
     val user_mode = map_filter I (map_index
       (fn (i, t) => case t of Bound j => if j < length Ts then NONE
-        else SOME (i+1) | _ => SOME (i+1)) args) (*FIXME dangling bounds should not occur*)
-    val (inargs, _) = split_smode user_mode args;
+        else SOME (i+1) | _ => SOME (i+1)) args); (*FIXME dangling bounds should not occur*)
     val modes = filter (fn Mode (_, is, _) => is = user_mode)
       (modes_of_term (all_modes_of thy) (list_comb (pred, params)));
     val m = case modes
@@ -2114,10 +2121,62 @@ fun analyze_compr thy t_compr =
       | [m] => m
       | m :: _ :: _ => (warning ("Multiple modes possible for comprehension "
                 ^ Syntax.string_of_term_global thy t_compr); m);
-    val t_eval = list_comb (compile_expr NONE thy 
-      (m, list_comb (pred, params)),
-      inargs)
+    val (inargs, outargs) = split_smode user_mode args;
+    val t_pred = list_comb (compile_expr NONE thy (m, list_comb (pred, params)), inargs);
+    val t_eval = if null outargs then t_pred else let
+        val outargs_bounds = map (fn Bound i => i) outargs;
+        val outargsTs = map (nth Ts) outargs_bounds;
+        val T_pred = HOLogic.mk_tupleT outargsTs;
+        val T_compr = HOLogic.mk_ptupleT fp Ts;
+        val arrange_bounds = map_index I outargs_bounds
+          |> sort (prod_ord (K EQUAL) int_ord)
+          |> map fst;
+        val arrange = funpow (length outargs_bounds - 1) HOLogic.mk_split
+          (Term.list_abs (map (pair "") outargsTs,
+            HOLogic.mk_ptuple fp T_compr (map Bound arrange_bounds)))
+      in mk_map PredicateCompFuns.compfuns T_pred T_compr arrange t_pred end
   in t_eval end;
+
+fun eval thy t_compr =
+  let
+    val t = analyze_compr thy t_compr;
+    val T = dest_predT PredicateCompFuns.compfuns (fastype_of t);
+    val t' = mk_map PredicateCompFuns.compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
+  in (T, Code_ML.eval NONE ("Predicate_Compile.eval_ref", eval_ref) Predicate.map thy t' []) end;
+
+fun values ctxt k t_compr =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val (T, t) = eval thy t_compr;
+    val setT = HOLogic.mk_setT T;
+    val (ts, _) = Predicate.yieldn k t;
+    val elemsT = HOLogic.mk_set T ts;
+  in if k = ~1 orelse length ts < k then elemsT
+    else Const (@{const_name Set.union}, setT --> setT --> setT) $ elemsT $ t_compr
+  end;
+
+fun values_cmd modes k raw_t state =
+  let
+    val ctxt = Toplevel.context_of state;
+    val t = Syntax.read_term ctxt raw_t;
+    val t' = values ctxt k t;
+    val ty' = Term.type_of t';
+    val ctxt' = Variable.auto_fixes t' ctxt;
+    val p = PrintMode.with_modes modes (fn () =>
+      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
+  in Pretty.writeln p end;
+
+local structure P = OuterParse in
+
+val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+
+val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
+  (opt_modes -- Scan.optional P.nat ~1 -- P.term
+    >> (fn ((modes, k), t) => Toplevel.no_timing o Toplevel.keep
+        (values_cmd modes k t)));
+
+end;
 
 end;
 

@@ -109,6 +109,7 @@ sig
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+  val map_transpose: ('a list -> 'b) -> 'a list list -> 'b list
   val separate: 'a -> 'a list -> 'a list
   val surround: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
@@ -927,6 +928,17 @@ fun has_duplicates eq =
     fun dups [] = false
       | dups (x :: xs) = member eq xs x orelse dups xs;
   in dups end;
+
+
+(* matrices *)
+
+fun map_transpose f xss =
+  let
+    val n = case distinct (op =) (map length xss)
+     of [] => 0
+      | [n] => n
+      | _ => raise UnequalLengths;
+  in map (fn m => f (map (fn xs => nth xs m) xss)) (0 upto n - 1) end;
 
 
 

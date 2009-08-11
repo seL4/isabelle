@@ -40,9 +40,10 @@ fun random_fun T1 T2 eq term_of random random_split seed =
   let
     val fun_upd = Const (@{const_name fun_upd},
       (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
-    val (seed', seed'') = random_split seed;
+    val ((y, t2), seed') = random seed;
+    val (seed'', seed''') = random_split seed';
 
-    val state = ref (seed', [], fn () => Const (@{const_name undefined}, T1 --> T2));
+    val state = ref (seed'', [], fn () => Abs ("x", T1, t2 ()));
     fun random_fun' x =
       let
         val (seed, fun_map, f_t) = ! state;
@@ -57,7 +58,7 @@ fun random_fun T1 T2 eq term_of random random_split seed =
             in y end
       end;
     fun term_fun' () = #3 (! state) ();
-  in ((random_fun', term_fun'), seed'') end;
+  in ((random_fun', term_fun'), seed''') end;
 
 
 (** type copies **)

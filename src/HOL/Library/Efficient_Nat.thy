@@ -167,7 +167,7 @@ fun eqn_suc_preproc thy thms =
     val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
     if forall (can dest) thms andalso exists (contains_suc o dest) thms
-      then perhaps_loop (remove_suc thy) thms
+      then thms |> perhaps_loop (remove_suc thy) |> (Option.map o map) Drule.zero_var_indexes
        else NONE
   end;
 

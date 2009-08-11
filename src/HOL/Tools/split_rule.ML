@@ -81,7 +81,7 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
               let
                 val Ts = HOLogic.flatten_tupleT T;
                 val ys = Name.variant_list xs (replicate (length Ts) a);
-              in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple (HOLogic.flat_tupleT_paths T) T
+              in (xs @ ys, (cterm v, cterm (HOLogic.mk_ptuple (HOLogic.flat_tupleT_paths T) T
                 (map (Var o apfst (rpair 0)) (ys ~~ Ts))))::insts)
               end
           | mk_tuple _ x = x;
