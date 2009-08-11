@@ -14,6 +14,8 @@ struct
 
 open Codegen;
 
+val const_of = dest_Const o head_of o fst o Logic.dest_equals;
+
 structure ModuleData = TheoryDataFun
 (
   type T = string Symtab.table;
@@ -31,36 +33,32 @@ fun add_thm_target module_name thm thy =
     |> ModuleData.map (Symtab.update (fst (Code.const_typ_eqn thy thm'), module_name))
   end;
 
-fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
+fun avoid_value thy [thm] =
+      let val (_, T) = Code.const_typ_eqn thy thm
+      in if null (Term.add_tvarsT T []) orelse (null o fst o strip_type) T
+        then [thm]
+        else [Code_Thingol.expand_eta thy 1 thm]
+      end
+  | avoid_value thy thms = thms;
+
+fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name "op ="} then ([], "") else
   let
-    val c' = AxClass.unoverload_const thy (c, T);
-    val opt_name = Symtab.lookup (ModuleData.get thy) c';
-    val raw_thms = Code.these_eqns thy c'
-      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE);
-  in if null raw_thms then NONE else
+    val c = AxClass.unoverload_const thy (raw_c, T);
+    val raw_thms = Code.these_eqns thy c
+      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
+      |> filter (is_instance T o snd o const_of o prop_of);
+    val module_name = case Symtab.lookup (ModuleData.get thy) c
+     of SOME module_name => module_name
+      | NONE => case get_defn thy defs c T
+         of SOME ((_, (thyname, _)), _) => thyname
+          | NONE => Codegen.thyname_of_const thy c;
+  in if null raw_thms then ([], "") else
     raw_thms
-    |> Code_Thingol.clean_thms thy (snd (Code.const_typ_eqn thy (hd raw_thms)))
-    |> map (rpair opt_name)
-    |> SOME
+    |> preprocess thy
+    |> avoid_value thy
+    |> Code_Thingol.clean_thms thy
+    |> rpair module_name
   end;
-
-val dest_eqn = Logic.dest_equals;
-val const_of = dest_Const o head_of o fst o dest_eqn;
-
-fun get_equations thy defs (s, T) =
-  (case retrieve_equations thy (s, T) of
-     NONE => ([], "")
-   | SOME thms => 
-       let val thms' = filter (fn (thm, _) => is_instance T
-           (snd (const_of (prop_of thm)))) thms
-       in if null thms' then ([], "")
-         else (preprocess thy (map fst thms'),
-           case snd (snd (split_last thms')) of
-               NONE => (case get_defn thy defs s T of
-                   NONE => Codegen.thyname_of_const thy s
-                 | SOME ((_, (thyname, _)), _) => thyname)
-             | SOME thyname => thyname)
-       end);
 
 fun mk_suffix thy defs (s, T) = (case get_defn thy defs s T of
   SOME (_, SOME i) => " def" ^ string_of_int i | _ => "");
@@ -74,7 +72,7 @@ fun cycle g (xs, x : string) =
 fun add_rec_funs thy defs dep module eqs gr =
   let
     fun dest_eq t = (fst (const_of t) ^ mk_suffix thy defs (const_of t),
-      dest_eqn (rename_term t));
+      Logic.dest_equals (rename_term t));
     val eqs' = map dest_eq eqs;
     val (dname, _) :: _ = eqs';
     val (s, T) = const_of (hd eqs);

@@ -79,7 +79,8 @@ sig
   val is_cons: program -> string -> bool
   val contr_classparam_typs: program -> string -> itype option list
 
-  val clean_thms: theory -> typ -> thm list -> thm list
+  val expand_eta: theory -> int -> thm -> thm
+  val clean_thms: theory -> thm list -> thm list
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> string list -> string list * (naming * program)
   val cached_program: theory -> naming * program
@@ -403,12 +404,6 @@ fun same_arity thy thms =
     val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
   in map (expand_eta thy k) thms end;
 
-fun avoid_value thy ty [thm] =
-      if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
-      then [thm]
-      else [expand_eta thy 1 thm]
-  | avoid_value thy _ thms = thms;
-
 fun mk_desymbolization pre post mk vs =
   let
     val names = map (pre o fst o fst) vs
@@ -434,8 +429,7 @@ fun desymbolize_vars thy thm =
 
 fun desymbolize_all_vars thy = desymbolize_tvars thy #> map (desymbolize_vars thy);
 
-fun clean_thms thy ty =
-  same_arity thy #> avoid_value thy ty #> desymbolize_all_vars thy;
+fun clean_thms thy = same_arity thy #> desymbolize_all_vars thy;
 
 
 (** statements, abstract programs **)
@@ -563,7 +557,7 @@ and ensure_const thy algbr funcgr c =
     fun stmt_fun ((vs, ty), eqns) =
       fold_map (translate_tyvar_sort thy algbr funcgr) vs
       ##>> translate_typ thy algbr funcgr ty
-      ##>> fold_map (translate_eqn thy algbr funcgr) (burrow_fst (clean_thms thy ty) eqns)
+      ##>> fold_map (translate_eqn thy algbr funcgr) (burrow_fst (clean_thms thy) eqns)
       #>> (fn info => Fun (c, info));
     val stmt_const = case Code.get_datatype_of_constr thy c
      of SOME tyco => stmt_datatypecons tyco
