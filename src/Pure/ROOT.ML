@@ -2,7 +2,7 @@
 
 structure Distribution =     (*filled-in by makedist*)
 struct
-  val version = "Isabelle repository version";
+  val version = "unidentified repository version";
   val is_official = false;
   val changelog = "";
 end;

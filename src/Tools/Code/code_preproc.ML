@@ -109,7 +109,10 @@ fun apply_functrans thy c _ [] = []
   | apply_functrans thy c [] eqns = eqns
   | apply_functrans thy c functrans eqns = eqns
       |> perhaps (perhaps_loop (perhaps_apply functrans))
-      |> Code.assert_eqns_const thy c;
+      |> Code.assert_eqns_const thy c
+      (*FIXME in future, the check here should be more accurate wrt. type schemes
+      -- perhaps by means of upcoming code certificates with a corresponding
+         preprocessor protocol*);
 
 fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
@@ -140,8 +143,6 @@ fun preprocess thy c eqns =
     |> (map o apfst) (rewrite_eqn pre)
     |> (map o apfst) (AxClass.unoverload thy)
     |> map (Code.assert_eqn thy)
-    |> burrow_fst (Code.norm_args thy)
-    |> burrow_fst (Code.norm_varnames thy)
   end;
 
 fun preprocess_conv thy ct =

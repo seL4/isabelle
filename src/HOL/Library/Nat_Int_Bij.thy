@@ -165,5 +165,11 @@ by(simp add:inv_int_to_nat_bij[symmetric] surj_int_to_nat_bij surj_imp_inj_inv)
 lemma inj_int_to_nat_bij: "inj int_to_nat_bij"
 by(simp add:inv_nat_to_int_bij[symmetric] surj_nat_to_int_bij surj_imp_inj_inv)
 
+lemma bij_nat_to_int_bij: "bij nat_to_int_bij"
+by(simp add:bij_def inj_nat_to_int_bij surj_nat_to_int_bij)
+
+lemma bij_int_to_nat_bij: "bij int_to_nat_bij"
+by(simp add:bij_def inj_int_to_nat_bij surj_int_to_nat_bij)
+
 
 end

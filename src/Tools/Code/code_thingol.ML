@@ -79,6 +79,8 @@ sig
   val is_cons: program -> string -> bool
   val contr_classparam_typs: program -> string -> itype option list
 
+  val expand_eta: theory -> int -> thm -> thm
+  val clean_thms: theory -> thm list -> thm list
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> string list -> string list * (naming * program)
   val cached_program: theory -> naming * program
@@ -376,6 +378,60 @@ val unfold_fun = unfoldr
 end; (* local *)
 
 
+(** technical transformations of code equations **)
+
+fun expand_eta thy k thm =
+  let
+    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
+    val (head, args) = strip_comb lhs;
+    val l = if k = ~1
+      then (length o fst o strip_abs) rhs
+      else Int.max (0, k - length args);
+    val (raw_vars, _) = Term.strip_abs_eta l rhs;
+    val vars = burrow_fst (Name.variant_list (map (fst o fst) (Term.add_vars lhs [])))
+      raw_vars;
+    fun expand (v, ty) thm = Drule.fun_cong_rule thm
+      (Thm.cterm_of thy (Var ((v, 0), ty)));
+  in
+    thm
+    |> fold expand vars
+    |> Conv.fconv_rule Drule.beta_eta_conversion
+  end;
+
+fun same_arity thy thms =
+  let
+    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
+    val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
+  in map (expand_eta thy k) thms end;
+
+fun mk_desymbolization pre post mk vs =
+  let
+    val names = map (pre o fst o fst) vs
+      |> map (Name.desymbolize false)
+      |> Name.variant_list []
+      |> map post;
+  in map_filter (fn (((v, i), x), v') =>
+    if v = v' andalso i = 0 then NONE
+    else SOME (((v, i), x), mk ((v', 0), x))) (vs ~~ names)
+  end;
+
+fun desymbolize_tvars thy thms =
+  let
+    val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
+    val tvar_subst = mk_desymbolization (unprefix "'") (prefix "'") TVar tvs;
+  in map (Thm.certify_instantiate (tvar_subst, [])) thms end;
+
+fun desymbolize_vars thy thm =
+  let
+    val vs = Term.add_vars (Thm.prop_of thm) [];
+    val var_subst = mk_desymbolization I I Var vs;
+  in Thm.certify_instantiate ([], var_subst) thm end;
+
+fun desymbolize_all_vars thy = desymbolize_tvars thy #> map (desymbolize_vars thy);
+
+fun clean_thms thy = same_arity thy #> desymbolize_all_vars thy;
+
+
 (** statements, abstract programs **)
 
 type typscheme = (vname * sort) list * itype;
@@ -498,17 +554,11 @@ and ensure_const thy algbr funcgr c =
     fun stmt_classparam class =
       ensure_class thy algbr funcgr class
       #>> (fn class => Classparam (c, class));
-    fun stmt_fun ((vs, ty), raw_thms) =
-      let
-        val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
-          then raw_thms
-          else (map o apfst) (Code.expand_eta thy 1) raw_thms;
-      in
-        fold_map (translate_tyvar_sort thy algbr funcgr) vs
-        ##>> translate_typ thy algbr funcgr ty
-        ##>> fold_map (translate_eq thy algbr funcgr) thms
-        #>> (fn info => Fun (c, info))
-      end;
+    fun stmt_fun ((vs, ty), eqns) =
+      fold_map (translate_tyvar_sort thy algbr funcgr) vs
+      ##>> translate_typ thy algbr funcgr ty
+      ##>> fold_map (translate_eqn thy algbr funcgr) (burrow_fst (clean_thms thy) eqns)
+      #>> (fn info => Fun (c, info));
     val stmt_const = case Code.get_datatype_of_constr thy c
      of SOME tyco => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
@@ -597,7 +647,7 @@ and translate_term thy algbr funcgr thm (Const (c, ty)) =
             translate_term thy algbr funcgr thm t'
             ##>> fold_map (translate_term thy algbr funcgr thm) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eq thy algbr funcgr (thm, proper) =
+and translate_eqn thy algbr funcgr (thm, proper) =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
       o Logic.unvarify o prop_of) thm;

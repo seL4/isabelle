@@ -645,7 +645,7 @@ fun conv_ntuple fs ts p =
 
 fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
     (Const ("Collect", _), [u]) =>
-      let val (r, Ts, fs) = HOLogic.strip_splits u
+      let val (r, Ts, fs) = HOLogic.strip_psplits u
       in case strip_comb r of
           (Const (s, T), ts) =>
             (case (get_clauses thy s, get_assoc_code thy (s, T)) of

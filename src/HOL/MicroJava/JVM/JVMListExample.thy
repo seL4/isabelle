@@ -1,11 +1,12 @@
 (*  Title:      HOL/MicroJava/JVM/JVMListExample.thy
-    ID:         $Id$
     Author:     Stefan Berghofer
 *)
 
 header {* \isaheader{Example for generating executable code from JVM semantics}\label{sec:JVMListExample} *}
 
-theory JVMListExample imports "../J/SystemClasses" JVMExec begin
+theory JVMListExample
+imports "../J/SystemClasses" JVMExec
+begin
 
 consts
   list_nam :: cnam

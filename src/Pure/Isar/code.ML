@@ -33,9 +33,6 @@ sig
     -> (thm * bool) list -> (thm * bool) list
   val const_typ_eqn: theory -> thm -> string * typ
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
-  val expand_eta: theory -> int -> thm -> thm
-  val norm_args: theory -> thm list -> thm list 
-  val norm_varnames: theory -> thm list -> thm list
 
   (*executable code*)
   val add_datatype: (string * typ) list -> theory -> theory
@@ -124,115 +121,6 @@ fun typscheme thy (c, ty) =
   let
     val ty' = Logic.unvarifyT ty;
   in (map dest_TFree (Sign.const_typargs thy (c, ty')), Type.strip_sorts ty') end;
-
-
-(* code equation transformations *)
-
-fun expand_eta thy k thm =
-  let
-    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
-    val (head, args) = strip_comb lhs;
-    val l = if k = ~1
-      then (length o fst o strip_abs) rhs
-      else Int.max (0, k - length args);
-    val used = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
-    fun get_name _ 0 = pair []
-      | get_name (Abs (v, ty, t)) k =
-          Name.variants [v]
-          ##>> get_name t (k - 1)
-          #>> (fn ([v'], vs') => (v', ty) :: vs')
-      | get_name t k = 
-          let
-            val (tys, _) = (strip_type o fastype_of) t
-          in case tys
-           of [] => raise TERM ("expand_eta", [t])
-            | ty :: _ =>
-                Name.variants [""]
-                #-> (fn [v] => get_name (t $ Var ((v, 0), ty)) (k - 1)
-                #>> (fn vs' => (v, ty) :: vs'))
-          end;
-    val (vs, _) = get_name rhs l used;
-    fun expand (v, ty) thm = Drule.fun_cong_rule thm
-      (Thm.cterm_of thy (Var ((v, 0), ty)));
-  in
-    thm
-    |> fold expand vs
-    |> Conv.fconv_rule Drule.beta_eta_conversion
-  end;
-
-fun norm_args thy thms =
-  let
-    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
-  in
-    thms
-    |> map (expand_eta thy k)
-    |> map (Conv.fconv_rule Drule.beta_eta_conversion)
-  end;
-
-fun canonical_tvars thy thm =
-  let
-    val ctyp = Thm.ctyp_of thy;
-    val purify_tvar = unprefix "'" #> Name.desymbolize false #> prefix "'";
-    fun tvars_subst_for thm = (fold_types o fold_atyps)
-      (fn TVar (v_i as (v, _), sort) => let
-            val v' = purify_tvar v
-          in if v = v' then I
-          else insert (op =) (v_i, (v', sort)) end
-        | _ => I) (prop_of thm) [];
-    fun mk_inst (v_i, (v', sort)) (maxidx, acc) =
-      let
-        val ty = TVar (v_i, sort)
-      in
-        (maxidx + 1, (ctyp ty, ctyp (TVar ((v', maxidx), sort))) :: acc)
-      end;
-    val maxidx = Thm.maxidx_of thm + 1;
-    val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
-  in Thm.instantiate (inst, []) thm end;
-
-fun canonical_vars thy thm =
-  let
-    val cterm = Thm.cterm_of thy;
-    val purify_var = Name.desymbolize false;
-    fun vars_subst_for thm = fold_aterms
-      (fn Var (v_i as (v, _), ty) => let
-            val v' = purify_var v
-          in if v = v' then I
-          else insert (op =) (v_i, (v', ty)) end
-        | _ => I) (prop_of thm) [];
-    fun mk_inst (v_i as (v, i), (v', ty)) (maxidx, acc) =
-      let
-        val t = Var (v_i, ty)
-      in
-        (maxidx + 1, (cterm t, cterm (Var ((v', maxidx), ty))) :: acc)
-      end;
-    val maxidx = Thm.maxidx_of thm + 1;
-    val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
-  in Thm.instantiate ([], inst) thm end;
-
-fun canonical_absvars thm =
-  let
-    val t = Thm.plain_prop_of thm;
-    val purify_var = Name.desymbolize false;
-    val t' = Term.map_abs_vars purify_var t;
-  in Thm.rename_boundvars t t' thm end;
-
-fun norm_varnames thy thms =
-  let
-    fun burrow_thms f [] = []
-      | burrow_thms f thms =
-          thms
-          |> Conjunction.intr_balanced
-          |> f
-          |> Conjunction.elim_balanced (length thms)
-  in
-    thms
-    |> map (canonical_vars thy)
-    |> map canonical_absvars
-    |> map Drule.zero_var_indexes
-    |> burrow_thms (canonical_tvars thy)
-    |> Drule.zero_var_indexes_list
-  end;
 
 
 (** data store **)
@@ -662,32 +550,21 @@ fun assert_eqns_const thy c eqns =
         ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy thm)
   in map (cert o assert_eqn thy) eqns end;
 
-fun common_typ_eqns thy [] = []
-  | common_typ_eqns thy [thm] = [thm]
-  | common_typ_eqns thy (thms as thm :: _) = (*FIXME is too general*)
-      let
-        fun incr_thm thm max =
-          let
-            val thm' = incr_indexes max thm;
-            val max' = Thm.maxidx_of thm' + 1;
-          in (thm', max') end;
-        val (thms', maxidx) = fold_map incr_thm thms 0;
-        val ty1 :: tys = map (snd o const_typ_eqn thy) thms';
-        fun unify ty env = Sign.typ_unify thy (ty1, ty) env
-          handle Type.TUNIFY =>
-            error ("Type unificaton failed, while unifying code equations\n"
-            ^ (cat_lines o map (Display.string_of_thm_global thy)) thms
-            ^ "\nwith types\n"
-            ^ (cat_lines o map (string_of_typ thy)) (ty1 :: tys));
-        val (env, _) = fold unify tys (Vartab.empty, maxidx)
-        val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
-          cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
-      in map (Thm.instantiate (instT, [])) thms' end;
+fun same_typscheme thy thms =
+  let
+    fun tvars_of t = rev (Term.add_tvars t []);
+    val vss = map (tvars_of o Thm.prop_of) thms;
+    fun inter_sorts vs =
+      fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
+    val sorts = map_transpose inter_sorts vss;
+    val vts = Name.names Name.context Name.aT sorts
+      |> map (fn (v, sort) => TVar ((v, 0), sort));
+  in map2 (fn vs => Thm.certify_instantiate (vs ~~ vts, [])) vss thms end;
 
 fun these_eqns thy c =
   get_eqns thy c
   |> (map o apfst) (Thm.transfer thy)
-  |> burrow_fst (common_typ_eqns thy);
+  |> burrow_fst (same_typscheme thy);
 
 fun all_eqns thy =
   Symtab.dest ((the_eqns o the_exec) thy)

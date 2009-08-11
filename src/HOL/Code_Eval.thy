@@ -39,6 +39,17 @@ lemma valapp_code [code, code_unfold]:
 
 subsubsection {* @{text term_of} instances *}
 
+instantiation "fun" :: (typerep, typerep) term_of
+begin
+
+definition
+  "term_of (f \<Colon> 'a \<Rightarrow> 'b) = Const (STR ''dummy_pattern'') (Typerep.Typerep (STR ''fun'')
+     [Typerep.typerep TYPE('a), Typerep.typerep TYPE('b)])"
+
+instance ..
+
+end
+
 setup {*
 let
   fun add_term_of tyco raw_vs thy =

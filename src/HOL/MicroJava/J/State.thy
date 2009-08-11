@@ -1,12 +1,13 @@
 (*  Title:      HOL/MicroJava/J/State.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
 header {* \isaheader{Program State} *}
 
-theory State imports TypeRel Value begin
+theory State
+imports TypeRel Value
+begin
 
 types 
   fields' = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"
@@ -19,7 +20,6 @@ constdefs
 
   init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)"
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
-  
 
 types aheap  = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a translation below *}
       locals = "vname \<rightharpoonup> val"  -- "simple state, i.e. variable contents"

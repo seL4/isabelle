@@ -250,6 +250,9 @@ by (simp add: bij_def)
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
 by (simp add: bij_betw_def)
 
+lemma bij_comp: "bij f \<Longrightarrow> bij g \<Longrightarrow> bij (g o f)"
+by(fastsimp intro: comp_inj_on comp_surj simp: bij_def surj_range)
+
 lemma bij_betw_trans:
   "bij_betw f A B \<Longrightarrow> bij_betw g B C \<Longrightarrow> bij_betw (g o f) A C"
 by(auto simp add:bij_betw_def comp_inj_on)
