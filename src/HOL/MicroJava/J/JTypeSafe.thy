@@ -183,8 +183,6 @@ val forward_hyp_tac = ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac,
   (mp_tac ORELSE' (dtac spec THEN' mp_tac)), REPEAT o (etac conjE)]))
 *}
 
-declare [[unify_search_bound = 40, unify_trace_bound = 40]]
-
 
 theorem eval_evals_exec_type_sound: 
 "wf_java_prog G ==>  
@@ -367,8 +365,6 @@ apply blast
 apply (simp (no_asm_simp))+ 
 
 done
-
-declare [[unify_search_bound = 20, unify_trace_bound = 20]]
 
 
 lemma eval_type_sound: "!!E s s'.  

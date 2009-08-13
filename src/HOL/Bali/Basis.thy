@@ -7,8 +7,6 @@ header {* Definitions extending HOL as logical basis of Bali *}
 
 theory Basis imports Main begin
 
-declare [[unify_search_bound = 40, unify_trace_bound = 40]]
-
 
 section "misc"
 
@@ -65,36 +63,36 @@ lemma rtrancl_into_rtrancl2:
 by (auto intro: r_into_rtrancl rtrancl_trans)
 
 lemma triangle_lemma:
- "\<lbrakk> \<And> a b c. \<lbrakk>(a,b)\<in>r; (a,c)\<in>r\<rbrakk> \<Longrightarrow> b=c; (a,x)\<in>r\<^sup>*; (a,y)\<in>r\<^sup>*\<rbrakk> 
- \<Longrightarrow> (x,y)\<in>r\<^sup>* \<or> (y,x)\<in>r\<^sup>*"
+ "\<lbrakk> \<And> a b c. \<lbrakk>(a,b)\<in>r; (a,c)\<in>r\<rbrakk> \<Longrightarrow> b=c; (a,x)\<in>r*; (a,y)\<in>r*\<rbrakk> 
+ \<Longrightarrow> (x,y)\<in>r* \<or> (y,x)\<in>r*"
 proof -
   note converse_rtrancl_induct = converse_rtrancl_induct [consumes 1]
   note converse_rtranclE = converse_rtranclE [consumes 1] 
   assume unique: "\<And> a b c. \<lbrakk>(a,b)\<in>r; (a,c)\<in>r\<rbrakk> \<Longrightarrow> b=c"
-  assume "(a,x)\<in>r\<^sup>*" 
-  then show "(a,y)\<in>r\<^sup>* \<Longrightarrow> (x,y)\<in>r\<^sup>* \<or> (y,x)\<in>r\<^sup>*"
+  assume "(a,x)\<in>r*" 
+  then show "(a,y)\<in>r* \<Longrightarrow> (x,y)\<in>r* \<or> (y,x)\<in>r*"
   proof (induct rule: converse_rtrancl_induct)
-    assume "(x,y)\<in>r\<^sup>*"
+    assume "(x,y)\<in>r*"
     then show ?thesis 
       by blast
   next
     fix a v
     assume a_v_r: "(a, v) \<in> r" and
-          v_x_rt: "(v, x) \<in> r\<^sup>*" and
-          a_y_rt: "(a, y) \<in> r\<^sup>*"  and
-             hyp: "(v, y) \<in> r\<^sup>* \<Longrightarrow> (x, y) \<in> r\<^sup>* \<or> (y, x) \<in> r\<^sup>*"
+          v_x_rt: "(v, x) \<in> r*" and
+          a_y_rt: "(a, y) \<in> r*"  and
+             hyp: "(v, y) \<in> r* \<Longrightarrow> (x, y) \<in> r* \<or> (y, x) \<in> r*"
     from a_y_rt 
-    show "(x, y) \<in> r\<^sup>* \<or> (y, x) \<in> r\<^sup>*"
+    show "(x, y) \<in> r* \<or> (y, x) \<in> r*"
     proof (cases rule: converse_rtranclE)
       assume "a=y"
-      with a_v_r v_x_rt have "(y,x) \<in> r\<^sup>*"
+      with a_v_r v_x_rt have "(y,x) \<in> r*"
 	by (auto intro: r_into_rtrancl rtrancl_trans)
       then show ?thesis 
 	by blast
     next
       fix w 
       assume a_w_r: "(a, w) \<in> r" and
-            w_y_rt: "(w, y) \<in> r\<^sup>*"
+            w_y_rt: "(w, y) \<in> r*"
       from a_v_r a_w_r unique 
       have "v=w" 
 	by auto
@@ -107,7 +105,7 @@ qed
 
 
 lemma rtrancl_cases [consumes 1, case_names Refl Trancl]:
- "\<lbrakk>(a,b)\<in>r\<^sup>*;  a = b \<Longrightarrow> P; (a,b)\<in>r\<^sup>+ \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+ "\<lbrakk>(a,b)\<in>r*;  a = b \<Longrightarrow> P; (a,b)\<in>r+ \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 apply (erule rtranclE)
 apply (auto dest: rtrancl_into_trancl1)
 done

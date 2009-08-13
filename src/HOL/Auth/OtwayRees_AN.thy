@@ -246,7 +246,7 @@ lemma Spy_not_see_encrypted_key:
          Notes Spy {|NA, NB, Key K|} \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
       ==> Key K \<notin> analz (knows Spy evs)"
-by (blast dest: Says_Server_message_form secrecy_lemma)
+  by (metis secrecy_lemma)
 
 
 text{*A's guarantee.  The Oops premise quantifies over NB because A cannot know
@@ -256,7 +256,7 @@ lemma A_gets_good_key:
          \<forall>NB. Notes Spy {|NA, NB, Key K|} \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
       ==> Key K \<notin> analz (knows Spy evs)"
-by (blast dest!: A_trusts_OR4 Spy_not_see_encrypted_key)
+  by (metis A_trusts_OR4 secrecy_lemma)
 
 
 
