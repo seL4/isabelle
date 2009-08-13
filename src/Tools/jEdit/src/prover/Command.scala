@@ -13,7 +13,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 import scala.collection.mutable
 
-import isabelle.proofdocument.{Text, Token, ProofDocument}
+import isabelle.proofdocument.{Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
 import isabelle.XML
 
