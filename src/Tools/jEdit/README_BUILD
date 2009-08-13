@@ -21,7 +21,7 @@ Requirements to build from sources
 * jEdit plugins:
     Netbeans Library "Sidekick" = $HOME/.jedit/jars/SideKick.jar
     Netbeans Library "ErrorList" = $HOME/.jedit/jars/ErrorList.jar
-    Netbeans Library "HyperLink" = $HOME/.jedit/jars/Hyperlinks.jar
+    Netbeans Library "Hyperlink" = $HOME/.jedit/jars/Hyperlinks.jar
 
 * Flying Saucer XHTML renderer
   https://xhtmlrenderer.dev.java.net/
