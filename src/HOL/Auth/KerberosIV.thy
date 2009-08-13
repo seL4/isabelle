@@ -379,6 +379,7 @@ by auto
 lemma Spy_see_shrK_D [dest!]:
      "\<lbrakk> Key (shrK A) \<in> parts (spies evs);  evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A:bad"
 by (blast dest: Spy_see_shrK)
+
 lemmas Spy_analz_shrK_D = analz_subset_parts [THEN subsetD, THEN Spy_see_shrK_D, dest!]
 
 text{*Nobody can have used non-existent keys!*}
@@ -479,21 +480,7 @@ apply (simp_all (no_asm) add: authKeys_def authKeys_insert, blast, blast)
 txt{*K2*}
 apply (simp (no_asm) add: takeWhile_tail)
 apply (rule conjI)
-apply clarify
-apply (rule conjI)
-apply clarify
-apply (rule conjI)
-apply blast
-apply (rule conjI)
-apply clarify
-apply (rule conjI)
-txt{*subcase: used before*}
-apply (blast dest: used_evs_rev [THEN equalityD2, THEN contra_subsetD] 
-                   used_takeWhile_used)
-txt{*subcase: CT before*}
-apply (fastsimp dest!: set_evs_rev [THEN equalityD2, THEN contra_subsetD, THEN takeWhile_void])
-apply blast
-txt{*rest*}
+apply (metis Key_not_used authKeys_used length_rev set_rev takeWhile_void used_evs_rev)
 apply blast+
 done
 
@@ -570,10 +557,9 @@ apply (blast dest!: SesKey_is_session_key)
 apply (blast dest: authTicket_crypt_authK)
 apply (blast dest!: authKeys_used Says_Kas_message_form)
 txt{*subcase: used before*}
-apply (blast dest: used_evs_rev [THEN equalityD2, THEN contra_subsetD] 
-                   used_takeWhile_used)
+apply (metis used_evs_rev used_takeWhile_used)
 txt{*subcase: CT before*}
-apply (fastsimp dest!: set_evs_rev [THEN equalityD2, THEN contra_subsetD, THEN takeWhile_void])
+apply (metis length_rev set_evs_rev takeWhile_void)
 done
 
 lemma authTicket_form:
@@ -794,8 +780,7 @@ done
 lemma u_NotexpiredSK_NotexpiredAK:
      "\<lbrakk> \<not> expiredSK Ts evs; servKlife + Ts <= authKlife + Ta \<rbrakk>
       \<Longrightarrow> \<not> expiredAK Ta evs"
-apply (blast dest: leI le_trans dest: leD)
-done
+  by (metis nat_add_commute le_less_trans)
 
 
 subsection{* Reliability: friendly agents send something if something else happened*}
@@ -854,16 +839,8 @@ apply (force dest!: Crypt_imp_keysFor)
 txt{*K3*}
 apply (blast dest: Key_unique_SesKey)
 txt{*K5*}
-txt{*If authKa were compromised, so would be authK*}
-apply (case_tac "Key authKa \<in> analz (spies evs5)")
-apply (force dest!: Says_imp_spies [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
-txt{*Besides, since authKa originated with Kas anyway...*}
-apply (clarify, drule K3_imp_K2, assumption, assumption)
-apply (clarify, drule Says_Kas_message_form, assumption)
-txt{*...it cannot be a shared key*. Therefore @{text servK_authentic} applies. 
-     Contradition: Tgs used authK as a servkey, 
-     while Kas used it as an authkey*}
-apply (blast dest: servK_authentic Says_Tgs_message_form)
+apply (metis K3_imp_K2 Key_unique_SesKey Spy_see_shrK parts.Body parts.Fst 
+             Says_imp_knows_Spy [THEN parts.Inj])
 done
 
 lemma Says_K5:
@@ -922,9 +899,12 @@ apply (frule_tac [5] Says_ticket_parts)
 apply (frule_tac [7] Says_ticket_parts)
 apply (simp_all (no_asm_simp))
 apply blast
-apply (force dest!: Crypt_imp_keysFor, clarify)
-apply (frule Says_Tgs_message_form, assumption, clarify) (*PROOF FAILED if omitted*)
-apply (blast dest: unique_CryptKey)
+atp_minimize [atp=spass] Crypt_imp_invKey_keysFor invKey_K new_keys_not_used
+apply (metis Crypt_imp_invKey_keysFor invKey_K new_keys_not_used)
+apply (clarify)
+apply (frule Says_Tgs_message_form, assumption)
+apply (metis K3_msg_in_parts_spies parts.Fst Says_imp_knows_Spy [THEN parts.Inj] 
+             unique_CryptKey) 
 done
 
 text{*Needs a unicity theorem, hence moved here*}
@@ -1099,13 +1079,8 @@ apply (erule rev_mp)
 apply (erule kerbIV.induct, analz_mono_contra)
 apply (frule_tac [7] K5_msg_in_parts_spies)
 apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, blast)
-txt{*K4 splits into distinct subcases*}
-apply auto
-txt{*servK can't have been enclosed in two certificates*}
- prefer 2 apply (blast dest: unique_CryptKey)
-txt{*servK is fresh and so could not have been used, by
-   @{text new_keys_not_used}*}
-apply (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
+txt{*K4*}
+apply (metis Auth_fresh_not_AKcryptSK Crypt_imp_keysFor new_keys_not_used parts.Fst parts.Snd Says_imp_knows_Spy [THEN parts.Inj] unique_CryptKey)
 done
 
 text{*Long term keys are not issued as servKeys*}
@@ -1143,16 +1118,9 @@ lemma AKcryptSK_not_AKcryptSK:
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
-apply (frule_tac [5] K3_msg_in_parts_spies, simp_all, safe)
-txt{*K4 splits into subcases*}
-apply simp_all
-prefer 4 apply (blast dest!: authK_not_AKcryptSK)
-txt{*servK is fresh and so could not have been used, by
-   @{text new_keys_not_used}*}
- prefer 2 
- apply (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
-txt{*Others by freshness*}
-apply (blast+)
+apply (frule_tac [5] K3_msg_in_parts_spies, simp_all)
+apply (metis Auth_fresh_not_AKcryptSK Says_imp_spies authK_not_AKcryptSK 
+             authKeys_used authTicket_crypt_authK parts.Fst parts.Inj)
 done
 
 text{*The only session keys that can be found with the help of session keys are
@@ -1304,7 +1272,7 @@ lemma authK_compromises_servK:
            \<in> set evs;  authK \<in> symKeys;
          Key authK \<in> analz (spies evs); evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> Key servK \<in> analz (spies evs)"
-by (force dest: Says_imp_spies [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
+  by (metis Says_imp_analz_Spy analz.Fst analz_Decrypt')
 
 lemma servK_notin_authKeysD:
      "\<lbrakk> Crypt authK \<lbrace>Key servK, Agent B, Ts,
@@ -1348,6 +1316,7 @@ apply blast
 txt{*K4*}
 apply blast
 txt{*Level 8: K5*}
+atp_minimize [atp=e] Tgs_not_bad authKeysI less_SucI mem_def nat_add_commute servK_notin_authKeysD spies_partsEs(1)
 apply (blast dest: servK_notin_authKeysD Says_Kas_message_form intro: less_SucI)
 txt{*Oops1*}
 apply (blast dest!: unique_authKeys intro: less_SucI)
@@ -1395,24 +1364,17 @@ apply (frule_tac [5] Says_kas_message_form)
 apply (safe del: impI conjI impCE)
 apply (simp_all add: less_SucI new_keys_not_analzd Says_Kas_message_form Says_Tgs_message_form analz_insert_eq not_parts_not_analz analz_insert_freshK1 analz_insert_freshK2 analz_insert_freshK3_bis pushes)
 txt{*Fake*}
-apply spy_analz
+     apply spy_analz
 txt{*K2*}
-apply (blast intro: parts_insertI less_SucI)
+    apply (blast intro: parts_insertI less_SucI)
 txt{*K4*}
-apply (blast dest: authTicket_authentic Confidentiality_Kas)
-txt{*Oops2*}
-  prefer 3
-  apply (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
+   apply (blast dest: authTicket_authentic Confidentiality_Kas)
+txt{*K5*}
+  apply (metis Says_imp_spies Says_ticket_parts Tgs_not_bad analz_insert_freshK2 
+             less_SucI parts.Inj servK_notin_authKeysD unique_CryptKey)
 txt{*Oops1*} 
- prefer 2
-apply (blast dest: Says_Kas_message_form Says_Tgs_message_form intro: less_SucI)
-txt{*K5. Not obvious how this step could be integrated with the main
-       simplification step. Done in KerberosV.thy *}
-apply clarify
-apply (erule_tac V = "Says Aa Tgs ?X \<in> set ?evs" in thin_rl)
-apply (frule Says_imp_spies [THEN parts.Inj, THEN servK_notin_authKeysD])
-apply (assumption, blast, assumption)
-apply (simp add: analz_insert_freshK2)
+ apply (blast dest: Says_Kas_message_form Says_Tgs_message_form intro: less_SucI)
+txt{*Oops2*}
 apply (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
 done
 
@@ -1669,9 +1631,7 @@ done
 lemma honest_never_says_current_timestamp_in_auth:
      "\<lbrakk> (CT evs) = T; Number T \<in> parts {X}; evs \<in> kerbIV \<rbrakk> 
      \<Longrightarrow> \<forall> A B Y. A \<notin> bad \<longrightarrow> Says A B \<lbrace>Y, X\<rbrace> \<notin> set evs"
-apply (frule eq_imp_le)
-apply (blast dest: honest_never_says_newer_timestamp_in_auth)
-done
+  by (metis eq_imp_le honest_never_says_newer_timestamp_in_auth)
 
 lemma A_trusts_secure_authenticator:
     "\<lbrakk> Crypt K \<lbrace>Agent A, Number T\<rbrace> \<in> parts (spies evs);
