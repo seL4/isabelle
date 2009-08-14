@@ -119,7 +119,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val tycos = map fst dataTs;
     val _ = if gen_eq_set (op =) (tycos, raw_tycos) then ()
       else error ("Type constructors " ^ commas (map quote raw_tycos)
-        ^ "do not belong exhaustively to one mutual recursive datatype");
+        ^ " do not belong exhaustively to one mutual recursive datatype");
 
     val (Ts, Us) = (pairself o map) Type protoTs;
 

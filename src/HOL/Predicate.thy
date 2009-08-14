@@ -646,7 +646,7 @@ struct
 @{code_datatype pred = Seq};
 @{code_datatype seq = Empty | Insert | Join};
 
-fun yield (Seq f) = next (f ())
+fun yield (@{code Seq} f) = next (f ())
 and next @{code Empty} = NONE
   | next (@{code Insert} (x, P)) = SOME (x, P)
   | next (@{code Join} (P, xq)) = (case yield P

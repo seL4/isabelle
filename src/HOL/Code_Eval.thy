@@ -134,7 +134,7 @@ lemma [code, code del]:
 
 lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]: "Code_Eval.term_of c =
     (let (n, m) = nibble_pair_of_char c
-  in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''Pair'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
+  in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
     (Code_Eval.term_of n)) (Code_Eval.term_of m))"
   by (subst term_of_anything) rule 
 
