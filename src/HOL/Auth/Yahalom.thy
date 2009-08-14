@@ -633,6 +633,5 @@ lemma YM4_imp_A_Said_YM3 [rule_format]:
          (\<forall>NA k. Notes Spy {|Nonce NA, Nonce NB, k|} \<notin> set evs);
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> \<exists>X. Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs"
-atp_minimize [atp=spass] A_Said_YM3_lemma B_gets_good_key Gets_imp_analz_Spy YM4_parts_knows_Spy analz.Fst not_parts_not_analz
 by (metis A_Said_YM3_lemma B_gets_good_key Gets_imp_analz_Spy YM4_parts_knows_Spy analz.Fst not_parts_not_analz)
 end
