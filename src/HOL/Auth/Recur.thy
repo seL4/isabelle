@@ -419,15 +419,10 @@ txt{*Fake*}
 apply spy_analz
 txt{*RA2*}
 apply blast 
-txt{*RA3 remains*}
+txt{*RA3*}
 apply (simp add: parts_insert_spies)
-txt{*Now we split into two cases.  A single blast could do it, but it would take
-  a CPU minute.*}
-apply (safe del: impCE)
-txt{*RA3, case 1: use lemma previously proved by induction*}
-apply (blast elim: rev_notE [OF _ respond_Spy_not_see_session_key])
-txt{*RA3, case 2: K is an old key*}
-apply (blast dest: resp_analz_insert dest: Key_in_parts_respond)
+apply (metis Key_in_parts_respond parts.Body parts.Fst resp_analz_insert 
+             respond_Spy_not_see_session_key usedI)
 txt{*RA4*}
 apply blast 
 done

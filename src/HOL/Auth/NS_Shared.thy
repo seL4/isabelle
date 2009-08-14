@@ -273,11 +273,11 @@ apply (erule_tac [5] disjE)
 apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs, spy_analz)
 txt{*NS2*}
 apply blast
-txt{*NS3, Server sub-case*}
+txt{*NS3*}
 apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
 	     dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
-txt{*NS3, Spy sub-case; also Oops*}
-apply (blast dest: unique_session_keys)+
+txt{*Oops*}
+apply (blast dest: unique_session_keys)
 done
 
 
