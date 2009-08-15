@@ -91,11 +91,10 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
 
 fun add_default_code tyco thy =
   let
-    val SOME { constr = constr_name, proj = (proj, _), proj_def = proj_eq, vs = raw_vs,
+    val SOME { constr = c, proj = (proj, _), proj_def = proj_eq, vs = vs,
       typ = ty_rep, ... } =  get_info thy tyco;
     val SOME { Rep_inject = proj_inject, ... } = Typedef.get_info thy tyco;
-    val constr = (constr_name, Logic.unvarifyT (Sign.the_const_type thy constr_name));
-    val vs = (map dest_TFree o snd o dest_Type) (Type (tyco, map TFree raw_vs));
+    val constr = (c, Logic.unvarifyT (Sign.the_const_type thy c));
     val ty = Type (tyco, map TFree vs);
     val proj = Const (proj, ty --> ty_rep);
     val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
