@@ -13,4 +13,4 @@ src/Sequents
 #misc components
 src/HOL/Tools/ATP_Manager
 src/HOL/Library/Sum_Of_Squares
-
+src/HOL/ex/Mirabelle
