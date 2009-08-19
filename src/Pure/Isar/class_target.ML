@@ -210,7 +210,7 @@ fun register class sups params base_sort morph
 fun activate_defs class thms thy =
   let
     val eq_morph = Element.eq_morphism thy thms;
-    fun amend cls thy = Locale.amend_registration eq_morph
+    fun amend cls thy = Locale.amend_registration_legacy eq_morph
       (cls, morphism thy cls) thy;
   in fold amend (heritage thy [class]) thy end;
 

@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/expression.ML
     Author:     Clemens Ballarin, TU Muenchen
 
-Locale expressions.
+Locale expressions and user interface layer of locales.
 *)
 
 signature EXPRESSION =

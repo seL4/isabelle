@@ -69,7 +69,7 @@ sig
 
   (* Registrations and dependencies *)
   val add_registration_eqs: string * morphism -> thm list -> morphism -> theory -> theory
-  val amend_registration: morphism -> string * morphism -> theory -> theory
+  val amend_registration_legacy: morphism -> string * morphism -> theory -> theory
   val add_dependency: string -> string * morphism -> morphism -> theory -> theory
 
   (* Diagnostic *)
@@ -239,7 +239,7 @@ fun roundup thy activate_dep (name, morph) (marked, input) =
     (* Find all dependencies incuding new ones (which are dependencies enriching
       existing registrations). *)
     val (dependencies, marked') = add thy 0 (name, morph) ([], []);
-    (* Filter out exisiting fragments. *)
+    (* Filter out fragments from marked; these won't be activated. *)
     val dependencies' = filter_out (fn (name, morph) =>
       member (ident_eq thy) marked (name, instance_of thy name morph)) dependencies;
   in
@@ -344,7 +344,8 @@ fun these_registrations thy name = Registrations.get thy
 fun all_registrations thy = Registrations.get thy
   |> map reg_morph;
 
-fun amend_registration morph (name, base_morph) thy =
+fun amend_registration_legacy morph (name, base_morph) thy =
+  (* legacy, never modify base morphism *)
   let
     val regs = map #1 (Registrations.get thy);
     val base = instance_of thy name base_morph;
