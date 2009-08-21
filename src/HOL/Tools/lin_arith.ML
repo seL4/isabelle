@@ -67,7 +67,7 @@ fun mk_nat_thm thy t =
     and ct = cterm_of thy t
   in instantiate ([], [(cn, ct)]) @{thm le0} end;
 
-end;
+end;  (* LA_Logic *)
 
 
 (* arith context data *)
@@ -279,7 +279,7 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
 
 
 (*---------------------------------------------------------------------------*)
-(* the following code performs splitting of certain constants (e.g. min,     *)
+(* the following code performs splitting of certain constants (e.g., min,    *)
 (* max) in a linear arithmetic problem; similar to what split_tac later does *)
 (* to the proof state                                                        *)
 (*---------------------------------------------------------------------------*)
@@ -342,23 +342,30 @@ let
   (* takes a list  [t1, ..., tn]  to the term                                *)
   (*   tn' --> ... --> t1' --> False  ,                                      *)
   (* where ti' = HOLogic.dest_Trueprop ti                                    *)
-  fun REPEAT_DETERM_etac_rev_mp terms' =
-    fold (curry HOLogic.mk_imp) (map HOLogic.dest_Trueprop terms') HOLogic.false_const
-  val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
-  val cmap       = Splitter.cmap_of_split_thms split_thms
-  val splits     = Splitter.split_posns cmap thy Ts (REPEAT_DETERM_etac_rev_mp terms)
+  fun REPEAT_DETERM_etac_rev_mp tms =
+    fold (curry HOLogic.mk_imp) (map HOLogic.dest_Trueprop tms)
+      HOLogic.false_const
+  val split_thms  = filter is_split_thm (#splits (get_arith_data ctxt))
+  val cmap        = Splitter.cmap_of_split_thms split_thms
+  val goal_tm     = REPEAT_DETERM_etac_rev_mp terms
+  val splits      = Splitter.split_posns cmap thy Ts goal_tm
   val split_limit = Config.get ctxt split_limit
 in
-  if length splits > split_limit then
-   (tracing ("linarith_split_limit exceeded (current value is " ^
-      string_of_int split_limit ^ ")"); NONE)
-  else (
-  case splits of [] =>
+  if length splits > split_limit then (
+    tracing ("linarith_split_limit exceeded (current value is " ^
+      string_of_int split_limit ^ ")");
+    NONE
+  ) else case splits of
+    [] =>
     (* split_tac would fail: no possible split *)
     NONE
-  | ((_, _, _, split_type, split_term) :: _) => (
-    (* ignore all but the first possible split *)
-    case strip_comb split_term of
+  | (_, _::_, _, _, _) :: _ =>
+    (* disallow a split that involves non-locally bound variables (except    *)
+    (* when bound by outermost meta-quantifiers)                             *)
+    NONE
+  | (_, [], _, split_type, split_term) :: _ =>
+    (* ignore all but the first possible split                               *)
+    (case strip_comb split_term of
     (* ?P (max ?i ?j) = ((?i <= ?j --> ?P ?j) & (~ ?i <= ?j --> ?P ?i)) *)
       (Const (@{const_name Orderings.max}, _), [t1, t2]) =>
       let
@@ -627,12 +634,11 @@ in
     (* out                                                                   *)
     | (t, ts) => (
       warning ("Lin. Arith.: split rule for " ^ Syntax.string_of_term ctxt t ^
-               " (with " ^ string_of_int (length ts) ^
-               " argument(s)) not implemented; proof reconstruction is likely to fail");
+        " (with " ^ string_of_int (length ts) ^
+        " argument(s)) not implemented; proof reconstruction is likely to fail");
       NONE
     ))
-  )
-end;
+end;  (* split_once_items *)
 
 (* remove terms that do not satisfy 'p'; change the order of the remaining   *)
 (* terms in the same way as filter_prems_tac does                            *)
@@ -651,29 +657,32 @@ end;
 
 fun negated_term_occurs_positively (terms : term list) : bool =
   List.exists
-    (fn (Trueprop $ (Const ("Not", _) $ t)) => member Pattern.aeconv terms (Trueprop $ t)
-      | _                                   => false)
+    (fn (Trueprop $ (Const ("Not", _) $ t)) =>
+      member Pattern.aeconv terms (Trueprop $ t)
+      | _ => false)
     terms;
 
 fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) list =
 let
   (* repeatedly split (including newly emerging subgoals) until no further   *)
   (* splitting is possible                                                   *)
-  fun split_loop ([] : (typ list * term list) list) = ([] : (typ list * term list) list)
-    | split_loop (subgoal::subgoals)                = (
-        case split_once_items ctxt subgoal of
-          SOME new_subgoals => split_loop (new_subgoals @ subgoals)
-        | NONE              => subgoal :: split_loop subgoals
-      )
+  fun split_loop ([] : (typ list * term list) list) =
+      ([] : (typ list * term list) list)
+    | split_loop (subgoal::subgoals) =
+      (case split_once_items ctxt subgoal of
+        SOME new_subgoals => split_loop (new_subgoals @ subgoals)
+      | NONE              => subgoal :: split_loop subgoals)
   fun is_relevant t  = isSome (decomp ctxt t)
   (* filter_prems_tac is_relevant: *)
   val relevant_terms = filter_prems_tac_items is_relevant terms
   (* split_tac, NNF normalization: *)
   val split_goals    = split_loop [(Ts, relevant_terms)]
   (* necessary because split_once_tac may normalize terms: *)
-  val beta_eta_norm  = map (apsnd (map (Envir.eta_contract o Envir.beta_norm))) split_goals
+  val beta_eta_norm  = map (apsnd (map (Envir.eta_contract o Envir.beta_norm)))
+    split_goals
   (* TRY (etac notE) THEN eq_assume_tac: *)
-  val result         = List.filter (not o negated_term_occurs_positively o snd) beta_eta_norm
+  val result         = List.filter (not o negated_term_occurs_positively o snd)
+    beta_eta_norm
 in
   result
 end;
@@ -694,7 +703,8 @@ local
     addsimps [imp_conv_disj, iff_conv_conj_imp, de_Morgan_disj, de_Morgan_conj,
       not_all, not_ex, not_not]
   fun prem_nnf_tac i st =
-    full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st
+    full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset)
+      i st
 in
 
 fun split_once_tac ctxt split_thms =
@@ -706,10 +716,15 @@ fun split_once_tac ctxt split_thms =
         val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal)
         val cmap = Splitter.cmap_of_split_thms split_thms
         val splits = Splitter.split_posns cmap thy Ts concl
-        val split_limit = Config.get ctxt split_limit
       in
-        if length splits > split_limit then no_tac
-        else split_tac split_thms i
+        if null splits orelse length splits > Config.get ctxt split_limit then
+          no_tac
+        else if null (#2 (hd splits)) then
+          split_tac split_thms i
+        else
+          (* disallow a split that involves non-locally bound variables      *)
+          (* (except when bound by outermost meta-quantifiers)               *)
+          no_tac
       end)
   in
     EVERY' [
@@ -726,7 +741,7 @@ end;  (* local *)
 (* remove irrelevant premises, then split the i-th subgoal (and all new      *)
 (* subgoals) by using 'split_once_tac' repeatedly.  Beta-eta-normalize new   *)
 (* subgoals and finally attempt to solve them by finding an immediate        *)
-(* contradiction (i.e. a term and its negation) in their premises.           *)
+(* contradiction (i.e., a term and its negation) in their premises.          *)
 
 fun pre_tac ctxt i =
 let

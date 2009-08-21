@@ -321,24 +321,23 @@ fun perhaps_constrain thy insts raw_vs =
 
 fun ensure_random_datatype config raw_tycos thy =
   let
-    val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) =
       Datatype.the_descr thy raw_tycos;
-    val typrep_vs = (map o apsnd)
+    val typerep_vs = (map o apsnd)
       (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
     val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
-      (DatatypeAux.interpret_construction descr typrep_vs
+      (DatatypeAux.interpret_construction descr typerep_vs
         { atyp = single, dtyp = (K o K o K) [] });
     val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
-      (DatatypeAux.interpret_construction descr typrep_vs
+      (DatatypeAux.interpret_construction descr typerep_vs
         { atyp = K [], dtyp = K o K });
     val has_inst = exists (fn tyco =>
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
   in if has_inst then thy
-    else case perhaps_constrain thy (random_insts @ term_of_insts) typrep_vs
+    else case perhaps_constrain thy (random_insts @ term_of_insts) typerep_vs
      of SOME constrain => mk_random_datatype config descr
-          (map constrain typrep_vs) tycos prfx (names, auxnames)
+          (map constrain typerep_vs) tycos prfx (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
   end;

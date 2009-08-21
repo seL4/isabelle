@@ -129,8 +129,7 @@ text{*For Oops*}
 lemma YM4_Key_parts_knows_Spy:
      "Says Server A {|Crypt (shrK A) {|B,K,NA,NB|}, X|} \<in> set evs
       ==> K \<in> parts (knows Spy evs)"
-by (blast dest!: parts.Body Says_imp_knows_Spy [THEN parts.Inj])
-
+  by (metis parts.Body parts.Fst parts.Snd  Says_imp_knows_Spy parts.Inj)
 
 text{*Theorems of the form @{term "X \<notin> parts (knows Spy evs)"} imply 
 that NOBODY sends messages containing X! *}
@@ -275,7 +274,7 @@ lemma A_gets_good_key:
          Notes Spy {|na, nb, Key K|} \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Key K \<notin> analz (knows Spy evs)"
-by (blast dest!: A_trusts_YM3 Spy_not_see_encrypted_key)
+  by (metis A_trusts_YM3 secrecy_lemma)
 
 
 subsubsection{* Security Guarantees for B upon receiving YM4 *}
@@ -409,9 +408,8 @@ apply (erule_tac V = "\<forall>KK. ?P KK" in thin_rl, clarify)
 txt{*If @{prop "A \<in> bad"} then @{term NBa} is known, therefore
   @{prop "NBa \<noteq> NB"}.  Previous two steps make the next step
   faster.*}
-apply (blast dest!: Gets_imp_Says Says_imp_spies Crypt_Spy_analz_bad
-         dest: analz.Inj
-           parts.Inj [THEN parts.Fst, THEN A_trusts_YM3, THEN KeyWithNonceI])
+apply (metis A_trusts_YM3 Gets_imp_analz_Spy Gets_imp_knows_Spy KeyWithNonce_def
+      Spy_analz_shrK analz.Fst analz.Snd analz_shrK_Decrypt parts.Fst parts.Inj)
 done
 
 
@@ -514,12 +512,7 @@ txt{*Oops case: if the nonce is betrayed now, show that the Oops event is
   covered by the quantified Oops assumption.*}
 apply (clarify, simp add: all_conj_distrib)
 apply (frule Says_Server_imp_YM2, assumption)
-apply (case_tac "NB = NBa")
-txt{*If NB=NBa then all other components of the Oops message agree*}
-apply (blast dest: Says_unique_NB)
-txt{*case @{prop "NB \<noteq> NBa"}*}
-apply (simp add: single_Nonce_secrecy)
-apply (blast dest!: no_nonce_YM1_YM2 (*to prove NB\<noteq>NAa*))
+apply (metis Gets_imp_Says Says_Server_not_range Says_unique_NB no_nonce_YM1_YM2 parts.Snd single_Nonce_secrecy spies_partsEs(1))
 done
 
 
@@ -557,7 +550,7 @@ lemma B_gets_good_key:
          \<forall>k. Notes Spy {|Nonce NA, Nonce NB, k|} \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Key K \<notin> analz (knows Spy evs)"
-by (blast dest!: B_trusts_YM4 Spy_not_see_encrypted_key)
+  by (metis B_trusts_YM4 Spy_not_see_encrypted_key)
 
 
 subsection{*Authenticating B to A*}
@@ -594,7 +587,8 @@ lemma YM3_auth_B_to_A:
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Says B Server {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, nb|}|}
        \<in> set evs"
-by (blast dest!: A_trusts_YM3 YM3_auth_B_to_A_lemma elim: knows_Spy_partsEs)
+  by (metis A_trusts_YM3 Gets_imp_analz_Spy YM3_auth_B_to_A_lemma analz.Fst
+         not_parts_not_analz)
 
 
 subsection{*Authenticating A to B using the certificate 
@@ -639,7 +633,5 @@ lemma YM4_imp_A_Said_YM3 [rule_format]:
          (\<forall>NA k. Notes Spy {|Nonce NA, Nonce NB, k|} \<notin> set evs);
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> \<exists>X. Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs"
-by (blast intro!: A_Said_YM3_lemma
-          dest: Spy_not_see_encrypted_key B_trusts_YM4 Gets_imp_Says)
-
+by (metis A_Said_YM3_lemma B_gets_good_key Gets_imp_analz_Spy YM4_parts_knows_Spy analz.Fst not_parts_not_analz)
 end

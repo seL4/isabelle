@@ -54,7 +54,7 @@ instantiation String.literal :: random
 begin
 
 definition 
-  "random _ = Pair (STR [], \<lambda>u. Code_Eval.term_of (STR []))"
+  "random _ = Pair (STR '''', \<lambda>u. Code_Eval.term_of (STR ''''))"
 
 instance ..
 

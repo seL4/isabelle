@@ -154,6 +154,7 @@ fun init raw_overloading thy =
     val overloading = map (fn (v, c_ty, checked) => (c_ty, (v, checked))) raw_overloading;
   in
     thy
+    |> Theory.checkpoint
     |> ProofContext.init
     |> OverloadingData.put overloading
     |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
