@@ -3,11 +3,9 @@
 *)
 
 theory Mirabelle
-imports Main
-uses "mirabelle.ML"
+imports Plain
+uses "Tools/mirabelle.ML"
 begin
-
-(* FIXME: use a logfile for each theory file *)
 
 setup Mirabelle.setup
 

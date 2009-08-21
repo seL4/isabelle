@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# Author: Sascha Boehme
+#
+# DESCRIPTION: testing tool for automated proof tools
+
+
+PRG="$(basename "$0")"
+
+function usage() {
+  out="$MIRABELLE_OUTPUT_PATH"
+  timeout="$MIRABELLE_TIMEOUT"
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] ACTIONS FILES"
+  echo
+  echo "  Options are:"
+  echo "    -L LOGIC     parent logic to use (default $ISABELLE_LOGIC)"
+  echo "    -O DIR       output directory for test data (default $out)"
+  echo "    -v           be verbose"
+  echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
+  echo
+  echo "  Apply the given actions (i.e., automated proof tools)"
+  echo "  at all proof steps in the given theory files."
+  echo
+  echo "  ACTIONS is a colon-separated list of actions, where each action is"
+  echo "  either NAME or NAME[KEY=VALUE,...,KEY=VALUE]."
+  echo
+  echo "  FILES is a space-separated list of theory files, where each file is"
+  echo "  either NAME.thy or NAME.thy[START:END] and START and END are numbers"
+  echo "  indicating the range the given actions are to be applied."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+# options
+
+while getopts "L:O:vt:" OPT
+do
+  case "$OPT" in
+    L)
+      MIRABELLE_LOGIC="$OPTARG"
+      ;;
+    O)
+      MIRABELLE_OUTPUT_PATH="$OPTARG"
+      ;;
+    v)
+      MIRABELLE_VERBOSE=true
+      ;;
+    t)
+      MIRABELLE_TIMEOUT="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+ACTIONS="$1"
+
+shift
+
+
+# setup
+
+mkdir -p $MIRABELLE_OUTPUT_PATH
+
+
+## main
+
+for FILE in "$@"
+do
+  perl -w $MIRABELLE_HOME/lib/scripts/mirabelle.pl $ACTIONS "$FILE"
+done
+

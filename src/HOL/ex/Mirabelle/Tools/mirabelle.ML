@@ -11,6 +11,8 @@ sig
 
   val timeout : int Config.T
   val verbose : bool Config.T
+  val start_line : int Config.T
+  val end_line : int Config.T
   val set_logfile : string -> theory -> theory
 
   val setup : theory -> theory
