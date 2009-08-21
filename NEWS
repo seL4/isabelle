@@ -18,6 +18,10 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* New testing tool "Mirabelle" for automated (proof) tools. Applies several
+tools and tactics like sledgehammer, metis, or quickcheck, to every proof step
+in a theory. To be used in batch mode via "isabelle mirabelle".
+
 * New proof method "sos" (sum of squares) for nonlinear real arithmetic
 (originally due to John Harison). It requires Library/Sum_Of_Squares.
 It is not a complete decision procedure but works well in practice
