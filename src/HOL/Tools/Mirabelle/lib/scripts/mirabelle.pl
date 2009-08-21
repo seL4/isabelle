@@ -11,6 +11,7 @@ use File::Basename;
 my $isabelle_home = $ENV{'ISABELLE_HOME'};
 my $mirabelle_home = $ENV{'MIRABELLE_HOME'};
 my $mirabelle_logic = $ENV{'MIRABELLE_LOGIC'};
+my $mirabelle_theory = $ENV{'MIRABELLE_THEORY'};
 my $output_path = $ENV{'MIRABELLE_OUTPUT_PATH'};
 my $verbose = $ENV{'MIRABELLE_VERBOSE'};
 my $timeout = $ENV{'MIRABELLE_TIMEOUT'};
@@ -41,11 +42,23 @@ my $setup_thy_name = $thy_name . "_Setup";
 my $setup_file = $output_path . "/" . $setup_thy_name . ".thy";
 my $log_file = $output_path . "/" . $thy_name . ".log";
 
+my @action_files;
+foreach (split(/:/, $actions)) {
+  if (m/([^[]*)/) {
+    push @action_files, "\"$mirabelle_home/Tools/mirabelle_$1.ML\"";
+  }
+}
+my $tools = "";
+if ($#action_files >= 0) {
+  $tools = "uses " . join(" ", @action_files);
+}
+
 open(SETUP_FILE, ">$setup_file") || die "Could not create file '$setup_file'";
 
 print SETUP_FILE <<END;
 theory "$setup_thy_name"
-imports "$mirabelle_thy"
+imports "$mirabelle_thy" "$mirabelle_theory"
+$tools
 begin
 
 setup {* 
@@ -61,7 +74,8 @@ END
 foreach (split(/:/, $actions)) {
   if (m/([^[]*)(?:\[(.*)\])?/) {
     my ($name, $settings_str) = ($1, $2 || "");
-    print SETUP_FILE "setup {* Mirabelle.invoke \"$name\" [";
+    $name =~ s/^([a-z])/\U$1/;
+    print SETUP_FILE "setup {* Mirabelle_$name.invoke [";
     my $sep = "";
     foreach (split(/,/, $settings_str)) {
       if (m/\s*(.*)\s*=\s*(.*)\s*/) {

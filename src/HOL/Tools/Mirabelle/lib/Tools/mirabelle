@@ -7,14 +7,21 @@
 
 PRG="$(basename "$0")"
 
+function action_names() {
+  TOOLS="$MIRABELLE_HOME/Tools/mirabelle_*.ML"
+  ACTION_NAMES=`find $TOOLS | sed 's/.*mirabelle_\(.*\)\.ML/\1/'`
+}
+
 function usage() {
   out="$MIRABELLE_OUTPUT_PATH"
   timeout="$MIRABELLE_TIMEOUT"
+  action_names
   echo
   echo "Usage: isabelle $PRG [OPTIONS] ACTIONS FILES"
   echo
   echo "  Options are:"
   echo "    -L LOGIC     parent logic to use (default $ISABELLE_LOGIC)"
+  echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
   echo "    -O DIR       output directory for test data (default $out)"
   echo "    -v           be verbose"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
@@ -23,7 +30,11 @@ function usage() {
   echo "  at all proof steps in the given theory files."
   echo
   echo "  ACTIONS is a colon-separated list of actions, where each action is"
-  echo "  either NAME or NAME[KEY=VALUE,...,KEY=VALUE]."
+  echo "  either NAME or NAME[KEY=VALUE,...,KEY=VALUE]. Available actions are:"
+  for NAME in $ACTION_NAMES
+  do
+    echo "    $NAME"
+  done
   echo
   echo "  FILES is a space-separated list of theory files, where each file is"
   echo "  either NAME.thy or NAME.thy[START:END] and START and END are numbers"
@@ -37,11 +48,14 @@ function usage() {
 
 # options
 
-while getopts "L:O:vt:" OPT
+while getopts "L:T:O:vt:" OPT
 do
   case "$OPT" in
     L)
       MIRABELLE_LOGIC="$OPTARG"
+      ;;
+    T)
+      MIRABELLE_THEORY="$OPTARG"
       ;;
     O)
       MIRABELLE_OUTPUT_PATH="$OPTARG"
