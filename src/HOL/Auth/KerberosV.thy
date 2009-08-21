@@ -697,9 +697,7 @@ apply blast
 txt{*K4*}
 apply (force dest!: Crypt_imp_keysFor, clarify)
 txt{*K6*}
-apply (drule  Says_imp_spies [THEN parts.Inj, THEN parts.Fst])
-apply (drule  Says_imp_spies [THEN parts.Inj, THEN parts.Snd])
-apply (blast dest!: unique_CryptKey)
+apply (metis Says_imp_spies Says_ticket_parts analz.Fst analz.Inj analz_conj_parts unique_CryptKey)
 done
 
 text{*Needs a unicity theorem, hence moved here*}
@@ -841,13 +839,10 @@ apply (erule rev_mp)
 apply (erule kerbV.induct, analz_mono_contra)
 apply (frule_tac [7] Says_ticket_parts)
 apply (frule_tac [5] Says_ticket_parts, simp_all, blast)
-txt{*K4 splits into distinct subcases*}
-apply auto
-txt{*servK can't have been enclosed in two certificates*}
- prefer 2 apply (blast dest: unique_CryptKey)
-txt{*servK is fresh and so could not have been used, by
-   @{text new_keys_not_used}*}
-apply (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
+txt{*K4*}
+apply (metis Auth_fresh_not_AKcryptSK Crypt_imp_invKey_keysFor Says_ticket_analz
+         analz.Fst invKey_K new_keys_not_analzd parts.Fst Says_imp_parts_knows_Spy
+         unique_CryptKey)
 done
 
 text{*Long term keys are not issued as servKeys*}
@@ -981,9 +976,7 @@ analz - this strategy is new wrt version IV*}
 txt{*K4*}
 apply (blast dest!: authK_not_AKcryptSK)
 txt{*Oops1*}
-apply clarify
-apply simp
-apply (blast dest!: AKcryptSK_analz_insert)
+apply (metis AKcryptSK_analz_insert insert_Key_singleton)
 done
 
 text{* First simplification law for analz: no session keys encrypt
@@ -1039,8 +1032,8 @@ lemma authK_compromises_servK:
         \<in> set evs;  authK \<in> symKeys;
          Key authK \<in> analz (spies evs); evs \<in> kerbV \<rbrakk>
       \<Longrightarrow> Key servK \<in> analz (spies evs)"
-apply (force dest: Says_imp_spies [THEN analz.Inj, THEN analz.Fst, THEN analz.Decrypt, THEN analz.Fst])
-done
+  by (metis Says_imp_analz_Spy analz.Fst analz_Decrypt')
+
 
 text{*lemma @{text servK_notin_authKeysD} not needed in version V*}
 
@@ -1112,16 +1105,16 @@ apply (frule_tac [7] Says_ticket_analz)
 apply (frule_tac [5] Says_ticket_analz)
 apply (safe del: impI conjI impCE)
 apply (simp_all add: less_SucI new_keys_not_analzd Says_Kas_message_form Says_Tgs_message_form analz_insert_eq not_parts_not_analz analz_insert_freshK1 analz_insert_freshK2 analz_insert_freshK3_bis pushes)
-txt{*Fake*}
-apply spy_analz
-txt{*K2*}
-apply (blast intro: parts_insertI less_SucI)
-txt{*K4*}
-apply (blast dest: authTicket_authentic Confidentiality_Kas)
-txt{*Oops1*}
+    txt{*Fake*}
+    apply spy_analz
+   txt{*K2*}
+   apply (blast intro: parts_insertI less_SucI)
+  txt{*K4*}
+  apply (blast dest: authTicket_authentic Confidentiality_Kas)
+ txt{*Oops1*}
  apply (blast dest: Says_Kas_message_form Says_Tgs_message_form intro: less_SucI)
 txt{*Oops2*}
-  apply (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
+apply (metis Suc_le_eq linorder_linear linorder_not_le msg.simps(2) unique_servKeys)
 done
 
 
@@ -1270,17 +1263,7 @@ lemma A_authenticates_B:
          Key authK \<notin> analz (spies evs); Key servK \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; evs \<in> kerbV \<rbrakk>
       \<Longrightarrow> Says B A (Crypt servK (Number T3)) \<in> set evs"
-apply (frule authK_authentic)
-apply assumption+
-apply (frule servK_authentic)
-prefer 2 apply (blast dest: authK_authentic Says_Kas_message_form)
-apply assumption+
-apply clarify
-apply (blast dest: K4_imp_K2 Key_unique_SesKey intro!: Says_K6)
-(*Single command proof: much slower!
-apply (blast dest: authK_authentic servK_authentic Says_Kas_message_form Key_unique_SesKey K4_imp_K2 intro!: Says_K6)
-*)
-done
+  by (metis authK_authentic Oops_range_spies1 Says_K6 servK_authentic u_K4_imp_K2 unique_authKeys)
 
 lemma A_authenticates_B_r:
      "\<lbrakk> Crypt servK (Number T3) \<in> parts (spies evs);
@@ -1301,8 +1284,7 @@ apply (erule_tac [9] exE)
 apply (erule_tac [9] exE)
 apply (frule_tac [9] K4_imp_K2)
 apply assumption+
-apply (blast dest: Key_unique_SesKey intro!: Says_K6 dest: Confidentiality_Tgs
-)
+apply (blast dest: Key_unique_SesKey intro!: Says_K6 dest: Confidentiality_Tgs)
 done
 
 
@@ -1478,7 +1460,7 @@ apply (blast dest: Says_imp_spies [THEN analz.Inj, THEN analz_Decrypt']
 ...expands as follows - including extra exE because of new form of lemmas*)
 apply (frule K3_imp_K2, assumption, assumption, erule exE, erule exE)
 apply (case_tac "Key authK \<in> analz (spies evs5)")
-apply (drule Says_imp_knows_Spy [THEN analz.Inj, THEN analz.Fst, THEN analz_Decrypt', THEN analz.Fst], assumption, assumption, simp)
+ apply (metis Says_imp_analz_Spy analz.Fst analz_Decrypt')
 apply (frule K3_imp_K2, assumption, assumption, erule exE, erule exE)
 apply (drule Says_imp_knows_Spy [THEN parts.Inj, THEN parts.Fst])
 apply (frule servK_authentic_ter, blast, assumption+)
