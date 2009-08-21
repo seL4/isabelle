@@ -6,6 +6,7 @@ structure Mirabelle_Refute : MIRABELLE_ACTION =
 struct
 
 
+(* FIXME:
 fun refute_action args {pre=st, ...} = 
   let
     val subgoal = 0
@@ -30,7 +31,8 @@ fun refute_action args {pre=st, ...} =
         then SOME "no counterexample (normal termination)"
         else SOME "no counterexample (unknown)"
   in r end
+*)
 
-fun invoke args = Mirabelle.register ("refute", refute_action args)
+fun invoke args = I (*Mirabelle.register ("refute", refute_action args)*)
 
 end
