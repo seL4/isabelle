@@ -34,7 +34,7 @@ DOC=""
 
 ## main
 
-ORIG_IFS="$IFS"; IFS=":"; declare -a DOCS=($ISABELLE_DOCS); IFS="$ORIG_IFS"
+splitarray ":" "$ISABELLE_DOCS"; DOCS=("${SPLITARRAY[@]}")
 
 if [ -z "$DOC" ]; then
   for DIR in "${DOCS[@]}"

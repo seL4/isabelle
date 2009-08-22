@@ -17,7 +17,7 @@ PRG="$(basename "$0")"
 ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
-ORIG_IFS="$IFS"; IFS=":"; declare -a TOOLS=($ISABELLE_TOOLS); IFS="$ORIG_IFS"
+splitarray ":" "$ISABELLE_TOOLS"; TOOLS=("${SPLITARRAY[@]}")
 
 
 ## diagnostics

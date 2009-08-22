@@ -160,7 +160,7 @@ case "$INPUT" in
     INFILE=""
     ISA_PATH=""
 
-    ORIG_IFS="$IFS"; IFS=":"; declare -a PATHS=($ISABELLE_PATH); IFS="$ORIG_IFS"
+    splitarray ":" "$ISABELLE_PATH"; PATHS=("${SPLITARRAY[@]}")
     for DIR in "${PATHS[@]}"
     do
       DIR="$DIR/$ML_IDENTIFIER"
