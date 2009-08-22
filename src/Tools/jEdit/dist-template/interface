@@ -44,10 +44,10 @@ while getopts "J:j:l:m:" OPT
 do
   case "$OPT" in
     J)
-      JAVA_OPTIONS+=("$OPTARG")
+      JAVA_OPTIONS["${#JAVA_OPTIONS[@]}"]="$OPTARG"
       ;;
     j)
-      OPTIONS+=("$OPTARG")
+      OPTIONS["${#OPTIONS[@]}"]="$OPTARG"
       ;;
     l)
       JEDIT_LOGIC="$OPTARG"
@@ -73,10 +73,10 @@ shift $(($OPTIND - 1))
 declare -a FILES=()
 
 if [ "$#" -eq 0 ]; then
-  FILES+=(Scratch.thy)
+  FILES["${#FILES[@]}"]="Scratch.thy"
 else
   while [ "$#" -gt 0 ]; do
-    FILES+=($(jvmpath "$1"))
+    FILES["${#FILES[@]}"]="$(jvmpath "$1")"
     shift
   done
 fi
