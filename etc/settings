@@ -207,22 +207,6 @@ XSYMBOL_INSTALLFONTS=""
 
 
 ###
-### jEdit
-###
-
-JEDIT_HOME=$(choosefrom \
-  "$ISABELLE_HOME/contrib/jedit" \
-  "$ISABELLE_HOME/../jedit" \
-  "/usr/local/jedit" \
-  "/usr/share/jedit" \
-  "/opt/jedit" \
-  "")
-
-JEDIT_JAVA_OPTIONS=""
-#JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
-JEDIT_OPTIONS="-reuseview -noserver -nobackground"
-
-###
 ### External reasoning tools
 ###
 
