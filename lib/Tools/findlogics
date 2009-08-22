@@ -34,7 +34,7 @@ do
   do
     if [ -f "$FILE" ]; then
       NAME=$(basename "$FILE")
-      LOGICS+=("$NAME")
+      LOGICS["${#LOGICS[@]}"]="$NAME"
     fi
   done
 done
