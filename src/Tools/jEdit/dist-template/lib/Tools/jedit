@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 #
-# Isabelle/jEdit interface wrapper
+# Author: Makarius
+#
+# DESCRIPTION: Isabelle/jEdit interface wrapper
+
 
 ## diagnostics
+
+PRG="$(basename "$0")"
 
 usage()
 {
   echo
-  echo "Usage: isabelle jedit [OPTIONS] [FILES ...]"
+  echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
   echo "    -J OPTION    add JVM runtime option"
@@ -17,7 +22,7 @@ usage()
   echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
   echo "    -m MODE      add print mode for output"
   echo
-  echo "Starts jEdit with Isabelle plugin setup and opens theory FILES"
+  echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
   echo "(default ~/Scratch.thy)."
   echo
   exit 1

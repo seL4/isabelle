@@ -1,0 +1,7 @@
+JEDIT_HOME="$COMPONENT"
+
+JEDIT_JAVA_OPTIONS=""
+#JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
+JEDIT_OPTIONS="-reuseview -noserver -nobackground"
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$JEDIT_HOME/lib/Tools"
