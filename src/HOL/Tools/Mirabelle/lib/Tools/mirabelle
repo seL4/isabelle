@@ -7,15 +7,17 @@
 
 PRG="$(basename "$0")"
 
-function action_names() {
+function print_action_names() {
   TOOLS="$MIRABELLE_HOME/Tools/mirabelle_*.ML"
-  ACTION_NAMES=`find $TOOLS | sed 's/.*mirabelle_\(.*\)\.ML/\1/'`
+  for NAME in $TOOLS
+  do
+    echo $NAME | sed 's/.*mirabelle_\(.*\)\.ML/    \1/'
+  done
 }
 
 function usage() {
   out="$MIRABELLE_OUTPUT_PATH"
   timeout="$MIRABELLE_TIMEOUT"
-  action_names
   echo
   echo "Usage: isabelle $PRG [OPTIONS] ACTIONS FILES"
   echo
@@ -31,14 +33,11 @@ function usage() {
   echo
   echo "  ACTIONS is a colon-separated list of actions, where each action is"
   echo "  either NAME or NAME[KEY=VALUE,...,KEY=VALUE]. Available actions are:"
-  for NAME in $ACTION_NAMES
-  do
-    echo "    $NAME"
-  done
+  print_action_names
   echo
-  echo "  FILES is a space-separated list of theory files, where each file is"
-  echo "  either NAME.thy or NAME.thy[START:END] and START and END are numbers"
-  echo "  indicating the range the given actions are to be applied."
+  echo "  FILES is a list of theory files, where each file is either NAME.thy"
+  echo "  or NAME.thy[START:END] and START and END are numbers indicating the"
+  echo "  range the given actions are to be applied."
   echo
   exit 1
 }
@@ -48,7 +47,7 @@ function usage() {
 
 # options
 
-while getopts "L:T:O:vt:" OPT
+while getopts "L:T:O:vt:?" OPT
 do
   case "$OPT" in
     L)
@@ -61,7 +60,7 @@ do
       MIRABELLE_OUTPUT_PATH="$OPTARG"
       ;;
     v)
-      MIRABELLE_VERBOSE=true
+      MIRABELLE_VERBOSE="true"
       ;;
     t)
       MIRABELLE_TIMEOUT="$OPTARG"
@@ -81,13 +80,13 @@ shift
 
 # setup
 
-mkdir -p $MIRABELLE_OUTPUT_PATH
+mkdir -p "$MIRABELLE_OUTPUT_PATH"
 
 
 ## main
 
 for FILE in "$@"
 do
-  perl -w $MIRABELLE_HOME/lib/scripts/mirabelle.pl $ACTIONS "$FILE"
+  perl -w "$MIRABELLE_HOME/lib/scripts/mirabelle.pl" "$ACTIONS" "$FILE"
 done
 

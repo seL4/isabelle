@@ -125,7 +125,7 @@ foreach $name (@action_names) {
 print LOG_FILE "\n\n";
 close(LOG_FILE);
 
-my $r = system "$isabelle_home/bin/isabelle-process " .
+my $r = system "\"$ISABELLE_PROCESS\" " .
   "-e 'use \"$root_file\";' -q $mirabelle_logic" . "\n";
 
 
