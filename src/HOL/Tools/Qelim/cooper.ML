@@ -246,8 +246,10 @@ in (provelin ctxt ((HOLogic.eq_const iT)$t$(lint vs t) |> HOLogic.mk_Trueprop))
              RS eq_reflection
 end;
 
-fun is_intrel (b$_$_) = domain_type (fastype_of b) = HOLogic.intT
-  | is_intrel (@{term "Not"}$(b$_$_)) = domain_type (fastype_of b) = HOLogic.intT
+fun is_intrel_type T = T = @{typ "int => int => bool"};
+
+fun is_intrel (b$_$_) = is_intrel_type (fastype_of b)
+  | is_intrel (@{term "Not"}$(b$_$_)) = is_intrel_type (fastype_of b)
   | is_intrel _ = false;
  
 fun linearize_conv ctxt vs ct = case term_of ct of
