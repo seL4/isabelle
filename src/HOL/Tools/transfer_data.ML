@@ -223,7 +223,8 @@ val install_att_syntax =
     transf_add
     >> (fn (((((g, inj), embed), ret), cg), hints) => add (inj, embed, ret, cg, g, hints)))
 
-val transferred_att_syntax = (optional names -- Scan.option (keywordC directionN |-- (Args.term -- Args.term)) -- optional (keywordC leavingN |-- names) >> (fn ((hints, aD),leave) => transferred_attribute hints aD leave));
+val transferred_att_syntax = (optional names -- Scan.option (keywordC directionN |-- (Args.term -- Args.term))
+  -- optional (keywordC leavingN |-- names) >> (fn ((hints, aD),leave) => transferred_attribute hints aD leave));
 
 end;
 
