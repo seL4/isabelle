@@ -43,9 +43,11 @@ my $setup_file = $output_path . "/" . $setup_thy_name . ".thy";
 my $log_file = $output_path . "/" . $thy_name . ".log";
 
 my @action_files;
+my @action_names;
 foreach (split(/:/, $actions)) {
   if (m/([^[]*)/) {
     push @action_files, "\"$mirabelle_home/Tools/mirabelle_$1.ML\"";
+    push @action_names, $1;
   }
 }
 my $tools = "";
@@ -62,7 +64,7 @@ $tools
 begin
 
 setup {* 
-  Mirabelle.set_logfile "$log_file" #>
+  Config.put_thy Mirabelle.logfile "$log_file" #>
   Config.put_thy Mirabelle.timeout $timeout #>
   Config.put_thy Mirabelle.verbose $verbose #>
   Config.put_thy Mirabelle.start_line $start_line #>
@@ -115,6 +117,14 @@ close(ROOT_FILE);
 
 # run isabelle
 
+open(LOG_FILE, ">$log_file");
+print LOG_FILE "Run of $new_thy_file with:\n";
+foreach $name (@action_names) {
+  print LOG_FILE "  $name\n";
+}
+print LOG_FILE "\n\n";
+close(LOG_FILE);
+
 my $r = system "$isabelle_home/bin/isabelle-process " .
   "-e 'use \"$root_file\";' -q $mirabelle_logic" . "\n";
 
@@ -122,7 +132,6 @@ my $r = system "$isabelle_home/bin/isabelle-process " .
 # cleanup
 
 unlink $root_file;
-unlink $new_thy_file;
 unlink $setup_file;
 
 exit $r;

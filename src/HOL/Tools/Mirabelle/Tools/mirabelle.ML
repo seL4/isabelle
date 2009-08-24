@@ -7,11 +7,11 @@ sig
   type action
   val register : string * action -> theory -> theory
 
+  val logfile : string Config.T
   val timeout : int Config.T
   val verbose : bool Config.T
   val start_line : int Config.T
   val end_line : int Config.T
-  val set_logfile : string -> theory -> theory
 
   val goal_thm_of : Proof.state -> thm
   val can_apply : (Proof.context -> int -> tactic) -> Proof.state -> bool
@@ -59,10 +59,6 @@ val (end_line, setup5) = Attrib.config_int "mirabelle_end_line" ~1
 
 val setup = setup1 #> setup2 #> setup3 #> setup4 #> setup5
 
-fun set_logfile name =
-  let val _ = File.write (Path.explode name) ""   (* erase file content *)
-  in Config.put_thy logfile name end
-
 local
 
 fun log thy s =
@@ -90,15 +86,11 @@ fun only_within_range thy pos f x =
   let val l = Config.get_thy thy start_line and r = Config.get_thy thy end_line
   in if in_range l r (Position.line_of pos) then f x else [] end
 
-fun pretty_print verbose pos name msgs =
+fun pretty_print pos name msgs =
   let
-    val file = the_default "unknown file" (Position.file_of pos)
-
     val str0 = string_of_int o the_default 0
     val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
-
-    val full_loc = if verbose then file ^ ":" ^ loc else "at " ^ loc
-    val head = full_loc ^ " (" ^ name ^ "):"
+    val head = "at " ^ loc ^ " (" ^ name ^ "):"
 
     fun pretty_msg (name, msg) = Pretty.block (map Pretty.str [name, ": ", msg])
   in
@@ -119,7 +111,7 @@ fun basic_hook tr pre post =
     Actions.get thy
     |> Symtab.dest
     |> only_within_range thy pos (map_filter (apply_action (verb, secs) st))
-    |> (fn [] => () | msgs => log thy (pretty_print verb pos name msgs))
+    |> (fn [] => () | msgs => log thy (pretty_print pos name msgs))
   end
 
 end
