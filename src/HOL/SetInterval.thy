@@ -186,25 +186,59 @@ text {* The above four lemmas could be declared as iffs.
   seems to take forever (more than one hour). *}
 end
 
-subsubsection{* Emptyness and singletons *}
+subsubsection{* Emptyness, singletons, subset *}
 
 context order
 begin
 
-lemma atLeastAtMost_empty [simp]: "n < m ==> {m..n} = {}";
-by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
+lemma atLeastatMost_empty[simp]:
+  "b < a \<Longrightarrow> {a..b} = {}"
+by(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 
-lemma atLeastLessThan_empty[simp]: "n \<le> m ==> {m..<n} = {}"
-by (auto simp add: atLeastLessThan_def)
+lemma atLeastatMost_empty_iff[simp]:
+  "{a..b} = {} \<longleftrightarrow> (~ a <= b)"
+by auto (blast intro: order_trans)
 
-lemma greaterThanAtMost_empty[simp]:"l \<le> k ==> {k<..l} = {}"
+lemma atLeastatMost_empty_iff2[simp]:
+  "{} = {a..b} \<longleftrightarrow> (~ a <= b)"
+by auto (blast intro: order_trans)
+
+lemma atLeastLessThan_empty[simp]:
+  "b <= a \<Longrightarrow> {a..<b} = {}"
+by(auto simp: atLeastLessThan_def)
+
+lemma atLeastLessThan_empty_iff[simp]:
+  "{a..<b} = {} \<longleftrightarrow> (~ a < b)"
+by auto (blast intro: le_less_trans)
+
+lemma atLeastLessThan_empty_iff2[simp]:
+  "{} = {a..<b} \<longleftrightarrow> (~ a < b)"
+by auto (blast intro: le_less_trans)
+
+lemma greaterThanAtMost_empty[simp]: "l \<le> k ==> {k<..l} = {}"
 by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
+
+lemma greaterThanAtMost_empty_iff[simp]: "{k<..l} = {} \<longleftrightarrow> ~ k < l"
+by auto (blast intro: less_le_trans)
+
+lemma greaterThanAtMost_empty_iff2[simp]: "{} = {k<..l} \<longleftrightarrow> ~ k < l"
+by auto (blast intro: less_le_trans)
 
 lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..<l} = {}"
 by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 
 lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
 by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
+
+lemma atLeastatMost_subset_iff[simp]:
+  "{a..b} <= {c..d} \<longleftrightarrow> (~ a <= b) | c <= a & b <= d"
+unfolding atLeastAtMost_def atLeast_def atMost_def
+by (blast intro: order_trans)
+
+lemma atLeastatMost_psubset_iff:
+  "{a..b} < {c..d} \<longleftrightarrow>
+   ((~ a <= b) | c <= a & b <= d & (c < a | b < d))  &  c <= d"
+by(simp add: psubset_eq expand_set_eq less_le_not_le)(blast intro: order_trans)
 
 end
 
