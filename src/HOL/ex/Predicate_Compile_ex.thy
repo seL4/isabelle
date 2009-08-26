@@ -99,4 +99,33 @@ values "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
 *)
 
+subsection{* CCS *}
+
+text{* This example formalizes finite CCS processes without communication or
+recursion. For simplicity, labels are natural numbers. *}
+
+datatype proc = nil | pre nat proc | or proc proc | par proc proc
+
+inductive step :: "proc \<Rightarrow> nat \<Rightarrow> proc \<Rightarrow> bool" where
+"step (pre n p) n p" |
+"step p1 a q \<Longrightarrow> step (or p1 p2) a q" |
+"step p2 a q \<Longrightarrow> step (or p1 p2) a q" |
+"step p1 a q \<Longrightarrow> step (par p1 p2) a (par q p2)" |
+"step p2 a q \<Longrightarrow> step (par p1 p2) a (par p1 q)"
+
+code_pred step .
+
+inductive steps where
+"steps p [] p" |
+"step p a q \<Longrightarrow> steps q as r \<Longrightarrow> steps p (a#as) r"
+
+code_pred steps .
+
+values 5
+ "{as . steps (par (or (pre 0 nil) (pre 1 nil)) (pre 2 nil)) as (par nil nil)}"
+
+(* FIXME
+values 3 "{(a,q). step (par nil nil) a q}"
+*)
+
 end
