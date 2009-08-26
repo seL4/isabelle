@@ -2394,6 +2394,30 @@ declare take_Cons_number_of [simp]
         nth_Cons_number_of [simp] 
 
 
+subsubsection {* @{text upto}: interval-list on @{typ int} *}
+
+(* FIXME make upto tail recursive? *)
+
+function upto :: "int \<Rightarrow> int \<Rightarrow> int list" ("(1[_../_])") where
+"upto i j = (if i \<le> j then i # [i+1..j] else [])"
+by auto
+termination
+by(relation "measure(%(i::int,j). nat(j - i + 1))") auto
+
+declare upto.simps[code, simp del]
+
+lemmas upto_rec_number_of[simp] =
+  upto.simps[of "number_of m" "number_of n", standard]
+
+lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
+by(simp add: upto.simps)
+
+lemma set_upto[simp]: "set[i..j] = {i..j}"
+apply(induct i j rule:upto.induct)
+apply(simp add: upto.simps simp_from_to)
+done
+
+
 subsubsection {* @{text "distinct"} and @{text remdups} *}
 
 lemma distinct_append [simp]:
@@ -2447,6 +2471,12 @@ by (induct xs) auto
 
 lemma distinct_upt[simp]: "distinct[i..<j]"
 by (induct j) auto
+
+lemma distinct_upto[simp]: "distinct[i..j]"
+apply(induct i j rule:upto.induct)
+apply(subst upto.simps)
+apply(simp)
+done
 
 lemma distinct_take[simp]: "distinct xs \<Longrightarrow> distinct (take i xs)"
 apply(induct xs arbitrary: i)
@@ -3091,6 +3121,12 @@ end
 lemma sorted_upt[simp]: "sorted[i..<j]"
 by (induct j) (simp_all add:sorted_append)
 
+lemma sorted_upto[simp]: "sorted[i..j]"
+apply(induct i j rule:upto.induct)
+apply(subst upto.simps)
+apply(simp add:sorted_Cons)
+done
+
 
 subsubsection {* @{text sorted_list_of_set} *}
 
@@ -3122,89 +3158,6 @@ apply simp_all
 done
 
 end
-
-
-subsubsection {* @{text upto}: the generic interval-list *}
-
-class finite_intvl_succ = linorder +
-fixes successor :: "'a \<Rightarrow> 'a"
-assumes finite_intvl: "finite{a..b}"
-and successor_incr: "a < successor a"
-and ord_discrete: "\<not>(\<exists>x. a < x & x < successor a)"
-
-context finite_intvl_succ
-begin
-
-definition
- upto :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1[_../_])") where
-"upto i j == sorted_list_of_set {i..j}"
-
-lemma upto[simp]: "set[a..b] = {a..b} & sorted[a..b] & distinct[a..b]"
-by(simp add:upto_def finite_intvl)
-
-lemma insert_intvl: "i \<le> j \<Longrightarrow> insert i {successor i..j} = {i..j}"
-apply(insert successor_incr[of i])
-apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
-apply(metis ord_discrete less_le not_le)
-done
-
-lemma sorted_list_of_set_rec: "i \<le> j \<Longrightarrow>
-  sorted_list_of_set {i..j} = i # sorted_list_of_set {successor i..j}"
-apply(simp add:sorted_list_of_set_def upto_def)
-apply (rule the1_equality[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply(rule the1I2[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply (simp add: sorted_Cons insert_intvl Ball_def)
-apply (metis successor_incr leD less_imp_le order_trans)
-done
-
-lemma sorted_list_of_set_rec2: "i \<le> j \<Longrightarrow>
-  sorted_list_of_set {i..successor j} =
-  sorted_list_of_set {i..j} @ [successor j]"
-apply(simp add:sorted_list_of_set_def upto_def)
-apply (rule the1_equality[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply(rule the1I2[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply (simp add: sorted_append Ball_def expand_set_eq)
-apply(rule conjI)
-apply (metis eq_iff leD linear not_leE ord_discrete order_trans successor_incr)
-apply (metis leD linear order_trans successor_incr)
-done
-
-lemma upto_rec[code]: "[i..j] = (if i \<le> j then i # [successor i..j] else [])"
-by(simp add: upto_def sorted_list_of_set_rec)
-
-lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
-by(simp add: upto_rec)
-
-lemma upto_rec2: "i \<le> j \<Longrightarrow> [i..successor j] = [i..j] @ [successor j]"
-by(simp add: upto_def sorted_list_of_set_rec2)
-
-end
-
-text{* The integers are an instance of the above class: *}
-
-instantiation int:: finite_intvl_succ
-begin
-
-definition
-successor_int_def[simp]: "successor = (%i\<Colon>int. i+1)"
-
-instance
-by intro_classes (simp_all add: successor_int_def)
-
-end
-
-text{* Now @{term"[i..j::int]"} is defined for integers. *}
-
-hide (open) const successor
-
-lemma upto_rec2_int: "(i::int) \<le> j \<Longrightarrow> [i..j+1] = [i..j] @ [j+1]"
-by(rule upto_rec2[where 'a = int, simplified successor_int_def])
-
-lemmas upto_rec_number_of_int[simp] = upto_rec[of "number_of m :: int" "number_of n", standard]
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
@@ -3880,9 +3833,7 @@ lemma greaterThanAtMost_upto [code_unfold]:
   "{i<..j::int} = set [i+1..j]"
 by auto
 
-lemma atLeastAtMost_upto [code_unfold]:
-  "{i..j::int} = set [i..j]"
-by auto
+lemmas atLeastAtMost_upto [code_unfold] = set_upto[symmetric]
 
 lemma setsum_set_upto_conv_listsum [code_unfold]:
   "setsum f (set [i..j::int]) = listsum (map f [i..j])"
