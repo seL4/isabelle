@@ -577,8 +577,6 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 val acc_subset_induct = @{thm Orderings.predicate1I} RS @{thm accp_subset_induct}
 
 
-fun binder_conv cv ctxt = Conv.arg_conv (Conv.abs_conv (K cv) ctxt);
-
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
       val Globals {domT, x, z, a, P, D, ...} = globals
@@ -614,7 +612,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
     val case_hyp_conv = K (case_hyp RS eq_reflection)
     local open Conv in
     val lhs_D = fconv_rule (arg_conv (arg_conv (case_hyp_conv))) x_D
-    val sih = fconv_rule (binder_conv (arg1_conv (arg_conv (arg_conv case_hyp_conv))) ctxt) aihyp
+    val sih = fconv_rule (More_Conv.binder_conv (K (arg1_conv (arg_conv (arg_conv case_hyp_conv)))) ctxt) aihyp
     end
 
     fun mk_Prec (RCInfo {llRI, RIvs, CCas, rcarg, ...}) =

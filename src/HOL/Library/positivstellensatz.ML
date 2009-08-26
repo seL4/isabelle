@@ -81,82 +81,6 @@ structure Termfunc = FuncFun(type key = term val ord = TermOrd.fast_term_ord);
 structure Ctermfunc = FuncFun(type key = cterm val ord = (fn (s,t) => TermOrd.fast_term_ord(term_of s, term_of t)));
 
 structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
-    (* Some conversions-related stuff which has been forbidden entrance into Pure/conv.ML*)
-structure Conv2 = 
-struct
- open Conv
-fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
-fun is_comb t = case (term_of t) of _$_ => true | _ => false;
-fun is_abs t = case (term_of t) of Abs _ => true | _ => false;
-
-fun end_itlist f l =
- case l of 
-   []     => error "end_itlist"
- | [x]    => x
- | (h::t) => f h (end_itlist f t);
-
- fun absc cv ct = case term_of ct of 
- Abs (v,_, _) => 
-  let val (x,t) = Thm.dest_abs (SOME v) ct
-  in Thm.abstract_rule ((fst o dest_Free o term_of) x) x (cv t)
-  end
- | _ => all_conv ct;
-
-fun cache_conv conv =
- let 
-  val tab = ref Termtab.empty
-  fun cconv t =  
-    case Termtab.lookup (!tab) (term_of t) of
-     SOME th => th
-   | NONE => let val th = conv t
-             in ((tab := Termtab.insert Thm.eq_thm (term_of t, th) (!tab)); th) end
- in cconv end;
-fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
-  handle CTERM _ => false;
-
-local
- fun thenqc conv1 conv2 tm =
-   case try conv1 tm of
-    SOME th1 => (case try conv2 (Thm.rhs_of th1) of SOME th2 => Thm.transitive th1 th2 | NONE => th1)
-  | NONE => conv2 tm
-
- fun thencqc conv1 conv2 tm =
-    let val th1 = conv1 tm 
-    in (case try conv2 (Thm.rhs_of th1) of SOME th2 => Thm.transitive th1 th2 | NONE => th1)
-    end
- fun comb_qconv conv tm =
-   let val (l,r) = Thm.dest_comb tm 
-   in (case try conv l of 
-        SOME th1 => (case try conv r of SOME th2 => Thm.combination th1 th2 
-                                      | NONE => Drule.fun_cong_rule th1 r)
-      | NONE => Drule.arg_cong_rule l (conv r))
-   end
- fun repeatqc conv tm = thencqc conv (repeatqc conv) tm 
- fun sub_qconv conv tm =  if is_abs tm then absc conv tm else comb_qconv conv tm 
- fun once_depth_qconv conv tm =
-      (conv else_conv (sub_qconv (once_depth_qconv conv))) tm
- fun depth_qconv conv tm =
-    thenqc (sub_qconv (depth_qconv conv))
-           (repeatqc conv) tm
- fun redepth_qconv conv tm =
-    thenqc (sub_qconv (redepth_qconv conv))
-           (thencqc conv (redepth_qconv conv)) tm
- fun top_depth_qconv conv tm =
-    thenqc (repeatqc conv)
-           (thencqc (sub_qconv (top_depth_qconv conv))
-                    (thencqc conv (top_depth_qconv conv))) tm
- fun top_sweep_qconv conv tm =
-    thenqc (repeatqc conv)
-           (sub_qconv (top_sweep_qconv conv)) tm
-in 
-val (once_depth_conv, depth_conv, rdepth_conv, top_depth_conv, top_sweep_conv) = 
-  (fn c => try_conv (once_depth_qconv c),
-   fn c => try_conv (depth_qconv c),
-   fn c => try_conv (redepth_qconv c),
-   fn c => try_conv (top_depth_qconv c),
-   fn c => try_conv (top_sweep_qconv c));
-end;
-end;
 
 
     (* Some useful derived rules *)
@@ -373,15 +297,6 @@ fun find_cterm p t = if p t then t else
 fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
 fun is_comb t = case (term_of t) of _$_ => true | _ => false;
 
-fun cache_conv conv =
- let 
-  val tab = ref Termtab.empty
-  fun cconv t =  
-    case Termtab.lookup (!tab) (term_of t) of
-     SOME th => th
-   | NONE => let val th = conv t
-             in ((tab := Termtab.insert Thm.eq_thm (term_of t, th) (!tab)); th) end
- in cconv end;
 fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
   handle CTERM _ => false;
 
@@ -571,7 +486,7 @@ let
    val nnf_norm_conv' = 
      nnf_conv then_conv 
      literals_conv [@{term "op &"}, @{term "op |"}] [] 
-     (cache_conv 
+     (More_Conv.cache_conv 
        (first_conv [real_lt_conv, real_le_conv, 
                     real_eq_conv, real_not_lt_conv, 
                     real_not_le_conv, real_not_eq_conv, all_conv]))
