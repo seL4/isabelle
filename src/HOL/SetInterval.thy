@@ -242,6 +242,14 @@ by(simp add: psubset_eq expand_set_eq less_le_not_le)(blast intro: order_trans)
 
 end
 
+lemma (in linorder) atLeastLessThan_subset_iff:
+  "{a..<b} <= {c..<d} \<Longrightarrow> b <= a | c<=a & b<=d"
+apply (auto simp:subset_eq Ball_def)
+apply(frule_tac x=a in spec)
+apply(erule_tac x=d in allE)
+apply (simp add: less_imp_le)
+done
+
 subsection {* Intervals of natural numbers *}
 
 subsubsection {* The Constant @{term lessThan} *}
