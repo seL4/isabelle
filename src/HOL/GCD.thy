@@ -1895,8 +1895,6 @@ done
 
 lemmas prime_int_simp_number_of[simp] = prime_int_simp[of "number_of m", standard]
 
-declare successor_int_def[simp]
-
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
 by simp
 
