@@ -3926,14 +3926,6 @@ lemma independent_span_bound:
   shows "finite s \<and> card s \<le> card t"
   by (metis exchange_lemma[OF f i sp] hassize_def finite_subset card_mono)
 
-lemma finite_Atleast_Atmost[simp]: "finite {f x |x. x\<in> {(i::'a::finite_intvl_succ) .. j}}"
-proof-
-  have eq: "{f x |x. x\<in> {i .. j}} = f ` {i .. j}" by auto
-  show ?thesis unfolding eq
-    apply (rule finite_imageI)
-    apply (rule finite_intvl)
-    done
-qed
 
 lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x\<in> (UNIV::'a::finite set)}"
 proof-
