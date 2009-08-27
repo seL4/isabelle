@@ -79,9 +79,6 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
     buffer.addBufferListener(this)
-
-    edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
-    commit
   }
 
   def deactivate() {
@@ -102,7 +99,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     loop {
       react {
         case ProverEvents.Activate =>
-          activate()
+          edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
+          commit
         case c: Command =>
           update_delay()
           repaint_delay()

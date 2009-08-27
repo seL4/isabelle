@@ -33,6 +33,7 @@ class ProverSetup(buffer: JEditBuffer)
     val buffer = view.getBuffer
 
     theory_view = new TheoryView(view.getTextArea, prover)
+    theory_view.activate()
     prover.set_document(theory_view.change_receiver, buffer.getName)
 
     // register output-view

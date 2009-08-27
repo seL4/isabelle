@@ -135,30 +135,13 @@ class Plugin extends EBPlugin
     msg match {
       case epu: EditPaneUpdate => epu.getWhat match {
         case EditPaneUpdate.BUFFER_CHANGED =>
-          mapping get epu.getEditPane.getBuffer match {
-            // only activate 'isabelle' buffers
-            case None =>
-            case Some(prover_setup) =>
-              prover_setup.theory_view.activate
-              val dockable =
-                epu.getEditPane.getView.getDockableWindowManager.getDockable("isabelle-output")
-              if (dockable != null) {
-                val output_dockable = dockable.asInstanceOf[OutputDockable]
-                if (output_dockable.getComponent(0) != prover_setup.output_text_view ) {
-                  output_dockable.asInstanceOf[OutputDockable].removeAll
-                  output_dockable.asInstanceOf[OutputDockable].
-                    add(new JScrollPane(prover_setup.output_text_view))
-                  output_dockable.revalidate
-                }
-              }
-          }
+          val buffer = epu.getEditPane.getBuffer
+          (mapping get buffer) map (_.theory_view.activate)
+          buffer.propertiesChanged()
         case EditPaneUpdate.BUFFER_CHANGING =>
           val buffer = epu.getEditPane.getBuffer
-          if (buffer != null) mapping get buffer match {
-            // only deactivate 'isabelle' buffers
-            case None =>
-            case Some(prover_setup) => prover_setup.theory_view.deactivate
-          }
+          if (buffer != null)
+            (mapping get buffer) map (_.theory_view.deactivate)
         case _ =>
       }
       case _ =>
