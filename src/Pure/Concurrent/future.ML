@@ -237,7 +237,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
               val total = length (! workers);
               val active = count_active ();
             in
-              "SCHEDULE: " ^
+              "SCHEDULE " ^ string_of_int (Time.toMilliseconds now) ^ ": " ^
                 string_of_int ready ^ " ready, " ^
                 string_of_int pending ^ " pending, " ^
                 string_of_int running ^ " running; " ^
