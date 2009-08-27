@@ -24,7 +24,6 @@ class ProverSetup(buffer: JEditBuffer)
   var prover: Prover = null
   var theory_view: TheoryView = null
 
-  val output_text_view = new JTextArea
 
   def activate(view: View)
   {
@@ -35,22 +34,6 @@ class ProverSetup(buffer: JEditBuffer)
     theory_view = new TheoryView(view.getTextArea, prover)
     theory_view.activate()
     prover.set_document(theory_view.change_receiver, buffer.getName)
-
-    // register output-view
-    prover.output_info += (text =>
-      {
-        output_text_view.append(text + "\n")
-        val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
-        // link process output if dockable is active
-        if (dockable != null) {
-          val output_dockable = dockable.asInstanceOf[OutputDockable]
-          if (output_dockable.getComponent(0) != output_text_view ) {
-            output_dockable.asInstanceOf[OutputDockable].removeAll
-            output_dockable.asInstanceOf[OutputDockable].add(new JScrollPane(output_text_view))
-            output_dockable.revalidate
-          }
-        }
-      })
 
   }
 

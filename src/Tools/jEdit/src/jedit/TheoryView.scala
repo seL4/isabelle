@@ -79,6 +79,16 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
     buffer.addBufferListener(this)
+
+    val dockable =
+      text_area.getView.getDockableWindowManager.getDockable("isabelle-output")
+    if (dockable != null) {
+      val output_dockable = dockable.asInstanceOf[OutputDockable]
+      val output_text_view = prover.output_text_view
+      output_dockable.set_text(output_text_view)
+    }
+
+    buffer.propertiesChanged()
   }
 
   def deactivate() {

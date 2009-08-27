@@ -16,6 +16,7 @@ import scala.actors.Actor
 import scala.actors.Actor._
 
 import org.gjt.sp.util.Log
+import javax.swing.JTextArea
 
 import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
@@ -83,10 +84,12 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 
 
   /* event handling */
-
-  val output_info = new EventBus[String]
+  val output_info = new EventBus[Isabelle_Process.Result]
   var change_receiver: Actor = null
-  
+
+  val output_text_view = new JTextArea
+  output_info += (result => output_text_view.append(result.toString + "\n"))
+
   private def handle_result(result: Isabelle_Process.Result)
   {
     def command_change(c: Command) = change_receiver ! c
@@ -101,7 +104,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 
     if (result.kind == Isabelle_Process.Kind.STDOUT ||
         result.kind == Isabelle_Process.Kind.STDIN)
-      output_info.event(result.toString)
+      output_info.event(result)
     else {
       result.kind match {
 
@@ -115,7 +118,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
             command.add_result(state, process.parse_message(result))
             command_change(command)
           } else {
-            output_info.event(result.toString)
+            output_info.event(result)
           }
 
         case Isabelle_Process.Kind.STATUS =>
@@ -141,7 +144,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
                   if document_versions.exists(_.id == doc_id) =>
-                    output_info.event(result.toString)
+                    output_info.event(result)
                     val doc = document_versions.find(_.id == doc_id).get
                     for {
                       XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
@@ -159,17 +162,17 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
                   // command status
                   case XML.Elem(Markup.UNPROCESSED, _, _)
                   if command != null =>
-                    output_info.event(result.toString)
+                    output_info.event(result)
                     command.set_status(state, Command.Status.UNPROCESSED)
                     command_change(command)
                   case XML.Elem(Markup.FINISHED, _, _)
                   if command != null =>
-                    output_info.event(result.toString)
+                    output_info.event(result)
                     command.set_status(state, Command.Status.FINISHED)
                     command_change(command)
                   case XML.Elem(Markup.FAILED, _, _)
                   if command != null =>
-                    output_info.event(result.toString)
+                    output_info.event(result)
                     command.set_status(state, Command.Status.FAILED)
                     command_change(command)
                   case XML.Elem(kind, attr, body)

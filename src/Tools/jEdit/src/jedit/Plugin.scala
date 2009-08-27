@@ -133,17 +133,16 @@ class Plugin extends EBPlugin
   override def handleMessage(msg: EBMessage)
   {
     msg match {
-      case epu: EditPaneUpdate => epu.getWhat match {
-        case EditPaneUpdate.BUFFER_CHANGED =>
-          val buffer = epu.getEditPane.getBuffer
-          (mapping get buffer) map (_.theory_view.activate)
-          buffer.propertiesChanged()
-        case EditPaneUpdate.BUFFER_CHANGING =>
-          val buffer = epu.getEditPane.getBuffer
-          if (buffer != null)
-            (mapping get buffer) map (_.theory_view.deactivate)
-        case _ =>
-      }
+      case epu: EditPaneUpdate =>
+        val buffer = epu.getEditPane.getBuffer
+        epu.getWhat match {
+          case EditPaneUpdate.BUFFER_CHANGED =>
+            (mapping get buffer) map (_.theory_view.activate)
+          case EditPaneUpdate.BUFFER_CHANGING =>
+            if (buffer != null)
+              (mapping get buffer) map (_.theory_view.deactivate)
+          case _ =>
+        }
       case _ =>
     }
   }
