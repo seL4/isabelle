@@ -189,3 +189,4 @@ sidekick-tree.dock-position=right
 isabelle-state.dock-position=bottom
 isabelle-output.dock-position=bottom
 isabelle-browser.dock-position=bottom
+isabelle.activate.shortcut=CS+ENTER
