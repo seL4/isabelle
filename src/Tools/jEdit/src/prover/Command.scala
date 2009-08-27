@@ -19,6 +19,23 @@ import isabelle.XML
 
 import sidekick.{SideKickParsedData, IAsset}
 
+trait Accumulator extends Actor
+{
+
+  start() // start actor
+
+  protected var _state: State
+  def state = _state
+
+  override def act() {
+    loop {
+      react {
+        case x: XML.Tree => _state += x
+      }
+    }
+  }
+}
+
 
 object Command
 {
