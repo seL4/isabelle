@@ -121,33 +121,14 @@ extends Accumulator
       }, "style")
   }
 
-  def markup_root: MarkupNode = {
-    val cmd_markup_root = cmd.state.markup_root
-    (cmd_markup_root /: state.markup_root.children) (_ + _)
-  }
+  def markup_root: MarkupNode =
+    (cmd.state.markup_root /: state.markup_root.children) (_ + _)
 
-  def highlight_node: MarkupNode =
-  {
-    import MarkupNode._
-    markup_root.filter(_.info match {
-      case RootInfo() | HighlightInfo(_) => true
-      case _ => false
-    }).head
-  }
+  def type_at(pos: Int): String = state.type_at(pos)
 
-  def type_at(pos: Int): String =
-  {
-    val types = state.markup_root.
-      filter(_.info match { case TypeInfo(_) => true case _ => false })
-    types.flatten(_.flatten).
-    find(t => t.start <= pos && t.stop > pos).
-    map(t => t.content + ": " + (t.info match { case TypeInfo(i) => i case _ => "" })).
-    getOrElse(null)
-  }
+  def ref_at(pos: Int): Option[MarkupNode] = state.ref_at(pos)
 
-  def ref_at(pos: Int): Option[MarkupNode] =
-    state.markup_root.
-      filter(_.info match { case RefInfo(_, _, _, _) => true case _ => false }).
-      flatten(_.flatten).
-      find(t => t.start <= pos && t.stop > pos)
+  def highlight_node =
+    (cmd.state.highlight_node /: state.highlight_node.children) (_ + _)
+
 }

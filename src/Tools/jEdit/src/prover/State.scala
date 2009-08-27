@@ -28,21 +28,40 @@ case class State(
     State(cmd, status, results + res, markup_root)
   private def add_markup(markup: MarkupNode):State =
     State(cmd, status, results, markup_root + markup)
+
   /* markup */
+  lazy val highlight_node: MarkupNode =
+  {
+    import MarkupNode._
+    markup_root.filter(_.info match {
+      case RootInfo() | HighlightInfo(_) => true
+      case _ => false
+    }).head
+  }
+
+  lazy private val types =
+    markup_root.filter(_.info match {
+      case TypeInfo(_) => true
+      case _ => false }).flatten(_.flatten)
 
   def type_at(pos: Int): String =
   {
-    val types = markup_root.filter(_.info match { case TypeInfo(_) => true case _ => false })
-    types.flatten(_.flatten).
-      find(t => t.start <= pos && t.stop > pos).
-      map(t => t.content + ": " + (t.info match { case TypeInfo(i) => i case _ => "" })).
+    types.find(t => t.start <= pos && t.stop > pos).map(t =>
+      t.content + ": " + (t.info match {
+        case TypeInfo(i) => i
+        case _ => "" })).
       getOrElse(null)
   }
 
+  lazy private val refs =
+    markup_root.filter(_.info match {
+      case RefInfo(_, _, _, _) => true
+      case _ => false }).flatten(_.flatten)
+
   def ref_at(pos: Int): Option[MarkupNode] =
-    markup_root.filter(_.info match { case RefInfo(_, _, _, _) => true case _ => false }).
-      flatten(_.flatten).
-      find(t => t.start <= pos && t.stop > pos)
+    refs.find(t => t.start <= pos && t.stop > pos)
+
+
 
   def +(message: XML.Tree) = {
     val changed: State =
