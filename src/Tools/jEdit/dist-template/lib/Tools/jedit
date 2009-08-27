@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 #
-# Isabelle/jEdit interface wrapper
+# Author: Makarius
+#
+# DESCRIPTION: Isabelle/jEdit interface wrapper
+
 
 ## diagnostics
+
+PRG="$(basename "$0")"
 
 usage()
 {
   echo
-  echo "Usage: isabelle jedit [OPTIONS] [FILES ...]"
+  echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
   echo "    -J OPTION    add JVM runtime option"
@@ -17,7 +22,7 @@ usage()
   echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
   echo "    -m MODE      add print mode for output"
   echo
-  echo "Starts jEdit with Isabelle plugin setup and opens theory FILES"
+  echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
   echo "(default ~/Scratch.thy)."
   echo
   exit 1
@@ -44,10 +49,10 @@ while getopts "J:j:l:m:" OPT
 do
   case "$OPT" in
     J)
-      JAVA_OPTIONS+=("$OPTARG")
+      JAVA_OPTIONS["${#JAVA_OPTIONS[@]}"]="$OPTARG"
       ;;
     j)
-      OPTIONS+=("$OPTARG")
+      OPTIONS["${#OPTIONS[@]}"]="$OPTARG"
       ;;
     l)
       JEDIT_LOGIC="$OPTARG"
@@ -73,10 +78,10 @@ shift $(($OPTIND - 1))
 declare -a FILES=()
 
 if [ "$#" -eq 0 ]; then
-  FILES+=(Scratch.thy)
+  FILES["${#FILES[@]}"]="Scratch.thy"
 else
   while [ "$#" -gt 0 ]; do
-    FILES+=($(jvmpath "$1"))
+    FILES["${#FILES[@]}"]="$(jvmpath "$1")"
     shift
   done
 fi
