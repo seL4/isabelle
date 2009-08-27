@@ -25,7 +25,7 @@ extends JPanel(new BorderLayout)
 {
 
   private val WIDTH = 10
-	private val HILITE_HEIGHT = 2
+  private val HILITE_HEIGHT = 2
 
   val repaint_delay = Swing_Thread.delay(100){ repaint() }
 
@@ -39,27 +39,27 @@ extends JPanel(new BorderLayout)
     }
   })
 
-	override def addNotify	{
-		super.addNotify();
-		ToolTipManager.sharedInstance.registerComponent(this);
-	}
+  override def addNotify {
+    super.addNotify();
+    ToolTipManager.sharedInstance.registerComponent(this);
+  }
 
-	override def removeNotify()
-	{
-		super.removeNotify
-		ToolTipManager.sharedInstance.unregisterComponent(this);
-	}
+  override def removeNotify()
+  {
+    super.removeNotify
+    ToolTipManager.sharedInstance.unregisterComponent(this);
+  }
 
-	override def getToolTipText(evt : MouseEvent) : String =
-	{
-		val buffer = textarea.getBuffer
-		val lineCount = buffer.getLineCount
-		val line = yToLine(evt.getY())
-		if (line >= 0 && line < textarea.getLineCount)
-		{
+  override def getToolTipText(evt : MouseEvent) : String =
+  {
+    val buffer = textarea.getBuffer
+    val lineCount = buffer.getLineCount
+    val line = yToLine(evt.getY())
+    if (line >= 0 && line < textarea.getLineCount)
+    {
       "TODO: Tooltip"
     } else ""
-	}
+  }
 
   private def paintCommand(command : Command, buffer : JEditBuffer, doc: ProofDocument, gfx : Graphics) {
     val line1 = buffer.getLineOfOffset(to_current(doc, command.start(doc)))
@@ -80,22 +80,22 @@ extends JPanel(new BorderLayout)
     }
   }
 
-	override def paintComponent(gfx : Graphics) {
-		super.paintComponent(gfx)
-		val buffer = textarea.getBuffer
+override def paintComponent(gfx : Graphics) {
+    super.paintComponent(gfx)
+    val buffer = textarea.getBuffer
     val theory_view = Isabelle.prover_setup(buffer).get.theory_view
     val document = theory_view.current_document()
+
     for (c <- document.commands)
       paintCommand(c, buffer, document, gfx)
+  }
 
-	}
+override def getPreferredSize = new Dimension(10,0)
 
-	override def getPreferredSize = new Dimension(10,0)
+private def lineToY(line : Int) : Int =
+  (line * getHeight) / (textarea.getBuffer.getLineCount max textarea.getVisibleLines)
 
-	private def lineToY(line : Int) : Int =
-		(line * getHeight) / (textarea.getBuffer.getLineCount max textarea.getVisibleLines)
-
-	private def yToLine(y : Int) : Int =
-		(y * (textarea.getBuffer.getLineCount max textarea.getVisibleLines)) / getHeight
+private def yToLine(y : Int) : Int =
+  (y * (textarea.getBuffer.getLineCount max textarea.getVisibleLines)) / getHeight
 
 }
