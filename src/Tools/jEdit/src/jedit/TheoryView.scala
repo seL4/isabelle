@@ -113,7 +113,7 @@ class TheoryView (text_area: JEditTextArea)
       case Remove(start, removed) => buffer.remove(start, removed.length)
     }
 
-    def unapply(c: Change) = c.map {
+    def unapply(c: Change) = c.toList.reverse.map {
       case Insert(start, added) => buffer.remove(start, added.length)
       case Remove(start, removed) => buffer.insert(start, removed)
     }
