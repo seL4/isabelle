@@ -99,6 +99,35 @@ values "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
 *)
 
+subsection{* IMP *}
+
+types
+  var = nat
+  state = "int list"
+
+datatype com =
+  Skip |
+  Ass var "state => int" |
+  Seq com com |
+  IF "state => bool" com com |
+  While "state => bool" com
+
+inductive exec :: "com => state => state => bool" where
+"exec Skip s s" |
+"exec (Ass x e) s (s[x := e(s)])" |
+"exec c1 s1 s2 ==> exec c2 s2 s3 ==> exec (Seq c1 c2) s1 s3" |
+"b s ==> exec c1 s t ==> exec (IF b c1 c2) s t" |
+"~b s ==> exec c2 s t ==> exec (IF b c1 c2) s t" |
+"~b s ==> exec (While b c) s s" |
+"b s1 ==> exec c s1 s2 ==> exec (While b c) s2 s3 ==> exec (While b c) s1 s3"
+
+code_pred exec .
+
+values "{t. exec
+ (While (%s. s!0 > 0) (Seq (Ass 0 (%s. s!0 - 1)) (Ass 1 (%s. s!1 + 1))))
+ [3,5] t}"
+
+
 subsection{* CCS *}
 
 text{* This example formalizes finite CCS processes without communication or
