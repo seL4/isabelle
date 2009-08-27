@@ -27,8 +27,6 @@ extends JPanel(new BorderLayout)
   private val WIDTH = 10
   private val HILITE_HEIGHT = 2
 
-  val repaint_delay = Swing_Thread.delay(100){ repaint() }
-
   setRequestFocusEnabled(false);
 
   addMouseListener(new MouseAdapter {

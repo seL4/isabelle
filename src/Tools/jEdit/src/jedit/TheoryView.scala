@@ -106,7 +106,20 @@ class TheoryView (text_area: JEditTextArea)
   /* painting */
 
   val update_delay = Swing_Thread.delay(500){ buffer.propertiesChanged() }
-  val repaint_delay = Swing_Thread.delay(100){ repaint_all() }
+
+  private def lines_of_command(cmd: Command) =
+  {
+    val document = current_document()
+    (text_area.getLineOfOffset(to_current(document, cmd.start(document))),
+     text_area.getLineOfOffset(to_current(document, cmd.stop(document))))
+  }
+
+  def update_syntax(cmd: Command) {
+    val (line1, line2) = lines_of_command(cmd)
+    if (line2 >= text_area.getFirstLine &&
+      line1 <= text_area.getFirstLine + text_area.getVisibleLines)
+        update_delay()
+  }
   
   lazy val change_receiver = actor {
     loop {
@@ -115,9 +128,11 @@ class TheoryView (text_area: JEditTextArea)
           edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
           commit
         case c: Command =>
-          update_delay()
-          repaint_delay()
-          phase_overview.repaint_delay()
+          Swing_Thread.later {
+            update_syntax(c)
+            invalidate_line(c)
+            phase_overview.repaint()
+          }
         case x => System.err.println("warning: change_receiver ignored " + x)
       }
     }
@@ -133,24 +148,18 @@ class TheoryView (text_area: JEditTextArea)
   def to_current(doc: ProofDocument, pos: Int) =
     (pos /: changes_to(doc).reverse) ((p, c) => c where_to p)
 
-  def repaint(cmd: Command) =
+  def invalidate_line(cmd: Command) =
   {
-    val document = current_document()
-    if (text_area != null) {
-      val start = text_area.getLineOfOffset(to_current(document, cmd.start(document)))
-      val stop = text_area.getLineOfOffset(to_current(document, cmd.stop(document)) - 1)
-      text_area.invalidateLineRange(start, stop)
+    val (start, stop) = lines_of_command(cmd)
+    text_area.invalidateLineRange(start, stop)
 
-      if (Isabelle.plugin.selected_state == cmd)
+    if (Isabelle.plugin.selected_state == cmd)
         Isabelle.plugin.selected_state = cmd  // update State view
-    }
   }
 
-  def repaint_all()
-  {
-    if (text_area != null)
-      text_area.invalidateLineRange(text_area.getFirstPhysicalLine, text_area.getLastPhysicalLine)
-  }
+  def invalidate_all() =
+    text_area.invalidateLineRange(text_area.getFirstPhysicalLine,
+      text_area.getLastPhysicalLine)
 
   def encolor(gfx: Graphics2D,
     y: Int, height: Int, begin: Int, finish: Int, color: Color, fill: Boolean)
@@ -260,9 +269,9 @@ class TheoryView (text_area: JEditTextArea)
 
     current_change = goal
     // invoke repaint
-    update_delay()
-    repaint_delay()
-    phase_overview.repaint_delay()
+    buffer.propertiesChanged()
+    invalidate_all()
+    phase_overview.repaint()
 
     //track changes in buffer
     buffer.addBufferListener(this)
