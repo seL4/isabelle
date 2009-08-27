@@ -59,6 +59,15 @@ class StateViewDockable(view : View, position : String) extends JPanel {
   // scrolling
   add(new FSScrollPane(panel), BorderLayout.CENTER)
 
+  // register for state-view
+  Isabelle.plugin.state_update += (cmd => {
+    val theory_view = Isabelle.prover_setup(view.getBuffer).get.theory_view
+    if (cmd == null)
+      panel.setDocument(null: org.w3c.dom.Document)
+    else
+      panel.setDocument(cmd.result_document(theory_view.current_document()),
+        UserAgent.base_URL)
+  })
 
   private val fontResolver =
     panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]

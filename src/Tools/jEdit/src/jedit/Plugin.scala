@@ -96,6 +96,15 @@ class Plugin extends EBPlugin
   }
 
 
+  /* selected state */
+
+  val state_update = new EventBus[Command]
+
+  private var _selected_state: Command = null
+  def selected_state = _selected_state
+  def selected_state_=(state: Command) { _selected_state = state; state_update.event(state) }
+
+
   /* mapping buffer <-> prover */
 
   private val mapping = new mutable.HashMap[JEditBuffer, ProverSetup]

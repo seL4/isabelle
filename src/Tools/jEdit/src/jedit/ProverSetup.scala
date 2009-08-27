@@ -24,12 +24,6 @@ class ProverSetup(buffer: JEditBuffer)
   var prover: Prover = null
   var theory_view: TheoryView = null
 
-  val state_update = new EventBus[Command]
-
-  private var _selected_state: Command = null
-  def selected_state = _selected_state
-  def selected_state_=(state: Command) { _selected_state = state; state_update.event(state) }
-
   val output_text_view = new JTextArea
 
   def activate(view: View)
@@ -56,21 +50,6 @@ class ProverSetup(buffer: JEditBuffer)
           }
         }
       })
-
-    // register for state-view
-    state_update += (cmd => {
-      val state_view = view.getDockableWindowManager.getDockable("isabelle-state")
-      val state_panel =
-        if (state_view != null) state_view.asInstanceOf[StateViewDockable].panel
-        else null
-      if (state_panel != null) {
-        if (cmd == null)
-          state_panel.setDocument(null: Document)
-        else
-          state_panel.setDocument(cmd.result_document(theory_view.current_document()),
-            UserAgent.base_URL)
-      }
-    })
 
   }
 

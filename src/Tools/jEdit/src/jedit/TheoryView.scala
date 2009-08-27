@@ -68,8 +68,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       val doc = current_document()
       val cmd = doc.find_command_at(e.getDot)
       if (cmd != null && doc.token_start(cmd.tokens.first) <= e.getDot &&
-          Isabelle.prover_setup(buffer).get.selected_state != cmd)
-        Isabelle.prover_setup(buffer).get.selected_state = cmd
+          Isabelle.plugin.selected_state != cmd)
+        Isabelle.plugin.selected_state = cmd
     }
   }
 
@@ -130,8 +130,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       val stop = text_area.getLineOfOffset(to_current(document, cmd.stop(document)) - 1)
       text_area.invalidateLineRange(start, stop)
 
-      if (Isabelle.prover_setup(buffer).get.selected_state == cmd)
-        Isabelle.prover_setup(buffer).get.selected_state = cmd  // update State view
+      if (Isabelle.plugin.selected_state == cmd)
+        Isabelle.plugin.selected_state = cmd  // update State view
     }
   }
 
