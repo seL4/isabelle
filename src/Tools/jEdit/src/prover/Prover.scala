@@ -26,7 +26,8 @@ object ProverEvents {
   case class Activate
 }
 
-class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
+class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: Actor)
+extends Actor
 {
   /* prover process */
 
@@ -85,7 +86,6 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 
   /* event handling */
   val output_info = new EventBus[Isabelle_Process.Result]
-  var change_receiver: Actor = null
 
   val output_text_view = new JTextArea
   output_info += (result => output_text_view.append(result.toString + "\n"))
@@ -242,8 +242,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
     }
   }
   
-  def set_document(change_receiver: Actor, path: String) {
-    this.change_receiver = change_receiver
+  def set_document(path: String) {
     process.begin_document(document_0.id, path)
   }
 

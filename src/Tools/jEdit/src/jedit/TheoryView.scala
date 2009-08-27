@@ -39,14 +39,17 @@ object TheoryView
 }
 
 
-class TheoryView (text_area: JEditTextArea, document_actor: Actor)
+class TheoryView (text_area: JEditTextArea)
     extends TextAreaExtension with BufferListener
 {
 
   def id() = Isabelle.system.id()
   
   private val buffer = text_area.getBuffer
-  private val prover = Isabelle.prover_setup(buffer).get.prover
+
+  // start prover
+  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic, change_receiver)
+  prover.start() // start actor
 
 
   private var edits: List[Edit] = Nil
@@ -207,7 +210,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   /* history of changes - TODO: seperate class?*/
 
-  val change_0 = new Change(prover.document_0.id, None, Nil)
+  val change_0: Change = new Change(prover.document_0.id, None, Nil)
   private var changes = List(change_0)
   private var current_change = change_0
   def get_changes = changes
@@ -271,7 +274,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     if (!edits.isEmpty) {
       val change = new Change(Isabelle.system.id(), Some(current_change), edits)
       changes ::= change
-      document_actor ! change
+      prover ! change
       current_change = change
     }
     edits = Nil

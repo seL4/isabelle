@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 import javax.swing.{JTextArea, JScrollPane}
 
 
-class ProverSetup(buffer: JEditBuffer)
+class ProverSetup(buffer: Buffer)
 {
   var prover: Prover = null
   var theory_view: TheoryView = null
@@ -27,13 +27,12 @@ class ProverSetup(buffer: JEditBuffer)
 
   def activate(view: View)
   {
-    prover = new Prover(Isabelle.system, Isabelle.default_logic)
-    prover.start() // start actor
-    val buffer = view.getBuffer
+    // TheoryView starts prover
+    theory_view = new TheoryView(view.getTextArea)
+    prover = theory_view.prover
 
-    theory_view = new TheoryView(view.getTextArea, prover)
     theory_view.activate()
-    prover.set_document(theory_view.change_receiver, buffer.getName)
+    prover.set_document(buffer.getName)
 
   }
 
