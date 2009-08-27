@@ -318,6 +318,7 @@ class TheoryView (text_area: JEditTextArea)
           edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
           commit
         case c: Command =>
+          actor{Isabelle.plugin.command_change.event(c)}
           if(current_document().commands.contains(c))
           Swing_Thread.later {
             // repaint if buffer is active
@@ -327,6 +328,8 @@ class TheoryView (text_area: JEditTextArea)
               phase_overview.repaint()
             }
           }
+        case d: ProofDocument =>
+          actor{Isabelle.plugin.document_change.event(d)}
         case x => System.err.println("warning: change_receiver ignored " + x)
       }
     }

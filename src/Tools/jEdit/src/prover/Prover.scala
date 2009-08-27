@@ -147,6 +147,7 @@ extends Actor
                       val state = new Command_State(cmd)
                       states(state_id) = state
                       doc.states += (cmd -> state)
+                      cmd.changed()
                     }
 
                   }
@@ -179,6 +180,7 @@ extends Actor
             val (doc, structure_change) = old.text_changed(change)
             document_versions ::= doc
             edit_document(old, doc, structure_change)
+            change_receiver ! doc
         }
         case x => System.err.println("warning: ignored " + x)
       }

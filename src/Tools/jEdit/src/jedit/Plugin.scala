@@ -15,6 +15,7 @@ import javax.swing.JScrollPane
 import scala.collection.mutable
 
 import isabelle.prover.{Prover, Command}
+import isabelle.proofdocument.ProofDocument
 import isabelle.Isabelle_System
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
@@ -95,10 +96,13 @@ class Plugin extends EBPlugin
     font_changed.event(font)
   }
 
-
-  /* selected state */
+  /* event buses */
 
   val state_update = new EventBus[Command]
+  val command_change = new EventBus[Command]
+  val document_change = new EventBus[ProofDocument]
+
+  /* selected state */
 
   private var _selected_state: Command = null
   def selected_state = _selected_state
