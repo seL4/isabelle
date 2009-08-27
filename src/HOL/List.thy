@@ -881,10 +881,8 @@ by (induct xs) auto
 lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
 by (induct xs) auto
 
-lemma set_upt [simp]: "set[i..<j] = {k. i \<le> k \<and> k < j}"
-apply (induct j, simp_all)
-apply (erule ssubst, auto)
-done
+lemma set_upt [simp]: "set[i..<j] = {i..<j}"
+by (induct j) (simp_all add: atLeastLessThanSuc)
 
 
 lemma split_list: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs"
@@ -3782,9 +3780,7 @@ lemma greaterThanLessThan_upt [code_unfold]:
   "{n<..<m} = set [Suc n..<m]"
 by auto
 
-lemma atLeastLessThan_upt [code_unfold]:
-  "{n..<m} = set [n..<m]"
-by auto
+lemmas atLeastLessThan_upt [code_unfold] = set_upt [symmetric]
 
 lemma greaterThanAtMost_upt [code_unfold]:
   "{n<..m} = set [Suc n..<Suc m]"
