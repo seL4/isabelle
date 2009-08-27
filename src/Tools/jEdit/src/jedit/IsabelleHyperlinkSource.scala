@@ -52,7 +52,6 @@ class IsabelleHyperlinkSource extends HyperlinkSource
       val document = theory_view.current_document()
       val offset = theory_view.from_current(document, original_offset)
       val cmd = document.find_command_at(offset)
-      val state = document.states(cmd)
       if (cmd != null) {
         val ref_o = cmd.ref_at(document, offset - cmd.start(document))
         if (!ref_o.isDefined) null
