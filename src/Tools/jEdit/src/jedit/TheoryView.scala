@@ -108,7 +108,7 @@ class TheoryView (text_area: JEditTextArea)
   val update_delay = Swing_Thread.delay(500){ buffer.propertiesChanged() }
   val repaint_delay = Swing_Thread.delay(100){ repaint_all() }
   
-  val change_receiver = actor {
+  lazy val change_receiver = actor {
     loop {
       react {
         case ProverEvents.Activate =>

@@ -85,7 +85,7 @@ extends Actor
 
 
   /* event handling */
-  val output_info = new EventBus[Isabelle_Process.Result]
+  lazy val output_info = new EventBus[Isabelle_Process.Result]
 
   val output_text_view = new JTextArea
   output_info += (result => output_text_view.append(result.toString + "\n"))
