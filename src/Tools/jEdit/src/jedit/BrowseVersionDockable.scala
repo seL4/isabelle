@@ -27,7 +27,7 @@ class BrowseVersionDockable(view : View, position : String) extends FlowPanel {
   new javax.swing.Timer(1000, new java.awt.event.ActionListener {
     override def actionPerformed(evt: java.awt.event.ActionEvent) {
       list.listData = Isabelle.prover_setup(view.getBuffer).map(_.
-        theory_view.get_changes).getOrElse(Nil)
+        theory_view.changes).getOrElse(Nil)
     }
   }).start()
 
