@@ -92,7 +92,7 @@ extends Actor
 
   private def handle_result(result: Isabelle_Process.Result)
   {
-    def command_change(c: Command) = change_receiver ! c
+    def command_change(c: Command) = c.changed()
     val (state, command) =
       result.props.find(p => p._1 == Markup.ID) match {
         case None => (null, null)

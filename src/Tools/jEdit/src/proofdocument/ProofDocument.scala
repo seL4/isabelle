@@ -8,9 +8,11 @@
 
 package isabelle.proofdocument
 
+import scala.actors.Actor
+import scala.actors.Actor._
 import scala.collection.mutable.ListBuffer
 import java.util.regex.Pattern
-import isabelle.prover.{Prover, Command}
+import isabelle.prover.{Prover, Command, Command_State}
 import isabelle.utils.LinearSet
 
 
@@ -34,7 +36,8 @@ object ProofDocument
 
   val empty =
     new ProofDocument(isabelle.jedit.Isabelle.system.id(),
-      LinearSet(), Map(), LinearSet(), Map(), _ => false)
+      LinearSet(), Map(), LinearSet(), Map(), _ => false,
+      actor(loop(react{case _ =>}))) // ignoring actor
 
   type StructureChange = List[(Option[Command], Option[Command])]
 
@@ -46,12 +49,16 @@ class ProofDocument(
   val token_start: Map[Token, Int],
   val commands: LinearSet[Command],
   var states: Map[Command, IsarDocument.State_ID],
-  is_command_keyword: String => Boolean)
+  is_command_keyword: String => Boolean,
+  change_receiver: Actor)
 {
   import ProofDocument.StructureChange
 
   def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(id, tokens, token_start, commands, states, f)
+    new ProofDocument(id, tokens, token_start, commands, states, f, change_receiver)
+
+  def set_change_receiver(cr: Actor): ProofDocument =
+    new ProofDocument(id, tokens, token_start, commands, states, is_command_keyword, cr)
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
@@ -192,7 +199,7 @@ class ProofDocument(
         case t :: ts =>
           val (cmd, rest) =
             ts.span(t => t.kind != Token.Kind.COMMAND_START && t.kind != Token.Kind.COMMENT)
-          new Command(t :: cmd, new_token_start) :: tokens_to_commands(rest)
+          new Command(t :: cmd, new_token_start, change_receiver) :: tokens_to_commands(rest)
       }
     }
 
@@ -233,8 +240,8 @@ class ProofDocument(
         insert_after(cmd_before_change, inserted_commands)
 
     val doc =
-      new ProofDocument(new_id, new_tokenset, new_token_start,
-        new_commandset, states -- removed_commands, is_command_keyword)
+      new ProofDocument(new_id, new_tokenset, new_token_start, new_commandset,
+        states -- removed_commands, is_command_keyword, change_receiver)
 
     val removes =
       for (cmd <- removed_commands) yield (cmd_before_change -> None)

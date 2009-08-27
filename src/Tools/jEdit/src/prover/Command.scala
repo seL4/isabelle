@@ -8,8 +8,8 @@
 package isabelle.prover
 
 
-import javax.swing.text.Position
-import javax.swing.tree.DefaultMutableTreeNode
+import scala.actors.Actor
+import scala.actors.Actor._
 
 import scala.collection.mutable
 
@@ -31,12 +31,15 @@ object Command
 }
 
 
-class Command(val tokens: List[Token], val starts: Map[Token, Int])
+class Command(val tokens: List[Token], val starts: Map[Token, Int], chg_rec: Actor)
 {
   require(!tokens.isEmpty)
 
   val id = Isabelle.system.id()
   override def hashCode = id.hashCode
+
+  def changed() = chg_rec ! this
+
 
   /* content */
 
