@@ -224,8 +224,8 @@ class TheoryView (text_area: JEditTextArea)
   private def lines_of_command(cmd: Command) =
   {
     val document = current_document()
-    (text_area.getLineOfOffset(to_current(document, cmd.start(document))),
-     text_area.getLineOfOffset(to_current(document, cmd.stop(document)) - 1))
+    (buffer.getLineOfOffset(to_current(document, cmd.start(document))),
+     buffer.getLineOfOffset(to_current(document, cmd.stop(document))))
   }
 
 
@@ -318,10 +318,14 @@ class TheoryView (text_area: JEditTextArea)
           edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
           commit
         case c: Command =>
+          if(current_document().commands.contains(c))
           Swing_Thread.later {
-            update_syntax(c)
-            invalidate_line(c)
-            phase_overview.repaint()
+            // repaint if buffer is active
+            if(text_area.getBuffer == buffer) {
+              update_syntax(c)
+              invalidate_line(c)
+              phase_overview.repaint()
+            }
           }
         case x => System.err.println("warning: change_receiver ignored " + x)
       }
