@@ -49,6 +49,7 @@ object Command
 
 
 class Command(val tokens: List[Token], val starts: Map[Token, Int], chg_rec: Actor)
+extends Accumulator
 {
   require(!tokens.isEmpty)
 
@@ -71,113 +72,82 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int], chg_rec: Act
 
   def contains(p: Token) = tokens.contains(p)
 
-  /* states */
-  val states = mutable.Map[IsarDocument.State_ID, Command_State]()
-  private def state(doc: ProofDocument) = doc.states.get(this)
-  
-  /* command status */
+  protected override var _state = State.empty(this)
 
-  def set_status(state: IsarDocument.State_ID, status: Command.Status.Value) = {
-    if (state != null)
-      states.getOrElseUpdate(state, new Command_State(this)).status = status
+
+  /* markup */
+
+  lazy val empty_root_node =
+    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
+      Nil, id, content, RootInfo())
+
+  def markup_node(begin: Int, end: Int, info: MarkupInfo) = {
+    new MarkupNode(this, symbol_index.decode(begin), symbol_index.decode(end), Nil, id,
+      content.substring(symbol_index.decode(begin), symbol_index.decode(end)),
+      info)
   }
 
-  def status(doc: ProofDocument) =
-    state(doc) match {
-      case Some(s) => states.getOrElseUpdate(s, new Command_State(this)).status
-      case _ => Command.Status.UNPROCESSED
-    }
 
-  /* results */
+  /* results, markup, ... */
 
-  private val results = new mutable.ListBuffer[XML.Tree]
-  def add_result(state: IsarDocument.State_ID, tree: XML.Tree) = synchronized {
-    (if (state == null) results else states(state).results) += tree
-  }
+  private val empty_cmd_state = new Command_State(this)
+  private def cmd_state(doc: ProofDocument) =
+    doc.states.getOrElse(this, empty_cmd_state)
 
-  def result_document(doc: ProofDocument) = {
-    val state_results = state(doc) match {
-      case Some(s) =>
-        states.getOrElseUpdate(s, new Command_State(this)).results
-      case _ => Nil}
+  def status(doc: ProofDocument) = cmd_state(doc).state.status
+  def result_document(doc: ProofDocument) = cmd_state(doc).result_document
+  def markup_root(doc: ProofDocument) = cmd_state(doc).markup_root
+  def highlight_node(doc: ProofDocument) = cmd_state(doc).highlight_node
+  def type_at(doc: ProofDocument, offset: Int) = cmd_state(doc).type_at(offset)
+  def ref_at(doc: ProofDocument, offset: Int) = cmd_state(doc).ref_at(offset)
+}
+
+
+class Command_State(val cmd: Command)
+extends Accumulator
+{
+
+  protected override var _state = State.empty(cmd)
+
+
+  // combining command and state
+  def result_document = {
+    val cmd_results = cmd.state.results
     XML.document(
-      results.toList ::: state_results.toList match {
+      cmd_results.toList ::: state.results.toList match {
         case Nil => XML.Elem("message", Nil, Nil)
         case List(elem) => elem
         case elems => XML.Elem("messages", Nil, elems)
       }, "style")
   }
 
-
-  /* markup */
-
-  val empty_root_node =
-    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
-      Nil, id, content, RootInfo())
-  private var _markup_root = empty_root_node
-  def add_markup(state: IsarDocument.State_ID, raw_node: MarkupNode) = {
-    // decode node
-    val node = raw_node transform symbol_index.decode
-    if (state == null) _markup_root += node
-    else {
-      val cmd_state = states.getOrElseUpdate(state, new Command_State(this))
-      cmd_state.markup_root += node
-    }
+  def markup_root: MarkupNode = {
+    val cmd_markup_root = cmd.state.markup_root
+    (cmd_markup_root /: state.markup_root.children) (_ + _)
   }
 
-  def markup_root(doc: ProofDocument): MarkupNode = {
-    state(doc) match {
-      case Some(s) =>
-        (_markup_root /: states(s).markup_root.children) (_ + _)
-      case _ => _markup_root
-    }
-  }
-
-  def highlight_node(doc: ProofDocument): MarkupNode =
+  def highlight_node: MarkupNode =
   {
     import MarkupNode._
-    markup_root(doc).filter(_.info match {
-      case RootInfo() | OuterInfo(_) | HighlightInfo(_) => true
+    markup_root.filter(_.info match {
+      case RootInfo() | HighlightInfo(_) => true
       case _ => false
     }).head
   }
 
-  def markup_node(begin: Int, end: Int, info: MarkupInfo) =
-    new MarkupNode(this, begin, end, Nil, id,
-      if (end <= content.length && begin >= 0) content.substring(begin, end)
-      else "wrong indices??",
-      info)
-
-  def type_at(doc: ProofDocument, pos: Int) =
-    state(doc).map(states(_).type_at(pos)).getOrElse(null)
-
-  def ref_at(doc: ProofDocument, pos: Int) =
-    state(doc).flatMap(states(_).ref_at(pos))
-
-}
-
-class Command_State(val cmd: Command) {
-
-  var status = Command.Status.UNPROCESSED
-
-  /* results */
-  val results = new mutable.ListBuffer[XML.Tree]
-
-  /* markup */
-  val empty_root_node = cmd.empty_root_node
-  var markup_root = empty_root_node
-
   def type_at(pos: Int): String =
   {
-    val types = markup_root.filter(_.info match { case TypeInfo(_) => true case _ => false })
+    val types = state.markup_root.
+      filter(_.info match { case TypeInfo(_) => true case _ => false })
     types.flatten(_.flatten).
-      find(t => t.start <= pos && t.stop > pos).
-      map(t => t.content + ": " + (t.info match { case TypeInfo(i) => i case _ => "" })).
-      getOrElse(null)
+    find(t => t.start <= pos && t.stop > pos).
+    map(t => t.content + ": " + (t.info match { case TypeInfo(i) => i case _ => "" })).
+    getOrElse(null)
   }
 
   def ref_at(pos: Int): Option[MarkupNode] =
-    markup_root.filter(_.info match { case RefInfo(_, _, _, _) => true case _ => false }).
+    state.markup_root.
+      filter(_.info match { case RefInfo(_, _, _, _) => true case _ => false }).
       flatten(_.flatten).
       find(t => t.start <= pos && t.stop > pos)
 }

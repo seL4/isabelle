@@ -43,12 +43,14 @@ extends Actor
   
   /* document state information */
 
-  private val states = new mutable.HashMap[IsarDocument.State_ID, Command] with
-    mutable.SynchronizedMap[IsarDocument.State_ID, Command]
+  private val states = new mutable.HashMap[IsarDocument.State_ID, Command_State] with
+    mutable.SynchronizedMap[IsarDocument.State_ID, Command_State]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command] with
     mutable.SynchronizedMap[IsarDocument.Command_ID, Command]
   val document_0 =
-    ProofDocument.empty.set_command_keyword(command_decls.contains)
+    ProofDocument.empty.
+      set_command_keyword(command_decls.contains).
+      set_change_receiver(change_receiver)
   private var document_versions = List(document_0)
 
   def command(id: IsarDocument.Command_ID): Option[Command] = commands.get(id)
@@ -92,138 +94,72 @@ extends Actor
 
   private def handle_result(result: Isabelle_Process.Result)
   {
-    def command_change(c: Command) = c.changed()
-    val (state, command) =
+    val state =
       result.props.find(p => p._1 == Markup.ID) match {
-        case None => (null, null)
+        case None => None
         case Some((_, id)) =>
-          if (commands.contains(id)) (null, commands(id))
-          else if (states.contains(id)) (id, states(id))
-          else (null, null)
+          if (commands.contains(id)) Some(commands(id))
+          else if (states.contains(id)) Some(states(id))
+          else None
       }
+    output_info.event(result)
+    val message = process.parse_message(result)
+    if (state.isDefined) state.get ! message
+    else result.kind match {
 
-    if (result.kind == Isabelle_Process.Kind.STDOUT ||
-        result.kind == Isabelle_Process.Kind.STDIN)
-      output_info.event(result)
-    else {
-      result.kind match {
+      case Isabelle_Process.Kind.STATUS =>
+        //{{{ handle all kinds of status messages here
+        message match {
+          case XML.Elem(Markup.MESSAGE, _, elems) =>
+            for (elem <- elems) {
+              elem match {
+                //{{{
+                // command and keyword declarations
+                case XML.Elem(Markup.COMMAND_DECL,
+                    (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
+                  command_decls += (name -> kind)
+                case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
+                  keyword_decls += name
 
-        case Isabelle_Process.Kind.WRITELN
-        | Isabelle_Process.Kind.PRIORITY
-        | Isabelle_Process.Kind.WARNING
-        | Isabelle_Process.Kind.ERROR =>
-          if (command != null) {
-            if (result.kind == Isabelle_Process.Kind.ERROR)
-              command.set_status(state, Command.Status.FAILED)
-            command.add_result(state, process.parse_message(result))
-            command_change(command)
-          } else {
-            output_info.event(result)
-          }
+                // process ready (after initialization)
+                case XML.Elem(Markup.READY, _, _)
+                if !initialized =>
+                  initialized = true
+                  change_receiver ! ProverEvents.Activate
 
-        case Isabelle_Process.Kind.STATUS =>
-          //{{{ handle all kinds of status messages here
-          process.parse_message(result) match {
-            case XML.Elem(Markup.MESSAGE, _, elems) =>
-              for (elem <- elems) {
-                elem match {
-                  //{{{
-                  // command and keyword declarations
-                  case XML.Elem(Markup.COMMAND_DECL,
-                      (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-                    command_decls += (name -> kind)
-                  case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-                    keyword_decls += name
-
-                  // process ready (after initialization)
-                  case XML.Elem(Markup.READY, _, _)
-                  if !initialized =>
-                    initialized = true
-                    change_receiver ! ProverEvents.Activate
-
-                  // document edits
-                  case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
-                  if document_versions.exists(_.id == doc_id) =>
-                    output_info.event(result)
-                    val doc = document_versions.find(_.id == doc_id).get
-                    for {
-                      XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                        <- edits
-                    } {
-                      if (commands.contains(cmd_id)) {
-                        val cmd = commands(cmd_id)
-                        states(state_id) = cmd
-                        doc.states += (cmd -> state_id)
-                        cmd.states += (state_id -> new Command_State(cmd))
-                        command_change(cmd)
-                      }
-
+                // document edits
+                case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
+                if document_versions.exists(_.id == doc_id) =>
+                  val doc = document_versions.find(_.id == doc_id).get
+                  for {
+                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
+                      <- edits
+                  } {
+                    if (commands.contains(cmd_id)) {
+                      val cmd = commands(cmd_id)
+                      val state = new Command_State(cmd)
+                      states(state_id) = state
+                      doc.states += (cmd -> state)
                     }
-                  // command status
-                  case XML.Elem(Markup.UNPROCESSED, _, _)
-                  if command != null =>
-                    output_info.event(result)
-                    command.set_status(state, Command.Status.UNPROCESSED)
-                    command_change(command)
-                  case XML.Elem(Markup.FINISHED, _, _)
-                  if command != null =>
-                    output_info.event(result)
-                    command.set_status(state, Command.Status.FINISHED)
-                    command_change(command)
-                  case XML.Elem(Markup.FAILED, _, _)
-                  if command != null =>
-                    output_info.event(result)
-                    command.set_status(state, Command.Status.FAILED)
-                    command_change(command)
-                  case XML.Elem(kind, attr, body)
-                  if command != null =>
-                    val (begin, end) = Position.offsets_of(attr)
-                    if (begin.isDefined && end.isDefined) {
-                      if (kind == Markup.ML_TYPING) {
-                        val info = body.first.asInstanceOf[XML.Text].content
-                        command.add_markup(state,
-                          command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
-                      } else if (kind == Markup.ML_REF) {
-                        body match {
-                          case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                            command.add_markup(state, command.markup_node(
-                              begin.get - 1, end.get - 1,
-                              RefInfo(
-                                Position.file_of(attr),
-                                Position.line_of(attr),
-                                Position.id_of(attr),
-                                Position.offset_of(attr))))
-                          case _ =>
-                        }
-                      } else {
-                        command.add_markup(state,
-                          command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
-                      }
-                    }
-                    command_change(command)
-                  case XML.Elem(kind, attr, body)
-                  if command == null =>
-                    // TODO: This is mostly irrelevant information on removed commands, but it can
-                    // also be outer-syntax-markup since there is no id in props (fix that?)
-                    val (begin, end) = Position.offsets_of(attr)
-                    val markup_id = Position.id_of(attr)
-                    val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
-                    if (outer && state == null && begin.isDefined && end.isDefined && markup_id.isDefined)
-                      commands.get(markup_id.get).map (cmd => {
-                        cmd.add_markup(state,
-                          cmd.markup_node(begin.get - 1, end.get - 1, OuterInfo(kind)))
-                        command_change(cmd)
-                      })
-                  case _ =>
-                  //}}}
-                }
+
+                  }
+                case XML.Elem(kind, attr, body) =>
+                  // TODO: This is mostly irrelevant information on removed commands, but it can
+                  // also be outer-syntax-markup since there is no id in props (fix that?)
+                  val (begin, end) = Position.offsets_of(attr)
+                  val markup_id = Position.id_of(attr)
+                  val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
+                  if (outer && begin.isDefined && end.isDefined && markup_id.isDefined)
+                    commands.get(markup_id.get).map (cmd => cmd ! message)
+                case _ =>
+                //}}}
               }
-            case _ =>
-          }
-          //}}}
+            }
+          case _ =>
+        }
+        //}}}
 
-        case _ =>
-      }
+      case _ =>
     }
   }
 

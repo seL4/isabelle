@@ -48,7 +48,7 @@ class ProofDocument(
   val tokens: LinearSet[Token],
   val token_start: Map[Token, Int],
   val commands: LinearSet[Command],
-  var states: Map[Command, IsarDocument.State_ID],
+  var states: Map[Command, Command_State],
   is_command_keyword: String => Boolean,
   change_receiver: Actor)
 {
