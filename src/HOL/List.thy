@@ -3835,4 +3835,117 @@ lemma setsum_set_upto_conv_listsum [code_unfold]:
   "setsum f (set [i..j::int]) = listsum (map f [i..j])"
 by (rule setsum_set_distinct_conv_listsum) simp
 
+
+text {* Optimized code for @{text"\<forall>i\<in>{a..b::int}"} and @{text"\<forall>n:{a..<b::nat}"}
+and similiarly for @{text"\<exists>"}. *}
+
+function all_from_to_nat :: "(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
+"all_from_to_nat P i j =
+ (if i < j then if P i then all_from_to_nat P (i+1) j else False
+  else True)"
+by auto
+termination
+by (relation "measure(%(P,i,j). j - i)") auto
+
+declare all_from_to_nat.simps[simp del]
+
+lemma all_from_to_nat_iff_ball:
+  "all_from_to_nat P i j = (ALL n : {i ..< j}. P n)"
+proof(induct P i j rule:all_from_to_nat.induct)
+  case (1 P i j)
+  let ?yes = "i < j & P i"
+  show ?case
+  proof (cases)
+    assume ?yes
+    hence "all_from_to_nat P i j = (P i & all_from_to_nat P (i+1) j)"
+      by(simp add: all_from_to_nat.simps)
+    also have "... = (P i & (ALL n : {i+1 ..< j}. P n))" using `?yes` 1 by simp
+    also have "... = (ALL n : {i ..< j}. P n)" (is "?L = ?R")
+    proof
+      assume L: ?L
+      show ?R
+      proof clarify
+	fix n assume n: "n : {i..<j}"
+	show "P n"
+	proof cases
+	  assume "n = i" thus "P n" using L by simp
+	next
+	  assume "n ~= i"
+	  hence "i+1 <= n" using n by auto
+	  thus "P n" using L n by simp
+	qed
+      qed
+    next
+      assume R: ?R thus ?L using `?yes` 1 by auto
+    qed
+    finally show ?thesis .
+  next
+    assume "~?yes" thus ?thesis by(auto simp add: all_from_to_nat.simps)
+  qed
+qed
+
+
+lemma list_all_iff_all_from_to_nat[code_unfold]:
+  "list_all P [i..<j] = all_from_to_nat P i j"
+by(simp add: all_from_to_nat_iff_ball list_all_iff)
+
+lemma list_ex_iff_not_all_from_to_not_nat[code_unfold]:
+  "list_ex P [i..<j] = (~all_from_to_nat (%x. ~P x) i j)"
+by(simp add: all_from_to_nat_iff_ball list_ex_iff)
+
+
+function all_from_to_int :: "(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool" where
+"all_from_to_int P i j =
+ (if i <= j then if P i then all_from_to_int P (i+1) j else False
+  else True)"
+by auto
+termination
+by (relation "measure(%(P,i,j). nat(j - i + 1))") auto
+
+declare all_from_to_int.simps[simp del]
+
+lemma all_from_to_int_iff_ball:
+  "all_from_to_int P i j = (ALL n : {i .. j}. P n)"
+proof(induct P i j rule:all_from_to_int.induct)
+  case (1 P i j)
+  let ?yes = "i <= j & P i"
+  show ?case
+  proof (cases)
+    assume ?yes
+    hence "all_from_to_int P i j = (P i & all_from_to_int P (i+1) j)"
+      by(simp add: all_from_to_int.simps)
+    also have "... = (P i & (ALL n : {i+1 .. j}. P n))" using `?yes` 1 by simp
+    also have "... = (ALL n : {i .. j}. P n)" (is "?L = ?R")
+    proof
+      assume L: ?L
+      show ?R
+      proof clarify
+	fix n assume n: "n : {i..j}"
+	show "P n"
+	proof cases
+	  assume "n = i" thus "P n" using L by simp
+	next
+	  assume "n ~= i"
+	  hence "i+1 <= n" using n by auto
+	  thus "P n" using L n by simp
+	qed
+      qed
+    next
+      assume R: ?R thus ?L using `?yes` 1 by auto
+    qed
+    finally show ?thesis .
+  next
+    assume "~?yes" thus ?thesis by(auto simp add: all_from_to_int.simps)
+  qed
+qed
+
+lemma list_all_iff_all_from_to_int[code_unfold]:
+  "list_all P [i..j] = all_from_to_int P i j"
+by(simp add: all_from_to_int_iff_ball list_all_iff)
+
+lemma list_ex_iff_not_all_from_to_not_int[code_unfold]:
+  "list_ex P [i..j] = (~ all_from_to_int (%x. ~P x) i j)"
+by(simp add: all_from_to_int_iff_ball list_ex_iff)
+
+
 end
