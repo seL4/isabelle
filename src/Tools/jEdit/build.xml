@@ -83,6 +83,7 @@
         <fileset dir="${dist.dir}/jars/lib" />
       </move>
       <copy file="${scala.library}" todir="${dist.dir}/jars" />
+      <copy file="${scala.lib}/scala-swing.jar" todir="${dist.dir}/jars" />
       <!-- clean up -->
       <delete dir="{dist.dir}/jars/lib" />
       <!-- dist-template -->
