@@ -15,7 +15,8 @@ abstract class Edit {
 
 case class Insert(start: Int, added: String) extends Edit {
   def from_where(x: Int) =
-    if (start <= x && start + added.length <= x) x - added.length else x
+    if (start > x) x
+    else (x - added.length) max start
 
   def where_to(x: Int) =
     if (start <= x) x + added.length else x
@@ -26,7 +27,8 @@ case class Remove(start: Int, removed: String) extends Edit {
     if (start <= x) x + removed.length else x
 
   def where_to(x: Int) =
-    if (start <= x && start + removed.length <= x) x - removed.length else x
+    if (start > x) x
+    else (x - removed.length) max start
 }
 // TODO: merge multiple inserts?
 

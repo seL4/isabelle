@@ -209,11 +209,15 @@ class ProofDocument(
       } else Nil
 
     val split_end =
-      if (after_change.isDefined && cmd_after_change.isDefined) {
+      if (after_change.isDefined) {
         val unchanged = new_tokens.dropWhile(_ != after_change.get)
-        if (unchanged.exists(_ == cmd_after_change.get.tokens.first))
-          unchanged.takeWhile(_ != cmd_after_change.get.tokens.first).toList
-        else Nil
+        if(cmd_after_change.isDefined) {
+          if (unchanged.exists(_ == cmd_after_change.get.tokens.first))
+            unchanged.takeWhile(_ != cmd_after_change.get.tokens.first).toList
+          else Nil
+        } else {
+          unchanged
+        }
       } else Nil
 
     val rescan_begin =
