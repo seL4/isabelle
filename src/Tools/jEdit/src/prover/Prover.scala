@@ -103,7 +103,14 @@ extends Actor
           else None
       }
     output_info.event(result)
-    val message = process.parse_message(result)
+    val message =
+      try{process.parse_message(result)}
+        /* handle_results can be called before val process is initialized */
+      catch {
+        case e: NullPointerException =>
+          System.err.println("NPE; did not handle_result: " + result)
+      }
+
     if (state.isDefined) state.get ! message
     else result.kind match {
 
