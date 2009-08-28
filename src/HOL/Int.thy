@@ -266,7 +266,7 @@ instance int :: lordered_ring
 proof  
   fix k :: int
   show "abs k = sup k (- k)"
-    by (auto simp add: sup_int_def zabs_def max_def less_minus_self_iff [symmetric])
+    by (auto simp add: sup_int_def zabs_def less_minus_self_iff [symmetric])
 qed
 
 lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + (1\<Colon>int) \<le> z"
@@ -1486,21 +1486,6 @@ lemmas le_special =
 lemmas arith_special[simp] = 
        add_special diff_special eq_special less_special le_special
 
-
-lemma min_max_01: "min (0::int) 1 = 0 & min (1::int) 0 = 0 &
-                   max (0::int) 1 = 1 & max (1::int) 0 = 1"
-by(simp add:min_def max_def)
-
-lemmas min_max_special[simp] =
- min_max_01
- max_def[of "0::int" "number_of v", standard, simp]
- min_def[of "0::int" "number_of v", standard, simp]
- max_def[of "number_of u" "0::int", standard, simp]
- min_def[of "number_of u" "0::int", standard, simp]
- max_def[of "1::int" "number_of v", standard, simp]
- min_def[of "1::int" "number_of v", standard, simp]
- max_def[of "number_of u" "1::int", standard, simp]
- min_def[of "number_of u" "1::int", standard, simp]
 
 text {* Legacy theorems *}
 

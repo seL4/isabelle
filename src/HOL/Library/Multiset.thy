@@ -331,7 +331,7 @@ subsubsection {* Intersection *}
 
 lemma multiset_inter_count:
   "count (A #\<inter> B) x = min (count A x) (count B x)"
-by (simp add: multiset_inter_def min_def)
+by (simp add: multiset_inter_def)
 
 lemma multiset_inter_commute: "A #\<inter> B = B #\<inter> A"
 by (simp add: multiset_eq_conv_count_eq multiset_inter_count
@@ -353,7 +353,7 @@ lemma multiset_inter_single: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b
 by (simp add: multiset_eq_conv_count_eq multiset_inter_count)
 
 lemma multiset_union_diff_commute: "B #\<inter> C = {#} \<Longrightarrow> A + B - C = A - C + B"
-apply (simp add: multiset_eq_conv_count_eq multiset_inter_count min_def
+apply (simp add: multiset_eq_conv_count_eq multiset_inter_count
     split: split_if_asm)
 apply clarsimp
 apply (erule_tac x = a in allE)

@@ -1512,7 +1512,7 @@ lemma diffs0_imp_equal: "!!m::nat. [| m-n = 0; n-m = 0 |] ==>  m=n"
 by (simp split add: nat_diff_split)
 
 lemma min_diff: "min (m - (i::nat)) (n - i) = min m n - i"
-unfolding min_def by auto
+by auto
 
 lemma inj_on_diff_nat: 
   assumes k_le_n: "\<forall>n \<in> N. k \<le> (n::nat)"
