@@ -181,6 +181,10 @@ ProofContext.pretty_thm).  May fall back on Display.pretty_thm_global
 or even Display.pretty_thm_without_context as last resort.
 INCOMPATIBILITY.
 
+* Discontinued Display.pretty_ctyp/cterm etc.  INCOMPATIBILITY, use
+Syntax.pretty_typ/term directly, preferably with proper context
+instead of global theory.
+
 
 *** System ***
 
