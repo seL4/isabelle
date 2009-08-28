@@ -544,7 +544,7 @@ fun list_beta_conv tm =
 (*---------------------------------------------------------------------------
  * Trace information for the rewriter
  *---------------------------------------------------------------------------*)
-val term_ref = ref[] : term list ref
+val term_ref = ref [] : term list ref
 val ss_ref = ref [] : simpset list ref;
 val thm_ref = ref [] : thm list ref;
 val tracing = ref false;
@@ -554,8 +554,8 @@ fun say s = if !tracing then writeln s else ();
 fun print_thms s L =
   say (cat_lines (s :: map Display.string_of_thm_without_context L));
 
-fun print_cterms s L =
-  say (cat_lines (s :: map Display.string_of_cterm L));
+fun print_cterm s ct =
+  say (cat_lines [s, Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct)]);
 
 
 (*---------------------------------------------------------------------------
@@ -683,7 +683,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp,thy) =
                  let val tych = cterm_of thy
-                     val dummy = print_cterms "To eliminate:" [tych imp]
+                     val dummy = print_cterm "To eliminate:" (tych imp)
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
@@ -781,9 +781,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val antl = case rcontext of [] => []
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))
-              val dummy = print_cterms "func:" [cterm_of thy func]
-              val dummy = print_cterms "TC:"
-                              [cterm_of thy (HOLogic.mk_Trueprop TC)]
+              val dummy = print_cterm "func:" (cterm_of thy func)
+              val dummy = print_cterm "TC:" (cterm_of thy (HOLogic.mk_Trueprop TC))
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = isSome (S.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"

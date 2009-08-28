@@ -74,7 +74,7 @@ fun get_derived_thm ctxt hyp concl orig_thm pi typi =
     val lhs = Const (@{const_name "perm"}, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
     val ([goal_term, pi''], ctxt') = Variable.import_terms false
       [HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, concl)), pi'] ctxt
-    val _ = Display.print_cterm (cterm_of thy goal_term)
+    val _ = writeln (Syntax.string_of_term ctxt' goal_term);
   in
     Goal.prove ctxt' [] [] goal_term
       (fn _ => prove_eqvt_tac thy orig_thm pi' pi'') |>
