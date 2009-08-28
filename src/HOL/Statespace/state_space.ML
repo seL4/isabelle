@@ -567,8 +567,8 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
           (case distinct (snd_eq) (filter (curry fst_eq (n,T)) raw_parent_comps) of
              []  => []
            | [_] => []
-           | rs  => ["Different types for component " ^ n ^": " ^ commas
-                       (map (Pretty.string_of o Display.pretty_ctyp o ctyp_of thy o snd) rs)])
+           | rs  => ["Different types for component " ^ n ^": " ^
+                commas (map (Syntax.string_of_typ ctxt o snd) rs)])
 
     val err_dup_types = List.concat (map check_type (duplicates fst_eq raw_parent_comps))
 

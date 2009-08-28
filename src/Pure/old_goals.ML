@@ -362,10 +362,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
           (case Seq.pull (tac st0) of
                SOME(st,_) => st
              | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (check, cond_timeit (!Output.timing) "" statef)  end
-  handle e => (print_sign_exn_unit (Thm.theory_of_cterm chorn) e;
-               writeln ("The exception above was raised for\n" ^
-                      Display.string_of_cterm chorn); raise e);
+  in  mkresult (check, cond_timeit (!Output.timing) "" statef)  end;
 
 (*Two variants: one checking the result, one not.
   Neither prints runtime messages: they are for internal packages.*)
