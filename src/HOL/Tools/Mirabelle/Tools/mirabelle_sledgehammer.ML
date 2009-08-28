@@ -5,9 +5,12 @@
 structure Mirabelle_Sledgehammer : MIRABELLE_ACTION =
 struct
 
-fun sledgehammer_action {pre=st, ...} =
+fun sledgehammer_action args {pre=st, ...} =
   let
-    val prover_name = hd (space_explode " " (AtpManager.get_atps ()))
+    val prover_name =
+      AList.lookup (op =) args "prover"
+      |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
+
     val thy = Proof.theory_of st
  
     val prover = the (AtpManager.get_prover prover_name thy)
@@ -26,6 +29,6 @@ fun sledgehammer_action {pre=st, ...} =
     else NONE
   end
 
-fun invoke _ = Mirabelle.register ("sledgehammer", sledgehammer_action)
+fun invoke args = Mirabelle.register ("sledgehammer", sledgehammer_action args)
 
 end
