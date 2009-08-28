@@ -19,6 +19,7 @@ my %URLParameters = (
     "QuietFlag" => "-q01",
     "SubmitButton" => "RunSelectedSystems",
     "ProblemSource" => "UPLOAD",
+    "ForceSystem" => "-force",
     );
 
 #----Get format and transform options if specified
