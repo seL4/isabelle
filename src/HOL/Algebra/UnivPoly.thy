@@ -817,15 +817,9 @@ by (fast intro: le_anti_sym deg_aboveI deg_belowI)
 text {* Degree and polynomial operations *}
 
 lemma deg_add [simp]:
-  assumes R: "p \<in> carrier P" "q \<in> carrier P"
-  shows "deg R (p \<oplus>\<^bsub>P\<^esub> q) <= max (deg R p) (deg R q)"
-proof (cases "deg R p <= deg R q")
-  case True show ?thesis
-    by (rule deg_aboveI) (simp_all add: True R deg_aboveD)
-next
-  case False show ?thesis
-    by (rule deg_aboveI) (simp_all add: False R deg_aboveD)
-qed
+  "p \<in> carrier P \<Longrightarrow> q \<in> carrier P \<Longrightarrow>
+  deg R (p \<oplus>\<^bsub>P\<^esub> q) <= max (deg R p) (deg R q)"
+by(rule deg_aboveI)(simp_all add: deg_aboveD)
 
 lemma deg_monom_le:
   "a \<in> carrier R ==> deg R (monom P a n) <= n"

@@ -1070,7 +1070,6 @@ lemma bc_mt_corresp_Pop: "
   bc_mt_corresp [Pop] (popST (Suc 0)) (T # ST, LT) cG rT mxr (Suc 0)"
   apply (simp add: bc_mt_corresp_def popST_def wt_instr_altern_def eff_def norm_eff_def)
   apply (simp add: max_ssize_def ssize_sto_def max_of_list_def) 
-  apply (simp add: max_def)
   apply (simp add: check_type_simps)
   apply clarify
   apply (rule_tac x="(length ST)" in exI)
@@ -1154,7 +1153,7 @@ lemma bc_mt_corresp_Store_init: "\<lbrakk> i < length LT \<rbrakk>
   \<Longrightarrow> bc_mt_corresp [Store i] (storeST i T) (T # ST, LT) cG rT mxr (Suc 0)"
  apply (simp add: bc_mt_corresp_def storeST_def wt_instr_altern_def eff_def norm_eff_def)
   apply (simp add: max_ssize_def  max_of_list_def )
-  apply (simp add: ssize_sto_def) apply (simp add: max_def)
+  apply (simp add: ssize_sto_def)
   apply (intro strip)
 apply (simp add: check_type_simps)
 apply clarify
@@ -1170,7 +1169,6 @@ lemma bc_mt_corresp_Store: "\<lbrakk> i < length LT; cG  \<turnstile>  LT[i := O
   apply (simp add: bc_mt_corresp_def popST_def wt_instr_altern_def eff_def norm_eff_def)
   apply (simp add: sup_state_conv)
   apply (simp add: max_ssize_def max_of_list_def ssize_sto_def)
-  apply (simp add: max_def)
  apply (intro strip)
 apply (simp add: check_type_simps)
 apply clarify

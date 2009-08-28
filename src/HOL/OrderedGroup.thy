@@ -1075,16 +1075,17 @@ lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
 lemma pprt_eq_id [simp, noatp]: "0 \<le> x \<Longrightarrow> pprt x = x"
-by (simp add: pprt_def le_iff_sup sup_aci)
+by (simp add: pprt_def sup_aci)
+
 
 lemma nprt_eq_id [simp, noatp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
-by (simp add: nprt_def le_iff_inf inf_aci)
+by (simp add: nprt_def inf_aci)
 
 lemma pprt_eq_0 [simp, noatp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
-by (simp add: pprt_def le_iff_sup sup_aci)
+by (simp add: pprt_def sup_aci)
 
 lemma nprt_eq_0 [simp, noatp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
-by (simp add: nprt_def le_iff_inf inf_aci)
+by (simp add: nprt_def inf_aci)
 
 lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
 proof -
@@ -1118,13 +1119,13 @@ lemma zero_le_double_add_iff_zero_le_single_add [simp]:
   "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
 proof
   assume "0 <= a + a"
-  hence a:"inf (a+a) 0 = 0" by (simp add: le_iff_inf inf_commute)
+  hence a:"inf (a+a) 0 = 0" by (simp add: inf_commute)
   have "(inf a 0)+(inf a 0) = inf (inf (a+a) 0) a" (is "?l=_")
     by (simp add: add_sup_inf_distribs inf_aci)
   hence "?l = 0 + inf a 0" by (simp add: a, simp add: inf_commute)
   hence "inf a 0 = 0" by (simp only: add_right_cancel)
-  then show "0 <= a" by (simp add: le_iff_inf inf_commute)    
-next  
+  then show "0 <= a" unfolding le_iff_inf by (simp add: inf_commute)
+next
   assume a: "0 <= a"
   show "0 <= a + a" by (simp add: add_mono[OF a a, simplified])
 qed
@@ -1194,22 +1195,22 @@ proof -
 qed
 
 lemma zero_le_iff_zero_nprt: "0 \<le> a \<longleftrightarrow> nprt a = 0"
-by (simp add: le_iff_inf nprt_def inf_commute)
+unfolding le_iff_inf by (simp add: nprt_def inf_commute)
 
 lemma le_zero_iff_zero_pprt: "a \<le> 0 \<longleftrightarrow> pprt a = 0"
-by (simp add: le_iff_sup pprt_def sup_commute)
+unfolding le_iff_sup by (simp add: pprt_def sup_commute)
 
 lemma le_zero_iff_pprt_id: "0 \<le> a \<longleftrightarrow> pprt a = a"
-by (simp add: le_iff_sup pprt_def sup_commute)
+unfolding le_iff_sup by (simp add: pprt_def sup_commute)
 
 lemma zero_le_iff_nprt_id: "a \<le> 0 \<longleftrightarrow> nprt a = a"
-by (simp add: le_iff_inf nprt_def inf_commute)
+unfolding le_iff_inf by (simp add: nprt_def inf_commute)
 
 lemma pprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> pprt a \<le> pprt b"
-by (simp add: le_iff_sup pprt_def sup_aci sup_assoc [symmetric, of a])
+unfolding le_iff_sup by (simp add: pprt_def sup_aci sup_assoc [symmetric, of a])
 
 lemma nprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> nprt a \<le> nprt b"
-by (simp add: le_iff_inf nprt_def inf_aci inf_assoc [symmetric, of a])
+unfolding le_iff_inf by (simp add: nprt_def inf_aci inf_assoc [symmetric, of a])
 
 end
 

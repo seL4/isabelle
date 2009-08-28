@@ -582,7 +582,7 @@ proof -
       ultimately
       have "a (max no n) < a n" by auto
       with monotone[where m=n and n="max no n"]
-      show False by auto
+      show False by (auto simp:max_def split:split_if_asm)
     qed
   } note top_down = this
   { fix x n m fix a :: "nat \<Rightarrow> real"
