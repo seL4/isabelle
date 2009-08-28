@@ -918,8 +918,8 @@ lemma bin_cat_foldl_lem [rule_format] :
   apply (frule asm_rl)
   apply (drule spec)
   apply (erule trans)
-  apply (drule_tac x = "bin_cat y n a" in spec) 
-  apply (simp add : bin_cat_assoc_sym min_def)
+  apply (drule_tac x = "bin_cat y n a" in spec)
+  apply (simp add : bin_cat_assoc_sym)
   done
 
 lemma bin_rcat_bl:
