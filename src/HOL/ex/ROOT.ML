@@ -72,25 +72,16 @@ Future.shutdown ();
 (setmp_noncritical proofs 2 (setmp_noncritical Multithreading.max_threads 1 use_thy))
   "Hilbert_Classical";
 
-
 use_thy "SVC_Oracle";
+if getenv "SVC_HOME" = "" then ()
+else use_thy "svc_test";
 
-fun svc_enabled () = getenv "SVC_HOME" <> "";
-fun if_svc_enabled f x = if svc_enabled () then f x else ();
-
-if_svc_enabled use_thy "svc_test";
-
-
-(* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)
-(* installed:                                                       *)
+(*requires a proof-generating SAT solver (zChaff or MiniSAT)*)
 try use_thy "SAT_Examples";
-Future.shutdown ();
 
-(* requires zChaff (or some other reasonably fast SAT solver) to be *)
-(* installed:                                                       *)
-if getenv "ZCHAFF_HOME" <> "" then
-  use_thy "Sudoku"
-else ();
+(*requires zChaff (or some other reasonably fast SAT solver)*)
+if getenv "ZCHAFF_HOME" = "" then ()
+else use_thy "Sudoku";
 
 HTML.with_charset "utf-8" (no_document use_thys)
   ["Hebrew", "Chinese", "Serbian"];
