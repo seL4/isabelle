@@ -29,10 +29,8 @@ sig
   val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_ctyp: ctyp -> Pretty.T
   val string_of_ctyp: ctyp -> string
-  val print_ctyp: ctyp -> unit
   val pretty_cterm: cterm -> Pretty.T
   val string_of_cterm: cterm -> string
-  val print_cterm: cterm -> unit
   val print_syntax: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T list
 end;
@@ -125,11 +123,9 @@ fun pretty_thms ctxt = pretty_thms_aux ctxt true;
 
 fun pretty_ctyp cT = Syntax.pretty_typ_global (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 fun string_of_ctyp cT = Syntax.string_of_typ_global (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
-val print_ctyp = writeln o string_of_ctyp;
 
 fun pretty_cterm ct = Syntax.pretty_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct);
 fun string_of_cterm ct = Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct);
-val print_cterm = writeln o string_of_cterm;
 
 
 
