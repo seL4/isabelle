@@ -1275,7 +1275,7 @@ lemma sup_eq_if:
 proof -
   note add_le_cancel_right [of a a "- a", symmetric, simplified]
   moreover note add_le_cancel_right [of "-a" a a, symmetric, simplified]
-  then show ?thesis by (auto simp: sup_max max_def)
+  then show ?thesis by (auto simp: sup_max)
 qed
 
 lemma abs_if_lattice:
