@@ -586,7 +586,7 @@ fun dest_char (Const ("String.char.Char", _) $ t $ u) =
 
 (* string *)
 
-val stringT = Type ("String.string", []);
+val stringT = listT charT;
 
 val mk_string = mk_list charT o map (mk_char o ord) o explode;
 val dest_string = implode o map (chr o dest_char) o dest_list;
