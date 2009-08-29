@@ -89,10 +89,10 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
     val failure = find_failure proof
     val success = rc = 0 andalso is_none failure
     val message =
-      if is_some failure then "External prover failed."
-      else if rc <> 0 then "External prover failed: " ^ proof
-      else "Try this command: " ^
-        produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno)
+      if is_some failure then ("External prover failed.", [])
+      else if rc <> 0 then ("External prover failed: " ^ proof, [])
+      else apfst (fn s => "Try this command: " ^ s)
+        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno))
     val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
   in (success, message, proof, thm_names, the_filtered_clauses) end;
 
