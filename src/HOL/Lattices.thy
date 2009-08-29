@@ -125,10 +125,10 @@ lemma inf_idem[simp]: "x \<sqinter> x = x"
 lemma inf_left_idem[simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
   by (rule antisym) (auto intro: le_infI2)
 
-lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
+lemma inf_absorb1[simp]: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
   by (rule antisym) auto
 
-lemma inf_absorb2: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
+lemma inf_absorb2[simp]: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
   by (rule antisym) auto
 
 lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
@@ -153,10 +153,10 @@ lemma sup_idem[simp]: "x \<squnion> x = x"
 lemma sup_left_idem[simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
   by (rule antisym) (auto intro: le_supI2)
 
-lemma sup_absorb1: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
+lemma sup_absorb1[simp]: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
   by (rule antisym) auto
 
-lemma sup_absorb2: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
+lemma sup_absorb2[simp]: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
   by (rule antisym) auto
 
 lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
@@ -199,7 +199,7 @@ assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion>
 shows "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
 proof-
   have "x \<squnion> (y \<sqinter> z) = (x \<squnion> (x \<sqinter> z)) \<squnion> (y \<sqinter> z)" by(simp add:sup_inf_absorb)
-  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))" by(simp add:D inf_commute sup_assoc)
+  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))" by(simp add:D inf_commute sup_assoc del:sup_absorb1)
   also have "\<dots> = ((x \<squnion> y) \<sqinter> x) \<squnion> ((x \<squnion> y) \<sqinter> z)"
     by(simp add:inf_sup_absorb inf_commute)
   also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> z)" by(simp add:D)
@@ -211,7 +211,7 @@ assumes D: "!!x y z. x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter>
 shows "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
 proof-
   have "x \<sqinter> (y \<squnion> z) = (x \<sqinter> (x \<squnion> z)) \<sqinter> (y \<squnion> z)" by(simp add:inf_sup_absorb)
-  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))" by(simp add:D sup_commute inf_assoc)
+  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))" by(simp add:D sup_commute inf_assoc del:inf_absorb1)
   also have "\<dots> = ((x \<sqinter> y) \<squnion> x) \<sqinter> ((x \<sqinter> y) \<squnion> z)"
     by(simp add:sup_inf_absorb sup_commute)
   also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)

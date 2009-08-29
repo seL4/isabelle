@@ -14,13 +14,13 @@ class Isar(isabelle_system: Isabelle_System,
   /* basic editor commands */
 
   def create_command(id: String, text: String) =
-    output_sync("Isar.command " + IsabelleSyntax.encode_string(id) + " " +
-      IsabelleSyntax.encode_string(text))
+    output_sync("Isar.command " + Isabelle_Syntax.encode_string(id) + " " +
+      Isabelle_Syntax.encode_string(text))
 
   def insert_command(prev: String, id: String) =
-    output_sync("Isar.insert " + IsabelleSyntax.encode_string(prev) + " " +
-      IsabelleSyntax.encode_string(id))
+    output_sync("Isar.insert " + Isabelle_Syntax.encode_string(prev) + " " +
+      Isabelle_Syntax.encode_string(id))
 
   def remove_command(id: String) =
-    output_sync("Isar.remove " + IsabelleSyntax.encode_string(id))
+    output_sync("Isar.remove " + Isabelle_Syntax.encode_string(id))
 }

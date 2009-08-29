@@ -288,21 +288,21 @@ fun align_right msg xs ys =
 
 (* prep_inst *)
 
-fun prep_inst thy align tune (tm, ts) =
+fun prep_inst ctxt align tune (tm, ts) =
   let
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.cterm_of (ProofContext.theory_of ctxt);
     fun prep_var (x, SOME t) =
           let
             val cx = cert x;
             val xT = #T (Thm.rep_cterm cx);
             val ct = cert (tune t);
-            val tT = Thm.ctyp_of_term ct;
+            val tT = #T (Thm.rep_cterm ct);
           in
-            if Type.could_unify (Thm.typ_of tT, xT) then SOME (cx, ct)
+            if Type.could_unify (tT, xT) then SOME (cx, ct)
             else error (Pretty.string_of (Pretty.block
              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
-              Display.pretty_cterm ct, Pretty.str " ::", Pretty.brk 1,
-              Display.pretty_ctyp (#T (Thm.crep_cterm ct))]))
+              Syntax.pretty_term ctxt (Thm.term_of ct), Pretty.str " ::", Pretty.brk 1,
+              Syntax.pretty_typ ctxt tT]))
           end
       | prep_var (_, NONE) = NONE;
     val xs = vars_of tm;
@@ -342,12 +342,11 @@ in
 fun cases_tac ctxt insts opt_rule facts =
   let
     val thy = ProofContext.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
 
     fun inst_rule r =
       if null insts then `RuleCases.get r
       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
-        |> maps (prep_inst thy align_left I)
+        |> maps (prep_inst ctxt align_left I)
         |> Drule.cterm_instantiate) r |> pair (RuleCases.get r);
 
     val ruleq =
@@ -411,8 +410,8 @@ val rulify_tac =
 
 (* prepare rule *)
 
-fun rule_instance thy inst rule =
-  Drule.cterm_instantiate (prep_inst thy align_left I (Thm.prop_of rule, inst)) rule;
+fun rule_instance ctxt inst rule =
+  Drule.cterm_instantiate (prep_inst ctxt align_left I (Thm.prop_of rule, inst)) rule;
 
 fun internalize k th =
   th |> Thm.permute_prems 0 k
@@ -589,7 +588,7 @@ fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
       (if null insts then `RuleCases.get r
        else (align_left "Rule has fewer conclusions than arguments given"
           (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
-        |> maps (prep_inst thy align_right (atomize_term thy))
+        |> maps (prep_inst ctxt align_right (atomize_term thy))
         |> Drule.cterm_instantiate) r |> pair (RuleCases.get r))
       |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
@@ -619,7 +618,7 @@ fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
           THEN' inner_atomize_tac) j))
         THEN' atomize_tac) i st |> Seq.maps (fn st' =>
             guess_instance ctxt (internalize more_consumes rule) i st'
-            |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
+            |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
                 (Tactic.rtac rule' i THEN
@@ -657,7 +656,7 @@ fun coinduct_tac ctxt inst taking opt_rule facts =
 
     fun inst_rule r =
       if null inst then `RuleCases.get r
-      else Drule.cterm_instantiate (prep_inst thy align_right I (main_prop_of r, inst)) r
+      else Drule.cterm_instantiate (prep_inst ctxt align_right I (main_prop_of r, inst)) r
         |> pair (RuleCases.get r);
 
     fun ruleq goal =
@@ -673,7 +672,7 @@ fun coinduct_tac ctxt inst taking opt_rule facts =
       |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
         guess_instance ctxt rule i st
-        |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
+        |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
           CASES (RuleCases.make_common false (thy, Thm.prop_of rule') cases)
             (Method.insert_tac more_facts i THEN Tactic.rtac rule' i) st)))

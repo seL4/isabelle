@@ -181,9 +181,10 @@ lemma atLeastAtMost_iff [simp,noatp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
-text {* The above four lemmas could be declared as iffs.
-  If we do so, a call to blast in Hyperreal/Star.ML, lemma @{text STAR_Int}
-  seems to take forever (more than one hour). *}
+text {* The above four lemmas could be declared as iffs. Unfortunately this
+breaks many proofs. Since it only helps blast, it is better to leave well
+alone *}
+
 end
 
 subsubsection{* Emptyness, singletons, subset *}

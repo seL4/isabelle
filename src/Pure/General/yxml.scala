@@ -7,8 +7,8 @@ Efficient text representation of XML trees.
 package isabelle
 
 
-object YXML {
-
+object YXML
+{
   /* chunk markers */
 
   private val X = '\5'
@@ -22,7 +22,8 @@ object YXML {
   private def chunks(sep: Char, source: CharSequence) = new Iterator[CharSequence] {
     private val end = source.length
     private var state = if (end == 0) None else get_chunk(-1)
-    private def get_chunk(i: Int) = {
+    private def get_chunk(i: Int) =
+    {
       if (i < end) {
         var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
         Some((source.subSequence(i + 1, j), j))
@@ -55,8 +56,8 @@ object YXML {
   }
 
 
-  def parse_body(source: CharSequence) = {
-
+  def parse_body(source: CharSequence): List[XML.Tree] =
+  {
     /* stack operations */
 
     var stack: List[((String, XML.Attributes), List[XML.Tree])] = null
@@ -94,7 +95,7 @@ object YXML {
     }
   }
 
-  def parse(source: CharSequence) =
+  def parse(source: CharSequence): XML.Tree =
     parse_body(source) match {
       case List(result) => result
       case Nil => XML.Text("")
@@ -108,14 +109,15 @@ object YXML {
     XML.Elem (Markup.BAD, Nil,
       List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
 
-  def parse_body_failsafe(source: CharSequence) = {
+  def parse_body_failsafe(source: CharSequence): List[XML.Tree] =
+  {
     try { parse_body(source) }
     catch { case _: RuntimeException => List(markup_failsafe(source)) }
   }
 
-  def parse_failsafe(source: CharSequence) = {
+  def parse_failsafe(source: CharSequence): XML.Tree =
+  {
     try { parse(source) }
     catch { case _: RuntimeException => markup_failsafe(source) }
   }
-
 }

@@ -531,7 +531,7 @@ fun dump_import_thy thyname thy =
 	val _ = app (fn (hol,(internal,isa,opt_ty)) =>
 			(out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string (follow_cname isa thy)));
 			 case opt_ty of
-			     SOME ty => out (" :: \"" ^ (Display.string_of_ctyp (ctyp_of thy ty)) ^ "\"")
+			     SOME ty => out (" :: \"" ^ Syntax.string_of_typ_global thy ty ^ "\"")
 			   | NONE => ())) constmaps
 	val _ = if null constmaps
 		then ()

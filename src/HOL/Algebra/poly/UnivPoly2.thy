@@ -563,11 +563,7 @@ by (fast intro: le_anti_sym deg_aboveI deg_belowI)
 
 lemma deg_add [simp]:
   "deg ((p::'a::ring up) + q) <= max (deg p) (deg q)"
-proof (cases "deg p <= deg q")
-  case True show ?thesis by (rule deg_aboveI) (simp add: True deg_aboveD) 
-next
-  case False show ?thesis by (rule deg_aboveI) (simp add: False deg_aboveD)
-qed
+by (rule deg_aboveI) (simp add: deg_aboveD)
 
 lemma deg_monom_ring:
   "deg (monom a n::'a::ring up) <= n"

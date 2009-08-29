@@ -14,9 +14,9 @@ ML {*
 (*Typechecking rules for most datatypes involving univ*)
 structure Data_Arg =
   struct
-  val intrs = 
+  val intrs =
       [@{thm SigmaI}, @{thm InlI}, @{thm InrI},
-       @{thm Pair_in_univ}, @{thm Inl_in_univ}, @{thm Inr_in_univ}, 
+       @{thm Pair_in_univ}, @{thm Inl_in_univ}, @{thm Inr_in_univ},
        @{thm zero_in_univ}, @{thm A_into_univ}, @{thm nat_into_univ}, @{thm UnCI}];
 
 
@@ -25,7 +25,7 @@ structure Data_Arg =
   end;
 
 
-structure Data_Package = 
+structure Data_Package =
   Add_datatype_def_Fun
    (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
     and Su=Standard_Sum
@@ -37,16 +37,16 @@ structure Data_Package =
 (*Typechecking rules for most codatatypes involving quniv*)
 structure CoData_Arg =
   struct
-  val intrs = 
+  val intrs =
       [@{thm QSigmaI}, @{thm QInlI}, @{thm QInrI},
-       @{thm QPair_in_quniv}, @{thm QInl_in_quniv}, @{thm QInr_in_quniv}, 
+       @{thm QPair_in_quniv}, @{thm QInl_in_quniv}, @{thm QInr_in_quniv},
        @{thm zero_in_quniv}, @{thm A_into_quniv}, @{thm nat_into_quniv}, @{thm UnCI}];
 
   val elims = [make_elim @{thm QInlD}, make_elim @{thm QInrD},   (*for mutual recursion*)
                @{thm QSigmaE}, @{thm qsumE}];                    (*allows * and + in spec*)
   end;
 
-structure CoData_Package = 
+structure CoData_Package =
   Add_datatype_def_Fun
    (structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
     and Su=Quine_Sum
@@ -69,9 +69,9 @@ struct
  val datatype_ss = @{simpset};
 
  fun proc sg ss old =
-   let val _ = if !trace then writeln ("data_free: OLD = " ^ 
-                                       Display.string_of_cterm (cterm_of sg old))
-               else ()
+   let val _ =
+         if !trace then writeln ("data_free: OLD = " ^ Syntax.string_of_term_global sg old)
+         else ()
        val (lhs,rhs) = FOLogic.dest_eq old
        val (lhead, largs) = strip_comb lhs
        and (rhead, rargs) = strip_comb rhs
@@ -81,15 +81,15 @@ struct
          handle Option => raise Match;
        val rcon_info = the (Symtab.lookup (ConstructorsData.get sg) rname)
          handle Option => raise Match;
-       val new = 
-           if #big_rec_name lcon_info = #big_rec_name rcon_info 
+       val new =
+           if #big_rec_name lcon_info = #big_rec_name rcon_info
                andalso not (null (#free_iffs lcon_info)) then
                if lname = rname then mk_new (largs, rargs)
                else Const("False",FOLogic.oT)
            else raise Match
-       val _ = if !trace then 
-                 writeln ("NEW = " ^ Display.string_of_cterm (Thm.cterm_of sg new))
-               else ();
+       val _ =
+         if !trace then writeln ("NEW = " ^ Syntax.string_of_term_global sg new)
+         else ();
        val goal = Logic.mk_equals (old, new)
        val thm = Goal.prove (Simplifier.the_context ss) [] [] goal
          (fn _ => rtac iff_reflection 1 THEN
