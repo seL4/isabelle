@@ -99,7 +99,7 @@ fun decode_link ctxt (kind,index,logic,name) =
       |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
       |> (if ! ThyOutput.quotes then quote else I)
       |> (if ! ThyOutput.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
-	  else hyper o enclose "\\mbox{\\isa{" "}}")), style)
+          else hyper o enclose "\\mbox{\\isa{" "}}")), style)
   else ("Bad " ^ kind ^ " " ^ name, false)
   end;
 end;
@@ -147,8 +147,8 @@ fun scan_identifier ctxt =
   ) >> (Identifier o enclose "\\isa{" "}" o Output.output o implode) ||
   scan_link >> (decode_link ctxt) >>
     (fn (txt, style) =>
-	if style then Special_Identifier(txt)
-	else Identifier(txt))
+        if style then Special_Identifier(txt)
+        else Identifier(txt))
 end;
 
 fun scan_anot ctxt =
@@ -169,12 +169,12 @@ fun scan_text ctxt =
     val text_sq =
       Scan.repeat (
         Scan.one (fn s =>
-	  s <> "\n" andalso
-	  s <> "\t" andalso
-	  s <> "'" andalso
-	  s <> "\\" andalso
-	  Symbol.is_regular s) ||
-	($$ "\\" |-- $$ "'")
+          s <> "\n" andalso
+          s <> "\t" andalso
+          s <> "'" andalso
+          s <> "\\" andalso
+          Symbol.is_regular s) ||
+        ($$ "\\" |-- $$ "'")
       ) >> implode
   fun quoted scan = $$ "'" |-- scan --| $$ "'";
   in
@@ -305,9 +305,9 @@ and parse_body1 x =
   parse_body2 -- ($$$ "*" |-- !!! "body4e expected" (parse_body4e)) >>
     (fn (body1, body2) =>
       if is_empty body2 then
-	add_body(PLUS, new_empty_body, rev_body body1)
+        add_body(PLUS, new_empty_body, rev_body body1)
       else
-	add_body(BAR, new_empty_body, add_body (PLUS, body1, rev_body body2)) ) ||
+        add_body(BAR, new_empty_body, add_body (PLUS, body1, rev_body body2)) ) ||
   parse_body2 -- ($$$ "+" |-- !!! "body4e expected" (parse_body4e)) >>
     (fn (body1, body2) => new_body (PLUS, body1, rev_body body2) ) ||
   parse_body2e
@@ -365,36 +365,36 @@ fun getynext (Body_Pos(_,_,_,_,_,_,ynext)) = ynext;
 fun position_body (body as Body(kind, text, annot, id, bodies), ystart) =
   let fun max (x,y) = if x > y then x else y
     fun set_body_position (Body(kind, text, annot, id, bodies), ystart, ynext) =
-	  Body_Pos(kind, text, annot, id, bodies, ystart, ynext)
+          Body_Pos(kind, text, annot, id, bodies, ystart, ynext)
     fun pos_bodies_cat ([],_,ynext,liste) = (liste, ynext)
       | pos_bodies_cat (x::xs, ystart, ynext, liste) =
-	  if is_kind_of CR x then
-	      (case set_body_position(x, ystart, ynext+1) of
-		body as Body_Pos(_,_,_,_,_,_,ynext1) =>
-		  pos_bodies_cat(xs, ynext1, max(ynext,ynext1), liste@[body])
-	      )
-	  else
-	      (case position_body(x, ystart) of
-		body as Body_Pos(_,_,_,_,_,_,ynext1) =>
-		  pos_bodies_cat(xs, ystart, max(ynext,ynext1), liste@[body])
-	      )
+          if is_kind_of CR x then
+              (case set_body_position(x, ystart, ynext+1) of
+                body as Body_Pos(_,_,_,_,_,_,ynext1) =>
+                  pos_bodies_cat(xs, ynext1, max(ynext,ynext1), liste@[body])
+              )
+          else
+              (case position_body(x, ystart) of
+                body as Body_Pos(_,_,_,_,_,_,ynext1) =>
+                  pos_bodies_cat(xs, ystart, max(ynext,ynext1), liste@[body])
+              )
     fun pos_bodies_bar_plus ([],_,ynext,liste) = (liste, ynext)
       | pos_bodies_bar_plus (x::xs, ystart, ynext, liste) =
-	  (case position_body(x, ystart) of
-	    body as Body_Pos(_,_,_,_,_,_,ynext1) =>
-	      pos_bodies_bar_plus(xs, ynext1, max(ynext,ynext1), liste@[body])
-	  )
+          (case position_body(x, ystart) of
+            body as Body_Pos(_,_,_,_,_,_,ynext1) =>
+              pos_bodies_bar_plus(xs, ynext1, max(ynext,ynext1), liste@[body])
+          )
   in
   (case kind of
     CAT => (case pos_bodies_cat(bodies,ystart,ystart+1,[]) of
-	      (bodiesPos, ynext) =>
-		Body_Pos(kind, text, annot, id, bodiesPos, ystart, ynext))
+              (bodiesPos, ynext) =>
+                Body_Pos(kind, text, annot, id, bodiesPos, ystart, ynext))
   | BAR => (case pos_bodies_bar_plus(bodies,ystart,ystart+1,[]) of
-	      (bodiesPos, ynext) =>
-		Body_Pos(kind, text, annot, id, bodiesPos, ystart, ynext))
+              (bodiesPos, ynext) =>
+                Body_Pos(kind, text, annot, id, bodiesPos, ystart, ynext))
   | PLUS => (case pos_bodies_bar_plus(bodies,ystart,ystart+1,[]) of
-	      (bodiesPos, ynext) =>
-		Body_Pos(kind, text, annot, id, bodiesPos, ystart, ynext))
+              (bodiesPos, ynext) =>
+                Body_Pos(kind, text, annot, id, bodiesPos, ystart, ynext))
   | CR => set_body_position(body, ystart, ystart+3)
   | EMPTY => set_body_position(body, ystart, ystart+1)
   | ANNOTE => set_body_position(body, ystart, ystart+1)
@@ -406,15 +406,15 @@ fun position_body (body as Body(kind, text, annot, id, bodies), ystart) =
 fun format_body (Body_Pos(EMPTY,_,_,_,_,_,_), _) = ""
   | format_body (Body_Pos(CAT,_,_,_,bodies,_,_), cent) =
     let fun format_bodies([]) = ""
-	  | format_bodies(x::xs) = format_body (x, "") ^ format_bodies(xs)
+          | format_bodies(x::xs) = format_body (x, "") ^ format_bodies(xs)
     in
       format_bodies(bodies)
     end
   | format_body (Body_Pos(BAR,_,_,_,bodies,_,_),cent) =
     let fun format_bodies([]) = "\\rail@endbar\n"
-	  | format_bodies(x::xs) =
-	      "\\rail@nextbar{" ^ string_of_int(getystart(x)) ^"}\n" ^
-	      format_body(x, "") ^ format_bodies(xs)
+          | format_bodies(x::xs) =
+              "\\rail@nextbar{" ^ string_of_int(getystart(x)) ^"}\n" ^
+              format_body(x, "") ^ format_bodies(xs)
     in
       "\\rail@bar\n" ^ format_body(hd(bodies), "") ^ format_bodies(tl(bodies))
     end
