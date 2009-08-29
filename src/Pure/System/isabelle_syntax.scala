@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/isabelle_syntax.scala
+/*  Title:      Pure/System/isabelle_syntax.scala
     Author:     Makarius
 
 Isabelle outer syntax.
@@ -7,8 +7,8 @@ Isabelle outer syntax.
 package isabelle
 
 
-object IsabelleSyntax {
-
+object Isabelle_Syntax
+{
   /* string token */
 
   def append_string(str: String, result: StringBuilder)

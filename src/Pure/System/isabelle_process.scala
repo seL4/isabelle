@@ -204,14 +204,14 @@ class Isabelle_Process(isabelle_system: Isabelle_System,
 
 
   def command(text: String) =
-    output_sync("Isabelle.command " + IsabelleSyntax.encode_string(text))
+    output_sync("Isabelle.command " + Isabelle_Syntax.encode_string(text))
 
   def command(props: List[(String, String)], text: String) =
-    output_sync("Isabelle.command " + IsabelleSyntax.encode_properties(props) + " " +
-      IsabelleSyntax.encode_string(text))
+    output_sync("Isabelle.command " + Isabelle_Syntax.encode_properties(props) + " " +
+      Isabelle_Syntax.encode_string(text))
 
   def ML(text: String) =
-    output_sync("ML_val " + IsabelleSyntax.encode_string(text))
+    output_sync("ML_val " + Isabelle_Syntax.encode_string(text))
 
   def close() = synchronized {    // FIXME watchdog/timeout
     output_raw("\u0000")
