@@ -11,7 +11,6 @@ import scala.util.parsing.combinator.RegexParsers
 
 object Scan
 {
-
   /** Lexicon -- position tree **/
 
   object Lexicon
