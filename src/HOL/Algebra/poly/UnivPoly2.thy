@@ -674,8 +674,7 @@ next
     also have "... = setsum ?s ({deg p} Un {deg p <.. deg p + deg q})"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff p (deg p) * coeff q (deg q)" 
-      by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
-        setsum_0 deg_aboveD)
+      by (simp add: setsum_Un_disjoint setsum_0 deg_aboveD)
     finally have "setsum ?s {.. deg p + deg q} 
       = coeff p (deg p) * coeff q (deg q)" .
     with nz show "setsum ?s {.. deg p + deg q} ~= 0"
@@ -719,8 +718,7 @@ proof (rule up_eqI)
     have "... = coeff (setsum ?s ({..<k} Un {k})) k"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff p k"
-      by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
-        setsum_0 coeff_natsum deg_aboveD)
+      by (simp add: setsum_Un_disjoint setsum_0 coeff_natsum deg_aboveD)
     finally show ?thesis .
   next
     case False
@@ -728,8 +726,7 @@ proof (rule up_eqI)
           coeff (setsum ?s ({..<deg p} Un {deg p})) k"
       by (simp only: ivl_disj_un_singleton)
     also from False have "... = coeff p k"
-      by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
-        setsum_0 coeff_natsum deg_aboveD)
+      by (simp add: setsum_Un_disjoint setsum_0 coeff_natsum deg_aboveD)
     finally show ?thesis .
   qed
 qed

@@ -820,37 +820,24 @@ proof-
     done
 qed
 
-lemma (in semiring_0) pnormalize_sing: "(pnormalize [x] = [x]) \<longleftrightarrow> x \<noteq> 0" by simp
+lemma (in semiring_0) pnormalize_sing: "(pnormalize [x] = [x]) \<longleftrightarrow> x \<noteq> 0"
+by simp
 lemma (in semiring_0) pnormalize_pair: "y \<noteq> 0 \<longleftrightarrow> (pnormalize [x, y] = [x, y])" by simp
 lemma (in semiring_0) pnormal_cons: "pnormal p \<Longrightarrow> pnormal (c#p)"
   unfolding pnormal_def by simp
 lemma (in semiring_0) pnormal_tail: "p\<noteq>[] \<Longrightarrow> pnormal (c#p) \<Longrightarrow> pnormal p"
-  unfolding pnormal_def
-  apply (cases "pnormalize p = []", auto)
-  by (cases "c = 0", auto)
+  unfolding pnormal_def by(auto split: split_if_asm)
 
 
 lemma (in semiring_0) pnormal_last_nonzero: "pnormal p ==> last p \<noteq> 0"
-proof(induct p)
-  case Nil thus ?case by (simp add: pnormal_def)
-next
-  case (Cons a as) thus ?case
-    apply (simp add: pnormal_def)
-    apply (cases "pnormalize as = []", simp_all)
-    apply (cases "as = []", simp_all)
-    apply (cases "a=0", simp_all)
-    apply (cases "a=0", simp_all)
-    done
-qed
+by(induct p) (simp_all add: pnormal_def split: split_if_asm)
 
 lemma (in semiring_0) pnormal_length: "pnormal p \<Longrightarrow> 0 < length p"
   unfolding pnormal_def length_greater_0_conv by blast
 
 lemma (in semiring_0) pnormal_last_length: "\<lbrakk>0 < length p ; last p \<noteq> 0\<rbrakk> \<Longrightarrow> pnormal p"
-  apply (induct p, auto)
-  apply (case_tac "p = []", auto)
-  apply (simp add: pnormal_def)
-  by (rule pnormal_cons, auto)
+by (induct p) (auto simp: pnormal_def  split: split_if_asm)
+
 
 lemma (in semiring_0) pnormal_id: "pnormal p \<longleftrightarrow> (0 < length p \<and> last p \<noteq> 0)"
   using pnormal_last_length pnormal_length pnormal_last_nonzero by blast
@@ -918,9 +905,7 @@ proof-
 qed
 
 lemma (in semiring_0) pnormalize_eq: "last p \<noteq> 0 \<Longrightarrow> pnormalize p = p"
-  apply (induct p, auto)
-  apply (case_tac p, auto)+
-  done
+by (induct p) (auto split: split_if_asm)
 
 lemma (in semiring_0) last_pnormalize: "pnormalize p \<noteq> [] \<Longrightarrow> last (pnormalize p) \<noteq> 0"
   by (induct p, auto)

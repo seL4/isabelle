@@ -1268,8 +1268,24 @@ lemma Int_insert_left:
     "(insert a B) Int C = (if a \<in> C then insert a (B \<inter> C) else B \<inter> C)"
   by auto
 
+lemma Int_insert_left_if0[simp]:
+    "a \<notin> C \<Longrightarrow> (insert a B) Int C = B \<inter> C"
+  by auto
+
+lemma Int_insert_left_if1[simp]:
+    "a \<in> C \<Longrightarrow> (insert a B) Int C = insert a (B Int C)"
+  by auto
+
 lemma Int_insert_right:
     "A \<inter> (insert a B) = (if a \<in> A then insert a (A \<inter> B) else A \<inter> B)"
+  by auto
+
+lemma Int_insert_right_if0[simp]:
+    "a \<notin> A \<Longrightarrow> A Int (insert a B) = A Int B"
+  by auto
+
+lemma Int_insert_right_if1[simp]:
+    "a \<in> A \<Longrightarrow> A Int (insert a B) = insert a (A Int B)"
   by auto
 
 lemma Un_Int_distrib: "A \<union> (B \<inter> C) = (A \<union> B) \<inter> (A \<union> C)"

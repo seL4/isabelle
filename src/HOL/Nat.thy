@@ -1588,9 +1588,6 @@ lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
 lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
   using inc_induct[of 0 k P] by blast
 
-lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
-  by auto
-
 (*The others are
       i - j - k = i - (j + k),
       k \<le> j ==> j - k + i = j + i - k,

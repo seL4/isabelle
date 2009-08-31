@@ -843,9 +843,7 @@ proof-
 	unfolding permutes_def by metis+
       from eq have "(Fun.swap a b id o p) a  = (Fun.swap a c id o q) a" by simp
       hence bc: "b = c"
-	apply (simp add: permutes_def pa qa o_def fun_upd_def swap_def id_def cong del: if_weak_cong)
-	apply (cases "a = b", auto)
-	by (cases "b = c", auto)
+	by (simp add: permutes_def pa qa o_def fun_upd_def swap_def id_def cong del: if_weak_cong split: split_if_asm)
       from eq[unfolded bc] have "(\<lambda>p. Fun.swap a c id o p) (Fun.swap a c id o p) = (\<lambda>p. Fun.swap a c id o p) (Fun.swap a c id o q)" by simp
       hence "p = q" unfolding o_assoc swap_id_idempotent
 	by (simp add: o_def)
