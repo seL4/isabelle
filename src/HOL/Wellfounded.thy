@@ -630,9 +630,6 @@ apply (erule (1) notE impE)
 apply blast
 done
 
-lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
-  by (auto simp:inv_image_def)
-
 text {* Measure Datatypes into @{typ nat} *}
 
 definition measure :: "('a => nat) => ('a * 'a)set"
