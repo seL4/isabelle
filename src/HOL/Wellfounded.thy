@@ -13,14 +13,6 @@ begin
 
 subsection {* Basic Definitions *}
 
-inductive
-  wfrec_rel :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b => bool"
-  for R :: "('a * 'a) set"
-  and F :: "('a => 'b) => 'a => 'b"
-where
-  wfrecI: "ALL z. (z, x) : R --> wfrec_rel R F z (g z) ==>
-            wfrec_rel R F x (F g x)"
-
 constdefs
   wf         :: "('a * 'a)set => bool"
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
@@ -30,16 +22,6 @@ constdefs
 
   acyclic :: "('a*'a)set => bool"
   "acyclic r == !x. (x,x) ~: r^+"
-
-  cut        :: "('a => 'b) => ('a * 'a)set => 'a => 'a => 'b"
-  "cut f r x == (%y. if (y,x):r then f y else undefined)"
-
-  adm_wf :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => bool"
-  "adm_wf R F == ALL f g x.
-     (ALL z. (z, x) : R --> f z = g z) --> F f x = F g x"
-
-  wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b"
-  [code del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r == acyclic {(x, y). r x y}"
@@ -423,46 +405,6 @@ done
 
 lemma wf_iff_acyclic_if_finite: "finite r ==> wf r = acyclic r"
 by (blast intro: finite_acyclic_wf wf_acyclic)
-
-
-subsection{*Well-Founded Recursion*}
-
-text{*cut*}
-
-lemma cuts_eq: "(cut f r x = cut g r x) = (ALL y. (y,x):r --> f(y)=g(y))"
-by (simp add: expand_fun_eq cut_def)
-
-lemma cut_apply: "(x,a):r ==> (cut f r a)(x) = f(x)"
-by (simp add: cut_def)
-
-text{*Inductive characterization of wfrec combinator; for details see:  
-John Harrison, "Inductive definitions: automation and application"*}
-
-lemma wfrec_unique: "[| adm_wf R F; wf R |] ==> EX! y. wfrec_rel R F x y"
-apply (simp add: adm_wf_def)
-apply (erule_tac a=x in wf_induct) 
-apply (rule ex1I)
-apply (rule_tac g = "%x. THE y. wfrec_rel R F x y" in wfrec_rel.wfrecI)
-apply (fast dest!: theI')
-apply (erule wfrec_rel.cases, simp)
-apply (erule allE, erule allE, erule allE, erule mp)
-apply (fast intro: the_equality [symmetric])
-done
-
-lemma adm_lemma: "adm_wf R (%f x. F (cut f R x) x)"
-apply (simp add: adm_wf_def)
-apply (intro strip)
-apply (rule cuts_eq [THEN iffD2, THEN subst], assumption)
-apply (rule refl)
-done
-
-lemma wfrec: "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a"
-apply (simp add: wfrec_def)
-apply (rule adm_lemma [THEN wfrec_unique, THEN the1_equality], assumption)
-apply (rule wfrec_rel.wfrecI)
-apply (intro strip)
-apply (erule adm_lemma [THEN wfrec_unique, THEN theI'])
-done
 
 
 subsection {* @{typ nat} is well-founded *}
