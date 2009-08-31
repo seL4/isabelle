@@ -189,14 +189,9 @@ proof
   have "\<exists> a b a' b'. x = (a,b) \<and> y = (a',b')" by auto
   then obtain a b a' b' where xy[simp]: "x = (a,b)" "y=(a',b')" by blast
   assume H: ?lhs 
-  {assume "a = 0 \<or> b = 0 \<or> a' = 0 \<or> b' = 0" hence ?rhs
-      using na nb H
-      apply (simp add: INum_def split_def isnormNum_def)
-      apply (cases "a = 0", simp_all)
-      apply (cases "b = 0", simp_all)
-      apply (cases "a' = 0", simp_all)
-      apply (cases "a' = 0", simp_all add: of_int_eq_0_iff)
-      done}
+  {assume "a = 0 \<or> b = 0 \<or> a' = 0 \<or> b' = 0"
+    hence ?rhs using na nb H
+      by (simp add: INum_def split_def isnormNum_def split: split_if_asm)}
   moreover
   { assume az: "a \<noteq> 0" and bz: "b \<noteq> 0" and a'z: "a'\<noteq>0" and b'z: "b'\<noteq>0"
     from az bz a'z b'z na nb have pos: "b > 0" "b' > 0" by (simp_all add: isnormNum_def)
@@ -517,10 +512,7 @@ proof-
     have n0: "isnormNum 0\<^sub>N" by simp
     show ?thesis using nx ny 
       apply (simp only: isnormNum_unique[where ?'a = 'a, OF  Nmul_normN[OF nx ny] n0, symmetric] Nmul[where ?'a = 'a])
-      apply (simp add: INum_def split_def isnormNum_def fst_conv snd_conv)
-      apply (cases "a=0",simp_all)
-      apply (cases "a'=0",simp_all)
-      done
+      by (simp add: INum_def split_def isnormNum_def fst_conv snd_conv split: split_if_asm)
   }
 qed
 lemma Nneg_Nneg[simp]: "~\<^sub>N (~\<^sub>N c) = c"

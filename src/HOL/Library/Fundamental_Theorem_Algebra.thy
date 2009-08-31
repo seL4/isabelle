@@ -577,11 +577,12 @@ proof(induct p)
 next
   case (pCons c cs)
   {assume c0: "c = 0"
-    from pCons.hyps pCons.prems c0 have ?case apply auto
+    from pCons.hyps pCons.prems c0 have ?case
+      apply (auto)
       apply (rule_tac x="k+1" in exI)
       apply (rule_tac x="a" in exI, clarsimp)
       apply (rule_tac x="q" in exI)
-      by (auto simp add: power_Suc)}
+      by (auto)}
   moreover
   {assume c0: "c\<noteq>0"
     hence ?case apply-

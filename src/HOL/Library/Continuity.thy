@@ -156,7 +156,7 @@ apply (drule_tac F = "\<lambda>i. if i = 0 then x else y" in up_contD)
  apply (rule up_chainI)
  apply simp
 apply (drule Un_absorb1)
-apply (auto simp add: nat_not_singleton)
+apply (auto split:split_if_asm)
 done
 
 
@@ -184,8 +184,7 @@ apply (drule_tac F = "\<lambda>i. if i = 0 then y else x" in down_contD)
  apply (rule down_chainI)
  apply simp
 apply (drule Int_absorb1)
-apply auto
-apply (auto simp add: nat_not_singleton)
+apply (auto split:split_if_asm)
 done
 
 
