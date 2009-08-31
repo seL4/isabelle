@@ -251,6 +251,38 @@ apply(erule_tac x=d in allE)
 apply (simp add: less_imp_le)
 done
 
+subsubsection {* Intersection *}
+
+context linorder
+begin
+
+lemma Int_atLeastAtMost[simp]: "{a..b} Int {c..d} = {max a c .. min b d}"
+by auto
+
+lemma Int_atLeastAtMostR1[simp]: "{..b} Int {c..d} = {c .. min b d}"
+by auto
+
+lemma Int_atLeastAtMostR2[simp]: "{a..} Int {c..d} = {max a c .. d}"
+by auto
+
+lemma Int_atLeastAtMostL1[simp]: "{a..b} Int {..d} = {a .. min b d}"
+by auto
+
+lemma Int_atLeastAtMostL2[simp]: "{a..b} Int {c..} = {max a c .. b}"
+by auto
+
+lemma Int_atLeastLessThan[simp]: "{a..<b} Int {c..<d} = {max a c ..< min b d}"
+by auto
+
+lemma Int_greaterThanAtMost[simp]: "{a<..b} Int {c<..d} = {max a c <.. min b d}"
+by auto
+
+lemma Int_greaterThanLessThan[simp]: "{a<..<b} Int {c<..<d} = {max a c <..< min b d}"
+by auto
+
+end
+
+
 subsection {* Intervals of natural numbers *}
 
 subsubsection {* The Constant @{term lessThan} *}
@@ -705,17 +737,6 @@ lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two
 
 subsubsection {* Disjoint Intersections *}
 
-text {* Singletons and open intervals *}
-
-lemma ivl_disj_int_singleton:
-  "{l::'a::order} Int {l<..} = {}"
-  "{..<u} Int {u} = {}"
-  "{l} Int {l<..<u} = {}"
-  "{l<..<u} Int {u} = {}"
-  "{l} Int {l<..u} = {}"
-  "{l..<u} Int {u} = {}"
-  by simp+
-
 text {* One- and two-sided intervals *}
 
 lemma ivl_disj_int_one:
@@ -742,7 +763,7 @@ lemma ivl_disj_int_two:
   "{l..m} Int {m<..u} = {}"
   by auto
 
-lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
+lemmas ivl_disj_int = ivl_disj_int_one ivl_disj_int_two
 
 subsubsection {* Some Differences *}
 
