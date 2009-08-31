@@ -63,11 +63,12 @@ fun sledgehammer_action args {pre=st, ...} =
     fun get_thms ctxt = maps (thms_of_name ctxt)
     fun metis thms ctxt = MetisTools.metis_tac ctxt thms
     fun apply_metis thms = "\nApplying metis with these theorems: " ^
-     (if try (Mirabelle.can_apply (metis thms)) st = SOME true
+     (if Mirabelle.can_apply (metis thms) st
       then "success"
       else "failure")
     val msg = if not (AList.defined (op =) args metisK) then ""
-      else apply_metis (get_thms (Proof.context_of st) (these thm_names))
+      else (apply_metis (get_thms (Proof.context_of st) (these thm_names))
+        handle ERROR m => "\nException: " ^ m)
   in
     if success
     then SOME ("success (" ^ prover_name ^ ": " ^ message ^ ")" ^ msg)
