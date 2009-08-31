@@ -41,6 +41,12 @@ val problem_name = ref "prob";
 
 (* basic template *)
 
+fun with_path cleanup after f path =
+  Exn.capture f path
+  |> tap (fn _ => cleanup path)
+  |> Exn.release
+  |> tap (after path)
+
 fun external_prover relevance_filter preparer writer (cmd, args) find_failure produce_answer
   timeout axiom_clauses filtered_clauses name subgoalno goal =
   let
@@ -73,17 +79,20 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
-    val probfile = prob_pathname subgoalno
-    val conj_pos = writer probfile clauses
-    val (proof, rc) = system_out (
-      if File.exists cmd then
-        space_implode " " ["exec", File.shell_path cmd, args, File.platform_path probfile]
-      else error ("Bad executable: " ^ Path.implode cmd))
+    fun cmd_line probfile = space_implode " " ["exec", File.shell_path cmd,
+      args, File.platform_path probfile]
+    fun run_on probfile =
+      if File.exists cmd
+      then writer probfile clauses |> pair (system_out (cmd_line probfile))
+      else error ("Bad executable: " ^ Path.implode cmd)
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
-    val _ =
-      if destdir' = "" then File.rm probfile
+    fun cleanup probfile = if destdir' = "" then File.rm probfile else ()
+    fun export probfile ((proof, _), _) = if destdir' = "" then ()
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
+
+    val ((proof, rc), conj_pos) = with_path cleanup export run_on
+      (prob_pathname subgoalno)
 
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
