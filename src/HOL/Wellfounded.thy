@@ -464,14 +464,6 @@ apply (intro strip)
 apply (erule adm_lemma [THEN wfrec_unique, THEN theI'])
 done
 
-subsection {* Code generator setup *}
-
-consts_code
-  "wfrec"   ("\<module>wfrec?")
-attach {*
-fun wfrec f x = f (wfrec f) x;
-*}
-
 
 subsection {* @{typ nat} is well-founded *}
 
