@@ -26,10 +26,10 @@ my $actions = $ARGV[0];
 my $thy_file = $ARGV[1];
 my $start_line = "0";
 my $end_line = "~1";
-if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) { # FIXME
-  my $thy_file = $1;
-  my $start_line = $2;
-  my $end_line = $3;
+if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) {
+  $thy_file = $1;
+  $start_line = $2;
+  $end_line = $3;
 }
 my ($thy_name, $path, $ext) = fileparse($thy_file, ".thy");
 my $new_thy_name = $thy_name . "_Mirabelle";

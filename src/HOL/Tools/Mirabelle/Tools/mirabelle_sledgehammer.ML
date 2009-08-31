@@ -5,31 +5,18 @@
 structure Mirabelle_Sledgehammer : MIRABELLE_ACTION =
 struct
 
-local
-val valid = Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf
-  member (op =) (explode "_.")
-val name = Scan.many1 valid >> (rpair Position.none o implode)
-
-val digit = (fn
-  "0" => SOME 0 | "1" => SOME 1 | "2" => SOME 2 | "3" => SOME 3 |
-  "4" => SOME 4 | "5" => SOME 5 | "6" => SOME 6 | "7" => SOME 7 |
-  "8" => SOME 8 | "9" => SOME 9 | _ => NONE)
-fun join d n = 10 * n + d
-val number = Scan.repeat1 (Scan.some digit) >> (fn ds => fold join ds 0)
-val interval = Scan.option (Scan.$$ "(" |-- number --| Scan.$$ ")" >>
-  (single o Facts.Single))
-
-val fact_ref = name -- interval >> Facts.Named
-
-in
-
-fun thm_of_name ctxt s =
-  (case try (Scan.read Symbol.stopper fact_ref) (explode s) of
-    SOME (SOME r) => ProofContext.get_fact ctxt r
-  | _ => [])
-
-end
-
+fun thms_of_name ctxt name =
+  let
+    val lex = OuterKeyword.get_lexicons
+    val get = maps (ProofContext.get_fact ctxt o fst)
+  in
+    Source.of_string name
+    |> Symbol.source {do_recover=false}
+    |> OuterLex.source {do_recover=SOME false} lex Position.start
+    |> OuterLex.source_proper
+    |> Source.source OuterLex.stopper (SpecParse.xthms1 >> get) NONE
+    |> Source.exhaust
+  end
 
 fun sledgehammer_action args {pre=st, ...} =
   let
@@ -52,12 +39,13 @@ fun sledgehammer_action args {pre=st, ...} =
            | ERROR msg => (false, "error: " ^ msg, NONE)
 
     (* try metis *)
-    val thms = maps (thm_of_name (Proof.context_of st)) (these thm_names)
-    fun metis ctxt = MetisTools.metis_tac ctxt thms
-    val msg = if not (AList.defined (op =) args "metis") then "" else
-      if try (Mirabelle.can_apply metis) st = SOME true
-        then "\nMETIS: success"
-        else "\nMETIS: failure"
+    fun get_thms ctxt = maps (thms_of_name ctxt)
+    fun metis thms ctxt = MetisTools.metis_tac ctxt thms
+    fun apply_metis thms = "\nApplying metis with these theorems: " ^
+     (if try (Mirabelle.can_apply (metis thms)) st = SOME true
+      then "success"
+      else "failure")
+    val msg = apply_metis (get_thms (Proof.context_of st) (these thm_names))
   in
     if success
     then SOME ("success (" ^ prover_name ^ ": " ^ message ^ ")" ^ msg)
