@@ -15,7 +15,7 @@ sig
   val edit_document: document_id -> document_id -> (command_id * command_id option) list -> unit
 end;
 
-structure IsarDocument: ISAR_DOCUMENT =
+structure Isar_Document: ISAR_DOCUMENT =
 struct
 
 (* unique identifiers *)
