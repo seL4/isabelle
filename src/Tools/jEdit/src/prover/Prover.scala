@@ -20,7 +20,7 @@ import javax.swing.JTextArea
 
 import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
-import isabelle.IsarDocument
+import isabelle.Isar_Document
 
 object ProverEvents {
   case class Activate
@@ -35,7 +35,7 @@ extends Actor
   {
     val results = new EventBus[Isabelle_Process.Result] + handle_result
     results.logger = Log.log(Log.ERROR, null, _)
-    new Isabelle_Process(isabelle_system, results, "-m", "xsymbols", logic) with IsarDocument
+    new Isabelle_Process(isabelle_system, results, "-m", "xsymbols", logic) with Isar_Document
   }
 
   def stop() { process.kill }
@@ -43,18 +43,18 @@ extends Actor
   
   /* document state information */
 
-  private val states = new mutable.HashMap[IsarDocument.State_ID, Command_State] with
-    mutable.SynchronizedMap[IsarDocument.State_ID, Command_State]
-  private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command] with
-    mutable.SynchronizedMap[IsarDocument.Command_ID, Command]
+  private val states = new mutable.HashMap[Isar_Document.State_ID, Command_State] with
+    mutable.SynchronizedMap[Isar_Document.State_ID, Command_State]
+  private val commands = new mutable.HashMap[Isar_Document.Command_ID, Command] with
+    mutable.SynchronizedMap[Isar_Document.Command_ID, Command]
   val document_0 =
     ProofDocument.empty.
       set_command_keyword(command_decls.contains).
       set_change_receiver(change_receiver)
   private var document_versions = List(document_0)
 
-  def command(id: IsarDocument.Command_ID): Option[Command] = commands.get(id)
-  def document(id: IsarDocument.Document_ID) = document_versions.find(_.id == id)
+  def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
+  def document(id: Isar_Document.Document_ID) = document_versions.find(_.id == id)
 
   private var initialized = false
 
