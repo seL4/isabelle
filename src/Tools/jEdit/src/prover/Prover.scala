@@ -27,15 +27,18 @@ object ProverEvents {
 }
 
 class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: Actor)
-extends Actor
+  extends Actor
 {
   /* prover process */
 
   private val process =
   {
-    val results = new EventBus[Isabelle_Process.Result] + handle_result
-    results.logger = Log.log(Log.ERROR, null, _)
-    new Isabelle_Process(isabelle_system, results, "-m", "xsymbols", logic) with Isar_Document
+    val receiver = new Actor {
+      def act() = {
+        loop { react { case res: Isabelle_Process.Result => handle_result(res) } }
+      }
+    }.start
+    new Isabelle_Process(isabelle_system, receiver, "-m", "xsymbols", logic) with Isar_Document
   }
 
   def stop() { process.kill }
@@ -103,13 +106,7 @@ extends Actor
           else None
       }
     output_info.event(result)
-    val message =
-      try{process.parse_message(result)}
-        /* handle_results can be called before val process is initialized */
-      catch {
-        case e: NullPointerException =>
-          System.err.println("NPE; did not handle_result: " + result)
-      }
+    val message = Isabelle_Process.parse_message(isabelle_system, result)
 
     if (state.isDefined) state.get ! message
     else result.kind match {
