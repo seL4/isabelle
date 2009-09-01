@@ -11,6 +11,7 @@ src/HOLCF
 src/LCF
 src/Sequents
 #misc components
+src/Tools/Code
 src/HOL/Tools/ATP_Manager
 src/HOL/Tools/Mirabelle
 src/HOL/Library/Sum_Of_Squares
