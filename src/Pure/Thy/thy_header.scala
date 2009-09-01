@@ -7,7 +7,7 @@ Theory header keywords.
 package isabelle
 
 
-object ThyHeader
+object Thy_Header
 {
   val HEADER = "header"
   val THEORY = "theory"
