@@ -30,7 +30,7 @@ val _ = List.app OuterKeyword.keyword
 
 val _ =
   OuterSyntax.command "theory" "begin theory" (K.tag_theory K.thy_begin)
-    (ThyHeader.args >> (Toplevel.print oo IsarCmd.init_theory));
+    (Thy_Header.args >> (Toplevel.print oo IsarCmd.init_theory));
 
 val _ =
   OuterSyntax.command "end" "end (local) theory" (K.tag_theory K.thy_end)
