@@ -6,10 +6,11 @@ Isar document model.
 
 package isabelle
 
+import scala.actors.Actor
 
-class Isar(isabelle_system: Isabelle_System,
-    results: EventBus[Isabelle_Process.Result], args: String*)
-  extends Isabelle_Process(isabelle_system, results, args: _*)
+
+class Isar(isabelle_system: Isabelle_System, receiver: Actor, args: String*)
+  extends Isabelle_Process(isabelle_system, receiver, args: _*)
 {
   /* basic editor commands */
 

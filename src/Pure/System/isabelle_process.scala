@@ -11,9 +11,12 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   InputStream, OutputStream, IOException}
 
+import scala.actors.Actor
+import Actor._
 
-object Isabelle_Process {
 
+object Isabelle_Process
+{
   /* results */
 
   object Kind extends Enumeration {
@@ -104,8 +107,7 @@ object Isabelle_Process {
 }
 
 
-class Isabelle_Process(isabelle_system: Isabelle_System,
-  results: EventBus[Isabelle_Process.Result], args: String*)
+class Isabelle_Process(isabelle_system: Isabelle_System, receiver: Actor, args: String*)
 {
   import Isabelle_Process._
 
@@ -113,7 +115,8 @@ class Isabelle_Process(isabelle_system: Isabelle_System,
   /* demo constructor */
 
   def this(args: String*) =
-    this(new Isabelle_System, new EventBus[Isabelle_Process.Result] + Console.println, args: _*)
+    this(new Isabelle_System,
+      new Actor { def act = loop { react { case res => Console.println(res) } } }.start, args: _*)
 
 
   /* process information */
@@ -127,11 +130,6 @@ class Isabelle_Process(isabelle_system: Isabelle_System,
 
   /* results */
 
-  def parse_message(result: Result): XML.Tree =
-    Isabelle_Process.parse_message(isabelle_system, result)
-
-  private val result_queue = new LinkedBlockingQueue[Result]
-
   private def put_result(kind: Kind.Value, props: List[(String, String)], result: String)
   {
     if (kind == Kind.INIT) {
@@ -139,24 +137,7 @@ class Isabelle_Process(isabelle_system: Isabelle_System,
       if (map.isDefinedAt(Markup.PID)) pid = map(Markup.PID)
       if (map.isDefinedAt(Markup.SESSION)) the_session = map(Markup.SESSION)
     }
-    result_queue.put(new Result(kind, props, result))
-  }
-
-  private class ResultThread extends Thread("isabelle: results") {
-    override def run() = {
-      var finished = false
-      while (!finished) {
-        val result =
-          try { result_queue.take }
-          catch { case _: NullPointerException => null }
-
-        if (result != null) {
-          results.event(result)
-          if (result.kind == Kind.EXIT) finished = true
-        }
-        else finished = true
-      }
-    }
+    receiver ! new Result(kind, props, result)
   }
 
 
@@ -395,8 +376,6 @@ class Isabelle_Process(isabelle_system: Isabelle_System,
 
     val message_thread = new MessageThread(message_fifo)
     message_thread.start
-
-    new ResultThread().start
 
 
     /* exec process */
