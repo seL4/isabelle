@@ -1008,12 +1008,7 @@ proof (rule bit_list_cases [of w], simp_all)
   fix xs
   assume "length (norm_signed (\<zero>#xs)) = Suc (length xs)"
   thus "norm_signed (\<zero>#xs) = \<zero>#xs"
-    apply (simp add: norm_signed_Cons)
-    apply safe
-    apply simp_all
-    apply (rule norm_unsigned_equal)
-    apply assumption
-    done
+    by (simp add: norm_signed_Cons norm_unsigned_equal split: split_if_asm)
 next
   fix xs
   assume "length (norm_signed (\<one>#xs)) = Suc (length xs)"
@@ -1519,9 +1514,7 @@ lemma adder_helper:
 proof -
   have "((2::int) ^ (length w1 - 1)) + (2 ^ (length w2 - 1)) \<le>
       2 ^ (max (length w1) (length w2) - 1) + 2 ^ (max (length w1) (length w2) - 1)"
-    apply (cases "length w1 \<le> length w2")
-    apply (auto simp add: max_def)
-    done
+    by (auto simp:max_def)
   also have "... = 2 ^ max (length w1) (length w2)"
   proof -
     from lw
@@ -2173,16 +2166,16 @@ proof -
     apply (subst bv_sliceI [where ?j = i and ?i = j and ?w = w and ?w1.0 = "w1 @ w2" and ?w2.0 = w3 and ?w3.0 = "w4 @ w5"])
     apply simp_all
     apply (rule w_def)
-    apply (simp add: w_defs min_def)
-    apply (simp add: w_defs min_def)
+    apply (simp add: w_defs)
+    apply (simp add: w_defs)
     apply (subst bv_sliceI [where ?j = k and ?i = l and ?w = w and ?w1.0 = w1 and ?w2.0 = "w2 @ w3 @ w4" and ?w3.0 = w5])
     apply simp_all
     apply (rule w_def)
-    apply (simp add: w_defs min_def)
-    apply (simp add: w_defs min_def)
+    apply (simp add: w_defs)
+    apply (simp add: w_defs)
     apply (subst bv_sliceI [where ?j = "i-k" and ?i = "j-k" and ?w = "w2 @ w3 @ w4" and ?w1.0 = w2 and ?w2.0 = w3 and ?w3.0 = w4])
     apply simp_all
-    apply (simp_all add: w_defs min_def)
+    apply (simp_all add: w_defs)
     done
 qed
 

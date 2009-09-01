@@ -108,6 +108,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
   $(SRC)/Tools/Code_Generator.thy \
+  $(SRC)/Tools/more_conv.ML \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \

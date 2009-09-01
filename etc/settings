@@ -173,7 +173,7 @@ DVI_VIEWER=xdvi
 
 # The pdf file viewer
 if [ $(uname -s) = Darwin ]; then
-  PDF_VIEWER=open
+  PDF_VIEWER="open -W -n"
 else
   PDF_VIEWER=xpdf
 fi

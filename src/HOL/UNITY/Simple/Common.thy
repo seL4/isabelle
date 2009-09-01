@@ -65,7 +65,7 @@ done
 lemma "mk_total_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV)
        \<in> {m} co (maxfg m)"
 apply (simp add: mk_total_program_def) 
-apply (simp add: constrains_def maxfg_def max_def gasc)
+apply (simp add: constrains_def maxfg_def gasc)
 done
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
@@ -73,7 +73,7 @@ lemma  "mk_total_program
           (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }, UNIV)   
        \<in> {m} co (maxfg m)"
 apply (simp add: mk_total_program_def) 
-apply (simp add: constrains_def maxfg_def max_def gasc)
+apply (simp add: constrains_def maxfg_def gasc)
 done
 
 
@@ -92,7 +92,7 @@ lemma leadsTo_common_lemma:
       ==> F \<in> (atMost n) LeadsTo common"
 apply (rule LeadsTo_weaken_R)
 apply (rule_tac f = id and l = n in GreaterThan_bounded_induct)
-apply (simp_all (no_asm_simp))
+apply (simp_all (no_asm_simp) del: Int_insert_right_if1)
 apply (rule_tac [2] subset_refl)
 apply (blast dest: PSP_Stable2 intro: common_stable LeadsTo_weaken_R)
 done

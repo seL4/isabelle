@@ -203,11 +203,11 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
   apply(rule_tac x = "(take m path)@patha" in exI)
   apply(subgoal_tac "\<not>(length path\<le>m)")
    prefer 2 apply arith
-  apply(simp add: min_def)
+  apply(simp)
   apply(rule conjI)
    apply(subgoal_tac "\<not>(m + length patha - 1 < m)")
     prefer 2 apply arith
-   apply(simp add: nth_append min_def)
+   apply(simp add: nth_append)
   apply(rule conjI)
    apply(case_tac "m")
     apply force
@@ -236,7 +236,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
     apply(erule_tac x = "m - 1" in allE)
     apply(simp add: nth_list_update)
    apply(force simp add: nth_list_update)
-  apply(simp add: nth_append min_def)
+  apply(simp add: nth_append)
   apply(rotate_tac -4)
   apply(erule_tac x = "i - m" in allE)
   apply(subgoal_tac "Suc (i - m)=(Suc i - m)" )
@@ -248,8 +248,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
  apply(rule_tac x = "take (Suc m) path" in exI)
  apply(subgoal_tac "\<not>(length path\<le>Suc m)" )
   prefer 2 apply arith
- apply(simp add: min_def)
- apply clarify
+ apply clarsimp
  apply(erule_tac x = "i" in allE)
  apply simp
  apply clarify

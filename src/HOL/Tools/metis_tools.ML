@@ -299,7 +299,7 @@ fun infer_types ctxt =
   (* INFERENCE RULE: INSTANTIATE (Subst). Type instantiations are ignored. Trying to reconstruct
      them admits new possibilities of errors, e.g. concerning sorts. Instead we try to arrange
      that new TVars are distinct and that types can be inferred from terms.*)
-  fun inst_inf ctxt thpairs fsubst th =    
+  fun inst_inf ctxt thpairs fsubst th =
     let val thy = ProofContext.theory_of ctxt
         val i_th   = lookth thpairs th
         val i_th_vars = Term.add_vars (prop_of i_th) []
@@ -324,11 +324,12 @@ fun infer_types ctxt =
         val tms = infer_types ctxt rawtms;
         val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
         val substs' = ListPair.zip (vars, map ctm_of tms)
-        val _ = Output.debug (fn() => "subst_translations:")
-        val _ = app (fn (x,y) => Output.debug (fn () => Display.string_of_cterm x ^ " |-> " ^
-                                                        Display.string_of_cterm y))
-                  substs'
-    in  cterm_instantiate substs' i_th  
+        val _ = Output.debug (fn () =>
+          cat_lines ("subst_translations:" ::
+            (substs' |> map (fn (x, y) =>
+              Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
+              Syntax.string_of_term ctxt (term_of y)))));
+    in  cterm_instantiate substs' i_th
         handle THM (msg, _, _) => error ("metis error (inst_inf): " ^ msg)
     end;
 
@@ -610,14 +611,14 @@ fun infer_types ctxt =
                   if null unused then ()
                   else warning ("Metis: unused theorems " ^ commas_quote (map #1 unused));
                   case result of
-                      (_,ith)::_ => 
-                          (Output.debug (fn () => "success: " ^ Display.string_of_thm ctxt ith); 
+                      (_,ith)::_ =>
+                          (Output.debug (fn () => "success: " ^ Display.string_of_thm ctxt ith);
                            [ith])
-                    | _ => (Output.debug (fn () => "Metis: no result"); 
+                    | _ => (Output.debug (fn () => "Metis: no result");
                             [])
               end
-          | Metis.Resolution.Satisfiable _ => 
-	      (Output.debug (fn () => "Metis: No first-order proof with the lemmas supplied"); 
+          | Metis.Resolution.Satisfiable _ =>
+	      (Output.debug (fn () => "Metis: No first-order proof with the lemmas supplied");
 	       [])
     end;
 
@@ -625,9 +626,9 @@ fun infer_types ctxt =
     let val _ = Output.debug (fn () =>
           "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
     in
-       if exists_type ResAxioms.type_has_empty_sort (prop_of st0)  
+       if exists_type ResAxioms.type_has_empty_sort (prop_of st0)
        then (warning "Proof state contains the empty sort"; Seq.empty)
-       else 
+       else
 	 (Meson.MESON ResAxioms.neg_clausify
 	   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) ctxt i
 	  THEN ResAxioms.expand_defs_tac st0) st0

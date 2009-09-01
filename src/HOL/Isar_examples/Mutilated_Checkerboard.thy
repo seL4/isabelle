@@ -113,7 +113,7 @@ lemma evnodd_empty: "evnodd {} b = {}"
 lemma evnodd_insert: "evnodd (insert (i, j) C) b =
     (if (i + j) mod 2 = b
       then insert (i, j) (evnodd C b) else evnodd C b)"
-  by (simp add: evnodd_def) blast
+  by (simp add: evnodd_def)
 
 
 subsection {* Dominoes *}

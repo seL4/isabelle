@@ -881,10 +881,8 @@ by (induct xs) auto
 lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
 by (induct xs) auto
 
-lemma set_upt [simp]: "set[i..<j] = {k. i \<le> k \<and> k < j}"
-apply (induct j, simp_all)
-apply (erule ssubst, auto)
-done
+lemma set_upt [simp]: "set[i..<j] = {i..<j}"
+by (induct j) (simp_all add: atLeastLessThanSuc)
 
 
 lemma split_list: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs"
@@ -2394,6 +2392,30 @@ declare take_Cons_number_of [simp]
         nth_Cons_number_of [simp] 
 
 
+subsubsection {* @{text upto}: interval-list on @{typ int} *}
+
+(* FIXME make upto tail recursive? *)
+
+function upto :: "int \<Rightarrow> int \<Rightarrow> int list" ("(1[_../_])") where
+"upto i j = (if i \<le> j then i # [i+1..j] else [])"
+by auto
+termination
+by(relation "measure(%(i::int,j). nat(j - i + 1))") auto
+
+declare upto.simps[code, simp del]
+
+lemmas upto_rec_number_of[simp] =
+  upto.simps[of "number_of m" "number_of n", standard]
+
+lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
+by(simp add: upto.simps)
+
+lemma set_upto[simp]: "set[i..j] = {i..j}"
+apply(induct i j rule:upto.induct)
+apply(simp add: upto.simps simp_from_to)
+done
+
+
 subsubsection {* @{text "distinct"} and @{text remdups} *}
 
 lemma distinct_append [simp]:
@@ -2447,6 +2469,12 @@ by (induct xs) auto
 
 lemma distinct_upt[simp]: "distinct[i..<j]"
 by (induct j) auto
+
+lemma distinct_upto[simp]: "distinct[i..j]"
+apply(induct i j rule:upto.induct)
+apply(subst upto.simps)
+apply(simp)
+done
 
 lemma distinct_take[simp]: "distinct xs \<Longrightarrow> distinct (take i xs)"
 apply(induct xs arbitrary: i)
@@ -3091,6 +3119,12 @@ end
 lemma sorted_upt[simp]: "sorted[i..<j]"
 by (induct j) (simp_all add:sorted_append)
 
+lemma sorted_upto[simp]: "sorted[i..j]"
+apply(induct i j rule:upto.induct)
+apply(subst upto.simps)
+apply(simp add:sorted_Cons)
+done
+
 
 subsubsection {* @{text sorted_list_of_set} *}
 
@@ -3122,89 +3156,6 @@ apply simp_all
 done
 
 end
-
-
-subsubsection {* @{text upto}: the generic interval-list *}
-
-class finite_intvl_succ = linorder +
-fixes successor :: "'a \<Rightarrow> 'a"
-assumes finite_intvl: "finite{a..b}"
-and successor_incr: "a < successor a"
-and ord_discrete: "\<not>(\<exists>x. a < x & x < successor a)"
-
-context finite_intvl_succ
-begin
-
-definition
- upto :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list" ("(1[_../_])") where
-"upto i j == sorted_list_of_set {i..j}"
-
-lemma upto[simp]: "set[a..b] = {a..b} & sorted[a..b] & distinct[a..b]"
-by(simp add:upto_def finite_intvl)
-
-lemma insert_intvl: "i \<le> j \<Longrightarrow> insert i {successor i..j} = {i..j}"
-apply(insert successor_incr[of i])
-apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
-apply(metis ord_discrete less_le not_le)
-done
-
-lemma sorted_list_of_set_rec: "i \<le> j \<Longrightarrow>
-  sorted_list_of_set {i..j} = i # sorted_list_of_set {successor i..j}"
-apply(simp add:sorted_list_of_set_def upto_def)
-apply (rule the1_equality[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply(rule the1I2[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply (simp add: sorted_Cons insert_intvl Ball_def)
-apply (metis successor_incr leD less_imp_le order_trans)
-done
-
-lemma sorted_list_of_set_rec2: "i \<le> j \<Longrightarrow>
-  sorted_list_of_set {i..successor j} =
-  sorted_list_of_set {i..j} @ [successor j]"
-apply(simp add:sorted_list_of_set_def upto_def)
-apply (rule the1_equality[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply(rule the1I2[OF finite_sorted_distinct_unique])
- apply (simp add:finite_intvl)
-apply (simp add: sorted_append Ball_def expand_set_eq)
-apply(rule conjI)
-apply (metis eq_iff leD linear not_leE ord_discrete order_trans successor_incr)
-apply (metis leD linear order_trans successor_incr)
-done
-
-lemma upto_rec[code]: "[i..j] = (if i \<le> j then i # [successor i..j] else [])"
-by(simp add: upto_def sorted_list_of_set_rec)
-
-lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
-by(simp add: upto_rec)
-
-lemma upto_rec2: "i \<le> j \<Longrightarrow> [i..successor j] = [i..j] @ [successor j]"
-by(simp add: upto_def sorted_list_of_set_rec2)
-
-end
-
-text{* The integers are an instance of the above class: *}
-
-instantiation int:: finite_intvl_succ
-begin
-
-definition
-successor_int_def[simp]: "successor = (%i\<Colon>int. i+1)"
-
-instance
-by intro_classes (simp_all add: successor_int_def)
-
-end
-
-text{* Now @{term"[i..j::int]"} is defined for integers. *}
-
-hide (open) const successor
-
-lemma upto_rec2_int: "(i::int) \<le> j \<Longrightarrow> [i..j+1] = [i..j] @ [j+1]"
-by(rule upto_rec2[where 'a = int, simplified successor_int_def])
-
-lemmas upto_rec_number_of_int[simp] = upto_rec[of "number_of m :: int" "number_of n", standard]
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
@@ -3829,9 +3780,7 @@ lemma greaterThanLessThan_upt [code_unfold]:
   "{n<..<m} = set [Suc n..<m]"
 by auto
 
-lemma atLeastLessThan_upt [code_unfold]:
-  "{n..<m} = set [n..<m]"
-by auto
+lemmas atLeastLessThan_upt [code_unfold] = set_upt [symmetric]
 
 lemma greaterThanAtMost_upt [code_unfold]:
   "{n<..m} = set [Suc n..<Suc m]"
@@ -3880,12 +3829,123 @@ lemma greaterThanAtMost_upto [code_unfold]:
   "{i<..j::int} = set [i+1..j]"
 by auto
 
-lemma atLeastAtMost_upto [code_unfold]:
-  "{i..j::int} = set [i..j]"
-by auto
+lemmas atLeastAtMost_upto [code_unfold] = set_upto[symmetric]
 
 lemma setsum_set_upto_conv_listsum [code_unfold]:
   "setsum f (set [i..j::int]) = listsum (map f [i..j])"
 by (rule setsum_set_distinct_conv_listsum) simp
+
+
+text {* Optimized code for @{text"\<forall>i\<in>{a..b::int}"} and @{text"\<forall>n:{a..<b::nat}"}
+and similiarly for @{text"\<exists>"}. *}
+
+function all_from_to_nat :: "(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
+"all_from_to_nat P i j =
+ (if i < j then if P i then all_from_to_nat P (i+1) j else False
+  else True)"
+by auto
+termination
+by (relation "measure(%(P,i,j). j - i)") auto
+
+declare all_from_to_nat.simps[simp del]
+
+lemma all_from_to_nat_iff_ball:
+  "all_from_to_nat P i j = (ALL n : {i ..< j}. P n)"
+proof(induct P i j rule:all_from_to_nat.induct)
+  case (1 P i j)
+  let ?yes = "i < j & P i"
+  show ?case
+  proof (cases)
+    assume ?yes
+    hence "all_from_to_nat P i j = (P i & all_from_to_nat P (i+1) j)"
+      by(simp add: all_from_to_nat.simps)
+    also have "... = (P i & (ALL n : {i+1 ..< j}. P n))" using `?yes` 1 by simp
+    also have "... = (ALL n : {i ..< j}. P n)" (is "?L = ?R")
+    proof
+      assume L: ?L
+      show ?R
+      proof clarify
+	fix n assume n: "n : {i..<j}"
+	show "P n"
+	proof cases
+	  assume "n = i" thus "P n" using L by simp
+	next
+	  assume "n ~= i"
+	  hence "i+1 <= n" using n by auto
+	  thus "P n" using L n by simp
+	qed
+      qed
+    next
+      assume R: ?R thus ?L using `?yes` 1 by auto
+    qed
+    finally show ?thesis .
+  next
+    assume "~?yes" thus ?thesis by(auto simp add: all_from_to_nat.simps)
+  qed
+qed
+
+
+lemma list_all_iff_all_from_to_nat[code_unfold]:
+  "list_all P [i..<j] = all_from_to_nat P i j"
+by(simp add: all_from_to_nat_iff_ball list_all_iff)
+
+lemma list_ex_iff_not_all_from_to_not_nat[code_unfold]:
+  "list_ex P [i..<j] = (~all_from_to_nat (%x. ~P x) i j)"
+by(simp add: all_from_to_nat_iff_ball list_ex_iff)
+
+
+function all_from_to_int :: "(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool" where
+"all_from_to_int P i j =
+ (if i <= j then if P i then all_from_to_int P (i+1) j else False
+  else True)"
+by auto
+termination
+by (relation "measure(%(P,i,j). nat(j - i + 1))") auto
+
+declare all_from_to_int.simps[simp del]
+
+lemma all_from_to_int_iff_ball:
+  "all_from_to_int P i j = (ALL n : {i .. j}. P n)"
+proof(induct P i j rule:all_from_to_int.induct)
+  case (1 P i j)
+  let ?yes = "i <= j & P i"
+  show ?case
+  proof (cases)
+    assume ?yes
+    hence "all_from_to_int P i j = (P i & all_from_to_int P (i+1) j)"
+      by(simp add: all_from_to_int.simps)
+    also have "... = (P i & (ALL n : {i+1 .. j}. P n))" using `?yes` 1 by simp
+    also have "... = (ALL n : {i .. j}. P n)" (is "?L = ?R")
+    proof
+      assume L: ?L
+      show ?R
+      proof clarify
+	fix n assume n: "n : {i..j}"
+	show "P n"
+	proof cases
+	  assume "n = i" thus "P n" using L by simp
+	next
+	  assume "n ~= i"
+	  hence "i+1 <= n" using n by auto
+	  thus "P n" using L n by simp
+	qed
+      qed
+    next
+      assume R: ?R thus ?L using `?yes` 1 by auto
+    qed
+    finally show ?thesis .
+  next
+    assume "~?yes" thus ?thesis by(auto simp add: all_from_to_int.simps)
+  qed
+qed
+
+lemma list_all_iff_all_from_to_int[code_unfold]:
+  "list_all P [i..j] = all_from_to_int P i j"
+by(simp add: all_from_to_int_iff_ball list_all_iff)
+
+lemma list_ex_iff_not_all_from_to_not_int[code_unfold]:
+  "list_ex P [i..j] = (~ all_from_to_int (%x. ~P x) i j)"
+by(simp add: all_from_to_int_iff_ball list_ex_iff)
+
 
 end

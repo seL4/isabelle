@@ -20,7 +20,7 @@ local
   val isabelleHome =
       case OS.Process.getEnv "ISABELLE_HOME"
        of  NONE => OS.FileSys.getDir ()
-	 | SOME home => mkAbsolute home
+         | SOME home => mkAbsolute home
 
   fun noparent [] = []
     | noparent (n :: ns) =
@@ -33,12 +33,12 @@ local
 
   fun rewrite defPrefix name =
       let val abs = mkAbsolute name
-	  val rel = OS.Path.mkRelative { path = abs, relativeTo = isabelleHome }
-	  val exists = (OS.FileSys.access(abs, nil)
-			handle OS.SysErr _ => false)
+          val rel = OS.Path.mkRelative { path = abs, relativeTo = isabelleHome }
+          val exists = (OS.FileSys.access(abs, nil)
+                        handle OS.SysErr _ => false)
       in  if exists andalso rel <> ""
-	  then isabellePath (toArcs rel)
-	  else defPrefix @ noparent (toArcs name)
+          then isabellePath (toArcs rel)
+          else defPrefix @ noparent (toArcs name)
       end handle OS.Path.Path => defPrefix @ noparent (toArcs name)
 
 in
@@ -49,10 +49,10 @@ in
         (* should we have different files for different line numbers? *
         val arcs = if line <= 1 then arcs
                    else arcs @ [ "l." ^ Int.toString line ]
-	*)
-	val arcs = if t = "structure Isabelle =\nstruct\nend;"
-		      andalso name = "ML"
-		   then ["empty_Isabelle", "empty" ] else arcs
+        *)
+        val arcs = if t = "structure Isabelle =\nstruct\nend;"
+                      andalso name = "ML"
+                   then ["empty_Isabelle", "empty" ] else arcs
         val _    = AnnoMaLy.nameNextStream arcs
     in  smlnj_use_text tune str_of_pos name_space (line, name) p v t  end;
 

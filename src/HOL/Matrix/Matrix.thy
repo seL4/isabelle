@@ -1663,7 +1663,7 @@ apply (rule ext)+
 apply (simp add: times_matrix_def Rep_mult_matrix)
 apply (rule_tac j1="xa" in ssubst[OF foldseq_almostzero])
 apply (simp_all)
-by (simp add: max_def ncols)
+by (simp add: ncols)
 
 lemma one_matrix_mult_left[simp]: "nrows A <= n \<Longrightarrow> (one_matrix n) * A = (A::('a::ring_1) matrix)"
 apply (subst Rep_matrix_inject[THEN sym])
@@ -1671,7 +1671,7 @@ apply (rule ext)+
 apply (simp add: times_matrix_def Rep_mult_matrix)
 apply (rule_tac j1="x" in ssubst[OF foldseq_almostzero])
 apply (simp_all)
-by (simp add: max_def nrows)
+by (simp add: nrows)
 
 lemma transpose_matrix_mult: "transpose_matrix ((A::('a::comm_ring) matrix)*B) = (transpose_matrix B) * (transpose_matrix A)"
 apply (simp add: times_matrix_def)

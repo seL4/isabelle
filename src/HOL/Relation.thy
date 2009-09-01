@@ -599,6 +599,9 @@ lemma trans_inv_image: "trans r ==> trans (inv_image r f)"
   apply blast
   done
 
+lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
+  by (auto simp:inv_image_def)
+
 
 subsection {* Finiteness *}
 

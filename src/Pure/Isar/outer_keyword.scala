@@ -6,8 +6,9 @@ Isar command keyword classification.
 
 package isabelle
 
-object OuterKeyword {
 
+object OuterKeyword
+{
   val MINOR = "minor"
   val CONTROL = "control"
   val DIAG = "diag"

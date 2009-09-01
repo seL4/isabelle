@@ -288,15 +288,8 @@ lemma Says_Server_message_form:
                   on evs)"
 apply (unfold before_def)
 apply (erule rev_mp)
-apply (erule bankerberos.induct, simp_all)
-txt{*We need this simplification only for Message 2*}
-apply (simp (no_asm) add: takeWhile_tail)
-apply auto
-txt{*Two subcases of Message 2. Subcase: used before*}
-apply (blast dest: used_evs_rev [THEN equalityD2, THEN contra_subsetD] 
-                   used_takeWhile_used)
-txt{*subcase: CT before*}
-apply (fastsimp dest!: set_evs_rev [THEN equalityD2, THEN contra_subsetD, THEN takeWhile_void])
+apply (erule bankerberos.induct, simp_all add: takeWhile_tail)
+apply (metis length_rev set_rev takeWhile_void used_evs_rev)
 done
 
 
@@ -492,6 +485,7 @@ apply (force dest: Crypt_imp_invKey_keysFor)
 txt{*BK3*}
 apply (blast dest: Kab_authentic unique_session_keys)
 done
+
 lemma lemma_B [rule_format]:
      "\<lbrakk> B \<notin> bad;  evs \<in> bankerberos \<rbrakk>
       \<Longrightarrow> Key K \<notin> analz (spies evs) \<longrightarrow>
@@ -585,9 +579,8 @@ apply spy_analz
 txt{*BK2*}
 apply (blast intro: parts_insertI less_SucI)
 txt{*BK3*}
-apply (case_tac "Aa \<in> bad")
- prefer 2 apply (blast dest: Kab_authentic unique_session_keys)
-apply (blast dest: Says_imp_spies [THEN analz.Inj] Crypt_Spy_analz_bad elim!: MPair_analz intro: less_SucI)
+apply (metis Crypt_Spy_analz_bad Kab_authentic Says_imp_analz_Spy 
+          Says_imp_parts_knows_Spy analz.Snd less_SucI unique_session_keys)
 txt{*Oops: PROOF FAILS if unsafe intro below*}
 apply (blast dest: unique_session_keys intro!: less_SucI)
 done

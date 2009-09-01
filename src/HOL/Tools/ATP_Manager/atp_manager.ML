@@ -24,7 +24,7 @@ sig
   type prover = int -> (thm * (string * int)) list option ->
     (thm * (string * int)) list option -> string -> int ->
     Proof.context * (thm list * thm) ->
-    bool * string * string * string vector * (thm * (string * int)) list
+    bool * (string * string list) * string * string vector * (thm * (string * int)) list
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
   val get_prover: string -> theory -> prover option
@@ -305,7 +305,7 @@ fun messages opt_limit =
 type prover = int -> (thm * (string * int)) list option ->
   (thm * (string * int)) list option -> string -> int ->
   Proof.context * (thm list * thm) ->
-  bool * string * string * string vector * (thm * (string * int)) list
+  bool * (string * string list) * string * string vector * (thm * (string * int)) list
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
@@ -345,7 +345,7 @@ fun start_prover name birthtime deadtime i proof_state =
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
             val result =
-              let val (success, message, _, _, _) =
+              let val (success, (message, _), _, _, _) =
                 prover (get_timeout ()) NONE NONE name i (Proof.get_goal proof_state)
               in (success, message) end
               handle ResHolClause.TOO_TRIVIAL

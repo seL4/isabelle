@@ -899,7 +899,6 @@ apply (frule_tac [5] Says_ticket_parts)
 apply (frule_tac [7] Says_ticket_parts)
 apply (simp_all (no_asm_simp))
 apply blast
-atp_minimize [atp=spass] Crypt_imp_invKey_keysFor invKey_K new_keys_not_used
 apply (metis Crypt_imp_invKey_keysFor invKey_K new_keys_not_used)
 apply (clarify)
 apply (frule Says_Tgs_message_form, assumption)
@@ -1316,7 +1315,6 @@ apply blast
 txt{*K4*}
 apply blast
 txt{*Level 8: K5*}
-atp_minimize [atp=e] Tgs_not_bad authKeysI less_SucI mem_def nat_add_commute servK_notin_authKeysD spies_partsEs(1)
 apply (blast dest: servK_notin_authKeysD Says_Kas_message_form intro: less_SucI)
 txt{*Oops1*}
 apply (blast dest!: unique_authKeys intro: less_SucI)
