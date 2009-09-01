@@ -5,11 +5,12 @@
 structure Mirabelle_Quickcheck : MIRABELLE_ACTION =
 struct
 
-fun quickcheck_action args {pre=st, ...} =
+fun quickcheck_action limit args {pre=st, ...} =
   let
     val has_valid_key = member (op =) ["iterations", "size", "generator"] o fst
+    val quickcheck = Quickcheck.quickcheck (filter has_valid_key args) 1
   in
-    (case Quickcheck.quickcheck (filter has_valid_key args) 1 st of
+    (case TimeLimit.timeLimit limit quickcheck st of
       NONE => SOME "no counterexample"
     | SOME _ => SOME "counterexample found")
   end

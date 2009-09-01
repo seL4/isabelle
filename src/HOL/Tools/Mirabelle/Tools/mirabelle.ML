@@ -9,12 +9,12 @@ sig
 
   val logfile : string Config.T
   val timeout : int Config.T
-  val verbose : bool Config.T
   val start_line : int Config.T
   val end_line : int Config.T
 
   val goal_thm_of : Proof.state -> thm
-  val can_apply : (Proof.context -> int -> tactic) -> Proof.state -> bool
+  val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
+    Proof.state -> bool
   val theorems_in_proof_term : Thm.thm -> Thm.thm list
   val theorems_of_sucessful_proof : Toplevel.state option -> Thm.thm list
   val get_setting : (string * string) list -> string * string -> string
@@ -38,7 +38,8 @@ struct
 
 (* Mirabelle core *)
 
-type action = {pre: Proof.state, post: Toplevel.state option} -> string option
+type action = Time.time -> {pre: Proof.state, post: Toplevel.state option} ->
+  string option
 
 structure Actions = TheoryDataFun
 (
@@ -53,11 +54,10 @@ val register = Actions.map o Symtab.update_new
 
 val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" ""
 val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" 30
-val (verbose, setup3) = Attrib.config_bool "mirabelle_verbose" true
-val (start_line, setup4) = Attrib.config_int "mirabelle_start_line" 0
-val (end_line, setup5) = Attrib.config_int "mirabelle_end_line" ~1
+val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" 0
+val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
 
-val setup = setup1 #> setup2 #> setup3 #> setup4 #> setup5
+val setup = setup1 #> setup2 #> setup3 #> setup4
 
 local
 
@@ -67,17 +67,15 @@ fun log thy s =
   (* FIXME: with multithreading and parallel proofs enabled, we might need to
      encapsulate this inside a critical section *)
 
-fun verbose_msg verbose msg = if verbose then SOME msg else NONE
+fun capture_exns f x =
+  let
+    fun f' x = f x
+      handle TimeLimit.TimeOut => SOME "time out"
+           | ERROR msg => SOME ("error: " ^ msg)
+  in (case try f' x of NONE => SOME "exception" | SOME msg => msg) end
 
-fun with_time_limit (verb, secs) f x = TimeLimit.timeLimit secs f x
-  handle TimeLimit.TimeOut => verbose_msg verb "time out"
-       | ERROR msg => verbose_msg verb ("error: " ^ msg)
-
-fun capture_exns verb f x =
-  (case try f x of NONE => verbose_msg verb "exception" | SOME msg => msg)
-
-fun apply_action (c as (verb, _)) st (name, action) =
-  Option.map (pair name) (capture_exns verb (with_time_limit c action) st)
+fun apply_action timeout st (name, action) =
+  Option.map (pair name) (capture_exns (action timeout) st)
 
 fun in_range _ _ NONE = true
   | in_range l r (SOME i) = (l <= i andalso (r < 0 orelse i <= r))
@@ -104,13 +102,12 @@ fun basic_hook tr pre post =
     val thy = Proof.theory_of pre
     val pos = Toplevel.pos_of tr
     val name = Toplevel.name_of tr
-    val verb = Config.get_thy thy verbose
-    val secs = Time.fromSeconds (Config.get_thy thy timeout)
+    val timeout = Time.fromSeconds (Config.get_thy thy timeout)
     val st = {pre=pre, post=post}
   in
     Actions.get thy
     |> Symtab.dest
-    |> only_within_range thy pos (map_filter (apply_action (verb, secs) st))
+    |> only_within_range thy pos (map_filter (apply_action timeout st))
     |> (fn [] => () | msgs => log thy (pretty_print pos name msgs))
   end
 
@@ -131,10 +128,12 @@ fun step_hook tr pre post =
 
 val goal_thm_of = snd o snd o Proof.get_goal
 
-fun can_apply tac st =
-  let val (ctxt, (facts, goal)) = Proof.get_goal st
+fun can_apply timeout tac st =
+  let
+    val (ctxt, (facts, goal)) = Proof.get_goal st
+    val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
   in
-    (case Seq.pull (HEADGOAL (Method.insert_tac facts THEN' tac ctxt) goal) of
+    (case TimeLimit.timeLimit timeout (Seq.pull o full_tac) goal of
       SOME (thm, _) => true
     | NONE => false)
   end

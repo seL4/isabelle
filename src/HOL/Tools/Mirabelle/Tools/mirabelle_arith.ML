@@ -5,8 +5,8 @@
 structure Mirabelle_Arith : MIRABELLE_ACTION =
 struct
 
-fun arith_action {pre=st, ...} =
-  if Mirabelle.can_apply Arith_Data.arith_tac st
+fun arith_action timeout {pre=st, ...} =
+  if Mirabelle.can_apply timeout Arith_Data.arith_tac st
   then SOME "succeeded"
   else NONE
 

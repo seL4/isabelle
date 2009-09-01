@@ -5,7 +5,7 @@
 structure Mirabelle_Metis : MIRABELLE_ACTION =
 struct
 
-fun metis_action {pre, post} =
+fun metis_action timeout {pre, post} =
   let
     val thms = Mirabelle.theorems_of_sucessful_proof post
     val names = map Thm.get_name thms
@@ -14,7 +14,7 @@ fun metis_action {pre, post} =
 
     fun metis ctxt = MetisTools.metis_tac ctxt (thms @ facts)
   in
-    (if Mirabelle.can_apply metis pre then "succeeded" else "failed")
+    (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
     |> suffix (" (" ^ commas names ^ ")")
     |> SOME
   end

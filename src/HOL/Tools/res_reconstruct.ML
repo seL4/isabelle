@@ -557,7 +557,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     in (sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas ^
       (if used_conj then ""
        else "\nWarning: Goal is provable because context is inconsistent."),
-       lemmas)
+       nochained lemmas)
     end;
 
   (* === Extracting structured Isar-proof === *)

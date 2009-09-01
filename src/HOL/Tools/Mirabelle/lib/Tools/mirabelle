@@ -25,7 +25,6 @@ function usage() {
   echo "    -L LOGIC     parent logic to use (default $ISABELLE_LOGIC)"
   echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
   echo "    -O DIR       output directory for test data (default $out)"
-  echo "    -v           be verbose"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
   echo
   echo "  Apply the given actions (i.e., automated proof tools)"
@@ -47,7 +46,7 @@ function usage() {
 
 # options
 
-while getopts "L:T:O:vt:?" OPT
+while getopts "L:T:O:t:?" OPT
 do
   case "$OPT" in
     L)
@@ -58,9 +57,6 @@ do
       ;;
     O)
       MIRABELLE_OUTPUT_PATH="$OPTARG"
-      ;;
-    v)
-      MIRABELLE_VERBOSE="true"
       ;;
     t)
       MIRABELLE_TIMEOUT="$OPTARG"

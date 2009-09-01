@@ -13,7 +13,6 @@ my $mirabelle_home = $ENV{'MIRABELLE_HOME'};
 my $mirabelle_logic = $ENV{'MIRABELLE_LOGIC'};
 my $mirabelle_theory = $ENV{'MIRABELLE_THEORY'};
 my $output_path = $ENV{'MIRABELLE_OUTPUT_PATH'};
-my $verbose = $ENV{'MIRABELLE_VERBOSE'};
 my $timeout = $ENV{'MIRABELLE_TIMEOUT'};
 
 my $mirabelle_thy = $mirabelle_home . "/Mirabelle";
@@ -66,7 +65,6 @@ begin
 setup {* 
   Config.put_thy Mirabelle.logfile "$log_file" #>
   Config.put_thy Mirabelle.timeout $timeout #>
-  Config.put_thy Mirabelle.verbose $verbose #>
   Config.put_thy Mirabelle.start_line $start_line #>
   Config.put_thy Mirabelle.end_line $end_line
 *}

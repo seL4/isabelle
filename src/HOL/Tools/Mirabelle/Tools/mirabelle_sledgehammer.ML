@@ -29,7 +29,7 @@ val proverK = "prover"
 val keepK = "keep"
 val metisK = "metis"
 
-fun sledgehammer_action args {pre=st, ...} =
+fun sledgehammer_action args timeout {pre=st, ...} =
   let
     val prover_name =
       AList.lookup (op =) args proverK
@@ -38,7 +38,7 @@ fun sledgehammer_action args {pre=st, ...} =
     val thy = Proof.theory_of st
  
     val prover = the (AtpManager.get_prover prover_name thy)
-    val timeout = AtpManager.get_timeout () 
+    val atp_timeout = AtpManager.get_timeout () 
 
     (* run sledgehammer *)
     fun init NONE = !AtpWrapper.destdir
@@ -51,8 +51,9 @@ fun sledgehammer_action args {pre=st, ...} =
     fun done path = AtpWrapper.destdir := path
     fun sh _ =
       let
+        val atp = prover atp_timeout NONE NONE prover_name 1
         val (success, (message, thm_names), _, _, _) =
-          prover timeout NONE NONE prover_name 1 (Proof.get_goal st)
+          TimeLimit.timeLimit timeout atp (Proof.get_goal st)
       in (success, message, SOME thm_names) end
       handle ResHolClause.TOO_TRIVIAL => (true, "trivial", SOME [])
            | ERROR msg => (false, "error: " ^ msg, NONE)
@@ -63,7 +64,7 @@ fun sledgehammer_action args {pre=st, ...} =
     fun get_thms ctxt = maps (thms_of_name ctxt)
     fun metis thms ctxt = MetisTools.metis_tac ctxt thms
     fun apply_metis thms = "\nApplying metis with these theorems: " ^
-     (if Mirabelle.can_apply (metis thms) st
+     (if Mirabelle.can_apply timeout (metis thms) st
       then "success"
       else "failure")
     val msg = if not (AList.defined (op =) args metisK) then ""
