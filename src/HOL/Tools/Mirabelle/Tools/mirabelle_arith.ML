@@ -5,10 +5,10 @@
 structure Mirabelle_Arith : MIRABELLE_ACTION =
 struct
 
-fun arith_action timeout {pre=st, ...} =
-  if Mirabelle.can_apply timeout Arith_Data.arith_tac st
-  then SOME "succeeded"
-  else NONE
+fun arith_action {pre, timeout, log, ...} =
+  if Mirabelle.can_apply timeout Arith_Data.arith_tac pre
+  then log "succeeded"
+  else ()
 
 fun invoke _ = Mirabelle.register ("arith", arith_action)
 

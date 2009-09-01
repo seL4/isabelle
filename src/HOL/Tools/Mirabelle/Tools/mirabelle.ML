@@ -38,8 +38,8 @@ struct
 
 (* Mirabelle core *)
 
-type action = Time.time -> {pre: Proof.state, post: Toplevel.state option} ->
-  string option
+type action = {pre: Proof.state, post: Toplevel.state option,
+  timeout: Time.time, log: string -> unit} -> unit
 
 structure Actions = TheoryDataFun
 (
@@ -67,33 +67,30 @@ fun log thy s =
   (* FIXME: with multithreading and parallel proofs enabled, we might need to
      encapsulate this inside a critical section *)
 
-fun capture_exns f x =
+fun log_block thy msg = log thy (msg ^ "\n------------------")
+fun log_action thy name msg = log_block thy (name ^ ": " ^ msg)
+
+fun capture_exns logf f x =
   let
     fun f' x = f x
-      handle TimeLimit.TimeOut => SOME "time out"
-           | ERROR msg => SOME ("error: " ^ msg)
-  in (case try f' x of NONE => SOME "exception" | SOME msg => msg) end
+      handle TimeLimit.TimeOut => logf "time out"
+           | ERROR msg => logf ("error: " ^ msg)
+  in (case try f' x of NONE => logf "exception" | _ => ()) end
 
-fun apply_action timeout st (name, action) =
-  Option.map (pair name) (capture_exns (action timeout) st)
+fun apply_actions thy info (pre, post, time) actions =
+  let
+    val _ = log_block thy info
+    fun apply (name, action) =
+      let val st = {pre=pre, post=post, timeout=time, log=log_action thy name}
+      in capture_exns (log_action thy name) action st end
+  in List.app apply actions end
 
 fun in_range _ _ NONE = true
   | in_range l r (SOME i) = (l <= i andalso (r < 0 orelse i <= r))
 
 fun only_within_range thy pos f x =
   let val l = Config.get_thy thy start_line and r = Config.get_thy thy end_line
-  in if in_range l r (Position.line_of pos) then f x else [] end
-
-fun pretty_print pos name msgs =
-  let
-    val str0 = string_of_int o the_default 0
-    val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
-    val head = "at " ^ loc ^ " (" ^ name ^ "):"
-
-    fun pretty_msg (name, msg) = Pretty.block (map Pretty.str [name, ": ", msg])
-  in
-    Pretty.string_of (Pretty.big_list head (map pretty_msg msgs))
-  end
+  in if in_range l r (Position.line_of pos) then f x else () end
 
 in
 
@@ -102,13 +99,15 @@ fun basic_hook tr pre post =
     val thy = Proof.theory_of pre
     val pos = Toplevel.pos_of tr
     val name = Toplevel.name_of tr
-    val timeout = Time.fromSeconds (Config.get_thy thy timeout)
-    val st = {pre=pre, post=post}
+    val st = (pre, post, Time.fromSeconds (Config.get_thy thy timeout))
+
+    val str0 = string_of_int o the_default 0
+    val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
+    val info = "\n\nat " ^ loc ^ " (" ^ name ^ "):"
   in
     Actions.get thy
     |> Symtab.dest
-    |> only_within_range thy pos (map_filter (apply_action timeout st))
-    |> (fn [] => () | msgs => log thy (pretty_print pos name msgs))
+    |> only_within_range thy pos (apply_actions thy info st)
   end
 
 end
@@ -128,12 +127,12 @@ fun step_hook tr pre post =
 
 val goal_thm_of = snd o snd o Proof.get_goal
 
-fun can_apply timeout tac st =
+fun can_apply time tac st =
   let
     val (ctxt, (facts, goal)) = Proof.get_goal st
     val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
   in
-    (case TimeLimit.timeLimit timeout (Seq.pull o full_tac) goal of
+    (case TimeLimit.timeLimit time (Seq.pull o full_tac) goal of
       SOME (thm, _) => true
     | NONE => false)
   end

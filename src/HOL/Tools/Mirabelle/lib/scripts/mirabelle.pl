@@ -120,7 +120,6 @@ print LOG_FILE "Run of $new_thy_file with:\n";
 foreach $name (@action_names) {
   print LOG_FILE "  $name\n";
 }
-print LOG_FILE "\n\n";
 close(LOG_FILE);
 
 my $r = system "\"$ENV{'ISABELLE_PROCESS'}\" " .

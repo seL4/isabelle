@@ -5,18 +5,19 @@
 structure Mirabelle_Metis : MIRABELLE_ACTION =
 struct
 
-fun metis_action timeout {pre, post} =
+fun metis_action {pre, post, timeout, log} =
   let
     val thms = Mirabelle.theorems_of_sucessful_proof post
     val names = map Thm.get_name thms
+    val add_info = if null names then I else suffix (":\n" ^ commas names)
 
     val facts = Facts.props (ProofContext.facts_of (Proof.context_of pre))
 
     fun metis ctxt = MetisTools.metis_tac ctxt (thms @ facts)
   in
     (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
-    |> suffix (" (" ^ commas names ^ ")")
-    |> SOME
+    |> add_info
+    |> log
   end
 
 fun invoke _ = Mirabelle.register ("metis", metis_action)
