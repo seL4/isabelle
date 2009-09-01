@@ -13,7 +13,6 @@ import scala.actors.Actor._
 import scala.collection.mutable.ListBuffer
 import java.util.regex.Pattern
 import isabelle.prover.{Prover, Command, Command_State}
-import isabelle.utils.LinearSet
 
 
 object ProofDocument
@@ -36,7 +35,7 @@ object ProofDocument
 
   val empty =
     new ProofDocument(isabelle.jedit.Isabelle.system.id(),
-      LinearSet(), Map(), LinearSet(), Map(), _ => false,
+      Linear_Set(), Map(), Linear_Set(), Map(), _ => false,
       actor(loop(react{case _ =>}))) // ignoring actor
 
   type StructureChange = List[(Option[Command], Option[Command])]
@@ -45,9 +44,9 @@ object ProofDocument
 
 class ProofDocument(
   val id: String,
-  val tokens: LinearSet[Token],
+  val tokens: Linear_Set[Token],
   val token_start: Map[Token, Int],
-  val commands: LinearSet[Command],
+  val commands: Linear_Set[Command],
   var states: Map[Command, Command_State],
   is_command_keyword: String => Boolean,
   change_receiver: Actor)
@@ -166,7 +165,7 @@ class ProofDocument(
     new_token_start: Map[Token, Int]):
   (ProofDocument, StructureChange) =
   {
-    val new_tokenset = (LinearSet() ++ new_tokens).asInstanceOf[LinearSet[Token]]
+    val new_tokenset = Linear_Set[Token]() ++ new_tokens
     val cmd_before_change = before_change match {
       case None => None
       case Some(bc) =>
