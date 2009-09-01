@@ -5,14 +5,15 @@
 # DESCRIPTION: issue code generation from shell
 
 
-## diagnostics
-
 PRG="$(basename "$0")"
 
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG IMAGE THY CMD"
+  echo "Usage: isabelle $PRG [OPTIONS] IMAGE THY CMD"
+  echo
+  echo "  Options are:"
+  echo "    -q    run in quick'n'dirty mode"
   echo
   echo "  Issues code generation using image IMAGE,"
   echo "  theory THY,"
@@ -21,10 +22,25 @@ function usage()
   exit 1
 }
 
-
 ## process command line
 
-[ "$#" -lt 2 -o "$1" = "-?" ] && usage
+QUICK_AND_DIRTY=0
+
+while getopts "q" OPT
+do
+  case "$OPT" in
+    q)
+      QUICK_AND_DIRTY=1
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+[ "$#" -ne 3 ] && usage
 
 IMAGE="$1"; shift
 THY="$1"; shift
@@ -34,7 +50,16 @@ CMD="$1"
 ## main
 
 CODE_CMD=$(echo $CMD | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
+
+if [ "$QUICK_AND_DIRTY" -eq 1 ]
+then
+  QND_CMD="set"
+else
+  QND_CMD="reset"
+fi
+
 CTXT_CMD="ML_Context.eval_in (SOME (ProofContext.init (theory \"HOL\"))) false Position.none \"Code_Target.shell_command thyname cmd\";"
-FULL_CMD="val thyname = \"$THY\"; val cmd = \"$CODE_CMD\"; $CTXT_CMD"
+
+FULL_CMD="$QND_CMD quick_and_dirty; val thyname = \"$THY\"; val cmd = \"$CODE_CMD\"; $CTXT_CMD"
 
 "$ISABELLE" -q -e "$FULL_CMD" "$IMAGE" || exit 1
