@@ -7,7 +7,7 @@
 header{*The Nonstandard Primes as an Extension of the Prime Numbers*}
 
 theory NSPrimes
-imports "~~/src/HOL/NumberTheory/Factorization" Hyperreal
+imports "~~/src/HOL/Old_Number_Theory/Factorization" Hyperreal
 begin
 
 text{*These can be used to derive an alternative proof of the infinitude of

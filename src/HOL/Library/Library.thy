@@ -43,11 +43,9 @@ imports
   OptionalSugar
   Option_ord
   Permutation
-  Pocklington
   Poly_Deriv
   Polynomial
   Preorder
-  Primes
   Product_Vector
   Quicksort
   Quotient

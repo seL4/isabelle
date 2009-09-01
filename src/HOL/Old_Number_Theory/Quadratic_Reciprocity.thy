@@ -1,6 +1,4 @@
-(*  Title:      HOL/NumberTheory/Quadratic_Reciprocity.thy
-    ID:         $Id$
-    Authors:    Jeremy Avigad, David Gray, and Adam Kramer
+(*  Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
 header {* The law of Quadratic reciprocity *}

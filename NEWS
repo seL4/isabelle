@@ -18,6 +18,15 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* Reorganization of number theory:
+  * former session NumberTheory now names Old_Number_Theory; former session NewNumberTheory
+    named NumberTheory;
+  * split off prime number ingredients from theory GCD to theory Number_Theory/Primes;
+  * moved legacy theories Legacy_GCD and Primes from Library/ to Old_Number_Theory/;
+  * moved theory Pocklington from Library/ to Old_Number_Theory/;
+  * removed various references to Old_Number_Theory from HOL distribution.
+INCOMPATIBILITY.
+
 * New testing tool "Mirabelle" for automated (proof) tools. Applies
 several tools and tactics like sledgehammer, metis, or quickcheck, to
 every proof step in a theory. To be used in batch mode via the

@@ -5,7 +5,7 @@
 header {*  Square roots of primes are irrational *}
 
 theory Sqrt
-imports Complex_Main
+imports Complex_Main "~~/src/HOL/Number_Theory/Primes"
 begin
 
 text {*

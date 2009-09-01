@@ -16,7 +16,7 @@ imports
   Nested_Environment
   Option_ord
   Permutation
-  Primes
+  "~~/src/HOL/Number_Theory/Primes"
   Product_ord
   SetsAndFunctions
   Tree
