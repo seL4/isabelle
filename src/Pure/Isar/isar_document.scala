@@ -7,7 +7,7 @@ Interactive Isar documents.
 package isabelle
 
 
-object IsarDocument
+object Isar_Document
 {
   /* unique identifiers */
 
@@ -17,9 +17,9 @@ object IsarDocument
 }
 
 
-trait IsarDocument extends Isabelle_Process
+trait Isar_Document extends Isabelle_Process
 {
-  import IsarDocument._
+  import Isar_Document._
 
 
   /* commands */
