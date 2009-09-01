@@ -19,7 +19,7 @@ are formally declared.  INCOMPATIBILITY.
 *** HOL ***
 
 * Reorganization of number theory:
-  * former session NumberTheory now names Old_Number_Theory; former session NewNumberTheory
+  * former session NumberTheory now named Old_Number_Theory; former session NewNumberTheory
     named NumberTheory;
   * split off prime number ingredients from theory GCD to theory Number_Theory/Primes;
   * moved legacy theories Legacy_GCD and Primes from Library/ to Old_Number_Theory/;
