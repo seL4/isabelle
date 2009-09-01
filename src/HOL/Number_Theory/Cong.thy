@@ -30,7 +30,7 @@ natural numbers and the integers, and added a number of new theorems.
 header {* Congruence *}
 
 theory Cong
-imports GCD
+imports GCD Primes
 begin
 
 subsection {* Turn off One_nat_def *}

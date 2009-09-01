@@ -1,6 +1,4 @@
-(*  Title:      HOL/NumberTheory/WilsonBij.thy
-    ID:         $Id$
-    Author:     Thomas M. Rasmussen
+(*  Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 

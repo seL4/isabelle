@@ -1,13 +1,11 @@
-(*  Title:      HOL/NumberTheory/Factorization.thy
-    ID:         $Id$
-    Author:     Thomas Marthedal Rasmussen
+(*  Author:     Thomas Marthedal Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
 
 theory Factorization
-imports Main Primes Permutation
+imports Main "~~/src/HOL/Old_Number_Theory/Primes" Permutation
 begin
 
 

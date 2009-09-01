@@ -12,7 +12,6 @@ no_document use_thys [
   "Codegenerator_Test",
   "Codegenerator_Pretty_Test",
   "NormalForm",
-  "../NumberTheory/Factorization",
   "Predicate_Compile",
   "Predicate_Compile_ex"
 ];
