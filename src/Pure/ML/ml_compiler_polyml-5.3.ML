@@ -74,8 +74,8 @@ fun eval verbose pos toks =
     (* input *)
 
     val location_props =
-      Markup.markup (Markup.position |> Markup.properties
-          (filter (member (op =) [Markup.idN, Markup.fileN] o #1) (Position.properties_of pos))) "";
+      op ^ (YXML.output_markup (Markup.position |> Markup.properties
+            (filter (member (op =) [Markup.idN, Markup.fileN] o #1) (Position.properties_of pos))));
 
     val input = toks |> maps (fn tok =>
       let
