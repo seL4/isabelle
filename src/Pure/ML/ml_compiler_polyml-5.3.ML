@@ -111,9 +111,8 @@ fun eval verbose pos toks =
     fun put s = change output_buffer (Buffer.add s);
 
     fun put_message {message, hard, location, context = _} =
-     (put (if hard then "Error: " else "Warning: ");
-      put (Pretty.string_of (Pretty.from_ML (pretty_ml message)));
-      put (Position.str_of (position_of location) ^ "\n"));
+     (put ((if hard then "Error" else "Warning") ^ Position.str_of (position_of location) ^ ":\n");
+      put (Pretty.string_of (Pretty.from_ML (pretty_ml message)) ^ "\n"));
 
 
     (* results *)
