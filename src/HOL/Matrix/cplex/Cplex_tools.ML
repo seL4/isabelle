@@ -1,5 +1,4 @@
 (*  Title:      HOL/Matrix/cplex/Cplex_tools.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 

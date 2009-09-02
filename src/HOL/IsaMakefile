@@ -940,7 +940,7 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML		\
 
 HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
 
-$(LOG)/HOL-Matrix.gz: $(OUT)/HOL				\
+$(LOG)/HOL-Matrix.gz: $(OUT)/HOL					\
   $(SRC)/Tools/Compute_Oracle/Compute_Oracle.thy			\
   $(SRC)/Tools/Compute_Oracle/am_compiler.ML				\
   $(SRC)/Tools/Compute_Oracle/am_interpreter.ML				\
@@ -948,8 +948,8 @@ $(LOG)/HOL-Matrix.gz: $(OUT)/HOL				\
   $(SRC)/Tools/Compute_Oracle/linker.ML					\
   $(SRC)/Tools/Compute_Oracle/am_ghc.ML					\
   $(SRC)/Tools/Compute_Oracle/am_sml.ML					\
-  $(SRC)/Tools/Compute_Oracle/compute.ML	\
-  Tools/ComputeFloat.thy Tools/float_arith.ML \
+  $(SRC)/Tools/Compute_Oracle/compute.ML Matrix/ComputeFloat.thy	\
+  Matrix/ComputeHOL.thy Matrix/ComputeNumeral.thy Tools/float_arith.ML	\
   Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy		\
   Matrix/document/root.tex Matrix/ROOT.ML Matrix/cplex/Cplex.thy	\
   Matrix/cplex/CplexMatrixConverter.ML Matrix/cplex/Cplex_tools.ML	\
