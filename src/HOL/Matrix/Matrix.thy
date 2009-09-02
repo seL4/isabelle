@@ -1,5 +1,4 @@
 (*  Title:      HOL/Matrix/Matrix.thy
-    ID:         $Id$
     Author:     Steven Obua
 *)
 
