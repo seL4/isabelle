@@ -112,7 +112,7 @@ fun basic_hook tr pre post =
 
 end
 
-val blacklist = ["disable_pr", "enable_pr", "done", ".", "txt"]
+val blacklist = ["disable_pr", "enable_pr", "done", ".", "using", "txt"]
 
 fun step_hook tr pre post =
  (* FIXME: might require wrapping into "interruptible" *)
