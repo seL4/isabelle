@@ -95,7 +95,7 @@ class TheoryView (text_area: JEditTextArea)
   /* history of changes - TODO: seperate class?*/
 
   private val change_0 = new Change(prover.document_0.id, None, Nil)
-  private var _changes = List(change_0)
+  private var _changes = List(change_0)   // owned by Swing/AWT thread
   def changes = _changes
   private var current_change = change_0
 
@@ -157,15 +157,7 @@ class TheoryView (text_area: JEditTextArea)
 
   private val edits = new mutable.ListBuffer[Edit]   // owned by Swing/AWT thread
 
-  private val col_timer = new Timer(300, new ActionListener() {
-    override def actionPerformed(e: ActionEvent) = commit()
-  })
-
-  col_timer.stop
-  col_timer.setRepeats(true)
-
-  private def commit() {
-    Swing_Thread.require()
+  private val edits_delay = Swing_Thread.delay_last(300) {
     if (!edits.isEmpty) {
       val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
       _changes ::= change
@@ -173,16 +165,6 @@ class TheoryView (text_area: JEditTextArea)
       current_change = change
       edits.clear
     }
-    if (col_timer.isRunning())
-      col_timer.stop()
-  }
-
-  private def delay_commit {
-    Swing_Thread.require()
-    if (col_timer.isRunning())
-      col_timer.restart()
-    else
-      col_timer.start()
   }
 
 
@@ -198,14 +180,14 @@ class TheoryView (text_area: JEditTextArea)
     start_line: Int, offset: Int, num_lines: Int, length: Int)
   {
     edits += Insert(offset, buffer.getText(offset, length))
-    delay_commit
+    edits_delay()
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
     start_line: Int, start: Int, num_lines: Int, removed_length: Int)
   {
     edits += Remove(start, buffer.getText(start, removed_length))
-    delay_commit
+    edits_delay()
   }
 
   override def bufferLoaded(buffer: JEditBuffer) { }
@@ -236,7 +218,7 @@ class TheoryView (text_area: JEditTextArea)
 
   /* (re)painting */
 
-  private val update_delay = Swing_Thread.delay(500){ buffer.propertiesChanged() }
+  private val update_delay = Swing_Thread.delay_first(500) { buffer.propertiesChanged() }
 
   private def update_syntax(cmd: Command) {
     val (line1, line2) = lines_of_command(cmd)
@@ -323,7 +305,7 @@ class TheoryView (text_area: JEditTextArea)
           Swing_Thread.now {
             edits.clear
             edits += Insert(0, buffer.getText(0, buffer.getLength))
-            commit()
+            edits_delay()
           }
         case c: Command =>
           actor{Isabelle.plugin.command_change.event(c)}
