@@ -36,19 +36,20 @@ object Swing_Thread
 
   /* delayed actions */
 
-  // turn multiple invocations into single action within time span
-  def delay(time_span: Int)(action: => Unit): () => Unit =
+  private def delayed_action(first: Boolean)(time_span: Int)(action: => Unit): () => Unit =
   {
     val listener =
       new ActionListener { override def actionPerformed(e: ActionEvent) { action } }
     val timer = new Timer(time_span, listener)
-    def invoke()
-    {
-      if (!timer.isRunning()) {
-        timer.setRepeats(false)
-        timer.start()
-      }
-    }
+    timer.setRepeats(false)
+
+    def invoke() { if (first) timer.start() else timer.restart() }
     invoke _
   }
+
+  // delayed action after first invocation
+  def delay_first = delayed_action(true) _
+
+  // delayed action after last invocation
+  def delay_last = delayed_action(false) _
 }
