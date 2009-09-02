@@ -4,14 +4,20 @@
 
 signature MIRABELLE =
 sig
-  type action
-  val register : string * action -> theory -> theory
-
+  (* configuration *)
   val logfile : string Config.T
   val timeout : int Config.T
   val start_line : int Config.T
   val end_line : int Config.T
+  val setup : theory -> theory
 
+  (* core *)
+  type action
+  val register : string * action -> theory -> theory
+  val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
+    unit
+
+  (* utility functions *)
   val goal_thm_of : Proof.state -> thm
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
@@ -23,18 +29,19 @@ end
 
 
 
-signature MIRABELLE_EXT =
-sig
-  include MIRABELLE
-  val setup : theory -> theory
-  val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
-    unit
-end
-
-
-
 structure Mirabelle : MIRABELLE_EXT =
 struct
+
+(* Mirabelle configuration *)
+
+val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" ""
+val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" 30
+val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" 0
+val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
+
+val setup = setup1 #> setup2 #> setup3 #> setup4
+
+
 
 (* Mirabelle core *)
 
@@ -51,13 +58,6 @@ structure Actions = TheoryDataFun
 )
 
 val register = Actions.map o Symtab.update_new
-
-val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" ""
-val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" 30
-val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" 0
-val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
-
-val setup = setup1 #> setup2 #> setup3 #> setup4
 
 local
 
