@@ -29,7 +29,7 @@ end
 
 
 
-structure Mirabelle : MIRABELLE_EXT =
+structure Mirabelle : MIRABELLE =
 struct
 
 (* Mirabelle configuration *)
