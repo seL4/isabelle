@@ -31,6 +31,7 @@ test: \
   HOL-Matrix \
   HOL-MetisExamples \
   HOL-MicroJava \
+  HOL-Mirabelle \
   HOL-Modelcheck \
   HOL-NanoJava \
   HOL-Nominal-Examples \
@@ -1119,6 +1120,20 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 	@cd NSA; $(ISABELLE_TOOL) usedir $(OUT)/HOL-NSA Examples
 
 
+## HOL-Mirabelle
+
+HOL-Mirabelle: HOL $(LOG)/HOL-Mirabelle.gz
+
+$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/MirabelleTest.thy \
+  Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML Mirabelle/ROOT.ML \
+  Mirabelle/Tools/mirabelle_arith.ML \
+  Mirabelle/Tools/mirabelle_metis.ML \
+  Mirabelle/Tools/mirabelle_quickcheck.ML \
+  Mirabelle/Tools/mirabelle_refute.ML \
+  Mirabelle/Tools/mirabelle_sledgehammer.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
+
+
 ## clean
 
 clean:
@@ -1140,4 +1155,5 @@ clean:
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
-		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
+                $(LOG)/HOL-Mirabelle.gz
