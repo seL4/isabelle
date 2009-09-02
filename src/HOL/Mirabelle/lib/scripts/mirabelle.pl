@@ -122,8 +122,15 @@ foreach $name (@action_names) {
 }
 close(LOG_FILE);
 
-my $r = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
+my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
   "-e 'use \"$root_file\";' -q $mirabelle_logic" . "\n";
+
+
+# produce report
+
+if ($result == 0) {
+  system "perl -w \"$mirabelle_home/lib/scripts/report.pl\" \"$log_file\"";
+}
 
 
 # cleanup
@@ -131,5 +138,4 @@ my $r = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
 unlink $root_file;
 unlink $setup_file;
 
-exit $r;
-
+exit $result;

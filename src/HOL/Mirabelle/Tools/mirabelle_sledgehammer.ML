@@ -25,60 +25,81 @@ fun safe init done f x =
     val _ = done y
   in Exn.release z end
 
+fun with_time true t = "succeeded (" ^ string_of_int t ^ ")"
+  | with_time false t = "failed (" ^ string_of_int t ^ ")"
+
 val proverK = "prover"
 val keepK = "keep"
 val metisK = "metis"
 
-fun sledgehammer_action args {pre=st, timeout, log, ...} =
+
+local
+
+fun init NONE = !AtpWrapper.destdir
+  | init (SOME path) =
+      let
+        (* Warning: we implicitly assume single-threaded execution here! *)
+        val old = !AtpWrapper.destdir
+        val _ = AtpWrapper.destdir := path
+      in old end
+
+fun done path = AtpWrapper.destdir := path
+
+fun run prover_name timeout st _ =
+  let
+    val prover = the (AtpManager.get_prover prover_name (Proof.theory_of st))
+    val atp_timeout = AtpManager.get_timeout () 
+    val atp = prover atp_timeout NONE NONE prover_name 1
+    val (success, (message, thm_names), _, _, _) =
+      TimeLimit.timeLimit timeout atp (Proof.get_goal st)
+  in (success, message, SOME thm_names) end
+  handle ResHolClause.TOO_TRIVIAL => (true, "trivial", SOME [])
+       | TimeLimit.TimeOut => (false, "time out", NONE)
+       | ERROR msg => (false, "error: " ^ msg, NONE)
+
+in
+
+fun run_sledgehammer (args, st, timeout, log) =
   let
     val prover_name =
       AList.lookup (op =) args proverK
       |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
+    val dir = AList.lookup (op =) args keepK
+    val ((success, msg, thm_names), time) =
+      safe init done (Mirabelle.cpu_time (run prover_name timeout st)) dir
+    fun sh_log s = log ("sledgehammer: " ^ with_time success time ^ " [" ^
+      prover_name ^ "]" ^ s)
+    val _ = if success then sh_log (":\n" ^ msg) else sh_log ""
+  in if success then thm_names else NONE end
 
-    val thy = Proof.theory_of st
- 
-    val prover = the (AtpManager.get_prover prover_name thy)
-    val atp_timeout = AtpManager.get_timeout () 
+end
 
-    (* run sledgehammer *)
-    fun init NONE = !AtpWrapper.destdir
-      | init (SOME path) =
-          let
-            (* Warning: we implicitly assume single-threaded execution here! *)
-            val old = !AtpWrapper.destdir
-            val _ = AtpWrapper.destdir := path
-          in old end
-    fun done path = AtpWrapper.destdir := path
-    fun sh _ =
-      let
-        val atp = prover atp_timeout NONE NONE prover_name 1
-        val (success, (message, thm_names), _, _, _) =
-          TimeLimit.timeLimit timeout atp (Proof.get_goal st)
-      in (success, message, SOME thm_names) end
-      handle ResHolClause.TOO_TRIVIAL => (true, "trivial", SOME [])
-    val (success, message, thm_names) = safe init done sh
-      (AList.lookup (op =) args keepK)
-    val _ =
-      if success then log (quote prover_name ^ " succeeded:\n" ^ message)
-      else log (prover_name ^ " failed")
 
-    (* try metis *)
+fun run_metis (args, st, timeout, log) thm_names =
+  let
     fun get_thms ctxt = maps (thms_of_name ctxt)
     fun metis thms ctxt = MetisTools.metis_tac ctxt thms
-    fun log_metis s =
-      log ("applying metis: " ^ s)
-    fun apply_metis thms =
-      if Mirabelle.can_apply timeout (metis thms) st
-      then "succeeded" else "failed"
-    val _ =
-      if not (AList.defined (op =) args metisK) then ()
-      else
-        these thm_names
-        |> get_thms (Proof.context_of st)
-        |> apply_metis
-        |> log_metis
-  in () end
+    fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
+    fun timed_metis thms =
+      uncurry with_time (Mirabelle.cpu_time apply_metis thms)
+      handle TimeLimit.TimeOut => "time out"
+    fun log_metis s = log ("-----\nmetis (sledgehammer): " ^ s)
+  in
+    if not (AList.defined (op =) args metisK) then ()
+    else if is_none thm_names then ()
+    else
+      these thm_names
+      |> get_thms (Proof.context_of st)
+      |> timed_metis
+      |> log_metis
+  end
+
+
+fun sledgehammer_action args {pre, timeout, log, ...} =
+  run_sledgehammer (args, pre, timeout, log)
+  |> run_metis (args, pre, timeout, log)
 
 fun invoke args = Mirabelle.register ("sledgehammer", sledgehammer_action args)
 
 end
+

@@ -7,8 +7,9 @@ struct
 
 fun arith_action {pre, timeout, log, ...} =
   if Mirabelle.can_apply timeout Arith_Data.arith_tac pre
-  then log "succeeded"
+  then log "arith: succeeded"
   else ()
+  handle TimeLimit.TimeOut => log "arith: time out"
 
 fun invoke _ = Mirabelle.register ("arith", arith_action)
 

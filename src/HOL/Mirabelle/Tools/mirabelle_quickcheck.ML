@@ -11,9 +11,10 @@ fun quickcheck_action args {pre, timeout, log, ...} =
     val quickcheck = Quickcheck.quickcheck (filter has_valid_key args) 1
   in
     (case TimeLimit.timeLimit timeout quickcheck pre of
-      NONE => log "no counterexample"
-    | SOME _ => log "counterexample found")
+      NONE => log "quickcheck: no counterexample"
+    | SOME _ => log "quickcheck: counterexample found")
   end
+  handle TimeLimit.TimeOut => log "quickcheck: time out"
 
 fun invoke args = Mirabelle.register ("quickcheck", quickcheck_action args)
 

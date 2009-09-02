@@ -16,9 +16,11 @@ fun metis_action {pre, post, timeout, log} =
     fun metis ctxt = MetisTools.metis_tac ctxt (thms @ facts)
   in
     (if Mirabelle.can_apply timeout metis pre then "succeeded" else "failed")
+    |> prefix "metis: "
     |> add_info
     |> log
   end
+  handle TimeLimit.TimeOut => log "metis: time out"
 
 fun invoke _ = Mirabelle.register ("metis", metis_action)
 

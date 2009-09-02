@@ -25,6 +25,7 @@ sig
   val theorems_of_sucessful_proof : Toplevel.state option -> Thm.thm list
   val get_setting : (string * string) list -> string * string -> string
   val get_int_setting : (string * string) list -> string * int -> int
+  val cpu_time : ('a -> 'b) -> 'a -> 'b * int
 end
 
 
@@ -67,23 +68,22 @@ fun log thy s =
   (* FIXME: with multithreading and parallel proofs enabled, we might need to
      encapsulate this inside a critical section *)
 
-fun log_block thy msg = log thy (msg ^ "\n------------------")
-fun log_action thy name msg = log_block thy (name ^ ": " ^ msg)
+fun log_sep thy = log thy "------------------"
 
-fun capture_exns logf f x =
-  let
-    fun f' x = f x
-      handle TimeLimit.TimeOut => logf "time out"
-           | ERROR msg => logf ("error: " ^ msg)
-  in (case try f' x of NONE => logf "exception" | _ => ()) end
+fun try_with f NONE = SOME ()
+  | try_with f (SOME e) = (f e; try (fn () => reraise e) ())
+
+fun capture_exns thy name f x =
+  (case try_with I (Exn.get_exn (Exn.capture f x)) of
+    NONE => (log thy ("Unhandled exception in " ^ quote name); log_sep thy)
+  | SOME _ => log_sep thy)
 
 fun apply_actions thy info (pre, post, time) actions =
   let
-    val _ = log_block thy info
     fun apply (name, action) =
-      let val st = {pre=pre, post=post, timeout=time, log=log_action thy name}
-      in capture_exns (log_action thy name) action st end
-  in List.app apply actions end
+      {pre=pre, post=post, timeout=time, log=log thy}
+      |> capture_exns thy name action
+  in (log thy info; log_sep thy; List.app apply actions) end
 
 fun in_range _ _ NONE = true
   | in_range l r (SOME i) = (l <= i andalso (r < 0 orelse i <= r))
@@ -181,5 +181,12 @@ fun get_int_setting settings (key, default) =
     SOME (SOME i) => i
   | SOME NONE => error ("bad option: " ^ key)
   | NONE => default)
+
+fun cpu_time f x =
+  let
+    val start = start_timing ()
+    val result = Exn.capture (fn () => f x) ()
+    val time = Time.toMilliseconds (#cpu (end_timing start))
+  in (Exn.release result, time) end
 
 end
