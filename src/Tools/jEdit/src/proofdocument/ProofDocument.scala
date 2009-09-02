@@ -62,20 +62,20 @@ class ProofDocument(
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
 
 
+  
   /** token view **/
 
-  def text_changed(c: Change): (ProofDocument, StructureChange)  =
+  def text_changed(change: Change): (ProofDocument, StructureChange) =
   {
     def edit_doc(doc_chgs: (ProofDocument, StructureChange), edit: Edit) = {
       val (doc, chgs) = doc_chgs
-      val (new_doc, chg) = doc.text_edit(edit, c.id)
+      val (new_doc, chg) = doc.text_edit(edit, change.id)
       (new_doc, chgs ++ chg)
     }
-    ((this, Nil: StructureChange) /: c) (edit_doc)
+    ((this, Nil: StructureChange) /: change.edits)(edit_doc)
   }
 
-  def text_edit(e: Edit, id: String):
-    (ProofDocument,StructureChange) =
+  def text_edit(e: Edit, id: String): (ProofDocument,StructureChange) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {

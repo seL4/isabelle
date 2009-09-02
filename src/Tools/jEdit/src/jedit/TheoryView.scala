@@ -10,6 +10,7 @@ package isabelle.jedit
 
 import scala.actors.Actor
 import scala.actors.Actor._
+import scala.collection.mutable
 
 import isabelle.proofdocument.{ProofDocument, Change, Edit, Insert, Remove}
 import isabelle.prover.{Prover, ProverEvents, Command}
@@ -108,14 +109,14 @@ class TheoryView (text_area: JEditTextArea)
     // changes in buffer must be ignored
     buffer.removeBufferListener(this)
 
-    def apply(c: Change) = c.map {
-      case Insert(start, added) => buffer.insert(start, added)
-      case Remove(start, removed) => buffer.remove(start, removed.length)
+    def apply(change: Change): Unit = change.edits.foreach {
+      case Insert(start, text) => buffer.insert(start, text)
+      case Remove(start, text) => buffer.remove(start, text.length)
     }
 
-    def unapply(c: Change) = c.toList.reverse.map {
-      case Insert(start, added) => buffer.remove(start, added.length)
-      case Remove(start, removed) => buffer.insert(start, removed)
+    def unapply(change: Change): Unit = change.edits.reverse.foreach {
+      case Insert(start, text) => buffer.remove(start, text.length)
+      case Remove(start, text) => buffer.insert(start, text)
     }
 
     // undo/redo changes
@@ -151,35 +152,39 @@ class TheoryView (text_area: JEditTextArea)
     buffer.addBufferListener(this)
   }
 
+
   /* sending edits to prover */
 
-  private var edits: List[Edit] = Nil
+  private val edits = new mutable.ListBuffer[Edit]   // owned by Swing/AWT thread
 
   private val col_timer = new Timer(300, new ActionListener() {
-    override def actionPerformed(e: ActionEvent) = commit
+    override def actionPerformed(e: ActionEvent) = commit()
   })
 
   col_timer.stop
   col_timer.setRepeats(true)
 
-  private def commit: Unit = synchronized {
+  private def commit() {
+    Swing_Thread.require()
     if (!edits.isEmpty) {
-      val change = new Change(Isabelle.system.id(), Some(current_change), edits)
+      val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
       _changes ::= change
       prover ! change
       current_change = change
+      edits.clear
     }
-    edits = Nil
     if (col_timer.isRunning())
       col_timer.stop()
   }
 
   private def delay_commit {
+    Swing_Thread.require()
     if (col_timer.isRunning())
       col_timer.restart()
     else
       col_timer.start()
   }
+
 
   /* BufferListener methods */
 
@@ -192,14 +197,14 @@ class TheoryView (text_area: JEditTextArea)
   override def preContentInserted(buffer: JEditBuffer,
     start_line: Int, offset: Int, num_lines: Int, length: Int)
   {
-    edits ::= Insert(offset, buffer.getText(offset, length))
+    edits += Insert(offset, buffer.getText(offset, length))
     delay_commit
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
     start_line: Int, start: Int, num_lines: Int, removed_length: Int)
   {
-    edits ::= Remove(start, buffer.getText(start, removed_length))
+    edits += Remove(start, buffer.getText(start, removed_length))
     delay_commit
   }
 
@@ -211,8 +216,8 @@ class TheoryView (text_area: JEditTextArea)
 
   /* transforming offsets */
 
-  private def changes_to(doc: ProofDocument) =
-    edits ::: current_change.ancestors(_.id == doc.id).flatten(_.toList)
+  private def changes_to(doc: ProofDocument): List[Edit] =
+    edits.toList ::: List.flatten(current_change.ancestors(_.id == doc.id).map(_.edits))
 
   def from_current(doc: ProofDocument, pos: Int) =
     (pos /: changes_to(doc)) ((p, c) => c from_where p)
@@ -314,9 +319,12 @@ class TheoryView (text_area: JEditTextArea)
   lazy val change_receiver: Actor = actor {
     loop {
       react {
-        case ProverEvents.Activate =>
-          edits = List(Insert(0, buffer.getText(0, buffer.getLength)))
-          commit
+        case ProverEvents.Activate =>   // FIXME !?
+          Swing_Thread.now {
+            edits.clear
+            edits += Insert(0, buffer.getText(0, buffer.getLength))
+            commit()
+          }
         case c: Command =>
           actor{Isabelle.plugin.command_change.event(c)}
           if(current_document().commands.contains(c))
