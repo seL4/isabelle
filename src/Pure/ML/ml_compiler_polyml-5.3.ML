@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_compiler_polyml-5.3.ML
     Author:     Makarius
 
-Advanced runtime compilation for Poly/ML 5.3 (SVN 773).
+Advanced runtime compilation for Poly/ML 5.3 (SVN 839).
 *)
 
 signature ML_COMPILER =
