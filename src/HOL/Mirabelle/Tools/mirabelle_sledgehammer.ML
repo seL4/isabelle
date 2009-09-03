@@ -83,12 +83,14 @@ fun run_metis (args, st, timeout, log) thm_names =
     fun timed_metis thms =
       uncurry with_time (Mirabelle.cpu_time apply_metis thms)
       handle TimeLimit.TimeOut => "time out"
-    fun log_metis s = log ("-----\nmetis (sledgehammer): " ^ s)
+           | ERROR msg => "error: " ^ msg
+    fun log_metis s = log ("metis (sledgehammer): " ^ s)
   in
     if not (AList.defined (op =) args metisK) then ()
     else if is_none thm_names then ()
     else
-      these thm_names
+      log "-----"
+      |> K (these thm_names)
       |> get_thms (Proof.context_of st)
       |> timed_metis
       |> log_metis

@@ -70,13 +70,13 @@ fun log thy s =
 
 fun log_sep thy = log thy "------------------"
 
-fun try_with f NONE = SOME ()
-  | try_with f (SOME e) = (f e; try (fn () => reraise e) ())
+fun log_exn thy name (exn : exn) = log thy ("Unhandled exception in action " ^
+  quote name ^ ":\n" ^ PolyML.makestring exn)
 
-fun capture_exns thy name f x =
-  (case try_with I (Exn.get_exn (Exn.capture f x)) of
-    NONE => (log thy ("Unhandled exception in " ^ quote name); log_sep thy)
-  | SOME _ => log_sep thy)
+fun try_with f g x = SOME (g x)
+  handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; NONE)
+
+fun capture_exns thy name f x = (try_with (log_exn thy name) f x; log_sep thy)
 
 fun apply_actions thy info (pre, post, time) actions =
   let
