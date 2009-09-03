@@ -6,12 +6,11 @@
 
 package isabelle.prover
 
+
+import javax.swing.tree.DefaultMutableTreeNode
+
 import isabelle.proofdocument.ProofDocument
 
-import sidekick.IAsset
-import javax.swing._
-import javax.swing.text.Position
-import javax.swing.tree._
 
 abstract class MarkupInfo
 case class RootInfo() extends MarkupInfo
@@ -24,49 +23,28 @@ case class RefInfo(file: Option[String], line: Option[Int],
     override def toString = (file, line, command_id, offset).toString
   }
 
-object MarkupNode {
-
-  def markup2default_node(node: MarkupNode, cmd: Command, doc: ProofDocument)
-      : DefaultMutableTreeNode = {
-
-    implicit def int2pos(offset: Int): Position =
-      new Position { def getOffset = offset; override def toString = offset.toString }
-
-    object RelativeAsset extends IAsset {
-      override def getIcon: Icon = null
-      override def getShortString: String = node.content
-      override def getLongString: String = node.info.toString
-      override def getName: String = node.id
-      override def setName(name: String) = ()
-      override def setStart(start: Position) = ()
-      override def getStart: Position = node.abs_start(doc)
-      override def setEnd(end: Position) = ()
-      override def getEnd: Position = node.abs_stop(doc)
-      override def toString = node.id + ": " + node.content + "[" + getStart + " - " + getEnd + "]"
-    }
-
-    new DefaultMutableTreeNode(RelativeAsset)
-  }
-}
 
 class MarkupNode(val base: Command, val start: Int, val stop: Int,
   val children: List[MarkupNode],
   val id: String, val content: String, val info: MarkupInfo)
 {
 
-  def swing_node(doc: ProofDocument): DefaultMutableTreeNode = {
-    val node = MarkupNode.markup2default_node (this, base, doc)
-    children.map(node add _.swing_node(doc))
+  def swing_tree(doc: ProofDocument)
+    (make_node: (MarkupNode, Command, ProofDocument) => DefaultMutableTreeNode):
+      DefaultMutableTreeNode =
+  {
+    val node = make_node(this, base, doc)
+    children.foreach(node add _.swing_tree(doc)(make_node))
     node
   }
 
   def abs_start(doc: ProofDocument) = base.start(doc) + start
   def abs_stop(doc: ProofDocument) = base.start(doc) + stop
 
-  def set_children(newchildren: List[MarkupNode]): MarkupNode =
-    new MarkupNode(base, start, stop, newchildren, id, content, info)
+  def set_children(new_children: List[MarkupNode]): MarkupNode =
+    new MarkupNode(base, start, stop, new_children, id, content, info)
 
-  private def add(child: MarkupNode) =
+  private def add(child: MarkupNode) =   // FIXME avoid sort?
     set_children ((child :: children) sort ((a, b) => a.start < b.start))
 
   def remove(nodes: List[MarkupNode]) = set_children(children diff nodes)
@@ -79,7 +57,8 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
     all
   }
 
-  def leafs: List[MarkupNode] = {
+  def leafs: List[MarkupNode] =
+  {
     if (children == Nil) return List(this)
     else return children flatMap (_.leafs)
   }
@@ -103,13 +82,15 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
     }
   }
 
-  def filter(p: MarkupNode => Boolean): List[MarkupNode] = {
+  def filter(p: MarkupNode => Boolean): List[MarkupNode] =
+  {
     val filtered = children.flatMap(_.filter(p))
     if (p(this)) List(this set_children(filtered))
     else filtered
   }
 
-  def +(new_child: MarkupNode): MarkupNode = {
+  def + (new_child: MarkupNode): MarkupNode =
+  {
     if (new_child fitting_into this) {
       var inserted = false
       val new_children =
@@ -123,7 +104,8 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
         (this remove fitting) add ((new_child /: fitting) (_ + _))
       }
       else this set_children new_children
-    } else {
+    }
+    else {
       System.err.println("ignored nonfitting markup: " + new_child)
       this
     }
