@@ -55,7 +55,7 @@ if ($unhandled > 0) {
 if ($sh_calls > 0) {
   my $percent = $sh_succeeded / $sh_calls * 100;
   my $time = $sh_time / 1000;
-  my $avg_time = $sh_time / $sh_succeeded;
+  my $avg_time = $time / $sh_succeeded;
   print FILE "Total number of sledgehammer calls: $sh_calls\n";
   print FILE "Number of successful sledgehammer calls: $sh_succeeded\n";
   printf FILE "Percentage of successful sledgehammer calls: %.0f%%\n", $percent;
