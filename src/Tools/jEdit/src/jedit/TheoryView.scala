@@ -170,12 +170,6 @@ class TheoryView (text_area: JEditTextArea)
 
   /* BufferListener methods */
 
-  override def contentInserted(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-  override def contentRemoved(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
   override def preContentInserted(buffer: JEditBuffer,
     start_line: Int, offset: Int, num_lines: Int, length: Int)
   {
@@ -190,6 +184,12 @@ class TheoryView (text_area: JEditTextArea)
     edits_delay()
   }
 
+  override def contentInserted(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+
+  override def contentRemoved(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+
   override def bufferLoaded(buffer: JEditBuffer) { }
   override def foldHandlerChanged(buffer: JEditBuffer) { }
   override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }
@@ -201,11 +201,11 @@ class TheoryView (text_area: JEditTextArea)
   private def changes_to(doc: ProofDocument): List[Edit] =
     edits.toList ::: List.flatten(current_change.ancestors(_.id == doc.id).map(_.edits))
 
-  def from_current(doc: ProofDocument, pos: Int) =
-    (pos /: changes_to(doc)) ((p, c) => c from_where p)
+  def from_current(doc: ProofDocument, offset: Int): Int =
+    (offset /: changes_to(doc)) ((i, change) => change before i)
 
-  def to_current(doc: ProofDocument, pos: Int) =
-    (pos /: changes_to(doc).reverse) ((p, c) => c where_to p)
+  def to_current(doc: ProofDocument, offset: Int): Int =
+    (offset /: changes_to(doc).reverse) ((i, change) => change after i)
 
 
   private def lines_of_command(cmd: Command) =

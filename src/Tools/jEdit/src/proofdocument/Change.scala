@@ -10,28 +10,28 @@ package isabelle.proofdocument
 sealed abstract class Edit
 {
   val start: Int
-  def from_where (x: Int): Int //where has x been before applying this edit
-  def where_to(x: Int): Int //where will x be when we apply this edit
+  def before(offset: Int): Int
+  def after(offset: Int): Int
 }
 
 case class Insert(start: Int, text: String) extends Edit
 {
-  def from_where(x: Int) =
-    if (start > x) x
-    else (x - text.length) max start
+  def before(offset: Int): Int =
+    if (start > offset) offset
+    else (offset - text.length) max start
 
-  def where_to(x: Int) =
-    if (start <= x) x + text.length else x
+  def after(offset: Int): Int =
+    if (start <= offset) offset + text.length else offset
 }
 
 case class Remove(start: Int, text: String) extends Edit
 {
-  def from_where(x: Int) =
-    if (start <= x) x + text.length else x
+  def before(offset: Int): Int =
+    if (start <= offset) offset + text.length else offset
 
-  def where_to(x: Int) =
-    if (start > x) x
-    else (x - text.length) max start
+  def after(offset: Int): Int =
+    if (start > offset) offset
+    else (offset - text.length) max start
 }
 // TODO: merge multiple inserts?
 
