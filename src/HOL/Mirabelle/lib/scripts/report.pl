@@ -59,8 +59,8 @@ if ($sh_calls > 0) {
   print FILE "Total number of sledgehammer calls: $sh_calls\n";
   print FILE "Number of successful sledgehammer calls: $sh_succeeded\n";
   printf FILE "Percentage of successful sledgehammer calls: %.0f%%\n", $percent;
-  print FILE "Total time for successful sledgehammer calls: $time seconds\n";
-  print FILE "Average time for successful sledgehammer calls: $avg_time seconds\n\n";
+  printf FILE "Total time for successful sledgehammer calls: %.3f seconds\n", $time;
+  printf FILE "Average time for successful sledgehammer calls: %.3f seconds\n\n", $avg_time;
 }
 
 if ($metis_calls > 0) {
@@ -71,8 +71,8 @@ if ($metis_calls > 0) {
   print FILE "Number of successful metis calls: $metis_succeeded\n";
   print FILE "Number of metis time outs: $metis_time_out\n";
   printf FILE "Percentage of successful metis calls: %.0f%%\n", $percent;
-  print FILE "Total time for successful metis calls: $time seconds\n";
-  print FILE "Average time for successful metis calls: $avg_time seconds\n";
+  printf FILE "Total time for successful metis calls: %.3f seconds\n", $time;
+  printf FILE "Average time for successful metis calls: %.3f seconds\n", $avg_time;
 }
 
 close(FILE);
