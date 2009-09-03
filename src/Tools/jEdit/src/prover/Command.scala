@@ -105,32 +105,25 @@ class Command(
 }
 
 
-class Command_State(val cmd: Command)
-extends Accumulator
+class Command_State(val command: Command) extends Accumulator
 {
+  protected override var _state = new State(command)
 
-  protected override var _state = new State(cmd)
-
-
-  // combining command and state
-  def result_document = {
-    val cmd_results = cmd.state.results
+  def result_document: org.w3c.dom.Document =
     XML.document(
-      cmd_results.toList ::: state.results.toList match {
+      command.state.results ::: state.results match {
         case Nil => XML.Elem("message", Nil, Nil)
         case List(elem) => elem
         case elems => XML.Elem("messages", Nil, elems)
       }, "style")
-  }
 
   def markup_root: MarkupNode =
-    (cmd.state.markup_root /: state.markup_root.children) (_ + _)
+    (command.state.markup_root /: state.markup_root.children) (_ + _)
 
   def type_at(pos: Int): String = state.type_at(pos)
 
   def ref_at(pos: Int): Option[MarkupNode] = state.ref_at(pos)
 
-  def highlight_node =
-    (cmd.state.highlight_node /: state.highlight_node.children) (_ + _)
-
+  def highlight_node: MarkupNode =
+    (command.state.highlight_node /: state.highlight_node.children) (_ + _)
 }
