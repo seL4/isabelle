@@ -30,7 +30,7 @@ trait Accumulator extends Actor
   override def act() {
     loop {
       react {
-        case x: XML.Tree => _state += x
+        case message: XML.Tree => _state += message
       }
     }
   }
@@ -48,15 +48,17 @@ object Command
 }
 
 
-class Command(val tokens: List[Token], val starts: Map[Token, Int], chg_rec: Actor)
-extends Accumulator
+class Command(
+  val tokens: List[Token],
+  val starts: Map[Token, Int],
+  change_receiver: Actor) extends Accumulator
 {
   require(!tokens.isEmpty)
 
   val id = Isabelle.system.id()
   override def hashCode = id.hashCode
 
-  def changed() = chg_rec ! this
+  def changed() = change_receiver ! this
 
 
   /* content */
@@ -72,7 +74,7 @@ extends Accumulator
 
   def contains(p: Token) = tokens.contains(p)
 
-  protected override var _state = State.empty(this)
+  protected override var _state = new State(this)
 
 
   /* markup */
@@ -107,7 +109,7 @@ class Command_State(val cmd: Command)
 extends Accumulator
 {
 
-  protected override var _state = State.empty(cmd)
+  protected override var _state = new State(cmd)
 
 
   // combining command and state

@@ -6,30 +6,33 @@
 
 package isabelle.prover
 
-import scala.collection.mutable
 
-object State
+class State(
+  val command: Command,
+  val status: Command.Status.Value,
+  rev_results: List[XML.Tree],
+  val markup_root: MarkupNode)
 {
-  def empty(cmd: Command) = State(cmd, Command.Status.UNPROCESSED,
-    new mutable.ListBuffer, cmd.empty_root_node)
-}
+  def this(command: Command) =
+    this(command, Command.Status.UNPROCESSED, Nil, command.empty_root_node)
 
-case class State(
-  cmd: Command,
-  status: Command.Status.Value,
-  results: mutable.Buffer[XML.Tree],
-  markup_root: MarkupNode
-)
-{
 
-  private def set_status(st: Command.Status.Value):State =
-    State(cmd, st, results, markup_root)
-  private def add_result(res: XML.Tree):State =
-    State(cmd, status, results + res, markup_root)
-  private def add_markup(markup: MarkupNode):State =
-    State(cmd, status, results, markup_root + markup)
+  /* content */
+
+  private def set_status(st: Command.Status.Value): State =
+    new State(command, st, rev_results, markup_root)
+
+  private def add_result(res: XML.Tree): State =
+    new State(command, status, res :: rev_results, markup_root)
+
+  private def add_markup(markup: MarkupNode): State =
+    new State(command, status, rev_results, markup_root + markup)
+
+  lazy val results = rev_results.reverse
+
 
   /* markup */
+
   lazy val highlight_node: MarkupNode =
   {
     import MarkupNode._
@@ -63,57 +66,60 @@ case class State(
 
 
 
-  def +(message: XML.Tree) = {
+  /* message dispatch */
+
+  def + (message: XML.Tree): State =
+  {
     val changed: State =
     message match {
       case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WRITELN) :: _, _)
-      | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.PRIORITY) :: _, _)
-      | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WARNING) :: _, _) =>
+        | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.PRIORITY) :: _, _)
+        | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WARNING) :: _, _) =>
         add_result(message)
       case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.ERROR) :: _, _) =>
         set_status(Command.Status.FAILED).add_result(message)
       case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.STATUS) :: _, elems) =>
-        (this /: elems) ((r, e) =>
+        (this /: elems) ((st, e) =>
           e match {
             // command status
             case XML.Elem(Markup.UNPROCESSED, _, _) =>
-              r.set_status(Command.Status.UNPROCESSED)
+              st.set_status(Command.Status.UNPROCESSED)
             case XML.Elem(Markup.FINISHED, _, _) =>
-              r.set_status(Command.Status.FINISHED)
+              st.set_status(Command.Status.FINISHED)
             case XML.Elem(Markup.FAILED, _, _) =>
-              r.set_status(Command.Status.FAILED)
+              st.set_status(Command.Status.FAILED)
             case XML.Elem(kind, attr, body) =>
               val (begin, end) = Position.offsets_of(attr)
               if (begin.isDefined && end.isDefined) {
                 if (kind == Markup.ML_TYPING) {
                   val info = body.first.asInstanceOf[XML.Text].content
-                  r.add_markup(cmd.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
-                } else if (kind == Markup.ML_REF) {
+                  st.add_markup(command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
+                }
+                else if (kind == Markup.ML_REF) {
                   body match {
                     case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                      r.add_markup(cmd.markup_node(
+                      st.add_markup(command.markup_node(
                         begin.get - 1, end.get - 1,
                         RefInfo(
                           Position.file_of(attr),
                           Position.line_of(attr),
                           Position.id_of(attr),
                           Position.offset_of(attr))))
-                    case _ =>
-                      r
+                    case _ => st
                   }
-                } else {
-                  r.add_markup(cmd.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
                 }
-              } else
-                r
-            case _ =>
-              r
+                else {
+                  st.add_markup(command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
+                }
+              }
+              else st
+            case _ => st
           })
       case _ =>
         System.err.println("ignored: " + message)
         this
     }
-    cmd.changed()
+    command.changed()
     changed
   }
 
