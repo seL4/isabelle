@@ -13,7 +13,8 @@ sig
 
   (* core *)
   type action
-  val register : string * action -> theory -> theory
+  val catch : string -> action -> action
+  val register : action -> theory -> theory
   val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
     unit
 
@@ -51,14 +52,22 @@ type action = {pre: Proof.state, post: Toplevel.state option,
 
 structure Actions = TheoryDataFun
 (
-  type T = action Symtab.table
-  val empty = Symtab.empty
+  type T = action list
+  val empty = []
   val copy = I
   val extend = I
-  fun merge _ = Symtab.merge (K true)
+  fun merge _ = Library.merge (K true)
 )
 
-val register = Actions.map o Symtab.update_new
+
+fun app_with f g x = (g x; ())
+  handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; ())
+
+fun catch tag f (st as {log, ...}) =
+  let fun log_exn e = log (tag ^ "exception:\n" ^ General.exnMessage e)
+  in app_with log_exn f st end
+
+val register = Actions.map o cons
 
 local
 
@@ -70,20 +79,11 @@ fun log thy s =
 
 fun log_sep thy = log thy "------------------"
 
-fun log_exn thy name (exn : exn) = log thy ("Unhandled exception in action " ^
-  quote name ^ ":\n" ^ PolyML.makestring exn)
-
-fun try_with f g x = SOME (g x)
-  handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; NONE)
-
-fun capture_exns thy name f x = (try_with (log_exn thy name) f x; log_sep thy)
-
 fun apply_actions thy info (pre, post, time) actions =
   let
-    fun apply (name, action) =
-      {pre=pre, post=post, timeout=time, log=log thy}
-      |> capture_exns thy name action
-  in (log thy info; log_sep thy; List.app apply actions) end
+    fun apply f = f {pre=pre, post=post, timeout=time, log=log thy}
+    fun run f = (apply f; log_sep thy)
+  in (log thy info; log_sep thy; List.app run actions) end
 
 fun in_range _ _ NONE = true
   | in_range l r (SOME i) = (l <= i andalso (r < 0 orelse i <= r))
@@ -105,9 +105,7 @@ fun basic_hook tr pre post =
     val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
     val info = "\n\nat " ^ loc ^ " (" ^ name ^ "):"
   in
-    Actions.get thy
-    |> Symtab.dest
-    |> only_within_range thy pos (apply_actions thy info st)
+    only_within_range thy pos (apply_actions thy info st) (Actions.get thy)
   end
 
 end

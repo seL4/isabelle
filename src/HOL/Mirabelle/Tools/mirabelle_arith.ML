@@ -11,6 +11,6 @@ fun arith_action {pre, timeout, log, ...} =
   else ()
   handle TimeLimit.TimeOut => log "arith: time out"
 
-fun invoke _ = Mirabelle.register ("arith", arith_action)
+fun invoke _ = Mirabelle.register (Mirabelle.catch "arith: " arith_action)
 
 end

@@ -30,6 +30,9 @@ val keepK = "keep"
 val metisK = "metis"
 val full_typesK = "full_types"
 
+val sh_tag = "sledgehammer: "
+val metis_tag = "metis (sledgehammer): "
+
 
 local
 
@@ -57,7 +60,7 @@ fun run prover_name timeout st _ =
 
 in
 
-fun run_sledgehammer (args, st, timeout, log) =
+fun run_sledgehammer args thm_names {pre=st, timeout, log, ...} =
   let
     val prover_name =
       AList.lookup (op =) args proverK
@@ -66,10 +69,10 @@ fun run_sledgehammer (args, st, timeout, log) =
     val (msg, result) = safe init done (run prover_name timeout st) dir
     val _ =
       if is_some result
-      then log ("sledgehammer: succeeded (" ^ string_of_int (fst (the result)) ^
+      then log (sh_tag ^ "succeeded (" ^ string_of_int (fst (the result)) ^
         ") [" ^ prover_name ^ "]:\n" ^ msg)
-      else log ("sledgehammer: failed: " ^ msg)
-  in Option.map snd result end
+      else log (sh_tag ^ "failed: " ^ msg)
+  in change thm_names (K (Option.map snd result)) end
 
 end
 
@@ -77,7 +80,7 @@ end
 fun with_time true t = "succeeded (" ^ string_of_int t ^ ")"
   | with_time false t = "failed (" ^ string_of_int t ^ ")"
 
-fun run_metis (args, st, timeout, log) thm_names =
+fun run_metis args thm_names {pre=st, timeout, log, ...} =
   let
     fun get_thms ctxt = maps (thms_of_name ctxt)
     fun metis thms ctxt = MetisTools.metis_tac ctxt thms
@@ -86,26 +89,29 @@ fun run_metis (args, st, timeout, log) thm_names =
       uncurry with_time (Mirabelle.cpu_time apply_metis thms)
       handle TimeLimit.TimeOut => "time out"
            | ERROR msg => "error: " ^ msg
-    fun log_metis s = log ("metis (sledgehammer): " ^ s)
+    fun log_metis s = log (metis_tag ^ s)
   in
     if not (AList.defined (op =) args metisK) then ()
-    else if is_none thm_names then ()
+    else if is_none (!thm_names) then ()
     else
       log "-----"
-      |> K (these thm_names)
+      |> K (these (!thm_names))
       |> get_thms (Proof.context_of st)
       |> timed_metis
       |> log_metis
   end
 
 
-fun sledgehammer_action args {pre, timeout, log, ...} =
-  run_sledgehammer (args, pre, timeout, log)
-  |> run_metis (args, pre, timeout, log)
+fun sledgehammer_action args (st as {log, ...}) =
+  let
+    val thm_names = ref (NONE : string list option)
+    val _ = Mirabelle.catch sh_tag (run_sledgehammer args thm_names) st
+    val _ = Mirabelle.catch metis_tag (run_metis args thm_names) st
+  in () end
 
 fun invoke args =
-  let val _ = AtpManager.set_full_types (AList.defined (op =) args full_typesK)
-  in Mirabelle.register ("sledgehammer", sledgehammer_action args) end
+  let
+    val _ = AtpManager.set_full_types (AList.defined (op =) args full_typesK)
+  in Mirabelle.register (sledgehammer_action args) end
 
 end
-
