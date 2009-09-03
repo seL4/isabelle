@@ -413,12 +413,11 @@ qed
 subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
 
-sublocale linorder < min_max!: distrib_lattice less_eq less "Orderings.ord.min less_eq" "Orderings.ord.max less_eq"
+sublocale linorder < min_max!: distrib_lattice less_eq less min max
 proof
   fix x y z
-  show "Orderings.ord.max less_eq x (Orderings.ord.min less_eq y z) =
-    Orderings.ord.min less_eq (Orderings.ord.max less_eq x y) (Orderings.ord.max less_eq x z)"
-  unfolding min_def max_def by auto
+  show "max x (min y z) = min (max x y) (max x z)"
+    by (auto simp add: min_def max_def)
 qed (auto simp add: min_def max_def not_le less_imp_le)
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
@@ -512,9 +511,6 @@ instance "fun" :: (type, boolean_algebra) boolean_algebra
 proof
 qed (simp_all add: inf_fun_eq sup_fun_eq bot_fun_eq top_fun_eq fun_Compl_def fun_diff_def
   inf_compl_bot sup_compl_top diff_eq)
-
-
-text {* redundant bindings *}
 
 
 no_notation
