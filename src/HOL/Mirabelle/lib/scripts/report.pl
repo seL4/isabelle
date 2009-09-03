@@ -18,6 +18,7 @@ my $sh_time = 0;
 
 my $metis_calls = 0;
 my $metis_succeeded = 0;
+my $metis_time_out = 0;
 my $metis_time = 0;
 
 foreach (@lines) {
@@ -38,6 +39,9 @@ foreach (@lines) {
     $metis_succeeded++;
     $metis_time += $1;
   }
+  if (m/^metis \(sledgehammer\): time out/) {
+    $metis_time_out++;
+  }
 }
 
 open(FILE, ">>$log_file") || die "Cannot open file '$log_file'";
@@ -51,19 +55,24 @@ if ($unhandled > 0) {
 if ($sh_calls > 0) {
   my $percent = $sh_succeeded / $sh_calls * 100;
   my $time = $sh_time / 1000;
+  my $avg_time = $sh_time / $sh_succeeded;
   print FILE "Total number of sledgehammer calls: $sh_calls\n";
   print FILE "Number of successful sledgehammer calls: $sh_succeeded\n";
   printf FILE "Percentage of successful sledgehammer calls: %.0f%%\n", $percent;
-  print FILE "Total time for successful sledgehammer calls: $time seconds\n\n";
+  print FILE "Total time for successful sledgehammer calls: $time seconds\n";
+  print FILE "Average time for successful sledgehammer calls: $avg_time seconds\n\n";
 }
 
 if ($metis_calls > 0) {
   my $percent = $metis_succeeded / $metis_calls * 100;
   my $time = $metis_time / 1000;
+  my $avg_time = $time / $metis_succeeded;
   print FILE "Total number of metis calls: $metis_calls\n";
   print FILE "Number of successful metis calls: $metis_succeeded\n";
+  print FILE "Number of metis time outs: $metis_time_out\n";
   printf FILE "Percentage of successful metis calls: %.0f%%\n", $percent;
   print FILE "Total time for successful metis calls: $time seconds\n";
+  print FILE "Average time for successful metis calls: $avg_time seconds\n";
 }
 
 close(FILE);
