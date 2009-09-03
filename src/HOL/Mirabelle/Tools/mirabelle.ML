@@ -112,12 +112,12 @@ fun basic_hook tr pre post =
 
 end
 
-val blacklist = ["disable_pr", "enable_pr", "done", ".", "using", "txt"]
+val whitelist = ["apply", "by", "proof"]
 
 fun step_hook tr pre post =
  (* FIXME: might require wrapping into "interruptible" *)
   if can (Proof.assert_backward o Toplevel.proof_of) pre andalso
-     not (member (op =) blacklist (Toplevel.name_of tr))
+     member (op =) whitelist (Toplevel.name_of tr)
   then basic_hook tr (Toplevel.proof_of pre) (SOME post)
   else ()   (* FIXME: add theory_hook here *)
 
