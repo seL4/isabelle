@@ -4,3 +4,4 @@ Options for sledgehammer:
   * keep=PATH: path where to keep temporary files created by sledgehammer 
   * metis=X: apply metis with the theorems found by sledgehammer (X may be any
       non-empty string)
+  * full_types=X: turn on full-typed encoding (X may be any non-empty string)

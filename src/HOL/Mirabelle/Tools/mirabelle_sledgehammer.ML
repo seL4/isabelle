@@ -28,6 +28,7 @@ fun safe init done f x =
 val proverK = "prover"
 val keepK = "keep"
 val metisK = "metis"
+val full_typesK = "full_types"
 
 
 local
@@ -102,7 +103,9 @@ fun sledgehammer_action args {pre, timeout, log, ...} =
   run_sledgehammer (args, pre, timeout, log)
   |> run_metis (args, pre, timeout, log)
 
-fun invoke args = Mirabelle.register ("sledgehammer", sledgehammer_action args)
+fun invoke args =
+  let val _ = AtpManager.set_full_types (AList.defined (op =) args full_typesK)
+  in Mirabelle.register ("sledgehammer", sledgehammer_action args) end
 
 end
 
