@@ -7,7 +7,8 @@
 
 package isabelle.jedit
 
-import isabelle.prover.{Command, MarkupNode, Prover}
+
+import isabelle.prover.Prover
 import isabelle.Markup
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -95,7 +96,9 @@ object DynamicTokenMarker
   def is_outer(kind: String) = outer.contains(kind)
 }
 
-class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarker
+
+class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
+  extends TokenMarker
 {
   override def markTokens(prev: TokenMarker.LineContext,
       handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
@@ -142,8 +145,8 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
     handler.setLineContext(context)
     return context
   }
-
 }
+
 
 class IndexLineContext(val line: Int, prev: IndexLineContext)
   extends TokenMarker.LineContext(new ParserRuleSet("isabelle", "MAIN"), prev)

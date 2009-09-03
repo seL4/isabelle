@@ -35,7 +35,6 @@ class State(
 
   lazy val highlight_node: MarkupNode =
   {
-    import MarkupNode._
     markup_root.filter(_.info match {
       case RootInfo() | HighlightInfo(_) => true
       case _ => false
