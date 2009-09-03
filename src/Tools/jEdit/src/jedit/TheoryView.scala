@@ -40,14 +40,14 @@ object TheoryView
 }
 
 
-class TheoryView (text_area: JEditTextArea)
-    extends TextAreaExtension with BufferListener
+class TheoryView(text_area: JEditTextArea)
+  extends TextAreaExtension with BufferListener
 {
   
   val buffer = text_area.getBuffer
 
   // start prover
-  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic, change_receiver)
+  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic(), change_receiver)
   prover.start() // start actor
 
 
@@ -260,6 +260,7 @@ class TheoryView (text_area: JEditTextArea)
     }
   }
 
+
   /* TextAreaExtension methods */
 
   override def paintValidLine(gfx: Graphics2D,
@@ -285,7 +286,8 @@ class TheoryView (text_area: JEditTextArea)
     gfx.setColor(saved_color)
   }
 
-  override def getToolTipText(x: Int, y: Int) = {
+  override def getToolTipText(x: Int, y: Int): String =
+  {
     val document = current_document()
     val offset = from_current(document, text_area.xyToOffset(x, y))
     val cmd = document.find_command_at(offset)

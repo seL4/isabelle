@@ -63,7 +63,7 @@ object Isabelle
 
   /* settings */
 
-  def default_logic =
+  def default_logic(): String =
   {
     val logic = Isabelle.Property("logic")
     if (logic != null) logic else Isabelle.system.getenv_strict("ISABELLE_LOGIC")
