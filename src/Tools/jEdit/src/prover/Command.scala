@@ -8,8 +8,7 @@
 package isabelle.prover
 
 
-import scala.actors.Actor
-import scala.actors.Actor._
+import scala.actors.Actor, Actor._
 
 import scala.collection.mutable
 
@@ -17,7 +16,6 @@ import isabelle.proofdocument.{Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
 import isabelle.XML
 
-import sidekick.{SideKickParsedData, IAsset}
 
 trait Accumulator extends Actor
 {
@@ -83,7 +81,8 @@ class Command(
     new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
       Nil, id, content, RootInfo())
 
-  def markup_node(begin: Int, end: Int, info: MarkupInfo) = {
+  def markup_node(begin: Int, end: Int, info: MarkupInfo): MarkupNode =
+  {
     new MarkupNode(this, symbol_index.decode(begin), symbol_index.decode(end), Nil, id,
       content.substring(symbol_index.decode(begin), symbol_index.decode(end)),
       info)
@@ -118,12 +117,12 @@ class Command_State(val command: Command) extends Accumulator
       }, "style")
 
   def markup_root: MarkupNode =
-    (command.state.markup_root /: state.markup_root.children) (_ + _)
+    (command.state.markup_root /: state.markup_root.children)(_ + _)
 
   def type_at(pos: Int): String = state.type_at(pos)
 
   def ref_at(pos: Int): Option[MarkupNode] = state.ref_at(pos)
 
   def highlight_node: MarkupNode =
-    (command.state.highlight_node /: state.highlight_node.children) (_ + _)
+    (command.state.highlight_node /: state.highlight_node.children)(_ + _)
 }
