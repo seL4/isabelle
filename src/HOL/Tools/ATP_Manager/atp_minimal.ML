@@ -83,7 +83,7 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun produce_answer (success, message, result_string, thm_name_vec, filtered) =
+fun produce_answer (success, message, _, result_string, thm_name_vec, filtered) =
   if success then
     (Success (Vector.foldr op:: [] thm_name_vec, filtered), result_string)
   else

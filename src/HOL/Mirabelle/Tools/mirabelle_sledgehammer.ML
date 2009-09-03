@@ -25,9 +25,6 @@ fun safe init done f x =
     val _ = done y
   in Exn.release z end
 
-fun with_time true t = "succeeded (" ^ string_of_int t ^ ")"
-  | with_time false t = "failed (" ^ string_of_int t ^ ")"
-
 val proverK = "prover"
 val keepK = "keep"
 val metisK = "metis"
@@ -50,12 +47,12 @@ fun run prover_name timeout st _ =
     val prover = the (AtpManager.get_prover prover_name (Proof.theory_of st))
     val atp_timeout = AtpManager.get_timeout () 
     val atp = prover atp_timeout NONE NONE prover_name 1
-    val (success, (message, thm_names), _, _, _) =
+    val (success, (message, thm_names), time, _, _, _) =
       TimeLimit.timeLimit timeout atp (Proof.get_goal st)
-  in (success, message, SOME thm_names) end
-  handle ResHolClause.TOO_TRIVIAL => (true, "trivial", SOME [])
-       | TimeLimit.TimeOut => (false, "time out", NONE)
-       | ERROR msg => (false, "error: " ^ msg, NONE)
+  in if success then (message, SOME (time, thm_names)) else (message, NONE) end
+  handle ResHolClause.TOO_TRIVIAL => ("trivial", SOME (0, []))
+       | TimeLimit.TimeOut => ("time out", NONE)
+       | ERROR msg => ("error: " ^ msg, NONE)
 
 in
 
@@ -65,15 +62,19 @@ fun run_sledgehammer (args, st, timeout, log) =
       AList.lookup (op =) args proverK
       |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
     val dir = AList.lookup (op =) args keepK
-    val ((success, msg, thm_names), time) =
-      safe init done (Mirabelle.cpu_time (run prover_name timeout st)) dir
-    fun sh_log s = log ("sledgehammer: " ^ with_time success time ^ " [" ^
-      prover_name ^ "]" ^ s)
-    val _ = if success then sh_log (":\n" ^ msg) else sh_log ""
-  in if success then thm_names else NONE end
+    val (msg, result) = safe init done (run prover_name timeout st) dir
+    val _ =
+      if is_some result
+      then log ("sledgehammer: succeeded (" ^ string_of_int (fst (the result)) ^
+        ") [" ^ prover_name ^ "]:\n" ^ msg)
+      else log ("sledgehammer: failed: " ^ msg)
+  in Option.map snd result end
 
 end
 
+
+fun with_time true t = "succeeded (" ^ string_of_int t ^ ")"
+  | with_time false t = "failed (" ^ string_of_int t ^ ")"
 
 fun run_metis (args, st, timeout, log) thm_names =
   let

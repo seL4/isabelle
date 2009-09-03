@@ -79,19 +79,29 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
-    fun cmd_line probfile = space_implode " " ["exec", File.shell_path cmd,
-      args, File.platform_path probfile]
+    fun cmd_line probfile = "TIMEFORMAT='%3U'; ((time " ^ space_implode " "
+      [File.shell_path cmd, args, File.platform_path probfile] ^ ") 2>&1)"
+    fun split_time s =
+      let
+        val split = String.tokens (fn c => str c = "\n")
+        val (proof, t) = s |> split |> split_last |> apfst cat_lines
+        val num = Scan.many1 Symbol.is_ascii_digit >> (fst o read_int)
+        val time = num --| Scan.$$ "." -- num >> (fn (a, b) => a * 1000 + b)
+        val as_time = the_default 0 o Scan.read Symbol.stopper time o explode
+      in (proof, as_time t) end
     fun run_on probfile =
       if File.exists cmd
-      then writer probfile clauses |> pair (system_out (cmd_line probfile))
+      then
+        writer probfile clauses
+        |> pair (apfst split_time (system_out (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd)
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
     fun cleanup probfile = if destdir' = "" then File.rm probfile else ()
-    fun export probfile ((proof, _), _) = if destdir' = "" then ()
+    fun export probfile (((proof, _), _), _) = if destdir' = "" then ()
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
 
-    val ((proof, rc), conj_pos) = with_path cleanup export run_on
+    val (((proof, time), rc), conj_pos) = with_path cleanup export run_on
       (prob_pathname subgoalno)
 
     (* check for success and print out some information on failure *)
@@ -103,7 +113,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       else apfst (fn s => "Try this command: " ^ s)
         (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno))
     val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
-  in (success, message, proof, thm_names, the_filtered_clauses) end;
+  in (success, message, time, proof, thm_names, the_filtered_clauses) end;
 
 
 
