@@ -55,7 +55,7 @@ fun run prover_name timeout st _ =
       TimeLimit.timeLimit timeout atp (Proof.get_goal st)
   in if success then (message, SOME (time, thm_names)) else (message, NONE) end
   handle ResHolClause.TOO_TRIVIAL => ("trivial", SOME (0, []))
-       | TimeLimit.TimeOut => ("time out", NONE)
+       | TimeLimit.TimeOut => ("timeout", NONE)
        | ERROR msg => ("error: " ^ msg, NONE)
 
 in
@@ -87,7 +87,7 @@ fun run_metis args thm_names {pre=st, timeout, log, ...} =
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
     fun timed_metis thms =
       uncurry with_time (Mirabelle.cpu_time apply_metis thms)
-      handle TimeLimit.TimeOut => "time out"
+      handle TimeLimit.TimeOut => "timeout"
            | ERROR msg => "error: " ^ msg
     fun log_metis s = log (metis_tag ^ s)
   in

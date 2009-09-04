@@ -20,7 +20,7 @@ fun metis_action {pre, post, timeout, log} =
     |> add_info
     |> log
   end
-  handle TimeLimit.TimeOut => log "metis: time out"
+  handle TimeLimit.TimeOut => log "metis: timeout"
 
 fun invoke _ = Mirabelle.register (Mirabelle.catch "metis: " metis_action)
 

@@ -27,7 +27,7 @@ fun refute_action args timeout {pre=st, ...} =
         else SOME "real counterexample (bug?)"
       else
         if Substring.isSubstring "time limit" writ_log
-        then SOME "no counterexample (time out)"
+        then SOME "no counterexample (timeout)"
         else if Substring.isSubstring "Search terminated" writ_log
         then SOME "no counterexample (normal termination)"
         else SOME "no counterexample (unknown)"

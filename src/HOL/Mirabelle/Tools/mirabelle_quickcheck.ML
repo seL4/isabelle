@@ -14,7 +14,7 @@ fun quickcheck_action args {pre, timeout, log, ...} =
       NONE => log "quickcheck: no counterexample"
     | SOME _ => log "quickcheck: counterexample found")
   end
-  handle TimeLimit.TimeOut => log "quickcheck: time out"
+  handle TimeLimit.TimeOut => log "quickcheck: timeout"
 
 fun invoke args =
   Mirabelle.register (Mirabelle.catch "quickcheck: " (quickcheck_action args))

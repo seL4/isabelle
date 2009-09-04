@@ -39,7 +39,7 @@ foreach (@lines) {
     $metis_succeeded++;
     $metis_time += $1;
   }
-  if (m/^metis \(sledgehammer\): time out/) {
+  if (m/^metis \(sledgehammer\): timeout/) {
     $metis_timeout++;
   }
 }
