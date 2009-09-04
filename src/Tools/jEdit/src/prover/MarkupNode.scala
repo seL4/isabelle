@@ -69,20 +69,6 @@ class MarkupNode(val start: Int, val stop: Int,
     }
   }
 
-  def dfs: List[MarkupNode] = {
-    var all = Nil : List[MarkupNode]
-    for (child <- children)
-      all = child.dfs ::: all
-    all = this :: all
-    all
-  }
-
-  def leafs: List[MarkupNode] =
-  {
-    if (children.isEmpty) return List(this)
-    else return children flatMap (_.leafs)
-  }
-
   def flatten: List[MarkupNode] = {
     var next_x = start
     if (children.isEmpty) List(this)
