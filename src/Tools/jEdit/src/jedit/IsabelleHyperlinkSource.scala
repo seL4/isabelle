@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.TextUtilities
 
-import isabelle.prover.RefInfo
+import isabelle.prover.Command
 
 
 class InternalHyperlink(start: Int, end: Int, line: Int, ref_offset: Int)
@@ -62,9 +62,9 @@ class IsabelleHyperlinkSource extends HyperlinkSource
           val line = buffer.getLineOfOffset(begin)
           val end = theory_view.to_current(document, command_start + ref.stop)
           ref.info match {
-            case RefInfo(Some(ref_file), Some(ref_line), _, _) =>
+            case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
               new ExternalHyperlink(begin, end, line, ref_file, ref_line)
-            case RefInfo(_, _, Some(id), Some(offset)) =>
+            case Command.RefInfo(_, _, Some(id), Some(offset)) =>
               prover.get.command(id) match {
                 case Some(ref_cmd) =>
                   new InternalHyperlink(begin, end, line,

@@ -12,21 +12,9 @@ import javax.swing.tree.DefaultMutableTreeNode
 import isabelle.proofdocument.ProofDocument
 
 
-abstract class MarkupInfo
-case class RootInfo() extends MarkupInfo
-case class HighlightInfo(highlight: String) extends
-  MarkupInfo { override def toString = highlight }
-case class TypeInfo(type_kind: String) extends
-  MarkupInfo { override def toString = type_kind }
-case class RefInfo(file: Option[String], line: Option[Int],
-  command_id: Option[String], offset: Option[Int]) extends MarkupInfo {
-    override def toString = (file, line, command_id, offset).toString
-  }
-
-
 class MarkupNode(val start: Int, val stop: Int,
   val children: List[MarkupNode],
-  val content: String, val info: MarkupInfo)
+  val content: String, val info: Any)
 {
 
   def swing_tree(make_node: MarkupNode => DefaultMutableTreeNode): DefaultMutableTreeNode =

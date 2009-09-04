@@ -43,6 +43,14 @@ object Command
     val FINISHED = Value("FINISHED")
     val FAILED = Value("FAILED")
   }
+
+  case object RootInfo
+  case class HighlightInfo(highlight: String) { override def toString = highlight }
+  case class TypeInfo(type_kind: String) { override def toString = type_kind }
+  case class RefInfo(file: Option[String], line: Option[Int],
+    command_id: Option[String], offset: Option[Int]) {
+      override def toString = (file, line, command_id, offset).toString
+    }
 }
 
 
@@ -79,9 +87,9 @@ class Command(
 
   lazy val empty_root_node =
     new MarkupNode(0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
-      Nil, content, RootInfo())
+      Nil, content, Command.RootInfo)
 
-  def markup_node(begin: Int, end: Int, info: MarkupInfo): MarkupNode =
+  def markup_node(begin: Int, end: Int, info: Any): MarkupNode =
   {
     val start = symbol_index.decode(begin)
     val stop = symbol_index.decode(end)

@@ -36,28 +36,28 @@ class State(
   lazy val highlight_node: MarkupNode =
   {
     markup_root.filter(_.info match {
-      case RootInfo() | HighlightInfo(_) => true
+      case Command.RootInfo | Command.HighlightInfo(_) => true
       case _ => false
     }).head
   }
 
   lazy private val types =
     markup_root.filter(_.info match {
-      case TypeInfo(_) => true
+      case Command.TypeInfo(_) => true
       case _ => false }).flatten(_.flatten)
 
   def type_at(pos: Int): String =
   {
     types.find(t => t.start <= pos && t.stop > pos).map(t =>
       t.content + ": " + (t.info match {
-        case TypeInfo(i) => i
+        case Command.TypeInfo(i) => i
         case _ => "" })).
       getOrElse(null)
   }
 
   lazy private val refs =
     markup_root.filter(_.info match {
-      case RefInfo(_, _, _, _) => true
+      case Command.RefInfo(_, _, _, _) => true
       case _ => false }).flatten(_.flatten)
 
   def ref_at(pos: Int): Option[MarkupNode] =
@@ -92,14 +92,15 @@ class State(
                 if (begin.isDefined && end.isDefined) {
                   if (kind == Markup.ML_TYPING) {
                     val info = body.first.asInstanceOf[XML.Text].content
-                    st.add_markup(command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
+                    st.add_markup(
+                      command.markup_node(begin.get - 1, end.get - 1, Command.TypeInfo(info)))
                   }
                   else if (kind == Markup.ML_REF) {
                     body match {
                       case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
                         st.add_markup(command.markup_node(
                           begin.get - 1, end.get - 1,
-                          RefInfo(
+                          Command.RefInfo(
                             Position.file_of(attr),
                             Position.line_of(attr),
                             Position.id_of(attr),
@@ -108,7 +109,8 @@ class State(
                     }
                   }
                   else {
-                    st.add_markup(command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
+                    st.add_markup(
+                      command.markup_node(begin.get - 1, end.get - 1, Command.HighlightInfo(kind)))
                   }
                 }
                 else st
