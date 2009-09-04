@@ -66,7 +66,8 @@ object Isabelle
   def default_logic(): String =
   {
     val logic = Isabelle.Property("logic")
-    if (logic != null) logic else Isabelle.system.getenv_strict("ISABELLE_LOGIC")
+    if (logic != null) logic
+    else system.getenv_strict("ISABELLE_LOGIC")
   }
 
 
@@ -96,11 +97,13 @@ class Plugin extends EBPlugin
     font_changed.event(font)
   }
 
+
   /* event buses */
 
   val state_update = new EventBus[Command]
   val command_change = new EventBus[Command]
   val document_change = new EventBus[ProofDocument]
+
 
   /* selected state */
 
@@ -165,5 +168,4 @@ class Plugin extends EBPlugin
     Isabelle.plugin = null
     scala.actors.Scheduler.shutdown()
   }
-
 }

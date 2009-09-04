@@ -11,9 +11,7 @@ package isabelle.prover
 
 import scala.collection.mutable
 import scala.collection.immutable.{TreeSet}
-
-import scala.actors.Actor
-import scala.actors.Actor._
+import scala.actors.Actor, Actor._
 
 import org.gjt.sp.util.Log
 import javax.swing.JTextArea
@@ -22,9 +20,12 @@ import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
 import isabelle.Isar_Document
 
-object ProverEvents {
+
+object ProverEvents
+{
   case class Activate
 }
+
 
 class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: Actor)
   extends Actor

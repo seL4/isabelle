@@ -82,7 +82,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
     val text = buffer.getSegment(start, caret - start)
 
     val completion =
-      Isabelle.prover_setup(buffer).map(_.prover.completion) getOrElse Isabelle.completion
+      Isabelle.prover_setup(buffer).map(_.prover.completion).getOrElse(Isabelle.completion)
 
     completion.complete(text) match {
       case None => null

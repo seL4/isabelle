@@ -83,9 +83,9 @@ class Command(
 
   def markup_node(begin: Int, end: Int, info: MarkupInfo): MarkupNode =
   {
-    new MarkupNode(this, symbol_index.decode(begin), symbol_index.decode(end), Nil, id,
-      content.substring(symbol_index.decode(begin), symbol_index.decode(end)),
-      info)
+    val start = symbol_index.decode(begin)
+    val stop = symbol_index.decode(end)
+    new MarkupNode(this, start, stop, Nil, id, content.substring(start, stop), info)
   }
 
 

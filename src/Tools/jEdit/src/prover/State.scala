@@ -61,7 +61,7 @@ class State(
       case _ => false }).flatten(_.flatten)
 
   def ref_at(pos: Int): Option[MarkupNode] =
-    refs.find(t => t.start <= pos && t.stop > pos)
+    refs.find(t => t.start <= pos && pos < t.stop)
 
 
 
@@ -70,56 +70,55 @@ class State(
   def + (message: XML.Tree): State =
   {
     val changed: State =
-    message match {
-      case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WRITELN) :: _, _)
-        | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.PRIORITY) :: _, _)
-        | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WARNING) :: _, _) =>
-        add_result(message)
-      case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.ERROR) :: _, _) =>
-        set_status(Command.Status.FAILED).add_result(message)
-      case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.STATUS) :: _, elems) =>
-        (this /: elems) ((st, e) =>
-          e match {
-            // command status
-            case XML.Elem(Markup.UNPROCESSED, _, _) =>
-              st.set_status(Command.Status.UNPROCESSED)
-            case XML.Elem(Markup.FINISHED, _, _) =>
-              st.set_status(Command.Status.FINISHED)
-            case XML.Elem(Markup.FAILED, _, _) =>
-              st.set_status(Command.Status.FAILED)
-            case XML.Elem(kind, attr, body) =>
-              val (begin, end) = Position.offsets_of(attr)
-              if (begin.isDefined && end.isDefined) {
-                if (kind == Markup.ML_TYPING) {
-                  val info = body.first.asInstanceOf[XML.Text].content
-                  st.add_markup(command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
-                }
-                else if (kind == Markup.ML_REF) {
-                  body match {
-                    case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                      st.add_markup(command.markup_node(
-                        begin.get - 1, end.get - 1,
-                        RefInfo(
-                          Position.file_of(attr),
-                          Position.line_of(attr),
-                          Position.id_of(attr),
-                          Position.offset_of(attr))))
-                    case _ => st
+      message match {
+        case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WRITELN) :: _, _)
+          | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.PRIORITY) :: _, _)
+          | XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.WARNING) :: _, _) =>
+          add_result(message)
+        case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.ERROR) :: _, _) =>
+          set_status(Command.Status.FAILED).add_result(message)
+        case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.STATUS) :: _, elems) =>
+          (this /: elems) ((st, e) =>
+            e match {
+              // command status
+              case XML.Elem(Markup.UNPROCESSED, _, _) =>
+                st.set_status(Command.Status.UNPROCESSED)
+              case XML.Elem(Markup.FINISHED, _, _) =>
+                st.set_status(Command.Status.FINISHED)
+              case XML.Elem(Markup.FAILED, _, _) =>
+                st.set_status(Command.Status.FAILED)
+              case XML.Elem(kind, attr, body) =>
+                val (begin, end) = Position.offsets_of(attr)
+                if (begin.isDefined && end.isDefined) {
+                  if (kind == Markup.ML_TYPING) {
+                    val info = body.first.asInstanceOf[XML.Text].content
+                    st.add_markup(command.markup_node(begin.get - 1, end.get - 1, TypeInfo(info)))
+                  }
+                  else if (kind == Markup.ML_REF) {
+                    body match {
+                      case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
+                        st.add_markup(command.markup_node(
+                          begin.get - 1, end.get - 1,
+                          RefInfo(
+                            Position.file_of(attr),
+                            Position.line_of(attr),
+                            Position.id_of(attr),
+                            Position.offset_of(attr))))
+                      case _ => st
+                    }
+                  }
+                  else {
+                    st.add_markup(command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
                   }
                 }
-                else {
-                  st.add_markup(command.markup_node(begin.get - 1, end.get - 1, HighlightInfo(kind)))
-                }
-              }
-              else st
-            case _ => st
-          })
-      case _ =>
-        System.err.println("ignored: " + message)
-        this
-    }
+                else st
+              case _ => st
+            })
+        case _ =>
+          System.err.println("ignored: " + message)
+          this
+      }
     command.changed()
     changed
   }
-
 }

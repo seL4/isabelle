@@ -8,17 +8,13 @@
 
 package isabelle.jedit
 
-import scala.actors.Actor
-import scala.actors.Actor._
+import scala.actors.Actor, Actor._
 import scala.collection.mutable
 
 import isabelle.proofdocument.{ProofDocument, Change, Edit, Insert, Remove}
 import isabelle.prover.{Prover, ProverEvents, Command}
 
-import java.awt.Graphics2D
-import java.awt.event.{ActionEvent, ActionListener}
-import java.awt.Color
-import javax.swing.Timer
+import java.awt.{Color, Graphics2D}
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
@@ -148,7 +144,7 @@ class TheoryView(text_area: JEditTextArea)
     invalidate_all()
     phase_overview.repaint()
 
-    //track changes in buffer
+    // track changes in buffer
     buffer.addBufferListener(this)
   }
 
@@ -326,5 +322,4 @@ class TheoryView(text_area: JEditTextArea)
       }
     }
   }
-
 }

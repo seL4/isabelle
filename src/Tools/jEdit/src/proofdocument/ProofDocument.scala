@@ -8,10 +8,11 @@
 
 package isabelle.proofdocument
 
-import scala.actors.Actor
-import scala.actors.Actor._
+import scala.actors.Actor, Actor._
 import scala.collection.mutable.ListBuffer
+
 import java.util.regex.Pattern
+
 import isabelle.prover.{Prover, Command, Command_State}
 
 

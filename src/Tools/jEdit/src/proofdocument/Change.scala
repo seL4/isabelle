@@ -1,5 +1,5 @@
 /*
- * Changes in text
+ * Changes of plain text
  *
  * @author Johannes Hölzl, TU Munich
  * @author Fabian Immler, TU Munich
@@ -7,12 +7,14 @@
 
 package isabelle.proofdocument
 
+
 sealed abstract class Edit
 {
   val start: Int
   def before(offset: Int): Int
   def after(offset: Int): Int
 }
+
 
 case class Insert(start: Int, text: String) extends Edit
 {
@@ -24,6 +26,7 @@ case class Insert(start: Int, text: String) extends Edit
     if (start <= offset) offset + text.length else offset
 }
 
+
 case class Remove(start: Int, text: String) extends Edit
 {
   def before(offset: Int): Int =
@@ -34,6 +37,7 @@ case class Remove(start: Int, text: String) extends Edit
     else (offset - text.length) max start
 }
 // TODO: merge multiple inserts?
+
 
 class Change(
   val id: String,
