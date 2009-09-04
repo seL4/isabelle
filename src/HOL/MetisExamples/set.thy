@@ -238,7 +238,7 @@ by (metis Set.subsetI Union_upper insertCI set_eq_subset)
 
 lemma (*singleton_example_2:*)
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-by (metis Un_absorb2 Union_insert insertI1 insert_Diff insert_Diff_single subset_eq)
+by (metis Set.subsetI Union_upper insert_code mem_def set_eq_subset)
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
@@ -275,8 +275,8 @@ apply (metis atMost_iff)
 apply (metis emptyE)
 apply (metis insert_iff singletonE)
 apply (metis insertCI singletonE zless_le)
-apply (metis insert_iff singletonE)
-apply (metis insert_iff singletonE)
+apply (metis Collect_def Collect_mem_eq)
+apply (metis Collect_def Collect_mem_eq)
 apply (metis DiffE)
 apply (metis pair_in_Id_conv) 
 done
