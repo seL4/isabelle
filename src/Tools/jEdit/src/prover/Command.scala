@@ -87,13 +87,13 @@ class Command(
 
   lazy val empty_root_node =
     new MarkupNode(0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
-      Nil, content, Command.RootInfo)
+      content, Command.RootInfo, Nil)
 
   def markup_node(begin: Int, end: Int, info: Any): MarkupNode =
   {
     val start = symbol_index.decode(begin)
     val stop = symbol_index.decode(end)
-    new MarkupNode(start, stop, Nil, content.substring(start, stop), info)
+    new MarkupNode(start, stop, content.substring(start, stop), info, Nil)
   }
 
 

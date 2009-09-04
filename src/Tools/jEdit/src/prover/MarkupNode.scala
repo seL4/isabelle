@@ -12,9 +12,8 @@ import javax.swing.tree.DefaultMutableTreeNode
 import isabelle.proofdocument.ProofDocument
 
 
-class MarkupNode(val start: Int, val stop: Int,
-  val children: List[MarkupNode],
-  val content: String, val info: Any)
+class MarkupNode(val start: Int, val stop: Int, val content: String, val info: Any,
+  val children: List[MarkupNode])
 {
 
   def swing_tree(make_node: MarkupNode => DefaultMutableTreeNode): DefaultMutableTreeNode =
@@ -25,12 +24,12 @@ class MarkupNode(val start: Int, val stop: Int,
   }
 
   def set_children(new_children: List[MarkupNode]): MarkupNode =
-    new MarkupNode(start, stop, new_children, content, info)
+    new MarkupNode(start, stop, content, info, new_children)
 
   private def add(child: MarkupNode) =   // FIXME avoid sort?
     set_children ((child :: children) sort ((a, b) => a.start < b.start))
 
-  def remove(nodes: List[MarkupNode]) = set_children(children diff nodes)
+  def remove(nodes: List[MarkupNode]) = set_children(children -- nodes)
 
   def fits_into(node: MarkupNode): Boolean =
     node.start <= this.start && this.stop <= node.stop
@@ -65,14 +64,15 @@ class MarkupNode(val start: Int, val stop: Int,
         child <- children
         markups =
           if (next_x < child.start) {
-            new MarkupNode(next_x, child.start, Nil, content, info) :: child.flatten
+            // FIXME proper content!?
+            new MarkupNode(next_x, child.start, content, info, Nil) :: child.flatten
           }
           else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
       if (next_x < stop)
-        filled_gaps + new MarkupNode(next_x, stop, Nil, content, info)
+        filled_gaps + new MarkupNode(next_x, stop, content, info, Nil) // FIXME proper content!?
       else filled_gaps
     }
   }
