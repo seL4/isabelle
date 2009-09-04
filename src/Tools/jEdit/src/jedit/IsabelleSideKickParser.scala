@@ -40,11 +40,12 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
       val document = prover_setup.get.theory_view.current_document()
       for (command <- document.commands if !stopped) {
         data.root.add(command.markup_root(document).
-          swing_tree(document)((node: MarkupNode, cmd: Command, doc: ProofDocument) =>
+          swing_tree((node: MarkupNode) =>
             {
               implicit def int2pos(offset: Int): Position =
                 new Position { def getOffset = offset; override def toString = offset.toString }
 
+              val command_start = command.start(document)
               new DefaultMutableTreeNode(new IAsset {
                 override def getIcon: Icon = null
                 override def getShortString: String = node.content
@@ -52,9 +53,9 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
                 override def getName: String = node.id
                 override def setName(name: String) = ()
                 override def setStart(start: Position) = ()
-                override def getStart: Position = node.abs_start(doc)
+                override def getStart: Position = command_start + node.start
                 override def setEnd(end: Position) = ()
-                override def getEnd: Position = node.abs_stop(doc)
+                override def getEnd: Position = command_start + node.stop
                 override def toString =
                   node.id + ": " + node.content + "[" + getStart + " - " + getEnd + "]"
               })

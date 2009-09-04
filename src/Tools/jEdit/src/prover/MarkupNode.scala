@@ -24,25 +24,20 @@ case class RefInfo(file: Option[String], line: Option[Int],
   }
 
 
-class MarkupNode(val base: Command, val start: Int, val stop: Int,
+class MarkupNode(val start: Int, val stop: Int,
   val children: List[MarkupNode],
   val id: String, val content: String, val info: MarkupInfo)
 {
 
-  def swing_tree(doc: ProofDocument)
-    (make_node: (MarkupNode, Command, ProofDocument) => DefaultMutableTreeNode):
-      DefaultMutableTreeNode =
+  def swing_tree(make_node: MarkupNode => DefaultMutableTreeNode): DefaultMutableTreeNode =
   {
-    val node = make_node(this, base, doc)
-    children.foreach(node add _.swing_tree(doc)(make_node))
+    val node = make_node(this)
+    children.foreach(node add _.swing_tree(make_node))
     node
   }
 
-  def abs_start(doc: ProofDocument) = base.start(doc) + start
-  def abs_stop(doc: ProofDocument) = base.start(doc) + stop
-
   def set_children(new_children: List[MarkupNode]): MarkupNode =
-    new MarkupNode(base, start, stop, new_children, id, content, info)
+    new MarkupNode(start, stop, new_children, id, content, info)
 
   private def add(child: MarkupNode) =   // FIXME avoid sort?
     set_children ((child :: children) sort ((a, b) => a.start < b.start))
@@ -96,13 +91,14 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
         child <- children
         markups =
           if (next_x < child.start) {
-            new MarkupNode(base, next_x, child.start, Nil, id, content, info) :: child.flatten
-          } else child.flatten
+            new MarkupNode(next_x, child.start, Nil, id, content, info) :: child.flatten
+          }
+          else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
       if (next_x < stop)
-        filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, info)
+        filled_gaps + new MarkupNode(next_x, stop, Nil, id, content, info)
       else filled_gaps
     }
   }

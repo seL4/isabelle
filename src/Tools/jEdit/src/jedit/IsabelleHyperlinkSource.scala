@@ -51,22 +51,23 @@ class IsabelleHyperlinkSource extends HyperlinkSource
       val theory_view = theory_view_opt.get
       val document = theory_view.current_document()
       val offset = theory_view.from_current(document, original_offset)
-      val cmd = document.find_command_at(offset)
-      if (cmd != null) {
-        val ref_o = cmd.ref_at(document, offset - cmd.start(document))
+      val command = document.find_command_at(offset)
+      if (command != null) {
+        val ref_o = command.ref_at(document, offset - command.start(document))
         if (!ref_o.isDefined) null
         else {
           val ref = ref_o.get
-          val start = theory_view.to_current(document, ref.abs_start(document))
-          val line = buffer.getLineOfOffset(start)
-          val end = theory_view.to_current(document, ref.abs_stop(document))
+          val command_start = command.start(document)
+          val begin = theory_view.to_current(document, command_start + ref.start)
+          val line = buffer.getLineOfOffset(begin)
+          val end = theory_view.to_current(document, command_start + ref.stop)
           ref.info match {
             case RefInfo(Some(ref_file), Some(ref_line), _, _) =>
-              new ExternalHyperlink(start, end, line, ref_file, ref_line)
+              new ExternalHyperlink(begin, end, line, ref_file, ref_line)
             case RefInfo(_, _, Some(id), Some(offset)) =>
               prover.get.command(id) match {
                 case Some(ref_cmd) =>
-                  new InternalHyperlink(start, end, line,
+                  new InternalHyperlink(begin, end, line,
                     theory_view.to_current(document, ref_cmd.start(document) + offset - 1))
                 case _ => null
               }
