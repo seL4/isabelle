@@ -46,18 +46,20 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
                 new Position { def getOffset = offset; override def toString = offset.toString }
 
               val command_start = command.start(document)
+              val id = command.id
+
               new DefaultMutableTreeNode(new IAsset {
                 override def getIcon: Icon = null
                 override def getShortString: String = node.content
                 override def getLongString: String = node.info.toString
-                override def getName: String = node.id
+                override def getName: String = id
                 override def setName(name: String) = ()
                 override def setStart(start: Position) = ()
                 override def getStart: Position = command_start + node.start
                 override def setEnd(end: Position) = ()
                 override def getEnd: Position = command_start + node.stop
                 override def toString =
-                  node.id + ": " + node.content + "[" + getStart + " - " + getEnd + "]"
+                  id + ": " + node.content + "[" + getStart + " - " + getEnd + "]"
               })
             }))
       }

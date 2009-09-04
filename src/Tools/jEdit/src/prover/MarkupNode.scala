@@ -26,7 +26,7 @@ case class RefInfo(file: Option[String], line: Option[Int],
 
 class MarkupNode(val start: Int, val stop: Int,
   val children: List[MarkupNode],
-  val id: String, val content: String, val info: MarkupInfo)
+  val content: String, val info: MarkupInfo)
 {
 
   def swing_tree(make_node: MarkupNode => DefaultMutableTreeNode): DefaultMutableTreeNode =
@@ -37,7 +37,7 @@ class MarkupNode(val start: Int, val stop: Int,
   }
 
   def set_children(new_children: List[MarkupNode]): MarkupNode =
-    new MarkupNode(start, stop, new_children, id, content, info)
+    new MarkupNode(start, stop, new_children, content, info)
 
   private def add(child: MarkupNode) =   // FIXME avoid sort?
     set_children ((child :: children) sort ((a, b) => a.start < b.start))
@@ -91,14 +91,14 @@ class MarkupNode(val start: Int, val stop: Int,
         child <- children
         markups =
           if (next_x < child.start) {
-            new MarkupNode(next_x, child.start, Nil, id, content, info) :: child.flatten
+            new MarkupNode(next_x, child.start, Nil, content, info) :: child.flatten
           }
           else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
       if (next_x < stop)
-        filled_gaps + new MarkupNode(next_x, stop, Nil, id, content, info)
+        filled_gaps + new MarkupNode(next_x, stop, Nil, content, info)
       else filled_gaps
     }
   }
@@ -111,5 +111,5 @@ class MarkupNode(val start: Int, val stop: Int,
   }
 
   override def toString =
-    "([" + start + " - " + stop + "] " + id + "( " + content + "): " + info.toString
+    "([" + start + " - " + stop + "] ( " + content + "): " + info.toString
 }
