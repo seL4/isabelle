@@ -5,12 +5,17 @@
 structure Mirabelle_Arith : MIRABELLE_ACTION =
 struct
 
-fun arith_action {pre, timeout, log, ...} =
-  if Mirabelle.can_apply timeout Arith_Data.arith_tac pre
-  then log "arith: succeeded"
-  else ()
-  handle TimeLimit.TimeOut => log "arith: timeout"
+fun arith_tag id = "#" ^ string_of_int id ^ " arith: "
 
-fun invoke _ = Mirabelle.register (Mirabelle.catch "arith: " arith_action)
+fun init _ = I
+fun done _ _ = ()
+
+fun run id {pre, timeout, log, ...} =
+  if Mirabelle.can_apply timeout Arith_Data.arith_tac pre
+  then log (arith_tag id ^ "succeeded")
+  else ()
+  handle TimeLimit.TimeOut => log (arith_tag id ^ "timeout")
+
+fun invoke _ = Mirabelle.register (init, Mirabelle.catch arith_tag run, done)
 
 end

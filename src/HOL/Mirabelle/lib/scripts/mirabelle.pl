@@ -14,15 +14,15 @@ my $mirabelle_logic = $ENV{'MIRABELLE_LOGIC'};
 my $mirabelle_theory = $ENV{'MIRABELLE_THEORY'};
 my $output_path = $ENV{'MIRABELLE_OUTPUT_PATH'};
 my $timeout = $ENV{'MIRABELLE_TIMEOUT'};
+my $be_quiet = $ENV{'MIRABELLE_QUIET'};
+my $actions = $ENV{'MIRABELLE_ACTIONS'};
 
 my $mirabelle_thy = $mirabelle_home . "/Mirabelle";
 
 
 # arguments
 
-my $actions = $ARGV[0];
-
-my $thy_file = $ARGV[1];
+my $thy_file = $ARGV[0];
 my $start_line = "0";
 my $end_line = "~1";
 if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) {
@@ -122,15 +122,17 @@ foreach $name (@action_names) {
 }
 close(LOG_FILE);
 
-my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
-  "-e 'use \"$root_file\";' -q $mirabelle_logic" . "\n";
-
-
-# produce report
-
-if ($result == 0) {
-  system "perl -w \"$mirabelle_home/lib/scripts/report.pl\" \"$log_file\"";
+my $quiet = "";
+if (defined $be_quiet and $be_quiet ne "") {
+  $quiet = " > /dev/null 2>&1";
 }
+
+print "Mirabelle: $thy_file\n" if ($quiet ne "");
+
+my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
+  "-e 'use \"$root_file\";' -q $mirabelle_logic" . $quiet;
+
+print "Finished:  $thy_file\n" if ($quiet ne "");
 
 
 # cleanup

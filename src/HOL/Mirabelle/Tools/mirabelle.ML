@@ -12,8 +12,11 @@ sig
   val setup : theory -> theory
 
   (* core *)
+  type init_action
+  type done_action
+  type run_action
   type action
-  val catch : string -> action -> action
+  val catch : (int -> string) -> run_action -> run_action
   val register : action -> theory -> theory
   val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
     unit
@@ -47,12 +50,16 @@ val setup = setup1 #> setup2 #> setup3 #> setup4
 
 (* Mirabelle core *)
 
-type action = {pre: Proof.state, post: Toplevel.state option,
+
+type init_action = int -> theory -> theory
+type done_action = int -> {last: Toplevel.state, log: string -> unit} -> unit
+type run_action = int -> {pre: Proof.state, post: Toplevel.state option,
   timeout: Time.time, log: string -> unit} -> unit
+type action = init_action * run_action * done_action
 
 structure Actions = TheoryDataFun
 (
-  type T = action list
+  type T = (int * run_action * done_action) list
   val empty = []
   val copy = I
   val extend = I
@@ -63,11 +70,17 @@ structure Actions = TheoryDataFun
 fun app_with f g x = (g x; ())
   handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; ())
 
-fun catch tag f (st as {log, ...}) =
-  let fun log_exn e = log (tag ^ "exception:\n" ^ General.exnMessage e)
-  in app_with log_exn f st end
+fun catch tag f id (st as {log, ...}) =
+  let fun log_exn e = log (tag id ^ "exception:\n" ^ General.exnMessage e)
+  in app_with log_exn (f id) st end
 
-val register = Actions.map o cons
+fun register (init, run, done) thy =
+  let val id = length (Actions.get thy) + 1
+  in
+    thy
+    |> init id
+    |> Actions.map (cons (id, run, done))
+  end
 
 local
 
@@ -82,7 +95,7 @@ fun log_sep thy = log thy "------------------"
 fun apply_actions thy info (pre, post, time) actions =
   let
     fun apply f = f {pre=pre, post=post, timeout=time, log=log thy}
-    fun run f = (apply f; log_sep thy)
+    fun run (id, run, _) = (apply (run id); log_sep thy)
   in (log thy info; log_sep thy; List.app run actions) end
 
 fun in_range _ _ NONE = true
@@ -94,7 +107,7 @@ fun only_within_range thy pos f x =
 
 in
 
-fun basic_hook tr pre post =
+fun run_actions tr pre post =
   let
     val thy = Proof.theory_of pre
     val pos = Toplevel.pos_of tr
@@ -108,6 +121,16 @@ fun basic_hook tr pre post =
     only_within_range thy pos (apply_actions thy info st) (Actions.get thy)
   end
 
+fun done_actions st =
+  let
+    val thy = Toplevel.theory_of st
+    val _ = log thy "\n\n";
+  in
+    thy
+    |> Actions.get
+    |> List.app (fn (id, _, done) => done id {last=st, log=log thy})
+  end
+
 end
 
 val whitelist = ["apply", "by", "proof"]
@@ -116,7 +139,9 @@ fun step_hook tr pre post =
  (* FIXME: might require wrapping into "interruptible" *)
   if can (Proof.assert_backward o Toplevel.proof_of) pre andalso
      member (op =) whitelist (Toplevel.name_of tr)
-  then basic_hook tr (Toplevel.proof_of pre) (SOME post)
+  then run_actions tr (Toplevel.proof_of pre) (SOME post)
+  else if not (Toplevel.is_toplevel pre) andalso Toplevel.is_toplevel post
+  then done_actions pre
   else ()   (* FIXME: add theory_hook here *)
 
 
