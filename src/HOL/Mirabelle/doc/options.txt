@@ -2,5 +2,7 @@ Options for sledgehammer:
 
   * prover=NAME: name of the external prover to call
   * keep=PATH: path where to keep temporary files created by sledgehammer 
+  * full_types: enable full-typed encoding
+  * minimize: enable minimization of theorem set found by sledgehammer
+  * minimize_timeout: timeout for each minimization step
   * metis: apply metis with the theorems found by sledgehammer
-  * full_types: turn on full-typed encoding

@@ -9,9 +9,14 @@ val proverK = "prover"
 val keepK = "keep"
 val metisK = "metis"
 val full_typesK = "full_types"
+val minimizeK = "minimize"
+val minimize_timeoutK = "minimize_timeout"
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
+fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
 fun metis_tag id = "#" ^ string_of_int id ^ " metis (sledgehammer): "
+
+val separator = "-----"
 
 
 datatype data = Data of {
@@ -125,6 +130,11 @@ fun done id {log, ...} =
 fun change_data id f = (change data (AList.map_entry (op =) id f); ())
 
 
+fun get_atp thy args =
+  AList.lookup (op =) args proverK
+  |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
+  |> (fn name => (name, the (AtpManager.get_prover name thy)))
+
 local
 
 fun safe init done f x =
@@ -144,50 +154,17 @@ fun init_sh NONE = !AtpWrapper.destdir
 
 fun done_sh path = AtpWrapper.destdir := path
 
-fun run_sh prover_name timeout st _ =
+fun run_sh (prover_name, prover) timeout st _ =
   let
-    val prover = the (AtpManager.get_prover prover_name (Proof.theory_of st))
-    val atp_timeout = AtpManager.get_timeout () 
-    val atp = prover atp_timeout NONE NONE prover_name 1
+    val atp = prover (Time.toSeconds timeout) NONE NONE prover_name 1
     val ((success, (message, thm_names), atp_time, _, _, _), sh_time) =
-      TimeLimit.timeLimit timeout (Mirabelle.cpu_time atp) (Proof.get_goal st)
+      Mirabelle.cpu_time atp (Proof.get_goal st)
   in
     if success then (message, SOME (atp_time, sh_time, thm_names))
     else (message, NONE)
   end
   handle ResHolClause.TOO_TRIVIAL => ("trivial", SOME (0, 0, []))
-       | TimeLimit.TimeOut => ("timeout", NONE)
        | ERROR msg => ("error: " ^ msg, NONE)
-
-in
-
-fun run_sledgehammer args thm_names id {pre=st, timeout, log, ...} =
-  let
-    val _ = change_data id inc_sh_calls 
-    val prover_name =
-      AList.lookup (op =) args proverK
-      |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
-    val dir = AList.lookup (op =) args keepK
-    val (msg, result) =
-      safe init_sh done_sh (run_sh prover_name timeout st) dir
-  in
-    (case result of
-      SOME (atp_time, sh_time, names) =>
-        let
-          val _ = change_data id inc_sh_success
-          val _ = change_data id (inc_sh_time (atp_time + sh_time))
-          val _ = change thm_names (K (SOME names))
-        in
-          log (sh_tag id ^ "succeeded (" ^ string_of_int atp_time ^ "+" ^
-            string_of_int sh_time ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
-        end
-    | NONE => log (sh_tag id ^ "failed: " ^ msg))
-  end
-
-end
-
-
-local
 
 fun thms_of_name ctxt name =
   let
@@ -204,10 +181,54 @@ fun thms_of_name ctxt name =
 
 in
 
-fun run_metis args thm_names id {pre=st, timeout, log, ...} =
+fun run_sledgehammer args named_thms id {pre=st, timeout, log, ...} =
   let
-    fun get_thms ctxt = maps (thms_of_name ctxt)
+    val _ = change_data id inc_sh_calls 
+    val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
+    val dir = AList.lookup (op =) args keepK
+    val (msg, result) = safe init_sh done_sh (run_sh atp timeout st) dir
+  in
+    (case result of
+      SOME (atp_time, sh_time, names) =>
+        let
+          val _ = change_data id inc_sh_success
+          val _ = change_data id (inc_sh_time (atp_time + sh_time))
 
+          fun get_thms name = (name, thms_of_name (Proof.context_of st) name)
+          val _ = named_thms := SOME (map get_thms names)
+        in
+          log (sh_tag id ^ "succeeded (" ^ string_of_int atp_time ^ "+" ^
+            string_of_int sh_time ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
+        end
+    | NONE => log (sh_tag id ^ "failed: " ^ msg))
+  end
+
+end
+
+
+fun run_minimize args named_thms id {pre=st, log, ...} =
+  let
+    val (prover_name, prover) = get_atp (Proof.theory_of st) args
+    val minimize = AtpMinimal.minimalize prover prover_name
+    val timeout =
+      AList.lookup (op =) args minimize_timeoutK
+      |> Option.map (fst o read_int o explode)
+      |> the_default 5
+    val _ = log separator
+  in
+    (case minimize timeout st (these (!named_thms)) of
+      (SOME named_thms', msg) =>
+        if length named_thms' = length (these (!named_thms))
+        then log (minimize_tag id ^ "already minimal")
+        else
+         (named_thms := SOME named_thms';
+          log (minimize_tag id ^ "succeeded:\n" ^ msg))
+    | (NONE, msg) => log (minimize_tag id ^ "failed: " ^ msg))
+  end
+
+
+fun run_metis args named_thms id {pre=st, timeout, log, ...} =
+  let
     fun metis thms ctxt = MetisTools.metis_tac ctxt thms
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
 
@@ -219,27 +240,29 @@ fun run_metis args thm_names id {pre=st, timeout, log, ...} =
       handle TimeLimit.TimeOut => (change_data id inc_metis_timeout; "timeout")
            | ERROR msg => "error: " ^ msg
 
-    val _ = log "-----"
+    val _ = log separator
     val _ = change_data id inc_metis_calls
   in
-    thm_names
-    |> get_thms (Proof.context_of st)
+    maps snd named_thms
     |> timed_metis
     |> log o prefix (metis_tag id) 
   end
 
-end
-
 
 fun sledgehammer_action args id (st as {log, ...}) =
   let
-    val thm_names = ref (NONE : string list option)
-    val _ = Mirabelle.catch sh_tag (run_sledgehammer args thm_names) id st
-  in
-    if AList.defined (op =) args metisK andalso is_some (!thm_names)
-    then Mirabelle.catch metis_tag (run_metis args (these (!thm_names))) id st
-    else ()
-  end
+    val named_thms = ref (NONE : (string * thm list) list option)
+
+    fun if_enabled k f =
+      if AList.defined (op =) args k andalso is_some (!named_thms)
+      then f id st else ()
+
+    val _ = Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st
+    val _ = if_enabled minimizeK
+      (Mirabelle.catch minimize_tag (run_minimize args named_thms))
+    val _ = if_enabled metisK
+      (Mirabelle.catch metis_tag (run_metis args (these (!named_thms))))
+  in () end
 
 fun invoke args =
   let

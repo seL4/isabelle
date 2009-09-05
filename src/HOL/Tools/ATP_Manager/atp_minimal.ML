@@ -4,7 +4,13 @@
 Minimalization of theorem list for metis by using an external automated theorem prover
 *)
 
-structure AtpMinimal: sig end =
+signature ATP_MINIMAL =
+sig
+  val minimalize: AtpManager.prover -> string -> int -> Proof.state ->
+    (string * thm list) list -> (string * thm list) list option * string
+end
+
+structure AtpMinimal: ATP_MINIMAL =
 struct
 
 (* output control *)
@@ -103,8 +109,7 @@ fun produce_answer (success, message, _, result_string, thm_name_vec, filtered) 
 fun sh_test_thms prover prover_name time_limit subgoalno state filtered name_thms_pairs =
   let
     val _ = println ("Testing " ^ (length_string name_thms_pairs) ^ " theorems... ")
-    val name_thm_pairs =
-      flat (map (fn (n, ths) => map_index (fn (i, th) => (n, th)) ths) name_thms_pairs)
+    val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val _ = debug_fn (fn () => print_names name_thm_pairs)
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val (result, proof) =
@@ -130,6 +135,7 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
     val test_thms_fun = sh_test_thms prover prover_name time_limit 1 state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of (Success _, _) => true | _ => false
+    val answer' = pair and answer'' = pair NONE
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
@@ -141,25 +147,26 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
             else
               name_thms_pairs
-          val min_thms = (minimal (test_thms (SOME filtered)) to_use)
+          val min_thms = if null to_use then []
+            else minimal (test_thms (SOME filtered)) to_use
           val min_names = order_unique (map fst min_thms)
           val _ = println ("Minimal " ^ (length_string min_thms) ^ " theorems")
           val _ = debug_fn (fn () => print_names min_thms)
         in
-          answer ("Try this command: " ^
+          answer' (SOME min_thms) ("Try this command: " ^
             Markup.markup Markup.sendback ("apply (metis " ^ space_implode " " min_names ^ ")"))
         end
     | (Timeout, _) =>
-        answer ("Timeout: You may need to increase the time limit of " ^
+        answer'' ("Timeout: You may need to increase the time limit of " ^
           Int.toString time_limit ^ " seconds. Call atp_minimize [time=...] ")
     | (Error, msg) =>
-        answer ("Error in prover: " ^ msg)
+        answer'' ("Error in prover: " ^ msg)
     | (Failure, _) =>
-        answer "Failure: No proof with the theorems supplied")
+        answer'' "Failure: No proof with the theorems supplied")
     handle ResHolClause.TOO_TRIVIAL =>
-        answer ("Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
+        answer' (SOME []) ("Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
     | ERROR msg =>
-        answer ("Error: " ^ msg)
+        answer'' ("Error: " ^ msg)
   end
 
 
@@ -204,8 +211,9 @@ fun sh_min_command args thm_names state =
         SOME prover => prover
       | NONE => error ("Unknown prover: " ^ quote prover_name)
     val name_thms_pairs = get_thms (Proof.context_of state) thm_names
+    fun print_answer (_, msg) = answer msg
   in
-    minimalize prover prover_name time_limit state name_thms_pairs
+    print_answer (minimalize prover prover_name time_limit state name_thms_pairs)
   end
 
 val parse_args = Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
