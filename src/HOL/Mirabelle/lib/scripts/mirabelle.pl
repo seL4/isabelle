@@ -82,6 +82,10 @@ foreach (split(/:/, $actions)) {
         print SETUP_FILE "$sep(\"$1\", \"$2\")";
         $sep = ", ";
       }
+      elsif (m/\s*(.*)\s*/) {
+	print SETUP_FILE "$sep(\"$1\", \"\")";
+	$sep = ", ";
+      }
     }
     print SETUP_FILE "] *}\n";
   }

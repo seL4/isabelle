@@ -32,8 +32,11 @@ function usage() {
   echo "  at all proof steps in the given theory files."
   echo
   echo "  ACTIONS is a colon-separated list of actions, where each action is"
-  echo "  either NAME or NAME[KEY=VALUE,...,KEY=VALUE]. Available actions are:"
+  echo "  either NAME or NAME[OPTION,...,OPTION]. Available actions are:"
   print_action_names
+  echo
+  echo "  A list of available OPTIONs can be found here:"
+  echo "    $MIRABELLE_HOME/doc/options.txt"
   echo
   echo "  FILES is a list of theory files, where each file is either NAME.thy"
   echo "  or NAME.thy[START:END] and START and END are numbers indicating the"
