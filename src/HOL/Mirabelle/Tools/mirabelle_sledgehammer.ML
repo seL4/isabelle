@@ -149,13 +149,13 @@ fun run_sh prover_name timeout st _ =
     val prover = the (AtpManager.get_prover prover_name (Proof.theory_of st))
     val atp_timeout = AtpManager.get_timeout () 
     val atp = prover atp_timeout NONE NONE prover_name 1
-    val ((success, (message, thm_names), time, _, _, _), time') =
+    val ((success, (message, thm_names), atp_time, _, _, _), sh_time) =
       TimeLimit.timeLimit timeout (Mirabelle.cpu_time atp) (Proof.get_goal st)
   in
-    if success then (message, SOME (time + time', thm_names))
+    if success then (message, SOME (atp_time, sh_time, thm_names))
     else (message, NONE)
   end
-  handle ResHolClause.TOO_TRIVIAL => ("trivial", SOME (0, []))
+  handle ResHolClause.TOO_TRIVIAL => ("trivial", SOME (0, 0, []))
        | TimeLimit.TimeOut => ("timeout", NONE)
        | ERROR msg => ("error: " ^ msg, NONE)
 
@@ -170,19 +170,19 @@ fun run_sledgehammer args thm_names id {pre=st, timeout, log, ...} =
     val dir = AList.lookup (op =) args keepK
     val (msg, result) =
       safe init_sh done_sh (run_sh prover_name timeout st) dir
-    val _ =
-      if is_some result
-      then
+  in
+    (case result of
+      SOME (atp_time, sh_time, names) =>
         let
-          val time = fst (the result)
           val _ = change_data id inc_sh_success
-          val _ = change_data id (inc_sh_time time)
+          val _ = change_data id (inc_sh_time (atp_time + sh_time))
+          val _ = change thm_names (K (SOME names))
         in
-          log (sh_tag id ^ "succeeded (" ^ string_of_int time ^ ") [" ^
-            prover_name ^ "]:\n" ^ msg)
+          log (sh_tag id ^ "succeeded (" ^ string_of_int atp_time ^ "+" ^
+            string_of_int sh_time ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
         end
-      else log (sh_tag id ^ "failed: " ^ msg)
-  in change thm_names (K (Option.map snd result)) end
+    | NONE => log (sh_tag id ^ "failed: " ^ msg))
+  end
 
 end
 
