@@ -7,16 +7,13 @@
 package isabelle.jedit
 
 
-import isabelle.prover.{Prover, Command}
-import isabelle.renderer.UserAgent
-
 import org.w3c.dom.Document
 
-import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, View}
-import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.{Buffer, View}
 
-import javax.swing.{JTextArea, JScrollPane}
+import javax.swing.JTextArea
+
+import isabelle.prover.Prover
 
 
 class ProverSetup(buffer: Buffer)
