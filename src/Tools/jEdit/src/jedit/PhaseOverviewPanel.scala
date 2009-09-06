@@ -77,7 +77,7 @@ class PhaseOverviewPanel(
     }
   }
 
-override def paintComponent(gfx : Graphics) {
+  override def paintComponent(gfx: Graphics) {
     super.paintComponent(gfx)
     val buffer = textarea.getBuffer
     val theory_view = Isabelle.prover_setup(buffer).get.theory_view
@@ -87,12 +87,11 @@ override def paintComponent(gfx : Graphics) {
       paintCommand(c, buffer, document, gfx)
   }
 
-override def getPreferredSize = new Dimension(10,0)
+  override def getPreferredSize = new Dimension(10,0)
 
-private def lineToY(line : Int) : Int =
-  (line * getHeight) / (textarea.getBuffer.getLineCount max textarea.getVisibleLines)
+  private def lineToY(line : Int): Int =
+    (line * getHeight) / (textarea.getBuffer.getLineCount max textarea.getVisibleLines)
 
-private def yToLine(y : Int) : Int =
-  (y * (textarea.getBuffer.getLineCount max textarea.getVisibleLines)) / getHeight
-
+  private def yToLine(y : Int): Int =
+    (y * (textarea.getBuffer.getLineCount max textarea.getVisibleLines)) / getHeight
 }
