@@ -10,7 +10,6 @@ package isabelle.jedit
 import isabelle.Isabelle_Process.Result
 import isabelle.renderer.UserAgent
 
-
 import scala.collection.mutable
 
 import java.awt.{BorderLayout, Adjustable, Dimension}
@@ -26,24 +25,29 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-trait Renderer[U, R] {
+trait Renderer[U, R]
+{
   def render (u: U): R
   //relayout a rendered element using argument a
-  def relayout (r: R, a: Int)
+  def relayout(r: R, a: Int)
 }
 
-trait Unrendered[U] {
-  def addUnrendered (id: Int, u: U) : Unit
-  def getUnrendered (id: Int) : Option[U]
-  def size : Int
+trait Unrendered[U]
+{
+  def addUnrendered(id: Int, u: U): Unit
+  def getUnrendered(id: Int): Option[U]
+  def size: Int
 }
 
-trait Rendered[U, R] {
-  def getRendered (id: Int) : Option[R]
-  val renderer : Renderer[U, R]
+trait Rendered[U, R]
+{
+  def getRendered(id: Int): Option[R]
+  val renderer: Renderer[U, R]
 }
 
-class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
+
+class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel
+{
   // defining the current view
   var offset = 0 //what percentage of the lowest message is hidden
   var no = -1  //index of the lowest message
@@ -53,7 +57,8 @@ class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
   setLayout(null)
   
   // place the bottom of the message at y-coordinate and return the rendered panel
-  def place_message (message_no: Int, y: Int) = {
+  def place_message(message_no: Int, y: Int): XHTMLPanel =
+  {
     //add panel to cache if necessary and possible
     cache.getRendered(message_no) match {
       case Some(panel) => {
@@ -72,7 +77,7 @@ class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
     }
   }
   
-  override def doLayout = {
+  override def doLayout {
     removeAll()
     //calculate offset in pixel
     val panel = place_message(no, 0)
@@ -90,14 +95,16 @@ class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
   }  
 }
 
-class InfoPanel extends JPanel {
+
+class InfoPanel extends JPanel
+{
   val auto_scroll = new JRadioButton("Auto Scroll", false)
   val message_ind = new JTextArea("0")
   add(message_ind)
   add(auto_scroll)
   
   def isAutoScroll = auto_scroll.isSelected
-  def setIndicator(b: Boolean) = {
+  def setIndicator(b: Boolean) {
     message_ind.setBackground(if (b) java.awt.Color.red else java.awt.Color.white)
   }
   def setText(s: String) {
@@ -106,8 +113,9 @@ class InfoPanel extends JPanel {
 }
 
 
-class ScrollerDockable(view : View, position : String) extends JPanel with AdjustmentListener {
-
+class ScrollerDockable(view : View, position : String)
+  extends JPanel with AdjustmentListener
+{
   val renderer:Renderer[Result, XHTMLPanel] = new ResultToPanelRenderer
   val buffer:Unrendered[Result] = new MessageBuffer
   val cache:Rendered[Result, XHTMLPanel] = new PanelCache(buffer, renderer)
@@ -125,16 +133,16 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     setPreferredSize(new Dimension(500, 250))
 
   setLayout(new BorderLayout())
-  add (vscroll, BorderLayout.EAST)
-  add (message_panel, BorderLayout.CENTER)
-  add (infopanel, BorderLayout.SOUTH)
+  add(vscroll, BorderLayout.EAST)
+  add(message_panel, BorderLayout.CENTER)
+  add(infopanel, BorderLayout.SOUTH)
   
   // do not show every new message, wait a certain amount of time
   val message_ind_timer : Timer = new Timer(250, new ActionListener {
       // this method is called to indicate a new message
       override def actionPerformed(e:ActionEvent) {
         //fire scroll-event if necessary and wanted
-        if (message_panel.no != buffer.size*subunits - 1 && infopanel.isAutoScroll) {
+        if (message_panel.no != buffer.size * subunits - 1 && infopanel.isAutoScroll) {
           vscroll.setValue(buffer.size*subunits - 1)
         }
         infopanel.setIndicator(false)
@@ -149,7 +157,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
     if (!message_ind_timer.isRunning()) {
       if (infopanel.isAutoScroll) {
-        vscroll.setValue(buffer.size*subunits - 1)
+        vscroll.setValue(buffer.size * subunits - 1)
       }
       message_ind_timer.setRepeats(false)
       message_ind_timer.start()
@@ -161,7 +169,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     }
   }
 
-  override def adjustmentValueChanged (e : AdjustmentEvent) = {
+  override def adjustmentValueChanged(e: AdjustmentEvent) {
     //event-handling has to be so general (without UNIT_INCR,...)
     // because all events could be sent as TRACK e.g. on my mac
     if (e.getSource == vscroll) {
@@ -179,8 +187,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 //Concrete Implementations
 
 //containing the unrendered messages
-class MessageBuffer extends mutable.HashMap[Int,Result] with Unrendered[Result]{
-  override def addUnrendered (id: Int, m: Result) {
+class MessageBuffer extends mutable.HashMap[Int,Result] with Unrendered[Result]
+{
+  override def addUnrendered(id: Int, m: Result) {
     update(id, m)
   }
   override def getUnrendered(id: Int): Option[Result] = {
@@ -192,9 +201,10 @@ class MessageBuffer extends mutable.HashMap[Int,Result] with Unrendered[Result]{
 
 //containing the rendered messages
 class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHTMLPanel])
-  extends mutable.HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]{
-
-  override def getRendered (id: Int): Option[XHTMLPanel] = {
+  extends mutable.HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]
+{
+  override def getRendered (id: Int): Option[XHTMLPanel] =
+  {
     //get message from buffer and render it if necessary
     if (!isDefinedAt(id)) {
       buffer.getUnrendered(id) match {
@@ -214,9 +224,10 @@ class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHT
   }
 }
 
-class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
-  
-  def render (r: Result): XHTMLPanel = {
+class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]
+{
+  def render(r: Result): XHTMLPanel =
+  {
     val panel = new XHTMLPanel(new UserAgent())
     val fontResolver =
       panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
@@ -235,15 +246,15 @@ class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
     panel
   }
   
-  def relayout (panel: XHTMLPanel, width : Int) {
+  def relayout(panel: XHTMLPanel, width : Int) {
     // ATTENTION:
     // panel has to be displayable in a frame/container message_view for doDocumentLayout to have
     // an effect, especially returning correct preferredSize
-    panel.setBounds (0, 0, width, 1) // document has to fit into width
-    panel.doDocumentLayout (panel.getGraphics) //lay out, preferred size is set then
+    panel.setBounds(0, 0, width, 1) // document has to fit into width
+    panel.doDocumentLayout(panel.getGraphics) //lay out, preferred size is set then
     // if there are thousands of empty panels, all have to be rendered -
     // but this takes time (even for empty panels); therefore minimum size
-    panel.setPreferredSize(new java.awt.Dimension(width, Math.max(25, panel.getPreferredSize.getHeight.toInt)))
+    panel.setPreferredSize(
+      new java.awt.Dimension(width, panel.getPreferredSize.getHeight.toInt max 25))
   }
-
 }
