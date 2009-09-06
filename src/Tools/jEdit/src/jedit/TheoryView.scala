@@ -24,12 +24,12 @@ import org.gjt.sp.jedit.syntax.{ModeProvider, SyntaxStyle}
 
 object TheoryView
 {
-  
-  def choose_color(cmd: Command, doc: ProofDocument): Color = {
-    cmd.status(doc) match {
+  def choose_color(command: Command, doc: ProofDocument): Color =
+  {
+    command.status(doc) match {
       case Command.Status.UNPROCESSED => new Color(255, 228, 225)
       case Command.Status.FINISHED => new Color(234, 248, 255)
-      case Command.Status.FAILED => new Color(255, 192, 192)
+      case Command.Status.FAILED => new Color(255, 106, 106)
       case _ => Color.red
     }
   }
