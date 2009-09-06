@@ -200,7 +200,7 @@ class MessageBuffer extends mutable.HashMap[Int,Result] with Unrendered[Result]
 }
 
 //containing the rendered messages
-class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHTMLPanel])
+class PanelCache(buffer: Unrendered[Result], val renderer: Renderer[Result, XHTMLPanel])
   extends mutable.HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]
 {
   override def getRendered (id: Int): Option[XHTMLPanel] =

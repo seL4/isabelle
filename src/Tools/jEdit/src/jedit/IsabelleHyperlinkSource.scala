@@ -45,7 +45,7 @@ class IsabelleHyperlinkSource extends HyperlinkSource
 	def getHyperlink(buffer: Buffer, original_offset: Int): Hyperlink = {
     val prover = Isabelle.prover_setup(buffer).map(_.prover)
     val theory_view_opt = Isabelle.prover_setup(buffer).map(_.theory_view)
-    if (!prover.isDefined || !theory_view_opt.isDefined) null
+    if (prover.isEmpty || theory_view_opt.isEmpty) null
     else if (prover.get == null || theory_view_opt.get == null) null
     else {
       val theory_view = theory_view_opt.get
