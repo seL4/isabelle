@@ -54,10 +54,13 @@ class TheoryView(text_area: JEditTextArea)
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) = {
       val doc = current_document()
-      val cmd = doc.find_command_at(e.getDot)
-      if (cmd != null && doc.token_start(cmd.tokens.first) <= e.getDot &&
-          Isabelle.plugin.selected_state != cmd)
-        Isabelle.plugin.selected_state = cmd
+      doc.command_at(e.getDot) match {
+        case Some(cmd)
+          if (doc.token_start(cmd.tokens.first) <= e.getDot &&
+            Isabelle.plugin.selected_state != cmd) =>
+          Isabelle.plugin.selected_state = cmd
+        case _ =>
+      }
     }
   }
 
@@ -270,13 +273,14 @@ class TheoryView(text_area: JEditTextArea)
     val metrics = text_area.getPainter.getFontMetrics
 
     // encolor phase
-    var e = document.find_command_at(from_current(start))
-    while (e != null && e.start(document) < end) {
+    var cmd = document.command_at(from_current(start))
+    while (cmd.isDefined && cmd.get.start(document) < end) {
+      val e = cmd.get
       val begin = start max to_current(e.start(document))
       val finish = (end - 1) min to_current(e.stop(document))
       encolor(gfx, y, metrics.getHeight, begin, finish,
         TheoryView.choose_color(e, document), true)
-      e = document.commands.next(e).getOrElse(null)
+      cmd = document.commands.next(e)
     }
 
     gfx.setColor(saved_color)
@@ -286,11 +290,12 @@ class TheoryView(text_area: JEditTextArea)
   {
     val document = current_document()
     val offset = from_current(document, text_area.xyToOffset(x, y))
-    val cmd = document.find_command_at(offset)
-    if (cmd != null) {
-      document.token_start(cmd.tokens.first)
-      cmd.type_at(document, offset - cmd.start(document))
-    } else null
+    document.command_at(offset) match {
+      case Some(cmd) =>
+        document.token_start(cmd.tokens.first)
+        cmd.type_at(document, offset - cmd.start(document))
+      case None => null
+    }
   }
 
 

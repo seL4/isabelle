@@ -260,20 +260,22 @@ class ProofDocument(
     }).toArray
   }
 
+  def command_at(pos: Int): Option[Command] =
+    find_command(pos, 0, commands_offsets.length)
+
   // use a binary search to find commands for a given offset
-  def find_command_at(pos: Int): Command = find_command_at(pos, 0, commands_offsets.length)
-  private def find_command_at(pos: Int, array_start: Int, array_stop: Int): Command = {
+  private def find_command(pos: Int, array_start: Int, array_stop: Int): Option[Command] =
+  {
     val middle_index = (array_start + array_stop) / 2
-    if (middle_index >= commands_offsets.length) return null
+    if (middle_index >= commands_offsets.length) return None
     val (middle, (start, stop)) = commands_offsets(middle_index)
     // does middle contain pos?
-    if (start <= pos && stop > pos)
-      middle
+    if (start <= pos && pos < stop)
+      Some(middle)
     else if (start > pos)
-      find_command_at(pos, array_start, middle_index)
+      find_command(pos, array_start, middle_index)
     else if (stop <= pos)
-      find_command_at(pos, middle_index + 1, array_stop)
-    else error("can't be")
+      find_command(pos, middle_index + 1, array_stop)
+    else error("impossible")
   }
-
 }

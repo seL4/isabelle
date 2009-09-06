@@ -51,30 +51,30 @@ class IsabelleHyperlinkSource extends HyperlinkSource
       val theory_view = theory_view_opt.get
       val document = theory_view.current_document()
       val offset = theory_view.from_current(document, original_offset)
-      val command = document.find_command_at(offset)
-      if (command != null) {
-        val ref_o = command.ref_at(document, offset - command.start(document))
-        if (!ref_o.isDefined) null
-        else {
-          val ref = ref_o.get
-          val command_start = command.start(document)
-          val begin = theory_view.to_current(document, command_start + ref.start)
-          val line = buffer.getLineOfOffset(begin)
-          val end = theory_view.to_current(document, command_start + ref.stop)
-          ref.info match {
-            case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
-              new ExternalHyperlink(begin, end, line, ref_file, ref_line)
-            case Command.RefInfo(_, _, Some(id), Some(offset)) =>
-              prover.get.command(id) match {
-                case Some(ref_cmd) =>
-                  new InternalHyperlink(begin, end, line,
-                    theory_view.to_current(document, ref_cmd.start(document) + offset - 1))
+      document.command_at(offset) match {
+        case Some(command) =>
+          command.ref_at(document, offset - command.start(document)) match {
+            case Some(ref) =>
+              val command_start = command.start(document)
+              val begin = theory_view.to_current(document, command_start + ref.start)
+              val line = buffer.getLineOfOffset(begin)
+              val end = theory_view.to_current(document, command_start + ref.stop)
+              ref.info match {
+                case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
+                  new ExternalHyperlink(begin, end, line, ref_file, ref_line)
+                case Command.RefInfo(_, _, Some(id), Some(offset)) =>
+                  prover.get.command(id) match {
+                    case Some(ref_cmd) =>
+                      new InternalHyperlink(begin, end, line,
+                        theory_view.to_current(document, ref_cmd.start(document) + offset - 1))
+                    case None => null
+                  }
                 case _ => null
               }
-            case _ => null
+            case None => null
           }
-        }
-      } else null
+        case None => null
+      }
     }
   }
 }

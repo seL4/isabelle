@@ -121,9 +121,10 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
     def to: Int => Int = theory_view.to_current(document, _)
     def from: Int => Int = theory_view.from_current(document, _)
 
-    var command = document.find_command_at(from(start))
     var next_x = start
-    while (command != null && command.start(document) < from(stop)) {
+    var cmd = document.command_at(from(start))
+    while (cmd.isDefined && cmd.get.start(document) < from(stop)) {
+      val command = cmd.get
       for {
         markup <- command.highlight_node(document).flatten
         command_start = command.start(document)
@@ -145,7 +146,7 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
           token_start, token_length, context)
         next_x = start + token_start + token_length
       }
-      command = document.commands.next(command).getOrElse(null)
+      cmd = document.commands.next(command)
     }
     if (next_x < stop)
       handler.handleToken(line_segment, 1, next_x - start, stop - next_x, context)
