@@ -141,9 +141,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
       }
     })
 
-  def add_result (result: Result) = {
+  def add_result(result: Result) {
     buffer.addUnrendered(buffer.size, result)
-    vscroll.setMaximum (Math.max(1, buffer.size * subunits))
+    vscroll.setMaximum ((buffer.size * subunits) max 1)
     infopanel.setIndicator(true)
     infopanel.setText(buffer.size.toString)
 

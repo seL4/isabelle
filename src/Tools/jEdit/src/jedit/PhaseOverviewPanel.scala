@@ -12,22 +12,21 @@ import isabelle.proofdocument.ProofDocument
 import javax.swing._
 import java.awt.event._
 import java.awt._
-import org.gjt.sp.jedit.gui.RolloverButton;
-import org.gjt.sp.jedit.textarea.JEditTextArea;
-import org.gjt.sp.jedit.buffer.JEditBuffer;
+import org.gjt.sp.jedit.gui.RolloverButton
+import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit._
 
 class PhaseOverviewPanel(
-  prover: Prover,
-  textarea: JEditTextArea,
-  to_current: (ProofDocument, Int) => Int)
-extends JPanel(new BorderLayout)
+    prover: Prover,
+    textarea: JEditTextArea,
+    to_current: (ProofDocument, Int) => Int)
+  extends JPanel(new BorderLayout)
 {
-
   private val WIDTH = 10
   private val HILITE_HEIGHT = 2
 
-  setRequestFocusEnabled(false);
+  setRequestFocusEnabled(false)
 
   addMouseListener(new MouseAdapter {
     override def mousePressed(evt : MouseEvent) {
@@ -38,14 +37,14 @@ extends JPanel(new BorderLayout)
   })
 
   override def addNotify {
-    super.addNotify();
-    ToolTipManager.sharedInstance.registerComponent(this);
+    super.addNotify()
+    ToolTipManager.sharedInstance.registerComponent(this)
   }
 
   override def removeNotify()
   {
     super.removeNotify
-    ToolTipManager.sharedInstance.unregisterComponent(this);
+    ToolTipManager.sharedInstance.unregisterComponent(this)
   }
 
   override def getToolTipText(evt : MouseEvent) : String =
@@ -71,7 +70,7 @@ extends JPanel(new BorderLayout)
     }
 
     gfx.setColor(light)
-    gfx.fillRect(0, y, getWidth - 1, 1 max height)
+    gfx.fillRect(0, y, getWidth - 1, height max 1)
     if (height > 2) {
       gfx.setColor(dark)
       gfx.drawRect(0, y, getWidth - 1, height)

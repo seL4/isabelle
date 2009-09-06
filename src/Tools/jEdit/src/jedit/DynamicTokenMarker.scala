@@ -22,8 +22,15 @@ import javax.swing.text.Segment;
 
 object DynamicTokenMarker
 {
-  // Mapping to jEdit token types
+  /* line context */
+
+  private class LineContext(val line: Int, prev: LineContext)
+    extends TokenMarker.LineContext(new ParserRuleSet("isabelle", "MAIN"), prev)
+
+
+  /* mapping to jEdit token types */
   // TODO: as properties or CSS style sheet
+
   private val choose_byte: Map[String, Byte] =
   {
     import JToken._
@@ -103,9 +110,9 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
   override def markTokens(prev: TokenMarker.LineContext,
       handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
   {
-    val previous = prev.asInstanceOf[IndexLineContext]
+    val previous = prev.asInstanceOf[DynamicTokenMarker.LineContext]
     val line = if (prev == null) 0 else previous.line + 1
-    val context = new IndexLineContext(line, previous)
+    val context = new DynamicTokenMarker.LineContext(line, previous)
     val start = buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
 
@@ -125,10 +132,11 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
         if (abs_stop > start)
         if (abs_start < stop)
         byte = DynamicTokenMarker.choose_byte(markup.info.toString)
-        token_start = abs_start - start max 0
-        token_length = (abs_stop - abs_start) -
-            (start - abs_start max 0) -
-            (abs_stop - stop max 0)
+        token_start = (abs_start - start) max 0
+        token_length =
+          (abs_stop - abs_start) -
+          ((start - abs_start) max 0) -
+          ((abs_stop - stop) max 0)
       } {
         if (start + token_start > next_x)
           handler.handleToken(line_segment, 1,
@@ -147,7 +155,3 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover)
     return context
   }
 }
-
-
-class IndexLineContext(val line: Int, prev: IndexLineContext)
-  extends TokenMarker.LineContext(new ParserRuleSet("isabelle", "MAIN"), prev)

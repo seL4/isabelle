@@ -41,21 +41,21 @@ class State(
     }).head
   }
 
-  lazy private val types =
+  private lazy val types =
     markup_root.filter(_.info match {
       case Command.TypeInfo(_) => true
       case _ => false }).flatten(_.flatten)
 
   def type_at(pos: Int): String =
   {
-    types.find(t => t.start <= pos && t.stop > pos).map(t =>
+    types.find(t => t.start <= pos && pos < t.stop).map(t =>
       t.content + ": " + (t.info match {
         case Command.TypeInfo(i) => i
         case _ => "" })).
       getOrElse(null)
   }
 
-  lazy private val refs =
+  private lazy val refs =
     markup_root.filter(_.info match {
       case Command.RefInfo(_, _, _, _) => true
       case _ => false }).flatten(_.flatten)

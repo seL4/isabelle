@@ -273,7 +273,7 @@ class TheoryView(text_area: JEditTextArea)
     var e = document.find_command_at(from_current(start))
     while (e != null && e.start(document) < end) {
       val begin = start max to_current(e.start(document))
-      val finish = end - 1 min to_current(e.stop(document))
+      val finish = (end - 1) min to_current(e.stop(document))
       encolor(gfx, y, metrics.getHeight, begin, finish,
         TheoryView.choose_color(e, document), true)
       e = document.commands.next(e).getOrElse(null)

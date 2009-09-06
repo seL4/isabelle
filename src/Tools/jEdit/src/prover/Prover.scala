@@ -10,15 +10,12 @@ package isabelle.prover
 
 
 import scala.collection.mutable
-import scala.collection.immutable.{TreeSet}
 import scala.actors.Actor, Actor._
 
-import org.gjt.sp.util.Log
 import javax.swing.JTextArea
 
 import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
-import isabelle.Isar_Document
 
 
 object ProverEvents
@@ -35,11 +32,12 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   private val process =
   {
     val receiver = new Actor {
-      def act() = {
+      def act() {
         loop { react { case res: Isabelle_Process.Result => handle_result(res) } }
       }
     }.start
-    new Isabelle_Process(isabelle_system, receiver, "-m", "xsymbols", logic) with Isar_Document
+    new Isabelle_Process(isabelle_system, receiver, "-m", "xsymbols", logic)
+      with Isar_Document
   }
 
   def stop() { process.kill }
@@ -170,28 +168,27 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   }
 
   def act() {
-    import ProverEvents._
     loop {
       react {
-        case change: Change => {
-            val old = document(change.parent.get.id).get
-            val (doc, structure_change) = old.text_changed(change)
-            document_versions ::= doc
-            edit_document(old, doc, structure_change)
-            change_receiver ! doc
-        }
+        case change: Change =>
+          val old = document(change.parent.get.id).get
+          val (doc, structure_change) = old.text_changed(change)
+          document_versions ::= doc
+          edit_document(old, doc, structure_change)
+          change_receiver ! doc
         case x => System.err.println("warning: ignored " + x)
       }
     }
   }
-  
+
   def set_document(path: String) {
     process.begin_document(document_0.id, path)
   }
 
   private def edit_document(old: ProofDocument, doc: ProofDocument,
-                            changes: ProofDocument.StructureChange) = {
-    val id_changes = changes map {case (c1, c2) =>
+    changes: ProofDocument.StructureChange) =
+  {
+    val id_changes = changes map { case (c1, c2) =>
       (c1.map(_.id).getOrElse(document_0.id),
       c2 match {
         case None => None
