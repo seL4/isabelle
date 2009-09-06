@@ -18,7 +18,7 @@ import org.gjt.sp.jedit.{Buffer, EditPane, TextUtilities, View}
 import errorlist.DefaultErrorSource
 import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
 
-import isabelle.prover.{Command, MarkupNode}
+import isabelle.prover.{Command, Markup_Node}
 import isabelle.proofdocument.ProofDocument
 
 
@@ -31,26 +31,28 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
 
   def parse(buffer: Buffer, error_source: DefaultErrorSource): SideKickParsedData =
   {
+    implicit def int_to_pos(offset: Int): Position =
+      new Position { def getOffset = offset; override def toString = offset.toString }
+
     stopped = false
 
     val data = new SideKickParsedData(buffer.getName)
+    val root = data.root
+    data.getAsset(root).setEnd(buffer.getLength)
 
     val prover_setup = Isabelle.prover_setup(buffer)
     if (prover_setup.isDefined) {
       val document = prover_setup.get.theory_view.current_document()
       for (command <- document.commands if !stopped) {
-        data.root.add(command.markup_root(document).
-          swing_tree((node: MarkupNode) =>
+        root.add(command.markup_root(document).swing_tree((node: Markup_Node) =>
             {
-              implicit def int2pos(offset: Int): Position =
-                new Position { def getOffset = offset; override def toString = offset.toString }
-
+              val content = command.content(node.start, node.stop)
               val command_start = command.start(document)
               val id = command.id
 
               new DefaultMutableTreeNode(new IAsset {
                 override def getIcon: Icon = null
-                override def getShortString: String = node.content
+                override def getShortString: String = content
                 override def getLongString: String = node.info.toString
                 override def getName: String = id
                 override def setName(name: String) = ()
@@ -58,14 +60,13 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
                 override def getStart: Position = command_start + node.start
                 override def setEnd(end: Position) = ()
                 override def getEnd: Position = command_start + node.stop
-                override def toString =
-                  id + ": " + node.content + "[" + getStart + " - " + getEnd + "]"
+                override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
               })
             }))
       }
-      if (stopped) data.root.add(new DefaultMutableTreeNode("<parser stopped>"))
+      if (stopped) root.add(new DefaultMutableTreeNode("<parser stopped>"))
     }
-    else data.root.add(new DefaultMutableTreeNode("<buffer inactive>"))
+    else root.add(new DefaultMutableTreeNode("<buffer inactive>"))
 
     data
   }

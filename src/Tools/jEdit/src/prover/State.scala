@@ -12,10 +12,10 @@ class State(
   val command: Command,
   val status: Command.Status.Value,
   rev_results: List[XML.Tree],
-  val markup_root: MarkupNode)
+  val markup_root: Markup_Text)
 {
   def this(command: Command) =
-    this(command, Command.Status.UNPROCESSED, Nil, command.empty_root_node)
+    this(command, Command.Status.UNPROCESSED, Nil, command.empty_markup)
 
 
   /* content */
@@ -26,42 +26,45 @@ class State(
   private def add_result(res: XML.Tree): State =
     new State(command, status, res :: rev_results, markup_root)
 
-  private def add_markup(markup: MarkupNode): State =
-    new State(command, status, rev_results, markup_root + markup)
+  private def add_markup(node: Markup_Tree): State =
+    new State(command, status, rev_results, markup_root + node)
 
   lazy val results = rev_results.reverse
 
 
   /* markup */
 
-  lazy val highlight_node: MarkupNode =
+  lazy val highlight: Markup_Text =
   {
     markup_root.filter(_.info match {
-      case Command.RootInfo | Command.HighlightInfo(_) => true
+      case Command.HighlightInfo(_) => true
       case _ => false
-    }).head
+    })
   }
 
-  private lazy val types =
+  private lazy val types: List[Markup_Node] =
     markup_root.filter(_.info match {
       case Command.TypeInfo(_) => true
-      case _ => false }).flatten(_.flatten)
+      case _ => false }).flatten
 
-  def type_at(pos: Int): String =
+  def type_at(pos: Int): Option[String] =
   {
-    types.find(t => t.start <= pos && pos < t.stop).map(t =>
-      t.content + ": " + (t.info match {
-        case Command.TypeInfo(i) => i
-        case _ => "" })).
-      getOrElse(null)
+    types.find(t => t.start <= pos && pos < t.stop) match {
+      case Some(t) =>
+        t.info match {
+          case Command.TypeInfo(ty) => Some(command.content(t.start, t.stop) + ": " + ty)
+          case _ => None
+        }
+      case None => None
+    }
   }
 
-  private lazy val refs =
+  private lazy val refs: List[Markup_Node] =
     markup_root.filter(_.info match {
       case Command.RefInfo(_, _, _, _) => true
-      case _ => false }).flatten(_.flatten)
+      case _ => false }).flatten
 
-  def ref_at(pos: Int): Option[MarkupNode] =
+  def ref_at(pos: Int): Option[Markup_Node] =
     refs.find(t => t.start <= pos && pos < t.stop)
 
 

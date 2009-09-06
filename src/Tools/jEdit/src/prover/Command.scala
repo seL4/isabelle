@@ -19,7 +19,6 @@ import isabelle.XML
 
 trait Accumulator extends Actor
 {
-
   start() // start actor
 
   protected var _state: State
@@ -44,19 +43,16 @@ object Command
     val FAILED = Value("FAILED")
   }
 
-  case object RootInfo
   case class HighlightInfo(highlight: String) { override def toString = highlight }
-  case class TypeInfo(type_kind: String) { override def toString = type_kind }
+  case class TypeInfo(ty: String)
   case class RefInfo(file: Option[String], line: Option[Int],
-    command_id: Option[String], offset: Option[Int]) {
-      override def toString = (file, line, command_id, offset).toString
-    }
+    command_id: Option[String], offset: Option[Int])
 }
 
 
 class Command(
-  val tokens: List[Token],
-  val starts: Map[Token, Int],
+    val tokens: List[Token],
+    val starts: Map[Token, Int],
   change_receiver: Actor) extends Accumulator
 {
   require(!tokens.isEmpty)
@@ -73,6 +69,7 @@ class Command(
 
   val name = tokens.head.content
   val content: String = Token.string_from_tokens(tokens, starts)
+  def content(i: Int, j: Int): String = content.substring(i, j)
   val symbol_index = new Symbol.Index(content)
 
   def start(doc: ProofDocument) = doc.token_start(tokens.first)
@@ -85,15 +82,13 @@ class Command(
 
   /* markup */
 
-  lazy val empty_root_node =
-    new MarkupNode(0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
-      content, Command.RootInfo, Nil)
+  lazy val empty_markup = new Markup_Text(Nil, content)
 
-  def markup_node(begin: Int, end: Int, info: Any): MarkupNode =
+  def markup_node(begin: Int, end: Int, info: Any): Markup_Tree =
   {
     val start = symbol_index.decode(begin)
     val stop = symbol_index.decode(end)
-    new MarkupNode(start, stop, content.substring(start, stop), info, Nil)
+    new Markup_Tree(new Markup_Node(start, stop, info), Nil)
   }
 
 
@@ -106,7 +101,7 @@ class Command(
   def status(doc: ProofDocument) = cmd_state(doc).state.status
   def result_document(doc: ProofDocument) = cmd_state(doc).result_document
   def markup_root(doc: ProofDocument) = cmd_state(doc).markup_root
-  def highlight_node(doc: ProofDocument) = cmd_state(doc).highlight_node
+  def highlight(doc: ProofDocument) = cmd_state(doc).highlight
   def type_at(doc: ProofDocument, offset: Int) = cmd_state(doc).type_at(offset)
   def ref_at(doc: ProofDocument, offset: Int) = cmd_state(doc).ref_at(offset)
 }
@@ -124,13 +119,13 @@ class Command_State(val command: Command) extends Accumulator
         case elems => XML.Elem("messages", Nil, elems)
       }, "style")
 
-  def markup_root: MarkupNode =
-    (command.state.markup_root /: state.markup_root.children)(_ + _)
+  def markup_root: Markup_Text =
+    (command.state.markup_root /: state.markup_root.markup)(_ + _)
 
-  def type_at(pos: Int): String = state.type_at(pos)
+  def type_at(pos: Int): Option[String] = state.type_at(pos)
 
-  def ref_at(pos: Int): Option[MarkupNode] = state.ref_at(pos)
+  def ref_at(pos: Int): Option[Markup_Node] = state.ref_at(pos)
 
-  def highlight_node: MarkupNode =
-    (command.state.highlight_node /: state.highlight_node.children)(_ + _)
+  def highlight: Markup_Text =
+    (command.state.highlight /: state.highlight.markup)(_ + _)
 }

@@ -293,7 +293,7 @@ class TheoryView(text_area: JEditTextArea)
     document.command_at(offset) match {
       case Some(cmd) =>
         document.token_start(cmd.tokens.first)
-        cmd.type_at(document, offset - cmd.start(document))
+        cmd.type_at(document, offset - cmd.start(document)).getOrElse(null)
       case None => null
     }
   }
