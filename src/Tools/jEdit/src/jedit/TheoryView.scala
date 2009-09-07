@@ -197,14 +197,15 @@ class TheoryView(text_area: JEditTextArea)
 
   /* transforming offsets */
 
-  private def changes_to(doc: ProofDocument): List[Edit] =
-    edits.toList ::: List.flatten(current_change.ancestors(_.id == doc.id).map(_.edits))
+  private def changes_from(doc: ProofDocument): List[Edit] =
+    List.flatten(current_change.ancestors(_.id == doc.id).reverse.map(_.edits)) :::
+      edits.toList
 
   def from_current(doc: ProofDocument, offset: Int): Int =
-    (offset /: changes_to(doc)) ((i, change) => change before i)
+    (offset /: changes_from(doc).reverse) ((i, change) => change before i)
 
   def to_current(doc: ProofDocument, offset: Int): Int =
-    (offset /: changes_to(doc).reverse) ((i, change) => change after i)
+    (offset /: changes_from(doc)) ((i, change) => change after i)
 
 
   private def lines_of_command(cmd: Command) =
