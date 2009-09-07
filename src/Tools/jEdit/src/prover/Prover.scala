@@ -46,11 +46,11 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   
   /* outer syntax keywords and completion */
 
-  @volatile private var _keyword_decls = Set[String]()
-  def keyword_decls() = _keyword_decls
-
   @volatile private var _command_decls = Map[String, String]()
   def command_decls() = _command_decls
+
+  @volatile private var _keyword_decls = Set[String]()
+  def keyword_decls() = _keyword_decls
 
   @volatile private var _completion = Isabelle.completion
   def completion() = _completion
