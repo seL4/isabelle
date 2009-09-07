@@ -12,7 +12,7 @@ import scala.actors.Actor, Actor._
 import scala.collection.mutable
 
 import isabelle.proofdocument.{ProofDocument, Change, Edit, Insert, Remove}
-import isabelle.prover.{Prover, ProverEvents, Command}
+import isabelle.prover.{Prover, Command}
 
 import java.awt.{Color, Graphics2D}
 import javax.swing.event.{CaretListener, CaretEvent}
@@ -39,20 +39,43 @@ object TheoryView
 class TheoryView(text_area: JEditTextArea)
   extends TextAreaExtension with BufferListener
 {
-  
   val buffer = text_area.getBuffer
 
-  // start prover
-  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic(), change_receiver)
-  prover.start() // start actor
 
+  /* prover setup */
+
+  val change_receiver: Actor = new Actor {
+    def act() {
+      loop {
+        react {
+          case c: Command =>
+            actor { Isabelle.plugin.command_change.event(c) }
+            if (current_document().commands.contains(c))
+            Swing_Thread.later {
+              // repaint if buffer is active
+              if (text_area.getBuffer == buffer) {
+                update_syntax(c)
+                invalidate_line(c)
+                phase_overview.repaint()
+              }
+            }
+          case d: ProofDocument =>
+            actor { Isabelle.plugin.document_change.event(d) }
+          case bad => System.err.println("change_receiver: ignoring bad message " + bad)
+        }
+      }
+    }
+  }
+
+  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic(), change_receiver)
+  
 
   /* activation */
 
   private val phase_overview = new PhaseOverviewPanel(prover, text_area, to_current)
 
   private val selected_state_controller = new CaretListener {
-    override def caretUpdate(e: CaretEvent) = {
+    override def caretUpdate(e: CaretEvent) {
       val doc = current_document()
       doc.command_at(e.getDot) match {
         case Some(cmd)
@@ -300,32 +323,11 @@ class TheoryView(text_area: JEditTextArea)
   }
 
 
-  /* receiving from prover */
+  /* init */
 
-  lazy val change_receiver: Actor = actor {
-    loop {
-      react {
-        case ProverEvents.Activate =>   // FIXME !?
-          Swing_Thread.now {
-            edits.clear
-            edits += Insert(0, buffer.getText(0, buffer.getLength))
-            edits_delay()
-          }
-        case c: Command =>
-          actor{Isabelle.plugin.command_change.event(c)}
-          if(current_document().commands.contains(c))
-          Swing_Thread.later {
-            // repaint if buffer is active
-            if(text_area.getBuffer == buffer) {
-              update_syntax(c)
-              invalidate_line(c)
-              phase_overview.repaint()
-            }
-          }
-        case d: ProofDocument =>
-          actor{Isabelle.plugin.document_change.event(d)}
-        case x => System.err.println("warning: change_receiver ignored " + x)
-      }
-    }
-  }
+  change_receiver.start()
+  prover.start()
+
+  edits += Insert(0, buffer.getText(0, buffer.getLength))
+  edits_delay()
 }

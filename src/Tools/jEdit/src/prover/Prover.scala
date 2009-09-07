@@ -18,12 +18,6 @@ import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
 
 
-object ProverEvents
-{
-  case class Activate
-}
-
-
 class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: Actor)
   extends Actor
 {
@@ -57,8 +51,6 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
   def document(id: Isar_Document.Document_ID) = document_versions.find(_.id == id)
-
-  private var initialized = false
 
   
   /* outer syntax keywords */
@@ -94,6 +86,8 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   val output_text_view = new JTextArea
   output_info += (result => output_text_view.append(result.toString + "\n"))
 
+  private case object Ready
+
   private def handle_result(result: Isabelle_Process.Result)
   {
     val state =
@@ -125,10 +119,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
                   keyword_decls += name
 
                 // process ready (after initialization)
-                case XML.Elem(Markup.READY, _, _)
-                if !initialized =>
-                  initialized = true
-                  change_receiver ! ProverEvents.Activate
+                case XML.Elem(Markup.READY, _, _) => this ! Ready
 
                 // document edits
                 case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
@@ -168,15 +159,17 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   }
 
   def act() {
+    var ready = false
     loop {
       react {
-        case change: Change =>
+        case Ready => ready = true
+        case change: Change if ready =>
           val old = document(change.parent.get.id).get
           val (doc, structure_change) = old.text_changed(change)
           document_versions ::= doc
           edit_document(old, doc, structure_change)
           change_receiver ! doc
-        case x => System.err.println("warning: ignored " + x)
+        case bad if ready => System.err.println("prover: ignoring bad message " + bad)
       }
     }
   }
