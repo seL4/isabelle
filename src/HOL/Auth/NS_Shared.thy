@@ -318,9 +318,7 @@ txt{*NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} 
     @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"} *} 
 apply (force dest!: Crypt_imp_keysFor)
 txt{*NS4*}
-apply (blast dest: B_trusts_NS3
-	           Says_imp_knows_Spy [THEN analz.Inj]
-                   Crypt_Spy_analz_bad unique_session_keys)
+apply (metis B_trusts_NS3 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst unique_session_keys)
 done
 
 text{*This version no longer assumes that K is secure*}
@@ -349,9 +347,7 @@ apply (simp_all add: ex_disj_distrib, blast)
 txt{*NS2*}
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
 txt{*NS4*}
-apply (blast dest: B_trusts_NS3
-	     dest: Says_imp_knows_Spy [THEN analz.Inj]
-                   unique_session_keys Crypt_Spy_analz_bad)
+apply (metis B_trusts_NS3 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst unique_session_keys)
 done
 
 
@@ -475,18 +471,15 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule ns_shared.induct, analz_mono_contra)
-apply (frule_tac [5] Says_S_message_form)
 apply (simp_all)
 txt{*Fake*}
 apply blast
 txt{*NS2*}
 apply (force dest!: Crypt_imp_keysFor)
-txt{*NS3, much quicker having installed @{term Says_S_message_form} before simplication*}
-apply fastsimp
+txt{*NS3*}
+apply (metis NS3_msg_in_parts_spies parts_cut_eq)
 txt{*NS5, the most important case, can be solved by unicity*}
-apply (case_tac "Aa \<in> bad")
-apply (force dest!: Says_imp_spies [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Snd, THEN analz.Snd, THEN analz.Fst])
-apply (blast dest: A_trusts_NS2 unique_session_keys)
+apply (metis A_trusts_NS2 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst analz.Snd unique_session_keys)
 done
 
 lemma A_Issues_B:
