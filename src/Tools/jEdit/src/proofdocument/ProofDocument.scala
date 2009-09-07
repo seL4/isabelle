@@ -9,7 +9,6 @@
 package isabelle.proofdocument
 
 import scala.actors.Actor, Actor._
-import scala.collection.mutable.ListBuffer
 
 import java.util.regex.Pattern
 
@@ -48,7 +47,7 @@ class ProofDocument(
   val tokens: Linear_Set[Token],
   val token_start: Map[Token, Int],
   val commands: Linear_Set[Command],
-  var states: Map[Command, Command_State],
+  var states: Map[Command, Command_State],   // FIXME immutable
   is_command_keyword: String => Boolean,
   change_receiver: Actor)
 {
