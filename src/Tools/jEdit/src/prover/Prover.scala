@@ -9,7 +9,6 @@
 package isabelle.prover
 
 
-import scala.collection.mutable
 import scala.actors.Actor, Actor._
 
 import javax.swing.JTextArea
@@ -21,18 +20,26 @@ import isabelle.proofdocument.{ProofDocument, Change, Token}
 class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: Actor)
   extends Actor
 {
+  /* message handling */
+  
+  private var prover_ready = false
+
+  def act() {
+    loop {
+      react {
+        case result: Isabelle_Process.Result => handle_result(result)
+        case change: Change if prover_ready => handle_change(change)
+        case bad if prover_ready => System.err.println("prover: ignoring bad message " + bad)
+      }
+    }
+  }
+
+
   /* prover process */
 
   private val process =
-  {
-    val receiver = new Actor {
-      def act() {
-        loop { react { case res: Isabelle_Process.Result => handle_result(res) } }
-      }
-    }.start
-    new Isabelle_Process(isabelle_system, receiver, "-m", "xsymbols", logic)
+    new Isabelle_Process(isabelle_system, this, "-m", "xsymbols", logic)
       with Isar_Document
-  }
 
   def stop() { process.kill }
 
@@ -51,25 +58,22 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
 
   /* document state information */
 
-  private val states = new mutable.HashMap[Isar_Document.State_ID, Command_State] with
-    mutable.SynchronizedMap[Isar_Document.State_ID, Command_State]
-  private val commands = new mutable.HashMap[Isar_Document.Command_ID, Command] with
-    mutable.SynchronizedMap[Isar_Document.Command_ID, Command]
+  @volatile private var states = Map[Isar_Document.State_ID, Command_State]()
+  @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
   val document_0 =
     ProofDocument.empty.
       set_command_keyword((s: String) => command_decls().contains(s)).
       set_change_receiver(change_receiver)
-  private var document_versions = List(document_0)
+  @volatile private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
-  def document(id: Isar_Document.Document_ID) = document_versions.find(_.id == id)
+  def document(id: Isar_Document.Document_ID): Option[ProofDocument] =
+    document_versions.find(_.id == id)
   
 
-  /* event handling */
+  /* prover results */
 
   val output_text_view = new JTextArea
-
-  private case object Ready
 
   private def handle_result(result: Isabelle_Process.Result)
   {
@@ -105,7 +109,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
                   _completion += name
 
                 // process ready (after initialization)
-                case XML.Elem(Markup.READY, _, _) => this ! Ready
+                case XML.Elem(Markup.READY, _, _) => prover_ready = true
 
                 // document edits
                 case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
@@ -118,11 +122,10 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
                     if (commands.contains(cmd_id)) {
                       val cmd = commands(cmd_id)
                       val state = new Command_State(cmd)
-                      states(state_id) = state
+                      states += (state_id -> state)
                       doc.states += (cmd -> state)
                       cmd.changed()
                     }
-
                   }
                 case XML.Elem(kind, attr, body) =>
                   // TODO: This is mostly irrelevant information on removed commands, but it can
@@ -139,25 +142,19 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
           case _ =>
         }
         //}}}
-
       case _ =>
     }
   }
 
-  def act() {
-    var ready = false
-    loop {
-      react {
-        case Ready => ready = true
-        case change: Change if ready =>
-          val old = document(change.parent.get.id).get
-          val (doc, structure_change) = old.text_changed(change)
-          document_versions ::= doc
-          edit_document(old, doc, structure_change)
-          change_receiver ! doc
-        case bad if ready => System.err.println("prover: ignoring bad message " + bad)
-      }
-    }
+
+  /* document changes */
+
+  def handle_change(change: Change) {
+    val old = document(change.parent.get.id).get
+    val (doc, structure_change) = old.text_changed(change)
+    document_versions ::= doc
+    edit_document(old, doc, structure_change)
+    change_receiver ! doc
   }
 
   def set_document(path: String) {
