@@ -68,7 +68,10 @@ in
    @post v subset s & p(v) &
          forall e in v. ~p(v \ e)
    *)
-  fun minimal p s = min p [] s
+  fun minimal p s =
+    case min p [] s of
+      [x] => if p [] then [] else [x]
+    | m => m
 end
 
 
