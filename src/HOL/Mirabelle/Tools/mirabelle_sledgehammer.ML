@@ -97,7 +97,7 @@ fun log_metis_data log sh_success metis_calls metis_success metis_time
   log ("Number of metis timeouts: " ^ str metis_timeout);
   log ("Number of metis exceptions: " ^
     str (sh_success - metis_success - metis_timeout));
-  log ("Success rate: " ^ percentage metis_success metis_calls ^ "%");
+  log ("Success rate: " ^ percentage metis_success sh_success ^ "%");
   log ("Total time for successful metis calls: " ^ str3 (time metis_time));
   log ("Average time for successful metis calls: " ^
     str3 (avg_time metis_time metis_success)))
@@ -266,6 +266,7 @@ fun sledgehammer_action args id (st as {log, ...}) =
 
 fun invoke args =
   let
+    val args = (metisK,"yes") :: args; (* always enable metis *)
     val _ = AtpManager.set_full_types (AList.defined (op =) args full_typesK)
   in Mirabelle.register (init, sledgehammer_action args, done) end
 
