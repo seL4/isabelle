@@ -37,6 +37,18 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   def stop() { process.kill }
 
   
+  /* outer syntax keywords and completion */
+
+  @volatile private var _keyword_decls = Set[String]()
+  def keyword_decls() = _keyword_decls
+
+  @volatile private var _command_decls = Map[String, String]()
+  def command_decls() = _command_decls
+
+  @volatile private var _completion = Isabelle.completion
+  def completion() = _completion
+
+
   /* document state information */
 
   private val states = new mutable.HashMap[Isar_Document.State_ID, Command_State] with
@@ -45,46 +57,17 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
     mutable.SynchronizedMap[Isar_Document.Command_ID, Command]
   val document_0 =
     ProofDocument.empty.
-      set_command_keyword(command_decls.contains).
+      set_command_keyword((s: String) => command_decls().contains(s)).
       set_change_receiver(change_receiver)
   private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
   def document(id: Isar_Document.Document_ID) = document_versions.find(_.id == id)
-
   
-  /* outer syntax keywords */
-
-  val decl_info = new EventBus[(String, String)]
-
-  private val keyword_decls =
-    new mutable.HashSet[String] with mutable.SynchronizedSet[String] {
-    override def +=(name: String) = {
-      decl_info.event(name, OuterKeyword.MINOR)
-      super.+=(name)
-    }
-  }
-  private val command_decls =
-    new mutable.HashMap[String, String] with mutable.SynchronizedMap[String, String] {
-    override def +=(entry: (String, String)) = {
-      decl_info.event(entry)
-      super.+=(entry)
-    }
-  }
-
-
-  /* completions */
-
-  private var _completion = Isabelle.completion
-  def completion = _completion
-  decl_info += (p => _completion += p._1)
-
 
   /* event handling */
-  lazy val output_info = new EventBus[Isabelle_Process.Result]
 
   val output_text_view = new JTextArea
-  output_info += (result => output_text_view.append(result.toString + "\n"))
 
   private case object Ready
 
@@ -98,7 +81,8 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
           else if (states.contains(id)) Some(states(id))
           else None
       }
-    output_info.event(result)
+    Swing_Thread.later { output_text_view.append(result.toString + "\n") }  // slow?
+
     val message = Isabelle_Process.parse_message(isabelle_system, result)
 
     if (state.isDefined) state.get ! message
@@ -114,9 +98,11 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
                 // command and keyword declarations
                 case XML.Elem(Markup.COMMAND_DECL,
                     (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-                  command_decls += (name -> kind)
+                  _command_decls += (name -> kind)
+                  _completion += name
                 case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-                  keyword_decls += name
+                  _keyword_decls += name
+                  _completion += name
 
                 // process ready (after initialization)
                 case XML.Elem(Markup.READY, _, _) => this ! Ready

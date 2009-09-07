@@ -87,7 +87,7 @@ class Plugin extends EBPlugin
   /* Isabelle font */
 
   var font: Font = null
-  val font_changed = new EventBus[Font]
+  val font_changed = new Event_Bus[Font]
 
   def set_font(size: Int)
   {
@@ -100,9 +100,9 @@ class Plugin extends EBPlugin
 
   /* event buses */
 
-  val state_update = new EventBus[Command]
-  val command_change = new EventBus[Command]
-  val document_change = new EventBus[ProofDocument]
+  val state_update = new Event_Bus[Command]
+  val command_change = new Event_Bus[Command]
+  val document_change = new Event_Bus[ProofDocument]
 
 
   /* selected state */
