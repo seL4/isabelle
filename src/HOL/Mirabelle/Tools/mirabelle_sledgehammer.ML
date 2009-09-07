@@ -24,58 +24,63 @@ datatype data = Data of {
   sh_success: int,
   sh_time_isa: int,
   sh_time_atp: int,
+  sh_time_atp_fail: int,
   metis_calls: int,
   metis_success: int,
   metis_time: int,
   metis_timeout: int }
 
-fun make_data (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls, metis_success,
+fun make_data (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success,
     metis_time, metis_timeout) =
   Data {sh_calls=sh_calls, sh_success=sh_success, sh_time_isa=sh_time_isa,
-    sh_time_atp=sh_time_atp,
+    sh_time_atp=sh_time_atp, sh_time_atp_fail=sh_time_atp_fail,
     metis_calls=metis_calls, metis_success=metis_success,
     metis_time=metis_time, metis_timeout=metis_timeout}
 
-fun map_data f (Data {sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+fun map_data f (Data {sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
     metis_success, metis_time, metis_timeout}) =
-  make_data (f (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls, metis_success,
+  make_data (f (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success,
     metis_time, metis_timeout))
 
-val empty_data = make_data (0, 0, 0, 0, 0, 0, 0, 0)
+val empty_data = make_data (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-val inc_sh_calls = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+val inc_sh_calls = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
   metis_success, metis_time, metis_timeout) => (sh_calls + 1, sh_success,
-  sh_time_isa, sh_time_atp, metis_calls, metis_success, metis_time, metis_timeout))
+  sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success, metis_time, metis_timeout))
 
-val inc_sh_success = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+val inc_sh_success = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
   metis_success, metis_time, metis_timeout) => (sh_calls, sh_success + 1,
-  sh_time_isa, sh_time_atp, metis_calls, metis_success, metis_time, metis_timeout))
+  sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success, metis_time, metis_timeout))
 
-fun inc_sh_time_isa t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+fun inc_sh_time_isa t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
   metis_success, metis_time, metis_timeout) => (sh_calls, sh_success,
-  sh_time_isa + t, sh_time_atp, metis_calls, metis_success, metis_time, metis_timeout))
+  sh_time_isa + t, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success, metis_time, metis_timeout))
 
-fun inc_sh_time_atp t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+fun inc_sh_time_atp t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
   metis_success, metis_time, metis_timeout) => (sh_calls, sh_success,
-  sh_time_isa, sh_time_atp + t, metis_calls, metis_success, metis_time, metis_timeout))
+  sh_time_isa, sh_time_atp + t, sh_time_atp_fail, metis_calls, metis_success, metis_time, metis_timeout))
 
-val inc_metis_calls = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+fun inc_sh_time_atp_fail t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
   metis_success, metis_time, metis_timeout) => (sh_calls, sh_success,
-  sh_time_isa, sh_time_atp, metis_calls + 1, metis_success, metis_time, metis_timeout))
+  sh_time_isa, sh_time_atp, sh_time_atp_fail + t, metis_calls, metis_success, metis_time, metis_timeout))
 
-val inc_metis_success = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp,
+val inc_metis_calls = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
+  metis_success, metis_time, metis_timeout) => (sh_calls, sh_success,
+  sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls + 1, metis_success, metis_time, metis_timeout))
+
+val inc_metis_success = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail,
   metis_calls, metis_success, metis_time, metis_timeout) => (sh_calls,
-  sh_success, sh_time_isa, sh_time_atp, metis_calls, metis_success + 1, metis_time,
+  sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success + 1, metis_time,
   metis_timeout))
 
-fun inc_metis_time t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp,
+fun inc_metis_time t = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail,
   metis_calls, metis_success, metis_time, metis_timeout) => (sh_calls,
-  sh_success, sh_time_isa, sh_time_atp, metis_calls, metis_success, metis_time + t,
+  sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success, metis_time + t,
   metis_timeout))
 
-val inc_metis_timeout = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp,
+val inc_metis_timeout = map_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail,
   metis_calls, metis_success, metis_time, metis_timeout) => (sh_calls,
-  sh_success, sh_time_isa, sh_time_atp, metis_calls, metis_success, metis_time,
+  sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls, metis_success, metis_time,
   metis_timeout + 1))
 
 
@@ -88,16 +93,19 @@ fun time t = Real.fromInt t / 1000.0
 fun avg_time t n =
   if n > 0 then (Real.fromInt t / 1000.0) / Real.fromInt n else 0.0
 
-fun log_sh_data log sh_calls sh_success sh_time_isa sh_time_atp =
+fun log_sh_data log sh_calls sh_success sh_time_isa sh_time_atp sh_time_atp_fail =
  (log ("Total number of sledgehammer calls: " ^ str sh_calls);
   log ("Number of successful sledgehammer calls: " ^ str sh_success);
   log ("Success rate: " ^ percentage sh_success sh_calls ^ "%");
-  log ("Total time for successful sledgehammer calls (Isabelle): " ^ str3 (time sh_time_isa));
+  log ("Total time for sledgehammer calls (Isabelle): " ^ str3 (time sh_time_isa));
   log ("Total time for successful sledgehammer calls (ATP): " ^ str3 (time sh_time_atp));
-  log ("Average time for successful sledgehammer calls (Isabelle): " ^
-    str3 (avg_time sh_time_isa sh_success));
+  log ("Total time for failed sledgehammer calls (ATP): " ^ str3 (time sh_time_atp_fail));
+  log ("Average time for sledgehammer calls (Isabelle): " ^
+    str3 (avg_time sh_time_isa sh_calls));
   log ("Average time for successful sledgehammer calls (ATP): " ^
-    str3 (avg_time sh_time_atp sh_success))
+    str3 (avg_time sh_time_atp sh_success));
+  log ("Average time for failed sledgehammer calls (ATP): " ^
+    str3 (avg_time sh_time_atp_fail (sh_calls - sh_success)))
   )
 
 fun log_metis_data log sh_calls sh_success metis_calls metis_success metis_time
@@ -114,12 +122,12 @@ fun log_metis_data log sh_calls sh_success metis_calls metis_success metis_time
 
 in
 
-fun log_data id log (Data {sh_calls, sh_success, sh_time_isa, sh_time_atp, metis_calls,
+fun log_data id log (Data {sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail, metis_calls,
     metis_success, metis_time, metis_timeout}) =
   if sh_calls > 0
   then
    (log ("\n\n\nReport #" ^ string_of_int id ^ ":\n");
-    log_sh_data log sh_calls sh_success sh_time_isa sh_time_atp;
+    log_sh_data log sh_calls sh_success sh_time_isa sh_time_atp sh_time_atp_fail;
     log "";
     if metis_calls > 0 then log_metis_data log sh_calls sh_success metis_calls
       metis_success metis_time metis_timeout else ())
@@ -164,17 +172,22 @@ fun init_sh NONE = !AtpWrapper.destdir
 
 fun done_sh path = AtpWrapper.destdir := path
 
+datatype sh_result =
+  SH_OK of int * int * string list |
+  SH_FAIL of int * int |
+  SH_ERROR
+
 fun run_sh (prover_name, prover) timeout st _ =
   let
     val atp = prover (Time.toSeconds timeout) NONE NONE prover_name 1
-    val ((success, (message, thm_names), atp_time, _, _, _), sh_time) =
+    val ((success, (message, thm_names), time_atp, _, _, _), time_isa) =
       Mirabelle.cpu_time atp (Proof.get_goal st)
   in
-    if success then (message, SOME (atp_time, sh_time, thm_names))
-    else (message, NONE)
+    if success then (message, SH_OK (time_isa, time_atp, thm_names))
+    else (message, SH_FAIL(time_isa, time_atp))
   end
-  handle ResHolClause.TOO_TRIVIAL => ("trivial", SOME (0, 0, []))
-       | ERROR msg => ("error: " ^ msg, NONE)
+  handle ResHolClause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
+       | ERROR msg => ("error: " ^ msg, SH_ERROR)
 
 fun thms_of_name ctxt name =
   let
@@ -193,25 +206,30 @@ in
 
 fun run_sledgehammer args named_thms id {pre=st, timeout, log, ...} =
   let
-    val _ = change_data id inc_sh_calls 
+    val _ = change_data id inc_sh_calls
     val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
     val dir = AList.lookup (op =) args keepK
     val (msg, result) = safe init_sh done_sh (run_sh atp timeout st) dir
   in
-    (case result of
-      SOME (atp_time, sh_time, names) =>
+    case result of
+      SH_OK (time_isa, time_atp, names) =>
         let
           val _ = change_data id inc_sh_success
-          val _ = change_data id (inc_sh_time_isa sh_time)
-          val _ = change_data id (inc_sh_time_atp atp_time)
+          val _ = change_data id (inc_sh_time_isa time_isa)
+          val _ = change_data id (inc_sh_time_atp time_atp)
 
           fun get_thms name = (name, thms_of_name (Proof.context_of st) name)
           val _ = named_thms := SOME (map get_thms names)
         in
-          log (sh_tag id ^ "succeeded (" ^ string_of_int atp_time ^ "+" ^
-            string_of_int sh_time ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
+          log (sh_tag id ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
+            string_of_int time_atp ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
         end
-    | NONE => log (sh_tag id ^ "failed: " ^ msg))
+    | SH_FAIL (time_isa, time_atp) =>
+        let
+          val _ = change_data id (inc_sh_time_isa time_isa)
+          val _ = change_data id (inc_sh_time_atp_fail time_atp)
+        in log (sh_tag id ^ "failed: " ^ msg) end
+    | SH_ERROR => log (sh_tag id ^ "failed: " ^ msg)
   end
 
 end
