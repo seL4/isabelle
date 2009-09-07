@@ -281,14 +281,15 @@ fun infer_types ctxt =
                (case Recon.strip_prefix ResClause.schematic_var_prefix v of
                     SOME w =>  mk_var(w, dummyT)
                   | NONE   => mk_var(v, dummyT))
+          | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn ("=",[]), ty])) = 
+              Const ("op =", HOLogic.typeT)
           | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (x,[]), ty])) =
              (case Recon.strip_prefix ResClause.const_prefix x of
                   SOME c => Const (Recon.invert_const c, dummyT)
                 | NONE => (*Not a constant. Is it a fixed variable??*)
               case Recon.strip_prefix ResClause.fixed_var_prefix x of
                   SOME v => Free (v, fol_type_to_isa ctxt ty)
-                | NONE => if x = "=" then Const ("op =", HOLogic.typeT)
-                          else error ("fol_term_to_hol_FT bad constant: " ^ x))
+                | NONE => error ("fol_term_to_hol_FT bad constant: " ^ x))
           | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (".",[tm1,tm2]), _])) =
               cvt tm1 $ cvt tm2
           | cvt (Metis.Term.Fn (".",[tm1,tm2])) = (*untyped application*)
@@ -723,7 +724,7 @@ fun infer_types ctxt =
 
   val metis_tac = metis_general_tac HO;
   val metisF_tac = metis_general_tac FO;
-  val metisFT_tac = metis_general_tac FO;
+  val metisFT_tac = metis_general_tac FT;
 
   fun method name mode comment = Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
     SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths))) comment;
