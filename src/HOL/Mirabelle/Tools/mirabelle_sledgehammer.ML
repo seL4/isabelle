@@ -6,6 +6,7 @@ structure Mirabelle_Sledgehammer : MIRABELLE_ACTION =
 struct
 
 val proverK = "prover"
+val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val metisK = "metis"
 val full_typesK = "full_types"
@@ -179,7 +180,7 @@ datatype sh_result =
 
 fun run_sh (prover_name, prover) timeout st _ =
   let
-    val atp = prover (Time.toSeconds timeout) NONE NONE prover_name 1
+    val atp = prover timeout NONE NONE prover_name 1
     val ((success, (message, thm_names), time_atp, _, _, _), time_isa) =
       Mirabelle.cpu_time atp (Proof.get_goal st)
   in
@@ -204,11 +205,12 @@ fun thms_of_name ctxt name =
 
 in
 
-fun run_sledgehammer args named_thms id {pre=st, timeout, log, ...} =
+fun run_sledgehammer args named_thms id {pre=st, log, ...} =
   let
     val _ = change_data id inc_sh_calls
     val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
     val dir = AList.lookup (op =) args keepK
+    val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     val (msg, result) = safe init_sh done_sh (run_sh atp timeout st) dir
   in
     case result of
