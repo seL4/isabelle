@@ -27,7 +27,8 @@ trait Accumulator extends Actor
   override def act() {
     loop {
       react {
-        case message: XML.Tree => _state += message
+        case (prover: Prover, message: XML.Tree) => _state = _state.+(prover, message)
+        case bad => System.err.println("prover: ignoring bad message " + bad)
       }
     }
   }
@@ -52,15 +53,12 @@ object Command
 
 class Command(
     val tokens: List[Token],
-    val starts: Map[Token, Int],
-  change_receiver: Actor) extends Accumulator
+    val starts: Map[Token, Int]) extends Accumulator
 {
   require(!tokens.isEmpty)
 
   val id = Isabelle.system.id()
   override def hashCode = id.hashCode
-
-  def changed() = change_receiver ! this
 
 
   /* content */

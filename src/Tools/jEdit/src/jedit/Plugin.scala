@@ -101,8 +101,6 @@ class Plugin extends EBPlugin
   /* event buses */
 
   val state_update = new Event_Bus[Command]
-  val command_change = new Event_Bus[Command]
-  val document_change = new Event_Bus[ProofDocument]
 
 
   /* selected state */

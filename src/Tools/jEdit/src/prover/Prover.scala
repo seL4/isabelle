@@ -17,10 +17,9 @@ import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
 
 
-class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: Actor)
-  extends Actor
+class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 {
-  /* message handling */
+  /* incoming messages */
   
   private var prover_ready = false
 
@@ -33,6 +32,12 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
       }
     }
   }
+
+
+  /* outgoing messages */
+  
+  val command_change = new Event_Bus[Command]
+  val document_change = new Event_Bus[ProofDocument]
 
 
   /* prover process */
@@ -62,8 +67,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
   val document_0 =
     ProofDocument.empty.
-      set_command_keyword((s: String) => command_decls().contains(s)).
-      set_change_receiver(change_receiver)
+      set_command_keyword((s: String) => command_decls().contains(s))
   @volatile private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
@@ -89,7 +93,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
 
     val message = Isabelle_Process.parse_message(isabelle_system, result)
 
-    if (state.isDefined) state.get ! message
+    if (state.isDefined) state.get ! (this, message)
     else result.kind match {
 
       case Isabelle_Process.Kind.STATUS =>
@@ -124,7 +128,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
                       val state = new Command_State(cmd)
                       states += (state_id -> state)
                       doc.states += (cmd -> state)
-                      cmd.changed()
+                      command_change.event(cmd)
                     }
                   }
                 case XML.Elem(kind, attr, body) =>
@@ -134,7 +138,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
                   val markup_id = Position.id_of(attr)
                   val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
                   if (outer && begin.isDefined && end.isDefined && markup_id.isDefined)
-                    commands.get(markup_id.get).map (cmd => cmd ! message)
+                    commands.get(markup_id.get).map(cmd => cmd ! (this, message))
                 case _ =>
                 //}}}
               }
@@ -154,7 +158,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String, change_receiver: A
     val (doc, structure_change) = old.text_changed(change)
     document_versions ::= doc
     edit_document(old, doc, structure_change)
-    change_receiver ! doc
+    document_change.event(doc)
   }
 
   def set_document(path: String) {

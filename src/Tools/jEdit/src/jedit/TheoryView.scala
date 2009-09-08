@@ -44,30 +44,18 @@ class TheoryView(text_area: JEditTextArea)
 
   /* prover setup */
 
-  val change_receiver: Actor = new Actor {
-    def act() {
-      loop {
-        react {
-          case c: Command =>
-            actor { Isabelle.plugin.command_change.event(c) }
-            if (current_document().commands.contains(c))
-            Swing_Thread.later {
-              // repaint if buffer is active
-              if (text_area.getBuffer == buffer) {
-                update_syntax(c)
-                invalidate_line(c)
-                phase_overview.repaint()
-              }
-            }
-          case d: ProofDocument =>
-            actor { Isabelle.plugin.document_change.event(d) }
-          case bad => System.err.println("change_receiver: ignoring bad message " + bad)
-        }
-      }
-    }
-  }
+  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic())
 
-  val prover: Prover = new Prover(Isabelle.system, Isabelle.default_logic(), change_receiver)
+  prover.command_change += ((command: Command) =>
+    if (current_document().commands.contains(command))
+      Swing_Thread.later {
+        // repaint if buffer is active
+        if (text_area.getBuffer == buffer) {
+          update_syntax(command)
+          invalidate_line(command)
+          phase_overview.repaint()
+        }
+      })
   
 
   /* activation */
@@ -325,7 +313,6 @@ class TheoryView(text_area: JEditTextArea)
 
   /* init */
 
-  change_receiver.start()
   prover.start()
 
   edits += Insert(0, buffer.getText(0, buffer.getLength))

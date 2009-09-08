@@ -70,7 +70,7 @@ class State(
 
   /* message dispatch */
 
-  def + (message: XML.Tree): State =
+  def + (prover: Prover, message: XML.Tree): State =
   {
     val changed: State =
       message match {
@@ -111,7 +111,7 @@ class State(
             })
         case _ => add_result(message)
       }
-    if (!(this eq changed)) command.changed()
+    if (!(this eq changed)) prover.command_change.event(command)
     changed
   }
 }

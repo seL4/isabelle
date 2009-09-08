@@ -16,14 +16,17 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-class BrowseVersionDockable(view : View, position : String) extends FlowPanel
+class BrowseVersionDockable(view: View, position: String) extends FlowPanel
 {
-
-  def get_versions() =
-    Isabelle.prover_setup(view.getBuffer).map(_.theory_view.changes).getOrElse(Nil)
-
   if (position == DockableWindowManager.FLOATING)
     preferredSize = new Dimension(500, 250)
+
+  def prover_setup(): Option[ProverSetup] = Isabelle.prover_setup(view.getBuffer)
+  def get_versions() =
+    prover_setup() match {
+      case None => Nil
+      case Some(setup) => setup.theory_view.changes
+    }
 
   val list = new ListView[Change]
   list.fixedCellWidth = 500
@@ -33,15 +36,8 @@ class BrowseVersionDockable(view : View, position : String) extends FlowPanel
   listenTo(list.selection)
   reactions += {
     case ListSelectionChanged(source, range, false) =>
-      Swing_Thread.now {
-        Isabelle.prover_setup(view.getBuffer).map(_.
-          theory_view.set_version(list.listData(range.start)))
-      }
-  }
+        prover_setup().map(_.theory_view.set_version(list.listData(range.start)))
+    }
 
-  private var num_changes = 0
-  Isabelle.plugin.document_change += {_ =>
-    list.listData = get_versions()
-  }
-
+  prover_setup.foreach(_.prover.document_change += (_ => list.listData = get_versions()))
 }
