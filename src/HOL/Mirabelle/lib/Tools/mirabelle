@@ -26,13 +26,17 @@ function usage() {
   echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
   echo "    -O DIR       output directory for test data (default $out)"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
+  echo "    -q           be quiet (suppress output of Isabelle process)" 
   echo
   echo "  Apply the given actions (i.e., automated proof tools)"
   echo "  at all proof steps in the given theory files."
   echo
   echo "  ACTIONS is a colon-separated list of actions, where each action is"
-  echo "  either NAME or NAME[KEY=VALUE,...,KEY=VALUE]. Available actions are:"
+  echo "  either NAME or NAME[OPTION,...,OPTION]. Available actions are:"
   print_action_names
+  echo
+  echo "  A list of available OPTIONs can be found here:"
+  echo "    $MIRABELLE_HOME/doc/options.txt"
   echo
   echo "  FILES is a list of theory files, where each file is either NAME.thy"
   echo "  or NAME.thy[START:END] and START and END are numbers indicating the"
@@ -46,7 +50,7 @@ function usage() {
 
 # options
 
-while getopts "L:T:O:t:?" OPT
+while getopts "L:T:O:t:q?" OPT
 do
   case "$OPT" in
     L)
@@ -61,15 +65,20 @@ do
     t)
       MIRABELLE_TIMEOUT="$OPTARG"
       ;;
+    q)
+      MIRABELLE_QUIET="true"
+      ;;
     \?)
       usage
       ;;
   esac
 done
 
+export MIRABELLE_QUIET
+
 shift $(($OPTIND - 1))
 
-ACTIONS="$1"
+export MIRABELLE_ACTIONS="$1"
 
 shift
 
@@ -83,6 +92,6 @@ mkdir -p "$MIRABELLE_OUTPUT_PATH"
 
 for FILE in "$@"
 do
-  perl -w "$MIRABELLE_HOME/lib/scripts/mirabelle.pl" "$ACTIONS" "$FILE"
+  perl -w "$MIRABELLE_HOME/lib/scripts/mirabelle.pl" "$FILE"
 done
 

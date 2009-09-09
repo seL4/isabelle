@@ -1,10 +1,10 @@
-(* Title: MirabelleTest.thy
+(* Title: Mirabelle_Test.thy
    Author: Sascha Boehme
 *)
 
 header {* Simple test theory for Mirabelle actions *}
 
-theory MirabelleTest
+theory Mirabelle_Test
 imports Main Mirabelle
 uses
   "Tools/mirabelle_arith.ML"

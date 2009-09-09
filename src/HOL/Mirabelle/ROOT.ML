@@ -1,1 +1,1 @@
-use_thy "MirabelleTest";
+use_thy "Mirabelle_Test";

@@ -23,6 +23,7 @@ sig
   val trace: bool ref
 
   val setup: theory -> theory
+  val add_const_alias: thm -> theory -> theory
 end;
 
 structure Nbe: NBE =
@@ -31,10 +32,107 @@ struct
 (* generic non-sense *)
 
 val trace = ref false;
-fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
+fun traced f x = if !trace then (tracing (f x); x) else x;
 
 
-(** the semantical universe **)
+(** certificates and oracle for "trivial type classes" **)
+
+structure Triv_Class_Data = TheoryDataFun
+(
+  type T = (class * thm) list;
+  val empty = [];
+  val copy = I;
+  val extend = I;
+  fun merge pp = AList.merge (op =) (K true);
+);
+
+fun add_const_alias thm thy =
+  let
+    val (ofclass, eqn) = case try Logic.dest_equals (Thm.prop_of thm)
+     of SOME ofclass_eq => ofclass_eq
+      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
+    val (T, class) = case try Logic.dest_of_class ofclass
+     of SOME T_class => T_class
+      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
+    val tvar = case try Term.dest_TVar T
+     of SOME (tvar as (_, sort)) => if null (filter (can (AxClass.get_info thy)) sort)
+          then tvar
+          else error ("Bad sort: " ^ Display.string_of_thm_global thy thm)
+      | _ => error ("Bad type: " ^ Display.string_of_thm_global thy thm);
+    val _ = if Term.add_tvars eqn [] = [tvar] then ()
+      else error ("Inconsistent type: " ^ Display.string_of_thm_global thy thm);
+    val lhs_rhs = case try Logic.dest_equals eqn
+     of SOME lhs_rhs => lhs_rhs
+      | _ => error ("Not an equation: " ^ Syntax.string_of_term_global thy eqn);
+    val c_c' = case try (pairself (Code.check_const thy)) lhs_rhs
+     of SOME c_c' => c_c'
+      | _ => error ("Not an equation with two constants: "
+          ^ Syntax.string_of_term_global thy eqn);
+    val _ = if the_list (AxClass.class_of_param thy (snd c_c')) = [class] then ()
+      else error ("Inconsistent class: " ^ Display.string_of_thm_global thy thm);
+  in Triv_Class_Data.map (AList.update (op =) (class, thm)) thy end;
+
+local
+
+val get_triv_classes = map fst o Triv_Class_Data.get;
+
+val (_, triv_of_class) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "triv_of_class", fn (thy, (v, T), class) =>
+    Thm.cterm_of thy (Logic.mk_of_class (T, class)))));
+
+in
+
+fun lift_triv_classes_conv thy conv ct =
+  let
+    val algebra = Sign.classes_of thy;
+    val triv_classes = get_triv_classes thy;
+    val certT = Thm.ctyp_of thy;
+    fun critical_classes sort = filter_out (fn class => Sign.subsort thy (sort, [class])) triv_classes;
+    val vs = Term.add_tfrees (Thm.term_of ct) []
+      |> map_filter (fn (v, sort) => case critical_classes sort
+          of [] => NONE
+           | classes => SOME (v, ((sort, classes), Sorts.inter_sort algebra (triv_classes, sort))));
+    val of_classes = maps (fn (v, ((sort, classes), _)) => map (fn class =>
+      ((v, class), triv_of_class (thy, (v, TVar ((v, 0), sort)), class))) classes
+      @ map (fn class => ((v, class), Thm.of_class (certT (TVar ((v, 0), sort)), class)))
+        sort) vs;
+    fun strip_of_class thm =
+      let
+        val prem_props = (Logic.strip_imp_prems o Thm.prop_of) thm;
+        val prem_thms = map (the o AList.lookup (op =) of_classes
+          o apfst (fst o fst o dest_TVar) o Logic.dest_of_class) prem_props;
+      in Drule.implies_elim_list thm prem_thms end;
+  in ct
+    |> Drule.cterm_rule Thm.varifyT
+    |> Thm.instantiate_cterm (Thm.certify_inst thy (map (fn (v, ((sort, _), sort')) =>
+        (((v, 0), sort), TFree (v, sort'))) vs, []))
+    |> Drule.cterm_rule Thm.freezeT
+    |> conv
+    |> Thm.varifyT
+    |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs
+    |> Thm.certify_instantiate (map (fn (v, ((sort, _), _)) =>
+        (((v, 0), []), TVar ((v, 0), sort))) vs, [])
+    |> strip_of_class
+    |> Thm.freezeT
+  end;
+
+fun lift_triv_classes_rew thy rew t =
+  let
+    val algebra = Sign.classes_of thy;
+    val triv_classes = get_triv_classes thy;
+    val vs = Term.add_tfrees t [];
+  in t
+    |> (map_types o map_type_tfree)
+        (fn (v, sort) => TFree (v, Sorts.inter_sort algebra (sort, triv_classes)))
+    |> rew
+    |> (map_types o map_type_tfree)
+        (fn (v, _) => TFree (v, the (AList.lookup (op =) vs v)))
+  end;
+
+end;
+
+
+(** the semantic universe **)
 
 (*
    Functions are given by their semantical function value. To avoid
@@ -275,7 +373,7 @@ fun compile_eqnss _ gr raw_deps [] = []
         val cs = map fst eqnss;
       in
         s
-        |> tracing (fn s => "\n--- code to be evaluated:\n" ^ s)
+        |> traced (fn s => "\n--- code to be evaluated:\n" ^ s)
         |> ML_Context.evaluate ctxt (!trace) univs_cookie
         |> (fn f => f deps_vals)
         |> (fn univs => cs ~~ univs)
@@ -450,13 +548,13 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
     compile_eval thy naming program (vs, t) deps
-    |> Code_Preproc.resubst_triv_consts thy
-    |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
+    |> traced (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
-    |> tracing (fn t => "Types inferred:\n" ^ string_of_term t)
+    |> traced (fn t => "Types inferred:\n" ^ string_of_term t)
     |> check_tvars
-    |> tracing (fn t => "---\n")
+    |> traced (fn t => "---\n")
   end;
+
 
 (* evaluation oracle *)
 
@@ -500,9 +598,9 @@ fun no_frees_rew rew t =
 val norm_conv = no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
-  in Code_Thingol.eval_conv thy (norm_oracle thy) ct end);
+  in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (norm_oracle thy)) ct end);
 
-fun norm thy = no_frees_rew (Code_Thingol.eval thy I (normalize thy));
+fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (normalize thy)));
 
 (* evaluation command *)
 

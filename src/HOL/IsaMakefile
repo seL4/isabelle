@@ -1124,7 +1124,7 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 
 HOL-Mirabelle: HOL $(LOG)/HOL-Mirabelle.gz
 
-$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/MirabelleTest.thy \
+$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
   Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML Mirabelle/ROOT.ML \
   Mirabelle/Tools/mirabelle_arith.ML \
   Mirabelle/Tools/mirabelle_metis.ML \

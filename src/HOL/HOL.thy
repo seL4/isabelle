@@ -1887,7 +1887,7 @@ setup {*
 *}
 
 setup {*
-  Code.add_const_alias @{thm equals_alias_cert}
+  Nbe.add_const_alias @{thm equals_alias_cert}
 *}
 
 hide (open) const eq
