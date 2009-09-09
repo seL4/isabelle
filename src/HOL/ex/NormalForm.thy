@@ -4,16 +4,7 @@ header {* Testing implementation of normalization by evaluation *}
 
 theory NormalForm
 imports Main Rational
-uses "~~/src/Tools/nbe.ML"
 begin
-
-setup {*
-  Nbe.add_const_alias @{thm equals_alias_cert}
-*}
-
-method_setup normalization = {*
-  Scan.succeed (K (SIMPLE_METHOD' (CONVERSION Nbe.norm_conv THEN' (fn k => TRY (rtac TrueI k)))))
-*} "solve goal by normalization"
 
 lemma "True" by normalization
 lemma "p \<longrightarrow> True" by normalization
@@ -136,6 +127,5 @@ lemma "(map f [x, y], w) = ([f x, f y], w)" by normalization
 lemma "map f [x, y] = [f x \<Colon> 'a\<Colon>semigroup_add, f y]" by normalization
 lemma "map f [x \<Colon> 'a\<Colon>semigroup_add, y] = [f x, f y]" by normalization
 lemma "(map f [x \<Colon> 'a\<Colon>semigroup_add, y], w \<Colon> 'b\<Colon>finite) = ([f x, f y], w)" by normalization
-
 
 end
