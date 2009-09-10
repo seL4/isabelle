@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/record.ML
-    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
+    Authors:    Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
+                Thomas Sewell, NICTA
 
 Extensible records with structural subtyping in HOL.
 *)
@@ -1029,22 +1030,12 @@ fun get_updupd_simps thy term defset intros_tac = let
                    (Symtab.insert (K true) (cname u, ()) seen) swaps;
   in swapsneeded updfuns [] Symtab.empty SymSymTab.empty end;
 
-fun named_cterm_instantiate values thm = let
-    fun match name (Var ((name', _), _)) = name = name'
-      | match name _ = false;
-    fun getvar name = case (find_first (match name)
-                                    (OldTerm.term_vars (prop_of thm)))
-      of SOME var => cterm_of (theory_of_thm thm) var
-       | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm])
-  in
-    cterm_instantiate (map (apfst getvar) values) thm
-  end;
+val named_cterm_instantiate = IsTupleSupport.named_cterm_instantiate;
 
 fun prove_unfold_defs thy ss T ex_simps ex_simprs prop =
   let
     val defset = get_sel_upd_defs thy;
-    val intros = IsTupleSupport.get_istuple_intros thy;
-    val in_tac = IsTupleSupport.resolve_from_tagged_net intros;
+    val in_tac = IsTupleSupport.istuple_intros_tac thy;
     val prop'  = Envir.beta_eta_contract prop;
     val (lhs, rhs)   = Logic.dest_equals (Logic.strip_assums_concl prop');
     val (head, args) = strip_comb lhs;
@@ -1136,8 +1127,7 @@ val record_simproc =
       | _ => NONE));
 
 fun get_upd_acc_cong_thm upd acc thy simpset = let
-    val intros = IsTupleSupport.get_istuple_intros thy;
-    val in_tac = IsTupleSupport.resolve_from_tagged_net intros;
+    val in_tac = IsTupleSupport.istuple_intros_tac thy;
 
     val insts = [("upd", cterm_of thy upd), ("acc", cterm_of thy acc)]
     val prop  = concl_of (named_cterm_instantiate insts updacc_cong_triv);
@@ -1567,14 +1557,14 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
       val left  = List.take (xs, half);
       val right = List.drop (xs, half);
     in
-      HOLogic.mk_prod (mktreeV left, mktreeV right)
+      IsTupleSupport.mk_cons_tuple (mktreeV left, mktreeV right)
     end;
 
     fun mk_istuple ((thy, i), (left, rght)) =
     let
       val suff = if i = 0 then ext_typeN else inner_typeN ^ (string_of_int i);
       val nm   = suffix suff (Long_Name.base_name name);
-      val (cons, thy') = IsTupleSupport.add_istuple_type
+      val (isom, cons, thy') = IsTupleSupport.add_istuple_type
                (nm, alphas_zeta) (fastype_of left, fastype_of rght) thy;
     in
       ((thy', i + 1), cons $ left $ rght)
@@ -1585,7 +1575,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     fun mk_even_istuple ((thy, i), [arg]) =
         ((thy, i), arg)
       | mk_even_istuple ((thy, i), args) =
-        mk_istuple ((thy, i), HOLogic.dest_prod (mktreeV args));
+        mk_istuple ((thy, i), IsTupleSupport.dest_cons_tuple (mktreeV args));
 
     fun build_meta_tree_type i thy vars more =
     let
@@ -1645,8 +1635,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val w     = Free (wN, extT);
     val P = Free (Name.variant variants "P", extT-->HOLogic.boolT);
     val C = Free (Name.variant variants "C", HOLogic.boolT);
-    val intros = IsTupleSupport.get_istuple_intros defs_thy;
-    val intros_tac = IsTupleSupport.resolve_from_tagged_net intros;
+    val intros_tac = IsTupleSupport.istuple_intros_tac defs_thy;
 
     val inject_prop =
       let val vars_more' = map (fn (Free (x,T)) => Free (x ^ "'",T)) vars_more;
@@ -1934,8 +1923,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         (Binding.name bname, alphas, recT0, Syntax.NoSyn)];
 
     val ext_defs = ext_def :: map #extdef parents;
-    val intros = IsTupleSupport.get_istuple_intros extension_thy;
-    val intros_tac = IsTupleSupport.resolve_from_tagged_net intros;
+    val intros_tac = IsTupleSupport.istuple_intros_tac extension_thy;
 
     (* Theorems from the istuple intros.
        This is complex enough to deserve a full comment.

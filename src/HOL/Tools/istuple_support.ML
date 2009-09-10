@@ -1,7 +1,7 @@
 (*  Title:	HOL/Tools/ntuple_support.ML
     Author:	Thomas Sewell, NICTA
 
-Support for defining instances of tuple-like types and extracting
+Support for defining instances of tuple-like types and supplying
 introduction rules needed by the record package.
 *)
 
@@ -9,81 +9,55 @@ introduction rules needed by the record package.
 signature ISTUPLE_SUPPORT =
 sig
   val add_istuple_type: bstring * string list -> (typ * typ) -> theory ->
-            (term * theory);
-  type tagged_net = ((string * int) * thm) Net.net;
+            (term * term * theory);
 
-  val get_istuple_intros: theory -> tagged_net;
+  val mk_cons_tuple: term * term -> term;
+  val dest_cons_tuple: term -> term * term;
 
-  val build_tagged_net: string -> thm list -> tagged_net;
-  val resolve_from_tagged_net: tagged_net -> int -> tactic;
-  val tag_thm_trace: thm list ref;
-  val merge_tagged_nets: (tagged_net * tagged_net) -> tagged_net;
+  val istuple_intros_tac: theory -> int -> tactic;
+
+  val named_cterm_instantiate: (string * cterm) list -> thm -> thm;
 end;
 
 structure IsTupleSupport : ISTUPLE_SUPPORT =
 struct
 
-val consN = "_NTupleCons";
+val isomN = "_TupleIsom";
 val defN = "_def";
 
-val istuple_UNIV_I = thm "istuple_UNIV_I";
-val istuple_True_simp = thm "istuple_True_simp";
+val istuple_UNIV_I = @{thm "istuple_UNIV_I"};
+val istuple_True_simp = @{thm "istuple_True_simp"};
 
-val istuple_intro = thm "isomorphic_tuple.intro";
-val istuple_intros = thms "isomorphic_tuple.intros";
+val istuple_intro = @{thm "isomorphic_tuple_intro"};
+val istuple_intros = build_net (@{thms "isomorphic_tuple.intros"});
 
-val init_intros = thms "tuple_automorphic.intros";
+val constname = fst o dest_Const;
+val tuple_istuple = (constname @{term tuple_istuple}, @{thm tuple_istuple});
 
-type tagged_net = ((string * int) * thm) Net.net;
+val istuple_constN = constname @{term isomorphic_tuple};
+val istuple_consN = constname @{term istuple_cons};
 
-(* broadly similar to the use of nets in Tactic.resolve_from_net_tac.
-   the tag strings identify which group of theorems a theorem in the
-   net belongs to. *)
-fun build_tagged_net tag thms = let
-    fun add_to_net thm (i, net) =
-        (i + 1, Net.insert_term (K false) (concl_of thm, ((tag, i), thm)) net);
-    val (n, net) = fold add_to_net thms (0, Net.empty);
-  in net end;
+val tup_isom_typeN = fst (dest_Type @{typ "('a, 'b, 'c) tuple_isomorphism"});
 
-val tag_thm_trace = ref ([] : thm list);
+fun named_cterm_instantiate values thm = let
+    fun match name (Var ((name', _), _)) = name = name'
+      | match name _ = false;
+    fun getvar name = case (find_first (match name)
+                                    (OldTerm.term_vars (prop_of thm)))
+      of SOME var => cterm_of (theory_of_thm thm) var
+       | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm])
+  in
+    cterm_instantiate (map (apfst getvar) values) thm
+  end;
 
-(* we check here that only theorems from a single group are being
-   selected for unification, and that there are no duplicates. this
-   is a good test that the net is doing its job, picking exactly the
-   appropriate rules rather than overapproximating. *)
-fun tagged_thms_check t xs = let
-    val tags = sort_distinct string_ord (map (fst o fst) xs);
-    val ids  = sort_distinct int_ord (map (snd o fst) xs);
-    val thms = map snd xs;
-in
-   if length tags > 1
-   then (tag_thm_trace := t :: thms;
-     raise THM ("tag mismatch " ^ hd tags ^ ", " ^ nth tags 1, 1, t :: thms))
-   else if length ids < length xs
-   then (tag_thm_trace := t :: thms;
-     raise THM ("tag match duplicate id ", 1, t :: thms))
-   else ()
-end;
-
-fun resolve_from_tagged_net net i t =
-  SUBGOAL (fn (prem, i) => let
-      val options = Net.unify_term net (Logic.strip_assums_concl prem);
-      val sorted  = sort (int_ord o pairself (snd o fst)) options;
-      val check   = tagged_thms_check t sorted;
-    in resolve_tac (map snd sorted) i end) i t;
-
-val merge_tagged_nets = Net.merge (Thm.eq_thm_prop o pairself snd);
-
-structure IsTupleIntros = TheoryDataFun
+structure IsTupleThms = TheoryDataFun
 (
-  type T = tagged_net;
-  val empty = build_tagged_net "initial introduction rules" init_intros;
+  type T = thm Symtab.table;
+  val empty = Symtab.make [tuple_istuple];
   val copy = I;
   val extend = I;
-  val merge = K merge_tagged_nets;
+  val merge = K (Symtab.merge Thm.eq_thm_prop);
 );
-
-val get_istuple_intros = IsTupleIntros.get;
 
 fun do_typedef name repT alphas thy =
   let
@@ -93,51 +67,82 @@ fun do_typedef name repT alphas thy =
           Abs_inverse=abs_inverse, ...} = Typedef.get_info thy name;
         val rewrite_rule = MetaSimplifier.rewrite_rule [istuple_UNIV_I, istuple_True_simp];
       in (map rewrite_rule [rep_inject, abs_inverse],
-            Const (absN, repT --> absT)) end;
+            Const (absN, repT --> absT), absT) end;
   in
     thy
     |> Typecopy.typecopy (Binding.name name, alphas) repT NONE
     |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
 
-(* copied from earlier version of HOLogic *)
-fun mk_curry t =
-  (case Term.fastype_of t of
-    T as (Type ("fun", [Type ("*", [A, B]), C])) =>
-      Const ("curry", T --> A --> B --> C) $ t
-  | _ => raise TERM ("mk_curry: bad body type", [t]));
+fun mk_cons_tuple (left, right) = let
+    val (leftT, rightT) = (fastype_of left, fastype_of right);
+    val prodT           = HOLogic.mk_prodT (leftT, rightT);
+    val isomT           = Type (tup_isom_typeN, [prodT, leftT, rightT]);
+  in
+    Const (istuple_consN, isomT --> leftT --> rightT --> prodT)
+      $ Const (fst tuple_istuple, isomT) $ left $ right
+  end;
 
-fun add_istuple_type (name, alphas) (left, right) thy =
+fun dest_cons_tuple (v as Const (ic, _) $ Const _ $ left $ right)
+  = if ic = istuple_consN then (left, right)
+    else raise TERM ("dest_cons_tuple", [v])
+  | dest_cons_tuple v = raise TERM ("dest_cons_tuple", [v]);
+
+fun add_istuple_type (name, alphas) (leftT, rightT) thy =
 let
-  val repT = HOLogic.mk_prodT (left, right);
+  val repT = HOLogic.mk_prodT (leftT, rightT);
 
-  val (([rep_inject, abs_inverse], abs), typ_thy) =
+  val (([rep_inject, abs_inverse], absC, absT), typ_thy) =
     thy
     |> do_typedef name repT alphas
     ||> Sign.add_path name;
 
-  val abs_curry = mk_curry abs;
-  val consT     = fastype_of abs_curry;
-  val consBind  = Binding.name (name ^ consN);
-  val cons      = Const (Sign.full_name typ_thy consBind, consT);
-  val cons_spec = (name ^ consN ^ defN, Logic.mk_equals (cons, abs_curry));
+  (* construct a type and body for the isomorphism constant by
+     instantiating the theorem to which the definition will be applied *)
+  val intro_inst = rep_inject RS
+                   (named_cterm_instantiate [("abst", cterm_of typ_thy absC)]
+                        istuple_intro);
+  val (_, body)  = Logic.dest_equals (List.last (prems_of intro_inst));
+  val isomT      = fastype_of body;
+  val isomBind   = Binding.name (name ^ isomN);
+  val isom       = Const (Sign.full_name typ_thy isomBind, isomT);
+  val isom_spec  = (name ^ isomN ^ defN, Logic.mk_equals (isom, body));
 
-  val ([cons_def], cdef_thy) =
+  val ([isom_def], cdef_thy) =
     typ_thy
-    |> Sign.add_consts_i [Syntax.no_syn (consBind, consT)]
-    |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name cons_spec)];
+    |> Sign.add_consts_i [Syntax.no_syn (isomBind, isomT)]
+    |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
 
-  val istuple = [abs_inverse, cons_def] MRS (rep_inject RS istuple_intro);
-  val intros = [istuple] RL istuple_intros;
-  val intro_net = build_tagged_net name intros;
+  val istuple = isom_def RS (abs_inverse RS (rep_inject RS istuple_intro));
+  val cons    = Const (istuple_consN, isomT --> leftT --> rightT --> absT)
 
   val thm_thy =
     cdef_thy
-    |> IsTupleIntros.map (curry merge_tagged_nets intro_net)
+    |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop
+                           (constname isom, istuple))
     |> Sign.parent_path;
 in
-  (cons, thm_thy)
+  (isom, cons $ isom, thm_thy)
 end;
+
+fun istuple_intros_tac thy = let
+    val isthms  = IsTupleThms.get thy;
+    fun err s t = raise TERM ("istuple_intros_tac: " ^ s, [t]);
+    val use_istuple_thm_tac = SUBGOAL (fn (goal, n) => let
+        val goal' = Envir.beta_eta_contract goal;
+        val isom  = case goal' of (Const tp $ (Const pr $ Const is))
+                    => if fst tp = "Trueprop" andalso fst pr = istuple_constN
+                       then Const is
+                       else err "unexpected goal predicate" goal'
+            | _ => err "unexpected goal format" goal';
+        val isthm = case Symtab.lookup isthms (constname isom) of
+                    SOME isthm => isthm
+                  | NONE => err "no thm found for constant" isom;
+      in rtac isthm n end);
+  in
+    fn n => resolve_from_net_tac istuple_intros n
+            THEN use_istuple_thm_tac n
+  end;
 
 end;
 

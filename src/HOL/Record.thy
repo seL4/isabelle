@@ -1,5 +1,4 @@
 (*  Title:      HOL/Record.thy
-    ID:         $Id: Record.thy,v 1.33 2007/12/19 15:32:12 schirmer Exp $
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
 *)
 

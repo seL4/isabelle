@@ -1,20 +1,95 @@
+(*  Title:      HOL/IsTuple.thy
+    Author:     Thomas Sewell, NICTA
+*)
+
+header {* Operators on types isomorphic to tuples *}
+
 theory IsTuple imports Product_Type
 
 uses ("Tools/istuple_support.ML")
 
 begin
 
+text {*
+This module provides operators and lemmas for types isomorphic to tuples.
+These types are used in defining efficient records. Consider the record
+access/update simplification, alpha (beta_update f rec) = alpha rec for
+distinct fields alpha and beta of some record type with n fields. There
+are n^2 such theorems, which is prohibits storage of all of them for
+large n. The rules can be proved on the fly by case decomposition and
+simplification in O(n) time. By creating O(n) isomorphic-tuple types
+while defining the record, however, we can prove the access/update
+simplification in O(log(n)^2) time.
+
+The O(n) cost of case decomposition is not because O(n) steps are taken,
+but rather because the resulting rule must contain O(n) new variables and
+an O(n) size concrete record construction. To sidestep this cost, we would
+like to avoid case decomposition in proving access/update theorems.
+
+Record types are defined as isomorphic to tuple types. For instance, a
+record type with fields 'a, 'b, 'c and 'd might be introduced as
+isomorphic to 'a \<times> ('b \<times> ('c \<times> 'd)). If we balance the tuple tree to
+('a \<times> 'b) \<times> ('c \<times> 'd) then accessors can be defined by converting to
+the underlying type then using O(log(n)) fst or snd operations.
+Updators can be defined similarly, if we introduce a fst_update and
+snd_update function. Furthermore, we can prove the access/update
+theorem in O(log(n)) steps by using simple rewrites on fst, snd,
+fst_update and snd_update.
+
+The catch is that, although O(log(n)) steps were taken, the underlying
+type we converted to is a tuple tree of size O(n). Processing this term
+type wastes performance. We avoid this for large n by taking each
+subtree of size K and defining a new type isomorphic to that tuple
+subtree. The record can now be defined as isomorphic to a tuple tree
+of these O(n/K) new types, or, if n > K*K, we can repeat the process,
+until the record can be defined in terms of a tuple tree of complexity
+less than the constant K.
+
+If we prove the access/update theorem on this type with the analagous
+steps to the tuple tree, we consume O(log(n)^2) time as the intermediate
+terms are O(log(n)) in size and the types needed have size bounded by K.
+To enable this analagous traversal, we define the functions seen below:
+istuple_fst, istuple_snd, istuple_fst_update and istuple_snd. These
+functions generalise tuple operations by taking a parameter that
+encapsulates a tuple isomorphism. The rewrites needed on these functions
+now need an additional assumption which is that the isomorphism works.
+
+These rewrites are typically used in a structured way. With a little
+thinking they can be presented as an introduction rule set rather than
+a rewrite rule set. This is an optimisation, as net matching can be
+performed at one term location for each step rather than the simplifier
+searching the term for possible applications.
+*}
+
+typedef ('a, 'b, 'c) tuple_isomorphism
+  = "UNIV :: (('a \<Rightarrow> ('b \<times> 'c)) \<times> (('b \<times> 'c) \<Rightarrow> 'a)) set"
+  by simp
+
 constdefs
-  istuple_fst :: "('a \<Rightarrow> ('b \<times> 'c)) \<Rightarrow> 'a \<Rightarrow> 'b"
- "istuple_fst isom \<equiv> (fst \<circ> isom)"
-  istuple_snd :: "('a \<Rightarrow> ('b \<times> 'c)) \<Rightarrow> 'a \<Rightarrow> 'c"
- "istuple_snd isom \<equiv> (snd \<circ> isom)"
-  istuple_fst_update :: "('a \<Rightarrow> ('b \<times> 'c)) \<Rightarrow> (('b \<times> 'c) \<Rightarrow> 'a)
-                           \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)"
- "istuple_fst_update isom inv \<equiv> \<lambda>f v. inv (f (fst (isom v)), snd (isom v))"
-  istuple_snd_update :: "('a \<Rightarrow> ('b \<times> 'c)) \<Rightarrow> (('b \<times> 'c) \<Rightarrow> 'a)
-                           \<Rightarrow> ('c \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'a)"
- "istuple_snd_update isom inv \<equiv> \<lambda>f v. inv (fst (isom v), f (snd (isom v)))"
+  "TupleIsomorphism repr abst \<equiv> Abs_tuple_isomorphism (repr, abst)"
+
+constdefs
+  istuple_fst :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'b"
+ "istuple_fst isom \<equiv> let (repr, abst) = Rep_tuple_isomorphism isom in fst \<circ> repr"
+  istuple_snd :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'a \<Rightarrow> 'c"
+ "istuple_snd isom \<equiv>  let (repr, abst) = Rep_tuple_isomorphism isom in snd \<circ> repr"
+  istuple_fst_update :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)"
+ "istuple_fst_update isom \<equiv>
+     let (repr, abst) = Rep_tuple_isomorphism isom in
+        (\<lambda>f v. abst (f (fst (repr v)), snd (repr v)))"
+  istuple_snd_update :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> ('c \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'a)"
+ "istuple_snd_update isom \<equiv>
+     let (repr, abst) = Rep_tuple_isomorphism isom in
+        (\<lambda>f v. abst (fst (repr v), f (snd (repr v))))"
+  istuple_cons :: "('a, 'b, 'c) tuple_isomorphism \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'a"
+ "istuple_cons isom \<equiv> let (repr, abst) = Rep_tuple_isomorphism isom in curry abst"
+
+text {*
+These predicates are used in the introduction rule set to constrain
+matching appropriately. The elimination rules for them produce the
+desired theorems once they are proven. The final introduction rules are
+used when no further rules from the introduction rule set can apply.
+*}
 
 constdefs
   istuple_surjective_proof_assist :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
@@ -121,129 +196,137 @@ lemma istuple_surjective_proof_assist_idE:
   by (simp add: istuple_surjective_proof_assist_def)
 
 locale isomorphic_tuple =
-  fixes isom :: "'a \<Rightarrow> ('b \<times> 'c)" and inv :: "('b \<times> 'c) \<Rightarrow> 'a"
-    and cons :: "'b \<Rightarrow> 'c \<Rightarrow> 'a"
-  assumes isom_eq: "(isom x = isom y) = (x = y)"
-  and inverse_inv: "isom (inv v) = v"
-  and cons_def: "cons \<equiv> curry inv"
+  fixes isom :: "('a, 'b, 'c) tuple_isomorphism" 
+       and repr and abst
+  defines "repr \<equiv> fst (Rep_tuple_isomorphism isom)"
+  defines "abst \<equiv> snd (Rep_tuple_isomorphism isom)"
+  assumes repr_inv: "\<And>x. abst (repr x) = x"
+  assumes abst_inv: "\<And>y. repr (abst y) = y"
 
 begin
 
-lemma inverse_isom:
-  "(inv (isom v)) = v"
-  by (rule iffD1 [OF isom_eq], simp add: inverse_inv)
-
-lemma inv_eq:
-  "(inv x = inv y) = (x = y)"
-  apply (rule iffI)
-   apply (drule arg_cong[where f=isom])
-   apply (simp add: inverse_inv)
-  apply simp
+lemma repr_inj:
+  "(repr x = repr y) = (x = y)"
+  apply (rule iffI, simp_all)
+  apply (drule_tac f=abst in arg_cong, simp add: repr_inv)
   done
 
-lemmas simps = isom_eq inv_eq inverse_inv inverse_isom cons_def
+lemma abst_inj:
+  "(abst x = abst y) = (x = y)"
+  apply (rule iffI, simp_all)
+  apply (drule_tac f=repr in arg_cong, simp add: abst_inv)
+  done
+
+lemma split_Rep:
+  "split f (Rep_tuple_isomorphism isom)
+     = f repr abst"
+  by (simp add: split_def repr_def abst_def)
+
+lemmas simps = Let_def split_Rep repr_inv abst_inv repr_inj abst_inj
 
 lemma istuple_access_update_fst_fst:
   "\<lbrakk> f o h g = j o f \<rbrakk> \<Longrightarrow>
-    (f o istuple_fst isom) o (istuple_fst_update isom inv o h) g
+    (f o istuple_fst isom) o (istuple_fst_update isom o h) g
           = j o (f o istuple_fst isom)"
   by (clarsimp simp: istuple_fst_update_def istuple_fst_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_access_update_snd_snd:
   "\<lbrakk> f o h g = j o f \<rbrakk> \<Longrightarrow>
-    (f o istuple_snd isom) o (istuple_snd_update isom inv o h) g
+    (f o istuple_snd isom) o (istuple_snd_update isom o h) g
           = j o (f o istuple_snd isom)"
   by (clarsimp simp: istuple_snd_update_def istuple_snd_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_access_update_fst_snd:
-  "(f o istuple_fst isom) o (istuple_snd_update isom inv o h) g
+  "(f o istuple_fst isom) o (istuple_snd_update isom o h) g
           = id o (f o istuple_fst isom)"
   by (clarsimp simp: istuple_snd_update_def istuple_fst_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_access_update_snd_fst:
-  "(f o istuple_snd isom) o (istuple_fst_update isom inv o h) g
+  "(f o istuple_snd isom) o (istuple_fst_update isom o h) g
           = id o (f o istuple_snd isom)"
   by (clarsimp simp: istuple_fst_update_def istuple_snd_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_update_swap_fst_fst:
   "\<lbrakk> h f o j g = j g o h f \<rbrakk> \<Longrightarrow>
-    (istuple_fst_update isom inv o h) f o (istuple_fst_update isom inv o j) g
-          = (istuple_fst_update isom inv o j) g o (istuple_fst_update isom inv o h) f"
+    (istuple_fst_update isom o h) f o (istuple_fst_update isom o j) g
+          = (istuple_fst_update isom o j) g o (istuple_fst_update isom o h) f"
   by (clarsimp simp: istuple_fst_update_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_update_swap_snd_snd:
   "\<lbrakk> h f o j g = j g o h f \<rbrakk> \<Longrightarrow>
-    (istuple_snd_update isom inv o h) f o (istuple_snd_update isom inv o j) g
-          = (istuple_snd_update isom inv o j) g o (istuple_snd_update isom inv o h) f"
+    (istuple_snd_update isom o h) f o (istuple_snd_update isom o j) g
+          = (istuple_snd_update isom o j) g o (istuple_snd_update isom o h) f"
   by (clarsimp simp: istuple_snd_update_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_update_swap_fst_snd:
-  "(istuple_snd_update isom inv o h) f o (istuple_fst_update isom inv o j) g
-          = (istuple_fst_update isom inv o j) g o (istuple_snd_update isom inv o h) f"
+  "(istuple_snd_update isom o h) f o (istuple_fst_update isom o j) g
+          = (istuple_fst_update isom o j) g o (istuple_snd_update isom o h) f"
   by (clarsimp simp: istuple_fst_update_def istuple_snd_update_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_update_swap_snd_fst:
-  "(istuple_fst_update isom inv o h) f o (istuple_snd_update isom inv o j) g
-          = (istuple_snd_update isom inv o j) g o (istuple_fst_update isom inv o h) f"
+  "(istuple_fst_update isom o h) f o (istuple_snd_update isom o j) g
+          = (istuple_snd_update isom o j) g o (istuple_fst_update isom o h) f"
   by (clarsimp simp: istuple_fst_update_def istuple_snd_update_def simps
              intro!: ext elim!: o_eq_elim)
 
 lemma istuple_update_compose_fst_fst:
   "\<lbrakk> h f o j g = k (f o g) \<rbrakk> \<Longrightarrow>
-    (istuple_fst_update isom inv o h) f o (istuple_fst_update isom inv o j) g
-          = (istuple_fst_update isom inv o k) (f o g)"
+    (istuple_fst_update isom o h) f o (istuple_fst_update isom o j) g
+          = (istuple_fst_update isom o k) (f o g)"
   by (fastsimp simp: istuple_fst_update_def simps
              intro!: ext elim!: o_eq_elim dest: fun_cong)
 
 lemma istuple_update_compose_snd_snd:
   "\<lbrakk> h f o j g = k (f o g) \<rbrakk> \<Longrightarrow>
-    (istuple_snd_update isom inv o h) f o (istuple_snd_update isom inv o j) g
-          = (istuple_snd_update isom inv o k) (f o g)"
+    (istuple_snd_update isom o h) f o (istuple_snd_update isom o j) g
+          = (istuple_snd_update isom o k) (f o g)"
   by (fastsimp simp: istuple_snd_update_def simps
              intro!: ext elim!: o_eq_elim dest: fun_cong)
 
 lemma istuple_surjective_proof_assist_step:
   "\<lbrakk> istuple_surjective_proof_assist v a (istuple_fst isom o f);
      istuple_surjective_proof_assist v b (istuple_snd isom o f) \<rbrakk>
-      \<Longrightarrow> istuple_surjective_proof_assist v (cons a b) f"
+      \<Longrightarrow> istuple_surjective_proof_assist v (istuple_cons isom a b) f"
   by (clarsimp simp: istuple_surjective_proof_assist_def simps
-                     istuple_fst_def istuple_snd_def)
+                     istuple_fst_def istuple_snd_def istuple_cons_def)
 
 lemma istuple_fst_update_accessor_cong_assist:
   "istuple_update_accessor_cong_assist f g \<Longrightarrow>
-      istuple_update_accessor_cong_assist (istuple_fst_update isom inv o f) (g o istuple_fst isom)"
-  by (simp add: istuple_update_accessor_cong_assist_def istuple_fst_update_def istuple_fst_def simps)
+      istuple_update_accessor_cong_assist (istuple_fst_update isom o f) (g o istuple_fst isom)"
+  by (clarsimp simp: istuple_update_accessor_cong_assist_def simps
+                     istuple_fst_update_def istuple_fst_def)
 
 lemma istuple_snd_update_accessor_cong_assist:
   "istuple_update_accessor_cong_assist f g \<Longrightarrow>
-      istuple_update_accessor_cong_assist (istuple_snd_update isom inv o f) (g o istuple_snd isom)"
-  by (simp add: istuple_update_accessor_cong_assist_def istuple_snd_update_def istuple_snd_def simps)
+      istuple_update_accessor_cong_assist (istuple_snd_update isom o f) (g o istuple_snd isom)"
+  by (clarsimp simp: istuple_update_accessor_cong_assist_def simps
+                     istuple_snd_update_def istuple_snd_def)
 
 lemma istuple_fst_update_accessor_eq_assist:
   "istuple_update_accessor_eq_assist f g a u a' v \<Longrightarrow>
-      istuple_update_accessor_eq_assist (istuple_fst_update isom inv o f) (g o istuple_fst isom)
-              (cons a b) u (cons a' b) v"
-  by (simp add: istuple_update_accessor_eq_assist_def istuple_fst_update_def istuple_fst_def simps
-                istuple_update_accessor_cong_assist_def)
+      istuple_update_accessor_eq_assist (istuple_fst_update isom o f) (g o istuple_fst isom)
+              (istuple_cons isom a b) u (istuple_cons isom a' b) v"
+  by (clarsimp simp: istuple_update_accessor_eq_assist_def istuple_fst_update_def istuple_fst_def
+                     istuple_update_accessor_cong_assist_def istuple_cons_def simps)
 
 lemma istuple_snd_update_accessor_eq_assist:
   "istuple_update_accessor_eq_assist f g b u b' v \<Longrightarrow>
-      istuple_update_accessor_eq_assist (istuple_snd_update isom inv o f) (g o istuple_snd isom)
-              (cons a b) u (cons a b') v"
-  by (simp add: istuple_update_accessor_eq_assist_def istuple_snd_update_def istuple_snd_def simps
-                istuple_update_accessor_cong_assist_def)
+      istuple_update_accessor_eq_assist (istuple_snd_update isom o f) (g o istuple_snd isom)
+              (istuple_cons isom a b) u (istuple_cons isom a b') v"
+  by (clarsimp simp: istuple_update_accessor_eq_assist_def istuple_snd_update_def istuple_snd_def
+                     istuple_update_accessor_cong_assist_def istuple_cons_def simps)
 
-lemma cons_conj_eqI:
+lemma istuple_cons_conj_eqI:
   "\<lbrakk> (a = c \<and> b = d \<and> P) = Q \<rbrakk> \<Longrightarrow>
-    (cons a b = cons c d \<and> P) = Q"
-  by (simp add: simps)
+    (istuple_cons isom a b = istuple_cons isom c d \<and> P) = Q"
+  by (clarsimp simp: istuple_cons_def simps)
 
 lemmas intros =
     istuple_access_update_fst_fst
@@ -261,12 +344,27 @@ lemmas intros =
     istuple_snd_update_accessor_eq_assist
     istuple_fst_update_accessor_cong_assist
     istuple_snd_update_accessor_cong_assist
-    cons_conj_eqI
+    istuple_cons_conj_eqI
 
 end
 
-interpretation tuple_automorphic: isomorphic_tuple "id" "id" "Pair"
-  by (unfold_locales, simp_all add: curry_def)
+lemma isomorphic_tuple_intro:
+  assumes repr_inj: "\<And>x y. (repr x = repr y) = (x = y)"
+     and abst_inv: "\<And>z. repr (abst z) = z"
+  shows "v \<equiv> TupleIsomorphism repr abst \<Longrightarrow> isomorphic_tuple v"
+  apply (rule isomorphic_tuple.intro,
+         simp_all add: TupleIsomorphism_def Abs_tuple_isomorphism_inverse
+                       tuple_isomorphism_def abst_inv)
+  apply (cut_tac x="abst (repr x)" and y="x" in repr_inj)
+  apply (simp add: abst_inv)
+  done
+
+constdefs
+ "tuple_istuple \<equiv> TupleIsomorphism id id"
+
+lemma tuple_istuple:
+  "isomorphic_tuple tuple_istuple"
+  by (simp add: isomorphic_tuple_intro[OF _ _ reflexive] tuple_istuple_def)
 
 lemma refl_conj_eq:
   "Q = R \<Longrightarrow> (P \<and> Q) = (P \<and> R)"
