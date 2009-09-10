@@ -54,7 +54,7 @@ val setup = setup1 #> setup2 #> setup3 #> setup4
 type init_action = int -> theory -> theory
 type done_action = int -> {last: Toplevel.state, log: string -> unit} -> unit
 type run_action = int -> {pre: Proof.state, post: Toplevel.state option,
-  timeout: Time.time, log: string -> unit} -> unit
+  timeout: Time.time, log: string -> unit, pos: Position.T} -> unit
 type action = init_action * run_action * done_action
 
 structure Actions = TheoryDataFun
@@ -92,9 +92,9 @@ fun log thy s =
 
 fun log_sep thy = log thy "------------------"
 
-fun apply_actions thy info (pre, post, time) actions =
+fun apply_actions thy pos info (pre, post, time) actions =
   let
-    fun apply f = f {pre=pre, post=post, timeout=time, log=log thy}
+    fun apply f = f {pre=pre, post=post, timeout=time, log=log thy, pos=pos}
     fun run (id, run, _) = (apply (run id); log_sep thy)
   in (log thy info; log_sep thy; List.app run actions) end
 
@@ -118,7 +118,7 @@ fun run_actions tr pre post =
     val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
     val info = "\n\nat " ^ loc ^ " (" ^ name ^ "):"
   in
-    only_within_range thy pos (apply_actions thy info st) (Actions.get thy)
+    only_within_range thy pos (apply_actions thy pos info st) (Actions.get thy)
   end
 
 fun done_actions st =
