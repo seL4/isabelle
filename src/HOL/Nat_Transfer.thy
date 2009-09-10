@@ -3,7 +3,7 @@
 
 header {* Sets up transfer from nats to ints and back. *}
 
-theory NatTransfer
+theory Nat_Transfer
 imports Main Parity
 begin
 
@@ -79,7 +79,7 @@ lemma transfer_nat_int_relations:
       (nat (x::int) <= nat y) = (x <= y)"
     "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow>
       (nat (x::int) dvd nat y) = (x dvd y)"
-  by (auto simp add: zdvd_int even_nat_def)
+  by (auto simp add: zdvd_int)
 
 declare TransferMorphism_nat_int[transfer add return:
   transfer_nat_int_numerals

@@ -291,7 +291,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Log.thy \
   Lubs.thy \
   MacLaurin.thy \
-  NatTransfer.thy \
+  Nat_Transfer.thy \
   NthRoot.thy \
   SEQ.thy \
   Series.thy \
