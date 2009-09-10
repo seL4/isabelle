@@ -286,9 +286,12 @@ fun make_parent_info name fields extension induct extdef =
 type record_data =
  {records: record_info Symtab.table,
   sel_upd:
-   {selectors: unit Symtab.table,
+   {selectors: (int * bool) Symtab.table,
     updates: string Symtab.table,
-    simpset: Simplifier.simpset},
+    simpset: Simplifier.simpset,
+    defset: Simplifier.simpset,
+    foldcong: Simplifier.simpset,
+    unfoldcong: Simplifier.simpset},
   equalities: thm Symtab.table,
   extinjects: thm list,
   extsplit: thm Symtab.table, (* maps extension name to split rule *)
@@ -410,15 +413,25 @@ fun get_update_details u thy = let
       in SOME (s, dep, ismore) end
   | NONE => NONE end;
 
-fun put_sel_upd names simps = RecordsData.map (fn {records,
-  sel_upd = {selectors, updates, simpset},
-    equalities, extinjects, extsplit, splits, extfields, fieldext} =>
-  make_record_data records
-    {selectors = fold (fn name => Symtab.update (name, ())) names selectors,
-      updates = fold (fn name => Symtab.update ((suffix updateN) name, name)) names updates,
-      simpset = Simplifier.addsimps (simpset, simps)}
-      equalities extinjects extsplit splits extfields fieldext);
+fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
+  let
+    val all  = names @ [more];
+    val sels = map (rpair (depth, false)) names @ [(more, (depth, true))];
+    val upds = map (suffix updateN) all ~~ all;
 
+    val {records, sel_upd = {selectors, updates, simpset,
+                             defset, foldcong, unfoldcong},
+      equalities, extinjects, extsplit, splits, extfields,
+      fieldext} = RecordsData.get thy;
+    val data = make_record_data records
+      {selectors = fold Symtab.update_new sels selectors,
+        updates = fold Symtab.update_new upds updates,
+        simpset = Simplifier.addsimps (simpset, simps),
+        defset = Simplifier.addsimps (defset, defs),
+        foldcong = foldcong addcongs folds,
+        unfoldcong = unfoldcong addcongs unfolds}
+       equalities extinjects extsplit splits extfields fieldext;
+  in RecordsData.put data thy end;
 
 (* access 'equalities' *)
 
@@ -958,7 +971,7 @@ fun get_updfuns (upd $ _ $ t) = upd :: get_updfuns t
 fun get_accupd_simps thy term defset intros_tac = let
     val (acc, [body]) = strip_comb term;
     val recT          = domain_type (fastype_of acc);
-    val updfuns       = sort_distinct Term.fast_term_ord
+    val updfuns       = sort_distinct TermOrd.fast_term_ord
                            (get_updfuns body);
     fun get_simp upd  = let
         val T    = domain_type (fastype_of upd);
@@ -975,8 +988,8 @@ fun get_accupd_simps thy term defset intros_tac = let
       in standard (othm RS dest) end;
   in map get_simp updfuns end;
 
-structure SymSymTab = TableFun(type key = string * string
-                                val ord = prod_ord fast_string_ord fast_string_ord);
+structure SymSymTab = Table(type key = string * string
+                            val ord = prod_ord fast_string_ord fast_string_ord);
 
 fun get_updupd_simp thy defset intros_tac u u' comp = let
     val f    = Free ("f", domain_type (fastype_of u));
@@ -1019,7 +1032,8 @@ fun get_updupd_simps thy term defset intros_tac = let
 fun named_cterm_instantiate values thm = let
     fun match name (Var ((name', _), _)) = name = name'
       | match name _ = false;
-    fun getvar name = case (find_first (match name) (term_vars (prop_of thm)))
+    fun getvar name = case (find_first (match name)
+                                    (OldTerm.term_vars (prop_of thm)))
       of SOME var => cterm_of (theory_of_thm thm) var
        | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm])
   in
@@ -1114,7 +1128,7 @@ val record_simproc =
               (case mk_eq_terms (upd$k$r) of
                  SOME (trm,trm',vars)
                  => SOME (prove_unfold_defs thy ss domS [] []
-                             (list_all(vars,(equals rangeS$(sel$trm)$trm'))))
+                             (list_all(vars,(Logic.mk_equals (sel$trm, trm')))))
                | NONE => NONE)
             end
           | NONE => NONE)
@@ -1206,7 +1220,7 @@ val record_upd_simproc =
         fun mk_updterm ((upd as Const (u, T), s, f) :: upds) above term = let
             val (lhs, rhs, vars, dups, simp, noops) =
                   mk_updterm upds (Symtab.update (u, ()) above) term;
-            val (fvar, skelf) = K_skeleton (Sign.base_name s) (domain_type T)
+            val (fvar, skelf) = K_skeleton (Long_Name.base_name s) (domain_type T)
                                       (Bound (length vars)) f;
             val (isnoop, skelf') = is_upd_noop s f term;
             val funT  = domain_type T;
@@ -1240,7 +1254,7 @@ val record_upd_simproc =
       in
         if simp then
            SOME (prove_unfold_defs thy ss baseT noops' [record_simproc]
-                             (list_all(vars,(equals baseT$lhs$rhs))))
+                             (list_all(vars,(Logic.mk_equals (lhs, rhs)))))
         else NONE
       end)
 
@@ -1559,7 +1573,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     fun mk_istuple ((thy, i), (left, rght)) =
     let
       val suff = if i = 0 then ext_typeN else inner_typeN ^ (string_of_int i);
-      val nm   = suffix suff (Sign.base_name name);
+      val nm   = suffix suff (Long_Name.base_name name);
       val (cons, thy') = IsTupleSupport.add_istuple_type
                (nm, alphas_zeta) (fastype_of left, fastype_of rght) thy;
     in
@@ -1586,7 +1600,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                              :: group16 (Library.drop (16, xs));
           val vars' = group16 vars;
           val ((thy', i'), composites) =
-                   foldl_map mk_even_istuple ((thy, i), vars');
+                   Library.foldl_map mk_even_istuple ((thy, i), vars');
         in
           build_meta_tree_type i' thy' composites more
         end
@@ -1711,14 +1725,13 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                   asm_simp_tac HOL_ss 1]) end;
     val induct = timeit_msg "record extension induct proof:" induct_prf;
 
-    val (([inject',induct',surjective',split_meta',ext_def'],
-          [dest_convs',upd_convs']),
+    val ([inject',induct',surjective',split_meta',ext_def'],
       thm_thy) =
       defs_thy
       |> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
            [("ext_inject", inject),
             ("ext_induct", induct),
-            ("ext_surjective", surjective),
+            ("ext_surjective", surject),
             ("ext_split", split_meta),
             ("ext_def", ext_def)]
 
@@ -2114,7 +2127,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun get_upd_acc_congs () = let
         val symdefs  = map symmetric (sel_defs @ upd_defs);
         val fold_ss  = HOL_basic_ss addsimps symdefs;
-        val ua_congs = map (simplify fold_ss) upd_acc_cong_assists;
+        val ua_congs = map (standard o simplify fold_ss) upd_acc_cong_assists;
       in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end;
     val (fold_congs, unfold_congs) =
           timeit_msg "record upd fold/unfold congs:" get_upd_acc_congs;
@@ -2137,12 +2150,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           THEN resolve_tac prems 1)
       end;
     val induct = timeit_msg "record induct proof:" induct_prf;
-
-    fun surjective_prf () =
-      prove_standard [] surjective_prop (fn prems =>
-          (EVERY [try_param_tac rN induct_scheme 1,
-                  simp_tac (ss addsimps sel_convs_standard) 1]))
-    val surjective = timeit_msg "record surjective proof:" surjective_prf;
 
     fun cases_scheme_prf_opt () =
       let
@@ -2171,17 +2178,16 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val cases = timeit_msg "record cases proof:" cases_prf;
 
     fun surjective_prf () = let
-        val o_ass_thm = symmetric (mk_meta_eq o_assoc);
-        val o_reassoc = simplify (HOL_basic_ss addsimps [o_ass_thm]);
-        val sel_defs' = map o_reassoc sel_defs;
-        val ss        = HOL_basic_ss addsimps (ext_defs @ sel_defs');
+        val leaf_ss   = get_sel_upd_defs defs_thy
+                                addsimps (sel_defs @ (o_assoc :: id_o_apps));
+        val init_ss   = HOL_basic_ss addsimps ext_defs;
       in
         prove_standard [] surjective_prop (fn prems =>
             (EVERY [rtac surject_assist_idE 1,
-                    simp_tac ss 1,
+                    simp_tac init_ss 1,
                     REPEAT (intros_tac 1 ORELSE
                             (rtac surject_assistI 1 THEN
-                             simp_tac (HOL_basic_ss addsimps id_o_apps) 1))]))
+                             simp_tac leaf_ss 1))]))
       end;
     val surjective = timeit_msg "record surjective proof:" surjective_prf;
 
@@ -2230,7 +2236,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun split_ex_prf () =
       let
         val ss   = HOL_basic_ss addsimps [not_ex RS sym, nth simp_thms 1];
-        val [Pv] = term_vars (prop_of split_object);
+        val [Pv] = OldTerm.term_vars (prop_of split_object);
         val cPv  = cterm_of defs_thy Pv;
         val cP   = cterm_of defs_thy (lambda r0 (HOLogic.mk_not (P $ r0)));
         val so3  = cterm_instantiate ([(cPv, cP)]) split_object;
@@ -2256,16 +2262,18 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
      val equality = timeit_msg "record equality proof:" equality_prf;
 
     val ((([sel_convs', upd_convs', sel_defs', upd_defs',
-            fold_congs', unfold_congs', surjective',
+            fold_congs', unfold_congs',
           [split_meta', split_object', split_ex'], derived_defs'],
           [surjective', equality']),
           [induct_scheme', induct', cases_scheme', cases']), thms_thy) =
       defs_thy
       |> (PureThy.add_thmss o map (Thm.no_attributes o apfst Binding.name))
          [("select_convs", sel_convs_standard),
-          ("update_convs", upd_convs),
+          ("update_convs", upd_convs_standard),
           ("select_defs", sel_defs),
           ("update_defs", upd_defs),
+          ("fold_congs", fold_congs),
+          ("unfold_congs", unfold_congs),
           ("splits", [split_meta_standard,split_object,split_ex]),
           ("defs", derived_defs)]
       ||>> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
@@ -2289,7 +2297,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             [Simplifier.simp_add, Nitpick_Const_Simps.add]),
            ((Binding.name "iffs", iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme' ext_def)
-      |> put_sel_upd_names full_moreN depth sel_upd_simps
+      |> put_sel_upd names full_moreN depth sel_upd_simps
                            sel_upd_defs (fold_congs', unfold_congs')
       |> add_record_equalities extension_id equality'
       |> add_extinjects ext_inject

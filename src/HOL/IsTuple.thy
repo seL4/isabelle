@@ -265,7 +265,7 @@ lemmas intros =
 
 end
 
-interpretation tuple_automorphic: isomorphic_tuple [id id Pair]
+interpretation tuple_automorphic: isomorphic_tuple "id" "id" "Pair"
   by (unfold_locales, simp_all add: curry_def)
 
 lemma refl_conj_eq:
@@ -281,8 +281,6 @@ lemma istuple_UNIV_I: "\<And>x. x\<in>UNIV \<equiv> True"
 
 lemma istuple_True_simp: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
   by simp
-
-ML {* val traceref = ref [TrueI]; *}
 
 use "Tools/istuple_support.ML";
 

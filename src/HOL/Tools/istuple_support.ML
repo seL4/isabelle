@@ -90,15 +90,22 @@ fun do_typedef name repT alphas thy =
     fun get_thms thy name =
       let
         val SOME { Rep_inject=rep_inject, Abs_name=absN, abs_type=absT,
-          Abs_inverse=abs_inverse, ...} = TypedefPackage.get_info thy name;
+          Abs_inverse=abs_inverse, ...} = Typedef.get_info thy name;
         val rewrite_rule = MetaSimplifier.rewrite_rule [istuple_UNIV_I, istuple_True_simp];
       in (map rewrite_rule [rep_inject, abs_inverse],
             Const (absN, repT --> absT)) end;
   in
     thy
-    |> TypecopyPackage.add_typecopy (name, alphas) repT NONE
+    |> Typecopy.typecopy (Binding.name name, alphas) repT NONE
     |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
+
+(* copied from earlier version of HOLogic *)
+fun mk_curry t =
+  (case Term.fastype_of t of
+    T as (Type ("fun", [Type ("*", [A, B]), C])) =>
+      Const ("curry", T --> A --> B --> C) $ t
+  | _ => raise TERM ("mk_curry: bad body type", [t]));
 
 fun add_istuple_type (name, alphas) (left, right) thy =
 let
@@ -109,15 +116,16 @@ let
     |> do_typedef name repT alphas
     ||> Sign.add_path name;
 
-  val abs_curry = HOLogic.mk_curry abs;
+  val abs_curry = mk_curry abs;
   val consT     = fastype_of abs_curry;
-  val cons      = Const (Sign.full_name typ_thy (name ^ consN), consT);
+  val consBind  = Binding.name (name ^ consN);
+  val cons      = Const (Sign.full_name typ_thy consBind, consT);
   val cons_spec = (name ^ consN ^ defN, Logic.mk_equals (cons, abs_curry));
 
   val ([cons_def], cdef_thy) =
     typ_thy
-    |> Sign.add_consts_i [Syntax.no_syn (name ^ consN, consT)]
-    |> PureThy.add_defs_i false [Thm.no_attributes cons_spec];
+    |> Sign.add_consts_i [Syntax.no_syn (consBind, consT)]
+    |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name cons_spec)];
 
   val istuple = [abs_inverse, cons_def] MRS (rep_inject RS istuple_intro);
   val intros = [istuple] RL istuple_intros;
@@ -132,14 +140,5 @@ in
 end;
 
 end;
-
-structure IsTupleIntros2 = TheoryDataFun
-(
-  type T = IsTupleSupport.tagged_net;
-  val empty = IsTupleSupport.build_tagged_net "" [];
-  val copy = I;
-  val extend = I;
-  val merge = K IsTupleSupport.merge_tagged_nets;
-);
 
 
