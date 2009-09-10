@@ -1102,20 +1102,6 @@ proof-
   thus ?thesis by simp
 qed
 
-
-theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
-apply (simp split add: split_nat)
-apply (rule iffI)
-apply (erule exE)
-apply (rule_tac x = "int x" in exI)
-apply simp
-apply (erule exE)
-apply (rule_tac x = "nat x" in exI)
-apply (erule conjE)
-apply (erule_tac x = "nat x" in allE)
-apply simp
-done
-
 theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
 proof -
   have "\<And>k. int y = int x * k \<Longrightarrow> x dvd y"
