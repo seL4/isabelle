@@ -5,7 +5,7 @@
 *)
 
 (* Preliminaries from set and number theory *)
-no_document use_thys ["FuncSet", "Primes", "Binomial", "Permutation"];
+no_document use_thys ["FuncSet", "~~/src/HOL/Old_Number_Theory/Primes", "Binomial", "Permutation"];
 
 
 (*** New development, based on explicit structures ***)

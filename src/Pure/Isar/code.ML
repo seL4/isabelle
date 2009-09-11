@@ -19,11 +19,6 @@ sig
   val constrset_of_consts: theory -> (string * typ) list
     -> string * ((string * sort) list * (string * typ list) list)
 
-  (*constant aliasses*)
-  val add_const_alias: thm -> theory -> theory
-  val triv_classes: theory -> class list
-  val resubst_alias: theory -> string -> string
-
   (*code equations*)
   val mk_eqn: theory -> thm * bool -> thm * bool
   val mk_eqn_warning: theory -> thm -> (thm * bool) option
@@ -169,7 +164,6 @@ fun del_thm thm = (apsnd o Lazy.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm
 
 datatype spec = Spec of {
   history_concluded: bool,
-  aliasses: ((string * string) * thm) list * class list,
   eqns: ((bool * eqns) * (serial * eqns) list) Symtab.table
     (*with explicit history*),
   dtyps: ((serial * ((string * sort) list * (string * typ list) list)) list) Symtab.table
@@ -177,19 +171,16 @@ datatype spec = Spec of {
   cases: (int * (int * string list)) Symtab.table * unit Symtab.table
 };
 
-fun make_spec ((history_concluded, aliasses), (eqns, (dtyps, cases))) =
-  Spec { history_concluded = history_concluded, aliasses = aliasses,
-    eqns = eqns, dtyps = dtyps, cases = cases };
-fun map_spec f (Spec { history_concluded = history_concluded, aliasses = aliasses, eqns = eqns,
+fun make_spec (history_concluded, (eqns, (dtyps, cases))) =
+  Spec { history_concluded = history_concluded, eqns = eqns, dtyps = dtyps, cases = cases };
+fun map_spec f (Spec { history_concluded = history_concluded, eqns = eqns,
   dtyps = dtyps, cases = cases }) =
-  make_spec (f ((history_concluded, aliasses), (eqns, (dtyps, cases))));
-fun merge_spec (Spec { history_concluded = _, aliasses = aliasses1, eqns = eqns1,
+  make_spec (f (history_concluded, (eqns, (dtyps, cases))));
+fun merge_spec (Spec { history_concluded = _, eqns = eqns1,
     dtyps = dtyps1, cases = (cases1, undefs1) },
-  Spec { history_concluded = _, aliasses = aliasses2, eqns = eqns2,
+  Spec { history_concluded = _, eqns = eqns2,
     dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
-    val aliasses = (Library.merge (eq_snd Thm.eq_thm_prop) (pairself fst (aliasses1, aliasses2)),
-      Library.merge (op =) (pairself snd (aliasses1, aliasses2)));
     fun merge_eqns ((_, history1), (_, history2)) =
       let
         val raw_history = AList.merge (op = : serial * serial -> bool)
@@ -202,15 +193,13 @@ fun merge_spec (Spec { history_concluded = _, aliasses = aliasses1, eqns = eqns1
     val dtyps = Symtab.join (K (AList.merge (op =) (K true))) (dtyps1, dtyps2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
-  in make_spec ((false, aliasses), (eqns, (dtyps, cases))) end;
+  in make_spec (false, (eqns, (dtyps, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
-fun the_aliasses (Spec { aliasses, ... }) = aliasses;
 fun the_eqns (Spec { eqns, ... }) = eqns;
 fun the_dtyps (Spec { dtyps, ... }) = dtyps;
 fun the_cases (Spec { cases, ... }) = cases;
-val map_history_concluded = map_spec o apfst o apfst;
-val map_aliasses = map_spec o apfst o apsnd;
+val map_history_concluded = map_spec o apfst;
 val map_eqns = map_spec o apsnd o apfst;
 val map_dtyps = map_spec o apsnd o apsnd o apfst;
 val map_cases = map_spec o apsnd o apsnd o apsnd;
@@ -264,7 +253,7 @@ val empty_data = Datatab.empty : data;
 structure Code_Data = TheoryDataFun
 (
   type T = spec * data ref;
-  val empty = (make_spec ((false, ([], [])),
+  val empty = (make_spec (false,
     (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty)))), ref empty_data);
   fun copy (spec, data) = (spec, ref (! data));
   val extend = copy;
@@ -356,24 +345,6 @@ fun change_yield_data (kind, mk, dest) =
   in thy_data chnge end;
 
 end; (*local*)
-
-
-(** retrieval interfaces **)
-
-(* constant aliasses *)
-
-fun resubst_alias thy =
-  let
-    val alias = (fst o the_aliasses o the_exec) thy;
-    val subst_inst_param = Option.map fst o AxClass.inst_of_param thy;
-    fun subst_alias c =
-      get_first (fn ((c', c''), _) => if c = c'' then SOME c' else NONE) alias;
-  in
-    perhaps subst_inst_param
-    #> perhaps subst_alias
-  end;
-
-val triv_classes = snd o the_aliasses o the_exec;
 
 
 (** foundation **)
@@ -668,38 +639,6 @@ fun print_codesetup thy =
 
 
 (** declaring executable ingredients **)
-
-(* constant aliasses *)
-
-fun add_const_alias thm thy =
-  let
-    val (ofclass, eqn) = case try Logic.dest_equals (Thm.prop_of thm)
-     of SOME ofclass_eq => ofclass_eq
-      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
-    val (T, class) = case try Logic.dest_of_class ofclass
-     of SOME T_class => T_class
-      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
-    val tvar = case try Term.dest_TVar T
-     of SOME (tvar as (_, sort)) => if null (filter (can (AxClass.get_info thy)) sort)
-          then tvar
-          else error ("Bad sort: " ^ Display.string_of_thm_global thy thm)
-      | _ => error ("Bad type: " ^ Display.string_of_thm_global thy thm);
-    val _ = if Term.add_tvars eqn [] = [tvar] then ()
-      else error ("Inconsistent type: " ^ Display.string_of_thm_global thy thm);
-    val lhs_rhs = case try Logic.dest_equals eqn
-     of SOME lhs_rhs => lhs_rhs
-      | _ => error ("Not an equation: " ^ Syntax.string_of_term_global thy eqn);
-    val c_c' = case try (pairself (check_const thy)) lhs_rhs
-     of SOME c_c' => c_c'
-      | _ => error ("Not an equation with two constants: "
-          ^ Syntax.string_of_term_global thy eqn);
-    val _ = if the_list (AxClass.class_of_param thy (snd c_c')) = [class] then ()
-      else error ("Inconsistent class: " ^ Display.string_of_thm_global thy thm);
-  in thy |>
-    (map_exec_purge NONE o map_aliasses) (fn (alias, classes) =>
-      ((c_c', thm) :: alias, insert (op =) class classes))
-  end;
-
 
 (* datatypes *)
 

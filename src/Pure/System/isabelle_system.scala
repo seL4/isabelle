@@ -42,13 +42,11 @@ object Isabelle_System
     val rc = proc.waitFor
     (output, rc)
   }
-
 }
 
 
 class Isabelle_System
 {
-
   /** unique ids **/
 
   private var id_count: BigInt = 0
@@ -244,6 +242,7 @@ class Isabelle_System
   }
 
 
+
   /** system tools **/
 
   /* external processes */
@@ -294,6 +293,7 @@ class Isabelle_System
       else new FileInputStream(fifo)
     new BufferedReader(new InputStreamReader(stream, Isabelle_System.charset))
   }
+
 
 
   /** Isabelle resources **/

@@ -592,15 +592,14 @@ proof (rule up_eqI)
         proof (cases "n = k")
           case True
           then have "\<zero> = (\<Oplus>i \<in> {..<n} \<union> {n}. ?s i)"
-            by (simp cong: R.finsum_cong add: ivl_disj_int_singleton Pi_def)
+            by (simp cong: R.finsum_cong add: Pi_def)
           also from True have "... = (\<Oplus>i \<in> {..k}. ?s i)"
             by (simp only: ivl_disj_un_singleton)
           finally show ?thesis .
         next
           case False with n_le_k have n_less_k: "n < k" by arith
           with neq have "\<zero> = (\<Oplus>i \<in> {..<n} \<union> {n}. ?s i)"
-            by (simp add: R.finsum_Un_disjoint f1 f2
-              ivl_disj_int_singleton Pi_def del: Un_insert_right)
+            by (simp add: R.finsum_Un_disjoint f1 f2 Pi_def del: Un_insert_right)
           also have "... = (\<Oplus>i \<in> {..n}. ?s i)"
             by (simp only: ivl_disj_un_singleton)
           also from n_less_k neq have "... = (\<Oplus>i \<in> {..n} \<union> {n<..k}. ?s i)"
@@ -817,15 +816,9 @@ by (fast intro: le_anti_sym deg_aboveI deg_belowI)
 text {* Degree and polynomial operations *}
 
 lemma deg_add [simp]:
-  assumes R: "p \<in> carrier P" "q \<in> carrier P"
-  shows "deg R (p \<oplus>\<^bsub>P\<^esub> q) <= max (deg R p) (deg R q)"
-proof (cases "deg R p <= deg R q")
-  case True show ?thesis
-    by (rule deg_aboveI) (simp_all add: True R deg_aboveD)
-next
-  case False show ?thesis
-    by (rule deg_aboveI) (simp_all add: False R deg_aboveD)
-qed
+  "p \<in> carrier P \<Longrightarrow> q \<in> carrier P \<Longrightarrow>
+  deg R (p \<oplus>\<^bsub>P\<^esub> q) <= max (deg R p) (deg R q)"
+by(rule deg_aboveI)(simp_all add: deg_aboveD)
 
 lemma deg_monom_le:
   "a \<in> carrier R ==> deg R (monom P a n) <= n"
@@ -945,8 +938,7 @@ next
     also have "...= (\<Oplus>i \<in> {deg R p} \<union> {deg R p <.. deg R p + deg R q}. ?s i)"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff P p (deg R p) \<otimes> coeff P q (deg R q)"
-      by (simp cong: R.finsum_cong
-	add: ivl_disj_int_singleton deg_aboveD R Pi_def)
+      by (simp cong: R.finsum_cong add: deg_aboveD R Pi_def)
     finally have "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i)
       = coeff P p (deg R p) \<otimes> coeff P q (deg R q)" .
     with nz show "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i) ~= \<zero>"
@@ -989,8 +981,7 @@ proof (rule up_eqI)
     have "... = coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..<k} \<union> {k}. ?s i) k"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff P p k"
-      by (simp cong: R.finsum_cong
-	add: ivl_disj_int_singleton coeff_finsum deg_aboveD R RR Pi_def)
+      by (simp cong: R.finsum_cong add: coeff_finsum deg_aboveD R RR Pi_def)
     finally show ?thesis .
   next
     case False
@@ -998,8 +989,7 @@ proof (rule up_eqI)
           coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..<deg R p} \<union> {deg R p}. ?s i) k"
       by (simp only: ivl_disj_un_singleton)
     also from False have "... = coeff P p k"
-      by (simp cong: R.finsum_cong
-	add: ivl_disj_int_singleton coeff_finsum deg_aboveD R Pi_def)
+      by (simp cong: R.finsum_cong add: coeff_finsum deg_aboveD R Pi_def)
     finally show ?thesis .
   qed
 qed (simp_all add: R Pi_def)

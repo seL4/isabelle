@@ -429,7 +429,7 @@ fun desymbolize_vars thy thm =
 
 fun desymbolize_all_vars thy = desymbolize_tvars thy #> map (desymbolize_vars thy);
 
-fun clean_thms thy = same_arity thy #> desymbolize_all_vars thy;
+fun clean_thms thy = map (Thm.transfer thy) #> same_arity thy #> desymbolize_all_vars thy;
 
 
 (** statements, abstract programs **)

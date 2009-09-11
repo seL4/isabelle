@@ -23,6 +23,7 @@ sig
   datatype literal = Literal of polarity * combterm
   datatype clause = Clause of {clause_id: clause_id, axiom_name: axiom_name, th: thm,
                     kind: ResClause.kind,literals: literal list, ctypes_sorts: typ list}
+  val type_of_combterm: combterm -> ResClause.fol_type
   val strip_comb: combterm -> combterm * combterm list
   val literals_of_term: theory -> term -> literal list * typ list
   exception TOO_TRIVIAL

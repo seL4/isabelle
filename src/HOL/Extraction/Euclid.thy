@@ -1,5 +1,4 @@
 (*  Title:      HOL/Extraction/Euclid.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
                 Freek Wiedijk, Radboud University Nijmegen
                 Stefan Berghofer, TU Muenchen
@@ -8,7 +7,7 @@
 header {* Euclid's theorem *}
 
 theory Euclid
-imports "~~/src/HOL/NumberTheory/Factorization" Util Efficient_Nat
+imports "~~/src/HOL/Old_Number_Theory/Factorization" Util Efficient_Nat
 begin
 
 text {*

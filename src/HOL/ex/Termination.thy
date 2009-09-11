@@ -1,5 +1,4 @@
 (* Title:       HOL/ex/Termination.thy
-   ID:          $Id$
    Author:      Lukas Bulwahn, TU Muenchen
    Author:      Alexander Krauss, TU Muenchen
 *)
@@ -10,11 +9,32 @@ theory Termination
 imports Main Multiset
 begin
 
-text {*
-  The @{text fun} command uses the method @{text lexicographic_order} by default.
-*}
+subsection {* Manually giving termination relations using @{text relation} and
+@{term measure} *}
 
-subsection {* Trivial examples *}
+function sum :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "sum i N = (if i > N then 0 else i + sum (Suc i) N)"
+by pat_completeness auto
+
+termination by (relation "measure (\<lambda>(i,N). N + 1 - i)") auto
+
+function foo :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "foo i N = (if i > N 
+              then (if N = 0 then 0 else foo 0 (N - 1))
+              else i + foo (Suc i) N)"
+by pat_completeness auto
+
+termination by (relation "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]") auto
+
+
+subsection {* @{text lexicographic_order}: Trivial examples *}
+
+text {*
+  The @{text fun} command uses the method @{text lexicographic_order} by default,
+  so it is not explicitly invoked.
+*}
 
 fun identity :: "nat \<Rightarrow> nat"
 where

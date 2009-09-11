@@ -15,7 +15,7 @@ end
 structure NormArith : NORM_ARITH = 
 struct
 
- open Conv Thm Conv2;
+ open Conv Thm;
  val bool_eq = op = : bool *bool -> bool
   fun dest_ratconst t = case term_of t of
    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
@@ -322,6 +322,7 @@ local
      val ths = map_filter (fn (v,t) => if v =/ Rat.zero then NONE 
                                      else SOME(norm_cmul_rule v t))
                             (v ~~ nubs) 
+     fun end_itlist f xs = split_last xs |> uncurry (fold_rev f)
     in inequality_canon_rule ctxt (end_itlist norm_add_rule ths)
     end
    val ges' = map_filter (try compute_ineq) (fold_rev (append o consider) destfuns []) @
@@ -332,9 +333,9 @@ local
   in RealArith.real_linear_prover translator
         (map (fn t => instantiate ([(tv_n, ctyp_of_term t)],[]) pth_zero)
             zerodests,
-        map (fconv_rule (once_depth_conv (norm_canon_conv) then_conv
+        map (fconv_rule (try_conv (More_Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
-        map (fconv_rule (once_depth_conv (norm_canon_conv) then_conv 
+        map (fconv_rule (try_conv (More_Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv 
                        arg_conv (arg_conv real_poly_conv))) gts)
   end
 in val real_vector_combo_prover = real_vector_combo_prover
@@ -353,6 +354,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val ntms = fold_rev find_normedterms (map (dest_arg o concl) (ges @ gts)) []
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
+  fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
   fun mk_norm t = capply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
   fun mk_equals l r = capply (capply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
   val asl = map2 (fn (t,_) => fn n => assume (mk_equals (mk_norm t) (cterm_of (ProofContext.theory_of ctxt') (Free(n,@{typ real}))))) lctab fxns

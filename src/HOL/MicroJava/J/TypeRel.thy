@@ -97,6 +97,14 @@ next
   qed
 qed
 
+text {* Code generator setup (FIXME!) *}
+
+consts_code
+  "wfrec"   ("\<module>wfrec?")
+attach {*
+fun wfrec f x = f (wfrec f) x;
+*}
+
 consts
 
   method :: "'c prog \<times> cname => ( sig   \<rightharpoonup> cname \<times> ty \<times> 'c)" (* ###curry *)

@@ -145,7 +145,7 @@ lemma app'Invoke[simp]:
   method (G,C) (mn,fpTs) = Some (mD', rT', b') \<and> G \<turnstile> X \<preceq> Class C)"
   (is "?app ST LT = ?P ST LT")
 proof
-  assume "?P ST LT" thus "?app ST LT" by (auto simp add: min_def list_all2_def)
+  assume "?P ST LT" thus "?app ST LT" by (auto simp add: list_all2_def)
 next  
   assume app: "?app ST LT"
   hence l: "length fpTs < length ST" by simp
@@ -153,7 +153,7 @@ next
   proof -
     have "ST = take (length fpTs) ST @ drop (length fpTs) ST" by simp
     moreover from l have "length (take (length fpTs) ST) = length fpTs"
-      by (simp add: min_def)
+      by simp
     ultimately show ?thesis ..
   qed
   obtain apTs where
@@ -168,11 +168,11 @@ next
   have "ST = (rev apTs) @ X # ST'" "length apTs = length fpTs" by auto
   with app
   show "?P ST LT"
-    apply (clarsimp simp add: list_all2_def min_def)
+    apply (clarsimp simp add: list_all2_def)
     apply ((rule exI)+, (rule conjI)?)+
     apply auto
     done
-qed 
+qed
 
 lemma approx_loc_len [simp]:
   "approx_loc G hp loc LT \<Longrightarrow> length loc = length LT"

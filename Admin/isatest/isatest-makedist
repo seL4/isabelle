@@ -94,13 +94,13 @@ rm -f $RUNNING/*
 $SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 # give test some time to copy settings and start
 sleep 15
-$SSH macbroy21 "$MAKEALL $HOME/settings/at-poly"
+$SSH macbroy22 "$MAKEALL $HOME/settings/at-poly"
 sleep 15
 $SSH macbroy20 "$MAKEALL $HOME/settings/at-poly-5.1-para-e"
 sleep 15
 #$SSH macbroy24 "$MAKEALL -l HOL proofterms $HOME/settings/at-sml-dev-p"
 #sleep 15
-$SSH macbroy22 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
+$SSH macbroy21 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
 sleep 15
 $SSH macbroy23 -l HOL images "$MAKEALL $HOME/settings/at-sml-dev-e"
 sleep 15

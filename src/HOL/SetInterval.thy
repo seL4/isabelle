@@ -181,24 +181,49 @@ lemma atLeastAtMost_iff [simp,noatp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
-text {* The above four lemmas could be declared as iffs.
-  If we do so, a call to blast in Hyperreal/Star.ML, lemma @{text STAR_Int}
-  seems to take forever (more than one hour). *}
+text {* The above four lemmas could be declared as iffs. Unfortunately this
+breaks many proofs. Since it only helps blast, it is better to leave well
+alone *}
+
 end
 
-subsubsection{* Emptyness and singletons *}
+subsubsection{* Emptyness, singletons, subset *}
 
 context order
 begin
 
-lemma atLeastAtMost_empty [simp]: "n < m ==> {m..n} = {}";
-by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
+lemma atLeastatMost_empty[simp]:
+  "b < a \<Longrightarrow> {a..b} = {}"
+by(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 
-lemma atLeastLessThan_empty[simp]: "n \<le> m ==> {m..<n} = {}"
-by (auto simp add: atLeastLessThan_def)
+lemma atLeastatMost_empty_iff[simp]:
+  "{a..b} = {} \<longleftrightarrow> (~ a <= b)"
+by auto (blast intro: order_trans)
 
-lemma greaterThanAtMost_empty[simp]:"l \<le> k ==> {k<..l} = {}"
+lemma atLeastatMost_empty_iff2[simp]:
+  "{} = {a..b} \<longleftrightarrow> (~ a <= b)"
+by auto (blast intro: order_trans)
+
+lemma atLeastLessThan_empty[simp]:
+  "b <= a \<Longrightarrow> {a..<b} = {}"
+by(auto simp: atLeastLessThan_def)
+
+lemma atLeastLessThan_empty_iff[simp]:
+  "{a..<b} = {} \<longleftrightarrow> (~ a < b)"
+by auto (blast intro: le_less_trans)
+
+lemma atLeastLessThan_empty_iff2[simp]:
+  "{} = {a..<b} \<longleftrightarrow> (~ a < b)"
+by auto (blast intro: le_less_trans)
+
+lemma greaterThanAtMost_empty[simp]: "l \<le> k ==> {k<..l} = {}"
 by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
+
+lemma greaterThanAtMost_empty_iff[simp]: "{k<..l} = {} \<longleftrightarrow> ~ k < l"
+by auto (blast intro: less_le_trans)
+
+lemma greaterThanAtMost_empty_iff2[simp]: "{} = {k<..l} \<longleftrightarrow> ~ k < l"
+by auto (blast intro: less_le_trans)
 
 lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..<l} = {}"
 by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
@@ -206,7 +231,57 @@ by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
 by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
 
+lemma atLeastatMost_subset_iff[simp]:
+  "{a..b} <= {c..d} \<longleftrightarrow> (~ a <= b) | c <= a & b <= d"
+unfolding atLeastAtMost_def atLeast_def atMost_def
+by (blast intro: order_trans)
+
+lemma atLeastatMost_psubset_iff:
+  "{a..b} < {c..d} \<longleftrightarrow>
+   ((~ a <= b) | c <= a & b <= d & (c < a | b < d))  &  c <= d"
+by(simp add: psubset_eq expand_set_eq less_le_not_le)(blast intro: order_trans)
+
 end
+
+lemma (in linorder) atLeastLessThan_subset_iff:
+  "{a..<b} <= {c..<d} \<Longrightarrow> b <= a | c<=a & b<=d"
+apply (auto simp:subset_eq Ball_def)
+apply(frule_tac x=a in spec)
+apply(erule_tac x=d in allE)
+apply (simp add: less_imp_le)
+done
+
+subsubsection {* Intersection *}
+
+context linorder
+begin
+
+lemma Int_atLeastAtMost[simp]: "{a..b} Int {c..d} = {max a c .. min b d}"
+by auto
+
+lemma Int_atLeastAtMostR1[simp]: "{..b} Int {c..d} = {c .. min b d}"
+by auto
+
+lemma Int_atLeastAtMostR2[simp]: "{a..} Int {c..d} = {max a c .. d}"
+by auto
+
+lemma Int_atLeastAtMostL1[simp]: "{a..b} Int {..d} = {a .. min b d}"
+by auto
+
+lemma Int_atLeastAtMostL2[simp]: "{a..b} Int {c..} = {max a c .. b}"
+by auto
+
+lemma Int_atLeastLessThan[simp]: "{a..<b} Int {c..<d} = {max a c ..< min b d}"
+by auto
+
+lemma Int_greaterThanAtMost[simp]: "{a<..b} Int {c<..d} = {max a c <.. min b d}"
+by auto
+
+lemma Int_greaterThanLessThan[simp]: "{a<..<b} Int {c<..<d} = {max a c <..< min b d}"
+by auto
+
+end
+
 
 subsection {* Intervals of natural numbers *}
 
@@ -662,17 +737,6 @@ lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two
 
 subsubsection {* Disjoint Intersections *}
 
-text {* Singletons and open intervals *}
-
-lemma ivl_disj_int_singleton:
-  "{l::'a::order} Int {l<..} = {}"
-  "{..<u} Int {u} = {}"
-  "{l} Int {l<..<u} = {}"
-  "{l<..<u} Int {u} = {}"
-  "{l} Int {l<..u} = {}"
-  "{l..<u} Int {u} = {}"
-  by simp+
-
 text {* One- and two-sided intervals *}
 
 lemma ivl_disj_int_one:
@@ -699,7 +763,7 @@ lemma ivl_disj_int_two:
   "{l..m} Int {m<..u} = {}"
   by auto
 
-lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
+lemmas ivl_disj_int = ivl_disj_int_one ivl_disj_int_two
 
 subsubsection {* Some Differences *}
 

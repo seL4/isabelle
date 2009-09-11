@@ -4,7 +4,7 @@
 *)
 
 theory IntRing
-imports QuotRing Lattice Int Primes
+imports QuotRing Lattice Int "~~/src/HOL/Old_Number_Theory/Primes"
 begin
 
 

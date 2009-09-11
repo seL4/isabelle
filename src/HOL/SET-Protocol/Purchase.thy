@@ -1040,9 +1040,8 @@ apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
 apply simp_all
 apply blast
-apply (force dest!: signed_Hash_imp_used)
-apply (clarify) --{*speeds next step*}
-apply (blast dest: unique_LID_M)
+apply (metis subsetD insert_subset parts.Fst parts_increasing signed_Hash_imp_used)
+apply (metis unique_LID_M)
 apply (blast dest!: Notes_Cardholder_self_False)
 done
 

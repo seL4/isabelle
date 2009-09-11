@@ -520,12 +520,17 @@ fun isFO thy goal_cls = case linkup_logic_mode of
 fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
+    val isFO = isFO thy goal_cls
     val included_thms = get_clasimp_atp_lemmas ctxt
     val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
-                                     |> restrict_to_logic thy (isFO thy goal_cls)
+                                     |> restrict_to_logic thy isFO
                                      |> remove_unwanted_clauses
+    val axcls = relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
+    val white_thms = filter check_named (map ResAxioms.pairname
+      (whitelist_fo @ (if isFO then [] else whitelist_ho) @ chain_ths))
+    val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
   in
-    relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
+    white_cls @ axcls 
   end;
 
 (* prepare for passing to writer,
@@ -533,11 +538,6 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
 fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
     val isFO = isFO thy goal_cls
-    val white_thms = filter check_named (map ResAxioms.pairname
-      (whitelist_fo @ (if isFO then [] else whitelist_ho) @ chain_ths))
-    val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
-    val extra_cls = white_cls @ extra_cls
-    val axcls = white_cls @ axcls
     val ccls = subtract_cls goal_cls extra_cls
     val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls

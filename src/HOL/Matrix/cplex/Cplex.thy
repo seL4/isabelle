@@ -1,10 +1,9 @@
 (*  Title:      HOL/Matrix/cplex/Cplex.thy
-    ID:         $Id$
     Author:     Steven Obua
 *)
 
 theory Cplex 
-imports SparseMatrix LP "~~/src/HOL/Tools/ComputeFloat" "~~/src/HOL/Tools/ComputeNumeral"
+imports SparseMatrix LP ComputeFloat ComputeNumeral
 uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML"
   "fspmlp.ML" ("matrixlp.ML")
 begin

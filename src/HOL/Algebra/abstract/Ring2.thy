@@ -241,7 +241,7 @@ lemma natsum_Suc2:
 proof (induct n)
   case 0 show ?case by simp
 next
-  case Suc thus ?case by (simp add: add_assoc) 
+  case Suc thus ?case by (simp add: add_assoc)
 qed
 
 lemma natsum_cong [cong]:
@@ -269,21 +269,21 @@ qed
 
 ML {*
   local
-    val lhss = 
+    val lhss =
         ["t + u::'a::ring",
-	 "t - u::'a::ring",
-	 "t * u::'a::ring",
-	 "- t::'a::ring"];
-    fun proc ss t = 
+         "t - u::'a::ring",
+         "t * u::'a::ring",
+         "- t::'a::ring"];
+    fun proc ss t =
       let val rew = Goal.prove (Simplifier.the_context ss) [] []
             (HOLogic.mk_Trueprop
               (HOLogic.mk_eq (t, Var (("x", Term.maxidx_of_term t + 1), fastype_of t))))
                 (fn _ => simp_tac (Simplifier.inherit_context ss ring_ss) 1)
             |> mk_meta_eq;
           val (t', u) = Logic.dest_equals (Thm.prop_of rew);
-      in if t' aconv u 
+      in if t' aconv u
         then NONE
-        else SOME rew 
+        else SOME rew
     end;
   in
     val ring_simproc = Simplifier.simproc @{theory} "ring" lhss (K proc);
@@ -305,7 +305,7 @@ subsection {* Integral Domains *}
 declare one_not_zero [simp]
 
 lemma zero_not_one [simp]:
-  "0 ~= (1::'a::domain)" 
+  "0 ~= (1::'a::domain)"
 by (rule not_sym) simp
 
 lemma integral_iff: (* not by default a simp rule! *)
@@ -322,7 +322,7 @@ lemma "(a::'a::ring) - (a - b) = b" apply simp
 *)
 (*
 lemma bug: "(b::'a::ring) - (b - a) = a" by simp
-   simproc for rings cannot prove "(a::'a::ring) - (a - b) = b" 
+   simproc for rings cannot prove "(a::'a::ring) - (a - b) = b"
 *)
 lemma m_lcancel:
   assumes prem: "(a::'a::domain) ~= 0" shows conc: "(a * b = a * c) = (b = c)"
@@ -330,8 +330,8 @@ proof
   assume eq: "a * b = a * c"
   then have "a * (b - c) = 0" by simp
   then have "a = 0 | (b - c) = 0" by (simp only: integral_iff)
-  with prem have "b - c = 0" by auto 
-  then have "b = b - (b - c)" by simp 
+  with prem have "b - c = 0" by auto
+  then have "b = b - (b - c)" by simp
   also have "b - (b - c) = c" by simp
   finally show "b = c" .
 next
@@ -386,7 +386,7 @@ proof -
 qed
 
 
-lemma unit_mult: 
+lemma unit_mult:
   "!!a::'a::ring. [| a dvd 1; b dvd 1 |] ==> a * b dvd 1"
   apply (unfold dvd_def)
   apply clarify

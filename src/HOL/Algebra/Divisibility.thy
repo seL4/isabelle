@@ -2656,25 +2656,7 @@ lemma gcdof_greatestLower:
   shows "(x \<in> carrier G \<and> x gcdof a b) =
          greatest (division_rel G) x (Lower (division_rel G) {a, b})"
 unfolding isgcd_def greatest_def Lower_def elem_def
-proof (simp, safe)
-  fix xa
-  assume r1[rule_format]: "\<forall>x. (x = a \<or> x = b) \<and> x \<in> carrier G \<longrightarrow> xa divides x"
-  assume r2[rule_format]: "\<forall>y\<in>carrier G. y divides a \<and> y divides b \<longrightarrow> y divides x"
-
-  assume "xa \<in> carrier G"  "x divides a"  "x divides b"
-  with carr
-  show "xa divides x"
-      by (fast intro: r1 r2)
-next
-  fix a' y
-  assume r1[rule_format]:
-         "\<forall>xa\<in>{l. \<forall>x. (x = a \<or> x = b) \<and> x \<in> carrier G \<longrightarrow> l divides x} \<inter> carrier G.
-           xa divides x"
-  assume "y \<in> carrier G"  "y divides a"  "y divides b"
-  with carr
-       show "y divides x"
-       by (fast intro: r1)
-qed (simp, simp)
+by auto
 
 lemma lcmof_leastUpper:
   fixes G (structure)
@@ -2682,25 +2664,7 @@ lemma lcmof_leastUpper:
   shows "(x \<in> carrier G \<and> x lcmof a b) =
          least (division_rel G) x (Upper (division_rel G) {a, b})"
 unfolding islcm_def least_def Upper_def elem_def
-proof (simp, safe)
-  fix xa
-  assume r1[rule_format]: "\<forall>x. (x = a \<or> x = b) \<and> x \<in> carrier G \<longrightarrow> x divides xa"
-  assume r2[rule_format]: "\<forall>y\<in>carrier G. a divides y \<and> b divides y \<longrightarrow> x divides y"
-
-  assume "xa \<in> carrier G"  "a divides x"  "b divides x"
-  with carr
-  show "x divides xa"
-      by (fast intro: r1 r2)
-next
-  fix a' y
-  assume r1[rule_format]:
-         "\<forall>xa\<in>{l. \<forall>x. (x = a \<or> x = b) \<and> x \<in> carrier G \<longrightarrow> x divides l} \<inter> carrier G.
-           x divides xa"
-  assume "y \<in> carrier G"  "a divides y"  "b divides y"
-  with carr
-       show "x divides y"
-       by (fast intro: r1)
-qed (simp, simp)
+by auto
 
 lemma somegcd_meet:
   fixes G (structure)

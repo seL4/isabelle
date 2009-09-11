@@ -25,7 +25,7 @@ function usage()
 declare -a LOGICS=()
 declare -a ISABELLE_PATHS=()
 
-ORIG_IFS="$IFS"; IFS=":"; ISABELLE_PATHS=($ISABELLE_PATH); IFS=$ORIG_IFS
+splitarray ":" "$ISABELLE_PATH"; ISABELLE_PATHS=("${SPLITARRAY[@]}")
 
 for DIR in "${ISABELLE_PATHS[@]}"
 do
@@ -34,7 +34,7 @@ do
   do
     if [ -f "$FILE" ]; then
       NAME=$(basename "$FILE")
-      LOGICS+=("$NAME")
+      LOGICS["${#LOGICS[@]}"]="$NAME"
     fi
   done
 done

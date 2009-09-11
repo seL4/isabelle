@@ -120,4 +120,12 @@ normal_form "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
+(* handling of type classes in connection with equality *)
+
+lemma "map f [x, y] = [f x, f y]" by normalization
+lemma "(map f [x, y], w) = ([f x, f y], w)" by normalization
+lemma "map f [x, y] = [f x \<Colon> 'a\<Colon>semigroup_add, f y]" by normalization
+lemma "map f [x \<Colon> 'a\<Colon>semigroup_add, y] = [f x, f y]" by normalization
+lemma "(map f [x \<Colon> 'a\<Colon>semigroup_add, y], w \<Colon> 'b\<Colon>finite) = ([f x, f y], w)" by normalization
+
 end

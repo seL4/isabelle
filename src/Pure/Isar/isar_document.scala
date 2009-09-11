@@ -6,7 +6,9 @@ Interactive Isar documents.
 
 package isabelle
 
-object IsarDocument {
+
+object Isar_Document
+{
   /* unique identifiers */
 
   type State_ID = String
@@ -14,28 +16,29 @@ object IsarDocument {
   type Document_ID = String
 }
 
-trait IsarDocument extends Isabelle_Process
+
+trait Isar_Document extends Isabelle_Process
 {
-  import IsarDocument._
+  import Isar_Document._
 
 
   /* commands */
 
   def define_command(id: Command_ID, text: String) {
-    output_sync("Isar.define_command " + IsabelleSyntax.encode_string(id) + " " +
-      IsabelleSyntax.encode_string(text))
+    output_sync("Isar.define_command " + Isabelle_Syntax.encode_string(id) + " " +
+      Isabelle_Syntax.encode_string(text))
   }
 
 
   /* documents */
 
   def begin_document(id: Document_ID, path: String) {
-    output_sync("Isar.begin_document " + IsabelleSyntax.encode_string(id) + " " +
-      IsabelleSyntax.encode_string(path))
+    output_sync("Isar.begin_document " + Isabelle_Syntax.encode_string(id) + " " +
+      Isabelle_Syntax.encode_string(path))
   }
 
   def end_document(id: Document_ID) {
-    output_sync("Isar.end_document " + IsabelleSyntax.encode_string(id))
+    output_sync("Isar.end_document " + Isabelle_Syntax.encode_string(id))
   }
 
   def edit_document(old_id: Document_ID, new_id: Document_ID,
@@ -44,21 +47,21 @@ trait IsarDocument extends Isabelle_Process
     def append_edit(edit: (Command_ID, Option[Command_ID]), result: StringBuilder)
     {
       edit match {
-        case (id, None) => IsabelleSyntax.append_string(id, result)
+        case (id, None) => Isabelle_Syntax.append_string(id, result)
         case (id, Some(id2)) =>
-          IsabelleSyntax.append_string(id, result)
+          Isabelle_Syntax.append_string(id, result)
           result.append(" ")
-          IsabelleSyntax.append_string(id2, result)
+          Isabelle_Syntax.append_string(id2, result)
       }
     }
 
     val buf = new StringBuilder(40)
     buf.append("Isar.edit_document ")
-    IsabelleSyntax.append_string(old_id, buf)
+    Isabelle_Syntax.append_string(old_id, buf)
     buf.append(" ")
-    IsabelleSyntax.append_string(new_id, buf)
+    Isabelle_Syntax.append_string(new_id, buf)
     buf.append(" ")
-    IsabelleSyntax.append_list(append_edit, edits, buf)
+    Isabelle_Syntax.append_list(append_edit, edits, buf)
     output_sync(buf.toString)
   }
 }

@@ -6,11 +6,9 @@ Position properties.
 
 package isabelle
 
-import java.util.Properties
 
-
-object Position {
-
+object Position
+{
   type T = List[(String, String)]
 
   private def get_string(name: String, pos: T): Option[String] =
@@ -41,5 +39,4 @@ object Position {
     val end = end_offset_of(pos)
     (begin, if (end.isDefined) end else begin.map(_ + 1))
   }
-
 }

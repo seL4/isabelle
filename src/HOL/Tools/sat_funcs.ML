@@ -51,7 +51,7 @@ sig
 	val trace_sat: bool ref    (* input: print trace messages *)
 	val solver: string ref  (* input: name of SAT solver to be used *)
 	val counter: int ref     (* output: number of resolution steps during last proof replay *)
-	val rawsat_thm: cterm list -> thm
+	val rawsat_thm: Proof.context -> cterm list -> thm
 	val rawsat_tac: Proof.context -> int -> tactic
 	val sat_tac: Proof.context -> int -> tactic
 	val satx_tac: Proof.context -> int -> tactic
@@ -295,9 +295,7 @@ end;
 (*      hyps).                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-(* Thm.cterm list -> Thm.thm *)
-
-fun rawsat_thm clauses =
+fun rawsat_thm ctxt clauses =
 let
 	(* remove premises that equal "True" *)
 	val clauses' = filter (fn clause =>
@@ -310,7 +308,7 @@ let
 		((cnf.is_clause o HOLogic.dest_Trueprop o Thm.term_of) clause
 			handle TERM ("dest_Trueprop", _) => false)
 		orelse (
-			warning ("Ignoring non-clausal premise " ^ Display.string_of_cterm clause);
+			warning ("Ignoring non-clausal premise " ^ Syntax.string_of_term ctxt (Thm.term_of clause));
 			false)) clauses'
 	(* remove trivial clauses -- this is necessary because zChaff removes *)
 	(* trivial clauses during preprocessing, and otherwise our clause     *)
@@ -323,7 +321,8 @@ let
 	(* sorted in ascending order                                          *)
 	val sorted_clauses = sort (TermOrd.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
 	val _ = if !trace_sat then
-			tracing ("Sorted non-trivial clauses:\n" ^ cat_lines (map Display.string_of_cterm sorted_clauses))
+			tracing ("Sorted non-trivial clauses:\n" ^
+			  cat_lines (map (Syntax.string_of_term ctxt o Thm.term_of) sorted_clauses))
 		else ()
 	(* translate clauses from HOL terms to PropLogic.prop_formula *)
 	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of) sorted_clauses Termtab.empty
@@ -411,7 +410,8 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 fun rawsat_tac ctxt i =
-  Subgoal.FOCUS (fn {prems, ...} => rtac (rawsat_thm (map cprop_of prems)) 1) ctxt i;
+  Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
+    rtac (rawsat_thm ctxt' (map cprop_of prems)) 1) ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* pre_cnf_tac: converts the i-th subgoal                                    *)

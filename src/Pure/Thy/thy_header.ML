@@ -11,7 +11,7 @@ sig
   val read: Position.T -> (string, 'a) Source.source -> string * string list * (string * bool) list
 end;
 
-structure ThyHeader: THY_HEADER =
+structure Thy_Header: THY_HEADER =
 struct
 
 structure T = OuterLex;
