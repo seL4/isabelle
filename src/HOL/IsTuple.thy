@@ -13,9 +13,9 @@ begin
 text {*
 This module provides operators and lemmas for types isomorphic to tuples.
 These types are used in defining efficient records. Consider the record
-access/update simplification, alpha (beta_update f rec) = alpha rec for
-distinct fields alpha and beta of some record type with n fields. There
-are n^2 such theorems, which is prohibits storage of all of them for
+access/update simplification "alpha (beta_update f rec) = alpha rec" for
+distinct fields alpha and beta of some record rec with n fields. There
+are n^2 such theorems, which prohibits storage of all of them for
 large n. The rules can be proved on the fly by case decomposition and
 simplification in O(n) time. By creating O(n) isomorphic-tuple types
 while defining the record, however, we can prove the access/update
@@ -49,16 +49,20 @@ If we prove the access/update theorem on this type with the analagous
 steps to the tuple tree, we consume O(log(n)^2) time as the intermediate
 terms are O(log(n)) in size and the types needed have size bounded by K.
 To enable this analagous traversal, we define the functions seen below:
-istuple_fst, istuple_snd, istuple_fst_update and istuple_snd. These
-functions generalise tuple operations by taking a parameter that
+istuple_fst, istuple_snd, istuple_fst_update and istuple_snd_update.
+These functions generalise tuple operations by taking a parameter that
 encapsulates a tuple isomorphism. The rewrites needed on these functions
 now need an additional assumption which is that the isomorphism works.
 
-These rewrites are typically used in a structured way. With a little
-thinking they can be presented as an introduction rule set rather than
-a rewrite rule set. This is an optimisation, as net matching can be
-performed at one term location for each step rather than the simplifier
-searching the term for possible applications.
+These rewrites are typically used in a structured way. They are here
+presented as the introduction rule isomorphic_tuple.intros rather than
+as a rewrite rule set. The introduction form is an optimisation, as net
+matching can be performed at one term location for each step rather than
+the simplifier searching the term for possible pattern matches. The rule
+set is used as it is viewed outside the locale, with the locale assumption
+(that the isomorphism is valid) left as rule assumption. All rules are
+structured to aid net matching, using either a point-free form or an
+encapsulating predicate.
 *}
 
 typedef ('a, 'b, 'c) tuple_isomorphism
