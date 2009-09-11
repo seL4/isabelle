@@ -1714,7 +1714,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                   asm_simp_tac HOL_ss 1]) end;
     val induct = timeit_msg "record extension induct proof:" induct_prf;
 
-    val ([inject',induct',surjective',split_meta',ext_def'],
+    val ([inject',induct',surjective',split_meta'],
       thm_thy) =
       defs_thy
       |> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
@@ -1723,7 +1723,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
             ("ext_surjective", surject),
             ("ext_split", split_meta)]
 
-  in (thm_thy,extT,induct',inject',split_meta',ext_def')
+  in (thm_thy,extT,induct',inject',split_meta',ext_def)
   end;
 
 fun chunks []      []   = []
