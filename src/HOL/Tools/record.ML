@@ -1721,8 +1721,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
            [("ext_inject", inject),
             ("ext_induct", induct),
             ("ext_surjective", surject),
-            ("ext_split", split_meta),
-            ("ext_def", ext_def)]
+            ("ext_split", split_meta)]
 
   in (thm_thy,extT,induct',inject',split_meta',ext_def')
   end;
