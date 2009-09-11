@@ -1,38 +1,37 @@
-(*  Title:      Tools/transfer.ML
-    Author:     Amine Chaieb, University of Cambridge, 2009
+(*  Author:     Amine Chaieb, University of Cambridge, 2009
                 Jeremy Avigad, Carnegie Mellon University
 *)
 
-signature TRANSFER_DATA =
+signature TRANSFER =
 sig
   type data
   type entry
   val get: Proof.context -> data
   val del: attribute
-  val add: attribute 
   val setup: theory -> theory
 end;
 
-structure TransferData (* : TRANSFER_DATA*) =
+structure Transfer : TRANSFER =
 struct
-type entry = {inj : thm list , emb : thm list , ret : thm list , cong : thm list, guess : bool, hints : string list}; 
-type data = simpset * (thm * entry) list;
 
-val eq_key = Thm.eq_thm;
-fun eq_data arg = eq_fst eq_key arg;
+val eq_thm = Thm.eq_thm;
+
+type entry = {inj : thm list, emb : thm list, ret : thm list, cong : thm list,
+  guess : bool, hints : string list}; 
+type data = simpset * (thm * entry) list;
 
 structure Data = GenericDataFun
 (
   type T = data;
   val empty = (HOL_ss, []);
   val extend  = I;
-  fun merge _ ((ss, e), (ss', e')) =
-    (merge_ss (ss, ss'), AList.merge eq_key (K true) (e, e'));
+  fun merge _ ((ss1, e1), (ss2, e2)) =
+    (merge_ss (ss1, ss2), AList.merge eq_thm (K true) (e1, e2));
 );
 
 val get = Data.get o Context.Proof;
 
-fun del_data key = apsnd (remove eq_data (key, []));
+fun del_data key = apsnd (remove (eq_fst eq_thm) (key, []));
 
 val del = Thm.declaration_attribute (Data.map o del_data);
 val add_ss = Thm.declaration_attribute 
@@ -120,7 +119,7 @@ fun transfer_rule_by_hint ls leave (gctxt,th) =
   val get_aD = Thm.dest_binop o Thm.dest_arg o cprop_of
   val insts = 
     map_filter (fn (k,e) => if exists (fn l => l mem_string (#hints e)) ls 
-			    then SOME (get_aD k, e) else NONE)
+          then SOME (get_aD k, e) else NONE)
         (snd (get ctxt))
   val _ = if null insts then error "Transfer: No labels provided are stored in the context" else ()
   val ths = map  (fn ((a,D),e) => basic_transfer_rule false a D e leave ctxt th) insts
@@ -166,12 +165,12 @@ fun add ((inja,injd), (emba,embd), (reta,retd), (cga,cgd), g, (hintsa, hintsd)) 
         if g then 
          let val (a0,D0) = (Thm.dest_binop o Thm.dest_arg o cprop_of) key
              val ctxt0 = ProofContext.init (Thm.theory_of_thm key)
-             val inj' = if null inja then #inj (case AList.lookup eq_key al key of SOME e => e | NONE => error "Transfer: can not generate return rules on the fly, either add injectivity axiom or force manual mode with mode: manual") 
+             val inj' = if null inja then #inj (case AList.lookup eq_thm al key of SOME e => e | NONE => error "Transfer: can not generate return rules on the fly, either add injectivity axiom or force manual mode with mode: manual") 
                         else inja
              val ret' = merge Thm.eq_thm (reta,  map (fn th => basic_transfer_rule true a0 D0 {inj = inj', emb = [], ret = [], cong = cga, guess = g, hints = hintsa} [] ctxt0 th RS sym) emba)
          in {inj = inja, emb = emba, ret = ret', cong = cga, guess = g, hints = hintsa} end 
         else e0
-    in (ss, merge_update eq_key (gen_merge_entries ed) (key, entry) al)
+    in (ss, merge_update eq_thm (gen_merge_entries ed) (key, entry) al)
     end));
 
 
@@ -230,7 +229,6 @@ end;
 
 
 (* theory setup *)
-
 
 val setup =
   Attrib.setup @{binding transfer} install_att_syntax

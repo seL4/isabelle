@@ -60,6 +60,7 @@ use_thys [
   "BinEx",
   "Sqrt",
   "Sqrt_Script",
+  "Transfer_Ex",
   "Arithmetic_Series_Complex",
   "HarmonicSeries",
   "Refute_Examples",
