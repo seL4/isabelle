@@ -1,17 +1,17 @@
-(* Title:  mirabelle.ML
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Tools/mirabelle.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 signature MIRABELLE =
 sig
-  (* configuration *)
+  (*configuration*)
   val logfile : string Config.T
   val timeout : int Config.T
   val start_line : int Config.T
   val end_line : int Config.T
   val setup : theory -> theory
 
-  (* core *)
+  (*core*)
   type init_action
   type done_action
   type run_action
@@ -21,7 +21,7 @@ sig
   val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
     unit
 
-  (* utility functions *)
+  (*utility functions*)
   val goal_thm_of : Proof.state -> thm
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
@@ -47,9 +47,7 @@ val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
 val setup = setup1 #> setup2 #> setup3 #> setup4
 
 
-
 (* Mirabelle core *)
-
 
 type init_action = int -> theory -> theory
 type done_action = int -> {last: Toplevel.state, log: string -> unit} -> unit

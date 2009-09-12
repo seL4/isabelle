@@ -1,5 +1,5 @@
-(* Title:  mirabelle_quickcheck.ML
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Tools/mirabelle_quickcheck.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 structure Mirabelle_Quickcheck : MIRABELLE_ACTION =

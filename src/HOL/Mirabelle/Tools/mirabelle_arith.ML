@@ -1,5 +1,5 @@
-(* Title:  mirabelle_arith.ML
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Tools/mirabelle_arith.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 structure Mirabelle_Arith : MIRABELLE_ACTION =
