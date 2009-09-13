@@ -48,7 +48,8 @@ fun make_sh_data (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fa
 fun make_me_data (calls, success, time, timeout, lemmas, posns) =
   MeData{calls=calls, success=success, time=time, timeout=timeout, lemmas=lemmas, posns=posns}
 
-val empty_data = Data(make_sh_data (0, 0, 0, 0, 0), make_me_data(0, 0, 0, 0, 0, []), make_me_data(0, 0, 0, 0, 0, []))
+val empty_data = Data(make_sh_data (0, 0, 0, 0, 0), make_me_data(0, 0, 0, 0, 0, []),
+  make_me_data(0, 0, 0, 0, 0, []))
 
 fun map_sh_data f
   (Data (ShData{calls, success, time_isa, time_atp, time_atp_fail}, meda0, meda)) =
@@ -61,20 +62,25 @@ fun map_me_data0 f (Data (shda, MeData{calls,success,time,timeout,lemmas,posns},
 fun map_me_data f (Data (shda, meda0, MeData{calls,success,time,timeout,lemmas,posns})) =
   Data(shda, meda0, make_me_data(f (calls,success,time,timeout,lemmas,posns)))
 
-val inc_sh_calls = map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
-  => (sh_calls + 1, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail))
+val inc_sh_calls =
+  map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
+    => (sh_calls + 1, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail))
 
-val inc_sh_success = map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
-  => (sh_calls, sh_success + 1, sh_time_isa, sh_time_atp, sh_time_atp_fail))
+val inc_sh_success =
+  map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
+    => (sh_calls, sh_success + 1, sh_time_isa, sh_time_atp, sh_time_atp_fail))
 
-fun inc_sh_time_isa t = map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
-  => (sh_calls, sh_success, sh_time_isa + t, sh_time_atp, sh_time_atp_fail))
+fun inc_sh_time_isa t =
+  map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
+    => (sh_calls, sh_success, sh_time_isa + t, sh_time_atp, sh_time_atp_fail))
 
-fun inc_sh_time_atp t = map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
-  => (sh_calls, sh_success, sh_time_isa, sh_time_atp + t, sh_time_atp_fail))
+fun inc_sh_time_atp t =
+  map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
+    => (sh_calls, sh_success, sh_time_isa, sh_time_atp + t, sh_time_atp_fail))
 
-fun inc_sh_time_atp_fail t = map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
-  => (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail + t))
+fun inc_sh_time_atp_fail t =
+  map_sh_data (fn (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail)
+    => (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail + t))
 
 val inc_metis_calls = map_me_data
  (fn (calls, success, time, timeout, lemmas,posns)
@@ -171,9 +177,14 @@ fun log_metis_data log tag sh_calls sh_success metis_calls metis_success metis_t
  )
 in
 
-fun log_data id log (Data (ShData{calls=sh_calls, success=sh_success, time_isa=sh_time_isa, time_atp=sh_time_atp, time_atp_fail=sh_time_atp_fail}, MeData{calls=metis_calls0,
-    success=metis_success0, time=metis_time0, timeout=metis_timeout0, lemmas=metis_lemmas0,posns=metis_posns0}, MeData{calls=metis_calls,
-    success=metis_success, time=metis_time, timeout=metis_timeout, lemmas=metis_lemmas,posns=metis_posns})) =
+fun log_data id log (Data
+   (ShData{calls=sh_calls, success=sh_success, time_isa=sh_time_isa,
+      time_atp=sh_time_atp, time_atp_fail=sh_time_atp_fail},
+    MeData{calls=metis_calls0,
+      success=metis_success0, time=metis_time0, timeout=metis_timeout0,
+      lemmas=metis_lemmas0,posns=metis_posns0}, MeData{calls=metis_calls,
+      success=metis_success, time=metis_time, timeout=metis_timeout,
+      lemmas=metis_lemmas,posns=metis_posns})) =
   if sh_calls > 0
   then
    (log ("\n\n\nReport #" ^ string_of_int id ^ ":\n");
@@ -196,7 +207,7 @@ end
 val data = ref ([] : (int * data) list)
 
 fun init id thy = (change data (cons (id, empty_data)); thy)
-fun done id {log, ...} =
+fun done id ({log, ...}: Mirabelle.done_args) =
   AList.lookup (op =) (!data) id
   |> Option.map (log_data id log)
   |> K ()
@@ -260,7 +271,7 @@ fun thms_of_name ctxt name =
 
 in
 
-fun run_sledgehammer args named_thms id {pre=st, log, ...} =
+fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val _ = change_data id inc_sh_calls
     val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
@@ -292,7 +303,7 @@ fun run_sledgehammer args named_thms id {pre=st, log, ...} =
 end
 
 
-fun run_minimize args named_thms id {pre=st, log, ...} =
+fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val (prover_name, prover) = get_atp (Proof.theory_of st) args
     val minimize = AtpMinimal.minimalize prover prover_name
@@ -313,7 +324,9 @@ fun run_minimize args named_thms id {pre=st, log, ...} =
   end
 
 
-fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_timeout, inc_metis_lemmas, inc_metis_posns) args named_thms id {pre=st, timeout, log, pos, ...} =
+fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_timeout,
+    inc_metis_lemmas, inc_metis_posns) args named_thms id
+    ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun metis thms ctxt = MetisTools.metis_tac ctxt thms
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
@@ -336,10 +349,12 @@ fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_tim
     |> log o prefix (metis_tag id) 
   end
 
-fun sledgehammer_action args id (st as {log, ...}) =
+fun sledgehammer_action args id (st as {log, ...}: Mirabelle.run_args) =
   let
-    val metis_fns = (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_timeout, inc_metis_lemmas, inc_metis_posns)
-    val metis0_fns = (inc_metis_calls0, inc_metis_success0, inc_metis_time0, inc_metis_timeout0, inc_metis_lemmas0, inc_metis_posns0)
+    val metis_fns = (inc_metis_calls, inc_metis_success, inc_metis_time,
+        inc_metis_timeout, inc_metis_lemmas, inc_metis_posns)
+    val metis0_fns = (inc_metis_calls0, inc_metis_success0, inc_metis_time0,
+        inc_metis_timeout0, inc_metis_lemmas0, inc_metis_posns0)
     val named_thms = ref (NONE : (string * thm list) list option)
 
     fun if_enabled k f =

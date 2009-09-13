@@ -10,7 +10,7 @@ fun arith_tag id = "#" ^ string_of_int id ^ " arith: "
 fun init _ = I
 fun done _ _ = ()
 
-fun run id {pre, timeout, log, ...} =
+fun run id ({pre, timeout, log, ...}: Mirabelle.run_args) =
   if Mirabelle.can_apply timeout Arith_Data.arith_tac pre
   then log (arith_tag id ^ "succeeded")
   else ()

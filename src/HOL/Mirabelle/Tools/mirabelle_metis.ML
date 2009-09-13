@@ -10,7 +10,7 @@ fun metis_tag id = "#" ^ string_of_int id ^ " metis: "
 fun init _ = I
 fun done _ _ = ()
 
-fun run id {pre, post, timeout, log, ...} =
+fun run id ({pre, post, timeout, log, ...}: Mirabelle.run_args) =
   let
     val thms = Mirabelle.theorems_of_sucessful_proof post
     val names = map Thm.get_name thms
