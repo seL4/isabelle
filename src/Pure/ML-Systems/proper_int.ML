@@ -136,6 +136,24 @@ struct
 end;
 
 
+(* StringCvt *)
+
+structure StringCvt =
+struct
+  open StringCvt;
+  datatype realfmt = EXACT | FIX of int option | GEN of int option | SCI of int option
+  fun realfmt fmt = Real.fmt
+    (case fmt of
+      EXACT => StringCvt.EXACT
+    | FIX NONE => StringCvt.FIX NONE
+    | FIX (SOME b) => StringCvt.FIX (SOME (dest_int b))
+    | GEN NONE => StringCvt.GEN NONE
+    | GEN (SOME b) => StringCvt.GEN (SOME (dest_int b))
+    | SCI NONE => StringCvt.SCI NONE
+    | SCI (SOME b) => StringCvt.SCI (SOME (dest_int b)));
+end;
+
+
 (* Word *)
 
 structure Word =
@@ -165,6 +183,7 @@ struct
   val trunc = mk_int o Real.trunc;
   fun toInt a b = mk_int (Real.toInt a b);
   fun fromInt a = Real.fromInt (dest_int a);
+  val fmt = StringCvt.realfmt;
 end;
 
 val ceil = Real.ceil;
