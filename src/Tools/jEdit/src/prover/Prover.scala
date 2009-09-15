@@ -17,7 +17,7 @@ import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
 
 
-class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
+class Prover(system: Isabelle_System, logic: String) extends Actor
 {
   /* incoming messages */
   
@@ -43,8 +43,7 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
   /* prover process */
 
   private val process =
-    new Isabelle_Process(isabelle_system, this, "-m", "xsymbols", logic)
-      with Isar_Document
+    new Isabelle_Process(system, this, "-m", "xsymbols", logic) with Isar_Document
 
   def stop() { process.kill }
 
@@ -77,10 +76,15 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
 
   /* prover results */
 
-  val output_text_view = new JTextArea
+  val output_text_view = new JTextArea    // FIXME separate jEdit component
 
   private def handle_result(result: Isabelle_Process.Result)
   {
+    // FIXME separate jEdit component
+    Swing_Thread.later { output_text_view.append(result.toString + "\n") }
+
+    val message = Isabelle_Process.parse_message(system, result)
+
     val state =
       result.props.find(p => p._1 == Markup.ID) match {
         case None => None
@@ -89,64 +93,48 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
           else if (states.contains(id)) Some(states(id))
           else None
       }
-    Swing_Thread.later { output_text_view.append(result.toString + "\n") }  // slow?
-
-    val message = Isabelle_Process.parse_message(isabelle_system, result)
-
     if (state.isDefined) state.get ! (this, message)
-    else result.kind match {
-
-      case Isabelle_Process.Kind.STATUS =>
-        //{{{ handle all kinds of status messages here
-        message match {
-          case XML.Elem(Markup.MESSAGE, _, elems) =>
-            for (elem <- elems) {
-              elem match {
-                //{{{
-                // command and keyword declarations
-                case XML.Elem(Markup.COMMAND_DECL,
-                    (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-                  _command_decls += (name -> kind)
-                  _completion += name
-                case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-                  _keyword_decls += name
-                  _completion += name
-
-                // process ready (after initialization)
-                case XML.Elem(Markup.READY, _, _) => prover_ready = true
-
-                // document edits
-                case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
-                if document_versions.exists(_.id == doc_id) =>
-                  val doc = document_versions.find(_.id == doc_id).get
-                  for {
-                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                      <- edits
-                  } {
-                    if (commands.contains(cmd_id)) {
-                      val cmd = commands(cmd_id)
-                      val state = new Command_State(cmd)
-                      states += (state_id -> state)
-                      doc.states += (cmd -> state)
-                      command_change.event(cmd)
-                    }
+    else if (result.kind == Isabelle_Process.Kind.STATUS) {
+      //{{{ global status message
+      message match {
+        case XML.Elem(Markup.MESSAGE, _, elems) =>
+          for (elem <- elems) {
+            elem match {
+              // document edits
+              case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
+              if document_versions.exists(_.id == doc_id) =>
+                val doc = document_versions.find(_.id == doc_id).get
+                for {
+                  XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
+                    <- edits
+                } {
+                  if (commands.contains(cmd_id)) {
+                    val cmd = commands(cmd_id)
+                    val state = new Command_State(cmd)
+                    states += (state_id -> state)
+                    doc.states += (cmd -> state)
+                    command_change.event(cmd)
                   }
-                case XML.Elem(kind, attr, body) =>
-                  // TODO: This is mostly irrelevant information on removed commands, but it can
-                  // also be outer-syntax-markup since there is no id in props (fix that?)
-                  val (begin, end) = Position.offsets_of(attr)
-                  val markup_id = Position.id_of(attr)
-                  val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
-                  if (outer && begin.isDefined && end.isDefined && markup_id.isDefined)
-                    commands.get(markup_id.get).map(cmd => cmd ! (this, message))
-                case _ =>
-                //}}}
-              }
+                }
+                
+              // command and keyword declarations
+              case XML.Elem(Markup.COMMAND_DECL,
+                  (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
+                _command_decls += (name -> kind)
+                _completion += name
+              case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
+                _keyword_decls += name
+                _completion += name
+
+              // process ready (after initialization)
+              case XML.Elem(Markup.READY, _, _) => prover_ready = true
+
+              case _ =>
             }
-          case _ =>
-        }
-        //}}}
-      case _ =>
+          }
+        case _ =>
+      }
+      //}}}
     }
   }
 
@@ -172,10 +160,10 @@ class Prover(isabelle_system: Isabelle_System, logic: String) extends Actor
       (c1.map(_.id).getOrElse(document_0.id),
       c2 match {
         case None => None
-        case Some(cmd) =>
-          commands += (cmd.id -> cmd)
-          process.define_command(cmd.id, isabelle_system.symbols.encode(cmd.content))
-          Some(cmd.id)
+        case Some(command) =>
+          commands += (command.id -> command)
+          process.define_command(command.id, system.symbols.encode(command.content))
+          Some(command.id)
       })
     }
     process.edit_document(old.id, doc.id, id_changes)

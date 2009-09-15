@@ -97,11 +97,6 @@ object DynamicTokenMarker
 
   def choose_color(kind: String, styles: Array[SyntaxStyle]): Color =
     styles(choose_byte(kind)).getForegroundColor
-
-  private val outer: Set[String] =
-    Set(Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
-      Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING)
-  def is_outer(kind: String) = outer.contains(kind)
 }
 
 
