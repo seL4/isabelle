@@ -24,8 +24,9 @@ object DynamicTokenMarker
 {
   /* line context */
 
+  private val rule_set = new ParserRuleSet("isabelle", "MAIN")
   private class LineContext(val line: Int, prev: LineContext)
-    extends TokenMarker.LineContext(new ParserRuleSet("isabelle", "MAIN"), prev)
+    extends TokenMarker.LineContext(rule_set, prev)
 
 
   /* mapping to jEdit token types */
