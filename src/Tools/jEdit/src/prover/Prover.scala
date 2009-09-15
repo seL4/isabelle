@@ -141,21 +141,15 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
 
   /* document changes */
 
-  def handle_change(change: Change) {
-    val old = document(change.parent.get.id).get
-    val (doc, structure_change) = old.text_changed(change)
-    document_versions ::= doc
-    edit_document(old, doc, structure_change)
-    document_change.event(doc)
-  }
-
-  def set_document(path: String) {
+  def begin_document(path: String) {
     process.begin_document(document_0.id, path)
   }
 
-  private def edit_document(old: ProofDocument, doc: ProofDocument,
-    changes: ProofDocument.StructureChange) =
-  {
+  def handle_change(change: Change) {
+    val old = document(change.parent.get.id).get
+    val (doc, changes) = old.text_changed(change)
+    document_versions ::= doc
+
     val id_changes = changes map { case (c1, c2) =>
       (c1.map(_.id).getOrElse(document_0.id),
       c2 match {
@@ -167,5 +161,7 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
       })
     }
     process.edit_document(old.id, doc.id, id_changes)
+
+    document_change.event(doc)
   }
 }

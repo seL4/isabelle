@@ -7,11 +7,7 @@
 package isabelle.jedit
 
 
-import org.w3c.dom.Document
-
 import org.gjt.sp.jedit.{Buffer, View}
-
-import javax.swing.JTextArea
 
 import isabelle.prover.Prover
 
@@ -21,7 +17,6 @@ class ProverSetup(buffer: Buffer)
   var prover: Prover = null
   var theory_view: TheoryView = null
 
-
   def activate(view: View)
   {
     // TheoryView starts prover
@@ -29,14 +24,12 @@ class ProverSetup(buffer: Buffer)
     prover = theory_view.prover
 
     theory_view.activate()
-    prover.set_document(buffer.getName)
-
+    prover.begin_document(buffer.getName)
   }
 
-  def deactivate
+  def deactivate()
   {
     theory_view.deactivate
     prover.stop
   }
-
 }
