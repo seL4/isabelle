@@ -157,4 +157,13 @@ values 5
 values 3 "{(a,q). step (par nil nil) a q}"
 *)
 
+
+inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
+    "k < l \<Longrightarrow> divmod_rel k l 0 k"
+  | "k \<ge> l \<Longrightarrow> divmod_rel (k - l) l q r \<Longrightarrow> divmod_rel k l (Suc q) r"
+
+code_pred divmod_rel ..
+
+value [code] "Predicate.singleton (divmod_rel_1_2 1705 42)"
+
 end
