@@ -79,14 +79,14 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
-    fun cmd_line probfile = "TIMEFORMAT='%3U'; ((time " ^ space_implode " "
-      [File.shell_path cmd, args, File.platform_path probfile] ^ ") 2>&1)"
+    val perl_script = "perl -w $ISABELLE_ATP_MANAGER/lib/scripts/local_atp.pl"
+    fun cmd_line probfile = perl_script ^ " '" ^ space_implode " "
+      [File.shell_path cmd, args, File.platform_path probfile] ^ "'"
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n")
         val (proof, t) = s |> split |> split_last |> apfst cat_lines
-        val num = Scan.many1 Symbol.is_ascii_digit >> (fst o read_int)
-        val time = num --| Scan.$$ "." -- num >> (fn (a, b) => a * 1000 + b)
+        val time = Scan.many1 Symbol.is_ascii_digit >> (fst o read_int)
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode
       in (proof, as_time t) end
     fun run_on probfile =

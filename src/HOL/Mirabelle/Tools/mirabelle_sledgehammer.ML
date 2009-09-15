@@ -7,6 +7,7 @@ struct
 
 val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
+val prover_hard_timeoutK = "prover_hard_timeout"
 val keepK = "keep"
 val full_typesK = "full_types"
 val minimizeK = "minimize"
@@ -273,17 +274,22 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh (prover_name, prover) timeout st _ =
+fun run_sh (prover_name, prover) hard_timeout timeout st _ =
   let
     val atp = prover timeout NONE NONE prover_name 1
+    val time_limit =
+      (case hard_timeout of
+        NONE => I
+      | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     val ((success, (message, thm_names), time_atp, _, _, _), time_isa) =
-      Mirabelle.cpu_time atp (Proof.get_goal st)
+      time_limit (Mirabelle.cpu_time atp) (Proof.get_goal st)
   in
     if success then (message, SH_OK (time_isa, time_atp, thm_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
   handle ResHolClause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
+       | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
 fun thms_of_name ctxt name =
   let
@@ -306,7 +312,10 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
     val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
-    val (msg, result) = safe init_sh done_sh (run_sh atp timeout st) dir
+    val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
+      |> Option.map (fst o read_int o explode)
+    val (msg, result) = safe init_sh done_sh
+      (run_sh atp hard_timeout timeout st) dir
   in
     case result of
       SH_OK (time_isa, time_atp, names) =>
