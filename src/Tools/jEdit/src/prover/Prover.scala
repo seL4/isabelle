@@ -20,7 +20,7 @@ import isabelle.proofdocument.{ProofDocument, Change, Token}
 class Prover(system: Isabelle_System, logic: String) extends Actor
 {
   /* incoming messages */
-  
+
   private var prover_ready = false
 
   def act() {
@@ -35,7 +35,7 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
 
 
   /* outgoing messages */
-  
+
   val command_change = new Event_Bus[Command]
   val document_change = new Event_Bus[ProofDocument]
 
@@ -43,11 +43,11 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
   /* prover process */
 
   private val process =
-    new Isabelle_Process(system, this, "-m", "xsymbols", logic) with Isar_Document
+  new Isabelle_Process(system, this, "-m", "xsymbols", logic) with Isar_Document
 
   def stop() { process.kill }
 
-  
+
   /* outer syntax keywords and completion */
 
   @volatile private var _command_decls = Map[String, String]()
@@ -65,14 +65,14 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
   @volatile private var states = Map[Isar_Document.State_ID, Command_State]()
   @volatile private var commands = Map[Isar_Document.Command_ID, Command]()
   val document_0 =
-    ProofDocument.empty.
-      set_command_keyword((s: String) => command_decls().contains(s))
+  ProofDocument.empty.
+  set_command_keyword((s: String) => command_decls().contains(s))
   @volatile private var document_versions = List(document_0)
 
   def command(id: Isar_Document.Command_ID): Option[Command] = commands.get(id)
   def document(id: Isar_Document.Document_ID): Option[ProofDocument] =
-    document_versions.find(_.id == id)
-  
+  document_versions.find(_.id == id)
+
 
   /* prover results */
 
@@ -86,13 +86,13 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
     val message = Isabelle_Process.parse_message(system, result)
 
     val state =
-      result.props.find(p => p._1 == Markup.ID) match {
-        case None => None
-        case Some((_, id)) =>
-          if (commands.contains(id)) Some(commands(id))
-          else if (states.contains(id)) Some(states(id))
-          else None
-      }
+    result.props.find(p => p._1 == Markup.ID) match {
+      case None => None
+      case Some((_, id)) =>
+        if (commands.contains(id)) Some(commands(id))
+        else if (states.contains(id)) Some(states(id))
+        else None
+    }
     if (state.isDefined) state.get ! (this, message)
     else if (result.kind == Isabelle_Process.Kind.STATUS) {
       //{{{ global status message
@@ -102,11 +102,11 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
             elem match {
               // document edits
               case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
-              if document_versions.exists(_.id == doc_id) =>
+                if document_versions.exists(_.id == doc_id) =>
                 val doc = document_versions.find(_.id == doc_id).get
                 for {
                   XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                    <- edits
+                  <- edits
                 } {
                   if (commands.contains(cmd_id)) {
                     val cmd = commands(cmd_id)
@@ -116,17 +116,17 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
                     command_change.event(cmd)
                   }
                 }
-                
-              // command and keyword declarations
+
+                // command and keyword declarations
               case XML.Elem(Markup.COMMAND_DECL,
-                  (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
+                            (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
                 _command_decls += (name -> kind)
                 _completion += name
               case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
                 _keyword_decls += name
                 _completion += name
 
-              // process ready (after initialization)
+                // process ready (after initialization)
               case XML.Elem(Markup.READY, _, _) => prover_ready = true
 
               case _ =>
@@ -151,14 +151,14 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
     document_versions ::= doc
 
     val id_changes = changes map { case (c1, c2) =>
-      (c1.map(_.id).getOrElse(document_0.id),
-      c2 match {
-        case None => None
-        case Some(command) =>
-          commands += (command.id -> command)
-          process.define_command(command.id, system.symbols.encode(command.content))
-          Some(command.id)
-      })
+        (c1.map(_.id).getOrElse(document_0.id),
+         c2 match {
+            case None => None
+            case Some(command) =>
+              commands += (command.id -> command)
+              process.define_command(command.id, system.symbols.encode(command.content))
+              Some(command.id)
+          })
     }
     process.edit_document(old.id, doc.id, id_changes)
 
