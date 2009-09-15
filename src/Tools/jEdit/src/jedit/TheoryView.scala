@@ -53,7 +53,7 @@ class TheoryView(text_area: JEditTextArea)
         if (text_area.getBuffer == buffer) {
           update_syntax(command)
           invalidate_line(command)
-          phase_overview.repaint()
+          overview.repaint()
         }
       })
 
@@ -151,7 +151,7 @@ class TheoryView(text_area: JEditTextArea)
 
   /* activation */
 
-  private val phase_overview = new PhaseOverviewPanel(prover, text_area, to_current)
+  private val overview = new Document_Overview(prover, text_area, to_current)
 
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) {
@@ -168,7 +168,7 @@ class TheoryView(text_area: JEditTextArea)
 
   def activate() {
     text_area.addCaretListener(selected_state_controller)
-    text_area.addLeftOfScrollBar(phase_overview)
+    text_area.addLeftOfScrollBar(overview)
     text_area.getPainter.
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
@@ -189,7 +189,7 @@ class TheoryView(text_area: JEditTextArea)
     buffer.setTokenMarker(buffer.getMode.getTokenMarker)
     buffer.removeBufferListener(buffer_listener)
     text_area.getPainter.removeExtension(text_area_extension)
-    text_area.removeLeftOfScrollBar(phase_overview)
+    text_area.removeLeftOfScrollBar(overview)
     text_area.removeCaretListener(selected_state_controller)
   }
 
@@ -245,7 +245,7 @@ class TheoryView(text_area: JEditTextArea)
     // invoke repaint
     buffer.propertiesChanged()
     invalidate_all()
-    phase_overview.repaint()
+    overview.repaint()
 
     // track changes in buffer
     buffer.addBufferListener(buffer_listener)

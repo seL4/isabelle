@@ -18,7 +18,7 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.buffer.JEditBuffer
 
 
-class PhaseOverviewPanel(
+class Document_Overview(
     prover: Prover,
     text_area: JEditTextArea,
     to_current: (ProofDocument, Int) => Int)
