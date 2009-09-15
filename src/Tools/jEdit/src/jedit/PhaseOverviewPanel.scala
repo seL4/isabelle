@@ -17,81 +17,72 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit._
 
+
 class PhaseOverviewPanel(
     prover: Prover,
-    textarea: JEditTextArea,
+    text_area: JEditTextArea,
     to_current: (ProofDocument, Int) => Int)
   extends JPanel(new BorderLayout)
 {
   private val WIDTH = 10
-  private val HILITE_HEIGHT = 2
+  private val HEIGHT = 2
 
   setRequestFocusEnabled(false)
 
   addMouseListener(new MouseAdapter {
-    override def mousePressed(evt : MouseEvent) {
-      val line = yToLine(evt.getY)
-      if (line >= 0 && line < textarea.getLineCount())
-        textarea.setCaretPosition(textarea.getLineStartOffset(line))
+    override def mousePressed(event: MouseEvent) {
+      val line = y_to_line(event.getY)
+      if (line >= 0 && line < text_area.getLineCount)
+        text_area.setCaretPosition(text_area.getLineStartOffset(line))
     }
   })
 
-  override def addNotify {
+  override def addNotify() {
     super.addNotify()
     ToolTipManager.sharedInstance.registerComponent(this)
   }
 
-  override def removeNotify()
-  {
+  override def removeNotify() {
     super.removeNotify
     ToolTipManager.sharedInstance.unregisterComponent(this)
   }
 
-  override def getToolTipText(evt : MouseEvent) : String =
+  override def getToolTipText(event: MouseEvent): String =
   {
-    val buffer = textarea.getBuffer
+    val buffer = text_area.getBuffer
     val lineCount = buffer.getLineCount
-    val line = yToLine(evt.getY())
-    if (line >= 0 && line < textarea.getLineCount)
-    {
-      "TODO: Tooltip"
-    } else ""
+    val line = y_to_line(event.getY())
+    if (line >= 0 && line < text_area.getLineCount) "TODO: Tooltip"
+    else ""
   }
 
-  private def paintCommand(command : Command, buffer : JEditBuffer, doc: ProofDocument, gfx : Graphics) {
+  private def paint_command(command: Command, buffer: JEditBuffer,
+      doc: ProofDocument, gfx : Graphics) {
     val line1 = buffer.getLineOfOffset(to_current(doc, command.start(doc)))
     val line2 = buffer.getLineOfOffset(to_current(doc, command.stop(doc))) + 1
-    val y = lineToY(line1)
-    val height = lineToY(line2) - y - 1
-    val (light, dark) = command.status(doc) match {
-      case Command.Status.UNPROCESSED => (Color.yellow, new Color(128,128,0))
-      case Command.Status.FINISHED => (Color.green, new Color(0, 128, 0))
-      case Command.Status.FAILED => (Color.red, new Color(128,0,0))
-    }
+    val y = line_to_y(line1)
+    val height = HEIGHT * (line2 - line1)
+    val color = TheoryView.choose_color(command, doc)
 
-    gfx.setColor(light)
-    gfx.fillRect(0, y, getWidth - 1, height max 1)
-    if (height > 2) {
-      gfx.setColor(dark)
-      gfx.drawRect(0, y, getWidth - 1, height)
-    }
+    gfx.setColor(color)
+    gfx.fillRect(0, y, getWidth - 1, height)
   }
 
   override def paintComponent(gfx: Graphics) {
     super.paintComponent(gfx)
-    val buffer = textarea.getBuffer
+    val buffer = text_area.getBuffer
     val theory_view = Isabelle.prover_setup(buffer).get.theory_view
     val document = theory_view.current_document()
 
     for (c <- document.commands)
-      paintCommand(c, buffer, document, gfx)
+      paint_command(c, buffer, document, gfx)
   }
 
-  override def getPreferredSize = new Dimension(10,0)
+  override def getPreferredSize = new Dimension(WIDTH, 0)
 
-  private def lineToY(line : Int): Int =
-    (line * getHeight) / (textarea.getBuffer.getLineCount max textarea.getVisibleLines)
+  private def line_to_y(line: Int): Int =
+    (line * getHeight) / (text_area.getBuffer.getLineCount max text_area.getVisibleLines)
 
-  private def yToLine(y : Int): Int =
-    (y * (textarea.getBuffer.getLineCount max textarea.getVisibleLines)) / getHeight
+  private def y_to_line(y: Int): Int =
+    (y * (text_area.getBuffer.getLineCount max text_area.getVisibleLines)) / getHeight
 }
