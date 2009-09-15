@@ -52,7 +52,7 @@ class PhaseOverviewPanel(
     val buffer = text_area.getBuffer
     val lineCount = buffer.getLineCount
     val line = y_to_line(event.getY())
-    if (line >= 0 && line < text_area.getLineCount) "TODO: Tooltip"
+    if (line >= 0 && line < text_area.getLineCount) "<html><b>TODO:</b><br>Tooltip</html>"
     else ""
   }
 
