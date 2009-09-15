@@ -21,6 +21,7 @@ sig
   val line: int -> T
   val line_file: int -> string -> T
   val id: string -> T
+  val id_only: string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
   val of_properties: Properties.T -> T
@@ -97,8 +98,8 @@ fun file name = Pos ((1, 1, 1), file_name name);
 fun line_file i name = Pos ((i, 0, 0), file_name name);
 fun line i = line_file i "";
 
-
 fun id id = Pos ((0, 0, 1), [(Markup.idN, id)]);
+fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
 
 fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Markup.idN, id) props);
