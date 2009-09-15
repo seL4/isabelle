@@ -874,7 +874,7 @@ no_notation
   bind (infixl "\<guillemotright>=" 70)
 
 hide (open) type pred seq
-hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq map
+hide (open) const Pred eval single bind is_empty singleton if_pred not_pred
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map
 
 end
