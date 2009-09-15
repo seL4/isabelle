@@ -230,8 +230,10 @@ class ProofDocument(
     val inserted_commands = tokens_to_commands(rescanning_tokens.toList)
 
     // build new document
-    val new_commandset = commands.delete_between(cmd_before_change, cmd_after_change).
-        insert_after(cmd_before_change, inserted_commands)
+    val new_commandset = commands.
+      delete_between(cmd_before_change, cmd_after_change).
+      append_after(cmd_before_change, inserted_commands)
+
 
     val doc =
       new ProofDocument(new_id, new_tokenset, new_token_start, new_commandset,
