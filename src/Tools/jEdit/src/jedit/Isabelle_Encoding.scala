@@ -16,7 +16,7 @@ import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, Ou
 import scala.io.{Source, BufferedSource}
 
 
-object IsabelleEncoding
+object Isabelle_Encoding
 {
   val NAME = "UTF-8-Isabelle"
 
@@ -24,7 +24,7 @@ object IsabelleEncoding
     buffer.getProperty(JEditBuffer.ENCODING).asInstanceOf[String] == NAME
 }
 
-class IsabelleEncoding extends Encoding
+class Isabelle_Encoding extends Encoding
 {
   private val charset = Charset.forName(Isabelle_System.charset)
   private val BUFSIZE = 32768

@@ -92,7 +92,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle")
       case None => null
       case Some((word, cs)) =>
         val ds =
-          if (IsabelleEncoding.is_active(buffer))
+          if (Isabelle_Encoding.is_active(buffer))
             cs.map(Isabelle.system.symbols.decode(_)).sort(Completion.length_ord _)
           else cs
         new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) { }
