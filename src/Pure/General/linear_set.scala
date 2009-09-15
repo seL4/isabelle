@@ -92,6 +92,9 @@ class Linear_Set[A] extends scala.collection.immutable.Set[A]
           }
     }
 
+  def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =
+    (elems :\ this)((elem: A, ls: Linear_Set[A]) => ls.insert_after(hook, elem))
+
   def delete_between(from: Option[A], to: Option[A]): Linear_Set[A] =
   {
     if (!rep.first.isDefined) this
