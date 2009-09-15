@@ -37,9 +37,8 @@ object TheoryView
 
 
 class TheoryView(text_area: JEditTextArea)
-  extends TextAreaExtension with BufferListener
 {
-  val buffer = text_area.getBuffer
+  private val buffer = text_area.getBuffer
 
 
   /* prover setup */
@@ -49,6 +48,7 @@ class TheoryView(text_area: JEditTextArea)
   prover.command_change += ((command: Command) =>
     if (current_document().commands.contains(command))
       Swing_Thread.later {
+        // FIXME proper handling of buffer vs. text areas
         // repaint if buffer is active
         if (text_area.getBuffer == buffer) {
           update_syntax(command)
@@ -56,7 +56,98 @@ class TheoryView(text_area: JEditTextArea)
           phase_overview.repaint()
         }
       })
-  
+
+
+  /* changes vs. edits */
+
+  private val change_0 = new Change(prover.document_0.id, None, Nil)
+  private var _changes = List(change_0)   // owned by Swing/AWT thread
+  def changes = _changes
+  private var current_change = change_0
+
+  private val edits = new mutable.ListBuffer[Edit]   // owned by Swing thread
+
+  private val edits_delay = Swing_Thread.delay_last(300) {
+    if (!edits.isEmpty) {
+      val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
+      _changes ::= change
+      prover ! change
+      current_change = change
+      edits.clear
+    }
+  }
+
+
+  /* buffer_listener */
+
+  private val buffer_listener = new BufferListener {
+    override def preContentInserted(buffer: JEditBuffer,
+      start_line: Int, offset: Int, num_lines: Int, length: Int)
+    {
+      edits += Insert(offset, buffer.getText(offset, length))
+      edits_delay()
+    }
+
+    override def preContentRemoved(buffer: JEditBuffer,
+      start_line: Int, start: Int, num_lines: Int, removed_length: Int)
+    {
+      edits += Remove(start, buffer.getText(start, removed_length))
+      edits_delay()
+    }
+
+    override def contentInserted(buffer: JEditBuffer,
+      start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+
+    override def contentRemoved(buffer: JEditBuffer,
+      start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+
+    override def bufferLoaded(buffer: JEditBuffer) { }
+    override def foldHandlerChanged(buffer: JEditBuffer) { }
+    override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }
+    override def transactionComplete(buffer: JEditBuffer) { }
+  }
+
+
+  /* text_area_extension */
+
+  private val text_area_extension = new TextAreaExtension {
+    override def paintValidLine(gfx: Graphics2D,
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+    {
+      val document = current_document()
+      def from_current(pos: Int) = TheoryView.this.from_current(document, pos)
+      def to_current(pos: Int) = TheoryView.this.to_current(document, pos)
+      val saved_color = gfx.getColor
+
+      val metrics = text_area.getPainter.getFontMetrics
+
+      // encolor phase
+      var cmd = document.command_at(from_current(start))
+      while (cmd.isDefined && cmd.get.start(document) < end) {
+        val e = cmd.get
+        val begin = start max to_current(e.start(document))
+        val finish = (end - 1) min to_current(e.stop(document))
+        encolor(gfx, y, metrics.getHeight, begin, finish,
+          TheoryView.choose_color(e, document), true)
+        cmd = document.commands.next(e)
+      }
+
+      gfx.setColor(saved_color)
+    }
+
+    override def getToolTipText(x: Int, y: Int): String =
+    {
+      val document = current_document()
+      val offset = from_current(document, text_area.xyToOffset(x, y))
+      document.command_at(offset) match {
+        case Some(cmd) =>
+          document.token_start(cmd.tokens.first)
+          cmd.type_at(document, offset - cmd.start(document)).getOrElse(null)
+        case None => null
+      }
+    }
+  }
+
 
   /* activation */
 
@@ -78,9 +169,10 @@ class TheoryView(text_area: JEditTextArea)
   def activate() {
     text_area.addCaretListener(selected_state_controller)
     text_area.addLeftOfScrollBar(phase_overview)
-    text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
+    text_area.getPainter.
+      addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
-    buffer.addBufferListener(this)
+    buffer.addBufferListener(buffer_listener)
 
     val dockable =
       text_area.getView.getDockableWindowManager.getDockable("isabelle-output")
@@ -95,29 +187,26 @@ class TheoryView(text_area: JEditTextArea)
 
   def deactivate() {
     buffer.setTokenMarker(buffer.getMode.getTokenMarker)
-    buffer.removeBufferListener(this)
-    text_area.getPainter.removeExtension(this)
+    buffer.removeBufferListener(buffer_listener)
+    text_area.getPainter.removeExtension(text_area_extension)
     text_area.removeLeftOfScrollBar(phase_overview)
     text_area.removeCaretListener(selected_state_controller)
   }
 
 
-  /* history of changes - TODO: seperate class?*/
-
-  private val change_0 = new Change(prover.document_0.id, None, Nil)
-  private var _changes = List(change_0)   // owned by Swing/AWT thread
-  def changes = _changes
-  private var current_change = change_0
+  /* history of changes */
 
   private def doc_or_pred(c: Change): ProofDocument =
     prover.document(c.id).getOrElse(doc_or_pred(c.parent.get))
+
   def current_document() = doc_or_pred(current_change)
+
 
   /* update to desired version */
 
   def set_version(goal: Change) {
     // changes in buffer must be ignored
-    buffer.removeBufferListener(this)
+    buffer.removeBufferListener(buffer_listener)
 
     def apply(change: Change): Unit = change.edits.foreach {
       case Insert(start, text) => buffer.insert(start, text)
@@ -159,51 +248,8 @@ class TheoryView(text_area: JEditTextArea)
     phase_overview.repaint()
 
     // track changes in buffer
-    buffer.addBufferListener(this)
+    buffer.addBufferListener(buffer_listener)
   }
-
-
-  /* sending edits to prover */
-
-  private val edits = new mutable.ListBuffer[Edit]   // owned by Swing/AWT thread
-
-  private val edits_delay = Swing_Thread.delay_last(300) {
-    if (!edits.isEmpty) {
-      val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
-      _changes ::= change
-      prover ! change
-      current_change = change
-      edits.clear
-    }
-  }
-
-
-  /* BufferListener methods */
-
-  override def preContentInserted(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int)
-  {
-    edits += Insert(offset, buffer.getText(offset, length))
-    edits_delay()
-  }
-
-  override def preContentRemoved(buffer: JEditBuffer,
-    start_line: Int, start: Int, num_lines: Int, removed_length: Int)
-  {
-    edits += Remove(start, buffer.getText(start, removed_length))
-    edits_delay()
-  }
-
-  override def contentInserted(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-  override def contentRemoved(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-  override def bufferLoaded(buffer: JEditBuffer) { }
-  override def foldHandlerChanged(buffer: JEditBuffer) { }
-  override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }
-  override def transactionComplete(buffer: JEditBuffer) { }
 
 
   /* transforming offsets */
@@ -268,45 +314,6 @@ class TheoryView(text_area: JEditTextArea)
       gfx.setColor(color)
       if (fill) gfx.fillRect(start.x, y, stop.x - start.x, height)
       else gfx.drawRect(start.x, y, stop.x - start.x, height)
-    }
-  }
-
-
-  /* TextAreaExtension methods */
-
-  override def paintValidLine(gfx: Graphics2D,
-    screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
-  {
-    val document = current_document()
-    def from_current(pos: Int) = this.from_current(document, pos)
-    def to_current(pos: Int) = this.to_current(document, pos)
-    val saved_color = gfx.getColor
-
-    val metrics = text_area.getPainter.getFontMetrics
-
-    // encolor phase
-    var cmd = document.command_at(from_current(start))
-    while (cmd.isDefined && cmd.get.start(document) < end) {
-      val e = cmd.get
-      val begin = start max to_current(e.start(document))
-      val finish = (end - 1) min to_current(e.stop(document))
-      encolor(gfx, y, metrics.getHeight, begin, finish,
-        TheoryView.choose_color(e, document), true)
-      cmd = document.commands.next(e)
-    }
-
-    gfx.setColor(saved_color)
-  }
-
-  override def getToolTipText(x: Int, y: Int): String =
-  {
-    val document = current_document()
-    val offset = from_current(document, text_area.xyToOffset(x, y))
-    document.command_at(offset) match {
-      case Some(cmd) =>
-        document.token_start(cmd.tokens.first)
-        cmd.type_at(document, offset - cmd.start(document)).getOrElse(null)
-      case None => null
     }
   }
 
