@@ -164,6 +164,5 @@ class Plugin extends EBPlugin
     // TODO: proper cleanup
     Isabelle.system = null
     Isabelle.plugin = null
-    scala.actors.Scheduler.shutdown()
   }
 }
