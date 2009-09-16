@@ -43,7 +43,7 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
   /* prover process */
 
   private val process =
-  new Isabelle_Process(system, this, "-m", "xsymbols", logic) with Isar_Document
+    new Isabelle_Process(system, this, "-m", "xsymbols", logic) with Isar_Document
 
   def stop() { process.kill }
 
@@ -103,20 +103,21 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
                   case Some(doc) =>
                     for {
                       XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
-                      <- edits
-                    } {
-                      if (commands.contains(cmd_id)) {
-                        val cmd = commands(cmd_id)
-                        val state = new Command_State(cmd)
-                        states += (state_id -> state)
-                        doc.states += (cmd -> state)
-                        command_change.event(cmd)
-                     }
+                      <- edits }
+                    {
+                      commands.get(cmd_id) match {
+                        case Some(cmd) =>
+                          val state = new Command_State(cmd)
+                          states += (state_id -> state)
+                          doc.states += (cmd -> state)
+                          command_change.event(cmd)
+                        case None =>
+                      }
                     }
                   case None =>
                 }
 
-                // command and keyword declarations
+              // command and keyword declarations
               case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
                 _command_decls += (name -> kind)
                 _completion += name
@@ -124,7 +125,7 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
                 _keyword_decls += name
                 _completion += name
 
-                // process ready (after initialization)
+              // process ready (after initialization)
               case XML.Elem(Markup.READY, _, _) => prover_ready = true
 
               case _ =>

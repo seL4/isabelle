@@ -70,7 +70,7 @@ class ProofDocument(
     ((this, Nil: StructureChange) /: change.edits)(edit_doc)
   }
 
-  def text_edit(e: Edit, id: String): (ProofDocument,StructureChange) =
+  def text_edit(e: Edit, id: String): (ProofDocument, StructureChange) =
   {
     case class TextChange(start: Int, added: String, removed: String)
     val change = e match {

@@ -290,7 +290,7 @@ class TheoryView(text_area: JEditTextArea)
     text_area.invalidateLineRange(start, stop)
 
     if (Isabelle.plugin.selected_state == cmd)
-        Isabelle.plugin.selected_state = cmd  // update State view
+      Isabelle.plugin.selected_state = cmd  // update State view
   }
 
   private def invalidate_all() =
