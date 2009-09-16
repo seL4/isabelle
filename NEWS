@@ -41,14 +41,6 @@ inequalities between polynomials. It makes use of external
 semidefinite programming solvers.  For more information and examples
 see src/HOL/Library/Sum_Of_Squares.
 
-* Set.UNIV and Set.empty are mere abbreviations for top and bot.
-INCOMPATIBILITY.
-
-* More convenient names for set intersection and union.
-INCOMPATIBILITY:
-    Set.Int ~>  Set.inter
-    Set.Un ~>   Set.union
-
 * Code generator attributes follow the usual underscore convention:
     code_unfold     replaces    code unfold
     code_post       replaces    code post
@@ -57,16 +49,14 @@ INCOMPATIBILITY:
 
 * New class "boolean_algebra".
 
-* Refinements to lattices classes:
-  - added boolean_algebra type class
+* Refinements to lattice classes and sets:
   - less default intro/elim rules in locale variant, more default
     intro/elim rules in class variant: more uniformity
   - lemma ge_sup_conv renamed to le_sup_iff, in accordance with le_inf_iff
   - dropped lemma alias inf_ACI for inf_aci (same for sup_ACI and sup_aci)
   - renamed ACI to inf_sup_aci
   - class "complete_lattice" moved to separate theory "complete_lattice";
-    corresponding constants renamed:
-    
+    corresponding constants (and abbreviations) renamed:
     Set.Inf ~>      Complete_Lattice.Inf
     Set.Sup ~>      Complete_Lattice.Sup
     Set.INFI ~>     Complete_Lattice.INFI
@@ -75,6 +65,14 @@ INCOMPATIBILITY:
     Set.Union ~>    Complete_Lattice.Union
     Set.INTER ~>    Complete_Lattice.INTER
     Set.UNION ~>    Complete_Lattice.UNION
+  - more convenient names for set intersection and union:
+    Set.Int ~>  Set.inter
+    Set.Un ~>   Set.union
+  - mere abbreviations:
+    Set.empty               (for bot)
+    Set.UNIV                (for top)
+    Complete_Lattice.Inter  (for Inf)
+    Complete_Lattice.Union  (for Sup)
 
   INCOMPATIBILITY.
 
@@ -87,7 +85,7 @@ zdiv_zmult_zmult2.  div_mult_mult1 is now [simp] by default.
 INCOMPATIBILITY.
 
 * Power operations on relations and functions are now one dedicate
-constant compow with infix syntax "^^".  Power operations on
+constant "compow" with infix syntax "^^".  Power operations on
 multiplicative monoids retains syntax "^" and is now defined generic
 in class power.  INCOMPATIBILITY.
 
