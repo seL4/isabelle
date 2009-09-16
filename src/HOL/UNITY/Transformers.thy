@@ -88,7 +88,7 @@ apply (simp add: mono_def wp_def awp_def, blast)
 done
 
 lemma wens_Id [simp]: "wens F Id B = B"
-by (simp add: wens_def gfp_def wp_def awp_def Sup_set_eq, blast)
+by (simp add: wens_def gfp_def wp_def awp_def, blast)
 
 text{*These two theorems justify the claim that @{term wens} returns the
 weakest assertion satisfying the ensures property*}
@@ -101,7 +101,7 @@ done
 
 lemma wens_ensures: "act \<in> Acts F ==> F \<in> (wens F act B) ensures B"
 by (simp add: wens_def gfp_def constrains_def awp_def wp_def
-              ensures_def transient_def Sup_set_eq, blast)
+              ensures_def transient_def, blast)
 
 text{*These two results constitute assertion (4.13) of the thesis*}
 lemma wens_mono: "(A \<subseteq> B) ==> wens F act A \<subseteq> wens F act B"
@@ -110,7 +110,7 @@ apply (rule gfp_mono, blast)
 done
 
 lemma wens_weakening: "B \<subseteq> wens F act B"
-by (simp add: wens_def gfp_def Sup_set_eq, blast)
+by (simp add: wens_def gfp_def, blast)
 
 text{*Assertion (6), or 4.16 in the thesis*}
 lemma subset_wens: "A-B \<subseteq> wp act B \<inter> awp F (B \<union> A) ==> A \<subseteq> wens F act B" 
@@ -120,7 +120,7 @@ done
 
 text{*Assertion 4.17 in the thesis*}
 lemma Diff_wens_constrains: "F \<in> (wens F act A - A) co wens F act A"
-by (simp add: wens_def gfp_def wp_def awp_def constrains_def Sup_set_eq, blast)
+by (simp add: wens_def gfp_def wp_def awp_def constrains_def, blast)
   --{*Proved instantly, yet remarkably fragile. If @{text Un_subset_iff}
       is declared as an iff-rule, then it's almost impossible to prove. 
       One proof is via @{text meson} after expanding all definitions, but it's
@@ -331,7 +331,7 @@ done
 
 lemma wens_single_eq:
      "wens (mk_program (init, {act}, allowed)) act B = B \<union> wp act B"
-by (simp add: wens_def gfp_def wp_def Sup_set_eq, blast)
+by (simp add: wens_def gfp_def wp_def, blast)
 
 
 text{*Next, we express the @{term "wens_set"} for single-assignment programs*}

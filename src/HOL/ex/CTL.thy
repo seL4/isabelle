@@ -95,7 +95,7 @@ proof
     proof
       assume "x \<in> gfp (\<lambda>s. - f (- s))"
       then obtain u where "x \<in> u" and "u \<subseteq> - f (- u)"
-	by (auto simp add: gfp_def Sup_set_eq)
+        by (auto simp add: gfp_def)
       then have "f (- u) \<subseteq> - u" by auto
       then have "lfp f \<subseteq> - u" by (rule lfp_lowerbound)
       from l and this have "x \<notin> u" by auto
