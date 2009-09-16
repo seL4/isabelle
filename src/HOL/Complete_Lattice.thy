@@ -203,8 +203,8 @@ lemma Sup_empty_fun:
 
 subsection {* Union *}
 
-definition Union :: "'a set set \<Rightarrow> 'a set" where
-  Sup_set_eq [symmetric]: "Union S = \<Squnion>S"
+abbreviation Union :: "'a set set \<Rightarrow> 'a set" where
+  "Union S \<equiv> \<Squnion>S"
 
 notation (xsymbols)
   Union  ("\<Union>_" [90] 90)
@@ -216,7 +216,7 @@ proof (rule set_ext)
   have "(\<exists>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<exists>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Union>A \<longleftrightarrow> x \<in> {x. \<exists>B\<in>A. x \<in> B}"
-    by (simp add: Sup_set_eq [symmetric] Sup_fun_def Sup_bool_def) (simp add: mem_def)
+    by (simp add: Sup_fun_def Sup_bool_def) (simp add: mem_def)
 qed
 
 lemma Union_iff [simp, noatp]:
@@ -314,7 +314,7 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} "@UNION"
 
 lemma UNION_eq_Union_image:
   "(\<Union>x\<in>A. B x) = \<Union>(B`A)"
-  by (simp add: SUPR_def SUPR_set_eq [symmetric] Sup_set_eq)
+  by (simp add: SUPR_def SUPR_set_eq [symmetric])
 
 lemma Union_def:
   "\<Union>S = (\<Union>x\<in>S. x)"
@@ -439,8 +439,8 @@ by blast
 
 subsection {* Inter *}
 
-definition Inter :: "'a set set \<Rightarrow> 'a set" where
-  Inf_set_eq [symmetric]: "Inter S = \<Sqinter>S"
+abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
+  "Inter S \<equiv> \<Sqinter>S"
   
 notation (xsymbols)
   Inter  ("\<Inter>_" [90] 90)
@@ -452,7 +452,7 @@ proof (rule set_ext)
   have "(\<forall>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<forall>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Inter>A \<longleftrightarrow> x \<in> {x. \<forall>B \<in> A. x \<in> B}"
-    by (simp add: Inf_fun_def Inf_bool_def Inf_set_eq [symmetric]) (simp add: mem_def)
+    by (simp add: Inf_fun_def Inf_bool_def) (simp add: mem_def)
 qed
 
 lemma Inter_iff [simp,noatp]: "(A : Inter C) = (ALL X:C. A:X)"
@@ -541,7 +541,7 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} "@INTER"
 
 lemma INTER_eq_Inter_image:
   "(\<Inter>x\<in>A. B x) = \<Inter>(B`A)"
-  by (simp add: INFI_def INFI_set_eq [symmetric] Inf_set_eq)
+  by (simp add: INFI_def INFI_set_eq [symmetric])
   
 lemma Inter_def:
   "\<Inter>S = (\<Inter>x\<in>S. x)"

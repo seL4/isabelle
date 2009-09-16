@@ -8,7 +8,7 @@ theory Executable_Set
 imports Main Fset
 begin
 
-subsection {* Derived set operations *}
+subsection {* Preprocessor setup *}
 
 declare member [code] 
 
@@ -24,9 +24,7 @@ lemma [code]:
 definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   [code del]: "eq_set = op ="
 
-(* FIXME allow for Stefan's code generator:
-declare set_eq_subset[code_unfold]
-*)
+(*declare eq_set_def [symmetric, code_unfold]*)
 
 lemma [code]:
   "eq_set A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
@@ -37,13 +35,20 @@ declare inter [code]
 declare Inter_image_eq [symmetric, code]
 declare Union_image_eq [symmetric, code]
 
-
-subsection {* Rewrites for primitive operations *}
-
 declare List_Set.project_def [symmetric, code_unfold]
 
+definition Inter :: "'a set set \<Rightarrow> 'a set" where
+  "Inter = Complete_Lattice.Inter"
 
-subsection {* code generator setup *}
+declare Inter_def [symmetric, code_unfold]
+
+definition Union :: "'a set set \<Rightarrow> 'a set" where
+  "Union = Complete_Lattice.Union"
+
+declare Union_def [symmetric, code_unfold]
+
+
+subsection {* Code generator setup *}
 
 ML {*
 nonfix inter;
@@ -75,8 +80,8 @@ consts_code
   "op \<union>"              ("{*Fset.union*}")
   "op \<inter>"              ("{*Fset.inter*}")
   "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip Fset.subtract*}")
-  "Complete_Lattice.Union" ("{*Fset.Union*}")
-  "Complete_Lattice.Inter" ("{*Fset.Inter*}")
+  "Union"             ("{*Fset.Union*}")
+  "Inter"             ("{*Fset.Inter*}")
   card                ("{*Fset.card*}")
   fold                ("{*foldl o flip*}")
 
