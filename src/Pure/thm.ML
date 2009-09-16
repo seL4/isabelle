@@ -153,7 +153,7 @@ sig
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
-structure Thm:> THM =
+structure Thm: THM =
 struct
 
 structure Pt = Proofterm;
@@ -163,11 +163,12 @@ structure Pt = Proofterm;
 
 (** certified types **)
 
-datatype ctyp = Ctyp of
+abstype ctyp = Ctyp of
  {thy_ref: theory_ref,
   T: typ,
   maxidx: int,
-  sorts: sort OrdList.T};
+  sorts: sort OrdList.T}
+with
 
 fun rep_ctyp (Ctyp args) = args;
 fun theory_of_ctyp (Ctyp {thy_ref, ...}) = Theory.deref thy_ref;
@@ -189,12 +190,13 @@ fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
 (** certified terms **)
 
 (*certified terms with checked typ, maxidx, and sorts*)
-datatype cterm = Cterm of
+abstype cterm = Cterm of
  {thy_ref: theory_ref,
   t: term,
   T: typ,
   maxidx: int,
-  sorts: sort OrdList.T};
+  sorts: sort OrdList.T}
+with
 
 exception CTERM of string * cterm list;
 
@@ -337,7 +339,7 @@ end;
 
 (*** Derivations and Theorems ***)
 
-datatype thm = Thm of
+abstype thm = Thm of
  deriv *                                        (*derivation*)
  {thy_ref: theory_ref,                          (*dynamic reference to theory*)
   tags: Properties.T,                           (*additional annotations/comments*)
@@ -348,7 +350,8 @@ datatype thm = Thm of
   prop: term}                                   (*conclusion*)
 and deriv = Deriv of
  {promises: (serial * thm future) OrdList.T,
-  body: Pt.proof_body};
+  body: Pt.proof_body}
+with
 
 type conv = cterm -> thm;
 
@@ -1717,6 +1720,10 @@ fun invoke_oracle thy_ref1 name oracle arg =
           prop = prop})
       end
   end;
+
+end;
+end;
+end;
 
 
 (* authentic derivation names *)
