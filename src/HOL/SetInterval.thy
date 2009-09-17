@@ -514,6 +514,30 @@ next
 qed
 
 
+subsubsection {* Proving Inclusions and Equalities between Unions *}
+
+lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
+  by (auto simp add: atLeast0LessThan) 
+
+lemma UN_finite_subset: "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> C) \<Longrightarrow> (\<Union>n. A n) \<subseteq> C"
+  by (subst UN_UN_finite_eq [symmetric]) blast
+
+lemma UN_finite2_subset:
+  assumes sb: "!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n}. B i)"
+  shows "(\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
+proof (rule UN_finite_subset)
+  fix n
+  have "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n}. B i)" by (rule sb)
+  also have "...  \<subseteq> (\<Union>n::nat. \<Union>i\<in>{0..<n}. B i)" by blast
+  also have "... = (\<Union>n. B n)" by (simp add: UN_UN_finite_eq) 
+  finally show "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>n. B n)" .
+qed
+
+lemma UN_finite2_eq:
+  "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n}. B i)) \<Longrightarrow> (\<Union>n. A n) = (\<Union>n. B n)"
+  by (iprover intro: subset_antisym UN_finite2_subset elim: equalityE)  
+
+
 subsubsection {* Cardinality *}
 
 lemma card_lessThan [simp]: "card {..<u} = u"
