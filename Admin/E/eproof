@@ -23,8 +23,14 @@ my $epclextract = "$edir/epclextract";
 # build E command from given commandline arguments
 
 my $format = "";
-my $eprover_cmd = $eprover;
+my $timelimit = 2000000000;   # effectively unlimited
+
+my $eprover_cmd = "'$eprover'";
 foreach (@ARGV) {
+  if (m/--cpu-limit=([0-9]+)/) {
+    $timelimit = $1;
+  }
+
   if (m/--tstp-out/) {
     $format = $_;
   }
@@ -48,7 +54,9 @@ my @lines = <$fh>;
 my $content = join "", @lines[-60 .. -1];
   # Note: Like the original eproof, we only look at the last 60 lines.
 
-if ($content =~ m/Total time/) {
+if ($content =~ m/Total time\s*:\s*([0-9]+\.[0-9]+)/) {
+  $timelimit = $timelimit - $1 - 1;
+
   if ($content =~ m/No proof found!/) {
     print "# Problem is satisfiable (or invalid), " .
       "generating saturation derivation\n";
@@ -71,16 +79,14 @@ else {
 }
 
 
-# extract E output
+# translate E output
 
 foreach (@lines) {
   print if (m/# SZS status/ or m/"# Failure"/);
 }
-$r = system "$epclextract $format -f --competition-framing $filename";
-  # Note: Before extraction, the original eproof invokes 'ulimit -S -t TIME'
-  # where TIME is the remaining time from the time limit given at the command
-  # line. This does not seem very reliable and is not implemented here. This
-  # is not a problem as long as extraction is reasonable fast or the invoking
-  # process enforces a time limit of its own.
+$r = system ("exec bash -c \"ulimit -S -t $timelimit; " .
+  "'$epclextract' $format -f --competition-framing $filename\"");
+  # Note: Setting the user time is not supported on Cygwin, i.e., ulimit fails
+  # and prints and error message. How could we then limit the execution time?
 exit ($r >> 8);
 
