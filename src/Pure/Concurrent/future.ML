@@ -84,7 +84,7 @@ fun task_of (Future {task, ...}) = task;
 fun group_of (Future {group, ...}) = group;
 fun result_of (Future {result, ...}) = result;
 
-fun peek x = Synchronized.peek (result_of x);
+fun peek x = Synchronized.value (result_of x);
 fun is_finished x = is_some (peek x);
 
 fun value x = Future

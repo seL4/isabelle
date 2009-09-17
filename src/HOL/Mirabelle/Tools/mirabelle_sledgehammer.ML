@@ -23,6 +23,7 @@ val separator = "-----"
 datatype sh_data = ShData of {
   calls: int,
   success: int,
+  lemmas: int,
   time_isa: int,
   time_atp: int,
   time_atp_fail: int}
@@ -38,7 +39,8 @@ datatype me_data = MeData of {
 
 datatype min_data = MinData of {
   calls: int,
-  ratios: int
+  ratios: int,
+  lemmas: int
   }
 
 (* The first me_data component is only used if "minimize" is on.
@@ -46,30 +48,30 @@ datatype min_data = MinData of {
 *)
 datatype data = Data of sh_data * me_data * min_data * me_data
 
-fun make_sh_data (sh_calls, sh_success, sh_time_isa, sh_time_atp, sh_time_atp_fail) =
-  ShData{calls=sh_calls, success=sh_success, time_isa=sh_time_isa,
-    time_atp=sh_time_atp, time_atp_fail=sh_time_atp_fail}
+fun make_sh_data (calls,success,lemmas,time_isa,time_atp,time_atp_fail) =
+  ShData{calls=calls, success=success, lemmas=lemmas, time_isa=time_isa,
+    time_atp=time_atp, time_atp_fail=time_atp_fail}
 
-fun make_min_data (calls, ratios) =
-  MinData{calls=calls, ratios=ratios}
+fun make_min_data (calls, ratios, lemmas) =
+  MinData{calls=calls, ratios=ratios, lemmas=lemmas}
 
 fun make_me_data (calls, success, time, timeout, lemmas, posns) =
   MeData{calls=calls, success=success, time=time, timeout=timeout, lemmas=lemmas, posns=posns}
 
 val empty_data =
-  Data(make_sh_data (0, 0, 0, 0, 0),
+  Data(make_sh_data (0, 0, 0, 0, 0, 0),
        make_me_data(0, 0, 0, 0, 0, []),
-       MinData{calls=0, ratios=0},
+       MinData{calls=0, ratios=0, lemmas=0},
        make_me_data(0, 0, 0, 0, 0, []))
 
 fun map_sh_data f
-  (Data (ShData{calls, success, time_isa, time_atp, time_atp_fail}, meda0, minda, meda)) =
-  Data (make_sh_data (f (calls, success, time_isa, time_atp, time_atp_fail)),
+  (Data (ShData{calls, success, lemmas, time_isa, time_atp, time_atp_fail}, meda0, minda, meda)) =
+  Data (make_sh_data (f (calls, success, lemmas, time_isa, time_atp, time_atp_fail)),
         meda0, minda, meda)
 
 fun map_min_data f
-  (Data(shda, meda0, MinData{calls,ratios}, meda)) =
-  Data(shda, meda0, make_min_data(f(calls,ratios)), meda)
+  (Data(shda, meda0, MinData{calls,ratios,lemmas}, meda)) =
+  Data(shda, meda0, make_min_data(f(calls,ratios,lemmas)), meda)
 
 fun map_me_data0 f (Data (shda, MeData{calls,success,time,timeout,lemmas,posns}, minda, meda)) =
   Data(shda, make_me_data(f (calls,success,time,timeout,lemmas,posns)), minda, meda)
@@ -78,30 +80,34 @@ fun map_me_data f (Data (shda, meda0, minda, MeData{calls,success,time,timeout,l
   Data(shda, meda0, minda, make_me_data(f (calls,success,time,timeout,lemmas,posns)))
 
 val inc_sh_calls =
-  map_sh_data (fn (calls, success, time_isa, time_atp, time_atp_fail)
-    => (calls + 1, success, time_isa, time_atp, time_atp_fail))
+  map_sh_data (fn (calls, success, lemmas, time_isa, time_atp, time_atp_fail)
+    => (calls + 1, success, lemmas, time_isa, time_atp, time_atp_fail))
 
 val inc_sh_success =
-  map_sh_data (fn (calls, success, time_isa, time_atp, time_atp_fail)
-    => (calls, success + 1, time_isa, time_atp, time_atp_fail))
+  map_sh_data (fn (calls, success, lemmas, time_isa, time_atp, time_atp_fail)
+    => (calls, success + 1, lemmas, time_isa, time_atp, time_atp_fail))
+
+fun inc_sh_lemmas n =
+  map_sh_data (fn (calls, success, lemmas, time_isa, time_atp, time_atp_fail)
+    => (calls, success, lemmas + n, time_isa, time_atp, time_atp_fail))
 
 fun inc_sh_time_isa t =
-  map_sh_data (fn (calls, success, time_isa, time_atp, time_atp_fail)
-    => (calls, success, time_isa + t, time_atp, time_atp_fail))
+  map_sh_data (fn (calls, success, lemmas, time_isa, time_atp, time_atp_fail)
+    => (calls, success, lemmas, time_isa + t, time_atp, time_atp_fail))
 
 fun inc_sh_time_atp t =
-  map_sh_data (fn (calls, success, time_isa, time_atp, time_atp_fail)
-    => (calls, success, time_isa, time_atp + t, time_atp_fail))
+  map_sh_data (fn (calls, success, lemmas, time_isa, time_atp, time_atp_fail)
+    => (calls, success, lemmas, time_isa, time_atp + t, time_atp_fail))
 
 fun inc_sh_time_atp_fail t =
-  map_sh_data (fn (calls, success, time_isa, time_atp, time_atp_fail)
-    => (calls, success, time_isa, time_atp, time_atp_fail + t))
+  map_sh_data (fn (calls, success, lemmas, time_isa, time_atp, time_atp_fail)
+    => (calls, success, lemmas, time_isa, time_atp, time_atp_fail + t))
 
 val inc_min_calls =
-  map_min_data (fn (calls, ratios) => (calls + 1, ratios))
+  map_min_data (fn (calls, ratios, lemmas) => (calls + 1, ratios, lemmas))
 
 fun inc_min_ratios n =
-  map_min_data (fn (calls, ratios) => (calls, ratios + n))
+  map_min_data (fn (calls, ratios, lemmas) => (calls, ratios + n, lemmas))
 
 val inc_metis_calls = map_me_data
  (fn (calls, success, time, timeout, lemmas,posns)
@@ -160,9 +166,10 @@ fun time t = Real.fromInt t / 1000.0
 fun avg_time t n =
   if n > 0 then (Real.fromInt t / 1000.0) / Real.fromInt n else 0.0
 
-fun log_sh_data log sh_calls sh_success sh_time_isa sh_time_atp sh_time_atp_fail =
+fun log_sh_data log sh_calls sh_success sh_lemmas sh_time_isa sh_time_atp sh_time_atp_fail =
  (log ("Total number of sledgehammer calls: " ^ str sh_calls);
   log ("Number of successful sledgehammer calls: " ^ str sh_success);
+  log ("Number of sledgehammer lemmas: " ^ str sh_lemmas);
   log ("Success rate: " ^ percentage sh_success sh_calls ^ "%");
   log ("Total time for sledgehammer calls (Isabelle): " ^ str3 (time sh_time_isa));
   log ("Total time for successful sledgehammer calls (ATP): " ^ str3 (time sh_time_atp));
@@ -188,7 +195,7 @@ fun log_metis_data log tag sh_calls sh_success metis_calls metis_success metis_t
   log ("Number of " ^ tag ^ "metis exceptions: " ^
     str (sh_success - metis_success - metis_timeout));
   log ("Success rate: " ^ percentage metis_success sh_calls ^ "%");
-  log ("Number of " ^ tag ^ "metis lemmas: " ^ str metis_lemmas);
+  log ("Number of successful " ^ tag ^ "metis lemmas: " ^ str metis_lemmas);
   log ("Total time for successful metis calls: " ^ str3 (time metis_time));
   log ("Average time for successful metis calls: " ^
     str3 (avg_time metis_time metis_success));
@@ -205,19 +212,19 @@ fun log_min_data log calls ratios =
 in
 
 fun log_data id log (Data
-   (ShData{calls=sh_calls, success=sh_success, time_isa=sh_time_isa,
-      time_atp=sh_time_atp, time_atp_fail=sh_time_atp_fail},
+   (ShData{calls=sh_calls, lemmas=sh_lemmas, success=sh_success,
+      time_isa=sh_time_isa,time_atp=sh_time_atp,time_atp_fail=sh_time_atp_fail},
     MeData{calls=metis_calls0,
       success=metis_success0, time=metis_time0, timeout=metis_timeout0,
       lemmas=metis_lemmas0,posns=metis_posns0},
-    MinData{calls=min_calls, ratios=min_ratios},
+    MinData{calls=min_calls, ratios=min_ratios, lemmas=min_lemmas},
     MeData{calls=metis_calls,
       success=metis_success, time=metis_time, timeout=metis_timeout,
       lemmas=metis_lemmas,posns=metis_posns})) =
   if sh_calls > 0
   then
    (log ("\n\n\nReport #" ^ string_of_int id ^ ":\n");
-    log_sh_data log sh_calls sh_success sh_time_isa sh_time_atp sh_time_atp_fail;
+    log_sh_data log sh_calls sh_success sh_lemmas sh_time_isa sh_time_atp sh_time_atp_fail;
     log "";
     if metis_calls > 0 then log_metis_data log "" sh_calls sh_success metis_calls
       metis_success metis_time metis_timeout metis_lemmas  metis_posns else ();
@@ -321,6 +328,7 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
       SH_OK (time_isa, time_atp, names) =>
         let
           val _ = change_data id inc_sh_success
+          val _ = change_data id (inc_sh_lemmas (length names))
           val _ = change_data id (inc_sh_time_isa time_isa)
           val _ = change_data id (inc_sh_time_atp time_atp)
 
@@ -374,6 +382,7 @@ fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_tim
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
       | with_time (true, t) = (change_data id inc_metis_success;
+          change_data id (inc_metis_lemmas (length named_thms));
           change_data id (inc_metis_time t);
           change_data id (inc_metis_posns pos);
           "succeeded (" ^ string_of_int t ^ ")")
@@ -383,7 +392,6 @@ fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_tim
 
     val _ = log separator
     val _ = change_data id inc_metis_calls
-    val _ = change_data id (inc_metis_lemmas (length named_thms))
   in
     maps snd named_thms
     |> timed_metis

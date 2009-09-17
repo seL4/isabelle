@@ -366,7 +366,7 @@ definition single :: "'a \<Rightarrow> 'a pred" where
 definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
   "P \<guillemotright>= f = Pred (\<lambda>x. (\<exists>y. eval P y \<and> eval (f y) x))"
 
-instantiation pred :: (type) complete_lattice
+instantiation pred :: (type) "{complete_lattice, boolean_algebra}"
 begin
 
 definition
@@ -393,10 +393,16 @@ definition
 definition
   [code del]: "\<Squnion>A = Pred (SUPR A eval)"
 
-instance by default
-  (auto simp add: less_eq_pred_def less_pred_def
+definition
+  "- P = Pred (- eval P)"
+
+definition
+  "P - Q = Pred (eval P - eval Q)"
+
+instance proof
+qed (auto simp add: less_eq_pred_def less_pred_def
     inf_pred_def sup_pred_def bot_pred_def top_pred_def
-    Inf_pred_def Sup_pred_def,
+    Inf_pred_def Sup_pred_def uminus_pred_def minus_pred_def fun_Compl_def bool_Compl_def,
     auto simp add: le_fun_def less_fun_def le_bool_def less_bool_def
     eval_inject mem_def)
 
@@ -463,6 +469,127 @@ lemma supI2: "eval B x \<Longrightarrow> eval (A \<squnion> B) x"
 
 lemma supE: "eval (A \<squnion> B) x \<Longrightarrow> (eval A x \<Longrightarrow> P) \<Longrightarrow> (eval B x \<Longrightarrow> P) \<Longrightarrow> P"
   unfolding sup_pred_def by auto
+
+lemma single_not_bot [simp]:
+  "single x \<noteq> \<bottom>"
+  by (auto simp add: single_def bot_pred_def expand_fun_eq)
+
+lemma not_bot:
+  assumes "A \<noteq> \<bottom>"
+  obtains x where "eval A x"
+using assms by (cases A)
+  (auto simp add: bot_pred_def, auto simp add: mem_def)
+  
+
+subsubsection {* Emptiness check and definite choice *}
+
+definition is_empty :: "'a pred \<Rightarrow> bool" where
+  "is_empty A \<longleftrightarrow> A = \<bottom>"
+
+lemma is_empty_bot:
+  "is_empty \<bottom>"
+  by (simp add: is_empty_def)
+
+lemma not_is_empty_single:
+  "\<not> is_empty (single x)"
+  by (auto simp add: is_empty_def single_def bot_pred_def expand_fun_eq)
+
+lemma is_empty_sup:
+  "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
+  by (auto simp add: is_empty_def intro: sup_eq_bot_eq1 sup_eq_bot_eq2)
+
+definition singleton :: "'a pred \<Rightarrow> 'a" where
+  "singleton A = (if \<exists>!x. eval A x then THE x. eval A x else undefined)"
+
+lemma singleton_eqI:
+  "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton A = x"
+  by (auto simp add: singleton_def)
+
+lemma eval_singletonI:
+  "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton A)"
+proof -
+  assume assm: "\<exists>!x. eval A x"
+  then obtain x where "eval A x" ..
+  moreover with assm have "singleton A = x" by (rule singleton_eqI)
+  ultimately show ?thesis by simp 
+qed
+
+lemma single_singleton:
+  "\<exists>!x. eval A x \<Longrightarrow> single (singleton A) = A"
+proof -
+  assume assm: "\<exists>!x. eval A x"
+  then have "eval A (singleton A)"
+    by (rule eval_singletonI)
+  moreover from assm have "\<And>x. eval A x \<Longrightarrow> singleton A = x"
+    by (rule singleton_eqI)
+  ultimately have "eval (single (singleton A)) = eval A"
+    by (simp (no_asm_use) add: single_def expand_fun_eq) blast
+  then show ?thesis by (simp add: eval_inject)
+qed
+
+lemma singleton_undefinedI:
+  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton A = undefined"
+  by (simp add: singleton_def)
+
+lemma singleton_bot:
+  "singleton \<bottom> = undefined"
+  by (auto simp add: bot_pred_def intro: singleton_undefinedI)
+
+lemma singleton_single:
+  "singleton (single x) = x"
+  by (auto simp add: intro: singleton_eqI singleI elim: singleE)
+
+lemma singleton_sup_single_single:
+  "singleton (single x \<squnion> single y) = (if x = y then x else undefined)"
+proof (cases "x = y")
+  case True then show ?thesis by (simp add: singleton_single)
+next
+  case False
+  have "eval (single x \<squnion> single y) x"
+    and "eval (single x \<squnion> single y) y"
+  by (auto intro: supI1 supI2 singleI)
+  with False have "\<not> (\<exists>!z. eval (single x \<squnion> single y) z)"
+    by blast
+  then have "singleton (single x \<squnion> single y) = undefined"
+    by (rule singleton_undefinedI)
+  with False show ?thesis by simp
+qed
+
+lemma singleton_sup_aux:
+  "singleton (A \<squnion> B) = (if A = \<bottom> then singleton B
+    else if B = \<bottom> then singleton A
+    else singleton
+      (single (singleton A) \<squnion> single (singleton B)))"
+proof (cases "(\<exists>!x. eval A x) \<and> (\<exists>!y. eval B y)")
+  case True then show ?thesis by (simp add: single_singleton)
+next
+  case False
+  from False have A_or_B:
+    "singleton A = undefined \<or> singleton B = undefined"
+    by (auto intro!: singleton_undefinedI)
+  then have rhs: "singleton
+    (single (singleton A) \<squnion> single (singleton B)) = undefined"
+    by (auto simp add: singleton_sup_single_single singleton_single)
+  from False have not_unique:
+    "\<not> (\<exists>!x. eval A x) \<or> \<not> (\<exists>!y. eval B y)" by simp
+  show ?thesis proof (cases "A \<noteq> \<bottom> \<and> B \<noteq> \<bottom>")
+    case True
+    then obtain a b where a: "eval A a" and b: "eval B b"
+      by (blast elim: not_bot)
+    with True not_unique have "\<not> (\<exists>!x. eval (A \<squnion> B) x)"
+      by (auto simp add: sup_pred_def bot_pred_def)
+    then have "singleton (A \<squnion> B) = undefined" by (rule singleton_undefinedI)
+    with True rhs show ?thesis by simp
+  next
+    case False then show ?thesis by auto
+  qed
+qed
+
+lemma singleton_sup:
+  "singleton (A \<squnion> B) = (if A = \<bottom> then singleton B
+    else if B = \<bottom> then singleton A
+    else if singleton A = singleton B then singleton A else undefined)"
+using singleton_sup_aux [of A B] by (simp only: singleton_sup_single_single)
 
 
 subsubsection {* Derived operations *}
@@ -630,6 +757,46 @@ lemma eq_is_eq: "eq x y \<equiv> (x = y)"
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
   "map f P = P \<guillemotright>= (single o f)"
 
+primrec null :: "'a seq \<Rightarrow> bool" where
+    "null Empty \<longleftrightarrow> True"
+  | "null (Insert x P) \<longleftrightarrow> False"
+  | "null (Join P xq) \<longleftrightarrow> is_empty P \<and> null xq"
+
+lemma null_is_empty:
+  "null xq \<longleftrightarrow> is_empty (pred_of_seq xq)"
+  by (induct xq) (simp_all add: is_empty_bot not_is_empty_single is_empty_sup)
+
+lemma is_empty_code [code]:
+  "is_empty (Seq f) \<longleftrightarrow> null (f ())"
+  by (simp add: null_is_empty Seq_def)
+
+primrec the_only :: "'a seq \<Rightarrow> 'a" where
+  [code del]: "the_only Empty = undefined"
+  | "the_only (Insert x P) = (if is_empty P then x else let y = singleton P in if x = y then x else undefined)"
+  | "the_only (Join P xq) = (if is_empty P then the_only xq else if null xq then singleton P
+       else let x = singleton P; y = the_only xq in
+       if x = y then x else undefined)"
+
+lemma the_only_singleton:
+  "the_only xq = singleton (pred_of_seq xq)"
+  by (induct xq)
+    (auto simp add: singleton_bot singleton_single is_empty_def
+    null_is_empty Let_def singleton_sup)
+
+lemma singleton_code [code]:
+  "singleton (Seq f) = (case f ()
+   of Empty \<Rightarrow> undefined
+    | Insert x P \<Rightarrow> if is_empty P then x
+        else let y = singleton P in
+          if x = y then x else undefined
+    | Join P xq \<Rightarrow> if is_empty P then the_only xq
+        else if null xq then singleton P
+        else let x = singleton P; y = the_only xq in
+          if x = y then x else undefined)"
+  by (cases "f ()")
+   (auto simp add: Seq_def the_only_singleton is_empty_def
+      null_is_empty singleton_bot singleton_single singleton_sup Let_def)
+
 ML {*
 signature PREDICATE =
 sig
@@ -707,7 +874,7 @@ no_notation
   bind (infixl "\<guillemotright>=" 70)
 
 hide (open) type pred seq
-hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq map
+hide (open) const Pred eval single bind is_empty singleton if_pred not_pred
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map
 
 end
