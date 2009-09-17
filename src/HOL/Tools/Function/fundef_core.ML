@@ -478,7 +478,7 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
     let
       val f_def =
-          Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
+          Abs ("x", domT, Const (@{const_name FunDef.THE_default}, ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, G $ Bound 1 $ Bound 0))
               |> Syntax.check_term lthy
 
@@ -767,7 +767,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
       val R' = Free ("R", fastype_of R)
 
       val Rrel = Free ("R", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
-      val inrel_R = Const ("FunDef.in_rel", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
+      val inrel_R = Const (@{const_name FunDef.in_rel}, HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
 
       val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const (@{const_name "Wellfounded.wfP"}, (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
 

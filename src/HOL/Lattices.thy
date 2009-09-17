@@ -12,7 +12,9 @@ subsection {* Lattices *}
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
-  less  (infix "\<sqsubset>" 50)
+  less  (infix "\<sqsubset>" 50) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
@@ -220,6 +222,46 @@ qed
 
 end
 
+subsubsection {* Strict order *}
+
+context lower_semilattice
+begin
+
+lemma less_infI1:
+  "a \<sqsubset> x \<Longrightarrow> a \<sqinter> b \<sqsubset> x"
+  by (auto simp add: less_le intro: le_infI1)
+
+lemma less_infI2:
+  "b \<sqsubset> x \<Longrightarrow> a \<sqinter> b \<sqsubset> x"
+  by (auto simp add: less_le intro: le_infI2)
+
+end
+
+context upper_semilattice
+begin
+
+lemma less_supI1:
+  "x < a \<Longrightarrow> x < a \<squnion> b"
+proof -
+  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+    by (fact dual_semilattice)
+  assume "x < a"
+  then show "x < a \<squnion> b"
+    by (fact dual.less_infI1)
+qed
+
+lemma less_supI2:
+  "x < b \<Longrightarrow> x < a \<squnion> b"
+proof -
+  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+    by (fact dual_semilattice)
+  assume "x < b"
+  then show "x < a \<squnion> b"
+    by (fact dual.less_infI2)
+qed
+
+end
+
 
 subsection {* Distributive lattices *}
 
@@ -305,6 +347,40 @@ lemma sup_bot_left [simp]:
 lemma sup_bot_right [simp]:
   "x \<squnion> bot = x"
   by (rule sup_absorb1) simp
+
+lemma inf_eq_top_eq1:
+  assumes "A \<sqinter> B = \<top>"
+  shows "A = \<top>"
+proof (cases "B = \<top>")
+  case True with assms show ?thesis by simp
+next
+  case False with top_greatest have "B < \<top>" by (auto intro: neq_le_trans)
+  then have "A \<sqinter> B < \<top>" by (rule less_infI2)
+  with assms show ?thesis by simp
+qed
+
+lemma inf_eq_top_eq2:
+  assumes "A \<sqinter> B = \<top>"
+  shows "B = \<top>"
+  by (rule inf_eq_top_eq1, unfold inf_commute [of B]) (fact assms)
+
+lemma sup_eq_bot_eq1:
+  assumes "A \<squnion> B = \<bottom>"
+  shows "A = \<bottom>"
+proof -
+  interpret dual: boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
+    by (rule dual_boolean_algebra)
+  from dual.inf_eq_top_eq1 assms show ?thesis .
+qed
+
+lemma sup_eq_bot_eq2:
+  assumes "A \<squnion> B = \<bottom>"
+  shows "B = \<bottom>"
+proof -
+  interpret dual: boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
+    by (rule dual_boolean_algebra)
+  from dual.inf_eq_top_eq2 assms show ?thesis .
+qed
 
 lemma compl_unique:
   assumes "x \<sqinter> y = bot"
@@ -517,6 +593,8 @@ no_notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
   inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65)
+  sup  (infixl "\<squnion>" 65) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 end

@@ -11134,7 +11134,6 @@ lemma lfp_eqvt:
   shows "pi1\<bullet>(lfp f) = lfp (pi1\<bullet>f)"
   and   "pi2\<bullet>(lfp g) = lfp (pi2\<bullet>g)"
 apply(simp add: lfp_def)
-apply(simp add: Inf_set_eq)
 apply(simp add: big_inter_eqvt)
 apply(simp add: pt_Collect_eqvt[OF pt_name_inst, OF at_name_inst])
 apply(subgoal_tac "{u. (pi1\<bullet>f) u \<subseteq> u} = {u. ((rev pi1)\<bullet>((pi1\<bullet>f) u)) \<subseteq> ((rev pi1)\<bullet>u)}")
@@ -11146,7 +11145,6 @@ apply(simp add: perm_bool)
 apply(drule subseteq_eqvt(1)[THEN iffD2])
 apply(simp add: perm_bool)
 apply(simp add: lfp_def)
-apply(simp add: Inf_set_eq)
 apply(simp add: big_inter_eqvt)
 apply(simp add: pt_Collect_eqvt[OF pt_coname_inst, OF at_coname_inst])
 apply(subgoal_tac "{u. (pi2\<bullet>g) u \<subseteq> u} = {u. ((rev pi2)\<bullet>((pi2\<bullet>g) u)) \<subseteq> ((rev pi2)\<bullet>u)}")

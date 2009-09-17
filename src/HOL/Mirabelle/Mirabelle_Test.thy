@@ -1,5 +1,5 @@
-(* Title: Mirabelle_Test.thy
-   Author: Sascha Boehme
+(*  Title:      HOL/Mirabelle/Mirabelle_Test.thy
+    Author:     Sascha Boehme, TU Munich
 *)
 
 header {* Simple test theory for Mirabelle actions *}
@@ -14,9 +14,9 @@ uses
   "Tools/mirabelle_sledgehammer.ML"
 begin
 
-(*
-  only perform type-checking of the actions,
-  any reasonable test would be too complicated
-*)
+text {*
+  Only perform type-checking of the actions,
+  any reasonable test would be too complicated.
+*}
 
 end

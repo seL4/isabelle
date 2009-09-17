@@ -7,7 +7,7 @@ Minimalization of theorem list for metis by using an external automated theorem 
 signature ATP_MINIMAL =
 sig
   val minimalize: AtpManager.prover -> string -> int -> Proof.state ->
-    (string * thm list) list -> (string * thm list) list option * string
+    (string * thm list) list -> ((string * thm list) list * int) option * string
 end
 
 structure AtpMinimal: ATP_MINIMAL =
@@ -69,9 +69,14 @@ in
          forall e in v. ~p(v \ e)
    *)
   fun minimal p s =
-    case min p [] s of
-      [x] => if p [] then [] else [x]
-    | m => m
+    let val c = ref 0
+        fun pc xs = (c := !c + 1; p xs)
+    in
+    (case min pc [] s of
+       [x] => if pc [] then [] else [x]
+     | m => m,
+     !c)
+    end
 end
 
 
@@ -150,13 +155,14 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
             else
               name_thms_pairs
-          val min_thms = if null to_use then []
+          val (min_thms, n) = if null to_use then ([], 0)
             else minimal (test_thms (SOME filtered)) to_use
           val min_names = order_unique (map fst min_thms)
+          val _ = println ("Interations: " ^ string_of_int n)
           val _ = println ("Minimal " ^ (length_string min_thms) ^ " theorems")
           val _ = debug_fn (fn () => print_names min_thms)
         in
-          answer' (SOME min_thms) ("Try this command: " ^
+          answer' (SOME(min_thms,n)) ("Try this command: " ^
             Markup.markup Markup.sendback ("apply (metis " ^ space_implode " " min_names ^ ")"))
         end
     | (Timeout, _) =>
@@ -167,7 +173,7 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
     | (Failure, _) =>
         answer'' "Failure: No proof with the theorems supplied")
     handle ResHolClause.TOO_TRIVIAL =>
-        answer' (SOME []) ("Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
+        answer' (SOME ([],0)) ("Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
     | ERROR msg =>
         answer'' ("Error: " ^ msg)
   end

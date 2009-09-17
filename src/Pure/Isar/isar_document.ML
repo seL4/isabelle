@@ -278,6 +278,7 @@ local structure P = OuterParse structure V = ValueParse in
 val _ =
   OuterSyntax.internal_command "Isar.define_command"
     (P.string -- P.string >> (fn (id, text) =>
+      Toplevel.position (Position.id_only id) o
       Toplevel.imperative (fn () =>
         define_command id (OuterSyntax.prepare_command (Position.id id) text))));
 

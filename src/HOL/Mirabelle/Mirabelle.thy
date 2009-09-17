@@ -1,5 +1,5 @@
-(* Title: Mirabelle.thy
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Mirabelle.thy
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 theory Mirabelle

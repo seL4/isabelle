@@ -523,7 +523,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       let
       val last_axiom = Vector.length thm_names
       fun is_axiom n = n <= last_axiom
-      fun is_conj n = n >= #1 conj_count andalso n < #1 conj_count + #2 conj_count
+      fun is_conj n = n >= fst conj_count andalso n < fst conj_count + snd conj_count
       fun getname i = Vector.sub(thm_names, i-1)
       in
         (sort_distinct string_ord (filter (fn x => x <> "??.unknown")

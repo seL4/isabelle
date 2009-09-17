@@ -30,18 +30,19 @@ sig
   val str_of: binding -> string
 end;
 
-structure Binding:> BINDING =
+structure Binding: BINDING =
 struct
 
 (** representation **)
 
 (* datatype *)
 
-datatype binding = Binding of
+abstype binding = Binding of
  {prefix: (string * bool) list,     (*system prefix*)
   qualifier: (string * bool) list,  (*user qualifier*)
   name: bstring,                    (*base name*)
-  pos: Position.T};                 (*source position*)
+  pos: Position.T}                  (*source position*)
+with
 
 fun make_binding (prefix, qualifier, name, pos) =
   Binding {prefix = prefix, qualifier = qualifier, name = name, pos = pos};
@@ -108,6 +109,7 @@ fun str_of binding =
     val props = Position.properties_of (pos_of binding);
   in Markup.markup (Markup.properties props (Markup.binding (name_of binding))) text end;
 
+end;
 end;
 
 type binding = Binding.binding;

@@ -1,27 +1,30 @@
-(* Title:  mirabelle.ML
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Tools/mirabelle.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 signature MIRABELLE =
 sig
-  (* configuration *)
+  (*configuration*)
   val logfile : string Config.T
   val timeout : int Config.T
   val start_line : int Config.T
   val end_line : int Config.T
   val setup : theory -> theory
 
-  (* core *)
-  type init_action
-  type done_action
-  type run_action
-  type action
+  (*core*)
+  type init_action = int -> theory -> theory
+  type done_args = {last: Toplevel.state, log: string -> unit}
+  type done_action = int -> done_args -> unit
+  type run_args = {pre: Proof.state, post: Toplevel.state option,
+    timeout: Time.time, log: string -> unit, pos: Position.T}
+  type run_action = int -> run_args -> unit
+  type action = init_action * run_action * done_action
   val catch : (int -> string) -> run_action -> run_action
   val register : action -> theory -> theory
   val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
     unit
 
-  (* utility functions *)
+  (*utility functions*)
   val goal_thm_of : Proof.state -> thm
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
@@ -47,14 +50,14 @@ val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
 val setup = setup1 #> setup2 #> setup3 #> setup4
 
 
-
 (* Mirabelle core *)
 
-
 type init_action = int -> theory -> theory
-type done_action = int -> {last: Toplevel.state, log: string -> unit} -> unit
-type run_action = int -> {pre: Proof.state, post: Toplevel.state option,
-  timeout: Time.time, log: string -> unit, pos: Position.T} -> unit
+type done_args = {last: Toplevel.state, log: string -> unit}
+type done_action = int -> done_args -> unit
+type run_args = {pre: Proof.state, post: Toplevel.state option,
+  timeout: Time.time, log: string -> unit, pos: Position.T}
+type run_action = int -> run_args -> unit
 type action = init_action * run_action * done_action
 
 structure Actions = TheoryDataFun
@@ -70,7 +73,7 @@ structure Actions = TheoryDataFun
 fun app_with f g x = (g x; ())
   handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; ())
 
-fun catch tag f id (st as {log, ...}) =
+fun catch tag f id (st as {log, ...}: run_args) =
   let fun log_exn e = log (tag id ^ "exception:\n" ^ General.exnMessage e)
   in app_with log_exn (f id) st end
 

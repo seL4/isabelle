@@ -176,12 +176,11 @@ subsubsection {* OCaml *}
 
 code_type array (OCaml "_/ array")
 code_const Array (OCaml "failwith/ \"bare Array\"")
-code_const Array.new' (OCaml "(fun/ ()/ ->/ Array.make/ _/ _)")
+code_const Array.new' (OCaml "(fun/ ()/ ->/ Array.make/ (Big'_int.int'_of'_big'_int/ _)/ _)")
 code_const Array.of_list (OCaml "(fun/ ()/ ->/ Array.of'_list/ _)")
-code_const Array.make' (OCaml "(fun/ ()/ ->/ Array.init/ _/ _)")
-code_const Array.length' (OCaml "(fun/ ()/ ->/ Array.length/ _)")
-code_const Array.nth' (OCaml "(fun/ ()/ ->/ Array.get/ _/ _)")
-code_const Array.upd' (OCaml "(fun/ ()/ ->/ Array.set/ _/ _/ _)")
+code_const Array.length' (OCaml "(fun/ ()/ ->/ Big'_int.big'_int'_of'_int/ (Array.length/ _))")
+code_const Array.nth' (OCaml "(fun/ ()/ ->/ Array.get/ _/ (Big'_int.int'_of'_big'_int/ _))")
+code_const Array.upd' (OCaml "(fun/ ()/ ->/ Array.set/ _/ (Big'_int.int'_of'_big'_int/ _)/ _)")
 
 code_reserved OCaml Array
 

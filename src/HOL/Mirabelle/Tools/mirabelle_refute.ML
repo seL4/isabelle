@@ -1,5 +1,5 @@
-(* Title:  mirabelle_refute.ML
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Tools/mirabelle_refute.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 structure Mirabelle_Refute : MIRABELLE_ACTION =

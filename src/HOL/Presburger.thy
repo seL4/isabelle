@@ -382,15 +382,22 @@ shows "((m::int) dvd t) \<equiv> (k*m dvd k*t)"
 
 lemma uminus_dvd_conv: "(d dvd (t::int)) \<equiv> (-d dvd t)" "(d dvd (t::int)) \<equiv> (d dvd -t)"
   by simp_all
+
 text {* \bigskip Theorems for transforming predicates on nat to predicates on @{text int}*}
-lemma all_nat: "(\<forall>x::nat. P x) = (\<forall>x::int. 0 <= x \<longrightarrow> P (nat x))"
+
+lemma all_nat: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x\<ge>0. P (nat x))"
   by (simp split add: split_nat)
 
-lemma ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
-  apply (auto split add: split_nat)
-  apply (rule_tac x="int x" in exI, simp)
-  apply (rule_tac x = "nat x" in exI,erule_tac x = "nat x" in allE, simp)
-  done
+lemma ex_nat: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> P (nat x))"
+proof
+  assume "\<exists>x. P x"
+  then obtain x where "P x" ..
+  then have "int x \<ge> 0 \<and> P (nat (int x))" by simp
+  then show "\<exists>x\<ge>0. P (nat x)" ..
+next
+  assume "\<exists>x\<ge>0. P (nat x)"
+  then show "\<exists>x. P x" by auto
+qed
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"

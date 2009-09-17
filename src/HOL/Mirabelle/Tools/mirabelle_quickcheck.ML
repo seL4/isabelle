@@ -1,5 +1,5 @@
-(* Title:  mirabelle_quickcheck.ML
-   Author: Jasmin Blanchette and Sascha Boehme
+(*  Title:      HOL/Mirabelle/Tools/mirabelle_quickcheck.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
 *)
 
 structure Mirabelle_Quickcheck : MIRABELLE_ACTION =
@@ -10,7 +10,7 @@ fun qc_tag id = "#" ^ string_of_int id ^ " quickcheck: "
 fun init _ = I
 fun done _ _ = ()
 
-fun run args id {pre, timeout, log, ...} =
+fun run args id ({pre, timeout, log, ...}: Mirabelle.run_args) =
   let
     val has_valid_key = member (op =) ["iterations", "size", "generator"] o fst
     val quickcheck = Quickcheck.quickcheck (filter has_valid_key args) 1

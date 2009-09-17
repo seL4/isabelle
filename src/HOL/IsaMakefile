@@ -291,7 +291,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Log.thy \
   Lubs.thy \
   MacLaurin.thy \
-  NatTransfer.thy \
+  Nat_Transfer.thy \
   NthRoot.thy \
   SEQ.thy \
   Series.thy \
@@ -306,7 +306,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Real.thy \
   RealVector.thy \
   Tools/float_syntax.ML \
-  Tools/transfer_data.ML \
+  Tools/transfer.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
@@ -901,7 +901,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy \
   ex/Sudoku.thy ex/Tarski.thy \
-  ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
+  ex/Termination.thy ex/Transfer_Ex.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
   ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
