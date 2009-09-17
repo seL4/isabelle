@@ -71,7 +71,7 @@ class TheoryView(text_area: JEditTextArea)
     if (!edits.isEmpty) {
       val change = new Change(Isabelle.system.id(), Some(current_change), edits.toList)
       _changes ::= change
-      prover ! change
+      prover.input(change)
       current_change = change
       edits.clear
     }

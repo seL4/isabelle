@@ -17,21 +17,25 @@ import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Change, Token}
 
 
-class Prover(system: Isabelle_System, logic: String) extends Actor
+class Prover(system: Isabelle_System, logic: String)
 {
   /* incoming messages */
 
   private var prover_ready = false
 
-  def act() {
-    loop {
-      react {
-        case result: Isabelle_Process.Result => handle_result(result)
-        case change: Change if prover_ready => handle_change(change)
-        case bad if prover_ready => System.err.println("prover: ignoring bad message " + bad)
+  private val receiver = new Actor {
+    def act() {
+      loop {
+        react {
+          case result: Isabelle_Process.Result => handle_result(result)
+          case change: Change if prover_ready => handle_change(change)
+          case bad if prover_ready => System.err.println("prover: ignoring bad message " + bad)
+        }
       }
     }
   }
+
+  def input(change: Change) { receiver ! change }
 
 
   /* outgoing messages */
@@ -43,9 +47,7 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
   /* prover process */
 
   private val process =
-    new Isabelle_Process(system, this, "-m", "xsymbols", logic) with Isar_Document
-
-  def stop() { process.kill }
+    new Isabelle_Process(system, receiver, "-m", "xsymbols", logic) with Isar_Document
 
 
   /* outer syntax keywords and completion */
@@ -110,7 +112,7 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
                           val state = new Command_State(cmd)
                           states += (state_id -> state)
                           doc.states += (cmd -> state)
-                          command_change.event(cmd)
+                          command_change.event(cmd)   // FIXME really!?
                         case None =>
                       }
                     }
@@ -163,4 +165,11 @@ class Prover(system: Isabelle_System, logic: String) extends Actor
 
     document_change.event(doc)
   }
+
+
+  /* main controls */
+
+  def start() { receiver.start() }
+
+  def stop() { process.kill() }
 }
