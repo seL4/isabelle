@@ -192,8 +192,6 @@ fun log_metis_data log tag sh_calls sh_success metis_calls metis_success metis_t
  (log ("Total number of " ^ tag ^ "metis calls: " ^ str metis_calls);
   log ("Number of successful " ^ tag ^ "metis calls: " ^ str metis_success);
   log ("Number of " ^ tag ^ "metis timeouts: " ^ str metis_timeout);
-  log ("Number of " ^ tag ^ "metis exceptions: " ^
-    str (sh_success - metis_success - metis_timeout));
   log ("Success rate: " ^ percentage metis_success sh_calls ^ "%");
   log ("Number of successful " ^ tag ^ "metis lemmas: " ^ str metis_lemmas);
   log ("Total time for successful metis calls: " ^ str3 (time metis_time));
