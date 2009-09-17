@@ -79,14 +79,17 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
-    val perl_script = "perl -w $ISABELLE_ATP_MANAGER/lib/scripts/local_atp.pl"
-    fun cmd_line probfile = perl_script ^ " '" ^ space_implode " "
-      [File.shell_path cmd, args, File.platform_path probfile] ^ "'"
+    fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
+      [File.shell_path cmd, args, File.platform_path probfile] ^ " ; } 2>&1"
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n")
         val (proof, t) = s |> split |> split_last |> apfst cat_lines
-        val time = Scan.many1 Symbol.is_ascii_digit >> (fst o read_int)
+        fun as_num f = f >> (fst o read_int)
+        val num = as_num (Scan.many1 Symbol.is_ascii_digit)
+        val digit = Scan.one Symbol.is_ascii_digit
+        val num3 = as_num (digit ::: digit ::: (digit >> single))
+        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode
       in (proof, as_time t) end
     fun run_on probfile =
@@ -97,7 +100,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       else error ("Bad executable: " ^ Path.implode cmd)
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
-    fun cleanup probfile = if destdir' = "" then File.rm probfile else ()
+    fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE
     fun export probfile (((proof, _), _), _) = if destdir' = "" then ()
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
 
