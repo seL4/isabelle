@@ -396,7 +396,9 @@ fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_time, inc_metis_tim
     |> log o prefix (metis_tag id) 
   end
 
-fun sledgehammer_action args id (st as {log, ...}: Mirabelle.run_args) =
+fun sledgehammer_action args id (st as {log, pre, ...}: Mirabelle.run_args) =
+  if can Logic.dest_conjunction (Thm.major_prem_of(snd(snd(Proof.get_goal pre))))
+  then () else
   let
     val metis_fns = (inc_metis_calls, inc_metis_success, inc_metis_time,
         inc_metis_timeout, inc_metis_lemmas, inc_metis_posns)
