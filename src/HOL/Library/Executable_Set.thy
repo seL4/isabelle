@@ -32,8 +32,8 @@ lemma [code]:
 
 declare inter [code]
 
-declare Inter_image_eq [symmetric, code]
-declare Union_image_eq [symmetric, code]
+declare Inter_image_eq [symmetric, code_unfold]
+declare Union_image_eq [symmetric, code_unfold]
 
 declare List_Set.project_def [symmetric, code_unfold]
 

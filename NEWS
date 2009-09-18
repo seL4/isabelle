@@ -79,8 +79,8 @@ see src/HOL/Library/Sum_Of_Squares.
     Set.INTER ~>    Complete_Lattice.INTER
     Set.UNION ~>    Complete_Lattice.UNION
   - more convenient names for set intersection and union:
-    Set.Int ~>  Set.inter
-    Set.Un ~>   Set.union
+    Set.Int ~>      Set.inter
+    Set.Un ~>       Set.union
   - authentic syntax for
     Set.Pow
     Set.image
@@ -89,6 +89,8 @@ see src/HOL/Library/Sum_Of_Squares.
     Set.UNIV                (for top)
     Complete_Lattice.Inter  (for Inf)
     Complete_Lattice.Union  (for Sup)
+    Complete_Lattice.INTER  (for INFI)
+    Complete_Lattice.UNION  (for SUPR)
   - object-logic definitions as far as appropriate
 
   INCOMPATIBILITY.

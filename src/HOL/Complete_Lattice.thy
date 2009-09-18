@@ -278,8 +278,8 @@ lemma Union_mono: "A \<subseteq> B ==> \<Union>A \<subseteq> \<Union>B"
 
 subsection {* Unions of families *}
 
-definition UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  SUPR_set_eq [symmetric]: "UNION S f = (SUP x:S. f x)"
+abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "UNION \<equiv> SUPR"
 
 syntax
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
@@ -314,7 +314,7 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} "@UNION"
 
 lemma UNION_eq_Union_image:
   "(\<Union>x\<in>A. B x) = \<Union>(B`A)"
-  by (simp add: SUPR_def SUPR_set_eq [symmetric])
+  by (fact SUPR_def)
 
 lemma Union_def:
   "\<Union>S = (\<Union>x\<in>S. x)"
@@ -351,7 +351,7 @@ lemma image_eq_UN: "f`A = (UN x:A. {f x})"
   by blast
 
 lemma UN_upper: "a \<in> A ==> B a \<subseteq> (\<Union>x\<in>A. B x)"
-  by blast
+  by (fact le_SUPI)
 
 lemma UN_least: "(!!x. x \<in> A ==> B x \<subseteq> C) ==> (\<Union>x\<in>A. B x) \<subseteq> C"
   by (iprover intro: subsetI elim: UN_E dest: subsetD)
@@ -514,8 +514,8 @@ lemma Inter_anti_mono: "B \<subseteq> A ==> \<Inter>A \<subseteq> \<Inter>B"
 
 subsection {* Intersections of families *}
 
-definition INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  INFI_set_eq [symmetric]: "INTER S f = (INF x:S. f x)"
+abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "INTER \<equiv> INFI"
 
 syntax
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
@@ -541,7 +541,7 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} "@INTER"
 
 lemma INTER_eq_Inter_image:
   "(\<Inter>x\<in>A. B x) = \<Inter>(B`A)"
-  by (simp add: INFI_def INFI_set_eq [symmetric])
+  by (fact INFI_def)
   
 lemma Inter_def:
   "\<Inter>S = (\<Inter>x\<in>S. x)"
@@ -579,10 +579,10 @@ lemma Collect_all_eq: "{x. \<forall>y. P x y} = (\<Inter>y. {x. P x y})"
   by blast
 
 lemma INT_lower: "a \<in> A ==> (\<Inter>x\<in>A. B x) \<subseteq> B a"
-  by blast
+  by (fact INF_leI)
 
 lemma INT_greatest: "(!!x. x \<in> A ==> C \<subseteq> B x) ==> C \<subseteq> (\<Inter>x\<in>A. B x)"
-  by (iprover intro: INT_I subsetI dest: subsetD)
+  by (fact le_INFI)
 
 lemma INT_empty [simp]: "(\<Inter>x\<in>{}. B x) = UNIV"
   by blast
