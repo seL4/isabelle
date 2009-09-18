@@ -534,7 +534,7 @@ by (force simp add: in_wp_iff funof_eq)
 subsubsection{*Commutativity of Functions and Relation*}
 text{*Thesis, page 109*}
 
-(*FIXME: this proof is an ungodly mess*)
+(*FIXME: this proof is still an ungodly mess*)
 text{*From Meier's thesis, section 4.5.6*}
 lemma commutativity2_lemma:
   assumes dcommutes: 
@@ -548,36 +548,35 @@ lemma commutativity2_lemma:
       and TL: "T \<in> L"
       and Fstable: "F \<in> stable T"
   shows  "commutes F T B L"
-apply (simp add: commutes_def del: Int_subset_iff, clarify)  
-apply (rename_tac t)
-apply (subgoal_tac "\<exists>s. (s,t) \<in> relcl L & s \<in> T \<inter> wp act M") 
- prefer 2 
- apply (force simp add: cl_eq_Collect_relcl [OF lattice], simp, clarify) 
-apply (subgoal_tac "\<forall>u\<in>L. s \<in> u --> t \<in> u") 
- prefer 2 
- apply (intro ballI impI) 
- apply (subst cl_ident [symmetric], assumption)
- apply (simp add: relcl_def)  
- apply (blast intro: cl_mono [THEN [2] rev_subsetD])  
-apply (subgoal_tac "funof act s \<in> T\<inter>M") 
- prefer 2 
- apply (cut_tac Fstable) 
- apply (force intro!: funof_in 
-              simp add: wp_def stable_def constrains_def determ total) 
-apply (subgoal_tac "s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L")
- prefer 2
- apply (rule dcommutes [rule_format], assumption+) 
-apply (subgoal_tac "t \<in> B | funof act t \<in> cl L (T\<inter>M)")
- prefer 2 
- apply (simp add: relcl_def)
- apply (blast intro: BL cl_mono [THEN [2] rev_subsetD])  
-apply (subgoal_tac "t \<in> B | t \<in> wp act (cl L (T\<inter>M))")
- prefer 2
- apply (blast intro: funof_imp_wp determ) 
-apply (blast intro: TL cl_mono [THEN [2] rev_subsetD])  
-done
-
-
+apply (simp add: commutes_def del: Int_subset_iff le_inf_iff, clarify)
+proof -
+  fix M and act and t
+  assume 1: "B \<subseteq> M" "act \<in> Acts F" "t \<in> cl L (T \<inter> wp act M)"
+  then have "\<exists>s. (s,t) \<in> relcl L \<and> s \<in> T \<inter> wp act M"
+    by (force simp add: cl_eq_Collect_relcl [OF lattice])
+  then obtain s where 2: "(s, t) \<in> relcl L" "s \<in> T" "s \<in> wp act M"
+    by blast
+  then have 3: "\<forall>u\<in>L. s \<in> u --> t \<in> u"
+    apply (intro ballI impI) 
+    apply (subst cl_ident [symmetric], assumption)
+    apply (simp add: relcl_def)  
+    apply (blast intro: cl_mono [THEN [2] rev_subsetD])
+    done
+  with 1 2 Fstable have 4: "funof act s \<in> T\<inter>M"
+    by (force intro!: funof_in 
+      simp add: wp_def stable_def constrains_def determ total)
+  with 1 2 3 have 5: "s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L"
+    by (intro dcommutes [rule_format]) assumption+ 
+  with 1 2 3 4 have "t \<in> B | funof act t \<in> cl L (T\<inter>M)"
+    by (simp add: relcl_def) (blast intro: BL cl_mono [THEN [2] rev_subsetD])  
+  with 1 2 3 4 5 have "t \<in> B | t \<in> wp act (cl L (T\<inter>M))"
+    by (blast intro: funof_imp_wp determ) 
+  with 2 3 have "t \<in> T \<and> (t \<in> B \<or> t \<in> wp act (cl L (T \<inter> M)))"
+    by (blast intro: TL cl_mono [THEN [2] rev_subsetD])
+  then show "t \<in> T \<inter> (B \<union> wp act (cl L (T \<inter> M)))"
+    by simp
+qed
+  
 text{*Version packaged with @{thm progress_set_Union}*}
 lemma commutativity2:
   assumes leadsTo: "F \<in> A leadsTo B"
