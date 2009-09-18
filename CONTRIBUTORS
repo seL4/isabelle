@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2009: Sascha Boehme, TUM
+  SMT method using external SMT solvers
+
 * September 2009: Florian Haftmann, TUM
   Refinement of Sets and Lattices
 

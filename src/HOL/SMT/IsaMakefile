@@ -1,0 +1,39 @@
+
+## targets
+
+default: HOL-SMT
+images: HOL-SMT
+test: 
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+USEDIR = $(ISATOOL) usedir -v true 
+
+
+## HOL-SMT
+
+HOL-SMT: $(OUT)/HOL-SMT
+
+$(OUT)/HOL-SMT: $(OUT)/HOL-Word ROOT.ML SMT_Definitions.thy SMT.thy \
+  Tools/cancel_conj_disj.ML Tools/smt_normalize.ML Tools/smt_monomorph.ML \
+  Tools/smt_translate.ML Tools/smt_builtin.ML Tools/smtlib_interface.ML \
+  Tools/smt_solver.ML Tools/cvc3_solver.ML Tools/yices_solver.ML \
+  Tools/z3_interface.ML Tools/z3_solver.ML Tools/z3_model.ML \
+  Tools/z3_proof.ML Tools/z3_proof_rules.ML Tools/z3_proof_terms.ML
+	@$(USEDIR) -b HOL-Word HOL-SMT
+
+$(OUT)/HOL-Word:
+	@$(ISATOOL) make HOL-Word -C $(SRC)/HOL
+
+
+## clean
+
+clean:
+	@rm -f $(OUT)/HOL-SMT

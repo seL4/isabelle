@@ -1,0 +1,13 @@
+ISABELLE_SMT="$COMPONENT"
+
+REMOTE_SMT_SOLVER="$ISABELLE_SMT/lib/scripts/remote_smt.pl"
+
+REMOTE_SMT_URL="http://www4.in.tum.de/smt/smt"
+
+#
+# Paths to local SMT solvers:
+#
+# CVC_SOLVER=PATH
+# YICES_SOLVER=PATH
+# Z3_SOLVER=PATH
+

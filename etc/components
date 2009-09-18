@@ -15,3 +15,4 @@ src/Tools/Code
 src/HOL/Tools/ATP_Manager
 src/HOL/Mirabelle
 src/HOL/Library/Sum_Of_Squares
+src/HOL/SMT
