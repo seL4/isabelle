@@ -22,7 +22,7 @@ structure Measure_Heuristic_Rules = Named_Thms
   val description = "Rules that guide the heuristic generation of measure functions"
 );
 
-fun mk_is_measures t = Const (@{const_name "is_measure"}, fastype_of t --> HOLogic.boolT) $ t
+fun mk_is_measures t = Const (@{const_name is_measure}, fastype_of t --> HOLogic.boolT) $ t
 
 fun find_measures ctxt T =
   DEPTH_SOLVE (resolve_tac (Measure_Heuristic_Rules.get ctxt) 1) 

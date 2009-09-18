@@ -29,8 +29,8 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
             @{const_name "op -->"}, @{const_name "op ="}] s
        then binop_conv (conv env) p 
        else atcv env p
-  | Const(@{const_name "Not"},_)$_ => arg_conv (conv env) p
-  | Const(@{const_name "Ex"},_)$Abs(s,_,_) =>
+  | Const(@{const_name Not},_)$_ => arg_conv (conv env) p
+  | Const(@{const_name Ex},_)$Abs(s,_,_) =>
     let
      val (e,p0) = Thm.dest_comb p
      val (x,p') = Thm.dest_abs (SOME s) p0
@@ -41,8 +41,8 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
      val (l,r) = Thm.dest_equals (cprop_of th')
     in if Thm.is_reflexive th' then Thm.transitive th (qcv env (Thm.rhs_of th))
        else Thm.transitive (Thm.transitive th th') (conv env r) end
-  | Const(@{const_name "Ex"},_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
-  | Const(@{const_name "All"},_)$_ =>
+  | Const(@{const_name Ex},_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
+  | Const(@{const_name All},_)$_ =>
     let
      val p = Thm.dest_arg p
      val ([(_,T)],[]) = Thm.match (@{cpat "All"}, Thm.dest_fun p)
