@@ -1566,8 +1566,6 @@ lemma setsum_mono3: "finite B ==> A <= B ==>
   prefer 2
   apply assumption
   apply auto
-  apply (rule setsum_cong)
-  apply auto
 done
 
 lemma setsum_right_distrib: 
