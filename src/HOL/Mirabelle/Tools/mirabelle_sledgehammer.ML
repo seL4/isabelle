@@ -410,20 +410,20 @@ fun sledgehammer_action args id (st as {log, pre, ...}: Mirabelle.run_args) =
     val metis0_fns = (inc_metis_calls0, inc_metis_success0, inc_metis_time0,
         inc_metis_timeout0, inc_metis_lemmas0, inc_metis_posns0)
     val named_thms = ref (NONE : (string * thm list) list option)
-
-    fun if_enabled k f =
-      if AList.defined (op =) args k andalso is_some (!named_thms)
-      then f id st else ()
-
-    val _ = Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st
-    val _ = if_enabled minimizeK
-      (Mirabelle.catch metis_tag (run_metis metis0_fns args (these (!named_thms))))
-    val _ = if_enabled minimizeK
-      (Mirabelle.catch minimize_tag (run_minimize args named_thms))
-    val _ = if is_some (!named_thms)
-      then Mirabelle.catch metis_tag (run_metis metis_fns args (these (!named_thms))) id st
-      else ()
-  in () end
+    val minimize = AList.defined (op =) args minimizeK
+  in 
+    Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;
+    if is_some (!named_thms)
+      then
+       (if minimize
+          then Mirabelle.catch metis_tag (run_metis metis0_fns args (these (!named_thms))) id st
+          else ();
+       if minimize andalso not(null(these(!named_thms)))
+         then Mirabelle.catch minimize_tag (run_minimize args named_thms) id st
+         else ();
+       Mirabelle.catch metis_tag (run_metis metis_fns args (these (!named_thms))) id st)
+    else ()
+  end
 
 fun invoke args =
   let
