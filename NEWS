@@ -87,6 +87,8 @@ see src/HOL/Library/Sum_Of_Squares.
   - mere abbreviations:
     Set.empty               (for bot)
     Set.UNIV                (for top)
+    Set.inter               (for inf)
+    Set.union               (for sup)
     Complete_Lattice.Inter  (for Inf)
     Complete_Lattice.Union  (for Sup)
     Complete_Lattice.INTER  (for INFI)
