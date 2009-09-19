@@ -103,6 +103,7 @@ val simp_thms' = map mk_meta_eq
       "(P & True) = P" "(True & P) = P"
     by (fact simp_thms)+};
 
+val simp_thms'' = inf_fun_eq :: inf_bool_eq :: simp_thms';
 
 
 (** context data **)
@@ -559,7 +560,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
         [rewrite_goals_tac [inductive_conj_def],
          DETERM (rtac raw_fp_induct 1),
          REPEAT (resolve_tac [le_funI, le_boolI] 1),
-         rewrite_goals_tac (inf_fun_eq :: inf_bool_eq :: simp_thms'),
+         rewrite_goals_tac simp_thms'',
          (*This disjE separates out the introduction rules*)
          REPEAT (FIRSTGOAL (eresolve_tac [disjE, exE, FalseE])),
          (*Now break down the individual cases.  No disjE here in case
@@ -568,7 +569,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (FIRSTGOAL
            (resolve_tac [conjI, impI] ORELSE' (etac notE THEN' atac))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule
-             (inductive_conj_def :: rec_preds_defs @ simp_thms') prem,
+             (inductive_conj_def :: rec_preds_defs @ simp_thms'') prem,
            conjI, refl] 1)) prems)]);
 
     val lemma = SkipProof.prove ctxt'' [] []
