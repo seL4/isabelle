@@ -257,7 +257,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
               "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")));
 
     val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
-    val mm = (m * 3) div 2;
+    val mm = if m = 9999 then 1 else (m * 3) div 2;
     val l = length (! workers);
     val _ = excessive := l - mm;
     val _ =
