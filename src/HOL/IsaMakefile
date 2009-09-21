@@ -836,7 +836,7 @@ $(LOG)/HOL-NanoJava.gz: $(OUT)/HOL NanoJava/ROOT.ML NanoJava/Term.thy	\
 
 HOL-Bali: HOL $(LOG)/HOL-Bali.gz
 
-$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
+$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/Bali.thy Bali/AxCompl.thy Bali/AxExample.thy	\
   Bali/AxSem.thy Bali/AxSound.thy Bali/Basis.thy Bali/Conform.thy	\
   Bali/Decl.thy Bali/DeclConcepts.thy Bali/Eval.thy Bali/Evaln.thy	\
   Bali/Example.thy Bali/Name.thy Bali/ROOT.ML Bali/State.thy		\
@@ -1026,6 +1026,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
 HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 
 $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
+  Nominal/Examples/Nominal_Examples.thy \
   Nominal/Examples/CK_Machine.thy \
   Nominal/Examples/CR.thy \
   Nominal/Examples/CR_Takahashi.thy \
