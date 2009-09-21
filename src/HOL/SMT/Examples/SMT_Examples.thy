@@ -1,5 +1,5 @@
 (*  Title:       SMT_Examples.thy
-    Author:      Sascha Böhme, TU Muenchen
+    Author:      Sascha Boehme, TU Muenchen
 *)
 
 header {* Examples for the 'smt' tactic. *}

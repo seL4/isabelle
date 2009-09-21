@@ -1,7 +1,7 @@
 #!/usr/bin/env perl -w
 #
 # Script to invoke remote SMT solvers.
-# Author: Sascha Böhme
+# Author: Sascha Boehme, TU Muenchen
 #
 
 use strict;
