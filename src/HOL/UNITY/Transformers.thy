@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/Transformers
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 
@@ -133,7 +132,7 @@ apply (simp add: stable_def)
 apply (drule constrains_Un [OF Diff_wens_constrains [of F act A]]) 
 apply (simp add: Un_Int_distrib2 Compl_partition2) 
 apply (erule constrains_weaken, blast) 
-apply (simp add: Un_subset_iff wens_weakening) 
+apply (simp add: wens_weakening)
 done
 
 text{*Assertion 4.20 in the thesis.*}
@@ -151,7 +150,7 @@ lemma wens_Int_eq:
       "[|T-B \<subseteq> awp F T; act \<in> Acts F|]
        ==> T \<inter> wens F act B = T \<inter> wens F act (T\<inter>B)"
 apply (rule equalityI)
- apply (simp_all add: Int_lower1 Int_subset_iff) 
+ apply (simp_all add: Int_lower1) 
  apply (rule wens_Int_eq_lemma, assumption+) 
 apply (rule subset_trans [OF _ wens_mono [of "T\<inter>B" B]], auto) 
 done
@@ -176,7 +175,7 @@ apply (erule wens_set.induct)
  apply (drule_tac act1=act and A1=X 
         in constrains_Un [OF Diff_wens_constrains]) 
  apply (erule constrains_weaken, blast) 
- apply (simp add: Un_subset_iff wens_weakening) 
+ apply (simp add: wens_weakening) 
 apply (rule constrains_weaken) 
 apply (rule_tac I=W and A="\<lambda>v. v-B" and A'="\<lambda>v. v" in constrains_UN, blast+)
 done
@@ -229,7 +228,7 @@ lemma subset_wens_Join:
 apply (subgoal_tac "(T \<inter> wens F act B) - B \<subseteq> 
                     wp act B \<inter> awp F (B \<union> wens F act B) \<inter> awp F T") 
  apply (rule subset_wens) 
- apply (simp add: awp_Join_eq awp_Int_eq Int_subset_iff Un_commute)
+ apply (simp add: awp_Join_eq awp_Int_eq Un_commute)
  apply (simp add: awp_def wp_def, blast) 
 apply (insert wens_subset [of F act B], blast) 
 done
@@ -253,7 +252,7 @@ apply (subgoal_tac "wens (F\<squnion>G) act Y \<subseteq> wens F act X")
  apply (blast dest: wens_mono intro: wens_Join_subset [THEN subsetD], simp)
 apply (rule equalityI) 
  prefer 2 apply blast
-apply (simp add: Int_lower1 Int_subset_iff) 
+apply (simp add: Int_lower1) 
 apply (frule wens_set_imp_subset) 
 apply (subgoal_tac "T-X \<subseteq> awp F T")  
  prefer 2 apply (blast intro: awpF [THEN subsetD]) 
@@ -347,7 +346,7 @@ lemma wens_single_Un_eq:
       "single_valued act
        ==> wens_single act B \<union> wp act (wens_single act B) = wens_single act B"
 apply (rule equalityI)
- apply (simp_all add: Un_upper1 Un_subset_iff) 
+ apply (simp_all add: Un_upper1) 
 apply (simp add: wens_single_def wp_UN_eq, clarify) 
 apply (rule_tac a="Suc(i)" in UN_I, auto) 
 done

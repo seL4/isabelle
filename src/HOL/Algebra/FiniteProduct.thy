@@ -212,7 +212,7 @@ lemma (in LCD) foldD_nest_Un_Int:
   apply (induct set: finite)
    apply simp
   apply (simp add: foldD_insert foldD_commute Int_insert_left insert_absorb
-    Int_mono2 Un_subset_iff)
+    Int_mono2)
   done
 
 lemma (in LCD) foldD_nest_Un_disjoint:
@@ -274,14 +274,14 @@ lemma (in ACeD) foldD_Un_Int:
   apply (simp add: AC insert_absorb Int_insert_left
     LCD.foldD_insert [OF LCD.intro [of D]]
     LCD.foldD_closed [OF LCD.intro [of D]]
-    Int_mono2 Un_subset_iff)
+    Int_mono2)
   done
 
 lemma (in ACeD) foldD_Un_disjoint:
   "[| finite A; finite B; A Int B = {}; A \<subseteq> D; B \<subseteq> D |] ==>
     foldD D f e (A Un B) = foldD D f e A \<cdot> foldD D f e B"
   by (simp add: foldD_Un_Int
-    left_commute LCD.foldD_closed [OF LCD.intro [of D]] Un_subset_iff)
+    left_commute LCD.foldD_closed [OF LCD.intro [of D]])
 
 
 subsubsection {* Products over Finite Sets *}
@@ -377,7 +377,7 @@ next
   from insert have A: "g \<in> A -> carrier G" by fast
   from insert A a show ?case
     by (simp add: m_ac Int_insert_left insert_absorb finprod_closed
-          Int_mono2 Un_subset_iff) 
+          Int_mono2) 
 qed
 
 lemma finprod_Un_disjoint:
