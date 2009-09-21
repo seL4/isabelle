@@ -55,8 +55,6 @@ struct
 
 exception SMT_COUNTEREXAMPLE of bool * term list
 
-val theory_of = Context.cases I ProofContext.theory_of
-
 
 datatype interface = Interface of {
   normalize: SMT_Normalize.config list,
@@ -177,12 +175,12 @@ structure SelectedSolver = GenericDataFun
 val solver_name_of = snd o SelectedSolver.get
 
 fun select_solver name gen =
-  if is_none (lookup_solver (theory_of gen) name)
+  if is_none (lookup_solver (Context.theory_of gen) name)
   then error ("SMT solver not registered: " ^ quote name)
   else SelectedSolver.map (K (serial (), name)) gen
 
 fun raw_solver_of gen =
-  (case lookup_solver (theory_of gen) (solver_name_of gen) of
+  (case lookup_solver (Context.theory_of gen) (solver_name_of gen) of
     NONE => error "No SMT solver selected"
   | SOME (s, _) => s)
 
@@ -228,11 +226,11 @@ val setup =
 fun print_setup gen =
   let
     val t = string_of_int (Config.get_generic gen timeout)
-    val names = sort string_ord (all_solver_names_of (theory_of gen))
+    val names = sort string_ord (all_solver_names_of (Context.theory_of gen))
     val ns = if null names then [no_solver] else names
     val take_info = (fn (_, []) => NONE | info => SOME info)
     val infos =
-      theory_of gen
+      Context.theory_of gen
       |> Symtab.dest o Solvers.get
       |> map_filter (fn (n, (_, info)) => take_info (n, info gen))
       |> sort (prod_ord string_ord (K EQUAL))
