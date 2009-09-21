@@ -9,7 +9,7 @@ imports "../SMT"
 begin
 
 declare [[smt_solver=z3, z3_proofs=false]]
-declare [[smt_trace=true]] (*FIXME*)
+declare [[smt_trace=false]]
 
 
 section {* Propositional and first-order logic *}
@@ -163,6 +163,7 @@ lemma
    (eval_dioph ks (map (\<lambda>x. x mod 2) xs) mod 2 = l mod 2 \<and>
     eval_dioph ks (map (\<lambda>x. x div 2) xs) =
       (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
+  using [[smt_solver=z3]]
   by (smt add: eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
 
 

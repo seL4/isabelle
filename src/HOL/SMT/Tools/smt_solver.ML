@@ -121,7 +121,7 @@ fun run_solver ctxt {env_var, remote_name} args output =
     fun cmd f1 f2 =
       if path <> ""
       then map qq (path :: args) @ [qf f1, ">", qf f2]
-      else map qq (remote :: remote_name :: args) @ [qf f1, qf f2]
+      else "perl -w" :: map qq (remote :: remote_name :: args) @ [qf f1, qf f2]
   in with_tmp_files run (ctxt, space_implode " " oo cmd, output) end
 
 end
