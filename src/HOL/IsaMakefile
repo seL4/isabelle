@@ -18,7 +18,7 @@ test: \
   HOL-Extraction \
   HOL-Hahn_Banach \
   HOL-Hoare \
-  HOL-HoareParallel \
+  HOL-Hoare_Parallel \
   HOL-Import \
   HOL-IMP \
   HOL-IMPP \
@@ -537,21 +537,22 @@ $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy Hoare/Examples.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Hoare
 
 
-## HOL-HoareParallel
+## HOL-Hoare_Parallel
 
-HOL-HoareParallel: HOL $(LOG)/HOL-HoareParallel.gz
+HOL-Hoare_Parallel: HOL $(LOG)/HOL-Hoare_Parallel.gz
 
-$(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy	\
-  HoareParallel/Graph.thy HoareParallel/Mul_Gar_Coll.thy		\
-  HoareParallel/OG_Com.thy HoareParallel/OG_Examples.thy		\
-  HoareParallel/OG_Hoare.thy HoareParallel/OG_Syntax.thy		\
-  HoareParallel/OG_Tactics.thy HoareParallel/OG_Tran.thy		\
-  HoareParallel/Quote_Antiquote.thy HoareParallel/RG_Com.thy		\
-  HoareParallel/RG_Examples.thy HoareParallel/RG_Hoare.thy		\
-  HoareParallel/RG_Syntax.thy HoareParallel/RG_Tran.thy			\
-  HoareParallel/ROOT.ML HoareParallel/document/root.tex			\
-  HoareParallel/document/root.bib
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HoareParallel
+$(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
+  Hoare_Parallel/Graph.thy Hoare_Parallel/Hoare_Parallel.thy	\
+  Hoare_Parallel/Mul_Gar_Coll.thy		\
+  Hoare_Parallel/OG_Com.thy Hoare_Parallel/OG_Examples.thy		\
+  Hoare_Parallel/OG_Hoare.thy Hoare_Parallel/OG_Syntax.thy		\
+  Hoare_Parallel/OG_Tactics.thy Hoare_Parallel/OG_Tran.thy		\
+  Hoare_Parallel/Quote_Antiquote.thy Hoare_Parallel/RG_Com.thy		\
+  Hoare_Parallel/RG_Examples.thy Hoare_Parallel/RG_Hoare.thy		\
+  Hoare_Parallel/RG_Syntax.thy Hoare_Parallel/RG_Tran.thy			\
+  Hoare_Parallel/ROOT.ML Hoare_Parallel/document/root.tex			\
+  Hoare_Parallel/document/root.bib
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hoare_Parallel
 
 
 ## HOL-MetisExamples
@@ -1157,7 +1158,7 @@ clean:
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
 		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
 		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\
-		$(LOG)/HOL-HoareParallel.gz $(LOG)/HOL-Lex.gz		\
+		$(LOG)/HOL-Hoare_Parallel.gz $(LOG)/HOL-Lex.gz		\
 		$(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
 		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
