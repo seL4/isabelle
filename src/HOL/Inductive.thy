@@ -83,7 +83,7 @@ lemma lfp_induct_set:
       and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
   shows "P(a)"
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
-    (auto simp: inf_set_eq intro: indhyp)
+    (auto simp: intro: indhyp)
 
 lemma lfp_ordinal_induct:
   fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
@@ -184,7 +184,7 @@ lemma coinduct_lemma:
 
 text{*strong version, thanks to Coen and Frost*}
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
-by (blast intro: weak_coinduct [OF _ coinduct_lemma, simplified sup_set_eq])
+by (blast intro: weak_coinduct [OF _ coinduct_lemma])
 
 lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
   apply (rule order_trans)
