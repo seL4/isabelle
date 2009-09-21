@@ -1,10 +1,11 @@
-(*  ID:         $Id$
-    Author:     Giampaolo Bella, Catania University
+(* Author:     Giampaolo Bella, Catania University
 *)
 
 header{*Theory of smartcards*}
 
-theory Smartcard imports EventSC begin
+theory Smartcard
+imports EventSC All_Symmetric
+begin
 
 text{*  
 As smartcards handle long-term (symmetric) keys, this theoy extends and 
@@ -41,14 +42,6 @@ axioms
   shrK_disj_crdK [iff]:  "shrK P \<noteq> crdK C"
   shrK_disj_pin [iff]:  "shrK P \<noteq> pin Q"
   crdK_disj_pin [iff]:   "crdK C \<noteq> pin P"
-
-
-text{*All keys are symmetric*}
-defs  all_symmetric_def: "all_symmetric == True"
-
-lemma isSym_keys: "K \<in> symKeys"	
-by (simp add: symKeys_def all_symmetric_def invKey_symmetric) 
-
 
 constdefs
   legalUse :: "card => bool" ("legalUse (_)")
