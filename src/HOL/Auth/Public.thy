@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/Public
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
@@ -8,7 +7,9 @@ Theory of Public Keys (common to all public-key protocols)
 Private and public keys; initial states of agents
 *)
 
-theory Public imports Event begin
+theory Public
+imports Event
+begin
 
 lemma invKey_K: "K \<in> symKeys ==> invKey K = K"
 by (simp add: symKeys_def)

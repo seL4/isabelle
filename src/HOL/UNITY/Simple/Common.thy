@@ -83,19 +83,24 @@ done
 
 (*** Progress under weak fairness ***)
 
-declare atMost_Int_atLeast [simp]
-
 lemma leadsTo_common_lemma:
-     "[| \<forall>m. F \<in> {m} Co (maxfg m);  
-         \<forall>m \<in> lessThan n. F \<in> {m} LeadsTo (greaterThan m);  
-         n \<in> common |]   
-      ==> F \<in> (atMost n) LeadsTo common"
-apply (rule LeadsTo_weaken_R)
-apply (rule_tac f = id and l = n in GreaterThan_bounded_induct)
-apply (simp_all (no_asm_simp) del: Int_insert_right_if1)
-apply (rule_tac [2] subset_refl)
-apply (blast dest: PSP_Stable2 intro: common_stable LeadsTo_weaken_R)
-done
+  assumes "\<forall>m. F \<in> {m} Co (maxfg m)"
+    and "\<forall>m \<in> lessThan n. F \<in> {m} LeadsTo (greaterThan m)"
+    and "n \<in> common"
+  shows "F \<in> (atMost n) LeadsTo common"
+proof (rule LeadsTo_weaken_R)
+  show "F \<in> {..n} LeadsTo {..n} \<inter> id -` {n..} \<union> common"
+  proof (induct rule: GreaterThan_bounded_induct [of n _ _ id])
+    case 1
+    from assms have "\<forall>m\<in>{..<n}. F \<in> {..n} \<inter> {m} LeadsTo {..n} \<inter> {m<..} \<union> common"
+      by (blast dest: PSP_Stable2 intro: common_stable LeadsTo_weaken_R)
+    then show ?case by simp
+  qed
+next
+  from `n \<in> common`
+  show "{..n} \<inter> id -` {n..} \<union> common \<subseteq> common"
+    by (simp add: atMost_Int_atLeast)
+qed
 
 (*The "\<forall>m \<in> -common" form echoes CMT6.*)
 lemma leadsTo_common:
