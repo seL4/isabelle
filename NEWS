@@ -18,6 +18,13 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* New proof method "smt" for a combination of first-order logic
+with equality, linear and nonlinear (natural/integer/real)
+arithmetic, and fixed-size bitvectors; there is also basic
+support for higher-order features (esp. lambda abstractions).
+It is an incomplete decision procedure based on external SMT
+solvers using the oracle mechanism.
+
 * Reorganization of number theory:
   * former session NumberTheory now named Old_Number_Theory
   * new session Number_Theory by Jeremy Avigad; if possible, prefer this.

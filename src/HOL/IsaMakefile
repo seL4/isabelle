@@ -40,6 +40,7 @@ test: \
   HOL-Prolog \
   HOL-SET-Protocol \
   HOL-SizeChange \
+  HOL-SMT \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -1134,6 +1135,19 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 
 
+## HOL-SMT
+
+HOL-SMT: HOL-Word $(LOG)/HOL-SMT.gz
+
+$(LOG)/HOL-SMT.gz: $(OUT)/HOL-Word SMT/SMT_Definitions.thy SMT/SMT.thy \
+  SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML \
+  SMT/Tools/smt_translate.ML SMT/Tools/smt_builtin.ML \
+  SMT/Tools/smtlib_interface.ML SMT/Tools/smt_solver.ML \
+  SMT/Tools/cvc3_solver.ML SMT/Tools/yices_solver.ML \
+  SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML SMT/Tools/z3_model.ML
+	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
+
+
 ## clean
 
 clean:
@@ -1156,4 +1170,4 @@ clean:
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
 		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
-                $(LOG)/HOL-Mirabelle.gz
+                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz
