@@ -619,6 +619,10 @@ $(LOG)/HOL-Algebra.gz: $(ALGEBRA_DEPENDENCIES)
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 
 $(LOG)/HOL-Auth.gz: $(OUT)/HOL 						\
+  Auth/Auth_Shared.thy Auth/Auth_Public.thy Auth/All_Symmetric.thy		\
+  Auth/Guard/Auth_Guard_Shared.thy		\
+  Auth/Guard/Auth_Guard_Public.thy		\
+  Auth/Smartcard/Auth_Smartcard.thy Auth/All_Symmetric.thy		\
   Auth/CertifiedEmail.thy Auth/Event.thy Auth/Message.thy		\
   Auth/NS_Public.thy Auth/NS_Public_Bad.thy Auth/NS_Shared.thy		\
   Auth/OtwayRees.thy Auth/OtwayReesBella.thy Auth/OtwayRees_AN.thy	\
