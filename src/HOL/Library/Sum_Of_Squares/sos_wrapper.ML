@@ -136,13 +136,42 @@ fun call_solver name_option =
     run_solver name (Path.explode cmd) find_failure
   end
 
+(* certificate output *)
+
+fun output_line cert = "To repeat this proof with a certifiate use this command:\n" ^
+        (Markup.markup Markup.sendback) ("by (sos_cert \"" ^ cert ^ "\")")
+
+fun print_certs pss_tree =
+  let
+    val cert = PositivstellensatzTools.pss_tree_to_cert pss_tree
+    val str = output_line cert
+  in
+    Output.writeln str
+  end
+
 (* setup tactic *)
 
-fun sos_solver name = (SIMPLE_METHOD' o (Sos.sos_tac (call_solver name))) 
+fun parse_cert (ctxt, tk) =
+  let
+    val (str, tk') = OuterParse.string tk
+    val cert = PositivstellensatzTools.cert_to_pss_tree (Context.proof_of ctxt) str
+  in
+    (cert, (ctxt, tk'))
+  end
 
-val sos_method = Scan.option (Scan.lift OuterParse.xname) >> sos_solver
+fun sos_solver print method = (SIMPLE_METHOD' o (Sos.sos_tac print method)) 
 
-val setup = Method.setup @{binding sos} sos_method
-  "Prove universal problems over the reals using sums of squares"
+val sos_method =
+   Scan.lift (Scan.option OuterParse.xname) >> (fn n => Sos.Prover (call_solver n)) >>
+   sos_solver print_certs
+
+val sos_cert_method =
+  parse_cert >> Sos.Certificate >> sos_solver ignore
+
+val setup =
+     Method.setup @{binding sos} sos_method
+     "Prove universal problems over the reals using sums of squares"
+  #> Method.setup @{binding sos_cert} sos_cert_method
+     "Prove universal problems over the reals using sums of squares with certificates"
 
 end

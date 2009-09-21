@@ -1,10 +1,11 @@
-(* Title:      Library/positivstellensatz
+(* Title:      Library/Sum_Of_Squares/positivstellensatz
    Author:     Amine Chaieb, University of Cambridge
    Description: A generic arithmetic prover based on Positivstellensatz certificates --- 
     also implements Fourrier-Motzkin elimination as a special case Fourrier-Motzkin elimination.
 *)
 
 (* A functor for finite mappings based on Tables *)
+
 signature FUNC = 
 sig
  type 'a T
@@ -75,27 +76,54 @@ fun get_first f t = fold (find f) t NONE
 end
 end;
 
+(* Some standard functors and utility functions for them *)
+
+structure FuncUtil =
+struct
+
+fun increasing f ord (x,y) = ord (f x, f y);
+
 structure Intfunc = FuncFun(type key = int val ord = int_ord);
+structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
+structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord int_ord);
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
 structure Termfunc = FuncFun(type key = term val ord = TermOrd.fast_term_ord);
-structure Ctermfunc = FuncFun(type key = cterm val ord = (fn (s,t) => TermOrd.fast_term_ord(term_of s, term_of t)));
 
-structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
+val cterm_ord = (fn (s,t) => TermOrd.fast_term_ord(term_of s, term_of t))
 
+structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
 
-    (* Some useful derived rules *)
-fun deduct_antisym_rule tha thb = 
-    equal_intr (implies_intr (cprop_of thb) tha) 
-     (implies_intr (cprop_of tha) thb);
+type monomial = int Ctermfunc.T;
 
-fun prove_hyp tha thb = 
-  if exists (curry op aconv (concl_of tha)) (#hyps (rep_thm thb)) 
-  then equal_elim (symmetric (deduct_antisym_rule tha thb)) tha else thb;
+fun monomial_ord (m1,m2) = list_ord (prod_ord cterm_ord int_ord) (Ctermfunc.graph m1, Ctermfunc.graph m2)
 
+structure Monomialfunc = FuncFun(type key = monomial val ord = monomial_ord)
 
+type poly = Rat.rat Monomialfunc.T;
+
+(* The ordering so we can create canonical HOL polynomials.                  *)
+
+fun dest_monomial mon = sort (increasing fst cterm_ord) (Ctermfunc.graph mon);
+
+fun monomial_order (m1,m2) =
+ if Ctermfunc.is_undefined m2 then LESS 
+ else if Ctermfunc.is_undefined m1 then GREATER 
+ else
+  let val mon1 = dest_monomial m1 
+      val mon2 = dest_monomial m2
+      val deg1 = fold (curry op + o snd) mon1 0
+      val deg2 = fold (curry op + o snd) mon2 0 
+  in if deg1 < deg2 then GREATER else if deg1 > deg2 then LESS
+     else list_ord (prod_ord cterm_ord int_ord) (mon1,mon2)
+  end;
+
+end
+
+(* positivstellensatz datatype and prover generation *)
 
 signature REAL_ARITH = 
 sig
+  
   datatype positivstellensatz =
    Axiom_eq of int
  | Axiom_le of int
@@ -103,34 +131,41 @@ sig
  | Rational_eq of Rat.rat
  | Rational_le of Rat.rat
  | Rational_lt of Rat.rat
- | Square of cterm
- | Eqmul of cterm * positivstellensatz
+ | Square of FuncUtil.poly
+ | Eqmul of FuncUtil.poly * positivstellensatz
  | Sum of positivstellensatz * positivstellensatz
  | Product of positivstellensatz * positivstellensatz;
 
-val gen_gen_real_arith :
-  Proof.context -> (Rat.rat -> Thm.cterm) * conv * conv * conv * 
-   conv * conv * conv * conv * conv * conv * 
-    ( (thm list * thm list * thm list -> positivstellensatz -> thm) ->
-        thm list * thm list * thm list -> thm) -> conv
-val real_linear_prover : 
+datatype pss_tree = Trivial | Cert of positivstellensatz | Branch of pss_tree * pss_tree
+
+datatype tree_choice = Left | Right
+
+type prover = tree_choice list -> 
   (thm list * thm list * thm list -> positivstellensatz -> thm) ->
-   thm list * thm list * thm list -> thm
+  thm list * thm list * thm list -> thm * pss_tree
+type cert_conv = cterm -> thm * pss_tree
+
+val gen_gen_real_arith :
+  Proof.context -> (Rat.rat -> Thm.cterm) * conv * conv * conv *
+   conv * conv * conv * conv * conv * conv * prover -> cert_conv
+val real_linear_prover : (thm list * thm list * thm list -> positivstellensatz -> thm) ->
+  thm list * thm list * thm list -> thm * pss_tree
 
 val gen_real_arith : Proof.context ->
-   (Rat.rat -> cterm) * conv * conv * conv * conv * conv * conv * conv *
-   ( (thm list * thm list * thm list -> positivstellensatz -> thm) ->
-       thm list * thm list * thm list -> thm) -> conv
-val gen_prover_real_arith : Proof.context ->
-   ((thm list * thm list * thm list -> positivstellensatz -> thm) ->
-     thm list * thm list * thm list -> thm) -> conv
-val real_arith : Proof.context -> conv
+  (Rat.rat -> Thm.cterm) * conv * conv * conv * conv * conv * conv * conv * prover -> cert_conv
+
+val gen_prover_real_arith : Proof.context -> prover -> cert_conv
+
+val is_ratconst : Thm.cterm -> bool
+val dest_ratconst : Thm.cterm -> Rat.rat
+val cterm_of_rat : Rat.rat -> Thm.cterm
+
 end
 
-structure RealArith (* : REAL_ARITH *)=
+structure RealArith : REAL_ARITH =
 struct
 
- open Conv Thm;;
+ open Conv Thm FuncUtil;;
 (* ------------------------------------------------------------------------- *)
 (* Data structure for Positivstellensatz refutations.                        *)
 (* ------------------------------------------------------------------------- *)
@@ -142,12 +177,18 @@ datatype positivstellensatz =
  | Rational_eq of Rat.rat
  | Rational_le of Rat.rat
  | Rational_lt of Rat.rat
- | Square of cterm
- | Eqmul of cterm * positivstellensatz
+ | Square of FuncUtil.poly
+ | Eqmul of FuncUtil.poly * positivstellensatz
  | Sum of positivstellensatz * positivstellensatz
  | Product of positivstellensatz * positivstellensatz;
          (* Theorems used in the procedure *)
 
+datatype pss_tree = Trivial | Cert of positivstellensatz | Branch of pss_tree * pss_tree
+datatype tree_choice = Left | Right
+type prover = tree_choice list -> 
+  (thm list * thm list * thm list -> positivstellensatz -> thm) ->
+  thm list * thm list * thm list -> thm * pss_tree
+type cert_conv = cterm -> thm * pss_tree
 
 val my_eqs = ref ([] : thm list);
 val my_les = ref ([] : thm list);
@@ -163,6 +204,16 @@ val my_poly_conv = ref no_conv;
 val my_poly_neg_conv = ref no_conv;
 val my_poly_add_conv = ref no_conv;
 val my_poly_mul_conv = ref no_conv;
+
+
+    (* Some useful derived rules *)
+fun deduct_antisym_rule tha thb = 
+    equal_intr (implies_intr (cprop_of thb) tha) 
+     (implies_intr (cprop_of tha) thb);
+
+fun prove_hyp tha thb = 
+  if exists (curry op aconv (concl_of tha)) (#hyps (rep_thm thb)) 
+  then equal_elim (symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
 fun conjunctions th = case try Conjunction.elim th of
    SOME (th1,th2) => (conjunctions th1) @ conjunctions th2
@@ -292,7 +343,6 @@ fun find_cterm p t = if p t then t else
  | Abs (_,_,t') => find_cterm p (Thm.dest_abs NONE t |> snd)
  | _ => raise CTERM ("find_cterm",[t]);
 
-
     (* Some conversions-related stuff which has been forbidden entrance into Pure/conv.ML*)
 fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
 fun is_comb t = case (term_of t) of _$_ => true | _ => false;
@@ -300,6 +350,39 @@ fun is_comb t = case (term_of t) of _$_ => true | _ => false;
 fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
   handle CTERM _ => false;
 
+
+(* Map back polynomials to HOL.                         *)
+
+local
+ open Thm Numeral
+in
+
+fun cterm_of_varpow x k = if k = 1 then x else capply (capply @{cterm "op ^ :: real => _"} x) 
+  (mk_cnumber @{ctyp nat} k)
+
+fun cterm_of_monomial m = 
+ if Ctermfunc.is_undefined m then @{cterm "1::real"} 
+ else 
+  let 
+   val m' = dest_monomial m
+   val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' [] 
+  in foldr1 (fn (s, t) => capply (capply @{cterm "op * :: real => _"} s) t) vps
+  end
+
+fun cterm_of_cmonomial (m,c) = if Ctermfunc.is_undefined m then cterm_of_rat c
+    else if c = Rat.one then cterm_of_monomial m
+    else capply (capply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
+
+fun cterm_of_poly p = 
+ if Monomialfunc.is_undefined p then @{cterm "0::real"} 
+ else
+  let 
+   val cms = map cterm_of_cmonomial
+     (sort (prod_ord monomial_order (K EQUAL)) (Monomialfunc.graph p))
+  in foldr1 (fn (t1, t2) => capply(capply @{cterm "op + :: real => _"} t1) t2) cms
+  end;
+
+end;
     (* A general real arithmetic prover *)
 
 fun gen_gen_real_arith ctxt (mk_numeric,
@@ -368,8 +451,8 @@ let
       | Rational_lt x => eqT_elim(numeric_gt_conv(capply @{cterm Trueprop} 
                       (capply (capply @{cterm "op <::real => _"} @{cterm "0::real"})
                         (mk_numeric x))))
-      | Square t => square_rule t
-      | Eqmul(t,p) => emul_rule t (translate p)
+      | Square pt => square_rule (cterm_of_poly pt)
+      | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
       | Sum(p1,p2) => add_rule (translate p1) (translate p2)
       | Product(p1,p2) => mul_rule (translate p1) (translate p2)
    in fconv_rule (first_conv [numeric_ge_conv, numeric_gt_conv, numeric_eq_conv, all_conv]) 
@@ -394,13 +477,13 @@ let
        val _ = if c aconvc (concl th2) then () else error "disj_cases : conclusions not alpha convertible"
    in implies_elim (implies_elim (implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th) (implies_intr (capply @{cterm Trueprop} p) th1)) (implies_intr (capply @{cterm Trueprop} q) th2)
    end
- fun overall dun ths = case ths of
+ fun overall cert_choice dun ths = case ths of
   [] =>
    let 
     val (eq,ne) = List.partition (is_req o concl) dun
      val (le,nl) = List.partition (is_ge o concl) ne
      val lt = filter (is_gt o concl) nl 
-    in prover hol_of_positivstellensatz (eq,le,lt) end
+    in prover (rev cert_choice) hol_of_positivstellensatz (eq,le,lt) end
  | th::oths =>
    let 
     val ct = concl th 
@@ -408,13 +491,13 @@ let
     if is_conj ct  then
      let 
       val (th1,th2) = conj_pair th in
-      overall dun (th1::th2::oths) end
+      overall cert_choice dun (th1::th2::oths) end
     else if is_disj ct then
       let 
-       val th1 = overall dun (assume (capply @{cterm Trueprop} (dest_arg1 ct))::oths)
-       val th2 = overall dun (assume (capply @{cterm Trueprop} (dest_arg ct))::oths)
-      in disj_cases th th1 th2 end
-   else overall (th::dun) oths
+       val (th1, cert1) = overall (Left::cert_choice) dun (assume (capply @{cterm Trueprop} (dest_arg1 ct))::oths)
+       val (th2, cert2) = overall (Right::cert_choice) dun (assume (capply @{cterm Trueprop} (dest_arg ct))::oths)
+      in (disj_cases th th1 th2, Branch (cert1, cert2)) end
+   else overall cert_choice (th::dun) oths
   end
   fun dest_binary b ct = if is_binop b ct then dest_binop ct 
                          else raise CTERM ("dest_binary",[b,ct])
@@ -496,16 +579,16 @@ let
   val nct = capply @{cterm Trueprop} (capply @{cterm "Not"} ct)
   val th0 = (init_conv then_conv arg_conv nnf_norm_conv') nct
   val tm0 = dest_arg (rhs_of th0)
-  val th = if tm0 aconvc @{cterm False} then equal_implies_1_rule th0 else
+  val (th, certificates) = if tm0 aconvc @{cterm False} then (equal_implies_1_rule th0, Trivial) else
    let 
     val (evs,bod) = strip_exists tm0
     val (avs,ibod) = strip_forall bod
     val th1 = Drule.arg_cong_rule @{cterm Trueprop} (fold mk_forall avs (absremover ibod))
-    val th2 = overall [] [specl avs (assume (rhs_of th1))]
+    val (th2, certs) = overall [] [] [specl avs (assume (rhs_of th1))]
     val th3 = fold simple_choose evs (prove_hyp (equal_elim th1 (assume (capply @{cterm Trueprop} bod))) th2)
-   in  Drule.implies_intr_hyps (prove_hyp (equal_elim th0 (assume nct)) th3)
+   in (Drule.implies_intr_hyps (prove_hyp (equal_elim th0 (assume nct)) th3), certs)
    end
-  in implies_elim (instantiate' [] [SOME ct] pth_final) th
+  in (implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
  end
 in f
 end;
@@ -580,7 +663,7 @@ local
          val k = (Rat.neg d) */ Rat.abs c // c
          val e' = linear_cmul k e
          val t' = linear_cmul (Rat.abs c) t
-         val p' = Eqmul(cterm_of_rat k,p)
+         val p' = Eqmul(Monomialfunc.onefunc (Ctermfunc.undefined, k),p)
          val q' = Product(Rational_lt(Rat.abs c),q) 
         in (linear_add e' t',Sum(p',q')) 
         end 
@@ -632,7 +715,7 @@ fun real_linear_prover translator (eq,le,lt) =
   val le_pols' = le_pols @ map (fn v => Ctermfunc.onefunc (v,Rat.one)) aliens
   val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)
   val le' = le @ map (fn a => instantiate' [] [SOME (dest_arg a)] @{thm real_of_nat_ge_zero}) aliens 
- in (translator (eq,le',lt) proof) : thm
+ in ((translator (eq,le',lt) proof), Trivial)
  end
 end;
 
@@ -698,5 +781,4 @@ in gen_real_arith ctxt
     main,neg,add,mul, prover)
 end;
 
-fun real_arith ctxt = gen_prover_real_arith ctxt real_linear_prover;
 end
