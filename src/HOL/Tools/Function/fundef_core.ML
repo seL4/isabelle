@@ -769,7 +769,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
       val Rrel = Free ("R", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
       val inrel_R = Const (@{const_name FunDef.in_rel}, HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
 
-      val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const (@{const_name "Wellfounded.wfP"}, (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
+      val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const (@{const_name Wellfounded.wfP}, (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
 
       (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
       val ihyp = Term.all domT $ Abs ("z", domT,

@@ -68,8 +68,7 @@ use_thys [
   "Landau"
 ];
 
-Future.shutdown ();
-(setmp_noncritical proofs 2 (setmp_noncritical Multithreading.max_threads 1 use_thy))
+(setmp_noncritical proofs 2 (setmp_noncritical Goal.parallel_proofs 0 use_thy))
   "Hilbert_Classical";
 
 use_thy "SVC_Oracle";

@@ -79,14 +79,14 @@ fun dest_tree split =
 
 
 (* concrete versions for sum types *)
-fun is_inj (Const ("Sum_Type.Inl", _) $ _) = true
-  | is_inj (Const ("Sum_Type.Inr", _) $ _) = true
+fun is_inj (Const (@{const_name Sum_Type.Inl}, _) $ _) = true
+  | is_inj (Const (@{const_name Sum_Type.Inr}, _) $ _) = true
   | is_inj _ = false
 
-fun dest_inl (Const ("Sum_Type.Inl", _) $ t) = SOME t
+fun dest_inl (Const (@{const_name Sum_Type.Inl}, _) $ t) = SOME t
   | dest_inl _ = NONE
 
-fun dest_inr (Const ("Sum_Type.Inr", _) $ t) = SOME t
+fun dest_inr (Const (@{const_name Sum_Type.Inr}, _) $ t) = SOME t
   | dest_inr _ = NONE
 
 
@@ -145,8 +145,8 @@ fun mk_sumcases (sk, _, _, _, _) T fs =
 
 fun mk_sum_skel rel =
   let
-    val cs = FundefLib.dest_binop_list @{const_name union} rel
-    fun collect_pats (Const ("Collect", _) $ Abs (_, _, c)) =
+    val cs = FundefLib.dest_binop_list @{const_name Set.union} rel
+    fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
       let
         val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ Gam)
           = Term.strip_qnt_body "Ex" c
@@ -179,7 +179,7 @@ fun get_chain (_, _, _, C, _) c1 c2 =
 fun get_descent (_, _, _, _, D) c m1 m2 =
   Term3tab.lookup D (c, (m1, m2))
 
-fun dest_call D (Const ("Collect", _) $ Abs (_, _, c)) =
+fun dest_call D (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
   let
     val n = get_num_points D
     val (sk, _, _, _, _) = D
@@ -233,13 +233,13 @@ fun derive_descents thy tac c D =
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
   else case Thm.term_of (Thm.cprem_of st i) of
-    (_ $ (_ $ rel)) => tac (FundefLib.dest_binop_list @{const_name union} rel, i) st
+    (_ $ (_ $ rel)) => tac (FundefLib.dest_binop_list @{const_name Set.union} rel, i) st
   |_ => no_tac st
 
 type ttac = (data -> int -> tactic) -> (data -> int -> tactic) -> data -> int -> tactic
 
 fun TERMINATION ctxt tac =
-  SUBGOAL (fn (_ $ (Const (@{const_name "wf"}, wfT) $ rel), i) =>
+  SUBGOAL (fn (_ $ (Const (@{const_name wf}, wfT) $ rel), i) =>
   let
     val (T, _) = HOLogic.dest_prodT (HOLogic.dest_setT (domain_type wfT))
   in
@@ -293,7 +293,7 @@ fun wf_union_tac ctxt st =
           if null ineqs then
               Const (@{const_name Set.empty}, fastype_of rel)
           else
-              foldr1 (HOLogic.mk_binop @{const_name union}) (map mk_compr ineqs)
+              foldr1 (HOLogic.mk_binop @{const_name Set.union}) (map mk_compr ineqs)
 
       fun solve_membership_tac i =
           (EVERY' (replicate (i - 2) (rtac @{thm UnI2}))  (* pick the right component of the union *)

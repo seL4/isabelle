@@ -81,7 +81,7 @@ fun whatis x ct =
    else if term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
 | Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$y$_) =>
    if term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox
-| Const (@{const_name Not},_) $ (Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_)) =>
+| Const (@{const_name Not},_) $ (Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$y$_)) =>
    if term_of x aconv y then
    NDvd (Thm.dest_binop (Thm.dest_arg ct) ||> Thm.dest_arg) else Nox
 | _ => Nox)

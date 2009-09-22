@@ -52,18 +52,18 @@ end;
 
 local
  fun isnum t = case t of 
-   Const(@{const_name "HOL.zero"},_) => true
- | Const(@{const_name "HOL.one"},_) => true
+   Const(@{const_name HOL.zero},_) => true
+ | Const(@{const_name HOL.one},_) => true
  | @{term "Suc"}$s => isnum s
  | @{term "nat"}$s => isnum s
  | @{term "int"}$s => isnum s
- | Const(@{const_name "HOL.uminus"},_)$s => isnum s
- | Const(@{const_name "HOL.plus"},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name "HOL.times"},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name "HOL.minus"},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name "Power.power"},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name "Divides.mod"},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name "Divides.div"},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name HOL.uminus},_)$s => isnum s
+ | Const(@{const_name HOL.plus},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name HOL.times},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name HOL.minus},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Power.power},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Divides.mod},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Divides.div},_)$l$r => isnum l andalso isnum r
  | _ => can HOLogic.dest_number t orelse can HOLogic.dest_nat t
 
  fun ty cts t = 

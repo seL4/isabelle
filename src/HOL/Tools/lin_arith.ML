@@ -51,7 +51,7 @@ fun atomize thm = case Thm.prop_of thm of
     atomize (thm RS conjunct1) @ atomize (thm RS conjunct2)
   | _ => [thm];
 
-fun neg_prop ((TP as Const("Trueprop", _)) $ (Const (@{const_name "Not"}, _) $ t)) = TP $ t
+fun neg_prop ((TP as Const("Trueprop", _)) $ (Const (@{const_name Not}, _) $ t)) = TP $ t
   | neg_prop ((TP as Const("Trueprop", _)) $ t) = TP $ (HOLogic.Not $t)
   | neg_prop t = raise TERM ("neg_prop", [t]);
 

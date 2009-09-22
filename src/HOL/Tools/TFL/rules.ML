@@ -456,7 +456,7 @@ fun Forall v M = S.mk_forall{Bvar=v, Body=M};
 fun is_cong thm =
   case (Thm.prop_of thm)
      of (Const("==>",_)$(Const("Trueprop",_)$ _) $
-         (Const("==",_) $ (Const (@{const_name "Recdef.cut"},_) $ f $ R $ a $ x) $ _)) => false
+         (Const("==",_) $ (Const (@{const_name Recdef.cut},_) $ f $ R $ a $ x) $ _)) => false
       | _ => true;
 
 
@@ -659,7 +659,7 @@ fun dest_impl tm =
   end;
 
 fun restricted t = isSome (S.find_term
-                            (fn (Const(@{const_name "Recdef.cut"},_)) =>true | _ => false)
+                            (fn (Const(@{const_name Recdef.cut},_)) =>true | _ => false)
                             t)
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =

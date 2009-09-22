@@ -27,10 +27,10 @@ fun mk_number i =
 fun mk_frac str =
   let
     val {mant=i, exp = n} = Syntax.read_float str;
-    val exp = Syntax.const @{const_name "Power.power"};
+    val exp = Syntax.const @{const_name Power.power};
     val ten = mk_number 10;
     val exp10 = if n=1 then ten else exp $ ten $ (mk_number n);
-  in (Syntax.const @{const_name "divide"}) $ (mk_number i) $ exp10 end
+  in (Syntax.const @{const_name divide}) $ (mk_number i) $ exp10 end
 in
 
 fun float_tr (*"_Float"*) [t as Const (str, _)] = mk_frac str

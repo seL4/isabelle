@@ -237,7 +237,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
               val total = length (! workers);
               val active = count_active ();
             in
-              "SCHEDULE " ^ string_of_int (Time.toMilliseconds now) ^ ": " ^
+              "SCHEDULE " ^ Time.toString now ^ ": " ^
                 string_of_int ready ^ " ready, " ^
                 string_of_int pending ^ " pending, " ^
                 string_of_int running ^ " running; " ^
@@ -257,7 +257,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
               "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")));
 
     val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
-    val mm = (m * 3) div 2;
+    val mm = if m = 9999 then 1 else (m * 3) div 2;
     val l = length (! workers);
     val _ = excessive := l - mm;
     val _ =

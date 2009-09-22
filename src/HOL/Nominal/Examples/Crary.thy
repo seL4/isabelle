@@ -408,20 +408,7 @@ inductive_cases whn_inv_auto[elim]: "t \<Down> t'"
 
 declare trm.inject[simp del]
 
-lemma whn_eqvt[eqvt]:
-  fixes pi::"name prm"
-  assumes a: "t \<Down> t'"
-  shows "(pi\<bullet>t) \<Down> (pi\<bullet>t')"
-using a
-apply(induct)
-apply(rule QAN_Reduce)
-apply(rule whr_def.eqvt)
-apply(assumption)+
-apply(rule QAN_Normal)
-apply(auto)
-apply(drule_tac pi="rev pi" in whr_def.eqvt)
-apply(perm_simp)
-done
+equivariance whn_def
 
 lemma red_unicity : 
   assumes a: "x \<leadsto> a" 
@@ -631,6 +618,7 @@ apply (subgoal_tac "(\<exists>T\<^isub>1 T\<^isub>2. b=T\<^isub>1 \<rightarrow> 
 apply (force)
 apply (rule ty_cases)
 done
+
 termination by lexicographic_order
 
 lemma logical_monotonicity:
@@ -968,7 +956,7 @@ proof -
   then show  "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T" using main_lemma(1) val by simp
 qed
 
-text {* We leave soundness as an exercise - like in the book :-) \\ 
+text {* We leave soundness as an exercise - just like Crary in the ATS book :-) \\ 
  @{prop[mode=IfThen] "\<lbrakk>\<Gamma> \<turnstile> s \<Leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} \\
  @{prop "\<lbrakk>\<Gamma> \<turnstile> s \<leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} 
 *}

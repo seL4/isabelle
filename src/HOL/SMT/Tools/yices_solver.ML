@@ -1,0 +1,52 @@
+(*  Title:      HOL/SMT/Tools/yices_solver.ML
+    Author:     Sascha Boehme, TU Muenchen
+
+Interface of the SMT solver Yices.
+*)
+
+signature YICES_SOLVER =
+sig
+  val setup: theory -> theory
+end
+
+structure Yices_Solver: YICES_SOLVER =
+struct
+
+val solver_name = "yices"
+val env_var = "YICES_SOLVER"
+
+val options = ["--evidence", "--smtlib"]
+
+fun cex_kind true = "Counterexample"
+  | cex_kind false = "Possible counterexample"
+
+fun raise_cex real ctxt rtab ls =
+  let val p = Pretty.big_list (cex_kind real ^ " found:") (map Pretty.str ls)
+  in error (Pretty.string_of p) end
+
+structure S = SMT_Solver
+
+fun core_oracle (SMT_Solver.ProofData {context, output, recon, ...}) =
+  let
+    val empty_line = (fn "" => true | _ => false)
+    val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
+    val (l, ls) = split_first (dropwhile empty_line output)
+  in
+    if String.isPrefix "unsat" l then @{cprop False}
+    else if String.isPrefix "sat" l then raise_cex true context recon ls
+    else if String.isPrefix "unknown" l then raise_cex false context recon ls
+    else error (solver_name ^ " failed")
+  end
+
+fun smtlib_solver oracle _ =
+  SMT_Solver.SolverConfig {
+    name = {env_var=env_var, remote_name=solver_name},
+    interface = SMTLIB_Interface.interface,
+    arguments = options,
+    reconstruct = oracle }
+
+val setup =
+  Thm.add_oracle (Binding.name solver_name, core_oracle) #-> (fn (_, oracle) =>
+  SMT_Solver.add_solver (solver_name, smtlib_solver oracle))
+
+end
