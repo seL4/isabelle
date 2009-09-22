@@ -1075,17 +1075,16 @@ lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
 lemma pprt_eq_id [simp, noatp]: "0 \<le> x \<Longrightarrow> pprt x = x"
-by (simp add: pprt_def sup_aci)
-
+  by (simp add: pprt_def sup_aci sup_absorb1)
 
 lemma nprt_eq_id [simp, noatp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
-by (simp add: nprt_def inf_aci)
+  by (simp add: nprt_def inf_aci inf_absorb1)
 
 lemma pprt_eq_0 [simp, noatp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
-by (simp add: pprt_def sup_aci)
+  by (simp add: pprt_def sup_aci sup_absorb2)
 
 lemma nprt_eq_0 [simp, noatp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
-by (simp add: nprt_def inf_aci)
+  by (simp add: nprt_def inf_aci inf_absorb2)
 
 lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
 proof -
@@ -1119,7 +1118,7 @@ lemma zero_le_double_add_iff_zero_le_single_add [simp]:
   "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
 proof
   assume "0 <= a + a"
-  hence a:"inf (a+a) 0 = 0" by (simp add: inf_commute)
+  hence a:"inf (a+a) 0 = 0" by (simp add: inf_commute inf_absorb1)
   have "(inf a 0)+(inf a 0) = inf (inf (a+a) 0) a" (is "?l=_")
     by (simp add: add_sup_inf_distribs inf_aci)
   hence "?l = 0 + inf a 0" by (simp add: a, simp add: inf_commute)
@@ -1135,7 +1134,7 @@ proof
   assume assm: "a + a = 0"
   then have "a + a + - a = - a" by simp
   then have "a + (a + - a) = - a" by (simp only: add_assoc)
-  then have a: "- a = a" by simp (*FIXME tune proof*)
+  then have a: "- a = a" by simp
   show "a = 0" apply (rule antisym)
   apply (unfold neg_le_iff_le [symmetric, of a])
   unfolding a apply simp
@@ -1275,7 +1274,7 @@ lemma sup_eq_if:
 proof -
   note add_le_cancel_right [of a a "- a", symmetric, simplified]
   moreover note add_le_cancel_right [of "-a" a a, symmetric, simplified]
-  then show ?thesis by (auto simp: sup_max)
+  then show ?thesis by (auto simp: sup_max min_max.sup_absorb1 min_max.sup_absorb2)
 qed
 
 lemma abs_if_lattice:

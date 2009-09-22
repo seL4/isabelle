@@ -381,14 +381,14 @@ lemma bintr_uint':
   apply (unfold word_size)
   apply (subst word_ubin.norm_Rep [symmetric]) 
   apply (simp only: bintrunc_bintrunc_min word_size)
-  apply simp
+  apply (simp add: min_max.inf_absorb2)
   done
 
 lemma wi_bintr': 
   "wb = word_of_int bin ==> n >= size wb ==> 
     word_of_int (bintrunc n bin) = wb"
   unfolding word_size
-  by (clarsimp simp add : word_ubin.norm_eq_iff [symmetric])
+  by (clarsimp simp add: word_ubin.norm_eq_iff [symmetric] min_max.inf_absorb1)
 
 lemmas bintr_uint = bintr_uint' [unfolded word_size]
 lemmas wi_bintr = wi_bintr' [unfolded word_size]

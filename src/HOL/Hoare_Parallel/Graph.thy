@@ -187,6 +187,8 @@ done
 
 subsubsection{* Graph 3 *}
 
+declare min_max.inf_absorb1 [simp] min_max.inf_absorb2 [simp]
+
 lemma Graph3: 
   "\<lbrakk> T\<in>Reach E; R<length E \<rbrakk> \<Longrightarrow> Reach(E[R:=(fst(E!R),T)]) \<subseteq> Reach E"
 apply (unfold Reach_def)
@@ -306,6 +308,8 @@ apply(case_tac "length path")
  apply force
 apply force
 done
+
+declare min_max.inf_absorb1 [simp del] min_max.inf_absorb2 [simp del]
 
 subsubsection {* Graph 5 *}
 

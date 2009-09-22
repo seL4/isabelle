@@ -76,11 +76,11 @@ lemma top_def:
 
 lemma sup_bot [simp]:
   "x \<squnion> bot = x"
-  using bot_least [of x] by (simp add: sup_commute)
+  using bot_least [of x] by (simp add: sup_commute sup_absorb2)
 
 lemma inf_top [simp]:
   "x \<sqinter> top = x"
-  using top_greatest [of x] by (simp add: inf_commute)
+  using top_greatest [of x] by (simp add: inf_commute inf_absorb2)
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "SUPR A f = \<Squnion> (f ` A)"

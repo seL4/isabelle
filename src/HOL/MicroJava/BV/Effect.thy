@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/Effect.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
 *)
@@ -391,7 +390,7 @@ proof (cases s)
   with Pair 
   have "?app s \<Longrightarrow> ?P s" by (simp only:)
   moreover
-  have "?P s \<Longrightarrow> ?app s" by (unfold app_def) (clarsimp)
+  have "?P s \<Longrightarrow> ?app s" by (clarsimp simp add: min_max.inf_absorb2)
   ultimately
   show ?thesis by (rule iffI) 
 qed 
