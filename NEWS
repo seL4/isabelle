@@ -94,13 +94,18 @@ see src/HOL/Library/Sum_Of_Squares.
   - mere abbreviations:
     Set.empty               (for bot)
     Set.UNIV                (for top)
+    Set.inter               (for inf)
+    Set.union               (for sup)
     Complete_Lattice.Inter  (for Inf)
     Complete_Lattice.Union  (for Sup)
     Complete_Lattice.INTER  (for INFI)
     Complete_Lattice.UNION  (for SUPR)
   - object-logic definitions as far as appropriate
 
-  INCOMPATIBILITY.
+INCOMPATIBILITY.  Care is required when theorems Int_subset_iff or
+Un_subset_iff are explicitly deleted as default simp rules;  then
+also their lattice counterparts le_inf_iff and le_sup_iff have to be
+deleted to achieve the desired effect.
 
 * Rules inf_absorb1, inf_absorb2, sup_absorb1, sup_absorb2 are no
 simp rules by default any longer.  The same applies to
