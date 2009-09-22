@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/CorrCompTp.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -1058,7 +1057,7 @@ done
 lemma bc_mt_corresp_New: "\<lbrakk>is_class cG cname \<rbrakk>
   \<Longrightarrow> bc_mt_corresp [New cname] (pushST [Class cname]) (ST, LT) cG rT mxr (Suc 0)"
 apply (simp add: bc_mt_corresp_def pushST_def wt_instr_altern_def
-    max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def)
+    max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def min_max.sup_absorb2)
 apply (intro strip)
 apply (rule conjI)
 apply (rule check_type_mono, assumption, simp)
@@ -1069,7 +1068,7 @@ lemma bc_mt_corresp_Pop: "
   bc_mt_corresp [Pop] (popST (Suc 0)) (T # ST, LT) cG rT mxr (Suc 0)"
   apply (simp add: bc_mt_corresp_def popST_def wt_instr_altern_def eff_def norm_eff_def)
   apply (simp add: max_ssize_def ssize_sto_def max_of_list_def) 
-  apply (simp add: check_type_simps)
+  apply (simp add: check_type_simps min_max.sup_absorb1)
   apply clarify
   apply (rule_tac x="(length ST)" in exI)
   apply simp+
@@ -1092,7 +1091,7 @@ lemma bc_mt_corresp_LitPush: "\<lbrakk> typeof (\<lambda>v. None) val = Some T \
   \<Longrightarrow> bc_mt_corresp [LitPush val] (pushST [T]) sttp cG rT mxr (Suc 0)"
 apply (subgoal_tac "\<exists> ST LT. sttp= (ST, LT)", (erule exE)+)
   apply (simp add: bc_mt_corresp_def pushST_def wt_instr_altern_def
-              max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def)
+              max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def min_max.sup_absorb2)
   apply (intro strip)
   apply (rule conjI)
   apply (rule check_type_mono, assumption, simp)
@@ -1111,7 +1110,7 @@ lemma bc_mt_corresp_LitPush_CT: "\<lbrakk> typeof (\<lambda>v. None) val = Some 
   \<Longrightarrow> bc_mt_corresp [LitPush val] (pushST [T']) sttp cG rT mxr (Suc 0)"
 apply (subgoal_tac "\<exists> ST LT. sttp= (ST, LT)", (erule exE)+)
   apply (simp add: bc_mt_corresp_def pushST_def wt_instr_altern_def
-              max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def)
+              max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def min_max.sup_absorb2)
   apply (intro strip)
   apply (rule conjI)
   apply (rule check_type_mono, assumption, simp)
@@ -1127,7 +1126,7 @@ lemma bc_mt_corresp_Load: "\<lbrakk> i < length LT; LT ! i \<noteq> Err; mxr = l
   \<Longrightarrow> bc_mt_corresp [Load i] 
          (\<lambda>(ST, LT). pushST [ok_val (LT ! i)] (ST, LT)) (ST, LT) cG rT mxr (Suc 0)"
 apply (simp add: bc_mt_corresp_def pushST_def wt_instr_altern_def
-            max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def)
+            max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def min_max.sup_absorb2)
   apply (intro strip)
   apply (rule conjI)
   apply (rule check_type_mono, assumption, simp)
@@ -1148,16 +1147,15 @@ done
 lemma bc_mt_corresp_Store_init: "\<lbrakk> i < length LT \<rbrakk>
   \<Longrightarrow> bc_mt_corresp [Store i] (storeST i T) (T # ST, LT) cG rT mxr (Suc 0)"
  apply (simp add: bc_mt_corresp_def storeST_def wt_instr_altern_def eff_def norm_eff_def)
-  apply (simp add: max_ssize_def  max_of_list_def )
+  apply (simp add: max_ssize_def  max_of_list_def)
   apply (simp add: ssize_sto_def)
   apply (intro strip)
-apply (simp add: check_type_simps)
+apply (simp add: check_type_simps min_max.sup_absorb1)
 apply clarify
 apply (rule conjI)
 apply (rule_tac x="(length ST)" in exI)
 apply simp+
 done
-
 
 
 lemma bc_mt_corresp_Store: "\<lbrakk> i < length LT; cG  \<turnstile>  LT[i := OK T] <=l LT \<rbrakk>
@@ -1166,7 +1164,7 @@ lemma bc_mt_corresp_Store: "\<lbrakk> i < length LT; cG  \<turnstile>  LT[i := O
   apply (simp add: sup_state_conv)
   apply (simp add: max_ssize_def max_of_list_def ssize_sto_def)
  apply (intro strip)
-apply (simp add: check_type_simps)
+apply (simp add: check_type_simps min_max.sup_absorb1)
 apply clarify
 apply (rule_tac x="(length ST)" in exI)
 apply simp+
@@ -1176,7 +1174,7 @@ done
 lemma bc_mt_corresp_Dup: "
   bc_mt_corresp [Dup] dupST (T # ST, LT) cG rT mxr (Suc 0)"
  apply (simp add: bc_mt_corresp_def dupST_def wt_instr_altern_def
-             max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def)
+             max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def min_max.sup_absorb2)
   apply (intro strip)
   apply (rule conjI)
   apply (rule check_type_mono, assumption, simp)
@@ -1189,7 +1187,7 @@ done
 lemma bc_mt_corresp_Dup_x1: "
   bc_mt_corresp [Dup_x1] dup_x1ST (T1 # T2 # ST, LT) cG rT mxr (Suc 0)"
   apply (simp add: bc_mt_corresp_def dup_x1ST_def wt_instr_altern_def
-              max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def)
+              max_ssize_def max_of_list_def ssize_sto_def eff_def norm_eff_def min_max.sup_absorb2)
   apply (intro strip)
   apply (rule conjI)
   apply (rule check_type_mono, assumption, simp)
@@ -1206,7 +1204,7 @@ lemma bc_mt_corresp_IAdd: "
          (PrimT Integer # PrimT Integer # ST, LT) cG rT mxr (Suc 0)"
   apply (simp add: bc_mt_corresp_def replST_def wt_instr_altern_def eff_def norm_eff_def)
   apply (simp add: max_ssize_def max_of_list_def ssize_sto_def)
-  apply (simp add: check_type_simps)
+  apply (simp add: check_type_simps min_max.sup_absorb1)
   apply clarify
   apply (rule_tac x="Suc (length ST)" in exI)
   apply simp+
@@ -1249,7 +1247,7 @@ lemma bc_mt_corresp_Putfield: "\<lbrakk> wf_prog wf_mb G;
   apply (simp add: max_ssize_def max_of_list_def ssize_sto_def)
 
   apply (intro strip)
-apply (simp add: check_type_simps)
+apply (simp add: check_type_simps min_max.sup_absorb1)
 apply clarify
 apply (rule_tac x="Suc (length ST)" in exI)
 apply simp+

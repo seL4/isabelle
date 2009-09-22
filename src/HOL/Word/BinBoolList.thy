@@ -919,7 +919,7 @@ lemma bin_cat_foldl_lem [rule_format] :
   apply (drule spec)
   apply (erule trans)
   apply (drule_tac x = "bin_cat y n a" in spec)
-  apply (simp add : bin_cat_assoc_sym)
+  apply (simp add : bin_cat_assoc_sym min_max.inf_absorb2)
   done
 
 lemma bin_rcat_bl:

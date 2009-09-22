@@ -508,7 +508,7 @@ lemma bintrunc_bintrunc_min [simp]:
 lemma sbintrunc_sbintrunc_min [simp]:
   "sbintrunc m (sbintrunc n w) = sbintrunc (min m n) w"
   apply (rule bin_eqI)
-  apply (auto simp: nth_sbintr)
+  apply (auto simp: nth_sbintr min_max.inf_absorb1 min_max.inf_absorb2)
   done
 
 lemmas bintrunc_Pls = 

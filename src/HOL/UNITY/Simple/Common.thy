@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/Common
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -10,7 +9,9 @@ The state is identified with the one variable in existence.
 From Misra, "A Logic for Concurrent Programming" (1994), sections 5.1 and 13.1.
 *)
 
-theory Common imports "../UNITY_Main" begin
+theory Common
+imports "../UNITY_Main"
+begin
 
 consts
   ftime :: "nat=>nat"
@@ -65,7 +66,7 @@ done
 lemma "mk_total_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV)
        \<in> {m} co (maxfg m)"
 apply (simp add: mk_total_program_def) 
-apply (simp add: constrains_def maxfg_def gasc)
+apply (simp add: constrains_def maxfg_def gasc min_max.sup_absorb2)
 done
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
@@ -73,7 +74,7 @@ lemma  "mk_total_program
           (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }, UNIV)   
        \<in> {m} co (maxfg m)"
 apply (simp add: mk_total_program_def) 
-apply (simp add: constrains_def maxfg_def gasc)
+apply (simp add: constrains_def maxfg_def gasc min_max.sup_absorb2)
 done
 
 

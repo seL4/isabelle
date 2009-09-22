@@ -1904,7 +1904,7 @@ proof (cases "x < Float 1 1")
 	show "0 < real x * 2/3" using * by auto
 	show "real ?max + 1 \<le> real x * 2/3" using * up
 	  by (cases "0 < real x * real (lapprox_posrat prec 2 3) - 1",
-	      auto simp add: real_of_float_max)
+	      auto simp add: real_of_float_max min_max.sup_absorb1)
       qed
       finally have "real (?lb_horner (Float 1 -1)) + real (?lb_horner ?max)
 	\<le> ln (real x)"
