@@ -146,19 +146,19 @@ type prover = tree_choice list ->
 type cert_conv = cterm -> thm * pss_tree
 
 val gen_gen_real_arith :
-  Proof.context -> (Rat.rat -> Thm.cterm) * conv * conv * conv *
+  Proof.context -> (Rat.rat -> cterm) * conv * conv * conv *
    conv * conv * conv * conv * conv * conv * prover -> cert_conv
 val real_linear_prover : (thm list * thm list * thm list -> positivstellensatz -> thm) ->
   thm list * thm list * thm list -> thm * pss_tree
 
 val gen_real_arith : Proof.context ->
-  (Rat.rat -> Thm.cterm) * conv * conv * conv * conv * conv * conv * conv * prover -> cert_conv
+  (Rat.rat -> cterm) * conv * conv * conv * conv * conv * conv * conv * prover -> cert_conv
 
 val gen_prover_real_arith : Proof.context -> prover -> cert_conv
 
-val is_ratconst : Thm.cterm -> bool
-val dest_ratconst : Thm.cterm -> Rat.rat
-val cterm_of_rat : Rat.rat -> Thm.cterm
+val is_ratconst : cterm -> bool
+val dest_ratconst : cterm -> Rat.rat
+val cterm_of_rat : Rat.rat -> cterm
 
 end
 

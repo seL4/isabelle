@@ -82,31 +82,31 @@ fun pss_tree_to_cert Trivial = "()"
 
 (* basic parser *)
 
-fun $$ k = Scan.this_string k
+val str = Scan.this_string
 
 val number = Scan.repeat1 (Scan.one Symbol.is_ascii_digit >>
   (fn s => ord s - ord "0")) >>
   foldl1 (fn (n, d) => n * 10 + d)
 
 val nat = number
-val int = Scan.optional ($$ "~" >> K ~1) 1 -- nat >> op *;
-val rat = int --| $$ "/" -- int >> Rat.rat_of_quotient
+val int = Scan.optional (str "~" >> K ~1) 1 -- nat >> op *;
+val rat = int --| str "/" -- int >> Rat.rat_of_quotient
 val rat_int = rat || int >> Rat.rat_of_int
 
 (* polynomial parser *)
 
-fun repeat_sep s f = f ::: Scan.repeat ($$ s |-- f)
+fun repeat_sep s f = f ::: Scan.repeat (str s |-- f)
 
 val parse_id = Scan.one Symbol.is_letter ::: Scan.many Symbol.is_letdig >> implode
 
-fun parse_varpow ctxt = parse_id -- Scan.optional ($$ "^" |-- nat) 1 >>
+fun parse_varpow ctxt = parse_id -- Scan.optional (str "^" |-- nat) 1 >>
   (fn (x, k) => (cterm_of (Context.theory_of_proof ctxt) (Free (x, @{typ real})), k)) 
 
 fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
   foldl (uncurry Ctermfunc.update) Ctermfunc.undefined
 
 fun parse_cmonomial ctxt =
-  rat_int --| $$ "*" -- (parse_monomial ctxt) >> swap ||
+  rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
   (parse_monomial ctxt) >> (fn m => (m, Rat.one)) ||
   rat_int >> (fn r => (Ctermfunc.undefined, r))
 
@@ -116,14 +116,14 @@ fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>
 (* positivstellensatz parser *)
 
 val parse_axiom =
-  ($$ "A=" |-- int >> Axiom_eq) ||
-  ($$ "A<=" |-- int >> Axiom_le) ||
-  ($$ "A<" |-- int >> Axiom_lt)
+  (str "A=" |-- int >> Axiom_eq) ||
+  (str "A<=" |-- int >> Axiom_le) ||
+  (str "A<" |-- int >> Axiom_lt)
 
 val parse_rational =
-  ($$ "R=" |-- rat_int >> Rational_eq) ||
-  ($$ "R<=" |-- rat_int >> Rational_le) ||
-  ($$ "R<" |-- rat_int >> Rational_lt)
+  (str "R=" |-- rat_int >> Rational_eq) ||
+  (str "R<=" |-- rat_int >> Rational_le) ||
+  (str "R<" |-- rat_int >> Rational_lt)
 
 fun parse_cert ctxt input =
   let
@@ -132,10 +132,10 @@ fun parse_cert ctxt input =
   in
   (parse_axiom ||
    parse_rational ||
-   $$ "[" |-- pp --| $$ "]^2" >> Square ||
-   $$ "([" |-- pp --| $$ "]*" -- pc --| $$ ")" >> Eqmul ||
-   $$ "(" |-- pc --| $$ "*" -- pc --| $$ ")" >> Product ||
-   $$ "(" |-- pc --| $$ "+" -- pc --| $$ ")" >> Sum) input
+   str "[" |-- pp --| str "]^2" >> Square ||
+   str "([" |-- pp --| str "]*" -- pc --| str ")" >> Eqmul ||
+   str "(" |-- pc --| str "*" -- pc --| str ")" >> Product ||
+   str "(" |-- pc --| str "+" -- pc --| str ")" >> Sum) input
   end
 
 fun parse_cert_tree ctxt input =
@@ -143,15 +143,15 @@ fun parse_cert_tree ctxt input =
     val pc = parse_cert ctxt
     val pt = parse_cert_tree ctxt
   in
-  ($$ "()" >> K Trivial ||
-   $$ "(" |-- pc --| $$ ")" >> Cert ||
-   $$ "(" |-- pt --| $$ "&" -- pt --| $$ ")" >> Branch) input
+  (str "()" >> K Trivial ||
+   str "(" |-- pc --| str ")" >> Cert ||
+   str "(" |-- pt --| str "&" -- pt --| str ")" >> Branch) input
   end
 
 (* scanner *)
 
-fun cert_to_pss_tree ctxt str = Symbol.scanner "bad certificate" (parse_cert_tree ctxt)
-  (filter_out Symbol.is_blank (Symbol.explode str))
+fun cert_to_pss_tree ctxt input_str = Symbol.scanner "bad certificate" (parse_cert_tree ctxt)
+  (filter_out Symbol.is_blank (Symbol.explode input_str))
 
 end
 

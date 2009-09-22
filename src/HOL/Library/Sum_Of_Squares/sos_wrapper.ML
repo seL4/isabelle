@@ -141,29 +141,19 @@ fun call_solver name_option =
 fun output_line cert = "To repeat this proof with a certifiate use this command:\n" ^
         (Markup.markup Markup.sendback) ("by (sos_cert \"" ^ cert ^ "\")")
 
-fun print_certs pss_tree =
-  let
-    val cert = PositivstellensatzTools.pss_tree_to_cert pss_tree
-    val str = output_line cert
-  in
-    Output.writeln str
-  end
+val print_cert = Output.writeln o output_line o PositivstellensatzTools.pss_tree_to_cert
 
 (* setup tactic *)
 
-fun parse_cert (ctxt, tk) =
-  let
-    val (str, tk') = OuterParse.string tk
-    val cert = PositivstellensatzTools.cert_to_pss_tree (Context.proof_of ctxt) str
-  in
-    (cert, (ctxt, tk'))
-  end
+fun parse_cert (input as (ctxt, _)) = 
+  (Scan.lift OuterParse.string >>
+    PositivstellensatzTools.cert_to_pss_tree (Context.proof_of ctxt)) input
 
 fun sos_solver print method = (SIMPLE_METHOD' o (Sos.sos_tac print method)) 
 
 val sos_method =
    Scan.lift (Scan.option OuterParse.xname) >> (fn n => Sos.Prover (call_solver n)) >>
-   sos_solver print_certs
+   sos_solver print_cert
 
 val sos_cert_method =
   parse_cert >> Sos.Certificate >> sos_solver ignore

@@ -13,7 +13,7 @@ sig
   | Prover of (string -> string)
 
   val sos_tac : (RealArith.pss_tree -> unit) ->
-    proof_method -> Proof.context -> int -> Tactical.tactic
+    proof_method -> Proof.context -> int -> tactic
 
   val debugging : bool ref;
   
@@ -345,8 +345,6 @@ in fun humanorder_monomial m1 m2 =
   sort humanorder_varpow (Ctermfunc.graph m2))
 end;
 
-fun fold1 f = foldr1 (uncurry f) 
-
 (* Conversions to strings.                                                   *)
 
 fun string_of_vector min_size max_size (v:vector) =
@@ -355,7 +353,7 @@ fun string_of_vector min_size max_size (v:vector) =
   let 
    val n = max min_size (min n_raw max_size) 
    val xs = map (Rat.string_of_rat o (fn i => Intfunc.tryapplyd (snd v) i rat_0)) (1 upto n) 
-  in "[" ^ fold1 (fn s => fn t => s ^ ", " ^ t) xs ^
+  in "[" ^ foldr1 (fn (s, t) => s ^ ", " ^ t) xs ^
   (if n_raw > max_size then ", ...]" else "]")
   end
  end;
@@ -366,7 +364,7 @@ fun string_of_matrix max_size (m:matrix) =
   val i = min max_size i_raw 
   val j = min max_size j_raw
   val rstr = map (fn k => string_of_vector j j (row k m)) (1 upto i) 
- in "["^ fold1 (fn s => fn t => s^";\n "^t) rstr ^
+ in "["^ foldr1 (fn (s, t) => s^";\n "^t) rstr ^
   (if j > max_size then "\n ...]" else "]")
  end;
 
@@ -392,7 +390,7 @@ fun string_of_monomial m =
  if Ctermfunc.is_undefined m then "1" else
  let val vps = fold_rev (fn (x,k) => fn a => string_of_varpow x k :: a)
   (sort humanorder_varpow (Ctermfunc.graph m)) [] 
- in fold1 (fn s => fn t => s^"*"^t) vps
+ in foldr1 (fn (s, t) => s^"*"^t) vps
  end;
 
 fun string_of_cmonomial (c,m) =
@@ -474,7 +472,7 @@ fun sdpa_of_vector (v:vector) =
  let 
   val n = dim v
   val strs = map (decimalize 20 o (fn i => Intfunc.tryapplyd (snd v) i rat_0)) (1 upto n) 
- in fold1 (fn x => fn y => x ^ " " ^ y) strs ^ "\n"
+ in foldr1 (fn (x, y) => x ^ " " ^ y) strs ^ "\n"
  end;
 
 fun triple_int_ord ((a,b,c),(a',b',c')) = 
@@ -984,7 +982,7 @@ fun enumerate_monomials d vars =
  let val alts =
   map (fn k => let val oths = enumerate_monomials (d - k) (tl vars) 
                in map (fn ks => if k = 0 then ks else Ctermfunc.update (hd vars, k) ks) oths end) (0 upto d) 
- in fold1 (curry op @) alts
+ in foldr1 op @ alts
  end;
 
 (* Enumerate products of distinct input polys with degree <= d.              *)
@@ -1035,7 +1033,7 @@ fun sdpa_of_blockproblem nblocks blocksizes obj mats =
  in
   string_of_int m ^ "\n" ^
   string_of_int nblocks ^ "\n" ^
-  (fold1 (fn s => fn t => s^" "^t) (map string_of_int blocksizes)) ^
+  (foldr1 (fn (s, t) => s^" "^t) (map string_of_int blocksizes)) ^
   "\n" ^
   sdpa_of_vector obj ^
   fold_rev2 (fn k => fn m => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
@@ -1210,7 +1208,7 @@ in
 fun cterm_of_sqterm (c,p) = Product(Rational_lt c,Square p);
 
 fun cterm_of_sos (pr,sqs) = if null sqs then pr
-  else Product(pr,fold1 (fn a => fn b => Sum(a,b)) (map cterm_of_sqterm sqs));
+  else Product(pr,foldr1 (fn (a, b) => Sum(a,b)) (map cterm_of_sqterm sqs));
 
 end
 
@@ -1283,11 +1281,11 @@ fun real_nonlinear_prover proof_method ctxt =
            map2 (fn q => fn (p,ax) => Eqmul(q,ax)) cert_ideal eq
          val proofs_cone = map cterm_of_sos cert_cone
          val proof_ne = if null ltp then Rational_lt Rat.one else
-           let val p = fold1 (fn s => fn t => Product(s,t)) (map snd ltp) 
+           let val p = foldr1 (fn (s, t) => Product(s,t)) (map snd ltp) 
            in  funpow i (fn q => Product(p,q)) (Rational_lt Rat.one)
            end
          in 
-           fold1 (fn s => fn t => Sum(s,t)) (proof_ne :: proofs_ideal @ proofs_cone) 
+           foldr1 (fn (s, t) => Sum(s,t)) (proof_ne :: proofs_ideal @ proofs_cone) 
          end)
      in
         (translator (eqs,les,lts) proof, Cert proof)
@@ -1426,12 +1424,12 @@ fun check_sos kcts ct =
               else error ("SOSO: Unknown constants in Subgoal:" ^ commas (map fst ukcs))
 in () end
 
-fun core_sos_tac print_certs prover ctxt = CSUBGOAL (fn (ct, i) => 
+fun core_sos_tac print_cert prover ctxt = CSUBGOAL (fn (ct, i) => 
   let val _ = check_sos known_sos_constants ct
       val (avs, p) = strip_all ct
       val (ths, certificates) = real_sos prover ctxt (Thm.dest_arg p)
       val th = standard (fold_rev forall_intr avs ths)
-      val _ = print_certs certificates
+      val _ = print_cert certificates
   in rtac th i end);
 
 fun default_SOME f NONE v = SOME v
@@ -1469,7 +1467,7 @@ CSUBGOAL (fn (P,i) =>
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 
-fun sos_tac print_certs prover ctxt = ObjectLogic.full_atomize_tac THEN' elim_denom_tac ctxt THEN' core_sos_tac print_certs prover ctxt
+fun sos_tac print_cert prover ctxt = ObjectLogic.full_atomize_tac THEN' elim_denom_tac ctxt THEN' core_sos_tac print_cert prover ctxt
 
 
 end;
