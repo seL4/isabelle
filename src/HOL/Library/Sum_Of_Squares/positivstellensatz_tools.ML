@@ -16,8 +16,6 @@ end
 structure PositivstellensatzTools : POSITIVSTELLENSATZ_TOOLS =
 struct
 
-open RealArith FuncUtil
-
 (*** certificate generation ***)
 
 fun string_of_rat r =
@@ -41,42 +39,42 @@ fun string_of_varpow x k =
   end
 
 fun string_of_monomial m = 
- if Ctermfunc.is_undefined m then "1" 
+ if FuncUtil.Ctermfunc.is_undefined m then "1" 
  else 
   let 
-   val m' = dest_monomial m
+   val m' = FuncUtil.dest_monomial m
    val vps = fold_rev (fn (x,k) => cons (string_of_varpow x k)) m' [] 
   in foldr1 (fn (s, t) => s ^ "*" ^ t) vps
   end
 
 fun string_of_cmonomial (m,c) =
-  if Ctermfunc.is_undefined m then string_of_rat c
+  if FuncUtil.Ctermfunc.is_undefined m then string_of_rat c
   else if c = Rat.one then string_of_monomial m
   else (string_of_rat c) ^ "*" ^ (string_of_monomial m);
 
 fun string_of_poly p = 
- if Monomialfunc.is_undefined p then "0" 
+ if FuncUtil.Monomialfunc.is_undefined p then "0" 
  else
   let 
    val cms = map string_of_cmonomial
-     (sort (prod_ord monomial_order (K EQUAL)) (Monomialfunc.graph p))
+     (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.graph p))
   in foldr1 (fn (t1, t2) => t1 ^ " + " ^ t2) cms
   end;
 
-fun pss_to_cert (Axiom_eq i) = "A=" ^ string_of_int i
-  | pss_to_cert (Axiom_le i) = "A<=" ^ string_of_int i
-  | pss_to_cert (Axiom_lt i) = "A<" ^ string_of_int i
-  | pss_to_cert (Rational_eq r) = "R=" ^ string_of_rat r
-  | pss_to_cert (Rational_le r) = "R<=" ^ string_of_rat r
-  | pss_to_cert (Rational_lt r) = "R<" ^ string_of_rat r
-  | pss_to_cert (Square p) = "[" ^ string_of_poly p ^ "]^2"
-  | pss_to_cert (Eqmul (p, pss)) = "([" ^ string_of_poly p ^ "] * " ^ pss_to_cert pss ^ ")"
-  | pss_to_cert (Sum (pss1, pss2)) = "(" ^ pss_to_cert pss1 ^ " + " ^ pss_to_cert pss2 ^ ")"
-  | pss_to_cert (Product (pss1, pss2)) = "(" ^ pss_to_cert pss1 ^ " * " ^ pss_to_cert pss2 ^ ")"
+fun pss_to_cert (RealArith.Axiom_eq i) = "A=" ^ string_of_int i
+  | pss_to_cert (RealArith.Axiom_le i) = "A<=" ^ string_of_int i
+  | pss_to_cert (RealArith.Axiom_lt i) = "A<" ^ string_of_int i
+  | pss_to_cert (RealArith.Rational_eq r) = "R=" ^ string_of_rat r
+  | pss_to_cert (RealArith.Rational_le r) = "R<=" ^ string_of_rat r
+  | pss_to_cert (RealArith.Rational_lt r) = "R<" ^ string_of_rat r
+  | pss_to_cert (RealArith.Square p) = "[" ^ string_of_poly p ^ "]^2"
+  | pss_to_cert (RealArith.Eqmul (p, pss)) = "([" ^ string_of_poly p ^ "] * " ^ pss_to_cert pss ^ ")"
+  | pss_to_cert (RealArith.Sum (pss1, pss2)) = "(" ^ pss_to_cert pss1 ^ " + " ^ pss_to_cert pss2 ^ ")"
+  | pss_to_cert (RealArith.Product (pss1, pss2)) = "(" ^ pss_to_cert pss1 ^ " * " ^ pss_to_cert pss2 ^ ")"
 
-fun pss_tree_to_cert Trivial = "()"
-  | pss_tree_to_cert (Cert pss) = "(" ^ pss_to_cert pss ^ ")"
-  | pss_tree_to_cert (Branch (t1, t2)) = "(" ^ pss_tree_to_cert t1 ^ " & " ^ pss_tree_to_cert t2 ^ ")"
+fun pss_tree_to_cert RealArith.Trivial = "()"
+  | pss_tree_to_cert (RealArith.Cert pss) = "(" ^ pss_to_cert pss ^ ")"
+  | pss_tree_to_cert (RealArith.Branch (t1, t2)) = "(" ^ pss_tree_to_cert t1 ^ " & " ^ pss_tree_to_cert t2 ^ ")"
 
 (*** certificate parsing ***)
 
@@ -103,27 +101,27 @@ fun parse_varpow ctxt = parse_id -- Scan.optional (str "^" |-- nat) 1 >>
   (fn (x, k) => (cterm_of (Context.theory_of_proof ctxt) (Free (x, @{typ real})), k)) 
 
 fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
-  foldl (uncurry Ctermfunc.update) Ctermfunc.undefined
+  foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.undefined
 
 fun parse_cmonomial ctxt =
   rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
   (parse_monomial ctxt) >> (fn m => (m, Rat.one)) ||
-  rat_int >> (fn r => (Ctermfunc.undefined, r))
+  rat_int >> (fn r => (FuncUtil.Ctermfunc.undefined, r))
 
 fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>
-  foldl (uncurry Monomialfunc.update) Monomialfunc.undefined
+  foldl (uncurry FuncUtil.Monomialfunc.update) FuncUtil.Monomialfunc.undefined
 
 (* positivstellensatz parser *)
 
 val parse_axiom =
-  (str "A=" |-- int >> Axiom_eq) ||
-  (str "A<=" |-- int >> Axiom_le) ||
-  (str "A<" |-- int >> Axiom_lt)
+  (str "A=" |-- int >> RealArith.Axiom_eq) ||
+  (str "A<=" |-- int >> RealArith.Axiom_le) ||
+  (str "A<" |-- int >> RealArith.Axiom_lt)
 
 val parse_rational =
-  (str "R=" |-- rat_int >> Rational_eq) ||
-  (str "R<=" |-- rat_int >> Rational_le) ||
-  (str "R<" |-- rat_int >> Rational_lt)
+  (str "R=" |-- rat_int >> RealArith.Rational_eq) ||
+  (str "R<=" |-- rat_int >> RealArith.Rational_le) ||
+  (str "R<" |-- rat_int >> RealArith.Rational_lt)
 
 fun parse_cert ctxt input =
   let
@@ -132,10 +130,10 @@ fun parse_cert ctxt input =
   in
   (parse_axiom ||
    parse_rational ||
-   str "[" |-- pp --| str "]^2" >> Square ||
-   str "([" |-- pp --| str "]*" -- pc --| str ")" >> Eqmul ||
-   str "(" |-- pc --| str "*" -- pc --| str ")" >> Product ||
-   str "(" |-- pc --| str "+" -- pc --| str ")" >> Sum) input
+   str "[" |-- pp --| str "]^2" >> RealArith.Square ||
+   str "([" |-- pp --| str "]*" -- pc --| str ")" >> RealArith.Eqmul ||
+   str "(" |-- pc --| str "*" -- pc --| str ")" >> RealArith.Product ||
+   str "(" |-- pc --| str "+" -- pc --| str ")" >> RealArith.Sum) input
   end
 
 fun parse_cert_tree ctxt input =
@@ -143,9 +141,9 @@ fun parse_cert_tree ctxt input =
     val pc = parse_cert ctxt
     val pt = parse_cert_tree ctxt
   in
-  (str "()" >> K Trivial ||
-   str "(" |-- pc --| str ")" >> Cert ||
-   str "(" |-- pt --| str "&" -- pt --| str ")" >> Branch) input
+  (str "()" >> K RealArith.Trivial ||
+   str "(" |-- pc --| str ")" >> RealArith.Cert ||
+   str "(" |-- pt --| str "&" -- pt --| str ")" >> RealArith.Branch) input
   end
 
 (* scanner *)
