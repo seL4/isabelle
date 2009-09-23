@@ -99,11 +99,9 @@ lemma closedin_Int[intro]: "closedin U S \<Longrightarrow> closedin U T \<Longri
 
 lemma Diff_Diff_Int: "A - (A - B) = A \<inter> B" by blast
 lemma openin_closedin_eq: "openin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> closedin U (topspace U - S)"
-  apply (auto simp add: closedin_def)
+  apply (auto simp add: closedin_def Diff_Diff_Int inf_absorb2)
   apply (metis openin_subset subset_eq)
-  apply (auto simp add: Diff_Diff_Int)
-  apply (subgoal_tac "topspace U \<inter> S = S")
-  by auto
+  done
 
 lemma openin_closedin:  "S \<subseteq> topspace U \<Longrightarrow> (openin U S \<longleftrightarrow> closedin U (topspace U - S))"
   by (simp add: openin_closedin_eq)

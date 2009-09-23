@@ -145,7 +145,7 @@ fun mk_sumcases (sk, _, _, _, _) T fs =
 
 fun mk_sum_skel rel =
   let
-    val cs = FundefLib.dest_binop_list @{const_name Set.union} rel
+    val cs = FundefLib.dest_binop_list @{const_name Lattices.sup} rel
     fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
       let
         val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ Gam)
@@ -233,7 +233,7 @@ fun derive_descents thy tac c D =
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
   else case Thm.term_of (Thm.cprem_of st i) of
-    (_ $ (_ $ rel)) => tac (FundefLib.dest_binop_list @{const_name Set.union} rel, i) st
+    (_ $ (_ $ rel)) => tac (FundefLib.dest_binop_list @{const_name Lattices.sup} rel, i) st
   |_ => no_tac st
 
 type ttac = (data -> int -> tactic) -> (data -> int -> tactic) -> data -> int -> tactic
@@ -293,7 +293,7 @@ fun wf_union_tac ctxt st =
           if null ineqs then
               Const (@{const_name Set.empty}, fastype_of rel)
           else
-              foldr1 (HOLogic.mk_binop @{const_name Set.union}) (map mk_compr ineqs)
+              foldr1 (HOLogic.mk_binop @{const_name Lattices.sup}) (map mk_compr ineqs)
 
       fun solve_membership_tac i =
           (EVERY' (replicate (i - 2) (rtac @{thm UnI2}))  (* pick the right component of the union *)
