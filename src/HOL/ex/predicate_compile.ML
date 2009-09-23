@@ -44,9 +44,9 @@ sig
   (* temporary for testing of the compilation *)
   datatype indprem = Prem of term list * term | Negprem of term list * term | Sidecond of term |
     GeneratorPrem of term list * term | Generator of (string * typ);
-  val prepare_intrs: theory -> string list ->
+ (* val prepare_intrs: theory -> string list ->
     (string * typ) list * int * string list * string list * (string * mode list) list *
-    (string * (term list * indprem list) list) list * (string * (int option list * int)) list
+    (string * (term list * indprem list) list) list * (string * (int option list * int)) list*)
   datatype compilation_funs = CompilationFuns of {
     mk_predT : typ -> typ,
     dest_predT : typ -> typ,
@@ -61,12 +61,14 @@ sig
   };  
   type moded_clause = term list * (indprem * tmode) list
   type 'a pred_mode_table = (string * (mode * 'a) list) list
-  val infer_modes : bool -> theory -> (string * mode list) list
-    -> (string * (int option list * int)) list -> string list
+  val infer_modes : theory -> (string * mode list) list
+    -> (string * mode list) list
+    -> string list
     -> (string * (term list * indprem list) list) list
     -> (moded_clause list) pred_mode_table
-  val infer_modes_with_generator : theory -> (string * (int list option list * int list) list) list
-    -> (string * (int option list * int)) list -> string list
+  val infer_modes_with_generator : theory -> (string * mode list) list
+    -> (string * mode list) list
+    -> string list
     -> (string * (term list * indprem list) list) list
     -> (moded_clause list) pred_mode_table  
   (*val compile_preds : theory -> compilation_funs -> string list -> string list
@@ -98,6 +100,7 @@ sig
   val is_constrt : theory -> term -> bool
   val is_predT : typ -> bool
   val guess_nparams : typ -> int
+  val cprods_subset : 'a list list -> 'a list list
 end;
 
 structure Predicate_Compile : PREDICATE_COMPILE =
@@ -866,7 +869,11 @@ fun cprod ([], ys) = []
 
 fun cprods xss = foldr (map op :: o cprod) [[]] xss;
 
-
+fun cprods_subset [] = [[]]
+  | cprods_subset (xs :: xss) =
+  let
+    val yss = (cprods_subset xss)
+  in maps (fn ys => map (fn x => cons x ys) xs) yss @ yss end
   
 (*TODO: cleanup function and put together with modes_of_term *)
 (*
@@ -1036,8 +1043,8 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
     else NONE
   end;
 
-fun check_modes_pred with_generator thy param_vs preds modes gen_modes (p, ms) =
-  let val SOME rs = AList.lookup (op =) preds p
+fun check_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms) =
+  let val SOME rs = AList.lookup (op =) clauses p
   in (p, List.filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
@@ -1046,9 +1053,9 @@ fun check_modes_pred with_generator thy param_vs preds modes gen_modes (p, ms) =
         Output.tracing (commas (map (Syntax.string_of_term_global thy) (fst (nth rs i)))); false)) ms)
   end;
 
-fun get_modes_pred with_generator thy param_vs preds modes gen_modes (p, ms) =
+fun get_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms) =
   let
-    val SOME rs = AList.lookup (op =) preds p 
+    val SOME rs = AList.lookup (op =) clauses p 
   in
     (p, map (fn m =>
       (m, map (the o check_mode_clause with_generator thy param_vs modes gen_modes m) rs)) ms)
@@ -1058,20 +1065,14 @@ fun fixp f (x : (string * mode list) list) =
   let val y = f x
   in if x = y then x else fixp f y end;
 
-fun modes_of_arities arities =
-  (map (fn (s, (ks, k)) => (s, cprod (cprods (map
-            (fn NONE => [NONE]
-              | SOME k' => map SOME (map (map (rpair NONE)) (subsets 1 k'))) ks),
-    map (map (rpair NONE)) (subsets 1 k)))) arities)
-  
-fun infer_modes with_generator thy extra_modes arities param_vs preds =
+fun infer_modes thy extra_modes all_modes param_vs clauses =
   let
     val modes =
       fixp (fn modes =>
-        map (check_modes_pred with_generator thy param_vs preds (modes @ extra_modes) []) modes)
-          (modes_of_arities arities)
+        map (check_modes_pred false thy param_vs clauses (modes @ extra_modes) []) modes)
+          all_modes
   in
-    map (get_modes_pred with_generator thy param_vs preds (modes @ extra_modes) []) modes
+    map (get_modes_pred false thy param_vs clauses (modes @ extra_modes) []) modes
   end;
 
 fun remove_from rem [] = []
@@ -1081,19 +1082,19 @@ fun remove_from rem [] = []
     | SOME vs' => (k, vs \\ vs'))
     :: remove_from rem xs
     
-fun infer_modes_with_generator thy extra_modes arities param_vs preds =
+fun infer_modes_with_generator thy extra_modes all_modes param_vs clauses =
   let
-    val prednames = map fst preds
+    val prednames = map fst clauses
     val extra_modes = all_modes_of thy
     val gen_modes = all_generator_modes_of thy
       |> filter_out (fn (name, _) => member (op =) prednames name)
-    val starting_modes = remove_from extra_modes (modes_of_arities arities) 
+    val starting_modes = remove_from extra_modes all_modes 
     val modes =
       fixp (fn modes =>
-        map (check_modes_pred true thy param_vs preds extra_modes (gen_modes @ modes)) modes)
+        map (check_modes_pred true thy param_vs clauses extra_modes (gen_modes @ modes)) modes)
          starting_modes 
   in
-    map (get_modes_pred true thy param_vs preds extra_modes (gen_modes @ modes)) modes
+    map (get_modes_pred true thy param_vs clauses extra_modes (gen_modes @ modes)) modes
   end;
 
 (* term construction *)
@@ -1430,7 +1431,8 @@ end;
 fun create_constname_of_mode thy prefix name mode = 
   let
     fun string_of_mode mode = if null mode then "0"
-      else space_implode "_" (map (fn (i, NONE) => string_of_int i | (i, SOME _) => error "pair mode") mode)
+      else space_implode "_" (map (fn (i, NONE) => string_of_int i | (i, SOME pis) => string_of_int i ^ "p"
+        ^ space_implode "p" (map string_of_int pis)) mode)
     val HOmode = space_implode "_and_"
       (fold (fn NONE => I | SOME mode => cons (string_of_mode mode)) (fst mode) [])
   in
@@ -1952,17 +1954,38 @@ fun prepare_intrs thy prednames =
              length Us)) arities)
     end;
     val (clauses, arities) = fold add_clause intrs ([], []);
-  in (preds, nparams, all_vs, param_vs, extra_modes, clauses, arities) end;
+    fun modes_of_arities arities =
+      (map (fn (s, (ks, k)) => (s, cprod (cprods (map
+            (fn NONE => [NONE]
+              | SOME k' => map SOME (map (map (rpair NONE)) (subsets 1 k'))) ks),
+       map (map (rpair NONE)) (subsets 1 k)))) arities)
+    fun modes_of_typ T =
+      let
+        val (Ts, Us) = chop nparams (binder_types T)
+        fun all_smodes_of_typs Ts = cprods_subset (
+          map_index (fn (i, U) =>
+            case HOLogic.strip_tupleT U of
+              [] => [(i + 1, NONE)]
+            | [U] => [(i + 1, NONE)]
+            | Us =>  map (pair (i + 1) o SOME) (subsets 1 (length Us)))
+          Ts)
+      in
+        cprod (cprods (map (fn T => case strip_type T of
+          (Rs as _ :: _, Type ("bool", [])) => map SOME (all_smodes_of_typs Rs) | _ => [NONE]) Ts),
+           all_smodes_of_typs Us)
+      end
+    val all_modes = map (fn (s, T) => (s, modes_of_typ T)) preds
+  in (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) end;
 
 (** main function of predicate compiler **)
 
 fun add_equations_of steps prednames thy =
   let
     val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
-    val (preds, nparams, all_vs, param_vs, extra_modes, clauses, arities) =
+    val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames
     val _ = Output.tracing "Infering modes..."
-    val moded_clauses = #infer_modes steps thy extra_modes arities param_vs clauses 
+    val moded_clauses = #infer_modes steps thy extra_modes all_modes param_vs clauses 
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = print_modes modes
     val _ = print_moded_clauses thy moded_clauses
@@ -2018,7 +2041,7 @@ fun gen_add_equations steps names thy =
 (* different instantiantions of the predicate compiler *)
 
 val add_equations = gen_add_equations
-  {infer_modes = infer_modes false,
+  {infer_modes = infer_modes,
   create_definitions = create_definitions,
   compile_preds = compile_preds PredicateCompFuns.compfuns mk_fun_of false,
   prove = prove,
@@ -2026,7 +2049,7 @@ val add_equations = gen_add_equations
   qname = "equation"}
 
 val add_sizelim_equations = gen_add_equations
-  {infer_modes = infer_modes false,
+  {infer_modes = infer_modes,
   create_definitions = sizelim_create_definitions,
   compile_preds = compile_preds PredicateCompFuns.compfuns mk_sizelim_fun_of true,
   prove = prove_by_skip,
