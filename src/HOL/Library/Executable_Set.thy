@@ -100,6 +100,6 @@ consts_code
   card                ("{*Fset.card*}")
   fold                ("{*foldl o flip*}")
 
-hide (open) const subset eq_set Inter Union flip
+hide (open) const empty inter union subset eq_set Inter Union flip
 
 end
