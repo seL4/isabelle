@@ -52,6 +52,146 @@ sig
 end;
 
 
+signature ISTUPLE_SUPPORT =
+sig
+  val add_istuple_type: bstring * string list -> (typ * typ) -> theory ->
+            (term * term * theory);
+
+  val mk_cons_tuple: term * term -> term;
+  val dest_cons_tuple: term -> term * term;
+
+  val istuple_intros_tac: theory -> int -> tactic;
+
+  val named_cterm_instantiate: (string * cterm) list -> thm -> thm;
+end;
+
+structure IsTupleSupport : ISTUPLE_SUPPORT =
+struct
+
+val isomN = "_TupleIsom";
+val defN = "_def";
+
+val istuple_UNIV_I = @{thm "istuple_UNIV_I"};
+val istuple_True_simp = @{thm "istuple_True_simp"};
+
+val istuple_intro = @{thm "isomorphic_tuple_intro"};
+val istuple_intros = build_net (@{thms "isomorphic_tuple.intros"});
+
+val constname = fst o dest_Const;
+val tuple_istuple = (constname @{term tuple_istuple}, @{thm tuple_istuple});
+
+val istuple_constN = constname @{term isomorphic_tuple};
+val istuple_consN = constname @{term istuple_cons};
+
+val tup_isom_typeN = fst (dest_Type @{typ "('a, 'b, 'c) tuple_isomorphism"});
+
+fun named_cterm_instantiate values thm = let
+    fun match name (Var ((name', _), _)) = name = name'
+      | match name _ = false;
+    fun getvar name = case (find_first (match name)
+                                    (OldTerm.term_vars (prop_of thm)))
+      of SOME var => cterm_of (theory_of_thm thm) var
+       | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm])
+  in
+    cterm_instantiate (map (apfst getvar) values) thm
+  end;
+
+structure IsTupleThms = TheoryDataFun
+(
+  type T = thm Symtab.table;
+  val empty = Symtab.make [tuple_istuple];
+  val copy = I;
+  val extend = I;
+  val merge = K (Symtab.merge Thm.eq_thm_prop);
+);
+
+fun do_typedef name repT alphas thy =
+  let
+    fun get_thms thy name =
+      let
+        val SOME { Rep_inject=rep_inject, Abs_name=absN, abs_type=absT,
+          Abs_inverse=abs_inverse, ...} = Typedef.get_info thy name;
+        val rewrite_rule = MetaSimplifier.rewrite_rule [istuple_UNIV_I, istuple_True_simp];
+      in (map rewrite_rule [rep_inject, abs_inverse],
+            Const (absN, repT --> absT), absT) end;
+  in
+    thy
+    |> Typecopy.typecopy (Binding.name name, alphas) repT NONE
+    |-> (fn (name, _) => `(fn thy => get_thms thy name))
+  end;
+
+fun mk_cons_tuple (left, right) = let
+    val (leftT, rightT) = (fastype_of left, fastype_of right);
+    val prodT           = HOLogic.mk_prodT (leftT, rightT);
+    val isomT           = Type (tup_isom_typeN, [prodT, leftT, rightT]);
+  in
+    Const (istuple_consN, isomT --> leftT --> rightT --> prodT)
+      $ Const (fst tuple_istuple, isomT) $ left $ right
+  end;
+
+fun dest_cons_tuple (v as Const (ic, _) $ Const _ $ left $ right)
+  = if ic = istuple_consN then (left, right)
+    else raise TERM ("dest_cons_tuple", [v])
+  | dest_cons_tuple v = raise TERM ("dest_cons_tuple", [v]);
+
+fun add_istuple_type (name, alphas) (leftT, rightT) thy =
+let
+  val repT = HOLogic.mk_prodT (leftT, rightT);
+
+  val (([rep_inject, abs_inverse], absC, absT), typ_thy) =
+    thy
+    |> do_typedef name repT alphas
+    ||> Sign.add_path name;
+
+  (* construct a type and body for the isomorphism constant by
+     instantiating the theorem to which the definition will be applied *)
+  val intro_inst = rep_inject RS
+                   (named_cterm_instantiate [("abst", cterm_of typ_thy absC)]
+                        istuple_intro);
+  val (_, body)  = Logic.dest_equals (List.last (prems_of intro_inst));
+  val isomT      = fastype_of body;
+  val isom_bind  = Binding.name (name ^ isomN);
+  val isom       = Const (Sign.full_name typ_thy isom_bind, isomT);
+  val isom_spec  = (name ^ isomN ^ defN, Logic.mk_equals (isom, body));
+
+  val ([isom_def], cdef_thy) =
+    typ_thy
+    |> Sign.add_consts_i [Syntax.no_syn (isom_bind, isomT)]
+    |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
+
+  val istuple = isom_def RS (abs_inverse RS (rep_inject RS istuple_intro));
+  val cons    = Const (istuple_consN, isomT --> leftT --> rightT --> absT)
+
+  val thm_thy =
+    cdef_thy
+    |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop
+                           (constname isom, istuple))
+    |> Sign.parent_path;
+in
+  (isom, cons $ isom, thm_thy)
+end;
+
+fun istuple_intros_tac thy = let
+    val isthms  = IsTupleThms.get thy;
+    fun err s t = raise TERM ("istuple_intros_tac: " ^ s, [t]);
+    val use_istuple_thm_tac = SUBGOAL (fn (goal, n) => let
+        val goal' = Envir.beta_eta_contract goal;
+        val isom  = case goal' of (Const tp $ (Const pr $ Const is))
+                    => if fst tp = "Trueprop" andalso fst pr = istuple_constN
+                       then Const is
+                       else err "unexpected goal predicate" goal'
+            | _ => err "unexpected goal format" goal';
+        val isthm = case Symtab.lookup isthms (constname isom) of
+                    SOME isthm => isthm
+                  | NONE => err "no thm found for constant" isom;
+      in rtac isthm n end);
+  in
+    fn n => resolve_from_net_tac istuple_intros n
+            THEN use_istuple_thm_tac n
+  end;
+
+end;
+
 structure Record: RECORD =
 struct
 
@@ -68,6 +208,7 @@ val transitive_thm = thm "transitive";
 val o_assoc = @{thm "o_assoc"};
 val id_apply = @{thm id_apply};
 val id_o_apps = [@{thm id_apply}, @{thm id_o}, @{thm o_id}];
+val Not_eq_iff = @{thm Not_eq_iff};
 
 val refl_conj_eq = thm "refl_conj_eq";
 val meta_all_sameI = thm "meta_all_sameI";
@@ -966,14 +1107,14 @@ fun mk_comp_id f = let
     val T = range_type (fastype_of f);
   in mk_comp (Const ("Fun.id", T --> T)) f end;
 
-fun get_updfuns (upd $ _ $ t) = upd :: get_updfuns t
-  | get_updfuns _             = [];
+fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
+  | get_upd_funs _             = [];
 
 fun get_accupd_simps thy term defset intros_tac = let
     val (acc, [body]) = strip_comb term;
     val recT          = domain_type (fastype_of acc);
-    val updfuns       = sort_distinct TermOrd.fast_term_ord
-                           (get_updfuns body);
+    val upd_funs      = sort_distinct TermOrd.fast_term_ord
+                           (get_upd_funs body);
     fun get_simp upd  = let
         val T    = domain_type (fastype_of upd);
         val lhs  = mk_comp acc (upd $ Free ("f", T));
@@ -987,7 +1128,7 @@ fun get_accupd_simps thy term defset intros_tac = let
         val dest = if is_sel_upd_pair thy acc upd
                    then o_eq_dest else o_eq_id_dest;
       in standard (othm RS dest) end;
-  in map get_simp updfuns end;
+  in map get_simp upd_funs end;
 
 structure SymSymTab = Table(type key = string * string
                             val ord = prod_ord fast_string_ord fast_string_ord);
@@ -1009,26 +1150,26 @@ fun get_updupd_simp thy defset intros_tac u u' comp = let
 
 fun get_updupd_simps thy term defset intros_tac = let
     val recT          = fastype_of term;
-    val updfuns       = get_updfuns term;
+    val upd_funs      = get_upd_funs term;
     val cname         = fst o dest_Const;
     fun getswap u u'  = get_updupd_simp thy defset intros_tac u u'
                               (cname u = cname u');
-    fun buildswapstoeq upd [] swaps = swaps
-      | buildswapstoeq upd (u::us) swaps = let
+    fun build_swaps_to_eq upd [] swaps = swaps
+      | build_swaps_to_eq upd (u::us) swaps = let
              val key      = (cname u, cname upd);
              val newswaps = if SymSymTab.defined swaps key then swaps
                             else SymSymTab.insert (K true)
                                      (key, getswap u upd) swaps;
           in if cname u = cname upd then newswaps
-             else buildswapstoeq upd us newswaps end;
-    fun swapsneeded []      prev seen swaps = map snd (SymSymTab.dest swaps)
-      | swapsneeded (u::us) prev seen swaps =
+             else build_swaps_to_eq upd us newswaps end;
+    fun swaps_needed []      prev seen swaps = map snd (SymSymTab.dest swaps)
+      | swaps_needed (u::us) prev seen swaps =
            if Symtab.defined seen (cname u)
-           then swapsneeded us prev seen
-                   (buildswapstoeq u prev swaps)
-           else swapsneeded us (u::prev)
+           then swaps_needed us prev seen
+                   (build_swaps_to_eq u prev swaps)
+           else swaps_needed us (u::prev)
                    (Symtab.insert (K true) (cname u, ()) seen) swaps;
-  in swapsneeded updfuns [] Symtab.empty SymSymTab.empty end;
+  in swaps_needed upd_funs [] Symtab.empty SymSymTab.empty end;
 
 val named_cterm_instantiate = IsTupleSupport.named_cterm_instantiate;
 
@@ -2222,14 +2363,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     fun split_ex_prf () =
       let
-        val ss   = HOL_basic_ss addsimps [not_ex RS sym, nth simp_thms 1];
-        val [Pv] = OldTerm.term_vars (prop_of split_object);
-        val cPv  = cterm_of defs_thy Pv;
-        val cP   = cterm_of defs_thy (lambda r0 (HOLogic.mk_not (P $ r0)));
-        val so3  = cterm_instantiate ([(cPv, cP)]) split_object;
-        val so4  = simplify ss so3;
+        val ss    = HOL_basic_ss addsimps [not_ex RS sym, Not_eq_iff];
+        val P_nm  = fst (dest_Free P);
+        val not_P = cterm_of defs_thy (lambda r0 (HOLogic.mk_not (P $ r0)));
+        val so'   = named_cterm_instantiate ([(P_nm, not_P)]) split_object;
+        val so''  = simplify ss so';
       in
-        prove_standard [] split_ex_prop (fn prems => resolve_tac [so4] 1)
+        prove_standard [] split_ex_prop (fn prems => resolve_tac [so''] 1)
       end;
     val split_ex = timeit_msg "record split_ex proof:" split_ex_prf;
 
