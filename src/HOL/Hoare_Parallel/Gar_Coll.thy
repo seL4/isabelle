@@ -253,7 +253,7 @@ lemma Propagate_Black:
     \<and> ( \<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)}."
 apply (unfold Propagate_Black_def  PBInv_def Auxk_def collector_defs)
 apply annhoare
-apply(simp_all add:Graph6 Graph7 Graph8 Graph12)
+apply(simp_all add: Graph6 Graph7 Graph8 Graph12)
        apply force
       apply force
      apply force
@@ -297,8 +297,6 @@ apply(rule disjI1)
 apply(erule subset_psubset_trans)
 apply(erule Graph11)
 apply fast
---{* 3 subgoals left *}
-apply force
 --{* 2 subgoals left *}
 apply clarify
 apply(simp add:Proper_Edges_def Graph6 Graph7 Graph8 Graph12)

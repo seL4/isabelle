@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/ProgressSets
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 
@@ -245,7 +244,7 @@ proof -
   then have "cl C (T\<inter>?r) \<subseteq> ?r"
     by (blast intro!: subset_wens) 
   then have cl_subset: "cl C (T\<inter>?r) \<subseteq> T\<inter>?r"
-    by (simp add: Int_subset_iff cl_ident TC
+    by (simp add: cl_ident TC
                   subset_trans [OF cl_mono [OF Int_lower1]]) 
   show ?thesis
     by (rule cl_subset_in_lattice [OF cl_subset latt]) 
@@ -486,7 +485,7 @@ lemma commutativity1_lemma:
   shows "closed F T B L"
 apply (simp add: closed_def, clarify)
 apply (rule ProgressSets.cl_subset_in_lattice [OF _ lattice])  
-apply (simp add: Int_Un_distrib cl_Un [OF lattice] Un_subset_iff 
+apply (simp add: Int_Un_distrib cl_Un [OF lattice] 
                  cl_ident Int_in_lattice [OF TL BL lattice] Un_upper1)
 apply (subgoal_tac "cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T \<inter> M)))") 
  prefer 2 
