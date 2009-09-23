@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4 HOL-MicroJava
+images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -909,7 +909,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Sudoku.thy ex/Tarski.thy \
   ex/Termination.thy ex/Transfer_Ex.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
-  ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy
+  ex/Predicate_Compile.thy Tools/Predicate_Compile/predicate_compile_core.ML ex/Predicate_Compile_ex.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 

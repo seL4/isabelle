@@ -4,7 +4,7 @@
 to equations.
 *)
 
-signature PREDICATE_COMPILE =
+signature PREDICATE_COMPILE_CORE =
 sig
   type smode = (int * int list option) list
   type mode = smode option list * smode
@@ -103,7 +103,7 @@ sig
   val cprods_subset : 'a list list -> 'a list list
 end;
 
-structure Predicate_Compile : PREDICATE_COMPILE =
+structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
 struct
 
 (** auxiliary **)
@@ -479,24 +479,25 @@ fun preprocess_elim thy nparams elimrule =
        val assums_hyp' = assums1 @ (map replace_eqs assums2)
      in
        list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t))
-     end 
+     end
     val cases' = map preprocess_case (tl prems)
     val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
-    (*
     (*val _ =  Output.tracing ("elimrule': "^ (Syntax.string_of_term_global thy elimrule'))*)
-    val bigeq = (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
-         (cterm_of thy elimrule')))
+    val bigeq = (Thm.symmetric (Conv.implies_concl_conv
+      (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
+        (cterm_of thy elimrule')))
+    (*
     val _ = Output.tracing ("bigeq:" ^ (Display.string_of_thm_global thy bigeq))   
     val res = 
-    Thm.equal_elim bigeq
-      
-      elimrule
+    Thm.equal_elim bigeq elimrule
     *)
+    (*
     val t = (fn {...} => mycheat_tac thy 1)
     val eq = Goal.prove (ProofContext.init thy) [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) t
+    *)
     val _ = Output.tracing "Preprocessed elimination rule"
   in
-    Thm.equal_elim eq elimrule
+    Thm.equal_elim bigeq elimrule
   end;
 
 (* special case: predicate with no introduction rule *)
@@ -558,9 +559,9 @@ fun depending_preds_of thy (key, value) =
     fold Term.add_const_names (map Thm.prop_of intros) []
       |> filter (fn c => (not (c = key)) andalso (is_inductive_predicate thy c orelse is_registered thy c))
   end;
-    
-    
-(* code dependency graph *)    
+
+
+(* code dependency graph *)
 (*
 fun dependencies_of thy name =
   let
