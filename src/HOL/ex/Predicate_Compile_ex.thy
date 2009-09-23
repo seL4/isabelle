@@ -252,4 +252,26 @@ code_pred (inductify_all) Domain .
 thm Domain.equation
 
 
+section {* Context Free Grammar *}
+
+datatype alphabet = a | b
+
+inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
+  "[] \<in> S\<^isub>1"
+| "w \<in> A\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
+| "w \<in> B\<^isub>1 \<Longrightarrow> a # w \<in> S\<^isub>1"
+| "w \<in> S\<^isub>1 \<Longrightarrow> a # w \<in> A\<^isub>1"
+| "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
+| "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
+
+code_pred (inductify_all) S\<^isub>1p .
+
+thm S\<^isub>1p.equation
+
+code_pred (inductify_all) (rpred) S\<^isub>1p .
+
+thm S\<^isub>1p.rpred_equation
+
+
+
 end

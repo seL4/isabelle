@@ -108,7 +108,7 @@ fun split_all_pairs thy th =
       in ((Free (x, T), HOLogic.mk_ptuple paths T (map Free xTs)), nctxt') end
     val (rewr, _) = fold_map mk_tuple_rewrites frees nctxt 
     val t' = Pattern.rewrite_term thy rewr [] t
-    val tac = SkipProof.cheat_tac thy
+    val tac = setmp quick_and_dirty true (SkipProof.cheat_tac thy)
     val th'' = Goal.prove ctxt (Term.add_free_names t' []) [] t' (fn {...} => tac)
     val th''' = LocalDefs.unfold ctxt [@{thm split_conv}] th''
   in

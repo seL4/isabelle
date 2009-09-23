@@ -1623,24 +1623,11 @@ fun create_definitions preds (name, modes) thy =
 							 val xout = Free (name_out, HOLogic.mk_tupleT Touts)
 							 val xarg = mk_arg xin xout pis T
 						 in (((if null Tins then [] else [xin], if null Touts then [] else [xout]), xarg), name_in :: name_out :: names) end
-						(* HOLogic.strip_tupleT T of
-						[] => 
-							in (Free (vname, T), vname :: names) end
-					| [_] => let val vname = Name.variant names ("x" ^ string_of_int (length Ts1' + i))
-							in (Free (vname, T), vname :: names) end
-					| Ts =>
-						let
-							val vnames = Name.variant_list names
-								(map (fn j => "x" ^ string_of_int (length Ts1' + i) ^ "p" ^ string_of_int j)
-									(1 upto (length Ts)))
-						 in (HOLogic.mk_tuple (map Free (vnames ~~ Ts)), vnames @ names) end *)
-				end
+						 end
    	  val (xinoutargs, names) = fold_map mk_vars ((1 upto (length Ts2)) ~~ Ts2) param_names
       val (xinout, xargs) = split_list xinoutargs
 			val (xins, xouts) = pairself flat (split_list xinout)
-			(*val (xins, xouts) = split_smode is xargs*)
 			val (xparams', names') = fold_map mk_Eval_of ((xparams ~~ Ts1) ~~ iss) names
-			val _ = Output.tracing ("xargs:" ^ commas (map (Syntax.string_of_term_global thy) xargs))
       fun mk_split_lambda [] t = lambda (Free (Name.variant names' "x", HOLogic.unitT)) t
         | mk_split_lambda [x] t = lambda x t
         | mk_split_lambda xs t =
@@ -2107,7 +2094,7 @@ fun prove thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (SkipProof.make_thm thy t))
+  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (setmp quick_and_dirty true (SkipProof.make_thm thy) t))
     compiled_terms
     
 fun prepare_intrs thy prednames =

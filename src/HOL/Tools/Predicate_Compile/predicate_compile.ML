@@ -36,7 +36,7 @@ fun preprocess_strong_conn_constnames gr constnames thy =
     val _ = tracing ("intross: " ^ commas (map (Display.string_of_thm_global thy'') (flat intross)))
     val _ = priority "Replacing functions in introrules..."
     val intross' = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross
-    val intross'' = burrow (maps remove_pointless_clauses) intross
+    val intross'' = burrow (maps remove_pointless_clauses) intross'
     val thy''' = fold Predicate_Compile_Core.register_intros intross'' thy''
   in
     thy'''
