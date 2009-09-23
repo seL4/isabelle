@@ -3246,12 +3246,13 @@ ML {*
         = map (` (variable_of_bound o prop_of)) prems
 
       fun add_deps (name, bnds)
-        = Graph.add_deps_acyclic
-            (name, remove (op =) name (Term.add_free_names (prop_of bnds) []))
+        = Graph.add_deps_acyclic (name,
+            remove (op =) name (Term.add_free_names (prop_of bnds) []))
+
       val order = Graph.empty
                   |> fold Graph.new_node variable_bounds
                   |> fold add_deps variable_bounds
-                  |> Graph.topological_order |> rev
+                  |> Graph.strong_conn |> map the_single |> rev
                   |> map_filter (AList.lookup (op =) variable_bounds)
 
       fun prepend_prem th tac
@@ -3338,7 +3339,7 @@ method_setup approximation = {*
                       etac @{thm meta_eqE},
                       rtac @{thm impI}] i)
       THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) @{context} i
-      THEN TRY (filter_prems_tac (K false) i)
+      THEN DETERM (TRY (filter_prems_tac (K false) i))
       THEN DETERM (Reflection.genreify_tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
       THEN gen_eval_tac eval_oracle ctxt i))
@@ -3350,7 +3351,7 @@ ML {*
 
   fun mk_approx' prec t = (@{const "approx'"}
                          $ HOLogic.mk_number @{typ nat} prec
-                         $ t $ @{term "[] :: (float * float) list"})
+                         $ t $ @{term "[] :: (float * float) option list"})
 
   fun dest_result (Const (@{const_name "Some"}, _) $
                    ((Const (@{const_name "Pair"}, _)) $

@@ -84,6 +84,8 @@ by (drule_tac k="- a" in LIM_offset, simp)
 lemma LIM_const [simp]: "(%x. k) -- x --> k"
 by (simp add: LIM_def)
 
+lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow> f -- x --> K" by simp
+
 lemma LIM_add:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes f: "f -- a --> L" and g: "g -- a --> M"
