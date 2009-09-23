@@ -1565,7 +1565,7 @@ lemma setsum_mono3: "finite B ==> A <= B ==>
   apply (rule finite_subset)
   prefer 2
   apply assumption
-  apply auto
+  apply (auto simp add: sup_absorb2)
 done
 
 lemma setsum_right_distrib: 
