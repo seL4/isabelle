@@ -760,7 +760,7 @@ fun add_undefined c thy =
 end; (*struct*)
 
 
-(** type-safe interfaces for data depedent on executable code **)
+(** type-safe interfaces for data dependent on executable code **)
 
 functor Code_Data_Fun(Data: CODE_DATA_ARGS): CODE_DATA =
 struct
@@ -780,4 +780,13 @@ fun change_yield thy = Code.change_yield_data data_op thy;
 
 end;
 
+(** datastructure to log definitions for preprocessing of the predicate compiler **)
+(*
+structure Predicate_Compile_Preproc_Const_Defs = Named_Thms
+(
+  val name = "predicate_compile_preproc_const_def"
+  val description =
+    "definitions of constants as needed by the preprocessing for the predicate compiler"
+)
+*)
 structure Code : CODE = struct open Code; end;
