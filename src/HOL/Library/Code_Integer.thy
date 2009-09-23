@@ -100,7 +100,7 @@ code_reserved SML IntInf
 
 text {* Evaluation *}
 
-code_const "Code_Eval.term_of \<Colon> int \<Rightarrow> term"
+code_const "Code_Evaluation.term_of \<Colon> int \<Rightarrow> term"
   (Eval "HOLogic.mk'_number/ HOLogic.intT")
 
 end

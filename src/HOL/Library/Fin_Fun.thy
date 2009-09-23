@@ -311,17 +311,17 @@ notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)
 
 definition (in term_syntax) valtermify_finfun_const ::
-  "'b\<Colon>typerep \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> ('a\<Colon>typerep \<Rightarrow>\<^isub>f 'b) \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  "valtermify_finfun_const y = Code_Eval.valtermify finfun_const {\<cdot>} y"
+  "'b\<Colon>typerep \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> ('a\<Colon>typerep \<Rightarrow>\<^isub>f 'b) \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  "valtermify_finfun_const y = Code_Evaluation.valtermify finfun_const {\<cdot>} y"
 
 definition (in term_syntax) valtermify_finfun_update_code ::
-  "'a\<Colon>typerep \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> 'b\<Colon>typerep \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b) \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b) \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  "valtermify_finfun_update_code x y f = Code_Eval.valtermify finfun_update_code {\<cdot>} f {\<cdot>} x {\<cdot>} y"
+  "'a\<Colon>typerep \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> 'b\<Colon>typerep \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b) \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b) \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  "valtermify_finfun_update_code x y f = Code_Evaluation.valtermify finfun_update_code {\<cdot>} f {\<cdot>} x {\<cdot>} y"
 
 instantiation finfun :: (random, random) random
 begin
 
-primrec random_finfun_aux :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
+primrec random_finfun_aux :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<Rightarrow>\<^isub>f 'b \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed" where
     "random_finfun_aux 0 j = Quickcheck.collapse (Random.select_weight
        [(1, Quickcheck.random j o\<rightarrow> (\<lambda>y. Pair (valtermify_finfun_const y)))])"
   | "random_finfun_aux (Suc_code_numeral i) j = Quickcheck.collapse (Random.select_weight

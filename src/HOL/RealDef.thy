@@ -1128,8 +1128,8 @@ lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
   by (simp add: of_rat_divide)
 
 definition (in term_syntax)
-  valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code_unfold]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
+  valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  [code_unfold]: "valterm_ratreal k = Code_Evaluation.valtermify Ratreal {\<cdot>} k"
 
 notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)

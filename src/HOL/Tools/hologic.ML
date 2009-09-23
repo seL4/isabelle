@@ -613,17 +613,17 @@ fun mk_typerep (Type (tyco, Ts)) = Const ("Typerep.typerep.Typerep",
   | mk_typerep (T as TFree _) = Const ("Typerep.typerep_class.typerep",
       Term.itselfT T --> typerepT) $ Logic.mk_type T;
 
-val termT = Type ("Code_Eval.term", []);
+val termT = Type ("Code_Evaluation.term", []);
 
-fun term_of_const T = Const ("Code_Eval.term_of_class.term_of", T --> termT);
+fun term_of_const T = Const ("Code_Evaluation.term_of_class.term_of", T --> termT);
 
 fun mk_term_of T t = term_of_const T $ t;
 
 fun reflect_term (Const (c, T)) =
-      Const ("Code_Eval.Const", literalT --> typerepT --> termT)
+      Const ("Code_Evaluation.Const", literalT --> typerepT --> termT)
         $ mk_literal c $ mk_typerep T
   | reflect_term (t1 $ t2) =
-      Const ("Code_Eval.App", termT --> termT --> termT)
+      Const ("Code_Evaluation.App", termT --> termT --> termT)
         $ reflect_term t1 $ reflect_term t2
   | reflect_term (Abs (v, _, t)) = Abs (v, termT, reflect_term t)
   | reflect_term t = t;
@@ -631,7 +631,7 @@ fun reflect_term (Const (c, T)) =
 fun mk_valtermify_app c vs T =
   let
     fun termifyT T = mk_prodT (T, unitT --> termT);
-    fun valapp T T' = Const ("Code_Eval.valapp",
+    fun valapp T T' = Const ("Code_Evaluation.valapp",
       termifyT (T --> T') --> termifyT T --> termifyT T');
     fun mk_fTs [] _ = []
       | mk_fTs (_ :: Ts) T = (Ts ---> T) :: mk_fTs Ts T;

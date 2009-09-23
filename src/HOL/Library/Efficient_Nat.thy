@@ -415,9 +415,9 @@ consts_code
 text {* Evaluation *}
 
 lemma [code, code del]:
-  "(Code_Eval.term_of \<Colon> nat \<Rightarrow> term) = Code_Eval.term_of" ..
+  "(Code_Evaluation.term_of \<Colon> nat \<Rightarrow> term) = Code_Evaluation.term_of" ..
 
-code_const "Code_Eval.term_of \<Colon> nat \<Rightarrow> term"
+code_const "Code_Evaluation.term_of \<Colon> nat \<Rightarrow> term"
   (SML "HOLogic.mk'_number/ HOLogic.natT")
 
 
