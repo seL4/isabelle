@@ -2119,7 +2119,7 @@ fun prepare_intrs thy prednames =
             case HOLogic.strip_tupleT U of
               [] => [(i + 1, NONE)]
             | [U] => [(i + 1, NONE)]
-            | Us =>  map (pair (i + 1) o SOME) (subsets 1 (length Us)))
+	    | Us =>  map (pair (i + 1) o SOME) ((subsets 1 (length Us)) \\ [[], 1 upto (length Us)]))
           Ts)
       in
         cprod (cprods (map (fn T => case strip_type T of
