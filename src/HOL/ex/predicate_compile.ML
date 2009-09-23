@@ -169,7 +169,7 @@ fun mk_fun_comp (t, u) =
   end;
 
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
-  Type ("*", [Type ("*", [T, @{typ "unit => Code_Eval.term"}]) ,@{typ Random.seed}])])) = T
+  Type ("*", [Type ("*", [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])
 
 (* destruction of intro rules *)
@@ -707,7 +707,7 @@ val compfuns = CompilationFuns {mk_predT = mk_predT, dest_predT = dest_predT, mk
 end;
 
 (* termify_code:
-val termT = Type ("Code_Eval.term", []);
+val termT = Type ("Code_Evaluation.term", []);
 fun termifyT T = HOLogic.mk_prodT (T, HOLogic.unitT --> termT)
 *)
 (*
@@ -1198,7 +1198,7 @@ fun mk_valtermify_term (t as Const (c, T)) = HOLogic.mk_prod (t, Abs ("u", HOLog
       val t1' = mk_valtermify_term t1
       val t2' = mk_valtermify_term t2
     in
-      Const ("Code_Eval.valapp", termifyT T --> termifyT T1 --> termifyT T2) $ t1' $ t2'
+      Const ("Code_Evaluation.valapp", termifyT T --> termifyT T1 --> termifyT T2) $ t1' $ t2'
     end
   | mk_valtermify_term _ = error "Not a valid term for mk_valtermify_term"
 *)
