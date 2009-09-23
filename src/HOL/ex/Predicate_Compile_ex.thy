@@ -44,7 +44,7 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
     "partition f [] [] []"
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
-
+ML {* set Toplevel.debug *} 
 code_pred partition .
 
 thm partition.equation
