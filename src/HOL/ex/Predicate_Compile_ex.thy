@@ -181,17 +181,22 @@ code_pred divmod_rel ..
 
 value [code] "Predicate.singleton (divmod_rel_1_2 1705 42)"
 
-subsection {* Executing definitions *}
+section {* Executing definitions *}
 
 definition Min
 where "Min s r x \<equiv> s x \<and> (\<forall>y. r x y \<longrightarrow> x = y)"
 
 code_pred (inductify_all) Min .
 
+subsection {* Examples with lists *}
+
 code_pred (inductify_all) lexord .
 
 thm lexord.equation
-
+(*
+lemma "(u, v) : lexord r ==> (x @ u, x @ v) : lexord r"
+quickcheck
+*)
 
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 
@@ -204,6 +209,10 @@ thm lenlex.equation
 code_pred (inductify_all) (rpred) lenlex .
 thm lenlex.rpred_equation
 *)
+thm lists.intros
+code_pred (inductify_all) lists .
+
+thm lists.equation
 
 datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
 fun height :: "'a tree => nat" where
