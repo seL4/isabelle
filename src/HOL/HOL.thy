@@ -2021,6 +2021,15 @@ setup {*
 
 quickcheck_params [size = 5, iterations = 50]
 
+subsection {* Preprocessing for the predicate compiler *}
+
+ML {*
+structure Predicate_Compile_Preproc_Const_Defs = Named_Thms
+(
+  val name = "predicate_compile_preproc_const_def"
+  val description = "definitions of constants as needed by the preprocessing for the predicate compiler "
+)
+*}
 
 subsection {* Nitpick setup *}
 
