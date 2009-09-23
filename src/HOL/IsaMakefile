@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
+images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4 HOL-MicroJava
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \

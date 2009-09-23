@@ -209,7 +209,7 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
         (var, ((Binding.suffix_name "_raw" name, []), rhs));
     val ((def_name, [th']), lthy3) = lthy2
       |> LocalTheory.note Thm.definitionK
-        ((name, Predicate_Compile_Preproc_Const_Defs.add :: Code.add_default_eqn_attrib :: atts),
+        ((name, Predicate_Compile_Preproc_Const_Defs.add_attrib :: Code.add_default_eqn_attrib :: atts),
           [prove lthy2 th]);
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
