@@ -267,8 +267,8 @@ done
 
 lemma wfP_SUP:
   "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (DomainP (r i)) (RangeP (r j)) = bot \<Longrightarrow> wfP (SUPR UNIV r)"
-  by (rule wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}", to_pred SUP_UN_eq2 pred_equals_eq])
-    (simp_all add: bot_fun_eq bot_bool_eq)
+  by (rule wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}", to_pred SUP_UN_eq2])
+    (simp_all add: Collect_def)
 
 lemma wf_Union: 
  "[| ALL r:R. wf r;  
