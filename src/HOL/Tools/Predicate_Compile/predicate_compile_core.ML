@@ -1179,7 +1179,7 @@ fun compile_match thy compfuns eqs eqs' out_ts success_t =
     val v' = Free (name', T);
   in
     lambda v (fst (Datatype.make_case
-      (ProofContext.init thy) false [] v
+      (ProofContext.init thy) DatatypeCase.Quiet [] v
       [(mk_tuple out_ts,
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $

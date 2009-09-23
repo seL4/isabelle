@@ -26,7 +26,7 @@ sig
   val info_of_case : theory -> string -> info option
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
   val distinct_simproc : simproc
-  val make_case :  Proof.context -> bool -> string list -> term ->
+  val make_case :  Proof.context -> DatatypeCase.config -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
   val read_typ: theory ->
