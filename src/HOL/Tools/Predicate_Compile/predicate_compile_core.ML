@@ -6,11 +6,15 @@ to equations.
 
 signature PREDICATE_COMPILE_CORE =
 sig
+  val setup: theory -> theory
+  val code_pred: bool -> string -> Proof.context -> Proof.state
+  val code_pred_cmd: bool -> string -> Proof.context -> Proof.state
   type smode = (int * int list option) list
   type mode = smode option list * smode
   datatype tmode = Mode of mode * smode * tmode option list;
   (*val add_equations_of: bool -> string list -> theory -> theory *)
   val register_predicate : (thm list * thm * int) -> theory -> theory
+  val register_intros : thm list -> theory -> theory
   val is_registered : theory -> string -> bool
  (* val fetch_pred_data : theory -> string -> (thm list * thm * int)  *)
   val predfun_intro_of: theory -> string -> mode -> thm
@@ -24,9 +28,7 @@ sig
   val nparams_of: theory -> string -> int
   val add_intro: thm -> theory -> theory
   val set_elim: thm -> theory -> theory
-  val setup: theory -> theory
-  val code_pred: string -> Proof.context -> Proof.state
-  val code_pred_cmd: string -> Proof.context -> Proof.state
+  val set_nparams : string -> int -> theory -> theory
   val print_stored_rules: theory -> unit
   val print_all_modes: theory -> unit
   val do_proofs: bool ref
@@ -106,6 +108,7 @@ end;
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
 struct
 
+open Predicate_Compile_Aux;
 (** auxiliary **)
 
 (* debug stuff *)
@@ -187,7 +190,7 @@ in (pred, (params, args)) end
 
 (** data structures **)
 
-type smode = (int * int list option) list;
+type smode = (int * int list option) list
 type mode = smode option list * smode;
 datatype tmode = Mode of mode * smode * tmode option list;
 
@@ -238,7 +241,33 @@ fun string_of_tmode (Mode (predmode, termmode, param_modes)) =
   "predmode: " ^ (string_of_mode predmode) ^ 
   (if null param_modes then "" else
     "; " ^ "params: " ^ commas (map (the_default "NONE" o Option.map string_of_tmode) param_modes))
+
+(* generation of case rules from user-given introduction rules *)
+
+fun mk_casesrule ctxt nparams introrules =
+  let
+    val intros = map (Logic.unvarify o prop_of) introrules
+    val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
+    val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
+    val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
+    val (argnames, ctxt2) = Variable.variant_fixes
+      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt1
+    val argvs = map2 (curry Free) argnames (map fastype_of args)
+    fun mk_case intro =
+      let
+        val (_, (_, args)) = strip_intro_concl nparams intro
+        val prems = Logic.strip_imp_prems intro
+        val eqprems = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (argvs ~~ args)
+        val frees = (fold o fold_aterms)
+          (fn t as Free _ =>
+              if member (op aconv) params t then I else insert (op aconv) t
+           | _ => I) (args @ prems) []
+      in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
+    val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
+    val cases = map mk_case intros
+  in Logic.list_implies (assm :: cases, prop) end;
     
+
 datatype indprem = Prem of term list * term | Negprem of term list * term | Sidecond of term |
   GeneratorPrem of term list * term | Generator of (string * typ);
 
@@ -579,9 +608,6 @@ fun find_indexes pred xs =
       | find is n (x :: xs) = find (if pred x then (n :: is) else is) (n + 1) xs;
   in rev (find [] 0 xs) end;
 
-fun is_predT (T as Type("fun", [_, _])) = (snd (strip_type T) = HOLogic.boolT)
-  | is_predT _ = false
-  
 fun guess_nparams T =
   let
     val argTs = binder_types T
@@ -611,15 +637,27 @@ fun set_nparams name nparams = let
     fun set (intros, elim, _ ) = (intros, elim, nparams) 
   in PredData.map (Graph.map_node name (map_pred_data (apfst set))) end
     
-fun register_predicate (pre_intros, pre_elim, nparams) thy = let
+fun register_predicate (pre_intros, pre_elim, nparams) thy =
+  let
     val (name, _) = dest_Const (fst (strip_intro_concl nparams (prop_of (hd pre_intros))))
     (* preprocessing *)
     val intros = ind_set_codegen_preproc thy (map (preprocess_intro thy) pre_intros)
     val elim = singleton (ind_set_codegen_preproc thy) (preprocess_elim thy nparams pre_elim)
   in
-    PredData.map
+    if not (member (op =) (Graph.keys (PredData.get thy)) name) then
+      PredData.map
       (Graph.new_node (name, mk_pred_data ((intros, SOME elim, nparams), ([], [], [])))) thy
+    else thy
   end
+
+fun register_intros pre_intros thy =
+  let
+  val (_, T) = dest_Const (fst (strip_intro_concl 0 (prop_of (hd pre_intros))))
+  val nparams = guess_nparams T
+  val pre_elim = 
+    (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+    (mk_casesrule (ProofContext.init thy) nparams pre_intros)
+  in register_predicate (pre_intros, pre_elim, nparams) thy end
 
 fun set_generator_name pred mode name = 
   let
@@ -864,7 +902,7 @@ fun subsets i j = if i <= j then
        in merge (map (fn ks => i::ks) is) is end
      else [[]];
      
-(* FIXME: should be in library - map_prod *)
+(* FIXME: should be in library - cprod = map_prod I *)
 fun cprod ([], ys) = []
   | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
@@ -986,7 +1024,9 @@ fun generator vTs v =
     (Generator (v, T), Mode (([], []), [], []))
   end;
 
-fun gen_prem (Prem (us, t)) = GeneratorPrem (us, t) 
+fun gen_prem (Prem (us, t)) = GeneratorPrem (us, t)
+  | gen_prem (Negprem (us, t)) = error "it is a negated prem"
+  | gen_prem (Sidecond t) = error "it is a sidecond"
   | gen_prem _ = error "gen_prem : invalid input for gen_prem"
 
 fun param_gen_prem param_vs (p as Prem (us, t as Free (v, _))) =
@@ -997,6 +1037,11 @@ fun param_gen_prem param_vs (p as Prem (us, t as Free (v, _))) =
   
 fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts, ps) =
   let
+    (*
+  val _ = Output.tracing ("param_vs:" ^ commas param_vs)
+  val _ = Output.tracing ("iss:" ^
+    commas (map (fn is => case is of SOME is => string_of_smode is | NONE => "NONE") iss))
+    *)
     val modes' = modes @ List.mapPartial
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (param_vs ~~ iss);
@@ -1010,7 +1055,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
           NONE =>
             (if with_generator then
               (case select_mode_prem thy gen_modes' vs ps of
-                  SOME (p, SOME mode) => check_mode_prems ((gen_prem p, mode) :: acc_ps) 
+                SOME (p as Prem _, SOME mode) => check_mode_prems ((gen_prem p, mode) :: acc_ps) 
                   (case p of Prem (us, _) => vs union terms_vs us | _ => vs)
                   (filter_out (equal p) ps)
                 | NONE =>
@@ -1021,7 +1066,10 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                       (select_mode_prem thy modes' (vs union generator_vs) ps)) all_generator_vs) of
                       SOME generator_vs => check_mode_prems ((map (generator vTs) generator_vs) @ acc_ps)
                         (vs union generator_vs) ps
-                    | NONE => NONE
+                    | NONE => let
+                    val _ = Output.tracing ("ps:" ^ (commas
+                    (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
+                      in error "mode analysis failed" end
                   end)
             else
               NONE)
@@ -1493,9 +1541,6 @@ let
   val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT));
   val elimtrm = Logic.list_implies ([funpropE, Logic.mk_implies (predpropE, P)], P)
   val elimthm = Goal.prove (ProofContext.init thy) (argnames @ param_names @ param_names' @ ["y", "P"]) [] elimtrm (fn {...} => unfolddef_tac)
-	val _ = Output.tracing (Display.string_of_thm_global thy elimthm)
-	val _ = Output.tracing (Display.string_of_thm_global thy introthm)
-
 in
   (introthm, elimthm)
 end;
@@ -1609,13 +1654,11 @@ fun create_definitions preds (name, modes) thy =
         (list_comb (Const (name, T), xparams' @ xargs)))
       val lhs = list_comb (Const (mode_cname, funT), xparams @ xins)
       val def = Logic.mk_equals (lhs, predterm)
-			val _ = Output.tracing ("def:" ^ (Syntax.string_of_term_global thy def))
       val ([definition], thy') = thy |>
         Sign.add_consts_i [(Binding.name mode_cbasename, funT, NoSyn)] |>
         PureThy.add_defs false [((Binding.name (mode_cbasename ^ "_def"), def), [])]
       val (intro, elim) =
         create_intro_elim_rule mode definition mode_cname funT (Const (name, T)) thy'
-			val _ = Output.tracing (Display.string_of_thm_global thy' definition)
       in thy'
 			  |> add_predfun name mode (mode_cname, definition, intro, elim)
         |> PureThy.store_thm (Binding.name (mode_cbasename ^ "I"), intro) |> snd
@@ -2120,7 +2163,8 @@ fun prepare_intrs thy prednames =
             case HOLogic.strip_tupleT U of
               [] => [(i + 1, NONE)]
             | [U] => [(i + 1, NONE)]
-	    | Us =>  map (pair (i + 1) o SOME) ((subsets 1 (length Us)) \\ [[], 1 upto (length Us)]))
+            | Us =>  (i + 1, NONE) ::
+              (map (pair (i + 1) o SOME) ((subsets 1 (length Us)) \\ [[], 1 upto (length Us)])))
           Ts)
       in
         cprod (cprods (map (fn T => case strip_type T of
@@ -2220,41 +2264,30 @@ val add_quickcheck_equations = gen_add_equations
 
 (** user interface **)
 
-(* generation of case rules from user-given introduction rules *)
-
-fun mk_casesrule ctxt nparams introrules =
-  let
-    val intros = map (Logic.unvarify o prop_of) introrules
-    val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
-    val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
-    val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
-    val (argnames, ctxt2) = Variable.variant_fixes
-      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt1
-    val argvs = map2 (curry Free) argnames (map fastype_of args)
-    fun mk_case intro =
-      let
-        val (_, (_, args)) = strip_intro_concl nparams intro
-        val prems = Logic.strip_imp_prems intro
-        val eqprems = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (argvs ~~ args)
-        val frees = (fold o fold_aterms)
-          (fn t as Free _ =>
-              if member (op aconv) params t then I else insert (op aconv) t
-           | _ => I) (args @ prems) []
-      in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
-    val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
-    val cases = map mk_case intros
-  in Logic.list_implies (assm :: cases, prop) end;
-
 (* code_pred_intro attribute *)
 
 fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
 
 val code_pred_intros_attrib = attrib add_intro;
 
-local
+
+(*FIXME
+- Naming of auxiliary rules necessary?
+- add default code equations P x y z = P_i_i_i x y z
+*)
+
+val setup = PredData.put (Graph.empty) #>
+  Attrib.setup @{binding code_pred_intros} (Scan.succeed (attrib add_intro))
+    "adding alternative introduction rules for code generation of inductive predicates"
+(*  Attrib.setup @{binding code_ind_cases} (Scan.succeed add_elim_attrib)
+    "adding alternative elimination rules for code generation of inductive predicates";
+    *)
+  (*FIXME name discrepancy in attribs and ML code*)
+  (*FIXME intros should be better named intro*)
+  (*FIXME why distinguished attribute for cases?*)
 
 (* TODO: make TheoryDataFun to GenericDataFun & remove duplication of local theory and theory *)
-fun generic_code_pred prep_const raw_const lthy =
+fun generic_code_pred prep_const rpred raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
@@ -2282,39 +2315,17 @@ fun generic_code_pred prep_const raw_const lthy =
         val global_thms = ProofContext.export goal_ctxt
           (ProofContext.init (ProofContext.theory_of goal_ctxt)) (map the_single thms)
       in
-        goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #> add_equations [const])
+        goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
+          (if rpred then
+          (add_sizelim_equations [const] #> add_quickcheck_equations [const])
+        else add_equations [const]))
       end  
   in
     Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy''
   end;
 
-structure P = OuterParse
-
-in
-
 val code_pred = generic_code_pred (K I);
 val code_pred_cmd = generic_code_pred Code.read_const
-
-val setup = PredData.put (Graph.empty) #>
-  Attrib.setup @{binding code_pred_intros} (Scan.succeed (attrib add_intro))
-    "adding alternative introduction rules for code generation of inductive predicates"
-(*  Attrib.setup @{binding code_ind_cases} (Scan.succeed add_elim_attrib)
-    "adding alternative elimination rules for code generation of inductive predicates";
-    *)
-  (*FIXME name discrepancy in attribs and ML code*)
-  (*FIXME intros should be better named intro*)
-  (*FIXME why distinguished attribute for cases?*)
-
-val _ = OuterSyntax.local_theory_to_proof "code_pred"
-  "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal (P.term_group >> code_pred_cmd)
-
-end
-
-(*FIXME
-- Naming of auxiliary rules necessary?
-- add default code equations P x y z = P_i_i_i x y z
-*)
 
 (* transformation for code generation *)
 
@@ -2342,7 +2353,8 @@ fun analyze_compr thy t_compr =
                 ^ Syntax.string_of_term_global thy t_compr); m);
     val (inargs, outargs) = split_smode user_mode' args;
     val t_pred = list_comb (compile_expr NONE thy (m, list_comb (pred, params)), inargs);
-    val t_eval = if null outargs then t_pred else let
+    val t_eval = if null outargs then t_pred else
+      let
         val outargs_bounds = map (fn Bound i => i) outargs;
         val outargsTs = map (nth Ts) outargs_bounds;
         val T_pred = HOLogic.mk_tupleT outargsTs;
@@ -2361,7 +2373,7 @@ fun eval thy t_compr =
     val t = analyze_compr thy t_compr;
     val T = dest_predT PredicateCompFuns.compfuns (fastype_of t);
     val t' = mk_map PredicateCompFuns.compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
-  in (T, Code_ML.eval NONE ("Predicate_Compile.eval_ref", eval_ref) Predicate.map thy t' []) end;
+  in (T, Code_ML.eval NONE ("Predicate_Compile_Core.eval_ref", eval_ref) Predicate.map thy t' []) end;
 
 fun values ctxt k t_compr =
   let

@@ -797,6 +797,10 @@ lemma singleton_code [code]:
    (auto simp add: Seq_def the_only_singleton is_empty_def
       null_is_empty singleton_bot singleton_single singleton_sup Let_def)
 
+lemma meta_fun_cong:
+"f == g ==> f x == g x"
+by simp
+
 ML {*
 signature PREDICATE =
 sig

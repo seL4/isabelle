@@ -22,8 +22,10 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
 code_pred append .
+code_pred (inductify_all) (rpred) append .
 
 thm append.equation
+thm append.rpred_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
@@ -44,11 +46,27 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
     "partition f [] [] []"
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
-ML {* set Toplevel.debug *} 
+
 code_pred partition .
 
 thm partition.equation
 
+
+inductive member
+for xs
+where "x \<in> set xs ==> member xs x"
+
+lemma [code_pred_intros]:
+  "member (x#xs') x"
+by (auto intro: member.intros)
+
+lemma [code_pred_intros]:
+"member xs x ==> member (x'#xs) x"
+by (auto intro: member.intros elim!: member.cases)
+(* strange bug must be repaired! *)
+(*
+code_pred member sorry
+*)
 inductive is_even :: "nat \<Rightarrow> bool"
 where
   "n mod 2 = 0 \<Longrightarrow> is_even n"
@@ -71,13 +89,9 @@ proof -
   from this converse_tranclpE[OF this(1)] show thesis by metis
 qed
 
+code_pred (inductify_all) (rpred) tranclp .
 thm tranclp.equation
-(*
-setup {* Predicate_Compile.add_sizelim_equations [@{const_name tranclp}] *}
-setup {* fn thy => exception_trace (fn () => Predicate_Compile.add_quickcheck_equations [@{const_name tranclp}] thy)  *}
-
 thm tranclp.rpred_equation
-*)
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
@@ -157,6 +171,7 @@ values 5
 values 3 "{(a,q). step (par nil nil) a q}"
 *)
 
+subsection {* divmod *}
 
 inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
     "k < l \<Longrightarrow> divmod_rel k l 0 k"
@@ -165,5 +180,76 @@ inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
 code_pred divmod_rel ..
 
 value [code] "Predicate.singleton (divmod_rel_1_2 1705 42)"
+
+subsection {* Executing definitions *}
+
+definition Min
+where "Min s r x \<equiv> s x \<and> (\<forall>y. r x y \<longrightarrow> x = y)"
+
+code_pred (inductify_all) Min .
+
+code_pred (inductify_all) lexord .
+
+thm lexord.equation
+
+
+lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
+
+code_pred (inductify_all) lexn .
+thm lexn.equation
+
+code_pred (inductify_all) lenlex .
+thm lenlex.equation
+(*
+code_pred (inductify_all) (rpred) lenlex .
+thm lenlex.rpred_equation
+*)
+
+datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
+fun height :: "'a tree => nat" where
+"height ET = 0"
+| "height (MKT x l r h) = max (height l) (height r) + 1"
+
+consts avl :: "'a tree => bool"
+primrec
+  "avl ET = True"
+  "avl (MKT x l r h) = ((height l = height r \<or> height l = 1 + height r \<or> height r = 1+height l) \<and> 
+  h = max (height l) (height r) + 1 \<and> avl l \<and> avl r)"
+
+code_pred (inductify_all) avl .
+thm avl.equation
+
+fun set_of
+where
+"set_of ET = {}"
+| "set_of (MKT n l r h) = insert n (set_of l \<union> set_of r)"
+
+fun is_ord
+where
+"is_ord ET = True"
+| "is_ord (MKT n l r h) =
+ ((\<forall>n' \<in> set_of l. n' < n) \<and> (\<forall>n' \<in> set_of r. n < n') \<and> is_ord l \<and> is_ord r)"
+
+declare Un_def[code_pred_def]
+
+lemma [code_pred_inline]: "bot_fun_inst.bot_fun == (\<lambda>(y::'a::type). False)"
+unfolding bot_fun_inst.bot_fun[symmetric]
+unfolding bot_bool_eq[symmetric]
+unfolding bot_fun_eq by simp
+
+code_pred (inductify_all) set_of .
+thm set_of.equation
+
+code_pred (inductify_all) is_ord .
+thm is_ord.equation
+
+section {* Definitions about Relations *}
+
+code_pred (inductify_all) converse .
+thm converse.equation
+
+code_pred (inductify_all) Domain .
+thm Domain.equation
+
 
 end
