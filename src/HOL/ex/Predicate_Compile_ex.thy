@@ -317,7 +317,6 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 | "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
 | "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
 
-ML {* reset Predicate_Compile_Core.do_proofs *}
 (*
 code_pred (inductify_all) S\<^isub>3 .
 *)
@@ -348,19 +347,19 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[generator = pred_compile, size=2, iterations=1]
-sorry
+oops
 
 theorem S\<^isub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
 quickcheck[generator = pred_compile, size=5, iterations=1]
-sorry
+oops
 
 theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
 "w \<in> S\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 "w \<in> A\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
 "w \<in> B\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
 (*quickcheck[generator = pred_compile, size=5, iterations=1]*)
-sorry
+oops
 
 
 section {* Lambda *}
@@ -431,8 +430,6 @@ code_pred (inductify_all) (rpred) test .
 
 thm test.equation
 *)
-
-ML {*set  Toplevel.debug *}
 
 lemma filter_eq_ConsD:
  "filter P ys = x#xs \<Longrightarrow>

@@ -125,12 +125,6 @@ fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)
 
 val do_proofs = ref true;
 
-fun mycheat_tac thy i st =
-  (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) i) st
-
-fun remove_last_goal thy st =
-  (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) (nprems_of st)) st
-
 (* reference to preprocessing of InductiveSet package *)
 
 val ind_set_codegen_preproc = (fn thy => I) (*Inductive_Set.codegen_preproc;*)
@@ -2119,7 +2113,7 @@ fun prove_pred thy clauses preds modes pred mode (moded_clauses, compiled_term) 
         THEN print_tac "proved one direction"
         THEN prove_other_direction thy modes pred mode moded_clauses
         THEN print_tac "proved other direction")
-       else (fn _ => mycheat_tac thy 1))
+      else (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy))
   end;
 
 (* composition of mode inference, definition, compilation and proof *)
