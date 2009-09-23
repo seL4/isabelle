@@ -282,12 +282,9 @@ fun fastype (Envir {tyenv, ...}) =
   let
     val funerr = "fastype: expected function type";
     fun fast Ts (f $ u) =
-          (case fast Ts f of
+          (case Type.devar tyenv (fast Ts f) of
             Type ("fun", [_, T]) => T
-          | TVar v =>
-              (case Type.lookup tyenv v of
-                SOME (Type ("fun", [_, T])) => T
-              | _ => raise TERM (funerr, [f $ u]))
+          | TVar v => raise TERM (funerr, [f $ u])
           | _ => raise TERM (funerr, [f $ u]))
       | fast Ts (Const (_, T)) = T
       | fast Ts (Free (_, T)) = T
