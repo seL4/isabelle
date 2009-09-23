@@ -68,57 +68,64 @@ fun select_disj 1 1 = []
   | select_disj _ 1 = [rtac @{thm disjI1}]
   | select_disj n i = (rtac @{thm disjI2})::(select_disj (n - 1) (i - 1));
 
-fun introrulify thy th = 
+fun introrulify thy ths = 
   let
-    val ctxt = (ProofContext.init thy)
-    val ((_, [th']), ctxt') = Variable.import true [th] ctxt
-    val (lhs, rhs) = Logic.dest_equals (prop_of th')
-    val frees = Term.add_free_names rhs []
-    val disjuncts = HOLogic.dest_disj rhs
-    val nctxt = Name.make_context frees
-    fun mk_introrule t =
+    val ctxt = ProofContext.init thy
+    val ((_, ths'), ctxt') = Variable.import true ths ctxt
+    fun introrulify' th =
       let
-        val ((ps, t'), nctxt') = focus_ex t nctxt
-        val prems = map HOLogic.mk_Trueprop (HOLogic.dest_conj t')
+        val (lhs, rhs) = Logic.dest_equals (prop_of th)
+        val frees = Term.add_free_names rhs []
+        val disjuncts = HOLogic.dest_disj rhs
+        val nctxt = Name.make_context frees
+        fun mk_introrule t =
+          let
+            val ((ps, t'), nctxt') = focus_ex t nctxt
+            val prems = map HOLogic.mk_Trueprop (HOLogic.dest_conj t')
+          in
+            (ps, Logic.list_implies (prems, HOLogic.mk_Trueprop lhs))
+          end
+        val x = ((cterm_of thy) o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
+          Logic.dest_implies o prop_of) @{thm exI}
+        fun prove_introrule (index, (ps, introrule)) =
+          let
+            val tac = Simplifier.simp_tac (HOL_basic_ss addsimps [th]) 1
+              THEN EVERY1 (select_disj (length disjuncts) (index + 1)) 
+              THEN (EVERY (map (fn y =>
+                rtac (Drule.cterm_instantiate [(x, cterm_of thy (Free y))] @{thm exI}) 1) ps))
+              THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN atac 1)
+              THEN TRY (atac 1)
+          in
+            Goal.prove ctxt' (map fst ps) [] introrule (fn {...} => tac)
+          end
       in
-        (ps, Logic.list_implies (prems, HOLogic.mk_Trueprop lhs))
+        map_index prove_introrule (map mk_introrule disjuncts)
       end
-    val x = ((cterm_of thy) o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
-      Logic.dest_implies o prop_of) @{thm exI}
-    fun prove_introrule (index, (ps, introrule)) =
-      let
-        val tac = Simplifier.simp_tac (HOL_basic_ss addsimps [th]) 1
-          THEN EVERY1 (select_disj (length disjuncts) (index + 1)) 
-          THEN (EVERY (map (fn y =>
-            rtac (Drule.cterm_instantiate [(x, cterm_of thy (Free y))] @{thm exI}) 1) ps))
-          THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN atac 1)
-          THEN TRY (atac 1)
-      in
-        Goal.prove ctxt' (map fst ps) [] introrule (fn {...} => tac)
-        |> singleton (Variable.export ctxt' ctxt)
-      end
-  in
-    map_index prove_introrule (map mk_introrule disjuncts) 
-  end;
+  in maps introrulify' ths' |> Variable.export ctxt' ctxt end
 
 val rewrite =
   Simplifier.simplify (HOL_basic_ss addsimps [@{thm Ball_def}, @{thm Bex_def}])
   #> Simplifier.simplify (HOL_basic_ss addsimps [@{thm all_not_ex}]) 
   #> Conv.fconv_rule nnf_conv 
   #> Simplifier.simplify (HOL_basic_ss addsimps [@{thm ex_disj_distrib}])
-  
+
+val rewrite_intros =
+  Simplifier.simplify (HOL_basic_ss addsimps @{thms HOL.simp_thms(9)})
+
 fun preprocess (constname, specs) thy =
   let
     val ctxt = ProofContext.init thy
       val intros =
       if forall is_pred_equation specs then 
-        maps (introrulify thy o rewrite) specs
+        introrulify thy (map rewrite specs)
       else if forall (is_intro constname) specs then
-        specs
+        map rewrite_intros specs
       else
         error ("unexpected specification for constant " ^ quote constname ^ ":\n"
           ^ commas (map (quote o Display.string_of_thm_global thy) specs))
-    val _ = priority "Defining local predicates and their intro rules..."
+    val _ = tracing ("Introduction rules of definitions before flattening: "
+      ^ commas (map (Display.string_of_thm ctxt) intros))
+    val _ = tracing "Defining local predicates and their intro rules..."
     val (intros', (local_defs, thy')) = flatten_intros constname intros thy
     val (intross, thy'') = fold_map preprocess local_defs thy'
   in

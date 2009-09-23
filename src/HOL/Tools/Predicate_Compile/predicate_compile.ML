@@ -4,6 +4,7 @@
 signature PREDICATE_COMPILE =
 sig
   val setup : theory -> theory
+  val preprocess : string -> theory -> theory
 end;
 
 structure Predicate_Compile : PREDICATE_COMPILE =
@@ -33,28 +34,43 @@ fun preprocess_strong_conn_constnames gr constnames thy =
     val _ = priority "Compiling predicates to flat introrules..."
     val (intross, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess
       (get_specs prednames) thy')
-    val _ = tracing ("intross: " ^ commas (map (Display.string_of_thm_global thy'') (flat intross)))
+    val _ = tracing ("Flattened introduction rules: " ^
+      commas (map (Display.string_of_thm_global thy'') (flat intross)))
     val _ = priority "Replacing functions in introrules..."
-    val intross' = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross
+      (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
+    val intross' =
+      case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross of
+        SOME intross' => intross'
+      | NONE => let val _ = warning "Function replacement failed!" in intross end
+    val _ = tracing ("Introduction rules with replaced functions: " ^
+      commas (map (Display.string_of_thm_global thy'') (flat intross')))
     val intross'' = burrow (maps remove_pointless_clauses) intross'
+    val intross'' = burrow (map (AxClass.overload thy'')) intross''
+    val _ = priority "Registering intro rules..."
     val thy''' = fold Predicate_Compile_Core.register_intros intross'' thy''
   in
     thy'''
   end;
+
+fun preprocess const thy =
+  let
+    val _ = Output.tracing ("Fetching definitions from theory...")
+    val table = Pred_Compile_Data.make_const_spec_table thy
+    val gr = Pred_Compile_Data.obtain_specification_graph table const
+    val _ = Output.tracing (commas (Graph.all_succs gr [const]))
+    val gr = Graph.subgraph (member (op =) (Graph.all_succs gr [const])) gr
+  in fold_rev (preprocess_strong_conn_constnames gr)
+    (Graph.strong_conn gr) thy
+  end
 
 fun code_pred_cmd ((inductify_all, rpred), raw_const) lthy =
   if inductify_all then
     let
       val thy = ProofContext.theory_of lthy
       val const = Code.read_const thy raw_const
-      val _ = Output.tracing ("fetching definition from theory")
-      val table = Pred_Compile_Data.make_const_spec_table thy
-      val gr = Pred_Compile_Data.obtain_specification_graph table const
-      val _ = Output.tracing (commas (Graph.all_succs gr [const]))
-      val gr = Graph.subgraph (member (op =) (Graph.all_succs gr [const])) gr
-	    val lthy' = LocalTheory.theory (fold_rev (preprocess_strong_conn_constnames gr)
-      (Graph.strong_conn gr)) lthy
+      val lthy' = LocalTheory.theory (preprocess const) lthy
         |> LocalTheory.checkpoint
+      val _ = tracing "Starting Predicate Compile Core..."
     in Predicate_Compile_Core.code_pred_cmd rpred raw_const lthy' end
   else
     Predicate_Compile_Core.code_pred_cmd rpred raw_const lthy

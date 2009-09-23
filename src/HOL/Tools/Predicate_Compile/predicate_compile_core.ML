@@ -23,6 +23,10 @@ sig
   val predfun_name_of: theory -> string -> mode -> string
   val all_preds_of : theory -> string list
   val modes_of: theory -> string -> mode list
+  val sizelim_modes_of: theory -> string -> mode list
+  val sizelim_function_name_of : theory -> string -> mode -> string
+  val generator_modes_of: theory -> string -> mode list
+  val generator_name_of : theory -> string -> mode -> string
   val string_of_mode : mode -> string
   val intros_of: theory -> string -> thm list
   val nparams_of: theory -> string -> int
@@ -82,6 +86,7 @@ sig
     theory -> (moded_clause list) pred_mode_table -> unit
   val print_compiled_terms : theory -> term pred_mode_table -> unit
   (*val rpred_prove_preds : theory -> term pred_mode_table -> thm pred_mode_table*)
+  val pred_compfuns : compilation_funs
   val rpred_compfuns : compilation_funs
   val dest_funT : typ -> typ * typ
  (* val depending_preds_of : theory -> thm list -> string list *)
@@ -128,7 +133,7 @@ fun remove_last_goal thy st =
 
 (* reference to preprocessing of InductiveSet package *)
 
-val ind_set_codegen_preproc = Inductive_Set.codegen_preproc;
+val ind_set_codegen_preproc = (fn thy => I) (*Inductive_Set.codegen_preproc;*)
 
 (** fundamentals **)
 
@@ -246,12 +251,13 @@ fun string_of_tmode (Mode (predmode, termmode, param_modes)) =
 
 fun mk_casesrule ctxt nparams introrules =
   let
-    val intros = map (Logic.unvarify o prop_of) introrules
+    val ((_, intros_th), ctxt1) = Variable.import false introrules ctxt
+    val intros = map prop_of intros_th
     val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
-    val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
+    val ([propname], ctxt2) = Variable.variant_fixes ["thesis"] ctxt1
     val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
-    val (argnames, ctxt2) = Variable.variant_fixes
-      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt1
+    val (argnames, ctxt3) = Variable.variant_fixes
+      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt2
     val argvs = map2 (curry Free) argnames (map fastype_of args)
     fun mk_case intro =
       let
@@ -353,6 +359,10 @@ val nparams_of = #nparams oo the_pred_data
 
 val modes_of = (map fst) o #functions oo the_pred_data
 
+val sizelim_modes_of = (map fst) o #sizelim_functions oo the_pred_data
+
+val rpred_modes_of = (map fst) o #generators oo the_pred_data
+  
 fun all_modes_of thy = map (fn name => (name, modes_of thy name)) (all_preds_of thy) 
 
 val is_compiled = not o null o #functions oo the_pred_data
@@ -646,17 +656,19 @@ fun register_predicate (pre_intros, pre_elim, nparams) thy =
   in
     if not (member (op =) (Graph.keys (PredData.get thy)) name) then
       PredData.map
-      (Graph.new_node (name, mk_pred_data ((intros, SOME elim, nparams), ([], [], [])))) thy
+        (Graph.new_node (name, mk_pred_data ((intros, SOME elim, nparams), ([], [], [])))) thy
     else thy
   end
 
 fun register_intros pre_intros thy =
   let
-  val (_, T) = dest_Const (fst (strip_intro_concl 0 (prop_of (hd pre_intros))))
-  val nparams = guess_nparams T
-  val pre_elim = 
-    (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
-    (mk_casesrule (ProofContext.init thy) nparams pre_intros)
+    val (c, T) = dest_Const (fst (strip_intro_concl 0 (prop_of (hd pre_intros))))
+    val _ = Output.tracing ("Registering introduction rules of " ^ c)
+    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
+    val nparams = guess_nparams T
+    val pre_elim = 
+      (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+      (mk_casesrule (ProofContext.init thy) nparams pre_intros)
   in register_predicate (pre_intros, pre_elim, nparams) thy end
 
 fun set_generator_name pred mode name = 
@@ -716,23 +728,8 @@ fun funT_of compfuns (iss, is) T =
     (paramTs' @ inargTs) ---> (mk_predT compfuns (mk_tupleT outargTs))
   end;
 
-fun sizelim_funT_of compfuns (iss, is) T =
-  let
-    val Ts = binder_types T
-    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
-    val paramTs' = map2 (fn SOME is => sizelim_funT_of compfuns ([], is) | NONE => I) iss paramTs 
-  in
-    (paramTs' @ inargTs @ [@{typ "code_numeral"}]) ---> (mk_predT compfuns (mk_tupleT outargTs))
-  end;  
-
 fun mk_fun_of compfuns thy (name, T) mode = 
   Const (predfun_name_of thy name mode, funT_of compfuns mode T)
-
-fun mk_sizelim_fun_of compfuns thy (name, T) mode =
-  Const (sizelim_function_name_of thy name mode, sizelim_funT_of compfuns mode T)
-  
-fun mk_generator_of compfuns thy (name, T) mode = 
-  Const (generator_name_of thy name mode, sizelim_funT_of compfuns mode T)
 
 
 structure PredicateCompFuns =
@@ -852,6 +849,7 @@ val compfuns = CompilationFuns {mk_predT = mk_rpredT, dest_predT = dest_rpredT, 
 
 end;
 (* for external use with interactive mode *)
+val pred_compfuns = PredicateCompFuns.compfuns
 val rpred_compfuns = RPredCompFuns.compfuns;
 
 fun lift_random random =
@@ -862,7 +860,22 @@ fun lift_random random =
       HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) --> 
       RPredCompFuns.mk_rpredT T) $ random
   end;
- 
+
+fun sizelim_funT_of compfuns (iss, is) T =
+  let
+    val Ts = binder_types T
+    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
+    val paramTs' = map2 (fn SOME is => sizelim_funT_of PredicateCompFuns.compfuns ([], is) | NONE => I) iss paramTs 
+  in
+    (paramTs' @ inargTs @ [@{typ "code_numeral"}]) ---> (mk_predT compfuns (mk_tupleT outargTs))
+  end;  
+
+fun mk_sizelim_fun_of compfuns thy (name, T) mode =
+  Const (sizelim_function_name_of thy name mode, sizelim_funT_of compfuns mode T)
+  
+fun mk_generator_of compfuns thy (name, T) mode = 
+  Const (generator_name_of thy name mode, sizelim_funT_of compfuns mode T)
+
 (* Mode analysis *)
 
 (*** check if a term contains only constructor functions ***)
@@ -1058,7 +1071,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                 SOME (p as Prem _, SOME mode) => check_mode_prems ((gen_prem p, mode) :: acc_ps) 
                   (case p of Prem (us, _) => vs union terms_vs us | _ => vs)
                   (filter_out (equal p) ps)
-                | NONE =>
+              | _ =>
                   let 
                     val all_generator_vs = all_subsets (prem_vs \\ vs) |> sort (int_ord o (pairself length))
                   in
@@ -1069,7 +1082,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                     | NONE => let
                     val _ = Output.tracing ("ps:" ^ (commas
                     (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
-                      in error "mode analysis failed" end
+                  in (*error "mode analysis failed"*)NONE end
                   end)
             else
               NONE)
@@ -1232,27 +1245,42 @@ fun compile_param_ext thy compfuns modes (NONE, t) = t
   | compile_param_ext _ _ _ _ = error "compile params"
 *)
 
-fun compile_param size thy compfuns (NONE, t) = t
-  | compile_param size thy compfuns (m as SOME (Mode ((iss, is'), is, ms)), t) =
+fun compile_param neg_in_sizelim size thy compfuns (NONE, t) = t
+  | compile_param neg_in_sizelim size thy compfuns (m as SOME (Mode ((iss, is'), is, ms)), t) =
    let
      val (f, args) = strip_comb (Envir.eta_contract t)
      val (params, args') = chop (length ms) args
-     val params' = map (compile_param size thy compfuns) (ms ~~ params)
+     val params' = map (compile_param neg_in_sizelim size thy compfuns) (ms ~~ params)
      val mk_fun_of = case size of NONE => mk_fun_of | SOME _ => mk_sizelim_fun_of
      val funT_of = case size of NONE => funT_of | SOME _ => sizelim_funT_of
      val f' =
        case f of
          Const (name, T) =>
            mk_fun_of compfuns thy (name, T) (iss, is')
-       | Free (name, T) => Free (name, funT_of compfuns (iss, is') T)
+       | Free (name, T) =>
+         case neg_in_sizelim of
+           SOME _ =>  Free (name, sizelim_funT_of compfuns (iss, is') T)
+         | NONE => Free (name, funT_of compfuns (iss, is') T)
+           
        | _ => error ("PredicateCompiler: illegal parameter term")
-   in list_comb (f', params' @ args') end
-   
-fun compile_expr size thy ((Mode (mode, is, ms)), t) =
+   in
+     (case neg_in_sizelim of SOME size_t =>
+       (fn t =>
+       let
+         val Ts = fst (split_last (binder_types (fastype_of t)))
+         val names = map (fn i => "x" ^ string_of_int i) (1 upto length Ts)
+       in
+         list_abs (names ~~ Ts, list_comb (t, (map Bound ((length Ts) - 1 downto 0)) @ [size_t]))
+       end)
+     | NONE => I)
+     (list_comb (f', params' @ args'))
+   end
+
+fun compile_expr neg_in_sizelim size thy ((Mode (mode, is, ms)), t) =
   case strip_comb t of
     (Const (name, T), params) =>
        let
-         val params' = map (compile_param size thy PredicateCompFuns.compfuns) (ms ~~ params)
+         val params' = map (compile_param neg_in_sizelim size thy PredicateCompFuns.compfuns) (ms ~~ params)
          val mk_fun_of = case size of NONE => mk_fun_of | SOME _ => mk_sizelim_fun_of
        in
          list_comb (mk_fun_of PredicateCompFuns.compfuns thy (name, T) mode, params')
@@ -1264,16 +1292,18 @@ fun compile_expr size thy ((Mode (mode, is, ms)), t) =
          list_comb (Free (name, funT_of PredicateCompFuns.compfuns ([], is) T), args)
        end;
        
-fun compile_gen_expr size thy compfuns ((Mode (mode, is, ms)), t) =
+fun compile_gen_expr size thy compfuns ((Mode (mode, is, ms)), t) inargs =
   case strip_comb t of
     (Const (name, T), params) =>
       let
-        val params' = map (compile_param size thy compfuns) (ms ~~ params)
+        val params' = map (compile_param NONE size thy PredicateCompFuns.compfuns) (ms ~~ params)
       in
-        list_comb (mk_generator_of compfuns thy (name, T) mode, params')
+        list_comb (mk_generator_of compfuns thy (name, T) mode, params' @ inargs)
       end
-    | (Free (name, T), args) =>
-      list_comb (Free (name, sizelim_funT_of RPredCompFuns.compfuns ([], is) T), args)
+    | (Free (name, T), params) =>
+    lift_pred compfuns
+    (list_comb (Free (name, sizelim_funT_of PredicateCompFuns.compfuns ([], is) T), params @ inargs))
+      
           
 (** specific rpred functions -- move them to the correct place in this file *)
 
@@ -1292,7 +1322,72 @@ fun mk_valtermify_term (t as Const (c, T)) = HOLogic.mk_prod (t, Abs ("u", HOLog
     end
   | mk_valtermify_term _ = error "Not a valid term for mk_valtermify_term"
 *)
+fun mk_Eval_of size ((x, T), NONE) names = (x, names)
+  | mk_Eval_of size ((x, T), SOME mode) names =
+	let
+    val Ts = binder_types T
+    (*val argnames = Name.variant_list names
+        (map (fn i => "x" ^ string_of_int i) (1 upto (length Ts)));
+    val args = map Free (argnames ~~ Ts)
+    val (inargs, outargs) = split_smode mode args*)
+		fun mk_split_lambda [] t = lambda (Free (Name.variant names "x", HOLogic.unitT)) t
+			| mk_split_lambda [x] t = lambda x t
+			| mk_split_lambda xs t =
+			let
+				fun mk_split_lambda' (x::y::[]) t = HOLogic.mk_split (lambda x (lambda y t))
+					| mk_split_lambda' (x::xs) t = HOLogic.mk_split (lambda x (mk_split_lambda' xs t))
+			in
+				mk_split_lambda' xs t
+			end;
+  	fun mk_arg (i, T) =
+		  let
+	  	  val vname = Name.variant names ("x" ^ string_of_int i)
+		    val default = Free (vname, T)
+		  in 
+		    case AList.lookup (op =) mode i of
+		      NONE => (([], [default]), [default])
+			  | SOME NONE => (([default], []), [default])
+			  | SOME (SOME pis) =>
+				  case HOLogic.strip_tupleT T of
+						[] => error "pair mode but unit tuple" (*(([default], []), [default])*)
+					| [_] => error "pair mode but not a tuple" (*(([default], []), [default])*)
+					| Ts =>
+					  let
+							val vnames = Name.variant_list names
+								(map (fn j => "x" ^ string_of_int i ^ "p" ^ string_of_int j)
+									(1 upto length Ts))
+							val args = map Free (vnames ~~ Ts)
+							fun split_args (i, arg) (ins, outs) =
+							  if member (op =) pis i then
+							    (arg::ins, outs)
+								else
+								  (ins, arg::outs)
+							val (inargs, outargs) = fold_rev split_args ((1 upto length Ts) ~~ args) ([], [])
+							fun tuple args = if null args then [] else [HOLogic.mk_tuple args]
+						in ((tuple inargs, tuple outargs), args) end
+			end
+		val (inoutargs, args) = split_list (map mk_arg (1 upto (length Ts) ~~ Ts))
+    val (inargs, outargs) = pairself flat (split_list inoutargs)
+    val size_t = case size of NONE => [] | SOME size_t => [size_t]
+		val r = PredicateCompFuns.mk_Eval (list_comb (x, inargs @ size_t), mk_tuple outargs)
+    val t = fold_rev mk_split_lambda args r
+  in
+    (t, names)
+  end;
 
+fun compile_arg size thy param_vs iss arg = 
+  let
+    val funT_of = case size of NONE => funT_of | SOME _ => sizelim_funT_of
+    fun map_params (t as Free (f, T)) =
+      if member (op =) param_vs f then
+        case (the (AList.lookup (op =) (param_vs ~~ iss) f)) of
+          SOME is => let val T' = funT_of PredicateCompFuns.compfuns ([], is) T
+            in fst (mk_Eval_of size ((Free (f, T'), T), SOME is) []) end
+        | NONE => t
+      else t
+      | map_params t = t
+    in map_aterms map_params arg end
+  
 fun compile_clause compfuns size final_term thy all_vs param_vs (iss, is) inp (ts, moded_ps) =
   let
     fun check_constrt t (names, eqs) =
@@ -1331,11 +1426,12 @@ fun compile_clause compfuns size final_term thy all_vs param_vs (iss, is) inp (t
                Prem (us, t) =>
                  let
                    val (in_ts, out_ts''') = split_smode is us;
+                   val in_ts = map (compile_arg size thy param_vs iss) in_ts
                    val args = case size of
                      NONE => in_ts
                    | SOME size_t => in_ts @ [size_t]
                    val u = lift_pred compfuns
-                     (list_comb (compile_expr size thy (mode, t), args))                     
+                     (list_comb (compile_expr NONE size thy (mode, t), args))                     
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -1344,7 +1440,7 @@ fun compile_clause compfuns size final_term thy all_vs param_vs (iss, is) inp (t
                  let
                    val (in_ts, out_ts''') = split_smode is us
                    val u = lift_pred compfuns
-                     (mk_not PredicateCompFuns.compfuns (list_comb (compile_expr NONE thy (mode, t), in_ts)))
+                     (mk_not PredicateCompFuns.compfuns (list_comb (compile_expr size NONE thy (mode, t), in_ts)))
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -1361,14 +1457,14 @@ fun compile_clause compfuns size final_term thy all_vs param_vs (iss, is) inp (t
                    val args = case size of
                      NONE => in_ts
                    | SOME size_t => in_ts @ [size_t]
-                   val u = list_comb (compile_gen_expr size thy compfuns (mode, t), args)
+                   val u = compile_gen_expr size thy compfuns (mode, t) args
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
                  end
              | Generator (v, T) =>
                  let
-                   val u = lift_random (HOLogic.mk_random T @{term "1::code_numeral"})
+                   val u = lift_random (HOLogic.mk_random T (the size))
                    val rest = compile_prems [Free (v, T)]  vs' names'' ps;
                  in
                    (u, rest)
@@ -1387,7 +1483,7 @@ fun compile_pred compfuns mk_fun_of use_size thy all_vs param_vs s T mode moded_
 	  val (Ts1, Ts2) = chop (length (fst mode)) (binder_types T)
     val (Us1, Us2) = split_smodeT (snd mode) Ts2
     val funT_of = if use_size then sizelim_funT_of else funT_of
-    val Ts1' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) (fst mode) Ts1
+    val Ts1' = map2 (fn NONE => I | SOME is => funT_of PredicateCompFuns.compfuns ([], is)) (fst mode) Ts1
     val size_name = Name.variant (all_vs @ param_vs) "size"
   	fun mk_input_term (i, NONE) =
 		    [Free (Name.variant (all_vs @ param_vs) ("x" ^ string_of_int i), nth Ts2 (i - 1))]
@@ -1439,58 +1535,6 @@ fun print_arities arities = tracing ("Arities:\n" ^
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));
 
-fun mk_Eval_of ((x, T), NONE) names = (x, names)
-  | mk_Eval_of ((x, T), SOME mode) names =
-	let
-    val Ts = binder_types T
-    (*val argnames = Name.variant_list names
-        (map (fn i => "x" ^ string_of_int i) (1 upto (length Ts)));
-    val args = map Free (argnames ~~ Ts)
-    val (inargs, outargs) = split_smode mode args*)
-		fun mk_split_lambda [] t = lambda (Free (Name.variant names "x", HOLogic.unitT)) t
-			| mk_split_lambda [x] t = lambda x t
-			| mk_split_lambda xs t =
-			let
-				fun mk_split_lambda' (x::y::[]) t = HOLogic.mk_split (lambda x (lambda y t))
-					| mk_split_lambda' (x::xs) t = HOLogic.mk_split (lambda x (mk_split_lambda' xs t))
-			in
-				mk_split_lambda' xs t
-			end;
-  	fun mk_arg (i, T) =
-		  let
-	  	  val vname = Name.variant names ("x" ^ string_of_int i)
-		    val default = Free (vname, T)
-		  in 
-		    case AList.lookup (op =) mode i of
-		      NONE => (([], [default]), [default])
-			  | SOME NONE => (([default], []), [default])
-			  | SOME (SOME pis) =>
-				  case HOLogic.strip_tupleT T of
-						[] => error "pair mode but unit tuple" (*(([default], []), [default])*)
-					| [_] => error "pair mode but not a tuple" (*(([default], []), [default])*)
-					| Ts =>
-					  let
-							val vnames = Name.variant_list names
-								(map (fn j => "x" ^ string_of_int i ^ "p" ^ string_of_int j)
-									(1 upto length Ts))
-							val args = map Free (vnames ~~ Ts)
-							fun split_args (i, arg) (ins, outs) =
-							  if member (op =) pis i then
-							    (arg::ins, outs)
-								else
-								  (ins, arg::outs)
-							val (inargs, outargs) = fold_rev split_args ((1 upto length Ts) ~~ args) ([], [])
-							fun tuple args = if null args then [] else [HOLogic.mk_tuple args]
-						in ((tuple inargs, tuple outargs), args) end
-			end
-		val (inoutargs, args) = split_list (map mk_arg (1 upto (length Ts) ~~ Ts))
-    val (inargs, outargs) = pairself flat (split_list inoutargs)
-		val r = PredicateCompFuns.mk_Eval (list_comb (x, inargs), mk_tuple outargs)
-    val t = fold_rev mk_split_lambda args r
-  in
-    (t, names)
-  end;
-
 fun create_intro_elim_rule (mode as (iss, is)) defthm mode_id funT pred thy =
 let
   val Ts = binder_types (fastype_of pred)
@@ -1524,7 +1568,7 @@ let
   val param_names' = Name.variant_list (param_names @ argnames)
     (map (fn i => "p" ^ string_of_int i) (1 upto (length iss)))
   val param_vs = map Free (param_names' ~~ Ts1)
-  val (params', names) = fold_map mk_Eval_of ((params ~~ Ts1) ~~ iss) []
+  val (params', names) = fold_map (mk_Eval_of NONE) ((params ~~ Ts1) ~~ iss) []
   val predpropI = HOLogic.mk_Trueprop (list_comb (pred, param_vs @ args))
   val predpropE = HOLogic.mk_Trueprop (list_comb (pred, params' @ args))
   val param_eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (param_vs ~~ params')
@@ -1627,7 +1671,7 @@ fun create_definitions preds (name, modes) thy =
    	  val (xinoutargs, names) = fold_map mk_vars ((1 upto (length Ts2)) ~~ Ts2) param_names
       val (xinout, xargs) = split_list xinoutargs
 			val (xins, xouts) = pairself flat (split_list xinout)
-			val (xparams', names') = fold_map mk_Eval_of ((xparams ~~ Ts1) ~~ iss) names
+			val (xparams', names') = fold_map (mk_Eval_of NONE) ((xparams ~~ Ts1) ~~ iss) names
       fun mk_split_lambda [] t = lambda (Free (Name.variant names' "x", HOLogic.unitT)) t
         | mk_split_lambda [x] t = lambda x t
         | mk_split_lambda xs t =
@@ -1670,14 +1714,23 @@ fun sizelim_create_definitions preds (name, modes) thy =
   in
     fold create_definition modes thy
   end;
-    
+
+fun generator_funT_of (iss, is) T =
+  let
+    val Ts = binder_types T
+    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
+    val paramTs' = map2 (fn SOME is => sizelim_funT_of PredicateCompFuns.compfuns ([], is) | NONE => I) iss paramTs 
+  in
+    (paramTs' @ inargTs @ [@{typ "code_numeral"}]) ---> (mk_predT RPredCompFuns.compfuns (mk_tupleT outargTs))
+  end
+
 fun rpred_create_definitions preds (name, modes) thy =
   let
     val T = AList.lookup (op =) preds name |> the
     fun create_definition mode thy =
       let
         val mode_cname = create_constname_of_mode thy "gen_" name mode
-        val funT = sizelim_funT_of RPredCompFuns.compfuns mode T
+        val funT = generator_funT_of mode T
       in
         thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
         |> set_generator_name name mode mode_cname 
@@ -2166,6 +2219,7 @@ fun prepare_intrs thy prednames =
 fun add_equations_of steps prednames thy =
   let
     val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
+    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames
     val _ = Output.tracing "Infering modes..."
@@ -2229,7 +2283,7 @@ val add_equations = gen_add_equations
   create_definitions = create_definitions,
   compile_preds = compile_preds PredicateCompFuns.compfuns mk_fun_of false,
   prove = prove,
-  are_not_defined = (fn thy => forall (null o modes_of thy)),
+  are_not_defined = fn thy => forall (null o modes_of thy),
   qname = "equation"}
 
 val add_sizelim_equations = gen_add_equations
@@ -2237,7 +2291,7 @@ val add_sizelim_equations = gen_add_equations
   create_definitions = sizelim_create_definitions,
   compile_preds = compile_preds PredicateCompFuns.compfuns mk_sizelim_fun_of true,
   prove = prove_by_skip,
-  are_not_defined = (fn thy => fn preds => true), (* TODO *)
+  are_not_defined = fn thy => forall (null o sizelim_modes_of thy),
   qname = "sizelim_equation"
   }
 
@@ -2246,7 +2300,7 @@ val add_quickcheck_equations = gen_add_equations
   create_definitions = rpred_create_definitions,
   compile_preds = compile_preds RPredCompFuns.compfuns mk_generator_of true,
   prove = prove_by_skip,
-  are_not_defined = (fn thy => fn preds => true), (* TODO *)
+  are_not_defined = fn thy => forall (null o rpred_modes_of thy),
   qname = "rpred_equation"}
 
 (** user interface **)
@@ -2304,7 +2358,8 @@ fun generic_code_pred prep_const rpred raw_const lthy =
       in
         goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
           (if rpred then
-          (add_sizelim_equations [const] #> add_quickcheck_equations [const])
+            (add_equations [const] #>
+             add_sizelim_equations [const] #> add_quickcheck_equations [const])
         else add_equations [const]))
       end  
   in
@@ -2339,7 +2394,7 @@ fun analyze_compr thy t_compr =
       | m :: _ :: _ => (warning ("Multiple modes possible for comprehension "
                 ^ Syntax.string_of_term_global thy t_compr); m);
     val (inargs, outargs) = split_smode user_mode' args;
-    val t_pred = list_comb (compile_expr NONE thy (m, list_comb (pred, params)), inargs);
+    val t_pred = list_comb (compile_expr NONE NONE thy (m, list_comb (pred, params)), inargs);
     val t_eval = if null outargs then t_pred else
       let
         val outargs_bounds = map (fn Bound i => i) outargs;
@@ -2372,7 +2427,14 @@ fun values ctxt k t_compr =
   in if k = ~1 orelse length ts < k then elemsT
     else Const (@{const_name Set.union}, setT --> setT --> setT) $ elemsT $ t_compr
   end;
-
+  (*
+fun random_values ctxt k t = 
+  let
+    val thy = ProofContext.theory_of ctxt
+    val _ = 
+  in
+  end;
+  *)
 fun values_cmd modes k raw_t state =
   let
     val ctxt = Toplevel.context_of state;
@@ -2384,6 +2446,7 @@ fun values_cmd modes k raw_t state =
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
   in Pretty.writeln p end;
+
 
 local structure P = OuterParse in
 

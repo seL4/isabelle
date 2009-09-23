@@ -193,7 +193,15 @@ val special_cases = member (op =) [@{const_name "Suc"}, @{const_name Nat.zero_na
     @{const_name Nat.one_nat_inst.one_nat},
 @{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"}, @{const_name "HOL.zero_class.zero"},
 @{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
-@{const_name "Nat.nat.nat_case"}, @{const_name "List.list.list_case"}, @{const_name Nat.ord_nat_inst.less_eq_nat}]
+@{const_name "Nat.nat.nat_case"}, @{const_name "List.list.list_case"},
+@{const_name "Option.option.option_case"},
+@{const_name Nat.ord_nat_inst.less_eq_nat},
+@{const_name number_nat_inst.number_of_nat},
+  @{const_name Int.Bit0},
+  @{const_name Int.Bit1},
+  @{const_name Int.Pls},
+@{const_name "Int.zero_int_inst.zero_int"},
+@{const_name "List.filter"}]
 
 fun obtain_specification_graph table constname =
   let

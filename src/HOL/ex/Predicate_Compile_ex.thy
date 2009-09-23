@@ -88,11 +88,11 @@ proof -
   case tranclp
   from this converse_tranclpE[OF this(1)] show thesis by metis
 qed
-
+(*
 code_pred (inductify_all) (rpred) tranclp .
 thm tranclp.equation
 thm tranclp.rpred_equation
-
+*)
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
@@ -190,13 +190,24 @@ code_pred (inductify_all) Min .
 
 subsection {* Examples with lists *}
 
+inductive filterP for Pa where
+"(filterP::('a => bool) => 'a list => 'a list => bool) (Pa::'a => bool) [] []"
+| "[| (res::'a list) = (y::'a) # (resa::'a list); (filterP::('a => bool) => 'a list => 'a list => bool) (Pa::'a => bool) (xt::'a list) resa; Pa y |]
+==> filterP Pa (y # xt) res"
+| "[| (filterP::('a => bool) => 'a list => 'a list => bool) (Pa::'a => bool) (xt::'a list) (res::'a list); ~ Pa (y::'a) |] ==> filterP Pa (y # xt) res"
+
+(*
+code_pred (inductify_all) (rpred) filterP .
+thm filterP.rpred_equation
+*)
+
 code_pred (inductify_all) lexord .
 
 thm lexord.equation
-(*
-lemma "(u, v) : lexord r ==> (x @ u, x @ v) : lexord r"
-quickcheck
-*)
+
+lemma "(u, v) : lexord r ==> (x @ u, y @ v) : lexord r"
+(*quickcheck[generator=pred_compile]*)
+oops
 
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 
@@ -214,7 +225,7 @@ code_pred (inductify_all) lists .
 
 thm lists.equation
 
-datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
+datatype 'a tree = ET | MKT 'a "'a tree" "'a tree" nat
 fun height :: "'a tree => nat" where
 "height ET = 0"
 | "height (MKT x l r h) = max (height l) (height r) + 1"
@@ -227,6 +238,9 @@ primrec
 
 code_pred (inductify_all) avl .
 thm avl.equation
+
+lemma [code_pred_inline]: "bot_fun_inst.bot_fun == (\<lambda>(y::'a::type). False)"
+unfolding bot_fun_inst.bot_fun[symmetric] bot_bool_eq[symmetric] bot_fun_eq by simp
 
 fun set_of
 where
@@ -241,17 +255,13 @@ where
 
 declare Un_def[code_pred_def]
 
-lemma [code_pred_inline]: "bot_fun_inst.bot_fun == (\<lambda>(y::'a::type). False)"
-unfolding bot_fun_inst.bot_fun[symmetric]
-unfolding bot_bool_eq[symmetric]
-unfolding bot_fun_eq by simp
-
 code_pred (inductify_all) set_of .
 thm set_of.equation
-
+(* FIXME *)
+(*
 code_pred (inductify_all) is_ord .
 thm is_ord.equation
-
+*)
 section {* Definitions about Relations *}
 
 code_pred (inductify_all) converse .
@@ -277,10 +287,158 @@ code_pred (inductify_all) S\<^isub>1p .
 
 thm S\<^isub>1p.equation
 
-code_pred (inductify_all) (rpred) S\<^isub>1p .
+theorem S\<^isub>1_sound:
+"w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[generator=pred_compile]
+oops
 
-thm S\<^isub>1p.rpred_equation
+inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
+  "[] \<in> S\<^isub>2"
+| "w \<in> A\<^isub>2 \<Longrightarrow> b # w \<in> S\<^isub>2"
+| "w \<in> B\<^isub>2 \<Longrightarrow> a # w \<in> S\<^isub>2"
+| "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
+| "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
+| "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
+(*
+code_pred (inductify_all) (rpred) S\<^isub>2 .
+ML {* Predicate_Compile_Core.intros_of @{theory} @{const_name "B\<^isub>2"} *}
+*)
+theorem S\<^isub>2_sound:
+"w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+(*quickcheck[generator=SML]*)
+quickcheck[generator=pred_compile, size=15, iterations=100]
+oops
 
+inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
+  "[] \<in> S\<^isub>3"
+| "w \<in> A\<^isub>3 \<Longrightarrow> b # w \<in> S\<^isub>3"
+| "w \<in> B\<^isub>3 \<Longrightarrow> a # w \<in> S\<^isub>3"
+| "w \<in> S\<^isub>3 \<Longrightarrow> a # w \<in> A\<^isub>3"
+| "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
+| "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
+
+ML {* reset Predicate_Compile_Core.do_proofs *}
+(*
+code_pred (inductify_all) S\<^isub>3 .
+*)
+theorem S\<^isub>3_sound:
+"w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[generator=pred_compile, size=10, iterations=1]
+oops
+
+lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
+quickcheck[size=10, generator = pred_compile]
+oops
+
+theorem S\<^isub>3_complete:
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
+(*quickcheck[generator=SML]*)
+quickcheck[generator=pred_compile, size=10, iterations=100]
+oops
+
+inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
+  "[] \<in> S\<^isub>4"
+| "w \<in> A\<^isub>4 \<Longrightarrow> b # w \<in> S\<^isub>4"
+| "w \<in> B\<^isub>4 \<Longrightarrow> a # w \<in> S\<^isub>4"
+| "w \<in> S\<^isub>4 \<Longrightarrow> a # w \<in> A\<^isub>4"
+| "\<lbrakk>v \<in> A\<^isub>4; w \<in> A\<^isub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^isub>4"
+| "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
+| "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
+
+theorem S\<^isub>4_sound:
+"w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[generator = pred_compile, size=2, iterations=1]
+sorry
+
+theorem S\<^isub>4_complete:
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
+quickcheck[generator = pred_compile, size=5, iterations=1]
+sorry
+
+theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
+"w \<in> S\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+"w \<in> A\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
+"w \<in> B\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
+(*quickcheck[generator = pred_compile, size=5, iterations=1]*)
+sorry
+
+
+section {* Lambda *}
+datatype type =
+    Atom nat
+  | Fun type type    (infixr "\<Rightarrow>" 200)
+
+datatype dB =
+    Var nat
+  | App dB dB (infixl "\<degree>" 200)
+  | Abs type dB
+
+primrec
+  nth_el :: "'a list \<Rightarrow> nat \<Rightarrow> 'a option" ("_\<langle>_\<rangle>" [90, 0] 91)
+where
+  "[]\<langle>i\<rangle> = None"
+| "(x # xs)\<langle>i\<rangle> = (case i of 0 \<Rightarrow> Some x | Suc j \<Rightarrow> xs \<langle>j\<rangle>)"
+
+(*
+inductive nth_el' :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> bool"
+where
+  "nth_el' (x # xs) 0 x"
+| "nth_el' xs i y \<Longrightarrow> nth_el' (x # xs) (Suc i) y"
+*)
+inductive typing :: "type list \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
+  where
+    Var [intro!]: "nth_el env x = Some T \<Longrightarrow> env \<turnstile> Var x : T"
+  | Abs [intro!]: "T # env \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs T t : (T \<Rightarrow> U)"
+(*  | App [intro!]: "env \<turnstile> s : T \<Rightarrow> U \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<degree> t) : U" *)
+  | App [intro!]: "env \<turnstile> s : U \<Rightarrow> T \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<degree> t) : U"
+
+primrec
+  lift :: "[dB, nat] => dB"
+where
+    "lift (Var i) k = (if i < k then Var i else Var (i + 1))"
+  | "lift (s \<degree> t) k = lift s k \<degree> lift t k"
+  | "lift (Abs T s) k = Abs T (lift s (k + 1))"
+
+primrec
+  subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
+where
+    subst_Var: "(Var i)[s/k] =
+      (if k < i then Var (i - 1) else if i = k then s else Var i)"
+  | subst_App: "(t \<degree> u)[s/k] = t[s/k] \<degree> u[s/k]"
+  | subst_Abs: "(Abs T t)[s/k] = Abs T (t[lift s 0 / k+1])"
+
+inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+  where
+    beta [simp, intro!]: "Abs T s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
+  | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
+  | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
+  | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
+
+lemma "Gamma \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> Gamma \<turnstile> t' : T"
+quickcheck[generator = pred_compile, size = 10, iterations = 1000]
+oops
+(* FIXME *)
+(*
+inductive test for P where
+"[| filter P vs = res |]
+==> test P vs res"
+
+code_pred test .
+*)
+(*
+export_code test_for_1_yields_1_2 in SML file -
+code_pred (inductify_all) (rpred) test .
+
+thm test.equation
+*)
+
+ML {*set  Toplevel.debug *}
+
+lemma filter_eq_ConsD:
+ "filter P ys = x#xs \<Longrightarrow>
+  \<exists>us vs. ys = ts @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs"
+(*quickcheck[generator = pred_compile]*)
+oops
 
 
 end
