@@ -321,17 +321,14 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
      |> interprete_parent name dist_thm_full_name parent_expr
   end;
 
-fun encode_dot x =
-    if x= #"." then #"_" else x;
+fun encode_dot x = if x= #"." then #"_" else x;
 
 fun encode_type (TFree (s, _)) = s
   | encode_type (TVar ((s,i),_)) = "?" ^ s ^ string_of_int i
   | encode_type (Type (n,Ts)) =
       let
         val Ts' = fold1' (fn x => fn y => x ^ "_" ^ y) (map encode_type Ts) "";
-        val n' = if n = "*" then "Prod" else
-                   if n = "+" then "Sum" else
-                     String.map encode_dot n;
+        val n' = String.map encode_dot n;
       in if Ts'="" then n' else Ts' ^ "_" ^ n' end;
 
 fun project_name T = projectN ^"_"^encode_type T;
