@@ -108,7 +108,7 @@ struct
 
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
-fun print_tac s = Seq.single; (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
+fun print_tac s = Seq.single; (*Tactical.print_tac s;*) (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
 
 val do_proofs = ref true;
@@ -1328,7 +1328,7 @@ fun compile_pred compfuns mk_fun_of use_size thy all_vs param_vs s T mode moded_
   end;
   
 (* special setup for simpset *)                  
-val HOL_basic_ss' = HOL_basic_ss setSolver 
+val HOL_basic_ss' = HOL_basic_ss addsimps @{thms "HOL.simp_thms"} setSolver 
   (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
 
 (* Definition of executable functions and their intro and elim rules *)
@@ -1576,7 +1576,8 @@ fun prove_sidecond thy modes t =
         preds
   in 
     (* remove not_False_eq_True when simpset in prove_match is better *)
-    simp_tac (HOL_basic_ss addsimps @{thm not_False_eq_True} :: @{thm eval_pred} :: defs) 1 
+    simp_tac (HOL_basic_ss addsimps
+      (@{thms "HOL.simp_thms"} @ (@{thm not_False_eq_True} :: @{thm eval_pred} :: defs))) 1 
     (* need better control here! *)
   end
 
