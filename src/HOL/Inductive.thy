@@ -267,26 +267,6 @@ theorems basic_monos =
   Ball_def Bex_def
   induct_rulify_fallback
 
-ML {*
-val def_lfp_unfold = @{thm def_lfp_unfold}
-val def_gfp_unfold = @{thm def_gfp_unfold}
-val def_lfp_induct = @{thm def_lfp_induct}
-val def_coinduct = @{thm def_coinduct}
-val inf_bool_eq = @{thm inf_bool_eq} RS @{thm eq_reflection}
-val inf_fun_eq = @{thm inf_fun_eq} RS @{thm eq_reflection}
-val sup_bool_eq = @{thm sup_bool_eq} RS @{thm eq_reflection}
-val sup_fun_eq = @{thm sup_fun_eq} RS @{thm eq_reflection}
-val le_boolI = @{thm le_boolI}
-val le_boolI' = @{thm le_boolI'}
-val le_funI = @{thm le_funI}
-val le_boolE = @{thm le_boolE}
-val le_funE = @{thm le_funE}
-val le_boolD = @{thm le_boolD}
-val le_funD = @{thm le_funD}
-val le_bool_def = @{thm le_bool_def} RS @{thm eq_reflection}
-val le_fun_def = @{thm le_fun_def} RS @{thm eq_reflection}
-*}
-
 use "Tools/inductive.ML"
 setup Inductive.setup
 
