@@ -2167,6 +2167,71 @@ lemma (in fun_left_comm_idem) fold_set:
   "fold f y (set xs) = foldl (\<lambda>y x. f x y) y xs"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
 
+lemma (in ab_semigroup_idem_mult) fold1_set:
+  assumes "xs \<noteq> []"
+  shows "fold1 times (set xs) = foldl times (hd xs) (tl xs)"
+proof -
+  interpret fun_left_comm_idem times by (fact fun_left_comm_idem)
+  from assms obtain y ys where xs: "xs = y # ys"
+    by (cases xs) auto
+  show ?thesis
+  proof (cases "set ys = {}")
+    case True with xs show ?thesis by simp
+  next
+    case False
+    then have "fold1 times (insert y (set ys)) = fold times y (set ys)"
+      by (simp only: finite_set fold1_eq_fold_idem)
+    with xs show ?thesis by (simp add: fold_set mult_commute)
+  qed
+qed
+
+lemma (in lattice) Inf_fin_set_fold [code_unfold]:
+  "Inf_fin (set (x # xs)) = foldl inf x xs"
+proof -
+  interpret ab_semigroup_idem_mult "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact ab_semigroup_idem_mult_inf)
+  show ?thesis
+    by (simp add: Inf_fin_def fold1_set del: set.simps)
+qed
+
+lemma (in lattice) Sup_fin_set_fold [code_unfold]:
+  "Sup_fin (set (x # xs)) = foldl sup x xs"
+proof -
+  interpret ab_semigroup_idem_mult "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact ab_semigroup_idem_mult_sup)
+  show ?thesis
+    by (simp add: Sup_fin_def fold1_set del: set.simps)
+qed
+
+lemma (in linorder) Min_fin_set_fold [code_unfold]:
+  "Min (set (x # xs)) = foldl min x xs"
+proof -
+  interpret ab_semigroup_idem_mult "min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact ab_semigroup_idem_mult_min)
+  show ?thesis
+    by (simp add: Min_def fold1_set del: set.simps)
+qed
+
+lemma (in linorder) Max_fin_set_fold [code_unfold]:
+  "Max (set (x # xs)) = foldl max x xs"
+proof -
+  interpret ab_semigroup_idem_mult "max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact ab_semigroup_idem_mult_max)
+  show ?thesis
+    by (simp add: Max_def fold1_set del: set.simps)
+qed
+
+lemma (in complete_lattice) Inf_set_fold [code_unfold]:
+  "Inf (set xs) = foldl inf top xs"
+  by (cases xs)
+    (simp_all add: Inf_fin_Inf [symmetric] Inf_fin_set_fold
+      inf_commute del: set.simps, simp add: top_def)
+
+lemma (in complete_lattice) Sup_set_fold [code_unfold]:
+  "Sup (set xs) = foldl sup bot xs"
+  by (cases xs)
+    (simp_all add: Sup_fin_Sup [symmetric] Sup_fin_set_fold
+      sup_commute del: set.simps, simp add: bot_def)
 
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
@@ -3762,6 +3827,11 @@ by (induct xs) auto
 lemma length_remdups_length_unique [code_unfold]:
   "length (remdups xs) = length_unique xs"
   by (induct xs) simp_all
+
+declare INFI_def [code_unfold]
+declare SUPR_def [code_unfold]
+
+declare set_map [symmetric, code_unfold]
 
 hide (open) const length_unique
 
