@@ -505,9 +505,10 @@ fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
 
 (*those following are permissive wrt. to overloaded constants!*)
 
+val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 fun const_typ_eqn thy thm =
   let
-    val (c, ty) = (dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
+    val (c, ty) = head_eqn thm;
     val c' = AxClass.unoverload_const thy (c, ty);
   in (c', ty) end;
 
@@ -523,8 +524,8 @@ fun assert_eqns_const thy c eqns =
 
 fun same_typscheme thy thms =
   let
-    fun tvars_of t = rev (Term.add_tvars t []);
-    val vss = map (tvars_of o Thm.prop_of) thms;
+    fun tvars_of T = rev (Term.add_tvarsT T []);
+    val vss = map (tvars_of o snd o head_eqn) thms;
     fun inter_sorts vs =
       fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
     val sorts = map_transpose inter_sorts vss;
@@ -547,7 +548,7 @@ fun all_eqns thy =
 fun case_certificate thm =
   let
     val ((head, raw_case_expr), cases) = (apfst Logic.dest_equals
-      o apsnd Logic.dest_conjunctions o Logic.dest_implies o Thm.prop_of) thm;
+      o apsnd Logic.dest_conjunctions o Logic.dest_implies o Thm.plain_prop_of) thm;
     val _ = case head of Free _ => true
       | Var _ => true
       | _ => raise TERM ("case_cert", []);

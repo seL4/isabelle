@@ -15,7 +15,7 @@ end
 structure NormArith : NORM_ARITH = 
 struct
 
- open Conv Thm;
+ open Conv Thm FuncUtil;
  val bool_eq = op = : bool *bool -> bool
   fun dest_ratconst t = case term_of t of
    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
@@ -330,13 +330,13 @@ local
    val zerodests = filter
         (fn t => null (Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
-  in RealArith.real_linear_prover translator
+  in fst (RealArith.real_linear_prover translator
         (map (fn t => instantiate ([(tv_n, ctyp_of_term t)],[]) pth_zero)
             zerodests,
         map (fconv_rule (try_conv (More_Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
         map (fconv_rule (try_conv (More_Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv 
-                       arg_conv (arg_conv real_poly_conv))) gts)
+                       arg_conv (arg_conv real_poly_conv))) gts))
   end
 in val real_vector_combo_prover = real_vector_combo_prover
 end;
@@ -389,9 +389,9 @@ local
    val (th1,th2) = conj_pair(rawrule th)
   in th1::fconv_rule (arg_conv (arg_conv real_poly_neg_conv)) th2::acc
   end
-in fun real_vector_prover ctxt translator (eqs,ges,gts) =
-     real_vector_ineq_prover ctxt translator
-         (fold_rev (splitequation ctxt) eqs ges,gts)
+in fun real_vector_prover ctxt _ translator (eqs,ges,gts) =
+     (real_vector_ineq_prover ctxt translator
+         (fold_rev (splitequation ctxt) eqs ges,gts), RealArith.Trivial)
 end;
 
   fun init_conv ctxt = 
@@ -400,7 +400,7 @@ end;
    then_conv field_comp_conv 
    then_conv nnf_conv
 
- fun pure ctxt = RealArith.gen_prover_real_arith ctxt (real_vector_prover ctxt);
+ fun pure ctxt = fst o RealArith.gen_prover_real_arith ctxt (real_vector_prover ctxt);
  fun norm_arith ctxt ct = 
   let 
    val ctxt' = Variable.declare_term (term_of ct) ctxt

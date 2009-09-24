@@ -55,6 +55,7 @@ sig
   exception TYPE_MATCH
   type tyenv = (sort * typ) Vartab.table
   val lookup: tyenv -> indexname * sort -> typ option
+  val devar: tyenv -> typ -> typ
   val typ_match: tsig -> typ * typ -> tyenv -> tyenv
   val typ_instance: tsig -> typ * typ -> bool
   val raw_match: typ * typ -> tyenv -> tyenv

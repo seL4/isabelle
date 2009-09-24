@@ -127,10 +127,10 @@ lemma inf_idem[simp]: "x \<sqinter> x = x"
 lemma inf_left_idem[simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
   by (rule antisym) (auto intro: le_infI2)
 
-lemma inf_absorb1[simp]: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
+lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
   by (rule antisym) auto
 
-lemma inf_absorb2[simp]: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
+lemma inf_absorb2: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
   by (rule antisym) auto
 
 lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqinter> z)"
@@ -155,10 +155,10 @@ lemma sup_idem[simp]: "x \<squnion> x = x"
 lemma sup_left_idem[simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
   by (rule antisym) (auto intro: le_supI2)
 
-lemma sup_absorb1[simp]: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
+lemma sup_absorb1: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion> y = x"
   by (rule antisym) auto
 
-lemma sup_absorb2[simp]: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
+lemma sup_absorb2: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
   by (rule antisym) auto
 
 lemma sup_left_commute: "x \<squnion> (y \<squnion> z) = y \<squnion> (x \<squnion> z)"
@@ -229,11 +229,11 @@ begin
 
 lemma less_infI1:
   "a \<sqsubset> x \<Longrightarrow> a \<sqinter> b \<sqsubset> x"
-  by (auto simp add: less_le intro: le_infI1)
+  by (auto simp add: less_le inf_absorb1 intro: le_infI1)
 
 lemma less_infI2:
   "b \<sqsubset> x \<Longrightarrow> a \<sqinter> b \<sqsubset> x"
-  by (auto simp add: less_le intro: le_infI2)
+  by (auto simp add: less_le inf_absorb2 intro: le_infI2)
 
 end
 
