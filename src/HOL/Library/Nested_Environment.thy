@@ -567,6 +567,6 @@ proof (unfold eq)
 qed simp_all
 
 lemma [code, code del]:
-  "(Code_Eval.term_of :: ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) = Code_Eval.term_of" ..
+  "(Code_Evaluation.term_of :: ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) = Code_Evaluation.term_of" ..
 
 end

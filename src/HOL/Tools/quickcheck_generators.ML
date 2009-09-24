@@ -76,7 +76,7 @@ fun mk_random_typecopy tyco vs constr T' thy =
     val lhs = HOLogic.mk_random T size;
     val rhs = HOLogic.mk_ST [((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, Tm'))]
       (HOLogic.mk_return Tm @{typ Random.seed}
-      (mk_const "Code_Eval.valapp" [T', T]
+      (mk_const "Code_Evaluation.valapp" [T', T]
         $ HOLogic.mk_prod (t_constr, Abs ("u", @{typ unit}, HOLogic.reflect_term t_constr)) $ t_v))
       @{typ Random.seed} (SOME Tm, @{typ Random.seed});
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));

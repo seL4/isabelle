@@ -175,7 +175,7 @@ fun mk_fun_comp (t, u) =
   end;
 
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
-  Type ("*", [Type ("*", [T, @{typ "unit => Code_Eval.term"}]) ,@{typ Random.seed}])])) = T
+  Type ("*", [Type ("*", [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])
 
 (* destruction of intro rules *)
@@ -778,22 +778,6 @@ val compfuns = CompilationFuns {mk_predT = mk_predT, dest_predT = dest_predT, mk
 
 end;
 
-(* termify_code:
-val termT = Type ("Code_Eval.term", []);
-fun termifyT T = HOLogic.mk_prodT (T, HOLogic.unitT --> termT)
-*)
-(*
-fun lift_random random =
-  let
-    val T = dest_randomT (fastype_of random)
-  in
-    mk_scomp (random,
-      mk_fun_comp (HOLogic.pair_const (PredicateCompFuns.mk_predT T) @{typ Random.seed},
-        mk_fun_comp (Const (@{const_name Predicate.single}, T --> (PredicateCompFuns.mk_predT T)),
-          Const (@{const_name "fst"}, HOLogic.mk_prodT (T, @{typ "unit => term"}) --> T)))) 
-  end;
-*)
- 
 structure RPredCompFuns =
 struct
 
@@ -1301,21 +1285,6 @@ fun compile_gen_expr size thy compfuns ((Mode (mode, is, ms)), t) inargs =
           
 (** specific rpred functions -- move them to the correct place in this file *)
 
-(* uncommented termify code; causes more trouble than expected at first *) 
-(*
-fun mk_valtermify_term (t as Const (c, T)) = HOLogic.mk_prod (t, Abs ("u", HOLogic.unitT, HOLogic.reflect_term t))
-  | mk_valtermify_term (Free (x, T)) = Free (x, termifyT T) 
-  | mk_valtermify_term (t1 $ t2) =
-    let
-      val T = fastype_of t1
-      val (T1, T2) = dest_funT T
-      val t1' = mk_valtermify_term t1
-      val t2' = mk_valtermify_term t2
-    in
-      Const ("Code_Eval.valapp", termifyT T --> termifyT T1 --> termifyT T2) $ t1' $ t2'
-    end
-  | mk_valtermify_term _ = error "Not a valid term for mk_valtermify_term"
-*)
 fun mk_Eval_of size ((x, T), NONE) names = (x, names)
   | mk_Eval_of size ((x, T), SOME mode) names =
 	let

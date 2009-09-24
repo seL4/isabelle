@@ -1002,8 +1002,8 @@ lemma rat_divide_code [code]:
   by simp
 
 definition (in term_syntax)
-  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code_unfold]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
+  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  [code_unfold]: "valterm_fract k l = Code_Evaluation.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
 notation fcomp (infixl "o>" 60)
 notation scomp (infixl "o\<rightarrow>" 60)
@@ -1014,7 +1014,7 @@ begin
 definition
   "Quickcheck.random i = Quickcheck.random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
      let j = Code_Numeral.int_of (denom + 1)
-     in valterm_fract num (j, \<lambda>u. Code_Eval.term_of j))))"
+     in valterm_fract num (j, \<lambda>u. Code_Evaluation.term_of j))))"
 
 instance ..
 

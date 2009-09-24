@@ -1,10 +1,10 @@
-(*  Title:      HOL/Code_Eval.thy
+(*  Title:      HOL/Code_Evaluation.thy
     Author:     Florian Haftmann, TU Muenchen
 *)
 
 header {* Term evaluation using the generic code generator *}
 
-theory Code_Eval
+theory Code_Evaluation
 imports Plain Typerep Code_Numeral
 begin
 
@@ -128,14 +128,14 @@ lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of
 lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
 lemma [code, code del]: "(term_of \<Colon> String.literal \<Rightarrow> term) = term_of" ..
 lemma [code, code del]:
-  "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
+  "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Evaluation.term) = Code_Evaluation.term_of" ..
 lemma [code, code del]:
-  "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
+  "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Evaluation.term) = Code_Evaluation.term_of" ..
 
-lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]: "Code_Eval.term_of c =
+lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]: "Code_Evaluation.term_of c =
     (let (n, m) = nibble_pair_of_char c
-  in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
-    (Code_Eval.term_of n)) (Code_Eval.term_of m))"
+  in Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
+    (Code_Evaluation.term_of n)) (Code_Evaluation.term_of m))"
   by (subst term_of_anything) rule 
 
 code_type "term"

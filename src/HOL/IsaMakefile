@@ -210,7 +210,7 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
-  Code_Eval.thy \
+  Code_Evaluation.thy \
   Code_Numeral.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
