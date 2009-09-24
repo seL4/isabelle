@@ -2615,6 +2615,23 @@ next
   finally show ?case .
 qed
 
+lemma fold1_eq_fold_idem:
+  assumes "finite A"
+  shows "fold1 times (insert a A) = fold times a A"
+proof (cases "a \<in> A")
+  case False
+  with assms show ?thesis by (simp add: fold1_eq_fold)
+next
+  interpret fun_left_comm_idem times by (fact fun_left_comm_idem)
+  case True then obtain b B
+    where A: "A = insert a B" and "a \<notin> B" by (rule set_insert)
+  with assms have "finite B" by auto
+  then have "fold times a (insert a B) = fold times (a * a) B"
+    using `a \<notin> B` by (rule fold_insert2)
+  then show ?thesis
+    using `a \<notin> B` `finite B` by (simp add: fold1_eq_fold A)
+qed
+
 end
 
 
