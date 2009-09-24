@@ -10,7 +10,9 @@ notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
   inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65)
+  sup  (infixl "\<squnion>" 65) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 
 subsection {* Abstract complete lattices *}
@@ -23,6 +25,15 @@ class complete_lattice = lattice + bot + top +
   assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
      and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
 begin
+
+term complete_lattice
+
+lemma dual_complete_lattice:
+  "complete_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom> Sup Inf"
+  by (auto intro!: complete_lattice.intro dual_lattice
+    bot.intro top.intro dual_preorder, unfold_locales)
+      (fact bot_least top_greatest
+        Sup_upper Sup_least Inf_lower Inf_greatest)+
 
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
@@ -784,7 +795,9 @@ no_notation
   inf  (infixl "\<sqinter>" 70) and
   sup  (infixl "\<squnion>" 65) and
   Inf  ("\<Sqinter>_" [900] 900) and
-  Sup  ("\<Squnion>_" [900] 900)
+  Sup  ("\<Squnion>_" [900] 900) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 lemmas mem_simps =
   insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
