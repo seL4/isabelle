@@ -4,8 +4,8 @@ theory RG_Hoare imports RG_Tran begin
 
 subsection {* Proof System for Component Programs *}
 
-declare Un_subset_iff [iff del]
-declare Cons_eq_map_conv[iff]
+declare Un_subset_iff [simp del] le_sup_iff [simp del]
+declare Cons_eq_map_conv [iff]
 
 constdefs
   stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  

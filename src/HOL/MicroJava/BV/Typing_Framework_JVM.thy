@@ -140,7 +140,7 @@ theorem exec_pres_type:
   apply fastsimp
   
   apply (erule disjE)
-   apply (clarsimp simp add: Un_subset_iff)  
+   apply clarsimp
    apply (drule method_wf_mdecl, assumption+)
    apply (clarsimp simp add: wf_mdecl_def wf_mhead_def)
    apply fastsimp

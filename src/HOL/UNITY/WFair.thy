@@ -113,7 +113,7 @@ text{*This equation recovers the notion of weak fairness.  A totalized
 lemma totalize_transient_iff:
    "(totalize F \<in> transient A) = (\<exists>act\<in>Acts F. A \<subseteq> Domain act & act``A \<subseteq> -A)"
 apply (simp add: totalize_def totalize_act_def transient_def 
-                 Un_Image Un_subset_iff, safe)
+                 Un_Image, safe)
 apply (blast intro!: rev_bexI)+
 done
 

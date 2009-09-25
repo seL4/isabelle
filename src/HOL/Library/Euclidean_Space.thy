@@ -3649,10 +3649,7 @@ proof-
     from setsum_restrict_set[OF fS, of "\<lambda>v. u v *s v" S', symmetric] SS'
     have "setsum (\<lambda>v. ?u v *s v) S = setsum (\<lambda>v. u v *s v) S'"
       unfolding cond_value_iff cond_application_beta
-      apply (simp add: cond_value_iff cong del: if_weak_cong)
-      apply (rule setsum_cong)
-      apply auto
-      done
+      by (simp add: cond_value_iff inf_absorb2 cong del: if_weak_cong)
     hence "setsum (\<lambda>v. ?u v *s v) S = y" by (metis u)
     hence "y \<in> ?rhs" by auto}
   moreover

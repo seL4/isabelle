@@ -276,8 +276,6 @@ apply(case_tac "M x! k x=Black")
   apply(force)
  apply(force)
 apply(rule disjI2, rule disjI1, erule subset_psubset_trans, erule Graph11, force)
---{* 3 subgoals left *}
-apply force
 --{* 2 subgoals left *}
 apply clarify
 apply(conjI_tac)
@@ -1235,9 +1233,9 @@ apply(simp_all add:mul_collector_mutator_interfree)
 apply(unfold mul_modules mul_collector_defs mul_mutator_defs)
 apply(tactic  {* TRYALL (interfree_aux_tac) *})
 --{* 76 subgoals left *}
-apply (clarify,simp add: nth_list_update)+
+apply (clarsimp simp add: nth_list_update)+
 --{* 56 subgoals left *}
-apply(clarify,simp add:Mul_AppendInv_def Append_to_free0 nth_list_update)+
+apply (clarsimp simp add: Mul_AppendInv_def Append_to_free0 nth_list_update)+
 done
 
 subsubsection {* The Multi-Mutator Garbage Collection Algorithm *}
