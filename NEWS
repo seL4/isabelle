@@ -111,8 +111,11 @@ deleted to achieve the desired effect.
 simp rules by default any longer.  The same applies to
 min_max.inf_absorb1 etc.!  INCOMPATIBILITY.
 
+* sup_Int_eq and sup_Un_eq are no default pred_set_conv rules any longer.
+INCOMPATIBILITY.
+
 * Power operations on relations and functions are now one dedicate
-constant "compow" with infix syntax "^^".  Power operations on
+constant "compow" with infix syntax "^^".  Power operation on
 multiplicative monoids retains syntax "^" and is now defined generic
 in class power.  INCOMPATIBILITY.
 
