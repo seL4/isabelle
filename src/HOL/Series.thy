@@ -104,6 +104,9 @@ lemma summable_sumr_LIMSEQ_suminf:
      "summable f ==> (%n. setsum f {0..<n}) ----> (suminf f)"
 by (rule summable_sums [unfolded sums_def])
 
+lemma suminf_eq_lim: "suminf f = lim (%n. setsum f {0..<n})"
+  by (simp add: suminf_def sums_def lim_def) 
+
 (*-------------------
     sum is unique                    
  ------------------*)
@@ -111,6 +114,9 @@ lemma sums_unique: "f sums s ==> (s = suminf f)"
 apply (frule sums_summable [THEN summable_sums])
 apply (auto intro!: LIMSEQ_unique simp add: sums_def)
 done
+
+lemma sums_iff: "f sums x \<longleftrightarrow> summable f \<and> (suminf f = x)"
+  by (metis summable_sums sums_summable sums_unique)
 
 lemma sums_split_initial_segment: "f sums s ==> 
   (%n. f(n + k)) sums (s - (SUM i = 0..< k. f i))"
@@ -367,6 +373,11 @@ apply (rule_tac x="M" in exI, safe)
 apply (drule_tac x="Suc n" in spec, simp)
 apply (drule_tac x="n" in spec, simp)
 done
+
+lemma suminf_le:
+  fixes x :: real
+  shows "summable f \<Longrightarrow> (!!n. setsum f {0..<n} \<le> x) \<Longrightarrow> suminf f \<le> x"
+  by (simp add: summable_convergent_sumr_iff suminf_eq_lim lim_le) 
 
 lemma summable_Cauchy:
      "summable (f::nat \<Rightarrow> 'a::banach) =  
