@@ -390,6 +390,10 @@ thm int.assoc int.semi_axioms
 interpretation int2?: semi "op +"
   by unfold_locales  (* subsumed, thm int2.assoc not generated *)
 
+ML {* (PureThy.get_thms @{theory} "int2.assoc";
+    error "thm int2.assoc was generated")
+  handle ERROR "Unknown fact \"int2.assoc\"" => ([]:thm list); *}
+
 thm int.lone int.right.rone
   (* the latter comes through the sublocale relation *)
 
