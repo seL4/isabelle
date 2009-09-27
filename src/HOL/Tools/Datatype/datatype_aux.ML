@@ -191,18 +191,18 @@ type info =
    alt_names : string list option,
    descr : descr,
    sorts : (string * sort) list,
+   inject : thm list,
+   distinct : simproc_dist,
+   inducts : thm list * thm,
+   exhaust : thm,
+   nchotomy : thm,
    rec_names : string list,
    rec_rewrites : thm list,
    case_name : string,
    case_rewrites : thm list,
-   inducts : thm list * thm,
-   exhaust : thm,
-   distinct : simproc_dist,
-   inject : thm list,
-   splits : thm * thm,
-   nchotomy : thm,
    case_cong : thm,
-   weak_case_cong : thm};
+   weak_case_cong : thm,
+   splits : thm * thm};
 
 fun mk_Free s T i = Free (s ^ (string_of_int i), T);
 

@@ -226,18 +226,18 @@ fun make_dt_info alt_names descr sorts inducts reccomb_names rec_thms
     alt_names = alt_names,
     descr = descr,
     sorts = sorts,
+    inject = inject,
+    distinct = distinct_thm,
+    inducts = inducts,
+    exhaust = exhaust_thm,
+    nchotomy = nchotomy,
     rec_names = reccomb_names,
     rec_rewrites = rec_thms,
     case_name = case_name,
     case_rewrites = case_thms,
-    inducts = inducts,
-    exhaust = exhaust_thm,
-    distinct = distinct_thm,
-    inject = inject,
-    splits = splits,
-    nchotomy = nchotomy,
     case_cong = case_cong,
-    weak_case_cong = weak_case_cong});
+    weak_case_cong = weak_case_cong,
+    splits = splits});
 
 (* case names *)
 
