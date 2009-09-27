@@ -347,61 +347,55 @@ val _ = ThyOutput.antiquotation "datatype" Args.tyname
 
 (** declare existing type as datatype **)
 
-fun prove_rep_datatype (config : config) dt_names alt_names descr sorts induct inject half_distinct thy =
+fun prove_rep_datatype (config : config) dt_names alt_names descr sorts raw_induct raw_inject half_distinct thy1 =
   let
-
-    val distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
-
+    val raw_distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
     val (case_names_induct, case_names_exhausts) =
       (mk_case_names_induct descr, mk_case_names_exhausts descr dt_names);
+    val (((inject, distinct), [induct]), thy2) =
+      thy1
+      |> store_thmss "inject" new_type_names raw_inject
+      ||>> store_thmss "distinct" new_type_names raw_distinct
+      ||> Sign.add_path (space_implode "_" new_type_names)
+      ||>> PureThy.add_thms [((Binding.name "induct", raw_induct), [case_names_induct])];
 
     val _ = message config ("Proofs for datatype(s) " ^ commas_quote new_type_names);
-
-    val (casedist_thms, thy2) = thy |>
+    val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
+    val (casedist_thms, thy3) = thy2 |>
       DatatypeAbsProofs.prove_casedist_thms config new_type_names [descr] sorts induct
         case_names_exhausts;
-    val ((reccomb_names, rec_thms), thy3) = DatatypeAbsProofs.prove_primrec_thms
-      config new_type_names [descr] sorts (get_all thy) inject distinct
-      (Simplifier.theory_context thy2 dist_ss) induct thy2;
-    val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms
-      config new_type_names [descr] sorts reccomb_names rec_thms thy3;
-    val (split_thms, thy5) = DatatypeAbsProofs.prove_split_thms
-      config new_type_names [descr] sorts inject distinct casedist_thms case_thms thy4;
-    val (nchotomys, thy6) = DatatypeAbsProofs.prove_nchotomys config new_type_names
-      [descr] sorts casedist_thms thy5;
-    val (case_congs, thy7) = DatatypeAbsProofs.prove_case_congs new_type_names
-      [descr] sorts nchotomys case_thms thy6;
-    val (weak_case_congs, thy8) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
-      [descr] sorts thy7;
-
-    val ((_, [induct']), thy10) =
-      thy8
-      |> store_thmss "inject" new_type_names inject
-      ||>> store_thmss "distinct" new_type_names distinct
-      ||> Sign.add_path (space_implode "_" new_type_names)
-      ||>> PureThy.add_thms [((Binding.name "induct", induct), [case_names_induct])];
-    val inducts = Project_Rule.projections (ProofContext.init thy10) induct';
-
-    val dt_infos = map (make_dt_info alt_names descr sorts (inducts, induct') reccomb_names rec_thms)
-      ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
-        map FewConstrs distinct ~~ inject ~~ split_thms ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
+    val ((reccomb_names, rec_thms), thy4) = DatatypeAbsProofs.prove_primrec_thms
+      config new_type_names [descr] sorts (get_all thy3) inject distinct
+      (Simplifier.theory_context thy3 dist_ss) induct thy3;
+    val ((case_thms, case_names), thy5) = DatatypeAbsProofs.prove_case_thms
+      config new_type_names [descr] sorts reccomb_names rec_thms thy4;
+    val (split_thms, thy6) = DatatypeAbsProofs.prove_split_thms
+      config new_type_names [descr] sorts inject distinct casedist_thms case_thms thy5;
+    val (nchotomys, thy7) = DatatypeAbsProofs.prove_nchotomys config new_type_names
+      [descr] sorts casedist_thms thy6;
+    val (case_congs, thy8) = DatatypeAbsProofs.prove_case_congs new_type_names
+      [descr] sorts nchotomys case_thms thy7;
+    val (weak_case_congs, thy9) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
+      [descr] sorts thy8;
 
     val simps = flat (distinct @ inject @ case_thms) @ rec_thms;
+    val dt_infos = map (make_dt_info alt_names descr sorts (inducts, induct) reccomb_names rec_thms)
+      ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
+        map FewConstrs distinct ~~ inject ~~ split_thms ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
     val dt_names = map fst dt_infos;
-
-    val thy11 =
-      thy10
-      |> add_case_tr' case_names
-      |> add_rules simps case_thms rec_thms inject distinct
-           weak_case_congs (Simplifier.attrib (op addcongs))
-      |> register dt_infos
-      |> add_cases_induct dt_infos inducts
-      |> Sign.parent_path
-      |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
-      |> snd
-      |> DatatypeInterpretation.data (config, dt_names);
-  in (dt_names, thy11) end;
+  in
+    thy9
+    |> add_case_tr' case_names
+    |> add_rules simps case_thms rec_thms inject distinct weak_case_congs (Simplifier.attrib (op addcongs))
+    |> register dt_infos
+    |> add_cases_induct dt_infos inducts
+    |> Sign.parent_path
+    |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
+    |> snd
+    |> DatatypeInterpretation.data (config, dt_names)
+    |> pair dt_names
+  end;
 
 fun gen_rep_datatype prep_term (config : config) after_qed alt_names raw_ts thy =
   let
