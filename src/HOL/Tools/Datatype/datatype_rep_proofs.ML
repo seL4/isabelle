@@ -38,7 +38,7 @@ val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 (** theory context references **)
 
 fun exh_thm_of (dt_info : info Symtab.table) tname =
-  #exhaustion (the (Symtab.lookup dt_info tname));
+  #exhaust (the (Symtab.lookup dt_info tname));
 
 (******************************************************************************)
 
@@ -389,7 +389,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
       let
         val (_, (tname, _, _)) = hd ds;
-        val {induction, ...} = the (Symtab.lookup dt_info tname);
+        val induct = (snd o #inducts o the o Symtab.lookup dt_info) tname;
 
         fun mk_ind_concl (i, _) =
           let
@@ -410,7 +410,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
         val inj_thm = SkipProof.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
-            [(indtac induction [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+            [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
              REPEAT (EVERY
                [rtac allI 1, rtac impI 1,
                 exh_tac (exh_thm_of dt_info) 1,
@@ -436,7 +436,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val elem_thm = 
             SkipProof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
               (fn _ =>
-               EVERY [(indtac induction [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+               EVERY [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
                 rewrite_goals_tac rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);

@@ -230,15 +230,15 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
-fun prepare_induct ({descr, induction, ...}: info) rec_eqns =
+fun prepare_induct ({descr, inducts = (_, induct), ...}: info) rec_eqns =
   let
     fun constrs_of (_, (_, _, cs)) =
       map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;
-    val params_of = these o AList.lookup (op =) (List.concat (map constrs_of rec_eqns));
+    val params_of = these o AList.lookup (op =) (maps constrs_of rec_eqns);
   in
-    induction
-    |> RuleCases.rename_params (map params_of (List.concat (map (map #1 o #3 o #2) descr)))
-    |> RuleCases.save induction
+    induct
+    |> RuleCases.rename_params (map params_of (maps (map #1 o #3 o #2) descr))
+    |> RuleCases.save induct
   end;
 
 local

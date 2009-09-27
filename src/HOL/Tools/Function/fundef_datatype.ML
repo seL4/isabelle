@@ -145,7 +145,7 @@ and o_alg thy P idx [] (([], Pthm) :: _)  = Pthm
          let
              val T = fastype_of v
              val (tname, _) = dest_Type T
-             val {exhaustion=case_thm, ...} = Datatype.the_info thy tname
+             val {exhaust=case_thm, ...} = Datatype.the_info thy tname
              val constrs = inst_constrs_of thy T
              val c_cases = map (constr_case thy P idx (v :: vs) pts) constrs
          in
