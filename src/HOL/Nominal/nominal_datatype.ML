@@ -245,7 +245,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val (full_new_type_names',thy1) =
       Datatype.add_datatype config new_type_names' dts'' thy;
 
-    val {descr, induction, ...} =
+    val {descr, inducts = (_, induct), ...} =
       Datatype.the_info thy1 (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts (DtRec i);
 
@@ -322,7 +322,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                  Const ("Nominal.perm", T) $ pi $ Free (x, T2))
                end)
              (perm_names_types ~~ perm_indnames))))
-          (fn _ => EVERY [indtac induction perm_indnames 1,
+          (fn _ => EVERY [indtac induct perm_indnames 1,
             ALLGOALS (asm_full_simp_tac
               (global_simpset_of thy2 addsimps [perm_fun_def]))])),
         length new_type_names));
@@ -343,7 +343,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                    Free (x, T)))
                (perm_names ~~
                 map body_type perm_types ~~ perm_indnames)))))
-          (fn _ => EVERY [indtac induction perm_indnames 1,
+          (fn _ => EVERY [indtac induct perm_indnames 1,
             ALLGOALS (asm_full_simp_tac (global_simpset_of thy2))])),
         length new_type_names))
       end)
@@ -378,7 +378,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     end)
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames)))))
-           (fn _ => EVERY [indtac induction perm_indnames 1,
+           (fn _ => EVERY [indtac induct perm_indnames 1,
               ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt2', pt2_ax]))]))),
          length new_type_names)
       end) atoms);
@@ -414,7 +414,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     end)
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames))))))
-           (fn _ => EVERY [indtac induction perm_indnames 1,
+           (fn _ => EVERY [indtac induct perm_indnames 1,
               ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt3', pt3_rev', pt3_ax]))]))),
          length new_type_names)
       end) atoms);
@@ -466,7 +466,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                      perm2 $ (perm3 $ pi1 $ pi2) $ (perm1 $ pi1 $ Free (x, T)))
                   end)
                 (perm_names ~~ Ts ~~ perm_indnames)))))
-          (fn _ => EVERY [indtac induction perm_indnames 1,
+          (fn _ => EVERY [indtac induct perm_indnames 1,
              ALLGOALS (asm_full_simp_tac simps)]))
       in
         fold (fn (s, tvs) => fn thy => AxClass.prove_arity
