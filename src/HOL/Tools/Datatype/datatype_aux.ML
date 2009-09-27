@@ -195,10 +195,11 @@ type info =
    rec_rewrites : thm list,
    case_name : string,
    case_rewrites : thm list,
-   induction : thm,
-   exhaustion : thm,
+   inducts : thm list * thm,
+   exhaust : thm,
    distinct : simproc_dist,
    inject : thm list,
+   splits : thm * thm,
    nchotomy : thm,
    case_cong : thm,
    weak_case_cong : thm};

@@ -38,7 +38,7 @@ fun tname_of (Type (s, _)) = s
 
 fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
-fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : info) is thy =
+fun make_ind sorts ({descr, rec_names, rec_rewrites, inducts = (_, induct), ...} : info) is thy =
   let
     val recTs = get_rec_types descr sorts;
     val pnames = if length descr = 1 then ["P"]
@@ -113,18 +113,18 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : info) is 
           (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
     val cert = cterm_of thy;
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
-      (HOLogic.dest_Trueprop (concl_of induction))) ~~ ps);
+      (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
 
     val thm = OldGoals.simple_prove_goal_cterm (cert (Logic.list_implies (prems, concl)))
       (fn prems =>
          [rewrite_goals_tac (map mk_meta_eq [fst_conv, snd_conv]),
-          rtac (cterm_instantiate inst induction) 1,
+          rtac (cterm_instantiate inst induct) 1,
           ALLGOALS ObjectLogic.atomize_prems_tac,
           rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),
           REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
             REPEAT (etac allE i) THEN atac i)) 1)]);
 
-    val ind_name = Thm.get_name induction;
+    val ind_name = Thm.get_name induct;
     val vs = map (fn i => List.nth (pnames, i)) is;
     val (thm', thy') = thy
       |> Sign.root_path
@@ -157,7 +157,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : info) is 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
 
-fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, ...} : info) thy =
+fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...} : info) thy =
   let
     val cert = cterm_of thy;
     val rT = TFree ("'P", HOLogic.typeS);
@@ -187,12 +187,12 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
       HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
         list_comb (r, rs @ [y'])))))
       (fn prems =>
-         [rtac (cterm_instantiate [(cert y, cert y')] exhaustion) 1,
+         [rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
           ALLGOALS (EVERY'
             [asm_simp_tac (HOL_basic_ss addsimps case_rewrites),
              resolve_tac prems, asm_simp_tac HOL_basic_ss])]);
 
-    val exh_name = Thm.get_name exhaustion;
+    val exh_name = Thm.get_name exhaust;
     val (thm', thy') = thy
       |> Sign.root_path
       |> PureThy.store_thm (Binding.qualified_name (exh_name ^ "_P_correctness"), thm)
@@ -210,7 +210,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
 
   in Extraction.add_realizers_i
     [(exh_name, (["P"], r', prf)),
-     (exh_name, ([], Extraction.nullt, prf_of exhaustion))] thy'
+     (exh_name, ([], Extraction.nullt, prf_of exhaust))] thy'
   end;
 
 fun add_dt_realizers config names thy =
