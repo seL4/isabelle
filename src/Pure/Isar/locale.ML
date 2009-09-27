@@ -212,13 +212,13 @@ local
 
 val roundup_bound = 120;
 
-fun add thy depth (name, morph) (deps, marked) =
+fun add thy depth export (name, morph) (deps, marked) =
   if depth > roundup_bound
   then error "Roundup bound exceeded (sublocale relation probably not terminating)."
   else
     let
       val dependencies = dependencies_of thy name;
-      val instance = instance_of thy name morph;
+      val instance = instance_of thy name (morph $> export);
     in
       if member (ident_eq thy) marked (name, instance)
       then (deps, marked)
@@ -226,7 +226,7 @@ fun add thy depth (name, morph) (deps, marked) =
         let
           val dependencies' = map (fn (name, morph') => (name, morph' $> morph)) dependencies;
           val marked' = (name, instance) :: marked;
-          val (deps', marked'') = fold_rev (add thy (depth + 1)) dependencies' ([], marked');
+          val (deps', marked'') = fold_rev (add thy (depth + 1) export) dependencies' ([], marked');
         in
           ((name, morph) :: deps' @ deps, marked'')
         end
@@ -234,14 +234,17 @@ fun add thy depth (name, morph) (deps, marked) =
 
 in
 
-fun roundup thy activate_dep (name, morph) (marked, input) =
+(* Note that while identifiers always have the exported view, activate_dep is
+  is presented with the internal view. *)
+
+fun roundup thy activate_dep export (name, morph) (marked, input) =
   let
     (* Find all dependencies incuding new ones (which are dependencies enriching
       existing registrations). *)
-    val (dependencies, marked') = add thy 0 (name, morph) ([], []);
+    val (dependencies, marked') = add thy 0 export (name, morph) ([], []);
     (* Filter out fragments from marked; these won't be activated. *)
     val dependencies' = filter_out (fn (name, morph) =>
-      member (ident_eq thy) marked (name, instance_of thy name morph)) dependencies;
+      member (ident_eq thy) marked (name, instance_of thy name (morph $> export))) dependencies;
   in
     (merge (ident_eq thy) (marked, marked'), input |> fold_rev activate_dep dependencies')
   end;
@@ -285,7 +288,7 @@ fun activate_all name thy activ_elem transfer (marked, input) =
         else I);
     val activate = activate_notes activ_elem transfer thy;
   in
-    roundup thy activate (name, Morphism.identity) (marked, input')
+    roundup thy activate Morphism.identity (name, Morphism.identity) (marked, input')
   end;
 
 
@@ -294,13 +297,13 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 fun activate_declarations dep = Context.proof_map (fn context =>
   let
     val thy = Context.theory_of context;
-  in roundup thy activate_decls dep (get_idents context, context) |-> put_idents end);
+  in roundup thy activate_decls Morphism.identity dep (get_idents context, context) |-> put_idents end);
 
 fun activate_facts dep context =
   let
     val thy = Context.theory_of context;
     val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) thy;
-  in roundup thy activate dep (get_idents context, context) |-> put_idents end;
+  in roundup thy activate Morphism.identity dep (get_idents context, context) |-> put_idents end;
 
 fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
@@ -369,7 +372,7 @@ fun add_registration_eqs (dep, proto_morph) eqns export thy =
   in
     (get_idents (Context.Theory thy), thy)
     |> roundup thy (fn (dep', morph') =>
-        Registrations.map (cons ((dep', (morph', export)), stamp ()))) (dep, morph)
+        Registrations.map (cons ((dep', (morph', export)), stamp ()))) export (dep, morph)
     |> snd
     |> Context.theory_map (activate_facts (dep, morph $> export))
   end;
