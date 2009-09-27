@@ -140,8 +140,8 @@ fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = flat o fst o reachable (imm_preds G);
-fun all_succs G = flat o fst o reachable (imm_succs G);
+fun all_preds G = flat o rev o fst o reachable (imm_preds G);
+fun all_succs G = flat o rev o fst o reachable (imm_succs G);
 
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
