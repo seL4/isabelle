@@ -173,16 +173,19 @@ fun fold_proof_atoms all f =
 
 fun fold_body_thms f =
   let
-    fun app (PBody {thms, ...}) =
+    fun app path (PBody {thms, ...}) =
      (Future.join_results (map (#3 o #2) thms);
       thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
-        if Inttab.defined seen i then (x, seen)
+        if Inttab.defined path i then
+          error ("Cyclic reference to theorem " ^ quote name)
+        else if Inttab.defined seen i then (x, seen)
         else
           let
             val body' = Future.join body;
-            val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
+            val path' = Inttab.update (i, ()) path;
+            val (x', seen') = app path' body' (x, Inttab.update (i, ()) seen);
           in (f (name, prop, body') x', seen') end));
-  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
+  in fn bodies => fn x => #1 (fold (app Inttab.empty) bodies (x, Inttab.empty)) end;
 
 fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
 
