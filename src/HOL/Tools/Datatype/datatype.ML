@@ -347,24 +347,14 @@ val _ = ThyOutput.antiquotation "datatype" Args.tyname
 
 (** declare existing type as datatype **)
 
-fun prove_rep_datatype (config : config) alt_names new_type_names descr sorts induct inject half_distinct thy =
+fun prove_rep_datatype (config : config) dt_names alt_names descr sorts induct inject half_distinct thy =
   let
-    val ((_, [induct']), _) =
-      Variable.importT [induct] (Variable.thm_context induct);
-
-    fun err t = error ("Ill-formed predicate in induction rule: " ^
-      Syntax.string_of_term_global thy t);
-
-    fun get_typ (t as _ $ Var (_, Type (tname, Ts))) =
-          ((tname, map (fst o dest_TFree) Ts) handle TERM _ => err t)
-      | get_typ t = err t;
-    val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct')));
-
-    val dt_info = get_all thy;
 
     val distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
+
+    val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
     val (case_names_induct, case_names_exhausts) =
-      (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames));
+      (mk_case_names_induct descr, mk_case_names_exhausts descr dt_names);
 
     val _ = message config ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
@@ -372,7 +362,7 @@ fun prove_rep_datatype (config : config) alt_names new_type_names descr sorts in
       DatatypeAbsProofs.prove_casedist_thms config new_type_names [descr] sorts induct
         case_names_exhausts;
     val ((reccomb_names, rec_thms), thy3) = DatatypeAbsProofs.prove_primrec_thms
-      config new_type_names [descr] sorts dt_info inject distinct
+      config new_type_names [descr] sorts (get_all thy) inject distinct
       (Simplifier.theory_context thy2 dist_ss) induct thy2;
     val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms
       config new_type_names [descr] sorts reccomb_names rec_thms thy3;
@@ -451,7 +441,7 @@ fun gen_rep_datatype prep_term (config : config) after_qed alt_names raw_ts thy 
     val cs = map (apsnd (map norm_constr)) raw_cs;
     val dtyps_of_typ = map (dtyp_of_typ (map (rpair (map fst vs) o fst) cs))
       o fst o strip_type;
-    val new_type_names = map Long_Name.base_name (the_default (map fst cs) alt_names);
+    val dt_names = map fst cs;
 
     fun mk_spec (i, (tyco, constr)) = (i, (tyco,
       map (DtTFree o fst) vs,
@@ -469,7 +459,7 @@ fun gen_rep_datatype prep_term (config : config) after_qed alt_names raw_ts thy 
             (*FIXME somehow dubious*)
       in
         ProofContext.theory_result
-          (prove_rep_datatype config alt_names new_type_names descr vs induct injs half_distincts)
+          (prove_rep_datatype config dt_names alt_names descr vs induct injs half_distincts)
         #-> after_qed
       end;
   in
