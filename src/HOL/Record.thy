@@ -70,13 +70,13 @@ subsection {* Operators and lemmas for types isomorphic to tuples *}
 text {*
 Records are isomorphic to compound tuple types. To implement efficient
 records, we make this isomorphism explicit. Consider the record
-access/update simplification "alpha (beta_update f rec) = alpha rec" for
+access/update simplification @{text "alpha (beta_update f rec) = alpha rec"} for
 distinct fields alpha and beta of some record rec with n fields. There
-are n^2 such theorems, which prohibits storage of all of them for
+are @{text "n ^ 2"} such theorems, which prohibits storage of all of them for
 large n. The rules can be proved on the fly by case decomposition and
 simplification in O(n) time. By creating O(n) isomorphic-tuple types
 while defining the record, however, we can prove the access/update
-simplification in O(log(n)^2) time.
+simplification in @{text "O(log(n)^2)"} time.
 
 The O(n) cost of case decomposition is not because O(n) steps are taken,
 but rather because the resulting rule must contain O(n) new variables and
@@ -85,34 +85,35 @@ like to avoid case decomposition in proving access/update theorems.
 
 Record types are defined as isomorphic to tuple types. For instance, a
 record type with fields 'a, 'b, 'c and 'd might be introduced as
-isomorphic to 'a \<times> ('b \<times> ('c \<times> 'd)). If we balance the tuple tree to
-('a \<times> 'b) \<times> ('c \<times> 'd) then accessors can be defined by converting to
+isomorphic to @{text "'a \<times> ('b \<times> ('c \<times> 'd))"}. If we balance the tuple tree to
+@{text "('a \<times> 'b) \<times> ('c \<times> 'd)"} then accessors can be defined by converting to
 the underlying type then using O(log(n)) fst or snd operations.
-Updators can be defined similarly, if we introduce a fst_update and
-snd_update function. Furthermore, we can prove the access/update
+Updators can be defined similarly, if we introduce a @{text "fst_update"} and
+@{text "snd_update"} function. Furthermore, we can prove the access/update
 theorem in O(log(n)) steps by using simple rewrites on fst, snd,
-fst_update and snd_update.
+@{text "fst_update"} and @{text "snd_update"}.
 
 The catch is that, although O(log(n)) steps were taken, the underlying
 type we converted to is a tuple tree of size O(n). Processing this term
 type wastes performance. We avoid this for large n by taking each
 subtree of size K and defining a new type isomorphic to that tuple
 subtree. A record can now be defined as isomorphic to a tuple tree
-of these O(n/K) new types, or, if n > K*K, we can repeat the process,
+of these O(n/K) new types, or, if @{text "n > K*K"}, we can repeat the process,
 until the record can be defined in terms of a tuple tree of complexity
 less than the constant K.
 
 If we prove the access/update theorem on this type with the analagous
-steps to the tuple tree, we consume O(log(n)^2) time as the intermediate
+steps to the tuple tree, we consume @{text "O(log(n)^2)"} time as the intermediate
 terms are O(log(n)) in size and the types needed have size bounded by K.
 To enable this analagous traversal, we define the functions seen below:
-istuple_fst, istuple_snd, istuple_fst_update and istuple_snd_update.
-These functions generalise tuple operations by taking a parameter that
-encapsulates a tuple isomorphism. The rewrites needed on these functions
-now need an additional assumption which is that the isomorphism works.
+@{text "istuple_fst"}, @{text "istuple_snd"}, @{text "istuple_fst_update"}
+and @{text "istuple_snd_update"}. These functions generalise tuple
+operations by taking a parameter that encapsulates a tuple isomorphism.
+The rewrites needed on these functions now need an additional assumption
+which is that the isomorphism works.
 
 These rewrites are typically used in a structured way. They are here
-presented as the introduction rule isomorphic_tuple.intros rather than
+presented as the introduction rule @{text "isomorphic_tuple.intros"} rather than
 as a rewrite rule set. The introduction form is an optimisation, as net
 matching can be performed at one term location for each step rather than
 the simplifier searching the term for possible pattern matches. The rule
