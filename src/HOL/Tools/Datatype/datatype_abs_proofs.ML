@@ -20,7 +20,7 @@ sig
     attribute list -> theory -> thm list * theory
   val prove_primrec_thms : config -> string list ->
     descr list -> (string * sort) list ->
-      info Symtab.table -> thm list list -> thm list list ->
+      (string -> thm list) -> thm list list -> thm list list ->
         simpset -> thm -> theory -> (string list * thm list) * theory
   val prove_case_thms : config -> string list ->
     descr list -> (string * sort) list ->
@@ -88,7 +88,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
 (*************************** primrec combinators ******************************)
 
 fun prove_primrec_thms (config : config) new_type_names descr sorts
-    (dt_info : info Symtab.table) constr_inject dist_rewrites dist_ss induct thy =
+    injects_of constr_inject dist_rewrites dist_ss induct thy =
   let
     val _ = message config "Constructing primrec combinators ...";
 
@@ -174,11 +174,11 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
         val inject = map (fn r => r RS iffD1)
           (if i < length newTs then List.nth (constr_inject, i)
-            else #inject (the (Symtab.lookup dt_info tname)));
+            else injects_of tname);
 
         fun mk_unique_constr_tac n ((tac, intr::intrs, j), (cname, cargs)) =
           let
-            val k = length (List.filter is_rec_type cargs)
+            val k = length (filter is_rec_type cargs)
 
           in (EVERY [DETERM tac,
                 REPEAT (etac ex1E 1), rtac ex1I 1,
