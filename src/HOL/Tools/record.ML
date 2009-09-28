@@ -2005,9 +2005,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val r_rec0 = mk_rec all_vars_more 0;
     val r_rec_unit0 = mk_rec (all_vars@[HOLogic.unit]) 0;
-    val r_rec0_Vars = let
-        fun to_Var (Free (c, T)) = Var ((c, 0), T);
-      in mk_rec (map to_Var all_vars_more) 0 end;
 
     fun r n = Free (rN, rec_schemeT n)
     val r0 = r 0;
@@ -2075,6 +2072,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
        pair, from which we can derive the bodies of our selector and
        updator and their convs. *)
     fun get_access_update_thms () = let
+        val r_rec0_Vars = let
+            (* pick variable indices of 1 to avoid possible variable
+               collisions with existing variables in updacc_eq_triv *)
+            fun to_Var (Free (c, T)) = Var ((c, 1), T);
+          in mk_rec (map to_Var all_vars_more) 0 end;
+
         val cterm_rec = cterm_of extension_thy r_rec0;
         val cterm_vrs = cterm_of extension_thy r_rec0_Vars;
         val insts     = [("v", cterm_rec), ("v'", cterm_vrs)];
