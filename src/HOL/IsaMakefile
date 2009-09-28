@@ -87,30 +87,31 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
-  $(SRC)/Tools/IsaPlanner/isand.ML \
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
-  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
-  $(SRC)/Tools/IsaPlanner/zipper.ML \
-  $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_preproc.ML \
   $(SRC)/Tools/Code/code_printer.ML \
   $(SRC)/Tools/Code/code_target.ML \
   $(SRC)/Tools/Code/code_thingol.ML \
+  $(SRC)/Tools/Code_Generator.thy \
+  $(SRC)/Tools/IsaPlanner/isand.ML \
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
+  $(SRC)/Tools/IsaPlanner/zipper.ML \
+  $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/coherent.ML \
+  $(SRC)/Tools/cong_tac.ML \
   $(SRC)/Tools/eqsubst.ML \
   $(SRC)/Tools/induct.ML \
-  $(SRC)/Tools/intuitionistic.ML \
   $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/intuitionistic.ML \
+  $(SRC)/Tools/more_conv.ML \
   $(SRC)/Tools/nbe.ML \
-  $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/project_rule.ML \
+  $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
-  $(SRC)/Tools/Code_Generator.thy \
-  $(SRC)/Tools/more_conv.ML \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
@@ -130,9 +131,9 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
+  Option.thy \
   OrderedGroup.thy \
   Orderings.thy \
-  Option.thy \
   Plain.thy \
   Power.thy \
   Predicate.thy \
@@ -215,8 +216,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
-  IntDiv.thy \
   Int.thy \
+  IntDiv.thy \
   List.thy \
   Main.thy \
   Map.thy \
@@ -280,8 +281,8 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Archimedean_Field.thy \
-  Complex_Main.thy \
   Complex.thy \
+  Complex_Main.thy \
   Deriv.thy \
   Fact.thy \
   GCD.thy \
@@ -294,18 +295,18 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   MacLaurin.thy \
   Nat_Transfer.thy \
   NthRoot.thy \
+  PReal.thy \
+  Parity.thy \
+  RComplete.thy \
+  Rational.thy \
+  Real.thy \
+  RealDef.thy \
+  RealPow.thy \
+  RealVector.thy \
   SEQ.thy \
   Series.thy \
   Taylor.thy \
   Transcendental.thy \
-  Parity.thy \
-  PReal.thy \
-  Rational.thy \
-  RComplete.thy \
-  RealDef.thy \
-  RealPow.thy \
-  Real.thy \
-  RealVector.thy \
   Tools/float_syntax.ML \
   Tools/transfer.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \

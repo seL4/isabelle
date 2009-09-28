@@ -35,7 +35,6 @@ sig
 
   val app_bnds : term -> int -> term
 
-  val cong_tac : int -> tactic
   val indtac : thm -> string list -> int -> tactic
   val exh_tac : (string -> thm) -> int -> tactic
 
@@ -111,21 +110,6 @@ val mk_disj = foldr1 (HOLogic.mk_binop "op |");
 
 fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 
-
-fun cong_tac i st = (case Logic.strip_assums_concl
-  (List.nth (prems_of st, i - 1)) of
-    _ $ (_ $ (f $ x) $ (g $ y)) =>
-      let
-        val cong' = Thm.lift_rule (Thm.cprem_of st i) cong;
-        val _ $ (_ $ (f' $ x') $ (g' $ y')) =
-          Logic.strip_assums_concl (prop_of cong');
-        val insts = map (pairself (cterm_of (Thm.theory_of_thm st)) o
-          apsnd (curry list_abs (Logic.strip_params (concl_of cong'))) o
-            apfst head_of) [(f', f), (g', g), (x', x), (y', y)]
-      in compose_tac (false, cterm_instantiate insts cong', 2) i st
-        handle THM _ => no_tac st
-      end
-  | _ => no_tac st);
 
 (* instantiate induction rule *)
 

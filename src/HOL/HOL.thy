@@ -15,6 +15,7 @@ uses
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
   "~~/src/Tools/intuitionistic.ML"
   "~~/src/Tools/project_rule.ML"
+  "~~/src/Tools/cong_tac.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"
@@ -240,15 +241,15 @@ lemma back_subst: "P a ==> a = b ==> P b"
   by (rule subst)
 
 
-subsubsection {*Congruence rules for application*}
+subsubsection {* Congruence rules for application *}
 
-(*similar to AP_THM in Gordon's HOL*)
+text {* Similar to @{text AP_THM} in Gordon's HOL. *}
 lemma fun_cong: "(f::'a=>'b) = g ==> f(x)=g(x)"
 apply (erule subst)
 apply (rule refl)
 done
 
-(*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
+text {* Similar to @{text AP_TERM} in Gordon's HOL and FOL's @{text subst_context}. *}
 lemma arg_cong: "x=y ==> f(x)=f(y)"
 apply (erule subst)
 apply (rule refl)
@@ -259,13 +260,15 @@ apply (erule ssubst)+
 apply (rule refl)
 done
 
-lemma cong: "[| f = g; (x::'a) = y |] ==> f(x) = g(y)"
+lemma cong: "[| f = g; (x::'a) = y |] ==> f x = g y"
 apply (erule subst)+
 apply (rule refl)
 done
 
+ML {* val cong_tac = Cong_Tac.cong_tac @{thm cong} *}
 
-subsubsection {*Equality of booleans -- iff*}
+
+subsubsection {* Equality of booleans -- iff *}
 
 lemma iffI: assumes "P ==> Q" and "Q ==> P" shows "P=Q"
   by (iprover intro: iff [THEN mp, THEN mp] impI assms)
