@@ -14,6 +14,9 @@ begin
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
   by simp
 
+lemma abs_diff_less_iff:
+  "(\<bar>x - a\<bar> < (r::'a::ordered_idom)) = (a - r < x \<and> x < a + r)"
+  by auto
 
 subsection {* Completeness of Positive Reals *}
 
@@ -299,6 +302,20 @@ proof -
       qed
     qed
   qed
+qed
+
+text{*A version of the same theorem without all those predicates!*}
+lemma reals_complete2:
+  fixes S :: "(real set)"
+  assumes "\<exists>y. y\<in>S" and "\<exists>(x::real). \<forall>y\<in>S. y \<le> x"
+  shows "\<exists>x. (\<forall>y\<in>S. y \<le> x) & 
+               (\<forall>z. ((\<forall>y\<in>S. y \<le> z) --> x \<le> z))"
+proof -
+  have "\<exists>x. isLub UNIV S x" 
+    by (rule reals_complete)
+       (auto simp add: isLub_def isUb_def leastP_def setle_def setge_def prems)
+  thus ?thesis
+    by (metis UNIV_I isLub_isUb isLub_le_isUb isUbD isUb_def setleI)
 qed
 
 

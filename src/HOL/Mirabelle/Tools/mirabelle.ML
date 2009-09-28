@@ -16,7 +16,7 @@ sig
   type done_args = {last: Toplevel.state, log: string -> unit}
   type done_action = int -> done_args -> unit
   type run_args = {pre: Proof.state, post: Toplevel.state option,
-    timeout: Time.time, log: string -> unit, pos: Position.T}
+    timeout: Time.time, log: string -> unit, pos: Position.T, name: string}
   type run_action = int -> run_args -> unit
   type action = init_action * run_action * done_action
   val catch : (int -> string) -> run_action -> run_action
@@ -56,7 +56,7 @@ type init_action = int -> theory -> theory
 type done_args = {last: Toplevel.state, log: string -> unit}
 type done_action = int -> done_args -> unit
 type run_args = {pre: Proof.state, post: Toplevel.state option,
-  timeout: Time.time, log: string -> unit, pos: Position.T}
+  timeout: Time.time, log: string -> unit, pos: Position.T, name: string}
 type run_action = int -> run_args -> unit
 type action = init_action * run_action * done_action
 
@@ -95,9 +95,9 @@ fun log thy s =
 
 fun log_sep thy = log thy "------------------"
 
-fun apply_actions thy pos info (pre, post, time) actions =
+fun apply_actions thy pos name info (pre, post, time) actions =
   let
-    fun apply f = f {pre=pre, post=post, timeout=time, log=log thy, pos=pos}
+    fun apply f = f {pre=pre, post=post, timeout=time, log=log thy, pos=pos, name=name}
     fun run (id, run, _) = (apply (run id); log_sep thy)
   in (log thy info; log_sep thy; List.app run actions) end
 
@@ -121,7 +121,7 @@ fun run_actions tr pre post =
     val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
     val info = "\n\nat " ^ loc ^ " (" ^ name ^ "):"
   in
-    only_within_range thy pos (apply_actions thy pos info st) (Actions.get thy)
+    only_within_range thy pos (apply_actions thy pos name info st) (Actions.get thy)
   end
 
 fun done_actions st =

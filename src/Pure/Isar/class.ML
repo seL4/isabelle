@@ -211,12 +211,8 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
           #>> Element.Fixes
       | fork_syn x = pair x;
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
-    val constrain = Element.Constrains ((map o apsnd o map_atyps)
-      (K (TFree (Name.aT, base_sort))) raw_supparams);
-      (*FIXME perhaps better: control type variable by explicit
-      parameter instantiation of import expression*)
 
-  in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), ((*constrain :: *)elems, global_syntax)) end;
+  in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (elems, global_syntax)) end;
 
 val cert_class_spec = prep_class_spec (K I) cert_class_elems;
 val read_class_spec = prep_class_spec Sign.intern_class read_class_elems;

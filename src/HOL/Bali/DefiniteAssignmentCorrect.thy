@@ -1747,7 +1747,7 @@ proof -
       have "assigns (In1l e2) \<subseteq> dom (locals (store s2))"
 	by (simp add: need_second_arg_def)
       with s2
-      show ?thesis using False by (simp add: Un_subset_iff)
+      show ?thesis using False by simp
     qed
   next
     case Super thus ?case by simp

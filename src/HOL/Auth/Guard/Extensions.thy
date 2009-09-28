@@ -11,7 +11,9 @@ Cambridge CB3 0FD, United Kingdom
 
 header {*Extensions to Standard Theories*}
 
-theory Extensions imports "../Event" begin
+theory Extensions
+imports "../Event"
+begin
 
 subsection{*Extensions to Theory @{text Set}*}
 
@@ -173,7 +175,7 @@ by (erule synth.induct, auto dest: parts_sub)
 subsubsection{*lemmas on analz*}
 
 lemma analz_UnI1 [intro]: "X:analz G ==> X:analz (G Un H)"
-by (subgoal_tac "G <= G Un H", auto dest: analz_mono)
+  by (subgoal_tac "G <= G Un H") (blast dest: analz_mono)+
 
 lemma analz_sub: "[| X:analz G; G <= H |] ==> X:analz H"
 by (auto dest: analz_mono)

@@ -11,6 +11,7 @@
 
 use File::Basename qw/ dirname /;
 use File::Temp qw/ tempfile /;
+use English;
 
 
 # E executables
@@ -44,7 +45,7 @@ $eprover_cmd = "$eprover_cmd -l4 -R -o- --pcl-terms-compressed --pcl-compact";
 # run E, redirecting output into a temporary file
 
 my ($fh, $filename) = tempfile(UNLINK => 1);
-my $r = system "$eprover_cmd > $filename";
+my $r = system "$eprover_cmd > '$filename'";
 exit ($r >> 8) if $r != 0;
 
 
@@ -55,7 +56,7 @@ my $content = join "", @lines[-60 .. -1];
   # Note: Like the original eproof, we only look at the last 60 lines.
 
 if ($content =~ m/Total time\s*:\s*([0-9]+\.[0-9]+)/) {
-  $timelimit = $timelimit - $1 - 1;
+  $timelimit = int($timelimit - $1 - 1);
 
   if ($content =~ m/No proof found!/) {
     print "# Problem is satisfiable (or invalid), " .
@@ -85,7 +86,7 @@ foreach (@lines) {
   print if (m/# SZS status/ or m/"# Failure"/);
 }
 $r = system ("exec bash -c \"ulimit -S -t $timelimit; " .
-  "'$epclextract' $format -f --competition-framing $filename\"");
+  "'$epclextract' $format -f --competition-framing '$filename'\"");
   # Note: Setting the user time is not supported on Cygwin, i.e., ulimit fails
   # and prints and error message. How could we then limit the execution time?
 exit ($r >> 8);

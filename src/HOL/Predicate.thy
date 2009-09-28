@@ -81,7 +81,7 @@ lemma sup1_iff: "sup A B x \<longleftrightarrow> A x | B x"
 lemma sup2_iff: "sup A B x y \<longleftrightarrow> A x y | B x y"
   by (simp add: sup_fun_eq sup_bool_eq)
 
-lemma sup_Un_eq [pred_set_conv]: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
+lemma sup_Un_eq: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
   by (simp add: sup1_iff expand_fun_eq)
 
 lemma sup_Un_eq2 [pred_set_conv]: "sup (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
@@ -125,7 +125,7 @@ lemma inf1_iff: "inf A B x \<longleftrightarrow> A x \<and> B x"
 lemma inf2_iff: "inf A B x y \<longleftrightarrow> A x y \<and> B x y"
   by (simp add: inf_fun_eq inf_bool_eq)
 
-lemma inf_Int_eq [pred_set_conv]: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
+lemma inf_Int_eq: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
   by (simp add: inf1_iff expand_fun_eq)
 
 lemma inf_Int_eq2 [pred_set_conv]: "inf (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
@@ -796,6 +796,10 @@ lemma singleton_code [code]:
   by (cases "f ()")
    (auto simp add: Seq_def the_only_singleton is_empty_def
       null_is_empty singleton_bot singleton_single singleton_sup Let_def)
+
+lemma meta_fun_cong:
+"f == g ==> f x == g x"
+by simp
 
 ML {*
 signature PREDICATE =

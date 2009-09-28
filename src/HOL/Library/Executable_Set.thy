@@ -12,6 +12,21 @@ subsection {* Preprocessor setup *}
 
 declare member [code] 
 
+definition empty :: "'a set" where
+  "empty = {}"
+
+declare empty_def [symmetric, code_unfold]
+
+definition inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "inter = op \<inter>"
+
+declare inter_def [symmetric, code_unfold]
+
+definition union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "union = op \<union>"
+
+declare union_def [symmetric, code_unfold]
+
 definition subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   "subset = op \<le>"
 
@@ -31,9 +46,6 @@ lemma [code]:
   by (simp add: eq_set_def set_eq)
 
 declare inter [code]
-
-declare Inter_image_eq [symmetric, code_unfold]
-declare Union_image_eq [symmetric, code_unfold]
 
 declare List_Set.project_def [symmetric, code_unfold]
 
@@ -69,7 +81,7 @@ consts_code
   Set ("\<module>Set")
 
 consts_code
-  "Set.empty"         ("{*Fset.empty*}")
+  "empty"             ("{*Fset.empty*}")
   "List_Set.is_empty" ("{*Fset.is_empty*}")
   "Set.insert"        ("{*Fset.insert*}")
   "List_Set.remove"   ("{*Fset.remove*}")
@@ -77,14 +89,14 @@ consts_code
   "List_Set.project"  ("{*Fset.filter*}")
   "Ball"              ("{*flip Fset.forall*}")
   "Bex"               ("{*flip Fset.exists*}")
-  "op \<union>"              ("{*Fset.union*}")
-  "op \<inter>"              ("{*Fset.inter*}")
+  "union"             ("{*Fset.union*}")
+  "inter"             ("{*Fset.inter*}")
   "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip Fset.subtract*}")
   "Union"             ("{*Fset.Union*}")
   "Inter"             ("{*Fset.Inter*}")
   card                ("{*Fset.card*}")
   fold                ("{*foldl o flip*}")
 
-hide (open) const subset eq_set Inter Union flip
+hide (open) const empty inter union subset eq_set Inter Union flip
 
 end
