@@ -320,30 +320,6 @@ fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
     split = split,
     split_asm = split_asm});
 
-fun add_rules inject distinct rec_rewrites case_rewrites  weak_case_congs simps =
-  PureThy.add_thmss [((Binding.name "simps", simps), []),
-    ((Binding.empty, flat case_rewrites @
-          flat distinct @ rec_rewrites), [Simplifier.simp_add]),
-    ((Binding.empty, rec_rewrites), [Code.add_default_eqn_attribute]),
-    ((Binding.empty, flat inject), [iff_add]),
-    ((Binding.empty, map (fn th => th RS notE) (flat distinct)), [Classical.safe_elim NONE]),
-    ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)])]
-  #> snd;
-
-fun add_cases_induct infos inducts thy =
-  let
-    fun named_rules (name, {index, exhaust, ...}: info) =
-      [((Binding.empty, nth inducts index), [Induct.induct_type name]),
-       ((Binding.empty, exhaust), [Induct.cases_type name])];
-    fun unnamed_rule i =
-      ((Binding.empty, nth inducts i), [Thm.kind_internal, Induct.induct_type ""]);
-  in
-    thy |> PureThy.add_thms
-      (maps named_rules infos @
-        map unnamed_rule (length infos upto length inducts - 1)) |> snd
-    |> PureThy.add_thmss [((Binding.name "inducts", inducts), [])] |> snd
-  end;
-
 fun derive_datatype_props config dt_names alt_names descr sorts
     induct inject (distinct_rules, distinct_rewrites, distinct_entry) thy1 =
   let
@@ -352,7 +328,6 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
     val _ = message config ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
 
-    val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
     val (exhaust, thy3) = DatatypeAbsProofs.prove_casedist_thms config new_type_names
       descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
     val (nchotomys, thy4) = DatatypeAbsProofs.prove_nchotomys config new_type_names
@@ -366,23 +341,36 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       descr sorts nchotomys case_rewrites thy6;
     val (weak_case_congs, thy8) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       descr sorts thy7;
-    val (split_thms, thy9) = DatatypeAbsProofs.prove_split_thms
+    val (splits, thy9) = DatatypeAbsProofs.prove_split_thms
       config new_type_names descr sorts inject distinct_rewrites exhaust case_rewrites thy8;
 
-    val simps = flat (inject @ distinct_rules @ case_rewrites) @ rec_rewrites;
+    val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
     val dt_infos = map_index (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct_entry ~~ exhaust ~~ nchotomys ~~
-        case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ split_thms);
+        case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
     val dt_names = map fst dt_infos;
+    val prfx = Binding.qualify true (space_implode "_" new_type_names);
+    val simps = flat (inject @ distinct_rules @ case_rewrites) @ rec_rewrites;
+    val named_rules = flat (map_index (fn (index, tname) =>
+      [((Binding.empty, [nth inducts index]), [Induct.induct_type tname]),
+       ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
+    val unnamed_rules = map (fn induct =>
+      ((Binding.empty, [induct]), [Thm.kind_internal, Induct.induct_type ""]))
+        (Library.drop (length dt_names, inducts));
   in
     thy9
-    |> Sign.add_path (space_implode "_" new_type_names)
-    |> add_rules inject distinct_rules rec_rewrites case_rewrites
-         weak_case_congs simps
-    |> add_cases_induct dt_infos inducts
-    |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
+    |> PureThy.add_thmss ([((prfx (Binding.name "simps"), simps), []),
+        ((prfx (Binding.name "inducts"), inducts), []),
+        ((prfx (Binding.name "splits"), maps (fn (x, y) => [x, y]) splits), []),
+        ((Binding.empty, flat case_rewrites @ flat distinct_rules @ rec_rewrites),
+          [Simplifier.simp_add]),
+        ((Binding.empty, rec_rewrites), [Code.add_default_eqn_attribute]),
+        ((Binding.empty, flat inject), [iff_add]),
+        ((Binding.empty, map (fn th => th RS notE) (flat distinct_rules)),
+          [Classical.safe_elim NONE]),
+        ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)])]
+        @ named_rules @ unnamed_rules)
     |> snd
-    |> Sign.parent_path
     |> add_case_tr' case_names
     |> register dt_infos
     |> DatatypeInterpretation.data (config, dt_names)
