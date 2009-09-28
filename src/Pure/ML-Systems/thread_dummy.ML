@@ -35,6 +35,8 @@ struct
   datatype threadAttribute = EnableBroadcastInterrupt of bool | InterruptState of interruptState
     and interruptState = InterruptDefer | InterruptSynch | InterruptAsynch | InterruptAsynchOnce;
 
+  fun unavailable () = fail ();
+
   fun fork _ = fail ();
   fun exit _ = fail ();
   fun isActive _ = fail ();

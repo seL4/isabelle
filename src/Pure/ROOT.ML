@@ -58,6 +58,7 @@ use "General/yxml.ML";
 
 use "Concurrent/simple_thread.ML";
 use "Concurrent/synchronized.ML";
+if Multithreading.available then () else use "Concurrent/synchronized_dummy.ML";
 use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
