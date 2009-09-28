@@ -320,15 +320,14 @@ fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
     split = split,
     split_asm = split_asm});
 
-fun add_rules simps case_rewrites rec_rewrites inject distinct
-                  weak_case_congs cong_att =
+fun add_rules inject distinct rec_rewrites case_rewrites  weak_case_congs simps =
   PureThy.add_thmss [((Binding.name "simps", simps), []),
     ((Binding.empty, flat case_rewrites @
           flat distinct @ rec_rewrites), [Simplifier.simp_add]),
     ((Binding.empty, rec_rewrites), [Code.add_default_eqn_attribute]),
     ((Binding.empty, flat inject), [iff_add]),
     ((Binding.empty, map (fn th => th RS notE) (flat distinct)), [Classical.safe_elim NONE]),
-    ((Binding.empty, weak_case_congs), [cong_att])]
+    ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)])]
   #> snd;
 
 fun add_cases_induct infos inducts thy =
@@ -370,22 +369,22 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val (split_thms, thy9) = DatatypeAbsProofs.prove_split_thms
       config new_type_names descr sorts inject distinct_rewrites exhaust case_rewrites thy8;
 
-    val simps = flat (distinct_rules @ inject @ case_rewrites) @ rec_rewrites;
+    val simps = flat (inject @ distinct_rules @ case_rewrites) @ rec_rewrites;
     val dt_infos = map_index (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct_entry ~~ exhaust ~~ nchotomys ~~
         case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ split_thms);
     val dt_names = map fst dt_infos;
   in
     thy9
-    |> add_case_tr' case_names
     |> Sign.add_path (space_implode "_" new_type_names)
-    |> add_rules simps case_rewrites rec_rewrites inject distinct_rules
-         weak_case_congs (Simplifier.attrib (op addcongs))
-    |> register dt_infos
+    |> add_rules inject distinct_rules rec_rewrites case_rewrites
+         weak_case_congs simps
     |> add_cases_induct dt_infos inducts
-    |> Sign.parent_path
     |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
     |> snd
+    |> Sign.parent_path
+    |> add_case_tr' case_names
+    |> register dt_infos
     |> DatatypeInterpretation.data (config, dt_names)
     |> pair dt_names
   end;
