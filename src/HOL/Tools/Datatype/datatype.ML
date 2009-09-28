@@ -345,8 +345,9 @@ fun add_cases_induct infos inducts thy =
     |> PureThy.add_thmss [((Binding.name "inducts", inducts), [])] |> snd
   end;
 
-fun derive_datatype_props config dt_names alt_names descr sorts induct inject distinct thy2 =
+fun derive_datatype_props config dt_names alt_names descr sorts induct inject distinct thy1 =
   let
+    val thy2 = thy1 |> Theory.checkpoint
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
     val _ = message config ("Proofs for datatype(s) " ^ commas_quote new_type_names);
     val (case_names_induct, case_names_exhausts) =
@@ -403,7 +404,10 @@ fun prove_rep_datatype config dt_names alt_names descr sorts raw_induct raw_inje
       ||>> store_thmss "distinct" new_type_names raw_distinct
       ||> Sign.add_path (space_implode "_" new_type_names)
       ||>> PureThy.add_thms [((Binding.name "induct", raw_induct), [case_names_induct])];
-  in derive_datatype_props config dt_names alt_names descr sorts induct inject distinct thy2 end;
+  in
+    thy2
+    |> derive_datatype_props config dt_names alt_names descr sorts induct inject distinct
+ end;
 
 fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
   let
