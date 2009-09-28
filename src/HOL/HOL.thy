@@ -1469,7 +1469,7 @@ setup InductTacs.setup
 subsubsection {* Coherent logic *}
 
 ML {*
-structure Coherent = CoherentFun
+structure Coherent = Coherent
 (
   val atomize_elimL = @{thm atomize_elimL}
   val atomize_exL = @{thm atomize_exL}
