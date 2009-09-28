@@ -124,6 +124,13 @@ sig
   val hyps_of: thm -> term list
   val no_prems: thm -> bool
   val major_prem_of: thm -> term
+  val join_proofs: thm list -> unit
+  val proof_body_of: thm -> proof_body
+  val proof_of: thm -> proof
+  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
+  val future: thm future -> cterm -> thm
+  val get_name: thm -> string
+  val put_name: string -> thm -> thm
   val axiom: theory -> string -> thm
   val axioms_of: theory -> (string * thm) list
   val get_tags: thm -> Properties.T
@@ -142,13 +149,6 @@ sig
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val rename_boundvars: term -> term -> thm -> thm
-  val join_proofs: thm list -> unit
-  val proof_body_of: thm -> proof_body
-  val proof_of: thm -> proof
-  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
-  val future: thm future -> cterm -> thm
-  val get_name: thm -> string
-  val put_name: string -> thm -> thm
   val extern_oracles: theory -> xstring list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -505,7 +505,7 @@ fun extra_shyps (th as Thm (_, {shyps, ...})) =
 
 
 
-(** derivations **)
+(** derivations and promised proofs **)
 
 fun make_deriv promises oracles thms proof =
   Deriv {promises = promises, body = PBody {oracles = oracles, thms = thms, proof = proof}};
@@ -534,6 +534,93 @@ fun deriv_rule2 f
 
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
 fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
+
+
+(* fulfilled proofs *)
+
+fun raw_body (Thm (Deriv {body, ...}, _)) = body;
+
+fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
+  Pt.fulfill_proof (Theory.deref thy_ref)
+    (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
+and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
+
+val join_proofs = Pt.join_bodies o map fulfill_body;
+
+fun proof_body_of thm = (Pt.join_bodies [raw_body thm]; fulfill_body thm);
+val proof_of = Pt.proof_of o proof_body_of;
+
+
+(* derivation status *)
+
+fun status_of (Thm (Deriv {promises, body}, _)) =
+  let
+    val ps = map (Future.peek o snd) promises;
+    val bodies = body ::
+      map_filter (fn SOME (Exn.Result th) => SOME (raw_body th) | _ => NONE) ps;
+    val {oracle, unfinished, failed} = Pt.status_of bodies;
+  in
+   {oracle = oracle,
+    unfinished = unfinished orelse exists is_none ps,
+    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
+  end;
+
+
+(* future rule *)
+
+fun future_result i orig_thy orig_shyps orig_prop raw_thm =
+  let
+    val _ = Theory.check_thy orig_thy;
+    val thm = strip_shyps (transfer orig_thy raw_thm);
+    val _ = Theory.check_thy orig_thy;
+    fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
+
+    val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
+    val _ = prop aconv orig_prop orelse err "bad prop";
+    val _ = null tpairs orelse err "bad tpairs";
+    val _ = null hyps orelse err "bad hyps";
+    val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
+    val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
+    val _ = fulfill_bodies (map #2 promises);
+  in thm end;
+
+fun future future_thm ct =
+  let
+    val Cterm {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = ct;
+    val thy = Context.reject_draft (Theory.deref thy_ref);
+    val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
+
+    val i = serial ();
+    val future = future_thm |> Future.map (future_result i thy sorts prop);
+  in
+    Thm (make_deriv [(i, future)] [] [] (Pt.promise_proof thy i prop),
+     {thy_ref = thy_ref,
+      tags = [],
+      maxidx = maxidx,
+      shyps = sorts,
+      hyps = [],
+      tpairs = [],
+      prop = prop})
+  end;
+
+
+(* closed derivations with official name *)
+
+fun get_name thm =
+  Pt.get_name (hyps_of thm) (prop_of thm) (Pt.proof_of (raw_body thm));
+
+fun put_name name (thm as Thm (der, args)) =
+  let
+    val Deriv {promises, body} = der;
+    val {thy_ref, hyps, prop, tpairs, ...} = args;
+    val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
+
+    val ps = map (apsnd (Future.map proof_body_of)) promises;
+    val thy = Theory.deref thy_ref;
+    val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
+    val der' = make_deriv [] [] [pthm] proof;
+    val _ = Theory.check_thy thy;
+  in Thm (der', args) end;
 
 
 
@@ -1607,96 +1694,6 @@ fun biresolution match brules i state =
                                res brules))
               else res brules
     in  Seq.flat (res brules)  end;
-
-
-
-(*** Future theorems -- proofs with promises ***)
-
-(* fulfilled proofs *)
-
-fun raw_body (Thm (Deriv {body, ...}, _)) = body;
-
-fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  Pt.fulfill_proof (Theory.deref thy_ref)
-    (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
-and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
-
-val join_proofs = Pt.join_bodies o map fulfill_body;
-
-fun proof_body_of thm = (Pt.join_bodies [raw_body thm]; fulfill_body thm);
-val proof_of = Pt.proof_of o proof_body_of;
-
-
-(* derivation status *)
-
-fun status_of (Thm (Deriv {promises, body}, _)) =
-  let
-    val ps = map (Future.peek o snd) promises;
-    val bodies = body ::
-      map_filter (fn SOME (Exn.Result th) => SOME (raw_body th) | _ => NONE) ps;
-    val {oracle, unfinished, failed} = Pt.status_of bodies;
-  in
-   {oracle = oracle,
-    unfinished = unfinished orelse exists is_none ps,
-    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
-  end;
-
-
-(* future rule *)
-
-fun future_result i orig_thy orig_shyps orig_prop raw_thm =
-  let
-    val _ = Theory.check_thy orig_thy;
-    val thm = strip_shyps (transfer orig_thy raw_thm);
-    val _ = Theory.check_thy orig_thy;
-    fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
-
-    val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
-    val _ = prop aconv orig_prop orelse err "bad prop";
-    val _ = null tpairs orelse err "bad tpairs";
-    val _ = null hyps orelse err "bad hyps";
-    val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
-    val _ = forall (fn (j, _) => i <> j) promises orelse err "bad dependencies";
-    val _ = fulfill_bodies (map #2 promises);
-  in thm end;
-
-fun future future_thm ct =
-  let
-    val Cterm {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = ct;
-    val thy = Context.reject_draft (Theory.deref thy_ref);
-    val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
-
-    val i = serial ();
-    val future = future_thm |> Future.map (future_result i thy sorts prop);
-  in
-    Thm (make_deriv [(i, future)] [] [] (Pt.promise_proof thy i prop),
-     {thy_ref = thy_ref,
-      tags = [],
-      maxidx = maxidx,
-      shyps = sorts,
-      hyps = [],
-      tpairs = [],
-      prop = prop})
-  end;
-
-
-(* closed derivations with official name *)
-
-fun get_name thm =
-  Pt.get_name (hyps_of thm) (prop_of thm) (Pt.proof_of (raw_body thm));
-
-fun put_name name (thm as Thm (der, args)) =
-  let
-    val Deriv {promises, body} = der;
-    val {thy_ref, hyps, prop, tpairs, ...} = args;
-    val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
-
-    val ps = map (apsnd (Future.map proof_body_of)) promises;
-    val thy = Theory.deref thy_ref;
-    val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
-    val der' = make_deriv [] [] [pthm] proof;
-    val _ = Theory.check_thy thy;
-  in Thm (der', args) end;
 
 
 
