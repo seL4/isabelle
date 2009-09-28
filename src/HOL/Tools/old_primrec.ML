@@ -230,7 +230,7 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
-fun prepare_induct ({descr, inducts = (_, induct), ...}: info) rec_eqns =
+fun prepare_induct ({descr, induct, ...}: info) rec_eqns =
   let
     fun constrs_of (_, (_, _, cs)) =
       map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;

@@ -245,7 +245,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val (full_new_type_names',thy1) =
       Datatype.add_datatype config new_type_names' dts'' thy;
 
-    val {descr, inducts = (_, induct), ...} =
+    val {descr, induct, ...} =
       Datatype.the_info thy1 (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts (DtRec i);
 

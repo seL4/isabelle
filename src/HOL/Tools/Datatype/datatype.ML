@@ -218,26 +218,28 @@ fun cert_typ sign ((Ts, sorts), raw_T) =
 
 (* arrange data entries *)
 
-fun make_dt_info alt_names descr sorts inducts reccomb_names rec_thms
-    ((((((((((i, (_, (tname, _, _))), case_name), case_thms),
-      exhaust_thm), distinct_thm), inject), splits), nchotomy), case_cong), weak_case_cong) =
+fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
+    ((((((((((i, (_, (tname, _, _))), case_name), case_rewrites),
+      exhaust), distinct), inject), (split, split_asm)), nchotomy), case_cong), weak_case_cong) =
   (tname,
    {index = i,
     alt_names = alt_names,
     descr = descr,
     sorts = sorts,
     inject = inject,
-    distinct = distinct_thm,
+    distinct = distinct,
+    induct = induct,
     inducts = inducts,
-    exhaust = exhaust_thm,
+    exhaust = exhaust,
     nchotomy = nchotomy,
-    rec_names = reccomb_names,
-    rec_rewrites = rec_thms,
+    rec_names = rec_names,
+    rec_rewrites = rec_rewrites,
     case_name = case_name,
-    case_rewrites = case_thms,
+    case_rewrites = case_rewrites,
     case_cong = case_cong,
     weak_case_cong = weak_case_cong,
-    splits = splits});
+    split = split,
+    split_asm = split_asm});
 
 (* case names *)
 
@@ -320,12 +322,12 @@ structure DatatypeInterpretation = InterpretationFun
   (type T = config * string list val eq: T * T -> bool = eq_snd op =);
 fun interpretation f = DatatypeInterpretation.interpretation (uncurry f);
 
-fun add_rules simps case_thms rec_thms inject distinct
+fun add_rules simps case_rewrites rec_rewrites inject distinct
                   weak_case_congs cong_att =
   PureThy.add_thmss [((Binding.name "simps", simps), []),
-    ((Binding.empty, flat case_thms @
-          flat distinct @ rec_thms), [Simplifier.simp_add]),
-    ((Binding.empty, rec_thms), [Code.add_default_eqn_attribute]),
+    ((Binding.empty, flat case_rewrites @
+          flat distinct @ rec_rewrites), [Simplifier.simp_add]),
+    ((Binding.empty, rec_rewrites), [Code.add_default_eqn_attribute]),
     ((Binding.empty, flat inject), [iff_add]),
     ((Binding.empty, map (fn th => th RS notE) (flat distinct)), [Classical.safe_elim NONE]),
     ((Binding.empty, weak_case_congs), [cong_att])]
@@ -357,29 +359,29 @@ fun derive_datatype_props config dt_names alt_names descr sorts induct inject di
     val (casedist_thms, thy3) = thy2 |>
       DatatypeAbsProofs.prove_casedist_thms config new_type_names [descr] sorts induct
         case_names_exhausts;
-    val ((reccomb_names, rec_thms), thy4) = DatatypeAbsProofs.prove_primrec_thms
+    val ((rec_names, rec_rewrites), thy4) = DatatypeAbsProofs.prove_primrec_thms
       config new_type_names [descr] sorts (get_all thy3) inject distinct
       (Simplifier.theory_context thy3 dist_ss) induct thy3;
-    val ((case_thms, case_names), thy5) = DatatypeAbsProofs.prove_case_thms
-      config new_type_names [descr] sorts reccomb_names rec_thms thy4;
+    val ((case_rewrites, case_names), thy5) = DatatypeAbsProofs.prove_case_thms
+      config new_type_names [descr] sorts rec_names rec_rewrites thy4;
     val (split_thms, thy6) = DatatypeAbsProofs.prove_split_thms
-      config new_type_names [descr] sorts inject distinct casedist_thms case_thms thy5;
+      config new_type_names [descr] sorts inject distinct casedist_thms case_rewrites thy5;
     val (nchotomys, thy7) = DatatypeAbsProofs.prove_nchotomys config new_type_names
       [descr] sorts casedist_thms thy6;
     val (case_congs, thy8) = DatatypeAbsProofs.prove_case_congs new_type_names
-      [descr] sorts nchotomys case_thms thy7;
+      [descr] sorts nchotomys case_rewrites thy7;
     val (weak_case_congs, thy9) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       [descr] sorts thy8;
 
-    val simps = flat (distinct @ inject @ case_thms) @ rec_thms;
-    val dt_infos = map (make_dt_info alt_names descr sorts (inducts, induct) reccomb_names rec_thms)
-      ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
+    val simps = flat (distinct @ inject @ case_rewrites) @ rec_rewrites;
+    val dt_infos = map (make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites)
+      ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_rewrites ~~ casedist_thms ~~
         map FewConstrs distinct ~~ inject ~~ split_thms ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
     val dt_names = map fst dt_infos;
   in
     thy9
     |> add_case_tr' case_names
-    |> add_rules simps case_thms rec_thms inject distinct weak_case_congs (Simplifier.attrib (op addcongs))
+    |> add_rules simps case_rewrites rec_rewrites inject distinct weak_case_congs (Simplifier.attrib (op addcongs))
     |> register dt_infos
     |> add_cases_induct dt_infos inducts
     |> Sign.parent_path
@@ -492,33 +494,33 @@ fun add_datatype_def config new_type_names descr sorts types_syntax constr_synta
 
     val (casedist_thms, thy3) = DatatypeAbsProofs.prove_casedist_thms config new_type_names descr
       sorts induct case_names_exhausts thy2;
-    val ((reccomb_names, rec_thms), thy4) = DatatypeAbsProofs.prove_primrec_thms
+    val ((rec_names, rec_rewrites), thy4) = DatatypeAbsProofs.prove_primrec_thms
       config new_type_names descr sorts dt_info inject dist_rewrites
       (Simplifier.theory_context thy3 dist_ss) induct thy3;
-    val ((case_thms, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
-      config new_type_names descr sorts reccomb_names rec_thms thy4;
+    val ((case_rewrites, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
+      config new_type_names descr sorts rec_names rec_rewrites thy4;
     val (split_thms, thy7) = DatatypeAbsProofs.prove_split_thms config new_type_names
-      descr sorts inject dist_rewrites casedist_thms case_thms thy6;
+      descr sorts inject dist_rewrites casedist_thms case_rewrites thy6;
     val (nchotomys, thy8) = DatatypeAbsProofs.prove_nchotomys config new_type_names
       descr sorts casedist_thms thy7;
     val (case_congs, thy9) = DatatypeAbsProofs.prove_case_congs new_type_names
-      descr sorts nchotomys case_thms thy8;
+      descr sorts nchotomys case_rewrites thy8;
     val (weak_case_congs, thy10) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       descr sorts thy9;
 
     val dt_infos = map
-      (make_dt_info (SOME new_type_names) (flat descr) sorts (inducts, induct) reccomb_names rec_thms)
-      ((0 upto length (hd descr) - 1) ~~ hd descr ~~ case_names ~~ case_thms ~~
+      (make_dt_info (SOME new_type_names) (flat descr) sorts induct inducts rec_names rec_rewrites)
+      ((0 upto length (hd descr) - 1) ~~ hd descr ~~ case_names ~~ case_rewrites ~~
         casedist_thms ~~ simproc_dists ~~ inject ~~ split_thms ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
-    val simps = flat (distinct @ inject @ case_thms) @ rec_thms;
+    val simps = flat (distinct @ inject @ case_rewrites) @ rec_rewrites;
     val dt_names = map fst dt_infos;
 
     val thy12 =
       thy10
       |> add_case_tr' case_names
       |> Sign.add_path (space_implode "_" new_type_names)
-      |> add_rules simps case_thms rec_thms inject distinct
+      |> add_rules simps case_rewrites rec_rewrites inject distinct
           weak_case_congs (Simplifier.attrib (op addcongs))
       |> register dt_infos
       |> add_cases_induct dt_infos inducts
