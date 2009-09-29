@@ -20,8 +20,8 @@ end;
 
 signature COHERENT =
 sig
-  val verbose: bool ref
-  val show_facts: bool ref
+  val verbose: bool Unsynchronized.ref
+  val show_facts: bool Unsynchronized.ref
   val coherent_tac: Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -31,7 +31,7 @@ struct
 
 (** misc tools **)
 
-val verbose = ref false;
+val verbose = Unsynchronized.ref false;
 
 fun message f = if !verbose then tracing (f ()) else ();
 
@@ -117,7 +117,7 @@ fun is_valid_disj ctxt facts [] = false
         | NONE => is_valid_disj ctxt facts ds
       end;
 
-val show_facts = ref false;
+val show_facts = Unsynchronized.ref false;
 
 fun string_of_facts ctxt s facts = space_implode "\n"
   (s :: map (Syntax.string_of_term ctxt)

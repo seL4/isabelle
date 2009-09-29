@@ -1,5 +1,5 @@
 
-val trace_mc = ref false; 
+val trace_mc = Unsynchronized.ref false; 
 
 
 (* transform_case post-processes output strings of the syntax "Mucke" *)

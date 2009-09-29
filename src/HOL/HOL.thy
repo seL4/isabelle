@@ -1970,7 +1970,7 @@ ML {*
 structure Eval_Method =
 struct
 
-val eval_ref : (unit -> bool) option ref = ref NONE;
+val eval_ref : (unit -> bool) option Unsynchronized.ref = Unsynchronized.ref NONE;
 
 end;
 *}

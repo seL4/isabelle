@@ -5,7 +5,7 @@
 signature AM_BARRAS = 
 sig
   include ABSTRACT_MACHINE
-  val max_reductions : int option ref
+  val max_reductions : int option Unsynchronized.ref
 end
 
 structure AM_Interpreter : AM_BARRAS = struct
@@ -129,12 +129,12 @@ fun proj_S (Stop s) = s
 fun cont (Continue _) = true
   | cont _ = false
 
-val max_reductions = ref (NONE : int option)
+val max_reductions = Unsynchronized.ref (NONE : int option)
 
 fun do_reduction reduce p =
     let
-	val s = ref (Continue p)
-	val counter = ref 0
+	val s = Unsynchronized.ref (Continue p)
+	val counter = Unsynchronized.ref 0
 	val _ = case !max_reductions of 
 		    NONE => while cont (!s) do (s := reduce (proj_C (!s)))
 		  | SOME m => while cont (!s) andalso (!counter < m) do (s := reduce (proj_C (!s)); counter := (!counter) + 1)

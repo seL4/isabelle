@@ -16,7 +16,8 @@ sig
   val combinators: thm -> thm
   val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
   val atpset_rules_of: Proof.context -> (string * thm) list
-  val suppress_endtheory: bool ref     (*for emergency use where endtheory causes problems*)
+  val suppress_endtheory: bool Unsynchronized.ref
+    (*for emergency use where endtheory causes problems*)
   val setup: theory -> theory
 end;
 
@@ -66,11 +67,11 @@ fun rhs_extra_types lhsT rhs =
   prefix for the Skolem constant.*)
 fun declare_skofuns s th =
   let
-    val nref = ref 0
+    val nref = Unsynchronized.ref 0
     fun dec_sko (Const ("Ex",_) $ (xtp as Abs (_, T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
-            val cname = "sko_" ^ s ^ "_" ^ Int.toString (inc nref)
+            val cname = "sko_" ^ s ^ "_" ^ Int.toString (Unsynchronized.inc nref)
             val args0 = OldTerm.term_frees xtp  (*get the formal parameter list*)
             val Ts = map type_of args0
             val extraTs = rhs_extra_types (Ts ---> T) xtp
@@ -97,14 +98,14 @@ fun declare_skofuns s th =
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
-  let val sko_count = ref 0
+  let val sko_count = Unsynchronized.ref 0
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
                 val args = OldTerm.term_frees xtp \\ skos  (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
-                val id = "sko_" ^ s ^ "_" ^ Int.toString (inc sko_count)
+                val id = "sko_" ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)
                 val c = Free (id, cT)
                 val rhs = list_abs_free (map dest_Free args,
                                          HOLogic.choice_const T $ xtp)
@@ -449,7 +450,7 @@ fun saturate_skolem_cache thy =
 
 end;
 
-val suppress_endtheory = ref false;
+val suppress_endtheory = Unsynchronized.ref false;
 
 fun clause_cache_endtheory thy =
   if ! suppress_endtheory then NONE

@@ -96,8 +96,8 @@ sig
                      lessD: thm list, neqE: thm list, simpset: Simplifier.simpset,
                      number_of : serial * (theory -> typ -> int -> cterm)})
                 -> Context.generic -> Context.generic
-  val trace: bool ref
-  val warning_count: int ref;
+  val trace: bool Unsynchronized.ref
+  val warning_count: int Unsynchronized.ref;
 end;
 
 functor Fast_Lin_Arith
@@ -152,7 +152,7 @@ val get_data = Data.get o Context.Proof;
    treat non-negative atoms separately rather than adding 0 <= atom
 *)
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 
 datatype lineq_type = Eq | Le | Lt;
 
@@ -426,7 +426,7 @@ fun trace_term ctxt msg t =
 fun trace_msg msg =
   if !trace then tracing msg else ();
 
-val warning_count = ref 0;
+val warning_count = Unsynchronized.ref 0;
 val warning_count_max = 10;
 
 val union_term = curry (gen_union Pattern.aeconv);
@@ -533,7 +533,7 @@ fun mkthm ss asms (just: injust) =
       val _ =
         if LA_Logic.is_False fls then ()
         else
-          let val count = CRITICAL (fn () => inc warning_count) in
+          let val count = CRITICAL (fn () => Unsynchronized.inc warning_count) in
             if count > warning_count_max then ()
             else
               (tracing (cat_lines

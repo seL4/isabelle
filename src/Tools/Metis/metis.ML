@@ -395,18 +395,18 @@ local
 in
 
 abstype 'a queue = QUEUE of {elems: 'a array, (* the contents *)
-                             front: int ref,
-                             back: int ref,
+                             front: int Unsynchronized.ref,
+                             back: int Unsynchronized.ref,
                              size: int}  (* fixed size of element array *)
 with
 
-  fun is_empty (QUEUE{front=ref ~1, back=ref ~1,...}) = true
+  fun is_empty (QUEUE{front=Unsynchronized.ref ~1, back=Unsynchronized.ref ~1,...}) = true
     | is_empty _ = false
 
   fun mk_queue n init_val =
       if (n < 2)
       then raise REQUESTED_QUEUE_SIZE_TOO_SMALL
-      else QUEUE{elems=array(n, init_val), front=ref ~1, back=ref ~1, size=n}
+      else QUEUE{elems=array(n, init_val), front=Unsynchronized.ref ~1, back=Unsynchronized.ref ~1, size=n}
 
   fun clear_queue (QUEUE{front,back,...}) = (front := ~1; back := ~1)
 
@@ -459,9 +459,9 @@ datatype break_info
 (* Some global values *)
 val INFINITY = 999999
 
-abstype indent_stack = Istack of break_info list ref
+abstype indent_stack = Istack of break_info list Unsynchronized.ref
 with
-  fun mk_indent_stack() = Istack (ref([]:break_info list))
+  fun mk_indent_stack() = Istack (Unsynchronized.ref([]:break_info list))
   fun clear_indent_stack (Istack stk) = (stk := ([]:break_info list))
   fun top (Istack stk) =
       case !stk
@@ -501,7 +501,7 @@ with
 end
 
 
-type block_info = { Block_size : int ref,
+type block_info = { Block_size : int Unsynchronized.ref,
                     Block_offset : int,
                     How_to_indent : break_style }
 
@@ -512,10 +512,10 @@ type block_info = { Block_size : int ref,
 *)
 datatype pp_token
   = S of  {String : string, Length : int}
-  | BB of {Pblocks : block_info list ref,   (* Processed   *)
-           Ublocks : block_info list ref}  (* Unprocessed *)
-  | E of  {Pend : int ref, Uend : int ref}
-  | BR of {Distance_to_next_break : int ref,
+  | BB of {Pblocks : block_info list Unsynchronized.ref,   (* Processed   *)
+           Ublocks : block_info list Unsynchronized.ref}  (* Unprocessed *)
+  | E of  {Pend : int Unsynchronized.ref, Uend : int Unsynchronized.ref}
+  | BR of {Distance_to_next_break : int Unsynchronized.ref,
            Number_of_blanks : int,
            Break_offset : int}
 
@@ -532,12 +532,12 @@ datatype ppstream_ =
       the_token_buffer : pp_token array,
       the_delim_stack : delim_stack,
       the_indent_stack : indent_stack,
-      ++ : int ref -> unit,    (* increment circular buffer index *)
-      space_left : int ref,    (* remaining columns on page *)
-      left_index : int ref,    (* insertion index *)
-      right_index : int ref,   (* output index *)
-      left_sum : int ref,      (* size of strings and spaces inserted *)
-      right_sum : int ref}     (* size of strings and spaces printed *)
+      ++ : int Unsynchronized.ref -> unit,    (* increment circular buffer index *)
+      space_left : int Unsynchronized.ref,    (* remaining columns on page *)
+      left_index : int Unsynchronized.ref,    (* insertion index *)
+      right_index : int Unsynchronized.ref,   (* output index *)
+      left_sum : int Unsynchronized.ref,      (* size of strings and spaces inserted *)
+      right_sum : int Unsynchronized.ref}     (* size of strings and spaces printed *)
 
 type ppstream = ppstream_
 
@@ -557,9 +557,9 @@ fun mk_ppstream {consumer,linewidth,flush} =
 		 the_delim_stack = new_delim_stack buf_size,
 		 the_indent_stack = mk_indent_stack (),
 		 ++ = fn i => i := ((!i + 1) mod buf_size),
-		 space_left = ref linewidth,
-		 left_index = ref 0, right_index = ref 0,
-		 left_sum = ref 0, right_sum = ref 0}
+		 space_left = Unsynchronized.ref linewidth,
+		 left_index = Unsynchronized.ref 0, right_index = Unsynchronized.ref 0,
+		 left_sum = Unsynchronized.ref 0, right_sum = Unsynchronized.ref 0}
                  ) : ppstream
 	 end
 
@@ -595,25 +595,25 @@ end
    be printable? Because of what goes on in add_string. See there for details.
 *)
 
-fun print_BB (_,{Pblocks = ref [], Ublocks = ref []}) =
+fun print_BB (_,{Pblocks = Unsynchronized.ref [], Ublocks = Unsynchronized.ref []}) =
              raise Fail "PP-error: print_BB"
-  | print_BB (PPS{the_indent_stack,linewidth,space_left=ref sp_left,...},
-             {Pblocks as ref({How_to_indent=CONSISTENT,Block_size,
+  | print_BB (PPS{the_indent_stack,linewidth,space_left=Unsynchronized.ref sp_left,...},
+             {Pblocks as Unsynchronized.ref({How_to_indent=CONSISTENT,Block_size,
                               Block_offset}::rst),
-              Ublocks=ref[]}) =
+              Ublocks=Unsynchronized.ref[]}) =
        (push ((if (!Block_size > sp_left)
                then ONE_PER_LINE (linewidth - (sp_left - Block_offset))
                else FITS),
 	      the_indent_stack);
         Pblocks := rst)
-  | print_BB(PPS{the_indent_stack,linewidth,space_left=ref sp_left,...},
-             {Pblocks as ref({Block_size,Block_offset,...}::rst),Ublocks=ref[]}) =
+  | print_BB(PPS{the_indent_stack,linewidth,space_left=Unsynchronized.ref sp_left,...},
+             {Pblocks as Unsynchronized.ref({Block_size,Block_offset,...}::rst),Ublocks=Unsynchronized.ref[]}) =
        (push ((if (!Block_size > sp_left)
                then PACK_ONTO_LINE (linewidth - (sp_left - Block_offset))
                else FITS),
 	      the_indent_stack);
         Pblocks := rst)
-  | print_BB (PPS{the_indent_stack, linewidth, space_left=ref sp_left,...},
+  | print_BB (PPS{the_indent_stack, linewidth, space_left=Unsynchronized.ref sp_left,...},
               {Ublocks,...}) =
       let fun pr_end_Ublock [{How_to_indent=CONSISTENT,Block_size,Block_offset}] l =
 		(push ((if (!Block_size > sp_left)
@@ -635,7 +635,7 @@ fun print_BB (_,{Pblocks = ref [], Ublocks = ref []}) =
 
 
 (* Uend should always be 0 when print_E is called. *)
-fun print_E (_,{Pend = ref 0, Uend = ref 0}) =
+fun print_E (_,{Pend = Unsynchronized.ref 0, Uend = Unsynchronized.ref 0}) =
       raise Fail "PP-error: print_E"
   | print_E (istack,{Pend, ...}) =
       let fun pop_n_times 0 = ()
@@ -710,9 +710,9 @@ fun E_inc_right_index(PPS{the_token_buffer,right_index, ++,...})=
 fun pointers_coincide(PPS{left_index,right_index,the_token_buffer,...}) =
     (!left_index = !right_index) andalso
     (case (the_token_buffer sub (!left_index))
-       of (BB {Pblocks = ref [], Ublocks = ref []}) => true
+       of (BB {Pblocks = Unsynchronized.ref [], Ublocks = Unsynchronized.ref []}) => true
 	| (BB _) => false
-	| (E {Pend = ref 0, Uend = ref 0}) => true
+	| (E {Pend = Unsynchronized.ref 0, Uend = Unsynchronized.ref 0}) => true
 	| (E _) => false
 	| _ => true)
 
@@ -732,13 +732,13 @@ fun advance_left (ppstrm as PPS{consumer,left_index,left_sum,
 	fun token_size (S{Length, ...}) = Length
 	  | token_size (BB b) =
 	     (case b
-                of {Pblocks = ref [], Ublocks = ref []} =>
+                of {Pblocks = Unsynchronized.ref [], Ublocks = Unsynchronized.ref []} =>
                      raise Fail "PP-error: BB_size"
-	         | {Pblocks as ref(_::_),Ublocks=ref[]} => POS
+	         | {Pblocks as Unsynchronized.ref(_::_),Ublocks=Unsynchronized.ref[]} => POS
 		 | {Ublocks, ...} => last_size (!Ublocks))
-	  | token_size (E{Pend = ref 0, Uend = ref 0}) =
+	  | token_size (E{Pend = Unsynchronized.ref 0, Uend = Unsynchronized.ref 0}) =
               raise Fail "PP-error: token_size.E"
-	  | token_size (E{Pend = ref 0, ...}) = NEG
+	  | token_size (E{Pend = Unsynchronized.ref 0, ...}) = NEG
 	  | token_size (E _) = POS
 	  | token_size (BR {Distance_to_next_break, ...}) = !Distance_to_next_break
 	fun loop (instr) =
@@ -761,12 +761,12 @@ fun advance_left (ppstrm as PPS{consumer,left_index,left_sum,
        mangled output.)
     *)
 		       (case (the_token_buffer sub (!left_index))
-			  of (BB {Pblocks = ref [], Ublocks = ref []}) =>
+			  of (BB {Pblocks = Unsynchronized.ref [], Ublocks = Unsynchronized.ref []}) =>
 			       (update(the_token_buffer,!left_index,
 				       initial_token_value);
 				++left_index)
 			   | (BB _) => ()
-			   | (E {Pend = ref 0, Uend = ref 0}) =>
+			   | (E {Pend = Unsynchronized.ref 0, Uend = Unsynchronized.ref 0}) =>
 			       (update(the_token_buffer,!left_index,
 				       initial_token_value);
 				++left_index)
@@ -791,12 +791,12 @@ fun begin_block (pps : ppstream) style offset =
     else BB_inc_right_index ppstrm;
     case (the_token_buffer sub (!right_index))
       of (BB {Ublocks, ...}) =>
-	   Ublocks := {Block_size = ref (~(!right_sum)),
+	   Ublocks := {Block_size = Unsynchronized.ref (~(!right_sum)),
 		       Block_offset = offset,
 		       How_to_indent = style}::(!Ublocks)
        | _ => (update(the_token_buffer, !right_index,
-		      BB{Pblocks = ref [],
-			 Ublocks = ref [{Block_size = ref (~(!right_sum)),
+		      BB{Pblocks = Unsynchronized.ref [],
+			 Ublocks = Unsynchronized.ref [{Block_size = Unsynchronized.ref (~(!right_sum)),
 					 Block_offset = offset,
 					 How_to_indent = style}]});
 	       push_delim_stack (!right_index, the_delim_stack)))
@@ -808,12 +808,12 @@ fun end_block(pps : ppstream) =
             = ppstrm
   in
     if (delim_stack_is_empty the_delim_stack)
-    then print_token(ppstrm,(E{Pend = ref 1, Uend = ref 0}))
+    then print_token(ppstrm,(E{Pend = Unsynchronized.ref 1, Uend = Unsynchronized.ref 0}))
     else (E_inc_right_index ppstrm;
 	  case (the_token_buffer sub (!right_index))
             of (E{Uend, ...}) => Uend := !Uend + 1
 	     | _ => (update(the_token_buffer,!right_index,
-			    E{Uend = ref 1, Pend = ref 0});
+			    E{Uend = Unsynchronized.ref 1, Pend = Unsynchronized.ref 0});
 		     push_delim_stack (!right_index, the_delim_stack)))
   end
 
@@ -823,7 +823,7 @@ local
 	      if (delim_stack_is_empty the_delim_stack)
 	      then ()
 	      else case(the_token_buffer sub (top_delim_stack the_delim_stack))
-		     of (BB{Ublocks as ref ((b as {Block_size, ...})::rst),
+		     of (BB{Ublocks as Unsynchronized.ref ((b as {Block_size, ...})::rst),
 			    Pblocks}) =>
 			   if (k>0)
 			   then (Block_size := !right_sum + !Block_size;
@@ -862,7 +862,7 @@ in
 	     left_sum := 1;   right_sum := 1)
        else ++right_index;
        update(the_token_buffer, !right_index,
-	      BR{Distance_to_next_break = ref (~(!right_sum)),
+	      BR{Distance_to_next_break = Unsynchronized.ref (~(!right_sum)),
 		 Number_of_blanks = n,
 		 Break_offset = break_offset});
        check_delim_stack ppstrm;
@@ -899,10 +899,10 @@ fun add_string (pps : ppstream) s =
 	  | fnl (_::rst) = fnl rst
           | fnl _ = raise Fail "PP-error: fnl: internal error"
 
-	fun set(dstack,BB{Ublocks as ref[{Block_size,...}:block_info],...}) =
+	fun set(dstack,BB{Ublocks as Unsynchronized.ref[{Block_size,...}:block_info],...}) =
 	      (pop_bottom_delim_stack dstack;
 	       Block_size := INFINITY)
-	  | set (_,BB {Ublocks = ref(_::rst), ...}) = fnl rst
+	  | set (_,BB {Ublocks = Unsynchronized.ref(_::rst), ...}) = fnl rst
 	  | set (dstack, E{Pend,Uend}) =
 	      (Pend := (!Pend) + (!Uend);
 	       Uend := 0;
@@ -958,7 +958,7 @@ fun with_pp ppconsumer ppfn =
      (TextIO.print (">>>> Pretty-printer failure: " ^ msg ^ "\n"))
 
 fun pp_to_string linewidth ppfn ob =
-    let val l = ref ([]:string list)
+    let val l = Unsynchronized.ref ([]:string list)
 	fun attach s = l := (s::(!l))
      in with_pp {consumer = attach, linewidth=linewidth, flush = fn()=>()}
 		(fn ppstrm =>  ppfn ppstrm ob);
@@ -995,7 +995,7 @@ val can : ('a -> 'b) -> 'a -> bool
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val tracePrint : (string -> unit) ref
+val tracePrint : (string -> unit) Unsynchronized.ref
 
 val trace : string -> unit
 
@@ -1228,7 +1228,7 @@ val newInt : unit -> int
 
 val newInts : int -> int list
 
-val withRef : 'r ref * 'r -> ('a -> 'b) -> 'a -> 'b
+val withRef : 'r Unsynchronized.ref * 'r -> ('a -> 'b) -> 'a -> 'b
 
 val cloneArray : 'a Metis.Array.array -> 'a Metis.Array.array
 
@@ -1305,7 +1305,7 @@ fun partial (e as Error _) f x = (case f x of SOME y => y | NONE => raise e)
 (* Tracing                                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val tracePrint = ref print;
+val tracePrint = Unsynchronized.ref print;
 
 fun trace message = !tracePrint message;
 
@@ -1629,7 +1629,7 @@ local
 
   fun calcPrimes n = looking [] n (K true) 2
 
-  val primesList = ref (calcPrimes 10);
+  val primesList = Unsynchronized.ref (calcPrimes 10);
 in
   fun primes n = CRITICAL (fn () =>
       if length (!primesList) <= n then List.take (!primesList,n)
@@ -1828,7 +1828,7 @@ fun isRight (Left _) = false
 (* ------------------------------------------------------------------------- *)
 
 local
-  val generator = ref 0
+  val generator = Unsynchronized.ref 0
 in
   fun newInt () = CRITICAL (fn () =>
       let
@@ -1986,12 +1986,12 @@ datatype 'a thunk =
     Value of 'a
   | Thunk of unit -> 'a;
 
-datatype 'a lazy = Lazy of 'a thunk ref;
+datatype 'a lazy = Lazy of 'a thunk Unsynchronized.ref;
 
-fun delay f = Lazy (ref (Thunk f));
+fun delay f = Lazy (Unsynchronized.ref (Thunk f));
 
-fun force (Lazy (ref (Value v))) = v
-  | force (Lazy (s as ref (Thunk f))) =
+fun force (Lazy (Unsynchronized.ref (Value v))) = v
+  | force (Lazy (s as Unsynchronized.ref (Thunk f))) =
     let
       val v = f ()
       val () = s := Value v
@@ -4141,7 +4141,7 @@ fun setify l =
 
 fun cache cmp f =
     let
-      val cache = ref (Map.new cmp)
+      val cache = Unsynchronized.ref (Map.new cmp)
     in
       fn a =>
          case Map.peek (!cache) a of
@@ -4620,7 +4620,7 @@ datatype breakStyle = Consistent | Inconsistent
 
 type 'a pp = ppstream -> 'a -> unit
 
-val lineLength : int ref
+val lineLength : int Unsynchronized.ref
 
 val beginBlock : ppstream -> breakStyle -> int -> unit
 
@@ -4797,7 +4797,7 @@ datatype breakStyle = Consistent | Inconsistent
 
 type 'a pp = PP.ppstream -> 'a -> unit;
 
-val lineLength = ref 75;
+val lineLength = Unsynchronized.ref 75;
 
 fun beginBlock pp Consistent = PP.begin_block pp PP.CONSISTENT
   | beginBlock pp Inconsistent = PP.begin_block pp PP.INCONSISTENT;
@@ -5766,19 +5766,19 @@ val stripComb : term -> term * term list
 
 (* Infix symbols *)
 
-val infixes : Metis.Parser.infixities ref
+val infixes : Metis.Parser.infixities Unsynchronized.ref
 
 (* The negation symbol *)
 
-val negation : Metis.Name.name ref
+val negation : Metis.Name.name Unsynchronized.ref
 
 (* Binder symbols *)
 
-val binders : Metis.Name.name list ref
+val binders : Metis.Name.name list Unsynchronized.ref
 
 (* Bracket symbols *)
 
-val brackets : (Metis.Name.name * Metis.Name.name) list ref
+val brackets : (Metis.Name.name * Metis.Name.name) list Unsynchronized.ref
 
 (* Pretty printing *)
 
@@ -6137,7 +6137,7 @@ end;
 
 (* Operators parsed and printed infix *)
 
-val infixes : Parser.infixities ref = ref
+val infixes : Parser.infixities Unsynchronized.ref = Unsynchronized.ref
   [(* ML symbols *)
    {token = " / ", precedence = 7, leftAssoc = true},
    {token = " div ", precedence = 7, leftAssoc = true},
@@ -6174,15 +6174,15 @@ val infixes : Parser.infixities ref = ref
 
 (* The negation symbol *)
 
-val negation : Name.name ref = ref "~";
+val negation : Name.name Unsynchronized.ref = Unsynchronized.ref "~";
 
 (* Binder symbols *)
 
-val binders : Name.name list ref = ref ["\\","!","?","?!"];
+val binders : Name.name list Unsynchronized.ref = Unsynchronized.ref ["\\","!","?","?!"];
 
 (* Bracket symbols *)
 
-val brackets : (Name.name * Name.name) list ref = ref [("[","]"),("{","}")];
+val brackets : (Name.name * Name.name) list Unsynchronized.ref = Unsynchronized.ref [("[","]"),("{","}")];
 
 (* Pretty printing *)
 
@@ -11051,11 +11051,11 @@ val simplify = fn simp => fn fm =>
 
 val newSkolemFunction =
     let
-      val counter : int NameMap.map ref = ref (NameMap.new ())
+      val counter : int NameMap.map Unsynchronized.ref = Unsynchronized.ref (NameMap.new ())
     in
       fn n => CRITICAL (fn () =>
       let
-        val ref m = counter
+        val Unsynchronized.ref m = counter
         val i = Option.getOpt (NameMap.peek m n, 0)
         val () = counter := NameMap.insert m (n, i + 1)
       in
@@ -11249,11 +11249,11 @@ end;
 
 val newDefinitionRelation =
     let
-      val counter : int ref = ref 0
+      val counter : int Unsynchronized.ref = Unsynchronized.ref 0
     in
       fn () => CRITICAL (fn () =>
       let
-        val ref i = counter
+        val Unsynchronized.ref i = counter
         val () = counter := i + 1
       in
         "defCNF_" ^ Int.toString i
@@ -11820,8 +11820,8 @@ datatype model =
     Model of
       {size : int,
        fixed : fixedModel,
-       functions : (Term.functionName * int list, int) Map.map ref,
-       relations : (Atom.relationName * int list, bool) Map.map ref};
+       functions : (Term.functionName * int list, int) Map.map Unsynchronized.ref,
+       relations : (Atom.relationName * int list, bool) Map.map Unsynchronized.ref};
 
 local
   fun cmp ((n1,l1),(n2,l2)) =
@@ -11834,8 +11834,8 @@ in
       Model
         {size = N,
          fixed = fixed {size = N},
-         functions = ref (Map.new cmp),
-         relations = ref (Map.new cmp)};
+         functions = Unsynchronized.ref (Map.new cmp),
+         relations = Unsynchronized.ref (Map.new cmp)};
 end;
 
 fun size (Model {size = s, ...}) = s;
@@ -11905,7 +11905,7 @@ fun interpretTerm M V =
                 | (Term.Fn (f,tms), tms') => (f, tms @ tms')
             val elts = map interpret tms
             val f_elts = (f,elts)
-            val ref funcs = functions
+            val Unsynchronized.ref funcs = functions
           in
             case Map.peek funcs f_elts of
               SOME k => k
@@ -11932,7 +11932,7 @@ fun interpretAtom M V (r,tms) =
 
       val elts = map (interpretTerm M V) tms
       val r_elts = (r,elts)
-      val ref rels = relations
+      val Unsynchronized.ref rels = relations
     in
       case Map.peek rels r_elts of
         SOME b => b
@@ -14717,7 +14717,7 @@ val paramodulate :
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showId : bool ref
+val showId : bool Unsynchronized.ref
 
 val pp : clause Metis.Parser.pp
 
@@ -14747,10 +14747,10 @@ open Useful;
 
 val newId =
     let
-      val r = ref 0
+      val r = Unsynchronized.ref 0
     in
       fn () => CRITICAL (fn () =>
-        case r of ref n => let val () = r := n + 1 in n end)
+        case r of Unsynchronized.ref n => let val () = r := n + 1 in n end)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -14777,7 +14777,7 @@ datatype clause = Clause of clauseInfo;
 (* Pretty printing.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-val showId = ref false;
+val showId = Unsynchronized.ref false;
 
 local
   val ppIdThm = Parser.ppPair Parser.ppInt Thm.pp;
@@ -16372,9 +16372,9 @@ sig
 (* Mapping TPTP functions and relations to different names.                  *)
 (* ------------------------------------------------------------------------- *)
 
-val functionMapping : {name : string, arity : int, tptp : string} list ref
+val functionMapping : {name : string, arity : int, tptp : string} list Unsynchronized.ref
 
-val relationMapping : {name : string, arity : int, tptp : string} list ref
+val relationMapping : {name : string, arity : int, tptp : string} list Unsynchronized.ref
 
 (* ------------------------------------------------------------------------- *)
 (* TPTP literals.                                                            *)
@@ -16491,7 +16491,7 @@ fun isHdTlString hp tp s =
 (* Mapping TPTP functions and relations to different names.                  *)
 (* ------------------------------------------------------------------------- *)
 
-val functionMapping = ref
+val functionMapping = Unsynchronized.ref
     [(* Mapping TPTP functions to infix symbols *)
      {name = "*", arity = 2, tptp = "multiply"},
      {name = "/", arity = 2, tptp = "divide"},
@@ -16504,7 +16504,7 @@ val functionMapping = ref
      {name = ".", arity = 2, tptp = "apply"},
      {name = "<=", arity = 0, tptp = "less_equal"}];
 
-val relationMapping = ref
+val relationMapping = Unsynchronized.ref
     [(* Mapping TPTP relations to infix symbols *)
      {name = "=", arity = 2, tptp = "="},
      {name = "==", arity = 2, tptp = "equalish"},

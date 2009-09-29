@@ -46,11 +46,11 @@ fun binder_conv cv ctxt =
   Conv.arg_conv (Conv.abs_conv (fn (_, cx) => cv cx) ctxt)
 
 
-fun cache_conv conv =
+fun cache_conv conv =   (* FIXME not thread-safe *)
   let 
-    val tab = ref Termtab.empty
+    val tab = Unsynchronized.ref Termtab.empty
     fun add_result t thm =
-      let val _ = change tab (Termtab.insert Thm.eq_thm (t, thm))
+      let val _ = Unsynchronized.change tab (Termtab.insert Thm.eq_thm (t, thm))
       in thm end
     fun cconv ct =  
       (case Termtab.lookup (!tab) (Thm.term_of ct) of

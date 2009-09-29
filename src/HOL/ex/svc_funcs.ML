@@ -18,7 +18,7 @@ For each variable of type nat, an assumption is added that it is non-negative.
 
 structure Svc =
 struct
- val trace = ref false;
+ val trace = Unsynchronized.ref false;
 
  datatype expr =
      Buildin of string * expr list
@@ -127,7 +127,7 @@ struct
   let
     val params = rev (Term.rename_wrt_term t (Term.strip_all_vars t))
     and body   = Term.strip_all_body t
-    val nat_vars = ref ([] : string list)
+    val nat_vars = Unsynchronized.ref ([] : string list)
     (*translation of a variable: record all natural numbers*)
     fun trans_var (a,T,is) =
         (if T = HOLogic.natT then nat_vars := (insert (op =) a (!nat_vars))

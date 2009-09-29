@@ -190,20 +190,20 @@ type prover = tree_choice list ->
   thm list * thm list * thm list -> thm * pss_tree
 type cert_conv = cterm -> thm * pss_tree
 
-val my_eqs = ref ([] : thm list);
-val my_les = ref ([] : thm list);
-val my_lts = ref ([] : thm list);
-val my_proof = ref (Axiom_eq 0);
-val my_context = ref @{context};
+val my_eqs = Unsynchronized.ref ([] : thm list);
+val my_les = Unsynchronized.ref ([] : thm list);
+val my_lts = Unsynchronized.ref ([] : thm list);
+val my_proof = Unsynchronized.ref (Axiom_eq 0);
+val my_context = Unsynchronized.ref @{context};
 
-val my_mk_numeric = ref ((K @{cterm True}) :Rat.rat -> cterm);
-val my_numeric_eq_conv = ref no_conv;
-val my_numeric_ge_conv = ref no_conv;
-val my_numeric_gt_conv = ref no_conv;
-val my_poly_conv = ref no_conv;
-val my_poly_neg_conv = ref no_conv;
-val my_poly_add_conv = ref no_conv;
-val my_poly_mul_conv = ref no_conv;
+val my_mk_numeric = Unsynchronized.ref ((K @{cterm True}) :Rat.rat -> cterm);
+val my_numeric_eq_conv = Unsynchronized.ref no_conv;
+val my_numeric_ge_conv = Unsynchronized.ref no_conv;
+val my_numeric_gt_conv = Unsynchronized.ref no_conv;
+val my_poly_conv = Unsynchronized.ref no_conv;
+val my_poly_neg_conv = Unsynchronized.ref no_conv;
+val my_poly_add_conv = Unsynchronized.ref no_conv;
+val my_poly_mul_conv = Unsynchronized.ref no_conv;
 
 
     (* Some useful derived rules *)

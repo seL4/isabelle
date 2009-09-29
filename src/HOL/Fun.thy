@@ -589,7 +589,7 @@ fun term_of_fun_type _ aT _ bT _ = Free ("<function>", aT --> bT);
 attach (test) {*
 fun gen_fun_type aF aT bG bT i =
   let
-    val tab = ref [];
+    val tab = Unsynchronized.ref [];
     fun mk_upd (x, (_, y)) t = Const ("Fun.fun_upd",
       (aT --> bT) --> aT --> bT --> aT --> bT) $ t $ aF x $ y ()
   in

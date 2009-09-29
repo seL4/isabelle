@@ -11,7 +11,7 @@ struct
 local open FundefLib in
 
 (* Profiling *)
-val profile = ref false;
+val profile = Unsynchronized.ref false;
 
 fun PROFILE msg = if !profile then timeap_msg msg else I
 

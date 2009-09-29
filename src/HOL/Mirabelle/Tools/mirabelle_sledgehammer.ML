@@ -202,7 +202,8 @@ fun str_of_pos pos =
 fun log_metis_data log tag sh_calls sh_success metis_calls metis_success metis_proofs metis_time
     metis_timeout metis_lemmas metis_posns =
  (log ("Total number of " ^ tag ^ "metis calls: " ^ str metis_calls);
-  log ("Number of successful " ^ tag ^ "metis calls: " ^ str metis_success ^ " (proof: " ^ str metis_proofs ^ ")");
+  log ("Number of successful " ^ tag ^ "metis calls: " ^ str metis_success ^
+    " (proof: " ^ str metis_proofs ^ ")");
   log ("Number of " ^ tag ^ "metis timeouts: " ^ str metis_timeout);
   log ("Success rate: " ^ percentage metis_success sh_calls ^ "%");
   log ("Number of successful " ^ tag ^ "metis lemmas: " ^ str metis_lemmas);
@@ -252,15 +253,15 @@ end
 
 
 (* Warning: we implicitly assume single-threaded execution here! *)
-val data = ref ([] : (int * data) list)
+val data = Unsynchronized.ref ([] : (int * data) list)
 
-fun init id thy = (change data (cons (id, empty_data)); thy)
+fun init id thy = (Unsynchronized.change data (cons (id, empty_data)); thy)
 fun done id ({log, ...}: Mirabelle.done_args) =
   AList.lookup (op =) (!data) id
   |> Option.map (log_data id log)
   |> K ()
 
-fun change_data id f = (change data (AList.map_entry (op =) id f); ())
+fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f); ())
 
 
 fun get_atp thy args =
@@ -419,7 +420,7 @@ fun sledgehammer_action args id (st as {log, pre, name, ...}: Mirabelle.run_args
         inc_metis_timeout, inc_metis_lemmas, inc_metis_posns)
     val metis0_fns = (inc_metis_calls0, inc_metis_success0, inc_metis_proofs0, inc_metis_time0,
         inc_metis_timeout0, inc_metis_lemmas0, inc_metis_posns0)
-    val named_thms = ref (NONE : (string * thm list) list option)
+    val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
     val minimize = AList.defined (op =) args minimizeK
   in 
     Mirabelle.catch sh_tag (run_sledgehammer args named_thms) id st;

@@ -6,7 +6,7 @@ First part of main module.
 
 signature PRIM =
 sig
-  val trace: bool ref
+  val trace: bool Unsynchronized.ref
   val trace_thms: string -> thm list -> unit
   val trace_cterm: string -> cterm -> unit
   type pattern
@@ -40,7 +40,7 @@ end;
 structure Prim: PRIM =
 struct
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 
 structure R = Rules;
 structure S = USyntax;
@@ -75,8 +75,8 @@ fun front_last [] = raise TFL_ERR "front_last" "empty list"
  * function contains embedded refs!
  *---------------------------------------------------------------------------*)
 fun gvvariant names =
-  let val slist = ref names
-      val vname = ref "u"
+  let val slist = Unsynchronized.ref names
+      val vname = Unsynchronized.ref "u"
       fun new() =
          if !vname mem_string (!slist)
          then (vname := Symbol.bump_string (!vname);  new())

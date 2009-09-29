@@ -348,8 +348,8 @@ fun adjacent eq_comp ((v,adj)::el) u =
 
 fun dfs eq_comp g u v =
  let
-    val pred = ref nil;
-    val visited = ref nil;
+    val pred = Unsynchronized.ref [];
+    val visited = Unsynchronized.ref [];
 
     fun been_visited v = exists (fn w => eq_comp (w, v)) (!visited)
 

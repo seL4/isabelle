@@ -15,7 +15,7 @@ sig
   val sos_tac : (RealArith.pss_tree -> unit) ->
     proof_method -> Proof.context -> int -> tactic
 
-  val debugging : bool ref;
+  val debugging : bool Unsynchronized.ref;
   
   exception Failure of string;
 end
@@ -58,7 +58,7 @@ val abs_rat = Rat.abs;
 val pow2 = rat_pow rat_2;
 val pow10 = rat_pow rat_10;
 
-val debugging = ref false;
+val debugging = Unsynchronized.ref false;
 
 exception Sanity;
 

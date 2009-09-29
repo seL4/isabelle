@@ -4,7 +4,7 @@
 
 signature FERRACK_TAC =
 sig
-  val trace: bool ref
+  val trace: bool Unsynchronized.ref
   val linr_tac: Proof.context -> bool -> int -> tactic
   val setup: theory -> theory
 end
@@ -12,7 +12,7 @@ end
 structure Ferrack_Tac =
 struct
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
 val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_less_iff}, 

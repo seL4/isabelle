@@ -35,10 +35,10 @@ sig
   val set_nparams : string -> int -> theory -> theory
   val print_stored_rules: theory -> unit
   val print_all_modes: theory -> unit
-  val do_proofs: bool ref
+  val do_proofs: bool Unsynchronized.ref
   val mk_casesrule : Proof.context -> int -> thm list -> term
   val analyze_compr: theory -> term -> term
-  val eval_ref: (unit -> term Predicate.pred) option ref
+  val eval_ref: (unit -> term Predicate.pred) option Unsynchronized.ref
   val add_equations : string list -> theory -> theory
   val code_pred_intros_attrib : attribute
   (* used by Quickcheck_Generator *) 
@@ -123,7 +123,7 @@ fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 fun print_tac s = Seq.single; (*Tactical.print_tac s;*) (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
 
-val do_proofs = ref true;
+val do_proofs = Unsynchronized.ref true;
 
 (* reference to preprocessing of InductiveSet package *)
 
@@ -2334,7 +2334,7 @@ val code_pred_cmd = generic_code_pred Code.read_const
 
 (* transformation for code generation *)
 
-val eval_ref = ref (NONE : (unit -> term Predicate.pred) option);
+val eval_ref = Unsynchronized.ref (NONE : (unit -> term Predicate.pred) option);
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr thy t_compr =

@@ -62,7 +62,7 @@ struct
 
 datatype cplexSolver = SOLVER_DEFAULT | SOLVER_CPLEX | SOLVER_GLPK
 
-val cplexsolver = ref SOLVER_DEFAULT;
+val cplexsolver = Unsynchronized.ref SOLVER_DEFAULT;
 fun get_solver () = !cplexsolver;
 fun set_solver s = (cplexsolver := s);
 
@@ -305,8 +305,8 @@ fun tokenize_general flist s =
 fun load_cplexFile name =
     let
     val f = TextIO.openIn name
-        val ignore_NL = ref true
-    val rest = ref []
+        val ignore_NL = Unsynchronized.ref true
+    val rest = Unsynchronized.ref []
 
     fun is_symbol s c = (fst c) = TOKEN_SYMBOL andalso (to_upper (snd c)) = s
 
@@ -612,7 +612,7 @@ fun save_cplexFile filename (cplexProg (name, goal, constraints, bounds)) =
 
     fun basic_write s = TextIO.output(f, s)
 
-    val linebuf = ref ""
+    val linebuf = Unsynchronized.ref ""
     fun buf_flushline s =
         (basic_write (!linebuf);
          basic_write "\n";
@@ -860,7 +860,7 @@ fun load_glpkResult name =
 
     val f = TextIO.openIn name
 
-    val rest = ref []
+    val rest = Unsynchronized.ref []
 
     fun readToken_helper () =
         if length (!rest) > 0 then
@@ -995,7 +995,7 @@ fun load_cplexResult name =
 
     val f = TextIO.openIn name
 
-    val rest = ref []
+    val rest = Unsynchronized.ref []
 
     fun readToken_helper () =
         if length (!rest) > 0 then

@@ -3,7 +3,7 @@ struct
 
 local
 
-    val report_depth = ref 0
+    val report_depth = Unsynchronized.ref 0
     fun space n = if n <= 0 then "" else (space (n-1))^" "
     fun report_space () = space (!report_depth)
 

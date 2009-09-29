@@ -6,7 +6,7 @@ Serializer for SML and OCaml.
 
 signature CODE_ML =
 sig
-  val eval: string option -> string * (unit -> 'a) option ref
+  val eval: string option -> string * (unit -> 'a) option Unsynchronized.ref
     -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
   val target_Eval: string
   val setup: theory -> theory

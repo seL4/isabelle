@@ -304,11 +304,11 @@ in
 fun lift_lambdas ctxt thms =
   let
     val declare_frees = fold (Thm.fold_terms Term.declare_term_frees)
-    val names = ref (declare_frees thms (Name.make_context []))
-    val fresh_name = change_result names o yield_singleton Name.variants
+    val names = Unsynchronized.ref (declare_frees thms (Name.make_context []))
+    val fresh_name = Unsynchronized.change_result names o yield_singleton Name.variants
 
-    val defs = ref (Termtab.empty : (int * thm) Termtab.table)
-    fun add_def t thm = change defs (Termtab.update (t, (serial (), thm)))
+    val defs = Unsynchronized.ref (Termtab.empty : (int * thm) Termtab.table)
+    fun add_def t thm = Unsynchronized.change defs (Termtab.update (t, (serial (), thm)))
     fun make_def cvs eq = Thm.symmetric (fold norm_meta_def cvs eq)
     fun def_conv cvs ctxt ct =
       let

@@ -18,7 +18,7 @@ sig
   val setup: theory -> theory
   val get_eqvt_thms: Proof.context -> thm list
 
-  val NOMINAL_EQVT_DEBUG : bool ref
+  val NOMINAL_EQVT_DEBUG : bool Unsynchronized.ref
 end;
 
 structure NominalThmDecls: NOMINAL_THMDECLS =
@@ -43,7 +43,7 @@ structure Data = GenericDataFun
 (* equality-lemma can be derived. *)
 exception EQVT_FORM of string
 
-val NOMINAL_EQVT_DEBUG = ref false
+val NOMINAL_EQVT_DEBUG = Unsynchronized.ref false
 
 fun tactic (msg, tac) =
   if !NOMINAL_EQVT_DEBUG

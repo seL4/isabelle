@@ -35,8 +35,8 @@ val top_bit = 0wx20000000;
 val a = 0w777138309;
 fun step x = Word.andb (a * x + 0w1, max_word);
 
-local val rand = ref 0w1
-in fun next_word () = (change rand step; ! rand) end;
+local val rand = Unsynchronized.ref 0w1
+in fun next_word () = (Unsynchronized.change rand step; ! rand) end;
 
 (*NB: higher bits are more random than lower ones*)
 fun next_bool () = Word.andb (next_word (), top_bit) = 0w0;

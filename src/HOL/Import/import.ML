@@ -4,7 +4,7 @@
 
 signature IMPORT =
 sig
-    val debug      : bool ref
+    val debug      : bool Unsynchronized.ref
     val import_tac : Proof.context -> string * string -> tactic
     val setup      : theory -> theory
 end
@@ -21,7 +21,7 @@ structure ImportData = TheoryDataFun
 structure Import :> IMPORT =
 struct
 
-val debug = ref false
+val debug = Unsynchronized.ref false
 fun message s = if !debug then writeln s else ()
 
 fun import_tac ctxt (thyname, thmname) =

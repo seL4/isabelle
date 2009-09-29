@@ -11,9 +11,9 @@ feature.
 
 signature AUTO_SOLVE =
 sig
-  val auto : bool ref
-  val auto_time_limit : int ref
-  val limit : int ref
+  val auto : bool Unsynchronized.ref
+  val auto_time_limit : int Unsynchronized.ref
+  val limit : int Unsynchronized.ref
 end;
 
 structure AutoSolve : AUTO_SOLVE =
@@ -21,9 +21,9 @@ struct
 
 (* preferences *)
 
-val auto = ref false;
-val auto_time_limit = ref 2500;
-val limit = ref 5;
+val auto = Unsynchronized.ref false;
+val auto_time_limit = Unsynchronized.ref 2500;
+val limit = Unsynchronized.ref 5;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing

@@ -23,7 +23,7 @@ sig
 
   val generate_certificate : bool -> label list -> graph_problem -> certificate option
 
-  val solver : string ref
+  val solver : string Unsynchronized.ref
 end
 
 structure ScnpSolve : SCNP_SOLVE =
@@ -71,7 +71,7 @@ fun the_one var n x = all (var x :: map (Not o var) ((0 upto n - 1) \\ [x]))
 fun exactly_one n f = iexists n (the_one f n)
 
 (* SAT solving *)
-val solver = ref "auto";
+val solver = Unsynchronized.ref "auto";
 fun sat_solver x =
   FundefCommon.PROFILE "sat_solving..." (SatSolver.invoke_solver (!solver)) x
 

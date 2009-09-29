@@ -8,7 +8,7 @@ header{*Zermelo-Fraenkel Set Theory*}
 
 theory ZF imports FOL begin
 
-ML {* reset eta_contract *}
+ML {* Unsynchronized.reset eta_contract *}
 
 global
 
