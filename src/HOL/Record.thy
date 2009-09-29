@@ -1,6 +1,8 @@
 (*  Title:      HOL/Record.thy
-    Authors:    Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
-                Thomas Sewell, NICTA
+    Author:     Wolfgang Naraschewski, TU Muenchen
+    Author:     Markus Wenzel, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Thomas Sewell, NICTA
 *)
 
 header {* Extensible records with structural subtyping *}

@@ -1,8 +1,10 @@
 (*  Title:      HOL/Tools/record.ML
-    Authors:    Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
-                Thomas Sewell, NICTA
+    Author:     Wolfgang Naraschewski, TU Muenchen
+    Author:     Markus Wenzel, TU Muenchen
+    Author:     Norbert Schirmer, TU Muenchen
+    Author:     Thomas Sewell, NICTA
 
-Extensible records with structural subtyping in HOL.
+Extensible records with structural subtyping.
 *)
 
 signature BASIC_RECORD =
