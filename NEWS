@@ -182,6 +182,19 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* Structure Synchronized (cf. src/Pure/Concurrent/synchronized.ML)
+provides a high-level programming interface to synchronized state
+variables with atomic update.  This works via pure function
+application within a critical section -- its runtime should be as
+short as possible; beware of deadlocks if critical code is nested,
+either directly or indirectly via other synchronized variables!
+
+* Structure Unsynchronized (cf. src/Pure/ML-Systems/unsynchronized.ML)
+wraps raw ML references, explicitly indicating their non-thread-safe
+behaviour.  The Isar toplevel keeps this structure open, to
+accommodate Proof General as well as quick and dirty interactive
+experiments with references.
+
 * PARALLEL_CHOICE and PARALLEL_GOALS provide basic support for
 parallel tactical reasoning.
 
