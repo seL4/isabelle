@@ -57,13 +57,8 @@ sig
   val andf: ('a -> bool) * ('a -> bool) -> 'a -> bool
   val exists: ('a -> bool) -> 'a list -> bool
   val forall: ('a -> bool) -> 'a list -> bool
-  val set: bool ref -> bool
-  val reset: bool ref -> bool
-  val toggle: bool ref -> bool
-  val change: 'a ref -> ('a -> 'a) -> unit
-  val change_result: 'a ref -> ('a -> 'b * 'a) -> 'b
-  val setmp_noncritical: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
-  val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  val setmp_noncritical: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  val setmp: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
@@ -123,8 +118,6 @@ sig
   val suffixes: 'a list -> 'a list list
 
   (*integers*)
-  val inc: int ref -> int
-  val dec: int ref -> int
   val upto: int * int -> int list
   val downto: int * int -> int list
   val radixpand: int * int -> int list
@@ -325,13 +318,6 @@ val forall = List.all;
 
 
 (* flags *)
-
-fun set flag = (flag := true; true);
-fun reset flag = (flag := false; false);
-fun toggle flag = (flag := not (! flag); ! flag);
-
-fun change r f = r := f (! r);
-fun change_result r f = let val (x, y) = f (! r) in r := y; x end;
 
 (*temporarily set flag during execution*)
 fun setmp_noncritical flag value f x =
@@ -642,10 +628,6 @@ fun suffixes xs = [] :: suffixes1 xs;
 
 
 (** integers **)
-
-fun inc i = (i := ! i + (1: int); ! i);
-fun dec i = (i := ! i - (1: int); ! i);
-
 
 (* lists of integers *)
 
@@ -1055,7 +1037,7 @@ fun rmod x y = x - y * Real.realFloor (x / y);
 local
   val a = 16807.0;
   val m = 2147483647.0;
-  val random_seed = ref 1.0;
+  val random_seed = Unsynchronized.ref 1.0;
 in
 
 fun random () = CRITICAL (fn () =>
@@ -1121,17 +1103,18 @@ fun gensym_char i =
 val char_vec = Vector.tabulate (62, gensym_char);
 fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)));
 
-val gensym_seed = ref (0: int);
+val gensym_seed = Unsynchronized.ref (0: int);
 
 in
-  fun gensym pre = pre ^ newid (NAMED_CRITICAL "gensym" (fn () => inc gensym_seed));
+  fun gensym pre =
+    pre ^ newid (NAMED_CRITICAL "gensym" (fn () => Unsynchronized.inc gensym_seed));
 end;
 
 
 (* stamps and serial numbers *)
 
-type stamp = unit ref;
-val stamp: unit -> stamp = ref;
+type stamp = unit Unsynchronized.ref;
+val stamp: unit -> stamp = Unsynchronized.ref;
 
 type serial = int;
 val serial = Multithreading.serial;
