@@ -611,7 +611,7 @@ fun transpose eq_comp g =
   let
    (* Compute list of reversed edges for each adjacency list *)
    fun flip (u,(v,l)::el) = (v,(u,l)) :: flip (u,el)
-     | flip (_,nil) = nil
+     | flip (_,[]) = []
 
    (* Compute adjacency list for node u from the list of edges
       and return a likewise reduced list of edges.  The list of edges
@@ -623,7 +623,7 @@ fun transpose eq_comp g =
      if eq_comp (u, v) then (w::adj,edges)
      else (adj,(v,w)::edges)
     end
-   | gather (_,nil) = (nil,nil)
+   | gather (_,[]) = ([],[])
 
    (* For every node in the input graph, call gather to find all reachable
       nodes in the list of edges *)
@@ -631,11 +631,11 @@ fun transpose eq_comp g =
        let val (adj,edges) = gather (u,edges)
        in (u,adj) :: assemble el edges
        end
-     | assemble nil _ = nil
+     | assemble [] _ = []
 
    (* Compute, for each adjacency list, the list with reversed edges,
       and concatenate these lists. *)
-   val flipped = List.foldr (op @) nil (map flip g)
+   val flipped = maps flip g
 
  in assemble g flipped end
 
@@ -675,7 +675,7 @@ fun scc_term G =
    val descendents =
        List.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
-        nil (adjacent (op aconv) g u)
+        [] (adjacent (op aconv) g u)
       in
    finish := u :: !finish;
    descendents
@@ -687,7 +687,7 @@ fun scc_term G =
      as yet unvisited. *)
   app (fn u => if been_visited u then ()
         else (dfs_visit G u; ()))  (members G);
-  visited := nil;
+  visited := [];
 
   (* We don't reset finish because its value is used by
      foldl below, and it will never be used again (even
@@ -699,7 +699,7 @@ fun scc_term G =
      list, which is what is returned. *)
   Library.foldl (fn (comps,u) =>
       if been_visited u then comps
-      else ((u :: dfs_visit (transpose (op aconv) G) u) :: comps))  (nil,(!finish))
+      else ((u :: dfs_visit (transpose (op aconv) G) u) :: comps))  ([],(!finish))
 end;
 
 
@@ -725,7 +725,7 @@ fun dfs_int_reachable g u =
    val descendents =
        List.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
-        nil (adjacent (op =) g u)
+        [] (adjacent (op =) g u)
    in  descendents end
 
  in u :: dfs_visit g u end;
