@@ -6,13 +6,15 @@ A quickcheck generator based on the predicate compiler
 signature PRED_COMPILE_QUICKCHECK =
 sig
   val quickcheck : Proof.context -> term -> int -> term list option
-  val test_ref : ((unit -> int -> int * int -> term list Predicate.pred * (int * int)) option) ref
+  val test_ref :
+    ((unit -> int -> int * int -> term list Predicate.pred * (int * int)) option) Unsynchronized.ref
 end;
 
 structure Pred_Compile_Quickcheck : PRED_COMPILE_QUICKCHECK =
 struct
 
-val test_ref = ref (NONE : (unit -> int -> int * int -> term list Predicate.pred * (int * int)) option) 
+val test_ref =
+  Unsynchronized.ref (NONE : (unit -> int -> int * int -> term list Predicate.pred * (int * int)) option)
 val target = "Quickcheck"
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs

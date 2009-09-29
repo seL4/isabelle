@@ -91,7 +91,7 @@ fun condrew thy rules procs =
       Pattern.rewrite_term thy [] (condrew' :: procs) tm
     and condrew' tm =
       let
-        val cache = ref ([] : (term * term) list);
+        val cache = Unsynchronized.ref ([] : (term * term) list);
         fun lookup f x = (case AList.lookup (op =) (!cache) x of
             NONE =>
               let val y = f x

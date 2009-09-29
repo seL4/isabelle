@@ -59,7 +59,7 @@ structure CoData_Package =
 (*Simproc for freeness reasoning: compare datatype constructors for equality*)
 structure DataFree =
 struct
-  val trace = ref false;
+  val trace = Unsynchronized.ref false;
 
   fun mk_new ([],[]) = Const("True",FOLogic.oT)
     | mk_new (largs,rargs) =

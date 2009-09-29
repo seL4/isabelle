@@ -69,7 +69,7 @@ in
          forall e in v. ~p(v \ e)
    *)
   fun minimal p s =
-    let val c = ref 0
+    let val c = Unsynchronized.ref 0
         fun pc xs = (c := !c + 1; p xs)
     in
     (case min pc [] s of

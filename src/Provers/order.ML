@@ -656,10 +656,10 @@ fun scc_term G =
      let
   (* Ordered list of the vertices that DFS has finished with;
      most recently finished goes at the head. *)
-  val finish : term list ref = ref nil
+  val finish : term list Unsynchronized.ref = Unsynchronized.ref []
 
   (* List of vertices which have been visited. *)
-  val visited : term list ref = ref nil
+  val visited : term list Unsynchronized.ref = Unsynchronized.ref []
 
   fun been_visited v = exists (fn w => w aconv v) (!visited)
 
@@ -715,7 +715,7 @@ end;
 fun dfs_int_reachable g u =
  let
   (* List of vertices which have been visited. *)
-  val visited : int list ref = ref nil
+  val visited : int list Unsynchronized.ref = Unsynchronized.ref []
 
   fun been_visited v = exists (fn w => w = v) (!visited)
 
@@ -755,8 +755,8 @@ fun getIndex v [] = ~1
 
 fun dfs eq_comp g u v =
  let
-    val pred = ref nil;
-    val visited = ref nil;
+    val pred = Unsynchronized.ref [];
+    val visited = Unsynchronized.ref [];
 
     fun been_visited v = exists (fn w => eq_comp (w, v)) (!visited)
 

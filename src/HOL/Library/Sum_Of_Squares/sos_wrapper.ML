@@ -10,7 +10,7 @@ sig
   datatype prover_result = Success | Failure | Error
 
   val setup: theory -> theory
-  val destdir: string ref
+  val destdir: string Unsynchronized.ref
   val get_prover_name: unit -> string
   val set_prover_name: string -> unit
 end
@@ -30,7 +30,7 @@ val write = Output.warning
 
 (*** calling provers ***)
 
-val destdir = ref ""
+val destdir = Unsynchronized.ref ""
 
 fun filename dir name =
   let
@@ -113,7 +113,7 @@ val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
 
 (* default prover *)
 
-val prover_name = ref "remote_csdp"
+val prover_name = Unsynchronized.ref "remote_csdp"
 
 fun get_prover_name () = CRITICAL (fn () => ! prover_name);
 fun set_prover_name str = CRITICAL (fn () => prover_name := str);

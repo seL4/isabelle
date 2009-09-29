@@ -9,8 +9,8 @@ sig
   datatype 'term criterion =
     Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
     Pattern of 'term
-  val tac_limit: int ref
-  val limit: int ref
+  val tac_limit: int Unsynchronized.ref
+  val limit: int Unsynchronized.ref
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> int option * (Facts.ref * thm) list
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
@@ -186,7 +186,7 @@ fun filter_elim ctxt goal (_, thm) =
     end
   else NONE
 
-val tac_limit = ref 5;
+val tac_limit = Unsynchronized.ref 5;
 
 fun filter_solves ctxt goal =
   let
@@ -372,7 +372,7 @@ fun all_facts_of ctxt =
    (Facts.dest_static [] (PureThy.facts_of (ProofContext.theory_of ctxt)) @
     Facts.dest_static [] (ProofContext.facts_of ctxt));
 
-val limit = ref 40;
+val limit = Unsynchronized.ref 40;
 
 fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let

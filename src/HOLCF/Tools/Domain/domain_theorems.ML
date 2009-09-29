@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/Tools/Domain/domain_theorems.ML
     Author:     David von Oheimb
-                New proofs/tactics by Brian Huffman
+    Author:     Brian Huffman
 
 Proof generator for domain command.
 *)
@@ -11,15 +11,15 @@ signature DOMAIN_THEOREMS =
 sig
   val theorems: Domain_Library.eq * Domain_Library.eq list -> theory -> thm list * theory;
   val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
-  val quiet_mode: bool ref;
-  val trace_domain: bool ref;
+  val quiet_mode: bool Unsynchronized.ref;
+  val trace_domain: bool Unsynchronized.ref;
 end;
 
 structure Domain_Theorems :> DOMAIN_THEOREMS =
 struct
 
-val quiet_mode = ref false;
-val trace_domain = ref false;
+val quiet_mode = Unsynchronized.ref false;
+val trace_domain = Unsynchronized.ref false;
 
 fun message s = if !quiet_mode then () else writeln s;
 fun trace s = if !trace_domain then tracing s else ();

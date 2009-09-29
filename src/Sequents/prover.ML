@@ -10,12 +10,11 @@ Simple classical reasoner for the sequent calculus, based on "theorem packs".
 infix 4 add_safes add_unsafes;
 
 structure Cla =
-
 struct
 
 datatype pack = Pack of thm list * thm list;
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 
 (*A theorem pack has the form  (safe rules, unsafe rules)
   An unsafe rule is incomplete or introduces variables in subgoals,

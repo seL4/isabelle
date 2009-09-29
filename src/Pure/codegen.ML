@@ -6,10 +6,10 @@ Generic code generator.
 
 signature CODEGEN =
 sig
-  val quiet_mode : bool ref
+  val quiet_mode : bool Unsynchronized.ref
   val message : string -> unit
-  val mode : string list ref
-  val margin : int ref
+  val mode : string list Unsynchronized.ref
+  val margin : int Unsynchronized.ref
   val string_of : Pretty.T -> string
   val str : string -> Pretty.T
 
@@ -75,9 +75,9 @@ sig
   val mk_type: bool -> typ -> Pretty.T
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
-  val test_fn: (int -> term list option) ref
+  val test_fn: (int -> term list option) Unsynchronized.ref
   val test_term: Proof.context -> term -> int -> term list option
-  val eval_result: (unit -> term) ref
+  val eval_result: (unit -> term) Unsynchronized.ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
@@ -102,12 +102,12 @@ end;
 structure Codegen : CODEGEN =
 struct
 
-val quiet_mode = ref true;
+val quiet_mode = Unsynchronized.ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
-val mode = ref ([] : string list);
+val mode = Unsynchronized.ref ([] : string list);
 
-val margin = ref 80;
+val margin = Unsynchronized.ref 80;
 
 fun string_of p = (Pretty.string_of |>
   PrintMode.setmp [] |>
@@ -878,7 +878,8 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
               [mk_gen gr module true xs a T, mk_type true T]) Ts) @
          (if member (op =) xs s then [str a] else []))));
 
-val test_fn : (int -> term list option) ref = ref (fn _ => NONE);
+val test_fn : (int -> term list option) Unsynchronized.ref =
+  Unsynchronized.ref (fn _ => NONE);
 
 fun test_term ctxt t =
   let
@@ -912,7 +913,7 @@ fun test_term ctxt t =
 
 (**** Evaluator for terms ****)
 
-val eval_result = ref (fn () => Bound 0);
+val eval_result = Unsynchronized.ref (fn () => Bound 0);
 
 fun eval_term thy t =
   let

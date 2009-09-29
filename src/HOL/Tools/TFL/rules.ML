@@ -47,10 +47,10 @@ sig
 
   val rbeta: thm -> thm
 (* For debugging my isabelle solver in the conditional rewriter *)
-  val term_ref: term list ref
-  val thm_ref: thm list ref
-  val ss_ref: simpset list ref
-  val tracing: bool ref
+  val term_ref: term list Unsynchronized.ref
+  val thm_ref: thm list Unsynchronized.ref
+  val ss_ref: simpset list Unsynchronized.ref
+  val tracing: bool Unsynchronized.ref
   val CONTEXT_REWRITE_RULE: term * term list * thm * thm list
                              -> thm -> thm * term list
   val RIGHT_ASSOC: thm -> thm
@@ -544,10 +544,10 @@ fun list_beta_conv tm =
 (*---------------------------------------------------------------------------
  * Trace information for the rewriter
  *---------------------------------------------------------------------------*)
-val term_ref = ref [] : term list ref
-val ss_ref = ref [] : simpset list ref;
-val thm_ref = ref [] : thm list ref;
-val tracing = ref false;
+val term_ref = Unsynchronized.ref [] : term list Unsynchronized.ref
+val ss_ref = Unsynchronized.ref [] : simpset list Unsynchronized.ref;
+val thm_ref = Unsynchronized.ref [] : thm list Unsynchronized.ref;
+val tracing = Unsynchronized.ref false;
 
 fun say s = if !tracing then writeln s else ();
 
@@ -666,7 +666,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  let val globals = func::G
      val ss0 = Simplifier.theory_context (Thm.theory_of_thm th) empty_ss
      val pbeta_reduce = simpl_conv ss0 [split_conv RS eq_reflection];
-     val tc_list = ref[]: term list ref
+     val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []
      val dummy = ss_ref  := []

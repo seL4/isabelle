@@ -48,9 +48,9 @@ Proof reconstruction from SAT solvers.
 
 signature SAT =
 sig
-	val trace_sat: bool ref    (* input: print trace messages *)
-	val solver: string ref  (* input: name of SAT solver to be used *)
-	val counter: int ref     (* output: number of resolution steps during last proof replay *)
+	val trace_sat: bool Unsynchronized.ref    (* input: print trace messages *)
+	val solver: string Unsynchronized.ref  (* input: name of SAT solver to be used *)
+	val counter: int Unsynchronized.ref     (* output: number of resolution steps during last proof replay *)
 	val rawsat_thm: Proof.context -> cterm list -> thm
 	val rawsat_tac: Proof.context -> int -> tactic
 	val sat_tac: Proof.context -> int -> tactic
@@ -60,11 +60,12 @@ end
 functor SATFunc(cnf : CNF) : SAT =
 struct
 
-val trace_sat = ref false;
+val trace_sat = Unsynchronized.ref false;
 
-val solver = ref "zchaff_with_proofs";  (* see HOL/Tools/sat_solver.ML for possible values *)
+val solver = Unsynchronized.ref "zchaff_with_proofs";
+  (*see HOL/Tools/sat_solver.ML for possible values*)
 
-val counter = ref 0;
+val counter = Unsynchronized.ref 0;
 
 val resolution_thm =
   @{lemma "(P ==> False) ==> (~ P ==> False) ==> False" by (rule case_split)}
@@ -191,7 +192,7 @@ fun resolve_raw_clauses [] =
 					  " (hyps: " ^ ML_Syntax.print_list
 					      (Syntax.string_of_term_global (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
-			val _ = inc counter
+			val _ = Unsynchronized.inc counter
 		in
 			(c_new, new_hyps)
 		end

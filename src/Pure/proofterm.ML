@@ -8,7 +8,7 @@ infix 8 % %% %>;
 
 signature BASIC_PROOFTERM =
 sig
-  val proofs: int ref
+  val proofs: int Unsynchronized.ref
 
   datatype proof =
      MinProof
@@ -885,7 +885,7 @@ fun equal_elim A B prf1 prf2 =
 
 (***** axioms and theorems *****)
 
-val proofs = ref 2;
+val proofs = Unsynchronized.ref 2;
 
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));

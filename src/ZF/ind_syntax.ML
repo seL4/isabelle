@@ -10,7 +10,7 @@ structure Ind_Syntax =
 struct
 
 (*Print tracing messages during processing of "inductive" theory sections*)
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 
 fun traceIt msg thy t =
   if !trace then (tracing (msg ^ Syntax.string_of_term_global thy t); t)

@@ -53,7 +53,7 @@ sig
 
     val get_proof_dir: string -> theory -> string option
     val disambiguate_frees : Thm.thm -> Thm.thm
-    val debug : bool ref
+    val debug : bool Unsynchronized.ref
     val disk_info_of : proof -> (string * string) option
     val set_disk_info_of : proof -> string -> string -> unit
     val mk_proof : proof_content -> proof
@@ -132,7 +132,7 @@ val replay_add_dump = add_dump
 fun add_dump s thy = (ImportRecorder.add_dump s; replay_add_dump s thy)
 
 datatype proof_info
-  = Info of {disk_info: (string * string) option ref}
+  = Info of {disk_info: (string * string) option Unsynchronized.ref}
 
 datatype proof = Proof of proof_info * proof_content
      and proof_content
@@ -258,7 +258,7 @@ fun pth (HOLThm(ren,thm)) =
     end
 
 fun disk_info_of (Proof(Info{disk_info,...},_)) = !disk_info
-fun mk_proof p = Proof(Info{disk_info = ref NONE},p)
+fun mk_proof p = Proof(Info{disk_info = Unsynchronized.ref NONE},p)
 fun content_of (Proof(_,p)) = p
 
 fun set_disk_info_of (Proof(Info{disk_info,...},_)) thyname thmname =
@@ -463,8 +463,8 @@ fun protect_tyvarname s =
         s |> no_quest |> beg_prime
     end
 
-val protected_varnames = ref (Symtab.empty:string Symtab.table)
-val invented_isavar = ref 0
+val protected_varnames = Unsynchronized.ref (Symtab.empty:string Symtab.table)
+val invented_isavar = Unsynchronized.ref 0
 
 fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
 
@@ -482,7 +482,7 @@ fun protect_varname s =
       SOME t => t
     | NONE =>
       let
-          val _ = inc invented_isavar
+          val _ = Unsynchronized.inc invented_isavar
           val t = "u_" ^ string_of_int (!invented_isavar)
           val _ = ImportRecorder.protect_varname s t
           val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
@@ -497,7 +497,7 @@ fun replay_protect_varname s t =
           SOME t' => raise REPLAY_PROTECT_VARNAME (s, t, t')
         | NONE =>
           let
-              val _ = inc invented_isavar
+              val _ = Unsynchronized.inc invented_isavar
               val t = "u_" ^ string_of_int (!invented_isavar)
               val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
           in
@@ -1188,7 +1188,7 @@ fun disambiguate_frees thm =
         end
     end
 
-val debug = ref false
+val debug = Unsynchronized.ref false
 
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln

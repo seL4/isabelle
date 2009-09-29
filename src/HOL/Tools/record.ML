@@ -16,15 +16,15 @@ sig
   val record_split_simp_tac: thm list -> (term -> int) -> int -> tactic
   val record_split_name: string
   val record_split_wrapper: string * wrapper
-  val print_record_type_abbr: bool ref
-  val print_record_type_as_fields: bool ref
+  val print_record_type_abbr: bool Unsynchronized.ref
+  val print_record_type_as_fields: bool Unsynchronized.ref
 end;
 
 signature RECORD =
 sig
   include BASIC_RECORD
-  val timing: bool ref
-  val record_quick_and_dirty_sensitive: bool ref
+  val timing: bool Unsynchronized.ref
+  val record_quick_and_dirty_sensitive: bool Unsynchronized.ref
   val updateN: string
   val updN: string
   val ext_typeN: string
@@ -287,7 +287,7 @@ fun trace_term str t =
 
 (* timing *)
 
-val timing = ref false;
+val timing = Unsynchronized.ref false;
 fun timeit_msg s x = if !timing then (warning s; timeit x) else x ();
 fun timing_msg s = if !timing then warning s else ();
 
@@ -879,8 +879,8 @@ val adv_parse_translation =
 
 (* print translations *)
 
-val print_record_type_abbr = ref true;
-val print_record_type_as_fields = ref true;
+val print_record_type_abbr = Unsynchronized.ref true;
+val print_record_type_as_fields = Unsynchronized.ref true;
 
 fun gen_field_upds_tr' mark sfx (tm as Const (name_field, _) $ k $ u) =
   let val t = (case k of (Abs (_,_,(Abs (_,_,t)$Bound 0))) 
@@ -1072,7 +1072,7 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
 
 (** record simprocs **)
 
-val record_quick_and_dirty_sensitive = ref false;
+val record_quick_and_dirty_sensitive = Unsynchronized.ref false;
 
 
 fun quick_and_dirty_prove stndrd thy asms prop tac =

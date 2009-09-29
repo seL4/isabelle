@@ -12,18 +12,18 @@ sig
   val save_result : (string * term) -> unit
   val set_compiled_rewriter : (term -> term) -> unit				       
   val list_nth : 'a list * int -> 'a
-  val dump_output : (string option) ref 
+  val dump_output : (string option) Unsynchronized.ref 
 end
 
 structure AM_SML : AM_SML = struct
 
 open AbstractMachine;
 
-val dump_output = ref (NONE: string option)
+val dump_output = Unsynchronized.ref (NONE: string option)
 
 type program = string * string * (int Inttab.table) * (int Inttab.table) * (term Inttab.table) * (term -> term)
 
-val saved_result = ref (NONE:(string*term)option)
+val saved_result = Unsynchronized.ref (NONE:(string*term)option)
 
 fun save_result r = (saved_result := SOME r)
 fun clear_result () = (saved_result := NONE)
@@ -32,7 +32,7 @@ val list_nth = List.nth
 
 (*fun list_nth (l,n) = (writeln (makestring ("list_nth", (length l,n))); List.nth (l,n))*)
 
-val compiled_rewriter = ref (NONE:(term -> term)Option.option)
+val compiled_rewriter = Unsynchronized.ref (NONE:(term -> term)Option.option)
 
 fun set_compiled_rewriter r = (compiled_rewriter := SOME r)
 
@@ -295,7 +295,7 @@ fun group_rules rules =
 
 fun sml_prog name code rules = 
     let
-	val buffer = ref ""
+	val buffer = Unsynchronized.ref ""
 	fun write s = (buffer := (!buffer)^s)
 	fun writeln s = (write s; write "\n")
 	fun writelist [] = ()
@@ -480,7 +480,7 @@ fun sml_prog name code rules =
 	(arity, toplevel_arity, inlinetab, !buffer)
     end
 
-val guid_counter = ref 0
+val guid_counter = Unsynchronized.ref 0
 fun get_guid () = 
     let
 	val c = !guid_counter

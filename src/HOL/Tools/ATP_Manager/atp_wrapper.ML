@@ -6,8 +6,8 @@ Wrapper functions for external ATPs.
 
 signature ATP_WRAPPER =
 sig
-  val destdir: string ref
-  val problem_name: string ref
+  val destdir: string Unsynchronized.ref
+  val problem_name: string Unsynchronized.ref
   val tptp_prover_opts_full: int -> bool -> bool -> Path.T * string -> AtpManager.prover
   val tptp_prover_opts: int -> bool -> Path.T * string -> AtpManager.prover
   val tptp_prover: Path.T * string -> AtpManager.prover
@@ -35,8 +35,8 @@ struct
 
 (* global hooks for writing problemfiles *)
 
-val destdir = ref "";   (*Empty means write files to /tmp*)
-val problem_name = ref "prob";
+val destdir = Unsynchronized.ref "";   (*Empty means write files to /tmp*)
+val problem_name = Unsynchronized.ref "prob";
 
 
 (* basic template *)

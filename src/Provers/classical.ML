@@ -74,7 +74,7 @@ sig
 
   val fast_tac          : claset -> int -> tactic
   val slow_tac          : claset -> int -> tactic
-  val weight_ASTAR      : int ref
+  val weight_ASTAR      : int Unsynchronized.ref
   val astar_tac         : claset -> int -> tactic
   val slow_astar_tac    : claset -> int -> tactic
   val best_tac          : claset -> int -> tactic
@@ -746,7 +746,7 @@ fun slow_best_tac cs =
 
 
 (***ASTAR with weight weight_ASTAR, by Norbert Voelker*)
-val weight_ASTAR = ref 5;
+val weight_ASTAR = Unsynchronized.ref 5;
 
 fun astar_tac cs =
   ObjectLogic.atomize_prems_tac THEN'

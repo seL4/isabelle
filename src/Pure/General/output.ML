@@ -11,13 +11,13 @@ sig
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
-  val tolerate_legacy_features: bool ref
+  val tolerate_legacy_features: bool Unsynchronized.ref
   val legacy_feature: string -> unit
   val cond_timeit: bool -> string -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
   val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
-  val timing: bool ref
+  val timing: bool Unsynchronized.ref
 end;
 
 signature OUTPUT =
@@ -32,18 +32,18 @@ sig
   val std_output: output -> unit
   val std_error: output -> unit
   val writeln_default: output -> unit
-  val writeln_fn: (output -> unit) ref
-  val priority_fn: (output -> unit) ref
-  val tracing_fn: (output -> unit) ref
-  val warning_fn: (output -> unit) ref
-  val error_fn: (output -> unit) ref
-  val debug_fn: (output -> unit) ref
-  val prompt_fn: (output -> unit) ref
-  val status_fn: (output -> unit) ref
+  val writeln_fn: (output -> unit) Unsynchronized.ref
+  val priority_fn: (output -> unit) Unsynchronized.ref
+  val tracing_fn: (output -> unit) Unsynchronized.ref
+  val warning_fn: (output -> unit) Unsynchronized.ref
+  val error_fn: (output -> unit) Unsynchronized.ref
+  val debug_fn: (output -> unit) Unsynchronized.ref
+  val prompt_fn: (output -> unit) Unsynchronized.ref
+  val status_fn: (output -> unit) Unsynchronized.ref
   val error_msg: string -> unit
   val prompt: string -> unit
   val status: string -> unit
-  val debugging: bool ref
+  val debugging: bool Unsynchronized.ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
 end;
@@ -60,10 +60,10 @@ fun default_escape (s: output) = s;
 
 local
   val default = {output = default_output, escape = default_escape};
-  val modes = ref (Symtab.make [("", default)]);
+  val modes = Unsynchronized.ref (Symtab.make [("", default)]);
 in
   fun add_mode name output escape = CRITICAL (fn () =>
-    change modes (Symtab.update_new (name, {output = output, escape = escape})));
+    Unsynchronized.change modes (Symtab.update_new (name, {output = output, escape = escape})));
   fun get_mode () =
     the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
@@ -91,14 +91,14 @@ fun writeln_default "" = ()
 
 (* Isabelle output channels *)
 
-val writeln_fn = ref writeln_default;
-val priority_fn = ref (fn s => ! writeln_fn s);
-val tracing_fn = ref (fn s => ! writeln_fn s);
-val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
-val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
-val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
-val prompt_fn = ref std_output;
-val status_fn = ref (fn _: string => ());
+val writeln_fn = Unsynchronized.ref writeln_default;
+val priority_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
+val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
+val warning_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "### ");
+val error_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "*** ");
+val debug_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "::: ");
+val prompt_fn = Unsynchronized.ref std_output;
+val status_fn = Unsynchronized.ref (fn _: string => ());
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
@@ -108,13 +108,13 @@ fun error_msg s = ! error_fn (output s);
 fun prompt s = ! prompt_fn (output s);
 fun status s = ! status_fn (output s);
 
-val tolerate_legacy_features = ref true;
+val tolerate_legacy_features = Unsynchronized.ref true;
 fun legacy_feature s =
   (if ! tolerate_legacy_features then warning else error) ("Legacy feature! " ^ s);
 
 fun no_warnings f = setmp warning_fn (K ()) f;
 
-val debugging = ref false;
+val debugging = Unsynchronized.ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
 
 
@@ -140,9 +140,9 @@ fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
 (*global timing mode*)
-val timing = ref false;
+val timing = Unsynchronized.ref false;
 
 end;
 
-structure BasicOutput: BASIC_OUTPUT = Output;
-open BasicOutput;
+structure Basic_Output: BASIC_OUTPUT = Output;
+open Basic_Output;

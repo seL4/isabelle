@@ -16,7 +16,7 @@ struct
 
 (* Oracle for preprocessing  *)
 
-val (oracle : (string * (cterm -> thm)) option ref) = ref NONE;
+val (oracle : (string * (cterm -> thm)) option Unsynchronized.ref) = Unsynchronized.ref NONE;
 
 fun the_oracle () =
   case !oracle of

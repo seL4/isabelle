@@ -144,7 +144,7 @@ fun group_rules rules =
 
 fun haskell_prog name rules = 
     let
-	val buffer = ref ""
+	val buffer = Unsynchronized.ref ""
 	fun write s = (buffer := (!buffer)^s)
 	fun writeln s = (write s; write "\n")
 	fun writelist [] = ()
@@ -200,7 +200,7 @@ fun haskell_prog name rules =
 	(arity, !buffer)
     end
 
-val guid_counter = ref 0
+val guid_counter = Unsynchronized.ref 0
 fun get_guid () = 
     let
 	val c = !guid_counter
@@ -214,7 +214,7 @@ fun wrap s = "\""^s^"\""
 
 fun writeTextFile name s = File.write (Path.explode name) s
     
-val ghc = ref (case getenv "GHC_PATH" of "" => "ghc" | s => s)
+val ghc = Unsynchronized.ref (case getenv "GHC_PATH" of "" => "ghc" | s => s)
 
 fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
 

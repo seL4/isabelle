@@ -664,7 +664,7 @@ val dist' =
      HOLogic.Trueprop$
        (Const ("DistinctTreeProver.all_distinct",DistinctTreeProver.treeT (Type ("nat",[])) --> HOLogic.boolT)$t')
 
-val da = ref refl;
+val da = Unsynchronized.ref refl;
 
 *}
 

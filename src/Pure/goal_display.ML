@@ -7,8 +7,8 @@ Display tactical goal state.
 
 signature GOAL_DISPLAY =
 sig
-  val goals_limit: int ref
-  val show_consts: bool ref
+  val goals_limit: int Unsynchronized.ref
+  val show_consts: bool Unsynchronized.ref
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_goals: Proof.context -> {total: bool, main: bool, maxgoals: int} ->
     thm -> Pretty.T list
@@ -18,8 +18,8 @@ end;
 structure Goal_Display: GOAL_DISPLAY =
 struct
 
-val goals_limit = ref 10;      (*max number of goals to print*)
-val show_consts = ref false;   (*true: show consts with types in proof state output*)
+val goals_limit = Unsynchronized.ref 10;     (*max number of goals to print*)
+val show_consts = Unsynchronized.ref false;  (*true: show consts with types in proof state output*)
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block
   [Syntax.pretty_term ctxt t, Pretty.str " =?=", Pretty.brk 1, Syntax.pretty_term ctxt u];

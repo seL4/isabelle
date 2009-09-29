@@ -41,10 +41,10 @@ val message_display_limit = 5;
 
 local
 
-val atps = ref "e remote_vampire";
-val max_atps = ref 5;   (* ~1 means infinite number of atps *)
-val timeout = ref 60;
-val full_types = ref false;
+val atps = Unsynchronized.ref "e remote_vampire";
+val max_atps = Unsynchronized.ref 5;   (* ~1 means infinite number of atps *)
+val timeout = Unsynchronized.ref 60;
+val full_types = Unsynchronized.ref false;
 
 in
 

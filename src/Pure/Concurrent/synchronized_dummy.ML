@@ -7,9 +7,9 @@ Dummy version of state variables -- plain refs for sequential access.
 structure Synchronized: SYNCHRONIZED =
 struct
 
-datatype 'a var = Var of 'a ref;
+datatype 'a var = Var of 'a Unsynchronized.ref;
 
-fun var _ x = Var (ref x);
+fun var _ x = Var (Unsynchronized.ref x);
 fun value (Var var) = ! var;
 
 fun timed_access (Var var) _ f =

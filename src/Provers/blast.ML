@@ -66,9 +66,9 @@ sig
   exception TRANS of string    (*reports translation errors*)
   datatype term =
       Const of string * term list
-    | Skolem of string * term option ref list
+    | Skolem of string * term option Unsynchronized.ref list
     | Free  of string
-    | Var   of term option ref
+    | Var   of term option Unsynchronized.ref
     | Bound of int
     | Abs   of string*term
     | $  of term*term;
@@ -78,10 +78,10 @@ sig
   val blast_tac         : claset -> int -> tactic
   val setup             : theory -> theory
   (*debugging tools*)
-  val stats             : bool ref
-  val trace             : bool ref
-  val fullTrace         : branch list list ref
-  val fromType          : (indexname * term) list ref -> Term.typ -> term
+  val stats             : bool Unsynchronized.ref
+  val trace             : bool Unsynchronized.ref
+  val fullTrace         : branch list list Unsynchronized.ref
+  val fromType          : (indexname * term) list Unsynchronized.ref -> Term.typ -> term
   val fromTerm          : theory -> Term.term -> term
   val fromSubgoal       : theory -> Term.term -> term
   val instVars          : term -> (unit -> unit)
@@ -98,14 +98,14 @@ struct
 
 type claset = Data.claset;
 
-val trace = ref false
-and stats = ref false;   (*for runtime and search statistics*)
+val trace = Unsynchronized.ref false
+and stats = Unsynchronized.ref false;   (*for runtime and search statistics*)
 
 datatype term =
     Const  of string * term list  (*typargs constant--as a terms!*)
-  | Skolem of string * term option ref list
+  | Skolem of string * term option Unsynchronized.ref list
   | Free   of string
-  | Var    of term option ref
+  | Var    of term option Unsynchronized.ref
   | Bound  of int
   | Abs    of string*term
   | op $   of term*term;
@@ -115,7 +115,7 @@ type branch =
     {pairs: ((term*bool) list * (*safe formulae on this level*)
                (term*bool) list) list,  (*haz formulae  on this level*)
      lits:   term list,                 (*literals: irreducible formulae*)
-     vars:   term option ref list,      (*variables occurring in branch*)
+     vars:   term option Unsynchronized.ref list,  (*variables occurring in branch*)
      lim:    int};                      (*resource limit*)
 
 
@@ -123,11 +123,11 @@ type branch =
 
 datatype state = State of
  {thy: theory,
-  fullTrace: branch list list ref,
-  trail: term option ref list ref,
-  ntrail: int ref,
-  nclosed: int ref,
-  ntried: int ref}
+  fullTrace: branch list list Unsynchronized.ref,
+  trail: term option Unsynchronized.ref list Unsynchronized.ref,
+  ntrail: int Unsynchronized.ref,
+  nclosed: int Unsynchronized.ref,
+  ntried: int Unsynchronized.ref}
 
 fun reject_const thy c =
   is_some (Sign.const_type thy c) andalso
@@ -138,11 +138,11 @@ fun initialize thy =
   reject_const thy "*False*";
   State
    {thy = thy,
-    fullTrace = ref [],
-    trail = ref [],
-    ntrail = ref 0,
-    nclosed = ref 0,  (*branches closed: number of branches closed during the search*)
-    ntried = ref 1}); (*branches tried: number of branches created by splitting (counting from 1)*)
+    fullTrace = Unsynchronized.ref [],
+    trail = Unsynchronized.ref [],
+    ntrail = Unsynchronized.ref 0,
+    nclosed = Unsynchronized.ref 0, (*branches closed: number of branches closed during the search*)
+    ntried = Unsynchronized.ref 1}); (*branches tried: number of branches created by splitting (counting from 1)*)
 
 
 
@@ -199,7 +199,7 @@ fun fromType alist (Term.Type(a,Ts)) = list_comb (Const (a, []), map (fromType a
   | fromType alist (Term.TFree(a,_)) = Free a
   | fromType alist (Term.TVar (ixn,_)) =
               (case (AList.lookup (op =) (!alist) ixn) of
-                   NONE => let val t' = Var(ref NONE)
+                   NONE => let val t' = Var (Unsynchronized.ref NONE)
                            in  alist := (ixn, t') :: !alist;  t'
                            end
                  | SOME v => v)
@@ -209,11 +209,11 @@ fun fromConst thy alist (a, T) =
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)
-fun (Const (a, ts)) aconv (Const (b, us)) = a=b andalso aconvs (ts, us)
-  | (Skolem (a,_)) aconv (Skolem (b,_)) = a=b  (*arglists must then be equal*)
-  | (Free a)       aconv (Free b)       = a=b
-  | (Var(ref(SOME t))) aconv u          = t aconv u
-  | t          aconv (Var(ref(SOME u))) = t aconv u
+fun (Const (a, ts)) aconv (Const (b, us)) = a = b andalso aconvs (ts, us)
+  | (Skolem (a,_)) aconv (Skolem (b,_)) = a = b  (*arglists must then be equal*)
+  | (Free a) aconv (Free b) = a = b
+  | (Var (Unsynchronized.ref(SOME t))) aconv u = t aconv u
+  | t aconv (Var (Unsynchronized.ref (SOME u))) = t aconv u
   | (Var v)        aconv (Var w)        = v=w   (*both Vars are un-assigned*)
   | (Bound i)      aconv (Bound j)      = i=j
   | (Abs(_,t))     aconv (Abs(_,u))     = t aconv u
@@ -229,7 +229,7 @@ fun mem_term (_, [])     = false
 
 fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
 
-fun mem_var (v: term option ref, []) = false
+fun mem_var (v: term option Unsynchronized.ref, []) = false
   | mem_var (v, v'::vs)              = v=v' orelse mem_var(v,vs);
 
 fun ins_var(v,vs) = if mem_var(v,vs) then vs else v :: vs;
@@ -238,19 +238,19 @@ fun ins_var(v,vs) = if mem_var(v,vs) then vs else v :: vs;
 (** Vars **)
 
 (*Accumulates the Vars in the term, suppressing duplicates*)
-fun add_term_vars (Skolem(a,args),      vars) = add_vars_vars(args,vars)
-  | add_term_vars (Var (v as ref NONE), vars) = ins_var (v, vars)
-  | add_term_vars (Var (ref (SOME u)), vars)  = add_term_vars(u,vars)
-  | add_term_vars (Const (_,ts),        vars) = add_terms_vars(ts,vars)
-  | add_term_vars (Abs (_,body),        vars) = add_term_vars(body,vars)
-  | add_term_vars (f$t, vars) =  add_term_vars (f, add_term_vars(t, vars))
-  | add_term_vars (_,   vars) = vars
+fun add_term_vars (Skolem(a,args),  vars) = add_vars_vars(args,vars)
+  | add_term_vars (Var (v as Unsynchronized.ref NONE), vars) = ins_var (v, vars)
+  | add_term_vars (Var (Unsynchronized.ref (SOME u)), vars) = add_term_vars (u, vars)
+  | add_term_vars (Const (_, ts), vars) = add_terms_vars (ts, vars)
+  | add_term_vars (Abs (_, body), vars) = add_term_vars (body, vars)
+  | add_term_vars (f $ t, vars) = add_term_vars (f, add_term_vars (t, vars))
+  | add_term_vars (_, vars) = vars
 (*Term list version.  [The fold functionals are slow]*)
 and add_terms_vars ([],    vars) = vars
   | add_terms_vars (t::ts, vars) = add_terms_vars (ts, add_term_vars(t,vars))
 (*Var list version.*)
-and add_vars_vars ([],    vars) = vars
-  | add_vars_vars (ref (SOME u) :: vs, vars) =
+and add_vars_vars ([], vars) = vars
+  | add_vars_vars (Unsynchronized.ref (SOME u) :: vs, vars) =
         add_vars_vars (vs, add_term_vars(u,vars))
   | add_vars_vars (v::vs, vars) =   (*v must be a ref NONE*)
         add_vars_vars (vs, ins_var (v, vars));
@@ -297,10 +297,10 @@ fun subst_bound (arg, t) : term =
 
 (*Normalize...but not the bodies of ABSTRACTIONS*)
 fun norm t = case t of
-    Skolem (a,args)      => Skolem(a, vars_in_vars args)
-  | Const(a,ts)          => Const(a, map norm ts)
-  | (Var (ref NONE))     => t
-  | (Var (ref (SOME u))) => norm u
+    Skolem (a, args) => Skolem (a, vars_in_vars args)
+  | Const (a, ts) => Const (a, map norm ts)
+  | (Var (Unsynchronized.ref NONE)) => t
+  | (Var (Unsynchronized.ref (SOME u))) => norm u
   | (f $ u) => (case norm f of
                     Abs(_,body) => norm (subst_bound (u, body))
                   | nf => nf $ norm u)
@@ -394,14 +394,14 @@ fun unify state (vars,t,u) =
 (*Convert from "real" terms to prototerms; eta-contract.
   Code is similar to fromSubgoal.*)
 fun fromTerm thy t =
-  let val alistVar = ref []
-      and alistTVar = ref []
+  let val alistVar = Unsynchronized.ref []
+      and alistTVar = Unsynchronized.ref []
       fun from (Term.Const aT) = fromConst thy alistTVar aT
         | from (Term.Free  (a,_)) = Free a
         | from (Term.Bound i)     = Bound i
         | from (Term.Var (ixn,T)) =
               (case (AList.lookup (op =) (!alistVar) ixn) of
-                   NONE => let val t' = Var(ref NONE)
+                   NONE => let val t' = Var (Unsynchronized.ref NONE)
                            in  alistVar := (ixn, t') :: !alistVar;  t'
                            end
                  | SOME v => v)
@@ -417,10 +417,10 @@ fun fromTerm thy t =
 (*A debugging function: replaces all Vars by dummy Frees for visual inspection
   of whether they are distinct.  Function revert undoes the assignments.*)
 fun instVars t =
-  let val name = ref "a"
-      val updated = ref []
+  let val name = Unsynchronized.ref "a"
+      val updated = Unsynchronized.ref []
       fun inst (Const(a,ts)) = List.app inst ts
-        | inst (Var(v as ref NONE)) = (updated := v :: (!updated);
+        | inst (Var(v as Unsynchronized.ref NONE)) = (updated := v :: (!updated);
                                        v       := SOME (Free ("?" ^ !name));
                                        name    := Symbol.bump_string (!name))
         | inst (Abs(a,t))    = inst t
@@ -450,7 +450,7 @@ exception ElimBadConcl and ElimBadPrem;
 fun delete_concl [] = raise ElimBadPrem
   | delete_concl (P :: Ps) =
       (case P of
-        Const (c, _) $ Var (ref (SOME (Const ("*False*", _)))) =>
+        Const (c, _) $ Var (Unsynchronized.ref (SOME (Const ("*False*", _)))) =>
           if c = "*Goal*" orelse c = Data.not_name then Ps
           else P :: delete_concl Ps
       | _ => P :: delete_concl Ps);
@@ -606,10 +606,10 @@ fun topType thy (Const (c, ts)) = SOME (Sign.const_instance thy (c, map showType
 (*Convert from prototerms to ordinary terms with dummy types for tracing*)
 fun showTerm d (Const (a,_)) = Term.Const (a,dummyT)
   | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
-  | showTerm d (Free a)      = Term.Free  (a,dummyT)
-  | showTerm d (Bound i)     = Term.Bound i
-  | showTerm d (Var(ref(SOME u))) = showTerm d u
-  | showTerm d (Var(ref NONE))    = dummyVar2
+  | showTerm d (Free a) = Term.Free  (a,dummyT)
+  | showTerm d (Bound i) = Term.Bound i
+  | showTerm d (Var (Unsynchronized.ref(SOME u))) = showTerm d u
+  | showTerm d (Var (Unsynchronized.ref NONE)) = dummyVar2
   | showTerm d (Abs(a,t))    = if d=0 then dummyVar
                                else Term.Abs(a, dummyT, showTerm (d-1) t)
   | showTerm d (f $ u)       = if d=0 then dummyVar
@@ -687,10 +687,10 @@ fun traceNew prems =
 
 (*Replace the ATOMIC term "old" by "new" in t*)
 fun subst_atomic (old,new) t =
-    let fun subst (Var(ref(SOME u))) = subst u
-          | subst (Abs(a,body))      = Abs(a, subst body)
-          | subst (f$t)              = subst f $ subst t
-          | subst t                  = if t aconv old then new else t
+    let fun subst (Var(Unsynchronized.ref(SOME u))) = subst u
+          | subst (Abs(a,body)) = Abs(a, subst body)
+          | subst (f$t) = subst f $ subst t
+          | subst t = if t aconv old then new else t
     in  subst t  end;
 
 (*Eta-contract a term from outside: just enough to reduce it to an atom*)
@@ -723,11 +723,11 @@ fun substOccur t =
                      Skolem(_,vars) => vars
                    | _ => []
       fun occEq u = (t aconv u) orelse occ u
-      and occ (Var(ref(SOME u))) = occEq u
-        | occ (Var v)            = not (mem_var (v, vars))
-        | occ (Abs(_,u))         = occEq u
-        | occ (f$u)              = occEq u  orelse  occEq f
-        | occ (_)                = false;
+      and occ (Var(Unsynchronized.ref(SOME u))) = occEq u
+        | occ (Var v) = not (mem_var (v, vars))
+        | occ (Abs(_,u)) = occEq u
+        | occ (f$u) = occEq u  orelse  occEq f
+        | occ _ = false;
   in  occEq  end;
 
 exception DEST_EQ;
@@ -1199,8 +1199,8 @@ exception TRANS of string;
 
 (*Translation of a subgoal: Skolemize all parameters*)
 fun fromSubgoal thy t =
-  let val alistVar = ref []
-      and alistTVar = ref []
+  let val alistVar = Unsynchronized.ref []
+      and alistTVar = Unsynchronized.ref []
       fun hdvar ((ix,(v,is))::_) = v
       fun from lev t =
         let val (ht,ts) = Term.strip_comb t
@@ -1219,7 +1219,7 @@ fun fromSubgoal thy t =
             | Term.Bound i     => apply (Bound i)
             | Term.Var (ix,_) =>
                   (case (AList.lookup (op =) (!alistVar) ix) of
-                       NONE => (alistVar := (ix, (ref NONE, bounds ts))
+                       NONE => (alistVar := (ix, (Unsynchronized.ref NONE, bounds ts))
                                           :: !alistVar;
                                 Var (hdvar(!alistVar)))
                      | SOME(v,is) => if is=bounds ts then Var v
@@ -1290,7 +1290,7 @@ fun blast_tac cs i st =
 (*** For debugging: these apply the prover to a subgoal and return
      the resulting tactics, trace, etc.                            ***)
 
-val fullTrace = ref ([]: branch list list);
+val fullTrace = Unsynchronized.ref ([]: branch list list);
 
 (*Read a string to make an initial, singleton branch*)
 fun readGoal thy s = Syntax.read_prop_global thy s |> fromTerm thy |> rand |> mkGoal;

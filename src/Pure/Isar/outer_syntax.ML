@@ -88,11 +88,11 @@ end;
 
 local
 
-val global_commands = ref (Symtab.empty: command Symtab.table);
-val global_markups = ref ([]: (string * ThyOutput.markup) list);
+val global_commands = Unsynchronized.ref (Symtab.empty: command Symtab.table);
+val global_markups = Unsynchronized.ref ([]: (string * ThyOutput.markup) list);
 
 fun change_commands f = CRITICAL (fn () =>
- (change global_commands f;
+ (Unsynchronized.change global_commands f;
   global_markups :=
     Symtab.fold (fn (name, Command {markup = SOME m, ...}) => cons (name, m) | _ => I)
       (! global_commands) []));

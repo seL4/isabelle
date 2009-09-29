@@ -157,8 +157,9 @@ fun import_thy s =
 	val _ = TextIO.closeIn is
 	val orig_source = Source.of_string inp
 	val symb_source = Symbol.source {do_recover = false} orig_source
-	val lexes = ref (Scan.make_lexicon (map Symbol.explode ["import_segment","ignore_thms","import","end",">","::","const_maps","const_moves","thm_maps","const_renames","type_maps","def_maps"]),
-			 Scan.empty_lexicon)
+	val lexes = Unsynchronized.ref
+	  (Scan.make_lexicon (map Symbol.explode ["import_segment","ignore_thms","import","end",">","::","const_maps","const_moves","thm_maps","const_renames","type_maps","def_maps"]),
+		  Scan.empty_lexicon)
 	val get_lexes = fn () => !lexes
 	val token_source = OuterLex.source {do_recover = NONE} get_lexes Position.start symb_source
 	val token_list = filter_out (OuterLex.is_kind OuterLex.Space) (Source.exhaust token_source)

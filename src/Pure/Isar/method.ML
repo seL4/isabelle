@@ -8,7 +8,7 @@ signature BASIC_METHOD =
 sig
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
-  val trace_rules: bool ref
+  val trace_rules: bool Unsynchronized.ref
 end;
 
 signature METHOD =
@@ -215,7 +215,7 @@ end;
 
 (* rule etc. -- single-step refinements *)
 
-val trace_rules = ref false;
+val trace_rules = Unsynchronized.ref false;
 
 fun trace ctxt rules =
   if ! trace_rules andalso not (null rules) then

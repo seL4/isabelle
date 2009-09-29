@@ -49,7 +49,7 @@ sig
 (* temporarily disabled:
   val extract_free_congs        : unit -> thm list
 *)
-  val tracing   : bool ref
+  val tracing   : bool Unsynchronized.ref
 end;
 
 functor SimpFun (Simp_data: SIMP_DATA) : SIMP =
@@ -366,7 +366,7 @@ fun simp_refl([],_,ss) = ss
 
 (** Tracing **)
 
-val tracing = ref false;
+val tracing = Unsynchronized.ref false;
 
 (*Replace parameters by Free variables in P*)
 fun variants_abs ([],P) = P

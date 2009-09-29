@@ -217,8 +217,8 @@ type kind = {
   purge: theory -> string list -> Object.T -> Object.T
 };
 
-val kinds = ref (Datatab.empty: kind Datatab.table);
-val kind_keys = ref ([]: serial list);
+val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
+val kind_keys = Unsynchronized.ref ([]: serial list);
 
 fun invoke f k = case Datatab.lookup (! kinds) k
  of SOME kind => f kind
@@ -230,8 +230,8 @@ fun declare_data empty purge =
   let
     val k = serial ();
     val kind = {empty = empty, purge = purge};
-    val _ = change kinds (Datatab.update (k, kind));
-    val _ = change kind_keys (cons k);
+    val _ = Unsynchronized.change kinds (Datatab.update (k, kind));
+    val _ = Unsynchronized.change kind_keys (cons k);
   in k end;
 
 fun invoke_init k = invoke (fn kind => #empty kind) k;
@@ -252,13 +252,13 @@ val empty_data = Datatab.empty : data;
 
 structure Code_Data = TheoryDataFun
 (
-  type T = spec * data ref;
+  type T = spec * data Unsynchronized.ref;
   val empty = (make_spec (false,
-    (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty)))), ref empty_data);
-  fun copy (spec, data) = (spec, ref (! data));
+    (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty)))), Unsynchronized.ref empty_data);
+  fun copy (spec, data) = (spec, Unsynchronized.ref (! data));
   val extend = copy;
   fun merge pp ((spec1, data1), (spec2, data2)) =
-    (merge_spec (spec1, spec2), ref empty_data);
+    (merge_spec (spec1, spec2), Unsynchronized.ref empty_data);
 );
 
 fun thy_data f thy = f ((snd o Code_Data.get) thy);
@@ -267,7 +267,7 @@ fun get_ensure_init kind data_ref =
   case Datatab.lookup (! data_ref) kind
    of SOME x => x
     | NONE => let val y = invoke_init kind
-        in (change data_ref (Datatab.update (kind, y)); y) end;
+        in (Unsynchronized.change data_ref (Datatab.update (kind, y)); y) end;
 
 in
 
@@ -281,11 +281,11 @@ fun complete_class_params thy cs =
     | SOME (c', _) => insert (op =) c' #> insert (op =) c) cs [];
 
 fun map_exec_purge touched f thy =
-  Code_Data.map (fn (exec, data) => (f exec, ref (case touched
+  Code_Data.map (fn (exec, data) => (f exec, Unsynchronized.ref (case touched
    of SOME cs => invoke_purge_all thy (complete_class_params thy cs) (! data)
     | NONE => empty_data))) thy;
 
-val purge_data = (Code_Data.map o apsnd) (K (ref empty_data));
+val purge_data = (Code_Data.map o apsnd) (K (Unsynchronized.ref empty_data));
 
 fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, Lazy.value [])), [])))
@@ -332,7 +332,7 @@ fun change_data (kind, mk, dest) =
       let
         val data = get_ensure_init kind data_ref;
         val data' = f (dest data);
-      in (change data_ref (Datatab.update (kind, mk data')); data') end;
+      in (Unsynchronized.change data_ref (Datatab.update (kind, mk data')); data') end;
   in thy_data chnge end;
 
 fun change_yield_data (kind, mk, dest) =
@@ -341,7 +341,7 @@ fun change_yield_data (kind, mk, dest) =
       let
         val data = get_ensure_init kind data_ref;
         val (x, data') = f (dest data);
-      in (x, (change data_ref (Datatab.update (kind, mk data')); data')) end;
+      in (x, (Unsynchronized.change data_ref (Datatab.update (kind, mk data')); data')) end;
   in thy_data chnge end;
 
 end; (*local*)

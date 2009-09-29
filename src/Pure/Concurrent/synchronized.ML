@@ -24,13 +24,13 @@ datatype 'a var = Var of
  {name: string,
   lock: Mutex.mutex,
   cond: ConditionVar.conditionVar,
-  var: 'a ref};
+  var: 'a Unsynchronized.ref};
 
 fun var name x = Var
  {name = name,
   lock = Mutex.mutex (),
   cond = ConditionVar.conditionVar (),
-  var = ref x};
+  var = Unsynchronized.ref x};
 
 fun value (Var {var, ...}) = ! var;
 

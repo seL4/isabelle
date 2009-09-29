@@ -7,10 +7,10 @@ Printing of theorems, results etc.
 
 signature BASIC_DISPLAY =
 sig
-  val goals_limit: int ref
-  val show_consts: bool ref
-  val show_hyps: bool ref
-  val show_tags: bool ref
+  val goals_limit: int Unsynchronized.ref
+  val show_consts: bool Unsynchronized.ref
+  val show_hyps: bool Unsynchronized.ref
+  val show_tags: bool Unsynchronized.ref
 end;
 
 signature DISPLAY =
@@ -39,8 +39,8 @@ struct
 val goals_limit = Goal_Display.goals_limit;
 val show_consts = Goal_Display.show_consts;
 
-val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
-val show_tags = ref false;      (*false: suppress tags*)
+val show_hyps = Unsynchronized.ref false;    (*false: print meta-hypotheses as dots*)
+val show_tags = Unsynchronized.ref false;    (*false: suppress tags*)
 
 
 

@@ -36,9 +36,9 @@ sig
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
   val read_token: string -> Symbol_Pos.T list * Position.T
-  val ambiguity_is_error: bool ref
-  val ambiguity_level: int ref
-  val ambiguity_limit: int ref
+  val ambiguity_is_error: bool Unsynchronized.ref
+  val ambiguity_level: int Unsynchronized.ref
+  val ambiguity_limit: int Unsynchronized.ref
   val standard_parse_term: Pretty.pp -> (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> bool * string) -> (string -> string option) ->
@@ -472,9 +472,9 @@ fun read_token str =
 
 (* read_ast *)
 
-val ambiguity_is_error = ref false;
-val ambiguity_level = ref 1;
-val ambiguity_limit = ref 10;
+val ambiguity_is_error = Unsynchronized.ref false;
+val ambiguity_level = Unsynchronized.ref 1;
+val ambiguity_limit = Unsynchronized.ref 10;
 
 fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 
@@ -711,7 +711,7 @@ local
     unparse_typ: Proof.context -> typ -> Pretty.T,
     unparse_term: Proof.context -> term -> Pretty.T};
 
-  val operations = ref (NONE: operations option);
+  val operations = Unsynchronized.ref (NONE: operations option);
 
   fun operation which ctxt x =
     (case ! operations of

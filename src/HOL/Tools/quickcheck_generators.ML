@@ -16,7 +16,7 @@ sig
     -> term list * (term * term) list
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val compile_generator_expr: theory -> term -> int -> term list option
-  val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
+  val eval_ref: (unit -> int -> seed -> term list option * seed) option Unsynchronized.ref
   val setup: theory -> theory
 end;
 
@@ -43,7 +43,7 @@ fun random_fun T1 T2 eq term_of random random_split seed =
     val ((y, t2), seed') = random seed;
     val (seed'', seed''') = random_split seed';
 
-    val state = ref (seed'', [], fn () => Abs ("x", T1, t2 ()));
+    val state = Unsynchronized.ref (seed'', [], fn () => Abs ("x", T1, t2 ()));
     fun random_fun' x =
       let
         val (seed, fun_map, f_t) = ! state;
@@ -345,7 +345,9 @@ fun ensure_random_datatype config raw_tycos thy =
 
 (** building and compiling generator expressions **)
 
-val eval_ref : (unit -> int -> int * int -> term list option * (int * int)) option ref = ref NONE;
+val eval_ref :
+    (unit -> int -> int * int -> term list option * (int * int)) option Unsynchronized.ref =
+  Unsynchronized.ref NONE;
 
 val target = "Quickcheck";
 

@@ -69,7 +69,7 @@ local
 ML {*
 
 (*show_proofs:=true displays the proof terms -- they are ENORMOUS*)
-val show_proofs = ref false;
+val show_proofs = Unsynchronized.ref false;
 
 fun proof_tr [p,P] = Const (@{const_name Proof}, dummyT) $ P $ p;
 

@@ -107,7 +107,7 @@ type kind =
   extend: Object.T -> Object.T,
   merge: Pretty.pp -> Object.T * Object.T -> Object.T};
 
-val kinds = ref (Datatab.empty: kind Datatab.table);
+val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
 
 fun invoke f k =
   (case Datatab.lookup (! kinds) k of
@@ -125,7 +125,7 @@ fun declare_theory_data empty copy extend merge =
   let
     val k = serial ();
     val kind = {empty = empty, copy = copy, extend = extend, merge = merge};
-    val _ = CRITICAL (fn () => change kinds (Datatab.update (k, kind)));
+    val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
   in k end;
 
 val copy_data = Datatab.map' invoke_copy;
@@ -149,7 +149,7 @@ end;
 datatype theory =
   Theory of
    (*identity*)
-   {self: theory ref option,      (*dynamic self reference -- follows theory changes*)
+   {self: theory Unsynchronized.ref option,  (*dynamic self reference -- follows theory changes*)
     draft: bool,                  (*draft mode -- linear destructive changes*)
     id: serial,                   (*identifier*)
     ids: unit Inttab.table} *     (*cumulative identifiers of non-drafts -- symbolic body content*)
@@ -186,14 +186,15 @@ val theory_name = #name o history_of;
 fun eq_id (i: int, j) = i = j;
 
 fun is_stale
-    (Theory ({self = SOME (ref (Theory ({id = id', ...}, _, _, _))), id, ...}, _, _, _)) =
+    (Theory ({self =
+        SOME (Unsynchronized.ref (Theory ({id = id', ...}, _, _, _))), id, ...}, _, _, _)) =
       not (eq_id (id, id'))
   | is_stale (Theory ({self = NONE, ...}, _, _, _)) = true;
 
 fun vitalize (thy as Theory ({self = SOME r, ...}, _, _, _)) = (r := thy; thy)
   | vitalize (thy as Theory ({self = NONE, draft, id, ids}, data, ancestry, history)) =
       let
-        val r = ref thy;
+        val r = Unsynchronized.ref thy;
         val thy' = Theory (make_identity (SOME r) draft id ids, data, ancestry, history);
       in r := thy'; thy' end;
 
@@ -243,9 +244,9 @@ val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
   theory in external data structures -- a plain theory value would
   become stale as the self reference moves on*)
 
-datatype theory_ref = TheoryRef of theory ref;
+datatype theory_ref = TheoryRef of theory Unsynchronized.ref;
 
-fun deref (TheoryRef (ref thy)) = thy;
+fun deref (TheoryRef (Unsynchronized.ref thy)) = thy;
 
 fun check_thy thy =  (*thread-safe version*)
   let val thy_ref = TheoryRef (the_self thy) in
@@ -437,7 +438,7 @@ fun map_prf f (Prf (data, thy_ref)) = Prf (f data, thy_ref);
 
 local
 
-val kinds = ref (Datatab.empty: (theory -> Object.T) Datatab.table);
+val kinds = Unsynchronized.ref (Datatab.empty: (theory -> Object.T) Datatab.table);
 
 fun invoke_init k =
   (case Datatab.lookup (! kinds) k of
@@ -470,7 +471,7 @@ struct
 fun declare init =
   let
     val k = serial ();
-    val _ = CRITICAL (fn () => change kinds (Datatab.update (k, init)));
+    val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, init)));
   in k end;
 
 fun get k dest prf =

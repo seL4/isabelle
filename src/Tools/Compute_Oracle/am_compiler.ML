@@ -18,7 +18,7 @@ val list_map = map;
 
 open AbstractMachine;
 
-val compiled_rewriter = ref (NONE:(term -> term)Option.option)
+val compiled_rewriter = Unsynchronized.ref (NONE:(term -> term)Option.option)
 
 fun set_compiled_rewriter r = (compiled_rewriter := SOME r)
 
@@ -81,7 +81,7 @@ fun constants_of_term (Var _) = []
     
 fun load_rules sname name prog = 
     let
-	val buffer = ref ""
+	val buffer = Unsynchronized.ref ""
 	fun write s = (buffer := (!buffer)^s)
 	fun writeln s = (write s; write "\n")
 	fun writelist [] = ()
@@ -112,7 +112,7 @@ fun load_rules sname name prog =
 		"",
 		"fun do_reduction reduce p =",
 		"    let",
-		"       val s = ref (Continue p)",
+		"       val s = Unsynchronized.ref (Continue p)",
 		"       val _ = while cont (!s) do (s := reduce (proj_C (!s)))",
 		"   in",
 		"       proj_S (!s)",

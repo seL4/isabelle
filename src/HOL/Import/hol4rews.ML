@@ -168,7 +168,7 @@ structure HOL4Rewrites = TheoryDataFun
   fun merge _ = Library.gen_union Thm.eq_thm
 )
 
-val hol4_debug = ref false
+val hol4_debug = Unsynchronized.ref false
 fun message s = if !hol4_debug then writeln s else ()
 
 local

@@ -6,11 +6,11 @@ Theory document output with antiquotations.
 
 signature THY_OUTPUT =
 sig
-  val display: bool ref
-  val quotes: bool ref
-  val indent: int ref
-  val source: bool ref
-  val break: bool ref
+  val display: bool Unsynchronized.ref
+  val quotes: bool Unsynchronized.ref
+  val indent: int Unsynchronized.ref
+  val source: bool Unsynchronized.ref
+  val break: bool Unsynchronized.ref
   val add_commands: (string * (Args.src -> Toplevel.state -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
   val defined_command: string -> bool
@@ -21,7 +21,7 @@ sig
   val antiquotation: string -> 'a context_parser ->
     ({state: Toplevel.state, source: Args.src, context: Proof.context} -> 'a -> string) -> unit
   datatype markup = Markup | MarkupEnv | Verbatim
-  val modes: string list ref
+  val modes: string list Unsynchronized.ref
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
@@ -42,11 +42,11 @@ structure P = OuterParse;
 
 (** global options **)
 
-val display = ref false;
-val quotes = ref false;
-val indent = ref 0;
-val source = ref false;
-val break = ref false;
+val display = Unsynchronized.ref false;
+val quotes = Unsynchronized.ref false;
+val indent = Unsynchronized.ref 0;
+val source = Unsynchronized.ref false;
+val break = Unsynchronized.ref false;
 
 
 
@@ -55,10 +55,10 @@ val break = ref false;
 local
 
 val global_commands =
-  ref (Symtab.empty: (Args.src -> Toplevel.state -> string) Symtab.table);
+  Unsynchronized.ref (Symtab.empty: (Args.src -> Toplevel.state -> string) Symtab.table);
 
 val global_options =
-  ref (Symtab.empty: (string -> (unit -> string) -> unit -> string) Symtab.table);
+  Unsynchronized.ref (Symtab.empty: (string -> (unit -> string) -> unit -> string) Symtab.table);
 
 fun add_item kind (name, x) tab =
  (if not (Symtab.defined tab name) then ()
@@ -67,8 +67,10 @@ fun add_item kind (name, x) tab =
 
 in
 
-fun add_commands xs = CRITICAL (fn () => change global_commands (fold (add_item "command") xs));
-fun add_options xs = CRITICAL (fn () => change global_options (fold (add_item "option") xs));
+fun add_commands xs =
+  CRITICAL (fn () => Unsynchronized.change global_commands (fold (add_item "command") xs));
+fun add_options xs =
+  CRITICAL (fn () => Unsynchronized.change global_options (fold (add_item "option") xs));
 
 fun defined_command name = Symtab.defined (! global_commands) name;
 fun defined_option name = Symtab.defined (! global_options) name;
@@ -143,7 +145,7 @@ end;
 
 (* eval_antiquote *)
 
-val modes = ref ([]: string list);
+val modes = Unsynchronized.ref ([]: string list);
 
 fun eval_antiquote lex state (txt, pos) =
   let

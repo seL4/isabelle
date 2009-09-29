@@ -123,15 +123,15 @@ sig
   val add_abbrev: string -> Properties.T ->
     binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
-  val verbose: bool ref
+  val verbose: bool Unsynchronized.ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
   val print_lthms: Proof.context -> unit
   val print_cases: Proof.context -> unit
-  val debug: bool ref
-  val prems_limit: int ref
+  val debug: bool Unsynchronized.ref
+  val prems_limit: int Unsynchronized.ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
   val query_type: Proof.context -> string -> Properties.T
@@ -1208,9 +1208,9 @@ end;
 
 (** print context information **)
 
-val debug = ref false;
+val debug = Unsynchronized.ref false;
 
-val verbose = ref false;
+val verbose = Unsynchronized.ref false;
 fun verb f x = if ! verbose then f (x ()) else [];
 
 fun setmp_verbose f x = Library.setmp verbose true f x;
@@ -1320,7 +1320,7 @@ end;
 
 (* core context *)
 
-val prems_limit = ref ~1;
+val prems_limit = Unsynchronized.ref ~1;
 
 fun pretty_ctxt ctxt =
   if ! prems_limit < 0 andalso not (! debug) then []

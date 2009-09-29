@@ -19,8 +19,8 @@ sig
                                              (*abstractions as closures*)
   val same: Univ -> Univ -> bool
 
-  val univs_ref: (unit -> Univ list -> Univ list) option ref
-  val trace: bool ref
+  val univs_ref: (unit -> Univ list -> Univ list) option Unsynchronized.ref
+  val trace: bool Unsynchronized.ref
 
   val setup: theory -> theory
   val add_const_alias: thm -> theory -> theory
@@ -31,7 +31,7 @@ struct
 
 (* generic non-sense *)
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 fun traced f x = if !trace then (tracing (f x); x) else x;
 
 
@@ -216,7 +216,7 @@ fun ml_fundefs ([(name, [([], e)])]) =
 
 (* nbe specific syntax and sandbox communication *)
 
-val univs_ref = ref (NONE : (unit -> Univ list -> Univ list) option);
+val univs_ref = Unsynchronized.ref (NONE : (unit -> Univ list -> Univ list) option);
 
 local
   val prefix =      "Nbe.";

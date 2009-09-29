@@ -7,7 +7,7 @@ Package for proving two terms equal by normalizing (hence the
 
 signature Shuffler =
 sig
-    val debug      : bool ref
+    val debug      : bool Unsynchronized.ref
 
     val norm_term  : theory -> term -> thm
     val make_equal : theory -> term -> term -> thm option
@@ -30,7 +30,7 @@ end
 structure Shuffler :> Shuffler =
 struct
 
-val debug = ref false
+val debug = Unsynchronized.ref false
 
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln

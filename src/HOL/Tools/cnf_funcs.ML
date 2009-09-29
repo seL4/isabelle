@@ -399,12 +399,10 @@ end;
 
 fun make_cnfx_thm thy t =
 let
-	val var_id = ref 0  (* properly initialized below *)
-	(* unit -> Term.term *)
+	val var_id = Unsynchronized.ref 0  (* properly initialized below *)
 	fun new_free () =
-		Free ("cnfx_" ^ string_of_int (inc var_id), HOLogic.boolT)
-	(* Term.term -> Thm.thm *)
-	fun make_cnfx_thm_from_nnf (Const ("op &", _) $ x $ y) =
+		Free ("cnfx_" ^ string_of_int (Unsynchronized.inc var_id), HOLogic.boolT)
+	fun make_cnfx_thm_from_nnf (Const ("op &", _) $ x $ y) : thm =
 		let
 			val thm1 = make_cnfx_thm_from_nnf x
 			val thm2 = make_cnfx_thm_from_nnf y

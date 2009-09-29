@@ -17,7 +17,7 @@ sig
     Tip of Lexicon.token
   val parse: gram -> string -> Lexicon.token list -> parsetree list
   val guess_infix_lr: gram -> string -> (string * bool * bool * int) option
-  val branching_level: int ref
+  val branching_level: int Unsynchronized.ref
 end;
 
 structure Parser: PARSER =
@@ -690,7 +690,7 @@ fun movedot_lambda _ [] = []
       else movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts;
 
 
-val branching_level = ref 600;                   (*trigger value for warnings*)
+val branching_level = Unsynchronized.ref 600;   (*trigger value for warnings*)
 
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
@@ -821,7 +821,7 @@ fun earley prods tags chains startsymbol indata =
     val Estate = Array.array (s, []);
   in
     Array.update (Estate, 0, S0);
-    get_trees (produce (ref false) prods tags chains Estate 0 indata eof)
+    get_trees (produce (Unsynchronized.ref false) prods tags chains Estate 0 indata eof)
   end;
 
 

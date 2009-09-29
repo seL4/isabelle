@@ -22,8 +22,8 @@ sig
   val global_setup: theory -> theory
   val split_limit: int Config.T
   val neq_limit: int Config.T
-  val warning_count: int ref
-  val trace: bool ref
+  val warning_count: int Unsynchronized.ref
+  val trace: bool Unsynchronized.ref
 end;
 
 structure Lin_Arith: LIN_ARITH =

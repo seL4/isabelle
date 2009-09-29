@@ -171,20 +171,21 @@ type naming = int -> string
 
 fun default_naming i = "v_" ^ Int.toString i
 
-datatype computer = Computer of (theory_ref * Encode.encoding * term list * unit Sorttab.table * prog * unit ref * naming) 
-                    option ref
+datatype computer = Computer of
+  (theory_ref * Encode.encoding * term list * unit Sorttab.table * prog * unit Unsynchronized.ref * naming)
+    option Unsynchronized.ref
 
-fun theory_of (Computer (ref (SOME (rthy,_,_,_,_,_,_)))) = Theory.deref rthy
-fun hyps_of (Computer (ref (SOME (_,_,hyps,_,_,_,_)))) = hyps
-fun shyps_of (Computer (ref (SOME (_,_,_,shyptable,_,_,_)))) = Sorttab.keys (shyptable)
-fun shyptab_of (Computer (ref (SOME (_,_,_,shyptable,_,_,_)))) = shyptable
-fun stamp_of (Computer (ref (SOME (_,_,_,_,_,stamp,_)))) = stamp
-fun prog_of (Computer (ref (SOME (_,_,_,_,prog,_,_)))) = prog
-fun encoding_of (Computer (ref (SOME (_,encoding,_,_,_,_,_)))) = encoding
-fun set_encoding (Computer (r as ref (SOME (p1,encoding,p2,p3,p4,p5,p6)))) encoding' = 
+fun theory_of (Computer (Unsynchronized.ref (SOME (rthy,_,_,_,_,_,_)))) = Theory.deref rthy
+fun hyps_of (Computer (Unsynchronized.ref (SOME (_,_,hyps,_,_,_,_)))) = hyps
+fun shyps_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = Sorttab.keys (shyptable)
+fun shyptab_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = shyptable
+fun stamp_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,_,stamp,_)))) = stamp
+fun prog_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,prog,_,_)))) = prog
+fun encoding_of (Computer (Unsynchronized.ref (SOME (_,encoding,_,_,_,_,_)))) = encoding
+fun set_encoding (Computer (r as Unsynchronized.ref (SOME (p1,encoding,p2,p3,p4,p5,p6)))) encoding' = 
     (r := SOME (p1,encoding',p2,p3,p4,p5,p6))
-fun naming_of (Computer (ref (SOME (_,_,_,_,_,_,n)))) = n
-fun set_naming (Computer (r as ref (SOME (p1,p2,p3,p4,p5,p6,naming)))) naming'= 
+fun naming_of (Computer (Unsynchronized.ref (SOME (_,_,_,_,_,_,n)))) = n
+fun set_naming (Computer (r as Unsynchronized.ref (SOME (p1,p2,p3,p4,p5,p6,naming)))) naming'= 
     (r := SOME (p1,p2,p3,p4,p5,p6,naming'))
 
 fun ref_of (Computer r) = r
@@ -320,7 +321,8 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
 
     in (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
 
-fun make_with_cache machine thy cache_patterns raw_thms = Computer (ref (SOME (make_internal machine thy (ref ()) Encode.empty cache_patterns raw_thms)))
+fun make_with_cache machine thy cache_patterns raw_thms =
+  Computer (Unsynchronized.ref (SOME (make_internal machine thy (Unsynchronized.ref ()) Encode.empty cache_patterns raw_thms)))
 
 fun make machine thy raw_thms = make_with_cache machine thy [] raw_thms
 
@@ -415,7 +417,7 @@ fun rewrite computer ct =
 
 datatype prem = EqPrem of AbstractMachine.term * AbstractMachine.term * Term.typ * int 
               | Prem of AbstractMachine.term
-datatype theorem = Theorem of theory_ref * unit ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
+datatype theorem = Theorem of theory_ref * unit Unsynchronized.ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
                * prem list * AbstractMachine.term * term list * sort list
 
 

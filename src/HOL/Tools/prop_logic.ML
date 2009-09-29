@@ -292,7 +292,7 @@ struct
 			val fm' = nnf fm
 			(* 'new' specifies the next index that is available to introduce an auxiliary variable *)
 			(* int ref *)
-			val new = ref (maxidx fm' + 1)
+			val new = Unsynchronized.ref (maxidx fm' + 1)
 			(* unit -> int *)
 			fun new_idx () = let val idx = !new in new := idx+1; idx end
 			(* replaces 'And' by an auxiliary variable (and its definition) *)
@@ -381,15 +381,15 @@ struct
 	(* Term.term -> int Termtab.table -> prop_formula * int Termtab.table *)
 	fun prop_formula_of_term t table =
 	let
-		val next_idx_is_valid = ref false
-		val next_idx          = ref 0
+		val next_idx_is_valid = Unsynchronized.ref false
+		val next_idx          = Unsynchronized.ref 0
 		fun get_next_idx () =
 			if !next_idx_is_valid then
-				inc next_idx
+				Unsynchronized.inc next_idx
 			else (
 				next_idx          := Termtab.fold (curry Int.max o snd) table 0;
 				next_idx_is_valid := true;
-				inc next_idx
+				Unsynchronized.inc next_idx
 			)
 		fun aux (Const ("True", _))         table =
 			(True, table)

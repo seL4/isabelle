@@ -26,7 +26,7 @@ sig
   val read_dimacs_cnf_file : Path.T -> PropLogic.prop_formula
 
   (* generic solver interface *)
-  val solvers       : (string * solver) list ref
+  val solvers       : (string * solver) list Unsynchronized.ref
   val add_solver    : string * solver -> unit
   val invoke_solver : string -> solver  (* exception Option *)
 end;
@@ -363,7 +363,7 @@ struct
 (* solvers: a (reference to a) table of all registered SAT solvers           *)
 (* ------------------------------------------------------------------------- *)
 
-  val solvers = ref ([] : (string * solver) list);
+  val solvers = Unsynchronized.ref ([] : (string * solver) list);
 
 (* ------------------------------------------------------------------------- *)
 (* add_solver: updates 'solvers' by adding a new solver                      *)
@@ -629,7 +629,7 @@ let
       val _ = init_array (cnf, 0)
       (* optimization for the common case where MiniSat "R"s clauses in their *)
       (* original order:                                                      *)
-      val last_ref_clause = ref (number_of_clauses - 1)
+      val last_ref_clause = Unsynchronized.ref (number_of_clauses - 1)
       (* search the 'clauses' array for the given list of literals 'lits', *)
       (* starting at index '!last_ref_clause + 1'                          *)
       (* int list -> int option *)
@@ -661,17 +661,17 @@ let
         | NONE   => raise INVALID_PROOF ("File format error: number expected (" ^ quote s ^ " encountered).")
       )
       (* parse the proof file *)
-      val clause_table  = ref (Inttab.empty : int list Inttab.table)
-      val empty_id      = ref ~1
+      val clause_table  = Unsynchronized.ref (Inttab.empty : int list Inttab.table)
+      val empty_id      = Unsynchronized.ref ~1
       (* contains a mapping from clause IDs as used by MiniSat to clause IDs in *)
       (* our proof format, where original clauses are numbered starting from 0  *)
-      val clause_id_map = ref (Inttab.empty : int Inttab.table)
+      val clause_id_map = Unsynchronized.ref (Inttab.empty : int Inttab.table)
       fun sat_to_proof id = (
         case Inttab.lookup (!clause_id_map) id of
           SOME id' => id'
         | NONE     => raise INVALID_PROOF ("Clause ID " ^ Int.toString id ^ " used, but not defined.")
       )
-      val next_id = ref (number_of_clauses - 1)
+      val next_id = Unsynchronized.ref (number_of_clauses - 1)
       (* string list -> unit *)
       fun process_tokens [] =
         ()
@@ -708,7 +708,7 @@ let
                 | unevens (x :: _ :: xs) = x :: unevens xs
               val rs       = (map sat_to_proof o unevens o map int_from_string) ids
               (* extend the mapping of clause IDs with this newly defined ID *)
-              val proof_id = inc next_id
+              val proof_id = Unsynchronized.inc next_id
               val _        = clause_id_map := Inttab.update_new (cid, proof_id) (!clause_id_map)
                                handle Inttab.DUP _ => raise INVALID_PROOF ("File format error: clause " ^ id ^ " defined more than once (in \"C\").")
             in
@@ -821,9 +821,9 @@ let
         | NONE   => raise INVALID_PROOF ("File format error: number expected (" ^ quote s ^ " encountered).")
       )
       (* parse the "resolve_trace" file *)
-      val clause_offset = ref ~1
-      val clause_table  = ref (Inttab.empty : int list Inttab.table)
-      val empty_id      = ref ~1
+      val clause_offset = Unsynchronized.ref ~1
+      val clause_table  = Unsynchronized.ref (Inttab.empty : int list Inttab.table)
+      val empty_id      = Unsynchronized.ref ~1
       (* string list -> unit *)
       fun process_tokens [] =
         ()

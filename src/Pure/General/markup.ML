@@ -323,10 +323,10 @@ fun default_output (_: T) = no_output;
 
 local
   val default = {output = default_output};
-  val modes = ref (Symtab.make [("", default)]);
+  val modes = Unsynchronized.ref (Symtab.make [("", default)]);
 in
   fun add_mode name output = CRITICAL (fn () =>
-    change modes (Symtab.update_new (name, {output = output})));
+    Unsynchronized.change modes (Symtab.update_new (name, {output = output})));
   fun get_mode () =
     the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
