@@ -201,24 +201,23 @@ end;
 structure Record: RECORD =
 struct
 
-val eq_reflection = thm "eq_reflection";
-val Pair_eq = thm "Product_Type.prod.inject";
-val atomize_all = thm "HOL.atomize_all";
-val atomize_imp = thm "HOL.atomize_imp";
-val meta_allE = thm "Pure.meta_allE";
-val prop_subst = thm "prop_subst";
+val eq_reflection = @{thm eq_reflection};
+val Pair_eq = @{thm Product_Type.prod.inject};
+val atomize_all = @{thm HOL.atomize_all};
+val atomize_imp = @{thm HOL.atomize_imp};
+val meta_allE = @{thm Pure.meta_allE};
+val prop_subst = @{thm prop_subst};
 val Pair_sel_convs = [fst_conv, snd_conv];
-val K_record_comp = @{thm "K_record_comp"};
+val K_record_comp = @{thm K_record_comp};
 val K_comp_convs = [@{thm o_apply}, K_record_comp]
-val transitive_thm = thm "transitive";
-val o_assoc = @{thm "o_assoc"};
+val transitive_thm = @{thm transitive};
+val o_assoc = @{thm o_assoc};
 val id_apply = @{thm id_apply};
 val id_o_apps = [@{thm id_apply}, @{thm id_o}, @{thm o_id}];
 val Not_eq_iff = @{thm Not_eq_iff};
 
-val refl_conj_eq = thm "refl_conj_eq";
-val meta_all_sameI = thm "meta_all_sameI";
-val meta_iffD2 = thm "meta_iffD2";
+val refl_conj_eq = @{thm refl_conj_eq};
+val meta_all_sameI = @{thm meta_all_sameI};
 
 val surject_assistI = @{thm "istuple_surjective_proof_assistI"};
 val surject_assist_idE = @{thm "istuple_surjective_proof_assist_idE"};
@@ -236,9 +235,9 @@ val updacc_cong_idI = @{thm "update_accessor_cong_assist_idI"};
 val updacc_cong_triv = @{thm "update_accessor_cong_assist_triv"};
 val updacc_cong_from_eq = @{thm "istuple_update_accessor_cong_from_eq"};
 
-val o_eq_dest = thm "o_eq_dest";
-val o_eq_id_dest = thm "o_eq_id_dest";
-val o_eq_dest_lhs = thm "o_eq_dest_lhs";
+val o_eq_dest = @{thm o_eq_dest};
+val o_eq_id_dest = @{thm o_eq_id_dest};
+val o_eq_dest_lhs = @{thm o_eq_dest_lhs};
 
 
 
@@ -395,7 +394,7 @@ fun rec_id i T =
   let
     val rTs = dest_recTs T;
     val rTs' = if i < 0 then rTs else Library.take (i, rTs);
-  in Library.foldl (fn (s, (c, T)) => s ^ c) ("", rTs') end;   (* FIXME ? *)
+  in implode (map #1 rTs') end;
 
 
 
@@ -443,10 +442,10 @@ type record_data =
     unfoldcong: Simplifier.simpset},
   equalities: thm Symtab.table,
   extinjects: thm list,
-  extsplit: thm Symtab.table,  (* maps extension name to split rule *)
-  splits: (thm*thm*thm*thm) Symtab.table,  (* !!, !, EX - split-equalities, induct rule *)
-  extfields: (string*typ) list Symtab.table,  (* maps extension to its fields *)
-  fieldext: (string*typ list) Symtab.table};  (* maps field to its extension *)
+  extsplit: thm Symtab.table,  (*maps extension name to split rule*)
+  splits: (thm * thm * thm * thm) Symtab.table,  (*!!, !, EX - split-equalities, induct rule*)
+  extfields: (string * typ) list Symtab.table,  (*maps extension to its fields*)
+  fieldext: (string * typ list) Symtab.table};  (*maps field to its extension*)
 
 fun make_record_data
     records sel_upd equalities extinjects extsplit splits extfields fieldext =
@@ -546,13 +545,12 @@ val get_sel_upd = #sel_upd o RecordsData.get;
 
 val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
-fun get_ss_with_context getss thy =
-    Simplifier.theory_context thy (getss (get_sel_upd thy));
+fun get_ss_with_context getss thy = Simplifier.theory_context thy (getss (get_sel_upd thy));
 
-val get_simpset = get_ss_with_context (#simpset);
-val get_sel_upd_defs = get_ss_with_context (#defset);
-val get_foldcong_ss = get_ss_with_context (#foldcong);
-val get_unfoldcong_ss = get_ss_with_context (#unfoldcong);
+val get_simpset = get_ss_with_context #simpset;
+val get_sel_upd_defs = get_ss_with_context #defset;
+val get_foldcong_ss = get_ss_with_context #foldcong;
+val get_unfoldcong_ss = get_ss_with_context #unfoldcong;
 
 fun get_update_details u thy =
   let val sel_upd = get_sel_upd thy in
@@ -1157,10 +1155,6 @@ fun get_accupd_simps thy term defset intros_tac =
       in standard (othm RS dest) end;
   in map get_simp upd_funs end;
 
-(* FIXME dup? *)
-structure SymSymTab =
-  Table(type key = string * string val ord = prod_ord fast_string_ord fast_string_ord);
-
 fun get_updupd_simp thy defset intros_tac u u' comp =
   let
     val f = Free ("f", domain_type (fastype_of u));
@@ -1192,18 +1186,18 @@ fun get_updupd_simps thy term defset intros_tac =
           let
             val key = (cname u, cname upd);
             val newswaps =
-              if SymSymTab.defined swaps key then swaps
-              else SymSymTab.insert (K true) (key, getswap u upd) swaps;
+              if Symreltab.defined swaps key then swaps
+              else Symreltab.insert (K true) (key, getswap u upd) swaps;
           in
             if cname u = cname upd then newswaps
             else build_swaps_to_eq upd us newswaps
           end;
-    fun swaps_needed [] prev seen swaps = map snd (SymSymTab.dest swaps)
+    fun swaps_needed [] prev seen swaps = map snd (Symreltab.dest swaps)
       | swaps_needed (u :: us) prev seen swaps =
           if Symtab.defined seen (cname u)
           then swaps_needed us prev seen (build_swaps_to_eq u prev swaps)
           else swaps_needed us (u :: prev) (Symtab.insert (K true) (cname u, ()) seen) swaps;
-  in swaps_needed upd_funs [] Symtab.empty SymSymTab.empty end;
+  in swaps_needed upd_funs [] Symtab.empty Symreltab.empty end;
 
 val named_cterm_instantiate = IsTupleSupport.named_cterm_instantiate;
 
@@ -1540,13 +1534,6 @@ val record_ex_sel_eq_simproc =
       end);
 
 
-local
-
-val inductive_atomize = thms "induct_atomize";
-val inductive_rulify = thms "induct_rulify";
-
-in
-
 (* record_split_simp_tac *)
 
 (*Split (and simplify) all records in the goal for which P holds.
@@ -1565,8 +1552,8 @@ fun record_split_simp_tac thms P i st =
           (s = "all" orelse s = "All" orelse s = "Ex") andalso is_recT T
         | _ => false);
 
-    val goal = nth (Thm.prems_of st) (i - 1);
-    val frees = List.filter (is_recT o type_of) (OldTerm.term_frees goal);
+    val goal = nth (Thm.prems_of st) (i - 1);    (* FIXME SUBGOAL *)
+    val frees = filter (is_recT o type_of) (OldTerm.term_frees goal);
 
     fun mk_split_free_tac free induct_thm i =
       let
@@ -1576,9 +1563,9 @@ fun record_split_simp_tac thms P i st =
         val thm = cterm_instantiate [(crec, cfree)] induct_thm;
       in
         EVERY
-         [simp_tac (HOL_basic_ss addsimps inductive_atomize) i,
+         [simp_tac (HOL_basic_ss addsimps @{thms induct_atomize}) i,
           rtac thm i,
-          simp_tac (HOL_basic_ss addsimps inductive_rulify) i]
+          simp_tac (HOL_basic_ss addsimps @{thms induct_rulify}) i]
       end;
 
     fun split_free_tac P i (free as Free (n, T)) =
@@ -1604,7 +1591,6 @@ fun record_split_simp_tac thms P i st =
       (EVERY split_frees_tacs THEN
         Simplifier.full_simp_tac (get_simpset thy addsimps thms' addsimprocs simprocs) i)
   end handle Empty => Seq.empty;
-end;
 
 
 (* record_split_tac *)
@@ -1746,7 +1732,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     (*before doing anything else, create the tree of new types
       that will back the record extension*)
-
+    (* FIXME cf. BalancedTree.make *)
     fun mktreeT [] = raise TYPE ("mktreeT: empty list", [], [])
       | mktreeT [T] = T
       | mktreeT xs =
@@ -1759,6 +1745,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
             HOLogic.mk_prodT (mktreeT left, mktreeT right)
           end;
 
+    (* FIXME cf. BalancedTree.make *)
     fun mktreeV [] = raise TYPE ("mktreeV: empty list", [], [])
       | mktreeV [T] = T
       | mktreeV xs =
@@ -1771,38 +1758,35 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
             IsTupleSupport.mk_cons_tuple (mktreeV left, mktreeV right)
           end;
 
-    fun mk_istuple ((thy, i), (left, rght)) =
+    fun mk_istuple (left, right) (thy, i) =
       let
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val nm = suffix suff (Long_Name.base_name name);
         val (isom, cons, thy') =
           IsTupleSupport.add_istuple_type
-            (nm, alphas_zeta) (fastype_of left, fastype_of rght) thy;
+            (nm, alphas_zeta) (fastype_of left, fastype_of right) thy;
       in
-        ((thy', i + 1), cons $ left $ rght)
+        (cons $ left $ right, (thy', i + 1))
       end;
 
-    (*trying to create a 1-element istuple will fail, and
-      is pointless anyway*)
-    fun mk_even_istuple ((thy, i), [arg]) = ((thy, i), arg)
-      | mk_even_istuple ((thy, i), args) =
-          mk_istuple ((thy, i), IsTupleSupport.dest_cons_tuple (mktreeV args));
+    (*trying to create a 1-element istuple will fail, and is pointless anyway*)
+    fun mk_even_istuple [arg] = pair arg
+      | mk_even_istuple args = mk_istuple (IsTupleSupport.dest_cons_tuple (mktreeV args));
 
     fun build_meta_tree_type i thy vars more =
       let val len = length vars in
-        if len < 1 then raise (TYPE ("meta_tree_type args too short", [], vars))
+        if len < 1 then raise TYPE ("meta_tree_type args too short", [], vars)
         else if len > 16 then
           let
             fun group16 [] = []
               | group16 xs = Library.take (16, xs) :: group16 (Library.drop (16, xs));
             val vars' = group16 vars;
-            val ((thy', i'), composites) =
-              Library.foldl_map mk_even_istuple ((thy, i), vars');   (* FIXME fold_map !? *)
+            val (composites, (thy', i')) = fold_map mk_even_istuple vars' (thy, i);
           in
             build_meta_tree_type i' thy' composites more
           end
         else
-          let val ((thy', i'), term) = mk_istuple ((thy, 0), (mktreeV vars, more))
+          let val (term, (thy', i')) = mk_istuple (mktreeV vars, more) (thy, 0)
           in (term, thy') end
       end;
 
@@ -1842,7 +1826,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val ext = mk_ext vars_more;
     val s = Free (rN, extT);
     val w = Free (wN, extT);
-    val P = Free (Name.variant variants "P", extT-->HOLogic.boolT);
+    val P = Free (Name.variant variants "P", extT --> HOLogic.boolT);
     val C = Free (Name.variant variants "C", HOLogic.boolT);
     val intros_tac = IsTupleSupport.istuple_intros_tac defs_thy;
 
@@ -1924,7 +1908,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
         prove_standard [assm] concl
           (fn {prems, ...} =>
             EVERY
-             [cut_rules_tac [split_meta RS meta_iffD2] 1,
+             [cut_rules_tac [split_meta RS Drule.equal_elim_rule2] 1,
               resolve_tac prems 2,
               asm_simp_tac HOL_ss 1])
       end;
@@ -1944,7 +1928,7 @@ fun chunks [] [] = []
   | chunks [] xs = [xs]
   | chunks (l :: ls) xs = Library.take (l, xs) :: chunks ls (Library.drop (l, xs));
 
-fun chop_last [] = error "last: list should not be empty"
+fun chop_last [] = error "chop_last: list should not be empty"
   | chop_last [x] = ([], x)
   | chop_last (x :: xs) = let val (tl, l) = chop_last xs in (x :: tl, l) end;
 
@@ -2014,7 +1998,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
     val variants =
-      Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants) (map fst bfields);
+      Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants)
+        (map fst bfields);
     val vars = ListPair.map Free (variants, types);
     val named_vars = names ~~ vars;
     val idxs = 0 upto (len - 1);
@@ -2053,8 +2038,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extension_name = unsuffix ext_typeN (fst extension_scheme);
     val extension = let val (n, Ts) = extension_scheme in (n, subst_last HOLogic.unitT Ts) end;
     val extension_names = map (unsuffix ext_typeN o fst o #extension) parents @ [extN];
-    val extension_id = Library.foldl (op ^) ("", extension_names);  (* FIXME implode!? *)
-
+    val extension_id = implode extension_names;
 
     fun rec_schemeT n = mk_recordT (map #extension (prune n parents)) extT;
     val rec_schemeT0 = rec_schemeT 0;
@@ -2186,7 +2170,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         Const (mk_selC rec_schemeT0 (c, T)) :== acc
       end;
     val sel_specs = map mk_sel_spec (fields_more ~~ lastN accessor_thms);
-
 
     (*updates*)
     fun mk_upd_spec ((c, T), thm) =
@@ -2520,8 +2503,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             [Simplifier.simp_add, Nitpick_Const_Simps.add]),
            ((Binding.name "iffs", iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme' ext_def)
-      |> put_sel_upd names full_moreN depth sel_upd_simps
-                           sel_upd_defs (fold_congs', unfold_congs')
+      |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs (fold_congs', unfold_congs')
       |> add_record_equalities extension_id equality'
       |> add_extinjects ext_inject
       |> add_extsplit extension_name ext_split

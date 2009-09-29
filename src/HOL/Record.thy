@@ -18,10 +18,6 @@ lemma prop_subst: "s = t \<Longrightarrow> PROP P t \<Longrightarrow> PROP P s"
 lemma K_record_comp: "(\<lambda>x. c) \<circ> f = (\<lambda>x. c)" 
   by (simp add: comp_def)
 
-lemma meta_iffD2:
-  "\<lbrakk> PROP P \<equiv> PROP Q; PROP Q \<rbrakk> \<Longrightarrow> PROP P"
-  by simp
-
 lemma o_eq_dest_lhs:
   "a o b = c \<Longrightarrow> a (b v) = c v"
   by clarsimp
