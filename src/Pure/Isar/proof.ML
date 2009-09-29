@@ -30,7 +30,6 @@ sig
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
   val get_goal: state -> context * (thm list * thm)
-  val chained_goal: state -> context * thm
   val show_main_goal: bool Unsynchronized.ref
   val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
@@ -38,6 +37,7 @@ sig
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
+  val flat_goal: state -> Proof.context * thm
   val goal_tac: thm -> int -> tactic
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
@@ -312,10 +312,6 @@ fun get_goal state =
   let val (ctxt, (_, {using, goal, ...})) = find_goal state
   in (ctxt, (using, goal)) end;
 
-fun chained_goal state =
-  let val (ctxt, (using, goal)) = get_goal state
-  in (ctxt, Seq.hd (ALLGOALS (Method.insert_tac using) goal)) end;
-
 
 
 (** pretty_state **)
@@ -440,6 +436,12 @@ fun refine_insert [] = I
   | refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
+
+fun flat_goal state =
+  let
+    val (_, (using, _)) = get_goal state;
+    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
+  in (ctxt, goal) end;
 
 
 (* refine via sub-proof *)
