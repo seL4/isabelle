@@ -14,9 +14,9 @@ in
 fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_context)
     (start_line, name) verbose txt =
   let
-    val current_line = ref start_line;
-    val in_buffer = ref (String.explode (tune_source txt));
-    val out_buffer = ref ([]: string list);
+    val current_line = Unsynchronized.ref start_line;
+    val in_buffer = Unsynchronized.ref (String.explode (tune_source txt));
+    val out_buffer = Unsynchronized.ref ([]: string list);
     fun output () = drop_newline (implode (rev (! out_buffer)));
 
     fun get () =

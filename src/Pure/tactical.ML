@@ -34,9 +34,9 @@ sig
   val RANGE: (int -> tactic) list -> int -> tactic
   val print_tac: string -> tactic
   val pause_tac: tactic
-  val trace_REPEAT: bool ref
-  val suppress_tracing: bool ref
-  val tracify: bool ref -> tactic -> tactic
+  val trace_REPEAT: bool Unsynchronized.ref
+  val suppress_tracing: bool Unsynchronized.ref
+  val tracify: bool Unsynchronized.ref -> tactic -> tactic
   val traced_tac: (thm -> (thm * thm Seq.seq) option) -> tactic
   val DETERM_UNTIL: (thm -> bool) -> tactic -> tactic
   val REPEAT_DETERM_N: int -> tactic -> tactic
@@ -204,16 +204,16 @@ exception TRACE_EXIT of thm
 and TRACE_QUIT;
 
 (*Tracing flags*)
-val trace_REPEAT= ref false
-and suppress_tracing = ref false;
+val trace_REPEAT= Unsynchronized.ref false
+and suppress_tracing = Unsynchronized.ref false;
 
 (*Handle all tracing commands for current state and tactic *)
 fun exec_trace_command flag (tac, st) =
    case TextIO.inputLine TextIO.stdIn of
        SOME "\n" => tac st
      | SOME "f\n" => Seq.empty
-     | SOME "o\n" => (flag:=false;  tac st)
-     | SOME "s\n" => (suppress_tracing:=true;  tac st)
+     | SOME "o\n" => (flag := false;  tac st)
+     | SOME "s\n" => (suppress_tracing := true;  tac st)
      | SOME "x\n" => (tracing "Exiting now";  raise (TRACE_EXIT st))
      | SOME "quit\n" => raise TRACE_QUIT
      | _     => (tracing

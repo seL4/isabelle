@@ -24,12 +24,12 @@ sig
   val enter_proof_body: state -> Proof.state
   val print_state_context: state -> unit
   val print_state: bool -> state -> unit
-  val quiet: bool ref
-  val debug: bool ref
-  val interact: bool ref
-  val timing: bool ref
-  val profiling: int ref
-  val skip_proofs: bool ref
+  val quiet: bool Unsynchronized.ref
+  val debug: bool Unsynchronized.ref
+  val interact: bool Unsynchronized.ref
+  val timing: bool Unsynchronized.ref
+  val profiling: int Unsynchronized.ref
+  val skip_proofs: bool Unsynchronized.ref
   exception TERMINATE
   exception TOPLEVEL_ERROR
   val program: (unit -> 'a) -> 'a
@@ -216,12 +216,12 @@ fun print_state prf_only state =
 
 (** toplevel transitions **)
 
-val quiet = ref false;
+val quiet = Unsynchronized.ref false;
 val debug = Output.debugging;
-val interact = ref false;
+val interact = Unsynchronized.ref false;
 val timing = Output.timing;
-val profiling = ref 0;
-val skip_proofs = ref false;
+val profiling = Unsynchronized.ref 0;
+val skip_proofs = Unsynchronized.ref false;
 
 exception TERMINATE = Runtime.TERMINATE;
 exception EXCURSION_FAIL = Runtime.EXCURSION_FAIL;
@@ -550,9 +550,9 @@ fun error_msg tr exn_info =
 
 (* post-transition hooks *)
 
-local val hooks = ref ([]: (transition -> state -> state -> unit) list) in
+local val hooks = Unsynchronized.ref ([]: (transition -> state -> state -> unit) list) in
 
-fun add_hook f = CRITICAL (fn () => change hooks (cons f));
+fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
 fun get_hooks () = CRITICAL (fn () => ! hooks);
 
 end;

@@ -85,7 +85,8 @@ fun system_command cmd =
 (* file identification *)
 
 local
-  val ident_cache = ref (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
+  val ident_cache =
+    Unsynchronized.ref (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
 in
 
 fun check_cache (path, time) = CRITICAL (fn () =>
@@ -94,7 +95,8 @@ fun check_cache (path, time) = CRITICAL (fn () =>
   | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE));
 
 fun update_cache (path, (time, id)) = CRITICAL (fn () =>
-  change ident_cache (Symtab.update (path, {time_stamp = time, id = id})));
+  Unsynchronized.change ident_cache
+    (Symtab.update (path, {time_stamp = time, id = id})));
 
 end;
 

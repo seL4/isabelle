@@ -23,7 +23,7 @@ struct
 
 (** secure flag **)
 
-val secure = ref false;
+val secure = Unsynchronized.ref false;
 
 fun set_secure () = secure := true;
 fun is_secure () = ! secure;

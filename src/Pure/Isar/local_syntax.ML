@@ -4,7 +4,7 @@
 Local syntax depending on theory syntax.
 *)
 
-val show_structs = ref false;
+val show_structs = Unsynchronized.ref false;
 
 signature LOCAL_SYNTAX =
 sig

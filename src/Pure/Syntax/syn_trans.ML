@@ -6,7 +6,7 @@ Syntax translation functions.
 
 signature SYN_TRANS0 =
 sig
-  val eta_contract: bool ref
+  val eta_contract: bool Unsynchronized.ref
   val atomic_abs_tr': string * typ * term -> term * term
   val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
   val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
@@ -276,7 +276,7 @@ fun strip_abss vars_of body_of tm =
 
 (*do (partial) eta-contraction before printing*)
 
-val eta_contract = ref true;
+val eta_contract = Unsynchronized.ref true;
 
 fun eta_contr tm =
   let

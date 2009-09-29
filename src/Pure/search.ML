@@ -13,23 +13,23 @@ signature SEARCH =
   val THEN_MAYBE        : tactic * tactic -> tactic
   val THEN_MAYBE'       : ('a -> tactic) * ('a -> tactic) -> ('a -> tactic)
 
-  val trace_DEPTH_FIRST : bool ref
+  val trace_DEPTH_FIRST : bool Unsynchronized.ref
   val DEPTH_FIRST       : (thm -> bool) -> tactic -> tactic
   val DEPTH_SOLVE       : tactic -> tactic
   val DEPTH_SOLVE_1     : tactic -> tactic
   val ITER_DEEPEN       : (thm->bool) -> (int->tactic) -> tactic
   val THEN_ITER_DEEPEN  : tactic -> (thm->bool) -> (int->tactic) -> tactic
-  val iter_deepen_limit : int ref
+  val iter_deepen_limit : int Unsynchronized.ref
 
   val has_fewer_prems   : int -> thm -> bool
   val IF_UNSOLVED       : tactic -> tactic
   val SOLVE             : tactic -> tactic
   val DETERM_UNTIL_SOLVED: tactic -> tactic
-  val trace_BEST_FIRST  : bool ref
+  val trace_BEST_FIRST  : bool Unsynchronized.ref
   val BEST_FIRST        : (thm -> bool) * (thm -> int) -> tactic -> tactic
   val THEN_BEST_FIRST   : tactic -> (thm->bool) * (thm->int) -> tactic
                           -> tactic
-  val trace_ASTAR       : bool ref
+  val trace_ASTAR       : bool Unsynchronized.ref
   val ASTAR             : (thm -> bool) * (int->thm->int) -> tactic -> tactic
   val THEN_ASTAR        : tactic -> (thm->bool) * (int->thm->int) -> tactic
                           -> tactic
@@ -50,7 +50,7 @@ struct
 
 (**** Depth-first search ****)
 
-val trace_DEPTH_FIRST = ref false;
+val trace_DEPTH_FIRST = Unsynchronized.ref false;
 
 (*Searches until "satp" reports proof tree as satisfied.
   Suppresses duplicate solutions to minimize search space.*)
@@ -130,7 +130,7 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
 
 
 (*No known example (on 1-5-2007) needs even thirty*)
-val iter_deepen_limit = ref 50;
+val iter_deepen_limit = Unsynchronized.ref 50;
 
 (*Depth-first iterative deepening search for a state that satisfies satp
   tactic tac0 sets up the initial goal queue, while tac1 searches it.
@@ -138,7 +138,7 @@ val iter_deepen_limit = ref 50;
   to suppress solutions arising from earlier searches, as the accumulated cost
   (k) can be wrong.*)
 fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
- let val countr = ref 0
+ let val countr = Unsynchronized.ref 0
      and tf = tracify trace_DEPTH_FIRST (tac1 1)
      and qs0 = tac0 st
      (*bnd = depth bound; inc = estimate of increment required next*)
@@ -156,7 +156,7 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
        | depth (bnd,inc) ((k,np,rgd,q)::qs) =
           if k>=bnd then depth (bnd,inc) qs
           else
-          case (countr := !countr+1;
+          case (Unsynchronized.inc countr;
                 if !trace_DEPTH_FIRST then
                     tracing (string_of_int np ^ implode (map (fn _ => "*") qs))
                 else ();
@@ -199,7 +199,7 @@ fun DEEPEN (inc,lim) tacf m i =
 
 (*** Best-first search ***)
 
-val trace_BEST_FIRST = ref false;
+val trace_BEST_FIRST = Unsynchronized.ref false;
 
 (*For creating output sequence*)
 fun some_of_list []     = NONE
@@ -273,7 +273,7 @@ fun insert_with_level (lnth: int*int*thm, []) = [lnth]
 fun some_of_list []     = NONE
   | some_of_list (x::l) = SOME (x, Seq.make (fn () => some_of_list l));
 
-val trace_ASTAR = ref false;
+val trace_ASTAR = Unsynchronized.ref false;
 
 fun THEN_ASTAR tac0 (satp, costf) tac1 =
   let val tf = tracify trace_ASTAR tac1;

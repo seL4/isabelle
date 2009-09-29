@@ -6,7 +6,7 @@ Reconstruction of partial proof terms.
 
 signature RECONSTRUCT =
 sig
-  val quiet_mode : bool ref
+  val quiet_mode : bool Unsynchronized.ref
   val reconstruct_proof : theory -> term -> Proofterm.proof -> Proofterm.proof
   val prop_of' : term list -> Proofterm.proof -> term
   val prop_of : Proofterm.proof -> term
@@ -19,7 +19,7 @@ struct
 
 open Proofterm;
 
-val quiet_mode = ref true;
+val quiet_mode = Unsynchronized.ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
 fun vars_of t = map Var (rev (Term.add_vars t []));

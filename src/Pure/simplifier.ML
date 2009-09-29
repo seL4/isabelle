@@ -32,7 +32,7 @@ sig
   include BASIC_SIMPLIFIER
   val pretty_ss: Proof.context -> simpset -> Pretty.T
   val clear_ss: simpset -> simpset
-  val debug_bounds: bool ref
+  val debug_bounds: bool Unsynchronized.ref
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
@@ -424,5 +424,5 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
 
 end;
 
-structure BasicSimplifier: BASIC_SIMPLIFIER = Simplifier;
-open BasicSimplifier;
+structure Basic_Simplifier: BASIC_SIMPLIFIER = Simplifier;
+open Basic_Simplifier;

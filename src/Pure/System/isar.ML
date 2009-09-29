@@ -18,7 +18,7 @@ sig
   val undo: int -> unit
   val kill: unit -> unit
   val kill_proof: unit -> unit
-  val crashes: exn list ref
+  val crashes: exn list Unsynchronized.ref
   val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
   val main: unit -> unit
@@ -36,9 +36,9 @@ type history = (Toplevel.state * Toplevel.transition) list;
   (*previous state, state transition -- regular commands only*)
 
 local
-  val global_history = ref ([]: history);
-  val global_state = ref Toplevel.toplevel;
-  val global_exn = ref (NONE: (exn * string) option);
+  val global_history = Unsynchronized.ref ([]: history);
+  val global_state = Unsynchronized.ref Toplevel.toplevel;
+  val global_exn = Unsynchronized.ref (NONE: (exn * string) option);
 in
 
 fun edit_history count f = NAMED_CRITICAL "Isar" (fn () =>
@@ -115,7 +115,7 @@ fun op >>> [] = ()
 
 (* toplevel loop *)
 
-val crashes = ref ([]: exn list);
+val crashes = Unsynchronized.ref ([]: exn list);
 
 local
 
@@ -130,7 +130,7 @@ fun raw_loop secure src =
     handle exn =>
       (Output.error_msg (ML_Compiler.exn_message exn)
         handle crash =>
-          (CRITICAL (fn () => change crashes (cons crash));
+          (CRITICAL (fn () => Unsynchronized.change crashes (cons crash));
             warning "Recovering from Isar toplevel crash -- see also Isar.crashes");
           raw_loop secure src)
   end;

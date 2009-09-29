@@ -106,7 +106,7 @@ fun eta_norm env =
   the occurs check must ignore the types of variables. This avoids
   that ?x::?'a is unified with f(?x::T), which may lead to a cyclic
   substitution when ?'a is instantiated with T later. *)
-fun occurs_terms (seen: (indexname list) ref,
+fun occurs_terms (seen: (indexname list) Unsynchronized.ref,
       env: Envir.env, v: indexname, ts: term list): bool =
   let fun occurs [] = false
   | occurs (t::ts) =  occur t  orelse  occurs ts
@@ -160,7 +160,7 @@ If head is an abstraction then possibly no rigid path (head could be a
 Warning: finds a rigid occurrence of ?f in ?f(t).
   Should NOT be called in this case: there is a flex-flex unifier
 *)
-fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
+fun rigid_occurs_term (seen: (indexname list) Unsynchronized.ref, env, v: indexname, t) =
   let fun nonrigid t = if occurs_terms(seen,env,v,[t]) then Nonrigid
            else NoOcc
       fun occurs [] = NoOcc
@@ -230,7 +230,7 @@ fun get_eta_var ([], _, Var vT)  =  vT
   If v occurs nonrigidly then must use full algorithm. *)
 fun assignment thy (env, rbinder, t, u) =
     let val vT as (v,T) = get_eta_var (rbinder, 0, t)
-    in  case rigid_occurs_term (ref [], env, v, u) of
+    in  case rigid_occurs_term (Unsynchronized.ref [], env, v, u) of
         NoOcc => let val env = unify_types thy (body_type env T,
              fastype env (rbinder,u),env)
     in Envir.update ((vT, Logic.rlist_abs (rbinder, u)), env) end
@@ -429,7 +429,7 @@ fun MATCH thy (env, (rbinder,t,u), dpairs)
   Attempts to update t with u, raising ASSIGN if impossible*)
 fun ff_assign thy (env, rbinder, t, u) : Envir.env =
 let val vT as (v,T) = get_eta_var(rbinder,0,t)
-in if occurs_terms (ref [], env, v, [u]) then raise ASSIGN
+in if occurs_terms (Unsynchronized.ref [], env, v, [u]) then raise ASSIGN
    else let val env = unify_types thy (body_type env T,
           fastype env (rbinder,u),
           env)

@@ -24,8 +24,8 @@ sig
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
-  val trace_ast: bool ref
-  val stat_ast: bool ref
+  val trace_ast: bool Unsynchronized.ref
+  val stat_ast: bool Unsynchronized.ref
 end;
 
 signature AST =
@@ -173,9 +173,9 @@ fun match ast pat =
 
 fun normalize trace stat get_rules pre_ast =
   let
-    val passes = ref 0;
-    val failed_matches = ref 0;
-    val changes = ref 0;
+    val passes = Unsynchronized.ref 0;
+    val failed_matches = Unsynchronized.ref 0;
+    val changes = Unsynchronized.ref 0;
 
     fun subst _ (ast as Constant _) = ast
       | subst env (Variable x) = the (Symtab.lookup env x)
@@ -184,8 +184,8 @@ fun normalize trace stat get_rules pre_ast =
     fun try_rules ((lhs, rhs) :: pats) ast =
           (case match ast lhs of
             SOME (env, args) =>
-              (inc changes; SOME (mk_appl (subst env rhs) args))
-          | NONE => (inc failed_matches; try_rules pats ast))
+              (Unsynchronized.inc changes; SOME (mk_appl (subst env rhs) args))
+          | NONE => (Unsynchronized.inc failed_matches; try_rules pats ast))
       | try_rules [] _ = NONE;
     val try_headless_rules = try_rules (get_rules "");
 
@@ -226,7 +226,7 @@ fun normalize trace stat get_rules pre_ast =
         val old_changes = ! changes;
         val new_ast = norm ast;
       in
-        inc passes;
+        Unsynchronized.inc passes;
         if old_changes = ! changes then new_ast else normal new_ast
       end;
 
@@ -245,8 +245,8 @@ fun normalize trace stat get_rules pre_ast =
 
 (* normalize_ast *)
 
-val trace_ast = ref false;
-val stat_ast = ref false;
+val trace_ast = Unsynchronized.ref false;
+val stat_ast = Unsynchronized.ref false;
 
 fun normalize_ast get_rules ast =
   normalize (! trace_ast) (! stat_ast) get_rules ast;

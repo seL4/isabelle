@@ -91,8 +91,8 @@ fun eval verbose pos toks =
       if null toks then Position.none
       else ML_Lex.end_pos_of (List.last toks);
 
-    val input_buffer = ref (input @ [(offset_of end_pos, #"\n")]);
-    val line = ref (the_default 1 (Position.line_of pos));
+    val input_buffer = Unsynchronized.ref (input @ [(offset_of end_pos, #"\n")]);
+    val line = Unsynchronized.ref (the_default 1 (Position.line_of pos));
 
     fun get_offset () = (case ! input_buffer of [] => 0 | (i, _) :: _ => i);
     fun get () =
@@ -106,9 +106,9 @@ fun eval verbose pos toks =
 
     (* output *)
 
-    val output_buffer = ref Buffer.empty;
+    val output_buffer = Unsynchronized.ref Buffer.empty;
     fun output () = Buffer.content (! output_buffer);
-    fun put s = change output_buffer (Buffer.add s);
+    fun put s = Unsynchronized.change output_buffer (Buffer.add s);
 
     fun put_message {message, hard, location, context = _} =
      (put ((if hard then "Error" else "Warning") ^ Position.str_of (position_of location) ^ ":\n");

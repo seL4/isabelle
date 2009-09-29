@@ -9,9 +9,9 @@ type xstring = string;    (*external names*)
 
 signature BASIC_NAME_SPACE =
 sig
-  val long_names: bool ref
-  val short_names: bool ref
-  val unique_names: bool ref
+  val long_names: bool Unsynchronized.ref
+  val short_names: bool Unsynchronized.ref
+  val unique_names: bool Unsynchronized.ref
 end;
 
 signature NAME_SPACE =
@@ -105,9 +105,9 @@ fun extern_flags {long_names, short_names, unique_names} space name =
     else ext (get_accesses space name)
   end;
 
-val long_names = ref false;
-val short_names = ref false;
-val unique_names = ref true;
+val long_names = Unsynchronized.ref false;
+val short_names = Unsynchronized.ref false;
+val unique_names = Unsynchronized.ref true;
 
 fun extern space name =
   extern_flags
@@ -261,6 +261,6 @@ fun extern_table tab = map (apfst #2) (ext_table tab);
 
 end;
 
-structure BasicNameSpace: BASIC_NAME_SPACE = NameSpace;
-open BasicNameSpace;
+structure Basic_Name_Space: BASIC_NAME_SPACE = NameSpace;
+open Basic_Name_Space;
 

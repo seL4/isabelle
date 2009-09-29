@@ -8,7 +8,7 @@ struct
 end;
 
 (*if true then some tools will OMIT some proofs*)
-val quick_and_dirty = ref false;
+val quick_and_dirty = Unsynchronized.ref false;
 
 print_depth 10;
 

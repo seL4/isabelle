@@ -83,7 +83,7 @@ datatype value =
 datatype slot =
   Slot |
   Value of value option |
-  Assignable of value option ref;
+  Assignable of value option Unsynchronized.ref;
 
 
 (* datatype token *)
@@ -245,7 +245,7 @@ val mk_attribute = mk_value "<attribute>" o Attribute;
 (* static binding *)
 
 (*1st stage: make empty slots assignable*)
-fun assignable (Token (x, y, Slot)) = Token (x, y, Assignable (ref NONE))
+fun assignable (Token (x, y, Slot)) = Token (x, y, Assignable (Unsynchronized.ref NONE))
   | assignable tok = tok;
 
 (*2nd stage: assign values as side-effect of scanning*)
@@ -253,7 +253,7 @@ fun assign v (Token (_, _, Assignable r)) = r := v
   | assign _ _ = ();
 
 (*3rd stage: static closure of final values*)
-fun closure (Token (x, y, Assignable (ref v))) = Token (x, y, Value v)
+fun closure (Token (x, y, Assignable (Unsynchronized.ref v))) = Token (x, y, Value v)
   | closure tok = tok;
 
 

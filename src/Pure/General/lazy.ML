@@ -26,12 +26,12 @@ datatype 'a T =
   Lazy of unit -> 'a |
   Result of 'a Exn.result;
 
-type 'a lazy = 'a T ref;
+type 'a lazy = 'a T Unsynchronized.ref;
 
 fun same (r1: 'a lazy, r2) = r1 = r2;
 
-fun lazy e = ref (Lazy e);
-fun value x = ref (Result (Exn.Result x));
+fun lazy e = Unsynchronized.ref (Lazy e);
+fun value x = Unsynchronized.ref (Result (Exn.Result x));
 
 fun peek r =
   (case ! r of

@@ -161,10 +161,11 @@ fun map_browser_info f {theories, files, tex_index, html_index, graph} =
 
 (* state *)
 
-val browser_info = ref empty_browser_info;
-fun change_browser_info f = CRITICAL (fn () => change browser_info (map_browser_info f));
+val browser_info = Unsynchronized.ref empty_browser_info;
+fun change_browser_info f =
+  CRITICAL (fn () => Unsynchronized.change browser_info (map_browser_info f));
 
-val suppress_tex_source = ref false;
+val suppress_tex_source = Unsynchronized.ref false;
 fun no_document f x = setmp_noncritical suppress_tex_source true f x;
 
 fun init_theory_info name info =
@@ -229,7 +230,7 @@ fun make_session_info
 
 (* state *)
 
-val session_info = ref (NONE: session_info option);
+val session_info = Unsynchronized.ref (NONE: session_info option);
 
 fun with_session x f = (case ! session_info of NONE => x | SOME info => f info);
 fun with_context f = f (Context.theory_name (ML_Context.the_global_context ()));
@@ -534,5 +535,5 @@ fun drafts doc_format src_paths =
 
 end;
 
-structure BasicPresent: BASIC_PRESENT = Present;
-open BasicPresent;
+structure Basic_Present: BASIC_PRESENT = Present;
+open Basic_Present;
