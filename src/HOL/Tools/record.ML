@@ -86,11 +86,11 @@ val istuple_consN = constname @{term istuple_cons};
 val tup_isom_typeN = fst (dest_Type @{typ "('a, 'b, 'c) tuple_isomorphism"});
 
 fun named_cterm_instantiate values thm = let
-    fun match name (Var ((name', _), _)) = name = name'
+    fun match name ((name', _), _) = name = name'
       | match name _ = false;
     fun getvar name = case (find_first (match name)
-                                    (OldTerm.term_vars (prop_of thm)))
-      of SOME var => cterm_of (theory_of_thm thm) var
+                                    (Term.add_vars (prop_of thm) []))
+      of SOME var => cterm_of (theory_of_thm thm) (Var var)
        | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm])
   in
     cterm_instantiate (map (apfst getvar) values) thm
