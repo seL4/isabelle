@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2009: Thomas Sewell, NICTA
+  More efficient HOL/record implementation
+
 * September 2009: Sascha Boehme, TUM
   SMT method using external SMT solvers
 
