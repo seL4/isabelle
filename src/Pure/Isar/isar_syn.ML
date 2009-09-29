@@ -800,8 +800,13 @@ val _ =
       o Toplevel.keep (Class.print_classes o Toplevel.theory_of)));
 
 val _ =
-  OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
+  OuterSyntax.improper_command "print_locale" "print locale of this theory" K.diag
     (opt_bang -- P.xname >> (Toplevel.no_timing oo IsarCmd.print_locale));
+
+val _ =
+  OuterSyntax.improper_command "print_interps"
+    "print interpretations of locale for this theory" K.diag
+    (P.xname >> (Toplevel.no_timing oo IsarCmd.print_registrations));
 
 val _ =
   OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag

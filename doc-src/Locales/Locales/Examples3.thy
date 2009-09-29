@@ -14,7 +14,7 @@ text {* In the above example, the fact that @{text \<le>} is a partial
   interpretation.  The third revision of the example illustrates this.  *}
 
 interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where nat_less_eq: "partial_order.less op \<le> (x::nat) y = (x < y)"
+  where "partial_order.less op \<le> (x::nat) y = (x < y)"
 proof -
   show "partial_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales auto
@@ -44,11 +44,10 @@ text {* Further interpretations are necessary to reuse theorems from
   elaborate interpretation proof.  *}
 
 interpretation %visible nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where "partial_order.less op \<le> (x::nat) y = (x < y)"
-    and nat_meet_eq: "lattice.meet op \<le> (x::nat) y = min x y"
-    and nat_join_eq: "lattice.join op \<le> (x::nat) y = max x y"
+  where "lattice.meet op \<le> (x::nat) y = min x y"
+    and "lattice.join op \<le> (x::nat) y = max x y"
 proof -
-  show lattice: "lattice (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+  show "lattice (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     txt {* We have already shown that this is a partial order, *}
     apply unfold_locales
     txt {* hence only the lattice axioms remain to be shown: @{subgoals
@@ -57,13 +56,9 @@ proof -
     txt {* the goals become @{subgoals [display]} which can be solved
       by Presburger arithmetic. *}
     by arith+
-  txt {* For the first of the equations, we refer to the theorem
-  shown in the previous interpretation. *}
-  show "partial_order.less op \<le> (x::nat) y = (x < y)"
-    by (rule nat_less_eq)
-  txt {* In order to show the remaining equations, we put ourselves in a
+  txt {* In order to show the equations, we put ourselves in a
     situation where the lattice theorems can be used in a convenient way. *}
-  from lattice interpret nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool" .
+  then interpret nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool" .
   show "lattice.meet op \<le> (x::nat) y = min x y"
     by (bestsimp simp: nat.meet_def nat.is_inf_def)
   show "lattice.join op \<le> (x::nat) y = max x y"
@@ -73,25 +68,7 @@ qed
 text {* Next follows that @{text \<le>} is a total order. *}
 
 interpretation %visible nat: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where "partial_order.less op \<le> (x::nat) y = (x < y)"
-    and "lattice.meet op \<le> (x::nat) y = min x y"
-    and "lattice.join op \<le> (x::nat) y = max x y"
-proof -
-  show "total_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
-    by unfold_locales arith
-qed (rule nat_less_eq nat_meet_eq nat_join_eq)+
-
-text {* Since the locale hierarchy reflects that total
-  orders are distributive lattices, an explicit interpretation of
-  distributive lattices for the order relation on natural numbers is
-  only necessary for mapping the definitions to the right operators on
-  @{typ nat}. *}
-
-interpretation %visible nat: distrib_lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where "partial_order.less op \<le> (x::nat) y = (x < y)"
-    and "lattice.meet op \<le> (x::nat) y = min x y"
-    and "lattice.join op \<le> (x::nat) y = max x y"
-  by unfold_locales [1] (rule nat_less_eq nat_meet_eq nat_join_eq)+
+  by unfold_locales arith
 
 text {* Theorems that are available in the theory at this point are shown in
   Table~\ref{tab:nat-lattice}.
@@ -115,6 +92,29 @@ text {* Theorems that are available in the theory at this point are shown in
 \caption{Interpreted theorems for @{text \<le>} on the natural numbers.}
 \label{tab:nat-lattice}
 \end{table}
+
+  Note that since the locale hierarchy reflects that total orders are
+  distributive lattices, an explicit interpretation of distributive
+  lattices for the order relation on natural numbers is not neccessary.
+
+  Why not push this idea further and just give the last interpretation
+  as a single interpretation instead of the sequence of three?  The
+  reasons for this are twofold:
+\begin{itemize}
+\item
+  Often it is easier to work in an incremental fashion, because later
+  interpretations require theorems provided by earlier
+  interpretations.
+\item
+  Assume that a definition is made in some locale $l_1$, and that $l_2$
+  imports $l_1$.  Let an equation for the definition be
+  proved in an interpretation of $l_2$.  The equation will be unfolded
+  in interpretations of theorems added to $l_2$ or below in the import
+  hierarchy, but not for theorems added above $l_2$.
+  Hence, an equation interpreting a definition should always be given in
+  an interpretation of the locale where the definition is made, not in
+  an interpretation of a locale further down the hierarchy.
+\end{itemize}
   *}
 
 
@@ -125,8 +125,7 @@ text {* Divisibility on the natural numbers is a distributive lattice
   incrementally. *}
 
 interpretation nat_dvd: partial_order "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where nat_dvd_less_eq:
-    "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
+  where "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
 proof -
   show "partial_order (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales (auto simp: dvd_def)
@@ -142,8 +141,7 @@ text {* Note that in Isabelle/HOL there is no symbol for strict
   x \<noteq> y"}.  *}
 
 interpretation nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
-    and nat_dvd_meet_eq: "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
+  where nat_dvd_meet_eq: "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
     and nat_dvd_join_eq: "lattice.join (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = lcm"
 proof -
   show "lattice (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
@@ -155,8 +153,6 @@ proof -
     apply (auto intro: lcm_least_nat)
     done
   then interpret nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool" .
-  show "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
-    by (rule nat_dvd_less_eq)
   show "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
     apply (auto simp add: expand_fun_eq)
     apply (unfold nat_dvd.meet_def)
@@ -198,18 +194,11 @@ lemma %invisible gcd_lcm_distr:
 
 interpretation %visible nat_dvd:
   distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
-    and "lattice.meet (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = gcd"
-    and "lattice.join (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool) = lcm"
-proof -
-  show "distrib_lattice (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
-    apply unfold_locales
-    txt {* @{subgoals [display]} *}
-    apply (unfold nat_dvd_meet_eq nat_dvd_join_eq)
-    txt {* @{subgoals [display]} *}
-    apply (rule gcd_lcm_distr)
-    done
-qed (rule nat_dvd_less_eq nat_dvd_meet_eq nat_dvd_join_eq)+
+  apply unfold_locales
+  txt {* @{subgoals [display]} *}
+  apply (unfold nat_dvd_meet_eq nat_dvd_join_eq)
+  txt {* @{subgoals [display]} *}
+  apply (rule gcd_lcm_distr) done
 
 
 text {* Theorems that are available in the theory after these
