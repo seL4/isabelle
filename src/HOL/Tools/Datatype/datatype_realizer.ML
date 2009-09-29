@@ -38,7 +38,7 @@ fun tname_of (Type (s, _)) = s
 
 fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
-fun make_ind sorts ({descr, rec_names, rec_rewrites, inducts = (_, induct), ...} : info) is thy =
+fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy =
   let
     val recTs = get_rec_types descr sorts;
     val pnames = if length descr = 1 then ["P"]

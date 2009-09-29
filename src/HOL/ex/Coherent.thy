@@ -1,14 +1,15 @@
-(*  Title:      HOL/ex/Coherent
-    ID:         $Id$
+(*  Title:      HOL/ex/Coherent.thy
     Author:     Stefan Berghofer, TU Muenchen
-                Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
+    Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
 *)
 
-header{* Coherent Logic Problems *}
+header {* Coherent Logic Problems *}
 
-theory Coherent imports Main begin
+theory Coherent
+imports Main
+begin
 
-subsection{* Equivalence of two versions of Pappus' Axiom *}
+subsection {* Equivalence of two versions of Pappus' Axiom *}
 
 no_notation
   comp (infixl "o" 55) and

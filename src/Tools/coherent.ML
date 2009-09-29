@@ -26,7 +26,7 @@ sig
   val setup: theory -> theory
 end;
 
-functor CoherentFun(Data: COHERENT_DATA) : COHERENT =
+functor Coherent(Data: COHERENT_DATA) : COHERENT =
 struct
 
 (** misc tools **)

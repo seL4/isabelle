@@ -389,7 +389,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
       let
         val (_, (tname, _, _)) = hd ds;
-        val induct = (snd o #inducts o the o Symtab.lookup dt_info) tname;
+        val induct = (#induct o the o Symtab.lookup dt_info) tname;
 
         fun mk_ind_concl (i, _) =
           let

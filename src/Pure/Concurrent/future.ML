@@ -37,10 +37,11 @@ sig
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
   val value: 'a -> 'a future
-  val fork: (unit -> 'a) -> 'a future
   val fork_group: group -> (unit -> 'a) -> 'a future
+  val fork_deps_pri: 'b future list -> int -> (unit -> 'a) -> 'a future
   val fork_deps: 'b future list -> (unit -> 'a) -> 'a future
   val fork_pri: int -> (unit -> 'a) -> 'a future
+  val fork: (unit -> 'a) -> 'a future
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
   val join: 'a future -> 'a
@@ -322,10 +323,11 @@ fun fork_future opt_group deps pri e =
       in task end);
   in Future {task = task, group = group, result = result} end;
 
-fun fork e = fork_future NONE [] 0 e;
 fun fork_group group e = fork_future (SOME group) [] 0 e;
-fun fork_deps deps e = fork_future NONE (map task_of deps) 0 e;
-fun fork_pri pri e = fork_future NONE [] pri e;
+fun fork_deps_pri deps pri e = fork_future NONE (map task_of deps) pri e;
+fun fork_deps deps e = fork_deps_pri deps 0 e;
+fun fork_pri pri e = fork_deps_pri [] pri e;
+fun fork e = fork_deps [] e;
 
 
 (* join *)

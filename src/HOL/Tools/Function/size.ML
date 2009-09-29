@@ -59,7 +59,7 @@ val app = curry (list_comb o swap);
 
 fun prove_size_thms (info : info) new_type_names thy =
   let
-    val {descr, alt_names, sorts, rec_names, rec_rewrites, inducts = (_, induct), ...} = info;
+    val {descr, alt_names, sorts, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
     val alt_names' = (case alt_names of
       NONE => replicate l NONE | SOME names => map SOME names);
