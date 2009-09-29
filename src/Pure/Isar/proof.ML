@@ -30,6 +30,7 @@ sig
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
   val get_goal: state -> context * (thm list * thm)
+  val chained_goal: state -> context * thm
   val show_main_goal: bool Unsynchronized.ref
   val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
@@ -310,6 +311,10 @@ in val find_goal = find 0 end;
 fun get_goal state =
   let val (ctxt, (_, {using, goal, ...})) = find_goal state
   in (ctxt, (using, goal)) end;
+
+fun chained_goal state =
+  let val (ctxt, (using, goal)) = get_goal state
+  in (ctxt, Seq.hd (ALLGOALS (Method.insert_tac using) goal)) end;
 
 
 
