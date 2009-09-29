@@ -104,7 +104,7 @@ structure IsTupleThms = TheoryDataFun
   val empty = Symtab.make [tuple_istuple];
   val copy = I;
   val extend = I;
-  val merge = K (Symtab.merge Thm.eq_thm_prop);
+  fun merge _ = Symtab.merge Thm.eq_thm_prop;
 );
 
 fun do_typedef name repT alphas thy =
