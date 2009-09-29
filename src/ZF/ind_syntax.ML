@@ -99,7 +99,7 @@ fun union_params (rec_tm, cs) =
       fun is_ind arg = (type_of arg = iT)
   in  case List.filter is_ind (args @ cs) of
          []     => @{const 0}
-       | u_args => BalancedTree.make mk_Un u_args
+       | u_args => Balanced_Tree.make mk_Un u_args
   end;
 
 

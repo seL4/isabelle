@@ -78,7 +78,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val leafTs' = get_nonrec_types descr' sorts;
     val branchTs = get_branching_types descr' sorts;
     val branchT = if null branchTs then HOLogic.unitT
-      else BalancedTree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
+      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
     val unneeded_vars = hd tyvars \\ List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs);
     val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
@@ -86,7 +86,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val newTs = Library.take (length (hd descr), recTs);
     val oldTs = Library.drop (length (hd descr), recTs);
     val sumT = if null leafTs then HOLogic.unitT
-      else BalancedTree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
+      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
@@ -116,7 +116,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     (* make injections for constructors *)
 
-    fun mk_univ_inj ts = BalancedTree.access
+    fun mk_univ_inj ts = Balanced_Tree.access
       {left = fn t => In0 $ t,
         right = fn t => In1 $ t,
         init =

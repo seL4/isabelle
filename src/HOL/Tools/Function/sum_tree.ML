@@ -13,7 +13,7 @@ val sumcase_split_ss = HOL_basic_ss addsimps (@{thm "Product_Type.split"} :: @{t
 
 (* top-down access in balanced tree *)
 fun access_top_down {left, right, init} len i =
-    BalancedTree.access {left = (fn f => f o left), right = (fn f => f o right), init = I} len i init
+    Balanced_Tree.access {left = (fn f => f o left), right = (fn f => f o right), init = I} len i init
 
 (* Sum types *)
 fun mk_sumT LT RT = Type ("+", [LT, RT])
@@ -36,7 +36,7 @@ fun mk_proj ST n i =
     |> snd
 
 fun mk_sumcases T fs =
-      BalancedTree.make (fn ((f, fT), (g, gT)) => (mk_sumcase fT gT T f g, mk_sumT fT gT)) 
+      Balanced_Tree.make (fn ((f, fT), (g, gT)) => (mk_sumcase fT gT T f g, mk_sumT fT gT)) 
                         (map (fn f => (f, domain_type (fastype_of f))) fs)
       |> fst
 

@@ -1732,7 +1732,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     (*before doing anything else, create the tree of new types
       that will back the record extension*)
-    (* FIXME cf. BalancedTree.make *)
+    (* FIXME cf. Balanced_Tree.make *)
     fun mktreeT [] = raise TYPE ("mktreeT: empty list", [], [])
       | mktreeT [T] = T
       | mktreeT xs =
@@ -1745,7 +1745,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
             HOLogic.mk_prodT (mktreeT left, mktreeT right)
           end;
 
-    (* FIXME cf. BalancedTree.make *)
+    (* FIXME cf. Balanced_Tree.make *)
     fun mktreeV [] = raise TYPE ("mktreeV: empty list", [], [])
       | mktreeV [T] = T
       | mktreeV xs =

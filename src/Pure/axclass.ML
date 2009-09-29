@@ -419,7 +419,7 @@ fun split_defined n eq =
       if n = 0 then []
       else
         (eq RS Drule.equal_elim_rule1)
-        |> BalancedTree.dest (fn th =>
+        |> Balanced_Tree.dest (fn th =>
           (th RS Conjunction.conjunctionD1, th RS Conjunction.conjunctionD2)) n;
   in (intro, dests) end;
 
