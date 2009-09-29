@@ -1732,31 +1732,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     (*before doing anything else, create the tree of new types
       that will back the record extension*)
-    (* FIXME cf. Balanced_Tree.make *)
-    fun mktreeT [] = raise TYPE ("mktreeT: empty list", [], [])
-      | mktreeT [T] = T
-      | mktreeT xs =
-          let
-            val len = length xs;
-            val half = len div 2;
-            val left = List.take (xs, half);
-            val right = List.drop (xs, half);
-          in
-            HOLogic.mk_prodT (mktreeT left, mktreeT right)
-          end;
 
-    (* FIXME cf. Balanced_Tree.make *)
-    fun mktreeV [] = raise TYPE ("mktreeV: empty list", [], [])
-      | mktreeV [T] = T
-      | mktreeV xs =
-          let
-            val len = length xs;
-            val half = len div 2;
-            val left = List.take (xs, half);
-            val right = List.drop (xs, half);
-          in
-            IsTupleSupport.mk_cons_tuple (mktreeV left, mktreeV right)
-          end;
+    val mktreeV = Balanced_Tree.make IsTupleSupport.mk_cons_tuple;
 
     fun mk_istuple (left, right) (thy, i) =
       let
