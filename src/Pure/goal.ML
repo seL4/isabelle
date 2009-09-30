@@ -300,22 +300,22 @@ fun PARALLEL_CHOICE tacs st =
   | SOME st' => Seq.single st');
 
 (*parallel refinement of non-schematic goal by single results*)
+exception FAILED of unit;
 fun PARALLEL_GOALS tac st =
   let
     val st0 = Thm.adjust_maxidx_thm ~1 st;
     val _ = Thm.maxidx_of st0 >= 0 andalso
       raise THM ("PARALLEL_GOALS: schematic goal state", 0, [st]);
 
-    exception FAILED;
     fun try_tac g =
       (case SINGLE tac g of
-        NONE => raise FAILED
+        NONE => raise FAILED ()
       | SOME g' => g');
 
     val goals = Drule.strip_imp_prems (Thm.cprop_of st0);
     val results = Par_List.map (try_tac o init) goals;
   in ALLGOALS (fn i => retrofit i 1 (nth results (i - 1))) st0 end
-  handle FAILED => Seq.empty;
+  handle FAILED () => Seq.empty;
 
 end;
 
