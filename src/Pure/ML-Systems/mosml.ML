@@ -40,8 +40,8 @@ load "CharVector";
 exception Interrupt;
 fun reraise exn = raise exn;
 
-use "ML-Systems/exn.ML";
 use "ML-Systems/unsynchronized.ML";
+use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
