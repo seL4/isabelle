@@ -34,13 +34,16 @@ lemma sup_boolE:
   by (auto simp add: sup_bool_eq)
 
 
-subsubsection {* Equality and Subsets *}
+subsubsection {* Equality *}
 
 lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
   by (simp add: mem_def)
 
 lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) = (R = S)"
   by (simp add: expand_fun_eq mem_def)
+
+
+subsubsection {* Order relation *}
 
 lemma pred_subset_eq: "((\<lambda>x. x \<in> R) <= (\<lambda>x. x \<in> S)) = (R <= S)"
   by (simp add: mem_def)
@@ -62,9 +65,6 @@ lemma bot1E [elim!]: "bot x \<Longrightarrow> P"
 
 lemma bot2E [elim!]: "bot x y \<Longrightarrow> P"
   by (simp add: bot_fun_eq bot_bool_eq)
-
-
-subsubsection {* The empty set *}
 
 lemma bot_empty_eq: "bot = (\<lambda>x. x \<in> {})"
   by (auto simp add: expand_fun_eq)
