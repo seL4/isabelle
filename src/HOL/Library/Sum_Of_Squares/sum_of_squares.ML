@@ -349,7 +349,7 @@ fun string_of_vector min_size max_size (v:vector) =
   let 
    val n = max min_size (min n_raw max_size) 
    val xs = map (Rat.string_of_rat o (fn i => FuncUtil.Intfunc.tryapplyd (snd v) i rat_0)) (1 upto n) 
-  in "[" ^ foldr1 (fn (s, t) => s ^ ", " ^ t) xs ^
+  in "[" ^ space_implode ", " xs ^
   (if n_raw > max_size then ", ...]" else "]")
   end
  end;
@@ -360,7 +360,7 @@ fun string_of_matrix max_size (m:matrix) =
   val i = min max_size i_raw 
   val j = min max_size j_raw
   val rstr = map (fn k => string_of_vector j j (row k m)) (1 upto i) 
- in "["^ foldr1 (fn (s, t) => s^";\n "^t) rstr ^
+ in "["^ space_implode ";\n " rstr ^
   (if j > max_size then "\n ...]" else "]")
  end;
 
@@ -386,7 +386,7 @@ fun string_of_monomial m =
  if FuncUtil.Ctermfunc.is_empty m then "1" else
  let val vps = fold_rev (fn (x,k) => fn a => string_of_varpow x k :: a)
   (sort humanorder_varpow (FuncUtil.Ctermfunc.dest m)) [] 
- in foldr1 (fn (s, t) => s^"*"^t) vps
+ in space_implode "*" vps
  end;
 
 fun string_of_cmonomial (c,m) =
@@ -468,7 +468,7 @@ fun sdpa_of_vector (v:vector) =
  let 
   val n = dim v
   val strs = map (decimalize 20 o (fn i => FuncUtil.Intfunc.tryapplyd (snd v) i rat_0)) (1 upto n) 
- in foldr1 (fn (x, y) => x ^ " " ^ y) strs ^ "\n"
+ in space_implode " " strs ^ "\n"
  end;
 
 fun triple_int_ord ((a,b,c),(a',b',c')) = 
@@ -974,7 +974,7 @@ fun enumerate_monomials d vars =
  let val alts =
   map (fn k => let val oths = enumerate_monomials (d - k) (tl vars) 
                in map (fn ks => if k = 0 then ks else FuncUtil.Ctermfunc.update (hd vars, k) ks) oths end) (0 upto d) 
- in foldr1 op @ alts
+ in flat alts
  end;
 
 (* Enumerate products of distinct input polys with degree <= d.              *)
@@ -1021,7 +1021,7 @@ fun sdpa_of_blockproblem nblocks blocksizes obj mats =
  in
   string_of_int m ^ "\n" ^
   string_of_int nblocks ^ "\n" ^
-  (foldr1 (fn (s, t) => s^" "^t) (map string_of_int blocksizes)) ^
+  (space_implode " " (map string_of_int blocksizes)) ^
   "\n" ^
   sdpa_of_vector obj ^
   fold_rev2 (fn k => fn m => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)
@@ -1187,7 +1187,7 @@ fun deepen f n =
 fun cterm_of_sqterm (c,p) = RealArith.Product(RealArith.Rational_lt c,RealArith.Square p);
 
 fun cterm_of_sos (pr,sqs) = if null sqs then pr
-  else RealArith.Product(pr,foldr1 (fn (a, b) => RealArith.Sum(a,b)) (map cterm_of_sqterm sqs));
+  else RealArith.Product(pr,foldr1 RealArith.Sum (map cterm_of_sqterm sqs));
 
 (* Interface to HOL.                                                         *)
 local
@@ -1258,11 +1258,11 @@ fun real_nonlinear_prover proof_method ctxt =
            map2 (fn q => fn (p,ax) => RealArith.Eqmul(q,ax)) cert_ideal eq
          val proofs_cone = map cterm_of_sos cert_cone
          val proof_ne = if null ltp then RealArith.Rational_lt Rat.one else
-           let val p = foldr1 (fn (s, t) => RealArith.Product(s,t)) (map snd ltp) 
+           let val p = foldr1 RealArith.Product (map snd ltp) 
            in  funpow i (fn q => RealArith.Product(p,q)) (RealArith.Rational_lt Rat.one)
            end
          in 
-           foldr1 (fn (s, t) => RealArith.Sum(s,t)) (proof_ne :: proofs_ideal @ proofs_cone) 
+           foldr1 RealArith.Sum (proof_ne :: proofs_ideal @ proofs_cone) 
          end)
      in
         (translator (eqs,les,lts) proof, RealArith.Cert proof)
