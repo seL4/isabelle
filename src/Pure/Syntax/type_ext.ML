@@ -82,8 +82,8 @@ fun typ_of_term get_sort map_sort t =
           if Lexicon.is_tid x then TFree (x, get_sort (x, ~1))
           else Type (x, [])
       | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_tfree",_) $ (t as Free x)) = typ_of t
-      | typ_of (Const ("_tvar",_) $ (t as Var x)) = typ_of t
+      | typ_of (Const ("_tfree",_) $ (t as Free _)) = typ_of t
+      | typ_of (Const ("_tvar",_) $ (t as Var _)) = typ_of t
       | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) = TFree (x, get_sort (x, ~1))
       | typ_of (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ _) =
           TFree (x, get_sort (x, ~1))

@@ -131,8 +131,8 @@ val netpair = hd o tl o netpairs;
 (* retrieving rules *)
 
 fun untaglist [] = []
-  | untaglist [(k : int * int, x)] = [x]
-  | untaglist ((k, x) :: (rest as (k', x') :: _)) =
+  | untaglist [(_ : int * int, x)] = [x]
+  | untaglist ((k, x) :: (rest as (k', _) :: _)) =
       if k = k' then untaglist rest
       else x :: untaglist rest;
 
@@ -160,7 +160,7 @@ fun find_rules weighted facts goals =
 (* wrappers *)
 
 fun gen_add_wrapper upd w =
-  Context.theory_map (Rules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
+  Context.theory_map (Rules.map (fn Rules {next, rules, netpairs, wrappers} =>
     make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers)));
 
 val addSWrapper = gen_add_wrapper Library.apfst;

@@ -78,8 +78,8 @@ fun min_elem h = (min h, delete_min h);
 
 nonfix upto;
 
-fun upto _ (h as Empty) = ([], h)
-  | upto limit (h as Heap (_, x, a, b)) =
+fun upto _ Empty = ([], Empty)
+  | upto limit (h as Heap (_, x, _, _)) =
       (case ord (x, limit) of
         GREATER => ([], h)
       | _ => upto limit (delete_min h) |>> cons x);

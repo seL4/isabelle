@@ -161,7 +161,7 @@ type text = string;
 
 fun pad [] = []
   | pad [(s, _)] = [s]
-  | pad ((s1, pos1) :: (rest as (s2, pos2) :: _)) =
+  | pad ((s1, pos1) :: (rest as (_, pos2) :: _)) =
       let
         val end_pos1 = Position.advance s1 pos1;
         val d = Int.max (0, Position.distance_of end_pos1 pos2);

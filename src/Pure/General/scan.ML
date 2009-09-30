@@ -273,7 +273,7 @@ datatype lexicon = Lexicon of (bool * lexicon) Symtab.table;
 val empty_lexicon = Lexicon Symtab.empty;
 
 fun is_literal _ [] = false
-  | is_literal (Lexicon tab) (chs as c :: cs) =
+  | is_literal (Lexicon tab) (c :: cs) =
       (case Symtab.lookup tab c of
         SOME (tip, lex) => tip andalso null cs orelse is_literal lex cs
       | NONE => false);
@@ -286,7 +286,7 @@ fun literal lexicon =
     fun finish (SOME (res, rest)) = (rev res, rest)
       | finish NONE = raise FAIL NONE;
     fun scan _ res (Lexicon tab) [] = if Symtab.is_empty tab then finish res else raise MORE NONE
-      | scan path res (Lexicon tab) (chs as c :: cs) =
+      | scan path res (Lexicon tab) (c :: cs) =
           (case Symtab.lookup tab (fst c) of
             SOME (tip, lex) =>
               let val path' = c :: path
@@ -300,7 +300,7 @@ fun literal lexicon =
 fun extend_lexicon chrs lexicon =
   let
     fun ext [] lex = lex
-      | ext (chs as c :: cs) (Lexicon tab) =
+      | ext (c :: cs) (Lexicon tab) =
           (case Symtab.lookup tab c of
             SOME (tip, lex) => Lexicon (Symtab.update (c, (tip orelse null cs, ext cs lex)) tab)
           | NONE => Lexicon (Symtab.update (c, (null cs, ext cs empty_lexicon)) tab));

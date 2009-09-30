@@ -199,7 +199,7 @@ and args_of_list (T :: Ts) i is = args_of T (i :: is) #> args_of_list Ts (i + 1)
 
 fun subscript (Type (_, Ts)) (i :: is) = subscript (nth Ts i) is
   | subscript T [] = T
-  | subscript T _ = raise Subscript;
+  | subscript _ _ = raise Subscript;
 
 in
 

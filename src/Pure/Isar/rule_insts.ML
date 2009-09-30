@@ -266,8 +266,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
   let
     val thy = ProofContext.theory_of ctxt;
     (* Separate type and term insts *)
-    fun has_type_var ((x, _), _) = (case Symbol.explode x of
-          "'"::cs => true | cs => false);
+    fun has_type_var ((x, _), _) =
+      (case Symbol.explode x of "'" :: _ => true | _ => false);
     val Tinsts = List.filter has_type_var insts;
     val tinsts = filter_out has_type_var insts;
 
