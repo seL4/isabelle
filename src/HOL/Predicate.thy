@@ -19,21 +19,6 @@ notation
 
 subsection {* Predicates as (complete) lattices *}
 
-subsubsection {* @{const sup} on @{typ bool} *}
-
-lemma sup_boolI1:
-  "P \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_eq)
-
-lemma sup_boolI2:
-  "Q \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_eq)
-
-lemma sup_boolE:
-  "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: sup_bool_eq)
-
-
 subsubsection {* Equality *}
 
 lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
