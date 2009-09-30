@@ -27,6 +27,7 @@ val pointer_eq = PolyML.pointerEq;
 fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 use "ML-Systems/compiler_polyml-5.3.ML";
+PolyML.Compiler.reportUnreferencedIds := true;
 
 
 (* toplevel pretty printing *)
