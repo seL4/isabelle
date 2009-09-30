@@ -750,7 +750,6 @@ and translate_tyvar_sort thy (algbr as (proj_sort, _)) funcgr (v, sort) =
   #>> (fn sort => (unprefix "'" v, sort))
 and translate_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
   let
-    val pp = Syntax.pp_global thy;
     datatype typarg =
         Global of (class * string) * typarg list list
       | Local of (class * class) list * (string * (int * sort));
@@ -764,7 +763,7 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
       let
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
-    val typargs = Sorts.of_sort_derivation pp algebra
+    val typargs = Sorts.of_sort_derivation algebra
       {class_relation = class_relation, type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted thy thm ty sort e;
