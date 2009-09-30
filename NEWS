@@ -18,6 +18,10 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
+* Most rules produced by inductive and datatype package
+have mandatory prefixes.
+INCOMPATIBILITY.
+
 * New proof method "smt" for a combination of first-order logic
 with equality, linear and nonlinear (natural/integer/real)
 arithmetic, and fixed-size bitvectors; there is also basic
