@@ -547,21 +547,14 @@ definition
 definition
   sup_fun_eq [code del]: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 
-instance
-apply intro_classes
-unfolding inf_fun_eq sup_fun_eq
-apply (auto intro: le_funI)
-apply (rule le_funI)
-apply (auto dest: le_funD)
-apply (rule le_funI)
-apply (auto dest: le_funD)
-done
+instance proof
+qed (simp_all add: le_fun_def inf_fun_eq sup_fun_eq)
 
 end
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
 proof
-qed (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+qed (simp_all add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
 
 instantiation "fun" :: (type, uminus) uminus
 begin
