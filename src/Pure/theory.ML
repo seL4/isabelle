@@ -94,7 +94,8 @@ structure ThyData = TheoryDataFun
   val empty = make_thy (NameSpace.empty_table, Defs.empty, ([], []));
   val copy = I;
 
-  fun extend (Thy {axioms, defs, wrappers}) = make_thy (NameSpace.empty_table, defs, wrappers);
+  fun extend (Thy {axioms = _, defs, wrappers}) =
+    make_thy (NameSpace.empty_table, defs, wrappers);
 
   fun merge pp (thy1, thy2) =
     let
@@ -155,7 +156,7 @@ fun end_theory thy =
 
 fun cert_axm thy (b, raw_tm) =
   let
-    val (t, T, _) = Sign.certify_prop thy raw_tm
+    val t = Sign.cert_prop thy raw_tm
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg;
   in
