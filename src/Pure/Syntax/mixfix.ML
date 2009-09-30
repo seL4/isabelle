@@ -128,16 +128,6 @@ fun fix_mixfix c (Infix p) = InfixName (c, p)
 
 fun const_mixfix c mx = (const_name mx c, fix_mixfix c mx);
 
-fun map_mixfix _ NoSyn = NoSyn
-  | map_mixfix f (Mixfix (sy, ps, p)) = Mixfix (f sy, ps, p)
-  | map_mixfix f (Delimfix sy) = Delimfix (f sy)
-  | map_mixfix f (InfixName (sy, p)) = InfixName (f sy, p)
-  | map_mixfix f (InfixlName (sy, p)) = InfixlName (f sy, p)
-  | map_mixfix f (InfixrName (sy, p)) = InfixrName (f sy, p)
-  | map_mixfix f (Binder (sy, p, q)) = Binder (f sy, p, q)
-  | map_mixfix _ Structure = Structure
-  | map_mixfix _ _ = raise Fail ("map_mixfix: illegal occurrence of unnamed infix");
-
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = SynExt.mfix_args sy
   | mixfix_args (Delimfix sy) = SynExt.mfix_args sy

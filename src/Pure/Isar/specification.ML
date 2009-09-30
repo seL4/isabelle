@@ -136,9 +136,6 @@ fun prep_spec prep_vars parse_prop prep_att do_close vars specs =
   prepare prep_vars parse_prop prep_att do_close
     vars (map single_spec specs) #>> apsnd (map the_spec);
 
-fun prep_specification prep_vars parse_prop prep_att vars specs =
-  prepare prep_vars parse_prop prep_att true [specs];
-
 in
 
 fun check_spec x = prep_spec ProofContext.cert_vars (K I) (K I) true x;
