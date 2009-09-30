@@ -9,6 +9,7 @@ sig
   val comma: 'a parser -> 'a parser
   val equal: 'a parser -> 'a parser
   val parens: 'a parser -> 'a parser
+  val unit: unit parser
   val pair: 'a parser -> 'b parser -> ('a * 'b) parser
   val triple: 'a parser -> 'b parser -> 'c parser -> ('a * 'b * 'c) parser
   val list: 'a parser -> 'a list parser
