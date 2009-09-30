@@ -959,7 +959,7 @@ fun oracle_proof name prop =
   if ! proofs = 0 then ((name, dummy), Oracle (name, dummy, NONE))
   else ((name, prop), gen_axm_proof Oracle name prop);
 
-fun shrink_proof thy =
+val shrink_proof =
   let
     fun shrink ls lev (prf as Abst (a, T, body)) =
           let val (b, is, ch, body') = shrink ls (lev+1) body
@@ -1319,7 +1319,7 @@ fun thm_proof thy name hyps prop promises body =
 
     val proof0 =
       if ! proofs = 2 then
-        #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
+        #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
       else MinProof;
     val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
 
