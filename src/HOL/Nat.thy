@@ -86,7 +86,7 @@ lemma nat_induct [case_names 0 Suc, induct type: nat]:
   assumes "P 0"
     and "\<And>n. P n \<Longrightarrow> P (Suc n)"
   shows "P n"
-  using assms by (rule nat.induct) 
+  using assms by (rule nat.induct)
 
 declare nat.exhaust [case_names 0 Suc, cases type: nat]
 
