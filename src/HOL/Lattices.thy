@@ -535,6 +535,18 @@ qed (simp_all add: inf_bool_eq sup_bool_eq le_bool_def
 
 end
 
+lemma sup_boolI1:
+  "P \<Longrightarrow> P \<squnion> Q"
+  by (simp add: sup_bool_eq)
+
+lemma sup_boolI2:
+  "Q \<Longrightarrow> P \<squnion> Q"
+  by (simp add: sup_bool_eq)
+
+lemma sup_boolE:
+  "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
+  by (auto simp add: sup_bool_eq)
+
 
 subsection {* Fun as lattice *}
 
