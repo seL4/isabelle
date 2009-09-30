@@ -39,7 +39,7 @@ fun string_of_varpow x k =
   end
 
 fun string_of_monomial m = 
- if FuncUtil.Ctermfunc.is_undefined m then "1" 
+ if FuncUtil.Ctermfunc.is_empty m then "1" 
  else 
   let 
    val m' = FuncUtil.dest_monomial m
@@ -48,16 +48,16 @@ fun string_of_monomial m =
   end
 
 fun string_of_cmonomial (m,c) =
-  if FuncUtil.Ctermfunc.is_undefined m then string_of_rat c
+  if FuncUtil.Ctermfunc.is_empty m then string_of_rat c
   else if c = Rat.one then string_of_monomial m
   else (string_of_rat c) ^ "*" ^ (string_of_monomial m);
 
 fun string_of_poly p = 
- if FuncUtil.Monomialfunc.is_undefined p then "0" 
+ if FuncUtil.Monomialfunc.is_empty p then "0" 
  else
   let 
    val cms = map string_of_cmonomial
-     (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.graph p))
+     (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
   in foldr1 (fn (t1, t2) => t1 ^ " + " ^ t2) cms
   end;
 
@@ -101,15 +101,15 @@ fun parse_varpow ctxt = parse_id -- Scan.optional (str "^" |-- nat) 1 >>
   (fn (x, k) => (cterm_of (Context.theory_of_proof ctxt) (Free (x, @{typ real})), k)) 
 
 fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
-  foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.undefined
+  foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.empty
 
 fun parse_cmonomial ctxt =
   rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
   (parse_monomial ctxt) >> (fn m => (m, Rat.one)) ||
-  rat_int >> (fn r => (FuncUtil.Ctermfunc.undefined, r))
+  rat_int >> (fn r => (FuncUtil.Ctermfunc.empty, r))
 
 fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>
-  foldl (uncurry FuncUtil.Monomialfunc.update) FuncUtil.Monomialfunc.undefined
+  foldl (uncurry FuncUtil.Monomialfunc.update) FuncUtil.Monomialfunc.empty
 
 (* positivstellensatz parser *)
 

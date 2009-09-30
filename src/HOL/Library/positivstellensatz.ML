@@ -8,41 +8,24 @@
 
 signature FUNC = 
 sig
- type 'a T
- type key
- val apply : 'a T -> key -> 'a
- val applyd :'a T -> (key -> 'a) -> key -> 'a
- val combine : ('a -> 'a -> 'a) -> ('a -> bool) -> 'a T -> 'a T -> 'a T
- val defined : 'a T -> key -> bool
- val dom : 'a T -> key list
- val fold : (key * 'a -> 'b -> 'b) -> 'a T -> 'b -> 'b
- val fold_rev : (key * 'a -> 'b -> 'b) -> 'a T -> 'b -> 'b
- val graph : 'a T -> (key * 'a) list
- val is_undefined : 'a T -> bool
- val mapf : ('a -> 'b) -> 'a T -> 'b T
- val tryapplyd : 'a T -> key -> 'a -> 'a
- val undefine :  key -> 'a T -> 'a T
- val undefined : 'a T
- val update : key * 'a -> 'a T -> 'a T
- val updatep : (key * 'a -> bool) -> key * 'a -> 'a T -> 'a T
- val choose : 'a T -> key * 'a
- val onefunc : key * 'a -> 'a T
- val get_first: (key*'a -> 'a option) -> 'a T -> 'a option
+ include TABLE
+ val apply : 'a table -> key -> 'a
+ val applyd :'a table -> (key -> 'a) -> key -> 'a
+ val combine : ('a -> 'a -> 'a) -> ('a -> bool) -> 'a table -> 'a table -> 'a table
+ val dom : 'a table -> key list
+ val tryapplyd : 'a table -> key -> 'a -> 'a
+ val updatep : (key * 'a -> bool) -> key * 'a -> 'a table -> 'a table
+ val choose : 'a table -> key * 'a
+ val onefunc : key * 'a -> 'a table
 end;
 
 functor FuncFun(Key: KEY) : FUNC=
 struct
 
-type key = Key.key;
 structure Tab = Table(Key);
-type 'a T = 'a Tab.table;
 
-val undefined = Tab.empty;
-val is_undefined = Tab.is_empty;
-val mapf = Tab.map;
-val fold = Tab.fold;
-val fold_rev = Tab.fold_rev;
-val graph = Tab.dest;
+open Tab;
+
 fun dom a = sort Key.ord (Tab.keys a);
 fun applyd f d x = case Tab.lookup f x of 
    SOME y => y
@@ -50,9 +33,6 @@ fun applyd f d x = case Tab.lookup f x of
 
 fun apply f x = applyd f (fn _ => raise Tab.UNDEF x) x;
 fun tryapplyd f a d = applyd f (K d) a;
-val defined = Tab.defined;
-fun undefine x t = (Tab.delete x t handle UNDEF => t);
-val update = Tab.update;
 fun updatep p (k,v) t = if p (k, v) then t else update (k,v) t
 fun combine f z a b = 
  let
@@ -64,16 +44,10 @@ fun combine f z a b =
 
 fun choose f = case Tab.min_key f of 
    SOME k => (k,valOf (Tab.lookup f k))
- | NONE => error "FuncFun.choose : Completely undefined function"
+ | NONE => error "FuncFun.choose : Completely empty function"
 
-fun onefunc kv = update kv undefined
+fun onefunc kv = update kv empty
 
-local
-fun  find f (k,v) NONE = f (k,v)
-   | find f (k,v) r = r
-in
-fun get_first f t = fold (find f) t NONE
-end
 end;
 
 (* Some standard functors and utility functions for them *)
@@ -81,33 +55,31 @@ end;
 structure FuncUtil =
 struct
 
-fun increasing f ord (x,y) = ord (f x, f y);
-
 structure Intfunc = FuncFun(type key = int val ord = int_ord);
 structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
 structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord int_ord);
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
 structure Termfunc = FuncFun(type key = term val ord = TermOrd.fast_term_ord);
 
-val cterm_ord = (fn (s,t) => TermOrd.fast_term_ord(term_of s, term_of t))
+val cterm_ord = TermOrd.fast_term_ord o pairself term_of
 
 structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
 
-type monomial = int Ctermfunc.T;
+type monomial = int Ctermfunc.table;
 
-fun monomial_ord (m1,m2) = list_ord (prod_ord cterm_ord int_ord) (Ctermfunc.graph m1, Ctermfunc.graph m2)
+val monomial_ord = list_ord (prod_ord cterm_ord int_ord) o pairself Ctermfunc.dest
 
 structure Monomialfunc = FuncFun(type key = monomial val ord = monomial_ord)
 
-type poly = Rat.rat Monomialfunc.T;
+type poly = Rat.rat Monomialfunc.table;
 
 (* The ordering so we can create canonical HOL polynomials.                  *)
 
-fun dest_monomial mon = sort (increasing fst cterm_ord) (Ctermfunc.graph mon);
+fun dest_monomial mon = sort (cterm_ord o pairself fst) (Ctermfunc.dest mon);
 
 fun monomial_order (m1,m2) =
- if Ctermfunc.is_undefined m2 then LESS 
- else if Ctermfunc.is_undefined m1 then GREATER 
+ if Ctermfunc.is_empty m2 then LESS 
+ else if Ctermfunc.is_empty m1 then GREATER 
  else
   let val mon1 = dest_monomial m1 
       val mon2 = dest_monomial m2
@@ -357,7 +329,7 @@ fun cterm_of_varpow x k = if k = 1 then x else Thm.capply (Thm.capply @{cterm "o
   (Numeral.mk_cnumber @{ctyp nat} k)
 
 fun cterm_of_monomial m = 
- if FuncUtil.Ctermfunc.is_undefined m then @{cterm "1::real"} 
+ if FuncUtil.Ctermfunc.is_empty m then @{cterm "1::real"} 
  else 
   let 
    val m' = FuncUtil.dest_monomial m
@@ -365,16 +337,16 @@ fun cterm_of_monomial m =
   in foldr1 (fn (s, t) => Thm.capply (Thm.capply @{cterm "op * :: real => _"} s) t) vps
   end
 
-fun cterm_of_cmonomial (m,c) = if FuncUtil.Ctermfunc.is_undefined m then cterm_of_rat c
+fun cterm_of_cmonomial (m,c) = if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
     else if c = Rat.one then cterm_of_monomial m
     else Thm.capply (Thm.capply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
 
 fun cterm_of_poly p = 
- if FuncUtil.Monomialfunc.is_undefined p then @{cterm "0::real"} 
+ if FuncUtil.Monomialfunc.is_empty p then @{cterm "0::real"} 
  else
   let 
    val cms = map cterm_of_cmonomial
-     (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.graph p))
+     (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
   in foldr1 (fn (t1, t2) => Thm.capply(Thm.capply @{cterm "op + :: real => _"} t1) t2) cms
   end;
 
@@ -593,10 +565,11 @@ end;
 (* A linear arithmetic prover *)
 local
   val linear_add = FuncUtil.Ctermfunc.combine (curry op +/) (fn z => z =/ Rat.zero)
-  fun linear_cmul c = FuncUtil.Ctermfunc.mapf (fn x => c */ x)
+  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn x => c */ x)
   val one_tm = @{cterm "1::real"}
-  fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_undefined e) andalso not(p Rat.zero)) orelse
-     ((gen_eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso not(p(FuncUtil.Ctermfunc.apply e one_tm)))
+  fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p Rat.zero)) orelse
+     ((gen_eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso
+       not(p(FuncUtil.Ctermfunc.apply e one_tm)))
 
   fun linear_ineqs vars (les,lts) = 
    case find_first (contradictory (fn x => x >/ Rat.zero)) lts of
@@ -650,9 +623,9 @@ local
            (fold_rev (curry (gen_union (op aconvc)) o FuncUtil.Ctermfunc.dom o fst) (les@lts) []) 
      in linear_ineqs vars (les,lts) end
    | (e,p)::es => 
-     if FuncUtil.Ctermfunc.is_undefined e then linear_eqs (es,les,lts) else
+     if FuncUtil.Ctermfunc.is_empty e then linear_eqs (es,les,lts) else
      let 
-      val (x,c) = FuncUtil.Ctermfunc.choose (FuncUtil.Ctermfunc.undefine one_tm e)
+      val (x,c) = FuncUtil.Ctermfunc.choose (FuncUtil.Ctermfunc.delete_safe one_tm e)
       fun xform (inp as (t,q)) =
        let val d = FuncUtil.Ctermfunc.tryapplyd t x Rat.zero in
         if d =/ Rat.zero then inp else
@@ -660,7 +633,7 @@ local
          val k = (Rat.neg d) */ Rat.abs c // c
          val e' = linear_cmul k e
          val t' = linear_cmul (Rat.abs c) t
-         val p' = Eqmul(FuncUtil.Monomialfunc.onefunc (FuncUtil.Ctermfunc.undefined, k),p)
+         val p' = Eqmul(FuncUtil.Monomialfunc.onefunc (FuncUtil.Ctermfunc.empty, k),p)
          val q' = Product(Rational_lt(Rat.abs c),q) 
         in (linear_add e' t',Sum(p',q')) 
         end 
@@ -677,7 +650,7 @@ local
    end 
   
   fun lin_of_hol ct = 
-   if ct aconvc @{cterm "0::real"} then FuncUtil.Ctermfunc.undefined
+   if ct aconvc @{cterm "0::real"} then FuncUtil.Ctermfunc.empty
    else if not (is_comb ct) then FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
    else if is_ratconst ct then FuncUtil.Ctermfunc.onefunc (one_tm, dest_ratconst ct)
    else
