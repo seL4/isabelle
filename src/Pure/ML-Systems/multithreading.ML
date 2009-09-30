@@ -24,7 +24,7 @@ sig
   val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
   val sync_wait: Thread.threadAttribute list option -> Time.time option ->
     ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
-  val trace: int  Unsynchronized.ref
+  val trace: int Unsynchronized.ref
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
   val real_time: ('a -> unit) -> 'a -> Time.time
@@ -38,7 +38,7 @@ struct
 (* options *)
 
 val available = false;
-val max_threads =  Unsynchronized.ref (1: int);
+val max_threads = Unsynchronized.ref (1: int);
 fun max_threads_value () = 1: int;
 fun enabled () = false;
 
@@ -57,7 +57,7 @@ fun sync_wait _ _ _ _ = Exn.Result true;
 
 (* tracing *)
 
-val trace =  Unsynchronized.ref (0: int);
+val trace = Unsynchronized.ref (0: int);
 fun tracing _ _ = ();
 fun tracing_time _ _ _ = ();
 fun real_time f x = (f x; Time.zeroTime);
@@ -72,7 +72,7 @@ fun CRITICAL e = e ();
 
 (* serial numbers *)
 
-local val count =  Unsynchronized.ref (0: int)
+local val count = Unsynchronized.ref (0: int)
 in fun serial () = (count := ! count + 1; ! count) end;
 
 end;
