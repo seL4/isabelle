@@ -222,7 +222,6 @@ fun output_width str =
     in (implode syms, width) end;
 
 val output = #1 o output_width;
-val output_symbols = map #2 o output_syms;
 
 val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
 
