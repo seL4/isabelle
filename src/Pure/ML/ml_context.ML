@@ -19,20 +19,21 @@ sig
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val stored_thms: thm list ref
+  val stored_thms: thm list Unsynchronized.ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
   type antiq =
     {struct_name: string, background: Proof.context} ->
       (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
-  val trace: bool ref
+  val trace: bool Unsynchronized.ref
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: bool -> Position.T -> Symbol_Pos.text -> unit
   val eval_file: Path.T -> unit
   val eval_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
-  val evaluate: Proof.context -> bool -> string * (unit -> 'a) option ref -> string -> 'a
+  val evaluate: Proof.context -> bool ->
+    string * (unit -> 'a) option Unsynchronized.ref -> string -> 'a
   val expression: Position.T -> string -> string -> string -> Context.generic -> Context.generic
 end
 
@@ -53,7 +54,7 @@ fun exec (e: unit -> unit) context =
 
 (* theorem bindings *)
 
-val stored_thms: thm list ref = ref [];
+val stored_thms: thm list Unsynchronized.ref = Unsynchronized.ref [];
 
 fun ml_store sel (name, ths) =
   let
@@ -89,12 +90,13 @@ type antiq =
 
 local
 
-val global_parsers = ref (Symtab.empty: (Position.T -> antiq context_parser) Symtab.table);
+val global_parsers =
+  Unsynchronized.ref (Symtab.empty: (Position.T -> antiq context_parser) Symtab.table);
 
 in
 
 fun add_antiq name scan = CRITICAL (fn () =>
-  change global_parsers (fn tab =>
+  Unsynchronized.change global_parsers (fn tab =>
    (if not (Symtab.defined tab name) then ()
     else warning ("Redefined ML antiquotation: " ^ quote name);
     Symtab.update (name, scan) tab)));
@@ -162,7 +164,7 @@ fun eval_antiquotes (ants, pos) opt_context =
         in (ml, SOME (Context.Proof ctxt')) end;
   in ((begin_env @ ml_env @ end_env, ml_body), opt_ctxt') end;
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 
 fun eval verbose pos txt =
   let

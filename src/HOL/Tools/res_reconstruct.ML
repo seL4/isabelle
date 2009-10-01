@@ -17,10 +17,10 @@ sig
   (* extracting lemma list*)
   val find_failure: string -> string option
   val lemma_list: bool -> string ->
-    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string
+    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string * string list
   (* structured proofs *)
   val structured_proof: string ->
-    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string
+    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string * string list
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =
@@ -523,7 +523,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       let
       val last_axiom = Vector.length thm_names
       fun is_axiom n = n <= last_axiom
-      fun is_conj n = n >= #1 conj_count andalso n < #1 conj_count + #2 conj_count
+      fun is_conj n = n >= fst conj_count andalso n < fst conj_count + snd conj_count
       fun getname i = Vector.sub(thm_names, i-1)
       in
         (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
@@ -554,9 +554,10 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
 
   fun lemma_list dfg name result =
     let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
-    in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas ^
+    in (sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas ^
       (if used_conj then ""
-       else "\nWarning: Goal is provable because context is inconsistent.")
+       else "\nWarning: Goal is provable because context is inconsistent."),
+       nochained lemmas)
     end;
 
   (* === Extracting structured Isar-proof === *)
@@ -567,11 +568,11 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
     val proofextract = get_proof_extract proof
     val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-    val one_line_proof = lemma_list false name result
+    val (one_line_proof, lemma_names) = lemma_list false name result
     val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
                 else decode_tstp_file cnfs ctxt goal subgoalno thm_names
     in
-    one_line_proof ^ "\n\n" ^ (Markup.markup Markup.sendback) structured
+    (one_line_proof ^ "\n\n" ^ (Markup.markup Markup.sendback) structured, lemma_names)
   end
 
 end;

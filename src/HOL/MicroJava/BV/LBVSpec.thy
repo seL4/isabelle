@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/LBVSpec.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -293,7 +292,7 @@ lemma (in lbv) wtl_Suc:
   shows "wtl (take (pc+1) is) c 0 s = wtc c pc (wtl (take pc is) c 0 s)"
 proof -
   from suc have "take (pc+1) is=(take pc is)@[is!pc]" by (simp add: take_Suc)
-  with suc wtl show ?thesis by (simp add: min_def)
+  with suc wtl show ?thesis by (simp add: min_max.inf_absorb2)
 qed
 
 lemma (in lbv) wtl_all:
@@ -308,7 +307,7 @@ proof -
   with all have take: "?wtl (take pc is@i#r) \<noteq> \<top>" by simp 
   from pc have "is!pc = drop pc is ! 0" by simp
   with Cons have "is!pc = i" by simp
-  with take pc show ?thesis by (auto simp add: min_def split: split_if_asm)
+  with take pc show ?thesis by (auto simp add: min_max.inf_absorb2)
 qed
 
 section "preserves-type"

@@ -3,7 +3,7 @@
 *)
 
 theory HOL4Compat
-imports HOL4Setup Complex_Main Primes ContNotDenum
+imports HOL4Setup Complex_Main "~~/src/HOL/Old_Number_Theory/Primes" ContNotDenum
 begin
 
 no_notation differentiable (infixl "differentiable" 60)

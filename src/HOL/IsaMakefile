@@ -18,7 +18,7 @@ test: \
   HOL-Extraction \
   HOL-Hahn_Banach \
   HOL-Hoare \
-  HOL-HoareParallel \
+  HOL-Hoare_Parallel \
   HOL-Import \
   HOL-IMP \
   HOL-IMPP \
@@ -31,14 +31,16 @@ test: \
   HOL-Matrix \
   HOL-MetisExamples \
   HOL-MicroJava \
+  HOL-Mirabelle \
   HOL-Modelcheck \
   HOL-NanoJava \
   HOL-Nominal-Examples \
-  HOL-NewNumberTheory \
-  HOL-NumberTheory \
+  HOL-Number_Theory \
+  HOL-Old_Number_Theory \
   HOL-Prolog \
   HOL-SET-Protocol \
   HOL-SizeChange \
+  HOL-SMT \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -85,29 +87,31 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
-  $(SRC)/Tools/IsaPlanner/isand.ML \
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
-  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
-  $(SRC)/Tools/IsaPlanner/zipper.ML \
-  $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_preproc.ML \
   $(SRC)/Tools/Code/code_printer.ML \
   $(SRC)/Tools/Code/code_target.ML \
   $(SRC)/Tools/Code/code_thingol.ML \
+  $(SRC)/Tools/Code_Generator.thy \
+  $(SRC)/Tools/IsaPlanner/isand.ML \
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
+  $(SRC)/Tools/IsaPlanner/zipper.ML \
+  $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/coherent.ML \
+  $(SRC)/Tools/cong_tac.ML \
   $(SRC)/Tools/eqsubst.ML \
   $(SRC)/Tools/induct.ML \
-  $(SRC)/Tools/intuitionistic.ML \
   $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/intuitionistic.ML \
+  $(SRC)/Tools/more_conv.ML \
   $(SRC)/Tools/nbe.ML \
-  $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/project_rule.ML \
+  $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
-  $(SRC)/Tools/Code_Generator.thy \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
@@ -127,9 +131,9 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
+  Option.thy \
   OrderedGroup.thy \
   Orderings.thy \
-  Option.thy \
   Plain.thy \
   Power.thy \
   Predicate.thy \
@@ -207,13 +211,13 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
-  Code_Eval.thy \
+  Code_Evaluation.thy \
   Code_Numeral.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
-  IntDiv.thy \
   Int.thy \
+  IntDiv.thy \
   List.thy \
   Main.thy \
   Map.thy \
@@ -277,34 +281,34 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Archimedean_Field.thy \
-  Complex_Main.thy \
   Complex.thy \
+  Complex_Main.thy \
   Deriv.thy \
   Fact.thy \
+  GCD.thy \
   Integration.thy \
   Lim.thy \
   Limits.thy \
   Ln.thy \
   Log.thy \
+  Lubs.thy \
   MacLaurin.thy \
-  NatTransfer.thy \
+  Nat_Transfer.thy \
   NthRoot.thy \
+  PReal.thy \
+  Parity.thy \
+  RComplete.thy \
+  Rational.thy \
+  Real.thy \
+  RealDef.thy \
+  RealPow.thy \
+  RealVector.thy \
   SEQ.thy \
   Series.thy \
   Taylor.thy \
   Transcendental.thy \
-  GCD.thy \
-  Parity.thy \
-  Lubs.thy \
-  PReal.thy \
-  Rational.thy \
-  RComplete.thy \
-  RealDef.thy \
-  RealPow.thy \
-  Real.thy \
-  RealVector.thy \
   Tools/float_syntax.ML \
-  Tools/transfer_data.ML \
+  Tools/transfer.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
@@ -329,10 +333,10 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Finite_Cartesian_Product.thy Library/FrechetDeriv.thy		\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/Lattice_Syntax.thy Library/Legacy_GCD.thy			\
+  Library/Lattice_Syntax.thy			\
   Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
   Library/State_Monad.thy Library/Nat_Int_Bij.thy Library/Multiset.thy	\
-  Library/Permutation.thy Library/Primes.thy Library/Pocklington.thy	\
+  Library/Permutation.thy	\
   Library/Quotient.thy Library/Quicksort.thy Library/Nat_Infinity.thy	\
   Library/Word.thy Library/README.html Library/Continuity.thy		\
   Library/Order_Relation.thy Library/Nested_Environment.thy		\
@@ -486,38 +490,39 @@ $(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
 	@cd Import/HOLLight; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOLLight
 
 
-## HOL-NewNumberTheory
+## HOL-Number_Theory
 
-HOL-NewNumberTheory: HOL $(LOG)/HOL-NewNumberTheory.gz
+HOL-Number_Theory: HOL $(LOG)/HOL-Number_Theory.gz
 
-$(LOG)/HOL-NewNumberTheory.gz: $(OUT)/HOL $(ALGEBRA_DEPENDENCIES) \
+$(LOG)/HOL-Number_Theory.gz: $(OUT)/HOL $(ALGEBRA_DEPENDENCIES) \
   Library/Multiset.thy \
-  NewNumberTheory/Binomial.thy \
-  NewNumberTheory/Cong.thy \
-  NewNumberTheory/Fib.thy \
-  NewNumberTheory/MiscAlgebra.thy \
-  NewNumberTheory/Residues.thy \
-  NewNumberTheory/UniqueFactorization.thy  \
-  NewNumberTheory/ROOT.ML
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL NewNumberTheory
+  Number_Theory/Binomial.thy \
+  Number_Theory/Cong.thy \
+  Number_Theory/Fib.thy \
+  Number_Theory/MiscAlgebra.thy \
+  Number_Theory/Number_Theory.thy \
+  Number_Theory/Residues.thy \
+  Number_Theory/UniqueFactorization.thy  \
+  Number_Theory/ROOT.ML
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Number_Theory
 
 
-## HOL-NumberTheory
+## HOL-Old_Number_Theory
 
-HOL-NumberTheory: HOL $(LOG)/HOL-NumberTheory.gz
+HOL-Old_Number_Theory: HOL $(LOG)/HOL-Old_Number_Theory.gz
 
-$(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL Library/Permutation.thy		\
-  Library/Primes.thy NumberTheory/Fib.thy				\
-  NumberTheory/Factorization.thy NumberTheory/BijectionRel.thy		\
-  NumberTheory/Chinese.thy NumberTheory/EulerFermat.thy			\
-  NumberTheory/IntFact.thy NumberTheory/IntPrimes.thy			\
-  NumberTheory/WilsonBij.thy NumberTheory/WilsonRuss.thy		\
-  NumberTheory/Finite2.thy NumberTheory/Int2.thy			\
-  NumberTheory/EvenOdd.thy NumberTheory/Residues.thy			\
-  NumberTheory/Euler.thy NumberTheory/Gauss.thy				\
-  NumberTheory/Quadratic_Reciprocity.thy Library/Infinite_Set.thy	\
-  NumberTheory/ROOT.ML
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL NumberTheory
+$(LOG)/HOL-Old_Number_Theory.gz: $(OUT)/HOL Library/Permutation.thy		\
+  Old_Number_Theory/Primes.thy Old_Number_Theory/Fib.thy				\
+  Old_Number_Theory/Factorization.thy Old_Number_Theory/BijectionRel.thy		\
+  Old_Number_Theory/Chinese.thy Old_Number_Theory/EulerFermat.thy			\
+  Old_Number_Theory/IntFact.thy Old_Number_Theory/IntPrimes.thy			\
+  Old_Number_Theory/WilsonBij.thy Old_Number_Theory/WilsonRuss.thy		\
+  Old_Number_Theory/Finite2.thy Old_Number_Theory/Int2.thy			\
+  Old_Number_Theory/EvenOdd.thy Old_Number_Theory/Residues.thy			\
+  Old_Number_Theory/Euler.thy Old_Number_Theory/Gauss.thy				\
+  Old_Number_Theory/Quadratic_Reciprocity.thy Library/Infinite_Set.thy	\
+  Old_Number_Theory/Legacy_GCD.thy Old_Number_Theory/Pocklington.thy Old_Number_Theory/ROOT.ML
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Old_Number_Theory
 
 
 ## HOL-Hoare
@@ -533,21 +538,22 @@ $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy Hoare/Examples.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Hoare
 
 
-## HOL-HoareParallel
+## HOL-Hoare_Parallel
 
-HOL-HoareParallel: HOL $(LOG)/HOL-HoareParallel.gz
+HOL-Hoare_Parallel: HOL $(LOG)/HOL-Hoare_Parallel.gz
 
-$(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy	\
-  HoareParallel/Graph.thy HoareParallel/Mul_Gar_Coll.thy		\
-  HoareParallel/OG_Com.thy HoareParallel/OG_Examples.thy		\
-  HoareParallel/OG_Hoare.thy HoareParallel/OG_Syntax.thy		\
-  HoareParallel/OG_Tactics.thy HoareParallel/OG_Tran.thy		\
-  HoareParallel/Quote_Antiquote.thy HoareParallel/RG_Com.thy		\
-  HoareParallel/RG_Examples.thy HoareParallel/RG_Hoare.thy		\
-  HoareParallel/RG_Syntax.thy HoareParallel/RG_Tran.thy			\
-  HoareParallel/ROOT.ML HoareParallel/document/root.tex			\
-  HoareParallel/document/root.bib
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HoareParallel
+$(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
+  Hoare_Parallel/Graph.thy Hoare_Parallel/Hoare_Parallel.thy	\
+  Hoare_Parallel/Mul_Gar_Coll.thy		\
+  Hoare_Parallel/OG_Com.thy Hoare_Parallel/OG_Examples.thy		\
+  Hoare_Parallel/OG_Hoare.thy Hoare_Parallel/OG_Syntax.thy		\
+  Hoare_Parallel/OG_Tactics.thy Hoare_Parallel/OG_Tran.thy		\
+  Hoare_Parallel/Quote_Antiquote.thy Hoare_Parallel/RG_Com.thy		\
+  Hoare_Parallel/RG_Examples.thy Hoare_Parallel/RG_Hoare.thy		\
+  Hoare_Parallel/RG_Syntax.thy Hoare_Parallel/RG_Tran.thy			\
+  Hoare_Parallel/ROOT.ML Hoare_Parallel/document/root.tex			\
+  Hoare_Parallel/document/root.bib
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hoare_Parallel
 
 
 ## HOL-MetisExamples
@@ -572,7 +578,7 @@ ALGEBRA_DEPENDENCIES = $(OUT)/HOL \
   Library/FuncSet.thy \
   Library/Multiset.thy \
   Library/Permutation.thy \
-  Library/Primes.thy \
+  Number_Theory/Primes.thy \
   Algebra/AbelCoset.thy \
   Algebra/Bij.thy \
   Algebra/Congruence.thy \
@@ -614,6 +620,10 @@ $(LOG)/HOL-Algebra.gz: $(ALGEBRA_DEPENDENCIES)
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 
 $(LOG)/HOL-Auth.gz: $(OUT)/HOL 						\
+  Auth/Auth_Shared.thy Auth/Auth_Public.thy Auth/All_Symmetric.thy		\
+  Auth/Guard/Auth_Guard_Shared.thy		\
+  Auth/Guard/Auth_Guard_Public.thy		\
+  Auth/Smartcard/Auth_Smartcard.thy Auth/All_Symmetric.thy		\
   Auth/CertifiedEmail.thy Auth/Event.thy Auth/Message.thy		\
   Auth/NS_Public.thy Auth/NS_Public_Bad.thy Auth/NS_Shared.thy		\
   Auth/OtwayRees.thy Auth/OtwayReesBella.thy Auth/OtwayRees_AN.thy	\
@@ -638,7 +648,7 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL 						\
 HOL-UNITY: HOL $(LOG)/HOL-UNITY.gz
 
 $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML	\
-  UNITY/UNITY_Main.thy UNITY/UNITY_tactics.ML UNITY/Comp.thy		\
+  UNITY/UNITY_Main.thy UNITY/UNITY_Examples.thy UNITY/UNITY_tactics.ML UNITY/Comp.thy		\
   UNITY/Constrains.thy UNITY/Detects.thy UNITY/ELT.thy			\
   UNITY/Extend.thy UNITY/FP.thy UNITY/Follows.thy UNITY/Guar.thy	\
   UNITY/Lift_prog.thy UNITY/ListOrder.thy UNITY/ProgressSets.thy	\
@@ -827,7 +837,7 @@ $(LOG)/HOL-NanoJava.gz: $(OUT)/HOL NanoJava/ROOT.ML NanoJava/Term.thy	\
 
 HOL-Bali: HOL $(LOG)/HOL-Bali.gz
 
-$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
+$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/Bali.thy Bali/AxCompl.thy Bali/AxExample.thy	\
   Bali/AxSem.thy Bali/AxSound.thy Bali/Basis.thy Bali/Conform.thy	\
   Bali/Decl.thy Bali/DeclConcepts.thy Bali/Eval.thy Bali/Evaln.thy	\
   Bali/Example.thy Bali/Name.thy Bali/ROOT.ML Bali/State.thy		\
@@ -875,7 +885,7 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
-  Library/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
+  Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
   ex/Arith_Examples.thy				\
   ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
@@ -898,10 +908,9 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy \
   ex/Sudoku.thy ex/Tarski.thy \
-  ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
+  ex/Termination.thy ex/Transfer_Ex.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
-  ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy \
-  ex/Mirabelle.thy ex/mirabelle.ML
+  ex/Predicate_Compile.thy Tools/Predicate_Compile/predicate_compile_core.ML ex/Predicate_Compile_ex.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
@@ -939,7 +948,7 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML		\
 
 HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
 
-$(LOG)/HOL-Matrix.gz: $(OUT)/HOL				\
+$(LOG)/HOL-Matrix.gz: $(OUT)/HOL					\
   $(SRC)/Tools/Compute_Oracle/Compute_Oracle.thy			\
   $(SRC)/Tools/Compute_Oracle/am_compiler.ML				\
   $(SRC)/Tools/Compute_Oracle/am_interpreter.ML				\
@@ -947,8 +956,8 @@ $(LOG)/HOL-Matrix.gz: $(OUT)/HOL				\
   $(SRC)/Tools/Compute_Oracle/linker.ML					\
   $(SRC)/Tools/Compute_Oracle/am_ghc.ML					\
   $(SRC)/Tools/Compute_Oracle/am_sml.ML					\
-  $(SRC)/Tools/Compute_Oracle/compute.ML	\
-  Tools/ComputeFloat.thy Tools/float_arith.ML \
+  $(SRC)/Tools/Compute_Oracle/compute.ML Matrix/ComputeFloat.thy	\
+  Matrix/ComputeHOL.thy Matrix/ComputeNumeral.thy Tools/float_arith.ML	\
   Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy		\
   Matrix/document/root.tex Matrix/ROOT.ML Matrix/cplex/Cplex.thy	\
   Matrix/cplex/CplexMatrixConverter.ML Matrix/cplex/Cplex_tools.ML	\
@@ -1018,6 +1027,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
 HOL-Nominal-Examples: HOL-Nominal $(LOG)/HOL-Nominal-Examples.gz
 
 $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
+  Nominal/Examples/Nominal_Examples.thy \
   Nominal/Examples/CK_Machine.thy \
   Nominal/Examples/CR.thy \
   Nominal/Examples/CR_Takahashi.thy \
@@ -1118,6 +1128,33 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 	@cd NSA; $(ISABELLE_TOOL) usedir $(OUT)/HOL-NSA Examples
 
 
+## HOL-Mirabelle
+
+HOL-Mirabelle: HOL $(LOG)/HOL-Mirabelle.gz
+
+$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
+  Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML Mirabelle/ROOT.ML \
+  Mirabelle/Tools/mirabelle_arith.ML \
+  Mirabelle/Tools/mirabelle_metis.ML \
+  Mirabelle/Tools/mirabelle_quickcheck.ML \
+  Mirabelle/Tools/mirabelle_refute.ML \
+  Mirabelle/Tools/mirabelle_sledgehammer.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
+
+
+## HOL-SMT
+
+HOL-SMT: HOL-Word $(LOG)/HOL-SMT.gz
+
+$(LOG)/HOL-SMT.gz: $(OUT)/HOL-Word SMT/SMT_Definitions.thy SMT/SMT.thy \
+  SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML \
+  SMT/Tools/smt_translate.ML SMT/Tools/smt_builtin.ML \
+  SMT/Tools/smtlib_interface.ML SMT/Tools/smt_solver.ML \
+  SMT/Tools/cvc3_solver.ML SMT/Tools/yices_solver.ML \
+  SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML SMT/Tools/z3_model.ML
+	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
+
+
 ## clean
 
 clean:
@@ -1127,7 +1164,7 @@ clean:
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
 		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
 		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\
-		$(LOG)/HOL-HoareParallel.gz $(LOG)/HOL-Lex.gz		\
+		$(LOG)/HOL-Hoare_Parallel.gz $(LOG)/HOL-Lex.gz		\
 		$(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
 		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
@@ -1139,4 +1176,5 @@ clean:
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
-		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
+                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz

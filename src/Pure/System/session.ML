@@ -21,10 +21,10 @@ struct
 
 (* session state *)
 
-val session = ref ([Context.PureN]: string list);
-val session_path = ref ([]: string list);
-val session_finished = ref false;
-val remote_path = ref (NONE: Url.T option);
+val session = Unsynchronized.ref ([Context.PureN]: string list);
+val session_path = Unsynchronized.ref ([]: string list);
+val session_finished = Unsynchronized.ref false;
+val remote_path = Unsynchronized.ref (NONE: Url.T option);
 
 
 (* access path *)

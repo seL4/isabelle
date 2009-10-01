@@ -6,9 +6,9 @@ First part of main module.
 
 signature PRIM =
 sig
-  val trace: bool ref
+  val trace: bool Unsynchronized.ref
   val trace_thms: string -> thm list -> unit
-  val trace_cterms: string -> cterm list -> unit
+  val trace_cterm: string -> cterm -> unit
   type pattern
   val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
   val wfrec_definition0: theory -> string -> term -> term -> theory * thm
@@ -40,7 +40,7 @@ end;
 structure Prim: PRIM =
 struct
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 
 structure R = Rules;
 structure S = USyntax;
@@ -75,8 +75,8 @@ fun front_last [] = raise TFL_ERR "front_last" "empty list"
  * function contains embedded refs!
  *---------------------------------------------------------------------------*)
 fun gvvariant names =
-  let val slist = ref names
-      val vname = ref "u"
+  let val slist = Unsynchronized.ref names
+      val vname = Unsynchronized.ref "u"
       fun new() =
          if !vname mem_string (!slist)
          then (vname := Symbol.bump_string (!vname);  new())
@@ -296,7 +296,7 @@ fun no_repeat_vars thy pat =
             raise TFL_ERR "no_repeat_vars"
                           (quote (#1 (dest_Free v)) ^
                           " occurs repeatedly in the pattern " ^
-                          quote (Display.string_of_cterm (Thry.typecheck thy pat)))
+                          quote (Syntax.string_of_term_global thy pat))
          else check rst
  in check (FV_multiset pat)
  end;
@@ -912,9 +912,10 @@ fun trace_thms s L =
   if !trace then writeln (cat_lines (s :: map Display.string_of_thm_without_context L))
   else ();
 
-fun trace_cterms s L =
-  if !trace then writeln (cat_lines (s :: map Display.string_of_cterm L))
-  else ();;
+fun trace_cterm s ct =
+  if !trace then
+    writeln (cat_lines [s, Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct)])
+  else ();
 
 
 fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
@@ -942,7 +943,7 @@ let val tych = Thry.typecheck theory
 
    fun simplify_tc tc (r,ind) =
        let val tc1 = tych tc
-           val _ = trace_cterms "TC before simplification: " [tc1]
+           val _ = trace_cterm "TC before simplification: " tc1
            val tc_eq = simplifier tc1
            val _ = trace_thms "result: " [tc_eq]
        in

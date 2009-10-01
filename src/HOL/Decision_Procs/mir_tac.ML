@@ -4,7 +4,7 @@
 
 signature MIR_TAC =
 sig
-  val trace: bool ref
+  val trace: bool Unsynchronized.ref
   val mir_tac: Proof.context -> bool -> int -> tactic
   val setup: theory -> theory
 end
@@ -12,7 +12,7 @@ end
 structure Mir_Tac =
 struct
 
-val trace = ref false;
+val trace = Unsynchronized.ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
 val mir_ss = 

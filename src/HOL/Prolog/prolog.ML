@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-set Proof.show_main_goal;
+Unsynchronized.set Proof.show_main_goal;
 
 structure Prolog =
 struct

@@ -136,7 +136,7 @@ exception Superfluous_constr_right_hand_sides
 
 fun cplexProg c A b =
     let
-        val ytable = ref Inttab.empty
+        val ytable = Unsynchronized.ref Inttab.empty
         fun indexof s =
             if String.size s = 0 then raise (No_name s)
             else case Int.fromString (String.extract(s, 1, NONE)) of
@@ -145,7 +145,7 @@ fun cplexProg c A b =
         fun nameof i =
             let
                 val s = "x"^(Int.toString i)
-                val _ = change ytable (Inttab.update (i, s))
+                val _ = Unsynchronized.change ytable (Inttab.update (i, s))
             in
                 s
             end
@@ -242,7 +242,7 @@ fun dual_cplexProg c A b =
 
 fun cut_vector size v =
   let
-    val count = ref 0;
+    val count = Unsynchronized.ref 0;
     fun app (i, s) =  if (!count < size) then
         (count := !count +1 ; Inttab.update (i, s))
       else I

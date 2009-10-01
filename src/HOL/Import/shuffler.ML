@@ -7,7 +7,7 @@ Package for proving two terms equal by normalizing (hence the
 
 signature Shuffler =
 sig
-    val debug      : bool ref
+    val debug      : bool Unsynchronized.ref
 
     val norm_term  : theory -> term -> thm
     val make_equal : theory -> term -> term -> thm option
@@ -30,7 +30,7 @@ end
 structure Shuffler :> Shuffler =
 struct
 
-val debug = ref false
+val debug = Unsynchronized.ref false
 
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
@@ -57,7 +57,6 @@ fun print_sign_exn_unit sign e =
 fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise e)
 
 val string_of_thm = PrintMode.setmp [] Display.string_of_thm_without_context;
-val string_of_cterm = PrintMode.setmp [] Display.string_of_cterm;
 
 fun mk_meta_eq th =
     (case concl_of th of
@@ -304,13 +303,14 @@ fun eta_contract thy assumes origt =
                 val lhs = #1 (Logic.dest_equals (prop_of (final init)))
             in
                 if not (lhs aconv origt)
-                then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
-                      writeln (Display.string_of_cterm (cterm_of thy origt));
-                      writeln (Display.string_of_cterm (cterm_of thy lhs));
-                      writeln (Display.string_of_cterm (cterm_of thy typet));
-                      writeln (Display.string_of_cterm (cterm_of thy t));
-                      app (fn (n,T) => writeln (n ^ ": " ^ (Display.string_of_ctyp (ctyp_of thy T)))) Tinst;
-                      writeln "done")
+                then
+                  writeln (cat_lines
+                    (["Something is utterly wrong: (orig, lhs, frozen type, t, tinst)",
+                      Syntax.string_of_term_global thy origt,
+                      Syntax.string_of_term_global thy lhs,
+                      Syntax.string_of_term_global thy typet,
+                      Syntax.string_of_term_global thy t] @
+                      map (fn (n, T) => n ^ ": " ^ Syntax.string_of_typ_global thy T) Tinst))
                 else ()
             end
     in
@@ -366,13 +366,14 @@ fun eta_expand thy assumes origt =
                 val lhs = #1 (Logic.dest_equals (prop_of (final init)))
             in
                 if not (lhs aconv origt)
-                then (writeln "Something is utterly wrong: (orig,lhs,frozen type,t,tinst)";
-                      writeln (Display.string_of_cterm (cterm_of thy origt));
-                      writeln (Display.string_of_cterm (cterm_of thy lhs));
-                      writeln (Display.string_of_cterm (cterm_of thy typet));
-                      writeln (Display.string_of_cterm (cterm_of thy t));
-                      app (fn (n,T) => writeln (n ^ ": " ^ (Display.string_of_ctyp (ctyp_of thy T)))) Tinst;
-                      writeln "done")
+                then
+                  writeln (cat_lines
+                    (["Something is utterly wrong: (orig, lhs, frozen type, t, tinst)",
+                      Syntax.string_of_term_global thy origt,
+                      Syntax.string_of_term_global thy lhs,
+                      Syntax.string_of_term_global thy typet,
+                      Syntax.string_of_term_global thy t] @
+                      map (fn (n, T) => n ^ ": " ^ Syntax.string_of_typ_global thy T) Tinst))
                 else ()
             end
     in
@@ -407,9 +408,8 @@ fun eta_expand thy assumes origt =
                       end
                     | _ => NONE)
             else NONE
-          | _ => (error ("Bad eta_expand argument" ^ (string_of_cterm (cterm_of thy t))); NONE)
-    end
-    handle e => (writeln "eta_expand internal error"; OldGoals.print_exn e)
+          | _ => error ("Bad eta_expand argument" ^ Syntax.string_of_term_global thy t)
+    end;
 
 fun mk_tfree s = TFree("'"^s,[])
 fun mk_free s t = Free (s,t)

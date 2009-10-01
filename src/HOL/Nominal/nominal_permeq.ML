@@ -228,11 +228,7 @@ fun perm_compose_tac ss i =
         addsimprocs [perm_compose_simproc]) i,
       asm_full_simp_tac (HOL_basic_ss addsimps [perm_aux_fold]) i] st);
 
-
-(* applying Stefan's smart congruence tac *)
-fun apply_cong_tac i = 
-    ("application of congruence",
-     (fn st => DatatypeAux.cong_tac i st handle Subscript => no_tac st));
+fun apply_cong_tac i = ("application of congruence", cong_tac i);
 
 
 (* unfolds the definition of permutations     *)

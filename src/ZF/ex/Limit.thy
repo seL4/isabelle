@@ -488,18 +488,24 @@ lemma matrix_chainI:
       and Mfun:  "M \<in> nat->nat->set(D)"
       and cpoD:  "cpo(D)"
   shows "matrix(D,M)"
-apply (simp add: matrix_def, safe)
-apply (rule Mfun)
-apply (cut_tac y1 = m and n = n in yprem [THEN chain_rel], simp+)
-apply (simp add: chain_rel xprem)
-apply (rule cpo_trans [OF cpoD])
-apply (cut_tac y1 = m and n = n in yprem [THEN chain_rel], simp+)
-apply (simp_all add: chain_fun [THEN apply_type] xprem)
-done
-
-lemma lemma_rel_rel:
-     "[|m \<in> nat; rel(D, (\<lambda>n \<in> nat. M`n`n)`m, y)|] ==> rel(D,M`m`m, y)"
-by simp
+proof -
+  {
+    fix n m assume "n : nat" "m : nat"
+    with chain_rel [OF yprem]
+    have "rel(D, M ` n ` m, M ` succ(n) ` m)" by simp
+  } note rel_succ = this
+  show "matrix(D,M)"
+  proof (simp add: matrix_def Mfun rel_succ, intro conjI ballI)
+    fix n m assume n: "n : nat" and m: "m : nat"
+    thus "rel(D, M ` n ` m, M ` n ` succ(m))"
+      by (simp add: chain_rel xprem)
+  next
+    fix n m assume n: "n : nat" and m: "m : nat"
+    thus "rel(D, M ` n ` m, M ` succ(n) ` succ(m))"
+      by (rule cpo_trans [OF cpoD rel_succ], 
+          simp_all add: chain_fun [THEN apply_type] xprem)
+  qed
+qed
 
 lemma lemma2:
      "[|x \<in> nat; m \<in> nat; rel(D,(\<lambda>n \<in> nat. M`n`m1)`x,(\<lambda>n \<in> nat. M`n`m1)`m)|]
@@ -509,65 +515,72 @@ by simp
 lemma isub_lemma:
     "[|isub(D, \<lambda>n \<in> nat. M`n`n, y); matrix(D,M); cpo(D)|] 
      ==> isub(D, \<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m), y)"
-apply (unfold isub_def, safe)
-apply (simp (no_asm_simp))
-apply (frule matrix_fun [THEN apply_type], assumption)
-apply (simp (no_asm_simp))
-apply (rule matrix_chain_left [THEN cpo_lub, THEN islub_least], assumption+)
-apply (unfold isub_def, safe)
-(*???VERY indirect proof: beta-redexes could be simplified now!*)
-apply (rename_tac k n)
-apply (case_tac "k le n")
-apply (rule cpo_trans, assumption)
-apply (rule lemma2)
-apply (rule_tac [4] lemma_rel_rel)
-prefer 5 apply blast
-apply (assumption | rule chain_rel_gen matrix_chain_right matrix_in isubD1)+
-txt{*opposite case*}
-apply (rule cpo_trans, assumption)
-apply (rule not_le_iff_lt [THEN iffD1, THEN leI, THEN chain_rel_gen])
-prefer 3 apply assumption
-apply (assumption | rule nat_into_Ord matrix_chain_left)+
-apply (rule lemma_rel_rel)
-apply (simp_all add: matrix_in)
-done
+proof (simp add: isub_def, safe)
+  fix n
+  assume DM: "matrix(D, M)" and D: "cpo(D)" and n: "n \<in> nat" and y: "y \<in> set(D)" 
+     and rel: "\<forall>n\<in>nat. rel(D, M ` n ` n, y)"
+  have "rel(D, lub(D, M ` n), y)"
+  proof (rule matrix_chain_left [THEN cpo_lub, THEN islub_least], simp_all add: n D DM)
+    show "isub(D, M ` n, y)" 
+      proof (unfold isub_def, intro conjI ballI y)
+	fix k assume k: "k \<in> nat"
+	show "rel(D, M ` n ` k, y)"
+	  proof (cases "n le k")
+	    case True 
+	    hence yy: "rel(D, M`n`k, M`k`k)" 
+	      by (blast intro: lemma2 n k y DM D chain_rel_gen matrix_chain_right) 
+	    show "?thesis"
+	      by (rule cpo_trans [OF D yy], 
+                  simp_all add: k rel n y DM matrix_in)
+	  next
+	    case False
+	    hence le: "k le n" 
+	      by (blast intro: not_le_iff_lt [THEN iffD1, THEN leI] nat_into_Ord n k) 
+	    show "?thesis"
+	      by (rule cpo_trans [OF D chain_rel_gen [OF le]], 
+		  simp_all add: n y k rel DM D matrix_chain_left)
+	  qed
+	qed
+  qed
+  moreover
+  have "M ` n \<in> nat \<rightarrow> set(D)" by (blast intro: DM n matrix_fun [THEN apply_type])
+  ultimately show "rel(D, lub(D, Lambda(nat, op `(M ` n))), y)"  by simp
+qed
 
 lemma matrix_chain_lub:
     "[|matrix(D,M); cpo(D)|] ==> chain(D,\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))"
-apply (simp add: chain_def, safe)
-apply (rule lam_type)
-apply (rule islub_in)
-apply (rule cpo_lub)
-prefer 2 apply assumption
-apply (rule chainI)
-apply (rule lam_type)
-apply (simp_all add: matrix_in)
-apply (rule matrix_rel_0_1, assumption+)
-apply (simp add: matrix_chain_left [THEN chain_fun, THEN eta])
-apply (rule dominate_islub)
-apply (rule_tac [3] cpo_lub)
-apply (rule_tac [2] cpo_lub)
-apply (simp add: dominate_def)
-apply (blast intro: matrix_rel_1_0)
-apply (simp_all add: matrix_chain_left nat_succI chain_fun)
-done
+proof (simp add: chain_def, intro conjI ballI)
+  assume "matrix(D, M)" "cpo(D)"
+  thus "(\<lambda>x\<in>nat. lub(D, Lambda(nat, op `(M ` x)))) \<in> nat \<rightarrow> set(D)"
+    by (force intro: islub_in cpo_lub chainI lam_type matrix_in matrix_rel_0_1) 
+next
+  fix n
+  assume DD: "matrix(D, M)" "cpo(D)" "n \<in> nat"
+  hence "dominate(D, M ` n, M ` succ(n))"
+    by (force simp add: dominate_def intro: matrix_rel_1_0)
+  with DD show "rel(D, lub(D, Lambda(nat, op `(M ` n))),
+               lub(D, Lambda(nat, op `(M ` succ(n)))))"
+    by (simp add: matrix_chain_left [THEN chain_fun, THEN eta] 
+      dominate_islub cpo_lub matrix_chain_left chain_fun)
+qed
 
 lemma isub_eq:
-    "[|matrix(D,M); cpo(D)|] 
-     ==> isub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m)),y) <->
-         isub(D,(\<lambda>n \<in> nat. M`n`n),y)"
-apply (rule iffI)
-apply (rule dominate_isub)
-prefer 2 apply assumption
-apply (simp add: dominate_def)
-apply (rule ballI)
-apply (rule bexI, auto)
-apply (simp add: matrix_chain_left [THEN chain_fun, THEN eta])
-apply (rule islub_ub)
-apply (rule cpo_lub)
-apply (simp_all add: matrix_chain_left matrix_chain_diag chain_fun 
-                     matrix_chain_lub isub_lemma)
-done
+  assumes DM: "matrix(D, M)" and D: "cpo(D)"
+  shows "isub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m)),y) <-> isub(D,(\<lambda>n \<in> nat. M`n`n),y)"
+proof
+  assume isub: "isub(D, \<lambda>n\<in>nat. lub(D, Lambda(nat, op `(M ` n))), y)"
+  hence dom: "dominate(D, \<lambda>n\<in>nat. M ` n ` n, \<lambda>n\<in>nat. lub(D, Lambda(nat, op `(M ` n))))" 
+    using DM D
+    by (simp add: dominate_def, intro ballI bexI,
+        simp_all add: matrix_chain_left [THEN chain_fun, THEN eta] islub_ub cpo_lub matrix_chain_left)
+  thus "isub(D, \<lambda>n\<in>nat. M ` n ` n, y)" using DM D
+    by - (rule dominate_isub [OF dom isub], 
+          simp_all add: matrix_chain_diag chain_fun matrix_chain_lub)
+next
+  assume isub: "isub(D, \<lambda>n\<in>nat. M ` n ` n, y)" 
+  thus "isub(D, \<lambda>n\<in>nat. lub(D, Lambda(nat, op `(M ` n))), y)"  using DM D
+    by (simp add: isub_lemma)
+qed
 
 lemma lub_matrix_diag_aux1:
     "lub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))) =
@@ -695,34 +708,43 @@ lemma matrix_lemma:
     "[|chain(cf(D,E),X); chain(D,Xa); cpo(D); cpo(E) |] 
      ==> matrix(E,\<lambda>x \<in> nat. \<lambda>xa \<in> nat. X`x`(Xa`xa))"
 apply (rule matrix_chainI, auto)
-apply (rule chainI)
-apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in, simp)
-apply (blast intro: cont_mono nat_succI chain_rel cf_cont chain_in)
-apply (rule chainI)
-apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in, simp)
-apply (rule rel_cf)
-apply (simp_all add: chain_in chain_rel)
+apply (force intro: chainI lam_type apply_funtype cont_fun cf_cont cont_mono)
+apply (force intro: chainI lam_type apply_funtype cont_fun cf_cont rel_cf)
 apply (blast intro: lam_type apply_funtype cont_fun cf_cont chain_in)
 done
 
 lemma chain_cf_lub_cont:
-    "[|chain(cf(D,E),X); cpo(D); cpo(E) |] 
-     ==> (\<lambda>x \<in> set(D). lub(E, \<lambda>n \<in> nat. X ` n ` x)) \<in> cont(D, E)"
-apply (rule contI)
-apply (rule lam_type)
-apply (assumption | rule chain_cf [THEN cpo_lub, THEN islub_in])+
-apply simp
-apply (rule dominate_islub)
-apply (erule_tac [2] chain_cf [THEN cpo_lub], simp_all)+
-apply (rule dominateI, assumption, simp)
-apply (assumption | rule chain_in [THEN cf_cont, THEN cont_mono])+
-apply (assumption | rule chain_cf [THEN chain_fun])+
-apply (simp add: cpo_lub [THEN islub_in] 
-                 chain_in [THEN cf_cont, THEN cont_lub])
-apply (frule matrix_lemma [THEN lub_matrix_diag], assumption+)
-apply (simp add: chain_in [THEN beta])
-apply (drule matrix_lemma [THEN lub_matrix_diag_sym], auto)
-done
+  assumes ch: "chain(cf(D,E),X)" and D: "cpo(D)" and E: "cpo(E)"
+  shows   "(\<lambda>x \<in> set(D). lub(E, \<lambda>n \<in> nat. X ` n ` x)) \<in> cont(D, E)"
+proof (rule contI)
+  show "(\<lambda>x\<in>set(D). lub(E, \<lambda>n\<in>nat. X ` n ` x)) \<in> set(D) \<rightarrow> set(E)"
+    by (blast intro: lam_type chain_cf [THEN cpo_lub, THEN islub_in] ch E) 
+next
+  fix x y
+  assume xy: "rel(D, x, y)" "x \<in> set(D)" "y \<in> set(D)"
+  hence dom: "dominate(E, \<lambda>n\<in>nat. X ` n ` x, \<lambda>n\<in>nat. X ` n ` y)"
+    by (force intro: dominateI  chain_in [OF ch, THEN cf_cont, THEN cont_mono])
+  note chE = chain_cf [OF ch] 
+  from xy show "rel(E, (\<lambda>x\<in>set(D). lub(E, \<lambda>n\<in>nat. X ` n ` x)) ` x,
+                       (\<lambda>x\<in>set(D). lub(E, \<lambda>n\<in>nat. X ` n ` x)) ` y)"
+    by (simp add: dominate_islub [OF dom] cpo_lub [OF chE] E chain_fun [OF chE])
+next
+  fix Y
+  assume chDY: "chain(D,Y)"
+  have "lub(E, \<lambda>x\<in>nat. lub(E, \<lambda>y\<in>nat. X ` x ` (Y ` y))) =
+        lub(E, \<lambda>x\<in>nat. X ` x ` (Y ` x))"
+    using matrix_lemma [THEN lub_matrix_diag, OF ch chDY]
+    by (simp add: D E)
+   also have "... =  lub(E, \<lambda>x\<in>nat. lub(E, \<lambda>n\<in>nat. X ` n ` (Y ` x)))"
+    using  matrix_lemma [THEN lub_matrix_diag_sym, OF ch chDY]
+    by (simp add: D E) 
+  finally have "lub(E, \<lambda>x\<in>nat. lub(E, \<lambda>n\<in>nat. X ` x ` (Y ` n))) =
+                lub(E, \<lambda>x\<in>nat. lub(E, \<lambda>n\<in>nat. X ` n ` (Y ` x)))" .
+  thus "(\<lambda>x\<in>set(D). lub(E, \<lambda>n\<in>nat. X ` n ` x)) ` lub(D, Y) =
+        lub(E, \<lambda>n\<in>nat. (\<lambda>x\<in>set(D). lub(E, \<lambda>n\<in>nat. X ` n ` x)) ` (Y ` n))"
+    by (simp add: cpo_lub [THEN islub_in]  D chDY
+                  chain_in [THEN cf_cont, THEN cont_lub, OF ch])
+  qed
 
 lemma islub_cf:
     "[| chain(cf(D,E),X); cpo(D); cpo(E)|] 

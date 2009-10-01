@@ -7,6 +7,18 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2009: Thomas Sewell, NICTA
+  More efficient HOL/record implementation
+
+* September 2009: Sascha Boehme, TUM
+  SMT method using external SMT solvers
+
+* September 2009: Florian Haftmann, TUM
+  Refinement of Sets and Lattices
+
+* July 2009: Jeremy Avigad and Amine Chaieb
+  New number theory
+
 * July 2009: Philipp Meyer, TUM
   HOL/Library/Sum_of_Squares: functionality to call a remote csdp prover
 

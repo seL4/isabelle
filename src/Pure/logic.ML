@@ -169,7 +169,7 @@ fun mk_conjunction_list [] = true_prop
 
 (*(A &&& B) &&& (C &&& D) -- balanced*)
 fun mk_conjunction_balanced [] = true_prop
-  | mk_conjunction_balanced ts = BalancedTree.make mk_conjunction ts;
+  | mk_conjunction_balanced ts = Balanced_Tree.make mk_conjunction ts;
 
 
 (*A &&& B*)
@@ -184,7 +184,7 @@ fun dest_conjunction_list t =
 
 (*(A &&& B) &&& (C &&& D) -- balanced*)
 fun dest_conjunction_balanced 0 _ = []
-  | dest_conjunction_balanced n t = BalancedTree.dest dest_conjunction n t;
+  | dest_conjunction_balanced n t = Balanced_Tree.dest dest_conjunction n t;
 
 (*((A &&& B) &&& C) &&& D &&& E -- flat*)
 fun dest_conjunctions t =

@@ -29,7 +29,7 @@ fun derive_chains ctxt chain_tac cont D = Termination.CALLS (fn (cs, i) =>
       fun prove_chain c1 c2 D =
           if is_some (Termination.get_chain D c1 c2) then D else
           let
-            val goal = HOLogic.mk_eq (HOLogic.mk_binop @{const_name "Relation.rel_comp"} (c1, c2),
+            val goal = HOLogic.mk_eq (HOLogic.mk_binop @{const_name Relation.rel_comp} (c1, c2),
                                       Const (@{const_name Set.empty}, fastype_of c1))
                        |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
 

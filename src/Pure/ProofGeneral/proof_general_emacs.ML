@@ -226,7 +226,7 @@ end;
 
 (* init *)
 
-val initialized = ref false;
+val initialized = Unsynchronized.ref false;
 
 fun init false = panic "No Proof General interface support for Isabelle/classic mode."
   | init true =
@@ -239,9 +239,9 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           ProofGeneralPgip.init_pgip_channel (! Output.priority_fn);
           setup_thy_loader ();
           setup_present_hook ();
-          set initialized);
+          Unsynchronized.set initialized);
         sync_thy_loader ();
-       change print_mode (update (op =) proof_generalN);
+       Unsynchronized.change print_mode (update (op =) proof_generalN);
        Isar.toplevel_loop {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
 
 end;

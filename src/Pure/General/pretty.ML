@@ -86,10 +86,10 @@ fun default_indent (_: string) = Symbol.spaces;
 
 local
   val default = {indent = default_indent};
-  val modes = ref (Symtab.make [("", default)]);
+  val modes = Unsynchronized.ref (Symtab.make [("", default)]);
 in
   fun add_mode name indent = CRITICAL (fn () =>
-    change modes (Symtab.update_new (name, {indent = indent})));
+    Unsynchronized.change modes (Symtab.update_new (name, {indent = indent})));
   fun get_mode () =
     the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
@@ -186,14 +186,14 @@ fun make_margin_info m =
   breakgain = m div 20,         (*minimum added space required of a break*)
   emergencypos = m div 2};      (*position too far to right*)
 
-val margin_info = ref (make_margin_info 76);
+val margin_info = Unsynchronized.ref (make_margin_info 76);
 fun setmargin m = margin_info := make_margin_info m;
 fun setmp_margin m f = setmp margin_info (make_margin_info m) f;
 
 
 (* depth limitation *)
 
-val depth = ref 0;   (*maximum depth; 0 means no limit*)
+val depth = Unsynchronized.ref 0;   (*maximum depth; 0 means no limit*)
 fun setdepth dp = (depth := dp);
 
 local

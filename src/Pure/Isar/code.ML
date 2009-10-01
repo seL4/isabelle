@@ -19,11 +19,6 @@ sig
   val constrset_of_consts: theory -> (string * typ) list
     -> string * ((string * sort) list * (string * typ list) list)
 
-  (*constant aliasses*)
-  val add_const_alias: thm -> theory -> theory
-  val triv_classes: theory -> class list
-  val resubst_alias: theory -> string -> string
-
   (*code equations*)
   val mk_eqn: theory -> thm * bool -> thm * bool
   val mk_eqn_warning: theory -> thm -> (thm * bool) option
@@ -169,7 +164,6 @@ fun del_thm thm = (apsnd o Lazy.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm
 
 datatype spec = Spec of {
   history_concluded: bool,
-  aliasses: ((string * string) * thm) list * class list,
   eqns: ((bool * eqns) * (serial * eqns) list) Symtab.table
     (*with explicit history*),
   dtyps: ((serial * ((string * sort) list * (string * typ list) list)) list) Symtab.table
@@ -177,19 +171,16 @@ datatype spec = Spec of {
   cases: (int * (int * string list)) Symtab.table * unit Symtab.table
 };
 
-fun make_spec ((history_concluded, aliasses), (eqns, (dtyps, cases))) =
-  Spec { history_concluded = history_concluded, aliasses = aliasses,
-    eqns = eqns, dtyps = dtyps, cases = cases };
-fun map_spec f (Spec { history_concluded = history_concluded, aliasses = aliasses, eqns = eqns,
+fun make_spec (history_concluded, (eqns, (dtyps, cases))) =
+  Spec { history_concluded = history_concluded, eqns = eqns, dtyps = dtyps, cases = cases };
+fun map_spec f (Spec { history_concluded = history_concluded, eqns = eqns,
   dtyps = dtyps, cases = cases }) =
-  make_spec (f ((history_concluded, aliasses), (eqns, (dtyps, cases))));
-fun merge_spec (Spec { history_concluded = _, aliasses = aliasses1, eqns = eqns1,
+  make_spec (f (history_concluded, (eqns, (dtyps, cases))));
+fun merge_spec (Spec { history_concluded = _, eqns = eqns1,
     dtyps = dtyps1, cases = (cases1, undefs1) },
-  Spec { history_concluded = _, aliasses = aliasses2, eqns = eqns2,
+  Spec { history_concluded = _, eqns = eqns2,
     dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
-    val aliasses = (Library.merge (eq_snd Thm.eq_thm_prop) (pairself fst (aliasses1, aliasses2)),
-      Library.merge (op =) (pairself snd (aliasses1, aliasses2)));
     fun merge_eqns ((_, history1), (_, history2)) =
       let
         val raw_history = AList.merge (op = : serial * serial -> bool)
@@ -202,15 +193,13 @@ fun merge_spec (Spec { history_concluded = _, aliasses = aliasses1, eqns = eqns1
     val dtyps = Symtab.join (K (AList.merge (op =) (K true))) (dtyps1, dtyps2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
-  in make_spec ((false, aliasses), (eqns, (dtyps, cases))) end;
+  in make_spec (false, (eqns, (dtyps, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
-fun the_aliasses (Spec { aliasses, ... }) = aliasses;
 fun the_eqns (Spec { eqns, ... }) = eqns;
 fun the_dtyps (Spec { dtyps, ... }) = dtyps;
 fun the_cases (Spec { cases, ... }) = cases;
-val map_history_concluded = map_spec o apfst o apfst;
-val map_aliasses = map_spec o apfst o apsnd;
+val map_history_concluded = map_spec o apfst;
 val map_eqns = map_spec o apsnd o apfst;
 val map_dtyps = map_spec o apsnd o apsnd o apfst;
 val map_cases = map_spec o apsnd o apsnd o apsnd;
@@ -228,8 +217,8 @@ type kind = {
   purge: theory -> string list -> Object.T -> Object.T
 };
 
-val kinds = ref (Datatab.empty: kind Datatab.table);
-val kind_keys = ref ([]: serial list);
+val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
+val kind_keys = Unsynchronized.ref ([]: serial list);
 
 fun invoke f k = case Datatab.lookup (! kinds) k
  of SOME kind => f kind
@@ -241,8 +230,8 @@ fun declare_data empty purge =
   let
     val k = serial ();
     val kind = {empty = empty, purge = purge};
-    val _ = change kinds (Datatab.update (k, kind));
-    val _ = change kind_keys (cons k);
+    val _ = Unsynchronized.change kinds (Datatab.update (k, kind));
+    val _ = Unsynchronized.change kind_keys (cons k);
   in k end;
 
 fun invoke_init k = invoke (fn kind => #empty kind) k;
@@ -263,13 +252,13 @@ val empty_data = Datatab.empty : data;
 
 structure Code_Data = TheoryDataFun
 (
-  type T = spec * data ref;
-  val empty = (make_spec ((false, ([], [])),
-    (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty)))), ref empty_data);
-  fun copy (spec, data) = (spec, ref (! data));
+  type T = spec * data Unsynchronized.ref;
+  val empty = (make_spec (false,
+    (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty)))), Unsynchronized.ref empty_data);
+  fun copy (spec, data) = (spec, Unsynchronized.ref (! data));
   val extend = copy;
   fun merge pp ((spec1, data1), (spec2, data2)) =
-    (merge_spec (spec1, spec2), ref empty_data);
+    (merge_spec (spec1, spec2), Unsynchronized.ref empty_data);
 );
 
 fun thy_data f thy = f ((snd o Code_Data.get) thy);
@@ -278,7 +267,7 @@ fun get_ensure_init kind data_ref =
   case Datatab.lookup (! data_ref) kind
    of SOME x => x
     | NONE => let val y = invoke_init kind
-        in (change data_ref (Datatab.update (kind, y)); y) end;
+        in (Unsynchronized.change data_ref (Datatab.update (kind, y)); y) end;
 
 in
 
@@ -292,11 +281,11 @@ fun complete_class_params thy cs =
     | SOME (c', _) => insert (op =) c' #> insert (op =) c) cs [];
 
 fun map_exec_purge touched f thy =
-  Code_Data.map (fn (exec, data) => (f exec, ref (case touched
+  Code_Data.map (fn (exec, data) => (f exec, Unsynchronized.ref (case touched
    of SOME cs => invoke_purge_all thy (complete_class_params thy cs) (! data)
     | NONE => empty_data))) thy;
 
-val purge_data = (Code_Data.map o apsnd) (K (ref empty_data));
+val purge_data = (Code_Data.map o apsnd) (K (Unsynchronized.ref empty_data));
 
 fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, Lazy.value [])), [])))
@@ -343,7 +332,7 @@ fun change_data (kind, mk, dest) =
       let
         val data = get_ensure_init kind data_ref;
         val data' = f (dest data);
-      in (change data_ref (Datatab.update (kind, mk data')); data') end;
+      in (Unsynchronized.change data_ref (Datatab.update (kind, mk data')); data') end;
   in thy_data chnge end;
 
 fun change_yield_data (kind, mk, dest) =
@@ -352,28 +341,10 @@ fun change_yield_data (kind, mk, dest) =
       let
         val data = get_ensure_init kind data_ref;
         val (x, data') = f (dest data);
-      in (x, (change data_ref (Datatab.update (kind, mk data')); data')) end;
+      in (x, (Unsynchronized.change data_ref (Datatab.update (kind, mk data')); data')) end;
   in thy_data chnge end;
 
 end; (*local*)
-
-
-(** retrieval interfaces **)
-
-(* constant aliasses *)
-
-fun resubst_alias thy =
-  let
-    val alias = (fst o the_aliasses o the_exec) thy;
-    val subst_inst_param = Option.map fst o AxClass.inst_of_param thy;
-    fun subst_alias c =
-      get_first (fn ((c', c''), _) => if c = c'' then SOME c' else NONE) alias;
-  in
-    perhaps subst_inst_param
-    #> perhaps subst_alias
-  end;
-
-val triv_classes = snd o the_aliasses o the_exec;
 
 
 (** foundation **)
@@ -534,9 +505,10 @@ fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
 
 (*those following are permissive wrt. to overloaded constants!*)
 
+val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 fun const_typ_eqn thy thm =
   let
-    val (c, ty) = (dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
+    val (c, ty) = head_eqn thm;
     val c' = AxClass.unoverload_const thy (c, ty);
   in (c', ty) end;
 
@@ -552,8 +524,8 @@ fun assert_eqns_const thy c eqns =
 
 fun same_typscheme thy thms =
   let
-    fun tvars_of t = rev (Term.add_tvars t []);
-    val vss = map (tvars_of o Thm.prop_of) thms;
+    fun tvars_of T = rev (Term.add_tvarsT T []);
+    val vss = map (tvars_of o snd o head_eqn) thms;
     fun inter_sorts vs =
       fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
     val sorts = map_transpose inter_sorts vss;
@@ -576,7 +548,7 @@ fun all_eqns thy =
 fun case_certificate thm =
   let
     val ((head, raw_case_expr), cases) = (apfst Logic.dest_equals
-      o apsnd Logic.dest_conjunctions o Logic.dest_implies o Thm.prop_of) thm;
+      o apsnd Logic.dest_conjunctions o Logic.dest_implies o Thm.plain_prop_of) thm;
     val _ = case head of Free _ => true
       | Var _ => true
       | _ => raise TERM ("case_cert", []);
@@ -668,38 +640,6 @@ fun print_codesetup thy =
 
 
 (** declaring executable ingredients **)
-
-(* constant aliasses *)
-
-fun add_const_alias thm thy =
-  let
-    val (ofclass, eqn) = case try Logic.dest_equals (Thm.prop_of thm)
-     of SOME ofclass_eq => ofclass_eq
-      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
-    val (T, class) = case try Logic.dest_of_class ofclass
-     of SOME T_class => T_class
-      | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
-    val tvar = case try Term.dest_TVar T
-     of SOME (tvar as (_, sort)) => if null (filter (can (AxClass.get_info thy)) sort)
-          then tvar
-          else error ("Bad sort: " ^ Display.string_of_thm_global thy thm)
-      | _ => error ("Bad type: " ^ Display.string_of_thm_global thy thm);
-    val _ = if Term.add_tvars eqn [] = [tvar] then ()
-      else error ("Inconsistent type: " ^ Display.string_of_thm_global thy thm);
-    val lhs_rhs = case try Logic.dest_equals eqn
-     of SOME lhs_rhs => lhs_rhs
-      | _ => error ("Not an equation: " ^ Syntax.string_of_term_global thy eqn);
-    val c_c' = case try (pairself (check_const thy)) lhs_rhs
-     of SOME c_c' => c_c'
-      | _ => error ("Not an equation with two constants: "
-          ^ Syntax.string_of_term_global thy eqn);
-    val _ = if the_list (AxClass.class_of_param thy (snd c_c')) = [class] then ()
-      else error ("Inconsistent class: " ^ Display.string_of_thm_global thy thm);
-  in thy |>
-    (map_exec_purge NONE o map_aliasses) (fn (alias, classes) =>
-      ((c_c', thm) :: alias, insert (op =) class classes))
-  end;
-
 
 (* datatypes *)
 
@@ -820,7 +760,7 @@ fun add_undefined c thy =
 end; (*struct*)
 
 
-(** type-safe interfaces for data depedent on executable code **)
+(** type-safe interfaces for data dependent on executable code **)
 
 functor Code_Data_Fun(Data: CODE_DATA_ARGS): CODE_DATA =
 struct
@@ -837,6 +777,51 @@ val data_op = (kind, Data, dest);
 val get = Code.get_data data_op;
 val change = Code.change_data data_op;
 fun change_yield thy = Code.change_yield_data data_op thy;
+
+end;
+
+(** datastructure to log definitions for preprocessing of the predicate compiler **)
+(* obviously a clone of Named_Thms *)
+
+signature PREDICATE_COMPILE_PREPROC_CONST_DEFS =
+sig
+  val get: Proof.context -> thm list
+  val add_thm: thm -> Context.generic -> Context.generic
+  val del_thm: thm -> Context.generic -> Context.generic
+  
+  val add_attribute : attribute
+  val del_attribute : attribute
+  
+  val add_attrib : Attrib.src
+  
+  val setup: theory -> theory
+end;
+
+structure Predicate_Compile_Preproc_Const_Defs : PREDICATE_COMPILE_PREPROC_CONST_DEFS =
+struct
+
+structure Data = GenericDataFun
+(
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  fun merge _ = Thm.merge_thms;
+);
+
+val get = Data.get o Context.Proof;
+
+val add_thm = Data.map o Thm.add_thm;
+val del_thm = Data.map o Thm.del_thm;
+
+val add_attribute = Thm.declaration_attribute add_thm;
+val del_attribute = Thm.declaration_attribute del_thm;
+
+val add_attrib = Attrib.internal (K add_attribute)
+
+val setup =
+  Attrib.setup (Binding.name "pred_compile_preproc") (Attrib.add_del add_attribute del_attribute)
+    ("declaration of definition for preprocessing of the predicate compiler") #>
+  PureThy.add_thms_dynamic (Binding.name "pred_compile_preproc", Data.get);
 
 end;
 

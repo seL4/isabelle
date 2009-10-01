@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/Effect.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
 *)
@@ -375,7 +374,7 @@ proof (cases s)
     hence "?a \<and> 0 < length (drop (length fpTs) a)" (is "?a \<and> ?l") 
       by auto
     hence "?a \<and> ?l \<and> length (rev (take (length fpTs) a)) = length fpTs" 
-      by (auto simp add: min_def)
+      by (auto)
     hence "\<exists>apTs ST. a = rev apTs @ ST \<and> length apTs = length fpTs \<and> 0 < length ST" 
       by blast
     hence "\<exists>apTs ST. a = rev apTs @ ST \<and> length apTs = length fpTs \<and> ST \<noteq> []" 
@@ -391,7 +390,7 @@ proof (cases s)
   with Pair 
   have "?app s \<Longrightarrow> ?P s" by (simp only:)
   moreover
-  have "?P s \<Longrightarrow> ?app s" by (unfold app_def) (clarsimp simp add: min_def)
+  have "?P s \<Longrightarrow> ?app s" by (clarsimp simp add: min_max.inf_absorb2)
   ultimately
   show ?thesis by (rule iffI) 
 qed 

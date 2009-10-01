@@ -652,8 +652,8 @@ lemma Compl_eq: "- A = {x. ~ x : A}" by blast
 
 subsubsection {* Binary union -- Un *}
 
-definition union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
-  sup_set_eq [symmetric]: "A Un B = sup A B"
+abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
+  "op Un \<equiv> sup"
 
 notation (xsymbols)
   union  (infixl "\<union>" 65)
@@ -663,7 +663,7 @@ notation (HTML output)
 
 lemma Un_def:
   "A \<union> B = {x. x \<in> A \<or> x \<in> B}"
-  by (simp add: sup_fun_eq sup_bool_eq sup_set_eq [symmetric] Collect_def mem_def)
+  by (simp add: sup_fun_eq sup_bool_eq Collect_def mem_def)
 
 lemma Un_iff [simp]: "(c : A Un B) = (c:A | c:B)"
   by (unfold Un_def) blast
@@ -689,15 +689,13 @@ lemma insert_def: "insert a B = {x. x = a} \<union> B"
   by (simp add: Collect_def mem_def insert_compr Un_def)
 
 lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
-  apply (fold sup_set_eq)
-  apply (erule mono_sup)
-  done
+  by (fact mono_sup)
 
 
 subsubsection {* Binary intersection -- Int *}
 
-definition inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
-  inf_set_eq [symmetric]: "A Int B = inf A B"
+abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
+  "op Int \<equiv> inf"
 
 notation (xsymbols)
   inter  (infixl "\<inter>" 70)
@@ -707,7 +705,7 @@ notation (HTML output)
 
 lemma Int_def:
   "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
-  by (simp add: inf_fun_eq inf_bool_eq inf_set_eq [symmetric] Collect_def mem_def)
+  by (simp add: inf_fun_eq inf_bool_eq Collect_def mem_def)
 
 lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
   by (unfold Int_def) blast
@@ -725,9 +723,7 @@ lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
   by simp
 
 lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  apply (fold inf_set_eq)
-  apply (erule mono_inf)
-  done
+  by (fact mono_inf)
 
 
 subsubsection {* Set difference *}
@@ -1268,8 +1264,24 @@ lemma Int_insert_left:
     "(insert a B) Int C = (if a \<in> C then insert a (B \<inter> C) else B \<inter> C)"
   by auto
 
+lemma Int_insert_left_if0[simp]:
+    "a \<notin> C \<Longrightarrow> (insert a B) Int C = B \<inter> C"
+  by auto
+
+lemma Int_insert_left_if1[simp]:
+    "a \<in> C \<Longrightarrow> (insert a B) Int C = insert a (B Int C)"
+  by auto
+
 lemma Int_insert_right:
     "A \<inter> (insert a B) = (if a \<in> A then insert a (A \<inter> B) else A \<inter> B)"
+  by auto
+
+lemma Int_insert_right_if0[simp]:
+    "a \<notin> A \<Longrightarrow> A Int (insert a B) = A Int B"
+  by auto
+
+lemma Int_insert_right_if1[simp]:
+    "a \<in> A \<Longrightarrow> A Int (insert a B) = insert a (A Int B)"
   by auto
 
 lemma Un_Int_distrib: "A \<union> (B \<inter> C) = (A \<union> B) \<inter> (A \<union> C)"

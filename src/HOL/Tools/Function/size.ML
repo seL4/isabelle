@@ -59,7 +59,7 @@ val app = curry (list_comb o swap);
 
 fun prove_size_thms (info : info) new_type_names thy =
   let
-    val {descr, alt_names, sorts, rec_names, rec_rewrites, induction, ...} = info;
+    val {descr, alt_names, sorts, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
     val alt_names' = (case alt_names of
       NONE => replicate l NONE | SOME names => map SOME names);
@@ -169,7 +169,7 @@ fun prove_size_thms (info : info) new_type_names thy =
            map (mk_unfolded_size_eq (AList.lookup op =
                (new_type_names ~~ map (app fs) rec_combs1)) size_ofp fs)
              (xs ~~ recTs2 ~~ rec_combs2))))
-        (fn _ => (indtac induction xs THEN_ALL_NEW asm_simp_tac simpset1) 1));
+        (fn _ => (indtac induct xs THEN_ALL_NEW asm_simp_tac simpset1) 1));
 
     val unfolded_size_eqs1 = prove_unfolded_size_eqs param_size fs;
     val unfolded_size_eqs2 = prove_unfolded_size_eqs (K NONE) fs';

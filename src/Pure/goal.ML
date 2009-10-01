@@ -6,7 +6,7 @@ Goals in tactical theorem proving.
 
 signature BASIC_GOAL =
 sig
-  val parallel_proofs: int ref
+  val parallel_proofs: int Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
@@ -102,7 +102,7 @@ val norm_result =
 
 (* future_enabled *)
 
-val parallel_proofs = ref 1;
+val parallel_proofs = Unsynchronized.ref 1;
 
 fun future_enabled () =
   Multithreading.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;

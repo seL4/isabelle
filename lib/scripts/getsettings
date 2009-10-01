@@ -68,6 +68,17 @@ function classpath () {
   done
 }
 
+#arrays
+function splitarray ()
+{
+  SPLITARRAY=()
+  local IFS="$1"; shift
+  for X in $*
+  do
+    SPLITARRAY["${#SPLITARRAY[@]}"]="$X"
+  done
+}
+
 #nested components
 ISABELLE_COMPONENTS=""
 function init_component ()

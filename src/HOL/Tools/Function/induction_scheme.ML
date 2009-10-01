@@ -120,7 +120,7 @@ fun mk_scheme' ctxt cases concl =
       fun PT_of (SchemeBranch { xs, ...}) =
             foldr1 HOLogic.mk_prodT (map snd xs)
 
-      val ST = BalancedTree.make (uncurry SumTree.mk_sumT) (map PT_of branches)
+      val ST = Balanced_Tree.make (uncurry SumTree.mk_sumT) (map PT_of branches)
     in
       IndScheme {T=ST, cases=map mk_case cases', branches=branches }
     end
@@ -152,7 +152,7 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
     end
 
 fun mk_wf ctxt R (IndScheme {T, ...}) =
-    HOLogic.Trueprop $ (Const (@{const_name "wf"}, mk_relT T --> HOLogic.boolT) $ R)
+    HOLogic.Trueprop $ (Const (@{const_name wf}, mk_relT T --> HOLogic.boolT) $ R)
 
 fun mk_ineqs R (IndScheme {T, cases, branches}) =
     let

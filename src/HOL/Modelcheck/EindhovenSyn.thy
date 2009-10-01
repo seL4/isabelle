@@ -26,7 +26,7 @@ syntax (Eindhoven output)
   "Nu "         :: "[idts, 'a pred] => 'a pred"         ("(3[nu _./ _])" 1000)
 
 ML {*
-  val trace_eindhoven = ref false;
+  val trace_eindhoven = Unsynchronized.ref false;
 *}
 
 oracle mc_eindhoven_oracle =

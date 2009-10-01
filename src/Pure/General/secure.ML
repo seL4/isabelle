@@ -13,6 +13,7 @@ sig
   val use_text: use_context -> int * string -> bool -> string -> unit
   val use_file: use_context -> bool -> string -> unit
   val toplevel_pp: string list -> string -> unit
+  val open_unsynchronized: unit -> unit
   val commit: unit -> unit
   val system_out: string -> string * int
   val system: string -> int
@@ -23,7 +24,7 @@ struct
 
 (** secure flag **)
 
-val secure = ref false;
+val secure = Unsynchronized.ref false;
 
 fun set_secure () = secure := true;
 fun is_secure () = ! secure;
@@ -47,8 +48,13 @@ fun use_file context verbose name = (secure_mltext (); raw_use_file context verb
 
 fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_context path pp);
 
-(*commit is dynamically bound!*)
-fun commit () = raw_use_text ML_Parse.global_context (0, "") false "commit();";
+
+(* global evaluation *)
+
+val use_global = raw_use_text ML_Parse.global_context (0, "") false;
+
+fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
+fun open_unsynchronized () = use_global "open Unsynchronized";
 
 
 (* shell commands *)

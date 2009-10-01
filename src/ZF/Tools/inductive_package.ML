@@ -113,7 +113,7 @@ let
         val exfrees = OldTerm.term_frees intr \\ rec_params
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
     in List.foldr FOLogic.mk_exists
-             (BalancedTree.make FOLogic.mk_conj (zeq::prems)) exfrees
+             (Balanced_Tree.make FOLogic.mk_conj (zeq::prems)) exfrees
     end;
 
   (*The Part(A,h) terms -- compose injections to make h*)
@@ -122,7 +122,7 @@ let
 
   (*Access to balanced disjoint sums via injections*)
   val parts = map mk_Part
-    (BalancedTree.accesses {left = fn t => Su.inl $ t, right = fn t => Su.inr $ t, init = Bound 0}
+    (Balanced_Tree.accesses {left = fn t => Su.inl $ t, right = fn t => Su.inr $ t, init = Bound 0}
       (length rec_tms));
 
   (*replace each set by the corresponding Part(A,h)*)
@@ -130,7 +130,7 @@ let
 
   val fp_abs = absfree(X', iT,
                    mk_Collect(z', dom_sum,
-                              BalancedTree.make FOLogic.mk_disj part_intrs));
+                              Balanced_Tree.make FOLogic.mk_disj part_intrs));
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
@@ -238,7 +238,7 @@ let
      DEPTH_SOLVE (swap_res_tac (@{thm SigmaI} :: @{thm subsetI} :: type_intrs) 1)];
 
   (*combines disjI1 and disjI2 to get the corresponding nested disjunct...*)
-  val mk_disj_rls = BalancedTree.accesses
+  val mk_disj_rls = Balanced_Tree.accesses
     {left = fn rl => rl RS @{thm disjI1},
      right = fn rl => rl RS @{thm disjI2},
      init = @{thm asm_rl}};
@@ -398,10 +398,10 @@ let
            (Ind_Syntax.mk_all_imp
             (big_rec_tm,
              Abs("z", Ind_Syntax.iT,
-                 BalancedTree.make FOLogic.mk_conj
+                 Balanced_Tree.make FOLogic.mk_conj
                  (ListPair.map mk_rec_imp (rec_tms, preds)))))
      and mutual_induct_concl =
-      FOLogic.mk_Trueprop(BalancedTree.make FOLogic.mk_conj qconcls);
+      FOLogic.mk_Trueprop (Balanced_Tree.make FOLogic.mk_conj qconcls);
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln ("induct_concl = " ^

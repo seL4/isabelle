@@ -34,7 +34,7 @@ FAIL=""
 echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
-ORIG_IFS="$IFS"; IFS=":"; declare -a COMPONENTS=($ISABELLE_COMPONENTS); IFS="$ORIG_IFS"
+splitarray ":" "$ISABELLE_COMPONENTS"; COMPONENTS=("${SPLITARRAY[@]}")
 
 for DIR in "${COMPONENTS[@]}"
 do

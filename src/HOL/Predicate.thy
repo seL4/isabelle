@@ -19,28 +19,16 @@ notation
 
 subsection {* Predicates as (complete) lattices *}
 
-subsubsection {* @{const sup} on @{typ bool} *}
-
-lemma sup_boolI1:
-  "P \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_eq)
-
-lemma sup_boolI2:
-  "Q \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_eq)
-
-lemma sup_boolE:
-  "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: sup_bool_eq)
-
-
-subsubsection {* Equality and Subsets *}
+subsubsection {* Equality *}
 
 lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
   by (simp add: mem_def)
 
 lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) = (R = S)"
   by (simp add: expand_fun_eq mem_def)
+
+
+subsubsection {* Order relation *}
 
 lemma pred_subset_eq: "((\<lambda>x. x \<in> R) <= (\<lambda>x. x \<in> S)) = (R <= S)"
   by (simp add: mem_def)
@@ -63,9 +51,6 @@ lemma bot1E [elim!]: "bot x \<Longrightarrow> P"
 lemma bot2E [elim!]: "bot x y \<Longrightarrow> P"
   by (simp add: bot_fun_eq bot_bool_eq)
 
-
-subsubsection {* The empty set *}
-
 lemma bot_empty_eq: "bot = (\<lambda>x. x \<in> {})"
   by (auto simp add: expand_fun_eq)
 
@@ -75,29 +60,29 @@ lemma bot_empty_eq2: "bot = (\<lambda>x y. (x, y) \<in> {})"
 
 subsubsection {* Binary union *}
 
-lemma sup1_iff [simp]: "sup A B x \<longleftrightarrow> A x | B x"
+lemma sup1_iff: "sup A B x \<longleftrightarrow> A x | B x"
   by (simp add: sup_fun_eq sup_bool_eq)
 
-lemma sup2_iff [simp]: "sup A B x y \<longleftrightarrow> A x y | B x y"
+lemma sup2_iff: "sup A B x y \<longleftrightarrow> A x y | B x y"
   by (simp add: sup_fun_eq sup_bool_eq)
 
-lemma sup_Un_eq [pred_set_conv]: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
-  by (simp add: expand_fun_eq)
+lemma sup_Un_eq: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
+  by (simp add: sup1_iff expand_fun_eq)
 
 lemma sup_Un_eq2 [pred_set_conv]: "sup (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
-  by (simp add: expand_fun_eq)
+  by (simp add: sup2_iff expand_fun_eq)
 
 lemma sup1I1 [elim?]: "A x \<Longrightarrow> sup A B x"
-  by simp
+  by (simp add: sup1_iff)
 
 lemma sup2I1 [elim?]: "A x y \<Longrightarrow> sup A B x y"
-  by simp
+  by (simp add: sup2_iff)
 
 lemma sup1I2 [elim?]: "B x \<Longrightarrow> sup A B x"
-  by simp
+  by (simp add: sup1_iff)
 
 lemma sup2I2 [elim?]: "B x y \<Longrightarrow> sup A B x y"
-  by simp
+  by (simp add: sup2_iff)
 
 text {*
   \medskip Classical introduction rule: no commitment to @{text A} vs
@@ -105,115 +90,115 @@ text {*
 *}
 
 lemma sup1CI [intro!]: "(~ B x ==> A x) ==> sup A B x"
-  by auto
+  by (auto simp add: sup1_iff)
 
 lemma sup2CI [intro!]: "(~ B x y ==> A x y) ==> sup A B x y"
-  by auto
+  by (auto simp add: sup2_iff)
 
 lemma sup1E [elim!]: "sup A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
-  by simp iprover
+  by (simp add: sup1_iff) iprover
 
 lemma sup2E [elim!]: "sup A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
-  by simp iprover
+  by (simp add: sup2_iff) iprover
 
 
 subsubsection {* Binary intersection *}
 
-lemma inf1_iff [simp]: "inf A B x \<longleftrightarrow> A x \<and> B x"
+lemma inf1_iff: "inf A B x \<longleftrightarrow> A x \<and> B x"
   by (simp add: inf_fun_eq inf_bool_eq)
 
-lemma inf2_iff [simp]: "inf A B x y \<longleftrightarrow> A x y \<and> B x y"
+lemma inf2_iff: "inf A B x y \<longleftrightarrow> A x y \<and> B x y"
   by (simp add: inf_fun_eq inf_bool_eq)
 
-lemma inf_Int_eq [pred_set_conv]: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
-  by (simp add: expand_fun_eq)
+lemma inf_Int_eq: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
+  by (simp add: inf1_iff expand_fun_eq)
 
 lemma inf_Int_eq2 [pred_set_conv]: "inf (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
-  by (simp add: expand_fun_eq)
+  by (simp add: inf2_iff expand_fun_eq)
 
 lemma inf1I [intro!]: "A x ==> B x ==> inf A B x"
-  by simp
+  by (simp add: inf1_iff)
 
 lemma inf2I [intro!]: "A x y ==> B x y ==> inf A B x y"
-  by simp
+  by (simp add: inf2_iff)
 
 lemma inf1D1: "inf A B x ==> A x"
-  by simp
+  by (simp add: inf1_iff)
 
 lemma inf2D1: "inf A B x y ==> A x y"
-  by simp
+  by (simp add: inf2_iff)
 
 lemma inf1D2: "inf A B x ==> B x"
-  by simp
+  by (simp add: inf1_iff)
 
 lemma inf2D2: "inf A B x y ==> B x y"
-  by simp
+  by (simp add: inf2_iff)
 
 lemma inf1E [elim!]: "inf A B x ==> (A x ==> B x ==> P) ==> P"
-  by simp
+  by (simp add: inf1_iff)
 
 lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
-  by simp
+  by (simp add: inf2_iff)
 
 
 subsubsection {* Unions of families *}
 
-lemma SUP1_iff [simp]: "(SUP x:A. B x) b = (EX x:A. B x b)"
+lemma SUP1_iff: "(SUP x:A. B x) b = (EX x:A. B x b)"
   by (simp add: SUPR_def Sup_fun_def Sup_bool_def) blast
 
-lemma SUP2_iff [simp]: "(SUP x:A. B x) b c = (EX x:A. B x b c)"
+lemma SUP2_iff: "(SUP x:A. B x) b c = (EX x:A. B x b c)"
   by (simp add: SUPR_def Sup_fun_def Sup_bool_def) blast
 
 lemma SUP1_I [intro]: "a : A ==> B a b ==> (SUP x:A. B x) b"
-  by auto
+  by (auto simp add: SUP1_iff)
 
 lemma SUP2_I [intro]: "a : A ==> B a b c ==> (SUP x:A. B x) b c"
-  by auto
+  by (auto simp add: SUP2_iff)
 
 lemma SUP1_E [elim!]: "(SUP x:A. B x) b ==> (!!x. x : A ==> B x b ==> R) ==> R"
-  by auto
+  by (auto simp add: SUP1_iff)
 
 lemma SUP2_E [elim!]: "(SUP x:A. B x) b c ==> (!!x. x : A ==> B x b c ==> R) ==> R"
-  by auto
+  by (auto simp add: SUP2_iff)
 
 lemma SUP_UN_eq: "(SUP i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (UN i. r i))"
-  by (simp add: expand_fun_eq)
+  by (simp add: SUP1_iff expand_fun_eq)
 
 lemma SUP_UN_eq2: "(SUP i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (UN i. r i))"
-  by (simp add: expand_fun_eq)
+  by (simp add: SUP2_iff expand_fun_eq)
 
 
 subsubsection {* Intersections of families *}
 
-lemma INF1_iff [simp]: "(INF x:A. B x) b = (ALL x:A. B x b)"
+lemma INF1_iff: "(INF x:A. B x) b = (ALL x:A. B x b)"
   by (simp add: INFI_def Inf_fun_def Inf_bool_def) blast
 
-lemma INF2_iff [simp]: "(INF x:A. B x) b c = (ALL x:A. B x b c)"
+lemma INF2_iff: "(INF x:A. B x) b c = (ALL x:A. B x b c)"
   by (simp add: INFI_def Inf_fun_def Inf_bool_def) blast
 
 lemma INF1_I [intro!]: "(!!x. x : A ==> B x b) ==> (INF x:A. B x) b"
-  by auto
+  by (auto simp add: INF1_iff)
 
 lemma INF2_I [intro!]: "(!!x. x : A ==> B x b c) ==> (INF x:A. B x) b c"
-  by auto
+  by (auto simp add: INF2_iff)
 
 lemma INF1_D [elim]: "(INF x:A. B x) b ==> a : A ==> B a b"
-  by auto
+  by (auto simp add: INF1_iff)
 
 lemma INF2_D [elim]: "(INF x:A. B x) b c ==> a : A ==> B a b c"
-  by auto
+  by (auto simp add: INF2_iff)
 
 lemma INF1_E [elim]: "(INF x:A. B x) b ==> (B a b ==> R) ==> (a ~: A ==> R) ==> R"
-  by auto
+  by (auto simp add: INF1_iff)
 
 lemma INF2_E [elim]: "(INF x:A. B x) b c ==> (B a b c ==> R) ==> (a ~: A ==> R) ==> R"
-  by auto
+  by (auto simp add: INF2_iff)
 
 lemma INF_INT_eq: "(INF i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (INT i. r i))"
-  by (simp add: expand_fun_eq)
+  by (simp add: INF1_iff expand_fun_eq)
 
 lemma INF_INT_eq2: "(INF i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (INT i. r i))"
-  by (simp add: expand_fun_eq)
+  by (simp add: INF2_iff expand_fun_eq)
 
 
 subsection {* Predicates as relations *}
@@ -366,7 +351,7 @@ definition single :: "'a \<Rightarrow> 'a pred" where
 definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
   "P \<guillemotright>= f = Pred (\<lambda>x. (\<exists>y. eval P y \<and> eval (f y) x))"
 
-instantiation pred :: (type) complete_lattice
+instantiation pred :: (type) "{complete_lattice, boolean_algebra}"
 begin
 
 definition
@@ -393,10 +378,16 @@ definition
 definition
   [code del]: "\<Squnion>A = Pred (SUPR A eval)"
 
-instance by default
-  (auto simp add: less_eq_pred_def less_pred_def
+definition
+  "- P = Pred (- eval P)"
+
+definition
+  "P - Q = Pred (eval P - eval Q)"
+
+instance proof
+qed (auto simp add: less_eq_pred_def less_pred_def
     inf_pred_def sup_pred_def bot_pred_def top_pred_def
-    Inf_pred_def Sup_pred_def,
+    Inf_pred_def Sup_pred_def uminus_pred_def minus_pred_def fun_Compl_def bool_Compl_def,
     auto simp add: le_fun_def less_fun_def le_bool_def less_bool_def
     eval_inject mem_def)
 
@@ -423,7 +414,7 @@ lemma sup_bind:
   by (auto simp add: bind_def sup_pred_def expand_fun_eq)
 
 lemma Sup_bind: "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (auto simp add: bind_def Sup_pred_def expand_fun_eq)
+  by (auto simp add: bind_def Sup_pred_def SUP1_iff expand_fun_eq)
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"
@@ -456,13 +447,134 @@ lemma botE: "eval \<bottom> x \<Longrightarrow> P"
   unfolding bot_pred_def by auto
 
 lemma supI1: "eval A x \<Longrightarrow> eval (A \<squnion> B) x"
-  unfolding sup_pred_def by simp
+  unfolding sup_pred_def by (simp add: sup1_iff)
 
 lemma supI2: "eval B x \<Longrightarrow> eval (A \<squnion> B) x" 
-  unfolding sup_pred_def by simp
+  unfolding sup_pred_def by (simp add: sup1_iff)
 
 lemma supE: "eval (A \<squnion> B) x \<Longrightarrow> (eval A x \<Longrightarrow> P) \<Longrightarrow> (eval B x \<Longrightarrow> P) \<Longrightarrow> P"
   unfolding sup_pred_def by auto
+
+lemma single_not_bot [simp]:
+  "single x \<noteq> \<bottom>"
+  by (auto simp add: single_def bot_pred_def expand_fun_eq)
+
+lemma not_bot:
+  assumes "A \<noteq> \<bottom>"
+  obtains x where "eval A x"
+using assms by (cases A)
+  (auto simp add: bot_pred_def, auto simp add: mem_def)
+  
+
+subsubsection {* Emptiness check and definite choice *}
+
+definition is_empty :: "'a pred \<Rightarrow> bool" where
+  "is_empty A \<longleftrightarrow> A = \<bottom>"
+
+lemma is_empty_bot:
+  "is_empty \<bottom>"
+  by (simp add: is_empty_def)
+
+lemma not_is_empty_single:
+  "\<not> is_empty (single x)"
+  by (auto simp add: is_empty_def single_def bot_pred_def expand_fun_eq)
+
+lemma is_empty_sup:
+  "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
+  by (auto simp add: is_empty_def intro: sup_eq_bot_eq1 sup_eq_bot_eq2)
+
+definition singleton :: "'a pred \<Rightarrow> 'a" where
+  "singleton A = (if \<exists>!x. eval A x then THE x. eval A x else undefined)"
+
+lemma singleton_eqI:
+  "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton A = x"
+  by (auto simp add: singleton_def)
+
+lemma eval_singletonI:
+  "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton A)"
+proof -
+  assume assm: "\<exists>!x. eval A x"
+  then obtain x where "eval A x" ..
+  moreover with assm have "singleton A = x" by (rule singleton_eqI)
+  ultimately show ?thesis by simp 
+qed
+
+lemma single_singleton:
+  "\<exists>!x. eval A x \<Longrightarrow> single (singleton A) = A"
+proof -
+  assume assm: "\<exists>!x. eval A x"
+  then have "eval A (singleton A)"
+    by (rule eval_singletonI)
+  moreover from assm have "\<And>x. eval A x \<Longrightarrow> singleton A = x"
+    by (rule singleton_eqI)
+  ultimately have "eval (single (singleton A)) = eval A"
+    by (simp (no_asm_use) add: single_def expand_fun_eq) blast
+  then show ?thesis by (simp add: eval_inject)
+qed
+
+lemma singleton_undefinedI:
+  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton A = undefined"
+  by (simp add: singleton_def)
+
+lemma singleton_bot:
+  "singleton \<bottom> = undefined"
+  by (auto simp add: bot_pred_def intro: singleton_undefinedI)
+
+lemma singleton_single:
+  "singleton (single x) = x"
+  by (auto simp add: intro: singleton_eqI singleI elim: singleE)
+
+lemma singleton_sup_single_single:
+  "singleton (single x \<squnion> single y) = (if x = y then x else undefined)"
+proof (cases "x = y")
+  case True then show ?thesis by (simp add: singleton_single)
+next
+  case False
+  have "eval (single x \<squnion> single y) x"
+    and "eval (single x \<squnion> single y) y"
+  by (auto intro: supI1 supI2 singleI)
+  with False have "\<not> (\<exists>!z. eval (single x \<squnion> single y) z)"
+    by blast
+  then have "singleton (single x \<squnion> single y) = undefined"
+    by (rule singleton_undefinedI)
+  with False show ?thesis by simp
+qed
+
+lemma singleton_sup_aux:
+  "singleton (A \<squnion> B) = (if A = \<bottom> then singleton B
+    else if B = \<bottom> then singleton A
+    else singleton
+      (single (singleton A) \<squnion> single (singleton B)))"
+proof (cases "(\<exists>!x. eval A x) \<and> (\<exists>!y. eval B y)")
+  case True then show ?thesis by (simp add: single_singleton)
+next
+  case False
+  from False have A_or_B:
+    "singleton A = undefined \<or> singleton B = undefined"
+    by (auto intro!: singleton_undefinedI)
+  then have rhs: "singleton
+    (single (singleton A) \<squnion> single (singleton B)) = undefined"
+    by (auto simp add: singleton_sup_single_single singleton_single)
+  from False have not_unique:
+    "\<not> (\<exists>!x. eval A x) \<or> \<not> (\<exists>!y. eval B y)" by simp
+  show ?thesis proof (cases "A \<noteq> \<bottom> \<and> B \<noteq> \<bottom>")
+    case True
+    then obtain a b where a: "eval A a" and b: "eval B b"
+      by (blast elim: not_bot)
+    with True not_unique have "\<not> (\<exists>!x. eval (A \<squnion> B) x)"
+      by (auto simp add: sup_pred_def bot_pred_def)
+    then have "singleton (A \<squnion> B) = undefined" by (rule singleton_undefinedI)
+    with True rhs show ?thesis by simp
+  next
+    case False then show ?thesis by auto
+  qed
+qed
+
+lemma singleton_sup:
+  "singleton (A \<squnion> B) = (if A = \<bottom> then singleton B
+    else if B = \<bottom> then singleton A
+    else if singleton A = singleton B then singleton A else undefined)"
+using singleton_sup_aux [of A B] by (simp only: singleton_sup_single_single)
 
 
 subsubsection {* Derived operations *}
@@ -630,6 +742,50 @@ lemma eq_is_eq: "eq x y \<equiv> (x = y)"
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
   "map f P = P \<guillemotright>= (single o f)"
 
+primrec null :: "'a seq \<Rightarrow> bool" where
+    "null Empty \<longleftrightarrow> True"
+  | "null (Insert x P) \<longleftrightarrow> False"
+  | "null (Join P xq) \<longleftrightarrow> is_empty P \<and> null xq"
+
+lemma null_is_empty:
+  "null xq \<longleftrightarrow> is_empty (pred_of_seq xq)"
+  by (induct xq) (simp_all add: is_empty_bot not_is_empty_single is_empty_sup)
+
+lemma is_empty_code [code]:
+  "is_empty (Seq f) \<longleftrightarrow> null (f ())"
+  by (simp add: null_is_empty Seq_def)
+
+primrec the_only :: "'a seq \<Rightarrow> 'a" where
+  [code del]: "the_only Empty = undefined"
+  | "the_only (Insert x P) = (if is_empty P then x else let y = singleton P in if x = y then x else undefined)"
+  | "the_only (Join P xq) = (if is_empty P then the_only xq else if null xq then singleton P
+       else let x = singleton P; y = the_only xq in
+       if x = y then x else undefined)"
+
+lemma the_only_singleton:
+  "the_only xq = singleton (pred_of_seq xq)"
+  by (induct xq)
+    (auto simp add: singleton_bot singleton_single is_empty_def
+    null_is_empty Let_def singleton_sup)
+
+lemma singleton_code [code]:
+  "singleton (Seq f) = (case f ()
+   of Empty \<Rightarrow> undefined
+    | Insert x P \<Rightarrow> if is_empty P then x
+        else let y = singleton P in
+          if x = y then x else undefined
+    | Join P xq \<Rightarrow> if is_empty P then the_only xq
+        else if null xq then singleton P
+        else let x = singleton P; y = the_only xq in
+          if x = y then x else undefined)"
+  by (cases "f ()")
+   (auto simp add: Seq_def the_only_singleton is_empty_def
+      null_is_empty singleton_bot singleton_single singleton_sup Let_def)
+
+lemma meta_fun_cong:
+"f == g ==> f x == g x"
+by simp
+
 ML {*
 signature PREDICATE =
 sig
@@ -707,7 +863,7 @@ no_notation
   bind (infixl "\<guillemotright>=" 70)
 
 hide (open) type pred seq
-hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq map
+hide (open) const Pred eval single bind is_empty singleton if_pred not_pred
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map
 
 end

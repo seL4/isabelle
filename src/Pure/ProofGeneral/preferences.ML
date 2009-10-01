@@ -18,11 +18,11 @@ sig
     get: unit -> string,
     set: string -> unit}
   val generic_pref: ('a -> string) -> (string -> 'a) -> PgipTypes.pgiptype ->
-    'a ref -> string -> string -> preference
-  val string_pref: string ref -> string -> string -> preference
-  val int_pref: int ref -> string -> string -> preference
-  val nat_pref: int ref -> string -> string -> preference
-  val bool_pref: bool ref -> string -> string -> preference
+    'a Unsynchronized.ref -> string -> string -> preference
+  val string_pref: string Unsynchronized.ref -> string -> string -> preference
+  val int_pref: int Unsynchronized.ref -> string -> string -> preference
+  val nat_pref: int Unsynchronized.ref -> string -> string -> preference
+  val bool_pref: bool Unsynchronized.ref -> string -> string -> preference
   type T = (string * preference list) list
   val pure_preferences: T
   val remove: string -> T -> T
@@ -95,8 +95,9 @@ val thm_deps_pref =
   let
     fun get () = PgipTypes.bool_to_pgstring (print_mode_active thm_depsN);
     fun set s =
-      if PgipTypes.read_pgipbool s then change print_mode (insert (op =) thm_depsN)
-      else change print_mode (remove (op =) thm_depsN);
+      if PgipTypes.read_pgipbool s
+      then Unsynchronized.change print_mode (insert (op =) thm_depsN)
+      else Unsynchronized.change print_mode (remove (op =) thm_depsN);
   in
     mkpref get set PgipTypes.Pgipbool "theorem-dependencies"
       "Track theorem dependencies within Proof General"

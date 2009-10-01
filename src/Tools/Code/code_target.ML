@@ -38,7 +38,7 @@ sig
   val code_of: theory -> string -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
-  val code_width: int ref
+  val code_width: int Unsynchronized.ref
 
   val allow_abort: string -> theory -> theory
   val add_syntax_class: string -> class -> string option -> theory -> theory
@@ -59,7 +59,7 @@ open Code_Printer;
 datatype destination = Compile | Export | File of Path.T | String of string list;
 type serialization = destination -> (string * string option list) option;
 
-val code_width = ref 80; (*FIXME after Pretty module no longer depends on print mode*)
+val code_width = Unsynchronized.ref 80; (*FIXME after Pretty module no longer depends on print mode*)
 fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
 fun code_of_pretty p = code_setmp Pretty.string_of p ^ "\n";
 fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;

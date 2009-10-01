@@ -112,7 +112,7 @@ sig
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
-  val show_question_marks: bool ref
+  val show_question_marks: bool Unsynchronized.ref
 end;
 
 signature TERM =
@@ -963,7 +963,7 @@ fun show_dummy_patterns (Var (("_dummy_", _), T)) = Const ("dummy_pattern", T)
 
 (* display variables *)
 
-val show_question_marks = ref true;
+val show_question_marks = Unsynchronized.ref true;
 
 fun string_of_vname (x, i) =
   let

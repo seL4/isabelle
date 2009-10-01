@@ -1055,28 +1055,6 @@ lemma norm_triangle_le: "norm(x::real ^'n::finite) + norm y <= e ==> norm(x + y)
 lemma norm_triangle_lt: "norm(x::real ^'n::finite) + norm(y) < e ==> norm(x + y) < e"
   by (metis basic_trans_rules(21) norm_triangle_ineq)
 
-lemma setsum_delta:
-  assumes fS: "finite S"
-  shows "setsum (\<lambda>k. if k=a then b k else 0) S = (if a \<in> S then b a else 0)"
-proof-
-  let ?f = "(\<lambda>k. if k=a then b k else 0)"
-  {assume a: "a \<notin> S"
-    hence "\<forall> k\<in> S. ?f k = 0" by simp
-    hence ?thesis  using a by simp}
-  moreover
-  {assume a: "a \<in> S"
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto
-    have "setsum ?f S = setsum ?f ?A + setsum ?f ?B"
-      using setsum_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
-      by simp
-    then have ?thesis  using a by simp}
-  ultimately show ?thesis by blast
-qed
-
 lemma component_le_norm: "\<bar>x$i\<bar> <= norm (x::real ^ 'n::finite)"
   apply (simp add: norm_vector_def)
   apply (rule member_le_setL2, simp_all)
@@ -2078,13 +2056,6 @@ definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A \<star> B) + (A \<star> C)"
   by (vector matrix_matrix_mult_def setsum_addf[symmetric] ring_simps)
-
-lemma setsum_delta':
-  assumes fS: "finite S" shows
-  "setsum (\<lambda>k. if a = k then b k else 0) S =
-     (if a\<in> S then b a else 0)"
-  using setsum_delta[OF fS, of a b, symmetric]
-  by (auto intro: setsum_cong)
 
 lemma matrix_mul_lid:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n::finite"
@@ -3678,10 +3649,7 @@ proof-
     from setsum_restrict_set[OF fS, of "\<lambda>v. u v *s v" S', symmetric] SS'
     have "setsum (\<lambda>v. ?u v *s v) S = setsum (\<lambda>v. u v *s v) S'"
       unfolding cond_value_iff cond_application_beta
-      apply (simp add: cond_value_iff cong del: if_weak_cong)
-      apply (rule setsum_cong)
-      apply auto
-      done
+      by (simp add: cond_value_iff inf_absorb2 cong del: if_weak_cong)
     hence "setsum (\<lambda>v. ?u v *s v) S = y" by (metis u)
     hence "y \<in> ?rhs" by auto}
   moreover
@@ -3926,14 +3894,6 @@ lemma independent_span_bound:
   shows "finite s \<and> card s \<le> card t"
   by (metis exchange_lemma[OF f i sp] hassize_def finite_subset card_mono)
 
-lemma finite_Atleast_Atmost[simp]: "finite {f x |x. x\<in> {(i::'a::finite_intvl_succ) .. j}}"
-proof-
-  have eq: "{f x |x. x\<in> {i .. j}} = f ` {i .. j}" by auto
-  show ?thesis unfolding eq
-    apply (rule finite_imageI)
-    apply (rule finite_intvl)
-    done
-qed
 
 lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x\<in> (UNIV::'a::finite set)}"
 proof-

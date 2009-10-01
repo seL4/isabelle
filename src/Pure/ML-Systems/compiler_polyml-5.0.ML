@@ -5,11 +5,11 @@ Runtime compilation for Poly/ML 5.0 and 5.1.
 
 fun use_text ({tune_source, print, error, ...}: use_context) (line, name) verbose txt =
   let
-    val in_buffer = ref (explode (tune_source txt));
-    val out_buffer = ref ([]: string list);
+    val in_buffer = Unsynchronized.ref (explode (tune_source txt));
+    val out_buffer = Unsynchronized.ref ([]: string list);
     fun output () = implode (rev (case ! out_buffer of "\n" :: cs => cs | cs => cs));
 
-    val current_line = ref line;
+    val current_line = Unsynchronized.ref line;
     fun get () =
       (case ! in_buffer of
         [] => ""

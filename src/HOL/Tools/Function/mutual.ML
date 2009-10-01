@@ -103,8 +103,8 @@ fun analyze_eqs ctxt defname fs eqs =
         val dresultTs = distinct (op =) resultTs
         val n' = length dresultTs
 
-        val RST = BalancedTree.make (uncurry SumTree.mk_sumT) dresultTs
-        val ST = BalancedTree.make (uncurry SumTree.mk_sumT) argTs
+        val RST = Balanced_Tree.make (uncurry SumTree.mk_sumT) dresultTs
+        val ST = Balanced_Tree.make (uncurry SumTree.mk_sumT) argTs
 
         val fsum_type = ST --> RST
 

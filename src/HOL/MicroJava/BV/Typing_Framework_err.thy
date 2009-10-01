@@ -62,15 +62,9 @@ lemma in_map_sndD: "(a,b) \<in> set (map_snd f xs) \<Longrightarrow> \<exists>b'
 lemma bounded_err_stepI:
   "\<forall>p. p < n \<longrightarrow> (\<forall>s. ap p s \<longrightarrow> (\<forall>(q,s') \<in> set (step p s). q < n))
   \<Longrightarrow> bounded (err_step n ap step) n"
-apply (unfold bounded_def)
-apply clarify
-apply (simp add: err_step_def split: err.splits)
-apply (simp add: error_def)
- apply blast
-apply (simp split: split_if_asm) 
- apply (blast dest: in_map_sndD)
-apply (simp add: error_def)
-apply blast
+apply (clarsimp simp: bounded_def err_step_def split: err.splits)
+apply (simp add: error_def image_def)
+apply (blast dest: in_map_sndD)
 done
 
 

@@ -18,51 +18,31 @@ are formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
-* New proof method "sos" (sum of squares) for nonlinear real arithmetic
-(originally due to John Harison). It requires Library/Sum_Of_Squares.
-It is not a complete decision procedure but works well in practice
-on quantifier-free real arithmetic with +, -, *, ^, =, <= and <,
-i.e. boolean combinations of equalities and inequalities between
-polynomials. It makes use of external semidefinite programming solvers.
-For more information and examples see Library/Sum_Of_Squares.
+* Most rules produced by inductive and datatype package
+have mandatory prefixes.
+INCOMPATIBILITY.
 
-* Set.UNIV and Set.empty are mere abbreviations for top and bot.  INCOMPATIBILITY.
+* New proof method "smt" for a combination of first-order logic
+with equality, linear and nonlinear (natural/integer/real)
+arithmetic, and fixed-size bitvectors; there is also basic
+support for higher-order features (esp. lambda abstractions).
+It is an incomplete decision procedure based on external SMT
+solvers using the oracle mechanism.
 
-* More convenient names for set intersection and union.  INCOMPATIBILITY:
+* Reorganization of number theory:
+  * former session NumberTheory now named Old_Number_Theory
+  * new session Number_Theory by Jeremy Avigad; if possible, prefer this.
+  * moved legacy theories Legacy_GCD and Primes from Library/ to Old_Number_Theory/;
+  * moved theory Pocklington from Library/ to Old_Number_Theory/;
+  * removed various references to Old_Number_Theory from HOL distribution.
+INCOMPATIBILITY.
 
-    Set.Int ~>  Set.inter
-    Set.Un ~>   Set.union
+* Theory GCD now has functions Gcd/GCD and Lcm/LCM for the gcd and lcm
+of finite and infinite sets. It is shown that they form a complete
+lattice.
 
-* Code generator attributes follow the usual underscore convention:
-    code_unfold     replaces    code unfold
-    code_post       replaces    code post
-    etc.
-  INCOMPATIBILITY.
-
-* New quickcheck implementation using new code generator.
-
-* New class "boolean_algebra".
-
-* Refinements to lattices classes:
-  - added boolean_algebra type class
-  - less default intro/elim rules in locale variant, more default
-    intro/elim rules in class variant: more uniformity
-  - lemma ge_sup_conv renamed to le_sup_iff, in accordance with le_inf_iff
-  - dropped lemma alias inf_ACI for inf_aci (same for sup_ACI and sup_aci)
-  - renamed ACI to inf_sup_aci
-  - class "complete_lattice" moved to separate theory "complete_lattice";
-    corresponding constants renamed:
-    
-    Set.Inf ~>      Complete_Lattice.Inf
-    Set.Sup ~>      Complete_Lattice.Sup
-    Set.INFI ~>     Complete_Lattice.INFI
-    Set.SUPR ~>     Complete_Lattice.SUPR
-    Set.Inter ~>    Complete_Lattice.Inter
-    Set.Union ~>    Complete_Lattice.Union
-    Set.INTER ~>    Complete_Lattice.INTER
-    Set.UNION ~>    Complete_Lattice.UNION
-
-  INCOMPATIBILITY.
+* Split off prime number ingredients from theory GCD
+to theory Number_Theory/Primes;
 
 * Class semiring_div requires superclass no_zero_divisors and proof of
 div_mult_mult1; theorems div_mult_mult1, div_mult_mult2,
@@ -72,20 +52,83 @@ zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and
 zdiv_zmult_zmult2.  div_mult_mult1 is now [simp] by default.
 INCOMPATIBILITY.
 
+* New testing tool "Mirabelle" for automated (proof) tools. Applies
+several tools and tactics like sledgehammer, metis, or quickcheck, to
+every proof step in a theory. To be used in batch mode via the
+"mirabelle" utility.
+
+* New proof method "sos" (sum of squares) for nonlinear real
+arithmetic (originally due to John Harison). It requires
+Library/Sum_Of_Squares.  It is not a complete decision procedure but
+works well in practice on quantifier-free real arithmetic with +, -,
+*, ^, =, <= and <, i.e. boolean combinations of equalities and
+inequalities between polynomials. It makes use of external
+semidefinite programming solvers.  For more information and examples
+see src/HOL/Library/Sum_Of_Squares.
+
+* Code generator attributes follow the usual underscore convention:
+    code_unfold     replaces    code unfold
+    code_post       replaces    code post
+    etc.
+  INCOMPATIBILITY.
+
+* Refinements to lattice classes and sets:
+  - less default intro/elim rules in locale variant, more default
+    intro/elim rules in class variant: more uniformity
+  - lemma ge_sup_conv renamed to le_sup_iff, in accordance with le_inf_iff
+  - dropped lemma alias inf_ACI for inf_aci (same for sup_ACI and sup_aci)
+  - renamed ACI to inf_sup_aci
+  - new class "boolean_algebra"
+  - class "complete_lattice" moved to separate theory "complete_lattice";
+    corresponding constants (and abbreviations) renamed and with authentic syntax:
+    Set.Inf ~>      Complete_Lattice.Inf
+    Set.Sup ~>      Complete_Lattice.Sup
+    Set.INFI ~>     Complete_Lattice.INFI
+    Set.SUPR ~>     Complete_Lattice.SUPR
+    Set.Inter ~>    Complete_Lattice.Inter
+    Set.Union ~>    Complete_Lattice.Union
+    Set.INTER ~>    Complete_Lattice.INTER
+    Set.UNION ~>    Complete_Lattice.UNION
+  - more convenient names for set intersection and union:
+    Set.Int ~>      Set.inter
+    Set.Un ~>       Set.union
+  - authentic syntax for
+    Set.Pow
+    Set.image
+  - mere abbreviations:
+    Set.empty               (for bot)
+    Set.UNIV                (for top)
+    Set.inter               (for inf)
+    Set.union               (for sup)
+    Complete_Lattice.Inter  (for Inf)
+    Complete_Lattice.Union  (for Sup)
+    Complete_Lattice.INTER  (for INFI)
+    Complete_Lattice.UNION  (for SUPR)
+  - object-logic definitions as far as appropriate
+
+INCOMPATIBILITY.  Care is required when theorems Int_subset_iff or
+Un_subset_iff are explicitly deleted as default simp rules;  then
+also their lattice counterparts le_inf_iff and le_sup_iff have to be
+deleted to achieve the desired effect.
+
+* Rules inf_absorb1, inf_absorb2, sup_absorb1, sup_absorb2 are no
+simp rules by default any longer.  The same applies to
+min_max.inf_absorb1 etc.!  INCOMPATIBILITY.
+
+* sup_Int_eq and sup_Un_eq are no default pred_set_conv rules any longer.
+INCOMPATIBILITY.
+
 * Power operations on relations and functions are now one dedicate
-constant compow with infix syntax "^^".  Power operations on
+constant "compow" with infix syntax "^^".  Power operation on
 multiplicative monoids retains syntax "^" and is now defined generic
 in class power.  INCOMPATIBILITY.
 
-* Relation composition "R O S" now has a "more standard" argument order,
-i.e., "R O S = {(x,z). EX y. (x,y) : R & (y,z) : S }".
+* Relation composition "R O S" now has a "more standard" argument
+order, i.e., "R O S = {(x,z). EX y. (x,y) : R & (y,z) : S }".
 INCOMPATIBILITY: Rewrite propositions with "S O R" --> "R O S". Proofs
-may occationally break, since the O_assoc rule was not rewritten like this.
-Fix using O_assoc[symmetric].
-The same applies to the curried version "R OO S".
-
-* GCD now has functions Gcd/GCD and Lcm/LCM for the gcd and lcm of finite and
-infinite sets. It is shown that they form a complete lattice.
+may occationally break, since the O_assoc rule was not rewritten like
+this.  Fix using O_assoc[symmetric].  The same applies to the curried
+version "R OO S".
 
 * ML antiquotation @{code_datatype} inserts definition of a datatype
 generated by the code generator; see Predicate.thy for an example.
@@ -93,23 +136,25 @@ generated by the code generator; see Predicate.thy for an example.
 * New method "linarith" invokes existing linear arithmetic decision
 procedure only.
 
-* Implementation of quickcheck using generic code generator; default
-generators are provided for all suitable HOL types, records and
-datatypes.
-
-* Constants Set.Pow and Set.image now with authentic syntax;
-object-logic definitions Set.Pow_def and Set.image_def.
-INCOMPATIBILITY.
+* New implementation of quickcheck uses generic code generator;
+default generators are provided for all suitable HOL types, records
+and datatypes.
 
 * Renamed theorems:
 Suc_eq_add_numeral_1 -> Suc_eq_plus1
 Suc_eq_add_numeral_1_left -> Suc_eq_plus1_left
 Suc_plus1 -> Suc_eq_plus1
 
+* Moved theorems:
+Wellfounded.in_inv_image -> Relation.in_inv_image
+
 * New sledgehammer option "Full Types" in Proof General settings menu.
 Causes full type information to be output to the ATPs.  This slows
 ATPs down considerably but eliminates a source of unsound "proofs"
 that fail later.
+
+* New method metisFT: A version of metis that uses full type information
+in order to avoid failures of proof reconstruction.
 
 * Discontinued ancient tradition to suffix certain ML module names
 with "_package", e.g.:
@@ -117,17 +162,10 @@ with "_package", e.g.:
     DatatypePackage ~> Datatype
     InductivePackage ~> Inductive
 
-    etc.
-
 INCOMPATIBILITY.
 
-* NewNumberTheory: Jeremy Avigad's new version of part of
-NumberTheory.  If possible, use NewNumberTheory, not NumberTheory.
-
-* Simplified interfaces of datatype module.  INCOMPATIBILITY.
-
-* Abbreviation "arbitrary" of "undefined" has disappeared; use
-"undefined" directly.  INCOMPATIBILITY.
+* Discontinued abbreviation "arbitrary" of constant
+"undefined". INCOMPATIBILITY, use "undefined" directly.
 
 * New evaluator "approximate" approximates an real valued term using
 the same method as the approximation method.
@@ -148,13 +186,30 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* Structure Synchronized (cf. src/Pure/Concurrent/synchronized.ML)
+provides a high-level programming interface to synchronized state
+variables with atomic update.  This works via pure function
+application within a critical section -- its runtime should be as
+short as possible; beware of deadlocks if critical code is nested,
+either directly or indirectly via other synchronized variables!
+
+* Structure Unsynchronized (cf. src/Pure/ML-Systems/unsynchronized.ML)
+wraps raw ML references, explicitly indicating their non-thread-safe
+behaviour.  The Isar toplevel keeps this structure open, to
+accommodate Proof General as well as quick and dirty interactive
+experiments with references.
+
 * PARALLEL_CHOICE and PARALLEL_GOALS provide basic support for
 parallel tactical reasoning.
 
-* Tactical FOCUS is similar to SUBPROOF, but allows the body tactic to
-introduce new subgoals and schematic variables.  FOCUS_PARAMS is
-similar, but focuses on the parameter prefix only, leaving subgoal
-premises unchanged.
+* Tacticals Subgoal.FOCUS, Subgoal.FOCUS_PREMS, Subgoal.FOCUS_PARAMS
+are similar to SUBPROOF, but are slightly more flexible: only the
+specified parts of the subgoal are imported into the context, and the
+body tactic may introduce new subgoals and schematic variables.
+
+* Old tactical METAHYPS, which does not observe the proof context, has
+been renamed to Old_Goals.METAHYPS and awaits deletion.  Use SUBPROOF
+or Subgoal.FOCUS etc.
 
 * Renamed functor TableFun to Table, and GraphFun to Graph.  (Since
 functors have their own ML name space there is no point to mark them
@@ -174,6 +229,10 @@ last resort.  INCOMPATIBILITY.
 ProofContext.pretty_thm).  May fall back on Display.pretty_thm_global
 or even Display.pretty_thm_without_context as last resort.
 INCOMPATIBILITY.
+
+* Discontinued Display.pretty_ctyp/cterm etc.  INCOMPATIBILITY, use
+Syntax.pretty_typ/term directly, preferably with proper context
+instead of global theory.
 
 
 *** System ***

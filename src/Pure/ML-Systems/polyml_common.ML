@@ -19,6 +19,8 @@ use "ML-Systems/use_context.ML";
 val forget_structure = PolyML.Compiler.forgetStructure;
 
 val _ = PolyML.Compiler.forgetValue "print";
+val _ = PolyML.Compiler.forgetValue "ref";
+val _ = PolyML.Compiler.forgetType "ref";
 
 
 (* Compiler options *)
@@ -50,7 +52,7 @@ fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 :
 (* print depth *)
 
 local
-  val depth = ref 10;
+  val depth = Unsynchronized.ref 10;
 in
   fun get_print_depth () = ! depth;
   fun print_depth n = (depth := n; PolyML.print_depth n);

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Matrix/cplex/CplexMatrixConverter.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 

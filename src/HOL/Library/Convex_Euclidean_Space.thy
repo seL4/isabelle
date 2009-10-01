@@ -3355,9 +3355,8 @@ lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_conn
   qed(auto intro!:path_connected_singleton) next
   case False hence *:"{x::real^'n. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" unfolding not_le apply -apply(rule set_ext,rule)
     unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib)
-  have ***:"\<And>xa. (if xa = 0 then 0 else 1) \<noteq> 1 \<Longrightarrow> xa = 0" apply(rule ccontr) by auto
   have **:"{x::real^'n. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_ext,rule)
-    unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto intro!: ***)
+    unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto split:split_if_asm)
   have "continuous_on (UNIV - {0}) (\<lambda>x::real^'n. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
     apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)
     apply(rule continuous_at_norm[unfolded o_def]) by auto

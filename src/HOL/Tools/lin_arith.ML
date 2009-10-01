@@ -22,8 +22,8 @@ sig
   val global_setup: theory -> theory
   val split_limit: int Config.T
   val neq_limit: int Config.T
-  val warning_count: int ref
-  val trace: bool ref
+  val warning_count: int Unsynchronized.ref
+  val trace: bool Unsynchronized.ref
 end;
 
 structure Lin_Arith: LIN_ARITH =
@@ -51,7 +51,7 @@ fun atomize thm = case Thm.prop_of thm of
     atomize (thm RS conjunct1) @ atomize (thm RS conjunct2)
   | _ => [thm];
 
-fun neg_prop ((TP as Const("Trueprop", _)) $ (Const (@{const_name "Not"}, _) $ t)) = TP $ t
+fun neg_prop ((TP as Const("Trueprop", _)) $ (Const (@{const_name Not}, _) $ t)) = TP $ t
   | neg_prop ((TP as Const("Trueprop", _)) $ t) = TP $ (HOLogic.Not $t)
   | neg_prop t = raise TERM ("neg_prop", [t]);
 

@@ -27,7 +27,7 @@ signature HYPSUBST =
   val inspect_pair        : bool -> term * term -> thm
   end;
 
-functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST = 
+functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST =
 struct
 
 local open Data in
@@ -43,13 +43,13 @@ fun loose (i,t) = 0 mem add_loose_bnos(t,i,[]);
     but how could we check for this?*)
 fun inspect_pair bnd (t,u) =
   case (Envir.eta_contract t, Envir.eta_contract u) of
-       (Bound i, _) => if loose(i,u) then raise Match 
+       (Bound i, _) => if loose(i,u) then raise Match
                        else sym         (*eliminates t*)
-     | (_, Bound i) => if loose(i,t) then raise Match 
+     | (_, Bound i) => if loose(i,t) then raise Match
                        else asm_rl      (*eliminates u*)
-     | (Free _, _) => if bnd orelse Logic.occs(t,u) then raise Match 
+     | (Free _, _) => if bnd orelse Logic.occs(t,u) then raise Match
                       else sym          (*eliminates t*)
-     | (_, Free _) => if bnd orelse Logic.occs(u,t) then raise Match 
+     | (_, Free _) => if bnd orelse Logic.occs(u,t) then raise Match
                       else asm_rl       (*eliminates u*)
      | _ => raise Match;
 
@@ -58,7 +58,7 @@ fun inspect_pair bnd (t,u) =
    the rule asm_rl (resp. sym). *)
 fun eq_var bnd =
   let fun eq_var_aux k (Const("all",_) $ Abs(_,_,t)) = eq_var_aux k t
-        | eq_var_aux k (Const("==>",_) $ A $ B) = 
+        | eq_var_aux k (Const("==>",_) $ A $ B) =
               ((k, inspect_pair bnd (dest_eq A))
                       (*Exception Match comes from inspect_pair or dest_eq*)
                handle Match => eq_var_aux (k+1) B)
@@ -70,13 +70,13 @@ fun eq_var bnd =
 fun gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
       let val n = length(Logic.strip_assums_hyp Bi) - 1
           val (k,symopt) = eq_var bnd Bi
-      in 
+      in
          DETERM
            (EVERY [REPEAT_DETERM_N k (etac rev_mp i),
-		   etac revcut_rl i,
-		   REPEAT_DETERM_N (n-k) (etac rev_mp i),
-		   etac (symopt RS subst) i,
-		   REPEAT_DETERM_N n (rtac imp_intr i)])
+                   etac revcut_rl i,
+                   REPEAT_DETERM_N (n-k) (etac rev_mp i),
+                   etac (symopt RS subst) i,
+                   REPEAT_DETERM_N n (rtac imp_intr i)])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
 

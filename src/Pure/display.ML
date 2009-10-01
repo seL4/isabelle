@@ -7,10 +7,10 @@ Printing of theorems, results etc.
 
 signature BASIC_DISPLAY =
 sig
-  val goals_limit: int ref
-  val show_consts: bool ref
-  val show_hyps: bool ref
-  val show_tags: bool ref
+  val goals_limit: int Unsynchronized.ref
+  val show_consts: bool Unsynchronized.ref
+  val show_hyps: bool Unsynchronized.ref
+  val show_tags: bool Unsynchronized.ref
 end;
 
 signature DISPLAY =
@@ -27,12 +27,6 @@ sig
   val string_of_thm_without_context: thm -> string
   val pretty_thms_aux: Proof.context -> bool -> thm list -> Pretty.T
   val pretty_thms: Proof.context -> thm list -> Pretty.T
-  val pretty_ctyp: ctyp -> Pretty.T
-  val string_of_ctyp: ctyp -> string
-  val print_ctyp: ctyp -> unit
-  val pretty_cterm: cterm -> Pretty.T
-  val string_of_cterm: cterm -> string
-  val print_cterm: cterm -> unit
   val print_syntax: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T list
 end;
@@ -45,8 +39,8 @@ struct
 val goals_limit = Goal_Display.goals_limit;
 val show_consts = Goal_Display.show_consts;
 
-val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
-val show_tags = ref false;      (*false: suppress tags*)
+val show_hyps = Unsynchronized.ref false;    (*false: print meta-hypotheses as dots*)
+val show_tags = Unsynchronized.ref false;    (*false: suppress tags*)
 
 
 
@@ -119,17 +113,6 @@ fun pretty_thms_aux ctxt flag [th] = pretty_thm_aux ctxt flag th
       Pretty.blk (0, Pretty.fbreaks (map (pretty_thm_aux ctxt flag) ths));
 
 fun pretty_thms ctxt = pretty_thms_aux ctxt true;
-
-
-(* other printing commands *)
-
-fun pretty_ctyp cT = Syntax.pretty_typ_global (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
-fun string_of_ctyp cT = Syntax.string_of_typ_global (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
-val print_ctyp = writeln o string_of_ctyp;
-
-fun pretty_cterm ct = Syntax.pretty_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct);
-fun string_of_cterm ct = Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct);
-val print_cterm = writeln o string_of_cterm;
 
 
 

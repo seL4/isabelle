@@ -493,7 +493,7 @@ lemma bintrunc_bintrunc_l:
 
 lemma sbintrunc_sbintrunc_l:
   "n <= m ==> (sbintrunc m (sbintrunc n w) = sbintrunc n w)"
-  by (rule bin_eqI) (auto simp: nth_sbintr min_def)
+  by (rule bin_eqI) (auto simp: nth_sbintr)
 
 lemma bintrunc_bintrunc_ge:
   "n <= m ==> (bintrunc n (bintrunc m w) = bintrunc n w)"
@@ -501,16 +501,14 @@ lemma bintrunc_bintrunc_ge:
 
 lemma bintrunc_bintrunc_min [simp]:
   "bintrunc m (bintrunc n w) = bintrunc (min m n) w"
-  apply (unfold min_def)
   apply (rule bin_eqI)
   apply (auto simp: nth_bintr)
   done
 
 lemma sbintrunc_sbintrunc_min [simp]:
   "sbintrunc m (sbintrunc n w) = sbintrunc (min m n) w"
-  apply (unfold min_def)
   apply (rule bin_eqI)
-  apply (auto simp: nth_sbintr)
+  apply (auto simp: nth_sbintr min_max.inf_absorb1 min_max.inf_absorb2)
   done
 
 lemmas bintrunc_Pls = 

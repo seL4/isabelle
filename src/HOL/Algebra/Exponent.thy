@@ -1,15 +1,12 @@
 (*  Title:      HOL/Algebra/Exponent.thy
-    ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
 
     exponent p s   yields the greatest power of p that divides s.
 *)
 
 theory Exponent
-imports Main Primes Binomial
+imports Main "~~/src/HOL/Old_Number_Theory/Primes" Binomial
 begin
-
-hide (open) const GCD.gcd GCD.coprime GCD.prime
 
 section {*Sylow's Theorem*}
 

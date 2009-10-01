@@ -30,16 +30,19 @@ EOF
     then
       echo -e "$FILE (global)" >&2
       "$THIS/scripts/mlpp" -c isabelle "src/$FILE" | \
-      perl -p -e 's/\b([A-Za-z]+\.[A-Za-z]+)/Metis.\1/g;' -e 's/\bfrag\b/Metis.frag/;'
+      perl -p -e 's/\b([A-Za-z]+\.[A-Za-z]+)/Metis.\1/g;' -e 's/\bfrag\b/Metis.frag/;' | \
+      perl -p -e 's/\bref\b/Unsynchronized.ref/g;'
     elif fgrep -q functor "src/$FILE"
     then
       "$THIS/scripts/mlpp" -c isabelle "src/$FILE" | \
-      perl -p -e 's/ union / op union /g;' -e 's/ subset / op subset /g;'
+      perl -p -e 's/ union / op union /g;' -e 's/ subset / op subset /g;' | \
+      perl -p -e 's/\bref\b/Unsynchronized.ref/g;'
     else
       echo -e "$FILE (local)" >&2
       echo "structure Metis = struct open Metis"
       cat < "metis_env.ML"
-      "$THIS/scripts/mlpp" -c isabelle "src/$FILE"
+      "$THIS/scripts/mlpp" -c isabelle "src/$FILE" | \
+      perl -p -e 's/\bref\b/Unsynchronized.ref/g;'
       echo "end;"
     fi
   done

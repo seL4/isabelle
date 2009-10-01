@@ -86,13 +86,13 @@ struct
 (** theory context references **)
 
 val inductive_forall_name = "HOL.induct_forall";
-val inductive_forall_def = thm "induct_forall_def";
+val inductive_forall_def = @{thm induct_forall_def};
 val inductive_conj_name = "HOL.induct_conj";
-val inductive_conj_def = thm "induct_conj_def";
-val inductive_conj = thms "induct_conj";
-val inductive_atomize = thms "induct_atomize";
-val inductive_rulify = thms "induct_rulify";
-val inductive_rulify_fallback = thms "induct_rulify_fallback";
+val inductive_conj_def = @{thm induct_conj_def};
+val inductive_conj = @{thms induct_conj};
+val inductive_atomize = @{thms induct_atomize};
+val inductive_rulify = @{thms induct_rulify};
+val inductive_rulify_fallback = @{thms induct_rulify_fallback};
 
 val notTrueE = TrueI RSN (2, notE);
 val notFalseI = Seq.hd (atac 1 notI);
@@ -103,6 +103,10 @@ val simp_thms' = map mk_meta_eq
       "(P & True) = P" "(True & P) = P"
     by (fact simp_thms)+};
 
+val simp_thms'' = map mk_meta_eq [@{thm inf_fun_eq}, @{thm inf_bool_eq}] @ simp_thms';
+
+val simp_thms''' = map mk_meta_eq
+  [@{thm le_fun_def}, @{thm le_bool_def}, @{thm sup_fun_eq}, @{thm sup_bool_eq}];
 
 
 (** context data **)
@@ -170,15 +174,15 @@ fun mk_mono thm =
       (case concl of
           (_ $ (_ $ (Const ("Not", _) $ _) $ _)) => []
         | _ => [thm' RS (thm' RS eq_to_mono2)]);
-    fun dest_less_concl thm = dest_less_concl (thm RS le_funD)
-      handle THM _ => thm RS le_boolD
+    fun dest_less_concl thm = dest_less_concl (thm RS @{thm le_funD})
+      handle THM _ => thm RS @{thm le_boolD}
   in
     case concl of
       Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
     | _ $ (Const ("op =", _) $ _ $ _) => eq2mono thm
-    | _ $ (Const ("HOL.ord_class.less_eq", _) $ _ $ _) =>
+    | _ $ (Const (@{const_name HOL.less_eq}, _) $ _ $ _) =>
       [dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
-         (resolve_tac [le_funI, le_boolI'])) thm))]
+         (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))]
     | _ => [thm]
   end handle THM _ =>
     error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm_without_context thm);
@@ -322,11 +326,11 @@ fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
     (fn _ => EVERY [rtac @{thm monoI} 1,
-      REPEAT (resolve_tac [le_funI, le_boolI'] 1),
+      REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST
         [atac 1,
          resolve_tac (List.concat (map mk_mono monos) @ get_monos ctxt) 1,
-         etac le_funE 1, dtac le_boolD 1])]));
+         etac @{thm le_funE} 1, dtac @{thm le_boolD} 1])]));
 
 
 (* prove introduction rules *)
@@ -337,7 +341,7 @@ fun prove_intrs quiet_mode coind mono fp_def k params intr_ts rec_preds_defs ctx
 
     val unfold = funpow k (fn th => th RS fun_cong)
       (mono RS (fp_def RS
-        (if coind then def_gfp_unfold else def_lfp_unfold)));
+        (if coind then @{thm def_gfp_unfold} else @{thm def_lfp_unfold})));
 
     fun select_disj 1 1 = []
       | select_disj _ 1 = [rtac disjI1]
@@ -552,14 +556,14 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     val ind_concl = HOLogic.mk_Trueprop
       (HOLogic.mk_binrel "HOL.ord_class.less_eq" (rec_const, ind_pred));
 
-    val raw_fp_induct = (mono RS (fp_def RS def_lfp_induct));
+    val raw_fp_induct = (mono RS (fp_def RS @{thm def_lfp_induct}));
 
     val induct = SkipProof.prove ctxt'' [] ind_prems ind_concl
       (fn {prems, ...} => EVERY
         [rewrite_goals_tac [inductive_conj_def],
          DETERM (rtac raw_fp_induct 1),
-         REPEAT (resolve_tac [le_funI, le_boolI] 1),
-         rewrite_goals_tac (inf_fun_eq :: inf_bool_eq :: simp_thms'),
+         REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI}] 1),
+         rewrite_goals_tac simp_thms'',
          (*This disjE separates out the introduction rules*)
          REPEAT (FIRSTGOAL (eresolve_tac [disjE, exE, FalseE])),
          (*Now break down the individual cases.  No disjE here in case
@@ -568,7 +572,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (FIRSTGOAL
            (resolve_tac [conjI, impI] ORELSE' (etac notE THEN' atac))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule
-             (inductive_conj_def :: rec_preds_defs @ simp_thms') prem,
+             (inductive_conj_def :: rec_preds_defs @ simp_thms'') prem,
            conjI, refl] 1)) prems)]);
 
     val lemma = SkipProof.prove ctxt'' [] []
@@ -576,7 +580,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
         [rewrite_goals_tac rec_preds_defs,
          REPEAT (EVERY
            [REPEAT (resolve_tac [conjI, impI] 1),
-            REPEAT (eresolve_tac [le_funE, le_boolE] 1),
+            REPEAT (eresolve_tac [@{thm le_funE}, @{thm le_boolE}] 1),
             atac 1,
             rewrite_goals_tac simp_thms',
             atac 1])])
@@ -679,7 +683,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
       elims raw_induct ctxt =
   let
     val rec_name = Binding.name_of rec_binding;
-    val rec_qualified = Binding.qualify false rec_name;
+    fun rec_qualified qualified = Binding.qualify qualified rec_name;
     val intr_names = map Binding.name_of intr_bindings;
     val ind_case_names = RuleCases.case_names intr_names;
     val induct =
@@ -694,29 +698,29 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
     val (intrs', ctxt1) =
       ctxt |>
       LocalTheory.notes kind
-        (map rec_qualified intr_bindings ~~ intr_atts ~~ map (fn th => [([th],
+        (map (rec_qualified false) intr_bindings ~~ intr_atts ~~ map (fn th => [([th],
            [Attrib.internal (K (ContextRules.intro_query NONE)),
             Attrib.internal (K Nitpick_Ind_Intros.add)])]) intrs) |>>
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), ctxt2) =
       ctxt1 |>
-      LocalTheory.note kind ((rec_qualified (Binding.name "intros"), []), intrs') ||>>
+      LocalTheory.note kind ((rec_qualified true (Binding.name "intros"), []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
-        LocalTheory.note kind ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "cases"),
+        LocalTheory.note kind ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
           [Attrib.internal (K (RuleCases.case_names cases)),
            Attrib.internal (K (RuleCases.consumes 1)),
            Attrib.internal (K (Induct.cases_pred name)),
            Attrib.internal (K (ContextRules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       LocalTheory.note kind
-        ((rec_qualified (Binding.name (coind_prefix coind ^ "induct")),
+        ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),
           map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
     val ctxt3 = if no_ind orelse coind then ctxt2 else
       let val inducts = cnames ~~ Project_Rule.projects ctxt2 (1 upto length cnames) induct'
       in
         ctxt2 |>
-        LocalTheory.notes kind [((rec_qualified (Binding.name "inducts"), []),
+        LocalTheory.notes kind [((rec_qualified true (Binding.name "inducts"), []),
           inducts |> map (fn (name, th) => ([th],
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (RuleCases.consumes 1)),
@@ -762,8 +766,8 @@ fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, sk
            (snd (Variable.add_fixes (map (fst o dest_Free) params) ctxt1)) ctxt1)
            (rotate_prems ~1 (ObjectLogic.rulify
              (fold_rule rec_preds_defs
-               (rewrite_rule [le_fun_def, le_bool_def, sup_fun_eq, sup_bool_eq]
-                (mono RS (fp_def RS def_coinduct))))))
+               (rewrite_rule simp_thms'''
+                (mono RS (fp_def RS @{thm def_coinduct}))))))
        else
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs ctxt1);

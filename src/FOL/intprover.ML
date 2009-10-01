@@ -79,8 +79,7 @@ val inst_step_tac =
 (*One safe or unsafe step. *)
 fun step_tac i = FIRST [safe_tac, inst_step_tac i, biresolve_tac haz_brls i];
 
-fun step_dup_tac i = FIRST [safe_tac, inst_step_tac i, 
-			    biresolve_tac haz_dup_brls i];
+fun step_dup_tac i = FIRST [safe_tac, inst_step_tac i, biresolve_tac haz_dup_brls i];
 
 (*Dumb but fast*)
 val fast_tac = SELECT_GOAL (DEPTH_SOLVE (step_tac 1));

@@ -5,7 +5,7 @@
 header {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
-imports List Code_Eval Main
+imports List Code_Evaluation Main
 begin
 
 code_type char
@@ -32,7 +32,7 @@ code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")
 
-code_const "Code_Eval.term_of \<Colon> char \<Rightarrow> term"
+code_const "Code_Evaluation.term_of \<Colon> char \<Rightarrow> term"
   (Eval "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
 
 end

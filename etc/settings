@@ -173,7 +173,7 @@ DVI_VIEWER=xdvi
 
 # The pdf file viewer
 if [ $(uname -s) = Darwin ]; then
-  PDF_VIEWER=open
+  PDF_VIEWER="open -W -n"
 else
   PDF_VIEWER=xpdf
 fi
@@ -205,22 +205,6 @@ PROOFGENERAL_OPTIONS=""
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 XSYMBOL_INSTALLFONTS=""
 
-
-###
-### jEdit
-###
-
-JEDIT_HOME=$(choosefrom \
-  "$ISABELLE_HOME/contrib/jedit" \
-  "$ISABELLE_HOME/../jedit" \
-  "/usr/local/jedit" \
-  "/usr/share/jedit" \
-  "/opt/jedit" \
-  "")
-
-JEDIT_JAVA_OPTIONS=""
-#JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
-JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 
 ###
 ### External reasoning tools

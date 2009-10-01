@@ -3,6 +3,8 @@
 Compatibility wrapper for Poly/ML 5.2 and 5.2.1.
 *)
 
+use "ML-Systems/unsynchronized.ML";
+
 open Thread;
 
 structure ML_Name_Space =

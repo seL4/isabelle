@@ -11,9 +11,9 @@ infix 4
 
 signature BASIC_META_SIMPLIFIER =
 sig
-  val debug_simp: bool ref
-  val trace_simp: bool ref
-  val trace_simp_depth_limit: int ref
+  val debug_simp: bool Unsynchronized.ref
+  val trace_simp: bool Unsynchronized.ref
+  val trace_simp_depth_limit: int Unsynchronized.ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type simpset
@@ -84,7 +84,7 @@ sig
    {rules: rrule Net.net,
     prems: thm list,
     bounds: int * ((string * typ) * string) list,
-    depth: int * bool ref,
+    depth: int * bool Unsynchronized.ref,
     context: Proof.context option} *
    {congs: (string * thm) list * string list,
     procs: proc Net.net,
@@ -112,7 +112,7 @@ sig
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
   val theory_context: theory  -> simpset -> simpset
-  val debug_bounds: bool ref
+  val debug_bounds: bool Unsynchronized.ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
   val rewrite_cterm: bool * bool * bool -> (simpset -> thm -> thm option) -> simpset -> conv
@@ -190,7 +190,7 @@ datatype simpset =
    {rules: rrule Net.net,
     prems: thm list,
     bounds: int * ((string * typ) * string) list,
-    depth: int * bool ref,
+    depth: int * bool Unsynchronized.ref,
     context: Proof.context option} *
    {congs: (string * thm) list * string list,
     procs: proc Net.net,
@@ -256,7 +256,7 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 val simp_depth_limit_value = Config.declare false "simp_depth_limit" (Config.Int 100);
 val simp_depth_limit = Config.int simp_depth_limit_value;
 
-val trace_simp_depth_limit = ref 1;
+val trace_simp_depth_limit = Unsynchronized.ref 1;
 
 fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
   if depth > ! trace_simp_depth_limit then
@@ -266,7 +266,8 @@ fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
 
 val inc_simp_depth = map_simpset1 (fn (rules, prems, bounds, (depth, exceeded), context) =>
   (rules, prems, bounds,
-    (depth + 1, if depth = ! trace_simp_depth_limit then ref false else exceeded), context));
+    (depth + 1,
+      if depth = ! trace_simp_depth_limit then Unsynchronized.ref false else exceeded), context));
 
 fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
@@ -275,8 +276,8 @@ fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
 exception SIMPLIFIER of string * thm;
 
-val debug_simp = ref false;
-val trace_simp = ref false;
+val debug_simp = Unsynchronized.ref false;
+val trace_simp = Unsynchronized.ref false;
 
 local
 
@@ -746,7 +747,7 @@ fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
 (* empty *)
 
 fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], (0, []), (0, ref false), NONE),
+  make_simpset ((Net.empty, [], (0, []), (0, Unsynchronized.ref false), NONE),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
 
 fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
@@ -1209,7 +1210,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
-val debug_bounds = ref false;
+val debug_bounds = Unsynchronized.ref false;
 
 fun check_bounds ss ct =
   if ! debug_bounds then
@@ -1337,5 +1338,5 @@ end;
 
 end;
 
-structure BasicMetaSimplifier: BASIC_META_SIMPLIFIER = MetaSimplifier;
-open BasicMetaSimplifier;
+structure Basic_Meta_Simplifier: BASIC_META_SIMPLIFIER = MetaSimplifier;
+open Basic_Meta_Simplifier;

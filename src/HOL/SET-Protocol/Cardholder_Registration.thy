@@ -715,6 +715,7 @@ lemma Nonce_analz_image_Key_lemma:
       ==> P --> (Nonce N \<in> analz (Key`KK Un H)) = (Nonce N \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
+
 text{*The @{text "(no_asm)"} attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.*}
 lemma Nonce_compromise [rule_format (no_asm)]:
@@ -741,12 +742,11 @@ apply spy_analz  --{*Fake*}
 apply blast  --{*3*}
 apply blast  --{*5*}
 txt{*Message 6*}
-apply (force del: allE ballE impCE simp add: symKey_compromise)
+apply (metis symKey_compromise)
   --{*cardSK compromised*}
 txt{*Simplify again--necessary because the previous simplification introduces
-  some logical connectives*}
-apply (force del: allE ballE impCE
-          simp del: image_insert image_Un imp_disjL
+  some logical connectives*} 
+apply (force simp del: image_insert image_Un imp_disjL
           simp add: analz_image_keys_simps symKey_compromise)
 done
 

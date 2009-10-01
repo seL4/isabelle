@@ -108,8 +108,8 @@ datatype ('key, 'data) hash_table =
     HT of {hashVal   : 'key -> int,
 	   sameKey   : 'key * 'key -> bool,
 	   not_found : exn,
-	   table     : ('key, 'data) bucket_t Array.array ref,
-	   n_items   : int ref}
+	   table     : ('key, 'data) bucket_t Array.array Unsynchronized.ref,
+	   n_items   : int Unsynchronized.ref}
 
 local
 (*
@@ -134,8 +134,8 @@ end;
             hashVal=hashVal,
 	    sameKey=sameKey,
 	    not_found = notFound,
-	    table = ref (Array.array(roundUp sizeHint, NIL)),
-	    n_items = ref 0
+	    table = Unsynchronized.ref (Array.array(roundUp sizeHint, NIL)),
+	    n_items = Unsynchronized.ref 0
 	  };
 
   (* conditionally grow a table *)
@@ -174,7 +174,7 @@ end;
 	  val indx = index (hash, sz)
 	  fun look NIL = (
 		Array.update(arr, indx, B(hash, key, item, Array.sub(arr, indx)));
-		inc n_items;
+		Unsynchronized.inc n_items;
 		growTable tbl;
 		NIL)
 	    | look (B(h, k, v, r)) = if ((hash = h) andalso sameKey(key, k))
@@ -200,7 +200,7 @@ end;
 	    fun look NIL = 
 		(Array.update(arr, indx, B(hash, key, item, 
 					   Array.sub(arr, indx)));
-		 inc n_items;
+		 Unsynchronized.inc n_items;
 		 growTable tbl;
 		 NONE)
 	      | look (B(h, k, v, r)) = 
@@ -261,7 +261,7 @@ end;
    fun numItems (HT{n_items, ...}) = !n_items
 
   (* return a list of the items in the table *)
-    fun listItems (HT{table = ref arr, n_items, ...}) = let
+    fun listItems (HT{table = Unsynchronized.ref arr, n_items, ...}) = let
 	  fun f (_, l, 0) = l
 	    | f (~1, l, _) = l
 	    | f (i, l, n) = let
@@ -306,8 +306,8 @@ end;
 	    mapTbl 0;
 	    HT{hashVal=hashVal,
 	       sameKey=sameKey,
-	       table = ref newArr, 
-	       n_items = ref(!n_items), 
+	       table = Unsynchronized.ref newArr, 
+	       n_items = Unsynchronized.ref(!n_items), 
 	       not_found = not_found}
 	  end (* transform *);
 
@@ -348,8 +348,8 @@ end;
 	    mapTbl 0;
 	    HT{hashVal=hashVal, 
 	       sameKey=sameKey, 
-	       table = ref newArr, 
-	       n_items = ref(!n_items), 
+	       table = Unsynchronized.ref newArr, 
+	       n_items = Unsynchronized.ref(!n_items), 
 	       not_found = not_found}
 	  end (* transform *);
 
@@ -365,15 +365,15 @@ end;
 	    (mapTbl 0) handle _ => ();  (* FIXME avoid handle _ *)
 	    HT{hashVal=hashVal, 
 	       sameKey=sameKey,
-	       table = ref newArr, 
-	       n_items = ref(!n_items), 
+	       table = Unsynchronized.ref newArr, 
+	       n_items = Unsynchronized.ref(!n_items), 
 	       not_found = not_found}
 	  end (* copy *);
 
   (* returns a list of the sizes of the various buckets.  This is to
    * allow users to gauge the quality of their hashing function.
    *)
-    fun bucketSizes (HT{table = ref arr, ...}) = let
+    fun bucketSizes (HT{table = Unsynchronized.ref arr, ...}) = let
 	  fun len (NIL, n) = n
 	    | len (B(_, _, _, r), n) = len(r, n+1)
 	  fun f (~1, l) = l

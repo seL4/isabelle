@@ -319,7 +319,7 @@ lemmas shiftl_number [simp] = shiftl_def [where w="number_of w", standard]
 
 lemma bl_shiftl:
   "to_bl (w << n) = drop n (to_bl w) @ replicate (min (size w) n) False"
-  by (simp add: shiftl_bl word_rep_drop word_size min_def)
+  by (simp add: shiftl_bl word_rep_drop word_size)
 
 lemma shiftl_zero_size: 
   fixes x :: "'a::len0 word"
@@ -1017,9 +1017,8 @@ lemma word_cat_hom:
   (word_cat (word_of_int w :: 'b word) (b :: 'c word) :: 'a word) = 
   word_of_int (bin_cat w (size b) (uint b))"
   apply (unfold word_cat_def word_size) 
-  apply (clarsimp simp add : word_ubin.norm_eq_iff [symmetric]
-      word_ubin.eq_norm bintr_cat min_def)
-  apply arith
+  apply (clarsimp simp add: word_ubin.norm_eq_iff [symmetric]
+      word_ubin.eq_norm bintr_cat min_max.inf_absorb1)
   done
 
 lemma word_cat_split_alt:

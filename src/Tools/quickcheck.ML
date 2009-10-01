@@ -6,8 +6,8 @@ Generic counterexample search engine.
 
 signature QUICKCHECK =
 sig
-  val auto: bool ref
-  val auto_time_limit: int ref
+  val auto: bool Unsynchronized.ref
+  val auto_time_limit: int Unsynchronized.ref
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
   val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
@@ -19,8 +19,8 @@ struct
 
 (* preferences *)
 
-val auto = ref false;
-val auto_time_limit = ref 2500;
+val auto = Unsynchronized.ref false;
+val auto_time_limit = Unsynchronized.ref 2500;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing

@@ -15,7 +15,7 @@ sig
   val edit_document: document_id -> document_id -> (command_id * command_id option) list -> unit
 end;
 
-structure IsarDocument: ISAR_DOCUMENT =
+structure Isar_Document: ISAR_DOCUMENT =
 struct
 
 (* unique identifiers *)
@@ -112,18 +112,18 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
 (** global configuration **)
 
 local
-  val global_states = ref (Symtab.empty: Toplevel.state option future Symtab.table);
-  val global_commands = ref (Symtab.empty: Toplevel.transition Symtab.table);
-  val global_documents = ref (Symtab.empty: document Symtab.table);
+  val global_states = Unsynchronized.ref (Symtab.empty: Toplevel.state option future Symtab.table);
+  val global_commands = Unsynchronized.ref (Symtab.empty: Toplevel.transition Symtab.table);
+  val global_documents = Unsynchronized.ref (Symtab.empty: document Symtab.table);
 in
 
-fun change_states f = NAMED_CRITICAL "Isar" (fn () => change global_states f);
+fun change_states f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_states f);
 fun get_states () = NAMED_CRITICAL "Isar" (fn () => ! global_states);
 
-fun change_commands f = NAMED_CRITICAL "Isar" (fn () => change global_commands f);
+fun change_commands f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_commands f);
 fun get_commands () = NAMED_CRITICAL "Isar" (fn () => ! global_commands);
 
-fun change_documents f = NAMED_CRITICAL "Isar" (fn () => change global_documents f);
+fun change_documents f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_documents f);
 fun get_documents () = NAMED_CRITICAL "Isar" (fn () => ! global_documents);
 
 fun init () = NAMED_CRITICAL "Isar" (fn () =>
@@ -278,6 +278,7 @@ local structure P = OuterParse structure V = ValueParse in
 val _ =
   OuterSyntax.internal_command "Isar.define_command"
     (P.string -- P.string >> (fn (id, text) =>
+      Toplevel.position (Position.id_only id) o
       Toplevel.imperative (fn () =>
         define_command id (OuterSyntax.prepare_command (Position.id id) text))));
 

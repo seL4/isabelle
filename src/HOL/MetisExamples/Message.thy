@@ -1,5 +1,4 @@
 (*  Title:      HOL/MetisTest/Message.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Testing the metis method
@@ -711,17 +710,17 @@ lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
 proof (neg_clausify)
 assume 0: "analz (synth H) \<noteq> analz H \<union> synth H"
 have 1: "\<And>X1 X3. sup (analz (sup X3 X1)) (synth X3) = analz (sup (synth X3) X1)"
-  by (metis analz_synth_Un sup_set_eq sup_set_eq sup_set_eq)
+  by (metis analz_synth_Un)
 have 2: "sup (analz H) (synth H) \<noteq> analz (synth H)"
-  by (metis 0 sup_set_eq)
+  by (metis 0)
 have 3: "\<And>X1 X3. sup (synth X3) (analz (sup X3 X1)) = analz (sup (synth X3) X1)"
-  by (metis 1 Un_commute sup_set_eq sup_set_eq)
+  by (metis 1 Un_commute)
 have 4: "\<And>X3. sup (synth X3) (analz X3) = analz (sup (synth X3) {})"
-  by (metis 3 Un_empty_right sup_set_eq)
+  by (metis 3 Un_empty_right)
 have 5: "\<And>X3. sup (synth X3) (analz X3) = analz (synth X3)"
-  by (metis 4 Un_empty_right sup_set_eq)
+  by (metis 4 Un_empty_right)
 have 6: "\<And>X3. sup (analz X3) (synth X3) = analz (synth X3)"
-  by (metis 5 Un_commute sup_set_eq sup_set_eq)
+  by (metis 5 Un_commute)
 show "False"
   by (metis 2 6)
 qed

@@ -299,7 +299,7 @@ fun cons a = Seq(Lazy.value (SOME a))
 
 fun cycle seqfn =
     let
-	val knot = ref (Seq (Lazy.value NONE))
+	val knot = Unsynchronized.ref (Seq (Lazy.value NONE))
     in
 	knot := seqfn (fn () => !knot);
 	!knot
@@ -350,7 +350,7 @@ val of_string = of_list o String.explode
 
 fun of_instream is =
     let
-	val buffer : char list ref = ref []
+	val buffer : char list Unsynchronized.ref = Unsynchronized.ref []
 	fun get_input () =
 	    case !buffer of
 		(c::cs) => (buffer:=cs;

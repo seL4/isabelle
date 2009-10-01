@@ -72,9 +72,9 @@ datatype history_entry = StartReplay of string*string
 		       | AbortReplay of string*string
 		       | Delta of deltastate list
 
-val history = ref ([]:history_entry list)
-val history_dir = ref (SOME "")
-val skip_imports = ref false
+val history = Unsynchronized.ref ([]:history_entry list)
+val history_dir = Unsynchronized.ref (SOME "")
+val skip_imports = Unsynchronized.ref false
 
 fun set_skip_import b = skip_imports := b
 fun get_skip_import () = !skip_imports

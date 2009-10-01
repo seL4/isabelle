@@ -38,7 +38,7 @@ val conjunction = certify Logic.conjunction;
 fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
 
 fun mk_conjunction_balanced [] = true_prop
-  | mk_conjunction_balanced ts = BalancedTree.make mk_conjunction ts;
+  | mk_conjunction_balanced ts = Balanced_Tree.make mk_conjunction ts;
 
 fun dest_conjunction ct =
   (case Thm.term_of ct of
@@ -117,10 +117,10 @@ end;
 (* balanced conjuncts *)
 
 fun intr_balanced [] = asm_rl
-  | intr_balanced ths = BalancedTree.make (uncurry intr) ths;
+  | intr_balanced ths = Balanced_Tree.make (uncurry intr) ths;
 
 fun elim_balanced 0 _ = []
-  | elim_balanced n th = BalancedTree.dest elim n th;
+  | elim_balanced n th = Balanced_Tree.dest elim n th;
 
 
 (* currying *)

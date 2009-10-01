@@ -5,6 +5,7 @@ Compatibility wrapper for Poly/ML 5.1.
 
 fun reraise exn = raise exn;
 
+use "ML-Systems/unsynchronized.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/polyml_common.ML";

@@ -3,6 +3,8 @@
 Compatibility wrapper for Poly/ML 5.3.
 *)
 
+use "ML-Systems/unsynchronized.ML";
+
 open Thread;
 
 structure ML_Name_Space =
@@ -25,6 +27,7 @@ val pointer_eq = PolyML.pointerEq;
 fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 use "ML-Systems/compiler_polyml-5.3.ML";
+PolyML.Compiler.reportUnreferencedIds := true;
 
 
 (* toplevel pretty printing *)

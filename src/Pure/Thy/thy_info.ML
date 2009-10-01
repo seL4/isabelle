@@ -50,9 +50,9 @@ datatype action = Update | Outdate | Remove;
 val str_of_action = fn Update => "Update" | Outdate => "Outdate" | Remove => "Remove";
 
 local
-  val hooks = ref ([]: (action -> string -> unit) list);
+  val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
 in
-  fun add_hook f = CRITICAL (fn () => change hooks (cons f));
+  fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
   fun perform action name = List.app (fn f => (try (fn () => f action name) (); ())) (! hooks);
 end;
 
@@ -111,10 +111,10 @@ fun base_name s = Path.implode (Path.base (Path.explode s));
 type thy = deps option * theory option;
 
 local
-  val database = ref (Graph.empty: thy Graph.T);
+  val database = Unsynchronized.ref (Graph.empty: thy Graph.T);
 in
   fun get_thys () = ! database;
-  fun change_thys f = CRITICAL (fn () => Library.change database f);
+  fun change_thys f = CRITICAL (fn () => Unsynchronized.change database f);
 end;
 
 

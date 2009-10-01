@@ -16,7 +16,7 @@ sig
     -> term list * (term * term) list
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val compile_generator_expr: theory -> term -> int -> term list option
-  val eval_ref: (unit -> int -> seed -> term list option * seed) option ref
+  val eval_ref: (unit -> int -> seed -> term list option * seed) option Unsynchronized.ref
   val setup: theory -> theory
 end;
 
@@ -43,7 +43,7 @@ fun random_fun T1 T2 eq term_of random random_split seed =
     val ((y, t2), seed') = random seed;
     val (seed'', seed''') = random_split seed';
 
-    val state = ref (seed'', [], fn () => Abs ("x", T1, t2 ()));
+    val state = Unsynchronized.ref (seed'', [], fn () => Abs ("x", T1, t2 ()));
     fun random_fun' x =
       let
         val (seed, fun_map, f_t) = ! state;
@@ -76,7 +76,7 @@ fun mk_random_typecopy tyco vs constr T' thy =
     val lhs = HOLogic.mk_random T size;
     val rhs = HOLogic.mk_ST [((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, Tm'))]
       (HOLogic.mk_return Tm @{typ Random.seed}
-      (mk_const "Code_Eval.valapp" [T', T]
+      (mk_const "Code_Evaluation.valapp" [T', T]
         $ HOLogic.mk_prod (t_constr, Abs ("u", @{typ unit}, HOLogic.reflect_term t_constr)) $ t_v))
       @{typ Random.seed} (SOME Tm, @{typ Random.seed});
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
@@ -321,24 +321,23 @@ fun perhaps_constrain thy insts raw_vs =
 
 fun ensure_random_datatype config raw_tycos thy =
   let
-    val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) =
       Datatype.the_descr thy raw_tycos;
-    val typrep_vs = (map o apsnd)
+    val typerep_vs = (map o apsnd)
       (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
     val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
-      (DatatypeAux.interpret_construction descr typrep_vs
+      (DatatypeAux.interpret_construction descr typerep_vs
         { atyp = single, dtyp = (K o K o K) [] });
     val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
-      (DatatypeAux.interpret_construction descr typrep_vs
+      (DatatypeAux.interpret_construction descr typerep_vs
         { atyp = K [], dtyp = K o K });
     val has_inst = exists (fn tyco =>
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
   in if has_inst then thy
-    else case perhaps_constrain thy (random_insts @ term_of_insts) typrep_vs
+    else case perhaps_constrain thy (random_insts @ term_of_insts) typerep_vs
      of SOME constrain => mk_random_datatype config descr
-          (map constrain typrep_vs) tycos prfx (names, auxnames)
+          (map constrain typerep_vs) tycos prfx (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
   end;
@@ -346,7 +345,9 @@ fun ensure_random_datatype config raw_tycos thy =
 
 (** building and compiling generator expressions **)
 
-val eval_ref : (unit -> int -> int * int -> term list option * (int * int)) option ref = ref NONE;
+val eval_ref :
+    (unit -> int -> int * int -> term list option * (int * int)) option Unsynchronized.ref =
+  Unsynchronized.ref NONE;
 
 val target = "Quickcheck";
 

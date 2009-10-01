@@ -37,14 +37,16 @@ struct
 
 (* maintain load path *)
 
-local val load_path = ref [Path.current] in
+local val load_path = Unsynchronized.ref [Path.current] in
 
 fun show_path () = map Path.implode (! load_path);
 
-fun del_path s = CRITICAL (fn () => change load_path (remove (op =) (Path.explode s)));
-fun add_path s = CRITICAL (fn () => (del_path s; change load_path (cons (Path.explode s))));
-fun path_add s =
-  CRITICAL (fn () => (del_path s; change load_path (fn path => path @ [Path.explode s])));
+fun del_path s = CRITICAL (fn () =>
+    Unsynchronized.change load_path (remove (op =) (Path.explode s)));
+fun add_path s = CRITICAL (fn () =>
+    (del_path s; Unsynchronized.change load_path (cons (Path.explode s))));
+fun path_add s = CRITICAL (fn () =>
+    (del_path s; Unsynchronized.change load_path (fn path => path @ [Path.explode s])));
 fun reset_path () = load_path := [Path.current];
 
 fun with_paths ss f x =
@@ -109,7 +111,7 @@ fun deps_thy dir name =
     val master as (path, _) = check_thy dir name;
     val text = explode (File.read path);
     val (name', imports, uses) =
-      ThyHeader.read (Path.position path) (Source.of_list_limited 8000 text);
+      Thy_Header.read (Path.position path) (Source.of_list_limited 8000 text);
     val _ = check_name name name';
     val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;
@@ -124,5 +126,5 @@ fun load_ml dir raw_path =
 
 end;
 
-structure BasicThyLoad: BASIC_THY_LOAD = ThyLoad;
-open BasicThyLoad;
+structure Basic_Thy_Load: BASIC_THY_LOAD = ThyLoad;
+open Basic_Thy_Load;

@@ -27,10 +27,10 @@ sig
   val code_pred_cmd: string -> Proof.context -> Proof.state
   val print_stored_rules: theory -> unit
   val print_all_modes: theory -> unit
-  val do_proofs: bool ref
+  val do_proofs: bool Unsynchronized.ref
   val mk_casesrule : Proof.context -> int -> thm list -> term
   val analyze_compr: theory -> term -> term
-  val eval_ref: (unit -> term Predicate.pred) option ref
+  val eval_ref: (unit -> term Predicate.pred) option Unsynchronized.ref
   val add_equations : string list -> theory -> theory
   val code_pred_intros_attrib : attribute
   (* used by Quickcheck_Generator *) 
@@ -111,7 +111,7 @@ fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 fun print_tac s = Seq.single; (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
 
-val do_proofs = ref true;
+val do_proofs = Unsynchronized.ref true;
 
 fun mycheat_tac thy i st =
   (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) i) st
@@ -169,7 +169,7 @@ fun mk_fun_comp (t, u) =
   end;
 
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
-  Type ("*", [Type ("*", [T, @{typ "unit => Code_Eval.term"}]) ,@{typ Random.seed}])])) = T
+  Type ("*", [Type ("*", [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])
 
 (* destruction of intro rules *)
@@ -707,7 +707,7 @@ val compfuns = CompilationFuns {mk_predT = mk_predT, dest_predT = dest_predT, mk
 end;
 
 (* termify_code:
-val termT = Type ("Code_Eval.term", []);
+val termT = Type ("Code_Evaluation.term", []);
 fun termifyT T = HOLogic.mk_prodT (T, HOLogic.unitT --> termT)
 *)
 (*
@@ -1198,7 +1198,7 @@ fun mk_valtermify_term (t as Const (c, T)) = HOLogic.mk_prod (t, Abs ("u", HOLog
       val t1' = mk_valtermify_term t1
       val t2' = mk_valtermify_term t2
     in
-      Const ("Code_Eval.valapp", termifyT T --> termifyT T1 --> termifyT T2) $ t1' $ t2'
+      Const ("Code_Evaluation.valapp", termifyT T --> termifyT T1 --> termifyT T2) $ t1' $ t2'
     end
   | mk_valtermify_term _ = error "Not a valid term for mk_valtermify_term"
 *)
@@ -2100,7 +2100,7 @@ end
 
 (* transformation for code generation *)
 
-val eval_ref = ref (NONE : (unit -> term Predicate.pred) option);
+val eval_ref = Unsynchronized.ref (NONE : (unit -> term Predicate.pred) option);
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr thy t_compr =
@@ -2152,7 +2152,7 @@ fun values ctxt k t_compr =
     val (ts, _) = Predicate.yieldn k t;
     val elemsT = HOLogic.mk_set T ts;
   in if k = ~1 orelse length ts < k then elemsT
-    else Const (@{const_name Set.union}, setT --> setT --> setT) $ elemsT $ t_compr
+    else Const (@{const_name Lattices.sup}, setT --> setT --> setT) $ elemsT $ t_compr
   end;
 
 fun values_cmd modes k raw_t state =

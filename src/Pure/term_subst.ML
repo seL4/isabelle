@@ -157,28 +157,32 @@ fun instantiate_same maxidx (instT, inst) tm =
 in
 
 fun instantiateT_maxidx instT ty i =
-  let val maxidx = ref i
+  let val maxidx = Unsynchronized.ref i
   in (instantiateT_same maxidx instT ty handle Same.SAME => ty, ! maxidx) end;
 
 fun instantiate_maxidx insts tm i =
-  let val maxidx = ref i
+  let val maxidx = Unsynchronized.ref i
   in (instantiate_same maxidx insts tm handle Same.SAME => tm, ! maxidx) end;
 
 fun instantiateT [] ty = ty
   | instantiateT instT ty =
-      (instantiateT_same (ref ~1) (no_indexes1 instT) ty handle Same.SAME => ty);
+      (instantiateT_same (Unsynchronized.ref ~1) (no_indexes1 instT) ty
+        handle Same.SAME => ty);
 
 fun instantiate ([], []) tm = tm
   | instantiate insts tm =
-      (instantiate_same (ref ~1) (no_indexes2 insts) tm handle Same.SAME => tm);
+      (instantiate_same (Unsynchronized.ref ~1) (no_indexes2 insts) tm
+        handle Same.SAME => tm);
 
 fun instantiateT_option [] _ = NONE
   | instantiateT_option instT ty =
-      (SOME (instantiateT_same (ref ~1) (no_indexes1 instT) ty) handle Same.SAME => NONE);
+      (SOME (instantiateT_same (Unsynchronized.ref ~1) (no_indexes1 instT) ty)
+        handle Same.SAME => NONE);
 
 fun instantiate_option ([], []) _ = NONE
   | instantiate_option insts tm =
-      (SOME (instantiate_same (ref ~1) (no_indexes2 insts) tm) handle Same.SAME => NONE);
+      (SOME (instantiate_same (Unsynchronized.ref ~1) (no_indexes2 insts) tm)
+        handle Same.SAME => NONE);
 
 end;
 

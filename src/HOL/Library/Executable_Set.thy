@@ -8,9 +8,24 @@ theory Executable_Set
 imports Main Fset
 begin
 
-subsection {* Derived set operations *}
+subsection {* Preprocessor setup *}
 
 declare member [code] 
+
+definition empty :: "'a set" where
+  "empty = {}"
+
+declare empty_def [symmetric, code_unfold]
+
+definition inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "inter = op \<inter>"
+
+declare inter_def [symmetric, code_unfold]
+
+definition union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "union = op \<union>"
+
+declare union_def [symmetric, code_unfold]
 
 definition subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   "subset = op \<le>"
@@ -24,9 +39,7 @@ lemma [code]:
 definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   [code del]: "eq_set = op ="
 
-(* FIXME allow for Stefan's code generator:
-declare set_eq_subset[code_unfold]
-*)
+(*declare eq_set_def [symmetric, code_unfold]*)
 
 lemma [code]:
   "eq_set A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
@@ -34,16 +47,20 @@ lemma [code]:
 
 declare inter [code]
 
-declare Inter_image_eq [symmetric, code]
-declare Union_image_eq [symmetric, code]
-
-
-subsection {* Rewrites for primitive operations *}
-
 declare List_Set.project_def [symmetric, code_unfold]
 
+definition Inter :: "'a set set \<Rightarrow> 'a set" where
+  "Inter = Complete_Lattice.Inter"
 
-subsection {* code generator setup *}
+declare Inter_def [symmetric, code_unfold]
+
+definition Union :: "'a set set \<Rightarrow> 'a set" where
+  "Union = Complete_Lattice.Union"
+
+declare Union_def [symmetric, code_unfold]
+
+
+subsection {* Code generator setup *}
 
 ML {*
 nonfix inter;
@@ -64,7 +81,7 @@ consts_code
   Set ("\<module>Set")
 
 consts_code
-  "Set.empty"         ("{*Fset.empty*}")
+  "empty"             ("{*Fset.empty*}")
   "List_Set.is_empty" ("{*Fset.is_empty*}")
   "Set.insert"        ("{*Fset.insert*}")
   "List_Set.remove"   ("{*Fset.remove*}")
@@ -72,12 +89,14 @@ consts_code
   "List_Set.project"  ("{*Fset.filter*}")
   "Ball"              ("{*flip Fset.forall*}")
   "Bex"               ("{*flip Fset.exists*}")
-  "op \<union>"              ("{*Fset.union*}")
-  "op \<inter>"              ("{*Fset.inter*}")
+  "union"             ("{*Fset.union*}")
+  "inter"             ("{*Fset.inter*}")
   "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{*flip Fset.subtract*}")
-  "Complete_Lattice.Union" ("{*Fset.Union*}")
-  "Complete_Lattice.Inter" ("{*Fset.Inter*}")
+  "Union"             ("{*Fset.Union*}")
+  "Inter"             ("{*Fset.Inter*}")
   card                ("{*Fset.card*}")
   fold                ("{*foldl o flip*}")
+
+hide (open) const empty inter union subset eq_set Inter Union flip
 
 end

@@ -1167,7 +1167,6 @@ apply     (simp)
 apply    (simp,rule assigned.select_convs)
 apply   (simp)
 apply  simp
-apply  blast
 apply simp
 apply (simp add: intersect_ts_def)
 done

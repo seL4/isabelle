@@ -8,7 +8,7 @@
 header{*Factorial Function*}
 
 theory Fact
-imports NatTransfer
+imports Nat_Transfer
 begin
 
 class fact =

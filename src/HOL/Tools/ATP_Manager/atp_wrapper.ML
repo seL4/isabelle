@@ -6,8 +6,8 @@ Wrapper functions for external ATPs.
 
 signature ATP_WRAPPER =
 sig
-  val destdir: string ref
-  val problem_name: string ref
+  val destdir: string Unsynchronized.ref
+  val problem_name: string Unsynchronized.ref
   val tptp_prover_opts_full: int -> bool -> bool -> Path.T * string -> AtpManager.prover
   val tptp_prover_opts: int -> bool -> Path.T * string -> AtpManager.prover
   val tptp_prover: Path.T * string -> AtpManager.prover
@@ -35,11 +35,17 @@ struct
 
 (* global hooks for writing problemfiles *)
 
-val destdir = ref "";   (*Empty means write files to /tmp*)
-val problem_name = ref "prob";
+val destdir = Unsynchronized.ref "";   (*Empty means write files to /tmp*)
+val problem_name = Unsynchronized.ref "prob";
 
 
 (* basic template *)
+
+fun with_path cleanup after f path =
+  Exn.capture f path
+  |> tap (fn _ => cleanup path)
+  |> Exn.release
+  |> tap (after path)
 
 fun external_prover relevance_filter preparer writer (cmd, args) find_failure produce_answer
   timeout axiom_clauses filtered_clauses name subgoalno goal =
@@ -73,28 +79,44 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
 
     (* write out problem file and call prover *)
-    val probfile = prob_pathname subgoalno
-    val conj_pos = writer probfile clauses
-    val (proof, rc) = system_out (
-      if File.exists cmd then
-        space_implode " " ["exec", File.shell_path cmd, args, File.platform_path probfile]
-      else error ("Bad executable: " ^ Path.implode cmd))
+    fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
+      [File.shell_path cmd, args, File.platform_path probfile] ^ " ; } 2>&1"
+    fun split_time s =
+      let
+        val split = String.tokens (fn c => str c = "\n")
+        val (proof, t) = s |> split |> split_last |> apfst cat_lines
+        fun as_num f = f >> (fst o read_int)
+        val num = as_num (Scan.many1 Symbol.is_ascii_digit)
+        val digit = Scan.one Symbol.is_ascii_digit
+        val num3 = as_num (digit ::: digit ::: (digit >> single))
+        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
+        val as_time = the_default 0 o Scan.read Symbol.stopper time o explode
+      in (proof, as_time t) end
+    fun run_on probfile =
+      if File.exists cmd
+      then
+        writer probfile clauses
+        |> pair (apfst split_time (system_out (cmd_line probfile)))
+      else error ("Bad executable: " ^ Path.implode cmd)
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
-    val _ =
-      if destdir' = "" then File.rm probfile
+    fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE
+    fun export probfile (((proof, _), _), _) = if destdir' = "" then ()
       else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
+
+    val (((proof, time), rc), conj_pos) = with_path cleanup export run_on
+      (prob_pathname subgoalno)
 
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
     val success = rc = 0 andalso is_none failure
     val message =
-      if is_some failure then "External prover failed."
-      else if rc <> 0 then "External prover failed: " ^ proof
-      else "Try this command: " ^
-        produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno)
+      if is_some failure then ("External prover failed.", [])
+      else if rc <> 0 then ("External prover failed: " ^ proof, [])
+      else apfst (fn s => "Try this command: " ^ s)
+        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno))
     val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
-  in (success, message, proof, thm_names, the_filtered_clauses) end;
+  in (success, message, time, proof, thm_names, the_filtered_clauses) end;
 
 
 

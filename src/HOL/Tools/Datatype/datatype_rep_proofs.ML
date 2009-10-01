@@ -38,7 +38,7 @@ val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 (** theory context references **)
 
 fun exh_thm_of (dt_info : info Symtab.table) tname =
-  #exhaustion (the (Symtab.lookup dt_info tname));
+  #exhaust (the (Symtab.lookup dt_info tname));
 
 (******************************************************************************)
 
@@ -78,7 +78,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val leafTs' = get_nonrec_types descr' sorts;
     val branchTs = get_branching_types descr' sorts;
     val branchT = if null branchTs then HOLogic.unitT
-      else BalancedTree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
+      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
     val unneeded_vars = hd tyvars \\ List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs);
     val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
@@ -86,7 +86,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val newTs = Library.take (length (hd descr), recTs);
     val oldTs = Library.drop (length (hd descr), recTs);
     val sumT = if null leafTs then HOLogic.unitT
-      else BalancedTree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
+      else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
@@ -116,7 +116,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     (* make injections for constructors *)
 
-    fun mk_univ_inj ts = BalancedTree.access
+    fun mk_univ_inj ts = Balanced_Tree.access
       {left = fn t => In0 $ t,
         right = fn t => In1 $ t,
         init =
@@ -389,7 +389,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
       let
         val (_, (tname, _, _)) = hd ds;
-        val {induction, ...} = the (Symtab.lookup dt_info tname);
+        val induct = (#induct o the o Symtab.lookup dt_info) tname;
 
         fun mk_ind_concl (i, _) =
           let
@@ -410,7 +410,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
         val inj_thm = SkipProof.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
-            [(indtac induction [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+            [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
              REPEAT (EVERY
                [rtac allI 1, rtac impI 1,
                 exh_tac (exh_thm_of dt_info) 1,
@@ -436,7 +436,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val elem_thm = 
             SkipProof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
               (fn _ =>
-               EVERY [(indtac induction [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
+               EVERY [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
                 rewrite_goals_tac rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);

@@ -130,7 +130,7 @@ end;
 (* init *)
 
 fun init out =
- (change print_mode (update (op =) isabelle_processN);
+ (Unsynchronized.change print_mode (update (op =) isabelle_processN);
   setup_channels out |> init_message;
   OuterKeyword.report ();
   Output.status (Markup.markup Markup.ready "");

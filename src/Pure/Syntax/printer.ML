@@ -6,11 +6,11 @@ Pretty printing of asts, terms, types and print (ast) translation.
 
 signature PRINTER0 =
 sig
-  val show_brackets: bool ref
-  val show_sorts: bool ref
-  val show_types: bool ref
-  val show_no_free_types: bool ref
-  val show_all_types: bool ref
+  val show_brackets: bool Unsynchronized.ref
+  val show_sorts: bool Unsynchronized.ref
+  val show_types: bool Unsynchronized.ref
+  val show_no_free_types: bool Unsynchronized.ref
+  val show_all_types: bool Unsynchronized.ref
   val pp_show_brackets: Pretty.pp -> Pretty.pp
 end;
 
@@ -42,11 +42,11 @@ struct
 
 (** options for printing **)
 
-val show_types = ref false;
-val show_sorts = ref false;
-val show_brackets = ref false;
-val show_no_free_types = ref false;
-val show_all_types = ref false;
+val show_types = Unsynchronized.ref false;
+val show_sorts = Unsynchronized.ref false;
+val show_brackets = Unsynchronized.ref false;
+val show_no_free_types = Unsynchronized.ref false;
+val show_all_types = Unsynchronized.ref false;
 
 fun pp_show_brackets pp = Pretty.pp (setmp show_brackets true (Pretty.term pp),
   Pretty.typ pp, Pretty.sort pp, Pretty.classrel pp, Pretty.arity pp);

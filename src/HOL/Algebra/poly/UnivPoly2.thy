@@ -563,11 +563,7 @@ by (fast intro: le_anti_sym deg_aboveI deg_belowI)
 
 lemma deg_add [simp]:
   "deg ((p::'a::ring up) + q) <= max (deg p) (deg q)"
-proof (cases "deg p <= deg q")
-  case True show ?thesis by (rule deg_aboveI) (simp add: True deg_aboveD) 
-next
-  case False show ?thesis by (rule deg_aboveI) (simp add: False deg_aboveD)
-qed
+by (rule deg_aboveI) (simp add: deg_aboveD)
 
 lemma deg_monom_ring:
   "deg (monom a n::'a::ring up) <= n"
@@ -678,8 +674,7 @@ next
     also have "... = setsum ?s ({deg p} Un {deg p <.. deg p + deg q})"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff p (deg p) * coeff q (deg q)" 
-      by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
-        setsum_0 deg_aboveD)
+      by (simp add: setsum_Un_disjoint setsum_0 deg_aboveD)
     finally have "setsum ?s {.. deg p + deg q} 
       = coeff p (deg p) * coeff q (deg q)" .
     with nz show "setsum ?s {.. deg p + deg q} ~= 0"
@@ -723,8 +718,7 @@ proof (rule up_eqI)
     have "... = coeff (setsum ?s ({..<k} Un {k})) k"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff p k"
-      by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
-        setsum_0 coeff_natsum deg_aboveD)
+      by (simp add: setsum_Un_disjoint setsum_0 coeff_natsum deg_aboveD)
     finally show ?thesis .
   next
     case False
@@ -732,8 +726,7 @@ proof (rule up_eqI)
           coeff (setsum ?s ({..<deg p} Un {deg p})) k"
       by (simp only: ivl_disj_un_singleton)
     also from False have "... = coeff p k"
-      by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
-        setsum_0 coeff_natsum deg_aboveD)
+      by (simp add: setsum_Un_disjoint setsum_0 coeff_natsum deg_aboveD)
     finally show ?thesis .
   qed
 qed

@@ -665,7 +665,7 @@ apply (rule rangeI, safe)
 apply (subst LList_corec, force)
 done
 
-lemma llist_corec: 
+lemma llist_corec [nitpick_const_simp]: 
     "llist_corec a f =   
      (case f a of None => LNil | Some(z,w) => LCons z (llist_corec w f))"
 apply (unfold llist_corec_def LNil_def LCons_def)
@@ -774,10 +774,11 @@ done
 
 subsection{* The functional @{text lmap} *}
 
-lemma lmap_LNil [simp]: "lmap f LNil = LNil"
+lemma lmap_LNil [simp, nitpick_const_simp]: "lmap f LNil = LNil"
 by (rule lmap_def [THEN def_llist_corec, THEN trans], simp)
 
-lemma lmap_LCons [simp]: "lmap f (LCons M N) = LCons (f M) (lmap f N)"
+lemma lmap_LCons [simp, nitpick_const_simp]:
+"lmap f (LCons M N) = LCons (f M) (lmap f N)"
 by (rule lmap_def [THEN def_llist_corec, THEN trans], simp)
 
 
@@ -792,7 +793,7 @@ by (rule_tac l = l in llist_fun_equalityI, simp_all)
 
 subsection{* iterates -- @{text llist_fun_equalityI} cannot be used! *}
 
-lemma iterates: "iterates f x = LCons x (iterates f (f x))"
+lemma iterates [nitpick_const_simp]: "iterates f x = LCons x (iterates f (f x))"
 by (rule iterates_def [THEN def_llist_corec, THEN trans], simp)
 
 lemma lmap_iterates [simp]: "lmap f (iterates f x) = iterates f (f x)"
@@ -847,18 +848,18 @@ done
 
 subsection{* @{text lappend} -- its two arguments cause some complications! *}
 
-lemma lappend_LNil_LNil [simp]: "lappend LNil LNil = LNil"
+lemma lappend_LNil_LNil [simp, nitpick_const_simp]: "lappend LNil LNil = LNil"
 apply (simp add: lappend_def)
 apply (rule llist_corec [THEN trans], simp)
 done
 
-lemma lappend_LNil_LCons [simp]: 
+lemma lappend_LNil_LCons [simp, nitpick_const_simp]: 
     "lappend LNil (LCons l l') = LCons l (lappend LNil l')"
 apply (simp add: lappend_def)
 apply (rule llist_corec [THEN trans], simp)
 done
 
-lemma lappend_LCons [simp]: 
+lemma lappend_LCons [simp, nitpick_const_simp]: 
     "lappend (LCons l l') N = LCons l (lappend l' N)"
 apply (simp add: lappend_def)
 apply (rule llist_corec [THEN trans], simp)

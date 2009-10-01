@@ -32,20 +32,20 @@ open Pgip;
 (** print mode **)
 
 val proof_generalN = "ProofGeneral";
-val pgmlsymbols_flag = ref true;
+val pgmlsymbols_flag = Unsynchronized.ref true;
 
 
 (* assembling and issuing PGIP packets *)
 
-val pgip_refid = ref NONE: string option ref;
-val pgip_refseq = ref NONE: int option ref;
+val pgip_refid = Unsynchronized.ref NONE: string option Unsynchronized.ref;
+val pgip_refseq = Unsynchronized.ref NONE: int option Unsynchronized.ref;
 
 local
   val pgip_class  = "pg"
   val pgip_tag = "Isabelle/Isar"
-  val pgip_id = ref ""
-  val pgip_seq = ref 0
-  fun pgip_serial () = inc pgip_seq
+  val pgip_id = Unsynchronized.ref ""
+  val pgip_seq = Unsynchronized.ref 0
+  fun pgip_serial () = Unsynchronized.inc pgip_seq
 
   fun assemble_pgips pgips =
     Pgip { tag = SOME pgip_tag,
@@ -65,7 +65,7 @@ fun init_pgip_session_id () =
 
 fun matching_pgip_id id = (id = ! pgip_id)
 
-val output_xml_fn = ref Output.writeln_default
+val output_xml_fn = Unsynchronized.ref Output.writeln_default
 fun output_xml s = ! output_xml_fn (XML.string_of s);
 
 val output_pgips = XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
@@ -280,7 +280,7 @@ end;
 
 (* theorem dependeny output *)
 
-val show_theorem_dependencies = ref false;
+val show_theorem_dependencies = Unsynchronized.ref false;
 
 local
 
@@ -368,13 +368,13 @@ end
 
 (* Preferences: tweak for PGIP interfaces *)
 
-val preferences = ref Preferences.pure_preferences;
+val preferences = Unsynchronized.ref Preferences.pure_preferences;
 
 fun add_preference cat pref =
-  CRITICAL (fn () => change preferences (Preferences.add cat pref));
+  CRITICAL (fn () => Unsynchronized.change preferences (Preferences.add cat pref));
 
 fun setup_preferences_tweak () =
-  CRITICAL (fn () => change preferences
+  CRITICAL (fn () => Unsynchronized.change preferences
    (Preferences.set_default ("show-question-marks", "false") #>
     Preferences.remove "show-question-marks" #>   (* we use markup, not ?s *)
     Preferences.remove "theorem-dependencies" #>  (* set internally *)
@@ -471,7 +471,7 @@ fun set_proverflag_quiet b =
 fun set_proverflag_pgmlsymbols b =
     (pgmlsymbols_flag := b;
       NAMED_CRITICAL "print_mode" (fn () =>
-        change print_mode
+        Unsynchronized.change print_mode
             (fn mode =>
                 remove (op =) Symbol.xsymbolsN mode @ (if b then [Symbol.xsymbolsN] else []))))
 
@@ -677,7 +677,7 @@ fun showid (Showid vs) =
    about this special status, but for now we just keep a local reference.
 *)
 
-val currently_open_file = ref (NONE : pgipurl option)
+val currently_open_file = Unsynchronized.ref (NONE : pgipurl option)
 
 fun get_currently_open_file () = ! currently_open_file;
 
@@ -779,7 +779,7 @@ fun retracttheory (Retracttheory vs) =
 *)
 
 local
-    val current_working_dir = ref (NONE : string option)
+    val current_working_dir = Unsynchronized.ref (NONE : string option)
 in
 fun changecwd_dir newdirpath =
    let
@@ -1021,7 +1021,7 @@ fun init_outer_syntax () =
 
 (* init *)
 
-val initialized = ref false;
+val initialized = Unsynchronized.ref false;
 
 fun init_pgip false = panic "No Proof General interface support for Isabelle/classic mode."
   | init_pgip true =
@@ -1035,9 +1035,9 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
          setup_present_hook ();
          init_pgip_session_id ();
          welcome ();
-         set initialized);
+         Unsynchronized.set initialized);
         sync_thy_loader ();
-       change print_mode (update (op =) proof_generalN);
+       Unsynchronized.change print_mode (update (op =) proof_generalN);
        pgip_toplevel tty_src);
 
 
@@ -1045,7 +1045,7 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
 (** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
 
 local
-    val pgip_output_channel = ref Output.writeln_default
+    val pgip_output_channel = Unsynchronized.ref Output.writeln_default
 in
 
 (* Set recipient for PGIP results *)

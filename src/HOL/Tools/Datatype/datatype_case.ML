@@ -7,8 +7,9 @@ Nested case expressions on datatypes.
 
 signature DATATYPE_CASE =
 sig
+  datatype config = Error | Warning | Quiet;
   val make_case: (string -> DatatypeAux.info option) ->
-    Proof.context -> bool -> string list -> term -> (term * term) list ->
+    Proof.context -> config -> string list -> term -> (term * term) list ->
     term * (term * (int * bool)) list
   val dest_case: (string -> DatatypeAux.info option) -> bool ->
     string list -> term -> (term * (term * term) list) option
@@ -22,6 +23,8 @@ end;
 
 structure DatatypeCase : DATATYPE_CASE =
 struct
+
+datatype config = Error | Warning | Quiet;
 
 exception CASE_ERROR of string * int;
 
@@ -260,7 +263,7 @@ fun no_repeat_vars ctxt pat = fold_aterms
         else x :: xs)
     | _ => I) pat [];
 
-fun gen_make_case ty_match ty_inst type_of tab ctxt err used x clauses =
+fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
   let
     fun string_of_clause (pat, rhs) = Syntax.string_of_term ctxt
       (Syntax.const "_case1" $ pat $ rhs);
@@ -285,7 +288,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt err used x clauses =
     val originals = map (row_of_pat o #2) rows
     val _ = case originals \\ finals of
         [] => ()
-      | is => (if err then case_error else warning)
+        | is => (case config of Error => case_error | Warning => warning | Quiet => fn _ => {})
           ("The following clauses are redundant (covered by preceding clauses):\n" ^
            cat_lines (map (string_of_clause o nth clauses) is));
   in
@@ -338,7 +341,8 @@ fun case_tr err tab_of ctxt [t, u] =
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
         | dest_case2 t = [t];
       val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
-      val (case_tm, _) = make_case_untyped (tab_of thy) ctxt err []
+      val (case_tm, _) = make_case_untyped (tab_of thy) ctxt
+        (if err then Error else Warning) []
         (fold (fn tT => fn t => Syntax.const "_constrain" $ t $ tT)
            (flat cnstrts) t) cases;
     in case_tm end

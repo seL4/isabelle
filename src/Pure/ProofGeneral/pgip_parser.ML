@@ -20,7 +20,7 @@ structure I = PgipIsabelle;
 fun badcmd text = [D.Badcmd {text = text}];
 
 fun thy_begin text =
-  (case try (ThyHeader.read Position.none) (Source.of_string text) of
+  (case try (Thy_Header.read Position.none) (Source.of_string text) of
     NONE => D.Opentheory {thyname = NONE, parentnames = [], text = text}
   | SOME (name, imports, _) =>
        D.Opentheory {thyname = SOME name, parentnames = imports, text = text})

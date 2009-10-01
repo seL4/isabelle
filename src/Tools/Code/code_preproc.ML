@@ -23,7 +23,6 @@ sig
   val all: code_graph -> string list
   val pretty: theory -> code_graph -> Pretty.T
   val obtain: theory -> string list -> term list -> code_algebra * code_graph
-  val resubst_triv_consts: theory -> term -> term
   val eval_conv: theory
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
   val eval: theory -> ((term -> term) -> 'a -> 'a)
@@ -73,10 +72,8 @@ fun delete_force msg key xs =
   if AList.defined (op =) xs key then AList.delete (op =) key xs
   else error ("No such " ^ msg ^ ": " ^ quote key);
 
-fun map_data f thy =
-  thy
-  |> Code.purge_data
-  |> (Code_Preproc_Data.map o map_thmproc) f;
+fun map_data f = Code.purge_data
+  #> (Code_Preproc_Data.map o map_thmproc) f;
 
 val map_pre_post = map_data o apfst;
 val map_pre = map_pre_post o apfst;
@@ -163,10 +160,7 @@ fun postprocess_conv thy ct =
     |> rhs_conv (Simplifier.rewrite post)
   end;
 
-fun resubst_triv_consts thy = map_aterms (fn t as Const (c, ty) => Const (Code.resubst_alias thy c, ty)
-  | t => t);
-
-fun postprocess_term thy = term_of_conv thy (postprocess_conv thy) #> resubst_triv_consts thy;
+fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
 
 fun print_codeproc thy =
   let
@@ -489,17 +483,6 @@ structure Wellsorted = Code_Data_Fun
 fun obtain thy cs ts = apsnd snd
   (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
 
-fun prepare_sorts_typ prep_sort
-  = map_type_tfree (fn (v, sort) => TFree (v, prep_sort sort));
-
-fun prepare_sorts prep_sort (Const (c, ty)) =
-      Const (c, prepare_sorts_typ prep_sort ty)
-  | prepare_sorts prep_sort (t1 $ t2) =
-      prepare_sorts prep_sort t1 $ prepare_sorts prep_sort t2
-  | prepare_sorts prep_sort (Abs (v, ty, t)) =
-      Abs (v, prepare_sorts_typ prep_sort ty, prepare_sorts prep_sort t)
-  | prepare_sorts _ (t as Bound _) = t;
-
 fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
     val pp = Syntax.pp_global thy;
@@ -512,12 +495,8 @@ fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
     val vs = Term.add_tfrees t' [];
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
-
-    val add_triv_classes = curry (Sorts.inter_sort (Sign.classes_of thy))
-      (Code.triv_classes thy);
-    val t'' = prepare_sorts add_triv_classes t';
-    val (algebra', eqngr') = obtain thy consts [t''];
-  in conclude_evaluation (evaluator algebra' eqngr' vs t'' ct') thm end;
+    val (algebra', eqngr') = obtain thy consts [t'];
+  in conclude_evaluation (evaluator algebra' eqngr' vs t' ct') thm end;
 
 fun simple_evaluator evaluator algebra eqngr vs t ct =
   evaluator algebra eqngr vs t;

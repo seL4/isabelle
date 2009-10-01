@@ -1,38 +1,35 @@
 /*  Title:      Pure/General/event_bus.scala
     Author:     Makarius
 
-Generic event bus with multiple handlers and optional exception
-logging.
+Generic event bus with multiple receiving actors.
 */
 
 package isabelle
 
+import scala.actors.Actor, Actor._
 import scala.collection.mutable.ListBuffer
 
 
-class EventBus[Event]
+class Event_Bus[Event]
 {
-  /* event handlers */
+  /* receivers */
 
-  type Handler = Event => Unit
-  private val handlers = new ListBuffer[Handler]
+  private val receivers = new ListBuffer[Actor]
 
-  def += (h: Handler) = synchronized { handlers += h }
-  def + (h: Handler) = { this += h; this }
+  def += (r: Actor) { synchronized { receivers += r } }
+  def + (r: Actor): Event_Bus[Event] = { this += r; this }
 
-  def -= (h: Handler) = synchronized { handlers -= h }
-  def - (h: Handler) = { this -= h; this }
+  def += (f: Event => Unit) {
+    this += actor { loop { react { case x: Event => f(x) } } }
+  }
+
+  def + (f: Event => Unit): Event_Bus[Event] = { this += f; this }
+
+  def -= (r: Actor) { synchronized { receivers -= r } }
+  def - (r: Actor) = { this -= r; this }
 
 
   /* event invocation */
 
-  var logger: Throwable => Unit = throw _
-
-  def event(x: Event) = {
-    val log = logger
-    for (h <- synchronized { handlers.toList }) {
-      try { h(x) }
-      catch { case e: Throwable => log(e) }
-    }
-  }
+  def event(x: Event) { synchronized { receivers.foreach(_ ! x) } }
 }

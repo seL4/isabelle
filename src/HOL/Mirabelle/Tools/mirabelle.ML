@@ -1,0 +1,218 @@
+(*  Title:      HOL/Mirabelle/Tools/mirabelle.ML
+    Author:     Jasmin Blanchette and Sascha Boehme, TU Munich
+*)
+
+signature MIRABELLE =
+sig
+  (*configuration*)
+  val logfile : string Config.T
+  val timeout : int Config.T
+  val start_line : int Config.T
+  val end_line : int Config.T
+  val setup : theory -> theory
+
+  (*core*)
+  type init_action = int -> theory -> theory
+  type done_args = {last: Toplevel.state, log: string -> unit}
+  type done_action = int -> done_args -> unit
+  type run_args = {pre: Proof.state, post: Toplevel.state option,
+    timeout: Time.time, log: string -> unit, pos: Position.T, name: string}
+  type run_action = int -> run_args -> unit
+  type action = init_action * run_action * done_action
+  val catch : (int -> string) -> run_action -> run_action
+  val register : action -> theory -> theory
+  val step_hook : Toplevel.transition -> Toplevel.state -> Toplevel.state ->
+    unit
+
+  (*utility functions*)
+  val goal_thm_of : Proof.state -> thm
+  val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
+    Proof.state -> bool
+  val theorems_in_proof_term : Thm.thm -> Thm.thm list
+  val theorems_of_sucessful_proof : Toplevel.state option -> Thm.thm list
+  val get_setting : (string * string) list -> string * string -> string
+  val get_int_setting : (string * string) list -> string * int -> int
+  val cpu_time : ('a -> 'b) -> 'a -> 'b * int
+end
+
+
+
+structure Mirabelle : MIRABELLE =
+struct
+
+(* Mirabelle configuration *)
+
+val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" ""
+val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" 30
+val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" 0
+val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" ~1
+
+val setup = setup1 #> setup2 #> setup3 #> setup4
+
+
+(* Mirabelle core *)
+
+type init_action = int -> theory -> theory
+type done_args = {last: Toplevel.state, log: string -> unit}
+type done_action = int -> done_args -> unit
+type run_args = {pre: Proof.state, post: Toplevel.state option,
+  timeout: Time.time, log: string -> unit, pos: Position.T, name: string}
+type run_action = int -> run_args -> unit
+type action = init_action * run_action * done_action
+
+structure Actions = TheoryDataFun
+(
+  type T = (int * run_action * done_action) list
+  val empty = []
+  val copy = I
+  val extend = I
+  fun merge _ = Library.merge (K true)
+)
+
+
+fun app_with f g x = (g x; ())
+  handle (exn as Exn.Interrupt) => reraise exn | exn => (f exn; ())
+
+fun catch tag f id (st as {log, ...}: run_args) =
+  let fun log_exn e = log (tag id ^ "exception:\n" ^ General.exnMessage e)
+  in app_with log_exn (f id) st end
+
+fun register (init, run, done) thy =
+  let val id = length (Actions.get thy) + 1
+  in
+    thy
+    |> init id
+    |> Actions.map (cons (id, run, done))
+  end
+
+local
+
+fun log thy s =
+  let fun append_to n = if n = "" then K () else File.append (Path.explode n)
+  in append_to (Config.get_thy thy logfile) (s ^ "\n") end
+  (* FIXME: with multithreading and parallel proofs enabled, we might need to
+     encapsulate this inside a critical section *)
+
+fun log_sep thy = log thy "------------------"
+
+fun apply_actions thy pos name info (pre, post, time) actions =
+  let
+    fun apply f = f {pre=pre, post=post, timeout=time, log=log thy, pos=pos, name=name}
+    fun run (id, run, _) = (apply (run id); log_sep thy)
+  in (log thy info; log_sep thy; List.app run actions) end
+
+fun in_range _ _ NONE = true
+  | in_range l r (SOME i) = (l <= i andalso (r < 0 orelse i <= r))
+
+fun only_within_range thy pos f x =
+  let val l = Config.get_thy thy start_line and r = Config.get_thy thy end_line
+  in if in_range l r (Position.line_of pos) then f x else () end
+
+in
+
+fun run_actions tr pre post =
+  let
+    val thy = Proof.theory_of pre
+    val pos = Toplevel.pos_of tr
+    val name = Toplevel.name_of tr
+    val st = (pre, post, Time.fromSeconds (Config.get_thy thy timeout))
+
+    val str0 = string_of_int o the_default 0
+    val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)
+    val info = "\n\nat " ^ loc ^ " (" ^ name ^ "):"
+  in
+    only_within_range thy pos (apply_actions thy pos name info st) (Actions.get thy)
+  end
+
+fun done_actions st =
+  let
+    val thy = Toplevel.theory_of st
+    val _ = log thy "\n\n";
+  in
+    thy
+    |> Actions.get
+    |> List.app (fn (id, _, done) => done id {last=st, log=log thy})
+  end
+
+end
+
+val whitelist = ["apply", "by", "proof"]
+
+fun step_hook tr pre post =
+ (* FIXME: might require wrapping into "interruptible" *)
+  if can (Proof.assert_backward o Toplevel.proof_of) pre andalso
+     member (op =) whitelist (Toplevel.name_of tr)
+  then run_actions tr (Toplevel.proof_of pre) (SOME post)
+  else if not (Toplevel.is_toplevel pre) andalso Toplevel.is_toplevel post
+  then done_actions pre
+  else ()   (* FIXME: add theory_hook here *)
+
+
+
+(* Mirabelle utility functions *)
+
+val goal_thm_of = snd o snd o Proof.get_goal
+
+fun can_apply time tac st =
+  let
+    val (ctxt, (facts, goal)) = Proof.get_goal st
+    val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
+  in
+    (case TimeLimit.timeLimit time (Seq.pull o full_tac) goal of
+      SOME (thm, _) => true
+    | NONE => false)
+  end
+
+local
+
+fun fold_body_thms f =
+  let
+    fun app n (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) =>
+      fn (x, seen) =>
+        if Inttab.defined seen i then (x, seen)
+        else
+          let
+            val body' = Future.join body
+            val (x', seen') = app (n + (if name = "" then 0 else 1)) body'
+              (x, Inttab.update (i, ()) seen)
+        in (x' |> n = 0 ? f (name, prop, body'), seen') end)
+  in fn bodies => fn x => #1 (fold (app 0) bodies (x, Inttab.empty)) end
+
+in
+
+fun theorems_in_proof_term thm =
+  let
+    val all_thms = PureThy.all_thms_of (Thm.theory_of_thm thm)
+    fun collect (s, _, _) = if s <> "" then insert (op =) s else I
+    fun member_of xs (x, y) = if member (op =) xs x then SOME y else NONE
+    fun resolve_thms names = map_filter (member_of names) all_thms
+  in
+    resolve_thms (fold_body_thms collect [Thm.proof_body_of thm] [])
+  end
+
+end
+
+fun theorems_of_sucessful_proof state =
+  (case state of
+    NONE => []
+  | SOME st =>
+      if not (Toplevel.is_proof st) then []
+      else theorems_in_proof_term (goal_thm_of (Toplevel.proof_of st)))
+
+fun get_setting settings (key, default) =
+  the_default default (AList.lookup (op =) settings key)
+
+fun get_int_setting settings (key, default) =
+  (case Option.map Int.fromString (AList.lookup (op =) settings key) of
+    SOME (SOME i) => i
+  | SOME NONE => error ("bad option: " ^ key)
+  | NONE => default)
+
+fun cpu_time f x =
+  let
+    val start = start_timing ()
+    val result = Exn.capture (fn () => f x) ()
+    val time = Time.toMilliseconds (#cpu (end_timing start))
+  in (Exn.release result, time) end
+
+end

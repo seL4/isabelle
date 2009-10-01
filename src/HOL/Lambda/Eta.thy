@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/Eta.thy
-    ID:         $Id$
     Author:     Tobias Nipkow and Stefan Berghofer
     Copyright   1995, 2005 TU Muenchen
 *)
@@ -87,7 +86,6 @@ subsection {* Confluence of @{text "eta"} *}
 lemma square_eta: "square eta eta (eta^==) (eta^==)"
   apply (unfold square_def id_def)
   apply (rule impI [THEN allI [THEN allI]])
-  apply simp
   apply (erule eta.induct)
      apply (slowsimp intro: subst_not_free eta_subst free_eta [THEN iffD1])
     apply safe

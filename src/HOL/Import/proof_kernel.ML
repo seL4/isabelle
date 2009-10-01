@@ -53,7 +53,7 @@ sig
 
     val get_proof_dir: string -> theory -> string option
     val disambiguate_frees : Thm.thm -> Thm.thm
-    val debug : bool ref
+    val debug : bool Unsynchronized.ref
     val disk_info_of : proof -> (string * string) option
     val set_disk_info_of : proof -> string -> string -> unit
     val mk_proof : proof_content -> proof
@@ -132,7 +132,7 @@ val replay_add_dump = add_dump
 fun add_dump s thy = (ImportRecorder.add_dump s; replay_add_dump s thy)
 
 datatype proof_info
-  = Info of {disk_info: (string * string) option ref}
+  = Info of {disk_info: (string * string) option Unsynchronized.ref}
 
 datatype proof = Proof of proof_info * proof_content
      and proof_content
@@ -199,12 +199,12 @@ fun simple_smart_string_of_cterm ct =
         val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
                            handle TERM _ => ct)
     in
-        quote(
+        quote (
         PrintMode.setmp [] (
         Library.setmp show_brackets false (
         Library.setmp show_all_types true (
         Library.setmp Syntax.ambiguity_is_error false (
-        Library.setmp show_sorts true Display.string_of_cterm))))
+        Library.setmp show_sorts true (Syntax.string_of_term_global thy o Thm.term_of)))))
         ct)
     end
 
@@ -226,7 +226,8 @@ fun smart_string_of_cterm ct =
           | G _ = raise SMART_STRING
         fun F n =
             let
-                val str = Library.setmp show_brackets false (G n Display.string_of_cterm) ct
+                val str =
+                  Library.setmp show_brackets false (G n (Syntax.string_of_term ctxt o term_of)) ct
                 val u = Syntax.parse_term ctxt str
                   |> TypeInfer.constrain T |> Syntax.check_term ctxt
             in
@@ -234,8 +235,9 @@ fun smart_string_of_cterm ct =
                 then quote str
                 else F (n+1)
             end
-            handle ERROR mesg => F (n+1)
-                 | SMART_STRING => error ("smart_string failed for: "^(G 0 Display.string_of_cterm ct))
+            handle ERROR mesg => F (n + 1)
+              | SMART_STRING =>
+                  error ("smart_string failed for: "^ G 0 (Syntax.string_of_term ctxt o term_of) ct)
     in
       PrintMode.setmp [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end
@@ -243,8 +245,7 @@ fun smart_string_of_cterm ct =
 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
-fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm_without_context th)
-fun prc ct = writeln (PrintMode.setmp [] Display.string_of_cterm ct)
+fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm_without_context th);
 fun prin t = writeln (PrintMode.setmp []
   (fn () => Syntax.string_of_term (ML_Context.the_local_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =
@@ -257,7 +258,7 @@ fun pth (HOLThm(ren,thm)) =
     end
 
 fun disk_info_of (Proof(Info{disk_info,...},_)) = !disk_info
-fun mk_proof p = Proof(Info{disk_info = ref NONE},p)
+fun mk_proof p = Proof(Info{disk_info = Unsynchronized.ref NONE},p)
 fun content_of (Proof(_,p)) = p
 
 fun set_disk_info_of (Proof(Info{disk_info,...},_)) thyname thmname =
@@ -462,8 +463,8 @@ fun protect_tyvarname s =
         s |> no_quest |> beg_prime
     end
 
-val protected_varnames = ref (Symtab.empty:string Symtab.table)
-val invented_isavar = ref 0
+val protected_varnames = Unsynchronized.ref (Symtab.empty:string Symtab.table)
+val invented_isavar = Unsynchronized.ref 0
 
 fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
 
@@ -481,7 +482,7 @@ fun protect_varname s =
       SOME t => t
     | NONE =>
       let
-          val _ = inc invented_isavar
+          val _ = Unsynchronized.inc invented_isavar
           val t = "u_" ^ string_of_int (!invented_isavar)
           val _ = ImportRecorder.protect_varname s t
           val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
@@ -496,7 +497,7 @@ fun replay_protect_varname s t =
           SOME t' => raise REPLAY_PROTECT_VARNAME (s, t, t')
         | NONE =>
           let
-              val _ = inc invented_isavar
+              val _ = Unsynchronized.inc invented_isavar
               val t = "u_" ^ string_of_int (!invented_isavar)
               val _ = protected_varnames := Symtab.update (s, t) (!protected_varnames)
           in
@@ -1187,7 +1188,7 @@ fun disambiguate_frees thm =
         end
     end
 
-val debug = ref false
+val debug = Unsynchronized.ref false
 
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
@@ -1939,16 +1940,17 @@ fun new_definition thyname constname rhs thy =
                     then
                         let
                             val p1 = quotename constname
-                            val p2 = Display.string_of_ctyp (ctyp_of thy'' ctype)
+                            val p2 = Syntax.string_of_typ_global thy'' ctype
                             val p3 = string_of_mixfix csyn
                             val p4 = smart_string_of_cterm crhs
                         in
-                            add_dump ("constdefs\n  " ^p1^ " :: \"" ^p2^ "\" "^p3^ "\n  " ^p4) thy''
+                          add_dump ("constdefs\n  " ^ p1 ^ " :: \"" ^ p2 ^ "\" "^ p3 ^ "\n  " ^ p4) thy''
                         end
                     else
-                        (add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ Display.string_of_ctyp (ctyp_of thy'' ctype) ^
-                                   "\" " ^ (string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
-                                  thy'')
+                        add_dump ("consts\n  " ^ quotename constname ^ " :: \"" ^
+                          Syntax.string_of_typ_global thy'' ctype ^
+                          "\" " ^ string_of_mixfix csyn ^ "\n\ndefs\n  " ^
+                          quotename thmname ^ ": " ^ smart_string_of_cterm crhs) thy''
         val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
                       SOME (_,res) => HOLThm(rens_of linfo,res)
                     | NONE => raise ERR "new_definition" "Bad conclusion"
@@ -2008,8 +2010,9 @@ fun new_specification thyname thmname names hth thy =
                                                           in
                                                               ((cname,cT,mk_syn thy cname)::cs,p)
                                                           end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
-                               val str = Library.foldl (fn (acc,(c,T,csyn)) =>
-                                                   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ Display.string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (string_of_mixfix csyn)) ("consts",consts)
+                               val str = Library.foldl (fn (acc, (c, T, csyn)) =>
+                                   acc ^ "\n  " ^ quotename c ^ " :: \"" ^
+                                   Syntax.string_of_typ_global thy T ^ "\" " ^ string_of_mixfix csyn) ("consts", consts)
                                val thy' = add_dump str thy
                                val _ = ImportRecorder.add_consts consts
                            in
@@ -2137,7 +2140,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 fun add_dump_constdefs thy defname constname rhs ty =
     let
         val n = quotename constname
-        val t = Display.string_of_ctyp (ctyp_of thy ty)
+        val t = Syntax.string_of_typ_global thy ty
         val syn = string_of_mixfix (mk_syn thy constname)
         (*val eq = smart_string_of_cterm (cterm_of thy (Const(rhs, ty)))*)
         val eq = quote (constname ^ " == "^rhs)
@@ -2224,7 +2227,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
               ("  apply (rule light_ex_imp_nonempty[where t="^
               (proc_prop (cterm_of thy4 t))^"])\n"^
               ("  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")"))) thy4
-            val str_aty = Display.string_of_ctyp (ctyp_of thy aty)
+            val str_aty = Syntax.string_of_typ_global thy aty
             val thy = add_dump_syntax thy rep_name
             val thy = add_dump_syntax thy abs_name
             val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^

@@ -168,7 +168,7 @@ structure HOL4Rewrites = TheoryDataFun
   fun merge _ = Library.gen_union Thm.eq_thm
 )
 
-val hol4_debug = ref false
+val hol4_debug = Unsynchronized.ref false
 fun message s = if !hol4_debug then writeln s else ()
 
 local
@@ -531,7 +531,7 @@ fun dump_import_thy thyname thy =
 	val _ = app (fn (hol,(internal,isa,opt_ty)) =>
 			(out ("\n  " ^ (trans_string hol) ^ " > " ^ (trans_string (follow_cname isa thy)));
 			 case opt_ty of
-			     SOME ty => out (" :: \"" ^ (Display.string_of_ctyp (ctyp_of thy ty)) ^ "\"")
+			     SOME ty => out (" :: \"" ^ Syntax.string_of_typ_global thy ty ^ "\"")
 			   | NONE => ())) constmaps
 	val _ = if null constmaps
 		then ()

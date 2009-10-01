@@ -154,7 +154,7 @@ type seed = int * int;
 
 local
 
-val seed = ref 
+val seed = Unsynchronized.ref 
   (let
     val now = Time.toMilliseconds (Time.now ());
     val (q, s1) = IntInf.divMod (now, 2147483562);

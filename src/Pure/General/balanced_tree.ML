@@ -12,7 +12,7 @@ sig
   val accesses: {left: 'a -> 'a, right: 'a -> 'a, init: 'a} -> int -> 'a list
 end;
 
-structure BalancedTree: BALANCED_TREE =
+structure Balanced_Tree: BALANCED_TREE =
 struct
 
 fun make _ [] = raise Empty

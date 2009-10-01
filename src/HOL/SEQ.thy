@@ -500,6 +500,28 @@ apply (auto dest: LIMSEQ_minus)
 apply (drule LIMSEQ_minus, auto)
 done
 
+lemma lim_le:
+  fixes x :: real
+  assumes f: "convergent f" and fn_le: "!!n. f n \<le> x"
+  shows "lim f \<le> x"
+proof (rule classical)
+  assume "\<not> lim f \<le> x"
+  hence 0: "0 < lim f - x" by arith
+  have 1: "f----> lim f"
+    by (metis convergent_LIMSEQ_iff f) 
+  thus ?thesis
+    proof (simp add: LIMSEQ_iff)
+      assume "\<forall>r>0. \<exists>no. \<forall>n\<ge>no. \<bar>f n - lim f\<bar> < r"
+      hence "\<exists>no. \<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
+	by (metis 0)
+      from this obtain no where "\<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
+	by blast
+      thus "lim f \<le> x"
+	by (metis add_cancel_end add_minus_cancel diff_def linorder_linear 
+                  linorder_not_le minus_diff_eq abs_diff_less_iff fn_le) 
+    qed
+qed
+
 text{* Given a binary function @{text "f:: nat \<Rightarrow> 'a \<Rightarrow> 'a"}, its values are uniquely determined by a function g *}
 
 lemma nat_function_unique: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
@@ -582,7 +604,7 @@ proof -
       ultimately
       have "a (max no n) < a n" by auto
       with monotone[where m=n and n="max no n"]
-      show False by auto
+      show False by (auto simp:max_def split:split_if_asm)
     qed
   } note top_down = this
   { fix x n m fix a :: "nat \<Rightarrow> real"
@@ -1082,10 +1104,6 @@ text {*
 lemma isUb_UNIV_I: "(\<And>y. y \<in> S \<Longrightarrow> y \<le> u) \<Longrightarrow> isUb UNIV S u"
 by (simp add: isUbI setleI)
 
-lemma real_abs_diff_less_iff:
-  "(\<bar>x - a\<bar> < (r::real)) = (a - r < x \<and> x < a + r)"
-by auto
-
 locale real_Cauchy =
   fixes X :: "nat \<Rightarrow> real"
   assumes X: "Cauchy X"
@@ -1122,13 +1140,13 @@ proof (rule reals_complete)
   show "\<exists>x. x \<in> S"
   proof
     from N have "\<forall>n\<ge>N. X N - 1 < X n"
-      by (simp add: real_abs_diff_less_iff)
+      by (simp add: abs_diff_less_iff)
     thus "X N - 1 \<in> S" by (rule mem_S)
   qed
   show "\<exists>u. isUb UNIV S u"
   proof
     from N have "\<forall>n\<ge>N. X n < X N + 1"
-      by (simp add: real_abs_diff_less_iff)
+      by (simp add: abs_diff_less_iff)
     thus "isUb UNIV S (X N + 1)"
       by (rule bound_isUb)
   qed
@@ -1144,7 +1162,7 @@ proof (rule LIMSEQ_I)
     using CauchyD [OF X r] by auto
   hence "\<forall>n\<ge>N. norm (X n - X N) < r/2" by simp
   hence N: "\<forall>n\<ge>N. X N - r/2 < X n \<and> X n < X N + r/2"
-    by (simp only: real_norm_def real_abs_diff_less_iff)
+    by (simp only: real_norm_def abs_diff_less_iff)
 
   from N have "\<forall>n\<ge>N. X N - r/2 < X n" by fast
   hence "X N - r/2 \<in> S" by (rule mem_S)
@@ -1159,7 +1177,7 @@ proof (rule LIMSEQ_I)
     fix n assume n: "N \<le> n"
     from N n have "X n < X N + r/2" and "X N - r/2 < X n" by simp+
     thus "norm (X n - x) < r" using 1 2
-      by (simp add: real_abs_diff_less_iff)
+      by (simp add: abs_diff_less_iff)
   qed
 qed
 

@@ -7,9 +7,9 @@ provides implicit configuration for various output mechanisms.
 
 signature BASIC_PRINT_MODE =
 sig
-  val print_mode: string list ref            (*global template*)
-  val print_mode_value: unit -> string list  (*thread-local value*)
-  val print_mode_active: string -> bool      (*thread-local value*)
+  val print_mode: string list Unsynchronized.ref  (*global template*)
+  val print_mode_value: unit -> string list       (*thread-local value*)
+  val print_mode_active: string -> bool           (*thread-local value*)
 end;
 
 signature PRINT_MODE =
@@ -28,7 +28,7 @@ struct
 val input = "input";
 val internal = "internal";
 
-val print_mode = ref ([]: string list);
+val print_mode = Unsynchronized.ref ([]: string list);
 val tag = Universal.tag () : string list option Universal.tag;
 
 fun print_mode_value () =

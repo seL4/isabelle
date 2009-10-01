@@ -83,7 +83,7 @@ lemma lfp_induct_set:
       and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
   shows "P(a)"
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
-    (auto simp: inf_set_eq intro: indhyp)
+    (auto simp: intro: indhyp)
 
 lemma lfp_ordinal_induct:
   fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
@@ -111,8 +111,7 @@ lemma lfp_ordinal_induct_set:
   and P_f: "!!S. P S ==> P(f S)"
   and P_Union: "!!M. !S:M. P S ==> P(Union M)"
   shows "P(lfp f)"
-  using assms unfolding Sup_set_eq [symmetric]
-  by (rule lfp_ordinal_induct [where P=P])
+  using assms by (rule lfp_ordinal_induct [where P=P])
 
 
 text{*Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 
@@ -185,7 +184,7 @@ lemma coinduct_lemma:
 
 text{*strong version, thanks to Coen and Frost*}
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
-by (blast intro: weak_coinduct [OF _ coinduct_lemma, simplified sup_set_eq])
+by (blast intro: weak_coinduct [OF _ coinduct_lemma])
 
 lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
   apply (rule order_trans)
@@ -267,26 +266,6 @@ theorems basic_monos =
   not_all not_ex
   Ball_def Bex_def
   induct_rulify_fallback
-
-ML {*
-val def_lfp_unfold = @{thm def_lfp_unfold}
-val def_gfp_unfold = @{thm def_gfp_unfold}
-val def_lfp_induct = @{thm def_lfp_induct}
-val def_coinduct = @{thm def_coinduct}
-val inf_bool_eq = @{thm inf_bool_eq} RS @{thm eq_reflection}
-val inf_fun_eq = @{thm inf_fun_eq} RS @{thm eq_reflection}
-val sup_bool_eq = @{thm sup_bool_eq} RS @{thm eq_reflection}
-val sup_fun_eq = @{thm sup_fun_eq} RS @{thm eq_reflection}
-val le_boolI = @{thm le_boolI}
-val le_boolI' = @{thm le_boolI'}
-val le_funI = @{thm le_funI}
-val le_boolE = @{thm le_boolE}
-val le_funE = @{thm le_funE}
-val le_boolD = @{thm le_boolD}
-val le_funD = @{thm le_funD}
-val le_bool_def = @{thm le_bool_def} RS @{thm eq_reflection}
-val le_fun_def = @{thm le_fun_def} RS @{thm eq_reflection}
-*}
 
 use "Tools/inductive.ML"
 setup Inductive.setup

@@ -84,6 +84,8 @@ by (drule_tac k="- a" in LIM_offset, simp)
 lemma LIM_const [simp]: "(%x. k) -- x --> k"
 by (simp add: LIM_def)
 
+lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow> f -- x --> K" by simp
+
 lemma LIM_add:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes f: "f -- a --> L" and g: "g -- a --> M"
@@ -544,8 +546,7 @@ proof (rule ccontr)
     case True thus ?thesis using `0 < s` by auto
   next
     case False hence "s / 2 \<ge> (x - b) / 2" by auto
-    from inf_absorb2[OF this, unfolded inf_real_def]
-    have "?x = (x + b) / 2" by auto
+    hence "?x = (x + b) / 2" by (simp add: field_simps min_max.inf_absorb2)
     thus ?thesis using `b < x` by auto
   qed
   hence "0 \<le> f ?x" using all_le `?x < x` by auto

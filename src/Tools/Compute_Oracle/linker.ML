@@ -239,7 +239,9 @@ exception PCompute of string
 datatype theorem = MonoThm of thm | PolyThm of thm * Linker.instances * thm list
 datatype pattern = MonoPattern of term | PolyPattern of term * Linker.instances * term list
 
-datatype pcomputer = PComputer of theory_ref * Compute.computer * theorem list ref * pattern list ref 
+datatype pcomputer =
+  PComputer of theory_ref * Compute.computer * theorem list Unsynchronized.ref *
+    pattern list Unsynchronized.ref 
 
 (*fun collect_consts (Var x) = []
   | collect_consts (Bound _) = []
@@ -324,7 +326,7 @@ fun conv_subst thy (subst : Type.tyenv) =
 
 fun add_monos thy monocs pats ths =
     let
-        val changed = ref false
+        val changed = Unsynchronized.ref false
         fun add monocs (th as (MonoThm _)) = ([], th)
           | add monocs (PolyThm (th, instances, instanceths)) =
             let
@@ -386,9 +388,9 @@ structure CThmtab = Table(type key = cthm val ord = cthm_ord)
 
 fun remove_duplicates ths =
     let
-        val counter = ref 0
-        val tab = ref (CThmtab.empty : unit CThmtab.table)
-        val thstab = ref (Inttab.empty : thm Inttab.table)
+        val counter = Unsynchronized.ref 0
+        val tab = Unsynchronized.ref (CThmtab.empty : unit CThmtab.table)
+        val thstab = Unsynchronized.ref (Inttab.empty : thm Inttab.table)
         fun update th =
             let
                 val key = thm2cthm th
@@ -415,7 +417,7 @@ fun make_with_cache machine thy pats ths cs =
 	val (_, (pats, ths)) = add_monos thy monocs pats ths
 	val computer = create_computer machine thy pats ths
     in
-	PComputer (Theory.check_thy thy, computer, ref ths, ref pats)
+	PComputer (Theory.check_thy thy, computer, Unsynchronized.ref ths, Unsynchronized.ref pats)
     end
 
 fun make machine thy ths cs = make_with_cache machine thy [] ths cs

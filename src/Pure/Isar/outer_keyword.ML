@@ -116,16 +116,16 @@ val tag_ml = tag "ML";
 
 local
 
-val global_commands = ref (Symtab.empty: T Symtab.table);
-val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
+val global_commands = Unsynchronized.ref (Symtab.empty: T Symtab.table);
+val global_lexicons = Unsynchronized.ref (Scan.empty_lexicon, Scan.empty_lexicon);
 
 in
 
 fun get_commands () = CRITICAL (fn () => ! global_commands);
 fun get_lexicons () = CRITICAL (fn () => ! global_lexicons);
 
-fun change_commands f = CRITICAL (fn () => change global_commands f);
-fun change_lexicons f = CRITICAL (fn () => change global_lexicons f);
+fun change_commands f = CRITICAL (fn () => Unsynchronized.change global_commands f);
+fun change_lexicons f = CRITICAL (fn () => Unsynchronized.change global_lexicons f);
 
 end;
 

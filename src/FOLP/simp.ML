@@ -49,10 +49,10 @@ sig
 (* temporarily disabled:
   val extract_free_congs        : unit -> thm list
 *)
-  val tracing   : bool ref
+  val tracing   : bool Unsynchronized.ref
 end;
 
-functor SimpFun (Simp_data: SIMP_DATA) : SIMP = 
+functor SimpFun (Simp_data: SIMP_DATA) : SIMP =
 struct
 
 local open Simp_data in
@@ -74,12 +74,12 @@ fun lhs_insert_thm (th,net) =
   Similar to match_from_nat_tac, but the net does not contain numbers;
   rewrite rules are not ordered.*)
 fun net_tac net =
-  SUBGOAL(fn (prem,i) => 
+  SUBGOAL(fn (prem,i) =>
           resolve_tac (Net.unify_term net (Logic.strip_assums_concl prem)) i);
 
 (*match subgoal i against possible theorems indexed by lhs in the net*)
 fun lhs_net_tac net =
-  SUBGOAL(fn (prem,i) => 
+  SUBGOAL(fn (prem,i) =>
           biresolve_tac (Net.unify_term net
                        (lhs_of (Logic.strip_assums_concl prem))) i);
 
@@ -110,7 +110,7 @@ val (normI_thms,normE_thms) = split_list norm_thms;
 
 (*Get the norm constants from norm_thms*)
 val norms =
-  let fun norm thm = 
+  let fun norm thm =
       case lhs_of(concl_of thm) of
           Const(n,_)$_ => n
         | _ => error "No constant in lhs of a norm_thm"
@@ -144,7 +144,7 @@ fun res1(thm,thms,i) = one_result(resolve_tac thms i,thm);
 (**** Adding "NORM" tags ****)
 
 (*get name of the constant from conclusion of a congruence rule*)
-fun cong_const cong = 
+fun cong_const cong =
     case head_of (lhs_of (concl_of cong)) of
         Const(c,_) => c
       | _ => ""                 (*a placeholder distinct from const names*);
@@ -156,9 +156,9 @@ val atomic = null o Logic.strip_assums_hyp;
 fun add_hidden_vars ccs =
   let fun add_hvars tm hvars = case tm of
               Abs(_,_,body) => OldTerm.add_term_vars(body,hvars)
-            | _$_ => let val (f,args) = strip_comb tm 
+            | _$_ => let val (f,args) = strip_comb tm
                      in case f of
-                            Const(c,T) => 
+                            Const(c,T) =>
                                 if member (op =) ccs c
                                 then fold_rev add_hvars args hvars
                                 else OldTerm.add_term_vars (tm, hvars)
@@ -202,13 +202,13 @@ let val thm' = mk_trans2 thm;
     val hvs = map (#1 o dest_Var) hvars
     val refl1_tac = refl_tac 1
     fun norm_step_tac st = st |>
-	 (case head_of(rhs_of_eq 1 st) of
-	    Var(ixn,_) => if ixn mem hvs then refl1_tac
-			  else resolve_tac normI_thms 1 ORELSE refl1_tac
-	  | Const _ => resolve_tac normI_thms 1 ORELSE
-		       resolve_tac congs 1 ORELSE refl1_tac
-	  | Free _ => resolve_tac congs 1 ORELSE refl1_tac
-	  | _ => refl1_tac)
+         (case head_of(rhs_of_eq 1 st) of
+            Var(ixn,_) => if ixn mem hvs then refl1_tac
+                          else resolve_tac normI_thms 1 ORELSE refl1_tac
+          | Const _ => resolve_tac normI_thms 1 ORELSE
+                       resolve_tac congs 1 ORELSE refl1_tac
+          | Free _ => resolve_tac congs 1 ORELSE refl1_tac
+          | _ => refl1_tac)
     val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops) norm_step_tac
     val SOME(thm'',_) = Seq.pull(add_norm_tac thm')
 in thm'' end;
@@ -246,9 +246,9 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 (** Insertion of congruences and rewrites **)
 
 (*insert a thm in a thm net*)
-fun insert_thm_warn th net = 
+fun insert_thm_warn th net =
   Net.insert_term Thm.eq_thm_prop (concl_of th, th) net
-  handle Net.INSERT => 
+  handle Net.INSERT =>
     (writeln ("Duplicate rewrite or congruence rule:\n" ^
         Display.string_of_thm_without_context th); net);
 
@@ -272,9 +272,9 @@ end;
 (** Deletion of congruences and rewrites **)
 
 (*delete a thm from a thm net*)
-fun delete_thm_warn th net = 
+fun delete_thm_warn th net =
   Net.delete_term Thm.eq_thm_prop (concl_of th, th) net
-  handle Net.DELETE => 
+  handle Net.DELETE =>
     (writeln ("No such rewrite or congruence rule:\n" ^
         Display.string_of_thm_without_context th); net);
 
@@ -337,17 +337,17 @@ fun if_rewritable ifc i thm =
     in find_if(tm,0) end;
 
 fun IF1_TAC cong_tac i =
-    let fun seq_try (ifth::ifths,ifc::ifcs) thm = 
+    let fun seq_try (ifth::ifths,ifc::ifcs) thm =
                 (COND (if_rewritable ifc i) (DETERM(rtac ifth i))
                         (seq_try(ifths,ifcs))) thm
               | seq_try([],_) thm = no_tac thm
         and try_rew thm = (seq_try(case_rews,case_consts) ORELSE one_subt) thm
         and one_subt thm =
                 let val test = has_fewer_prems (nprems_of thm + 1)
-                    fun loop thm = 
-			COND test no_tac
+                    fun loop thm =
+                        COND test no_tac
                           ((try_rew THEN DEPTH_FIRST test (refl_tac i))
-			   ORELSE (refl_tac i THEN loop)) thm
+                           ORELSE (refl_tac i THEN loop)) thm
                 in (cong_tac THEN loop) thm end
     in COND (may_match(case_consts,i)) try_rew no_tac end;
 
@@ -366,7 +366,7 @@ fun simp_refl([],_,ss) = ss
 
 (** Tracing **)
 
-val tracing = ref false;
+val tracing = Unsynchronized.ref false;
 
 (*Replace parameters by Free variables in P*)
 fun variants_abs ([],P) = P
@@ -381,12 +381,12 @@ fun prepare_goal i st =
 
 (*print lhs of conclusion of subgoal i*)
 fun pr_goal_lhs i st =
-    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st) 
+    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st)
              (lhs_of (prepare_goal i st)));
 
 (*print conclusion of subgoal i*)
 fun pr_goal_concl i st =
-    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st) (prepare_goal i st)) 
+    writeln (Syntax.string_of_term_global (Thm.theory_of_thm st) (prepare_goal i st))
 
 (*print subgoals i to j (inclusive)*)
 fun pr_goals (i,j) st =
@@ -439,7 +439,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         then writeln (cat_lines
           ("Adding rewrites:" :: map Display.string_of_thm_without_context new_rws))
         else ();
-        (ss,thm,anet',anet::ats,cs) 
+        (ss,thm,anet',anet::ats,cs)
     end;
 
 fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
@@ -492,7 +492,7 @@ in exec(ss, thm, Net.empty, [], []) end;
 
 fun EXEC_TAC(ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
-in fn i => 
+in fn i =>
     (fn thm =>
      if i <= 0 orelse nprems_of thm < i then Seq.empty
      else Seq.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))

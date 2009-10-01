@@ -3,7 +3,7 @@
 header {* A simple counterexample generator *}
 
 theory Quickcheck
-imports Random Code_Eval
+imports Random Code_Evaluation
 uses ("Tools/quickcheck_generators.ML")
 begin
 
@@ -24,7 +24,7 @@ begin
 
 definition
   "random i = Random.range 2 o\<rightarrow>
-    (\<lambda>k. Pair (if k = 0 then Code_Eval.valtermify False else Code_Eval.valtermify True))"
+    (\<lambda>k. Pair (if k = 0 then Code_Evaluation.valtermify False else Code_Evaluation.valtermify True))"
 
 instance ..
 
@@ -34,7 +34,7 @@ instantiation itself :: (typerep) random
 begin
 
 definition random_itself :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_itself _ = Pair (Code_Eval.valtermify TYPE('a))"
+  "random_itself _ = Pair (Code_Evaluation.valtermify TYPE('a))"
 
 instance ..
 
@@ -44,7 +44,7 @@ instantiation char :: random
 begin
 
 definition
-  "random _ = Random.select chars o\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Eval.term_of c))"
+  "random _ = Random.select chars o\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Evaluation.term_of c))"
 
 instance ..
 
@@ -54,7 +54,7 @@ instantiation String.literal :: random
 begin
 
 definition 
-  "random _ = Pair (STR '''', \<lambda>u. Code_Eval.term_of (STR ''''))"
+  "random _ = Pair (STR '''', \<lambda>u. Code_Evaluation.term_of (STR ''''))"
 
 instance ..
 
@@ -63,10 +63,10 @@ end
 instantiation nat :: random
 begin
 
-definition random_nat :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
+definition random_nat :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed" where
   "random_nat i = Random.range (i + 1) o\<rightarrow> (\<lambda>k. Pair (
      let n = Code_Numeral.nat_of k
-     in (n, \<lambda>_. Code_Eval.term_of n)))"
+     in (n, \<lambda>_. Code_Evaluation.term_of n)))"
 
 instance ..
 
@@ -78,7 +78,7 @@ begin
 definition
   "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (
      let j = (if k \<ge> i then Code_Numeral.int_of (k - i) else - Code_Numeral.int_of (i - k))
-     in (j, \<lambda>_. Code_Eval.term_of j)))"
+     in (j, \<lambda>_. Code_Evaluation.term_of j)))"
 
 instance ..
 
@@ -95,7 +95,7 @@ axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('
 
 definition random_fun_lift :: "(Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
   \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_fun_lift f = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of f Random.split_seed"
+  "random_fun_lift f = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Evaluation.term_of f Random.split_seed"
 
 instantiation "fun" :: ("{eq, term_of}", random) random
 begin

@@ -633,8 +633,7 @@ proof-
 	    by (auto simp add: inverse_eq_divide power_divide)
 
 	  from k have kn: "k > n"
-	    apply (simp add: leastP_def setge_def fps_sum_rep_nth)
-	    by (cases "k \<le> n", auto)
+	    by (simp add: leastP_def setge_def fps_sum_rep_nth split:split_if_asm)
 	  then have "dist (?s n) a < (1/2)^n" unfolding dth
 	    by (auto intro: power_strict_decreasing)
 	  also have "\<dots> <= (1/2)^n0" using nn0
@@ -1244,10 +1243,9 @@ proof-
     {assume n0: "n \<noteq> 0"
       then have u: "{0} \<union> ({1} \<union> {2..n}) = {0..n}" "{1}\<union>{2..n} = {1..n}"
 	"{0..n - 1}\<union>{n} = {0..n}"
-	apply (simp_all add: expand_set_eq) by presburger+
+	by (auto simp: expand_set_eq)
       have d: "{0} \<inter> ({1} \<union> {2..n}) = {}" "{1} \<inter> {2..n} = {}"
-	"{0..n - 1}\<inter>{n} ={}" using n0
-	by (simp_all add: expand_set_eq, presburger+)
+	"{0..n - 1}\<inter>{n} ={}" using n0 by simp_all
       have f: "finite {0}" "finite {1}" "finite {2 .. n}"
 	"finite {0 .. n - 1}" "finite {n}" by simp_all
     have "((1 - ?X) * ?sa) $ n = setsum (\<lambda>i. (1 - ?X)$ i * ?sa $ (n - i)) {0 .. n}"
@@ -2501,6 +2499,29 @@ proof-
     apply (subst fps_compose_assoc)
     using a0 c0 by (auto simp add: fps_inv_def)
   then show ?thesis unfolding fps_inv_right[OF c0 c1] by simp
+qed
+
+lemma fps_ginv_deriv:
+  assumes a0:"a$0 = (0::'a::{field})" and a1: "a$1 \<noteq> 0"
+  shows "fps_deriv (fps_ginv b a) = (fps_deriv b / fps_deriv a) oo fps_ginv X a"
+proof-
+  let ?ia = "fps_ginv b a"
+  let ?iXa = "fps_ginv X a"
+  let ?d = "fps_deriv"
+  let ?dia = "?d ?ia"
+  have iXa0: "?iXa $ 0 = 0" by (simp add: fps_ginv_def)
+  have da0: "?d a $ 0 \<noteq> 0" using a1 by simp
+  from fps_ginv[OF a0 a1, of b] have "?d (?ia oo a) = fps_deriv b" by simp
+  then have "(?d ?ia oo a) * ?d a = ?d b" unfolding fps_compose_deriv[OF a0] .
+  then have "(?d ?ia oo a) * ?d a * inverse (?d a) = ?d b * inverse (?d a)" by simp
+  then have "(?d ?ia oo a) * (inverse (?d a) * ?d a) = ?d b / ?d a" 
+    by (simp add: fps_divide_def)
+  then have "(?d ?ia oo a) oo ?iXa =  (?d b / ?d a) oo ?iXa "
+    unfolding inverse_mult_eq_1[OF da0] by simp
+  then have "?d ?ia oo (a oo ?iXa) =  (?d b / ?d a) oo ?iXa"
+    unfolding fps_compose_assoc[OF iXa0 a0] .
+  then show ?thesis unfolding fps_inv_ginv[symmetric]
+    unfolding fps_inv_right[OF a0 a1] by simp
 qed
 
 subsection{* Elementary series *}

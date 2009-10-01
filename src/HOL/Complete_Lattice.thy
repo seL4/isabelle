@@ -10,7 +10,9 @@ notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
   inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65)
+  sup  (infixl "\<squnion>" 65) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 
 subsection {* Abstract complete lattices *}
@@ -23,6 +25,15 @@ class complete_lattice = lattice + bot + top +
   assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
      and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
 begin
+
+term complete_lattice
+
+lemma dual_complete_lattice:
+  "complete_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom> Sup Inf"
+  by (auto intro!: complete_lattice.intro dual_lattice
+    bot.intro top.intro dual_preorder, unfold_locales)
+      (fact bot_least top_greatest
+        Sup_upper Sup_least Inf_lower Inf_greatest)+
 
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
@@ -76,11 +87,11 @@ lemma top_def:
 
 lemma sup_bot [simp]:
   "x \<squnion> bot = x"
-  using bot_least [of x] by (simp add: le_iff_sup sup_commute)
+  using bot_least [of x] by (simp add: sup_commute sup_absorb2)
 
 lemma inf_top [simp]:
   "x \<sqinter> top = x"
-  using top_greatest [of x] by (simp add: le_iff_inf inf_commute)
+  using top_greatest [of x] by (simp add: inf_commute inf_absorb2)
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "SUPR A f = \<Squnion> (f ` A)"
@@ -203,8 +214,8 @@ lemma Sup_empty_fun:
 
 subsection {* Union *}
 
-definition Union :: "'a set set \<Rightarrow> 'a set" where
-  Sup_set_eq [symmetric]: "Union S = \<Squnion>S"
+abbreviation Union :: "'a set set \<Rightarrow> 'a set" where
+  "Union S \<equiv> \<Squnion>S"
 
 notation (xsymbols)
   Union  ("\<Union>_" [90] 90)
@@ -216,7 +227,7 @@ proof (rule set_ext)
   have "(\<exists>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<exists>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Union>A \<longleftrightarrow> x \<in> {x. \<exists>B\<in>A. x \<in> B}"
-    by (simp add: Sup_set_eq [symmetric] Sup_fun_def Sup_bool_def) (simp add: mem_def)
+    by (simp add: Sup_fun_def Sup_bool_def) (simp add: mem_def)
 qed
 
 lemma Union_iff [simp, noatp]:
@@ -278,8 +289,8 @@ lemma Union_mono: "A \<subseteq> B ==> \<Union>A \<subseteq> \<Union>B"
 
 subsection {* Unions of families *}
 
-definition UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  SUPR_set_eq [symmetric]: "UNION S f = (SUP x:S. f x)"
+abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "UNION \<equiv> SUPR"
 
 syntax
   "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
@@ -314,7 +325,7 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} "@UNION"
 
 lemma UNION_eq_Union_image:
   "(\<Union>x\<in>A. B x) = \<Union>(B`A)"
-  by (simp add: SUPR_def SUPR_set_eq [symmetric] Sup_set_eq)
+  by (fact SUPR_def)
 
 lemma Union_def:
   "\<Union>S = (\<Union>x\<in>S. x)"
@@ -351,7 +362,7 @@ lemma image_eq_UN: "f`A = (UN x:A. {f x})"
   by blast
 
 lemma UN_upper: "a \<in> A ==> B a \<subseteq> (\<Union>x\<in>A. B x)"
-  by blast
+  by (fact le_SUPI)
 
 lemma UN_least: "(!!x. x \<in> A ==> B x \<subseteq> C) ==> (\<Union>x\<in>A. B x) \<subseteq> C"
   by (iprover intro: subsetI elim: UN_E dest: subsetD)
@@ -439,8 +450,8 @@ by blast
 
 subsection {* Inter *}
 
-definition Inter :: "'a set set \<Rightarrow> 'a set" where
-  Inf_set_eq [symmetric]: "Inter S = \<Sqinter>S"
+abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
+  "Inter S \<equiv> \<Sqinter>S"
   
 notation (xsymbols)
   Inter  ("\<Inter>_" [90] 90)
@@ -452,7 +463,7 @@ proof (rule set_ext)
   have "(\<forall>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<forall>B\<in>A. x \<in> B)"
     by auto
   then show "x \<in> \<Inter>A \<longleftrightarrow> x \<in> {x. \<forall>B \<in> A. x \<in> B}"
-    by (simp add: Inf_fun_def Inf_bool_def Inf_set_eq [symmetric]) (simp add: mem_def)
+    by (simp add: Inf_fun_def Inf_bool_def) (simp add: mem_def)
 qed
 
 lemma Inter_iff [simp,noatp]: "(A : Inter C) = (ALL X:C. A:X)"
@@ -514,8 +525,8 @@ lemma Inter_anti_mono: "B \<subseteq> A ==> \<Inter>A \<subseteq> \<Inter>B"
 
 subsection {* Intersections of families *}
 
-definition INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  INFI_set_eq [symmetric]: "INTER S f = (INF x:S. f x)"
+abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "INTER \<equiv> INFI"
 
 syntax
   "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
@@ -541,7 +552,7 @@ Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} "@INTER"
 
 lemma INTER_eq_Inter_image:
   "(\<Inter>x\<in>A. B x) = \<Inter>(B`A)"
-  by (simp add: INFI_def INFI_set_eq [symmetric] Inf_set_eq)
+  by (fact INFI_def)
   
 lemma Inter_def:
   "\<Inter>S = (\<Inter>x\<in>S. x)"
@@ -579,10 +590,10 @@ lemma Collect_all_eq: "{x. \<forall>y. P x y} = (\<Inter>y. {x. P x y})"
   by blast
 
 lemma INT_lower: "a \<in> A ==> (\<Inter>x\<in>A. B x) \<subseteq> B a"
-  by blast
+  by (fact INF_leI)
 
 lemma INT_greatest: "(!!x. x \<in> A ==> C \<subseteq> B x) ==> C \<subseteq> (\<Inter>x\<in>A. B x)"
-  by (iprover intro: INT_I subsetI dest: subsetD)
+  by (fact le_INFI)
 
 lemma INT_empty [simp]: "(\<Inter>x\<in>{}. B x) = UNIV"
   by blast
@@ -784,7 +795,9 @@ no_notation
   inf  (infixl "\<sqinter>" 70) and
   sup  (infixl "\<squnion>" 65) and
   Inf  ("\<Sqinter>_" [900] 900) and
-  Sup  ("\<Squnion>_" [900] 900)
+  Sup  ("\<Squnion>_" [900] 900) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 lemmas mem_simps =
   insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff

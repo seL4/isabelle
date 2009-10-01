@@ -10,7 +10,7 @@ sig
   datatype prover_result = Success | Failure | Error
 
   val setup: theory -> theory
-  val destdir: string ref
+  val destdir: string Unsynchronized.ref
   val get_prover_name: unit -> string
   val set_prover_name: string -> unit
 end
@@ -30,7 +30,7 @@ val write = Output.warning
 
 (*** calling provers ***)
 
-val destdir = ref ""
+val destdir = Unsynchronized.ref ""
 
 fun filename dir name =
   let
@@ -113,7 +113,7 @@ val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
 
 (* default prover *)
 
-val prover_name = ref "remote_csdp"
+val prover_name = Unsynchronized.ref "remote_csdp"
 
 fun get_prover_name () = CRITICAL (fn () => ! prover_name);
 fun set_prover_name str = CRITICAL (fn () => prover_name := str);
@@ -136,13 +136,32 @@ fun call_solver name_option =
     run_solver name (Path.explode cmd) find_failure
   end
 
+(* certificate output *)
+
+fun output_line cert = "To repeat this proof with a certifiate use this command:\n" ^
+        (Markup.markup Markup.sendback) ("by (sos_cert \"" ^ cert ^ "\")")
+
+val print_cert = Output.writeln o output_line o PositivstellensatzTools.pss_tree_to_cert
+
 (* setup tactic *)
 
-fun sos_solver name = (SIMPLE_METHOD' o (Sos.sos_tac (call_solver name))) 
+fun parse_cert (input as (ctxt, _)) = 
+  (Scan.lift OuterParse.string >>
+    PositivstellensatzTools.cert_to_pss_tree (Context.proof_of ctxt)) input
 
-val sos_method = Scan.option (Scan.lift OuterParse.xname) >> sos_solver
+fun sos_solver print method = (SIMPLE_METHOD' o (Sos.sos_tac print method)) 
 
-val setup = Method.setup @{binding sos} sos_method
-  "Prove universal problems over the reals using sums of squares"
+val sos_method =
+   Scan.lift (Scan.option OuterParse.xname) >> (fn n => Sos.Prover (call_solver n)) >>
+   sos_solver print_cert
+
+val sos_cert_method =
+  parse_cert >> Sos.Certificate >> sos_solver ignore
+
+val setup =
+     Method.setup @{binding sos} sos_method
+     "Prove universal problems over the reals using sums of squares"
+  #> Method.setup @{binding sos_cert} sos_cert_method
+     "Prove universal problems over the reals using sums of squares with certificates"
 
 end

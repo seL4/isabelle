@@ -278,8 +278,8 @@ type trace_subst_errT = int (* subgoal *)
              * (string * typ) list (* Type abs env *)
              * term) (* outer term *);
 
-val trace_subst_err = (ref NONE : trace_subst_errT option ref);
-val trace_subst_search = ref false;
+val trace_subst_err = (Unsynchronized.ref NONE : trace_subst_errT option Unsynchronized.ref);
+val trace_subst_search = Unsynchronized.ref false;
 exception trace_subst_exp of trace_subst_errT;
 *)
 

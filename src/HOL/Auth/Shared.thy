@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/Shared
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
@@ -8,7 +7,9 @@ Theory of Shared Keys (common to all symmetric-key protocols)
 Shared, long-term keys; initial states of agents
 *)
 
-theory Shared imports Event begin
+theory Shared
+imports Event All_Symmetric
+begin
 
 consts
   shrK    :: "agent => key"  (*symmetric keys*);
@@ -19,13 +20,6 @@ specification (shrK)
    apply (rule exI [of _ "agent_case 0 (\<lambda>n. n + 2) 1"]) 
    apply (simp add: inj_on_def split: agent.split) 
    done
-
-text{*All keys are symmetric*}
-
-defs  all_symmetric_def: "all_symmetric == True"
-
-lemma isSym_keys: "K \<in> symKeys"	
-by (simp add: symKeys_def all_symmetric_def invKey_symmetric) 
 
 text{*Server knows all long-term keys; other agents know only their own*}
 primrec

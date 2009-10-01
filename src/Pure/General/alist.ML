@@ -122,6 +122,6 @@ fun coalesce eq =
   in coal end;
 
 fun group eq xs =
-  fold_rev (fn (k, v) => default eq (k, []) #> map_entry eq k (cons v)) xs [];
+  fold_rev (fn (k, v) => map_default eq (k, []) (cons v)) xs [];
 
 end;

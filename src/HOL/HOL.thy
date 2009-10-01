@@ -15,6 +15,7 @@ uses
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
   "~~/src/Tools/intuitionistic.ML"
   "~~/src/Tools/project_rule.ML"
+  "~~/src/Tools/cong_tac.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"
@@ -29,6 +30,7 @@ uses
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
+  "~~/src/Tools/more_conv.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
@@ -239,15 +241,15 @@ lemma back_subst: "P a ==> a = b ==> P b"
   by (rule subst)
 
 
-subsubsection {*Congruence rules for application*}
+subsubsection {* Congruence rules for application *}
 
-(*similar to AP_THM in Gordon's HOL*)
+text {* Similar to @{text AP_THM} in Gordon's HOL. *}
 lemma fun_cong: "(f::'a=>'b) = g ==> f(x)=g(x)"
 apply (erule subst)
 apply (rule refl)
 done
 
-(*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
+text {* Similar to @{text AP_TERM} in Gordon's HOL and FOL's @{text subst_context}. *}
 lemma arg_cong: "x=y ==> f(x)=f(y)"
 apply (erule subst)
 apply (rule refl)
@@ -258,13 +260,15 @@ apply (erule ssubst)+
 apply (rule refl)
 done
 
-lemma cong: "[| f = g; (x::'a) = y |] ==> f(x) = g(y)"
+lemma cong: "[| f = g; (x::'a) = y |] ==> f x = g y"
 apply (erule subst)+
 apply (rule refl)
 done
 
+ML {* val cong_tac = Cong_Tac.cong_tac @{thm cong} *}
 
-subsubsection {*Equality of booleans -- iff*}
+
+subsubsection {* Equality of booleans -- iff *}
 
 lemma iffI: assumes "P ==> Q" and "Q ==> P" shows "P=Q"
   by (iprover intro: iff [THEN mp, THEN mp] impI assms)
@@ -1465,7 +1469,7 @@ setup InductTacs.setup
 subsubsection {* Coherent logic *}
 
 ML {*
-structure Coherent = CoherentFun
+structure Coherent = Coherent
 (
   val atomize_elimL = @{thm atomize_elimL}
   val atomize_exL = @{thm atomize_exL}
@@ -1886,7 +1890,7 @@ setup {*
 *}
 
 setup {*
-  Code.add_const_alias @{thm equals_alias_cert}
+  Nbe.add_const_alias @{thm equals_alias_cert}
 *}
 
 hide (open) const eq
@@ -1966,7 +1970,7 @@ ML {*
 structure Eval_Method =
 struct
 
-val eval_ref : (unit -> bool) option ref = ref NONE;
+val eval_ref : (unit -> bool) option Unsynchronized.ref = Unsynchronized.ref NONE;
 
 end;
 *}
@@ -2020,6 +2024,29 @@ setup {*
 
 quickcheck_params [size = 5, iterations = 50]
 
+subsection {* Preprocessing for the predicate compiler *}
+
+ML {*
+structure Predicate_Compile_Alternative_Defs = Named_Thms
+(
+  val name = "code_pred_def"
+  val description = "alternative definitions of constants for the Predicate Compiler"
+)
+*}
+
+ML {*
+structure Predicate_Compile_Inline_Defs = Named_Thms
+(
+  val name = "code_pred_inline"
+  val description = "inlining definitions for the Predicate Compiler"
+)
+*}
+
+setup {*
+  Predicate_Compile_Alternative_Defs.setup
+  #> Predicate_Compile_Inline_Defs.setup
+  #> Predicate_Compile_Preproc_Const_Defs.setup
+*}
 
 subsection {* Nitpick setup *}
 

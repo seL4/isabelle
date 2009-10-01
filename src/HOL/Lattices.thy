@@ -12,7 +12,9 @@ subsection {* Lattices *}
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
-  less  (infix "\<sqsubset>" 50)
+  less  (infix "\<sqsubset>" 50) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 class lower_semilattice = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
@@ -199,7 +201,7 @@ assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion>
 shows "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
 proof-
   have "x \<squnion> (y \<sqinter> z) = (x \<squnion> (x \<sqinter> z)) \<squnion> (y \<sqinter> z)" by(simp add:sup_inf_absorb)
-  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))" by(simp add:D inf_commute sup_assoc)
+  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))" by(simp add:D inf_commute sup_assoc del:sup_absorb1)
   also have "\<dots> = ((x \<squnion> y) \<sqinter> x) \<squnion> ((x \<squnion> y) \<sqinter> z)"
     by(simp add:inf_sup_absorb inf_commute)
   also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> z)" by(simp add:D)
@@ -211,11 +213,51 @@ assumes D: "!!x y z. x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter>
 shows "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
 proof-
   have "x \<sqinter> (y \<squnion> z) = (x \<sqinter> (x \<squnion> z)) \<sqinter> (y \<squnion> z)" by(simp add:inf_sup_absorb)
-  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))" by(simp add:D sup_commute inf_assoc)
+  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))" by(simp add:D sup_commute inf_assoc del:inf_absorb1)
   also have "\<dots> = ((x \<sqinter> y) \<squnion> x) \<sqinter> ((x \<sqinter> y) \<squnion> z)"
     by(simp add:sup_inf_absorb sup_commute)
   also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)
   finally show ?thesis .
+qed
+
+end
+
+subsubsection {* Strict order *}
+
+context lower_semilattice
+begin
+
+lemma less_infI1:
+  "a \<sqsubset> x \<Longrightarrow> a \<sqinter> b \<sqsubset> x"
+  by (auto simp add: less_le inf_absorb1 intro: le_infI1)
+
+lemma less_infI2:
+  "b \<sqsubset> x \<Longrightarrow> a \<sqinter> b \<sqsubset> x"
+  by (auto simp add: less_le inf_absorb2 intro: le_infI2)
+
+end
+
+context upper_semilattice
+begin
+
+lemma less_supI1:
+  "x < a \<Longrightarrow> x < a \<squnion> b"
+proof -
+  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+    by (fact dual_semilattice)
+  assume "x < a"
+  then show "x < a \<squnion> b"
+    by (fact dual.less_infI1)
+qed
+
+lemma less_supI2:
+  "x < b \<Longrightarrow> x < a \<squnion> b"
+proof -
+  interpret dual: lower_semilattice "op \<ge>" "op >" sup
+    by (fact dual_semilattice)
+  assume "x < b"
+  then show "x < a \<squnion> b"
+    by (fact dual.less_infI2)
 qed
 
 end
@@ -305,6 +347,40 @@ lemma sup_bot_left [simp]:
 lemma sup_bot_right [simp]:
   "x \<squnion> bot = x"
   by (rule sup_absorb1) simp
+
+lemma inf_eq_top_eq1:
+  assumes "A \<sqinter> B = \<top>"
+  shows "A = \<top>"
+proof (cases "B = \<top>")
+  case True with assms show ?thesis by simp
+next
+  case False with top_greatest have "B < \<top>" by (auto intro: neq_le_trans)
+  then have "A \<sqinter> B < \<top>" by (rule less_infI2)
+  with assms show ?thesis by simp
+qed
+
+lemma inf_eq_top_eq2:
+  assumes "A \<sqinter> B = \<top>"
+  shows "B = \<top>"
+  by (rule inf_eq_top_eq1, unfold inf_commute [of B]) (fact assms)
+
+lemma sup_eq_bot_eq1:
+  assumes "A \<squnion> B = \<bottom>"
+  shows "A = \<bottom>"
+proof -
+  interpret dual: boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
+    by (rule dual_boolean_algebra)
+  from dual.inf_eq_top_eq1 assms show ?thesis .
+qed
+
+lemma sup_eq_bot_eq2:
+  assumes "A \<squnion> B = \<bottom>"
+  shows "B = \<bottom>"
+proof -
+  interpret dual: boolean_algebra "\<lambda>x y. x \<squnion> - y" uminus "op \<ge>" "op >" "op \<squnion>" "op \<sqinter>" top bot
+    by (rule dual_boolean_algebra)
+  from dual.inf_eq_top_eq2 assms show ?thesis .
+qed
 
 lemma compl_unique:
   assumes "x \<sqinter> y = bot"
@@ -413,12 +489,11 @@ qed
 subsection {* @{const min}/@{const max} on linear orders as
   special case of @{const inf}/@{const sup} *}
 
-sublocale linorder < min_max!: distrib_lattice less_eq less "Orderings.ord.min less_eq" "Orderings.ord.max less_eq"
+sublocale linorder < min_max!: distrib_lattice less_eq less min max
 proof
   fix x y z
-  show "Orderings.ord.max less_eq x (Orderings.ord.min less_eq y z) =
-    Orderings.ord.min less_eq (Orderings.ord.max less_eq x y) (Orderings.ord.max less_eq x z)"
-  unfolding min_def max_def by auto
+  show "max x (min y z) = min (max x y) (max x z)"
+    by (auto simp add: min_def max_def)
 qed (auto simp add: min_def max_def not_le less_imp_le)
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
@@ -460,6 +535,18 @@ qed (simp_all add: inf_bool_eq sup_bool_eq le_bool_def
 
 end
 
+lemma sup_boolI1:
+  "P \<Longrightarrow> P \<squnion> Q"
+  by (simp add: sup_bool_eq)
+
+lemma sup_boolI2:
+  "Q \<Longrightarrow> P \<squnion> Q"
+  by (simp add: sup_bool_eq)
+
+lemma sup_boolE:
+  "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
+  by (auto simp add: sup_bool_eq)
+
 
 subsection {* Fun as lattice *}
 
@@ -472,21 +559,14 @@ definition
 definition
   sup_fun_eq [code del]: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 
-instance
-apply intro_classes
-unfolding inf_fun_eq sup_fun_eq
-apply (auto intro: le_funI)
-apply (rule le_funI)
-apply (auto dest: le_funD)
-apply (rule le_funI)
-apply (auto dest: le_funD)
-done
+instance proof
+qed (simp_all add: le_fun_def inf_fun_eq sup_fun_eq)
 
 end
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
 proof
-qed (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+qed (simp_all add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
 
 instantiation "fun" :: (type, uminus) uminus
 begin
@@ -514,13 +594,12 @@ qed (simp_all add: inf_fun_eq sup_fun_eq bot_fun_eq top_fun_eq fun_Compl_def fun
   inf_compl_bot sup_compl_top diff_eq)
 
 
-text {* redundant bindings *}
-
-
 no_notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
   inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65)
+  sup  (infixl "\<squnion>" 65) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 end

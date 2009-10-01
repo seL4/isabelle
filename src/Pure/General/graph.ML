@@ -132,21 +132,23 @@ fun reachable next xs =
   let
     fun reach x (rs, R) =
       if member_keys R x then (rs, R)
-      else apfst (cons x) (fold reach (next x) (rs, insert_keys x R))
-  in fold_map (fn x => fn X => reach x ([], X)) xs empty_keys end;
+      else fold reach (next x) (rs, insert_keys x R) |>> cons x;
+    fun reachs x (rss, R) =
+      reach x ([], R) |>> (fn rs => rs :: rss);
+  in fold reachs xs ([], empty_keys) end;
 
 (*immediate*)
 fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = flat o fst o reachable (imm_preds G);
-fun all_succs G = flat o fst o reachable (imm_succs G);
+fun all_preds G = flat o #1 o reachable (imm_preds G);
+fun all_succs G = flat o #1 o reachable (imm_succs G);
 
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
-fun strong_conn G = filter_out null (fst (reachable (imm_preds G)
-  (flat (rev (fst (reachable (imm_succs G) (keys G)))))));
+fun strong_conn G =
+  rev (filter_out null (#1 (reachable (imm_preds G) (all_succs G (keys G)))));
 
 
 (* nodes *)

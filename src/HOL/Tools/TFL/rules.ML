@@ -47,10 +47,10 @@ sig
 
   val rbeta: thm -> thm
 (* For debugging my isabelle solver in the conditional rewriter *)
-  val term_ref: term list ref
-  val thm_ref: thm list ref
-  val ss_ref: simpset list ref
-  val tracing: bool ref
+  val term_ref: term list Unsynchronized.ref
+  val thm_ref: thm list Unsynchronized.ref
+  val ss_ref: simpset list Unsynchronized.ref
+  val tracing: bool Unsynchronized.ref
   val CONTEXT_REWRITE_RULE: term * term list * thm * thm list
                              -> thm -> thm * term list
   val RIGHT_ASSOC: thm -> thm
@@ -456,7 +456,7 @@ fun Forall v M = S.mk_forall{Bvar=v, Body=M};
 fun is_cong thm =
   case (Thm.prop_of thm)
      of (Const("==>",_)$(Const("Trueprop",_)$ _) $
-         (Const("==",_) $ (Const (@{const_name "Wellfounded.cut"},_) $ f $ R $ a $ x) $ _)) => false
+         (Const("==",_) $ (Const (@{const_name Recdef.cut},_) $ f $ R $ a $ x) $ _)) => false
       | _ => true;
 
 
@@ -544,18 +544,18 @@ fun list_beta_conv tm =
 (*---------------------------------------------------------------------------
  * Trace information for the rewriter
  *---------------------------------------------------------------------------*)
-val term_ref = ref[] : term list ref
-val ss_ref = ref [] : simpset list ref;
-val thm_ref = ref [] : thm list ref;
-val tracing = ref false;
+val term_ref = Unsynchronized.ref [] : term list Unsynchronized.ref
+val ss_ref = Unsynchronized.ref [] : simpset list Unsynchronized.ref;
+val thm_ref = Unsynchronized.ref [] : thm list Unsynchronized.ref;
+val tracing = Unsynchronized.ref false;
 
 fun say s = if !tracing then writeln s else ();
 
 fun print_thms s L =
   say (cat_lines (s :: map Display.string_of_thm_without_context L));
 
-fun print_cterms s L =
-  say (cat_lines (s :: map Display.string_of_cterm L));
+fun print_cterm s ct =
+  say (cat_lines [s, Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct)]);
 
 
 (*---------------------------------------------------------------------------
@@ -659,14 +659,14 @@ fun dest_impl tm =
   end;
 
 fun restricted t = isSome (S.find_term
-                            (fn (Const(@{const_name "Wellfounded.cut"},_)) =>true | _ => false)
+                            (fn (Const(@{const_name Recdef.cut},_)) =>true | _ => false)
                             t)
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  let val globals = func::G
      val ss0 = Simplifier.theory_context (Thm.theory_of_thm th) empty_ss
      val pbeta_reduce = simpl_conv ss0 [split_conv RS eq_reflection];
-     val tc_list = ref[]: term list ref
+     val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []
      val dummy = ss_ref  := []
@@ -683,7 +683,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp,thy) =
                  let val tych = cterm_of thy
-                     val dummy = print_cterms "To eliminate:" [tych imp]
+                     val dummy = print_cterm "To eliminate:" (tych imp)
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
@@ -781,9 +781,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val antl = case rcontext of [] => []
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))
-              val dummy = print_cterms "func:" [cterm_of thy func]
-              val dummy = print_cterms "TC:"
-                              [cterm_of thy (HOLogic.mk_Trueprop TC)]
+              val dummy = print_cterm "func:" (cterm_of thy func)
+              val dummy = print_cterm "TC:" (cterm_of thy (HOLogic.mk_Trueprop TC))
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = isSome (S.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"

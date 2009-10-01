@@ -7,6 +7,7 @@ exception Interrupt;
 fun reraise exn = raise exn;
 
 use "ML-Systems/proper_int.ML";
+use "ML-Systems/unsynchronized.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";

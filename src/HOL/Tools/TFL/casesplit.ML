@@ -96,7 +96,7 @@ fun case_thm_of_ty thy ty  =
                    | TVar((s,i),_) => error ("Free variable: " ^ s)
       val dt = Datatype.the_info thy ty_str
     in
-      cases_thm_of_induct_thm (#induction dt)
+      cases_thm_of_induct_thm (#induct dt)
     end;
 
 (*

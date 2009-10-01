@@ -154,21 +154,14 @@ consts is_static :: "'a::has_static \<Rightarrow> bool"
 
 instance decl_ext_type :: ("has_static") has_static ..
 
-defs (overloaded)
-decl_is_static_def: 
- "is_static (m::('a::has_static) decl_scheme) \<equiv> is_static (Decl.decl.more m)" 
-
 instance member_ext_type :: ("type") has_static ..
 
 defs (overloaded)
 static_field_type_is_static_def: 
- "is_static (m::('b::type) member_ext_type) \<equiv> static_sel m"
+ "is_static (m::('b member_scheme)) \<equiv> static m"
 
 lemma member_is_static_simp: "is_static (m::'a member_scheme) = static m"
-apply (cases m)
-apply (simp add: static_field_type_is_static_def 
-                 decl_is_static_def Decl.member.dest_convs)
-done
+by (simp add: static_field_type_is_static_def)
 
 instance * :: ("type","has_static") has_static ..
 
@@ -402,30 +395,16 @@ consts resTy:: "'a::has_resTy \<Rightarrow> ty"
 
 instance decl_ext_type :: ("has_resTy") has_resTy ..
 
-defs (overloaded)
-decl_resTy_def: 
- "resTy (m::('a::has_resTy) decl_scheme) \<equiv> resTy (Decl.decl.more m)" 
-
 instance member_ext_type :: ("has_resTy") has_resTy ..
-
-defs (overloaded)
-member_ext_type_resTy_def: 
- "resTy (m::('b::has_resTy) member_ext_type) 
-  \<equiv> resTy (member.more_sel m)" 
 
 instance mhead_ext_type :: ("type") has_resTy ..
 
 defs (overloaded)
 mhead_ext_type_resTy_def: 
- "resTy (m::('b mhead_ext_type)) 
-  \<equiv> resT_sel m" 
+ "resTy (m::('b mhead_scheme)) \<equiv> resT m"
 
 lemma mhead_resTy_simp: "resTy (m::'a mhead_scheme) = resT m"
-apply (cases m)
-apply (simp add: decl_resTy_def member_ext_type_resTy_def 
-                 mhead_ext_type_resTy_def 
-                 member.dest_convs mhead.dest_convs)
-done
+by (simp add: mhead_ext_type_resTy_def)
 
 lemma resTy_mhead [simp]:"resTy (mhead m) = resTy m"
 by (simp add: mhead_def mhead_resTy_simp)

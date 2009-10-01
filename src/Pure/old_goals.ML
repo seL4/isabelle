@@ -19,7 +19,7 @@ sig
   type proof
   val premises: unit -> thm list
   val reset_goals: unit -> unit
-  val result_error_fn: (thm -> string -> thm) ref
+  val result_error_fn: (thm -> string -> thm) Unsynchronized.ref
   val print_sign_exn: theory -> exn -> 'a
   val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
   val prove_goalw_cterm_nocheck: thm list->cterm->(thm list->tactic list)->thm
@@ -233,21 +233,21 @@ datatype proof = Proof of gstack list * thm list * (bool*thm->thm);
 (*** References ***)
 
 (*Current assumption list -- set by "goal".*)
-val curr_prems = ref([] : thm list);
+val curr_prems = Unsynchronized.ref([] : thm list);
 
 (*Return assumption list -- useful if you didn't save "goal"'s result. *)
 fun premises() = !curr_prems;
 
 (*Current result maker -- set by "goal", used by "result".  *)
 fun init_mkresult _ = error "No goal has been supplied in subgoal module";
-val curr_mkresult = ref (init_mkresult: bool*thm->thm);
+val curr_mkresult = Unsynchronized.ref (init_mkresult: bool*thm->thm);
 
 (*List of previous goal stacks, for the undo operation.  Set by setstate.
   A list of lists!*)
-val undo_list = ref([[(asm_rl, Seq.empty)]] : gstack list);
+val undo_list = Unsynchronized.ref([[(asm_rl, Seq.empty)]] : gstack list);
 
 (* Stack of proof attempts *)
-val proofstack = ref([]: proof list);
+val proofstack = Unsynchronized.ref([]: proof list);
 
 (*reset all refs*)
 fun reset_goals () =
@@ -272,7 +272,7 @@ fun result_error_default state msg : thm =
       Goal_Display.pretty_goals_without_context (!goals_limit) state @
     [Pretty.str msg, Pretty.str "Proof failed!"] |> Pretty.chunks |> Pretty.string_of |> error;
 
-val result_error_fn = ref result_error_default;
+val result_error_fn = Unsynchronized.ref result_error_default;
 
 
 (*Common treatment of "goal" and "prove_goal":
@@ -362,10 +362,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
           (case Seq.pull (tac st0) of
                SOME(st,_) => st
              | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (check, cond_timeit (!Output.timing) "" statef)  end
-  handle e => (print_sign_exn_unit (Thm.theory_of_cterm chorn) e;
-               writeln ("The exception above was raised for\n" ^
-                      Display.string_of_cterm chorn); raise e);
+  in  mkresult (check, cond_timeit (!Output.timing) "" statef)  end;
 
 (*Two variants: one checking the result, one not.
   Neither prints runtime messages: they are for internal packages.*)

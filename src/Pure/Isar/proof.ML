@@ -30,13 +30,14 @@ sig
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
   val get_goal: state -> context * (thm list * thm)
-  val show_main_goal: bool ref
-  val verbose: bool ref
+  val show_main_goal: bool Unsynchronized.ref
+  val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
+  val flat_goal: state -> Proof.context * thm
   val goal_tac: thm -> int -> tactic
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
   val match_bind: (string list * string) list -> state -> state
@@ -315,7 +316,7 @@ fun get_goal state =
 
 (** pretty_state **)
 
-val show_main_goal = ref false;
+val show_main_goal = Unsynchronized.ref false;
 val verbose = ProofContext.verbose;
 
 fun pretty_facts _ _ NONE = []
@@ -435,6 +436,12 @@ fun refine_insert [] = I
   | refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
+
+fun flat_goal state =
+  let
+    val (_, (using, _)) = get_goal state;
+    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
+  in (ctxt, goal) end;
 
 
 (* refine via sub-proof *)
@@ -930,8 +937,8 @@ fun gen_have prep_att prepp before_qed after_qed stmt int =
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
   let
-    val testing = ref false;
-    val rule = ref (NONE: thm option);
+    val testing = Unsynchronized.ref false;
+    val rule = Unsynchronized.ref (NONE: thm option);
     fun fail_msg ctxt =
       "Local statement will fail to refine any pending goal" ::
       (case ! rule of NONE => [] | SOME th => [ProofDisplay.string_of_rule ctxt "Failed" th])

@@ -35,6 +35,8 @@ struct
   datatype threadAttribute = EnableBroadcastInterrupt of bool | InterruptState of interruptState
     and interruptState = InterruptDefer | InterruptSynch | InterruptAsynch | InterruptAsynchOnce;
 
+  fun unavailable () = fail ();
+
   fun fork _ = fail ();
   fun exit _ = fail ();
   fun isActive _ = fail ();
@@ -58,7 +60,7 @@ struct
 
 local
 
-val data = ref ([]: Universal.universal ref list);
+val data = Unsynchronized.ref ([]: Universal.universal  Unsynchronized.ref list);
 
 fun find_data tag =
   let
@@ -73,7 +75,7 @@ fun getLocal tag = Option.map (Universal.tagProject tag o !) (find_data tag);
 fun setLocal (tag, x) =
   (case find_data tag of
     SOME r => r := Universal.tagInject tag x
-  | NONE => data := ref (Universal.tagInject tag x) :: ! data);
+  | NONE => data :=  Unsynchronized.ref (Universal.tagInject tag x) :: ! data);
 
 end;
 end;

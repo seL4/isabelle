@@ -14,7 +14,7 @@ infix aeconv;
 
 signature PATTERN =
 sig
-  val trace_unify_fail: bool ref
+  val trace_unify_fail: bool Unsynchronized.ref
   val aeconv: term * term -> bool
   val eta_long: typ list -> term -> term
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
@@ -40,7 +40,7 @@ struct
 exception Unif;
 exception Pattern;
 
-val trace_unify_fail = ref false;
+val trace_unify_fail = Unsynchronized.ref false;
 
 fun string_of_term thy env binders t =
   Syntax.string_of_term_global thy

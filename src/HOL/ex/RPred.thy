@@ -14,13 +14,15 @@ definition bot :: "'a rpred"
 definition return :: "'a => 'a rpred"
   where "return x = Pair (Predicate.single x)"
 
-definition bind :: "'a rpred \<Rightarrow> ('a \<Rightarrow> 'b rpred) \<Rightarrow> 'b rpred" (infixl "\<guillemotright>=" 60)
+definition bind :: "'a rpred \<Rightarrow> ('a \<Rightarrow> 'b rpred) \<Rightarrow> 'b rpred"
+(* (infixl "\<guillemotright>=" 60) *)
   where "bind RP f =
   (\<lambda>s. let (P, s') = RP s;
         (s1, s2) = Random.split_seed s'
     in (Predicate.bind P (%a. fst (f a s1)), s2))"
 
-definition supp :: "'a rpred \<Rightarrow> 'a rpred \<Rightarrow> 'a rpred" (infixl "\<squnion>" 80)
+definition supp :: "'a rpred \<Rightarrow> 'a rpred \<Rightarrow> 'a rpred"
+(* (infixl "\<squnion>" 80) *)
 where
   "supp RP1 RP2 = (\<lambda>s. let (P1, s') = RP1 s; (P2, s'') = RP2 s'
   in (upper_semilattice_class.sup P1 P2, s''))"
@@ -43,6 +45,8 @@ definition lift_random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Right
   where "lift_random g = scomp g (Pair o (Predicate.single o fst))"
 
 definition map_rpred :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a rpred \<Rightarrow> 'b rpred)"
-where "map_rpred f P = P \<guillemotright>= (return o f)"
+where "map_rpred f P = bind P (return o f)"
+
+hide (open) const return bind supp 
   
 end

@@ -139,9 +139,11 @@ done
 
 text{*Elimination rules: derive contradictions from old Says events containing
   items known to be fresh*}
+lemmas Says_imp_parts_knows_Spy = 
+       Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl, standard] 
+
 lemmas knows_Spy_partsEs =
-     Says_imp_knows_Spy [THEN parts.Inj, THEN revcut_rl, standard] 
-     parts.Body [THEN revcut_rl, standard]
+     Says_imp_parts_knows_Spy parts.Body [THEN revcut_rl, standard]
 
 lemmas Says_imp_analz_Spy = Says_imp_knows_Spy [THEN analz.Inj]
 

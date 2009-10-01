@@ -512,7 +512,7 @@ lemma numgcd0:
   assumes g0: "numgcd t = 0"
   shows "Inum bs t = 0"
   using g0[simplified numgcd_def] 
-  by (induct t rule: numgcdh.induct, auto simp add: natabs0 max_def maxcoeff_pos)
+  by (induct t rule: numgcdh.induct, auto simp add: natabs0 maxcoeff_pos min_max.sup_absorb2)
 
 lemma numgcdh_pos: assumes gp: "g \<ge> 0" shows "numgcdh t g \<ge> 0"
   using gp
