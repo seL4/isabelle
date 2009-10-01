@@ -19,7 +19,7 @@ with
 fun peek (Lazy r) =
   (case ! r of
     Expr _ => NONE
-  | Result x => SOME x);
+  | Result res => SOME res);
 
 fun lazy e = Lazy (Unsynchronized.ref (Expr e));
 fun value a = Lazy (Unsynchronized.ref (Result (Exn.Result a)));
