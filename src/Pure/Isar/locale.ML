@@ -68,8 +68,10 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations and dependencies *)
-  val add_registration: string * morphism -> morphism * bool -> morphism -> theory -> theory
-  val amend_registration: string * morphism -> morphism * bool -> morphism -> theory -> theory
+  val add_registration: string * morphism -> (morphism * bool) option ->
+    morphism -> theory -> theory
+  val amend_registration: string * morphism -> morphism * bool ->
+    morphism -> theory -> theory
   val add_registration_eqs: string * morphism -> thm list -> morphism -> theory -> theory
   val amend_registration_legacy: morphism -> string * morphism -> theory -> theory
   val add_dependency: string -> string * morphism -> morphism -> theory -> theory
@@ -474,7 +476,8 @@ fun add_registration (name, base_morph) mixin export thy =
         |> roundup thy add_reg export (name, base_morph)
         |> snd
         (* add mixin *)
-        |> amend_registration (name, base_morph) mixin export
+        |> (case mixin of NONE => I
+             | SOME mixin => amend_registration (name, base_morph) mixin export)
         (* activate import hierarchy as far as not already active *)
         |> Context.theory_map (activate_facts' export (name, base_morph))
       end
