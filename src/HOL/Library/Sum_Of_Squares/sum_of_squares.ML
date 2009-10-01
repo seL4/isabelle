@@ -1392,17 +1392,12 @@ fun check_sos kcts ct =
               else error ("SOSO: Unknown constants in Subgoal:" ^ commas (map fst ukcs))
 in () end
 
-fun core_sos_tac print_cert prover ctxt i = 
+fun core_sos_tac print_cert prover = SUBPROOF (fn {concl, context, ...} =>
   let
-    fun core_tac {concl, context, ...} =
-      let
-        val _ = check_sos known_sos_constants concl
-        val (ths, certificates) = real_sos prover context (Thm.dest_arg concl)
-        val _ = print_cert certificates
-      in rtac ths i end
-  in
-    SUBPROOF core_tac ctxt i
-  end
+    val _ = check_sos known_sos_constants concl
+    val (ths, certificates) = real_sos prover context (Thm.dest_arg concl)
+    val _ = print_cert certificates
+  in rtac ths 1 end)
 
 fun default_SOME f NONE v = SOME v
   | default_SOME f (SOME v) _ = SOME v;
