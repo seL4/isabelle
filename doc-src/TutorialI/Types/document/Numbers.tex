@@ -550,43 +550,17 @@ Requires a field, or else an ordered ring
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-\isacommand{ML}\isamarkupfalse%
-{\isacharverbatimopen}set\ show{\isacharunderscore}sorts{\isacharverbatimclose}%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-%
 \begin{isamarkuptext}%
 effect of show sorts on the above
 
 \begin{isabelle}%
-{\isacharparenleft}c\ {\isacharasterisk}\ a\ {\isacharequal}\ c\ {\isacharasterisk}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
+{\isacharparenleft}{\isacharparenleft}c{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}\ {\isacharequal}\isanewline
+\isaindent{{\isacharparenleft}}c\ {\isacharasterisk}\ {\isacharparenleft}b{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
+{\isacharparenleft}c\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isasymColon}ring{\isacharunderscore}no{\isacharunderscore}zero{\isacharunderscore}divisors{\isacharparenright}\ {\isasymor}\ a\ {\isacharequal}\ b{\isacharparenright}%
 \end{isabelle}
 \rulename{mult_cancel_left}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-\isacommand{ML}\isamarkupfalse%
-{\isacharverbatimopen}reset\ show{\isacharunderscore}sorts{\isacharverbatimclose}%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
 %
 \begin{isamarkuptext}%
 absolute value
