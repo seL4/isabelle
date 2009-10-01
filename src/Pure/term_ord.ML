@@ -4,8 +4,17 @@
 Term orderings.
 *)
 
+signature BASIC_TERM_ORD =
+sig
+  structure Vartab: TABLE
+  structure Sorttab: TABLE
+  structure Typtab: TABLE
+  structure Termtab: TABLE
+end;
+
 signature TERM_ORD =
 sig
+  include BASIC_TERM_ORD
   val fast_indexname_ord: indexname * indexname -> order
   val sort_ord: sort * sort -> order
   val typ_ord: typ * typ -> order
@@ -17,6 +26,7 @@ sig
   val hd_ord: term * term -> order
   val termless: term * term -> bool
   val term_lpo: (term -> int) -> term * term -> order
+  val term_cache: (term -> 'a) -> term -> 'a
 end;
 
 structure TermOrd: TERM_ORD =
@@ -202,9 +212,17 @@ val term_lpo = term_lpo
 end;
 
 
+(* tables and caches *)
+
+structure Vartab = Table(type key = indexname val ord = fast_indexname_ord);
+structure Sorttab = Table(type key = sort val ord = sort_ord);
+structure Typtab = Table(type key = typ val ord = typ_ord);
+structure Termtab = Table(type key = term val ord = fast_term_ord);
+
+fun term_cache f = Cache.create Termtab.empty Termtab.lookup Termtab.update f;
+
 end;
 
-structure Vartab = Table(type key = indexname val ord = TermOrd.fast_indexname_ord);
-structure Sorttab = Table(type key = sort val ord = TermOrd.sort_ord);
-structure Typtab = Table(type key = typ val ord = TermOrd.typ_ord);
-structure Termtab = Table(type key = term val ord = TermOrd.fast_term_ord);
+structure Basic_Term_Ord: BASIC_TERM_ORD = TermOrd;
+open Basic_Term_Ord;
+

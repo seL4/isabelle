@@ -6,9 +6,19 @@ Further operations on type ctyp/cterm/thm, outside the inference kernel.
 
 infix aconvc;
 
+signature BASIC_THM =
+sig
+  include BASIC_THM
+  structure Ctermtab: TABLE
+  structure Thmtab: TABLE
+  val aconvc: cterm * cterm -> bool
+end;
+
 signature THM =
 sig
   include THM
+  structure Ctermtab: TABLE
+  structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
   val add_cterm_frees: cterm -> cterm list -> cterm list
   val all_name: string * cterm -> cterm -> cterm
@@ -22,6 +32,8 @@ sig
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
   val thm_ord: thm * thm -> order
+  val cterm_cache: (cterm -> 'a) -> cterm -> 'a
+  val thm_cache: (thm -> 'a) -> thm -> 'a
   val is_reflexive: thm -> bool
   val eq_thm: thm * thm -> bool
   val eq_thms: thm list * thm list -> bool
@@ -161,6 +173,15 @@ fun thm_ord (th1, th2) =
         | ord => ord)
     | ord => ord)
   end;
+
+
+(* tables and caches *)
+
+structure Ctermtab = Table(type key = cterm val ord = TermOrd.fast_term_ord o pairself Thm.term_of);
+structure Thmtab = Table(type key = thm val ord = thm_ord);
+
+fun cterm_cache f = Cache.create Ctermtab.empty Ctermtab.lookup Ctermtab.update f;
+fun thm_cache f = Cache.create Thmtab.empty Thmtab.lookup Thmtab.update f;
 
 
 (* equality *)
@@ -432,6 +453,6 @@ open Thm;
 
 end;
 
-val op aconvc = Thm.aconvc;
+structure Basic_Thm: BASIC_THM = Thm;
+open Basic_Thm;
 
-structure Thmtab = Table(type key = thm val ord = Thm.thm_ord);
