@@ -15,7 +15,7 @@ end
 structure NormArith : NORM_ARITH = 
 struct
 
- open Conv Thm FuncUtil;
+ open Conv;
  val bool_eq = op = : bool *bool -> bool
   fun dest_ratconst t = case term_of t of
    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
@@ -23,50 +23,50 @@ struct
  | _ => Rat.rat_of_int (HOLogic.dest_number (term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
  fun augment_norm b t acc = case term_of t of 
-     Const(@{const_name norm}, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,dest_arg t) acc
+     Const(@{const_name norm}, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
    | _ => acc
  fun find_normedterms t acc = case term_of t of
     @{term "op + :: real => _"}$_$_ =>
-            find_normedterms (dest_arg1 t) (find_normedterms (dest_arg t) acc)
+            find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
       | @{term "op * :: real => _"}$_$n =>
-            if not (is_ratconst (dest_arg1 t)) then acc else
-            augment_norm (dest_ratconst (dest_arg1 t) >=/ Rat.zero) 
-                      (dest_arg t) acc
+            if not (is_ratconst (Thm.dest_arg1 t)) then acc else
+            augment_norm (dest_ratconst (Thm.dest_arg1 t) >=/ Rat.zero) 
+                      (Thm.dest_arg t) acc
       | _ => augment_norm true t acc 
 
- val cterm_lincomb_neg = Ctermfunc.mapf Rat.neg
+ val cterm_lincomb_neg = FuncUtil.Ctermfunc.map Rat.neg
  fun cterm_lincomb_cmul c t = 
-    if c =/ Rat.zero then Ctermfunc.undefined else Ctermfunc.mapf (fn x => x */ c) t
- fun cterm_lincomb_add l r = Ctermfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
+    if c =/ Rat.zero then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn x => x */ c) t
+ fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
  fun cterm_lincomb_sub l r = cterm_lincomb_add l (cterm_lincomb_neg r)
- fun cterm_lincomb_eq l r = Ctermfunc.is_undefined (cterm_lincomb_sub l r)
+ fun cterm_lincomb_eq l r = FuncUtil.Ctermfunc.is_empty (cterm_lincomb_sub l r)
 
- val int_lincomb_neg = Intfunc.mapf Rat.neg
+ val int_lincomb_neg = FuncUtil.Intfunc.map Rat.neg
  fun int_lincomb_cmul c t = 
-    if c =/ Rat.zero then Intfunc.undefined else Intfunc.mapf (fn x => x */ c) t
- fun int_lincomb_add l r = Intfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
+    if c =/ Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn x => x */ c) t
+ fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
  fun int_lincomb_sub l r = int_lincomb_add l (int_lincomb_neg r)
- fun int_lincomb_eq l r = Intfunc.is_undefined (int_lincomb_sub l r)
+ fun int_lincomb_eq l r = FuncUtil.Intfunc.is_empty (int_lincomb_sub l r)
 
 fun vector_lincomb t = case term_of t of 
    Const(@{const_name plus}, _) $ _ $ _ =>
-    cterm_lincomb_add (vector_lincomb (dest_arg1 t)) (vector_lincomb (dest_arg t))
+    cterm_lincomb_add (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
  | Const(@{const_name minus}, _) $ _ $ _ =>
-    cterm_lincomb_sub (vector_lincomb (dest_arg1 t)) (vector_lincomb (dest_arg t))
+    cterm_lincomb_sub (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
  | Const(@{const_name scaleR}, _)$_$_ =>
-    cterm_lincomb_cmul (dest_ratconst (dest_arg1 t)) (vector_lincomb (dest_arg t))
+    cterm_lincomb_cmul (dest_ratconst (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
  | Const(@{const_name uminus}, _)$_ =>
-     cterm_lincomb_neg (vector_lincomb (dest_arg t))
+     cterm_lincomb_neg (vector_lincomb (Thm.dest_arg t))
 (* FIXME: how should we handle numerals?
  | Const(@ {const_name vec},_)$_ => 
    let 
-     val b = ((snd o HOLogic.dest_number o term_of o dest_arg) t = 0 
+     val b = ((snd o HOLogic.dest_number o term_of o Thm.dest_arg) t = 0 
                handle TERM _=> false)
-   in if b then Ctermfunc.onefunc (t,Rat.one)
-      else Ctermfunc.undefined
+   in if b then FuncUtil.Ctermfunc.onefunc (t,Rat.one)
+      else FuncUtil.Ctermfunc.empty
    end
 *)
- | _ => Ctermfunc.onefunc (t,Rat.one)
+ | _ => FuncUtil.Ctermfunc.onefunc (t,Rat.one)
 
  fun vector_lincombs ts =
   fold_rev 
@@ -82,35 +82,35 @@ fun vector_lincomb t = case term_of t of
 fun replacenegnorms cv t = case term_of t of 
   @{term "op + :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
 | @{term "op * :: real => _"}$_$_ => 
-    if dest_ratconst (dest_arg1 t) </ Rat.zero then arg_conv cv t else reflexive t
+    if dest_ratconst (Thm.dest_arg1 t) </ Rat.zero then arg_conv cv t else reflexive t
 | _ => reflexive t
 fun flip v eq = 
-  if Ctermfunc.defined eq v 
-  then Ctermfunc.update (v, Rat.neg (Ctermfunc.apply eq v)) eq else eq
+  if FuncUtil.Ctermfunc.defined eq v 
+  then FuncUtil.Ctermfunc.update (v, Rat.neg (FuncUtil.Ctermfunc.apply eq v)) eq else eq
 fun allsubsets s = case s of 
   [] => [[]]
 |(a::t) => let val res = allsubsets t in
                map (cons a) res @ res end
 fun evaluate env lin =
- Intfunc.fold (fn (x,c) => fn s => s +/ c */ (Intfunc.apply env x)) 
+ FuncUtil.Intfunc.fold (fn (x,c) => fn s => s +/ c */ (FuncUtil.Intfunc.apply env x)) 
    lin Rat.zero
 
 fun solve (vs,eqs) = case (vs,eqs) of
-  ([],[]) => SOME (Intfunc.onefunc (0,Rat.one))
+  ([],[]) => SOME (FuncUtil.Intfunc.onefunc (0,Rat.one))
  |(_,eq::oeqs) => 
-   (case filter (member (op =) vs) (Intfunc.dom eq) of (*FIXME use find_first here*)
+   (case filter (member (op =) vs) (FuncUtil.Intfunc.dom eq) of (*FIXME use find_first here*)
      [] => NONE
     | v::_ => 
-       if Intfunc.defined eq v 
+       if FuncUtil.Intfunc.defined eq v 
        then 
         let 
-         val c = Intfunc.apply eq v
+         val c = FuncUtil.Intfunc.apply eq v
          val vdef = int_lincomb_cmul (Rat.neg (Rat.inv c)) eq
-         fun eliminate eqn = if not (Intfunc.defined eqn v) then eqn 
-                             else int_lincomb_add (int_lincomb_cmul (Intfunc.apply eqn v) vdef) eqn
+         fun eliminate eqn = if not (FuncUtil.Intfunc.defined eqn v) then eqn 
+                             else int_lincomb_add (int_lincomb_cmul (FuncUtil.Intfunc.apply eqn v) vdef) eqn
         in (case solve (vs \ v,map eliminate oeqs) of
             NONE => NONE
-          | SOME soln => SOME (Intfunc.update (v, evaluate soln (Intfunc.undefine v vdef)) soln))
+          | SOME soln => SOME (FuncUtil.Intfunc.update (v, evaluate soln (FuncUtil.Intfunc.delete_safe v vdef)) soln))
         end
        else NONE)
 
@@ -130,7 +130,7 @@ fun vertices vs eqs =
  let 
   fun vertex cmb = case solve(vs,cmb) of
     NONE => NONE
-   | SOME soln => SOME (map (fn v => Intfunc.tryapplyd soln v Rat.zero) vs)
+   | SOME soln => SOME (map (fn v => FuncUtil.Intfunc.tryapplyd soln v Rat.zero) vs)
   val rawvs = map_filter vertex (combinations (length vs) eqs)
   val unset = filter (forall (fn c => c >=/ Rat.zero)) rawvs 
  in fold_rev (insert (uncurry (forall2 (curry op =/)))) unset [] 
@@ -265,28 +265,28 @@ fun fold_rev2 f [] [] z = z
  | fold_rev2 f _ _ _ = raise UnequalLengths;
 
 fun int_flip v eq = 
-  if Intfunc.defined eq v 
-  then Intfunc.update (v, Rat.neg (Intfunc.apply eq v)) eq else eq;
+  if FuncUtil.Intfunc.defined eq v 
+  then FuncUtil.Intfunc.update (v, Rat.neg (FuncUtil.Intfunc.apply eq v)) eq else eq;
 
 local
  val pth_zero = @{thm norm_zero}
- val tv_n = (ctyp_of_term o dest_arg o dest_arg1 o dest_arg o cprop_of)
+ val tv_n = (ctyp_of_term o Thm.dest_arg o Thm.dest_arg1 o Thm.dest_arg o cprop_of)
              pth_zero
- val concl = dest_arg o cprop_of 
+ val concl = Thm.dest_arg o cprop_of 
  fun real_vector_combo_prover ctxt translator (nubs,ges,gts) = 
   let 
    (* FIXME: Should be computed statically!!*)
    val real_poly_conv = 
       Normalizer.semiring_normalize_wrapper ctxt
        (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
-   val sources = map (dest_arg o dest_arg1 o concl) nubs
-   val rawdests = fold_rev (find_normedterms o dest_arg o concl) (ges @ gts) [] 
+   val sources = map (Thm.dest_arg o Thm.dest_arg1 o concl) nubs
+   val rawdests = fold_rev (find_normedterms o Thm.dest_arg o concl) (ges @ gts) [] 
    val _ = if not (forall fst rawdests) then error "real_vector_combo_prover: Sanity check" 
            else ()
    val dests = distinct (op aconvc) (map snd rawdests)
    val srcfuns = map vector_lincomb sources
    val destfuns = map vector_lincomb dests 
-   val vvs = fold_rev (curry (gen_union op aconvc) o Ctermfunc.dom) (srcfuns @ destfuns) []
+   val vvs = fold_rev (curry (gen_union op aconvc) o FuncUtil.Ctermfunc.dom) (srcfuns @ destfuns) []
    val n = length srcfuns
    val nvs = 1 upto n
    val srccombs = srcfuns ~~ nvs
@@ -294,12 +294,12 @@ local
     let 
      fun coefficients x =
       let 
-       val inp = if Ctermfunc.defined d x then Intfunc.onefunc (0, Rat.neg(Ctermfunc.apply d x))
-                      else Intfunc.undefined 
-      in fold_rev (fn (f,v) => fn g => if Ctermfunc.defined f x then Intfunc.update (v, Ctermfunc.apply f x) g else g) srccombs inp 
+       val inp = if FuncUtil.Ctermfunc.defined d x then FuncUtil.Intfunc.onefunc (0, Rat.neg(FuncUtil.Ctermfunc.apply d x))
+                      else FuncUtil.Intfunc.empty 
+      in fold_rev (fn (f,v) => fn g => if FuncUtil.Ctermfunc.defined f x then FuncUtil.Intfunc.update (v, FuncUtil.Ctermfunc.apply f x) g else g) srccombs inp 
       end
      val equations = map coefficients vvs
-     val inequalities = map (fn n => Intfunc.onefunc (n,Rat.one)) nvs
+     val inequalities = map (fn n => FuncUtil.Intfunc.onefunc (n,Rat.one)) nvs
      fun plausiblevertices f =
       let 
        val flippedequations = map (fold_rev int_flip f) equations
@@ -307,7 +307,7 @@ local
        val rawverts = vertices nvs constraints
        fun check_solution v =
         let 
-          val f = fold_rev2 (curry Intfunc.update) nvs v (Intfunc.onefunc (0, Rat.one))
+          val f = fold_rev2 (curry FuncUtil.Intfunc.update) nvs v (FuncUtil.Intfunc.onefunc (0, Rat.one))
         in forall (fn e => evaluate f e =/ Rat.zero) flippedequations
         end
        val goodverts = filter check_solution rawverts
@@ -328,7 +328,7 @@ local
    val ges' = map_filter (try compute_ineq) (fold_rev (append o consider) destfuns []) @
                  map (inequality_canon_rule ctxt) nubs @ ges
    val zerodests = filter
-        (fn t => null (Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
+        (fn t => null (FuncUtil.Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
   in fst (RealArith.real_linear_prover translator
         (map (fn t => instantiate ([(tv_n, ctyp_of_term t)],[]) pth_zero)
@@ -344,19 +344,19 @@ end;
 local
  val pth = @{thm norm_imp_pos_and_ge}
  val norm_mp = match_mp pth
- val concl = dest_arg o cprop_of
+ val concl = Thm.dest_arg o cprop_of
  fun conjunct1 th = th RS @{thm conjunct1}
  fun conjunct2 th = th RS @{thm conjunct2}
  fun C f x y = f y x
 fun real_vector_ineq_prover ctxt translator (ges,gts) = 
  let 
 (*   val _ = error "real_vector_ineq_prover: pause" *)
-  val ntms = fold_rev find_normedterms (map (dest_arg o concl) (ges @ gts)) []
+  val ntms = fold_rev find_normedterms (map (Thm.dest_arg o concl) (ges @ gts)) []
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
-  fun mk_norm t = capply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
-  fun mk_equals l r = capply (capply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
+  fun mk_norm t = Thm.capply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
+  fun mk_equals l r = Thm.capply (Thm.capply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
   val asl = map2 (fn (t,_) => fn n => assume (mk_equals (mk_norm t) (cterm_of (ProofContext.theory_of ctxt') (Free(n,@{typ real}))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))
@@ -368,7 +368,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val th1 = real_vector_combo_prover ctxt' translator (nubs,ges',gts')
   val shs = filter (member (fn (t,th) => t aconvc cprop_of th) asl) (#hyps (crep_thm th1)) 
   val th11 = hd (Variable.export ctxt' ctxt [fold implies_intr shs th1])
-  val cps = map (swap o dest_equals) (cprems_of th11)
+  val cps = map (swap o Thm.dest_equals) (cprems_of th11)
   val th12 = instantiate ([], cps) th11
   val th13 = fold (C implies_elim) (map (reflexive o snd) cps) th12;
  in hd (Variable.export ctxt' ctxt [th13])
@@ -406,7 +406,7 @@ end;
    val ctxt' = Variable.declare_term (term_of ct) ctxt
    val th = init_conv ctxt' ct
   in equal_elim (Drule.arg_cong_rule @{cterm Trueprop} (symmetric th)) 
-                (pure ctxt' (rhs_of th))
+                (pure ctxt' (Thm.rhs_of th))
  end
 
  fun norm_arith_tac ctxt = 
