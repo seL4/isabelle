@@ -40,7 +40,7 @@ fun thm_deps thms =
                path = "",
                parents = parents};
           in cons entry end;
-    val deps = Proofterm.fold_body_thms (add_dep o #2) (map Thm.proof_body_of thms) [];
+    val deps = Proofterm.fold_body_thms add_dep (map Thm.proof_body_of thms) [];
   in Present.display_graph (sort_wrt #ID deps) end;
 
 
@@ -55,9 +55,10 @@ fun unused_thms (base_thys, thys) =
       fold (Facts.fold_static add_fact o PureThy.facts_of) thys []
       |> sort_distinct (string_ord o pairself #1);
 
-    val tab = Proofterm.fold_body_thms
-      (fn (_, (name, prop, _)) => name <> "" ? Symtab.insert_list (op =) (name, prop))
-      (map (Proofterm.strip_thm o Thm.proof_body_of o snd) thms) Symtab.empty;
+    val tab =
+      Proofterm.fold_body_thms
+        (fn (name, prop, _) => name <> "" ? Symtab.insert_list (op =) (name, prop))
+        (map (Proofterm.strip_thm o Thm.proof_body_of o snd) thms) Symtab.empty;
     fun is_unused (name, th) =
       not (member (op aconv) (Symtab.lookup_list tab name) (Thm.prop_of th));
 
