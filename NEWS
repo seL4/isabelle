@@ -15,6 +15,14 @@ one backslash should be used, even in ML sources.
 * On instantiation of classes, remaining undefined class parameters
 are formally declared.  INCOMPATIBILITY.
 
+* Locale interpretation propagates mixins along the locale hierarchy.
+The currently only available mixins are the equations used to map
+local definitions to terms of the target domain of an interpretation.
+
+* Reactivated diagnositc command 'print_interps'.  Use 'print_interps l'
+to print all interpretations of locale l in the theory.  Interpretations
+in proofs are not shown.
+
 
 *** HOL ***
 
