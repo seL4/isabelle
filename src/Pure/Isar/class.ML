@@ -289,7 +289,7 @@ fun gen_class prep_class_spec bname raw_supclasses raw_elems thy =
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eqs, export_morph, axiom, assm_intro, of_class) =>
        Locale.add_registration_eqs (class, base_morph) eqs export_morph
-    #> register class sups params base_sort base_morph axiom assm_intro of_class))
+    #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> TheoryTarget.init (SOME class)
     |> pair class
   end;
