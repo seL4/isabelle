@@ -1,5 +1,5 @@
-(* Title:  Tools/more_conv.ML
-   Author: Sascha Boehme
+(*  Title:       Tools/more_conv.ML
+    Author:      Sascha Boehme, TU Muenchen
 
 Further conversions and conversionals.
 *)
@@ -14,15 +14,10 @@ sig
   val top_sweep_conv: (Proof.context -> conv) -> Proof.context -> conv
 
   val binder_conv: (Proof.context -> conv) -> Proof.context -> conv
-
-  val cache_conv: conv -> conv
 end
-
-
 
 structure More_Conv : MORE_CONV =
 struct
-
 
 fun rewrs_conv eqs = Conv.first_conv (map Conv.rewr_conv eqs)
 
@@ -44,20 +39,5 @@ fun top_sweep_conv conv ctxt ct =
 
 fun binder_conv cv ctxt =
   Conv.arg_conv (Conv.abs_conv (fn (_, cx) => cv cx) ctxt)
-
-
-fun cache_conv conv =
-  let
-    val cache = Synchronized.var "cache_conv" Termtab.empty
-    fun lookup t =
-      Synchronized.change_result cache (fn tab => (Termtab.lookup tab t, tab))
-    val keep = Synchronized.change cache o Termtab.insert Thm.eq_thm
-    fun keep_result t thm = (keep (t, thm); thm)
-
-    fun cconv ct =
-      (case lookup (Thm.term_of ct) of
-        SOME thm => thm
-      | NONE => keep_result (Thm.term_of ct) (conv ct))
-  in cconv end
 
 end

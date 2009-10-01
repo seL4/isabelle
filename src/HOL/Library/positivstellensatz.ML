@@ -538,7 +538,7 @@ let
    val nnf_norm_conv' = 
      nnf_conv then_conv 
      literals_conv [@{term "op &"}, @{term "op |"}] [] 
-     (More_Conv.cache_conv 
+     (Conv.cache_conv 
        (first_conv [real_lt_conv, real_le_conv, 
                     real_eq_conv, real_not_lt_conv, 
                     real_not_le_conv, real_not_eq_conv, all_conv]))

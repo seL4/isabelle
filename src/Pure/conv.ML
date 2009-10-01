@@ -1,5 +1,6 @@
 (*  Title:      Pure/conv.ML
-    Author:     Amine Chaieb and Makarius
+    Author:     Amine Chaieb, TU Muenchen
+    Author:     Makarius
 
 Conversions: primitive equality reasoning.
 *)
@@ -22,6 +23,7 @@ sig
   val every_conv: conv list -> conv
   val try_conv: conv -> conv
   val repeat_conv: conv -> conv
+  val cache_conv: conv -> conv
   val abs_conv: (cterm * Proof.context -> conv) -> Proof.context -> conv
   val combination_conv: conv -> conv -> conv
   val comb_conv: conv -> conv
@@ -44,7 +46,7 @@ end;
 structure Conv: CONV =
 struct
 
-(* conversionals *)
+(* basic conversionals *)
 
 fun no_conv _ = raise CTERM ("no conversion", []);
 val all_conv = Thm.reflexive;
@@ -71,6 +73,8 @@ fun every_conv cvs = fold_rev (curry op then_conv) cvs all_conv;
 
 fun try_conv cv = cv else_conv all_conv;
 fun repeat_conv cv ct = try_conv (cv then_conv repeat_conv cv) ct;
+
+fun cache_conv (cv: conv) = Thm.cterm_cache cv;
 
 
 
@@ -177,5 +181,5 @@ fun gconv_rule cv i th =
 
 end;
 
-structure BasicConv: BASIC_CONV = Conv;
-open BasicConv;
+structure Basic_Conv: BASIC_CONV = Conv;
+open Basic_Conv;
