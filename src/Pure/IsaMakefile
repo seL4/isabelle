@@ -45,8 +45,8 @@ Pure: $(OUT)/Pure
 $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/future.ML			\
   Concurrent/lazy.ML Concurrent/lazy_sequential.ML			\
   Concurrent/mailbox.ML Concurrent/par_list.ML				\
-  Concurrent/par_list_dummy.ML Concurrent/simple_thread.ML		\
-  Concurrent/synchronized.ML Concurrent/synchronized_dummy.ML		\
+  Concurrent/par_list_sequential.ML Concurrent/simple_thread.ML		\
+  Concurrent/synchronized.ML Concurrent/synchronized_sequential.ML	\
   Concurrent/task_queue.ML General/alist.ML General/antiquote.ML	\
   General/balanced_tree.ML General/basics.ML General/binding.ML		\
   General/buffer.ML General/file.ML General/graph.ML General/heap.ML	\

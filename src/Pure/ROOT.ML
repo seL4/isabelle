@@ -57,8 +57,8 @@ use "General/yxml.ML";
 
 use "Concurrent/simple_thread.ML";
 use "Concurrent/synchronized.ML";
-if Multithreading.available then () else
-use "Concurrent/synchronized_dummy.ML";
+if Multithreading.available then ()
+else use "Concurrent/synchronized_sequential.ML";
 use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
@@ -67,7 +67,7 @@ if Multithreading.available then ()
 else use "Concurrent/lazy_sequential.ML";
 use "Concurrent/par_list.ML";
 if Multithreading.available then ()
-else use "Concurrent/par_list_dummy.ML";
+else use "Concurrent/par_list_sequential.ML";
 
 
 (* fundamental structures *)

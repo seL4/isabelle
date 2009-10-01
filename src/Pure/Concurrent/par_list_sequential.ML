@@ -1,4 +1,4 @@
-(*  Title:      Pure/Concurrent/par_list_dummy.ML
+(*  Title:      Pure/Concurrent/par_list_sequential.ML
     Author:     Makarius
 
 Dummy version of parallel list combinators -- plain sequential evaluation.
