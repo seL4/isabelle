@@ -547,7 +547,7 @@ text %mlref {*
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type thm} \\
-  @{index_ML proofs: "int ref"} \\
+  @{index_ML proofs: "int Unsynchronized.ref"} \\
   @{index_ML Thm.assume: "cterm -> thm"} \\
   @{index_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
   @{index_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
