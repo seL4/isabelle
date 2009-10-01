@@ -27,6 +27,7 @@ sig
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
+  val depend: task -> task list -> queue -> queue
   val dequeue_towards: Thread.thread -> task list -> queue ->
     (((task * group * (bool -> bool) list) option * task list) * queue)
   val finish: task -> queue -> bool * queue
@@ -100,6 +101,11 @@ fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (
 
 fun add_job task dep (jobs: jobs) =
   Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
+
+fun add_dep task dep (jobs: jobs) =
+  if Task_Graph.is_edge jobs (task, dep) then
+    raise Fail "Cyclic dependency of future tasks"
+  else add_job task dep jobs;
 
 fun get_deps (jobs: jobs) task =
   Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
@@ -204,6 +210,9 @@ fun dequeue thread (queue as Queue {groups, jobs, cache}) =
 
 
 (* dequeue_towards -- adhoc dependencies *)
+
+fun depend task deps (Queue {groups, jobs, ...}) =
+  make_queue groups (fold (add_dep task) deps jobs) Unknown;
 
 fun dequeue_towards thread deps (queue as Queue {groups, jobs, ...}) =
   let

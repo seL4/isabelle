@@ -364,7 +364,7 @@ fun task_finished Finished = true | task_finished _ = false;
 
 local
 
-fun schedule_futures task_graph =
+fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
   let
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
@@ -397,7 +397,7 @@ fun schedule_futures task_graph =
         val _ = after_load ();
       in [] end handle exn => (kill_thy name; [exn]));
 
-  in ignore (Exn.release_all (map Exn.Exn (rev exns))) end;
+  in ignore (Exn.release_all (map Exn.Exn (rev exns))) end) ();
 
 fun schedule_seq tasks =
   Graph.topological_order tasks
