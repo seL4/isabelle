@@ -2121,11 +2121,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (*cases*)
     val cases_scheme_prop =
-      (All (map dest_Free all_vars_more) (r0 === r_rec0 ==> Trueprop C))
+      (All (map dest_Free all_vars_more) ((r0 === r_rec0) ==> Trueprop C))
         ==> Trueprop C;
 
     val cases_prop =
-      (All (map dest_Free all_vars) (r_unit0 === r_rec_unit0 ==> Trueprop C))
+      (All (map dest_Free all_vars) ((r_unit0 === r_rec_unit0) ==> Trueprop C))
          ==> Trueprop C;
 
     (*split*)
