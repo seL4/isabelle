@@ -41,7 +41,7 @@ fun back (ProofNode ((_, stq), n)) =
 
 (* apply transformer *)
 
-fun applys f (ProofNode (node as (st, _), n)) =
+fun applys f (ProofNode ((st, _), n)) =
   (case Seq.pull (f st) of
     NONE => error "empty result sequence -- proof command failed"
   | SOME res => ProofNode (res, n + 1));

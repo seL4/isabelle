@@ -81,8 +81,7 @@ fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
   {next = next - 1, rs = r :: rs, net = Net.insert_term (K false)
      (Envir.eta_contract lhs, (next, r)) net};
 
-fun merge_rules
-  ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
+fun merge_rules ({next, rs = rs1, net} : rules) ({rs = rs2, ...} : rules) =
   List.foldr add_rule {next = next, rs = rs1, net = net} (subtract (op =) rs1 rs2);
 
 fun condrew thy rules procs =
@@ -141,7 +140,7 @@ fun prf_subst_TVars tye =
   map_proof_terms (subst_TVars tye) (typ_subst_TVars tye);
 
 fun relevant_vars types prop = List.foldr (fn
-      (Var ((a, i), T), vs) => (case strip_type T of
+      (Var ((a, _), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if member (op =) types s then a :: vs else vs
       | _ => vs)
     | (_, vs) => vs) [] (vars_of prop);

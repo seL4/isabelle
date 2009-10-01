@@ -94,7 +94,7 @@ fun head_of_rule (lhs, _) = head_of_ast lhs;
 
 (** check translation rules **)
 
-fun rule_error (rule as (lhs, rhs)) =
+fun rule_error (lhs, rhs) =
   let
     fun add_vars (Constant _) = I
       | add_vars (Variable x) = cons x

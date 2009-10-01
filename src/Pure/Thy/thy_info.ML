@@ -283,7 +283,7 @@ val kill_thy = if_known_thy remove_thy;
 
 local
 
-fun provide path name info (deps as SOME {update_time, master, text, parents, files}) =
+fun provide path name info (SOME {update_time, master, text, parents, files}) =
      (if AList.defined (op =) files path then ()
       else warning (loader_msg "undeclared dependency of theory" [name] ^
         " on file: " ^ quote (Path.implode path));
@@ -338,7 +338,7 @@ fun required_by _ [] = ""
 fun load_thy time upd_time initiators name =
   let
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
-    val (pos, text, files) =
+    val (pos, text, _) =
       (case get_deps name of
         SOME {master = SOME (master_path, _), text as _ :: _, files, ...} =>
           (Path.position master_path, text, files)
@@ -410,7 +410,7 @@ fun schedule_seq tasks =
 
 in
 
-fun schedule_tasks tasks n =
+fun schedule_tasks tasks =
   if not (Multithreading.enabled ()) then schedule_seq tasks
   else if Multithreading.self_critical () then
      (warning (loader_msg "no multithreading within critical section" []);
@@ -438,7 +438,7 @@ fun check_deps dir name =
   | NONE =>
       let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name
       in (false, init_deps (SOME master) text parents files, parents) end
-  | SOME (deps as SOME {update_time, master, text, parents, files}) =>
+  | SOME (SOME {update_time, master, text, parents, files}) =>
       let
         val (thy_path, thy_id) = ThyLoad.check_thy dir name;
         val master' = SOME (thy_path, thy_id);
@@ -471,7 +471,7 @@ and require_thy time initiators dir str tasks =
     val dir' = Path.append dir (Path.dir path);
     val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
-    (case try (Graph.get_node (fst tasks)) name of
+    (case try (Graph.get_node tasks) name of
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
@@ -481,7 +481,7 @@ and require_thy time initiators dir str tasks =
                 required_by "\n" initiators);
           val parent_names = map base_name parents;
 
-          val (parents_current, (tasks_graph', tasks_len')) =
+          val (parents_current, tasks_graph') =
             require_thys time (name :: initiators)
               (Path.append dir (master_dir' deps)) parents tasks;
 
@@ -496,8 +496,7 @@ and require_thy time initiators dir str tasks =
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Finished
             else Task (fn () => load_thy time upd_time initiators name));
-          val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
-        in (all_current, (tasks_graph'', tasks_len'')) end)
+        in (all_current, tasks_graph'') end)
   end;
 
 end;
@@ -508,8 +507,7 @@ end;
 local
 
 fun gen_use_thy' req dir arg =
-  let val (_, (tasks, n)) = req [] dir arg (Graph.empty, 0)
-  in schedule_tasks tasks n end;
+  schedule_tasks (snd (req [] dir arg Graph.empty));
 
 fun gen_use_thy req str =
   let val name = base_name str in

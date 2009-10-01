@@ -581,7 +581,6 @@ fun gen_def prep_att prep_vars prep_binds args state =
   let
     val _ = assert_forward state;
     val thy = theory_of state;
-    val ctxt = context_of state;
 
     val (raw_name_atts, (raw_vars, raw_rhss)) = args |> split_list ||> split_list;
     val name_atts = map (apsnd (map (prep_att thy))) raw_name_atts;
@@ -1008,7 +1007,7 @@ fun future_proof done get_context fork_proof state =
   let
     val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
-    val {statement as (kind, propss, prop), messages, using, goal, before_qed, after_qed} = goal;
+    val {statement as (kind, _, prop), messages, using, goal, before_qed, after_qed} = goal;
     val goal_txt = prop :: map Thm.term_of (Assumption.all_assms_of goal_ctxt);
 
     val _ = is_relevant state andalso error "Cannot fork relevant proof";

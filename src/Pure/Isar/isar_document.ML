@@ -13,6 +13,7 @@ sig
   val begin_document: document_id -> Path.T -> unit
   val end_document: document_id -> unit
   val edit_document: document_id -> document_id -> (command_id * command_id option) list -> unit
+  val init: unit -> unit
 end;
 
 structure Isar_Document: ISAR_DOCUMENT =

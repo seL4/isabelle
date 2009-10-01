@@ -125,7 +125,7 @@ fun is_empty (Queue {jobs, ...}) = Task_Graph.is_empty jobs;
 fun status (Queue {jobs, ...}) =
   let
     val (x, y, z) =
-      Task_Graph.fold (fn (task, ((_, job), (deps, _))) => fn (x, y, z) =>
+      Task_Graph.fold (fn (_, ((_, job), (deps, _))) => fn (x, y, z) =>
           (case job of
             Job _ => if null deps then (x + 1, y, z) else (x, y + 1, z)
           | Running _ => (x, y, z + 1)))

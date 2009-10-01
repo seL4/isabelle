@@ -140,7 +140,7 @@ fun inter_sort (TSig {classes, ...}) = Sorts.inter_sort (#2 classes);
 fun cert_class (TSig {classes, ...}) = Sorts.certify_class (#2 classes);
 fun cert_sort (TSig {classes, ...}) = Sorts.certify_sort (#2 classes);
 
-fun witness_sorts (tsig as TSig {classes, log_types, ...}) =
+fun witness_sorts (TSig {classes, log_types, ...}) =
   Sorts.witness_sorts (#2 classes) log_types;
 
 
@@ -280,7 +280,7 @@ fun varify fixed t =
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
     val fmap = fs ~~ map (rpair 0) (#1 (Name.variants (map fst fs) used));
-    fun thaw (f as (a, S)) =
+    fun thaw (f as (_, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME xi => TVar (xi, S));
@@ -412,10 +412,10 @@ fun devar tye (T as TVar v) =
       (case lookup tye v of
         SOME U => devar tye U
       | NONE => T)
-  | devar tye T = T;
+  | devar _ T = T;
 
 (*order-sorted unification*)
-fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
+fun unify (TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
   let
     val tyvar_count = Unsynchronized.ref maxidx;
     fun gen_tyvar S = TVar ((Name.aT, Unsynchronized.inc tyvar_count), S);
@@ -465,7 +465,7 @@ fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
 (*purely structural unification*)
 fun raw_unify (ty1, ty2) tye =
   (case (devar tye ty1, devar tye ty2) of
-    (T as TVar (v, S1), U as TVar (w, S2)) =>
+    (T as TVar (v, S1), TVar (w, S2)) =>
       if Term.eq_ix (v, w) then
         if S1 = S2 then tye else tvar_clash v S1 S2
       else Vartab.update_new (w, (S2, T)) tye
@@ -545,7 +545,7 @@ fun add_classrel pp rel tsig =
     let
       val rel' = pairself (cert_class tsig) rel
         handle TYPE (msg, _, _) => error msg;
-      val classes' = classes |> Sorts.add_classrel pp rel;
+      val classes' = classes |> Sorts.add_classrel pp rel';
     in ((space, classes'), default, types) end);
 
 

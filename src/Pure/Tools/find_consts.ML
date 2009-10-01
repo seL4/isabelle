@@ -107,7 +107,7 @@ fun find_consts ctxt raw_criteria =
                 val tye = Sign.typ_match thy (qty, ty) Vartab.empty;
                 val sub_size =
                   Vartab.fold (fn (_, (_, t)) => fn n => Term.size_of_typ t + n) tye 0;
-              in SOME sub_size end handle MATCH => NONE
+              in SOME sub_size end handle Type.TYPE_MATCH => NONE
           end
       | make_match (Loose arg) =
           check_const (matches_subtype thy (make_pattern arg) o snd)
