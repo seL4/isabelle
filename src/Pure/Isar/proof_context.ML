@@ -1033,7 +1033,7 @@ end;
 
 local
 
-fun const_syntax ctxt (Free (x, T), mx) = SOME (true, (x, T, mx))
+fun const_syntax _ (Free (x, T), mx) = SOME (true, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
       Option.map (pair false) (try (Consts.syntax (consts_of ctxt)) (c, mx))
   | const_syntax _ _ = NONE;
@@ -1106,7 +1106,7 @@ end;
 
 (* fixes vs. frees *)
 
-fun auto_fixes (arg as (ctxt, (propss, x))) =
+fun auto_fixes (ctxt, (propss, x)) =
   ((fold o fold) Variable.auto_fixes propss ctxt, (propss, x));
 
 fun bind_fixes xs ctxt =

@@ -287,8 +287,6 @@ val asm_full_rewrite = simp_cterm (true, true, true);
 
 val simpN = "simp";
 val congN = "cong";
-val addN = "add";
-val delN = "del";
 val onlyN = "only";
 val no_asmN = "no_asm";
 val no_asm_useN = "no_asm_use";

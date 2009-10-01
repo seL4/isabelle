@@ -155,19 +155,10 @@ fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
-(* meta conjunction *)
-
-fun conjunction_tr [t, u] = Lexicon.const "Pure.conjunction" $ t $ u
-  | conjunction_tr ts = raise TERM ("conjunction_tr", ts);
-
-
 (* type/term reflection *)
 
 fun type_tr (*"_TYPE"*) [ty] = mk_type ty
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
-
-fun term_tr [t] = Lexicon.const "Pure.term" $ t
-  | term_tr ts = raise TERM ("term_tr", ts);
 
 
 (* dddot *)

@@ -40,8 +40,7 @@ sig
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
-  val fold_body_thms: (serial * (string * term * proof_body) -> 'a -> 'a) ->
-    proof_body list -> 'a -> 'a
+  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val join_bodies: proof_body list -> unit
   val status_of: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
@@ -110,7 +109,7 @@ sig
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
-  val fulfill_proof: theory -> serial -> (serial * proof_body) list -> proof_body -> proof_body
+  val fulfill_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
@@ -182,7 +181,7 @@ fun fold_body_thms f =
           let
             val body' = Future.join body;
             val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-          in (f (i, (name, prop, body')) x', seen') end));
+          in (f (name, prop, body') x', seen') end));
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
 
 fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
@@ -959,7 +958,7 @@ fun oracle_proof name prop =
   if ! proofs = 0 then ((name, dummy), Oracle (name, dummy, NONE))
   else ((name, prop), gen_axm_proof Oracle name prop);
 
-fun shrink_proof thy =
+val shrink_proof =
   let
     fun shrink ls lev (prf as Abst (a, T, body)) =
           let val (b, is, ch, body') = shrink ls (lev+1) body
@@ -1279,16 +1278,12 @@ fun promise_proof thy i prop =
         | _ => false));
   in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
 
-fun fulfill_proof _ _ [] body0 = body0
-  | fulfill_proof thy id ps body0 =
+fun fulfill_proof _ [] body0 = body0
+  | fulfill_proof thy ps body0 =
       let
         val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
-        val bodies = map snd ps;
-        val _ = fold_body_thms (fn (i, (name, _, _)) => fn () =>
-          if i = id then error ("Cyclic reference to theorem " ^ quote name)
-          else ()) bodies ();
-        val oracles = fold (fn PBody {oracles, ...} => merge_oracles oracles) bodies oracles0;
-        val thms = fold (fn PBody {thms, ...} => merge_thms thms) bodies thms0;
+        val oracles = fold (fn (_, PBody {oracles, ...}) => merge_oracles oracles) ps oracles0;
+        val thms = fold (fn (_, PBody {thms, ...}) => merge_thms thms) ps thms0;
         val proofs = fold (fn (i, PBody {proof, ...}) => Inttab.update (i, proof)) ps Inttab.empty;
 
         fun fill (Promise (i, prop, Ts)) =
@@ -1300,18 +1295,18 @@ fun fulfill_proof _ _ [] body0 = body0
         val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
       in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
-fun fulfill_proof_future _ _ [] body = Future.value body
-  | fulfill_proof_future thy id promises body =
+fun fulfill_proof_future _ [] body = Future.value body
+  | fulfill_proof_future thy promises body =
       Future.fork_deps (map snd promises) (fn () =>
-        fulfill_proof thy id (map (apsnd Future.join) promises) body);
+        fulfill_proof thy (map (apsnd Future.join) promises) body);
 
 
 (***** theorems *****)
 
-fun thm_proof thy name hyps prop promises body =
+fun thm_proof thy name hyps concl promises body =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
-    val prop = Logic.list_implies (hyps, prop);
+    val prop = Logic.list_implies (hyps, concl);
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
@@ -1319,13 +1314,11 @@ fun thm_proof thy name hyps prop promises body =
 
     val proof0 =
       if ! proofs = 2 then
-        #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
+        #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
       else MinProof;
     val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
 
-    fun new_prf () =
-      let val id = serial ()
-      in (id, name, prop, fulfill_proof_future thy id promises body0) end;
+    fun new_prf () = (serial (), name, prop, fulfill_proof_future thy promises body0);
     val (i, name, prop, body') =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>

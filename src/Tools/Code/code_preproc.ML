@@ -403,7 +403,7 @@ fun dicts_of thy (proj_sort, algebra) (T, sort) =
         @ (maps o maps) fst xs;
     fun type_variable (TFree (_, sort)) = map (pair []) (proj_sort sort);
   in
-    flat (Sorts.of_sort_derivation (Syntax.pp_global thy) algebra
+    flat (Sorts.of_sort_derivation algebra
       { class_relation = class_relation, type_constructor = type_constructor,
         type_variable = type_variable } (T, proj_sort sort)
        handle Sorts.CLASS_ERROR _ => [] (*permissive!*))

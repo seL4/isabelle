@@ -239,7 +239,6 @@ end;
 (*** Pure theory syntax and logical content ***)
 
 val typ = SimpleSyntax.read_typ;
-val term = SimpleSyntax.read_term;
 val prop = SimpleSyntax.read_prop;
 
 val typeT = Syntax.typeT;

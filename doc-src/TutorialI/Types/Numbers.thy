@@ -252,17 +252,12 @@ Requires a field, or else an ordered ring
 \rulename{mult_cancel_left}
 *}
 
-ML{*set show_sorts*}
-
 text{*
 effect of show sorts on the above
 
-@{thm[display] mult_cancel_left[no_vars]}
+@{thm[display,show_sorts] mult_cancel_left[no_vars]}
 \rulename{mult_cancel_left}
 *}
-
-ML{*reset show_sorts*}
-
 
 text{*
 absolute value

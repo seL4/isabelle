@@ -229,11 +229,6 @@ fun map_ss2 f {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers}
 
 fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 
-fun map_simpset f (Simpset ({rules, prems, bounds, depth, context},
-    {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers})) =
-  make_simpset (f ((rules, prems, bounds, depth, context),
-    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers)));
-
 fun map_simpset1 f (Simpset (r1, r2)) = Simpset (map_ss1 f r1, r2);
 fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 
@@ -388,7 +383,7 @@ fun del_rrule (rrule as {thm, elhs, ...}) ss =
     (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, bounds, depth, context))
   handle Net.DELETE => (cond_warn_thm "Rewrite rule not in simpset:" ss thm; ss);
 
-fun insert_rrule (rrule as {thm, name, elhs, ...}) ss =
+fun insert_rrule (rrule as {thm, name, ...}) ss =
  (trace_named_thm (fn () => "Adding rewrite rule") ss (thm, name);
   ss |> map_simpset1 (fn (rules, prems, bounds, depth, context) =>
     let
@@ -455,7 +450,6 @@ fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
   | SOME eq_True =>
       let
         val (_, _, lhs, elhs, _, _) = decomp_simp eq_True;
-        val extra = rrule_extra_vars elhs eq_True;
       in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end);
 
 (*create the rewrite rule and possibly also the eq_True variant,
@@ -869,7 +863,7 @@ fun uncond_skel ((_, weak), (lhs, rhs)) =
   Otherwise those vars may become instantiated with unnormalized terms
   while the premises are solved.*)
 
-fun cond_skel (args as (congs, (lhs, rhs))) =
+fun cond_skel (args as (_, (lhs, rhs))) =
   if Term.add_vars rhs [] subset Term.add_vars lhs [] then uncond_skel args
   else skel0;
 
@@ -892,8 +886,7 @@ fun rewritec (prover, thyt, maxt) ss t =
     val eta_t = term_of eta_t';
     fun rew {thm, name, lhs, elhs, extra, fo, perm} =
       let
-        val thy = Thm.theory_of_thm thm;
-        val {prop, maxidx, ...} = rep_thm thm;
+        val prop = Thm.prop_of thm;
         val (rthm, elhs') =
           if maxt = ~1 orelse not extra then (thm, elhs)
           else (Thm.incr_indexes (maxt + 1) thm, Thm.incr_indexes_cterm (maxt + 1) elhs);
@@ -979,7 +972,7 @@ fun congc prover ss maxt cong t =
       (* Thm.match can raise Pattern.MATCH;
          is handled when congc is called *)
       val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
-      val unit = trace_thm (fn () => "Applying congruence rule:") ss thm';
+      val _ = trace_thm (fn () => "Applying congruence rule:") ss thm';
       fun err (msg, thm) = (trace_thm (fn () => msg) ss thm; NONE)
   in case prover thm' of
        NONE => err ("Congruence proof failed.  Could not prove", thm')
@@ -1025,7 +1018,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
     and subc skel (ss as Simpset ({bounds, ...}, {congs, ...})) t0 =
        (case term_of t0 of
-           Abs (a, T, t) =>
+           Abs (a, T, _) =>
              let
                  val b = Name.bound (#1 bounds);
                  val (v, t') = Thm.dest_abs (SOME b) t0;
@@ -1124,7 +1117,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
       end
 
     and rebuild [] _ _ _ _ eq = eq
-      | rebuild (prem :: prems) concl (rrs :: rrss) (asm :: asms) ss eq =
+      | rebuild (prem :: prems) concl (_ :: rrss) (_ :: asms) ss eq =
           let
             val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
@@ -1231,7 +1224,7 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
   let
     val thy = Thm.theory_of_cterm raw_ct;
     val ct = Thm.adjust_maxidx_cterm ~1 raw_ct;
-    val {t, maxidx, ...} = Thm.rep_cterm ct;
+    val {maxidx, ...} = Thm.rep_cterm ct;
     val ss = inc_simp_depth (activate_context thy raw_ss);
     val depth = simp_depth ss;
     val _ =
@@ -1297,8 +1290,8 @@ val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
 (* for folding definitions, handling critical pairs *)
 
 (*The depth of nesting in a term*)
-fun term_depth (Abs(a,T,t)) = 1 + term_depth t
-  | term_depth (f$t) = 1 + Int.max(term_depth f, term_depth t)
+fun term_depth (Abs (_, _, t)) = 1 + term_depth t
+  | term_depth (f $ t) = 1 + Int.max (term_depth f, term_depth t)
   | term_depth _ = 0;
 
 val lhs_of_thm = #1 o Logic.dest_equals o prop_of;

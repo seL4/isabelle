@@ -126,7 +126,6 @@ datatype node =
   SkipProof of int * (generic_theory * generic_theory);
     (*proof depth, resulting theory, original theory*)
 
-val the_global_theory = fn Theory (Context.Theory thy, _) => thy | _ => raise UNDEF;
 val theory_node = fn Theory (gthy, _) => SOME gthy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 
@@ -256,7 +255,7 @@ fun map_theory f (Theory (gthy, ctxt)) =
 
 in
 
-fun apply_transaction pos f g (node, exit) =
+fun apply_transaction f g (node, exit) =
   let
     val _ = is_draft_theory node andalso error "Illegal draft theory in toplevel state";
     val cont_node = reset_presentation node;
@@ -293,29 +292,29 @@ datatype trans =
 
 local
 
-fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
+fun apply_tr int (Init (_, f, exit)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory (Theory.checkpoint (f int)), NONE), exit), NONE)
-  | apply_tr _ _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
+  | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
       State (NONE, prev)
-  | apply_tr _ _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
+  | apply_tr _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
       (Runtime.controlled_execution exit thy; toplevel)
-  | apply_tr int _ (Keep f) state =
+  | apply_tr int (Keep f) state =
       Runtime.controlled_execution (fn x => tap (f int) x) state
-  | apply_tr int pos (Transaction (f, g)) (State (SOME state, _)) =
-      apply_transaction pos (fn x => f int x) g state
-  | apply_tr _ _ _ _ = raise UNDEF;
+  | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
+      apply_transaction (fn x => f int x) g state
+  | apply_tr _ _ _ = raise UNDEF;
 
-fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
-  | apply_union int pos (tr :: trs) state =
-      apply_union int pos trs state
-        handle Runtime.UNDEF => apply_tr int pos tr state
-          | FAILURE (alt_state, UNDEF) => apply_tr int pos tr alt_state
+fun apply_union _ [] state = raise FAILURE (state, UNDEF)
+  | apply_union int (tr :: trs) state =
+      apply_union int trs state
+        handle Runtime.UNDEF => apply_tr int tr state
+          | FAILURE (alt_state, UNDEF) => apply_tr int tr alt_state
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
 
 in
 
-fun apply_trans int pos trs state = (apply_union int pos trs state, NONE)
+fun apply_trans int trs state = (apply_union int trs state, NONE)
   handle FAILURE (alt_state, exn) => (alt_state, SOME exn) | exn => (state, SOME exn);
 
 end;
@@ -562,14 +561,14 @@ end;
 
 local
 
-fun app int (tr as Transition {trans, pos, print, no_timing, ...}) =
+fun app int (tr as Transition {trans, print, no_timing, ...}) =
   setmp_thread_position tr (fn state =>
     let
       fun do_timing f x = (warning (command_msg "" tr); timeap f x);
       fun do_profiling f x = profile (! profiling) f x;
 
       val (result, status) =
-         state |> (apply_trans int pos trans
+         state |> (apply_trans int trans
           |> (if ! profiling > 0 andalso not no_timing then do_profiling else I)
           |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
 

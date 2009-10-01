@@ -57,7 +57,7 @@ sig
   val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
   val weaken: algebra -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a
-  val of_sort_derivation: Pretty.pp -> algebra ->
+  val of_sort_derivation: algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
@@ -401,7 +401,7 @@ fun weaken algebra class_relation =
     | cs :: _ => path (x, cs))
   end;
 
-fun of_sort_derivation pp algebra {class_relation, type_constructor, type_variable} =
+fun of_sort_derivation algebra {class_relation, type_constructor, type_variable} =
   let
     val weaken = weaken algebra class_relation;
     val arities = arities_of algebra;

@@ -76,18 +76,9 @@ fun pretty_criterion ctxt (b, c) =
 
 fun is_nontrivial thy = Term.is_Const o Term.head_of o ObjectLogic.drop_judgment thy;
 
-(* Note: ("op =" : "bool --> bool --> bool") does not exist in Pure. *)
-fun is_Iff c =
-  (case dest_Const c of
-     ("op =", ty) =>
-       (ty
-        |> strip_type
-        |> swap
-        |> (op ::)
-        |> map (fst o dest_Type)
-        |> forall (curry (op =) "bool")
-        handle TYPE _ => false)
-   | _ => false);
+(*educated guesses on HOL*)  (* FIXME broken *)
+val boolT = Type ("bool", []);
+val iff_const = Const ("op =", boolT --> boolT --> boolT);
 
 (*extract terms from term_src, refine them to the parts that concern us,
   if po try match them against obj else vice versa.
@@ -97,19 +88,20 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
   let
     val thy = ProofContext.theory_of ctxt;
 
-    val chkmatch = obj |> (if po then rpair else pair) #> Pattern.matches thy;
+    fun check_match pat = Pattern.matches thy (if po then (pat, obj) else (obj, pat));
     fun matches pat =
       let
         val jpat = ObjectLogic.drop_judgment thy pat;
         val c = Term.head_of jpat;
         val pats =
           if Term.is_Const c
-          then if doiff andalso is_Iff c
-               then pat :: map (ObjectLogic.ensure_propT thy) ((snd o strip_comb) jpat)
-                    |> filter (is_nontrivial thy)
-               else [pat]
+          then
+            if doiff andalso c = iff_const then
+              (pat :: map (ObjectLogic.ensure_propT thy) (snd (strip_comb jpat)))
+                |> filter (is_nontrivial thy)
+            else [pat]
           else [];
-      in filter chkmatch pats end;
+      in filter check_match pats end;
 
     fun substsize pat =
       let val (_, subst) =
@@ -117,12 +109,11 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
     fun bestmatch [] = NONE
-     |  bestmatch xs = SOME (foldr1 Int.min xs);
+      | bestmatch xs = SOME (foldr1 Int.min xs);
 
     val match_thm = matches o refine_term;
   in
-    map match_thm (extract_terms term_src)
-    |> flat
+    maps match_thm (extract_terms term_src)
     |> map substsize
     |> bestmatch
   end;
@@ -178,8 +169,8 @@ fun filter_elim ctxt goal (_, thm) =
         is_matching_thm false (single, I) ctxt true (goal_tree prem) rule_tree;
       val successful = prems |> map_filter try_subst;
     in
-    (*elim rules always have assumptions, so an elim with one
-      assumption is as good as an intro rule with none*)
+      (*elim rules always have assumptions, so an elim with one
+        assumption is as good as an intro rule with none*)
       if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
         andalso not (null successful)
       then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
@@ -190,15 +181,13 @@ val tac_limit = Unsynchronized.ref 5;
 
 fun filter_solves ctxt goal =
   let
-    val baregoal = Logic.get_goal (Thm.prop_of goal) 1;
-
     fun etacn thm i = Seq.take (! tac_limit) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal
       else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
   in
     fn (_, thm) =>
-      if (is_some o Seq.pull o try_thm) thm
+      if is_some (Seq.pull (try_thm thm))
       then SOME (Thm.nprems_of thm, 0) else NONE
   end;
 
@@ -218,7 +207,7 @@ fun filter_simp ctxt t (_, thm) =
 
 (* filter_pattern *)
 
-fun get_names t = (Term.add_const_names t []) union (Term.add_free_names t []);
+fun get_names t = Term.add_const_names t (Term.add_free_names t []);
 fun get_thm_names (_, thm) = get_names (Thm.full_prop_of thm);
 
 (*Including all constants and frees is only sound because
@@ -238,10 +227,9 @@ fun filter_pattern ctxt pat =
 
     fun check (t, NONE) = check (t, SOME (get_thm_names t))
       | check ((_, thm), c as SOME thm_consts) =
-          (if pat_consts subset_string thm_consts
-              andalso (Pattern.matches_subterm (ProofContext.theory_of ctxt)
-                                               (pat, Thm.full_prop_of thm))
-           then SOME (0, 0) else NONE, c);
+         (if pat_consts subset_string thm_consts andalso
+            Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, Thm.full_prop_of thm)
+          then SOME (0, 0) else NONE, c);
   in check end;
 
 
@@ -253,7 +241,6 @@ fun err_no_goal c =
   error ("Current goal required for " ^ c ^ " search criterion");
 
 val fix_goal = Thm.prop_of;
-val fix_goalo = Option.map fix_goal;
 
 fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Intro = err_no_goal "intro"
@@ -276,7 +263,7 @@ fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y : int)
 fun app_filters thm =
   let
     fun app (NONE, _, _) = NONE
-      | app (SOME v, consts, []) = SOME (v, thm)
+      | app (SOME v, _, []) = SOME (v, thm)
       | app (r, consts, f :: fs) =
           let val (r', consts') = f (thm, consts)
           in app (opt_add r r', consts', fs) end;
@@ -437,6 +424,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
         map (pretty_thm ctxt) thms)
     |> Pretty.chunks |> Pretty.writeln
   end;
+
 
 
 (** command syntax **)

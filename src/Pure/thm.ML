@@ -181,7 +181,7 @@ fun ctyp_of thy raw_T =
     val sorts = Sorts.insert_typ T [];
   in Ctyp {thy_ref = Theory.check_thy thy, T = T, maxidx = maxidx, sorts = sorts} end;
 
-fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
+fun dest_ctyp (Ctyp {thy_ref, T = Type (_, Ts), maxidx, sorts}) =
       map (fn T => Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts}) Ts
   | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
 
@@ -218,31 +218,31 @@ fun cterm_of thy tm =
     val sorts = Sorts.insert_term t [];
   in Cterm {thy_ref = Theory.check_thy thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
-fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2, ...}) =
+fun merge_thys0 (Cterm {thy_ref = r1, ...}) (Cterm {thy_ref = r2, ...}) =
   Theory.merge_refs (r1, r2);
 
 
 (* destructors *)
 
-fun dest_comb (ct as Cterm {t = c $ a, T, thy_ref, maxidx, sorts}) =
+fun dest_comb (Cterm {t = c $ a, T, thy_ref, maxidx, sorts}) =
       let val A = Term.argument_type_of c 0 in
         (Cterm {t = c, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
          Cterm {t = a, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
       end
   | dest_comb ct = raise CTERM ("dest_comb", [ct]);
 
-fun dest_fun (ct as Cterm {t = c $ _, T, thy_ref, maxidx, sorts}) =
+fun dest_fun (Cterm {t = c $ _, T, thy_ref, maxidx, sorts}) =
       let val A = Term.argument_type_of c 0
       in Cterm {t = c, T = A --> T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
   | dest_fun ct = raise CTERM ("dest_fun", [ct]);
 
-fun dest_arg (ct as Cterm {t = c $ a, T = _, thy_ref, maxidx, sorts}) =
+fun dest_arg (Cterm {t = c $ a, T = _, thy_ref, maxidx, sorts}) =
       let val A = Term.argument_type_of c 0
       in Cterm {t = a, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
   | dest_arg ct = raise CTERM ("dest_arg", [ct]);
 
 
-fun dest_fun2 (Cterm {t = c $ a $ b, T, thy_ref, maxidx, sorts}) =
+fun dest_fun2 (Cterm {t = c $ _ $ _, T, thy_ref, maxidx, sorts}) =
       let
         val A = Term.argument_type_of c 0;
         val B = Term.argument_type_of c 1;
@@ -254,8 +254,7 @@ fun dest_arg1 (Cterm {t = c $ a $ _, T = _, thy_ref, maxidx, sorts}) =
       in Cterm {t = a, T = A, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts} end
   | dest_arg1 ct = raise CTERM ("dest_arg1", [ct]);
 
-fun dest_abs a (ct as
-        Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
+fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy_ref, maxidx, sorts}) =
       let val (y', t') = Term.dest_abs (the_default x a, T, t) in
         (Cterm {t = Free (y', T), T = T, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts},
           Cterm {t = t', T = U, thy_ref = thy_ref, maxidx = maxidx, sorts = sorts})
@@ -392,10 +391,10 @@ val remove_hyps = OrdList.remove TermOrd.fast_term_ord;
 
 (* merge theories of cterms/thms -- trivial absorption only *)
 
-fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm (_, {thy_ref = r2, ...})) =
+fun merge_thys1 (Cterm {thy_ref = r1, ...}) (Thm (_, {thy_ref = r2, ...})) =
   Theory.merge_refs (r1, r2);
 
-fun merge_thys2 (th1 as Thm (_, {thy_ref = r1, ...})) (th2 as Thm (_, {thy_ref = r2, ...})) =
+fun merge_thys2 (Thm (_, {thy_ref = r1, ...})) (Thm (_, {thy_ref = r2, ...})) =
   Theory.merge_refs (r1, r2);
 
 
@@ -541,7 +540,7 @@ fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
 fun raw_body (Thm (Deriv {body, ...}, _)) = body;
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  Pt.fulfill_proof (Theory.deref thy_ref) ~1
+  Pt.fulfill_proof (Theory.deref thy_ref)
     (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
 and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
 
@@ -808,7 +807,7 @@ fun forall_elim
 (*Reflexivity
   t == t
 *)
-fun reflexive (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
+fun reflexive (Cterm {thy_ref, t, T = _, maxidx, sorts}) =
   Thm (deriv_rule0 Pt.reflexive,
    {thy_ref = thy_ref,
     tags = [],
@@ -825,7 +824,7 @@ fun reflexive (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
 *)
 fun symmetric (th as Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
-    (eq as Const ("==", Type (_, [T, _]))) $ t $ u =>
+    (eq as Const ("==", _)) $ t $ u =>
       Thm (deriv_rule1 Pt.symmetric der,
        {thy_ref = thy_ref,
         tags = [],
@@ -868,7 +867,7 @@ fun transitive th1 th2 =
   (%x. t)(u) == t[u/x]
   fully beta-reduces the term if full = true
 *)
-fun beta_conversion full (Cterm {thy_ref, t, T, maxidx, sorts}) =
+fun beta_conversion full (Cterm {thy_ref, t, T = _, maxidx, sorts}) =
   let val t' =
     if full then Envir.beta_norm t
     else
@@ -885,7 +884,7 @@ fun beta_conversion full (Cterm {thy_ref, t, T, maxidx, sorts}) =
       prop = Logic.mk_equals (t, t')})
   end;
 
-fun eta_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
+fun eta_conversion (Cterm {thy_ref, t, T = _, maxidx, sorts}) =
   Thm (deriv_rule0 Pt.reflexive,
    {thy_ref = thy_ref,
     tags = [],
@@ -895,7 +894,7 @@ fun eta_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
     tpairs = [],
     prop = Logic.mk_equals (t, Envir.eta_contract t)});
 
-fun eta_long_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
+fun eta_long_conversion (Cterm {thy_ref, t, T = _, maxidx, sorts}) =
   Thm (deriv_rule0 Pt.reflexive,
    {thy_ref = thy_ref,
     tags = [],
@@ -951,7 +950,7 @@ fun combination th1 th2 =
       prop = prop2, ...}) = th2;
     fun chktypes fT tT =
       (case fT of
-        Type ("fun", [T1, T2]) =>
+        Type ("fun", [T1, _]) =>
           if T1 <> tT then
             raise THM ("combination: types", 0, [th1, th2])
           else ()
@@ -1264,7 +1263,7 @@ fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})
 val varifyT = #2 o varifyT' [];
 
 (* Replace all TVars by new TFrees *)
-fun freezeT (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
+fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
   let
     val prop1 = attach_tpairs tpairs prop;
     val prop2 = Type.freeze prop1;
@@ -1329,7 +1328,7 @@ fun incr_indexes i (thm as Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption. *)
 fun assumption i state =
   let
-    val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, ...}) = state;
     val thy = Theory.deref thy_ref;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
@@ -1365,7 +1364,7 @@ fun assumption i state =
   Checks if Bi's conclusion is alpha-convertible to one of its assumptions*)
 fun eq_assumption i state =
   let
-    val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     val (_, asms, concl) = Logic.assum_problems (~1, Bi);
   in
@@ -1386,7 +1385,7 @@ fun eq_assumption i state =
 (*For rotate_tac: fast rotation of assumptions of subgoal i*)
 fun rotate_rule k i state =
   let
-    val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     val params = Term.strip_all_vars Bi
     and rest   = Term.strip_all_body Bi;
@@ -1558,7 +1557,7 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
       in Term.all T' $ Abs (a, T', norm_term_skip env n t) end
   | norm_term_skip env n (Const ("==>", _) $ A $ B) =
       Logic.mk_implies (A, norm_term_skip env (n - 1) B)
-  | norm_term_skip env n t = error "norm_term_skip: too few assumptions??";
+  | norm_term_skip _ _ _ = error "norm_term_skip: too few assumptions??";
 
 
 (*Composition of object rule r=(A1...Am/B) with proof state s=(B1...Bn/C)

@@ -68,7 +68,6 @@ sig
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
   val certify': bool -> Pretty.pp -> bool -> Consts.T -> theory -> term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
-  val certify_prop: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
   val no_frees: Pretty.pp -> term -> term
@@ -369,11 +368,9 @@ fun certify' prop pp do_expand consts thy tm =
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
 fun certify_term thy = certify' false (Syntax.pp_global thy) true (consts_of thy) thy;
-fun certify_prop thy = certify' true (Syntax.pp_global thy) true (consts_of thy) thy;
-
 fun cert_term_abbrev thy = #1 o certify' false (Syntax.pp_global thy) false (consts_of thy) thy;
 val cert_term = #1 oo certify_term;
-val cert_prop = #1 oo certify_prop;
+fun cert_prop thy = #1 o certify' true (Syntax.pp_global thy) true (consts_of thy) thy;
 
 end;
 

@@ -43,18 +43,19 @@ $(OUT)/RAW: $(BOOTSTRAP_FILES)
 Pure: $(OUT)/Pure
 
 $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/future.ML			\
+  Concurrent/lazy.ML Concurrent/lazy_sequential.ML			\
   Concurrent/mailbox.ML Concurrent/par_list.ML				\
-  Concurrent/par_list_dummy.ML Concurrent/simple_thread.ML		\
-  Concurrent/synchronized.ML Concurrent/synchronized_dummy.ML		\
+  Concurrent/par_list_sequential.ML Concurrent/simple_thread.ML		\
+  Concurrent/synchronized.ML Concurrent/synchronized_sequential.ML	\
   Concurrent/task_queue.ML General/alist.ML General/antiquote.ML	\
   General/balanced_tree.ML General/basics.ML General/binding.ML		\
   General/buffer.ML General/file.ML General/graph.ML General/heap.ML	\
-  General/integer.ML General/lazy.ML General/long_name.ML		\
-  General/markup.ML General/name_space.ML General/ord_list.ML		\
-  General/output.ML General/path.ML General/position.ML			\
-  General/pretty.ML General/print_mode.ML General/properties.ML		\
-  General/queue.ML General/same.ML General/scan.ML General/secure.ML	\
-  General/seq.ML General/source.ML General/stack.ML General/symbol.ML	\
+  General/integer.ML General/long_name.ML General/markup.ML		\
+  General/name_space.ML General/ord_list.ML General/output.ML		\
+  General/path.ML General/position.ML General/pretty.ML			\
+  General/print_mode.ML General/properties.ML General/queue.ML		\
+  General/same.ML General/scan.ML General/secure.ML General/seq.ML	\
+  General/source.ML General/stack.ML General/symbol.ML			\
   General/symbol_pos.ML General/table.ML General/url.ML General/xml.ML	\
   General/yxml.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
   Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\

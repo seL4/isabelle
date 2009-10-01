@@ -123,7 +123,7 @@ fun err pp (c, args) (d, Us) s1 s2 =
 fun contained (U as TVar _) (Type (_, Ts)) = exists (fn T => T = U orelse contained U T) Ts
   | contained _ _ = false;
 
-fun acyclic pp defs (c, args) (d, Us) =
+fun acyclic pp (c, args) (d, Us) =
   c <> d orelse
   exists (fn U => exists (contained U) args) Us orelse
   is_none (match_args (args, Us)) orelse
@@ -150,7 +150,7 @@ fun reduction pp defs const deps =
       if forall (is_none o #1) reds then NONE
       else SOME (fold_rev
         (fn (NONE, dp) => insert (op =) dp | (SOME dps, _) => fold (insert (op =)) dps) reds []);
-    val _ = forall (acyclic pp defs const) (the_default deps deps');
+    val _ = forall (acyclic pp const) (the_default deps deps');
   in deps' end;
 
 in
@@ -163,8 +163,7 @@ fun normalize pp =
           (args, perhaps (reduction pp defs (c, args)) deps));
       in
         if reducts = reducts' then (changed, defs)
-        else (true, defs |> map_def c (fn (specs, restricts, reducts) =>
-          (specs, restricts, reducts')))
+        else (true, defs |> map_def c (fn (specs, restricts, _) => (specs, restricts, reducts')))
       end;
     fun norm_all defs =
       (case Symtab.fold norm_update defs (false, defs) of
@@ -206,7 +205,7 @@ fun define pp unchecked is_def name (c, args) deps (Defs defs) =
   let
     val restr =
       if plain_args args orelse
-        (case args of [Type (a, rec_args)] => plain_args rec_args | _ => false)
+        (case args of [Type (_, rec_args)] => plain_args rec_args | _ => false)
       then [] else [(args, name)];
     val spec =
       (serial (), {is_def = is_def, name = name, lhs = args, rhs = deps});

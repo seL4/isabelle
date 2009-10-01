@@ -277,7 +277,7 @@ Recent versions of Poly/ML (5.2.1 or later) support robust
 \begin{mldecls}
   \indexdef{}{ML}{NAMED\_CRITICAL}\verb|NAMED_CRITICAL: string -> (unit -> 'a) -> 'a| \\
   \indexdef{}{ML}{CRITICAL}\verb|CRITICAL: (unit -> 'a) -> 'a| \\
-  \indexdef{}{ML}{setmp}\verb|setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
+  \indexdef{}{ML}{setmp}\verb|setmp: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
   \end{mldecls}
 
   \begin{description}

@@ -192,6 +192,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
   Tools/split_rule.ML \
+  Tools/transfer.ML \
   Tools/typecopy.ML \
   Tools/typedef_codegen.ML \
   Tools/typedef.ML \
@@ -258,12 +259,12 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
   Tools/recdef.ML \
+  Tools/choice_specification.ML \
   Tools/res_atp.ML \
   Tools/res_axioms.ML \
   Tools/res_clause.ML \
   Tools/res_hol_clause.ML \
   Tools/res_reconstruct.ML \
-  Tools/choice_specification.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/TFL/casesplit.ML \
@@ -308,7 +309,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Taylor.thy \
   Transcendental.thy \
   Tools/float_syntax.ML \
-  Tools/transfer.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \

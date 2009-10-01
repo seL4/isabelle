@@ -197,11 +197,11 @@ val depth = Unsynchronized.ref 0;   (*maximum depth; 0 means no limit*)
 fun setdepth dp = (depth := dp);
 
 local
-  fun pruning dp (Block (m, bes, indent, wd)) =
+  fun pruning dp (Block (m, bes, indent, _)) =
         if dp > 0
         then block_markup m (indent, map (pruning (dp - 1)) bes)
         else str "..."
-    | pruning dp e = e
+    | pruning _ e = e;
 in
   fun prune e = if ! depth > 0 then pruning (! depth) e else e;
 end;
@@ -219,7 +219,7 @@ val empty: text =
   pos = 0,
   nl = 0};
 
-fun newline {tx, ind, pos, nl} : text =
+fun newline {tx, ind = _, pos = _, nl} : text =
  {tx = Buffer.add (Output.output "\n") tx,
   ind = Buffer.empty,
   pos = 0,
@@ -250,22 +250,22 @@ fun indentation (buf, len) {tx, ind, pos, nl} : text =
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
 fun breakdist (Block (_, _, _, len) :: es, after) = len + breakdist (es, after)
-  | breakdist (String (s, len) :: es, after) = len + breakdist (es, after)
-  | breakdist (Break _ :: es, after) = 0
+  | breakdist (String (_, len) :: es, after) = len + breakdist (es, after)
+  | breakdist (Break _ :: _, _) = 0
   | breakdist ([], after) = after;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
 fun forcenext [] = []
-  | forcenext (Break (_, wd) :: es) = Break (true, 0) :: es
+  | forcenext (Break _ :: es) = Break (true, 0) :: es
   | forcenext (e :: es) = e :: forcenext es;
 
 (*es is list of expressions to print;
   blockin is the indentation of the current block;
   after is the width of the following context until next break.*)
 fun format ([], _, _) text = text
-  | format (e :: es, block as (blockind, blockin), after) (text as {ind, pos, nl, ...}) =
+  | format (e :: es, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
       (case e of
-        Block ((bg, en), bes, indent, wd) =>
+        Block ((bg, en), bes, indent, _) =>
           let
             val {emergencypos, ...} = ! margin_info;
             val pos' = pos + indent;

@@ -796,7 +796,7 @@ fun subst_vars ([], []) tm = tm
       let
         fun subst (Const (a, T)) = Const (a, typ_subst_TVars instT T)
           | subst (Free (a, T)) = Free (a, typ_subst_TVars instT T)
-          | subst (t as Var (xi, T)) =
+          | subst (Var (xi, T)) =
               (case AList.lookup (op =) inst xi of
                 NONE => Var (xi, typ_subst_TVars instT T)
               | SOME t => t)

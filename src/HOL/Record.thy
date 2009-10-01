@@ -450,10 +450,6 @@ lemma refl_conj_eq:
   "Q = R \<Longrightarrow> (P \<and> Q) = (P \<and> R)"
   by simp
 
-lemma meta_all_sameI:
-  "(\<And>x. PROP P x \<equiv> PROP Q x) \<Longrightarrow> (\<And>x. PROP P x) \<equiv> (\<And>x. PROP Q x)"
-  by simp
-
 lemma istuple_UNIV_I: "\<And>x. x\<in>UNIV \<equiv> True"
   by simp
 

@@ -45,7 +45,7 @@ val peek = (fn Target args => args) o Data.get;
 
 (* pretty *)
 
-fun pretty_thy ctxt target is_locale is_class =
+fun pretty_thy ctxt target is_class =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
@@ -63,12 +63,12 @@ fun pretty_thy ctxt target is_locale is_class =
       (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]
   end;
 
-fun pretty (Target {target, is_locale, is_class, instantiation, overloading, ...}) ctxt =
+fun pretty (Target {target, is_class, instantiation, overloading, ...}) ctxt =
   Pretty.block [Pretty.str "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
     (if not (null overloading) then [Overloading.pretty ctxt]
      else if not (null (#1 instantiation)) then [Class_Target.pretty_instantiation ctxt]
-     else pretty_thy ctxt target is_locale is_class);
+     else pretty_thy ctxt target is_class);
 
 
 (* target declarations *)
@@ -260,8 +260,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
 
 (* define *)
 
-fun define (ta as Target {target, is_locale, is_class, ...})
-    kind ((b, mx), ((name, atts), rhs)) lthy =
+fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;

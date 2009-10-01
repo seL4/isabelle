@@ -8,41 +8,24 @@
 
 signature FUNC = 
 sig
- type 'a T
- type key
- val apply : 'a T -> key -> 'a
- val applyd :'a T -> (key -> 'a) -> key -> 'a
- val combine : ('a -> 'a -> 'a) -> ('a -> bool) -> 'a T -> 'a T -> 'a T
- val defined : 'a T -> key -> bool
- val dom : 'a T -> key list
- val fold : (key * 'a -> 'b -> 'b) -> 'a T -> 'b -> 'b
- val fold_rev : (key * 'a -> 'b -> 'b) -> 'a T -> 'b -> 'b
- val graph : 'a T -> (key * 'a) list
- val is_undefined : 'a T -> bool
- val mapf : ('a -> 'b) -> 'a T -> 'b T
- val tryapplyd : 'a T -> key -> 'a -> 'a
- val undefine :  key -> 'a T -> 'a T
- val undefined : 'a T
- val update : key * 'a -> 'a T -> 'a T
- val updatep : (key * 'a -> bool) -> key * 'a -> 'a T -> 'a T
- val choose : 'a T -> key * 'a
- val onefunc : key * 'a -> 'a T
- val get_first: (key*'a -> 'a option) -> 'a T -> 'a option
+ include TABLE
+ val apply : 'a table -> key -> 'a
+ val applyd :'a table -> (key -> 'a) -> key -> 'a
+ val combine : ('a -> 'a -> 'a) -> ('a -> bool) -> 'a table -> 'a table -> 'a table
+ val dom : 'a table -> key list
+ val tryapplyd : 'a table -> key -> 'a -> 'a
+ val updatep : (key * 'a -> bool) -> key * 'a -> 'a table -> 'a table
+ val choose : 'a table -> key * 'a
+ val onefunc : key * 'a -> 'a table
 end;
 
 functor FuncFun(Key: KEY) : FUNC=
 struct
 
-type key = Key.key;
 structure Tab = Table(Key);
-type 'a T = 'a Tab.table;
 
-val undefined = Tab.empty;
-val is_undefined = Tab.is_empty;
-val mapf = Tab.map;
-val fold = Tab.fold;
-val fold_rev = Tab.fold_rev;
-val graph = Tab.dest;
+open Tab;
+
 fun dom a = sort Key.ord (Tab.keys a);
 fun applyd f d x = case Tab.lookup f x of 
    SOME y => y
@@ -50,9 +33,6 @@ fun applyd f d x = case Tab.lookup f x of
 
 fun apply f x = applyd f (fn _ => raise Tab.UNDEF x) x;
 fun tryapplyd f a d = applyd f (K d) a;
-val defined = Tab.defined;
-fun undefine x t = (Tab.delete x t handle UNDEF => t);
-val update = Tab.update;
 fun updatep p (k,v) t = if p (k, v) then t else update (k,v) t
 fun combine f z a b = 
  let
@@ -64,16 +44,10 @@ fun combine f z a b =
 
 fun choose f = case Tab.min_key f of 
    SOME k => (k,valOf (Tab.lookup f k))
- | NONE => error "FuncFun.choose : Completely undefined function"
+ | NONE => error "FuncFun.choose : Completely empty function"
 
-fun onefunc kv = update kv undefined
+fun onefunc kv = update kv empty
 
-local
-fun  find f (k,v) NONE = f (k,v)
-   | find f (k,v) r = r
-in
-fun get_first f t = fold (find f) t NONE
-end
 end;
 
 (* Some standard functors and utility functions for them *)
@@ -81,33 +55,31 @@ end;
 structure FuncUtil =
 struct
 
-fun increasing f ord (x,y) = ord (f x, f y);
-
 structure Intfunc = FuncFun(type key = int val ord = int_ord);
 structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
 structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord int_ord);
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
 structure Termfunc = FuncFun(type key = term val ord = TermOrd.fast_term_ord);
 
-val cterm_ord = (fn (s,t) => TermOrd.fast_term_ord(term_of s, term_of t))
+val cterm_ord = TermOrd.fast_term_ord o pairself term_of
 
 structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
 
-type monomial = int Ctermfunc.T;
+type monomial = int Ctermfunc.table;
 
-fun monomial_ord (m1,m2) = list_ord (prod_ord cterm_ord int_ord) (Ctermfunc.graph m1, Ctermfunc.graph m2)
+val monomial_ord = list_ord (prod_ord cterm_ord int_ord) o pairself Ctermfunc.dest
 
 structure Monomialfunc = FuncFun(type key = monomial val ord = monomial_ord)
 
-type poly = Rat.rat Monomialfunc.T;
+type poly = Rat.rat Monomialfunc.table;
 
 (* The ordering so we can create canonical HOL polynomials.                  *)
 
-fun dest_monomial mon = sort (increasing fst cterm_ord) (Ctermfunc.graph mon);
+fun dest_monomial mon = sort (cterm_ord o pairself fst) (Ctermfunc.dest mon);
 
 fun monomial_order (m1,m2) =
- if Ctermfunc.is_undefined m2 then LESS 
- else if Ctermfunc.is_undefined m1 then GREATER 
+ if Ctermfunc.is_empty m2 then LESS 
+ else if Ctermfunc.is_empty m1 then GREATER 
  else
   let val mon1 = dest_monomial m1 
       val mon2 = dest_monomial m2
@@ -165,7 +137,7 @@ end
 structure RealArith : REAL_ARITH =
 struct
 
- open Conv Thm FuncUtil;;
+ open Conv
 (* ------------------------------------------------------------------------- *)
 (* Data structure for Positivstellensatz refutations.                        *)
 (* ------------------------------------------------------------------------- *)
@@ -353,36 +325,31 @@ fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
 
 (* Map back polynomials to HOL.                         *)
 
-local
- open Thm Numeral
-in
-
-fun cterm_of_varpow x k = if k = 1 then x else capply (capply @{cterm "op ^ :: real => _"} x) 
-  (mk_cnumber @{ctyp nat} k)
+fun cterm_of_varpow x k = if k = 1 then x else Thm.capply (Thm.capply @{cterm "op ^ :: real => _"} x) 
+  (Numeral.mk_cnumber @{ctyp nat} k)
 
 fun cterm_of_monomial m = 
- if Ctermfunc.is_undefined m then @{cterm "1::real"} 
+ if FuncUtil.Ctermfunc.is_empty m then @{cterm "1::real"} 
  else 
   let 
-   val m' = dest_monomial m
+   val m' = FuncUtil.dest_monomial m
    val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' [] 
-  in foldr1 (fn (s, t) => capply (capply @{cterm "op * :: real => _"} s) t) vps
+  in foldr1 (fn (s, t) => Thm.capply (Thm.capply @{cterm "op * :: real => _"} s) t) vps
   end
 
-fun cterm_of_cmonomial (m,c) = if Ctermfunc.is_undefined m then cterm_of_rat c
+fun cterm_of_cmonomial (m,c) = if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
     else if c = Rat.one then cterm_of_monomial m
-    else capply (capply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
+    else Thm.capply (Thm.capply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
 
 fun cterm_of_poly p = 
- if Monomialfunc.is_undefined p then @{cterm "0::real"} 
+ if FuncUtil.Monomialfunc.is_empty p then @{cterm "0::real"} 
  else
   let 
    val cms = map cterm_of_cmonomial
-     (sort (prod_ord monomial_order (K EQUAL)) (Monomialfunc.graph p))
-  in foldr1 (fn (t1, t2) => capply(capply @{cterm "op + :: real => _"} t1) t2) cms
+     (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
+  in foldr1 (fn (t1, t2) => Thm.capply(Thm.capply @{cterm "op + :: real => _"} t1) t2) cms
   end;
 
-end;
     (* A general real arithmetic prover *)
 
 fun gen_gen_real_arith ctxt (mk_numeric,
@@ -390,7 +357,6 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        poly_conv,poly_neg_conv,poly_add_conv,poly_mul_conv,
        absconv1,absconv2,prover) = 
 let
- open Conv Thm;
  val _ = my_context := ctxt 
  val _ = (my_mk_numeric := mk_numeric ; my_numeric_eq_conv := numeric_eq_conv ; 
           my_numeric_ge_conv := numeric_ge_conv; my_numeric_gt_conv := numeric_gt_conv ;
@@ -414,7 +380,7 @@ let
 
  fun real_ineq_conv th ct =
   let
-   val th' = (instantiate (match (lhs_of th, ct)) th 
+   val th' = (Thm.instantiate (Thm.match (Thm.lhs_of th, ct)) th 
       handle MATCH => raise CTERM ("real_ineq_conv", [ct]))
   in transitive th' (oprconv poly_conv (Thm.rhs_of th'))
   end 
@@ -442,14 +408,14 @@ let
         Axiom_eq n => nth eqs n
       | Axiom_le n => nth les n
       | Axiom_lt n => nth lts n
-      | Rational_eq x => eqT_elim(numeric_eq_conv(capply @{cterm Trueprop} 
-                          (capply (capply @{cterm "op =::real => _"} (mk_numeric x)) 
+      | Rational_eq x => eqT_elim(numeric_eq_conv(Thm.capply @{cterm Trueprop} 
+                          (Thm.capply (Thm.capply @{cterm "op =::real => _"} (mk_numeric x)) 
                                @{cterm "0::real"})))
-      | Rational_le x => eqT_elim(numeric_ge_conv(capply @{cterm Trueprop} 
-                          (capply (capply @{cterm "op <=::real => _"} 
+      | Rational_le x => eqT_elim(numeric_ge_conv(Thm.capply @{cterm Trueprop} 
+                          (Thm.capply (Thm.capply @{cterm "op <=::real => _"} 
                                      @{cterm "0::real"}) (mk_numeric x))))
-      | Rational_lt x => eqT_elim(numeric_gt_conv(capply @{cterm Trueprop} 
-                      (capply (capply @{cterm "op <::real => _"} @{cterm "0::real"})
+      | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.capply @{cterm Trueprop} 
+                      (Thm.capply (Thm.capply @{cterm "op <::real => _"} @{cterm "0::real"})
                         (mk_numeric x))))
       | Square pt => square_rule (cterm_of_poly pt)
       | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
@@ -463,8 +429,8 @@ let
       nnf_conv then_conv skolemize_conv then_conv prenex_conv then_conv
       weak_dnf_conv
 
-  val concl = dest_arg o cprop_of
-  fun is_binop opr ct = (dest_fun2 ct aconvc opr handle CTERM _ => false)
+  val concl = Thm.dest_arg o cprop_of
+  fun is_binop opr ct = (Thm.dest_fun2 ct aconvc opr handle CTERM _ => false)
   val is_req = is_binop @{cterm "op =:: real => _"}
   val is_ge = is_binop @{cterm "op <=:: real => _"}
   val is_gt = is_binop @{cterm "op <:: real => _"}
@@ -472,10 +438,13 @@ let
   val is_disj = is_binop @{cterm "op |"}
   fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
   fun disj_cases th th1 th2 = 
-   let val (p,q) = dest_binop (concl th)
+   let val (p,q) = Thm.dest_binop (concl th)
        val c = concl th1
        val _ = if c aconvc (concl th2) then () else error "disj_cases : conclusions not alpha convertible"
-   in implies_elim (implies_elim (implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th) (implies_intr (capply @{cterm Trueprop} p) th1)) (implies_intr (capply @{cterm Trueprop} q) th2)
+   in implies_elim (implies_elim
+          (implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
+          (implies_intr (Thm.capply @{cterm Trueprop} p) th1))
+        (implies_intr (Thm.capply @{cterm Trueprop} q) th2)
    end
  fun overall cert_choice dun ths = case ths of
   [] =>
@@ -494,37 +463,37 @@ let
       overall cert_choice dun (th1::th2::oths) end
     else if is_disj ct then
       let 
-       val (th1, cert1) = overall (Left::cert_choice) dun (assume (capply @{cterm Trueprop} (dest_arg1 ct))::oths)
-       val (th2, cert2) = overall (Right::cert_choice) dun (assume (capply @{cterm Trueprop} (dest_arg ct))::oths)
+       val (th1, cert1) = overall (Left::cert_choice) dun (assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
+       val (th2, cert2) = overall (Right::cert_choice) dun (assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
       in (disj_cases th th1 th2, Branch (cert1, cert2)) end
    else overall cert_choice (th::dun) oths
   end
-  fun dest_binary b ct = if is_binop b ct then dest_binop ct 
+  fun dest_binary b ct = if is_binop b ct then Thm.dest_binop ct 
                          else raise CTERM ("dest_binary",[b,ct])
   val dest_eq = dest_binary @{cterm "op = :: real => _"}
   val neq_th = nth pth 5
   fun real_not_eq_conv ct = 
    let 
-    val (l,r) = dest_eq (dest_arg ct)
-    val th = instantiate ([],[(@{cpat "?x::real"},l),(@{cpat "?y::real"},r)]) neq_th
-    val th_p = poly_conv(dest_arg(dest_arg1(rhs_of th)))
+    val (l,r) = dest_eq (Thm.dest_arg ct)
+    val th = Thm.instantiate ([],[(@{cpat "?x::real"},l),(@{cpat "?y::real"},r)]) neq_th
+    val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
     val th_x = Drule.arg_cong_rule @{cterm "uminus :: real => _"} th_p
     val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
     val th' = Drule.binop_cong_rule @{cterm "op |"} 
-     (Drule.arg_cong_rule (capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
-     (Drule.arg_cong_rule (capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
+     (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
+     (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
     in transitive th th' 
   end
  fun equal_implies_1_rule PQ = 
   let 
-   val P = lhs_of PQ
+   val P = Thm.lhs_of PQ
   in implies_intr P (equal_elim PQ (assume P))
   end
  (* FIXME!!! Copied from groebner.ml *)
  val strip_exists =
   let fun h (acc, t) =
    case (term_of t) of
-    Const("Ex",_)$Abs(x,T,p) => h (dest_abs NONE (dest_arg t) |>> (fn v => v::acc))
+    Const("Ex",_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
   | _ => (acc,t)
   in fn t => h ([],t)
   end
@@ -559,7 +528,7 @@ let
  val strip_forall =
   let fun h (acc, t) =
    case (term_of t) of
-    Const("All",_)$Abs(x,T,p) => h (dest_abs NONE (dest_arg t) |>> (fn v => v::acc))
+    Const("All",_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
   | _ => (acc,t)
   in fn t => h ([],t)
   end
@@ -576,16 +545,16 @@ let
   fun absremover ct = (literals_conv [@{term "op &"}, @{term "op |"}] [] 
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv 
         try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
-  val nct = capply @{cterm Trueprop} (capply @{cterm "Not"} ct)
+  val nct = Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"} ct)
   val th0 = (init_conv then_conv arg_conv nnf_norm_conv') nct
-  val tm0 = dest_arg (rhs_of th0)
+  val tm0 = Thm.dest_arg (Thm.rhs_of th0)
   val (th, certificates) = if tm0 aconvc @{cterm False} then (equal_implies_1_rule th0, Trivial) else
    let 
     val (evs,bod) = strip_exists tm0
     val (avs,ibod) = strip_forall bod
     val th1 = Drule.arg_cong_rule @{cterm Trueprop} (fold mk_forall avs (absremover ibod))
-    val (th2, certs) = overall [] [] [specl avs (assume (rhs_of th1))]
-    val th3 = fold simple_choose evs (prove_hyp (equal_elim th1 (assume (capply @{cterm Trueprop} bod))) th2)
+    val (th2, certs) = overall [] [] [specl avs (assume (Thm.rhs_of th1))]
+    val th3 = fold simple_choose evs (prove_hyp (equal_elim th1 (assume (Thm.capply @{cterm Trueprop} bod))) th2)
    in (Drule.implies_intr_hyps (prove_hyp (equal_elim th0 (assume nct)) th3), certs)
    end
   in (implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
@@ -595,11 +564,12 @@ end;
 
 (* A linear arithmetic prover *)
 local
-  val linear_add = Ctermfunc.combine (curry op +/) (fn z => z =/ Rat.zero)
-  fun linear_cmul c = Ctermfunc.mapf (fn x => c */ x)
+  val linear_add = FuncUtil.Ctermfunc.combine (curry op +/) (fn z => z =/ Rat.zero)
+  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn x => c */ x)
   val one_tm = @{cterm "1::real"}
-  fun contradictory p (e,_) = ((Ctermfunc.is_undefined e) andalso not(p Rat.zero)) orelse
-     ((gen_eq_set (op aconvc) (Ctermfunc.dom e, [one_tm])) andalso not(p(Ctermfunc.apply e one_tm)))
+  fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p Rat.zero)) orelse
+     ((gen_eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso
+       not(p(FuncUtil.Ctermfunc.apply e one_tm)))
 
   fun linear_ineqs vars (les,lts) = 
    case find_first (contradictory (fn x => x >/ Rat.zero)) lts of
@@ -612,15 +582,15 @@ local
      let 
       val ineqs = les @ lts
       fun blowup v =
-       length(filter (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) ineqs) +
-       length(filter (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) ineqs) *
-       length(filter (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero </ Rat.zero) ineqs)
+       length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) ineqs) +
+       length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) ineqs) *
+       length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero </ Rat.zero) ineqs)
       val  v = fst(hd(sort (fn ((_,i),(_,j)) => int_ord (i,j))
                  (map (fn v => (v,blowup v)) vars)))
       fun addup (e1,p1) (e2,p2) acc =
        let 
-        val c1 = Ctermfunc.tryapplyd e1 v Rat.zero 
-        val c2 = Ctermfunc.tryapplyd e2 v Rat.zero
+        val c1 = FuncUtil.Ctermfunc.tryapplyd e1 v Rat.zero 
+        val c2 = FuncUtil.Ctermfunc.tryapplyd e2 v Rat.zero
        in if c1 */ c2 >=/ Rat.zero then acc else
         let 
          val e1' = linear_cmul (Rat.abs c2) e1
@@ -631,13 +601,13 @@ local
         end
        end
       val (les0,les1) = 
-         List.partition (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) les
+         List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) les
       val (lts0,lts1) = 
-         List.partition (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) lts
+         List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) lts
       val (lesp,lesn) = 
-         List.partition (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) les1
+         List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) les1
       val (ltsp,ltsn) = 
-         List.partition (fn (e,_) => Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) lts1
+         List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) lts1
       val les' = fold_rev (fn ep1 => fold_rev (addup ep1) lesp) lesn les0
       val lts' = fold_rev (fn ep1 => fold_rev (addup ep1) (lesp@ltsp)) ltsn
                       (fold_rev (fn ep1 => fold_rev (addup ep1) (lesn@ltsn)) ltsp lts0)
@@ -650,20 +620,20 @@ local
   | NONE => (case eqs of 
     [] => 
      let val vars = remove (op aconvc) one_tm 
-           (fold_rev (curry (gen_union (op aconvc)) o Ctermfunc.dom o fst) (les@lts) []) 
+           (fold_rev (curry (gen_union (op aconvc)) o FuncUtil.Ctermfunc.dom o fst) (les@lts) []) 
      in linear_ineqs vars (les,lts) end
    | (e,p)::es => 
-     if Ctermfunc.is_undefined e then linear_eqs (es,les,lts) else
+     if FuncUtil.Ctermfunc.is_empty e then linear_eqs (es,les,lts) else
      let 
-      val (x,c) = Ctermfunc.choose (Ctermfunc.undefine one_tm e)
+      val (x,c) = FuncUtil.Ctermfunc.choose (FuncUtil.Ctermfunc.delete_safe one_tm e)
       fun xform (inp as (t,q)) =
-       let val d = Ctermfunc.tryapplyd t x Rat.zero in
+       let val d = FuncUtil.Ctermfunc.tryapplyd t x Rat.zero in
         if d =/ Rat.zero then inp else
         let 
          val k = (Rat.neg d) */ Rat.abs c // c
          val e' = linear_cmul k e
          val t' = linear_cmul (Rat.abs c) t
-         val p' = Eqmul(Monomialfunc.onefunc (Ctermfunc.undefined, k),p)
+         val p' = Eqmul(FuncUtil.Monomialfunc.onefunc (FuncUtil.Ctermfunc.empty, k),p)
          val q' = Product(Rational_lt(Rat.abs c),q) 
         in (linear_add e' t',Sum(p',q')) 
         end 
@@ -680,19 +650,19 @@ local
    end 
   
   fun lin_of_hol ct = 
-   if ct aconvc @{cterm "0::real"} then Ctermfunc.undefined
-   else if not (is_comb ct) then Ctermfunc.onefunc (ct, Rat.one)
-   else if is_ratconst ct then Ctermfunc.onefunc (one_tm, dest_ratconst ct)
+   if ct aconvc @{cterm "0::real"} then FuncUtil.Ctermfunc.empty
+   else if not (is_comb ct) then FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
+   else if is_ratconst ct then FuncUtil.Ctermfunc.onefunc (one_tm, dest_ratconst ct)
    else
     let val (lop,r) = Thm.dest_comb ct 
-    in if not (is_comb lop) then Ctermfunc.onefunc (ct, Rat.one)
+    in if not (is_comb lop) then FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
        else
         let val (opr,l) = Thm.dest_comb lop 
         in if opr aconvc @{cterm "op + :: real =>_"} 
            then linear_add (lin_of_hol l) (lin_of_hol r)
            else if opr aconvc @{cterm "op * :: real =>_"} 
-                   andalso is_ratconst l then Ctermfunc.onefunc (r, dest_ratconst l)
-           else Ctermfunc.onefunc (ct, Rat.one)
+                   andalso is_ratconst l then FuncUtil.Ctermfunc.onefunc (r, dest_ratconst l)
+           else FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
         end
     end
 
@@ -700,21 +670,20 @@ local
    Const(@{const_name "real"}, _)$ n => 
      if can HOLogic.dest_number n then false else true
   | _ => false
- open Thm
 in 
 fun real_linear_prover translator (eq,le,lt) = 
  let 
-  val lhs = lin_of_hol o dest_arg1 o dest_arg o cprop_of
-  val rhs = lin_of_hol o dest_arg o dest_arg o cprop_of
+  val lhs = lin_of_hol o Thm.dest_arg1 o Thm.dest_arg o cprop_of
+  val rhs = lin_of_hol o Thm.dest_arg o Thm.dest_arg o cprop_of
   val eq_pols = map lhs eq
   val le_pols = map rhs le
   val lt_pols = map rhs lt 
   val aliens =  filter is_alien
-      (fold_rev (curry (gen_union (op aconvc)) o Ctermfunc.dom) 
+      (fold_rev (curry (gen_union (op aconvc)) o FuncUtil.Ctermfunc.dom) 
           (eq_pols @ le_pols @ lt_pols) [])
-  val le_pols' = le_pols @ map (fn v => Ctermfunc.onefunc (v,Rat.one)) aliens
+  val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,Rat.one)) aliens
   val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)
-  val le' = le @ map (fn a => instantiate' [] [SOME (dest_arg a)] @{thm real_of_nat_ge_zero}) aliens 
+  val le' = le @ map (fn a => instantiate' [] [SOME (Thm.dest_arg a)] @{thm real_of_nat_ge_zero}) aliens 
  in ((translator (eq,le',lt) proof), Trivial)
  end
 end;
@@ -737,28 +706,28 @@ local
    val y_tm = @{cpat "?y::real"}
    val is_max = is_binop @{cterm "max :: real => _"}
    val is_min = is_binop @{cterm "min :: real => _"} 
-   fun is_abs t = is_comb t andalso dest_fun t aconvc abs_tm
+   fun is_abs t = is_comb t andalso Thm.dest_fun t aconvc abs_tm
    fun eliminate_construct p c tm =
     let 
      val t = find_cterm p tm
-     val th0 = (symmetric o beta_conversion false) (capply (cabs t tm) t)
-     val (p,ax) = (dest_comb o rhs_of) th0
+     val th0 = (symmetric o beta_conversion false) (Thm.capply (Thm.cabs t tm) t)
+     val (p,ax) = (Thm.dest_comb o Thm.rhs_of) th0
     in fconv_rule(arg_conv(binop_conv (arg_conv (beta_conversion false))))
                (transitive th0 (c p ax))
    end
 
    val elim_abs = eliminate_construct is_abs
     (fn p => fn ax => 
-       instantiate ([], [(p_tm,p), (x_tm, dest_arg ax)]) pth_abs)
+       Thm.instantiate ([], [(p_tm,p), (x_tm, Thm.dest_arg ax)]) pth_abs)
    val elim_max = eliminate_construct is_max
     (fn p => fn ax => 
-      let val (ax,y) = dest_comb ax 
-      in  instantiate ([], [(p_tm,p), (x_tm, dest_arg ax), (y_tm,y)]) 
+      let val (ax,y) = Thm.dest_comb ax 
+      in  Thm.instantiate ([], [(p_tm,p), (x_tm, Thm.dest_arg ax), (y_tm,y)]) 
       pth_max end)
    val elim_min = eliminate_construct is_min
     (fn p => fn ax => 
-      let val (ax,y) = dest_comb ax 
-      in  instantiate ([], [(p_tm,p), (x_tm, dest_arg ax), (y_tm,y)]) 
+      let val (ax,y) = Thm.dest_comb ax 
+      in  Thm.instantiate ([], [(p_tm,p), (x_tm, Thm.dest_arg ax), (y_tm,y)]) 
       pth_min end)
    in first_conv [elim_abs, elim_max, elim_min, all_conv]
   end;

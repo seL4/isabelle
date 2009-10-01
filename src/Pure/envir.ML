@@ -62,8 +62,8 @@ datatype env = Envir of
   tenv: tenv,           (*assignments to Vars*)
   tyenv: Type.tyenv};   (*assignments to TVars*)
 
-fun make_env (maxidx, tenv, tyenv) = Envir {maxidx = maxidx, tenv = tenv, tyenv = tyenv};
-fun map_env f (Envir {maxidx, tenv, tyenv}) = make_env (f (maxidx, tenv, tyenv));
+fun make_env (maxidx, tenv, tyenv) =
+  Envir {maxidx = maxidx, tenv = tenv, tyenv = tyenv};
 
 fun maxidx_of (Envir {maxidx, ...}) = maxidx;
 fun term_env (Envir {tenv, ...}) = tenv;

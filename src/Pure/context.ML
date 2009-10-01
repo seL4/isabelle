@@ -455,7 +455,7 @@ in
 
 fun init_proof thy = Prf (init_data thy, check_thy thy);
 
-fun transfer_proof thy' (prf as Prf (data, thy_ref)) =
+fun transfer_proof thy' (Prf (data, thy_ref)) =
   let
     val thy = deref thy_ref;
     val _ = subthy (thy, thy') orelse error "transfer proof context: not a super theory";

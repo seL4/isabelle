@@ -258,7 +258,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
   @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
-  @{index_ML setmp: "'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c"} \\
+  @{index_ML setmp: "'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c"} \\
   \end{mldecls}
 
   \begin{description}

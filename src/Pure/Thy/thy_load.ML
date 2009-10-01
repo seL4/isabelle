@@ -73,7 +73,7 @@ fun split_thy_path path =
 
 (* check files *)
 
-fun check_ext exts paths dir src_path =
+fun check_ext exts paths src_path =
   let
     val path = Path.expand src_path;
     val _ = Path.is_current path andalso error "Bad file specification";
@@ -84,15 +84,15 @@ fun check_ext exts paths dir src_path =
     fun try_prfx prfx = get_first (try_ext (Path.append prfx path)) ("" :: exts);
   in get_first try_prfx paths end;
 
-fun check_file dir path = check_ext [] (search_path dir path) dir path;
-fun check_ml dir path = check_ext ml_exts (search_path dir path) dir path;
+fun check_file dir path = check_ext [] (search_path dir path) path;
+fun check_ml dir path = check_ext ml_exts (search_path dir path) path;
 
 fun check_thy dir name =
   let
     val thy_file = thy_path name;
     val paths = search_path dir thy_file;
   in
-    (case check_ext [] paths dir thy_file of
+    (case check_ext [] paths thy_file of
       NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
         " in " ^ commas_quote (map Path.implode paths))
     | SOME thy_id => thy_id)

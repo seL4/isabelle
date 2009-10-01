@@ -128,6 +128,9 @@ proof (unfold surj_def)
   thus "\<forall>y. \<exists>x. y = nat2_to_nat x"  by fast
 qed
 
+lemma nat_to_nat2_inj: "inj nat_to_nat2"
+  by (simp add: nat_to_nat2_def surj_imp_inj_inv nat2_to_nat_surj) 
+
 
 subsection{*  A bijection between @{text "\<nat>"} and @{text "\<int>"} *}
 

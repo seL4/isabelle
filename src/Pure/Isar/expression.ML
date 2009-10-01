@@ -311,7 +311,7 @@ fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
   | finish_primitive _ close (Defines defs) = close (Defines defs)
   | finish_primitive _ _ (Notes facts) = Notes facts;
 
-fun finish_inst ctxt parms do_close (loc, (prfx, inst)) =
+fun finish_inst ctxt (loc, (prfx, inst)) =
   let
     val thy = ProofContext.theory_of ctxt;
     val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
@@ -323,7 +323,7 @@ fun finish_elem ctxt parms do_close elem =
 
 fun finish ctxt parms do_close insts elems =
   let
-    val deps = map (finish_inst ctxt parms do_close) insts;
+    val deps = map (finish_inst ctxt) insts;
     val elems' = map (finish_elem ctxt parms do_close) elems;
   in (deps, elems') end;
 

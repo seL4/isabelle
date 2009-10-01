@@ -150,7 +150,6 @@ fun get_params thy pred =
   let val params = #2 (get_axclasses thy);
   in fold (fn (x, c) => if pred c then cons x else I) params [] end;
 
-fun params_of thy c = get_params thy (fn c' => c' = c);
 fun all_params_of thy S = get_params thy (fn c => Sign.subsort thy (S, [c]));
 
 fun class_of_param thy = AList.lookup (op =) (#2 (get_axclasses thy));
@@ -263,7 +262,8 @@ fun lookup_inst_param consts params (c, T) = case get_inst_tyco consts (c, T)
 
 fun unoverload_const thy (c_ty as (c, _)) =
   case class_of_param thy c
-   of SOME class => (case get_inst_tyco (Sign.consts_of thy) c_ty
+   of SOME class (* FIXME unused? *) =>
+     (case get_inst_tyco (Sign.consts_of thy) c_ty
        of SOME tyco => try (param_of_inst thy) (c, tyco) |> the_default c
         | NONE => c)
     | NONE => c;
@@ -585,7 +585,7 @@ fun derive_type _ (_, []) = []
         val hyps = vars
           |> map (fn (T, S) => (T, Thm.of_sort (certT T, S) ~~ S));
         val ths = (typ, sort)
-          |> Sorts.of_sort_derivation (Syntax.pp_global thy) (Sign.classes_of thy)
+          |> Sorts.of_sort_derivation (Sign.classes_of thy)
            {class_relation =
               fn (th, c1) => fn c2 => th RS the_classrel thy (c1, c2),
             type_constructor =

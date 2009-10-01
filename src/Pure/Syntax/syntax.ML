@@ -404,7 +404,7 @@ fun pretty_strs_qs name strs =
 
 fun pretty_gram (Syntax (tabs, _)) =
   let
-    val {lexicon, prmodes, gram, prtabs, ...} = tabs;
+    val {lexicon, prmodes, gram, ...} = tabs;
     val prmodes' = sort_strings (filter_out (fn s => s = "") prmodes);
   in
     [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
@@ -639,7 +639,7 @@ end;
 
 local
 
-fun unparse_t t_to_ast prt_t markup ctxt (syn as Syntax (tabs, _)) curried t =
+fun unparse_t t_to_ast prt_t markup ctxt (Syntax (tabs, _)) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
     val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;

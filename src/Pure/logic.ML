@@ -222,7 +222,7 @@ fun class_of_const c = unsuffix classN c
 fun mk_of_class (ty, c) =
   Const (const_of_class c, Term.itselfT ty --> propT) $ mk_type ty;
 
-fun dest_of_class (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
+fun dest_of_class (Const (c_class, _) $ ty) = (dest_type ty, class_of_const c_class)
   | dest_of_class t = raise TERM ("dest_of_class", [t]);
 
 

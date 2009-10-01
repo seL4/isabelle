@@ -89,7 +89,7 @@ fun make_data (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, c
 structure Data = ProofDataFun
 (
   type T = data;
-  fun init thy =
+  fun init _ =
     make_data (false, Name.context, Symtab.empty, [], Vartab.empty, Symtab.empty,
       ~1, [], (Vartab.empty, Vartab.empty));
 );

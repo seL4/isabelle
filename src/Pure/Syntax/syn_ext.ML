@@ -270,9 +270,9 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
       | rem_pri sym = sym;
 
-    fun logify_types copy_prod (a as (Argument (s, p))) =
+    fun logify_types (a as (Argument (s, p))) =
           if s <> "prop" andalso is_logtype s then Argument (logic, p) else a
-      | logify_types _ a = a;
+      | logify_types a = a;
 
 
     val raw_symbs = read_mfix sy handle ERROR msg => err_in_mfix msg mfix;
@@ -305,7 +305,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
       if convert andalso not copy_prod then
        (if lhs = "prop" then sprop else if is_logtype lhs then logic else lhs)
       else lhs;
-    val symbs' = map (logify_types copy_prod) symbs;
+    val symbs' = map logify_types symbs;
     val xprod = XProd (lhs', symbs', const', pri);
 
     val _ = (List.app check_pri pris; check_pri pri; check_blocks symbs');

@@ -283,7 +283,7 @@ fun opt_thm_name intern s =
 
 (** syntax wrapper **)
 
-fun syntax kind scan (src as Src ((s, args), pos)) st =
+fun syntax kind scan (Src ((s, args), pos)) st =
   (case Scan.error (Scan.finite' T.stopper (Scan.option scan)) (st, args) of
     (SOME x, (st', [])) => (x, st')
   | (_, (_, args')) =>
