@@ -1052,7 +1052,6 @@ fun quick_and_dirty_prf noopt opt () =
   then noopt ()
   else opt ();
 
-(* FIXME non-standard name for partial identity; rename to check_... (??) *)
 fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
   (case get_updates thy u of
     SOME u_name => u_name = s
