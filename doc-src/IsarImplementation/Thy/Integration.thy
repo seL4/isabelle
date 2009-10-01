@@ -59,9 +59,9 @@ text %mlref {*
   @{index_ML Toplevel.is_toplevel: "Toplevel.state -> bool"} \\
   @{index_ML Toplevel.theory_of: "Toplevel.state -> theory"} \\
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
-  @{index_ML Toplevel.debug: "bool ref"} \\
-  @{index_ML Toplevel.timing: "bool ref"} \\
-  @{index_ML Toplevel.profiling: "int ref"} \\
+  @{index_ML Toplevel.debug: "bool Unsynchronized.ref"} \\
+  @{index_ML Toplevel.timing: "bool Unsynchronized.ref"} \\
+  @{index_ML Toplevel.profiling: "int Unsynchronized.ref"} \\
   \end{mldecls}
 
   \begin{description}
@@ -85,11 +85,11 @@ text %mlref {*
   \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
   state if available, otherwise raises @{ML Toplevel.UNDEF}.
 
-  \item @{ML "set Toplevel.debug"} makes the toplevel print further
+  \item @{ML "Toplevel.debug := true"} makes the toplevel print further
   details about internal error conditions, exceptions being raised
   etc.
 
-  \item @{ML "set Toplevel.timing"} makes the toplevel print timing
+  \item @{ML "Toplevel.timing := true"} makes the toplevel print timing
   information for each Isar command being executed.
 
   \item @{ML Toplevel.profiling}~@{verbatim ":="}~@{text "n"} controls

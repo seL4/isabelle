@@ -143,7 +143,7 @@ printed with a trailing @{text".0"}, e.g. @{text"x1.0"}, their
 internal index. This can be avoided by turning the last digit into a
 subscript: write \verb!x\<^isub>1! and obtain the much nicer @{text"x\<^isub>1"}. *}
 
-(*<*)ML"reset show_question_marks"(*>*)
+(*<*)ML"Unsynchronized.reset show_question_marks"(*>*)
 
 subsection {*Qualified names*}
 

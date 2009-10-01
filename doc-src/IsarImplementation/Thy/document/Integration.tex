@@ -86,9 +86,9 @@ The Isar toplevel may be considered the centeral hub of the
   \indexdef{}{ML}{Toplevel.is\_toplevel}\verb|Toplevel.is_toplevel: Toplevel.state -> bool| \\
   \indexdef{}{ML}{Toplevel.theory\_of}\verb|Toplevel.theory_of: Toplevel.state -> theory| \\
   \indexdef{}{ML}{Toplevel.proof\_of}\verb|Toplevel.proof_of: Toplevel.state -> Proof.state| \\
-  \indexdef{}{ML}{Toplevel.debug}\verb|Toplevel.debug: bool ref| \\
-  \indexdef{}{ML}{Toplevel.timing}\verb|Toplevel.timing: bool ref| \\
-  \indexdef{}{ML}{Toplevel.profiling}\verb|Toplevel.profiling: int ref| \\
+  \indexdef{}{ML}{Toplevel.debug}\verb|Toplevel.debug: bool Unsynchronized.ref| \\
+  \indexdef{}{ML}{Toplevel.timing}\verb|Toplevel.timing: bool Unsynchronized.ref| \\
+  \indexdef{}{ML}{Toplevel.profiling}\verb|Toplevel.profiling: int Unsynchronized.ref| \\
   \end{mldecls}
 
   \begin{description}
@@ -112,11 +112,11 @@ The Isar toplevel may be considered the centeral hub of the
   \item \verb|Toplevel.proof_of|~\isa{state} selects the Isar proof
   state if available, otherwise raises \verb|Toplevel.UNDEF|.
 
-  \item \verb|set Toplevel.debug| makes the toplevel print further
+  \item \verb|Toplevel.debug := true| makes the toplevel print further
   details about internal error conditions, exceptions being raised
   etc.
 
-  \item \verb|set Toplevel.timing| makes the toplevel print timing
+  \item \verb|Toplevel.timing := true| makes the toplevel print timing
   information for each Isar command being executed.
 
   \item \verb|Toplevel.profiling|~\verb|:=|~\isa{n} controls

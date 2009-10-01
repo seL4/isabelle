@@ -10,6 +10,6 @@ ML {* no_document use_thys
    "~~/src/HOL/Decision_Procs/Ferrack"] *}
 
 ML_command {* Code_Target.code_width := 74 *}
-ML_command {* reset unique_names *}
+ML_command {* Unsynchronized.reset unique_names *}
 
 end

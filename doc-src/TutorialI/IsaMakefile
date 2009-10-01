@@ -17,7 +17,7 @@ all: default
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-OPTIONS = -m brackets -i true -d "" -D document
+OPTIONS = -m brackets -i true -d "" -D document -M 1
 USEDIR = @$(ISABELLE_TOOL) usedir $(OPTIONS) $(OUT)/HOL
 
 

@@ -362,7 +362,7 @@ monotone function in the inductive definition always has this effect.  The
 subgoal may look uninviting, but fortunately 
 \isa{lists} distributes over intersection:
 \begin{isabelle}%
-lists\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isacharequal}\ lists\ A\ {\isasyminter}\ lists\ B\rulename{lists{\isacharunderscore}Int{\isacharunderscore}eq}%
+listsp\ {\isacharparenleft}{\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ A{\isacharparenright}\ {\isasyminter}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ B{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ lists\ A{\isacharparenright}\ {\isasyminter}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ lists\ B{\isacharparenright}\rulename{lists{\isacharunderscore}Int{\isacharunderscore}eq}%
 \end{isabelle}
 Thanks to this default simplification rule, the induction hypothesis 
 is quickly replaced by its two parts:

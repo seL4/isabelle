@@ -14,7 +14,7 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -g false -d false -D document
+USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -g false -d false -D document -M 1
 
 
 ## Sugar

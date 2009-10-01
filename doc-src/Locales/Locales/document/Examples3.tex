@@ -42,7 +42,7 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ nat{\isacharunderscore}less{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
@@ -101,13 +101,12 @@ Further interpretations are necessary to reuse theorems from
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{where}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ lattice{\isacharcolon}\ {\isachardoublequoteopen}lattice\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}lattice\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptxt}%
 We have already shown that this is a partial order,%
 \end{isamarkuptxt}%
@@ -134,21 +133,12 @@ the goals become \begin{isabelle}%
 \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ arith{\isacharplus}%
 \begin{isamarkuptxt}%
-For the first of the equations, we refer to the theorem
-  shown in the previous interpretation.%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ nat{\isacharunderscore}less{\isacharunderscore}eq{\isacharparenright}%
-\begin{isamarkuptxt}%
-In order to show the remaining equations, we put ourselves in a
+In order to show the equations, we put ourselves in a
     situation where the lattice theorems can be used in a convenient way.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\ \ \isacommand{from}\isamarkupfalse%
-\ lattice\ \isacommand{interpret}\isamarkupfalse%
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{interpret}\isamarkupfalse%
 \ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
@@ -180,45 +170,8 @@ Next follows that \isa{{\isasymle}} is a total order.%
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
-\isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}total{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\ arith\isanewline
-\isacommand{qed}\isamarkupfalse%
-\ {\isacharparenleft}rule\ nat{\isacharunderscore}less{\isacharunderscore}eq\ nat{\isacharunderscore}meet{\isacharunderscore}eq\ nat{\isacharunderscore}join{\isacharunderscore}eq{\isacharparenright}{\isacharplus}%
-\endisatagvisible
-{\isafoldvisible}%
-%
-\isadelimvisible
-%
-\endisadelimvisible
-%
-\begin{isamarkuptext}%
-Since the locale hierarchy reflects that total
-  orders are distributive lattices, an explicit interpretation of
-  distributive lattices for the order relation on natural numbers is
-  only necessary for mapping the definitions to the right operators on
-  \isa{nat}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimvisible
-%
-\endisadelimvisible
-%
-\isatagvisible
-\isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ distrib{\isacharunderscore}lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\ {\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\ {\isacharparenleft}rule\ nat{\isacharunderscore}less{\isacharunderscore}eq\ nat{\isacharunderscore}meet{\isacharunderscore}eq\ nat{\isacharunderscore}join{\isacharunderscore}eq{\isacharparenright}{\isacharplus}%
+\ unfold{\isacharunderscore}locales\ arith%
 \endisatagvisible
 {\isafoldvisible}%
 %
@@ -248,7 +201,30 @@ Theorems that are available in the theory at this point are shown in
 \hrule
 \caption{Interpreted theorems for \isa{{\isasymle}} on the natural numbers.}
 \label{tab:nat-lattice}
-\end{table}%
+\end{table}
+
+  Note that since the locale hierarchy reflects that total orders are
+  distributive lattices, an explicit interpretation of distributive
+  lattices for the order relation on natural numbers is not neccessary.
+
+  Why not push this idea further and just give the last interpretation
+  as a single interpretation instead of the sequence of three?  The
+  reasons for this are twofold:
+\begin{itemize}
+\item
+  Often it is easier to work in an incremental fashion, because later
+  interpretations require theorems provided by earlier
+  interpretations.
+\item
+  Assume that a definition is made in some locale $l_1$, and that $l_2$
+  imports $l_1$.  Let an equation for the definition be
+  proved in an interpretation of $l_2$.  The equation will be unfolded
+  in interpretations of theorems added to $l_2$ or below in the import
+  hierarchy, but not for theorems added above $l_2$.
+  Hence, an equation interpreting a definition should always be given in
+  an interpretation of the locale where the definition is made, not in
+  an interpretation of a locale further down the hierarchy.
+\end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -264,8 +240,7 @@ Divisibility on the natural numbers is a distributive lattice
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}less{\isacharunderscore}eq{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -306,8 +281,7 @@ Note that in Isabelle/HOL there is no symbol for strict
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}lattice{\isachardot}join\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
@@ -337,10 +311,6 @@ Note that in Isabelle/HOL there is no symbol for strict
 \ \isacommand{interpret}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ nat{\isacharunderscore}dvd{\isacharunderscore}less{\isacharunderscore}eq{\isacharparenright}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
@@ -408,14 +378,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\isanewline
 \ \ distrib{\isacharunderscore}lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
-\isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}distrib{\isacharunderscore}lattice\ {\isacharparenleft}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ \ \isacommand{apply}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
@@ -426,7 +389,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}unfold\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
@@ -434,12 +397,9 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule\ gcd{\isacharunderscore}lcm{\isacharunderscore}distr{\isacharparenright}\isanewline
-\ \ \ \ \isacommand{done}\isamarkupfalse%
-\isanewline
-\isacommand{qed}\isamarkupfalse%
-\ {\isacharparenleft}rule\ nat{\isacharunderscore}dvd{\isacharunderscore}less{\isacharunderscore}eq\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharparenright}{\isacharplus}%
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ gcd{\isacharunderscore}lcm{\isacharunderscore}distr{\isacharparenright}\ \isacommand{done}\isamarkupfalse%
+%
 \endisatagvisible
 {\isafoldvisible}%
 %

@@ -1,2 +1,3 @@
-use_thy "Logic";
-use_thy "Induction"
+Unsynchronized.set quick_and_dirty;
+
+use_thys ["Logic", "Induction"];

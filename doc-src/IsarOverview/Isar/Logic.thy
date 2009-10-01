@@ -526,7 +526,6 @@ text{* Although we have shown how to employ powerful automatic methods like
 tendency to use the default introduction and elimination rules to
 decompose goals and facts. This can lead to very tedious proofs:
 *}
-(*<*)ML"set quick_and_dirty"(*>*)
 lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
 proof
   fix x show "\<forall>y. A x y \<and> B x y \<longrightarrow> C x y"

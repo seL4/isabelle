@@ -96,19 +96,19 @@ subsection {* Details of printed content *}
 
 text {*
   \begin{mldecls} 
-    @{index_ML show_types: "bool ref"} & default @{ML false} \\
-    @{index_ML show_sorts: "bool ref"} & default @{ML false} \\
-    @{index_ML show_consts: "bool ref"} & default @{ML false} \\
-    @{index_ML long_names: "bool ref"} & default @{ML false} \\
-    @{index_ML short_names: "bool ref"} & default @{ML false} \\
-    @{index_ML unique_names: "bool ref"} & default @{ML true} \\
-    @{index_ML show_brackets: "bool ref"} & default @{ML false} \\
-    @{index_ML eta_contract: "bool ref"} & default @{ML true} \\
-    @{index_ML goals_limit: "int ref"} & default @{ML 10} \\
-    @{index_ML Proof.show_main_goal: "bool ref"} & default @{ML false} \\
-    @{index_ML show_hyps: "bool ref"} & default @{ML false} \\
-    @{index_ML show_tags: "bool ref"} & default @{ML false} \\
-    @{index_ML show_question_marks: "bool ref"} & default @{ML true} \\
+    @{index_ML show_types: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_sorts: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_consts: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML long_names: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML short_names: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML unique_names: "bool Unsynchronized.ref"} & default @{ML true} \\
+    @{index_ML show_brackets: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML eta_contract: "bool Unsynchronized.ref"} & default @{ML true} \\
+    @{index_ML goals_limit: "int Unsynchronized.ref"} & default @{ML 10} \\
+    @{index_ML Proof.show_main_goal: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_hyps: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_tags: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_question_marks: "bool Unsynchronized.ref"} & default @{ML true} \\
   \end{mldecls}
 
   These global ML variables control the detail of information that is
