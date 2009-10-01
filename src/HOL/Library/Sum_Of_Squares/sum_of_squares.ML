@@ -1358,15 +1358,6 @@ fun real_sos prover ctxt =
   RealArith.gen_prover_real_arith ctxt (real_nonlinear_subst_prover prover ctxt)
 end;
 
-(* A tactic *)
-fun strip_all ct = 
- case term_of ct of 
-  Const("all",_) $ Abs (xn,xT,p) => 
-   let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
-   in apfst (cons v) (strip_all t')
-   end
-| _ => ([],ct)
-
 val known_sos_constants = 
   [@{term "op ==>"}, @{term "Trueprop"}, 
    @{term "op -->"}, @{term "op &"}, @{term "op |"}, 
@@ -1401,13 +1392,17 @@ fun check_sos kcts ct =
               else error ("SOSO: Unknown constants in Subgoal:" ^ commas (map fst ukcs))
 in () end
 
-fun core_sos_tac print_cert prover ctxt = CSUBGOAL (fn (ct, i) => 
-  let val _ = check_sos known_sos_constants ct
-      val (avs, p) = strip_all ct
-      val (ths, certificates) = real_sos prover ctxt (Thm.dest_arg p)
-      val th = standard (fold_rev forall_intr avs ths)
-      val _ = print_cert certificates
-  in rtac th i end);
+fun core_sos_tac print_cert prover ctxt i = 
+  let
+    fun core_tac {concl, context, ...} =
+      let
+        val _ = check_sos known_sos_constants concl
+        val (ths, certificates) = real_sos prover context (Thm.dest_arg concl)
+        val _ = print_cert certificates
+      in rtac ths i end
+  in
+    SUBPROOF core_tac ctxt i
+  end
 
 fun default_SOME f NONE v = SOME v
   | default_SOME f (SOME v) _ = SOME v;
