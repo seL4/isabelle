@@ -23,14 +23,13 @@ val scan_parms = Scan.optional
 val _ =
   OuterSyntax.improper_command "refute"
     "try to find a model that refutes a given subgoal" OuterKeyword.diag
-    (scan_parms -- Scan.optional OuterParse.nat 1 >> (fn (parms, subgoal) =>
-      Toplevel.keep (fn state =>
-        let
-          val thy = Toplevel.theory_of state
-          val st = (snd o snd) (Proof.get_goal (Toplevel.proof_of state))
-        in
-          Refute.refute_subgoal thy parms st (subgoal - 1)
-        end)));
+    (scan_parms -- Scan.optional OuterParse.nat 1 >>
+      (fn (parms, i) =>
+        Toplevel.keep (fn state =>
+          let
+            val thy = Toplevel.theory_of state;
+            val (_, st) = Proof.flat_goal (Toplevel.proof_of state);
+          in Refute.refute_goal thy parms st i end)));
 
 
 (* 'refute_params' command *)
@@ -41,13 +40,13 @@ val _ =
     (scan_parms >> (fn parms =>
       Toplevel.theory (fn thy =>
         let
-          val thy' = fold Refute.set_default_param parms thy
+          val thy' = fold Refute.set_default_param parms thy;
           val output =
             (case Refute.get_default_params thy' of
               [] => "none"
-            | new_defaults => cat_lines (map (fn (name, value) => name ^ "=" ^ value) new_defaults))
+            | new_defaults => cat_lines (map (fn (x, y) => x ^ "=" ^ y) new_defaults));
           val _ = writeln ("Default parameters for 'refute':\n" ^ output);
-        in thy' end)))
+        in thy' end)));
 
 end;
 

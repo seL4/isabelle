@@ -1,5 +1,4 @@
 (*  Title:      HOL/Refute.thy
-    ID:         $Id$
     Author:     Tjark Weber
     Copyright   2003-2007
 
