@@ -768,7 +768,7 @@ fun slow_astar_tac cs =
 (*Non-deterministic!  Could always expand the first unsafe connective.
   That's hard to implement and did not perform better in experiments, due to
   greater search depth required.*)
-fun dup_step_tac (cs as (CS{dup_netpair,...})) =
+fun dup_step_tac (CS {dup_netpair, ...}) =
   biresolve_from_nets_tac dup_netpair;
 
 (*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)

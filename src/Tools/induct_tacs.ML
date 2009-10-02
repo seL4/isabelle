@@ -28,7 +28,7 @@ fun check_type ctxt t =
 
 fun gen_case_tac ctxt0 s opt_rule i st =
   let
-    val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
+    val (_, ctxt) = Variable.focus_subgoal i st ctxt0;
     val rule =
       (case opt_rule of
         SOME rule => rule
