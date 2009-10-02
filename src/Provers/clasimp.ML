@@ -141,7 +141,6 @@ fun modifier att (x, ths) =
 
 val addXIs = modifier (ContextRules.intro_query NONE);
 val addXEs = modifier (ContextRules.elim_query NONE);
-val addXDs = modifier (ContextRules.dest_query NONE);
 val delXs = modifier ContextRules.rule_del;
 
 in
@@ -265,9 +264,6 @@ fun clasimp_meth tac prems ctxt = METHOD (fn facts =>
 fun clasimp_meth' tac prems ctxt = METHOD (fn facts =>
   HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (clasimpset_of ctxt)));
 
-
-fun clasimp_method tac =
-  Args.bang_facts --| Method.sections clasimp_modifiers >> (clasimp_meth tac);
 
 fun clasimp_method' tac =
   Args.bang_facts --| Method.sections clasimp_modifiers >> (clasimp_meth' tac);

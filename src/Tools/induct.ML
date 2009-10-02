@@ -505,7 +505,6 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   let
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
 
     val v = Free (x, T);
     fun spec_rule prfx (xs, body) =
@@ -579,7 +578,6 @@ fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of f
 fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
   let
     val thy = ProofContext.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map (Conv.fconv_rule ObjectLogic.atomize)) defs;
@@ -652,7 +650,6 @@ in
 fun coinduct_tac ctxt inst taking opt_rule facts =
   let
     val thy = ProofContext.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
 
     fun inst_rule r =
       if null inst then `RuleCases.get r

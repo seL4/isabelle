@@ -69,7 +69,6 @@ local
 val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
-val ruleN = "rule";
 
 fun modifier name kind kind' att =
   Args.$$$ name |-- (kind >> K NONE || kind' |-- OuterParse.nat --| Args.colon >> SOME)
