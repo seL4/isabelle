@@ -106,7 +106,7 @@ $SSH macbroy23 "$MAKEALL -l HOL images $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH atbroy99 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
-$SSH macbroy2 "$MAKEALL $HOME/settings/mac-poly-M4; $MAKEALL $HOME/settings/mac-poly-M8; $MAKEALL $HOME/settings/mac-poly64-M4; $MAKEALL $HOME/settings/mac-poly64-M8"
+$SSH macbroy2 "$MAKEALL $HOME/settings/mac-poly64-M4; $MAKEALL $HOME/settings/mac-poly64-M8; $MAKEALL $HOME/settings/mac-poly-M4; $MAKEALL $HOME/settings/mac-poly-M8"
 sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
