@@ -9,11 +9,11 @@ struct
 (* FIXME:
 fun refute_action args timeout {pre=st, ...} = 
   let
-    val subgoal = 0
+    val subgoal = 1
     val thy     = Proof.theory_of st
     val thm = goal_thm_of st
 
-    val refute = Refute.refute_subgoal thy args thm
+    val refute = Refute.refute_goal thy args thm
     val _ = TimeLimit.timeLimit timeout refute subgoal
   in
     val writ_log = Substring.full (the (Symtab.lookup tab "writeln"))
