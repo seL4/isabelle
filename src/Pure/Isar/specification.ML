@@ -286,7 +286,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
         val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
-      in ((prems, stmt, []), goal_ctxt) end
+      in ((prems, stmt, NONE), goal_ctxt) end
   | Element.Obtains obtains =>
       let
         val case_names = obtains |> map_index (fn (i, (b, _)) =>
@@ -327,7 +327,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
                 [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
-      in ((prems, stmt, facts), goal_ctxt) end);
+      in ((prems, stmt, SOME facts), goal_ctxt) end);
 
 structure TheoremHook = GenericDataFun
 (
@@ -372,7 +372,7 @@ fun gen_theorem prep_att prep_stmt
       [((Binding.name AutoBind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
-    |> Proof.refine_insert facts
+    |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
     |> Library.apply (map (fn (f, _) => f int) (rev (TheoremHook.get (Context.Proof goal_ctxt))))
   end;
 
