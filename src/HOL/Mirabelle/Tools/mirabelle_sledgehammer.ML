@@ -291,39 +291,27 @@ fun get_atp thy args =
 
 local
 
-fun safe init done f x =
-  let
-    val y = init x
-    val z = Exn.capture f y
-    val _ = done y
-  in Exn.release z end
-
-fun init_sh NONE = !AtpWrapper.destdir
-  | init_sh (SOME path) =
-      let
-        (* Warning: we implicitly assume single-threaded execution here! *)
-        val old = !AtpWrapper.destdir
-        val _ = AtpWrapper.destdir := path
-      in old end
-
-fun done_sh path = AtpWrapper.destdir := path
-
 datatype sh_result =
   SH_OK of int * int * string list |
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh (prover_name, prover) hard_timeout timeout st _ =
+fun run_sh prover hard_timeout timeout dir st =
   let
-    val atp = prover timeout NONE NONE prover_name 1
+    val (ctxt, goal) = Proof.get_goal st
+    val ctxt' = ctxt |> is_some dir ? Config.put AtpWrapper.destdir (the dir)
+    val atp = prover (AtpWrapper.atp_problem_of_goal
+      (AtpManager.get_full_types ()) 1 (ctxt', goal))
+
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ((success, (message, thm_names), time_atp, _, _, _), time_isa) =
-      time_limit (Mirabelle.cpu_time atp) (Proof.get_goal st)
+    val (AtpWrapper.Prover_Result {success, message, theorem_names,
+      runtime=time_atp, ...}, time_isa) =
+      time_limit (Mirabelle.cpu_time atp) timeout
   in
-    if success then (message, SH_OK (time_isa, time_atp, thm_names))
+    if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
   handle ResHolClause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
@@ -348,13 +336,12 @@ in
 fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val _ = change_data id inc_sh_calls
-    val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
+    val (prover_name, prover) = get_atp (Proof.theory_of st) args
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
       |> Option.map (fst o read_int o explode)
-    val (msg, result) = safe init_sh done_sh
-      (run_sh atp hard_timeout timeout st) dir
+    val (msg, result) = run_sh prover hard_timeout timeout dir st
   in
     case result of
       SH_OK (time_isa, time_atp, names) =>

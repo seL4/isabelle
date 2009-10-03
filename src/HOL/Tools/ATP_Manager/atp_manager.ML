@@ -21,13 +21,9 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  type prover = int -> (thm * (string * int)) list option ->
-    (thm * (string * int)) list option -> string -> int ->
-    Proof.context * (thm list * thm) ->
-    bool * (string * string list) * int * string * string vector * (thm * (string * int)) list
-  val add_prover: string -> prover -> theory -> theory
+  val add_prover: string * AtpWrapper.prover -> theory -> theory
   val print_provers: theory -> unit
-  val get_prover: string -> theory -> prover option
+  val get_prover: string -> theory -> AtpWrapper.prover option
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
@@ -302,16 +298,11 @@ fun messages opt_limit =
 
 (* named provers *)
 
-type prover = int -> (thm * (string * int)) list option ->
-  (thm * (string * int)) list option -> string -> int ->
-  Proof.context * (thm list * thm) ->
-  bool * (string * string list) * int * string * string vector * (thm * (string * int)) list
-
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
 structure Provers = TheoryDataFun
 (
-  type T = (prover * stamp) Symtab.table
+  type T = (AtpWrapper.prover * stamp) Symtab.table
   val empty = Symtab.empty
   val copy = I
   val extend = I
@@ -319,7 +310,7 @@ structure Provers = TheoryDataFun
     handle Symtab.DUP dup => err_dup_prover dup
 );
 
-fun add_prover name prover thy =
+fun add_prover (name, prover) thy =
   Provers.map (Symtab.update_new (name, (prover, stamp ()))) thy
     handle Symtab.DUP dup => err_dup_prover dup;
 
@@ -344,9 +335,11 @@ fun start_prover name birthtime deadtime i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
+            val problem = AtpWrapper.atp_problem_of_goal (get_full_types ()) i
+              (Proof.get_goal proof_state)
             val result =
-              let val (success, (message, _), _, _, _, _) =
-                prover (get_timeout ()) NONE NONE name i (Proof.get_goal proof_state)
+              let val AtpWrapper.Prover_Result {success, message, ...} =
+                prover problem (get_timeout ())
               in (success, message) end
               handle ResHolClause.TOO_TRIVIAL
                 => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")

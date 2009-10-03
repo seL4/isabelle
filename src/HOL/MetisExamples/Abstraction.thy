@@ -22,7 +22,7 @@ consts
   pset  :: "'a set => 'a set"
   order :: "'a set => ('a * 'a) set"
 
-ML{*AtpWrapper.problem_name := "Abstraction__Collect_triv"*}
+declare [[ atp_problem_prefix = "Abstraction__Collect_triv" ]]
 lemma (*Collect_triv:*) "a \<in> {x. P x} ==> P a"
 proof (neg_clausify)
 assume 0: "(a\<Colon>'a\<Colon>type) \<in> Collect (P\<Colon>'a\<Colon>type \<Rightarrow> bool)"
@@ -37,12 +37,12 @@ lemma Collect_triv: "a \<in> {x. P x} ==> P a"
 by (metis mem_Collect_eq)
 
 
-ML{*AtpWrapper.problem_name := "Abstraction__Collect_mp"*}
+declare [[ atp_problem_prefix = "Abstraction__Collect_mp" ]]
 lemma "a \<in> {x. P x --> Q x} ==> a \<in> {x. P x} ==> a \<in> {x. Q x}"
   by (metis CollectI Collect_imp_eq ComplD UnE mem_Collect_eq);
   --{*34 secs*}
 
-ML{*AtpWrapper.problem_name := "Abstraction__Sigma_triv"*}
+declare [[ atp_problem_prefix = "Abstraction__Sigma_triv" ]]
 lemma "(a,b) \<in> Sigma A B ==> a \<in> A & b \<in> B a"
 proof (neg_clausify)
 assume 0: "(a\<Colon>'a\<Colon>type, b\<Colon>'b\<Colon>type) \<in> Sigma (A\<Colon>'a\<Colon>type set) (B\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>type set)"
@@ -60,7 +60,7 @@ qed
 lemma Sigma_triv: "(a,b) \<in> Sigma A B ==> a \<in> A & b \<in> B a"
 by (metis SigmaD1 SigmaD2)
 
-ML{*AtpWrapper.problem_name := "Abstraction__Sigma_Collect"*}
+declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect" ]]
 lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
 (*???metis says this is satisfiable!
 by (metis CollectD SigmaD1 SigmaD2)
@@ -112,7 +112,7 @@ show "False"
 qed
 
 
-ML{*AtpWrapper.problem_name := "Abstraction__CLF_eq_in_pp"*}
+declare [[ atp_problem_prefix = "Abstraction__CLF_eq_in_pp" ]]
 lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"
 by (metis Collect_mem_eq SigmaD2)
 
@@ -131,7 +131,7 @@ show "False"
   by (metis 5 0)
 qed
 
-ML{*AtpWrapper.problem_name := "Abstraction__Sigma_Collect_Pi"*}
+declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect_Pi" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
@@ -147,7 +147,7 @@ show "False"
 qed
 
 
-ML{*AtpWrapper.problem_name := "Abstraction__Sigma_Collect_Int"*}
+declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect_Int" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
@@ -170,13 +170,13 @@ show "False"
 qed
 
 
-ML{*AtpWrapper.problem_name := "Abstraction__Sigma_Collect_Pi_mono"*}
+declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect_Pi_mono" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)}) ==>
    (f \<in> pset cl \<rightarrow> pset cl)  &  (monotone f (pset cl) (order cl))"
 by auto
 
-ML{*AtpWrapper.problem_name := "Abstraction__CLF_subset_Collect_Int"*}
+declare [[ atp_problem_prefix = "Abstraction__CLF_subset_Collect_Int" ]]
 lemma "(cl,f) \<in> CLF ==> 
    CLF \<subseteq> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
@@ -187,7 +187,7 @@ by (metis Collect_mem_eq Int_def SigmaD2 UnCI Un_absorb1)
   --{*@{text Int_def} is redundant*}
 *)
 
-ML{*AtpWrapper.problem_name := "Abstraction__CLF_eq_Collect_Int"*}
+declare [[ atp_problem_prefix = "Abstraction__CLF_eq_Collect_Int" ]]
 lemma "(cl,f) \<in> CLF ==> 
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
@@ -196,7 +196,7 @@ by auto
 by (metis Collect_mem_eq Int_commute SigmaD2)
 *)
 
-ML{*AtpWrapper.problem_name := "Abstraction__CLF_subset_Collect_Pi"*}
+declare [[ atp_problem_prefix = "Abstraction__CLF_subset_Collect_Pi" ]]
 lemma 
    "(cl,f) \<in> CLF ==> 
     CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==> 
@@ -206,7 +206,7 @@ by fast
 by (metis Collect_mem_eq SigmaD2 subsetD)
 *)
 
-ML{*AtpWrapper.problem_name := "Abstraction__CLF_eq_Collect_Pi"*}
+declare [[ atp_problem_prefix = "Abstraction__CLF_eq_Collect_Pi" ]]
 lemma 
   "(cl,f) \<in> CLF ==> 
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
@@ -216,21 +216,21 @@ by auto
 by (metis Collect_mem_eq SigmaD2 contra_subsetD equalityE)
 *)
 
-ML{*AtpWrapper.problem_name := "Abstraction__CLF_eq_Collect_Pi_mono"*}
+declare [[ atp_problem_prefix = "Abstraction__CLF_eq_Collect_Pi_mono" ]]
 lemma 
   "(cl,f) \<in> CLF ==> 
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)}) ==>
    (f \<in> pset cl \<rightarrow> pset cl)  &  (monotone f (pset cl) (order cl))"
 by auto
 
-ML{*AtpWrapper.problem_name := "Abstraction__map_eq_zipA"*}
+declare [[ atp_problem_prefix = "Abstraction__map_eq_zipA" ]]
 lemma "map (%x. (f x, g x)) xs = zip (map f xs) (map g xs)"
 apply (induct xs)
 (*sledgehammer*)  
 apply auto
 done
 
-ML{*AtpWrapper.problem_name := "Abstraction__map_eq_zipB"*}
+declare [[ atp_problem_prefix = "Abstraction__map_eq_zipB" ]]
 lemma "map (%w. (w -> w, w \<times> w)) xs = 
        zip (map (%w. w -> w) xs) (map (%w. w \<times> w) xs)"
 apply (induct xs)
@@ -238,28 +238,28 @@ apply (induct xs)
 apply auto
 done
 
-ML{*AtpWrapper.problem_name := "Abstraction__image_evenA"*}
+declare [[ atp_problem_prefix = "Abstraction__image_evenA" ]]
 lemma "(%x. Suc(f x)) ` {x. even x} <= A ==> (\<forall>x. even x --> Suc(f x) \<in> A)";
 (*sledgehammer*)  
 by auto
 
-ML{*AtpWrapper.problem_name := "Abstraction__image_evenB"*}
+declare [[ atp_problem_prefix = "Abstraction__image_evenB" ]]
 lemma "(%x. f (f x)) ` ((%x. Suc(f x)) ` {x. even x}) <= A 
        ==> (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)";
 (*sledgehammer*)  
 by auto
 
-ML{*AtpWrapper.problem_name := "Abstraction__image_curry"*}
+declare [[ atp_problem_prefix = "Abstraction__image_curry" ]]
 lemma "f \<in> (%u v. b \<times> u \<times> v) ` A ==> \<forall>u v. P (b \<times> u \<times> v) ==> P(f y)" 
 (*sledgehammer*)  
 by auto
 
-ML{*AtpWrapper.problem_name := "Abstraction__image_TimesA"*}
+declare [[ atp_problem_prefix = "Abstraction__image_TimesA" ]]
 lemma image_TimesA: "(%(x,y). (f x, g y)) ` (A \<times> B) = (f`A) \<times> (g`B)"
 (*sledgehammer*) 
 apply (rule equalityI)
 (***Even the two inclusions are far too difficult
-ML{*AtpWrapper.problem_name := "Abstraction__image_TimesA_simpler"*}
+using [[ atp_problem_prefix = "Abstraction__image_TimesA_simpler"]]
 ***)
 apply (rule subsetI)
 apply (erule imageE)
@@ -282,13 +282,13 @@ done
 (*Given the difficulty of the previous problem, these two are probably
 impossible*)
 
-ML{*AtpWrapper.problem_name := "Abstraction__image_TimesB"*}
+declare [[ atp_problem_prefix = "Abstraction__image_TimesB" ]]
 lemma image_TimesB:
     "(%(x,y,z). (f x, g y, h z)) ` (A \<times> B \<times> C) = (f`A) \<times> (g`B) \<times> (h`C)" 
 (*sledgehammer*) 
 by force
 
-ML{*AtpWrapper.problem_name := "Abstraction__image_TimesC"*}
+declare [[ atp_problem_prefix = "Abstraction__image_TimesC" ]]
 lemma image_TimesC:
     "(%(x,y). (x \<rightarrow> x, y \<times> y)) ` (A \<times> B) = 
      ((%x. x \<rightarrow> x) ` A) \<times> ((%y. y \<times> y) ` B)" 

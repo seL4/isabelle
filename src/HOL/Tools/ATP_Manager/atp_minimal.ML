@@ -6,7 +6,7 @@ Minimalization of theorem list for metis by using an external automated theorem 
 
 signature ATP_MINIMAL =
 sig
-  val minimalize: AtpManager.prover -> string -> int -> Proof.state ->
+  val minimalize: AtpWrapper.prover -> string -> int -> Proof.state ->
     (string * thm list) list -> ((string * thm list) list * int) option * string
 end
 
@@ -97,7 +97,11 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun produce_answer (success, message, _, result_string, thm_name_vec, filtered) =
+fun produce_answer result =
+  let
+    val AtpWrapper.Prover_Result {success, message, proof=result_string,
+      internal_thm_names=thm_name_vec, filtered_clauses=filtered, ...} = result
+  in
   if success then
     (Success (Vector.foldr op:: [] thm_name_vec, filtered), result_string)
   else
@@ -110,19 +114,23 @@ fun produce_answer (success, message, _, result_string, thm_name_vec, filtered) 
       else
         (Failure, result_string)
     end
-
+  end
 
 (* wrapper for calling external prover *)
 
-fun sh_test_thms prover prover_name time_limit subgoalno state filtered name_thms_pairs =
+fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
   let
     val _ = println ("Testing " ^ (length_string name_thms_pairs) ^ " theorems... ")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val _ = debug_fn (fn () => print_names name_thm_pairs)
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
-    val (result, proof) =
-      produce_answer
-        (prover time_limit (SOME axclauses) filtered prover_name subgoalno (Proof.get_goal state))
+    val problem = AtpWrapper.ATP_Problem {
+      with_full_types = AtpManager.get_full_types (),
+      subgoal = subgoalno,
+      goal = Proof.get_goal state,
+      axiom_clauses = SOME axclauses,
+      filtered_clauses = filtered }
+    val (result, proof) = produce_answer (prover problem time_limit)
     val _ = println (string_of_result result)
     val _ = debug proof
   in
@@ -140,7 +148,7 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
     val _ = debug_fn (fn () => app (fn (n, tl) =>
         (debug n; app (fn t =>
           debug ("  " ^ Display.string_of_thm (Proof.context_of state) t)) tl)) name_thms_pairs)
-    val test_thms_fun = sh_test_thms prover prover_name time_limit 1 state
+    val test_thms_fun = sh_test_thms prover time_limit 1 state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of (Success _, _) => true | _ => false
     val answer' = pair and answer'' = pair NONE
