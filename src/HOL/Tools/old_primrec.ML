@@ -318,31 +318,7 @@ val add_primrec = gen_primrec thy_note (thy_def false);
 val add_primrec_unchecked = gen_primrec thy_note (thy_def true);
 val add_primrec_i = gen_primrec_i thy_note (thy_def false);
 val add_primrec_unchecked_i = gen_primrec_i thy_note (thy_def true);
-fun gen_primrec note def alt_name specs =
-  gen_primrec_i note def alt_name (map (fn ((name, t), atts) => ((name, atts), t)) specs);
 
 end;
-
-
-(* see primrec.ML (* outer syntax *)
-
-local structure P = OuterParse and K = OuterKeyword in
-
-val opt_unchecked_name =
-  Scan.optional (P.$$$ "(" |-- P.!!!
-    (((P.$$$ "unchecked" >> K true) -- Scan.optional P.name "" ||
-      P.name >> pair false) --| P.$$$ ")")) (false, "");
-
-val primrec_decl =
-  opt_unchecked_name -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
-
-val _ =
-  OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
-    (primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
-      Toplevel.theory (snd o
-        (if unchecked then add_primrec_unchecked else add_primrec) alt_name
-          (map P.triple_swap eqns))));
-
-end;*)
 
 end;

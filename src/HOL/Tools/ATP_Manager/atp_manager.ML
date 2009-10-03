@@ -91,7 +91,6 @@ structure ThreadHeap = HeapFun
 );
 
 fun lookup_thread xs = AList.lookup Thread.equal xs;
-fun delete_thread xs = AList.delete Thread.equal xs;
 fun update_thread xs = AList.update Thread.equal xs;
 
 
@@ -117,7 +116,8 @@ val state = Synchronized.var "atp_manager"
 (* unregister thread *)
 
 fun unregister (success, message) thread = Synchronized.change state
-  (fn state as State {managing_thread, timeout_heap, oldest_heap, active, cancelling, messages, store} =>
+  (fn state as
+      State {managing_thread, timeout_heap, oldest_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
       SOME (birthtime, _, description) =>
         let
@@ -317,9 +317,11 @@ fun add_prover (name, prover) thy =
 fun print_provers thy = Pretty.writeln
   (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
 
-fun get_prover name thy = case Symtab.lookup (Provers.get thy) name of
-  NONE => NONE
-| SOME (prover, _) => SOME prover;
+fun get_prover name thy =
+  (case Symtab.lookup (Provers.get thy) name of
+    NONE => NONE
+  | SOME (prover, _) => SOME prover);
+
 
 (* start prover thread *)
 

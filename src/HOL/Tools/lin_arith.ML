@@ -767,8 +767,6 @@ val pre_tac = LA_Data.pre_tac;
 
 structure Fast_Arith = Fast_Lin_Arith(structure LA_Logic = LA_Logic and LA_Data = LA_Data);
 
-val map_data = Fast_Arith.map_data;
-
 fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = f inj_thms,
     lessD = lessD, neqE = neqE, simpset = simpset, number_of = number_of};

@@ -450,14 +450,15 @@ fun string_of_thms state args =
   Pretty.string_of (Display.pretty_thms (Proof.context_of state) (Proof.get_thmss state args));
 
 fun string_of_prfs full state arg =
-  Pretty.string_of (case arg of
+  Pretty.string_of
+    (case arg of
       NONE =>
         let
-          val (ctxt, (_, thm)) = Proof.get_goal state;
+          val (ctxt, thm) = Proof.flat_goal state;
           val thy = ProofContext.theory_of ctxt;
           val prf = Thm.proof_of thm;
           val prop = Thm.full_prop_of thm;
-          val prf' = Proofterm.rewrite_proof_notypes ([], []) prf
+          val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
         in
           ProofSyntax.pretty_proof ctxt
             (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')

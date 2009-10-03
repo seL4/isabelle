@@ -51,9 +51,8 @@ sig
   (* tries to find a model for a formula: *)
   val satisfy_term   : theory -> (string * string) list -> Term.term -> unit
   (* tries to find a model that refutes a formula: *)
-  val refute_term    : theory -> (string * string) list -> Term.term -> unit
-  val refute_subgoal :
-    theory -> (string * string) list -> Thm.thm -> int -> unit
+  val refute_term : theory -> (string * string) list -> term -> unit
+  val refute_goal : theory -> (string * string) list -> thm -> int -> unit
 
   val setup : theory -> theory
 
@@ -1355,16 +1354,11 @@ struct
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* refute_subgoal: calls 'refute_term' on a specific subgoal                 *)
-(* params        : list of '(name, value)' pairs used to override default    *)
-(*                 parameters                                                *)
-(* subgoal       : 0-based index specifying the subgoal number               *)
+(* refute_goal                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> (string * string) list -> Thm.thm -> int -> unit *)
-
-  fun refute_subgoal thy params thm subgoal =
-    refute_term thy params (List.nth (Thm.prems_of thm, subgoal));
+  fun refute_goal thy params st i =
+    refute_term thy params (Logic.get_goal (Thm.prop_of st) i);
 
 
 (* ------------------------------------------------------------------------- *)

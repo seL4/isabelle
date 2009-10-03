@@ -696,13 +696,13 @@ fun clarify_tac cs = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac cs 1));
 
 (*Backtracking is allowed among the various these unsafe ways of
   proving a subgoal.  *)
-fun inst0_step_tac (CS{safe0_netpair,safep_netpair,...}) =
-  assume_tac                      APPEND'
-  contr_tac                       APPEND'
+fun inst0_step_tac (CS {safe0_netpair, ...}) =
+  assume_tac APPEND'
+  contr_tac APPEND'
   biresolve_from_nets_tac safe0_netpair;
 
 (*These unsafe steps could generate more subgoals.*)
-fun instp_step_tac (CS{safep_netpair,...}) =
+fun instp_step_tac (CS {safep_netpair, ...}) =
   biresolve_from_nets_tac safep_netpair;
 
 (*These steps could instantiate variables and are therefore unsafe.*)
@@ -768,7 +768,7 @@ fun slow_astar_tac cs =
 (*Non-deterministic!  Could always expand the first unsafe connective.
   That's hard to implement and did not perform better in experiments, due to
   greater search depth required.*)
-fun dup_step_tac (cs as (CS{dup_netpair,...})) =
+fun dup_step_tac (CS {dup_netpair, ...}) =
   biresolve_from_nets_tac dup_netpair;
 
 (*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)
@@ -910,7 +910,6 @@ end;
 val introN = "intro";
 val elimN = "elim";
 val destN = "dest";
-val ruleN = "rule";
 
 val setup_attrs =
   Attrib.setup @{binding swapped} (Scan.succeed swapped)
