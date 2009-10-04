@@ -299,7 +299,8 @@ datatype sh_result =
 fun run_sh prover hard_timeout timeout dir st =
   let
     val (ctxt, goal) = Proof.get_goal st
-    val ctxt' = ctxt |> is_some dir ? Config.put AtpWrapper.destdir (the dir)
+    val ctxt' = if is_none dir then ctxt
+      else Config.put AtpWrapper.destdir (the dir) ctxt
     val atp = prover (AtpWrapper.atp_problem_of_goal
       (AtpManager.get_full_types ()) 1 (ctxt', goal))
 
