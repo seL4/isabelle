@@ -263,8 +263,32 @@ fun spass_config insert_theory_const = Prover_Config {
   insert_theory_const = insert_theory_const,
   emit_structured_proof = false }
 
-val spass = tptp_prover ("spass", spass_config spass_insert_theory_const)
-val spass_no_tc = tptp_prover ("spass_no_tc", spass_config false)
+fun gen_dfg_prover (name, prover_config) problem timeout =
+  let
+    val Prover_Config {max_new_clauses, insert_theory_const,
+      emit_structured_proof, command, arguments} = prover_config
+    val ATP_Problem {with_full_types, subgoal, goal, axiom_clauses,
+      filtered_clauses} = problem
+  in
+    external_prover
+      (ResAtp.get_relevant max_new_clauses insert_theory_const)
+      (ResAtp.prepare_clauses true)
+      (ResHolClause.dfg_write_file with_full_types)
+      command
+      (arguments timeout)
+      ResReconstruct.find_failure
+      (ResReconstruct.lemma_list true)
+      axiom_clauses
+      filtered_clauses
+      name
+      subgoal
+      goal
+  end
+
+fun dfg_prover (name, config) = (name, gen_dfg_prover (name, config))
+
+val spass = dfg_prover ("spass", spass_config spass_insert_theory_const)
+val spass_no_tc = dfg_prover ("spass_no_tc", spass_config false)
 
 
 (* remote prover invocation via SystemOnTPTP *)
