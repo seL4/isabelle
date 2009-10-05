@@ -193,6 +193,9 @@ lemmas Zseq_mult_left = mult.Zseq_left
 
 subsection {* Limits of Sequences *}
 
+lemma [trans]: "X=Y ==> Y ----> z ==> X ----> z"
+  by simp
+
 lemma LIMSEQ_conv_tendsto: "(X ----> L) \<longleftrightarrow> (X ---> L) sequentially"
 unfolding LIMSEQ_def tendsto_iff eventually_sequentially ..
 
@@ -314,6 +317,39 @@ lemma LIMSEQ_mult:
   fixes a b :: "'a::real_normed_algebra"
   shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
 by (rule mult.LIMSEQ)
+
+lemma increasing_LIMSEQ:
+  fixes f :: "nat \<Rightarrow> real"
+  assumes inc: "!!n. f n \<le> f (Suc n)"
+      and bdd: "!!n. f n \<le> l"
+      and en: "!!e. 0 < e \<Longrightarrow> \<exists>n. l \<le> f n + e"
+  shows "f ----> l"
+proof (auto simp add: LIMSEQ_def)
+  fix e :: real
+  assume e: "0 < e"
+  then obtain N where "l \<le> f N + e/2"
+    by (metis half_gt_zero e en that)
+  hence N: "l < f N + e" using e
+    by simp
+  { fix k
+    have [simp]: "!!n. \<bar>f n - l\<bar> = l - f n"
+      by (simp add: bdd) 
+    have "\<bar>f (N+k) - l\<bar> < e"
+    proof (induct k)
+      case 0 show ?case using N
+	by simp   
+    next
+      case (Suc k) thus ?case using N inc [of "N+k"]
+	by simp
+    qed 
+  } note 1 = this
+  { fix n
+    have "N \<le> n \<Longrightarrow> \<bar>f n - l\<bar> < e" using 1 [of "n-N"]
+      by simp 
+  } note [intro] = this
+  show " \<exists>no. \<forall>n\<ge>no. dist (f n) l < e"
+    by (auto simp add: dist_real_def) 
+  qed
 
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"
