@@ -5,7 +5,7 @@ Some rather large datatype examples (from John Harrison).
 
 val tests = ["Brackin", "Instructions", "SML", "Verilog"];
 
-set timing;
+Unsynchronized.set timing;
 
 warning "\nset quick_and_dirty\n"; Unsynchronized.set quick_and_dirty;
 List.app time_use_thy tests;
