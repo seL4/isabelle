@@ -19,7 +19,7 @@ sig
   type code_algebra
   type code_graph
   val eqns: code_graph -> string -> (thm * bool) list
-  val typ: code_graph -> string -> (string * sort) list * typ
+  val sortargs: code_graph -> string -> sort list
   val all: code_graph -> string list
   val pretty: theory -> code_graph -> Pretty.T
   val obtain: theory -> string list -> term list -> code_algebra * code_graph
@@ -62,7 +62,7 @@ structure Code_Preproc_Data = TheoryDataFun
   val empty = make_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []);
   fun copy spec = spec;
   val extend = copy;
-  fun merge pp = merge_thmproc;
+  fun merge _ = merge_thmproc;
 );
 
 fun the_thmproc thy = case Code_Preproc_Data.get thy
@@ -196,10 +196,10 @@ fun simple_functrans f thy eqns = case f thy (map fst eqns)
 (** sort algebra and code equation graph types **)
 
 type code_algebra = (sort -> sort) * Sorts.algebra;
-type code_graph = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
+type code_graph = ((string * sort) list * (thm * bool) list) Graph.T;
 
 fun eqns eqngr = these o Option.map snd o try (Graph.get_node eqngr);
-fun typ eqngr = fst o Graph.get_node eqngr;
+fun sortargs eqngr = map snd o fst o Graph.get_node eqngr
 fun all eqngr = Graph.keys eqngr;
 
 fun pretty thy eqngr =
@@ -226,6 +226,14 @@ fun complete_proper_sort thy =
 fun inst_params thy tyco =
   map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
     o maps (#params o AxClass.get_info thy);
+
+fun typscheme_rhss thy c eqns =
+  let
+    val tyscm = Code.typscheme_eqns thy c (map fst eqns);
+    val rhss = [] |> (fold o fold o fold_aterms)
+      (fn Const (c, ty) => insert (op =) (c, Sign.const_typargs thy (c, Logic.unvarifyT ty)) | _ => I)
+        (map (op :: o swap o apfst (snd o strip_comb) o Logic.dest_equals o Thm.plain_prop_of o fst) eqns);
+  in (tyscm, rhss) end;
 
 
 (* data structures *)
@@ -262,11 +270,11 @@ val empty_vardeps_data : vardeps_data =
 
 fun obtain_eqns thy eqngr c =
   case try (Graph.get_node eqngr) c
-   of SOME ((lhs, _), eqns) => ((lhs, []), [])
+   of SOME (lhs, eqns) => ((lhs, []), [])
     | NONE => let
         val eqns = Code.these_eqns thy c
           |> preprocess thy c;
-        val ((lhs, _), rhss) = Code.typscheme_rhss_eqns thy c (map fst eqns);
+        val ((lhs, _), rhss) = typscheme_rhss thy c eqns;
       in ((lhs, rhss), eqns) end;
 
 fun obtain_instance thy arities (inst as (class, tyco)) =
@@ -413,11 +421,11 @@ fun add_eqs thy vardeps (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
       Vartab.update ((v, 0), sort)) lhs;
     val eqns = proto_eqns
       |> (map o apfst) (inst_thm thy inst_tab);
-    val (tyscm, rhss') = Code.typscheme_rhss_eqns thy c (map fst eqns);
-    val eqngr' = Graph.new_node (c, (tyscm, eqns)) eqngr;
+    val ((vs, _), rhss') = typscheme_rhss thy c eqns;
+    val eqngr' = Graph.new_node (c, (vs, eqns)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;
 
-fun extend_arities_eqngr thy cs ts (arities, eqngr) =
+fun extend_arities_eqngr thy cs ts (arities, (eqngr : code_graph)) =
   let
     val cs_rhss = (fold o fold_aterms) (fn Const (c_ty as (c, _)) =>
       insert (op =) (c, (map (styp_of NONE) o Sign.const_typargs thy) c_ty) | _ => I) ts [];
@@ -430,7 +438,7 @@ fun extend_arities_eqngr thy cs ts (arities, eqngr) =
       (AList.lookup (op =) arities') (Sign.classes_of thy);
     val (rhss, eqngr') = Symtab.fold (add_eqs thy vardeps) eqntab ([], eqngr);
     fun deps_of (c, rhs) = c :: maps (dicts_of thy algebra)
-      (rhs ~~ (map snd o fst o fst o Graph.get_node eqngr') c);
+      (rhs ~~ sortargs eqngr' c);
     val eqngr'' = fold (fn (c, rhs) => fold
       (curry Graph.add_edge c) (deps_of rhs)) rhss eqngr';
   in (algebra, (arities', eqngr'')) end;
