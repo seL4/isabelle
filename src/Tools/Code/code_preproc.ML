@@ -227,27 +227,6 @@ fun inst_params thy tyco =
   map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
     o maps (#params o AxClass.get_info thy);
 
-fun consts_of thy eqns = [] |> (fold o fold o fold_aterms)
-  (fn Const (c, ty) => insert (op =) (c, Sign.const_typargs thy (c, Logic.unvarifyT ty)) | _ => I)
-    (map (op :: o swap o apfst (snd o strip_comb) o Logic.dest_equals o Thm.plain_prop_of o fst) eqns);
-
-fun default_typscheme_of thy c =
-  let
-    val ty = (snd o dest_Const o Term_Subst.zero_var_indexes o curry Const c
-      o Type.strip_sorts o Sign.the_const_type thy) c;
-  in case AxClass.class_of_param thy c
-   of SOME class => ([(Name.aT, [class])], ty)
-    | NONE => Code.typscheme thy (c, ty)
-  end;
-
-fun tyscm_rhss_of thy c eqns =
-  let
-    val tyscm = case eqns
-     of [] => default_typscheme_of thy c
-      | ((thm, _) :: _) => Code.typscheme_eqn thy thm;
-    val rhss = consts_of thy eqns;
-  in (tyscm, rhss) end;
-
 
 (* data structures *)
 
@@ -287,7 +266,7 @@ fun obtain_eqns thy eqngr c =
     | NONE => let
         val eqns = Code.these_eqns thy c
           |> preprocess thy c;
-        val ((lhs, _), rhss) = tyscm_rhss_of thy c eqns;
+        val ((lhs, _), rhss) = Code.typscheme_rhss_eqns thy c (map fst eqns);
       in ((lhs, rhss), eqns) end;
 
 fun obtain_instance thy arities (inst as (class, tyco)) =
@@ -434,7 +413,7 @@ fun add_eqs thy vardeps (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
       Vartab.update ((v, 0), sort)) lhs;
     val eqns = proto_eqns
       |> (map o apfst) (inst_thm thy inst_tab);
-    val (tyscm, rhss') = tyscm_rhss_of thy c eqns;
+    val (tyscm, rhss') = Code.typscheme_rhss_eqns thy c (map fst eqns);
     val eqngr' = Graph.new_node (c, (tyscm, eqns)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;
 

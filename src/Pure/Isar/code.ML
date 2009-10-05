@@ -28,6 +28,8 @@ sig
     -> (thm * bool) list -> (thm * bool) list
   val const_typ_eqn: theory -> thm -> string * typ
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
+  val typscheme_rhss_eqns: theory -> string -> thm list
+    -> ((string * sort) list * typ) * (string * typ list) list
 
   (*executable code*)
   val add_datatype: (string * typ) list -> theory -> theory
@@ -116,6 +118,15 @@ fun typscheme thy (c, ty) =
   let
     val ty' = Logic.unvarifyT ty;
   in (map dest_TFree (Sign.const_typargs thy (c, ty')), Type.strip_sorts ty') end;
+
+fun default_typscheme thy c =
+  let
+    val ty = (snd o dest_Const o Term_Subst.zero_var_indexes o curry Const c
+      o Type.strip_sorts o Sign.the_const_type thy) c;
+  in case AxClass.class_of_param thy c
+   of SOME class => ([(Name.aT, [class])], ty)
+    | NONE => typscheme thy (c, ty)
+  end;
 
 
 (** data store **)
@@ -515,6 +526,15 @@ fun const_typ_eqn thy thm =
 fun typscheme_eqn thy = typscheme thy o const_typ_eqn thy;
 fun const_eqn thy = fst o const_typ_eqn thy;
 
+fun consts_of thy thms = [] |> (fold o fold o fold_aterms)
+  (fn Const (c, ty) => insert (op =) (c, Sign.const_typargs thy (c, Logic.unvarifyT ty)) | _ => I)
+    (map (op :: o swap o apfst (snd o strip_comb) o Logic.dest_equals o Thm.plain_prop_of) thms);
+
+fun typscheme_rhss_eqns thy c [] =
+      (default_typscheme thy c, [])
+  | typscheme_rhss_eqns thy c (thms as thm :: _) =
+      (typscheme_eqn thy thm, consts_of thy thms);
+
 fun assert_eqns_const thy c eqns =
   let
     fun cert (eqn as (thm, _)) = if c = const_eqn thy thm
@@ -529,7 +549,7 @@ fun same_typscheme thy thms =
     fun inter_sorts vs =
       fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
     val sorts = map_transpose inter_sorts vss;
-    val vts = Name.names Name.context Name.aT sorts
+    val vts = Name.names Name.context "'X" sorts
       |> map (fn (v, sort) => TVar ((v, 0), sort));
   in map2 (fn vs => Thm.certify_instantiate (vs ~~ vts, [])) vss thms end;
 

@@ -554,16 +554,21 @@ and ensure_const thy algbr funcgr c =
     fun stmt_classparam class =
       ensure_class thy algbr funcgr class
       #>> (fn class => Classparam (c, class));
-    fun stmt_fun ((vs, ty), eqns) =
-      fold_map (translate_tyvar_sort thy algbr funcgr) vs
-      ##>> translate_typ thy algbr funcgr ty
-      ##>> fold_map (translate_eqn thy algbr funcgr) (burrow_fst (clean_thms thy) eqns)
-      #>> (fn info => Fun (c, info));
+    fun stmt_fun raw_eqns =
+      let
+        val eqns = burrow_fst (clean_thms thy) raw_eqns;
+        val ((vs, ty), _) = Code.typscheme_rhss_eqns thy c (map fst eqns);
+      in
+        fold_map (translate_tyvar_sort thy algbr funcgr) vs
+        ##>> translate_typ thy algbr funcgr ty
+        ##>> fold_map (translate_eqn thy algbr funcgr) eqns
+        #>> (fn info => Fun (c, info))
+      end;
     val stmt_const = case Code.get_datatype_of_constr thy c
      of SOME tyco => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
-          | NONE => stmt_fun (Code_Preproc.typ funcgr c, Code_Preproc.eqns funcgr c))
+          | NONE => stmt_fun (Code_Preproc.eqns funcgr c))
   in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
