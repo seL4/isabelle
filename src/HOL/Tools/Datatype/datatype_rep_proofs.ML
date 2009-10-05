@@ -28,7 +28,7 @@ open DatatypeAux;
 
 (*the kind of distinctiveness axioms depends on number of constructors*)
 val (distinctness_limit, distinctness_limit_setup) =
-  Attrib.config_int "datatype_distinctness_limit" 7;
+  Attrib.config_int "datatype_distinctness_limit" 9999 (*approx. infinity*);
 
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 

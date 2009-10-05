@@ -13,7 +13,6 @@ sig
   val read_const: theory -> string -> string
   val string_of_const: theory -> string -> string
   val args_number: theory -> string -> int
-  val typscheme: theory -> string * typ -> (string * sort) list * typ
 
   (*constructor sets*)
   val constrset_of_consts: theory -> (string * typ) list
@@ -28,6 +27,7 @@ sig
     -> (thm * bool) list -> (thm * bool) list
   val const_typ_eqn: theory -> thm -> string * typ
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
+  val typscheme_eqns: theory -> string -> thm list -> (string * sort) list * typ
 
   (*executable code*)
   val add_datatype: (string * typ) list -> theory -> theory
@@ -112,10 +112,6 @@ fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
 fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
 
-fun typscheme thy (c, ty) =
-  let
-    val ty' = Logic.unvarifyT ty;
-  in (map dest_TFree (Sign.const_typargs thy (c, ty')), Type.strip_sorts ty') end;
 
 
 (** data store **)
@@ -511,9 +507,22 @@ fun const_typ_eqn thy thm =
     val (c, ty) = head_eqn thm;
     val c' = AxClass.unoverload_const thy (c, ty);
   in (c', ty) end;
-
-fun typscheme_eqn thy = typscheme thy o const_typ_eqn thy;
 fun const_eqn thy = fst o const_typ_eqn thy;
+
+fun typscheme thy (c, ty) =
+  (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
+fun typscheme_eqn thy = typscheme thy o apsnd Logic.unvarifyT o const_typ_eqn thy;
+fun typscheme_eqns thy c [] = 
+      let
+        val raw_ty = Sign.the_const_type thy c;
+        val tvars = Term.add_tvar_namesT raw_ty [];
+        val tvars' = case AxClass.class_of_param thy c
+         of SOME class => [TFree (Name.aT, [class])]
+          | NONE => Name.invent_list [] Name.aT (length tvars)
+              |> map (fn v => TFree (v, []));
+        val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
+      in typscheme thy (c, ty) end
+  | typscheme_eqns thy c (thms as thm :: _) = typscheme_eqn thy thm;
 
 fun assert_eqns_const thy c eqns =
   let
