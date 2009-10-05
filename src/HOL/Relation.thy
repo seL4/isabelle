@@ -376,6 +376,9 @@ by (iprover dest!: iffD1 [OF Domain_iff])
 lemma Domain_empty [simp]: "Domain {} = {}"
 by blast
 
+lemma Domain_empty_iff: "Domain r = {} \<longleftrightarrow> r = {}"
+  by auto
+
 lemma Domain_insert: "Domain (insert (a, b) r) = insert a (Domain r)"
 by blast
 
@@ -426,6 +429,9 @@ by (unfold Range_def) (iprover elim!: DomainE dest!: converseD)
 
 lemma Range_empty [simp]: "Range {} = {}"
 by blast
+
+lemma Range_empty_iff: "Range r = {} \<longleftrightarrow> r = {}"
+  by auto
 
 lemma Range_insert: "Range (insert (a, b) r) = insert b (Range r)"
 by blast
@@ -617,8 +623,11 @@ lemma finite_converse [iff]: "finite (r^-1) = finite r"
   apply simp
   done
 
-text {* \paragraph{Finiteness of transitive closure} (Thanks to Sidi
-Ehmety) *}
+lemma finite_Domain: "finite r ==> finite (Domain r)"
+  by (induct set: finite) (auto simp add: Domain_insert)
+
+lemma finite_Range: "finite r ==> finite (Range r)"
+  by (induct set: finite) (auto simp add: Range_insert)
 
 lemma finite_Field: "finite r ==> finite (Field r)"
   -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
