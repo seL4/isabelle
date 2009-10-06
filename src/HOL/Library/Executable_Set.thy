@@ -74,11 +74,12 @@ definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Ri
 types_code
   fset ("(_/ \<module>fset)")
 attach {*
-datatype 'a fset = Set of 'a list;
+datatype 'a fset = Set of 'a list | Coset of 'a list;
 *}
 
 consts_code
   Set ("\<module>Set")
+  Coset ("\<module>Coset")
 
 consts_code
   "empty"             ("{*Fset.empty*}")
