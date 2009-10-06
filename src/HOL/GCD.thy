@@ -1575,7 +1575,7 @@ proof -
 qed
 
 interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice "op dvd" "%m n::nat. m dvd n & ~ n dvd m" gcd lcm 1 0 GCD LCM
+  complete_lattice GCD LCM "op dvd" "%m n::nat. m dvd n & ~ n dvd m" gcd lcm 1 0
 proof
   case goal1 show ?case by simp
 next
