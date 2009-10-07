@@ -1251,6 +1251,12 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   unfolding le_fun_def by simp
 
+lemma bot_boolE: "bot \<Longrightarrow> P"
+  by (simp add: bot_bool_eq)
+
+lemma top_boolI: top
+  by (simp add: top_bool_eq)
+
 text {*
   Handy introduction and elimination rules for @{text "\<le>"}
   on unary and binary predicates
