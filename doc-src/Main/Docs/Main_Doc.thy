@@ -79,8 +79,8 @@ latter in theory @{theory Set}).
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Lattices.inf} & @{typeof Lattices.inf}\\
 @{const Lattices.sup} & @{typeof Lattices.sup}\\
-@{const Complete_Lattice.Inf} & @{term_type_only Complete_Lattice.Inf "'a set \<Rightarrow> 'a::complete_lattice"}\\
-@{const Complete_Lattice.Sup} & @{term_type_only Complete_Lattice.Sup "'a set \<Rightarrow> 'a::complete_lattice"}\\
+@{const Complete_Lattice.Inf} & @{term_type_only Complete_Lattice.Inf "'a set \<Rightarrow> 'a::Inf"}\\
+@{const Complete_Lattice.Sup} & @{term_type_only Complete_Lattice.Sup "'a set \<Rightarrow> 'a::Sup"}\\
 \end{tabular}
 
 \subsubsection*{Syntax}
