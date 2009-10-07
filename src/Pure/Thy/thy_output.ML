@@ -470,11 +470,11 @@ fun pretty_abbrev ctxt s =
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
-fun pretty_term_style ctxt (name, t) =
-  pretty_term ctxt (TermStyle.the_style (ProofContext.theory_of ctxt) name ctxt t);
+fun pretty_term_style ctxt (style, t) =
+  pretty_term ctxt (style t);
 
-fun pretty_thm_style ctxt (name, th) =
-  pretty_term_style ctxt (name, Thm.full_prop_of th);
+fun pretty_thm_style ctxt (style, th) =
+  pretty_term_style ctxt (style, Thm.full_prop_of th);
 
 fun pretty_prf full ctxt = ProofSyntax.pretty_proof_of ctxt full;
 
@@ -513,15 +513,19 @@ local
 fun basic_entities name scan pretty = antiquotation name scan
   (fn {source, context, ...} => output o maybe_pretty_source (pretty context) source);
 
+fun basic_entities_style name scan pretty = antiquotation name scan
+  (fn {source, context, ...} => fn (style, xs) =>
+    output (maybe_pretty_source (fn x => pretty context (style, x)) source xs));
+
 fun basic_entity name scan = basic_entities name (scan >> single);
 
 in
 
-val _ = basic_entities "thm" Attrib.thms pretty_thm;
-val _ = basic_entity "thm_style" (Scan.lift Args.liberal_name -- Attrib.thm) pretty_thm_style;
-val _ = basic_entity "prop" Args.prop pretty_term;
-val _ = basic_entity "term" Args.term pretty_term;
-val _ = basic_entity "term_style" (Scan.lift Args.liberal_name -- Args.term) pretty_term_style;
+val _ = basic_entities_style "thm" (Term_Style.parse -- Attrib.thms) pretty_thm_style;
+val _ = basic_entities_style "thm_style" (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style;
+val _ = basic_entity "prop" (Term_Style.parse -- Args.prop) pretty_term_style;
+val _ = basic_entity "term" (Term_Style.parse -- Args.term) pretty_term_style;
+val _ = basic_entity "term_style" (Term_Style.parse_bare -- Args.term) pretty_term_style;
 val _ = basic_entity "term_type" Args.term pretty_term_typ;
 val _ = basic_entity "typeof" Args.term pretty_term_typeof;
 val _ = basic_entity "const" Args.const_proper pretty_const;
