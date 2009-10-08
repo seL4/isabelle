@@ -62,7 +62,7 @@ val parse_bare = Args.context :|-- (fn ctxt => Scan.lift Args.liberal_name
 
 (* predefined styles *)
 
-fun style_binargs proj = Scan.succeed (fn ctxt => fn t =>
+fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
   let
     val concl = ObjectLogic.drop_judgment (ProofContext.theory_of ctxt)
       (Logic.strip_imp_concl t)
@@ -71,16 +71,31 @@ fun style_binargs proj = Scan.succeed (fn ctxt => fn t =>
     | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl)
   end);
 
+val style_prem = Args.name >> (fn raw_i => fn ctxt => fn t =>
+  let
+    val i = (the o Int.fromString) raw_i;
+    val prems = Logic.strip_imp_prems t;
+  in
+    if i <= length prems then nth prems (i - 1)
+    else error ("Not enough premises for prem " ^ string_of_int i ^
+      " in propositon: " ^ Syntax.string_of_term ctxt t)
+  end);
+
 fun style_parm_premise i = Scan.succeed (fn ctxt => fn t =>
-  let val prems = Logic.strip_imp_prems t in
+  let
+    val i_str = string_of_int i;
+    val prems = Logic.strip_imp_prems t;
+  in
     if i <= length prems then nth prems (i - 1)
     else error ("Not enough premises for prem" ^ string_of_int i ^
       " in propositon: " ^ Syntax.string_of_term ctxt t)
   end);
 
 val _ = Context.>> (Context.map_theory
- (setup "lhs" (style_binargs fst) #>
-  setup "rhs" (style_binargs snd) #>
+ (setup "lhs" (style_lhs_rhs fst) #>
+  setup "rhs" (style_lhs_rhs snd) #>
+  setup "prem" style_prem #>
+  setup "concl" (Scan.succeed (K Logic.strip_imp_concl)) #>
   setup "prem1" (style_parm_premise 1) #>
   setup "prem2" (style_parm_premise 2) #>
   setup "prem3" (style_parm_premise 3) #>
@@ -99,7 +114,6 @@ val _ = Context.>> (Context.map_theory
   setup "prem16" (style_parm_premise 16) #>
   setup "prem17" (style_parm_premise 17) #>
   setup "prem18" (style_parm_premise 18) #>
-  setup "prem19" (style_parm_premise 19) #>
-  setup "concl" (Scan.succeed (K Logic.strip_imp_concl))));
+  setup "prem19" (style_parm_premise 19)));
 
 end;

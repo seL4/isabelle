@@ -185,7 +185,7 @@ characterizes the even numbers.
 
 Even with its use of the function \isa{lists}, the premise of our
 introduction rule is positive:
-@{thm_style [display,indent=0] prem1 step [no_vars]}
+@{thm [display,indent=0] (prem 1) step [no_vars]}
 To apply the rule we construct a list @{term args} of previously
 constructed well-formed terms.  We obtain a
 new term, @{term "Apply f args"}.  Because @{term lists} is monotone,

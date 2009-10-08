@@ -375,7 +375,7 @@ text {*
 From similar assumptions, we can prove that @{text A} started the protocol
 run by sending an instance of message~1 involving the nonce~@{text NA}\@. 
 For this theorem, the conclusion is 
-@{thm_style [display] concl B_trusts_protocol [no_vars]}
+@{thm [display] (concl) B_trusts_protocol [no_vars]}
 Analogous theorems can be proved for~@{text A}, stating that nonce~@{text NA}
 remains secret and that message~2 really originates with~@{text B}.  Even the
 flawed protocol establishes these properties for~@{text A};
