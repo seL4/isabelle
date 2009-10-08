@@ -201,9 +201,9 @@ text {*
     ;
     option: name | name '=' name
     ;
-    styles: '(' (style * ',') ')'
+    styles: '(' (style + ',') ')'
     ;
-    style: (name *)
+    style: (name +)
     ;
   \end{rail}
 
