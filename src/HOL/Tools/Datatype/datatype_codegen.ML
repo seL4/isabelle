@@ -281,7 +281,7 @@ fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
           if is_some (get_assoc_code thy (s, T)) then NONE else
           SOME (pretty_case thy defs dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts gr )
-      | NONE => case (Datatype.info_of_constr thy s, strip_type T) of
+      | NONE => case (Datatype.info_of_constr thy (s, T), strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           let
