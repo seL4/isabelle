@@ -78,6 +78,10 @@ sig
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_cons: program -> string -> bool
   val contr_classparam_typs: program -> string -> itype option list
+  val labelled_name: theory -> program -> string -> string
+  val group_stmts: theory -> program
+    -> ((string * stmt) list * (string * stmt) list
+      * ((string * stmt) list * (string * stmt) list)) list
 
   val expand_eta: theory -> int -> thm -> thm
   val clean_thms: theory -> thm list -> thm list
@@ -491,6 +495,45 @@ fun contr_classparam_typs program name = case Graph.get_node program name
         else []
       end
   | _ => [];
+
+fun labelled_name thy program name = case Graph.get_node program name
+ of Fun (c, _) => quote (Code.string_of_const thy c)
+  | Datatype (tyco, _) => "type " ^ quote (Sign.extern_type thy tyco)
+  | Datatypecons (c, _) => quote (Code.string_of_const thy c)
+  | Class (class, _) => "class " ^ quote (Sign.extern_class thy class)
+  | Classrel (sub, super) => let
+        val Class (sub, _) = Graph.get_node program sub
+        val Class (super, _) = Graph.get_node program super
+      in quote (Sign.extern_class thy sub ^ " < " ^ Sign.extern_class thy super) end
+  | Classparam (c, _) => quote (Code.string_of_const thy c)
+  | Classinst ((class, (tyco, _)), _) => let
+        val Class (class, _) = Graph.get_node program class
+        val Datatype (tyco, _) = Graph.get_node program tyco
+      in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
+
+fun group_stmts thy program =
+  let
+    fun is_fun (_, Fun _) = true | is_fun _ = false;
+    fun is_datatypecons (_, Datatypecons _) = true | is_datatypecons _ = false;
+    fun is_datatype (_, Datatype _) = true | is_datatype _ = false;
+    fun is_class (_, Class _) = true | is_class _ = false;
+    fun is_classrel (_, Classrel _) = true | is_classrel _ = false;
+    fun is_classparam (_, Classparam _) = true | is_classparam _ = false;
+    fun is_classinst (_, Classinst _) = true | is_classinst _ = false;
+    fun group stmts =
+      if forall (is_datatypecons orf is_datatype) stmts
+      then (filter is_datatype stmts, [], ([], []))
+      else if forall (is_class orf is_classrel orf is_classparam) stmts
+      then ([], filter is_class stmts, ([], []))
+      else if forall (is_fun orf is_classinst) stmts
+      then ([], [], List.partition is_fun stmts)
+      else error ("Illegal mutual dependencies: " ^
+        (commas o map (labelled_name thy program o fst)) stmts)
+  in
+    rev (Graph.strong_conn program)
+    |> map (AList.make (Graph.get_node program))
+    |> map group
+  end;
 
 
 (** translation kernel **)
