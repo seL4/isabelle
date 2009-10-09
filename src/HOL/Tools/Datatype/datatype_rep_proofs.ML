@@ -12,23 +12,17 @@ Proof of characteristic theorems:
 signature DATATYPE_REP_PROOFS =
 sig
   include DATATYPE_COMMON
-  val distinctness_limit : int Config.T
-  val distinctness_limit_setup : theory -> theory
   val representation_proofs : config -> info Symtab.table ->
     string list -> descr list -> (string * sort) list ->
       (binding * mixfix) list -> (binding * mixfix) list list -> attribute
-        -> theory -> (thm list list * thm list list * thm list list *
-          DatatypeAux.simproc_dist list * thm) * theory
+        -> theory -> (thm list list * (thm list list * thm list list *
+          thm list list) * thm) * theory
 end;
 
 structure DatatypeRepProofs : DATATYPE_REP_PROOFS =
 struct
 
 open DatatypeAux;
-
-(*the kind of distinctiveness axioms depends on number of constructors*)
-val (distinctness_limit, distinctness_limit_setup) =
-  Attrib.config_int "datatype_distinctness_limit" 9999 (*approx. infinity*);
 
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
@@ -520,27 +514,18 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       dist_lemma::(rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))
         (constr_rep_thms ~~ dist_lemmas);
 
-    fun prove_distinct_thms _ _ (_, []) = []
-      | prove_distinct_thms lim dist_rewrites' (k, ts as _ :: _) =
-          if k >= lim then [] else let
-            (*number of constructors < distinctness_limit : C_i ... ~= C_j ...*)
-            fun prove [] = []
-              | prove (t :: ts) =
-                  let
-                    val dist_thm = SkipProof.prove_global thy5 [] [] t (fn _ =>
-                      EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
-                  in dist_thm :: standard (dist_thm RS not_sym) :: prove ts end;
-          in prove ts end;
+    fun prove_distinct_thms dist_rewrites' (k, ts) =
+      let
+        fun prove [] = []
+          | prove (t :: ts) =
+              let
+                val dist_thm = SkipProof.prove_global thy5 [] [] t (fn _ =>
+                  EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
+              in dist_thm :: standard (dist_thm RS not_sym) :: prove ts end;
+      in prove ts end;
 
-    val distinct_thms = DatatypeProp.make_distincts descr sorts
-      |> map2 (prove_distinct_thms
-           (Config.get_thy thy5 distinctness_limit)) dist_rewrites;
-
-    val simproc_dists = map (fn ((((_, (_, _, constrs)), rep_thms), congr), dists) =>
-      if length constrs < Config.get_thy thy5 distinctness_limit
-      then FewConstrs dists
-      else ManyConstrs (congr, HOL_basic_ss addsimps rep_thms)) (hd descr ~~
-        constr_rep_thms ~~ rep_congs ~~ distinct_thms);
+    val distinct_thms = map2 (prove_distinct_thms)
+      dist_rewrites (DatatypeProp.make_distincts descr sorts);
 
     (* prove injectivity of constructors *)
 
@@ -633,7 +618,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       ||> Theory.checkpoint;
 
   in
-    ((constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct'), thy7)
+    ((constr_inject', (distinct_thms', dist_rewrites, distinct_thms'), dt_induct'), thy7)
   end;
 
 end;

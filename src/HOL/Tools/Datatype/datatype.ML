@@ -161,23 +161,9 @@ fun stripC (i, f $ x) = stripC (i + 1, f)
 
 val distinctN = "constr_distinct";
 
-fun distinct_rule thy ss tname eq_t = case #distinct (the_info thy tname) of
-    FewConstrs thms => Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
-      (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
-        atac 2, resolve_tac thms 1, etac FalseE 1]))
-  | ManyConstrs (thm, simpset) =>
-      let
-        val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-          map (PureThy.get_thm (ThyInfo.the_theory "Datatype" thy))
-            ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"];
-      in
-        Goal.prove (Simplifier.the_context ss) [] [] eq_t (K
-        (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
-          full_simp_tac (Simplifier.inherit_context ss simpset) 1,
-          REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
-          eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
-          etac FalseE 1]))
-      end;
+fun distinct_rule thy ss tname eq_t = Goal.prove (Simplifier.the_context ss) [] [] eq_t
+  (K (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
+    atac 2, resolve_tac (#distinct (the_info thy tname)) 1, etac FalseE 1]));
 
 fun get_constr thy dtco =
   get_info thy dtco
@@ -408,7 +394,7 @@ fun prove_rep_datatype config dt_names alt_names descr sorts raw_inject half_dis
   in
     thy2
     |> derive_datatype_props config dt_names alt_names [descr] sorts
-         induct inject (distinct, distinct, map FewConstrs distinct)
+         induct inject (distinct, distinct, distinct)
  end;
 
 fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
@@ -545,7 +531,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
       else raise exn;
 
     val _ = message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
-    val ((inject, distinct_rules, distinct_rewrites, distinct_entry, induct), thy') = thy |>
+    val ((inject, (distinct_rules, distinct_rewrites, distinct_entry), induct), thy') = thy |>
       DatatypeRepProofs.representation_proofs config dt_info new_type_names descr sorts
         types_syntax constr_syntax (mk_case_names_induct (flat descr));
   in
@@ -562,7 +548,6 @@ val datatype_cmd = snd ooo gen_add_datatype read_typ default_config;
 (* setup theory *)
 
 val setup =
-  DatatypeRepProofs.distinctness_limit_setup #>
   simproc_setup #>
   trfun_setup #>
   DatatypeInterpretation.init;

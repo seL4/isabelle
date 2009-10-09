@@ -38,10 +38,6 @@ sig
   val indtac : thm -> string list -> int -> tactic
   val exh_tac : (string -> thm) -> int -> tactic
 
-  datatype simproc_dist = FewConstrs of thm list
-                        | ManyConstrs of thm * simpset;
-
-
   exception Datatype
   exception Datatype_Empty of string
   val name_of_typ : typ -> string
@@ -153,10 +149,6 @@ fun exh_tac exh_thm_of i state =
   in compose_tac (false, exhaustion', nprems_of exhaustion) i state
   end;
 
-(* handling of distinctness theorems *)
-
-datatype simproc_dist = FewConstrs of thm list
-                      | ManyConstrs of thm * simpset;
 
 (********************** Internal description of datatypes *********************)
 
@@ -176,7 +168,7 @@ type info =
    descr : descr,
    sorts : (string * sort) list,
    inject : thm list,
-   distinct : simproc_dist,
+   distinct : thm list,
    induct : thm,
    inducts : thm list,
    exhaust : thm,
