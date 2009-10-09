@@ -141,9 +141,10 @@ text {*
     @{antiquotation_def "lemma"} & : & @{text antiquotation} \\
     @{antiquotation_def "prop"} & : & @{text antiquotation} \\
     @{antiquotation_def "term"} & : & @{text antiquotation} \\
+    @{antiquotation_def term_type} & : & @{text antiquotation} \\
+    @{antiquotation_def typeof} & : & @{text antiquotation} \\
     @{antiquotation_def const} & : & @{text antiquotation} \\
     @{antiquotation_def abbrev} & : & @{text antiquotation} \\
-    @{antiquotation_def typeof} & : & @{text antiquotation} \\
     @{antiquotation_def typ} & : & @{text antiquotation} \\
     @{antiquotation_def "text"} & : & @{text antiquotation} \\
     @{antiquotation_def goals} & : & @{text antiquotation} \\
@@ -184,9 +185,10 @@ text {*
       'lemma' options prop 'by' method |
       'prop' options styles prop |
       'term' options styles term |
+      'term_type' options styles term |
+      'typeof' options styles term |
       'const' options term |
       'abbrev' options term |
-      'typeof' options term |
       'typ' options type |
       'text' options name |
       'goals' options |
@@ -230,15 +232,17 @@ text {*
 
   \item @{text "@{term t}"} prints a well-typed term @{text "t"}.
 
+  \item @{text "@{term_type t}"} prints a well-typed term @{text "t"}
+  annotated with its type.
+
+  \item @{text "@{typeof t}"} prints the type of a well-typed term
+  @{text "t"}.
+
   \item @{text "@{const c}"} prints a logical or syntactic constant
   @{text "c"}.
   
   \item @{text "@{abbrev c x\<^sub>1 \<dots> x\<^sub>n}"} prints a constant abbreviation
   @{text "c x\<^sub>1 \<dots> x\<^sub>n \<equiv> rhs"} as defined in the current context.
-
-  \item @{text "@{typeof t}"} prints the type of a well-typed term
-  @{text "t"}.
-
   \item @{text "@{typ \<tau>}"} prints a well-formed type @{text "\<tau>"}.
   
   \item @{text "@{text s}"} prints uninterpreted source text @{text

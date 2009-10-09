@@ -27,7 +27,9 @@ in proofs are not shown.
 *** document preparation ***
 
 * New generalized style concept for printing terms:
-write @{foo (style) ...} instead of @{foo_style style ...}.
+write @{foo (style) ...} instead of @{foo_style style ...}
+(old form is still retained for backward compatibility).
+Styles can be also applied for antiquotations prop, term_type and typeof.
 
 
 *** HOL ***

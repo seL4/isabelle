@@ -309,7 +309,7 @@ is produced by
 \verb!we conclude !\verb!@!\verb!{thm (concl) conjI}!
 \end{quote}
 Thus you can rearrange or hide premises and typeset the theorem as you like.
-Styles like !(prem 1)! are a general mechanism explained
+Styles like \verb!(prem 1)! are a general mechanism explained
 in \S\ref{sec:styles}.
 *}
 
@@ -396,10 +396,12 @@ text {*
     \begin{quote}
     \verb!@!\verb!{thm (style) thm}!\\
     \verb!@!\verb!{prop (style) thm}!\\
-    \verb!@!\verb!{term (style) term}!
+    \verb!@!\verb!{term (style) term}!\\
+    \verb!@!\verb!{term_type (style) term}!\\
+    \verb!@!\verb!{typeof (style) term}!\\
     \end{quote}
 
-  A ``style'' is a transformation of propositions. There are predefined
+  A ``style'' is a transformation of a term. There are predefined
   styles, namely \verb!lhs! and \verb!rhs!, \verb!prem! with one argument, and \verb!concl!.
   For example, 
   the output
@@ -441,10 +443,9 @@ text {*
     \verb!\end{center}!
   \end{quote}
   Beware that any options must be placed \emph{before}
-  the name of the style, as in this example.
+  the style, as in this example.
 
   Further use cases can be found in \S\ref{sec:yourself}.
-
   If you are not afraid of ML, you may also define your own styles.
   Have a look at module @{ML_struct Term_Style}.
 *}

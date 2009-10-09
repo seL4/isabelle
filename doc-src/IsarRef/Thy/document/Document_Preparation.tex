@@ -159,9 +159,10 @@ Isabelle/Isar provides a simple document preparation system
     \indexdef{}{antiquotation}{lemma}\hypertarget{antiquotation.lemma}{\hyperlink{antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{prop}\hypertarget{antiquotation.prop}{\hyperlink{antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{term}\hypertarget{antiquotation.term}{\hyperlink{antiquotation.term}{\mbox{\isa{term}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{term\_type}\hypertarget{antiquotation.term-type}{\hyperlink{antiquotation.term-type}{\mbox{\isa{term{\isacharunderscore}type}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{typeof}\hypertarget{antiquotation.typeof}{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{const}\hypertarget{antiquotation.const}{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{abbrev}\hypertarget{antiquotation.abbrev}{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}} & : & \isa{antiquotation} \\
-    \indexdef{}{antiquotation}{typeof}\hypertarget{antiquotation.typeof}{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{typ}\hypertarget{antiquotation.typ}{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{text}\hypertarget{antiquotation.text}{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{goals}\hypertarget{antiquotation.goals}{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}} & : & \isa{antiquotation} \\
@@ -202,9 +203,10 @@ Isabelle/Isar provides a simple document preparation system
       'lemma' options prop 'by' method |
       'prop' options styles prop |
       'term' options styles term |
+      'term_type' options styles term |
+      'typeof' options styles term |
       'const' options term |
       'abbrev' options term |
-      'typeof' options term |
       'typ' options type |
       'text' options name |
       'goals' options |
@@ -246,15 +248,17 @@ Isabelle/Isar provides a simple document preparation system
 
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}{\isachardoublequote}} prints a well-typed term \isa{{\isachardoublequote}t{\isachardoublequote}}.
 
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term{\isacharunderscore}type\ t{\isacharbraceright}{\isachardoublequote}} prints a well-typed term \isa{{\isachardoublequote}t{\isachardoublequote}}
+  annotated with its type.
+
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}{\isachardoublequote}} prints the type of a well-typed term
+  \isa{{\isachardoublequote}t{\isachardoublequote}}.
+
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}const\ c{\isacharbraceright}{\isachardoublequote}} prints a logical or syntactic constant
   \isa{{\isachardoublequote}c{\isachardoublequote}}.
   
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}{\isachardoublequote}} prints a constant abbreviation
   \isa{{\isachardoublequote}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs{\isachardoublequote}} as defined in the current context.
-
-  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}{\isachardoublequote}} prints the type of a well-typed term
-  \isa{{\isachardoublequote}t{\isachardoublequote}}.
-
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}{\isachardoublequote}} prints a well-formed type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.
   
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}{\isachardoublequote}} prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according

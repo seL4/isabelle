@@ -443,12 +443,20 @@ val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.spli
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
-fun pretty_term_abbrev ctxt t = ProofContext.pretty_term_abbrev (Variable.auto_fixes t ctxt) t;
+fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
-fun pretty_term_typ ctxt t =
-  Syntax.pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t) t);
+fun pretty_term_style ctxt (style, t) =
+  pretty_term ctxt (style t);
 
-fun pretty_term_typeof ctxt = Syntax.pretty_typ ctxt o Term.fastype_of;
+fun pretty_thm_style ctxt (style, th) =
+  pretty_term ctxt (style (Thm.full_prop_of th));
+
+fun pretty_term_typ ctxt (style, t) =
+  let val t' = style t
+  in pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t) t) end;
+
+fun pretty_term_typeof ctxt (style, t) =
+  Syntax.pretty_typ ctxt (Term.fastype_of (style t));
 
 fun pretty_const ctxt c =
   let
@@ -466,15 +474,9 @@ fun pretty_abbrev ctxt s =
     val (U, u) = Consts.the_abbreviation (ProofContext.consts_of ctxt) c
       handle TYPE _ => err ();
     val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
-  in pretty_term_abbrev ctxt (Logic.mk_equals (t, t')) end;
-
-fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
-
-fun pretty_term_style ctxt (style, t) =
-  pretty_term ctxt (style t);
-
-fun pretty_thm_style ctxt (style, th) =
-  pretty_term_style ctxt (style, Thm.full_prop_of th);
+    val eq = Logic.mk_equals (t, t');
+    val ctxt' = Variable.auto_fixes eq ctxt;
+  in ProofContext.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_prf full ctxt = ProofSyntax.pretty_proof_of ctxt full;
 
@@ -522,12 +524,10 @@ fun basic_entity name scan = basic_entities name (scan >> single);
 in
 
 val _ = basic_entities_style "thm" (Term_Style.parse -- Attrib.thms) pretty_thm_style;
-val _ = basic_entities_style "thm_style" (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style;
 val _ = basic_entity "prop" (Term_Style.parse -- Args.prop) pretty_term_style;
 val _ = basic_entity "term" (Term_Style.parse -- Args.term) pretty_term_style;
-val _ = basic_entity "term_style" (Term_Style.parse_bare -- Args.term) pretty_term_style;
-val _ = basic_entity "term_type" Args.term pretty_term_typ;
-val _ = basic_entity "typeof" Args.term pretty_term_typeof;
+val _ = basic_entity "term_type" (Term_Style.parse -- Args.term) pretty_term_typ;
+val _ = basic_entity "typeof" (Term_Style.parse -- Args.term) pretty_term_typeof;
 val _ = basic_entity "const" Args.const_proper pretty_const;
 val _ = basic_entity "abbrev" (Scan.lift Args.name_source) pretty_abbrev;
 val _ = basic_entity "typ" Args.typ_abbrev Syntax.pretty_typ;
@@ -535,6 +535,9 @@ val _ = basic_entity "text" (Scan.lift Args.name) (K pretty_text);
 val _ = basic_entities "prf" Attrib.thms (pretty_prf false);
 val _ = basic_entities "full_prf" Attrib.thms (pretty_prf true);
 val _ = basic_entity "theory" (Scan.lift Args.name) pretty_theory;
+
+val _ = basic_entities_style "thm_style" (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style;
+val _ = basic_entity "term_style" (Term_Style.parse_bare -- Args.term) pretty_term_style;
 
 end;
 
