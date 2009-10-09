@@ -40,7 +40,7 @@ fun check_pats ctxt geq =
           let
             val (hd, args) = strip_comb t
           in
-            (((case Datatype.info_of_constr thy (fst (dest_Const hd)) of
+            (((case Datatype.info_of_constr thy (dest_Const hd) of
                  SOME _ => ()
                | NONE => err "Non-constructor pattern")
               handle TERM ("dest_Const", _) => err "Non-constructor patterns");

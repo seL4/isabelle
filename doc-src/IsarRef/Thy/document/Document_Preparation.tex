@@ -163,8 +163,6 @@ Isabelle/Isar provides a simple document preparation system
     \indexdef{}{antiquotation}{abbrev}\hypertarget{antiquotation.abbrev}{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{typeof}\hypertarget{antiquotation.typeof}{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{typ}\hypertarget{antiquotation.typ}{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{antiquotation} \\
-    \indexdef{}{antiquotation}{thm\_style}\hypertarget{antiquotation.thm-style}{\hyperlink{antiquotation.thm-style}{\mbox{\isa{thm{\isacharunderscore}style}}}} & : & \isa{antiquotation} \\
-    \indexdef{}{antiquotation}{term\_style}\hypertarget{antiquotation.term-style}{\hyperlink{antiquotation.term-style}{\mbox{\isa{term{\isacharunderscore}style}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{text}\hypertarget{antiquotation.text}{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{goals}\hypertarget{antiquotation.goals}{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{subgoals}\hypertarget{antiquotation.subgoals}{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}} & : & \isa{antiquotation} \\
@@ -200,16 +198,14 @@ Isabelle/Isar provides a simple document preparation system
 
     antiquotation:
       'theory' options name |
-      'thm' options thmrefs |
+      'thm' options styles thmrefs |
       'lemma' options prop 'by' method |
-      'prop' options prop |
-      'term' options term |
+      'prop' options styles prop |
+      'term' options styles term |
       'const' options term |
       'abbrev' options term |
       'typeof' options term |
       'typ' options type |
-      'thm\_style' options name thmref |
-      'term\_style' options name term |
       'text' options name |
       'goals' options |
       'subgoals' options |
@@ -222,6 +218,10 @@ Isabelle/Isar provides a simple document preparation system
     options: '[' (option * ',') ']'
     ;
     option: name | name '=' name
+    ;
+    styles: '(' (style + ',') ')'
+    ;
+    style: (name +)
     ;
   \end{rail}
 
@@ -257,12 +257,6 @@ Isabelle/Isar provides a simple document preparation system
 
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}{\isachardoublequote}} prints a well-formed type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.
   
-  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm{\isacharunderscore}style\ s\ a{\isacharbraceright}{\isachardoublequote}} prints theorem \isa{a},
-  previously applying a style \isa{s} to it (see below).
-  
-  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term{\isacharunderscore}style\ s\ t{\isacharbraceright}{\isachardoublequote}} prints a well-typed term \isa{t}
-  after applying a style \isa{s} to it (see below).
-
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}{\isachardoublequote}} prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
   to the Isabelle document style, without demanding well-formedness,
   e.g.\ small pieces of terms that should not be parsed or
@@ -301,8 +295,10 @@ Isabelle/Isar provides a simple document preparation system
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Some antiquotations like \isa{thm{\isacharunderscore}style} and \isa{term{\isacharunderscore}style} admit an extra \emph{style} specification to modify the
-  printed result.  The following standard styles are available:
+The antiquotations \isa{thm}, \isa{prop} and \isa{term} admit an extra \emph{style} specification to modify the
+  printed result.  A style is specified by a name with a possibly
+  empty number of arguments;  multiple styles can be sequenced with
+  commas.  The following standard styles are available:
 
   \begin{description}
   
@@ -316,8 +312,8 @@ Some antiquotations like \isa{thm{\isacharunderscore}style} and \isa{term{\isach
   \item \isa{{\isachardoublequote}concl{\isachardoublequote}} extracts the conclusion \isa{C} from a rule
   in Horn-clause normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}.
   
-  \item \isa{{\isachardoublequote}prem{\isadigit{1}}{\isachardoublequote}}, \dots, \isa{{\isachardoublequote}prem{\isadigit{9}}{\isachardoublequote}} extract premise number
-  \isa{{\isachardoublequote}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isadigit{9}}{\isachardoublequote}}, respectively, from from a rule in Horn-clause
+  \item \isa{{\isachardoublequote}prem{\isachardoublequote}} \isa{n} extract premise number
+  \isa{{\isachardoublequote}n{\isachardoublequote}} from from a rule in Horn-clause
   normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}
 
   \end{description}%

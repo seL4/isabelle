@@ -22,7 +22,7 @@ sig
   val the_spec : theory -> string -> (string * sort) list * (string * typ list) list
   val get_constrs : theory -> string -> (string * typ) list option
   val get_all : theory -> info Symtab.table
-  val info_of_constr : theory -> string -> info option
+  val info_of_constr : theory -> string * typ -> info option
   val info_of_case : theory -> string -> info option
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
   val distinct_simproc : simproc
@@ -47,7 +47,7 @@ structure DatatypesData = TheoryDataFun
 (
   type T =
     {types: info Symtab.table,
-     constrs: info Symtab.table,
+     constrs: (string * info) list Symtab.table,
      cases: info Symtab.table};
 
   val empty =
@@ -58,7 +58,7 @@ structure DatatypesData = TheoryDataFun
     ({types = types1, constrs = constrs1, cases = cases1},
      {types = types2, constrs = constrs2, cases = cases2}) =
     {types = Symtab.merge (K true) (types1, types2),
-     constrs = Symtab.merge (K true) (constrs1, constrs2),
+     constrs = Symtab.join (K (AList.merge (op =) (K true))) (constrs1, constrs2),
      cases = Symtab.merge (K true) (cases1, cases2)};
 );
 
@@ -68,18 +68,32 @@ fun the_info thy name = (case get_info thy name of
       SOME info => info
     | NONE => error ("Unknown datatype " ^ quote name));
 
-val info_of_constr = Symtab.lookup o #constrs o DatatypesData.get;
+fun info_of_constr thy (c, T) =
+  let
+    val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
+    val hint = case strip_type T of (_, Type (tyco, _)) => SOME tyco | _ => NONE;
+    val default = if null tab then NONE
+      else SOME (snd (Library.last_elem tab))
+        (*conservative wrt. overloaded constructors*);
+  in case hint
+   of NONE => default
+    | SOME tyco => case AList.lookup (op =) tab tyco
+       of NONE => default (*permissive*)
+        | SOME info => SOME info
+  end;
+
 val info_of_case = Symtab.lookup o #cases o DatatypesData.get;
 
 fun register (dt_infos : (string * info) list) =
   DatatypesData.map (fn {types, constrs, cases} =>
-    {types = fold Symtab.update dt_infos types,
-     constrs = fold Symtab.default (*conservative wrt. overloaded constructors*)
-       (maps (fn (_, info as {descr, index, ...}) => map (rpair info o fst)
-          (#3 (the (AList.lookup op = descr index)))) dt_infos) constrs,
-     cases = fold Symtab.update
-       (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)
-       cases});
+    {types = types |> fold Symtab.update dt_infos,
+     constrs = constrs |> fold (fn (constr, dtname_info) =>
+         Symtab.map_default (constr, []) (cons dtname_info))
+       (maps (fn (dtname, info as {descr, index, ...}) =>
+          map (rpair (dtname, info) o fst)
+            (#3 (the (AList.lookup op = descr index)))) dt_infos),
+     cases = cases |> fold Symtab.update
+       (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)});
 
 (* complex queries *)
 

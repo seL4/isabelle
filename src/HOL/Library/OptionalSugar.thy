@@ -29,7 +29,7 @@ translations
   "appendL (appendL xs ys) zs" <= "appendL xs (appendL ys zs)"
 
 
-(* deprecated, use thm_style instead, will be removed *)
+(* deprecated, use thm with style instead, will be removed *)
 (* aligning equations *)
 notation (tab output)
   "op ="  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50) and

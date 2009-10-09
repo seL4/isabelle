@@ -24,6 +24,12 @@ to print all interpretations of locale l in the theory.  Interpretations
 in proofs are not shown.
 
 
+*** document preparation ***
+
+* New generalized style concept for printing terms:
+write @{foo (style) ...} instead of @{foo_style style ...}.
+
+
 *** HOL ***
 
 * Most rules produced by inductive and datatype package
