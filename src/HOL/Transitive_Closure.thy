@@ -77,7 +77,7 @@ unfolding trans_def by blast
 subsection {* Reflexive-transitive closure *}
 
 lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
-  by (simp add: mem_def pair_in_Id_conv [simplified mem_def] sup_fun_eq sup_bool_eq)
+  by (auto simp add: expand_fun_eq)
 
 lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
   -- {* @{text rtrancl} of @{text r} contains @{text r} *}
