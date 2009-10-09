@@ -1179,16 +1179,22 @@ qed (auto simp add: le_bool_def less_bool_def top_bool_eq bot_bool_eq)
 end
 
 lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
-by (simp add: le_bool_def)
+  by (simp add: le_bool_def)
 
 lemma le_boolI': "P \<longrightarrow> Q \<Longrightarrow> P \<le> Q"
-by (simp add: le_bool_def)
+  by (simp add: le_bool_def)
 
 lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-by (simp add: le_bool_def)
+  by (simp add: le_bool_def)
 
 lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
-by (simp add: le_bool_def)
+  by (simp add: le_bool_def)
+
+lemma bot_boolE: "bot \<Longrightarrow> P"
+  by (simp add: bot_bool_eq)
+
+lemma top_boolI: top
+  by (simp add: top_bool_eq)
 
 lemma [code]:
   "False \<le> b \<longleftrightarrow> True"
@@ -1250,12 +1256,6 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
   unfolding le_fun_def by simp
-
-lemma bot_boolE: "bot \<Longrightarrow> P"
-  by (simp add: bot_bool_eq)
-
-lemma top_boolI: top
-  by (simp add: top_bool_eq)
 
 text {*
   Handy introduction and elimination rules for @{text "\<le>"}
