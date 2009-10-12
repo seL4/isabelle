@@ -15,8 +15,7 @@ sig
   val representation_proofs : config -> info Symtab.table ->
     string list -> descr list -> (string * sort) list ->
       (binding * mixfix) list -> (binding * mixfix) list list -> attribute
-        -> theory -> (thm list list * (thm list list * thm list list *
-          thm list list) * thm) * theory
+        -> theory -> (thm list list * (thm list list * thm list list) * thm) * theory
 end;
 
 structure DatatypeRepProofs : DATATYPE_REP_PROOFS =
@@ -618,7 +617,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       ||> Theory.checkpoint;
 
   in
-    ((constr_inject', (distinct_thms', dist_rewrites, distinct_thms'), dt_induct'), thy7)
+    ((constr_inject', (distinct_thms', dist_rewrites), dt_induct'), thy7)
   end;
 
 end;

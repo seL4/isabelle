@@ -321,7 +321,7 @@ fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
     split_asm = split_asm});
 
 fun derive_datatype_props config dt_names alt_names descr sorts
-    induct inject (distinct_rules, distinct_rewrites, distinct_entry) thy1 =
+    induct inject (distinct_rules, distinct_rewrites) thy1 =
   let
     val thy2 = thy1 |> Theory.checkpoint;
     val flat_descr = flat descr;
@@ -346,7 +346,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
 
     val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
     val dt_infos = map_index (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
-      (hd descr ~~ inject ~~ distinct_entry ~~ exhaust ~~ nchotomys ~~
+      (hd descr ~~ inject ~~ distinct_rules ~~ exhaust ~~ nchotomys ~~
         case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
     val dt_names = map fst dt_infos;
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
@@ -394,7 +394,7 @@ fun prove_rep_datatype config dt_names alt_names descr sorts raw_inject half_dis
   in
     thy2
     |> derive_datatype_props config dt_names alt_names [descr] sorts
-         induct inject (distinct, distinct, distinct)
+         induct inject (distinct, distinct)
  end;
 
 fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
@@ -531,12 +531,12 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
       else raise exn;
 
     val _ = message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
-    val ((inject, (distinct_rules, distinct_rewrites, distinct_entry), induct), thy') = thy |>
+    val ((inject, (distinct_rules, distinct_rewrites), induct), thy') = thy |>
       DatatypeRepProofs.representation_proofs config dt_info new_type_names descr sorts
         types_syntax constr_syntax (mk_case_names_induct (flat descr));
   in
     derive_datatype_props config dt_names (SOME new_type_names) descr sorts
-      induct inject (distinct_rules, distinct_rewrites, distinct_entry) thy'
+      induct inject (distinct_rules, distinct_rewrites) thy'
   end;
 
 val add_datatype = gen_add_datatype cert_typ;
