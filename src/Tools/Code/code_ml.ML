@@ -456,19 +456,6 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
           end
       | pr_case is_closure thm vars fxy ((_, []), _) =
           (concat o map str) ["failwith", "\"empty case\""];
-    fun fish_params vars eqs =
-      let
-        fun fish_param _ (w as SOME _) = w
-          | fish_param (IVar (SOME v)) NONE = SOME v
-          | fish_param _ NONE = NONE;
-        fun fillup_param _ (_, SOME v) = v
-          | fillup_param x (i, NONE) = x ^ string_of_int i;
-        val fished1 = fold (map2 fish_param) eqs (replicate (length (hd eqs)) NONE);
-        val x = Name.variant (map_filter I fished1) "x";
-        val fished2 = map_index (fillup_param x) fished1;
-        val (fished3, _) = Name.variants fished2 Name.context;
-        val vars' = Code_Printer.intro_vars fished3 vars;
-      in map (Code_Printer.lookup_var vars') fished3 end;
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
@@ -555,7 +542,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
                         (fold Code_Thingol.add_constnames (map (snd o fst) eqs) []);
                     val vars = reserved_names
                       |> Code_Printer.intro_vars consts;
-                    val dummy_parms = (map str o fish_params vars o map (fst o fst)) eqs;
+                    val dummy_parms = (map str o Code_Printer.aux_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (
                       Pretty.breaks dummy_parms
@@ -587,7 +574,6 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
                 (str o deresolve) name,
                 str "();;"
               ];
-            val (ps, p) = split_last (pr_funn "fun" funn :: map (pr_funn "and") funns);
             val (ps, p) = split_last
               (pr_funn "let rec" funn :: map (pr_funn "and") funns);
             val pseudo_ps = map pr_pseudo_fun pseudo_funs;
