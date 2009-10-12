@@ -20,6 +20,7 @@ sig
     -> descr * (string * sort) list * string list
       * string * (string list * string list) * (typ list * typ list)
   val the_spec : theory -> string -> (string * sort) list * (string * typ list) list
+  val all_distincts : theory -> typ list -> thm list list
   val get_constrs : theory -> string -> (string * typ) list option
   val get_all : theory -> info Symtab.table
   val info_of_constr : theory -> string * typ -> info option
@@ -136,6 +137,13 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
   in (descr, vs, tycos, prefix, (names, auxnames), (Ts, Us)) end;
 
+fun all_distincts thy Ts =
+  let
+    fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
+      | add_tycos _ = I;
+    val tycos = fold add_tycos Ts [];
+  in map_filter (Option.map #distinct o get_info thy) tycos end;
+
 fun get_constrs thy dtco =
   case try (the_spec thy) dtco
    of SOME (sorts, cos) =>
@@ -190,8 +198,6 @@ fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
 
 val distinct_simproc =
   Simplifier.simproc @{theory HOL} distinctN ["s = t"] distinct_proc;
-
-val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 
 val simproc_setup =
   Simplifier.map_simpset (fn ss => ss addsimprocs [distinct_simproc]);
@@ -328,13 +334,16 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
     val _ = message config ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
 
+    val other_distincts = all_distincts thy2 (get_rec_types flat_descr sorts);
+
     val (exhaust, thy3) = DatatypeAbsProofs.prove_casedist_thms config new_type_names
       descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
     val (nchotomys, thy4) = DatatypeAbsProofs.prove_nchotomys config new_type_names
       descr sorts exhaust thy3;
     val ((rec_names, rec_rewrites), thy5) = DatatypeAbsProofs.prove_primrec_thms
       config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
-      inject distinct (Simplifier.theory_context thy4 dist_ss) induct thy4;
+      inject distinct (Simplifier.theory_context thy4 (HOL_basic_ss addsimps (flat other_distincts)))
+      induct thy4;
     val ((case_rewrites, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
       config new_type_names descr sorts rec_names rec_rewrites thy5;
     val (case_congs, thy7) = DatatypeAbsProofs.prove_case_congs new_type_names
