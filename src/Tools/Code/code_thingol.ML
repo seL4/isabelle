@@ -46,6 +46,7 @@ sig
   val split_pat_abs: iterm -> ((iterm * itype) * iterm) option
   val unfold_pat_abs: iterm -> (iterm * itype) list * iterm
   val unfold_const_app: iterm -> (const * iterm list) option
+  val is_IVar: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dictvar: iterm -> bool
   val locally_monomorphic: iterm -> bool
@@ -135,6 +136,9 @@ datatype iterm =
   | `|=> of (vname option * itype) * iterm
   | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
     (*see also signature*)
+
+fun is_IVar (IVar _) = true
+  | is_IVar _ = false;
 
 val op `$$ = Library.foldl (op `$);
 val op `|==> = Library.foldr (op `|=>);

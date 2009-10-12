@@ -6,6 +6,11 @@ Generic operations for pretty printing of target language code.
 
 signature CODE_PRINTER =
 sig
+  type itype = Code_Thingol.itype
+  type iterm = Code_Thingol.iterm
+  type const = Code_Thingol.const
+  type dict = Code_Thingol.dict
+
   val nerror: thm -> string -> 'a
 
   val @@ : 'a * 'a -> 'a list
@@ -22,6 +27,7 @@ sig
   val make_vars: string list -> var_ctxt
   val intro_vars: string list -> var_ctxt -> var_ctxt
   val lookup_var: var_ctxt -> string -> string
+  val aux_params: var_ctxt -> iterm list list -> string list
 
   type literals
   val Literals: { literal_char: string -> string, literal_string: string -> string,
@@ -47,10 +53,6 @@ sig
   val brackify_infix: int * lrx -> fixity -> Pretty.T list -> Pretty.T
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
 
-  type itype = Code_Thingol.itype
-  type iterm = Code_Thingol.iterm
-  type const = Code_Thingol.const
-  type dict = Code_Thingol.dict
   type tyco_syntax
   type const_syntax
   type proto_const_syntax
@@ -117,6 +119,20 @@ fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
 val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
+
+fun aux_params vars lhss =
+  let
+    fun fish_param _ (w as SOME _) = w
+      | fish_param (IVar (SOME v)) NONE = SOME v
+      | fish_param _ NONE = NONE;
+    fun fillup_param _ (_, SOME v) = v
+      | fillup_param x (i, NONE) = x ^ string_of_int i;
+    val fished1 = fold (map2 fish_param) lhss (replicate (length (hd lhss)) NONE);
+    val x = Name.variant (map_filter I fished1) "x";
+    val fished2 = map_index (fillup_param x) fished1;
+    val (fished3, _) = Name.variants fished2 Name.context;
+    val vars' = intro_vars fished3 vars;
+  in map (lookup_var vars') fished3 end;
 
 
 (** pretty literals **)
