@@ -24,7 +24,7 @@ infixr 5 @|;
 (** Haskell serializer **)
 
 fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
-    init_syms deresolve is_cons contr_classparam_typs deriving_show =
+    init_syms deresolve contr_classparam_typs deriving_show =
   let
     val deresolve_base = Long_Name.base_name o deresolve;
     fun class_name class = case syntax_class class
@@ -332,7 +332,6 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     val reserved_names = fold (insert (op =) o fst) includes raw_reserved_names;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
       module_name module_prefix reserved_names raw_module_alias program;
-    val is_cons = Code_Thingol.is_cons program;
     val contr_classparam_typs = Code_Thingol.contr_classparam_typs program;
     fun deriving_show tyco =
       let
@@ -350,7 +349,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     fun pr_stmt qualified = pr_haskell_stmt labelled_name
       syntax_class syntax_tyco syntax_const reserved_names
       (if qualified then deresolver else Long_Name.base_name o deresolver)
-      is_cons contr_classparam_typs
+      contr_classparam_typs
       (if string_classes then deriving_show else K false);
     fun pr_module name content =
       (name, Pretty.chunks [
