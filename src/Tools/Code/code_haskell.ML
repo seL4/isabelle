@@ -144,12 +144,10 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
             val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             fun pr_eq ((ts, t), (thm, _)) =
               let
-                val consts = map_filter
-                  (fn c => if (is_some o syntax_const) c
-                    then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                    (fold Code_Thingol.add_constnames (t :: ts) []);
+                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = init_syms
-                  |> Code_Printer.intro_vars consts
+                  |> Code_Printer.intro_base_names
+                      (is_none o syntax_const) deresolve consts
                   |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_varnames)
                        (insert (op =)) ts []);
               in
