@@ -321,7 +321,7 @@ fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
     split_asm = split_asm});
 
 fun derive_datatype_props config dt_names alt_names descr sorts
-    induct inject (distinct_rules, distinct_rewrites) thy1 =
+    induct inject distinct thy1 =
   let
     val thy2 = thy1 |> Theory.checkpoint;
     val flat_descr = flat descr;
@@ -334,7 +334,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       descr sorts exhaust thy3;
     val ((rec_names, rec_rewrites), thy5) = DatatypeAbsProofs.prove_primrec_thms
       config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
-      inject distinct_rewrites (Simplifier.theory_context thy4 dist_ss) induct thy4;
+      inject distinct (Simplifier.theory_context thy4 dist_ss) induct thy4;
     val ((case_rewrites, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
       config new_type_names descr sorts rec_names rec_rewrites thy5;
     val (case_congs, thy7) = DatatypeAbsProofs.prove_case_congs new_type_names
@@ -342,15 +342,15 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val (weak_case_congs, thy8) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       descr sorts thy7;
     val (splits, thy9) = DatatypeAbsProofs.prove_split_thms
-      config new_type_names descr sorts inject distinct_rewrites exhaust case_rewrites thy8;
+      config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
 
     val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
     val dt_infos = map_index (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
-      (hd descr ~~ inject ~~ distinct_rules ~~ exhaust ~~ nchotomys ~~
+      (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
         case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
     val dt_names = map fst dt_infos;
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
-    val simps = flat (inject @ distinct_rules @ case_rewrites) @ rec_rewrites;
+    val simps = flat (inject @ distinct @ case_rewrites) @ rec_rewrites;
     val named_rules = flat (map_index (fn (index, tname) =>
       [((Binding.empty, [nth inducts index]), [Induct.induct_type tname]),
        ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
@@ -362,11 +362,11 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     |> PureThy.add_thmss ([((prfx (Binding.name "simps"), simps), []),
         ((prfx (Binding.name "inducts"), inducts), []),
         ((prfx (Binding.name "splits"), maps (fn (x, y) => [x, y]) splits), []),
-        ((Binding.empty, flat case_rewrites @ flat distinct_rules @ rec_rewrites),
+        ((Binding.empty, flat case_rewrites @ flat distinct @ rec_rewrites),
           [Simplifier.simp_add]),
         ((Binding.empty, rec_rewrites), [Code.add_default_eqn_attribute]),
         ((Binding.empty, flat inject), [iff_add]),
-        ((Binding.empty, map (fn th => th RS notE) (flat distinct_rules)),
+        ((Binding.empty, map (fn th => th RS notE) (flat distinct)),
           [Classical.safe_elim NONE]),
         ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)])]
         @ named_rules @ unnamed_rules)
@@ -394,7 +394,7 @@ fun prove_rep_datatype config dt_names alt_names descr sorts raw_inject half_dis
   in
     thy2
     |> derive_datatype_props config dt_names alt_names [descr] sorts
-         induct inject (distinct, distinct)
+         induct inject distinct
  end;
 
 fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
@@ -531,12 +531,12 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
       else raise exn;
 
     val _ = message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
-    val ((inject, (distinct_rules, distinct_rewrites), induct), thy') = thy |>
+    val ((inject, distinct, induct), thy') = thy |>
       DatatypeRepProofs.representation_proofs config dt_info new_type_names descr sorts
         types_syntax constr_syntax (mk_case_names_induct (flat descr));
   in
     derive_datatype_props config dt_names (SOME new_type_names) descr sorts
-      induct inject (distinct_rules, distinct_rewrites) thy'
+      induct inject distinct thy'
   end;
 
 val add_datatype = gen_add_datatype cert_typ;
