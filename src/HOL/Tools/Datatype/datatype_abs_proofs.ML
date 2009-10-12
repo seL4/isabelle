@@ -65,8 +65,8 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
         val insts = Library.take (i, dummyPs) @ (P::(Library.drop (i + 1, dummyPs)));
         val cert = cterm_of thy;
         val insts' = (map cert induct_Ps) ~~ (map cert insts);
-        val induct' = refl RS ((List.nth
-          (split_conj_thm (cterm_instantiate insts' induct), i)) RSN (2, rev_mp))
+        val induct' = refl RS ((nth
+          (split_conj_thm (cterm_instantiate insts' induct)) i) RSN (2, rev_mp))
 
       in
         SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
@@ -130,10 +130,10 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           in (case (strip_dtyp dt, strip_type U) of
              ((_, DtRec m), (Us, _)) =>
                let
-                 val free2 = mk_Free "y" (Us ---> List.nth (rec_result_Ts, m)) k;
+                 val free2 = mk_Free "y" (Us ---> nth rec_result_Ts m) k;
                  val i = length Us
                in (j + 1, k + 1, HOLogic.mk_Trueprop (HOLogic.list_all
-                     (map (pair "x") Us, List.nth (rec_sets', m) $
+                     (map (pair "x") Us, nth rec_sets' m $
                        app_bnds free1 i $ app_bnds free2 i)) :: prems,
                    free1::t1s, free2::t2s)
                end
@@ -145,7 +145,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
       in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop
         (rec_set $ list_comb (Const (cname, Ts ---> T), t1s) $
-          list_comb (List.nth (rec_fns, l), t1s @ t2s)))], l + 1)
+          list_comb (nth rec_fns l, t1s @ t2s)))], l + 1)
       end;
 
     val (rec_intr_ts, _) = Library.foldl (fn (x, ((d, T), set_name)) =>
@@ -169,11 +169,11 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
       let
         val distinct_tac =
           (if i < length newTs then
-             full_simp_tac (HOL_ss addsimps (List.nth (dist_rewrites, i))) 1
+             full_simp_tac (HOL_ss addsimps (nth dist_rewrites i)) 1
            else full_simp_tac dist_ss 1);
 
         val inject = map (fn r => r RS iffD1)
-          (if i < length newTs then List.nth (constr_inject, i)
+          (if i < length newTs then nth constr_inject i
             else injects_of tname);
 
         fun mk_unique_constr_tac n ((tac, intr::intrs, j), (cname, cargs)) =
