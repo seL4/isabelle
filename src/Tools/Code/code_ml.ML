@@ -175,12 +175,10 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
           end
       | pr_stmt (MLVal (name, (((vs, ty), t), (thm, _)))) =
           let
-            val consts = map_filter
-              (fn c => if (is_some o syntax_const) c
-                then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                (Code_Thingol.add_constnames t []);
+            val consts = Code_Thingol.add_constnames t [];
             val vars = reserved_names
-              |> Code_Printer.intro_vars consts;
+              |> Code_Printer.intro_base_names
+                  (is_none o syntax_const) deresolve consts;
           in
             concat [
               str "val",
@@ -200,12 +198,10 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
                   map (Pretty.block o single o Pretty.block o single);
                 fun pr_eq definer ((ts, t), (thm, _)) =
                   let
-                    val consts = map_filter
-                      (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                        (fold Code_Thingol.add_constnames (t :: ts) []);
+                    val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                     val vars = reserved_names
-                      |> Code_Printer.intro_vars consts
+                      |> Code_Printer.intro_base_names
+                           (is_none o syntax_const) deresolve consts
                       |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_varnames)
                            (insert (op =)) ts []);
                   in
@@ -472,12 +468,10 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
           end
       | pr_stmt (MLVal (name, (((vs, ty), t), (thm, _)))) =
           let
-            val consts = map_filter
-              (fn c => if (is_some o syntax_const) c
-                then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                (Code_Thingol.add_constnames t []);
+            val consts = Code_Thingol.add_constnames t [];
             val vars = reserved_names
-              |> Code_Printer.intro_vars consts;
+              |> Code_Printer.intro_base_names
+                  (is_none o syntax_const) deresolve consts;
           in
             concat [
               str "let",
@@ -492,12 +486,10 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
           let
             fun pr_eq ((ts, t), (thm, _)) =
               let
-                val consts = map_filter
-                  (fn c => if (is_some o syntax_const) c
-                    then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                    (fold Code_Thingol.add_constnames (t :: ts) []);
+                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved_names
-                  |> Code_Printer.intro_vars consts
+                  |> Code_Printer.intro_base_names
+                      (is_none o syntax_const) deresolve consts
                   |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in concat [
@@ -508,12 +500,10 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
               ] end;
             fun pr_eqs is_pseudo [((ts, t), (thm, _))] =
                   let
-                    val consts = map_filter
-                      (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                        (fold Code_Thingol.add_constnames (t :: ts) []);
+                    val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                     val vars = reserved_names
-                      |> Code_Printer.intro_vars consts
+                      |> Code_Printer.intro_base_names
+                          (is_none o syntax_const) deresolve consts
                       |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_varnames)
                           (insert (op =)) ts []);
                   in
@@ -536,12 +526,10 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
                   )
               | pr_eqs _ (eqs as eq :: eqs') =
                   let
-                    val consts = map_filter
-                      (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o Long_Name.base_name o deresolve) c)
-                        (fold Code_Thingol.add_constnames (map (snd o fst) eqs) []);
+                    val consts = fold Code_Thingol.add_constnames (map (snd o fst) eqs) [];
                     val vars = reserved_names
-                      |> Code_Printer.intro_vars consts;
+                  |> Code_Printer.intro_base_names
+                      (is_none o syntax_const) deresolve consts;
                     val dummy_parms = (map str o Code_Printer.aux_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (
