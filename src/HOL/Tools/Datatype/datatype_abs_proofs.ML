@@ -123,7 +123,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
     (* introduction rules for graph of primrec function *)
 
-    fun make_rec_intr T rec_set ((rec_intr_ts, l), (cname, cargs)) =
+    fun make_rec_intr T rec_set (cname, cargs) (rec_intr_ts, l) =
       let
         fun mk_prem ((dt, U), (j, k, prems, t1s, t2s)) =
           let val free1 = mk_Free "x" U j
@@ -148,9 +148,9 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           list_comb (nth rec_fns l, t1s @ t2s)))], l + 1)
       end;
 
-    val (rec_intr_ts, _) = Library.foldl (fn (x, ((d, T), set_name)) =>
-      Library.foldl (make_rec_intr T set_name) (x, #3 (snd d)))
-        (([], 0), descr' ~~ recTs ~~ rec_sets');
+    val (rec_intr_ts, _) = fold (fn ((d, T), set_name) =>
+      fold (make_rec_intr T set_name) (#3 (snd d)))
+        (descr' ~~ recTs ~~ rec_sets') ([], 0);
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
         Inductive.add_inductive_global (serial_string ())
@@ -165,7 +165,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
     val _ = message config "Proving termination and uniqueness of primrec functions ...";
 
-    fun mk_unique_tac ((tac, intrs), ((((i, (tname, _, constrs)), elim), T), T')) =
+    fun mk_unique_tac ((((i, (tname, _, constrs)), elim), T), T') (tac, intrs) =
       let
         val distinct_tac =
           (if i < length newTs then
@@ -176,7 +176,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           (if i < length newTs then nth constr_inject i
             else injects_of tname);
 
-        fun mk_unique_constr_tac n ((tac, intr::intrs, j), (cname, cargs)) =
+        fun mk_unique_constr_tac n (cname, cargs) (tac, intr::intrs, j) =
           let
             val k = length (filter is_rec_type cargs)
 
@@ -195,8 +195,8 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
               intrs, j + 1)
           end;
 
-        val (tac', intrs', _) = Library.foldl (mk_unique_constr_tac (length constrs))
-          ((tac, intrs, 0), constrs);
+        val (tac', intrs', _) = fold (mk_unique_constr_tac (length constrs))
+          constrs (tac, intrs, 0);
 
       in (tac', intrs') end;
 
@@ -211,10 +211,9 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
-        val (tac, _) = Library.foldl mk_unique_tac
-          (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
-              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs),
-            descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
+        val (tac, _) = fold mk_unique_tac (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
+           (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
+              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs));
 
       in split_conj_thm (SkipProof.prove_global thy1 [] []
         (HOLogic.mk_Trueprop (mk_conj rec_unique_ts)) (K tac))
@@ -267,7 +266,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
          [Nitpick_Const_Simps.add])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
-    |-> (fn thms => pair (reccomb_names, Library.flat thms))
+    |-> (fn thms => pair (reccomb_names, flat thms))
   end;
 
 
@@ -298,10 +297,9 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
 
     (* define case combinators via primrec combinators *)
 
-    val (case_defs, thy2) = Library.foldl (fn ((defs, thy),
-      ((((i, (_, _, constrs)), T), name), recname)) =>
+    val (case_defs, thy2) = fold (fn ((((i, (_, _, constrs)), T), name), recname) => fn (defs, thy) =>
         let
-          val (fns1, fns2) = ListPair.unzip (map (fn ((_, cargs), j) =>
+          val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
             let
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
               val Ts' = Ts @ map mk_dummyT (List.filter is_rec_type cargs);
@@ -328,8 +326,8 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
             |> (PureThy.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')
-        end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
-          (Library.take (length newTs, reccomb_names)))
+        end) (hd descr ~~ newTs ~~ case_names ~~
+          Library.take (length newTs, reccomb_names)) ([], thy1)
       ||> Theory.checkpoint;
 
     val case_thms = map (map (fn t => SkipProof.prove_global thy2 [] [] t
