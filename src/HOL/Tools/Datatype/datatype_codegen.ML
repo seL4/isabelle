@@ -365,7 +365,8 @@ fun mk_case_cert thy tyco =
 fun mk_eq_eqns thy dtco =
   let
     val (vs, cos) = Datatype.the_spec thy dtco;
-    val { descr, index, inject = inject_thms, ... } = Datatype.the_info thy dtco;
+    val { descr, index, inject = inject_thms, distinct = distinct_thms, ... } =
+      Datatype.the_info thy dtco;
     val ty = Type (dtco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
@@ -381,9 +382,8 @@ fun mk_eq_eqns thy dtco =
       [trueprop $ false_eq (t1, t2), trueprop $ false_eq (t2, t1)];
     val distincts = maps prep_distinct (snd (nth (DatatypeProp.make_distincts [descr] vs) index));
     val refl = HOLogic.mk_Trueprop (true_eq (Free ("x", ty), Free ("x", ty)));
-    val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss
-      addsimps (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms))
-      addsimprocs [Datatype.distinct_simproc]);
+    val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss addsimps 
+      (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
     fun prove prop = SkipProof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
   in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
