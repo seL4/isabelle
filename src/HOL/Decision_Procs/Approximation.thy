@@ -3473,7 +3473,7 @@ ML {*
        |> HOLogic.dest_list
        |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
        |> map (fn (elem, s) => @{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
-       |> foldl1 HOLogic.mk_conj))
+       |> foldr1 HOLogic.mk_conj))
 
   fun approx_arith prec ctxt t = realify t
        |> Reflection.genreif ctxt form_equations
