@@ -555,7 +555,6 @@ val datatype_cmd = snd ooo gen_add_datatype read_typ default_config;
 (* setup theory *)
 
 val setup =
-  simproc_setup #>
   trfun_setup #>
   DatatypeInterpretation.init;
 

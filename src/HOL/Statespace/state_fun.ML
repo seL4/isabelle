@@ -37,16 +37,19 @@ fun mk_name i t =
               |_ => "x"^string_of_int i))
                
 local
+
 val conj1_False = thm "conj1_False";
 val conj2_False = thm "conj2_False";
 val conj_True = thm "conj_True";
 val conj_cong = thm "conj_cong";
+
 fun isFalse (Const ("False",_)) = true
   | isFalse _ = false;
 fun isTrue (Const ("True",_)) = true
   | isTrue _ = false;
 
 in
+
 val lazy_conj_simproc =
   Simplifier.simproc @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
@@ -71,30 +74,24 @@ val lazy_conj_simproc =
         
       | _ => NONE));
 
-val string_eq_simp_tac =
-     simp_tac (HOL_basic_ss 
-                 addsimps (thms "list.inject"@thms "char.inject"@simp_thms)
-                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc]
-                 addcongs [thm "block_conj_cong"])
+val string_eq_simp_tac = simp_tac (HOL_basic_ss 
+  addsimps (@{thms list.inject} @ @{thms char.inject}
+    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms)
+  addsimprocs [lazy_conj_simproc]
+  addcongs [@{thm block_conj_cong}])
+
 end;
 
-
-
-local
-val rules = 
- [thm "StateFun.lookup_update_id_same",
-  thm "StateFun.id_id_cancel",
-  thm "StateFun.lookup_update_same",thm "StateFun.lookup_update_other"
-  ]
-in
 val lookup_ss = (HOL_basic_ss 
-                 addsimps (thms "list.inject"@thms "char.inject"@simp_thms@rules)
-                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc]
-                 addcongs [thm "block_conj_cong"]
-                 addSolver StateSpace.distinctNameSolver) 
-end;
+  addsimps (@{thms list.inject} @ @{thms char.inject}
+    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms
+    @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
+      @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
+  addsimprocs [lazy_conj_simproc]
+  addcongs @{thms block_conj_cong}
+  addSolver StateSpace.distinctNameSolver);
 
-val ex_lookup_ss = HOL_ss addsimps [thm "StateFun.ex_id"];
+val ex_lookup_ss = HOL_ss addsimps @{thms StateFun.ex_id};
 
 structure StateFunArgs =
 struct
@@ -163,12 +160,12 @@ val lookup_simproc =
 fun foldl1 f (x::xs) = foldl f x xs;
 
 local
-val update_apply = thm "StateFun.update_apply";
-val meta_ext = thm "StateFun.meta_ext";
-val o_apply = thm "Fun.o_apply";
-val ss' = (HOL_ss addsimps (update_apply::o_apply::thms "list.inject"@thms "char.inject")
-                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc,StateSpace.distinct_simproc]
-                 addcongs [thm "block_conj_cong"]);
+val meta_ext = @{thm StateFun.meta_ext};
+val ss' = (HOL_ss addsimps
+  (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
+    @ @{thms list.distinct} @ @{thms char.distinct})
+  addsimprocs [lazy_conj_simproc, StateSpace.distinct_simproc]
+  addcongs @{thms block_conj_cong});
 in
 val update_simproc =
   Simplifier.simproc @{theory} "update_simp" ["update d c n v s"]
