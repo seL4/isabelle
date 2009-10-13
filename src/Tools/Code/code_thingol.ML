@@ -51,6 +51,7 @@ sig
   val contains_dictvar: iterm -> bool
   val locally_monomorphic: iterm -> bool
   val add_constnames: iterm -> string list -> string list
+  val add_tyconames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
 
   type naming
@@ -162,12 +163,22 @@ fun unfold_const_app t =
   of (IConst c, ts) => SOME (c, ts)
    | _ => NONE;
 
-fun add_constnames (IConst (c, _)) = insert (op =) c
-  | add_constnames (IVar _) = I
-  | add_constnames (t1 `$ t2) = add_constnames t1 #> add_constnames t2
-  | add_constnames (_ `|=> t) = add_constnames t
-  | add_constnames (ICase (((t, _), ds), _)) = add_constnames t
-      #> fold (fn (pat, body) => add_constnames pat #> add_constnames body) ds;
+fun fold_constexprs f =
+  let
+    fun fold' (IConst c) = f c
+      | fold' (IVar _) = I
+      | fold' (t1 `$ t2) = fold' t1 #> fold' t2
+      | fold' (_ `|=> t) = fold' t
+      | fold' (ICase (((t, _), ds), _)) = fold' t
+          #> fold (fn (pat, body) => fold' pat #> fold' body) ds
+  in fold' end;
+
+val add_constnames = fold_constexprs (fn (c, _) => insert (op =) c);
+
+fun add_tycos (tyco `%% tys) = insert (op =) tyco #> fold add_tycos tys
+  | add_tycos (ITyVar _) = I;
+
+val add_tyconames = fold_constexprs (fn (_, ((tys, _), _)) => fold add_tycos tys);
 
 fun fold_varnames f =
   let
