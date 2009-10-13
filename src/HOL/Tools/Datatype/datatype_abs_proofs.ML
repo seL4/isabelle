@@ -20,8 +20,8 @@ sig
     attribute list -> theory -> thm list * theory
   val prove_primrec_thms : config -> string list ->
     descr list -> (string * sort) list ->
-      (string -> thm list) -> thm list list -> thm list list ->
-        simpset -> thm -> theory -> (string list * thm list) * theory
+      (string -> thm list) -> thm list list -> thm list list * thm list list ->
+        thm -> theory -> (string list * thm list) * theory
   val prove_case_thms : config -> string list ->
     descr list -> (string * sort) list ->
       string list -> thm list -> theory -> (thm list list * string list) * theory
@@ -88,7 +88,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
 (*************************** primrec combinators ******************************)
 
 fun prove_primrec_thms (config : config) new_type_names descr sorts
-    injects_of constr_inject dist_rewrites dist_ss induct thy =
+    injects_of constr_inject (dist_rewrites, other_dist_rewrites) induct thy =
   let
     val _ = message config "Constructing primrec combinators ...";
 
@@ -170,7 +170,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
         val distinct_tac =
           (if i < length newTs then
              full_simp_tac (HOL_ss addsimps (nth dist_rewrites i)) 1
-           else full_simp_tac dist_ss 1);
+           else full_simp_tac (HOL_ss addsimps (flat other_dist_rewrites)) 1);
 
         val inject = map (fn r => r RS iffD1)
           (if i < length newTs then nth constr_inject i

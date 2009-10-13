@@ -334,15 +334,13 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
     val _ = message config ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
 
-    val other_distincts = all_distincts thy2 (get_rec_types flat_descr sorts);
-
     val (exhaust, thy3) = DatatypeAbsProofs.prove_casedist_thms config new_type_names
       descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
     val (nchotomys, thy4) = DatatypeAbsProofs.prove_nchotomys config new_type_names
       descr sorts exhaust thy3;
     val ((rec_names, rec_rewrites), thy5) = DatatypeAbsProofs.prove_primrec_thms
       config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
-      inject distinct (Simplifier.theory_context thy4 (HOL_basic_ss addsimps (flat other_distincts)))
+      inject (distinct, all_distincts thy2 (get_rec_types flat_descr sorts))
       induct thy4;
     val ((case_rewrites, case_names), thy6) = DatatypeAbsProofs.prove_case_thms
       config new_type_names descr sorts rec_names rec_rewrites thy5;
