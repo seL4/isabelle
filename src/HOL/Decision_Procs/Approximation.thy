@@ -2066,7 +2066,7 @@ datatype floatarith
   | Exp floatarith
   | Ln floatarith
   | Power floatarith nat
-  | Atom nat
+  | Var nat
   | Num float
 
 fun interpret_floatarith :: "floatarith \<Rightarrow> real list \<Rightarrow> real" where
@@ -2085,7 +2085,7 @@ fun interpret_floatarith :: "floatarith \<Rightarrow> real list \<Rightarrow> re
 "interpret_floatarith (Ln a) vs       = ln (interpret_floatarith a vs)" |
 "interpret_floatarith (Power a n) vs  = (interpret_floatarith a vs)^n" |
 "interpret_floatarith (Num f) vs      = real f" |
-"interpret_floatarith (Atom n) vs     = vs ! n"
+"interpret_floatarith (Var n) vs     = vs ! n"
 
 lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs = (interpret_floatarith a vs) / (interpret_floatarith b vs)"
   unfolding real_divide_def interpret_floatarith.simps ..
@@ -2188,7 +2188,7 @@ fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float
 "approx prec (Ln a) bs      = lift_un (approx' prec a bs) (\<lambda> l u. (lb_ln prec l, ub_ln prec u))" |
 "approx prec (Power a n) bs = lift_un' (approx' prec a bs) (float_power_bnds n)" |
 "approx prec (Num f) bs     = Some (f, f)" |
-"approx prec (Atom i) bs    = (if i < length bs then bs ! i else None)"
+"approx prec (Var i) bs    = (if i < length bs then bs ! i else None)"
 
 lemma lift_bin'_ex:
   assumes lift_bin'_Some: "Some (l, u) = lift_bin' a b f"
@@ -2463,7 +2463,7 @@ next case (Ln a) with lift_un_bnds[OF bnds_ln] show ?case by auto
 next case (Power a n) with lift_un'_bnds[OF bnds_power] show ?case by auto
 next case (Num f) thus ?case by auto
 next
-  case (Atom n)
+  case (Var n)
   from this[symmetric] `bounded_by xs vs`[THEN bounded_byE, of n]
   show ?case by (cases "n < length vs", auto)
 qed
@@ -2485,13 +2485,12 @@ fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float
 "approx_form' prec f 0 n l u bs ss = approx_form prec f (bs[n := Some (l, u)]) ss" |
 "approx_form' prec f (Suc s) n l u bs ss =
   (let m = (l + u) * Float 1 -1
-   in approx_form' prec f s n l m bs ss \<and>
-      approx_form' prec f s n m u bs ss)" |
-"approx_form prec (Bound (Atom n) a b f) bs ss =
+   in (if approx_form' prec f s n l m bs ss then approx_form' prec f s n m u bs ss else False))" |
+"approx_form prec (Bound (Var n) a b f) bs ss =
    (case (approx prec a bs, approx prec b bs)
    of (Some (l, _), Some (_, u)) \<Rightarrow> approx_form' prec f (ss ! n) n l u bs ss
     | _ \<Rightarrow> False)" |
-"approx_form prec (Assign (Atom n) a f) bs ss =
+"approx_form prec (Assign (Var n) a f) bs ss =
    (case (approx prec a bs)
    of (Some (l, u)) \<Rightarrow> approx_form' prec f (ss ! n) n l u bs ss
     | _ \<Rightarrow> False)" |
@@ -2508,6 +2507,8 @@ fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float
    of (Some (lx, ux), Some (l, u), Some (l', u')) \<Rightarrow> u \<le> lx \<and> ux \<le> l'
     | _ \<Rightarrow> False)" |
 "approx_form _ _ _ _ = False"
+
+lemma lazy_conj: "(if A then B else False) = (A \<and> B)" by simp
 
 lemma approx_form_approx_form':
   assumes "approx_form' prec f s n l u bs ss" and "x \<in> { real l .. real u }"
@@ -2530,11 +2531,11 @@ next
   proof (rule disjE)
     assume *: "x \<in> { real l .. real ?m }"
     with Suc.hyps[OF _ _ *] Suc.prems
-    show thesis by (simp add: Let_def)
+    show thesis by (simp add: Let_def lazy_conj)
   next
     assume *: "x \<in> { real ?m .. real u }"
     with Suc.hyps[OF _ _ *] Suc.prems
-    show thesis by (simp add: Let_def)
+    show thesis by (simp add: Let_def lazy_conj)
   qed
 qed
 
@@ -2545,7 +2546,7 @@ lemma approx_form_aux:
 using assms proof (induct f arbitrary: vs)
   case (Bound x a b f)
   then obtain n
-    where x_eq: "x = Atom n" by (cases x) auto
+    where x_eq: "x = Var n" by (cases x) auto
 
   with Bound.prems obtain l u' l' u
     where l_eq: "Some (l, u') = approx prec a vs"
@@ -2570,11 +2571,11 @@ using assms proof (induct f arbitrary: vs)
 next
   case (Assign x a f)
   then obtain n
-    where x_eq: "x = Atom n" by (cases x) auto
+    where x_eq: "x = Var n" by (cases x) auto
 
   with Assign.prems obtain l u' l' u
     where bnd_eq: "Some (l, u) = approx prec a vs"
-    and x_eq: "x = Atom n"
+    and x_eq: "x = Var n"
     and approx_form': "approx_form' prec f (ss ! n) n l u vs ss"
     by (cases "approx prec a vs") auto
 
@@ -2649,7 +2650,7 @@ fun isDERIV :: "nat \<Rightarrow> floatarith \<Rightarrow> real list \<Rightarro
 "isDERIV x (Power a 0) vs       = True" |
 "isDERIV x (Power a (Suc n)) vs = isDERIV x a vs" |
 "isDERIV x (Num f) vs           = True" |
-"isDERIV x (Atom n) vs          = True"
+"isDERIV x (Var n) vs          = True"
 
 fun DERIV_floatarith :: "nat \<Rightarrow> floatarith \<Rightarrow> floatarith" where
 "DERIV_floatarith x (Add a b)         = Add (DERIV_floatarith x a) (DERIV_floatarith x b)" |
@@ -2668,7 +2669,7 @@ fun DERIV_floatarith :: "nat \<Rightarrow> floatarith \<Rightarrow> floatarith" 
 "DERIV_floatarith x (Power a 0)       = Num 0" |
 "DERIV_floatarith x (Power a (Suc n)) = Mult (Num (Float (int (Suc n)) 0)) (Mult (Power a n) (DERIV_floatarith x a))" |
 "DERIV_floatarith x (Num f)           = Num 0" |
-"DERIV_floatarith x (Atom n)          = (if x = n then Num 1 else Num 0)"
+"DERIV_floatarith x (Var n)          = (if x = n then Num 1 else Num 0)"
 
 lemma DERIV_floatarith:
   assumes "n < length vs"
@@ -2689,7 +2690,7 @@ next case (Power a n) thus ?case
                     simp del: power_Suc simp add: real_eq_of_nat)
 next case (Ln a) thus ?case
     by (auto intro!: DERIV_intros simp add: divide_inverse)
-next case (Atom i) thus ?case using `n < length vs` by auto
+next case (Var i) thus ?case using `n < length vs` by auto
 qed (auto intro!: DERIV_intros)
 
 declare approx.simps[simp del]
@@ -2714,7 +2715,7 @@ fun isDERIV_approx :: "nat \<Rightarrow> nat \<Rightarrow> floatarith \<Rightarr
 "isDERIV_approx prec x (Power a 0) vs       = True" |
 "isDERIV_approx prec x (Power a (Suc n)) vs = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Num f) vs           = True" |
-"isDERIV_approx prec x (Atom n) vs          = True"
+"isDERIV_approx prec x (Var n) vs          = True"
 
 lemma isDERIV_approx:
   assumes "bounded_by xs vs"
@@ -2821,10 +2822,10 @@ fun approx_tse where
     lift_bin (approx prec f (bs[n := Some (c,c)]))
              (approx_tse prec n s c (Suc k) (DERIV_floatarith n f) bs)
              (\<lambda> l1 u1 l2 u2. approx prec
-                 (Add (Atom 0)
+                 (Add (Var 0)
                       (Mult (Inverse (Num (Float (int k) 0)))
-                                 (Mult (Add (Atom (Suc (Suc 0))) (Minus (Num c)))
-                                       (Atom (Suc 0))))) [Some (l1, u1), Some (l2, u2), bs!n])
+                                 (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
+                                       (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), bs!n])
   else approx prec f bs)"
 
 lemma bounded_by_Cons:
@@ -2886,10 +2887,10 @@ next
       where a: "Some (l1, u1) = approx prec f (vs[x := Some (c,c)])"
       and ate: "Some (l2, u2) = approx_tse prec x s c (Suc k) (DERIV_floatarith x f) vs"
       and final: "Some (l, u) = approx prec
-        (Add (Atom 0)
+        (Add (Var 0)
              (Mult (Inverse (Num (Float (int k) 0)))
-                   (Mult (Add (Atom (Suc (Suc 0))) (Minus (Num c)))
-                         (Atom (Suc 0))))) [Some (l1, u1), Some (l2, u2), vs!x]"
+                   (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
+                         (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), vs!x]"
       by (auto elim!: lift_bin) blast
 
     from bnd_c `x < length xs`
@@ -3028,8 +3029,8 @@ fun approx_tse_form' where
      of Some (l, u) \<Rightarrow> cmp l u | None \<Rightarrow> False)" |
 "approx_tse_form' prec t f (Suc s) l u cmp =
   (let m = (l + u) * Float 1 -1
-   in approx_tse_form' prec t f s l m cmp \<and>
-      approx_tse_form' prec t f s m u cmp)"
+   in (if approx_tse_form' prec t f s l m cmp then
+      approx_tse_form' prec t f s m u cmp else False))"
 
 lemma approx_tse_form':
   assumes "approx_tse_form' prec t f s l u cmp" and "x \<in> {real l .. real u}"
@@ -3047,7 +3048,7 @@ next
   from Suc.prems
   have l: "approx_tse_form' prec t f s l ?m cmp"
     and u: "approx_tse_form' prec t f s ?m u cmp"
-    by (auto simp add: Let_def)
+    by (auto simp add: Let_def lazy_conj)
 
   have m_l: "real l \<le> real ?m" and m_u: "real ?m \<le> real u"
     unfolding le_float_def using Suc.prems by auto
@@ -3117,15 +3118,15 @@ qed
 definition
 "approx_tse_form prec t s f =
   (case f
-   of (Bound x a b f) \<Rightarrow> x = Atom 0 \<and>
+   of (Bound x a b f) \<Rightarrow> x = Var 0 \<and>
      (case (approx prec a [None], approx prec b [None])
       of (Some (l, u), Some (l', u')) \<Rightarrow>
         (case f
          of Less lf rt \<Rightarrow> approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)
           | LessEqual lf rt \<Rightarrow> approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)
           | AtLeastAtMost x lf rt \<Rightarrow>
-            approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l) \<and>
-            approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l)
+            (if approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l) then
+            approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l) else False)
           | _ \<Rightarrow> False)
        | _ \<Rightarrow> False)
    | _ \<Rightarrow> False)"
@@ -3140,7 +3141,7 @@ proof (cases f)
     and b: "approx prec b [None] = Some (l', u')"
     unfolding approx_tse_form_def by (auto elim!: option_caseE)
 
-  from Bound assms have "i = Atom 0" unfolding approx_tse_form_def by auto
+  from Bound assms have "i = Var 0" unfolding approx_tse_form_def by auto
   hence i: "interpret_floatarith i [x] = x" by auto
 
   { let "?f z" = "interpret_floatarith z [x]"
@@ -3168,7 +3169,7 @@ proof (cases f)
       with Bound a b assms
       have "approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l)"
 	and "approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
-	unfolding approx_tse_form_def by auto
+	unfolding approx_tse_form_def lazy_conj by auto
       from approx_tse_form'_le[OF this(1) bnd] approx_tse_form'_le[OF this(2) bnd]
       show ?thesis using AtLeastAtMost by auto
     next
@@ -3184,6 +3185,23 @@ next case Less with assms show ?thesis by (auto simp add: approx_tse_form_def)
 next case AtLeastAtMost with assms show ?thesis by (auto simp add: approx_tse_form_def)
 qed
 
+text {* @{term approx_form_eval} is only used for the {\tt value}-command. *}
+
+fun approx_form_eval :: "nat \<Rightarrow> form \<Rightarrow> (float * float) option list \<Rightarrow> (float * float) option list" where
+"approx_form_eval prec (Bound (Var n) a b f) bs =
+   (case (approx prec a bs, approx prec b bs)
+   of (Some (l, _), Some (_, u)) \<Rightarrow> approx_form_eval prec f (bs[n := Some (l, u)])
+    | _ \<Rightarrow> bs)" |
+"approx_form_eval prec (Assign (Var n) a f) bs =
+   (case (approx prec a bs)
+   of (Some (l, u)) \<Rightarrow> approx_form_eval prec f (bs[n := Some (l, u)])
+    | _ \<Rightarrow> bs)" |
+"approx_form_eval prec (Less a b) bs = bs @ [approx prec a bs, approx prec b bs]" |
+"approx_form_eval prec (LessEqual a b) bs = bs @ [approx prec a bs, approx prec b bs]" |
+"approx_form_eval prec (AtLeastAtMost x a b) bs =
+   bs @ [approx prec x bs, approx prec a bs, approx prec b bs]" |
+"approx_form_eval _ _ bs = bs"
+
 subsection {* Implement proof method \texttt{approximation} *}
 
 lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simps interpret_floatarith_num
@@ -3196,12 +3214,13 @@ struct
 
 @{code_datatype float = Float}
 @{code_datatype floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
-                           | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Atom | Num }
+                           | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Var | Num }
 @{code_datatype form = Bound | Assign | Less | LessEqual | AtLeastAtMost}
 
 val approx_form = @{code approx_form}
 val approx_tse_form = @{code approx_tse_form}
 val approx' = @{code approx'}
+val approx_form_eval = @{code approx_form_eval}
 
 end
 *}
@@ -3213,13 +3232,13 @@ code_const Float (Eval "Float'_Arith.Float/ (_,/ _)")
 
 code_type floatarith (Eval "Float'_Arith.floatarith")
 code_const Add and Minus and Mult and Inverse and Cos and Arctan and Abs and Max and Min and
-           Pi and Sqrt  and Exp and Ln and Power and Atom and Num
+           Pi and Sqrt  and Exp and Ln and Power and Var and Num
   (Eval "Float'_Arith.Add/ (_,/ _)" and "Float'_Arith.Minus" and "Float'_Arith.Mult/ (_,/ _)" and
         "Float'_Arith.Inverse" and "Float'_Arith.Cos" and
         "Float'_Arith.Arctan" and "Float'_Arith.Abs" and "Float'_Arith.Max/ (_,/ _)" and
         "Float'_Arith.Min/ (_,/ _)" and "Float'_Arith.Pi" and "Float'_Arith.Sqrt" and
         "Float'_Arith.Exp" and "Float'_Arith.Ln" and "Float'_Arith.Power/ (_,/ _)" and
-        "Float'_Arith.Atom" and "Float'_Arith.Num")
+        "Float'_Arith.Var" and "Float'_Arith.Num")
 
 code_type form (Eval "Float'_Arith.form")
 code_const Bound and Assign and Less and LessEqual and AtLeastAtMost
@@ -3346,21 +3365,34 @@ method_setup approximation = {*
  *} "real number approximation"
 
 ML {*
+  fun calculated_subterms (@{const Trueprop} $ t) = calculated_subterms t
+    | calculated_subterms (@{const "op -->"} $ _ $ t) = calculated_subterms t
+    | calculated_subterms (@{term "op <= :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
+    | calculated_subterms (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
+    | calculated_subterms (@{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ t1 $ 
+                           (@{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ t2 $ t3)) = [t1, t2, t3]
+    | calculated_subterms t = raise TERM ("calculated_subterms", [t])
+
+  fun dest_interpret_form (@{const "interpret_form"} $ b $ xs) = (b, xs)
+    | dest_interpret_form t = raise TERM ("dest_interpret_form", [t])
+
   fun dest_interpret (@{const "interpret_floatarith"} $ b $ xs) = (b, xs)
-  | dest_interpret t = raise TERM ("dest_interpret", [t])
+    | dest_interpret t = raise TERM ("dest_interpret", [t])
+
+
+  fun dest_float (@{const "Float"} $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+  fun dest_ivl (Const (@{const_name "Some"}, _) $
+                (Const (@{const_name "Pair"}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
+    | dest_ivl (Const (@{const_name "None"}, _)) = NONE
+    | dest_ivl t = raise TERM ("dest_result", [t])
 
   fun mk_approx' prec t = (@{const "approx'"}
                          $ HOLogic.mk_number @{typ nat} prec
                          $ t $ @{term "[] :: (float * float) option list"})
 
-  fun dest_result (Const (@{const_name "Some"}, _) $
-                   ((Const (@{const_name "Pair"}, _)) $
-                    (@{const "Float"} $ lm $ le) $
-                    (@{const "Float"} $ um $ ue)))
-                   = SOME ((snd (HOLogic.dest_number lm), snd (HOLogic.dest_number le)),
-                           (snd (HOLogic.dest_number um), snd (HOLogic.dest_number ue)))
-    | dest_result (Const (@{const_name "None"}, _)) = NONE
-    | dest_result t = raise TERM ("dest_result", [t])
+  fun mk_approx_form_eval prec t xs = (@{const "approx_form_eval"}
+                         $ HOLogic.mk_number @{typ nat} prec
+                         $ t $ xs)
 
   fun float2_float10 prec round_down (m, e) = (
     let
@@ -3401,10 +3433,8 @@ ML {*
                                           HOLogic.mk_number @{typ real} m $
                                           (@{term "power 10 :: nat \<Rightarrow> real"} $
                                            HOLogic.mk_number @{typ nat} (~e)) end)
-      in @{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $
-         mk_float10 true l $ mk_float10 false u end)
+      in @{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ mk_float10 true l $ mk_float10 false u end)
     | mk_result prec NONE = @{term "UNIV :: real set"}
-
 
   fun realify t = let
       val t = Logic.varify t
@@ -3412,8 +3442,40 @@ ML {*
       val t = Term.subst_TVars m t
     in t end
 
-  fun approx prec ctxt t = let val t = realify t in
-          t
+  fun converted_result t =
+          prop_of t
+       |> HOLogic.dest_Trueprop
+       |> HOLogic.dest_eq |> snd
+
+  fun apply_tactic context term tactic = cterm_of context term
+    |> Goal.init
+    |> SINGLE tactic
+    |> the |> prems_of |> hd
+
+  fun prepare_form context term = apply_tactic context term (
+      REPEAT (FIRST' [etac @{thm intervalE}, etac @{thm meta_eqE}, rtac @{thm impI}] 1)
+      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems 1) @{context} 1
+      THEN DETERM (TRY (filter_prems_tac (K false) 1)))
+
+  fun reify_form context term = apply_tactic context term
+     (Reflection.genreify_tac @{context} form_equations NONE 1)
+
+  fun approx_form prec ctxt t =
+          realify t
+       |> prepare_form (Context.theory_of_proof ctxt)
+       |> (fn arith_term =>
+          reify_form (Context.theory_of_proof ctxt) arith_term
+       |> HOLogic.dest_Trueprop |> dest_interpret_form
+       |> (fn (data, xs) =>
+          mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
+            (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
+       |> Codegen.eval_term @{theory}
+       |> HOLogic.dest_list
+       |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
+       |> map (fn (elem, s) => @{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
+       |> foldl1 HOLogic.mk_conj))
+
+  fun approx_arith prec ctxt t = realify t
        |> Reflection.genreif ctxt form_equations
        |> prop_of
        |> HOLogic.dest_Trueprop
@@ -3421,9 +3483,12 @@ ML {*
        |> dest_interpret |> fst
        |> mk_approx' prec
        |> Codegen.eval_term @{theory}
-       |> dest_result
+       |> dest_ivl
        |> mk_result prec
-    end
+
+   fun approx prec ctxt t = if type_of t = @{typ prop} then approx_form prec ctxt t
+     else if type_of t = @{typ bool} then approx_form prec ctxt (@{const Trueprop} $ t)
+     else approx_arith prec ctxt t
 *}
 
 setup {*
