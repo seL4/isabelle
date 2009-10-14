@@ -447,7 +447,7 @@ fun desymbolize_vars thy thm =
   in Thm.certify_instantiate ([], var_subst) thm end;
 
 fun canonize_thms thy = map (Thm.transfer thy)
-  #> Code.same_typscheme thy #> desymbolize_tvars thy
+  #> Code.standard_typscheme thy #> desymbolize_tvars thy
   #> same_arity thy #> map (desymbolize_vars thy);
 
 

@@ -28,7 +28,7 @@ sig
   val const_typ_eqn: theory -> thm -> string * typ
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
   val typscheme_eqns: theory -> string -> thm list -> (string * sort) list * typ
-  val same_typscheme: theory -> thm list -> thm list
+  val standard_typscheme: theory -> thm list -> thm list
 
   (*executable code*)
   val add_datatype: (string * typ) list -> theory -> theory
@@ -532,7 +532,7 @@ fun assert_eqns_const thy c eqns =
         ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy thm)
   in map (cert o assert_eqn thy) eqns end;
 
-fun same_typscheme thy thms =
+fun standard_typscheme thy thms =
   let
     fun tvars_of T = rev (Term.add_tvarsT T []);
     val vss = map (tvars_of o snd o head_eqn) thms;
@@ -546,7 +546,7 @@ fun same_typscheme thy thms =
 fun these_eqns thy c =
   get_eqns thy c
   |> (map o apfst) (Thm.transfer thy)
-  |> burrow_fst (same_typscheme thy);
+  |> burrow_fst (standard_typscheme thy);
 
 fun all_eqns thy =
   Symtab.dest ((the_eqns o the_exec) thy)
