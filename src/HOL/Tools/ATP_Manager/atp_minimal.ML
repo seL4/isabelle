@@ -126,7 +126,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
     val _ = debug_fn (fn () => print_names name_thm_pairs)
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val problem = ATP_Wrapper.ATP_Problem {
-      with_full_types = ATP_Manager.get_full_types (),
+      with_full_types = ! ATP_Manager.full_types,
       subgoal = subgoalno,
       goal = Proof.get_goal state,
       axiom_clauses = SOME axclauses,

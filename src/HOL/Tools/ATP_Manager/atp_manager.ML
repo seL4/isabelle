@@ -10,14 +10,11 @@ or when the maximum number of threads exceeds; then the oldest thread is killed.
 
 signature ATP_MANAGER =
 sig
-  val get_atps: unit -> string
-  val set_atps: string -> unit
-  val get_max_atps: unit -> int
-  val set_max_atps: int -> unit
-  val get_timeout: unit -> int
-  val set_timeout: int -> unit
-  val get_full_types: unit -> bool
-  val set_full_types: bool -> unit
+  val atps: string Unsynchronized.ref
+  val get_atps: unit -> string list
+  val max_atps: int Unsynchronized.ref
+  val timeout: int Unsynchronized.ref
+  val full_types: bool Unsynchronized.ref
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
@@ -35,26 +32,12 @@ struct
 val message_store_limit = 20;
 val message_display_limit = 5;
 
-local
-
 val atps = Unsynchronized.ref "e spass remote_vampire";
+fun get_atps () = String.tokens (Symbol.is_ascii_blank o String.str) (! atps);
+
 val max_atps = Unsynchronized.ref 5;   (* ~1 means infinite number of atps *)
 val timeout = Unsynchronized.ref 60;
 val full_types = Unsynchronized.ref false;
-
-in
-
-fun get_atps () = CRITICAL (fn () => ! atps);
-fun set_atps str = CRITICAL (fn () => atps := str);
-
-fun get_max_atps () = CRITICAL (fn () => ! max_atps);
-fun set_max_atps number = CRITICAL (fn () => max_atps := number);
-
-fun get_timeout () = CRITICAL (fn () => ! timeout);
-fun set_timeout time = CRITICAL (fn () => timeout := time);
-
-fun get_full_types () = CRITICAL (fn () => ! full_types);
-fun set_full_types bool = CRITICAL (fn () => full_types := bool);
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
@@ -75,8 +58,6 @@ val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
     (Preferences.bool_pref full_types
       "ATP: full types" "ATPs will use full type information");
-
-end;
 
 
 
@@ -144,7 +125,7 @@ fun unregister (success, message) thread = Synchronized.change state
 (* kill excessive atp threads *)
 
 fun excessive_atps active =
-  let val max = get_max_atps ()
+  let val max = ! max_atps
   in length active > max andalso max > ~1 end;
 
 local
@@ -337,16 +318,16 @@ fun start_prover name birthtime deadtime i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
-            val problem = ATP_Wrapper.atp_problem_of_goal (get_full_types ()) i
-              (Proof.get_goal proof_state)
+            val problem =
+              ATP_Wrapper.atp_problem_of_goal (! full_types) i (Proof.get_goal proof_state)
             val result =
               let val ATP_Wrapper.Prover_Result {success, message, ...} =
-                prover problem (get_timeout ())
+                prover problem (! timeout)
               in (success, message) end
-              handle ResHolClause.TOO_TRIVIAL
-                => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
-              | ERROR msg
-                => (false, "Error: " ^ msg)
+              handle ResHolClause.TOO_TRIVIAL =>   (* FIXME !? *)
+                  (true, "Empty clause: Try this command: " ^
+                    Markup.markup Markup.sendback "apply metis")
+                | ERROR msg => (false, "Error: " ^ msg)
             val _ = unregister result (Thread.self ())
           in () end handle Interrupt => ())
       in () end);
@@ -356,11 +337,9 @@ fun start_prover name birthtime deadtime i proof_state =
 
 fun sledgehammer names proof_state =
   let
-    val provers =
-      if null names then String.tokens (Symbol.is_ascii_blank o String.str) (get_atps ())
-      else names
+    val provers = if null names then get_atps () else names
     val birthtime = Time.now ()
-    val deadtime = Time.+ (birthtime, Time.fromSeconds (get_timeout ()))
+    val deadtime = Time.+ (birthtime, Time.fromSeconds (! timeout))
   in List.app (fn name => start_prover name birthtime deadtime 1 proof_state) provers end;
 
 

@@ -286,8 +286,8 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_atp thy args =
   AList.lookup (op =) args proverK
-  |> the_default (hd (space_explode " " (ATP_Manager.get_atps ())))
-  |> (fn name => (name, the (ATP_Manager.get_prover name thy)))
+  |> the_default (hd (ATP_Manager.get_atps ()))  (* FIXME partial *)
+  |> (fn name => (name, the (ATP_Manager.get_prover name thy)))  (* FIXME partial *)
 
 local
 
@@ -301,8 +301,7 @@ fun run_sh prover hard_timeout timeout dir st =
     val (ctxt, goal) = Proof.get_goal st
     val ctxt' = if is_none dir then ctxt
       else Config.put ATP_Wrapper.destdir (the dir) ctxt
-    val atp = prover (ATP_Wrapper.atp_problem_of_goal
-      (ATP_Manager.get_full_types ()) 1 (ctxt', goal))
+    val atp = prover (ATP_Wrapper.atp_problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', goal))
 
     val time_limit =
       (case hard_timeout of
@@ -448,7 +447,7 @@ fun sledgehammer_action args id (st as {log, pre, name, ...}: Mirabelle.run_args
 
 fun invoke args =
   let
-    val _ = ATP_Manager.set_full_types (AList.defined (op =) args full_typesK)
+    val _ = ATP_Manager.full_types := AList.defined (op =) args full_typesK
   in Mirabelle.register (init, sledgehammer_action args, done) end
 
 end
