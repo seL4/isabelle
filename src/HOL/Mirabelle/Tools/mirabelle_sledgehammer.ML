@@ -286,8 +286,8 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_atp thy args =
   AList.lookup (op =) args proverK
-  |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
-  |> (fn name => (name, the (AtpManager.get_prover name thy)))
+  |> the_default (hd (space_explode " " (ATP_Manager.get_atps ())))
+  |> (fn name => (name, the (ATP_Manager.get_prover name thy)))
 
 local
 
@@ -300,15 +300,15 @@ fun run_sh prover hard_timeout timeout dir st =
   let
     val (ctxt, goal) = Proof.get_goal st
     val ctxt' = if is_none dir then ctxt
-      else Config.put AtpWrapper.destdir (the dir) ctxt
-    val atp = prover (AtpWrapper.atp_problem_of_goal
-      (AtpManager.get_full_types ()) 1 (ctxt', goal))
+      else Config.put ATP_Wrapper.destdir (the dir) ctxt
+    val atp = prover (ATP_Wrapper.atp_problem_of_goal
+      (ATP_Manager.get_full_types ()) 1 (ctxt', goal))
 
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val (AtpWrapper.Prover_Result {success, message, theorem_names,
+    val (ATP_Wrapper.Prover_Result {success, message, theorem_names,
       runtime=time_atp, ...}, time_isa) =
       time_limit (Mirabelle.cpu_time atp) timeout
   in
@@ -372,7 +372,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val n0 = length (these (!named_thms))
     val (prover_name, prover) = get_atp (Proof.theory_of st) args
-    val minimize = AtpMinimal.minimalize prover prover_name
+    val minimize = ATP_Minimal.minimalize prover prover_name
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
@@ -448,7 +448,7 @@ fun sledgehammer_action args id (st as {log, pre, name, ...}: Mirabelle.run_args
 
 fun invoke args =
   let
-    val _ = AtpManager.set_full_types (AList.defined (op =) args full_typesK)
+    val _ = ATP_Manager.set_full_types (AList.defined (op =) args full_typesK)
   in Mirabelle.register (init, sledgehammer_action args, done) end
 
 end

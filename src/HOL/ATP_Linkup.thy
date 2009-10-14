@@ -96,26 +96,26 @@ use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML" setup ResReconstruct.setup
 use "Tools/res_atp.ML"
 
-use "Tools/ATP_Manager/atp_wrapper.ML" setup AtpWrapper.setup
+use "Tools/ATP_Manager/atp_wrapper.ML" setup ATP_Wrapper.setup
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_minimal.ML"
 
 text {* basic provers *}
-setup {* AtpManager.add_prover AtpWrapper.spass *}
-setup {* AtpManager.add_prover AtpWrapper.vampire *}
-setup {* AtpManager.add_prover AtpWrapper.eprover *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.spass *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.vampire *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.eprover *}
 
 text {* provers with stuctured output *}
-setup {* AtpManager.add_prover AtpWrapper.vampire_full *}
-setup {* AtpManager.add_prover AtpWrapper.eprover_full *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.vampire_full *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.eprover_full *}
 
 text {* on some problems better results *}
-setup {* AtpManager.add_prover AtpWrapper.spass_no_tc *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.spass_no_tc *}
 
 text {* remote provers via SystemOnTPTP *}
-setup {* AtpManager.add_prover AtpWrapper.remote_vampire *}
-setup {* AtpManager.add_prover AtpWrapper.remote_spass *}
-setup {* AtpManager.add_prover AtpWrapper.remote_eprover *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.remote_vampire *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.remote_spass *}
+setup {* ATP_Manager.add_prover ATP_Wrapper.remote_eprover *}
   
 
 

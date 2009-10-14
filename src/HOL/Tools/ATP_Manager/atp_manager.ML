@@ -21,13 +21,13 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  val add_prover: string * AtpWrapper.prover -> theory -> theory
+  val add_prover: string * ATP_Wrapper.prover -> theory -> theory
   val print_provers: theory -> unit
-  val get_prover: string -> theory -> AtpWrapper.prover option
+  val get_prover: string -> theory -> ATP_Wrapper.prover option
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
-structure AtpManager: ATP_MANAGER =
+structure ATP_Manager: ATP_MANAGER =
 struct
 
 (** preferences **)
@@ -302,7 +302,7 @@ fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
 structure Provers = TheoryDataFun
 (
-  type T = (AtpWrapper.prover * stamp) Symtab.table
+  type T = (ATP_Wrapper.prover * stamp) Symtab.table
   val empty = Symtab.empty
   val copy = I
   val extend = I
@@ -337,10 +337,10 @@ fun start_prover name birthtime deadtime i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
-            val problem = AtpWrapper.atp_problem_of_goal (get_full_types ()) i
+            val problem = ATP_Wrapper.atp_problem_of_goal (get_full_types ()) i
               (Proof.get_goal proof_state)
             val result =
-              let val AtpWrapper.Prover_Result {success, message, ...} =
+              let val ATP_Wrapper.Prover_Result {success, message, ...} =
                 prover problem (get_timeout ())
               in (success, message) end
               handle ResHolClause.TOO_TRIVIAL

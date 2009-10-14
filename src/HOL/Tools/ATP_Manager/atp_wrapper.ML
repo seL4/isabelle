@@ -49,7 +49,7 @@ sig
   val refresh_systems: unit -> unit
 end;
 
-structure AtpWrapper: ATP_WRAPPER =
+structure ATP_Wrapper: ATP_WRAPPER =
 struct
 
 (** generic ATP wrapper **)

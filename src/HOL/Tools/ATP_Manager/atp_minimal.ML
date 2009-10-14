@@ -6,11 +6,11 @@ Minimalization of theorem list for metis by using an external automated theorem 
 
 signature ATP_MINIMAL =
 sig
-  val minimalize: AtpWrapper.prover -> string -> int -> Proof.state ->
+  val minimalize: ATP_Wrapper.prover -> string -> int -> Proof.state ->
     (string * thm list) list -> ((string * thm list) list * int) option * string
 end
 
-structure AtpMinimal: ATP_MINIMAL =
+structure ATP_Minimal: ATP_MINIMAL =
 struct
 
 (* output control *)
@@ -99,7 +99,7 @@ val failure_strings =
 
 fun produce_answer result =
   let
-    val AtpWrapper.Prover_Result {success, message, proof=result_string,
+    val ATP_Wrapper.Prover_Result {success, message, proof=result_string,
       internal_thm_names=thm_name_vec, filtered_clauses=filtered, ...} = result
   in
   if success then
@@ -116,6 +116,7 @@ fun produce_answer result =
     end
   end
 
+
 (* wrapper for calling external prover *)
 
 fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
@@ -124,8 +125,8 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val _ = debug_fn (fn () => print_names name_thm_pairs)
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
-    val problem = AtpWrapper.ATP_Problem {
-      with_full_types = AtpManager.get_full_types (),
+    val problem = ATP_Wrapper.ATP_Problem {
+      with_full_types = ATP_Manager.get_full_types (),
       subgoal = subgoalno,
       goal = Proof.get_goal state,
       axiom_clauses = SOME axclauses,
@@ -224,7 +225,7 @@ fun sh_min_command args thm_names state =
   let
     val (prover_name, time_limit) = get_options args
     val prover =
-      case AtpManager.get_prover prover_name (Proof.theory_of state) of
+      case ATP_Manager.get_prover prover_name (Proof.theory_of state) of
         SOME prover => prover
       | NONE => error ("Unknown prover: " ^ quote prover_name)
     val name_thms_pairs = get_thms (Proof.context_of state) thm_names
