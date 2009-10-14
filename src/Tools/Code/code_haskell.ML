@@ -149,7 +149,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                   |> intro_base_names
                       (is_none o syntax_const) deresolve consts
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
-                       (insert (op =)) ts []);
+                      (insert (op =)) ts []);
               in
                 semicolon (
                   (str o deresolve_base) name
