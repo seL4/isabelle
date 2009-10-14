@@ -347,7 +347,6 @@ local
  val concl = Thm.dest_arg o cprop_of
  fun conjunct1 th = th RS @{thm conjunct1}
  fun conjunct2 th = th RS @{thm conjunct2}
- fun C f x y = f y x
 fun real_vector_ineq_prover ctxt translator (ges,gts) = 
  let 
 (*   val _ = error "real_vector_ineq_prover: pause" *)
@@ -370,7 +369,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val th11 = hd (Variable.export ctxt' ctxt [fold implies_intr shs th1])
   val cps = map (swap o Thm.dest_equals) (cprems_of th11)
   val th12 = instantiate ([], cps) th11
-  val th13 = fold (C implies_elim) (map (reflexive o snd) cps) th12;
+  val th13 = fold Thm.elim_implies (map (reflexive o snd) cps) th12;
  in hd (Variable.export ctxt' ctxt [th13])
  end 
 in val real_vector_ineq_prover = real_vector_ineq_prover
