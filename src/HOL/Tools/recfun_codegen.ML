@@ -56,7 +56,7 @@ fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name "op ="} then ([]
     raw_thms
     |> preprocess thy
     |> avoid_value thy
-    |> Code_Thingol.clean_thms thy
+    |> Code_Thingol.canonize_thms thy
     |> rpair module_name
   end;
 
