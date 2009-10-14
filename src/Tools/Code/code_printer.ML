@@ -316,13 +316,13 @@ val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK];
 val dest_name =
   apfst Long_Name.implode o split_last o fst o split_last o Long_Name.explode;
 
-fun mk_name_module reserved_names module_prefix module_alias program =
+fun mk_name_module reserved module_prefix module_alias program =
   let
     fun mk_alias name = case module_alias name
      of SOME name' => name'
       | NONE => name
           |> Long_Name.explode
-          |> map (fn name => (the_single o fst) (Name.variants [name] reserved_names))
+          |> map (fn name => (the_single o fst) (Name.variants [name] reserved))
           |> Long_Name.implode;
     fun mk_prefix name = case module_prefix
      of SOME module_prefix => Long_Name.append module_prefix name
