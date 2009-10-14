@@ -28,6 +28,7 @@ sig
   val const_typ_eqn: theory -> thm -> string * typ
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
   val typscheme_eqns: theory -> string -> thm list -> (string * sort) list * typ
+  val same_typscheme: theory -> thm list -> thm list
 
   (*executable code*)
   val add_datatype: (string * typ) list -> theory -> theory

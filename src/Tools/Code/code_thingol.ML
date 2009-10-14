@@ -86,7 +86,7 @@ sig
       * ((string * stmt) list * (string * stmt) list)) list
 
   val expand_eta: theory -> int -> thm -> thm
-  val clean_thms: theory -> thm list -> thm list
+  val canonize_thms: theory -> thm list -> thm list
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> string list -> string list * (naming * program)
   val cached_program: theory -> naming * program
@@ -446,9 +446,9 @@ fun desymbolize_vars thy thm =
     val var_subst = mk_desymbolization I I Var vs;
   in Thm.certify_instantiate ([], var_subst) thm end;
 
-fun desymbolize_all_vars thy = desymbolize_tvars thy #> map (desymbolize_vars thy);
-
-fun clean_thms thy = map (Thm.transfer thy) #> same_arity thy #> desymbolize_all_vars thy;
+fun canonize_thms thy = map (Thm.transfer thy)
+  #> Code.same_typscheme thy #> desymbolize_tvars thy
+  #> same_arity thy #> map (desymbolize_vars thy);
 
 
 (** statements, abstract programs **)
@@ -614,7 +614,7 @@ and ensure_const thy algbr eqngr c =
       #>> (fn class => Classparam (c, class));
     fun stmt_fun raw_eqns =
       let
-        val eqns = burrow_fst (clean_thms thy) raw_eqns;
+        val eqns = burrow_fst (canonize_thms thy) raw_eqns;
         val (vs, ty) = Code.typscheme_eqns thy c (map fst eqns);
       in
         fold_map (translate_tyvar_sort thy algbr eqngr) vs
