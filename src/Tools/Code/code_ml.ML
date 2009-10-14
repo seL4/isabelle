@@ -529,7 +529,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
                     val consts = fold Code_Thingol.add_constnames (map (snd o fst) eqs) [];
                     val vars = reserved
                       |> intro_base_names
-                      (is_none o syntax_const) deresolve consts;
+                          (is_none o syntax_const) deresolve consts;
                     val dummy_parms = (map str o aux_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (
