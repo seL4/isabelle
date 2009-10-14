@@ -156,9 +156,9 @@ Sets are predicates: \isa{{\isachardoublequote}{\isacharprime}a\ set\ \ {\isacha
 
 \section{Fun}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 \isa{id} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
-\isa{op\ {\isasymcirc}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{op\ {\isasymcirc}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}b} & (\texttt{o})\\
 \isa{inj{\isacharunderscore}on} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ bool}\\
 \isa{inj} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
 \isa{surj} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
@@ -503,6 +503,7 @@ Type \isa{int}
 \isa{list{\isacharunderscore}update} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
 \isa{map} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list}\\
 \isa{measures} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{op\ {\isacharbang}} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a}\\
 \isa{remdups} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
 \isa{removeAll} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
 \isa{remove{\isadigit{1}}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
