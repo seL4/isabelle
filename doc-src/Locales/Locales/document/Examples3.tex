@@ -45,7 +45,7 @@
 %
 \begin{isamarkuptext}%
 In the above example, the fact that \isa{op\ {\isasymle}} is a partial
-  order for the natural numbers was used in the second goal to
+  order for the integers was used in the second goal to
   discharge the premise in the definition of \isa{op\ {\isasymsqsubset}}.  In
   general, proofs of the equations not only may involve definitions
   fromthe interpreted locale but arbitrarily complex arguments in the
@@ -63,22 +63,22 @@ In the above example, the fact that \isa{op\ {\isasymle}} is a partial
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ int{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}partial{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ auto\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{interpret}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ int{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}int{\isacharcomma}\ int{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
-\ nat{\isachardot}less{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ int{\isachardot}less{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 %
@@ -94,7 +94,7 @@ The inner interpretation is immediate from the preceding fact
   and proved by assumption (Isar short hand ``.'').  It enriches the
   local proof context by the theorems
   also obtained in the interpretation from Section~\ref{sec:po-first},
-  and \isa{nat{\isachardot}less{\isacharunderscore}def} may directly be used to unfold the
+  and \isa{int{\isachardot}less{\isacharunderscore}def} may directly be used to unfold the
   definition.  Theorems from the local interpretation disappear after
   leaving the proof context --- that is, after the closing a
   \isakeyword{next} or \isakeyword{qed} statement.%
@@ -121,13 +121,13 @@ Further interpretations are necessary for
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
+\ int{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}lattice\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptxt}%
 \normalsize We have already shown that this is a partial
 	order,%
@@ -145,7 +145,7 @@ Further interpretations are necessary for
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ nat{\isachardot}is{\isacharunderscore}inf{\isacharunderscore}def\ nat{\isachardot}is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}%
+\ {\isacharparenleft}unfold\ int{\isachardot}is{\isacharunderscore}inf{\isacharunderscore}def\ int{\isachardot}is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \normalsize the goals become \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ y{\isachardot}\ {\isasymexists}inf{\isasymle}x{\isachardot}\ inf\ {\isasymle}\ y\ {\isasymand}\ {\isacharparenleft}{\isasymforall}z{\isachardot}\ z\ {\isasymle}\ x\ {\isasymand}\ z\ {\isasymle}\ y\ {\isasymlongrightarrow}\ z\ {\isasymle}\ inf{\isacharparenright}\isanewline
@@ -165,16 +165,16 @@ Further interpretations are necessary for
 \isamarkuptrue%
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{interpret}\isamarkupfalse%
-\ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ int{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}bestsimp\ simp{\isacharcolon}\ nat{\isachardot}meet{\isacharunderscore}def\ nat{\isachardot}is{\isacharunderscore}inf{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isacharparenleft}bestsimp\ simp{\isacharcolon}\ int{\isachardot}meet{\isacharunderscore}def\ int{\isachardot}is{\isacharunderscore}inf{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}bestsimp\ simp{\isacharcolon}\ nat{\isachardot}join{\isacharunderscore}def\ nat{\isachardot}is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isacharparenleft}bestsimp\ simp{\isacharcolon}\ int{\isachardot}join{\isacharunderscore}def\ int{\isachardot}is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 %
 \endisatagvisible
@@ -186,7 +186,7 @@ Further interpretations are necessary for
 %
 \begin{isamarkuptext}%
 Next follows that \isa{op\ {\isasymle}} is a total order, again for
-  the natural numbers.%
+  the integers.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -196,7 +196,7 @@ Next follows that \isa{op\ {\isasymle}} is a total order, again for
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ int{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ arith%
 \endisatagvisible
@@ -208,26 +208,26 @@ Next follows that \isa{op\ {\isasymle}} is a total order, again for
 %
 \begin{isamarkuptext}%
 Theorems that are available in the theory at this point are shown in
-  Table~\ref{tab:nat-lattice}.  Two points are worth noting:
+  Table~\ref{tab:int-lattice}.  Two points are worth noting:
 
 \begin{table}
 \hrule
 \vspace{2ex}
 \begin{center}
 \begin{tabular}{l}
-  \isa{nat{\isachardot}less{\isacharunderscore}def} from locale \isa{partial{\isacharunderscore}order}: \\
+  \isa{int{\isachardot}less{\isacharunderscore}def} from locale \isa{partial{\isacharunderscore}order}: \\
   \quad \isa{{\isacharparenleft}{\isacharquery}x\ {\isacharless}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}} \\
-  \isa{nat{\isachardot}meet{\isacharunderscore}left} from locale \isa{lattice}: \\
+  \isa{int{\isachardot}meet{\isacharunderscore}left} from locale \isa{lattice}: \\
   \quad \isa{min\ {\isacharquery}x\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}x} \\
-  \isa{nat{\isachardot}join{\isacharunderscore}distr} from locale \isa{distrib{\isacharunderscore}lattice}: \\
+  \isa{int{\isachardot}join{\isacharunderscore}distr} from locale \isa{distrib{\isacharunderscore}lattice}: \\
   \quad \isa{max\ {\isacharquery}x\ {\isacharparenleft}min\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ min\ {\isacharparenleft}max\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}max\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
-  \isa{nat{\isachardot}less{\isacharunderscore}total} from locale \isa{total{\isacharunderscore}order}: \\
+  \isa{int{\isachardot}less{\isacharunderscore}total} from locale \isa{total{\isacharunderscore}order}: \\
   \quad \isa{{\isacharquery}x\ {\isacharless}\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}y\ {\isacharless}\ {\isacharquery}x}
 \end{tabular}
 \end{center}
 \hrule
-\caption{Interpreted theorems for \isa{{\isasymle}} on the natural numbers.}
-\label{tab:nat-lattice}
+\caption{Interpreted theorems for \isa{{\isasymle}} on the integers.}
+\label{tab:int-lattice}
 \end{table}
 
 \begin{itemize}
@@ -240,7 +240,7 @@ Theorems that are available in the theory at this point are shown in
   up in the hierarchy, regardless whether imported or proved via the
   \isakeyword{sublocale} command.
 \item
-  Theorem \isa{nat{\isachardot}less{\isacharunderscore}total} makes use of \isa{op\ {\isacharless}}
+  Theorem \isa{int{\isachardot}less{\isacharunderscore}total} makes use of \isa{op\ {\isacharless}}
   although an equation for the replacement of \isa{op\ {\isasymsqsubset}} was only
   given in the interpretation of \isa{partial{\isacharunderscore}order}.  These
   equations are pushed downwards the hierarchy for related
@@ -461,7 +461,7 @@ The interpretations for a locale $n$ within the current
   For example, \isakeyword{print\_interps} \isa{partial{\isacharunderscore}order}
   outputs the following:
 \begin{alltt}
-  nat! : partial_order "op \(\le\)"
+  int! : partial_order "op \(\le\)"
   nat_dvd! : partial_order "op dvd"
 \end{alltt}
   The interpretation qualifiers on the left are decorated with an

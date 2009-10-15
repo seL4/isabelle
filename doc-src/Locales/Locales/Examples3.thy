@@ -8,7 +8,7 @@ subsection {* Third Version: Local Interpretation
   \label{sec:local-interpretation} *}
 
 text {* In the above example, the fact that @{term "op \<le>"} is a partial
-  order for the natural numbers was used in the second goal to
+  order for the integers was used in the second goal to
   discharge the premise in the definition of @{text "op \<sqsubset>"}.  In
   general, proofs of the equations not only may involve definitions
   fromthe interpreted locale but arbitrarily complex arguments in the
@@ -18,21 +18,21 @@ text {* In the above example, the fact that @{term "op \<le>"} is a partial
   The command for local interpretations is \isakeyword{interpret}.  We
   repeat the example from the previous section to illustrate this. *}
 
-  interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-    where "partial_order.less op \<le> (x::nat) y = (x < y)"
+  interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+    where "partial_order.less op \<le> (x::int) y = (x < y)"
   proof -
-    show "partial_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+    show "partial_order (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
       by unfold_locales auto
-    then interpret nat: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool" .
-    show "partial_order.less op \<le> (x::nat) y = (x < y)"
-      unfolding nat.less_def by auto
+    then interpret int: partial_order "op \<le> :: [int, int] \<Rightarrow> bool" .
+    show "partial_order.less op \<le> (x::int) y = (x < y)"
+      unfolding int.less_def by auto
   qed
 
 text {* The inner interpretation is immediate from the preceding fact
   and proved by assumption (Isar short hand ``.'').  It enriches the
   local proof context by the theorems
   also obtained in the interpretation from Section~\ref{sec:po-first},
-  and @{text nat.less_def} may directly be used to unfold the
+  and @{text int.less_def} may directly be used to unfold the
   definition.  Theorems from the local interpretation disappear after
   leaving the proof context --- that is, after the closing a
   \isakeyword{next} or \isakeyword{qed} statement. *}
@@ -42,23 +42,23 @@ subsection {* Further Interpretations *}
 
 text {* Further interpretations are necessary for
   the other locales.  In @{text lattice} the operations @{text \<sqinter>} and
-  @{text \<squnion>} are substituted by @{term "min :: nat \<Rightarrow> nat \<Rightarrow> nat"} and
-  @{term "max :: nat \<Rightarrow> nat \<Rightarrow> nat"}.  The entire proof for the
+  @{text \<squnion>} are substituted by @{term "min :: int \<Rightarrow> int \<Rightarrow> int"} and
+  @{term "max :: int \<Rightarrow> int \<Rightarrow> int"}.  The entire proof for the
   interpretation is reproduced to give an example of a more
   elaborate interpretation proof.  *}
 
-  interpretation %visible nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-    where "lattice.meet op \<le> (x::nat) y = min x y"
-      and "lattice.join op \<le> (x::nat) y = max x y"
+  interpretation %visible int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+    where "lattice.meet op \<le> (x::int) y = min x y"
+      and "lattice.join op \<le> (x::int) y = max x y"
   proof -
-    show "lattice (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+    show "lattice (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
       txt {* \normalsize We have already shown that this is a partial
 	order, *}
       apply unfold_locales
       txt {* \normalsize hence only the lattice axioms remain to be
 	shown: @{subgoals [display]}  After unfolding @{text is_inf} and
 	@{text is_sup}, *}
-      apply (unfold nat.is_inf_def nat.is_sup_def)
+      apply (unfold int.is_inf_def int.is_sup_def)
       txt {* \normalsize the goals become @{subgoals [display]}
 	This can be solved by Presburger arithmetic, which is contained
 	in @{text arith}. *}
@@ -66,40 +66,40 @@ text {* Further interpretations are necessary for
     txt {* \normalsize In order to show the equations, we put ourselves
       in a situation where the lattice theorems can be used in a
       convenient way. *}
-    then interpret nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool" .
-    show "lattice.meet op \<le> (x::nat) y = min x y"
-      by (bestsimp simp: nat.meet_def nat.is_inf_def)
-    show "lattice.join op \<le> (x::nat) y = max x y"
-      by (bestsimp simp: nat.join_def nat.is_sup_def)
+    then interpret int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool" .
+    show "lattice.meet op \<le> (x::int) y = min x y"
+      by (bestsimp simp: int.meet_def int.is_inf_def)
+    show "lattice.join op \<le> (x::int) y = max x y"
+      by (bestsimp simp: int.join_def int.is_sup_def)
   qed
 
 text {* Next follows that @{text "op \<le>"} is a total order, again for
-  the natural numbers. *}
+  the integers. *}
 
-  interpretation %visible nat: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  interpretation %visible int: total_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
     by unfold_locales arith
 
 text {* Theorems that are available in the theory at this point are shown in
-  Table~\ref{tab:nat-lattice}.  Two points are worth noting:
+  Table~\ref{tab:int-lattice}.  Two points are worth noting:
 
 \begin{table}
 \hrule
 \vspace{2ex}
 \begin{center}
 \begin{tabular}{l}
-  @{thm [source] nat.less_def} from locale @{text partial_order}: \\
-  \quad @{thm nat.less_def} \\
-  @{thm [source] nat.meet_left} from locale @{text lattice}: \\
-  \quad @{thm nat.meet_left} \\
-  @{thm [source] nat.join_distr} from locale @{text distrib_lattice}: \\
-  \quad @{thm nat.join_distr} \\
-  @{thm [source] nat.less_total} from locale @{text total_order}: \\
-  \quad @{thm nat.less_total}
+  @{thm [source] int.less_def} from locale @{text partial_order}: \\
+  \quad @{thm int.less_def} \\
+  @{thm [source] int.meet_left} from locale @{text lattice}: \\
+  \quad @{thm int.meet_left} \\
+  @{thm [source] int.join_distr} from locale @{text distrib_lattice}: \\
+  \quad @{thm int.join_distr} \\
+  @{thm [source] int.less_total} from locale @{text total_order}: \\
+  \quad @{thm int.less_total}
 \end{tabular}
 \end{center}
 \hrule
-\caption{Interpreted theorems for @{text \<le>} on the natural numbers.}
-\label{tab:nat-lattice}
+\caption{Interpreted theorems for @{text \<le>} on the integers.}
+\label{tab:int-lattice}
 \end{table}
 
 \begin{itemize}
@@ -112,7 +112,7 @@ text {* Theorems that are available in the theory at this point are shown in
   up in the hierarchy, regardless whether imported or proved via the
   \isakeyword{sublocale} command.
 \item
-  Theorem @{thm [source] nat.less_total} makes use of @{term "op <"}
+  Theorem @{thm [source] int.less_total} makes use of @{term "op <"}
   although an equation for the replacement of @{text "op \<sqsubset>"} was only
   given in the interpretation of @{text partial_order}.  These
   equations are pushed downwards the hierarchy for related
@@ -229,7 +229,7 @@ text {* The interpretations for a locale $n$ within the current
   For example, \isakeyword{print\_interps} @{term partial_order}
   outputs the following:
 \begin{alltt}
-  nat! : partial_order "op \(\le\)"
+  int! : partial_order "op \(\le\)"
   nat_dvd! : partial_order "op dvd"
 \end{alltt}
   The interpretation qualifiers on the left are decorated with an

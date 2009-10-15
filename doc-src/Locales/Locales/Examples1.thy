@@ -18,8 +18,8 @@ text {*
   interpretations in proofs, in
   Section~\ref{sec:local-interpretation}.
 
-  As an example, consider the type of natural numbers @{typ nat}.  The
-  relation @{term "op \<le>"} is a total order over @{typ nat},
+  As an example, consider the type of integers @{typ int}.  The
+  relation @{term "op \<le>"} is a total order over @{typ int},
   divisibility @{text "op dvd"} forms a distributive lattice.  We start with the
   interpretation that @{term "op \<le>"} is a partial order.  The facilities of
   the interpretation command are explored gradually in three versions.
@@ -32,15 +32,15 @@ subsection {* First Version: Replacement of Parameters Only
 text {*
   The command \isakeyword{interpretation} is for the interpretation of
   locale in theories.  In the following example, the parameter of locale
-  @{text partial_order} is replaced by @{term "op \<le> :: nat \<Rightarrow> nat \<Rightarrow>
+  @{text partial_order} is replaced by @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow>
   bool"} and the locale instance is interpreted in the current
   theory. *}
 
-  interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
 txt {* \normalsize
   The argument of the command is a simple \emph{locale expression}
   consisting of the name of the interpreted locale, which is
-  preceded by the qualifier @{text "nat:"} and succeeded by a
+  preceded by the qualifier @{text "int:"} and succeeded by a
   white-space-separated list of terms, which provide a full
   instantiation of the locale parameters.  The parameters are referred
   to by order of declaration, which is also the order in which
@@ -56,9 +56,9 @@ txt {* \normalsize
 text {*  The effect of the command is that instances of all
   conclusions of the locale are available in the theory, where names
   are prefixed by the qualifier.  For example, transitivity for @{typ
-  nat} is named @{thm [source] nat.trans} and is the following
+  int} is named @{thm [source] int.trans} and is the following
   theorem:
-  @{thm [display, indent=2] nat.trans}
+  @{thm [display, indent=2] int.trans}
   It is not possible to reference this theorem simply as @{text
   trans}, which prevents unwanted hiding of existing theorems of the
   theory by an interpretation. *}
@@ -67,20 +67,20 @@ text {*  The effect of the command is that instances of all
 subsection {* Second Version: Replacement of Definitions *}
 
 text {* Not only does the above interpretation qualify theorem names.
-  The prefix @{text nat} is applied to all names introduced in locale
+  The prefix @{text int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
-  qualified name @{text nat.less} refers to
-  the interpretation of the definition, which is @{term nat.less}.
+  qualified name @{text int.less} refers to
+  the interpretation of the definition, which is @{term int.less}.
   Qualified name and expanded form may be used almost
   interchangeably.%
-\footnote{Since @{term "op \<le>"} is polymorphic, for @{term nat.less} a
-  more general type will be inferred than for @{text nat.less} which
-  is over type @{typ nat}.}
+\footnote{Since @{term "op \<le>"} is polymorphic, for @{term int.less} a
+  more general type will be inferred than for @{text int.less} which
+  is over type @{typ int}.}
   The latter is preferred on output, as for example in the theorem
-  @{thm [source] nat.less_le_trans}: @{thm [display, indent=2]
-  nat.less_le_trans}
+  @{thm [source] int.less_le_trans}: @{thm [display, indent=2]
+  int.less_le_trans}
   Both notations for the strict order are not satisfactory.  The
-  constant @{term "op <"} is the strict order for @{typ nat}.
+  constant @{term "op <"} is the strict order for @{typ int}.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the

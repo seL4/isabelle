@@ -36,8 +36,8 @@ Locales can also be interpreted in the contexts of theories and
   interpretations in proofs, in
   Section~\ref{sec:local-interpretation}.
 
-  As an example, consider the type of natural numbers \isa{nat}.  The
-  relation \isa{op\ {\isasymle}} is a total order over \isa{nat},
+  As an example, consider the type of integers \isa{int}.  The
+  relation \isa{op\ {\isasymle}} is a total order over \isa{int},
   divisibility \isa{op\ dvd} forms a distributive lattice.  We start with the
   interpretation that \isa{op\ {\isasymle}} is a partial order.  The facilities of
   the interpretation command are explored gradually in three versions.%
@@ -63,12 +63,12 @@ The command \isakeyword{interpretation} is for the interpretation of
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
+\ int{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
 \begin{isamarkuptxt}%
 \normalsize
   The argument of the command is a simple \emph{locale expression}
   consisting of the name of the interpreted locale, which is
-  preceded by the qualifier \isa{nat{\isacharcolon}} and succeeded by a
+  preceded by the qualifier \isa{int{\isacharcolon}} and succeeded by a
   white-space-separated list of terms, which provide a full
   instantiation of the locale parameters.  The parameters are referred
   to by order of declaration, which is also the order in which
@@ -94,7 +94,7 @@ The command \isakeyword{interpretation} is for the interpretation of
 \begin{isamarkuptext}%
 The effect of the command is that instances of all
   conclusions of the locale are available in the theory, where names
-  are prefixed by the qualifier.  For example, transitivity for \isa{nat} is named \isa{nat{\isachardot}trans} and is the following
+  are prefixed by the qualifier.  For example, transitivity for \isa{int} is named \isa{int{\isachardot}trans} and is the following
   theorem:
   \begin{isabelle}%
 \ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymle}\ {\isacharquery}z%
@@ -110,22 +110,22 @@ The effect of the command is that instances of all
 %
 \begin{isamarkuptext}%
 Not only does the above interpretation qualify theorem names.
-  The prefix \isa{nat} is applied to all names introduced in locale
+  The prefix \isa{int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
-  qualified name \isa{nat{\isachardot}less} refers to
+  qualified name \isa{int{\isachardot}less} refers to
   the interpretation of the definition, which is \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}}.
   Qualified name and expanded form may be used almost
   interchangeably.%
 \footnote{Since \isa{op\ {\isasymle}} is polymorphic, for \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}} a
-  more general type will be inferred than for \isa{nat{\isachardot}less} which
-  is over type \isa{nat}.}
+  more general type will be inferred than for \isa{int{\isachardot}less} which
+  is over type \isa{int}.}
   The latter is preferred on output, as for example in the theorem
-  \isa{nat{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \begin{isabelle}%
+  \isa{int{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \begin{isabelle}%
 \ \ {\isasymlbrakk}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\isanewline
 \isaindent{\ \ }{\isasymLongrightarrow}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}z%
 \end{isabelle}
   Both notations for the strict order are not satisfactory.  The
-  constant \isa{op\ {\isacharless}} is the strict order for \isa{nat}.
+  constant \isa{op\ {\isacharless}} is the strict order for \isa{int}.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the
