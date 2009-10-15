@@ -20,7 +20,7 @@ sig
   val messages: int option -> unit
   val add_prover: string * ATP_Wrapper.prover -> theory -> theory
   val print_provers: theory -> unit
-  val get_prover: string -> theory -> ATP_Wrapper.prover option
+  val get_prover: theory -> string -> ATP_Wrapper.prover option
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
@@ -302,7 +302,7 @@ fun add_prover (name, prover) thy =
 fun print_provers thy = Pretty.writeln
   (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
 
-fun get_prover name thy =
+fun get_prover thy name =
   (case Symtab.lookup (Provers.get thy) name of
     NONE => NONE
   | SOME (prover, _) => SOME prover);
@@ -311,7 +311,7 @@ fun get_prover name thy =
 (* start prover thread *)
 
 fun start_prover name birthtime deadtime i proof_state =
-  (case get_prover name (Proof.theory_of proof_state) of
+  (case get_prover (Proof.theory_of proof_state) name of
     NONE => warning ("Unknown external prover: " ^ quote name)
   | SOME prover =>
       let

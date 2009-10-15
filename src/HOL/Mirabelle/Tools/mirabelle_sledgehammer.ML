@@ -287,7 +287,7 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 fun get_atp thy args =
   AList.lookup (op =) args proverK
   |> the_default (hd (ATP_Manager.get_atps ()))  (* FIXME partial *)
-  |> (fn name => (name, the (ATP_Manager.get_prover name thy)))  (* FIXME partial *)
+  |> (fn name => (name, the (ATP_Manager.get_prover thy name)))  (* FIXME partial *)
 
 local
 

@@ -13,33 +13,14 @@ end
 structure ATP_Minimal: ATP_MINIMAL =
 struct
 
-(* output control *)
-
-fun debug str = Output.debug (fn () => str)
-fun debug_fn f = if ! Output.debugging then f () else ()
-fun answer str = Output.writeln str
-fun println str = Output.priority str
-
-fun order_unique name_list = OrdList.make (String.collate Char.compare) name_list
-fun length_string namelist = Int.toString (length namelist)
-
-fun print_names name_thms_pairs =
-  let
-    val names = map fst name_thms_pairs
-    val ordered = order_unique names
-  in
-    app (fn name => (debug ("  " ^ name))) ordered
-  end
-
-
 (* minimalization algorithm *)
 
 local
-  fun isplit (l,r) [] = (l,r)
-    | isplit (l,r) (h::[]) = (h::l, r)
-    | isplit (l,r) (h1::h2::t) = isplit (h1::l, h2::r) t
+  fun isplit (l, r) [] = (l, r)
+    | isplit (l, r) [h] = (h :: l, r)
+    | isplit (l, r) (h1 :: h2 :: t) = isplit (h1 :: l, h2 :: r) t
 in
-  fun split lst = isplit ([],[]) lst
+  fun split lst = isplit ([], []) lst
 end
 
 local
@@ -69,14 +50,14 @@ in
          forall e in v. ~p(v \ e)
    *)
   fun minimal p s =
-    let val c = Unsynchronized.ref 0
-        fun pc xs = (c := !c + 1; p xs)
-    in
-    (case min pc [] s of
-       [x] => if pc [] then [] else [x]
-     | m => m,
-     !c)
-    end
+    let
+      val count = Unsynchronized.ref 0
+      fun p_count xs = (Unsynchronized.inc count; p xs)
+      val v =
+        (case min p_count [] s of
+          [x] => if p_count [] then [] else [x]
+        | m => m);
+    in (v, ! count) end
 end
 
 
@@ -102,18 +83,17 @@ fun produce_answer (result: ATP_Wrapper.prover_result) =
     val {success, proof = result_string, internal_thm_names = thm_name_vec,
       filtered_clauses = filtered, ...} = result
   in
-  if success then
-    (Success (Vector.foldr op:: [] thm_name_vec, filtered), result_string)
-  else
-    let
-      val failure = failure_strings |> get_first (fn (s, t) =>
-          if String.isSubstring s result_string then SOME (t, result_string) else NONE)
-    in
-      if is_some failure then
-        the failure
-      else
-        (Failure, result_string)
-    end
+    if success then
+      (Success (Vector.foldr (op ::) [] thm_name_vec, filtered), result_string)
+    else
+      let
+        val failure = failure_strings |> get_first (fn (s, t) =>
+            if String.isSubstring s result_string then SOME (t, result_string) else NONE)
+      in
+        (case failure of
+          SOME res => res
+        | NONE => (Failure, result_string))
+      end
   end
 
 
@@ -121,9 +101,8 @@ fun produce_answer (result: ATP_Wrapper.prover_result) =
 
 fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
   let
-    val _ = println ("Testing " ^ (length_string name_thms_pairs) ^ " theorems... ")
+    val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^ " theorems... ")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
-    val _ = debug_fn (fn () => print_names name_thm_pairs)
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val problem =
      {with_full_types = ! ATP_Manager.full_types,
@@ -132,8 +111,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
       axiom_clauses = SOME axclauses,
       filtered_clauses = filtered}
     val (result, proof) = produce_answer (prover problem time_limit)
-    val _ = println (string_of_result result)
-    val _ = debug proof
+    val _ = priority (string_of_result result)
   in
     (result, proof)
   end
@@ -144,21 +122,18 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
 fun minimalize prover prover_name time_limit state name_thms_pairs =
   let
     val _ =
-      println ("Minimize called with " ^ length_string name_thms_pairs ^ " theorems, prover: "
-        ^ prover_name ^ ", time limit: " ^ Int.toString time_limit ^ " seconds")
-    val _ = debug_fn (fn () => app (fn (n, tl) =>
-        (debug n; app (fn t =>
-          debug ("  " ^ Display.string_of_thm (Proof.context_of state) t)) tl)) name_thms_pairs)
+      priority ("Minimize called with " ^ string_of_int (length name_thms_pairs) ^
+        " theorems, prover: " ^ prover_name ^
+        ", time limit: " ^ string_of_int time_limit ^ " seconds")
     val test_thms_fun = sh_test_thms prover time_limit 1 state
     fun test_thms filtered thms =
       case test_thms_fun filtered thms of (Success _, _) => true | _ => false
-    val answer' = pair and answer'' = pair NONE
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of
       (Success (used, filtered), _) =>
         let
-          val ordered_used = order_unique used
+          val ordered_used = sort_distinct string_ord used
           val to_use =
             if length ordered_used < length name_thms_pairs then
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
@@ -166,25 +141,24 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
               name_thms_pairs
           val (min_thms, n) = if null to_use then ([], 0)
             else minimal (test_thms (SOME filtered)) to_use
-          val min_names = order_unique (map fst min_thms)
-          val _ = println ("Interations: " ^ string_of_int n)
-          val _ = println ("Minimal " ^ (length_string min_thms) ^ " theorems")
-          val _ = debug_fn (fn () => print_names min_thms)
+          val min_names = sort_distinct string_ord (map fst min_thms)
+          val _ = priority (cat_lines
+            ["Interations: " ^ string_of_int n,
+              "Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
         in
-          answer' (SOME(min_thms,n)) ("Try this command: " ^
+          (SOME (min_thms, n), "Try this command: " ^
             Markup.markup Markup.sendback ("apply (metis " ^ space_implode " " min_names ^ ")"))
         end
     | (Timeout, _) =>
-        answer'' ("Timeout: You may need to increase the time limit of " ^
-          Int.toString time_limit ^ " seconds. Call atp_minimize [time=...] ")
+        (NONE, "Timeout: You may need to increase the time limit of " ^
+          string_of_int time_limit ^ " seconds. Call atp_minimize [time=...] ")
     | (Error, msg) =>
-        answer'' ("Error in prover: " ^ msg)
+        (NONE, "Error in prover: " ^ msg)
     | (Failure, _) =>
-        answer'' "Failure: No proof with the theorems supplied")
+        (NONE, "Failure: No proof with the theorems supplied"))
     handle ResHolClause.TOO_TRIVIAL =>
-        answer' (SOME ([],0)) ("Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
-    | ERROR msg =>
-        answer'' ("Error: " ^ msg)
+        (SOME ([], 0), "Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
+      | ERROR msg => (NONE, "Error: " ^ msg)
   end
 
 
@@ -210,28 +184,24 @@ fun get_time_limit_arg time_string =
     SOME t => t
   | NONE => error ("Invalid time limit: " ^ quote time_string))
 
-val get_options =
-  let
-    val def = (default_prover, default_time_limit)
-  in
-    foldl (fn ((name, a), (p, t)) =>
-      (case name of
-        "time" => (p, (get_time_limit_arg a))
-      | "atp" => (a, t)
-      | n => error ("Invalid argument: " ^ n))) def
-  end
+fun get_opt (name, a) (p, t) =
+  (case name of
+    "time" => (p, get_time_limit_arg a)
+  | "atp" => (a, t)
+  | n => error ("Invalid argument: " ^ n))
+
+fun get_options args = fold get_opt args (default_prover, default_time_limit)
 
 fun sh_min_command args thm_names state =
   let
     val (prover_name, time_limit) = get_options args
     val prover =
-      case ATP_Manager.get_prover prover_name (Proof.theory_of state) of
+      (case ATP_Manager.get_prover (Proof.theory_of state) prover_name of
         SOME prover => prover
-      | NONE => error ("Unknown prover: " ^ quote prover_name)
+      | NONE => error ("Unknown prover: " ^ quote prover_name))
     val name_thms_pairs = get_thms (Proof.context_of state) thm_names
-    fun print_answer (_, msg) = answer msg
   in
-    print_answer (minimalize prover prover_name time_limit state name_thms_pairs)
+    writeln (#2 (minimalize prover prover_name time_limit state name_thms_pairs))
   end
 
 val parse_args = Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
