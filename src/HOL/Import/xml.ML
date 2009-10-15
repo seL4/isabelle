@@ -137,7 +137,7 @@ fun parse_content xs =
         || parse_pi >> K []
         || parse_comment >> K []) --
        Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) []
-         >> op @) >> List.concat) >> op @)(* --| scan_whspc*)) xs
+         >> op @) >> flat) >> op @)(* --| scan_whspc*)) xs
 
 and parse_elem xs =
   ($$ "<" |-- scan_id --

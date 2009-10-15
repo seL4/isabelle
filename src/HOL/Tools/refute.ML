@@ -281,7 +281,7 @@ struct
       if null terms then
         "empty interpretation (no free variables in term)\n"
       else
-        cat_lines (List.mapPartial (fn (t, intr) =>
+        cat_lines (map_filter (fn (t, intr) =>
           (* print constants only if 'show_consts' is true *)
           if (!show_consts) orelse not (is_Const t) then
             SOME (Syntax.string_of_term_global thy t ^ ": " ^
@@ -395,7 +395,7 @@ struct
     (* TODO: it is currently not possible to specify a size for a type    *)
     (*       whose name is one of the other parameters (e.g. 'maxvars')   *)
     (* (string * int) list *)
-    val sizes     = List.mapPartial
+    val sizes     = map_filter
       (fn (name, value) => Option.map (pair name) (Int.fromString value))
       (List.filter (fn (name, _) => name<>"minsize" andalso name<>"maxsize"
         andalso name<>"maxvars" andalso name<>"maxtime"
@@ -994,8 +994,7 @@ struct
                     (* collect argument types *)
                     val acc_dtyps = List.foldr collect_dtyp acc_dT dtyps
                     (* collect constructor types *)
-                    val acc_dconstrs = List.foldr collect_dtyp acc_dtyps
-                      (List.concat (map snd dconstrs))
+                    val acc_dconstrs = List.foldr collect_dtyp acc_dtyps (maps snd dconstrs)
                   in
                     acc_dconstrs
                   end
@@ -1389,7 +1388,7 @@ struct
       map single xs
       | pick_all n xs =
       let val rec_pick = pick_all (n-1) xs in
-        List.concat (map (fn x => map (cons x) rec_pick) xs)
+        maps (fn x => map (cons x) rec_pick) xs
       end
     (* returns all constant interpretations that have the same tree *)
     (* structure as the interpretation argument                     *)
@@ -1582,7 +1581,7 @@ struct
       map single xs
       | pick_all (xs::xss) =
       let val rec_pick = pick_all xss in
-        List.concat (map (fn x => map (cons x) rec_pick) xs)
+        maps (fn x => map (cons x) rec_pick) xs
       end
       | pick_all _ =
       raise REFUTE ("interpretation_apply", "empty list (in pick_all)")
@@ -2068,7 +2067,7 @@ struct
             map single xs
           | pick_all n xs =
             let val rec_pick = pick_all (n-1) xs in
-              List.concat (map (fn x => map (cons x) rec_pick) xs)
+              maps (fn x => map (cons x) rec_pick) xs
             end
           (* ["x1", ..., "xn"] *)
           val terms1 = canonical_terms typs T1
@@ -2131,13 +2130,13 @@ struct
                 end
             in
               (* C_i ... < C_j ... if i < j *)
-              List.concat (map (fn (cname, ctyps) =>
+              maps (fn (cname, ctyps) =>
                 let
                   val cTerm = Const (cname,
                     map (typ_of_dtyp descr typ_assoc) ctyps ---> T)
                 in
                   constructor_terms [cTerm] ctyps
-                end) constrs)
+                end) constrs
             end)
         | NONE =>
           (* not an inductive datatype; in this case the argument types in *)
@@ -2483,14 +2482,14 @@ struct
                     (* of the parameter must be ignored                     *)
                     if List.exists (equal True) xs then [pi] else []
                     | ci_pi (Node xs, Node ys) =
-                    List.concat (map ci_pi (xs ~~ ys))
+                    maps ci_pi (xs ~~ ys)
                     | ci_pi (Node _, Leaf _) =
                     raise REFUTE ("IDT_recursion_interpreter",
                       "constructor takes more arguments than the " ^
                         "associated parameter")
                   (* (int * interpretation list) list *)
                   val rec_operators = map (fn (idx, c_p_intrs) =>
-                    (idx, List.concat (map ci_pi c_p_intrs))) mc_p_intrs
+                    (idx, maps ci_pi c_p_intrs)) mc_p_intrs
                   (* sanity check: every recursion operator must provide as  *)
                   (*               many values as the corresponding datatype *)
                   (*               has elements                              *)
@@ -3080,8 +3079,7 @@ struct
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
       in
-        SOME (Node (List.concat (map (replicate size_U) constants_T)),
-          model, args)
+        SOME (Node (maps (replicate size_U) constants_T), model, args)
       end
     | _ =>
       NONE;
@@ -3100,7 +3098,7 @@ struct
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U
       in
-        SOME (Node (List.concat (replicate size_T constants_U)), model, args)
+        SOME (Node (flat (replicate size_T constants_U)), model, args)
       end
     | _ =>
       NONE;

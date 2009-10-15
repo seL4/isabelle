@@ -422,7 +422,7 @@ fun stringify_deps thm_names deps_map [] = []
                fun fix lno = if lno <= Vector.length thm_names
                              then SOME(Vector.sub(thm_names,lno-1))
                              else AList.lookup op= deps_map lno;
-           in  (lname, t, List.mapPartial fix (distinct (op=) deps)) ::
+           in  (lname, t, map_filter fix (distinct (op=) deps)) ::
                stringify_deps thm_names ((lno,lname)::deps_map) lines
            end;
 
@@ -451,7 +451,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
       val _ = trace "\ndecode_tstp_file: finishing\n"
   in
-    isar_header (map #1 fixes) ^ String.concat ilines ^ "qed\n"
+    isar_header (map #1 fixes) ^ implode ilines ^ "qed\n"
   end;
 
 
@@ -504,7 +504,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       | inputno ("cnf"::ntok::"negated"::"conjecture"::_) = Int.fromString ntok
       | inputno _ = NONE
     val lines = split_lines proofextract
-    in  List.mapPartial (inputno o toks) lines  end
+    in  map_filter (inputno o toks) lines  end
   (*String contains multiple lines. We want those of the form
     "253[0:Inp] et cetera..."
     A list consisting of the first number in each line is returned. *)
@@ -513,7 +513,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
       | inputno _ = NONE
     val lines = split_lines proofextract
-    in  List.mapPartial (inputno o toks) lines  end
+    in  map_filter (inputno o toks) lines  end
     
   (*extracting lemmas from tstp-output between the lines from above*)
   fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =

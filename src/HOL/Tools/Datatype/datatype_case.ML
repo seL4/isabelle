@@ -241,8 +241,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                   val types = map type_of (case_functions @ [u]);
                   val case_const = Const (case_name, types ---> range_ty)
                   val tree = list_comb (case_const, case_functions @ [u])
-                  val pat_rect1 = flat (map mk_pat
-                    (constructors ~~ constructors' ~~ pat_rect))
+                  val pat_rect1 = maps mk_pat (constructors ~~ constructors' ~~ pat_rect)
                 in (pat_rect1, tree)
                 end)
             | SOME (t, i) => raise CASE_ERROR ("Not a datatype constructor: " ^

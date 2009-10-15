@@ -89,7 +89,7 @@ fun mk_intr_tms sg (rec_tm, constructs) =
 	               $ rec_tm))
   in  map mk_intr constructs  end;
 
-fun mk_all_intr_tms sg arg = List.concat (ListPair.map (mk_intr_tms sg) arg);
+fun mk_all_intr_tms sg arg = flat (ListPair.map (mk_intr_tms sg) arg);
 
 fun mk_Un (t1, t2) = @{const Un} $ t1 $ t2;
 

@@ -906,7 +906,7 @@ fun select_mode_prem thy modes vs ps =
             val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
             val vTs = maps term_vTs out_ts';
             val dupTs = map snd (duplicates (op =) vTs) @
-              List.mapPartial (AList.lookup (op =) vTs) vs;
+              map_filter (AList.lookup (op =) vTs) vs;
           in
             terms_vs (in_ts @ in_ts') subset vs andalso
             forall (is_eqT o fastype_of) in_ts' andalso
@@ -950,10 +950,10 @@ fun param_gen_prem param_vs (p as Prem (us, t as Free (v, _))) =
   
 fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts, ps) =
   let
-    val modes' = modes @ List.mapPartial
+    val modes' = modes @ map_filter
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (param_vs ~~ iss);
-    val gen_modes' = gen_modes @ List.mapPartial
+    val gen_modes' = gen_modes @ map_filter
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (param_vs ~~ iss);  
     val vTs = distinct (op =) ((fold o fold_prem) Term.add_frees ps (fold Term.add_frees ts []))
@@ -1547,9 +1547,9 @@ fun prove_match thy (out_ts : term list) = let
     if (is_constructor thy t) then let
       val case_rewrites = (#case_rewrites (Datatype.the_info thy
         ((fst o dest_Type o fastype_of) t)))
-      in case_rewrites @ (flat (map get_case_rewrite (snd (strip_comb t)))) end
+      in case_rewrites @ maps get_case_rewrite (snd (strip_comb t)) end
     else []
-  val simprules = @{thm "unit.cases"} :: @{thm "prod.cases"} :: (flat (map get_case_rewrite out_ts))
+  val simprules = @{thm "unit.cases"} :: @{thm "prod.cases"} :: maps get_case_rewrite out_ts
 (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
 in
    (* make this simpset better! *)

@@ -206,8 +206,8 @@ let
 		     let
 			 val strict_a = (case toplevel_arity_of c of SOME sa => sa | NONE => a)
 			 val _ = if strict_a > a then raise Compile "strict" else ()
-			 val s = module_prefix^"c"^(str c)^(concat (map (fn t => " "^(protect_blank (print_term d t))) (List.take (args, strict_a))))
-			 val s = s^(concat (map (fn t => " (fn () => "^print_term d t^")") (List.drop (List.take (args, a), strict_a))))
+			 val s = module_prefix^"c"^(str c)^(implode (map (fn t => " "^(protect_blank (print_term d t))) (List.take (args, strict_a))))
+			 val s = s^(implode (map (fn t => " (fn () => "^print_term d t^")") (List.drop (List.take (args, a), strict_a))))
 		     in
 			 print_apps d s (List.drop (args, a))
 		     end
@@ -273,9 +273,9 @@ fun print_rule gnum arity_of toplevel_arity_of (guards, p, t) =
 	val lazy_vars = the (arity_of c) - the (toplevel_arity_of c)
 	fun print_tm tm = print_term NONE arity_of toplevel_arity_of n lazy_vars tm
         fun print_guard (Guard (a,b)) = "term_eq ("^(print_tm a)^") ("^(print_tm b)^")"
-	val else_branch = "c"^(str c)^"_"^(str (gnum+1))^(concat (map (fn i => " a"^(str i)) (section (the (arity_of c)))))
+	val else_branch = "c"^(str c)^"_"^(str (gnum+1))^(implode (map (fn i => " a"^(str i)) (section (the (arity_of c)))))
 	fun print_guards t [] = print_tm t
-	  | print_guards t (g::gs) = "if ("^(print_guard g)^")"^(concat (map (fn g => " andalso ("^(print_guard g)^")") gs))^" then ("^(print_tm t)^") else "^else_branch
+	  | print_guards t (g::gs) = "if ("^(print_guard g)^")"^(implode (map (fn g => " andalso ("^(print_guard g)^")") gs))^" then ("^(print_tm t)^") else "^else_branch
     in
 	(if null guards then gnum else gnum+1, pattern^" = "^(print_guards t guards))
     end
@@ -307,15 +307,15 @@ fun sml_prog name code rules =
 	val constants = Inttab.keys arity
 	fun arity_of c = Inttab.lookup arity c
 	fun toplevel_arity_of c = Inttab.lookup toplevel_arity c
-	fun rep_str s n = concat (rep n s)
+	fun rep_str s n = implode (rep n s)
 	fun indexed s n = s^(str n)
         fun string_of_tuple [] = ""
-	  | string_of_tuple (x::xs) = "("^x^(concat (map (fn s => ", "^s) xs))^")"
+	  | string_of_tuple (x::xs) = "("^x^(implode (map (fn s => ", "^s) xs))^")"
         fun string_of_args [] = ""
-	  | string_of_args (x::xs) = x^(concat (map (fn s => " "^s) xs))
+	  | string_of_args (x::xs) = x^(implode (map (fn s => " "^s) xs))
 	fun default_case gnum c = 
 	    let
-		val leftargs = concat (map (indexed " x") (section (the (arity_of c))))
+		val leftargs = implode (map (indexed " x") (section (the (arity_of c))))
 		val rightargs = section (the (arity_of c))
 		val strict_args = (case toplevel_arity_of c of NONE => the (arity_of c) | SOME sa => sa)
 		val xs = map (fn n => if n < strict_args then "x"^(str n) else "x"^(str n)^"()") rightargs
@@ -374,7 +374,7 @@ fun sml_prog name code rules =
 		"structure "^name^" = struct",
 		"",
 		"datatype Term = Const of int | App of Term * Term | Abs of (Term -> Term)",
-		"         "^(concat (map (fn c => " | C"^(str c)^(mk_constr_type_args (the (arity_of c)))) constants)),
+		"         "^(implode (map (fn c => " | C"^(str c)^(mk_constr_type_args (the (arity_of c)))) constants)),
 		""]
 	fun make_constr c argprefix = "(C"^(str c)^" "^(string_of_tuple (map (fn i => argprefix^(str i)) (section (the (arity_of c)))))^")"
 	fun make_term_eq c = "  | term_eq "^(make_constr c "a")^" "^(make_constr c "b")^" = "^
@@ -385,7 +385,7 @@ fun sml_prog name code rules =
 				      val eqs = map (fn i => "term_eq a"^(str i)^" b"^(str i)) (section n)
 				      val (eq, eqs) = (List.hd eqs, map (fn s => " andalso "^s) (List.tl eqs))
 				  in
-				      eq^(concat eqs)
+				      eq^(implode eqs)
 				  end)
 	val _ = writelist [
 		"fun term_eq (Const c1) (Const c2) = (c1 = c2)",
@@ -421,7 +421,7 @@ fun sml_prog name code rules =
 							(gnum, r::l)::rs
 						    else
 							let
-							    val args = concat (map (fn i => " a"^(str i)) (section (the (arity_of c))))
+							    val args = implode (map (fn i => " a"^(str i)) (section (the (arity_of c))))
 							    fun gnumc g = if g > 0 then "c"^(str c)^"_"^(str g)^args else "c"^(str c)^args
 							    val s = gnumc (gnum) ^ " = " ^ gnumc (gnum') 
 							in
@@ -444,7 +444,7 @@ fun sml_prog name code rules =
 		val leftargs = 
 		    case args of
 			[] => ""
-		      | (x::xs) => "("^x^(concat (map (fn s => ", "^s) xs))^")"
+		      | (x::xs) => "("^x^(implode (map (fn s => ", "^s) xs))^")"
 		val args = map (indexed "convert a") (section (the (arity_of c)))
 		val right = fold (fn x => fn s => "AM_SML.App ("^s^", "^x^")") args ("AM_SML.Const "^(str c))
 	    in

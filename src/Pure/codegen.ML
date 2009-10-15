@@ -742,8 +742,7 @@ fun default_tycodegen thy defs dep module brack (TVar ((s, i), _)) gr =
 
 fun mk_tuple [p] = p
   | mk_tuple ps = Pretty.block (str "(" ::
-      List.concat (separate [str ",", Pretty.brk 1] (map single ps)) @
-        [str ")"]);
+      flat (separate [str ",", Pretty.brk 1] (map single ps)) @ [str ")"]);
 
 fun mk_let bindings body =
   Pretty.blk (0, [str "let", Pretty.brk 1,

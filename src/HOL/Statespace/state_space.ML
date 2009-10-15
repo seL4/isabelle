@@ -369,7 +369,7 @@ fun parent_components thy (Ts, pname, renaming) =
     val inst = map fst args ~~ Ts;
     val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
     val parent_comps =
-     List.concat (map (fn (Ts',n,rs) => parent_components thy (map subst Ts',n,rs)) parents);
+      maps (fn (Ts',n,rs) => parent_components thy (map subst Ts',n,rs)) parents;
     val all_comps = rename renaming (parent_comps @ map (apsnd subst) components);
   in all_comps end;
 
@@ -403,10 +403,9 @@ fun statespace_definition state_type args name parents parent_comps components t
                     (("",false),Expression.Positional 
                              [SOME (Free (project_name T,projectT T)), 
                               SOME (Free ((inject_name T,injectT T)))]))) Ts;
-    val locs = flat (map (fn T => [(Binding.name (project_name T),NONE,NoSyn),
-                                     (Binding.name (inject_name T),NONE,NoSyn)]) Ts);
-    val constrains = List.concat
-         (map (fn T => [(project_name T,projectT T),(inject_name T,injectT T)]) Ts);
+    val locs = maps (fn T => [(Binding.name (project_name T),NONE,NoSyn),
+                                     (Binding.name (inject_name T),NONE,NoSyn)]) Ts;
+    val constrains = maps (fn T => [(project_name T,projectT T),(inject_name T,injectT T)]) Ts;
 
     fun interprete_parent_valuetypes (Ts, pname, _) thy =
       let
@@ -414,7 +413,7 @@ fun statespace_definition state_type args name parents parent_comps components t
              the (Symtab.lookup (StateSpaceData.get (Context.Theory thy)) pname);
         val inst = map fst args ~~ Ts;
         val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
-        val pars = List.concat (map ((fn T => [project_name T,inject_name T]) o subst) types);
+        val pars = maps ((fn T => [project_name T,inject_name T]) o subst) types;
 
         val expr = ([(suffix valuetypesN name, 
                      (("",false),Expression.Positional (map SOME pars)))],[]);
@@ -562,7 +561,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
     fun fst_eq ((x:string,_),(y,_)) = x = y;
     fun snd_eq ((_,t:typ),(_,u)) = t = u;
 
-    val raw_parent_comps = (List.concat (map (parent_components thy) parents'));
+    val raw_parent_comps = maps (parent_components thy) parents';
     fun check_type (n,T) =
           (case distinct (snd_eq) (filter (curry fst_eq (n,T)) raw_parent_comps) of
              []  => []
@@ -570,7 +569,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
            | rs  => ["Different types for component " ^ n ^": " ^
                 commas (map (Syntax.string_of_typ ctxt o snd) rs)])
 
-    val err_dup_types = List.concat (map check_type (duplicates fst_eq raw_parent_comps))
+    val err_dup_types = maps check_type (duplicates fst_eq raw_parent_comps)
 
     val parent_comps = distinct (fst_eq) raw_parent_comps;
     val all_comps = parent_comps @ comps';

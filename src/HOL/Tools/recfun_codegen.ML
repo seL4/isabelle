@@ -119,7 +119,7 @@ fun add_rec_funs thy defs dep module eqs gr =
                let
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
                  val module' = if_library thyname module;
-                 val eqs'' = map (dest_eq o prop_of) (List.concat (map fst thmss));
+                 val eqs'' = map (dest_eq o prop_of) (maps fst thmss);
                  val (fundef', gr3) = mk_fundef module' "" true eqs''
                    (add_edge (dname, dep)
                      (List.foldr (uncurry new_node) (del_nodes xs gr2)

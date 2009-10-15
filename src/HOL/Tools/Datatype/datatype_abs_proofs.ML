@@ -49,7 +49,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
   let
     val _ = message config "Proving case distinction theorems ...";
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
 
@@ -95,7 +95,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val big_name = space_implode "_" new_type_names;
     val thy0 = Sign.add_path big_name thy;
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
@@ -278,7 +278,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
 
     val thy1 = Sign.add_path (space_implode "_" new_type_names) thy;
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
@@ -312,14 +312,14 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
             end) (constrs ~~ (1 upto length constrs)));
 
           val caseT = (map (snd o dest_Free) fns1) @ [T] ---> T';
-          val fns = (List.concat (Library.take (i, case_dummy_fns))) @
-            fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns)));
+          val fns = flat (Library.take (i, case_dummy_fns)) @
+            fns2 @ flat (Library.drop (i + 1, case_dummy_fns));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
           val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
           val def = (Binding.name (Long_Name.base_name name ^ "_def"),
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
-              list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @
-                fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns))) )));
+              list_comb (reccomb, (flat (Library.take (i, case_dummy_fns))) @
+                fns2 @ (flat (Library.drop (i + 1, case_dummy_fns))) )));
           val ([def_thm], thy') =
             thy
             |> Sign.declare_const [] decl |> snd

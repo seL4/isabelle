@@ -329,7 +329,7 @@ fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
       REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST
         [atac 1,
-         resolve_tac (List.concat (map mk_mono monos) @ get_monos ctxt) 1,
+         resolve_tac (maps mk_mono monos @ get_monos ctxt) 1,
          etac @{thm le_funE} 1, dtac @{thm le_boolD} 1])]));
 
 

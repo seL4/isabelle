@@ -58,7 +58,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
       val (saved_spec_simps, lthy) =
         fold_map (LocalTheory.note Thm.generatedK) spec lthy
 
-      val saved_simps = flat (map snd saved_spec_simps)
+      val saved_simps = maps snd saved_spec_simps
       val simps_by_f = sort saved_simps
 
       fun add_for_f fname simps =

@@ -384,8 +384,8 @@ fun infer_types ctxt =
                   SOME _ => NONE          (*type instantiations are forbidden!*)
                 | NONE   => SOME (a,t)    (*internal Metis var?*)
         val _ = Output.debug (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
-        val substs = List.mapPartial remove_typeinst (Metis.Subst.toList fsubst)
-        val (vars,rawtms) = ListPair.unzip (List.mapPartial subst_translation substs)
+        val substs = map_filter remove_typeinst (Metis.Subst.toList fsubst)
+        val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
         val tms = infer_types ctxt rawtms;
         val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
         val substs' = ListPair.zip (vars, map ctm_of tms)
@@ -664,7 +664,7 @@ fun infer_types ctxt =
   fun FOL_SOLVE mode ctxt cls ths0 =
     let val thy = ProofContext.theory_of ctxt
         val th_cls_pairs = map (fn th => (Thm.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
-        val ths = List.concat (map #2 th_cls_pairs)
+        val ths = maps #2 th_cls_pairs
         val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
         val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) cls
         val _ = Output.debug (fn () => "THEOREM CLAUSES")
@@ -690,7 +690,7 @@ fun infer_types ctxt =
                                (*add constraints arising from converting goal to clause form*)
                   val proof = Metis.Proof.proof mth
                   val result = translate mode ctxt' axioms proof
-                  and used = List.mapPartial (used_axioms axioms) proof
+                  and used = map_filter (used_axioms axioms) proof
                   val _ = Output.debug (fn () => "METIS COMPLETED...clauses actually used:")
 	          val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) used
 	          val unused = filter (fn (a,cls) => not (common_thm used cls)) th_cls_pairs

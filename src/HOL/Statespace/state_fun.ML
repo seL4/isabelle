@@ -333,7 +333,7 @@ fun mkUpper str =
     [] => ""
    | c::cs => String.implode (Char.toUpper c::cs ))
 
-fun mkName (Type (T,args)) = concat (map mkName args) ^ mkUpper (Long_Name.base_name T)
+fun mkName (Type (T,args)) = implode (map mkName args) ^ mkUpper (Long_Name.base_name T)
   | mkName (TFree (x,_)) = mkUpper (Long_Name.base_name x)
   | mkName (TVar ((x,_),_)) = mkUpper (Long_Name.base_name x);
 
@@ -347,7 +347,7 @@ fun gen_constr_destr comp prfx thy (Type (T,[])) =
   | gen_constr_destr comp prfx thy (T as Type ("fun",_)) =
      let val (argTs,rangeT) = strip_type T;
      in comp 
-          (Syntax.const (deco prfx (concat (map mkName argTs) ^ "Fun")))
+          (Syntax.const (deco prfx (implode (map mkName argTs) ^ "Fun")))
           (fold (fn x => fn y => x$y)
                (replicate (length argTs) (Syntax.const "StateFun.map_fun"))
                (gen_constr_destr comp prfx thy rangeT))
@@ -361,7 +361,7 @@ fun gen_constr_destr comp prfx thy (Type (T,[])) =
                      ((mk_map T $ gen_constr_destr comp prfx thy argT))
           | _ => raise (TYPE ("StateFun.gen_constr_destr",[T'],[])))
      else (* type args are not recursively embedded into val *)
-           Syntax.const (deco prfx (concat (map mkName argTs) ^ mkUpper (Long_Name.base_name T)))
+           Syntax.const (deco prfx (implode (map mkName argTs) ^ mkUpper (Long_Name.base_name T)))
   | gen_constr_destr thy _ _ T = raise (TYPE ("StateFun.gen_constr_destr",[T],[]));
                    
 val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const "Fun.comp" $ a $ b) ""

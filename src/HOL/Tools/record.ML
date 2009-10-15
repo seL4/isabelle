@@ -656,7 +656,7 @@ fun add_parents _ NONE parents = parents
 
         fun bad_inst ((x, S), T) =
           if Sign.of_sort thy (T, S) then NONE else SOME x
-        val bads = List.mapPartial bad_inst (args ~~ types);
+        val bads = map_filter bad_inst (args ~~ types);
         val _ = null bads orelse err ("Ill-sorted instantiation of " ^ commas bads ^ " in");
 
         val inst = map fst args ~~ types;
@@ -1362,7 +1362,7 @@ val record_upd_simproc =
           | mk_updterm us _ _ = raise TERM ("mk_updterm match", map (fn (x, _, _) => x) us);
 
         val (lhs, rhs, vars, _, simp, noops) = mk_updterm upds Symtab.empty base;
-        val noops' = flat (map snd (Symtab.dest noops));
+        val noops' = maps snd (Symtab.dest noops);
       in
         if simp then
           SOME
@@ -1521,7 +1521,7 @@ fun record_split_simp_tac thms P i st =
               end)
       | split_free_tac _ _ _ = NONE;
 
-    val split_frees_tacs = List.mapPartial (split_free_tac P i) frees;
+    val split_frees_tacs = map_filter (split_free_tac P i) frees;
 
     val simprocs = if has_rec goal then [record_split_simproc P] else [];
     val thms' = K_comp_convs @ thms;
@@ -1860,7 +1860,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (bfields, field_syntax) =
       split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
 
-    val parent_fields = List.concat (map #fields parents);
+    val parent_fields = maps #fields parents;
     val parent_chunks = map (length o #fields) parents;
     val parent_names = map fst parent_fields;
     val parent_types = map snd parent_fields;

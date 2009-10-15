@@ -735,7 +735,7 @@ fun indexComps components =
     ListPair.map (fn (a,b) => (a,b)) (0 upto (length components -1), components);
 
 fun indexNodes IndexComp =
-    List.concat (map (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp);
+    maps (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp;
 
 fun getIndex v [] = ~1
 |   getIndex v ((v',k)::vs) = if v aconv v' then k else getIndex v vs;
@@ -1142,9 +1142,9 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
     fun processComponent (k, comp) =
      let
         (* all edges with weight <= of the actual component *)
-        val leqEdges = List.concat (map (adjacent (op aconv) leqG) comp);
+        val leqEdges = maps (adjacent (op aconv) leqG) comp;
         (* all edges with weight ~= of the actual component *)
-        val neqEdges = map snd (List.concat (map (adjacent (op aconv) neqG) comp));
+        val neqEdges = map snd (maps (adjacent (op aconv) neqG) comp);
 
        (* find an edge leading to a contradiction *)
        fun findContr [] = NONE
@@ -1231,7 +1231,7 @@ in
    val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
    val Hs = map prop_of prems @ map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
    val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-   val lesss = List.concat (ListPair.map (mkasm decomp less_thms thy) (Hs, 0 upto (length Hs - 1)))
+   val lesss = flat (ListPair.map (mkasm decomp less_thms thy) (Hs, 0 upto (length Hs - 1)))
    val prfs = gen_solve mkconcl thy (lesss, C);
    val (subgoals, prf) = mkconcl decomp less_thms thy C;
   in

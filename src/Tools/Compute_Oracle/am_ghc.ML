@@ -84,7 +84,7 @@ let
 	     in
 		 if a <= len then 
 		     let
-			 val s = "c"^(str c)^(concat (map (fn t => " "^(protect_blank (print_term d t))) (List.take (args, a))))
+			 val s = "c"^(str c)^(implode (map (fn t => " "^(protect_blank (print_term d t))) (List.take (args, a))))
 		     in
 			 print_apps d s (List.drop (args, a))
 		     end
@@ -154,19 +154,19 @@ fun haskell_prog name rules =
 	val rules = group_rules rules
 	val constants = Inttab.keys arity
 	fun arity_of c = Inttab.lookup arity c
-	fun rep_str s n = concat (rep n s)
+	fun rep_str s n = implode (rep n s)
 	fun indexed s n = s^(str n)
 	fun section n = if n = 0 then [] else (section (n-1))@[n-1]
 	fun make_show c = 
 	    let
 		val args = section (the (arity_of c))
 	    in
-		"  show ("^(indexed "C" c)^(concat (map (indexed " a") args))^") = "
-		^"\""^(indexed "C" c)^"\""^(concat (map (fn a => "++(show "^(indexed "a" a)^")") args))
+		"  show ("^(indexed "C" c)^(implode (map (indexed " a") args))^") = "
+		^"\""^(indexed "C" c)^"\""^(implode (map (fn a => "++(show "^(indexed "a" a)^")") args))
 	    end
 	fun default_case c = 
 	    let
-		val args = concat (map (indexed " x") (section (the (arity_of c))))
+		val args = implode (map (indexed " x") (section (the (arity_of c))))
 	    in
 		(indexed "c" c)^args^" = "^(indexed "C" c)^args
 	    end
@@ -174,7 +174,7 @@ fun haskell_prog name rules =
 		"module "^name^" where",
 		"",
 		"data Term = Const Integer | App Term Term | Abs (Term -> Term)",
-		"         "^(concat (map (fn c => " | C"^(str c)^(rep_str " Term" (the (arity_of c)))) constants)),
+		"         "^(implode (map (fn c => " | C"^(str c)^(rep_str " Term" (the (arity_of c)))) constants)),
 		"",
 		"instance Show Term where"]
 	val _ = writelist (map make_show constants)

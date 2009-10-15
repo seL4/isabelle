@@ -103,7 +103,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
       (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Bound 0) (Bound 0)))
         (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names);
     val r = if null is then Extraction.nullt else
-      foldr1 HOLogic.mk_prod (List.mapPartial (fn (((((i, _), T), U), s), tname) =>
+      foldr1 HOLogic.mk_prod (map_filter (fn (((((i, _), T), U), s), tname) =>
         if i mem is then SOME
           (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
         else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));

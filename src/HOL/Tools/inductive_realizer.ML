@@ -225,7 +225,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
         let
           val Type ("fun", [U, _]) = T;
           val a :: names' = names
-        in (list_abs_free (("x", U) :: List.mapPartial (fn intr =>
+        in (list_abs_free (("x", U) :: map_filter (fn intr =>
           Option.map (pair (name_of_fn intr))
             (AList.lookup (op =) frees (name_of_fn intr))) intrs,
           list_comb (Const (a, Ts ---> T), fs) $ Free ("x", U)), names')
@@ -300,7 +300,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       fold (fn s => AxClass.axiomatize_arity
         (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames |>
         Extraction.add_typeof_eqns_i ty_eqs;
-    val dts = List.mapPartial (fn (s, rs) => if s mem rsets then
+    val dts = map_filter (fn (s, rs) => if s mem rsets then
       SOME (dt_of_intrs thy1' vs nparms rs) else NONE) rss;
 
     (** datatype representing computational content of inductive set **)
@@ -332,7 +332,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       (Extraction.realizes_of thy2 vs
         (if c = Extraction.nullt then c else list_comb (c, map Var (rev
           (Term.add_vars (prop_of intr) []) \\ params'))) (prop_of intr)))
-            (maps snd rss ~~ List.concat constrss);
+            (maps snd rss ~~ flat constrss);
     val (rlzpreds, rlzpreds') =
       rintrs |> map (fn rintr =>
         let
@@ -470,9 +470,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       (map (mk_realizer thy4 vs) (map (fn (((rule, rrule), rlz), c) =>
          (name_of_thm rule, rule, rrule, rlz,
             list_comb (c, map Var (rev (Term.add_vars (prop_of rule) []) \\ params'))))
-              (List.concat (map snd rss) ~~ #intrs ind_info ~~ rintrs ~~
-                 List.concat constrss))) thy4;
-    val elimps = List.mapPartial (fn ((s, intrs), p) =>
+              (maps snd rss ~~ #intrs ind_info ~~ rintrs ~~ flat constrss))) thy4;
+    val elimps = map_filter (fn ((s, intrs), p) =>
       if s mem rsets then SOME (p, intrs) else NONE)
         (rss' ~~ (elims ~~ #elims ind_info));
     val thy6 = Library.foldl (fn (thy, p as (((((elim, _), _), _), _), _)) => thy |>

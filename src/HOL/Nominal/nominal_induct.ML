@@ -50,10 +50,10 @@ fun inst_mutual_rule ctxt insts avoiding rules =
       in
         (P, tuple_fun (map #2 avoiding) (Term.dest_Var P)) ::
         (x, tuple (map Free avoiding)) ::
-        List.mapPartial (fn (z, SOME t) => SOME (z, t) | _ => NONE) (zs ~~ inst)
+        map_filter (fn (z, SOME t) => SOME (z, t) | _ => NONE) (zs ~~ inst)
       end;
      val substs =
-       map2 subst insts concls |> List.concat |> distinct (op =)
+       map2 subst insts concls |> flat |> distinct (op =)
        |> map (pairself (Thm.cterm_of (ProofContext.theory_of ctxt)));
   in 
     (((cases, nconcls), consumes), Drule.cterm_instantiate substs joined_rule) 
@@ -98,7 +98,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
     (fn i => fn st =>
       rules
       |> inst_mutual_rule ctxt insts avoiding
-      |> RuleCases.consume (List.concat defs) facts
+      |> RuleCases.consume (flat defs) facts
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS

@@ -124,7 +124,7 @@ fun indtac indrule indnames i st =
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
     val cert = cterm_of (Thm.theory_of_thm st);
-    val insts = List.mapPartial (fn (t, u) => case abstr (getP u) of
+    val insts = map_filter (fn (t, u) => case abstr (getP u) of
         NONE => NONE
       | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u')) (ts ~~ ts');
     val indrule' = cterm_instantiate insts indrule
@@ -279,7 +279,7 @@ fun interpret_construction descr vs { atyp, dtyp } =
 
 fun check_nonempty descr =
   let
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     fun is_nonempty_dt is i =
       let
         val (_, _, constrs) = (the o AList.lookup (op =) descr') i;

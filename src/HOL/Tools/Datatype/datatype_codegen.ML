@@ -69,17 +69,17 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
                (if null tvs then [] else
                   [mk_tuple (map str tvs), str " "]) @
                [str (type_id ^ " ="), Pretty.brk 1] @
-               List.concat (separate [Pretty.brk 1, str "| "]
+               flat (separate [Pretty.brk 1, str "| "]
                  (map (fn (ps', (_, cname)) => [Pretty.block
                    (str cname ::
                     (if null ps' then [] else
-                     List.concat ([str " of", Pretty.brk 1] ::
+                     flat ([str " of", Pretty.brk 1] ::
                        separate [str " *", Pretty.brk 1]
                          (map single ps'))))]) ps))) :: rest, gr''')
           end;
 
     fun mk_constr_term cname Ts T ps =
-      List.concat (separate [str " $", Pretty.brk 1]
+      flat (separate [str " $", Pretty.brk 1]
         ([str ("Const (\"" ^ cname ^ "\","), Pretty.brk 1,
           mk_type false (Ts ---> T), str ")"] :: ps));
 
@@ -148,7 +148,7 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
             fun mk_choice [c] = mk_constr "(i-1)" false c
               | mk_choice cs = Pretty.block [str "one_of",
                   Pretty.brk 1, Pretty.blk (1, str "[" ::
-                  List.concat (separate [str ",", Pretty.fbrk]
+                  flat (separate [str ",", Pretty.fbrk]
                     (map (single o mk_delay o mk_constr "(i-1)" false) cs)) @
                   [str "]"]), Pretty.brk 1, str "()"];
 
@@ -242,7 +242,7 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
               end;
 
         val (ps1, gr1) = pcase constrs ts1 Ts gr ;
-        val ps = List.concat (separate [Pretty.brk 1, str "| "] ps1);
+        val ps = flat (separate [Pretty.brk 1, str "| "] ps1);
         val (p, gr2) = invoke_codegen thy defs dep module false t gr1;
         val (ps2, gr3) = fold_map (invoke_codegen thy defs dep module true) ts2 gr2;
       in ((if not (null ts2) andalso brack then parens else I)

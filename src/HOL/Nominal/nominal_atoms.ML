@@ -851,7 +851,7 @@ fun create_nom_typedecls ak_names thy =
              val cps' = 
                 let fun cps'_fun ak1 ak2 = 
                 if ak1=ak2 then NONE else SOME (PureThy.get_thm thy32 ("cp_"^ak1^"_"^ak2^"_inst"))
-                in map (fn aki => (List.mapPartial I (map (cps'_fun aki) ak_names))) ak_names end;
+                in map (fn aki => (map_filter I (map (cps'_fun aki) ak_names))) ak_names end;
              (* list of all dj_inst-theorems *)
              val djs = 
                let fun djs_fun ak1 ak2 = 
@@ -999,7 +999,7 @@ fun create_nom_typedecls ak_names thy =
          prm_cons_thms ~~ prm_inst_thms ~~
          map (fn ths => Symtab.make (full_ak_names ~~ ths)) cp_thms ~~
          map (fn thss => Symtab.make
-           (List.mapPartial (fn (s, [th]) => SOME (s, th) | _ => NONE)
+           (map_filter (fn (s, [th]) => SOME (s, th) | _ => NONE)
               (full_ak_names ~~ thss))) dj_thms))) thy33
     end;
 

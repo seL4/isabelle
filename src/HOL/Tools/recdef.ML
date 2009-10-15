@@ -209,7 +209,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
       thy
       |> Sign.add_path bname
       |> PureThy.add_thmss
-        (((Binding.name "simps", List.concat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
+        (((Binding.name "simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
       ||>> PureThy.add_thms [((Binding.name "induct", induct), [])];
     val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =

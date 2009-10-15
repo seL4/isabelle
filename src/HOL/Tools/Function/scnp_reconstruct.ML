@@ -316,7 +316,7 @@ fun print_error ctxt D = CALLS (fn (cs, i) =>
     fun index xs = (1 upto length xs) ~~ xs
     fun outp s t f xs = map (fn (x, y) => s ^ Int.toString x ^ t ^ f y ^ "\n") xs
     val ims = index (map index ms)
-    val _ = tracing (concat (outp "fn #" ":\n" (concat o outp "\tmeasure #" ": " (Syntax.string_of_term ctxt)) ims))
+    val _ = tracing (implode (outp "fn #" ":\n" (implode o outp "\tmeasure #" ": " (Syntax.string_of_term ctxt)) ims))
     fun print_call (k, c) =
       let
         val (_, p, _, q, _, _) = dest_call D c
@@ -325,8 +325,8 @@ fun print_error ctxt D = CALLS (fn (cs, i) =>
         val caller_ms = nth ms p
         val callee_ms = nth ms q
         val entries = map (fn x => map (pair x) (callee_ms)) (caller_ms)
-        fun print_ln (i : int, l) = concat (Int.toString i :: "   " :: map (enclose " " " " o print_cell o (uncurry (get_descent D c))) l)
-        val _ = tracing (concat (Int.toString (p + 1) ^ "|" ^ Int.toString (q + 1) ^ 
+        fun print_ln (i : int, l) = implode (Int.toString i :: "   " :: map (enclose " " " " o print_cell o (uncurry (get_descent D c))) l)
+        val _ = tracing (implode (Int.toString (p + 1) ^ "|" ^ Int.toString (q + 1) ^ 
                                         " " :: map (enclose " " " " o Int.toString) (1 upto length callee_ms)) ^ "\n" 
                                 ^ cat_lines (map print_ln ((1 upto (length entries)) ~~ entries)))
       in

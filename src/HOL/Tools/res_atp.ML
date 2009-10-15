@@ -251,7 +251,7 @@ fun relevant_clauses max_new thy ctab p rel_consts =
   let fun relevant ([],_) [] = [] : (thm * (string * int)) list  (*Nothing added this iteration*)
 	| relevant (newpairs,rejects) [] =
 	    let val (newrels,more_rejects) = take_best max_new newpairs
-		val new_consts = List.concat (map #2 newrels)
+		val new_consts = maps #2 newrels
 		val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
 		val newp = p + (1.0-p) / convergence
 	    in
@@ -425,7 +425,7 @@ fun get_clasimp_atp_lemmas ctxt =
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
 (***************************************************************)
 
-fun add_classes (sorts, cset) = List.foldl setinsert cset (List.concat sorts);
+fun add_classes (sorts, cset) = List.foldl setinsert cset (flat sorts);
 
 (*Remove this trivial type class*)
 fun delete_type cset = Symtab.delete_safe "HOL.type" cset;

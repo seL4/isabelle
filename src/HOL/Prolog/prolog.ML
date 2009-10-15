@@ -106,7 +106,7 @@ fun hyp_resolve_tac i st = let
         in Library.foldl (op APPEND) (no_tac, ptacs) st end;
 
 fun ptac ctxt prog = let
-  val proga = List.concat (map (atomizeD ctxt) prog)                   (* atomize the prog *)
+  val proga = maps (atomizeD ctxt) prog         (* atomize the prog *)
   in    (REPEAT_DETERM1 o FIRST' [
                 rtac TrueI,                     (* "True" *)
                 rtac conjI,                     (* "[| P; Q |] ==> P & Q" *)

@@ -1017,7 +1017,7 @@ fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
               (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
           in
             SOME (Codegen.mk_app brack
-              (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, List.concat
+              (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, flat
                   (separate [Codegen.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
                     [Pretty.block [Codegen.str "val ", pl, Codegen.str " =",
                        Pretty.brk 1, pr]]) qs))),

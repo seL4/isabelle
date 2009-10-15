@@ -938,7 +938,7 @@ fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
     val ruleq = Drule.multi_resolves facts rules;
   in
     Method.trace ctxt rules;
-    fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq)
+    fn st => Seq.maps (fn rule => Tactic.rtac rule i st) ruleq
   end)
   THEN_ALL_NEW Goal.norm_hhf_tac;
 

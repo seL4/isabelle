@@ -233,7 +233,7 @@ struct
   let
     (* string -> int list *)
     fun int_list_from_string s =
-      List.mapPartial Int.fromString (space_explode " " s)
+      map_filter Int.fromString (space_explode " " s)
     (* int list -> assignment *)
     fun assignment_from_list [] i =
       NONE  (* the SAT solver didn't provide a value for this variable *)
@@ -350,8 +350,7 @@ struct
     o (map (map literal_from_int))
     o clauses
     o (map int_from_string)
-    o List.concat
-    o (map (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
+    o (maps (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
     o filter_preamble
     o (List.filter (fn l => l <> ""))
     o split_lines

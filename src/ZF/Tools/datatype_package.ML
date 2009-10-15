@@ -146,13 +146,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (_, case_lists) = List.foldr add_case_list (1,[]) con_ty_lists;
 
   (*extract the types of all the variables*)
-  val case_typ = List.concat (map (map (#2 o #1)) con_ty_lists) ---> @{typ "i => i"};
+  val case_typ = maps (map (#2 o #1)) con_ty_lists ---> @{typ "i => i"};
 
   val case_base_name = big_rec_base_name ^ "_case";
   val case_name = full_name case_base_name;
 
   (*The list of all the function variables*)
-  val case_args = List.concat (map (map #1) case_lists);
+  val case_args = maps (map #1) case_lists;
 
   val case_const = Const (case_name, case_typ);
   val case_tm = list_comb (case_const, case_args);
@@ -218,19 +218,18 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (_, recursor_lists) = List.foldr add_case_list (1,[]) rec_ty_lists;
 
   (*extract the types of all the variables*)
-  val recursor_typ = List.concat (map (map (#2 o #1)) rec_ty_lists) ---> @{typ "i => i"};
+  val recursor_typ = maps (map (#2 o #1)) rec_ty_lists ---> @{typ "i => i"};
 
   val recursor_base_name = big_rec_base_name ^ "_rec";
   val recursor_name = full_name recursor_base_name;
 
   (*The list of all the function variables*)
-  val recursor_args = List.concat (map (map #1) recursor_lists);
+  val recursor_args = maps (map #1) recursor_lists;
 
   val recursor_tm =
     list_comb (Const (recursor_name, recursor_typ), recursor_args);
 
-  val recursor_cases = map call_recursor
-                         (List.concat case_lists ~~ List.concat recursor_lists)
+  val recursor_cases = map call_recursor (flat case_lists ~~ flat recursor_lists);
 
   val recursor_def =
       PrimitiveDefs.mk_defpair
@@ -252,16 +251,15 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (con_defs, thy0) = thy_path
              |> Sign.add_consts_i
                  (map (fn (c, T, mx) => (Binding.name c, T, mx))
-                  ((case_base_name, case_typ, NoSyn) :: map #1 (List.concat con_ty_lists)))
+                  ((case_base_name, case_typ, NoSyn) :: map #1 (flat con_ty_lists)))
              |> PureThy.add_defs false
                  (map (Thm.no_attributes o apfst Binding.name)
                   (case_def ::
-                   List.concat (ListPair.map mk_con_defs
-                         (1 upto npart, con_ty_lists))))
+                   flat (ListPair.map mk_con_defs (1 upto npart, con_ty_lists))))
              ||> add_recursor
              ||> Sign.parent_path
 
-  val intr_names = map (Binding.name o #2) (List.concat con_ty_lists);
+  val intr_names = map (Binding.name o #2) (flat con_ty_lists);
   val (thy1, ind_result) =
     thy0 |> Ind_Package.add_inductive_i
       false (rec_tms, dom_sum) (map Thm.no_attributes (intr_names ~~ intr_tms))
@@ -296,9 +294,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   val free_iffs = map standard (con_defs RL [@{thm def_swap_iff}]);
 
-  val case_eqns =
-      map prove_case_eqn
-         (List.concat con_ty_lists ~~ case_args ~~ tl con_defs);
+  val case_eqns = map prove_case_eqn (flat con_ty_lists ~~ case_args ~~ tl con_defs);
 
   (*** Prove the recursor theorems ***)
 
@@ -336,7 +332,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                simp_tac (rank_ss addsimps case_eqns) 1,
                IF_UNSOLVED (simp_tac (rank_ss addsimps tl con_defs) 1)]);
       in
-         map prove_recursor_eqn (List.concat con_ty_lists ~~ recursor_cases)
+         map prove_recursor_eqn (flat con_ty_lists ~~ recursor_cases)
       end
 
   val constructors =

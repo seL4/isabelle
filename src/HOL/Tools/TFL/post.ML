@@ -188,7 +188,7 @@ prefer leaving more fine-grain control to the user.
 -- Lucas Dixon, Aug 2004 *)
 local
   fun get_related_thms i = 
-      List.mapPartial ((fn (r,x) => if x = i then SOME r else NONE));
+      map_filter ((fn (r,x) => if x = i then SOME r else NONE));
 
   fun solve_eq (th, [], i) = 
         error "derive_init_eqs: missing rules"
@@ -209,8 +209,7 @@ fun derive_init_eqs sgn rules eqs =
       fun countlist l = 
           (rev o snd o (Library.foldl (fn ((i,L), e) => (i + 1,(e,i) :: L)))) ((0,[]), l)
     in
-      List.concat (map (fn (e,i) => solve_eq (e, (get_related_thms i rules), i))
-                (countlist eqths))
+      maps (fn (e,i) => solve_eq (e, (get_related_thms i rules), i)) (countlist eqths)
     end;
 end;
 
