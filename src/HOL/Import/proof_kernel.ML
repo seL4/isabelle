@@ -1909,7 +1909,7 @@ fun DISCH tm hth thy =
         (thy,res)
     end
 
-val spaces = String.concat o separate " "
+val spaces = space_implode " "
 
 fun new_definition thyname constname rhs thy =
     let
