@@ -97,10 +97,10 @@ val failure_strings =
    ("# Cannot determine problem status within resource limit", Timeout),
    ("Error", Error)]
 
-fun produce_answer result =
+fun produce_answer (result: ATP_Wrapper.prover_result) =
   let
-    val ATP_Wrapper.Prover_Result {success, message, proof=result_string,
-      internal_thm_names=thm_name_vec, filtered_clauses=filtered, ...} = result
+    val {success, message, proof = result_string,
+      internal_thm_names = thm_name_vec, filtered_clauses = filtered, ...} = result
   in
   if success then
     (Success (Vector.foldr op:: [] thm_name_vec, filtered), result_string)
@@ -125,12 +125,12 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val _ = debug_fn (fn () => print_names name_thm_pairs)
     val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
-    val problem = ATP_Wrapper.ATP_Problem {
-      with_full_types = ! ATP_Manager.full_types,
+    val problem =
+     {with_full_types = ! ATP_Manager.full_types,
       subgoal = subgoalno,
       goal = Proof.get_goal state,
       axiom_clauses = SOME axclauses,
-      filtered_clauses = filtered }
+      filtered_clauses = filtered}
     val (result, proof) = produce_answer (prover problem time_limit)
     val _ = println (string_of_result result)
     val _ = debug proof

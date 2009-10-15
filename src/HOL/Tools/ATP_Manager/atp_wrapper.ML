@@ -12,28 +12,27 @@ sig
   val setup: theory -> theory
 
   (*prover configuration, problem format, and prover result*)
-  datatype prover_config = Prover_Config of {
-    command: Path.T,
+  type prover_config =
+   {command: Path.T,
     arguments: int -> string,
     max_new_clauses: int,
     insert_theory_const: bool,
-    emit_structured_proof: bool }
-  datatype atp_problem = ATP_Problem of {
-    with_full_types: bool,
+    emit_structured_proof: bool}
+  type atp_problem =
+   {with_full_types: bool,
     subgoal: int,
     goal: Proof.context * (thm list * thm),
     axiom_clauses: (thm * (string * int)) list option,
-    filtered_clauses: (thm * (string * int)) list option }
-  val atp_problem_of_goal: bool -> int -> Proof.context * (thm list * thm) ->
-    atp_problem
-  datatype prover_result = Prover_Result of {
-    success: bool,
+    filtered_clauses: (thm * (string * int)) list option}
+  val atp_problem_of_goal: bool -> int -> Proof.context * (thm list * thm) -> atp_problem
+  type prover_result =
+   {success: bool,
     message: string,
     theorem_names: string list,
     runtime: int,
     proof: string,
     internal_thm_names: string Vector.vector,
-    filtered_clauses: (thm * (string * int)) list }
+    filtered_clauses: (thm * (string * int)) list}
   type prover = atp_problem -> int -> prover_result
 
   (*common provers*)
@@ -67,37 +66,37 @@ val setup = destdir_setup #> problem_prefix_setup;
 
 (* prover configuration, problem format, and prover result *)
 
-datatype prover_config = Prover_Config of {
-  command: Path.T,
+type prover_config =
+ {command: Path.T,
   arguments: int -> string,
   max_new_clauses: int,
   insert_theory_const: bool,
-  emit_structured_proof: bool }
+  emit_structured_proof: bool};
 
-datatype atp_problem = ATP_Problem of {
-  with_full_types: bool,
+type atp_problem =
+ {with_full_types: bool,
   subgoal: int,
   goal: Proof.context * (thm list * thm),
   axiom_clauses: (thm * (string * int)) list option,
-  filtered_clauses: (thm * (string * int)) list option }
+  filtered_clauses: (thm * (string * int)) list option};
 
-fun atp_problem_of_goal with_full_types subgoal goal = ATP_Problem {
-  with_full_types = with_full_types,
+fun atp_problem_of_goal with_full_types subgoal goal : atp_problem =
+ {with_full_types = with_full_types,
   subgoal = subgoal,
   goal = goal,
   axiom_clauses = NONE,
-  filtered_clauses = NONE }
+  filtered_clauses = NONE};
 
-datatype prover_result = Prover_Result of {
-  success: bool,
+type prover_result =
+ {success: bool,
   message: string,
-  theorem_names: string list,  (* relevant theorems *)
-  runtime: int,  (* user time of the ATP, in milliseconds *)
+  theorem_names: string list,  (*relevant theorems*)
+  runtime: int,  (*user time of the ATP, in milliseconds*)
   proof: string,
   internal_thm_names: string Vector.vector,
-  filtered_clauses: (thm * (string * int)) list }
+  filtered_clauses: (thm * (string * int)) list};
 
-type prover = atp_problem -> int -> prover_result
+type prover = atp_problem -> int -> prover_result;
 
 
 (* basic template *)
@@ -106,7 +105,7 @@ fun with_path cleanup after f path =
   Exn.capture f path
   |> tap (fn _ => cleanup path)
   |> Exn.release
-  |> tap (after path)
+  |> tap (after path);
 
 fun external_prover relevance_filter preparer writer cmd args find_failure produce_answer
   axiom_clauses filtered_clauses name subgoalno goal =
@@ -178,9 +177,9 @@ fun external_prover relevance_filter preparer writer cmd args find_failure produ
         (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno))
     val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
   in
-    Prover_Result {success=success, message=message,
-      theorem_names=real_thm_names, runtime=time, proof=proof,
-      internal_thm_names = thm_names, filtered_clauses=the_filtered_clauses}
+    {success = success, message = message,
+      theorem_names = real_thm_names, runtime = time, proof = proof,
+      internal_thm_names = thm_names, filtered_clauses = the_filtered_clauses}
   end
 
 
@@ -188,10 +187,9 @@ fun external_prover relevance_filter preparer writer cmd args find_failure produ
 
 fun gen_tptp_prover (name, prover_config) problem timeout =
   let
-    val Prover_Config {max_new_clauses, insert_theory_const,
-      emit_structured_proof, command, arguments} = prover_config
-    val ATP_Problem {with_full_types, subgoal, goal, axiom_clauses,
-      filtered_clauses} = problem
+    val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
+      prover_config
+    val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
   in
     external_prover
       (ResAtp.get_relevant max_new_clauses insert_theory_const)
@@ -201,7 +199,7 @@ fun gen_tptp_prover (name, prover_config) problem timeout =
       (arguments timeout)
       ResReconstruct.find_failure
       (if emit_structured_proof then ResReconstruct.structured_proof
-        else ResReconstruct.lemma_list false)
+       else ResReconstruct.lemma_list false)
       axiom_clauses
       filtered_clauses
       name
@@ -210,6 +208,7 @@ fun gen_tptp_prover (name, prover_config) problem timeout =
   end
 
 fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config))
+
 
 
 (** common provers **)
@@ -221,13 +220,13 @@ fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config))
 val vampire_max_new_clauses = 60
 val vampire_insert_theory_const = false
 
-fun vampire_prover_config full = Prover_Config {
-  command = Path.explode "$VAMPIRE_HOME/vampire",
+fun vampire_prover_config full : prover_config =
+ {command = Path.explode "$VAMPIRE_HOME/vampire",
   arguments = (fn timeout => "--output_syntax tptp --mode casc" ^
     " -t " ^ string_of_int timeout),
   max_new_clauses = vampire_max_new_clauses,
   insert_theory_const = vampire_insert_theory_const,
-  emit_structured_proof = full }
+  emit_structured_proof = full}
 
 val vampire = tptp_prover ("vampire", vampire_prover_config false)
 val vampire_full = tptp_prover ("vampire_full", vampire_prover_config true)
@@ -238,13 +237,13 @@ val vampire_full = tptp_prover ("vampire_full", vampire_prover_config true)
 val eprover_max_new_clauses = 100
 val eprover_insert_theory_const = false
 
-fun eprover_config full = Prover_Config {
-  command = Path.explode "$E_HOME/eproof",
+fun eprover_config full : prover_config =
+ {command = Path.explode "$E_HOME/eproof",
   arguments = (fn timeout => "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev" ^
     " --silent --cpu-limit=" ^ string_of_int timeout),
   max_new_clauses = eprover_max_new_clauses,
   insert_theory_const = eprover_insert_theory_const,
-  emit_structured_proof = full }
+  emit_structured_proof = full}
 
 val eprover = tptp_prover ("e", eprover_config false)
 val eprover_full = tptp_prover ("e_full", eprover_config true)
@@ -255,20 +254,19 @@ val eprover_full = tptp_prover ("e_full", eprover_config true)
 val spass_max_new_clauses = 40
 val spass_insert_theory_const = true
 
-fun spass_config insert_theory_const = Prover_Config {
-  command = Path.explode "$SPASS_HOME/SPASS",
+fun spass_config insert_theory_const: prover_config =
+ {command = Path.explode "$SPASS_HOME/SPASS",
   arguments = (fn timeout => "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0" ^
     " -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout),
   max_new_clauses = spass_max_new_clauses,
   insert_theory_const = insert_theory_const,
-  emit_structured_proof = false }
+  emit_structured_proof = false}
 
 fun gen_dfg_prover (name, prover_config) problem timeout =
   let
-    val Prover_Config {max_new_clauses, insert_theory_const,
-      emit_structured_proof, command, arguments} = prover_config
-    val ATP_Problem {with_full_types, subgoal, goal, axiom_clauses,
-      filtered_clauses} = problem
+    val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
+      prover_config
+    val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
   in
     external_prover
       (ResAtp.get_relevant max_new_clauses insert_theory_const)
@@ -316,13 +314,13 @@ fun get_the_system prefix =
     NONE => error ("No system like " ^ quote prefix ^ " at SystemOnTPTP")
   | SOME sys => sys)
 
-fun remote_prover_config prover_prefix args max_new insert_tc = Prover_Config {
-  command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
+fun remote_prover_config prover_prefix args max_new insert_tc: prover_config =
+ {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
   arguments = (fn timeout => args ^ " -t " ^ string_of_int timeout ^ " -s " ^
     get_the_system prover_prefix),
   max_new_clauses = max_new,
   insert_theory_const = insert_tc,
-  emit_structured_proof = false }
+  emit_structured_proof = false}
 
 val remote_vampire = tptp_prover ("remote_vampire", remote_prover_config
   "Vampire---9" "" vampire_max_new_clauses vampire_insert_theory_const)
