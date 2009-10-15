@@ -63,7 +63,7 @@ case $HOSTNAME in
         ;;
   
     sunbroy2)
-        MFLAGS="-k -j 2"
+        MFLAGS="-k -j 6"
         NICE="nice"
         ;;
 
