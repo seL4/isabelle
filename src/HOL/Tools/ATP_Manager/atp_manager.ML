@@ -90,7 +90,7 @@ type state =
   messages: string list,
   store: string list};
 
-fun make_state manager timeout_heap oldest_heap active cancelling messages store =
+fun make_state manager timeout_heap oldest_heap active cancelling messages store : state =
   {manager = manager, timeout_heap = timeout_heap, oldest_heap = oldest_heap,
     active = active, cancelling = cancelling, messages = messages, store = store};
 
