@@ -69,7 +69,7 @@ val _ =
 
 (* data structures over threads *)
 
-structure Thread_Heap = HeapFun
+structure Thread_Heap = Heap
 (
   type elem = Time.time * Thread.thread;
   fun ord ((a, _), (b, _)) = Time.compare (a, b);
