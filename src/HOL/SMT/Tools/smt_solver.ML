@@ -114,7 +114,7 @@ in
 
 fun run_solver ctxt {env_var, remote_name} args output =
   let
-    val qf = File.shell_path and qq = enclose "'" "'"
+    val qf = File.shell_path and qq = File.shell_quote
     val path = getenv env_var and remote = getenv "REMOTE_SMT_SOLVER"
     fun cmd f1 f2 =
       if path <> ""

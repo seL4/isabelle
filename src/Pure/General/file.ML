@@ -7,6 +7,7 @@ File system operations.
 signature FILE =
 sig
   val platform_path: Path.T -> string
+  val shell_quote: string -> string
   val shell_path: Path.T -> string
   val cd: Path.T -> unit
   val pwd: unit -> Path.T
