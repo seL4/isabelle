@@ -59,8 +59,8 @@ fun run_solver name cmd find_failure input =
     val output_file = filename dir "sos_out"
     val (output, rv) = system_out (
       if File.exists cmd then space_implode " "
-        [File.shell_path cmd, File.platform_path input_file, File.platform_path output_file]
-      else error ("Bad executable: " ^ File.shell_path cmd))
+        [File.shell_path cmd, File.shell_path input_file, File.shell_path output_file]
+      else error ("Bad executable: " ^ File.platform_path cmd))
  
     (* read and analysize output *)
     val (res, res_msg) = find_failure rv

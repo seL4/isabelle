@@ -53,7 +53,7 @@ struct
 
 (** generic ATP wrapper **)
 
-(* hooks for writing problem files *)
+(* external problem files *)
 
 val (destdir, destdir_setup) = Attrib.config_string "atp_destdir" "";
   (*Empty string means create files in Isabelle's temporary files directory.*)
@@ -108,7 +108,7 @@ fun with_path cleanup after f path =
   |> tap (after path);
 
 fun external_prover relevance_filter prepare write cmd args find_failure produce_answer
-  axiom_clauses filtered_clauses name subgoalno goal =
+    axiom_clauses filtered_clauses name subgoalno goal =
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
@@ -141,7 +141,7 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
 
     (* write out problem file and call prover *)
     fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
-      [File.shell_path cmd, args, File.platform_path probfile] ^ " ; } 2>&1"
+      [File.shell_path cmd, args, File.shell_path probfile] ^ " ; } 2>&1"
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
