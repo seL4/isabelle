@@ -19,47 +19,44 @@
 \endisadelimtheory
 %
 \begin{isamarkuptext}%
-This is achieved by unfolding suitable equations during
-  interpretation.  These equations are given after the keyword
-  \isakeyword{where} and require proofs.  The revised command
-  that replaces \isa{{\isasymsqsubset}} by \isa{{\isacharless}} is:%
+\vspace{-5ex}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isadelimvisible
-%
+\ \ %
 \endisadelimvisible
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isacommand{proof}\isamarkupfalse%
+\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}%
 \begin{isamarkuptxt}%
-The goals are \begin{isabelle}%
+\normalsize The goals are \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}\isanewline
 \ {\isadigit{2}}{\isachardot}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ x\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}%
 \end{isabelle}
-    The proof that \isa{{\isasymle}} is a partial order is as above.%
+      The proof that \isa{{\isasymle}} is a partial order is as above.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\ \ \isacommand{show}\isamarkupfalse%
+\ \ \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}partial{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ auto%
 \begin{isamarkuptxt}%
-The second goal is shown by unfolding the
-    definition of \isa{partial{\isacharunderscore}order{\isachardot}less}.%
+\normalsize The second goal is shown by unfolding the
+      definition of \isa{partial{\isacharunderscore}order{\isachardot}less}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\ \ \isacommand{show}\isamarkupfalse%
+\ \ \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def\ {\isacharbrackleft}OF\ {\isacharbackquoteopen}partial{\isacharunderscore}order\ op\ {\isasymle}{\isacharbackquoteclose}{\isacharbrackright}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
-\isacommand{qed}\isamarkupfalse%
+\ \ \isacommand{qed}\isamarkupfalse%
 %
 \endisatagvisible
 {\isafoldvisible}%
@@ -69,8 +66,8 @@ The second goal is shown by unfolding the
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-Note that the above proof is not in the context of a locale.
-  Hence, the correct interpretation of \isa{partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def} is obtained manually with \isa{OF}.%
+Note that the above proof is not in the context of the
+  interpreted locale.  Hence, the correct interpretation of \isa{partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def} is obtained manually with \isa{OF}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

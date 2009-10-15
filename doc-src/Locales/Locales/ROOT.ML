@@ -1,4 +1,4 @@
-no_document use_thy "GCD";
+no_document use_thy "~~/src/HOL/Number_Theory/UniqueFactorization";
 use_thy "Examples1";
 use_thy "Examples2";
-setmp_noncritical quick_and_dirty true use_thy "Examples3";
+use_thy "Examples3";
