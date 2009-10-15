@@ -427,7 +427,7 @@ fun print_registrations thy raw_name =
   in
     (case these_registrations thy name of
         [] => Pretty.str ("no interpretations")
-      | regs => Pretty.big_list "interpretations:" (map prt_reg regs))
+      | regs => Pretty.big_list "interpretations:" (map prt_reg (rev regs)))
     |> Pretty.writeln
   end;
 
