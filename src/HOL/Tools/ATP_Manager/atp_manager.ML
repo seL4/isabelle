@@ -323,9 +323,9 @@ fun start_prover name birthtime deadtime i proof_state =
           let
             val _ = register birthtime deadtime (Thread.self (), desc);
             val problem =
-              ATP_Wrapper.atp_problem_of_goal (! full_types) i (Proof.get_goal proof_state);
+              ATP_Wrapper.problem_of_goal (! full_types) i (Proof.get_goal proof_state);
             val result =
-              let val {success, message, ...} = prover problem (! timeout);
+              let val {success, message, ...} = prover (! timeout) problem;
               in (success, message) end
               handle ResHolClause.TOO_TRIVIAL =>   (* FIXME !? *)
                   (true, "Empty clause: Try this command: " ^

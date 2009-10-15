@@ -301,14 +301,14 @@ fun run_sh prover hard_timeout timeout dir st =
     val (ctxt, goal) = Proof.get_goal st
     val ctxt' = if is_none dir then ctxt
       else Config.put ATP_Wrapper.destdir (the dir) ctxt
-    val atp = prover (ATP_Wrapper.atp_problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', goal))
+    val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', goal);
 
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     val ({success, message, theorem_names, runtime=time_atp, ...}, time_isa) =
-      time_limit (Mirabelle.cpu_time atp) timeout
+      time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
   in
     if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))

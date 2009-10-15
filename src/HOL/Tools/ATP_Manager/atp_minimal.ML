@@ -110,7 +110,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
       goal = Proof.get_goal state,
       axiom_clauses = SOME axclauses,
       filtered_clauses = filtered}
-    val (result, proof) = produce_answer (prover problem time_limit)
+    val (result, proof) = produce_answer (prover time_limit problem)
     val _ = priority (string_of_result result)
   in
     (result, proof)

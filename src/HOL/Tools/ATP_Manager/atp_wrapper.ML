@@ -18,13 +18,13 @@ sig
     max_new_clauses: int,
     insert_theory_const: bool,
     emit_structured_proof: bool}
-  type atp_problem =
+  type problem =
    {with_full_types: bool,
     subgoal: int,
     goal: Proof.context * (thm list * thm),
     axiom_clauses: (thm * (string * int)) list option,
     filtered_clauses: (thm * (string * int)) list option}
-  val atp_problem_of_goal: bool -> int -> Proof.context * (thm list * thm) -> atp_problem
+  val problem_of_goal: bool -> int -> Proof.context * (thm list * thm) -> problem
   type prover_result =
    {success: bool,
     message: string,
@@ -33,7 +33,7 @@ sig
     proof: string,
     internal_thm_names: string Vector.vector,
     filtered_clauses: (thm * (string * int)) list}
-  type prover = atp_problem -> int -> prover_result
+  type prover = int -> problem -> prover_result
 
   (*common provers*)
   val vampire: string * prover
@@ -73,14 +73,14 @@ type prover_config =
   insert_theory_const: bool,
   emit_structured_proof: bool};
 
-type atp_problem =
+type problem =
  {with_full_types: bool,
   subgoal: int,
   goal: Proof.context * (thm list * thm),
   axiom_clauses: (thm * (string * int)) list option,
   filtered_clauses: (thm * (string * int)) list option};
 
-fun atp_problem_of_goal with_full_types subgoal goal : atp_problem =
+fun problem_of_goal with_full_types subgoal goal : problem =
  {with_full_types = with_full_types,
   subgoal = subgoal,
   goal = goal,
@@ -96,7 +96,7 @@ type prover_result =
   internal_thm_names: string Vector.vector,
   filtered_clauses: (thm * (string * int)) list};
 
-type prover = atp_problem -> int -> prover_result;
+type prover = int -> problem -> prover_result;
 
 
 (* basic template *)
@@ -185,7 +185,7 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
 
 (* generic TPTP-based provers *)
 
-fun gen_tptp_prover (name, prover_config) problem timeout =
+fun gen_tptp_prover (name, prover_config) timeout problem =
   let
     val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
       prover_config;
@@ -262,7 +262,7 @@ fun spass_config insert_theory_const: prover_config =
   insert_theory_const = insert_theory_const,
   emit_structured_proof = false};
 
-fun gen_dfg_prover (name, prover_config: prover_config) problem timeout =
+fun gen_dfg_prover (name, prover_config: prover_config) timeout problem =
   let
     val {max_new_clauses, insert_theory_const, command, arguments, ...} = prover_config
     val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
@@ -306,7 +306,7 @@ fun get_system prefix = Synchronized.change_result systems (fn systems =>
   (if null systems then get_systems () else systems)
   |> `(find_first (String.isPrefix prefix)));
 
-fun get_the_system prefix =
+fun the_system prefix =
   (case get_system prefix of
     NONE => error ("No system like " ^ quote prefix ^ " at SystemOnTPTP")
   | SOME sys => sys);
@@ -314,7 +314,7 @@ fun get_the_system prefix =
 fun remote_prover_config prover_prefix args max_new insert_tc: prover_config =
  {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
   arguments =
-    (fn timeout => args ^ " -t " ^ string_of_int timeout ^ " -s " ^ get_the_system prover_prefix),
+    (fn timeout => args ^ " -t " ^ string_of_int timeout ^ " -s " ^ the_system prover_prefix),
   max_new_clauses = max_new,
   insert_theory_const = insert_tc,
   emit_structured_proof = false};
