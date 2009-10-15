@@ -99,8 +99,8 @@ val failure_strings =
 
 fun produce_answer (result: ATP_Wrapper.prover_result) =
   let
-    val {success, message, proof = result_string,
-      internal_thm_names = thm_name_vec, filtered_clauses = filtered, ...} = result
+    val {success, proof = result_string, internal_thm_names = thm_name_vec,
+      filtered_clauses = filtered, ...} = result
   in
   if success then
     (Success (Vector.foldr op:: [] thm_name_vec, filtered), result_string)

@@ -107,80 +107,80 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path);
 
-fun external_prover relevance_filter preparer writer cmd args find_failure produce_answer
+fun external_prover relevance_filter prepare write cmd args find_failure produce_answer
   axiom_clauses filtered_clauses name subgoalno goal =
   let
     (* get clauses and prepare them for writing *)
-    val (ctxt, (chain_ths, th)) = goal
-    val thy = ProofContext.theory_of ctxt
-    val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
-    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses ctxt th subgoalno)
-    val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm ctxt th)) goal_cls
+    val (ctxt, (chain_ths, th)) = goal;
+    val thy = ProofContext.theory_of ctxt;
+    val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths;
+    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses ctxt th subgoalno);
     val the_filtered_clauses =
-      case filtered_clauses of
-          NONE => relevance_filter goal goal_cls
-        | SOME fcls => fcls
+      (case filtered_clauses of
+        NONE => relevance_filter goal goal_cls
+      | SOME fcls => fcls);
     val the_axiom_clauses =
-      case axiom_clauses of
-          NONE => the_filtered_clauses
-        | SOME axcls => axcls
+      (case axiom_clauses of
+        NONE => the_filtered_clauses
+      | SOME axcls => axcls);
     val (thm_names, clauses) =
-      preparer goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy
+      prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
-    val destdir' = Config.get ctxt destdir
-    val problem_prefix' = Config.get ctxt problem_prefix
+    val destdir' = Config.get ctxt destdir;
+    val problem_prefix' = Config.get ctxt problem_prefix;
     fun prob_pathname nr =
-      let val probfile = Path.basic (problem_prefix' ^ serial_string () ^ "_" ^ string_of_int nr)
-      in if destdir' = "" then File.tmp_path probfile
+      let val probfile =
+        Path.basic (problem_prefix' ^ serial_string () ^ "_" ^ string_of_int nr)
+      in
+        if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode (destdir'))
         then Path.append  (Path.explode (destdir')) probfile
         else error ("No such directory: " ^ destdir')
-      end
+      end;
 
     (* write out problem file and call prover *)
     fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
       [File.shell_path cmd, args, File.platform_path probfile] ^ " ; } 2>&1"
     fun split_time s =
       let
-        val split = String.tokens (fn c => str c = "\n")
-        val (proof, t) = s |> split |> split_last |> apfst cat_lines
-        fun as_num f = f >> (fst o read_int)
-        val num = as_num (Scan.many1 Symbol.is_ascii_digit)
-        val digit = Scan.one Symbol.is_ascii_digit
-        val num3 = as_num (digit ::: digit ::: (digit >> single))
-        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
-        val as_time = the_default 0 o Scan.read Symbol.stopper time o explode
-      in (proof, as_time t) end
+        val split = String.tokens (fn c => str c = "\n");
+        val (proof, t) = s |> split |> split_last |> apfst cat_lines;
+        fun as_num f = f >> (fst o read_int);
+        val num = as_num (Scan.many1 Symbol.is_ascii_digit);
+        val digit = Scan.one Symbol.is_ascii_digit;
+        val num3 = as_num (digit ::: digit ::: (digit >> single));
+        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
+        val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
+      in (proof, as_time t) end;
     fun run_on probfile =
-      if File.exists cmd
-      then
-        writer probfile clauses
+      if File.exists cmd then
+        write probfile clauses
         |> pair (apfst split_time (system_out (cmd_line probfile)))
-      else error ("Bad executable: " ^ Path.implode cmd)
+      else error ("Bad executable: " ^ Path.implode cmd);
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
-    fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE
-    fun export probfile (((proof, _), _), _) = if destdir' = "" then ()
-      else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof
+    fun cleanup probfile = if destdir' = "" then try File.rm probfile else NONE;
+    fun export probfile (((proof, _), _), _) =
+      if destdir' = "" then ()
+      else File.write (Path.explode (Path.implode probfile ^ "_proof")) proof;
 
-    val (((proof, time), rc), conj_pos) = with_path cleanup export run_on
-      (prob_pathname subgoalno)
+    val (((proof, time), rc), conj_pos) =
+      with_path cleanup export run_on (prob_pathname subgoalno);
 
     (* check for success and print out some information on failure *)
-    val failure = find_failure proof
-    val success = rc = 0 andalso is_none failure
+    val failure = find_failure proof;
+    val success = rc = 0 andalso is_none failure;
     val (message, real_thm_names) =
       if is_some failure then ("External prover failed.", [])
       else if rc <> 0 then ("External prover failed: " ^ proof, [])
       else apfst (fn s => "Try this command: " ^ s)
-        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno))
-    val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
+        (produce_answer name (proof, thm_names, conj_pos, ctxt, th, subgoalno));
   in
     {success = success, message = message,
       theorem_names = real_thm_names, runtime = time, proof = proof,
       internal_thm_names = thm_names, filtered_clauses = the_filtered_clauses}
-  end
+  end;
 
 
 (* generic TPTP-based provers *)
@@ -188,8 +188,8 @@ fun external_prover relevance_filter preparer writer cmd args find_failure produ
 fun gen_tptp_prover (name, prover_config) problem timeout =
   let
     val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
-      prover_config
-    val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
+      prover_config;
+    val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem;
   in
     external_prover
       (ResAtp.get_relevant max_new_clauses insert_theory_const)
@@ -205,9 +205,9 @@ fun gen_tptp_prover (name, prover_config) problem timeout =
       name
       subgoal
       goal
-  end
+  end;
 
-fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config))
+fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config));
 
 
 
@@ -217,8 +217,8 @@ fun tptp_prover (name, config) = (name, gen_tptp_prover (name, config))
 
 (*NB: Vampire does not work without explicit timelimit*)
 
-val vampire_max_new_clauses = 60
-val vampire_insert_theory_const = false
+val vampire_max_new_clauses = 60;
+val vampire_insert_theory_const = false;
 
 fun vampire_prover_config full : prover_config =
  {command = Path.explode "$VAMPIRE_HOME/vampire",
@@ -226,16 +226,16 @@ fun vampire_prover_config full : prover_config =
     " -t " ^ string_of_int timeout),
   max_new_clauses = vampire_max_new_clauses,
   insert_theory_const = vampire_insert_theory_const,
-  emit_structured_proof = full}
+  emit_structured_proof = full};
 
-val vampire = tptp_prover ("vampire", vampire_prover_config false)
-val vampire_full = tptp_prover ("vampire_full", vampire_prover_config true)
+val vampire = tptp_prover ("vampire", vampire_prover_config false);
+val vampire_full = tptp_prover ("vampire_full", vampire_prover_config true);
 
 
 (* E prover *)
 
-val eprover_max_new_clauses = 100
-val eprover_insert_theory_const = false
+val eprover_max_new_clauses = 100;
+val eprover_insert_theory_const = false;
 
 fun eprover_config full : prover_config =
  {command = Path.explode "$E_HOME/eproof",
@@ -243,16 +243,16 @@ fun eprover_config full : prover_config =
     " --silent --cpu-limit=" ^ string_of_int timeout),
   max_new_clauses = eprover_max_new_clauses,
   insert_theory_const = eprover_insert_theory_const,
-  emit_structured_proof = full}
+  emit_structured_proof = full};
 
-val eprover = tptp_prover ("e", eprover_config false)
-val eprover_full = tptp_prover ("e_full", eprover_config true)
+val eprover = tptp_prover ("e", eprover_config false);
+val eprover_full = tptp_prover ("e_full", eprover_config true);
 
 
 (* SPASS *)
 
-val spass_max_new_clauses = 40
-val spass_insert_theory_const = true
+val spass_max_new_clauses = 40;
+val spass_insert_theory_const = true;
 
 fun spass_config insert_theory_const: prover_config =
  {command = Path.explode "$SPASS_HOME/SPASS",
@@ -260,12 +260,11 @@ fun spass_config insert_theory_const: prover_config =
     " -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout),
   max_new_clauses = spass_max_new_clauses,
   insert_theory_const = insert_theory_const,
-  emit_structured_proof = false}
+  emit_structured_proof = false};
 
-fun gen_dfg_prover (name, prover_config) problem timeout =
+fun gen_dfg_prover (name, prover_config: prover_config) problem timeout =
   let
-    val {max_new_clauses, insert_theory_const, emit_structured_proof, command, arguments} =
-      prover_config
+    val {max_new_clauses, insert_theory_const, command, arguments, ...} = prover_config
     val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
   in
     external_prover
@@ -281,18 +280,17 @@ fun gen_dfg_prover (name, prover_config) problem timeout =
       name
       subgoal
       goal
-  end
+  end;
 
-fun dfg_prover (name, config) = (name, gen_dfg_prover (name, config))
+fun dfg_prover (name, config) = (name, gen_dfg_prover (name, config));
 
-val spass = dfg_prover ("spass", spass_config spass_insert_theory_const)
-val spass_no_tc = dfg_prover ("spass_no_tc", spass_config false)
+val spass = dfg_prover ("spass", spass_config spass_insert_theory_const);
+val spass_no_tc = dfg_prover ("spass_no_tc", spass_config false);
 
 
 (* remote prover invocation via SystemOnTPTP *)
 
-val systems =
-  Synchronized.var "atp_wrapper_systems" ([]: string list);
+val systems = Synchronized.var "atp_wrapper_systems" ([]: string list);
 
 fun get_systems () =
   let
@@ -302,33 +300,32 @@ fun get_systems () =
     else split_lines answer
   end;
 
-fun refresh_systems () = Synchronized.change systems (fn _ =>
-  get_systems ());
+fun refresh_systems () = Synchronized.change systems (fn _ => get_systems ());
 
 fun get_system prefix = Synchronized.change_result systems (fn systems =>
   (if null systems then get_systems () else systems)
-  |> ` (find_first (String.isPrefix prefix)));
+  |> `(find_first (String.isPrefix prefix)));
 
 fun get_the_system prefix =
   (case get_system prefix of
     NONE => error ("No system like " ^ quote prefix ^ " at SystemOnTPTP")
-  | SOME sys => sys)
+  | SOME sys => sys);
 
 fun remote_prover_config prover_prefix args max_new insert_tc: prover_config =
  {command = Path.explode "$ISABELLE_ATP_MANAGER/SystemOnTPTP",
-  arguments = (fn timeout => args ^ " -t " ^ string_of_int timeout ^ " -s " ^
-    get_the_system prover_prefix),
+  arguments =
+    (fn timeout => args ^ " -t " ^ string_of_int timeout ^ " -s " ^ get_the_system prover_prefix),
   max_new_clauses = max_new,
   insert_theory_const = insert_tc,
-  emit_structured_proof = false}
+  emit_structured_proof = false};
 
 val remote_vampire = tptp_prover ("remote_vampire", remote_prover_config
-  "Vampire---9" "" vampire_max_new_clauses vampire_insert_theory_const)
+  "Vampire---9" "" vampire_max_new_clauses vampire_insert_theory_const);
 
 val remote_eprover = tptp_prover ("remote_e", remote_prover_config
-  "EP---" "" eprover_max_new_clauses eprover_insert_theory_const)
+  "EP---" "" eprover_max_new_clauses eprover_insert_theory_const);
 
 val remote_spass = tptp_prover ("remote_spass", remote_prover_config
-  "SPASS---" "-x" spass_max_new_clauses spass_insert_theory_const)
+  "SPASS---" "-x" spass_max_new_clauses spass_insert_theory_const);
 
 end;
