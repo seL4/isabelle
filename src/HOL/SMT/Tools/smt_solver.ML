@@ -226,7 +226,7 @@ val setup =
 fun print_setup gen =
   let
     val t = string_of_int (Config.get_generic gen timeout)
-    val names = sort string_ord (all_solver_names_of (Context.theory_of gen))
+    val names = sort_strings (all_solver_names_of (Context.theory_of gen))
     val ns = if null names then [no_solver] else names
     val take_info = (fn (_, []) => NONE | info => SOME info)
     val infos =
