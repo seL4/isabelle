@@ -1,5 +1,6 @@
-(* Title:      HOL/Library/Sum_Of_Squares.thy
-   Author:     Amine Chaieb, University of Cambridge
+(*  Title:      HOL/Library/Sum_Of_Squares.thy
+    Author:     Amine Chaieb, University of Cambridge
+    Author:     Philipp Meyer, TU Muenchen
 *)
 
 header {* A decision method for universal multivariate real arithmetic with addition, 
@@ -34,7 +35,7 @@ use "Sum_Of_Squares/positivstellensatz_tools.ML"
 use "Sum_Of_Squares/sum_of_squares.ML"
 use "Sum_Of_Squares/sos_wrapper.ML"
 
-setup SosWrapper.setup
+setup SOS_Wrapper.setup
 
 text {* Tests *}
 
