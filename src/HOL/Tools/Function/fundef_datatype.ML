@@ -247,7 +247,7 @@ fun warn_if_redundant ctxt origs tss =
         fun msg t = "Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t)
                     
         val (tss', _) = chop (length origs) tss
-        fun check (t, []) = (Output.warning (msg t); [])
+        fun check (t, []) = (warning (msg t); [])
           | check (t, s) = s
     in
         (map check (origs ~~ tss'); tss)

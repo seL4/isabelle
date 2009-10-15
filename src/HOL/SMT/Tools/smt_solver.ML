@@ -84,7 +84,7 @@ fun with_timeout ctxt f x =
 val (trace, setup_trace) = Attrib.config_bool "smt_trace" false
 
 fun trace_msg ctxt f x =
-  if Config.get ctxt trace then Output.tracing (f x) else ()
+  if Config.get ctxt trace then tracing (f x) else ()
 
 
 (* interface to external solvers *)

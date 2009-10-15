@@ -106,10 +106,10 @@ struct
 
 (* debug stuff *)
 
-fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
+fun tracing s = (if ! Toplevel.debug then tracing s else ());
 
 fun print_tac s = Seq.single; (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
-fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
+fun debug_tac msg = Seq.single; (* (fn st => (tracing msg; Seq.single st)); *)
 
 val do_proofs = Unsynchronized.ref true;
 
@@ -344,7 +344,7 @@ val sizelim_function_name_of = #name ooo the_sizelim_function_data
      
 (* diagnostic display functions *)
 
-fun print_modes modes = Output.tracing ("Inferred modes:\n" ^
+fun print_modes modes = tracing ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
@@ -354,7 +354,7 @@ fun print_pred_mode_table string_of_entry thy pred_mode_table =
       ^ (string_of_entry pred mode entry)  
     fun print_pred (pred, modes) =
       "predicate " ^ pred ^ ": " ^ cat_lines (map (print_mode pred) modes)
-    val _ = Output.tracing (cat_lines (map print_pred pred_mode_table))
+    val _ = tracing (cat_lines (map print_pred pred_mode_table))
   in () end;
 
 fun string_of_moded_prem thy (Prem (ts, p), tmode) =
@@ -1002,7 +1002,7 @@ fun check_modes_pred with_generator thy param_vs preds modes gen_modes (p, ms) =
   in (p, List.filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
-    | i => (Output.tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
+    | i => (tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
       p ^ " violates mode " ^ string_of_mode m); false)) ms)
   end;
 
@@ -1915,22 +1915,22 @@ fun prepare_intrs thy prednames =
 
 fun add_equations_of steps prednames thy =
   let
-    val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
+    val _ = tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, arities) =
       prepare_intrs thy prednames
-    val _ = Output.tracing "Infering modes..."
+    val _ = tracing "Infering modes..."
     val moded_clauses = #infer_modes steps thy extra_modes arities param_vs clauses 
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = print_modes modes
     val _ = print_moded_clauses thy moded_clauses
-    val _ = Output.tracing "Defining executable functions..."
+    val _ = tracing "Defining executable functions..."
     val thy' = fold (#create_definitions steps preds) modes thy
       |> Theory.checkpoint
-    val _ = Output.tracing "Compiling equations..."
+    val _ = tracing "Compiling equations..."
     val compiled_terms =
       (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
     val _ = print_compiled_terms thy' compiled_terms
-    val _ = Output.tracing "Proving equations..."
+    val _ = tracing "Proving equations..."
     val result_thms = #prove steps thy' clauses preds (extra_modes @ modes)
       moded_clauses compiled_terms
     val qname = #qname steps

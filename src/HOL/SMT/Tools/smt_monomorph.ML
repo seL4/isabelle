@@ -112,7 +112,7 @@ fun monomorph thy ts =
       in
         if null is' then ts'
         else if count > monomorph_limit then
-          (Output.warning "monomorphization limit reached"; ts')
+          (warning "monomorphization limit reached"; ts')
         else mono (count + 1) is' ces' cs' ts'
       end
   in mono 0 (consts_of ms) (map (K []) rps) [] ms end

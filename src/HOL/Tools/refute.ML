@@ -725,7 +725,7 @@ struct
           (* check this.  However, getting this really right seems   *)
           (* difficult because the user may state arbitrary axioms,  *)
           (* which could interact with overloading to create loops.  *)
-          ((*Output.tracing (" unfolding: " ^ axname);*)
+          ((*tracing (" unfolding: " ^ axname);*)
            unfold_loop rhs)
         | NONE => t)
       | Free _           => t
@@ -765,20 +765,14 @@ struct
 
   fun collect_axioms thy t =
   let
-    val _ = Output.tracing "Adding axioms..."
-    (* (string * Term.term) list *)
+    val _ = tracing "Adding axioms..."
     val axioms = Theory.all_axioms_of thy
-    (* string * Term.term -> Term.term list -> Term.term list *)
     fun collect_this_axiom (axname, ax) axs =
     let
       val ax' = unfold_defs thy ax
     in
-      if member (op aconv) axs ax' then
-        axs
-      else (
-        Output.tracing axname;
-        collect_term_axioms (ax' :: axs, ax')
-      )
+      if member (op aconv) axs ax' then axs
+      else (tracing axname; collect_term_axioms (ax' :: axs, ax'))
     end
     (* Term.term list * Term.typ -> Term.term list *)
     and collect_sort_axioms (axs, T) =
@@ -939,7 +933,7 @@ struct
         (collect_term_axioms (axs, t1), t2)
     (* Term.term list *)
     val result = map close_form (collect_term_axioms ([], t))
-    val _ = Output.tracing " ...done."
+    val _ = tracing " ...done."
   in
     result
   end;
@@ -1157,13 +1151,12 @@ struct
     let
       val timer  = Timer.startRealTimer ()
       val u      = unfold_defs thy t
-      val _      = Output.tracing ("Unfolded term: " ^
-                                   Syntax.string_of_term_global thy u)
+      val _      = tracing ("Unfolded term: " ^ Syntax.string_of_term_global thy u)
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
         acc union (ground_types thy t')) ([], u :: axioms)
-      val _     = Output.tracing ("Ground types: "
+      val _     = tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
       (* we can only consider fragments of recursive IDTs, so we issue a  *)
@@ -1198,7 +1191,7 @@ struct
         val init_model = (universe, [])
         val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
           bounds = [], wellformed = True}
-        val _          = Output.tracing ("Translating term (sizes: "
+        val _ = tracing ("Translating term (sizes: "
           ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
         (* translate 'u' and all axioms *)
         val ((model, args), intrs) = Library.foldl_map (fn ((m, a), t') =>
@@ -1216,31 +1209,31 @@ struct
         val fm_ax = PropLogic.all (map toTrue (tl intrs))
         val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
       in
-        Output.priority "Invoking SAT solver...";
+        priority "Invoking SAT solver...";
         (case SatSolver.invoke_solver satsolver fm of
           SatSolver.SATISFIABLE assignment =>
-          (Output.priority ("*** Model found: ***\n" ^ print_model thy model
+          (priority ("*** Model found: ***\n" ^ print_model thy model
             (fn i => case assignment i of SOME b => b | NONE => true));
            if maybe_spurious then "potential" else "genuine")
         | SatSolver.UNSATISFIABLE _ =>
-          (Output.priority "No model exists.";
+          (priority "No model exists.";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
-          | NONE           => (Output.priority
+          | NONE           => (priority
             "Search terminated, no larger universe within the given limits.";
             "none"))
         | SatSolver.UNKNOWN =>
-          (Output.priority "No model found.";
+          (priority "No model found.";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
-          | NONE           => (Output.priority
+          | NONE           => (priority
             "Search terminated, no larger universe within the given limits.";
             "unknown"))
         ) handle SatSolver.NOT_CONFIGURED =>
           (error ("SAT solver " ^ quote satsolver ^ " is not configured.");
            "unknown")
       end handle MAXVARS_EXCEEDED =>
-        (Output.priority ("Search terminated, number of Boolean variables ("
+        (priority ("Search terminated, number of Boolean variables ("
           ^ string_of_int maxvars ^ " allowed) exceeded.");
           "unknown")
         val outcome_code = find_model_loop (first_universe types sizes minsize)
@@ -1262,14 +1255,14 @@ struct
       maxtime>=0 orelse
         error ("\"maxtime\" is " ^ string_of_int maxtime ^ ", must be at least 0");
       (* enter loop with or without time limit *)
-      Output.priority ("Trying to find a model that "
+      priority ("Trying to find a model that "
         ^ (if negate then "refutes" else "satisfies") ^ ": "
         ^ Syntax.string_of_term_global thy t);
       if maxtime>0 then (
         TimeLimit.timeLimit (Time.fromSeconds maxtime)
           wrapper ()
         handle TimeLimit.TimeOut =>
-          Output.priority ("Search terminated, time limit (" ^
+          priority ("Search terminated, time limit (" ^
             string_of_int maxtime
             ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.")
       ) else

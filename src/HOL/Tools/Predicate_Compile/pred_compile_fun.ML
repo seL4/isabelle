@@ -415,7 +415,7 @@ fun rewrite_intro thy intro =
         rewrite concl frees'
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
-    val _ = Output.tracing ("intro_ts': " ^
+    val _ = tracing ("intro_ts': " ^
       commas (map (Syntax.string_of_term_global thy) intro_ts'))
   in
     map (Drule.standard o the_oracle () o cterm_of thy) intro_ts'
