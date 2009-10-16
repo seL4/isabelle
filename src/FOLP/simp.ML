@@ -519,7 +519,7 @@ val SIMP_THM = REWRITE ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
 (* Compute Congruence rules for individual constants using the substition
    rules *)
 
-val subst_thms = map standard subst_thms;
+val subst_thms = map Drule.standard subst_thms;
 
 
 fun exp_app(0,t) = t

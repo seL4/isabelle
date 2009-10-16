@@ -386,7 +386,7 @@ fun export_hol4_pending thy =
     fun process ((bthy,bthm), hth as (_,thm)) thy =
       let
         val thm1 = rewrite_rule (map (Thm.transfer thy) rews) (Thm.transfer thy thm);
-        val thm2 = standard thm1;
+        val thm2 = Drule.standard thm1;
       in
         thy
         |> PureThy.store_thm (Binding.name bthm, thm2)

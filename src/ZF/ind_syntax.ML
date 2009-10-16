@@ -115,7 +115,7 @@ fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
   | tryres (th, []) = raise THM("tryres", 0, [th]);
 
 fun gen_make_elim elim_rls rl =
-      standard (tryres (rl, elim_rls @ [revcut_rl]));
+      Drule.standard (tryres (rl, elim_rls @ [revcut_rl]));
 
 (*Turns iff rules into safe elimination rules*)
 fun mk_free_SEs iffs = map (gen_make_elim [@{thm conjE}, @{thm FalseE}]) (iffs RL [@{thm iffD1}]);

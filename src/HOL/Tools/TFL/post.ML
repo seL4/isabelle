@@ -144,7 +144,7 @@ fun curry_rule rl =
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer =
-  curry_rule o standard o
+  curry_rule o Drule.standard o
   rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
@@ -166,7 +166,7 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (standard o ObjectLogic.rulify_no_asm)
+       val rules' = map (Drule.standard o ObjectLogic.rulify_no_asm)
                         (R.CONJUNCTS rules)
          in  {induct = meta_outer (ObjectLogic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
@@ -195,7 +195,7 @@ local
     | solve_eq (th, [a], i) = [(a, i)]
     | solve_eq (th, splitths as (_ :: _), i) = 
       (writeln "Proving unsplit equation...";
-      [((standard o ObjectLogic.rulify_no_asm)
+      [((Drule.standard o ObjectLogic.rulify_no_asm)
           (CaseSplit.splitto splitths th), i)])
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)
@@ -252,7 +252,7 @@ fun defer_i thy congs fid eqs =
  in (theory,
      (*return the conjoined induction rule and recursion equations,
        with assumptions remaining to discharge*)
-     standard (induction RS (rules RS conjI)))
+     Drule.standard (induction RS (rules RS conjI)))
  end
 
 fun defer thy congs fid seqs =

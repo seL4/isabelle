@@ -292,7 +292,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
          rtac case_trans 1,
          REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
 
-  val free_iffs = map standard (con_defs RL [@{thm def_swap_iff}]);
+  val free_iffs = map Drule.standard (con_defs RL [@{thm def_swap_iff}]);
 
   val case_eqns = map prove_case_eqn (flat con_ty_lists ~~ case_args ~~ tl con_defs);
 
@@ -338,7 +338,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val constructors =
       map (head_of o #1 o Logic.dest_equals o #prop o rep_thm) (tl con_defs);
 
-  val free_SEs = map standard (Ind_Syntax.mk_free_SEs free_iffs);
+  val free_SEs = map Drule.standard (Ind_Syntax.mk_free_SEs free_iffs);
 
   val {intrs, elim, induct, mutual_induct, ...} = ind_result
 

@@ -153,7 +153,7 @@ val meta_spec = thm "meta_spec";
 
 fun projections rule =
   Project_Rule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
-  |> map (standard #> RuleCases.save rule);
+  |> map (Drule.standard #> RuleCases.save rule);
 
 val supp_prod = thm "supp_prod";
 val fresh_prod = thm "fresh_prod";
@@ -313,7 +313,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
-      else map standard (List.drop (split_conj_thm
+      else map Drule.standard (List.drop (split_conj_thm
         (Goal.prove_global thy2 [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
             (map (fn (c as (s, T), x) =>
@@ -333,7 +333,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val perm_empty_thms = maps (fn a =>
       let val permT = mk_permT (Type (a, []))
-      in map standard (List.take (split_conj_thm
+      in map Drule.standard (List.take (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a]
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -365,7 +365,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt_inst = pt_inst_of thy2 a;
         val pt2' = pt_inst RS pt2;
         val pt2_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "2") a);
-      in List.take (map standard (split_conj_thm
+      in List.take (map Drule.standard (split_conj_thm
         (Goal.prove_global thy2 [] []
            (augment_sort thy2 [pt_class_of thy2 a]
              (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -400,7 +400,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt3' = pt_inst RS pt3;
         val pt3_rev' = at_inst RS (pt_inst RS pt3_rev);
         val pt3_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "3") a);
-      in List.take (map standard (split_conj_thm
+      in List.take (map Drule.standard (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a] (Logic.mk_implies
              (HOLogic.mk_Trueprop (Const ("Nominal.prm_eq",
@@ -585,7 +585,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       (fn (x, (_, ("Nominal.noption", _, _))) => NONE | (x, _) => SOME x)
       (perm_indnames ~~ descr);
 
-    fun mk_perm_closed name = map (fn th => standard (th RS mp))
+    fun mk_perm_closed name = map (fn th => Drule.standard (th RS mp))
       (List.take (split_conj_thm (Goal.prove_global thy4 [] []
         (augment_sort thy4
           (pt_class_of thy4 name :: map (cp_class_of thy4 name) (dt_atoms \ name))
@@ -810,7 +810,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       let
         val rep_const = cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
-        val dist = standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+        val dist = Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
           ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
       in
@@ -874,7 +874,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
               simp_tac (global_simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
-          in dist_thm :: standard (dist_thm RS not_sym) ::
+          in dist_thm :: Drule.standard (dist_thm RS not_sym) ::
             prove_distinct_thms p (k, ts)
           end;
 
@@ -1089,7 +1089,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
-      in map standard (List.take
+      in map Drule.standard (List.take
         (split_conj_thm (Goal.prove_global thy8 [] []
            (augment_sort thy8 (fs_class_of thy8 atom :: pt_cp_sort)
              (HOLogic.mk_Trueprop
@@ -1535,7 +1535,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           in
             (R $ x $ y, R' $ mk_perm [] pi x $ mk_perm [] pi y)
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ rec_sets_pi ~~ (1 upto length recTs));
-        val ths = map (fn th => standard (th RS mp)) (split_conj_thm
+        val ths = map (fn th => Drule.standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 [] []
             (augment_sort thy1 pt_cp_sort
               (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps))))
@@ -1567,7 +1567,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (finite $ (Const ("Nominal.supp", T --> aset) $ f)))
             (rec_fns ~~ rec_fn_Ts)
       in
-        map (fn th => standard (th RS mp)) (split_conj_thm
+        map (fn th => Drule.standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 []
             (map (augment_sort thy11 fs_cp_sort) fins)
             (augment_sort thy11 fs_cp_sort
@@ -1610,7 +1610,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             val y = Free ("y", U);
             val y' = Free ("y'", U)
           in
-            standard (Goal.prove (ProofContext.init thy11) []
+            Drule.standard (Goal.prove (ProofContext.init thy11) []
               (map (augment_sort thy11 fs_cp_sort)
                 (finite_prems @
                    [HOLogic.mk_Trueprop (R $ x $ y),
@@ -2055,7 +2055,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
          ((Binding.name "rec_equiv'", flat rec_equiv_thms'), []),
          ((Binding.name "rec_fin_supp", flat rec_fin_supp_thms), []),
          ((Binding.name "rec_fresh", flat rec_fresh_thms), []),
-         ((Binding.name "rec_unique", map standard rec_unique_thms), []),
+         ((Binding.name "rec_unique", map Drule.standard rec_unique_thms), []),
          ((Binding.name "recs", rec_thms), [])] ||>
       Sign.parent_path ||>
       map_nominal_datatypes (fold Symtab.update dt_infos);
