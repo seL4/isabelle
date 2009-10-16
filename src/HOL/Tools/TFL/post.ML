@@ -7,8 +7,6 @@ Second part of main module (postprocessing of TFL definitions).
 
 signature TFL =
 sig
-  val tgoalw: theory -> thm list -> thm list -> thm list
-  val tgoal: theory -> thm list -> thm list
   val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
     term -> term list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
   val define: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
@@ -31,19 +29,6 @@ structure S = USyntax
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
       (List.foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
-
-(*---------------------------------------------------------------------------
- * Finds the termination conditions in (highly massaged) definition and
- * puts them into a goalstack.
- *--------------------------------------------------------------------------*)
-fun tgoalw thy defs rules =
-  case termination_goals rules of
-      [] => error "tgoalw: no termination conditions to prove"
-    | L  => OldGoals.goalw_cterm defs
-              (Thm.cterm_of thy
-                        (HOLogic.mk_Trueprop(USyntax.list_mk_conj L)));
-
-fun tgoal thy = tgoalw thy [];
 
 (*---------------------------------------------------------------------------
  * Three postprocessors are applied to the definition.  It
