@@ -5,6 +5,8 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature RES_AXIOMS =
 sig
+  val trace: bool Unsynchronized.ref
+  val trace_msg: (unit -> string) -> unit
   val cnf_axiom: theory -> thm -> thm list
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list
@@ -23,6 +25,9 @@ end;
 
 structure ResAxioms: RES_AXIOMS =
 struct
+
+val trace = Unsynchronized.ref false;
+fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 (* FIXME legacy *)
 fun freeze_thm th = #1 (Drule.freeze_thaw th);

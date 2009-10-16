@@ -28,8 +28,9 @@ struct
 
 val trace_path = Path.basic "atp_trace";
 
-fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
-              else ();
+fun trace s =
+  if ! ResAxioms.trace then File.append (File.tmp_path trace_path) s
+  else ();
 
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
 
@@ -446,7 +447,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")
       val ccls = map forall_intr_vars ccls
       val _ =
-        if !Output.debugging then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
+        if ! ResAxioms.trace then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
         else ()
       val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
       val _ = trace "\ndecode_tstp_file: finishing\n"

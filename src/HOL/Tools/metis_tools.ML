@@ -7,6 +7,7 @@ HOL setup for the Metis prover.
 
 signature METIS_TOOLS =
 sig
+  val trace: bool Unsynchronized.ref
   val type_lits: bool Config.T
   val metis_tac: Proof.context -> thm list -> int -> tactic
   val metisF_tac: Proof.context -> thm list -> int -> tactic
@@ -16,6 +17,9 @@ end
 
 structure MetisTools: METIS_TOOLS =
 struct
+
+  val trace = Unsynchronized.ref false;
+  fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
   structure Recon = ResReconstruct;
 
@@ -221,7 +225,7 @@ fun infer_types ctxt =
   (*Maps metis terms to isabelle terms*)
   fun fol_term_to_hol_RAW ctxt fol_tm =
     let val thy = ProofContext.theory_of ctxt
-        val _ = Output.debug (fn () => "fol_term_to_hol: " ^ Metis.Term.toString fol_tm)
+        val _ = trace_msg (fn () => "fol_term_to_hol: " ^ Metis.Term.toString fol_tm)
         fun tm_to_tt (Metis.Term.Var v) =
                (case Recon.strip_prefix ResClause.tvar_prefix v of
                     SOME w => Type (Recon.make_tvar w)
@@ -276,7 +280,7 @@ fun infer_types ctxt =
 
   (*Maps fully-typed metis terms to isabelle terms*)
   fun fol_term_to_hol_FT ctxt fol_tm =
-    let val _ = Output.debug (fn () => "fol_term_to_hol_FT: " ^ Metis.Term.toString fol_tm)
+    let val _ = trace_msg (fn () => "fol_term_to_hol_FT: " ^ Metis.Term.toString fol_tm)
         fun cvt (Metis.Term.Fn ("ti", [Metis.Term.Var v, ty])) =
                (case Recon.strip_prefix ResClause.schematic_var_prefix v of
                     SOME w =>  mk_var(w, dummyT)
@@ -303,8 +307,8 @@ fun infer_types ctxt =
                 | NONE => (*Not a constant. Is it a fixed variable??*)
               case Recon.strip_prefix ResClause.fixed_var_prefix x of
                   SOME v => Free (v, dummyT)
-                | NONE =>  (Output.debug (fn () => "fol_term_to_hol_FT bad const: " ^ x); fol_term_to_hol_RAW ctxt t))
-          | cvt t = (Output.debug (fn () => "fol_term_to_hol_FT bad term: " ^ Metis.Term.toString t); fol_term_to_hol_RAW ctxt t)
+                | NONE =>  (trace_msg (fn () => "fol_term_to_hol_FT bad const: " ^ x); fol_term_to_hol_RAW ctxt t))
+          | cvt t = (trace_msg (fn () => "fol_term_to_hol_FT bad term: " ^ Metis.Term.toString t); fol_term_to_hol_RAW ctxt t)
     in  cvt fol_tm   end;
 
   fun fol_term_to_hol ctxt FO = fol_term_to_hol_RAW ctxt
@@ -313,10 +317,10 @@ fun infer_types ctxt =
 
   fun fol_terms_to_hol ctxt mode fol_tms =
     let val ts = map (fol_term_to_hol ctxt mode) fol_tms
-        val _ = Output.debug (fn () => "  calling type inference:")
-        val _ = app (fn t => Output.debug (fn () => Syntax.string_of_term ctxt t)) ts
+        val _ = trace_msg (fn () => "  calling type inference:")
+        val _ = app (fn t => trace_msg (fn () => Syntax.string_of_term ctxt t)) ts
         val ts' = infer_types ctxt ts;
-        val _ = app (fn t => Output.debug
+        val _ = app (fn t => trace_msg
                       (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                                 "  of type  " ^ Syntax.string_of_typ ctxt (type_of t)))
                     ts'
@@ -333,9 +337,9 @@ fun infer_types ctxt =
 
   (*for debugging only*)
   fun print_thpair (fth,th) =
-    (Output.debug (fn () => "=============================================");
-     Output.debug (fn () => "Metis: " ^ Metis.Thm.toString fth);
-     Output.debug (fn () => "Isabelle: " ^ Display.string_of_thm_without_context th));
+    (trace_msg (fn () => "=============================================");
+     trace_msg (fn () => "Metis: " ^ Metis.Thm.toString fth);
+     trace_msg (fn () => "Isabelle: " ^ Display.string_of_thm_without_context th));
 
   fun lookth thpairs (fth : Metis.Thm.thm) =
     valOf (AList.lookup (uncurry Metis.Thm.equal) thpairs fth)
@@ -374,7 +378,7 @@ fun infer_types ctxt =
                   val t = fol_term_to_hol ctxt mode y (*we call infer_types below*)
               in  SOME (cterm_of thy (Var v), t)  end
               handle Option =>
-                  (Output.debug (fn() => "List.find failed for the variable " ^ x ^
+                  (trace_msg (fn() => "List.find failed for the variable " ^ x ^
                                          " in " ^ Display.string_of_thm ctxt i_th);
                    NONE)
         fun remove_typeinst (a, t) =
@@ -383,13 +387,13 @@ fun infer_types ctxt =
                 | NONE   => case Recon.strip_prefix ResClause.tvar_prefix a of
                   SOME _ => NONE          (*type instantiations are forbidden!*)
                 | NONE   => SOME (a,t)    (*internal Metis var?*)
-        val _ = Output.debug (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
+        val _ = trace_msg (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
         val substs = map_filter remove_typeinst (Metis.Subst.toList fsubst)
         val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
         val tms = infer_types ctxt rawtms;
         val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
         val substs' = ListPair.zip (vars, map ctm_of tms)
-        val _ = Output.debug (fn () =>
+        val _ = trace_msg (fn () =>
           cat_lines ("subst_translations:" ::
             (substs' |> map (fn (x, y) =>
               Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
@@ -416,23 +420,23 @@ fun infer_types ctxt =
     let
       val thy = ProofContext.theory_of ctxt
       val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
-      val _ = Output.debug (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
-      val _ = Output.debug (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
+      val _ = trace_msg (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
+      val _ = trace_msg (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
     in
       if is_TrueI i_th1 then i_th2 (*Trivial cases where one operand is type info*)
       else if is_TrueI i_th2 then i_th1
       else
         let
           val i_atm = singleton (fol_terms_to_hol ctxt mode) (Metis.Term.Fn atm)
-          val _ = Output.debug (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
+          val _ = trace_msg (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
           val prems_th1 = prems_of i_th1
           val prems_th2 = prems_of i_th2
           val index_th1 = get_index (mk_not i_atm) prems_th1
                 handle Empty => error "Failed to find literal in th1"
-          val _ = Output.debug (fn () => "  index_th1: " ^ Int.toString index_th1)
+          val _ = trace_msg (fn () => "  index_th1: " ^ Int.toString index_th1)
           val index_th2 = get_index i_atm prems_th2
                 handle Empty => error "Failed to find literal in th2"
-          val _ = Output.debug (fn () => "  index_th2: " ^ Int.toString index_th2)
+          val _ = trace_msg (fn () => "  index_th2: " ^ Int.toString index_th2)
       in  resolve_inc_tyvars (Meson.select_literal index_th1 i_th1, index_th2, i_th2)  end
     end;
 
@@ -443,7 +447,7 @@ fun infer_types ctxt =
   fun refl_inf ctxt mode t =
     let val thy = ProofContext.theory_of ctxt
         val i_t = singleton (fol_terms_to_hol ctxt mode) t
-        val _ = Output.debug (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
+        val _ = trace_msg (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
         val c_t = cterm_incr_types thy refl_idx i_t
     in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
 
@@ -456,7 +460,7 @@ fun infer_types ctxt =
     let val thy = ProofContext.theory_of ctxt
         val m_tm = Metis.Term.Fn atm
         val [i_atm,i_tm] = fol_terms_to_hol ctxt mode [m_tm, fr]
-        val _ = Output.debug (fn () => "sign of the literal: " ^ Bool.toString pos)
+        val _ = trace_msg (fn () => "sign of the literal: " ^ Bool.toString pos)
         fun replace_item_list lx 0 (l::ls) = lx::ls
           | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
         fun path_finder_FO tm [] = (tm, Term.Bound 0)
@@ -467,7 +471,7 @@ fun infer_types ctxt =
                   val tm_p = List.nth(args,p')
                     handle Subscript => error ("equality_inf: " ^ Int.toString p ^ " adj " ^
                       Int.toString adjustment  ^ " term " ^  Syntax.string_of_term ctxt tm)
-                  val _ = Output.debug (fn () => "path_finder: " ^ Int.toString p ^
+                  val _ = trace_msg (fn () => "path_finder: " ^ Int.toString p ^
                                         "  " ^ Syntax.string_of_term ctxt tm_p)
 		  val (r,t) = path_finder_FO tm_p ps
               in
@@ -512,12 +516,12 @@ fun infer_types ctxt =
           | path_finder_lit tm_a idx = path_finder mode tm_a idx m_tm
         val (tm_subst, body) = path_finder_lit i_atm fp
         val tm_abs = Term.Abs("x", Term.type_of tm_subst, body)
-        val _ = Output.debug (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
-        val _ = Output.debug (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
-        val _ = Output.debug (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
+        val _ = trace_msg (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
+        val _ = trace_msg (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
+        val _ = trace_msg (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
         val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill typed but gives right max*)
         val subst' = incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
-        val _ = Output.debug (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
+        val _ = trace_msg (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
         val eq_terms = map (pairself (cterm_of thy))
                            (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
     in  cterm_instantiate eq_terms subst'  end;
@@ -541,12 +545,12 @@ fun infer_types ctxt =
 
   fun translate mode _    thpairs [] = thpairs
     | translate mode ctxt thpairs ((fol_th, inf) :: infpairs) =
-        let val _ = Output.debug (fn () => "=============================================")
-            val _ = Output.debug (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
-            val _ = Output.debug (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
+        let val _ = trace_msg (fn () => "=============================================")
+            val _ = trace_msg (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
+            val _ = trace_msg (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
             val th = Meson.flexflex_first_order (step ctxt mode thpairs (fol_th, inf))
-            val _ = Output.debug (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
-            val _ = Output.debug (fn () => "=============================================")
+            val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
+            val _ = trace_msg (fn () => "=============================================")
             val n_metis_lits = length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
         in
             if nprems_of th = n_metis_lits then ()
@@ -665,52 +669,52 @@ fun infer_types ctxt =
     let val thy = ProofContext.theory_of ctxt
         val th_cls_pairs = map (fn th => (Thm.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
         val ths = maps #2 th_cls_pairs
-        val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
-        val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) cls
-        val _ = Output.debug (fn () => "THEOREM CLAUSES")
-        val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) ths
+        val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
+        val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
+        val _ = trace_msg (fn () => "THEOREM CLAUSES")
+        val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) ths
         val (mode, {axioms,tfrees}) = build_map mode ctxt cls ths
         val _ = if null tfrees then ()
-                else (Output.debug (fn () => "TFREE CLAUSES");
-                      app (fn tf => Output.debug (fn _ => ResClause.tptp_of_typeLit true tf)) tfrees)
-        val _ = Output.debug (fn () => "CLAUSES GIVEN TO METIS")
+                else (trace_msg (fn () => "TFREE CLAUSES");
+                      app (fn tf => trace_msg (fn _ => ResClause.tptp_of_typeLit true tf)) tfrees)
+        val _ = trace_msg (fn () => "CLAUSES GIVEN TO METIS")
         val thms = map #1 axioms
-        val _ = app (fn th => Output.debug (fn () => Metis.Thm.toString th)) thms
-        val _ = Output.debug (fn () => "mode = " ^ string_of_mode mode)
-        val _ = Output.debug (fn () => "START METIS PROVE PROCESS")
+        val _ = app (fn th => trace_msg (fn () => Metis.Thm.toString th)) thms
+        val _ = trace_msg (fn () => "mode = " ^ string_of_mode mode)
+        val _ = trace_msg (fn () => "START METIS PROVE PROCESS")
     in
         case List.filter (is_false o prop_of) cls of
             false_th::_ => [false_th RS @{thm FalseE}]
           | [] =>
         case refute thms of
             Metis.Resolution.Contradiction mth =>
-              let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
+              let val _ = trace_msg (fn () => "METIS RECONSTRUCTION START: " ^
                             Metis.Thm.toString mth)
                   val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                                (*add constraints arising from converting goal to clause form*)
                   val proof = Metis.Proof.proof mth
                   val result = translate mode ctxt' axioms proof
                   and used = map_filter (used_axioms axioms) proof
-                  val _ = Output.debug (fn () => "METIS COMPLETED...clauses actually used:")
-	          val _ = app (fn th => Output.debug (fn () => Display.string_of_thm ctxt th)) used
+                  val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
+	          val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used
 	          val unused = filter (fn (a,cls) => not (common_thm used cls)) th_cls_pairs
               in
                   if null unused then ()
                   else warning ("Metis: unused theorems " ^ commas_quote (map #1 unused));
                   case result of
                       (_,ith)::_ => 
-                          (Output.debug (fn () => "success: " ^ Display.string_of_thm ctxt ith); 
+                          (trace_msg (fn () => "success: " ^ Display.string_of_thm ctxt ith); 
                            [ith])
-                    | _ => (Output.debug (fn () => "Metis: no result"); 
+                    | _ => (trace_msg (fn () => "Metis: no result"); 
                             [])
               end
           | Metis.Resolution.Satisfiable _ => 
-	      (Output.debug (fn () => "Metis: No first-order proof with the lemmas supplied"); 
+	      (trace_msg (fn () => "Metis: No first-order proof with the lemmas supplied"); 
 	       [])
     end;
 
   fun metis_general_tac mode ctxt ths i st0 =
-    let val _ = Output.debug (fn () =>
+    let val _ = trace_msg (fn () =>
           "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
     in
        if exists_type ResAxioms.type_has_empty_sort (prop_of st0)  

@@ -7,6 +7,8 @@ Main functionality.
 
 signature FUNDEF_CORE =
 sig
+    val trace: bool Unsynchronized.ref
+
     val prepare_fundef : FundefCommon.fundef_config
                          -> string (* defname *)
                          -> ((bstring * typ) * mixfix) list (* defined symbol *)
@@ -22,6 +24,9 @@ end
 
 structure FundefCore : FUNDEF_CORE =
 struct
+
+val trace = Unsynchronized.ref false;
+fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 val boolT = HOLogic.boolT
 val mk_eq = HOLogic.mk_eq
@@ -420,14 +425,14 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
         val ih_elim = ihyp_thm RS (f_def RS ex1_implies_un)
                         |> instantiate' [] [NONE, SOME (cterm_of thy h)]
 
-        val _ = Output.debug (K "Proving Replacement lemmas...")
+        val _ = trace_msg (K "Proving Replacement lemmas...")
         val repLemmas = map (mk_replacement_lemma thy h ih_elim) clauses
 
-        val _ = Output.debug (K "Proving cases for unique existence...")
+        val _ = trace_msg (K "Proving cases for unique existence...")
         val (ex1s, values) =
             split_list (map (mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
 
-        val _ = Output.debug (K "Proving: Graph is a function")
+        val _ = trace_msg (K "Proving: Graph is a function")
         val graph_is_function = complete
                                   |> Thm.forall_elim_vars 0
                                   |> fold (curry op COMP) ex1s

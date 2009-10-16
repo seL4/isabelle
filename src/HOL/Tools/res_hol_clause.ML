@@ -459,7 +459,7 @@ fun count_constants_clause (Clause{literals,...}) (const_min_arity, const_needs_
   fold count_constants_lit literals (const_min_arity, const_needs_hBOOL);
 
 fun display_arity const_needs_hBOOL (c,n) =
-  Output.debug (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
+  ResAxioms.trace_msg (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
                 (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =
