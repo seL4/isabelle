@@ -26,7 +26,6 @@ signature RECORD =
 sig
   include BASIC_RECORD
   val timing: bool Unsynchronized.ref
-  val record_quick_and_dirty_sensitive: bool Unsynchronized.ref
   val updateN: string
   val ext_typeN: string
   val extN: string
@@ -1011,11 +1010,8 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
 
 (** record simprocs **)
 
-val record_quick_and_dirty_sensitive = Unsynchronized.ref false;
-
-
 fun quick_and_dirty_prove stndrd thy asms prop tac =
-  if ! record_quick_and_dirty_sensitive andalso ! quick_and_dirty then
+  if ! quick_and_dirty then
     Goal.prove (ProofContext.init thy) [] []
       (Logic.list_implies (map Logic.varify asms, Logic.varify prop))
       (K (Skip_Proof.cheat_tac @{theory HOL}))
@@ -1026,9 +1022,7 @@ fun quick_and_dirty_prove stndrd thy asms prop tac =
     in if stndrd then Drule.standard prf else prf end;
 
 fun quick_and_dirty_prf noopt opt () =
-  if ! record_quick_and_dirty_sensitive andalso ! quick_and_dirty
-  then noopt ()
-  else opt ();
+  if ! quick_and_dirty then noopt () else opt ();
 
 fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
   (case get_updates thy u of
