@@ -307,8 +307,8 @@ fun run_sh prover hard_timeout timeout dir st =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({success, message, theorem_names, runtime=time_atp, ...}, time_isa) =
-      time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
+    val ({success, message, theorem_names, runtime=time_atp, ...}: ATP_Wrapper.prover_result,
+        time_isa) = time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
   in
     if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
