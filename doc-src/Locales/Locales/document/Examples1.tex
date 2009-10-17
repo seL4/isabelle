@@ -18,13 +18,18 @@
 %
 \endisadelimtheory
 %
+\begin{isamarkuptext}%
+\vspace{-5ex}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Use of Locales in Theories and Proofs
   \label{sec:interpretation}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Locales can also be interpreted in the contexts of theories and
+Locales can be interpreted in the contexts of theories and
   structured proofs.  These interpretations are dynamic, too.
   Conclusions of locales will be propagated to the current theory or
   the current proof context.%
@@ -37,10 +42,10 @@ Locales can also be interpreted in the contexts of theories and
   Section~\ref{sec:local-interpretation}.
 
   As an example, consider the type of integers \isa{int}.  The
-  relation \isa{op\ {\isasymle}} is a total order over \isa{int},
-  divisibility \isa{op\ dvd} forms a distributive lattice.  We start with the
-  interpretation that \isa{op\ {\isasymle}} is a partial order.  The facilities of
-  the interpretation command are explored gradually in three versions.%
+  relation \isa{op\ {\isasymle}} is a total order over \isa{int}.  We start
+  with the interpretation that \isa{op\ {\isasymle}} is a partial order.  The
+  facilities of the interpretation command are explored gradually in
+  three versions.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -72,9 +77,9 @@ The command \isakeyword{interpretation} is for the interpretation of
   white-space-separated list of terms, which provide a full
   instantiation of the locale parameters.  The parameters are referred
   to by order of declaration, which is also the order in which
-  \isakeyword{print\_locale} outputs them.
-
-[TODO: Introduce morphisms.  Reference to \ref{sec:locale-expressions}.]
+  \isakeyword{print\_locale} outputs them.  The locale has only a
+  single parameter, hence the list of instantiation terms is a
+  singleton.
 
   The command creates the goal
   \begin{isabelle}%
@@ -99,7 +104,7 @@ The effect of the command is that instances of all
   \begin{isabelle}%
 \ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymle}\ {\isacharquery}z%
 \end{isabelle}
-  It is not possible to reference this theorem simply as \isa{trans}, which prevents unwanted hiding of existing theorems of the
+  It is not possible to reference this theorem simply as \isa{trans}.  This prevents unwanted hiding of existing theorems of the
   theory by an interpretation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -112,7 +117,7 @@ The effect of the command is that instances of all
 Not only does the above interpretation qualify theorem names.
   The prefix \isa{int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
-  qualified name \isa{int{\isachardot}less} refers to
+  qualified name \isa{int{\isachardot}less} is short for
   the interpretation of the definition, which is \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}}.
   Qualified name and expanded form may be used almost
   interchangeably.%
@@ -129,7 +134,7 @@ Not only does the above interpretation qualify theorem names.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the
-  keyword \isakeyword{where}.  The revised interpretation follows.%
+  keyword \isakeyword{where}.  This is the revised interpretation:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

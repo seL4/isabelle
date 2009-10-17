@@ -12,9 +12,9 @@ text {* The following presentation will use notation of
   primitives are universal quantification (@{text "\<And>"}), entailment
   (@{text "\<Longrightarrow>"}) and equality (@{text "\<equiv>"}).  Variables (not bound
   variables) are sometimes preceded by a question mark.  The logic is
-  typed.  Type variables are denoted by @{text "'a"}, @{text "'b"}
-  etc., and @{text "\<Rightarrow>"} is the function type.  Double brackets @{text
-  "\<lbrakk>"} and @{text "\<rbrakk>"} are used to abbreviate nested entailment.
+  typed.  Type variables are denoted by~@{text "'a"},~@{text "'b"}
+  etc., and~@{text "\<Rightarrow>"} is the function type.  Double brackets~@{text
+  "\<lbrakk>"} and~@{text "\<rbrakk>"} are used to abbreviate nested entailment.
 *}
 *)
 
@@ -26,25 +26,27 @@ text {*
 \[
   @{text "\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> \<dots>"}
 \]
-  where variables @{text "x\<^sub>1"}, \ldots, @{text "x\<^sub>n"} are called
-  \emph{parameters} and the premises $@{text "A\<^sub>1"}, \ldots,
-  @{text "A\<^sub>m"}$ \emph{assumptions}.  A formula @{text "C"}
+  where variables~@{text "x\<^sub>1"}, \ldots,~@{text "x\<^sub>n"} are called
+  \emph{parameters} and the premises $@{text "A\<^sub>1"}, \ldots,~@{text
+  "A\<^sub>m"}$ \emph{assumptions}.  A formula~@{text "C"}
   is a \emph{theorem} in the context if it is a conclusion
 \[
-%\label{eq-fact-in-context}
   @{text "\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> C"}.
 \]
   Isabelle/Isar's notion of context goes beyond this logical view.
   Its contexts record, in a consecutive order, proved
-  conclusions along with attributes, which
-  may control proof procedures.  Contexts also contain syntax information
-  for parameters and for terms depending on them.
+  conclusions along with \emph{attributes}, which can provide context
+  specific configuration information for proof procedures and concrete
+  syntax.  From a logical perspective, locales are just contexts that
+  have been made persistent.  To the user, though, they provide
+  powerful means for declaring and combining contexts, and for the
+  reuse of theorems proved in these contexts.
   *}
 
 section {* Simple Locales *}
 
 text {*
-  Locales can be seen as persistent contexts.  In its simplest form, a
+  In its simplest form, a
   \emph{locale declaration} consists of a sequence of context elements
   declaring parameters (keyword \isakeyword{fixes}) and assumptions
   (keyword \isakeyword{assumes}).  The following is the specification of
@@ -57,24 +59,25 @@ text {*
       and anti_sym [intro]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> x \<rbrakk> \<Longrightarrow> x = y"
       and trans [trans]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 
-text (in partial_order) {* The parameter of this locale is @{text le},
-  which is a binary predicate with infix syntax
-  @{text \<sqsubseteq>}.  The parameter syntax is available in the subsequent
-  assumptions, which ar the normal partial order axioms.
+text (in partial_order) {* The parameter of this locale is~@{text le},
+  which is a binary predicate with infix syntax~@{text \<sqsubseteq>}.  The
+  parameter syntax is available in the subsequent
+  assumptions, which are the familiar partial order axioms.
 
-  Isabelle recognises undbound names as free variables.  In locale
+  Isabelle recognises unbound names as free variables.  In locale
   assumptions, these are implicitly universally quantified.  That is,
-  it is sufficient to write @{term "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"} rather
-  than @{term "\<And>x y z. \<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"}.
+  @{term "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"} in fact means
+  @{term "\<And>x y z. \<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"}.
 
   Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
   current theory; \isakeyword{print\_locale}~$n$ prints the parameters
-  and assumptions of locale $n$; \isakeyword{print\_locale!}~$n$
-  additionally outputs the conclusions.  We may inspect the new locale
+  and assumptions of locale $n$; the variation \isakeyword{print\_locale!}~$n$
+  additionally outputs the conclusions that are stored in the locale.
+  We may inspect the new locale
   by issuing \isakeyword{print\_locale!} @{term partial_order}.  The output
   is the following list of context elements.
-
+\begin{small}
 \begin{alltt}
   \isakeyword{fixes} le :: "'a \(\Rightarrow\) 'a \(\Rightarrow\)  bool" (\isakeyword{infixl} "\(\sqsubseteq\)" 50)
   \isakeyword{assumes} "partial_order op \(\sqsubseteq\)"
@@ -85,26 +88,30 @@ text (in partial_order) {* The parameter of this locale is @{text le},
     \isakeyword{and}
     trans [trans] = `\(\isasymlbrakk\)?x \(\sqsubseteq\) ?y; ?y \(\sqsubseteq\) ?z\(\isasymrbrakk\) \(\Longrightarrow\) ?x \(\sqsubseteq\) ?z`
 \end{alltt}
-
+\end{small}
   The keyword \isakeyword{notes} denotes a conclusion element.  There
-  is only a single assumption @{term "partial_order le"} in the
-  output.  The locale declaration has introduced the predicate @{term
-  partial_order} to the theory.  The predicate is called \emph{locale
-  predicate} of the locale.  Its definition may be inspected by
-  issuing \isakeyword{thm} @{thm [source] partial_order_def}:
+  is one conclusion, which was added automatically.  Instead, there is
+  only one assumption, namely @{term "partial_order le"}.  The locale
+  declaration has introduced the predicate @{term
+  partial_order} to the theory.  This predicate is the
+  \emph{locale predicate}.  Its definition may be inspected by
+  issuing \isakeyword{thm} @{thm [source] partial_order_def}.
   @{thm [display, indent=2] partial_order_def}
-  The original assumptions have been turned into conclusions and are
+  In our example, this is a unary predicate over the parameter of the
+  locale.  It is equivalent to the original assumptions, which have
+  been turned into conclusions and are
   available as theorems in the context of the locale.  The names and
   attributes from the locale declaration are associated to these
   theorems and are effective in the context of the locale.
 
-  Each locale theorem has a \emph{foundational theorem} as counterpart
-  in the theory.  For the transitivity theorem, this is @{thm [source]
-  partial_order.trans}:
+  Each conclusion has a \emph{foundational theorem} as counterpart
+  in the theory.  Technically, this is simply the theorem composed
+  of context and conclusion.  For the transitivity theorem, this is
+  @{thm [source] partial_order.trans}:
   @{thm [display, indent=2] partial_order_def}
 *}
 
-subsection {* Extending the Locale *}
+subsection {* Targets: Extending Locales *}
 
 text {*
   The specification of a locale is fixed, but its list of conclusions
@@ -112,7 +119,7 @@ text {*
   In the following, \isakeyword{definition} and 
   \isakeyword{theorem} are illustrated.
   Table~\ref{tab:commands-with-target} lists Isar commands that accept
-  a target.  There are various ways of specifying the target.  A
+  a target.  Isar provides various ways of specifying the target.  A
   target for a single command may be indicated with keyword
   \isakeyword{in} in the following way:
 
@@ -142,17 +149,18 @@ text {*
     where "(x \<sqsubset> y) = (x \<sqsubseteq> y \<and> x \<noteq> y)"
 
 text (in partial_order) {* The strict order @{text less} with infix
-  syntax @{text \<sqsubset>} is
-  defined in terms of the locale parameter @{text le} and the general
-  equality.  The definition generates a \emph{foundational constant}
+  syntax~@{text \<sqsubset>} is
+  defined in terms of the locale parameter~@{text le} and the general
+  equality of the object logic we work in.  The definition generates a
+  \emph{foundational constant}
   @{term partial_order.less} with definition @{thm [source]
   partial_order.less_def}:
   @{thm [display, indent=2] partial_order.less_def}
   At the same time, the locale is extended by syntax transformations
-  hiding this construction in the context of the locale.  In the
-  context of the locale, the abbreviation @{text less} is available for
+  hiding this construction in the context of the locale.  Here, the
+  abbreviation @{text less} is available for
   @{text "partial_order.less le"}, and it is printed
-  and parsed as infix @{text \<sqsubset>}.  Finally, the theorem @{thm [source]
+  and parsed as infix~@{text \<sqsubset>}.  Finally, the conclusion @{thm [source]
   less_def} is added to the locale:
   @{thm [display, indent=2] less_def}
 *}
@@ -165,8 +173,9 @@ text {* The treatment of theorem statements is more straightforward.
     "\<lbrakk> x \<sqsubset> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
     unfolding %visible less_def by %visible (blast intro: trans)
 
-text {* In the context of the proof, assumptions and theorems of the
-  locale may be used.  Attributes are effective: @{text anti_sym} was
+text {* In the context of the proof, conclusions of the
+  locale may be used like theorems.  Attributes are effective: @{text
+  anti_sym} was
   declared as introduction rule, hence it is in the context's set of
   rules used by the classical reasoner by default.  *}
 
@@ -208,7 +217,7 @@ text {* When working with locales, sequences of commands with the same
     by (unfold is_inf_def) blast
 
   theorem is_inf_uniq: "\<lbrakk>is_inf x y i; is_inf x y i'\<rbrakk> \<Longrightarrow> i = i'"
-  proof -
+    proof -
     assume inf: "is_inf x y i"
     assume inf': "is_inf x y i'"
     show ?thesis
@@ -250,7 +259,7 @@ text {* When working with locales, sequences of commands with the same
     by (unfold is_sup_def) blast
 
   theorem is_sup_uniq: "\<lbrakk>is_sup x y s; is_sup x y s'\<rbrakk> \<Longrightarrow> s = s'"
-  proof -
+    proof -
     assume sup: "is_sup x y s"
     assume sup': "is_sup x y s'"
     show ?thesis
@@ -283,10 +292,11 @@ text {* When working with locales, sequences of commands with the same
   end
 
 text {* The syntax of the locale commands discussed in this tutorial is
-  shown in Table~\ref{tab:commands}.  The grammer is complete with the
-  exception of additional context elements not discussed here.  See the
-  Isabelle/Isar Reference Manual~\cite{IsarRef}
-  for full documentation.  *}
+  shown in Table~\ref{tab:commands}.  The grammar is complete with the
+  exception of the context elements \isakeyword{constrains} and
+  \isakeyword{defines}, which are provided for backward
+  compatibility.  See the Isabelle/Isar Reference
+  Manual~\cite{IsarRef} for full documentation.  *}
 
 
 section {* Import \label{sec:import} *}
@@ -315,7 +325,6 @@ text {* These assumptions refer to the predicates for infimum
 
   definition
     meet (infixl "\<sqinter>" 70) where "x \<sqinter> y = (THE inf. is_inf x y inf)"
-
   definition
     join (infixl "\<squnion>" 65) where "x \<squnion> y = (THE sup. is_sup x y sup)"
 
@@ -558,7 +567,8 @@ text {* These assumptions refer to the predicates for infimum
 
   end
 
-text {* Locales for total orders and distributive lattices follow for
+text {* Locales for total orders and distributive lattices follow to
+  establish a sufficiently rich landscape of locales for
   further examples in this tutorial.  Each comes with an example
   theorem. *}
 
@@ -584,13 +594,13 @@ text {* Locales for total orders and distributive lattices follow for
   qed
 
 text {*
-  The locale hierachy obtained through these declarations is shown in
+  The locale hierarchy obtained through these declarations is shown in
   Figure~\ref{fig:lattices}(a).
 
 \begin{figure}
 \hrule \vspace{2ex}
 \begin{center}
-\subfigure[Declared hierachy]{
+\subfigure[Declared hierarchy]{
 \begin{tikzpicture}
   \node (po) at (0,0) {@{text partial_order}};
   \node (lat) at (-1.5,-1) {@{text lattice}};
@@ -646,20 +656,20 @@ text {*
   specifications of the locales.
 
   The first from of interpretation we will consider in this tutorial
-  is provided by the \isakeyword{sublocale} command, which enables to
+  is provided by the \isakeyword{sublocale} command.  It enables to
   modify the import hierarchy to reflect the \emph{logical} relation
   between locales.
 
   Consider the locale hierarchy from Figure~\ref{fig:lattices}(a).
-  Total orders are lattices, although this is not reflected in the
-  import hierarchy, and definitions, theorems and other conclusions
+  Total orders are lattices, although this is not reflected here, and
+  definitions, theorems and other conclusions
   from @{term lattice} are not available in @{term total_order}.  To
   obtain the situation in Figure~\ref{fig:lattices}(b), it is
   sufficient to add the conclusions of the latter locale to the former.
   The \isakeyword{sublocale} command does exactly this.
   The declaration \isakeyword{sublocale} $l_1
   \subseteq l_2$ causes locale $l_2$ to be \emph{interpreted} in the
-  context of $l_1$.  All conclusions of $l_2$ are made
+  context of $l_1$.  This means that all conclusions of $l_2$ are made
   available in $l_1$.
 
   Of course, the change of hierarchy must be supported by a theorem
@@ -677,9 +687,9 @@ txt {* \normalsize
   Now the
   locale predicate needs to be unfolded --- for example, using its
   definition or by introduction rules
-  provided by the locale package.  The locale package provides the
-  methods @{text intro_locales} and @{text unfold_locales} to automate
-  this.  They are aware of the
+  provided by the locale package.  For automation, the locale package
+  provides the methods @{text intro_locales} and @{text
+  unfold_locales}.  They are aware of the
   current context and dependencies between locales and automatically
   discharge goals implied by these.  While @{text unfold_locales}
   always unfolds locale predicates to assumptions, @{text
@@ -716,11 +726,11 @@ txt {* \normalsize
       by (auto simp: is_sup_def)
     then show "\<exists>sup. is_sup x y sup" .. qed %visible
 
-text {* Similarly, we may establsih that total orders are distributive
+text {* Similarly, we may establish that total orders are distributive
   lattices with a second \isakeyword{sublocale} statement. *}
 
   sublocale total_order \<subseteq> distrib_lattice
-  proof unfold_locales
+    proof unfold_locales
     fix %"proof" x y z
     show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")
       txt {* Jacobson I, p.\ 462 *}
@@ -754,6 +764,7 @@ text {*
   The sublocale relation is transitive --- that is, propagation takes
   effect along chains of sublocales.  Even cycles in the sublocale relation are
   supported, as long as these cycles do not lead to infinite chains.
-  For details, see \cite{Ballarin2006a}.  *}
+  Details are discussed in the technical report \cite{Ballarin2006a}.
+  See also Section~\ref{sec:infinite-chains} of this tutorial.  *}
 
 end

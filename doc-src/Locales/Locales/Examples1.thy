@@ -1,12 +1,12 @@
 theory Examples1
 imports Examples
 begin
-
+text {* \vspace{-5ex} *}
 section {* Use of Locales in Theories and Proofs
   \label{sec:interpretation} *}
 
 text {*
-  Locales can also be interpreted in the contexts of theories and
+  Locales can be interpreted in the contexts of theories and
   structured proofs.  These interpretations are dynamic, too.
   Conclusions of locales will be propagated to the current theory or
   the current proof context.%
@@ -19,10 +19,10 @@ text {*
   Section~\ref{sec:local-interpretation}.
 
   As an example, consider the type of integers @{typ int}.  The
-  relation @{term "op \<le>"} is a total order over @{typ int},
-  divisibility @{text "op dvd"} forms a distributive lattice.  We start with the
-  interpretation that @{term "op \<le>"} is a partial order.  The facilities of
-  the interpretation command are explored gradually in three versions.
+  relation @{term "op \<le>"} is a total order over @{typ int}.  We start
+  with the interpretation that @{term "op \<le>"} is a partial order.  The
+  facilities of the interpretation command are explored gradually in
+  three versions.
   *}
 
 
@@ -44,9 +44,9 @@ txt {* \normalsize
   white-space-separated list of terms, which provide a full
   instantiation of the locale parameters.  The parameters are referred
   to by order of declaration, which is also the order in which
-  \isakeyword{print\_locale} outputs them.
-
-[TODO: Introduce morphisms.  Reference to \ref{sec:locale-expressions}.]
+  \isakeyword{print\_locale} outputs them.  The locale has only a
+  single parameter, hence the list of instantiation terms is a
+  singleton.
 
   The command creates the goal
   @{subgoals [display]} which can be shown easily:
@@ -60,7 +60,7 @@ text {*  The effect of the command is that instances of all
   theorem:
   @{thm [display, indent=2] int.trans}
   It is not possible to reference this theorem simply as @{text
-  trans}, which prevents unwanted hiding of existing theorems of the
+  trans}.  This prevents unwanted hiding of existing theorems of the
   theory by an interpretation. *}
 
 
@@ -69,7 +69,7 @@ subsection {* Second Version: Replacement of Definitions *}
 text {* Not only does the above interpretation qualify theorem names.
   The prefix @{text int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
-  qualified name @{text int.less} refers to
+  qualified name @{text int.less} is short for
   the interpretation of the definition, which is @{term int.less}.
   Qualified name and expanded form may be used almost
   interchangeably.%
@@ -84,6 +84,6 @@ text {* Not only does the above interpretation qualify theorem names.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the
-  keyword \isakeyword{where}.  The revised interpretation follows.
+  keyword \isakeyword{where}.  This is the revised interpretation:
   *}
 end

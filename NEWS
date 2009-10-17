@@ -23,6 +23,9 @@ local definitions to terms of the target domain of an interpretation.
 to print all interpretations of locale l in the theory.  Interpretations
 in proofs are not shown.
 
+* Thoroughly revised locales tutorial.  New section on conditional
+interpretation.
+
 
 *** HOL ***
 
