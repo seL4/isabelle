@@ -15,21 +15,21 @@ simplifications:
 \end{itemize}
 *}
 
-datatype prim_ty       	--{* primitive type, cf. 4.2 *}
-	= Void    	--{* result type of void methods *}
-	| Boolean
-	| Integer
+datatype prim_ty        --{* primitive type, cf. 4.2 *}
+        = Void          --{* result type of void methods *}
+        | Boolean
+        | Integer
 
 
-datatype ref_ty		--{* reference type, cf. 4.3 *}
-	= NullT		--{* null type, cf. 4.1 *}
-	| IfaceT qtname	--{* interface type *}
-	| ClassT qtname	--{* class type *}
-	| ArrayT ty	--{* array type *}
+datatype ref_ty         --{* reference type, cf. 4.3 *}
+        = NullT         --{* null type, cf. 4.1 *}
+        | IfaceT qtname --{* interface type *}
+        | ClassT qtname --{* class type *}
+        | ArrayT ty     --{* array type *}
 
-and ty	    		--{* any type, cf. 4.1 *}
-	= PrimT prim_ty	--{* primitive type *}
-	| RefT  ref_ty	--{* reference type *}
+and ty                  --{* any type, cf. 4.1 *}
+        = PrimT prim_ty --{* primitive type *}
+        | RefT  ref_ty  --{* reference type *}
 
 translations
   "prim_ty" <= (type) "Type.prim_ty"
@@ -37,16 +37,16 @@ translations
   "ty"      <= (type) "Type.ty"
 
 syntax
-	 NT	:: "       \<spacespace> ty"
-	 Iface	:: "qtname  \<Rightarrow> ty"
-	 Class	:: "qtname  \<Rightarrow> ty"
-	 Array	:: "ty     \<Rightarrow> ty"	("_.[]" [90] 90)
+         NT     :: "       \<spacespace> ty"
+         Iface  :: "qtname  \<Rightarrow> ty"
+         Class  :: "qtname  \<Rightarrow> ty"
+         Array  :: "ty     \<Rightarrow> ty"    ("_.[]" [90] 90)
 
 translations
-	"NT"      == "RefT   NullT"
-	"Iface I" == "RefT (IfaceT I)"
-	"Class C" == "RefT (ClassT C)"
-	"T.[]"    == "RefT (ArrayT T)"
+        "NT"      == "RefT   NullT"
+        "Iface I" == "RefT (IfaceT I)"
+        "Class C" == "RefT (ClassT C)"
+        "T.[]"    == "RefT (ArrayT T)"
 
 constdefs
   the_Class :: "ty \<Rightarrow> qtname"

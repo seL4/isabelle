@@ -54,7 +54,7 @@ blast} can be lead astray in the presence of large numbers of rules.
 To prove transitivity, we need rule induction, i.e.\ theorem
 @{thm[source]rtc.induct}:
 @{thm[display]rtc.induct}
-It says that @{text"?P"} holds for an arbitrary pair @{thm_style prem1 rtc.induct}
+It says that @{text"?P"} holds for an arbitrary pair @{thm (prem 1) rtc.induct}
 if @{text"?P"} is preserved by all rules of the inductive definition,
 i.e.\ if @{text"?P"} holds for the conclusion provided it holds for the
 premises. In general, rule induction for an $n$-ary inductive relation $R$

@@ -142,7 +142,7 @@ lemma norR_mem_unique:
   apply (cut_tac a = a and m = m in zcong_zless_unique, auto)
    apply (rule_tac [2] m = m in zcong_zless_imp_eq)
        apply (auto intro: Bnor_mem_zle Bnor_mem_zg zcong_trans
-	 order_less_imp_le norR_mem_unique_aux simp add: zcong_sym)
+         order_less_imp_le norR_mem_unique_aux simp add: zcong_sym)
   apply (rule_tac x = b in exI, safe)
   apply (rule Bnor_mem_if)
     apply (case_tac [2] "b = 0")
@@ -312,7 +312,7 @@ theorem Euler_Fermat:
      apply (rule_tac [2] RRset2norRR_correct1)
        apply (rule_tac [5] RRset2norRR_inj)
         apply (auto intro: order_less_le [THEN iffD2]
-	   simp add: noX_is_RRset)
+           simp add: noX_is_RRset)
   apply (unfold noXRRset_def norRRset_def)
   apply (rule finite_imageI)
   apply (rule Bnor_fin)

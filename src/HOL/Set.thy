@@ -445,8 +445,8 @@ subsection {* Basic operations *}
 
 subsubsection {* Subsets *}
 
-lemma subsetI [atp,intro!]: "(!!x. x:A ==> x:B) ==> A \<subseteq> B"
-  by (auto simp add: mem_def intro: predicate1I)
+lemma subsetI [atp, intro!]: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B) \<Longrightarrow> A \<subseteq> B"
+  unfolding mem_def by (rule le_funI, rule le_boolI)
 
 text {*
   \medskip Map the type @{text "'a set => anything"} to just @{typ
@@ -455,8 +455,8 @@ text {*
 *}
 
 lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
+  unfolding mem_def by (erule le_funE, erule le_boolE)
   -- {* Rule in Modus Ponens style. *}
-  by (unfold mem_def) blast
 
 lemma rev_subsetD [intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
   -- {* The same, with reversed premises for use with @{text erule} --
@@ -467,9 +467,9 @@ text {*
   \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
 *}
 
-lemma subsetCE [elim]: "A \<subseteq>  B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
+lemma subsetCE [elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
   -- {* Classical elimination rule. *}
-  by (unfold mem_def) blast
+  unfolding mem_def by (blast dest: le_funE le_boolE)
 
 lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 

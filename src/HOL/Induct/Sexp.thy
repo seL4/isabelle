@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/Sexp.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
@@ -80,10 +79,10 @@ by (simp add: pred_sexp_def, blast)
 (* (a,b) \<in> pred_sexp^+ ==> a \<in> sexp *)
 lemmas trancl_pred_sexpD1 = 
     pred_sexp_subset_Sigma
-	 [THEN trancl_subset_Sigma, THEN subsetD, THEN SigmaD1]
+         [THEN trancl_subset_Sigma, THEN subsetD, THEN SigmaD1]
 and trancl_pred_sexpD2 = 
     pred_sexp_subset_Sigma
-	 [THEN trancl_subset_Sigma, THEN subsetD, THEN SigmaD2]
+         [THEN trancl_subset_Sigma, THEN subsetD, THEN SigmaD2]
 
 lemma pred_sexpI1: 
     "[| M \<in> sexp;  N \<in> sexp |] ==> (M, Scons M N) \<in> pred_sexp"

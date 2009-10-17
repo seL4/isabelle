@@ -37,16 +37,19 @@ fun mk_name i t =
               |_ => "x"^string_of_int i))
                
 local
+
 val conj1_False = thm "conj1_False";
 val conj2_False = thm "conj2_False";
 val conj_True = thm "conj_True";
 val conj_cong = thm "conj_cong";
+
 fun isFalse (Const ("False",_)) = true
   | isFalse _ = false;
 fun isTrue (Const ("True",_)) = true
   | isTrue _ = false;
 
 in
+
 val lazy_conj_simproc =
   Simplifier.simproc @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
@@ -71,30 +74,24 @@ val lazy_conj_simproc =
         
       | _ => NONE));
 
-val string_eq_simp_tac =
-     simp_tac (HOL_basic_ss 
-                 addsimps (thms "list.inject"@thms "char.inject"@simp_thms)
-                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc]
-                 addcongs [thm "block_conj_cong"])
+val string_eq_simp_tac = simp_tac (HOL_basic_ss 
+  addsimps (@{thms list.inject} @ @{thms char.inject}
+    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms)
+  addsimprocs [lazy_conj_simproc]
+  addcongs [@{thm block_conj_cong}])
+
 end;
 
-
-
-local
-val rules = 
- [thm "StateFun.lookup_update_id_same",
-  thm "StateFun.id_id_cancel",
-  thm "StateFun.lookup_update_same",thm "StateFun.lookup_update_other"
-  ]
-in
 val lookup_ss = (HOL_basic_ss 
-                 addsimps (thms "list.inject"@thms "char.inject"@simp_thms@rules)
-                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc]
-                 addcongs [thm "block_conj_cong"]
-                 addSolver StateSpace.distinctNameSolver) 
-end;
+  addsimps (@{thms list.inject} @ @{thms char.inject}
+    @ @{thms list.distinct} @ @{thms char.distinct} @ simp_thms
+    @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
+      @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
+  addsimprocs [lazy_conj_simproc]
+  addcongs @{thms block_conj_cong}
+  addSolver StateSpace.distinctNameSolver);
 
-val ex_lookup_ss = HOL_ss addsimps [thm "StateFun.ex_id"];
+val ex_lookup_ss = HOL_ss addsimps @{thms StateFun.ex_id};
 
 structure StateFunArgs =
 struct
@@ -163,12 +160,12 @@ val lookup_simproc =
 fun foldl1 f (x::xs) = foldl f x xs;
 
 local
-val update_apply = thm "StateFun.update_apply";
-val meta_ext = thm "StateFun.meta_ext";
-val o_apply = thm "Fun.o_apply";
-val ss' = (HOL_ss addsimps (update_apply::o_apply::thms "list.inject"@thms "char.inject")
-                 addsimprocs [Datatype.distinct_simproc,lazy_conj_simproc,StateSpace.distinct_simproc]
-                 addcongs [thm "block_conj_cong"]);
+val meta_ext = @{thm StateFun.meta_ext};
+val ss' = (HOL_ss addsimps
+  (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
+    @ @{thms list.distinct} @ @{thms char.distinct})
+  addsimprocs [lazy_conj_simproc, StateSpace.distinct_simproc]
+  addcongs @{thms block_conj_cong});
 in
 val update_simproc =
   Simplifier.simproc @{theory} "update_simp" ["update d c n v s"]
@@ -241,7 +238,7 @@ val update_simproc =
                       end
                | mk_updterm _ t = init_seed t;
 
-	     val ctxt = Simplifier.the_context ss |>
+             val ctxt = Simplifier.the_context ss |>
                         Config.map MetaSimplifier.simp_depth_limit (K 100);
              val ss1 = Simplifier.context ctxt ss';
              val ss2 = Simplifier.context ctxt 
@@ -288,10 +285,10 @@ val ex_lookup_eq_simproc =
                let val (_::nT::_) = binder_types lT;
                          (*  ('v => 'a) => 'n => ('n => 'v) => 'a *)
                    val x' = if not (loose_bvar1 (x,0))
-			    then Bound 1
+                            then Bound 1
                             else raise TERM ("",[x]);
                    val n' = if not (loose_bvar1 (n,0))
-			    then Bound 2
+                            then Bound 2
                             else raise TERM ("",[n]);
                    val sel' = lo $ d $ n' $ s;
                   in (Const ("op =",Teq)$sel'$x',hd (binder_types Teq),nT,swap) end;
@@ -319,7 +316,7 @@ val ex_lookup_eq_simproc =
                   val prop = list_all ([("n",nT),("x",eT)],
                               Logic.mk_equals (Const ("Ex",Tex)$Abs(s,T,eq),
                                                HOLogic.true_const));
-                  val thm = standard (prove prop);
+                  val thm = Drule.standard (prove prop);
                   val thm' = if swap then swap_ex_eq OF [thm] else thm
              in SOME thm' end
              handle TERM _ => NONE)
@@ -336,7 +333,7 @@ fun mkUpper str =
     [] => ""
    | c::cs => String.implode (Char.toUpper c::cs ))
 
-fun mkName (Type (T,args)) = concat (map mkName args) ^ mkUpper (Long_Name.base_name T)
+fun mkName (Type (T,args)) = implode (map mkName args) ^ mkUpper (Long_Name.base_name T)
   | mkName (TFree (x,_)) = mkUpper (Long_Name.base_name x)
   | mkName (TVar ((x,_),_)) = mkUpper (Long_Name.base_name x);
 
@@ -350,7 +347,7 @@ fun gen_constr_destr comp prfx thy (Type (T,[])) =
   | gen_constr_destr comp prfx thy (T as Type ("fun",_)) =
      let val (argTs,rangeT) = strip_type T;
      in comp 
-          (Syntax.const (deco prfx (concat (map mkName argTs) ^ "Fun")))
+          (Syntax.const (deco prfx (implode (map mkName argTs) ^ "Fun")))
           (fold (fn x => fn y => x$y)
                (replicate (length argTs) (Syntax.const "StateFun.map_fun"))
                (gen_constr_destr comp prfx thy rangeT))
@@ -364,7 +361,7 @@ fun gen_constr_destr comp prfx thy (Type (T,[])) =
                      ((mk_map T $ gen_constr_destr comp prfx thy argT))
           | _ => raise (TYPE ("StateFun.gen_constr_destr",[T'],[])))
      else (* type args are not recursively embedded into val *)
-           Syntax.const (deco prfx (concat (map mkName argTs) ^ mkUpper (Long_Name.base_name T)))
+           Syntax.const (deco prfx (implode (map mkName argTs) ^ mkUpper (Long_Name.base_name T)))
   | gen_constr_destr thy _ _ T = raise (TYPE ("StateFun.gen_constr_destr",[T],[]));
                    
 val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const "Fun.comp" $ a $ b) ""
@@ -375,7 +372,7 @@ val statefun_simp_attr = Thm.declaration_attribute (fn thm => fn ctxt =>
   let
      val (lookup_ss,ex_lookup_ss,simprocs_active) = StateFunData.get ctxt;
      val (lookup_ss', ex_lookup_ss') = 
-	   (case (concl_of thm) of
+           (case (concl_of thm) of
             (_$((Const ("Ex",_)$_))) => (lookup_ss, ex_lookup_ss addsimps [thm])
             | _ => (lookup_ss addsimps [thm], ex_lookup_ss))
      fun activate_simprocs ctxt =

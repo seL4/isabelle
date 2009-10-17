@@ -1,5 +1,4 @@
 (*  Title:      HOL/IMP/Compiler.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, TUM
     Copyright   1996 TUM
 *)
@@ -262,32 +261,32 @@ next
       assume H: "\<langle>?W,[],s\<rangle> -n\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
       show "\<langle>?w,s\<rangle> \<longrightarrow>\<^sub>c t"
       proof cases
-	assume b: "b s"
-	then obtain m where m: "n = Suc m"
+        assume b: "b s"
+        then obtain m where m: "n = Suc m"
           and "\<langle>?C @ [?j2],[?j1],s\<rangle> -m\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
-	  using H by fastsimp
-	then obtain r n1 n2 where n1: "\<langle>?C,[],s\<rangle> -n1\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
+          using H by fastsimp
+        then obtain r n1 n2 where n1: "\<langle>?C,[],s\<rangle> -n1\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
           and n2: "\<langle>[?j2],rev ?C @ [?j1],r\<rangle> -n2\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
           and n12: "m = n1+n2"
-	  using execn_decomp[of _ "[?j2]"]
-	  by(simp del: execn_simp) fast
-	have n2n: "n2 - 1 < n" using m n12 by arith
-	note b
-	moreover
-	{ from n1 have "\<langle>?C,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
-	    by (simp add:rtrancl_is_UN_rel_pow) fast
-	  hence "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c r" by(rule IHc)
-	}
-	moreover
-	{ have "n2 - 1 < n" using m n12 by arith
-	  moreover from n2 have "\<langle>?W,[],r\<rangle> -n2- 1\<rightarrow> \<langle>[],rev ?W,t\<rangle>" by fastsimp
-	  ultimately have "\<langle>?w,r\<rangle> \<longrightarrow>\<^sub>c t" by(rule IHm)
-	}
-	ultimately show ?thesis ..
+          using execn_decomp[of _ "[?j2]"]
+          by(simp del: execn_simp) fast
+        have n2n: "n2 - 1 < n" using m n12 by arith
+        note b
+        moreover
+        { from n1 have "\<langle>?C,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
+            by (simp add:rtrancl_is_UN_rel_pow) fast
+          hence "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c r" by(rule IHc)
+        }
+        moreover
+        { have "n2 - 1 < n" using m n12 by arith
+          moreover from n2 have "\<langle>?W,[],r\<rangle> -n2- 1\<rightarrow> \<langle>[],rev ?W,t\<rangle>" by fastsimp
+          ultimately have "\<langle>?w,r\<rangle> \<longrightarrow>\<^sub>c t" by(rule IHm)
+        }
+        ultimately show ?thesis ..
       next
-	assume b: "\<not> b s"
-	hence "t = s" using H by simp
-	with b show ?thesis by simp
+        assume b: "\<not> b s"
+        hence "t = s" using H by simp
+        with b show ?thesis by simp
       qed
     qed
   }

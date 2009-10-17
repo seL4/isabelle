@@ -65,9 +65,17 @@ lemma insert_set:
   "Set.insert x (set xs) = set (insert x xs)"
   by (auto simp add: insert_def)
 
+lemma insert_set_compl:
+  "Set.insert x (- set xs) = - set (List_Set.remove_all x xs)"
+  by (auto simp del: mem_def simp add: remove_all_def)
+
 lemma remove_set:
   "remove x (set xs) = set (remove_all x xs)"
   by (auto simp add: remove_def remove_all_def)
+
+lemma remove_set_compl:
+  "List_Set.remove x (- set xs) = - set (List_Set.insert x xs)"
+  by (auto simp del: mem_def simp add: remove_def List_Set.insert_def)
 
 lemma image_set:
   "image f (set xs) = set (map f xs)"
@@ -98,14 +106,12 @@ proof -
 qed
 
 lemma Inter_set:
-  "Inter (set (A # As)) = foldl (op \<inter>) A As"
+  "Inter (set As) = foldl (op \<inter>) UNIV As"
 proof -
-  have "finite (set (A # As))" by simp
-  moreover have "fold (op \<inter>) UNIV (set (A # As)) = foldl (\<lambda>y x. x \<inter> y) UNIV (A # As)"
+  have "fold (op \<inter>) UNIV (set As) = foldl (\<lambda>y x. x \<inter> y) UNIV As"
     by (rule fun_left_comm_idem.fold_set, unfold_locales, auto)
-  ultimately have "Inter (set (A # As)) = foldl (op \<inter>) UNIV (A # As)"
-    by (simp only: Inter_fold_inter Int_commute)
-  then show ?thesis by simp
+  then show ?thesis
+    by (simp only: Inter_fold_inter finite_set Int_commute)
 qed
 
 lemma Union_set:
@@ -118,14 +124,12 @@ proof -
 qed
 
 lemma INTER_set:
-  "INTER (set (A # As)) f = foldl (\<lambda>B A. f A \<inter> B) (f A) As"
+  "INTER (set As) f = foldl (\<lambda>B A. f A \<inter> B) UNIV As"
 proof -
-  have "finite (set (A # As))" by simp
-  moreover have "fold (\<lambda>A. op \<inter> (f A)) UNIV (set (A # As)) = foldl (\<lambda>B A. f A \<inter> B) UNIV (A # As)"
+  have "fold (\<lambda>A. op \<inter> (f A)) UNIV (set As) = foldl (\<lambda>B A. f A \<inter> B) UNIV As"
     by (rule fun_left_comm_idem.fold_set, unfold_locales, auto)
-  ultimately have "INTER (set (A # As)) f = foldl (\<lambda>B A. f A \<inter> B) UNIV (A # As)"
-    by (simp only: INTER_fold_inter) 
-  then show ?thesis by simp
+  then show ?thesis
+    by (simp only: INTER_fold_inter finite_set)
 qed
 
 lemma UNION_set:

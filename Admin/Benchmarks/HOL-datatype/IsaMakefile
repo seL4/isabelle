@@ -20,13 +20,13 @@ LOG = $(OUT)/log
 ## HOL-datatype
 
 HOL:
-	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
 
 HOL-datatype: HOL $(LOG)/HOL-datatype.gz
 
 $(LOG)/HOL-datatype.gz: $(OUT)/HOLBrackin.thy Instructions.thy SML.thy \
   Verilog.thy
-	@cd ..; $(ISATOOL) usedir -s HOL-datatype $(OUT)/HOL HOL-datatype
+	@cd ..; $(ISABELLE_TOOL) usedir -s HOL-datatype $(OUT)/HOL HOL-datatype
 
 
 ## clean

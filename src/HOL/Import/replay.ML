@@ -1,5 +1,4 @@
 (*  Title:      HOL/Import/replay.ML
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
@@ -17,406 +16,406 @@ fun NY f = raise ERR f "NOT YET!"
 
 fun replay_proof int_thms thyname thmname prf thy =
     let
-	val _ = ImportRecorder.start_replay_proof thyname thmname 
-	fun rp (PRefl tm) thy = P.REFL tm thy
-	  | rp (PInstT(p,lambda)) thy =
-	    let
-		val (thy',th) = rp' p thy
-	    in
-		P.INST_TYPE lambda th thy'
-	    end
-	  | rp (PSubst(prfs,ctxt,prf)) thy =
-	    let
-		val (thy',ths) = fold_rev (fn p => fn (thy, ths) =>
-					   let
-					       val (thy',th) = rp' p thy
-					   in
-					       (thy',th::ths)
-					   end) prfs (thy,[])
-		val (thy'',th) = rp' prf thy'
-	    in
-		P.SUBST ths ctxt th thy''
-	    end
-	  | rp (PAbs(prf,v)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.ABS v th thy'
-	    end
-	  | rp (PDisch(prf,tm)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.DISCH tm th thy'
-	    end
-	  | rp (PMp(prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.MP th1 th2 thy2
-	    end
-	  | rp (PHyp tm) thy = P.ASSUME tm thy
-	  | rp (PDef(seg,name,rhs)) thy =
-	    (case P.get_def seg name rhs thy of
-		 (thy',SOME res) => (thy',res)
-	       | (thy',NONE) => 
-		 if seg = thyname
-		 then P.new_definition seg name rhs thy'
-		 else raise ERR "replay_proof" ("Too late for term definition: "^seg^" != "^thyname))
-	  | rp (POracle(tg,asl,c)) thy = (*P.mk_oracle_thm tg (map be_contract asl,c)*) NY "ORACLE"
-	  | rp (PSpec(prf,tm)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.SPEC tm th thy'
-	    end
-	  | rp (PInst(prf,theta)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.INST theta th thy'
-	    end
-	  | rp (PGen(prf,v)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-		val p = P.GEN v th thy'
-	    in
-		p
-	    end
-	  | rp (PGenAbs(prf,opt,vl)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.GEN_ABS opt vl th thy'
-	    end
-	  | rp (PImpAS(prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.IMP_ANTISYM th1 th2 thy2
-	    end
-	  | rp (PSym prf) thy =
-	    let
-		val (thy1,th) = rp' prf thy
-	    in
-		P.SYM th thy1
-	    end
-	  | rp (PTrans(prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.TRANS th1 th2 thy2
-	    end
-	  | rp (PComb(prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.COMB th1 th2 thy2
-	    end
-	  | rp (PEqMp(prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.EQ_MP th1 th2 thy2
-	    end
-	  | rp (PEqImp prf) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.EQ_IMP_RULE th thy'
-	    end
-	  | rp (PExists(prf,ex,wit)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.EXISTS ex wit th thy'
-	    end
-	  | rp (PChoose(v,prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.CHOOSE v th1 th2 thy2
-	    end
-	  | rp (PConj(prf1,prf2)) thy =
-	    let
-		val (thy1,th1) = rp' prf1 thy
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.CONJ th1 th2 thy2
-	    end
-	  | rp (PConjunct1 prf) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.CONJUNCT1 th thy'
-	    end
-	  | rp (PConjunct2 prf) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.CONJUNCT2 th thy'
-	    end
-	  | rp (PDisj1(prf,tm)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.DISJ1 th tm thy'
-	    end
-	  | rp (PDisj2(prf,tm)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.DISJ2 tm th thy'
-	    end
-	  | rp (PDisjCases(prf,prf1,prf2)) thy =
-	    let
-		val (thy',th)  = rp' prf  thy
-		val (thy1,th1) = rp' prf1 thy'
-		val (thy2,th2) = rp' prf2 thy1
-	    in
-		P.DISJ_CASES th th1 th2 thy2
-	    end
-	  | rp (PNotI prf) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.NOT_INTRO th thy'
-	    end
-	  | rp (PNotE prf) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.NOT_ELIM th thy'
-	    end
-	  | rp (PContr(prf,tm)) thy =
-	    let
-		val (thy',th) = rp' prf thy
-	    in
-		P.CCONTR tm th thy'
-	    end
-	  | rp (PTmSpec _) _ = raise ERR "rp" "Shouldn't reach here (PTmSpec)"
-	  | rp (PTyDef _) _ = raise ERR "rp" "Shouldn't reach here (PTyDef)"
-	  | rp (PTyIntro _) _ = raise ERR "rp" "Shouldn't reach here (PTyIntro)"
-	  | rp PDisk _ = raise ERR "rp" "Shouldn't reach here (PDisk)"
-	  | rp _ _ = raise ERR "rp" "What the hell is this? Which case did I forget?"
-	and rp' p thy =
-	    let
-		val pc = content_of p
-	    in
-		case pc of
-		    PDisk => (case disk_info_of p of
-				  SOME(thyname',thmname) =>
-				  (case Int.fromString thmname of
-				       SOME i =>
-				       if thyname' = thyname
-				       then
-					   (case Array.sub(int_thms,i-1) of
-						NONE =>
-						let
-						    val (thy',th) = rp' (snd (import_proof thyname' thmname thy) thy) thy
-						    val _ = Array.update(int_thms,i-1,SOME th)
-						in
-						    (thy',th)
-						end
-					      | SOME th => (thy,th))
-				       else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")
-				     | NONE => 
-				       (case P.get_thm thyname' thmname thy of
-					    (thy',SOME res) => (thy',res)
-					  | (thy',NONE) => 
-					    if thyname' = thyname
-					    then
-						let
-						    val _ = writeln ("Found no " ^ thmname ^ " theorem, replaying...")
-						    val (f_opt,prf) = import_proof thyname' thmname thy'
-						    val prf = prf thy'
-						    val (thy',th) = replay_proof int_thms thyname' thmname prf thy'
+        val _ = ImportRecorder.start_replay_proof thyname thmname 
+        fun rp (PRefl tm) thy = P.REFL tm thy
+          | rp (PInstT(p,lambda)) thy =
+            let
+                val (thy',th) = rp' p thy
+            in
+                P.INST_TYPE lambda th thy'
+            end
+          | rp (PSubst(prfs,ctxt,prf)) thy =
+            let
+                val (thy',ths) = fold_rev (fn p => fn (thy, ths) =>
+                                           let
+                                               val (thy',th) = rp' p thy
+                                           in
+                                               (thy',th::ths)
+                                           end) prfs (thy,[])
+                val (thy'',th) = rp' prf thy'
+            in
+                P.SUBST ths ctxt th thy''
+            end
+          | rp (PAbs(prf,v)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.ABS v th thy'
+            end
+          | rp (PDisch(prf,tm)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.DISCH tm th thy'
+            end
+          | rp (PMp(prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.MP th1 th2 thy2
+            end
+          | rp (PHyp tm) thy = P.ASSUME tm thy
+          | rp (PDef(seg,name,rhs)) thy =
+            (case P.get_def seg name rhs thy of
+                 (thy',SOME res) => (thy',res)
+               | (thy',NONE) => 
+                 if seg = thyname
+                 then P.new_definition seg name rhs thy'
+                 else raise ERR "replay_proof" ("Too late for term definition: "^seg^" != "^thyname))
+          | rp (POracle(tg,asl,c)) thy = (*P.mk_oracle_thm tg (map be_contract asl,c)*) NY "ORACLE"
+          | rp (PSpec(prf,tm)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.SPEC tm th thy'
+            end
+          | rp (PInst(prf,theta)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.INST theta th thy'
+            end
+          | rp (PGen(prf,v)) thy =
+            let
+                val (thy',th) = rp' prf thy
+                val p = P.GEN v th thy'
+            in
+                p
+            end
+          | rp (PGenAbs(prf,opt,vl)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.GEN_ABS opt vl th thy'
+            end
+          | rp (PImpAS(prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.IMP_ANTISYM th1 th2 thy2
+            end
+          | rp (PSym prf) thy =
+            let
+                val (thy1,th) = rp' prf thy
+            in
+                P.SYM th thy1
+            end
+          | rp (PTrans(prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.TRANS th1 th2 thy2
+            end
+          | rp (PComb(prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.COMB th1 th2 thy2
+            end
+          | rp (PEqMp(prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.EQ_MP th1 th2 thy2
+            end
+          | rp (PEqImp prf) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.EQ_IMP_RULE th thy'
+            end
+          | rp (PExists(prf,ex,wit)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.EXISTS ex wit th thy'
+            end
+          | rp (PChoose(v,prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.CHOOSE v th1 th2 thy2
+            end
+          | rp (PConj(prf1,prf2)) thy =
+            let
+                val (thy1,th1) = rp' prf1 thy
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.CONJ th1 th2 thy2
+            end
+          | rp (PConjunct1 prf) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.CONJUNCT1 th thy'
+            end
+          | rp (PConjunct2 prf) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.CONJUNCT2 th thy'
+            end
+          | rp (PDisj1(prf,tm)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.DISJ1 th tm thy'
+            end
+          | rp (PDisj2(prf,tm)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.DISJ2 tm th thy'
+            end
+          | rp (PDisjCases(prf,prf1,prf2)) thy =
+            let
+                val (thy',th)  = rp' prf  thy
+                val (thy1,th1) = rp' prf1 thy'
+                val (thy2,th2) = rp' prf2 thy1
+            in
+                P.DISJ_CASES th th1 th2 thy2
+            end
+          | rp (PNotI prf) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.NOT_INTRO th thy'
+            end
+          | rp (PNotE prf) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.NOT_ELIM th thy'
+            end
+          | rp (PContr(prf,tm)) thy =
+            let
+                val (thy',th) = rp' prf thy
+            in
+                P.CCONTR tm th thy'
+            end
+          | rp (PTmSpec _) _ = raise ERR "rp" "Shouldn't reach here (PTmSpec)"
+          | rp (PTyDef _) _ = raise ERR "rp" "Shouldn't reach here (PTyDef)"
+          | rp (PTyIntro _) _ = raise ERR "rp" "Shouldn't reach here (PTyIntro)"
+          | rp PDisk _ = raise ERR "rp" "Shouldn't reach here (PDisk)"
+          | rp _ _ = raise ERR "rp" "What the hell is this? Which case did I forget?"
+        and rp' p thy =
+            let
+                val pc = content_of p
+            in
+                case pc of
+                    PDisk => (case disk_info_of p of
+                                  SOME(thyname',thmname) =>
+                                  (case Int.fromString thmname of
+                                       SOME i =>
+                                       if thyname' = thyname
+                                       then
+                                           (case Array.sub(int_thms,i-1) of
+                                                NONE =>
+                                                let
+                                                    val (thy',th) = rp' (snd (import_proof thyname' thmname thy) thy) thy
+                                                    val _ = Array.update(int_thms,i-1,SOME th)
+                                                in
+                                                    (thy',th)
+                                                end
+                                              | SOME th => (thy,th))
+                                       else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")
+                                     | NONE => 
+                                       (case P.get_thm thyname' thmname thy of
+                                            (thy',SOME res) => (thy',res)
+                                          | (thy',NONE) => 
+                                            if thyname' = thyname
+                                            then
+                                                let
+                                                    val _ = writeln ("Found no " ^ thmname ^ " theorem, replaying...")
+                                                    val (f_opt,prf) = import_proof thyname' thmname thy'
+                                                    val prf = prf thy'
+                                                    val (thy',th) = replay_proof int_thms thyname' thmname prf thy'
                                                     val _ = writeln ("Successfully finished replaying "^thmname^" !")
-						in
-						    case content_of prf of
-							PTmSpec _ => (thy',th)
-						      | PTyDef  _ => (thy',th)
-						      | PTyIntro _ => (thy',th)
-						      | _ => P.store_thm thyname' thmname th thy'
-						end
-					    else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")))
-				| NONE => raise ERR "rp'.PDisk" "Not enough information")
-		  | PAxm(name,c) =>
-		    (case P.get_axiom thyname name thy of
-			    (thy',SOME res) => (thy',res)
-			  | (thy',NONE) => P.new_axiom name c thy')
-		  | PTmSpec(seg,names,prf') =>
-		    let
-			val (thy',th) = rp' prf' thy
-		    in
-			P.new_specification seg thmname names th thy'
-		    end
-		  | PTyDef(seg,name,prf') =>
-		    let
-			val (thy',th) = rp' prf' thy
-		    in
-			P.new_type_definition seg thmname name th thy'
-		    end
-		  | PTyIntro(seg,name,abs_name,rep_name,P,t,prf') =>
-		    let
-			val (thy',th) = rp' prf' thy
-		    in
-			P.type_introduction seg thmname name abs_name rep_name (P,t) th thy'
-		    end
-		  | _ => rp pc thy
-	    end
+                                                in
+                                                    case content_of prf of
+                                                        PTmSpec _ => (thy',th)
+                                                      | PTyDef  _ => (thy',th)
+                                                      | PTyIntro _ => (thy',th)
+                                                      | _ => P.store_thm thyname' thmname th thy'
+                                                end
+                                            else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")))
+                                | NONE => raise ERR "rp'.PDisk" "Not enough information")
+                  | PAxm(name,c) =>
+                    (case P.get_axiom thyname name thy of
+                            (thy',SOME res) => (thy',res)
+                          | (thy',NONE) => P.new_axiom name c thy')
+                  | PTmSpec(seg,names,prf') =>
+                    let
+                        val (thy',th) = rp' prf' thy
+                    in
+                        P.new_specification seg thmname names th thy'
+                    end
+                  | PTyDef(seg,name,prf') =>
+                    let
+                        val (thy',th) = rp' prf' thy
+                    in
+                        P.new_type_definition seg thmname name th thy'
+                    end
+                  | PTyIntro(seg,name,abs_name,rep_name,P,t,prf') =>
+                    let
+                        val (thy',th) = rp' prf' thy
+                    in
+                        P.type_introduction seg thmname name abs_name rep_name (P,t) th thy'
+                    end
+                  | _ => rp pc thy
+            end
     in
-	let
-	    val x = rp' prf thy handle e => (writeln "Exception in replay_proof"; OldGoals.print_exn e)
-	    val _ = ImportRecorder.stop_replay_proof thyname thmname
-	in
-	    x
-	end
+        let
+            val x = rp' prf thy handle e => (writeln "Exception in replay_proof"; OldGoals.print_exn e)
+            val _ = ImportRecorder.stop_replay_proof thyname thmname
+        in
+            x
+        end
     end handle x => (ImportRecorder.abort_replay_proof thyname thmname; raise x)
 
 fun setup_int_thms thyname thy =
     let
-	val fname =
-	    case P.get_proof_dir thyname thy of
-		SOME p => OS.Path.joinDirFile {dir=p,file=OS.Path.joinBaseExt{base = "facts",ext=SOME "lst"}}
-	      | NONE => error "Cannot find proof files"
-	val is = TextIO.openIn fname
-	val (num_int_thms,facts) =
-	    let
-		fun get_facts facts =
-		    case TextIO.inputLine is of
-			NONE => (case facts of
-				   i::facts => (valOf (Int.fromString i),map P.protect_factname (rev facts))
-				 | _ => raise ERR "replay_thm" "Bad facts.lst file")
-		      | SOME fact => get_facts ((String.substring(fact,0,String.size fact -1 ))::facts)
-	    in
-		get_facts []
-	    end
-	val _ = TextIO.closeIn is
-	val int_thms = Array.array(num_int_thms,NONE:thm option)
+        val fname =
+            case P.get_proof_dir thyname thy of
+                SOME p => OS.Path.joinDirFile {dir=p,file=OS.Path.joinBaseExt{base = "facts",ext=SOME "lst"}}
+              | NONE => error "Cannot find proof files"
+        val is = TextIO.openIn fname
+        val (num_int_thms,facts) =
+            let
+                fun get_facts facts =
+                    case TextIO.inputLine is of
+                        NONE => (case facts of
+                                   i::facts => (valOf (Int.fromString i),map P.protect_factname (rev facts))
+                                 | _ => raise ERR "replay_thm" "Bad facts.lst file")
+                      | SOME fact => get_facts ((String.substring(fact,0,String.size fact -1 ))::facts)
+            in
+                get_facts []
+            end
+        val _ = TextIO.closeIn is
+        val int_thms = Array.array(num_int_thms,NONE:thm option)
     in
-	(int_thms,facts)
+        (int_thms,facts)
     end
 
 fun import_single_thm thyname int_thms thmname thy =
     let
-	fun replay_fact (thmname,thy) =
-	    let
-		val prf = mk_proof PDisk
-		val _ = set_disk_info_of prf thyname thmname
+        fun replay_fact (thmname,thy) =
+            let
+                val prf = mk_proof PDisk
+                val _ = set_disk_info_of prf thyname thmname
                 val _ = writeln ("Replaying "^thmname^" ...")
-		val p = fst (replay_proof int_thms thyname thmname prf thy)
-	    in
-		p
-	    end
+                val p = fst (replay_proof int_thms thyname thmname prf thy)
+            in
+                p
+            end
     in
-	replay_fact (thmname,thy)
+        replay_fact (thmname,thy)
     end
 
 fun replay_chached_thm int_thms thyname thmname =
     let
-	fun th_of thy = setmp quick_and_dirty true (SkipProof.make_thm thy)
-	fun err msg = raise ERR "replay_cached_thm" msg
-	val _ = writeln ("Replaying (from cache) "^thmname^" ...")
-	fun rps [] thy = thy
-	  | rps (t::ts) thy = rps ts (rp t thy)
-	and rp (ThmEntry (thyname', thmname', aborted, History history)) thy = rps history thy	    
-	  | rp (DeltaEntry ds) thy = fold delta ds thy
-	and delta (Specification (names, th)) thy = 
-	    fst (Choice_Specification.add_specification NONE names (thy,th_of thy th))
-	  | delta (Hol_mapping (thyname, thmname, isaname)) thy = 
-	    add_hol4_mapping thyname thmname isaname thy
-	  | delta (Hol_pending (thyname, thmname, th)) thy = 
-	    add_hol4_pending thyname thmname ([], th_of thy th) thy
-	  | delta (Consts cs) thy = Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) cs) thy
-	  | delta (Hol_const_mapping (thyname, constname, fullcname)) thy = 
-	    add_hol4_const_mapping thyname constname true fullcname thy
-	  | delta (Hol_move (fullname, moved_thmname)) thy = 
-	    add_hol4_move fullname moved_thmname thy
-	  | delta (Defs (thmname, eq)) thy =
-	    snd (PureThy.add_defs false [((Binding.name thmname, eq), [])] thy)
-	  | delta (Hol_theorem (thyname, thmname, th)) thy =
-	    add_hol4_theorem thyname thmname ([], th_of thy th) thy
-	  | delta (Typedef (thmname, (t, vs, mx), c, repabs, th)) thy = 
-	    snd (Typedef.add_typedef false (Option.map Binding.name thmname) (Binding.name t, vs, mx) c
+        fun th_of thy = Skip_Proof.make_thm thy
+        fun err msg = raise ERR "replay_cached_thm" msg
+        val _ = writeln ("Replaying (from cache) "^thmname^" ...")
+        fun rps [] thy = thy
+          | rps (t::ts) thy = rps ts (rp t thy)
+        and rp (ThmEntry (thyname', thmname', aborted, History history)) thy = rps history thy      
+          | rp (DeltaEntry ds) thy = fold delta ds thy
+        and delta (Specification (names, th)) thy = 
+            fst (Choice_Specification.add_specification NONE names (thy,th_of thy th))
+          | delta (Hol_mapping (thyname, thmname, isaname)) thy = 
+            add_hol4_mapping thyname thmname isaname thy
+          | delta (Hol_pending (thyname, thmname, th)) thy = 
+            add_hol4_pending thyname thmname ([], th_of thy th) thy
+          | delta (Consts cs) thy = Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) cs) thy
+          | delta (Hol_const_mapping (thyname, constname, fullcname)) thy = 
+            add_hol4_const_mapping thyname constname true fullcname thy
+          | delta (Hol_move (fullname, moved_thmname)) thy = 
+            add_hol4_move fullname moved_thmname thy
+          | delta (Defs (thmname, eq)) thy =
+            snd (PureThy.add_defs false [((Binding.name thmname, eq), [])] thy)
+          | delta (Hol_theorem (thyname, thmname, th)) thy =
+            add_hol4_theorem thyname thmname ([], th_of thy th) thy
+          | delta (Typedef (thmname, (t, vs, mx), c, repabs, th)) thy = 
+            snd (Typedef.add_typedef false (Option.map Binding.name thmname) (Binding.name t, vs, mx) c
         (Option.map (pairself Binding.name) repabs) (rtac (th_of thy th) 1) thy)
-	  | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
-	    add_hol4_type_mapping thyname tycname true fulltyname thy
-	  | delta (Indexed_theorem (i, th)) thy = 
-	    (Array.update (int_thms,i-1,SOME (P.to_hol_thm (th_of thy th))); thy)	    	    
+          | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
+            add_hol4_type_mapping thyname tycname true fulltyname thy
+          | delta (Indexed_theorem (i, th)) thy = 
+            (Array.update (int_thms,i-1,SOME (P.to_hol_thm (th_of thy th))); thy)                   
           | delta (Protect_varname (s,t)) thy = (P.replay_protect_varname s t; thy)
-	  | delta (Dump s) thy = P.replay_add_dump s thy
+          | delta (Dump s) thy = P.replay_add_dump s thy
     in
-	rps
+        rps
     end
 
 fun import_thms thyname int_thms thmnames thy =
     let
-	fun zip names [] = ([], names)
-	  | zip [] _ = ([], [])
-	  | zip (thmname::names) ((ThmEntry (entry as (thyname',thmname',aborted,History history)))::ys) = 
-	    if thyname = thyname' andalso thmname = thmname' then
-		(if aborted then ([], thmname::names) else 
-		 let
-		     val _ = writeln ("theorem is in-sync: "^thmname)
-		     val (cached,normal) = zip names ys
-		 in
-		     (entry::cached, normal)
-		 end)
-	    else
-		let
-		    val _ = writeln ("cached theorems are not in-sync,  expected: "^thmname^", found: "^thmname')
-		    val _ = writeln ("proceeding with next uncached theorem...")
-		in
-		    ([], thmname::names)
-		end
-	(*	raise ERR "import_thms" ("cached theorems are not in-sync, expected: "^thmname^", found: "^thmname')*)
-	  | zip (thmname::_) (DeltaEntry _ :: _) = 
- 	    raise ERR "import_thms" ("expected theorem '"^thmname^"', but found a delta")
-	fun zip' xs (History ys) = 
-	    let
-		val _ = writeln ("length of xs: "^(string_of_int (length xs)))
-		val _ = writeln ("length of history: "^(string_of_int (length ys)))
-	    in
-		zip xs ys
-	    end
-	fun replay_fact thmname thy = 
-	    let
-		val prf = mk_proof PDisk	
-		val _ = set_disk_info_of prf thyname thmname
+        fun zip names [] = ([], names)
+          | zip [] _ = ([], [])
+          | zip (thmname::names) ((ThmEntry (entry as (thyname',thmname',aborted,History history)))::ys) = 
+            if thyname = thyname' andalso thmname = thmname' then
+                (if aborted then ([], thmname::names) else 
+                 let
+                     val _ = writeln ("theorem is in-sync: "^thmname)
+                     val (cached,normal) = zip names ys
+                 in
+                     (entry::cached, normal)
+                 end)
+            else
+                let
+                    val _ = writeln ("cached theorems are not in-sync,  expected: "^thmname^", found: "^thmname')
+                    val _ = writeln ("proceeding with next uncached theorem...")
+                in
+                    ([], thmname::names)
+                end
+        (*      raise ERR "import_thms" ("cached theorems are not in-sync, expected: "^thmname^", found: "^thmname')*)
+          | zip (thmname::_) (DeltaEntry _ :: _) = 
+            raise ERR "import_thms" ("expected theorem '"^thmname^"', but found a delta")
+        fun zip' xs (History ys) = 
+            let
+                val _ = writeln ("length of xs: "^(string_of_int (length xs)))
+                val _ = writeln ("length of history: "^(string_of_int (length ys)))
+            in
+                zip xs ys
+            end
+        fun replay_fact thmname thy = 
+            let
+                val prf = mk_proof PDisk        
+                val _ = set_disk_info_of prf thyname thmname
                 val _ = writeln ("Replaying "^thmname^" ...")
-		val p = fst (replay_proof int_thms thyname thmname prf thy)
-	    in
-		p
-	    end
-	fun replay_cache (_,thmname, _, History history) thy = replay_chached_thm int_thms thyname thmname history thy
-	val (cached, normal) = zip' thmnames (ImportRecorder.get_history ())
-	val _ = ImportRecorder.set_history (History (map ThmEntry cached))
-	val res_thy = fold replay_fact normal (fold replay_cache cached thy)
+                val p = fst (replay_proof int_thms thyname thmname prf thy)
+            in
+                p
+            end
+        fun replay_cache (_,thmname, _, History history) thy = replay_chached_thm int_thms thyname thmname history thy
+        val (cached, normal) = zip' thmnames (ImportRecorder.get_history ())
+        val _ = ImportRecorder.set_history (History (map ThmEntry cached))
+        val res_thy = fold replay_fact normal (fold replay_cache cached thy)
     in
-	res_thy
+        res_thy
     end
 
 fun import_thm thyname thmname thy =
     let
-	val int_thms = fst (setup_int_thms thyname thy)
-	fun replay_fact (thmname,thy) =
-	    let
-		val prf = mk_proof PDisk	
-		val _ = set_disk_info_of prf thyname thmname 	    
+        val int_thms = fst (setup_int_thms thyname thy)
+        fun replay_fact (thmname,thy) =
+            let
+                val prf = mk_proof PDisk        
+                val _ = set_disk_info_of prf thyname thmname        
                 val _ = writeln ("Replaying "^thmname^" ...")
-		val p = fst (replay_proof int_thms thyname thmname prf thy)
-	    in 
-		p
-	    end
+                val p = fst (replay_proof int_thms thyname thmname prf thy)
+            in 
+                p
+            end
     in
-	replay_fact (thmname,thy)
+        replay_fact (thmname,thy)
     end
 
 end

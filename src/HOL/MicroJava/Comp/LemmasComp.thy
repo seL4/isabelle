@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/LemmasComp.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -56,13 +55,13 @@ next
     proof 
       assume as: "fst a \<in> fst ` set list" 
       then obtain x where fst_a_x: "x\<in>set list \<and> fst a = fst x" 
-	by (auto simp add: image_iff)
+        by (auto simp add: image_iff)
       then have "fst (f a) = fst (f x)" by (simp add: fst_eq)
       with as show "(fst (f a) \<in> fst ` f ` set list)" by (simp add: fst_a_x)
     next
       assume as: "fst (f a) \<in> fst ` f ` set list"
       then obtain x where fst_a_x: "x\<in>set list \<and> fst (f a) = fst (f x)"
-	by (auto simp add: image_iff)
+        by (auto simp add: image_iff)
       then have "fst a = fst x" by (simp add: fst_eq)
       with as show "fst a \<in> fst ` set list" by (simp add: fst_a_x)
     qed
@@ -307,7 +306,7 @@ apply (rule trans)
 apply (rule_tac f="(\<lambda>(s, m). (s, Object, m))" and
   g="(Fun.comp (\<lambda>(s, m). (s, Object, m)) (compMethod G Object))" 
   in map_of_map_fst)
-defer				(* inj \<dots> *)
+defer                           (* inj \<dots> *)
 apply (simp add: inj_on_def split_beta) 
 apply (simp add: split_beta compMethod_def)
 apply (simp add: map_of_map [THEN sym])

@@ -100,14 +100,14 @@ apply (rename_tac a b)
 apply (case_tac "a=q")
  apply auto
 done
-	      
+
 lemma restr_un: "((r \<union> s)|m) = (r|m) \<union> (s|m)"
   by (auto simp add:restr_def)
 
 lemma rel_upd3: "(a, b) \<notin> (r|(m(q := t))) \<Longrightarrow> (a,b) \<in> (r|m) \<Longrightarrow> a = q "
 apply (rule classical)
 apply (simp add:restr_def fun_upd_apply)
-done	
+done
 
 constdefs
   -- "A short form for the stack mapping function for List"
@@ -255,313 +255,313 @@ proof (vcg)
 
       show "(?ifB1 \<longrightarrow> (?ifB2 \<longrightarrow> (\<exists>stack.?popInv stack)) \<and> 
                             (\<not>?ifB2 \<longrightarrow> (\<exists>stack.?swInv stack)) ) \<and>
-	      (\<not>?ifB1 \<longrightarrow> (\<exists>stack.?puInv stack))"
+              (\<not>?ifB1 \<longrightarrow> (\<exists>stack.?puInv stack))"
       proof - 
-	{
-	  assume ifB1: "t = Null \<or> t^.m" and ifB2: "p^.c"
-	  from ifB1 whileB have pNotNull: "p \<noteq> Null" by auto
-	  then obtain addr_p where addr_p_eq: "p = Ref addr_p" by auto
-	  with i1 obtain stack_tl where stack_eq: "stack = (addr p) # stack_tl"
-	    by auto
-	  with i2 have m_addr_p: "p^.m" by auto
-	  have stackDist: "distinct (stack)" using i1 by (rule List_distinct)
-	  from stack_eq stackDist have p_notin_stack_tl: "addr p \<notin> set stack_tl" by simp
-	  let "?poI1\<and> ?poI2\<and> ?poI3\<and> ?poI4\<and> ?poI5\<and> ?poI6\<and> ?poI7" = "?popInv stack_tl"
-	  have "?popInv stack_tl"
-	  proof -
+        {
+          assume ifB1: "t = Null \<or> t^.m" and ifB2: "p^.c"
+          from ifB1 whileB have pNotNull: "p \<noteq> Null" by auto
+          then obtain addr_p where addr_p_eq: "p = Ref addr_p" by auto
+          with i1 obtain stack_tl where stack_eq: "stack = (addr p) # stack_tl"
+            by auto
+          with i2 have m_addr_p: "p^.m" by auto
+          have stackDist: "distinct (stack)" using i1 by (rule List_distinct)
+          from stack_eq stackDist have p_notin_stack_tl: "addr p \<notin> set stack_tl" by simp
+          let "?poI1\<and> ?poI2\<and> ?poI3\<and> ?poI4\<and> ?poI5\<and> ?poI6\<and> ?poI7" = "?popInv stack_tl"
+          have "?popInv stack_tl"
+          proof -
 
-	    -- {*List property is maintained:*}
-	    from i1 p_notin_stack_tl ifB2
-	    have poI1: "List (S c l (r(p \<rightarrow> t))) (p^.r) stack_tl" 
-	      by(simp add: addr_p_eq stack_eq, simp add: S_def)
+            -- {*List property is maintained:*}
+            from i1 p_notin_stack_tl ifB2
+            have poI1: "List (S c l (r(p \<rightarrow> t))) (p^.r) stack_tl" 
+              by(simp add: addr_p_eq stack_eq, simp add: S_def)
 
-	    moreover
-	    -- {*Everything on the stack is marked:*}
-	    from i2 have poI2: "\<forall> x \<in> set stack_tl. m x" by (simp add:stack_eq)
-	    moreover
+            moreover
+            -- {*Everything on the stack is marked:*}
+            from i2 have poI2: "\<forall> x \<in> set stack_tl. m x" by (simp add:stack_eq)
+            moreover
 
-	    -- {*Everything is still reachable:*}
-	    let "(R = reachable ?Ra ?A)" = "?I3"
-	    let "?Rb" = "(relS {l, r(p \<rightarrow> t)})"
-	    let "?B" = "{p, p^.r}"
-	    -- {*Our goal is @{text"R = reachable ?Rb ?B"}.*}
-	    have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B" (is "?L = ?R")
-	    proof
-	      show "?L \<subseteq> ?R"
-	      proof (rule still_reachable)
-		show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B" by(fastsimp simp:addrs_def relS_def rel_def addr_p_eq 
-		     intro:oneStep_reachable Image_iff[THEN iffD2])
-		show "\<forall>(x,y) \<in> ?Ra-?Rb. y \<in> (?Rb\<^sup>* `` addrs ?B)" by (clarsimp simp:relS_def) 
-	             (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
-	      qed
-	      show "?R \<subseteq> ?L"
-	      proof (rule still_reachable)
-		show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
-		  by(fastsimp simp:addrs_def rel_defs addr_p_eq 
-		      intro:oneStep_reachable Image_iff[THEN iffD2])
-	      next
-		show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
-		  by (clarsimp simp:relS_def) 
-	             (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd2)
-	      qed
-	    qed
-	    with i3 have poI3: "R = reachable ?Rb ?B"  by (simp add:reachable_def) 
-	    moreover
+            -- {*Everything is still reachable:*}
+            let "(R = reachable ?Ra ?A)" = "?I3"
+            let "?Rb" = "(relS {l, r(p \<rightarrow> t)})"
+            let "?B" = "{p, p^.r}"
+            -- {*Our goal is @{text"R = reachable ?Rb ?B"}.*}
+            have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B" (is "?L = ?R")
+            proof
+              show "?L \<subseteq> ?R"
+              proof (rule still_reachable)
+                show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B" by(fastsimp simp:addrs_def relS_def rel_def addr_p_eq 
+                     intro:oneStep_reachable Image_iff[THEN iffD2])
+                show "\<forall>(x,y) \<in> ?Ra-?Rb. y \<in> (?Rb\<^sup>* `` addrs ?B)" by (clarsimp simp:relS_def) 
+                     (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
+              qed
+              show "?R \<subseteq> ?L"
+              proof (rule still_reachable)
+                show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
+                  by(fastsimp simp:addrs_def rel_defs addr_p_eq 
+                      intro:oneStep_reachable Image_iff[THEN iffD2])
+              next
+                show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
+                  by (clarsimp simp:relS_def) 
+                     (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd2)
+              qed
+            qed
+            with i3 have poI3: "R = reachable ?Rb ?B"  by (simp add:reachable_def) 
+            moreover
 
-	    -- "If it is reachable and not marked, it is still reachable using..."
-	    let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A"  =  ?I4	    
-	    let "?Rb" = "relS {l, r(p \<rightarrow> t)} | m"
-	    let "?B" = "{p} \<union> set (map (r(p \<rightarrow> t)) stack_tl)"
-	    -- {*Our goal is @{text"\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"}.*}
-	    let ?T = "{t, p^.r}"
+            -- "If it is reachable and not marked, it is still reachable using..."
+            let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A"  =  ?I4        
+            let "?Rb" = "relS {l, r(p \<rightarrow> t)} | m"
+            let "?B" = "{p} \<union> set (map (r(p \<rightarrow> t)) stack_tl)"
+            -- {*Our goal is @{text"\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"}.*}
+            let ?T = "{t, p^.r}"
 
-	    have "?Ra\<^sup>* `` addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-	    proof (rule still_reachable)
-	      have rewrite: "\<forall>s\<in>set stack_tl. (r(p \<rightarrow> t)) s = r s"
-		by (auto simp add:p_notin_stack_tl intro:fun_upd_other)	
-	      show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-		by (fastsimp cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
-	      show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
-		by (clarsimp simp:restr_def relS_def) 
-	          (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
- 	    qed
-	    -- "We now bring a term from the right to the left of the subset relation."
-	    hence subset: "?Ra\<^sup>* `` addrs ?A - ?Rb\<^sup>* `` addrs ?T \<subseteq> ?Rb\<^sup>* `` addrs ?B"
-	      by blast
-	    have poI4: "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"
-	    proof (rule allI, rule impI)
-	      fix x
-	      assume a: "x \<in> R \<and> \<not> m x"
-	      -- {*First, a disjunction on @{term"p^.r"} used later in the proof*}
-	      have pDisj:"p^.r = Null \<or> (p^.r \<noteq> Null \<and> p^.r^.m)" using poI1 poI2 
-		by auto
-	      -- {*@{term x} belongs to the left hand side of @{thm[source] subset}:*}
-	      have incl: "x \<in> ?Ra\<^sup>*``addrs ?A" using  a i4 by (simp only:reachable_def, clarsimp)
-	      have excl: "x \<notin> ?Rb\<^sup>*`` addrs ?T" using pDisj ifB1 a by (auto simp add:addrs_def)
-	      -- {*And therefore also belongs to the right hand side of @{thm[source]subset},*}
-	      -- {*which corresponds to our goal.*}
-	      from incl excl subset  show "x \<in> reachable ?Rb ?B" by (auto simp add:reachable_def)
-	    qed
-	    moreover
+            have "?Ra\<^sup>* `` addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
+            proof (rule still_reachable)
+              have rewrite: "\<forall>s\<in>set stack_tl. (r(p \<rightarrow> t)) s = r s"
+                by (auto simp add:p_notin_stack_tl intro:fun_upd_other) 
+              show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
+                by (fastsimp cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
+              show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
+                by (clarsimp simp:restr_def relS_def) 
+                  (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
+            qed
+            -- "We now bring a term from the right to the left of the subset relation."
+            hence subset: "?Ra\<^sup>* `` addrs ?A - ?Rb\<^sup>* `` addrs ?T \<subseteq> ?Rb\<^sup>* `` addrs ?B"
+              by blast
+            have poI4: "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"
+            proof (rule allI, rule impI)
+              fix x
+              assume a: "x \<in> R \<and> \<not> m x"
+              -- {*First, a disjunction on @{term"p^.r"} used later in the proof*}
+              have pDisj:"p^.r = Null \<or> (p^.r \<noteq> Null \<and> p^.r^.m)" using poI1 poI2 
+                by auto
+              -- {*@{term x} belongs to the left hand side of @{thm[source] subset}:*}
+              have incl: "x \<in> ?Ra\<^sup>*``addrs ?A" using  a i4 by (simp only:reachable_def, clarsimp)
+              have excl: "x \<notin> ?Rb\<^sup>*`` addrs ?T" using pDisj ifB1 a by (auto simp add:addrs_def)
+              -- {*And therefore also belongs to the right hand side of @{thm[source]subset},*}
+              -- {*which corresponds to our goal.*}
+              from incl excl subset  show "x \<in> reachable ?Rb ?B" by (auto simp add:reachable_def)
+            qed
+            moreover
 
-	    -- "If it is marked, then it is reachable"
-	    from i5 have poI5: "\<forall>x. m x \<longrightarrow> x \<in> R" .
-	    moreover
+            -- "If it is marked, then it is reachable"
+            from i5 have poI5: "\<forall>x. m x \<longrightarrow> x \<in> R" .
+            moreover
 
-	    -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
-	    from i7 i6 ifB2 
-	    have poI6: "\<forall>x. x \<notin> set stack_tl \<longrightarrow> (r(p \<rightarrow> t)) x = iR x \<and> l x = iL x" 
-	      by(auto simp: addr_p_eq stack_eq fun_upd_apply)
+            -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
+            from i7 i6 ifB2 
+            have poI6: "\<forall>x. x \<notin> set stack_tl \<longrightarrow> (r(p \<rightarrow> t)) x = iR x \<and> l x = iL x" 
+              by(auto simp: addr_p_eq stack_eq fun_upd_apply)
 
-	    moreover
+            moreover
 
-	    -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
-	    from p_notin_stack_tl i7 have poI7: "stkOk c l (r(p \<rightarrow> t)) iL iR p stack_tl"
-	      by (clarsimp simp:stack_eq addr_p_eq)
+            -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
+            from p_notin_stack_tl i7 have poI7: "stkOk c l (r(p \<rightarrow> t)) iL iR p stack_tl"
+              by (clarsimp simp:stack_eq addr_p_eq)
 
-	    ultimately show "?popInv stack_tl" by simp
-	  qed
-	  hence "\<exists>stack. ?popInv stack" ..
-	}
-	moreover
+            ultimately show "?popInv stack_tl" by simp
+          qed
+          hence "\<exists>stack. ?popInv stack" ..
+        }
+        moreover
 
-	-- "Proofs of the Swing and Push arm follow."
-	-- "Since they are in principle simmilar to the Pop arm proof,"
-	-- "we show fewer comments and use frequent pattern matching."
-	{
-	  -- "Swing arm"
-	  assume ifB1: "?ifB1" and nifB2: "\<not>?ifB2"
-	  from ifB1 whileB have pNotNull: "p \<noteq> Null" by clarsimp
-	  then obtain addr_p where addr_p_eq: "p = Ref addr_p" by clarsimp
-	  with i1 obtain stack_tl where stack_eq: "stack = (addr p) # stack_tl" by clarsimp
-	  with i2 have m_addr_p: "p^.m" by clarsimp
-	  from stack_eq stackDist have p_notin_stack_tl: "(addr p) \<notin> set stack_tl"
-	    by simp
-	  let "?swI1\<and>?swI2\<and>?swI3\<and>?swI4\<and>?swI5\<and>?swI6\<and>?swI7" = "?swInv stack"
-	  have "?swInv stack"
-	  proof -
-	    
-	    -- {*List property is maintained:*}
-	    from i1 p_notin_stack_tl nifB2
-	    have swI1: "?swI1"
-	      by (simp add:addr_p_eq stack_eq, simp add:S_def)
-	    moreover
-	    
-	    -- {*Everything on the stack is marked:*}
-	    from i2
-	    have swI2: "?swI2" .
-	    moreover
-	    
-	    -- {*Everything is still reachable:*}
-	    let "R = reachable ?Ra ?A" = "?I3"
-	    let "R = reachable ?Rb ?B" = "?swI3"
-	    have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
-	    proof (rule still_reachable_eq)
-	      show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B"
-		by(fastsimp simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
-	    next
-	      show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
-		by(fastsimp simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
-	    next
-	      show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``addrs ?B)"
-		by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
-	    next
-	      show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
-		by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
-	    qed
-	    with i3
-	    have swI3: "?swI3" by (simp add:reachable_def) 
-	    moreover
+        -- "Proofs of the Swing and Push arm follow."
+        -- "Since they are in principle simmilar to the Pop arm proof,"
+        -- "we show fewer comments and use frequent pattern matching."
+        {
+          -- "Swing arm"
+          assume ifB1: "?ifB1" and nifB2: "\<not>?ifB2"
+          from ifB1 whileB have pNotNull: "p \<noteq> Null" by clarsimp
+          then obtain addr_p where addr_p_eq: "p = Ref addr_p" by clarsimp
+          with i1 obtain stack_tl where stack_eq: "stack = (addr p) # stack_tl" by clarsimp
+          with i2 have m_addr_p: "p^.m" by clarsimp
+          from stack_eq stackDist have p_notin_stack_tl: "(addr p) \<notin> set stack_tl"
+            by simp
+          let "?swI1\<and>?swI2\<and>?swI3\<and>?swI4\<and>?swI5\<and>?swI6\<and>?swI7" = "?swInv stack"
+          have "?swInv stack"
+          proof -
+            
+            -- {*List property is maintained:*}
+            from i1 p_notin_stack_tl nifB2
+            have swI1: "?swI1"
+              by (simp add:addr_p_eq stack_eq, simp add:S_def)
+            moreover
+            
+            -- {*Everything on the stack is marked:*}
+            from i2
+            have swI2: "?swI2" .
+            moreover
+            
+            -- {*Everything is still reachable:*}
+            let "R = reachable ?Ra ?A" = "?I3"
+            let "R = reachable ?Rb ?B" = "?swI3"
+            have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
+            proof (rule still_reachable_eq)
+              show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B"
+                by(fastsimp simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+            next
+              show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
+                by(fastsimp simp:addrs_def rel_defs addr_p_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+            next
+              show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``addrs ?B)"
+                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
+            next
+              show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
+                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
+            qed
+            with i3
+            have swI3: "?swI3" by (simp add:reachable_def) 
+            moreover
 
-	    -- "If it is reachable and not marked, it is still reachable using..."
-	    let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
-	    let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?swI4
-	    let ?T = "{t}"
-	    have "?Ra\<^sup>*``addrs ?A \<subseteq> ?Rb\<^sup>*``(addrs ?B \<union> addrs ?T)"
-	    proof (rule still_reachable)
-	      have rewrite: "(\<forall>s\<in>set stack_tl. (r(addr p := l(addr p))) s = r s)"
-		by (auto simp add:p_notin_stack_tl intro:fun_upd_other)
-	      show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-		by (fastsimp cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
-	    next
-	      show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
-		by (clarsimp simp:relS_def restr_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
-	    qed
-	    then have subset: "?Ra\<^sup>*``addrs ?A - ?Rb\<^sup>*``addrs ?T \<subseteq> ?Rb\<^sup>*``addrs ?B"
-	      by blast
-	    have ?swI4
-	    proof (rule allI, rule impI)
-	      fix x
-	      assume a: "x \<in> R \<and>\<not> m x"
-	      with i4 addr_p_eq stack_eq  have inc: "x \<in> ?Ra\<^sup>*``addrs ?A" 
-		by (simp only:reachable_def, clarsimp)
-	      with ifB1 a 
-	      have exc: "x \<notin> ?Rb\<^sup>*`` addrs ?T" 
-		by (auto simp add:addrs_def)
-	      from inc exc subset  show "x \<in> reachable ?Rb ?B" 
-		by (auto simp add:reachable_def)
-	    qed
-	    moreover
-	    
-	    -- "If it is marked, then it is reachable"
-	    from i5
-	    have "?swI5" .
-	    moreover
+            -- "If it is reachable and not marked, it is still reachable using..."
+            let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
+            let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?swI4
+            let ?T = "{t}"
+            have "?Ra\<^sup>*``addrs ?A \<subseteq> ?Rb\<^sup>*``(addrs ?B \<union> addrs ?T)"
+            proof (rule still_reachable)
+              have rewrite: "(\<forall>s\<in>set stack_tl. (r(addr p := l(addr p))) s = r s)"
+                by (auto simp add:p_notin_stack_tl intro:fun_upd_other)
+              show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
+                by (fastsimp cong:map_cong simp:stack_eq addrs_def rewrite intro:self_reachable)
+            next
+              show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
+                by (clarsimp simp:relS_def restr_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd1)
+            qed
+            then have subset: "?Ra\<^sup>*``addrs ?A - ?Rb\<^sup>*``addrs ?T \<subseteq> ?Rb\<^sup>*``addrs ?B"
+              by blast
+            have ?swI4
+            proof (rule allI, rule impI)
+              fix x
+              assume a: "x \<in> R \<and>\<not> m x"
+              with i4 addr_p_eq stack_eq  have inc: "x \<in> ?Ra\<^sup>*``addrs ?A" 
+                by (simp only:reachable_def, clarsimp)
+              with ifB1 a 
+              have exc: "x \<notin> ?Rb\<^sup>*`` addrs ?T" 
+                by (auto simp add:addrs_def)
+              from inc exc subset  show "x \<in> reachable ?Rb ?B" 
+                by (auto simp add:reachable_def)
+            qed
+            moreover
+            
+            -- "If it is marked, then it is reachable"
+            from i5
+            have "?swI5" .
+            moreover
 
-	    -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
-	    from i6 stack_eq
-	    have "?swI6"
-	      by clarsimp 	    
-	    moreover
+            -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
+            from i6 stack_eq
+            have "?swI6"
+              by clarsimp           
+            moreover
 
-	    -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
-	    from stackDist i7 nifB2 
-	    have "?swI7"
-	      by (clarsimp simp:addr_p_eq stack_eq)
+            -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
+            from stackDist i7 nifB2 
+            have "?swI7"
+              by (clarsimp simp:addr_p_eq stack_eq)
 
-	    ultimately show ?thesis by auto
-	  qed
-	  then have "\<exists>stack. ?swInv stack" by blast
-	}
-	moreover
+            ultimately show ?thesis by auto
+          qed
+          then have "\<exists>stack. ?swInv stack" by blast
+        }
+        moreover
 
-	{
-	  -- "Push arm"
-	  assume nifB1: "\<not>?ifB1"
-	  from nifB1 whileB have tNotNull: "t \<noteq> Null" by clarsimp
-	  then obtain addr_t where addr_t_eq: "t = Ref addr_t" by clarsimp
-	  with i1 obtain new_stack where new_stack_eq: "new_stack = (addr t) # stack" by clarsimp
-	  from tNotNull nifB1 have n_m_addr_t: "\<not> (t^.m)" by clarsimp
-	  with i2 have t_notin_stack: "(addr t) \<notin> set stack" by blast
-	  let "?puI1\<and>?puI2\<and>?puI3\<and>?puI4\<and>?puI5\<and>?puI6\<and>?puI7" = "?puInv new_stack"
-	  have "?puInv new_stack"
-	  proof -
-	    
-	    -- {*List property is maintained:*}
-	    from i1 t_notin_stack
-	    have puI1: "?puI1"
-	      by (simp add:addr_t_eq new_stack_eq, simp add:S_def)
-	    moreover
-	    
-	    -- {*Everything on the stack is marked:*}
-	    from i2
-	    have puI2: "?puI2" 
-	      by (simp add:new_stack_eq fun_upd_apply)
-	    moreover
-	    
-	    -- {*Everything is still reachable:*}
-	    let "R = reachable ?Ra ?A" = "?I3"
-	    let "R = reachable ?Rb ?B" = "?puI3"
-	    have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
-	    proof (rule still_reachable_eq)
-	      show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B"
-		by(fastsimp simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
-	    next
-	      show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
-		by(fastsimp simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
-	    next
-	      show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``addrs ?B)"
-		by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
-	    next
-	      show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
-		by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
-	    qed
-	    with i3
-	    have puI3: "?puI3" by (simp add:reachable_def) 
-	    moreover
-	    
-	    -- "If it is reachable and not marked, it is still reachable using..."
-	    let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
-	    let "\<forall>x. x \<in> R \<and> \<not> ?new_m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?puI4
-	    let ?T = "{t}"
-	    have "?Ra\<^sup>*``addrs ?A \<subseteq> ?Rb\<^sup>*``(addrs ?B \<union> addrs ?T)"
-	    proof (rule still_reachable)
-	      show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
-		by (fastsimp simp:new_stack_eq addrs_def intro:self_reachable)
-	    next
-	      show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
-		by (clarsimp simp:relS_def new_stack_eq restr_un restr_upd) 
-	           (fastsimp simp add:rel_def Image_iff restr_def addrs_def fun_upd_apply addr_t_eq dest:rel_upd3)
-	    qed
-	    then have subset: "?Ra\<^sup>*``addrs ?A - ?Rb\<^sup>*``addrs ?T \<subseteq> ?Rb\<^sup>*``addrs ?B"
-	      by blast
-	    have ?puI4
-	    proof (rule allI, rule impI)
-	      fix x
-	      assume a: "x \<in> R \<and> \<not> ?new_m x"
-	      have xDisj: "x=(addr t) \<or> x\<noteq>(addr t)" by simp
-	      with i4 a have inc: "x \<in> ?Ra\<^sup>*``addrs ?A"
-		by (fastsimp simp:addr_t_eq addrs_def reachable_def intro:self_reachable)
-	      have exc: "x \<notin> ?Rb\<^sup>*`` addrs ?T"
-		using xDisj a n_m_addr_t
-		by (clarsimp simp add:addrs_def addr_t_eq) 
-	      from inc exc subset  show "x \<in> reachable ?Rb ?B" 
-		by (auto simp add:reachable_def)
-	    qed  
-	    moreover
-	    
-	    -- "If it is marked, then it is reachable"
-	    from i5
-	    have "?puI5"
-	      by (auto simp:addrs_def i3 reachable_def addr_t_eq fun_upd_apply intro:self_reachable)
-	    moreover
-	    
-	    -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
-	    from i6 
-	    have "?puI6"
-	      by (simp add:new_stack_eq)
-	    moreover
+        {
+          -- "Push arm"
+          assume nifB1: "\<not>?ifB1"
+          from nifB1 whileB have tNotNull: "t \<noteq> Null" by clarsimp
+          then obtain addr_t where addr_t_eq: "t = Ref addr_t" by clarsimp
+          with i1 obtain new_stack where new_stack_eq: "new_stack = (addr t) # stack" by clarsimp
+          from tNotNull nifB1 have n_m_addr_t: "\<not> (t^.m)" by clarsimp
+          with i2 have t_notin_stack: "(addr t) \<notin> set stack" by blast
+          let "?puI1\<and>?puI2\<and>?puI3\<and>?puI4\<and>?puI5\<and>?puI6\<and>?puI7" = "?puInv new_stack"
+          have "?puInv new_stack"
+          proof -
+            
+            -- {*List property is maintained:*}
+            from i1 t_notin_stack
+            have puI1: "?puI1"
+              by (simp add:addr_t_eq new_stack_eq, simp add:S_def)
+            moreover
+            
+            -- {*Everything on the stack is marked:*}
+            from i2
+            have puI2: "?puI2" 
+              by (simp add:new_stack_eq fun_upd_apply)
+            moreover
+            
+            -- {*Everything is still reachable:*}
+            let "R = reachable ?Ra ?A" = "?I3"
+            let "R = reachable ?Rb ?B" = "?puI3"
+            have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
+            proof (rule still_reachable_eq)
+              show "addrs ?A \<subseteq> ?Rb\<^sup>* `` addrs ?B"
+                by(fastsimp simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+            next
+              show "addrs ?B \<subseteq> ?Ra\<^sup>* `` addrs ?A"
+                by(fastsimp simp:addrs_def rel_defs addr_t_eq intro:oneStep_reachable Image_iff[THEN iffD2])
+            next
+              show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``addrs ?B)"
+                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def dest:rel_upd1)
+            next
+              show "\<forall>(x, y)\<in>?Rb-?Ra. y\<in>(?Ra\<^sup>*``addrs ?A)"
+                by (clarsimp simp:relS_def) (fastsimp simp add:rel_def Image_iff addrs_def fun_upd_apply dest:rel_upd2)
+            qed
+            with i3
+            have puI3: "?puI3" by (simp add:reachable_def) 
+            moreover
+            
+            -- "If it is reachable and not marked, it is still reachable using..."
+            let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
+            let "\<forall>x. x \<in> R \<and> \<not> ?new_m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?puI4
+            let ?T = "{t}"
+            have "?Ra\<^sup>*``addrs ?A \<subseteq> ?Rb\<^sup>*``(addrs ?B \<union> addrs ?T)"
+            proof (rule still_reachable)
+              show "addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
+                by (fastsimp simp:new_stack_eq addrs_def intro:self_reachable)
+            next
+              show "\<forall>(x, y)\<in>?Ra-?Rb. y\<in>(?Rb\<^sup>*``(addrs ?B \<union> addrs ?T))"
+                by (clarsimp simp:relS_def new_stack_eq restr_un restr_upd) 
+                   (fastsimp simp add:rel_def Image_iff restr_def addrs_def fun_upd_apply addr_t_eq dest:rel_upd3)
+            qed
+            then have subset: "?Ra\<^sup>*``addrs ?A - ?Rb\<^sup>*``addrs ?T \<subseteq> ?Rb\<^sup>*``addrs ?B"
+              by blast
+            have ?puI4
+            proof (rule allI, rule impI)
+              fix x
+              assume a: "x \<in> R \<and> \<not> ?new_m x"
+              have xDisj: "x=(addr t) \<or> x\<noteq>(addr t)" by simp
+              with i4 a have inc: "x \<in> ?Ra\<^sup>*``addrs ?A"
+                by (fastsimp simp:addr_t_eq addrs_def reachable_def intro:self_reachable)
+              have exc: "x \<notin> ?Rb\<^sup>*`` addrs ?T"
+                using xDisj a n_m_addr_t
+                by (clarsimp simp add:addrs_def addr_t_eq) 
+              from inc exc subset  show "x \<in> reachable ?Rb ?B" 
+                by (auto simp add:reachable_def)
+            qed  
+            moreover
+            
+            -- "If it is marked, then it is reachable"
+            from i5
+            have "?puI5"
+              by (auto simp:addrs_def i3 reachable_def addr_t_eq fun_upd_apply intro:self_reachable)
+            moreover
+            
+            -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
+            from i6 
+            have "?puI6"
+              by (simp add:new_stack_eq)
+            moreover
 
-	    -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
-	    from stackDist i6 t_notin_stack i7
-	    have "?puI7" by (clarsimp simp:addr_t_eq new_stack_eq)
+            -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
+            from stackDist i6 t_notin_stack i7
+            have "?puI7" by (clarsimp simp:addr_t_eq new_stack_eq)
 
-	    ultimately show ?thesis by auto
-	  qed
-	  then have "\<exists>stack. ?puInv stack" by blast
+            ultimately show ?thesis by auto
+          qed
+          then have "\<exists>stack. ?puInv stack" by blast
 
-	}
-	ultimately show ?thesis by blast
+        }
+        ultimately show ?thesis by blast
       qed
     }
   qed

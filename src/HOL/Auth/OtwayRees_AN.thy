@@ -35,7 +35,7 @@ inductive_set otway :: "event list set"
         
  | Reception: --{*A message that has been sent can be received by the
                   intended recipient.*}
-	      "[| evsr \<in> otway;  Says A B X \<in>set evsr |]
+              "[| evsr \<in> otway;  Says A B X \<in>set evsr |]
                ==> Gets B X # evsr \<in> otway"
 
  | OR1:  --{*Alice initiates a protocol run*}
@@ -43,14 +43,14 @@ inductive_set otway :: "event list set"
           ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs1 \<in> otway"
 
  | OR2:  --{*Bob's response to Alice's message.*}
-	 "[| evs2 \<in> otway;
+         "[| evs2 \<in> otway;
              Gets B {|Agent A, Agent B, Nonce NA|} \<in>set evs2 |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                  # evs2 \<in> otway"
 
  | OR3:  --{*The Server receives Bob's message.  Then he sends a new
            session key to Bob with a packet for forwarding to Alice.*}
-	 "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
+         "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
              Gets Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                \<in>set evs3 |]
           ==> Says Server B
@@ -59,9 +59,9 @@ inductive_set otway :: "event list set"
               # evs3 \<in> otway"
 
  | OR4:  --{*Bob receives the Server's (?) message and compares the Nonces with
-	     those in the message he previously sent the Server.
+             those in the message he previously sent the Server.
              Need @{term "B \<noteq> Server"} because we allow messages to self.*}
-	 "[| evs4 \<in> otway;  B \<noteq> Server;
+         "[| evs4 \<in> otway;  B \<noteq> Server;
              Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} \<in>set evs4;
              Gets B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
                \<in>set evs4 |]
@@ -69,7 +69,7 @@ inductive_set otway :: "event list set"
 
  | Oops: --{*This message models possible leaks of session keys.  The nonces
              identify the protocol run.*}
-	 "[| evso \<in> otway;
+         "[| evso \<in> otway;
              Says Server B
                       {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|},
                         Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key K|}|}

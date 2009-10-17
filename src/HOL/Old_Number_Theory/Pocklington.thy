@@ -36,11 +36,11 @@ proof-
   {assume p0: "p\<noteq>0" "p\<noteq>1"
     {assume H: "?lhs"
       {fix m assume m: "m > 0" "m < p"
-	{assume "m=1" hence "coprime p m" by simp}
-	moreover
-	{assume "p dvd m" hence "p \<le> m" using dvd_imp_le m by blast with m(2)
-	  have "coprime p m" by simp}
-	ultimately have "coprime p m" using prime_coprime[OF H, of m] by blast}
+        {assume "m=1" hence "coprime p m" by simp}
+        moreover
+        {assume "p dvd m" hence "p \<le> m" using dvd_imp_le m by blast with m(2)
+          have "coprime p m" by simp}
+        ultimately have "coprime p m" using prime_coprime[OF H, of m] by blast}
       hence ?rhs using p0 by auto}
     moreover
     { assume H: "\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m"
@@ -50,8 +50,8 @@ proof-
       {assume "q = p" hence ?lhs using q(1) by blast}
       moreover
       {assume "q\<noteq>p" with qp have qplt: "q < p" by arith
-	from H[rule_format, of q] qplt q0 have "coprime p q" by arith
-	with coprime_prime[of p q q] q have False by simp hence ?lhs by blast}
+        from H[rule_format, of q] qplt q0 have "coprime p q" by arith
+        with coprime_prime[of p q q] q have False by simp hence ?lhs by blast}
       ultimately have ?lhs by blast}
     ultimately have ?thesis by blast}
   ultimately show ?thesis  by (cases"p=0 \<or> p=1", auto)
@@ -93,19 +93,19 @@ proof-
   {assume az: "a\<noteq>0"
     {assume xy: "x \<le> y" hence axy': "a*x \<le> a*y" by simp
       with axy cong_sub_cases[of "a*x" "a*y" n]  have "[a*(y - x) = 0] (mod n)"
-	by (simp only: if_True diff_mult_distrib2)
+        by (simp only: if_True diff_mult_distrib2)
       hence th: "n dvd a*(y -x)" by simp
       from coprime_divprod[OF th] an have "n dvd y - x"
-	by (simp add: coprime_commute)
+        by (simp add: coprime_commute)
       hence ?thesis using xy cong_sub_cases[of x y n] by simp}
     moreover
     {assume H: "\<not>x \<le> y" hence xy: "y \<le> x"  by arith
       from H az have axy': "\<not> a*x \<le> a*y" by auto
       with axy H cong_sub_cases[of "a*x" "a*y" n]  have "[a*(x - y) = 0] (mod n)"
-	by (simp only: if_False diff_mult_distrib2)
+        by (simp only: if_False diff_mult_distrib2)
       hence th: "n dvd a*(x - y)" by simp
       from coprime_divprod[OF th] an have "n dvd x - y"
-	by (simp add: coprime_commute)
+        by (simp add: coprime_commute)
       hence ?thesis using xy cong_sub_cases[of x y n] by simp}
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
@@ -409,10 +409,10 @@ proof-
   {assume n: "n\<noteq>0" "n\<noteq>1"
     {fix m
       from n have "0 < m \<and> m <= n \<and> coprime m n \<longleftrightarrow> coprime m n \<and> m < n"
-	apply (cases "m = 0", simp_all)
-	apply (cases "m = 1", simp_all)
-	apply (cases "m = n", auto)
-	done }
+        apply (cases "m = 0", simp_all)
+        apply (cases "m = 1", simp_all)
+        apply (cases "m = n", auto)
+        done }
     hence ?thesis unfolding phi_def by simp}
   ultimately show ?thesis by auto
 qed
@@ -485,19 +485,19 @@ proof-
       hence ceq: "card ?S' = card ?S"
       using n finite_number_segment[of n] phi_another[OF n(2)] by simp
       {fix m assume m: "0 < m" "m < n" "\<not> coprime m n"
-	hence mS': "m \<notin> ?S'" by auto
-	have "insert m ?S' \<le> ?S" using m by auto
-	from m have "card (insert m ?S') \<le> card ?S"
-	  by - (rule card_mono[of ?S "insert m ?S'"], auto)
-	hence False
-	  unfolding card_insert_disjoint[of "?S'" m, OF fS' mS'] ceq
-	  by simp }
+        hence mS': "m \<notin> ?S'" by auto
+        have "insert m ?S' \<le> ?S" using m by auto
+        from m have "card (insert m ?S') \<le> card ?S"
+          by - (rule card_mono[of ?S "insert m ?S'"], auto)
+        hence False
+          unfolding card_insert_disjoint[of "?S'" m, OF fS' mS'] ceq
+          by simp }
       hence "\<forall>m. 0 <m \<and> m < n \<longrightarrow> coprime m n" by blast
       hence "prime n" unfolding prime using n by (simp add: coprime_commute)}
     moreover
     {assume H: "prime n"
       hence "?S = ?S'" unfolding prime using n
-	by (auto simp add: coprime_commute)
+        by (auto simp add: coprime_commute)
       hence "card ?S = card ?S'" by simp
       hence "\<phi> n = n - 1" unfolding phi_another[OF n(2)] by simp}
     ultimately have ?thesis using n by blast}
@@ -520,29 +520,29 @@ proof-
     have eq: "?f ` (?S (a*b)) = (?S a \<times> ?S b)"
     proof-
       {fix x assume x:"x \<in> ?S (a*b)"
-	hence x': "coprime x (a*b)" "x < a*b" by simp_all
-	hence xab: "coprime x a" "coprime x b" by (simp_all add: coprime_mul_eq)
-	from mod_less_divisor a b have xab':"x mod a < a" "x mod b < b" by auto
-	from xab xab' have "?f x \<in> (?S a \<times> ?S b)"
-	  by (simp add: coprime_mod[OF a(1)] coprime_mod[OF b(1)])}
+        hence x': "coprime x (a*b)" "x < a*b" by simp_all
+        hence xab: "coprime x a" "coprime x b" by (simp_all add: coprime_mul_eq)
+        from mod_less_divisor a b have xab':"x mod a < a" "x mod b < b" by auto
+        from xab xab' have "?f x \<in> (?S a \<times> ?S b)"
+          by (simp add: coprime_mod[OF a(1)] coprime_mod[OF b(1)])}
       moreover
       {fix x y assume x: "x \<in> ?S a" and y: "y \<in> ?S b"
-	hence x': "coprime x a" "x < a" and y': "coprime y b" "y < b" by simp_all
-	from chinese_remainder_coprime_unique[OF ab a(1) b(1) x'(1) y'(1)]
-	obtain z where z: "coprime z (a * b)" "z < a * b" "[z = x] (mod a)"
-	  "[z = y] (mod b)" by blast
-	hence "(x,y) \<in> ?f ` (?S (a*b))"
-	  using y'(2) mod_less_divisor[of b y] x'(2) mod_less_divisor[of a x]
-	  by (auto simp add: image_iff modeq_def)}
+        hence x': "coprime x a" "x < a" and y': "coprime y b" "y < b" by simp_all
+        from chinese_remainder_coprime_unique[OF ab a(1) b(1) x'(1) y'(1)]
+        obtain z where z: "coprime z (a * b)" "z < a * b" "[z = x] (mod a)"
+          "[z = y] (mod b)" by blast
+        hence "(x,y) \<in> ?f ` (?S (a*b))"
+          using y'(2) mod_less_divisor[of b y] x'(2) mod_less_divisor[of a x]
+          by (auto simp add: image_iff modeq_def)}
       ultimately show ?thesis by auto
     qed
     have finj: "inj_on ?f (?S (a*b))"
       unfolding inj_on_def
     proof(clarify)
       fix x y assume H: "coprime x (a * b)" "x < a * b" "coprime y (a * b)"
-	"y < a * b" "x mod a = y mod a" "x mod b = y mod b"
+        "y < a * b" "x mod a = y mod a" "x mod b = y mod b"
       hence cp: "coprime x a" "coprime x b" "coprime y a" "coprime y b"
-	by (simp_all add: coprime_mul_eq)
+        by (simp_all add: coprime_mul_eq)
       from chinese_remainder_coprime_unique[OF ab a(1) b(1) cp(3,4)] H
       show "x = y" unfolding modeq_def by blast
     qed
@@ -593,7 +593,7 @@ proof-
     {fix m assume m: "m \<in> ?S"
       hence "coprime m n" by simp
       with coprime_mul[of n a m] an have "coprime (a*m) n"
-	by (simp add: coprime_commute)}
+        by (simp add: coprime_commute)}
     hence Sn: "\<forall>m\<in> ?S. coprime (a*m) n " by blast
     from coprime_nproduct[OF fS, of n "\<lambda>m. m"] have nP:"coprime ?P n"
       by (simp add: coprime_commute)
@@ -601,7 +601,7 @@ proof-
     proof-
       let ?h = "\<lambda>m. m mod n"
       {fix m assume mS: "m\<in> ?S"
-	hence "?h m \<in> ?S" by simp}
+        hence "?h m \<in> ?S" by simp}
       hence hS: "?h ` ?S = ?S"by (auto simp add: image_iff)
       have "a\<noteq>0" using an n1 nz apply- apply (rule ccontr) by simp
       hence inj: "inj_on (op * a) ?S" unfolding inj_on_def by simp
@@ -609,41 +609,41 @@ proof-
       have eq0: "fold_image op * (?h \<circ> op * a) 1 {m. coprime m n \<and> m < n} =
      fold_image op * (\<lambda>m. m) 1 {m. coprime m n \<and> m < n}"
       proof (rule fold_image_eq_general[where h="?h o (op * a)"])
-	show "finite ?S" using fS .
+        show "finite ?S" using fS .
       next
-	{fix y assume yS: "y \<in> ?S" hence y: "coprime y n" "y < n" by simp_all
-	  from cong_solve_unique[OF an nz, of y]
-	  obtain x where x:"x < n" "[a * x = y] (mod n)" "\<forall>z. z < n \<and> [a * z = y] (mod n) \<longrightarrow> z=x" by blast
-	  from cong_coprime[OF x(2)] y(1)
-	  have xm: "coprime x n" by (simp add: coprime_mul_eq coprime_commute)
-	  {fix z assume "z \<in> ?S" "(?h \<circ> op * a) z = y"
-	    hence z: "coprime z n" "z < n" "(?h \<circ> op * a) z = y" by simp_all
-	    from x(3)[rule_format, of z] z(2,3) have "z=x"
-	      unfolding modeq_def mod_less[OF y(2)] by simp}
-	  with xm x(1,2) have "\<exists>!x. x \<in> ?S \<and> (?h \<circ> op * a) x = y"
-	    unfolding modeq_def mod_less[OF y(2)] by auto }
-	thus "\<forall>y\<in>{m. coprime m n \<and> m < n}.
+        {fix y assume yS: "y \<in> ?S" hence y: "coprime y n" "y < n" by simp_all
+          from cong_solve_unique[OF an nz, of y]
+          obtain x where x:"x < n" "[a * x = y] (mod n)" "\<forall>z. z < n \<and> [a * z = y] (mod n) \<longrightarrow> z=x" by blast
+          from cong_coprime[OF x(2)] y(1)
+          have xm: "coprime x n" by (simp add: coprime_mul_eq coprime_commute)
+          {fix z assume "z \<in> ?S" "(?h \<circ> op * a) z = y"
+            hence z: "coprime z n" "z < n" "(?h \<circ> op * a) z = y" by simp_all
+            from x(3)[rule_format, of z] z(2,3) have "z=x"
+              unfolding modeq_def mod_less[OF y(2)] by simp}
+          with xm x(1,2) have "\<exists>!x. x \<in> ?S \<and> (?h \<circ> op * a) x = y"
+            unfolding modeq_def mod_less[OF y(2)] by auto }
+        thus "\<forall>y\<in>{m. coprime m n \<and> m < n}.
        \<exists>!x. x \<in> {m. coprime m n \<and> m < n} \<and> ((\<lambda>m. m mod n) \<circ> op * a) x = y" by blast
       next
-	{fix x assume xS: "x\<in> ?S"
-	  hence x: "coprime x n" "x < n" by simp_all
-	  with an have "coprime (a*x) n"
-	    by (simp add: coprime_mul_eq[of n a x] coprime_commute)
-	  hence "?h (a*x) \<in> ?S" using nz
-	    by (simp add: coprime_mod[OF nz] mod_less_divisor)}
-	thus " \<forall>x\<in>{m. coprime m n \<and> m < n}.
+        {fix x assume xS: "x\<in> ?S"
+          hence x: "coprime x n" "x < n" by simp_all
+          with an have "coprime (a*x) n"
+            by (simp add: coprime_mul_eq[of n a x] coprime_commute)
+          hence "?h (a*x) \<in> ?S" using nz
+            by (simp add: coprime_mod[OF nz] mod_less_divisor)}
+        thus " \<forall>x\<in>{m. coprime m n \<and> m < n}.
        ((\<lambda>m. m mod n) \<circ> op * a) x \<in> {m. coprime m n \<and> m < n} \<and>
        ((\<lambda>m. m mod n) \<circ> op * a) x = ((\<lambda>m. m mod n) \<circ> op * a) x" by simp
       qed
       from nproduct_mod[OF fS nz, of "op * a"]
       have "[(setprod (op *a) ?S) = (setprod (?h o (op * a)) ?S)] (mod n)"
-	unfolding o_def
-	by (simp add: cong_commute)
+        unfolding o_def
+        by (simp add: cong_commute)
       also have "[setprod (?h o (op * a)) ?S = ?P ] (mod n)"
-	using eq0 fS an by (simp add: setprod_def modeq_def o_def)
+        using eq0 fS an by (simp add: setprod_def modeq_def o_def)
       finally show "[?P*a^ (\<phi> n) = ?P*1] (mod n)"
-	unfolding cardfS mult_commute[of ?P "a^ (card ?S)"]
-	  nproduct_cmul[OF fS, symmetric] mult_1_right by simp
+        unfolding cardfS mult_commute[of ?P "a^ (card ?S)"]
+          nproduct_cmul[OF fS, symmetric] mult_1_right by simp
     qed
     from cong_mult_lcancel[OF nP Paphi] have ?thesis . }
   ultimately show ?thesis by blast
@@ -750,23 +750,23 @@ proof-
       let ?y = "a^ ((n - 1) div m * m)"
       note mdeq = mod_div_equality[of "(n - 1)" m]
       from coprime_exp[OF an(1)[unfolded coprime_commute[of a n]],
-	of "(n - 1) div m * m"]
+        of "(n - 1) div m * m"]
       have yn: "coprime ?y n" by (simp add: coprime_commute)
       have "?y mod n = (a^m)^((n - 1) div m) mod n"
-	by (simp add: algebra_simps power_mult)
+        by (simp add: algebra_simps power_mult)
       also have "\<dots> = (a^m mod n)^((n - 1) div m) mod n"
-	using power_mod[of "a^m" n "(n - 1) div m"] by simp
+        using power_mod[of "a^m" n "(n - 1) div m"] by simp
       also have "\<dots> = 1" using m(3)[unfolded modeq_def onen] onen
-	by (simp add: power_Suc0)
+        by (simp add: power_Suc0)
       finally have th3: "?y mod n = 1"  .
       have th2: "[?y * a ^ ((n - 1) mod m) = ?y* 1] (mod n)"
-	using an1[unfolded modeq_def onen] onen
-	  mod_div_equality[of "(n - 1)" m, symmetric]
-	by (simp add:power_add[symmetric] modeq_def th3 del: One_nat_def)
+        using an1[unfolded modeq_def onen] onen
+          mod_div_equality[of "(n - 1)" m, symmetric]
+        by (simp add:power_add[symmetric] modeq_def th3 del: One_nat_def)
       from cong_mult_lcancel[of ?y n "a^((n - 1) mod m)" 1, OF yn th2]
       have th1: "[a ^ ((n - 1) mod m) = 1] (mod n)"  .
       from m(4)[rule_format, OF th0] nm1
-	less_trans[OF mod_less_divisor[OF m(1), of "n - 1"] m(2)] th1
+        less_trans[OF mod_less_divisor[OF m(1), of "n - 1"] m(2)] th1
       have False by blast }
     hence "(n - 1) mod m = 0" by auto
     then have mn: "m dvd n - 1" by presburger
@@ -924,18 +924,18 @@ proof-
     {assume pn: "prime n"
 
       from pn[unfolded prime_def] have "\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n"
-	using n
-	apply (cases "n = 0 \<or> n=1",simp)
-	by (clarsimp, erule_tac x="p" in allE, auto)}
+        using n
+        apply (cases "n = 0 \<or> n=1",simp)
+        by (clarsimp, erule_tac x="p" in allE, auto)}
     moreover
     {assume H: "\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n"
       from n have n1: "n > 1" by arith
       {fix m assume m: "m dvd n" "m\<noteq>1"
-	from prime_factor[OF m(2)] obtain p where
-	  p: "prime p" "p dvd m" by blast
-	from dvd_trans[OF p(2) m(1)] p(1) H have "p = n" by blast
-	with p(2) have "n dvd m"  by simp
-	hence "m=n"  using dvd_anti_sym[OF m(1)] by simp }
+        from prime_factor[OF m(2)] obtain p where
+          p: "prime p" "p dvd m" by blast
+        from dvd_trans[OF p(2) m(1)] p(1) H have "p = n" by blast
+        with p(2) have "n dvd m"  by simp
+        hence "m=n"  using dvd_anti_sym[OF m(1)] by simp }
       with n1 have "prime n"  unfolding prime_def by auto }
     ultimately have ?thesis using n by blast}
   ultimately       show ?thesis by auto
@@ -952,9 +952,9 @@ proof-
     {fix d assume d: "d dvd n" "d^2 \<le> n" and H: "\<forall>m. m dvd n \<longrightarrow> m=1 \<or> m=n"
       from H d have d1n: "d = 1 \<or> d=n" by blast
       {assume dn: "d=n"
-	have "n^2 > n*1" using n
-	  by (simp add: power2_eq_square mult_less_cancel1)
-	with dn d(2) have "d=1" by simp}
+        have "n^2 > n*1" using n
+          by (simp add: power2_eq_square mult_less_cancel1)
+        with dn d(2) have "d=1" by simp}
       with d1n have "d = 1" by blast  }
     moreover
     {fix d assume d: "d dvd n" and H: "\<forall>d'. d' dvd n \<and> d'^2 \<le> n \<longrightarrow> d' = 1"
@@ -963,15 +963,15 @@ proof-
       from d[unfolded dvd_def] obtain e where e: "n= d*e" by blast
       from n dp e have ep:"e > 0" by simp
       have "d^2 \<le> n \<or> e^2 \<le> n" using dp ep
-	by (auto simp add: e power2_eq_square mult_le_cancel_left)
+        by (auto simp add: e power2_eq_square mult_le_cancel_left)
       moreover
       {assume h: "d^2 \<le> n"
-	from H[rule_format, of d] h d have "d = 1" by blast}
+        from H[rule_format, of d] h d have "d = 1" by blast}
       moreover
       {assume h: "e^2 \<le> n"
-	from e have "e dvd n" unfolding dvd_def by (simp add: mult_commute)
-	with H[rule_format, of e] h have "e=1" by simp
-	with e have "d = n" by simp}
+        from e have "e dvd n" unfolding dvd_def by (simp add: mult_commute)
+        with H[rule_format, of e] h have "e=1" by simp
+        with e have "d = n" by simp}
       ultimately have "d=1 \<or> d=n"  by blast}
     ultimately have ?thesis unfolding prime_def using np n(2) by blast}
   ultimately show ?thesis by auto
@@ -990,14 +990,14 @@ proof-
     moreover
     {assume H: ?rhs
       {fix d assume d: "d dvd n" "d^2 \<le> n" "d\<noteq>1"
-	from prime_factor[OF d(3)]
-	obtain p where p: "prime p" "p dvd d" by blast
-	from n have np: "n > 0" by arith
-	from d(1) n have "d \<noteq> 0" by - (rule ccontr, auto)
-	hence dp: "d > 0" by arith
-	from mult_mono[OF dvd_imp_le[OF p(2) dp] dvd_imp_le[OF p(2) dp]] d(2)
-	have "p^2 \<le> n" unfolding power2_eq_square by arith
-	with H n p(1) dvd_trans[OF p(2) d(1)] have False  by blast}
+        from prime_factor[OF d(3)]
+        obtain p where p: "prime p" "p dvd d" by blast
+        from n have np: "n > 0" by arith
+        from d(1) n have "d \<noteq> 0" by - (rule ccontr, auto)
+        hence dp: "d > 0" by arith
+        from mult_mono[OF dvd_imp_le[OF p(2) dp] dvd_imp_le[OF p(2) dp]] d(2)
+        have "p^2 \<le> n" unfolding power2_eq_square by arith
+        with H n p(1) dvd_trans[OF p(2) d(1)] have False  by blast}
       with n prime_divisor_sqrt  have ?lhs by auto}
     ultimately have ?thesis by blast }
   ultimately show ?thesis by (cases "n=0 \<or> n=1", auto)
@@ -1108,11 +1108,11 @@ proof-
     from one_le_power[OF a1] have ath: "1 \<le> a ^ ((n - 1) div p)" .
     {assume b0: "b = 0"
       from p(2) nqr have "(n - 1) mod p = 0"
-	apply (simp only: dvd_eq_mod_eq_0[symmetric]) by (rule dvd_mult2, simp)
+        apply (simp only: dvd_eq_mod_eq_0[symmetric]) by (rule dvd_mult2, simp)
       with mod_div_equality[of "n - 1" p]
       have "(n - 1) div p * p= n - 1" by auto
       hence eq: "(a^((n - 1) div p))^p = a^(n - 1)"
-	by (simp only: power_mult[symmetric])
+        by (simp only: power_mult[symmetric])
       from prime_ge_2[OF p(1)] have pS: "Suc (p - 1) = p" by arith
       from b(1) have d: "n dvd a^((n - 1) div p)" unfolding b0 cong_0_divides .
       from divides_rexp[OF d, of "p - 1"] pS eq cong_divides[OF an] n
@@ -1238,13 +1238,13 @@ proof-
     have th10: "a ^ ((n - 1) div p) mod n \<le> a ^ ((n - 1) div p)" .
     {assume "a ^ ((n - 1) div p) mod n = 0"
       then obtain s where s: "a ^ ((n - 1) div p) = n*s"
-	unfolding mod_eq_0_iff by blast
+        unfolding mod_eq_0_iff by blast
       hence eq0: "(a^((n - 1) div p))^p = (n*s)^p" by simp
       from qrn[symmetric] have qn1: "q dvd n - 1" unfolding dvd_def by auto
       from dvd_trans[OF p(2) qn1] div_mod_equality'[of "n - 1" p]
       have npp: "(n - 1) div p * p = n - 1" by (simp add: dvd_eq_mod_eq_0)
       with eq0 have "a^ (n - 1) = (n*s)^p"
-	by (simp add: power_mult[symmetric])
+        by (simp add: power_mult[symmetric])
       hence "1 = (n*s)^(Suc (p - 1)) mod n" using bqn p01 by simp
       also have "\<dots> = 0" by (simp add: mult_assoc)
       finally have False by simp }

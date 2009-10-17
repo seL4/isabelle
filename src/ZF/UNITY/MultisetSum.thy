@@ -1,5 +1,4 @@
 (*  Title:      ZF/UNITY/MultusetSum.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety
 *)
 
@@ -122,7 +121,7 @@ lemma msetsum_UN_disjoint [rule_format (no_asm)]:
      "[| I \<in> Fin(K); \<forall>i \<in> K. C(i) \<in> Fin(A) |] ==>  
       (\<forall>x \<in> A. multiset(f(x)) & mset_of(f(x))\<subseteq>B) -->   
       (\<forall>i \<in> I. \<forall>j \<in> I. i\<noteq>j --> C(i) Int C(j) = 0) -->  
-	msetsum(f, \<Union>i \<in> I. C(i), B) = msetsum (%i. msetsum(f, C(i),B), I, B)"
+        msetsum(f, \<Union>i \<in> I. C(i), B) = msetsum (%i. msetsum(f, C(i),B), I, B)"
 apply (erule Fin_induct, auto)
 apply (subgoal_tac "\<forall>i \<in> y. x \<noteq> i")
  prefer 2 apply blast

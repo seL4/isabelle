@@ -431,7 +431,7 @@ proof
       from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
       with r have "h (- x) \<le> p (- x)" ..
       also have "\<dots> = p x"
-	using `seminorm E p` `vectorspace E`
+        using `seminorm E p` `vectorspace E`
       proof (rule seminorm.minus)
         from x show "x \<in> E" ..
       qed

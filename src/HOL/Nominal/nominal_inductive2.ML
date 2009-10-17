@@ -279,7 +279,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
 
     val (vc_compat, vc_compat') = map (fn (params, sets, prems, (p, ts)) =>
       map (fn q => abs_params params (incr_boundvars ~1 (Logic.list_implies
-          (List.mapPartial (fn prem =>
+          (map_filter (fn prem =>
              if null (preds_of ps prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
         (maps (fn (t, T) => map (fn (u, U) => HOLogic.mk_Trueprop
@@ -366,7 +366,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                  val pi_sets = map (fn (t, _) =>
                    fold_rev (NominalDatatype.mk_perm []) pis t) sets';
                  val (P, ts) = strip_comb (HOLogic.dest_Trueprop (term_of concl));
-                 val gprems1 = List.mapPartial (fn (th, t) =>
+                 val gprems1 = map_filter (fn (th, t) =>
                    if null (preds_of ps t) then SOME th
                    else
                      map_thm ctxt' (split_conj (K o I) names)

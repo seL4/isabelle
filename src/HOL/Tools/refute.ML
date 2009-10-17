@@ -51,9 +51,8 @@ sig
   (* tries to find a model for a formula: *)
   val satisfy_term   : theory -> (string * string) list -> Term.term -> unit
   (* tries to find a model that refutes a formula: *)
-  val refute_term    : theory -> (string * string) list -> Term.term -> unit
-  val refute_subgoal :
-    theory -> (string * string) list -> Thm.thm -> int -> unit
+  val refute_term : theory -> (string * string) list -> term -> unit
+  val refute_goal : theory -> (string * string) list -> thm -> int -> unit
 
   val setup : theory -> theory
 
@@ -282,7 +281,7 @@ struct
       if null terms then
         "empty interpretation (no free variables in term)\n"
       else
-        cat_lines (List.mapPartial (fn (t, intr) =>
+        cat_lines (map_filter (fn (t, intr) =>
           (* print constants only if 'show_consts' is true *)
           if (!show_consts) orelse not (is_Const t) then
             SOME (Syntax.string_of_term_global thy t ^ ": " ^
@@ -396,7 +395,7 @@ struct
     (* TODO: it is currently not possible to specify a size for a type    *)
     (*       whose name is one of the other parameters (e.g. 'maxvars')   *)
     (* (string * int) list *)
-    val sizes     = List.mapPartial
+    val sizes     = map_filter
       (fn (name, value) => Option.map (pair name) (Int.fromString value))
       (List.filter (fn (name, _) => name<>"minsize" andalso name<>"maxsize"
         andalso name<>"maxvars" andalso name<>"maxtime"
@@ -726,7 +725,7 @@ struct
           (* check this.  However, getting this really right seems   *)
           (* difficult because the user may state arbitrary axioms,  *)
           (* which could interact with overloading to create loops.  *)
-          ((*Output.tracing (" unfolding: " ^ axname);*)
+          ((*tracing (" unfolding: " ^ axname);*)
            unfold_loop rhs)
         | NONE => t)
       | Free _           => t
@@ -766,20 +765,14 @@ struct
 
   fun collect_axioms thy t =
   let
-    val _ = Output.tracing "Adding axioms..."
-    (* (string * Term.term) list *)
+    val _ = tracing "Adding axioms..."
     val axioms = Theory.all_axioms_of thy
-    (* string * Term.term -> Term.term list -> Term.term list *)
     fun collect_this_axiom (axname, ax) axs =
     let
       val ax' = unfold_defs thy ax
     in
-      if member (op aconv) axs ax' then
-        axs
-      else (
-        Output.tracing axname;
-        collect_term_axioms (ax' :: axs, ax')
-      )
+      if member (op aconv) axs ax' then axs
+      else (tracing axname; collect_term_axioms (ax' :: axs, ax'))
     end
     (* Term.term list * Term.typ -> Term.term list *)
     and collect_sort_axioms (axs, T) =
@@ -940,7 +933,7 @@ struct
         (collect_term_axioms (axs, t1), t2)
     (* Term.term list *)
     val result = map close_form (collect_term_axioms ([], t))
-    val _ = Output.tracing " ...done."
+    val _ = tracing " ...done."
   in
     result
   end;
@@ -1001,8 +994,7 @@ struct
                     (* collect argument types *)
                     val acc_dtyps = List.foldr collect_dtyp acc_dT dtyps
                     (* collect constructor types *)
-                    val acc_dconstrs = List.foldr collect_dtyp acc_dtyps
-                      (List.concat (map snd dconstrs))
+                    val acc_dconstrs = List.foldr collect_dtyp acc_dtyps (maps snd dconstrs)
                   in
                     acc_dconstrs
                   end
@@ -1158,13 +1150,12 @@ struct
     let
       val timer  = Timer.startRealTimer ()
       val u      = unfold_defs thy t
-      val _      = Output.tracing ("Unfolded term: " ^
-                                   Syntax.string_of_term_global thy u)
+      val _      = tracing ("Unfolded term: " ^ Syntax.string_of_term_global thy u)
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
         acc union (ground_types thy t')) ([], u :: axioms)
-      val _     = Output.tracing ("Ground types: "
+      val _     = tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
       (* we can only consider fragments of recursive IDTs, so we issue a  *)
@@ -1199,7 +1190,7 @@ struct
         val init_model = (universe, [])
         val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
           bounds = [], wellformed = True}
-        val _          = Output.tracing ("Translating term (sizes: "
+        val _ = tracing ("Translating term (sizes: "
           ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
         (* translate 'u' and all axioms *)
         val ((model, args), intrs) = Library.foldl_map (fn ((m, a), t') =>
@@ -1217,31 +1208,31 @@ struct
         val fm_ax = PropLogic.all (map toTrue (tl intrs))
         val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
       in
-        Output.priority "Invoking SAT solver...";
+        priority "Invoking SAT solver...";
         (case SatSolver.invoke_solver satsolver fm of
           SatSolver.SATISFIABLE assignment =>
-          (Output.priority ("*** Model found: ***\n" ^ print_model thy model
+          (priority ("*** Model found: ***\n" ^ print_model thy model
             (fn i => case assignment i of SOME b => b | NONE => true));
            if maybe_spurious then "potential" else "genuine")
         | SatSolver.UNSATISFIABLE _ =>
-          (Output.priority "No model exists.";
+          (priority "No model exists.";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
-          | NONE           => (Output.priority
+          | NONE           => (priority
             "Search terminated, no larger universe within the given limits.";
             "none"))
         | SatSolver.UNKNOWN =>
-          (Output.priority "No model found.";
+          (priority "No model found.";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
-          | NONE           => (Output.priority
+          | NONE           => (priority
             "Search terminated, no larger universe within the given limits.";
             "unknown"))
         ) handle SatSolver.NOT_CONFIGURED =>
           (error ("SAT solver " ^ quote satsolver ^ " is not configured.");
            "unknown")
       end handle MAXVARS_EXCEEDED =>
-        (Output.priority ("Search terminated, number of Boolean variables ("
+        (priority ("Search terminated, number of Boolean variables ("
           ^ string_of_int maxvars ^ " allowed) exceeded.");
           "unknown")
         val outcome_code = find_model_loop (first_universe types sizes minsize)
@@ -1263,14 +1254,14 @@ struct
       maxtime>=0 orelse
         error ("\"maxtime\" is " ^ string_of_int maxtime ^ ", must be at least 0");
       (* enter loop with or without time limit *)
-      Output.priority ("Trying to find a model that "
+      priority ("Trying to find a model that "
         ^ (if negate then "refutes" else "satisfies") ^ ": "
         ^ Syntax.string_of_term_global thy t);
       if maxtime>0 then (
         TimeLimit.timeLimit (Time.fromSeconds maxtime)
           wrapper ()
         handle TimeLimit.TimeOut =>
-          Output.priority ("Search terminated, time limit (" ^
+          priority ("Search terminated, time limit (" ^
             string_of_int maxtime
             ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.")
       ) else
@@ -1355,16 +1346,11 @@ struct
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* refute_subgoal: calls 'refute_term' on a specific subgoal                 *)
-(* params        : list of '(name, value)' pairs used to override default    *)
-(*                 parameters                                                *)
-(* subgoal       : 0-based index specifying the subgoal number               *)
+(* refute_goal                                                               *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> (string * string) list -> Thm.thm -> int -> unit *)
-
-  fun refute_subgoal thy params thm subgoal =
-    refute_term thy params (List.nth (Thm.prems_of thm, subgoal));
+  fun refute_goal thy params st i =
+    refute_term thy params (Logic.get_goal (Thm.prop_of st) i);
 
 
 (* ------------------------------------------------------------------------- *)
@@ -1402,7 +1388,7 @@ struct
       map single xs
       | pick_all n xs =
       let val rec_pick = pick_all (n-1) xs in
-        List.concat (map (fn x => map (cons x) rec_pick) xs)
+        maps (fn x => map (cons x) rec_pick) xs
       end
     (* returns all constant interpretations that have the same tree *)
     (* structure as the interpretation argument                     *)
@@ -1595,7 +1581,7 @@ struct
       map single xs
       | pick_all (xs::xss) =
       let val rec_pick = pick_all xss in
-        List.concat (map (fn x => map (cons x) rec_pick) xs)
+        maps (fn x => map (cons x) rec_pick) xs
       end
       | pick_all _ =
       raise REFUTE ("interpretation_apply", "empty list (in pick_all)")
@@ -2081,7 +2067,7 @@ struct
             map single xs
           | pick_all n xs =
             let val rec_pick = pick_all (n-1) xs in
-              List.concat (map (fn x => map (cons x) rec_pick) xs)
+              maps (fn x => map (cons x) rec_pick) xs
             end
           (* ["x1", ..., "xn"] *)
           val terms1 = canonical_terms typs T1
@@ -2144,13 +2130,13 @@ struct
                 end
             in
               (* C_i ... < C_j ... if i < j *)
-              List.concat (map (fn (cname, ctyps) =>
+              maps (fn (cname, ctyps) =>
                 let
                   val cTerm = Const (cname,
                     map (typ_of_dtyp descr typ_assoc) ctyps ---> T)
                 in
                   constructor_terms [cTerm] ctyps
-                end) constrs)
+                end) constrs
             end)
         | NONE =>
           (* not an inductive datatype; in this case the argument types in *)
@@ -2496,14 +2482,14 @@ struct
                     (* of the parameter must be ignored                     *)
                     if List.exists (equal True) xs then [pi] else []
                     | ci_pi (Node xs, Node ys) =
-                    List.concat (map ci_pi (xs ~~ ys))
+                    maps ci_pi (xs ~~ ys)
                     | ci_pi (Node _, Leaf _) =
                     raise REFUTE ("IDT_recursion_interpreter",
                       "constructor takes more arguments than the " ^
                         "associated parameter")
                   (* (int * interpretation list) list *)
                   val rec_operators = map (fn (idx, c_p_intrs) =>
-                    (idx, List.concat (map ci_pi c_p_intrs))) mc_p_intrs
+                    (idx, maps ci_pi c_p_intrs)) mc_p_intrs
                   (* sanity check: every recursion operator must provide as  *)
                   (*               many values as the corresponding datatype *)
                   (*               has elements                              *)
@@ -3093,8 +3079,7 @@ struct
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
       in
-        SOME (Node (List.concat (map (replicate size_U) constants_T)),
-          model, args)
+        SOME (Node (maps (replicate size_U) constants_T), model, args)
       end
     | _ =>
       NONE;
@@ -3113,7 +3098,7 @@ struct
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U
       in
-        SOME (Node (List.concat (replicate size_T constants_U)), model, args)
+        SOME (Node (flat (replicate size_T constants_U)), model, args)
       end
     | _ =>
       NONE;

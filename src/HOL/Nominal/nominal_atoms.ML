@@ -1,4 +1,4 @@
-(*  title:      HOL/Nominal/nominal_atoms.ML
+(*  Title:      HOL/Nominal/nominal_atoms.ML
     Author:     Christian Urban and Stefan Berghofer, TU Muenchen
 
 Declaration of atom types to be used in nominal datatypes.
@@ -820,7 +820,7 @@ fun create_nom_typedecls ak_names thy =
              (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
              fun instR thm thms = map (fn ti => ti RS thm) thms;
 
-	     (* takes a theorem thm and a list of theorems [(t1,m1),..,(tn,mn)]  *)
+             (* takes a theorem thm and a list of theorems [(t1,m1),..,(tn,mn)]  *)
              (* produces a list of theorems of the form [[t1,m1] MRS thm,..,[tn,mn] MRS thm] *) 
              fun instRR thm thms = map (fn (ti,mi) => [ti,mi] MRS thm) thms;
 
@@ -851,7 +851,7 @@ fun create_nom_typedecls ak_names thy =
              val cps' = 
                 let fun cps'_fun ak1 ak2 = 
                 if ak1=ak2 then NONE else SOME (PureThy.get_thm thy32 ("cp_"^ak1^"_"^ak2^"_inst"))
-                in map (fn aki => (List.mapPartial I (map (cps'_fun aki) ak_names))) ak_names end;
+                in map (fn aki => (map_filter I (map (cps'_fun aki) ak_names))) ak_names end;
              (* list of all dj_inst-theorems *)
              val djs = 
                let fun djs_fun ak1 ak2 = 
@@ -883,7 +883,7 @@ fun create_nom_typedecls ak_names thy =
             ||>> add_thmss_string [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
             ||>> add_thmss_string [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
             ||>> add_thmss_string 
-	      let val thms1 = inst_at at_swap_simps
+              let val thms1 = inst_at at_swap_simps
                   and thms2 = inst_dj [dj_perm_forget]
               in [(("swap_simps", thms1 @ thms2),[])] end 
             ||>> add_thmss_string 
@@ -999,7 +999,7 @@ fun create_nom_typedecls ak_names thy =
          prm_cons_thms ~~ prm_inst_thms ~~
          map (fn ths => Symtab.make (full_ak_names ~~ ths)) cp_thms ~~
          map (fn thss => Symtab.make
-           (List.mapPartial (fn (s, [th]) => SOME (s, th) | _ => NONE)
+           (map_filter (fn (s, [th]) => SOME (s, th) | _ => NONE)
               (full_ak_names ~~ thss))) dj_thms))) thy33
     end;
 

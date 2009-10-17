@@ -1,9 +1,8 @@
 (*  Title:      ZF/ex/LList.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Codatatype definition of Lazy Lists
+Codatatype definition of Lazy Lists.
 
 Equality for llist(A) as a greatest fixed point
 
@@ -65,10 +64,10 @@ declare subset_refl [intro!]
         Union_least [intro!]
         UN_least [intro!]
         Un_least [intro!]
-	Inter_greatest [intro!]
+        Inter_greatest [intro!]
         Int_greatest [intro!]
         RepFun_subset [intro!]
-	Un_upper1 [intro!]
+        Un_upper1 [intro!]
         Un_upper2 [intro!]
         Int_lower1 [intro!]
         Int_lower2 [intro!]

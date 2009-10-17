@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Deadlock
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Deadlock.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -63,7 +62,7 @@ by (simp add: lessThan_Suc_atMost INT_le_equals_Int)
 lemma
   assumes zeroprem: "F \<in> (A 0 \<inter> A (Suc n)) co (A 0)"
       and allprem:
-	    "!!i. i \<in> atMost n ==> F \<in> (A(Suc i) \<inter> A i) co (-A i \<union> A(Suc i))"
+            "!!i. i \<in> atMost n ==> F \<in> (A(Suc i) \<inter> A i) co (-A i \<union> A(Suc i))"
   shows "F \<in> stable (\<Inter>i \<in> atMost (Suc n). A i)"
 apply (unfold stable_def) 
 apply (rule constrains_Int [THEN constrains_weaken])

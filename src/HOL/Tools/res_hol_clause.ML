@@ -345,13 +345,13 @@ fun addtypes tvars tab = List.foldl RC.add_foltype_funcs tab tvars;
 fun add_decls (t_full, cma, cnh) (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
-	let val arity = min_arity_of cma c
-	    val ntys = if not t_full then length tvars else 0
-	    val addit = Symtab.update(c, arity+ntys)
-	in
-	    if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
-	    else (addtypes tvars funcs, addit preds)
-	end
+        let val arity = min_arity_of cma c
+            val ntys = if not t_full then length tvars else 0
+            val addit = Symtab.update(c, arity+ntys)
+        in
+            if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
+            else (addtypes tvars funcs, addit preds)
+        end
   | add_decls _ (CombVar(_,ctp), (funcs,preds)) =
       (RC.add_foltype_funcs (ctp,funcs), preds)
   | add_decls params (CombApp(P,Q),decls) = add_decls params (P,add_decls params (Q,decls));
@@ -459,7 +459,7 @@ fun count_constants_clause (Clause{literals,...}) (const_min_arity, const_needs_
   fold count_constants_lit literals (const_min_arity, const_needs_hBOOL);
 
 fun display_arity const_needs_hBOOL (c,n) =
-  Output.debug (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
+  ResAxioms.trace_msg (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
                 (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =

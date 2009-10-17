@@ -56,18 +56,24 @@ use "General/yxml.ML";
 (* concurrency within the ML runtime *)
 
 use "Concurrent/simple_thread.ML";
+
 use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
+
 use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
+
 use "Concurrent/lazy.ML";
 if Multithreading.available then ()
 else use "Concurrent/lazy_sequential.ML";
+
 use "Concurrent/par_list.ML";
 if Multithreading.available then ()
 else use "Concurrent/par_list_sequential.ML";
+
+use "Concurrent/cache.ML";
 
 
 (* fundamental structures *)

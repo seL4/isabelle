@@ -56,7 +56,7 @@ fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name "op ="} then ([]
     raw_thms
     |> preprocess thy
     |> avoid_value thy
-    |> Code_Thingol.clean_thms thy
+    |> Code_Thingol.canonize_thms thy
     |> rpair module_name
   end;
 
@@ -119,7 +119,7 @@ fun add_rec_funs thy defs dep module eqs gr =
                let
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
                  val module' = if_library thyname module;
-                 val eqs'' = map (dest_eq o prop_of) (List.concat (map fst thmss));
+                 val eqs'' = map (dest_eq o prop_of) (maps fst thmss);
                  val (fundef', gr3) = mk_fundef module' "" true eqs''
                    (add_edge (dname, dep)
                      (List.foldr (uncurry new_node) (del_nodes xs gr2)

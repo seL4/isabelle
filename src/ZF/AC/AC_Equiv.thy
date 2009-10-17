@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/AC_Equiv.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 Axioms AC1 -- AC19 come from "Equivalents of the Axiom of Choice, II"
@@ -29,14 +28,14 @@ definition
 
 definition  
     "WO4(m) == \<forall>A. \<exists>a f. Ord(a) & domain(f)=a &   
-		         (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m)"
+                         (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m)"
 
 definition  
     "WO5 == \<exists>m \<in> nat. 1\<le>m & WO4(m)"
 
 definition  
     "WO6 == \<forall>A. \<exists>m \<in> nat. 1\<le>m & (\<exists>a f. Ord(a) & domain(f)=a
-		               & (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m))"
+                               & (\<Union>b<a. f`b) = A & (\<forall>b<a. f`b \<lesssim> m))"
 
 definition  
     "WO7 == \<forall>A. Finite(A) <-> (\<forall>R. well_ord(A,R) --> well_ord(A,converse(R)))"
@@ -64,7 +63,7 @@ definition
 
 definition
     "AC2 == \<forall>A. 0\<notin>A & pairwise_disjoint(A)   
-		   --> (\<exists>C. \<forall>B \<in> A. \<exists>y. B Int C = {y})"
+                   --> (\<exists>C. \<forall>B \<in> A. \<exists>y. B Int C = {y})"
 definition
     "AC3 == \<forall>A B. \<forall>f \<in> A->B. \<exists>g. g \<in> (\<Pi> x \<in> {a \<in> A. f`a\<noteq>0}. f`x)"
 
@@ -82,24 +81,24 @@ definition
 
 definition
     "AC8 == \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> & B1\<approx>B2)   
-		   --> (\<exists>f. \<forall>B \<in> A. f`B \<in> bij(fst(B),snd(B)))"
+                   --> (\<exists>f. \<forall>B \<in> A. f`B \<in> bij(fst(B),snd(B)))"
 
 definition
     "AC9 == \<forall>A. (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) -->   
-		   (\<exists>f. \<forall>B1 \<in> A. \<forall>B2 \<in> A. f`<B1,B2> \<in> bij(B1,B2))"
+                   (\<exists>f. \<forall>B1 \<in> A. \<forall>B2 \<in> A. f`<B1,B2> \<in> bij(B1,B2))"
 
 definition
     "AC10(n) ==  \<forall>A. (\<forall>B \<in> A. ~Finite(B)) -->   
-		   (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
-		   sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B))"
+                   (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
+                   sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B))"
 
 definition
     "AC11 == \<exists>n \<in> nat. 1\<le>n & AC10(n)"
 
 definition
     "AC12 == \<forall>A. (\<forall>B \<in> A. ~Finite(B)) -->
-  	         (\<exists>n \<in> nat. 1\<le>n & (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
-	              sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B)))"
+                 (\<exists>n \<in> nat. 1\<le>n & (\<exists>f. \<forall>B \<in> A. (pairwise_disjoint(f`B) &   
+                      sets_of_size_between(f`B, 2, succ(n)) & Union(f`B)=B)))"
 
 definition
     "AC13(m) == \<forall>A. 0\<notin>A --> (\<exists>f. \<forall>B \<in> A. f`B\<noteq>0 & f`B \<subseteq> B & f`B \<lesssim> m)"
@@ -114,12 +113,12 @@ definition
 definition
     "AC16(n, k)  == 
        \<forall>A. ~Finite(A) -->   
-	   (\<exists>T. T \<subseteq> {X \<in> Pow(A). X\<approx>succ(n)} &   
-	   (\<forall>X \<in> {X \<in> Pow(A). X\<approx>succ(k)}. \<exists>! Y. Y \<in> T & X \<subseteq> Y))"
+           (\<exists>T. T \<subseteq> {X \<in> Pow(A). X\<approx>succ(n)} &   
+           (\<forall>X \<in> {X \<in> Pow(A). X\<approx>succ(k)}. \<exists>! Y. Y \<in> T & X \<subseteq> Y))"
 
 definition
     "AC17 == \<forall>A. \<forall>g \<in> (Pow(A)-{0} -> A) -> Pow(A)-{0}.   
-		   \<exists>f \<in> Pow(A)-{0} -> A. f`(g`f) \<in> g`f"
+                   \<exists>f \<in> Pow(A)-{0} -> A. f`(g`f) \<in> g`f"
 
 locale AC18 =
   assumes AC18: "A\<noteq>0 & (\<forall>a \<in> A. B(a) \<noteq> 0) -->
@@ -129,7 +128,7 @@ locale AC18 =
 
 definition
     "AC19 == \<forall>A. A\<noteq>0 & 0\<notin>A --> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   
-		   (\<Union>f \<in> (\<Pi> B \<in> A. B). \<Inter>a \<in> A. f`a))"
+                   (\<Union>f \<in> (\<Pi> B \<in> A. B). \<Inter>a \<in> A. f`a))"
 
 
 

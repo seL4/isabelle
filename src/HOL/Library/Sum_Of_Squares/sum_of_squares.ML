@@ -1,26 +1,19 @@
-(* Title:      HOL/Library/Sum_Of_Squares/sum_of_squares.ML
-   Author:     Amine Chaieb, University of Cambridge
-   Author:     Philipp Meyer, TU Muenchen
+(*  Title:      HOL/Library/Sum_Of_Squares/sum_of_squares.ML
+    Author:     Amine Chaieb, University of Cambridge
+    Author:     Philipp Meyer, TU Muenchen
 
 A tactic for proving nonlinear inequalities.
 *)
 
-signature SOS =
+signature SUM_OF_SQUARES =
 sig
-
-  datatype proof_method =
-    Certificate of RealArith.pss_tree
-  | Prover of (string -> string)
-
-  val sos_tac : (RealArith.pss_tree -> unit) ->
-    proof_method -> Proof.context -> int -> tactic
-
-  val debugging : bool Unsynchronized.ref;
-
+  datatype proof_method = Certificate of RealArith.pss_tree | Prover of string -> string
+  val sos_tac: (RealArith.pss_tree -> unit) -> proof_method -> Proof.context -> int -> tactic
+  val debugging: bool Unsynchronized.ref
   exception Failure of string;
 end
 
-structure Sos : SOS =
+structure Sum_Of_Squares: SUM_OF_SQUARES =
 struct
 
 val rat_0 = Rat.zero;
@@ -28,8 +21,8 @@ val rat_1 = Rat.one;
 val rat_2 = Rat.two;
 val rat_10 = Rat.rat_of_int 10;
 val rat_1_2 = rat_1 // rat_2;
-val max = curry IntInf.max;
-val min = curry IntInf.min;
+val max = curry Int.max;
+val min = curry Int.min;
 
 val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
 val numerator_rat = Rat.quotient_of_rat #> fst #> Rat.rat_of_int;
@@ -527,10 +520,10 @@ fun index_char str chr pos =
 fun rat_of_quotient (a,b) = if b = 0 then rat_0 else Rat.rat_of_quotient (a,b);
 fun rat_of_string s =
  let val n = index_char s #"/" 0 in
-  if n = ~1 then s |> IntInf.fromString |> valOf |> Rat.rat_of_int
+  if n = ~1 then s |> Int.fromString |> valOf |> Rat.rat_of_int
   else
-   let val SOME numer = IntInf.fromString(String.substring(s,0,n))
-       val SOME den = IntInf.fromString (String.substring(s,n+1,String.size s - n - 1))
+   let val SOME numer = Int.fromString(String.substring(s,0,n))
+       val SOME den = Int.fromString (String.substring(s,n+1,String.size s - n - 1))
    in rat_of_quotient(numer, den)
    end
  end;
@@ -1130,13 +1123,13 @@ let
   val raw_vec = if null pvs then vector_0 0
                 else tri_scale_then (run_blockproblem prover nblocks blocksizes) obj mats
   fun int_element (d,v) i = FuncUtil.Intfunc.tryapplyd v i rat_0
-  fun cterm_element (d,v) i = FuncUtil.Ctermfunc.tryapplyd v i rat_0
 
   fun find_rounding d =
    let
-    val _ = if !debugging
-          then writeln ("Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
-          else ()
+    val _ =
+      if !debugging
+      then writeln ("Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
+      else ()
     val vec = nice_vector d raw_vec
     val blockmat = iter (1,dim vec)
      (fn i => fn a => bmatrix_add (bmatrix_cmul (int_element vec i) (nth mats i)) a)
@@ -1179,7 +1172,8 @@ in if not(FuncUtil.Monomialfunc.is_empty sanity) then raise Sanity else
 (* Iterative deepening.                                                      *)
 
 fun deepen f n =
-  (writeln ("Searching with depth limit " ^ string_of_int n) ; (f n handle Failure s => (writeln ("failed with message: " ^ s) ; deepen f (n+1))))
+  (writeln ("Searching with depth limit " ^ string_of_int n);
+    (f n handle Failure s => (writeln ("failed with message: " ^ s); deepen f (n + 1))));
 
 
 (* Map back polynomials and their composites to a positivstellensatz.        *)
@@ -1430,11 +1424,13 @@ CSUBGOAL (fn (P,i) =>
       val th = instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
          (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
           else @{lemma "(d=0 --> P) & (d ~= (0::real) --> P) ==> P" by blast})
-     in (rtac th i THEN Simplifier.asm_full_simp_tac ss i) end);
+     in rtac th i THEN Simplifier.asm_full_simp_tac ss i end);
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 
-fun sos_tac print_cert prover ctxt = ObjectLogic.full_atomize_tac THEN' elim_denom_tac ctxt THEN' core_sos_tac print_cert prover ctxt
-
+fun sos_tac print_cert prover ctxt =
+  ObjectLogic.full_atomize_tac THEN'
+  elim_denom_tac ctxt THEN'
+  core_sos_tac print_cert prover ctxt;
 
 end;

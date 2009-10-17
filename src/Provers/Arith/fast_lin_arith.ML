@@ -720,7 +720,7 @@ fun refutes ctxt params show_ex :
             val mkleq = mklineq n atoms
             val ixs = 0 upto (n - 1)
             val iatoms = atoms ~~ ixs
-            val natlineqs = List.mapPartial (mknat Ts ixs) iatoms
+            val natlineqs = map_filter (mknat Ts ixs) iatoms
             val ineqs = map mkleq initems @ natlineqs
           in case elim (ineqs, []) of
                Success j =>

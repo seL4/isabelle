@@ -355,7 +355,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
   let
     val (ctxt', _, cases, concl) = dest_hhf ctxt t
     val scheme as IndScheme {T=ST, branches, ...} = mk_scheme' ctxt' cases concl
-(*     val _ = Output.tracing (makestring scheme)*)
+(*     val _ = tracing (makestring scheme)*)
     val ([Rn,xn], ctxt'') = Variable.variant_fixes ["R","x"] ctxt'
     val R = Free (Rn, mk_relT ST)
     val x = Free (xn, ST)
@@ -378,7 +378,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
           indthm |> Drule.instantiate' [] [SOME inst]
                  |> simplify SumTree.sumcase_split_ss
                  |> Conv.fconv_rule ind_rulify
-(*                 |> (fn thm => (Output.tracing (makestring thm); thm))*)
+(*                 |> (fn thm => (tracing (makestring thm); thm))*)
         end                  
 
     val res = Conjunction.intr_balanced (map_index project branches)

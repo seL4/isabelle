@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/ListOrder
-    ID:         $Id$
+(*  Title:      HOL/UNITY/ListOrder.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -9,8 +8,6 @@ Lists are partially ordered by Charpentier's Generalized Prefix Relation
      and corresponding elements of xs, xs' are pairwise related by r
 
 Also overloads <= and < for lists!
-
-Based on Lex/Prefix
 *)
 
 header {*The Prefix Ordering on Lists*}
@@ -26,7 +23,7 @@ inductive_set
    Nil:     "([],[]) : genPrefix(r)"
 
  | prepend: "[| (xs,ys) : genPrefix(r);  (x,y) : r |] ==>
-	     (x#xs, y#ys) : genPrefix(r)"
+             (x#xs, y#ys) : genPrefix(r)"
 
  | append:  "(xs,ys) : genPrefix(r) ==> (xs, ys@zs) : genPrefix(r)"
 

@@ -305,7 +305,7 @@ prefer leaving more fine grain control to the user. *)
 fun derive_init_eqs sgn rules eqs =
   let
     fun get_related_thms i =
-      List.mapPartial ((fn (r, x) => if x = i then SOME r else NONE));
+      map_filter ((fn (r, x) => if x = i then SOME r else NONE));
     fun add_eq (i, e) xs =
       (e, (get_related_thms i rules), i) :: xs
     fun solve_eq (th, [], i) =

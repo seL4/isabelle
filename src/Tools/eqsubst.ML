@@ -235,13 +235,13 @@ fun clean_unify thry ix (a as (pat, tgt)) =
           val initenv =
             Envir.Envir {maxidx = ix2, tenv = Vartab.empty, tyenv = typinsttab};
           val useq = Unify.smash_unifiers thry [a] initenv
-	            handle UnequalLengths => Seq.empty
-		               | Term.TERM _ => Seq.empty;
+              handle UnequalLengths => Seq.empty
+                   | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () =
               (case (Seq.pull useq) of
                  NONE => NONE
                | SOME (h,t) => SOME (mk_insts h, Seq.make (clean_unify' t)))
-	            handle UnequalLengths => NONE
+              handle UnequalLengths => NONE
                    | Term.TERM _ => NONE
         in
           (Seq.make (clean_unify' useq))

@@ -27,6 +27,14 @@ in proofs are not shown.
 interpretation.
 
 
+*** document preparation ***
+
+* New generalized style concept for printing terms:
+write @{foo (style) ...} instead of @{foo_style style ...}
+(old form is still retained for backward compatibility).
+Styles can be also applied for antiquotations prop, term_type and typeof.
+
+
 *** HOL ***
 
 * Most rules produced by inductive and datatype package
@@ -244,6 +252,9 @@ INCOMPATIBILITY.
 * Discontinued Display.pretty_ctyp/cterm etc.  INCOMPATIBILITY, use
 Syntax.pretty_typ/term directly, preferably with proper context
 instead of global theory.
+
+* Operations of structure Skip_Proof (formerly SkipProof) no longer
+require quick_and_dirty mode, which avoids critical setmp.
 
 
 *** System ***

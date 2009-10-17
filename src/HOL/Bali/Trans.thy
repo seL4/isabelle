@@ -124,11 +124,11 @@ NewC:
     G\<turnstile>(\<langle>InsInitE Skip (New T[Lit i])\<rangle>,Norm s) \<mapsto>1 (\<langle>Ref a\<rangle>,s')"
  
   (* cf. 15.15 *)
-| CastE:	
+| CastE:
    "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
     \<Longrightarrow>
     G\<turnstile>(\<langle>Cast T e\<rangle>,None,s) \<mapsto>1 (\<langle>Cast T e'\<rangle>,s')" 
-| Cast:	
+| Cast:
    "\<lbrakk>s' = abupd (raise_if (\<not>G,s\<turnstile>v fits T)  ClassCast) (Norm s)\<rbrakk> 
     \<Longrightarrow> 
     G\<turnstile>(\<langle>Cast T (Lit v)\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit v\<rangle>,s')"
@@ -143,7 +143,7 @@ NewC:
           G\<turnstile>(\<langle>(Lit v) InstOf T\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit (Bool b)\<rangle>,s')"
 
   (* cf. 15.7.1 *)
-(*Lit				"G\<turnstile>(Lit v,None,s) \<mapsto>1 (Lit v,None,s)"*)
+(*Lit                           "G\<turnstile>(Lit v,None,s) \<mapsto>1 (Lit v,None,s)"*)
 
 | UnOpE:  "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s') \<rbrakk>
            \<Longrightarrow> 

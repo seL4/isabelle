@@ -1,8 +1,6 @@
 (*  Title:      ZF/Int.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
 *)
 
 header{*The Integers as Equivalence Classes Over Pairs of Natural Numbers*}
@@ -55,7 +53,7 @@ definition
   --{*could be replaced by an absolute value function from int to int?*}
     "zmagnitude(z) ==
      THE m. m\<in>nat & ((~ znegative(z) & z = $# m) |
-		       (znegative(z) & $- z = $# m))"
+                       (znegative(z) & $- z = $# m))"
 
 definition
   raw_zmult   ::      "[i,i]=>i"  where

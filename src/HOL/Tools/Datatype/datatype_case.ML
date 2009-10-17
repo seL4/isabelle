@@ -8,14 +8,14 @@ Nested case expressions on datatypes.
 signature DATATYPE_CASE =
 sig
   datatype config = Error | Warning | Quiet;
-  val make_case: (string -> DatatypeAux.info option) ->
+  val make_case: (string * typ -> DatatypeAux.info option) ->
     Proof.context -> config -> string list -> term -> (term * term) list ->
     term * (term * (int * bool)) list
   val dest_case: (string -> DatatypeAux.info option) -> bool ->
     string list -> term -> (term * (term * term) list) option
   val strip_case: (string -> DatatypeAux.info option) -> bool ->
     term -> (term * (term * term) list) option
-  val case_tr: bool -> (theory -> string -> DatatypeAux.info option)
+  val case_tr: bool -> (theory -> string * typ -> DatatypeAux.info option)
     -> Proof.context -> term list -> term
   val case_tr': (theory -> string -> DatatypeAux.info option) ->
     string -> Proof.context -> term list -> term
@@ -34,9 +34,9 @@ fun match_type thy pat ob = Sign.typ_match thy (pat, ob) Vartab.empty;
  * Get information about datatypes
  *---------------------------------------------------------------------------*)
 
-fun ty_info (tab : string -> DatatypeAux.info option) s =
-  case tab s of
-    SOME {descr, case_name, index, sorts, ...} =>
+fun ty_info tab sT =
+  case tab sT of
+    SOME ({descr, case_name, index, sorts, ...} : DatatypeAux.info) =>
       let
         val (_, (tname, dts, constrs)) = nth descr index;
         val mk_ty = DatatypeAux.typ_of_dtyp descr sorts;
@@ -216,7 +216,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                     pattern_subst [(v, u)] |>> v_to_prfx) (col0 ~~ rows);
                   val (pref_patl, tm) = mk {path = rstp, rows = rows'}
                 in (map v_to_pats pref_patl, tm) end
-            | SOME (Const (cname, cT), i) => (case ty_info tab cname of
+            | SOME (Const (cname, cT), i) => (case ty_info tab (cname, cT) of
                 NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ cname, i)
               | SOME {case_name, constructors} =>
                 let
@@ -241,8 +241,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                   val types = map type_of (case_functions @ [u]);
                   val case_const = Const (case_name, types ---> range_ty)
                   val tree = list_comb (case_const, case_functions @ [u])
-                  val pat_rect1 = flat (map mk_pat
-                    (constructors ~~ constructors' ~~ pat_rect))
+                  val pat_rect1 = maps mk_pat (constructors ~~ constructors' ~~ pat_rect)
                 in (pat_rect1, tree)
                 end)
             | SOME (t, i) => raise CASE_ERROR ("Not a datatype constructor: " ^

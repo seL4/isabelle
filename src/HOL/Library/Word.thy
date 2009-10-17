@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Word.thy
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg, TU Muenchen
 *)
 
 header {* Binary Words *}
@@ -654,7 +654,7 @@ proof -
           also have "... = \<one> # rev ys @ [y]"
             by simp
           finally show "nat_to_bv (2 * 2 ^ length ys + (bv_to_nat (rev ys) * 2 + bitval y)) =
-	      \<one> # rev ys @ [y]" .
+              \<one> # rev ys @ [y]" .
         qed
       qed
     qed
@@ -1103,7 +1103,7 @@ proof -
     proof (simp add: norm_signed_Cons,safe)
       assume "norm_unsigned w' = []"
       with weq and w0 show False
-	by (simp add: norm_empty_bv_to_nat_zero)
+        by (simp add: norm_empty_bv_to_nat_zero)
     next
       assume w'0: "norm_unsigned w' \<noteq> []"
       have "0 < bv_to_nat w'"
@@ -1997,7 +1997,7 @@ proof -
         have "\<forall>n. n < length ys --> ys ! (length ys - Suc n) = rev ys ! n"
           by simp
         hence "n < length ys --> ys ! (length ys - Suc n) = rev ys ! n" ..
-	from this and noty
+        from this and noty
         have "ys ! (length ys - Suc n) = rev ys ! n" ..
         thus "(y # ys) ! (length ys - n) = rev ys ! n"
           by (simp add: nth_Cons' noty linorder_not_less [symmetric])

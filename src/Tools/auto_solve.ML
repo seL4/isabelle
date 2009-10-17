@@ -16,7 +16,7 @@ sig
   val limit : int Unsynchronized.ref
 end;
 
-structure AutoSolve : AUTO_SOLVE =
+structure Auto_Solve : AUTO_SOLVE =
 struct
 
 (* preferences *)
@@ -27,7 +27,7 @@ val limit = Unsynchronized.ref 5;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-  (setmp auto true (fn () =>
+  (setmp_CRITICAL auto true (fn () =>
     Preferences.bool_pref auto
       "auto-solve"
       "Try to solve newly declared lemmas with existing theorems.") ());
@@ -61,14 +61,14 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
       end;
 
     fun seek_against_goal () =
-      (case try Proof.get_goal state of
+      (case try Proof.flat_goal state of
         NONE => NONE
-      | SOME (_, (_, goal)) =>
+      | SOME (_, st) =>
           let
-            val subgoals = Conjunction.dest_conjunctions (Thm.cprem_of goal 1);
+            val subgoals = Drule.strip_imp_prems (Thm.cprop_of st);
             val rs =
               if length subgoals = 1
-              then [(NONE, find goal)]
+              then [(NONE, find st)]
               else map (fn sg => (SOME sg, find (Goal.init sg))) subgoals;
             val results = filter_out (null o snd) rs;
           in if null results then NONE else SOME results end);
@@ -87,7 +87,7 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
                   Pretty.markup Markup.hilite
                     (separate (Pretty.brk 0) (map prt_result results))])
         | _ => state)
-      end handle TimeLimit.TimeOut => (warning "AutoSolve: timeout."; state);
+      end handle TimeLimit.TimeOut => (warning "Auto solve: timeout"; state);
   in
     if int andalso ! auto andalso not (! Toplevel.quiet)
     then go ()
@@ -96,6 +96,6 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
 
 end;
 
-val auto_solve = AutoSolve.auto;
-val auto_solve_time_limit = AutoSolve.auto_time_limit;
+val auto_solve = Auto_Solve.auto;
+val auto_solve_time_limit = Auto_Solve.auto_time_limit;
 

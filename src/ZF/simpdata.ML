@@ -16,9 +16,8 @@ fun atomize (conn_pairs, mem_pairs) th =
           case head_of t of
               Const(a,_) =>
                 (case AList.lookup (op =) pairs a of
-                     SOME rls => List.concat (map (atomize (conn_pairs, mem_pairs))
-                                       ([th] RL rls))
-                   | NONE     => [th])
+                     SOME rls => maps (atomize (conn_pairs, mem_pairs)) ([th] RL rls)
+                   | NONE => [th])
             | _ => [th]
   in case concl_of th of
          Const("Trueprop",_) $ P =>

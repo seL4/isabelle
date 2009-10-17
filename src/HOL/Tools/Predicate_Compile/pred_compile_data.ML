@@ -108,7 +108,7 @@ fun split_all_pairs thy th =
       in ((Free (x, T), HOLogic.mk_ptuple paths T (map Free xTs)), nctxt') end
     val (rewr, _) = fold_map mk_tuple_rewrites frees nctxt 
     val t' = Pattern.rewrite_term thy rewr [] t
-    val tac = setmp quick_and_dirty true (SkipProof.cheat_tac thy)
+    val tac = Skip_Proof.cheat_tac thy
     val th'' = Goal.prove ctxt (Term.add_free_names t' []) [] t' (fn {...} => tac)
     val th''' = LocalDefs.unfold ctxt [@{thm split_conv}] th''
   in
@@ -117,7 +117,7 @@ fun split_all_pairs thy th =
 
 fun normalize_equation thy th =
   mk_meta_equation th
-	|> Pred_Compile_Set.unfold_set_notation
+  |> Pred_Compile_Set.unfold_set_notation
   |> full_fun_cong_expand
   |> split_all_pairs thy
   |> tap check_equation_format

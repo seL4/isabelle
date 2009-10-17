@@ -555,7 +555,7 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
-  val lesss = List.concat (ListPair.map (mkasm_trans thy) (Hs, 0 upto (length Hs - 1)));
+  val lesss = flat (ListPair.map (mkasm_trans thy) (Hs, 0 upto (length Hs - 1)));
   val prfs = solveLeTrans thy (lesss, C);
 
   val (subgoal, prf) = mkconcl_trans thy C;

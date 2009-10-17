@@ -22,7 +22,7 @@ consts R::"(addr \<times> addr) set"
 
 consts f:: "addr \<Rightarrow> val"
 
-ML {*AtpWrapper.problem_name := "TransClosure__test"*}
+declare [[ atp_problem_prefix = "TransClosure__test" ]]
 lemma "\<lbrakk> f c = Intg x; \<forall> y. f b = Intg y \<longrightarrow> y \<noteq> x; (a,b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>* \<rbrakk> 
    \<Longrightarrow> \<exists> c. (b,c) \<in> R \<and> (a,c) \<in> R\<^sup>*"  
 by (metis Transitive_Closure.rtrancl_into_rtrancl converse_rtranclE trancl_reflcl)
@@ -51,7 +51,7 @@ show "False"
   by (metis 10 3)
 qed
 
-ML {*AtpWrapper.problem_name := "TransClosure__test_simpler"*}
+declare [[ atp_problem_prefix = "TransClosure__test_simpler" ]]
 lemma "\<lbrakk> f c = Intg x; \<forall> y. f b = Intg y \<longrightarrow> y \<noteq> x; (a,b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>* \<rbrakk> 
    \<Longrightarrow> \<exists> c. (b,c) \<in> R \<and> (a,c) \<in> R\<^sup>*"
 apply (erule_tac x="b" in converse_rtranclE)

@@ -26,10 +26,10 @@ recdef xzgcda
   "measure ((\<lambda>(m, n, r', r, s', s, t', t). nat r)
     :: int * int * int * int *int * int * int * int => nat)"
   "xzgcda (m, n, r', r, s', s, t', t) =
-	(if r \<le> 0 then (r', s', t')
-	 else xzgcda (m, n, r, r' mod r, 
-		      s, s' - (r' div r) * s, 
-		      t, t' - (r' div r) * t))"
+        (if r \<le> 0 then (r', s', t')
+         else xzgcda (m, n, r, r' mod r, 
+                      s, s' - (r' div r) * s, 
+                      t, t' - (r' div r) * t))"
 
 definition
   zprime :: "int \<Rightarrow> bool" where

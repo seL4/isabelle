@@ -7,45 +7,32 @@ Search tacticals.
 infix 1 THEN_MAYBE THEN_MAYBE';
 
 signature SEARCH =
-  sig
-  val DEEPEN            : int*int -> (int->int->tactic) -> int -> int -> tactic
-
-  val THEN_MAYBE        : tactic * tactic -> tactic
-  val THEN_MAYBE'       : ('a -> tactic) * ('a -> tactic) -> ('a -> tactic)
-
-  val trace_DEPTH_FIRST : bool Unsynchronized.ref
-  val DEPTH_FIRST       : (thm -> bool) -> tactic -> tactic
-  val DEPTH_SOLVE       : tactic -> tactic
-  val DEPTH_SOLVE_1     : tactic -> tactic
-  val ITER_DEEPEN       : (thm->bool) -> (int->tactic) -> tactic
-  val THEN_ITER_DEEPEN  : tactic -> (thm->bool) -> (int->tactic) -> tactic
-  val iter_deepen_limit : int Unsynchronized.ref
-
-  val has_fewer_prems   : int -> thm -> bool
-  val IF_UNSOLVED       : tactic -> tactic
-  val SOLVE             : tactic -> tactic
+sig
+  val trace_DEPTH_FIRST: bool Unsynchronized.ref
+  val DEPTH_FIRST: (thm -> bool) -> tactic -> tactic
+  val has_fewer_prems: int -> thm -> bool
+  val IF_UNSOLVED: tactic -> tactic
+  val SOLVE: tactic -> tactic
   val DETERM_UNTIL_SOLVED: tactic -> tactic
-  val trace_BEST_FIRST  : bool Unsynchronized.ref
-  val BEST_FIRST        : (thm -> bool) * (thm -> int) -> tactic -> tactic
-  val THEN_BEST_FIRST   : tactic -> (thm->bool) * (thm->int) -> tactic
-                          -> tactic
-  val trace_ASTAR       : bool Unsynchronized.ref
-  val ASTAR             : (thm -> bool) * (int->thm->int) -> tactic -> tactic
-  val THEN_ASTAR        : tactic -> (thm->bool) * (int->thm->int) -> tactic
-                          -> tactic
-  val BREADTH_FIRST     : (thm -> bool) -> tactic -> tactic
-  val QUIET_BREADTH_FIRST       : (thm -> bool) -> tactic -> tactic
-  end;
+  val THEN_MAYBE: tactic * tactic -> tactic
+  val THEN_MAYBE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val DEPTH_SOLVE: tactic -> tactic
+  val DEPTH_SOLVE_1: tactic -> tactic
+  val iter_deepen_limit: int Unsynchronized.ref
+  val THEN_ITER_DEEPEN: tactic -> (thm -> bool) -> (int -> tactic) -> tactic
+  val ITER_DEEPEN: (thm -> bool) -> (int -> tactic) -> tactic
+  val DEEPEN: int * int -> (int -> int -> tactic) -> int -> int -> tactic
+  val trace_BEST_FIRST: bool Unsynchronized.ref
+  val THEN_BEST_FIRST: tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic
+  val BEST_FIRST: (thm -> bool) * (thm -> int) -> tactic -> tactic
+  val BREADTH_FIRST: (thm -> bool) -> tactic -> tactic
+  val QUIET_BREADTH_FIRST: (thm -> bool) -> tactic -> tactic
+  val trace_ASTAR: bool Unsynchronized.ref
+  val THEN_ASTAR: tactic -> (thm -> bool) * (int -> thm -> int) -> tactic -> tactic
+  val ASTAR: (thm -> bool) * (int -> thm -> int) -> tactic -> tactic
+end;
 
-
-(** Instantiation of heaps for best-first search **)
-
-(*total ordering on theorems, allowing duplicates to be found*)
-structure ThmHeap = HeapFun(type elem = int * thm
-  val ord = prod_ord int_ord (TermOrd.term_ord o pairself Thm.prop_of));
-
-
-structure Search : SEARCH =
+structure Search: SEARCH =
 struct
 
 (**** Depth-first search ****)
@@ -84,7 +71,7 @@ val DETERM_UNTIL_SOLVED = DETERM_UNTIL (has_fewer_prems 1);
 (*Execute tac1, but only execute tac2 if there are at least as many subgoals
   as before.  This ensures that tac2 is only applied to an outcome of tac1.*)
 fun (tac1 THEN_MAYBE tac2) st =
-    (tac1  THEN  COND (has_fewer_prems (nprems_of st)) all_tac tac2)  st;
+  (tac1  THEN  COND (has_fewer_prems (nprems_of st)) all_tac tac2)  st;
 
 fun (tac1 THEN_MAYBE' tac2) x = tac1 x THEN_MAYBE tac2 x;
 
@@ -197,7 +184,15 @@ fun DEEPEN (inc,lim) tacf m i =
                              tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
 
+
 (*** Best-first search ***)
+
+(*total ordering on theorems, allowing duplicates to be found*)
+structure Thm_Heap = Heap
+(
+  type elem = int * thm;
+  val ord = prod_ord int_ord (TermOrd.term_ord o pairself Thm.prop_of);
+);
 
 val trace_BEST_FIRST = Unsynchronized.ref false;
 
@@ -206,11 +201,11 @@ fun some_of_list []     = NONE
   | some_of_list (x::l) = SOME (x, Seq.make (fn () => some_of_list l));
 
 (*Check for and delete duplicate proof states*)
-fun deleteAllMin prf heap =
-      if ThmHeap.is_empty heap then heap
-      else if Thm.eq_thm (prf, #2 (ThmHeap.min heap))
-      then deleteAllMin prf (ThmHeap.delete_min heap)
-      else heap;
+fun delete_all_min prf heap =
+  if Thm_Heap.is_empty heap then heap
+  else if Thm.eq_thm (prf, #2 (Thm_Heap.min heap))
+  then delete_all_min prf (Thm_Heap.delete_min heap)
+  else heap;
 
 (*Best-first search for a state that satisfies satp (incl initial state)
   Function sizef estimates size of problem remaining (smaller means better).
@@ -220,19 +215,19 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
       fun pairsize th = (sizef th, th);
       fun bfs (news,nprf_heap) =
            (case  List.partition satp news  of
-                ([],nonsats) => next(fold_rev ThmHeap.insert (map pairsize nonsats) nprf_heap)
+                ([],nonsats) => next(fold_rev Thm_Heap.insert (map pairsize nonsats) nprf_heap)
               | (sats,_)  => some_of_list sats)
       and next nprf_heap =
-            if ThmHeap.is_empty nprf_heap then NONE
+            if Thm_Heap.is_empty nprf_heap then NONE
             else
-            let val (n,prf) = ThmHeap.min nprf_heap
+            let val (n,prf) = Thm_Heap.min nprf_heap
             in if !trace_BEST_FIRST
                then tracing("state size = " ^ string_of_int n)
                else ();
                bfs (Seq.list_of (tac prf),
-                    deleteAllMin prf (ThmHeap.delete_min nprf_heap))
+                    delete_all_min prf (Thm_Heap.delete_min nprf_heap))
             end
-      fun btac st = bfs (Seq.list_of (tac0 st), ThmHeap.empty)
+      fun btac st = bfs (Seq.list_of (tac0 st), Thm_Heap.empty)
   in traced_tac btac end;
 
 (*Ordinary best-first search, with no initial tactic*)

@@ -1,8 +1,6 @@
-(*  Title       : Transcendental.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998,1999 University of Cambridge
-                  1999,2001 University of Edinburgh
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2004
+(*  Title:      HOL/Transcendental.thy
+    Author:     Jacques D. Fleuriot, University of Cambridge, University of Edinburgh
+    Author:     Lawrence C Paulson
 *)
 
 header{*Power Series, Transcendental Functions etc.*}
@@ -243,20 +241,20 @@ proof -
       assume "n \<ge> (max (2 * f_no) (2 * g_no))" hence "n \<ge> 2 * f_no" and "n \<ge> 2 * g_no" by auto
       have "norm (?Sa n - l) < r"
       proof (cases "even n")
-	case True from even_nat_div_two_times_two[OF this]
-	have n_eq: "2 * (n div 2) = n" unfolding numeral_2_eq_2[symmetric] by auto
-	with `n \<ge> 2 * f_no` have "n div 2 \<ge> f_no" by auto
-	from f[OF this]
-	show ?thesis unfolding n_eq atLeastLessThanSuc_atLeastAtMost .
+        case True from even_nat_div_two_times_two[OF this]
+        have n_eq: "2 * (n div 2) = n" unfolding numeral_2_eq_2[symmetric] by auto
+        with `n \<ge> 2 * f_no` have "n div 2 \<ge> f_no" by auto
+        from f[OF this]
+        show ?thesis unfolding n_eq atLeastLessThanSuc_atLeastAtMost .
       next
-	case False hence "even (n - 1)" using even_num_iff odd_pos by auto 
-	from even_nat_div_two_times_two[OF this]
-	have n_eq: "2 * ((n - 1) div 2) = n - 1" unfolding numeral_2_eq_2[symmetric] by auto
-	hence range_eq: "n - 1 + 1 = n" using odd_pos[OF False] by auto
+        case False hence "even (n - 1)" using even_num_iff odd_pos by auto 
+        from even_nat_div_two_times_two[OF this]
+        have n_eq: "2 * ((n - 1) div 2) = n - 1" unfolding numeral_2_eq_2[symmetric] by auto
+        hence range_eq: "n - 1 + 1 = n" using odd_pos[OF False] by auto
 
-	from n_eq `n \<ge> 2 * g_no` have "(n - 1) div 2 \<ge> g_no" by auto
-	from g[OF this]
-	show ?thesis unfolding n_eq atLeastLessThanSuc_atLeastAtMost range_eq .
+        from n_eq `n \<ge> 2 * g_no` have "(n - 1) div 2 \<ge> g_no" by auto
+        from g[OF this]
+        show ?thesis unfolding n_eq atLeastLessThanSuc_atLeastAtMost range_eq .
       qed
     }
     thus "\<exists> no. \<forall> n \<ge> no. norm (?Sa n - l) < r" by blast
@@ -698,7 +696,7 @@ proof (rule LIM_I)
 
     { fix n
       have "\<bar> ?diff (n + ?N) x \<bar> \<le> L (n + ?N) * \<bar> (x0 + x) - x0 \<bar> / \<bar> x \<bar>" 
-	using divide_right_mono[OF L_def[OF x_in_I x0_in_I] abs_ge_zero] unfolding abs_divide .
+        using divide_right_mono[OF L_def[OF x_in_I x0_in_I] abs_ge_zero] unfolding abs_divide .
       hence "\<bar> ( \<bar> ?diff (n + ?N) x \<bar>) \<bar> \<le> L (n + ?N)" using `x \<noteq> 0` by auto
     } note L_ge = summable_le2[OF allI[OF this] ign[OF `summable L`]]
     from order_trans[OF summable_rabs[OF conjunct1[OF L_ge]] L_ge[THEN conjunct2]]
@@ -713,8 +711,8 @@ proof (rule LIM_I)
       also have "S \<le> S'" using `S \<le> S'` .
       also have "S' \<le> ?s n" unfolding S'_def 
       proof (rule Min_le_iff[THEN iffD2])
-	have "?s n \<in> (?s ` {0..<?N}) \<and> ?s n \<le> ?s n" using `n \<in> { 0 ..< ?N}` by auto
-	thus "\<exists> a \<in> (?s ` {0..<?N}). a \<le> ?s n" by blast
+        have "?s n \<in> (?s ` {0..<?N}) \<and> ?s n \<le> ?s n" using `n \<in> { 0 ..< ?N}` by auto
+        thus "\<exists> a \<in> (?s ` {0..<?N}). a \<le> ?s n" by blast
       qed auto
       finally have "\<bar> x \<bar> < ?s n" .
 
@@ -754,48 +752,48 @@ proof -
     proof (rule DERIV_series')
       show "summable (\<lambda> n. \<bar>f n * real (Suc n) * R'^n\<bar>)"
       proof -
-	have "(R' + R) / 2 < R" and "0 < (R' + R) / 2" using `0 < R'` `0 < R` `R' < R` by auto
-	hence in_Rball: "(R' + R) / 2 \<in> {-R <..< R}" using `R' < R` by auto
-	have "norm R' < norm ((R' + R) / 2)" using `0 < R'` `0 < R` `R' < R` by auto
-	from powser_insidea[OF converges[OF in_Rball] this] show ?thesis by auto
+        have "(R' + R) / 2 < R" and "0 < (R' + R) / 2" using `0 < R'` `0 < R` `R' < R` by auto
+        hence in_Rball: "(R' + R) / 2 \<in> {-R <..< R}" using `R' < R` by auto
+        have "norm R' < norm ((R' + R) / 2)" using `0 < R'` `0 < R` `R' < R` by auto
+        from powser_insidea[OF converges[OF in_Rball] this] show ?thesis by auto
       qed
       { fix n x y assume "x \<in> {-R' <..< R'}" and "y \<in> {-R' <..< R'}"
-	show "\<bar>?f x n - ?f y n\<bar> \<le> \<bar>f n * real (Suc n) * R'^n\<bar> * \<bar>x-y\<bar>"
-	proof -
-	  have "\<bar>f n * x ^ (Suc n) - f n * y ^ (Suc n)\<bar> = (\<bar>f n\<bar> * \<bar>x-y\<bar>) * \<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar>" 
-	    unfolding right_diff_distrib[symmetric] lemma_realpow_diff_sumr2 abs_mult by auto
-	  also have "\<dots> \<le> (\<bar>f n\<bar> * \<bar>x-y\<bar>) * (\<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>)" 
-	  proof (rule mult_left_mono)
-	    have "\<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> (\<Sum>p = 0..<Suc n. \<bar>x ^ p * y ^ (n - p)\<bar>)" by (rule setsum_abs)
-	    also have "\<dots> \<le> (\<Sum>p = 0..<Suc n. R' ^ n)"
-	    proof (rule setsum_mono)
-	      fix p assume "p \<in> {0..<Suc n}" hence "p \<le> n" by auto
-	      { fix n fix x :: real assume "x \<in> {-R'<..<R'}"
-		hence "\<bar>x\<bar> \<le> R'"  by auto
-		hence "\<bar>x^n\<bar> \<le> R'^n" unfolding power_abs by (rule power_mono, auto)
-	      } from mult_mono[OF this[OF `x \<in> {-R'<..<R'}`, of p] this[OF `y \<in> {-R'<..<R'}`, of "n-p"]] `0 < R'`
-	      have "\<bar>x^p * y^(n-p)\<bar> \<le> R'^p * R'^(n-p)" unfolding abs_mult by auto
-	      thus "\<bar>x^p * y^(n-p)\<bar> \<le> R'^n" unfolding power_add[symmetric] using `p \<le> n` by auto
-	    qed
-	    also have "\<dots> = real (Suc n) * R' ^ n" unfolding setsum_constant card_atLeastLessThan real_of_nat_def by auto
-	    finally show "\<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> \<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>" unfolding abs_real_of_nat_cancel abs_of_nonneg[OF zero_le_power[OF less_imp_le[OF `0 < R'`]]] .
-	    show "0 \<le> \<bar>f n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult[symmetric] by auto
-	  qed
-	  also have "\<dots> = \<bar>f n * real (Suc n) * R' ^ n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult real_mult_assoc[symmetric] by algebra
-	  finally show ?thesis .
-	qed }
+        show "\<bar>?f x n - ?f y n\<bar> \<le> \<bar>f n * real (Suc n) * R'^n\<bar> * \<bar>x-y\<bar>"
+        proof -
+          have "\<bar>f n * x ^ (Suc n) - f n * y ^ (Suc n)\<bar> = (\<bar>f n\<bar> * \<bar>x-y\<bar>) * \<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar>" 
+            unfolding right_diff_distrib[symmetric] lemma_realpow_diff_sumr2 abs_mult by auto
+          also have "\<dots> \<le> (\<bar>f n\<bar> * \<bar>x-y\<bar>) * (\<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>)" 
+          proof (rule mult_left_mono)
+            have "\<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> (\<Sum>p = 0..<Suc n. \<bar>x ^ p * y ^ (n - p)\<bar>)" by (rule setsum_abs)
+            also have "\<dots> \<le> (\<Sum>p = 0..<Suc n. R' ^ n)"
+            proof (rule setsum_mono)
+              fix p assume "p \<in> {0..<Suc n}" hence "p \<le> n" by auto
+              { fix n fix x :: real assume "x \<in> {-R'<..<R'}"
+                hence "\<bar>x\<bar> \<le> R'"  by auto
+                hence "\<bar>x^n\<bar> \<le> R'^n" unfolding power_abs by (rule power_mono, auto)
+              } from mult_mono[OF this[OF `x \<in> {-R'<..<R'}`, of p] this[OF `y \<in> {-R'<..<R'}`, of "n-p"]] `0 < R'`
+              have "\<bar>x^p * y^(n-p)\<bar> \<le> R'^p * R'^(n-p)" unfolding abs_mult by auto
+              thus "\<bar>x^p * y^(n-p)\<bar> \<le> R'^n" unfolding power_add[symmetric] using `p \<le> n` by auto
+            qed
+            also have "\<dots> = real (Suc n) * R' ^ n" unfolding setsum_constant card_atLeastLessThan real_of_nat_def by auto
+            finally show "\<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> \<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>" unfolding abs_real_of_nat_cancel abs_of_nonneg[OF zero_le_power[OF less_imp_le[OF `0 < R'`]]] .
+            show "0 \<le> \<bar>f n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult[symmetric] by auto
+          qed
+          also have "\<dots> = \<bar>f n * real (Suc n) * R' ^ n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult real_mult_assoc[symmetric] by algebra
+          finally show ?thesis .
+        qed }
       { fix n show "DERIV (\<lambda> x. ?f x n) x0 :> (?f' x0 n)"
-	  by (auto intro!: DERIV_intros simp del: power_Suc) }
+          by (auto intro!: DERIV_intros simp del: power_Suc) }
       { fix x assume "x \<in> {-R' <..< R'}" hence "R' \<in> {-R <..< R}" and "norm x < norm R'" using assms `R' < R` by auto
-	have "summable (\<lambda> n. f n * x^n)"
-	proof (rule summable_le2[THEN conjunct1, OF _ powser_insidea[OF converges[OF `R' \<in> {-R <..< R}`] `norm x < norm R'`]], rule allI)
-	  fix n
-	  have le: "\<bar>f n\<bar> * 1 \<le> \<bar>f n\<bar> * real (Suc n)" by (rule mult_left_mono, auto)
-	  show "\<bar>f n * x ^ n\<bar> \<le> norm (f n * real (Suc n) * x ^ n)" unfolding real_norm_def abs_mult
-	    by (rule mult_right_mono, auto simp add: le[unfolded mult_1_right])
-	qed
-	from this[THEN summable_mult2[where c=x], unfolded real_mult_assoc, unfolded real_mult_commute]
-	show "summable (?f x)" by auto }
+        have "summable (\<lambda> n. f n * x^n)"
+        proof (rule summable_le2[THEN conjunct1, OF _ powser_insidea[OF converges[OF `R' \<in> {-R <..< R}`] `norm x < norm R'`]], rule allI)
+          fix n
+          have le: "\<bar>f n\<bar> * 1 \<le> \<bar>f n\<bar> * real (Suc n)" by (rule mult_left_mono, auto)
+          show "\<bar>f n * x ^ n\<bar> \<le> norm (f n * real (Suc n) * x ^ n)" unfolding real_norm_def abs_mult
+            by (rule mult_right_mono, auto simp add: le[unfolded mult_1_right])
+        qed
+        from this[THEN summable_mult2[where c=x], unfolded real_mult_assoc, unfolded real_mult_commute]
+        show "summable (?f x)" by auto }
       show "summable (?f' x0)" using converges[OF `x0 \<in> {-R <..< R}`] .
       show "x0 \<in> {-R' <..< R'}" using `x0 \<in> {-R' <..< R'}` .
     qed
@@ -1234,9 +1232,9 @@ proof -
     proof (rule DERIV_power_series')
       show "x - 1 \<in> {- 1<..<1}" and "(0 :: real) < 1" using `0 < x` `x < 2` by auto
       { fix x :: real assume "x \<in> {- 1<..<1}" hence "norm (-x) < 1" by auto
-	show "summable (\<lambda>n. -1 ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
+        show "summable (\<lambda>n. -1 ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
           unfolding One_nat_def
-	  by (auto simp del: power_mult_distrib simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
+          by (auto simp del: power_mult_distrib simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
       }
     qed
     hence "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)" unfolding One_nat_def by auto
@@ -2172,7 +2170,7 @@ apply (auto intro!: DERIV_tan DERIV_isCont exI
 txt{*Now, simulate TRYALL*}
 apply (rule_tac [!] DERIV_tan asm_rl)
 apply (auto dest!: DERIV_unique [OF _ DERIV_tan]
-	    simp add: cos_gt_zero_pi [THEN less_imp_neq, THEN not_sym]) 
+            simp add: cos_gt_zero_pi [THEN less_imp_neq, THEN not_sym]) 
 done
 
 lemma tan_monotone: assumes "- (pi / 2) < y" and "y < x" and "x < pi / 2"
@@ -2749,10 +2747,10 @@ next
     { fix n fix x :: real assume "0 \<le> x" and "x \<le> 1"
       have "1 / real (Suc (Suc n * 2)) * x ^ Suc (Suc n * 2) \<le> 1 / real (Suc (n * 2)) * x ^ Suc (n * 2)"
       proof (rule mult_mono)
-	show "1 / real (Suc (Suc n * 2)) \<le> 1 / real (Suc (n * 2))" by (rule frac_le) simp_all
-	show "0 \<le> 1 / real (Suc (n * 2))" by auto
-	show "x ^ Suc (Suc n * 2) \<le> x ^ Suc (n * 2)" by (rule power_decreasing) (simp_all add: `0 \<le> x` `x \<le> 1`)
-	show "0 \<le> x ^ Suc (Suc n * 2)" by (rule zero_le_power) (simp add: `0 \<le> x`)
+        show "1 / real (Suc (Suc n * 2)) \<le> 1 / real (Suc (n * 2))" by (rule frac_le) simp_all
+        show "0 \<le> 1 / real (Suc (n * 2))" by auto
+        show "x ^ Suc (Suc n * 2) \<le> x ^ Suc (n * 2)" by (rule power_decreasing) (simp_all add: `0 \<le> x` `x \<le> 1`)
+        show "0 \<le> x ^ Suc (Suc n * 2)" by (rule zero_le_power) (simp add: `0 \<le> x`)
       qed
     } note mono = this
     
@@ -2849,7 +2847,7 @@ proof -
 
       let ?S = "\<Sum> n. (-1)^n * x'^(2 * n)"
       show "summable (\<lambda> n. ?f n * real (Suc n) * x'^n)" unfolding if_eq
-	by (rule sums_summable[where l="0 + ?S"], rule sums_if, rule sums_zero, rule summable_sums, rule summable_Integral[OF `\<bar>x'\<bar> < 1`])
+        by (rule sums_summable[where l="0 + ?S"], rule sums_if, rule sums_zero, rule summable_sums, rule summable_Integral[OF `\<bar>x'\<bar> < 1`])
     }
   qed auto
   thus ?thesis unfolding Int_eq arctan_eq .
@@ -2880,23 +2878,23 @@ proof -
       hence "\<bar>x\<bar> < r" by auto
       show "suminf (?c x) - arctan x = suminf (?c a) - arctan a"
       proof (rule DERIV_isconst2[of "a" "b"])
-	show "a < b" and "a \<le> x" and "x \<le> b" using `a < b` `a \<le> x` `x \<le> b` by auto
-	have "\<forall> x. -r < x \<and> x < r \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0"
-	proof (rule allI, rule impI)
-	  fix x assume "-r < x \<and> x < r" hence "\<bar>x\<bar> < r" by auto
-	  hence "\<bar>x\<bar> < 1" using `r < 1` by auto
-	  have "\<bar> - (x^2) \<bar> < 1" using less_one_imp_sqr_less_one[OF `\<bar>x\<bar> < 1`] by auto
-	  hence "(\<lambda> n. (- (x^2)) ^ n) sums (1 / (1 - (- (x^2))))" unfolding real_norm_def[symmetric] by (rule geometric_sums)
-	  hence "(?c' x) sums (1 / (1 - (- (x^2))))" unfolding power_mult_distrib[symmetric] power_mult nat_mult_commute[of _ 2] by auto
-	  hence suminf_c'_eq_geom: "inverse (1 + x^2) = suminf (?c' x)" using sums_unique unfolding inverse_eq_divide by auto
-	  have "DERIV (\<lambda> x. suminf (?c x)) x :> (inverse (1 + x^2))" unfolding suminf_c'_eq_geom
-	    by (rule DERIV_arctan_suminf[OF `0 < r` `r < 1` `\<bar>x\<bar> < r`])
-	  from DERIV_add_minus[OF this DERIV_arctan]
-	  show "DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0" unfolding diff_minus by auto
-	qed
-	hence DERIV_in_rball: "\<forall> y. a \<le> y \<and> y \<le> b \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) y :> 0" using `-r < a` `b < r` by auto
-	thus "\<forall> y. a < y \<and> y < b \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) y :> 0" using `\<bar>x\<bar> < r` by auto
-	show "\<forall> y. a \<le> y \<and> y \<le> b \<longrightarrow> isCont (\<lambda> x. suminf (?c x) - arctan x) y" using DERIV_in_rball DERIV_isCont by auto
+        show "a < b" and "a \<le> x" and "x \<le> b" using `a < b` `a \<le> x` `x \<le> b` by auto
+        have "\<forall> x. -r < x \<and> x < r \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0"
+        proof (rule allI, rule impI)
+          fix x assume "-r < x \<and> x < r" hence "\<bar>x\<bar> < r" by auto
+          hence "\<bar>x\<bar> < 1" using `r < 1` by auto
+          have "\<bar> - (x^2) \<bar> < 1" using less_one_imp_sqr_less_one[OF `\<bar>x\<bar> < 1`] by auto
+          hence "(\<lambda> n. (- (x^2)) ^ n) sums (1 / (1 - (- (x^2))))" unfolding real_norm_def[symmetric] by (rule geometric_sums)
+          hence "(?c' x) sums (1 / (1 - (- (x^2))))" unfolding power_mult_distrib[symmetric] power_mult nat_mult_commute[of _ 2] by auto
+          hence suminf_c'_eq_geom: "inverse (1 + x^2) = suminf (?c' x)" using sums_unique unfolding inverse_eq_divide by auto
+          have "DERIV (\<lambda> x. suminf (?c x)) x :> (inverse (1 + x^2))" unfolding suminf_c'_eq_geom
+            by (rule DERIV_arctan_suminf[OF `0 < r` `r < 1` `\<bar>x\<bar> < r`])
+          from DERIV_add_minus[OF this DERIV_arctan]
+          show "DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0" unfolding diff_minus by auto
+        qed
+        hence DERIV_in_rball: "\<forall> y. a \<le> y \<and> y \<le> b \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) y :> 0" using `-r < a` `b < r` by auto
+        thus "\<forall> y. a < y \<and> y < b \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) y :> 0" using `\<bar>x\<bar> < r` by auto
+        show "\<forall> y. a \<le> y \<and> y \<le> b \<longrightarrow> isCont (\<lambda> x. suminf (?c x) - arctan x) y" using DERIV_in_rball DERIV_isCont by auto
       qed
     qed
     
@@ -2909,10 +2907,10 @@ proof -
     next
       case False hence "0 < \<bar>x\<bar>" and "- \<bar>x\<bar> < \<bar>x\<bar>" by auto
       have "suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>) = suminf (?c 0) - arctan 0"
-	by (rule suminf_eq_arctan_bounded[where x="0" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>", symmetric], auto simp add: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>`)
+        by (rule suminf_eq_arctan_bounded[where x="0" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>", symmetric], auto simp add: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>`)
       moreover
       have "suminf (?c x) - arctan x = suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>)"
-	by (rule suminf_eq_arctan_bounded[where x="x" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>"], auto simp add: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>`)
+        by (rule suminf_eq_arctan_bounded[where x="x" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>"], auto simp add: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>`)
       ultimately 
       show ?thesis using suminf_arctan_zero by auto
     qed
@@ -2929,35 +2927,35 @@ proof -
       have "0 < (1 :: real)" by auto
       moreover
       { fix x :: real assume "0 < x" and "x < 1" hence "\<bar>x\<bar> \<le> 1" and "\<bar>x\<bar> < 1" by auto
-	from `0 < x` have "0 < 1 / real (0 * 2 + (1::nat)) * x ^ (0 * 2 + 1)" by auto
-	note bounds = mp[OF arctan_series_borders(2)[OF `\<bar>x\<bar> \<le> 1`] this, unfolded when_less_one[OF `\<bar>x\<bar> < 1`, symmetric], THEN spec]
-	have "0 < 1 / real (n*2+1) * x^(n*2+1)" by (rule mult_pos_pos, auto simp only: zero_less_power[OF `0 < x`], auto)
-	hence a_pos: "?a x n = 1 / real (n*2+1) * x^(n*2+1)" by (rule abs_of_pos)
+        from `0 < x` have "0 < 1 / real (0 * 2 + (1::nat)) * x ^ (0 * 2 + 1)" by auto
+        note bounds = mp[OF arctan_series_borders(2)[OF `\<bar>x\<bar> \<le> 1`] this, unfolded when_less_one[OF `\<bar>x\<bar> < 1`, symmetric], THEN spec]
+        have "0 < 1 / real (n*2+1) * x^(n*2+1)" by (rule mult_pos_pos, auto simp only: zero_less_power[OF `0 < x`], auto)
+        hence a_pos: "?a x n = 1 / real (n*2+1) * x^(n*2+1)" by (rule abs_of_pos)
         have "?diff x n \<le> ?a x n"
-	proof (cases "even n")
-	  case True hence sgn_pos: "(-1)^n = (1::real)" by auto
-	  from `even n` obtain m where "2 * m = n" unfolding even_mult_two_ex by auto
-	  from bounds[of m, unfolded this atLeastAtMost_iff]
-	  have "\<bar>arctan x - (\<Sum>i = 0..<n. (?c x i))\<bar> \<le> (\<Sum>i = 0..<n + 1. (?c x i)) - (\<Sum>i = 0..<n. (?c x i))" by auto
-	  also have "\<dots> = ?c x n" unfolding One_nat_def by auto
-	  also have "\<dots> = ?a x n" unfolding sgn_pos a_pos by auto
-	  finally show ?thesis .
-	next
-	  case False hence sgn_neg: "(-1)^n = (-1::real)" by auto
-	  from `odd n` obtain m where m_def: "2 * m + 1 = n" unfolding odd_Suc_mult_two_ex by auto
-	  hence m_plus: "2 * (m + 1) = n + 1" by auto
-	  from bounds[of "m + 1", unfolded this atLeastAtMost_iff, THEN conjunct1] bounds[of m, unfolded m_def atLeastAtMost_iff, THEN conjunct2]
-	  have "\<bar>arctan x - (\<Sum>i = 0..<n. (?c x i))\<bar> \<le> (\<Sum>i = 0..<n. (?c x i)) - (\<Sum>i = 0..<n+1. (?c x i))" by auto
-	  also have "\<dots> = - ?c x n" unfolding One_nat_def by auto
-	  also have "\<dots> = ?a x n" unfolding sgn_neg a_pos by auto
-	  finally show ?thesis .
-	qed
+        proof (cases "even n")
+          case True hence sgn_pos: "(-1)^n = (1::real)" by auto
+          from `even n` obtain m where "2 * m = n" unfolding even_mult_two_ex by auto
+          from bounds[of m, unfolded this atLeastAtMost_iff]
+          have "\<bar>arctan x - (\<Sum>i = 0..<n. (?c x i))\<bar> \<le> (\<Sum>i = 0..<n + 1. (?c x i)) - (\<Sum>i = 0..<n. (?c x i))" by auto
+          also have "\<dots> = ?c x n" unfolding One_nat_def by auto
+          also have "\<dots> = ?a x n" unfolding sgn_pos a_pos by auto
+          finally show ?thesis .
+        next
+          case False hence sgn_neg: "(-1)^n = (-1::real)" by auto
+          from `odd n` obtain m where m_def: "2 * m + 1 = n" unfolding odd_Suc_mult_two_ex by auto
+          hence m_plus: "2 * (m + 1) = n + 1" by auto
+          from bounds[of "m + 1", unfolded this atLeastAtMost_iff, THEN conjunct1] bounds[of m, unfolded m_def atLeastAtMost_iff, THEN conjunct2]
+          have "\<bar>arctan x - (\<Sum>i = 0..<n. (?c x i))\<bar> \<le> (\<Sum>i = 0..<n. (?c x i)) - (\<Sum>i = 0..<n+1. (?c x i))" by auto
+          also have "\<dots> = - ?c x n" unfolding One_nat_def by auto
+          also have "\<dots> = ?a x n" unfolding sgn_neg a_pos by auto
+          finally show ?thesis .
+        qed
         hence "0 \<le> ?a x n - ?diff x n" by auto
       }
       hence "\<forall> x \<in> { 0 <..< 1 }. 0 \<le> ?a x n - ?diff x n" by auto
       moreover have "\<And>x. isCont (\<lambda> x. ?a x n - ?diff x n) x"
-	unfolding real_diff_def divide_inverse
-	by (auto intro!: isCont_add isCont_rabs isCont_ident isCont_minus isCont_arctan isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum)
+        unfolding real_diff_def divide_inverse
+        by (auto intro!: isCont_add isCont_rabs isCont_ident isCont_minus isCont_arctan isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n" by (rule LIM_less_bound)
       hence "?diff 1 n \<le> ?a 1 n" by auto
     }
@@ -2969,7 +2967,7 @@ proof -
       fix r :: real assume "0 < r"
       obtain N :: nat where N_I: "\<And> n. N \<le> n \<Longrightarrow> ?a 1 n < r" using LIMSEQ_D[OF `?a 1 ----> 0` `0 < r`] by auto
       { fix n assume "N \<le> n" from `?diff 1 n \<le> ?a 1 n` N_I[OF this]
-	have "norm (?diff 1 n - 0) < r" by auto }
+        have "norm (?diff 1 n - 0) < r" by auto }
       thus "\<exists> N. \<forall> n \<ge> N. norm (?diff 1 n - 0) < r" by blast
     qed
     from this[unfolded LIMSEQ_rabs_zero real_diff_def add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN LIMSEQ_minus]

@@ -123,7 +123,7 @@ fun calc_axioms
                                                               list_ccomb(%%:(dname^"_when"),map 
                                                                                               (fn (con',args) => if con'<>con then UU else
                                                                                                                  List.foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
-      in List.mapPartial I (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
+      in map_filter I (maps (fn (con,args) => mapn (sdef con) 1 args) cons) end;
 
 
       (* ----- axiom and definitions concerning induction ------------------------- *)

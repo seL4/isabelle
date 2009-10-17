@@ -350,7 +350,7 @@ proof (induct)
     proof (induct \<Gamma>')
       case (Cons Y \<Gamma>')
       thus "\<not> (\<exists>T.(TVarB X' T)\<in>set(Y#\<Gamma>'))"
-	by (simp add:  fresh_ty_dom_cons 
+        by (simp add:  fresh_ty_dom_cons 
                        fresh_fin_union[OF pt_tyvrs_inst  at_tyvrs_inst fs_tyvrs_inst]  
                        finite_vrs finite_doms, 
             auto simp add: fresh_atm fresh_singleton [OF pt_tyvrs_inst at_tyvrs_inst])
@@ -375,7 +375,7 @@ proof (induct)
     proof (induct \<Gamma>')
       case (Cons y \<Gamma>')
       thus "\<not> (\<exists>T.(VarB x' T)\<in>set(y#\<Gamma>'))" 
-	by (simp add:  fresh_fin_union[OF pt_vrs_inst  at_vrs_inst fs_vrs_inst]  
+        by (simp add:  fresh_fin_union[OF pt_vrs_inst  at_vrs_inst fs_vrs_inst]  
                        finite_vrs finite_doms, 
             auto simp add: fresh_atm fresh_singleton [OF pt_vrs_inst at_vrs_inst])
     qed (simp)
@@ -909,26 +909,26 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       have lh_drv_prm\<^isub>1: "\<Gamma> \<turnstile> Q\<^isub>1 <: S\<^isub>1" by fact
       have lh_drv_prm\<^isub>2: "\<Gamma> \<turnstile> S\<^isub>2 <: Q\<^isub>2" by fact      
       from rh_drv have "T=Top \<or> (\<exists>T\<^isub>1 T\<^isub>2. T=T\<^isub>1\<rightarrow>T\<^isub>2 \<and> \<Gamma>\<turnstile>T\<^isub>1<:Q\<^isub>1 \<and> \<Gamma>\<turnstile>Q\<^isub>2<:T\<^isub>2)" 
-	by (auto elim: S_ArrowE_left)
+        by (auto elim: S_ArrowE_left)
       moreover
       have "S\<^isub>1 closed_in \<Gamma>" and "S\<^isub>2 closed_in \<Gamma>" 
-	using lh_drv_prm\<^isub>1 lh_drv_prm\<^isub>2 by (simp_all add: subtype_implies_closed)
+        using lh_drv_prm\<^isub>1 lh_drv_prm\<^isub>2 by (simp_all add: subtype_implies_closed)
       hence "(S\<^isub>1 \<rightarrow> S\<^isub>2) closed_in \<Gamma>" by (simp add: closed_in_def ty.supp)
       moreover
       have "\<turnstile> \<Gamma> ok" using rh_drv by (rule subtype_implies_ok)
       moreover
       { assume "\<exists>T\<^isub>1 T\<^isub>2. T = T\<^isub>1\<rightarrow>T\<^isub>2 \<and> \<Gamma> \<turnstile> T\<^isub>1 <: Q\<^isub>1 \<and> \<Gamma> \<turnstile> Q\<^isub>2 <: T\<^isub>2"
-	then obtain T\<^isub>1 T\<^isub>2 
-	  where T_inst: "T = T\<^isub>1 \<rightarrow> T\<^isub>2" 
-	  and   rh_drv_prm\<^isub>1: "\<Gamma> \<turnstile> T\<^isub>1 <: Q\<^isub>1"
-	  and   rh_drv_prm\<^isub>2: "\<Gamma> \<turnstile> Q\<^isub>2 <: T\<^isub>2" by force
-	from IH_trans[of "Q\<^isub>1"] 
-	have "\<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1" using Q\<^isub>1\<^isub>2_less rh_drv_prm\<^isub>1 lh_drv_prm\<^isub>1 by simp 
-	moreover
-	from IH_trans[of "Q\<^isub>2"] 
-	have "\<Gamma> \<turnstile> S\<^isub>2 <: T\<^isub>2" using Q\<^isub>1\<^isub>2_less rh_drv_prm\<^isub>2 lh_drv_prm\<^isub>2 by simp
-	ultimately have "\<Gamma> \<turnstile> S\<^isub>1 \<rightarrow> S\<^isub>2 <: T\<^isub>1 \<rightarrow> T\<^isub>2" by auto
-	then have "\<Gamma> \<turnstile> S\<^isub>1 \<rightarrow> S\<^isub>2 <: T" using T_inst by simp
+        then obtain T\<^isub>1 T\<^isub>2 
+          where T_inst: "T = T\<^isub>1 \<rightarrow> T\<^isub>2" 
+          and   rh_drv_prm\<^isub>1: "\<Gamma> \<turnstile> T\<^isub>1 <: Q\<^isub>1"
+          and   rh_drv_prm\<^isub>2: "\<Gamma> \<turnstile> Q\<^isub>2 <: T\<^isub>2" by force
+        from IH_trans[of "Q\<^isub>1"] 
+        have "\<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1" using Q\<^isub>1\<^isub>2_less rh_drv_prm\<^isub>1 lh_drv_prm\<^isub>1 by simp 
+        moreover
+        from IH_trans[of "Q\<^isub>2"] 
+        have "\<Gamma> \<turnstile> S\<^isub>2 <: T\<^isub>2" using Q\<^isub>1\<^isub>2_less rh_drv_prm\<^isub>2 lh_drv_prm\<^isub>2 by simp
+        ultimately have "\<Gamma> \<turnstile> S\<^isub>1 \<rightarrow> S\<^isub>2 <: T\<^isub>1 \<rightarrow> T\<^isub>2" by auto
+        then have "\<Gamma> \<turnstile> S\<^isub>1 \<rightarrow> S\<^isub>2 <: T" using T_inst by simp
       }
       ultimately show "\<Gamma> \<turnstile> S\<^isub>1 \<rightarrow> S\<^isub>2 <: T" by blast
     next
@@ -938,36 +938,36 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       have lh_drv_prm\<^isub>2: "((TVarB X Q\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: Q\<^isub>2" by fact
       then have "X\<sharp>\<Gamma>" by (force dest: subtype_implies_ok simp add: valid_ty_dom_fresh)
       then have fresh_cond: "X\<sharp>\<Gamma>" "X\<sharp>Q\<^isub>1" "X\<sharp>T" using rh_drv lh_drv_prm\<^isub>1 
-	by (simp_all add: subtype_implies_fresh)
+        by (simp_all add: subtype_implies_fresh)
       from rh_drv 
       have "T = Top \<or> 
           (\<exists>T\<^isub>1 T\<^isub>2. T = (\<forall>X<:T\<^isub>1. T\<^isub>2) \<and> \<Gamma> \<turnstile> T\<^isub>1 <: Q\<^isub>1 \<and> ((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> Q\<^isub>2 <: T\<^isub>2)" 
-	using fresh_cond by (simp add: S_ForallE_left)
+        using fresh_cond by (simp add: S_ForallE_left)
       moreover
       have "S\<^isub>1 closed_in \<Gamma>" and "S\<^isub>2 closed_in ((TVarB X Q\<^isub>1)#\<Gamma>)" 
-	using lh_drv_prm\<^isub>1 lh_drv_prm\<^isub>2 by (simp_all add: subtype_implies_closed)
+        using lh_drv_prm\<^isub>1 lh_drv_prm\<^isub>2 by (simp_all add: subtype_implies_closed)
       then have "(\<forall>X<:S\<^isub>1. S\<^isub>2) closed_in \<Gamma>" by (force simp add: closed_in_def ty.supp abs_supp)
       moreover
       have "\<turnstile> \<Gamma> ok" using rh_drv by (rule subtype_implies_ok)
       moreover
       { assume "\<exists>T\<^isub>1 T\<^isub>2. T=(\<forall>X<:T\<^isub>1. T\<^isub>2) \<and> \<Gamma>\<turnstile>T\<^isub>1<:Q\<^isub>1 \<and> ((TVarB X T\<^isub>1)#\<Gamma>)\<turnstile>Q\<^isub>2<:T\<^isub>2"
-	then obtain T\<^isub>1 T\<^isub>2 
-	  where T_inst: "T = (\<forall>X<:T\<^isub>1. T\<^isub>2)" 
-	  and   rh_drv_prm\<^isub>1: "\<Gamma> \<turnstile> T\<^isub>1 <: Q\<^isub>1" 
-	  and   rh_drv_prm\<^isub>2:"((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> Q\<^isub>2 <: T\<^isub>2" by force
-	have "(\<forall>X<:Q\<^isub>1. Q\<^isub>2) = Q" by fact 
-	then have Q\<^isub>1\<^isub>2_less: "size_ty Q\<^isub>1 < size_ty Q" "size_ty Q\<^isub>2 < size_ty Q" 
-	  using fresh_cond by auto
-	from IH_trans[of "Q\<^isub>1"] 
-	have "\<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1" using lh_drv_prm\<^isub>1 rh_drv_prm\<^isub>1 Q\<^isub>1\<^isub>2_less by blast
-	moreover
-	from IH_narrow[of "Q\<^isub>1" "[]"] 
-	have "((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: Q\<^isub>2" using Q\<^isub>1\<^isub>2_less lh_drv_prm\<^isub>2 rh_drv_prm\<^isub>1 by simp
-	with IH_trans[of "Q\<^isub>2"] 
-	have "((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2" using Q\<^isub>1\<^isub>2_less rh_drv_prm\<^isub>2 by simp
-	ultimately have "\<Gamma> \<turnstile> (\<forall>X<:S\<^isub>1. S\<^isub>2) <: (\<forall>X<:T\<^isub>1. T\<^isub>2)"
-	  using fresh_cond by (simp add: subtype_of.SA_all)
-	hence "\<Gamma> \<turnstile> (\<forall>X<:S\<^isub>1. S\<^isub>2) <: T" using T_inst by simp
+        then obtain T\<^isub>1 T\<^isub>2 
+          where T_inst: "T = (\<forall>X<:T\<^isub>1. T\<^isub>2)" 
+          and   rh_drv_prm\<^isub>1: "\<Gamma> \<turnstile> T\<^isub>1 <: Q\<^isub>1" 
+          and   rh_drv_prm\<^isub>2:"((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> Q\<^isub>2 <: T\<^isub>2" by force
+        have "(\<forall>X<:Q\<^isub>1. Q\<^isub>2) = Q" by fact 
+        then have Q\<^isub>1\<^isub>2_less: "size_ty Q\<^isub>1 < size_ty Q" "size_ty Q\<^isub>2 < size_ty Q" 
+          using fresh_cond by auto
+        from IH_trans[of "Q\<^isub>1"] 
+        have "\<Gamma> \<turnstile> T\<^isub>1 <: S\<^isub>1" using lh_drv_prm\<^isub>1 rh_drv_prm\<^isub>1 Q\<^isub>1\<^isub>2_less by blast
+        moreover
+        from IH_narrow[of "Q\<^isub>1" "[]"] 
+        have "((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: Q\<^isub>2" using Q\<^isub>1\<^isub>2_less lh_drv_prm\<^isub>2 rh_drv_prm\<^isub>1 by simp
+        with IH_trans[of "Q\<^isub>2"] 
+        have "((TVarB X T\<^isub>1)#\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2" using Q\<^isub>1\<^isub>2_less rh_drv_prm\<^isub>2 by simp
+        ultimately have "\<Gamma> \<turnstile> (\<forall>X<:S\<^isub>1. S\<^isub>2) <: (\<forall>X<:T\<^isub>1. T\<^isub>2)"
+          using fresh_cond by (simp add: subtype_of.SA_all)
+        hence "\<Gamma> \<turnstile> (\<forall>X<:S\<^isub>1. S\<^isub>2) <: T" using T_inst by simp
       }
       ultimately show "\<Gamma> \<turnstile> (\<forall>X<:S\<^isub>1. S\<^isub>2) <: T" by blast
     qed
@@ -985,44 +985,44 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
     proof (induct \<Gamma>\<equiv>"\<Delta>@[(TVarB X Q)]@\<Gamma>" M N arbitrary: \<Gamma> X \<Delta> rule: subtype_of.induct) 
       case (SA_Top _ S \<Gamma> X \<Delta>)
       then have lh_drv_prm\<^isub>1: "\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok" 
-	and lh_drv_prm\<^isub>2: "S closed_in (\<Delta>@[(TVarB X Q)]@\<Gamma>)" by simp_all
+        and lh_drv_prm\<^isub>2: "S closed_in (\<Delta>@[(TVarB X Q)]@\<Gamma>)" by simp_all
       have rh_drv: "\<Gamma> \<turnstile> P <: Q" by fact
       hence "P closed_in \<Gamma>" by (simp add: subtype_implies_closed)
       with lh_drv_prm\<^isub>1 have "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok" by (simp add: replace_type)
       moreover
       from lh_drv_prm\<^isub>2 have "S closed_in (\<Delta>@[(TVarB X P)]@\<Gamma>)" 
-	by (simp add: closed_in_def doms_append)
+        by (simp add: closed_in_def doms_append)
       ultimately show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> S <: Top" by (simp add: subtype_of.SA_Top)
     next
       case (SA_trans_TVar Y S _ N \<Gamma> X \<Delta>) 
       then have IH_inner: "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> S <: N"
-	and lh_drv_prm: "(TVarB Y S) \<in> set (\<Delta>@[(TVarB X Q)]@\<Gamma>)"
-	and rh_drv: "\<Gamma> \<turnstile> P<:Q"
-	and ok\<^isub>Q: "\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok" by (simp_all add: subtype_implies_ok)
+        and lh_drv_prm: "(TVarB Y S) \<in> set (\<Delta>@[(TVarB X Q)]@\<Gamma>)"
+        and rh_drv: "\<Gamma> \<turnstile> P<:Q"
+        and ok\<^isub>Q: "\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok" by (simp_all add: subtype_implies_ok)
       then have ok\<^isub>P: "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok" by (simp add: subtype_implies_ok) 
       show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Tvar Y <: N"
       proof (cases "X=Y")
-	case False
-	have "X\<noteq>Y" by fact
-	hence "(TVarB Y S)\<in>set (\<Delta>@[(TVarB X P)]@\<Gamma>)" using lh_drv_prm by (simp add:binding.inject)
-	with IH_inner show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Tvar Y <: N" by (simp add: subtype_of.SA_trans_TVar)
+        case False
+        have "X\<noteq>Y" by fact
+        hence "(TVarB Y S)\<in>set (\<Delta>@[(TVarB X P)]@\<Gamma>)" using lh_drv_prm by (simp add:binding.inject)
+        with IH_inner show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Tvar Y <: N" by (simp add: subtype_of.SA_trans_TVar)
       next
-	case True
-	have memb\<^isub>X\<^isub>Q: "(TVarB X Q)\<in>set (\<Delta>@[(TVarB X Q)]@\<Gamma>)" by simp
-	have memb\<^isub>X\<^isub>P: "(TVarB X P)\<in>set (\<Delta>@[(TVarB X P)]@\<Gamma>)" by simp
-	have eq: "X=Y" by fact 
-	hence "S=Q" using ok\<^isub>Q lh_drv_prm memb\<^isub>X\<^isub>Q by (simp only: uniqueness_of_ctxt)
-	hence "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Q <: N" using IH_inner by simp
-	moreover
-	have "(\<Delta>@[(TVarB X P)]@\<Gamma>) extends \<Gamma>" by (simp add: extends_def)
-	hence "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> P <: Q" using rh_drv ok\<^isub>P by (simp only: weakening)
-	ultimately have "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> P <: N" by (simp add: transitivity_lemma) 
-	then show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Tvar Y <: N" using memb\<^isub>X\<^isub>P eq by auto
+        case True
+        have memb\<^isub>X\<^isub>Q: "(TVarB X Q)\<in>set (\<Delta>@[(TVarB X Q)]@\<Gamma>)" by simp
+        have memb\<^isub>X\<^isub>P: "(TVarB X P)\<in>set (\<Delta>@[(TVarB X P)]@\<Gamma>)" by simp
+        have eq: "X=Y" by fact 
+        hence "S=Q" using ok\<^isub>Q lh_drv_prm memb\<^isub>X\<^isub>Q by (simp only: uniqueness_of_ctxt)
+        hence "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Q <: N" using IH_inner by simp
+        moreover
+        have "(\<Delta>@[(TVarB X P)]@\<Gamma>) extends \<Gamma>" by (simp add: extends_def)
+        hence "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> P <: Q" using rh_drv ok\<^isub>P by (simp only: weakening)
+        ultimately have "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> P <: N" by (simp add: transitivity_lemma) 
+        then show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Tvar Y <: N" using memb\<^isub>X\<^isub>P eq by auto
       qed
     next
       case (SA_refl_TVar _ Y \<Gamma> X \<Delta>)
       then have lh_drv_prm\<^isub>1: "\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok" 
-	and lh_drv_prm\<^isub>2: "Y \<in> ty_dom (\<Delta>@[(TVarB X Q)]@\<Gamma>)" by simp_all
+        and lh_drv_prm\<^isub>2: "Y \<in> ty_dom (\<Delta>@[(TVarB X Q)]@\<Gamma>)" by simp_all
       have "\<Gamma> \<turnstile> P <: Q" by fact
       hence "P closed_in \<Gamma>" by (simp add: subtype_implies_closed)
       with lh_drv_prm\<^isub>1 have "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok" by (simp add: replace_type)
@@ -1036,7 +1036,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       case (SA_all _ T\<^isub>1 S\<^isub>1 Y S\<^isub>2 T\<^isub>2 \<Gamma> X \<Delta>)
       from SA_all(2,4,5,6)
       have IH_inner\<^isub>1: "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> T\<^isub>1 <: S\<^isub>1" 
-	and IH_inner\<^isub>2: "(((TVarB Y T\<^isub>1)#\<Delta>)@[(TVarB X P)]@\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2" by force+
+        and IH_inner\<^isub>2: "(((TVarB Y T\<^isub>1)#\<Delta>)@[(TVarB X P)]@\<Gamma>) \<turnstile> S\<^isub>2 <: T\<^isub>2" by force+
       then show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> (\<forall>Y<:S\<^isub>1. S\<^isub>2) <: (\<forall>Y<:T\<^isub>1. T\<^isub>2)" by auto
     qed
   } 
@@ -1298,7 +1298,7 @@ next
     have "\<turnstile> (bs @ \<Delta>) ok" by simp
     moreover from Cons and valid_cons have "x \<sharp> trm_dom (bs @ \<Delta>)"
       by (simp add: doms_append finite_doms
-	fresh_fin_insert [OF pt_vrs_inst at_vrs_inst fs_vrs_inst])
+        fresh_fin_insert [OF pt_vrs_inst at_vrs_inst fs_vrs_inst])
     moreover from Cons and valid_cons have "T closed_in (bs @ \<Delta>)"
       by (simp add: closed_in_def doms_append)
     ultimately have "\<turnstile> (VarB x T # bs @ \<Delta>) ok"
@@ -1536,7 +1536,7 @@ next
     proof
       assume "TVarB Y S \<in> set D"
       then have "TVarB Y (S[X \<mapsto> P]\<^sub>\<tau>) \<in> set (D[X \<mapsto> P]\<^sub>e)"
-	by (rule ctxt_subst_mem_TVarB)
+        by (rule ctxt_subst_mem_TVarB)
       then have "TVarB Y (S[X \<mapsto> P]\<^sub>\<tau>) \<in> set (D[X \<mapsto> P]\<^sub>e @ \<Gamma>)" by simp
       with neq and ST show ?thesis by auto
     next
@@ -1544,9 +1544,9 @@ next
       from X\<Gamma>_ok have "X \<sharp> ty_dom \<Gamma>" and "\<turnstile> \<Gamma> ok" by auto
       then have "X \<sharp> \<Gamma>" by (simp add: valid_ty_dom_fresh)
       with Y have "X \<sharp> S"
-	by (induct \<Gamma>) (auto simp add: fresh_list_nil fresh_list_cons)
+        by (induct \<Gamma>) (auto simp add: fresh_list_nil fresh_list_cons)
       with ST have "(D[X \<mapsto> P]\<^sub>e @ \<Gamma>)\<turnstile>S<:T[X \<mapsto> P]\<^sub>\<tau>"
-	by (simp add: type_subst_identity)
+        by (simp add: type_subst_identity)
       moreover from Y have "TVarB Y S \<in> set (D[X \<mapsto> P]\<^sub>e @ \<Gamma>)" by simp
       ultimately show ?thesis using neq by auto
     qed

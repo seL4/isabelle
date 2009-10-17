@@ -1,32 +1,31 @@
-(* Title:      sos_wrapper.ML
-   Author:     Philipp Meyer, TU Muenchen
+(*  Title:      HOL/Library/Sum_Of_Squares/sos_wrapper.ML
+    Author:     Philipp Meyer, TU Muenchen
 
-Added functionality for sums of squares, e.g. calling a remote prover
+Added functionality for sums of squares, e.g. calling a remote prover.
 *)
 
 signature SOS_WRAPPER =
 sig
-
   datatype prover_result = Success | Failure | Error
-
   val setup: theory -> theory
   val destdir: string Unsynchronized.ref
-  val get_prover_name: unit -> string
-  val set_prover_name: string -> unit
+  val prover_name: string Unsynchronized.ref
 end
 
-structure SosWrapper : SOS_WRAPPER=
+structure SOS_Wrapper: SOS_WRAPPER =
 struct
 
 datatype prover_result = Success | Failure | Error
+
 fun str_of_result Success = "Success"
   | str_of_result Failure = "Failure"
   | str_of_result Error = "Error"
 
+
 (*** output control ***)
 
-fun debug s = if ! Sos.debugging then Output.writeln s else ()
-val write = Output.warning
+fun debug s = if ! Sum_Of_Squares.debugging then writeln s else ()
+
 
 (*** calling provers ***)
 
@@ -39,47 +38,47 @@ fun filename dir name =
   in
     if dir = "" then
       File.tmp_path probfile
-    else
-      if File.exists dir_path then
-        Path.append dir_path probfile
-      else
-        error ("No such directory: " ^ dir)
+    else if File.exists dir_path then
+      Path.append dir_path probfile
+    else error ("No such directory: " ^ dir)
   end
 
 fun run_solver name cmd find_failure input =
   let
-    val _ = write ("Calling solver: " ^ name)
+    val _ = warning ("Calling solver: " ^ name)
 
     (* create input file *)
     val dir = ! destdir
-    val input_file = filename dir "sos_in" 
+    val input_file = filename dir "sos_in"
     val _ = File.write input_file input
 
     (* call solver *)
     val output_file = filename dir "sos_out"
     val (output, rv) = system_out (
       if File.exists cmd then space_implode " "
-        [File.shell_path cmd, File.platform_path input_file, File.platform_path output_file]
-      else error ("Bad executable: " ^ File.shell_path cmd))
- 
-    (* read and analysize output *)
+        [File.shell_path cmd, File.shell_path input_file, File.shell_path output_file]
+      else error ("Bad executable: " ^ File.platform_path cmd))
+
+    (* read and analyze output *)
     val (res, res_msg) = find_failure rv
     val result = if File.exists output_file then File.read output_file else ""
 
     (* remove temporary files *)
-    val _ = if dir = "" then
-        (File.rm input_file ; if File.exists output_file then File.rm output_file else ())
-        else ()
+    val _ =
+      if dir = "" then
+        (File.rm input_file; if File.exists output_file then File.rm output_file else ())
+      else ()
 
     val _ = debug ("Solver output:\n" ^ output)
 
-    val _ = write (str_of_result res ^ ": " ^ res_msg)
+    val _ = warning (str_of_result res ^ ": " ^ res_msg)
   in
-    case res of
+    (case res of
       Success => result
-    | Failure => raise Sos.Failure res_msg
-    | Error => error ("Prover failed: " ^ res_msg)
+    | Failure => raise Sum_Of_Squares.Failure res_msg
+    | Error => error ("Prover failed: " ^ res_msg))
   end
+
 
 (*** various provers ***)
 
@@ -101,6 +100,7 @@ fun find_csdp_failure rv =
 
 val csdp = ("$CSDP_EXE", find_csdp_failure)
 
+
 (* remote neos server *)
 
 fun find_neos_failure rv =
@@ -111,57 +111,45 @@ fun find_neos_failure rv =
 
 val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
 
-(* default prover *)
+
+(* named provers *)
+
+fun prover "remote_csdp" = neos_csdp
+  | prover "csdp" = csdp
+  | prover name = error ("Unknown prover: " ^ name)
 
 val prover_name = Unsynchronized.ref "remote_csdp"
 
-fun get_prover_name () = CRITICAL (fn () => ! prover_name);
-fun set_prover_name str = CRITICAL (fn () => prover_name := str);
-
-(* save provers in table *)
-
-val provers =
-     Symtab.make [("remote_csdp", neos_csdp),("csdp", csdp)]
-
-fun get_prover name =
-  case Symtab.lookup provers name of
-    SOME prover => prover
-  | NONE => error ("unknown prover: " ^ name)
-
-fun call_solver name_option =
+fun call_solver opt_name =
   let
-    val name = the_default (get_prover_name()) name_option
-    val (cmd, find_failure) = get_prover name
-  in
-    run_solver name (Path.explode cmd) find_failure
-  end
+    val name = the_default (! prover_name) opt_name
+    val (cmd, find_failure) = prover name
+  in run_solver name (Path.explode cmd) find_failure end
+
 
 (* certificate output *)
 
-fun output_line cert = "To repeat this proof with a certifiate use this command:\n" ^
-        (Markup.markup Markup.sendback) ("by (sos_cert \"" ^ cert ^ "\")")
+fun output_line cert =
+  "To repeat this proof with a certifiate use this command:\n" ^
+    Markup.markup Markup.sendback ("by (sos_cert \"" ^ cert ^ "\")")
 
-val print_cert = Output.writeln o output_line o PositivstellensatzTools.pss_tree_to_cert
+val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cert
 
-(* setup tactic *)
 
-fun parse_cert (input as (ctxt, _)) = 
-  (Scan.lift OuterParse.string >>
-    PositivstellensatzTools.cert_to_pss_tree (Context.proof_of ctxt)) input
+(* method setup *)
 
-fun sos_solver print method = (SIMPLE_METHOD' o (Sos.sos_tac print method)) 
-
-val sos_method =
-   Scan.lift (Scan.option OuterParse.xname) >> (fn n => Sos.Prover (call_solver n)) >>
-   sos_solver print_cert
-
-val sos_cert_method =
-  parse_cert >> Sos.Certificate >> sos_solver ignore
+fun sos_solver print method = SIMPLE_METHOD' o Sum_Of_Squares.sos_tac print method
 
 val setup =
-     Method.setup @{binding sos} sos_method
-     "Prove universal problems over the reals using sums of squares"
-  #> Method.setup @{binding sos_cert} sos_cert_method
-     "Prove universal problems over the reals using sums of squares with certificates"
+  Method.setup @{binding sos}
+    (Scan.lift (Scan.option OuterParse.xname)
+      >> (sos_solver print_cert o Sum_Of_Squares.Prover o call_solver))
+    "prove universal problems over the reals using sums of squares" #>
+  Method.setup @{binding sos_cert}
+    (Scan.lift OuterParse.string
+      >> (fn cert => fn ctxt =>
+        sos_solver ignore
+          (Sum_Of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))
+    "prove universal problems over the reals using sums of squares with certificates"
 
 end

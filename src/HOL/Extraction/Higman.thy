@@ -1,6 +1,6 @@
 (*  Title:      HOL/Extraction/Higman.thy
     Author:     Stefan Berghofer, TU Muenchen
-                Monika Seisenberger, LMU Muenchen
+    Author:     Monika Seisenberger, LMU Muenchen
 *)
 
 header {* Higman's lemma *}
@@ -167,21 +167,21 @@ next
       fix w
       show "bar (w # zs)"
       proof (cases w)
-	case Nil
-	thus ?thesis by simp (rule prop1)
+        case Nil
+        thus ?thesis by simp (rule prop1)
       next
-	case (Cons c cs)
-	from letter_eq_dec show ?thesis
-	proof
-	  assume ca: "c = a"
-	  from ab have "bar ((a # cs) # zs)" by (iprover intro: I ys Ta Tb)
-	  thus ?thesis by (simp add: Cons ca)
-	next
-	  assume "c \<noteq> a"
-	  with ab have cb: "c = b" by (rule letter_neq)
-	  from ab have "bar ((b # cs) # zs)" by (iprover intro: I' Ta Tb)
-	  thus ?thesis by (simp add: Cons cb)
-	qed
+        case (Cons c cs)
+        from letter_eq_dec show ?thesis
+        proof
+          assume ca: "c = a"
+          from ab have "bar ((a # cs) # zs)" by (iprover intro: I ys Ta Tb)
+          thus ?thesis by (simp add: Cons ca)
+        next
+          assume "c \<noteq> a"
+          with ab have cb: "c = b" by (rule letter_neq)
+          from ab have "bar ((b # cs) # zs)" by (iprover intro: I' Ta Tb)
+          thus ?thesis by (simp add: Cons cb)
+        qed
       qed
     qed
   qed
@@ -210,12 +210,12 @@ next
       case (Cons c cs)
       from letter_eq_dec show ?case
       proof
-	assume "c = a"
-	thus ?thesis by (iprover intro: I [simplified] R)
+        assume "c = a"
+        thus ?thesis by (iprover intro: I [simplified] R)
       next
-	from R xsn have T: "T a xs zs" by (rule lemma4)
-	assume "c \<noteq> a"
-	thus ?thesis by (iprover intro: prop2 Cons xsb xsn R T)
+        from R xsn have T: "T a xs zs" by (rule lemma4)
+        assume "c \<noteq> a"
+        thus ?thesis by (iprover intro: prop2 Cons xsb xsn R T)
       qed
     qed
   qed

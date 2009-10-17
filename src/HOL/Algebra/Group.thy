@@ -785,16 +785,16 @@ next
       assume H: "H \<in> A"
       with L have subgroupH: "subgroup H G" by auto
       from subgroupH have groupH: "group (G (| carrier := H |))" (is "group ?H")
-	by (rule subgroup_imp_group)
+        by (rule subgroup_imp_group)
       from groupH have monoidH: "monoid ?H"
-	by (rule group.is_monoid)
+        by (rule group.is_monoid)
       from H have Int_subset: "?Int \<subseteq> H" by fastsimp
       then show "le ?L ?Int H" by simp
     next
       fix H
       assume H: "H \<in> Lower ?L A"
       with L Int_subgroup show "le ?L H ?Int"
-	by (fastsimp simp: Lower_def intro: Inter_greatest)
+        by (fastsimp simp: Lower_def intro: Inter_greatest)
     next
       show "A \<subseteq> carrier ?L" by (rule L)
     next

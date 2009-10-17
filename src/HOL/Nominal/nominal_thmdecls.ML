@@ -1,12 +1,13 @@
-(* Authors: Julien Narboux and Christian Urban
+(*  Title:      HOL/Nominal/nominal_thmdecls.ML
+    Author:     Julien Narboux, TU Muenchen
+    Author:     Christian Urban, TU Muenchen
 
-   This file introduces the infrastructure for the lemma
-   collection "eqvts".
+Infrastructure for the lemma collection "eqvts".
 
-   By attaching [eqvt] or [eqvt_force] to a lemma, it will get 
-   stored in a data-slot in the context. Possible modifiers
-   are [... add] and [... del] for adding and deleting, 
-   respectively, the lemma from the data-slot.
+By attaching [eqvt] or [eqvt_force] to a lemma, it will get stored in
+a data-slot in the context. Possible modifiers are [... add] and
+[... del] for adding and deleting, respectively, the lemma from the
+data-slot.
 *)
 
 signature NOMINAL_THMDECLS =
@@ -58,11 +59,11 @@ let
   val perm_pi_simp = PureThy.get_thms ctxt "perm_pi_simp"
 in
   EVERY1 [tactic ("iffI applied", rtac @{thm iffI}),
-	  tactic ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
+          tactic ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
           tactic ("solve with orig_thm", etac orig_thm),
           tactic ("applies orig_thm instantiated with rev pi",
                      dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm)),
-	  tactic ("getting rid of the pi on the right", rtac @{thm perm_boolI}),
+          tactic ("getting rid of the pi on the right", rtac @{thm perm_boolI}),
           tactic ("getting rid of all remaining perms",
                      full_simp_tac (HOL_basic_ss addsimps perm_pi_simp))]
 end;

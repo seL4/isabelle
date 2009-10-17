@@ -1,5 +1,4 @@
-(*  Title:      ZF/UNITY/Follows
-    ID:         $Id \<in> Follows.thy,v 1.1 2003/05/28 16:13:42 paulson Exp $
+(*  Title:      ZF/UNITY/Follows.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
@@ -279,8 +278,8 @@ lemma Always_Follows1:
 apply (unfold Follows_def Increasing_def Stable_def)
 apply (simp add: INT_iff, auto)
 apply (rule_tac [3] C = "{s \<in> state. f(s)=g(s)}"
-	and A = "{s \<in> state. <k, h (s)> \<in> r}"
-	and A' = "{s \<in> state. <k, f(s)> \<in> r}" in Always_LeadsTo_weaken)
+        and A = "{s \<in> state. <k, h (s)> \<in> r}"
+        and A' = "{s \<in> state. <k, f(s)> \<in> r}" in Always_LeadsTo_weaken)
 apply (erule_tac A = "{s \<in> state. <k,f(s) > \<in> r}"
            and A' = "{s \<in> state. <k,f(s) > \<in> r}" in Always_Constrains_weaken)
 apply auto

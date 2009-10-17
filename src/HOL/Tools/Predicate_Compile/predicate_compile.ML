@@ -27,7 +27,7 @@ fun preprocess_strong_conn_constnames gr constnames thy =
     val (prednames, funnames) = List.partition (is_pred thy) constnames
     (* untangle recursion by defining predicates for all functions *)
     val _ = priority "Compiling functions to predicates..."
-    val _ = Output.tracing ("funnames: " ^ commas funnames)
+    val _ = tracing ("funnames: " ^ commas funnames)
     val thy' =
       thy |> not (null funnames) ? Predicate_Compile_Fun.define_predicates
       (get_specs funnames)
@@ -54,10 +54,10 @@ fun preprocess_strong_conn_constnames gr constnames thy =
 
 fun preprocess const thy =
   let
-    val _ = Output.tracing ("Fetching definitions from theory...")
+    val _ = tracing ("Fetching definitions from theory...")
     val table = Pred_Compile_Data.make_const_spec_table thy
     val gr = Pred_Compile_Data.obtain_specification_graph table const
-    val _ = Output.tracing (commas (Graph.all_succs gr [const]))
+    val _ = tracing (commas (Graph.all_succs gr [const]))
     val gr = Graph.subgraph (member (op =) (Graph.all_succs gr [const])) gr
   in fold_rev (preprocess_strong_conn_constnames gr)
     (Graph.strong_conn gr) thy

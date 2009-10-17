@@ -267,7 +267,7 @@ fun check_defs ctxt fixes eqs =
           Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)
           orelse error (cat_lines 
           ["Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ":",
-           setmp show_sorts true (Syntax.string_of_typ ctxt) fT])
+           setmp_CRITICAL show_sorts true (Syntax.string_of_typ ctxt) fT])
 
       val _ = map check_sorts fixes
     in

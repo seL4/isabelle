@@ -6,14 +6,32 @@ Auxiliary functions for defining datatypes.
 
 signature DATATYPE_COMMON =
 sig
-  type config
+  type config = {strict : bool, quiet : bool}
   val default_config : config
   datatype dtyp =
       DtTFree of string
-    | DtType of string * (dtyp list)
-    | DtRec of int;
-  type descr
-  type info
+    | DtType of string * dtyp list
+    | DtRec of int
+  type descr = (int * (string * dtyp list * (string * dtyp list) list)) list
+  type info =
+   {index : int,
+    alt_names : string list option,
+    descr : descr,
+    sorts : (string * sort) list,
+    inject : thm list,
+    distinct : thm list,
+    induct : thm,
+    inducts : thm list,
+    exhaust : thm,
+    nchotomy : thm,
+    rec_names : string list,
+    rec_rewrites : thm list,
+    case_name : string,
+    case_rewrites : thm list,
+    case_cong : thm,
+    weak_case_cong : thm,
+    split : thm,
+    split_asm: thm}
 end
 
 signature DATATYPE_AUX =
@@ -37,10 +55,6 @@ sig
 
   val indtac : thm -> string list -> int -> tactic
   val exh_tac : (string -> thm) -> int -> tactic
-
-  datatype simproc_dist = FewConstrs of thm list
-                        | ManyConstrs of thm * simpset;
-
 
   exception Datatype
   exception Datatype_Empty of string
@@ -72,11 +86,11 @@ struct
 
 (* datatype option flags *)
 
-type config = { strict: bool, quiet: bool };
-val default_config : config =
-  { strict = true, quiet = false };
-fun message ({ quiet, ...} : config) s =
-  if quiet then () else writeln s;
+type config = {strict : bool, quiet : bool};
+val default_config : config = {strict = true, quiet = false};
+
+fun message ({quiet = true, ...} : config) s = writeln s
+  | message _ _ = ();
 
 
 (* store theorems in theory *)
@@ -128,7 +142,7 @@ fun indtac indrule indnames i st =
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
     val cert = cterm_of (Thm.theory_of_thm st);
-    val insts = List.mapPartial (fn (t, u) => case abstr (getP u) of
+    val insts = map_filter (fn (t, u) => case abstr (getP u) of
         NONE => NONE
       | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u')) (ts ~~ ts');
     val indrule' = cterm_instantiate insts indrule
@@ -153,10 +167,6 @@ fun exh_tac exh_thm_of i state =
   in compose_tac (false, exhaustion', nprems_of exhaustion) i state
   end;
 
-(* handling of distinctness theorems *)
-
-datatype simproc_dist = FewConstrs of thm list
-                      | ManyConstrs of thm * simpset;
 
 (********************** Internal description of datatypes *********************)
 
@@ -176,7 +186,7 @@ type info =
    descr : descr,
    sorts : (string * sort) list,
    inject : thm list,
-   distinct : simproc_dist,
+   distinct : thm list,
    induct : thm,
    inducts : thm list,
    exhaust : thm,
@@ -287,7 +297,7 @@ fun interpret_construction descr vs { atyp, dtyp } =
 
 fun check_nonempty descr =
   let
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     fun is_nonempty_dt is i =
       let
         val (_, _, constrs) = (the o AList.lookup (op =) descr') i;

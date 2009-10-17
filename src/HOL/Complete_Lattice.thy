@@ -15,21 +15,25 @@ notation
   bot ("\<bottom>")
 
 
+subsection {* Syntactic infimum and supremum operations *}
+
+class Inf =
+  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+
+class Sup =
+  fixes Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+
 subsection {* Abstract complete lattices *}
 
-class complete_lattice = lattice + bot + top +
-  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
-    and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+class complete_lattice = lattice + bot + top + Inf + Sup +
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
      and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
   assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
      and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
 begin
 
-term complete_lattice
-
 lemma dual_complete_lattice:
-  "complete_lattice (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom> Sup Inf"
+  "complete_lattice Sup Inf (op \<ge>) (op >) (op \<squnion>) (op \<sqinter>) \<top> \<bottom>"
   by (auto intro!: complete_lattice.intro dual_lattice
     bot.intro top.intro dual_preorder, unfold_locales)
       (fact bot_least top_greatest

@@ -46,7 +46,6 @@ sig
     int -> tactic
   val net_biresolve_tac: (bool * thm) list -> int -> tactic
   val net_bimatch_tac: (bool * thm) list -> int -> tactic
-  val build_net: thm list -> (int * thm) Net.net
   val filt_resolve_tac: thm list -> int -> int -> tactic
   val resolve_from_net_tac: (int * thm) Net.net -> int -> tactic
   val match_from_net_tac: (int * thm) Net.net -> int -> tactic
@@ -75,6 +74,7 @@ sig
     ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
   val eq_kbrl: ('a * (bool * thm)) * ('a * (bool * thm)) -> bool
+  val build_net: thm list -> (int * thm) Net.net
 end;
 
 structure Tactic: TACTIC =
@@ -385,5 +385,5 @@ fun filter_prems_tac p =
 
 end;
 
-structure BasicTactic: BASIC_TACTIC = Tactic;
-open BasicTactic;
+structure Basic_Tactic: BASIC_TACTIC = Tactic;
+open Basic_Tactic;

@@ -609,7 +609,7 @@ proof -
     proof (simp add: r_congruent_def sym_def, clarify)
       fix x y
       assume [simp]: "x \<in> carrier G" "y \<in> carrier G" 
-	 and "inv x \<otimes> y \<in> H"
+         and "inv x \<otimes> y \<in> H"
       hence "inv (inv x \<otimes> y) \<in> H" by (simp add: m_inv_closed) 
       thus "inv y \<otimes> x \<in> H" by (simp add: inv_mult_group)
     qed
@@ -618,10 +618,10 @@ proof -
     proof (simp add: r_congruent_def trans_def, clarify)
       fix x y z
       assume [simp]: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
-	 and "inv x \<otimes> y \<in> H" and "inv y \<otimes> z \<in> H"
+         and "inv x \<otimes> y \<in> H" and "inv y \<otimes> z \<in> H"
       hence "(inv x \<otimes> y) \<otimes> (inv y \<otimes> z) \<in> H" by simp
       hence "inv x \<otimes> (y \<otimes> inv y) \<otimes> z \<in> H"
-	by (simp add: m_assoc del: r_inv Units_r_inv) 
+        by (simp add: m_assoc del: r_inv Units_r_inv) 
       thus "inv x \<otimes> z \<in> H" by simp
     qed
   qed

@@ -8,7 +8,7 @@ signature CLASS_TARGET =
 sig
   (*classes*)
   val register: class -> class list -> ((string * typ) * (string * typ)) list
-    -> sort -> morphism -> thm option -> thm option -> thm
+    -> sort -> morphism -> morphism -> thm option -> thm option -> thm
     -> theory -> theory
 
   val is_class: theory -> class -> bool
@@ -78,6 +78,7 @@ datatype class_data = ClassData of {
   base_sort: sort,
   base_morph: morphism
     (*static part of canonical morphism*),
+  export_morph: morphism,
   assm_intro: thm option,
   of_class: thm,
   axiom: thm option,
@@ -88,21 +89,21 @@ datatype class_data = ClassData of {
 
 };
 
-fun make_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+fun make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (defs, operations)) =
   ClassData { consts = consts, base_sort = base_sort,
-    base_morph = base_morph, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
-    defs = defs, operations = operations };
-fun map_class_data f (ClassData { consts, base_sort, base_morph, assm_intro,
+    base_morph = base_morph, export_morph = export_morph, assm_intro = assm_intro,
+    of_class = of_class, axiom = axiom, defs = defs, operations = operations };
+fun map_class_data f (ClassData { consts, base_sort, base_morph, export_morph, assm_intro,
     of_class, axiom, defs, operations }) =
-  make_class_data (f ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+  make_class_data (f ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (defs, operations)));
 fun merge_class_data _ (ClassData { consts = consts,
-    base_sort = base_sort, base_morph = base_morph, assm_intro = assm_intro,
+    base_sort = base_sort, base_morph = base_morph, export_morph = export_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs1, operations = operations1 },
-  ClassData { consts = _, base_sort = _, base_morph = _, assm_intro = _,
+  ClassData { consts = _, base_sort = _, base_morph = _, export_morph = _, assm_intro = _,
     of_class = _, axiom = _, defs = defs2, operations = operations2 }) =
-  make_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
+  make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (Thm.merge_thms (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
@@ -159,6 +160,7 @@ fun these_operations thy = maps (#operations o the_class_data thy) o ancestry th
 val base_morphism = #base_morph oo the_class_data;
 fun morphism thy class = base_morphism thy class
   $> Element.eq_morphism thy (these_defs thy [class]);
+val export_morphism = #export_morph oo the_class_data;
 
 fun print_classes thy =
   let
@@ -175,7 +177,7 @@ fun print_classes thy =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
     fun mk_param (c, ty) = Pretty.str (Sign.extern_const thy c ^ " :: "
-      ^ setmp show_sorts false (Syntax.string_of_typ ctxt o Type.strip_sorts) ty);
+      ^ setmp_CRITICAL show_sorts false (Syntax.string_of_typ ctxt o Type.strip_sorts) ty);
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ Sign.extern_class thy class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
@@ -196,22 +198,22 @@ fun print_classes thy =
 
 (* updaters *)
 
-fun register class sups params base_sort morph
+fun register class sups params base_sort base_morph export_morph
     axiom assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o pairself) fst params, base_sort,
-          morph, assm_intro, of_class, axiom), ([], operations)))
+          base_morph, export_morph, assm_intro, of_class, axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) sups;
   in ClassData.map add_class thy end;
 
 fun activate_defs class thms thy =
   let
     val eq_morph = Element.eq_morphism thy thms;
-    fun amend cls thy = Locale.amend_registration_legacy eq_morph
-      (cls, morphism thy cls) thy;
+    fun amend cls thy = Locale.amend_registration (cls, base_morphism thy cls)
+      (eq_morph, true) (export_morphism thy cls) thy;
   in fold amend (heritage thy [class]) thy end;
 
 fun register_operation class (c, (t, some_def)) thy =
@@ -237,7 +239,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
     val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
-    val classrel = SkipProof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
+    val classrel = Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
       (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])

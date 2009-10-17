@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/AllocImpl
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/AllocImpl.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)
@@ -75,12 +74,12 @@ constdefs
   (*spec (13)*)
   merge_follows :: "('a,'b) merge_d program set"
     "merge_follows ==
-	 (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
-	 guarantees
-	 (\<Inter>i \<in> lessThan Nclients.
-	  (%s. sublist (merge.Out s)
+         (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
+         guarantees
+         (\<Inter>i \<in> lessThan Nclients.
+          (%s. sublist (merge.Out s)
                        {k. k < size(merge.iOut s) & merge.iOut s! k = i})
-	  Fols (sub i o merge.In))"
+          Fols (sub i o merge.In))"
 
   (*spec: preserves part*)
   merge_preserves :: "('a,'b) merge_d program set"
@@ -90,7 +89,7 @@ constdefs
   merge_allowed_acts :: "('a,'b) merge_d program set"
     "merge_allowed_acts ==
        {F. AllowedActs F =
-	    insert Id (UNION (preserves (funPair merge.Out merge.iOut)) Acts)}"
+            insert Id (UNION (preserves (funPair merge.Out merge.iOut)) Acts)}"
 
   merge_spec :: "('a,'b) merge_d program set"
     "merge_spec == merge_increasing Int merge_eqOut Int merge_bounded Int
@@ -101,12 +100,12 @@ constdefs
   (*spec (14)*)
   distr_follows :: "('a,'b) distr_d program set"
     "distr_follows ==
-	 Increasing distr.In Int Increasing distr.iIn Int
-	 Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
-	 guarantees
-	 (\<Inter>i \<in> lessThan Nclients.
-	  (sub i o distr.Out) Fols
-	  (%s. sublist (distr.In s)
+         Increasing distr.In Int Increasing distr.iIn Int
+         Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
+         guarantees
+         (\<Inter>i \<in> lessThan Nclients.
+          (sub i o distr.Out) Fols
+          (%s. sublist (distr.In s)
                        {k. k < size(distr.iIn s) & distr.iIn s ! k = i}))"
 
   distr_allowed_acts :: "('a,'b) distr_d program set"
@@ -125,18 +124,18 @@ constdefs
   (*spec (19)*)
   alloc_safety :: "'a allocState_d program set"
     "alloc_safety ==
-	 Increasing rel
+         Increasing rel
          guarantees  Always {s. tokens (giv s) \<le> NbT + tokens (rel s)}"
 
   (*spec (20)*)
   alloc_progress :: "'a allocState_d program set"
     "alloc_progress ==
-	 Increasing ask Int Increasing rel Int
+         Increasing ask Int Increasing rel Int
          Always {s. \<forall>elt \<in> set (ask s). elt \<le> NbT}
          Int
          (\<Inter>h. {s. h \<le> giv s & h pfixGe (ask s)}
-		 LeadsTo
-	         {s. tokens h \<le> tokens (rel s)})
+                 LeadsTo
+                 {s. tokens h \<le> tokens (rel s)})
          guarantees  (\<Inter>h. {s. h \<le> ask s} LeadsTo {s. h pfixLe giv s})"
 
   (*spec: preserves part*)
@@ -171,52 +170,52 @@ locale Distrib =
 
 #    {*spec (9.1)*}
 #    network_ask :: "'a systemState program set
-#	"network_ask == \<Inter>i \<in> lessThan Nclients.
-#			    Increasing (ask o sub i o client)
-#			    guarantees[ask]
-#			    (ask  Fols (ask o sub i o client))"
+#       "network_ask == \<Inter>i \<in> lessThan Nclients.
+#                           Increasing (ask o sub i o client)
+#                           guarantees[ask]
+#                           (ask  Fols (ask o sub i o client))"
 
 #    {*spec (9.2)*}
 #    network_giv :: "'a systemState program set
-#	"network_giv == \<Inter>i \<in> lessThan Nclients.
-#			    Increasing giv
-#			    guarantees[giv o sub i o client]
-#			    ((giv o sub i o client) Fols giv)"
+#       "network_giv == \<Inter>i \<in> lessThan Nclients.
+#                           Increasing giv
+#                           guarantees[giv o sub i o client]
+#                           ((giv o sub i o client) Fols giv)"
 
 #    {*spec (9.3)*}
 #    network_rel :: "'a systemState program set
-#	"network_rel == \<Inter>i \<in> lessThan Nclients.
-#			    Increasing (rel o sub i o client)
-#			    guarantees[rel]
-#			    (rel  Fols (rel o sub i o client))"
+#       "network_rel == \<Inter>i \<in> lessThan Nclients.
+#                           Increasing (rel o sub i o client)
+#                           guarantees[rel]
+#                           (rel  Fols (rel o sub i o client))"
 
 #    {*spec: preserves part*}
-#	network_preserves :: "'a systemState program set
-#	"network_preserves == preserves giv  Int
-#			      (\<Inter>i \<in> lessThan Nclients.
-#			       preserves (funPair rel ask o sub i o client))"
+#       network_preserves :: "'a systemState program set
+#       "network_preserves == preserves giv  Int
+#                             (\<Inter>i \<in> lessThan Nclients.
+#                              preserves (funPair rel ask o sub i o client))"
 
 #    network_spec :: "'a systemState program set
-#	"network_spec == network_ask Int network_giv Int
-#			 network_rel Int network_preserves"
+#       "network_spec == network_ask Int network_giv Int
+#                        network_rel Int network_preserves"
 
 
 #  {** State mappings **}
 #    sysOfAlloc :: "((nat => merge) * 'a) allocState_d => 'a systemState"
-#	"sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
-#			   in (| giv = giv s,
-#				 ask = ask s,
-#				 rel = rel s,
-#				 client   = cl,
-#				 dummy    = xtr|)"
+#       "sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
+#                          in (| giv = giv s,
+#                                ask = ask s,
+#                                rel = rel s,
+#                                client   = cl,
+#                                dummy    = xtr|)"
 
 
 #    sysOfClient :: "(nat => merge) * 'a allocState_d => 'a systemState"
-#	"sysOfClient == %(cl,al). (| giv = giv al,
-#				     ask = ask al,
-#				     rel = rel al,
-#				     client   = cl,
-#				     systemState.dummy = allocState_d.dummy al|)"
+#       "sysOfClient == %(cl,al). (| giv = giv al,
+#                                    ask = ask al,
+#                                    rel = rel al,
+#                                    client   = cl,
+#                                    systemState.dummy = allocState_d.dummy al|)"
 ****)
 
 

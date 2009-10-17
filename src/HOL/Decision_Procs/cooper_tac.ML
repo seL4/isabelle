@@ -74,16 +74,16 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
     val (t,np,nh) = prepare_for_linz q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss
-			addsimps [refl,mod_add_eq, mod_add_left_eq,
-				  mod_add_right_eq,
-				  nat_div_add_eq, int_div_add_eq,
-				  @{thm mod_self}, @{thm "zmod_self"},
-				  @{thm mod_by_0}, @{thm div_by_0},
-				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
-				  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
-				  Suc_eq_plus1]
-			addsimps @{thms add_ac}
-			addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
+      addsimps [refl,mod_add_eq, mod_add_left_eq,
+          mod_add_right_eq,
+          nat_div_add_eq, int_div_add_eq,
+          @{thm mod_self}, @{thm "zmod_self"},
+          @{thm mod_by_0}, @{thm div_by_0},
+          @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
+          @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
+          Suc_eq_plus1]
+      addsimps @{thms add_ac}
+      addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_eq_plus1]
       addsimps comp_arith

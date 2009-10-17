@@ -197,7 +197,7 @@ show "False"
   by (metis 11 6 Un_upper2 1 Un_upper1 0 9 Un_upper2 1 Un_upper1 0)
 qed 
 
-ML {*AtpWrapper.problem_name := "set__equal_union"*}
+declare [[ atp_problem_prefix = "set__equal_union" ]]
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =
     (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))" 
@@ -205,12 +205,12 @@ lemma (*equal_union: *)
 by (metis Un_least Un_upper1 Un_upper2 set_eq_subset)
 
 
-ML {*AtpWrapper.problem_name := "set__equal_inter"*}
+declare [[ atp_problem_prefix = "set__equal_inter" ]]
 lemma "(X = Y \<inter> Z) =
     (X \<subseteq> Y \<and> X \<subseteq> Z \<and> (\<forall>V. V \<subseteq> Y \<and> V \<subseteq> Z \<longrightarrow> V \<subseteq> X))"
 by (metis Int_greatest Int_lower1 Int_lower2 set_eq_subset)
 
-ML {*AtpWrapper.problem_name := "set__fixedpoint"*}
+declare [[ atp_problem_prefix = "set__fixedpoint" ]]
 lemma fixedpoint:
     "\<exists>!x. f (g x) = x \<Longrightarrow> \<exists>!y. g (f y) = y"
 by metis
@@ -229,7 +229,7 @@ show "False"
   by (metis 4 0)
 qed
 
-ML {*AtpWrapper.problem_name := "set__singleton_example"*}
+declare [[ atp_problem_prefix = "set__singleton_example" ]]
 lemma (*singleton_example_2:*)
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
 by (metis Set.subsetI Union_upper insertCI set_eq_subset)
@@ -259,7 +259,7 @@ text {*
   293-314.
 *}
 
-ML {*AtpWrapper.problem_name := "set__Bledsoe_Fung"*}
+declare [[ atp_problem_prefix = "set__Bledsoe_Fung" ]]
 (*Notes: 1, the numbering doesn't completely agree with the paper. 
 2, we must rename set variables to avoid type clashes.*)
 lemma "\<exists>B. (\<forall>x \<in> B. x \<le> (0::int))"

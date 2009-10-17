@@ -1,8 +1,6 @@
 (*  Title:      HOL/Induct/QuoNestedDataType
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2004  University of Cambridge
-
 *)
 
 header{*Quotienting a Free Algebra Involving Nested Recursion*}
@@ -14,8 +12,8 @@ subsection{*Defining the Free Algebra*}
 text{*Messages with encryption and decryption as free constructors.*}
 datatype
      freeExp = VAR  nat
-	     | PLUS  freeExp freeExp
-	     | FNCALL  nat "freeExp list"
+             | PLUS  freeExp freeExp
+             | FNCALL  nat "freeExp list"
 
 text{*The equivalence relation, which makes PLUS associative.*}
 

@@ -221,8 +221,8 @@ done
 lemma A_trusts_NS2_lemma [rule_format]:
    "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
     \<Longrightarrow> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
-	Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
-	Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
+        Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
+        Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
 apply (erule ns_public.induct, simp_all)
 (*Fake, NS1*)
 apply (blast dest: Spy_not_see_NA)+
@@ -240,8 +240,8 @@ by (blast intro: A_trusts_NS2_lemma)
 lemma B_trusts_NS1 [rule_format]:
      "evs \<in> ns_public
       \<Longrightarrow> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
-	  Nonce NA \<notin> analz (knows Spy evs) \<longrightarrow>
-	  Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
+          Nonce NA \<notin> analz (knows Spy evs) \<longrightarrow>
+          Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
 apply (erule ns_public.induct, simp_all)
 (*Fake*)
 apply (blast intro!: analz_insertI)
@@ -375,7 +375,7 @@ text {*
 From similar assumptions, we can prove that @{text A} started the protocol
 run by sending an instance of message~1 involving the nonce~@{text NA}\@. 
 For this theorem, the conclusion is 
-@{thm_style [display] concl B_trusts_protocol [no_vars]}
+@{thm [display] (concl) B_trusts_protocol [no_vars]}
 Analogous theorems can be proved for~@{text A}, stating that nonce~@{text NA}
 remains secret and that message~2 really originates with~@{text B}.  Even the
 flawed protocol establishes these properties for~@{text A};

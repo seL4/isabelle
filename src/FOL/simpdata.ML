@@ -27,7 +27,7 @@ val mk_meta_prems =
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong rl =
-  standard(mk_meta_eq (mk_meta_prems rl))
+  Drule.standard (mk_meta_eq (mk_meta_prems rl))
   handle THM _ =>
   error("Premises and conclusion of congruence rules must use =-equality or <->");
 
@@ -46,7 +46,7 @@ fun mk_atomize pairs =
              (case head_of p of
                 Const(a,_) =>
                   (case AList.lookup (op =) pairs a of
-                     SOME(rls) => List.concat (map atoms ([th] RL rls))
+                     SOME(rls) => maps atoms ([th] RL rls)
                    | NONE => [th])
               | _ => [th])
          | _ => [th])

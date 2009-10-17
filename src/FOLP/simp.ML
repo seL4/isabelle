@@ -432,8 +432,8 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
 fun add_asms(ss,thm,a,anet,ats,cs) =
     let val As = strip_varify(nth_subgoal i thm, a, []);
         val thms = map (trivial o cterm_of(Thm.theory_of_thm thm)) As;
-        val new_rws = List.concat(map mk_rew_rules thms);
-        val rwrls = map mk_trans (List.concat(map mk_rew_rules thms));
+        val new_rws = maps mk_rew_rules thms;
+        val rwrls = map mk_trans (maps mk_rew_rules thms);
         val anet' = List.foldr lhs_insert_thm anet rwrls
     in  if !tracing andalso not(null new_rws)
         then writeln (cat_lines
@@ -519,7 +519,7 @@ val SIMP_THM = REWRITE ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
 (* Compute Congruence rules for individual constants using the substition
    rules *)
 
-val subst_thms = map standard subst_thms;
+val subst_thms = map Drule.standard subst_thms;
 
 
 fun exp_app(0,t) = t
@@ -589,7 +589,7 @@ let val T = case Sign.const_type thy f of
     val T' = Logic.incr_tvar 9 T;
 in mk_cong_type thy (Const(f,T'),T') end;
 
-fun mk_congs thy = List.concat o map (mk_cong_thy thy);
+fun mk_congs thy = maps (mk_cong_thy thy);
 
 fun mk_typed_congs thy =
 let
@@ -599,7 +599,7 @@ let
       val t = case Sign.const_type thy f of
                   SOME(_) => Const(f,T) | NONE => Free(f,T)
     in (t,T) end
-in List.concat o map (mk_cong_type thy o readfT) end;
+in maps (mk_cong_type thy o readfT) end;
 
 end;
 end;

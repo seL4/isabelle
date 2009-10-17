@@ -43,12 +43,12 @@ proof -
     show "(a Un t) Un u : ?T"
     proof -
       have "a Un (t Un u) : ?T"
-	using `a : A`
+        using `a : A`
       proof (rule tiling.Un)
         from `(a Un t) Int u = {}` have "t Int u = {}" by blast
         then show "t Un u: ?T" by (rule Un)
         from `a <= - t` and `(a Un t) Int u = {}`
-	show "a <= - (t Un u)" by blast
+        show "a <= - (t Un u)" by blast
       qed
       also have "a Un (t Un u) = (a Un t) Un u"
         by (simp only: Un_assoc)
@@ -229,7 +229,7 @@ next
     moreover have "card ... = Suc (card (?e t b))"
     proof (rule card_insert_disjoint)
       from `t \<in> tiling domino` have "finite t"
-	by (rule tiling_domino_finite)
+        by (rule tiling_domino_finite)
       then show "finite (?e t b)"
         by (rule evnodd_finite)
       from e have "(i, j) : ?e a b" by simp

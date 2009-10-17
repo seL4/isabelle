@@ -20,8 +20,8 @@ sig
     attribute list -> theory -> thm list * theory
   val prove_primrec_thms : config -> string list ->
     descr list -> (string * sort) list ->
-      (string -> thm list) -> thm list list -> thm list list ->
-        simpset -> thm -> theory -> (string list * thm list) * theory
+      (string -> thm list) -> thm list list -> thm list list * thm list list ->
+        thm -> theory -> (string list * thm list) * theory
   val prove_case_thms : config -> string list ->
     descr list -> (string * sort) list ->
       string list -> thm list -> theory -> (thm list list * string list) * theory
@@ -49,7 +49,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
   let
     val _ = message config "Proving case distinction theorems ...";
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
 
@@ -65,11 +65,11 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
         val insts = Library.take (i, dummyPs) @ (P::(Library.drop (i + 1, dummyPs)));
         val cert = cterm_of thy;
         val insts' = (map cert induct_Ps) ~~ (map cert insts);
-        val induct' = refl RS ((List.nth
-          (split_conj_thm (cterm_instantiate insts' induct), i)) RSN (2, rev_mp))
+        val induct' = refl RS ((nth
+          (split_conj_thm (cterm_instantiate insts' induct)) i) RSN (2, rev_mp))
 
       in
-        SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+        Skip_Proof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
           (fn {prems, ...} => EVERY
             [rtac induct' 1,
              REPEAT (rtac TrueI 1),
@@ -88,14 +88,14 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
 (*************************** primrec combinators ******************************)
 
 fun prove_primrec_thms (config : config) new_type_names descr sorts
-    injects_of constr_inject dist_rewrites dist_ss induct thy =
+    injects_of constr_inject (dist_rewrites, other_dist_rewrites) induct thy =
   let
     val _ = message config "Constructing primrec combinators ...";
 
     val big_name = space_implode "_" new_type_names;
     val thy0 = Sign.add_path big_name thy;
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
@@ -123,17 +123,17 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
     (* introduction rules for graph of primrec function *)
 
-    fun make_rec_intr T rec_set ((rec_intr_ts, l), (cname, cargs)) =
+    fun make_rec_intr T rec_set (cname, cargs) (rec_intr_ts, l) =
       let
         fun mk_prem ((dt, U), (j, k, prems, t1s, t2s)) =
           let val free1 = mk_Free "x" U j
           in (case (strip_dtyp dt, strip_type U) of
              ((_, DtRec m), (Us, _)) =>
                let
-                 val free2 = mk_Free "y" (Us ---> List.nth (rec_result_Ts, m)) k;
+                 val free2 = mk_Free "y" (Us ---> nth rec_result_Ts m) k;
                  val i = length Us
                in (j + 1, k + 1, HOLogic.mk_Trueprop (HOLogic.list_all
-                     (map (pair "x") Us, List.nth (rec_sets', m) $
+                     (map (pair "x") Us, nth rec_sets' m $
                        app_bnds free1 i $ app_bnds free2 i)) :: prems,
                    free1::t1s, free2::t2s)
                end
@@ -145,12 +145,12 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
       in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop
         (rec_set $ list_comb (Const (cname, Ts ---> T), t1s) $
-          list_comb (List.nth (rec_fns, l), t1s @ t2s)))], l + 1)
+          list_comb (nth rec_fns l, t1s @ t2s)))], l + 1)
       end;
 
-    val (rec_intr_ts, _) = Library.foldl (fn (x, ((d, T), set_name)) =>
-      Library.foldl (make_rec_intr T set_name) (x, #3 (snd d)))
-        (([], 0), descr' ~~ recTs ~~ rec_sets');
+    val (rec_intr_ts, _) = fold (fn ((d, T), set_name) =>
+      fold (make_rec_intr T set_name) (#3 (snd d)))
+        (descr' ~~ recTs ~~ rec_sets') ([], 0);
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
         Inductive.add_inductive_global (serial_string ())
@@ -165,18 +165,18 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
     val _ = message config "Proving termination and uniqueness of primrec functions ...";
 
-    fun mk_unique_tac ((tac, intrs), ((((i, (tname, _, constrs)), elim), T), T')) =
+    fun mk_unique_tac ((((i, (tname, _, constrs)), elim), T), T') (tac, intrs) =
       let
         val distinct_tac =
           (if i < length newTs then
-             full_simp_tac (HOL_ss addsimps (List.nth (dist_rewrites, i))) 1
-           else full_simp_tac dist_ss 1);
+             full_simp_tac (HOL_ss addsimps (nth dist_rewrites i)) 1
+           else full_simp_tac (HOL_ss addsimps (flat other_dist_rewrites)) 1);
 
         val inject = map (fn r => r RS iffD1)
-          (if i < length newTs then List.nth (constr_inject, i)
+          (if i < length newTs then nth constr_inject i
             else injects_of tname);
 
-        fun mk_unique_constr_tac n ((tac, intr::intrs, j), (cname, cargs)) =
+        fun mk_unique_constr_tac n (cname, cargs) (tac, intr::intrs, j) =
           let
             val k = length (filter is_rec_type cargs)
 
@@ -195,8 +195,8 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
               intrs, j + 1)
           end;
 
-        val (tac', intrs', _) = Library.foldl (mk_unique_constr_tac (length constrs))
-          ((tac, intrs, 0), constrs);
+        val (tac', intrs', _) = fold (mk_unique_constr_tac (length constrs))
+          constrs (tac, intrs, 0);
 
       in (tac', intrs') end;
 
@@ -211,12 +211,11 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
-        val (tac, _) = Library.foldl mk_unique_tac
-          (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
-              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs),
-            descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
+        val (tac, _) = fold mk_unique_tac (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
+           (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
+              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs));
 
-      in split_conj_thm (SkipProof.prove_global thy1 [] []
+      in split_conj_thm (Skip_Proof.prove_global thy1 [] []
         (HOLogic.mk_Trueprop (mk_conj rec_unique_ts)) (K tac))
       end;
 
@@ -251,7 +250,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
     val _ = message config "Proving characteristic theorems for primrec combinators ..."
 
-    val rec_thms = map (fn t => SkipProof.prove_global thy2 [] [] t
+    val rec_thms = map (fn t => Skip_Proof.prove_global thy2 [] [] t
       (fn _ => EVERY
         [rewrite_goals_tac reccomb_defs,
          rtac the1_equality 1,
@@ -267,7 +266,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
          [Nitpick_Const_Simps.add])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
-    |-> (fn thms => pair (reccomb_names, Library.flat thms))
+    |-> (fn thms => pair (reccomb_names, flat thms))
   end;
 
 
@@ -279,7 +278,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
 
     val thy1 = Sign.add_path (space_implode "_" new_type_names) thy;
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
@@ -298,10 +297,9 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
 
     (* define case combinators via primrec combinators *)
 
-    val (case_defs, thy2) = Library.foldl (fn ((defs, thy),
-      ((((i, (_, _, constrs)), T), name), recname)) =>
+    val (case_defs, thy2) = fold (fn ((((i, (_, _, constrs)), T), name), recname) => fn (defs, thy) =>
         let
-          val (fns1, fns2) = ListPair.unzip (map (fn ((_, cargs), j) =>
+          val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
             let
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
               val Ts' = Ts @ map mk_dummyT (List.filter is_rec_type cargs);
@@ -314,25 +312,25 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
             end) (constrs ~~ (1 upto length constrs)));
 
           val caseT = (map (snd o dest_Free) fns1) @ [T] ---> T';
-          val fns = (List.concat (Library.take (i, case_dummy_fns))) @
-            fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns)));
+          val fns = flat (Library.take (i, case_dummy_fns)) @
+            fns2 @ flat (Library.drop (i + 1, case_dummy_fns));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
           val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
           val def = (Binding.name (Long_Name.base_name name ^ "_def"),
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
-              list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @
-                fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns))) )));
+              list_comb (reccomb, (flat (Library.take (i, case_dummy_fns))) @
+                fns2 @ (flat (Library.drop (i + 1, case_dummy_fns))) )));
           val ([def_thm], thy') =
             thy
             |> Sign.declare_const [] decl |> snd
             |> (PureThy.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')
-        end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
-          (Library.take (length newTs, reccomb_names)))
+        end) (hd descr ~~ newTs ~~ case_names ~~
+          Library.take (length newTs, reccomb_names)) ([], thy1)
       ||> Theory.checkpoint;
 
-    val case_thms = map (map (fn t => SkipProof.prove_global thy2 [] [] t
+    val case_thms = map (map (fn t => Skip_Proof.prove_global thy2 [] [] t
       (fn _ => EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1])))
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
   in
@@ -366,8 +364,8 @@ fun prove_split_thms (config : config) new_type_names descr sorts constr_inject 
         val tacf = K (EVERY [rtac exhaustion' 1, ALLGOALS (asm_simp_tac
           (HOL_ss addsimps (dist_rewrites' @ inject @ case_thms')))])
       in
-        (SkipProof.prove_global thy [] [] t1 tacf,
-         SkipProof.prove_global thy [] [] t2 tacf)
+        (Skip_Proof.prove_global thy [] [] t1 tacf,
+         Skip_Proof.prove_global thy [] [] t2 tacf)
       end;
 
     val split_thm_pairs = map prove_split_thms
@@ -386,7 +384,7 @@ fun prove_split_thms (config : config) new_type_names descr sorts constr_inject 
 fun prove_weak_case_congs new_type_names descr sorts thy =
   let
     fun prove_weak_case_cong t =
-       SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+       Skip_Proof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
          (fn {prems, ...} => EVERY [rtac ((hd prems) RS arg_cong) 1])
 
     val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
@@ -407,7 +405,7 @@ fun prove_nchotomys (config : config) new_type_names descr sorts casedist_thms t
               hyp_subst_tac i, REPEAT (rtac exI i), rtac refl i]
           | tac i n = rtac disjI2 i THEN tac i (n - 1)
       in 
-        SkipProof.prove_global thy [] [] t (fn _ =>
+        Skip_Proof.prove_global thy [] [] t (fn _ =>
           EVERY [rtac allI 1,
            exh_tac (K exhaustion) 1,
            ALLGOALS (fn i => tac i (i-1))])
@@ -429,7 +427,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
         val [v] = Term.add_vars (concl_of nchotomy') [];
         val nchotomy'' = cterm_instantiate [(cert (Var v), cert Ma)] nchotomy'
       in
-        SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+        Skip_Proof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
           (fn {prems, ...} => 
             let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites))
             in EVERY [simp_tac (HOL_ss addsimps [hd prems]) 1,

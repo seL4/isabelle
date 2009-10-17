@@ -243,7 +243,7 @@ proof -
       fix x y z :: real
       assume "y \<noteq> 0"
       then have "(x * inverse y = z) = (x = z * y)"
-	by auto
+        by auto
     }
     note inverse = this
     have eq': "real a * (pow2 (b - b')) = real a'"
@@ -551,9 +551,9 @@ proof (induct x rule: bitlen.induct)
     } moreover
     { have "x + 1 \<le> x - x mod 2 + 2"
       proof -
-	have "x mod 2 < 2" using `0 < x` by auto
- 	hence "x < x - x mod 2 +  2" unfolding algebra_simps by auto
-	thus ?thesis by auto
+        have "x mod 2 < 2" using `0 < x` by auto
+        hence "x < x - x mod 2 +  2" unfolding algebra_simps by auto
+        thus ?thesis by auto
       qed
       also have "x - x mod 2 + 2 = (x div 2 + 1) * 2" unfolding algebra_simps using `0 < x` zdiv_zmod_equality2[of x 2 0] by auto
       also have "\<dots> \<le> 2^nat (bitlen (x div 2)) * 2" using hyp[OF `0 < x div 2`, THEN conjunct2] by (rule mult_right_mono, auto)
@@ -839,7 +839,7 @@ next
     have "0 < ?X div y"
     proof -
       have "2^nat (bitlen x - 1) \<le> y" and "y < 2^nat (bitlen y)"
-	using bitlen_bounds[OF `0 < x`, THEN conjunct1] bitlen_bounds[OF `0 < y`, THEN conjunct2] `x < y` by auto
+        using bitlen_bounds[OF `0 < x`, THEN conjunct1] bitlen_bounds[OF `0 < y`, THEN conjunct2] `x < y` by auto
       hence "(2::int)^nat (bitlen x - 1) < 2^nat (bitlen y)" by (rule order_le_less_trans)
       hence "bitlen x \<le> bitlen y" by auto
       hence len_less: "nat (bitlen x - 1) \<le> nat (int (n - 1) + bitlen y)" by auto
@@ -847,16 +847,16 @@ next
       have "x \<noteq> 0" and "y \<noteq> 0" using `0 < x` `0 < y` by auto
 
       have exp_eq: "nat (int (n - 1) + bitlen y) - nat (bitlen x - 1) = ?l"
-	using `bitlen x \<le> bitlen y` bitlen_ge1[OF `x \<noteq> 0`] bitlen_ge1[OF `y \<noteq> 0`] `0 < n` by auto
+        using `bitlen x \<le> bitlen y` bitlen_ge1[OF `x \<noteq> 0`] bitlen_ge1[OF `y \<noteq> 0`] `0 < n` by auto
 
       have "y * 2^nat (bitlen x - 1) \<le> y * x" 
-	using bitlen_bounds[OF `0 < x`, THEN conjunct1] `0 < y`[THEN less_imp_le] by (rule mult_left_mono)
+        using bitlen_bounds[OF `0 < x`, THEN conjunct1] `0 < y`[THEN less_imp_le] by (rule mult_left_mono)
       also have "\<dots> \<le> 2^nat (bitlen y) * x" using bitlen_bounds[OF `0 < y`, THEN conjunct2, THEN less_imp_le] `0 \<le> x` by (rule mult_right_mono)
       also have "\<dots> \<le> x * 2^nat (int (n - 1) + bitlen y)" unfolding mult_commute[of x] by (rule mult_right_mono, auto simp add: `0 \<le> x`)
       finally have "real y * 2^nat (bitlen x - 1) * inverse (2^nat (bitlen x - 1)) \<le> real x * 2^nat (int (n - 1) + bitlen y) * inverse (2^nat (bitlen x - 1))"
-	unfolding real_of_int_le_iff[symmetric] by auto
+        unfolding real_of_int_le_iff[symmetric] by auto
       hence "real y \<le> real x * (2^nat (int (n - 1) + bitlen y) / (2^nat (bitlen x - 1)))" 
-	unfolding real_mult_assoc real_divide_def by auto
+        unfolding real_mult_assoc real_divide_def by auto
       also have "\<dots> = real x * (2^(nat (int (n - 1) + bitlen y) - nat (bitlen x - 1)))" using power_diff[of "2::real", OF _ len_less] by auto
       finally have "y \<le> x * 2^?l" unfolding exp_eq unfolding real_of_int_le_iff[symmetric] by auto
       thus ?thesis using zdiv_greater_zero[OF `0 < y`] by auto
@@ -1194,19 +1194,19 @@ proof (cases x)
       case True
       have m: "m = m div ?p * ?p + 0" unfolding True[symmetric] using zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right, symmetric] .
       have "real (Float m e) = real (Float (m div ?p) (e + ?d))" unfolding real_of_float_simp arg_cong[OF m, of real]
-	by (auto simp add: pow2_add `0 < ?d` pow_d)
+        by (auto simp add: pow2_add `0 < ?d` pow_d)
       thus ?thesis
-	unfolding Float round_up.simps Let_def if_P[OF `m mod ?p = 0`] if_P[OF `0 < ?d`]
-	by auto
+        unfolding Float round_up.simps Let_def if_P[OF `m mod ?p = 0`] if_P[OF `0 < ?d`]
+        by auto
     next
       case False
       have "m = m div ?p * ?p + m mod ?p" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
       also have "\<dots> \<le> (m div ?p + 1) * ?p" unfolding left_distrib zmult_1 by (rule add_left_mono, rule pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
       finally have "real (Float m e) \<le> real (Float (m div ?p + 1) (e + ?d))" unfolding real_of_float_simp add_commute[of e]
-	unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of m, symmetric]
-	by (auto intro!: mult_mono simp add: pow2_add `0 < ?d` pow_d)
+        unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of m, symmetric]
+        by (auto intro!: mult_mono simp add: pow2_add `0 < ?d` pow_d)
       thus ?thesis
-	unfolding Float round_up.simps Let_def if_not_P[OF `\<not> m mod ?p = 0`] if_P[OF `0 < ?d`] .
+        unfolding Float round_up.simps Let_def if_not_P[OF `\<not> m mod ?p = 0`] if_P[OF `0 < ?d`] .
     qed
   next
     case False
@@ -1264,7 +1264,7 @@ proof (cases "normfloat (x * y)")
     have "real (m div 2^(nat ?l)) * pow2 ?l \<le> real m"
     proof -
       have "real (m div 2^(nat ?l)) * pow2 ?l = real (2^(nat ?l) * (m div 2^(nat ?l)))" unfolding real_of_int_mult real_of_int_power[symmetric] real_number_of unfolding pow2_int[symmetric] 
-	using `?l > 0` by auto
+        using `?l > 0` by auto
       also have "\<dots> \<le> real (2^(nat ?l) * (m div 2^(nat ?l)) + m mod 2^(nat ?l))" unfolding real_of_int_add by auto
       also have "\<dots> = real m" unfolding zmod_zdiv_equality[symmetric] ..
       finally show ?thesis by auto

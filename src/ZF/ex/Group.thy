@@ -1,6 +1,4 @@
-(* Title:  ZF/ex/Group.thy
-
-*)
+(*  Title:      ZF/ex/Group.thy *)
 
 header {* Groups *}
 
@@ -114,9 +112,9 @@ proof -
     { 
       assume eq: "x \<cdot> y = x \<cdot> z"
       with G l_inv_ex obtain x_inv where xG: "x_inv \<in> carrier(G)"
-	and l_inv: "x_inv \<cdot> x = \<one>" by fast
+        and l_inv: "x_inv \<cdot> x = \<one>" by fast
       from G eq xG have "(x_inv \<cdot> x) \<cdot> y = (x_inv \<cdot> x) \<cdot> z"
-	by (simp add: m_assoc)
+        by (simp add: m_assoc)
       with G show "y = z" by (simp add: l_inv)
     next
       assume eq: "y = z"
@@ -882,7 +880,7 @@ proof -
     proof (simp add: r_congruent_def sym_def, clarify)
       fix x y
       assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" 
-	and "inv x \<cdot> y \<in> H"
+        and "inv x \<cdot> y \<in> H"
       hence "inv (inv x \<cdot> y) \<in> H" by (simp add: m_inv_closed) 
       thus "inv y \<cdot> x \<in> H" by (simp add: inv_mult_group)
     qed
@@ -891,7 +889,7 @@ proof -
     proof (simp add: r_congruent_def trans_def, clarify)
       fix x y z
       assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
-	and "inv x \<cdot> y \<in> H" and "inv y \<cdot> z \<in> H"
+        and "inv x \<cdot> y \<in> H" and "inv y \<cdot> z \<in> H"
       hence "(inv x \<cdot> y) \<cdot> (inv y \<cdot> z) \<in> H" by simp
       hence "inv x \<cdot> (y \<cdot> inv y) \<cdot> z \<in> H" by (simp add: m_assoc del: inv) 
       thus "inv x \<cdot> z \<in> H" by simp

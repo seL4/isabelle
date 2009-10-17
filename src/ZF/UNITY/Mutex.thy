@@ -1,8 +1,8 @@
-(*  ID:         $Id$
+(*  Title:      ZF/UNITY/Mutex.thy
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
 
-Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
+Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra.
 
 Variables' types are introduced globally so that type verification
 reduces to the usual ZF typechecking \<in> an ill-tyed expression will
@@ -76,11 +76,11 @@ definition
 
 definition
   "IU == {s:state. (s`u = 1<->(#1 $<= s`m & s`m $<= #3))
-	             & (s`m = #3 --> s`p=0)}"
+                     & (s`m = #3 --> s`p=0)}"
 
 definition
   "IV == {s:state. (s`v = 1 <-> (#1 $<= s`n & s`n $<= #3))
-	              & (s`n = #3 --> s`p=1)}"
+                      & (s`n = #3 --> s`p=1)}"
 
   (** The faulty invariant (for U alone) **)
 

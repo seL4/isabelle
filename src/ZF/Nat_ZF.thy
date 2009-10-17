@@ -1,8 +1,6 @@
-(*  Title:      ZF/Nat.thy
-    ID:         $Id$
+(*  Title:      ZF/Nat_ZF.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*The Natural numbers As a Least Fixed Point*}
@@ -156,7 +154,7 @@ subsection{*Variations on Mathematical Induction*}
 lemmas complete_induct = Ord_induct [OF _ Ord_nat, case_names less, consumes 1]
 
 lemmas complete_induct_rule =  
-	complete_induct [rule_format, case_names less, consumes 1]
+        complete_induct [rule_format, case_names less, consumes 1]
 
 
 lemma nat_induct_from_lemma [rule_format]: 

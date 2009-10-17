@@ -31,13 +31,13 @@ proof (rule Zorn_Lemma2)
     proof cases
 
       txt {* If @{text c} is an empty chain, then every element in
-	@{text S} is an upper bound of @{text c}. *}
+        @{text S} is an upper bound of @{text c}. *}
 
       assume "c = {}"
       with aS show ?thesis by fast
 
       txt {* If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
-	bound of @{text c}, lying in @{text S}. *}
+        bound of @{text c}, lying in @{text S}. *}
 
     next
       assume "c \<noteq> {}"
@@ -47,7 +47,7 @@ proof (rule Zorn_Lemma2)
         show "\<Union>c \<in> S"
         proof (rule r)
           from `c \<noteq> {}` show "\<exists>x. x \<in> c" by fast
-	  show "c \<in> chain S" by fact
+          show "c \<in> chain S" by fact
         qed
       qed
     qed

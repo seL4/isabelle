@@ -371,7 +371,7 @@ fun gen_fixrec
       val simps1 : (Attrib.binding * thm list) list =
         map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps);
       val simps2 : (Attrib.binding * thm list) list =
-        map (apsnd (fn thm => [thm])) (List.concat simps);
+        map (apsnd (fn thm => [thm])) (flat simps);
       val (_, lthy'') = lthy'
         |> fold_map (LocalTheory.note Thm.generatedK) (simps1 @ simps2);
     in

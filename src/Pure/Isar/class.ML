@@ -68,8 +68,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val base_morph = inst_morph
       $> Morphism.binding_morphism (Binding.prefix false (class_prefix class))
       $> Element.satisfy_morphism (the_list wit);
-    val eqs = these_defs thy sups;
-    val eq_morph = Element.eq_morphism thy eqs;
+    val eq_morph = Element.eq_morphism thy (these_defs thy sups);
 
     (* assm_intro *)
     fun prove_assm_intro thm =
@@ -77,7 +76,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
         val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
         val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
-      in SkipProof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
+      in Skip_Proof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
     val assm_intro = Option.map prove_assm_intro
       (fst (Locale.intros_of thy class));
 
@@ -94,9 +93,9 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (Tactic.match_tac (axclass_intro :: sup_of_classes
          @ loc_axiom_intros @ base_sort_trivs)
            ORELSE' Tactic.assume_tac));
-    val of_class = SkipProof.prove_global thy [] [] of_class_prop (K tac);
+    val of_class = Skip_Proof.prove_global thy [] [] of_class_prop (K tac);
 
-  in (base_morph, eqs, export_morph, axiom, assm_intro, of_class) end;
+  in (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) end;
 
 
 (* reading and processing class specifications *)
@@ -287,9 +286,10 @@ fun gen_class prep_class_spec bname raw_supclasses raw_elems thy =
     ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
-    #-> (fn (base_morph, eqs, export_morph, axiom, assm_intro, of_class) =>
-       Locale.add_registration_eqs (class, base_morph) eqs export_morph
-    #> register class sups params base_sort base_morph axiom assm_intro of_class))
+    #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
+       Locale.add_registration (class, base_morph $> eq_morph) NONE export_morph
+         (*FIXME should not modify base_morph, although admissible*)
+    #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> TheoryTarget.init (SOME class)
     |> pair class
   end;

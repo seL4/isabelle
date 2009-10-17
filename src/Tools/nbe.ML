@@ -544,8 +544,8 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
       (TypeInfer.constrain ty' t);
     fun check_tvars t = if null (Term.add_tvars t []) then t else
       error ("Illegal schematic type variables in normalized term: "
-        ^ setmp show_types true (Syntax.string_of_term_global thy) t);
-    val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
+        ^ setmp_CRITICAL show_types true (Syntax.string_of_term_global thy) t);
+    val string_of_term = setmp_CRITICAL show_types true (Syntax.string_of_term_global thy);
   in
     compile_eval thy naming program (vs, t) deps
     |> traced (fn t => "Normalized:\n" ^ string_of_term t)

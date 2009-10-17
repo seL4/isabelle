@@ -79,8 +79,8 @@ latter in theory @{theory Set}).
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Lattices.inf} & @{typeof Lattices.inf}\\
 @{const Lattices.sup} & @{typeof Lattices.sup}\\
-@{const Complete_Lattice.Inf} & @{term_type_only Complete_Lattice.Inf "'a set \<Rightarrow> 'a::complete_lattice"}\\
-@{const Complete_Lattice.Sup} & @{term_type_only Complete_Lattice.Sup "'a set \<Rightarrow> 'a::complete_lattice"}\\
+@{const Complete_Lattice.Inf} & @{term_type_only Complete_Lattice.Inf "'a set \<Rightarrow> 'a::Inf"}\\
+@{const Complete_Lattice.Sup} & @{term_type_only Complete_Lattice.Sup "'a set \<Rightarrow> 'a::Sup"}\\
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -145,9 +145,9 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 
 \section{Fun}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{const "Fun.id"} & @{typeof Fun.id}\\
-@{const "Fun.comp"} & @{typeof Fun.comp}\\
+@{const "Fun.comp"} & @{typeof Fun.comp} & (\texttt{o})\\
 @{const "Fun.inj_on"} & @{term_type_only Fun.inj_on "('a\<Rightarrow>'b)\<Rightarrow>'a set\<Rightarrow>bool"}\\
 @{const "Fun.inj"} & @{typeof Fun.inj}\\
 @{const "Fun.surj"} & @{typeof Fun.surj}\\
@@ -493,6 +493,7 @@ Type @{typ int}
 @{const List.list_update} & @{typeof List.list_update}\\
 @{const List.map} & @{typeof List.map}\\
 @{const List.measures} & @{term_type_only List.measures "('a\<Rightarrow>nat)list\<Rightarrow>('a*'a)set"}\\
+@{const List.nth} & @{typeof List.nth}\\
 @{const List.remdups} & @{typeof List.remdups}\\
 @{const List.removeAll} & @{typeof List.removeAll}\\
 @{const List.remove1} & @{typeof List.remove1}\\

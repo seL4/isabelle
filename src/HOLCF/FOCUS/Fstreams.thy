@@ -1,9 +1,9 @@
-(*  Title: 	HOLCF/FOCUS/Fstreams.thy
-    ID:         $Id$
-    Author: 	Borislav Gajanovic
+(*  Title:      HOLCF/FOCUS/Fstreams.thy
+    Author:     Borislav Gajanovic
 
-FOCUS flat streams (with lifted elements)
-###TODO: integrate this with Fstream.*
+FOCUS flat streams (with lifted elements).
+
+TODO: integrate this with Fstream.
 *)
 
 theory Fstreams imports "../ex/Stream" begin
@@ -21,7 +21,7 @@ definition
   "fsfilter A = sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A))"
 
 definition
-  fsmap		:: "('a => 'b) => 'a fstream -> 'b fstream" where
+  fsmap         :: "('a => 'b) => 'a fstream -> 'b fstream" where
   "fsmap f = smap$(flift2 f)"
 
 definition
@@ -42,7 +42,7 @@ abbreviation
   "<> == \<bottom>"
 
 abbreviation
-  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"	("(_'(C')_)" [64,63] 63) where
+  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_'(C')_)" [64,63] 63) where
   "A(C)s == fsfilter A\<cdot>s"
 
 notation (xsymbols)

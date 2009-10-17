@@ -58,7 +58,7 @@ fun check_freevars free (Var x) = x < free
 fun forall_consts pred (Const c) = pred c
   | forall_consts pred (Var x) = true
   | forall_consts pred (App (u,v)) = forall_consts pred u 
-				     andalso forall_consts pred v
+                                     andalso forall_consts pred v
   | forall_consts pred (Abs m) = forall_consts pred m
   | forall_consts pred (Computed t) = forall_consts pred t
 

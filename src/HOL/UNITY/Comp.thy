@@ -1,16 +1,11 @@
 (*  Title:      HOL/UNITY/Comp.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1998  University of Cambridge
+    Author:     Sidi Ehmety
 
-Composition
+Composition.
+
 From Chandy and Sanders, "Reasoning About Program Composition",
 Technical Report 2000-003, University of Florida, 2000.
-
-Revised by Sidi Ehmety on January  2001
-
-Added: a strong form of the \<subseteq> relation (component_of) and localize
-
 *)
 
 header{*Composition: Basic Primitives*}
@@ -46,7 +41,7 @@ constdefs
 
   localize  :: "('a=>'b) => 'a program => 'a program"
   "localize v F == mk_program(Init F, Acts F,
-			      AllowedActs F \<inter> (\<Union>G \<in> preserves v. Acts G))"
+                              AllowedActs F \<inter> (\<Union>G \<in> preserves v. Acts G))"
 
   funPair      :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
   "funPair f g == %x. (f x, g x)"

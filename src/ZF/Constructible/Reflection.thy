@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Reflection.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -157,7 +156,7 @@ lemma (in ex_reflection) ClEx_upward:
       ==> \<exists>z. M(z) & P(<y,z>)"
 apply (simp add: ClEx_def M_def)
 apply (blast dest: Cl_reflects
-	     intro: Limit_is_Ord Pair_in_Mset)
+             intro: Limit_is_Ord Pair_in_Mset)
 done
 
 text{*Class @{text ClEx} indeed consists of reflecting ordinals...*}
@@ -298,8 +297,8 @@ lemma (in reflection)
     (\<lambda>a. (Ord(a) &
           ClEx(\<lambda>x. ~ (snd(x) \<subseteq> fst(fst(x)) --> snd(x) \<in> snd(fst(x))), a)) &
           ClEx(\<lambda>x. \<forall>z. M(z) --> z \<subseteq> fst(x) --> z \<in> snd(x), a),
-	    \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
-	    \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x --> z \<in> y)" 
+            \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
+            \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x --> z \<in> y)" 
 by fast
 
 text{*Example 2''.  We expand the subset relation.*}

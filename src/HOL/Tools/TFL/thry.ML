@@ -73,9 +73,9 @@ fun induct_info thy dtco = case Datatype.get_info thy dtco of
                 constructors = (map Const o the o Datatype.get_constrs thy) dtco};
 
 fun extract_info thy =
- let val infos = (map snd o Symtab.dest o Datatype.get_all) thy
+ let val infos = map snd (Symtab.dest (Datatype.get_all thy))
  in {case_congs = map (mk_meta_eq o #case_cong) infos,
-     case_rewrites = List.concat (map (map mk_meta_eq o #case_rewrites) infos)}
+     case_rewrites = maps (map mk_meta_eq o #case_rewrites) infos}
  end;
 
 

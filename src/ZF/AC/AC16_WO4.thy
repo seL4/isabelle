@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/AC16_WO4.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 The proof of AC16(n, k) ==> WO4(n-k)
@@ -212,7 +211,7 @@ locale AC16 =
       and GG_def:    "GG  == \<lambda>v \<in> LL. (THE w. w \<in> MM & v \<subseteq> w) - v"
       and s_def:     "s(u) == {v \<in> t_n. u \<in> v & k \<lesssim> v Int y}"
   assumes all_ex:    "\<forall>z \<in> {z \<in> Pow(x Un y) . z \<approx> succ(k)}.
-	               \<exists>! w. w \<in> t_n & z \<subseteq> w "
+                       \<exists>! w. w \<in> t_n & z \<subseteq> w "
     and disjoint[iff]:  "x Int y = 0"
     and "includes":  "t_n \<subseteq> {v \<in> Pow(x Un y). v \<approx> succ(k #+ m)}"
     and WO_R[iff]:      "well_ord(y,R)"
@@ -241,7 +240,7 @@ apply (blast intro: lesspoll_trans1
                     Card_cardinal [THEN Card_is_Ord, THEN nat_le_infinite_Ord,
                                    THEN le_imp_lepoll] 
             dest: well_ord_cardinal_eqpoll 
-		   eqpoll_sym  eqpoll_imp_lepoll
+                   eqpoll_sym  eqpoll_imp_lepoll
                    n_lesspoll_nat [THEN lesspoll_trans2]
                    well_ord_cardinal_eqpoll [THEN eqpoll_sym, 
                           THEN eqpoll_imp_lepoll, THEN lepoll_infinite])+
@@ -535,9 +534,9 @@ apply (simp add: ltD ordermap_bij [THEN bij_converse_bij, THEN bij_is_fun, THEN 
 apply (insert "includes")
 apply (rule eqpoll_sum_imp_Diff_lepoll)
 apply (blast del: subsetI
-	     dest!: ltD 
-	     intro!: eqpoll_sum_imp_Diff_lepoll in_LL_eqpoll_n
-	     intro: in_LL   unique_superset1 [THEN in_MM_eqpoll_n] 
+             dest!: ltD 
+             intro!: eqpoll_sum_imp_Diff_lepoll in_LL_eqpoll_n
+             intro: in_LL   unique_superset1 [THEN in_MM_eqpoll_n] 
                     ordermap_bij [THEN bij_converse_bij, THEN bij_is_fun, 
                                   THEN apply_type])+
 done

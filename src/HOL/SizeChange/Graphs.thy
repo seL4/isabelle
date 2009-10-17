@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Graphs.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 *)
 
@@ -710,7 +709,7 @@ proof
   let ?p = "p\<langle>s i,s (Suc i)\<rangle>"
 
   from increasing_strict 
-	have "fst (p (s (Suc i))) = end_node ?p" by simp
+  have "fst (p (s (Suc i))) = end_node ?p" by simp
   moreover
   from increasing_strict[of s i "Suc i"] have "snd ?p \<noteq> []"
     by (simp add:sub_path_def)

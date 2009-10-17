@@ -1,8 +1,6 @@
 (*  Title:      ZF/CardinalArith.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*Cardinal Arithmetic Without the Axiom of Choice*}
@@ -24,9 +22,9 @@ definition
 definition
   csquare_rel   :: "i=>i"  where
     "csquare_rel(K) ==   
-	  rvimage(K*K,   
-		  lam <x,y>:K*K. <x Un y, x, y>, 
-		  rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
+          rvimage(K*K,   
+                  lam <x,y>:K*K. <x Un y, x, y>, 
+                  rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
 definition
   jump_cardinal :: "i=>i"  where

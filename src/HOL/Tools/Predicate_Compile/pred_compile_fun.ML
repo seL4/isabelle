@@ -42,7 +42,7 @@ fun is_constructor thy t =
     (case DatatypePackage.get_datatype thy ((fst o dest_Type o fastype_of) t) of
       NONE => false
     | SOME info => (let
-      val constr_consts = flat (map (fn (_, (_, _, constrs)) => map fst constrs) (#descr info))
+      val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
       val (c, _) = strip_comb t
       in (case c of
         Const (name, _) => name mem_string constr_consts
@@ -183,7 +183,7 @@ fun find_split_thm thy (Const (name, typ)) =
        String.isSuffix "_case" (List.last splitted_name)
     then
       (List.take (splitted_name, length splitted_name - 1)) @ ["split"]
-      |> String.concatWith "."
+      |> space_implode "."
       |> PureThy.get_thm thy
       |> SOME
       handle ERROR msg => NONE
@@ -415,7 +415,7 @@ fun rewrite_intro thy intro =
         rewrite concl frees'
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
-    val _ = Output.tracing ("intro_ts': " ^
+    val _ = tracing ("intro_ts': " ^
       commas (map (Syntax.string_of_term_global thy) intro_ts'))
   in
     map (Drule.standard o the_oracle () o cterm_of thy) intro_ts'

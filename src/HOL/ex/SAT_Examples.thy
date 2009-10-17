@@ -7,13 +7,12 @@
 header {* Examples for the 'sat' and 'satx' tactic *}
 
 theory SAT_Examples imports Main
-
 begin
 
 (* ML {* sat.solver := "zchaff_with_proofs"; *} *)
 (* ML {* sat.solver := "minisat_with_proofs"; *} *)
-ML {* set sat.trace_sat; *}
-ML {* set quick_and_dirty; *}
+ML {* Unsynchronized.set sat.trace_sat; *}
+ML {* Unsynchronized.set quick_and_dirty; *}
 
 lemma "True"
 by sat
@@ -79,8 +78,8 @@ text {* eta-Equivalence *}
 lemma "(ALL x. P x) | ~ All P"
 by sat
 
-ML {* reset sat.trace_sat; *}
-ML {* reset quick_and_dirty; *}
+ML {* Unsynchronized.reset sat.trace_sat; *}
+ML {* Unsynchronized.reset quick_and_dirty; *}
 
 method_setup rawsat =
   {* Scan.succeed (SIMPLE_METHOD' o sat.rawsat_tac) *}

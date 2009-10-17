@@ -76,7 +76,7 @@ fun calc_syntax
                                  mk_matT(dtype, map third args, freetvar "t" 1),
                                  Mixfix(escape ("match_" ^ Binding.name_of con), [], Syntax.max_pri));
         fun sel1 (_,sel,typ)  = Option.map (fn s => (s,dtype ->> typ,NoSyn)) sel;
-        fun sel (con,args,mx) = List.mapPartial sel1 args;
+        fun sel (con,args,mx) = map_filter sel1 args;
         fun mk_patT (a,b)     = a ->> mk_maybeT b;
         fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n);
         fun pat (con,args,mx) = (pat_name_ con,
@@ -90,7 +90,7 @@ fun calc_syntax
       val consts_dis = map dis cons';
       val consts_mat = map mat cons';
       val consts_pat = map pat cons';
-      val consts_sel = List.concat(map sel cons');
+      val consts_sel = maps sel cons';
       end;
 
       (* ----- constants concerning induction ------------------------------------- *)
@@ -147,7 +147,7 @@ fun calc_syntax
              PrintRule (Library.foldl capp (cname, ListPair.map (app "_match") (ps,vs)),
                         app "_match" (mk_appl pname ps, args_list vs))]
           end;
-      val Case_trans = List.concat (map one_case_trans cons');
+      val Case_trans = maps one_case_trans cons';
       end;
       end;
 
@@ -172,10 +172,10 @@ fun add_syntax
       val const_copy = (Binding.name (comp_dnam^"_copy"), funprod ->> funprod, NoSyn);
       val const_bisim = (Binding.name (comp_dnam^"_bisim"), relprod --> boolT, NoSyn);
       val ctt : ((binding * typ * mixfix) list * ast Syntax.trrule list) list = map (calc_syntax funprod) eqs';
-    in thy'' |> ContConsts.add_consts_i (List.concat (map fst ctt) @ 
+    in thy'' |> ContConsts.add_consts_i (maps fst ctt @ 
                                          (if length eqs'>1 then [const_copy] else[])@
                                          [const_bisim])
-             |> Sign.add_trrules_i (List.concat(map snd ctt))
+             |> Sign.add_trrules_i (maps snd ctt)
     end; (* let *)
 
 end; (* struct *)

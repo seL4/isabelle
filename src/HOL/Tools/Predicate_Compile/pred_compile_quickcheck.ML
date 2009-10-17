@@ -58,7 +58,7 @@ fun quickcheck ctxt t =
     val t = Logic.list_implies
       (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
        HOLogic.mk_Trueprop (list_comb (Const (full_constname, constT), map Free vs')))
-    val tac = fn {...} => setmp quick_and_dirty true (SkipProof.cheat_tac thy')
+    val tac = fn _ => Skip_Proof.cheat_tac thy'
     val intro = Goal.prove (ProofContext.init thy') (map fst vs') [] t tac
     val _ = tracing (Display.string_of_thm ctxt' intro)
     val thy'' = thy'

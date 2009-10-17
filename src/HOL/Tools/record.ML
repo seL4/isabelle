@@ -26,17 +26,13 @@ signature RECORD =
 sig
   include BASIC_RECORD
   val timing: bool Unsynchronized.ref
-  val record_quick_and_dirty_sensitive: bool Unsynchronized.ref
   val updateN: string
-  val updN: string
   val ext_typeN: string
   val extN: string
   val makeN: string
   val moreN: string
-  val ext_dest: string
-
   val last_extT: typ -> (string * typ list) option
-  val dest_recTs : typ -> (string * typ list) list
+  val dest_recTs: typ -> (string * typ list) list
   val get_extT_fields: theory -> typ -> (string * typ) list * (string * typ)
   val get_recT_fields: theory -> typ -> (string * typ) list * (string * typ)
   val get_parent: theory -> string -> (typ list * string) option
@@ -56,13 +52,10 @@ end;
 
 signature ISTUPLE_SUPPORT =
 sig
-  val add_istuple_type: bstring * string list -> (typ * typ) -> theory -> term * term * theory
-
+  val add_istuple_type: bstring * string list -> typ * typ -> theory -> (term * term) * theory
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
-
-  val istuple_intros_tac: theory -> int -> tactic
-
+  val istuple_intros_tac: int -> tactic
   val named_cterm_instantiate: (string * cterm) list -> thm -> thm
 end;
 
@@ -70,21 +63,11 @@ structure IsTupleSupport: ISTUPLE_SUPPORT =
 struct
 
 val isomN = "_TupleIsom";
-val defN = "_def";
 
-val istuple_UNIV_I = @{thm "istuple_UNIV_I"};
-val istuple_True_simp = @{thm "istuple_True_simp"};
+val istuple_intro = @{thm isomorphic_tuple_intro};
+val istuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
-val istuple_intro = @{thm "isomorphic_tuple_intro"};
-val istuple_intros = build_net (@{thms "isomorphic_tuple.intros"});
-
-val constname = fst o dest_Const;
-val tuple_istuple = (constname @{term tuple_istuple}, @{thm tuple_istuple});
-
-val istuple_constN = constname @{term isomorphic_tuple};
-val istuple_consN = constname @{term istuple_cons};
-
-val tup_isom_typeN = fst (dest_Type @{typ "('a, 'b, 'c) tuple_isomorphism"});
+val tuple_istuple = (@{const_name tuple_istuple}, @{thm tuple_istuple});
 
 fun named_cterm_instantiate values thm =
   let
@@ -111,11 +94,13 @@ fun do_typedef name repT alphas thy =
   let
     fun get_thms thy name =
       let
-        val SOME { Rep_inject=rep_inject, Abs_name=absN, abs_type=absT,
-          Abs_inverse=abs_inverse, ...} = Typedef.get_info thy name;
-        val rewrite_rule = MetaSimplifier.rewrite_rule [istuple_UNIV_I, istuple_True_simp];
-      in (map rewrite_rule [rep_inject, abs_inverse],
-            Const (absN, repT --> absT), absT) end;
+        val SOME {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
+          Abs_inverse = abs_inverse, ...} = Typedef.get_info thy name;
+        val rewrite_rule =
+          MetaSimplifier.rewrite_rule [@{thm istuple_UNIV_I}, @{thm istuple_True_simp}];
+      in
+        (map rewrite_rule [rep_inject, abs_inverse], Const (absN, repT --> absT), absT)
+      end;
   in
     thy
     |> Typecopy.typecopy (Binding.name name, alphas) repT NONE
@@ -126,16 +111,14 @@ fun mk_cons_tuple (left, right) =
   let
     val (leftT, rightT) = (fastype_of left, fastype_of right);
     val prodT = HOLogic.mk_prodT (leftT, rightT);
-    val isomT = Type (tup_isom_typeN, [prodT, leftT, rightT]);
+    val isomT = Type (@{type_name tuple_isomorphism}, [prodT, leftT, rightT]);
   in
-    Const (istuple_consN, isomT --> leftT --> rightT --> prodT) $
+    Const (@{const_name istuple_cons}, isomT --> leftT --> rightT --> prodT) $
       Const (fst tuple_istuple, isomT) $ left $ right
   end;
 
-fun dest_cons_tuple (v as Const (ic, _) $ Const _ $ left $ right) =
-      if ic = istuple_consN then (left, right)
-      else raise TERM ("dest_cons_tuple", [v])
-  | dest_cons_tuple v = raise TERM ("dest_cons_tuple", [v]);
+fun dest_cons_tuple (Const (@{const_name istuple_cons}, _) $ Const _ $ t $ u) = (t, u)
+  | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
 fun add_istuple_type (name, alphas) (leftT, rightT) thy =
   let
@@ -153,8 +136,9 @@ fun add_istuple_type (name, alphas) (leftT, rightT) thy =
     val (_, body) = Logic.dest_equals (List.last (prems_of intro_inst));
     val isomT = fastype_of body;
     val isom_bind = Binding.name (name ^ isomN);
-    val isom = Const (Sign.full_name typ_thy isom_bind, isomT);
-    val isom_spec = (name ^ isomN ^ defN, Logic.mk_equals (isom, body));
+    val isom_name = Sign.full_name typ_thy isom_bind;
+    val isom = Const (isom_name, isomT);
+    val isom_spec = (Thm.def_name (name ^ isomN), Logic.mk_equals (isom, body));
 
     val ([isom_def], cdef_thy) =
       typ_thy
@@ -162,38 +146,36 @@ fun add_istuple_type (name, alphas) (leftT, rightT) thy =
       |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
 
     val istuple = isom_def RS (abs_inverse RS (rep_inject RS istuple_intro));
-    val cons = Const (istuple_consN, isomT --> leftT --> rightT --> absT);
+    val cons = Const (@{const_name istuple_cons}, isomT --> leftT --> rightT --> absT);
 
     val thm_thy =
       cdef_thy
-      |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop (constname isom, istuple))
+      |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop (isom_name, istuple))
       |> Sign.parent_path;
   in
-    (isom, cons $ isom, thm_thy)
+    ((isom, cons $ isom), thm_thy)
   end;
 
-fun istuple_intros_tac thy =
-  let
-    val isthms = IsTupleThms.get thy;
-    fun err s t = raise TERM ("istuple_intros_tac: " ^ s, [t]);
-    val use_istuple_thm_tac = SUBGOAL (fn (goal, n) =>
-      let
-        val goal' = Envir.beta_eta_contract goal;
-        val isom =
-          (case goal' of
-            Const tp $ (Const pr $ Const is) =>
-              if fst tp = "Trueprop" andalso fst pr = istuple_constN
-              then Const is
-              else err "unexpected goal predicate" goal'
-          | _ => err "unexpected goal format" goal');
-        val isthm =
-          (case Symtab.lookup isthms (constname isom) of
-            SOME isthm => isthm
-          | NONE => err "no thm found for constant" isom);
-      in rtac isthm n end);
-  in
-    fn n => resolve_from_net_tac istuple_intros n THEN use_istuple_thm_tac n
-  end;
+val istuple_intros_tac = resolve_from_net_tac istuple_intros THEN'
+  CSUBGOAL (fn (cgoal, i) =>
+    let
+      val thy = Thm.theory_of_cterm cgoal;
+      val goal = Thm.term_of cgoal;
+
+      val isthms = IsTupleThms.get thy;
+      fun err s t = raise TERM ("istuple_intros_tac: " ^ s, [t]);
+
+      val goal' = Envir.beta_eta_contract goal;
+      val is =
+        (case goal' of
+          Const (@{const_name Trueprop}, _) $
+            (Const (@{const_name isomorphic_tuple}, _) $ Const is) => is
+        | _ => err "unexpected goal format" goal');
+      val isthm =
+        (case Symtab.lookup isthms (#1 is) of
+          SOME isthm => isthm
+        | NONE => err "no thm found for constant" (Const is));
+    in rtac isthm i end);
 
 end;
 
@@ -246,9 +228,7 @@ val schemeN = "_scheme";
 val ext_typeN = "_ext_type";
 val inner_typeN = "_inner_type";
 val extN ="_ext";
-val ext_dest = "_sel";
 val updateN = "_update";
-val updN = "_upd";
 val makeN = "make";
 val fields_selN = "fields";
 val extendN = "extend";
@@ -273,8 +253,6 @@ fun timing_msg s = if ! timing then warning s else ();
 
 
 (* syntax *)
-
-fun prune n xs = Library.drop (n, xs);
 
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
@@ -326,8 +304,7 @@ fun dest_recT (typ as Type (c_ext_type, Ts as (_ :: _))) =
       | SOME c => ((c, Ts), List.last Ts))
   | dest_recT typ = raise TYPE ("Record.dest_recT", [typ], []);
 
-fun is_recT T =
-  (case try dest_recT T of NONE => false | SOME _ => true);
+val is_recT = can dest_recT;
 
 fun dest_recTs T =
   let val ((c, Ts), U) = dest_recT T
@@ -656,7 +633,7 @@ fun add_parents _ NONE parents = parents
 
         fun bad_inst ((x, S), T) =
           if Sign.of_sort thy (T, S) then NONE else SOME x
-        val bads = List.mapPartial bad_inst (args ~~ types);
+        val bads = map_filter bad_inst (args ~~ types);
         val _ = null bads orelse err ("Ill-sorted instantiation of " ^ commas bads ^ " in");
 
         val inst = map fst args ~~ types;
@@ -1033,24 +1010,19 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
 
 (** record simprocs **)
 
-val record_quick_and_dirty_sensitive = Unsynchronized.ref false;
-
-
 fun quick_and_dirty_prove stndrd thy asms prop tac =
-  if ! record_quick_and_dirty_sensitive andalso ! quick_and_dirty then
+  if ! quick_and_dirty then
     Goal.prove (ProofContext.init thy) [] []
       (Logic.list_implies (map Logic.varify asms, Logic.varify prop))
-      (K (SkipProof.cheat_tac @{theory HOL}))
+      (K (Skip_Proof.cheat_tac @{theory HOL}))
       (*Drule.standard can take quite a while for large records, thats why
         we varify the proposition manually here.*)
   else
     let val prf = Goal.prove (ProofContext.init thy) [] asms prop tac
-    in if stndrd then standard prf else prf end;
+    in if stndrd then Drule.standard prf else prf end;
 
 fun quick_and_dirty_prf noopt opt () =
-  if ! record_quick_and_dirty_sensitive andalso ! quick_and_dirty
-  then noopt ()
-  else opt ();
+  if ! quick_and_dirty then noopt () else opt ();
 
 fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
   (case get_updates thy u of
@@ -1059,11 +1031,11 @@ fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
 
 fun mk_comp f g =
   let
-    val x = fastype_of g;
-    val a = domain_type x;
-    val b = range_type x;
-    val c = range_type (fastype_of f);
-    val T = (b --> c) --> ((a --> b) --> (a --> c))
+    val X = fastype_of g;
+    val A = domain_type X;
+    val B = range_type X;
+    val C = range_type (fastype_of f);
+    val T = (B --> C) --> (A --> B) --> A --> C;
   in Const ("Fun.comp", T) $ f $ g end;
 
 fun mk_comp_id f =
@@ -1073,7 +1045,7 @@ fun mk_comp_id f =
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
 
-fun get_accupd_simps thy term defset intros_tac =
+fun get_accupd_simps thy term defset =
   let
     val (acc, [body]) = strip_comb term;
     val upd_funs = sort_distinct TermOrd.fast_term_ord (get_upd_funs body);
@@ -1089,18 +1061,17 @@ fun get_accupd_simps thy term defset intros_tac =
         val othm =
           Goal.prove (ProofContext.init thy) [] [] prop
             (fn _ =>
-              EVERY
-               [simp_tac defset 1,
-                REPEAT_DETERM (intros_tac 1),
-                TRY (simp_tac (HOL_ss addsimps id_o_apps) 1)]);
+              simp_tac defset 1 THEN
+              REPEAT_DETERM (IsTupleSupport.istuple_intros_tac 1) THEN
+              TRY (simp_tac (HOL_ss addsimps id_o_apps) 1));
         val dest =
           if is_sel_upd_pair thy acc upd
           then o_eq_dest
           else o_eq_id_dest;
-      in standard (othm RS dest) end;
+      in Drule.standard (othm RS dest) end;
   in map get_simp upd_funs end;
 
-fun get_updupd_simp thy defset intros_tac u u' comp =
+fun get_updupd_simp thy defset u u' comp =
   let
     val f = Free ("f", domain_type (fastype_of u));
     val f' = Free ("f'", domain_type (fastype_of u'));
@@ -1113,18 +1084,17 @@ fun get_updupd_simp thy defset intros_tac u u' comp =
     val othm =
       Goal.prove (ProofContext.init thy) [] [] prop
         (fn _ =>
-          EVERY
-           [simp_tac defset 1,
-            REPEAT_DETERM (intros_tac 1),
-            TRY (simp_tac (HOL_ss addsimps [id_apply]) 1)]);
+          simp_tac defset 1 THEN
+          REPEAT_DETERM (IsTupleSupport.istuple_intros_tac 1) THEN
+          TRY (simp_tac (HOL_ss addsimps [id_apply]) 1));
     val dest = if comp then o_eq_dest_lhs else o_eq_dest;
-  in standard (othm RS dest) end;
+  in Drule.standard (othm RS dest) end;
 
-fun get_updupd_simps thy term defset intros_tac =
+fun get_updupd_simps thy term defset =
   let
     val upd_funs = get_upd_funs term;
     val cname = fst o dest_Const;
-    fun getswap u u' = get_updupd_simp thy defset intros_tac u u' (cname u = cname u');
+    fun getswap u u' = get_updupd_simp thy defset u u' (cname u = cname u');
     fun build_swaps_to_eq _ [] swaps = swaps
       | build_swaps_to_eq upd (u :: us) swaps =
           let
@@ -1148,14 +1118,10 @@ val named_cterm_instantiate = IsTupleSupport.named_cterm_instantiate;
 fun prove_unfold_defs thy ex_simps ex_simprs prop =
   let
     val defset = get_sel_upd_defs thy;
-    val in_tac = IsTupleSupport.istuple_intros_tac thy;
     val prop' = Envir.beta_eta_contract prop;
     val (lhs, _) = Logic.dest_equals (Logic.strip_assums_concl prop');
     val (_, args) = strip_comb lhs;
-    val simps =
-      if length args = 1
-      then get_accupd_simps thy lhs defset in_tac
-      else get_updupd_simps thy lhs defset in_tac;
+    val simps = (if length args = 1 then get_accupd_simps else get_updupd_simps) thy lhs defset;
   in
     Goal.prove (ProofContext.init thy) [] [] prop'
       (fn _ =>
@@ -1246,17 +1212,14 @@ val record_simproc =
 
 fun get_upd_acc_cong_thm upd acc thy simpset =
   let
-    val in_tac = IsTupleSupport.istuple_intros_tac thy;
-
-    val insts = [("upd", cterm_of thy upd), ("acc", cterm_of thy acc)]
-    val prop = concl_of (named_cterm_instantiate insts updacc_cong_triv);
+    val insts = [("upd", cterm_of thy upd), ("acc", cterm_of thy acc)];
+    val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
   in
     Goal.prove (ProofContext.init thy) [] [] prop
       (fn _ =>
-        EVERY
-         [simp_tac simpset 1,
-          REPEAT_DETERM (in_tac 1),
-          TRY (resolve_tac [updacc_cong_idI] 1)])
+        simp_tac simpset 1 THEN
+        REPEAT_DETERM (IsTupleSupport.istuple_intros_tac 1) THEN
+        TRY (resolve_tac [updacc_cong_idI] 1))
   end;
 
 
@@ -1312,10 +1275,11 @@ val record_upd_simproc =
             val ss = get_sel_upd_defs thy;
             val uathm = get_upd_acc_cong_thm upd acc thy ss;
           in
-            [standard (uathm RS updacc_noopE), standard (uathm RS updacc_noop_compE)]
+           [Drule.standard (uathm RS updacc_noopE),
+            Drule.standard (uathm RS updacc_noop_compE)]
           end;
 
-        (*If f is constant then (f o g) = f. we know that K_skeleton
+        (*If f is constant then (f o g) = f.  We know that K_skeleton
           only returns constant abstractions thus when we see an
           abstraction we can discard inner updates.*)
         fun add_upd (f as Abs _) fs = [f]
@@ -1362,7 +1326,7 @@ val record_upd_simproc =
           | mk_updterm us _ _ = raise TERM ("mk_updterm match", map (fn (x, _, _) => x) us);
 
         val (lhs, rhs, vars, _, simp, noops) = mk_updterm upds Symtab.empty base;
-        val noops' = flat (map snd (Symtab.dest noops));
+        val noops' = maps snd (Symtab.dest noops);
       in
         if simp then
           SOME
@@ -1376,7 +1340,7 @@ end;
 
 (* record_eq_simproc *)
 
-(*Looks up the most specific record-equality.
+(*Look up the most specific record-equality.
 
  Note on efficiency:
  Testing equality of records boils down to the test of equality of all components.
@@ -1482,17 +1446,17 @@ val record_ex_sel_eq_simproc =
   P t = 0: do not split
   P t = ~1: completely split
   P t > 0: split up to given bound of record extensions.*)
-fun record_split_simp_tac thms P i st =
+fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
   let
-    val thy = Thm.theory_of_thm st;
+    val thy = Thm.theory_of_cterm cgoal;
+
+    val goal = term_of cgoal;
+    val frees = filter (is_recT o #2) (Term.add_frees goal []);
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
           (s = "all" orelse s = "All" orelse s = "Ex") andalso is_recT T
         | _ => false);
-
-    val goal = nth (Thm.prems_of st) (i - 1);    (* FIXME SUBGOAL *)
-    val frees = filter (is_recT o type_of) (OldTerm.term_frees goal);
 
     fun mk_split_free_tac free induct_thm i =
       let
@@ -1501,61 +1465,58 @@ fun record_split_simp_tac thms P i st =
         val crec = cterm_of thy r;
         val thm = cterm_instantiate [(crec, cfree)] induct_thm;
       in
-        EVERY
-         [simp_tac (HOL_basic_ss addsimps @{thms induct_atomize}) i,
-          rtac thm i,
-          simp_tac (HOL_basic_ss addsimps @{thms induct_rulify}) i]
+        simp_tac (HOL_basic_ss addsimps @{thms induct_atomize}) i THEN
+        rtac thm i THEN
+        simp_tac (HOL_basic_ss addsimps @{thms induct_rulify}) i
       end;
 
-    fun split_free_tac P i (free as Free (_, T)) =
-          (case rec_id ~1 T of
-            "" => NONE
-          | _ =>
-              let val split = P free in
-                if split <> 0 then
-                  (case get_splits thy (rec_id split T) of
-                    NONE => NONE
-                  | SOME (_, _, _, induct_thm) =>
-                      SOME (mk_split_free_tac free induct_thm i))
-                else NONE
-              end)
-      | split_free_tac _ _ _ = NONE;
-
-    val split_frees_tacs = List.mapPartial (split_free_tac P i) frees;
+    val split_frees_tacs =
+      frees |> map_filter (fn (x, T) =>
+        (case rec_id ~1 T of
+          "" => NONE
+        | _ =>
+            let
+              val free = Free (x, T);
+              val split = P free;
+            in
+              if split <> 0 then
+                (case get_splits thy (rec_id split T) of
+                  NONE => NONE
+                | SOME (_, _, _, induct_thm) =>
+                    SOME (mk_split_free_tac free induct_thm i))
+              else NONE
+            end));
 
     val simprocs = if has_rec goal then [record_split_simproc P] else [];
     val thms' = K_comp_convs @ thms;
   in
-    st |>
-      (EVERY split_frees_tacs THEN
-        Simplifier.full_simp_tac (get_simpset thy addsimps thms' addsimprocs simprocs) i)
-  end handle Empty => Seq.empty;
+    EVERY split_frees_tacs THEN
+    Simplifier.full_simp_tac (get_simpset thy addsimps thms' addsimprocs simprocs) i
+  end);
 
 
 (* record_split_tac *)
 
 (*Split all records in the goal, which are quantified by ! or !!.*)
-fun record_split_tac i st =
+val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
   let
+    val goal = term_of cgoal;
+
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
           (s = "all" orelse s = "All") andalso is_recT T
         | _ => false);
-
-    val goal = nth (Thm.prems_of st) (i - 1);  (* FIXME SUBGOAL *)
 
     fun is_all t =
       (case t of
         Const (quantifier, _) $ _ =>
           if quantifier = "All" orelse quantifier = "all" then ~1 else 0
       | _ => 0);
-
   in
     if has_rec goal then
-      Simplifier.full_simp_tac
-        (HOL_basic_ss addsimprocs [record_split_simproc is_all]) i st
-    else Seq.empty
-  end handle Subscript => Seq.empty;     (* FIXME SUBGOAL *)
+      Simplifier.full_simp_tac (HOL_basic_ss addsimprocs [record_split_simproc is_all]) i
+    else no_tac
+  end);
 
 
 (* wrapper *)
@@ -1605,13 +1566,14 @@ fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps 
   (or on s if there are no parameters).
   Instatiation of record variable (and predicate) in rule is calculated to
   avoid problems with higher order unification.*)
-fun try_param_tac s rule i st =
+fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
   let
-    val cert = cterm_of (Thm.theory_of_thm st);
-    val g = nth (prems_of st) (i - 1);   (* FIXME SUBGOAL *)
+    val cert = Thm.cterm_of (Thm.theory_of_cterm cgoal);
+
+    val g = Thm.term_of cgoal;
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
-    val rule' = Thm.lift_rule (Thm.cprem_of st i) rule;
+    val rule' = Thm.lift_rule cgoal rule;
     val (P, ys) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_assums_concl (prop_of rule')));
     (*ca indicates if rule is a case analysis or induction rule*)
@@ -1621,23 +1583,23 @@ fun try_param_tac s rule i st =
           (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
       | [x] => (head_of x, false));
     val rule'' = cterm_instantiate (map (pairself cert)
-      (case (rev params) of
+      (case rev params of
         [] =>
-          (case AList.lookup (op =) (map dest_Free (OldTerm.term_frees (prop_of st))) s of
+          (case AList.lookup (op =) (Term.add_frees g []) s of
             NONE => sys_error "try_param_tac: no such variable"
           | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl), (x, Free (s, T))])
       | (_, T) :: _ =>
           [(P, list_abs (params, if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
             (x, list_abs (params, Bound 0))])) rule';
-  in compose_tac (false, rule'', nprems_of rule) i st end;
+  in compose_tac (false, rule'', nprems_of rule) i end);
 
 
 fun extension_definition name fields alphas zeta moreT more vars thy =
   let
     val base = Long_Name.base_name;
-    val fieldTs = (map snd fields);
+    val fieldTs = map snd fields;
     val alphas_zeta = alphas @ [zeta];
-    val alphas_zetaTs = map (fn n => TFree (n, HOLogic.typeS)) alphas_zeta;
+    val alphas_zetaTs = map (fn a => TFree (a, HOLogic.typeS)) alphas_zeta;
     val extT_name = suffix ext_typeN name
     val extT = Type (extT_name, alphas_zetaTs);
     val fields_moreTs = fieldTs @ [moreT];
@@ -1652,7 +1614,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       let
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val nm = suffix suff (Long_Name.base_name name);
-        val (_, cons, thy') =
+        val ((_, cons), thy') =
           IsTupleSupport.add_istuple_type
             (nm, alphas_zeta) (fastype_of left, fastype_of right) thy;
       in
@@ -1717,7 +1679,6 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     val ext = mk_ext vars_more;
     val s = Free (rN, extT);
     val P = Free (Name.variant variants "P", extT --> HOLogic.boolT);
-    val intros_tac = IsTupleSupport.istuple_intros_tac defs_thy;
 
     val inject_prop =
       let val vars_more' = map (fn (Free (x, T)) => Free (x ^ "'", T)) vars_more in
@@ -1743,11 +1704,11 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       simplify HOL_ss
         (prove_standard [] inject_prop
           (fn _ =>
-            EVERY
-             [simp_tac (HOL_basic_ss addsimps [ext_def]) 1,
-              REPEAT_DETERM (resolve_tac [refl_conj_eq] 1 ORELSE
-                intros_tac 1 ORELSE
-                resolve_tac [refl] 1)]));
+            simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
+            REPEAT_DETERM
+              (rtac refl_conj_eq 1 ORELSE
+                IsTupleSupport.istuple_intros_tac 1 ORELSE
+                rtac refl 1)));
 
     val inject = timeit_msg "record extension inject proof:" inject_prf;
 
@@ -1755,7 +1716,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       to prove other theorems. We haven't given names to the accessors
       f, g etc yet however, so we generate an ext structure with
       free variables as all arguments and allow the introduction tactic to
-      operate on it as far as it can. We then use standard to convert
+      operate on it as far as it can. We then use Drule.standard to convert
       the free variables into unifiable variables and unify them with
       (roughly) the definition of the accessor.*)
     fun surject_prf () =
@@ -1764,10 +1725,10 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
-          REPEAT_ALL_NEW intros_tac 1;
+          REPEAT_ALL_NEW IsTupleSupport.istuple_intros_tac 1;
         val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
-        val [halfway] = Seq.list_of (tactic1 start);    (* FIXME Seq.lift_of ?? *)
-        val [surject] = Seq.list_of (tactic2 (standard halfway));    (* FIXME Seq.lift_of ?? *)
+        val [halfway] = Seq.list_of (tactic1 start);
+        val [surject] = Seq.list_of (tactic2 (Drule.standard halfway));
       in
         surject
       end;
@@ -1776,21 +1737,20 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     fun split_meta_prf () =
       prove_standard [] split_meta_prop
         (fn _ =>
-          EVERY
-           [rtac equal_intr_rule 1, Goal.norm_hhf_tac 1,
-            etac meta_allE 1, atac 1,
-            rtac (prop_subst OF [surject]) 1,
-            REPEAT (etac meta_allE 1), atac 1]);
+          EVERY1
+           [rtac equal_intr_rule, Goal.norm_hhf_tac,
+            etac meta_allE, atac,
+            rtac (prop_subst OF [surject]),
+            REPEAT o etac meta_allE, atac]);
     val split_meta = timeit_msg "record extension split_meta proof:" split_meta_prf;
 
     fun induct_prf () =
       let val (assm, concl) = induct_prop in
         prove_standard [assm] concl
           (fn {prems, ...} =>
-            EVERY
-             [cut_rules_tac [split_meta RS Drule.equal_elim_rule2] 1,
-              resolve_tac prems 2,
-              asm_simp_tac HOL_ss 1])
+            cut_rules_tac [split_meta RS Drule.equal_elim_rule2] 1 THEN
+            resolve_tac prems 2 THEN
+            asm_simp_tac HOL_ss 1)
       end;
     val induct = timeit_msg "record extension induct proof:" induct_prf;
 
@@ -1860,7 +1820,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (bfields, field_syntax) =
       split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
 
-    val parent_fields = List.concat (map #fields parents);
+    val parent_fields = maps #fields parents;
     val parent_chunks = map (length o #fields) parents;
     val parent_names = map fst parent_fields;
     val parent_types = map snd parent_fields;
@@ -1873,7 +1833,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val names = map fst fields;
     val extN = full bname;
     val types = map snd fields;
-    val alphas_fields = List.foldr OldTerm.add_typ_tfree_names [] types;
+    val alphas_fields = fold Term.add_tfree_namesT types [];
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
     val variants =
@@ -1915,20 +1875,23 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extension_names = map (unsuffix ext_typeN o fst o #extension) parents @ [extN];
     val extension_id = implode extension_names;
 
-    fun rec_schemeT n = mk_recordT (map #extension (prune n parents)) extT;
+    fun rec_schemeT n = mk_recordT (map #extension (Library.drop (n, parents))) extT;
     val rec_schemeT0 = rec_schemeT 0;
 
     fun recT n =
-      let val (c, Ts) = extension
-      in mk_recordT (map #extension (prune n parents)) (Type (c, subst_last HOLogic.unitT Ts)) end;
+      let val (c, Ts) = extension in
+        mk_recordT (map #extension (Library.drop (n, parents)))
+          (Type (c, subst_last HOLogic.unitT Ts))
+      end;
     val recT0 = recT 0;
 
     fun mk_rec args n =
       let
         val (args', more) = chop_last args;
-        fun mk_ext' (((name, T), args), more) = mk_ext (name, T) (args @ [more]);
+        fun mk_ext' ((name, T), args) more = mk_ext (name, T) (args @ [more]);
         fun build Ts =
-          List.foldr mk_ext' more (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')));
+          fold_rev mk_ext' (Library.drop (n, (extension_names ~~ Ts) ~~ chunks parent_chunks args'))
+            more;
       in
         if more = HOLogic.unit
         then build (map recT (0 upto parent_len))
@@ -1984,7 +1947,6 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         (Binding.name bname, alphas, recT0, Syntax.NoSyn)];
 
     val ext_defs = ext_def :: map #extdef parents;
-    val intros_tac = IsTupleSupport.istuple_intros_tac extension_thy;
 
     (*Theorems from the istuple intros.
       This is complex enough to deserve a full comment.
@@ -2011,8 +1973,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
         val tactic =
           simp_tac (HOL_basic_ss addsimps ext_defs) 1 THEN
-          REPEAT (intros_tac 1 ORELSE terminal);
-        val updaccs = Seq.list_of (tactic init_thm);  (* FIXME Seq.lift_of *)
+          REPEAT (IsTupleSupport.istuple_intros_tac 1 ORELSE terminal);
+        val updaccs = Seq.list_of (tactic init_thm);
       in
         (updaccs RL [updacc_accessor_eqE],
          updaccs RL [updacc_updator_eqE],
@@ -2021,7 +1983,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (accessor_thms, updator_thms, upd_acc_cong_assists) =
       timeit_msg "record getting tree access/updates:" get_access_update_thms;
 
-    fun lastN xs = List.drop (xs, parent_fields_len);
+    fun lastN xs = Library.drop (parent_fields_len, xs);
 
     (*selectors*)
     fun mk_sel_spec ((c, T), thm) =
@@ -2135,15 +2097,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
          (All [dest_Free r0] (P $ r0), All (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
-    (* FIXME eliminate old List.foldr *)
-
     val split_object_prop =
-      let fun ALL vs t = List.foldr (fn ((v, T), t) => HOLogic.mk_all (v, T, t)) t vs
-      in (ALL [dest_Free r0] (P $ r0)) === (ALL (map dest_Free all_vars_more) (P $ r_rec0)) end;
+      let val ALL = fold_rev (fn (v, T) => fn t => HOLogic.mk_all (v, T, t))
+      in ALL [dest_Free r0] (P $ r0) === ALL (map dest_Free all_vars_more) (P $ r_rec0) end;
 
     val split_ex_prop =
-      let fun EX vs t = List.foldr (fn ((v, T), t) => HOLogic.mk_exists (v, T, t)) t vs
-      in (EX [dest_Free r0] (P $ r0)) === (EX (map dest_Free all_vars_more) (P $ r_rec0)) end;
+      let val EX = fold_rev (fn (v, T) => fn t => HOLogic.mk_exists (v, T, t))
+      in EX [dest_Free r0] (P $ r0) === EX (map dest_Free all_vars_more) (P $ r_rec0) end;
 
     (*equality*)
     val equality_prop =
@@ -2168,14 +2128,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun sel_convs_prf () =
       map (prove_simp false ss (sel_defs @ accessor_thms)) sel_conv_props;
     val sel_convs = timeit_msg "record sel_convs proof:" sel_convs_prf;
-    fun sel_convs_standard_prf () = map standard sel_convs
+    fun sel_convs_standard_prf () = map Drule.standard sel_convs
     val sel_convs_standard =
       timeit_msg "record sel_convs_standard proof:" sel_convs_standard_prf;
 
     fun upd_convs_prf () =
       map (prove_simp false ss (upd_defs @ updator_thms)) upd_conv_props;
     val upd_convs = timeit_msg "record upd_convs proof:" upd_convs_prf;
-    fun upd_convs_standard_prf () = map standard upd_convs
+    fun upd_convs_standard_prf () = map Drule.standard upd_convs
     val upd_convs_standard =
       timeit_msg "record upd_convs_standard proof:" upd_convs_standard_prf;
 
@@ -2183,7 +2143,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       let
         val symdefs = map symmetric (sel_defs @ upd_defs);
         val fold_ss = HOL_basic_ss addsimps symdefs;
-        val ua_congs = map (standard o simplify fold_ss) upd_acc_cong_assists;
+        val ua_congs = map (Drule.standard o simplify fold_ss) upd_acc_cong_assists;
       in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end;
     val (fold_congs, unfold_congs) =
       timeit_msg "record upd fold/unfold congs:" get_upd_acc_congs;
@@ -2194,8 +2154,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       prove_standard [] induct_scheme_prop
         (fn _ =>
           EVERY
-           [if null parent_induct
-            then all_tac else try_param_tac rN (hd parent_induct) 1,
+           [if null parent_induct then all_tac else try_param_tac rN (hd parent_induct) 1,
             try_param_tac rN ext_induct 1,
             asm_simp_tac HOL_basic_ss 1]);
     val induct_scheme = timeit_msg "record induct_scheme proof:" induct_scheme_prf;
@@ -2217,18 +2176,18 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             [(cterm_of defs_thy Pvar, cterm_of defs_thy
               (lambda w (HOLogic.imp $ HOLogic.mk_eq (r0, w) $ C)))]
             induct_scheme;
-        in standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
+        in Drule.standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
 
     fun cases_scheme_prf_noopt () =
       prove_standard [] cases_scheme_prop
         (fn _ =>
-          EVERY
-           [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
-            try_param_tac rN induct_scheme 1,
-            rtac impI 1,
-            REPEAT (etac allE 1),
-            etac mp 1,
-            rtac refl 1]);
+          EVERY1
+           [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]),
+            try_param_tac rN induct_scheme,
+            rtac impI,
+            REPEAT o etac allE,
+            etac mp,
+            rtac refl]);
     val cases_scheme_prf = quick_and_dirty_prf cases_scheme_prf_noopt cases_scheme_prf_opt;
     val cases_scheme = timeit_msg "record cases_scheme proof:" cases_scheme_prf;
 
@@ -2249,20 +2208,22 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             EVERY
              [rtac surject_assist_idE 1,
               simp_tac init_ss 1,
-              REPEAT (intros_tac 1 ORELSE (rtac surject_assistI 1 THEN simp_tac leaf_ss 1))])
+              REPEAT
+                (IsTupleSupport.istuple_intros_tac 1 ORELSE
+                  (rtac surject_assistI 1 THEN simp_tac leaf_ss 1))])
       end;
     val surjective = timeit_msg "record surjective proof:" surjective_prf;
 
     fun split_meta_prf () =
       prove false [] split_meta_prop
         (fn _ =>
-          EVERY
-           [rtac equal_intr_rule 1, Goal.norm_hhf_tac 1,
-            etac meta_allE 1, atac 1,
-            rtac (prop_subst OF [surjective]) 1,
-            REPEAT (etac meta_allE 1), atac 1]);
+          EVERY1
+           [rtac equal_intr_rule, Goal.norm_hhf_tac,
+            etac meta_allE, atac,
+            rtac (prop_subst OF [surjective]),
+            REPEAT o etac meta_allE, atac]);
     val split_meta = timeit_msg "record split_meta proof:" split_meta_prf;
-    fun split_meta_standardise () = standard split_meta;
+    fun split_meta_standardise () = Drule.standard split_meta;
     val split_meta_standard =
       timeit_msg "record split_meta standard:" split_meta_standardise;
 
@@ -2287,15 +2248,15 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           |> equal_elim (symmetric split_meta') (*!!r. P r*)
           |> meta_to_obj_all                    (*All r. P r*)
           |> implies_intr cr                    (* 2 ==> 1 *)
-     in standard (thr COMP (thl COMP iffI)) end;
+     in Drule.standard (thr COMP (thl COMP iffI)) end;
 
     fun split_object_prf_noopt () =
       prove_standard [] split_object_prop
         (fn _ =>
-          EVERY
-           [rtac iffI 1,
-            REPEAT (rtac allI 1), etac allE 1, atac 1,
-            rtac allI 1, rtac induct_scheme 1, REPEAT (etac allE 1), atac 1]);
+          EVERY1
+           [rtac iffI,
+            REPEAT o rtac allI, etac allE, atac,
+            rtac allI, rtac induct_scheme, REPEAT o etac allE, atac]);
 
     val split_object_prf = quick_and_dirty_prf split_object_prf_noopt split_object_prf_opt;
     val split_object = timeit_msg "record split_object proof:" split_object_prf;
@@ -2401,7 +2362,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val init_env =
       (case parent of
         NONE => []
-      | SOME (types, _) => List.foldr OldTerm.add_typ_tfrees [] types);
+      | SOME (types, _) => fold Term.add_tfreesT types []);
 
 
     (* fields *)

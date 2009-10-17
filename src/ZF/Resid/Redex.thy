@@ -1,8 +1,5 @@
 (*  Title:      ZF/Resid/Redex.thy
-    ID:         $Id$
-    Author:     Ole Rasmussen
-    Copyright   1995  University of Cambridge
-    Logic Image: ZF
+    Author:     Ole Rasmussen, University of Cambridge
 *)
 
 theory Redex imports Main begin
@@ -38,12 +35,12 @@ primrec (*explicit lambda is required because both arguments of "un" vary*)
 
   "union_aux(Fun(u)) =
      (\<lambda>t \<in> redexes. redexes_case(%j. 0, %y. Fun(union_aux(u)`y),
-	 			  %b y z. 0, t))"
+                                  %b y z. 0, t))"
 
   "union_aux(App(b,f,a)) =
      (\<lambda>t \<in> redexes.
         redexes_case(%j. 0, %y. 0,
-		     %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
+                     %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
 definition
   union  (infixl "un" 70) where

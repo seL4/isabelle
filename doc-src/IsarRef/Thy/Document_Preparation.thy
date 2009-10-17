@@ -141,12 +141,11 @@ text {*
     @{antiquotation_def "lemma"} & : & @{text antiquotation} \\
     @{antiquotation_def "prop"} & : & @{text antiquotation} \\
     @{antiquotation_def "term"} & : & @{text antiquotation} \\
+    @{antiquotation_def term_type} & : & @{text antiquotation} \\
+    @{antiquotation_def typeof} & : & @{text antiquotation} \\
     @{antiquotation_def const} & : & @{text antiquotation} \\
     @{antiquotation_def abbrev} & : & @{text antiquotation} \\
-    @{antiquotation_def typeof} & : & @{text antiquotation} \\
     @{antiquotation_def typ} & : & @{text antiquotation} \\
-    @{antiquotation_def thm_style} & : & @{text antiquotation} \\
-    @{antiquotation_def term_style} & : & @{text antiquotation} \\
     @{antiquotation_def "text"} & : & @{text antiquotation} \\
     @{antiquotation_def goals} & : & @{text antiquotation} \\
     @{antiquotation_def subgoals} & : & @{text antiquotation} \\
@@ -182,16 +181,15 @@ text {*
 
     antiquotation:
       'theory' options name |
-      'thm' options thmrefs |
+      'thm' options styles thmrefs |
       'lemma' options prop 'by' method |
-      'prop' options prop |
-      'term' options term |
+      'prop' options styles prop |
+      'term' options styles term |
+      'term_type' options styles term |
+      'typeof' options styles term |
       'const' options term |
       'abbrev' options term |
-      'typeof' options term |
       'typ' options type |
-      'thm\_style' options name thmref |
-      'term\_style' options name term |
       'text' options name |
       'goals' options |
       'subgoals' options |
@@ -204,6 +202,10 @@ text {*
     options: '[' (option * ',') ']'
     ;
     option: name | name '=' name
+    ;
+    styles: '(' (style + ',') ')'
+    ;
+    style: (name +)
     ;
   \end{rail}
 
@@ -230,23 +232,19 @@ text {*
 
   \item @{text "@{term t}"} prints a well-typed term @{text "t"}.
 
+  \item @{text "@{term_type t}"} prints a well-typed term @{text "t"}
+  annotated with its type.
+
+  \item @{text "@{typeof t}"} prints the type of a well-typed term
+  @{text "t"}.
+
   \item @{text "@{const c}"} prints a logical or syntactic constant
   @{text "c"}.
   
   \item @{text "@{abbrev c x\<^sub>1 \<dots> x\<^sub>n}"} prints a constant abbreviation
   @{text "c x\<^sub>1 \<dots> x\<^sub>n \<equiv> rhs"} as defined in the current context.
-
-  \item @{text "@{typeof t}"} prints the type of a well-typed term
-  @{text "t"}.
-
   \item @{text "@{typ \<tau>}"} prints a well-formed type @{text "\<tau>"}.
   
-  \item @{text "@{thm_style s a}"} prints theorem @{text a},
-  previously applying a style @{text s} to it (see below).
-  
-  \item @{text "@{term_style s t}"} prints a well-typed term @{text t}
-  after applying a style @{text s} to it (see below).
-
   \item @{text "@{text s}"} prints uninterpreted source text @{text
   s}.  This is particularly useful to print portions of text according
   to the Isabelle document style, without demanding well-formedness,
@@ -285,9 +283,11 @@ text {*
 
 subsubsection {* Styled antiquotations *}
 
-text {* Some antiquotations like @{text thm_style} and @{text
-  term_style} admit an extra \emph{style} specification to modify the
-  printed result.  The following standard styles are available:
+text {* The antiquotations @{text thm}, @{text prop} and @{text
+  term} admit an extra \emph{style} specification to modify the
+  printed result.  A style is specified by a name with a possibly
+  empty number of arguments;  multiple styles can be sequenced with
+  commas.  The following standard styles are available:
 
   \begin{description}
   
@@ -301,8 +301,8 @@ text {* Some antiquotations like @{text thm_style} and @{text
   \item @{text "concl"} extracts the conclusion @{text C} from a rule
   in Horn-clause normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}.
   
-  \item @{text "prem1"}, \dots, @{text "prem9"} extract premise number
-  @{text "1, \<dots>, 9"}, respectively, from from a rule in Horn-clause
+  \item @{text "prem"} @{text n} extract premise number
+  @{text "n"} from from a rule in Horn-clause
   normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}
 
   \end{description}

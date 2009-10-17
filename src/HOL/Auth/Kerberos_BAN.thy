@@ -77,45 +77,45 @@ inductive_set bankerberos :: "event list set"
    Nil:  "[] \<in> bankerberos"
 
  | Fake: "\<lbrakk> evsf \<in> bankerberos;  X \<in> synth (analz (spies evsf)) \<rbrakk>
-	  \<Longrightarrow> Says Spy B X # evsf \<in> bankerberos"
+          \<Longrightarrow> Says Spy B X # evsf \<in> bankerberos"
 
 
  | BK1:  "\<lbrakk> evs1 \<in> bankerberos \<rbrakk>
-	  \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B\<rbrace> # evs1
-		\<in>  bankerberos"
+          \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B\<rbrace> # evs1
+                \<in>  bankerberos"
 
 
  | BK2:  "\<lbrakk> evs2 \<in> bankerberos;  Key K \<notin> used evs2; K \<in> symKeys;
-	     Says A' Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs2 \<rbrakk>
-	  \<Longrightarrow> Says Server A
-		(Crypt (shrK A)
-		   \<lbrace>Number (CT evs2), Agent B, Key K,
-		    (Crypt (shrK B) \<lbrace>Number (CT evs2), Agent A, Key K\<rbrace>)\<rbrace>)
-		# evs2 \<in> bankerberos"
+             Says A' Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs2 \<rbrakk>
+          \<Longrightarrow> Says Server A
+                (Crypt (shrK A)
+                   \<lbrace>Number (CT evs2), Agent B, Key K,
+                    (Crypt (shrK B) \<lbrace>Number (CT evs2), Agent A, Key K\<rbrace>)\<rbrace>)
+                # evs2 \<in> bankerberos"
 
 
  | BK3:  "\<lbrakk> evs3 \<in> bankerberos;
-	     Says S A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
-	       \<in> set evs3;
-	     Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs3;
-	     \<not> expiredK Tk evs3 \<rbrakk>
-	  \<Longrightarrow> Says A B \<lbrace>Ticket, Crypt K \<lbrace>Agent A, Number (CT evs3)\<rbrace> \<rbrace>
-	       # evs3 \<in> bankerberos"
+             Says S A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
+               \<in> set evs3;
+             Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs3;
+             \<not> expiredK Tk evs3 \<rbrakk>
+          \<Longrightarrow> Says A B \<lbrace>Ticket, Crypt K \<lbrace>Agent A, Number (CT evs3)\<rbrace> \<rbrace>
+               # evs3 \<in> bankerberos"
 
 
  | BK4:  "\<lbrakk> evs4 \<in> bankerberos;
-	     Says A' B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
-			 (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
-	     \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
-	  \<Longrightarrow> Says B A (Crypt K (Number Ta)) # evs4
-		\<in> bankerberos"
+             Says A' B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
+                         (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
+             \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
+          \<Longrightarrow> Says B A (Crypt K (Number Ta)) # evs4
+                \<in> bankerberos"
 
-	(*Old session keys may become compromised*)
+        (*Old session keys may become compromised*)
  | Oops: "\<lbrakk> evso \<in> bankerberos;
          Says Server A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
-	       \<in> set evso;
-	     expiredK Tk evso \<rbrakk>
-	  \<Longrightarrow> Notes Spy \<lbrace>Number Tk, Key K\<rbrace> # evso \<in> bankerberos"
+               \<in> set evso;
+             expiredK Tk evso \<rbrakk>
+          \<Longrightarrow> Notes Spy \<lbrace>Number Tk, Key K\<rbrace> # evso \<in> bankerberos"
 
 
 declare Says_imp_knows_Spy [THEN parts.Inj, dest]

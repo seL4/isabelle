@@ -20,7 +20,7 @@ sig
   val upto: elem -> T -> elem list * T
 end;
 
-functor HeapFun(type elem val ord: elem * elem -> order): HEAP =
+functor Heap(type elem val ord: elem * elem -> order): HEAP =
 struct
 
 

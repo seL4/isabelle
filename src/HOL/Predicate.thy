@@ -60,29 +60,23 @@ lemma bot_empty_eq2: "bot = (\<lambda>x y. (x, y) \<in> {})"
 
 subsubsection {* Binary union *}
 
-lemma sup1_iff: "sup A B x \<longleftrightarrow> A x | B x"
-  by (simp add: sup_fun_eq sup_bool_eq)
-
-lemma sup2_iff: "sup A B x y \<longleftrightarrow> A x y | B x y"
-  by (simp add: sup_fun_eq sup_bool_eq)
-
-lemma sup_Un_eq: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
-  by (simp add: sup1_iff expand_fun_eq)
-
-lemma sup_Un_eq2 [pred_set_conv]: "sup (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
-  by (simp add: sup2_iff expand_fun_eq)
-
 lemma sup1I1 [elim?]: "A x \<Longrightarrow> sup A B x"
-  by (simp add: sup1_iff)
+  by (simp add: sup_fun_eq sup_bool_eq)
 
 lemma sup2I1 [elim?]: "A x y \<Longrightarrow> sup A B x y"
-  by (simp add: sup2_iff)
+  by (simp add: sup_fun_eq sup_bool_eq)
 
 lemma sup1I2 [elim?]: "B x \<Longrightarrow> sup A B x"
-  by (simp add: sup1_iff)
+  by (simp add: sup_fun_eq sup_bool_eq)
 
 lemma sup2I2 [elim?]: "B x y \<Longrightarrow> sup A B x y"
-  by (simp add: sup2_iff)
+  by (simp add: sup_fun_eq sup_bool_eq)
+
+lemma sup1E [elim!]: "sup A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
+  by (simp add: sup_fun_eq sup_bool_eq) iprover
+
+lemma sup2E [elim!]: "sup A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
+  by (simp add: sup_fun_eq sup_bool_eq) iprover
 
 text {*
   \medskip Classical introduction rule: no commitment to @{text A} vs
@@ -90,55 +84,49 @@ text {*
 *}
 
 lemma sup1CI [intro!]: "(~ B x ==> A x) ==> sup A B x"
-  by (auto simp add: sup1_iff)
+  by (auto simp add: sup_fun_eq sup_bool_eq)
 
 lemma sup2CI [intro!]: "(~ B x y ==> A x y) ==> sup A B x y"
-  by (auto simp add: sup2_iff)
+  by (auto simp add: sup_fun_eq sup_bool_eq)
 
-lemma sup1E [elim!]: "sup A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
-  by (simp add: sup1_iff) iprover
+lemma sup_Un_eq: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
+  by (simp add: sup_fun_eq sup_bool_eq mem_def)
 
-lemma sup2E [elim!]: "sup A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
-  by (simp add: sup2_iff) iprover
+lemma sup_Un_eq2 [pred_set_conv]: "sup (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
+  by (simp add: sup_fun_eq sup_bool_eq mem_def)
 
 
 subsubsection {* Binary intersection *}
 
-lemma inf1_iff: "inf A B x \<longleftrightarrow> A x \<and> B x"
+lemma inf1I [intro!]: "A x ==> B x ==> inf A B x"
   by (simp add: inf_fun_eq inf_bool_eq)
 
-lemma inf2_iff: "inf A B x y \<longleftrightarrow> A x y \<and> B x y"
+lemma inf2I [intro!]: "A x y ==> B x y ==> inf A B x y"
+  by (simp add: inf_fun_eq inf_bool_eq)
+
+lemma inf1E [elim!]: "inf A B x ==> (A x ==> B x ==> P) ==> P"
+  by (simp add: inf_fun_eq inf_bool_eq)
+
+lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
+  by (simp add: inf_fun_eq inf_bool_eq)
+
+lemma inf1D1: "inf A B x ==> A x"
+  by (simp add: inf_fun_eq inf_bool_eq)
+
+lemma inf2D1: "inf A B x y ==> A x y"
+  by (simp add: inf_fun_eq inf_bool_eq)
+
+lemma inf1D2: "inf A B x ==> B x"
+  by (simp add: inf_fun_eq inf_bool_eq)
+
+lemma inf2D2: "inf A B x y ==> B x y"
   by (simp add: inf_fun_eq inf_bool_eq)
 
 lemma inf_Int_eq: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
-  by (simp add: inf1_iff expand_fun_eq)
+  by (simp add: inf_fun_eq inf_bool_eq mem_def)
 
 lemma inf_Int_eq2 [pred_set_conv]: "inf (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
-  by (simp add: inf2_iff expand_fun_eq)
-
-lemma inf1I [intro!]: "A x ==> B x ==> inf A B x"
-  by (simp add: inf1_iff)
-
-lemma inf2I [intro!]: "A x y ==> B x y ==> inf A B x y"
-  by (simp add: inf2_iff)
-
-lemma inf1D1: "inf A B x ==> A x"
-  by (simp add: inf1_iff)
-
-lemma inf2D1: "inf A B x y ==> A x y"
-  by (simp add: inf2_iff)
-
-lemma inf1D2: "inf A B x ==> B x"
-  by (simp add: inf1_iff)
-
-lemma inf2D2: "inf A B x y ==> B x y"
-  by (simp add: inf2_iff)
-
-lemma inf1E [elim!]: "inf A B x ==> (A x ==> B x ==> P) ==> P"
-  by (simp add: inf1_iff)
-
-lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
-  by (simp add: inf2_iff)
+  by (simp add: inf_fun_eq inf_bool_eq mem_def)
 
 
 subsubsection {* Unions of families *}
@@ -447,10 +435,10 @@ lemma botE: "eval \<bottom> x \<Longrightarrow> P"
   unfolding bot_pred_def by auto
 
 lemma supI1: "eval A x \<Longrightarrow> eval (A \<squnion> B) x"
-  unfolding sup_pred_def by (simp add: sup1_iff)
+  unfolding sup_pred_def by (simp add: sup_fun_eq sup_bool_eq)
 
 lemma supI2: "eval B x \<Longrightarrow> eval (A \<squnion> B) x" 
-  unfolding sup_pred_def by (simp add: sup1_iff)
+  unfolding sup_pred_def by (simp add: sup_fun_eq sup_bool_eq)
 
 lemma supE: "eval (A \<squnion> B) x \<Longrightarrow> (eval A x \<Longrightarrow> P) \<Longrightarrow> (eval B x \<Longrightarrow> P) \<Longrightarrow> P"
   unfolding sup_pred_def by auto

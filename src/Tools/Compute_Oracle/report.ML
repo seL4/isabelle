@@ -11,12 +11,12 @@ in
 
 fun timeit f =
     let
-	val t1 = start_timing ()
-	val x = f ()
-	val t2 = #message (end_timing t1)
-	val _ = writeln ((report_space ()) ^ "--> "^t2)
+        val t1 = start_timing ()
+        val x = f ()
+        val t2 = #message (end_timing t1)
+        val _ = writeln ((report_space ()) ^ "--> "^t2)
     in
-	x	
+        x       
     end
 
 fun report s f = 

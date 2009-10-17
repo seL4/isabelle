@@ -202,12 +202,12 @@ proof -
     proof (induct b rule: SN.SN.induct)
       case (SN_intro y)
       show ?case
-	apply (rule hyp)
-	apply (erule SNI')
-	apply (erule SNI')
-	apply (rule SN.SN_intro)
-	apply (erule SN_intro)+
-	done
+        apply (rule hyp)
+        apply (erule SNI')
+        apply (erule SNI')
+        apply (rule SN.SN_intro)
+        apply (erule SN_intro)+
+        done
     qed
   qed
   from b show ?thesis by (rule r)
@@ -432,62 +432,62 @@ proof -
       assume as2: "\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>"
       have "CR3_RED (App (Lam [x].t) u) \<sigma>" unfolding CR3_RED_def
       proof(intro strip)
-	fix r
-	assume red: "App (Lam [x].t) u \<longrightarrow>\<^isub>\<beta> r"
-	moreover
-	{ assume "\<exists>t'. t \<longrightarrow>\<^isub>\<beta> t' \<and> r = App (Lam [x].t') u"
-	  then obtain t' where a1: "t \<longrightarrow>\<^isub>\<beta> t'" and a2: "r = App (Lam [x].t') u" by blast
-	  have "App (Lam [x].t') u\<in>RED \<sigma>" using ih1 a1 as1 as2
-	    apply(auto)
-	    apply(drule_tac x="t'" in meta_spec)
-	    apply(simp)
-	    apply(drule meta_mp)
-	    prefer 2
-	    apply(auto)[1]
-	    apply(rule ballI)
-	    apply(drule_tac x="s" in bspec)
-	    apply(simp)
-	    apply(subgoal_tac "CR2 \<sigma>")(*A*)
-	    apply(unfold CR2_def)[1]
-	    apply(drule_tac x="t[x::=s]" in spec)
-	    apply(drule_tac x="t'[x::=s]" in spec)
-	    apply(simp add: beta_subst)
-	    (*A*)
-	    apply(simp add: RED_props)
-	    done
-	  then have "r\<in>RED \<sigma>" using a2 by simp
-	}
-	moreover
-	{ assume "\<exists>u'. u \<longrightarrow>\<^isub>\<beta> u' \<and> r = App (Lam [x].t) u'"
-	  then obtain u' where b1: "u \<longrightarrow>\<^isub>\<beta> u'" and b2: "r = App (Lam [x].t) u'" by blast
-	  have "App (Lam [x].t) u'\<in>RED \<sigma>" using ih2 b1 as1 as2
-	    apply(auto)
-	    apply(drule_tac x="u'" in meta_spec)
-	    apply(simp)
-	    apply(drule meta_mp)
-	    apply(subgoal_tac "CR2 \<tau>")
-	    apply(unfold CR2_def)[1]
-	    apply(drule_tac x="u" in spec)
-	    apply(drule_tac x="u'" in spec)
-	    apply(simp)
-	    apply(simp add: RED_props)
-	    apply(simp)
-	    done
-	  then have "r\<in>RED \<sigma>" using b2 by simp
-	}
-	moreover
-	{ assume "r = t[x::=u]"
-	  then have "r\<in>RED \<sigma>" using as1 as2 by auto
-	}
-	ultimately show "r \<in> RED \<sigma>" 
-	  (* one wants to use the strong elimination principle; for this one 
-	     has to know that x\<sharp>u *)
-	apply(cases) 
-	apply(auto simp add: lam.inject)
-	apply(drule beta_abs)
-	apply(auto)[1]
-	apply(auto simp add: alpha subst_rename)
-	done
+        fix r
+        assume red: "App (Lam [x].t) u \<longrightarrow>\<^isub>\<beta> r"
+        moreover
+        { assume "\<exists>t'. t \<longrightarrow>\<^isub>\<beta> t' \<and> r = App (Lam [x].t') u"
+          then obtain t' where a1: "t \<longrightarrow>\<^isub>\<beta> t'" and a2: "r = App (Lam [x].t') u" by blast
+          have "App (Lam [x].t') u\<in>RED \<sigma>" using ih1 a1 as1 as2
+            apply(auto)
+            apply(drule_tac x="t'" in meta_spec)
+            apply(simp)
+            apply(drule meta_mp)
+            prefer 2
+            apply(auto)[1]
+            apply(rule ballI)
+            apply(drule_tac x="s" in bspec)
+            apply(simp)
+            apply(subgoal_tac "CR2 \<sigma>")(*A*)
+            apply(unfold CR2_def)[1]
+            apply(drule_tac x="t[x::=s]" in spec)
+            apply(drule_tac x="t'[x::=s]" in spec)
+            apply(simp add: beta_subst)
+            (*A*)
+            apply(simp add: RED_props)
+            done
+          then have "r\<in>RED \<sigma>" using a2 by simp
+        }
+        moreover
+        { assume "\<exists>u'. u \<longrightarrow>\<^isub>\<beta> u' \<and> r = App (Lam [x].t) u'"
+          then obtain u' where b1: "u \<longrightarrow>\<^isub>\<beta> u'" and b2: "r = App (Lam [x].t) u'" by blast
+          have "App (Lam [x].t) u'\<in>RED \<sigma>" using ih2 b1 as1 as2
+            apply(auto)
+            apply(drule_tac x="u'" in meta_spec)
+            apply(simp)
+            apply(drule meta_mp)
+            apply(subgoal_tac "CR2 \<tau>")
+            apply(unfold CR2_def)[1]
+            apply(drule_tac x="u" in spec)
+            apply(drule_tac x="u'" in spec)
+            apply(simp)
+            apply(simp add: RED_props)
+            apply(simp)
+            done
+          then have "r\<in>RED \<sigma>" using b2 by simp
+        }
+        moreover
+        { assume "r = t[x::=u]"
+          then have "r\<in>RED \<sigma>" using as1 as2 by auto
+        }
+        ultimately show "r \<in> RED \<sigma>" 
+          (* one wants to use the strong elimination principle; for this one 
+             has to know that x\<sharp>u *)
+        apply(cases) 
+        apply(auto simp add: lam.inject)
+        apply(drule beta_abs)
+        apply(auto)[1]
+        apply(auto simp add: alpha subst_rename)
+        done
     qed
     moreover 
     have "NEUT (App (Lam [x].t) u)" unfolding NEUT_def by (auto)

@@ -58,7 +58,7 @@ sig
   val exists: ('a -> bool) -> 'a list -> bool
   val forall: ('a -> bool) -> 'a list -> bool
   val setmp_noncritical: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
-  val setmp: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  val setmp_CRITICAL: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
@@ -217,6 +217,8 @@ sig
 
   (*misc*)
   val divide_and_conquer: ('a -> 'a list * ('b list -> 'b)) -> 'a -> 'b
+  val divide_and_conquer': ('a -> 'b -> ('a list * ('c list * 'b -> 'c * 'b)) * 'b) ->
+    'a -> 'b -> 'c * 'b
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
@@ -329,7 +331,7 @@ fun setmp_noncritical flag value f x =
       val _ = flag := orig_value;
     in Exn.release result end) ();
 
-fun setmp flag value f x =
+fun setmp_CRITICAL flag value f x =
   NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
 
 fun setmp_thread_data tag orig_data data f x =
@@ -1066,6 +1068,10 @@ fun frequency xs =
 fun divide_and_conquer decomp x =
   let val (ys, recomb) = decomp x
   in recomb (map (divide_and_conquer decomp) ys) end;
+
+fun divide_and_conquer' decomp x s =
+  let val ((ys, recomb), s') = decomp x s
+  in recomb (fold_map (divide_and_conquer' decomp) ys s') end;
 
 
 (*Partition a list into buckets  [ bi, b(i+1), ..., bj ]

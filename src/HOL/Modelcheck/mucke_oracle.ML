@@ -46,7 +46,7 @@ local
   if (s="bool") then [] else [b,a1,a2]
   end |
   contains_if (a $ b) = if ((contains_if b)=[]) then (contains_if a)
-		        else (contains_if b) |
+                        else (contains_if b) |
   contains_if _ = [];
 
   fun find_replace_term (Abs(a,T,t)) = find_replace_term (snd(Syntax.variant_abs(a,T,t))) |
@@ -58,7 +58,7 @@ local
   fun if_substi (Abs(a,T,t)) trm = Abs(a,T,t) |
   if_substi (Const("HOL.If",T) $ b $ a1 $ a2) t = t |
   if_substi (a $ b) t = if ((contains_if b)=[]) then ((if_substi a t)$b)
-		        else (a$(if_substi b t)) |
+                        else (a$(if_substi b t)) |
   if_substi t v = t;
 
   fun deliver_term (t,[]) = [] |
@@ -97,8 +97,8 @@ fun if_full_simp_tac sset i state =
 let val sign = Thm.theory_of_thm state;
         val (subgoal::_) = Library.drop(i-1,prems_of state);
         val prems = Logic.strip_imp_prems subgoal;
-	val concl = Logic.strip_imp_concl subgoal;
-	val prems = prems @ [concl];
+        val concl = Logic.strip_imp_concl subgoal;
+        val prems = prems @ [concl];
         val itrm = search_ifs prems;
 in
 if (itrm = []) then no_tac state else
@@ -209,7 +209,7 @@ val erg =
         val (x,y) = snd(ispair a)
        in
         con_term_list_of (Const("pair",Type("fun",[x,Type("fun",[y,a])])))
-			 (arglist_of sg tl [x,y])
+                         (arglist_of sg tl [x,y])
        end)
  else
  (let
@@ -219,7 +219,7 @@ val erg =
                         val trm = OldGoals.simple_read_term sg ft c;
                         in
                         (con_term_list_of trm (arglist_of sg tl tyl))
-			@(deliver_erg sg tl typ r)
+                        @(deliver_erg sg tl typ r)
                         end;
   val cl = search_in_keylist tl a;
   in
@@ -239,7 +239,7 @@ fun dest_Abs (Abs s_T_t) = s_T_t
 (*
 fun force_Abs (Abs s_T_t) = Abs s_T_t
   | force_Abs t = Abs("x", hd(fst(strip_type (type_of t))),
-		      (incr_boundvars 1 t) $ (Bound 0));
+                      (incr_boundvars 1 t) $ (Bound 0));
 
 fun etaexp_dest_Abs t = dest_Abs (force_Abs t);
 *)
@@ -269,7 +269,7 @@ fun make_decl muckeType id isaType =
 
 fun make_MuTerm muDeclTerm ParamDeclTerm muTerm isaType =
   let val constMu = Const("_mu",
-			  make_fun_type [isaType,isaType,isaType,isaType]);
+                          make_fun_type [isaType,isaType,isaType,isaType]);
       val t1 = constMu $ muDeclTerm;
       val t2 = t1 $ ParamDeclTerm;
       val t3 = t2 $  muTerm
@@ -327,15 +327,15 @@ fun get_decls sign Clist (Abs(s,tp,trm)) =
   | get_decls sign Clist trm = (Clist,trm);
 
 fun make_mu_def sign ((tt $ LHS) $ (ttt $ RHS)) =
-  let 	val LHSStr = fst (dest_atom LHS);
-	val MuType = Type("bool",[]); (* always ResType of mu, also serves
-					 as dummy type *)
-	val (_,_,PAbs) = dest_Abs (RHS); (* RHS is %Q. ... *)
-  	val (PCon_LHS,MMuTerm) = get_decls sign [] (subst_bound (LHS,PAbs));
-	val PConsts = rev PCon_LHS;
-	val muDeclTerm = make_decl "bool" LHSStr MuType;
-	val PDeclsTerm = make_decls sign MuType PConsts;
-	val MuDefTerm = make_MuTerm muDeclTerm PDeclsTerm MMuTerm MuType;		
+  let   val LHSStr = fst (dest_atom LHS);
+        val MuType = Type("bool",[]); (* always ResType of mu, also serves
+                                         as dummy type *)
+        val (_,_,PAbs) = dest_Abs (RHS); (* RHS is %Q. ... *)
+        val (PCon_LHS,MMuTerm) = get_decls sign [] (subst_bound (LHS,PAbs));
+        val PConsts = rev PCon_LHS;
+        val muDeclTerm = make_decl "bool" LHSStr MuType;
+        val PDeclsTerm = make_decls sign MuType PConsts;
+        val MuDefTerm = make_MuTerm muDeclTerm PDeclsTerm MMuTerm MuType;               
   in MuDefTerm end;
 
 fun make_mu_decl sign ((tt $ LHS) $ (ttt $ RHS)) =
@@ -375,11 +375,11 @@ fun make_nu_decl sign ((tt $ LHS) $ (ttt $ RHS)) =
   in NuDeclTerm end;
 
 fun make_FunMuckeTerm FunDeclTerm ParamDeclTerm Term isaType =
-  let 	val constFun = Const("_fun",
-			    make_fun_type [isaType,isaType,isaType,isaType]);
-      	val t1 = constFun $ FunDeclTerm;
-      	val t2 = t1 $ ParamDeclTerm;
-      	val t3 = t2 $  Term
+  let   val constFun = Const("_fun",
+                            make_fun_type [isaType,isaType,isaType,isaType]);
+        val t1 = constFun $ FunDeclTerm;
+        val t2 = t1 $ ParamDeclTerm;
+        val t3 = t2 $  Term
   in t3 end;
 
 fun make_FunMuckeDecl FunDeclTerm ParamDeclTerm isaType =
@@ -394,26 +394,26 @@ is_fundef (( Const("==",_) $ _) $ Abs(x_T_t)) = true
 | is_fundef _ = false; 
 
 fun make_mucke_fun_def sign ((_ $ LHS) $ RHS) =
-  let 	(* fun dest_atom (Const t) = dest_Const (Const t)
+  let   (* fun dest_atom (Const t) = dest_Const (Const t)
           | dest_atom (Free t)  = dest_Free (Free t); *)
-	val LHSStr = fst (dest_atom LHS);
-	val LHSResType = body_type(snd(dest_atom LHS));
-	val LHSResTypeStr = type_to_string_OUTPUT LHSResType;
-(*	val (_,AbsType,RawTerm) = dest_Abs(RHS);
-*)	val (Consts_LHS_rev,Free_RHS) = get_decls sign [] RHS;
-	val Consts_LHS = rev Consts_LHS_rev;
-	val PDeclsTerm = make_decls sign LHSResType Consts_LHS; 
-		(* Boolean functions only, list necessary in general *)
-	val DeclTerm = make_decl LHSResTypeStr LHSStr LHSResType;
-	val MuckeDefTerm = make_FunMuckeTerm DeclTerm PDeclsTerm Free_RHS
-					 LHSResType;	
+        val LHSStr = fst (dest_atom LHS);
+        val LHSResType = body_type(snd(dest_atom LHS));
+        val LHSResTypeStr = type_to_string_OUTPUT LHSResType;
+(*      val (_,AbsType,RawTerm) = dest_Abs(RHS);
+*)      val (Consts_LHS_rev,Free_RHS) = get_decls sign [] RHS;
+        val Consts_LHS = rev Consts_LHS_rev;
+        val PDeclsTerm = make_decls sign LHSResType Consts_LHS; 
+                (* Boolean functions only, list necessary in general *)
+        val DeclTerm = make_decl LHSResTypeStr LHSStr LHSResType;
+        val MuckeDefTerm = make_FunMuckeTerm DeclTerm PDeclsTerm Free_RHS
+                                         LHSResType;    
   in MuckeDefTerm end;
 
 fun make_mucke_fun_decl sign ((_ $ LHS) $ RHS) =
   let   (* fun dest_atom (Const t) = dest_Const (Const t)
           | dest_atom (Free t)  = dest_Free (Free t); *)
         val LHSStr = fst (dest_atom LHS);
-	val LHSResType = body_type(snd(dest_atom LHS));
+        val LHSResType = body_type(snd(dest_atom LHS));
         val LHSResTypeStr = type_to_string_OUTPUT LHSResType;
 (*      val (_,AbsType,RawTerm) = dest_Abs(RHS);
 *)      val (Consts_LHS_rev,Free_RHS) = get_decls sign [] RHS;
@@ -421,34 +421,34 @@ fun make_mucke_fun_decl sign ((_ $ LHS) $ RHS) =
         val PDeclsTerm = make_decls sign LHSResType Consts_LHS;
                 (* Boolean functions only, list necessary in general *)
         val DeclTerm = make_decl LHSResTypeStr LHSStr LHSResType;
-	val MuckeDeclTerm = make_FunMuckeDecl DeclTerm PDeclsTerm LHSResType;
+        val MuckeDeclTerm = make_FunMuckeDecl DeclTerm PDeclsTerm LHSResType;
 in MuckeDeclTerm end;
 
 fun elim_quantifications sign ((Const("Ex",_)) $ Abs (str,tp,t)) =
     (let val ExConst = Const("_Ex",make_fun_type [tp,tp,tp,tp]);
-     	 val TypeConst = Const (type_to_string_OUTPUT tp,tp);
-	 val VarAbs = Syntax.variant_abs(str,tp,t);
-	 val BoundConst = Const(fst VarAbs,tp);
-	 val t1 = ExConst $ TypeConst;
-	 val t2 = t1 $ BoundConst;
- 	 val t3 = elim_quantifications sign (snd VarAbs)
+         val TypeConst = Const (type_to_string_OUTPUT tp,tp);
+         val VarAbs = Syntax.variant_abs(str,tp,t);
+         val BoundConst = Const(fst VarAbs,tp);
+         val t1 = ExConst $ TypeConst;
+         val t2 = t1 $ BoundConst;
+         val t3 = elim_quantifications sign (snd VarAbs)
      in t2 $ t3 end)
   |  elim_quantifications sign ((Const("All",_)) $ Abs (str,tp,t)) =
     (let val AllConst = Const("_All",make_fun_type [tp,tp,tp,tp]);
-    	 val TypeConst = Const (type_to_string_OUTPUT tp,tp);
-	 val VarAbs = Syntax.variant_abs(str,tp,t);
-	 val BoundConst = Const(fst VarAbs,tp);
-	 val t1 = AllConst $ TypeConst;
-	 val t2 = t1 $ BoundConst;
-	 val t3 = elim_quantifications sign (snd VarAbs)
+         val TypeConst = Const (type_to_string_OUTPUT tp,tp);
+         val VarAbs = Syntax.variant_abs(str,tp,t);
+         val BoundConst = Const(fst VarAbs,tp);
+         val t1 = AllConst $ TypeConst;
+         val t2 = t1 $ BoundConst;
+         val t3 = elim_quantifications sign (snd VarAbs)
      in t2 $ t3 end)
   | elim_quantifications sign (t1 $ t2) = 
-   	(elim_quantifications sign t1) $ (elim_quantifications sign t2)
+        (elim_quantifications sign t1) $ (elim_quantifications sign t2)
   | elim_quantifications sign (Abs(_,_,t)) = elim_quantifications sign t
   | elim_quantifications sign t = t;
 fun elim_quant_in_list sign [] = []
   | elim_quant_in_list sign (trm::list) = 
-			(elim_quantifications sign trm)::(elim_quant_in_list sign list);
+                        (elim_quantifications sign trm)::(elim_quant_in_list sign list);
 
 fun dummy true = writeln "True\n" |
     dummy false = writeln "Fals\n";
@@ -458,12 +458,12 @@ fun transform_definitions sign [] = []
       if is_mudef trm 
       then (make_mu_def sign trm)::(transform_definitions sign list)
       else 
-	if is_nudef trm
-	 then (make_nu_def sign trm)::(transform_definitions sign list)
-     	 else 
-	   if is_fundef trm
- 	   then (make_mucke_fun_def sign trm)::(transform_definitions sign list)
-		     else trm::(transform_definitions sign list);
+        if is_nudef trm
+         then (make_nu_def sign trm)::(transform_definitions sign list)
+         else 
+           if is_fundef trm
+           then (make_mucke_fun_def sign trm)::(transform_definitions sign list)
+                     else trm::(transform_definitions sign list);
 
 fun terms_to_decls sign [] = []
  | terms_to_decls sign (trm::list) =
@@ -484,7 +484,7 @@ end;
 
 fun string_of_terms sign terms =
 let fun make_string sign [] = "" |
- 	make_string sign (trm::list) =
+        make_string sign (trm::list) =
            Syntax.string_of_term_global sign trm ^ "\n" ^ make_string sign list
 in
   PrintMode.setmp ["Mucke"] (make_string sign) terms
@@ -531,7 +531,7 @@ infix contains at_post string_contains string_at_post;
     | delete_blanks (":"::xs) = delete_blanks xs
     | delete_blanks (x::xs) = 
         if (is_blank x) then (delete_blanks xs)
-	       	        else x::(delete_blanks xs);
+                        else x::(delete_blanks xs);
   
   fun delete_blanks_string s = implode(delete_blanks (explode s));
 
@@ -580,12 +580,12 @@ let
   check_complex ((a,[])::r) (t,i) = check_complex r (t,i+1) |
   check_complex ((a,_)::r) (t,i) = check_complex r (true,i+1);
  in
-	if (a=t) then (check_complex l (false,0)) else (tl_contains_complex r t)
+        if (a=t) then (check_complex l (false,0)) else (tl_contains_complex r t)
  end;
  fun check_head_for_case sg (Const(s,_)) st 0 = 
-	if (post_last_dot(s) = (st ^ "_case")) then true else false |
+        if (post_last_dot(s) = (st ^ "_case")) then true else false |
  check_head_for_case sg (a $ (Const(s,_))) st 0 = 
-	if (post_last_dot(s) = (st ^ "_case")) then true else false |
+        if (post_last_dot(s) = (st ^ "_case")) then true else false |
  check_head_for_case _ _ _ 0 = false |
  check_head_for_case sg (a $ b) st n = check_head_for_case sg a st (n-1) |
  check_head_for_case _ _ _ _ = false;
@@ -636,22 +636,22 @@ let
  heart_of_trm t = t;
  fun replace_termlist_with_args _ _ trm _ [] _ ([],[]) = trm (* should never occur *) |
  replace_termlist_with_args sg _ trm _ [a] _ ([],[]) =
-	if ((heart_of_trm trm)= Const("False",Type("bool",[]))) then trm else 
-	(enrich_case_with_terms sg a trm) |
+        if ((heart_of_trm trm)= Const("False",Type("bool",[]))) then trm else 
+        (enrich_case_with_terms sg a trm) |
  replace_termlist_with_args sg tl trm con [] t (l1,l2) =
-	(replace_termlist_with_constrs sg tl l1 l2 t) | 
+        (replace_termlist_with_constrs sg tl l1 l2 t) | 
  replace_termlist_with_args sg tl trm con (a::r) t (l1,l2) =
  let
   val tty = type_of_term t;
   val con_term = con_term_of con a;
  in
-	(Const("HOL.If",Type("fun",[Type("bool",[]),
+        (Const("HOL.If",Type("fun",[Type("bool",[]),
         Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])])) $
-	(Const("op =",Type("fun",[tty,Type("fun",[tty,Type("bool",[])])])) $
+        (Const("op =",Type("fun",[tty,Type("fun",[tty,Type("bool",[])])])) $
         t $ con_term) $
-	(if ((heart_of_trm trm)= Const("False",Type("bool",[]))) then trm else 
-	(enrich_case_with_terms sg a trm)) $
-	(replace_termlist_with_args sg tl trm con r t (l1,l2)))
+        (if ((heart_of_trm trm)= Const("False",Type("bool",[]))) then trm else 
+        (enrich_case_with_terms sg a trm)) $
+        (replace_termlist_with_args sg tl trm con r t (l1,l2)))
  end;
  val arglist = arglist_of sg tl (snd c);
  val tty = type_of_term t;
@@ -670,7 +670,7 @@ let
  val ty = type_of_term trm;
  val constr_list = search_in_keylist tl ty;
 in
-	replace_termlist_with_constrs sg tl trm_list constr_list trm
+        replace_termlist_with_constrs sg tl trm_list constr_list trm
 end;  
 
 in
@@ -683,7 +683,7 @@ let
  (* rc_in_term changes the case statement over term x to a cascading if; the last *)
  (* indicates the distance to the "case"-constant                                 *)
  fun rc_in_term sg tl (a $ b) l x 0 =
-	 (replace_case sg tl a 0) $ (rc_in_termlist sg tl l x) |  
+         (replace_case sg tl a 0) $ (rc_in_termlist sg tl l x) |  
  rc_in_term sg tl  _ l x 0 = rc_in_termlist sg tl l x |
  rc_in_term sg tl (a $ b) l x n = rc_in_term sg tl a (b::l) x (n-1) |
  rc_in_term sg _ trm _ _ n =
@@ -691,11 +691,11 @@ let
  val (bv,n) = check_case sg tl (a $ b);
 in
  if (bv) then 
-	(let
-	val t = (replace_case sg tl a n) 
-	in 
-	rc_in_term sg tl t [] b n	
-	end)
+        (let
+        val t = (replace_case sg tl a n) 
+        in 
+        rc_in_term sg tl t [] b n       
+        end)
  else ((replace_case sg tl a 0) $ (replace_case sg tl b 0))
 end |
 replace_case sg tl (a $ b) 1 = a $ (replace_case sg tl b 0) |
@@ -786,7 +786,7 @@ if (constr_term_contains_var sg tl tt (fst vt))
 (* fst vt muss frei vorkommen, als ECHTER TeilKonstruktorterm *)
 then (Abs(x,ty,
         abstract_over(Free(fst vt,ty),
-	if_term sg ((Type("bool",[]),[("True",[]),("False",[])])::tl) (fst vt) ty tt)))
+        if_term sg ((Type("bool",[]),[("True",[]),("False",[])])::tl) (fst vt) ty tt)))
 else Abs(x,ty,abstract_over(Free(fst vt,ty),tt))
 end |
 remove_vars sg tl (a $ b) = (remove_vars sg tl a) $ (remove_vars sg tl b) |
@@ -795,7 +795,7 @@ remove_vars sg tl t = t;
 (* dissolves equalities "=" of boolean terms, where one of them is a complex term *)
 fun remove_equal sg tl (Abs(x,ty,trm)) = Abs(x,ty,remove_equal sg tl trm) |
 remove_equal sg tl (Const("op =",Type("fun",[Type("bool",[]),
-	Type("fun",[Type("bool",[]),Type("bool",[])])])) $ lhs $ rhs) =
+        Type("fun",[Type("bool",[]),Type("bool",[])])])) $ lhs $ rhs) =
 let
 fun complex_trm (Abs(_,_,_)) = true |
 complex_trm (_ $ _) = true |
@@ -811,16 +811,16 @@ Const("op &",
 Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $
 (Const("op -->",
  Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $
-	lhs $ rhs) $
+        lhs $ rhs) $
 (Const("op -->",
  Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $
-	rhs $ lhs)
+        rhs $ lhs)
 )
 end)
 else
 (Const("op =",
  Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $
-	lhs $ rhs))
+        lhs $ rhs))
 end |
 remove_equal sg tl (a $ b) = (remove_equal sg tl a) $ (remove_equal sg tl b) |
 remove_equal sg tl trm = trm;
@@ -833,7 +833,7 @@ let
 (* OUTPUT - relevant *)
 (* transforms constructor term to a mucke-suitable output *)
 fun term_OUTPUT sg (Const("Pair",_) $ a $ b) =
-		(term_OUTPUT sg a) ^ "_I_" ^ (term_OUTPUT sg b) |
+                (term_OUTPUT sg a) ^ "_I_" ^ (term_OUTPUT sg b) |
 term_OUTPUT sg (a $ b) = (term_OUTPUT sg a) ^ "_I_" ^ (term_OUTPUT sg b) |
 term_OUTPUT sg (Const(s,t)) = post_last_dot s |
 term_OUTPUT _ _ = 
@@ -846,7 +846,7 @@ contains_bound _ _ = false;
 
 in
         if (contains_bound 0 (a $ b)) 
-	then ((rewrite_dt_term sg tl a) $ (rewrite_dt_term sg tl b))
+        then ((rewrite_dt_term sg tl a) $ (rewrite_dt_term sg tl b))
         else
         (
         let
@@ -893,10 +893,10 @@ let
          (generate_constnames_OUTPUT (c ^ "_I_") l tl) @ (concat_constrs r tl);
  fun concat_types _ [] _ _ = [] |
  concat_types prestring (a::q) [] tl = [prestring ^ a] 
-				       @ (concat_types prestring q [] tl) |
+                                       @ (concat_types prestring q [] tl) |
  concat_types prestring (a::q) r tl = 
-		(generate_constnames_OUTPUT (prestring ^ a ^ "_I_") r tl) 
-		@ (concat_types prestring q r tl);
+                (generate_constnames_OUTPUT (prestring ^ a ^ "_I_") r tl) 
+                @ (concat_types prestring q r tl);
  val g = concat_constrs (search_in_keylist tl a) tl;
 in
  concat_types prestring g r tl
@@ -970,15 +970,15 @@ in
         then (preprocess_td sg b done)
         else
         (let
-	 fun qtn (Type(a,tl)) = (a,tl) |
-	 qtn _ = error "unexpected type variable in preprocess_td";
-	 val s =  post_last_dot(fst(qtn a));
-	 fun param_types ((Const("Trueprop",_)) $ (_ $ (Var(_,Type(_,t)))))  = t |
-	 param_types _ = error "malformed induct-theorem in preprocess_td";	
-	 val induct_rule = PureThy.get_thm sg (s ^ ".induct");
-	 val pl = param_types (concl_of induct_rule);
+         fun qtn (Type(a,tl)) = (a,tl) |
+         qtn _ = error "unexpected type variable in preprocess_td";
+         val s =  post_last_dot(fst(qtn a));
+         fun param_types ((Const("Trueprop",_)) $ (_ $ (Var(_,Type(_,t)))))  = t |
+         param_types _ = error "malformed induct-theorem in preprocess_td";     
+         val induct_rule = PureThy.get_thm sg (s ^ ".induct");
+         val pl = param_types (concl_of induct_rule);
          val l = split_constrs sg (snd(qtn a)) pl (prems_of induct_rule);
-	 val ntl = new_types l;
+         val ntl = new_types l;
         in 
         ((a,l) :: (preprocess_td sg (ntl @ b) (a :: done)))
         end)
@@ -1015,40 +1015,40 @@ fun mk_mc_mucke_oracle csubgoal =
   val sign = Thm.theory_of_cterm csubgoal;
   val subgoal = Thm.term_of csubgoal;
 
-	val Freesubgoal = freeze_thaw subgoal;
+        val Freesubgoal = freeze_thaw subgoal;
 
-	val prems = Logic.strip_imp_prems Freesubgoal; 
-	val concl = Logic.strip_imp_concl Freesubgoal; 
-	
-	val Muckedecls = terms_to_decls sign prems;
-	val decls_str = string_of_terms sign Muckedecls;
-	
-	val type_list = (extract_type_names_prems sign (prems@[concl]));
-	val ctl =  preprocess_td sign type_list [];
-	val b = if (ctl=[]) then true else (check_finity [Type("bool",[])] [] ctl false);
-	val type_str = make_type_decls ctl 
-				((Type("bool",[]),("True",[])::("False",[])::[])::ctl);
-	
-	val mprems = rewrite_dt_terms sign ctl prems;
-	val mconcl = rewrite_dt_terms sign ctl [concl];
+        val prems = Logic.strip_imp_prems Freesubgoal; 
+        val concl = Logic.strip_imp_concl Freesubgoal; 
+        
+        val Muckedecls = terms_to_decls sign prems;
+        val decls_str = string_of_terms sign Muckedecls;
+        
+        val type_list = (extract_type_names_prems sign (prems@[concl]));
+        val ctl =  preprocess_td sign type_list [];
+        val b = if (ctl=[]) then true else (check_finity [Type("bool",[])] [] ctl false);
+        val type_str = make_type_decls ctl 
+                                ((Type("bool",[]),("True",[])::("False",[])::[])::ctl);
+        
+        val mprems = rewrite_dt_terms sign ctl prems;
+        val mconcl = rewrite_dt_terms sign ctl [concl];
 
-	val Muckeprems = transform_terms sign mprems;
+        val Muckeprems = transform_terms sign mprems;
         val prems_str = transform_case(string_of_terms sign Muckeprems);
 
         val Muckeconcl = elim_quant_in_list sign mconcl;
-	val concl_str = transform_case(string_of_terms sign Muckeconcl);
+        val concl_str = transform_case(string_of_terms sign Muckeconcl);
 
-	val MCstr = (
-		"/**** type declarations: ****/\n" ^ type_str ^
-		"/**** declarations: ****/\n" ^ decls_str ^
-		"/**** definitions: ****/\n" ^ prems_str ^ 
-		"/**** formula: ****/\n" ^ concl_str ^";");
-	val result = callmc MCstr;
+        val MCstr = (
+                "/**** type declarations: ****/\n" ^ type_str ^
+                "/**** declarations: ****/\n" ^ decls_str ^
+                "/**** definitions: ****/\n" ^ prems_str ^ 
+                "/**** formula: ****/\n" ^ concl_str ^";");
+        val result = callmc MCstr;
   in
 (if !trace_mc then 
-	(writeln ("\nmodelchecker input:\n" ^ MCstr ^ "\n/**** end ****/"))
+        (writeln ("\nmodelchecker input:\n" ^ MCstr ^ "\n/**** end ****/"))
           else ();
 (case (extract_result concl_str result) of 
-	true  =>  cterm_of sign (Logic.strip_imp_concl subgoal) | 
-	false => (error ("Mucke couldn't solve subgoal: \n" ^result)))) 
+        true  =>  cterm_of sign (Logic.strip_imp_concl subgoal) | 
+        false => (error ("Mucke couldn't solve subgoal: \n" ^result)))) 
   end;

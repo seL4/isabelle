@@ -431,9 +431,7 @@ in
 
 val refine = apply_text true;
 val refine_end = apply_text false;
-
-fun refine_insert [] = I
-  | refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
+fun refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
 

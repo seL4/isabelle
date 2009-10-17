@@ -56,7 +56,7 @@ fun flatten_intros constname intros thy =
     val ((_, intros), ctxt') = Variable.import true intros ctxt
     val (intros', (local_defs, thy')) = (fold_map o fold_map_atoms)
       (flatten constname) (map prop_of intros) ([], thy)
-    val tac = fn {...} => setmp quick_and_dirty true (SkipProof.cheat_tac thy')
+    val tac = fn _ => Skip_Proof.cheat_tac thy'
     val intros'' = map (fn t => Goal.prove ctxt' [] [] t tac) intros'
       |> Variable.export ctxt' ctxt
   in

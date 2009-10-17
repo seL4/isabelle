@@ -60,9 +60,9 @@ datatype destination = Compile | Export | File of Path.T | String of string list
 type serialization = destination -> (string * string option list) option;
 
 val code_width = Unsynchronized.ref 80; (*FIXME after Pretty module no longer depends on print mode*)
-fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
+fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL (!code_width) f);
 fun code_of_pretty p = code_setmp Pretty.string_of p ^ "\n";
-fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
+fun code_writeln p = Pretty.setmp_margin_CRITICAL (!code_width) Pretty.writeln p;
 
 (*FIXME why another code_setmp?*)
 fun compile f = (code_setmp f Compile; ());
@@ -386,21 +386,6 @@ fun the_literals thy =
 
 local
 
-fun labelled_name thy program name = case Graph.get_node program name
- of Code_Thingol.Fun (c, _) => quote (Code.string_of_const thy c)
-  | Code_Thingol.Datatype (tyco, _) => "type " ^ quote (Sign.extern_type thy tyco)
-  | Code_Thingol.Datatypecons (c, _) => quote (Code.string_of_const thy c)
-  | Code_Thingol.Class (class, _) => "class " ^ quote (Sign.extern_class thy class)
-  | Code_Thingol.Classrel (sub, super) => let
-        val Code_Thingol.Class (sub, _) = Graph.get_node program sub
-        val Code_Thingol.Class (super, _) = Graph.get_node program super
-      in quote (Sign.extern_class thy sub ^ " < " ^ Sign.extern_class thy super) end
-  | Code_Thingol.Classparam (c, _) => quote (Code.string_of_const thy c)
-  | Code_Thingol.Classinst ((class, (tyco, _)), _) => let
-        val Code_Thingol.Class (class, _) = Graph.get_node program class
-        val Code_Thingol.Datatype (tyco, _) = Graph.get_node program tyco
-      in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
-
 fun activate_syntax lookup_name src_tab = Symtab.empty
   |> fold_map (fn thing_identifier => fn tab => case lookup_name thing_identifier
        of SOME name => (SOME name,
@@ -440,7 +425,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
   in
-    serializer module args (labelled_name thy program2) reserved includes
+    serializer module args (Code_Thingol.labelled_name thy program2) reserved includes
       (Symtab.lookup module_alias) (Symtab.lookup class')
       (Symtab.lookup tyco') (Symtab.lookup const')
       program4 names2

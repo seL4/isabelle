@@ -366,12 +366,12 @@ proof (unfold DynT_prop_def)
       case CInst
       with modeIntVir obj_props
       show ?thesis 
-	by (auto dest!: widen_Array2 split add: split_if)
+        by (auto dest!: widen_Array2 split add: split_if)
     next
       case Arr
       from Arr obtain T where "obj_ty obj = T.[]" by (blast dest: obj_ty_Arr1)
       moreover from Arr have "obj_class obj = Object" 
-	by (blast dest: obj_class_Arr1)
+        by (blast dest: obj_class_Arr1)
       moreover note modeIntVir obj_props wf 
       ultimately show ?thesis by (auto dest!: widen_Array )
     qed
@@ -411,22 +411,22 @@ proof -
       case Static
       with wf dynlookup statI is_iface 
       show ?thesis
-	by (auto simp add: invocation_declclass_def dynlookup_def 
+        by (auto simp add: invocation_declclass_def dynlookup_def 
                            dynimethd_def dynmethd_C_C 
-	            intro: dynmethd_declclass
-	            dest!: wf_imethdsD
+                    intro: dynmethd_declclass
+                    dest!: wf_imethdsD
                      dest: table_of_map_SomeI
                     split: split_if_asm)
-    next	
+    next        
       case SuperM
       with not_SuperM show ?thesis ..
     next
       case IntVir
       with wf dynlookup IfaceT invC_prop show ?thesis 
-	by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
+        by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
                            DynT_prop_def
-	            intro: methd_declclass dynmethd_declclass
-	            split: split_if_asm)
+                    intro: methd_declclass dynmethd_declclass
+                    split: split_if_asm)
     qed
   next
     case ClassT
@@ -445,9 +445,9 @@ proof -
       case IntVir
       with wf ClassT dynlookup statC_prop invC_prop 
       show ?thesis
-	by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
+        by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
                            DynT_prop_def
-	            intro: dynmethd_declclass)
+                    intro: dynmethd_declclass)
     qed
   next
     case ArrayT
@@ -455,7 +455,7 @@ proof -
     proof (cases mode)
       case Static
       with wf ArrayT dynlookup show ?thesis
-	by (auto simp add: invocation_declclass_def dynlookup_def 
+        by (auto simp add: invocation_declclass_def dynlookup_def 
                            dynimethd_def dynmethd_C_C
                     intro: dynmethd_declclass
                      dest: table_of_map_SomeI)
@@ -465,7 +465,7 @@ proof -
     next
       case IntVir
       with wf ArrayT dynlookup invC_prop show ?thesis
-	by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
+        by (auto simp add: invocation_declclass_def dynlookup_def dynimethd_def
                            DynT_prop_def dynmethd_C_C
                     intro: dynmethd_declclass
                      dest: table_of_map_SomeI)
@@ -564,8 +564,8 @@ proof -
                                             dynimethd_def)
     from sm wf wt_e not_Null False invC_prop' obtain "dm" where
                     dm: "methd G invC sig = Some dm"          and
-	eq_declC_sm_dm:"statDeclT = ClassT (declclass dm)"  and
-	     eq_mheads:"sm=mhead (mthd dm) "
+        eq_declC_sm_dm:"statDeclT = ClassT (declclass dm)"  and
+             eq_mheads:"sm=mhead (mthd dm) "
       by - (drule static_mheadsD, (force dest: accmethd_SomeD)+)
     then have static: "is_static dm = is_static sm" by - (auto)
     with declC invC dynlookup_static dm
@@ -1339,24 +1339,24 @@ next
     proof (cases "(tab(x\<mapsto>y)) vn \<noteq> Some z")
       case True
       with some ys have "(tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = Some z"
-	by (fastsimp intro: Cons.hyps)
+        by (fastsimp intro: Cons.hyps)
       with ys show ?thesis 
-	by simp
+        by simp
     next
       case False
       hence tabx_z: "(tab(x\<mapsto>y)) vn = Some z" by blast
       moreover
       from tabx_z tab_not_z
       have "(tab'(x\<mapsto>y)) vn = Some z" 
-	by (rule map_upd_in_expansion_map_swap)
+        by (rule map_upd_in_expansion_map_swap)
       ultimately
       have "(tab(x\<mapsto>y)) vn =(tab'(x\<mapsto>y)) vn"
-	by simp
+        by simp
       hence "(tab(x\<mapsto>y)(xs[\<mapsto>]tl)) vn = (tab'(x\<mapsto>y)(xs[\<mapsto>]tl)) vn"
-	by (rule map_upds_cong_ext)
+        by (rule map_upds_cong_ext)
       with some ys
       show ?thesis 
-	by simp
+        by simp
     qed
   qed
 qed
@@ -1460,12 +1460,12 @@ proof
       case (EName en)
       show ?thesis
       proof (cases en)
-	case Res
-	with EName el_in_list show ?thesis by (simp add: dom_def)
+        case Res
+        with EName el_in_list show ?thesis by (simp add: dom_def)
       next
-	case (VNam vn)
-	with EName el_in_list show ?thesis 
-	  by (auto simp add: dom_def dest: map_upds_cut_irrelevant)
+        case (VNam vn)
+        with EName el_in_list show ?thesis 
+          by (auto simp add: dom_def dest: map_upds_cut_irrelevant)
       qed
     qed
   qed
@@ -1482,12 +1482,12 @@ next
       case (EName en)
       show ?thesis
       proof (cases en)
-	case Res
-	with EName el_in_hd_tl show ?thesis by (simp add: dom_def)
+        case Res
+        with EName el_in_hd_tl show ?thesis by (simp add: dom_def)
       next
-	case (VNam vn)
-	with EName el_in_hd_tl show ?thesis 
-	  by (auto simp add: dom_def intro: map_upds_Some_expand 
+        case (VNam vn)
+        with EName el_in_hd_tl show ?thesis 
+          by (auto simp add: dom_def intro: map_upds_Some_expand 
                                             map_upds_Some_insert)
       qed
     qed
@@ -1595,7 +1595,7 @@ lemma da_e2_BinOp:
     and wt_binop: "wt_binop G binop e1T e2T" 
     and conf_s0: "s0\<Colon>\<preceq>(G,L)"  
     and normal_s1: "normal s1"
-    and	eval_e1: "G\<turnstile>s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1"
+    and eval_e1: "G\<turnstile>s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1"
     and conf_v1: "G,store s1\<turnstile>v1\<Colon>\<preceq>e1T"
     and wf: "wf_prog G"
   shows "\<exists> E2. \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) 
@@ -1625,62 +1625,62 @@ proof -
       assume condAnd: "binop=CondAnd"
       have ?thesis
       proof -
-	from da obtain E2' where
-	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        from da obtain E2' where
+          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
              \<turnstile> dom (locals (store s0)) \<union> assigns_if True e1 \<guillemotright>\<langle>e2\<rangle>\<^sub>e\<guillemotright> E2'"
-	  by cases (simp add: condAnd)+
-	moreover
-	have "dom (locals (store s0)) 
+          by cases (simp add: condAnd)+
+        moreover
+        have "dom (locals (store s0)) 
           \<union> assigns_if True e1 \<subseteq> dom (locals (store s1))"
-	proof -
-	  from condAnd wt_binop have e1T: "e1T=PrimT Boolean"
-	    by simp
-	  with normal_s1 conf_v1 obtain b where "v1=Bool b"
-	    by (auto dest: conf_Boolean)
-	  with True condAnd
-	  have v1: "v1=Bool True"
-	    by simp
-	  from eval_e1 normal_s1 
-	  have "assigns_if True e1 \<subseteq> dom (locals (store s1))"
-	    by (rule assigns_if_good_approx' [elim_format])
-	       (insert wt_e1, simp_all add: e1T v1)
-	  with s0_s1 show ?thesis by (rule Un_least)
-	qed
-	ultimately
-	show ?thesis
-	  using that by (cases rule: da_weakenE) (simp add: True)
+        proof -
+          from condAnd wt_binop have e1T: "e1T=PrimT Boolean"
+            by simp
+          with normal_s1 conf_v1 obtain b where "v1=Bool b"
+            by (auto dest: conf_Boolean)
+          with True condAnd
+          have v1: "v1=Bool True"
+            by simp
+          from eval_e1 normal_s1 
+          have "assigns_if True e1 \<subseteq> dom (locals (store s1))"
+            by (rule assigns_if_good_approx' [elim_format])
+               (insert wt_e1, simp_all add: e1T v1)
+          with s0_s1 show ?thesis by (rule Un_least)
+        qed
+        ultimately
+        show ?thesis
+          using that by (cases rule: da_weakenE) (simp add: True)
       qed
     }
     moreover
     { 
       assume condOr: "binop=CondOr"
       have ?thesis
-	(* Beweis durch Analogie/Example/Pattern?, True\<rightarrow>False; And\<rightarrow>Or *)
+        (* Beweis durch Analogie/Example/Pattern?, True\<rightarrow>False; And\<rightarrow>Or *)
       proof -
-	from da obtain E2' where
-	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        from da obtain E2' where
+          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
               \<turnstile> dom (locals (store s0)) \<union> assigns_if False e1 \<guillemotright>\<langle>e2\<rangle>\<^sub>e\<guillemotright> E2'"
-	  by cases (simp add: condOr)+
-	moreover
-	have "dom (locals (store s0)) 
+          by cases (simp add: condOr)+
+        moreover
+        have "dom (locals (store s0)) 
                      \<union> assigns_if False e1 \<subseteq> dom (locals (store s1))"
-	proof -
-	  from condOr wt_binop have e1T: "e1T=PrimT Boolean"
-	    by simp
-	  with normal_s1 conf_v1 obtain b where "v1=Bool b"
-	    by (auto dest: conf_Boolean)
-	  with True condOr
-	  have v1: "v1=Bool False"
-	    by simp
-	  from eval_e1 normal_s1 
-	  have "assigns_if False e1 \<subseteq> dom (locals (store s1))"
-	    by (rule assigns_if_good_approx' [elim_format])
-	       (insert wt_e1, simp_all add: e1T v1)
-	  with s0_s1 show ?thesis by (rule Un_least)
-	qed
-	ultimately
-	show ?thesis
-	  using that by (rule da_weakenE) (simp add: True)
+        proof -
+          from condOr wt_binop have e1T: "e1T=PrimT Boolean"
+            by simp
+          with normal_s1 conf_v1 obtain b where "v1=Bool b"
+            by (auto dest: conf_Boolean)
+          with True condOr
+          have v1: "v1=Bool False"
+            by simp
+          from eval_e1 normal_s1 
+          have "assigns_if False e1 \<subseteq> dom (locals (store s1))"
+            by (rule assigns_if_good_approx' [elim_format])
+               (insert wt_e1, simp_all add: e1T v1)
+          with s0_s1 show ?thesis by (rule Un_least)
+        qed
+        ultimately
+        show ?thesis
+          using that by (rule da_weakenE) (simp add: True)
       qed
     }
     moreover
@@ -1688,16 +1688,16 @@ proof -
       assume notAndOr: "binop\<noteq>CondAnd" "binop\<noteq>CondOr"
       have ?thesis
       proof -
-	from da notAndOr obtain E1' where
+        from da notAndOr obtain E1' where
           da_e1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                   \<turnstile> dom (locals (store s0)) \<guillemotright>\<langle>e1\<rangle>\<^sub>e\<guillemotright> E1'"
-	  and da_e2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> nrm E1' \<guillemotright>In1l e2\<guillemotright> A"
-	  by cases simp+
-	from eval_e1 wt_e1 da_e1 wf normal_s1 
-	have "nrm E1' \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') iprover
-	with da_e2 show ?thesis
-	  using that by (rule da_weakenE) (simp add: True)
+          and da_e2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> nrm E1' \<guillemotright>In1l e2\<guillemotright> A"
+          by cases simp+
+        from eval_e1 wt_e1 da_e1 wf normal_s1 
+        have "nrm E1' \<subseteq> dom (locals (store s1))"
+          by (cases rule: da_good_approxE') iprover
+        with da_e2 show ?thesis
+          using that by (rule da_weakenE) (simp add: True)
       qed
     }
     ultimately show ?thesis
@@ -1822,23 +1822,23 @@ proof -
       case False
       with eval_c2 have "s2=s1" by auto
       with conf_s1 error_free_s1 False wt show ?thesis
-	by simp
+        by simp
     next
       case True
       obtain C2' where 
-	"\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In1r c2\<guillemotright> C2'"
+        "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In1r c2\<guillemotright> C2'"
       proof -
-	from eval_c1 wt_c1 da_c1 wf True
-	have "nrm C1 \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') iprover
-	with da_c2 show thesis
-	  by (rule da_weakenE) (rule that)
+        from eval_c1 wt_c1 da_c1 wf True
+        have "nrm C1 \<subseteq> dom (locals (store s1))"
+          by (cases rule: da_good_approxE') iprover
+        with da_c2 show thesis
+          by (rule da_weakenE) (rule that)
       qed
       with conf_s1 wt_c2 
       obtain "s2\<Colon>\<preceq>(G, L)" and "error_free s2"
-	by (rule hyp_c2 [elim_format]) (simp add: error_free_s1)
+        by (rule hyp_c2 [elim_format]) (simp add: error_free_s1)
       thus ?thesis
-	using wt by simp
+        using wt by simp
     qed
   next
     case (If s0 e b s1 c1 c2 s2 L accC T A)
@@ -1879,32 +1879,32 @@ proof -
       case False
       with eval_then_else have "s2=s1" by auto
       with conf_s1 error_free_s1 False wt show ?thesis
-	by simp
+        by simp
     next
       case True
       obtain C' where
-	"\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
           (dom (locals (store s1)))\<guillemotright>In1r (if the_Bool b then c1 else c2)\<guillemotright> C'"
       proof -
-	from eval_e have 
-	  "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
-	  by (rule dom_locals_eval_mono_elim)
+        from eval_e have 
+          "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
+          by (rule dom_locals_eval_mono_elim)
         moreover
-	from eval_e True wt_e 
-	have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
-	  by (rule assigns_if_good_approx')
-	ultimately 
-	have "dom (locals (store ((Norm s0)::state))) 
+        from eval_e True wt_e 
+        have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx')
+        ultimately 
+        have "dom (locals (store ((Norm s0)::state))) 
                 \<union> assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
-	  by (rule Un_least)
-	with da_then_else show thesis
-	  by (rule da_weakenE) (rule that)
+          by (rule Un_least)
+        with da_then_else show thesis
+          by (rule da_weakenE) (rule that)
       qed
       with conf_s1 wt_then_else  
       obtain "s2\<Colon>\<preceq>(G, L)" and "error_free s2"
-	by (rule hyp_then_else [elim_format]) (simp add: error_free_s1)
+        by (rule hyp_then_else [elim_format]) (simp add: error_free_s1)
       with wt show ?thesis
-	by simp
+        by simp
     qed
     -- {* Note that we don't have to show that @{term b} really is a boolean 
           value. With @{term the_Bool} we enforce to get a value of boolean 
@@ -1945,106 +1945,106 @@ proof -
       note normal_s1 = this
       show ?thesis
       proof (cases "the_Bool b")
-	case True
-	with Loop.hyps  obtain
+        case True
+        with Loop.hyps  obtain
           eval_c: "G\<turnstile>s1 \<midarrow>c\<rightarrow> s2" and 
           eval_while: "G\<turnstile>abupd (absorb (Cont l)) s2 \<midarrow>l\<bullet> While(e) c\<rightarrow> s3"
-	  by simp 
-	have "?TypeSafeObj s1 s2 (In1r c) \<diamondsuit>"
-	  using Loop.hyps True by simp
-	note hyp_c = this [rule_format]
-	have "?TypeSafeObj (abupd (absorb (Cont l)) s2)
+          by simp 
+        have "?TypeSafeObj s1 s2 (In1r c) \<diamondsuit>"
+          using Loop.hyps True by simp
+        note hyp_c = this [rule_format]
+        have "?TypeSafeObj (abupd (absorb (Cont l)) s2)
           s3 (In1r (l\<bullet> While(e) c)) \<diamondsuit>"
-	  using Loop.hyps True by simp
-	note hyp_w = this [rule_format]
-	from eval_e have 
-	  s0_s1: "dom (locals (store ((Norm s0)::state)))
+          using Loop.hyps True by simp
+        note hyp_w = this [rule_format]
+        from eval_e have 
+          s0_s1: "dom (locals (store ((Norm s0)::state)))
                     \<subseteq> dom (locals (store s1))"
-	  by (rule dom_locals_eval_mono_elim)
-	obtain C' where
-	  "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(dom (locals (store s1)))\<guillemotright>In1r c\<guillemotright> C'" 
-	proof -
-	  note s0_s1
+          by (rule dom_locals_eval_mono_elim)
+        obtain C' where
+          "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(dom (locals (store s1)))\<guillemotright>In1r c\<guillemotright> C'" 
+        proof -
+          note s0_s1
           moreover
-	  from eval_e normal_s1 wt_e 
-	  have "assigns_if True e \<subseteq> dom (locals (store s1))"
-	    by (rule assigns_if_good_approx' [elim_format]) (simp add: True)
-	  ultimately 
-	  have "dom (locals (store ((Norm s0)::state))) 
+          from eval_e normal_s1 wt_e 
+          have "assigns_if True e \<subseteq> dom (locals (store s1))"
+            by (rule assigns_if_good_approx' [elim_format]) (simp add: True)
+          ultimately 
+          have "dom (locals (store ((Norm s0)::state))) 
                  \<union> assigns_if True e \<subseteq> dom (locals (store s1))"
-	    by (rule Un_least)
-	  with da_c show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	with conf_s1 wt_c  
-	obtain conf_s2:  "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"
-	  by (rule hyp_c [elim_format]) (simp add: error_free_s1)
-	from error_free_s2 
-	have error_free_ab_s2: "error_free (abupd (absorb (Cont l)) s2)"
-	  by simp
-	from conf_s2 have "abupd (absorb (Cont l)) s2 \<Colon>\<preceq>(G, L)"
-	  by (cases s2) (auto intro: conforms_absorb)
-	moreover note wt
-	moreover
-	obtain A' where 
+            by (rule Un_least)
+          with da_c show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        with conf_s1 wt_c  
+        obtain conf_s2:  "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"
+          by (rule hyp_c [elim_format]) (simp add: error_free_s1)
+        from error_free_s2 
+        have error_free_ab_s2: "error_free (abupd (absorb (Cont l)) s2)"
+          by simp
+        from conf_s2 have "abupd (absorb (Cont l)) s2 \<Colon>\<preceq>(G, L)"
+          by (cases s2) (auto intro: conforms_absorb)
+        moreover note wt
+        moreover
+        obtain A' where 
           "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
               dom (locals(store (abupd (absorb (Cont l)) s2)))
                 \<guillemotright>In1r (l\<bullet> While(e) c)\<guillemotright> A'"
-	proof -
-	  note s0_s1
-	  also from eval_c 
-	  have "dom (locals (store s1)) \<subseteq> dom (locals (store s2))"
-	    by (rule dom_locals_eval_mono_elim)
-	  also have "\<dots> \<subseteq> dom (locals (store (abupd (absorb (Cont l)) s2)))"
-	    by simp
-	  finally
+        proof -
+          note s0_s1
+          also from eval_c 
+          have "dom (locals (store s1)) \<subseteq> dom (locals (store s2))"
+            by (rule dom_locals_eval_mono_elim)
+          also have "\<dots> \<subseteq> dom (locals (store (abupd (absorb (Cont l)) s2)))"
+            by simp
+          finally
           have "dom (locals (store ((Norm s0)::state))) \<subseteq> \<dots>" .
-	  with da show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	ultimately obtain "s3\<Colon>\<preceq>(G, L)" and "error_free s3"
-	  by (rule hyp_w [elim_format]) (simp add: error_free_ab_s2)
-	with wt show ?thesis
-	  by simp
+          with da show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        ultimately obtain "s3\<Colon>\<preceq>(G, L)" and "error_free s3"
+          by (rule hyp_w [elim_format]) (simp add: error_free_ab_s2)
+        with wt show ?thesis
+          by simp
       next
-	case False
-	with Loop.hyps have "s3=s1" by simp
-	with conf_s1 error_free_s1 wt
-	show ?thesis
-	  by simp
+        case False
+        with Loop.hyps have "s3=s1" by simp
+        with conf_s1 error_free_s1 wt
+        show ?thesis
+          by simp
       qed
     next
       case False
       have "s3=s1"
       proof -
-	from False obtain abr where abr: "abrupt s1 = Some abr"
-	  by (cases s1) auto
-	from eval_e _ wt_e have no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-	  by (rule eval_expression_no_jump 
+        from False obtain abr where abr: "abrupt s1 = Some abr"
+          by (cases s1) auto
+        from eval_e _ wt_e have no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
+          by (rule eval_expression_no_jump 
                [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>",simplified]) 
              (simp_all add: wf)
-	    
-	show ?thesis
-	proof (cases "the_Bool b")
-	  case True  
-	  with Loop.hyps obtain
+            
+        show ?thesis
+        proof (cases "the_Bool b")
+          case True  
+          with Loop.hyps obtain
             eval_c: "G\<turnstile>s1 \<midarrow>c\<rightarrow> s2" and 
             eval_while: "G\<turnstile>abupd (absorb (Cont l)) s2 \<midarrow>l\<bullet> While(e) c\<rightarrow> s3"
-	    by simp
-	  from eval_c abr have "s2=s1" by auto
-	  moreover from calculation no_jmp have "abupd (absorb (Cont l)) s2=s2"
-	    by (cases s1) (simp add: absorb_def)
-	  ultimately show ?thesis
-	    using eval_while abr
-	    by auto
-	next
-	  case False
-	  with Loop.hyps show ?thesis by simp
-	qed
+            by simp
+          from eval_c abr have "s2=s1" by auto
+          moreover from calculation no_jmp have "abupd (absorb (Cont l)) s2=s2"
+            by (cases s1) (simp add: absorb_def)
+          ultimately show ?thesis
+            using eval_while abr
+            by auto
+        next
+          case False
+          with Loop.hyps show ?thesis by simp
+        qed
       qed
       with conf_s1 error_free_s1 wt
       show ?thesis
-	by simp
+        by simp
     qed
   next
     case (Jmp s j L accC T A)
@@ -2123,53 +2123,53 @@ proof -
       case False
       from sx_alloc wf
       have eq_s2_s1: "s2=s1"
-	by (rule sxalloc_type_sound [elim_format])
-	   (insert False, auto split: option.splits abrupt.splits )
+        by (rule sxalloc_type_sound [elim_format])
+           (insert False, auto split: option.splits abrupt.splits )
       with False 
       have "\<not>  G,s2\<turnstile>catch catchC"
-	by (simp add: catch_def)
+        by (simp add: catch_def)
       with Try
       have "s3=s2"
-	by simp
+        by simp
       with wt conf_s1 error_free_s1 eq_s2_s1
       show ?thesis
-	by simp
+        by simp
     next
       case True
       note exception_s1 = this
       show ?thesis
       proof (cases "G,s2\<turnstile>catch catchC") 
-	case False
-	with Try
-	have "s3=s2"
-	  by simp
-	with wt conf_s2 error_free_s2 
-	show ?thesis
-	  by simp
+        case False
+        with Try
+        have "s3=s2"
+          by simp
+        with wt conf_s2 error_free_s2 
+        show ?thesis
+          by simp
       next
-	case True
-	with Try have "G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<rightarrow> s3" by simp
-	from True Try.hyps
-	have "?TypeSafeObj (new_xcpt_var vn s2) s3 (In1r c2) \<diamondsuit>"
-	  by simp
-	note hyp_c2 = this [rule_format]
-	from exception_s1 sx_alloc wf
-	obtain a 
-	  where xcpt_s2: "abrupt s2 = Some (Xcpt (Loc a))"
-	  by (auto dest!: sxalloc_type_sound split: option.splits abrupt.splits)
-	with True
-	have "G\<turnstile>obj_ty (the (globs (store s2) (Heap a)))\<preceq>Class catchC"
-	  by (cases s2) simp
-	with xcpt_s2 conf_s2 wf
-	have "new_xcpt_var vn s2 \<Colon>\<preceq>(G, L(VName vn\<mapsto>Class catchC))"
-	  by (auto dest: Try_lemma)
-	moreover note wt_c2
-	moreover
-	obtain C2' where
-	  "\<lparr>prg=G,cls=accC,lcl=L(VName vn\<mapsto>Class catchC)\<rparr>
+        case True
+        with Try have "G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<rightarrow> s3" by simp
+        from True Try.hyps
+        have "?TypeSafeObj (new_xcpt_var vn s2) s3 (In1r c2) \<diamondsuit>"
+          by simp
+        note hyp_c2 = this [rule_format]
+        from exception_s1 sx_alloc wf
+        obtain a 
+          where xcpt_s2: "abrupt s2 = Some (Xcpt (Loc a))"
+          by (auto dest!: sxalloc_type_sound split: option.splits abrupt.splits)
+        with True
+        have "G\<turnstile>obj_ty (the (globs (store s2) (Heap a)))\<preceq>Class catchC"
+          by (cases s2) simp
+        with xcpt_s2 conf_s2 wf
+        have "new_xcpt_var vn s2 \<Colon>\<preceq>(G, L(VName vn\<mapsto>Class catchC))"
+          by (auto dest: Try_lemma)
+        moreover note wt_c2
+        moreover
+        obtain C2' where
+          "\<lparr>prg=G,cls=accC,lcl=L(VName vn\<mapsto>Class catchC)\<rparr>
           \<turnstile> (dom (locals (store (new_xcpt_var vn s2)))) \<guillemotright>In1r c2\<guillemotright> C2'"
-	proof -
-	  have "(dom (locals (store ((Norm s0)::state))) \<union> {VName vn}) 
+        proof -
+          have "(dom (locals (store ((Norm s0)::state))) \<union> {VName vn}) 
                   \<subseteq> dom (locals (store (new_xcpt_var vn s2)))"
           proof -
             from `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
@@ -2189,20 +2189,20 @@ proof -
             ultimately show ?thesis
               by (rule Un_least)
           qed
-	  with da_c2 show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	ultimately
-	obtain       conf_s3: "s3\<Colon>\<preceq>(G, L(VName vn\<mapsto>Class catchC))" and
+          with da_c2 show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        ultimately
+        obtain       conf_s3: "s3\<Colon>\<preceq>(G, L(VName vn\<mapsto>Class catchC))" and
                error_free_s3: "error_free s3"
-	  by (rule hyp_c2 [elim_format])
+          by (rule hyp_c2 [elim_format])
              (cases s2, simp add: xcpt_s2 error_free_s2) 
-	from conf_s3 fresh_vn 
-	have "s3\<Colon>\<preceq>(G,L)"
-	  by (blast intro: conforms_deallocL)
-	with wt error_free_s3
-	show ?thesis
-	  by simp
+        from conf_s3 fresh_vn 
+        have "s3\<Colon>\<preceq>(G,L)"
+          by (blast intro: conforms_deallocL)
+        with wt error_free_s3
+        show ?thesis
+          by simp
       qed
     qed
   next
@@ -2242,9 +2242,9 @@ proof -
         by (rule dom_locals_eval_mono_elim)
       hence "dom (locals (store ((Norm s0)::state))) 
               \<subseteq> dom (locals (store ((Norm s1)::state)))"
-	by simp
+        by simp
       with da_c2 show thesis
-	by (rule da_weakenE) (rule that)
+        by (rule da_weakenE) (rule that)
     qed
     ultimately
     obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"
@@ -2261,19 +2261,19 @@ proof -
     next
       case (Some x) 
       from eval_c2 have 
-	"dom (locals (store ((Norm s1)::state))) \<subseteq> dom (locals (store s2))"
-	by (rule dom_locals_eval_mono_elim)
+        "dom (locals (store ((Norm s1)::state))) \<subseteq> dom (locals (store s2))"
+        by (rule dom_locals_eval_mono_elim)
       with Some eval_c2 wf conf_s1 conf_s2
       have conf: "(abrupt_if True (Some x) (abrupt s2), store s2)\<Colon>\<preceq>(G, L)"
-	by (cases s2) (auto dest: Fin_lemma)
+        by (cases s2) (auto dest: Fin_lemma)
       from Some error_free_s1
       have "\<not> (\<exists> err. x=Error err)"
-	by (simp add: error_free_def)
+        by (simp add: error_free_def)
       with error_free_s2
       have "error_free (abrupt_if True (Some x) (abrupt s2), store s2)"
-	by (cases s2) simp
+        by (cases s2) simp
       with Some wt conf s3' show ?thesis
-	by (cases s2) auto
+        by (cases s2) auto
     qed
   next
     case (Init C c s0 s3 s1 s2 L accC T A)
@@ -2288,9 +2288,9 @@ proof -
     proof (cases "inited C (globs s0)")
       case True
       with Init.hyps have "s3 = Norm s0"
-	by simp
+        by simp
       with conf_s0 wt show ?thesis 
-	by simp
+        by simp
     next
       case False
       with Init.hyps obtain 
@@ -2298,88 +2298,88 @@ proof -
            "G\<turnstile>Norm ((init_class_obj G C) s0) 
               \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1" and
         eval_init: "G\<turnstile>(set_lvars empty) s1 \<midarrow>init c\<rightarrow> s2" and
-	s3: "s3 = (set_lvars (locals (store s1))) s2" 
-	by simp
+        s3: "s3 = (set_lvars (locals (store s1))) s2" 
+        by simp
       have "?TypeSafeObj (Norm ((init_class_obj G C) s0)) s1
-	              (In1r (if C = Object then Skip else Init (super c))) \<diamondsuit>"
-	using False Init.hyps by simp
+                      (In1r (if C = Object then Skip else Init (super c))) \<diamondsuit>"
+        using False Init.hyps by simp
       note hyp_init_super = this [rule_format] 
       have "?TypeSafeObj ((set_lvars empty) s1) s2 (In1r (init c)) \<diamondsuit>"
-	using False Init.hyps by simp
+        using False Init.hyps by simp
       note hyp_init_c = this [rule_format]
       from conf_s0 wf cls_C False
       have "(Norm ((init_class_obj G C) s0))\<Colon>\<preceq>(G, L)"
-	by (auto dest: conforms_init_class_obj)
+        by (auto dest: conforms_init_class_obj)
       moreover from wf cls_C have
-	wt_init_super: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>
+        wt_init_super: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>
                          \<turnstile>(if C = Object then Skip else Init (super c))\<Colon>\<surd>"
-	by (cases "C=Object")
+        by (cases "C=Object")
            (auto dest: wf_prog_cdecl wf_cdecl_supD is_acc_classD)
       moreover
       obtain S where
-	da_init_super:
-	"\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        da_init_super:
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
           \<turnstile> dom (locals (store ((Norm ((init_class_obj G C) s0))::state))) 
                \<guillemotright>In1r (if C = Object then Skip else Init (super c))\<guillemotright> S"
       proof (cases "C=Object")
-	case True 
-	with da_Skip show ?thesis
-	  using that by (auto intro: assigned.select_convs)
+        case True 
+        with da_Skip show ?thesis
+          using that by (auto intro: assigned.select_convs)
       next
-	case False 
-	with da_Init show ?thesis
-	  by - (rule that, auto intro: assigned.select_convs)
+        case False 
+        with da_Init show ?thesis
+          by - (rule that, auto intro: assigned.select_convs)
       qed
       ultimately 
       obtain conf_s1: "s1\<Colon>\<preceq>(G, L)" and error_free_s1: "error_free s1"
-	by (rule hyp_init_super [elim_format]) simp
+        by (rule hyp_init_super [elim_format]) simp
       from eval_init_super wt_init_super wf
       have s1_no_ret: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-	by - (rule eval_statement_no_jump [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>"],
+        by - (rule eval_statement_no_jump [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>"],
               auto)
       with conf_s1
       have "(set_lvars empty) s1\<Colon>\<preceq>(G, empty)"
-	by (cases s1) (auto intro: conforms_set_locals)
+        by (cases s1) (auto intro: conforms_set_locals)
       moreover 
       from error_free_s1
       have error_free_empty: "error_free ((set_lvars empty) s1)"
-	by simp
+        by simp
       from cls_C wf have wt_init_c: "\<lparr>prg=G, cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>"
-	by (rule wf_prog_cdecl [THEN wf_cdecl_wt_init])
+        by (rule wf_prog_cdecl [THEN wf_cdecl_wt_init])
       moreover from cls_C wf obtain I
-	where "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>In1r (init c)\<guillemotright> I"
-	by (rule wf_prog_cdecl [THEN wf_cdeclE,simplified]) blast
+        where "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>In1r (init c)\<guillemotright> I"
+        by (rule wf_prog_cdecl [THEN wf_cdeclE,simplified]) blast
        (*  simplified: to rewrite \<langle>init c\<rangle> to In1r (init c) *) 
       then obtain I' where
-	"\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>dom (locals (store ((set_lvars empty) s1))) 
+        "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>dom (locals (store ((set_lvars empty) s1))) 
             \<guillemotright>In1r (init c)\<guillemotright> I'"
-	  by (rule da_weakenE) simp
+          by (rule da_weakenE) simp
       ultimately
       obtain conf_s2: "s2\<Colon>\<preceq>(G, empty)" and error_free_s2: "error_free s2"
-	by (rule hyp_init_c [elim_format]) (simp add: error_free_empty)
+        by (rule hyp_init_c [elim_format]) (simp add: error_free_empty)
       have "abrupt s2 \<noteq> Some (Jump Ret)"
       proof -
-	from s1_no_ret 
-	have "\<And> j. abrupt ((set_lvars empty) s1) \<noteq> Some (Jump j)"
-	  by simp
-	moreover
-	from cls_C wf have "jumpNestingOkS {} (init c)"
-	  by (rule wf_prog_cdecl [THEN wf_cdeclE])
-	ultimately 
-	show ?thesis
-	  using eval_init wt_init_c wf
-	  by - (rule eval_statement_no_jump 
+        from s1_no_ret 
+        have "\<And> j. abrupt ((set_lvars empty) s1) \<noteq> Some (Jump j)"
+          by simp
+        moreover
+        from cls_C wf have "jumpNestingOkS {} (init c)"
+          by (rule wf_prog_cdecl [THEN wf_cdeclE])
+        ultimately 
+        show ?thesis
+          using eval_init wt_init_c wf
+          by - (rule eval_statement_no_jump 
                      [where ?Env="\<lparr>prg=G,cls=C,lcl=empty\<rparr>"],simp+)
       qed
       with conf_s2 s3 conf_s1 eval_init
       have "s3\<Colon>\<preceq>(G, L)"
-	by (cases s2,cases s1) (force dest: conforms_return eval_gext')
+        by (cases s2,cases s1) (force dest: conforms_return eval_gext')
       moreover from error_free_s2 s3
       have "error_free s3"
-	by simp
+        by simp
       moreover note wt
       ultimately show ?thesis
-	by simp
+        by simp
     qed
   next
     case (NewC s0 C s1 a s2 L accC T A)
@@ -2436,39 +2436,39 @@ proof -
     proof -
       note conf_s0 wt_init
       moreover obtain I where
-	"\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
          \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In1r (init_comp_ty elT)\<guillemotright> I"
       proof (cases "\<exists>C. elT = Class C")
-	case True
-	thus ?thesis
-	  by - (rule that, (auto intro: da_Init [simplified] 
+        case True
+        thus ?thesis
+          by - (rule that, (auto intro: da_Init [simplified] 
                                         assigned.select_convs
                               simp add: init_comp_ty_def))
-	 (* simplified: to rewrite \<langle>Init C\<rangle> to In1r (Init C) *)
+         (* simplified: to rewrite \<langle>Init C\<rangle> to In1r (Init C) *)
       next
-	case False
-	thus ?thesis
-	by - (rule that, (auto intro: da_Skip [simplified] 
+        case False
+        thus ?thesis
+        by - (rule that, (auto intro: da_Skip [simplified] 
                                       assigned.select_convs
                            simp add: init_comp_ty_def))
          (* simplified: to rewrite \<langle>Skip\<rangle> to In1r (Skip) *)
       qed
       ultimately show thesis
-	by (rule hyp_init [elim_format]) (auto intro: that)
+        by (rule hyp_init [elim_format]) (auto intro: that)
     qed 
     obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"
     proof -
       from eval_init 
       have "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
-	by (rule dom_locals_eval_mono_elim)
+        by (rule dom_locals_eval_mono_elim)
       with da_e 
       obtain A' where
        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
             \<turnstile> dom (locals (store s1)) \<guillemotright>In1l e\<guillemotright> A'"
-	by (rule da_weakenE)
+        by (rule da_weakenE)
       with conf_s1 wt_size
       show ?thesis
-	by (rule hyp_size [elim_format]) (simp add: that error_free_s1) 
+        by (rule hyp_size [elim_format]) (simp add: that error_free_s1) 
     qed
     from conf_s2 have "abupd (check_neg i) s2\<Colon>\<preceq>(G, L)"
       by (cases s2) auto
@@ -2515,14 +2515,14 @@ proof -
       assume norm_s2: "normal s2"
       have "G,L,store s2\<turnstile>In1l (Cast castT e)\<succ>In1 v\<Colon>\<preceq>T"
       proof -
-	from s2 norm_s2 have "normal s1"
-	  by (cases s1) simp
-	with v_ok 
-	have "G,store s1\<turnstile>v\<Colon>\<preceq>eT"
-	  by simp
-	with eT wf s2 T norm_s2
-	show ?thesis
-	  by (cases s1) (auto dest: fits_conf)
+        from s2 norm_s2 have "normal s1"
+          by (cases s1) simp
+        with v_ok 
+        have "G,store s1\<turnstile>v\<Colon>\<preceq>eT"
+          by simp
+        with eT wf s2 T norm_s2
+        show ?thesis
+          by (cases s1) (auto dest: fits_conf)
       qed
     }
     with conf_s2 error_free_s2
@@ -2644,32 +2644,32 @@ proof -
       case False
       with eval_e2 have "s2=s1" by auto
       with conf_s1 error_free_s1 False show ?thesis
-	by auto
+        by auto
     next
       case True
       note normal_s1 = this
       show ?thesis 
       proof (cases "need_second_arg binop v1")
-	case False
-	with normal_s1 eval_e2 have "s2=s1"
-	  by (cases s1) (simp, elim eval_elim_cases,simp)
-	with conf_s1 conf_v error_free_s1
-	show ?thesis by simp
+        case False
+        with normal_s1 eval_e2 have "s2=s1"
+          by (cases s1) (simp, elim eval_elim_cases,simp)
+        with conf_s1 conf_v error_free_s1
+        show ?thesis by simp
       next
-	case True
-	note need_second_arg = this
-	with hyp_e2 
-	have hyp_e2': "PROP ?TypeSafe s1 s2 (In1l e2) (In1 v2)" by simp
-	from da wt_e1 wt_e2 wt_binop conf_s0 normal_s1 eval_e1 
+        case True
+        note need_second_arg = this
+        with hyp_e2 
+        have hyp_e2': "PROP ?TypeSafe s1 s2 (In1l e2) (In1 v2)" by simp
+        from da wt_e1 wt_e2 wt_binop conf_s0 normal_s1 eval_e1 
           wt_v1 [rule_format,OF normal_s1] wf
-	obtain E2 where
-	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In1l e2\<guillemotright> E2"
-	  by (rule da_e2_BinOp [elim_format]) 
+        obtain E2 where
+          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In1l e2\<guillemotright> E2"
+          by (rule da_e2_BinOp [elim_format]) 
              (auto simp add: need_second_arg )
-	with conf_s1 wt_e2 
-	obtain "s2\<Colon>\<preceq>(G, L)" and "error_free s2"
-	  by (rule hyp_e2' [elim_format]) (simp add: error_free_s1)
-	with conf_v show ?thesis by simp
+        with conf_s1 wt_e2 
+        obtain "s2\<Colon>\<preceq>(G, L)" and "error_free s2"
+          by (rule hyp_e2' [elim_format]) (simp add: error_free_s1)
+        with conf_v show ?thesis by simp
       qed
     qed
   next
@@ -2713,18 +2713,18 @@ proof -
       fix n assume lvar: "v=LVar n"
       have "locals (store s1) n \<noteq> None"
       proof -
-	from Acc.prems lvar have 
-	  "n \<in> dom (locals s0)"
-	  by (cases "\<exists> n. v=LVar n") (auto elim!: da_elim_cases)
-	also
-	have "dom (locals s0) \<subseteq> dom (locals (store s1))"
-	proof -
-	  from `G\<turnstile>Norm s0 \<midarrow>v=\<succ>(w, upd)\<rightarrow> s1`
-	  show ?thesis
-	    by (rule dom_locals_eval_mono_elim) simp
-	qed
-	finally show ?thesis
-	  by blast
+        from Acc.prems lvar have 
+          "n \<in> dom (locals s0)"
+          by (cases "\<exists> n. v=LVar n") (auto elim!: da_elim_cases)
+        also
+        have "dom (locals s0) \<subseteq> dom (locals (store s1))"
+        proof -
+          from `G\<turnstile>Norm s0 \<midarrow>v=\<succ>(w, upd)\<rightarrow> s1`
+          show ?thesis
+            by (rule dom_locals_eval_mono_elim) simp
+        qed
+        finally show ?thesis
+          by blast
       qed
     } note lvar_in_locals = this 
     from conf_s0 wt_v da_v
@@ -2746,9 +2746,9 @@ proof -
     note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
     note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (var:=e)\<Colon>T`
     then obtain varT eT where
-	 wt_var: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>var\<Colon>=varT" and
-	   wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
-	  widen: "G\<turnstile>eT\<preceq>varT" and
+         wt_var: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>var\<Colon>=varT" and
+           wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
+          widen: "G\<turnstile>eT\<preceq>varT" and
               T: "T=Inl eT"
       by (rule wt_elim_cases) auto
     show "assign upd v s2\<Colon>\<preceq>(G, L) \<and>
@@ -2759,139 +2759,139 @@ proof -
       case False
       with Ass.prems
       obtain V E where
-	da_var: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        da_var: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                    \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In2 var\<guillemotright> V" and
-	da_e:   "\<lparr>prg=G,cls=accC,lcl=L\<rparr> \<turnstile> nrm V \<guillemotright>In1l e\<guillemotright> E"
-	by (elim da_elim_cases) simp+
+        da_e:   "\<lparr>prg=G,cls=accC,lcl=L\<rparr> \<turnstile> nrm V \<guillemotright>In1l e\<guillemotright> E"
+        by (elim da_elim_cases) simp+
       from conf_s0 wt_var da_var 
       obtain conf_s1: "s1\<Colon>\<preceq>(G, L)" 
-	and  conf_var: "normal s1 
+        and  conf_var: "normal s1 
                          \<longrightarrow> G,L,store s1\<turnstile>In2 var\<succ>In2 (w, upd)\<Colon>\<preceq>Inl varT"
-	and  error_free_s1: "error_free s1"
-	by (rule hyp_var [elim_format]) simp
+        and  error_free_s1: "error_free s1"
+        by (rule hyp_var [elim_format]) simp
       show ?thesis
       proof (cases "normal s1")
-	case False
-	with eval_e have "s2=s1" by auto
-	with False have "assign upd v s2=s1"
-	  by simp
-	with conf_s1 error_free_s1 False show ?thesis
-	  by auto
+        case False
+        with eval_e have "s2=s1" by auto
+        with False have "assign upd v s2=s1"
+          by simp
+        with conf_s1 error_free_s1 False show ?thesis
+          by auto
       next
-	case True
-	note normal_s1=this
-	obtain A' where "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        case True
+        note normal_s1=this
+        obtain A' where "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                          \<turnstile> dom (locals (store s1)) \<guillemotright>In1l e\<guillemotright> A'"
-	proof -
-	  from eval_var wt_var da_var wf normal_s1
-	  have "nrm V \<subseteq>  dom (locals (store s1))"
-	    by (cases rule: da_good_approxE') iprover
-	  with da_e show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	with conf_s1 wt_e 
-	obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and 
+        proof -
+          from eval_var wt_var da_var wf normal_s1
+          have "nrm V \<subseteq>  dom (locals (store s1))"
+            by (cases rule: da_good_approxE') iprover
+          with da_e show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        with conf_s1 wt_e 
+        obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and 
           conf_v: "normal s2 \<longrightarrow> G,store s2\<turnstile>v\<Colon>\<preceq>eT" and
           error_free_s2: "error_free s2"
-	  by (rule hyp_e [elim_format]) (simp add: error_free_s1)
-	show ?thesis 
-	proof (cases "normal s2")
-	  case False
-	  with conf_s2 error_free_s2 
-	  show ?thesis
-	    by auto
-	next
-	  case True
-	  from True conf_v
-	  have conf_v_eT: "G,store s2\<turnstile>v\<Colon>\<preceq>eT"
-	    by simp
-	  with widen wf
-	  have conf_v_varT: "G,store s2\<turnstile>v\<Colon>\<preceq>varT"
-	    by (auto intro: conf_widen)
-	  from normal_s1 conf_var
-	  have "G,L,store s1\<turnstile>In2 var\<succ>In2 (w, upd)\<Colon>\<preceq>Inl varT"
-	    by simp
-	  then 
-	  have conf_assign:  "store s1\<le>|upd\<preceq>varT\<Colon>\<preceq>(G, L)" 
-	    by (simp add: rconf_def)
-	  from conf_v_eT conf_v_varT conf_assign normal_s1 True wf eval_var 
-	    eval_e T conf_s2 error_free_s2
-	  show ?thesis
-	    by (cases s1, cases s2) 
-	       (auto dest!: Ass_lemma simp add: assign_conforms_def)
-	qed
+          by (rule hyp_e [elim_format]) (simp add: error_free_s1)
+        show ?thesis 
+        proof (cases "normal s2")
+          case False
+          with conf_s2 error_free_s2 
+          show ?thesis
+            by auto
+        next
+          case True
+          from True conf_v
+          have conf_v_eT: "G,store s2\<turnstile>v\<Colon>\<preceq>eT"
+            by simp
+          with widen wf
+          have conf_v_varT: "G,store s2\<turnstile>v\<Colon>\<preceq>varT"
+            by (auto intro: conf_widen)
+          from normal_s1 conf_var
+          have "G,L,store s1\<turnstile>In2 var\<succ>In2 (w, upd)\<Colon>\<preceq>Inl varT"
+            by simp
+          then 
+          have conf_assign:  "store s1\<le>|upd\<preceq>varT\<Colon>\<preceq>(G, L)" 
+            by (simp add: rconf_def)
+          from conf_v_eT conf_v_varT conf_assign normal_s1 True wf eval_var 
+            eval_e T conf_s2 error_free_s2
+          show ?thesis
+            by (cases s1, cases s2) 
+               (auto dest!: Ass_lemma simp add: assign_conforms_def)
+        qed
       qed
     next
       case True
       then obtain vn where vn: "var=LVar vn"
-	by blast
+        by blast
       with Ass.prems
       obtain E where
-	da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr> 
-	           \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In1l e\<guillemotright> E"
-	by (elim da_elim_cases) simp+
+        da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr> 
+                   \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In1l e\<guillemotright> E"
+        by (elim da_elim_cases) simp+
       from da.LVar vn obtain V where
-	da_var: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        da_var: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                    \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In2 var\<guillemotright> V"
-	by auto
+        by auto
       obtain E' where
-	da_e': "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+        da_e': "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                    \<turnstile> dom (locals (store s1)) \<guillemotright>In1l e\<guillemotright> E'"
       proof -
-	have "dom (locals (store ((Norm s0)::state))) 
+        have "dom (locals (store ((Norm s0)::state))) 
                 \<subseteq> dom (locals (store (s1)))"
-	  by (rule dom_locals_eval_mono_elim) (rule Ass.hyps)
-	with da_e show thesis
-	  by (rule da_weakenE) (rule that)
+          by (rule dom_locals_eval_mono_elim) (rule Ass.hyps)
+        with da_e show thesis
+          by (rule da_weakenE) (rule that)
       qed
       from conf_s0 wt_var da_var 
       obtain conf_s1: "s1\<Colon>\<preceq>(G, L)" 
-	and  conf_var: "normal s1 
+        and  conf_var: "normal s1 
                          \<longrightarrow> G,L,store s1\<turnstile>In2 var\<succ>In2 (w, upd)\<Colon>\<preceq>Inl varT"
-	and  error_free_s1: "error_free s1"
-	by (rule hyp_var [elim_format]) simp
+        and  error_free_s1: "error_free s1"
+        by (rule hyp_var [elim_format]) simp
       show ?thesis
       proof (cases "normal s1")
-	case False
-	with eval_e have "s2=s1" by auto
-	with False have "assign upd v s2=s1"
-	  by simp
-	with conf_s1 error_free_s1 False show ?thesis
-	  by auto
+        case False
+        with eval_e have "s2=s1" by auto
+        with False have "assign upd v s2=s1"
+          by simp
+        with conf_s1 error_free_s1 False show ?thesis
+          by auto
       next
-	case True
-	note normal_s1 = this
-	from conf_s1 wt_e da_e'
-	obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and 
+        case True
+        note normal_s1 = this
+        from conf_s1 wt_e da_e'
+        obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and 
           conf_v: "normal s2 \<longrightarrow> G,store s2\<turnstile>v\<Colon>\<preceq>eT" and
           error_free_s2: "error_free s2"
-	  by (rule hyp_e [elim_format]) (simp add: error_free_s1)
-	show ?thesis 
-	proof (cases "normal s2")
-	  case False
-	  with conf_s2 error_free_s2 
-	  show ?thesis
-	    by auto
-	next
-	  case True
-	  from True conf_v
-	  have conf_v_eT: "G,store s2\<turnstile>v\<Colon>\<preceq>eT"
-	    by simp
-	  with widen wf
-	  have conf_v_varT: "G,store s2\<turnstile>v\<Colon>\<preceq>varT"
-	    by (auto intro: conf_widen)
-	  from normal_s1 conf_var
-	  have "G,L,store s1\<turnstile>In2 var\<succ>In2 (w, upd)\<Colon>\<preceq>Inl varT"
-	    by simp
-	  then 
-	  have conf_assign:  "store s1\<le>|upd\<preceq>varT\<Colon>\<preceq>(G, L)" 
-	    by (simp add: rconf_def)
-	  from conf_v_eT conf_v_varT conf_assign normal_s1 True wf eval_var 
-	    eval_e T conf_s2 error_free_s2
-	  show ?thesis
-	    by (cases s1, cases s2) 
-	       (auto dest!: Ass_lemma simp add: assign_conforms_def)
-	qed
+          by (rule hyp_e [elim_format]) (simp add: error_free_s1)
+        show ?thesis 
+        proof (cases "normal s2")
+          case False
+          with conf_s2 error_free_s2 
+          show ?thesis
+            by auto
+        next
+          case True
+          from True conf_v
+          have conf_v_eT: "G,store s2\<turnstile>v\<Colon>\<preceq>eT"
+            by simp
+          with widen wf
+          have conf_v_varT: "G,store s2\<turnstile>v\<Colon>\<preceq>varT"
+            by (auto intro: conf_widen)
+          from normal_s1 conf_var
+          have "G,L,store s1\<turnstile>In2 var\<succ>In2 (w, upd)\<Colon>\<preceq>Inl varT"
+            by simp
+          then 
+          have conf_assign:  "store s1\<le>|upd\<preceq>varT\<Colon>\<preceq>(G, L)" 
+            by (simp add: rconf_def)
+          from conf_v_eT conf_v_varT conf_assign normal_s1 True wf eval_var 
+            eval_e T conf_s2 error_free_s2
+          show ?thesis
+            by (cases s1, cases s2) 
+               (auto dest!: Ass_lemma simp add: assign_conforms_def)
+        qed
       qed
     qed
   next
@@ -2931,60 +2931,60 @@ proof -
       case False
       with eval_e1_e2 have "s2=s1" by auto
       with conf_s1 error_free_s1 False show ?thesis
-	by auto
+        by auto
     next
       case True
       have s0_s1: "dom (locals (store ((Norm s0)::state))) 
                     \<union> assigns_if (the_Bool b) e0 \<subseteq> dom (locals (store s1))"
       proof -
-	from eval_e0 have 
-	  "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
-	  by (rule dom_locals_eval_mono_elim)
+        from eval_e0 have 
+          "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
+          by (rule dom_locals_eval_mono_elim)
         moreover
-	from eval_e0 True wt_e0 
-	have "assigns_if (the_Bool b) e0 \<subseteq> dom (locals (store s1))"
-	  by (rule assigns_if_good_approx') 
-	ultimately show ?thesis by (rule Un_least)
+        from eval_e0 True wt_e0 
+        have "assigns_if (the_Bool b) e0 \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx') 
+        ultimately show ?thesis by (rule Un_least)
       qed 
       show ?thesis
       proof (cases "the_Bool b")
-	case True
-	with hyp_if have hyp_e1: "PROP ?TypeSafe s1 s2 (In1l e1) (In1 v)" 
-	  by simp
-	from da_e1 s0_s1 True obtain E1' where
-	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>In1l e1\<guillemotright> E1'"
-	  by - (rule da_weakenE, auto iff del: Un_subset_iff le_sup_iff)
-	with conf_s1 wt_e1
-	obtain 
-	  "s2\<Colon>\<preceq>(G, L)"
-	  "(normal s2 \<longrightarrow> G,L,store s2\<turnstile>In1l e1\<succ>In1 v\<Colon>\<preceq>Inl T1)"
-	  "error_free s2"            
-	  by (rule hyp_e1 [elim_format]) (simp add: error_free_s1)
-	moreover
-	from statT  
-	have "G\<turnstile>T1\<preceq>statT"
-	  by auto
-	ultimately show ?thesis
-	  using T wf by auto
+        case True
+        with hyp_if have hyp_e1: "PROP ?TypeSafe s1 s2 (In1l e1) (In1 v)" 
+          by simp
+        from da_e1 s0_s1 True obtain E1' where
+          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>In1l e1\<guillemotright> E1'"
+          by - (rule da_weakenE, auto iff del: Un_subset_iff le_sup_iff)
+        with conf_s1 wt_e1
+        obtain 
+          "s2\<Colon>\<preceq>(G, L)"
+          "(normal s2 \<longrightarrow> G,L,store s2\<turnstile>In1l e1\<succ>In1 v\<Colon>\<preceq>Inl T1)"
+          "error_free s2"            
+          by (rule hyp_e1 [elim_format]) (simp add: error_free_s1)
+        moreover
+        from statT  
+        have "G\<turnstile>T1\<preceq>statT"
+          by auto
+        ultimately show ?thesis
+          using T wf by auto
       next
-	case False
-	with hyp_if have hyp_e2: "PROP ?TypeSafe s1 s2 (In1l e2) (In1 v)" 
-	  by simp
-	from da_e2 s0_s1 False obtain E2' where
-	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>In1l e2\<guillemotright> E2'"
-	  by - (rule da_weakenE, auto iff del: Un_subset_iff le_sup_iff)
-	with conf_s1 wt_e2
-	obtain 
-	  "s2\<Colon>\<preceq>(G, L)"
-	  "(normal s2 \<longrightarrow> G,L,store s2\<turnstile>In1l e2\<succ>In1 v\<Colon>\<preceq>Inl T2)"
-	  "error_free s2"            
-	  by (rule hyp_e2 [elim_format]) (simp add: error_free_s1)
-	moreover
-	from statT  
-	have "G\<turnstile>T2\<preceq>statT"
-	  by auto
-	ultimately show ?thesis
-	  using T wf by auto
+        case False
+        with hyp_if have hyp_e2: "PROP ?TypeSafe s1 s2 (In1l e2) (In1 v)" 
+          by simp
+        from da_e2 s0_s1 False obtain E2' where
+          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>In1l e2\<guillemotright> E2'"
+          by - (rule da_weakenE, auto iff del: Un_subset_iff le_sup_iff)
+        with conf_s1 wt_e2
+        obtain 
+          "s2\<Colon>\<preceq>(G, L)"
+          "(normal s2 \<longrightarrow> G,L,store s2\<turnstile>In1l e2\<succ>In1 v\<Colon>\<preceq>Inl T2)"
+          "error_free s2"            
+          by (rule hyp_e2 [elim_format]) (simp add: error_free_s1)
+        moreover
+        from statT  
+        have "G\<turnstile>T2\<preceq>statT"
+          by auto
+        ultimately show ?thesis
+          using T wf by auto
       qed
     qed
   next
@@ -3031,22 +3031,22 @@ proof -
       assume abnormal_s2: "\<not> normal s2"
       have "set_lvars (locals (store s2)) s4 = s2"
       proof -
-	from abnormal_s2 init_lvars 
-	obtain keep_abrupt: "abrupt s3 = abrupt s2" and
+        from abnormal_s2 init_lvars 
+        obtain keep_abrupt: "abrupt s3 = abrupt s2" and
              "store s3 = store (init_lvars G invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> 
                                             mode a vs s2)" 
-	  by (auto simp add: init_lvars_def2)
-	moreover
-	from keep_abrupt abnormal_s2 check
-	have eq_s3'_s3: "s3'=s3" 
-	  by (auto simp add: check_method_access_def Let_def)
-	moreover
-	from eq_s3'_s3 abnormal_s2 keep_abrupt eval_methd
-	have "s4=s3'"
-	  by auto
-	ultimately show
-	  "set_lvars (locals (store s2)) s4 = s2"
-	  by (cases s2,cases s3) (simp add: init_lvars_def2)
+          by (auto simp add: init_lvars_def2)
+        moreover
+        from keep_abrupt abnormal_s2 check
+        have eq_s3'_s3: "s3'=s3" 
+          by (auto simp add: check_method_access_def Let_def)
+        moreover
+        from eq_s3'_s3 abnormal_s2 keep_abrupt eval_methd
+        have "s4=s3'"
+          by auto
+        ultimately show
+          "set_lvars (locals (store s2)) s4 = s2"
+          by (cases s2,cases s3) (simp add: init_lvars_def2)
       qed
     } note propagate_abnormal_s2 = this
     show "(set_lvars (locals (store s2))) s4\<Colon>\<preceq>(G, L) \<and>
@@ -3060,113 +3060,113 @@ proof -
       with eval_args have "s2=s1" by auto
       with False propagate_abnormal_s2 conf_s1 error_free_s1 
       show ?thesis
-	by auto
+        by auto
     next
       case True
       note normal_s1 = this
       obtain A' where 
-	"\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In3 args\<guillemotright> A'"
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In3 args\<guillemotright> A'"
       proof -
-	from eval_e wt_e da_e wf normal_s1
-	have "nrm E \<subseteq>  dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') iprover
-	with da_args show thesis
-	  by (rule da_weakenE) (rule that)
+        from eval_e wt_e da_e wf normal_s1
+        have "nrm E \<subseteq>  dom (locals (store s1))"
+          by (cases rule: da_good_approxE') iprover
+        with da_args show thesis
+          by (rule da_weakenE) (rule that)
       qed
       with conf_s1 wt_args 
       obtain    conf_s2: "s2\<Colon>\<preceq>(G, L)" and
               conf_args: "normal s2 
                          \<Longrightarrow>  list_all2 (conf G (store s2)) vs pTs" and
           error_free_s2: "error_free s2" 
-	by (rule hyp_args [elim_format]) (simp add: error_free_s1)
+        by (rule hyp_args [elim_format]) (simp add: error_free_s1)
       from error_free_s2 init_lvars
       have error_free_s3: "error_free s3"
-	by (auto simp add: init_lvars_def2)
+        by (auto simp add: init_lvars_def2)
       from statM 
       obtain
-	statM': "(statDeclT,statM)\<in>mheads G accC statT \<lparr>name=mn,parTs=pTs'\<rparr>" and
-	pTs_widen: "G\<turnstile>pTs[\<preceq>]pTs'"
-	by (blast dest: max_spec2mheads)
+        statM': "(statDeclT,statM)\<in>mheads G accC statT \<lparr>name=mn,parTs=pTs'\<rparr>" and
+        pTs_widen: "G\<turnstile>pTs[\<preceq>]pTs'"
+        by (blast dest: max_spec2mheads)
       from check
       have eq_store_s3'_s3: "store s3'=store s3"
-	by (cases s3) (simp add: check_method_access_def Let_def)
+        by (cases s3) (simp add: check_method_access_def Let_def)
       obtain invC
-	where invC: "invC = invocation_class mode (store s2) a statT"
-	by simp
+        where invC: "invC = invocation_class mode (store s2) a statT"
+        by simp
       with init_lvars
       have invC': "invC = (invocation_class mode (store s3) a statT)"
-	by (cases s2,cases mode) (auto simp add: init_lvars_def2 )
+        by (cases s2,cases mode) (auto simp add: init_lvars_def2 )
       show ?thesis
       proof (cases "normal s2")
-	case False
-	with propagate_abnormal_s2 conf_s2 error_free_s2
-	show ?thesis
-	  by auto
+        case False
+        with propagate_abnormal_s2 conf_s2 error_free_s2
+        show ?thesis
+          by auto
       next
-	case True
-	note normal_s2 = True
-	with normal_s1 conf_a eval_args 
-	have conf_a_s2: "G, store s2\<turnstile>a\<Colon>\<preceq>RefT statT"
-	  by (auto dest: eval_gext intro: conf_gext)
-	show ?thesis
-	proof (cases "a=Null \<longrightarrow> is_static statM")
-	  case False
-	  then obtain not_static: "\<not> is_static statM" and Null: "a=Null" 
-	    by blast
-	  with normal_s2 init_lvars mode
-	  obtain np: "abrupt s3 = Some (Xcpt (Std NullPointer))" and
+        case True
+        note normal_s2 = True
+        with normal_s1 conf_a eval_args 
+        have conf_a_s2: "G, store s2\<turnstile>a\<Colon>\<preceq>RefT statT"
+          by (auto dest: eval_gext intro: conf_gext)
+        show ?thesis
+        proof (cases "a=Null \<longrightarrow> is_static statM")
+          case False
+          then obtain not_static: "\<not> is_static statM" and Null: "a=Null" 
+            by blast
+          with normal_s2 init_lvars mode
+          obtain np: "abrupt s3 = Some (Xcpt (Std NullPointer))" and
                      "store s3 = store (init_lvars G invDeclC 
                                        \<lparr>name = mn, parTs = pTs'\<rparr> mode a vs s2)"
-	    by (auto simp add: init_lvars_def2)
-	  moreover
-	  from np check
-	  have eq_s3'_s3: "s3'=s3" 
-	    by (auto simp add: check_method_access_def Let_def)
-	  moreover
-	  from eq_s3'_s3 np eval_methd
-	  have "s4=s3'"
-	    by auto
-	  ultimately have
-	    "set_lvars (locals (store s2)) s4 
+            by (auto simp add: init_lvars_def2)
+          moreover
+          from np check
+          have eq_s3'_s3: "s3'=s3" 
+            by (auto simp add: check_method_access_def Let_def)
+          moreover
+          from eq_s3'_s3 np eval_methd
+          have "s4=s3'"
+            by auto
+          ultimately have
+            "set_lvars (locals (store s2)) s4 
             = (Some (Xcpt (Std NullPointer)),store s2)"
-	    by (cases s2,cases s3) (simp add: init_lvars_def2)
-	  with conf_s2 error_free_s2
-	  show ?thesis
-	    by (cases s2) (auto dest: conforms_NormI)
-	next
-	  case True
-	  with mode have notNull: "mode = IntVir \<longrightarrow> a \<noteq> Null"
-	    by (auto dest!: Null_staticD)
-	  with conf_s2 conf_a_s2 wf invC  
-	  have dynT_prop: "G\<turnstile>mode\<rightarrow>invC\<preceq>statT"
-	    by (cases s2) (auto intro: DynT_propI)
-	  with wt_e statM' invC mode wf 
-	  obtain dynM where 
+            by (cases s2,cases s3) (simp add: init_lvars_def2)
+          with conf_s2 error_free_s2
+          show ?thesis
+            by (cases s2) (auto dest: conforms_NormI)
+        next
+          case True
+          with mode have notNull: "mode = IntVir \<longrightarrow> a \<noteq> Null"
+            by (auto dest!: Null_staticD)
+          with conf_s2 conf_a_s2 wf invC  
+          have dynT_prop: "G\<turnstile>mode\<rightarrow>invC\<preceq>statT"
+            by (cases s2) (auto intro: DynT_propI)
+          with wt_e statM' invC mode wf 
+          obtain dynM where 
             dynM: "dynlookup G statT invC  \<lparr>name=mn,parTs=pTs'\<rparr> = Some dynM" and
             acc_dynM: "G \<turnstile>Methd  \<lparr>name=mn,parTs=pTs'\<rparr> dynM 
                             in invC dyn_accessible_from accC"
-	    by (force dest!: call_access_ok)
-	  with invC' check eq_accC_accC'
-	  have eq_s3'_s3: "s3'=s3"
-	    by (auto simp add: check_method_access_def Let_def)
-	  from dynT_prop wf wt_e statM' mode invC invDeclC dynM 
-	  obtain 
-	    wf_dynM: "wf_mdecl G invDeclC (\<lparr>name=mn,parTs=pTs'\<rparr>,mthd dynM)" and
-	      dynM': "methd G invDeclC \<lparr>name=mn,parTs=pTs'\<rparr> = Some dynM" and
+            by (force dest!: call_access_ok)
+          with invC' check eq_accC_accC'
+          have eq_s3'_s3: "s3'=s3"
+            by (auto simp add: check_method_access_def Let_def)
+          from dynT_prop wf wt_e statM' mode invC invDeclC dynM 
+          obtain 
+            wf_dynM: "wf_mdecl G invDeclC (\<lparr>name=mn,parTs=pTs'\<rparr>,mthd dynM)" and
+              dynM': "methd G invDeclC \<lparr>name=mn,parTs=pTs'\<rparr> = Some dynM" and
             iscls_invDeclC: "is_class G invDeclC" and
-	         invDeclC': "invDeclC = declclass dynM" and
-	      invC_widen: "G\<turnstile>invC\<preceq>\<^sub>C invDeclC" and
-	     resTy_widen: "G\<turnstile>resTy dynM\<preceq>resTy statM" and
-	    is_static_eq: "is_static dynM = is_static statM" and
-	    involved_classes_prop:
+                 invDeclC': "invDeclC = declclass dynM" and
+              invC_widen: "G\<turnstile>invC\<preceq>\<^sub>C invDeclC" and
+             resTy_widen: "G\<turnstile>resTy dynM\<preceq>resTy statM" and
+            is_static_eq: "is_static dynM = is_static statM" and
+            involved_classes_prop:
              "(if invmode statM e = IntVir
                then \<forall>statC. statT = ClassT statC \<longrightarrow> G\<turnstile>invC\<preceq>\<^sub>C statC
                else ((\<exists>statC. statT = ClassT statC \<and> G\<turnstile>statC\<preceq>\<^sub>C invDeclC) \<or>
                      (\<forall>statC. statT \<noteq> ClassT statC \<and> invDeclC = Object)) \<and>
                       statDeclT = ClassT invDeclC)"
-	    by (cases rule: DynT_mheadsE) simp
-	  obtain L' where 
-	   L':"L'=(\<lambda> k. 
+            by (cases rule: DynT_mheadsE) simp
+          obtain L' where 
+           L':"L'=(\<lambda> k. 
                  (case k of
                     EName e
                     \<Rightarrow> (case e of 
@@ -3176,158 +3176,158 @@ proof -
                         | Res \<Rightarrow> Some (resTy dynM))
                   | This \<Rightarrow> if is_static statM 
                             then None else Some (Class invDeclC)))"
-	    by simp
-	  from wf_dynM [THEN wf_mdeclD1, THEN conjunct1] normal_s2 conf_s2 wt_e
+            by simp
+          from wf_dynM [THEN wf_mdeclD1, THEN conjunct1] normal_s2 conf_s2 wt_e
             wf eval_args conf_a mode notNull wf_dynM involved_classes_prop
-	  have conf_s3: "s3\<Colon>\<preceq>(G,L')"
-	    apply - 
+          have conf_s3: "s3\<Colon>\<preceq>(G,L')"
+            apply - 
                (* FIXME confomrs_init_lvars should be 
                   adjusted to be more directy applicable *)
-	    apply (drule conforms_init_lvars [of G invDeclC 
+            apply (drule conforms_init_lvars [of G invDeclC 
                     "\<lparr>name=mn,parTs=pTs'\<rparr>" dynM "store s2" vs pTs "abrupt s2" 
                     L statT invC a "(statDeclT,statM)" e])
-	    apply (rule wf)
-	    apply (rule conf_args,assumption)
-	    apply (simp add: pTs_widen)
-	    apply (cases s2,simp)
-	    apply (rule dynM')
-	    apply (force dest: ty_expr_is_type)
-	    apply (rule invC_widen)
-	    apply (force intro: conf_gext dest: eval_gext)
-	    apply simp
-	    apply simp
-	    apply (simp add: invC)
-	    apply (simp add: invDeclC)
-	    apply (simp add: normal_s2)
-	    apply (cases s2, simp add: L' init_lvars
-	                     cong add: lname.case_cong ename.case_cong)
-	    done
-	  with eq_s3'_s3 
-	  have conf_s3': "s3'\<Colon>\<preceq>(G,L')" by simp
-	  moreover
-	  from  is_static_eq wf_dynM L'
-	  obtain mthdT where
-	    "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
+            apply (rule wf)
+            apply (rule conf_args,assumption)
+            apply (simp add: pTs_widen)
+            apply (cases s2,simp)
+            apply (rule dynM')
+            apply (force dest: ty_expr_is_type)
+            apply (rule invC_widen)
+            apply (force intro: conf_gext dest: eval_gext)
+            apply simp
+            apply simp
+            apply (simp add: invC)
+            apply (simp add: invDeclC)
+            apply (simp add: normal_s2)
+            apply (cases s2, simp add: L' init_lvars
+                             cong add: lname.case_cong ename.case_cong)
+            done
+          with eq_s3'_s3 
+          have conf_s3': "s3'\<Colon>\<preceq>(G,L')" by simp
+          moreover
+          from  is_static_eq wf_dynM L'
+          obtain mthdT where
+            "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
                \<turnstile>Body invDeclC (stmt (mbody (mthd dynM)))\<Colon>-mthdT" and
-	    mthdT_widen: "G\<turnstile>mthdT\<preceq>resTy dynM"
-	    by - (drule wf_mdecl_bodyD,
+            mthdT_widen: "G\<turnstile>mthdT\<preceq>resTy dynM"
+            by - (drule wf_mdecl_bodyD,
                  auto simp add: callee_lcl_def  
                       cong add: lname.case_cong ename.case_cong)
-	  with dynM' iscls_invDeclC invDeclC'
-	  have
-	    "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
+          with dynM' iscls_invDeclC invDeclC'
+          have
+            "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
                \<turnstile>(Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)\<Colon>-mthdT"
-	    by (auto intro: wt.Methd)
-	  moreover
-	  obtain M where 
-	    "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr> 
-	       \<turnstile> dom (locals (store s3')) 
-	          \<guillemotright>In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)\<guillemotright> M"
-	  proof -
-	    from wf_dynM
-	    obtain M' where
-	      da_body: 
-	      "\<lparr>prg=G, cls=invDeclC
+            by (auto intro: wt.Methd)
+          moreover
+          obtain M where 
+            "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr> 
+               \<turnstile> dom (locals (store s3')) 
+                  \<guillemotright>In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)\<guillemotright> M"
+          proof -
+            from wf_dynM
+            obtain M' where
+              da_body: 
+              "\<lparr>prg=G, cls=invDeclC
                ,lcl=callee_lcl invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> (mthd dynM)
                \<rparr> \<turnstile> parameters (mthd dynM) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M'" and
               res: "Result \<in> nrm M'"
-	      by (rule wf_mdeclE) iprover
-	    from da_body is_static_eq L' have
-	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> 
+              by (rule wf_mdeclE) iprover
+            from da_body is_static_eq L' have
+              "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> 
                  \<turnstile> parameters (mthd dynM) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M'"
-	      by (simp add: callee_lcl_def  
+              by (simp add: callee_lcl_def  
                   cong add: lname.case_cong ename.case_cong)
-	    moreover have "parameters (mthd dynM) \<subseteq>  dom (locals (store s3'))"
-	    proof -
-	      from is_static_eq 
-	      have "(invmode (mthd dynM) e) = (invmode statM e)"
-		by (simp add: invmode_def)
-	      moreover
-	      have "length (pars (mthd dynM)) = length vs" 
-	      proof -
-		from normal_s2 conf_args
-		have "length vs = length pTs"
-		  by (simp add: list_all2_def)
-		also from pTs_widen
-		have "\<dots> = length pTs'"
-		  by (simp add: widens_def list_all2_def)
-		also from wf_dynM
-		have "\<dots> = length (pars (mthd dynM))"
-		  by (simp add: wf_mdecl_def wf_mhead_def)
-		finally show ?thesis ..
-	      qed
-	      moreover note init_lvars dynM' is_static_eq normal_s2 mode 
-	      ultimately
-	      have "parameters (mthd dynM) = dom (locals (store s3))"
-		using dom_locals_init_lvars 
+            moreover have "parameters (mthd dynM) \<subseteq>  dom (locals (store s3'))"
+            proof -
+              from is_static_eq 
+              have "(invmode (mthd dynM) e) = (invmode statM e)"
+                by (simp add: invmode_def)
+              moreover
+              have "length (pars (mthd dynM)) = length vs" 
+              proof -
+                from normal_s2 conf_args
+                have "length vs = length pTs"
+                  by (simp add: list_all2_def)
+                also from pTs_widen
+                have "\<dots> = length pTs'"
+                  by (simp add: widens_def list_all2_def)
+                also from wf_dynM
+                have "\<dots> = length (pars (mthd dynM))"
+                  by (simp add: wf_mdecl_def wf_mhead_def)
+                finally show ?thesis ..
+              qed
+              moreover note init_lvars dynM' is_static_eq normal_s2 mode 
+              ultimately
+              have "parameters (mthd dynM) = dom (locals (store s3))"
+                using dom_locals_init_lvars 
                   [of "mthd dynM" G invDeclC "\<lparr>name=mn,parTs=pTs'\<rparr>" vs e a s2]
-		by simp
-	      also from check
-	      have "dom (locals (store s3)) \<subseteq>  dom (locals (store s3'))"
-		by (simp add:  eq_s3'_s3)
-	      finally show ?thesis .
-	    qed
-	    ultimately obtain M2 where
-	      da:
-	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> 
+                by simp
+              also from check
+              have "dom (locals (store s3)) \<subseteq>  dom (locals (store s3'))"
+                by (simp add:  eq_s3'_s3)
+              finally show ?thesis .
+            qed
+            ultimately obtain M2 where
+              da:
+              "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> 
                 \<turnstile> dom (locals (store s3')) \<guillemotright>\<langle>stmt (mbody (mthd dynM))\<rangle>\<guillemotright> M2" and
               M2: "nrm M' \<subseteq> nrm M2"
-	      by (rule da_weakenE)
-	    from res M2 have "Result \<in> nrm M2"
-	      by blast
-	    moreover from wf_dynM
-	    have "jumpNestingOkS {Ret} (stmt (mbody (mthd dynM)))"
-	      by (rule wf_mdeclE)
-	    ultimately
-	    obtain M3 where
-	      "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> \<turnstile> dom (locals (store s3')) 
+              by (rule da_weakenE)
+            from res M2 have "Result \<in> nrm M2"
+              by blast
+            moreover from wf_dynM
+            have "jumpNestingOkS {Ret} (stmt (mbody (mthd dynM)))"
+              by (rule wf_mdeclE)
+            ultimately
+            obtain M3 where
+              "\<lparr>prg=G, cls=invDeclC,lcl=L'\<rparr> \<turnstile> dom (locals (store s3')) 
                      \<guillemotright>\<langle>Body (declclass dynM) (stmt (mbody (mthd dynM)))\<rangle>\<guillemotright> M3"
-	      using da
-	      by (iprover intro: da.Body assigned.select_convs)
-	    from _ this [simplified]
-	    show ?thesis
-	      by (rule da.Methd [simplified,elim_format]) (auto intro: dynM' that)
-	  qed
-	  ultimately obtain  
-	    conf_s4: "s4\<Colon>\<preceq>(G, L')" and 
-	    conf_Res: "normal s4 \<longrightarrow> G,store s4\<turnstile>v\<Colon>\<preceq>mthdT" and
-	    error_free_s4: "error_free s4"
-	    by (rule hyp_methd [elim_format]) 
+              using da
+              by (iprover intro: da.Body assigned.select_convs)
+            from _ this [simplified]
+            show ?thesis
+              by (rule da.Methd [simplified,elim_format]) (auto intro: dynM' that)
+          qed
+          ultimately obtain  
+            conf_s4: "s4\<Colon>\<preceq>(G, L')" and 
+            conf_Res: "normal s4 \<longrightarrow> G,store s4\<turnstile>v\<Colon>\<preceq>mthdT" and
+            error_free_s4: "error_free s4"
+            by (rule hyp_methd [elim_format]) 
                (simp add: error_free_s3 eq_s3'_s3)
-	  from init_lvars eval_methd eq_s3'_s3 
-	  have "store s2\<le>|store s4"
-	    by (cases s2) (auto dest!: eval_gext simp add: init_lvars_def2 )
-	  moreover
-	  have "abrupt s4 \<noteq> Some (Jump Ret)"
-	  proof -
-	    from normal_s2 init_lvars
-	    have "abrupt s3 \<noteq> Some (Jump Ret)"
-	      by (cases s2) (simp add: init_lvars_def2 abrupt_if_def)
-	    with check
-	    have "abrupt s3' \<noteq> Some (Jump Ret)"
-	      by (cases s3) (auto simp add: check_method_access_def Let_def)
-	    with eval_methd
-	    show ?thesis
-	      by (rule Methd_no_jump)
-	  qed
-	  ultimately 
-	  have "(set_lvars (locals (store s2))) s4\<Colon>\<preceq>(G, L)"
-	    using conf_s2 conf_s4
-	    by (cases s2,cases s4) (auto intro: conforms_return)
-	  moreover 
-	  from conf_Res mthdT_widen resTy_widen wf
-	  have "normal s4 
+          from init_lvars eval_methd eq_s3'_s3 
+          have "store s2\<le>|store s4"
+            by (cases s2) (auto dest!: eval_gext simp add: init_lvars_def2 )
+          moreover
+          have "abrupt s4 \<noteq> Some (Jump Ret)"
+          proof -
+            from normal_s2 init_lvars
+            have "abrupt s3 \<noteq> Some (Jump Ret)"
+              by (cases s2) (simp add: init_lvars_def2 abrupt_if_def)
+            with check
+            have "abrupt s3' \<noteq> Some (Jump Ret)"
+              by (cases s3) (auto simp add: check_method_access_def Let_def)
+            with eval_methd
+            show ?thesis
+              by (rule Methd_no_jump)
+          qed
+          ultimately 
+          have "(set_lvars (locals (store s2))) s4\<Colon>\<preceq>(G, L)"
+            using conf_s2 conf_s4
+            by (cases s2,cases s4) (auto intro: conforms_return)
+          moreover 
+          from conf_Res mthdT_widen resTy_widen wf
+          have "normal s4 
                   \<longrightarrow> G,store s4\<turnstile>v\<Colon>\<preceq>(resTy statM)"
-	    by (auto dest: widen_trans)
-	  then
-	  have "normal ((set_lvars (locals (store s2))) s4)
+            by (auto dest: widen_trans)
+          then
+          have "normal ((set_lvars (locals (store s2))) s4)
              \<longrightarrow> G,store((set_lvars (locals (store s2))) s4) \<turnstile>v\<Colon>\<preceq>(resTy statM)"
-	    by (cases s4) auto
-	  moreover note error_free_s4 T
-	  ultimately 
-	  show ?thesis
-	    by simp
-	qed
+            by (cases s4) auto
+          moreover note error_free_s4 T
+          ultimately 
+          show ?thesis
+            by simp
+        qed
       qed
     qed
   next
@@ -3393,7 +3393,7 @@ proof -
       from eval_init 
       have "(dom (locals (store ((Norm s0)::state)))) 
                      \<subseteq> (dom (locals (store s1)))"
-	by (rule dom_locals_eval_mono_elim)
+        by (rule dom_locals_eval_mono_elim)
       with da_c show thesis by (rule da_weakenE) (rule that)
     qed
     from conf_s1 wt_c da_C' 
@@ -3412,40 +3412,40 @@ proof -
     proof -
       from iscls_D
       have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init D)\<Colon>\<surd>"
-	by auto
+        by auto
       from eval_init wf
       have s1_no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-	by - (rule eval_statement_no_jump [OF _ _ _ wt_init],auto)
+        by - (rule eval_statement_no_jump [OF _ _ _ wt_init],auto)
       from eval_c _ wt_c wf
       have "\<And> j. abrupt s2 = Some (Jump j) \<Longrightarrow> j=Ret"
-	by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)
+        by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)
       moreover 
       note `s3 =
                 (if \<exists>l. abrupt s2 = Some (Jump (Break l)) \<or> 
                         abrupt s2 = Some (Jump (Cont l))
                  then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)`
       ultimately show ?thesis
-	by force
+        by force
     qed
     moreover
     {
       assume normal_upd_s2:  "normal (abupd (absorb Ret) s2)"
       have "Result \<in> dom (locals (store s2))"
       proof -
-	from normal_upd_s2
-	have "normal s2 \<or> abrupt s2 = Some (Jump Ret)"
-	  by (cases s2) (simp add: absorb_def)
-	thus ?thesis
-	proof 
-	  assume "normal s2"
-	  with eval_c wt_c da_C' wf res nrm_C'
-	  show ?thesis
-	    by (cases rule: da_good_approxE') blast
-	next
-	  assume "abrupt s2 = Some (Jump Ret)"
-	  with conf_s2 show ?thesis
-	    by (cases s2) (auto dest: conforms_RetD simp add: dom_def)
-	qed 
+        from normal_upd_s2
+        have "normal s2 \<or> abrupt s2 = Some (Jump Ret)"
+          by (cases s2) (simp add: absorb_def)
+        thus ?thesis
+        proof 
+          assume "normal s2"
+          with eval_c wt_c da_C' wf res nrm_C'
+          show ?thesis
+            by (cases rule: da_good_approxE') blast
+        next
+          assume "abrupt s2 = Some (Jump Ret)"
+          with conf_s2 show ?thesis
+            by (cases s2) (auto dest: conforms_RetD simp add: dom_def)
+        qed 
       qed
     }
     moreover note T resultT
@@ -3494,7 +3494,7 @@ proof -
             accfield: "accfield G accC statC fn = Some (statDeclC,f)" and
        eq_accC_accC': "accC=accC'" and
                 stat: "stat=is_static f" and
-	           T: "T=(Inl (type f))"
+                   T: "T=(Inl (type f))"
       by (rule wt_elim_cases) (auto simp add: member_is_static_simp)
     from FVar.prems eq_accC_accC'
     have da_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>
@@ -3522,10 +3522,10 @@ proof -
     proof -
       from eval_init
       have "(dom (locals (store ((Norm s0)::state)))) 
-	       \<subseteq> (dom (locals (store s1)))"
-	by (rule dom_locals_eval_mono_elim)
+               \<subseteq> (dom (locals (store s1)))"
+        by (rule dom_locals_eval_mono_elim)
       with da_e show thesis
-	by (rule da_weakenE) (rule that)
+        by (rule da_weakenE) (rule that)
     qed
     with conf_s1 wt_e 
     obtain       conf_s2: "s2\<Colon>\<preceq>(G, L)" and
@@ -3549,41 +3549,41 @@ proof -
     proof - (*###FVar_lemma should be adjusted to be more directy applicable *)
       assume normal: "normal s2'"
       obtain vv vf x2 store2 store2'
-	where  v: "v=(vv,vf)" and
+        where  v: "v=(vv,vf)" and
               s2: "s2=(x2,store2)" and
          store2': "store s2' = store2'"
-	by (cases v,cases s2,cases s2') blast
+        by (cases v,cases s2,cases s2') blast
       from iscls_statDeclC obtain c
-	where c: "class G statDeclC = Some c"
-	by auto
+        where c: "class G statDeclC = Some c"
+        by auto
       have "G,store2'\<turnstile>vv\<Colon>\<preceq>type f \<and> store2'\<le>|vf\<preceq>type f\<Colon>\<preceq>(G, L)"
       proof (rule FVar_lemma [of vv vf store2' statDeclC f fn a x2 store2 
                                statC G c L "store s1"])
-	from v normal s2 fvar stat store2' 
-	show "((vv, vf), Norm store2') = 
+        from v normal s2 fvar stat store2' 
+        show "((vv, vf), Norm store2') = 
                fvar statDeclC (static f) fn a (x2, store2)"
-	  by (auto simp add: member_is_static_simp)
-	from accfield iscls_statC wf
-	show "G\<turnstile>statC\<preceq>\<^sub>C statDeclC"
-	  by (auto dest!: accfield_fields dest: fields_declC)
-	from accfield
-	show fld: "table_of (DeclConcepts.fields G statC) (fn, statDeclC) = Some f"
-	  by (auto dest!: accfield_fields)
-	from wf show "wf_prog G" .
-	from conf_a s2 show "x2 = None \<longrightarrow> G,store2\<turnstile>a\<Colon>\<preceq>Class statC"
-	  by auto
-	from fld wf iscls_statC
-	show "statDeclC \<noteq> Object "
-	  by (cases "statDeclC=Object") (drule fields_declC,simp+)+
-	from c show "class G statDeclC = Some c" .
-	from conf_s2 s2 show "(x2, store2)\<Colon>\<preceq>(G, L)" by simp
-	from eval_e s2 show "snd s1\<le>|store2" by (auto dest: eval_gext)
-	from initd_statDeclC_s1 show "inited statDeclC (globs (snd s1))" 
-	  by simp
+          by (auto simp add: member_is_static_simp)
+        from accfield iscls_statC wf
+        show "G\<turnstile>statC\<preceq>\<^sub>C statDeclC"
+          by (auto dest!: accfield_fields dest: fields_declC)
+        from accfield
+        show fld: "table_of (DeclConcepts.fields G statC) (fn, statDeclC) = Some f"
+          by (auto dest!: accfield_fields)
+        from wf show "wf_prog G" .
+        from conf_a s2 show "x2 = None \<longrightarrow> G,store2\<turnstile>a\<Colon>\<preceq>Class statC"
+          by auto
+        from fld wf iscls_statC
+        show "statDeclC \<noteq> Object "
+          by (cases "statDeclC=Object") (drule fields_declC,simp+)+
+        from c show "class G statDeclC = Some c" .
+        from conf_s2 s2 show "(x2, store2)\<Colon>\<preceq>(G, L)" by simp
+        from eval_e s2 show "snd s1\<le>|store2" by (auto dest: eval_gext)
+        from initd_statDeclC_s1 show "inited statDeclC (globs (snd s1))" 
+          by simp
       qed
       with v s2 store2'  
       show ?thesis
-	by simp
+        by simp
     qed
     from fvar error_free_s2
     have "error_free s2'"
@@ -3629,67 +3629,67 @@ proof -
       moreover
       from eq_s2_s1 False have  "\<not> normal s2" by simp
       then have "snd (avar G i a s2) = s2"
-	by (cases s2) (simp add: avar_def2)
+        by (cases s2) (simp add: avar_def2)
       with avar have "s2'=s2"
-	by (cases "(avar G i a s2)") simp
+        by (cases "(avar G i a s2)") simp
       ultimately show ?thesis
-	using conf_s1 error_free_s1
-	by auto
+        using conf_s1 error_free_s1
+        by auto
     next
       case True
       obtain A' where 
-	"\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In1l e2\<guillemotright> A'"
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In1l e2\<guillemotright> A'"
       proof -
-	from eval_e1 wt_e1 da_e1 wf True
-	have "nrm E1 \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') iprover
-	with da_e2 show thesis
-	  by (rule da_weakenE) (rule that)
+        from eval_e1 wt_e1 da_e1 wf True
+        have "nrm E1 \<subseteq> dom (locals (store s1))"
+          by (cases rule: da_good_approxE') iprover
+        with da_e2 show thesis
+          by (rule da_weakenE) (rule that)
       qed
       with conf_s1 wt_e2
       obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"
-	by (rule hyp_e2 [elim_format]) (simp add: error_free_s1)
+        by (rule hyp_e2 [elim_format]) (simp add: error_free_s1)
       from avar 
       have "store s2'=store s2"
-	by (cases s2) (simp add: avar_def2)
+        by (cases s2) (simp add: avar_def2)
       with avar conf_s2 
       have conf_s2': "s2'\<Colon>\<preceq>(G, L)"
-	by (cases s2) (auto simp add: avar_def2)
+        by (cases s2) (auto simp add: avar_def2)
       from avar error_free_s2
       have error_free_s2': "error_free s2'"
-	by (cases s2) (auto simp add: avar_def2 )
+        by (cases s2) (auto simp add: avar_def2 )
       have "normal s2' \<Longrightarrow> 
         G,store s2'\<turnstile>fst v\<Colon>\<preceq>elemT \<and> store s2'\<le>|snd v\<preceq>elemT\<Colon>\<preceq>(G, L)"
       proof -(*###AVar_lemma should be adjusted to be more directy applicable *)
-	assume normal: "normal s2'"
-	show ?thesis
-	proof -
-	  obtain vv vf x1 store1 x2 store2 store2'
-	    where  v: "v=(vv,vf)" and
+        assume normal: "normal s2'"
+        show ?thesis
+        proof -
+          obtain vv vf x1 store1 x2 store2 store2'
+            where  v: "v=(vv,vf)" and
                   s1: "s1=(x1,store1)" and
                   s2: "s2=(x2,store2)" and
-	     store2': "store2'=store s2'"
-	    by (cases v,cases s1, cases s2, cases s2') blast 
-	  have "G,store2'\<turnstile>vv\<Colon>\<preceq>elemT \<and> store2'\<le>|vf\<preceq>elemT\<Colon>\<preceq>(G, L)"
-	  proof (rule AVar_lemma [of G x1 store1 e2 i x2 store2 vv vf store2' a,
+             store2': "store2'=store s2'"
+            by (cases v,cases s1, cases s2, cases s2') blast 
+          have "G,store2'\<turnstile>vv\<Colon>\<preceq>elemT \<and> store2'\<le>|vf\<preceq>elemT\<Colon>\<preceq>(G, L)"
+          proof (rule AVar_lemma [of G x1 store1 e2 i x2 store2 vv vf store2' a,
                                   OF wf])
-	    from s1 s2 eval_e2 show "G\<turnstile>(x1, store1) \<midarrow>e2-\<succ>i\<rightarrow> (x2, store2)"
-	      by simp
-	    from v normal s2 store2' avar 
-	    show "((vv, vf), Norm store2') = avar G i a (x2, store2)"
-	      by auto
-	    from s2 conf_s2 show "(x2, store2)\<Colon>\<preceq>(G, L)" by simp
-	    from s1 conf_a show  "x1 = None \<longrightarrow> G,store1\<turnstile>a\<Colon>\<preceq>elemT.[]" by simp 
-	    from eval_e2 s1 s2 show "store1\<le>|store2" by (auto dest: eval_gext)
-	  qed
-	  with v s1 s2 store2' 
-	  show ?thesis
-	    by simp
-	qed
+            from s1 s2 eval_e2 show "G\<turnstile>(x1, store1) \<midarrow>e2-\<succ>i\<rightarrow> (x2, store2)"
+              by simp
+            from v normal s2 store2' avar 
+            show "((vv, vf), Norm store2') = avar G i a (x2, store2)"
+              by auto
+            from s2 conf_s2 show "(x2, store2)\<Colon>\<preceq>(G, L)" by simp
+            from s1 conf_a show  "x1 = None \<longrightarrow> G,store1\<turnstile>a\<Colon>\<preceq>elemT.[]" by simp 
+            from eval_e2 s1 s2 show "store1\<le>|store2" by (auto dest: eval_gext)
+          qed
+          with v s1 s2 store2' 
+          show ?thesis
+            by simp
+        qed
       qed
       with conf_s2' error_free_s2' T 
       show ?thesis 
-	by auto
+        by auto
     qed
   next
     case (Nil s0 L accC T)
@@ -3726,30 +3726,30 @@ proof -
       with eval_es have "s2=s1" by auto
       with False conf_s1 error_free_s1
       show ?thesis
-	by auto
+        by auto
     next
       case True
       obtain A' where 
-	"\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In3 es\<guillemotright> A'"
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>In3 es\<guillemotright> A'"
       proof -
-	from eval_e wt_e da_e wf True
-	have "nrm E \<subseteq> dom (locals (store s1))"
-	  by (cases rule: da_good_approxE') iprover
-	with da_es show thesis
-	  by (rule da_weakenE) (rule that)
+        from eval_e wt_e da_e wf True
+        have "nrm E \<subseteq> dom (locals (store s1))"
+          by (cases rule: da_good_approxE') iprover
+        with da_es show thesis
+          by (rule da_weakenE) (rule that)
       qed
       with conf_s1 wt_es
       obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and 
            error_free_s2: "error_free s2" and
            conf_vs: "normal s2 \<longrightarrow> list_all2 (conf G (store s2)) vs esT"
-	by (rule hyp_es [elim_format]) (simp add: error_free_s1)
+        by (rule hyp_es [elim_format]) (simp add: error_free_s1)
       moreover
       from True eval_es conf_v 
       have conf_v': "G,store s2\<turnstile>v\<Colon>\<preceq>eT"
-	apply clarify
-	apply (rule conf_gext)
-	apply (auto dest: eval_gext)
-	done
+        apply clarify
+        apply (rule conf_gext)
+        apply (auto dest: eval_gext)
+        done
       ultimately show ?thesis using T by simp
     qed
   qed
@@ -3956,19 +3956,19 @@ proof -
                        P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2\<rbrakk> \<Longrightarrow> Q"
       have Q
       proof -
-	obtain C2' where 
-	  da: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<^sub>s\<guillemotright> C2'"
-	proof -
-	  from eval_c1 wt_c1 da_c1 wf normal_s1
-	  have "nrm C1 \<subseteq> dom (locals (store s1))"
-	    by (cases rule: da_good_approxE') iprover
-	  with da_c2 show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	with wt_c2 have "P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2"
-	  by (rule Comp.hyps)
-	with da show ?thesis
-	  using elim by iprover
+        obtain C2' where 
+          da: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<^sub>s\<guillemotright> C2'"
+        proof -
+          from eval_c1 wt_c1 da_c1 wf normal_s1
+          have "nrm C1 \<subseteq> dom (locals (store s1))"
+            by (cases rule: da_good_approxE') iprover
+          with da_c2 show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        with wt_c2 have "P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2"
+          by (rule Comp.hyps)
+        with da show ?thesis
+          using elim by iprover
       qed
     }
     with eval_c1 eval_c2 wt_c1 wt_c2 da_c1 P_c1 
@@ -4003,28 +4003,28 @@ proof -
                               \<rbrakk> \<Longrightarrow> Q"
       have Q
       proof -
-	obtain C' where
-	  da: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
+        obtain C' where
+          da: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
                 (dom (locals (store s1)))\<guillemotright>\<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<guillemotright> C'"
-	proof -
-	  from eval_e have 
-	    "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
-	    by (rule dom_locals_eval_mono_elim)
+        proof -
+          from eval_e have 
+            "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
+            by (rule dom_locals_eval_mono_elim)
           moreover
-	  from eval_e normal_s1 wt_e 
-	  have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
-	    by (rule assigns_if_good_approx')
-	  ultimately 
-	  have "dom (locals (store ((Norm s0)::state))) 
+          from eval_e normal_s1 wt_e 
+          have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
+            by (rule assigns_if_good_approx')
+          ultimately 
+          have "dom (locals (store ((Norm s0)::state))) 
             \<union> assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
-	    by (rule Un_least)
-	  with da_then_else show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	with wt_then_else
-	have "P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2"
-	  by (rule If.hyps)
-	with da show ?thesis using elim by iprover
+            by (rule Un_least)
+          with da_then_else show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        with wt_then_else
+        have "P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2"
+          by (rule If.hyps)
+        with da show ?thesis using elim by iprover
       qed
     }
     with eval_e eval_then_else wt_e wt_then_else da_e P_e

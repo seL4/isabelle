@@ -101,7 +101,7 @@ val weaken =
         val th4 = implies_elim_list (assume cPPQ) [th3,th3]
                                     |> implies_intr_list [cPPQ,cP]
     in
-        equal_intr th4 th1 |> standard
+        equal_intr th4 th1 |> Drule.standard
     end
 
 val imp_comm =
@@ -121,7 +121,7 @@ val imp_comm =
         val th2 = implies_elim_list (assume cQPR) [assume cQ,assume cP]
                                     |> implies_intr_list [cQPR,cP,cQ]
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 val def_norm =
@@ -148,7 +148,7 @@ val def_norm =
                               |> forall_intr cv
                               |> implies_intr cPQ
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 val all_comm =
@@ -174,7 +174,7 @@ val all_comm =
                          |> forall_intr_list [cy,cx]
                          |> implies_intr cl
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 val equiv_comm =
@@ -188,7 +188,7 @@ val equiv_comm =
         val th1  = assume ctu |> symmetric |> implies_intr ctu
         val th2  = assume cut |> symmetric |> implies_intr cut
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 (* This simplification procedure rewrites !!x y. P x y

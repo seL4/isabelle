@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/ProgressSets
+(*  Title:      HOL/UNITY/ProgressSets.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 
@@ -23,7 +23,7 @@ constdefs
   lattice :: "'a set set => bool"
    --{*Meier calls them closure sets, but they are just complete lattices*}
    "lattice L ==
-	 (\<forall>M. M \<subseteq> L --> \<Inter>M \<in> L) & (\<forall>M. M \<subseteq> L --> \<Union>M \<in> L)"
+         (\<forall>M. M \<subseteq> L --> \<Inter>M \<in> L) & (\<forall>M. M \<subseteq> L --> \<Union>M \<in> L)"
 
   cl :: "['a set set, 'a set] => 'a set"
    --{*short for ``closure''*}
@@ -197,14 +197,14 @@ apply (drule Int_in_lattice
               [OF _ lattice_awp_lemma [OF TXC BsubX latt TC BC clos, of r]
                     latt])
 apply (subgoal_tac
-	 "T \<inter> (B \<union> wp act X) \<inter> (T \<inter> (B \<union> awp F (X \<union> cl C (T\<inter>r)))) = 
-	  T \<inter> (B \<union> wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)))") 
+         "T \<inter> (B \<union> wp act X) \<inter> (T \<inter> (B \<union> awp F (X \<union> cl C (T\<inter>r)))) = 
+          T \<inter> (B \<union> wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)))") 
  prefer 2 apply blast 
 apply simp  
 apply (drule Un_in_lattice [OF _ TXC latt])  
 apply (subgoal_tac
-	 "T \<inter> (B \<union> wp act X \<inter> awp F (X \<union> cl C (T\<inter>r))) \<union> T\<inter>X = 
-	  T \<inter> (wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)) \<union> X)")
+         "T \<inter> (B \<union> wp act X \<inter> awp F (X \<union> cl C (T\<inter>r))) \<union> T\<inter>X = 
+          T \<inter> (wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)) \<union> X)")
  apply simp 
 apply (blast intro: BsubX [THEN subsetD]) 
 done
@@ -408,7 +408,7 @@ subsubsection {*Decoupling Theorems*}
 constdefs
   decoupled :: "['a program, 'a program] => bool"
    "decoupled F G ==
-	\<forall>act \<in> Acts F. \<forall>B. G \<in> stable B --> G \<in> stable (wp act B)"
+        \<forall>act \<in> Acts F. \<forall>B. G \<in> stable B --> G \<in> stable (wp act B)"
 
 
 text{*Rao's Decoupling Theorem*}

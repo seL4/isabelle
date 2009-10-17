@@ -24,7 +24,7 @@ val auto_time_limit = Unsynchronized.ref 2500;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-  (setmp auto true (fn () =>
+  (setmp_CRITICAL auto true (fn () =>
     Preferences.bool_pref auto
       "auto-quickcheck"
       "Whether to enable quickcheck automatically.") ());
@@ -143,7 +143,7 @@ fun test_goal quiet generator_name size iterations default_T insts i assms state
     val thy = Proof.theory_of state;
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
-    val (_, (_, st)) = Proof.get_goal state;
+    val (_, st) = Proof.flat_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
     val gi' = Logic.list_implies (assms, subst_bounds (frees, strip gi))
       |> monomorphic_term thy insts default_T

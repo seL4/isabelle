@@ -398,7 +398,7 @@ proof-
   {assume kn: "k > n" 
     from kn binomial_eq_0[OF kn] have ?thesis 
       by (simp add: gbinomial_pochhammer field_simps
-	pochhammer_of_nat_eq_0_iff)}
+        pochhammer_of_nat_eq_0_iff)}
   moreover
   {assume "k=0" then have ?thesis by simp}
   moreover
@@ -420,7 +420,7 @@ proof-
     from eq[symmetric]
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
-	gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
+        gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
       apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric] 

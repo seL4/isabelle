@@ -1,5 +1,4 @@
 (*  Title:      ZF/UNITY/Union.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
 
@@ -34,7 +33,7 @@ definition
 definition
   Join :: "[i, i] => i"    (infixl "Join" 65)  where
   "F Join G == mk_program (Init(F) Int Init(G), Acts(F) Un Acts(G),
-				AllowedActs(F) Int AllowedActs(G))"
+                                AllowedActs(F) Int AllowedActs(G))"
 definition
   (*Characterizes safety properties.  Used with specifying AllowedActs*)
   safety_prop :: "i => o"  where

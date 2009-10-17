@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/Extend.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -36,16 +35,16 @@ constdefs
 
   extend :: "['a*'b => 'c, 'a program] => 'c program"
     "extend h F == mk_program (extend_set h (Init F),
-			       extend_act h ` Acts F,
-			       project_act h -` AllowedActs F)"
+                               extend_act h ` Acts F,
+                               project_act h -` AllowedActs F)"
 
   (*Argument C allows weak safety laws to be projected*)
   project :: "['a*'b => 'c, 'c set, 'c program] => 'a program"
     "project h C F ==
        mk_program (project_set h (Init F),
-		   project_act h ` Restrict C ` Acts F,
-		   {act. Restrict (project_set h C) act :
-		         project_act h ` Restrict C ` AllowedActs F})"
+                   project_act h ` Restrict C ` Acts F,
+                   {act. Restrict (project_set h C) act :
+                         project_act h ` Restrict C ` AllowedActs F})"
 
 locale Extend =
   fixes f     :: "'c => 'a"
@@ -104,7 +103,7 @@ by blast
 (*Possibly easier than reasoning about "inv h"*)
 lemma good_mapI: 
      assumes surj_h: "surj h"
-	 and prem:   "!! x x' y y'. h(x,y) = h(x',y') ==> x=x'"
+         and prem:   "!! x x' y y'. h(x,y) = h(x',y') ==> x=x'"
      shows "good_map h"
 apply (simp add: good_map_def) 
 apply (safe intro!: surj_h)
@@ -120,7 +119,7 @@ by (unfold good_map_def, auto)
 (*A convenient way of finding a closed form for inv h*)
 lemma fst_inv_equalityI: 
      assumes surj_h: "surj h"
-	 and prem:   "!! x y. g (h(x,y)) = x"
+         and prem:   "!! x y. g (h(x,y)) = x"
      shows "fst (inv h z) = g z"
 apply (unfold inv_def)
 apply (rule_tac y1 = z in surj_h [THEN surjD, THEN exE])

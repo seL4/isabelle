@@ -69,17 +69,17 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
                (if null tvs then [] else
                   [mk_tuple (map str tvs), str " "]) @
                [str (type_id ^ " ="), Pretty.brk 1] @
-               List.concat (separate [Pretty.brk 1, str "| "]
+               flat (separate [Pretty.brk 1, str "| "]
                  (map (fn (ps', (_, cname)) => [Pretty.block
                    (str cname ::
                     (if null ps' then [] else
-                     List.concat ([str " of", Pretty.brk 1] ::
+                     flat ([str " of", Pretty.brk 1] ::
                        separate [str " *", Pretty.brk 1]
                          (map single ps'))))]) ps))) :: rest, gr''')
           end;
 
     fun mk_constr_term cname Ts T ps =
-      List.concat (separate [str " $", Pretty.brk 1]
+      flat (separate [str " $", Pretty.brk 1]
         ([str ("Const (\"" ^ cname ^ "\","), Pretty.brk 1,
           mk_type false (Ts ---> T), str ")"] :: ps));
 
@@ -148,7 +148,7 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
             fun mk_choice [c] = mk_constr "(i-1)" false c
               | mk_choice cs = Pretty.block [str "one_of",
                   Pretty.brk 1, Pretty.blk (1, str "[" ::
-                  List.concat (separate [str ",", Pretty.fbrk]
+                  flat (separate [str ",", Pretty.fbrk]
                     (map (single o mk_delay o mk_constr "(i-1)" false) cs)) @
                   [str "]"]), Pretty.brk 1, str "()"];
 
@@ -242,7 +242,7 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
               end;
 
         val (ps1, gr1) = pcase constrs ts1 Ts gr ;
-        val ps = List.concat (separate [Pretty.brk 1, str "| "] ps1);
+        val ps = flat (separate [Pretty.brk 1, str "| "] ps1);
         val (p, gr2) = invoke_codegen thy defs dep module false t gr1;
         val (ps2, gr3) = fold_map (invoke_codegen thy defs dep module true) ts2 gr2;
       in ((if not (null ts2) andalso brack then parens else I)
@@ -281,7 +281,7 @@ fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
           if is_some (get_assoc_code thy (s, T)) then NONE else
           SOME (pretty_case thy defs dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts gr )
-      | NONE => case (Datatype.info_of_constr thy s, strip_type T) of
+      | NONE => case (Datatype.info_of_constr thy (s, T), strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           let
@@ -365,7 +365,8 @@ fun mk_case_cert thy tyco =
 fun mk_eq_eqns thy dtco =
   let
     val (vs, cos) = Datatype.the_spec thy dtco;
-    val { descr, index, inject = inject_thms, ... } = Datatype.the_info thy dtco;
+    val { descr, index, inject = inject_thms, distinct = distinct_thms, ... } =
+      Datatype.the_info thy dtco;
     val ty = Type (dtco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
@@ -381,10 +382,9 @@ fun mk_eq_eqns thy dtco =
       [trueprop $ false_eq (t1, t2), trueprop $ false_eq (t2, t1)];
     val distincts = maps prep_distinct (snd (nth (DatatypeProp.make_distincts [descr] vs) index));
     val refl = HOLogic.mk_Trueprop (true_eq (Free ("x", ty), Free ("x", ty)));
-    val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss
-      addsimps (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms))
-      addsimprocs [Datatype.distinct_simproc]);
-    fun prove prop = SkipProof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
+    val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss addsimps 
+      (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
+    fun prove prop = Skip_Proof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
   in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
 

@@ -118,10 +118,10 @@ open Predicate_Compile_Aux;
 
 (* debug stuff *)
 
-fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
+fun tracing s = (if ! Toplevel.debug then tracing s else ());
 
 fun print_tac s = Seq.single; (*Tactical.print_tac s;*) (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
-fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
+fun debug_tac msg = Seq.single; (* (fn st => (tracing msg; Seq.single st)); *)
 
 val do_proofs = Unsynchronized.ref true;
 
@@ -407,7 +407,7 @@ val sizelim_function_name_of = #name ooo the_sizelim_function_data
      
 (* diagnostic display functions *)
 
-fun print_modes modes = Output.tracing ("Inferred modes:\n" ^
+fun print_modes modes = tracing ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
@@ -417,7 +417,7 @@ fun print_pred_mode_table string_of_entry thy pred_mode_table =
       ^ (string_of_entry pred mode entry)  
     fun print_pred (pred, modes) =
       "predicate " ^ pred ^ ": " ^ cat_lines (map (print_mode pred) modes)
-    val _ = Output.tracing (cat_lines (map print_pred pred_mode_table))
+    val _ = tracing (cat_lines (map print_pred pred_mode_table))
   in () end;
 
 fun string_of_moded_prem thy (Prem (ts, p), tmode) =
@@ -498,7 +498,7 @@ fun preprocess_intro thy rule =
 
 fun preprocess_elim thy nparams elimrule =
   let
-    val _ = Output.tracing ("Preprocessing elimination rule "
+    val _ = tracing ("Preprocessing elimination rule "
       ^ (Display.string_of_thm_global thy elimrule))
     fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
@@ -515,12 +515,12 @@ fun preprocess_elim thy nparams elimrule =
      end
     val cases' = map preprocess_case (tl prems)
     val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
-    (*val _ =  Output.tracing ("elimrule': "^ (Syntax.string_of_term_global thy elimrule'))*)
+    (*val _ =  tracing ("elimrule': "^ (Syntax.string_of_term_global thy elimrule'))*)
     val bigeq = (Thm.symmetric (Conv.implies_concl_conv
       (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
         (cterm_of thy elimrule')))
     (*
-    val _ = Output.tracing ("bigeq:" ^ (Display.string_of_thm_global thy bigeq))   
+    val _ = tracing ("bigeq:" ^ (Display.string_of_thm_global thy bigeq))   
     val res = 
     Thm.equal_elim bigeq elimrule
     *)
@@ -528,7 +528,7 @@ fun preprocess_elim thy nparams elimrule =
     val t = (fn {...} => mycheat_tac thy 1)
     val eq = Goal.prove (ProofContext.init thy) [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) t
     *)
-    val _ = Output.tracing "Preprocessed elimination rule"
+    val _ = tracing "Preprocessed elimination rule"
   in
     Thm.equal_elim bigeq elimrule
   end;
@@ -657,11 +657,11 @@ fun register_predicate (pre_intros, pre_elim, nparams) thy =
 fun register_intros pre_intros thy =
   let
     val (c, T) = dest_Const (fst (strip_intro_concl 0 (prop_of (hd pre_intros))))
-    val _ = Output.tracing ("Registering introduction rules of " ^ c)
-    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
+    val _ = tracing ("Registering introduction rules of " ^ c)
+    val _ = tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
     val nparams = guess_nparams T
     val pre_elim = 
-      (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+      (Drule.standard o Skip_Proof.make_thm thy)
       (mk_casesrule (ProofContext.init thy) nparams pre_intros)
   in register_predicate (pre_intros, pre_elim, nparams) thy end
 
@@ -982,7 +982,7 @@ fun select_mode_prem thy modes vs ps =
             val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
             val vTs = maps term_vTs out_ts';
             val dupTs = map snd (duplicates (op =) vTs) @
-              List.mapPartial (AList.lookup (op =) vTs) vs;
+              map_filter (AList.lookup (op =) vTs) vs;
           in
             terms_vs (in_ts @ in_ts') subset vs andalso
             forall (is_eqT o fastype_of) in_ts' andalso
@@ -1029,14 +1029,14 @@ fun param_gen_prem param_vs (p as Prem (us, t as Free (v, _))) =
 fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts, ps) =
   let
     (*
-  val _ = Output.tracing ("param_vs:" ^ commas param_vs)
-  val _ = Output.tracing ("iss:" ^
+  val _ = tracing ("param_vs:" ^ commas param_vs)
+  val _ = tracing ("iss:" ^
     commas (map (fn is => case is of SOME is => string_of_smode is | NONE => "NONE") iss))
     *)
-    val modes' = modes @ List.mapPartial
+    val modes' = modes @ map_filter
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (param_vs ~~ iss);
-    val gen_modes' = gen_modes @ List.mapPartial
+    val gen_modes' = gen_modes @ map_filter
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (param_vs ~~ iss);  
     val vTs = distinct (op =) ((fold o fold_prem) Term.add_frees ps (fold Term.add_frees ts []))
@@ -1058,7 +1058,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                       SOME generator_vs => check_mode_prems ((map (generator vTs) generator_vs) @ acc_ps)
                         (vs union generator_vs) ps
                     | NONE => let
-                    val _ = Output.tracing ("ps:" ^ (commas
+                    val _ = tracing ("ps:" ^ (commas
                     (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
                   in (*error "mode analysis failed"*)NONE end
                   end)
@@ -1088,9 +1088,9 @@ fun check_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms)
   in (p, List.filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
-    | i => (Output.tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
+    | i => (tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
       p ^ " violates mode " ^ string_of_mode m);
-        Output.tracing (commas (map (Syntax.string_of_term_global thy) (fst (nth rs i)))); false)) ms)
+        tracing (commas (map (Syntax.string_of_term_global thy) (fst (nth rs i)))); false)) ms)
   end;
 
 fun get_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms) =
@@ -1783,9 +1783,9 @@ fun prove_match thy (out_ts : term list) = let
     if (is_constructor thy t) then let
       val case_rewrites = (#case_rewrites (Datatype.the_info thy
         ((fst o dest_Type o fastype_of) t)))
-      in case_rewrites @ (flat (map get_case_rewrite (snd (strip_comb t)))) end
+      in case_rewrites @ maps get_case_rewrite (snd (strip_comb t)) end
     else []
-  val simprules = @{thm "unit.cases"} :: @{thm "prod.cases"} :: (flat (map get_case_rewrite out_ts))
+  val simprules = @{thm "unit.cases"} :: @{thm "prod.cases"} :: maps get_case_rewrite out_ts
 (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
 in
    (* make this simpset better! *)
@@ -2077,12 +2077,12 @@ fun prove_pred thy clauses preds modes pred mode (moded_clauses, compiled_term) 
       (if !do_proofs then
         (fn _ =>
         rtac @{thm pred_iffI} 1
-				THEN print_tac "after pred_iffI"
+        THEN print_tac "after pred_iffI"
         THEN prove_one_direction thy clauses preds modes pred mode moded_clauses
         THEN print_tac "proved one direction"
         THEN prove_other_direction thy modes pred mode moded_clauses
         THEN print_tac "proved other direction")
-      else (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy))
+      else fn _ => Skip_Proof.cheat_tac thy)
   end;
 
 (* composition of mode inference, definition, compilation and proof *)
@@ -2110,7 +2110,7 @@ fun prove thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (setmp quick_and_dirty true (SkipProof.make_thm thy) t))
+  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (Skip_Proof.make_thm thy t))
     compiled_terms
     
 fun prepare_intrs thy prednames =
@@ -2181,23 +2181,23 @@ fun prepare_intrs thy prednames =
 
 fun add_equations_of steps prednames thy =
   let
-    val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
-    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
+    val _ = tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
+    val _ = tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames
-    val _ = Output.tracing "Infering modes..."
+    val _ = tracing "Infering modes..."
     val moded_clauses = #infer_modes steps thy extra_modes all_modes param_vs clauses 
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = print_modes modes
     val _ = print_moded_clauses thy moded_clauses
-    val _ = Output.tracing "Defining executable functions..."
+    val _ = tracing "Defining executable functions..."
     val thy' = fold (#create_definitions steps preds) modes thy
       |> Theory.checkpoint
-    val _ = Output.tracing "Compiling equations..."
+    val _ = tracing "Compiling equations..."
     val compiled_terms =
       (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
     val _ = print_compiled_terms thy' compiled_terms
-    val _ = Output.tracing "Proving equations..."
+    val _ = tracing "Proving equations..."
     val result_thms = #prove steps thy' clauses preds (extra_modes @ modes)
       moded_clauses compiled_terms
     val qname = #qname steps

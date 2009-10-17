@@ -40,7 +40,7 @@ fun check_pats ctxt geq =
           let
             val (hd, args) = strip_comb t
           in
-            (((case Datatype.info_of_constr thy (fst (dest_Const hd)) of
+            (((case Datatype.info_of_constr thy (dest_Const hd) of
                  SOME _ => ()
                | NONE => err "Non-constructor pattern")
               handle TERM ("dest_Const", _) => err "Non-constructor patterns");
@@ -247,7 +247,7 @@ fun warn_if_redundant ctxt origs tss =
         fun msg t = "Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t)
                     
         val (tss', _) = chop (length origs) tss
-        fun check (t, []) = (Output.warning (msg t); [])
+        fun check (t, []) = (warning (msg t); [])
           | check (t, s) = s
     in
         (map check (origs ~~ tss'); tss)

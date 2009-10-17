@@ -40,11 +40,11 @@ axioms
 
 defs
   IsLegalRcvArg_def: "IsLegalRcvArg ra ==
-		         case ra of (memcall m) => True
-		                  | (othercall v) => False"
+                         case ra of (memcall m) => True
+                                  | (othercall v) => False"
   RPCRelayArg_def:   "RPCRelayArg ra ==
-		         case ra of (memcall m) => m
-		                  | (othercall v) => undefined"
+                         case ra of (memcall m) => m
+                                  | (othercall v) => undefined"
 
 lemmas [simp] = RFNoMemVal NotAResultNotRF OKNotRF BANotRF
   NotAResultNotRF [symmetric] OKNotRF [symmetric] BANotRF [symmetric]

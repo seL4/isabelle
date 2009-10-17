@@ -58,7 +58,7 @@ inductive_set yahalom :: "event list set"
            uses the new session key to send Bob his Nonce.  The premise
            @{term "A \<noteq> Server"} is needed for @{text Says_Server_not_range}.
            Alice can check that K is symmetric by its length.*}
-	 "[| evs4 \<in> yahalom;  A \<noteq> Server;  K \<in> symKeys;
+         "[| evs4 \<in> yahalom;  A \<noteq> Server;  K \<in> symKeys;
              Gets A {|Crypt(shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|}, X|}
                 \<in> set evs4;
              Says A B {|Agent A, Nonce NA|} \<in> set evs4 |]
@@ -481,9 +481,9 @@ by (erule rev_mp, erule yahalom.induct, auto)
 text{*A vital theorem for B, that nonce NB remains secure from the Spy.*}
 lemma Spy_not_see_NB :
      "[| Says B Server
-	        {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
-	   \<in> set evs;
-	 (\<forall>k. Notes Spy {|Nonce NA, Nonce NB, k|} \<notin> set evs);
+                {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
+           \<in> set evs;
+         (\<forall>k. Notes Spy {|Nonce NA, Nonce NB, k|} \<notin> set evs);
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Nonce NB \<notin> analz (knows Spy evs)"
 apply (erule rev_mp, erule rev_mp)

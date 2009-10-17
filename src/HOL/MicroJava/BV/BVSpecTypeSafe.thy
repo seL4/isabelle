@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/BVSpecTypeSafe.thy
-    ID:         $Id$
     Author:     Cornelia Pusch, Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -1332,7 +1331,7 @@ lemma
   apply (auto simp add: fun_upd_apply blank_def oconf_def split: split_if_asm)
   apply (simp add: fields_is_type 
           [OF _ wf [THEN wf_prog_ws_prog] 
-	        is_class_xcpt [OF wf [THEN wf_prog_ws_prog]]])+
+                is_class_xcpt [OF wf [THEN wf_prog_ws_prog]]])+
   done
     
 lemma 

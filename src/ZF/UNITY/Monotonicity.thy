@@ -1,9 +1,9 @@
 (*  Title:      ZF/UNITY/Monotonicity.thy
-    ID:         $Id \<in> Monotonicity.thy,v 1.1 2003/05/28 16:13:42 paulson Exp $
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
-Monotonicity of an operator (meta-function) with respect to arbitrary set relations.
+Monotonicity of an operator (meta-function) with respect to arbitrary
+set relations.
 *)
 
 header{*Monotonicity of an Operator WRT a Relation*}

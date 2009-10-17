@@ -33,12 +33,12 @@ fun check_and_sort_domain
       val test_dupl_typs = (case duplicates (op =) (map fst dtnvs) of 
                               [] => false | dups => error ("Duplicate types: " ^ commas_quote dups));
       val test_dupl_cons =
-          (case duplicates (op =) (map (Binding.name_of o first) (List.concat cons'')) of 
+          (case duplicates (op =) (map (Binding.name_of o first) (flat cons'')) of 
              [] => false | dups => error ("Duplicate constructors: " 
                                           ^ commas_quote dups));
       val test_dupl_sels =
-          (case duplicates (op =) (map Binding.name_of (List.mapPartial second
-                                                                        (List.concat (map second (List.concat cons''))))) of
+          (case duplicates (op =) (map Binding.name_of (map_filter second
+                                                                        (maps second (flat cons'')))) of
              [] => false | dups => error("Duplicate selectors: "^commas_quote dups));
       val test_dupl_tvars =
           exists(fn s=>case duplicates (op =) (map(fst o dest_TFree)s)of
@@ -142,7 +142,7 @@ fun gen_add_domain
     in
       theorems_thy
         |> Sign.add_path (Long_Name.base_name comp_dnam)
-        |> (snd o (PureThy.add_thmss [((Binding.name "rews", List.concat rewss @ take_rews), [])]))
+        |> (snd o (PureThy.add_thmss [((Binding.name "rews", flat rewss @ take_rews), [])]))
         |> Sign.parent_path
     end;
 

@@ -224,7 +224,7 @@ fun prove_strong_ind s avoids ctxt =
       | lift_prem t = t;
 
     fun mk_distinct [] = []
-      | mk_distinct ((x, T) :: xs) = List.mapPartial (fn (y, U) =>
+      | mk_distinct ((x, T) :: xs) = map_filter (fn (y, U) =>
           if T = U then SOME (HOLogic.mk_Trueprop
             (HOLogic.mk_not (HOLogic.eq_const T $ x $ y)))
           else NONE) xs @ mk_distinct xs;
@@ -263,7 +263,7 @@ fun prove_strong_ind s avoids ctxt =
 
     val vc_compat = map (fn (params, bvars, prems, (p, ts)) =>
       map (fn q => list_all (params, incr_boundvars ~1 (Logic.list_implies
-          (List.mapPartial (fn prem =>
+          (map_filter (fn prem =>
              if null (preds_of ps prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
         (mk_distinct bvars @
@@ -359,7 +359,7 @@ fun prove_strong_ind s avoids ctxt =
                            (etac conjunct1 1) monos NONE th,
                          mk_pi (the (map_thm ctxt (inst_conj_all names ps (rev pis''))
                            (inst_conj_all_tac (length pis'')) monos (SOME t) th))))
-                      (gprems ~~ oprems)) |>> List.mapPartial I;
+                      (gprems ~~ oprems)) |>> map_filter I;
                  val vc_compat_ths' = map (fn th =>
                    let
                      val th' = first_order_mrs gprems1 th;

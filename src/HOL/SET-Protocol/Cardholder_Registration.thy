@@ -1,6 +1,8 @@
-(*  Title:      HOL/Auth/SET/Cardholder_Registration
-    Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson,
-                Piero Tramontano
+(*  Title:      HOL/SET-Protocol/Cardholder_Registration.thy
+    Author:     Giampaolo Bella
+    Author:     Fabio Massacci
+    Author:     Lawrence C Paulson
+    Author:     Piero Tramontano
 *)
 
 header{*The SET Cardholder Registration Protocol*}
@@ -27,19 +29,19 @@ KeyCryptKey_Nil:
 
 KeyCryptKey_Cons:
       --{*Says is the only important case.
-	1st case: CR5, where KC3 encrypts KC2.
-	2nd case: any use of priEK C.
-	Revision 1.12 has a more complicated version with separate treatment of
-	  the dependency of KC1, KC2 and KC3 on priEK (CA i.)  Not needed since
-	  priEK C is never sent (and so can't be lost except at the start). *}
+        1st case: CR5, where KC3 encrypts KC2.
+        2nd case: any use of priEK C.
+        Revision 1.12 has a more complicated version with separate treatment of
+          the dependency of KC1, KC2 and KC3 on priEK (CA i.)  Not needed since
+          priEK C is never sent (and so can't be lost except at the start). *}
   "KeyCryptKey DK K (ev # evs) =
    (KeyCryptKey DK K evs |
     (case ev of
       Says A B Z =>
        ((\<exists>N X Y. A \<noteq> Spy &
-	         DK \<in> symKeys &
-		 Z = {|Crypt DK {|Agent A, Nonce N, Key K, X|}, Y|}) |
-	(\<exists>C. DK = priEK C))
+                 DK \<in> symKeys &
+                 Z = {|Crypt DK {|Agent A, Nonce N, Key K, X|}, Y|}) |
+        (\<exists>C. DK = priEK C))
     | Gets A' X => False
     | Notes A' X => False))"
 
@@ -63,7 +65,7 @@ KeyCryptNonce_Cons:
     5th case: any use of @{term "priEK C"} (including CardSecret).
     NB the only Nonces we need to keep secret are CardSecret and NonceCCA.
     But we can't prove @{text Nonce_compromise} unless the relation covers ALL
-	nonces that the protocol keeps secret.
+        nonces that the protocol keeps secret.
   *}
   "KeyCryptNonce DK N (ev # evs) =
    (KeyCryptNonce DK N evs |
@@ -71,20 +73,20 @@ KeyCryptNonce_Cons:
       Says A B Z =>
        A \<noteq> Spy &
        ((\<exists>X Y. DK \<in> symKeys &
-	       Z = (EXHcrypt DK X {|Agent A, Nonce N|} Y)) |
-	(\<exists>X Y. DK \<in> symKeys &
-	       Z = {|Crypt DK {|Agent A, Nonce N, X|}, Y|}) |
-	(\<exists>K i X Y.
-	  K \<in> symKeys &
+               Z = (EXHcrypt DK X {|Agent A, Nonce N|} Y)) |
+        (\<exists>X Y. DK \<in> symKeys &
+               Z = {|Crypt DK {|Agent A, Nonce N, X|}, Y|}) |
+        (\<exists>K i X Y.
+          K \<in> symKeys &
           Z = Crypt K {|sign (priSK (CA i)) {|Agent B, Nonce N, X|}, Y|} &
-	  (DK=K | KeyCryptKey DK K evs)) |
-	(\<exists>K C NC3 Y.
-	  K \<in> symKeys &
+          (DK=K | KeyCryptKey DK K evs)) |
+        (\<exists>K C NC3 Y.
+          K \<in> symKeys &
           Z = Crypt K
- 	        {|sign (priSK C) {|Agent B, Nonce NC3, Agent C, Nonce N|},
+                {|sign (priSK C) {|Agent B, Nonce NC3, Agent C, Nonce N|},
                   Y|} &
-	  (DK=K | KeyCryptKey DK K evs)) |
-	(\<exists>C. DK = priEK C))
+          (DK=K | KeyCryptKey DK K evs)) |
+        (\<exists>C. DK = priEK C))
     | Gets A' X => False
     | Notes A' X => False))"
 
@@ -96,28 +98,28 @@ inductive_set
 where
 
   Nil:    --{*Initial trace is empty*}
-	  "[] \<in> set_cr"
+          "[] \<in> set_cr"
 
 | Fake:    --{*The spy MAY say anything he CAN say.*}
-	   "[| evsf \<in> set_cr; X \<in> synth (analz (knows Spy evsf)) |]
-	    ==> Says Spy B X  # evsf \<in> set_cr"
+           "[| evsf \<in> set_cr; X \<in> synth (analz (knows Spy evsf)) |]
+            ==> Says Spy B X  # evsf \<in> set_cr"
 
 | Reception: --{*If A sends a message X to B, then B might receive it*}
-	     "[| evsr \<in> set_cr; Says A B X \<in> set evsr |]
+             "[| evsr \<in> set_cr; Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_cr"
 
 | SET_CR1: --{*CardCInitReq: C initiates a run, sending a nonce to CCA*}
-	     "[| evs1 \<in> set_cr;  C = Cardholder k;  Nonce NC1 \<notin> used evs1 |]
-	      ==> Says C (CA i) {|Agent C, Nonce NC1|} # evs1 \<in> set_cr"
+             "[| evs1 \<in> set_cr;  C = Cardholder k;  Nonce NC1 \<notin> used evs1 |]
+              ==> Says C (CA i) {|Agent C, Nonce NC1|} # evs1 \<in> set_cr"
 
 | SET_CR2: --{*CardCInitRes: CA responds sending NC1 and its certificates*}
-	     "[| evs2 \<in> set_cr;
-		 Gets (CA i) {|Agent C, Nonce NC1|} \<in> set evs2 |]
-	      ==> Says (CA i) C
-		       {|sign (priSK (CA i)) {|Agent C, Nonce NC1|},
-			 cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
-			 cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
-		    # evs2 \<in> set_cr"
+             "[| evs2 \<in> set_cr;
+                 Gets (CA i) {|Agent C, Nonce NC1|} \<in> set evs2 |]
+              ==> Says (CA i) C
+                       {|sign (priSK (CA i)) {|Agent C, Nonce NC1|},
+                         cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
+                         cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
+                    # evs2 \<in> set_cr"
 
 | SET_CR3:
    --{*RegFormReq: C sends his PAN and a new nonce to CA.
@@ -135,8 +137,8 @@ where
     Nonce NC2 \<notin> used evs3;
     Key KC1 \<notin> used evs3; KC1 \<in> symKeys;
     Gets C {|sign (invKey SKi) {|Agent X, Nonce NC1|},
-	     cert (CA i) EKi onlyEnc (priSK RCA),
-	     cert (CA i) SKi onlySig (priSK RCA)|}
+             cert (CA i) EKi onlyEnc (priSK RCA),
+             cert (CA i) SKi onlySig (priSK RCA)|}
        \<in> set evs3;
     Says C (CA i) {|Agent C, Nonce NC1|} \<in> set evs3|]
  ==> Says C (CA i) (EXHcrypt KC1 EKi {|Agent C, Nonce NC2|} (Pan(pan C)))
@@ -154,9 +156,9 @@ where
     Gets (CA i) (EXHcrypt KC1 EKi {|Agent C, Nonce NC2|} (Pan(pan X)))
        \<in> set evs4 |]
   ==> Says (CA i) C
-	  {|sign (priSK (CA i)) {|Agent C, Nonce NC2, Nonce NCA|},
-	    cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
-	    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
+          {|sign (priSK (CA i)) {|Agent C, Nonce NC2, Nonce NCA|},
+            cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
        # evs4 \<in> set_cr"
 
 | SET_CR5:
@@ -177,10 +179,10 @@ where
          \<in> set evs5 |]
 ==> Says C (CA i)
          {|Crypt KC3
-	     {|Agent C, Nonce NC3, Key KC2, Key (pubSK C),
-	       Crypt (priSK C)
-	         (Hash {|Agent C, Nonce NC3, Key KC2,
-			 Key (pubSK C), Pan (pan C), Nonce CardSecret|})|},
+             {|Agent C, Nonce NC3, Key KC2, Key (pubSK C),
+               Crypt (priSK C)
+                 (Hash {|Agent C, Nonce NC3, Key KC2,
+                         Key (pubSK C), Pan (pan C), Nonce CardSecret|})|},
            Crypt EKi {|Key KC3, Pan (pan C), Nonce CardSecret|} |}
     # Notes C {|Key KC2, Agent (CA i)|}
     # Notes C {|Key KC3, Agent (CA i)|}
@@ -204,15 +206,15 @@ where
       {|Crypt KC3 {|Agent C, Nonce NC3, Key KC2, Key cardSK,
                     Crypt (invKey cardSK)
                       (Hash {|Agent C, Nonce NC3, Key KC2,
-			      Key cardSK, Pan (pan C), Nonce CardSecret|})|},
+                              Key cardSK, Pan (pan C), Nonce CardSecret|})|},
         Crypt (pubEK (CA i)) {|Key KC3, Pan (pan C), Nonce CardSecret|} |}
       \<in> set evs6 |]
 ==> Says (CA i) C
          (Crypt KC2
-	  {|sign (priSK (CA i))
-	         {|Agent C, Nonce NC3, Agent(CA i), Nonce NonceCCA|},
-	    certC (pan C) cardSK (XOR(CardSecret,NonceCCA)) onlySig (priSK (CA i)),
-	    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
+          {|sign (priSK (CA i))
+                 {|Agent C, Nonce NC3, Agent(CA i), Nonce NonceCCA|},
+            certC (pan C) cardSK (XOR(CardSecret,NonceCCA)) onlySig (priSK (CA i)),
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
       # Notes (CA i) (Key cardSK)
       # evs6 \<in> set_cr"
 
@@ -253,15 +255,15 @@ apply (rule_tac [2]
        set_cr.Nil 
         [THEN set_cr.SET_CR1 [of concl: C i NC1], 
          THEN Says_to_Gets, 
-	 THEN set_cr.SET_CR2 [of concl: i C NC1], 
-	 THEN Says_to_Gets,  
-	 THEN set_cr.SET_CR3 [of concl: C i KC1 _ NC2], 
-	 THEN Says_to_Gets,  
-	 THEN set_cr.SET_CR4 [of concl: i C NC2 NCA], 
-	 THEN Says_to_Gets,  
-	 THEN set_cr.SET_CR5 [of concl: C i KC3 NC3 KC2 CardSecret],
-	 THEN Says_to_Gets,  
-	 THEN set_cr.SET_CR6 [of concl: i C KC2]])
+         THEN set_cr.SET_CR2 [of concl: i C NC1], 
+         THEN Says_to_Gets,  
+         THEN set_cr.SET_CR3 [of concl: C i KC1 _ NC2], 
+         THEN Says_to_Gets,  
+         THEN set_cr.SET_CR4 [of concl: i C NC2 NCA], 
+         THEN Says_to_Gets,  
+         THEN set_cr.SET_CR5 [of concl: C i KC3 NC3 KC2 CardSecret],
+         THEN Says_to_Gets,  
+         THEN set_cr.SET_CR6 [of concl: i C KC2]])
 apply basic_possibility
 apply (simp_all (no_asm_simp) add: symKeys_neq_imp_neq)
 done

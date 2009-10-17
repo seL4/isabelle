@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Client.thy
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/Client.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)
@@ -9,13 +8,13 @@ header{*Distributed Resource Management System: the Client*}
 theory Client imports Rename AllocBase begin
 
 types
-  tokbag = nat	   --{*tokbags could be multisets...or any ordered type?*}
+  tokbag = nat     --{*tokbags could be multisets...or any ordered type?*}
 
 record state =
   giv :: "tokbag list" --{*input history: tokens granted*}
   ask :: "tokbag list" --{*output history: tokens requested*}
   rel :: "tokbag list" --{*output history: tokens released*}
-  tok :: tokbag	       --{*current token request*}
+  tok :: tokbag        --{*current token request*}
 
 record 'a state_d =
   state +  
@@ -30,10 +29,10 @@ constdefs
   
   rel_act :: "('a state_d * 'a state_d) set"
     "rel_act == {(s,s').
-		  \<exists>nrel. nrel = size (rel s) &
-		         s' = s (| rel := rel s @ [giv s!nrel] |) &
-		         nrel < size (giv s) &
-		         ask s!nrel \<le> giv s!nrel}"
+                  \<exists>nrel. nrel = size (rel s) &
+                         s' = s (| rel := rel s @ [giv s!nrel] |) &
+                         nrel < size (giv s) &
+                         ask s!nrel \<le> giv s!nrel}"
 
   (** Choose a new token requirement **)
 
@@ -45,16 +44,16 @@ constdefs
   
   ask_act :: "('a state_d * 'a state_d) set"
     "ask_act == {(s,s'). s'=s |
-		         (s' = s (|ask := ask s @ [tok s]|))}"
+                         (s' = s (|ask := ask s @ [tok s]|))}"
 
   Client :: "'a state_d program"
     "Client ==
        mk_total_program
             ({s. tok s \<in> atMost NbT &
-		 giv s = [] & ask s = [] & rel s = []},
-	     {rel_act, tok_act, ask_act},
-	     \<Union>G \<in> preserves rel Int preserves ask Int preserves tok.
-		   Acts G)"
+                 giv s = [] & ask s = [] & rel s = []},
+             {rel_act, tok_act, ask_act},
+             \<Union>G \<in> preserves rel Int preserves ask Int preserves tok.
+                   Acts G)"
 
   (*Maybe want a special theory section to declare such maps*)
   non_dummy :: "'a state_d => state"

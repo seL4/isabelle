@@ -57,7 +57,7 @@ where
 
 
 | Parallel: "\<lbrakk> \<forall>i<length Ts. \<exists>c q. Ts!i = (Some c, q) \<and> \<turnstile> c q; interfree Ts \<rbrakk>
-	   \<Longrightarrow> \<parallel>- (\<Inter>i\<in>{i. i<length Ts}. pre(the(com(Ts!i)))) 
+           \<Longrightarrow> \<parallel>- (\<Inter>i\<in>{i. i<length Ts}. pre(the(com(Ts!i)))) 
                      Parallel Ts 
                   (\<Inter>i\<in>{i. i<length Ts}. post(Ts!i))"
 
@@ -70,7 +70,7 @@ where
 | While:  "\<lbrakk> \<parallel>- (p \<inter> b) c p \<rbrakk> \<Longrightarrow> \<parallel>- p (While b i c) (p \<inter> -b)"
 
 | Conseq: "\<lbrakk> p' \<subseteq> p; \<parallel>- p c q ; q \<subseteq> q' \<rbrakk> \<Longrightarrow> \<parallel>- p' c q'"
-					    
+
 section {* Soundness *}
 (* In the version Isabelle-10-Sep-1999: HOL: The THEN and ELSE
 parts of conditional expressions (if P then x else y) are no longer

@@ -165,7 +165,7 @@ in
 
 end;
 
-val ssubst = standard (Data.sym RS Data.subst);
+val ssubst = Drule.standard (Data.sym RS Data.subst);
 
 fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
   case try (Logic.strip_assums_hyp #> hd #>

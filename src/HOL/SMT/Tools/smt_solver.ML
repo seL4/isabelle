@@ -84,7 +84,7 @@ fun with_timeout ctxt f x =
 val (trace, setup_trace) = Attrib.config_bool "smt_trace" false
 
 fun trace_msg ctxt f x =
-  if Config.get ctxt trace then Output.tracing (f x) else ()
+  if Config.get ctxt trace then tracing (f x) else ()
 
 
 (* interface to external solvers *)
@@ -114,7 +114,7 @@ in
 
 fun run_solver ctxt {env_var, remote_name} args output =
   let
-    val qf = File.shell_path and qq = enclose "'" "'"
+    val qf = File.shell_path and qq = File.shell_quote
     val path = getenv env_var and remote = getenv "REMOTE_SMT_SOLVER"
     fun cmd f1 f2 =
       if path <> ""
@@ -226,7 +226,7 @@ val setup =
 fun print_setup gen =
   let
     val t = string_of_int (Config.get_generic gen timeout)
-    val names = sort string_ord (all_solver_names_of (Context.theory_of gen))
+    val names = sort_strings (all_solver_names_of (Context.theory_of gen))
     val ns = if null names then [no_solver] else names
     val take_info = (fn (_, []) => NONE | info => SOME info)
     val infos =

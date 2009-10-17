@@ -79,112 +79,112 @@ proof (induct U)
       case (App ts x e_ T'_ u_ i_)
       assume "e\<langle>i:T\<rangle> \<turnstile> Var x \<degree>\<degree> ts : T'"
       then obtain Us
-	where varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : Us \<Rrightarrow> T'"
-	and argsT: "e\<langle>i:T\<rangle> \<tturnstile> ts : Us"
-	by (rule var_app_typesE)
+        where varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : Us \<Rrightarrow> T'"
+        and argsT: "e\<langle>i:T\<rangle> \<tturnstile> ts : Us"
+        by (rule var_app_typesE)
       from nat_eq_dec show "\<exists>t'. (Var x \<degree>\<degree> ts)[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
       proof
-	assume eq: "x = i"
-	show ?thesis
-	proof (cases ts)
-	  case Nil
-	  with eq have "(Var x \<degree>\<degree> [])[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* u" by simp
-	  with Nil and uNF show ?thesis by simp iprover
-	next
-	  case (Cons a as)
+        assume eq: "x = i"
+        show ?thesis
+        proof (cases ts)
+          case Nil
+          with eq have "(Var x \<degree>\<degree> [])[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* u" by simp
+          with Nil and uNF show ?thesis by simp iprover
+        next
+          case (Cons a as)
           with argsT obtain T'' Ts where Us: "Us = T'' # Ts"
-	    by (cases Us) (rule FalseE, simp+, erule that)
-	  from varT and Us have varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
-	    by simp
+            by (cases Us) (rule FalseE, simp+, erule that)
+          from varT and Us have varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
+            by simp
           from varT eq have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'" by cases auto
           with uT have uT': "e \<turnstile> u : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by simp
-	  from argsT Us Cons have argsT': "e\<langle>i:T\<rangle> \<tturnstile> as : Ts" by simp
-	  from argsT Us Cons have argT: "e\<langle>i:T\<rangle> \<turnstile> a : T''" by simp
-	  from argT uT refl have aT: "e \<turnstile> a[u/i] : T''" by (rule subst_lemma)
-	  from App and Cons have "listall ?R as" by simp (iprover dest: listall_conj2)
-	  with lift_preserves_beta' lift_NF uNF uT argsT'
-	  have "\<exists>as'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
+          from argsT Us Cons have argsT': "e\<langle>i:T\<rangle> \<tturnstile> as : Ts" by simp
+          from argsT Us Cons have argT: "e\<langle>i:T\<rangle> \<turnstile> a : T''" by simp
+          from argT uT refl have aT: "e \<turnstile> a[u/i] : T''" by (rule subst_lemma)
+          from App and Cons have "listall ?R as" by simp (iprover dest: listall_conj2)
+          with lift_preserves_beta' lift_NF uNF uT argsT'
+          have "\<exists>as'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
             Var j \<degree>\<degree> map (\<lambda>t. lift t 0) as' \<and>
-	    NF (Var j \<degree>\<degree> map (\<lambda>t. lift t 0) as')" by (rule norm_list)
-	  then obtain as' where
-	    asred: "Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
-	      Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as'"
-	    and asNF: "NF (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')" by iprover
-	  from App and Cons have "?R a" by simp
-	  with argT and uNF and uT have "\<exists>a'. a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a' \<and> NF a'"
-	    by iprover
-	  then obtain a' where ared: "a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a'" and aNF: "NF a'" by iprover
-	  from uNF have "NF (lift u 0)" by (rule lift_NF)
-	  hence "\<exists>u'. lift u 0 \<degree> Var 0 \<rightarrow>\<^sub>\<beta>\<^sup>* u' \<and> NF u'" by (rule app_Var_NF)
-	  then obtain u' where ured: "lift u 0 \<degree> Var 0 \<rightarrow>\<^sub>\<beta>\<^sup>* u'" and u'NF: "NF u'"
-	    by iprover
-	  from T and u'NF have "\<exists>ua. u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua \<and> NF ua"
-	  proof (rule MI1)
-	    have "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<degree> Var 0 : Ts \<Rrightarrow> T'"
-	    proof (rule typing.App)
-	      from uT' show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by (rule lift_type)
-	      show "e\<langle>0:T''\<rangle> \<turnstile> Var 0 : T''" by (rule typing.Var) simp
-	    qed
-	    with ured show "e\<langle>0:T''\<rangle> \<turnstile> u' : Ts \<Rrightarrow> T'" by (rule subject_reduction')
-	    from ared aT show "e \<turnstile> a' : T''" by (rule subject_reduction')
-	    show "NF a'" by fact
-	  qed
-	  then obtain ua where uared: "u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" and uaNF: "NF ua"
-	    by iprover
-	  from ared have "(lift u 0 \<degree> Var 0)[a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* (lift u 0 \<degree> Var 0)[a'/0]"
-	    by (rule subst_preserves_beta2')
-	  also from ured have "(lift u 0 \<degree> Var 0)[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* u'[a'/0]"
-	    by (rule subst_preserves_beta')
-	  also note uared
-	  finally have "(lift u 0 \<degree> Var 0)[a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" .
-	  hence uared': "u \<degree> a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" by simp
-	  from T asNF _ uaNF have "\<exists>r. (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r \<and> NF r"
-	  proof (rule MI2)
-	    have "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as : T'"
-	    proof (rule list_app_typeI)
-	      show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 : Ts \<Rrightarrow> T'" by (rule typing.Var) simp
-	      from uT argsT' have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
-		by (rule substs_lemma)
-	      hence "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift t 0) (map (\<lambda>t. t[u/i]) as) : Ts"
-		by (rule lift_types)
-	      thus "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift (t[u/i]) 0) as : Ts"
-		by (simp_all add: map_compose [symmetric] o_def)
-	    qed
-	    with asred show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' : T'"
-	      by (rule subject_reduction')
-	    from argT uT refl have "e \<turnstile> a[u/i] : T''" by (rule subst_lemma)
-	    with uT' have "e \<turnstile> u \<degree> a[u/i] : Ts \<Rrightarrow> T'" by (rule typing.App)
-	    with uared' show "e \<turnstile> ua : Ts \<Rrightarrow> T'" by (rule subject_reduction')
-	  qed
-	  then obtain r where rred: "(Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r"
-	    and rnf: "NF r" by iprover
-	  from asred have
-	    "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>*
-	    (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[u \<degree> a[u/i]/0]"
-	    by (rule subst_preserves_beta')
-	  also from uared' have "(Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>*
-	    (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0]" by (rule subst_preserves_beta2')
-	  also note rred
-	  finally have "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r" .
-	  with rnf Cons eq show ?thesis
-	    by (simp add: map_compose [symmetric] o_def) iprover
-	qed
+            NF (Var j \<degree>\<degree> map (\<lambda>t. lift t 0) as')" by (rule norm_list)
+          then obtain as' where
+            asred: "Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as \<rightarrow>\<^sub>\<beta>\<^sup>*
+              Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as'"
+            and asNF: "NF (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')" by iprover
+          from App and Cons have "?R a" by simp
+          with argT and uNF and uT have "\<exists>a'. a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a' \<and> NF a'"
+            by iprover
+          then obtain a' where ared: "a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* a'" and aNF: "NF a'" by iprover
+          from uNF have "NF (lift u 0)" by (rule lift_NF)
+          hence "\<exists>u'. lift u 0 \<degree> Var 0 \<rightarrow>\<^sub>\<beta>\<^sup>* u' \<and> NF u'" by (rule app_Var_NF)
+          then obtain u' where ured: "lift u 0 \<degree> Var 0 \<rightarrow>\<^sub>\<beta>\<^sup>* u'" and u'NF: "NF u'"
+            by iprover
+          from T and u'NF have "\<exists>ua. u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua \<and> NF ua"
+          proof (rule MI1)
+            have "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<degree> Var 0 : Ts \<Rrightarrow> T'"
+            proof (rule typing.App)
+              from uT' show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by (rule lift_type)
+              show "e\<langle>0:T''\<rangle> \<turnstile> Var 0 : T''" by (rule typing.Var) simp
+            qed
+            with ured show "e\<langle>0:T''\<rangle> \<turnstile> u' : Ts \<Rrightarrow> T'" by (rule subject_reduction')
+            from ared aT show "e \<turnstile> a' : T''" by (rule subject_reduction')
+            show "NF a'" by fact
+          qed
+          then obtain ua where uared: "u'[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" and uaNF: "NF ua"
+            by iprover
+          from ared have "(lift u 0 \<degree> Var 0)[a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* (lift u 0 \<degree> Var 0)[a'/0]"
+            by (rule subst_preserves_beta2')
+          also from ured have "(lift u 0 \<degree> Var 0)[a'/0] \<rightarrow>\<^sub>\<beta>\<^sup>* u'[a'/0]"
+            by (rule subst_preserves_beta')
+          also note uared
+          finally have "(lift u 0 \<degree> Var 0)[a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" .
+          hence uared': "u \<degree> a[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* ua" by simp
+          from T asNF _ uaNF have "\<exists>r. (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r \<and> NF r"
+          proof (rule MI2)
+            have "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as : T'"
+            proof (rule list_app_typeI)
+              show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 : Ts \<Rrightarrow> T'" by (rule typing.Var) simp
+              from uT argsT' have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
+                by (rule substs_lemma)
+              hence "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift t 0) (map (\<lambda>t. t[u/i]) as) : Ts"
+                by (rule lift_types)
+              thus "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift (t[u/i]) 0) as : Ts"
+                by (simp_all add: map_compose [symmetric] o_def)
+            qed
+            with asred show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' : T'"
+              by (rule subject_reduction')
+            from argT uT refl have "e \<turnstile> a[u/i] : T''" by (rule subst_lemma)
+            with uT' have "e \<turnstile> u \<degree> a[u/i] : Ts \<Rrightarrow> T'" by (rule typing.App)
+            with uared' show "e \<turnstile> ua : Ts \<Rrightarrow> T'" by (rule subject_reduction')
+          qed
+          then obtain r where rred: "(Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r"
+            and rnf: "NF r" by iprover
+          from asred have
+            "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>*
+            (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[u \<degree> a[u/i]/0]"
+            by (rule subst_preserves_beta')
+          also from uared' have "(Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>*
+            (Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as')[ua/0]" by (rule subst_preserves_beta2')
+          also note rred
+          finally have "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r" .
+          with rnf Cons eq show ?thesis
+            by (simp add: map_compose [symmetric] o_def) iprover
+        qed
       next
-	assume neq: "x \<noteq> i"
-	from App have "listall ?R ts" by (iprover dest: listall_conj2)
-	with TrueI TrueI uNF uT argsT
-	have "\<exists>ts'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. t[u/i]) ts \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> ts' \<and>
-	  NF (Var j \<degree>\<degree> ts')" (is "\<exists>ts'. ?ex ts'")
-	  by (rule norm_list [of "\<lambda>t. t", simplified])
-	then obtain ts' where NF: "?ex ts'" ..
-	from nat_le_dec show ?thesis
-	proof
-	  assume "i < x"
-	  with NF show ?thesis by simp iprover
-	next
-	  assume "\<not> (i < x)"
-	  with NF neq show ?thesis by (simp add: subst_Var) iprover
-	qed
+        assume neq: "x \<noteq> i"
+        from App have "listall ?R ts" by (iprover dest: listall_conj2)
+        with TrueI TrueI uNF uT argsT
+        have "\<exists>ts'. \<forall>j. Var j \<degree>\<degree> map (\<lambda>t. t[u/i]) ts \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> ts' \<and>
+          NF (Var j \<degree>\<degree> ts')" (is "\<exists>ts'. ?ex ts'")
+          by (rule norm_list [of "\<lambda>t. t", simplified])
+        then obtain ts' where NF: "?ex ts'" ..
+        from nat_le_dec show ?thesis
+        proof
+          assume "i < x"
+          with NF show ?thesis by simp iprover
+        next
+          assume "\<not> (i < x)"
+          with NF neq show ?thesis by (simp add: subst_Var) iprover
+        qed
       qed
     next
       case (Abs r e_ T'_ u_ i_)
@@ -194,7 +194,7 @@ proof (induct U)
       moreover have "e\<langle>0:R\<rangle> \<turnstile> lift u 0 : T" using uT by (rule lift_type)
       ultimately have "\<exists>t'. r[lift u 0/Suc i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'" by (rule Abs)
       thus "\<exists>t'. Abs r[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
-	by simp (iprover intro: rtrancl_beta_Abs NF.Abs)
+        by simp (iprover intro: rtrancl_beta_Abs NF.Abs)
     }
   qed
 qed
@@ -239,11 +239,11 @@ next
     show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 \<degree> lift t' 0 : U"
     proof (rule typing.App)
       show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
-      	by (rule typing.Var) simp
+        by (rule typing.Var) simp
       from tred have "e \<turnstile> t' : T"
-      	by (rule subject_reduction') (rule rtyping_imp_typing, rule App.hyps)
+        by (rule subject_reduction') (rule rtyping_imp_typing, rule App.hyps)
       thus "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t' 0 : T"
-      	by (rule lift_type)
+        by (rule lift_type)
     qed
     from sred show "e \<turnstile> s' : T \<Rightarrow> U"
       by (rule subject_reduction') (rule rtyping_imp_typing, rule App.hyps)

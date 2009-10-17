@@ -1,106 +1,52 @@
 (*  Title:      HOL/Tools/refute_isar.ML
-    ID:         $Id$
     Author:     Tjark Weber
     Copyright   2003-2007
 
-Adds the 'refute' and 'refute_params' commands to Isabelle/Isar's outer
-syntax.
+Outer syntax commands 'refute' and 'refute_params'.
 *)
 
-structure RefuteIsar: sig end =
+structure Refute_Isar: sig end =
 struct
 
-(* ------------------------------------------------------------------------- *)
-(* common functions for argument parsing/scanning                            *)
-(* ------------------------------------------------------------------------- *)
+(* argument parsing *)
 
-(* ------------------------------------------------------------------------- *)
-(* both 'refute' and 'refute_params' take an optional list of arguments of   *)
-(* the form [name1=value1, name2=value2, ...]                                *)
-(* ------------------------------------------------------------------------- *)
+(*optional list of arguments of the form [name1=value1, name2=value2, ...]*)
 
-	val scan_parm = OuterParse.name -- (OuterParse.$$$ "=" |-- OuterParse.name);
+val scan_parm = OuterParse.name -- (OuterParse.$$$ "=" |-- OuterParse.name);
 
-	val scan_parms = Scan.option
-		(OuterParse.$$$ "[" |-- (OuterParse.list scan_parm) --| OuterParse.$$$ "]");
+val scan_parms = Scan.optional
+  (OuterParse.$$$ "[" |-- OuterParse.list scan_parm --| OuterParse.$$$ "]") [];
 
-(* ------------------------------------------------------------------------- *)
-(* set up the 'refute' command                                               *)
-(* ------------------------------------------------------------------------- *)
 
-(* ------------------------------------------------------------------------- *)
-(* 'refute' takes an optional list of parameters, followed by an optional    *)
-(* subgoal number                                                            *)
-(* ------------------------------------------------------------------------- *)
+(* 'refute' command *)
 
-	val refute_scan_args = scan_parms -- (Scan.option OuterParse.nat);
+val _ =
+  OuterSyntax.improper_command "refute"
+    "try to find a model that refutes a given subgoal" OuterKeyword.diag
+    (scan_parms -- Scan.optional OuterParse.nat 1 >>
+      (fn (parms, i) =>
+        Toplevel.keep (fn state =>
+          let
+            val thy = Toplevel.theory_of state;
+            val (_, st) = Proof.flat_goal (Toplevel.proof_of state);
+          in Refute.refute_goal thy parms st i end)));
 
-(* ------------------------------------------------------------------------- *)
-(* the 'refute' command is mapped to 'Refute.refute_subgoal'                 *)
-(* ------------------------------------------------------------------------- *)
 
-	fun refute_trans args =
-		Toplevel.keep (fn state =>
-			let
-				val (parms_opt, subgoal_opt) = args
-				val parms   = Option.getOpt (parms_opt, [])
-				val subgoal = Option.getOpt (subgoal_opt, 1) - 1
-				val thy     = Toplevel.theory_of state
-				val thm     = (snd o snd) (Proof.get_goal (Toplevel.proof_of state))
-			in
-				Refute.refute_subgoal thy parms thm subgoal
-			end);
+(* 'refute_params' command *)
 
-	fun refute_parser tokens = (refute_scan_args tokens) |>> refute_trans;
-
-	val _ = OuterSyntax.improper_command "refute"
-		"try to find a model that refutes a given subgoal"
-		OuterKeyword.diag refute_parser;
-
-(* ------------------------------------------------------------------------- *)
-(* set up the 'refute_params' command                                        *)
-(* ------------------------------------------------------------------------- *)
-
-(* ------------------------------------------------------------------------- *)
-(* 'refute_params' takes an optional list of parameters                      *)
-(* ------------------------------------------------------------------------- *)
-
-	val refute_params_scan_args = scan_parms;
-
-(* ------------------------------------------------------------------------- *)
-(* the 'refute_params' command is mapped to (multiple calls of)              *)
-(* 'Refute.set_default_param'; then the (new) default parameters are         *)
-(* displayed                                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-	fun refute_params_trans args =
-		let
-			fun add_params thy [] =
-				thy
-			  | add_params thy (p::ps) =
-				add_params (Refute.set_default_param p thy) ps
-		in
-			Toplevel.theory (fn thy =>
-				let
-					val thy'               = add_params thy (getOpt (args, []))
-					val new_default_params = Refute.get_default_params thy'
-					val output             = if new_default_params=[] then
-							"none"
-						else
-							cat_lines (map (fn (name, value) => name ^ "=" ^ value)
-								new_default_params)
-				in
-					writeln ("Default parameters for 'refute':\n" ^ output);
-					thy'
-				end)
-		end;
-
-	fun refute_params_parser tokens =
-		(refute_params_scan_args tokens) |>> refute_params_trans;
-
-	val _ = OuterSyntax.command "refute_params"
-		"show/store default parameters for the 'refute' command"
-		OuterKeyword.thy_decl refute_params_parser;
+val _ =
+  OuterSyntax.command "refute_params"
+    "show/store default parameters for the 'refute' command" OuterKeyword.thy_decl
+    (scan_parms >> (fn parms =>
+      Toplevel.theory (fn thy =>
+        let
+          val thy' = fold Refute.set_default_param parms thy;
+          val output =
+            (case Refute.get_default_params thy' of
+              [] => "none"
+            | new_defaults => cat_lines (map (fn (x, y) => x ^ "=" ^ y) new_defaults));
+          val _ = writeln ("Default parameters for 'refute':\n" ^ output);
+        in thy' end)));
 
 end;
 

@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/NSP_Bad
-    ID:         $Id$
+(*  Title:      HOL/Auth/NSP_Bad.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
@@ -25,33 +24,33 @@ constdefs
     all similar protocols.*)
   Fake :: "(state*state) set"
     "Fake == {(s,s').
-	      \<exists>B X. s' = Says Spy B X # s
-		    & X \<in> synth (analz (spies s))}"
+              \<exists>B X. s' = Says Spy B X # s
+                    & X \<in> synth (analz (spies s))}"
 
   (*The numeric suffixes on A identify the rule*)
 
   (*Alice initiates a protocol run, sending a nonce to Bob*)
   NS1 :: "(state*state) set"
     "NS1 == {(s1,s').
-	     \<exists>A1 B NA.
-	         s' = Says A1 B (Crypt (pubK B) {|Nonce NA, Agent A1|}) # s1
-	       & Nonce NA \<notin> used s1}"
+             \<exists>A1 B NA.
+                 s' = Says A1 B (Crypt (pubK B) {|Nonce NA, Agent A1|}) # s1
+               & Nonce NA \<notin> used s1}"
 
   (*Bob responds to Alice's message with a further nonce*)
   NS2 :: "(state*state) set"
     "NS2 == {(s2,s').
-	     \<exists>A' A2 B NA NB.
-	         s' = Says B A2 (Crypt (pubK A2) {|Nonce NA, Nonce NB|}) # s2
+             \<exists>A' A2 B NA NB.
+                 s' = Says B A2 (Crypt (pubK A2) {|Nonce NA, Nonce NB|}) # s2
                & Says A' B (Crypt (pubK B) {|Nonce NA, Agent A2|}) \<in> set s2
-	       & Nonce NB \<notin> used s2}"
+               & Nonce NB \<notin> used s2}"
 
   (*Alice proves her existence by sending NB back to Bob.*)
   NS3 :: "(state*state) set"
     "NS3 == {(s3,s').
-	     \<exists>A3 B' B NA NB.
-	         s' = Says A3 B (Crypt (pubK B) (Nonce NB)) # s3
+             \<exists>A3 B' B NA NB.
+                 s' = Says A3 B (Crypt (pubK B) (Nonce NB)) # s3
                & Says A3  B (Crypt (pubK B) {|Nonce NA, Agent A3|}) \<in> set s3
-	       & Says B' A3 (Crypt (pubK A3) {|Nonce NA, Nonce NB|}) \<in> set s3}"
+               & Says B' A3 (Crypt (pubK A3) {|Nonce NA, Nonce NB|}) \<in> set s3}"
 
 
 constdefs
@@ -104,14 +103,14 @@ ML{*
 fun ns_constrains_tac(cs,ss) i =
    SELECT_GOAL
       (EVERY [REPEAT (etac @{thm Always_ConstrainsI} 1),
-	      REPEAT (resolve_tac [@{thm StableI}, @{thm stableI},
-				   @{thm constrains_imp_Constrains}] 1),
-	      rtac @{thm ns_constrainsI} 1,
-	      full_simp_tac ss 1,
-	      REPEAT (FIRSTGOAL (etac disjE)),
-	      ALLGOALS (clarify_tac (cs delrules [impI, @{thm impCE}])),
-	      REPEAT (FIRSTGOAL analz_mono_contra_tac),
-	      ALLGOALS (asm_simp_tac ss)]) i;
+              REPEAT (resolve_tac [@{thm StableI}, @{thm stableI},
+                                   @{thm constrains_imp_Constrains}] 1),
+              rtac @{thm ns_constrainsI} 1,
+              full_simp_tac ss 1,
+              REPEAT (FIRSTGOAL (etac disjE)),
+              ALLGOALS (clarify_tac (cs delrules [impI, @{thm impCE}])),
+              REPEAT (FIRSTGOAL analz_mono_contra_tac),
+              ALLGOALS (asm_simp_tac ss)]) i;
 
 (*Tactic for proving secrecy theorems*)
 fun ns_induct_tac(cs,ss) =

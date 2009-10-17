@@ -1,11 +1,10 @@
-(*  Title:      HOL/UNITY/Network
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Network.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-The Communication Network
+The Communication Network.
 
-From Misra, "A Logic for Concurrent Programming" (1994), section 5.7
+From Misra, "A Logic for Concurrent Programming" (1994), section 5.7.
 *)
 
 theory Network imports UNITY begin
@@ -52,9 +51,9 @@ lemmas (in F_props)
 
 lemma (in F_props)
   shows "F \<in> stable {s. s(Aproc,Idle) = Suc 0 & s(Bproc,Idle) = Suc 0 &  
-			s(Aproc,Sent) = s(Bproc,Rcvd) &  
-			s(Bproc,Sent) = s(Aproc,Rcvd) &  
-			s(Aproc,Rcvd) = m & s(Bproc,Rcvd) = n}"
+                        s(Aproc,Sent) = s(Bproc,Rcvd) &  
+                        s(Bproc,Sent) = s(Aproc,Rcvd) &  
+                        s(Aproc,Rcvd) = m & s(Bproc,Rcvd) = n}"
 apply (unfold stable_def) 
 apply (rule constrainsI)
 apply (drule constrains_Int [OF rs_AB [unfolded stable_def] nondec_idle, 

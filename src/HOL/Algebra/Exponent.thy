@@ -204,7 +204,7 @@ apply (drule contrapos_nn [OF _ leI, THEN notnotD], assumption)
 apply (drule less_imp_le [of a])
 apply (drule le_imp_power_dvd)
 apply (drule_tac b = "p ^ r" in dvd_trans, assumption)
-apply(metis dvd_diffD1 dvd_triv_right le_extend_mult linorder_linear linorder_not_less mult_commute nat_dvd_not_less neq0_conv)
+apply (metis diff_is_0_eq dvd_diffD1 gcd_dvd2 gcd_mult' gr0I le_extend_mult less_diff_conv nat_dvd_not_less nat_mult_commute not_add_less2 xt1(10))
 done
 
 lemma p_fac_forw: "[| (m::nat) > 0; k>0; k < p^a; (p^r) dvd (p^a)* m - k |]  

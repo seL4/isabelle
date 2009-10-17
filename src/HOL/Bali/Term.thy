@@ -67,8 +67,8 @@ datatype jump
         | Ret         --{* return from method *}
 
 datatype xcpt        --{* exception *}
-	= Loc loc    --{* location of allocated execption object *}
-	| Std xname  --{* intermediate standard exception, see Eval.thy *}
+        = Loc loc    --{* location of allocated execption object *}
+        | Std xname  --{* intermediate standard exception, see Eval.thy *}
 
 datatype error
        =  AccessViolation  --{* Access to a member that isn't permitted *}
@@ -92,12 +92,12 @@ translations
  "locals" <= (type) "(lname, val) table"
 
 datatype inv_mode                  --{* invocation mode for method calls *}
-	= Static                   --{* static *}
-	| SuperM                   --{* super  *}
-	| IntVir                   --{* interface or virtual *}
+        = Static                   --{* static *}
+        | SuperM                   --{* super  *}
+        | IntVir                   --{* interface or virtual *}
 
 record  sig =              --{* signature of a method, cf. 8.4.2  *}
-	  name ::"mname"   --{* acutally belongs to Decl.thy *}
+          name ::"mname"   --{* acutally belongs to Decl.thy *}
           parTs::"ty list"        
 
 translations
@@ -142,7 +142,7 @@ e.g.: {\tt false \&\& e} e is not evaluated;
 *}
 
 datatype var
-	= LVar lname --{* local variable (incl. parameters) *}
+        = LVar lname --{* local variable (incl. parameters) *}
         | FVar qtname qtname bool expr vname ("{_,_,_}_.._"[10,10,10,85,99]90)
                      --{* class field *}
                      --{* @{term "{accC,statDeclC,stat}e..fn"}   *}
@@ -153,7 +153,7 @@ datatype var
                      --{* @{text stat}: static or instance field?*}
                      --{* @{text e}: reference to object*}
                      --{* @{text fn}: field name*}
-	| AVar expr expr ("_.[_]"[90,10   ]90)
+        | AVar expr expr ("_.[_]"[90,10   ]90)
                      --{* array component *}
                      --{* @{term "e1.[e2]"}: e1 array reference; e2 index *}
         | InsInitV stmt var 
@@ -161,21 +161,21 @@ datatype var
                      --{* of var (technical term for smallstep semantics.)*}
 
 and expr
-	= NewC qtname         --{* class instance creation *}
-	| NewA ty expr ("New _[_]"[99,10   ]85) 
+        = NewC qtname         --{* class instance creation *}
+        | NewA ty expr ("New _[_]"[99,10   ]85) 
                               --{* array creation *} 
-	| Cast ty expr        --{* type cast  *}
-	| Inst expr ref_ty ("_ InstOf _"[85,99] 85)   
+        | Cast ty expr        --{* type cast  *}
+        | Inst expr ref_ty ("_ InstOf _"[85,99] 85)   
                               --{* instanceof *}     
-	| Lit  val              --{* literal value, references not allowed *}
+        | Lit  val              --{* literal value, references not allowed *}
         | UnOp unop expr        --{* unary operation *}
         | BinOp binop expr expr --{* binary operation *}
         
-	| Super               --{* special Super keyword *}
-	| Acc  var            --{* variable access *}
-	| Ass  var expr       ("_:=_"   [90,85   ]85)
+        | Super               --{* special Super keyword *}
+        | Acc  var            --{* variable access *}
+        | Ass  var expr       ("_:=_"   [90,85   ]85)
                               --{* variable assign *} 
-	| Cond expr expr expr ("_ ? _ : _" [85,85,80]80) --{* conditional *}  
+        | Cond expr expr expr ("_ ? _ : _" [85,85,80]80) --{* conditional *}  
         | Call qtname ref_ty inv_mode expr mname "(ty list)" "(expr list)"  
             ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85) 
                     --{* method call *} 
@@ -198,25 +198,25 @@ and expr
         | Callee locals expr  --{* save callers locals in callee-Frame *}
                               --{* (technical term for smallstep semantics) *}
 and  stmt
-	= Skip                  --{* empty      statement *}
-	| Expr  expr            --{* expression statement *}
+        = Skip                  --{* empty      statement *}
+        | Expr  expr            --{* expression statement *}
         | Lab   jump stmt       ("_\<bullet> _" [      99,66]66)
                                 --{* labeled statement; handles break *}
-	| Comp  stmt stmt       ("_;; _"                  [      66,65]65)
-	| If'   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
-	| Loop  label expr stmt ("_\<bullet> While'(_') _"        [   99,80,79]70)
+        | Comp  stmt stmt       ("_;; _"                  [      66,65]65)
+        | If'   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
+        | Loop  label expr stmt ("_\<bullet> While'(_') _"        [   99,80,79]70)
         | Jmp jump              --{* break, continue, return *}
-	| Throw expr
+        | Throw expr
         | TryC  stmt qtname vname stmt ("Try _ Catch'(_ _') _"  [79,99,80,79]70)
              --{* @{term "Try c1 Catch(C vn) c2"} *} 
              --{* @{text c1}: block were exception may be thrown *}
              --{* @{text C}:  execption class to catch *}
              --{* @{text vn}: local name for exception used in @{text c2}*}
              --{* @{text c2}: block to execute when exception is cateched*}
-	| Fin  stmt  stmt        ("_ Finally _"               [      79,79]70)
+        | Fin  stmt  stmt        ("_ Finally _"               [      79,79]70)
         | FinA abopt stmt       --{* Save abruption of first statement *} 
                                 --{* technical term  for smallstep sem.) *}
-	| Init  qtname          --{* class initialization *}
+        | Init  qtname          --{* class initialization *}
 
 
 text {*

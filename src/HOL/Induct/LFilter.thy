@@ -1,5 +1,4 @@
 (*  Title:      HOL/LList.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 *)
@@ -10,8 +9,8 @@ header {*The "filter" functional for coinductive lists
 theory LFilter imports LList begin
 
 inductive_set
-  findRel	:: "('a => bool) => ('a llist * 'a llist)set"
-  for p :: "'a => bool"
+  findRel :: "('a => bool) => ('a llist * 'a llist)set"
+    for p :: "'a => bool"
   where
     found:  "p x ==> (LCons x l, LCons x l) \<in> findRel p"
   | seek:   "[| ~p x;  (l,l') \<in> findRel p |] ==> (LCons x l, l') \<in> findRel p"

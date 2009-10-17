@@ -18,7 +18,7 @@ sig
 
   val xml_of_bool: bool output
   val bool_of_xml: bool input
-		  
+                  
   val xml_of_int: int output
   val int_of_xml: int input
 
@@ -86,7 +86,7 @@ fun xml_of_typ (TVar ((s, i), S)) = XML.Elem ("TVar",
 
 fun intofstr s i = 
     case Int.fromString i of 
-	NONE => parse_err (s^", invalid index: "^i)
+        NONE => parse_err (s^", invalid index: "^i)
       | SOME i => i
 
 fun typ_of_xml (XML.Elem ("TVar", [("name", s)], cs)) = TVar ((s,0), map class_of_xml cs)
@@ -166,7 +166,7 @@ fun xml_of_quadruple output1 output2 output3 output4 (x1, x2, x3, x4) =
     XML.Elem ("quadruple", [], [output1 x1, output2 x2, output3 x3, output4 x4])
 fun xml_of_quintuple output1 output2 output3 output4 output5 (x1, x2, x3, x4, x5) = 
     XML.Elem ("quintuple", [], [output1 x1, output2 x2, output3 x3, output4 x4, output5 x5])
-										  
+                                                                                  
 fun bool_of_xml (XML.Elem ("bool", [("value", "true")], [])) = true
   | bool_of_xml (XML.Elem ("bool", [("value", "false")], [])) = false
   | bool_of_xml _ = parse_err "bool"
@@ -225,10 +225,10 @@ fun xml_of_mixfix NoSyn = wrap_empty "nosyn"
   | xml_of_mixfix (Infixl i) = wrap "infixl" xml_of_int i
   | xml_of_mixfix (Infixr i) = wrap "infixr" xml_of_int i
   | xml_of_mixfix (Binder args) = wrap "binder" (xml_of_triple xml_of_string xml_of_int xml_of_int) args
-				  
+                                  
 fun mixfix_of_xml e = 
     (case name_of_wrap e of 
-	 "nosyn" => unwrap_empty NoSyn 
+         "nosyn" => unwrap_empty NoSyn 
        | "structure" => unwrap_empty Structure 
        | "mixfix" => unwrap Mixfix (triple_of_xml string_of_xml (list_of_xml int_of_xml) int_of_xml)
        | "delimfix" => unwrap Delimfix string_of_xml
@@ -247,15 +247,15 @@ fun to_file f output fname x = File.write (Path.explode fname) (f (output x))
  
 fun from_file f input fname = 
     let
-	val _ = writeln "read_from_file enter"
-	val s = File.read (Path.explode fname)
-	val _ = writeln "done: read file"
-	val tree = timeit (fn () => f s)
-	val _ = writeln "done: tree"
-	val x = timeit (fn () => input tree)
-	val _ = writeln "done: input"
+        val _ = writeln "read_from_file enter"
+        val s = File.read (Path.explode fname)
+        val _ = writeln "done: read file"
+        val tree = timeit (fn () => f s)
+        val _ = writeln "done: tree"
+        val x = timeit (fn () => input tree)
+        val _ = writeln "done: input"
     in
-	x
+        x
     end
 
 fun write_to_file x = to_file XML.string_of_tree x

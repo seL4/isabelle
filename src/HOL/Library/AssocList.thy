@@ -233,9 +233,9 @@ next
       fix v
       assume "v \<in> ran (map_of (a#al))"
       then obtain x where "map_of (a#al) x = Some v"
-	by (auto simp add: ran_def)
+        by (auto simp add: ran_def)
       then show "v \<in> {snd a} \<union> ran (map_of al)"
-	by (auto split: split_if_asm simp add: ran_def)
+        by (auto split: split_if_asm simp add: ran_def)
     qed
   next
     show "{snd a} \<union> ran (map_of al) \<subseteq> ran (map_of (a # al))"
@@ -244,22 +244,22 @@ next
       assume v_in: "v \<in> {snd a} \<union> ran (map_of al)"
       show "v \<in> ran (map_of (a#al))"
       proof (cases "v=snd a")
-	case True
-	with v_in show ?thesis
-	  by (auto simp add: ran_def)
+        case True
+        with v_in show ?thesis
+          by (auto simp add: ran_def)
       next
-	case False
-	with v_in have "v \<in> ran (map_of al)" by auto
-	then obtain x where al_x: "map_of al x = Some v"
-	  by (auto simp add: ran_def)
-	from map_of_SomeD [OF this]
-	have "x \<in> fst ` set al"
-	  by (force simp add: image_def)
-	with Cons.prems have "x\<noteq>fst a"
-	  by - (rule ccontr,simp)
-	with al_x
-	show ?thesis
-	  by (auto simp add: ran_def)
+        case False
+        with v_in have "v \<in> ran (map_of al)" by auto
+        then obtain x where al_x: "map_of al x = Some v"
+          by (auto simp add: ran_def)
+        from map_of_SomeD [OF this]
+        have "x \<in> fst ` set al"
+          by (force simp add: image_def)
+        with Cons.prems have "x\<noteq>fst a"
+          by - (rule ccontr,simp)
+        with al_x
+        show ?thesis
+          by (auto simp add: ran_def)
       qed
     qed
   qed
@@ -537,17 +537,17 @@ next
       case True
       from True delete_notin_dom [of k xs]
       have "map_of (delete (fst x) xs) k = None"
-	by (simp add: map_of_eq_None_iff)
+        by (simp add: map_of_eq_None_iff)
       with hyp show ?thesis
-	using True None
-	by simp
+        using True None
+        by simp
     next
       case False
       from False have "map_of (delete (fst x) xs) k = map_of xs k"
-	by simp
+        by simp
       with hyp show ?thesis
-	using False None
-	by (simp add: map_comp_def)
+        using False None
+        by (simp add: map_comp_def)
     qed
   next
     case (Some v)
@@ -631,12 +631,12 @@ next
       case True
       with None hyp
       show ?thesis
-	by (simp add: delete_idem)
+        by (simp add: delete_idem)
     next
       case False
       from None False hyp
       show ?thesis
-	by (simp add: delete_twist)
+        by (simp add: delete_twist)
     qed
   next
     case (Some v)
@@ -736,30 +736,30 @@ next
       case True
       from Cons.hyps
       show ?thesis
-	using x_D True
-	by simp
+        using x_D True
+        by simp
     next
       case False
       note not_fst_a_x = this
       show ?thesis
       proof (cases "fst a \<in> D")
-	case True 
-	with not_fst_a_x 
-	have "delete x (restrict D (a#al)) = a#(delete x (restrict D al))"
-	  by (cases a) (simp add: restrict_eq)
-	also from not_fst_a_x True hyp have "\<dots> = restrict (D - {x}) (a # al)"
-	  by (cases a) (simp add: restrict_eq)
-	finally show ?thesis
-	  using x_D by simp
+        case True 
+        with not_fst_a_x 
+        have "delete x (restrict D (a#al)) = a#(delete x (restrict D al))"
+          by (cases a) (simp add: restrict_eq)
+        also from not_fst_a_x True hyp have "\<dots> = restrict (D - {x}) (a # al)"
+          by (cases a) (simp add: restrict_eq)
+        finally show ?thesis
+          using x_D by simp
       next
-	case False
-	hence "delete x (restrict D (a#al)) = delete x (restrict D al)"
-	  by (cases a) (simp add: restrict_eq)
-	moreover from False not_fst_a_x
-	have "restrict (D - {x}) (a # al) = restrict (D - {x}) al"
-	  by (cases a) (simp add: restrict_eq)
-	ultimately
-	show ?thesis using x_D hyp by simp
+        case False
+        hence "delete x (restrict D (a#al)) = delete x (restrict D al)"
+          by (cases a) (simp add: restrict_eq)
+        moreover from False not_fst_a_x
+        have "restrict (D - {x}) (a # al) = restrict (D - {x}) al"
+          by (cases a) (simp add: restrict_eq)
+        ultimately
+        show ?thesis using x_D hyp by simp
       qed
     qed
   next

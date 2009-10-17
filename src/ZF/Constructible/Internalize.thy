@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Internalize.thy
-    ID: $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -323,7 +322,7 @@ done
 subsubsection{*The Operator @{term is_Member}, Internalized*}
 
 (*    "is_Member(M,x,y,Z) ==
-	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)" *)
+        \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)" *)
 definition
   Member_fm :: "[i,i,i]=>i" where
     "Member_fm(x,y,Z) ==
@@ -356,7 +355,7 @@ done
 subsubsection{*The Operator @{term is_Equal}, Internalized*}
 
 (*    "is_Equal(M,x,y,Z) ==
-	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)" *)
+        \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)" *)
 definition
   Equal_fm :: "[i,i,i]=>i" where
     "Equal_fm(x,y,Z) ==
@@ -389,7 +388,7 @@ done
 subsubsection{*The Operator @{term is_Nand}, Internalized*}
 
 (*    "is_Nand(M,x,y,Z) ==
-	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)" *)
+        \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)" *)
 definition
   Nand_fm :: "[i,i,i]=>i" where
     "Nand_fm(x,y,Z) ==
@@ -600,10 +599,10 @@ definition
      And(p, 
       And(pair_fm(2,0,3),
        Exists(Exists(Exists(
-	And(pair_fm(5,a#+7,2),
-	 And(upair_fm(5,5,1),
-	  And(pre_image_fm(r#+7,1,0),
-	   And(restriction_fm(f#+7,0,4), Member(2,r#+7)))))))))))))))"
+        And(pair_fm(5,a#+7,2),
+         And(upair_fm(5,5,1),
+          And(pre_image_fm(r#+7,1,0),
+           And(restriction_fm(f#+7,0,4), Member(2,r#+7)))))))))))))))"
 
 lemma is_recfun_type [TC]:
      "[| p \<in> formula; x \<in> nat; y \<in> nat; z \<in> nat |] 

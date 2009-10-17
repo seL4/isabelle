@@ -337,7 +337,7 @@ let
 		val _ = if !trace_sat then
 				tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
 			else ()
-		val False_thm = SkipProof.make_thm @{theory} (HOLogic.Trueprop $ HOLogic.false_const)
+		val False_thm = Skip_Proof.make_thm @{theory} (HOLogic.Trueprop $ HOLogic.false_const)
 	in
 		(* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
 		(* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)

@@ -129,7 +129,7 @@ fun print_modes modes = message ("Inferred modes:\n" ^
     string_of_mode ms)) modes));
 
 val term_vs = map (fst o fst o dest_Var) o OldTerm.term_vars;
-val terms_vs = distinct (op =) o List.concat o (map term_vs);
+val terms_vs = distinct (op =) o maps term_vs;
 
 (** collect all Vars in a term (with duplicates!) **)
 fun term_vTs tm =
@@ -160,8 +160,8 @@ fun modes_of modes t =
   let
     val ks = 1 upto length (binder_types (fastype_of t));
     val default = [Mode (([], ks), ks, [])];
-    fun mk_modes name args = Option.map (List.concat o
-      map (fn (m as (iss, is)) =>
+    fun mk_modes name args = Option.map
+     (maps (fn (m as (iss, is)) =>
         let
           val (args1, args2) =
             if length args < length iss then
@@ -198,9 +198,9 @@ fun select_mode_prem thy modes vs ps =
           let
             val (in_ts, out_ts) = get_args is 1 us;
             val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
-            val vTs = List.concat (map term_vTs out_ts');
+            val vTs = maps term_vTs out_ts';
             val dupTs = map snd (duplicates (op =) vTs) @
-              List.mapPartial (AList.lookup (op =) vTs) vs;
+              map_filter (AList.lookup (op =) vTs) vs;
           in
             terms_vs (in_ts @ in_ts') subset vs andalso
             forall (is_eqT o fastype_of) in_ts' andalso
@@ -215,7 +215,7 @@ fun select_mode_prem thy modes vs ps =
 
 fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
   let
-    val modes' = modes @ List.mapPartial
+    val modes' = modes @ map_filter
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
     fun check_mode_prems vs [] = SOME vs
@@ -228,7 +228,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
     val in_vs = terms_vs in_ts;
     val concl_vs = terms_vs ts
   in
-    forall is_eqT (map snd (duplicates (op =) (List.concat (map term_vTs in_ts)))) andalso
+    forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
     (case check_mode_prems (arg_vs union in_vs) ps of
        NONE => false
@@ -263,7 +263,7 @@ fun mk_eq (x::xs) =
   in mk_eqs x xs end;
 
 fun mk_tuple xs = Pretty.block (str "(" ::
-  List.concat (separate [str ",", Pretty.brk 1] (map single xs)) @
+  flat (separate [str ",", Pretty.brk 1] (map single xs)) @
   [str ")"]);
 
 fun mk_v ((names, vs), s) = (case AList.lookup (op =) vs s of
@@ -286,8 +286,8 @@ fun is_exhaustive (Var _) = true
   | is_exhaustive _ = false;
 
 fun compile_match nvs eq_ps out_ps success_p can_fail =
-  let val eqs = List.concat (separate [str " andalso", Pretty.brk 1]
-    (map single (List.concat (map (mk_eq o snd) nvs) @ eq_ps)));
+  let val eqs = flat (separate [str " andalso", Pretty.brk 1]
+    (map single (maps (mk_eq o snd) nvs @ eq_ps)));
   in
     Pretty.block
      ([str "(fn ", mk_tuple out_ps, str " =>", Pretty.brk 1] @
@@ -305,7 +305,7 @@ fun modename module s (iss, is) gr =
     else mk_const_id module s gr
   in (space_implode "__"
     (mk_qual_id module id ::
-      map (space_implode "_" o map string_of_int) (List.mapPartial I iss @ [is])), gr')
+      map (space_implode "_" o map string_of_int) (map_filter I iss @ [is])), gr')
   end;
 
 fun mk_funcomp brack s k p = (if brack then parens else I)
@@ -332,7 +332,7 @@ fun compile_expr thy defs dep module brack modes (NONE, t) gr =
                      (invoke_codegen thy defs dep module true) args2 gr')
              in ((if brack andalso not (null ps andalso null ps') then
                single o parens o Pretty.block else I)
-                 (List.concat (separate [Pretty.brk 1]
+                 (flat (separate [Pretty.brk 1]
                    ([str mode_id] :: ps @ map single ps'))), gr')
              end
            else apfst (single o mk_funcomp brack "??" (length (binder_types (fastype_of t))))
@@ -342,7 +342,7 @@ fun compile_expr thy defs dep module brack modes (NONE, t) gr =
 
 fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) inp gr =
   let
-    val modes' = modes @ List.mapPartial
+    val modes' = modes @ map_filter
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
 
@@ -449,7 +449,7 @@ fun compile_pred thy defs dep module prfx all_vs arg_vs modes s cls mode gr =
            (case mode of ([], []) => [str "()"] | _ => xs)) @
          [str " ="]),
         Pretty.brk 1] @
-       List.concat (separate [str " ++", Pretty.brk 1] (map single cl_ps))), (gr', "and "))
+       flat (separate [str " ++", Pretty.brk 1] (map single cl_ps))), (gr', "and "))
   end;
 
 fun compile_preds thy defs dep module all_vs arg_vs modes preds gr =
@@ -458,7 +458,7 @@ fun compile_preds thy defs dep module all_vs arg_vs modes preds gr =
       dep module prfx' all_vs arg_vs modes s cls mode gr')
         (((the o AList.lookup (op =) modes) s))) preds (gr, "fun ")
   in
-    (space_implode "\n\n" (map string_of (List.concat prs)) ^ ";\n\n", gr')
+    (space_implode "\n\n" (map string_of (flat prs)) ^ ";\n\n", gr')
   end;
 
 (**** processing of introduction rules ****)
@@ -467,7 +467,7 @@ exception Modes of
   (string * (int list option list * int list) list) list *
   (string * (int option list * int)) list;
 
-fun lookup_modes gr dep = apfst List.concat (apsnd List.concat (ListPair.unzip
+fun lookup_modes gr dep = apfst flat (apsnd flat (ListPair.unzip
   (map ((fn (SOME (Modes x), _, _) => x | _ => ([], [])) o get_node gr)
     (Graph.all_preds (fst gr) [dep]))));
 
@@ -477,7 +477,7 @@ fun print_arities arities = message ("Arities:\n" ^
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));
 
-fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
+fun prep_intrs intrs = map (rename_term o #prop o rep_thm o Drule.standard) intrs;
 
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs (s : string) of
@@ -502,7 +502,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
     let
       val _ $ u = Logic.strip_imp_concl (hd intrs);
       val args = List.take (snd (strip_comb u), nparms);
-      val arg_vs = List.concat (map term_vs args);
+      val arg_vs = maps term_vs args;
 
       fun get_nparms s = if s mem names then SOME nparms else
         Option.map #3 (get_clauses thy s);

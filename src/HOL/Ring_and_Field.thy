@@ -1,6 +1,10 @@
-(*  Title:   HOL/Ring_and_Field.thy
-    Author:  Gertrud Bauer, Steven Obua, Tobias Nipkow, Lawrence C Paulson, and Markus Wenzel,
-             with contributions by Jeremy Avigad
+(*  Title:      HOL/Ring_and_Field.thy
+    Author:     Gertrud Bauer
+    Author:     Steven Obua
+    Author:     Tobias Nipkow
+    Author:     Lawrence C Paulson
+    Author:     Markus Wenzel
+    Author:     Jeremy Avigad
 *)
 
 header {* (Ordered) Rings and Fields *}
@@ -2206,11 +2210,11 @@ proof -
       apply (simp_all add: mulprts abs_prts)
       apply (insert prems)
       apply (auto simp add: 
-	algebra_simps 
-	iffD1[OF zero_le_iff_zero_nprt] iffD1[OF le_zero_iff_zero_pprt]
-	iffD1[OF le_zero_iff_pprt_id] iffD1[OF zero_le_iff_nprt_id])
-	apply(drule (1) mult_nonneg_nonpos[of a b], simp)
-	apply(drule (1) mult_nonneg_nonpos2[of b a], simp)
+        algebra_simps 
+        iffD1[OF zero_le_iff_zero_nprt] iffD1[OF le_zero_iff_zero_pprt]
+        iffD1[OF le_zero_iff_pprt_id] iffD1[OF zero_le_iff_nprt_id])
+        apply(drule (1) mult_nonneg_nonpos[of a b], simp)
+        apply(drule (1) mult_nonneg_nonpos2[of b a], simp)
       done
   next
     assume "~(0 <= a*b)"

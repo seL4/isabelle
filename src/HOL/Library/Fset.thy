@@ -9,7 +9,6 @@ begin
 
 declare mem_def [simp]
 
-
 subsection {* Lifting *}
 
 datatype 'a fset = Fset "'a set"
@@ -28,7 +27,30 @@ lemma member_Set [simp]:
   "member (Set xs) = set xs"
   by (simp add: Set_def)
 
-code_datatype Set
+definition Coset :: "'a list \<Rightarrow> 'a fset" where
+  "Coset xs = Fset (- set xs)"
+
+lemma member_Coset [simp]:
+  "member (Coset xs) = - set xs"
+  by (simp add: Coset_def)
+
+code_datatype Set Coset
+
+lemma member_code [code]:
+  "member (Set xs) y \<longleftrightarrow> List.member y xs"
+  "member (Coset xs) y \<longleftrightarrow> \<not> List.member y xs"
+  by (simp_all add: mem_iff fun_Compl_def bool_Compl_def)
+
+lemma member_image_UNIV [simp]:
+  "member ` UNIV = UNIV"
+proof -
+  have "\<And>A \<Colon> 'a set. \<exists>B \<Colon> 'a fset. A = member B"
+  proof
+    fix A :: "'a set"
+    show "A = member (Fset A)" by simp
+  qed
+  then show ?thesis by (simp add: image_def)
+qed
 
 
 subsection {* Basic operations *}
@@ -52,14 +74,16 @@ definition insert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
 
 lemma insert_Set [code]:
   "insert x (Set xs) = Set (List_Set.insert x xs)"
-  by (simp add: Set_def insert_set)
+  "insert x (Coset xs) = Coset (remove_all x xs)"
+  by (simp_all add: Set_def Coset_def insert_set insert_set_compl)
 
 definition remove :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "remove x A = Fset (List_Set.remove x (member A))"
 
 lemma remove_Set [code]:
   "remove x (Set xs) = Set (remove_all x xs)"
-  by (simp add: Set_def remove_set)
+  "remove x (Coset xs) = Coset (List_Set.insert x xs)"
+  by (simp_all add: Set_def Coset_def remove_set remove_set_compl)
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" where
   [simp]: "map f A = Fset (image f (member A))"
@@ -103,15 +127,11 @@ qed
 
 subsection {* Derived operations *}
 
-lemma member_exists [code]:
-  "member A y \<longleftrightarrow> exists (\<lambda>x. y = x) A"
-  by simp
-
 definition subfset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
   [simp]: "subfset_eq A B \<longleftrightarrow> member A \<subseteq> member B"
 
 lemma subfset_eq_forall [code]:
-  "subfset_eq A B \<longleftrightarrow> forall (\<lambda>x. member B x) A"
+  "subfset_eq A B \<longleftrightarrow> forall (member B) A"
   by (simp add: subset_eq)
 
 definition subfset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
@@ -125,26 +145,23 @@ lemma eq_fset_subfset_eq [code]:
   "eq_class.eq A B \<longleftrightarrow> subfset_eq A B \<and> subfset_eq B A"
   by (cases A, cases B) (simp add: eq set_eq)
 
-definition inter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "inter A B = Fset (project (member A) (member B))"
-
-lemma inter_project [code]:
-  "inter A B = filter (member A) B"
-  by (simp add: inter)
-
 
 subsection {* Functorial operations *}
 
-definition union :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "union A B = Fset (member A \<union> member B)"
+definition inter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "inter A B = Fset (member A \<inter> member B)"
 
-lemma union_insert [code]:
-  "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+lemma inter_project [code]:
+  "inter A (Set xs) = Set (List.filter (member A) xs)"
+  "inter A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
 proof -
-  have "foldl (\<lambda>A x. Set.insert x A) (member A) xs =
-    member (foldl (\<lambda>A x. Fset (Set.insert x (member A))) A xs)"
+  show "inter A (Set xs) = Set (List.filter (member A) xs)"
+    by (simp add: inter project_def Set_def)
+  have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
+    member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show ?thesis by (simp add: union_set)
+  then show "inter A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
+    by (simp add: Diff_eq [symmetric] minus_set)
 qed
 
 definition subtract :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
@@ -152,25 +169,50 @@ definition subtract :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" whe
 
 lemma subtract_remove [code]:
   "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
+  "subtract (Coset xs) A = Set (List.filter (member A) xs)"
 proof -
   have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
     member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
     by (rule foldl_apply_inv) simp
-  then show ?thesis by (simp add: minus_set)
+  then show "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
+    by (simp add: minus_set)
+  show "subtract (Coset xs) A = Set (List.filter (member A) xs)"
+    by (auto simp add: Coset_def Set_def)
+qed
+
+definition union :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
+  [simp]: "union A B = Fset (member A \<union> member B)"
+
+lemma union_insert [code]:
+  "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+  "union (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
+proof -
+  have "foldl (\<lambda>A x. Set.insert x A) (member A) xs =
+    member (foldl (\<lambda>A x. Fset (Set.insert x (member A))) A xs)"
+    by (rule foldl_apply_inv) simp
+  then show "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+    by (simp add: union_set)
+  show "union (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
+    by (auto simp add: Coset_def)
 qed
 
 definition Inter :: "'a fset fset \<Rightarrow> 'a fset" where
   [simp]: "Inter A = Fset (Complete_Lattice.Inter (member ` member A))"
 
 lemma Inter_inter [code]:
-  "Inter (Set (A # As)) = foldl inter A As"
+  "Inter (Set As) = foldl inter (Coset []) As"
+  "Inter (Coset []) = empty"
 proof -
+  have [simp]: "Coset [] = Fset UNIV"
+    by (simp add: Coset_def)
   note Inter_image_eq [simp del] set_map [simp del] set.simps [simp del]
-  have "foldl (op \<inter>) (member A) (List.map member As) = 
-    member (foldl (\<lambda>B A. Fset (member B \<inter> A)) A (List.map member As))"
+  have "foldl (op \<inter>) (member (Coset [])) (List.map member As) = 
+    member (foldl (\<lambda>B A. Fset (member B \<inter> A)) (Coset []) (List.map member As))"
     by (rule foldl_apply_inv) simp
-  then show ?thesis
-    by (simp add: Inter_set image_set inter_def_raw inter foldl_map)
+  then show "Inter (Set As) = foldl inter (Coset []) As"
+    by (simp add: Inter_set image_set inter inter_def_raw foldl_map)
+  show "Inter (Coset []) = empty"
+    by simp
 qed
 
 definition Union :: "'a fset fset \<Rightarrow> 'a fset" where
@@ -178,13 +220,18 @@ definition Union :: "'a fset fset \<Rightarrow> 'a fset" where
 
 lemma Union_union [code]:
   "Union (Set As) = foldl union empty As"
+  "Union (Coset []) = Coset []"
 proof -
+  have [simp]: "Coset [] = Fset UNIV"
+    by (simp add: Coset_def)
   note Union_image_eq [simp del] set_map [simp del]
   have "foldl (op \<union>) (member empty) (List.map member As) = 
     member (foldl (\<lambda>B A. Fset (member B \<union> A)) empty (List.map member As))"
     by (rule foldl_apply_inv) simp
-  then show ?thesis
+  then show "Union (Set As) = foldl union empty As"
     by (simp add: Union_set image_set union_def_raw foldl_map)
+  show "Union (Coset []) = Coset []"
+    by simp
 qed
 
 
@@ -220,11 +267,6 @@ lemma filter_simp [simp]:
   "filter P A = Fset {x \<in> member A. P x}"
   by (simp add: List_Set.project_def)
 declare filter_def [simp del]
-
-lemma inter_simp [simp]:
-  "inter A B = Fset (member A \<inter> member B)"
-  by (simp add: inter)
-declare inter_def [simp del]
 
 declare mem_def [simp del]
 

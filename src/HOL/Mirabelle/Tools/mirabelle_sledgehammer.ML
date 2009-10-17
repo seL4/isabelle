@@ -286,44 +286,31 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_atp thy args =
   AList.lookup (op =) args proverK
-  |> the_default (hd (space_explode " " (AtpManager.get_atps ())))
-  |> (fn name => (name, the (AtpManager.get_prover name thy)))
+  |> the_default (hd (ATP_Manager.get_atps ()))  (* FIXME partial *)
+  |> (fn name => (name, the (ATP_Manager.get_prover thy name)))  (* FIXME partial *)
 
 local
-
-fun safe init done f x =
-  let
-    val y = init x
-    val z = Exn.capture f y
-    val _ = done y
-  in Exn.release z end
-
-fun init_sh NONE = !AtpWrapper.destdir
-  | init_sh (SOME path) =
-      let
-        (* Warning: we implicitly assume single-threaded execution here! *)
-        val old = !AtpWrapper.destdir
-        val _ = AtpWrapper.destdir := path
-      in old end
-
-fun done_sh path = AtpWrapper.destdir := path
 
 datatype sh_result =
   SH_OK of int * int * string list |
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh (prover_name, prover) hard_timeout timeout st _ =
+fun run_sh prover hard_timeout timeout dir st =
   let
-    val atp = prover timeout NONE NONE prover_name 1
+    val (ctxt, goal) = Proof.get_goal st
+    val ctxt' = if is_none dir then ctxt
+      else Config.put ATP_Wrapper.destdir (the dir) ctxt
+    val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', goal);
+
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ((success, (message, thm_names), time_atp, _, _, _), time_isa) =
-      time_limit (Mirabelle.cpu_time atp) (Proof.get_goal st)
+    val ({success, message, theorem_names, runtime=time_atp, ...}, time_isa) =
+      time_limit (Mirabelle.cpu_time (fn t => prover t problem)) timeout
   in
-    if success then (message, SH_OK (time_isa, time_atp, thm_names))
+    if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
   handle ResHolClause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
@@ -348,13 +335,12 @@ in
 fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val _ = change_data id inc_sh_calls
-    val atp as (prover_name, _) = get_atp (Proof.theory_of st) args
+    val (prover_name, prover) = get_atp (Proof.theory_of st) args
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
       |> Option.map (fst o read_int o explode)
-    val (msg, result) = safe init_sh done_sh
-      (run_sh atp hard_timeout timeout st) dir
+    val (msg, result) = run_sh prover hard_timeout timeout dir st
   in
     case result of
       SH_OK (time_isa, time_atp, names) =>
@@ -384,7 +370,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val n0 = length (these (!named_thms))
     val (prover_name, prover) = get_atp (Proof.theory_of st) args
-    val minimize = AtpMinimal.minimalize prover prover_name
+    val minimize = ATP_Minimal.minimalize prover prover_name
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
@@ -460,7 +446,7 @@ fun sledgehammer_action args id (st as {log, pre, name, ...}: Mirabelle.run_args
 
 fun invoke args =
   let
-    val _ = AtpManager.set_full_types (AList.defined (op =) args full_typesK)
+    val _ = ATP_Manager.full_types := AList.defined (op =) args full_typesK
   in Mirabelle.register (init, sledgehammer_action args, done) end
 
 end

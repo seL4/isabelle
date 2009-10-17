@@ -45,18 +45,18 @@ open NominalAtoms;
 local
 
 fun dt_recs (DtTFree _) = []
-  | dt_recs (DtType (_, dts)) = List.concat (map dt_recs dts)
+  | dt_recs (DtType (_, dts)) = maps dt_recs dts
   | dt_recs (DtRec i) = [i];
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
     fun the_bname i = Long_Name.base_name (#1 (valOf (AList.lookup (op =) descr i)));
-    val bnames = map the_bname (distinct op = (List.concat (map dt_recs args)));
+    val bnames = map the_bname (distinct op = (maps dt_recs args));
   in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
 
 
 fun induct_cases descr =
-  DatatypeProp.indexify_names (List.concat (map (dt_cases descr) (map #2 descr)));
+  DatatypeProp.indexify_names (maps (dt_cases descr) (map #2 descr));
 
 fun exhaust_cases descr i = dt_cases descr (valOf (AList.lookup (op =) descr i));
 
@@ -153,7 +153,7 @@ val meta_spec = thm "meta_spec";
 
 fun projections rule =
   Project_Rule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
-  |> map (standard #> RuleCases.save rule);
+  |> map (Drule.standard #> RuleCases.save rule);
 
 val supp_prod = thm "supp_prod";
 val fresh_prod = thm "fresh_prod";
@@ -313,7 +313,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
-      else map standard (List.drop (split_conj_thm
+      else map Drule.standard (List.drop (split_conj_thm
         (Goal.prove_global thy2 [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
             (map (fn (c as (s, T), x) =>
@@ -331,9 +331,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val _ = warning "perm_empty_thms";
 
-    val perm_empty_thms = List.concat (map (fn a =>
+    val perm_empty_thms = maps (fn a =>
       let val permT = mk_permT (Type (a, []))
-      in map standard (List.take (split_conj_thm
+      in map Drule.standard (List.take (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a]
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -347,7 +347,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             ALLGOALS (asm_full_simp_tac (global_simpset_of thy2))])),
         length new_type_names))
       end)
-      atoms);
+      atoms;
 
     (**** prove (pi1 @ pi2) \<bullet> t = pi1 \<bullet> (pi2 \<bullet> t) ****)
 
@@ -357,7 +357,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val at_pt_inst = PureThy.get_thm thy2 "at_pt_inst";
     val pt2 = PureThy.get_thm thy2 "pt2";
 
-    val perm_append_thms = List.concat (map (fn a =>
+    val perm_append_thms = maps (fn a =>
       let
         val permT = mk_permT (Type (a, []));
         val pi1 = Free ("pi1", permT);
@@ -365,7 +365,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt_inst = pt_inst_of thy2 a;
         val pt2' = pt_inst RS pt2;
         val pt2_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "2") a);
-      in List.take (map standard (split_conj_thm
+      in List.take (map Drule.standard (split_conj_thm
         (Goal.prove_global thy2 [] []
            (augment_sort thy2 [pt_class_of thy2 a]
              (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -381,7 +381,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
            (fn _ => EVERY [indtac induct perm_indnames 1,
               ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt2', pt2_ax]))]))),
          length new_type_names)
-      end) atoms);
+      end) atoms;
 
     (**** prove pi1 ~ pi2 ==> pi1 \<bullet> t = pi2 \<bullet> t ****)
 
@@ -390,7 +390,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val pt3 = PureThy.get_thm thy2 "pt3";
     val pt3_rev = PureThy.get_thm thy2 "pt3_rev";
 
-    val perm_eq_thms = List.concat (map (fn a =>
+    val perm_eq_thms = maps (fn a =>
       let
         val permT = mk_permT (Type (a, []));
         val pi1 = Free ("pi1", permT);
@@ -400,7 +400,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt3' = pt_inst RS pt3;
         val pt3_rev' = at_inst RS (pt_inst RS pt3_rev);
         val pt3_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "3") a);
-      in List.take (map standard (split_conj_thm
+      in List.take (map Drule.standard (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a] (Logic.mk_implies
              (HOLogic.mk_Trueprop (Const ("Nominal.prm_eq",
@@ -417,7 +417,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
            (fn _ => EVERY [indtac induct perm_indnames 1,
               ALLGOALS (asm_full_simp_tac (global_simpset_of thy2 addsimps [pt3', pt3_rev', pt3_ax]))]))),
          length new_type_names)
-      end) atoms);
+      end) atoms;
 
     (**** prove pi1 \<bullet> (pi2 \<bullet> t) = (pi1 \<bullet> pi2) \<bullet> (pi1 \<bullet> t) ****)
 
@@ -506,7 +506,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val rep_set_names = DatatypeProp.indexify_names
       (map (fn (i, _) => name_of_typ (nth_dtyp i) ^ "_set") descr);
     val big_rep_name =
-      space_implode "_" (DatatypeProp.indexify_names (List.mapPartial
+      space_implode "_" (DatatypeProp.indexify_names (map_filter
         (fn (i, ("Nominal.noption", _, _)) => NONE
           | (i, _) => SOME (name_of_typ (nth_dtyp i))) descr)) ^ "_set";
     val _ = warning ("big_rep_name: " ^ big_rep_name);
@@ -521,8 +521,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       | strip_option dt = ([], dt);
 
     val dt_atomTs = distinct op = (map (typ_of_dtyp descr sorts)
-      (List.concat (map (fn (_, (_, _, cs)) => List.concat
-        (map (List.concat o map (fst o strip_option) o snd) cs)) descr)));
+      (maps (fn (_, (_, _, cs)) => maps (maps (fst o strip_option) o snd) cs) descr));
     val dt_atoms = map (fst o dest_Type) dt_atomTs;
 
     fun make_intr s T (cname, cargs) =
@@ -557,7 +556,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       end;
 
     val (intr_ts, (rep_set_names', recTs')) =
-      apfst List.concat (apsnd ListPair.unzip (ListPair.unzip (List.mapPartial
+      apfst flat (apsnd ListPair.unzip (ListPair.unzip (map_filter
         (fn ((_, ("Nominal.noption", _, _)), _) => NONE
           | ((i, (_, _, constrs)), rep_set_name) =>
               let val T = nth_dtyp i
@@ -582,11 +581,11 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val abs_perm = PureThy.get_thms thy4 "abs_perm";
 
-    val perm_indnames' = List.mapPartial
+    val perm_indnames' = map_filter
       (fn (x, (_, ("Nominal.noption", _, _))) => NONE | (x, _) => SOME x)
       (perm_indnames ~~ descr);
 
-    fun mk_perm_closed name = map (fn th => standard (th RS mp))
+    fun mk_perm_closed name = map (fn th => Drule.standard (th RS mp))
       (List.take (split_conj_thm (Goal.prove_global thy4 [] []
         (augment_sort thy4
           (pt_class_of thy4 name :: map (cp_class_of thy4 name) (dt_atoms \ name))
@@ -811,7 +810,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       let
         val rep_const = cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
-        val dist = standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+        val dist = Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
           ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
       in
@@ -861,8 +860,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             perm_closed_thms @ Rep_thms)) 1)
       end) Rep_thms;
 
-    val perm_rep_perm_thms = List.concat (map prove_perm_rep_perm
-      (atoms ~~ perm_closed_thmss));
+    val perm_rep_perm_thms = maps prove_perm_rep_perm (atoms ~~ perm_closed_thmss);
 
     (* prove distinctness theorems *)
 
@@ -876,7 +874,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
               simp_tac (global_simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
-          in dist_thm :: standard (dist_thm RS not_sym) ::
+          in dist_thm :: Drule.standard (dist_thm RS not_sym) ::
             prove_distinct_thms p (k, ts)
           end;
 
@@ -887,7 +885,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val perm_simps' = map (fn (((i, (_, _, constrs)), tname), constr_rep_thms) =>
       let val T = nth_dtyp' i
-      in List.concat (map (fn (atom, perm_closed_thms) =>
+      in maps (fn (atom, perm_closed_thms) =>
           map (fn ((cname, dts), constr_rep_thm) =>
         let
           val cname = Sign.intern_const thy8
@@ -928,7 +926,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                TRY (simp_tac (HOL_basic_ss addsimps
                  (perm_fun_def :: perm_defs @ Rep_thms @ Abs_inverse_thms @
                     perm_closed_thms)) 1)])
-        end) (constrs ~~ constr_rep_thms)) (atoms ~~ perm_closed_thmss))
+        end) (constrs ~~ constr_rep_thms)) (atoms ~~ perm_closed_thmss)
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ constr_rep_thmss);
 
     (** prove injectivity of constructors **)
@@ -943,7 +941,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val inject_thms = map (fn (((i, (_, _, constrs)), tname), constr_rep_thms) =>
       let val T = nth_dtyp' i
-      in List.mapPartial (fn ((cname, dts), constr_rep_thm) =>
+      in map_filter (fn ((cname, dts), constr_rep_thm) =>
         if null dts then NONE else SOME
         let
           val cname = Sign.intern_const thy8
@@ -986,7 +984,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val (supp_thms, fresh_thms) = ListPair.unzip (map ListPair.unzip
       (map (fn ((((i, (_, _, constrs)), tname), inject_thms'), perm_thms') =>
       let val T = nth_dtyp' i
-      in List.concat (map (fn (cname, dts) => map (fn atom =>
+      in maps (fn (cname, dts) => map (fn atom =>
         let
           val cname = Sign.intern_const thy8
             (Long_Name.append tname (Long_Name.base_name cname));
@@ -1028,7 +1026,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                 else foldr1 HOLogic.mk_conj (map fresh args2)))))
              (fn _ =>
                simp_tac (HOL_ss addsimps [Un_iff, empty_iff, fresh_def, supp_thm]) 1))
-        end) atoms) constrs)
+        end) atoms) constrs
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ inject_thms ~~ perm_simps')));
 
     (**** weak induction theorem ****)
@@ -1091,7 +1089,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
-      in map standard (List.take
+      in map Drule.standard (List.take
         (split_conj_thm (Goal.prove_global thy8 [] []
            (augment_sort thy8 (fs_class_of thy8 atom :: pt_cp_sort)
              (HOLogic.mk_Trueprop
@@ -1103,13 +1101,13 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             ALLGOALS (asm_full_simp_tac (global_simpset_of thy8 addsimps
               (abs_supp @ supp_atm @
                PureThy.get_thms thy8 ("fs_" ^ Long_Name.base_name atom ^ "1") @
-               List.concat supp_thms))))),
+               flat supp_thms))))),
          length new_type_names))
       end) atoms;
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add];
 
-	(* Function to add both the simp and eqvt attributes *)
+        (* Function to add both the simp and eqvt attributes *)
         (* These two attributes are duplicated on all the types in the mutual nominal datatypes *)
 
     val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add, NominalThmDecls.eqvt_add];
@@ -1156,9 +1154,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           mk_fresh1 (y :: xs) ys;
 
     fun mk_fresh2 xss [] = []
-      | mk_fresh2 xss ((p as (ys, _)) :: yss) = List.concat (map (fn y as (_, T) =>
+      | mk_fresh2 xss ((p as (ys, _)) :: yss) = maps (fn y as (_, T) =>
             map (fn (_, x as (_, U)) => HOLogic.mk_Trueprop
-              (fresh_const T U $ Free y $ Free x)) (rev xss @ yss)) ys) @
+              (fresh_const T U $ Free y $ Free x)) (rev xss @ yss)) ys @
           mk_fresh2 (p :: xss) yss;
 
     fun make_ind_prem fsT f k T ((cname, cargs), idxs) =
@@ -1182,8 +1180,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
         val prems' = map (fn p as (_, T) => HOLogic.mk_Trueprop
-            (f T (Free p) (Free z))) (List.concat (map fst frees')) @
-          mk_fresh1 [] (List.concat (map fst frees')) @
+            (f T (Free p) (Free z))) (maps fst frees') @
+          mk_fresh1 [] (maps fst frees') @
           mk_fresh2 [] frees'
 
       in list_all_free (frees @ [z], Logic.list_implies (prems' @ prems,
@@ -1191,10 +1189,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
 
-    val ind_prems = List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
+    val ind_prems = maps (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
       map (make_ind_prem fsT (fn T => fn t => fn u =>
         fresh_const T fsT $ t $ u) i T)
-          (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
+          (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs);
     val tnames = DatatypeProp.make_tnames recTs;
     val zs = Name.variant_list tnames (replicate (length descr'') "z");
     val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
@@ -1208,10 +1206,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         HOLogic.mk_Trueprop (Const ("Finite_Set.finite",
           (snd (split_last (binder_types T)) --> HOLogic.boolT) -->
             HOLogic.boolT) $ (f $ Free ("x", fsT'))))) fresh_fs @
-      List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
+      maps (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
         map (make_ind_prem fsT' (fn T => fn t => fn u => HOLogic.Not $
           HOLogic.mk_mem (t, the (AList.lookup op = fresh_fs T) $ u)) i T)
-            (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
+            (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs);
     val ind_concl' = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
       (map (fn ((((i, _), T), tname), z) =>
         make_pred fsT' i T $ Free (z, fsT') $ Free (tname, T))
@@ -1448,10 +1446,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       Free (a, T --> HOLogic.boolT)) (pnames ~~ rec_result_Ts);
 
     fun mk_fresh3 rs [] = []
-      | mk_fresh3 rs ((p as (ys, z)) :: yss) = List.concat (map (fn y as (_, T) =>
-            List.mapPartial (fn ((_, (_, x)), r as (_, U)) => if z = x then NONE
+      | mk_fresh3 rs ((p as (ys, z)) :: yss) = maps (fn y as (_, T) =>
+            map_filter (fn ((_, (_, x)), r as (_, U)) => if z = x then NONE
               else SOME (HOLogic.mk_Trueprop
-                (fresh_const T U $ Free y $ Free r))) rs) ys) @
+                (fresh_const T U $ Free y $ Free r))) rs) ys @
           mk_fresh3 rs yss;
 
     (* FIXME: avoid collisions with other variable names? *)
@@ -1463,9 +1461,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val Ts = map (typ_of_dtyp descr'' sorts) cargs;
         val frees = map (fn i => "x" ^ string_of_int i) (1 upto length Ts) ~~ Ts;
         val frees' = partition_cargs idxs frees;
-        val binders = List.concat (map fst frees');
+        val binders = maps fst frees';
         val atomTs = distinct op = (maps (map snd o fst) frees');
-        val recs = List.mapPartial
+        val recs = map_filter
           (fn ((_, DtRec i), p) => SOME (i, p) | _ => NONE)
           (partition_cargs idxs cargs ~~ frees');
         val frees'' = map (fn i => "y" ^ string_of_int i) (1 upto length recs) ~~
@@ -1490,14 +1488,14 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           fresh_const T (fastype_of result) $ Free p $ result) binders;
         val P = HOLogic.mk_Trueprop (p $ result)
       in
-        (rec_intr_ts @ [Logic.list_implies (List.concat prems2 @ prems3 @ prems1,
+        (rec_intr_ts @ [Logic.list_implies (flat prems2 @ prems3 @ prems1,
            HOLogic.mk_Trueprop (rec_set $
              list_comb (Const (cname, Ts ---> T), map Free frees) $ result))],
          rec_prems @ [list_all_free (frees @ frees'', Logic.list_implies (prems4, P))],
          rec_prems' @ map (fn fr => list_all_free (frees @ frees'',
            Logic.list_implies (List.nth (prems2, l) @ prems3 @ prems5 @ prems7 @ prems6 @ [P],
              HOLogic.mk_Trueprop fr))) result_freshs,
-         rec_eq_prems @ [List.concat prems2 @ prems3],
+         rec_eq_prems @ [flat prems2 @ prems3],
          l + 1)
       end;
 
@@ -1537,7 +1535,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           in
             (R $ x $ y, R' $ mk_perm [] pi x $ mk_perm [] pi y)
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ rec_sets_pi ~~ (1 upto length recTs));
-        val ths = map (fn th => standard (th RS mp)) (split_conj_thm
+        val ths = map (fn th => Drule.standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 [] []
             (augment_sort thy1 pt_cp_sort
               (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps))))
@@ -1569,7 +1567,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (finite $ (Const ("Nominal.supp", T --> aset) $ f)))
             (rec_fns ~~ rec_fn_Ts)
       in
-        map (fn th => standard (th RS mp)) (split_conj_thm
+        map (fn th => Drule.standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 []
             (map (augment_sort thy11 fs_cp_sort) fins)
             (augment_sort thy11 fs_cp_sort
@@ -1612,7 +1610,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             val y = Free ("y", U);
             val y' = Free ("y'", U)
           in
-            standard (Goal.prove (ProofContext.init thy11) []
+            Drule.standard (Goal.prove (ProofContext.init thy11) []
               (map (augment_sort thy11 fs_cp_sort)
                 (finite_prems @
                    [HOLogic.mk_Trueprop (R $ x $ y),
@@ -1709,7 +1707,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val rec_unique_thms = split_conj_thm (Goal.prove
       (ProofContext.init thy11) (map fst rec_unique_frees)
       (map (augment_sort thy11 fs_cp_sort)
-        (List.concat finite_premss @ finite_ctxt_prems @ rec_prems @ rec_prems'))
+        (flat finite_premss @ finite_ctxt_prems @ rec_prems @ rec_prems'))
       (augment_sort thy11 fs_cp_sort
         (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_unique_concls)))
       (fn {prems, context} =>
@@ -1747,7 +1745,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                (resolve_tac rec_intrs THEN_ALL_NEW atac) 1,
                rotate_tac ~1 1,
                ((DETERM o etac elim) THEN_ALL_NEW full_simp_tac
-                  (HOL_ss addsimps List.concat distinct_thms)) 1] @
+                  (HOL_ss addsimps flat distinct_thms)) 1] @
                (if null idxs then [] else [hyp_subst_tac 1,
                 SUBPROOF (fn {asms, concl, prems = prems', params, context = context', ...} =>
                   let
@@ -1758,10 +1756,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     val rT = fastype_of lhs';
                     val (c, cargsl) = strip_comb lhs;
                     val cargsl' = partition_cargs idxs cargsl;
-                    val boundsl = List.concat (map fst cargsl');
+                    val boundsl = maps fst cargsl';
                     val (_, cargsr) = strip_comb rhs;
                     val cargsr' = partition_cargs idxs cargsr;
-                    val boundsr = List.concat (map fst cargsr');
+                    val boundsr = maps fst cargsr';
                     val (params1, _ :: params2) =
                       chop (length params div 2) (map (term_of o #2) params);
                     val params' = params1 @ params2;
@@ -1779,8 +1777,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     val _ = warning "step 1: obtaining fresh names";
                     val (freshs1, freshs2, context'') = fold
                       (obtain_fresh_name (rec_ctxt :: rec_fns' @ params')
-                         (List.concat (map snd finite_thss) @
-                            finite_ctxt_ths @ rec_prems)
+                         (maps snd finite_thss @ finite_ctxt_ths @ rec_prems)
                          rec_fin_supp_thms')
                       Ts ([], [], context');
                     val pi1 = map perm_of_pair (boundsl ~~ freshs1);
@@ -1794,7 +1791,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     (** as, bs, cs # K as ts, K bs us **)
                     val _ = warning "step 2: as, bs, cs # K as ts, K bs us";
                     val prove_fresh_ss = HOL_ss addsimps
-                      (finite_Diff :: List.concat fresh_thms @
+                      (finite_Diff :: flat fresh_thms @
                        fs_atoms @ abs_fresh @ abs_supp @ fresh_atm);
                     (* FIXME: avoid asm_full_simp_tac ? *)
                     fun prove_fresh ths y x = Goal.prove context'' [] []
@@ -1826,9 +1823,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                         (fn _ => EVERY
                            [cut_facts_tac [pi1_pi2_eq] 1,
                             asm_full_simp_tac (HOL_ss addsimps
-                              (calc_atm @ List.concat perm_simps' @
+                              (calc_atm @ flat perm_simps' @
                                fresh_prems' @ freshs2' @ abs_perm @
-                               alpha @ List.concat inject_thms)) 1]))
+                               alpha @ flat inject_thms)) 1]))
                         (map snd cargsl' ~~ map snd cargsr');
 
                     (** pi1^-1 o pi2 o us = ts **)
@@ -1896,13 +1893,13 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
                     (** as # rs **)
                     val _ = warning "step 8: as # rs";
-                    val rec_freshs = List.concat
-                      (map (fn (rec_prem, ih) =>
+                    val rec_freshs =
+                      maps (fn (rec_prem, ih) =>
                         let
                           val _ $ (S $ x $ (y as Free (_, T))) =
                             prop_of rec_prem;
                           val k = find_index (equal S) rec_sets;
-                          val atoms = List.concat (List.mapPartial (fn (bs, z) =>
+                          val atoms = flat (map_filter (fn (bs, z) =>
                             if z = x then NONE else SOME bs) cargsl')
                         in
                           map (fn a as Free (_, aT) =>
@@ -1917,7 +1914,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                                     [rtac rec_prem 1, rtac ih 1,
                                      REPEAT_DETERM (resolve_tac fresh_prems 1)]))
                             end) atoms
-                        end) (rec_prems1 ~~ ihs));
+                        end) (rec_prems1 ~~ ihs);
 
                     (** as # fK as ts rs , bs # fK bs us vs **)
                     val _ = warning "step 9: as # fK as ts rs , bs # fK bs us vs";
@@ -1969,7 +1966,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                            NominalPermeq.fresh_guess_tac
                              (HOL_ss addsimps (freshs2 @
                                 fs_atoms @ fresh_atm @
-                                List.concat (map snd finite_thss))) 1]);
+                                maps snd finite_thss)) 1]);
 
                     val fresh_results' =
                       map (prove_fresh_result' rec_prems1 rhs') freshs1 @
@@ -2031,7 +2028,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val ps = map (fn (x as Free (_, T), i) =>
           (Free ("x" ^ string_of_int i, T), x)) (cargs ~~ (1 upto length cargs));
         val concl' = subst_atomic_types (rec_result_Ts' ~~ rec_result_Ts) concl;
-        val prems' = List.concat finite_premss @ finite_ctxt_prems @
+        val prems' = flat finite_premss @ finite_ctxt_prems @
           rec_prems @ rec_prems' @ map (subst_atomic ps) prems;
         fun solve rules prems = resolve_tac rules THEN_ALL_NEW
           (resolve_tac prems THEN_ALL_NEW atac)
@@ -2054,11 +2051,11 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy13) = thy12 |>
       PureThy.add_thmss
-        [((Binding.name "rec_equiv", List.concat rec_equiv_thms), []),
-         ((Binding.name "rec_equiv'", List.concat rec_equiv_thms'), []),
-         ((Binding.name "rec_fin_supp", List.concat rec_fin_supp_thms), []),
-         ((Binding.name "rec_fresh", List.concat rec_fresh_thms), []),
-         ((Binding.name "rec_unique", map standard rec_unique_thms), []),
+        [((Binding.name "rec_equiv", flat rec_equiv_thms), []),
+         ((Binding.name "rec_equiv'", flat rec_equiv_thms'), []),
+         ((Binding.name "rec_fin_supp", flat rec_fin_supp_thms), []),
+         ((Binding.name "rec_fresh", flat rec_fresh_thms), []),
+         ((Binding.name "rec_unique", map Drule.standard rec_unique_thms), []),
          ((Binding.name "recs", rec_thms), [])] ||>
       Sign.parent_path ||>
       map_nominal_datatypes (fold Symtab.update dt_infos);

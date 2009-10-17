@@ -231,7 +231,7 @@ val initialized = Unsynchronized.ref false;
 fun init false = panic "No Proof General interface support for Isabelle/classic mode."
   | init true =
       (! initialized orelse
-        (Output.no_warnings init_outer_syntax ();
+        (Output.no_warnings_CRITICAL init_outer_syntax ();
           Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
           Output.add_mode proof_generalN Output.default_output Output.default_escape;
           Markup.add_mode proof_generalN YXML.output_markup;

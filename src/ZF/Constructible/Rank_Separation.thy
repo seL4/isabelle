@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Rank_Separation.thy
-    ID:   $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -117,8 +116,8 @@ such as intersection, Cartesian Product and image.*}
 lemma M_ordertype_axioms_L: "M_ordertype_axioms(L)"
   apply (rule M_ordertype_axioms.intro)
        apply (assumption | rule well_ord_iso_separation
-	 obase_separation obase_equals_separation
-	 omap_replacement)+
+         obase_separation obase_equals_separation
+         omap_replacement)+
   done
 
 theorem M_ordertype_L: "PROP M_ordertype(L)"
