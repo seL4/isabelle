@@ -1597,9 +1597,9 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
 fun extension_definition name fields alphas zeta moreT more vars thy =
   let
     val base = Long_Name.base_name;
-    val fieldTs = (map snd fields);
+    val fieldTs = map snd fields;
     val alphas_zeta = alphas @ [zeta];
-    val alphas_zetaTs = map (fn n => TFree (n, HOLogic.typeS)) alphas_zeta;
+    val alphas_zetaTs = map (fn a => TFree (a, HOLogic.typeS)) alphas_zeta;
     val extT_name = suffix ext_typeN name
     val extT = Type (extT_name, alphas_zetaTs);
     val fields_moreTs = fieldTs @ [moreT];
