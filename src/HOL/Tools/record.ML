@@ -34,9 +34,8 @@ sig
   val makeN: string
   val moreN: string
   val ext_dest: string
-
   val last_extT: typ -> (string * typ list) option
-  val dest_recTs : typ -> (string * typ list) list
+  val dest_recTs: typ -> (string * typ list) list
   val get_extT_fields: theory -> typ -> (string * typ) list * (string * typ)
   val get_recT_fields: theory -> typ -> (string * typ) list * (string * typ)
   val get_parent: theory -> string -> (typ list * string) option
@@ -56,13 +55,10 @@ end;
 
 signature ISTUPLE_SUPPORT =
 sig
-  val add_istuple_type: bstring * string list -> (typ * typ) -> theory -> term * term * theory
-
+  val add_istuple_type: bstring * string list -> typ * typ -> theory -> (term * term) * theory
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
-
   val istuple_intros_tac: theory -> int -> tactic
-
   val named_cterm_instantiate: (string * cterm) list -> thm -> thm
 end;
 
@@ -70,21 +66,11 @@ structure IsTupleSupport: ISTUPLE_SUPPORT =
 struct
 
 val isomN = "_TupleIsom";
-val defN = "_def";
 
-val istuple_UNIV_I = @{thm "istuple_UNIV_I"};
-val istuple_True_simp = @{thm "istuple_True_simp"};
+val istuple_intro = @{thm isomorphic_tuple_intro};
+val istuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
-val istuple_intro = @{thm "isomorphic_tuple_intro"};
-val istuple_intros = build_net (@{thms "isomorphic_tuple.intros"});
-
-val constname = fst o dest_Const;
-val tuple_istuple = (constname @{term tuple_istuple}, @{thm tuple_istuple});
-
-val istuple_constN = constname @{term isomorphic_tuple};
-val istuple_consN = constname @{term istuple_cons};
-
-val tup_isom_typeN = fst (dest_Type @{typ "('a, 'b, 'c) tuple_isomorphism"});
+val tuple_istuple = (@{const_name tuple_istuple}, @{thm tuple_istuple});
 
 fun named_cterm_instantiate values thm =
   let
@@ -111,11 +97,13 @@ fun do_typedef name repT alphas thy =
   let
     fun get_thms thy name =
       let
-        val SOME { Rep_inject=rep_inject, Abs_name=absN, abs_type=absT,
-          Abs_inverse=abs_inverse, ...} = Typedef.get_info thy name;
-        val rewrite_rule = MetaSimplifier.rewrite_rule [istuple_UNIV_I, istuple_True_simp];
-      in (map rewrite_rule [rep_inject, abs_inverse],
-            Const (absN, repT --> absT), absT) end;
+        val SOME {Rep_inject = rep_inject, Abs_name = absN, abs_type = absT,
+          Abs_inverse = abs_inverse, ...} = Typedef.get_info thy name;
+        val rewrite_rule =
+          MetaSimplifier.rewrite_rule [@{thm istuple_UNIV_I}, @{thm istuple_True_simp}];
+      in
+        (map rewrite_rule [rep_inject, abs_inverse], Const (absN, repT --> absT), absT)
+      end;
   in
     thy
     |> Typecopy.typecopy (Binding.name name, alphas) repT NONE
@@ -126,16 +114,14 @@ fun mk_cons_tuple (left, right) =
   let
     val (leftT, rightT) = (fastype_of left, fastype_of right);
     val prodT = HOLogic.mk_prodT (leftT, rightT);
-    val isomT = Type (tup_isom_typeN, [prodT, leftT, rightT]);
+    val isomT = Type (@{type_name tuple_isomorphism}, [prodT, leftT, rightT]);
   in
-    Const (istuple_consN, isomT --> leftT --> rightT --> prodT) $
+    Const (@{const_name istuple_cons}, isomT --> leftT --> rightT --> prodT) $
       Const (fst tuple_istuple, isomT) $ left $ right
   end;
 
-fun dest_cons_tuple (v as Const (ic, _) $ Const _ $ left $ right) =
-      if ic = istuple_consN then (left, right)
-      else raise TERM ("dest_cons_tuple", [v])
-  | dest_cons_tuple v = raise TERM ("dest_cons_tuple", [v]);
+fun dest_cons_tuple (Const (@{const_name istuple_cons}, _) $ Const _ $ t $ u) = (t, u)
+  | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
 fun add_istuple_type (name, alphas) (leftT, rightT) thy =
   let
@@ -153,8 +139,9 @@ fun add_istuple_type (name, alphas) (leftT, rightT) thy =
     val (_, body) = Logic.dest_equals (List.last (prems_of intro_inst));
     val isomT = fastype_of body;
     val isom_bind = Binding.name (name ^ isomN);
-    val isom = Const (Sign.full_name typ_thy isom_bind, isomT);
-    val isom_spec = (name ^ isomN ^ defN, Logic.mk_equals (isom, body));
+    val isom_name = Sign.full_name typ_thy isom_bind;
+    val isom = Const (isom_name, isomT);
+    val isom_spec = (Thm.def_name (name ^ isomN), Logic.mk_equals (isom, body));
 
     val ([isom_def], cdef_thy) =
       typ_thy
@@ -162,37 +149,35 @@ fun add_istuple_type (name, alphas) (leftT, rightT) thy =
       |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name isom_spec)];
 
     val istuple = isom_def RS (abs_inverse RS (rep_inject RS istuple_intro));
-    val cons = Const (istuple_consN, isomT --> leftT --> rightT --> absT);
+    val cons = Const (@{const_name istuple_cons}, isomT --> leftT --> rightT --> absT);
 
     val thm_thy =
       cdef_thy
-      |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop (constname isom, istuple))
+      |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop (isom_name, istuple))
       |> Sign.parent_path;
   in
-    (isom, cons $ isom, thm_thy)
+    ((isom, cons $ isom), thm_thy)
   end;
 
 fun istuple_intros_tac thy =
   let
     val isthms = IsTupleThms.get thy;
     fun err s t = raise TERM ("istuple_intros_tac: " ^ s, [t]);
-    val use_istuple_thm_tac = SUBGOAL (fn (goal, n) =>
+    val use_istuple_thm_tac = SUBGOAL (fn (goal, i) =>
       let
         val goal' = Envir.beta_eta_contract goal;
-        val isom =
+        val is =
           (case goal' of
-            Const tp $ (Const pr $ Const is) =>
-              if fst tp = "Trueprop" andalso fst pr = istuple_constN
-              then Const is
-              else err "unexpected goal predicate" goal'
+            Const (@{const_name Trueprop}, _) $
+              (Const (@{const_name isomorphic_tuple}, _) $ Const is) => is
           | _ => err "unexpected goal format" goal');
         val isthm =
-          (case Symtab.lookup isthms (constname isom) of
+          (case Symtab.lookup isthms (#1 is) of
             SOME isthm => isthm
-          | NONE => err "no thm found for constant" isom);
-      in rtac isthm n end);
+          | NONE => err "no thm found for constant" (Const is));
+      in rtac isthm i end);
   in
-    fn n => resolve_from_net_tac istuple_intros n THEN use_istuple_thm_tac n
+    resolve_from_net_tac istuple_intros THEN' use_istuple_thm_tac
   end;
 
 end;
@@ -273,8 +258,6 @@ fun timing_msg s = if ! timing then warning s else ();
 
 
 (* syntax *)
-
-fun prune n xs = Library.drop (n, xs);
 
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
@@ -1653,7 +1636,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       let
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val nm = suffix suff (Long_Name.base_name name);
-        val (_, cons, thy') =
+        val ((_, cons), thy') =
           IsTupleSupport.add_istuple_type
             (nm, alphas_zeta) (fastype_of left, fastype_of right) thy;
       in
@@ -1767,8 +1750,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
           simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
           REPEAT_ALL_NEW intros_tac 1;
         val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
-        val [halfway] = Seq.list_of (tactic1 start);  (* FIXME Seq.lift_of ?? *)
-        val [surject] = Seq.list_of (tactic2 (Drule.standard halfway));  (* FIXME Seq.lift_of ?? *)
+        val [halfway] = Seq.list_of (tactic1 start);
+        val [surject] = Seq.list_of (tactic2 (Drule.standard halfway));
       in
         surject
       end;
@@ -1916,12 +1899,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extension_names = map (unsuffix ext_typeN o fst o #extension) parents @ [extN];
     val extension_id = implode extension_names;
 
-    fun rec_schemeT n = mk_recordT (map #extension (prune n parents)) extT;
+    fun rec_schemeT n = mk_recordT (map #extension (Library.drop (n, parents))) extT;
     val rec_schemeT0 = rec_schemeT 0;
 
     fun recT n =
-      let val (c, Ts) = extension
-      in mk_recordT (map #extension (prune n parents)) (Type (c, subst_last HOLogic.unitT Ts)) end;
+      let val (c, Ts) = extension in
+        mk_recordT (map #extension (Library.drop (n, parents)))
+          (Type (c, subst_last HOLogic.unitT Ts))
+      end;
     val recT0 = recT 0;
 
     fun mk_rec args n =
@@ -1929,7 +1914,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         val (args', more) = chop_last args;
         fun mk_ext' (((name, T), args), more) = mk_ext (name, T) (args @ [more]);
         fun build Ts =
-          List.foldr mk_ext' more (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')));
+          List.foldr mk_ext' more (Library.drop (n, extension_names ~~ Ts ~~ chunks parent_chunks args'));
       in
         if more = HOLogic.unit
         then build (map recT (0 upto parent_len))
@@ -2013,7 +1998,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         val tactic =
           simp_tac (HOL_basic_ss addsimps ext_defs) 1 THEN
           REPEAT (intros_tac 1 ORELSE terminal);
-        val updaccs = Seq.list_of (tactic init_thm);  (* FIXME Seq.lift_of *)
+        val updaccs = Seq.list_of (tactic init_thm);
       in
         (updaccs RL [updacc_accessor_eqE],
          updaccs RL [updacc_updator_eqE],
@@ -2022,7 +2007,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (accessor_thms, updator_thms, upd_acc_cong_assists) =
       timeit_msg "record getting tree access/updates:" get_access_update_thms;
 
-    fun lastN xs = List.drop (xs, parent_fields_len);
+    fun lastN xs = Library.drop (parent_fields_len, xs);
 
     (*selectors*)
     fun mk_sel_spec ((c, T), thm) =
