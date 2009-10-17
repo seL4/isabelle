@@ -28,12 +28,10 @@ sig
   val timing: bool Unsynchronized.ref
   val record_quick_and_dirty_sensitive: bool Unsynchronized.ref
   val updateN: string
-  val updN: string
   val ext_typeN: string
   val extN: string
   val makeN: string
   val moreN: string
-  val ext_dest: string
   val last_extT: typ -> (string * typ list) option
   val dest_recTs: typ -> (string * typ list) list
   val get_extT_fields: theory -> typ -> (string * typ) list * (string * typ)
@@ -231,9 +229,7 @@ val schemeN = "_scheme";
 val ext_typeN = "_ext_type";
 val inner_typeN = "_inner_type";
 val extN ="_ext";
-val ext_dest = "_sel";
 val updateN = "_update";
-val updN = "_upd";
 val makeN = "make";
 val fields_selN = "fields";
 val extendN = "extend";
