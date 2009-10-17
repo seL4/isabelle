@@ -229,7 +229,7 @@ text {*
   view being presented to the user.
 
   Occasionally, such global process flags are treated like implicit
-  arguments to certain operations, by using the @{ML setmp} combinator
+  arguments to certain operations, by using the @{ML setmp_CRITICAL} combinator
   for safe temporary assignment.  Its traditional purpose was to
   ensure proper recovery of the original value when exceptions are
   raised in the body, now the functionality is extended to enter the
@@ -237,7 +237,7 @@ text {*
   parallelism).
 
   Note that recovery of plain value passing semantics via @{ML
-  setmp}~@{text "ref value"} assumes that this @{text "ref"} is
+  setmp_CRITICAL}~@{text "ref value"} assumes that this @{text "ref"} is
   exclusively manipulated within the critical section.  In particular,
   any persistent global assignment of @{text "ref := value"} needs to
   be marked critical as well, to prevent intruding another threads
@@ -258,7 +258,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
   @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
-  @{index_ML setmp: "'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c"} \\
+  @{index_ML setmp_CRITICAL: "'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c"} \\
   \end{mldecls}
 
   \begin{description}
@@ -272,7 +272,7 @@ text %mlref {*
   \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
   name argument.
 
-  \item @{ML setmp}~@{text "ref value f x"} evaluates @{text "f x"}
+  \item @{ML setmp_CRITICAL}~@{text "ref value f x"} evaluates @{text "f x"}
   while staying within the critical section and having @{text "ref :=
   value"} assigned temporarily.  This recovers a value-passing
   semantics involving global references, regardless of exceptions or

@@ -367,9 +367,9 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 (*Two variants: one checking the result, one not.
   Neither prints runtime messages: they are for internal packages.*)
 fun prove_goalw_cterm rths chorn =
-        setmp Output.timing false (prove_goalw_cterm_general true rths chorn)
+        setmp_CRITICAL Output.timing false (prove_goalw_cterm_general true rths chorn)
 and prove_goalw_cterm_nocheck rths chorn =
-        setmp Output.timing false (prove_goalw_cterm_general false rths chorn);
+        setmp_CRITICAL Output.timing false (prove_goalw_cterm_general false rths chorn);
 
 
 (*Version taking the goal as a string*)

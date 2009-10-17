@@ -111,7 +111,7 @@ val margin = Unsynchronized.ref 80;
 
 fun string_of p = (Pretty.string_of |>
   PrintMode.setmp [] |>
-  Pretty.setmp_margin (!margin)) p;
+  Pretty.setmp_margin_CRITICAL (!margin)) p;
 
 val str = PrintMode.setmp [] Pretty.str;
 
@@ -280,7 +280,7 @@ fun preprocess_term thy t =
   let
     val x = Free (Name.variant (OldTerm.add_term_names (t, [])) "x", fastype_of t);
     (* fake definition *)
-    val eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
+    val eq = setmp_CRITICAL quick_and_dirty true (SkipProof.make_thm thy)
       (Logic.mk_equals (x, t));
     fun err () = error "preprocess_term: bad preprocessor"
   in case map prop_of (preprocess thy [eq]) of
@@ -883,7 +883,7 @@ val test_fn : (int -> term list option) Unsynchronized.ref =
 fun test_term ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val (code, gr) = setmp mode ["term_of", "test"]
+    val (code, gr) = setmp_CRITICAL mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", t)];
     val Ts = map snd (fst (strip_abs t));
     val args = map_index (fn (i, T) => ("arg" ^ string_of_int i, T)) Ts;
@@ -923,7 +923,7 @@ fun eval_term thy t =
           error "Term to be evaluated contains type variables";
         val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
           error "Term to be evaluated contains variables";
-        val (code, gr) = setmp mode ["term_of"]
+        val (code, gr) = setmp_CRITICAL mode ["term_of"]
           (generate_code_i thy [] "Generated")
           [("result", Abs ("x", TFree ("'a", []), t))];
         val s = "structure EvalTerm =\nstruct\n\n" ^
@@ -1010,7 +1010,7 @@ fun parse_code lib =
   (fn ((((mode', module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
     let
       val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
-      val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs;
+      val (code, gr) = setmp_CRITICAL mode mode'' (generate_code thy modules module) xs;
       val thy' = thy |> Context.theory_map (ML_Context.exec (fn () =>
         (case opt_fname of
           NONE => ML_Context.eval false Position.none (cat_lines (map snd code))

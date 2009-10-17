@@ -78,7 +78,7 @@ val bool_pref =
 
 (* preferences of Pure *)
 
-val proof_pref = setmp Proofterm.proofs 1 (fn () =>
+val proof_pref = setmp_CRITICAL Proofterm.proofs 1 (fn () =>
   let
     fun get () = PgipTypes.bool_to_pgstring (! Proofterm.proofs >= 2);
     fun set s = Proofterm.proofs := (if PgipTypes.read_pgipbool s then 2 else 1);
@@ -167,7 +167,7 @@ val tracing_preferences =
   thm_deps_pref];
 
 val proof_preferences =
- [setmp quick_and_dirty true (fn () =>
+ [setmp_CRITICAL quick_and_dirty true (fn () =>
     bool_pref quick_and_dirty
       "quick-and-dirty"
       "Take a few short cuts") (),

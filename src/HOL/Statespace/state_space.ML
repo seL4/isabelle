@@ -297,7 +297,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
 
           val tt' = tt |> fold upd all_names;
           val activate_simproc =
-              Output.no_warnings
+              Output.no_warnings_CRITICAL
                (Simplifier.map_ss (fn ss => ss addsimprocs [distinct_simproc]));
           val ctxt' =
               ctxt
@@ -444,7 +444,7 @@ fun statespace_definition state_type args name parents parent_comps components t
       in Context.mapping I upd_prf ctxt end;
 
    fun string_of_typ T =
-      setmp show_sorts true
+      setmp_CRITICAL show_sorts true
        (PrintMode.setmp [] (Syntax.string_of_typ (ProofContext.init thy))) T;
    val fixestate = (case state_type of
          NONE => []

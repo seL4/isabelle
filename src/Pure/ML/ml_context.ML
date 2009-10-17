@@ -64,7 +64,7 @@ fun ml_store sel (name, ths) =
       if name = "" then ()
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
-      else setmp stored_thms ths' (fn () =>
+      else setmp_CRITICAL stored_thms ths' (fn () =>
         ML_Compiler.eval true Position.none
           (ML_Lex.tokenize ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);"))) ();
   in () end;

@@ -354,7 +354,7 @@ fun isar_lines ctxt ctms =
             "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
-  in setmp show_sorts (Config.get ctxt recon_sorts) dolines end;
+  in setmp_CRITICAL show_sorts (Config.get ctxt recon_sorts) dolines end;
 
 fun notequal t (_,t',_) = not (t aconv t');
 

@@ -50,7 +50,7 @@ fun path_add s = CRITICAL (fn () =>
 fun reset_path () = load_path := [Path.current];
 
 fun with_paths ss f x =
-  CRITICAL (fn () => Library.setmp load_path (! load_path @ map Path.explode ss) f x);
+  CRITICAL (fn () => setmp_CRITICAL load_path (! load_path @ map Path.explode ss) f x);
 fun with_path s f x = with_paths [s] f x;
 
 fun search_path dir path =

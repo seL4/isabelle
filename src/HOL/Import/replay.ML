@@ -320,7 +320,7 @@ fun import_single_thm thyname int_thms thmname thy =
 
 fun replay_chached_thm int_thms thyname thmname =
     let
-        fun th_of thy = setmp quick_and_dirty true (SkipProof.make_thm thy)
+        fun th_of thy = setmp_CRITICAL quick_and_dirty true (SkipProof.make_thm thy)
         fun err msg = raise ERR "replay_cached_thm" msg
         val _ = writeln ("Replaying (from cache) "^thmname^" ...")
         fun rps [] thy = thy

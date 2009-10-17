@@ -94,7 +94,7 @@ struct
 
 (* printing *)
 
-fun string_of_typ thy = setmp show_sorts true (Syntax.string_of_typ_global thy);
+fun string_of_typ thy = setmp_CRITICAL show_sorts true (Syntax.string_of_typ_global thy);
 
 fun string_of_const thy c = case AxClass.inst_of_param thy c
  of SOME (c, tyco) => Sign.extern_const thy c ^ " " ^ enclose "[" "]" (Sign.extern_type thy tyco)

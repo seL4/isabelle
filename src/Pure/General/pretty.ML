@@ -53,7 +53,7 @@ sig
   val indent: int -> T -> T
   val unbreakable: T -> T
   val setmargin: int -> unit
-  val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
+  val setmp_margin_CRITICAL: int -> ('a -> 'b) -> 'a -> 'b
   val setdepth: int -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
@@ -188,7 +188,7 @@ fun make_margin_info m =
 
 val margin_info = Unsynchronized.ref (make_margin_info 76);
 fun setmargin m = margin_info := make_margin_info m;
-fun setmp_margin m f = setmp margin_info (make_margin_info m) f;
+fun setmp_margin_CRITICAL m f = setmp_CRITICAL margin_info (make_margin_info m) f;
 
 
 (* depth limitation *)

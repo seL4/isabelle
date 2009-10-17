@@ -44,7 +44,7 @@ sig
   val prompt: string -> unit
   val status: string -> unit
   val debugging: bool Unsynchronized.ref
-  val no_warnings: ('a -> 'b) -> 'a -> 'b
+  val no_warnings_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
 end;
 
@@ -112,7 +112,7 @@ val tolerate_legacy_features = Unsynchronized.ref true;
 fun legacy_feature s =
   (if ! tolerate_legacy_features then warning else error) ("Legacy feature! " ^ s);
 
-fun no_warnings f = setmp warning_fn (K ()) f;
+fun no_warnings_CRITICAL f = setmp_CRITICAL warning_fn (K ()) f;
 
 val debugging = Unsynchronized.ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()

@@ -36,7 +36,7 @@ fun prove ctxt xs asms prop tac =
   (if Goal.future_enabled () then Goal.prove_future else Goal.prove) ctxt xs asms prop
     (fn args => fn st =>
       if ! quick_and_dirty
-      then setmp quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
+      then setmp_CRITICAL quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
       else tac args st);
 
 fun prove_global thy xs asms prop tac =
