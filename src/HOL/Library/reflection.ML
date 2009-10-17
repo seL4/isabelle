@@ -79,12 +79,6 @@ exception REIF of string;
 
 fun dest_listT (Type (@{type_name "list"}, [T])) = T;
 
-(* This modified version of divide_and_conquer allows the threading
-   of a state variable *)
-fun divide_and_conquer' decomp s x =
-  let val ((ys, recomb), s') = decomp s x
-  in recomb (fold_map (divide_and_conquer' decomp) ys s') end;
-
 fun rearrange congs =
   let
     fun P (_, th) =
