@@ -91,7 +91,7 @@ rm -f $RUNNING/*
 
 ## spawn test runs
 
-$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
+#$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 # give test some time to copy settings and start
 sleep 15
 $SSH macbroy22 "$MAKEALL $HOME/settings/at-poly"
