@@ -151,8 +151,10 @@ fun defer opt_i = METHOD (K (Tactic.defer_tac (the_default 1 opt_i)));
 
 (* cheating *)
 
-fun cheating int ctxt = METHOD (K (setmp_CRITICAL quick_and_dirty (int orelse ! quick_and_dirty)
-    (SkipProof.cheat_tac (ProofContext.theory_of ctxt))));
+fun cheating int ctxt =
+  if int orelse ! quick_and_dirty then
+    METHOD (K (Skip_Proof.cheat_tac (ProofContext.theory_of ctxt)))
+  else error "Cheating requires quick_and_dirty mode!";
 
 
 (* unfold intro/elim rules *)
