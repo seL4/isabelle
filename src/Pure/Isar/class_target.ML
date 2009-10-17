@@ -239,7 +239,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
     val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
-    val classrel = SkipProof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
+    val classrel = Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
       (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])

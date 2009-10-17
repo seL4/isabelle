@@ -250,6 +250,9 @@ INCOMPATIBILITY.
 Syntax.pretty_typ/term directly, preferably with proper context
 instead of global theory.
 
+* Operations of structure Skip_Proof (formerly SkipProof) no longer
+require quick_and_dirty mode, which avoids critical setmp.
+
 
 *** System ***
 

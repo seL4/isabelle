@@ -661,7 +661,7 @@ fun register_intros pre_intros thy =
     val _ = tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
     val nparams = guess_nparams T
     val pre_elim = 
-      (Drule.standard o (setmp_CRITICAL quick_and_dirty true (SkipProof.make_thm thy)))
+      (Drule.standard o Skip_Proof.make_thm thy)
       (mk_casesrule (ProofContext.init thy) nparams pre_intros)
   in register_predicate (pre_intros, pre_elim, nparams) thy end
 
@@ -2082,7 +2082,7 @@ fun prove_pred thy clauses preds modes pred mode (moded_clauses, compiled_term) 
         THEN print_tac "proved one direction"
         THEN prove_other_direction thy modes pred mode moded_clauses
         THEN print_tac "proved other direction")
-      else (fn _ => setmp_CRITICAL quick_and_dirty true SkipProof.cheat_tac thy))
+      else fn _ => Skip_Proof.cheat_tac thy)
   end;
 
 (* composition of mode inference, definition, compilation and proof *)
@@ -2110,8 +2110,7 @@ fun prove thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t =>
-      Drule.standard (setmp_CRITICAL quick_and_dirty true (SkipProof.make_thm thy) t))
+  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (Skip_Proof.make_thm thy t))
     compiled_terms
     
 fun prepare_intrs thy prednames =

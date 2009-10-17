@@ -199,8 +199,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 
     (*test theory errors now!*)
     val test_thy = Theory.copy thy;
-    val _ = test_thy
-      |> typedef_result (setmp_CRITICAL quick_and_dirty true (SkipProof.make_thm test_thy) goal);
+    val _ = typedef_result (Skip_Proof.make_thm test_thy goal) test_thy;
 
   in (set, goal, goal_pat, typedef_result) end
   handle ERROR msg =>

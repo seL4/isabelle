@@ -344,7 +344,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         (* prove characteristic equations *)
 
         val rewrites = def_thms @ (map mk_meta_eq rec_rewrites);
-        val char_thms' = map (fn eqn => SkipProof.prove_global thy' [] [] eqn
+        val char_thms' = map (fn eqn => Skip_Proof.prove_global thy' [] [] eqn
           (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
 
       in (thy', char_thms' @ char_thms) end;
@@ -366,7 +366,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
             val Ts = map (TFree o rpair HOLogic.typeS)
               (Name.variant_list used (replicate i "'t"));
             val f = Free ("f", Ts ---> U)
-          in SkipProof.prove_global thy [] [] (Logic.mk_implies
+          in Skip_Proof.prove_global thy [] [] (Logic.mk_implies
             (HOLogic.mk_Trueprop (HOLogic.list_all
                (map (pair "x") Ts, S $ app_bnds f i)),
              HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
@@ -403,7 +403,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val inj_thms' = map snd newT_iso_inj_thms @
           map (fn r => r RS @{thm injD}) inj_thms;
 
-        val inj_thm = SkipProof.prove_global thy5 [] []
+        val inj_thm = Skip_Proof.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
             [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
              REPEAT (EVERY
@@ -429,7 +429,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
                              (split_conj_thm inj_thm);
 
         val elem_thm = 
-            SkipProof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
+            Skip_Proof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))
               (fn _ =>
                EVERY [(indtac induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
                 rewrite_goals_tac rewrites,
@@ -466,7 +466,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val iso_thms = if length descr = 1 then [] else
       Library.drop (length newTs, split_conj_thm
-        (SkipProof.prove_global thy5 [] [] iso_t (fn _ => EVERY
+        (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
            [(indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq choice_eq ::
@@ -496,7 +496,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       let
         val inj_thms = map fst newT_iso_inj_thms;
         val rewrites = @{thm o_def} :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
-      in SkipProof.prove_global thy5 [] [] eqn (fn _ => EVERY
+      in Skip_Proof.prove_global thy5 [] [] eqn (fn _ => EVERY
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,
          rtac refl 3,
@@ -520,7 +520,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         fun prove [] = []
           | prove (t :: ts) =
               let
-                val dist_thm = SkipProof.prove_global thy5 [] [] t (fn _ =>
+                val dist_thm = Skip_Proof.prove_global thy5 [] [] t (fn _ =>
                   EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
               in dist_thm :: Drule.standard (dist_thm RS not_sym) :: prove ts end;
       in prove ts end;
@@ -535,7 +535,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         (iso_inj_thms @
           [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject,
            Lim_inject, Suml_inject, Sumr_inject]))
-      in SkipProof.prove_global thy5 [] [] t (fn _ => EVERY
+      in Skip_Proof.prove_global thy5 [] [] t (fn _ => EVERY
         [rtac iffI 1,
          REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
          dresolve_tac rep_congs 1, dtac box_equals 1,
@@ -585,7 +585,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val cert = cterm_of thy6;
 
-    val indrule_lemma = SkipProof.prove_global thy6 [] []
+    val indrule_lemma = Skip_Proof.prove_global thy6 [] []
       (Logic.mk_implies
         (HOLogic.mk_Trueprop (mk_conj indrule_lemma_prems),
          HOLogic.mk_Trueprop (mk_conj indrule_lemma_concls))) (fn _ => EVERY
@@ -600,7 +600,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
 
     val dt_induct_prop = DatatypeProp.make_ind descr sorts;
-    val dt_induct = SkipProof.prove_global thy6 []
+    val dt_induct = Skip_Proof.prove_global thy6 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn {prems, ...} => EVERY
         [rtac indrule_lemma' 1,

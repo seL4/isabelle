@@ -1040,7 +1040,7 @@ fun quick_and_dirty_prove stndrd thy asms prop tac =
   if ! record_quick_and_dirty_sensitive andalso ! quick_and_dirty then
     Goal.prove (ProofContext.init thy) [] []
       (Logic.list_implies (map Logic.varify asms, Logic.varify prop))
-      (K (SkipProof.cheat_tac @{theory HOL}))
+      (K (Skip_Proof.cheat_tac @{theory HOL}))
       (*Drule.standard can take quite a while for large records, thats why
         we varify the proposition manually here.*)
   else

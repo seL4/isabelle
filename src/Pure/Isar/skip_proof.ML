@@ -1,7 +1,8 @@
 (*  Title:      Pure/Isar/skip_proof.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Skipping proofs -- quick_and_dirty mode.
+Skipping proofs -- via oracle (in quick and dirty mode) or by forking
+(parallel mode).
 *)
 
 signature SKIP_PROOF =
@@ -14,15 +15,13 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
 end;
 
-structure SkipProof: SKIP_PROOF =
+structure Skip_Proof: SKIP_PROOF =
 struct
 
 (* oracle setup *)
 
 val (_, skip_proof) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "skip_proof", fn (thy, prop) =>
-    if ! quick_and_dirty then Thm.cterm_of thy prop
-    else error "Proof may be skipped in quick_and_dirty mode only!")));
+  (Thm.add_oracle (Binding.name "skip_proof", fn (thy, prop) => Thm.cterm_of thy prop)));
 
 
 (* basic cheating *)
@@ -36,7 +35,7 @@ fun prove ctxt xs asms prop tac =
   (if Goal.future_enabled () then Goal.prove_future else Goal.prove) ctxt xs asms prop
     (fn args => fn st =>
       if ! quick_and_dirty
-      then setmp_CRITICAL quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
+      then cheat_tac (ProofContext.theory_of ctxt) st
       else tac args st);
 
 fun prove_global thy xs asms prop tac =

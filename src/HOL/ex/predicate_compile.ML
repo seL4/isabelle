@@ -114,10 +114,10 @@ fun debug_tac msg = Seq.single; (* (fn st => (tracing msg; Seq.single st)); *)
 val do_proofs = Unsynchronized.ref true;
 
 fun mycheat_tac thy i st =
-  (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) i) st
+  (Tactic.rtac (Skip_Proof.make_thm thy (Var (("A", 0), propT))) i) st
 
 fun remove_last_goal thy st =
-  (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) (nprems_of st)) st
+  (Tactic.rtac (Skip_Proof.make_thm thy (Var (("A", 0), propT))) (nprems_of st)) st
 
 (* reference to preprocessing of InductiveSet package *)
 
@@ -1866,7 +1866,7 @@ fun prove thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (SkipProof.make_thm thy t))
+  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (Skip_Proof.make_thm thy t))
     compiled_terms
     
 fun prepare_intrs thy prednames =

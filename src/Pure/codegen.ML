@@ -280,8 +280,7 @@ fun preprocess_term thy t =
   let
     val x = Free (Name.variant (OldTerm.add_term_names (t, [])) "x", fastype_of t);
     (* fake definition *)
-    val eq = setmp_CRITICAL quick_and_dirty true (SkipProof.make_thm thy)
-      (Logic.mk_equals (x, t));
+    val eq = Skip_Proof.make_thm thy (Logic.mk_equals (x, t));
     fun err () = error "preprocess_term: bad preprocessor"
   in case map prop_of (preprocess thy [eq]) of
       [Const ("==", _) $ x' $ t'] => if x = x' then t' else err ()

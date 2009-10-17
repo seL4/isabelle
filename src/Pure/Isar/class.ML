@@ -76,7 +76,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
         val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
         val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
-      in SkipProof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
+      in Skip_Proof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
     val assm_intro = Option.map prove_assm_intro
       (fst (Locale.intros_of thy class));
 
@@ -93,7 +93,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (Tactic.match_tac (axclass_intro :: sup_of_classes
          @ loc_axiom_intros @ base_sort_trivs)
            ORELSE' Tactic.assume_tac));
-    val of_class = SkipProof.prove_global thy [] [] of_class_prop (K tac);
+    val of_class = Skip_Proof.prove_global thy [] [] of_class_prop (K tac);
 
   in (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) end;
 

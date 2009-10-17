@@ -384,7 +384,7 @@ fun mk_eq_eqns thy dtco =
     val refl = HOLogic.mk_Trueprop (true_eq (Free ("x", ty), Free ("x", ty)));
     val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss addsimps 
       (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
-    fun prove prop = SkipProof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
+    fun prove prop = Skip_Proof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
   in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
 
