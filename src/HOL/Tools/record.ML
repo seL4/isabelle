@@ -1038,11 +1038,11 @@ fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
 
 fun mk_comp f g =
   let
-    val x = fastype_of g;
-    val a = domain_type x;
-    val b = range_type x;
-    val c = range_type (fastype_of f);
-    val T = (b --> c) --> ((a --> b) --> (a --> c))
+    val X = fastype_of g;
+    val A = domain_type X;
+    val B = range_type X;
+    val C = range_type (fastype_of f);
+    val T = (B --> C) --> (A --> B) --> A --> C;
   in Const ("Fun.comp", T) $ f $ g end;
 
 fun mk_comp_id f =
@@ -1295,7 +1295,7 @@ val record_upd_simproc =
             Drule.standard (uathm RS updacc_noop_compE)]
           end;
 
-        (*If f is constant then (f o g) = f. we know that K_skeleton
+        (*If f is constant then (f o g) = f.  We know that K_skeleton
           only returns constant abstractions thus when we see an
           abstraction we can discard inner updates.*)
         fun add_upd (f as Abs _) fs = [f]
@@ -1356,7 +1356,7 @@ end;
 
 (* record_eq_simproc *)
 
-(*Looks up the most specific record-equality.
+(*Look up the most specific record-equality.
 
  Note on efficiency:
  Testing equality of records boils down to the test of equality of all components.
@@ -1853,7 +1853,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val names = map fst fields;
     val extN = full bname;
     val types = map snd fields;
-    val alphas_fields = List.foldr OldTerm.add_typ_tfree_names [] types;
+    val alphas_fields = fold Term.add_tfree_namesT types [];
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
     val variants =
@@ -1908,9 +1908,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun mk_rec args n =
       let
         val (args', more) = chop_last args;
-        fun mk_ext' (((name, T), args), more) = mk_ext (name, T) (args @ [more]);
+        fun mk_ext' ((name, T), args) more = mk_ext (name, T) (args @ [more]);
         fun build Ts =
-          List.foldr mk_ext' more (Library.drop (n, extension_names ~~ Ts ~~ chunks parent_chunks args'));
+          fold_rev mk_ext' (Library.drop (n, (extension_names ~~ Ts) ~~ chunks parent_chunks args'))
+            more;
       in
         if more = HOLogic.unit
         then build (map recT (0 upto parent_len))
@@ -2117,15 +2118,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
          (All [dest_Free r0] (P $ r0), All (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
-    (* FIXME eliminate old List.foldr *)
-
     val split_object_prop =
-      let fun ALL vs t = List.foldr (fn ((v, T), t) => HOLogic.mk_all (v, T, t)) t vs
-      in (ALL [dest_Free r0] (P $ r0)) === (ALL (map dest_Free all_vars_more) (P $ r_rec0)) end;
+      let val ALL = fold_rev (fn (v, T) => fn t => HOLogic.mk_all (v, T, t))
+      in ALL [dest_Free r0] (P $ r0) === ALL (map dest_Free all_vars_more) (P $ r_rec0) end;
 
     val split_ex_prop =
-      let fun EX vs t = List.foldr (fn ((v, T), t) => HOLogic.mk_exists (v, T, t)) t vs
-      in (EX [dest_Free r0] (P $ r0)) === (EX (map dest_Free all_vars_more) (P $ r_rec0)) end;
+      let val EX = fold_rev (fn (v, T) => fn t => HOLogic.mk_exists (v, T, t))
+      in EX [dest_Free r0] (P $ r0) === EX (map dest_Free all_vars_more) (P $ r_rec0) end;
 
     (*equality*)
     val equality_prop =
@@ -2383,7 +2382,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val init_env =
       (case parent of
         NONE => []
-      | SOME (types, _) => List.foldr OldTerm.add_typ_tfrees [] types);
+      | SOME (types, _) => fold Term.add_tfreesT types []);
 
 
     (* fields *)
