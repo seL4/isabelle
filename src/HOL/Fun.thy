@@ -533,6 +533,58 @@ qed
 
 hide (open) const inv
 
+definition the_inv_onto :: "'a set => ('a => 'b) => ('b => 'a)" where
+"the_inv_onto A f == %x. THE y. y : A & f y = x"
+
+lemma the_inv_onto_f_f:
+  "[| inj_on f A;  x : A |] ==> the_inv_onto A f (f x) = x"
+apply (simp add: the_inv_onto_def inj_on_def)
+apply (blast intro: the_equality)
+done
+
+lemma f_the_inv_onto_f:
+  "inj_on f A ==> y : f`A  ==> f (the_inv_onto A f y) = y"
+apply (simp add: the_inv_onto_def)
+apply (rule the1I2)
+ apply(blast dest: inj_onD)
+apply blast
+done
+
+lemma the_inv_onto_into:
+  "[| inj_on f A; x : f ` A; A <= B |] ==> the_inv_onto A f x : B"
+apply (simp add: the_inv_onto_def)
+apply (rule the1I2)
+ apply(blast dest: inj_onD)
+apply blast
+done
+
+lemma the_inv_onto_onto[simp]:
+  "inj_on f A ==> the_inv_onto A f ` (f ` A) = A"
+by (fast intro:the_inv_onto_into the_inv_onto_f_f[symmetric])
+
+lemma the_inv_onto_f_eq:
+  "[| inj_on f A; f x = y; x : A |] ==> the_inv_onto A f y = x"
+  apply (erule subst)
+  apply (erule the_inv_onto_f_f, assumption)
+  done
+
+lemma the_inv_onto_comp:
+  "[| inj_on f (g ` A); inj_on g A; x : f ` g ` A |] ==>
+  the_inv_onto A (f o g) x = (the_inv_onto A g o the_inv_onto (g ` A) f) x"
+apply (rule the_inv_onto_f_eq)
+  apply (fast intro: comp_inj_on)
+ apply (simp add: f_the_inv_onto_f the_inv_onto_into)
+apply (simp add: the_inv_onto_into)
+done
+
+lemma inj_on_the_inv_onto:
+  "inj_on f A \<Longrightarrow> inj_on (the_inv_onto A f) (f ` A)"
+by (auto intro: inj_onI simp: image_def the_inv_onto_f_f)
+
+lemma bij_betw_the_inv_onto:
+  "bij_betw f A B \<Longrightarrow> bij_betw (the_inv_onto A f) B A"
+by (auto simp add: bij_betw_def inj_on_the_inv_onto the_inv_onto_into)
+
 
 subsection {* Proof tool setup *} 
 
