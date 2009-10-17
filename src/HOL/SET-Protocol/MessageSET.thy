@@ -1,5 +1,7 @@
-(*  Title:      HOL/Auth/SET/MessageSET
-    Authors:     Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
+(*  Title:      HOL/SET-Protocol/MessageSET.thy
+    Author:     Giampaolo Bella
+    Author:     Fabio Massacci
+    Author:     Lawrence C Paulson
 *)
 
 header{*The Message Theory, Modified for SET*}
@@ -57,14 +59,14 @@ datatype
 
 text{*Messages*}
 datatype
-     msg = Agent  agent	    --{*Agent names*}
+     msg = Agent  agent     --{*Agent names*}
          | Number nat       --{*Ordinary integers, timestamps, ...*}
          | Nonce  nat       --{*Unguessable nonces*}
          | Pan    nat       --{*Unguessable Primary Account Numbers (??)*}
          | Key    key       --{*Crypto keys*}
-	 | Hash   msg       --{*Hashing*}
-	 | MPair  msg msg   --{*Compound messages*}
-	 | Crypt  key msg   --{*Encryption, public- or shared-key*}
+         | Hash   msg       --{*Hashing*}
+         | MPair  msg msg   --{*Compound messages*}
+         | Crypt  key msg   --{*Encryption, public- or shared-key*}
 
 
 (*Concrete syntax: messages appear as {|A,B,NA|}, etc...*)
@@ -82,10 +84,10 @@ translations
 constdefs
   nat_of_agent :: "agent => nat"
    "nat_of_agent == agent_case (curry nat2_to_nat 0)
-			       (curry nat2_to_nat 1)
-			       (curry nat2_to_nat 2)
-			       (curry nat2_to_nat 3)
-			       (nat2_to_nat (4,0))"
+                               (curry nat2_to_nat 1)
+                               (curry nat2_to_nat 2)
+                               (curry nat2_to_nat 3)
+                               (nat2_to_nat (4,0))"
     --{*maps each agent to a unique natural number, for specifications*}
 
 text{*The function is indeed injective*}
@@ -871,8 +873,8 @@ fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
     (Fake_insert_simp_tac ss 1
      THEN
      IF_UNSOLVED (Blast.depth_tac
-		  (cs addIs [@{thm analz_insertI},
-				   impOfSubs @{thm analz_subset_parts}]) 4 1))
+                  (cs addIs [@{thm analz_insertI},
+                                   impOfSubs @{thm analz_subset_parts}]) 4 1))
 
 fun spy_analz_tac (cs,ss) i =
   DETERM

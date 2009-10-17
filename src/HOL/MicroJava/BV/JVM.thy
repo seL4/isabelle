@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/JVM.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Gerwin Klein
     Copyright   2000 TUM
 *)
@@ -37,7 +36,7 @@ theorem is_bcv_kiljvm:
   apply (rule is_bcv_kildall)
        apply (simp (no_asm) add: sl_triple_conv [symmetric]) 
        apply (force intro!: semilat_JVM_slI dest: wf_acyclic 
-	 simp add: symmetric sl_triple_conv)
+         simp add: symmetric sl_triple_conv)
       apply (simp (no_asm) add: JVM_le_unfold)
       apply (blast intro!: order_widen wf_converse_subcls1_impl_acc_subtype
                    dest: wf_subcls1 wfP_acyclicP wf_prog_ws_prog)

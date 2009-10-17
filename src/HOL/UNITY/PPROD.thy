@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/PPROD.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -274,7 +273,7 @@ by (simp add: PLam_def lift_def rename_preserves)
     done
 
     lemma const_PLam_Increasing:
-	 "[| i \<in> I;  finite I |]
+         "[| i \<in> I;  finite I |]
           ==> ((plam x \<in> I. F) \<in> Increasing (f o sub i)) = (F \<in> Increasing f)"
     apply (unfold Increasing_def)
     apply (subgoal_tac "\<forall>z. {s. z \<subseteq> (f o sub i) s} = lift_set i {s. z \<subseteq> f s}")

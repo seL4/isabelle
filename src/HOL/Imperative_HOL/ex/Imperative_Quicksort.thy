@@ -153,8 +153,8 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         by (elim crelE crel_nth crel_if crel_return) auto
       from swp rec_condition have
         "\<forall>i. i < l \<or> r < i \<longrightarrow> get_array a h ! i = get_array a h1 ! i"
-	unfolding swap_def
-	by (elim crelE crel_nth crel_upd crel_return) auto
+        unfolding swap_def
+        by (elim crelE crel_nth crel_upd crel_return) auto
       with 1(2) [OF rec_condition False rec2] show ?thesis by fastsimp
     qed
   qed
@@ -190,10 +190,10 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from True part_outer_remains[OF rec1] have a_l: "get_array a h' ! l \<le> p"
-	by fastsimp
+        by fastsimp
       have "\<forall>i. (l \<le> i = (l = i \<or> Suc l \<le> i))" by arith
       with 1(1)[OF False True rec1] a_l show ?thesis
-	by auto
+        by auto
     next
       case False
       with lr cr
@@ -202,13 +202,13 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from swp False have "get_array a h1 ! r \<ge> p"
-	unfolding swap_def
-	by (auto simp add: Heap.length_def elim!: crelE crel_nth crel_upd crel_return)
+        unfolding swap_def
+        by (auto simp add: Heap.length_def elim!: crelE crel_nth crel_upd crel_return)
       with part_outer_remains [OF rec2] lr have a_r: "get_array a h' ! r \<ge> p"
-	by fastsimp
+        by fastsimp
       have "\<forall>i. (i \<le> r = (i = r \<or> i \<le> r - 1))" by arith
       with 1(2)[OF lr False rec2] a_r show ?thesis
-	by auto
+        by auto
     qed
   qed
 qed
@@ -315,7 +315,7 @@ proof -
       with part_partitions[OF part] right_remains True
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def in_bounds have "get_array a h' ! i \<le> get_array a h' ! rs"
-	unfolding Heap.upd_def Heap.length_def by simp
+        unfolding Heap.upd_def Heap.length_def by simp
     }
     moreover
     {
@@ -325,24 +325,24 @@ proof -
       hence "(rs < i \<and> i \<le> r - 1) \<or> (rs < i \<and> i = r)" by arith
       hence "get_array a h' ! rs \<le> get_array a h' ! i"
       proof
-	assume i_is: "rs < i \<and> i \<le> r - 1"
-	with swap_length_remains in_bounds middle_in_bounds rs_equals
-	have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
-	from part_partitions[OF part] rs_equals right_remains i_is
-	have "get_array a h' ! rs \<le> get_array a h1 ! i"
-	  by fastsimp
-	with i_props h'_def show ?thesis by fastsimp
+        assume i_is: "rs < i \<and> i \<le> r - 1"
+        with swap_length_remains in_bounds middle_in_bounds rs_equals
+        have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+        from part_partitions[OF part] rs_equals right_remains i_is
+        have "get_array a h' ! rs \<le> get_array a h1 ! i"
+          by fastsimp
+        with i_props h'_def show ?thesis by fastsimp
       next
-	assume i_is: "rs < i \<and> i = r"
-	with rs_equals have "Suc middle \<noteq> r" by arith
-	with middle_in_bounds `l < r` have "Suc middle \<le> r - 1" by arith
-	with part_partitions[OF part] right_remains 
-	have "get_array a h' ! rs \<le> get_array a h1 ! (Suc middle)"
-	  by fastsimp
-	with i_is True rs_equals right_remains h'_def
-	show ?thesis using in_bounds
-	  unfolding Heap.upd_def Heap.length_def
-	  by auto
+        assume i_is: "rs < i \<and> i = r"
+        with rs_equals have "Suc middle \<noteq> r" by arith
+        with middle_in_bounds `l < r` have "Suc middle \<le> r - 1" by arith
+        with part_partitions[OF part] right_remains 
+        have "get_array a h' ! rs \<le> get_array a h1 ! (Suc middle)"
+          by fastsimp
+        with i_is True rs_equals right_remains h'_def
+        show ?thesis using in_bounds
+          unfolding Heap.upd_def Heap.length_def
+          by auto
       qed
     }
     ultimately show ?thesis by auto
@@ -357,7 +357,7 @@ proof -
       from part_partitions[OF part] rs_equals right_remains i_is_left
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def have "get_array a h' ! i \<le> get_array a h' ! rs"
-	unfolding Heap.upd_def by simp
+        unfolding Heap.upd_def by simp
     }
     moreover
     {
@@ -366,19 +366,19 @@ proof -
       hence "(rs < i \<and> i \<le> r - 1) \<or> i = r" by arith
       hence "get_array a h' ! rs \<le> get_array a h' ! i"
       proof
-	assume i_is: "rs < i \<and> i \<le> r - 1"
-	with swap_length_remains in_bounds middle_in_bounds rs_equals
-	have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
-	from part_partitions[OF part] rs_equals right_remains i_is
-	have "get_array a h' ! rs \<le> get_array a h1 ! i"
-	  by fastsimp
-	with i_props h'_def show ?thesis by fastsimp
+        assume i_is: "rs < i \<and> i \<le> r - 1"
+        with swap_length_remains in_bounds middle_in_bounds rs_equals
+        have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+        from part_partitions[OF part] rs_equals right_remains i_is
+        have "get_array a h' ! rs \<le> get_array a h1 ! i"
+          by fastsimp
+        with i_props h'_def show ?thesis by fastsimp
       next
-	assume i_is: "i = r"
-	from i_is False rs_equals right_remains h'_def
-	show ?thesis using in_bounds
-	  unfolding Heap.upd_def Heap.length_def
-	  by auto
+        assume i_is: "i = r"
+        from i_is False rs_equals right_remains h'_def
+        show ?thesis using in_bounds
+          unfolding Heap.upd_def Heap.length_def
+          by auto
       qed
     }
     ultimately
@@ -507,7 +507,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       have IH1: "sorted (subarray l p a h2)"  by (cases p, auto simp add: subarray_Nil)
       from quicksort_outer_remains [OF qs2] length_remains
       have left_subarray_remains: "subarray l p a h2 = subarray l p a h'"
-	by (simp add: subarray_eq_samelength_iff)
+        by (simp add: subarray_eq_samelength_iff)
       with IH1 have IH1': "sorted (subarray l p a h')" by simp
       from 1(2)[OF True pivot qs2] pivot 1(5) length_remains
       have IH2: "sorted (subarray (p + 1) (r + 1) a h')"
@@ -520,14 +520,14 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       from quicksort_outer_remains [OF qs1] quicksort_permutes [OF qs1] True
         length_remains 1(5) pivot multiset_of_sublist [of l p "get_array a h1" "get_array a h2"]
       have multiset_partconds1: "multiset_of (subarray l p a h2) = multiset_of (subarray l p a h1)"
-	unfolding Heap.length_def subarray_def by (cases p, auto)
+        unfolding Heap.length_def subarray_def by (cases p, auto)
       with left_subarray_remains part_conds1 pivot_unchanged
       have part_conds2': "\<forall>j. j \<in> set (subarray l p a h') \<longrightarrow> j \<le> get_array a h' ! p"
         by (simp, subst set_of_multiset_of[symmetric], simp)
           (* -- These steps are the analogous for the right sublist \<dots> *)
       from quicksort_outer_remains [OF qs1] length_remains
       have right_subarray_remains: "subarray (p + 1) (r + 1) a h1 = subarray (p + 1) (r + 1) a h2"
-	by (auto simp add: subarray_eq_samelength_iff)
+        by (auto simp add: subarray_eq_samelength_iff)
       from quicksort_outer_remains [OF qs2] quicksort_permutes [OF qs2] True
         length_remains 1(5) pivot multiset_of_sublist [of "p + 1" "r + 1" "get_array a h2" "get_array a h'"]
       have multiset_partconds2: "multiset_of (subarray (p + 1) (r + 1) a h') = multiset_of (subarray (p + 1) (r + 1) a h2)"
@@ -538,11 +538,11 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
           (* -- Thirdly and finally, we show that the array is sorted
           following from the facts above. *)
       from True pivot 1(5) length_remains have "subarray l (r + 1) a h' = subarray l p a h' @ [get_array a h' ! p] @ subarray (p + 1) (r + 1) a h'"
-	by (simp add: subarray_nth_array_Cons, cases "l < p") (auto simp add: subarray_append subarray_Nil)
+        by (simp add: subarray_nth_array_Cons, cases "l < p") (auto simp add: subarray_append subarray_Nil)
       with IH1' IH2 part_conds1' part_conds2' pivot have ?thesis
-	unfolding subarray_def
-	apply (auto simp add: sorted_append sorted_Cons all_in_set_sublist'_conv)
-	by (auto simp add: set_sublist' dest: le_trans [of _ "get_array a h' ! p"])
+        unfolding subarray_def
+        apply (auto simp add: sorted_append sorted_Cons all_in_set_sublist'_conv)
+        by (auto simp add: set_sublist' dest: le_trans [of _ "get_array a h' ! p"])
     }
     with True cr show ?thesis
       unfolding quicksort.simps [of a l r]

@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 theory MuIOA
 imports IOA "../../../HOL/Modelcheck/MuckeSyn"
 begin
@@ -20,8 +17,8 @@ consts
 ML {*
 
 (* MuIOA.ML declares function mk_sim_oracle used by oracle "Sim" (see MuIOAOracle.thy).
-	There, implementation relations for I/O automatons are proved using
-	the model checker mucke (invoking cal_mucke_tac defined in MCSyn.ML). *)
+        There, implementation relations for I/O automatons are proved using
+        the model checker mucke (invoking cal_mucke_tac defined in MCSyn.ML). *)
 
 exception SimFailureExn of string;
 
@@ -161,13 +158,13 @@ tupel_of sign s n (a::r) = s ^ (Int.toString(n)) ^ "," ^ (tupel_of sign s (n+1) 
 
 fun double_tupel_of _ _ _ _ [] = "" |
 double_tupel_of sign s t n [a] = s ^ (Int.toString(n)) ^ "," ^
-				 t ^ (Int.toString(n)) |
+                                 t ^ (Int.toString(n)) |
 double_tupel_of sign s t n (a::r) = s ^ (Int.toString(n)) ^ "," ^
-		t ^ (Int.toString(n)) ^ "," ^ (double_tupel_of sign s t (n+1) r);
+                t ^ (Int.toString(n)) ^ "," ^ (double_tupel_of sign s t (n+1) r);
 
 fun eq_string _ _ _ [] = "" |
 eq_string s t n [a] = s ^ (Int.toString(n)) ^ " = " ^
-			 t ^ (Int.toString(n)) |
+                         t ^ (Int.toString(n)) |
 eq_string s t n (a::r) =
  s ^ (Int.toString(n)) ^ " = " ^
  t ^ (Int.toString(n)) ^ " & " ^ (eq_string s t (n+1) r);
@@ -188,60 +185,60 @@ fun mk_sim_oracle (csubgoal, thl) =
     val concl = Logic.strip_imp_concl subgoal;
     val ic_str = delete_ul_string(Syntax.string_of_term_global sign (IntC sign concl));
     val ia_str = delete_ul_string(Syntax.string_of_term_global sign (IntA sign concl));
-	val sc_str = delete_ul_string(Syntax.string_of_term_global sign (StartC sign concl));	
-	val sa_str = delete_ul_string(Syntax.string_of_term_global sign (StartA sign concl));
-	val tc_str = delete_ul_string(Syntax.string_of_term_global sign (TransC sign concl));
-	val ta_str = delete_ul_string(Syntax.string_of_term_global sign (TransA sign concl));
-	
-	val action_type_str =
-	Syntax.string_of_typ_global sign (element_type(#T (rep_cterm(cterm_of sign (IntA sign concl)))));
+        val sc_str = delete_ul_string(Syntax.string_of_term_global sign (StartC sign concl));   
+        val sa_str = delete_ul_string(Syntax.string_of_term_global sign (StartA sign concl));
+        val tc_str = delete_ul_string(Syntax.string_of_term_global sign (TransC sign concl));
+        val ta_str = delete_ul_string(Syntax.string_of_term_global sign (TransA sign concl));
+        
+        val action_type_str =
+        Syntax.string_of_typ_global sign (element_type(#T (rep_cterm(cterm_of sign (IntA sign concl)))));
 
-	val abs_state_type_list =
-	type_list_of sign (element_type(#T (rep_cterm(cterm_of sign (StartA sign concl)))));
-	val con_state_type_list =
-	type_list_of sign (element_type(#T (rep_cterm(cterm_of sign (StartC sign concl)))));
+        val abs_state_type_list =
+        type_list_of sign (element_type(#T (rep_cterm(cterm_of sign (StartA sign concl)))));
+        val con_state_type_list =
+        type_list_of sign (element_type(#T (rep_cterm(cterm_of sign (StartC sign concl)))));
 
-	val tupel_eq = eq_string "s" "t" 0 abs_state_type_list;
+        val tupel_eq = eq_string "s" "t" 0 abs_state_type_list;
 
-	val abs_pre_tupel_typed = tupel_typed_of sign "s" 0 abs_state_type_list;
-	val abs_s_t_tupel_typed = double_tupel_typed_of sign "s" "t" 0 abs_state_type_list;
-	val con_pre_tupel_typed = tupel_typed_of sign "cs" 0 con_state_type_list;
-	val con_s_t_tupel_typed = double_tupel_typed_of sign "cs" "ct" 0 con_state_type_list;
-	
-	val abs_pre_tupel = tupel_of sign "s" 0 abs_state_type_list;
-	val abs_post_tupel = tupel_of sign "t" 0 abs_state_type_list;
-	val abs_s_t_tupel = double_tupel_of sign "s" "t" 0 abs_state_type_list;
-	val abs_s_u_tupel = double_tupel_of sign "s" "u" 0 abs_state_type_list;
-	val abs_u_t_tupel = double_tupel_of sign "u" "t" 0 abs_state_type_list;
-	val abs_u_v_tupel = double_tupel_of sign "u" "v" 0 abs_state_type_list;
-	val abs_v_t_tupel = double_tupel_of sign "v" "t" 0 abs_state_type_list;
-	val con_pre_tupel = tupel_of sign "cs" 0 con_state_type_list;
+        val abs_pre_tupel_typed = tupel_typed_of sign "s" 0 abs_state_type_list;
+        val abs_s_t_tupel_typed = double_tupel_typed_of sign "s" "t" 0 abs_state_type_list;
+        val con_pre_tupel_typed = tupel_typed_of sign "cs" 0 con_state_type_list;
+        val con_s_t_tupel_typed = double_tupel_typed_of sign "cs" "ct" 0 con_state_type_list;
+        
+        val abs_pre_tupel = tupel_of sign "s" 0 abs_state_type_list;
+        val abs_post_tupel = tupel_of sign "t" 0 abs_state_type_list;
+        val abs_s_t_tupel = double_tupel_of sign "s" "t" 0 abs_state_type_list;
+        val abs_s_u_tupel = double_tupel_of sign "s" "u" 0 abs_state_type_list;
+        val abs_u_t_tupel = double_tupel_of sign "u" "t" 0 abs_state_type_list;
+        val abs_u_v_tupel = double_tupel_of sign "u" "v" 0 abs_state_type_list;
+        val abs_v_t_tupel = double_tupel_of sign "v" "t" 0 abs_state_type_list;
+        val con_pre_tupel = tupel_of sign "cs" 0 con_state_type_list;
         val con_post_tupel = tupel_of sign "ct" 0 con_state_type_list;
-	val con_s_t_tupel = double_tupel_of sign "cs" "ct" 0 con_state_type_list;
+        val con_s_t_tupel = double_tupel_of sign "cs" "ct" 0 con_state_type_list;
 
         val abs_pre_varlist = varlist_of 0 "s" abs_state_type_list;
         val abs_post_varlist = varlist_of 0 "t" abs_state_type_list;
         val abs_u_varlist = varlist_of 0 "u" abs_state_type_list;
         val abs_v_varlist = varlist_of 0 "v" abs_state_type_list;
-	val con_pre_varlist = varlist_of 0 "cs" con_state_type_list;
+        val con_pre_varlist = varlist_of 0 "cs" con_state_type_list;
         val con_post_varlist = varlist_of 0 "ct" con_state_type_list;
 
         val abs_post_str = string_of abs_post_varlist;
-	val abs_u_str = string_of abs_u_varlist;
-	val con_post_str = string_of con_post_varlist;
-	
-	val abs_pre_str_typed = merge_var_and_type abs_pre_varlist abs_state_type_list;
-	val abs_u_str_typed = merge_var_and_type abs_u_varlist abs_state_type_list;
+        val abs_u_str = string_of abs_u_varlist;
+        val con_post_str = string_of con_post_varlist;
+        
+        val abs_pre_str_typed = merge_var_and_type abs_pre_varlist abs_state_type_list;
+        val abs_u_str_typed = merge_var_and_type abs_u_varlist abs_state_type_list;
         val abs_v_str_typed = merge_var_and_type abs_v_varlist abs_state_type_list;
-	val con_pre_str_typed = merge_var_and_type con_pre_varlist con_state_type_list;
+        val con_pre_str_typed = merge_var_and_type con_pre_varlist con_state_type_list;
 
-	val abs_pre_tupel_struct = snd(
+        val abs_pre_tupel_struct = snd(
 structured_tuple abs_pre_varlist (element_type(#T(rep_cterm(cterm_of sign (StartA sign concl))))));
-	val abs_post_tupel_struct = snd(
+        val abs_post_tupel_struct = snd(
 structured_tuple abs_post_varlist (element_type(#T(rep_cterm(cterm_of sign (StartA sign concl))))));
-	val con_pre_tupel_struct = snd(
+        val con_pre_tupel_struct = snd(
 structured_tuple con_pre_varlist (element_type(#T(rep_cterm(cterm_of sign (StartC sign concl))))));
-	val con_post_tupel_struct = snd(
+        val con_post_tupel_struct = snd(
 structured_tuple con_post_varlist (element_type(#T(rep_cterm(cterm_of sign (StartC sign concl))))));
 in
 (
@@ -250,37 +247,37 @@ OldGoals.Goal
 ( "(Internal_of_A = (% a::(" ^ action_type_str ^ "). a:(" ^ ia_str^
   "))) --> (Internal_of_C = (% a::(" ^ action_type_str ^ "). a:(" ^ ic_str ^ 
   "))) --> (Start_of_A = (% (" ^ abs_pre_tupel_typed ^
-	"). (" ^ abs_pre_tupel_struct ^ "):(" ^ sa_str ^
+        "). (" ^ abs_pre_tupel_struct ^ "):(" ^ sa_str ^
   "))) --> (Start_of_C = (% (" ^ con_pre_tupel_typed ^
-	"). (" ^ con_pre_tupel_struct ^ "):(" ^ sc_str ^
+        "). (" ^ con_pre_tupel_struct ^ "):(" ^ sc_str ^
   "))) --> (Trans_of_A = (% (" ^ abs_s_t_tupel_typed ^ ") (a::(" ^ action_type_str ^ 
-	")). ((" ^ abs_pre_tupel_struct ^ "),a,(" ^ abs_post_tupel_struct ^ ")):(" ^ ta_str ^
+        ")). ((" ^ abs_pre_tupel_struct ^ "),a,(" ^ abs_post_tupel_struct ^ ")):(" ^ ta_str ^
   "))) --> (Trans_of_C = (% (" ^ con_s_t_tupel_typed ^ ") (a::(" ^ action_type_str ^ 
-	")). ((" ^ con_pre_tupel_struct ^ "),a,(" ^ con_post_tupel_struct ^ ")):(" ^ tc_str ^
+        ")). ((" ^ con_pre_tupel_struct ^ "),a,(" ^ con_post_tupel_struct ^ ")):(" ^ tc_str ^
   "))) --> (IntStep_of_A = (% (" ^ abs_s_t_tupel_typed ^ 
-	"). ? (a::(" ^ action_type_str ^
-	")). Internal_of_A a & Trans_of_A (" ^ abs_s_t_tupel ^ ") a" ^
+        "). ? (a::(" ^ action_type_str ^
+        ")). Internal_of_A a & Trans_of_A (" ^ abs_s_t_tupel ^ ") a" ^
   ")) --> (IntStepStar_of_A =  mu (% P (" ^ abs_s_t_tupel_typed ^
-	 "). (" ^ tupel_eq ^ ") | (? " ^ abs_u_str ^ ". IntStep_of_A (" ^ abs_s_u_tupel ^
-	 ") & P(" ^ abs_u_t_tupel ^ ")))" ^
+         "). (" ^ tupel_eq ^ ") | (? " ^ abs_u_str ^ ". IntStep_of_A (" ^ abs_s_u_tupel ^
+         ") & P(" ^ abs_u_t_tupel ^ ")))" ^
   ") --> (Move_of_A = (% (" ^ abs_s_t_tupel_typed ^ ") (a::(" ^ action_type_str ^ 
-	")). (Internal_of_C a & IntStepStar_of_A(" ^ abs_s_t_tupel ^ 
-	")) | (? " ^ abs_u_str_typed ^ ". ? " ^ abs_v_str_typed ^
-	". IntStepStar_of_A(" ^ abs_s_u_tupel ^ ") & " ^
-	"Trans_of_A (" ^ abs_u_v_tupel ^ ") a  & IntStepStar_of_A(" ^ abs_v_t_tupel ^ "))" ^
+        ")). (Internal_of_C a & IntStepStar_of_A(" ^ abs_s_t_tupel ^ 
+        ")) | (? " ^ abs_u_str_typed ^ ". ? " ^ abs_v_str_typed ^
+        ". IntStepStar_of_A(" ^ abs_s_u_tupel ^ ") & " ^
+        "Trans_of_A (" ^ abs_u_v_tupel ^ ") a  & IntStepStar_of_A(" ^ abs_v_t_tupel ^ "))" ^
   ")) --> (isSimCA = nu (% P (" ^ con_pre_tupel_typed ^ "," ^ abs_pre_tupel_typed ^ 
-	"). (! (a::(" ^ action_type_str ^ ")) " ^ con_post_str ^
-	". Trans_of_C (" ^ con_s_t_tupel ^ ") a  -->" ^ " (? " ^ abs_post_str ^
+        "). (! (a::(" ^ action_type_str ^ ")) " ^ con_post_str ^
+        ". Trans_of_C (" ^ con_s_t_tupel ^ ") a  -->" ^ " (? " ^ abs_post_str ^
   ". Move_of_A (" ^ abs_s_t_tupel ^ ") a  & P(" ^ con_post_tupel ^ "," ^ abs_post_tupel ^ "))))" ^
  ") --> (! " ^ con_pre_str_typed ^ ". ! " ^ abs_pre_str_typed ^
-	". (Start_of_C (" ^ con_pre_tupel ^ ") & Start_of_A (" ^ abs_pre_tupel ^
-	")) --> isSimCA(" ^ con_pre_tupel ^ "," ^ abs_pre_tupel ^ "))");
+        ". (Start_of_C (" ^ con_pre_tupel ^ ") & Start_of_A (" ^ abs_pre_tupel ^
+        ")) --> isSimCA(" ^ con_pre_tupel ^ "," ^ abs_pre_tupel ^ "))");
 OldGoals.by (REPEAT (rtac impI 1));
 OldGoals.by (REPEAT (dtac eq_reflection 1));
 (* Bis hierher wird im Kapitel 4 erl"autert, ab hier im Kapitel 5 *)
 OldGoals.by (full_simp_tac ((global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs)
                               delsimps [not_iff,split_part])
-			      addsimps (thl @ comp_simps @ restrict_simps @ hide_simps @
+                              addsimps (thl @ comp_simps @ restrict_simps @ hide_simps @
                                         rename_simps @ ioa_simps @ asig_simps)) 1);
 OldGoals.by (full_simp_tac
   (Mucke_ss delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1);

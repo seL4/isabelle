@@ -3935,15 +3935,15 @@ proof(induct P i j rule:all_from_to_nat.induct)
       assume L: ?L
       show ?R
       proof clarify
-	fix n assume n: "n : {i..<j}"
-	show "P n"
-	proof cases
-	  assume "n = i" thus "P n" using L by simp
-	next
-	  assume "n ~= i"
-	  hence "i+1 <= n" using n by auto
-	  thus "P n" using L n by simp
-	qed
+        fix n assume n: "n : {i..<j}"
+        show "P n"
+        proof cases
+          assume "n = i" thus "P n" using L by simp
+        next
+          assume "n ~= i"
+          hence "i+1 <= n" using n by auto
+          thus "P n" using L n by simp
+        qed
       qed
     next
       assume R: ?R thus ?L using `?yes` 1 by auto
@@ -3990,15 +3990,15 @@ proof(induct P i j rule:all_from_to_int.induct)
       assume L: ?L
       show ?R
       proof clarify
-	fix n assume n: "n : {i..j}"
-	show "P n"
-	proof cases
-	  assume "n = i" thus "P n" using L by simp
-	next
-	  assume "n ~= i"
-	  hence "i+1 <= n" using n by auto
-	  thus "P n" using L n by simp
-	qed
+        fix n assume n: "n : {i..j}"
+        show "P n"
+        proof cases
+          assume "n = i" thus "P n" using L by simp
+        next
+          assume "n ~= i"
+          hence "i+1 <= n" using n by auto
+          thus "P n" using L n by simp
+        qed
       qed
     next
       assume R: ?R thus ?L using `?yes` 1 by auto

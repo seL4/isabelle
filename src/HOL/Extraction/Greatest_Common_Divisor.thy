@@ -24,7 +24,7 @@ proof (induct m rule: nat_wf_ind)
     moreover have "Suc m * 1 = Suc m" by simp
     moreover {
       fix l2 have "\<And>l l1. l * l1 = n \<Longrightarrow> l * l2 = Suc m \<Longrightarrow> l \<le> Suc m"
-	by (cases l2) simp_all }
+        by (cases l2) simp_all }
     ultimately show ?thesis by iprover
   next
     case (Suc nat)
@@ -47,7 +47,7 @@ proof (induct m rule: nat_wf_ind)
       assume ll1n: "l * l1 = n"
       assume ll2m: "l * l2 = Suc m"
       moreover have "l * (l1 - l2 * q) = Suc nat"
-	by (simp add: diff_mult_distrib2 h1 Suc [symmetric] mn ll1n ll2m [symmetric])
+        by (simp add: diff_mult_distrib2 h1 Suc [symmetric] mn ll1n ll2m [symmetric])
       ultimately show "l \<le> k" by (rule h3')
     qed
     ultimately show ?thesis using h1' by iprover

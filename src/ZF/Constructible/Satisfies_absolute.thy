@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Satisfies_absolute.thy
-    ID:  $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -180,8 +179,8 @@ definition
    --{*Merely a useful abbreviation for the sequel.*}
   "is_depth_apply(M,h,p,z) ==
     \<exists>dp[M]. \<exists>sdp[M]. \<exists>hsdp[M]. 
-	finite_ordinal(M,dp) & is_depth(M,p,dp) & successor(M,dp,sdp) &
-	fun_apply(M,h,sdp,hsdp) & fun_apply(M,hsdp,p,z)"
+        finite_ordinal(M,dp) & is_depth(M,p,dp) & successor(M,dp,sdp) &
+        fun_apply(M,h,sdp,hsdp) & fun_apply(M,hsdp,p,z)"
 
 lemma (in M_datatypes) is_depth_apply_abs [simp]:
      "[|M(h); p \<in> formula; M(z)|] 
@@ -205,9 +204,9 @@ definition
    "satisfies_is_a(M,A) == 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) -->
              is_lambda(M, lA, 
-		\<lambda>env z. is_bool_of_o(M, 
+                \<lambda>env z. is_bool_of_o(M, 
                       \<exists>nx[M]. \<exists>ny[M]. 
- 		       is_nth(M,x,env,nx) & is_nth(M,y,env,ny) & nx \<in> ny, z),
+                       is_nth(M,x,env,nx) & is_nth(M,y,env,ny) & nx \<in> ny, z),
                 zz)"
 
 definition
@@ -235,8 +234,8 @@ definition
    "satisfies_is_c(M,A,h) == 
     \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) -->
              is_lambda(M, lA, \<lambda>env z. \<exists>hp[M]. \<exists>hq[M]. 
-		 (\<exists>rp[M]. is_depth_apply(M,h,p,rp) & fun_apply(M,rp,env,hp)) & 
-		 (\<exists>rq[M]. is_depth_apply(M,h,q,rq) & fun_apply(M,rq,env,hq)) & 
+                 (\<exists>rp[M]. is_depth_apply(M,h,p,rp) & fun_apply(M,rp,env,hp)) & 
+                 (\<exists>rq[M]. is_depth_apply(M,h,q,rq) & fun_apply(M,rq,env,hq)) & 
                  (\<exists>pq[M]. is_and(M,hp,hq,pq) & is_not(M,pq,z)),
                 zz)"
 
@@ -294,7 +293,7 @@ locale M_satisfies = M_eclose +
    Member_replacement:
     "[|M(A); x \<in> nat; y \<in> nat|]
      ==> strong_replacement
-	 (M, \<lambda>env z. \<exists>bo[M]. \<exists>nx[M]. \<exists>ny[M]. 
+         (M, \<lambda>env z. \<exists>bo[M]. \<exists>nx[M]. \<exists>ny[M]. 
               env \<in> list(A) & is_nth(M,x,env,nx) & is_nth(M,y,env,ny) & 
               is_bool_of_o(M, nx \<in> ny, bo) &
               pair(M, env, bo, z))"
@@ -302,7 +301,7 @@ locale M_satisfies = M_eclose +
    Equal_replacement:
     "[|M(A); x \<in> nat; y \<in> nat|]
      ==> strong_replacement
-	 (M, \<lambda>env z. \<exists>bo[M]. \<exists>nx[M]. \<exists>ny[M]. 
+         (M, \<lambda>env z. \<exists>bo[M]. \<exists>nx[M]. \<exists>ny[M]. 
               env \<in> list(A) & is_nth(M,x,env,nx) & is_nth(M,y,env,ny) & 
               is_bool_of_o(M, nx = ny, bo) &
               pair(M, env, bo, z))"
@@ -310,7 +309,7 @@ locale M_satisfies = M_eclose +
    Nand_replacement:
     "[|M(A); M(rp); M(rq)|]
      ==> strong_replacement
-	 (M, \<lambda>env z. \<exists>rpe[M]. \<exists>rqe[M]. \<exists>andpq[M]. \<exists>notpq[M]. 
+         (M, \<lambda>env z. \<exists>rpe[M]. \<exists>rqe[M]. \<exists>andpq[M]. \<exists>notpq[M]. 
                fun_apply(M,rp,env,rpe) & fun_apply(M,rq,env,rqe) & 
                is_and(M,rpe,rqe,andpq) & is_not(M,andpq,notpq) & 
                env \<in> list(A) & pair(M, env, notpq, z))"
@@ -318,14 +317,14 @@ locale M_satisfies = M_eclose +
   Forall_replacement:
    "[|M(A); M(rp)|]
     ==> strong_replacement
-	(M, \<lambda>env z. \<exists>bo[M]. 
-	      env \<in> list(A) & 
-	      is_bool_of_o (M, 
-			    \<forall>a[M]. \<forall>co[M]. \<forall>rpco[M]. 
-			       a\<in>A --> is_Cons(M,a,env,co) -->
-			       fun_apply(M,rp,co,rpco) --> number1(M, rpco), 
+        (M, \<lambda>env z. \<exists>bo[M]. 
+              env \<in> list(A) & 
+              is_bool_of_o (M, 
+                            \<forall>a[M]. \<forall>co[M]. \<forall>rpco[M]. 
+                               a\<in>A --> is_Cons(M,a,env,co) -->
+                               fun_apply(M,rp,co,rpco) --> number1(M, rpco), 
                             bo) &
-	      pair(M,env,bo,z))"
+              pair(M,env,bo,z))"
  and
   formula_rec_replacement: 
       --{*For the @{term transrec}*}
@@ -346,29 +345,29 @@ locale M_satisfies = M_eclose +
 lemma (in M_satisfies) Member_replacement':
     "[|M(A); x \<in> nat; y \<in> nat|]
      ==> strong_replacement
-	 (M, \<lambda>env z. env \<in> list(A) &
-		     z = \<langle>env, bool_of_o(nth(x, env) \<in> nth(y, env))\<rangle>)"
+         (M, \<lambda>env z. env \<in> list(A) &
+                     z = \<langle>env, bool_of_o(nth(x, env) \<in> nth(y, env))\<rangle>)"
 by (insert Member_replacement, simp) 
 
 lemma (in M_satisfies) Equal_replacement':
     "[|M(A); x \<in> nat; y \<in> nat|]
      ==> strong_replacement
-	 (M, \<lambda>env z. env \<in> list(A) &
-		     z = \<langle>env, bool_of_o(nth(x, env) = nth(y, env))\<rangle>)"
+         (M, \<lambda>env z. env \<in> list(A) &
+                     z = \<langle>env, bool_of_o(nth(x, env) = nth(y, env))\<rangle>)"
 by (insert Equal_replacement, simp) 
 
 lemma (in M_satisfies) Nand_replacement':
     "[|M(A); M(rp); M(rq)|]
      ==> strong_replacement
-	 (M, \<lambda>env z. env \<in> list(A) & z = \<langle>env, not(rp`env and rq`env)\<rangle>)"
+         (M, \<lambda>env z. env \<in> list(A) & z = \<langle>env, not(rp`env and rq`env)\<rangle>)"
 by (insert Nand_replacement, simp) 
 
 lemma (in M_satisfies) Forall_replacement':
    "[|M(A); M(rp)|]
     ==> strong_replacement
-	(M, \<lambda>env z.
-	       env \<in> list(A) &
-	       z = \<langle>env, bool_of_o (\<forall>a\<in>A. rp ` Cons(a,env) = 1)\<rangle>)"
+        (M, \<lambda>env z.
+               env \<in> list(A) &
+               z = \<langle>env, bool_of_o (\<forall>a\<in>A. rp ` Cons(a,env) = 1)\<rangle>)"
 by (insert Forall_replacement, simp) 
 
 lemma (in M_satisfies) a_closed:
@@ -408,8 +407,8 @@ lemma (in M_satisfies) c_rel:
  "[|M(A); M(f)|] ==> 
   Relation2 (M, formula, formula, 
                satisfies_is_c(M,A,f),
-	       \<lambda>u v. satisfies_c(A, u, v, f ` succ(depth(u)) ` u, 
-					  f ` succ(depth(v)) ` v))"
+               \<lambda>u v. satisfies_c(A, u, v, f ` succ(depth(u)) ` u, 
+                                          f ` succ(depth(v)) ` v))"
 apply (simp add: Relation2_def satisfies_is_c_def satisfies_c_def)
 apply (auto del: iffI intro!: lambda_abs2 
             simp add: Relation1_def formula_into_M) 
@@ -467,9 +466,9 @@ text{*Instantiate locale @{text Formula_Rec} for the
 lemma (in M_satisfies) Formula_Rec_axioms_M:
    "M(A) ==>
     Formula_Rec_axioms(M, satisfies_a(A), satisfies_is_a(M,A), 
-			  satisfies_b(A), satisfies_is_b(M,A), 
-			  satisfies_c(A), satisfies_is_c(M,A), 
-			  satisfies_d(A), satisfies_is_d(M,A))"
+                          satisfies_b(A), satisfies_is_b(M,A), 
+                          satisfies_c(A), satisfies_is_c(M,A), 
+                          satisfies_d(A), satisfies_is_d(M,A))"
 apply (rule Formula_Rec_axioms.intro)
 apply (assumption | 
        rule a_closed a_rel b_closed b_rel c_closed c_rel d_closed d_rel
@@ -481,9 +480,9 @@ done
 theorem (in M_satisfies) Formula_Rec_M: 
     "M(A) ==>
      PROP Formula_Rec(M, satisfies_a(A), satisfies_is_a(M,A), 
-			 satisfies_b(A), satisfies_is_b(M,A), 
-			 satisfies_c(A), satisfies_is_c(M,A), 
-			 satisfies_d(A), satisfies_is_d(M,A))"
+                         satisfies_b(A), satisfies_is_b(M,A), 
+                         satisfies_c(A), satisfies_is_c(M,A), 
+                         satisfies_d(A), satisfies_is_d(M,A))"
   apply (rule Formula_Rec.intro)
    apply (rule M_satisfies.axioms, rule M_satisfies_axioms)
   apply (erule Formula_Rec_axioms_M) 
@@ -513,8 +512,8 @@ subsubsection{*The Operator @{term is_depth_apply}, Internalized*}
 (* is_depth_apply(M,h,p,z) ==
     \<exists>dp[M]. \<exists>sdp[M]. \<exists>hsdp[M]. 
       2        1         0
-	finite_ordinal(M,dp) & is_depth(M,p,dp) & successor(M,dp,sdp) &
-	fun_apply(M,h,sdp,hsdp) & fun_apply(M,hsdp,p,z) *)
+        finite_ordinal(M,dp) & is_depth(M,p,dp) & successor(M,dp,sdp) &
+        fun_apply(M,h,sdp,hsdp) & fun_apply(M,hsdp,p,z) *)
 definition
   depth_apply_fm :: "[i,i,i]=>i" where
     "depth_apply_fm(h,p,z) ==
@@ -554,9 +553,9 @@ subsubsection{*The Operator @{term satisfies_is_a}, Internalized*}
 (* satisfies_is_a(M,A) == 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) -->
              is_lambda(M, lA, 
-		\<lambda>env z. is_bool_of_o(M, 
+                \<lambda>env z. is_bool_of_o(M, 
                       \<exists>nx[M]. \<exists>ny[M]. 
- 		       is_nth(M,x,env,nx) & is_nth(M,y,env,ny) & nx \<in> ny, z),
+                       is_nth(M,x,env,nx) & is_nth(M,y,env,ny) & nx \<in> ny, z),
                 zz)  *)
 
 definition
@@ -656,8 +655,8 @@ subsubsection{*The Operator @{term satisfies_is_c}, Internalized*}
 (* satisfies_is_c(M,A,h) == 
     \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) -->
              is_lambda(M, lA, \<lambda>env z. \<exists>hp[M]. \<exists>hq[M]. 
-		 (\<exists>rp[M]. is_depth_apply(M,h,p,rp) & fun_apply(M,rp,env,hp)) & 
-		 (\<exists>rq[M]. is_depth_apply(M,h,q,rq) & fun_apply(M,rq,env,hq)) & 
+                 (\<exists>rp[M]. is_depth_apply(M,h,p,rp) & fun_apply(M,rp,env,hp)) & 
+                 (\<exists>rq[M]. is_depth_apply(M,h,q,rq) & fun_apply(M,rq,env,hq)) & 
                  (\<exists>pq[M]. is_and(M,hp,hq,pq) & is_not(M,pq,z)),
                 zz) *)
 
@@ -836,7 +835,7 @@ by (intro FOL_reflections function_reflections nth_reflection
 lemma Member_replacement:
     "[|L(A); x \<in> nat; y \<in> nat|]
      ==> strong_replacement
-	 (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
+         (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
               env \<in> list(A) & is_nth(L,x,env,nx) & is_nth(L,y,env,ny) & 
               is_bool_of_o(L, nx \<in> ny, bo) &
               pair(L, env, bo, z))"
@@ -866,7 +865,7 @@ by (intro FOL_reflections function_reflections nth_reflection
 lemma Equal_replacement:
     "[|L(A); x \<in> nat; y \<in> nat|]
      ==> strong_replacement
-	 (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
+         (L, \<lambda>env z. \<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L]. 
               env \<in> list(A) & is_nth(L,x,env,nx) & is_nth(L,y,env,ny) & 
               is_bool_of_o(L, nx = ny, bo) &
               pair(L, env, bo, z))"
@@ -882,10 +881,10 @@ subsubsection{*The @{term "Nand"} Case*}
 
 lemma Nand_Reflects:
     "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and>
-	       (\<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L].
-		 fun_apply(L, rp, u, rpe) \<and> fun_apply(L, rq, u, rqe) \<and>
-		 is_and(L, rpe, rqe, andpq) \<and> is_not(L, andpq, notpq) \<and>
-		 u \<in> list(A) \<and> pair(L, u, notpq, x)),
+               (\<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L].
+                 fun_apply(L, rp, u, rpe) \<and> fun_apply(L, rq, u, rqe) \<and>
+                 is_and(L, rpe, rqe, andpq) \<and> is_not(L, andpq, notpq) \<and>
+                 u \<in> list(A) \<and> pair(L, u, notpq, x)),
     \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and>
      (\<exists>rpe \<in> Lset(i). \<exists>rqe \<in> Lset(i). \<exists>andpq \<in> Lset(i). \<exists>notpq \<in> Lset(i).
        fun_apply(##Lset(i), rp, u, rpe) \<and> fun_apply(##Lset(i), rq, u, rqe) \<and>
@@ -898,7 +897,7 @@ done
 lemma Nand_replacement:
     "[|L(A); L(rp); L(rq)|]
      ==> strong_replacement
-	 (L, \<lambda>env z. \<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L]. 
+         (L, \<lambda>env z. \<exists>rpe[L]. \<exists>rqe[L]. \<exists>andpq[L]. \<exists>notpq[L]. 
                fun_apply(L,rp,env,rpe) & fun_apply(L,rq,env,rqe) & 
                is_and(L,rpe,rqe,andpq) & is_not(L,andpq,notpq) & 
                env \<in> list(A) & pair(L, env, notpq, z))"
@@ -923,9 +922,9 @@ lemma Forall_Reflects:
  \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>bo \<in> Lset(i). u \<in> list(A) \<and>
         is_bool_of_o (##Lset(i),
  \<forall>a \<in> Lset(i). \<forall>co \<in> Lset(i). \<forall>rpco \<in> Lset(i). a \<in> A \<longrightarrow>
-	    is_Cons(##Lset(i),a,u,co) \<longrightarrow> fun_apply(##Lset(i),rp,co,rpco) \<longrightarrow> 
-	    number1(##Lset(i),rpco),
-		       bo) \<and> pair(##Lset(i),u,bo,x))]"
+            is_Cons(##Lset(i),a,u,co) \<longrightarrow> fun_apply(##Lset(i),rp,co,rpco) \<longrightarrow> 
+            number1(##Lset(i),rpco),
+                       bo) \<and> pair(##Lset(i),u,bo,x))]"
 apply (unfold is_bool_of_o_def) 
 apply (intro FOL_reflections function_reflections Cons_reflection)
 done
@@ -933,14 +932,14 @@ done
 lemma Forall_replacement:
    "[|L(A); L(rp)|]
     ==> strong_replacement
-	(L, \<lambda>env z. \<exists>bo[L]. 
-	      env \<in> list(A) & 
-	      is_bool_of_o (L, 
-			    \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. 
-			       a\<in>A --> is_Cons(L,a,env,co) -->
-			       fun_apply(L,rp,co,rpco) --> number1(L, rpco), 
+        (L, \<lambda>env z. \<exists>bo[L]. 
+              env \<in> list(A) & 
+              is_bool_of_o (L, 
+                            \<forall>a[L]. \<forall>co[L]. \<forall>rpco[L]. 
+                               a\<in>A --> is_Cons(L,a,env,co) -->
+                               fun_apply(L,rp,co,rpco) --> number1(L, rpco), 
                             bo) &
-	      pair(L,env,bo,z))"
+              pair(L,env,bo,z))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,list(A),B,rp}" 
          in gen_separation_multi [OF Forall_Reflects],
@@ -978,18 +977,18 @@ lemma formula_rec_lambda_replacement_Reflects:
  "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B &
      mem_formula(L,u) &
      (\<exists>c[L].
-	 is_formula_case
-	  (L, satisfies_is_a(L,A), satisfies_is_b(L,A),
-	   satisfies_is_c(L,A,g), satisfies_is_d(L,A,g),
-	   u, c) &
-	 pair(L,u,c,x)),
+         is_formula_case
+          (L, satisfies_is_a(L,A), satisfies_is_b(L,A),
+           satisfies_is_c(L,A,g), satisfies_is_d(L,A,g),
+           u, c) &
+         pair(L,u,c,x)),
   \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & mem_formula(##Lset(i),u) &
      (\<exists>c \<in> Lset(i).
-	 is_formula_case
-	  (##Lset(i), satisfies_is_a(##Lset(i),A), satisfies_is_b(##Lset(i),A),
-	   satisfies_is_c(##Lset(i),A,g), satisfies_is_d(##Lset(i),A,g),
-	   u, c) &
-	 pair(##Lset(i),u,c,x))]"
+         is_formula_case
+          (##Lset(i), satisfies_is_a(##Lset(i),A), satisfies_is_b(##Lset(i),A),
+           satisfies_is_c(##Lset(i),A,g), satisfies_is_d(##Lset(i),A,g),
+           u, c) &
+         pair(##Lset(i),u,c,x))]"
 by (intro FOL_reflections function_reflections mem_formula_reflection
           is_formula_case_reflection satisfies_is_a_reflection
           satisfies_is_b_reflection satisfies_is_c_reflection
@@ -1022,7 +1021,7 @@ subsection{*Instantiating @{text M_satisfies}*}
 lemma M_satisfies_axioms_L: "M_satisfies_axioms(L)"
   apply (rule M_satisfies_axioms.intro)
        apply (assumption | rule
-	 Member_replacement Equal_replacement 
+         Member_replacement Equal_replacement 
          Nand_replacement Forall_replacement
          formula_rec_replacement formula_rec_lambda_replacement)+
   done

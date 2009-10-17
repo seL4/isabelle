@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/ROOT.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 

@@ -305,7 +305,7 @@ fun prepare_proof atomic rths chorn =
             val th = Goal.conclude ath
             val thy' = Thm.theory_of_thm th
             val {hyps, prop, ...} = Thm.rep_thm th
-            val final_th = standard th
+            val final_th = Drule.standard th
         in  if not check then final_th
             else if not (Theory.eq_thy(thy,thy')) then !result_error_fn state
                 ("Theory of proof state has changed!" ^
@@ -512,7 +512,7 @@ fun simple_prove_goal_cterm G f =
             0 => thm
           | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
   in
-    standard (implies_intr_list As
+    Drule.standard (implies_intr_list As
       (check (Seq.pull (EVERY (f asms) (trivial B)))))
   end;
 

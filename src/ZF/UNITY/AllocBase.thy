@@ -1,8 +1,6 @@
 (*  Title:      ZF/UNITY/AllocBase.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
-
 *)
 
 header{*Common declarations for Chandy and Charpentier's Allocator*}
@@ -355,7 +353,7 @@ done
 
 lemma var_not_Finite: "~Finite(var)"
 apply (insert nat_not_Finite) 
-apply (blast intro: lepoll_Finite [OF 	nat_lepoll_var]) 
+apply (blast intro: lepoll_Finite [OF nat_lepoll_var]) 
 done
 
 lemma not_Finite_imp_exist: "~Finite(A) ==> \<exists>x. x\<in>A"

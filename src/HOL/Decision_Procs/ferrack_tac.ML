@@ -16,9 +16,9 @@ val trace = Unsynchronized.ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
 val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_less_iff}, 
-				@{thm real_of_int_le_iff}]
-	     in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
-	     end;
+                                @{thm real_of_int_le_iff}]
+             in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
+             end;
 
 val binarith =
   @{thms normalize_bin_simps} @ @{thms pred_bin_simps} @ @{thms succ_bin_simps} @
@@ -74,8 +74,8 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun linr_tac ctxt q i = 
     (ObjectLogic.atomize_prems_tac i) 
-	THEN (REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}] i))
-	THEN (fn st =>
+        THEN (REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}] i))
+        THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
     val thy = ProofContext.theory_of ctxt

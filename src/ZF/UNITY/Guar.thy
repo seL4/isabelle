@@ -1,5 +1,4 @@
 (*  Title:      ZF/UNITY/Guar.thy
-    ID:         $Id \<in> Guar.thy,v 1.3 2001/11/15 14:51:43 ehmety Exp $
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
 

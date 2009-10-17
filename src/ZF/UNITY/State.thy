@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/State.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
 

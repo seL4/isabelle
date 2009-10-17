@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Wellorderings.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -23,30 +22,30 @@ definition
 definition
   transitive_rel :: "[i=>o,i,i]=>o" where
     "transitive_rel(M,A,r) == 
-	\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> (\<forall>z[M]. z\<in>A --> 
+        \<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> (\<forall>z[M]. z\<in>A --> 
                           <x,y>\<in>r --> <y,z>\<in>r --> <x,z>\<in>r))"
 
 definition
   linear_rel :: "[i=>o,i,i]=>o" where
     "linear_rel(M,A,r) == 
-	\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> <x,y>\<in>r | x=y | <y,x>\<in>r)"
+        \<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> <x,y>\<in>r | x=y | <y,x>\<in>r)"
 
 definition
   wellfounded :: "[i=>o,i]=>o" where
     --{*EVERY non-empty set has an @{text r}-minimal element*}
     "wellfounded(M,r) == 
-	\<forall>x[M]. x\<noteq>0 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 definition
   wellfounded_on :: "[i=>o,i,i]=>o" where
     --{*every non-empty SUBSET OF @{text A} has an @{text r}-minimal element*}
     "wellfounded_on(M,A,r) == 
-	\<forall>x[M]. x\<noteq>0 --> x\<subseteq>A --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
+        \<forall>x[M]. x\<noteq>0 --> x\<subseteq>A --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
 definition
   wellordered :: "[i=>o,i,i]=>o" where
     --{*linear and wellfounded on @{text A}*}
     "wellordered(M,A,r) == 
-	transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
+        transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
 
 
 subsubsection {*Trivial absoluteness proofs*}
@@ -221,7 +220,7 @@ lemma wellordered_subset:
     "[| wellordered(M,A,r);  B<=A |] ==> wellordered(M,B,r)"
 apply (unfold wellordered_def)
 apply (blast intro: linear_rel_subset transitive_rel_subset 
-		    wellfounded_on_subset)
+                    wellfounded_on_subset)
 done
 
 lemma (in M_basic) wellfounded_on_asym:

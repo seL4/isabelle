@@ -1,22 +1,20 @@
-(*  Title:      ZF/ex/Limit
-    ID:         $Id$
+(*  Title:      ZF/ex/Limit.thy
     Author:     Sten Agerholm
+    Author:     Lawrence C Paulson
 
-    A formalization of the inverse limit construction of domain theory.
+A formalization of the inverse limit construction of domain theory.
 
-    The following paper comments on the formalization:
+The following paper comments on the formalization:
 
-    "A Comparison of HOL-ST and Isabelle/ZF" by Sten Agerholm
-    In Proceedings of the First Isabelle Users Workshop, Technical 
-    Report No. 379, University of Cambridge Computer Laboratory, 1995.
+"A Comparison of HOL-ST and Isabelle/ZF" by Sten Agerholm
+In Proceedings of the First Isabelle Users Workshop, Technical 
+Report No. 379, University of Cambridge Computer Laboratory, 1995.
 
-    This is a condensed version of:
+This is a condensed version of:
 
-    "A Comparison of HOL-ST and Isabelle/ZF" by Sten Agerholm
-    Technical Report No. 369, University of Cambridge Computer 
-    Laboratory, 1995.
-
-(Proofs converted to Isar and tidied up considerably by lcp)
+"A Comparison of HOL-ST and Isabelle/ZF" by Sten Agerholm
+Technical Report No. 369, University of Cambridge Computer 
+Laboratory, 1995.
 *)
 
 theory Limit  imports  Main begin
@@ -523,24 +521,24 @@ proof (simp add: isub_def, safe)
   proof (rule matrix_chain_left [THEN cpo_lub, THEN islub_least], simp_all add: n D DM)
     show "isub(D, M ` n, y)" 
       proof (unfold isub_def, intro conjI ballI y)
-	fix k assume k: "k \<in> nat"
-	show "rel(D, M ` n ` k, y)"
-	  proof (cases "n le k")
-	    case True 
-	    hence yy: "rel(D, M`n`k, M`k`k)" 
-	      by (blast intro: lemma2 n k y DM D chain_rel_gen matrix_chain_right) 
-	    show "?thesis"
-	      by (rule cpo_trans [OF D yy], 
+        fix k assume k: "k \<in> nat"
+        show "rel(D, M ` n ` k, y)"
+          proof (cases "n le k")
+            case True 
+            hence yy: "rel(D, M`n`k, M`k`k)" 
+              by (blast intro: lemma2 n k y DM D chain_rel_gen matrix_chain_right) 
+            show "?thesis"
+              by (rule cpo_trans [OF D yy], 
                   simp_all add: k rel n y DM matrix_in)
-	  next
-	    case False
-	    hence le: "k le n" 
-	      by (blast intro: not_le_iff_lt [THEN iffD1, THEN leI] nat_into_Ord n k) 
-	    show "?thesis"
-	      by (rule cpo_trans [OF D chain_rel_gen [OF le]], 
-		  simp_all add: n y k rel DM D matrix_chain_left)
-	  qed
-	qed
+          next
+            case False
+            hence le: "k le n" 
+              by (blast intro: not_le_iff_lt [THEN iffD1, THEN leI] nat_into_Ord n k) 
+            show "?thesis"
+              by (rule cpo_trans [OF D chain_rel_gen [OF le]], 
+                  simp_all add: n y k rel DM D matrix_chain_left)
+          qed
+        qed
   qed
   moreover
   have "M ` n \<in> nat \<rightarrow> set(D)" by (blast intro: DM n matrix_fun [THEN apply_type])
@@ -952,7 +950,7 @@ lemma projpair_unique_aux2:
     "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p');
        rel(cf(E,D),p',p)|] ==> rel(cf(D,E),e,e')"
 apply (rule_tac b=e
-	 in projpair_e_cont [THEN cont_fun, THEN comp_id, THEN subst],
+         in projpair_e_cont [THEN cont_fun, THEN comp_id, THEN subst],
        assumption)
 apply (rule_tac e1=e' in projpair_eq [THEN subst], assumption)
 apply (rule cpo_trans)
@@ -1113,7 +1111,7 @@ apply (rule rel_iprodI, simp)
 apply (rule_tac P = "%t. rel (DD`na,t,lub (DD`na,\<lambda>x \<in> nat. X`x`na))"
             and b1 = "%n. X`n`na" in beta [THEN subst])
 apply (simp del: beta_if
-	    add: chain_iprod [THEN cpo_lub, THEN islub_ub] iprodE
+            add: chain_iprod [THEN cpo_lub, THEN islub_ub] iprodE
                 chain_in)+
 apply (blast intro: iprodI lam_type chain_iprod [THEN cpo_lub, THEN islub_in])
 apply (rule rel_iprodI)
@@ -1414,7 +1412,7 @@ apply (assumption | rule add_le_mono nat_le_refl add_type nat_succI)+
 apply (subst comp_assoc)
 apply (assumption | rule comp_mono_eq refl)+
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_less_eq add_type nat_succI)
+            add: e_less_eq add_type nat_succI)
 apply (subst id_comp) (* simp cannot unify/inst right, use brr below (?) . *)
 apply (assumption |
        rule emb_e_less_add [THEN emb_cont, THEN cont_fun] refl nat_succI)+
@@ -1487,7 +1485,7 @@ apply (subst comp_assoc)
 apply (assumption | rule comp_mono_eq refl)+
 (* New direct subgoal *)
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_gr_eq)
+            add: e_gr_eq)
 apply (subst comp_id) (* simp cannot unify/inst right, use brr below (?) . *)
 apply (assumption | rule e_gr_fun add_type refl add_le_self nat_succI)+
 done
@@ -1541,7 +1539,7 @@ apply (subst id_comp)
 apply (blast intro: e_less_cont [THEN cont_fun] add_le_self)
 apply (rule refl)
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_gr_eq)
+            add: e_gr_eq)
 apply (blast intro: id_comp [symmetric] e_less_cont [THEN cont_fun]
                     add_le_self)
 done
@@ -1568,7 +1566,7 @@ apply (subst id_comp)
 apply (blast intro!: e_less_cont [THEN cont_fun] add_le_mono nat_le_refl)
 apply (rule refl)
 apply (simp del: add_succ_right add: add_succ_right [symmetric]
-	    add: e_less_eq)
+            add: e_less_eq)
 apply (blast intro: comp_id [symmetric] e_gr_cont [THEN cont_fun] add_le_self)
 done
 
@@ -2112,7 +2110,7 @@ lemma theta_proj_chain: (* similar proof to theta_chain *)
      ==> chain(cf(G,E),\<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n)))"
 apply (rule chainI)
 apply (blast intro: lam_type cont_cf comp_pres_cont commute_emb Rp_cont 
-		    emb_cont emb_chain_cpo, simp)
+                    emb_cont emb_chain_cpo, simp)
 apply (rule_tac r1 = r and m1 = n in commute_eq [THEN subst])
 apply (rule_tac [5] r1 = f and m1 = n in commute_eq [THEN subst])
 apply (assumption | rule le_succ nat_succI)+
@@ -2122,11 +2120,11 @@ apply (rule comp_assoc [THEN subst]) (* comp_assoc is simpler in Isa *)
 apply (rule_tac r1 = "r (succ (n))" in comp_assoc [THEN ssubst])
 apply (rule comp_mono)
 apply (blast intro: comp_pres_cont eps_cont emb_eps commute_emb Rp_cont 
-		    emb_cont emb_chain_cpo le_succ)+
+                    emb_cont emb_chain_cpo le_succ)+
 apply (rule_tac b="r(succ(n))" in comp_id [THEN subst]) (* 1 subst too much *)
 apply (rule_tac [2] comp_mono)
 apply (blast intro: comp_pres_cont eps_cont emb_eps emb_id commute_emb 
-		    Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
+                    Rp_cont emb_cont cont_fun emb_chain_cpo le_succ)+
 apply (subst comp_id) (* Undoes "1 subst too much", typing next anyway *)
 apply (blast intro: cont_fun Rp_cont emb_cont commute_emb cont_cf cpo_cf 
                     emb_chain_cpo embRp_rel emb_eps le_succ)+
@@ -2158,9 +2156,9 @@ lemma theta_projpair:
       commute(DD,ee,E,r); commute(DD,ee,G,f);
       emb_chain(DD,ee); cpo(E); cpo(G) |]
    ==> projpair
-	(E,G,
-	 lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))),
-	 lub(cf(G,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n))))"
+        (E,G,
+         lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))),
+         lub(cf(G,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,G,f(n))))"
 apply (simp add: projpair_def rho_proj_def, safe)
 apply (rule_tac [3] comp_lubs [THEN ssubst])
 (* The following one line is 15 lines in HOL, and includes existentials. *)
@@ -2185,8 +2183,8 @@ done
 
 lemma emb_theta:
     "[| lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
-	commute(DD,ee,E,r); commute(DD,ee,G,f);
-	emb_chain(DD,ee); cpo(E); cpo(G) |] 
+        commute(DD,ee,E,r); commute(DD,ee,G,f);
+        emb_chain(DD,ee); cpo(E); cpo(G) |] 
      ==> emb(E,G,lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n))))"
 apply (simp add: emb_def)
 apply (blast intro: theta_projpair)
@@ -2271,9 +2269,9 @@ done
 
 lemma lub_universal_unique:
     "[| mediating(E,G,r,f,t);
-	lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
-	commute(DD,ee,E,r); commute(DD,ee,G,f);
-	emb_chain(DD,ee); cpo(E); cpo(G) |] 
+        lub(cf(E,E), \<lambda>n \<in> nat. r(n) O Rp(DD`n,E,r(n))) = id(set(E));
+        commute(DD,ee,E,r); commute(DD,ee,G,f);
+        emb_chain(DD,ee); cpo(E); cpo(G) |] 
      ==> t = lub(cf(E,G), \<lambda>n \<in> nat. f(n) O Rp(DD`n,E,r(n)))"
 apply (rule_tac b = t in comp_id [THEN subst])
 apply (erule_tac [2] subst)

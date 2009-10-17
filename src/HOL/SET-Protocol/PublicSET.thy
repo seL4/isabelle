@@ -1,5 +1,7 @@
-(*  Title:      HOL/Auth/SET/PublicSET
-    Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
+(*  Title:      HOL/SET-Protocol/PublicSET.thy
+    Author:     Giampaolo Bella
+    Author:     Fabio Massacci
+    Author:     Lawrence C Paulson
 *)
 
 header{*The Public-Key Theory, Modified for SET*}
@@ -72,33 +74,33 @@ primrec
   initState_CA:
     "initState (CA i)  =
        (if i=0 then Key ` ({priEK RCA, priSK RCA} Un
-			    pubEK ` (range CA) Un pubSK ` (range CA))
-	else {Key (priEK (CA i)), Key (priSK (CA i)),
-	      Key (pubEK (CA i)), Key (pubSK (CA i)),
-	      Key (pubEK RCA), Key (pubSK RCA)})"
+                            pubEK ` (range CA) Un pubSK ` (range CA))
+        else {Key (priEK (CA i)), Key (priSK (CA i)),
+              Key (pubEK (CA i)), Key (pubSK (CA i)),
+              Key (pubEK RCA), Key (pubSK RCA)})"
 
   initState_Cardholder:
     "initState (Cardholder i)  =    
        {Key (priEK (Cardholder i)), Key (priSK (Cardholder i)),
-	Key (pubEK (Cardholder i)), Key (pubSK (Cardholder i)),
-	Key (pubEK RCA), Key (pubSK RCA)}"
+        Key (pubEK (Cardholder i)), Key (pubSK (Cardholder i)),
+        Key (pubEK RCA), Key (pubSK RCA)}"
 
   initState_Merchant:
     "initState (Merchant i)  =    
        {Key (priEK (Merchant i)), Key (priSK (Merchant i)),
-	Key (pubEK (Merchant i)), Key (pubSK (Merchant i)),
-	Key (pubEK RCA), Key (pubSK RCA)}"
+        Key (pubEK (Merchant i)), Key (pubSK (Merchant i)),
+        Key (pubEK RCA), Key (pubSK RCA)}"
 
   initState_PG:
     "initState (PG i)  = 
        {Key (priEK (PG i)), Key (priSK (PG i)),
-	Key (pubEK (PG i)), Key (pubSK (PG i)),
-	Key (pubEK RCA), Key (pubSK RCA)}"
+        Key (pubEK (PG i)), Key (pubSK (PG i)),
+        Key (pubEK RCA), Key (pubSK RCA)}"
 (*>*)
   initState_Spy:
     "initState Spy = Key ` (invKey ` pubEK ` bad Un
-			    invKey ` pubSK ` bad Un
-			    range pubEK Un range pubSK)"
+                            invKey ` pubSK ` bad Un
+                            range pubEK Un range pubSK)"
 
 
 text{*Injective mapping from agents to PANs: an agent can have only one card*}
@@ -441,22 +443,22 @@ text{*Controlled rewrite rules for @{term signCert}, just the definitions
   redundancy!*}
 lemmas abbrev_simps [simp] =
     parts_insert_signCert analz_insert_signCert keysFor_insert_signCert
-    sign_def	 [THEN def_abbrev_simp_relation]
-    sign_def	 [THEN def_abbrev_simp_function]
+    sign_def     [THEN def_abbrev_simp_relation]
+    sign_def     [THEN def_abbrev_simp_function]
     signCert_def [THEN def_abbrev_simp_relation]
     signCert_def [THEN def_abbrev_simp_function]
-    certC_def	 [THEN def_abbrev_simp_relation]
-    certC_def	 [THEN def_abbrev_simp_function]
-    cert_def	 [THEN def_abbrev_simp_relation]
-    cert_def	 [THEN def_abbrev_simp_function]
-    EXcrypt_def	 [THEN def_abbrev_simp_relation]
-    EXcrypt_def	 [THEN def_abbrev_simp_function]
+    certC_def    [THEN def_abbrev_simp_relation]
+    certC_def    [THEN def_abbrev_simp_function]
+    cert_def     [THEN def_abbrev_simp_relation]
+    cert_def     [THEN def_abbrev_simp_function]
+    EXcrypt_def  [THEN def_abbrev_simp_relation]
+    EXcrypt_def  [THEN def_abbrev_simp_function]
     EXHcrypt_def [THEN def_abbrev_simp_relation]
     EXHcrypt_def [THEN def_abbrev_simp_function]
-    Enc_def	 [THEN def_abbrev_simp_relation]
-    Enc_def	 [THEN def_abbrev_simp_function]
-    EncB_def	 [THEN def_abbrev_simp_relation]
-    EncB_def	 [THEN def_abbrev_simp_function]
+    Enc_def      [THEN def_abbrev_simp_relation]
+    Enc_def      [THEN def_abbrev_simp_function]
+    EncB_def     [THEN def_abbrev_simp_relation]
+    EncB_def     [THEN def_abbrev_simp_function]
 
 
 subsubsection{*Elimination Rules for Controlled Rewriting *}
@@ -510,7 +512,7 @@ done
 
 lemmas analz_insert_simps = 
          analz_insert_subset_eq Un_upper2
-	 subset_insertI [THEN [2] subset_trans] 
+         subset_insertI [THEN [2] subset_trans] 
 
 
 subsection{*Freshness Lemmas*}

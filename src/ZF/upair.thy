@@ -1,5 +1,4 @@
 (*  Title:      ZF/upair.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -226,7 +225,7 @@ lemma split_if [split]:
 by (case_tac Q, simp_all)
 
 (** Rewrite rules for boolean case-splitting: faster than 
-	addsplits[split_if]
+        addsplits[split_if]
 **)
 
 lemmas split_if_eq1 = split_if [of "%x. x = b", standard]

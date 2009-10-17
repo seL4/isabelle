@@ -1,5 +1,4 @@
-(*  Author      : Jacques D. Fleuriot
-    Copyright   : 2000  University of Edinburgh
+(*  Author:     Jacques D. Fleuriot, University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
@@ -151,7 +150,7 @@ proof -
       case (Cons d1 D1')
       with induct(2)[OF `D2 \<noteq> []`, of D1'] induct(8)
       have "fine \<delta> (b, fst (hd D2)) D1'" and "fine \<delta> (fst (hd D2), c) D2" and
-	"d1 = (a', x, b)" by auto
+        "d1 = (a', x, b)" by auto
       with fine_Cons[OF this(1) induct(3,4,5), OF induct(6)] Cons
       show ?thesis by auto
     qed
@@ -381,13 +380,13 @@ proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI
     proof (rule fine_append)
       show "fine \<delta>1 (a, d) ?D1"
       proof (rule fine1[THEN fine_\<delta>_expand])
-	fix x assume "a \<le> x" "x \<le> d"
-	hence "x \<le> b" using `d < b` `x \<le> d` by auto
-	thus "\<delta> x \<le> \<delta>1 x" unfolding \<delta>_def by auto
+        fix x assume "a \<le> x" "x \<le> d"
+        hence "x \<le> b" using `d < b` `x \<le> d` by auto
+        thus "\<delta> x \<le> \<delta>1 x" unfolding \<delta>_def by auto
       qed
 
       have "b - d < \<delta>1 t"
-	using mem_fine3[OF fine in_D] \<delta>_def `b \<le> e` `t = b` by auto
+        using mem_fine3[OF fine in_D] \<delta>_def `b \<le> e` `t = b` by auto
       from `d < b` `d \<le> t` `t = b` this
       show "fine \<delta>1 (d, b) [(d, t, b)]" using fine_single by auto
     qed
@@ -410,8 +409,8 @@ proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI
       with *(2) have "fine \<delta> (e,c) (drop (Suc N) D)" by auto
       thus ?thesis
       proof (rule fine_\<delta>_expand)
-	fix x assume "e \<le> x" and "x \<le> c"
-	thus "\<delta> x \<le> \<delta>2 x" using `b \<le> e` unfolding \<delta>_def by auto
+        fix x assume "e \<le> x" and "x \<le> c"
+        thus "\<delta> x \<le> \<delta>2 x" using `b \<le> e` unfolding \<delta>_def by auto
       qed
     qed
 
@@ -421,11 +420,11 @@ proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI
     next
       case False
       have "e - b < \<delta>2 b"
-	using mem_fine3[OF fine in_D] \<delta>_def `d < b` `t = b` by auto
+        using mem_fine3[OF fine in_D] \<delta>_def `d < b` `t = b` by auto
       with False `t = b` `b \<le> e`
       show ?thesis using D2_def
-	by (auto intro!: fine_append[OF _ fine2] fine_single
-	       simp del: append_Cons)
+        by (auto intro!: fine_append[OF _ fine2] fine_single
+               simp del: append_Cons)
     qed
     note rsum2 = I2[OF this]
 

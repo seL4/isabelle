@@ -27,19 +27,19 @@ proof (rule order_antisym)
       then have hyp: "\<And>m. f m < f n \<Longrightarrow> m \<le> f m" by (simp only:)
       show "n \<le> f n"
       proof (cases n)
-	case (Suc m)
-	from f_ax have "f (f m) < f n" by (simp only: Suc)
-	with hyp have "f m \<le> f (f m)" .
-	also from f_ax have "\<dots> < f n" by (simp only: Suc)
-	finally have "f m < f n" .
-	with hyp have "m \<le> f m" .
-	also note `\<dots> < f n`
-	finally have "m < f n" .
-	then have "n \<le> f n" by (simp only: Suc)
-	then show ?thesis .
+        case (Suc m)
+        from f_ax have "f (f m) < f n" by (simp only: Suc)
+        with hyp have "f m \<le> f (f m)" .
+        also from f_ax have "\<dots> < f n" by (simp only: Suc)
+        finally have "f m < f n" .
+        with hyp have "m \<le> f m" .
+        also note `\<dots> < f n`
+        finally have "m < f n" .
+        then have "n \<le> f n" by (simp only: Suc)
+        then show ?thesis .
       next
-	case 0
-	then show ?thesis by simp
+        case 0
+        then show ?thesis by simp
       qed
     qed
   } note ge = this

@@ -1,8 +1,6 @@
 (*  Title:      ZF/OrderType.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*Order Types and Ordinal Arithmetic*}
@@ -161,7 +159,7 @@ apply (simp (no_asm_simp) add: ordermap_pred_unfold)
 apply (rule OrdI [OF _ Ord_is_Transset])
 apply (unfold pred_def Transset_def)
 apply (blast intro: trans_onD
-	     dest!: ordermap_unfold [THEN equalityD1])+ 
+             dest!: ordermap_unfold [THEN equalityD1])+ 
 done
 
 lemma Ord_ordertype: 
@@ -172,7 +170,7 @@ apply (rule OrdI [OF _ Ord_is_Transset])
 prefer 2 apply (blast intro: Ord_ordermap)
 apply (unfold Transset_def well_ord_def)
 apply (blast intro: trans_onD
-	     dest!: ordermap_unfold [THEN equalityD1])
+             dest!: ordermap_unfold [THEN equalityD1])
 done
 
 

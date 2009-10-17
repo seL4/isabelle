@@ -149,7 +149,7 @@ next
     proof (rule converse_rtrancl_induct)
       show "t \<in> lfp ?F"
       proof (subst lfp_unfold[OF mono_ef])
-	show "t \<in> ?F(lfp ?F)" using tA by blast
+        show "t \<in> ?F(lfp ?F)" using tA by blast
       qed
     next
       fix s s'
@@ -157,7 +157,7 @@ next
          and IH: "s' \<in> lfp ?F"
       show "s \<in> lfp ?F"
       proof (subst lfp_unfold[OF mono_ef])
-	show "s \<in> ?F(lfp ?F)" using prems by blast
+        show "s \<in> ?F(lfp ?F)" using prems by blast
       qed
     qed
   qed

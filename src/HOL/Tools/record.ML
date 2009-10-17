@@ -1045,7 +1045,7 @@ fun quick_and_dirty_prove stndrd thy asms prop tac =
         we varify the proposition manually here.*)
   else
     let val prf = Goal.prove (ProofContext.init thy) [] asms prop tac
-    in if stndrd then standard prf else prf end;
+    in if stndrd then Drule.standard prf else prf end;
 
 fun quick_and_dirty_prf noopt opt () =
   if ! record_quick_and_dirty_sensitive andalso ! quick_and_dirty
@@ -1097,7 +1097,7 @@ fun get_accupd_simps thy term defset intros_tac =
           if is_sel_upd_pair thy acc upd
           then o_eq_dest
           else o_eq_id_dest;
-      in standard (othm RS dest) end;
+      in Drule.standard (othm RS dest) end;
   in map get_simp upd_funs end;
 
 fun get_updupd_simp thy defset intros_tac u u' comp =
@@ -1118,7 +1118,7 @@ fun get_updupd_simp thy defset intros_tac u u' comp =
             REPEAT_DETERM (intros_tac 1),
             TRY (simp_tac (HOL_ss addsimps [id_apply]) 1)]);
     val dest = if comp then o_eq_dest_lhs else o_eq_dest;
-  in standard (othm RS dest) end;
+  in Drule.standard (othm RS dest) end;
 
 fun get_updupd_simps thy term defset intros_tac =
   let
@@ -1312,7 +1312,8 @@ val record_upd_simproc =
             val ss = get_sel_upd_defs thy;
             val uathm = get_upd_acc_cong_thm upd acc thy ss;
           in
-            [standard (uathm RS updacc_noopE), standard (uathm RS updacc_noop_compE)]
+           [Drule.standard (uathm RS updacc_noopE),
+            Drule.standard (uathm RS updacc_noop_compE)]
           end;
 
         (*If f is constant then (f o g) = f. we know that K_skeleton
@@ -1755,7 +1756,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       to prove other theorems. We haven't given names to the accessors
       f, g etc yet however, so we generate an ext structure with
       free variables as all arguments and allow the introduction tactic to
-      operate on it as far as it can. We then use standard to convert
+      operate on it as far as it can. We then use Drule.standard to convert
       the free variables into unifiable variables and unify them with
       (roughly) the definition of the accessor.*)
     fun surject_prf () =
@@ -1766,8 +1767,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
           simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
           REPEAT_ALL_NEW intros_tac 1;
         val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
-        val [halfway] = Seq.list_of (tactic1 start);    (* FIXME Seq.lift_of ?? *)
-        val [surject] = Seq.list_of (tactic2 (standard halfway));    (* FIXME Seq.lift_of ?? *)
+        val [halfway] = Seq.list_of (tactic1 start);  (* FIXME Seq.lift_of ?? *)
+        val [surject] = Seq.list_of (tactic2 (Drule.standard halfway));  (* FIXME Seq.lift_of ?? *)
       in
         surject
       end;
@@ -2168,14 +2169,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun sel_convs_prf () =
       map (prove_simp false ss (sel_defs @ accessor_thms)) sel_conv_props;
     val sel_convs = timeit_msg "record sel_convs proof:" sel_convs_prf;
-    fun sel_convs_standard_prf () = map standard sel_convs
+    fun sel_convs_standard_prf () = map Drule.standard sel_convs
     val sel_convs_standard =
       timeit_msg "record sel_convs_standard proof:" sel_convs_standard_prf;
 
     fun upd_convs_prf () =
       map (prove_simp false ss (upd_defs @ updator_thms)) upd_conv_props;
     val upd_convs = timeit_msg "record upd_convs proof:" upd_convs_prf;
-    fun upd_convs_standard_prf () = map standard upd_convs
+    fun upd_convs_standard_prf () = map Drule.standard upd_convs
     val upd_convs_standard =
       timeit_msg "record upd_convs_standard proof:" upd_convs_standard_prf;
 
@@ -2183,7 +2184,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       let
         val symdefs = map symmetric (sel_defs @ upd_defs);
         val fold_ss = HOL_basic_ss addsimps symdefs;
-        val ua_congs = map (standard o simplify fold_ss) upd_acc_cong_assists;
+        val ua_congs = map (Drule.standard o simplify fold_ss) upd_acc_cong_assists;
       in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end;
     val (fold_congs, unfold_congs) =
       timeit_msg "record upd fold/unfold congs:" get_upd_acc_congs;
@@ -2217,7 +2218,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             [(cterm_of defs_thy Pvar, cterm_of defs_thy
               (lambda w (HOLogic.imp $ HOLogic.mk_eq (r0, w) $ C)))]
             induct_scheme;
-        in standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
+        in Drule.standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
 
     fun cases_scheme_prf_noopt () =
       prove_standard [] cases_scheme_prop
@@ -2262,7 +2263,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             rtac (prop_subst OF [surjective]) 1,
             REPEAT (etac meta_allE 1), atac 1]);
     val split_meta = timeit_msg "record split_meta proof:" split_meta_prf;
-    fun split_meta_standardise () = standard split_meta;
+    fun split_meta_standardise () = Drule.standard split_meta;
     val split_meta_standard =
       timeit_msg "record split_meta standard:" split_meta_standardise;
 
@@ -2287,7 +2288,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           |> equal_elim (symmetric split_meta') (*!!r. P r*)
           |> meta_to_obj_all                    (*All r. P r*)
           |> implies_intr cr                    (* 2 ==> 1 *)
-     in standard (thr COMP (thl COMP iffI)) end;
+     in Drule.standard (thr COMP (thl COMP iffI)) end;
 
     fun split_object_prf_noopt () =
       prove_standard [] split_object_prop

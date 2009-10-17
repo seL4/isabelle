@@ -51,7 +51,7 @@ where
                          (Some (AnnSeq c (AnnWhile i b i c)), s)"
 
 | AnnAwait: "\<lbrakk> s \<in> b; atom_com c; (c, s) -P*\<rightarrow> (Parallel [], t) \<rbrakk> \<Longrightarrow>
-	           (Some (AnnAwait r b c), s) -1\<rightarrow> (None, t)" 
+                   (Some (AnnAwait r b c), s) -1\<rightarrow> (None, t)" 
 
 | Parallel: "\<lbrakk> i<length Ts; Ts!i = (Some c, q); (Some c, s) -1\<rightarrow> (r, t) \<rbrakk>
               \<Longrightarrow> (Parallel Ts, s) -P1\<rightarrow> (Parallel (Ts [i:=(r, q)]), t)"

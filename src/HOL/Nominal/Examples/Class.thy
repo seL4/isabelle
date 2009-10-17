@@ -8497,63 +8497,63 @@ next
     { assume asm: "N\<noteq>Ax y b"
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} = 
         (Cut <a>.NotR (u).(M{y:=<c>.P}) a (v).NotL <b>.(N{y:=<c>.P}) v)" using prems
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>l (Cut <b>.(N{y:=<c>.P}) (u).(M{y:=<c>.P}))" using prems
-	by (auto intro: l_redu.intros simp add: subst_fresh)
+        by (auto intro: l_redu.intros simp add: subst_fresh)
       also have "\<dots> = (Cut <b>.N (u).M){y:=<c>.P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally have ?thesis by auto
     }
     moreover
     { assume asm: "N=Ax y b"
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} = 
         (Cut <a>.NotR (u).(M{y:=<c>.P}) a (v).NotL <b>.(N{y:=<c>.P}) v)" using prems
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(N{y:=<c>.P}) (u).(M{y:=<c>.P}))" using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <b>.(Cut <c>.P (y).Ax y b) (u).(M{y:=<c>.P}))" using prems
-	by simp
+        by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(P[c\<turnstile>c>b]) (u).(M{y:=<c>.P}))" 
       proof (cases "fic P c")
-	case True 
-	assume "fic P c"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutL_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxR_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fic P c"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutL_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxR_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fic P c" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_left)
-	  apply(simp)
-	  apply(simp add: subst_with_ax2)
-	  done
+        case False 
+        assume "\<not>fic P c" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_left)
+          apply(simp)
+          apply(simp add: subst_with_ax2)
+          done
       qed
       also have "\<dots> = (Cut <b>.N (u).M){y:=<c>.P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule crename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule crename_swap)
+        apply(simp)
+        done
       finally have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <b>.N (u).M){y:=<c>.P}" 
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -8564,72 +8564,72 @@ next
     { assume asm: "M1\<noteq>Ax y a1"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL1 (u).(N{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{y:=<c>.P}) (u).(N{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a1>.M1 (u).N){y:=<c>.P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){y:=<c>.P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "M1=Ax y a1"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL1 (u).(N{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{y:=<c>.P}) (u).(N{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a1>.(Cut <c>.P (y). Ax y a1) (u).(N{y:=<c>.P})" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.P[c\<turnstile>c>a1] (u).(N{y:=<c>.P})"
       proof (cases "fic P c")
-	case True 
-	assume "fic P c"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutL_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxR_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fic P c"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutL_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxR_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fic P c" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_left)
-	  apply(simp)
-	  apply(simp add: subst_with_ax2)
-	  done
+        case False 
+        assume "\<not>fic P c" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_left)
+          apply(simp)
+          apply(simp add: subst_with_ax2)
+          done
       qed
       also have "\<dots> = (Cut <a1>.M1 (u).N){y:=<c>.P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule crename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule crename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){y:=<c>.P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -8640,72 +8640,72 @@ next
     { assume asm: "M2\<noteq>Ax y a2"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL2 (u).(N{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{y:=<c>.P}) (u).(N{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a2>.M2 (u).N){y:=<c>.P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){y:=<c>.P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "M2=Ax y a2"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL2 (u).(N{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{y:=<c>.P}) (u).(N{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a2>.(Cut <c>.P (y). Ax y a2) (u).(N{y:=<c>.P})" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.P[c\<turnstile>c>a2] (u).(N{y:=<c>.P})"
       proof (cases "fic P c")
-	case True 
-	assume "fic P c"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutL_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxR_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fic P c"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutL_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxR_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fic P c" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_left)
-	  apply(simp)
-	  apply(simp add: subst_with_ax2)
-	  done
+        case False 
+        assume "\<not>fic P c" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_left)
+          apply(simp)
+          apply(simp add: subst_with_ax2)
+          done
       qed
       also have "\<dots> = (Cut <a2>.M2 (u).N){y:=<c>.P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule crename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule crename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){y:=<c>.P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -8716,72 +8716,72 @@ next
     { assume asm: "M\<noteq>Ax y a"
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR1 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x1).(N1{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a>.M (x1).N1){y:=<c>.P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){y:=<c>.P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "M=Ax y a"
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR1 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x1).(N1{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(Cut <c>.P (y). Ax y a) (x1).(N1{y:=<c>.P})" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.P[c\<turnstile>c>a] (x1).(N1{y:=<c>.P})"
       proof (cases "fic P c")
-	case True 
-	assume "fic P c"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutL_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxR_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fic P c"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutL_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxR_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fic P c" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_left)
-	  apply(simp)
-	  apply(simp add: subst_with_ax2)
-	  done
+        case False 
+        assume "\<not>fic P c" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_left)
+          apply(simp)
+          apply(simp add: subst_with_ax2)
+          done
       qed
       also have "\<dots> = (Cut <a>.M (x1).N1){y:=<c>.P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule crename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule crename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){y:=<c>.P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -8792,72 +8792,72 @@ next
     { assume asm: "M\<noteq>Ax y a"
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR2 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x2).(N2{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a>.M (x2).N2){y:=<c>.P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){y:=<c>.P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "M=Ax y a"
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR2 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x2).(N2{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(Cut <c>.P (y). Ax y a) (x2).(N2{y:=<c>.P})" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.P[c\<turnstile>c>a] (x2).(N2{y:=<c>.P})"
       proof (cases "fic P c")
-	case True 
-	assume "fic P c"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutL_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxR_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fic P c"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutL_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxR_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fic P c" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_left)
-	  apply(simp)
-	  apply(simp add: subst_with_ax2)
-	  done
+        case False 
+        assume "\<not>fic P c" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_left)
+          apply(simp)
+          apply(simp add: subst_with_ax2)
+          done
       qed
       also have "\<dots> = (Cut <a>.M (x2).N2){y:=<c>.P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule crename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule crename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){y:=<c>.P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -8868,80 +8868,80 @@ next
     { assume asm: "N\<noteq>Ax y d"
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} = 
         Cut <b>.ImpR (x).<a>.(M{y:=<c>.P}) b (z).ImpL <d>.(N{y:=<c>.P}) (u).(Q{y:=<c>.P}) z" 
-	using prems by (simp add: fresh_prod abs_fresh fresh_atm)
+        using prems by (simp add: fresh_prod abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{y:=<c>.P})  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a>.(Cut <d>.N  (x).M) (u).Q){y:=<c>.P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} \<longrightarrow>\<^isub>a* 
                      (Cut <a>.(Cut <d>.N  (x).M) (u).Q){y:=<c>.P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "N=Ax y d"
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} = 
         Cut <b>.ImpR (x).<a>.(M{y:=<c>.P}) b (z).ImpL <d>.(N{y:=<c>.P}) (u).(Q{y:=<c>.P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{y:=<c>.P})  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(Cut <d>.(Cut <c>.P (y).Ax y d)  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(P[c\<turnstile>c>d]) (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
       proof (cases "fic P c")
-	case True 
-	assume "fic P c"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutL_intro)
-	  apply(rule a_Cut_l)
-	  apply(simp add: subst_fresh abs_fresh)
-	  apply(simp add: abs_fresh fresh_atm)
-	  apply(rule al_redu)
-	  apply(rule better_LAxR_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fic P c"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutL_intro)
+          apply(rule a_Cut_l)
+          apply(simp add: subst_fresh abs_fresh)
+          apply(simp add: abs_fresh fresh_atm)
+          apply(rule al_redu)
+          apply(rule better_LAxR_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fic P c" 
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_left)
-	  apply(simp)
-	  apply(simp add: subst_with_ax2)
-	  done
+        case False 
+        assume "\<not>fic P c" 
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_CutL)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_left)
+          apply(simp)
+          apply(simp add: subst_with_ax2)
+          done
       qed
       also have "\<dots> = (Cut <a>.(Cut <d>.N (x).M) (u).Q){y:=<c>.P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha)
-	apply(rule sym)
-	apply(rule crename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha)
+        apply(rule sym)
+        apply(rule crename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} \<longrightarrow>\<^isub>a* 
-	       (Cut <a>.(Cut <d>.N (x).M) (u).Q){y:=<c>.P}"
-	by simp
+               (Cut <a>.(Cut <d>.N (x).M) (u).Q){y:=<c>.P}"
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -9007,63 +9007,63 @@ next
     { assume asm: "M\<noteq>Ax u c"
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} = 
         (Cut <a>.NotR (u).(M{c:=(y).P}) a (v).NotL <b>.(N{c:=(y).P}) v)" using prems
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>l (Cut <b>.(N{c:=(y).P}) (u).(M{c:=(y).P}))" using prems
-	by (auto intro: l_redu.intros simp add: subst_fresh)
+        by (auto intro: l_redu.intros simp add: subst_fresh)
       also have "\<dots> = (Cut <b>.N (u).M){c:=(y).P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally have ?thesis by auto
     }
     moreover
     { assume asm: "M=Ax u c"
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} = 
         (Cut <a>.NotR (u).(M{c:=(y).P}) a (v).NotL <b>.(N{c:=(y).P}) v)" using prems
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(N{c:=(y).P}) (u).(M{c:=(y).P}))" using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <b>.(N{c:=(y).P}) (u).(Cut <c>.(Ax u c) (y).P))" using prems
-	by simp
+        by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(N{c:=(y).P})  (u).(P[y\<turnstile>n>u]))" 
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutR_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutR_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <b>.N (u).M){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule nrename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule nrename_swap)
+        apply(simp)
+        done
       finally have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <b>.N (u).M){c:=(y).P}" 
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -9074,72 +9074,72 @@ next
     { assume asm: "N\<noteq>Ax u c"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL1 (u).(N{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{c:=(y).P}) (u).(N{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a1>.M1 (u).N){c:=(y).P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){c:=(y).P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "N=Ax u c"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL1 (u).(N{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{c:=(y).P}) (u).(N{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a1>.(M1{c:=(y).P}) (u).(Cut <c>.(Ax u c) (y).P)" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{c:=(y).P}) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutR_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutR_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a1>.M1 (u).N){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule nrename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule nrename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){c:=(y).P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -9150,72 +9150,72 @@ next
     { assume asm: "N\<noteq>Ax u c"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL2 (u).(N{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{c:=(y).P}) (u).(N{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a2>.M2 (u).N){c:=(y).P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){c:=(y).P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "N=Ax u c"
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL2 (u).(N{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{c:=(y).P}) (u).(N{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a2>.(M2{c:=(y).P}) (u).(Cut <c>.(Ax u c) (y).P)" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{c:=(y).P}) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutR_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutR_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a2>.M2 (u).N){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule nrename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule nrename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){c:=(y).P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -9226,72 +9226,72 @@ next
     { assume asm: "N1\<noteq>Ax x1 c"
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR1 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x1).(N1{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a>.M (x1).N1){c:=(y).P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){c:=(y).P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "N1=Ax x1 c"
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR1 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x1).(N1{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(M{c:=(y).P}) (x1).(Cut <c>.(Ax x1 c) (y).P)" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P})   (x1).(P[y\<turnstile>n>x1])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutR_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutR_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a>.M (x1).N1){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule nrename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule nrename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){c:=(y).P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -9302,72 +9302,72 @@ next
     { assume asm: "N2\<noteq>Ax x2 c"
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR2 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x2).(N2{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a>.M (x2).N2){c:=(y).P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){c:=(y).P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "N2=Ax x2 c"
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR2 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x2).(N2{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(M{c:=(y).P}) (x2).(Cut <c>.(Ax x2 c) (y).P)" 
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x2).(P[y\<turnstile>n>x2])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_starI)
-	  apply(rule better_CutR_intro)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_starI)
+          apply(rule better_CutR_intro)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a>.M (x2).N2){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(rule sym)
-	apply(rule nrename_swap)
-	apply(simp)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(rule sym)
+        apply(rule nrename_swap)
+        apply(simp)
+        done
       finally 
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){c:=(y).P}"
-	by simp
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -9378,213 +9378,213 @@ next
     { assume asm: "M\<noteq>Ax x c \<and> Q\<noteq>Ax u c"
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
-	using prems by (simp add: fresh_prod abs_fresh fresh_atm)
+        using prems by (simp add: fresh_prod abs_fresh fresh_atm)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = (Cut <a>.(Cut <d>.N  (x).M) (u).Q){c:=(y).P}" using prems 
-	by (simp add: subst_fresh abs_fresh fresh_atm)
+        by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
                      (Cut <a>.(Cut <d>.N  (x).M) (u).Q){c:=(y).P}"
-	by simp
+        by simp
     } 
     moreover
     { assume asm: "M=Ax x c \<and> Q\<noteq>Ax u c"
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(Q{c:=(y).P})"
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(P[y\<turnstile>n>x])) (u).(Q{c:=(y).P})"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha)
-	apply(simp add: nrename_swap)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha)
+        apply(simp add: nrename_swap)
+        done
       finally 
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
-	       (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
-	by simp
+               (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
+        by simp
     }
      moreover
     { assume asm: "M\<noteq>Ax x c \<and> Q=Ax u c"
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Cut <c>.Ax u c (y).P)"
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_starI)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_starI)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(simp add: alpha fresh_atm)
-	apply(simp add: nrename_swap)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(simp add: alpha fresh_atm)
+        apply(simp add: nrename_swap)
+        done
       finally 
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
-	       (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
-	by simp
+               (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
+        by simp
     }
      moreover
     { assume asm: "M=Ax x c \<and> Q=Ax u c"
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
-	using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
+        using prems by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
-	using prems
-	apply -
-	apply(rule a_starI)
-	apply(rule al_redu)
-	apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
-	done
+        using prems
+        apply -
+        apply(rule a_starI)
+        apply(rule al_redu)
+        apply(auto intro: l_redu.intros simp add: subst_fresh abs_fresh)
+        done
       also have "\<dots> = Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(Cut <c>.Ax u c (y).P)"
-	using prems by simp
+        using prems by simp
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_starI)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_starI)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(P[y\<turnstile>n>x])) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
-	case True 
-	assume "fin P y"
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_CutR)
-	  apply(rule a_starI)
-	  apply(rule al_redu)
-	  apply(rule better_LAxL_intro)
-	  apply(simp)
-	  done
+        case True 
+        assume "fin P y"
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_CutR)
+          apply(rule a_starI)
+          apply(rule al_redu)
+          apply(rule better_LAxL_intro)
+          apply(simp)
+          done
       next
-	case False 
-	assume "\<not>fin P y" 
-	then show ?thesis using prems
-	  apply -
-	  apply(rule a_star_CutL)
-	  apply(rule a_star_CutR)
-	  apply(rule a_star_trans)
-	  apply(rule a_starI)
-	  apply(rule ac_redu)
-	  apply(rule better_right)
-	  apply(simp)
-	  apply(simp add: subst_with_ax1)
-	  done
+        case False 
+        assume "\<not>fin P y" 
+        then show ?thesis using prems
+          apply -
+          apply(rule a_star_CutL)
+          apply(rule a_star_CutR)
+          apply(rule a_star_trans)
+          apply(rule a_starI)
+          apply(rule ac_redu)
+          apply(rule better_right)
+          apply(simp)
+          apply(simp add: subst_with_ax1)
+          done
       qed
       also have "\<dots> = (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}" using prems
-	apply -
-	apply(auto simp add: subst_fresh abs_fresh)
-	apply(simp add: trm.inject)
-	apply(rule conjI)
-	apply(simp add: alpha fresh_atm trm.inject)
-	apply(simp add: nrename_swap)
-	apply(simp add: alpha fresh_atm trm.inject)
-	apply(simp add: nrename_swap)
-	done
+        apply -
+        apply(auto simp add: subst_fresh abs_fresh)
+        apply(simp add: trm.inject)
+        apply(rule conjI)
+        apply(simp add: alpha fresh_atm trm.inject)
+        apply(simp add: nrename_swap)
+        apply(simp add: alpha fresh_atm trm.inject)
+        apply(simp add: nrename_swap)
+        done
       finally 
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
-	       (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
-	by simp
+               (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
+        by simp
     }
     ultimately show ?thesis by blast
   qed
@@ -10057,12 +10057,12 @@ proof -
     proof (induct b rule: SNa.induct)
       case (SNaI y)
       show ?case
-	apply (rule hyp)
-	apply (erule SNa')
-	apply (erule SNa')
-	apply (rule SNa.SNaI)
-	apply (erule SNaI)+
-	done
+        apply (rule hyp)
+        apply (erule SNa')
+        apply (erule SNa')
+        apply (rule SNa.SNaI)
+        apply (erule SNaI)+
+        done
     qed
   qed
   from b_SNa show ?thesis by (rule r)
@@ -13484,7 +13484,7 @@ next
      moreover
     { assume "<a>:M \<in> NOTRIGHT (NOT B) (\<parallel>(B)\<parallel>)"
       then obtain x' M' where eq: "M = NotR (x').M' a" and "(x'):M' \<in> (\<parallel>(B)\<parallel>)"
-	using NOTRIGHT_elim by blast
+        using NOTRIGHT_elim by blast
       then have "SNa M'" using ih2 by blast
       then have "SNa M" using eq by (simp add: NotR_in_SNa)
     }
@@ -13506,7 +13506,7 @@ next
      moreover
     { assume "(x):M \<in> NOTLEFT (NOT B) (\<parallel><B>\<parallel>)"
       then obtain a' M' where eq: "M = NotL <a'>.M' x" and "<a'>:M' \<in> (\<parallel><B>\<parallel>)"
-	using NOTLEFT_elim by blast
+        using NOTLEFT_elim by blast
       then have "SNa M'" using ih1 by blast
       then have "SNa M" using eq by (simp add: NotL_in_SNa)
     }
@@ -13535,7 +13535,7 @@ next
     { assume "<a>:M \<in> ANDRIGHT (A AND B) (\<parallel><A>\<parallel>) (\<parallel><B>\<parallel>)"
       then obtain a' M' b' N' where eq: "M = AndR <a'>.M' <b'>.N' a" 
                                 and "<a'>:M' \<in> (\<parallel><A>\<parallel>)" and "<b'>:N' \<in> (\<parallel><B>\<parallel>)"
-	by (erule_tac ANDRIGHT_elim, blast)
+        by (erule_tac ANDRIGHT_elim, blast)
       then have "SNa M'" and "SNa N'" using ih1 ih3 by blast+
       then have "SNa M" using eq by (simp add: AndR_in_SNa)
     }
@@ -13558,14 +13558,14 @@ next
      moreover
     { assume "(x):M \<in> ANDLEFT1 (A AND B) (\<parallel>(A)\<parallel>)"
       then obtain x' M' where eq: "M = AndL1 (x').M' x" and "(x'):M' \<in> (\<parallel>(A)\<parallel>)"
-	using ANDLEFT1_elim by blast
+        using ANDLEFT1_elim by blast
       then have "SNa M'" using ih2 by blast
       then have "SNa M" using eq by (simp add: AndL1_in_SNa)
     }
     moreover
     { assume "(x):M \<in> ANDLEFT2 (A AND B) (\<parallel>(B)\<parallel>)"
       then obtain x' M' where eq: "M = AndL2 (x').M' x" and "(x'):M' \<in> (\<parallel>(B)\<parallel>)"
-	using ANDLEFT2_elim by blast
+        using ANDLEFT2_elim by blast
       then have "SNa M'" using ih4 by blast
       then have "SNa M" using eq by (simp add: AndL2_in_SNa)
     }
@@ -13594,14 +13594,14 @@ next
     { assume "<a>:M \<in> ORRIGHT1 (A OR B) (\<parallel><A>\<parallel>)"
       then obtain a' M' where eq: "M = OrR1 <a'>.M' a" 
                                 and "<a'>:M' \<in> (\<parallel><A>\<parallel>)" 
-	by (erule_tac ORRIGHT1_elim, blast)
+        by (erule_tac ORRIGHT1_elim, blast)
       then have "SNa M'" using ih1 by blast
       then have "SNa M" using eq by (simp add: OrR1_in_SNa)
     }
      moreover
     { assume "<a>:M \<in> ORRIGHT2 (A OR B) (\<parallel><B>\<parallel>)"
       then obtain a' M' where eq: "M = OrR2 <a'>.M' a" and "<a'>:M' \<in> (\<parallel><B>\<parallel>)" 
-	using ORRIGHT2_elim by blast
+        using ORRIGHT2_elim by blast
       then have "SNa M'" using ih3 by blast
       then have "SNa M" using eq by (simp add: OrR2_in_SNa)
     }
@@ -13625,7 +13625,7 @@ next
     { assume "(x):M \<in> ORLEFT (A OR B) (\<parallel>(A)\<parallel>) (\<parallel>(B)\<parallel>)"
       then obtain x' M' y' N' where eq: "M = OrL (x').M' (y').N' x" 
                                 and "(x'):M' \<in> (\<parallel>(A)\<parallel>)" and  "(y'):N' \<in> (\<parallel>(B)\<parallel>)"
-	by (erule_tac ORLEFT_elim, blast)
+        by (erule_tac ORLEFT_elim, blast)
       then have "SNa M'" and "SNa N'" using ih2 ih4 by blast+
       then have "SNa M" using eq by (simp add: OrL_in_SNa)
     }
@@ -13654,7 +13654,7 @@ next
     { assume "<a>:M \<in> IMPRIGHT (A IMP B) (\<parallel>(A)\<parallel>) (\<parallel><B>\<parallel>) (\<parallel>(B)\<parallel>) (\<parallel><A>\<parallel>)"
       then obtain x' a' M' where eq: "M = ImpR (x').<a'>.M' a" 
                            and imp: "\<forall>z P. x'\<sharp>(z,P) \<and> (z):P \<in> \<parallel>(B)\<parallel> \<longrightarrow> (x'):(M'{a':=(z).P}) \<in> \<parallel>(A)\<parallel>"    
-	by (erule_tac IMPRIGHT_elim, blast)
+        by (erule_tac IMPRIGHT_elim, blast)
       obtain z::"name" where fs: "z\<sharp>x'" by (rule_tac exists_fresh, rule fin_supp, blast)
       have "(z):Ax z a'\<in> \<parallel>(B)\<parallel>" by (simp add: Ax_in_CANDs)
       with imp fs have "(x'):(M'{a':=(z).Ax z a'}) \<in> \<parallel>(A)\<parallel>" by (simp add: fresh_prod fresh_atm)
@@ -13685,7 +13685,7 @@ next
     { assume "(x):M \<in> IMPLEFT (A IMP B) (\<parallel><A>\<parallel>) (\<parallel>(B)\<parallel>)"
       then obtain a' M' y' N' where eq: "M = ImpL <a'>.M' (y').N' x" 
                                 and "<a'>:M' \<in> (\<parallel><A>\<parallel>)" and  "(y'):N' \<in> (\<parallel>(B)\<parallel>)"
-	by (erule_tac IMPLEFT_elim, blast)
+        by (erule_tac IMPLEFT_elim, blast)
       then have "SNa M'" and "SNa N'" using ih1 ih4 by blast+
       then have "SNa M" using eq by (simp add: ImpL_in_SNa)
     }
@@ -13708,7 +13708,7 @@ lemma AXIOMS_preserved:
   apply(auto)
   apply(drule ax_do_not_a_star_reduce)
   apply(auto)
-  done	
+  done  
 
 lemma BINDING_preserved:
   shows "<a>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>) \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> <a>:M' \<in> BINDINGc B (\<parallel>(B)\<parallel>)"
@@ -13803,26 +13803,26 @@ next
       then obtain x' a' N' where eq: "M = ImpR (x').<a'>.N' a" and fic: "fic (ImpR (x').<a'>.N' a) a"
                            and imp1: "\<forall>z P. x'\<sharp>(z,P) \<and> (z):P \<in> \<parallel>(B)\<parallel> \<longrightarrow> (x'):(N'{a':=(z).P}) \<in> \<parallel>(A)\<parallel>" 
                            and imp2: "\<forall>c Q. a'\<sharp>(c,Q) \<and> <c>:Q \<in> \<parallel><A>\<parallel> \<longrightarrow> <a'>:(N'{x':=<c>.Q}) \<in> \<parallel><B>\<parallel>"
-	using IMPRIGHT_elim by blast
+        using IMPRIGHT_elim by blast
       from eq asm obtain N'' where eq': "M' = ImpR (x').<a'>.N'' a" and red: "N' \<longrightarrow>\<^isub>a* N''" 
-	using a_star_redu_ImpR_elim by (blast)
+        using a_star_redu_ImpR_elim by (blast)
       from imp1 have "\<forall>z P. x'\<sharp>(z,P) \<and> (z):P \<in> \<parallel>(B)\<parallel> \<longrightarrow> (x'):(N''{a':=(z).P}) \<in> \<parallel>(A)\<parallel>" using red ih2
-	apply(auto)
-	apply(drule_tac x="z" in spec)
-	apply(drule_tac x="P" in spec)
-	apply(simp)
-	apply(drule_tac a_star_subst2)
-	apply(blast)
-	done
+        apply(auto)
+        apply(drule_tac x="z" in spec)
+        apply(drule_tac x="P" in spec)
+        apply(simp)
+        apply(drule_tac a_star_subst2)
+        apply(blast)
+        done
       moreover
       from imp2 have "\<forall>c Q. a'\<sharp>(c,Q) \<and> <c>:Q \<in> \<parallel><A>\<parallel> \<longrightarrow> <a'>:(N''{x':=<c>.Q}) \<in> \<parallel><B>\<parallel>" using red ih3
-	apply(auto)
-	apply(drule_tac x="c" in spec)
-	apply(drule_tac x="Q" in spec)
-	apply(simp)
-	apply(drule_tac a_star_subst1)
-	apply(blast)
-	done
+        apply(auto)
+        apply(drule_tac x="c" in spec)
+        apply(drule_tac x="Q" in spec)
+        apply(simp)
+        apply(drule_tac a_star_subst1)
+        apply(blast)
+        done
       moreover
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       ultimately have "<a>:M' \<in> IMPRIGHT (A IMP B) (\<parallel>(A)\<parallel>) (\<parallel><B>\<parallel>) (\<parallel>(B)\<parallel>) (\<parallel><A>\<parallel>)" using eq' by auto
@@ -13851,10 +13851,10 @@ next
       then obtain a' T' y' N' where eq: "M = ImpL <a'>.T' (y').N' x" 
                              and fin: "fin (ImpL <a'>.T' (y').N' x) x"
                              and imp1: "<a'>:T' \<in> \<parallel><A>\<parallel>" and imp2: "(y'):N' \<in> \<parallel>(B)\<parallel>"
-	by (erule_tac IMPLEFT_elim, blast)
+        by (erule_tac IMPLEFT_elim, blast)
       from eq asm obtain T'' N'' where eq': "M' = ImpL <a'>.T'' (y').N'' x" 
                                  and red1: "T' \<longrightarrow>\<^isub>a* T''"  and red2: "N' \<longrightarrow>\<^isub>a* N''"
-	using a_star_redu_ImpL_elim by blast
+        using a_star_redu_ImpL_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
       from imp1 red1 have "<a'>:T'' \<in> \<parallel><A>\<parallel>" using ih1 by simp
@@ -13892,10 +13892,10 @@ next
       then obtain a' T' b' N' where eq: "M = AndR <a'>.T' <b'>.N' a" 
                               and fic: "fic (AndR <a'>.T' <b'>.N' a) a"
                            and imp1: "<a'>:T' \<in> \<parallel><A>\<parallel>" and imp2: "<b'>:N' \<in> \<parallel><B>\<parallel>"
-	using ANDRIGHT_elim by blast
+        using ANDRIGHT_elim by blast
       from eq asm obtain T'' N'' where eq': "M' = AndR <a'>.T'' <b'>.N'' a" 
                           and red1: "T' \<longrightarrow>\<^isub>a* T''" and red2: "N' \<longrightarrow>\<^isub>a* N''" 
-	using a_star_redu_AndR_elim by blast
+        using a_star_redu_AndR_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
       from imp1 red1 have "<a'>:T'' \<in> \<parallel><A>\<parallel>" using ih1 by simp
@@ -13926,9 +13926,9 @@ next
     { assume "(x):M \<in> ANDLEFT1 (A AND B) (\<parallel>(A)\<parallel>)"
       then obtain y' N' where eq: "M = AndL1 (y').N' x" 
                              and fin: "fin (AndL1 (y').N' x) x" and imp: "(y'):N' \<in> \<parallel>(A)\<parallel>"
-	by (erule_tac ANDLEFT1_elim, blast)
+        by (erule_tac ANDLEFT1_elim, blast)
       from eq asm obtain N'' where eq': "M' = AndL1 (y').N'' x" and red1: "N' \<longrightarrow>\<^isub>a* N''"
-	using a_star_redu_AndL1_elim by blast
+        using a_star_redu_AndL1_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
       from imp red1 have "(y'):N'' \<in> \<parallel>(A)\<parallel>" using ih2 by simp
@@ -13938,9 +13938,9 @@ next
     { assume "(x):M \<in> ANDLEFT2 (A AND B) (\<parallel>(B)\<parallel>)"
       then obtain y' N' where eq: "M = AndL2 (y').N' x" 
                              and fin: "fin (AndL2 (y').N' x) x" and imp: "(y'):N' \<in> \<parallel>(B)\<parallel>"
-	by (erule_tac ANDLEFT2_elim, blast)
+        by (erule_tac ANDLEFT2_elim, blast)
       from eq asm obtain N'' where eq': "M' = AndL2 (y').N'' x" and red1: "N' \<longrightarrow>\<^isub>a* N''"
-	using a_star_redu_AndL2_elim by blast
+        using a_star_redu_AndL2_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
       from imp red1 have "(y'):N'' \<in> \<parallel>(B)\<parallel>" using ih4 by simp
@@ -13975,9 +13975,9 @@ next
     { assume "<a>:M \<in> ORRIGHT1 (A OR B) (\<parallel><A>\<parallel>)"
       then obtain a' N' where eq: "M = OrR1 <a'>.N' a" 
                               and fic: "fic (OrR1 <a'>.N' a) a" and imp1: "<a'>:N' \<in> \<parallel><A>\<parallel>"
-	using ORRIGHT1_elim by blast
+        using ORRIGHT1_elim by blast
       from eq asm obtain N'' where eq': "M' = OrR1 <a'>.N'' a" and red1: "N' \<longrightarrow>\<^isub>a* N''" 
-	using a_star_redu_OrR1_elim by blast
+        using a_star_redu_OrR1_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
       from imp1 red1 have "<a'>:N'' \<in> \<parallel><A>\<parallel>" using ih1 by simp
@@ -13987,9 +13987,9 @@ next
     { assume "<a>:M \<in> ORRIGHT2 (A OR B) (\<parallel><B>\<parallel>)"
       then obtain a' N' where eq: "M = OrR2 <a'>.N' a" 
                               and fic: "fic (OrR2 <a'>.N' a) a" and imp1: "<a'>:N' \<in> \<parallel><B>\<parallel>"
-	using ORRIGHT2_elim by blast
+        using ORRIGHT2_elim by blast
       from eq asm obtain N'' where eq': "M' = OrR2 <a'>.N'' a" and red1: "N' \<longrightarrow>\<^isub>a* N''" 
-	using a_star_redu_OrR2_elim by blast
+        using a_star_redu_OrR2_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
       from imp1 red1 have "<a'>:N'' \<in> \<parallel><B>\<parallel>" using ih3 by simp
@@ -14019,10 +14019,10 @@ next
       then obtain y' T' z' N' where eq: "M = OrL (y').T' (z').N' x" 
                              and fin: "fin (OrL (y').T' (z').N' x) x" 
                              and imp1: "(y'):T' \<in> \<parallel>(A)\<parallel>" and imp2: "(z'):N' \<in> \<parallel>(B)\<parallel>"
-	by (erule_tac ORLEFT_elim, blast)
+        by (erule_tac ORLEFT_elim, blast)
       from eq asm obtain T'' N'' where eq': "M' = OrL (y').T'' (z').N'' x" 
                 and red1: "T' \<longrightarrow>\<^isub>a* T''" and red2: "N' \<longrightarrow>\<^isub>a* N''"
-	using a_star_redu_OrL_elim by blast
+        using a_star_redu_OrL_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
       from imp1 red1 have "(y'):T'' \<in> \<parallel>(A)\<parallel>" using ih2 by simp
@@ -14057,9 +14057,9 @@ next
     { assume "<a>:M \<in> NOTRIGHT (NOT A) (\<parallel>(A)\<parallel>)"
       then obtain y' N' where eq: "M = NotR (y').N' a" 
                               and fic: "fic (NotR (y').N' a) a" and imp: "(y'):N' \<in> \<parallel>(A)\<parallel>"
-	using NOTRIGHT_elim by blast
+        using NOTRIGHT_elim by blast
       from eq asm obtain N'' where eq': "M' = NotR (y').N'' a" and red: "N' \<longrightarrow>\<^isub>a* N''" 
-	using a_star_redu_NotR_elim by blast
+        using a_star_redu_NotR_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
       from imp red have "(y'):N'' \<in> \<parallel>(A)\<parallel>" using ih2 by simp
@@ -14088,9 +14088,9 @@ next
     { assume "(x):M \<in> NOTLEFT (NOT A) (\<parallel><A>\<parallel>)"
       then obtain a' N' where eq: "M = NotL <a'>.N' x" 
                              and fin: "fin (NotL <a'>.N' x) x" and imp: "<a'>:N' \<in> \<parallel><A>\<parallel>"
-	by (erule_tac NOTLEFT_elim, blast)
+        by (erule_tac NOTLEFT_elim, blast)
       from eq asm obtain N'' where eq': "M' = NotL <a'>.N'' x" and red1: "N' \<longrightarrow>\<^isub>a* N''"
-	using a_star_redu_NotL_elim by blast
+        using a_star_redu_NotL_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
       from imp red1 have "<a'>:N'' \<in> \<parallel><A>\<parallel>" using ih1 by simp

@@ -76,17 +76,17 @@ ML {*
 
 (* extended for treatment of nu (TH) *)
 fun search_mu ((Const("MuCalculus.mu",tp)) $ t2) = 
-	(case (search_mu t2) of
-	      SOME t => SOME t 
-	    | NONE => SOME ((Const("MuCalculus.mu",tp)) $ t2))
+        (case (search_mu t2) of
+              SOME t => SOME t 
+            | NONE => SOME ((Const("MuCalculus.mu",tp)) $ t2))
   | search_mu ((Const("MuCalculus.nu",tp)) $ t2) =
         (case (search_mu t2) of
               SOME t => SOME t
             | NONE => SOME ((Const("MuCalculus.nu",tp)) $ t2))
   | search_mu (t1 $ t2) = 
-	(case (search_mu t1) of
-	      SOME t => SOME t 
-	    | NONE     => search_mu t2)
+        (case (search_mu t1) of
+              SOME t => SOME t 
+            | NONE     => search_mu t2)
   | search_mu (Abs(_,_,t)) = search_mu t
   | search_mu _ = NONE;
 
@@ -99,12 +99,12 @@ fun search_mu ((Const("MuCalculus.mu",tp)) $ t2) =
 fun search_var s t =
 case t of
      t1 $ t2 => (case (search_var s t1) of
-		             SOME tt => SOME tt |
-			     NONE => search_var s t2) |
+                             SOME tt => SOME tt |
+                             NONE => search_var s t2) |
      Abs(_,_,t) => search_var s t |
      Var((s1,_),_) => if s = s1 then SOME t else NONE |
      _ => NONE;
-	
+        
 
 (* function move_mus:
    Mucke can't deal with nested Mu terms. move_mus i searches for 
@@ -119,8 +119,8 @@ case t of
 local
 
   val move_thm = OldGoals.prove_goal @{theory} "[| a = b ==> P a; a = b |] ==> P b"
-	(fn prems => [cut_facts_tac prems 1, dtac sym 1, hyp_subst_tac 1,
-		     REPEAT (resolve_tac prems 1)]);
+        (fn prems => [cut_facts_tac prems 1, dtac sym 1, hyp_subst_tac 1,
+                     REPEAT (resolve_tac prems 1)]);
 
   val sig_move_thm = Thm.theory_of_thm move_thm;
   val bCterm = cterm_of sig_move_thm (valOf (search_var "b" (concl_of move_thm)));
@@ -134,20 +134,20 @@ let val sign = Thm.theory_of_thm state;
     val concl = Logic.strip_imp_concl subgoal; (* recursive mu's in prems? *)
     val redex = search_mu concl;
     val idx = let val t = #maxidx (rep_thm state) in 
-	      if t < 0 then 1 else t+1 end;
+              if t < 0 then 1 else t+1 end;
 in
 case redex of
      NONE => all_tac state |
      SOME redexterm => 
-	let val Credex = cterm_of sign redexterm;
-	    val aiCterm = 
-		cterm_of sig_move_thm (Logic.incr_indexes ([],idx) (term_of aCterm));
-	    val inst_move_thm = cterm_instantiate 
-				[(bCterm,Credex),(aCterm,aiCterm)] move_thm;
-	in
+        let val Credex = cterm_of sign redexterm;
+            val aiCterm = 
+                cterm_of sig_move_thm (Logic.incr_indexes ([],idx) (term_of aCterm));
+            val inst_move_thm = cterm_instantiate 
+                                [(bCterm,Credex),(aCterm,aiCterm)] move_thm;
+        in
             ((rtac inst_move_thm i) THEN (dtac eq_reflection i) 
-		THEN (move_mus i)) state
-	end
+                THEN (move_mus i)) state
+        end
 end;
 end;
 
@@ -192,12 +192,12 @@ fun mk_lam_def (_::_) _ _ = NONE
   | mk_lam_def [] ((Const("==",_) $ (Const _)) $ RHS) t = SOME t
   | mk_lam_def [] ((Const("==",_) $ LHS) $ RHS) t = 
     let val thy = theory_of_thm t;
-	val fnam = Syntax.string_of_term_global thy (getfun LHS);
-	val rhs = Syntax.string_of_term_global thy (freeze_thaw RHS)
-	val gl = delete_bold_string (fnam ^" == % " ^ (getargs LHS) ^" . " ^ rhs);
+        val fnam = Syntax.string_of_term_global thy (getfun LHS);
+        val rhs = Syntax.string_of_term_global thy (freeze_thaw RHS)
+        val gl = delete_bold_string (fnam ^" == % " ^ (getargs LHS) ^" . " ^ rhs);
     in
-	SOME (OldGoals.prove_goal thy gl (fn prems =>
-  		[(REPEAT (rtac ext_rl 1)), (rtac t 1) ]))
+        SOME (OldGoals.prove_goal thy gl (fn prems =>
+                [(REPEAT (rtac ext_rl 1)), (rtac t 1) ]))
     end
 | mk_lam_def [] _ t= NONE; 
 

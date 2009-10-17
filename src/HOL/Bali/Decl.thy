@@ -171,7 +171,7 @@ translations
 
 types     
         fdecl           (* field declaration, cf. 8.3 *)
-	= "vname \<times> field"
+        = "vname \<times> field"
 
 
 translations
@@ -294,9 +294,9 @@ record  ibody = decl +  --{* interface body *}
 
 record  iface = ibody + --{* interface *}
          isuperIfs:: "qtname list" --{* superinterface list *}
-types	
-	idecl           --{* interface declaration, cf. 9.1 *}
-	= "qtname \<times> iface"
+types
+        idecl           --{* interface declaration, cf. 9.1 *}
+        = "qtname \<times> iface"
 
 translations
   "ibody" <= (type) "\<lparr>access::acc_modi,imethods::(sig \<times> mhead) list\<rparr>"
@@ -326,9 +326,9 @@ record cbody = decl +          --{* class body *}
 record "class" = cbody +           --{* class *}
         super   :: "qtname"      --{* superclass *}
         superIfs:: "qtname list" --{* implemented interfaces *}
-types	
-	cdecl           --{* class declaration, cf. 8.1 *}
-	= "qtname \<times> class"
+types
+        cdecl           --{* class declaration, cf. 8.1 *}
+        = "qtname \<times> class"
 
 translations
   "cbody" <= (type) "\<lparr>access::acc_modi,cfields::fdecl list,
@@ -388,8 +388,8 @@ by (simp add: SXcptC_def)
 
 constdefs standard_classes :: "cdecl list"
          "standard_classes \<equiv> [ObjectC, SXcptC Throwable,
-		SXcptC NullPointer, SXcptC OutOfMemory, SXcptC ClassCast,
-		SXcptC NegArrSize , SXcptC IndOutBound, SXcptC ArrStore]"
+                SXcptC NullPointer, SXcptC OutOfMemory, SXcptC ClassCast,
+                SXcptC NegArrSize , SXcptC IndOutBound, SXcptC ArrStore]"
 
 
 section "programs"
@@ -409,10 +409,10 @@ syntax
   is_class  :: "prog  \<Rightarrow> qtname  \<Rightarrow> bool"
 
 translations
-	   "iface G I" == "table_of (ifaces G) I"
-	   "class G C" == "table_of (classes G) C"
-	"is_iface G I" == "iface G I \<noteq> None"
-	"is_class G C" == "class G C \<noteq> None"
+           "iface G I" == "table_of (ifaces G) I"
+           "class G C" == "table_of (classes G) C"
+        "is_iface G I" == "iface G I \<noteq> None"
+        "is_class G C" == "class G C \<noteq> None"
 
 
 section "is type"
@@ -421,12 +421,12 @@ consts
   is_type :: "prog \<Rightarrow>     ty \<Rightarrow> bool"
   isrtype :: "prog \<Rightarrow> ref_ty \<Rightarrow> bool"
 
-primrec	"is_type G (PrimT pt)  = True"
-	"is_type G (RefT  rt)  = isrtype G rt"
-	"isrtype G (NullT    ) = True"
-	"isrtype G (IfaceT tn) = is_iface G tn"
-	"isrtype G (ClassT tn) = is_class G tn"
-	"isrtype G (ArrayT T ) = is_type  G T"
+primrec "is_type G (PrimT pt)  = True"
+        "is_type G (RefT  rt)  = isrtype G rt"
+        "isrtype G (NullT    ) = True"
+        "isrtype G (IfaceT tn) = is_iface G tn"
+        "isrtype G (ClassT tn) = is_class G tn"
+        "isrtype G (ArrayT T ) = is_type  G T"
 
 lemma type_is_iface: "is_type G (Iface I) \<Longrightarrow> is_iface G I"
 by auto
@@ -457,7 +457,7 @@ syntax (xsymbols)
 
 translations
         "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" == "(C,D) \<in> subcls1 G"
-	"G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" (* cf. 8.1.3 *)
+        "G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" (* cf. 8.1.3 *)
         "G\<turnstile>C \<prec>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^+"
  
 
@@ -516,7 +516,7 @@ constdefs
   
   ws_prog  :: "prog \<Rightarrow> bool"
  "ws_prog G \<equiv> (\<forall>(I,i)\<in>set (ifaces  G). ws_idecl G I (isuperIfs i)) \<and> 
-	      (\<forall>(C,c)\<in>set (classes G). ws_cdecl G C (super c))"
+              (\<forall>(C,c)\<in>set (classes G). ws_cdecl G C (super c))"
 
 
 lemma ws_progI: 
@@ -710,12 +710,12 @@ proof -
     next
       case False
       with ws iscls obtain sc where
-	sc: "class G (super c) = Some sc"
-	by (auto dest: ws_prog_cdeclD)
+        sc: "class G (super c) = Some sc"
+        by (auto dest: ws_prog_cdeclD)
       from iscls False have "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 (super c)" by (rule subcls1I)
       with False ws step hyp iscls sc
       show "P C c" 
-	by (auto)  
+        by (auto)  
     qed
   qed
   with clsC show "P C c" by auto
@@ -742,12 +742,12 @@ proof -
       case Nil
       with if_I hyp_sub 
       show "P I" 
-	by auto
+        by auto
     next
       case (Cons hd tl)
       with hyp if_I hyp_sub 
       show "P I" 
-	by auto
+        by auto
     qed
   qed
 qed
@@ -802,7 +802,7 @@ imethds:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) t
   \<equiv> iface_rec (G,I)  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
-	
+        
 
 
 end

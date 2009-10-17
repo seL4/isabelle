@@ -2,33 +2,34 @@
     Author:     Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
     Author:     Tjark Weber, TU Muenchen
 
-  FIXME: major overlaps with the code in meson.ML
+FIXME: major overlaps with the code in meson.ML
 
-  Description:
-  This file contains functions and tactics to transform a formula into
-  Conjunctive Normal Form (CNF).
-  A formula in CNF is of the following form:
+Functions and tactics to transform a formula into Conjunctive Normal
+Form (CNF).
 
-      (x11 | x12 | ... | x1n) & ... & (xm1 | xm2 | ... | xmk)
-      False
-      True
+A formula in CNF is of the following form:
 
-  where each xij is a literal (a positive or negative atomic Boolean term),
-  i.e. the formula is a conjunction of disjunctions of literals, or
-  "False", or "True".
+    (x11 | x12 | ... | x1n) & ... & (xm1 | xm2 | ... | xmk)
+    False
+    True
 
-  A (non-empty) disjunction of literals is referred to as "clause".
+where each xij is a literal (a positive or negative atomic Boolean
+term), i.e. the formula is a conjunction of disjunctions of literals,
+or "False", or "True".
 
-  For the purpose of SAT proof reconstruction, we also make use of another
-  representation of clauses, which we call the "raw clauses".
-  Raw clauses are of the form
+A (non-empty) disjunction of literals is referred to as "clause".
 
-      [..., x1', x2', ..., xn'] |- False ,
+For the purpose of SAT proof reconstruction, we also make use of
+another representation of clauses, which we call the "raw clauses".
+Raw clauses are of the form
 
-  where each xi is a literal, and each xi' is the negation normal form of ~xi.
+    [..., x1', x2', ..., xn'] |- False ,
 
-  Literals are successively removed from the hyps of raw clauses by resolution
-  during SAT proof reconstruction.
+where each xi is a literal, and each xi' is the negation normal form
+of ~xi.
+
+Literals are successively removed from the hyps of raw clauses by
+resolution during SAT proof reconstruction.
 *)
 
 signature CNF =

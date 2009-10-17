@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Weakening 
   imports "../Nominal" 
 begin
@@ -180,7 +178,7 @@ proof (induct arbitrary: \<Gamma>2)
     proof -
       have "\<Gamma>1 \<subseteq> \<Gamma>2" by fact
       then have "[(c,x)]\<bullet>((x,T1)#\<Gamma>1 \<subseteq> (x,T1)#([(c,x)]\<bullet>\<Gamma>2))" using fc0 fc1 
-	by (perm_simp add: eqvts calc_atm perm_fresh_fresh ty_fresh)
+        by (perm_simp add: eqvts calc_atm perm_fresh_fresh ty_fresh)
       then show "(x,T1)#\<Gamma>1 \<subseteq> (x,T1)#([(c,x)]\<bullet>\<Gamma>2)" by (rule perm_boolE)
     qed
     moreover 
@@ -188,7 +186,7 @@ proof (induct arbitrary: \<Gamma>2)
     proof -
       have "valid \<Gamma>2" by fact
       then show "valid ((x,T1)#([(c,x)]\<bullet>\<Gamma>2))" using fc1
-	by (auto intro!: v2 simp add: fresh_left calc_atm eqvts)
+        by (auto intro!: v2 simp add: fresh_left calc_atm eqvts)
     qed
     (* these two facts give us by induction hypothesis the following *)
     ultimately have "(x,T1)#([(c,x)]\<bullet>\<Gamma>2) \<turnstile> t : T2" using ih by simp 

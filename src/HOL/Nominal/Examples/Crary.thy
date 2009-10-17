@@ -800,7 +800,7 @@ proof -
       then have "\<not> y\<sharp>\<Gamma>" by (induct \<Gamma>) (auto simp add: fresh_list_cons fresh_atm fresh_prod)
       then have hf:"x\<sharp> Var y" using fs by (auto simp add: fresh_atm)
       then have "((x,s)#\<theta>)<Var y> = \<theta><Var y>" "((x,t)#\<theta>')<Var y> = \<theta>'<Var y>" 
-	using fresh_psubst_simp by blast+ 
+        using fresh_psubst_simp by blast+ 
       moreover have  "\<Gamma>' \<turnstile> \<theta><Var y> is \<theta>'<Var y> : U" using h1 hl by auto
       ultimately have "\<Gamma>' \<turnstile> ((x,s)#\<theta>)<Var y> is ((x,t)#\<theta>')<Var y> : U" by auto
     }

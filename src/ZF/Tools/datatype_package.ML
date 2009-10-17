@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Datatype/Codatatype Definitions
+Datatype/Codatatype Definitions.
 
 The functor will be instantiated for normal sums/products (datatype defs)
                          and non-standard sums/products (codatatype defs)
@@ -55,9 +55,9 @@ fun data_domain co (rec_tms, con_ty_lists) =
           (fn t => "Datatype set not previously declared as constant: " ^
                    Syntax.string_of_term_global @{theory IFOL} t);
         val rec_names = (*nat doesn't have to be added*)
-	    @{const_name nat} :: map (#1 o dest_Const) rec_hds
-	val u = if co then @{const QUniv.quniv} else @{const Univ.univ}
-	val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
+            @{const_name nat} :: map (#1 o dest_Const) rec_hds
+        val u = if co then @{const QUniv.quniv} else @{const Univ.univ}
+        val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
           (fn t as Const (a, _) => if a mem_string rec_names then I else insert (op =) t
             | _ => I)) con_ty_lists [];
     in  u $ Ind_Syntax.union_params (hd rec_tms, cs)  end;
@@ -292,7 +292,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
          rtac case_trans 1,
          REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
 
-  val free_iffs = map standard (con_defs RL [@{thm def_swap_iff}]);
+  val free_iffs = map Drule.standard (con_defs RL [@{thm def_swap_iff}]);
 
   val case_eqns = map prove_case_eqn (flat con_ty_lists ~~ case_args ~~ tl con_defs);
 
@@ -338,7 +338,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val constructors =
       map (head_of o #1 o Logic.dest_equals o #prop o rep_thm) (tl con_defs);
 
-  val free_SEs = map standard (Ind_Syntax.mk_free_SEs free_iffs);
+  val free_SEs = map Drule.standard (Ind_Syntax.mk_free_SEs free_iffs);
 
   val {intrs, elim, induct, mutual_induct, ...} = ind_result
 

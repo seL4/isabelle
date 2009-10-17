@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/MetaExists.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 

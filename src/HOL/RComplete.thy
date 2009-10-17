@@ -196,11 +196,11 @@ proof
 
       have "\<forall>pe \<in> ?pS. pe \<le> px"
       proof
-	fix pe
-	assume "pe \<in> ?pS"
-	hence "real_of_preal pe \<in> S" by simp
-	hence "real_of_preal pe \<le> x" using x_ub_S by simp
-	thus "pe \<le> px" using x_is_px by (simp add: real_of_preal_le_iff)
+        fix pe
+        assume "pe \<in> ?pS"
+        hence "real_of_preal pe \<in> S" by simp
+        hence "real_of_preal pe \<le> x" using x_ub_S by simp
+        thus "pe \<le> px" using x_is_px by (simp add: real_of_preal_le_iff)
       qed
 
       moreover have "?pS \<noteq> {}" using ps_in_pS by auto
@@ -259,13 +259,13 @@ proof -
         fix x
         assume "isUb (UNIV::real set) S x"
         hence "isUb (UNIV::real set) (?SHIFT) (x + (-X) + 1)"
-	  using S_Ub_is_SHIFT_Ub by simp
+          using S_Ub_is_SHIFT_Ub by simp
         hence "t \<le> (x + (-X) + 1)"
-	  using t_is_Lub by (simp add: isLub_le_isUb)
+          using t_is_Lub by (simp add: isLub_le_isUb)
         hence "t + X + -1 \<le> x" by arith
       }
       then show "(t + X + -1) <=* Collect (isUb UNIV S)"
-	by (simp add: setgeI)
+        by (simp add: setgeI)
     next
       show "isUb UNIV S (t + X + -1)"
       proof -

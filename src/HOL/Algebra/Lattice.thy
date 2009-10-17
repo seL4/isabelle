@@ -533,22 +533,22 @@ proof (unfold sup_def)
       assume y: "y \<in> Upper L (insert x A)"
       show "s \<sqsubseteq> y"
       proof (rule least_le [OF least_s], rule Upper_memI)
-	fix z
-	assume z: "z \<in> {a, x}"
-	then show "z \<sqsubseteq> y"
-	proof
+        fix z
+        assume z: "z \<in> {a, x}"
+        then show "z \<sqsubseteq> y"
+        proof
           have y': "y \<in> Upper L A"
             apply (rule subsetD [where A = "Upper L (insert x A)"])
              apply (rule Upper_antimono)
-	     apply blast
-	    apply (rule y)
+             apply blast
+            apply (rule y)
             done
           assume "z = a"
           with y' least_a show ?thesis by (fast dest: least_le)
-	next
-	  assume "z \<in> {x}"  (* FIXME "z = x"; declare specific elim rule for "insert x {}" (!?) *)
+        next
+          assume "z \<in> {x}"  (* FIXME "z = x"; declare specific elim rule for "insert x {}" (!?) *)
           with y L show ?thesis by blast
-	qed
+        qed
       qed (rule Upper_closed [THEN subsetD, OF y])
     next
       from L show "insert x A \<subseteq> carrier L" by simp
@@ -569,9 +569,9 @@ next
     case True
     with insert show ?thesis
       by simp (simp add: least_cong [OF weak_sup_of_singleton]
-	sup_of_singleton_closed sup_of_singletonI)
-	(* The above step is hairy; least_cong can make simp loop.
-	Would want special version of simp to apply least_cong. *)
+        sup_of_singleton_closed sup_of_singletonI)
+        (* The above step is hairy; least_cong can make simp loop.
+        Would want special version of simp to apply least_cong. *)
   next
     case False
     with insert have "least L (\<Squnion>A) (Upper L A)" by simp
@@ -774,22 +774,22 @@ proof (unfold inf_def)
       assume y: "y \<in> Lower L (insert x A)"
       show "y \<sqsubseteq> i"
       proof (rule greatest_le [OF greatest_i], rule Lower_memI)
-	fix z
-	assume z: "z \<in> {a, x}"
-	then show "y \<sqsubseteq> z"
-	proof
+        fix z
+        assume z: "z \<in> {a, x}"
+        then show "y \<sqsubseteq> z"
+        proof
           have y': "y \<in> Lower L A"
             apply (rule subsetD [where A = "Lower L (insert x A)"])
             apply (rule Lower_antimono)
-	     apply blast
-	    apply (rule y)
+             apply blast
+            apply (rule y)
             done
           assume "z = a"
           with y' greatest_a show ?thesis by (fast dest: greatest_le)
-	next
+        next
           assume "z \<in> {x}"
           with y L show ?thesis by blast
-	qed
+        qed
       qed (rule Lower_closed [THEN subsetD, OF y])
     next
       from L show "insert x A \<subseteq> carrier L" by simp
@@ -809,7 +809,7 @@ next
     case True
     with insert show ?thesis
       by simp (simp add: greatest_cong [OF weak_inf_of_singleton]
-	inf_of_singleton_closed inf_of_singletonI)
+        inf_of_singleton_closed inf_of_singletonI)
   next
     case False
     from insert show ?thesis
@@ -1291,7 +1291,7 @@ next
   proof
     from B show "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
       txt {* @{term "\<Inter> B"} is not the infimum of @{term B}:
-	@{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! *}
+        @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! *}
       by (fastsimp intro!: greatest_LowerI simp: Lower_def)
   qed
 qed

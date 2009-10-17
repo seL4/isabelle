@@ -1,8 +1,9 @@
 (*  Title:      HOL/Nominal/nominal_permeq.ML
-    Authors:    Christian Urban, Julien Narboux, TU Muenchen
+    Author:     Christian Urban, TU Muenchen
+    Author:     Julien Narboux, TU Muenchen
 
-Methods for simplifying permutations and
-for analysing equations involving permutations.
+Methods for simplifying permutations and for analysing equations
+involving permutations. 
 *)
 
 (*
@@ -99,7 +100,7 @@ fun perm_simproc_app' sg ss redex =
     (* constant or when (f x) is a permuation with two or more arguments     *)
     fun applicable_app t = 
           (case (strip_comb t) of
-	      (Const ("Nominal.perm",_),ts) => (length ts) >= 2
+              (Const ("Nominal.perm",_),ts) => (length ts) >= 2
             | (Const _,_) => false
             | _ => true)
   in
@@ -126,9 +127,9 @@ fun perm_simproc_fun' sg ss redex =
      fun applicable_fun t =
        (case (strip_comb t) of
           (Abs _ ,[]) => true
-	| (Const ("Nominal.perm",_),_) => false
+        | (Const ("Nominal.perm",_),_) => false
         | (Const _, _) => true
-	| _ => false)
+        | _ => false)
    in
      case redex of 
        (* case pi o f == (%x. pi o (f ((rev pi)o x))) *)     
@@ -159,14 +160,14 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ss i =
 fun perm_simp stac ss = 
     let val simps = ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp","swap_simps"]
     in 
-	perm_simp_gen stac simps [] ss
+        perm_simp_gen stac simps [] ss
     end;
 
 fun eqvt_simp stac ss = 
     let val simps = ["perm_swap","perm_fresh_fresh","perm_pi_simp"]
-	val eqvts_thms = NominalThmDecls.get_eqvt_thms (Simplifier.the_context ss);
+        val eqvts_thms = NominalThmDecls.get_eqvt_thms (Simplifier.the_context ss);
     in 
-	perm_simp_gen stac simps eqvts_thms ss
+        perm_simp_gen stac simps eqvts_thms ss
     end;
 
 
@@ -252,15 +253,15 @@ fun ext_fun_tac i = ("extensionality expansion of functions", rtac ext i);
 (* to 10 - this seems to be sufficient in most cases              *)
 fun perm_extend_simp_tac_i tactical ss =
   let fun perm_extend_simp_tac_aux tactical ss n = 
-	  if n=0 then K all_tac
-	  else DETERM o 
-	       (FIRST'[fn i => tactical ("splitting conjunctions on the rhs", rtac conjI i),
+          if n=0 then K all_tac
+          else DETERM o 
+               (FIRST'[fn i => tactical ("splitting conjunctions on the rhs", rtac conjI i),
                        fn i => tactical (perm_simp asm_full_simp_tac ss i),
-		       fn i => tactical (perm_compose_tac ss i),
-		       fn i => tactical (apply_cong_tac i), 
+                       fn i => tactical (perm_compose_tac ss i),
+                       fn i => tactical (apply_cong_tac i), 
                        fn i => tactical (unfold_perm_fun_def_tac i),
                        fn i => tactical (ext_fun_tac i)]
-		      THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ss (n-1))))
+                      THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ss (n-1))))
   in perm_extend_simp_tac_aux tactical ss 10 end;
 
 
@@ -329,10 +330,10 @@ fun finite_guess_tac_i tactical ss i st =
 (* support of these free variables (op supports) the goal          *)
 fun fresh_guess_tac_i tactical ss i st =
     let 
-	val goal = List.nth(cprems_of st, i-1)
+        val goal = List.nth(cprems_of st, i-1)
         val fin_supp = dynamic_thms st ("fin_supp")
         val fresh_atm = dynamic_thms st ("fresh_atm")
-	val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
+        val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
         val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in
       case Logic.strip_assums_concl (term_of goal) of

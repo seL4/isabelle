@@ -32,21 +32,21 @@ fun warn_duplicates [] = []
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
     let val dups = warn_duplicates (gen_inter Thm.eq_thm_prop (ths,safes))
-	val ths' = subtract Thm.eq_thm_prop dups ths
+        val ths' = subtract Thm.eq_thm_prop dups ths
     in
         Pack(sort (make_ord less) (ths'@safes), unsafes)
     end;
 
 fun (Pack(safes,unsafes)) add_unsafes ths = 
     let val dups = warn_duplicates (gen_inter Thm.eq_thm_prop (ths,unsafes))
-	val ths' = subtract Thm.eq_thm_prop dups ths
+        val ths' = subtract Thm.eq_thm_prop dups ths
     in
-	Pack(safes, sort (make_ord less) (ths'@unsafes))
+        Pack(safes, sort (make_ord less) (ths'@unsafes))
     end;
 
 fun merge_pack (Pack(safes,unsafes), Pack(safes',unsafes')) =
         Pack(sort (make_ord less) (safes@safes'), 
-	     sort (make_ord less) (unsafes@unsafes'));
+             sort (make_ord less) (unsafes@unsafes'));
 
 
 fun print_pack (Pack(safes,unsafes)) =
@@ -75,10 +75,10 @@ fun could_resolve_seq (prem,conc) =
   case (prem,conc) of
       (_ $ Abs(_,_,leftp) $ Abs(_,_,rightp),
        _ $ Abs(_,_,leftc) $ Abs(_,_,rightc)) =>
-	  could_res (leftp,leftc) andalso could_res (rightp,rightc)
+          could_res (leftp,leftc) andalso could_res (rightp,rightc)
     | (_ $ Abs(_,_,leftp) $ rightp,
        _ $ Abs(_,_,leftc) $ rightc) =>
-	  could_res (leftp,leftc)  andalso  Term.could_unify (rightp,rightc)
+          could_res (leftp,leftc)  andalso  Term.could_unify (rightp,rightc)
     | _ => false;
 
 
@@ -88,10 +88,10 @@ fun could_resolve_seq (prem,conc) =
 fun filseq_resolve_tac rules maxr = SUBGOAL(fn (prem,i) =>
   let val rls = filter_thms could_resolve_seq (maxr+1, prem, rules)
   in  if length rls > maxr  then  no_tac
-	  else (*((rtac derelict 1 THEN rtac impl 1
-		 THEN (rtac identity 2 ORELSE rtac ll_mp 2)
-		 THEN rtac context1 1)
-		 ORELSE *) resolve_tac rls i
+          else (*((rtac derelict 1 THEN rtac impl 1
+                 THEN (rtac identity 2 ORELSE rtac ll_mp 2)
+                 THEN rtac context1 1)
+                 ORELSE *) resolve_tac rls i
   end);
 
 
@@ -112,12 +112,12 @@ fun has_prems n rule =  (nprems_of rule = n);
 fun RESOLVE_THEN rules =
   let val [rls0,rls1,rls2] = partition_list has_prems 0 2 rules;
       fun tac nextac i state = state |>
-	     (filseq_resolve_tac rls0 9999 i 
-	      ORELSE
-	      (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
-	      ORELSE
-	      (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
-					    THEN  TRY(nextac i)))
+             (filseq_resolve_tac rls0 9999 i 
+              ORELSE
+              (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
+              ORELSE
+              (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
+                                            THEN  TRY(nextac i)))
   in  tac  end;
 
 
@@ -133,9 +133,9 @@ fun repeat_goal_tac (Pack(safes,unsafes)) =
   let val restac  =    RESOLVE_THEN safes
       and lastrestac = RESOLVE_THEN unsafes;
       fun gtac i = restac gtac i  
-	           ORELSE  (if !trace then
-				(print_tac "" THEN lastrestac gtac i)
-			    else lastrestac gtac i)
+                   ORELSE  (if !trace then
+                                (print_tac "" THEN lastrestac gtac i)
+                            else lastrestac gtac i)
   in  gtac  end; 
 
 
@@ -164,7 +164,7 @@ fun fast_tac pack =
 
 fun best_tac pack  = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) 
-	       (step_tac pack 1));
+               (step_tac pack 1));
 
 end;
 

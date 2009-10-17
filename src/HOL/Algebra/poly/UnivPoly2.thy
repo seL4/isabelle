@@ -100,7 +100,7 @@ instantiation up :: ("{plus, zero}") plus
 begin
 
 definition
-  up_add_def:	"p + q = Abs_UP (%n. Rep_UP p n + Rep_UP q n)"
+  up_add_def: "p + q = Abs_UP (%n. Rep_UP p n + Rep_UP q n)"
 
 instance ..
 
@@ -133,7 +133,7 @@ begin
 
 definition
   up_mult_def:  "p * q = Abs_UP (%n::nat. setsum
-		     (%i. Rep_UP p i * Rep_UP q (n-i)) {..n})"
+                     (%i. Rep_UP p i * Rep_UP q (n-i)) {..n})"
 
 instance ..
 
@@ -201,18 +201,18 @@ proof -
     have "(%i. f i + g i) : UP"
     proof -
       from fup obtain n where boundn: "bound n f"
-	by (unfold UP_def) fast
+        by (unfold UP_def) fast
       from gup obtain m where boundm: "bound m g"
-	by (unfold UP_def) fast
+        by (unfold UP_def) fast
       have "bound (max n m) (%i. (f i + g i))"
       proof
-	fix i
-	assume "max n m < i"
-	with boundn and boundm show "f i + g i = 0"
+        fix i
+        assume "max n m < i"
+        with boundn and boundm show "f i + g i = 0"
           by (fastsimp simp add: algebra_simps)
       qed
       then show "(%i. (f i + g i)) : UP"
-	by (unfold UP_def) fast
+        by (unfold UP_def) fast
     qed
   }
   then show ?thesis
@@ -228,30 +228,30 @@ proof -
     have "(%n. setsum (%i. f i * g (n-i)) {..n}) : UP"
     proof -
       from fup obtain n where "bound n f"
-	by (unfold UP_def) fast
+        by (unfold UP_def) fast
       from gup obtain m where "bound m g"
-	by (unfold UP_def) fast
+        by (unfold UP_def) fast
       have "bound (n + m) (%n. setsum (%i. f i * g (n-i)) {..n})"
       proof
-	fix k
-	assume bound: "n + m < k"
-	{
-	  fix i
-	  have "f i * g (k-i) = 0"
-	  proof cases
-	    assume "n < i"
-	    with `bound n f` show ?thesis by (auto simp add: algebra_simps)
-	  next
-	    assume "~ (n < i)"
-	    with bound have "m < k-i" by arith
-	    with `bound m g` show ?thesis by (auto simp add: algebra_simps)
-	  qed
-	}
-	then show "setsum (%i. f i * g (k-i)) {..k} = 0"
-	  by (simp add: algebra_simps)
+        fix k
+        assume bound: "n + m < k"
+        {
+          fix i
+          have "f i * g (k-i) = 0"
+          proof cases
+            assume "n < i"
+            with `bound n f` show ?thesis by (auto simp add: algebra_simps)
+          next
+            assume "~ (n < i)"
+            with bound have "m < k-i" by arith
+            with `bound m g` show ?thesis by (auto simp add: algebra_simps)
+          qed
+        }
+        then show "setsum (%i. f i * g (k-i)) {..k} = 0"
+          by (simp add: algebra_simps)
       qed
       then show "(%n. setsum (%i. f i * g (n-i)) {..n}) : UP"
-	by (unfold UP_def) fast
+        by (unfold UP_def) fast
     qed
   }
   then show ?thesis
@@ -290,17 +290,17 @@ proof
     {
       fix k and a b c :: "nat=>'a::ring"
       have "k <= n ==> 
-	setsum (%j. setsum (%i. a i * b (j-i)) {..j} * c (n-j)) {..k} = 
-	setsum (%j. a j * setsum  (%i. b i * c (n-j-i)) {..k-j}) {..k}"
-	(is "_ ==> ?eq k")
+        setsum (%j. setsum (%i. a i * b (j-i)) {..j} * c (n-j)) {..k} = 
+        setsum (%j. a j * setsum  (%i. b i * c (n-j-i)) {..k-j}) {..k}"
+        (is "_ ==> ?eq k")
       proof (induct k)
-	case 0 show ?case by simp
+        case 0 show ?case by simp
       next
-	case (Suc k)
-	then have "k <= n" by arith
-	then have "?eq k" by (rule Suc)
-	then show ?case
-	  by (simp add: Suc_diff_le natsum_ldistr)
+        case (Suc k)
+        then have "k <= n" by arith
+        then have "?eq k" by (rule Suc)
+        then show ?case
+          by (simp add: Suc_diff_le natsum_ldistr)
       qed
     }
     then show "coeff ((p * q) * r) n = coeff (p * (q * r)) n"
@@ -326,13 +326,13 @@ proof
       fix k
       fix a b :: "nat=>'a::ring"
       have "k <= n ==> 
-	setsum (%i. a i * b (n-i)) {..k} =
-	setsum (%i. a (k-i) * b (i+n-k)) {..k}"
-	(is "_ ==> ?eq k")
+        setsum (%i. a i * b (n-i)) {..k} =
+        setsum (%i. a (k-i) * b (i+n-k)) {..k}"
+        (is "_ ==> ?eq k")
       proof (induct k)
-	case 0 show ?case by simp
+        case 0 show ?case by simp
       next
-	case (Suc k) then show ?case by (subst natsum_Suc2) simp
+        case (Suc k) then show ?case by (subst natsum_Suc2) simp
       qed
     }
     then show "coeff (p * q) n = coeff (q * p) n"

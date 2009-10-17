@@ -1,8 +1,6 @@
-(*  Title:      ZF/List
-    ID:         $Id$
+(*  Title:      ZF/List_ZF.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*Lists in Zermelo-Fraenkel Set Theory*}
@@ -96,14 +94,14 @@ definition
 (* Function `take' returns the first n elements of a list *)
   take     :: "[i,i]=>i"  where
   "take(n, as) == list_rec(lam n:nat. [],
-		%a l r. lam n:nat. nat_case([], %m. Cons(a, r`m), n), as)`n"
+                %a l r. lam n:nat. nat_case([], %m. Cons(a, r`m), n), as)`n"
 
 definition
   nth :: "[i, i]=>i"  where
   --{*returns the (n+1)th element of a list, or 0 if the
    list is too short.*}
   "nth(n, as) == list_rec(lam n:nat. 0,
- 		          %a l r. lam n:nat. nat_case(a, %m. r`m, n), as) ` n"
+                          %a l r. lam n:nat. nat_case(a, %m. r`m, n), as) ` n"
 
 definition
   list_update :: "[i, i, i]=>i"  where

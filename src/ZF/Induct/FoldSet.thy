@@ -1,7 +1,5 @@
 (*  Title:      ZF/Induct/FoldSet.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
-
 
 A "fold" functional for finite sets.  For n non-negative we have
 fold f e {x1,...,xn} = f x1 (... (f xn e)) where f is at
@@ -17,7 +15,7 @@ inductive
   intros
     emptyI: "e\<in>B ==> <0, e>\<in>fold_set(A, B, f,e)"
     consI:  "[| x\<in>A; x \<notin>C;  <C,y> : fold_set(A, B,f,e); f(x,y):B |]
-		==>  <cons(x,C), f(x,y)>\<in>fold_set(A, B, f, e)"
+                ==>  <cons(x,C), f(x,y)>\<in>fold_set(A, B, f, e)"
   type_intros Fin.intros
   
 definition

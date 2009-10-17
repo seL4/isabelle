@@ -17,7 +17,7 @@ design issues:
 \end{itemize}
 *}
 
-types	env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
+types env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
 
 
 section "extension of global store"
@@ -102,7 +102,7 @@ section "value conformance"
 constdefs
 
   conf  :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool"    ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70)
-	   "G,s\<turnstile>v\<Colon>\<preceq>T \<equiv> \<exists>T'\<in>typeof (\<lambda>a. Option.map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T"
+           "G,s\<turnstile>v\<Colon>\<preceq>T \<equiv> \<exists>T'\<in>typeof (\<lambda>a. Option.map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T"
 
 lemma conf_cong [simp]: "G,set_locals l s\<turnstile>v\<Colon>\<preceq>T = G,s\<turnstile>v\<Colon>\<preceq>T"
 by (auto simp: conf_def)
@@ -250,7 +250,7 @@ apply force
 done
 
 lemma lconf_init_vals [intro!]: 
-	" \<forall>n. \<forall>T\<in>fs n:is_type G T \<Longrightarrow> G,s\<turnstile>init_vals fs[\<Colon>\<preceq>]fs"
+        " \<forall>n. \<forall>T\<in>fs n:is_type G T \<Longrightarrow> G,s\<turnstile>init_vals fs[\<Colon>\<preceq>]fs"
 apply (unfold lconf_def)
 apply force
 done
@@ -338,7 +338,7 @@ lemma wlconf_empty_vals: "G,s\<turnstile>empty[\<sim>\<Colon>\<preceq>]ts"
   by (simp add: wlconf_def)
 
 lemma wlconf_init_vals [intro!]: 
-	" \<forall>n. \<forall>T\<in>fs n:is_type G T \<Longrightarrow> G,s\<turnstile>init_vals fs[\<sim>\<Colon>\<preceq>]fs"
+        " \<forall>n. \<forall>T\<in>fs n:is_type G T \<Longrightarrow> G,s\<turnstile>init_vals fs[\<sim>\<Colon>\<preceq>]fs"
 apply (unfold wlconf_def)
 apply force
 done
@@ -352,9 +352,9 @@ section "object conformance"
 constdefs
 
   oconf :: "prog \<Rightarrow> st \<Rightarrow> obj \<Rightarrow> oref \<Rightarrow> bool"  ("_,_\<turnstile>_\<Colon>\<preceq>\<surd>_"  [71,71,71,71] 70)
-	   "G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r \<equiv> G,s\<turnstile>values obj[\<Colon>\<preceq>]var_tys G (tag obj) r \<and> 
+           "G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r \<equiv> G,s\<turnstile>values obj[\<Colon>\<preceq>]var_tys G (tag obj) r \<and> 
                            (case r of 
-		              Heap a \<Rightarrow> is_type G (obj_ty obj) 
+                              Heap a \<Rightarrow> is_type G (obj_ty obj) 
                             | Stat C \<Rightarrow> True)"
 
 
@@ -405,11 +405,11 @@ lemma conforms_localD: "(x, s)\<Colon>\<preceq>(G, L) \<Longrightarrow> G,s\<tur
 by (auto simp: conforms_def Let_def)
 
 lemma conforms_XcptLocD: "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); x = Some (Xcpt (Loc a))\<rbrakk> \<Longrightarrow>  
-	  G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)"
+          G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)"
 by (auto simp: conforms_def Let_def)
 
 lemma conforms_RetD: "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); x = Some (Jump Ret)\<rbrakk> \<Longrightarrow>  
-	  (locals s) Result \<noteq> None"
+          (locals s) Result \<noteq> None"
 by (auto simp: conforms_def Let_def)
 
 lemma conforms_RefTD: 

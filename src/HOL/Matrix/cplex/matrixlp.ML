@@ -18,7 +18,7 @@ struct
 
 fun inst_real thm =
   let val certT = ctyp_of (Thm.theory_of_thm thm) in
-    standard (Thm.instantiate
+    Drule.standard (Thm.instantiate
       ([(certT (TVar (hd (OldTerm.term_tvars (prop_of thm)))), certT HOLogic.realT)], []) thm)
   end
 
@@ -59,7 +59,7 @@ fun inst_tvar ty thm =
         val ord = prod_ord (prod_ord string_ord int_ord) (list_ord string_ord)
         val v = TVar (hd (sort ord (OldTerm.term_tvars (prop_of thm))))
     in
-        standard (Thm.instantiate ([(certT v, certT ty)], []) thm)
+        Drule.standard (Thm.instantiate ([(certT v, certT ty)], []) thm)
     end
 
 fun inst_tvars [] thms = thms

@@ -1,9 +1,9 @@
-(*  Title:      ZF/univ.thy
-    ID:         $Id$
+(*  Title:      ZF/Univ.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Standard notation for Vset(i) is V(i), but users might want V for a variable
+Standard notation for Vset(i) is V(i), but users might want V for a
+variable.
 
 NOTE: univ(A) could be a translation; would simplify many proofs!
   But Ind_Syntax.univ refers to the constant "Univ.univ"
@@ -25,12 +25,12 @@ abbreviation
 definition
   Vrec        :: "[i, [i,i]=>i] =>i"  where
     "Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).
- 		 	   H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
+                           H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
 
 definition
   Vrecursor   :: "[[i,i]=>i, i] =>i"  where
     "Vrecursor(H,a) == transrec(rank(a), %x g. lam z: Vset(succ(x)).
-				H(lam w:Vset(x). g`rank(w)`w, z)) ` a"
+                                H(lam w:Vset(x). g`rank(w)`w, z)) ` a"
 
 definition
   univ        :: "i=>i"  where

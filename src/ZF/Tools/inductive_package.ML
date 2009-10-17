@@ -193,9 +193,9 @@ let
         [rtac (@{thm Collect_subset} RS @{thm bnd_monoI}) 1,
          REPEAT (ares_tac (@{thms basic_monos} @ monos) 1)]);
 
-  val dom_subset = standard (big_rec_def RS Fp.subs);
+  val dom_subset = Drule.standard (big_rec_def RS Fp.subs);
 
-  val unfold = standard ([big_rec_def, bnd_mono] MRS Fp.Tarski);
+  val unfold = Drule.standard ([big_rec_def, bnd_mono] MRS Fp.Tarski);
 
   (********)
   val dummy = writeln "  Proving the introduction rules...";
@@ -205,7 +205,7 @@ let
   val Part_trans =
       case rec_names of
            [_] => asm_rl
-         | _   => standard (@{thm Part_subset} RS @{thm subset_trans});
+         | _   => Drule.standard (@{thm Part_subset} RS @{thm subset_trans});
 
   (*To type-check recursive occurrences of the inductive sets, possibly
     enclosed in some monotonic operator M.*)
@@ -503,7 +503,7 @@ let
      val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = concl_of induct0
 
      val induct = CP.split_rule_var(pred_var, elem_type-->FOLogic.oT, induct0)
-                  |> standard
+                  |> Drule.standard
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
      val ([induct', mutual_induct'], thy') =
@@ -514,7 +514,7 @@ let
     in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
 
-  val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
+  val raw_induct = Drule.standard ([big_rec_def, bnd_mono] MRS Fp.induct)
 
   val ((thy2, induct), mutual_induct) =
     if not coind then induction_rules raw_induct thy1

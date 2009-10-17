@@ -1,5 +1,4 @@
 (*  Title:      ZF/Coind/Static.thy
-    ID:         $Id$
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
@@ -23,7 +22,7 @@ definition
    "isofenv(ve,te) ==                
       ve_dom(ve) = te_dom(te) &            
       (\<forall>x \<in> ve_dom(ve).                          
-	\<exists>c \<in> Const. ve_app(ve,x) = v_const(c) & isof(c,te_app(te,x)))"
+        \<exists>c \<in> Const. ve_app(ve,x) = v_const(c) & isof(c,te_app(te,x)))"
   
 
 (*** Elaboration ***)

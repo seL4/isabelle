@@ -1,6 +1,7 @@
-(*  Title:      HOL/Auth/SET/EventSET
-    ID:         $Id$
-    Authors:     Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
+(*  Title:      HOL/SET-Protocol/EventSET.thy
+    Author:     Giampaolo Bella
+    Author:     Fabio Massacci
+    Author:     Lawrence C Paulson
 *)
 
 header{*Theory of Events for SET*}
@@ -15,7 +16,7 @@ translations "RCA" == "CA 0"
 text{*Message events*}
 datatype
   event = Says  agent agent msg
-	| Gets  agent	    msg
+        | Gets  agent       msg
         | Notes agent       msg
 
 
@@ -44,19 +45,19 @@ knows_Nil:
 knows_Cons:
     "knows A (ev # evs) =
        (if A = Spy then
-	(case ev of
-	   Says A' B X => insert X (knows Spy evs)
-	 | Gets A' X => knows Spy evs
-	 | Notes A' X  =>
-	     if A' \<in> bad then insert X (knows Spy evs) else knows Spy evs)
-	else
-	(case ev of
-	   Says A' B X =>
-	     if A'=A then insert X (knows A evs) else knows A evs
-	 | Gets A' X    =>
-	     if A'=A then insert X (knows A evs) else knows A evs
-	 | Notes A' X    =>
-	     if A'=A then insert X (knows A evs) else knows A evs))"
+        (case ev of
+           Says A' B X => insert X (knows Spy evs)
+         | Gets A' X => knows Spy evs
+         | Notes A' X  =>
+             if A' \<in> bad then insert X (knows Spy evs) else knows Spy evs)
+        else
+        (case ev of
+           Says A' B X =>
+             if A'=A then insert X (knows A evs) else knows A evs
+         | Gets A' X    =>
+             if A'=A then insert X (knows A evs) else knows A evs
+         | Notes A' X    =>
+             if A'=A then insert X (knows A evs) else knows A evs))"
 
 
 subsection{*Used Messages*}
@@ -70,10 +71,10 @@ consts
 primrec
   used_Nil:  "used []         = (UN B. parts (initState B))"
   used_Cons: "used (ev # evs) =
-	         (case ev of
-		    Says A B X => parts {X} Un (used evs)
-         	  | Gets A X   => used evs
-		  | Notes A X  => parts {X} Un (used evs))"
+                 (case ev of
+                    Says A B X => parts {X} Un (used evs)
+                  | Gets A X   => used evs
+                  | Notes A X  => parts {X} Un (used evs))"
 
 
 

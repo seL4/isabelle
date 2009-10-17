@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/J/WellForm.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -585,7 +584,7 @@ apply (frule fields_rec)
 apply (simp (no_asm_simp) add: wf_prog_ws_prog)
 
 apply (case_tac "Da=C")
-apply blast			(* case Da=C *)
+apply blast                     (* case Da=C *)
 
 apply (subgoal_tac "((vn, Da), T) \<in> set (fields (G, D))") apply blast
 apply (erule thin_rl)

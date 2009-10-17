@@ -139,9 +139,9 @@ proof-
     also have "\<dots> = setprod (\<lambda>i. ?di A i (p i)) ?U"
     proof-
       {fix i assume i: "i \<in> ?U"
-	from i permutes_inv_o[OF pU] permutes_in_image[OF pU]
-	have "((\<lambda>i. ?di (transp A) i (inv p i)) o p) i = ?di A i (p i)"
-	  unfolding transp_def by (simp add: expand_fun_eq)}
+        from i permutes_inv_o[OF pU] permutes_in_image[OF pU]
+        have "((\<lambda>i. ?di (transp A) i (inv p i)) o p) i = ?di A i (p i)"
+          unfolding transp_def by (simp add: expand_fun_eq)}
       then show "setprod ((\<lambda>i. ?di (transp A) i (inv p i)) o p) ?U = setprod (\<lambda>i. ?di A i (p i)) ?U" by (auto intro: setprod_cong)
     qed
     finally have "of_int (sign (inv p)) * (setprod (\<lambda>i. ?di (transp A) i (inv p i)) ?U) = of_int (sign p) * (setprod (\<lambda>i. ?di A i (p i)) ?U)" using sth
@@ -280,7 +280,7 @@ lemma det_identical_rows:
   fixes A :: "'a::ordered_idom^'n^'n::finite"
   assumes ij: "i \<noteq> j"
   and r: "row i A = row j A"
-  shows	"det A = 0"
+  shows "det A = 0"
 proof-
   have tha: "\<And>(a::'a) b. a = b ==> b = - a ==> a = 0"
     by simp
@@ -298,7 +298,7 @@ lemma det_identical_columns:
   fixes A :: "'a::ordered_idom^'n^'n::finite"
   assumes ij: "i \<noteq> j"
   and r: "column i A = column j A"
-  shows	"det A = 0"
+  shows "det A = 0"
 apply (subst det_transp[symmetric])
 apply (rule det_identical_rows[OF ij])
 by (metis row_transp r)
@@ -631,23 +631,23 @@ proof-
     let ?B = "(\<chi> i. B$f i) :: 'a^'n^'n"
     {assume fni: "\<not> inj_on f ?U"
       then obtain i j where ij: "f i = f j" "i \<noteq> j"
-	unfolding inj_on_def by blast
+        unfolding inj_on_def by blast
       from ij
       have rth: "row i ?B = row j ?B" by (vector row_def)
       from det_identical_rows[OF ij(2) rth]
       have "det (\<chi> i. A$i$f i *s B$f i) = 0"
-	unfolding det_rows_mul by simp}
+        unfolding det_rows_mul by simp}
     moreover
     {assume fi: "inj_on f ?U"
       from f fi have fith: "\<And>i j. f i = f j \<Longrightarrow> i = j"
-	unfolding inj_on_def by metis
+        unfolding inj_on_def by metis
       note fs = fi[unfolded surjective_iff_injective_gen[OF fU fU refl fUU, symmetric]]
 
       {fix y
-	from fs f have "\<exists>x. f x = y" by blast
-	then obtain x where x: "f x = y" by blast
-	{fix z assume z: "f z = y" from fith x z have "z = x" by metis}
-	with x have "\<exists>!x. f x = y" by blast}
+        from fs f have "\<exists>x. f x = y" by blast
+        then obtain x where x: "f x = y" by blast
+        {fix z assume z: "f z = y" from fith x z have "z = x" by metis}
+        with x have "\<exists>!x. f x = y" by blast}
       with f(3) have "det (\<chi> i. A$i$f i *s B$f i) = 0" by blast}
     ultimately have "det (\<chi> i. A$i$f i *s B$f i) = 0" by blast}
   hence zth: "\<forall> f\<in> ?F - ?PU. det (\<chi> i. A$i$f i *s B$f i) = 0" by simp
@@ -665,23 +665,23 @@ proof-
       fix q assume qU: "q \<in> ?PU"
       hence q: "q permutes ?U" by blast
       from p q have pp: "permutation p" and pq: "permutation q"
-	unfolding permutation_permutes by auto
+        unfolding permutation_permutes by auto
       have th00: "of_int (sign p) * of_int (sign p) = (1::'a)"
-	"\<And>a. of_int (sign p) * (of_int (sign p) * a) = a"
-	unfolding mult_assoc[symmetric]	unfolding of_int_mult[symmetric]
-	by (simp_all add: sign_idempotent)
+        "\<And>a. of_int (sign p) * (of_int (sign p) * a) = a"
+        unfolding mult_assoc[symmetric] unfolding of_int_mult[symmetric]
+        by (simp_all add: sign_idempotent)
       have ths: "?s q = ?s p * ?s (q o inv p)"
-	using pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
-	by (simp add:  th00 mult_ac sign_idempotent sign_compose)
+        using pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
+        by (simp add:  th00 mult_ac sign_idempotent sign_compose)
       have th001: "setprod (\<lambda>i. B$i$ q (inv p i)) ?U = setprod ((\<lambda>i. B$i$ q (inv p i)) o p) ?U"
-	by (rule setprod_permute[OF p])
+        by (rule setprod_permute[OF p])
       have thp: "setprod (\<lambda>i. (\<chi> i. A$i$p i *s B$p i :: 'a^'n^'n) $i $ q i) ?U = setprod (\<lambda>i. A$i$p i) ?U * setprod (\<lambda>i. B$i$ q (inv p i)) ?U"
-	unfolding th001 setprod_timesf[symmetric] o_def permutes_inverses[OF p]
-	apply (rule setprod_cong[OF refl])
-	using permutes_in_image[OF q] by vector
+        unfolding th001 setprod_timesf[symmetric] o_def permutes_inverses[OF p]
+        apply (rule setprod_cong[OF refl])
+        using permutes_in_image[OF q] by vector
       show "?s q * setprod (\<lambda>i. (((\<chi> i. A$i$p i *s B$p i) :: 'a^'n^'n)$i$q i)) ?U = ?s p * (setprod (\<lambda>i. A$i$p i) ?U) * (?s (q o inv p) * setprod (\<lambda>i. B$i$(q o inv p) i) ?U)"
-	using ths thp pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
-	by (simp add: sign_nz th00 ring_simps sign_idempotent sign_compose)
+        using ths thp pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
+        by (simp add: sign_nz th00 ring_simps sign_idempotent sign_compose)
     qed
   }
   then have th2: "setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B"
@@ -875,11 +875,11 @@ proof-
     {fix i j
       let ?A = "transp ?mf ** ?mf"
       have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
-	"\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
-	by simp_all
+        "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
+        by simp_all
       from fd[rule_format, of "basis i" "basis j", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
       have "?A$i$j = ?m1 $ i $ j"
-	by (simp add: dot_def matrix_matrix_mult_def columnvector_def rowvector_def basis_def th0 setsum_delta[OF fU] mat_def)}
+        by (simp add: dot_def matrix_matrix_mult_def columnvector_def rowvector_def basis_def th0 setsum_delta[OF fU] mat_def)}
     hence "orthogonal_matrix ?mf" unfolding orthogonal_matrix by vector
     with lf have ?rhs by blast}
   moreover
@@ -995,29 +995,29 @@ proof-
     moreover
     {assume "x = 0" "y \<noteq> 0"
       then have "dist (?g x) (?g y) = dist x y"
-	apply (simp add: dist_norm norm_mul)
-	apply (rule f1[rule_format])
-	by(simp add: norm_mul field_simps)}
+        apply (simp add: dist_norm norm_mul)
+        apply (rule f1[rule_format])
+        by(simp add: norm_mul field_simps)}
     moreover
     {assume "x \<noteq> 0" "y = 0"
       then have "dist (?g x) (?g y) = dist x y"
-	apply (simp add: dist_norm norm_mul)
-	apply (rule f1[rule_format])
-	by(simp add: norm_mul field_simps)}
+        apply (simp add: dist_norm norm_mul)
+        apply (rule f1[rule_format])
+        by(simp add: norm_mul field_simps)}
     moreover
     {assume z: "x \<noteq> 0" "y \<noteq> 0"
       have th00: "x = norm x *s (inverse (norm x) *s x)" "y = norm y *s (inverse (norm y) *s y)" "norm x *s f ((inverse (norm x) *s x)) = norm x *s f (inverse (norm x) *s x)"
-	"norm y *s f (inverse (norm y) *s y) = norm y *s f (inverse (norm y) *s y)"
-	"norm (inverse (norm x) *s x) = 1"
-	"norm (f (inverse (norm x) *s x)) = 1"
-	"norm (inverse (norm y) *s y) = 1"
-	"norm (f (inverse (norm y) *s y)) = 1"
-	"norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
-	norm (inverse (norm x) *s x - inverse (norm y) *s y)"
-	using z
-	by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
+        "norm y *s f (inverse (norm y) *s y) = norm y *s f (inverse (norm y) *s y)"
+        "norm (inverse (norm x) *s x) = 1"
+        "norm (f (inverse (norm x) *s x)) = 1"
+        "norm (inverse (norm y) *s y) = 1"
+        "norm (f (inverse (norm y) *s y)) = 1"
+        "norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
+        norm (inverse (norm x) *s x - inverse (norm y) *s y)"
+        using z
+        by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
-	by (simp add: dist_norm)}
+        by (simp add: dist_norm)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}
   note thd = this
     show ?thesis

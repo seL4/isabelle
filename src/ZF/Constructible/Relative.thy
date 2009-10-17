@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Relative.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -79,12 +78,12 @@ definition
   big_inter :: "[i=>o,i,i] => o" where
     "big_inter(M,A,z) ==
              (A=0 --> z=0) &
-	     (A\<noteq>0 --> (\<forall>x[M]. x \<in> z <-> (\<forall>y[M]. y\<in>A --> x \<in> y)))"
+             (A\<noteq>0 --> (\<forall>x[M]. x \<in> z <-> (\<forall>y[M]. y\<in>A --> x \<in> y)))"
 
 definition
   cartprod :: "[i=>o,i,i,i] => o" where
     "cartprod(M,A,B,z) ==
-	\<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))"
+        \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))"
 
 definition
   is_sum :: "[i=>o,i,i,i] => o" where
@@ -104,18 +103,18 @@ definition
 definition
   is_converse :: "[i=>o,i,i] => o" where
     "is_converse(M,r,z) ==
-	\<forall>x[M]. x \<in> z <->
+        \<forall>x[M]. x \<in> z <->
              (\<exists>w[M]. w\<in>r & (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) & pair(M,v,u,x)))"
 
 definition
   pre_image :: "[i=>o,i,i,i] => o" where
     "pre_image(M,r,A,z) ==
-	\<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))"
+        \<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))"
 
 definition
   is_domain :: "[i=>o,i,i] => o" where
     "is_domain(M,r,z) ==
-	\<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w)))"
+        \<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w)))"
 
 definition
   image :: "[i=>o,i,i,i] => o" where
@@ -129,12 +128,12 @@ definition
       unfortunately needs an instance of separation in order to prove
         @{term "M(converse(r))"}.*}
     "is_range(M,r,z) ==
-	\<forall>y[M]. y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w)))"
+        \<forall>y[M]. y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w)))"
 
 definition
   is_field :: "[i=>o,i,i] => o" where
     "is_field(M,r,z) ==
-	\<exists>dr[M]. \<exists>rr[M]. is_domain(M,r,dr) & is_range(M,r,rr) &
+        \<exists>dr[M]. \<exists>rr[M]. is_domain(M,r,dr) & is_range(M,r,rr) &
                         union(M,dr,rr,z)"
 
 definition
@@ -145,7 +144,7 @@ definition
 definition
   is_function :: "[i=>o,i] => o" where
     "is_function(M,r) ==
-	\<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M].
+        \<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M].
            pair(M,x,y,p) --> pair(M,x,y',p') --> p\<in>r --> p'\<in>r --> y=y'"
 
 definition
@@ -176,7 +175,7 @@ definition
 definition
   injection :: "[i=>o,i,i,i] => o" where
     "injection(M,A,B,f) ==
-	typed_function(M,A,B,f) &
+        typed_function(M,A,B,f) &
         (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M].
           pair(M,x,y,p) --> pair(M,x',y,p') --> p\<in>f --> p'\<in>f --> x=x')"
 
@@ -193,7 +192,7 @@ definition
 definition
   restriction :: "[i=>o,i,i,i] => o" where
     "restriction(M,r,A,z) ==
-	\<forall>x[M]. x \<in> z <-> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))"
+        \<forall>x[M]. x \<in> z <-> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))"
 
 definition
   transitive_set :: "[i=>o,i] => o" where
@@ -208,20 +207,20 @@ definition
   limit_ordinal :: "[i=>o,i] => o" where
     --{*a limit ordinal is a non-empty, successor-closed ordinal*}
     "limit_ordinal(M,a) ==
-	ordinal(M,a) & ~ empty(M,a) &
+        ordinal(M,a) & ~ empty(M,a) &
         (\<forall>x[M]. x\<in>a --> (\<exists>y[M]. y\<in>a & successor(M,x,y)))"
 
 definition
   successor_ordinal :: "[i=>o,i] => o" where
     --{*a successor ordinal is any ordinal that is neither empty nor limit*}
     "successor_ordinal(M,a) ==
-	ordinal(M,a) & ~ empty(M,a) & ~ limit_ordinal(M,a)"
+        ordinal(M,a) & ~ empty(M,a) & ~ limit_ordinal(M,a)"
 
 definition
   finite_ordinal :: "[i=>o,i] => o" where
     --{*an ordinal is finite if neither it nor any of its elements are limit*}
     "finite_ordinal(M,a) ==
-	ordinal(M,a) & ~ limit_ordinal(M,a) &
+        ordinal(M,a) & ~ limit_ordinal(M,a) &
         (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))"
 
 definition
@@ -291,7 +290,7 @@ subsection {*The relativized ZF axioms*}
 definition
   extensionality :: "(i=>o) => o" where
     "extensionality(M) ==
-	\<forall>x[M]. \<forall>y[M]. (\<forall>z[M]. z \<in> x <-> z \<in> y) --> x=y"
+        \<forall>x[M]. \<forall>y[M]. (\<forall>z[M]. z \<in> x <-> z \<in> y) --> x=y"
 
 definition
   separation :: "[i=>o, i=>o] => o" where
@@ -300,7 +299,7 @@ definition
         to @{text M}.  We do not have separation as a scheme; every instance
         that we need must be assumed (and later proved) separately.*}
     "separation(M,P) ==
-	\<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y <-> x \<in> z & P(x)"
+        \<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y <-> x \<in> z & P(x)"
 
 definition
   upair_ax :: "(i=>o) => o" where
@@ -317,7 +316,7 @@ definition
 definition
   univalent :: "[i=>o, i, [i,i]=>o] => o" where
     "univalent(M,A,P) ==
-	\<forall>x[M]. x\<in>A --> (\<forall>y[M]. \<forall>z[M]. P(x,y) & P(x,z) --> y=z)"
+        \<forall>x[M]. x\<in>A --> (\<forall>y[M]. \<forall>z[M]. P(x,y) & P(x,z) --> y=z)"
 
 definition
   replacement :: "[i=>o, [i,i]=>o] => o" where
@@ -334,7 +333,7 @@ definition
 definition
   foundation_ax :: "(i=>o) => o" where
     "foundation_ax(M) ==
-	\<forall>x[M]. (\<exists>y[M]. y\<in>x) --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
+        \<forall>x[M]. (\<exists>y[M]. y\<in>x) --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
 
 
 subsection{*A trivial consistency proof for $V_\omega$ *}
@@ -513,12 +512,12 @@ definition
 definition
   pred_set :: "[i=>o,i,i,i,i] => o" where
     "pred_set(M,A,x,r,B) ==
-	\<forall>y[M]. y \<in> B <-> (\<exists>p[M]. p\<in>r & y \<in> A & pair(M,y,x,p))"
+        \<forall>y[M]. y \<in> B <-> (\<exists>p[M]. p\<in>r & y \<in> A & pair(M,y,x,p))"
 
 definition
   membership :: "[i=>o,i,i] => o" where --{*membership relation*}
     "membership(M,A,r) ==
-	\<forall>p[M]. p \<in> r <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
+        \<forall>p[M]. p \<in> r <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
 
 
 subsection{*Introducing a Transitive Class Model*}
@@ -528,8 +527,8 @@ text{*The class M is assumed to be transitive and to satisfy some
 locale M_trivial =
   fixes M
   assumes transM:           "[| y\<in>x; M(x) |] ==> M(y)"
-      and upair_ax:	    "upair_ax(M)"
-      and Union_ax:	    "Union_ax(M)"
+      and upair_ax:         "upair_ax(M)"
+      and Union_ax:         "Union_ax(M)"
       and power_ax:         "power_ax(M)"
       and replacement:      "replacement(M,P)"
       and M_nat [iff]:      "M(nat)"           (*i.e. the axiom of infinity*)
@@ -951,8 +950,8 @@ text{*Kunen continued to 20...*}
   primrec
       "natnumber_aux(M,0) = (\<lambda>x\<in>nat. if empty(M,x) then 1 else 0)"
       "natnumber_aux(M,succ(n)) =
-	   (\<lambda>x\<in>nat. if (\<exists>y[M]. natnumber_aux(M,n)`y=1 & successor(M,y,x))
-		     then 1 else 0)"
+           (\<lambda>x\<in>nat. if (\<exists>y[M]. natnumber_aux(M,n)`y=1 & successor(M,y,x))
+                     then 1 else 0)"
 
   definition
     natnumber :: "[i=>o,i,i] => o"
@@ -983,7 +982,7 @@ assumes Inter_separation:
   and comp_separation:
      "[| M(r); M(s) |]
       ==> separation(M, \<lambda>xz. \<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M].
-		  pair(M,x,z,xz) & pair(M,x,y,xy) & pair(M,y,z,yz) &
+                  pair(M,x,z,xz) & pair(M,x,y,xy) & pair(M,y,z,yz) &
                   xy\<in>s & yz\<in>r)"
   and pred_separation:
      "[| M(r); M(x) |] ==> separation(M, \<lambda>y. \<exists>p[M]. p\<in>r & pair(M,y,x,p))"

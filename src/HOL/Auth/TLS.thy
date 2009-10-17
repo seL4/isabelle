@@ -36,7 +36,7 @@ decrypt, so the problem does not arise.
 Proofs would be simpler if ClientKeyExch included A's name within
 Crypt KB (Nonce PMS).  As things stand, there is much overlap between proofs
 about that message (which B receives) and the stronger event
-	Notes A {|Agent B, Nonce PMS|}.
+Notes A {|Agent B, Nonce PMS|}.
 *)
 
 header{*The TLS Protocol: Transport Layer Security*}
@@ -112,30 +112,30 @@ inductive_set tls :: "event list set"
  | SpyKeys: --{*The spy may apply @{term PRF} and @{term sessionK}
                 to available nonces*}
          "[| evsSK \<in> tls;
-	     {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
+             {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
           ==> Notes Spy {| Nonce (PRF(M,NA,NB)),
-			   Key (sessionK((NA,NB,M),role)) |} # evsSK \<in> tls"
+                           Key (sessionK((NA,NB,M),role)) |} # evsSK \<in> tls"
 
  | ClientHello:
-	 --{*(7.4.1.2)
-	   PA represents @{text CLIENT_VERSION}, @{text CIPHER_SUITES} and @{text COMPRESSION_METHODS}.
-	   It is uninterpreted but will be confirmed in the FINISHED messages.
-	   NA is CLIENT RANDOM, while SID is @{text SESSION_ID}.
+         --{*(7.4.1.2)
+           PA represents @{text CLIENT_VERSION}, @{text CIPHER_SUITES} and @{text COMPRESSION_METHODS}.
+           It is uninterpreted but will be confirmed in the FINISHED messages.
+           NA is CLIENT RANDOM, while SID is @{text SESSION_ID}.
            UNIX TIME is omitted because the protocol doesn't use it.
            May assume @{term "NA \<notin> range PRF"} because CLIENT RANDOM is 
            28 bytes while MASTER SECRET is 48 bytes*}
          "[| evsCH \<in> tls;  Nonce NA \<notin> used evsCH;  NA \<notin> range PRF |]
           ==> Says A B {|Agent A, Nonce NA, Number SID, Number PA|}
-	        # evsCH  \<in>  tls"
+                # evsCH  \<in>  tls"
 
  | ServerHello:
          --{*7.4.1.3 of the TLS Internet-Draft
-	   PB represents @{text CLIENT_VERSION}, @{text CIPHER_SUITE} and @{text COMPRESSION_METHOD}.
+           PB represents @{text CLIENT_VERSION}, @{text CIPHER_SUITE} and @{text COMPRESSION_METHOD}.
            SERVER CERTIFICATE (7.4.2) is always present.
            @{text CERTIFICATE_REQUEST} (7.4.4) is implied.*}
          "[| evsSH \<in> tls;  Nonce NB \<notin> used evsSH;  NB \<notin> range PRF;
              Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
-	       \<in> set evsSH |]
+               \<in> set evsSH |]
           ==> Says B A {|Nonce NB, Number SID, Number PB|} # evsSH  \<in>  tls"
 
  | Certificate:
@@ -148,28 +148,28 @@ inductive_set tls :: "event list set"
            She encrypts PMS using the supplied KB, which ought to be pubK B.
            We assume @{term "PMS \<notin> range PRF"} because a clash betweem the PMS
            and another MASTER SECRET is highly unlikely (even though
-	   both items have the same length, 48 bytes).
+           both items have the same length, 48 bytes).
            The Note event records in the trace that she knows PMS
                (see REMARK at top). *}
          "[| evsCX \<in> tls;  Nonce PMS \<notin> used evsCX;  PMS \<notin> range PRF;
              Says B' A (certificate B KB) \<in> set evsCX |]
           ==> Says A B (Crypt KB (Nonce PMS))
-	      # Notes A {|Agent B, Nonce PMS|}
-	      # evsCX  \<in>  tls"
+              # Notes A {|Agent B, Nonce PMS|}
+              # evsCX  \<in>  tls"
 
  | CertVerify:
-	--{*The optional Certificate Verify (7.4.8) message contains the
+        --{*The optional Certificate Verify (7.4.8) message contains the
           specific components listed in the security analysis, F.1.1.2.
           It adds the pre-master-secret, which is also essential!
           Checking the signature, which is the only use of A's certificate,
           assures B of A's presence*}
          "[| evsCV \<in> tls;
              Says B' A {|Nonce NB, Number SID, Number PB|} \<in> set evsCV;
-	     Notes A {|Agent B, Nonce PMS|} \<in> set evsCV |]
+             Notes A {|Agent B, Nonce PMS|} \<in> set evsCV |]
           ==> Says A B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|}))
               # evsCV  \<in>  tls"
 
-	--{*Finally come the FINISHED messages (7.4.8), confirming PA and PB
+        --{*Finally come the FINISHED messages (7.4.8), confirming PA and PB
           among other things.  The master-secret is PRF(PMS,NA,NB).
           Either party may send its message first.*}
 
@@ -181,60 +181,60 @@ inductive_set tls :: "event list set"
           could simply put @{term "A\<noteq>Spy"} into the rule, but one should not
           expect the spy to be well-behaved.*}
          "[| evsCF \<in> tls;
-	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
-	       \<in> set evsCF;
+             Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
+               \<in> set evsCF;
              Says B' A {|Nonce NB, Number SID, Number PB|} \<in> set evsCF;
              Notes A {|Agent B, Nonce PMS|} \<in> set evsCF;
-	     M = PRF(PMS,NA,NB) |]
+             M = PRF(PMS,NA,NB) |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
-			(Hash{|Number SID, Nonce M,
-			       Nonce NA, Number PA, Agent A,
-			       Nonce NB, Number PB, Agent B|}))
+                        (Hash{|Number SID, Nonce M,
+                               Nonce NA, Number PA, Agent A,
+                               Nonce NB, Number PB, Agent B|}))
               # evsCF  \<in>  tls"
 
  | ServerFinished:
-	--{*Keeping A' and A'' distinct means B cannot even check that the
+        --{*Keeping A' and A'' distinct means B cannot even check that the
           two messages originate from the same source. *}
          "[| evsSF \<in> tls;
-	     Says A' B  {|Agent A, Nonce NA, Number SID, Number PA|}
-	       \<in> set evsSF;
-	     Says B  A  {|Nonce NB, Number SID, Number PB|} \<in> set evsSF;
-	     Says A'' B (Crypt (pubK B) (Nonce PMS)) \<in> set evsSF;
-	     M = PRF(PMS,NA,NB) |]
+             Says A' B  {|Agent A, Nonce NA, Number SID, Number PA|}
+               \<in> set evsSF;
+             Says B  A  {|Nonce NB, Number SID, Number PB|} \<in> set evsSF;
+             Says A'' B (Crypt (pubK B) (Nonce PMS)) \<in> set evsSF;
+             M = PRF(PMS,NA,NB) |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
-			(Hash{|Number SID, Nonce M,
-			       Nonce NA, Number PA, Agent A,
-			       Nonce NB, Number PB, Agent B|}))
+                        (Hash{|Number SID, Nonce M,
+                               Nonce NA, Number PA, Agent A,
+                               Nonce NB, Number PB, Agent B|}))
               # evsSF  \<in>  tls"
 
  | ClientAccepts:
-	--{*Having transmitted ClientFinished and received an identical
+        --{*Having transmitted ClientFinished and received an identical
           message encrypted with serverK, the client stores the parameters
           needed to resume this session.  The "Notes A ..." premise is
           used to prove @{text Notes_master_imp_Crypt_PMS}.*}
          "[| evsCA \<in> tls;
-	     Notes A {|Agent B, Nonce PMS|} \<in> set evsCA;
-	     M = PRF(PMS,NA,NB);
-	     X = Hash{|Number SID, Nonce M,
-	               Nonce NA, Number PA, Agent A,
-		       Nonce NB, Number PB, Agent B|};
+             Notes A {|Agent B, Nonce PMS|} \<in> set evsCA;
+             M = PRF(PMS,NA,NB);
+             X = Hash{|Number SID, Nonce M,
+                       Nonce NA, Number PA, Agent A,
+                       Nonce NB, Number PB, Agent B|};
              Says A  B (Crypt (clientK(NA,NB,M)) X) \<in> set evsCA;
              Says B' A (Crypt (serverK(NA,NB,M)) X) \<in> set evsCA |]
           ==>
              Notes A {|Number SID, Agent A, Agent B, Nonce M|} # evsCA  \<in>  tls"
 
  | ServerAccepts:
-	--{*Having transmitted ServerFinished and received an identical
+        --{*Having transmitted ServerFinished and received an identical
           message encrypted with clientK, the server stores the parameters
           needed to resume this session.  The "Says A'' B ..." premise is
           used to prove @{text Notes_master_imp_Crypt_PMS}.*}
          "[| evsSA \<in> tls;
-	     A \<noteq> B;
+             A \<noteq> B;
              Says A'' B (Crypt (pubK B) (Nonce PMS)) \<in> set evsSA;
-	     M = PRF(PMS,NA,NB);
-	     X = Hash{|Number SID, Nonce M,
-	               Nonce NA, Number PA, Agent A,
-		       Nonce NB, Number PB, Agent B|};
+             M = PRF(PMS,NA,NB);
+             X = Hash{|Number SID, Nonce M,
+                       Nonce NA, Number PA, Agent A,
+                       Nonce NB, Number PB, Agent B|};
              Says B  A (Crypt (serverK(NA,NB,M)) X) \<in> set evsSA;
              Says A' B (Crypt (clientK(NA,NB,M)) X) \<in> set evsSA |]
           ==>
@@ -244,27 +244,27 @@ inductive_set tls :: "event list set"
          --{*If A recalls the @{text SESSION_ID}, then she sends a FINISHED
              message using the new nonces and stored MASTER SECRET.*}
          "[| evsCR \<in> tls;
-	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsCR;
+             Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsCR;
              Says B' A {|Nonce NB, Number SID, Number PB|} \<in> set evsCR;
              Notes A {|Number SID, Agent A, Agent B, Nonce M|} \<in> set evsCR |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
-			(Hash{|Number SID, Nonce M,
-			       Nonce NA, Number PA, Agent A,
-			       Nonce NB, Number PB, Agent B|}))
+                        (Hash{|Number SID, Nonce M,
+                               Nonce NA, Number PA, Agent A,
+                               Nonce NB, Number PB, Agent B|}))
               # evsCR  \<in>  tls"
 
  | ServerResume:
          --{*Resumption (7.3):  If B finds the @{text SESSION_ID} then he can 
              send a FINISHED message using the recovered MASTER SECRET*}
          "[| evsSR \<in> tls;
-	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsSR;
-	     Says B  A {|Nonce NB, Number SID, Number PB|} \<in> set evsSR;
+             Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsSR;
+             Says B  A {|Nonce NB, Number SID, Number PB|} \<in> set evsSR;
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} \<in> set evsSR |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
-			(Hash{|Number SID, Nonce M,
-			       Nonce NA, Number PA, Agent A,
-			       Nonce NB, Number PB, Agent B|})) # evsSR
-	        \<in>  tls"
+                        (Hash{|Number SID, Nonce M,
+                               Nonce NA, Number PA, Agent A,
+                               Nonce NB, Number PB, Agent B|})) # evsSR
+                \<in>  tls"
 
  | Oops:
          --{*The most plausible compromise is of an old session key.  Losing
@@ -273,7 +273,7 @@ inductive_set tls :: "event list set"
            otherwise the Spy could learn session keys merely by 
            replaying messages!*}
          "[| evso \<in> tls;  A \<noteq> Spy;
-	     Says A B (Crypt (sessionK((NA,NB,M),role)) X) \<in> set evso |]
+             Says A B (Crypt (sessionK((NA,NB,M),role)) X) \<in> set evso |]
           ==> Says A Spy (Key (sessionK((NA,NB,M),role))) # evso  \<in>  tls"
 
 (*
@@ -328,7 +328,7 @@ end.  Four paths and 12 rules are considered.*}
 
 
 (** These proofs assume that the Nonce_supply nonces
-	(which have the form  @ N. Nonce N \<notin> used evs)
+        (which have the form  @ N. Nonce N \<notin> used evs)
     lie outside the range of PRF.  It seems reasonable, but as it is needed
     only for the possibility theorems, it is not taken as an axiom.
 **)
@@ -381,11 +381,11 @@ lemma "[| evs0 \<in> tls;
           \<forall>evs. (@ N. Nonce N \<notin> used evs) \<notin> range PRF;
           A \<noteq> B |]
       ==> \<exists>NA PA NB PB X. \<exists>evs \<in> tls.
-		X = Hash{|Number SID, Nonce M,
-			  Nonce NA, Number PA, Agent A,
-			  Nonce NB, Number PB, Agent B|}  &
-		Says A B (Crypt (clientK(NA,NB,M)) X) \<in> set evs  &
-		Says B A (Crypt (serverK(NA,NB,M)) X) \<in> set evs"
+                X = Hash{|Number SID, Nonce M,
+                          Nonce NA, Number PA, Agent A,
+                          Nonce NB, Number PB, Agent B|}  &
+                Says A B (Crypt (clientK(NA,NB,M)) X) \<in> set evs  &
+                Says B A (Crypt (serverK(NA,NB,M)) X) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] tls.ClientHello
                     [THEN tls.ServerHello,
@@ -570,7 +570,7 @@ lemma analz_image_priK [rule_format]:
           (priK B \<in> KK | B \<in> bad)"
 apply (erule tls.induct)
 apply (simp_all (no_asm_simp)
-		del: image_insert
+                del: image_insert
                 add: image_Un [THEN sym]
                      insert_Key_image Un_assoc [THEN sym])
 txt{*Fake*}
@@ -598,16 +598,16 @@ by (blast intro: analz_mono [THEN subsetD])
 lemma analz_image_keys [rule_format]:
      "evs \<in> tls ==>
       \<forall>KK. KK <= range sessionK -->
-	      (Nonce N \<in> analz (Key`KK Un (spies evs))) =
-	      (Nonce N \<in> analz (spies evs))"
+              (Nonce N \<in> analz (Key`KK Un (spies evs))) =
+              (Nonce N \<in> analz (spies evs))"
 apply (erule tls.induct, frule_tac [7] CX_KB_is_pubKB)
 apply (safe del: iffI)
 apply (safe del: impI iffI intro!: analz_image_keys_lemma)
 apply (simp_all (no_asm_simp)               (*faster*)
                 del: image_insert imp_disjL (*reduces blow-up*)
-		add: image_Un [THEN sym]  Un_assoc [THEN sym]
-		     insert_Key_singleton
-		     range_sessionkeys_not_priK analz_image_priK)
+                add: image_Un [THEN sym]  Un_assoc [THEN sym]
+                     insert_Key_singleton
+                     range_sessionkeys_not_priK analz_image_priK)
 apply (simp_all add: insert_absorb)
 txt{*Fake*}
 apply spy_analz
@@ -901,11 +901,11 @@ by (blast intro!: TrustClientMsg UseCertVerify)
            down to 433s on albatross*)
 
 (*5/5/01: conversion to Isar script
-	  loads in 137s (perch)
+          loads in 137s (perch)
           the last ML version loaded in 122s on perch, a 600MHz machine:
-		twice as fast as pike.  No idea why it's so much slower!
-	  The Isar script is slower still, perhaps because simp_all simplifies
-	  the assumptions be default.
+                twice as fast as pike.  No idea why it's so much slower!
+          The Isar script is slower still, perhaps because simp_all simplifies
+          the assumptions be default.
 *)
 
 end

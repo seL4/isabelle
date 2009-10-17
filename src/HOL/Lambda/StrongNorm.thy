@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/StrongNorm.thy
-    ID:         $Id$
     Author:     Stefan Berghofer
     Copyright   2000 TU Muenchen
 *)
@@ -230,7 +229,7 @@ proof (induct U)
         with T have "e\<langle>i:T\<rangle> \<turnstile> r[a/0] \<degree>\<degree> as : T'"
           by (rule subject_reduction)
         hence "IT ((r[a/0] \<degree>\<degree> as)[u/i])"
-	  using uIT uT by (rule SI1)
+          using uIT uT by (rule SI1)
         thus "IT (r[lift u 0/Suc i][a[u/i]/0] \<degree>\<degree> map (\<lambda>t. t[u/i]) as)"
           by (simp del: subst_map add: subst_subst subst_map [symmetric])
         from T obtain U where "e\<langle>i:T\<rangle> \<turnstile> Abs r \<degree> a : U"

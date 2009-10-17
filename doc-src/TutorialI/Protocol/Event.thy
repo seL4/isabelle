@@ -22,7 +22,7 @@ datatype
         | Notes agent       msg
        
 consts 
-  bad    :: "agent set"				(*compromised agents*)
+  bad    :: "agent set"                         -- {* compromised agents *}
   knows  :: "agent => event list => msg set"
 
 
@@ -43,19 +43,19 @@ primrec
   knows_Cons:
     "knows A (ev # evs) =
        (if A = Spy then 
-	(case ev of
-	   Says A' B X => insert X (knows Spy evs)
-	 | Gets A' X => knows Spy evs
-	 | Notes A' X  => 
-	     if A' \<in> bad then insert X (knows Spy evs) else knows Spy evs)
-	else
-	(case ev of
-	   Says A' B X => 
-	     if A'=A then insert X (knows A evs) else knows A evs
-	 | Gets A' X    => 
-	     if A'=A then insert X (knows A evs) else knows A evs
-	 | Notes A' X    => 
-	     if A'=A then insert X (knows A evs) else knows A evs))"
+        (case ev of
+           Says A' B X => insert X (knows Spy evs)
+         | Gets A' X => knows Spy evs
+         | Notes A' X  => 
+             if A' \<in> bad then insert X (knows Spy evs) else knows Spy evs)
+        else
+        (case ev of
+           Says A' B X => 
+             if A'=A then insert X (knows A evs) else knows A evs
+         | Gets A' X    => 
+             if A'=A then insert X (knows A evs) else knows A evs
+         | Notes A' X    => 
+             if A'=A then insert X (knows A evs) else knows A evs))"
 
 (*
   Case A=Spy on the Gets event
@@ -71,10 +71,10 @@ consts
 primrec
   used_Nil:   "used []         = (UN B. parts (initState B))"
   used_Cons:  "used (ev # evs) =
-		     (case ev of
-			Says A B X => parts {X} \<union> used evs
-		      | Gets A X   => used evs
-		      | Notes A X  => parts {X} \<union> used evs)"
+                     (case ev of
+                        Says A B X => parts {X} \<union> used evs
+                      | Gets A X   => used evs
+                      | Notes A X  => parts {X} \<union> used evs)"
     --{*The case for @{term Gets} seems anomalous, but @{term Gets} always
         follows @{term Says} in real protocols.  Seems difficult to change.
         See @{text Gets_correct} in theory @{text "Guard/Extensions.thy"}. *}

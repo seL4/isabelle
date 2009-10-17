@@ -1,10 +1,10 @@
-(*  ID:         $Id$
+(*  Title:      ZF/UNITY/GenPrefix.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 
-   <xs,ys>:gen_prefix(r)
-     if ys = xs' @ zs where length(xs) = length(xs')
-     and corresponding elements of xs, xs' are pairwise related by r
+<xs,ys>:gen_prefix(r)
+  if ys = xs' @ zs where length(xs) = length(xs')
+  and corresponding elements of xs, xs' are pairwise related by r
 
 Based on Lex/Prefix
 *)
@@ -31,10 +31,10 @@ inductive
     Nil:     "<[],[]>:gen_prefix(A, r)"
 
     prepend: "[| <xs,ys>:gen_prefix(A, r);  <x,y>:r; x:A; y:A |]
-	      ==> <Cons(x,xs), Cons(y,ys)>: gen_prefix(A, r)"
+              ==> <Cons(x,xs), Cons(y,ys)>: gen_prefix(A, r)"
 
     append:  "[| <xs,ys>:gen_prefix(A, r); zs:list(A) |]
-	      ==> <xs, ys@zs>:gen_prefix(A, r)"
+              ==> <xs, ys@zs>:gen_prefix(A, r)"
     type_intros app_type list.Nil list.Cons
 
 definition

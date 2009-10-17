@@ -1,5 +1,5 @@
-(*  ID:         $Id$
-    Author:	Sava Krsti\'{c} and John Matthews
+(*
+    Author:     Sava Krsti\'{c} and John Matthews
 *)
 
 header {* Example use if an inductive invariant to solve termination conditions *}

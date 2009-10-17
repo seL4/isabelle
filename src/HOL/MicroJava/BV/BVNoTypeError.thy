@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/BVNoTypeErrors.thy
-    ID:         $Id$
     Author:     Gerwin Klein
 *)
 
@@ -294,7 +293,7 @@ proof -
       ultimately show ?thesis using Getfield field "class" stk hconf wf
         apply clarsimp
         apply (fastsimp intro: wf_prog_ws_prog
-	  dest!: hconfD widen_cfs_fields oconf_objD)
+          dest!: hconfD widen_cfs_fields oconf_objD)
         done
     next
       case (Putfield F C)

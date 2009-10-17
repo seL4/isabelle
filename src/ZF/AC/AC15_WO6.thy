@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/AC15_WO6.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 The proofs needed to state that AC10, ..., AC15 are equivalent to the rest.
@@ -56,9 +55,9 @@ by (unfold pairwise_disjoint_def, blast)
 
 lemma lemma3: 
      "\<forall>B \<in> {cons(0, x*nat). x \<in> A}. pairwise_disjoint(f`B) &   
-	     sets_of_size_between(f`B, 2, n) & Union(f`B)=B   
+             sets_of_size_between(f`B, 2, n) & Union(f`B)=B   
      ==> \<forall>B \<in> A. \<exists>! u. u \<in> f`cons(0, B*nat) & u \<subseteq> cons(0, B*nat) &   
-	     0 \<in> u & 2 \<lesssim> u & u \<lesssim> n"
+             0 \<in> u & 2 \<lesssim> u & u \<lesssim> n"
 apply (unfold sets_of_size_between_def)
 apply (rule ballI)
 apply (erule_tac x="cons(0, B*nat)" in ballE)
@@ -109,7 +108,7 @@ lemma ex_fun_AC13_AC15:
          n \<in> nat |]   
       ==> \<exists>f. \<forall>B \<in> A. f`B \<noteq> 0 & f`B \<subseteq> B & f`B \<lesssim> n"
 by (fast del: subsetI notI
-	 dest!: lemma3 theI intro!: lemma5_1 lemma5_2 lemma5_3)
+         dest!: lemma3 theI intro!: lemma5_1 lemma5_2 lemma5_3)
 
 
 (* ********************************************************************** *)
@@ -165,7 +164,7 @@ apply (drule ltD [THEN less_Least_subset_x])
 apply (frule HH_subset_imp_eq)
 apply (erule ssubst)
 apply (blast dest!: HH_subset_x_imp_subset_Diff_UN [THEN not_emptyI2])
-	(*but can't use del: DiffE despite the obvious conflict*)
+        (*but can't use del: DiffE despite the obvious conflict*)
 done
 
 theorem AC15_WO6: "AC15 ==> WO6"

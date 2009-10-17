@@ -1,8 +1,6 @@
 (*  Title:      ZF/sum.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
 *)
 
 header{*Disjoint Sums*}
@@ -161,8 +159,7 @@ lemma case_cong:
 by auto 
 
 lemma case_case: "z: A+B ==>    
-        
-	case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =  
+        case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =  
         case(%x. c(c'(x)), %y. d(d'(y)), z)"
 by auto
 

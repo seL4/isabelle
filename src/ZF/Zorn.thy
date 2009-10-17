@@ -1,8 +1,6 @@
 (*  Title:      ZF/Zorn.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*Zorn's Lemma*}
@@ -120,7 +118,7 @@ txt{*case split using @{text TFin_linear_lemma1}*}
 apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
        assumption+)
 apply (blast del: subsetI
-	     intro: increasing_trans subsetI, blast)
+             intro: increasing_trans subsetI, blast)
 txt{*second induction step*}
 apply (rule impI [THEN ballI])
 apply (rule Union_lemma0 [THEN disjE])
@@ -172,7 +170,7 @@ apply (assumption+)
 apply (erule ssubst)
 apply (rule increasingD2 [THEN equalityI], assumption)
 apply (blast del: subsetI
-	     intro: subsetI TFin_UnionI TFin.nextI TFin_is_subset)+
+             intro: subsetI TFin_UnionI TFin.nextI TFin_is_subset)+
 done
 
 
@@ -412,8 +410,8 @@ apply (subgoal_tac "~ next ` Union ({y \<in> TFin (S,next) . x \<notin> y})
                     <= Union ({y \<in> TFin (S,next) . x \<notin> y}) ")
  prefer 2
  apply (simp del: Union_iff
-	     add: Collect_subset [THEN TFin_UnionI, THEN TFin_is_subset]
-	     Pow_iff cons_subset_iff subset_refl choice_Diff [THEN DiffD2])
+             add: Collect_subset [THEN TFin_UnionI, THEN TFin_is_subset]
+             Pow_iff cons_subset_iff subset_refl choice_Diff [THEN DiffD2])
 apply (subgoal_tac "x \<in> next ` Union ({y \<in> TFin (S,next) . x \<notin> y}) ")
  prefer 2
  apply (blast intro!: Collect_subset [THEN TFin_UnionI] TFin.nextI)
@@ -480,8 +478,8 @@ proof -
       assume "a : field(r)" "r -`` {a} : C" "b : field(r)" "r -`` {b} : C"
       hence "r -`` {a} \<subseteq> r -`` {b} | r -`` {b} \<subseteq> r -`` {a}" using 2 by auto
       then show "<a, b> : r | <b, a> : r"
-	using `Preorder(r)` `a : field(r)` `b : field(r)`
-	by (simp add: subset_vimage1_vimage1_iff)
+        using `Preorder(r)` `a : field(r)` `b : field(r)`
+        by (simp add: subset_vimage1_vimage1_iff)
     qed
     then obtain u where uA: "u : field(r)" "ALL a:?A. <a, u> : r"
       using u
@@ -494,14 +492,14 @@ proof -
       fix a B
       assume aB: "B : C" "a : B"
       with 1 obtain x where "x : field(r)" "B = r -`` {x}"
-	apply -
-	apply (drule subsetD) apply assumption
-	apply (erule imageE)
-	apply (erule lamE)
-	apply simp
-	done
+        apply -
+        apply (drule subsetD) apply assumption
+        apply (erule imageE)
+        apply (erule lamE)
+        apply simp
+        done
       then show "<a, u> : r" using uA aB `Preorder(r)`
-	by (auto simp: preorder_on_def refl_def) (blast dest: trans_onD)+
+        by (auto simp: preorder_on_def refl_def) (blast dest: trans_onD)+
     qed
     then show "EX U:field(r). ALL A:C. A \<subseteq> r -`` {U}"
       using `u : field(r)` ..

@@ -1,17 +1,16 @@
 (*  Title:      ZF/AC/WO2_AC16.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
-  The proof of WO2 ==> AC16(k #+ m, k)
+The proof of WO2 ==> AC16(k #+ m, k)
   
-  The main part of the proof is the inductive reasoning concerning
-  properties of constructed family T_gamma.
-  The proof deals with three cases for ordinals: 0, succ and limit ordinal.
-  The first instance is trivial, the third not difficult, but the second
-  is very complicated requiring many lemmas.
-  We also need to prove that at any stage gamma the set 
-  (s - Union(...) - k_gamma)   (Rubin & Rubin page 15)
-  contains m distinct elements (in fact is equipollent to s)
+The main part of the proof is the inductive reasoning concerning
+properties of constructed family T_gamma.
+The proof deals with three cases for ordinals: 0, succ and limit ordinal.
+The first instance is trivial, the third not difficult, but the second
+is very complicated requiring many lemmas.
+We also need to prove that at any stage gamma the set 
+(s - Union(...) - k_gamma)   (Rubin & Rubin page 15)
+contains m distinct elements (in fact is equipollent to s)
 *)
 
 theory WO2_AC16 imports AC_Equiv AC16_lemmas Cardinal_aux begin
@@ -300,9 +299,9 @@ done
 
 lemma dbl_Diff_eqpoll:
      "[| recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
-	 Card(a); ~ Finite(a); A\<approx>a;   
-	 k \<in> nat;  y<a;   
-	 h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)}) |]   
+         Card(a); ~ Finite(a); A\<approx>a;   
+         k \<in> nat;  y<a;   
+         h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)}) |]   
       ==> A - Union(recfunAC16(f, h, y, a)) - h`y\<approx>a"
 apply (rule dbl_Diff_eqpoll_Card, simp_all)
 apply (simp add: Union_recfunAC16_lesspoll)
@@ -430,14 +429,14 @@ done
 
 lemma ex_next_Ord:
      "[| recfunAC16(f, h, y, a) \<subseteq> {X \<in> Pow(A) . X\<approx>succ(k #+ m)};   
-	 Card(a); ~ Finite(a); A\<approx>a;   
-	 k \<in> nat; m \<in> nat; y<a;   
-	 h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)});   
-	 f \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k #+ m)});   
-	 ~ (\<exists>Y \<in> recfunAC16(f, h, y, a). h`y \<subseteq> Y) |]   
+         Card(a); ~ Finite(a); A\<approx>a;   
+         k \<in> nat; m \<in> nat; y<a;   
+         h \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k)});   
+         f \<in> bij(a, {Y \<in> Pow(A). Y\<approx>succ(k #+ m)});   
+         ~ (\<exists>Y \<in> recfunAC16(f, h, y, a). h`y \<subseteq> Y) |]   
       ==> \<exists>c<a. h`y \<subseteq> f`c &   
-	        (\<forall>b<a. h`b \<subseteq> f`c -->   
-		(\<forall>T \<in> recfunAC16(f, h, y, a). ~ h`b \<subseteq> T))"
+                (\<forall>b<a. h`b \<subseteq> f`c -->   
+                (\<forall>T \<in> recfunAC16(f, h, y, a). ~ h`b \<subseteq> T))"
 apply (drule ex_next_set, assumption+)
 apply (erule bexE)
 apply (rule_tac x="converse(f)`X" in oexI)
@@ -569,7 +568,7 @@ apply (rule_tac P="%z. ?Y & (\<forall>x \<in> z. ?Z (x))"
        in bij_is_surj [THEN surj_image_eq, THEN subst], assumption)
 apply (rule lemma_simp_induct)
 apply (blast del: conjI notI
-	     intro!: main_induct eqpoll_imp_lepoll [THEN lepoll_infinite] ) 
+             intro!: main_induct eqpoll_imp_lepoll [THEN lepoll_infinite] ) 
 apply (blast intro: bij_is_fun [THEN surj_image, THEN surj_is_fun])
 apply (erule eqpoll_imp_lepoll [THEN lepoll_infinite, 
                                 THEN infinite_Card_is_InfCard, 

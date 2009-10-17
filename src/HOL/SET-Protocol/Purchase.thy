@@ -1,5 +1,7 @@
-(*  Title:      HOL/Auth/SET/Purchase
-    Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
+(*  Title:      HOL/SET-Protocol/Purchase.thy
+    Author:     Giampaolo Bella
+    Author:     Fabio Massacci
+    Author:     Lawrence C Paulson
 *)
 
 header{*Purchase Phase of SET*}
@@ -61,24 +63,24 @@ inductive_set
 where
 
   Nil:   --{*Initial trace is empty*}
-	 "[] \<in> set_pur"
+         "[] \<in> set_pur"
 
 | Fake:  --{*The spy MAY say anything he CAN say.*}
-	 "[| evsf \<in> set_pur;  X \<in> synth(analz(knows Spy evsf)) |]
-	  ==> Says Spy B X  # evsf \<in> set_pur"
+         "[| evsf \<in> set_pur;  X \<in> synth(analz(knows Spy evsf)) |]
+          ==> Says Spy B X  # evsf \<in> set_pur"
 
 
 | Reception: --{*If A sends a message X to B, then B might receive it*}
-	     "[| evsr \<in> set_pur;  Says A B X \<in> set evsr |]
-	      ==> Gets B X  # evsr \<in> set_pur"
+             "[| evsr \<in> set_pur;  Says A B X \<in> set evsr |]
+              ==> Gets B X  # evsr \<in> set_pur"
 
 | Start: 
       --{*Added start event which is out-of-band for SET: the Cardholder and
-	  the merchant agree on the amounts and uses @{text LID_M} as an
+          the merchant agree on the amounts and uses @{text LID_M} as an
           identifier.
-	  This is suggested by the External Interface Guide. The Programmer's
-	  Guide, in absence of @{text LID_M}, states that the merchant uniquely
-	  identifies the order out of some data contained in OrderDesc.*}
+          This is suggested by the External Interface Guide. The Programmer's
+          Guide, in absence of @{text LID_M}, states that the merchant uniquely
+          identifies the order out of some data contained in OrderDesc.*}
    "[|evsStart \<in> set_pur;
       Number LID_M \<notin> used evsStart;
       C = Cardholder k; M = Merchant i; P = PG j;
@@ -100,7 +102,7 @@ where
 
 | PInitRes:
      --{*Merchant replies with his own label XID and the encryption
-	 key certificate of his chosen Payment Gateway. Page 74 of Formal
+         key certificate of his chosen Payment Gateway. Page 74 of Formal
          Protocol Desc. We use @{text LID_M} to identify Cardholder*}
    "[|evsPIRes \<in> set_pur;
       Gets M {|Number LID_M, Nonce Chall_C|} \<in> set evsPIRes;
@@ -111,19 +113,19 @@ where
       Number XID \<notin> used evsPIRes;
       XID \<notin> range CardSecret; XID \<notin> range PANSecret|]
     ==> Says M C (sign (priSK M)
-		       {|Number LID_M, Number XID,
-			 Nonce Chall_C, Nonce Chall_M,
-			 cert P (pubEK P) onlyEnc (priSK RCA)|})
+                       {|Number LID_M, Number XID,
+                         Nonce Chall_C, Nonce Chall_M,
+                         cert P (pubEK P) onlyEnc (priSK RCA)|})
           # evsPIRes \<in> set_pur"
 
 | PReqUns:
       --{*UNSIGNED Purchase request (CardSecret = 0).
-	Page 79 of Formal Protocol Desc.
-	Merchant never sees the amount in clear. This holds of the real
-	protocol, where XID identifies the transaction. We omit
-	Hash{|Number XID, Nonce (CardSecret k)|} from PIHead because
-	the CardSecret is 0 and because AuthReq treated the unsigned case
-	very differently from the signed one anyway.*}
+        Page 79 of Formal Protocol Desc.
+        Merchant never sees the amount in clear. This holds of the real
+        protocol, where XID identifies the transaction. We omit
+        Hash{|Number XID, Nonce (CardSecret k)|} from PIHead because
+        the CardSecret is 0 and because AuthReq treated the unsigned case
+        very differently from the signed one anyway.*}
    "!!Chall_C Chall_M OrderDesc P PurchAmt XID evsPReqU.
     [|evsPReqU \<in> set_pur;
       C = Cardholder k; CardSecret k = 0;
@@ -133,24 +135,24 @@ where
       OIData = {|Number LID_M, Number XID, Nonce Chall_C, HOD,Nonce Chall_M|};
       PIHead = {|Number LID_M, Number XID, HOD, Number PurchAmt, Agent M|};
       Gets C (sign (priSK M)
-		   {|Number LID_M, Number XID,
-		     Nonce Chall_C, Nonce Chall_M,
-		     cert P EKj onlyEnc (priSK RCA)|})
-	\<in> set evsPReqU;
+                   {|Number LID_M, Number XID,
+                     Nonce Chall_C, Nonce Chall_M,
+                     cert P EKj onlyEnc (priSK RCA)|})
+        \<in> set evsPReqU;
       Says C M {|Number LID_M, Nonce Chall_C|} \<in> set evsPReqU;
       Notes C {|Number LID_M, Transaction|} \<in> set evsPReqU |]
     ==> Says C M
-	     {|EXHcrypt KC1 EKj {|PIHead, Hash OIData|} (Pan (pan C)),
-	       OIData, Hash{|PIHead, Pan (pan C)|} |}
-	  # Notes C {|Key KC1, Agent M|}
-	  # evsPReqU \<in> set_pur"
+             {|EXHcrypt KC1 EKj {|PIHead, Hash OIData|} (Pan (pan C)),
+               OIData, Hash{|PIHead, Pan (pan C)|} |}
+          # Notes C {|Key KC1, Agent M|}
+          # evsPReqU \<in> set_pur"
 
 | PReqS:
       --{*SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
           We could specify the equation
-	  @{term "PIReqSigned = {| PIDualSigned, OIDualSigned |}"}, since the
-	  Formal Desc. gives PIHead the same format in the unsigned case.
-	  However, there's little point, as P treats the signed and 
+          @{term "PIReqSigned = {| PIDualSigned, OIDualSigned |}"}, since the
+          Formal Desc. gives PIHead the same format in the unsigned case.
+          However, there's little point, as P treats the signed and 
           unsigned cases differently.*}
    "!!C Chall_C Chall_M EKj HOD KC2 LID_M M OIData
       OIDualSigned OrderDesc P PANData PIData PIDualSigned
@@ -162,22 +164,22 @@ where
       HOD = Hash{|Number OrderDesc, Number PurchAmt|};
       OIData = {|Number LID_M, Number XID, Nonce Chall_C, HOD, Nonce Chall_M|};
       PIHead = {|Number LID_M, Number XID, HOD, Number PurchAmt, Agent M,
-		  Hash{|Number XID, Nonce (CardSecret k)|}|};
+                  Hash{|Number XID, Nonce (CardSecret k)|}|};
       PANData = {|Pan (pan C), Nonce (PANSecret k)|};
       PIData = {|PIHead, PANData|};
       PIDualSigned = {|sign (priSK C) {|Hash PIData, Hash OIData|},
-		       EXcrypt KC2 EKj {|PIHead, Hash OIData|} PANData|};
+                       EXcrypt KC2 EKj {|PIHead, Hash OIData|} PANData|};
       OIDualSigned = {|OIData, Hash PIData|};
       Gets C (sign (priSK M)
-		   {|Number LID_M, Number XID,
-		     Nonce Chall_C, Nonce Chall_M,
-		     cert P EKj onlyEnc (priSK RCA)|})
-	\<in> set evsPReqS;
+                   {|Number LID_M, Number XID,
+                     Nonce Chall_C, Nonce Chall_M,
+                     cert P EKj onlyEnc (priSK RCA)|})
+        \<in> set evsPReqS;
       Says C M {|Number LID_M, Nonce Chall_C|} \<in> set evsPReqS;
       Notes C {|Number LID_M, Transaction|} \<in> set evsPReqS |]
     ==> Says C M {|PIDualSigned, OIDualSigned|}
-	  # Notes C {|Key KC2, Agent M|}
-	  # evsPReqS \<in> set_pur"
+          # Notes C {|Key KC2, Agent M|}
+          # evsPReqS \<in> set_pur"
 
   --{*Authorization Request.  Page 92 of Formal Protocol Desc.
     Sent in response to Purchase Request.*}
@@ -187,20 +189,20 @@ where
        Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};
        HOD = Hash{|Number OrderDesc, Number PurchAmt|};
        OIData = {|Number LID_M, Number XID, Nonce Chall_C, HOD,
-		  Nonce Chall_M|};
+                  Nonce Chall_M|};
        CardSecret k \<noteq> 0 -->
-	 P_I = {|sign (priSK C) {|HPIData, Hash OIData|}, encPANData|};
+         P_I = {|sign (priSK C) {|HPIData, Hash OIData|}, encPANData|};
        Gets M {|P_I, OIData, HPIData|} \<in> set evsAReq;
        Says M C (sign (priSK M) {|Number LID_M, Number XID,
-				  Nonce Chall_C, Nonce Chall_M,
-				  cert P EKj onlyEnc (priSK RCA)|})
-	 \<in> set evsAReq;
-	Notes M {|Number LID_M, Agent P, Transaction|}
-	   \<in> set evsAReq |]
+                                  Nonce Chall_C, Nonce Chall_M,
+                                  cert P EKj onlyEnc (priSK RCA)|})
+         \<in> set evsAReq;
+        Notes M {|Number LID_M, Agent P, Transaction|}
+           \<in> set evsAReq |]
     ==> Says M P
-	     (EncB (priSK M) KM (pubEK P)
-	       {|Number LID_M, Number XID, Hash OIData, HOD|}	P_I)
-	  # evsAReq \<in> set_pur"
+             (EncB (priSK M) KM (pubEK P)
+               {|Number LID_M, Number XID, Hash OIData, HOD|}   P_I)
+          # evsAReq \<in> set_pur"
 
   --{*Authorization Response has two forms: for UNSIGNED and SIGNED PIs.
     Page 99 of Formal Protocol Desc.
@@ -219,12 +221,12 @@ where
        PIHead = {|Number LID_M, Number XID, HOD, Number PurchAmt, Agent M|};
        P_I = EXHcrypt KC1 EKj {|PIHead, HOIData|} (Pan (pan C));
        Gets P (EncB (priSK M) KM (pubEK P)
-	       {|Number LID_M, Number XID, HOIData, HOD|} P_I)
-	   \<in> set evsAResU |]
+               {|Number LID_M, Number XID, HOIData, HOD|} P_I)
+           \<in> set evsAResU |]
    ==> Says P M
-	    (EncB (priSK P) KP (pubEK M)
-	      {|Number LID_M, Number XID, Number PurchAmt|}
-	      authCode)
+            (EncB (priSK P) KP (pubEK M)
+              {|Number LID_M, Number XID, Number PurchAmt|}
+              authCode)
        # evsAResU \<in> set_pur"
 
 | AuthResS:
@@ -234,19 +236,19 @@ where
        Key KP \<notin> used evsAResS;  KP \<in> symKeys;
        CardSecret k \<noteq> 0;  KC2 \<in> symKeys;  KM \<in> symKeys;
        P_I = {|sign (priSK C) {|Hash PIData, HOIData|},
-	       EXcrypt KC2 (pubEK P) {|PIHead, HOIData|} PANData|};
+               EXcrypt KC2 (pubEK P) {|PIHead, HOIData|} PANData|};
        PANData = {|Pan (pan C), Nonce (PANSecret k)|};
        PIData = {|PIHead, PANData|};
        PIHead = {|Number LID_M, Number XID, HOD, Number PurchAmt, Agent M,
-		  Hash{|Number XID, Nonce (CardSecret k)|}|};
+                  Hash{|Number XID, Nonce (CardSecret k)|}|};
        Gets P (EncB (priSK M) KM (pubEK P)
-		{|Number LID_M, Number XID, HOIData, HOD|}
-	       P_I)
-	   \<in> set evsAResS |]
+                {|Number LID_M, Number XID, HOIData, HOD|}
+               P_I)
+           \<in> set evsAResS |]
    ==> Says P M
-	    (EncB (priSK P) KP (pubEK M)
-	      {|Number LID_M, Number XID, Number PurchAmt|}
-	      authCode)
+            (EncB (priSK P) KP (pubEK M)
+              {|Number LID_M, Number XID, Number PurchAmt|}
+              authCode)
        # evsAResS \<in> set_pur"
 
 | PRes:
@@ -254,21 +256,21 @@ where
    "[| evsPRes \<in> set_pur;  KP \<in> symKeys;  M = Merchant i;
        Transaction = {|Agent M, Agent C, Number OrderDesc, Number PurchAmt|};
        Gets M (EncB (priSK P) KP (pubEK M)
-	      {|Number LID_M, Number XID, Number PurchAmt|}
-	      authCode)
-	  \<in> set evsPRes;
+              {|Number LID_M, Number XID, Number PurchAmt|}
+              authCode)
+          \<in> set evsPRes;
        Gets M {|Number LID_M, Nonce Chall_C|} \<in> set evsPRes;
        Says M P
-	    (EncB (priSK M) KM (pubEK P)
-	      {|Number LID_M, Number XID, Hash OIData, HOD|} P_I)
-	 \<in> set evsPRes;
+            (EncB (priSK M) KM (pubEK P)
+              {|Number LID_M, Number XID, Hash OIData, HOD|} P_I)
+         \<in> set evsPRes;
        Notes M {|Number LID_M, Agent P, Transaction|}
-	  \<in> set evsPRes
+          \<in> set evsPRes
       |]
    ==> Says M C
-	 (sign (priSK M) {|Number LID_M, Number XID, Nonce Chall_C,
-			   Hash (Number PurchAmt)|})
-	 # evsPRes \<in> set_pur"
+         (sign (priSK M) {|Number LID_M, Number XID, Nonce Chall_C,
+                           Hash (Number PurchAmt)|})
+         # evsPRes \<in> set_pur"
 
 
 specification (CardSecret PANSecret)
@@ -304,12 +306,12 @@ a unique number!*}
 lemma possibility_Uns:
     "[| CardSecret k = 0;
         C = Cardholder k;  M = Merchant i;
-	Key KC \<notin> used []; Key KM \<notin> used []; Key KP \<notin> used []; 
-	KC \<in> symKeys; KM \<in> symKeys; KP \<in> symKeys; 
-	KC < KM; KM < KP;
-	Nonce Chall_C \<notin> used []; Chall_C \<notin> range CardSecret \<union> range PANSecret;
+        Key KC \<notin> used []; Key KM \<notin> used []; Key KP \<notin> used []; 
+        KC \<in> symKeys; KM \<in> symKeys; KP \<in> symKeys; 
+        KC < KM; KM < KP;
+        Nonce Chall_C \<notin> used []; Chall_C \<notin> range CardSecret \<union> range PANSecret;
         Nonce Chall_M \<notin> used []; Chall_M \<notin> range CardSecret \<union> range PANSecret;
-	Chall_C < Chall_M; 
+        Chall_C < Chall_M; 
         Number LID_M \<notin> used []; LID_M \<notin> range CardSecret \<union> range PANSecret;
         Number XID \<notin> used []; XID \<notin> range CardSecret \<union> range PANSecret;
         LID_M < XID; XID < OrderDesc; OrderDesc < PurchAmt |] 
@@ -321,19 +323,19 @@ lemma possibility_Uns:
                   \<in> set evs" 
 apply (intro exI bexI)
 apply (rule_tac [2]
-	set_pur.Nil
+        set_pur.Nil
          [THEN set_pur.Start [of _ LID_M C k M i _ _ _ OrderDesc PurchAmt], 
-	  THEN set_pur.PInitReq [of concl: C M LID_M Chall_C],
+          THEN set_pur.PInitReq [of concl: C M LID_M Chall_C],
           THEN Says_to_Gets, 
-	  THEN set_pur.PInitRes [of concl: M C LID_M XID Chall_C Chall_M], 
+          THEN set_pur.PInitRes [of concl: M C LID_M XID Chall_C Chall_M], 
           THEN Says_to_Gets,
-	  THEN set_pur.PReqUns [of concl: C M KC],
+          THEN set_pur.PReqUns [of concl: C M KC],
           THEN Says_to_Gets, 
-	  THEN set_pur.AuthReq [of concl: M "PG j" KM LID_M XID], 
+          THEN set_pur.AuthReq [of concl: M "PG j" KM LID_M XID], 
           THEN Says_to_Gets, 
-	  THEN set_pur.AuthResUns [of concl: "PG j" M KP LID_M XID],
+          THEN set_pur.AuthResUns [of concl: "PG j" M KP LID_M XID],
           THEN Says_to_Gets, 
-	  THEN set_pur.PRes]) 
+          THEN set_pur.PRes]) 
 apply basic_possibility
 apply (simp_all add: used_Cons symKeys_neq_imp_neq) 
 done
@@ -341,12 +343,12 @@ done
 lemma possibility_S:
     "[| CardSecret k \<noteq> 0;
         C = Cardholder k;  M = Merchant i;
-	Key KC \<notin> used []; Key KM \<notin> used []; Key KP \<notin> used []; 
-	KC \<in> symKeys; KM \<in> symKeys; KP \<in> symKeys; 
-	KC < KM; KM < KP;
-	Nonce Chall_C \<notin> used []; Chall_C \<notin> range CardSecret \<union> range PANSecret;
+        Key KC \<notin> used []; Key KM \<notin> used []; Key KP \<notin> used []; 
+        KC \<in> symKeys; KM \<in> symKeys; KP \<in> symKeys; 
+        KC < KM; KM < KP;
+        Nonce Chall_C \<notin> used []; Chall_C \<notin> range CardSecret \<union> range PANSecret;
         Nonce Chall_M \<notin> used []; Chall_M \<notin> range CardSecret \<union> range PANSecret;
-	Chall_C < Chall_M; 
+        Chall_C < Chall_M; 
         Number LID_M \<notin> used []; LID_M \<notin> range CardSecret \<union> range PANSecret;
         Number XID \<notin> used []; XID \<notin> range CardSecret \<union> range PANSecret;
         LID_M < XID; XID < OrderDesc; OrderDesc < PurchAmt |] 
@@ -357,19 +359,19 @@ lemma possibility_S:
                \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2]
-	set_pur.Nil
+        set_pur.Nil
          [THEN set_pur.Start [of _ LID_M C k M i _ _ _ OrderDesc PurchAmt], 
-	  THEN set_pur.PInitReq [of concl: C M LID_M Chall_C],
+          THEN set_pur.PInitReq [of concl: C M LID_M Chall_C],
           THEN Says_to_Gets, 
-	  THEN set_pur.PInitRes [of concl: M C LID_M XID Chall_C Chall_M], 
+          THEN set_pur.PInitRes [of concl: M C LID_M XID Chall_C Chall_M], 
           THEN Says_to_Gets,
-	  THEN set_pur.PReqS [of concl: C M _ _ KC],
+          THEN set_pur.PReqS [of concl: C M _ _ KC],
           THEN Says_to_Gets, 
-	  THEN set_pur.AuthReq [of concl: M "PG j" KM LID_M XID], 
+          THEN set_pur.AuthReq [of concl: M "PG j" KM LID_M XID], 
           THEN Says_to_Gets, 
-	  THEN set_pur.AuthResS [of concl: "PG j" M KP LID_M XID],
+          THEN set_pur.AuthResS [of concl: "PG j" M KP LID_M XID],
           THEN Says_to_Gets, 
-	  THEN set_pur.PRes]) 
+          THEN set_pur.PRes]) 
 apply basic_possibility
 apply (auto simp add: used_Cons symKeys_neq_imp_neq) 
 done
@@ -761,7 +763,7 @@ by (rule refl [THEN goodM_gives_correct_PG, THEN exE], auto)
 text{*When C receives PInitRes, he learns M's choice of P*}
 lemma C_verifies_PInitRes:
  "[| MsgPInitRes = {|Number LID_M, Number XID, Nonce Chall_C, Nonce Chall_M,
-	   cert P EKj onlyEnc (priSK RCA)|};
+           cert P EKj onlyEnc (priSK RCA)|};
      Crypt (priSK M) (Hash MsgPInitRes) \<in> parts (knows Spy evs);
      evs \<in> set_pur;  M \<notin> bad|]
   ==> \<exists>j trans.
@@ -826,14 +828,14 @@ theorem M_verifies_AuthRes:
       Crypt (priSK (PG j)) (Hash MsgAuthRes) \<in> parts (knows Spy evs);
       PG j \<notin> bad;  evs \<in> set_pur|]
    ==> \<exists>M KM KP HOIData HOD P_I.
-	Gets (PG j)
-	   (EncB (priSK M) KM (pubEK (PG j))
-		    {|Number LID_M, Number XID, HOIData, HOD|}
-		    P_I) \<in> set evs &
-	Says (PG j) M
-	     (EncB (priSK (PG j)) KP (pubEK M)
-	      {|Number LID_M, Number XID, Number PurchAmt|}
-	      authCode) \<in> set evs"
+        Gets (PG j)
+           (EncB (priSK M) KM (pubEK (PG j))
+                    {|Number LID_M, Number XID, HOIData, HOD|}
+                    P_I) \<in> set evs &
+        Says (PG j) M
+             (EncB (priSK (PG j)) KP (pubEK M)
+              {|Number LID_M, Number XID, Number PurchAmt|}
+              authCode) \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
@@ -1030,9 +1032,9 @@ theorem M_verifies_Signed_PReq:
      Notes M {|Number LID_M, Agent P, extras|} \<in> set evs;
      M = Merchant i;  C = Cardholder k;  C \<notin> bad;  evs \<in> set_pur|]
   ==> \<exists>PIData PICrypt.
-	HPIData = Hash PIData &
-	Says C M {|{|sign (priSK C) MsgDualSign, PICrypt|}, OIData, Hash PIData|}
-	  \<in> set evs"
+        HPIData = Hash PIData &
+        Says C M {|{|sign (priSK C) MsgDualSign, PICrypt|}, OIData, Hash PIData|}
+          \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)

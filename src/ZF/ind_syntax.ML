@@ -1,5 +1,4 @@
 (*  Title:      ZF/ind_syntax.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -25,7 +24,7 @@ val iT = Type("i",[]);
 fun mk_all_imp (A,P) =
     FOLogic.all_const iT $
       Abs("v", iT, FOLogic.imp $ (@{const mem} $ Bound 0 $ A) $
-	           Term.betapply(P, Bound 0));
+                   Term.betapply(P, Bound 0));
 
 fun mk_Collect (a, D, t) = @{const Collect} $ D $ absfree (a, iT, t);
 
@@ -84,9 +83,9 @@ fun mk_intr_tms sg (rec_tm, constructs) =
     fun mk_intr ((id,T,syn), name, args, prems) =
       Logic.list_implies
         (map FOLogic.mk_Trueprop prems,
-	 FOLogic.mk_Trueprop
-	    (@{const mem} $ list_comb (Const (Sign.full_bname sg name, T), args)
-	               $ rec_tm))
+         FOLogic.mk_Trueprop
+            (@{const mem} $ list_comb (Const (Sign.full_bname sg name, T), args)
+                       $ rec_tm))
   in  map mk_intr constructs  end;
 
 fun mk_all_intr_tms sg arg = flat (ListPair.map (mk_intr_tms sg) arg);
@@ -115,7 +114,7 @@ fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
   | tryres (th, []) = raise THM("tryres", 0, [th]);
 
 fun gen_make_elim elim_rls rl =
-      standard (tryres (rl, elim_rls @ [revcut_rl]));
+      Drule.standard (tryres (rl, elim_rls @ [revcut_rl]));
 
 (*Turns iff rules into safe elimination rules*)
 fun mk_free_SEs iffs = map (gen_make_elim [@{thm conjE}, @{thm FalseE}]) (iffs RL [@{thm iffD1}]);

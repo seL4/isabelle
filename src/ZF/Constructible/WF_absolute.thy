@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/WF_absolute.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -56,28 +55,28 @@ done
 
 lemma rtrancl_alt_eq_rtrancl: "rtrancl_alt(field(r),r) = r^*"
 by (blast del: subsetI
-	  intro: rtrancl_alt_subset_rtrancl rtrancl_subset_rtrancl_alt)
+          intro: rtrancl_alt_subset_rtrancl rtrancl_subset_rtrancl_alt)
 
 
 definition
   rtran_closure_mem :: "[i=>o,i,i,i] => o" where
     --{*The property of belonging to @{text "rtran_closure(r)"}*}
     "rtran_closure_mem(M,A,r,p) ==
-	      \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
+              \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
                omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
-	       (\<exists>f[M]. typed_function(M,n',A,f) &
-		(\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
-		  fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
-		  (\<forall>j[M]. j\<in>n --> 
-		    (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M]. 
-		      fun_apply(M,f,j,fj) & successor(M,j,sj) &
-		      fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"
+               (\<exists>f[M]. typed_function(M,n',A,f) &
+                (\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
+                  fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
+                  (\<forall>j[M]. j\<in>n --> 
+                    (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M]. 
+                      fun_apply(M,f,j,fj) & successor(M,j,sj) &
+                      fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r)))"
 
 definition
   rtran_closure :: "[i=>o,i,i] => o" where
     "rtran_closure(M,r,s) == 
         \<forall>A[M]. is_field(M,r,A) -->
- 	 (\<forall>p[M]. p \<in> s <-> rtran_closure_mem(M,A,r,p))"
+         (\<forall>p[M]. p \<in> s <-> rtran_closure_mem(M,A,r,p))"
 
 definition
   tran_closure :: "[i=>o,i,i] => o" where
@@ -96,12 +95,12 @@ by (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD])
 
 locale M_trancl = M_basic +
   assumes rtrancl_separation:
-	 "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
+         "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
       and wellfounded_trancl_separation:
-	 "[| M(r); M(Z) |] ==> 
-	  separation (M, \<lambda>x. 
-	      \<exists>w[M]. \<exists>wx[M]. \<exists>rp[M]. 
-	       w \<in> Z & pair(M,w,x,wx) & tran_closure(M,r,rp) & wx \<in> rp)"
+         "[| M(r); M(Z) |] ==> 
+          separation (M, \<lambda>x. 
+              \<exists>w[M]. \<exists>wx[M]. \<exists>rp[M]. 
+               w \<in> Z & pair(M,w,x,wx) & tran_closure(M,r,rp) & wx \<in> rp)"
 
 
 lemma (in M_trancl) rtran_closure_rtrancl:

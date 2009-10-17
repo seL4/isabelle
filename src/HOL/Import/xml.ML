@@ -1,5 +1,4 @@
 (*  Title:      HOL/Import/xml.ML
-    ID:         $Id$
 
 Yet another version of XML support.
 *)
@@ -157,11 +156,11 @@ val parse_document =
 
 fun tree_of_string s =
     let
-	val seq = Seq.fromString s
-	val scanner = !! (err "Malformed element") (scan_whspc |-- parse_elem --| scan_whspc)
-	val (x, toks) = scanner seq
+        val seq = Seq.fromString s
+        val scanner = !! (err "Malformed element") (scan_whspc |-- parse_elem --| scan_whspc)
+        val (x, toks) = scanner seq
     in
-	if Seq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
+        if Seq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
     end
 
 (* More efficient saving and loading of xml trees employing a proprietary external format *)
@@ -175,9 +174,9 @@ fun parse_list sc = scan_nat --| one Symbol.is_blank :-- (fn i => repeat_fixed i
 fun write_tree (Text s) buf = buf |> Buffer.add "T" |> write_lstring s
   | write_tree (Elem (name, attrs, children)) buf = 
     buf |> Buffer.add "E" 
-	|> write_lstring name 
-	|> write_list (fn (a,b) => fn buf => buf |> write_lstring a |> write_lstring b) attrs 
-	|> write_list write_tree children
+        |> write_lstring name 
+        |> write_list (fn (a,b) => fn buf => buf |> write_lstring a |> write_lstring b) attrs 
+        |> write_list write_tree children
 
 fun parse_tree toks = (one (K true) :-- (fn "T" => parse_lstring >> Text | "E" => parse_elem | _ => raise SyntaxError) >> snd) toks
 and parse_elem toks = (parse_lstring -- parse_list (parse_lstring -- parse_lstring) -- parse_list parse_tree >> (fn ((n, a), c) => Elem (n,a,c))) toks
@@ -186,15 +185,15 @@ fun encoded_string_of_tree tree = Buffer.content (write_tree tree Buffer.empty)
 
 fun tree_of_encoded_string s = 
     let
-	fun print (a,b) = writeln (a^" "^(string_of_int b))
-	val _ = print ("length of encoded string: ", size s)
-	val _ = writeln "Seq.fromString..."
-	val seq = timeit (fn () => Seq.fromString s)
-	val  _ = print ("length of sequence", timeit (fn () => Seq.length seq))
-	val scanner = !! (err "Malformed encoded xml") parse_tree
-	val (x, toks) = scanner seq
+        fun print (a,b) = writeln (a^" "^(string_of_int b))
+        val _ = print ("length of encoded string: ", size s)
+        val _ = writeln "Seq.fromString..."
+        val seq = timeit (fn () => Seq.fromString s)
+        val  _ = print ("length of sequence", timeit (fn () => Seq.length seq))
+        val scanner = !! (err "Malformed encoded xml") parse_tree
+        val (x, toks) = scanner seq
     in
-	if Seq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
-    end	       
+        if Seq.null toks then x else error ("Unprocessed input: '"^(beginning 100 toks)^"'")
+    end        
 
 end;

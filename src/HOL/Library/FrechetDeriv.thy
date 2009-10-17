@@ -196,11 +196,11 @@ proof -
     proof (intro exI allI)
       fix x
       have "norm (f (g x)) \<le> norm (g x) * Kf"
-	using f .
+        using f .
       also have "\<dots> \<le> (norm x * Kg) * Kf"
-	using g Kf [THEN order_less_imp_le] by (rule mult_right_mono)
+        using g Kf [THEN order_less_imp_le] by (rule mult_right_mono)
       also have "(norm x * Kg) * Kf = norm x * (Kg * Kf)"
-	by (rule mult_assoc)
+        by (rule mult_assoc)
       finally show "norm (f (g x)) \<le> norm x * (Kg * Kf)" .
     qed
   qed

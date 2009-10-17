@@ -1,12 +1,12 @@
 (*  Title:      Tools/Compute_Oracle/linker.ML
     Author:     Steven Obua
 
-Linker.ML solves the problem that the computing oracle does not
-instantiate polymorphic rules. By going through the PCompute interface,
-all possible instantiations are resolved by compiling new programs, if
-necessary. The obvious disadvantage of this approach is that in the
-worst case for each new term to be rewritten, a new program may be
-compiled.
+This module solves the problem that the computing oracle does not
+instantiate polymorphic rules. By going through the PCompute
+interface, all possible instantiations are resolved by compiling new
+programs, if necessary. The obvious disadvantage of this approach is
+that in the worst case for each new term to be rewritten, a new
+program may be compiled.
 *)
 
 (*
@@ -292,33 +292,33 @@ let
     val polycs = filter Linker.is_polymorphic cs
 in
     if null (polycs) then
-	MonoPattern pat
+        MonoPattern pat
     else
-	PolyPattern (pat, Linker.empty polycs, [])
+        PolyPattern (pat, Linker.empty polycs, [])
 end
-	     
+             
 fun create_computer machine thy pats ths =
     let
         fun add (MonoThm th) ths = th::ths
           | add (PolyThm (_, _, ths')) ths = ths'@ths
-	fun addpat (MonoPattern p) pats = p::pats
-	  | addpat (PolyPattern (_, _, ps)) pats = ps@pats
+        fun addpat (MonoPattern p) pats = p::pats
+          | addpat (PolyPattern (_, _, ps)) pats = ps@pats
         val ths = fold_rev add ths []
-	val pats = fold_rev addpat pats []
+        val pats = fold_rev addpat pats []
     in
         Compute.make_with_cache machine thy pats ths
     end
 
 fun update_computer computer pats ths = 
     let
-	fun add (MonoThm th) ths = th::ths
-	  | add (PolyThm (_, _, ths')) ths = ths'@ths
-	fun addpat (MonoPattern p) pats = p::pats
-	  | addpat (PolyPattern (_, _, ps)) pats = ps@pats
-	val ths = fold_rev add ths []
-	val pats = fold_rev addpat pats []
+        fun add (MonoThm th) ths = th::ths
+          | add (PolyThm (_, _, ths')) ths = ths'@ths
+        fun addpat (MonoPattern p) pats = p::pats
+          | addpat (PolyPattern (_, _, ps)) pats = ps@pats
+        val ths = fold_rev add ths []
+        val pats = fold_rev addpat pats []
     in
-	Compute.update_with_cache computer pats ths
+        Compute.update_with_cache computer pats ths
     end
 
 fun conv_subst thy (subst : Type.tyenv) =
@@ -338,29 +338,29 @@ fun add_monos thy monocs pats ths =
             in
                 (newmonos, PolyThm (th, instances, instanceths@newths))
             end
-	fun addpats monocs (pat as (MonoPattern _)) = pat
-	  | addpats monocs (PolyPattern (p, instances, instancepats)) =
-	    let
-		val (newsubsts, instances) = Linker.add_instances thy instances monocs
-		val _ = if not (null newsubsts) then changed := true else ()
-		val newpats = map (fn subst => Envir.subst_term_types subst p) newsubsts
-	    in
-		PolyPattern (p, instances, instancepats@newpats)
-	    end 
+        fun addpats monocs (pat as (MonoPattern _)) = pat
+          | addpats monocs (PolyPattern (p, instances, instancepats)) =
+            let
+                val (newsubsts, instances) = Linker.add_instances thy instances monocs
+                val _ = if not (null newsubsts) then changed := true else ()
+                val newpats = map (fn subst => Envir.subst_term_types subst p) newsubsts
+            in
+                PolyPattern (p, instances, instancepats@newpats)
+            end 
         fun step monocs ths =
             fold_rev (fn th =>
                       fn (newmonos, ths) =>
                          let 
-			     val (newmonos', th') = add monocs th 
-			 in
+                             val (newmonos', th') = add monocs th 
+                         in
                              (newmonos'@newmonos, th'::ths)
                          end)
                      ths ([], [])
         fun loop monocs pats ths =
             let 
-		val (monocs', ths') = step monocs ths 
-		val pats' = map (addpats monocs) pats
-	    in
+                val (monocs', ths') = step monocs ths 
+                val pats' = map (addpats monocs) pats
+            in
                 if null (monocs') then
                     (pats', ths')
                 else
@@ -406,18 +406,18 @@ fun remove_duplicates ths =
 
 fun make_with_cache machine thy pats ths cs =
     let
-	val ths = remove_duplicates ths
-	val (monocs, ths) = fold_rev (fn th => 
-				      fn (monocs, ths) => 
-					 let val (m, t) = create_theorem th in 
-					     (m@monocs, t::ths)
-					 end)
-				     ths (cs, [])
-	val pats = map create_pattern pats
-	val (_, (pats, ths)) = add_monos thy monocs pats ths
-	val computer = create_computer machine thy pats ths
+        val ths = remove_duplicates ths
+        val (monocs, ths) = fold_rev (fn th => 
+                                      fn (monocs, ths) => 
+                                         let val (m, t) = create_theorem th in 
+                                             (m@monocs, t::ths)
+                                         end)
+                                     ths (cs, [])
+        val pats = map create_pattern pats
+        val (_, (pats, ths)) = add_monos thy monocs pats ths
+        val computer = create_computer machine thy pats ths
     in
-	PComputer (Theory.check_thy thy, computer, Unsynchronized.ref ths, Unsynchronized.ref pats)
+        PComputer (Theory.check_thy thy, computer, Unsynchronized.ref ths, Unsynchronized.ref pats)
     end
 
 fun make machine thy ths cs = make_with_cache machine thy [] ths cs
@@ -427,13 +427,13 @@ fun add_instances (PComputer (thyref, computer, rths, rpats)) cs =
         val thy = Theory.deref thyref
         val (changed, (pats, ths)) = add_monos thy cs (!rpats) (!rths)
     in
-	if changed then
-	    (update_computer computer pats ths;
-	     rths := ths;
-	     rpats := pats;
-	     true)
-	else
-	    false
+        if changed then
+            (update_computer computer pats ths;
+             rths := ths;
+             rpats := pats;
+             true)
+        else
+            false
 
     end
 
@@ -441,37 +441,37 @@ fun add_instances' pc ts = add_instances pc (Linker.collect_consts ts)
 
 fun rewrite pc cts =
     let
-	val _ = add_instances' pc (map term_of cts)
-	val computer = (computer_of pc)
+        val _ = add_instances' pc (map term_of cts)
+        val computer = (computer_of pc)
     in
-	map (fn ct => Compute.rewrite computer ct) cts
+        map (fn ct => Compute.rewrite computer ct) cts
     end
 
 fun simplify pc th = Compute.simplify (computer_of pc) th
 
 fun make_theorem pc th vars = 
     let
-	val _ = add_instances' pc [prop_of th]
+        val _ = add_instances' pc [prop_of th]
 
     in
-	Compute.make_theorem (computer_of pc) th vars
+        Compute.make_theorem (computer_of pc) th vars
     end
 
 fun instantiate pc insts th = 
     let
-	val _ = add_instances' pc (map (term_of o snd) insts)
+        val _ = add_instances' pc (map (term_of o snd) insts)
     in
-	Compute.instantiate (computer_of pc) insts th
+        Compute.instantiate (computer_of pc) insts th
     end
 
 fun evaluate_prem pc prem_no th = Compute.evaluate_prem (computer_of pc) prem_no th
 
 fun modus_ponens pc prem_no th' th =
     let
-	val _ = add_instances' pc [prop_of th']
+        val _ = add_instances' pc [prop_of th']
     in
-	Compute.modus_ponens (computer_of pc) prem_no th' th
+        Compute.modus_ponens (computer_of pc) prem_no th' th
     end    
-		 							      			    
+                                                                                                    
 
 end

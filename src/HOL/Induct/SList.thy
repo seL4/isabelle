@@ -276,7 +276,7 @@ lemma list_induct:
         !!x xs. P(xs) ==> P(x # xs) |]  ==> P(l)"
 apply (unfold Nil_def Cons_def) 
 apply (rule Rep_List_inverse [THEN subst])
-			 (*types force good instantiation*)
+(*types force good instantiation*)
 apply (rule Rep_List [unfolded List_def, THEN list.induct], simp)
 apply (erule Abs_List_inverse [unfolded List_def, THEN subst], blast) 
 done

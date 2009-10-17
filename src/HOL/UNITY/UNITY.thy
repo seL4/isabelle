@@ -1,11 +1,11 @@
-(*  Title:      HOL/UNITY/UNITY
-    ID:         $Id$
+(*  Title:      HOL/UNITY/UNITY.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-The basic UNITY theory (revised version, based upon the "co" operator)
+The basic UNITY theory (revised version, based upon the "co"
+operator).
 
-From Misra, "A Logic for Concurrent Programming", 1994
+From Misra, "A Logic for Concurrent Programming", 1994.
 *)
 
 header {*The Basic UNITY Theory*}
@@ -14,7 +14,7 @@ theory UNITY imports Main begin
 
 typedef (Program)
   'a program = "{(init:: 'a set, acts :: ('a * 'a)set set,
-		   allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}" 
+                   allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}" 
   by blast
 
 constdefs
@@ -28,7 +28,7 @@ constdefs
     "A unless B == (A-B) co (A \<union> B)"
 
   mk_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
-		   => 'a program"
+                   => 'a program"
     "mk_program == %(init, acts, allowed).
                       Abs_Program (init, insert Id acts, insert Id allowed)"
 
@@ -363,11 +363,11 @@ constdefs
 
   totalize :: "'a program => 'a program"
     "totalize F == mk_program (Init F,
-			       totalize_act ` Acts F,
-			       AllowedActs F)"
+                               totalize_act ` Acts F,
+                               AllowedActs F)"
 
   mk_total_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
-		   => 'a program"
+                   => 'a program"
     "mk_total_program args == totalize (mk_program args)"
 
   all_total :: "'a program => bool"

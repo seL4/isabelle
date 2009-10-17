@@ -1309,7 +1309,7 @@ done
 subsubsection{*Finite Ordinals: The Predicate ``Is A Natural Number''*}
 
 (*     "finite_ordinal(M,a) == 
-	ordinal(M,a) & ~ limit_ordinal(M,a) & 
+        ordinal(M,a) & ~ limit_ordinal(M,a) & 
         (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))" *)
 definition
   finite_ordinal_fm :: "i=>i" where

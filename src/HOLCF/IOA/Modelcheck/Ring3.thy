@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 theory Ring3
 imports MuIOAOracle
 begin
@@ -112,7 +109,7 @@ lemmas aut_simps =
   aut2_asig_def aut2_trans_def aut2_initial_def aut2_def
 
 (* property to prove: at most one (of 3) members of the ring will
-	declare itself to leader *)
+   declare itself to leader *)
 lemma at_most_one_leader: "ring =<| one_leader"
 apply (tactic {* is_sim_tac @{simpset} (thms "aut_simps") 1 *})
 apply auto

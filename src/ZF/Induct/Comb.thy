@@ -1,5 +1,4 @@
 (*  Title:      ZF/Induct/Comb.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1994  University of Cambridge
 *)
@@ -39,7 +38,7 @@ translations
   "p ---> q" == "<p,q> \<in> contract^*"
 
 syntax (xsymbols)
-  "comb.app"    :: "[i, i] => i"    	     (infixl "\<bullet>" 90)
+  "comb.app"    :: "[i, i] => i"             (infixl "\<bullet>" 90)
 
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"

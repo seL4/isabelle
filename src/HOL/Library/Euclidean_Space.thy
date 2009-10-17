@@ -1,5 +1,5 @@
-(* Title:      Library/Euclidean_Space
-   Author:     Amine Chaieb, University of Cambridge
+(*  Title:      Library/Euclidean_Space
+    Author:     Amine Chaieb, University of Cambridge
 *)
 
 header {* (Real) Vectors in Euclidean space, and elementary linear algebra.*}
@@ -917,11 +917,11 @@ proof-
       from le2 fa fb e12 alb have la: "l \<noteq> a" by metis
       hence lap: "l - a > 0" using alb by arith
       from e2[rule_format, OF le2] obtain e where
-	e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e2" by metis
+        e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e2" by metis
       from dst[OF alb e(1)] obtain d where
-	d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
+        d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
       have "\<exists>d'. d' < d \<and> d' >0 \<and> l - d' > a" using lap d(1)
-	apply ferrack by arith
+        apply ferrack by arith
       then obtain d' where d': "d' > 0" "d' < d" "l - d' > a" by metis
       from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e2" by metis
       from th0[rule_format, of "l - d'"] d' have "f (l - d') \<in> e2" by auto
@@ -933,16 +933,16 @@ proof-
     from le1 fa fb e12 alb have lb: "l \<noteq> b" by metis
       hence blp: "b - l > 0" using alb by arith
       from e1[rule_format, OF le1] obtain e where
-	e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e1" by metis
+        e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e1" by metis
       from dst[OF alb e(1)] obtain d where
-	d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
+        d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
       have "\<exists>d'. d' < d \<and> d' >0" using d(1) by dlo
       then obtain d' where d': "d' > 0" "d' < d" by metis
       from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e1" by auto
       hence "\<forall>y. l \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" using d' by auto
       with ale1 have "\<forall>y. a \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" by auto
       with l d' have False
-	by (auto simp add: isLub_def isUb_def setle_def setge_def leastP_def) }
+        by (auto simp add: isLub_def isUb_def setle_def setge_def leastP_def) }
     ultimately show ?thesis using alb by metis
 qed
 
@@ -1768,7 +1768,7 @@ proof-
     {assume C: "B < 0"
       have "norm (1::real ^ 'n) > 0" by (simp add: zero_less_norm_iff)
       with C have "B * norm (1:: real ^ 'n) < 0"
-	by (simp add: zero_compare_simps)
+        by (simp add: zero_compare_simps)
       with B[rule_format, of 1] norm_ge_zero[of "f 1"] have False by simp
     }
     then have Bp: "B \<ge> 0" by ferrack
@@ -1969,14 +1969,14 @@ proof-
     let ?w = "(\<chi> i. (f (basis i) \<bullet> y)) :: 'a ^ 'n"
     {fix x
       have "f x \<bullet> y = f (setsum (\<lambda>i. (x$i) *s basis i) ?N) \<bullet> y"
-	by (simp only: basis_expansion)
+        by (simp only: basis_expansion)
       also have "\<dots> = (setsum (\<lambda>i. (x$i) *s f (basis i)) ?N) \<bullet> y"
-	unfolding linear_setsum[OF lf fN]
-	by (simp add: linear_cmul[OF lf])
+        unfolding linear_setsum[OF lf fN]
+        by (simp add: linear_cmul[OF lf])
       finally have "f x \<bullet> y = x \<bullet> ?w"
-	apply (simp only: )
-	apply (simp add: dot_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] ring_simps)
-	done}
+        apply (simp only: )
+        apply (simp add: dot_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] ring_simps)
+        done}
   }
   then show ?thesis unfolding adjoint_def
     some_eq_ex[of "\<lambda>f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y"]
@@ -2551,17 +2551,17 @@ proof-
       by (auto simp add: norm_basis elim: order_trans [OF norm_ge_zero])
     {fix x :: "real ^'n"
       {assume "x = 0"
-	then have "norm (f x) \<le> b * norm x" by (simp add: linear_0[OF lf] bp)}
+        then have "norm (f x) \<le> b * norm x" by (simp add: linear_0[OF lf] bp)}
       moreover
       {assume x0: "x \<noteq> 0"
-	hence n0: "norm x \<noteq> 0" by (metis norm_eq_zero)
-	let ?c = "1/ norm x"
-	have "norm (?c*s x) = 1" using x0 by (simp add: n0 norm_mul)
-	with H have "norm (f(?c*s x)) \<le> b" by blast
-	hence "?c * norm (f x) \<le> b"
-	  by (simp add: linear_cmul[OF lf] norm_mul)
-	hence "norm (f x) \<le> b * norm x"
-	  using n0 norm_ge_zero[of x] by (auto simp add: field_simps)}
+        hence n0: "norm x \<noteq> 0" by (metis norm_eq_zero)
+        let ?c = "1/ norm x"
+        have "norm (?c*s x) = 1" using x0 by (simp add: n0 norm_mul)
+        with H have "norm (f(?c*s x)) \<le> b" by blast
+        hence "?c * norm (f x) \<le> b"
+          by (simp add: linear_cmul[OF lf] norm_mul)
+        hence "norm (f x) \<le> b * norm x"
+          using n0 norm_ge_zero[of x] by (auto simp add: field_simps)}
       ultimately have "norm (f x) \<le> b * norm x" by blast}
     then have ?rhs by blast}
   ultimately show ?thesis by blast
@@ -2580,15 +2580,15 @@ proof-
       unfolding norm_bound_generalize[OF lf, symmetric] by (auto simp add: setle_def)
     {from rsup[OF Se b, unfolded onorm_def[symmetric]]
       show "norm (f x) <= onorm f * norm x"
-	apply -
-	apply (rule spec[where x = x])
-	unfolding norm_bound_generalize[OF lf, symmetric]
-	by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
+        apply -
+        apply (rule spec[where x = x])
+        unfolding norm_bound_generalize[OF lf, symmetric]
+        by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
     {
       show "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
-	using rsup[OF Se b, unfolded onorm_def[symmetric]]
-	unfolding norm_bound_generalize[OF lf, symmetric]
-	by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
+        using rsup[OF Se b, unfolded onorm_def[symmetric]]
+        unfolding norm_bound_generalize[OF lf, symmetric]
+        by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
   }
 qed
 
@@ -3279,37 +3279,37 @@ proof-
 
     have "span_induct_alt_help S x"
       proof(rule span_induct[where x=x and S=S])
-	show "x \<in> span S" using x .
+        show "x \<in> span S" using x .
       next
-	fix x assume xS : "x \<in> S"
-	  from span_induct_alt_help_S[OF xS span_induct_alt_help_0, of 1]
-	  show "span_induct_alt_help S x" by simp
-	next
-	have "span_induct_alt_help S 0" by (rule span_induct_alt_help_0)
-	moreover
-	{fix x y assume h: "span_induct_alt_help S x" "span_induct_alt_help S y"
-	  from h
-	  have "span_induct_alt_help S (x + y)"
-	    apply (induct rule: span_induct_alt_help.induct)
-	    apply simp
-	    unfolding add_assoc
-	    apply (rule span_induct_alt_help_S)
-	    apply assumption
-	    apply simp
-	    done}
-	moreover
-	{fix c x assume xt: "span_induct_alt_help S x"
-	  then have "span_induct_alt_help S (c*s x)"
-	    apply (induct rule: span_induct_alt_help.induct)
-	    apply (simp add: span_induct_alt_help_0)
-	    apply (simp add: vector_smult_assoc vector_add_ldistrib)
-	    apply (rule span_induct_alt_help_S)
-	    apply assumption
-	    apply simp
-	    done
-	}
-	ultimately show "subspace (span_induct_alt_help S)"
-	  unfolding subspace_def mem_def Ball_def by blast
+        fix x assume xS : "x \<in> S"
+          from span_induct_alt_help_S[OF xS span_induct_alt_help_0, of 1]
+          show "span_induct_alt_help S x" by simp
+        next
+        have "span_induct_alt_help S 0" by (rule span_induct_alt_help_0)
+        moreover
+        {fix x y assume h: "span_induct_alt_help S x" "span_induct_alt_help S y"
+          from h
+          have "span_induct_alt_help S (x + y)"
+            apply (induct rule: span_induct_alt_help.induct)
+            apply simp
+            unfolding add_assoc
+            apply (rule span_induct_alt_help_S)
+            apply assumption
+            apply simp
+            done}
+        moreover
+        {fix c x assume xt: "span_induct_alt_help S x"
+          then have "span_induct_alt_help S (c*s x)"
+            apply (induct rule: span_induct_alt_help.induct)
+            apply (simp add: span_induct_alt_help_0)
+            apply (simp add: vector_smult_assoc vector_add_ldistrib)
+            apply (rule span_induct_alt_help_S)
+            apply assumption
+            apply simp
+            done
+        }
+        ultimately show "subspace (span_induct_alt_help S)"
+          unfolding subspace_def mem_def Ball_def by blast
       qed}
   with th0 show ?thesis by blast
 qed
@@ -3387,16 +3387,16 @@ proof-
   {fix x assume xS: "x \<in> S"
     {assume ab: "x = b"
       then have "?P x"
-	apply simp
-	apply (rule exI[where x="1"], simp)
-	by (rule span_0)}
+        apply simp
+        apply (rule exI[where x="1"], simp)
+        by (rule span_0)}
     moreover
     {assume ab: "x \<noteq> b"
       then have "?P x"  using xS
-	apply -
-	apply (rule exI[where x=0])
-	apply (rule span_superset)
-	by simp}
+        apply -
+        apply (rule exI[where x=0])
+        apply (rule span_superset)
+        by simp}
     ultimately have "?P x" by blast}
   moreover have "subspace ?P"
     unfolding subspace_def
@@ -3557,16 +3557,16 @@ proof-
     from fS SP x have th0: "finite (insert x S)" "insert x S \<subseteq> P" by blast+
     {assume xS: "x \<in> S"
       have S1: "S = (S - {x}) \<union> {x}"
-	and Sss:"finite (S - {x})" "finite {x}" "(S -{x}) \<inter> {x} = {}" using xS fS by auto
+        and Sss:"finite (S - {x})" "finite {x}" "(S -{x}) \<inter> {x} = {}" using xS fS by auto
       have "setsum (\<lambda>v. ?u v *s v) ?S =(\<Sum>v\<in>S - {x}. u v *s v) + (u x + c) *s x"
-	using xS
-	by (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]]
-	  setsum_clauses(2)[OF fS] cong del: if_weak_cong)
+        using xS
+        by (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]]
+          setsum_clauses(2)[OF fS] cong del: if_weak_cong)
       also have "\<dots> = (\<Sum>v\<in>S. u v *s v) + c *s x"
-	apply (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]])
-	by (vector ring_simps)
+        apply (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]])
+        by (vector ring_simps)
       also have "\<dots> = c*s x + y"
-	by (simp add: add_commute u)
+        by (simp add: add_commute u)
       finally have "setsum (\<lambda>v. ?u v *s v) ?S = c*s x + y" .
     then have "?Q ?S ?u (c*s x + y)" using th0 by blast}
   moreover
@@ -3621,7 +3621,7 @@ proof-
     have "setsum (\<lambda>v. ?u v *s v) ?S = setsum (\<lambda>v. (- (inverse (u ?a))) *s (u v *s v)) S - ?u v *s v"
       using fS vS uv
       by (simp add: setsum_diff1 vector_smult_lneg divide_inverse
-	vector_smult_assoc field_simps)
+        vector_smult_assoc field_simps)
     also have "\<dots> = ?a"
       unfolding setsum_cmul u
       using uv by (simp add: vector_smult_lneg)
@@ -3740,29 +3740,29 @@ proof-
   {assume aS: "a \<notin> S"
     {assume i: ?lhs
       then have ?rhs using aS
-	apply simp
-	apply (rule conjI)
-	apply (rule independent_mono)
-	apply assumption
-	apply blast
-	by (simp add: dependent_def)}
+        apply simp
+        apply (rule conjI)
+        apply (rule independent_mono)
+        apply assumption
+        apply blast
+        by (simp add: dependent_def)}
     moreover
     {assume i: ?rhs
       have ?lhs using i aS
-	apply simp
-	apply (auto simp add: dependent_def)
-	apply (case_tac "aa = a", auto)
-	apply (subgoal_tac "insert a S - {aa} = insert a (S - {aa})")
-	apply simp
-	apply (subgoal_tac "a \<in> span (insert aa (S - {aa}))")
-	apply (subgoal_tac "insert aa (S - {aa}) = S")
-	apply simp
-	apply blast
-	apply (rule in_span_insert)
-	apply assumption
-	apply blast
-	apply blast
-	done}
+        apply simp
+        apply (auto simp add: dependent_def)
+        apply (case_tac "aa = a", auto)
+        apply (subgoal_tac "insert a S - {aa} = insert a (S - {aa})")
+        apply simp
+        apply (subgoal_tac "a \<in> span (insert aa (S - {aa}))")
+        apply (subgoal_tac "insert aa (S - {aa}) = S")
+        apply simp
+        apply blast
+        apply (rule in_span_insert)
+        apply assumption
+        apply blast
+        apply blast
+        done}
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
 qed
@@ -3837,7 +3837,7 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
     from st(2) obtain b where b: "b \<in> t" "b \<notin> s" by blast
       from b have "t - {b} - s \<subset> t - s" by blast
       then have cardlt: "card (t - {b} - s) < n" using n ft
- 	by (auto intro: psubset_card_mono)
+        by (auto intro: psubset_card_mono)
       from b ft have ct0: "card t \<noteq> 0" by auto
     {assume stb: "s \<subseteq> span(t -{b})"
       from ft have ftb: "finite (t -{b})" by auto
@@ -3852,7 +3852,7 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
       from u(1) ft b have "u hassize (card t - 1)" by auto
       then
       have th2: "insert b u hassize card t"
-	using  card_insert_disjoint[OF fu bu] ct0 by (auto simp add: hassize_def)
+        using  card_insert_disjoint[OF fu bu] ct0 by (auto simp add: hassize_def)
       from u(4) have "s \<subseteq> span u" .
       also have "\<dots> \<subseteq> span (insert b u)" apply (rule span_mono) by blast
       finally have th3: "s \<subseteq> span (insert b u)" .      from th0 th1 th2 th3 have th: "?P ?w"  by blast
@@ -3863,22 +3863,22 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
       have ab: "a \<noteq> b" using a b by blast
       have at: "a \<notin> t" using a ab span_superset[of a "t- {b}"] by auto
       have mlt: "card ((insert a (t - {b})) - s) < n"
-	using cardlt ft n  a b by auto
+        using cardlt ft n  a b by auto
       have ft': "finite (insert a (t - {b}))" using ft by auto
       {fix x assume xs: "x \<in> s"
-	have t: "t \<subseteq> (insert b (insert a (t -{b})))" using b by auto
-	from b(1) have "b \<in> span t" by (simp add: span_superset)
-	have bs: "b \<in> span (insert a (t - {b}))"
-	  by (metis in_span_delete a sp mem_def subset_eq)
-	from xs sp have "x \<in> span t" by blast
-	with span_mono[OF t]
-	have x: "x \<in> span (insert b (insert a (t - {b})))" ..
-	from span_trans[OF bs x] have "x \<in> span (insert a (t - {b}))"  .}
+        have t: "t \<subseteq> (insert b (insert a (t -{b})))" using b by auto
+        from b(1) have "b \<in> span t" by (simp add: span_superset)
+        have bs: "b \<in> span (insert a (t - {b}))"
+          by (metis in_span_delete a sp mem_def subset_eq)
+        from xs sp have "x \<in> span t" by blast
+        with span_mono[OF t]
+        have x: "x \<in> span (insert b (insert a (t - {b})))" ..
+        from span_trans[OF bs x] have "x \<in> span (insert a (t - {b}))"  .}
       then have sp': "s \<subseteq> span (insert a (t - {b}))" by blast
 
       from H[rule_format, OF mlt ft' s sp' refl] obtain u where
-	u: "u hassize card (insert a (t -{b}))" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t -{b})"
-	"s \<subseteq> span u" by blast
+        u: "u hassize card (insert a (t -{b}))" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t -{b})"
+        "s \<subseteq> span u" by blast
       from u a b ft at ct0 have "?P u" by (auto simp add: hassize_def)
       then have ?ths by blast }
     ultimately have ?ths by blast
@@ -4165,35 +4165,35 @@ next
       from ya have Cy: "C = insert y (C - {y})" by blast
       have fth: "finite (C - {y})" using C by simp
       have "orthogonal x y"
-	using xa ya
-	unfolding orthogonal_def xa dot_lsub dot_rsub diff_eq_0_iff_eq
-	apply simp
-	apply (subst Cy)
-	using C(1) fth
-	apply (simp only: setsum_clauses)
-	thm dot_ladd
-	apply (auto simp add: dot_ladd dot_radd dot_lmult dot_rmult dot_eq_0 dot_sym[of y a] dot_lsum[OF fth])
-	apply (rule setsum_0')
-	apply clarsimp
-	apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
-	by auto}
+        using xa ya
+        unfolding orthogonal_def xa dot_lsub dot_rsub diff_eq_0_iff_eq
+        apply simp
+        apply (subst Cy)
+        using C(1) fth
+        apply (simp only: setsum_clauses)
+        thm dot_ladd
+        apply (auto simp add: dot_ladd dot_radd dot_lmult dot_rmult dot_eq_0 dot_sym[of y a] dot_lsum[OF fth])
+        apply (rule setsum_0')
+        apply clarsimp
+        apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
+        by auto}
     moreover
     {assume xa: "x \<noteq> ?a" "x \<in> C" and ya: "y = ?a"
       from xa have Cx: "C = insert x (C - {x})" by blast
       have fth: "finite (C - {x})" using C by simp
       have "orthogonal x y"
-	using xa ya
-	unfolding orthogonal_def ya dot_rsub dot_lsub diff_eq_0_iff_eq
-	apply simp
-	apply (subst Cx)
-	using C(1) fth
-	apply (simp only: setsum_clauses)
-	apply (subst dot_sym[of x])
-	apply (auto simp add: dot_radd dot_rmult dot_eq_0 dot_sym[of x a] dot_rsum[OF fth])
-	apply (rule setsum_0')
-	apply clarsimp
-	apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
-	by auto}
+        using xa ya
+        unfolding orthogonal_def ya dot_rsub dot_lsub diff_eq_0_iff_eq
+        apply simp
+        apply (subst Cx)
+        using C(1) fth
+        apply (simp only: setsum_clauses)
+        apply (subst dot_sym[of x])
+        apply (auto simp add: dot_radd dot_rmult dot_eq_0 dot_sym[of x a] dot_rsum[OF fth])
+        apply (rule setsum_0')
+        apply clarsimp
+        apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
+        by auto}
     moreover
     {assume xa: "x \<in> C" and ya: "y \<in> C"
       have "orthogonal x y" using xa ya xy C(4) unfolding pairwise_def by blast}
@@ -4258,13 +4258,13 @@ proof-
       from x have B': "B = insert x (B - {x})" by blast
       have fth: "finite (B - {x})" using fB by simp
       have "?a \<bullet> x = 0"
-	apply (subst B') using fB fth
-	unfolding setsum_clauses(2)[OF fth]
-	apply simp
-	apply (clarsimp simp add: dot_lsub dot_ladd dot_lmult dot_lsum dot_eq_0)
-	apply (rule setsum_0', rule ballI)
-	unfolding dot_sym
-	by (auto simp add: x field_simps dot_eq_0 intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
+        apply (subst B') using fB fth
+        unfolding setsum_clauses(2)[OF fth]
+        apply simp
+        apply (clarsimp simp add: dot_lsub dot_ladd dot_lmult dot_lsum dot_eq_0)
+        apply (rule setsum_0', rule ballI)
+        unfolding dot_sym
+        by (auto simp add: x field_simps dot_eq_0 intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
     then show "\<forall>x \<in> B. ?a \<bullet> x = 0" by blast
   qed
   with a0 show ?thesis unfolding sSB by (auto intro: exI[where x="?a"])
@@ -4365,14 +4365,14 @@ next
       using z .
     {fix k assume k: "z - k *s a \<in> span b"
       have eq: "z - ?h z *s a - (z - k*s a) = (k - ?h z) *s a"
-	by (simp add: ring_simps vector_sadd_rdistrib[symmetric])
+        by (simp add: ring_simps vector_sadd_rdistrib[symmetric])
       from span_sub[OF th0 k]
       have khz: "(k - ?h z) *s a \<in> span b" by (simp add: eq)
       {assume "k \<noteq> ?h z" hence k0: "k - ?h z \<noteq> 0" by simp
-	from k0 span_mul[OF khz, of "1 /(k - ?h z)"]
-	have "a \<in> span b" by (simp add: vector_smult_assoc)
-	with "2.prems"(1) "2.hyps"(2) have False
-	  by (auto simp add: dependent_def)}
+        from k0 span_mul[OF khz, of "1 /(k - ?h z)"]
+        have "a \<in> span b" by (simp add: vector_smult_assoc)
+        with "2.prems"(1) "2.hyps"(2) have False
+          by (auto simp add: dependent_def)}
       then have "k = ?h z" by blast}
     with th0 have "z - ?h z *s a \<in> span b \<and> (\<forall>k. z - k *s a \<in> span b \<longrightarrow> k = ?h z)" by blast}
   note h = this
@@ -4404,25 +4404,25 @@ next
   {fix x assume x: "x \<in> (insert a b)"
     {assume xa: "x = a"
       have ha1: "1 = ?h a"
-	apply (rule conjunct2[OF h, rule_format])
-	apply (metis span_superset insertI1)
-	using conjunct1[OF h, OF span_superset, OF insertI1]
-	by (auto simp add: span_0)
+        apply (rule conjunct2[OF h, rule_format])
+        apply (metis span_superset insertI1)
+        using conjunct1[OF h, OF span_superset, OF insertI1]
+        by (auto simp add: span_0)
 
       from xa ha1[symmetric] have "?g x = f x"
-	apply simp
-	using g(2)[rule_format, OF span_0, of 0]
-	by simp}
+        apply simp
+        using g(2)[rule_format, OF span_0, of 0]
+        by simp}
     moreover
     {assume xb: "x \<in> b"
       have h0: "0 = ?h x"
-	apply (rule conjunct2[OF h, rule_format])
-	apply (metis  span_superset insertI1 xb x)
-	apply simp
-	apply (metis span_superset xb)
-	done
+        apply (rule conjunct2[OF h, rule_format])
+        apply (metis  span_superset insertI1 xb x)
+        apply simp
+        apply (metis span_superset xb)
+        done
       have "?g x = f x"
-	by (simp add: h0[symmetric] g(3)[rule_format, OF xb])}
+        by (simp add: h0[symmetric] g(3)[rule_format, OF xb])}
     ultimately have "?g x = f x" using x by blast }
   ultimately show ?case apply - apply (rule exI[where x="?g"]) by blast
 qed
@@ -4687,7 +4687,7 @@ proof-
   {fix B :: "real ^'m^'n"  assume AB: "A ** B = mat 1"
     {fix x :: "real ^ 'm"
       have "A *v (B *v x) = x"
-	by (simp add: matrix_vector_mul_lid matrix_vector_mul_assoc AB)}
+        by (simp add: matrix_vector_mul_lid matrix_vector_mul_assoc AB)}
     hence "surj (op *v A)" unfolding surj_def by metis }
   moreover
   {assume sf: "surj (op *v A)"
@@ -4697,7 +4697,7 @@ proof-
 
     have "A ** (matrix g) = mat 1"
       unfolding matrix_eq  matrix_vector_mul_lid
-	matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
+        matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
       using g(2) unfolding o_def stupid_ext[symmetric] id_def
       .
     hence "\<exists>B. A ** (B::real^'m^'n) = mat 1" by blast
@@ -4716,9 +4716,9 @@ proof-
       and i: "i \<in> ?U"
       let ?x = "\<chi> i. c i"
       have th0:"A *v ?x = 0"
-	using c
-	unfolding matrix_mult_vsum Cart_eq
-	by auto
+        using c
+        unfolding matrix_mult_vsum Cart_eq
+        by auto
       from k[rule_format, OF th0] i
       have "c i = 0" by (vector Cart_eq)}
     hence ?rhs by blast}
@@ -4749,53 +4749,53 @@ proof-
   have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> span (columns A))" by blast
   {assume h: ?lhs
     {fix x:: "real ^'n"
-	from h[unfolded lhseq, rule_format, of x] obtain y:: "real ^'m"
-	  where y: "setsum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
-	have "x \<in> span (columns A)"
-	  unfolding y[symmetric]
-	  apply (rule span_setsum[OF fU])
-	  apply clarify
-	  apply (rule span_mul)
-	  apply (rule span_superset)
-	  unfolding columns_def
-	  by blast}
+        from h[unfolded lhseq, rule_format, of x] obtain y:: "real ^'m"
+          where y: "setsum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
+        have "x \<in> span (columns A)"
+          unfolding y[symmetric]
+          apply (rule span_setsum[OF fU])
+          apply clarify
+          apply (rule span_mul)
+          apply (rule span_superset)
+          unfolding columns_def
+          by blast}
     then have ?rhs unfolding rhseq by blast}
   moreover
   {assume h:?rhs
     let ?P = "\<lambda>(y::real ^'n). \<exists>(x::real^'m). setsum (\<lambda>i. (x$i) *s column i A) ?U = y"
     {fix y have "?P y"
       proof(rule span_induct_alt[of ?P "columns A"])
-	show "\<exists>x\<Colon>real ^ 'm. setsum (\<lambda>i. (x$i) *s column i A) ?U = 0"
-	  apply (rule exI[where x=0])
-	  by (simp add: zero_index vector_smult_lzero)
+        show "\<exists>x\<Colon>real ^ 'm. setsum (\<lambda>i. (x$i) *s column i A) ?U = 0"
+          apply (rule exI[where x=0])
+          by (simp add: zero_index vector_smult_lzero)
       next
-	fix c y1 y2 assume y1: "y1 \<in> columns A" and y2: "?P y2"
-	from y1 obtain i where i: "i \<in> ?U" "y1 = column i A"
-	  unfolding columns_def by blast
-	from y2 obtain x:: "real ^'m" where
-	  x: "setsum (\<lambda>i. (x$i) *s column i A) ?U = y2" by blast
-	let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::real^'m"
-	show "?P (c*s y1 + y2)"
-	  proof(rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] cond_value_iff right_distrib cond_application_beta cong del: if_weak_cong)
-	    fix j
-	    have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
+        fix c y1 y2 assume y1: "y1 \<in> columns A" and y2: "?P y2"
+        from y1 obtain i where i: "i \<in> ?U" "y1 = column i A"
+          unfolding columns_def by blast
+        from y2 obtain x:: "real ^'m" where
+          x: "setsum (\<lambda>i. (x$i) *s column i A) ?U = y2" by blast
+        let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::real^'m"
+        show "?P (c*s y1 + y2)"
+          proof(rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] cond_value_iff right_distrib cond_application_beta cong del: if_weak_cong)
+            fix j
+            have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))" using i(1)
-	      by (simp add: ring_simps)
-	    have "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
+              by (simp add: ring_simps)
+            have "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) ?U = setsum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
-	      apply (rule setsum_cong[OF refl])
-	      using th by blast
-	    also have "\<dots> = setsum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-	      by (simp add: setsum_addf)
-	    also have "\<dots> = c * ((column i A)$j) + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-	      unfolding setsum_delta[OF fU]
-	      using i(1) by simp
-	    finally show "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
+              apply (rule setsum_cong[OF refl])
+              using th by blast
+            also have "\<dots> = setsum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
+              by (simp add: setsum_addf)
+            also have "\<dots> = c * ((column i A)$j) + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
+              unfolding setsum_delta[OF fU]
+              using i(1) by simp
+            finally show "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + setsum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
-	  qed
-	next
-	  show "y \<in> span (columns A)" unfolding h by blast
-	qed}
+          qed
+        next
+          show "y \<in> span (columns A)" unfolding h by blast
+        qed}
     then have ?lhs unfolding lhseq ..}
   ultimately show ?thesis by blast
 qed
@@ -4844,22 +4844,22 @@ proof-
     {fix x y assume x: "x \<in> S" and y: "y \<in> S" and f: "f x = f y"
       from x fS have S0: "card S \<noteq> 0" by auto
       {assume xy: "x \<noteq> y"
-	have th: "card S \<le> card (f ` (S - {y}))"
-	  unfolding c
-	  apply (rule card_mono)
-	  apply (rule finite_imageI)
-	  using fS apply simp
-	  using h xy x y f unfolding subset_eq image_iff
-	  apply auto
-	  apply (case_tac "xa = f x")
-	  apply (rule bexI[where x=x])
-	  apply auto
-	  done
-	also have " \<dots> \<le> card (S -{y})"
-	  apply (rule card_image_le)
-	  using fS by simp
-	also have "\<dots> \<le> card S - 1" using y fS by simp
-	finally have False  using S0 by arith }
+        have th: "card S \<le> card (f ` (S - {y}))"
+          unfolding c
+          apply (rule card_mono)
+          apply (rule finite_imageI)
+          using fS apply simp
+          using h xy x y f unfolding subset_eq image_iff
+          apply auto
+          apply (case_tac "xa = f x")
+          apply (rule bexI[where x=x])
+          apply auto
+          done
+        also have " \<dots> \<le> card (S -{y})"
+          apply (rule card_image_le)
+          using fS by simp
+        also have "\<dots> \<le> card S - 1" using y fS by simp
+        finally have False  using S0 by arith }
       then have "x = y" by blast}
     then have ?rhs unfolding inj_on_def by blast}
   moreover
@@ -5311,26 +5311,26 @@ proof-
       then obtain u where u: "\<forall> x\<in> {0,x,y}. \<forall>y\<in> {0,x,y}. \<exists>c. x - y = c *s u" unfolding collinear_def by blast
       from u[rule_format, of x 0] u[rule_format, of y 0]
       obtain cx and cy where
-	cx: "x = cx*s u" and cy: "y = cy*s u"
-	by auto
+        cx: "x = cx*s u" and cy: "y = cy*s u"
+        by auto
       from cx x have cx0: "cx \<noteq> 0" by auto
       from cy y have cy0: "cy \<noteq> 0" by auto
       let ?d = "cy / cx"
       from cx cy cx0 have "y = ?d *s x"
-	by (simp add: vector_smult_assoc)
+        by (simp add: vector_smult_assoc)
       hence ?rhs using x y by blast}
     moreover
     {assume h: "?rhs"
       then obtain c where c: "y = c*s x" using x y by blast
       have ?lhs unfolding collinear_def c
-	apply (rule exI[where x=x])
-	apply auto
-	apply (rule exI[where x="- 1"], simp only: vector_smult_lneg vector_smult_lid)
-	apply (rule exI[where x= "-c"], simp only: vector_smult_lneg)
-	apply (rule exI[where x=1], simp)
-	apply (rule exI[where x="1 - c"], simp add: vector_smult_lneg vector_sub_rdistrib)
-	apply (rule exI[where x="c - 1"], simp add: vector_smult_lneg vector_sub_rdistrib)
-	done}
+        apply (rule exI[where x=x])
+        apply auto
+        apply (rule exI[where x="- 1"], simp only: vector_smult_lneg vector_smult_lid)
+        apply (rule exI[where x= "-c"], simp only: vector_smult_lneg)
+        apply (rule exI[where x=1], simp)
+        apply (rule exI[where x="1 - c"], simp add: vector_smult_lneg vector_sub_rdistrib)
+        apply (rule exI[where x="c - 1"], simp add: vector_smult_lneg vector_sub_rdistrib)
+        done}
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
 qed

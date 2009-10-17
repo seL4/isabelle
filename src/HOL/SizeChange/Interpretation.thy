@@ -27,27 +27,27 @@ lemma non_acc_has_idseq:
   shows "\<exists>s. idseq R s x"
 proof -
   
-  have	"\<exists>f. \<forall>x. \<not>accp R x \<longrightarrow> R (f x) x \<and> \<not>accp R (f x)"
-	by (rule choice, auto simp:not_acc_smaller)
+  have "\<exists>f. \<forall>x. \<not>accp R x \<longrightarrow> R (f x) x \<and> \<not>accp R (f x)"
+    by (rule choice, auto simp:not_acc_smaller)
   
   then obtain f where
-	in_R: "\<And>x. \<not>accp R x \<Longrightarrow> R (f x) x"
-	and nia: "\<And>x. \<not>accp R x \<Longrightarrow> \<not>accp R (f x)"
-	by blast
+    in_R: "\<And>x. \<not>accp R x \<Longrightarrow> R (f x) x"
+    and nia: "\<And>x. \<not>accp R x \<Longrightarrow> \<not>accp R (f x)"
+    by blast
   
   let ?s = "\<lambda>i. (f ^^ i) x"
   
   {
-	fix i
-	have "\<not>accp R (?s i)"
-	  by (induct i) (auto simp:nia `\<not>accp R x`)
-	hence "R (f (?s i)) (?s i)"
-	  by (rule in_R)
+    fix i
+    have "\<not>accp R (?s i)"
+      by (induct i) (auto simp:nia `\<not>accp R x`)
+    hence "R (f (?s i)) (?s i)"
+      by (rule in_R)
   }
   
   hence "idseq R ?s x"
-	unfolding idseq_def
-	by auto
+    unfolding idseq_def
+    by auto
   
   thus ?thesis by auto
 qed
@@ -85,10 +85,10 @@ lemma ex_cs:
 proof -
   from idseq
   have a: "\<forall>i. \<exists>rd \<in> set rds. in_cdesc rd (s (Suc i)) (s i)"
-	by (auto simp:idseq_def intro:some_rd)
+    by (auto simp:idseq_def intro:some_rd)
   
   show ?thesis
-	by (rule choice) (insert a, blast)
+    by (rule choice) (insert a, blast)
 qed
 
 
@@ -145,34 +145,34 @@ lemma no_inf_desc_nat_sequence:
   shows False
 proof -
   {
-	fix i j:: nat 
-	assume "n \<le> i"
-	assume "i \<le> j"
-	{
-	  fix k 
-	  have "s (i + k) \<le> s i"
-	  proof (induct k)
-		case 0 thus ?case by simp
-	  next
-		case (Suc k)
-		with leq[of "i + k"] `n \<le> i`
-		show ?case by simp
-	  qed
-	}
-	from this[of "j - i"] `n \<le> i` `i \<le> j`
-	have "s j \<le> s i" by auto
+    fix i j:: nat 
+    assume "n \<le> i"
+    assume "i \<le> j"
+    {
+      fix k 
+      have "s (i + k) \<le> s i"
+      proof (induct k)
+        case 0 thus ?case by simp
+      next
+        case (Suc k)
+        with leq[of "i + k"] `n \<le> i`
+        show ?case by simp
+      qed
+    }
+    from this[of "j - i"] `n \<le> i` `i \<le> j`
+    have "s j \<le> s i" by auto
   }
   note decr = this
   
   let ?min = "LEAST x. x \<in> range (\<lambda>i. s (n + i))"
   have "?min \<in> range (\<lambda>i. s (n + i))"
-	by (rule LeastI) auto
+    by (rule LeastI) auto
   then obtain k where min: "?min = s (n + k)" by auto
   
   from less 
   obtain k' where "n + k < k'"
-	and "s (Suc k') < s k'"
-	unfolding INFM_nat by auto
+    and "s (Suc k') < s k'"
+    unfolding INFM_nat by auto
   
   with decr[of "n + k" k'] min
   have "s (Suc k') < ?min" by auto
@@ -285,127 +285,127 @@ theorem SCT_on_relations:
 proof (rule, rule classical)
   fix x
   assume "\<not> accp R x"
-  with non_acc_has_idseq	
+  with non_acc_has_idseq
   have "\<exists>s. idseq R s x" .
   then obtain s where "idseq R s x" ..
   hence "\<exists>cs. \<forall>i. cs i \<in> set RDs \<and>
-	in_cdesc (cs i) (s (Suc i)) (s i)"
-	unfolding R by (rule ex_cs) 
+    in_cdesc (cs i) (s (Suc i)) (s i)"
+    unfolding R by (rule ex_cs) 
   then obtain cs where
-	[simp]: "\<And>i. cs i \<in> set RDs"
-	  and ird[simp]: "\<And>i. in_cdesc (cs i) (s (Suc i)) (s i)"
-	by blast
+    [simp]: "\<And>i. cs i \<in> set RDs"
+      and ird[simp]: "\<And>i. in_cdesc (cs i) (s (Suc i)) (s i)"
+    by blast
   
   let ?cis = "\<lambda>i. index_of RDs (cs i)"
   have "\<forall>i. \<exists>G. (\<A> \<turnstile> ?cis i \<leadsto>\<^bsup>G\<^esup> (?cis (Suc i)))
-	\<and> approx G (RDs ! ?cis i) (RDs ! ?cis (Suc i)) 
-	(M ! ?cis i) (M ! ?cis (Suc i))" (is "\<forall>i. \<exists>G. ?P i G")
+    \<and> approx G (RDs ! ?cis i) (RDs ! ?cis (Suc i)) 
+    (M ! ?cis i) (M ! ?cis (Suc i))" (is "\<forall>i. \<exists>G. ?P i G")
   proof
-	fix i
-	let ?n = "?cis i" and ?n' = "?cis (Suc i)"
+    fix i
+    let ?n = "?cis i" and ?n' = "?cis (Suc i)"
     
-	have "in_cdesc (RDs ! ?n) (s (Suc i)) (s i)"
-	  "in_cdesc (RDs ! ?n') (s (Suc (Suc i))) (s (Suc i))"
-	  by (simp_all add:index_of_member)
-	with step_witness
- 	have "\<not> no_step (RDs ! ?n) (RDs ! ?n')" .
-	moreover have
-	  "?n < length RDs" 
-	  "?n' < length RDs"
-	  by (simp_all add:index_of_length[symmetric])
-	ultimately
-	obtain G
-	  where "\<A> \<turnstile> ?n \<leadsto>\<^bsup>G\<^esup> ?n'"
-	  and "approx G (RDs ! ?n) (RDs ! ?n') (M ! ?n) (M ! ?n')"
-	  using sound
-	  unfolding sound_int_def by auto
+    have "in_cdesc (RDs ! ?n) (s (Suc i)) (s i)"
+      "in_cdesc (RDs ! ?n') (s (Suc (Suc i))) (s (Suc i))"
+      by (simp_all add:index_of_member)
+    with step_witness
+    have "\<not> no_step (RDs ! ?n) (RDs ! ?n')" .
+    moreover have
+      "?n < length RDs" 
+      "?n' < length RDs"
+      by (simp_all add:index_of_length[symmetric])
+    ultimately
+    obtain G
+      where "\<A> \<turnstile> ?n \<leadsto>\<^bsup>G\<^esup> ?n'"
+      and "approx G (RDs ! ?n) (RDs ! ?n') (M ! ?n) (M ! ?n')"
+      using sound
+      unfolding sound_int_def by auto
     
-	thus "\<exists>G. ?P i G" by blast
+    thus "\<exists>G. ?P i G" by blast
   qed
   with choice
   have "\<exists>Gs. \<forall>i. ?P i (Gs i)" .
   then obtain Gs where 
-	A: "\<And>i. \<A> \<turnstile> ?cis i \<leadsto>\<^bsup>(Gs i)\<^esup> (?cis (Suc i))" 
-	and B: "\<And>i. approx (Gs i) (RDs ! ?cis i) (RDs ! ?cis (Suc i)) 
-	(M ! ?cis i) (M ! ?cis (Suc i))"
-	by blast
+    A: "\<And>i. \<A> \<turnstile> ?cis i \<leadsto>\<^bsup>(Gs i)\<^esup> (?cis (Suc i))" 
+    and B: "\<And>i. approx (Gs i) (RDs ! ?cis i) (RDs ! ?cis (Suc i)) 
+    (M ! ?cis i) (M ! ?cis (Suc i))"
+    by blast
   
   let ?p = "\<lambda>i. (?cis i, Gs i)"
   
   from A have "has_ipath \<A> ?p"
-	unfolding has_ipath_def
-	by auto
+    unfolding has_ipath_def
+    by auto
   
   with `SCT \<A>` SCT_def 
   obtain th where "is_desc_thread th ?p"
-	by auto
+    by auto
   
   then obtain n
-	where fr: "\<forall>i\<ge>n. eqlat ?p th i"
-	and inf: "\<exists>\<^sub>\<infinity>i. descat ?p th i"
-	unfolding is_desc_thread_def by auto
+    where fr: "\<forall>i\<ge>n. eqlat ?p th i"
+    and inf: "\<exists>\<^sub>\<infinity>i. descat ?p th i"
+    unfolding is_desc_thread_def by auto
   
   from B
   have approx:
-	"\<And>i. approx (Gs i) (cs i) (cs (Suc i)) 
-	(M ! ?cis i) (M ! ?cis (Suc i))"
-	by (simp add:index_of_member)
+    "\<And>i. approx (Gs i) (cs i) (cs (Suc i)) 
+    (M ! ?cis i) (M ! ?cis (Suc i))"
+    by (simp add:index_of_member)
   
   let ?seq = "\<lambda>i. (M ! ?cis i) (th i) (s i)"
   
   have "\<And>i. n < i \<Longrightarrow> ?seq (Suc i) \<le> ?seq i"
   proof -
-	fix i 
-	let ?q1 = "th i" and ?q2 = "th (Suc i)"
-	assume "n < i"
-	
-	with fr	have "eqlat ?p th i" by simp 
-	hence "dsc (Gs i) ?q1 ?q2 \<or> eqp (Gs i) ?q1 ?q2" 
+    fix i 
+    let ?q1 = "th i" and ?q2 = "th (Suc i)"
+    assume "n < i"
+    
+    with fr have "eqlat ?p th i" by simp 
+    hence "dsc (Gs i) ?q1 ?q2 \<or> eqp (Gs i) ?q1 ?q2" 
       by simp
-	thus "?seq (Suc i) \<le> ?seq i"
-	proof
-	  assume "dsc (Gs i) ?q1 ?q2"
-	  
-	  with approx
-	  have a:"decr (cs i) (cs (Suc i)) 
-		((M ! ?cis i) ?q1) ((M ! ?cis (Suc i)) ?q2)" 
-		unfolding approx_def by auto
+    thus "?seq (Suc i) \<le> ?seq i"
+    proof
+      assume "dsc (Gs i) ?q1 ?q2"
       
-	  show ?thesis
-		apply (rule less_imp_le)
-		apply (rule decr_in_cdesc[of _ "s (Suc i)" "s i"])
-		by (rule ird a)+
-	next
-	  assume "eqp (Gs i) ?q1 ?q2"
-	  
-	  with approx
-	  have a:"decreq (cs i) (cs (Suc i)) 
-		((M ! ?cis i) ?q1) ((M ! ?cis (Suc i)) ?q2)" 
-		unfolding approx_def by auto
+      with approx
+      have a:"decr (cs i) (cs (Suc i)) 
+        ((M ! ?cis i) ?q1) ((M ! ?cis (Suc i)) ?q2)" 
+        unfolding approx_def by auto
       
-	  show ?thesis
-		apply (rule decreq_in_cdesc[of _ "s (Suc i)" "s i"])
-		by (rule ird a)+
-	qed
+      show ?thesis
+        apply (rule less_imp_le)
+        apply (rule decr_in_cdesc[of _ "s (Suc i)" "s i"])
+        by (rule ird a)+
+    next
+      assume "eqp (Gs i) ?q1 ?q2"
+      
+      with approx
+      have a:"decreq (cs i) (cs (Suc i)) 
+        ((M ! ?cis i) ?q1) ((M ! ?cis (Suc i)) ?q2)" 
+        unfolding approx_def by auto
+      
+      show ?thesis
+        apply (rule decreq_in_cdesc[of _ "s (Suc i)" "s i"])
+        by (rule ird a)+
+    qed
   qed
   moreover have "\<exists>\<^sub>\<infinity>i. ?seq (Suc i) < ?seq i" unfolding INFM_nat
   proof 
-	fix i 
-	from inf obtain j where "i < j" and d: "descat ?p th j"
-	  unfolding INFM_nat by auto
-	let ?q1 = "th j" and ?q2 = "th (Suc j)"
-	from d have "dsc (Gs j) ?q1 ?q2" by auto
-	
-	with approx
-	have a:"decr (cs j) (cs (Suc j)) 
-	  ((M ! ?cis j) ?q1) ((M ! ?cis (Suc j)) ?q2)" 
-	  unfolding approx_def by auto
+    fix i 
+    from inf obtain j where "i < j" and d: "descat ?p th j"
+      unfolding INFM_nat by auto
+    let ?q1 = "th j" and ?q2 = "th (Suc j)"
+    from d have "dsc (Gs j) ?q1 ?q2" by auto
     
-	have "?seq (Suc j) < ?seq j"
-	  apply (rule decr_in_cdesc[of _ "s (Suc j)" "s j"])
-	  by (rule ird a)+
-	with `i < j` 
-	show "\<exists>j. i < j \<and> ?seq (Suc j) < ?seq j" by auto
+    with approx
+    have a:"decr (cs j) (cs (Suc j)) 
+      ((M ! ?cis j) ?q1) ((M ! ?cis (Suc j)) ?q2)" 
+      unfolding approx_def by auto
+    
+    have "?seq (Suc j) < ?seq j"
+      apply (rule decr_in_cdesc[of _ "s (Suc j)" "s j"])
+      by (rule ird a)+
+    with `i < j` 
+    show "\<exists>j. i < j \<and> ?seq (Suc j) < ?seq j" by auto
   qed
   ultimately have False
     by (rule no_inf_desc_nat_sequence[of "Suc n"]) simp

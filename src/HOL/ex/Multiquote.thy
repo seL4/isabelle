@@ -13,7 +13,7 @@ text {*
 *}
 
 syntax
-  "_quote" :: "'b => ('a => 'b)"	     ("\<guillemotleft>_\<guillemotright>" [0] 1000)
+  "_quote" :: "'b => ('a => 'b)"             ("\<guillemotleft>_\<guillemotright>" [0] 1000)
   "_antiquote" :: "('a => 'b) => 'b"         ("\<acute>_" [1000] 1000)
 
 parse_translation {*

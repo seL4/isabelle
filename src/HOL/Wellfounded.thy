@@ -1,7 +1,8 @@
-(*  Author:     Tobias Nipkow
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:     Konrad Slind, Alexander Krauss
-    Copyright   1992-2008  University of Cambridge and TU Muenchen
+(*  Title:      HOL/Wellfounded.thy
+    Author:     Tobias Nipkow
+    Author:     Lawrence C Paulson
+    Author:     Konrad Slind
+    Author:     Alexander Krauss
 *)
 
 header {*Well-founded Recursion*}
@@ -94,21 +95,21 @@ proof -
       fix y assume "(y, x) : r^+"
       with `wf r` show "P y"
       proof (induct x arbitrary: y)
-	case (less x)
-	note hyp = `\<And>x' y'. (x', x) : r ==> (y', x') : r^+ ==> P y'`
-	from `(y, x) : r^+` show "P y"
-	proof cases
-	  case base
-	  show "P y"
-	  proof (rule induct_step)
-	    fix y' assume "(y', y) : r^+"
-	    with `(y, x) : r` show "P y'" by (rule hyp [of y y'])
-	  qed
-	next
-	  case step
-	  then obtain x' where "(x', x) : r" and "(y, x') : r^+" by simp
-	  then show "P y" by (rule hyp [of x' y])
-	qed
+        case (less x)
+        note hyp = `\<And>x' y'. (x', x) : r ==> (y', x') : r^+ ==> P y'`
+        from `(y, x) : r^+` show "P y"
+        proof cases
+          case base
+          show "P y"
+          proof (rule induct_step)
+            fix y' assume "(y', y) : r^+"
+            with `(y, x) : r` show "P y'" by (rule hyp [of y y'])
+          qed
+        next
+          case step
+          then obtain x' where "(x', x) : r" and "(y, x') : r^+" by simp
+          then show "P y" by (rule hyp [of x' y])
+        qed
       qed
     qed
   } then show ?thesis unfolding wf_def by blast

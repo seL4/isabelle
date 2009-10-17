@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/WO1_AC.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 The proofs of WO1 ==> AC1 and WO1 ==> AC10(n) for n >= 1

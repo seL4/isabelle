@@ -175,16 +175,16 @@ proof (cases "even n")
     proof (cases "u < 0")
       case True hence "0 \<le> - real u" and "- real u \<le> - x" and "0 \<le> - x" and "-x \<le> - real l" using assms unfolding less_float_def by auto
       hence "real u ^ n \<le> x ^ n" and "x ^ n \<le> real l ^ n" using power_mono[of  "-x" "-real l" n] power_mono[of "-real u" "-x" n]
-	unfolding power_minus_even[OF `even n`] by auto
+        unfolding power_minus_even[OF `even n`] by auto
       moreover have u1: "u1 = l ^ n" and l1: "l1 = u ^ n" using assms unfolding float_power_bnds_def if_not_P[OF P] if_P[OF True] by auto
       ultimately show ?thesis using float_power by auto
     next
       case False
       have "\<bar>x\<bar> \<le> real (max (-l) u)"
       proof (cases "-l \<le> u")
-	case True thus ?thesis unfolding max_def if_P[OF True] using assms unfolding le_float_def by auto
+        case True thus ?thesis unfolding max_def if_P[OF True] using assms unfolding le_float_def by auto
       next
-	case False thus ?thesis unfolding max_def if_not_P[OF False] using assms unfolding le_float_def by auto
+        case False thus ?thesis unfolding max_def if_not_P[OF False] using assms unfolding le_float_def by auto
       qed
       hence x_abs: "\<bar>x\<bar> \<le> \<bar>real (max (-l) u)\<bar>" by auto
       have u1: "u1 = (max (-l) u) ^ n" and l1: "l1 = 0" using assms unfolding float_power_bnds_def if_not_P[OF P] if_not_P[OF False] by auto
@@ -258,7 +258,7 @@ proof (induct n)
     also have "\<dots> < 1 * pow2 (e + int (nat (bitlen m)))"
     proof (rule mult_strict_right_mono, auto)
       show "real m < 2^nat (bitlen m)" using bitlen_bounds[OF `0 < m`, THEN conjunct2]
-	unfolding real_of_int_less_iff[of m, symmetric] by auto
+        unfolding real_of_int_less_iff[of m, symmetric] by auto
     qed
     finally have "sqrt (real x) < sqrt (pow2 (e + bitlen m))" unfolding int_nat_bl by auto
     also have "\<dots> \<le> pow2 ((e + bitlen m) div 2 + 1)"
@@ -266,26 +266,26 @@ proof (induct n)
       let ?E = "e + bitlen m"
       have E_mod_pow: "pow2 (?E mod 2) < 4"
       proof (cases "?E mod 2 = 1")
-	case True thus ?thesis by auto
+        case True thus ?thesis by auto
       next
-	case False
-	have "0 \<le> ?E mod 2" by auto
-	have "?E mod 2 < 2" by auto
-	from this[THEN zless_imp_add1_zle]
-	have "?E mod 2 \<le> 0" using False by auto
-	from xt1(5)[OF `0 \<le> ?E mod 2` this]
-	show ?thesis by auto
+        case False
+        have "0 \<le> ?E mod 2" by auto
+        have "?E mod 2 < 2" by auto
+        from this[THEN zless_imp_add1_zle]
+        have "?E mod 2 \<le> 0" using False by auto
+        from xt1(5)[OF `0 \<le> ?E mod 2` this]
+        show ?thesis by auto
       qed
       hence "sqrt (pow2 (?E mod 2)) < sqrt (2 * 2)" by auto
       hence E_mod_pow: "sqrt (pow2 (?E mod 2)) < 2" unfolding real_sqrt_abs2 by auto
 
       have E_eq: "pow2 ?E = pow2 (?E div 2 + ?E div 2 + ?E mod 2)" by auto
       have "sqrt (pow2 ?E) = sqrt (pow2 (?E div 2) * pow2 (?E div 2) * pow2 (?E mod 2))"
-	unfolding E_eq unfolding pow2_add ..
+        unfolding E_eq unfolding pow2_add ..
       also have "\<dots> = pow2 (?E div 2) * sqrt (pow2 (?E mod 2))"
-	unfolding real_sqrt_mult[of _ "pow2 (?E mod 2)"] real_sqrt_abs2 by auto
+        unfolding real_sqrt_mult[of _ "pow2 (?E mod 2)"] real_sqrt_abs2 by auto
       also have "\<dots> < pow2 (?E div 2) * 2"
-	by (rule mult_strict_left_mono, auto intro: E_mod_pow)
+        by (rule mult_strict_left_mono, auto intro: E_mod_pow)
       also have "\<dots> = pow2 (?E div 2 + 1)" unfolding zadd_commute[of _ 1] pow2_add1 by auto
       finally show ?thesis by auto
     qed
@@ -338,7 +338,7 @@ proof -
                mult_pos_pos[OF order_less_trans[OF sqrt_gt0 sqrt_ub] sqrt_gt0]])
     also have "\<dots> = sqrt (real x)"
       unfolding inverse_eq_iff_eq[of _ "sqrt (real x)", symmetric]
-	        sqrt_divide_self_eq[OF `0 \<le> real x`, symmetric] by auto
+                sqrt_divide_self_eq[OF `0 \<le> real x`, symmetric] by auto
     finally have "real (lb_sqrt prec x) \<le> sqrt (real x)"
       unfolding lb_sqrt.simps if_P[OF `0 < x`] by auto }
   note lb = this
@@ -605,7 +605,7 @@ proof -
 
       have "real x \<le> sqrt (real (1 + x * x))" using real_sqrt_sum_squares_ge2[where x=1, unfolded numeral_2_eq_2] by auto
       also have "\<dots> \<le> real (ub_sqrt prec (1 + x * x))"
-	using bnds_sqrt'[of "1 + x * x"] by auto
+        using bnds_sqrt'[of "1 + x * x"] by auto
       finally have "real x \<le> real ?fR" by auto
       moreover have "real ?DIV \<le> real x / real ?fR" by (rule float_divl)
       ultimately have "real ?DIV \<le> 1" unfolding divide_le_eq_1_pos[OF `0 < real ?fR`, symmetric] by auto
@@ -613,9 +613,9 @@ proof -
       have "0 \<le> real ?DIV" using float_divl_lower_bound[OF `0 \<le> x` `0 < ?fR`] unfolding le_float_def by auto
 
       have "real (Float 1 1 * ?lb_horner ?DIV) \<le> 2 * arctan (real (float_divl prec x ?fR))" unfolding real_of_float_mult[of "Float 1 1"] Float_num
-	using arctan_0_1_bounds[OF `0 \<le> real ?DIV` `real ?DIV \<le> 1`] by auto
+        using arctan_0_1_bounds[OF `0 \<le> real ?DIV` `real ?DIV \<le> 1`] by auto
       also have "\<dots> \<le> 2 * arctan (real x / ?R)"
-	using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
+        using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
       also have "2 * arctan (real x / ?R) = arctan (real x)" using arctan_half[symmetric] unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 .
       finally show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF True] .
     next
@@ -628,26 +628,26 @@ proof -
 
       show ?thesis
       proof (cases "1 < ?invx")
-	case True
-	show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF False] if_P[OF True]
-	  using `0 \<le> arctan (real x)` by auto
+        case True
+        show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF False] if_P[OF True]
+          using `0 \<le> arctan (real x)` by auto
       next
-	case False
-	hence "real ?invx \<le> 1" unfolding less_float_def by auto
-	have "0 \<le> real ?invx" by (rule order_trans[OF _ float_divr], auto simp add: `0 \<le> real x`)
+        case False
+        hence "real ?invx \<le> 1" unfolding less_float_def by auto
+        have "0 \<le> real ?invx" by (rule order_trans[OF _ float_divr], auto simp add: `0 \<le> real x`)
 
-	have "1 / real x \<noteq> 0" and "0 < 1 / real x" using `0 < real x` by auto
+        have "1 / real x \<noteq> 0" and "0 < 1 / real x" using `0 < real x` by auto
 
-	have "arctan (1 / real x) \<le> arctan (real ?invx)" unfolding real_of_float_1[symmetric] by (rule arctan_monotone', rule float_divr)
-	also have "\<dots> \<le> real (?ub_horner ?invx)" using arctan_0_1_bounds[OF `0 \<le> real ?invx` `real ?invx \<le> 1`] by auto
-	finally have "pi / 2 - real (?ub_horner ?invx) \<le> arctan (real x)"
-	  using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`]
-	  unfolding real_sgn_pos[OF `0 < 1 / real x`] le_diff_eq by auto
-	moreover
-	have "real (lb_pi prec * Float 1 -1) \<le> pi / 2" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
-	ultimately
-	show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF `\<not> x \<le> Float 1 1`] if_not_P[OF False]
-	  by auto
+        have "arctan (1 / real x) \<le> arctan (real ?invx)" unfolding real_of_float_1[symmetric] by (rule arctan_monotone', rule float_divr)
+        also have "\<dots> \<le> real (?ub_horner ?invx)" using arctan_0_1_bounds[OF `0 \<le> real ?invx` `real ?invx \<le> 1`] by auto
+        finally have "pi / 2 - real (?ub_horner ?invx) \<le> arctan (real x)"
+          using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`]
+          unfolding real_sgn_pos[OF `0 < 1 / real x`] le_diff_eq by auto
+        moreover
+        have "real (lb_pi prec * Float 1 -1) \<le> pi / 2" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
+        ultimately
+        show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF `\<not> x \<le> Float 1 1`] if_not_P[OF False]
+          by auto
       qed
     qed
   qed
@@ -695,23 +695,23 @@ proof -
       case True
       show ?thesis
       proof (cases "?DIV > 1")
-	case True
-	have "pi / 2 \<le> real (ub_pi prec * Float 1 -1)" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
-	from order_less_le_trans[OF arctan_ubound this, THEN less_imp_le]
-	show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF `x \<le> Float 1 1`] if_P[OF True] .
+        case True
+        have "pi / 2 \<le> real (ub_pi prec * Float 1 -1)" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
+        from order_less_le_trans[OF arctan_ubound this, THEN less_imp_le]
+        show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF `x \<le> Float 1 1`] if_P[OF True] .
       next
-	case False
-	hence "real ?DIV \<le> 1" unfolding less_float_def by auto
+        case False
+        hence "real ?DIV \<le> 1" unfolding less_float_def by auto
 
-	have "0 \<le> real x / ?R" using `0 \<le> real x` `0 < ?R` unfolding real_0_le_divide_iff by auto
-	hence "0 \<le> real ?DIV" using monotone by (rule order_trans)
+        have "0 \<le> real x / ?R" using `0 \<le> real x` `0 < ?R` unfolding real_0_le_divide_iff by auto
+        hence "0 \<le> real ?DIV" using monotone by (rule order_trans)
 
-	have "arctan (real x) = 2 * arctan (real x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 .
-	also have "\<dots> \<le> 2 * arctan (real ?DIV)"
-	  using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
-	also have "\<dots> \<le> real (Float 1 1 * ?ub_horner ?DIV)" unfolding real_of_float_mult[of "Float 1 1"] Float_num
-	  using arctan_0_1_bounds[OF `0 \<le> real ?DIV` `real ?DIV \<le> 1`] by auto
-	finally show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF `x \<le> Float 1 1`] if_not_P[OF False] .
+        have "arctan (real x) = 2 * arctan (real x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 .
+        also have "\<dots> \<le> 2 * arctan (real ?DIV)"
+          using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
+        also have "\<dots> \<le> real (Float 1 1 * ?ub_horner ?DIV)" unfolding real_of_float_mult[of "Float 1 1"] Float_num
+          using arctan_0_1_bounds[OF `0 \<le> real ?DIV` `real ?DIV \<le> 1`] by auto
+        finally show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF `x \<le> Float 1 1`] if_not_P[OF False] .
       qed
     next
       case False
@@ -731,13 +731,13 @@ proof -
       have "real (?lb_horner ?invx) \<le> arctan (real ?invx)" using arctan_0_1_bounds[OF `0 \<le> real ?invx` `real ?invx \<le> 1`] by auto
       also have "\<dots> \<le> arctan (1 / real x)" unfolding real_of_float_1[symmetric] by (rule arctan_monotone', rule float_divl)
       finally have "arctan (real x) \<le> pi / 2 - real (?lb_horner ?invx)"
-	using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`]
-	unfolding real_sgn_pos[OF `0 < 1 / real x`] le_diff_eq by auto
+        using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`]
+        unfolding real_sgn_pos[OF `0 < 1 / real x`] le_diff_eq by auto
       moreover
       have "pi / 2 \<le> real (ub_pi prec * Float 1 -1)" unfolding real_of_float_mult Float_num times_divide_eq_right mult_1_right using pi_boundaries by auto
       ultimately
       show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF `\<not> x \<le> Float 1 1`] if_not_P[OF False]
-	by auto
+        by auto
     qed
   qed
 qed
@@ -848,12 +848,12 @@ proof (cases "real x = 0")
     {
       assume "even n"
       have "real (lb_sin_cos_aux prec n 1 1 (x * x)) \<le> ?SUM"
-	unfolding morph_to_if_power[symmetric] using cos_aux by auto
+        unfolding morph_to_if_power[symmetric] using cos_aux by auto
       also have "\<dots> \<le> cos (real x)"
       proof -
-	from even[OF `even n`] `0 < ?fact` `0 < ?pow`
-	have "0 \<le> (?rest / ?fact) * ?pow" by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
-	thus ?thesis unfolding cos_eq by auto
+        from even[OF `even n`] `0 < ?fact` `0 < ?pow`
+        have "0 \<le> (?rest / ?fact) * ?pow" by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
+        thus ?thesis unfolding cos_eq by auto
       qed
       finally have "real (lb_sin_cos_aux prec n 1 1 (x * x)) \<le> cos (real x)" .
     } note lb = this
@@ -862,13 +862,13 @@ proof (cases "real x = 0")
       assume "odd n"
       have "cos (real x) \<le> ?SUM"
       proof -
-	from `0 < ?fact` and `0 < ?pow` and odd[OF `odd n`]
-	have "0 \<le> (- ?rest) / ?fact * ?pow"
-	  by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
-	thus ?thesis unfolding cos_eq by auto
+        from `0 < ?fact` and `0 < ?pow` and odd[OF `odd n`]
+        have "0 \<le> (- ?rest) / ?fact * ?pow"
+          by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
+        thus ?thesis unfolding cos_eq by auto
       qed
       also have "\<dots> \<le> real (ub_sin_cos_aux prec n 1 1 (x * x))"
-	unfolding morph_to_if_power[symmetric] using cos_aux by auto
+        unfolding morph_to_if_power[symmetric] using cos_aux by auto
       finally have "cos (real x) \<le> real (ub_sin_cos_aux prec n 1 1 (x * x))" .
     } note ub = this and lb
   } note ub = this(1) and lb = this(2)
@@ -931,9 +931,9 @@ proof (cases "real x = 0")
       have pow: "!!i. x ^ (2 * i + 1) = x * x ^ (2 * i)" by auto
       have "?SUM = (\<Sum> j = 0 ..< n. 0) + ?SUM" by auto
       also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then 0 else -1 ^ ((i - Suc 0) div 2) / (real (fact i)) * x ^ i)"
-	unfolding sum_split_even_odd ..
+        unfolding sum_split_even_odd ..
       also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then 0 else -1 ^ ((i - Suc 0) div 2) / (real (fact i))) * x ^ i)"
-	by (rule setsum_cong2) auto
+        by (rule setsum_cong2) auto
       finally show ?thesis by assumption
     qed } note setsum_morph = this
 
@@ -958,13 +958,13 @@ proof (cases "real x = 0")
       assume "even n"
       have "real (x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le>
             (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else (-1 ^ ((i - Suc 0) div 2))/(real (fact i))) * (real x) ^ i)"
-	using sin_aux[OF `0 \<le> real x`] unfolding setsum_morph[symmetric] by auto
+        using sin_aux[OF `0 \<le> real x`] unfolding setsum_morph[symmetric] by auto
       also have "\<dots> \<le> ?SUM" by auto
       also have "\<dots> \<le> sin (real x)"
       proof -
-	from even[OF `even n`] `0 < ?fact` `0 < ?pow`
-	have "0 \<le> (?rest / ?fact) * ?pow" by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
-	thus ?thesis unfolding sin_eq by auto
+        from even[OF `even n`] `0 < ?fact` `0 < ?pow`
+        have "0 \<le> (?rest / ?fact) * ?pow" by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
+        thus ?thesis unfolding sin_eq by auto
       qed
       finally have "real (x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le> sin (real x)" .
     } note lb = this
@@ -973,15 +973,15 @@ proof (cases "real x = 0")
       assume "odd n"
       have "sin (real x) \<le> ?SUM"
       proof -
-	from `0 < ?fact` and `0 < ?pow` and odd[OF `odd n`]
-	have "0 \<le> (- ?rest) / ?fact * ?pow"
-	  by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
-	thus ?thesis unfolding sin_eq by auto
+        from `0 < ?fact` and `0 < ?pow` and odd[OF `odd n`]
+        have "0 \<le> (- ?rest) / ?fact * ?pow"
+          by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
+        thus ?thesis unfolding sin_eq by auto
       qed
       also have "\<dots> \<le> (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else (-1 ^ ((i - Suc 0) div 2))/(real (fact i))) * (real x) ^ i)"
-	 by auto
+         by auto
       also have "\<dots> \<le> real (x * ub_sin_cos_aux prec n 2 1 (x * x))"
-	using sin_aux[OF `0 \<le> real x`] unfolding setsum_morph[symmetric] by auto
+        using sin_aux[OF `0 \<le> real x`] unfolding setsum_morph[symmetric] by auto
       finally have "sin (real x) \<le> real (x * ub_sin_cos_aux prec n 2 1 (x * x))" .
     } note ub = this and lb
   } note ub = this(1) and lb = this(2)
@@ -1058,15 +1058,15 @@ proof -
 
       have "real (?lb_half y) \<le> cos (real x)"
       proof (cases "y < 0")
-	case True show ?thesis using cos_ge_minus_one unfolding if_P[OF True] by auto
+        case True show ?thesis using cos_ge_minus_one unfolding if_P[OF True] by auto
       next
-	case False
-	hence "0 \<le> real y" unfolding less_float_def by auto
-	from mult_mono[OF `real y \<le> cos ?x2` `real y \<le> cos ?x2` `0 \<le> cos ?x2` this]
-	have "real y * real y \<le> cos ?x2 * cos ?x2" .
-	hence "2 * real y * real y \<le> 2 * cos ?x2 * cos ?x2" by auto
-	hence "2 * real y * real y - 1 \<le> 2 * cos (real x / 2) * cos (real x / 2) - 1" unfolding Float_num real_of_float_mult by auto
-	thus ?thesis unfolding if_not_P[OF False] x_half Float_num real_of_float_mult real_of_float_sub by auto
+        case False
+        hence "0 \<le> real y" unfolding less_float_def by auto
+        from mult_mono[OF `real y \<le> cos ?x2` `real y \<le> cos ?x2` `0 \<le> cos ?x2` this]
+        have "real y * real y \<le> cos ?x2 * cos ?x2" .
+        hence "2 * real y * real y \<le> 2 * cos ?x2 * cos ?x2" by auto
+        hence "2 * real y * real y - 1 \<le> 2 * cos (real x / 2) * cos (real x / 2) - 1" unfolding Float_num real_of_float_mult by auto
+        thus ?thesis unfolding if_not_P[OF False] x_half Float_num real_of_float_mult real_of_float_sub by auto
       qed
     } note lb_half = this
 
@@ -1077,12 +1077,12 @@ proof -
 
       have "cos (real x) \<le> real (?ub_half y)"
       proof -
-	have "0 \<le> real y" using `0 \<le> cos ?x2` ub by (rule order_trans)
-	from mult_mono[OF ub ub this `0 \<le> cos ?x2`]
-	have "cos ?x2 * cos ?x2 \<le> real y * real y" .
-	hence "2 * cos ?x2 * cos ?x2 \<le> 2 * real y * real y" by auto
-	hence "2 * cos (real x / 2) * cos (real x / 2) - 1 \<le> 2 * real y * real y - 1" unfolding Float_num real_of_float_mult by auto
-	thus ?thesis unfolding x_half real_of_float_mult Float_num real_of_float_sub by auto
+        have "0 \<le> real y" using `0 \<le> cos ?x2` ub by (rule order_trans)
+        from mult_mono[OF ub ub this `0 \<le> cos ?x2`]
+        have "cos ?x2 * cos ?x2 \<le> real y * real y" .
+        hence "2 * cos ?x2 * cos ?x2 \<le> 2 * real y * real y" by auto
+        hence "2 * cos (real x / 2) * cos (real x / 2) - 1 \<le> 2 * real y * real y - 1" unfolding Float_num real_of_float_mult by auto
+        thus ?thesis unfolding x_half real_of_float_mult Float_num real_of_float_sub by auto
       qed
     } note ub_half = this
 
@@ -1100,13 +1100,13 @@ proof -
 
       have "real (?lb x) \<le> ?cos x"
       proof -
-	from lb_half[OF lb `-pi \<le> real x` `real x \<le> pi`]
-	show ?thesis unfolding lb_cos_def[where x=x] Let_def using `\<not> x < 0` `\<not> x < Float 1 -1` `x < 1` by auto
+        from lb_half[OF lb `-pi \<le> real x` `real x \<le> pi`]
+        show ?thesis unfolding lb_cos_def[where x=x] Let_def using `\<not> x < 0` `\<not> x < Float 1 -1` `x < 1` by auto
       qed
       moreover have "?cos x \<le> real (?ub x)"
       proof -
-	from ub_half[OF ub `-pi \<le> real x` `real x \<le> pi`]
-	show ?thesis unfolding ub_cos_def[where x=x] Let_def using `\<not> x < 0` `\<not> x < Float 1 -1` `x < 1` by auto
+        from ub_half[OF ub `-pi \<le> real x` `real x \<le> pi`]
+        show ?thesis unfolding ub_cos_def[where x=x] Let_def using `\<not> x < 0` `\<not> x < Float 1 -1` `x < 1` by auto
       qed
       ultimately show ?thesis by auto
     next
@@ -1119,15 +1119,15 @@ proof -
 
       have "real (?lb x) \<le> ?cos x"
       proof -
-	have "-pi \<le> real ?x2" and "real ?x2 \<le> pi" unfolding real_of_float_mult Float_num using pi_ge_two `0 \<le> real x` `real x \<le> pi` by auto
-	from lb_half[OF lb_half[OF lb this] `-pi \<le> real x` `real x \<le> pi`, unfolded eq_4]
-	show ?thesis unfolding lb_cos_def[where x=x] if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x < Float 1 -1`] if_not_P[OF `\<not> x < 1`] Let_def .
+        have "-pi \<le> real ?x2" and "real ?x2 \<le> pi" unfolding real_of_float_mult Float_num using pi_ge_two `0 \<le> real x` `real x \<le> pi` by auto
+        from lb_half[OF lb_half[OF lb this] `-pi \<le> real x` `real x \<le> pi`, unfolded eq_4]
+        show ?thesis unfolding lb_cos_def[where x=x] if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x < Float 1 -1`] if_not_P[OF `\<not> x < 1`] Let_def .
       qed
       moreover have "?cos x \<le> real (?ub x)"
       proof -
-	have "-pi \<le> real ?x2" and "real ?x2 \<le> pi" unfolding real_of_float_mult Float_num using pi_ge_two `0 \<le> real x` `real x \<le> pi` by auto
-	from ub_half[OF ub_half[OF ub this] `-pi \<le> real x` `real x \<le> pi`, unfolded eq_4]
-	show ?thesis unfolding ub_cos_def[where x=x] if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x < Float 1 -1`] if_not_P[OF `\<not> x < 1`] Let_def .
+        have "-pi \<le> real ?x2" and "real ?x2 \<le> pi" unfolding real_of_float_mult Float_num using pi_ge_two `0 \<le> real x` `real x \<le> pi` by auto
+        from ub_half[OF ub_half[OF ub this] `-pi \<le> real x` `real x \<le> pi`, unfolded eq_4]
+        show ?thesis unfolding ub_cos_def[where x=x] if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x < Float 1 -1`] if_not_P[OF `\<not> x < 1`] Let_def .
       qed
       ultimately show ?thesis by auto
     qed
@@ -1227,7 +1227,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
       using cos_monotone_minus_pi_0'[OF pi_lx lx x_le_0]
       by (simp only: real_of_float_minus real_of_int_minus
-	cos_minus real_diff_def mult_minus_left)
+        cos_minus real_diff_def mult_minus_left)
     finally have "real (lb_cos prec (- ?lx)) \<le> cos x"
       unfolding cos_periodic_int . }
   note negative_lx = this
@@ -1240,7 +1240,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + real (-k) * 2 * pi) \<le> cos (real ?lx)"
       using cos_monotone_0_pi'[OF lx_0 lx pi_x]
       by (simp only: real_of_float_minus real_of_int_minus
-	cos_minus real_diff_def mult_minus_left)
+        cos_minus real_diff_def mult_minus_left)
     also have "\<dots> \<le> real (ub_cos prec ?lx)"
       using lb_cos[OF lx_0 pi_lx] by simp
     finally have "cos x \<le> real (ub_cos prec ?lx)"
@@ -1255,7 +1255,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + real (-k) * 2 * pi) \<le> cos (real (- ?ux))"
       using cos_monotone_minus_pi_0'[OF pi_x ux ux_0]
       by (simp only: real_of_float_minus real_of_int_minus
-	  cos_minus real_diff_def mult_minus_left)
+          cos_minus real_diff_def mult_minus_left)
     also have "\<dots> \<le> real (ub_cos prec (- ?ux))"
       using lb_cos_minus[OF pi_ux ux_0, of prec] by simp
     finally have "cos x \<le> real (ub_cos prec (- ?ux))"
@@ -1272,7 +1272,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
       using cos_monotone_0_pi'[OF x_ge_0 ux pi_ux]
       by (simp only: real_of_float_minus real_of_int_minus
-	cos_minus real_diff_def mult_minus_left)
+        cos_minus real_diff_def mult_minus_left)
     finally have "real (lb_cos prec ?ux) \<le> cos x"
       unfolding cos_periodic_int . }
   note positive_ux = this
@@ -1332,26 +1332,26 @@ proof ((rule allI | rule impI | erule conjE) +)
       hence "x - real k * 2 * pi - 2 * pi \<le> 0" using ux by simp
 
       have ux_0: "real (?ux - 2 * ?lpi) \<le> 0"
-	using Cond by (auto simp add: le_float_def)
+        using Cond by (auto simp add: le_float_def)
 
       from 2 and Cond have "\<not> ?ux \<le> ?lpi" by auto
       hence "- ?lpi \<le> ?ux - 2 * ?lpi" by (auto simp add: le_float_def)
       hence pi_ux: "- pi \<le> real (?ux - 2 * ?lpi)"
-	using lpi[THEN le_imp_neg_le] by (auto simp add: le_float_def)
+        using lpi[THEN le_imp_neg_le] by (auto simp add: le_float_def)
 
       have x_le_ux: "x - real k * 2 * pi - 2 * pi \<le> real (?ux - 2 * ?lpi)"
-	using ux lpi by auto
+        using ux lpi by auto
 
       have "cos x = cos (x + real (-k) * 2 * pi + real (-1 :: int) * 2 * pi)"
-	unfolding cos_periodic_int ..
+        unfolding cos_periodic_int ..
       also have "\<dots> \<le> cos (real (?ux - 2 * ?lpi))"
-	using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
-	by (simp only: real_of_float_minus real_of_int_minus real_of_one
-	    number_of_Min real_diff_def mult_minus_left real_mult_1)
+        using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
+        by (simp only: real_of_float_minus real_of_int_minus real_of_one
+            number_of_Min real_diff_def mult_minus_left real_mult_1)
       also have "\<dots> = cos (real (- (?ux - 2 * ?lpi)))"
-	unfolding real_of_float_minus cos_minus ..
+        unfolding real_of_float_minus cos_minus ..
       also have "\<dots> \<le> real (ub_cos prec (- (?ux - 2 * ?lpi)))"
-	using lb_cos_minus[OF pi_ux ux_0] by simp
+        using lb_cos_minus[OF pi_ux ux_0] by simp
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
     qed
     thus ?thesis unfolding l by auto
@@ -1376,24 +1376,24 @@ proof ((rule allI | rule impI | erule conjE) +)
       hence "0 \<le> x - real k * 2 * pi + 2 * pi" using lx by simp
 
       have lx_0: "0 \<le> real (?lx + 2 * ?lpi)"
-	using Cond lpi by (auto simp add: le_float_def)
+        using Cond lpi by (auto simp add: le_float_def)
 
       from 1 and Cond have "\<not> -?lpi \<le> ?lx" by auto
       hence "?lx + 2 * ?lpi \<le> ?lpi" by (auto simp add: le_float_def)
       hence pi_lx: "real (?lx + 2 * ?lpi) \<le> pi"
-	using lpi[THEN le_imp_neg_le] by (auto simp add: le_float_def)
+        using lpi[THEN le_imp_neg_le] by (auto simp add: le_float_def)
 
       have lx_le_x: "real (?lx + 2 * ?lpi) \<le> x - real k * 2 * pi + 2 * pi"
-	using lx lpi by auto
+        using lx lpi by auto
 
       have "cos x = cos (x + real (-k) * 2 * pi + real (1 :: int) * 2 * pi)"
-	unfolding cos_periodic_int ..
+        unfolding cos_periodic_int ..
       also have "\<dots> \<le> cos (real (?lx + 2 * ?lpi))"
-	using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
-	by (simp only: real_of_float_minus real_of_int_minus real_of_one
-	  number_of_Min real_diff_def mult_minus_left real_mult_1)
+        using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
+        by (simp only: real_of_float_minus real_of_int_minus real_of_one
+          number_of_Min real_diff_def mult_minus_left real_mult_1)
       also have "\<dots> \<le> real (ub_cos prec (?lx + 2 * ?lpi))"
-	using lb_cos[OF lx_0 pi_lx] by simp
+        using lb_cos[OF lx_0 pi_lx] by simp
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
     qed
     thus ?thesis unfolding l by auto
@@ -1427,11 +1427,11 @@ proof -
     also have "\<dots> \<le> exp (real x)"
     proof -
       obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp (real x) = (\<Sum>m = 0..<get_even n. (real x) ^ m / real (fact m)) + exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
-	using Maclaurin_exp_le by blast
+        using Maclaurin_exp_le by blast
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
-	by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: get_even zero_le_even_power exp_gt_zero)
+        by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: get_even zero_le_even_power exp_gt_zero)
       ultimately show ?thesis
-	using get_odd exp_gt_zero by (auto intro!: pordered_cancel_semiring_class.mult_nonneg_nonneg)
+        using get_odd exp_gt_zero by (auto intro!: pordered_cancel_semiring_class.mult_nonneg_nonneg)
     qed
     finally have "real (lb_exp_horner prec (get_even n) 1 1 x) \<le> exp (real x)" .
   } moreover
@@ -1548,14 +1548,14 @@ proof -
     have "exp (real x) \<le> real (ub_exp prec x)"
     proof -
       have div_less_zero: "real (float_divr prec x (- floor_fl x)) \<le> 0"
-	using float_divr_nonpos_pos_upper_bound[OF `x \<le> 0` `0 < - floor_fl x`] unfolding le_float_def real_of_float_0 .
+        using float_divr_nonpos_pos_upper_bound[OF `x \<le> 0` `0 < - floor_fl x`] unfolding le_float_def real_of_float_0 .
 
       have "exp (real x) = exp (real ?num * (real x / real ?num))" using `real ?num \<noteq> 0` by auto
       also have "\<dots> = exp (real x / real ?num) ^ ?num" unfolding exp_real_of_nat_mult ..
       also have "\<dots> \<le> exp (real (float_divr prec x (- floor_fl x))) ^ ?num" unfolding num_eq
-	by (rule power_mono, rule exp_le_cancel_iff[THEN iffD2], rule float_divr) auto
+        by (rule power_mono, rule exp_le_cancel_iff[THEN iffD2], rule float_divr) auto
       also have "\<dots> \<le> real ((?ub_exp_horner (float_divr prec x (- floor_fl x))) ^ ?num)" unfolding float_power
-	by (rule power_mono, rule bnds_exp_horner[OF div_less_zero, unfolded atLeastAtMost_iff, THEN conjunct2], auto)
+        by (rule power_mono, rule bnds_exp_horner[OF div_less_zero, unfolded atLeastAtMost_iff, THEN conjunct2], auto)
       finally show ?thesis unfolding ub_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] float.cases Float_floor Let_def .
     qed
     moreover
@@ -1566,32 +1566,32 @@ proof -
 
       show ?thesis
       proof (cases "?horner \<le> 0")
-	case False hence "0 \<le> real ?horner" unfolding le_float_def by auto
+        case False hence "0 \<le> real ?horner" unfolding le_float_def by auto
 
-	have div_less_zero: "real (float_divl prec x (- floor_fl x)) \<le> 0"
-	  using `real (floor_fl x) < 0` `real x \<le> 0` by (auto intro!: order_trans[OF float_divl] divide_nonpos_neg)
+        have div_less_zero: "real (float_divl prec x (- floor_fl x)) \<le> 0"
+          using `real (floor_fl x) < 0` `real x \<le> 0` by (auto intro!: order_trans[OF float_divl] divide_nonpos_neg)
 
-	have "real ((?lb_exp_horner (float_divl prec x (- floor_fl x))) ^ ?num) \<le>
+        have "real ((?lb_exp_horner (float_divl prec x (- floor_fl x))) ^ ?num) \<le>
           exp (real (float_divl prec x (- floor_fl x))) ^ ?num" unfolding float_power
-	  using `0 \<le> real ?horner`[unfolded Float_floor[symmetric]] bnds_exp_horner[OF div_less_zero, unfolded atLeastAtMost_iff, THEN conjunct1] by (auto intro!: power_mono)
-	also have "\<dots> \<le> exp (real x / real ?num) ^ ?num" unfolding num_eq
-	  using float_divl by (auto intro!: power_mono simp del: real_of_float_minus)
-	also have "\<dots> = exp (real ?num * (real x / real ?num))" unfolding exp_real_of_nat_mult ..
-	also have "\<dots> = exp (real x)" using `real ?num \<noteq> 0` by auto
-	finally show ?thesis
-	  unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] float.cases Float_floor Let_def if_not_P[OF False] by auto
+          using `0 \<le> real ?horner`[unfolded Float_floor[symmetric]] bnds_exp_horner[OF div_less_zero, unfolded atLeastAtMost_iff, THEN conjunct1] by (auto intro!: power_mono)
+        also have "\<dots> \<le> exp (real x / real ?num) ^ ?num" unfolding num_eq
+          using float_divl by (auto intro!: power_mono simp del: real_of_float_minus)
+        also have "\<dots> = exp (real ?num * (real x / real ?num))" unfolding exp_real_of_nat_mult ..
+        also have "\<dots> = exp (real x)" using `real ?num \<noteq> 0` by auto
+        finally show ?thesis
+          unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] float.cases Float_floor Let_def if_not_P[OF False] by auto
       next
-	case True
-	have "real (floor_fl x) \<noteq> 0" and "real (floor_fl x) \<le> 0" using `real (floor_fl x) < 0` by auto
-	from divide_right_mono_neg[OF floor_fl[of x] `real (floor_fl x) \<le> 0`, unfolded divide_self[OF `real (floor_fl x) \<noteq> 0`]]
-	have "- 1 \<le> real x / real (- floor_fl x)" unfolding real_of_float_minus by auto
-	from order_trans[OF exp_m1_ge_quarter this[unfolded exp_le_cancel_iff[where x="- 1", symmetric]]]
-	have "real (Float 1 -2) \<le> exp (real x / real (- floor_fl x))" unfolding Float_num .
-	hence "real (Float 1 -2) ^ ?num \<le> exp (real x / real (- floor_fl x)) ^ ?num"
-	  by (auto intro!: power_mono simp add: Float_num)
-	also have "\<dots> = exp (real x)" unfolding num_eq exp_real_of_nat_mult[symmetric] using `real (floor_fl x) \<noteq> 0` by auto
-	finally show ?thesis
-	  unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] float.cases Float_floor Let_def if_P[OF True] float_power .
+        case True
+        have "real (floor_fl x) \<noteq> 0" and "real (floor_fl x) \<le> 0" using `real (floor_fl x) < 0` by auto
+        from divide_right_mono_neg[OF floor_fl[of x] `real (floor_fl x) \<le> 0`, unfolded divide_self[OF `real (floor_fl x) \<noteq> 0`]]
+        have "- 1 \<le> real x / real (- floor_fl x)" unfolding real_of_float_minus by auto
+        from order_trans[OF exp_m1_ge_quarter this[unfolded exp_le_cancel_iff[where x="- 1", symmetric]]]
+        have "real (Float 1 -2) \<le> exp (real x / real (- floor_fl x))" unfolding Float_num .
+        hence "real (Float 1 -2) ^ ?num \<le> exp (real x / real (- floor_fl x)) ^ ?num"
+          by (auto intro!: power_mono simp add: Float_num)
+        also have "\<dots> = exp (real x)" unfolding num_eq exp_real_of_nat_mult[symmetric] using `real (floor_fl x) \<noteq> 0` by auto
+        finally show ?thesis
+          unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] float.cases Float_floor Let_def if_P[OF True] float_power .
       qed
     qed
     ultimately show ?thesis by auto
@@ -1614,8 +1614,8 @@ proof -
 
       have "real (float_divl prec 1 (ub_exp prec (-x))) \<le> 1 / real (ub_exp prec (-x))" using float_divl[where x=1] by auto
       also have "\<dots> \<le> exp (real x)"
-	using ub_exp[unfolded inverse_le_iff_le[OF order_less_le_trans[OF exp_gt_zero ub_exp] exp_gt_zero, symmetric]]
-	unfolding exp_minus nonzero_inverse_inverse_eq[OF exp_not_eq_zero] inverse_eq_divide by auto
+        using ub_exp[unfolded inverse_le_iff_le[OF order_less_le_trans[OF exp_gt_zero ub_exp] exp_gt_zero, symmetric]]
+        unfolding exp_minus nonzero_inverse_inverse_eq[OF exp_not_eq_zero] inverse_eq_divide by auto
       finally show ?thesis unfolding lb_exp.simps if_P[OF True] .
     qed
     moreover
@@ -1627,9 +1627,9 @@ proof -
       have lb_exp: "real (lb_exp prec (-x)) \<le> exp (- real x)" unfolding atLeastAtMost_iff real_of_float_minus by auto
 
       have "exp (real x) \<le> real (1 :: float) / real (lb_exp prec (-x))"
-	using lb_exp[unfolded inverse_le_iff_le[OF exp_gt_zero lb_exp_pos[OF `\<not> 0 < -x`, unfolded less_float_def real_of_float_0],
-	                                        symmetric]]
-	unfolding exp_minus nonzero_inverse_inverse_eq[OF exp_not_eq_zero] inverse_eq_divide real_of_float_1 by auto
+        using lb_exp[unfolded inverse_le_iff_le[OF exp_gt_zero lb_exp_pos[OF `\<not> 0 < -x`, unfolded less_float_def real_of_float_0],
+                                                symmetric]]
+        unfolding exp_minus nonzero_inverse_inverse_eq[OF exp_not_eq_zero] inverse_eq_divide real_of_float_1 by auto
       also have "\<dots> \<le> real (float_divr prec 1 (lb_exp prec (-x)))" using float_divr .
       finally show ?thesis unfolding ub_exp.simps if_P[OF True] .
     qed
@@ -1683,7 +1683,7 @@ proof -
     proof (rule mult_mono)
       show "0 \<le> x ^ Suc (Suc n)" by (auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
       have "x ^ Suc (Suc n) \<le> x ^ Suc n * 1" unfolding power_Suc2 real_mult_assoc[symmetric]
-	by (rule mult_left_mono, fact less_imp_le[OF `x < 1`], auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
+        by (rule mult_left_mono, fact less_imp_le[OF `x < 1`], auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
       thus "x ^ Suc (Suc n) \<le> x ^ Suc n" by auto
     qed auto }
   from summable_Leibniz'(2,4)[OF `?a ----> 0` `\<And>n. 0 \<le> ?a n`, OF `\<And>n. ?a (Suc n) \<le> ?a n`, unfolded ln_eq]
@@ -1857,58 +1857,58 @@ proof (cases "x < Float 1 1")
     let "?lb_horner x" = "x * lb_ln_horner prec (get_even prec) 1 x"
 
     { have up: "real (rapprox_rat prec 2 3) \<le> 1"
-	by (rule rapprox_rat_le1) simp_all
+        by (rule rapprox_rat_le1) simp_all
       have low: "2 / 3 \<le> real (rapprox_rat prec 2 3)"
-	by (rule order_trans[OF _ rapprox_rat]) simp
+        by (rule order_trans[OF _ rapprox_rat]) simp
       from mult_less_le_imp_less[OF * low] *
       have pos: "0 < real (x * rapprox_rat prec 2 3 - 1)" by auto
 
       have "ln (real x * 2/3)
-	\<le> ln (real (x * rapprox_rat prec 2 3 - 1) + 1)"
+        \<le> ln (real (x * rapprox_rat prec 2 3 - 1) + 1)"
       proof (rule ln_le_cancel_iff[symmetric, THEN iffD1])
-	show "real x * 2 / 3 \<le> real (x * rapprox_rat prec 2 3 - 1) + 1"
-	  using * low by auto
-	show "0 < real x * 2 / 3" using * by simp
-	show "0 < real (x * rapprox_rat prec 2 3 - 1) + 1" using pos by auto
+        show "real x * 2 / 3 \<le> real (x * rapprox_rat prec 2 3 - 1) + 1"
+          using * low by auto
+        show "0 < real x * 2 / 3" using * by simp
+        show "0 < real (x * rapprox_rat prec 2 3 - 1) + 1" using pos by auto
       qed
       also have "\<dots> \<le> real (?ub_horner (x * rapprox_rat prec 2 3 - 1))"
       proof (rule ln_float_bounds(2))
-	from mult_less_le_imp_less[OF `real x < 2` up] low *
-	show "real (x * rapprox_rat prec 2 3 - 1) < 1" by auto
-	show "0 \<le> real (x * rapprox_rat prec 2 3 - 1)" using pos by auto
+        from mult_less_le_imp_less[OF `real x < 2` up] low *
+        show "real (x * rapprox_rat prec 2 3 - 1) < 1" by auto
+        show "0 \<le> real (x * rapprox_rat prec 2 3 - 1)" using pos by auto
       qed
       finally have "ln (real x)
-	\<le> real (?ub_horner (Float 1 -1))
-	  + real (?ub_horner (x * rapprox_rat prec 2 3 - 1))"
-	using ln_float_bounds(2)[of "Float 1 -1" prec prec] add by auto }
+        \<le> real (?ub_horner (Float 1 -1))
+          + real (?ub_horner (x * rapprox_rat prec 2 3 - 1))"
+        using ln_float_bounds(2)[of "Float 1 -1" prec prec] add by auto }
     moreover
     { let ?max = "max (x * lapprox_rat prec 2 3 - 1) 0"
 
       have up: "real (lapprox_rat prec 2 3) \<le> 2/3"
-	by (rule order_trans[OF lapprox_rat], simp)
+        by (rule order_trans[OF lapprox_rat], simp)
 
       have low: "0 \<le> real (lapprox_rat prec 2 3)"
-	using lapprox_rat_bottom[of 2 3 prec] by simp
+        using lapprox_rat_bottom[of 2 3 prec] by simp
 
       have "real (?lb_horner ?max)
-	\<le> ln (real ?max + 1)"
+        \<le> ln (real ?max + 1)"
       proof (rule ln_float_bounds(1))
-	from mult_less_le_imp_less[OF `real x < 2` up] * low
-	show "real ?max < 1" by (cases "real (lapprox_rat prec 2 3) = 0",
-	  auto simp add: real_of_float_max)
-	show "0 \<le> real ?max" by (auto simp add: real_of_float_max)
+        from mult_less_le_imp_less[OF `real x < 2` up] * low
+        show "real ?max < 1" by (cases "real (lapprox_rat prec 2 3) = 0",
+          auto simp add: real_of_float_max)
+        show "0 \<le> real ?max" by (auto simp add: real_of_float_max)
       qed
       also have "\<dots> \<le> ln (real x * 2/3)"
       proof (rule ln_le_cancel_iff[symmetric, THEN iffD1])
-	show "0 < real ?max + 1" by (auto simp add: real_of_float_max)
-	show "0 < real x * 2/3" using * by auto
-	show "real ?max + 1 \<le> real x * 2/3" using * up
-	  by (cases "0 < real x * real (lapprox_posrat prec 2 3) - 1",
-	      auto simp add: real_of_float_max min_max.sup_absorb1)
+        show "0 < real ?max + 1" by (auto simp add: real_of_float_max)
+        show "0 < real x * 2/3" using * by auto
+        show "real ?max + 1 \<le> real x * 2/3" using * up
+          by (cases "0 < real x * real (lapprox_posrat prec 2 3) - 1",
+              auto simp add: real_of_float_max min_max.sup_absorb1)
       qed
       finally have "real (?lb_horner (Float 1 -1)) + real (?lb_horner ?max)
-	\<le> ln (real x)"
-	using ln_float_bounds(1)[of "Float 1 -1" prec prec] add by auto }
+        \<le> ln (real x)"
+        using ln_float_bounds(1)[of "Float 1 -1" prec prec] add by auto }
     ultimately
     show ?thesis unfolding lb_ln.simps unfolding ub_ln.simps Let_def
       using `\<not> x \<le> 0` `\<not> x < 1` True False by auto
@@ -1928,12 +1928,12 @@ next
 
     {
       have "real (lb_ln2 prec * ?s) \<le> ln 2 * real (e + (bitlen m - 1))" (is "?lb2 \<le> _")
-	unfolding real_of_float_mult real_of_float_ge0_exp[OF order_refl] nat_0 power_0 mult_1_right
-	using lb_ln2[of prec]
+        unfolding real_of_float_mult real_of_float_ge0_exp[OF order_refl] nat_0 power_0 mult_1_right
+        using lb_ln2[of prec]
       proof (rule mult_right_mono)
-	have "1 \<le> Float m e" using `1 \<le> x` Float unfolding le_float_def by auto
-	from float_gt1_scale[OF this]
-	show "0 \<le> real (e + (bitlen m - 1))" by auto
+        have "1 \<le> Float m e" using `1 \<le> x` Float unfolding le_float_def by auto
+        from float_gt1_scale[OF this]
+        show "0 \<le> real (e + (bitlen m - 1))" by auto
       qed
       moreover
       from bitlen_div[OF `0 < m`, unfolded normalized_float[OF `m \<noteq> 0`, symmetric]]
@@ -1941,7 +1941,7 @@ next
       from ln_float_bounds(1)[OF this]
       have "real ((?x - 1) * lb_ln_horner prec (get_even prec) 1 (?x - 1)) \<le> ln (real ?x)" (is "?lb_horner \<le> _") by auto
       ultimately have "?lb2 + ?lb_horner \<le> ln (real x)"
-	unfolding Float ln_shifted_float[OF `0 < m`, of e] by auto
+        unfolding Float ln_shifted_float[OF `0 < m`, of e] by auto
     }
     moreover
     {
@@ -1951,15 +1951,15 @@ next
       have "ln (real ?x) \<le> real ((?x - 1) * ub_ln_horner prec (get_odd prec) 1 (?x - 1))" (is "_ \<le> ?ub_horner") by auto
       moreover
       have "ln 2 * real (e + (bitlen m - 1)) \<le> real (ub_ln2 prec * ?s)" (is "_ \<le> ?ub2")
-	unfolding real_of_float_mult real_of_float_ge0_exp[OF order_refl] nat_0 power_0 mult_1_right
-	using ub_ln2[of prec]
+        unfolding real_of_float_mult real_of_float_ge0_exp[OF order_refl] nat_0 power_0 mult_1_right
+        using ub_ln2[of prec]
       proof (rule mult_right_mono)
-	have "1 \<le> Float m e" using `1 \<le> x` Float unfolding le_float_def by auto
-	from float_gt1_scale[OF this]
-	show "0 \<le> real (e + (bitlen m - 1))" by auto
+        have "1 \<le> Float m e" using `1 \<le> x` Float unfolding le_float_def by auto
+        from float_gt1_scale[OF this]
+        show "0 \<le> real (e + (bitlen m - 1))" by auto
       qed
       ultimately have "ln (real x) \<le> ?ub2 + ?ub_horner"
-	unfolding Float ln_shifted_float[OF `0 < m`, of e] by auto
+        unfolding Float ln_shifted_float[OF `0 < m`, of e] by auto
     }
     ultimately show ?thesis unfolding lb_ln.simps unfolding ub_ln.simps
       unfolding if_not_P[OF `\<not> x \<le> 0`] if_not_P[OF `\<not> x < 1`] if_not_P[OF False] if_not_P[OF `\<not> x \<le> Float 3 -1`] Let_def
@@ -2413,7 +2413,7 @@ next
       unfolding less_float_def using l1_le_u1 l1 by auto
     show ?thesis
       unfolding inverse_le_iff_le[OF `0 < real u1` `0 < interpret_floatarith a xs`]
-	inverse_le_iff_le[OF `0 < interpret_floatarith a xs` `0 < real l1`]
+        inverse_le_iff_le[OF `0 < interpret_floatarith a xs` `0 < real l1`]
       using l1 u1 by auto
   next
     case False hence "u1 < 0" using either by blast
@@ -2421,7 +2421,7 @@ next
       unfolding less_float_def using l1_le_u1 u1 by auto
     show ?thesis
       unfolding inverse_le_iff_le_neg[OF `real u1 < 0` `interpret_floatarith a xs < 0`]
-	inverse_le_iff_le_neg[OF `interpret_floatarith a xs < 0` `real l1 < 0`]
+        inverse_le_iff_le_neg[OF `interpret_floatarith a xs < 0` `real l1 < 0`]
       using l1 u1 by auto
   qed
 
@@ -2767,11 +2767,11 @@ next
     proof (cases "i = j")
       case True
       thus ?thesis using `vs ! i = Some (l, u)` Some and bnd `i < length ?xs`
-	by auto
+        by auto
     next
       case False
       thus ?thesis using `bounded_by xs vs`[THEN bounded_byE, OF `j < length vs`] Some
-	by auto
+        by auto
     qed
   qed auto }
   thus ?thesis unfolding bounded_by_def by auto
@@ -2878,7 +2878,7 @@ next
       note bounded_by_update_var[OF `bounded_by xs vs` bnd_x this]
       from approx[OF this ap]
       have "(interpret_floatarith f (xs[x := t])) \<in> {real l .. real u}"
-	by (auto simp add: algebra_simps)
+        by (auto simp add: algebra_simps)
     } thus ?thesis by (auto intro!: exI[of _ 0])
   next
     case True
@@ -2904,7 +2904,7 @@ next
 
     { fix f :: "'a \<Rightarrow> 'a" fix n :: nat fix x :: 'a
       have "(f ^^ Suc n) x = (f ^^ n) (f x)"
-	by (induct n, auto) }
+        by (induct n, auto) }
     note funpow_Suc = this[symmetric]
     from Suc.hyps[OF ate, unfolded this]
     obtain n
@@ -2918,14 +2918,14 @@ next
       assume "m < Suc n" and bnd_z: "z \<in> { real lx .. real ux }"
       have "DERIV (?f m) z :> ?f (Suc m) z"
       proof (cases m)
-	case 0
-	with DERIV_floatarith[OF `x < length xs` isDERIV_approx'[OF `bounded_by xs vs` bnd_x bnd_z True]]
-	show ?thesis by simp
+        case 0
+        with DERIV_floatarith[OF `x < length xs` isDERIV_approx'[OF `bounded_by xs vs` bnd_x bnd_z True]]
+        show ?thesis by simp
       next
-	case (Suc m')
-	hence "m' < n" using `m < Suc n` by auto
-	from DERIV_hyp[OF this bnd_z]
-	show ?thesis using Suc by simp
+        case (Suc m')
+        hence "m' < n" using `m < Suc n` by auto
+        from DERIV_hyp[OF this bnd_z]
+        show ?thesis using Suc by simp
       qed } note DERIV = this
 
     have "\<And> k i. k < i \<Longrightarrow> {k ..< i} = insert k {Suc k ..< i}" by auto
@@ -2937,20 +2937,20 @@ next
 
     { fix t assume t: "t \<in> {real lx .. real ux}"
       hence "bounded_by [xs!x] [vs!x]"
-	using `bounded_by xs vs`[THEN bounded_byE, OF `x < length vs`]
-	by (cases "vs!x", auto simp add: bounded_by_def)
+        using `bounded_by xs vs`[THEN bounded_byE, OF `x < length vs`]
+        by (cases "vs!x", auto simp add: bounded_by_def)
 
       with hyp[THEN bspec, OF t] f_c
       have "bounded_by [?f 0 (real c), ?X (Suc k) f n t, xs!x] [Some (l1, u1), Some (l2, u2), vs!x]"
-	by (auto intro!: bounded_by_Cons)
+        by (auto intro!: bounded_by_Cons)
       from approx[OF this final, unfolded atLeastAtMost_iff[symmetric]]
       have "?X (Suc k) f n t * (xs!x - real c) * inverse (real k) + ?f 0 (real c) \<in> {real l .. real u}"
-	by (auto simp add: algebra_simps)
+        by (auto simp add: algebra_simps)
       also have "?X (Suc k) f n t * (xs!x - real c) * inverse (real k) + ?f 0 (real c) =
                (\<Sum> i = 0..<Suc n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) * ?f i (real c) * (xs!x - real c)^i) +
                inverse (real (\<Prod> j \<in> {k..<k+Suc n}. j)) * ?f (Suc n) t * (xs!x - real c)^Suc n" (is "_ = ?T")
-	unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
-	by (auto simp add: algebra_simps setsum_right_distrib[symmetric])
+        unfolding funpow_Suc C_def[symmetric] setsum_move0 setprod_head_Suc
+        by (auto simp add: algebra_simps setsum_right_distrib[symmetric])
       finally have "?T \<in> {real l .. real u}" . }
     thus ?thesis using DERIV by blast
   qed
@@ -2999,24 +2999,24 @@ proof -
     proof (cases "xs ! x = real c")
       case True
       from True[symmetric] hyp[OF bnd_xs] Suc show ?thesis
-	unfolding F_def Suc setsum_head_upt_Suc[OF zero_less_Suc] setsum_shift_bounds_Suc_ivl by auto
+        unfolding F_def Suc setsum_head_upt_Suc[OF zero_less_Suc] setsum_shift_bounds_Suc_ivl by auto
     next
       case False
 
       have "real lx \<le> real c" "real c \<le> real ux" "real lx \<le> xs!x" "xs!x \<le> real ux"
-	using Suc bnd_c `bounded_by xs vs`[THEN bounded_byE, OF `x < length vs`] bnd_x by auto
+        using Suc bnd_c `bounded_by xs vs`[THEN bounded_byE, OF `x < length vs`] bnd_x by auto
       from Taylor.taylor[OF zero_less_Suc, of F, OF F0 DERIV[unfolded Suc] this False]
       obtain t where t_bnd: "if xs ! x < real c then xs ! x < t \<and> t < real c else real c < t \<and> t < xs ! x"
-	and fl_eq: "interpret_floatarith f (xs[x := xs ! x]) =
-	   (\<Sum>m = 0..<Suc n'. F m (real c) / real (fact m) * (xs ! x - real c) ^ m) +
+        and fl_eq: "interpret_floatarith f (xs[x := xs ! x]) =
+           (\<Sum>m = 0..<Suc n'. F m (real c) / real (fact m) * (xs ! x - real c) ^ m) +
            F (Suc n') t / real (fact (Suc n')) * (xs ! x - real c) ^ Suc n'"
-	by blast
+        by blast
 
       from t_bnd bnd_xs bnd_c have *: "t \<in> {real lx .. real ux}"
-	by (cases "xs ! x < real c", auto)
+        by (cases "xs ! x < real c", auto)
 
       have "interpret_floatarith f (xs[x := xs ! x]) = ?taylor t"
-	unfolding fl_eq Suc by (auto simp add: algebra_simps divide_inverse)
+        unfolding fl_eq Suc by (auto simp add: algebra_simps divide_inverse)
       also have "\<dots> \<in> {real l .. real u}" using * by (rule hyp)
       finally show ?thesis by simp
     qed
@@ -3154,22 +3154,22 @@ proof (cases f)
       case (Less lf rt)
       with Bound a b assms
       have "approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)"
-	unfolding approx_tse_form_def by auto
+        unfolding approx_tse_form_def by auto
       from approx_tse_form'_less[OF this bnd]
       show ?thesis using Less by auto
     next
       case (LessEqual lf rt)
       with Bound a b assms
       have "approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
-	unfolding approx_tse_form_def by auto
+        unfolding approx_tse_form_def by auto
       from approx_tse_form'_le[OF this bnd]
       show ?thesis using LessEqual by auto
     next
       case (AtLeastAtMost x lf rt)
       with Bound a b assms
       have "approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l)"
-	and "approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
-	unfolding approx_tse_form_def lazy_conj by auto
+        and "approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
+        unfolding approx_tse_form_def lazy_conj by auto
       from approx_tse_form'_le[OF this(1) bnd] approx_tse_form'_le[OF this(2) bnd]
       show ?thesis using AtLeastAtMost by auto
     next

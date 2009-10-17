@@ -477,7 +477,7 @@ fun print_arities arities = message ("Arities:\n" ^
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));
 
-fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
+fun prep_intrs intrs = map (rename_term o #prop o rep_thm o Drule.standard) intrs;
 
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs (s : string) of

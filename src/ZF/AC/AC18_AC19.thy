@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/AC18_AC19.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 The proof of AC1 ==> AC18 ==> AC19 ==> AC1

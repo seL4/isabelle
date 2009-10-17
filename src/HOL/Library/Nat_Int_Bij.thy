@@ -120,7 +120,7 @@ proof (unfold surj_def)
     have "2*z=2*(\<Sum>i\<le>r. i)+2*x"  using x_def a by simp arith
     also have "\<dots> = r * (r+1) + 2*x"   using gauss_sum_nat_upto by simp
     also have "\<dots> = (x+y)*(x+y+1)+2*x" using y_def b by simp
-    also { have "2 dvd ((x+y)*(x+y+1))"	using dvd2_a_x_suc_a by simp }
+    also { have "2 dvd ((x+y)*(x+y+1))" using dvd2_a_x_suc_a by simp }
     hence "\<dots> = 2 * nat2_to_nat(x,y)"
       using nat2_to_nat_def by (simp add: Let_def dvd_mult_div_cancel)
     finally have "z=nat2_to_nat (x, y)"  by simp

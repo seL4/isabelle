@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/TranslCompTp.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -43,8 +42,8 @@ done
 (**********************************************************************)
 
 syntax
-  mt_of		:: "method_type \<times> state_type \<Rightarrow> method_type"
-  sttp_of	:: "method_type \<times> state_type \<Rightarrow> state_type"
+  mt_of         :: "method_type \<times> state_type \<Rightarrow> method_type"
+  sttp_of       :: "method_type \<times> state_type \<Rightarrow> state_type"
 
 translations
   "mt_of"     => "fst"
