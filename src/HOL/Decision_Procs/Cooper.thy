@@ -63,8 +63,8 @@ recdef fmsize "measure size"
   "fmsize (NDvd i t) = 2"
   "fmsize p = 1"
   (* several lemmas about fmsize *)
-lemma fmsize_pos: "fmsize p > 0"	
-by (induct p rule: fmsize.induct) simp_all
+lemma fmsize_pos: "fmsize p > 0"
+  by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
 consts Ifm ::"bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> bool"
@@ -622,14 +622,14 @@ next
   {assume i1: "abs i = 1"
       from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
       have ?case using i1 apply (cases "i=0", simp_all add: Let_def) 
-	by (cases "i > 0", simp_all)}
+        by (cases "i > 0", simp_all)}
   moreover   
   {assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
     {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
-	by (cases "abs i = 1", auto) }
+        by (cases "abs i = 1", auto) }
     moreover {assume "\<not> (\<exists> v. ?sa = C v)" 
       hence "simpfm (Dvd i a) = Dvd i ?sa" using inz cond 
-	by (cases ?sa, auto simp add: Let_def)
+        by (cases ?sa, auto simp add: Let_def)
       hence ?case using sa by simp}
     ultimately have ?case by blast}
   ultimately show ?case by blast
@@ -646,10 +646,10 @@ next
   moreover   
   {assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
     {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
-	by (cases "abs i = 1", auto) }
+        by (cases "abs i = 1", auto) }
     moreover {assume "\<not> (\<exists> v. ?sa = C v)" 
       hence "simpfm (NDvd i a) = NDvd i ?sa" using inz cond 
-	by (cases ?sa, auto simp add: Let_def)
+        by (cases ?sa, auto simp add: Let_def)
       hence ?case using sa by simp}
     ultimately have ?case by blast}
   ultimately show ?case by blast
@@ -1291,24 +1291,24 @@ proof(induct p rule: iszlfm.induct)
     show ?case 
     proof(simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
       assume 
-	"i dvd c * x - c*(k*d) + Inum (x # bs) e"
+        "i dvd c * x - c*(k*d) + Inum (x # bs) e"
       (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
       hence "\<exists> (l::int). ?rt = i * l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l+c*(k * i*di)" 
-	by (simp add: algebra_simps di_def)
+        by (simp add: algebra_simps di_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*(l + c*k*di)"
-	by (simp add: algebra_simps)
+        by (simp add: algebra_simps)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l" by blast
       thus "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def) 
     next
       assume 
-	"i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
+        "i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
       hence "\<exists> (l::int). c*x+?e = i*l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: algebra_simps)
       hence "\<exists> (l::int). c*x - c * (k*d) +?e = i*l"
-	by blast
+        by blast
       thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
     qed
 next
@@ -1318,24 +1318,24 @@ next
     show ?case 
     proof(simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
       assume 
-	"i dvd c * x - c*(k*d) + Inum (x # bs) e"
+        "i dvd c * x - c*(k*d) + Inum (x # bs) e"
       (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
       hence "\<exists> (l::int). ?rt = i * l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l+c*(k * i*di)" 
-	by (simp add: algebra_simps di_def)
+        by (simp add: algebra_simps di_def)
       hence "\<exists> (l::int). c*x+ ?I x e = i*(l + c*k*di)"
-	by (simp add: algebra_simps)
+        by (simp add: algebra_simps)
       hence "\<exists> (l::int). c*x+ ?I x e = i*l" by blast
       thus "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def) 
     next
       assume 
-	"i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
+        "i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
       hence "\<exists> (l::int). c*x+?e = i*l" by (simp add: dvd_def)
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
       hence "\<exists> (l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: algebra_simps)
       hence "\<exists> (l::int). c*x - c * (k*d) +?e = i*l"
-	by blast
+        by blast
       thus "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
     qed
 qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
@@ -1611,7 +1611,7 @@ next
       hence "x + ?e \<ge> 1 \<and> x + ?e \<le> d"  by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e" by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. x = (- ?e + j)" 
-	by (simp add: algebra_simps)
+        by (simp add: algebra_simps)
       with nob have ?case by auto}
     ultimately show ?case by blast
 next
@@ -1620,7 +1620,7 @@ next
     let ?e = "Inum (x # bs) e"
     {assume "(x-d) +?e \<ge> 0" hence ?case using  c1 
       numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"]
-	by simp}
+        by simp}
     moreover
     {assume H: "\<not> (x-d) + ?e \<ge> 0" 
       let ?v="Sub (C -1) e"
@@ -1640,7 +1640,7 @@ next
     have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))" by simp
     from p have "x= - ?e" by (simp add: c1) with prems(11) show ?case using dp
       by simp (erule ballE[where x="1"],
-	simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
+        simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
 next
   case (4 c e)hence p: "Ifm bbs (x #bs) (NEq (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
@@ -1652,7 +1652,7 @@ next
     {assume H: "x - d + Inum (((x -d)) # bs) e = 0"
       hence "x = - Inum (((x -d)) # bs) e + d" by simp
       hence "x = - Inum (a # bs) e + d"
-	by (simp add: numbound0_I[OF bn,where b="x - d"and b'="a"and bs="bs"])
+        by (simp add: numbound0_I[OF bn,where b="x - d"and b'="a"and bs="bs"])
        with prems(11) have ?case using dp by simp}
   ultimately show ?case by blast
 next 

@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Formula.thy
-    ID: $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -975,7 +974,7 @@ lemma sats_app_0_iff [rule_format]:
    ==> \<forall>env \<in> list(A). sats(A,p, env@[0]) <-> sats(A,p,env)"
 apply (induct_tac p)
 apply (simp_all del: app_Cons add: app_Cons [symmetric]
-		add: nth_zero_eq_0 nth_append not_lt_iff_le nth_eq_0)
+                add: nth_zero_eq_0 nth_append not_lt_iff_le nth_eq_0)
 done
 
 lemma sats_app_zeroes_iff:
@@ -992,7 +991,7 @@ lemma exists_bigger_env:
               (\<forall>a\<in>A. sats(A,p,Cons(a,env')) <-> sats(A,p,Cons(a,env)))"
 apply (rule_tac x="env @ repeat(0,arity(p))" in bexI) 
 apply (simp del: app_Cons add: app_Cons [symmetric]
-	    add: length_repeat sats_app_zeroes_iff, typecheck)
+            add: length_repeat sats_app_zeroes_iff, typecheck)
 done
 
 

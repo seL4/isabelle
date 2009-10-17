@@ -1,10 +1,9 @@
-(*  Title: ZF/UNITY/Distributor
-    ID:         $Id$
+(*  Title:      ZF/UNITY/Distributor.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
 A multiple-client allocator from a single-client allocator:
-Distributor specification
+Distributor specification.
 *)
 
 theory Distributor imports AllocBase Follows  Guar GenPrefix begin
@@ -24,7 +23,7 @@ definition
           lift(Out(n))
               Fols
           (%s. sublist(s`In, {k \<in> nat. k<length(s`iIn) & nth(k, s`iIn) = n}))
-	  Wrt prefix(A)/list(A))"
+          Wrt prefix(A)/list(A))"
 
 definition
   distr_allowed_acts :: "[i=>i]=>i"  where
@@ -80,7 +79,7 @@ done
 
 lemma (in distr) D_ok_iff:
      "G \<in> program ==>
-	D ok G <-> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) & D \<in> Allowed(G))"
+        D ok G <-> ((\<forall>n \<in> nat. G \<in> preserves(lift(Out(n)))) & D \<in> Allowed(G))"
 apply (cut_tac distr_spec)
 apply (auto simp add: INT_iff distr_spec_def distr_allowed_acts_def
                       Allowed_def ok_iff_Allowed)
@@ -159,9 +158,9 @@ apply (rule Follows_msetsum_UN)
 apply (auto simp add: distr_spec_def distr_follows_def)
 apply (drule guaranteesD, assumption)
 apply (simp_all cong add: Follows_cong
-		add: refl_prefix
-		   mono_bag_of [THEN subset_Follows_comp, THEN subsetD, 
-				unfolded metacomp_def])
+                add: refl_prefix
+                   mono_bag_of [THEN subset_Follows_comp, THEN subsetD, 
+                                unfolded metacomp_def])
 done
 
 end

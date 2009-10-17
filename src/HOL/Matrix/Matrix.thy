@@ -88,7 +88,7 @@ proof -
       fix y
       assume hyp: "Rep_matrix x (fst y) (snd y) \<noteq> 0"
       show "\<exists> a b. (Rep_matrix x b a \<noteq> 0 & y = (b,a))"
-	by (rule exI[of _ "snd y"], rule exI[of _ "fst y"]) (simp add: hyp)
+        by (rule exI[of _ "snd y"], rule exI[of _ "fst y"]) (simp add: hyp)
     qed
   then have "finite (?swap`?A)"
     proof -

@@ -1,5 +1,4 @@
 (*  Title:      ZF/Finite.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
@@ -13,8 +12,8 @@ theory Finite imports Inductive_ZF Epsilon Nat_ZF begin
 (*The natural numbers as a datatype*)
 rep_datatype
   elimination    natE
-  induction	 nat_induct
-  case_eqns	 nat_case_0 nat_case_succ
+  induction      nat_induct
+  case_eqns      nat_case_0 nat_case_succ
   recursor_eqns  recursor_0 recursor_succ
 
 

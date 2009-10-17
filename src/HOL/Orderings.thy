@@ -339,18 +339,18 @@ fun struct_tac ((s, [eq, le, less]), thms) ctxt prems =
           (* exclude numeric types: linear arithmetic subsumes transitivity *)
           let val T = type_of t
           in
-	    T = HOLogic.natT orelse T = HOLogic.intT orelse T = HOLogic.realT
+            T = HOLogic.natT orelse T = HOLogic.intT orelse T = HOLogic.realT
           end;
-	fun rel (bin_op $ t1 $ t2) =
+        fun rel (bin_op $ t1 $ t2) =
               if excluded t1 then NONE
               else if Pattern.matches thy (eq, bin_op) then SOME (t1, "=", t2)
               else if Pattern.matches thy (le, bin_op) then SOME (t1, "<=", t2)
               else if Pattern.matches thy (less, bin_op) then SOME (t1, "<", t2)
               else NONE
-	  | rel _ = NONE;
-	fun dec (Const (@{const_name Not}, _) $ t) = (case rel t
-	      of NONE => NONE
-	       | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
+          | rel _ = NONE;
+        fun dec (Const (@{const_name Not}, _) $ t) = (case rel t
+              of NONE => NONE
+               | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
           | dec x = rel x;
       in dec t end
       | decomp thy _ = NONE;

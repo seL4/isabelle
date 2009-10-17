@@ -28,16 +28,16 @@ fun null s = is_none (pull s)
 fun take_at_most s n = 
     if n <= 0 then [] else
     case pull s of 
-	NONE => []
+        NONE => []
       | SOME (x,s') => x::(take_at_most s' (n-1))
 
 fun length' s n = 
     case pull s of
-	NONE => n
+        NONE => n
       | SOME (_, s') => length' s' (n+1)
 
 fun length s = length' s 0
-		
+                
 end  
 
 signature VECTOR_SCANNER_SEQ = 

@@ -171,13 +171,13 @@ text {* When working with locales, sequences of commands with the same
     proof (rule anti_sym)
       from inf' show "i \<sqsubseteq> i'"
       proof (rule is_inf_greatest)
-	from inf show "i \<sqsubseteq> x" ..
-	from inf show "i \<sqsubseteq> y" ..
+        from inf show "i \<sqsubseteq> x" ..
+        from inf show "i \<sqsubseteq> y" ..
       qed
       from inf show "i' \<sqsubseteq> i"
       proof (rule is_inf_greatest)
-	from inf' show "i' \<sqsubseteq> x" ..
-	from inf' show "i' \<sqsubseteq> y" ..
+        from inf' show "i' \<sqsubseteq> x" ..
+        from inf' show "i' \<sqsubseteq> y" ..
       qed
     qed
   qed
@@ -213,13 +213,13 @@ text {* When working with locales, sequences of commands with the same
     proof (rule anti_sym)
       from sup show "s \<sqsubseteq> s'"
       proof (rule is_sup_least)
-	from sup' show "x \<sqsubseteq> s'" ..
-	from sup' show "y \<sqsubseteq> s'" ..
+        from sup' show "x \<sqsubseteq> s'" ..
+        from sup' show "y \<sqsubseteq> s'" ..
       qed
       from sup' show "s' \<sqsubseteq> s"
       proof (rule is_sup_least)
-	from sup show "x \<sqsubseteq> s" ..
-	from sup show "y \<sqsubseteq> s" ..
+        from sup show "x \<sqsubseteq> s" ..
+        from sup show "y \<sqsubseteq> s" ..
       qed
     qed
   qed
@@ -346,9 +346,9 @@ text {* These assumptions refer to the predicates for infimum
       show "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> x" ..
       show "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> y"
       proof -
-	have "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> y \<sqinter> z" ..
-	also have "\<dots> \<sqsubseteq> y" ..
-	finally show ?thesis .
+        have "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> y \<sqinter> z" ..
+        also have "\<dots> \<sqsubseteq> y" ..
+        finally show ?thesis .
       qed
     qed
     show "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> z"
@@ -362,19 +362,19 @@ text {* These assumptions refer to the predicates for infimum
     proof
       show "w \<sqsubseteq> x"
       proof -
-	have "w \<sqsubseteq> x \<sqinter> y" by fact
-	also have "\<dots> \<sqsubseteq> x" ..
-	finally show ?thesis .
+        have "w \<sqsubseteq> x \<sqinter> y" by fact
+        also have "\<dots> \<sqsubseteq> x" ..
+        finally show ?thesis .
       qed
       show "w \<sqsubseteq> y \<sqinter> z"
       proof
-	show "w \<sqsubseteq> y"
-	proof -
-	  have "w \<sqsubseteq> x \<sqinter> y" by fact
-	  also have "\<dots> \<sqsubseteq> y" ..
-	  finally show ?thesis .
-	qed
-	show "w \<sqsubseteq> z" by fact
+        show "w \<sqsubseteq> y"
+        proof -
+          have "w \<sqsubseteq> x \<sqinter> y" by fact
+          also have "\<dots> \<sqsubseteq> y" ..
+          finally show ?thesis .
+        qed
+        show "w \<sqsubseteq> z" by fact
       qed
     qed
   qed
@@ -402,9 +402,9 @@ text {* These assumptions refer to the predicates for infimum
       show "x \<sqsubseteq> x \<squnion> (y \<squnion> z)" ..
       show "y \<sqsubseteq> x \<squnion> (y \<squnion> z)"
       proof -
-	have "y \<sqsubseteq> y \<squnion> z" ..
-	also have "... \<sqsubseteq> x \<squnion> (y \<squnion> z)" ..
-	finally show ?thesis .
+        have "y \<sqsubseteq> y \<squnion> z" ..
+        also have "... \<sqsubseteq> x \<squnion> (y \<squnion> z)" ..
+        finally show ?thesis .
       qed
     qed
     show "z \<sqsubseteq> x \<squnion> (y \<squnion> z)"
@@ -418,19 +418,19 @@ text {* These assumptions refer to the predicates for infimum
     proof
       show "x \<sqsubseteq> w"
       proof -
-	have "x \<sqsubseteq> x \<squnion> y" ..
-	also have "\<dots> \<sqsubseteq> w" by fact
-	finally show ?thesis .
+        have "x \<sqsubseteq> x \<squnion> y" ..
+        also have "\<dots> \<sqsubseteq> w" by fact
+        finally show ?thesis .
       qed
       show "y \<squnion> z \<sqsubseteq> w"
       proof
-	show "y \<sqsubseteq> w"
-	proof -
-	  have "y \<sqsubseteq> x \<squnion> y" ..
-	  also have "... \<sqsubseteq> w" by fact
-	  finally show ?thesis .
-	qed
-	show "z \<sqsubseteq> w" by fact
+        show "y \<sqsubseteq> w"
+        proof -
+          have "y \<sqsubseteq> x \<squnion> y" ..
+          also have "... \<sqsubseteq> w" by fact
+          finally show ?thesis .
+        qed
+        show "z \<sqsubseteq> w" by fact
       qed
     qed
   qed
@@ -650,17 +650,17 @@ text {* Similarly, total orders are distributive lattices. *}
       txt {* Jacobson I, p.\ 462 *}
     proof -
       { assume c: "y \<sqsubseteq> x" "z \<sqsubseteq> x"
-	from c have "?l = y \<squnion> z"
-	  by (metis c join_connection2 join_related2 meet_related2 total)
-	also from c have "... = ?r" by (metis meet_related2)
-	finally have "?l = ?r" . }
+        from c have "?l = y \<squnion> z"
+          by (metis c join_connection2 join_related2 meet_related2 total)
+        also from c have "... = ?r" by (metis meet_related2)
+        finally have "?l = ?r" . }
       moreover
       { assume c: "x \<sqsubseteq> y \<or> x \<sqsubseteq> z"
-	from c have "?l = x"
-	  by (metis join_connection2 join_related2 meet_connection total trans)
-	also from c have "... = ?r"
-	  by (metis join_commute join_related2 meet_connection meet_related2 total)
-	finally have "?l = ?r" . }
+        from c have "?l = x"
+          by (metis join_connection2 join_related2 meet_connection total trans)
+        also from c have "... = ?r"
+          by (metis join_commute join_related2 meet_connection meet_related2 total)
+        finally have "?l = ?r" . }
       moreover note total
       ultimately show ?thesis by blast
     qed

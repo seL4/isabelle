@@ -1,8 +1,6 @@
 (*  Title:      HOL/Induct/QuoDataType
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2004  University of Cambridge
-
 *)
 
 header{*Defining an Initial Algebra by Quotienting a Free Algebra*}
@@ -14,9 +12,9 @@ subsection{*Defining the Free Algebra*}
 text{*Messages with encryption and decryption as free constructors.*}
 datatype
      freemsg = NONCE  nat
-	     | MPAIR  freemsg freemsg
-	     | CRYPT  nat freemsg  
-	     | DECRYPT  nat freemsg
+             | MPAIR  freemsg freemsg
+             | CRYPT  nat freemsg  
+             | DECRYPT  nat freemsg
 
 text{*The equivalence relation, which makes encryption and decryption inverses
 provided the keys are the same.

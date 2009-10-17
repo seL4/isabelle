@@ -22,50 +22,50 @@ inductive_set orb :: "event list set"
   Nil:  "[]\<in> orb"
 
 | Fake: "\<lbrakk>evsa\<in> orb;  X\<in> synth (analz (knows Spy evsa))\<rbrakk>
- 	 \<Longrightarrow> Says Spy B X  # evsa \<in> orb"
+         \<Longrightarrow> Says Spy B X  # evsa \<in> orb"
 
 | Reception: "\<lbrakk>evsr\<in> orb;  Says A B X \<in> set evsr\<rbrakk>
-	      \<Longrightarrow> Gets B X # evsr \<in> orb"
+              \<Longrightarrow> Gets B X # evsr \<in> orb"
 
 | OR1:  "\<lbrakk>evs1\<in> orb;  Nonce NA \<notin> used evs1\<rbrakk>
-	 \<Longrightarrow> Says A B \<lbrace>Nonce M, Agent A, Agent B, 
-		   Crypt (shrK A) \<lbrace>Nonce NA, Nonce M, Agent A, Agent B\<rbrace>\<rbrace> 
-	       # evs1 \<in> orb"
+         \<Longrightarrow> Says A B \<lbrace>Nonce M, Agent A, Agent B, 
+                   Crypt (shrK A) \<lbrace>Nonce NA, Nonce M, Agent A, Agent B\<rbrace>\<rbrace> 
+               # evs1 \<in> orb"
 
 | OR2:  "\<lbrakk>evs2\<in> orb;  Nonce NB \<notin> used evs2;
-	   Gets B \<lbrace>Nonce M, Agent A, Agent B, X\<rbrace> \<in> set evs2\<rbrakk>
-	\<Longrightarrow> Says B Server 
-		\<lbrace>Nonce M, Agent A, Agent B, X, 
-	   Crypt (shrK B) \<lbrace>Nonce NB, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace>
-	       # evs2 \<in> orb"
+           Gets B \<lbrace>Nonce M, Agent A, Agent B, X\<rbrace> \<in> set evs2\<rbrakk>
+        \<Longrightarrow> Says B Server 
+                \<lbrace>Nonce M, Agent A, Agent B, X, 
+           Crypt (shrK B) \<lbrace>Nonce NB, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace>
+               # evs2 \<in> orb"
 
 | OR3:  "\<lbrakk>evs3\<in> orb;  Key KAB \<notin> used evs3;
-	  Gets Server 
-	     \<lbrace>Nonce M, Agent A, Agent B, 
-	       Crypt (shrK A) \<lbrace>Nonce NA, Nonce M, Agent A, Agent B\<rbrace>, 
-	       Crypt (shrK B) \<lbrace>Nonce NB, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace>
-	  \<in> set evs3\<rbrakk>
-	\<Longrightarrow> Says Server B \<lbrace>Nonce M,
-		    Crypt (shrK B) \<lbrace>Crypt (shrK A) \<lbrace>Nonce NA, Key KAB\<rbrace>,
-				      Nonce NB, Key KAB\<rbrace>\<rbrace>
-	       # evs3 \<in> orb"
+          Gets Server 
+             \<lbrace>Nonce M, Agent A, Agent B, 
+               Crypt (shrK A) \<lbrace>Nonce NA, Nonce M, Agent A, Agent B\<rbrace>, 
+               Crypt (shrK B) \<lbrace>Nonce NB, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace>
+          \<in> set evs3\<rbrakk>
+        \<Longrightarrow> Says Server B \<lbrace>Nonce M,
+                    Crypt (shrK B) \<lbrace>Crypt (shrK A) \<lbrace>Nonce NA, Key KAB\<rbrace>,
+                                      Nonce NB, Key KAB\<rbrace>\<rbrace>
+               # evs3 \<in> orb"
 
   (*B can only check that the message he is bouncing is a ciphertext*)
   (*Sending M back is omitted*)   
 | OR4:  "\<lbrakk>evs4\<in> orb; B \<noteq> Server; \<forall> p q. X \<noteq> \<lbrace>p, q\<rbrace>; 
-	  Says B Server \<lbrace>Nonce M, Agent A, Agent B, X', 
-		Crypt (shrK B) \<lbrace>Nonce NB, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace>
-	    \<in> set evs4;
-	  Gets B \<lbrace>Nonce M, Crypt (shrK B) \<lbrace>X, Nonce NB, Key KAB\<rbrace>\<rbrace>
-	    \<in> set evs4\<rbrakk>
-	\<Longrightarrow> Says B A \<lbrace>Nonce M, X\<rbrace> # evs4 \<in> orb"
+          Says B Server \<lbrace>Nonce M, Agent A, Agent B, X', 
+                Crypt (shrK B) \<lbrace>Nonce NB, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace>
+            \<in> set evs4;
+          Gets B \<lbrace>Nonce M, Crypt (shrK B) \<lbrace>X, Nonce NB, Key KAB\<rbrace>\<rbrace>
+            \<in> set evs4\<rbrakk>
+        \<Longrightarrow> Says B A \<lbrace>Nonce M, X\<rbrace> # evs4 \<in> orb"
 
 
 | Oops: "\<lbrakk>evso\<in> orb;  
-	   Says Server B \<lbrace>Nonce M,
-		    Crypt (shrK B) \<lbrace>Crypt (shrK A) \<lbrace>Nonce NA, Key KAB\<rbrace>,
-				      Nonce NB, Key KAB\<rbrace>\<rbrace> 
-	     \<in> set evso\<rbrakk>
+           Says Server B \<lbrace>Nonce M,
+                    Crypt (shrK B) \<lbrace>Crypt (shrK A) \<lbrace>Nonce NA, Key KAB\<rbrace>,
+                                      Nonce NB, Key KAB\<rbrace>\<rbrace> 
+             \<in> set evso\<rbrakk>
  \<Longrightarrow> Notes Spy \<lbrace>Agent A, Agent B, Nonce NA, Nonce NB, Key KAB\<rbrace> # evso 
      \<in> orb"
 

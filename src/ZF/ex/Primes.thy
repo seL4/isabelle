@@ -1,5 +1,4 @@
 (*  Title:      ZF/ex/Primes.thy
-    ID:         $Id$
     Author:     Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
@@ -20,8 +19,8 @@ definition
 definition
   gcd     :: "[i,i]=>i"       --{*Euclid's algorithm for the gcd*}  where
     "gcd(m,n) == transrec(natify(n),
-			%n f. \<lambda>m \<in> nat.
-			        if n=0 then m else f`(m mod n)`n) ` natify(m)"
+                        %n f. \<lambda>m \<in> nat.
+                                if n=0 then m else f`(m mod n)`n) ` natify(m)"
 
 definition
   coprime :: "[i,i]=>o"       --{*the coprime relation*}  where

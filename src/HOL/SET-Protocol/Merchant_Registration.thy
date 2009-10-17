@@ -1,6 +1,7 @@
-(*  Title:      HOL/Auth/SET/Merchant_Registration
-    ID:         $Id$
-    Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
+(*  Title:      HOL/SET-Protocol/Merchant_Registration.thy
+    Author:     Giampaolo Bella
+    Author:     Fabio Massacci
+    Author:     Lawrence C Paulson
 *)
 
 header{*The SET Merchant Registration Protocol*}
@@ -18,21 +19,21 @@ inductive_set
 where
 
   Nil:    --{*Initial trace is empty*}
-	   "[] \<in> set_mr"
+           "[] \<in> set_mr"
 
 
 | Fake:    --{*The spy MAY say anything he CAN say.*}
-	   "[| evsf \<in> set_mr; X \<in> synth (analz (knows Spy evsf)) |]
-	    ==> Says Spy B X  # evsf \<in> set_mr"
-	
+           "[| evsf \<in> set_mr; X \<in> synth (analz (knows Spy evsf)) |]
+            ==> Says Spy B X  # evsf \<in> set_mr"
+        
 
 | Reception: --{*If A sends a message X to B, then B might receive it*}
-	     "[| evsr \<in> set_mr; Says A B X \<in> set evsr |]
+             "[| evsr \<in> set_mr; Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_mr"
 
 
 | SET_MR1: --{*RegFormReq: M requires a registration form to a CA*}
- 	   "[| evs1 \<in> set_mr; M = Merchant k; Nonce NM1 \<notin> used evs1 |]
+           "[| evs1 \<in> set_mr; M = Merchant k; Nonce NM1 \<notin> used evs1 |]
             ==> Says M (CA i) {|Agent M, Nonce NM1|} # evs1 \<in> set_mr"
 
 
@@ -41,9 +42,9 @@ where
   "[| evs2 \<in> set_mr; Nonce NCA \<notin> used evs2;
       Gets (CA i) {|Agent M, Nonce NM1|} \<in> set evs2 |]
    ==> Says (CA i) M {|sign (priSK (CA i)) {|Agent M, Nonce NM1, Nonce NCA|},
-	               cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
+                       cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
                        cert (CA i) (pubSK (CA i)) onlySig (priSK RCA) |}
-	 # evs2 \<in> set_mr"
+         # evs2 \<in> set_mr"
 
 | SET_MR3:
          --{*CertReq: M submits the key pair to be certified.  The Notes
@@ -55,16 +56,16 @@ where
   "[| evs3 \<in> set_mr; M = Merchant k; Nonce NM2 \<notin> used evs3;
       Key KM1 \<notin> used evs3;  KM1 \<in> symKeys;
       Gets M {|sign (invKey SKi) {|Agent X, Nonce NM1, Nonce NCA|},
-	       cert (CA i) EKi onlyEnc (priSK RCA),
-	       cert (CA i) SKi onlySig (priSK RCA) |}
-	\<in> set evs3;
+               cert (CA i) EKi onlyEnc (priSK RCA),
+               cert (CA i) SKi onlySig (priSK RCA) |}
+        \<in> set evs3;
       Says M (CA i) {|Agent M, Nonce NM1|} \<in> set evs3 |]
    ==> Says M (CA i)
-	    {|Crypt KM1 (sign (priSK M) {|Agent M, Nonce NM2,
-					  Key (pubSK M), Key (pubEK M)|}),
-	      Crypt EKi (Key KM1)|}
-	 # Notes M {|Key KM1, Agent (CA i)|}
-	 # evs3 \<in> set_mr"
+            {|Crypt KM1 (sign (priSK M) {|Agent M, Nonce NM2,
+                                          Key (pubSK M), Key (pubEK M)|}),
+              Crypt EKi (Key KM1)|}
+         # Notes M {|Key KM1, Agent (CA i)|}
+         # evs3 \<in> set_mr"
 
 | SET_MR4:
          --{*CertRes: CA issues the certificates for merSK and merEK,
@@ -74,20 +75,20 @@ where
              CertRes shall be signed but not encrypted if the EE is a Merchant
              or Payment Gateway."-- Programmer's Guide, page 191.*}
     "[| evs4 \<in> set_mr; M = Merchant k;
-	merSK \<notin> symKeys;  merEK \<notin> symKeys;
-	Notes (CA i) (Key merSK) \<notin> set evs4;
-	Notes (CA i) (Key merEK) \<notin> set evs4;
-	Gets (CA i) {|Crypt KM1 (sign (invKey merSK)
-				 {|Agent M, Nonce NM2, Key merSK, Key merEK|}),
-		      Crypt (pubEK (CA i)) (Key KM1) |}
-	  \<in> set evs4 |]
+        merSK \<notin> symKeys;  merEK \<notin> symKeys;
+        Notes (CA i) (Key merSK) \<notin> set evs4;
+        Notes (CA i) (Key merEK) \<notin> set evs4;
+        Gets (CA i) {|Crypt KM1 (sign (invKey merSK)
+                                 {|Agent M, Nonce NM2, Key merSK, Key merEK|}),
+                      Crypt (pubEK (CA i)) (Key KM1) |}
+          \<in> set evs4 |]
     ==> Says (CA i) M {|sign (priSK(CA i)) {|Agent M, Nonce NM2, Agent(CA i)|},
-			cert  M      merSK    onlySig (priSK (CA i)),
-			cert  M      merEK    onlyEnc (priSK (CA i)),
-			cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
-	  # Notes (CA i) (Key merSK)
-	  # Notes (CA i) (Key merEK)
-	  # evs4 \<in> set_mr"
+                        cert  M      merSK    onlySig (priSK (CA i)),
+                        cert  M      merEK    onlyEnc (priSK (CA i)),
+                        cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
+          # Notes (CA i) (Key merSK)
+          # Notes (CA i) (Key merEK)
+          # evs4 \<in> set_mr"
 
 
 text{*Note possibility proofs are missing.*}
@@ -318,9 +319,9 @@ subsection{*Unicity *}
 
 lemma msg4_Says_imp_Notes:
  "[|Says (CA i) M {|sign (priSK (CA i)) {|Agent M, Nonce NM2, Agent (CA i)|},
-		    cert  M      merSK    onlySig (priSK (CA i)),
-		    cert  M      merEK    onlyEnc (priSK (CA i)),
-		    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                    cert  M      merSK    onlySig (priSK (CA i)),
+                    cert  M      merEK    onlyEnc (priSK (CA i)),
+                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
     evs \<in> set_mr |]
   ==> Notes (CA i) (Key merSK) \<in> set evs
    &  Notes (CA i) (Key merEK) \<in> set evs"
@@ -333,13 +334,13 @@ text{*Unicity of merSK wrt a given CA:
   merSK uniquely identifies the other components, including merEK*}
 lemma merSK_unicity:
  "[|Says (CA i) M {|sign (priSK(CA i)) {|Agent M, Nonce NM2, Agent (CA i)|},
-		    cert  M      merSK    onlySig (priSK (CA i)),
-		    cert  M      merEK    onlyEnc (priSK (CA i)),
-		    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                    cert  M      merSK    onlySig (priSK (CA i)),
+                    cert  M      merEK    onlyEnc (priSK (CA i)),
+                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
     Says (CA i) M' {|sign (priSK(CA i)) {|Agent M', Nonce NM2', Agent (CA i)|},
-		    cert  M'      merSK    onlySig (priSK (CA i)),
-		    cert  M'      merEK'    onlyEnc (priSK (CA i)),
-		    cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                    cert  M'      merSK    onlySig (priSK (CA i)),
+                    cert  M'      merEK'    onlyEnc (priSK (CA i)),
+                    cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)|} \<in> set evs;
     evs \<in> set_mr |] ==> M=M' & NM2=NM2' & merEK=merEK'"
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -352,13 +353,13 @@ text{*Unicity of merEK wrt a given CA:
   merEK uniquely identifies the other components, including merSK*}
 lemma merEK_unicity:
  "[|Says (CA i) M {|sign (priSK(CA i)) {|Agent M, Nonce NM2, Agent (CA i)|},
-		    cert  M      merSK    onlySig (priSK (CA i)),
-		    cert  M      merEK    onlyEnc (priSK (CA i)),
-		    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                    cert  M      merSK    onlySig (priSK (CA i)),
+                    cert  M      merEK    onlyEnc (priSK (CA i)),
+                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
     Says (CA i) M' {|sign (priSK(CA i)) {|Agent M', Nonce NM2', Agent (CA i)|},
-		     cert  M'      merSK'    onlySig (priSK (CA i)),
-		     cert  M'      merEK    onlyEnc (priSK (CA i)),
-		     cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                     cert  M'      merSK'    onlySig (priSK (CA i)),
+                     cert  M'      merEK    onlyEnc (priSK (CA i)),
+                     cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)|} \<in> set evs;
     evs \<in> set_mr |] 
   ==> M=M' & NM2=NM2' & merSK=merSK'"
 apply (erule rev_mp)

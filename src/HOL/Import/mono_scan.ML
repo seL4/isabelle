@@ -15,13 +15,13 @@ sig
     type 'a scanner = seq -> 'a * seq
 
     val :--      : 'a scanner * ('a -> 'b scanner)
-		   -> ('a*'b) scanner
+                   -> ('a*'b) scanner
     val --       : 'a scanner * 'b scanner -> ('a * 'b) scanner
     val >>       : 'a scanner * ('a -> 'b) -> 'b scanner
     val --|      : 'a scanner * 'b scanner -> 'a scanner
     val |--      : 'a scanner * 'b scanner -> 'b scanner
     val ^^       : string scanner * string scanner
-		   -> string scanner 
+                   -> string scanner 
     val ||       : 'a scanner * 'a scanner -> 'a scanner
     val one      : (item -> bool) -> item scanner
     val anyone   : item scanner
@@ -50,7 +50,7 @@ sig
     val scan_nat : int scanner
 
     val this : item list -> item list scanner
-    val this_string : string -> string scanner					    
+    val this_string : string -> string scanner                                      
 
 end    
 
@@ -73,48 +73,48 @@ val pull = Seq.pull
 
 fun (sc1 :-- sc2) toks =
     let
-	val (x,toks2) = sc1 toks
-	val (y,toks3) = sc2 x toks2
+        val (x,toks2) = sc1 toks
+        val (y,toks3) = sc2 x toks2
     in
-	((x,y),toks3)
+        ((x,y),toks3)
     end
 
 fun (sc1 -- sc2) toks =
     let
-	val (x,toks2) = sc1 toks
-	val (y,toks3) = sc2 toks2
+        val (x,toks2) = sc1 toks
+        val (y,toks3) = sc2 toks2
     in
-	((x,y),toks3)
+        ((x,y),toks3)
     end
 
 fun (sc >> f) toks =
     let
-	val (x,toks2) = sc toks
+        val (x,toks2) = sc toks
     in
-	(f x,toks2)
+        (f x,toks2)
     end
 
 fun (sc1 --| sc2) toks =
     let
-	val (x,toks2) = sc1 toks
-	val (_,toks3) = sc2 toks2
+        val (x,toks2) = sc1 toks
+        val (_,toks3) = sc2 toks2
     in
-	(x,toks3)
+        (x,toks3)
     end
 
 fun (sc1 |-- sc2) toks =
     let
-	val (_,toks2) = sc1 toks
+        val (_,toks2) = sc1 toks
     in
-	sc2 toks2
+        sc2 toks2
     end
 
 fun (sc1 ^^ sc2) toks =
     let
-	val (x,toks2) = sc1 toks
-	val (y,toks3) = sc2 toks2
+        val (x,toks2) = sc1 toks
+        val (y,toks3) = sc2 toks2
     in
-	(x^y,toks3)
+        (x^y,toks3)
     end
 
 fun (sc1 || sc2) toks =
@@ -129,22 +129,22 @@ fun succeed e toks = (e,toks)
 
 fun any p toks =
     case pull toks of
-	NONE =>  ([],toks)
+        NONE =>  ([],toks)
       | SOME(x,toks2) => if p x
-			 then
-			     let
-				 val (xs,toks3) = any p toks2
-			     in
-				 (x::xs,toks3)
-			     end
-			 else ([],toks)
+                         then
+                             let
+                                 val (xs,toks3) = any p toks2
+                             in
+                                 (x::xs,toks3)
+                             end
+                         else ([],toks)
 
 fun any1 p toks =
     let
-	val (x,toks2) = one p toks
-	val (xs,toks3) = any p toks2
+        val (x,toks2) = one p toks
+        val (xs,toks3) = any p toks2
     in
-	(x::xs,toks3)
+        (x::xs,toks3)
     end
 
 fun optional sc def =  sc || succeed def
@@ -153,16 +153,16 @@ fun option sc = (sc >> SOME) || succeed NONE
 (*
 fun repeat sc =
     let
-	fun R toks =
-	    let
-		val (x,toks2) = sc toks
-		val (xs,toks3) = R toks2
-	    in
-		(x::xs,toks3)
-	    end
-	    handle SyntaxError => ([],toks)
+        fun R toks =
+            let
+                val (x,toks2) = sc toks
+                val (xs,toks3) = R toks2
+            in
+                (x::xs,toks3)
+            end
+            handle SyntaxError => ([],toks)
     in
-	R
+        R
     end
 *)
 
@@ -174,44 +174,44 @@ fun repeat sc =
  *)
 fun repeat sc =
     let
-	fun R xs toks =
-	    case SOME (sc toks) handle SyntaxError => NONE of
-		SOME (x,toks2) => R (x::xs) toks2
-	      | NONE => (List.rev xs,toks)
+        fun R xs toks =
+            case SOME (sc toks) handle SyntaxError => NONE of
+                SOME (x,toks2) => R (x::xs) toks2
+              | NONE => (List.rev xs,toks)
     in
-	R []
+        R []
     end
 
 fun repeat1 sc toks =
     let
-	val (x,toks2) = sc toks
-	val (xs,toks3) = repeat sc toks2
+        val (x,toks2) = sc toks
+        val (xs,toks3) = repeat sc toks2
     in
-	(x::xs,toks3)
+        (x::xs,toks3)
     end
 
 fun repeat_fixed n sc =
     let
-	fun R n xs toks =
-	    if (n <= 0) then (List.rev xs, toks)
-	    else case (sc toks) of (x, toks2) => R (n-1) (x::xs) toks2
+        fun R n xs toks =
+            if (n <= 0) then (List.rev xs, toks)
+            else case (sc toks) of (x, toks2) => R (n-1) (x::xs) toks2
     in
-	R n []
+        R n []
     end
 
 fun ahead (sc:'a->'b*'a) toks = (#1 (sc toks),toks)
 
 fun unless test sc toks =
     let
-	val test_failed = (test toks;false) handle SyntaxError => true
+        val test_failed = (test toks;false) handle SyntaxError => true
     in
-	if test_failed
-	then sc toks
-	else raise SyntaxError
+        if test_failed
+        then sc toks
+        else raise SyntaxError
     end
 
 fun !! f sc toks = (sc toks
-		    handle SyntaxError => raise Fail (f toks))
+                    handle SyntaxError => raise Fail (f toks))
 
 end
 

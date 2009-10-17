@@ -61,7 +61,7 @@ inductive_set otway :: "event list set"
                  # evs3 : otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
-	   those in the message he previously sent the Server.
+           those in the message he previously sent the Server.
            Need B \<noteq> Server because we allow messages to self.*)
  | OR4:  "[| evs4 \<in> otway;  B \<noteq> Server;
              Says B Server {|Nonce NA, Agent A, Agent B, X',

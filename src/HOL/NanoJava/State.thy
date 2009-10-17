@@ -1,5 +1,4 @@
 (*  Title:      HOL/NanoJava/State.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   2001 Technische Universitaet Muenchen
 *)
@@ -20,8 +19,8 @@ datatype val
   = Null        --{* null reference *}
   | Addr loc    --{* address, i.e. location of object *}
 
-types	fields
-	= "(fname \<rightharpoonup> val)"
+types   fields
+        = "(fname \<rightharpoonup> val)"
 
         obj = "cname \<times> fields"
 
@@ -36,12 +35,12 @@ constdefs
  "init_vars m == Option.map (\<lambda>T. Null) o m"
   
 text {* private: *}
-types	heap   = "loc   \<rightharpoonup> obj"
-        locals = "vname \<rightharpoonup> val"	
+types   heap   = "loc   \<rightharpoonup> obj"
+        locals = "vname \<rightharpoonup> val"  
 
 text {* private: *}
 record  state
-	= heap   :: heap
+        = heap   :: heap
           locals :: locals
 
 translations
@@ -97,7 +96,7 @@ constdefs
   upd_obj    :: "loc => fname => val => state => state"
  "upd_obj a f v s \<equiv> let (C,fs) = the (heap s a) in hupd(a\<mapsto>(C,fs(f\<mapsto>v))) s"
 
-  new_Addr	:: "state => val"
+  new_Addr      :: "state => val"
  "new_Addr s == SOME v. (\<exists>a. v = Addr a \<and> (heap s) a = None) | v = Null"
 
 

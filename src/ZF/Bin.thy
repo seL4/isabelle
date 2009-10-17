@@ -1,5 +1,4 @@
 (*  Title:      ZF/Bin.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
@@ -25,7 +24,7 @@ consts  bin :: i
 datatype
   "bin" = Pls
         | Min
-        | Bit ("w: bin", "b: bool")	(infixl "BIT" 90)
+        | Bit ("w: bin", "b: bool")     (infixl "BIT" 90)
 
 use "Tools/numeral_syntax.ML"
 
@@ -70,7 +69,7 @@ primrec (*unary negation*)
     "bin_minus (Min)       = Pls BIT 1"
   bin_minus_BIT:
     "bin_minus (w BIT b) = cond(b, bin_pred(NCons(bin_minus(w),0)),
-				bin_minus(w) BIT 0)"
+                                bin_minus(w) BIT 0)"
 
 primrec (*sum*)
   bin_adder_Pls:
@@ -90,7 +89,7 @@ primrec
   "adding (v,x,Pls)     = v BIT x"
   "adding (v,x,Min)     = bin_pred(v BIT x)"
   "adding (v,x,w BIT y) = NCons(bin_adder (v, cond(x and y, bin_succ(w), w)), 
-				x xor y)"
+                                x xor y)"
 *)
 
 definition
@@ -105,7 +104,7 @@ primrec
     "bin_mult (Min,w)     = bin_minus(w)"
   bin_mult_BIT:
     "bin_mult (v BIT b,w) = cond(b, bin_add(NCons(bin_mult(v,w),0),w),
-				 NCons(bin_mult(v,w),0))"
+                                 NCons(bin_mult(v,w),0))"
 
 setup NumeralSyntax.setup
 

@@ -922,20 +922,20 @@ proof -
            "memberid n = memberid m" 
            "G\<turnstile> mbr m declared_in C" 
            "declclass m = C"
-	by auto
+        by auto
       with member_n   
       show ?thesis
-	by (cases n, cases m) 
+        by (cases n, cases m) 
            (auto simp add: declared_in_def 
                            cdeclaredmethd_def cdeclaredfield_def
                     split: memberdecl.splits)
     next
       case (Inherited m' _ _)
       then have "G\<turnstile> memberid m undeclared_in C"
-	by simp
+        by simp
       with eqid member_n
       show ?thesis
-	by (cases n) (auto dest: declared_not_undeclared)
+        by (cases n) (auto dest: declared_not_undeclared)
     qed
   next
     case (Inherited n C S)
@@ -950,14 +950,14 @@ proof -
       then have "G\<turnstile> mbr m declared_in C" by simp
       with eqid undecl
       show ?thesis
-	by (cases m) (auto dest: declared_not_undeclared)
+        by (cases m) (auto dest: declared_not_undeclared)
     next
       case Inherited 
       with super have "G \<turnstile> m member_of S"
-	by (auto dest!: subcls1D)
+        by (auto dest!: subcls1D)
       with eqid hyp
       show ?thesis 
-	by blast
+        by blast
     qed
   qed
 qed
@@ -1227,15 +1227,15 @@ proof -
       assume "D=C" 
       with super member_of_D_props 
       show ?thesis
-	by (auto intro: members.Inherited)
+        by (auto intro: members.Inherited)
     next
       case Subcls
       assume "G\<turnstile>D\<prec>\<^sub>C C"
       with super 
       have "G\<turnstile>S\<preceq>\<^sub>C C"
-	by (auto dest: subcls1D subcls_superD)
+        by (auto dest: subcls1D subcls_superD)
       with subclseq_C_m hyp show ?thesis
-	by blast
+        by blast
     qed
   qed
 qed
@@ -1660,34 +1660,34 @@ proof -
       case (Immediate membr Ca)
       then have "Ca=C" "membr = method sig m" and 
                 "G\<turnstile>Methd sig m declared_in C" "declclass m = C"
-	by (cases m,auto)
+        by (cases m,auto)
       with clsC 
       have "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = Some m"
-	by (cases m)
-	   (auto simp add: declared_in_def cdeclaredmethd_def
-	            intro: table_of_mapconst_SomeI)
+        by (cases m)
+           (auto simp add: declared_in_def cdeclaredmethd_def
+                    intro: table_of_mapconst_SomeI)
       with clsC neq_C_Obj ws 
       show ?thesis
-	by (simp add: methd_rec)
+        by (simp add: methd_rec)
     next
       case (Inherited membr Ca S)
       with clsC
       have eq_Ca_C: "Ca=C" and
             undecl: "G\<turnstile>mid sig undeclared_in C" and
              super: "G \<turnstile>Methd sig m member_of (super c)"
-	by (auto dest: subcls1D)
+        by (auto dest: subcls1D)
       from eq_Ca_C clsC undecl 
       have "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = None"
-	by (auto simp add: undeclared_in_def cdeclaredmethd_def
-	            intro: table_of_mapconst_NoneI)
+        by (auto simp add: undeclared_in_def cdeclaredmethd_def
+                    intro: table_of_mapconst_NoneI)
       moreover
       from Inherited have "G \<turnstile> C inherits (method sig m)"
-	by (auto simp add: inherits_def)
+        by (auto simp add: inherits_def)
       moreover
       note clsC neq_C_Obj ws super hyp 
       ultimately
       show ?thesis
-	by (auto simp add: methd_rec intro: filter_tab_SomeI)
+        by (auto simp add: methd_rec intro: filter_tab_SomeI)
     qed
   qed
 qed
@@ -1771,12 +1771,12 @@ proof -
       then have eq_statC_Obj: "statC = Object" ..
       show ?thesis 
       proof (cases "methd G statC sig")
-	case None then show ?thesis by (simp add: dynmethd_def)
+        case None then show ?thesis by (simp add: dynmethd_def)
       next
-	case Some
-	with True Object ws eq_statC_Obj 
-	show ?thesis
-	  by (auto simp add: dynmethd_def class_rec
+        case Some
+        with True Object ws eq_statC_Obj 
+        show ?thesis
+          by (auto simp add: dynmethd_def class_rec
                       intro: filter_tab_SomeI)
       qed
     qed
@@ -1791,88 +1791,88 @@ proof -
       note subclseq_dynC_statC = True
       show ?thesis
       proof (cases "methd G statC sig")
-	case None then show ?thesis by (simp add: dynmethd_def)
+        case None then show ?thesis by (simp add: dynmethd_def)
       next
-	case (Some statM)
-	note statM = Some
-	let "?filter C" = 
+        case (Some statM)
+        note statM = Some
+        let "?filter C" = 
               "filter_tab
                 (\<lambda>_ dynM. G,sig \<turnstile> dynM overrides statM \<or> dynM = statM)
                 (methd G C)"
         let "?class_rec C" =
               "(class_rec (G, C) empty
                            (\<lambda>C c subcls_mthds. subcls_mthds ++ (?filter C)))"
-	from statM Subcls ws subclseq_dynC_statC
-	have dynmethd_dynC_def:
+        from statM Subcls ws subclseq_dynC_statC
+        have dynmethd_dynC_def:
              "?Dynmethd_def dynC sig =
                 ((?class_rec (super c)) 
                  ++
                 (?filter dynC)) sig"
          by (simp (no_asm_simp) only: dynmethd_def class_rec)
-	    auto
+            auto
        show ?thesis
        proof (cases "dynC = statC")
-	 case True
-	 with subclseq_dynC_statC statM dynmethd_dynC_def
-	 have "?Dynmethd_def dynC sig = Some statM"
-	   by (auto intro: map_add_find_right filter_tab_SomeI)
-	 with subclseq_dynC_statC True Some 
-	 show ?thesis
-	   by auto
+         case True
+         with subclseq_dynC_statC statM dynmethd_dynC_def
+         have "?Dynmethd_def dynC sig = Some statM"
+           by (auto intro: map_add_find_right filter_tab_SomeI)
+         with subclseq_dynC_statC True Some 
+         show ?thesis
+           by auto
        next
-	 case False
-	 with subclseq_dynC_statC Subcls 
-	 have subclseq_super_statC: "G\<turnstile>(super c) \<preceq>\<^sub>C statC"
-	   by (blast dest: subclseq_superD)
-	 show ?thesis
-	 proof (cases "methd G dynC sig") 
-	   case None
-	   then have "?filter dynC sig = None"
-	     by (rule filter_tab_None)
+         case False
+         with subclseq_dynC_statC Subcls 
+         have subclseq_super_statC: "G\<turnstile>(super c) \<preceq>\<^sub>C statC"
+           by (blast dest: subclseq_superD)
+         show ?thesis
+         proof (cases "methd G dynC sig") 
+           case None
+           then have "?filter dynC sig = None"
+             by (rule filter_tab_None)
            then have "?Dynmethd_def dynC sig=?class_rec (super c) sig"
-	     by (simp add: dynmethd_dynC_def)
-	   with  subclseq_super_statC statM None
-	   have "?Dynmethd_def dynC sig = ?Dynmethd_def (super c) sig"
-	     by (auto simp add: empty_def dynmethd_def)
+             by (simp add: dynmethd_dynC_def)
+           with  subclseq_super_statC statM None
+           have "?Dynmethd_def dynC sig = ?Dynmethd_def (super c) sig"
+             by (auto simp add: empty_def dynmethd_def)
            with None subclseq_dynC_statC statM
-	   show ?thesis 
-	     by simp
-	 next
-	   case (Some dynM)
-	   note dynM = Some
-	   let ?Termination = "G \<turnstile> qmdecl sig dynM overrides qmdecl sig statM \<or>
+           show ?thesis 
+             by simp
+         next
+           case (Some dynM)
+           note dynM = Some
+           let ?Termination = "G \<turnstile> qmdecl sig dynM overrides qmdecl sig statM \<or>
                                dynM = statM"
-	   show ?thesis
-	   proof (cases "?filter dynC sig")
-	     case None
-	     with dynM 
-	     have no_termination: "\<not> ?Termination"
-	       by (simp add: filter_tab_def)
-	     from None 
-	     have "?Dynmethd_def dynC sig=?class_rec (super c) sig"
-	       by (simp add: dynmethd_dynC_def)
-	     with subclseq_super_statC statM dynM no_termination
-	     show ?thesis
-	       by (auto simp add: empty_def dynmethd_def)
-	   next
-	     case Some
-	     with dynM
-	     have "termination": "?Termination"
-	       by (auto)
-	     with Some dynM
-	     have "?Dynmethd_def dynC sig=Some dynM"
-	      by (auto simp add: dynmethd_dynC_def)
-	     with subclseq_super_statC statM dynM "termination"
-	     show ?thesis
-	       by (auto simp add: dynmethd_def)
-	   qed
-	 qed
+           show ?thesis
+           proof (cases "?filter dynC sig")
+             case None
+             with dynM 
+             have no_termination: "\<not> ?Termination"
+               by (simp add: filter_tab_def)
+             from None 
+             have "?Dynmethd_def dynC sig=?class_rec (super c) sig"
+               by (simp add: dynmethd_dynC_def)
+             with subclseq_super_statC statM dynM no_termination
+             show ?thesis
+               by (auto simp add: empty_def dynmethd_def)
+           next
+             case Some
+             with dynM
+             have "termination": "?Termination"
+               by (auto)
+             with Some dynM
+             have "?Dynmethd_def dynC sig=Some dynM"
+              by (auto simp add: dynmethd_dynC_def)
+             with subclseq_super_statC statM dynM "termination"
+             show ?thesis
+               by (auto simp add: dynmethd_def)
+           qed
+         qed
        qed
      qed
    qed
  qed
 qed
-	       
+               
 lemma dynmethd_C_C:"\<lbrakk>is_class G C; ws_prog G\<rbrakk> 
 \<Longrightarrow> dynmethd G C C sig = methd G C sig"          
 apply (auto simp add: dynmethd_rec)
@@ -1993,17 +1993,17 @@ proof -
       case Static
       with is_cls_statC ws subclseq_dynC_statC 
       show ?thesis 
-	by (auto intro: rtrancl_trans dest: methd_declC)
+        by (auto intro: rtrancl_trans dest: methd_declC)
     next
       case Override
       with clsDynC ws 
       show ?thesis 
-	by (auto dest: methd_declC)
+        by (auto dest: methd_declC)
     next
       case Recursion
       with hyp subclseq_dynC_super 
       show ?thesis 
-	by (auto intro: rtrancl_trans) 
+        by (auto intro: rtrancl_trans) 
     qed
   qed
 qed
@@ -2041,7 +2041,7 @@ proof -
       case Eq
       with ws statM clsDynC' 
       show ?thesis
-	by (auto simp add: dynmethd_rec)
+        by (auto simp add: dynmethd_rec)
     next
       case Subcls
       assume "G\<turnstile>dynC\<prec>\<^sub>C statC"
@@ -2049,7 +2049,7 @@ proof -
       have "G\<turnstile>super dc\<preceq>\<^sub>C statC" by (rule subcls_superD)
       with hyp ws clsDynC' subclseq' statM
       show ?thesis
-	by (auto simp add: dynmethd_rec)
+        by (auto simp add: dynmethd_rec)
     qed
   qed
 qed

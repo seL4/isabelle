@@ -86,7 +86,7 @@ fun solve_tac d = rewrite_goals_tac rewrite_rls THEN solven_tac d 1;
 fun step_tac n = 
     COND (has_fewer_prems 1) all_tac 
          (DETERM(fres_safe_tac n) ORELSE 
-	  (fres_unsafe_tac n APPEND fres_bound_tac n));
+          (fres_unsafe_tac n APPEND fres_bound_tac n));
 
 end;
 end;

@@ -1,4 +1,4 @@
-(*  title:      HOL/Nominal/nominal_atoms.ML
+(*  Title:      HOL/Nominal/nominal_atoms.ML
     Author:     Christian Urban and Stefan Berghofer, TU Muenchen
 
 Declaration of atom types to be used in nominal datatypes.
@@ -820,7 +820,7 @@ fun create_nom_typedecls ak_names thy =
              (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
              fun instR thm thms = map (fn ti => ti RS thm) thms;
 
-	     (* takes a theorem thm and a list of theorems [(t1,m1),..,(tn,mn)]  *)
+             (* takes a theorem thm and a list of theorems [(t1,m1),..,(tn,mn)]  *)
              (* produces a list of theorems of the form [[t1,m1] MRS thm,..,[tn,mn] MRS thm] *) 
              fun instRR thm thms = map (fn (ti,mi) => [ti,mi] MRS thm) thms;
 
@@ -883,7 +883,7 @@ fun create_nom_typedecls ak_names thy =
             ||>> add_thmss_string [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
             ||>> add_thmss_string [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
             ||>> add_thmss_string 
-	      let val thms1 = inst_at at_swap_simps
+              let val thms1 = inst_at at_swap_simps
                   and thms2 = inst_dj [dj_perm_forget]
               in [(("swap_simps", thms1 @ thms2),[])] end 
             ||>> add_thmss_string 

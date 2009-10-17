@@ -34,16 +34,16 @@ proof -
       fix x' assume lub': "lub A x'"
       show "x' = x"
       proof (rule order_antisym)
-	from lub' show "x' \<le> x"
-	proof
+        from lub' show "x' \<le> x"
+        proof
           fix a assume "a \<in> A"
           then show "a \<le> x" ..
-	qed
-	show "x \<le> x'"
-	proof
+        qed
+        show "x \<le> x'"
+        proof
           fix a assume "a \<in> A"
           with lub' show "a \<le> x'" ..
-	qed
+        qed
       qed
     qed
   qed

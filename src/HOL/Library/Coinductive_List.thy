@@ -460,7 +460,7 @@ proof -
     next
       case (Some p)
       with h h' MN have "M = CONS (fst p) (h (snd p))"
-	and "N = CONS (fst p) (h' (snd p))"
+        and "N = CONS (fst p) (h' (snd p))"
         by (simp_all split: prod.split)
       then have ?EqCONS by (auto iff: Id_on_iff)
       then show ?thesis ..

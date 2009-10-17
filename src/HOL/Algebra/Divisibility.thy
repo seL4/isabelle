@@ -2579,33 +2579,33 @@ proof -
            by force
 
       from this obtain p'
-	  where "p' \<in> set (as@bs)"
-	  and pp': "p \<sim> p'" by auto
+          where "p' \<in> set (as@bs)"
+          and pp': "p \<sim> p'" by auto
 
       hence "p' \<in> set as \<or> p' \<in> set bs" by simp
       moreover
       {
-	assume p'elem: "p' \<in> set as"
-	with ascarr have [simp]: "p' \<in> carrier G" by fast
+        assume p'elem: "p' \<in> set as"
+        with ascarr have [simp]: "p' \<in> carrier G" by fast
 
-	note pp'
-	also from afac p'elem
-	     have "p' divides a" by (rule factors_dividesI) fact+
-	finally
-	     have "p divides a" by simp
+        note pp'
+        also from afac p'elem
+             have "p' divides a" by (rule factors_dividesI) fact+
+        finally
+             have "p divides a" by simp
       }
       moreover
       {
-	assume p'elem: "p' \<in> set bs"
-	with bscarr have [simp]: "p' \<in> carrier G" by fast
+        assume p'elem: "p' \<in> set bs"
+        with bscarr have [simp]: "p' \<in> carrier G" by fast
 
-	note pp'
-	also from bfac
-	     have "p' divides b" by (rule factors_dividesI) fact+
-	finally have "p divides b" by simp
+        note pp'
+        also from bfac
+             have "p' divides b" by (rule factors_dividesI) fact+
+        finally have "p divides b" by simp
       }
       ultimately
-	  show "p divides a \<or> p divides b" by fast
+          show "p divides a \<or> p divides b" by fast
     qed
   qed
 qed
@@ -3176,7 +3176,7 @@ proof -
   have "c = c \<otimes> \<one>" by simp
   also from abrelprime[symmetric]
        have "\<dots> \<sim> c \<otimes> somegcd G a b"
-	 by (rule assoc_subst) (simp add: mult_cong_r)+
+         by (rule assoc_subst) (simp add: mult_cong_r)+
   also have "\<dots> \<sim> somegcd G (c \<otimes> a) (c \<otimes> b)" by (rule gcd_mult) fact+
   finally
        have c: "c \<sim> somegcd G (c \<otimes> a) (c \<otimes> b)" by simp
@@ -3188,13 +3188,13 @@ proof -
   have "somegcd G a (b \<otimes> c) \<sim> somegcd G a (c \<otimes> b)" by (simp add: m_comm)
   also from a
        have "\<dots> \<sim> somegcd G (somegcd G a (c \<otimes> a)) (c \<otimes> b)"
-	 by (rule assoc_subst) (simp add: gcd_cong_l)+
+         by (rule assoc_subst) (simp add: gcd_cong_l)+
   also from gcd_assoc
        have "\<dots> \<sim> somegcd G a (somegcd G (c \<otimes> a) (c \<otimes> b))"
        by (rule assoc_subst) simp+
   also from c[symmetric]
        have "\<dots> \<sim> somegcd G a c"
-	 by (rule assoc_subst) (simp add: gcd_cong_r)+
+         by (rule assoc_subst) (simp add: gcd_cong_r)+
   also note acrelprime
   finally
        show "somegcd G a (b \<otimes> c) \<sim> \<one>" by simp

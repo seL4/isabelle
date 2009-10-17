@@ -59,12 +59,12 @@ syntax (xsymbols)
 
 translations
 
-	"G\<turnstile>I \<prec>I1 J" == "(I,J) \<in> subint1 G"
-	"G\<turnstile>I \<preceq>I  J" == "(I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
-  	(* Defined in Decl.thy:
+        "G\<turnstile>I \<prec>I1 J" == "(I,J) \<in> subint1 G"
+        "G\<turnstile>I \<preceq>I  J" == "(I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
+        (* Defined in Decl.thy:
         "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" == "(C,D) \<in> subcls1 G"
-	"G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" 
-	*)
+        "G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" 
+        *)
         "G\<turnstile>C \<leadsto>1 I" == "(C,I) \<in> implmt1 G"
 
 
@@ -202,12 +202,12 @@ proof -
       assume subcls_D_C: "G\<turnstile>D \<prec>\<^sub>C C"
       show "False"
       proof -
-	from subcls_D_C subcls1_C_Z
-	have "G\<turnstile>D \<prec>\<^sub>C Z"
-	  by (auto dest: r_into_trancl trancl_trans)
-	with nsubcls_D_Z
-	show ?thesis
-	  by (rule notE)
+        from subcls_D_C subcls1_C_Z
+        have "G\<turnstile>D \<prec>\<^sub>C Z"
+          by (auto dest: r_into_trancl trancl_trans)
+        with nsubcls_D_Z
+        show ?thesis
+          by (rule notE)
       qed
     qed
   qed  
@@ -243,16 +243,16 @@ proof -
       assume eq_C_D: "C=D"
       show "False"
       proof -
-	from subcls1_C_Z eq_C_D 
-	have "G\<turnstile>D \<prec>\<^sub>C Z"
-	  by (auto)
-	also
-	from subcls_Z_D ws   
-	have "\<not> G\<turnstile>D \<prec>\<^sub>C Z"
-	  by (rule subcls_acyclic)
-	ultimately 
-	show ?thesis 
-	  by - (rule notE)
+        from subcls1_C_Z eq_C_D 
+        have "G\<turnstile>D \<prec>\<^sub>C Z"
+          by (auto)
+        also
+        from subcls_Z_D ws   
+        have "\<not> G\<turnstile>D \<prec>\<^sub>C Z"
+          by (rule subcls_acyclic)
+        ultimately 
+        show ?thesis 
+          by - (rule notE)
       qed
     qed
   qed
@@ -298,12 +298,12 @@ proof -
       case Eq
       with ws subcls_C_D
       show ?thesis 
-	by (auto dest: subcls_irrefl)
+        by (auto dest: subcls_irrefl)
     next
       case Subcls
       with nsubcls_D_C
       show ?thesis
-	by blast
+        by blast
     qed
   qed
 qed
@@ -387,7 +387,7 @@ section "widening relation"
 
 inductive
  --{*widening, viz. method invocation conversion, cf. 5.3
-			    i.e. kind of syntactic subtyping *}
+                            i.e. kind of syntactic subtyping *}
   widen :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>_" [71,71,71] 70)
   for G :: prog
 where
@@ -619,8 +619,8 @@ where
 | obj_arr: "G\<turnstile>Class Object\<succ>T.[]"
 | int_cls: "G\<turnstile>     Iface I\<succ>Class C"
 | subint:  "imethds G I hidings imethds G J entails 
-	   (\<lambda>(md, mh   ) (md',mh').\<spacespace>G\<turnstile>mrt mh\<preceq>mrt mh') \<Longrightarrow>
-	   \<not>G\<turnstile>I\<preceq>I J         \<spacespace>\<spacespace>\<spacespace>\<Longrightarrow> G\<turnstile>     Iface I\<succ>Iface J"
+           (\<lambda>(md, mh   ) (md',mh').\<spacespace>G\<turnstile>mrt mh\<preceq>mrt mh') \<Longrightarrow>
+           \<not>G\<turnstile>I\<preceq>I J         \<spacespace>\<spacespace>\<spacespace>\<Longrightarrow> G\<turnstile>     Iface I\<succ>Iface J"
 | array:   "G\<turnstile>RefT S\<succ>RefT T   \<spacespace>\<Longrightarrow> G\<turnstile>   RefT S.[]\<succ>RefT T.[]"
 
 (*unused*)
@@ -637,7 +637,7 @@ lemma narrow_PrimT: "G\<turnstile>PrimT pt\<succ>T \<Longrightarrow> \<exists>t.
 by (ind_cases "G\<turnstile>PrimT pt\<succ>T")
 
 lemma narrow_PrimT2: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow>  
-				  \<exists>t. S=PrimT t \<and> G\<turnstile>PrimT t\<preceq>PrimT pt"
+                                  \<exists>t. S=PrimT t \<and> G\<turnstile>PrimT t\<preceq>PrimT pt"
 by (ind_cases "G\<turnstile>S\<succ>PrimT pt")
 
 text {* 

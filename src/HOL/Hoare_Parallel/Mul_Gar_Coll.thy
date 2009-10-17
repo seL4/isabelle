@@ -246,7 +246,7 @@ constdefs
    ELSE .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
          \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
          \<and> \<acute>Mul_PBInv \<and> \<acute>ind<length \<acute>E}.
-	 \<langle>IF \<acute>M!(fst (\<acute>E!\<acute>ind))\<noteq>Black THEN \<acute>ind:=\<acute>ind+1 FI\<rangle> FI
+         \<langle>IF \<acute>M!(fst (\<acute>E!\<acute>ind))\<noteq>Black THEN \<acute>ind:=\<acute>ind+1 FI\<rangle> FI
  OD"
 
 lemma Mul_Propagate_Black: 
@@ -318,7 +318,7 @@ constdefs
           \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M  
           \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>Mul_CountInv \<acute>ind 
           \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))
-	  \<and> \<acute>q<n+1 \<and> \<acute>ind\<le>length \<acute>M}.
+          \<and> \<acute>q<n+1 \<and> \<acute>ind\<le>length \<acute>M}.
   DO .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
        \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
        \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>Mul_CountInv \<acute>ind 

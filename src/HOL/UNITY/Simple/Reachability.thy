@@ -1,11 +1,11 @@
-(*  Title:      HOL/UNITY/Reachability
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Reachability.thy
     Author:     Tanja Vos, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 
-Reachability in Graphs
+Reachability in Graphs.
 
-From Chandy and Misra, "Parallel Program Design" (1989), sections 6.2 and 11.3
+From Chandy and Misra, "Parallel Program Design" (1989), sections 6.2
+and 11.3.
 *)
 
 theory Reachability imports "../Detects" Reach begin
@@ -300,7 +300,7 @@ lemma Leadsto_reachability_AND_nmsg_0:
              ((reachable v <==> {s. (root,v): REACHABLE}) \<inter> nmsg_eq 0 (v,w))"
 apply (rule LeadsTo_Reachability [THEN LeadsTo_Trans], blast)
 apply (subgoal_tac
-	 "F \<in> (reachable v <==> {s. (root,v) \<in> REACHABLE}) \<inter> 
+         "F \<in> (reachable v <==> {s. (root,v) \<in> REACHABLE}) \<inter> 
               UNIV LeadsTo (reachable v <==> {s. (root,v) \<in> REACHABLE}) \<inter> 
               nmsg_eq 0 (v,w) ")
 apply simp

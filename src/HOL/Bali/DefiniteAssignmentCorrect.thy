@@ -407,7 +407,7 @@ proof -
         with wt_e G have jmp_s1: "?Jmp jmps s1" 
           by simp
         show ?thesis
-	proof (cases "the_Bool b")
+        proof (cases "the_Bool b")
           case False
           from Loop.hyps
           have "s3=s1"
@@ -434,20 +434,20 @@ proof -
           have "?Jmp jmps (abupd (absorb (Cont l)) s2)"
           proof -
             {
-      	      fix j'
-      	      assume abs: "abrupt (abupd (absorb (Cont l)) s2)=Some (Jump j')"
-      	      have "j' \<in> jmps"
-      	      proof (cases "j' = Cont l")
-      		case True
-      		with abs show ?thesis
-      		  by (cases s2) (simp add: absorb_def)
-      	      next
-      		case False 
-      		with abs have "abrupt s2 = Some (Jump j')"
-      		  by (cases s2) (simp add: absorb_def) 
-      		with jmp_s2 False show ?thesis
-      		  by simp
-      	      qed
+              fix j'
+              assume abs: "abrupt (abupd (absorb (Cont l)) s2)=Some (Jump j')"
+              have "j' \<in> jmps"
+              proof (cases "j' = Cont l")
+                case True
+                with abs show ?thesis
+                  by (cases s2) (simp add: absorb_def)
+              next
+                case False 
+                with abs have "abrupt s2 = Some (Jump j')"
+                  by (cases s2) (simp add: absorb_def) 
+                with jmp_s2 False show ?thesis
+                  by simp
+              qed
             }
             thus ?thesis by simp
           qed
@@ -512,7 +512,7 @@ proof -
         proof (cases "G,s2\<turnstile>catch C")
           case False
           from Try.hyps have "s3=s2" 
-	    by (simp (no_asm_use) only: False if_False)
+            by (simp (no_asm_use) only: False if_False)
           with jmp have "abrupt s1 = Some (Jump j)"
             using sxalloc_no_jump' [OF s2] by simp
           with jmp_s1 
@@ -666,7 +666,7 @@ proof -
       assume jmp: "abrupt s3 = Some (Jump j)"
       have "j\<in>jmps"
       proof -
-	note G = `prg Env = G`
+        note G = `prg Env = G`
         from NewA.prems 
         obtain wt_init: "Env\<turnstile>init_comp_ty elT\<Colon>\<surd>" and 
                wt_size: "Env\<turnstile>e\<Colon>-PrimT Integer"
@@ -1315,18 +1315,18 @@ proof -
       case True
       with Loop.hyps
       obtain
-	s0_s1: 
-	"dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))" and
-	s1_s2: "dom (locals (store s1)) \<subseteq> dom (locals (store s2))" and
-	s2_s3: "dom (locals (store s2)) \<subseteq> dom (locals (store s3))"
-	by simp
+        s0_s1: 
+        "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))" and
+        s1_s2: "dom (locals (store s1)) \<subseteq> dom (locals (store s2))" and
+        s2_s3: "dom (locals (store s2)) \<subseteq> dom (locals (store s3))"
+        by simp
       note s0_s1 also note s1_s2 also note s2_s3
       finally show ?thesis
-	by simp
+        by simp
     next
       case False
       with Loop.hyps show ?thesis
-	by simp
+        by simp
     qed
   next
     case Jmp thus ?case by simp
@@ -1348,16 +1348,16 @@ proof -
       from True Try.hyps 
       have "dom (locals (store (new_xcpt_var vn s2))) 
               \<subseteq> dom (locals (store s3))"
-	by simp
+        by simp
       hence "dom (locals (store s2)) \<subseteq> dom (locals (store s3))"
-	by (cases s2, simp )
+        by (cases s2, simp )
       finally show ?thesis by simp
     next
       case False
       note s0_s1 also note s1_s2
       finally 
       show ?thesis 
-	using False Try.hyps by simp
+        using False Try.hyps by simp
     qed
   next
     case (Fin s0 c1 x1 s1 c2 s2 s3) 
@@ -1365,22 +1365,22 @@ proof -
     proof (cases "\<exists>err. x1 = Some (Error err)")
       case True
       with Fin.hyps show ?thesis
-	by simp
+        by simp
     next
       case False
       from Fin.hyps
       have "dom (locals (store ((Norm s0)::state))) 
              \<subseteq> dom (locals (store (x1, s1)))" 
-	by simp
+        by simp
       hence "dom (locals (store ((Norm s0)::state))) 
               \<subseteq> dom (locals (store ((Norm s1)::state)))"
-	by simp
+        by simp
       also
       from Fin.hyps
       have "\<dots> \<subseteq> dom (locals (store s2))"
-	by simp
+        by simp
       finally show ?thesis 
-	using Fin.hyps by simp
+        using Fin.hyps by simp
     qed
   next
     case (Init C c s0 s3 s1 s2)
@@ -1393,14 +1393,14 @@ proof -
       with Init.hyps 
       obtain s0_s1: "dom (locals (store (Norm ((init_class_obj G C) s0))))
                      \<subseteq> dom (locals (store s1))" and
-	     s3: "s3 = (set_lvars (locals (snd s1))) s2"
-	by simp
+             s3: "s3 = (set_lvars (locals (snd s1))) s2"
+        by simp
       from s0_s1
       have "dom (locals (store (Norm s0))) \<subseteq> dom (locals (store s1))"
-	by (cases s0) simp
+        by (cases s0) simp
       with s3
       have "dom (locals (store (Norm s0))) \<subseteq> dom (locals (store s3))"
-	by (cases s2) simp
+        by (cases s2) simp
       thus ?thesis by simp
     qed
   next
@@ -1460,28 +1460,28 @@ proof -
       with Ass.hyps 
       have ass_ok:
         "\<And> s val. dom (locals (store s)) \<subseteq> dom (locals (store (f val s)))"
-	by simp
+        by simp
       note s0_s1
       also
       from Ass.hyps
       have "dom (locals (store s1)) \<subseteq> dom (locals (store s2))" 
-	by simp
+        by simp
       also
       from ass_ok
       have "\<dots> \<subseteq> dom (locals (store (assign f v s2)))"
-	by (rule dom_locals_assign_mono)
+        by (rule dom_locals_assign_mono)
       finally show ?thesis by simp
     next
       case False
       with `G\<turnstile>s1 \<midarrow>e-\<succ>v\<rightarrow> s2`
       have "s2=s1"
-	by auto
+        by auto
       with s0_s1 False
       have "dom (locals (store ((Norm s0)::state))) 
             \<subseteq> dom (locals (store (assign f v s2)))"
-	by simp
+        by simp
       thus ?thesis
-	by simp
+        by simp
     qed
   next
     case (Cond s0 e0 b s1 e1 e2 v s2)
@@ -1529,7 +1529,7 @@ proof -
                  abrupt s2 = Some (Jump (Cont l))
              then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)`
       show ?thesis
-	by simp
+        by simp
     qed
     finally show ?case by simp
   next
@@ -1693,7 +1693,7 @@ proof -
     proof -
       from NewA
       have "normal (abupd (check_neg i) s2)"
-	by - (erule halloc_no_abrupt [rule_format])
+        by - (erule halloc_no_abrupt [rule_format])
       hence "normal s2" by (cases s2) simp
       with NewA.hyps
       show ?thesis by iprover
@@ -1734,7 +1734,7 @@ proof -
       note `G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then In1l e2
                       else In1r Skip)\<succ>\<rightarrow> (In1 v2, s2)`
       thus ?thesis
-	by (rule dom_locals_eval_mono_elim)
+        by (rule dom_locals_eval_mono_elim)
     qed
     finally have s2: "assigns (In1l e1) \<subseteq> dom (locals (store s2))" .
     show ?case
@@ -1745,7 +1745,7 @@ proof -
       case False
       with BinOp 
       have "assigns (In1l e2) \<subseteq> dom (locals (store s2))"
-	by (simp add: need_second_arg_def)
+        by (simp add: need_second_arg_def)
       with s2
       show ?thesis using False by simp
     qed
@@ -1789,19 +1789,19 @@ proof -
     proof (cases "\<exists> n. va = LVar n")
       case False
       with va_e show ?thesis 
-	by (simp add: Un_assoc)
+        by (simp add: Un_assoc)
     next
       case True
       then obtain n where va: "va = LVar n"
-	by blast
+        by blast
       with Ass.hyps 
       have "G\<turnstile>Norm s0 \<midarrow>LVar n=\<succ>(w,f)\<rightarrow> s1" 
-	by simp
+        by simp
       hence "(w,f) = lvar n s0"
-	by (rule eval_elim_cases) simp
+        by (rule eval_elim_cases) simp
       with nrm_ass_s2
       have "n \<in> dom (locals (store (assign f v s2)))"
-	by (cases s2) (simp add: assign_def Let_def lvar_def)
+        by (cases s2) (simp add: assign_def Let_def lvar_def)
       with va_e True va 
       show ?thesis by (simp add: Un_assoc)
     qed
@@ -1821,25 +1821,25 @@ proof -
       case True
       with Cond 
       have "assigns (In1l e1) \<subseteq> dom (locals (store s2))"
-	by simp
+        by simp
       hence "assigns (In1l e1) \<inter> assigns (In1l e2) \<subseteq> \<dots>" 
-	by blast
+        by blast
       with e0
       have "assigns (In1l e0) \<union> assigns (In1l e1) \<inter> assigns (In1l e2) 
              \<subseteq> dom (locals (store s2))"
-	by (rule Un_least)
+        by (rule Un_least)
       thus ?thesis using True by simp 
     next
       case False
       with Cond 
       have " assigns (In1l e2) \<subseteq> dom (locals (store s2))"
-	by simp
+        by simp
       hence "assigns (In1l e1) \<inter> assigns (In1l e2) \<subseteq> \<dots>"
-	by blast
+        by blast
       with e0
       have "assigns (In1l e0) \<union> assigns (In1l e1) \<inter> assigns (In1l e2) 
              \<subseteq> dom (locals (store s2))"
-	by (rule Un_least)
+        by (rule Un_least)
       thus ?thesis using False by simp 
     qed
   next
@@ -1849,15 +1849,15 @@ proof -
       from `normal ((set_lvars (locals (snd s2))) s4)`
       have normal_s4: "normal s4" by simp
       hence "normal s3'" using Call.hyps
-	by - (erule eval_no_abrupt_lemma [rule_format]) 
+        by - (erule eval_no_abrupt_lemma [rule_format]) 
       moreover note
        `s3' = check_method_access G accC statT mode \<lparr>name=mn, parTs=pTs\<rparr> a' s3`
       ultimately have "normal s3"
-	by (cases s3) (simp add: check_method_access_def Let_def) 
+        by (cases s3) (simp add: check_method_access_def Let_def) 
       moreover
       note s3 = `s3 = init_lvars G D \<lparr>name = mn, parTs = pTs\<rparr> mode a' vs s2`
       ultimately show "normal s2"
-	by (cases s2) (simp add: init_lvars_def2)
+        by (cases s2) (simp add: init_lvars_def2)
     qed
     hence "normal s1" using Call.hyps
       by - (erule eval_no_abrupt_lemma [rule_format])
@@ -1892,9 +1892,9 @@ proof -
     proof -
       note `normal s3`
       with s3 have "normal s2'"
-	by (cases s2') (simp add: check_field_access_def Let_def)
+        by (cases s2') (simp add: check_field_access_def Let_def)
       with avar show "normal s2"
-	by (cases s2) (simp add: fvar_def2)
+        by (cases s2) (simp add: fvar_def2)
     qed
     with FVar.hyps 
     have "assigns (In1l e) \<subseteq> dom (locals (store s2))"
@@ -1904,9 +1904,9 @@ proof -
     proof -
       from avar
       have "s2' = snd (fvar statDeclC stat fn a s2)"
-	by (cases "fvar statDeclC stat fn a s2") simp
+        by (cases "fvar statDeclC stat fn a s2") simp
       thus ?thesis
-	by simp (rule dom_locals_fvar_mono)
+        by simp (rule dom_locals_fvar_mono)
     qed
     also from s3
     have "\<dots> \<subseteq>  dom (locals (store s3))"
@@ -1941,9 +1941,9 @@ proof -
     have "dom (locals (store s2)) \<subseteq>  dom (locals (store s2'))"
     proof -
       from avar have "s2' = snd (avar G i a s2)"
-	by (cases "avar G i a s2") simp
+        by (cases "avar G i a s2") simp
       thus ?thesis
-	by simp (rule dom_locals_avar_mono)
+        by simp (rule dom_locals_avar_mono)
     qed
     finally  
     show ?case
@@ -2065,24 +2065,24 @@ proof -
     proof (cases "need_second_arg binop v1")
       case True
       with v2 nrm_s1  obtain s1' 
-	where "G\<turnstile>Norm s1' \<midarrow>e2-\<succ>v2\<rightarrow> s" 
-	by (cases s1) simp
+        where "G\<turnstile>Norm s1' \<midarrow>e2-\<succ>v2\<rightarrow> s" 
+        by (cases s1) simp
       with c2 obtain "v2 = c2" "normal s"
-	by (rule BinOp.hyps [elim_format]) iprover
+        by (rule BinOp.hyps [elim_format]) iprover
       with c c1 c2 eq_v1_c1 v 
       show ?thesis by simp
     next
       case False
       with nrm_s1 v2
       have "s=s1"
-	by (cases s1) (auto elim!: eval_elim_cases)
+        by (cases s1) (auto elim!: eval_elim_cases)
       moreover
       from False c v eq_v1_c1  
       have "v = c"
-	by (simp add: eval_binop_arg2_indep)
+        by (simp add: eval_binop_arg2_indep)
       ultimately 
       show ?thesis
-	using nrm_s1 by simp
+        using nrm_s1 by simp
     qed  (* hallo ehco *)
   next
     case Super hence False by simp thus ?case ..
@@ -2111,25 +2111,25 @@ proof -
       case True
       with c cb c1 eq_vb_cb 
       have "c = c1"
-	by simp
+        by simp
       moreover
       from True eval_v nrm_s1 obtain s1' 
-	where "G\<turnstile>Norm s1' \<midarrow>e1-\<succ>v\<rightarrow> s"
-	by (cases s1) simp
+        where "G\<turnstile>Norm s1' \<midarrow>e1-\<succ>v\<rightarrow> s"
+        by (cases s1) simp
       with c1 obtain "c1 = v" "normal s"
-	by (rule Cond.hyps [elim_format]) iprover 
+        by (rule Cond.hyps [elim_format]) iprover 
       ultimately show ?thesis by simp
     next
       case False
       with c cb c2 eq_vb_cb 
       have "c = c2"
-	by simp
+        by simp
       moreover
       from False eval_v nrm_s1 obtain s1' 
-	where "G\<turnstile>Norm s1' \<midarrow>e2-\<succ>v\<rightarrow> s"
-	by (cases s1) simp
+        where "G\<turnstile>Norm s1' \<midarrow>e2-\<succ>v\<rightarrow> s"
+        by (cases s1) simp
       with c2 obtain "c2 = v" "normal s"
-	by (rule Cond.hyps [elim_format]) iprover 
+        by (rule Cond.hyps [elim_format]) iprover 
       ultimately show ?thesis by simp
     qed
   next
@@ -2218,13 +2218,13 @@ proof -
       case True
       from c1 wt_e1 
       have  "typeof empty_dt c1 = Some (PrimT Boolean)" 
-	by (rule Cond.hyps)
+        by (rule Cond.hyps)
       with True c cb c1 show ?thesis by simp
     next
       case False
       from c2 wt_e2 
       have "typeof empty_dt c2 = Some (PrimT Boolean)" 
-	by (rule Cond.hyps)
+        by (rule Cond.hyps)
       with False c cb c2 show ?thesis by simp
     qed
   next
@@ -2233,7 +2233,7 @@ proof -
   with const wt
   show ?thesis
     by iprover
-qed	
+qed     
       
 lemma assigns_if_good_approx:
   assumes
@@ -2272,13 +2272,13 @@ proof -
      proof -
        from s2 and `normal s2`
        have "normal s1"
-	 by (cases s1) simp
+         by (cases s1) simp
        moreover
        from `Env\<turnstile>Cast T e\<Colon>-PrimT Boolean`
        have "Env\<turnstile>e\<Colon>- PrimT Boolean" 
-	 by cases (auto dest: cast_Boolean2)
+         by cases (auto dest: cast_Boolean2)
        ultimately show ?thesis 
-	 by (rule Cast.hyps [elim_format]) auto
+         by (rule Cast.hyps [elim_format]) auto
      qed
      also from s2 
      have "\<dots> \<subseteq> dom (locals (store s2))"
@@ -2311,33 +2311,33 @@ proof -
        note `normal s1`
        moreover note bool_e
        ultimately have "assigns_if (the_Bool v) e \<subseteq> dom (locals (store s1))"
-	 by (rule UnOp.hyps [elim_format]) auto
+         by (rule UnOp.hyps [elim_format]) auto
        moreover
        from bool have "unop = UNot"
-	 by cases (cases unop, simp_all)
+         by cases (cases unop, simp_all)
        moreover note None
        ultimately 
        have "assigns_if (the_Bool (eval_unop unop v)) (UnOp unop e) 
               \<subseteq> dom (locals (store s1))"
-	 by simp
+         by simp
        thus ?thesis by simp
      next
        case (Some c)
        moreover
        from `prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1`
        have "prg Env\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>eval_unop unop v\<rightarrow> s1" 
-	 by (rule eval.UnOp)
+         by (rule eval.UnOp)
        with Some
        have "eval_unop unop v=c"
-	 by (rule constVal_eval_elim) simp
+         by (rule constVal_eval_elim) simp
        moreover
        from Some bool
        obtain b where "c=Bool b"
-	 by (rule constVal_Boolean [elim_format])
-	    (cases c, simp_all add: empty_dt_def)
+         by (rule constVal_Boolean [elim_format])
+            (cases c, simp_all add: empty_dt_def)
        ultimately
        have "assigns_if (the_Bool (eval_unop unop v)) (UnOp unop e) = {}"
-	 by simp
+         by simp
        thus ?thesis by simp
      qed
    next
@@ -2349,155 +2349,155 @@ proof -
        moreover
        from BinOp.hyps
        have
-	 "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
-	 by - (rule eval.BinOp) 
+         "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
+         by - (rule eval.BinOp) 
        with Some
        have "eval_binop binop v1 v2=c"
-	 by (rule constVal_eval_elim) simp
+         by (rule constVal_eval_elim) simp
        moreover
        from Some bool
        obtain b where "c = Bool b"
-	 by (rule constVal_Boolean [elim_format])
-	    (cases c, simp_all add: empty_dt_def)
+         by (rule constVal_Boolean [elim_format])
+            (cases c, simp_all add: empty_dt_def)
        ultimately
        have "assigns_if (the_Bool (eval_binop binop v1 v2)) (BinOp binop e1 e2) 
              = {}"
-	 by simp 
+         by simp 
        thus ?thesis by simp
      next
        case None
        show ?thesis
        proof (cases "binop=CondAnd \<or> binop=CondOr")
-	 case True
-	 from bool obtain bool_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
+         case True
+         from bool obtain bool_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
                           bool_e2: "Env\<turnstile>e2\<Colon>-PrimT Boolean"
-	   using True by cases auto
-	 have "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s1))"
-	 proof -
-	   from BinOp have "normal s1"
-	     by - (erule eval_no_abrupt_lemma [rule_format])
-	   from this bool_e1
-	   show ?thesis
-	     by (rule BinOp.hyps [elim_format]) auto
-	 qed
-	 also
-	 from BinOp.hyps
-	 have "\<dots> \<subseteq> dom (locals (store s2))"
-	   by - (erule dom_locals_eval_mono_elim,simp)
-	 finally
-	 have e1_s2: "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s2))".
-	 from True show ?thesis
-	 proof
-	   assume condAnd: "binop = CondAnd"
-	   show ?thesis
-	   proof (cases "the_Bool (eval_binop binop v1 v2)")
-	     case True
-	     with condAnd 
-	     have need_second: "need_second_arg binop v1"
-	       by (simp add: need_second_arg_def)
-	     from `normal s2`
-	     have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-	       by (rule BinOp.hyps [elim_format]) 
+           using True by cases auto
+         have "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s1))"
+         proof -
+           from BinOp have "normal s1"
+             by - (erule eval_no_abrupt_lemma [rule_format])
+           from this bool_e1
+           show ?thesis
+             by (rule BinOp.hyps [elim_format]) auto
+         qed
+         also
+         from BinOp.hyps
+         have "\<dots> \<subseteq> dom (locals (store s2))"
+           by - (erule dom_locals_eval_mono_elim,simp)
+         finally
+         have e1_s2: "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s2))".
+         from True show ?thesis
+         proof
+           assume condAnd: "binop = CondAnd"
+           show ?thesis
+           proof (cases "the_Bool (eval_binop binop v1 v2)")
+             case True
+             with condAnd 
+             have need_second: "need_second_arg binop v1"
+               by (simp add: need_second_arg_def)
+             from `normal s2`
+             have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+               by (rule BinOp.hyps [elim_format]) 
                   (simp add: need_second bool_e2)+
-	     with e1_s2
-	     have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
-		    \<subseteq> dom (locals (store s2))"
-	       by (rule Un_least)
-	     with True condAnd None show ?thesis
-	       by simp
-	   next
-	     case False
-	     note binop_False = this
-	     show ?thesis
-	     proof (cases "need_second_arg binop v1")
-	       case True
-	       with binop_False condAnd
-	       obtain "the_Bool v1=True" and "the_Bool v2 = False"
-		 by (simp add: need_second_arg_def)
-	       moreover
-	       from `normal s2`
-	       have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-		 by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
-	       with e1_s2
-	       have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
-		      \<subseteq> dom (locals (store s2))"
-		 by (rule Un_least)
-	       moreover note binop_False condAnd None
-	       ultimately show ?thesis
-		 by auto
-	     next
-	       case False
-	       with binop_False condAnd
-	       have "the_Bool v1=False"
-		 by (simp add: need_second_arg_def)
-	       with e1_s2 
-	       show ?thesis
-		 using binop_False condAnd None by auto
-	     qed
-	   qed
-	 next
-	   assume condOr: "binop = CondOr"
-	   show ?thesis
-	   proof (cases "the_Bool (eval_binop binop v1 v2)")
-	     case False
-	     with condOr 
-	     have need_second: "need_second_arg binop v1"
-	       by (simp add: need_second_arg_def)
-	     from `normal s2`
-	     have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-	       by (rule BinOp.hyps [elim_format]) 
+             with e1_s2
+             have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+                    \<subseteq> dom (locals (store s2))"
+               by (rule Un_least)
+             with True condAnd None show ?thesis
+               by simp
+           next
+             case False
+             note binop_False = this
+             show ?thesis
+             proof (cases "need_second_arg binop v1")
+               case True
+               with binop_False condAnd
+               obtain "the_Bool v1=True" and "the_Bool v2 = False"
+                 by (simp add: need_second_arg_def)
+               moreover
+               from `normal s2`
+               have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+                 by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
+               with e1_s2
+               have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+                      \<subseteq> dom (locals (store s2))"
+                 by (rule Un_least)
+               moreover note binop_False condAnd None
+               ultimately show ?thesis
+                 by auto
+             next
+               case False
+               with binop_False condAnd
+               have "the_Bool v1=False"
+                 by (simp add: need_second_arg_def)
+               with e1_s2 
+               show ?thesis
+                 using binop_False condAnd None by auto
+             qed
+           qed
+         next
+           assume condOr: "binop = CondOr"
+           show ?thesis
+           proof (cases "the_Bool (eval_binop binop v1 v2)")
+             case False
+             with condOr 
+             have need_second: "need_second_arg binop v1"
+               by (simp add: need_second_arg_def)
+             from `normal s2`
+             have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+               by (rule BinOp.hyps [elim_format]) 
                   (simp add: need_second bool_e2)+
-	     with e1_s2
-	     have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
-		    \<subseteq> dom (locals (store s2))"
-	       by (rule Un_least)
-	     with False condOr None show ?thesis
-	       by simp
-	   next
-	     case True
-	     note binop_True = this
-	     show ?thesis
-	     proof (cases "need_second_arg binop v1")
-	       case True
-	       with binop_True condOr
-	       obtain "the_Bool v1=False" and "the_Bool v2 = True"
-		 by (simp add: need_second_arg_def)
-	       moreover
-	       from `normal s2`
-	       have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-		 by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
-	       with e1_s2
-	       have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
-		      \<subseteq> dom (locals (store s2))"
-		 by (rule Un_least)
-	       moreover note binop_True condOr None
-	       ultimately show ?thesis
-		 by auto
-	     next
-	       case False
-	       with binop_True condOr
-	       have "the_Bool v1=True"
-		 by (simp add: need_second_arg_def)
-	       with e1_s2 
-	       show ?thesis
-		 using binop_True condOr None by auto
-	     qed
-	   qed
-	 qed  
+             with e1_s2
+             have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+                    \<subseteq> dom (locals (store s2))"
+               by (rule Un_least)
+             with False condOr None show ?thesis
+               by simp
+           next
+             case True
+             note binop_True = this
+             show ?thesis
+             proof (cases "need_second_arg binop v1")
+               case True
+               with binop_True condOr
+               obtain "the_Bool v1=False" and "the_Bool v2 = True"
+                 by (simp add: need_second_arg_def)
+               moreover
+               from `normal s2`
+               have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+                 by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
+               with e1_s2
+               have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+                      \<subseteq> dom (locals (store s2))"
+                 by (rule Un_least)
+               moreover note binop_True condOr None
+               ultimately show ?thesis
+                 by auto
+             next
+               case False
+               with binop_True condOr
+               have "the_Bool v1=True"
+                 by (simp add: need_second_arg_def)
+               with e1_s2 
+               show ?thesis
+                 using binop_True condOr None by auto
+             qed
+           qed
+         qed  
        next
-	 case False
-	 note `\<not> (binop = CondAnd \<or> binop = CondOr)`
-	 from BinOp.hyps
-	 have
-	   "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
-	   by - (rule eval.BinOp)  
-	 moreover note `normal s2`
-	 ultimately
-	 have "assignsE (BinOp binop e1 e2) \<subseteq> dom (locals (store s2))"
-	   by (rule assignsE_good_approx)
-	 with False None
-	 show ?thesis 
-	   by simp
+         case False
+         note `\<not> (binop = CondAnd \<or> binop = CondOr)`
+         from BinOp.hyps
+         have
+           "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
+           by - (rule eval.BinOp)  
+         moreover note `normal s2`
+         ultimately
+         have "assignsE (BinOp binop e1 e2) \<subseteq> dom (locals (store s2))"
+           by (rule assignsE_good_approx)
+         with False None
+         show ?thesis 
+           by simp
        qed
      qed
    next     
@@ -2533,68 +2533,68 @@ proof -
        note eval_e0 
        moreover
        from Cond.hyps and `normal s2` have "normal s1"
-	 by - (erule eval_no_abrupt_lemma [rule_format],simp)
+         by - (erule eval_no_abrupt_lemma [rule_format],simp)
        ultimately
        have "assignsE e0 \<subseteq> dom (locals (store s1))"
-	 by (rule assignsE_good_approx)
+         by (rule assignsE_good_approx)
        also
        from Cond
        have "\<dots> \<subseteq> dom (locals (store s2))"
-	 by - (erule dom_locals_eval_mono [elim_format],simp)
+         by - (erule dom_locals_eval_mono [elim_format],simp)
        finally show ?thesis .
      qed
      show ?case
      proof (cases "constVal e0")
        case None
        have "assigns_if (the_Bool v) e1 \<inter>  assigns_if (the_Bool v) e2 
-	      \<subseteq> dom (locals (store s2))"
+              \<subseteq> dom (locals (store s2))"
        proof (cases "the_Bool b")
-	 case True
-	 from `normal s2`
-	 have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"    
-	   by (rule Cond.hyps [elim_format]) (simp_all add: wt_e1 True)
-	 thus ?thesis
-	   by blast
+         case True
+         from `normal s2`
+         have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"    
+           by (rule Cond.hyps [elim_format]) (simp_all add: wt_e1 True)
+         thus ?thesis
+           by blast
        next
-	 case False
-	 from `normal s2`
-	 have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
-	   by (rule Cond.hyps [elim_format]) (simp_all add: wt_e2 False)
-	 thus ?thesis
-	   by blast
+         case False
+         from `normal s2`
+         have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
+           by (rule Cond.hyps [elim_format]) (simp_all add: wt_e2 False)
+         thus ?thesis
+           by blast
        qed
        with e0_s2
        have "assignsE e0 \<union> 
              (assigns_if (the_Bool v) e1 \<inter>  assigns_if (the_Bool v) e2)
-	       \<subseteq> dom (locals (store s2))"
-	 by (rule Un_least)
+               \<subseteq> dom (locals (store s2))"
+         by (rule Un_least)
        with None show ?thesis
-	 by simp
+         by simp
      next
        case (Some c)
        from this eval_e0 have eq_b_c: "b=c" 
-	 by (rule constVal_eval_elim) 
+         by (rule constVal_eval_elim) 
        show ?thesis
        proof (cases "the_Bool c")
-	 case True
-	 from `normal s2`
-	 have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"
-	   by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c True wt_e1)
-	 with e0_s2
-	 have "assignsE e0 \<union> assigns_if (the_Bool v) e1  \<subseteq> \<dots>"
-	   by (rule Un_least)
-	 with Some True show ?thesis
-	   by simp
+         case True
+         from `normal s2`
+         have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"
+           by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c True wt_e1)
+         with e0_s2
+         have "assignsE e0 \<union> assigns_if (the_Bool v) e1  \<subseteq> \<dots>"
+           by (rule Un_least)
+         with Some True show ?thesis
+           by simp
        next
-	 case False
-	 from `normal s2`
-	 have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
-	   by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c False wt_e2)
-	 with e0_s2
-	 have "assignsE e0 \<union> assigns_if (the_Bool v) e2  \<subseteq> \<dots>"
-	   by (rule Un_least)
-	 with Some False show ?thesis
-	   by simp
+         case False
+         from `normal s2`
+         have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
+           by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c False wt_e2)
+         with e0_s2
+         have "assignsE e0 \<union> assigns_if (the_Bool v) e2  \<subseteq> \<dots>"
+           by (rule Un_least)
+         with Some False show ?thesis
+           by simp
        qed
      qed
    next
@@ -2715,38 +2715,38 @@ proof -
       assume normal: "normal (abupd (absorb j) s1)"
       show "nrm A \<subseteq> dom (locals (store (abupd (absorb j) s1)))"
       proof (cases "abrupt s1")
-	case None
-	with norm_c A 
-	show ?thesis
-	  by auto
+        case None
+        with norm_c A 
+        show ?thesis
+          by auto
       next
-	case Some
-	with normal j 
-	have "abrupt s1 = Some (Jump (Break l))"
-	  by (auto dest: absorb_Some_NoneD)
-	with brk_c A
-  	show ?thesis
-	  by auto
+        case Some
+        with normal j 
+        have "abrupt s1 = Some (Jump (Break l))"
+          by (auto dest: absorb_Some_NoneD)
+        with brk_c A
+        show ?thesis
+          by auto
       qed
     qed
     moreover 
     have "?BreakAssigned (Norm s0) (abupd (absorb j) s1) A"
     proof -
       {
-	fix l'
-	assume break: "abrupt (abupd (absorb j) s1) = Some (Jump (Break l'))"
-	with j 
-	have "l\<noteq>l'"
-	  by (cases s1) (auto dest!: absorb_Some_JumpD)
-	hence "(rmlab l (brk C)) l'= (brk C) l'"
-	  by (simp)
-	with break brk_c A
-	have 
+        fix l'
+        assume break: "abrupt (abupd (absorb j) s1) = Some (Jump (Break l'))"
+        with j 
+        have "l\<noteq>l'"
+          by (cases s1) (auto dest!: absorb_Some_JumpD)
+        hence "(rmlab l (brk C)) l'= (brk C) l'"
+          by (simp)
+        with break brk_c A
+        have 
           "(brk A l' \<subseteq> dom (locals (store (abupd (absorb j) s1))))"
-	  by (cases s1) auto
+          by (cases s1) auto
       }
       then show ?thesis
-	by simp
+        by simp
     qed
     moreover
     from res_c have "?ResAssigned (Norm s0) (abupd (absorb j) s1)"
@@ -2776,7 +2776,7 @@ proof -
       case True
       with nrm_c1 have "nrm C1 \<subseteq> dom (locals (snd s1))" by iprover
       with da_c2 obtain C2' 
-	where  da_c2': "Env\<turnstile> dom (locals (snd s1)) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
+        where  da_c2': "Env\<turnstile> dom (locals (snd s1)) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
                nrm_c2: "nrm C2 \<subseteq> nrm C2'"                  and
                brk_c2: "\<forall> l. brk C2 l \<subseteq> brk C2' l"
         by (rule da_weakenE) iprover
@@ -2785,18 +2785,18 @@ proof -
       obtain nrm_c2': "?NormalAssigned s2 C2'" and 
              brk_c2': "?BreakAssigned s1 s2 C2'" and
              res_c2 : "?ResAssigned s1 s2" 
-	by simp
+        by simp
       from nrm_c2' nrm_c2 A
       have "?NormalAssigned s2 A" 
-	by blast
+        by blast
       moreover from brk_c2' brk_c2 A
       have "?BreakAssigned s1 s2 A" 
-	by fastsimp
+        by fastsimp
       with True 
       have "?BreakAssigned (Norm s0) s2 A" by simp
       moreover from res_c2 True
       have "?ResAssigned (Norm s0) s2"
-	by simp
+        by simp
       ultimately show ?thesis by (intro conjI)
     next
       case False
@@ -2806,23 +2806,23 @@ proof -
       moreover
       have "?BreakAssigned (Norm s0) s2 A"
       proof (cases "\<exists> l. abrupt s1 = Some (Jump (Break l))")
-	case True
-	then obtain l where l: "abrupt s1 = Some (Jump (Break l))" .. 
-	with brk_c1
-	have "brk C1 l \<subseteq> dom (locals (store s1))"
-	  by simp
-	with A eq_s1_s2 
-	have "brk A l \<subseteq> dom (locals (store s2))" 
-	  by auto
-	with l eq_s1_s2
-	show ?thesis by simp
+        case True
+        then obtain l where l: "abrupt s1 = Some (Jump (Break l))" .. 
+        with brk_c1
+        have "brk C1 l \<subseteq> dom (locals (store s1))"
+          by simp
+        with A eq_s1_s2 
+        have "brk A l \<subseteq> dom (locals (store s2))" 
+          by auto
+        with l eq_s1_s2
+        show ?thesis by simp
       next
-	case False
-	with eq_s1_s2 show ?thesis by simp
+        case False
+        with eq_s1_s2 show ?thesis by simp
       qed
       moreover from False res_c1 eq_s1_s2
       have "?ResAssigned (Norm s0) s2"
-	by simp
+        by simp
       ultimately show ?thesis by (intro conjI)
     qed
   next
@@ -2853,79 +2853,79 @@ proof -
       note normal_s1 = this 
       show ?thesis
       proof (cases "the_Bool b")
-	case True
-	from eval_e normal_s1 wt_e
-	have "assigns_if True e \<subseteq> dom (locals (store s1))"
-	  by (rule assigns_if_good_approx [elim_format]) (simp add: True)
-	with s0_s1
-	have "dom (locals (store ((Norm s0)::state))) \<union> assigns_if True e \<subseteq> \<dots>"
-	  by (rule Un_least)
-	with da_c1 obtain C1'
-	  where da_c1': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
-	        nrm_c1: "nrm C1 \<subseteq> nrm C1'"                  and
+        case True
+        from eval_e normal_s1 wt_e
+        have "assigns_if True e \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx [elim_format]) (simp add: True)
+        with s0_s1
+        have "dom (locals (store ((Norm s0)::state))) \<union> assigns_if True e \<subseteq> \<dots>"
+          by (rule Un_least)
+        with da_c1 obtain C1'
+          where da_c1': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
+                nrm_c1: "nrm C1 \<subseteq> nrm C1'"                  and
                 brk_c1: "\<forall> l. brk C1 l \<subseteq> brk C1' l"
           by (rule da_weakenE) iprover
-	from If.hyps True have "PROP ?Hyp (In1r c1) s1 s2" by simp
-	with wt_c1 da_c1'
-	obtain nrm_c1': "?NormalAssigned s2 C1'" and 
+        from If.hyps True have "PROP ?Hyp (In1r c1) s1 s2" by simp
+        with wt_c1 da_c1'
+        obtain nrm_c1': "?NormalAssigned s2 C1'" and 
                brk_c1': "?BreakAssigned s1 s2 C1'" and
                res_c1: "?ResAssigned s1 s2"
-	  using G by simp
-	from nrm_c1' nrm_c1 A
-	have "?NormalAssigned s2 A" 
-	  by blast
-	moreover from brk_c1' brk_c1 A
-	have "?BreakAssigned s1 s2 A" 
-	  by fastsimp
-	with normal_s1
-	have "?BreakAssigned (Norm s0) s2 A" by simp
-	moreover from res_c1 normal_s1 have "?ResAssigned (Norm s0) s2"
-	  by simp
-	ultimately show ?thesis by (intro conjI)
+          using G by simp
+        from nrm_c1' nrm_c1 A
+        have "?NormalAssigned s2 A" 
+          by blast
+        moreover from brk_c1' brk_c1 A
+        have "?BreakAssigned s1 s2 A" 
+          by fastsimp
+        with normal_s1
+        have "?BreakAssigned (Norm s0) s2 A" by simp
+        moreover from res_c1 normal_s1 have "?ResAssigned (Norm s0) s2"
+          by simp
+        ultimately show ?thesis by (intro conjI)
       next
-	case False
-	from eval_e normal_s1 wt_e
-	have "assigns_if False e \<subseteq> dom (locals (store s1))"
-	  by (rule assigns_if_good_approx [elim_format]) (simp add: False)
-	with s0_s1
-	have "dom (locals (store ((Norm s0)::state)))\<union> assigns_if False e \<subseteq> \<dots>"
-	  by (rule Un_least)
-	with da_c2 obtain C2'
-	  where da_c2': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
-	        nrm_c2: "nrm C2 \<subseteq> nrm C2'"                  and
+        case False
+        from eval_e normal_s1 wt_e
+        have "assigns_if False e \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx [elim_format]) (simp add: False)
+        with s0_s1
+        have "dom (locals (store ((Norm s0)::state)))\<union> assigns_if False e \<subseteq> \<dots>"
+          by (rule Un_least)
+        with da_c2 obtain C2'
+          where da_c2': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
+                nrm_c2: "nrm C2 \<subseteq> nrm C2'"                  and
                 brk_c2: "\<forall> l. brk C2 l \<subseteq> brk C2' l"
           by (rule da_weakenE) iprover
-	from If.hyps False have "PROP ?Hyp (In1r c2) s1 s2" by simp
-	with wt_c2 da_c2'
-	obtain nrm_c2': "?NormalAssigned s2 C2'" and 
+        from If.hyps False have "PROP ?Hyp (In1r c2) s1 s2" by simp
+        with wt_c2 da_c2'
+        obtain nrm_c2': "?NormalAssigned s2 C2'" and 
                brk_c2': "?BreakAssigned s1 s2 C2'" and
-	       res_c2: "?ResAssigned s1 s2"
-	  using G by simp
-	from nrm_c2' nrm_c2 A
-	have "?NormalAssigned s2 A" 
-	  by blast
-	moreover from brk_c2' brk_c2 A
-	have "?BreakAssigned s1 s2 A" 
-	  by fastsimp
-	with normal_s1
-	have "?BreakAssigned (Norm s0) s2 A" by simp
-	moreover from res_c2 normal_s1 have "?ResAssigned (Norm s0) s2"
-	  by simp
-	ultimately show ?thesis by (intro conjI)
+               res_c2: "?ResAssigned s1 s2"
+          using G by simp
+        from nrm_c2' nrm_c2 A
+        have "?NormalAssigned s2 A" 
+          by blast
+        moreover from brk_c2' brk_c2 A
+        have "?BreakAssigned s1 s2 A" 
+          by fastsimp
+        with normal_s1
+        have "?BreakAssigned (Norm s0) s2 A" by simp
+        moreover from res_c2 normal_s1 have "?ResAssigned (Norm s0) s2"
+          by simp
+        ultimately show ?thesis by (intro conjI)
       qed
     next
       case False 
       then obtain abr where abr: "abrupt s1 = Some abr"
-	by (cases s1) auto
+        by (cases s1) auto
       moreover
       from eval_e _ wt_e have "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-	by (rule eval_expression_no_jump) (simp_all add: G wf)
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
       moreover
       have "s2 = s1"
       proof -
-	from abr and `G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2`
+        from abr and `G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2`
         show ?thesis  
-	  by (cases s1) simp
+          by (cases s1) simp
       qed
       ultimately show ?thesis by simp
     qed
@@ -2960,162 +2960,162 @@ proof -
       note normal_s1 = this
       show ?thesis
       proof (cases "the_Bool b")
-	case True  
-	with Loop.hyps obtain
+        case True  
+        with Loop.hyps obtain
           eval_c: "G\<turnstile>s1 \<midarrow>c\<rightarrow> s2" and 
           eval_while: "G\<turnstile>abupd (absorb (Cont l)) s2 \<midarrow>l\<bullet> While(e) c\<rightarrow> s3"
-	  by simp
-	from Loop.hyps True 
-	have "?HypObj (In1r c) s1 s2" by simp
-	note hyp_c = this [rule_format]
-	from Loop.hyps True
-	have "?HypObj (In1r (l\<bullet> While(e) c)) (abupd (absorb (Cont l)) s2) s3"
-	  by simp
-	note hyp_while = this [rule_format]
-	from eval_e normal_s1 wt_e
-	have "assigns_if True e \<subseteq> dom (locals (store s1))"
-	  by (rule assigns_if_good_approx [elim_format]) (simp add: True)
-	with s0_s1
-	have "dom (locals (store ((Norm s0)::state))) \<union> assigns_if True e \<subseteq> \<dots>"
-	  by (rule Un_least)
-	with da_c obtain C'
-	  where da_c': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and
-	     nrm_C_C': "nrm C \<subseteq> nrm C'"                  and
+          by simp
+        from Loop.hyps True 
+        have "?HypObj (In1r c) s1 s2" by simp
+        note hyp_c = this [rule_format]
+        from Loop.hyps True
+        have "?HypObj (In1r (l\<bullet> While(e) c)) (abupd (absorb (Cont l)) s2) s3"
+          by simp
+        note hyp_while = this [rule_format]
+        from eval_e normal_s1 wt_e
+        have "assigns_if True e \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx [elim_format]) (simp add: True)
+        with s0_s1
+        have "dom (locals (store ((Norm s0)::state))) \<union> assigns_if True e \<subseteq> \<dots>"
+          by (rule Un_least)
+        with da_c obtain C'
+          where da_c': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and
+             nrm_C_C': "nrm C \<subseteq> nrm C'"                  and
              brk_C_C': "\<forall> l. brk C l \<subseteq> brk C' l"
           by (rule da_weakenE) iprover
-	from hyp_c wt_c da_c'
-	obtain nrm_C': "?NormalAssigned s2 C'" and 
+        from hyp_c wt_c da_c'
+        obtain nrm_C': "?NormalAssigned s2 C'" and 
           brk_C': "?BreakAssigned s1 s2 C'" and
           res_s2: "?ResAssigned s1 s2"
-	  using G by simp
-	show ?thesis
-	proof (cases "normal s2 \<or> abrupt s2 = Some (Jump (Cont l))")
-	  case True
-	  from Loop.prems obtain
-	    wt_while: "Env\<turnstile>In1r (l\<bullet> While(e) c)\<Colon>T" and
+          using G by simp
+        show ?thesis
+        proof (cases "normal s2 \<or> abrupt s2 = Some (Jump (Cont l))")
+          case True
+          from Loop.prems obtain
+            wt_while: "Env\<turnstile>In1r (l\<bullet> While(e) c)\<Colon>T" and
             da_while: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) 
                            \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A"
-	    by simp
-	  have "dom (locals (store ((Norm s0)::state)))
+            by simp
+          have "dom (locals (store ((Norm s0)::state)))
                   \<subseteq> dom (locals (store (abupd (absorb (Cont l)) s2)))"
-	  proof -
-	    note s0_s1
-	    also from eval_c 
-	    have "dom (locals (store s1)) \<subseteq> dom (locals (store s2))"
-	      by (rule dom_locals_eval_mono_elim)
-	    also have "\<dots> \<subseteq> dom (locals (store (abupd (absorb (Cont l)) s2)))"
-	      by simp
-	    finally show ?thesis .
-	  qed
-	  with da_while obtain A'
-	    where 
-	    da_while': "Env\<turnstile> dom (locals (store (abupd (absorb (Cont l)) s2))) 
+          proof -
+            note s0_s1
+            also from eval_c 
+            have "dom (locals (store s1)) \<subseteq> dom (locals (store s2))"
+              by (rule dom_locals_eval_mono_elim)
+            also have "\<dots> \<subseteq> dom (locals (store (abupd (absorb (Cont l)) s2)))"
+              by simp
+            finally show ?thesis .
+          qed
+          with da_while obtain A'
+            where 
+            da_while': "Env\<turnstile> dom (locals (store (abupd (absorb (Cont l)) s2))) 
                        \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'" 
-	    and  nrm_A_A': "nrm A \<subseteq> nrm A'"                  
+            and  nrm_A_A': "nrm A \<subseteq> nrm A'"                  
             and  brk_A_A': "\<forall> l. brk A l \<subseteq> brk A' l"
-	    by (rule da_weakenE) simp
-	  with wt_while hyp_while
-	  obtain nrm_A': "?NormalAssigned s3 A'" and
+            by (rule da_weakenE) simp
+          with wt_while hyp_while
+          obtain nrm_A': "?NormalAssigned s3 A'" and
                  brk_A': "?BreakAssigned (abupd (absorb (Cont l)) s2) s3 A'" and
                  res_s3: "?ResAssigned (abupd (absorb (Cont l)) s2) s3"
-	    using G by simp 
-	  from nrm_A_A' nrm_A'
-	  have "?NormalAssigned s3 A" 
-	    by blast
-	  moreover 
-	  have "?BreakAssigned (Norm s0) s3 A" 
-	  proof -
-	    from brk_A_A' brk_A' 
-	    have "?BreakAssigned (abupd (absorb (Cont l)) s2) s3 A" 
-	      by fastsimp
-	    moreover
-	    from True have "normal (abupd (absorb (Cont l)) s2)"
-	      by (cases s2) auto
-	    ultimately show ?thesis
-	      by simp
-	  qed
-	  moreover from res_s3 True have "?ResAssigned (Norm s0) s3"
-	    by auto
-	  ultimately show ?thesis by (intro conjI)
-	next
-	  case False
-	  then obtain abr where 
-	    "abrupt s2 = Some abr" and
-	    "abrupt (abupd (absorb (Cont l)) s2) = Some abr"
-	    by auto
-	  with eval_while 
-	  have eq_s3_s2: "s3=s2"
-	    by auto
-	  with nrm_C_C' nrm_C' A
-	  have "?NormalAssigned s3 A"
-	    by fastsimp
-	  moreover
-	  from eq_s3_s2 brk_C_C' brk_C' normal_s1 A
-	  have "?BreakAssigned (Norm s0) s3 A"
-	    by fastsimp
-	  moreover 
-	  from eq_s3_s2 res_s2 normal_s1 have "?ResAssigned (Norm s0) s3"
-	    by simp
-	  ultimately show ?thesis by (intro conjI)
-	qed
+            using G by simp 
+          from nrm_A_A' nrm_A'
+          have "?NormalAssigned s3 A" 
+            by blast
+          moreover 
+          have "?BreakAssigned (Norm s0) s3 A" 
+          proof -
+            from brk_A_A' brk_A' 
+            have "?BreakAssigned (abupd (absorb (Cont l)) s2) s3 A" 
+              by fastsimp
+            moreover
+            from True have "normal (abupd (absorb (Cont l)) s2)"
+              by (cases s2) auto
+            ultimately show ?thesis
+              by simp
+          qed
+          moreover from res_s3 True have "?ResAssigned (Norm s0) s3"
+            by auto
+          ultimately show ?thesis by (intro conjI)
+        next
+          case False
+          then obtain abr where 
+            "abrupt s2 = Some abr" and
+            "abrupt (abupd (absorb (Cont l)) s2) = Some abr"
+            by auto
+          with eval_while 
+          have eq_s3_s2: "s3=s2"
+            by auto
+          with nrm_C_C' nrm_C' A
+          have "?NormalAssigned s3 A"
+            by fastsimp
+          moreover
+          from eq_s3_s2 brk_C_C' brk_C' normal_s1 A
+          have "?BreakAssigned (Norm s0) s3 A"
+            by fastsimp
+          moreover 
+          from eq_s3_s2 res_s2 normal_s1 have "?ResAssigned (Norm s0) s3"
+            by simp
+          ultimately show ?thesis by (intro conjI)
+        qed
       next
-	case False
-	with Loop.hyps have eq_s3_s1: "s3=s1"
-	  by simp
-	from eq_s3_s1 res_s1 
-	have res_s3: "?ResAssigned (Norm s0) s3"
-	  by simp
-	from eval_e True wt_e
-	have "assigns_if False e \<subseteq> dom (locals (store s1))"
-	  by (rule assigns_if_good_approx [elim_format]) (simp add: False)
-	with s0_s1
-	have "dom (locals (store ((Norm s0)::state)))\<union>assigns_if False e \<subseteq> \<dots>"
-	  by (rule Un_least)
-	hence "nrm C \<inter> 
+        case False
+        with Loop.hyps have eq_s3_s1: "s3=s1"
+          by simp
+        from eq_s3_s1 res_s1 
+        have res_s3: "?ResAssigned (Norm s0) s3"
+          by simp
+        from eval_e True wt_e
+        have "assigns_if False e \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx [elim_format]) (simp add: False)
+        with s0_s1
+        have "dom (locals (store ((Norm s0)::state)))\<union>assigns_if False e \<subseteq> \<dots>"
+          by (rule Un_least)
+        hence "nrm C \<inter> 
                (dom (locals (store ((Norm s0)::state))) \<union> assigns_if False e)
                \<subseteq> dom (locals (store s1))"
-	  by (rule subset_Intr)
-	with normal_s1 A eq_s3_s1
-	have "?NormalAssigned s3 A"
-	  by simp
-	moreover
-	from normal_s1 eq_s3_s1
-	have "?BreakAssigned (Norm s0) s3 A"
-	  by simp
-	moreover note res_s3
-	ultimately show ?thesis by (intro conjI)
+          by (rule subset_Intr)
+        with normal_s1 A eq_s3_s1
+        have "?NormalAssigned s3 A"
+          by simp
+        moreover
+        from normal_s1 eq_s3_s1
+        have "?BreakAssigned (Norm s0) s3 A"
+          by simp
+        moreover note res_s3
+        ultimately show ?thesis by (intro conjI)
       qed
     next
       case False
       then obtain abr where abr: "abrupt s1 = Some abr"
-	by (cases s1) auto
+        by (cases s1) auto
       moreover
       from eval_e _ wt_e have no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-	by (rule eval_expression_no_jump) (simp_all add: wf G)
+        by (rule eval_expression_no_jump) (simp_all add: wf G)
       moreover
       have eq_s3_s1: "s3=s1"
       proof (cases "the_Bool b")
-	case True  
-	with Loop.hyps obtain
+        case True  
+        with Loop.hyps obtain
           eval_c: "G\<turnstile>s1 \<midarrow>c\<rightarrow> s2" and 
           eval_while: "G\<turnstile>abupd (absorb (Cont l)) s2 \<midarrow>l\<bullet> While(e) c\<rightarrow> s3"
-	  by simp
-	from eval_c abr have "s2=s1" by auto
-	moreover from calculation no_jmp have "abupd (absorb (Cont l)) s2=s2"
-	  by (cases s1) (simp add: absorb_def)
-	ultimately show ?thesis
-	  using eval_while abr
-	  by auto
+          by simp
+        from eval_c abr have "s2=s1" by auto
+        moreover from calculation no_jmp have "abupd (absorb (Cont l)) s2=s2"
+          by (cases s1) (simp add: absorb_def)
+        ultimately show ?thesis
+          using eval_while abr
+          by auto
       next
-	case False
-	with Loop.hyps show ?thesis by simp
+        case False
+        with Loop.hyps show ?thesis by simp
       qed
       moreover
       from eq_s3_s1 res_s1 
       have res_s3: "?ResAssigned (Norm s0) s3"
-	by simp
+        by simp
       ultimately show ?thesis
-	by simp 
+        by simp 
     qed
   next 
     case (Jmp s j Env T A)
@@ -3143,21 +3143,21 @@ proof -
       by (elim da_elim_cases)
     from Throw.prems
       obtain eT where wt_e: "Env\<turnstile>e\<Colon>-eT"
-	by (elim wt_elim_cases)
+        by (elim wt_elim_cases)
     have "?NormalAssigned (abupd (throw a) s1) A"
       by (cases s1) (simp add: throw_def)
     moreover
     have "?BreakAssigned (Norm s0) (abupd (throw a) s1) A"
     proof -
       from G Throw.hyps have eval_e: "prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1" 
-	by (simp (no_asm_simp))
+        by (simp (no_asm_simp))
       from eval_e _ wt_e 
       have "\<And> l. abrupt s1 \<noteq> Some (Jump (Break l))"
-	by (rule eval_expression_no_jump) (simp_all add: wf G) 
+        by (rule eval_expression_no_jump) (simp_all add: wf G) 
       hence "\<And> l. abrupt (abupd (throw a) s1) \<noteq> Some (Jump (Break l))"
-	by (cases s1) (simp add: throw_def abrupt_if_def)
+        by (cases s1) (simp add: throw_def abrupt_if_def)
       thus ?thesis
-	by simp
+        by simp
     qed
     moreover
     from wt_e da_e G have "?ResAssigned (Norm s0) s1"
@@ -3191,49 +3191,49 @@ proof -
     proof (cases "normal s1")
       case True
       with nrm_C1 have "nrm C1 \<inter> nrm C2 \<subseteq> dom (locals (store s1))"
-	by auto
+        by auto
       moreover
       have "s3=s1"
       proof -
-	from sxalloc True have eq_s2_s1: "s2=s1"
-	  by (cases s1) (auto elim: sxalloc_elim_cases)
-	with True have "\<not>  G,s2\<turnstile>catch C"
-	  by (simp add: catch_def)
-	with Try.hyps have "s3=s2"
-	  by simp
-	with eq_s2_s1 show ?thesis by simp
+        from sxalloc True have eq_s2_s1: "s2=s1"
+          by (cases s1) (auto elim: sxalloc_elim_cases)
+        with True have "\<not>  G,s2\<turnstile>catch C"
+          by (simp add: catch_def)
+        with Try.hyps have "s3=s2"
+          by simp
+        with eq_s2_s1 show ?thesis by simp
       qed
       ultimately show ?thesis
-	using True A res_s1 by simp
+        using True A res_s1 by simp
     next
       case False
       note not_normal_s1 = this
       show ?thesis
       proof (cases "\<exists> l. abrupt s1 = Some (Jump (Break l))")
-	case True
-	then obtain l where l: "abrupt s1 = Some (Jump (Break l))"
-	  by auto
-	with brk_C1 have "(brk C1 \<Rightarrow>\<inter> brk C2) l \<subseteq> dom (locals (store s1))"
-	  by auto
-	moreover have "s3=s1"
-	proof -
-	  from sxalloc l have eq_s2_s1: "s2=s1"
-	    by (cases s1) (auto elim: sxalloc_elim_cases)
-	  with l have "\<not>  G,s2\<turnstile>catch C"
-	    by (simp add: catch_def)
-	  with Try.hyps have "s3=s2"
-	    by simp
-	  with eq_s2_s1 show ?thesis by simp
-	qed
-	ultimately show ?thesis
-	  using l A res_s1 by simp
+        case True
+        then obtain l where l: "abrupt s1 = Some (Jump (Break l))"
+          by auto
+        with brk_C1 have "(brk C1 \<Rightarrow>\<inter> brk C2) l \<subseteq> dom (locals (store s1))"
+          by auto
+        moreover have "s3=s1"
+        proof -
+          from sxalloc l have eq_s2_s1: "s2=s1"
+            by (cases s1) (auto elim: sxalloc_elim_cases)
+          with l have "\<not>  G,s2\<turnstile>catch C"
+            by (simp add: catch_def)
+          with Try.hyps have "s3=s2"
+            by simp
+          with eq_s2_s1 show ?thesis by simp
+        qed
+        ultimately show ?thesis
+          using l A res_s1 by simp
       next
-	case False
-	note abrupt_no_break = this
-	show ?thesis
-	proof (cases "G,s2\<turnstile>catch C")
-	  case True
-	  with Try.hyps have "?HypObj (In1r c2) (new_xcpt_var vn s2) s3"
+        case False
+        note abrupt_no_break = this
+        show ?thesis
+        proof (cases "G,s2\<turnstile>catch C")
+          case True
+          with Try.hyps have "?HypObj (In1r c2) (new_xcpt_var vn s2) s3"
             by simp
           note hyp_c2 = this [rule_format]
           have "(dom (locals (store ((Norm s0)::state))) \<union> {VName vn}) 
@@ -3279,9 +3279,9 @@ proof -
             with brk_C2' A show ?thesis 
               by fastsimp
           qed
-	  moreover
-	  from resAss_s3 have "?ResAssigned (Norm s0) s3"
-	    by (cases s2) ( simp add: new_xcpt_var_def)
+          moreover
+          from resAss_s3 have "?ResAssigned (Norm s0) s3"
+            by (cases s2) ( simp add: new_xcpt_var_def)
           ultimately show ?thesis by (intro conjI)
         next
           case False
@@ -3291,23 +3291,23 @@ proof -
           obtain "\<not> normal s2" 
                  "\<forall> l. abrupt s2 \<noteq> Some (Jump (Break l))"
             by - (rule sxalloc_cases,auto)
-	  ultimately obtain 
-	    "?NormalAssigned s3 A" and "?BreakAssigned (Norm s0) s3 A"
-	    by (cases s2) auto
-	  moreover have "?ResAssigned (Norm s0) s3"
-	  proof (cases "abrupt s1 = Some (Jump Ret)")
-	    case True
-	    with sxalloc have "s2=s1"
-	      by (elim sxalloc_cases) auto
-	    with res_s1 eq_s3_s2 show ?thesis by simp
-	  next
-	    case False
-	    with sxalloc
-	    have "abrupt s2 \<noteq> Some (Jump Ret)"
-	      by (rule sxalloc_no_jump) 
-	    with eq_s3_s2 show ?thesis
-	      by simp
-	  qed
+          ultimately obtain 
+            "?NormalAssigned s3 A" and "?BreakAssigned (Norm s0) s3 A"
+            by (cases s2) auto
+          moreover have "?ResAssigned (Norm s0) s3"
+          proof (cases "abrupt s1 = Some (Jump Ret)")
+            case True
+            with sxalloc have "s2=s1"
+              by (elim sxalloc_cases) auto
+            with res_s1 eq_s3_s2 show ?thesis by simp
+          next
+            case False
+            with sxalloc
+            have "abrupt s2 \<noteq> Some (Jump Ret)"
+              by (rule sxalloc_no_jump) 
+            with eq_s3_s2 show ?thesis
+              by simp
+          qed
           ultimately show ?thesis by (intro conjI)
         qed
       qed
@@ -3349,7 +3349,7 @@ proof -
       with wt_c2 da_C2' G
       obtain nrmAss_C2': "?NormalAssigned s2 C2'" and
              brkAss_C2': "?BreakAssigned (Norm s1) s2 C2'" and
-	     resAss_s2': "?ResAssigned (Norm s1) s2"
+             resAss_s2': "?ResAssigned (Norm s1) s2"
         by simp
       from nrmAss_C2' nrm_C2' have "?NormalAssigned s2 C2"
         by blast
@@ -3449,23 +3449,23 @@ proof -
       assume abr_s3: "abrupt s3 = Some (Jump Ret)"
       have "Result \<in> dom (locals (store s3))"
       proof (cases "x1 = Some (Jump Ret)")
-	case True
-	note ret_x1 = this
-	with resAss_s1 have res_s1: "Result \<in> dom (locals s1)"
-	  by simp
-	moreover have "dom (locals (store ((Norm s1)::state))) 
+        case True
+        note ret_x1 = this
+        with resAss_s1 have res_s1: "Result \<in> dom (locals s1)"
+          by simp
+        moreover have "dom (locals (store ((Norm s1)::state))) 
                          \<subseteq> dom (locals (store s2))"
-	  by (rule dom_locals_eval_mono_elim) (rule Fin.hyps)
-	ultimately have "Result \<in> dom (locals (store s2))"
-	  by - (rule subsetD,auto)
-	with res_s1 s3 show ?thesis
-	  by simp
+          by (rule dom_locals_eval_mono_elim) (rule Fin.hyps)
+        ultimately have "Result \<in> dom (locals (store s2))"
+          by - (rule subsetD,auto)
+        with res_s1 s3 show ?thesis
+          by simp
       next
-	case False
-	with s3 abr_s3 obtain  "abrupt s2 = Some (Jump Ret)" and "s3=s2"
-	  by (cases s2) (simp add: abrupt_if_def)
-	with resAss_s2 show ?thesis
-	  by simp
+        case False
+        with s3 abr_s3 obtain  "abrupt s2 = Some (Jump Ret)" and "s3=s2"
+          by (cases s2) (simp add: abrupt_if_def)
+        with resAss_s2 show ?thesis
+          by simp
       qed
     }
     hence "?ResAssigned (Norm s0) s3"
@@ -3494,7 +3494,7 @@ proof -
       case True
       with Init.hyps have "s3=Norm s0" by simp
       thus ?thesis
-	using nrm_A by simp
+        using nrm_A by simp
     next
       case False
       from Init.hyps False G
@@ -3503,27 +3503,27 @@ proof -
                        \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1" and
              eval_init: "prg Env\<turnstile>(set_lvars empty) s1 \<midarrow>init c\<rightarrow> s2" and
              s3: "s3=(set_lvars (locals (store s1))) s2"
-	by simp
+        by simp
       have "?NormalAssigned s3 A"
       proof
-	show "nrm A \<subseteq> dom (locals (store s3))"
-	proof -
-	  from nrm_A have "nrm A \<subseteq> dom (locals (init_class_obj G C s0))"
-	    by simp
-	  also from eval_initC have "\<dots> \<subseteq> dom (locals (store s1))"
-	    by (rule dom_locals_eval_mono_elim) simp
-	  also from s3 have "\<dots> \<subseteq> dom (locals (store s3))"
-	    by (cases s1) (cases s2, simp add: init_lvars_def2)
-	  finally show ?thesis .
-	qed
+        show "nrm A \<subseteq> dom (locals (store s3))"
+        proof -
+          from nrm_A have "nrm A \<subseteq> dom (locals (init_class_obj G C s0))"
+            by simp
+          also from eval_initC have "\<dots> \<subseteq> dom (locals (store s1))"
+            by (rule dom_locals_eval_mono_elim) simp
+          also from s3 have "\<dots> \<subseteq> dom (locals (store s3))"
+            by (cases s1) (cases s2, simp add: init_lvars_def2)
+          finally show ?thesis .
+        qed
       qed
       moreover
       from eval 
       have "\<And> j. abrupt s3 \<noteq> Some (Jump j)"
-	by (rule eval_statement_no_jump) (auto simp add: wf c G)
+        by (rule eval_statement_no_jump) (auto simp add: wf c G)
       then obtain "?BreakAssigned (Norm s0) s3 A" 
               and "?ResAssigned (Norm s0) s3"
-	by simp
+        by simp
       ultimately show ?thesis by (intro conjI)
     qed
   next 
@@ -3552,7 +3552,7 @@ proof -
       fix j have "abrupt s2 \<noteq> Some (Jump j)"
       proof -
         have eval: "prg Env\<turnstile> Norm s0 \<midarrow>NewC C-\<succ>Addr a\<rightarrow> s2"
-	  unfolding G by (rule eval.NewC NewC.hyps)+
+          unfolding G by (rule eval.NewC NewC.hyps)+
         from NewC.prems 
         obtain T' where  "T=Inl T'"
           by (elim wt_elim_cases) simp
@@ -3617,7 +3617,7 @@ proof -
       fix j have "abrupt s3 \<noteq> Some (Jump j)"
       proof -
         have eval: "prg Env\<turnstile> Norm s0 \<midarrow>New elT[e]-\<succ>Addr a\<rightarrow> s3"
-	  unfolding G by (rule eval.NewA NewA.hyps)+
+          unfolding G by (rule eval.NewA NewA.hyps)+
         from NewA.prems 
         obtain T' where  "T=Inl T'"
           by (elim wt_elim_cases) simp
@@ -3662,7 +3662,7 @@ proof -
       fix j have "abrupt s2 \<noteq> Some (Jump j)"
       proof -
         have eval: "prg Env\<turnstile> Norm s0 \<midarrow>Cast cT e-\<succ>v\<rightarrow> s2"
-	  unfolding G by (rule eval.Cast Cast.hyps)+
+          unfolding G by (rule eval.Cast Cast.hyps)+
         from Cast.prems 
         obtain T' where  "T=Inl T'"
           by (elim wt_elim_cases) simp
@@ -3764,7 +3764,7 @@ proof -
           with ass_if CondAnd  
           have "assigns_if True (BinOp CondAnd e1 e2) 
                  \<subseteq> dom (locals (store s2))"
-	    by simp
+            by simp
           thus ?thesis by blast
         next
           case False
@@ -3900,7 +3900,7 @@ proof -
       with wt_v da_v G obtain 
         "?NormalAssigned s1 A" and
         "?BreakAssigned (Norm s0) s1 A" and
-	"?ResAssigned (Norm s0) s1"
+        "?ResAssigned (Norm s0) s1"
         by simp
       thus ?thesis by (intro conjI)
     qed
@@ -3925,56 +3925,56 @@ proof -
       note hyp_e = `PROP ?Hyp (In1l e) s1 s2`
       show "nrm A \<subseteq> dom (locals (store (assign upd v s2)))"
       proof (cases "\<exists> vn. var = LVar vn")
-	case True
-	then obtain vn where vn: "var=LVar vn"..
-	from Ass.prems obtain E where
-	  da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E" and
-	  nrm_A: "nrm A = nrm E \<union> {vn}"
-	  by (elim da_elim_cases) (insert vn,auto)
-	obtain E' where
-	  da_e': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'" and
-	  E_E': "nrm E \<subseteq> nrm E'"
-	proof -
-	  have "dom (locals (store ((Norm s0)::state))) 
+        case True
+        then obtain vn where vn: "var=LVar vn"..
+        from Ass.prems obtain E where
+          da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E" and
+          nrm_A: "nrm A = nrm E \<union> {vn}"
+          by (elim da_elim_cases) (insert vn,auto)
+        obtain E' where
+          da_e': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'" and
+          E_E': "nrm E \<subseteq> nrm E'"
+        proof -
+          have "dom (locals (store ((Norm s0)::state))) 
                   \<subseteq> dom (locals (store s1))"
-	    by (rule dom_locals_eval_mono_elim) (rule Ass.hyps)
-	  with da_e show thesis
-	    by (rule da_weakenE) (rule that)
-	qed
-	from G eval_var vn 
-	have eval_lvar: "G\<turnstile>Norm s0 \<midarrow>LVar vn=\<succ>(w, upd)\<rightarrow> s1" 
-	  by simp
-	then have upd: "upd = snd (lvar vn (store s1))"
-	  by cases (cases "lvar vn (store s1)",simp)
-	have "nrm E \<subseteq> dom (locals (store (assign upd v s2)))"
-	proof -
-	  from hyp_e wt_e da_e' G normal_s2
-	  have "nrm E' \<subseteq> dom (locals (store s2))"
-	    by simp
-	  also
-	  from upd
-	  have "dom (locals (store s2))  \<subseteq> dom (locals (store (upd v s2)))"
-	    by (simp add: lvar_def) blast
-	  hence "dom (locals (store s2)) 
-	             \<subseteq> dom (locals (store (assign upd v s2)))"
-	    by (rule dom_locals_assign_mono)
-	  finally
-	  show ?thesis using E_E' 
-	    by blast
-	qed
-	moreover
-	from upd normal_s2
-	have "{vn} \<subseteq> dom (locals (store (assign upd v s2)))"
-	  by (auto simp add: assign_def Let_def lvar_def upd split: split_split)
-	ultimately
-	show "nrm A \<subseteq> \<dots>"
-	  by (rule Un_least [elim_format]) (simp add: nrm_A)
+            by (rule dom_locals_eval_mono_elim) (rule Ass.hyps)
+          with da_e show thesis
+            by (rule da_weakenE) (rule that)
+        qed
+        from G eval_var vn 
+        have eval_lvar: "G\<turnstile>Norm s0 \<midarrow>LVar vn=\<succ>(w, upd)\<rightarrow> s1" 
+          by simp
+        then have upd: "upd = snd (lvar vn (store s1))"
+          by cases (cases "lvar vn (store s1)",simp)
+        have "nrm E \<subseteq> dom (locals (store (assign upd v s2)))"
+        proof -
+          from hyp_e wt_e da_e' G normal_s2
+          have "nrm E' \<subseteq> dom (locals (store s2))"
+            by simp
+          also
+          from upd
+          have "dom (locals (store s2))  \<subseteq> dom (locals (store (upd v s2)))"
+            by (simp add: lvar_def) blast
+          hence "dom (locals (store s2)) 
+                     \<subseteq> dom (locals (store (assign upd v s2)))"
+            by (rule dom_locals_assign_mono)
+          finally
+          show ?thesis using E_E' 
+            by blast
+        qed
+        moreover
+        from upd normal_s2
+        have "{vn} \<subseteq> dom (locals (store (assign upd v s2)))"
+          by (auto simp add: assign_def Let_def lvar_def upd split: split_split)
+        ultimately
+        show "nrm A \<subseteq> \<dots>"
+          by (rule Un_least [elim_format]) (simp add: nrm_A)
       next
-	case False
-	from Ass.prems obtain V where
-	  da_var: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>var\<rangle>\<guillemotright> V" and
-	  da_e:   "Env\<turnstile> nrm V \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
-	  by (elim da_elim_cases) (insert False,simp+)
+        case False
+        from Ass.prems obtain V where
+          da_var: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>var\<rangle>\<guillemotright> V" and
+          da_e:   "Env\<turnstile> nrm V \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
+          by (elim da_elim_cases) (insert False,simp+)
         from hyp_var wt_var da_var G normal_s1
         have "nrm V \<subseteq> dom (locals (store s1))"
           by simp
@@ -4077,7 +4077,7 @@ proof -
                        \<subseteq> dom (locals (store s1))"
           by (rule dom_locals_eval_mono_elim) (rule Cond.hyps)
         have eval_e0: "prg Env\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1"
-	  unfolding G by (rule Cond.hyps)
+          unfolding G by (rule Cond.hyps)
         have normal_s1: "normal s1"
           by (rule eval_no_abrupt_lemma [rule_format]) (rule Cond.hyps, rule normal_s2)
         show ?thesis

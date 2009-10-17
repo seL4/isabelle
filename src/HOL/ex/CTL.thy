@@ -251,21 +251,21 @@ proof
       show "?lhs \<subseteq> p" ..
       show "?lhs \<subseteq> \<AX> ?lhs"
       proof -
-	{
-	  have "\<AG> (p \<rightarrow> \<AX> p) \<subseteq> p \<rightarrow> \<AX> p" by (rule AG_fp_1)
+        {
+          have "\<AG> (p \<rightarrow> \<AX> p) \<subseteq> p \<rightarrow> \<AX> p" by (rule AG_fp_1)
           moreover have "p \<inter> p \<rightarrow> \<AX> p \<subseteq> \<AX> p" ..
           ultimately have "?lhs \<subseteq> \<AX> p" by auto
-	}  
-	moreover
-	{
-	  have "p \<inter> \<AG> (p \<rightarrow> \<AX> p) \<subseteq> \<AG> (p \<rightarrow> \<AX> p)" ..
+        }  
+        moreover
+        {
+          have "p \<inter> \<AG> (p \<rightarrow> \<AX> p) \<subseteq> \<AG> (p \<rightarrow> \<AX> p)" ..
           also have "\<dots> \<subseteq> \<AX> \<dots>" by (rule AG_fp_2)
           finally have "?lhs \<subseteq> \<AX> \<AG> (p \<rightarrow> \<AX> p)" .
-	}  
-	ultimately have "?lhs \<subseteq> \<AX> p \<inter> \<AX> \<AG> (p \<rightarrow> \<AX> p)"
-	  by (rule Int_greatest)
-	also have "\<dots> = \<AX> ?lhs" by (simp only: AX_int)
-	finally show ?thesis .
+        }  
+        ultimately have "?lhs \<subseteq> \<AX> p \<inter> \<AX> \<AG> (p \<rightarrow> \<AX> p)"
+          by (rule Int_greatest)
+        also have "\<dots> = \<AX> ?lhs" by (simp only: AX_int)
+        finally show ?thesis .
       qed
     qed
   qed

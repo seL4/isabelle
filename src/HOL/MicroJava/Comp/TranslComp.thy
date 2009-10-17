@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/TranslComp.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -69,30 +68,30 @@ primrec
 primrec
 (** code generation for statements **)
 
-"compStmt jmb Skip = []"			
+"compStmt jmb Skip = []"                        
 
 "compStmt jmb (Expr e) = ((compExpr jmb e) @ [Pop])"
 
 "compStmt jmb (c1;; c2) = ((compStmt jmb c1) @ (compStmt jmb c2))"
 
 "compStmt jmb (If(e) c1 Else c2) =
-	(let cnstf = LitPush (Bool False);
+        (let cnstf = LitPush (Bool False);
              cnd   = compExpr jmb e;
-	     thn   = compStmt jmb c1;
-	     els   = compStmt jmb c2;
-	     test  = Ifcmpeq (int(length thn +2)); 
-	     thnex = Goto (int(length els +1))
-	 in
-	 [cnstf] @ cnd @ [test] @ thn @ [thnex] @ els)"
+             thn   = compStmt jmb c1;
+             els   = compStmt jmb c2;
+             test  = Ifcmpeq (int(length thn +2)); 
+             thnex = Goto (int(length els +1))
+         in
+         [cnstf] @ cnd @ [test] @ thn @ [thnex] @ els)"
 
 "compStmt jmb (While(e) c) =
-	(let cnstf = LitPush (Bool False);
+        (let cnstf = LitPush (Bool False);
              cnd   = compExpr jmb e;
-	     bdy   = compStmt jmb c;
-	     test  = Ifcmpeq (int(length bdy +2)); 
-	     loop  = Goto (-(int((length bdy) + (length cnd) +2)))
-	 in
-	 [cnstf] @ cnd @ [test] @ bdy @ [loop])"
+             bdy   = compStmt jmb c;
+             test  = Ifcmpeq (int(length bdy +2)); 
+             loop  = Goto (-(int((length bdy) + (length cnd) +2)))
+         in
+         [cnstf] @ cnd @ [test] @ bdy @ [loop])"
 
 (**********************************************************************)
 

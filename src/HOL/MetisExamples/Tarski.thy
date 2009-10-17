@@ -1,8 +1,7 @@
 (*  Title:      HOL/MetisTest/Tarski.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Testing the metis method
+Testing the metis method.
 *)
 
 header {* The Full Theorem of Tarski *}
@@ -556,17 +555,17 @@ next --{*apparently the way to insert a second structured proof*}
   Collect
    (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r)) (COMBC op \<in> A))"
   assume 1: "f (lub (Collect
-	   (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-	     (COMBC op \<in> A)))
+           (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+             (COMBC op \<in> A)))
       cl) \<noteq>
   lub (Collect
-	(COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-	  (COMBC op \<in> A)))
+        (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+          (COMBC op \<in> A)))
    cl"
   have 2: "f (lub H cl) \<noteq>
   lub (Collect
-	(COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
-	  (COMBC op \<in> A)))
+        (COMBS (COMBB op \<and> (COMBC (COMBB op \<in> (COMBS Pair f)) r))
+          (COMBC op \<in> A)))
    cl"
     by (metis 1 0)
   have 3: "f (lub H cl) \<noteq> lub H cl"

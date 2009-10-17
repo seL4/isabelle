@@ -221,8 +221,8 @@ done
 lemma A_trusts_NS2_lemma [rule_format]:
    "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
     \<Longrightarrow> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
-	Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
-	Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
+        Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs \<longrightarrow>
+        Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs"
 apply (erule ns_public.induct, simp_all)
 (*Fake, NS1*)
 apply (blast dest: Spy_not_see_NA)+
@@ -240,8 +240,8 @@ by (blast intro: A_trusts_NS2_lemma)
 lemma B_trusts_NS1 [rule_format]:
      "evs \<in> ns_public
       \<Longrightarrow> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
-	  Nonce NA \<notin> analz (knows Spy evs) \<longrightarrow>
-	  Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
+          Nonce NA \<notin> analz (knows Spy evs) \<longrightarrow>
+          Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set evs"
 apply (erule ns_public.induct, simp_all)
 (*Fake*)
 apply (blast intro!: analz_insertI)

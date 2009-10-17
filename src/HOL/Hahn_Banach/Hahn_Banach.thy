@@ -202,7 +202,7 @@ proof -
           proof (rule graph_extI)
             fix t assume t: "t \<in> H"
             from E HE t have "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
-	      using `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` by (rule decomp_H'_H)
+              using `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` by (rule decomp_H'_H)
             with h'_def show "h t = h' t" by (simp add: Let_def)
           next
             from HH' show "H \<subseteq> H'" ..
@@ -216,7 +216,7 @@ proof -
           proof
             assume eq: "graph H h = graph H' h'"
             have "x' \<in> H'"
-	      unfolding H'_def
+              unfolding H'_def
             proof
               from H show "0 \<in> H" by (rule vectorspace.zero)
               from x'E show "x' \<in> lin x'" by (rule x_lin_x)
@@ -236,10 +236,10 @@ proof -
         show "graph H' h' \<in> norm_pres_extensions E p F f"
         proof (rule norm_pres_extensionI2)
           show "linearform H' h'"
-	    using h'_def H'_def HE linearform `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` E
-	    by (rule h'_lf)
+            using h'_def H'_def HE linearform `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` E
+            by (rule h'_lf)
           show "H' \<unlhd> E"
-	  unfolding H'_def
+          unfolding H'_def
           proof
             show "H \<unlhd> E" by fact
             show "vectorspace E" by fact
@@ -256,12 +256,12 @@ proof -
               by (simp add: Let_def)
             also have "(x, 0) =
                 (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)"
-	      using E HE
+              using E HE
             proof (rule decomp_H'_H [symmetric])
               from FH x show "x \<in> H" ..
               from x' show "x' \<noteq> 0" .
-	      show "x' \<notin> H" by fact
-	      show "x' \<in> E" by fact
+              show "x' \<notin> H" by fact
+              show "x' \<in> E" by fact
             qed
             also have
               "(let (y, a) = (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)
@@ -271,9 +271,9 @@ proof -
             from FH' show "F \<subseteq> H'" ..
           qed
           show "\<forall>x \<in> H'. h' x \<le> p x"
-	    using h'_def H'_def `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` E HE
-	      `seminorm E p` linearform and hp xi
-	    by (rule h'_norm_pres)
+            using h'_def H'_def `x' \<notin> H` `x' \<in> E` `x' \<noteq> 0` E HE
+              `seminorm E p` linearform and hp xi
+            by (rule h'_norm_pres)
         qed
       qed
       ultimately show ?thesis ..
@@ -483,23 +483,23 @@ proof -
 
     show "\<parallel>f\<parallel>\<hyphen>F \<le> \<parallel>g\<parallel>\<hyphen>E"
     proof (rule normed_vectorspace_with_fn_norm.fn_norm_least
-	[OF normed_vectorspace_with_fn_norm.intro,
-	 OF F_norm, folded B_def fn_norm_def])
+        [OF normed_vectorspace_with_fn_norm.intro,
+         OF F_norm, folded B_def fn_norm_def])
       show "\<forall>x \<in> F. \<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
       proof
-	fix x assume x: "x \<in> F"
-	from a x have "g x = f x" ..
-	then have "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
-	also from g_cont
-	have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
-	proof (rule fn_norm_le_cong [OF _ linearformE, folded B_def fn_norm_def])
-	  from FE x show "x \<in> E" ..
-	qed
-	finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
+        fix x assume x: "x \<in> F"
+        from a x have "g x = f x" ..
+        then have "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
+        also from g_cont
+        have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
+        proof (rule fn_norm_le_cong [OF _ linearformE, folded B_def fn_norm_def])
+          from FE x show "x \<in> E" ..
+        qed
+        finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
       qed
       show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
-	using g_cont
-	by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
+        using g_cont
+        by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
       show "continuous F norm f" by fact
     qed
   qed

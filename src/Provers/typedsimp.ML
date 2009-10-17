@@ -1,5 +1,5 @@
-(*  Title: 	typedsimp
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Title:      Provers/typedsimp.ML
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Functor for constructing simplifiers.  Suitable for Constructive Type
@@ -9,11 +9,11 @@ simp.ML.
 
 signature TSIMP_DATA =
   sig
-  val refl: thm		(*Reflexive law*)
-  val sym: thm		(*Symmetric law*)
-  val trans: thm	(*Transitive law*)
-  val refl_red: thm	(* reduce(a,a) *)
-  val trans_red: thm	(* [|a=b; reduce(b,c) |] ==> a=c *)
+  val refl: thm         (*Reflexive law*)
+  val sym: thm          (*Symmetric law*)
+  val trans: thm        (*Transitive law*)
+  val refl_red: thm     (* reduce(a,a) *)
+  val trans_red: thm    (* [|a=b; reduce(b,c) |] ==> a=c *)
   val red_if_equal: thm (* a=b ==> reduce(a,b) *)
   (*Built-in rewrite rules*)
   val default_rls: thm list
@@ -76,7 +76,7 @@ fun process_rewrites rls =
   case process_rules rls of
       (simp_rls,[])  =>  simp_rls
     | (_,others) => raise THM 
-	("process_rewrites: Ill-formed rewrite", 0, others);
+        ("process_rewrites: Ill-formed rewrite", 0, others);
 
 (*Process the default rewrite rules*)
 val simp_rls = process_rewrites default_rls;
@@ -97,8 +97,8 @@ fun subconv_res_tac congr_rls =
 (*Resolve with asms, whether rewrites or not*)
 fun asm_res_tac asms =
     let val (xsimp_rls,xother_rls) = process_rules asms
-    in 	routine_tac xother_rls  ORELSE'  
-	filt_resolve_tac xsimp_rls 2
+    in  routine_tac xother_rls  ORELSE'  
+        filt_resolve_tac xsimp_rls 2
     end;
 
 (*Single step for simple rewriting*)

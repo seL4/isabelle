@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/SCT_Theorem.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 *)
 
@@ -450,19 +449,19 @@ next
     proof (cases rule:three_cases)
       assume "Suc l < j"
       with ths range show ?thesis 
-	unfolding is_fthread_def Ball_def
-	by simp
+        unfolding is_fthread_def Ball_def
+        by simp
     next
       assume "Suc l = j"
       hence "l < j" "\<theta>2 (Suc l) = \<theta>1 (Suc l)" by auto
       with ths range show ?thesis 
-	unfolding is_fthread_def Ball_def
-	by simp
+        unfolding is_fthread_def Ball_def
+        by simp
     next
       assume "j \<le> l"
       with ths range show ?thesis 
-	unfolding is_fthread_def Ball_def
-	by simp
+        unfolding is_fthread_def Ball_def
+        by simp
     qed arith
   qed
   moreover 
@@ -534,19 +533,19 @@ next
     proof (cases rule:three_cases)
       assume "Suc l < j"
       with ths2 range show ?thesis 
-	unfolding is_fthread_def Ball_def
-	by simp
+        unfolding is_fthread_def Ball_def
+        by simp
     next
       assume "Suc l = j"
       hence "l < j" "\<theta>2 (Suc l) = \<theta>1 (Suc l)" by auto
       with ths2 range show ?thesis 
-	unfolding is_fthread_def Ball_def
-	by simp
+        unfolding is_fthread_def Ball_def
+        by simp
     next
       assume "j \<le> l"
       with ths2 range show ?thesis 
-	unfolding is_fthread_def Ball_def
-	by simp
+        unfolding is_fthread_def Ball_def
+        by simp
     qed arith
   qed
   moreover
@@ -967,18 +966,18 @@ proof
     proof (intro allI impI)
       fix i assume "n \<le> i"
       also have "i \<le> s i" 
-	using increasing_inc by auto
+        using increasing_inc by auto
       finally have "n \<le> s i" .
 
       with fr have "is_fthread \<theta> p (s i) (s (Suc i))"
-	unfolding is_fthread_def by auto
+        unfolding is_fthread_def by auto
       hence "has_fth p (s i) (s (Suc i)) (\<theta> (s i)) (\<theta> (s (Suc i)))"
-	unfolding has_fth_def by auto
+        unfolding has_fth_def by auto
       with less_imp_le[OF increasing_strict]
       have "eql (prod (p\<langle>s i,s (Suc i)\<rangle>)) (\<theta> (s i)) (\<theta> (s (Suc i)))"
-	by (simp add:Lemma7a)
+        by (simp add:Lemma7a)
       thus "eqlat (contract s p) ?c\<theta> i" unfolding contract_def
-	by auto
+        by auto
     qed
 
     show "\<exists>\<^sub>\<infinity>i. descat (contract s p) ?c\<theta> i"
@@ -988,30 +987,30 @@ proof
 
       let ?K = "section_of s (max (s (Suc i)) n)"
       from `\<exists>\<^sub>\<infinity>i. descat p \<theta> i` obtain j
-	  where "s (Suc ?K) < j" "descat p \<theta> j"
-	unfolding INFM_nat by blast
+          where "s (Suc ?K) < j" "descat p \<theta> j"
+        unfolding INFM_nat by blast
       
       let ?L = "section_of s j"
       {
-	fix x assume r: "x \<in> section s ?L"
-	
-	have e1: "max (s (Suc i)) n < s (Suc ?K)" by (rule section_of2) simp
+        fix x assume r: "x \<in> section s ?L"
+        
+        have e1: "max (s (Suc i)) n < s (Suc ?K)" by (rule section_of2) simp
         note `s (Suc ?K) < j`
         also have "j < s (Suc ?L)"
           by (rule section_of2) simp
         finally have "Suc ?K \<le> ?L"
           by (simp add:increasing_bij)          
-	with increasing_weak have "s (Suc ?K) \<le> s ?L" by simp
-	with e1 r have "max (s (Suc i)) n < x" by simp
+        with increasing_weak have "s (Suc ?K) \<le> s ?L" by simp
+        with e1 r have "max (s (Suc i)) n < x" by simp
         
-	hence "(s (Suc i)) < x" "n < x" by auto
+        hence "(s (Suc i)) < x" "n < x" by auto
       }
       note range_est = this
       
       have "is_desc_fthread \<theta> p (s ?L) (s (Suc ?L))"
-	unfolding is_desc_fthread_def is_fthread_def
+        unfolding is_desc_fthread_def is_fthread_def
       proof
-	show "\<forall>m\<in>section s ?L. eqlat p \<theta> m"
+        show "\<forall>m\<in>section s ?L. eqlat p \<theta> m"
         proof 
           fix m assume "m\<in>section s ?L"
           with range_est(2) have "n < m" . 
@@ -1019,25 +1018,25 @@ proof
         qed
 
         from in_section_of inc less_imp_le[OF `s (Suc ?K) < j`]
-	have "j \<in> section s ?L" .
+        have "j \<in> section s ?L" .
 
-	with `descat p \<theta> j`
-	show "\<exists>m\<in>section s ?L. descat p \<theta> m" ..
+        with `descat p \<theta> j`
+        show "\<exists>m\<in>section s ?L. descat p \<theta> m" ..
       qed
       
       with less_imp_le[OF increasing_strict]
       have a: "descat (contract s p) ?c\<theta> ?L"
-	unfolding contract_def Lemma7b[symmetric]
-	by (auto simp:Lemma7b[symmetric] has_desc_fth_def)
+        unfolding contract_def Lemma7b[symmetric]
+        by (auto simp:Lemma7b[symmetric] has_desc_fth_def)
       
       have "i < ?L"
       proof (rule classical)
-	assume "\<not> i < ?L" 
-	hence "s ?L < s (Suc i)" 
+        assume "\<not> i < ?L" 
+        hence "s ?L < s (Suc i)" 
           by (simp add:increasing_bij)
-	also have "\<dots> < s ?L"
-	  by (rule range_est(1)) (simp add:increasing_strict)
-	finally show ?thesis .
+        also have "\<dots> < s ?L"
+          by (rule range_est(1)) (simp add:increasing_strict)
+        finally show ?thesis .
       qed
       with a show "\<exists>l. i < l \<and> descat (contract s p) ?c\<theta> l"
         by blast
@@ -1185,7 +1184,7 @@ proof -
     have "f (set2pair {x, y}) \<in> S"
     proof (cases "x < y")
       case True hence "set2pair {x, y} = (x, y)"
-	by (rule set2pair_conv)
+        by (rule set2pair_conv)
       with True inS
       show ?thesis by simp
     next
@@ -1193,7 +1192,7 @@ proof -
       with neq have y_less: "y < x" by simp
       have x:"{x,y} = {y,x}" by auto
       with y_less have "set2pair {x, y} = (y, x)"
-	by (simp add:set2pair_conv)
+        by (simp add:set2pair_conv)
       with y_less inS
       show ?thesis by simp
     qed
@@ -1261,7 +1260,7 @@ proof
       where k_pow: "A ^ k \<turnstile> n \<leadsto>\<^bsup>G\<^esup> n"
       and "0 < k"
       unfolding in_tcl by auto
-	
+        
     from power_induces_path k_pow
     obtain loop where loop_props:
       "has_fpath A loop"
@@ -1343,7 +1342,7 @@ proof
       case base thus ?case by (simp add:sub_path_def)
     next
       case (step i) thus ?case
-	by (simp add:sub_path_def upt_rec[of i k] idemp)
+        by (simp add:sub_path_def upt_rec[of i k] idemp)
     qed
 
     with `i < j` `j < k` dfth Lemma7b[of i k ?cp p p]
@@ -1388,7 +1387,7 @@ next
     let ?q = "contract ?s p"
 
     note all_in_S[simp] = enumerate_in_set[OF `infinite S`]
-	from `infinite S` 
+        from `infinite S` 
     have inc[simp]: "increasing ?s" 
       unfolding increasing_def by (simp add:enumerate_mono)
     note increasing_bij[OF this, simp]
@@ -1398,7 +1397,7 @@ next
 
     from all_G G_struct 
     have all_H: "\<And>i. (snd (?q i)) = H"
-	  unfolding contract_def 
+          unfolding contract_def 
       by simp
     
     have loop: "(tcl A) \<turnstile> n \<leadsto>\<^bsup>H\<^esup> n"
@@ -1407,27 +1406,27 @@ next
       let ?i = "?s 0" and ?j = "?s (Suc 0)" and ?k = "?s (Suc (Suc 0))"
       
       have "pdesc (p\<langle>?i,?j\<rangle>) = G"
-		and "pdesc (p\<langle>?j,?k\<rangle>) = G"
-		and "pdesc (p\<langle>?i,?k\<rangle>) = G"
-		using all_G 
-		by auto
-	  
+                and "pdesc (p\<langle>?j,?k\<rangle>) = G"
+                and "pdesc (p\<langle>?i,?k\<rangle>) = G"
+                using all_G 
+                by auto
+          
       with G_struct 
       have "m = end_node (p\<langle>?i,?j\<rangle>)"
-				"n = fst (p\<langle>?j,?k\<rangle>)"
-				and Hs:	"prod (p\<langle>?i,?j\<rangle>) = H"
-				"prod (p\<langle>?j,?k\<rangle>) = H"
-				"prod (p\<langle>?i,?k\<rangle>) = H"
-		by auto
-			
+                                "n = fst (p\<langle>?j,?k\<rangle>)"
+                                and Hs: "prod (p\<langle>?i,?j\<rangle>) = H"
+                                "prod (p\<langle>?j,?k\<rangle>) = H"
+                                "prod (p\<langle>?i,?k\<rangle>) = H"
+                by auto
+                        
       hence "m = n" by simp
       thus "tcl A \<turnstile> n \<leadsto>\<^bsup>H\<^esup> n"
-		using G_struct `G \<in> dest_graph (tcl A)`
-		by (simp add:has_edge_def)
-	  
+                using G_struct `G \<in> dest_graph (tcl A)`
+                by (simp add:has_edge_def)
+          
       from sub_path_prod[of ?i ?j ?k p]      
       show "H * H = H"
-		unfolding Hs by simp
+                unfolding Hs by simp
     qed
     moreover have "\<And>k. \<not>dsc H k k"
     proof
@@ -1435,8 +1434,8 @@ next
       
       with all_H repeated_edge
       have "\<exists>\<theta>. is_desc_thread \<theta> ?q" by fast
-	  with inc have "\<exists>\<theta>. is_desc_thread \<theta> p"
-		by (subst contract_keeps_threads) 
+          with inc have "\<exists>\<theta>. is_desc_thread \<theta> p"
+                by (subst contract_keeps_threads) 
       with no_desc_th
       show False ..
     qed

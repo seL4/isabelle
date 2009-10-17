@@ -1,9 +1,8 @@
 (*  Title:      HOL/ZF/HOLZF.thy
-    ID:         $Id$
     Author:     Steven Obua
 
-    Axiomatizes the ZFC universe as an HOL type.
-    See "Partizan Games in Isabelle/HOLZF", available from http://www4.in.tum.de/~obua/partizan
+Axiomatizes the ZFC universe as an HOL type.  See "Partizan Games in
+Isabelle/HOLZF", available from http://www4.in.tum.de/~obua/partizan
 *)
 
 theory HOLZF 
@@ -360,25 +359,25 @@ proof -
     assume a_in_U: "Elem a U"
     have "P a"
       proof -
-	term "P"
-	term Sep
-	let ?Z = "Sep U (Not o P)"
-	have "?Z = Empty \<longrightarrow> P a" by (simp add: Ext Sep Empty a_in_U)	
-	moreover have "?Z \<noteq> Empty \<longrightarrow> False"
-	  proof 
-	    assume not_empty: "?Z \<noteq> Empty" 
-	    note thereis_x = Regularity[where A="?Z", simplified not_empty, simplified]
-	    then obtain x where x_def: "Elem x ?Z & (! y. Elem y x \<longrightarrow> Not (Elem y ?Z))" ..
+        term "P"
+        term Sep
+        let ?Z = "Sep U (Not o P)"
+        have "?Z = Empty \<longrightarrow> P a" by (simp add: Ext Sep Empty a_in_U)     
+        moreover have "?Z \<noteq> Empty \<longrightarrow> False"
+          proof 
+            assume not_empty: "?Z \<noteq> Empty" 
+            note thereis_x = Regularity[where A="?Z", simplified not_empty, simplified]
+            then obtain x where x_def: "Elem x ?Z & (! y. Elem y x \<longrightarrow> Not (Elem y ?Z))" ..
             then have x_induct:"! y. Elem y x \<longrightarrow> Elem y U \<longrightarrow> P y" by (simp add: Sep)
-	    have "Elem x U \<longrightarrow> P x" 
-	      by (rule impE[OF spec[OF P_induct, where x=x], OF x_induct], assumption)
-	    moreover have "Elem x U & Not(P x)"
-	      apply (insert x_def)
-	      apply (simp add: Sep)
-	      done
-	    ultimately show "False" by auto
-	  qed
-	ultimately show "P a" by auto
+            have "Elem x U \<longrightarrow> P x" 
+              by (rule impE[OF spec[OF P_induct, where x=x], OF x_induct], assumption)
+            moreover have "Elem x U & Not(P x)"
+              apply (insert x_def)
+              apply (simp add: Sep)
+              done
+            ultimately show "False" by auto
+          qed
+        ultimately show "P a" by auto
       qed
   }
   with hyps show ?thesis by blast
@@ -563,18 +562,18 @@ proof -
       assume n_less_u: "n < u"
       let ?y = "nat2Nat (u - 1)"
       have "Elem ?y (nat2Nat u)"
-	apply (rule increasing_nat2Nat)
-	apply (insert n_less_u)
-	apply arith
-	done
+        apply (rule increasing_nat2Nat)
+        apply (insert n_less_u)
+        apply arith
+        done
       with u have "Elem ?y x" by auto
       with x have "Not (Elem ?y ?Z)" by auto
       moreover have "Elem ?y ?Z" 
-	apply (insert n_Elem_NatInterval[where q = "u - n - 1" and n=n and m=m])
-	apply (insert n_less_u)
-	apply (insert u)
-	apply auto
-	done
+        apply (insert n_Elem_NatInterval[where q = "u - n - 1" and n=n and m=m])
+        apply (insert n_less_u)
+        apply (insert u)
+        apply auto
+        done
       ultimately show False by auto
     qed
     moreover have "u = n \<longrightarrow> False"
@@ -584,17 +583,17 @@ proof -
       then have nm_eq_x: "nat2Nat (n+m) = x" by (simp add: nm)
       let ?y = "nat2Nat (n+m - 1)"
       have "Elem ?y (nat2Nat (n+m))"
-	apply (rule increasing_nat2Nat)
-	apply (insert mg0)
-	apply arith
-	done
+        apply (rule increasing_nat2Nat)
+        apply (insert mg0)
+        apply arith
+        done
       with nm_eq_x have "Elem ?y x" by auto
       with x have "Not (Elem ?y ?Z)" by auto
       moreover have "Elem ?y ?Z" 
-	apply (insert n_Elem_NatInterval[where q = "m - 1" and n=n and m=m])
-	apply (insert mg0)
-	apply auto
-	done
+        apply (insert n_Elem_NatInterval[where q = "m - 1" and n=n and m=m])
+        apply (insert mg0)
+        apply auto
+        done
       ultimately show False by auto      
     qed
     ultimately have "False" using u by arith
@@ -822,12 +821,12 @@ proof (subst wf_def, rule allI)
     proof (rule ccontr)
       assume C: "?C \<noteq> {}"
       from
-	wfzf_minimal[OF wfzf C]
+        wfzf_minimal[OF wfzf C]
       obtain x where x: "x \<in> ?C \<and> (\<forall>y. (y, x) \<in> R \<longrightarrow> y \<notin> ?C)" ..
       then have "P x"
-	apply (rule_tac induct[rule_format])
-	apply auto
-	done
+        apply (rule_tac induct[rule_format])
+        apply auto
+        done
       with x show "False" by auto
     qed
     then have "! x. P x" by auto

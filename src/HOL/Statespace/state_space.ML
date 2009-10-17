@@ -288,7 +288,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
        | _ =>
         let
           val {declinfo,distinctthm=tt,silent} = (NameSpaceData.get ctxt);
-	  val all_names = comps_of_thm thm;
+          val all_names = comps_of_thm thm;
           fun upd name tt =
                (case (Symtab.lookup tt name) of
                  SOME dthm => if sorted_subset (op =) (comps_of_thm dthm) all_names
@@ -365,7 +365,7 @@ fun parent_components thy (Ts, pname, renaming) =
       | rename (NONE::rs)  (x::xs) = x::rename rs xs
       | rename (SOME r::rs) ((x,T)::xs) = (r,T)::rename rs xs;
     val {args,parents,components,...} =
-	      the (Symtab.lookup (StateSpaceData.get ctxt) pname);
+              the (Symtab.lookup (StateSpaceData.get ctxt) pname);
     val inst = map fst args ~~ Ts;
     val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
     val parent_comps =
@@ -450,7 +450,7 @@ fun statespace_definition state_type args name parents parent_comps components t
          NONE => []
        | SOME s =>
           let
-	    val fx = Element.Fixes [(Binding.name s,SOME (string_of_typ stateT),NoSyn)];
+            val fx = Element.Fixes [(Binding.name s,SOME (string_of_typ stateT),NoSyn)];
             val cs = Element.Constrains
                        (map (fn (n,T) =>  (n,string_of_typ T))
                          ((map (fn (n,_) => (n,nameT)) all_comps) @
@@ -610,7 +610,7 @@ fun gen_lookup_tr ctxt s n =
            Syntax.const "StateFun.lookup"$Syntax.free (project_name T)$Syntax.free n$s
        | NONE =>
            if get_silent (Context.Proof ctxt)
-	   then Syntax.const "StateFun.lookup" $ Syntax.const "undefined" $ Syntax.free n $ s
+           then Syntax.const "StateFun.lookup" $ Syntax.const "undefined" $ Syntax.free n $ s
            else raise TERM ("StateSpace.gen_lookup_tr: component " ^ n ^ " not defined",[]));
 
 fun lookup_tr ctxt [s,Free (n,_)] = gen_lookup_tr ctxt s n;

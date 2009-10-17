@@ -101,7 +101,7 @@ inductive_set recur :: "event list set"
      etc.
 
    Oops:  "[| evso \<in> recur;  Says Server B RB \<in> set evso;
-	      RB \<in> responses evs';  Key K \<in> parts {RB} |]
+              RB \<in> responses evs';  Key K \<in> parts {RB} |]
            ==> Notes Spy {|Key K, RB|} # evso \<in> recur"
   *)
 
@@ -140,10 +140,10 @@ apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil
            [THEN recur.RA1 [of _ NA], 
-	    THEN recur.RA2 [of _ NB],
-	    THEN recur.RA3 [OF _ _ respond.One 
+            THEN recur.RA2 [of _ NB],
+            THEN recur.RA3 [OF _ _ respond.One 
                                      [THEN respond.Cons [of _ _ K _ K']]],
-	    THEN recur.RA4], possibility)
+            THEN recur.RA4], possibility)
 apply (auto simp add: used_Cons)
 done
 
@@ -241,7 +241,7 @@ lemma resp_analz_image_freshK_lemma:
                    (K \<in> KK | Key K \<in> analz (insert RB H))"
 apply (erule responses.induct)
 apply (simp_all del: image_insert
-	        add: analz_image_freshK_simps, auto)
+                add: analz_image_freshK_simps, auto)
 done 
 
 

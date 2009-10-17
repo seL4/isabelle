@@ -1,7 +1,7 @@
 (*  Title:      HOL/Extraction/Euclid.thy
     Author:     Markus Wenzel, TU Muenchen
-                Freek Wiedijk, Radboud University Nijmegen
-                Stefan Berghofer, TU Muenchen
+    Author:     Freek Wiedijk, Radboud University Nijmegen
+    Author:     Stefan Berghofer, TU Muenchen
 *)
 
 header {* Euclid's theorem *}
@@ -71,23 +71,23 @@ proof -
       assume nmk: "n = m * k"
       assume m: "Suc 0 < m"
       from n m nmk have k: "0 < k"
-	by (cases k) auto
+        by (cases k) auto
       moreover from n have n: "0 < n" by simp
       moreover note m
       moreover from nmk have "m * k = n" by simp
       ultimately have kn: "k < n" by (rule prod_mn_less_k)
       show "m = n"
       proof (cases "k = Suc 0")
-	case True
-	with nmk show ?thesis by (simp only: mult_Suc_right)
+        case True
+        with nmk show ?thesis by (simp only: mult_Suc_right)
       next
-	case False
-	from m have "0 < m" by simp
-	moreover note n
-	moreover from False n nmk k have "Suc 0 < k" by auto
-	moreover from nmk have "k * m = n" by (simp only: mult_ac)
-	ultimately have mn: "m < n" by (rule prod_mn_less_k)
-	with kn A nmk show ?thesis by iprover
+        case False
+        from m have "0 < m" by simp
+        moreover note n
+        moreover from False n nmk k have "Suc 0 < k" by auto
+        moreover from nmk have "k * m = n" by (simp only: mult_ac)
+        ultimately have mn: "m < n" by (rule prod_mn_less_k)
+        with kn A nmk show ?thesis by iprover
       qed
     qed
     with n have "prime n"

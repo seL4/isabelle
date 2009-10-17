@@ -1,5 +1,4 @@
-(*  Title:      ZF/IntDiv.thy
-    ID:         $Id$
+(*  Title:      ZF/IntDiv_ZF.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
@@ -8,25 +7,24 @@ Here is the division algorithm in ML:
     fun posDivAlg (a,b) =
       if a<b then (0,a)
       else let val (q,r) = posDivAlg(a, 2*b)
-	       in  if 0<=r-b then (2*q+1, r-b) else (2*q, r)
-	   end
+               in  if 0<=r-b then (2*q+1, r-b) else (2*q, r)
+           end
 
     fun negDivAlg (a,b) =
       if 0<=a+b then (~1,a+b)
       else let val (q,r) = negDivAlg(a, 2*b)
-	       in  if 0<=r-b then (2*q+1, r-b) else (2*q, r)
-	   end;
+               in  if 0<=r-b then (2*q+1, r-b) else (2*q, r)
+           end;
 
     fun negateSnd (q,r:int) = (q,~r);
 
     fun divAlg (a,b) = if 0<=a then 
-			  if b>0 then posDivAlg (a,b) 
-			   else if a=0 then (0,0)
-				else negateSnd (negDivAlg (~a,~b))
-		       else 
-			  if 0<b then negDivAlg (a,b)
-			  else        negateSnd (posDivAlg (~a,~b));
-
+                          if b>0 then posDivAlg (a,b) 
+                           else if a=0 then (0,0)
+                                else negateSnd (negDivAlg (~a,~b))
+                       else 
+                          if 0<b then negDivAlg (a,b)
+                          else        negateSnd (posDivAlg (~a,~b));
 *)
 
 header{*The Division Operators Div and Mod*}
@@ -53,8 +51,8 @@ definition
 (*recdef posDivAlg "inv_image less_than (%(a,b). nat_of(a $- b $+ #1))"*)
     "posDivAlg(ab) ==
        wfrec(measure(int*int, %<a,b>. nat_of (a $- b $+ #1)),
-	     ab,
-	     %<a,b> f. if (a$<b | b$<=#0) then <#0,a>
+             ab,
+             %<a,b> f. if (a$<b | b$<=#0) then <#0,a>
                        else adjust(b, f ` <a,#2$*b>))"
 
 
@@ -64,8 +62,8 @@ definition
 (*recdef negDivAlg "inv_image less_than (%(a,b). nat_of(- a $- b))"*)
     "negDivAlg(ab) ==
        wfrec(measure(int*int, %<a,b>. nat_of ($- a $- b)),
-	     ab,
-	     %<a,b> f. if (#0 $<= a$+b | b$<=#0) then <#-1,a$+b>
+             ab,
+             %<a,b> f. if (#0 $<= a$+b | b$<=#0) then <#-1,a$+b>
                        else adjust(b, f ` <a,#2$*b>))"
 
 (*for the general case b\<noteq>0*)

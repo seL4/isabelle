@@ -1,9 +1,8 @@
 (*  Title:      HOL/UNITY/Union.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
+Partly from Misra's Chapter 5: Asynchronous Compositions of Programs.
 *)
 
 header{*Unions of Programs*}
@@ -23,11 +22,11 @@ constdefs
 
   JOIN  :: "['a set, 'a => 'b program] => 'b program"
     "JOIN I F == mk_program (\<Inter>i \<in> I. Init (F i), \<Union>i \<in> I. Acts (F i),
-			     \<Inter>i \<in> I. AllowedActs (F i))"
+                             \<Inter>i \<in> I. AllowedActs (F i))"
 
   Join :: "['a program, 'a program] => 'a program"      (infixl "Join" 65)
     "F Join G == mk_program (Init F \<inter> Init G, Acts F \<union> Acts G,
-			     AllowedActs F \<inter> AllowedActs G)"
+                             AllowedActs F \<inter> AllowedActs G)"
 
   SKIP :: "'a program"
     "SKIP == mk_program (UNIV, {}, UNIV)"
@@ -406,7 +405,7 @@ by (simp add: safety_prop_def, blast)
 lemma safety_prop_INTER1 [simp]:
      "(!!i. safety_prop (X i)) ==> safety_prop (\<Inter>i. X i)"
 by (auto simp add: safety_prop_def, blast)
-							       
+
 lemma safety_prop_INTER [simp]:
      "(!!i. i \<in> I ==> safety_prop (X i)) ==> safety_prop (\<Inter>i \<in> I. X i)"
 by (auto simp add: safety_prop_def, blast)

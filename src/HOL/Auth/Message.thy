@@ -40,13 +40,13 @@ datatype  --{*We allow any number of friendly agents*}
   agent = Server | Friend nat | Spy
 
 datatype
-     msg = Agent  agent	    --{*Agent names*}
+     msg = Agent  agent     --{*Agent names*}
          | Number nat       --{*Ordinary integers, timestamps, ...*}
          | Nonce  nat       --{*Unguessable nonces*}
          | Key    key       --{*Crypto keys*}
-	 | Hash   msg       --{*Hashing*}
-	 | MPair  msg msg   --{*Compound messages*}
-	 | Crypt  key msg   --{*Encryption, public- or shared-key*}
+         | Hash   msg       --{*Hashing*}
+         | MPair  msg msg   --{*Compound messages*}
+         | Crypt  key msg   --{*Encryption, public- or shared-key*}
 
 
 text{*Concrete syntax: messages appear as {|A,B,NA|}, etc...*}
@@ -873,8 +873,8 @@ fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
     (Fake_insert_simp_tac ss 1
      THEN
      IF_UNSOLVED (Blast.depth_tac
-		  (cs addIs [@{thm analz_insertI},
-				   impOfSubs @{thm analz_subset_parts}]) 4 1))
+                  (cs addIs [@{thm analz_insertI},
+                                   impOfSubs @{thm analz_subset_parts}]) 4 1))
 
 fun spy_analz_tac (cs,ss) i =
   DETERM

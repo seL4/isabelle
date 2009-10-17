@@ -2,26 +2,26 @@ signature IMPORT_RECORDER =
 sig
 
     datatype deltastate = Consts of (string * typ * mixfix) list
-			| Specification of (string * string * bool) list * term
-			| Hol_mapping of string * string * string
-			| Hol_pending of string * string * term
-			| Hol_const_mapping of string * string * string
-			| Hol_move of string * string
-			| Defs of string * term
-			| Hol_theorem of string * string * term
-			| Typedef of string option * (string * string list * mixfix) * term * (string * string) option * term 
-			| Hol_type_mapping of string * string * string
-			| Indexed_theorem of int * term
-	                | Protect_varname of string * string
-			| Dump of string
+                        | Specification of (string * string * bool) list * term
+                        | Hol_mapping of string * string * string
+                        | Hol_pending of string * string * term
+                        | Hol_const_mapping of string * string * string
+                        | Hol_move of string * string
+                        | Defs of string * term
+                        | Hol_theorem of string * string * term
+                        | Typedef of string option * (string * string list * mixfix) * term * (string * string) option * term 
+                        | Hol_type_mapping of string * string * string
+                        | Indexed_theorem of int * term
+                        | Protect_varname of string * string
+                        | Dump of string
 
     datatype history = History of history_entry list
-	 and history_entry = ThmEntry of string*string*bool*history | DeltaEntry of deltastate list
+         and history_entry = ThmEntry of string*string*bool*history | DeltaEntry of deltastate list
 
     val get_history : unit -> history
     val set_history : history -> unit
     val clear_history : unit -> unit
-				      
+                                      
     val start_replay_proof : string -> string -> unit
     val stop_replay_proof : string -> string -> unit
     val abort_replay_proof : string -> string -> unit
@@ -54,23 +54,23 @@ structure ImportRecorder :> IMPORT_RECORDER  =
 struct
 
 datatype deltastate = Consts of (string * typ * mixfix) list
-		    | Specification of (string * string * bool) list * term
-		    | Hol_mapping of string * string * string
-		    | Hol_pending of string * string * term
-		    | Hol_const_mapping of string * string * string
-		    | Hol_move of string * string
-		    | Defs of string * term
-		    | Hol_theorem of string * string * term
-		    | Typedef of string option * (string * string list * mixfix) * term * (string * string) option * term 
-		    | Hol_type_mapping of string * string * string
-		    | Indexed_theorem of int * term
-	            | Protect_varname of string * string
-		    | Dump of string
+                    | Specification of (string * string * bool) list * term
+                    | Hol_mapping of string * string * string
+                    | Hol_pending of string * string * term
+                    | Hol_const_mapping of string * string * string
+                    | Hol_move of string * string
+                    | Defs of string * term
+                    | Hol_theorem of string * string * term
+                    | Typedef of string option * (string * string list * mixfix) * term * (string * string) option * term 
+                    | Hol_type_mapping of string * string * string
+                    | Indexed_theorem of int * term
+                    | Protect_varname of string * string
+                    | Dump of string
 
 datatype history_entry = StartReplay of string*string  
-		       | StopReplay of string*string
-		       | AbortReplay of string*string
-		       | Delta of deltastate list
+                       | StopReplay of string*string
+                       | AbortReplay of string*string
+                       | Delta of deltastate list
 
 val history = Unsynchronized.ref ([]:history_entry list)
 val history_dir = Unsynchronized.ref (SOME "")
@@ -184,7 +184,7 @@ fun add_specification names th = add_delta (Specification (names, prop_of th))
 fun add_indexed_theorem i th = add_delta (Indexed_theorem (i, prop_of th))
 fun protect_varname s t = add_delta (Protect_varname (s,t))
 fun add_dump s = add_delta (Dump s)
-			    
+                            
 fun set_skip_import_dir dir = (history_dir := dir)
 fun get_skip_import_dir () = !history_dir
 
@@ -192,26 +192,26 @@ fun get_filename thyname = Path.implode (Path.append (Path.explode (the (get_ski
 
 fun save_history thyname = 
     if get_skip_import () then
-	XMLConv.write_to_file xml_of_history (get_filename thyname) (!history)
+        XMLConv.write_to_file xml_of_history (get_filename thyname) (!history)
     else 
-	()
+        ()
 
 fun load_history thyname = 
     if get_skip_import () then
-	let 
-	    val filename = get_filename thyname
-	    val _ = writeln "load_history / before"
-	    val _ = 
-		if File.exists (Path.explode filename) then					
-		    (history := XMLConv.read_from_file history_of_xml (get_filename thyname)) 
-		else
-		    clear_history ()
-	    val _ = writeln "load_history / after"
-	in
-	    ()
-	end
+        let 
+            val filename = get_filename thyname
+            val _ = writeln "load_history / before"
+            val _ = 
+                if File.exists (Path.explode filename) then                                     
+                    (history := XMLConv.read_from_file history_of_xml (get_filename thyname)) 
+                else
+                    clear_history ()
+            val _ = writeln "load_history / after"
+        in
+            ()
+        end
     else
-	()
+        ()
     
  
 datatype history = History of history_entry list
@@ -221,35 +221,35 @@ exception CONV
 
 fun conv_histories ((StartReplay (thyname, thmname))::rest) = 
     let
-	val (hs, rest) = conv_histories rest
-	fun continue thyname' thmname' aborted rest = 
-	    if thyname = thyname' andalso thmname = thmname' then
-		let
-		    val (hs', rest) = conv_histories rest
-		in
-		    ((ThmEntry (thyname, thmname, aborted, History hs))::hs', rest)
-		end
-	    else
-		raise CONV 
+        val (hs, rest) = conv_histories rest
+        fun continue thyname' thmname' aborted rest = 
+            if thyname = thyname' andalso thmname = thmname' then
+                let
+                    val (hs', rest) = conv_histories rest
+                in
+                    ((ThmEntry (thyname, thmname, aborted, History hs))::hs', rest)
+                end
+            else
+                raise CONV 
     in
-	case rest of 
-	    (StopReplay (thyname',thmname'))::rest =>
-	    continue thyname' thmname' false rest
-	  | (AbortReplay (thyname',thmname'))::rest =>
-	    continue thyname' thmname' true rest
-	  | [] => (hs, [])
-	  | _ => raise CONV
+        case rest of 
+            (StopReplay (thyname',thmname'))::rest =>
+            continue thyname' thmname' false rest
+          | (AbortReplay (thyname',thmname'))::rest =>
+            continue thyname' thmname' true rest
+          | [] => (hs, [])
+          | _ => raise CONV
     end
   | conv_histories ((Delta ds)::rest) = (conv_histories rest) |>> (fn hs => (DeltaEntry (rev ds))::hs)  
   | conv_histories rest = ([], rest)
 
 fun conv es = 
     let
-	val (h, rest) = conv_histories (rev es)
+        val (h, rest) = conv_histories (rev es)
     in
-	case rest of
-	    [] => h
-	  | _ => raise CONV
+        case rest of
+            [] => h
+          | _ => raise CONV
     end 
 
 fun get_history () = History (conv (!history))

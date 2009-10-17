@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Ramsey.thy
-    Author:     Tom Ridge. Converted to structured Isar by L C Paulson
+    Author:     Tom Ridge.  Converted to structured Isar by L C Paulson
 *)
 
 header "Ramsey's Theorem"
@@ -91,8 +91,8 @@ next
     from Suc.prems infinite_imp_nonempty obtain yy where yy: "yy \<in> YY" by blast
     let ?ramr = "{((y,Y,t),(y',Y',t')). y' \<in> Y & Y' \<subseteq> Y}"
     let ?propr = "%(y,Y,t).     
-		 y \<in> YY & y \<notin> Y & Y \<subseteq> YY & infinite Y & t < s
-		 & (\<forall>X. X\<subseteq>Y & finite X & card X = r --> (f o insert y) X = t)"
+                 y \<in> YY & y \<notin> Y & Y \<subseteq> YY & infinite Y & t < s
+                 & (\<forall>X. X\<subseteq>Y & finite X & card X = r --> (f o insert y) X = t)"
     have infYY': "infinite (YY-{yy})" using Suc.prems by auto
     have partf': "part r s (YY - {yy}) (f \<circ> insert yy)"
       by (simp add: o_def part_Suc_imp_part yy Suc.prems)
@@ -115,16 +115,16 @@ next
         with fields px yx' Suc.prems
         have partfx': "part r s (Yx - {yx'}) (f \<circ> insert yx')"
           by (simp add: o_def part_Suc_imp_part part_subset [where ?YY=YY]) 
-	from Suc.hyps [OF infYx' partfx']
-	obtain Y' and t'
-	where Y': "Y' \<subseteq> Yx - {yx'}"  "infinite Y'"  "t' < s"
-	       "\<forall>X. X\<subseteq>Y' \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yx') X = t'"
-	    by blast 
-	show ?thesis
-	proof
-	  show "?propr (yx',Y',t') & (x, (yx',Y',t')) \<in> ?ramr"
-  	    using fields Y' yx' px by blast
-	qed
+        from Suc.hyps [OF infYx' partfx']
+        obtain Y' and t'
+        where Y': "Y' \<subseteq> Yx - {yx'}"  "infinite Y'"  "t' < s"
+               "\<forall>X. X\<subseteq>Y' \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yx') X = t'"
+            by blast 
+        show ?thesis
+        proof
+          show "?propr (yx',Y',t') & (x, (yx',Y',t')) \<in> ?ramr"
+            using fields Y' yx' px by blast
+        qed
       qed
     qed
     from dependent_choice [OF transr propr0 proprstep]
@@ -191,7 +191,7 @@ next
                by (simp add: cardX ya)
              ultimately show ?thesis 
                using pg [of "LEAST x. x \<in> AA"] fields cardX
-	       by (clarsimp simp del:insert_Diff_single)
+               by (clarsimp simp del:insert_Diff_single)
            qed
            also have "... = s'" using AA AAleast fields by auto
            finally show ?thesis .

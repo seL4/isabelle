@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/WO6_WO1.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 Proofs needed to state that formulations WO1,...,WO6 are all equivalent.
@@ -58,7 +57,7 @@ definition
 definition
   gg2 :: "[i, i, i, i] => i"  where
      "gg2(f,a,b,s) ==
-	      \<lambda>g \<in> a++a. if g<a then vv2(f,b,g,s) else ww2(f,b,g--a,s)"
+              \<lambda>g \<in> a++a. if g<a then vv2(f,b,g,s) else ww2(f,b,g--a,s)"
 
 
 lemma WO2_WO3: "WO2 ==> WO3"
@@ -315,9 +314,9 @@ done
 
 lemma vv2_subset: 
      "[| \<forall>g<a. \<forall>d<a. domain(uu(f, b, g, d))\<noteq>0 -->             
-		       domain(uu(f, b, g, d)) \<approx> succ(m);
-	 \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;
-	 (\<Union>b<a. f`b)=y;  b<a;  g<a;  m \<in> nat;  s \<in> f`b |] 
+                       domain(uu(f, b, g, d)) \<approx> succ(m);
+         \<forall>b<a. f`b \<lesssim> succ(m); y*y \<subseteq> y;
+         (\<Union>b<a. f`b)=y;  b<a;  g<a;  m \<in> nat;  s \<in> f`b |] 
       ==> vv2(f,b,g,s) \<subseteq> f`g"
 apply (simp add: vv2_def)
 apply (blast intro: uu_Least_is_fun [THEN apply_type])

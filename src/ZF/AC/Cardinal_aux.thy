@@ -1,8 +1,7 @@
 (*  Title:      ZF/AC/Cardinal_aux.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
-Auxiliary lemmas concerning cardinalities
+Auxiliary lemmas concerning cardinalities.
 *)
 
 theory Cardinal_aux imports AC_Equiv begin

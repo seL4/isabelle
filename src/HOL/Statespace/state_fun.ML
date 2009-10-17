@@ -238,7 +238,7 @@ val update_simproc =
                       end
                | mk_updterm _ t = init_seed t;
 
-	     val ctxt = Simplifier.the_context ss |>
+             val ctxt = Simplifier.the_context ss |>
                         Config.map MetaSimplifier.simp_depth_limit (K 100);
              val ss1 = Simplifier.context ctxt ss';
              val ss2 = Simplifier.context ctxt 
@@ -285,10 +285,10 @@ val ex_lookup_eq_simproc =
                let val (_::nT::_) = binder_types lT;
                          (*  ('v => 'a) => 'n => ('n => 'v) => 'a *)
                    val x' = if not (loose_bvar1 (x,0))
-			    then Bound 1
+                            then Bound 1
                             else raise TERM ("",[x]);
                    val n' = if not (loose_bvar1 (n,0))
-			    then Bound 2
+                            then Bound 2
                             else raise TERM ("",[n]);
                    val sel' = lo $ d $ n' $ s;
                   in (Const ("op =",Teq)$sel'$x',hd (binder_types Teq),nT,swap) end;
@@ -372,7 +372,7 @@ val statefun_simp_attr = Thm.declaration_attribute (fn thm => fn ctxt =>
   let
      val (lookup_ss,ex_lookup_ss,simprocs_active) = StateFunData.get ctxt;
      val (lookup_ss', ex_lookup_ss') = 
-	   (case (concl_of thm) of
+           (case (concl_of thm) of
             (_$((Const ("Ex",_)$_))) => (lookup_ss, ex_lookup_ss addsimps [thm])
             | _ => (lookup_ss addsimps [thm], ex_lookup_ss))
      fun activate_simprocs ctxt =

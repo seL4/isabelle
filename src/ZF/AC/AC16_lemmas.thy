@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/AC16_lemmas.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 Lemmas used in the proofs concerning AC16

@@ -137,7 +137,7 @@ lemma divides_exp2: "n \<noteq> 0 \<Longrightarrow> (x::nat) ^ n dvd y \<Longrig
 
 fun fact :: "nat \<Rightarrow> nat" where
   "fact 0 = 1"
-| "fact (Suc n) = Suc n * fact n"	
+| "fact (Suc n) = Suc n * fact n"
 
 lemma fact_lt: "0 < fact n" by(induct n, simp_all)
 lemma fact_le: "fact n \<ge> 1" using fact_lt[of n] by simp 
@@ -297,7 +297,7 @@ proof-
       using z by auto 
     then have "a^n * x - b^n * y = ?g^n \<or> b^n * x - a^n * y = ?g^n"
       using z ab'' by (simp only: power_mult_distrib[symmetric] 
-	diff_mult_distrib2 mult_assoc[symmetric])
+        diff_mult_distrib2 mult_assoc[symmetric])
     hence  ?thesis by blast }
   ultimately show ?thesis by blast
 qed
@@ -615,7 +615,7 @@ proof-
       with prime_coprime[OF p, of b] b 
       have cpb: "coprime b p" using coprime_commute by blast 
       from coprime_exp[OF cpb] have pnb: "coprime (p^n) b" 
-	by (simp add: coprime_commute)
+        by (simp add: coprime_commute)
       from coprime_divprod[OF pnba pnb] have ?thesis by blast }
     moreover
     {assume pb: "p dvd b"
@@ -624,7 +624,7 @@ proof-
       with prime_coprime[OF p, of a] a
       have cpb: "coprime a p" using coprime_commute by blast 
       from coprime_exp[OF cpb] have pnb: "coprime (p^n) a" 
-	by (simp add: coprime_commute)
+        by (simp add: coprime_commute)
       from coprime_divprod[OF pab pnb] have ?thesis by blast }
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
@@ -661,14 +661,14 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
   {assume n: "n \<noteq> 0" then obtain m where m: "n = Suc m" by (cases n, auto)
     {assume c: "c = 0"
       with H(3) m H(2) have ?ths apply simp 
-	apply (cases "a=0", simp_all) 
-	apply (rule exI[where x="0"], simp)
-	apply (rule exI[where x="0"], simp)
-	done}
+        apply (cases "a=0", simp_all) 
+        apply (rule exI[where x="0"], simp)
+        apply (rule exI[where x="0"], simp)
+        done}
     moreover
     {assume "c=1" with H(3) power_one have "a*b = 1" by simp 
-	hence "a = 1 \<and> b = 1" by simp
-	hence ?ths 
+        hence "a = 1 \<and> b = 1" by simp
+        hence ?ths 
       apply -
       apply (rule exI[where x=1])
       apply (rule exI[where x=1])
@@ -690,7 +690,7 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
       from coprime_lmul2 [OF H(2)[unfolded k coprime_commute[of "p^n*k" b]]]
       have kb: "coprime k b" by (simp add: coprime_commute) 
       from H(3) l k pn0 have kbln: "k * b = l ^ n" 
-	by (auto simp add: power_mult_distrib)
+        by (auto simp add: power_mult_distrib)
       from H(1)[rule_format, OF lc kb kbln]
       obtain r s where rs: "k = r ^n" "b = s^n" by blast
       from k rs(1) have "a = (p*r)^n" by (simp add: power_mult_distrib)
@@ -705,7 +705,7 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
       from coprime_lmul2 [OF H(2)[unfolded k coprime_commute[of "p^n*k" a]]]
       have kb: "coprime k a" by (simp add: coprime_commute) 
       from H(3) l k pn0 n have kbln: "k * a = l ^ n" 
-	by (simp add: power_mult_distrib mult_commute)
+        by (simp add: power_mult_distrib mult_commute)
       from H(1)[rule_format, OF lc kb kbln]
       obtain r s where rs: "k = r ^n" "a = s^n" by blast
       from k rs(1) have "b = (p*r)^n" by (simp add: power_mult_distrib)
@@ -743,7 +743,7 @@ next
     {assume pp: "prime (p^Suc n)"
       hence "p = 1 \<or> p^n = 1" using prime_product[of p "p^n"] by simp
       with p have n: "n = 0" 
-	by (simp only: exp_eq_1 ) simp
+        by (simp only: exp_eq_1 ) simp
       with pp have "prime p \<and> Suc n = 1" by simp}
     moreover
     {assume n: "prime p \<and> Suc n = 1" hence "prime (p^Suc n)" by simp}

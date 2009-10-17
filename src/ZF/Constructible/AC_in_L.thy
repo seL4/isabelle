@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/AC_in_L.thy
-    ID: $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -227,7 +226,7 @@ definition
     --{*wellordering on (environment, formula) pairs*}
    "env_form_r(f,r,A) ==
       rmult(list(A), rlist(A, r),
-	    formula, measure(formula, enum(f)))"
+            formula, measure(formula, enum(f)))"
 
 definition
   env_form_map :: "[i,i,i,i]=>i" where
@@ -327,10 +326,10 @@ definition
       lets us remove the premise @{term "Limit(i)"} from some theorems.*}
     "rlimit(i,r) ==
        if Limit(i) then 
-	 {z: Lset(i) * Lset(i).
-	  \<exists>x' x. z = <x',x> &
-		 (lrank(x') < lrank(x) |
-		  (lrank(x') = lrank(x) & <x',x> \<in> r(succ(lrank(x)))))}
+         {z: Lset(i) * Lset(i).
+          \<exists>x' x. z = <x',x> &
+                 (lrank(x') < lrank(x) |
+                  (lrank(x') = lrank(x) & <x',x> \<in> r(succ(lrank(x)))))}
        else 0"
 
 definition

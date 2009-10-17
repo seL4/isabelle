@@ -1107,7 +1107,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add];
 
-	(* Function to add both the simp and eqvt attributes *)
+        (* Function to add both the simp and eqvt attributes *)
         (* These two attributes are duplicated on all the types in the mutual nominal datatypes *)
 
     val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add, NominalThmDecls.eqvt_add];

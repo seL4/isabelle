@@ -386,8 +386,8 @@ fun basic_possibility_tac ctxt =
 
 val analz_image_freshK_ss = 
      @{simpset} delsimps [image_insert, image_Un]
-	       delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
-	       addsimps @{thms analz_image_freshK_simps}
+               delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
+               addsimps @{thms analz_image_freshK_simps}
 end
 *}
 

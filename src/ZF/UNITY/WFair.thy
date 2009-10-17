@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/WFair.thy
-    ID:         $Id$
     Author:     Sidi Ehmety, Computer Laboratory
     Copyright   1998  University of Cambridge
 *)
@@ -19,7 +18,7 @@ definition
     is generic to all forms of fairness.*) 
   transient :: "i=>i"  where
   "transient(A) =={F:program. (EX act: Acts(F). A<=domain(act) &
-			       act``A <= state-A) & st_set(A)}"
+                               act``A <= state-A) & st_set(A)}"
 
 definition
   ensures :: "[i,i] => i"       (infixl "ensures" 60)  where
@@ -37,7 +36,7 @@ inductive
     Basis:  "[| F:A ensures B;  A:Pow(D); B:Pow(D) |] ==> <A,B>:leads(D, F)"
     Trans:  "[| <A,B> : leads(D, F); <B,C> : leads(D, F) |] ==>  <A,C>:leads(D, F)"
     Union:   "[| S:Pow({A:S. <A, B>:leads(D, F)}); B:Pow(D); S:Pow(Pow(D)) |] ==> 
-	      <Union(S),B>:leads(D, F)"
+              <Union(S),B>:leads(D, F)"
 
   monos        Pow_mono
   type_intros  Union_Pow_iff [THEN iffD2] UnionI PowI

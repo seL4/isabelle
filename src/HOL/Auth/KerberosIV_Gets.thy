@@ -161,18 +161,18 @@ inductive_set "kerbIV_gets" :: "event list set"
             B \<noteq> Tgs;  authK \<in> symKeys;
             Gets Tgs \<lbrace>
              (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK,
-				 Number Ta\<rbrace>),
+                                 Number Ta\<rbrace>),
              (Crypt authK \<lbrace>Agent A, Number T2\<rbrace>), Agent B\<rbrace>
-	        \<in> set evs4;
+                \<in> set evs4;
             \<not> expiredAK Ta evs4;
             \<not> expiredA T2 evs4;
             servKlife + (CT evs4) <= authKlife + Ta
          \<rbrakk>
           \<Longrightarrow> Says Tgs A
                 (Crypt authK \<lbrace>Key servK, Agent B, Number (CT evs4),
-			       Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK,
-		 			        Number (CT evs4)\<rbrace> \<rbrace>)
-	        # evs4 \<in> kerbIV_gets"
+                               Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK,
+                                                Number (CT evs4)\<rbrace> \<rbrace>)
+                # evs4 \<in> kerbIV_gets"
 (* Tgs creates a new session key per each request for a service, without
    checking if there is still a fresh one for that service.
    The cipher under Tgs' key is the authTicket, the cipher under B's key
@@ -187,14 +187,14 @@ inductive_set "kerbIV_gets" :: "event list set"
  | K5:  "\<lbrakk> evs5 \<in> kerbIV_gets; authK \<in> symKeys; servK \<in> symKeys;
             Says A Tgs
                 \<lbrace>authTicket, Crypt authK \<lbrace>Agent A, Number T2\<rbrace>,
-		  Agent B\<rbrace>
+                  Agent B\<rbrace>
               \<in> set evs5;
             Gets A
              (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
                 \<in> set evs5;
             valid Ts wrt T2 \<rbrakk>
           \<Longrightarrow> Says A B \<lbrace>servTicket,
-			 Crypt servK \<lbrace>Agent A, Number (CT evs5)\<rbrace> \<rbrace>
+                         Crypt servK \<lbrace>Agent A, Number (CT evs5)\<rbrace> \<rbrace>
                # evs5 \<in> kerbIV_gets"
 (* Checks similar to those in K3. *)
 
@@ -495,7 +495,7 @@ lemma Says_tgs_message_form:
      evs \<in> kerbIV_gets \<rbrakk>
   \<Longrightarrow> servK \<notin> range shrK &
       (\<exists>A. servTicket =
-	      Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Ts\<rbrace>)
+              Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Ts\<rbrace>)
        | servTicket \<in> analz (spies evs)"
 apply (frule Gets_imp_knows_Spy [THEN analz.Inj], auto)
  apply (force dest!: servTicket_form)
@@ -1231,15 +1231,15 @@ text{*If Spy sees the Service Key sent in msg K4, then
 
 lemma Confidentiality_lemma [rule_format]:
      "\<lbrakk> Says Tgs A
-	    (Crypt authK
-	       \<lbrace>Key servK, Agent B, Number Ts,
-		 Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>)
-	   \<in> set evs;
-	Key authK \<notin> analz (spies evs);
+            (Crypt authK
+               \<lbrace>Key servK, Agent B, Number Ts,
+                 Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>)
+           \<in> set evs;
+        Key authK \<notin> analz (spies evs);
         servK \<in> symKeys;
-	A \<notin> bad;  B \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
+        A \<notin> bad;  B \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Key servK \<in> analz (spies evs) \<longrightarrow>
-	  expiredSK Ts evs"
+          expiredSK Ts evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbIV_gets.induct)

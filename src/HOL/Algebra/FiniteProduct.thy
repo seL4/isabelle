@@ -423,17 +423,17 @@ proof -
       then have "finprod G f A = finprod G f (insert x B)" by simp
       also from insert have "... = f x \<otimes> finprod G f B"
       proof (intro finprod_insert)
-	show "finite B" by fact
+        show "finite B" by fact
       next
-	show "x ~: B" by fact
+        show "x ~: B" by fact
       next
-	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
-	  "g \<in> insert x B \<rightarrow> carrier G"
-	thus "f \<in> B -> carrier G" by fastsimp
+        assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+          "g \<in> insert x B \<rightarrow> carrier G"
+        thus "f \<in> B -> carrier G" by fastsimp
       next
-	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
-	  "g \<in> insert x B \<rightarrow> carrier G"
-	thus "f x \<in> carrier G" by fastsimp
+        assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+          "g \<in> insert x B \<rightarrow> carrier G"
+        thus "f x \<in> carrier G" by fastsimp
       qed
       also from insert have "... = g x \<otimes> finprod G g B" by fastsimp
       also from insert have "... = finprod G g (insert x B)"

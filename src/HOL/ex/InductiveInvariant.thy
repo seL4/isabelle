@@ -1,5 +1,5 @@
-(*  ID:         $Id$
-    Author:	Sava Krsti\'{c} and John Matthews
+(*
+    Author:     Sava Krsti\'{c} and John Matthews
 *)
 
 header {* Some of the results in Inductive Invariants for Nested Recursion *}

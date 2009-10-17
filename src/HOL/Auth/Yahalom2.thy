@@ -51,7 +51,7 @@ inductive_set yahalom :: "event list set"
            Both agents are quoted in the 2nd certificate to prevent attacks!*)
  | YM3:  "[| evs3 \<in> yahalom;  Key KAB \<notin> used evs3;
              Gets Server {|Agent B, Nonce NB,
-			   Crypt (shrK B) {|Agent A, Nonce NA|}|}
+                           Crypt (shrK B) {|Agent A, Nonce NA|}|}
                \<in> set evs3 |]
           ==> Says Server A
                {|Nonce NB,

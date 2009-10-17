@@ -86,19 +86,19 @@ proof -
     proof (cases rule: converse_rtranclE)
       assume "a=y"
       with a_v_r v_x_rt have "(y,x) \<in> r\<^sup>*"
-	by (auto intro: r_into_rtrancl rtrancl_trans)
+        by (auto intro: r_into_rtrancl rtrancl_trans)
       then show ?thesis 
-	by blast
+        by blast
     next
       fix w 
       assume a_w_r: "(a, w) \<in> r" and
             w_y_rt: "(w, y) \<in> r\<^sup>*"
       from a_v_r a_w_r unique 
       have "v=w" 
-	by auto
+        by auto
       with w_y_rt hyp 
       show ?thesis
-	by blast
+        by blast
     qed
   qed
 qed
@@ -213,11 +213,11 @@ primrec  "the_In2 (In2 b) = b"
 primrec  "the_In3 (In3 c) = c"
 
 syntax
-	 In1l	:: "'al \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
-	 In1r	:: "'ar \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
+         In1l   :: "'al \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
+         In1r   :: "'ar \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
 translations
-	"In1l e" == "In1 (Inl e)"
-	"In1r c" == "In1 (Inr c)"
+        "In1l e" == "In1 (Inl e)"
+        "In1r c" == "In1 (Inr c)"
 
 syntax the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
        the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"

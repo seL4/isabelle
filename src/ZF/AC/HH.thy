@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/HH.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 Some properties of the recursive definition of HH used in the proofs of
@@ -104,7 +103,7 @@ apply (unfold lepoll_def inj_def)
 apply (rule_tac x = "\<lambda>j \<in> i. HH (f, x, j) " in exI)
 apply (simp (no_asm_simp))
 apply (fast del: DiffE
-	    elim!: HH_eq_imp_arg_eq Ord_in_Ord HH_subset_x_lt_too 
+            elim!: HH_eq_imp_arg_eq Ord_in_Ord HH_subset_x_lt_too 
             intro!: lam_type ballI ltI intro: bexI)
 done
 
@@ -113,7 +112,7 @@ apply (rule HH_values [THEN disjE])
 prefer 2 apply assumption 
 apply (fast del: DiffE
             intro!: Ord_Hartog 
-	    dest!: HH_subset_x_imp_lepoll 
+            dest!: HH_subset_x_imp_lepoll 
             elim!: Hartog_lepoll_selfE)
 done
 
@@ -205,7 +204,7 @@ lemma lam_singI:
      "f \<in> (\<Pi> X \<in> Pow(x)-{0}. F(X))   
       ==> (\<lambda>X \<in> Pow(x)-{0}. {f`X}) \<in> (\<Pi> X \<in> Pow(x)-{0}. {{z}. z \<in> F(X)})"
 by (fast del: DiffI DiffE
-	    intro!: lam_type singleton_eq_iff [THEN iffD2] dest: apply_type)
+            intro!: lam_type singleton_eq_iff [THEN iffD2] dest: apply_type)
 
 (*FIXME: both uses have the form ...[THEN bij_converse_bij], so 
   simplification is needed!*)

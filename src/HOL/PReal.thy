@@ -1,9 +1,9 @@
-(*  Title       : PReal.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
-    Description : The positive reals as Dedekind sections of positive
-         rationals. Fundamentals of Abstract Analysis [Gleason- p. 121]
-                  provides some of the definitions.
+(*  Title:      HOL/PReal.thy
+    Author:     Jacques D. Fleuriot, University of Cambridge
+
+The positive reals as Dedekind sections of positive
+rationals. Fundamentals of Abstract Analysis [Gleason- p. 121]
+provides some of the definitions.
 *)
 
 header {* Positive real numbers *}
@@ -319,10 +319,10 @@ proof (unfold add_set_def, clarify)
     show "x * ?f \<in> A"
     proof (rule preal_downwards_closed [OF A x])
       show "0 < x * ?f"
-	by (simp add: divide_inverse zero_less_mult_iff)
+        by (simp add: divide_inverse zero_less_mult_iff)
     next
       show "x * ?f < x"
-	by (insert mult_strict_left_mono [OF fless xpos], simp)
+        by (insert mult_strict_left_mono [OF fless xpos], simp)
     qed
   qed
 qed
@@ -399,16 +399,16 @@ proof -
     show "x * y \<notin> mult_set A B"
     proof -
       { fix u::rat and v::rat
-	      assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
-	      moreover
-	      with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
-	      moreover
-	      with prems have "0\<le>v"
-	        by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
-	      moreover
+              assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
+              moreover
+              with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
+              moreover
+              with prems have "0\<le>v"
+                by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
+              moreover
         from calculation
-	      have "u*v < x*y" by (blast intro: mult_strict_mono prems)
-	      ultimately have False by force }
+              have "u*v < x*y" by (blast intro: mult_strict_mono prems)
+              ultimately have False by force }
       thus ?thesis by (auto simp add: mult_set_def)
     qed
   qed
@@ -446,15 +446,15 @@ proof (unfold mult_set_def, clarify)
     show "\<exists>y'\<in>B. z = (z/y) * y'"
     proof
       show "z = (z/y)*y"
-	by (simp add: divide_inverse mult_commute [of y] mult_assoc
-		      order_less_imp_not_eq2)
+        by (simp add: divide_inverse mult_commute [of y] mult_assoc
+                      order_less_imp_not_eq2)
       show "y \<in> B" by fact
     qed
   next
     show "z/y \<in> A"
     proof (rule preal_downwards_closed [OF A x])
       show "0 < z/y"
-	by (simp add: zero_less_divide_iff)
+        by (simp add: zero_less_divide_iff)
       show "z/y < x" by (simp add: pos_divide_less_eq zless)
     qed
   qed
@@ -531,12 +531,12 @@ proof (induct z)
       proof (intro exI conjI)
         show "0 < x/v"
           by (simp add: zero_less_divide_iff xpos vpos)
-	show "x / v < 1"
+        show "x / v < 1"
           by (simp add: pos_divide_less_eq vpos xlessv)
         show "\<exists>v'\<in>A. x = (x / v) * v'"
         proof
           show "x = (x/v)*v"
-	    by (simp add: divide_inverse mult_assoc vpos
+            by (simp add: divide_inverse mult_assoc vpos
                           order_less_imp_not_eq2)
           show "v \<in> A" by fact
         qed
@@ -661,12 +661,12 @@ proof -
     show "inverse x \<notin> inverse_set A"
     proof -
       { fix y::rat 
-	assume ygt: "inverse x < y"
-	have [simp]: "0 < y" by (simp add: order_less_trans [OF _ ygt])
-	have iyless: "inverse y < x" 
-	  by (simp add: inverse_less_imp_less [of x] ygt)
-	have "inverse y \<in> A"
-	  by (simp add: preal_downwards_closed [OF A x] iyless)}
+        assume ygt: "inverse x < y"
+        have [simp]: "0 < y" by (simp add: order_less_trans [OF _ ygt])
+        have iyless: "inverse y < x" 
+          by (simp add: inverse_less_imp_less [of x] ygt)
+        have "inverse y \<in> A"
+          by (simp add: preal_downwards_closed [OF A x] iyless)}
      thus ?thesis by (auto simp add: inverse_set_def)
     qed
   qed
@@ -820,9 +820,9 @@ proof -
     proof -
       have "r + ?d < r + (r * ?d)/y" by (simp add: dless)
       also with ypos have "... = (r/y) * (y + ?d)"
-	by (simp only: algebra_simps divide_inverse, simp)
+        by (simp only: algebra_simps divide_inverse, simp)
       also have "... = r*x" using ypos
-	by (simp add: times_divide_eq_left) 
+        by (simp add: times_divide_eq_left) 
       finally show "r + ?d < r*x" .
     qed
     with r notin rdpos

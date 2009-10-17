@@ -234,8 +234,7 @@ proof (induct M N arbitrary: \<sigma>)
       by auto
     
     have "\<sigma>' =\<^sub>s \<sigma> \<bullet> \<rho>" unfolding \<sigma>
-      by (rule eqv_intro, auto simp:eqv_dest[OF eqv] 
-	eqv_dest[OF eqv2])
+      by (rule eqv_intro, auto simp:eqv_dest[OF eqv] eqv_dest[OF eqv2])
     thus "\<exists>\<gamma>. \<sigma>' =\<^sub>s \<sigma> \<bullet> \<gamma>" ..
   qed
 qed (auto split:split_if_asm) -- "Solve the remaining cases automatically"
@@ -388,22 +387,22 @@ next
     
     show "v \<in> vars_of (M \<cdot> N) \<union> vars_of (M' \<cdot> N') \<union> vars_of t"
     proof (cases "v \<notin> vars_of M \<and> v \<notin> vars_of M'
-	    \<and> v \<notin> vars_of N \<and> v \<notin> vars_of N'")
+        \<and> v \<notin> vars_of N \<and> v \<notin> vars_of N'")
       case True
       with ih1 have l:"\<And>t. v \<in> vars_of (t \<triangleleft> \<theta>1) \<Longrightarrow> v \<in> vars_of t"
-	    by auto
+        by auto
       
       from a and ih2[where t="t \<triangleleft> \<theta>1"]
       have "v \<in> vars_of (N \<triangleleft> \<theta>1) \<union> vars_of (N' \<triangleleft> \<theta>1) 
         \<or> v \<in> vars_of (t \<triangleleft> \<theta>1)" unfolding \<sigma>
-	    by auto
+        by auto
       hence "v \<in> vars_of t"
       proof
-	    assume "v \<in> vars_of (N \<triangleleft> \<theta>1) \<union> vars_of (N' \<triangleleft> \<theta>1)"
-	    with True show ?thesis by (auto dest:l)
+        assume "v \<in> vars_of (N \<triangleleft> \<theta>1) \<union> vars_of (N' \<triangleleft> \<theta>1)"
+        with True show ?thesis by (auto dest:l)
       next
-	    assume "v \<in> vars_of (t \<triangleleft> \<theta>1)" 
-	    thus ?thesis by (rule l)
+        assume "v \<in> vars_of (t \<triangleleft> \<theta>1)" 
+        thus ?thesis by (rule l)
       qed
       
       thus ?thesis by auto
@@ -515,12 +514,12 @@ proof
     -- {* Either a variable is eliminated \ldots *}
     assume "(\<exists>v\<in>vars_of M \<union> vars_of M'. elim \<theta> v)"
     then obtain v 
-	  where "elim \<theta> v" 
-	  and "v\<in>vars_of M \<union> vars_of M'" by auto
+      where "elim \<theta> v" 
+      and "v\<in>vars_of M \<union> vars_of M'" by auto
     with unify_vars[OF inner]
     have "vars_of (N\<triangleleft>\<theta>) \<union> vars_of (N'\<triangleleft>\<theta>)
-	  \<subset> vars_of (M\<cdot>N) \<union> vars_of (M'\<cdot>N')"
-	  by auto
+      \<subset> vars_of (M\<cdot>N) \<union> vars_of (M'\<cdot>N')"
+      by auto
     
     thus ?thesis
       by (auto intro!: measures_less intro: psubset_card_mono)
@@ -528,7 +527,7 @@ proof
     -- {* Or the substitution is empty *}
     assume "\<theta> =\<^sub>s []"
     hence "N \<triangleleft> \<theta> = N" 
-	  and "N' \<triangleleft> \<theta> = N'" by auto
+      and "N' \<triangleleft> \<theta> = N'" by auto
     thus ?thesis 
        by (auto intro!: measures_less intro: psubset_card_mono)
   qed

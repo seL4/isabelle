@@ -360,42 +360,42 @@ next
       case 0 note b = this
       show ?thesis
       proof (cases ys)
-	case Nil  with a b Cons.prems show ?thesis by (simp add: sublist'_Nil3)
+        case Nil  with a b Cons.prems show ?thesis by (simp add: sublist'_Nil3)
       next
-	case (Cons y ys)
-	show ?thesis
-	proof (cases j)
-	  case 0 with a b Cons.prems show ?thesis by simp
-	next
-	  case (Suc j') with a b Cons.prems Cons show ?thesis 
-	    apply -
-	    apply (simp, rule Cons.hyps [of "0" "j'" "ys" "0" "m'"], auto)
-	    done
-	qed
+        case (Cons y ys)
+        show ?thesis
+        proof (cases j)
+          case 0 with a b Cons.prems show ?thesis by simp
+        next
+          case (Suc j') with a b Cons.prems Cons show ?thesis 
+            apply -
+            apply (simp, rule Cons.hyps [of "0" "j'" "ys" "0" "m'"], auto)
+            done
+        qed
       qed
     next
       case (Suc n')
       show ?thesis
       proof (cases ys)
-	case Nil with Suc a Cons.prems show ?thesis by (auto simp add: sublist'_Nil3)
+        case Nil with Suc a Cons.prems show ?thesis by (auto simp add: sublist'_Nil3)
       next
-	case (Cons y ys) with Suc a Cons.prems show ?thesis
-	  apply -
-	  apply simp
-	  apply (cases j)
-	  apply simp
-	  apply (cases i)
-	  apply simp
-	  apply (rule_tac j="nat" in Cons.hyps [of "0" _ "ys" "n'" "m'"])
-	  apply simp
-	  apply simp
-	  apply simp
-	  apply simp
-	  apply (rule_tac i="nata" and j="nat" in Cons.hyps [of _ _ "ys" "n'" "m'"])
-	  apply simp
-	  apply simp
-	  apply simp
-	  done
+        case (Cons y ys) with Suc a Cons.prems show ?thesis
+          apply -
+          apply simp
+          apply (cases j)
+          apply simp
+          apply (cases i)
+          apply simp
+          apply (rule_tac j="nat" in Cons.hyps [of "0" _ "ys" "n'" "m'"])
+          apply simp
+          apply simp
+          apply simp
+          apply simp
+          apply (rule_tac i="nata" and j="nat" in Cons.hyps [of _ _ "ys" "n'" "m'"])
+          apply simp
+          apply simp
+          apply simp
+          done
       qed
     qed
   qed

@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Datatype_absolute.thy
-    ID: $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -27,7 +26,7 @@ lemma bnd_mono_increasing [rule_format]:
      "[|i \<in> nat; j \<in> nat; bnd_mono(D,h)|] ==> i \<le> j --> h^i(0) \<subseteq> h^j(0)"
 apply (rule_tac m=i and n=j in diff_induct, simp_all)
 apply (blast del: subsetI
-	     intro: bnd_mono_iterates_subset bnd_monoD2 [of concl: h]) 
+             intro: bnd_mono_iterates_subset bnd_monoD2 [of concl: h]) 
 done
 
 lemma directed_iterates: "bnd_mono(D,h) ==> directed({h^n (0). n\<in>nat})"
@@ -178,7 +177,7 @@ lemmas datatype_univs = Inl_in_univ Inr_in_univ
 lemma list_fun_bnd_mono: "bnd_mono(univ(A), \<lambda>X. {0} + A*X)"
 apply (rule bnd_monoI)
  apply (intro subset_refl zero_subset_univ A_subset_univ 
-	      sum_subset_univ Sigma_subset_univ) 
+              sum_subset_univ Sigma_subset_univ) 
 apply (rule subset_refl sum_mono Sigma_mono | assumption)+
 done
 
@@ -226,7 +225,7 @@ lemma formula_fun_bnd_mono:
      "bnd_mono(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))"
 apply (rule bnd_monoI)
  apply (intro subset_refl zero_subset_univ A_subset_univ 
-	      sum_subset_univ Sigma_subset_univ nat_subset_univ) 
+              sum_subset_univ Sigma_subset_univ nat_subset_univ) 
 apply (rule subset_refl sum_mono Sigma_mono | assumption)+
 done
 
@@ -678,8 +677,8 @@ by (simp add: trans_wfrec_abs transrec_replacement_def is_transrec_def
 
 theorem (in M_eclose) transrec_closed:
      "[|transrec_replacement(M,MH,i);  relation2(M,MH,H);
-	Ord(i);  M(i);
-	\<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|]
+        Ord(i);  M(i);
+        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|]
       ==> M(transrec(i,H))"
 by (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
         transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
@@ -768,7 +767,7 @@ definition
   is_Member :: "[i=>o,i,i,i] => o" where
      --{* because @{term "Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))"}*}
     "is_Member(M,x,y,Z) ==
-	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)"
+        \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)"
 
 lemma (in M_trivial) Member_abs [simp]:
      "[|M(x); M(y); M(Z)|] ==> is_Member(M,x,y,Z) <-> (Z = Member(x,y))"
@@ -782,7 +781,7 @@ definition
   is_Equal :: "[i=>o,i,i,i] => o" where
      --{* because @{term "Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))"}*}
     "is_Equal(M,x,y,Z) ==
-	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)"
+        \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)"
 
 lemma (in M_trivial) Equal_abs [simp]:
      "[|M(x); M(y); M(Z)|] ==> is_Equal(M,x,y,Z) <-> (Z = Equal(x,y))"
@@ -795,7 +794,7 @@ definition
   is_Nand :: "[i=>o,i,i,i] => o" where
      --{* because @{term "Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))"}*}
     "is_Nand(M,x,y,Z) ==
-	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)"
+        \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)"
 
 lemma (in M_trivial) Nand_abs [simp]:
      "[|M(x); M(y); M(Z)|] ==> is_Nand(M,x,y,Z) <-> (Z = Nand(x,y))"
@@ -931,7 +930,7 @@ lemma (in M_datatypes) Relation1_formula_rec_case:
            is_c, \<lambda>u v. c(u, v, h`succ(depth(u))`u, h`succ(depth(v))`v));
         Relation1(M, formula,
            is_d, \<lambda>u. d(u, h ` succ(depth(u)) ` u));
- 	M(h) |]
+        M(h) |]
       ==> Relation1(M, formula,
                          is_formula_case (M, is_a, is_b, is_c, is_d),
                          formula_rec_case(a, b, c, d, h))"
@@ -947,9 +946,9 @@ locale Formula_Rec = M_eclose +
   fixes a and is_a and b and is_b and c and is_c and d and is_d and MH
   defines
       "MH(u::i,f,z) ==
-	\<forall>fml[M]. is_formula(M,fml) -->
+        \<forall>fml[M]. is_formula(M,fml) -->
              is_lambda
-	 (M, fml, is_formula_case (M, is_a, is_b, is_c(f), is_d(f)), z)"
+         (M, fml, is_formula_case (M, is_a, is_b, is_c(f), is_d(f)), z)"
 
   assumes a_closed: "[|x\<in>nat; y\<in>nat|] ==> M(a(x,y))"
       and a_rel:    "Relation2(M, nat, nat, is_a, a)"
@@ -969,8 +968,8 @@ locale Formula_Rec = M_eclose +
       and fr_lam_replace:
            "M(g) ==>
             strong_replacement
-	      (M, \<lambda>x y. x \<in> formula &
-		  y = \<langle>x, formula_rec_case(a,b,c,d,g,x)\<rangle>)";
+              (M, \<lambda>x y. x \<in> formula &
+                  y = \<langle>x, formula_rec_case(a,b,c,d,g,x)\<rangle>)";
 
 lemma (in Formula_Rec) formula_rec_case_closed:
     "[|M(g); p \<in> formula|] ==> M(formula_rec_case(a, b, c, d, g, p))"

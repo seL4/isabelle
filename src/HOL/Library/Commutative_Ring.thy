@@ -288,8 +288,8 @@ proof (induct n arbitrary: P rule: nat_less_induct)
             by (simp only: numerals even_nat_div_two_times_two [OF `even w`])
           have "Ipol ls P * Ipol ls P = Ipol ls P ^ Suc (Suc 0)"
             by (simp add: power_Suc)
-	  then have "Ipol ls P * Ipol ls P = Ipol ls P ^ 2"
-	    by (simp add: numerals)
+          then have "Ipol ls P * Ipol ls P = Ipol ls P ^ 2"
+            by (simp add: numerals)
           with Suc show ?thesis
             by (auto simp add: power_mult [symmetric, of _ 2 _] two_times mul_ci sqr_ci
                      simp del: power_Suc)

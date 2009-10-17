@@ -200,14 +200,14 @@ if (check_for_constr thy atyp trm) then
 (* the case with transrel *)
  else 
  (trm,actstr,"(" ^ r ^ ") & " ^ (poststring statetupel ((a,b)::c)),
-	"(" ^ r ^ ") & " ^ (pseudo_poststring ((a,b)::c)),flag))
+  "(" ^ r ^ ") & " ^ (pseudo_poststring ((a,b)::c)),flag))
 else
 error("transition " ^ actstr ^ " is not a pure constructor term")
 end;
 (* used by make_alt_string *) 
 fun extended_list _ _ _ [] = [] |
 extended_list thy atyp statetupel (a::r) =
-	 (extend thy atyp statetupel a) :: (extended_list thy atyp statetupel r);
+   (extend thy atyp statetupel a) :: (extended_list thy atyp statetupel r);
 
 (* used by write_alts *)
 fun write_alt thy (chead,tr) inp out int [] =
@@ -230,10 +230,10 @@ if (chead=(hd_of a)) then
 (if ((chead mem inp) andalso e) then (
 error("Input action " ^ b ^ " has a precondition")
 ) else (if (chead mem (inp@out@int)) then 
-		(if (occurs_again chead r) then (
+    (if (occurs_again chead r) then (
 error("Two specifications for action: " ^ b)
-		) else (b ^ " => " ^ c,b ^ " => " ^ d))
-	else (
+    ) else (b ^ " => " ^ c,b ^ " => " ^ d))
+  else (
 error("Action " ^ b ^ " is not in automaton signature")
 ))) else (write_alt thy (chead,ctrm) inp out int r)
 handle malformed =>
@@ -344,7 +344,7 @@ val out_head_list = constructor_head_list thy action_type out;
 val int_head_list = constructor_head_list thy action_type int;
 val overlap_flag = ((overlap inp out) andalso (overlap inp int) andalso (overlap out int)); 
 val alt_string = make_alt_string thy inp_head_list out_head_list int_head_list 
-							atyp statetupel trans;
+              atyp statetupel trans;
 val thy2 = (thy
 |> Sign.add_consts
 [(Binding.name (automaton_name ^ "_initial"), "(" ^ state_type_string ^ ")set" ,NoSyn),

@@ -519,7 +519,7 @@ where
                                  G,A\<turnstile>{Normal P} NewC C-\<succ> {Q}"
 
 | NewA: "\<lbrakk>G,A\<turnstile>{Normal P} .init_comp_ty T. {Q};  G,A\<turnstile>{Q} e-\<succ>
-	  {\<lambda>Val:i:. abupd (check_neg i) .; Alloc G (Arr T (the_Intg i)) R}\<rbrakk> \<Longrightarrow>
+          {\<lambda>Val:i:. abupd (check_neg i) .; Alloc G (Arr T (the_Intg i)) R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} New T[e]-\<succ> {R}"
 
 | Cast: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. \<lambda>s..

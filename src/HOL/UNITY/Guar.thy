@@ -1,19 +1,13 @@
 (*  Title:      HOL/UNITY/Guar.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1999  University of Cambridge
+    Author:     Sidi Ehmety
 
 From Chandy and Sanders, "Reasoning About Program Composition",
 Technical Report 2000-003, University of Florida, 2000.
 
-Revised by Sidi Ehmety on January 2001
-
-Added: Compatibility, weakest guarantees, etc.
-
-and Weakest existential property,
-from Charpentier and Chandy "Theorems about Composition",
+Compatibility, weakest guarantees, etc.  and Weakest existential
+property, from Charpentier and Chandy "Theorems about Composition",
 Fifth International Conference on Mathematics of Program, 2000.
-
 *)
 
 header{*Guarantees Specifications*}
@@ -66,7 +60,7 @@ constdefs
   "welldef == {F. Init F \<noteq> {}}"
   
   refines :: "['a program, 'a program, 'a program set] => bool"
-			("(3_ refines _ wrt _)" [10,10,10] 10)
+                        ("(3_ refines _ wrt _)" [10,10,10] 10)
   "G refines F wrt X ==
      \<forall>H. (F ok H & G ok H & F\<squnion>H \<in> welldef \<inter> X) --> 
          (G\<squnion>H \<in> welldef \<inter> X)"

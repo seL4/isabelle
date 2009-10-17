@@ -1,8 +1,5 @@
 (*  Title:      ZF/Resid/Substitution.thy
-    ID:         $Id$
-    Author:     Ole Rasmussen
-    Copyright   1995  University of Cambridge
-    Logic Image: ZF
+    Author:     Ole Rasmussen, University of Cambridge
 *)
 
 theory Substitution imports Redex begin
@@ -33,7 +30,7 @@ consts
 primrec
   "subst_aux(Var(i)) =
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. if k<i then Var(i #- 1)
-				else if k=i then r else Var(i))"
+                                else if k=i then r else Var(i))"
   "subst_aux(Fun(t)) =
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. Fun(subst_aux(t) ` lift(r) ` succ(k)))"
 
@@ -41,7 +38,7 @@ primrec
      (\<lambda>r \<in> redexes. \<lambda>k \<in> nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
 
 definition
-  subst_rec     :: "[i,i,i]=> i"	(**NOTE THE ARGUMENT ORDER BELOW**)  where
+  subst_rec     :: "[i,i,i]=> i"        (**NOTE THE ARGUMENT ORDER BELOW**)  where
     "subst_rec(u,r,k) == subst_aux(r)`u`k"
 
 abbreviation
@@ -216,8 +213,8 @@ done
 lemma subst_rec_subst_rec [rule_format]:
      "v \<in> redexes ==>
         \<forall>m \<in> nat. \<forall>n \<in> nat. \<forall>u \<in> redexes. \<forall>w \<in> redexes. m\<le>n -->
-	  subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m) =
-	  subst_rec(w,subst_rec(u,v,m),n)"
+          subst_rec(subst_rec(w,u,n),subst_rec(lift_rec(w,m),v,succ(n)),m) =
+          subst_rec(w,subst_rec(u,v,m),n)"
 apply (erule redexes.induct)
 apply (simp_all add: lift_lift [symmetric] lift_rec_subst_rec_lt, safe)
 apply (rename_tac n' u w)

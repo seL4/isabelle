@@ -1,5 +1,4 @@
 (*  Title:      HOL/Extraction/Util.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
@@ -39,7 +38,7 @@ proof (rule R)
     proof
       assume ny: "n = y"
       have "P n"
-	by (rule R) (rule Suc)
+        by (rule R) (rule Suc)
       with ny show ?case by simp
     next
       assume "n \<noteq> y"
@@ -77,18 +76,18 @@ next
       assume nP: "\<not> P z"
       have "\<not> (\<exists>x<Suc z. P x)"
       proof
-	assume "\<exists>x<Suc z. P x"
-	then obtain x where le: "x < Suc z" and P: "P x" by iprover
-	have "x < z"
-	proof (cases "x = z")
-	  case True
-	  with nP and P show ?thesis by simp
-	next
-	  case False
-	  with le show ?thesis by simp
-	qed
-	with P have "\<exists>x<z. P x" by iprover
-	with nex show False ..
+        assume "\<exists>x<Suc z. P x"
+        then obtain x where le: "x < Suc z" and P: "P x" by iprover
+        have "x < z"
+        proof (cases "x = z")
+          case True
+          with nP and P show ?thesis by simp
+        next
+          case False
+          with le show ?thesis by simp
+        qed
+        with P have "\<exists>x<z. P x" by iprover
+        with nex show False ..
       qed
       thus ?case by iprover
     qed

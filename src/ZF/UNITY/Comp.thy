@@ -1,5 +1,4 @@
 (*  Title:      ZF/UNITY/Comp.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -47,7 +46,7 @@ definition
 definition
   localize  :: "[i=>i, i] => i"  where
   "localize(f,F) == mk_program(Init(F), Acts(F),
-		       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
+                       AllowedActs(F) Int (UN G:preserves(f). Acts(G)))"
 
   
 (*** component and strict_component relations ***)

@@ -1,7 +1,7 @@
 (*  Title:      HOL/SetInterval.thy
-    Author:     Tobias Nipkow and Clemens Ballarin
-                Additions by Jeremy Avigad in March 2004
-    Copyright   2000  TU Muenchen
+    Author:     Tobias Nipkow
+    Author:     Clemens Ballarin
+    Author:     Jeremy Avigad
 
 lessThan, greaterThan, atLeast, atMost and two-sided intervals
 *)
@@ -15,19 +15,19 @@ begin
 context ord
 begin
 definition
-  lessThan    :: "'a => 'a set"	("(1{..<_})") where
+  lessThan    :: "'a => 'a set" ("(1{..<_})") where
   "{..<u} == {x. x < u}"
 
 definition
-  atMost      :: "'a => 'a set"	("(1{.._})") where
+  atMost      :: "'a => 'a set" ("(1{.._})") where
   "{..u} == {x. x \<le> u}"
 
 definition
-  greaterThan :: "'a => 'a set"	("(1{_<..})") where
+  greaterThan :: "'a => 'a set" ("(1{_<..})") where
   "{l<..} == {x. l<x}"
 
 definition
-  atLeast     :: "'a => 'a set"	("(1{_..})") where
+  atLeast     :: "'a => 'a set" ("(1{_..})") where
   "{l..} == {x. l\<le>x}"
 
 definition

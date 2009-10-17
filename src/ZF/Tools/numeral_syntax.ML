@@ -1,5 +1,4 @@
 (*  Title:      ZF/Tools/numeral_syntax.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Concrete syntax for generic numerals.  Assumes consts and syntax of
@@ -37,12 +36,12 @@ fun prefix_len _ [] = 0
 
 fun mk_bin i =
   let fun bin_of_int 0  = []
-  	    | bin_of_int ~1 = [~1]
-    	| bin_of_int n  = (n mod 2) :: bin_of_int (n div 2);
+        | bin_of_int ~1 = [~1]
+        | bin_of_int n  = (n mod 2) :: bin_of_int (n div 2);
 
       fun term_of [] = @{const Pls}
-	    | term_of [~1] = @{const Min}
-	    | term_of (b :: bs) = @{const Bit} $ term_of bs $ mk_bit b;
+            | term_of [~1] = @{const Min}
+            | term_of (b :: bs) = @{const Bit} $ term_of bs $ mk_bit b;
   in
     term_of (bin_of_int i)
   end;
@@ -72,9 +71,9 @@ fun show_int t =
   let
     val rev_digs = bin_of t;
     val (sign, zs) =
-	(case rev rev_digs of
-	     ~1 :: bs => ("-", prefix_len (equal 1) bs)
-	   | bs =>       ("",  prefix_len (equal 0) bs));
+        (case rev rev_digs of
+             ~1 :: bs => ("-", prefix_len (equal 1) bs)
+           | bs =>       ("",  prefix_len (equal 0) bs));
     val num = string_of_int (abs (integ_of rev_digs));
   in
     "#" ^ sign ^ implode (replicate zs "0") ^ num

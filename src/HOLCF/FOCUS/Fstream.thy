@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/FOCUS/Fstream.thy
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 
-FOCUS streams (with lifted elements)
-###TODO: integrate Fstreams.thy
+FOCUS streams (with lifted elements).
+
+TODO: integrate Fstreams.thy
 *)
 
 header {* FOCUS flat streams *}

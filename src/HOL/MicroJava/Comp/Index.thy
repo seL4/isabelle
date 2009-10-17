@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/Index.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -105,7 +104,7 @@ constdefs
 (* This corresponds to the original def in wf_java_mdecl:
   "disjoint_varnames pns lvars \<equiv> 
   nodups pns \<and> unique lvars \<and> This \<notin> set pns \<and> This \<notin> set (map fst lvars) \<and> 
-	(\<forall>pn\<in>set pns. map_of lvars pn = None)"
+        (\<forall>pn\<in>set pns. map_of lvars pn = None)"
 *)
 
   "disjoint_varnames pns lvars \<equiv> 

@@ -1,7 +1,7 @@
 (*  Title:      HOL/MetisTest/Message.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Testing the metis method
+Testing the metis method.
 *)
 
 theory Message imports Main begin
@@ -34,13 +34,13 @@ datatype  --{*We allow any number of friendly agents*}
   agent = Server | Friend nat | Spy
 
 datatype
-     msg = Agent  agent	    --{*Agent names*}
+     msg = Agent  agent     --{*Agent names*}
          | Number nat       --{*Ordinary integers, timestamps, ...*}
          | Nonce  nat       --{*Unguessable nonces*}
          | Key    key       --{*Crypto keys*}
-	 | Hash   msg       --{*Hashing*}
-	 | MPair  msg msg   --{*Compound messages*}
-	 | Crypt  key msg   --{*Encryption, public- or shared-key*}
+         | Hash   msg       --{*Hashing*}
+         | MPair  msg msg   --{*Compound messages*}
+         | Crypt  key msg   --{*Encryption, public- or shared-key*}
 
 
 text{*Concrete syntax: messages appear as {|A,B,NA|}, etc...*}

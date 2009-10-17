@@ -622,7 +622,7 @@ apply (subgoal_tac "\<exists> pc''. pc = pc'' + length mt_pre", erule exE)
 prefer 2 apply (rule_tac x="pc - length mt_pre" in exI, arith)
 
 apply (drule_tac x=pc'' in spec)
-apply (drule mp) apply arith	(* show pc'' < length mt *)
+apply (drule mp) apply arith    (* show pc'' < length mt *)
 apply clarify
 
 apply (rule conjI)
@@ -1398,7 +1398,7 @@ apply (rule_tac bc_pre=bc1 and bc=bc2 and bc_post=bc3
     apply (rule max_of_list_sublist)
     apply (simp (no_asm_simp) only: set_append set.simps map.simps) apply blast
   apply (simp (no_asm_simp))
-  apply simp			(* subgoal bc3 = [] *)
+  apply simp                    (* subgoal bc3 = [] *)
   apply (simp add: comb_nil_def) (* subgoal mt3 = [] \<and> sttp2 = sttp3 *)
 
   (* case start_sttp_resp_cons f3 *)
@@ -1440,7 +1440,7 @@ apply simp
 apply (rule check_type_mono, assumption)
 apply (simp only: max_ssize_def) apply (rule max_of_list_sublist) apply (simp (no_asm_simp))
 apply blast
-  apply simp			(* subgoal bc3 = [] *)
+  apply simp                    (* subgoal bc3 = [] *)
   apply (simp add: comb_nil_def) (* subgoal mt3 = [] \<and> sttp2 = sttp3 *)
 
 
@@ -1735,7 +1735,7 @@ apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2"
   apply (simp only: compTpExpr_LT_ST)+
   apply (simp add: eff_def norm_eff_def popST_def pushST_def mt_sttp_flatten_def)
   apply (case_tac Ta) apply (simp (no_asm_simp)) apply (simp (no_asm_simp))
-  apply (rule contracting_popST)		(* contracting (popST 2)  *)
+  apply (rule contracting_popST)                (* contracting (popST 2)  *)
 
 apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3]"
   and ?bc2.0 = "[LitPush (Bool False)]" 
@@ -1766,7 +1766,7 @@ apply (drule_tac ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3,
   apply (simp (no_asm_simp) add: length_compTpExpr)
   apply (simp only: compTpExpr_LT_ST)+
   apply (simp add: eff_def norm_eff_def popST_def pushST_def)
-  apply (rule contracting_popST)		(* contracting (popST 1) *)
+  apply (rule contracting_popST)                (* contracting (popST 1) *)
 
 apply (drule_tac 
   ?bc1.0 = "compExpr jmb expr1 @ compExpr jmb expr2 @ [Ifcmpeq 3, LitPush (Bool False), Goto 2]" 
@@ -2282,7 +2282,7 @@ apply (simp (no_asm_simp) add: compInitLvars_def)+
 apply (rule_tac vn=vn and ty=ty in wt_method_compTpInit_corresp)
 apply assumption+
 apply (simp (no_asm_simp))+ 
-apply (simp add: wf_java_mdecl_def)	(* is_type G ty *)
+apply (simp add: wf_java_mdecl_def)     (* is_type G ty *)
 apply (simp add: compTpInit_def storeST_def pushST_def)
 apply simp
 done

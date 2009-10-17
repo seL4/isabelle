@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/WO1_WO7.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, CU Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -82,7 +81,7 @@ lemma WO1_imp_LEMMA: "WO1 ==> LEMMA"
 apply (unfold WO1_def LEMMA_def, clarify) 
 apply (blast dest: well_ord_converse_Memrel
                    Ord_ordertype [THEN converse_Memrel_not_well_ord]
-	     intro: ordertype_ord_iso ord_iso_is_bij bij_is_inj lepoll_Finite
+             intro: ordertype_ord_iso ord_iso_is_bij bij_is_inj lepoll_Finite
                     lepoll_def [THEN def_imp_iff, THEN iffD2] )
 done
 

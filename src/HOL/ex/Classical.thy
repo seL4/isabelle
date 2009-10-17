@@ -713,7 +713,7 @@ lemma "(\<forall>x. wolf x \<longrightarrow> animal x) & (\<exists>x. wolf x) &
        (\<forall>x. grain x \<longrightarrow> plant x) & (\<exists>x. grain x) &
        (\<forall>x. animal x \<longrightarrow>
              ((\<forall>y. plant y \<longrightarrow> eats x y)  \<or> 
-	      (\<forall>y. animal y & smaller_than y x &
+              (\<forall>y. animal y & smaller_than y x &
                     (\<exists>z. plant z & eats y z) \<longrightarrow> eats x y))) &
        (\<forall>x y. bird y & (snail x \<or> caterpillar x) \<longrightarrow> smaller_than x y) &
        (\<forall>x y. bird x & fox y \<longrightarrow> smaller_than x y) &

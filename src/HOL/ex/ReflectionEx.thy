@@ -382,7 +382,7 @@ lemma " \<forall>x. \<exists>n. ((Suc n) * length (([(3::int) * x + (f t)*y - 9 
 oops
 
 
-  (* An example for equations containing type variables *)	
+(* An example for equations containing type variables *)
 datatype prod = Zero | One | Var nat | Mul prod prod 
   | Pw prod nat | PNM nat nat prod
 consts Iprod :: " prod \<Rightarrow> ('a::{ordered_idom}) list \<Rightarrow>'a" 

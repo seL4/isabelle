@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/ELT
-    ID:         $Id$
+(*  Title:      HOL/UNITY/ELT.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
@@ -15,7 +14,7 @@ inductive "elt CC F B"
     Weaken:  "A <= B ==> A : elt CC F B"
 
     ETrans:  "[| F : A ensures A';  A-A' : CC;  A' : elt CC F B |]
-	      ==> A : elt CC F B"
+              ==> A : elt CC F B"
 
     Union:  "{A. A: S} : Pow (elt CC F B) ==> (Union S) : elt CC F B"
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/GCD.thy
+(*  Title:      HOL/Old_Number_Theory/Legacy_GCD.thy
     Author:     Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
@@ -331,31 +331,31 @@ proof-
      moreover
      {assume db: "d=b"
        from prems have ?thesis apply simp
-	 apply (rule exI[where x = b], simp)
-	 apply (rule exI[where x = b])
-	by (rule exI[where x = "a - 1"], simp add: diff_mult_distrib2)}
+         apply (rule exI[where x = b], simp)
+         apply (rule exI[where x = b])
+        by (rule exI[where x = "a - 1"], simp add: diff_mult_distrib2)}
     moreover
     {assume db: "d < b" 
-	{assume "x=0" hence ?thesis  using prems by simp }
-	moreover
-	{assume x0: "x \<noteq> 0" hence xp: "x > 0" by simp
-	  
-	  from db have "d \<le> b - 1" by simp
-	  hence "d*b \<le> b*(b - 1)" by simp
-	  with xp mult_mono[of "1" "x" "d*b" "b*(b - 1)"]
-	  have dble: "d*b \<le> x*b*(b - 1)" using bp by simp
-	  from H (3) have "a * ((b - 1) * y) + d * (b - 1 + 1) = d + x*b*(b - 1)" by algebra
-	  hence "a * ((b - 1) * y) = d + x*b*(b - 1) - d*b" using bp by simp
-	  hence "a * ((b - 1) * y) = d + (x*b*(b - 1) - d*b)" 
-	    by (simp only: diff_add_assoc[OF dble, of d, symmetric])
-	  hence "a * ((b - 1) * y) = b*(x*(b - 1) - d) + d"
-	    by (simp only: diff_mult_distrib2 add_commute mult_ac)
-	  hence ?thesis using H(1,2)
-	    apply -
-	    apply (rule exI[where x=d], simp)
-	    apply (rule exI[where x="(b - 1) * y"])
-	    by (rule exI[where x="x*(b - 1) - d"], simp)}
-	ultimately have ?thesis by blast}
+        {assume "x=0" hence ?thesis  using prems by simp }
+        moreover
+        {assume x0: "x \<noteq> 0" hence xp: "x > 0" by simp
+          
+          from db have "d \<le> b - 1" by simp
+          hence "d*b \<le> b*(b - 1)" by simp
+          with xp mult_mono[of "1" "x" "d*b" "b*(b - 1)"]
+          have dble: "d*b \<le> x*b*(b - 1)" using bp by simp
+          from H (3) have "a * ((b - 1) * y) + d * (b - 1 + 1) = d + x*b*(b - 1)" by algebra
+          hence "a * ((b - 1) * y) = d + x*b*(b - 1) - d*b" using bp by simp
+          hence "a * ((b - 1) * y) = d + (x*b*(b - 1) - d*b)" 
+            by (simp only: diff_add_assoc[OF dble, of d, symmetric])
+          hence "a * ((b - 1) * y) = b*(x*(b - 1) - d) + d"
+            by (simp only: diff_mult_distrib2 add_commute mult_ac)
+          hence ?thesis using H(1,2)
+            apply -
+            apply (rule exI[where x=d], simp)
+            apply (rule exI[where x="(b - 1) * y"])
+            by (rule exI[where x="x*(b - 1) - d"], simp)}
+        ultimately have ?thesis by blast}
     ultimately have ?thesis by blast}
   ultimately have ?thesis by blast}
  ultimately show ?thesis by blast

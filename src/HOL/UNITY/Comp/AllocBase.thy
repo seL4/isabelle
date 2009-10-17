@@ -1,8 +1,6 @@
-(*  Title:      HOL/UNITY/AllocBase.thy
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/AllocBase.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
-
 *)
 
 header{*Common Declarations for Chandy and Charpentier's Allocator*}
@@ -87,7 +85,7 @@ lemma bag_of_sublist_Un_Int:
      "bag_of (sublist l (A Un B)) + bag_of (sublist l (A Int B)) =  
       bag_of (sublist l A) + bag_of (sublist l B)"
 apply (subgoal_tac "A Int B Int {..<length l} =
-	            (A Int {..<length l}) Int (B Int {..<length l}) ")
+                    (A Int {..<length l}) Int (B Int {..<length l}) ")
 apply (simp add: bag_of_sublist Int_Un_distrib2 setsum_Un_Int, blast)
 done
 

@@ -67,11 +67,11 @@ proof -
     have "chain(%i. (F ^^ i) bot)"
     proof -
       { fix i have "(F ^^ i) bot \<le> (F ^^ (Suc i)) bot"
-	proof (induct i)
-	  case 0 show ?case by simp
-	next
-	  case Suc thus ?case using monoD[OF mono Suc] by auto
-	qed }
+        proof (induct i)
+          case 0 show ?case by simp
+        next
+          case Suc thus ?case using monoD[OF mono Suc] by auto
+        qed }
       thus ?thesis by(auto simp add:chain_def)
     qed
     hence "F ?U = (SUP i. (F ^^ (i+1)) bot)" using `continuous F` by (simp add:continuous_def)

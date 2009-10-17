@@ -1,10 +1,9 @@
-(*  Title: ZF/UNITY/Merge
-    ID:         $Id$
+(*  Title:      ZF/UNITY/Merge.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
-A multiple-client allocator from a single-client allocator:
-Merge specification
+A multiple-client allocator from a single-client allocator: Merge
+specification.
 *)
 
 theory Merge imports AllocBase Follows  Guar GenPrefix begin
@@ -37,7 +36,7 @@ definition
   merge_follows :: "[i, i=>i, i, i] =>i"  where
     "merge_follows(A, In, Out, iOut) ==
      (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))
-		   guarantees
+                   guarantees
      (\<Inter>n \<in> Nclients. 
         (%s. sublist(s`Out, {k \<in> nat. k < length(s`iOut) &
                       nth(k, s`iOut) = n})) Fols lift(In(n))
@@ -116,14 +115,14 @@ done
 lemma (in merge) M_ok_iff: 
      "G \<in> program ==>  
        M ok G <-> (G \<in> preserves(lift(Out)) &   
- 	           G \<in> preserves(lift(iOut)) & M \<in> Allowed(G))"
+                   G \<in> preserves(lift(iOut)) & M \<in> Allowed(G))"
 apply (cut_tac merge_spec)
 apply (auto simp add: merge_Allowed ok_iff_Allowed)
 done
 
 lemma (in merge) merge_Always_Out_eq_iOut: 
      "[| G \<in> preserves(lift(Out)); G \<in> preserves(lift(iOut));  
- 	 M \<in> Allowed(G) |]
+         M \<in> Allowed(G) |]
       ==> M \<squnion> G \<in> Always({s \<in> state. length(s`Out)=length(s`iOut)})"
 apply (frule preserves_type [THEN subsetD])
 apply (subgoal_tac "G \<in> program")
@@ -135,7 +134,7 @@ done
 
 lemma (in merge) merge_Bounded: 
      "[| G \<in> preserves(lift(iOut)); G \<in> preserves(lift(Out));  
-	 M \<in> Allowed(G) |] ==>  
+         M \<in> Allowed(G) |] ==>  
        M \<squnion> G: Always({s \<in> state. \<forall>elt \<in> set_of_list(s`iOut). elt<Nclients})"
 apply (frule preserves_type [THEN subsetD])
 apply (frule M_ok_iff)
@@ -174,7 +173,7 @@ done
 
 theorem (in merge) merge_bag_Follows: 
     "M \<in> (\<Inter>n \<in> Nclients. lift(In(n)) IncreasingWrt prefix(A)/list(A))  
-	    guarantees   
+            guarantees   
       (%s. bag_of(s`Out)) Fols  
       (%s. msetsum(%i. bag_of(s`In(i)),Nclients, A)) Wrt MultLe(A, r)/Mult(A)"
 apply (cut_tac merge_spec)
@@ -189,9 +188,9 @@ apply (subgoal_tac "M ok G")
 apply (drule guaranteesD, assumption)
   apply (simp add: merge_spec_def merge_follows_def, blast)
 apply (simp cong add: Follows_cong
-	    add: refl_prefix
-	       mono_bag_of [THEN subset_Follows_comp, THEN subsetD, 
-			    unfolded metacomp_def])
+            add: refl_prefix
+               mono_bag_of [THEN subset_Follows_comp, THEN subsetD, 
+                            unfolded metacomp_def])
 done
 
 end

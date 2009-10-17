@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/CorrComp.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
