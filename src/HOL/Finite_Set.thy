@@ -155,6 +155,19 @@ lemma finite_conv_nat_seg_image:
   "finite A = (\<exists> (n::nat) f. A = f ` {i::nat. i<n})"
 by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
+lemma finite_imp_inj_to_nat_seg:
+assumes "finite A"
+shows "EX f n::nat. f`A = {i. i<n} & inj_on f A"
+proof -
+  from finite_imp_nat_seg_image_inj_on[OF `finite A`]
+  obtain f and n::nat where bij: "bij_betw f {i. i<n} A"
+    by (auto simp:bij_betw_def)
+  let ?f = "the_inv_onto {i. i<n} f"
+  have "inj_on ?f A & ?f ` A = {i. i<n}"
+    by (fold bij_betw_def) (rule bij_betw_the_inv_onto[OF bij])
+  thus ?thesis by blast
+qed
+
 lemma finite_Collect_less_nat[iff]: "finite{n::nat. n<k}"
 by(fastsimp simp: finite_conv_nat_seg_image)
 

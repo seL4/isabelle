@@ -1147,7 +1147,7 @@ lemma finite_set2list:
   assumes "finite S" 
   shows "set (set2list S) = S"
   unfolding set2list_def 
-proof (rule f_inv_f)
+proof (rule f_inv_onto_f)
   from `finite S` have "\<exists>l. set l = S"
     by (rule finite_list)
   thus "S \<in> range set"

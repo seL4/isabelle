@@ -122,12 +122,7 @@ lemma fst_inv_equalityI:
      assumes surj_h: "surj h"
 	 and prem:   "!! x y. g (h(x,y)) = x"
      shows "fst (inv h z) = g z"
-apply (unfold inv_def)
-apply (rule_tac y1 = z in surj_h [THEN surjD, THEN exE])
-apply (rule someI2)
-apply (drule_tac [2] f = g in arg_cong)
-apply (auto simp add: prem)
-done
+by (metis UNIV_I f_inv_onto_f pair_collapse prem surj_h surj_range)
 
 
 subsection{*Trivial properties of f, g, h*}

@@ -157,7 +157,7 @@ text{*The definition of @{const bij_betw} is in @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
 
 lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
-by (auto simp add: bij_betw_def inj_on_Inv)
+by (auto simp add: bij_betw_def)
 
 lemma inj_on_compose:
   "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
@@ -190,22 +190,20 @@ lemma extensionalityI:
       !!x. x\<in>A ==> f x = g x |] ==> f = g"
 by (force simp add: expand_fun_eq extensional_def)
 
-lemma Inv_funcset: "f ` A = B ==> (\<lambda>x\<in>B. Inv A f x) : B -> A"
-by (unfold Inv_def) (fast intro: someI2)
+lemma inv_onto_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_onto A f x) : B -> A"
+by (unfold inv_onto_def) (fast intro: someI2)
 
-lemma compose_Inv_id:
-  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
+lemma compose_inv_onto_id:
+  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. inv_onto A f y) f = (\<lambda>x\<in>A. x)"
 apply (simp add: bij_betw_def compose_def)
 apply (rule restrict_ext, auto)
-apply (erule subst)
-apply (simp add: Inv_f_f)
 done
 
-lemma compose_id_Inv:
-  "f ` A = B ==> compose B f (\<lambda>y\<in>B. Inv A f y) = (\<lambda>x\<in>B. x)"
+lemma compose_id_inv_onto:
+  "f ` A = B ==> compose B f (\<lambda>y\<in>B. inv_onto A f y) = (\<lambda>x\<in>B. x)"
 apply (simp add: compose_def)
 apply (rule restrict_ext)
-apply (simp add: f_Inv_f)
+apply (simp add: f_inv_onto_f)
 done
 
 
