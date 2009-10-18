@@ -216,7 +216,7 @@ fun finish [] = HOLogic.true_const  (*No "real" literals means only type informa
         | xs => foldr1 HOLogic.mk_disj (rev xs);
 
 (*Accumulate sort constraints in vt, with "real" literals in lits.*)
-fun lits_of_strees ctxt (vt, lits) [] = (vt, finish lits)
+fun lits_of_strees _ (vt, lits) [] = (vt, finish lits)
   | lits_of_strees ctxt (vt, lits) (t::ts) =
       lits_of_strees ctxt (add_constraint (constraint_of_stree true t, vt), lits) ts
       handle STREE _ =>
@@ -303,7 +303,7 @@ fun match_literal (t1$u1) (t2$u2) env =
   | match_literal (Free(a1,_)) (Free(a2,_)) env =
       if a1=a2 then env else raise MATCH_LITERAL
   | match_literal (Var(ix1,_)) (Var(ix2,_)) env = insert (op =) (ix1,ix2) env
-  | match_literal _ _ env = raise MATCH_LITERAL;
+  | match_literal _ _ _ = raise MATCH_LITERAL;
 
 (*Checking that all variable associations are unique. The list env contains no
   repetitions, but does it contain say (x,y) and (y,y)? *)
@@ -337,7 +337,7 @@ fun permuted_clause t =
             then SOME ctm else perm ctms
   in perm end;
 
-fun have_or_show "show " lname = "show \""
+fun have_or_show "show " _ = "show \""
   | have_or_show have lname = have ^ lname ^ ": \""
 
 (*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
@@ -345,7 +345,7 @@ fun have_or_show "show " lname = "show \""
 fun isar_lines ctxt ctms =
   let val string_of = PrintMode.setmp [] (fn term => Syntax.string_of_term ctxt term)
       val _ = trace ("\n\nisar_lines: start\n")
-      fun doline have (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
+      fun doline _ (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
            (case permuted_clause t ctms of
                 SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
               | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
@@ -374,17 +374,17 @@ fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
       else
        (case take_prefix (notequal t) lines of
            (_,[]) => lines                  (*no repetition of proof line*)
-         | (pre, (lno',t',deps')::post) =>  (*repetition: replace later line by earlier one*)
+         | (pre, (lno', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
              pre @ map (replace_deps (lno', [lno])) post)
-  | add_prfline ((lno, role, t, []), lines) =  (*no deps: conjecture clause*)
+  | add_prfline ((lno, _, t, []), lines) =  (*no deps: conjecture clause*)
       (lno, t, []) :: lines
-  | add_prfline ((lno, role, t, deps), lines) =
+  | add_prfline ((lno, _, t, deps), lines) =
       if eq_types t then (lno, t, deps) :: lines
       (*Type information will be deleted later; skip repetition test.*)
       else (*FIXME: Doesn't this code risk conflating proofs involving different types??*)
       case take_prefix (notequal t) lines of
          (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
-       | (pre, (lno',t',deps')::post) =>
+       | (pre, (lno', t', _) :: post) =>
            (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
            (pre @ map (replace_deps (lno', [lno])) post);
 

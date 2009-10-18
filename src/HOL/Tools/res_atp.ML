@@ -112,7 +112,7 @@ fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
   | add_term_consts_typs_rm thy (t $ u, tab) =
       add_term_consts_typs_rm thy (t, add_term_consts_typs_rm thy (u, tab))
   | add_term_consts_typs_rm thy (Abs(_,_,t), tab) = add_term_consts_typs_rm thy (t, tab)
-  | add_term_consts_typs_rm thy (_, tab) = tab;
+  | add_term_consts_typs_rm _ (_, tab) = tab;
 
 (*The empty list here indicates that the constant is being ignored*)
 fun add_standard_const (s,tab) = Symtab.update (s,[]) tab;
@@ -208,7 +208,7 @@ fun dest_ConstFree (Const aT) = aT
   | dest_ConstFree _ = raise ConstFree;
 
 (*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
-fun defines thy (thm,(name,n)) gctypes =
+fun defines thy thm gctypes =
     let val tm = prop_of thm
         fun defs lhs rhs =
             let val (rator,args) = strip_comb lhs
@@ -262,7 +262,7 @@ fun relevant_clauses max_new thy ctab p rel_consts =
         | relevant (newrels,rejects) ((ax as (clsthm as (_,(name,n)),consts_typs)) :: axs) =
             let val weight = clause_weight ctab rel_consts consts_typs
             in
-              if p <= weight orelse (follow_defs andalso defines thy clsthm rel_consts)
+              if p <= weight orelse (follow_defs andalso defines thy (#1 clsthm) rel_consts)
               then (ResAxioms.trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
                                             " passes: " ^ Real.toString weight));
                     relevant ((ax,weight)::newrels, rejects) axs)
@@ -403,7 +403,7 @@ fun name_thm_pairs ctxt =
 
 fun check_named ("", th) =
       (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)
-  | check_named (_, th) = true;
+  | check_named _ = true;
 
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt =
@@ -440,7 +440,7 @@ fun tfree_classes_of_terms ts =
 
 (*fold type constructors*)
 fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
-  | fold_type_consts f T x = x;
+  | fold_type_consts _ _ x = x;
 
 val add_type_consts_in_type = fold_type_consts setinsert;
 
@@ -448,7 +448,7 @@ val add_type_consts_in_type = fold_type_consts setinsert;
 fun add_type_consts_in_term thy =
   let val const_typargs = Sign.const_typargs thy
       fun add_tcs (Const cT) x = fold add_type_consts_in_type (const_typargs cT) x
-        | add_tcs (Abs (_, T, u)) x = add_tcs u x
+        | add_tcs (Abs (_, _, u)) x = add_tcs u x
         | add_tcs (t $ u) x = add_tcs t (add_tcs u x)
         | add_tcs _ x = x
   in  add_tcs  end
