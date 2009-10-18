@@ -145,9 +145,11 @@ theorem range_ex1_eq: "inj f \<Longrightarrow> b : range f = (EX! x. b = f x)"
 lemma injD: "[| inj(f); f(x) = f(y) |] ==> x=y"
 by (simp add: inj_on_def)
 
-(*Useful with the simplifier*)
-lemma inj_eq: "inj(f) ==> (f(x) = f(y)) = (x=y)"
+lemma inj_on_eq_iff: "inj_on f A ==> x:A ==> y:A ==> (f(x) = f(y)) = (x=y)"
 by (force simp add: inj_on_def)
+
+lemma inj_eq: "inj f ==> (f(x) = f(y)) = (x=y)"
+by (simp add: inj_on_eq_iff)
 
 lemma inj_on_id[simp]: "inj_on id A"
   by (simp add: inj_on_def) 
@@ -511,7 +513,7 @@ lemma inv_f_f:
   shows "inv f (f x) = x"
 proof -
   from assms have "(THE x'. f x' = f x) = (THE x'. x' = x)"
-    by (simp only: inj_eq)
+    by (simp add: inj_on_eq_iff)
   also have "... = x" by (rule the_eq_trivial)
   finally show ?thesis by (unfold inv_def)
 qed

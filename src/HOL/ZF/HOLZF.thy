@@ -626,7 +626,7 @@ lemma Nat2nat_nat2Nat[simp]: "Nat2nat (nat2Nat n) = n"
 
 lemma nat2Nat_Nat2nat[simp]: "Elem n Nat \<Longrightarrow> nat2Nat (Nat2nat n) = n"
   apply (simp add: Nat2nat_def)
-  apply (rule_tac f_inv_f)
+  apply (rule_tac f_inv_onto_f)
   apply (auto simp add: image_def Nat_def Sep)
   done
 
