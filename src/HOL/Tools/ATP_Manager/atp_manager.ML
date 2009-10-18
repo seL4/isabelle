@@ -19,8 +19,8 @@ sig
   val info: unit -> unit
   val messages: int option -> unit
   val add_prover: string * ATP_Wrapper.prover -> theory -> theory
-  val print_provers: theory -> unit
   val get_prover: theory -> string -> ATP_Wrapper.prover option
+  val print_provers: theory -> unit
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
@@ -236,9 +236,9 @@ fun register birthtime deadtime (thread, desc) =
 fun kill () = Synchronized.change global_state
   (fn {manager, timeout_heap, oldest_heap, active, cancelling, messages, store} =>
     let
-      val formerly_active = map (fn (th, (tb, _, desc)) => (th, (tb, Time.now (), desc))) active;
+      val killing = map (fn (th, (tb, _, desc)) => (th, (tb, Time.now (), desc))) active;
       val state' =
-        make_state manager timeout_heap oldest_heap [] (formerly_active @ cancelling) messages store;
+        make_state manager timeout_heap oldest_heap [] (killing @ cancelling) messages store;
     in state' end);
 
 
@@ -299,13 +299,11 @@ fun add_prover (name, prover) thy =
   Provers.map (Symtab.update_new (name, (prover, stamp ()))) thy
     handle Symtab.DUP dup => err_dup_prover dup;
 
+fun get_prover thy name =
+  Option.map #1 (Symtab.lookup (Provers.get thy) name);
+
 fun print_provers thy = Pretty.writeln
   (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
-
-fun get_prover thy name =
-  (case Symtab.lookup (Provers.get thy) name of
-    NONE => NONE
-  | SOME (prover, _) => SOME prover);
 
 
 (* start prover thread *)
@@ -315,15 +313,14 @@ fun start_prover name birthtime deadtime i proof_state =
     NONE => warning ("Unknown external prover: " ^ quote name)
   | SOME prover =>
       let
-        val (ctxt, (_, goal)) = Proof.get_goal proof_state;
+        val full_goal as (ctxt, (_, goal)) = Proof.get_goal proof_state;
         val desc =
           "external prover " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
             Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc);
-            val problem =
-              ATP_Wrapper.problem_of_goal (! full_types) i (Proof.get_goal proof_state);
+            val problem = ATP_Wrapper.problem_of_goal (! full_types) i full_goal;
             val result =
               let val {success, message, ...} = prover (! timeout) problem;
               in (success, message) end
