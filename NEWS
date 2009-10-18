@@ -82,8 +82,10 @@ Library/Sum_Of_Squares.  It is not a complete decision procedure but
 works well in practice on quantifier-free real arithmetic with +, -,
 *, ^, =, <= and <, i.e. boolean combinations of equalities and
 inequalities between polynomials. It makes use of external
-semidefinite programming solvers.  For more information and examples
-see src/HOL/Library/Sum_Of_Squares.
+semidefinite programming solvers. Method "sos" generates a certificate
+that can be pasted into the proof thus avoiding the need to call an external
+tool every time the proof is checked.
+For more information and examples see src/HOL/Library/Sum_Of_Squares.
 
 * Code generator attributes follow the usual underscore convention:
     code_unfold     replaces    code unfold
