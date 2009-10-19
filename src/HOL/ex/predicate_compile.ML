@@ -825,7 +825,7 @@ fun subsets i j = if i <= j then
 fun cprod ([], ys) = []
   | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
-fun cprods xss = foldr (map op :: o cprod) [[]] xss;
+fun cprods xss = List.foldr (map op :: o cprod) [[]] xss;
 
 
   

@@ -36,7 +36,7 @@ fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
 
 infixr 6 ->>; val (op ->>) = cfunT;
 
-fun cfunsT (Ts, U) = foldr cfunT U Ts;
+fun cfunsT (Ts, U) = List.foldr cfunT U Ts;
 
 fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);

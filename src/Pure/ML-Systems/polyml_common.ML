@@ -18,6 +18,8 @@ use "ML-Systems/use_context.ML";
 
 val forget_structure = PolyML.Compiler.forgetStructure;
 
+val _ = PolyML.Compiler.forgetValue "foldl";
+val _ = PolyML.Compiler.forgetValue "foldr";
 val _ = PolyML.Compiler.forgetValue "print";
 val _ = PolyML.Compiler.forgetValue "ref";
 val _ = PolyML.Compiler.forgetType "ref";
