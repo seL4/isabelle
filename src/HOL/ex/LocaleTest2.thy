@@ -897,7 +897,7 @@ apply (insert unit_id)
 apply simp
 done
   show "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
-apply (unfold Dmonoid.inv_def [OF Dmonoid] inv_def)
+apply (unfold Dmonoid.inv_def [OF Dmonoid])
 apply (insert unit_id)
 apply simp
 apply (rule the_equality)
