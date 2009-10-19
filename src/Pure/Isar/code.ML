@@ -37,7 +37,6 @@ sig
     (string * ((string * sort) list * (string * typ list) list)
       -> theory -> theory) -> theory -> theory
   val add_eqn: thm -> theory -> theory
-  val add_eqnl: string * (thm * bool) list lazy -> theory -> theory
   val add_nbe_eqn: thm -> theory -> theory
   val add_default_eqn: thm -> theory -> theory
   val add_default_eqn_attribute: attribute
@@ -119,19 +118,8 @@ fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
 
 (* code equations *)
 
-type eqns = bool * (thm * bool) list lazy;
-  (*default flag, theorems with proper flag (perhaps lazy)*)
-
-fun pretty_lthms ctxt r = case Lazy.peek r
- of SOME thms => map (Display.pretty_thm ctxt o fst) (Exn.release thms)
-  | NONE => [Pretty.str "[...]"];
-
-fun certificate thy f r =
-  case Lazy.peek r
-   of SOME thms => (Lazy.value o f thy) (Exn.release thms)
-    | NONE => let
-        val thy_ref = Theory.check_thy thy;
-      in Lazy.lazy (fn () => (f (Theory.deref thy_ref) o Lazy.force) r) end;
+type eqns = bool * (thm * bool) list;
+  (*default flag, theorems with proper flag *)
 
 fun add_drop_redundant thy (thm, proper) thms =
   let
@@ -148,13 +136,11 @@ fun add_drop_redundant thy (thm, proper) thms =
       else false;
   in (thm, proper) :: filter_out drop thms end;
 
-fun add_thm thy _ thm (false, thms) = (false, Lazy.map_force (add_drop_redundant thy thm) thms)
-  | add_thm thy true thm (true, thms) = (true, Lazy.map_force (fn thms => thms @ [thm]) thms)
-  | add_thm thy false thm (true, thms) = (false, Lazy.value [thm]);
+fun add_thm thy _ thm (false, thms) = (false, add_drop_redundant thy thm thms)
+  | add_thm thy true thm (true, thms) = (true, thms @ [thm])
+  | add_thm thy false thm (true, thms) = (false, [thm]);
 
-fun add_lthms lthms _ = (false, lthms);
-
-fun del_thm thm = (apsnd o Lazy.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm, true));
+fun del_thm thm = apsnd (remove (eq_fst Thm.eq_thm_prop) (thm, true));
 
 
 (* executable code data *)
@@ -285,17 +271,17 @@ fun map_exec_purge touched f thy =
 val purge_data = (Code_Data.map o apsnd) (K (Unsynchronized.ref empty_data));
 
 fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
-  o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, Lazy.value [])), [])))
+  o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, [])), [])))
     o apfst) (fn (_, eqns) => (true, f eqns));
 
-fun del_eqns c = change_eqns true c (K (false, Lazy.value []));
+fun del_eqns c = change_eqns true c (K (false, []));
 
 
 (* tackling equation history *)
 
 fun get_eqns thy c =
   Symtab.lookup ((the_eqns o the_exec) thy) c
-  |> Option.map (Lazy.force o snd o snd o fst)
+  |> Option.map (snd o snd o fst)
   |> these;
 
 fun continue_history thy = if (history_concluded o the_exec) thy
@@ -550,7 +536,7 @@ fun these_eqns thy c =
 
 fun all_eqns thy =
   Symtab.dest ((the_eqns o the_exec) thy)
-  |> maps (Lazy.force o snd o snd o fst o snd);
+  |> maps (snd o snd o fst o snd);
 
 
 (* cases *)
@@ -606,9 +592,9 @@ fun print_codesetup thy =
   let
     val ctxt = ProofContext.init thy;
     val exec = the_exec thy;
-    fun pretty_eqn (s, (_, lthms)) =
+    fun pretty_eqns (s, (_, eqns)) =
       (Pretty.block o Pretty.fbreaks) (
-        Pretty.str s :: pretty_lthms ctxt lthms
+        Pretty.str s :: map (Display.pretty_thm ctxt o fst) eqns
       );
     fun pretty_dtyp (s, []) =
           Pretty.str s
@@ -638,7 +624,7 @@ fun print_codesetup thy =
       Pretty.block (
         Pretty.str "code equations:"
         :: Pretty.fbrk
-        :: (Pretty.fbreaks o map pretty_eqn) eqns
+        :: (Pretty.fbreaks o map pretty_eqns) eqns
       ),
       Pretty.block (
         Pretty.str "datatypes:"
@@ -703,11 +689,6 @@ fun add_default_eqn thm thy =
 
 fun add_nbe_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (thm, false)) thy;
-
-fun add_eqnl (c, lthms) thy =
-  let
-    val lthms' = certificate thy (fn thy => assert_eqns_const thy c) lthms;
-  in change_eqns false c (add_lthms lthms') thy end;
 
 val add_default_eqn_attribute = Thm.declaration_attribute
   (fn thm => Context.mapping (add_default_eqn thm) I);
