@@ -481,7 +481,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val Abs_inverse_thms' =
       map #1 newT_iso_axms @
-      map2 (fn r_inj => fn r => @{thm f_inv_f} OF [r_inj, r RS mp])
+      map2 (fn r_inj => fn r => @{thm f_the_inv_onto_f} OF [r_inj, r RS mp])
         iso_inj_thms_unfolded iso_thms;
 
     val Abs_inverse_thms = maps (mk_funs_inv thy5) Abs_inverse_thms';
@@ -560,8 +560,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val _ = message config "Proving induction rule for datatypes ...";
 
     val Rep_inverse_thms = (map (fn (_, iso, _) => iso RS subst) newT_iso_axms) @
-      (map (fn r => r RS @{thm inv_f_f} RS subst) iso_inj_thms_unfolded);
-    val Rep_inverse_thms' = map (fn r => r RS @{thm inv_f_f}) iso_inj_thms_unfolded;
+      (map (fn r => r RS @{thm the_inv_f_f} RS subst) iso_inj_thms_unfolded);
+    val Rep_inverse_thms' = map (fn r => r RS @{thm the_inv_f_f}) iso_inj_thms_unfolded;
 
     fun mk_indrule_lemma ((prems, concls), ((i, _), T)) =
       let
@@ -571,8 +571,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val Abs_t = if i < length newTs then
             Const (Sign.intern_const thy6
               ("Abs_" ^ (nth new_type_names i)), Univ_elT --> T)
-          else Const (@{const_name Fun.inv}, [T --> Univ_elT, Univ_elT] ---> T) $
-            Const (nth all_rep_names i, T --> Univ_elT)
+          else Const (@{const_name the_inv_onto},
+              [HOLogic.mk_setT T, T --> Univ_elT, Univ_elT] ---> T) $
+            HOLogic.mk_UNIV T $ Const (nth all_rep_names i, T --> Univ_elT)
 
       in (prems @ [HOLogic.imp $
             (Const (nth rep_set_names i, UnivT') $ Rep_t) $
