@@ -500,8 +500,6 @@ fun mk_deftab thy =
   let
     val axmss = map (fn thy' => (Context.theory_name thy', Theory.axiom_table thy'))
       (thy :: Theory.ancestors_of thy);
-    fun prep_def def = (case preprocess thy [def] of
-      [def'] => prop_of def' | _ => error "mk_deftab: bad preprocessor");
     fun add_def thyname (name, t) = (case dest_prim_def t of
         NONE => I
       | SOME (s, (T, _)) => Symtab.map_default (s, [])
