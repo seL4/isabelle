@@ -505,36 +505,6 @@ hide (open) const swap
 
 subsection {* Inversion of injective functions *}
 
-definition inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" where
-  "inv f y = (THE x. f x = y)"
-
-lemma inv_f_f:
-  assumes "inj f"
-  shows "inv f (f x) = x"
-proof -
-  from assms have "(THE x'. f x' = f x) = (THE x'. x' = x)"
-    by (simp add: inj_on_eq_iff)
-  also have "... = x" by (rule the_eq_trivial)
-  finally show ?thesis by (unfold inv_def)
-qed
-
-lemma f_inv_f:
-  assumes "inj f"
-  and "y \<in> range f"
-  shows "f (inv f y) = y"
-proof (unfold inv_def)
-  from `y \<in> range f` obtain x where "y = f x" ..
-  then have "f x = y" ..
-  then show "f (THE x. f x = y) = y"
-  proof (rule theI)
-    fix x' assume "f x' = y"
-    with `f x = y` have "f x' = f x" by simp
-    with `inj f` show "x' = x" by (rule injD)
-  qed
-qed
-
-hide (open) const inv
-
 definition the_inv_onto :: "'a set => ('a => 'b) => ('b => 'a)" where
 "the_inv_onto A f == %x. THE y. y : A & f y = x"
 
@@ -586,6 +556,14 @@ by (auto intro: inj_onI simp: image_def the_inv_onto_f_f)
 lemma bij_betw_the_inv_onto:
   "bij_betw f A B \<Longrightarrow> bij_betw (the_inv_onto A f) B A"
 by (auto simp add: bij_betw_def inj_on_the_inv_onto the_inv_onto_into)
+
+abbreviation the_inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" where
+  "the_inv f \<equiv> the_inv_onto UNIV f"
+
+lemma the_inv_f_f:
+  assumes "inj f"
+  shows "the_inv f (f x) = x" using assms UNIV_I
+  by (rule the_inv_onto_f_f)
 
 
 subsection {* Proof tool setup *} 
