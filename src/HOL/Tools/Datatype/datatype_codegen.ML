@@ -22,7 +22,7 @@ fun find_nonempty (descr: Datatype.descr) is i =
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
     fun arg_nonempty (_, DatatypeAux.DtRec i) = if member (op =) is i
           then NONE
-          else Option.map (curry op + 1 o snd) (find_nonempty descr (i::is) i)
+          else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
     fun max xs = Library.foldl
       (fn (NONE, _) => NONE

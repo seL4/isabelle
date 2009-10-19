@@ -83,8 +83,8 @@ fun monomial_order (m1,m2) =
  else
   let val mon1 = dest_monomial m1 
       val mon2 = dest_monomial m2
-      val deg1 = fold (curry op + o snd) mon1 0
-      val deg2 = fold (curry op + o snd) mon2 0 
+      val deg1 = fold (Integer.add o snd) mon1 0
+      val deg2 = fold (Integer.add o snd) mon2 0 
   in if deg1 < deg2 then GREATER else if deg1 > deg2 then LESS
      else list_ord (prod_ord cterm_ord int_ord) (mon1,mon2)
   end;
