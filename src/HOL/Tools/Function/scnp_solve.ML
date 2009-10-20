@@ -79,7 +79,7 @@ fun sat_solver x =
 fun var_constrs (gp as GP (arities, gl)) =
   let
     val n = Int.max (num_graphs gp, num_prog_pts gp)
-    val k = List.foldl Int.max 1 arities
+    val k = fold Integer.max arities 1
 
     (* Injective, provided  a < 8, x < n, and i < k. *)
     fun prod a x i j = ((j * k + i) * n + x) * 8 + a + 1

@@ -6,6 +6,8 @@ Auxiliary operations on (unbounded) integers.
 
 signature INTEGER =
 sig
+  val min: int -> int -> int
+  val max: int -> int -> int
   val add: int -> int -> int
   val mult: int -> int -> int
   val sum: int list -> int
@@ -22,6 +24,9 @@ end;
 
 structure Integer : INTEGER =
 struct
+
+fun min x y = Int.min (x, y);
+fun max x y = Int.max (x, y);
 
 fun add x y = x + y;
 fun mult x y = x * y;

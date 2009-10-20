@@ -380,7 +380,7 @@ fun grobner_strong vars pols pol =
         val pol' = augment pol
         val allpols = (grob_sub (grob_mul grob_z pol') grob_1)::pols'
         val (l,cert) = grobner_weak vars' allpols
-        val d = fold_rev (fold_rev (curry Int.max o hd o snd) o snd) cert 0
+        val d = fold (fold (Integer.max o hd o snd) o snd) cert 0
         fun transform_monomial (c,m) =
             grob_cmul (c,tl m) (grob_pow vars pol (d - hd m))
         fun transform_polynomial q = fold_rev (grob_add o transform_monomial) q []

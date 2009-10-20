@@ -256,7 +256,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
         val T = termifyT simpleT;
         val tTs = (map o apsnd) termifyT simple_tTs;
         val is_rec = exists is_some ks;
-        val k = fold (fn NONE => I | SOME k => curry Int.max k) ks 0;
+        val k = fold (fn NONE => I | SOME k => Integer.max k) ks 0;
         val vs = Name.names Name.context "x" (map snd simple_tTs);
         val vs' = (map o apsnd) termifyT vs;
         val tc = HOLogic.mk_return T @{typ Random.seed}

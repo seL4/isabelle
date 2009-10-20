@@ -109,7 +109,7 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
     fun bestmatch [] = NONE
-      | bestmatch xs = SOME (foldr1 Int.min xs);
+      | bestmatch xs = SOME (foldl1 Int.min xs);
 
     val match_thm = matches o refine_term;
   in
@@ -142,7 +142,7 @@ fun filter_dest ctxt goal (_, thm) =
     (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
     if not (null successful)
-    then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
+    then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
   end;
 
 fun filter_intro doiff ctxt goal (_, thm) =
@@ -173,7 +173,7 @@ fun filter_elim ctxt goal (_, thm) =
         assumption is as good as an intro rule with none*)
       if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
         andalso not (null successful)
-      then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
+      then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
     end
   else NONE
 

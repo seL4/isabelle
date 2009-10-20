@@ -542,7 +542,7 @@ fun is_predT (T as Type("fun", [_, _])) = (snd (strip_type T) = HOLogic.boolT)
 fun guess_nparams T =
   let
     val argTs = binder_types T
-    val nparams = fold (curry Int.max)
+    val nparams = fold Integer.max
       (map (fn x => x + 1) (find_indexes is_predT argTs)) 0
   in nparams end;
 

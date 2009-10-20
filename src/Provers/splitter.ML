@@ -159,9 +159,9 @@ fun add_lbnos (is,t) = add_loose_bnos (t,0,is);
 (* check if the innermost abstraction that needs to be removed
    has a body of type T; otherwise the expansion thm will fail later on
 *)
-fun type_test (T,lbnos,apsns) =
-  let val (_,U: typ,_) = List.nth(apsns, Library.foldl Int.min (hd lbnos, tl lbnos))
-  in T=U end;
+fun type_test (T, lbnos, apsns) =
+  let val (_, U: typ, _) = List.nth (apsns, foldl1 Int.min lbnos)
+  in T = U end;
 
 (*************************************************************************
    Create a "split_pack".

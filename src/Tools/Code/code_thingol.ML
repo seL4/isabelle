@@ -420,7 +420,7 @@ fun expand_eta thy k thm =
 fun same_arity thy thms =
   let
     val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
+    val k = fold (Integer.max o num_args_of o Thm.prop_of) thms 0;
   in map (expand_eta thy k) thms end;
 
 fun mk_desymbolization pre post mk vs =

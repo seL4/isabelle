@@ -387,7 +387,7 @@ struct
 			if !next_idx_is_valid then
 				Unsynchronized.inc next_idx
 			else (
-				next_idx          := Termtab.fold (curry Int.max o snd) table 0;
+				next_idx := Termtab.fold (Integer.max o snd) table 0;
 				next_idx_is_valid := true;
 				Unsynchronized.inc next_idx
 			)

@@ -21,8 +21,8 @@ val rat_1 = Rat.one;
 val rat_2 = Rat.two;
 val rat_10 = Rat.rat_of_int 10;
 val rat_1_2 = rat_1 // rat_2;
-val max = curry Int.max;
-val min = curry Int.min;
+val max = Integer.max;
+val min = Integer.min;
 
 val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
 val numerator_rat = Rat.quotient_of_rat #> fst #> Rat.rat_of_int;

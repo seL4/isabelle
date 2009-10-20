@@ -89,7 +89,7 @@ val var_prefix = "v"
 local
 fun mk_inst nctxt cert vs =
   let
-    val max = fold (curry Int.max o fst) vs 0
+    val max = fold (Integer.max o fst) vs 0
     val names = fst (Name.variants (replicate (max + 1) var_prefix) nctxt)
     fun mk (i, v) = (v, cert (Free (nth names i, #T (Thm.rep_cterm v))))
   in map mk vs end

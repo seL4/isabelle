@@ -750,7 +750,7 @@ fun gen_ext_type_tr sep mark sfx more ctxt t =
                     val types = map snd flds';
                     val (args, rest) = splitargs (map fst flds') fargs;
                     val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
-                    val midx = fold (fn T => fn i => Int.max (maxidx_of_typ T, i)) argtypes 0;
+                    val midx = fold Term.maxidx_typ argtypes 0;
                     val varifyT = varifyT midx;
                     val vartypes = map varifyT types;
 
