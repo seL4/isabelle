@@ -34,8 +34,6 @@ fun force_result (Lazy r) =
 
 fun force r = Exn.release (force_result r);
 
-fun map_force f = value o f o force;
-
 end;
 end;
 
