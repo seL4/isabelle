@@ -38,8 +38,6 @@ val run_relevance_filter = true;
 val pass_mark = 0.5;
 val convergence = 3.2;    (*Higher numbers allow longer inference chains*)
 val follow_defs = false;  (*Follow definitions. Makes problems bigger.*)
-val include_all = true;
-val include_atpset = true;
   
 (***************************************************************)
 (* Relevance Filtering                                         *)
@@ -293,15 +291,14 @@ fun relevance_filter max_new theory_const thy axioms goals =
 
 (*** white list and black list of lemmas ***)
 
-(*The rule subsetI is frequently omitted by the relevance filter. This could be theory data
-  or identified with ATPset (which however is too big currently)*)
+(*The rule subsetI is frequently omitted by the relevance filter.*)
 val whitelist_fo = [subsetI];
 (* ext has been a 'helper clause', always given to the atps.
   As such it was not passed to metis, but metis does not include ext (in contrast
   to the other helper_clauses *)
 val whitelist_ho = [ResHolClause.ext];
 
-(*** retrieve lemmas from clasimpset and atpset, may filter them ***)
+(*** retrieve lemmas and filter them ***)
 
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
 
@@ -405,18 +402,11 @@ fun check_named ("", th) =
       (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)
   | check_named _ = true;
 
-(* get lemmas from claset, simpset, atpset and extra supplied rules *)
-fun get_clasimp_atp_lemmas ctxt =
+fun get_all_lemmas ctxt =
   let val included_thms =
-    if include_all
-    then (tap (fn ths => ResAxioms.trace_msg
-                 (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
-              (name_thm_pairs ctxt))
-    else
-    let val atpset_thms =
-            if include_atpset then ResAxioms.atpset_rules_of ctxt
-            else []
-    in  atpset_thms  end
+        tap (fn ths => ResAxioms.trace_msg
+                     (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
+            (name_thm_pairs ctxt)
   in
     filter check_named included_thms
   end;
@@ -524,7 +514,7 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
     val isFO = isFO thy goal_cls
-    val included_thms = get_clasimp_atp_lemmas ctxt
+    val included_thms = get_all_lemmas ctxt
     val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
                                      |> restrict_to_logic thy isFO
                                      |> remove_unwanted_clauses

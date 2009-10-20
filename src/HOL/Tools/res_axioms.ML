@@ -17,7 +17,6 @@ sig
   val expand_defs_tac: thm -> tactic
   val combinators: thm -> thm
   val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
-  val atpset_rules_of: Proof.context -> (string * thm) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
   val setup: theory -> theory
@@ -377,8 +376,6 @@ fun cnf_axiom thy th0 =
 (**** Rules from the context ****)
 
 fun pairname th = (Thm.get_name_hint th, th);
-
-fun atpset_rules_of ctxt = map pairname (ResAtpset.get ctxt);
 
 
 (**** Translate a set of theorems into CNF ****)

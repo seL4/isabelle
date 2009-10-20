@@ -445,7 +445,7 @@ subsection {* Basic operations *}
 
 subsubsection {* Subsets *}
 
-lemma subsetI [atp, intro!]: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B) \<Longrightarrow> A \<subseteq> B"
+lemma subsetI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B) \<Longrightarrow> A \<subseteq> B"
   unfolding mem_def by (rule le_funI, rule le_boolI)
 
 text {*
@@ -476,7 +476,7 @@ lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
 
-lemma subset_refl [simp,atp]: "A \<subseteq> A"
+lemma subset_refl [simp]: "A \<subseteq> A"
   by (fact order_refl)
 
 lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
