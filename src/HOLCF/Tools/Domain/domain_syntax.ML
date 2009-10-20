@@ -71,7 +71,7 @@ fun calc_syntax
              to generate parse rules for non-alphanumeric names*)
         fun freetvar s n      = let val tvar = mk_TFree (s ^ string_of_int n) in
                                   if tvar mem typevars then freetvar ("t"^s) n else tvar end;
-        fun mk_matT (a,bs,c)  = a ->> foldr (op ->>) (mk_maybeT c) bs ->> mk_maybeT c;
+        fun mk_matT (a,bs,c)  = a ->> List.foldr (op ->>) (mk_maybeT c) bs ->> mk_maybeT c;
         fun mat (con,args,mx) = (mat_name_ con,
                                  mk_matT(dtype, map third args, freetvar "t" 1),
                                  Mixfix(escape ("match_" ^ Binding.name_of con), [], Syntax.max_pri));

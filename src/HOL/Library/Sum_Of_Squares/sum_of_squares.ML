@@ -223,7 +223,7 @@ val monomial_1 = FuncUtil.Ctermfunc.empty;
 fun monomial_var x = FuncUtil.Ctermfunc.onefunc (x, 1);
 
 val monomial_mul =
-  FuncUtil.Ctermfunc.combine (curry op +) (K false);
+  FuncUtil.Ctermfunc.combine Integer.add (K false);
 
 fun monomial_pow m k =
   if k = 0 then monomial_1
@@ -233,7 +233,7 @@ fun monomial_divides m1 m2 =
   FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => FuncUtil.Ctermfunc.tryapplyd m2 x 0 >= k andalso a) m1 true;;
 
 fun monomial_div m1 m2 =
- let val m = FuncUtil.Ctermfunc.combine (curry op +)
+ let val m = FuncUtil.Ctermfunc.combine Integer.add
    (fn x => x = 0) m1 (FuncUtil.Ctermfunc.map (fn x => ~ x) m2)
  in if FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => k >= 0 andalso a) m true then m
   else error "monomial_div: non-divisible"

@@ -1616,30 +1616,14 @@ struct
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* sum: returns the sum of a list 'xs' of integers                           *)
-(* ------------------------------------------------------------------------- *)
-
-  (* int list -> int *)
-
-  fun sum xs = List.foldl op+ 0 xs;
-
-(* ------------------------------------------------------------------------- *)
-(* product: returns the product of a list 'xs' of integers                   *)
-(* ------------------------------------------------------------------------- *)
-
-  (* int list -> int *)
-
-  fun product xs = List.foldl op* 1 xs;
-
-(* ------------------------------------------------------------------------- *)
 (* size_of_dtyp: the size of (an initial fragment of) an inductive data type *)
 (*               is the sum (over its constructors) of the product (over     *)
 (*               their arguments) of the size of the argument types          *)
 (* ------------------------------------------------------------------------- *)
 
   fun size_of_dtyp thy typ_sizes descr typ_assoc constructors =
-    sum (map (fn (_, dtyps) =>
-      product (map (size_of_type thy (typ_sizes, []) o
+    Integer.sum (map (fn (_, dtyps) =>
+      Integer.prod (map (size_of_type thy (typ_sizes, []) o
         (typ_of_dtyp descr typ_assoc)) dtyps))
           constructors);
 
@@ -2326,8 +2310,8 @@ struct
             let
               (* number of all constructors, including those of different  *)
               (* (mutually recursive) datatypes within the same descriptor *)
-              val mconstrs_count = sum (map (fn (_, (_, _, cs)) => length cs)
-                (#descr info))
+              val mconstrs_count =
+                Integer.sum (map (fn (_, (_, _, cs)) => length cs) (#descr info))
             in
               if mconstrs_count < length params then
                 (* too many actual parameters; for now we'll use the *)
