@@ -54,7 +54,7 @@ fun check_pats ctxt geq =
       val _ = map check_constr_pattern args
                   
                   (* just count occurrences to check linearity *)
-      val _ = if fold (fold_aterms (fn Bound _ => curry (op +) 1 | _ => I)) args 0 > length qs
+      val _ = if fold (fold_aterms (fn Bound _ => Integer.add 1 | _ => I)) args 0 > length qs
               then err "Nonlinear patterns" else ()
     in
       ()
