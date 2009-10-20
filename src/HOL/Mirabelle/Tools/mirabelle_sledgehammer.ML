@@ -279,9 +279,18 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 
 fun get_atp thy args =
-  AList.lookup (op =) args proverK
-  |> the_default (hd (ATP_Manager.get_atps ()))  (* FIXME partial *)
-  |> (fn name => (name, the (ATP_Manager.get_prover thy name)))  (* FIXME partial *)
+  let
+    fun default_atp_name () = hd (ATP_Manager.get_atps ())
+      handle Empty => error "No ATP available."
+    fun get_prover name =
+      (case ATP_Manager.get_prover thy name of
+        SOME prover => (name, prover)
+      | NONE => error ("Bad ATP: " ^ quote name))
+  in
+    (case AList.lookup (op =) args proverK of
+      SOME name => get_prover name
+    | NONE => get_prover (default_atp_name ()))
+  end
 
 local
 
