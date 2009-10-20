@@ -273,59 +273,78 @@ local
   fun inst_meta cT = Thm.instantiate_cterm ([(meta_eqT, cT)], []) meta_eq
   fun mk_meta_eq ct cu = Thm.mk_binop (inst_meta (Thm.ctyp_of_term ct)) ct cu
 
-  fun lambda_conv conv =
-    let
-      fun sub_conv cvs ctxt ct =
-        (case Thm.term_of ct of
-          Const (@{const_name All}, _) $ Abs _ => quant_conv cvs ctxt
-        | Const (@{const_name Ex}, _) $ Abs _ => quant_conv cvs ctxt
-        | Const _ $ Abs _ => Conv.arg_conv (at_lambda_conv cvs ctxt)
-        | Const (@{const_name Let}, _) $ _ $ Abs _ => Conv.combination_conv
-            (Conv.arg_conv (sub_conv cvs ctxt)) (abs_conv cvs ctxt)
-        | Abs _ => at_lambda_conv cvs ctxt
-        | _ $ _ => Conv.comb_conv (sub_conv cvs ctxt)
-        | _ => Conv.all_conv) ct
-      and abs_conv cvs = Conv.abs_conv (fn (cv, cx) => sub_conv (cv::cvs) cx)
-      and quant_conv cvs ctxt = Conv.arg_conv (abs_conv cvs ctxt)
-      and at_lambda_conv cvs ctxt = abs_conv cvs ctxt then_conv conv cvs ctxt
-    in sub_conv [] end
+  val fresh_name = yield_singleton Name.variants
 
   fun used_vars cvs ct =
     let
       val lookup = AList.lookup (op aconv) (map (` Thm.term_of) cvs)
       val add = (fn (SOME ct) => insert (op aconvc) ct | _ => I)
     in Term.fold_aterms (add o lookup) (Thm.term_of ct) [] end
+  fun make_def cvs eq = Thm.symmetric (fold norm_meta_def cvs eq)
+  fun add_def ct thm = Termtab.update (Thm.term_of ct, (serial (), thm))
 
-  val rev_int_fst_ord = rev_order o int_ord o pairself fst
-  fun ordered_values tab =
-    Termtab.fold (fn (_, x) => OrdList.insert rev_int_fst_ord x) tab []
-    |> map snd
+  fun replace ctxt cvs ct (cx as (nctxt, defs)) =
+    let
+      val cvs' = used_vars cvs ct
+      val ct' = fold Thm.cabs cvs' ct
+      val mk_repl = fold (fn ct => fn cu => Thm.capply cu ct) cvs'
+    in
+      (case Termtab.lookup defs (Thm.term_of ct') of
+        SOME (_, eq) => (make_def cvs' eq, cx)
+      | NONE =>
+          let
+            val {t, T, ...} = Thm.rep_cterm ct'
+            val (n, nctxt') = fresh_name "" nctxt
+            val eq = Thm.assume (mk_meta_eq (cert ctxt (Free (n, T))) ct')
+          in (make_def cvs' eq, (nctxt', add_def ct' eq defs)) end)
+    end
+
+  fun none ct cx = (Thm.reflexive ct, cx)
+  fun in_comb f g ct cx =
+    let val (cu1, cu2) = Thm.dest_comb ct
+    in cx |> f cu1 ||>> g cu2 |>> uncurry Thm.combination end
+  fun in_arg f = in_comb none f
+  fun in_abs f cvs ct (nctxt, defs) =
+    let
+      val (n, nctxt') = fresh_name Name.uu nctxt
+      val (cv, cu) = Thm.dest_abs (SOME n) ct
+    in f (cv :: cvs) cu (nctxt', defs) |>> Thm.abstract_rule n cv end
+
+  fun replace_lambdas ctxt =
+    let
+      fun repl cvs ct =
+        (case Thm.term_of ct of
+          Const (@{const_name All}, _) $ Abs _ => in_arg (in_abs repl cvs)
+        | Const (@{const_name Ex}, _) $ Abs _ => in_arg (in_abs repl cvs)
+        | Const _ $ Abs _ => in_arg (at_lambda cvs)
+        | Const (@{const_name Let}, _) $ _ $ Abs _ =>
+            in_comb (in_arg (repl cvs)) (in_abs repl cvs)
+        | Abs _ => at_lambda cvs
+        | _ $ _ => in_comb (repl cvs) (repl cvs)
+        | _ => none) ct
+      and at_lambda cvs ct cx =
+        let
+          val (thm1, cx') = in_abs repl cvs ct cx
+          val (thm2, cx'') = replace ctxt cvs (Thm.rhs_of thm1) cx'
+        in (Thm.transitive thm1 thm2, cx'') end
+    in repl [] end
 in
 fun lift_lambdas ctxt thms =
   let
     val declare_frees = fold (Thm.fold_terms Term.declare_term_frees)
-    val names = Unsynchronized.ref (declare_frees thms (Name.make_context []))
-    val fresh_name = Unsynchronized.change_result names o yield_singleton Name.variants
+    fun rewrite f thm cx =
+      let val (thm', cx') = f (Thm.cprop_of thm) cx
+      in (Thm.equal_elim thm' thm, cx') end
 
-    val defs = Unsynchronized.ref (Termtab.empty : (int * thm) Termtab.table)
-    fun add_def t thm = Unsynchronized.change defs (Termtab.update (t, (serial (), thm)))
-    fun make_def cvs eq = Thm.symmetric (fold norm_meta_def cvs eq)
-    fun def_conv cvs ctxt ct =
-      let
-        val cvs' = used_vars cvs ct
-        val ct' = fold Thm.cabs cvs' ct
-      in
-        (case Termtab.lookup (!defs) (Thm.term_of ct') of
-          SOME (_, eq) => make_def cvs' eq
-        | NONE =>
-            let
-              val {t, T, ...} = Thm.rep_cterm ct'
-              val eq = mk_meta_eq (cert ctxt (Free (fresh_name "", T))) ct'
-              val thm = Thm.assume eq
-            in (add_def t thm; make_def cvs' thm) end)
-      end
-    val thms' = map (Conv.fconv_rule (lambda_conv def_conv ctxt)) thms
-    val eqs = ordered_values (!defs)
+    val rev_int_fst_ord = rev_order o int_ord o pairself fst
+    fun ordered_values tab =
+      Termtab.fold (fn (_, x) => OrdList.insert rev_int_fst_ord x) tab []
+      |> map snd
+
+    val (thms', (_, defs)) =
+      (declare_frees thms (Name.make_context []), Termtab.empty)
+      |> fold_map (rewrite (replace_lambdas ctxt)) thms
+    val eqs = ordered_values defs
   in
     (maps (#hyps o Thm.crep_thm) eqs, map (normalize_rule ctxt) eqs @ thms')
   end

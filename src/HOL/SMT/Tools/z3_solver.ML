@@ -8,7 +8,6 @@ signature Z3_SOLVER =
 sig
   val proofs: bool Config.T
   val options: string Config.T
-
   val setup: theory -> theory
 end
 
@@ -57,20 +56,18 @@ fun core_oracle (SMT_Solver.ProofData {output, recon, ...}) =
   check_unsat recon output
   |> K @{cprop False}
 
-(* FIXME
 fun prover (SMT_Solver.ProofData {context, output, recon, assms}) =
   check_unsat recon output
   |> Z3_Proof.reconstruct context assms recon
-*)
 
 fun solver oracle ctxt =
   let val with_proof = Config.get ctxt proofs
   in
     SMT_Solver.SolverConfig {
-      name = {env_var=env_var, remote_name=solver_name},
-      interface = Z3_Interface.interface,
+      command = {env_var=env_var, remote_name=solver_name},
       arguments = cmdline_options ctxt,
-      reconstruct = (*FIXME:if with_proof then prover else*) oracle }
+      interface = Z3_Interface.interface,
+      reconstruct = if with_proof then prover else oracle }
   end
 
 val setup =

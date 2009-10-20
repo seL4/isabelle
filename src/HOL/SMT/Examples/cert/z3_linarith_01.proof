@@ -1,0 +1,17 @@
+#2 := false
+#4 := 3::int
+#5 := (= 3::int 3::int)
+#6 := (not #5)
+#30 := (iff #6 false)
+#1 := true
+#25 := (not true)
+#28 := (iff #25 false)
+#29 := [rewrite]: #28
+#26 := (iff #6 #25)
+#23 := (iff #5 true)
+#24 := [rewrite]: #23
+#27 := [monotonicity #24]: #26
+#31 := [trans #27 #29]: #30
+#22 := [asserted]: #6
+[mp #22 #31]: false
+unsat

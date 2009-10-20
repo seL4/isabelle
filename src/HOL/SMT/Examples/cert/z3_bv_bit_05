@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (= (concat bv27[4] bv27[8]) bv2843[12]))
+:formula true
+)

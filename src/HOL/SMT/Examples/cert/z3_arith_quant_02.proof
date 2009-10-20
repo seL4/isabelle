@@ -1,0 +1,24 @@
+#2 := false
+#4 := (exists (vars (?x1 real)) false)
+#5 := (not #4)
+#6 := (not #5)
+#37 := (iff #6 false)
+#1 := true
+#32 := (not true)
+#35 := (iff #32 false)
+#36 := [rewrite]: #35
+#33 := (iff #6 #32)
+#30 := (iff #5 true)
+#25 := (not false)
+#28 := (iff #25 true)
+#29 := [rewrite]: #28
+#26 := (iff #5 #25)
+#23 := (iff #4 false)
+#24 := [elim-unused]: #23
+#27 := [monotonicity #24]: #26
+#31 := [trans #27 #29]: #30
+#34 := [monotonicity #31]: #33
+#38 := [trans #34 #36]: #37
+#22 := [asserted]: #6
+[mp #22 #38]: false
+unsat

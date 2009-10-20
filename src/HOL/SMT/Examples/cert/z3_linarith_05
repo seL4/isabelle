@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (< 5 (ite (<= 3 8) 8 3)))
+:formula true
+)

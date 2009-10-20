@@ -1,11 +1,17 @@
-(*  Title:      HOL/SMT/SMT_Definitions.thy
+(*  Title:      HOL/SMT/SMT_Base.thy
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-header {* SMT-specific definitions *}
+header {* SMT-specific definitions and basic tools *}
 
-theory SMT_Definitions
+theory SMT_Base
 imports Real Word "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+uses
+  ("Tools/smt_normalize.ML")
+  ("Tools/smt_monomorph.ML")
+  ("Tools/smt_translate.ML")
+  ("Tools/smt_solver.ML")
+  ("Tools/smtlib_interface.ML")
 begin
 
 section {* Triggers for quantifier instantiation *}
@@ -79,9 +85,11 @@ definition bv_ashr :: "'a::len word \<Rightarrow> 'a word \<Rightarrow> 'a word"
 where "bv_ashr w1 w2 = (w1 >>> unat w2)"
 
 
-section {* Higher-order encoding *}
+section {* Higher-Order Encoding *}
 
 definition "apply" where "apply f x = f x"
+
+lemmas array_rules = apply_def fun_upd_same fun_upd_other fun_upd_upd ext
 
 
 section {* First-order logic *}
@@ -109,5 +117,15 @@ the (polymorphic) equality predicate:
 definition iff :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "iff" 50) where
   "(x iff y) = (x = y)"
 
-end
 
+section {* Setup *}
+
+use "Tools/smt_normalize.ML"
+use "Tools/smt_monomorph.ML"
+use "Tools/smt_translate.ML"
+use "Tools/smt_solver.ML"
+use "Tools/smtlib_interface.ML"
+
+setup {* SMT_Normalize.setup #> SMT_Solver.setup *}
+
+end

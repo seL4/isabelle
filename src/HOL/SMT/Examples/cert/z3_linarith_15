@@ -1,0 +1,9 @@
+(benchmark Isabelle
+:extrafuns (
+  (uf_2 Int)
+  (uf_1 Int)
+  (uf_3 Int)
+ )
+:assumption (not (or (and (< uf_1 uf_2) (< uf_2 uf_3)) (or (and (< uf_1 uf_2) (= uf_2 uf_3)) (or (and (< uf_1 uf_3) (< uf_3 uf_2)) (or (and (= uf_1 uf_3) (< uf_3 uf_2)) (or (and (= uf_1 uf_2) (< uf_2 uf_3)) (or (and (< uf_3 uf_2) (< uf_2 uf_1)) (or (and (< uf_3 uf_2) (= uf_2 uf_1)) (or (and (< uf_3 uf_1) (< uf_1 uf_2)) (or (and (= uf_3 uf_1) (< uf_1 uf_2)) (or (and (= uf_3 uf_2) (< uf_2 uf_1)) (or (and (< uf_2 uf_1) (< uf_1 uf_3)) (or (and (< uf_2 uf_1) (= uf_3 uf_1)) (or (and (< uf_2 uf_3) (< uf_3 uf_1)) (or (and (= uf_2 uf_1) (< uf_1 uf_3)) (or (and (= uf_2 uf_3) (< uf_3 uf_1)) (and (= uf_3 uf_2) (= uf_2 uf_1))))))))))))))))))
+:formula true
+)

@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (let (?x1 2) (not (= (+ ?x1 ?x1) 5))))
+:formula true
+)

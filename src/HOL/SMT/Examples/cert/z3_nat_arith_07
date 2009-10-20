@@ -1,0 +1,19 @@
+(benchmark Isabelle
+:extrasorts ( T1 T2)
+:extrafuns (
+  (uf_1 Int T1)
+  (uf_2 T1 Int)
+  (uf_5 T1)
+ )
+:extrapreds (
+  (up_3 T1)
+  (up_4 T1 T1)
+ )
+:assumption (forall (?x1 T1) (= (uf_1 (uf_2 ?x1)) ?x1))
+:assumption (forall (?x2 Int) (implies (<= 0 ?x2) (= (uf_2 (uf_1 ?x2)) ?x2)))
+:assumption (forall (?x3 Int) (implies (< ?x3 0) (= (uf_2 (uf_1 ?x3)) 0)))
+:assumption (forall (?x4 T1) (iff (up_3 ?x4) (and (< 1 (uf_2 ?x4)) (forall (?x5 T1) (implies (up_4 ?x5 ?x4) (or (= ?x5 (uf_1 1)) (= ?x5 ?x4)))))))
+:assumption (up_3 (uf_1 (+ (uf_2 (uf_1 (* 4 (uf_2 uf_5)))) 1)))
+:assumption (not (<= 1 (uf_2 uf_5)))
+:formula true
+)

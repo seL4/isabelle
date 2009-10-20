@@ -1,6 +1,7 @@
 #
-# Script to invoke remote SMT solvers.
 # Author: Sascha Boehme, TU Muenchen
+#
+# Invoke remote SMT solvers.
 #
 
 use strict;

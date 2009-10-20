@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
+images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-SMT HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -40,7 +40,7 @@ test: \
   HOL-Prolog \
   HOL-SET-Protocol \
   HOL-SizeChange \
-  HOL-SMT \
+  HOL-SMT-Examples \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -1146,13 +1146,220 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
 
 HOL-SMT: HOL-Word $(LOG)/HOL-SMT.gz
 
-$(LOG)/HOL-SMT.gz: $(OUT)/HOL-Word SMT/SMT_Definitions.thy SMT/SMT.thy \
+$(LOG)/HOL-SMT.gz: $(OUT)/HOL-Word SMT/SMT_Base.thy SMT/Z3.thy SMT/SMT.thy \
   SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML \
   SMT/Tools/smt_translate.ML SMT/Tools/smt_builtin.ML \
   SMT/Tools/smtlib_interface.ML SMT/Tools/smt_solver.ML \
   SMT/Tools/cvc3_solver.ML SMT/Tools/yices_solver.ML \
-  SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML SMT/Tools/z3_model.ML
+  SMT/Tools/z3_proof_terms.ML SMT/Tools/z3_proof_rules.ML \
+  SMT/Tools/z3_proof.ML SMT/Tools/z3_model.ML SMT/Tools/z3_interface.ML \
+  SMT/Tools/z3_solver.ML
 	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
+
+
+## HOL-SMT-Examples
+
+HOL-SMT-Examples: HOL-SMT $(LOG)/HOL-SMT-Examples.gz
+
+$(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML	\
+  SMT/Examples/SMT_Examples.thy \
+  SMT/Examples/cert/z3_arith_quant_01 \
+  SMT/Examples/cert/z3_arith_quant_01.proof \
+  SMT/Examples/cert/z3_arith_quant_02 \
+  SMT/Examples/cert/z3_arith_quant_02.proof \
+  SMT/Examples/cert/z3_arith_quant_03 \
+  SMT/Examples/cert/z3_arith_quant_03.proof \
+  SMT/Examples/cert/z3_arith_quant_04 \
+  SMT/Examples/cert/z3_arith_quant_04.proof \
+  SMT/Examples/cert/z3_arith_quant_05 \
+  SMT/Examples/cert/z3_arith_quant_05.proof \
+  SMT/Examples/cert/z3_arith_quant_06 \
+  SMT/Examples/cert/z3_arith_quant_06.proof \
+  SMT/Examples/cert/z3_arith_quant_07 \
+  SMT/Examples/cert/z3_arith_quant_07.proof \
+  SMT/Examples/cert/z3_arith_quant_08 \
+  SMT/Examples/cert/z3_arith_quant_08.proof \
+  SMT/Examples/cert/z3_arith_quant_09 \
+  SMT/Examples/cert/z3_arith_quant_09.proof \
+  SMT/Examples/cert/z3_arith_quant_10 \
+  SMT/Examples/cert/z3_arith_quant_10.proof \
+  SMT/Examples/cert/z3_arith_quant_11 \
+  SMT/Examples/cert/z3_arith_quant_11.proof \
+  SMT/Examples/cert/z3_arith_quant_12 \
+  SMT/Examples/cert/z3_arith_quant_12.proof \
+  SMT/Examples/cert/z3_arith_quant_13 \
+  SMT/Examples/cert/z3_arith_quant_13.proof \
+  SMT/Examples/cert/z3_arith_quant_14 \
+  SMT/Examples/cert/z3_arith_quant_14.proof \
+  SMT/Examples/cert/z3_arith_quant_15 \
+  SMT/Examples/cert/z3_arith_quant_15.proof \
+  SMT/Examples/cert/z3_arith_quant_16 \
+  SMT/Examples/cert/z3_arith_quant_16.proof \
+  SMT/Examples/cert/z3_arith_quant_17 \
+  SMT/Examples/cert/z3_arith_quant_17.proof \
+  SMT/Examples/cert/z3_arith_quant_18 \
+  SMT/Examples/cert/z3_arith_quant_18.proof \
+  SMT/Examples/cert/z3_bv_01 \
+  SMT/Examples/cert/z3_bv_01.proof \
+  SMT/Examples/cert/z3_bv_02 \
+  SMT/Examples/cert/z3_bv_02.proof \
+  SMT/Examples/cert/z3_bv_arith_01 \
+  SMT/Examples/cert/z3_bv_arith_01.proof \
+  SMT/Examples/cert/z3_bv_arith_02 \
+  SMT/Examples/cert/z3_bv_arith_02.proof \
+  SMT/Examples/cert/z3_bv_arith_03 \
+  SMT/Examples/cert/z3_bv_arith_03.proof \
+  SMT/Examples/cert/z3_bv_arith_04 \
+  SMT/Examples/cert/z3_bv_arith_04.proof \
+  SMT/Examples/cert/z3_bv_arith_05 \
+  SMT/Examples/cert/z3_bv_arith_05.proof \
+  SMT/Examples/cert/z3_bv_arith_06 \
+  SMT/Examples/cert/z3_bv_arith_06.proof \
+  SMT/Examples/cert/z3_bv_arith_07 \
+  SMT/Examples/cert/z3_bv_arith_07.proof \
+  SMT/Examples/cert/z3_bv_arith_08 \
+  SMT/Examples/cert/z3_bv_arith_08.proof \
+  SMT/Examples/cert/z3_bv_arith_09 \
+  SMT/Examples/cert/z3_bv_arith_09.proof \
+  SMT/Examples/cert/z3_bv_arith_10 \
+  SMT/Examples/cert/z3_bv_arith_10.proof \
+  SMT/Examples/cert/z3_bv_bit_01 \
+  SMT/Examples/cert/z3_bv_bit_01.proof \
+  SMT/Examples/cert/z3_bv_bit_02 \
+  SMT/Examples/cert/z3_bv_bit_02.proof \
+  SMT/Examples/cert/z3_bv_bit_03 \
+  SMT/Examples/cert/z3_bv_bit_03.proof \
+  SMT/Examples/cert/z3_bv_bit_04 \
+  SMT/Examples/cert/z3_bv_bit_04.proof \
+  SMT/Examples/cert/z3_bv_bit_05 \
+  SMT/Examples/cert/z3_bv_bit_05.proof \
+  SMT/Examples/cert/z3_bv_bit_06 \
+  SMT/Examples/cert/z3_bv_bit_06.proof \
+  SMT/Examples/cert/z3_bv_bit_07 \
+  SMT/Examples/cert/z3_bv_bit_07.proof \
+  SMT/Examples/cert/z3_bv_bit_08 \
+  SMT/Examples/cert/z3_bv_bit_08.proof \
+  SMT/Examples/cert/z3_bv_bit_09 \
+  SMT/Examples/cert/z3_bv_bit_09.proof \
+  SMT/Examples/cert/z3_bv_bit_10 \
+  SMT/Examples/cert/z3_bv_bit_10.proof \
+  SMT/Examples/cert/z3_bv_bit_11 \
+  SMT/Examples/cert/z3_bv_bit_11.proof \
+  SMT/Examples/cert/z3_bv_bit_12 \
+  SMT/Examples/cert/z3_bv_bit_12.proof \
+  SMT/Examples/cert/z3_bv_bit_13 \
+  SMT/Examples/cert/z3_bv_bit_13.proof \
+  SMT/Examples/cert/z3_bv_bit_14 \
+  SMT/Examples/cert/z3_bv_bit_14.proof \
+  SMT/Examples/cert/z3_bv_bit_15 \
+  SMT/Examples/cert/z3_bv_bit_15.proof \
+  SMT/Examples/cert/z3_fol_01 \
+  SMT/Examples/cert/z3_fol_01.proof \
+  SMT/Examples/cert/z3_fol_02 \
+  SMT/Examples/cert/z3_fol_02.proof \
+  SMT/Examples/cert/z3_fol_03 \
+  SMT/Examples/cert/z3_fol_03.proof \
+  SMT/Examples/cert/z3_fol_04 \
+  SMT/Examples/cert/z3_fol_04.proof \
+  SMT/Examples/cert/z3_hol_01 \
+  SMT/Examples/cert/z3_hol_01.proof \
+  SMT/Examples/cert/z3_hol_02 \
+  SMT/Examples/cert/z3_hol_02.proof \
+  SMT/Examples/cert/z3_hol_03 \
+  SMT/Examples/cert/z3_hol_03.proof \
+  SMT/Examples/cert/z3_hol_04 \
+  SMT/Examples/cert/z3_hol_04.proof \
+  SMT/Examples/cert/z3_hol_05 \
+  SMT/Examples/cert/z3_hol_05.proof \
+  SMT/Examples/cert/z3_hol_06 \
+  SMT/Examples/cert/z3_hol_06.proof \
+  SMT/Examples/cert/z3_hol_07 \
+  SMT/Examples/cert/z3_hol_07.proof \
+  SMT/Examples/cert/z3_hol_08 \
+  SMT/Examples/cert/z3_hol_08.proof \
+  SMT/Examples/cert/z3_linarith_01 \
+  SMT/Examples/cert/z3_linarith_01.proof \
+  SMT/Examples/cert/z3_linarith_02 \
+  SMT/Examples/cert/z3_linarith_02.proof \
+  SMT/Examples/cert/z3_linarith_03 \
+  SMT/Examples/cert/z3_linarith_03.proof \
+  SMT/Examples/cert/z3_linarith_04 \
+  SMT/Examples/cert/z3_linarith_04.proof \
+  SMT/Examples/cert/z3_linarith_05 \
+  SMT/Examples/cert/z3_linarith_05.proof \
+  SMT/Examples/cert/z3_linarith_06 \
+  SMT/Examples/cert/z3_linarith_06.proof \
+  SMT/Examples/cert/z3_linarith_07 \
+  SMT/Examples/cert/z3_linarith_07.proof \
+  SMT/Examples/cert/z3_linarith_08 \
+  SMT/Examples/cert/z3_linarith_08.proof \
+  SMT/Examples/cert/z3_linarith_09 \
+  SMT/Examples/cert/z3_linarith_09.proof \
+  SMT/Examples/cert/z3_linarith_10 \
+  SMT/Examples/cert/z3_linarith_10.proof \
+  SMT/Examples/cert/z3_linarith_11 \
+  SMT/Examples/cert/z3_linarith_11.proof \
+  SMT/Examples/cert/z3_linarith_12 \
+  SMT/Examples/cert/z3_linarith_12.proof \
+  SMT/Examples/cert/z3_linarith_13 \
+  SMT/Examples/cert/z3_linarith_13.proof \
+  SMT/Examples/cert/z3_linarith_14 \
+  SMT/Examples/cert/z3_linarith_14.proof \
+  SMT/Examples/cert/z3_linarith_15 \
+  SMT/Examples/cert/z3_linarith_15.proof \
+  SMT/Examples/cert/z3_linarith_16 \
+  SMT/Examples/cert/z3_linarith_16.proof \
+  SMT/Examples/cert/z3_mono_01 \
+  SMT/Examples/cert/z3_mono_01.proof \
+  SMT/Examples/cert/z3_mono_02 \
+  SMT/Examples/cert/z3_mono_02.proof \
+  SMT/Examples/cert/z3_nat_arith_01 \
+  SMT/Examples/cert/z3_nat_arith_01.proof \
+  SMT/Examples/cert/z3_nat_arith_02 \
+  SMT/Examples/cert/z3_nat_arith_02.proof \
+  SMT/Examples/cert/z3_nat_arith_03 \
+  SMT/Examples/cert/z3_nat_arith_03.proof \
+  SMT/Examples/cert/z3_nat_arith_04 \
+  SMT/Examples/cert/z3_nat_arith_04.proof \
+  SMT/Examples/cert/z3_nat_arith_05 \
+  SMT/Examples/cert/z3_nat_arith_05.proof \
+  SMT/Examples/cert/z3_nat_arith_06 \
+  SMT/Examples/cert/z3_nat_arith_06.proof \
+  SMT/Examples/cert/z3_nat_arith_07 \
+  SMT/Examples/cert/z3_nat_arith_07.proof \
+  SMT/Examples/cert/z3_nlarith_01 \
+  SMT/Examples/cert/z3_nlarith_01.proof \
+  SMT/Examples/cert/z3_nlarith_02 \
+  SMT/Examples/cert/z3_nlarith_02.proof \
+  SMT/Examples/cert/z3_nlarith_03 \
+  SMT/Examples/cert/z3_nlarith_03.proof \
+  SMT/Examples/cert/z3_nlarith_04 \
+  SMT/Examples/cert/z3_nlarith_04.proof \
+  SMT/Examples/cert/z3_pair_01 \
+  SMT/Examples/cert/z3_pair_01.proof \
+  SMT/Examples/cert/z3_pair_02 \
+  SMT/Examples/cert/z3_pair_02.proof \
+  SMT/Examples/cert/z3_prop_01 \
+  SMT/Examples/cert/z3_prop_01.proof \
+  SMT/Examples/cert/z3_prop_02 \
+  SMT/Examples/cert/z3_prop_02.proof \
+  SMT/Examples/cert/z3_prop_03 \
+  SMT/Examples/cert/z3_prop_03.proof \
+  SMT/Examples/cert/z3_prop_04 \
+  SMT/Examples/cert/z3_prop_04.proof \
+  SMT/Examples/cert/z3_prop_05 \
+  SMT/Examples/cert/z3_prop_05.proof \
+  SMT/Examples/cert/z3_prop_06 \
+  SMT/Examples/cert/z3_prop_06.proof \
+  SMT/Examples/cert/z3_prop_07 \
+  SMT/Examples/cert/z3_prop_07.proof \
+  SMT/Examples/cert/z3_prop_08 \
+  SMT/Examples/cert/z3_prop_08.proof \
+  SMT/Examples/cert/z3_prop_09 \
+  SMT/Examples/cert/z3_prop_09.proof \
+  SMT/Examples/cert/z3_prop_10 \
+  SMT/Examples/cert/z3_prop_10.proof
+	@cd SMT; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SMT Examples
 
 
 ## clean
@@ -1177,4 +1384,6 @@ clean:
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
 		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
-                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz
+                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz               \
+                $(LOG)/HOL-SMT-Examples.gz
+

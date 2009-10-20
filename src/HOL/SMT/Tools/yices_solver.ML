@@ -40,9 +40,9 @@ fun core_oracle (SMT_Solver.ProofData {context, output, recon, ...}) =
 
 fun smtlib_solver oracle _ =
   SMT_Solver.SolverConfig {
-    name = {env_var=env_var, remote_name=solver_name},
-    interface = SMTLIB_Interface.interface,
+    command = {env_var=env_var, remote_name=solver_name},
     arguments = options,
+    interface = SMTLIB_Interface.interface,
     reconstruct = oracle }
 
 val setup =

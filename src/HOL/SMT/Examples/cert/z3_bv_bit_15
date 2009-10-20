@@ -1,0 +1,8 @@
+(benchmark Isabelle
+:extrafuns (
+  (uf_1 BitVec[16])
+ )
+:assumption (bvult uf_1 bv256[16])
+:assumption (not (= (bvand uf_1 bv255[16]) uf_1))
+:formula true
+)

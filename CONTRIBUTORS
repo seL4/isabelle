@@ -7,10 +7,13 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* Oktober 2009: Florian Haftmann, TUM
+* October 2009: Sascha Boehme, TUM
+  Extension of SMT method: proof-reconstruction for the SMT solver Z3
+
+* October 2009: Florian Haftmann, TUM
   Refinement of parts of the HOL datatype package
 
-* Oktober 2009: Florian Haftmann, TUM
+* October 2009: Florian Haftmann, TUM
   Generic term styles for term antiquotations
 
 * September 2009: Thomas Sewell, NICTA
