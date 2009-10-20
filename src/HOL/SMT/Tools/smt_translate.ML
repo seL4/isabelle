@@ -34,29 +34,29 @@ sig
   val bv_extract: (int -> int -> string) -> builtin_fun
 
   (* configuration options *)
-  datatype prefixes = Prefixes of {
+  type prefixes = {
     var_prefix: string,
     typ_prefix: string,
     fun_prefix: string,
     pred_prefix: string }
-  datatype markers = Markers of {
+  type markers = {
     term_marker: string,
     formula_marker: string }
-  datatype builtins = Builtins of {
+  type builtins = {
     builtin_typ: typ -> string option,
     builtin_num: int * typ -> string option,
     builtin_fun: bool -> builtin_table }
-  datatype sign = Sign of {
+  type sign = {
     typs: string list,
     funs: (string * (string list * string)) list,
     preds: (string * string list) list }
-  datatype config = Config of {
+  type config = {
     strict: bool,
     prefixes: prefixes,
     markers: markers,
     builtins: builtins,
     serialize: sign -> (string, string) sterm list -> TextIO.outstream -> unit}
-  datatype recon = Recon of {typs: typ Symtab.table, terms: term Symtab.table}
+  type recon = {typs: typ Symtab.table, terms: term Symtab.table}
 
   val translate: config -> theory -> thm list -> TextIO.outstream ->
     recon * thm list
@@ -159,29 +159,29 @@ end
 
 (* Configuration options *)
 
-datatype prefixes = Prefixes of {
+type prefixes = {
   var_prefix: string,
   typ_prefix: string,
   fun_prefix: string,
   pred_prefix: string }
-datatype markers = Markers of {
+type markers = {
   term_marker: string,
   formula_marker: string }
-datatype builtins = Builtins of {
+type builtins = {
   builtin_typ: typ -> string option,
   builtin_num: int * typ -> string option,
   builtin_fun: bool -> builtin_table }
-datatype sign = Sign of {
+type sign = {
   typs: string list,
   funs: (string * (string list * string)) list,
   preds: (string * string list) list }
-datatype config = Config of {
+type config = {
   strict: bool,
   prefixes: prefixes,
   markers: markers,
   builtins: builtins,
   serialize: sign -> (string, string) sterm list -> TextIO.outstream -> unit}
-datatype recon = Recon of {typs: typ Symtab.table, terms: term Symtab.table}
+type recon = {typs: typ Symtab.table, terms: term Symtab.table}
 
 
 (* Translate Isabelle/HOL terms into SMT intermediate terms.
@@ -409,7 +409,7 @@ local
   fun add_typ x (typs, funs, preds) = (Typtab.update x typs, funs, preds)
   fun add_fun true x (typs, funs, preds) = (typs, Termtab.update x funs, preds)
     | add_fun false x (typs, funs, preds) = (typs, funs, Termtab.update x preds)
-  fun make_sign (typs, funs, preds) = Sign {
+  fun make_sign (typs, funs, preds) = {
     typs = map snd (Typtab.dest typs),
     funs = map snd (Termtab.dest funs),
     preds = map (apsnd fst o snd) (Termtab.dest preds) }
@@ -418,11 +418,11 @@ local
       val rTs = Typtab.dest typs |> map swap |> Symtab.make
       val rts = Termtab.dest funs @ Termtab.dest preds
         |> map (apfst fst o swap) |> Symtab.make
-    in Recon {typs=rTs, terms=rts} end
+    in {typs=rTs, terms=rts} end
 
   fun either f g x = (case f x of NONE => g x | y => y)
 
-  fun rep_typ (Builtins {builtin_typ, ...}) T (st as (vars, ns, sgn)) =
+  fun rep_typ ({builtin_typ, ...} : builtins) T (st as (vars, ns, sgn)) =
     (case either builtin_typ (lookup_typ sgn) T of
       SOME n => (n, st)
     | NONE =>
@@ -444,16 +444,16 @@ local
           val (n, ns') = fresh_fun loc ns
         in (n, (vars, ns', add_fun loc (t, (n, uns)) sgn)) end)
 
-  fun rep_num (bs as Builtins {builtin_num, ...}) (i, T) st =
+  fun rep_num (bs as {builtin_num, ...} : builtins) (i, T) st =
     (case builtin_num (i, T) of
       SOME n => (n, st)
     | NONE => rep_fun bs true (HOLogic.mk_number T i) T 0 st)
 in
 fun signature_of prefixes markers builtins thy ts =
   let
-    val Prefixes {var_prefix, typ_prefix, fun_prefix, pred_prefix} = prefixes
-    val Markers {formula_marker, term_marker} = markers
-    val Builtins {builtin_fun, ...} = builtins
+    val {var_prefix, typ_prefix, fun_prefix, pred_prefix} = prefixes
+    val {formula_marker, term_marker} = markers
+    val {builtin_fun, ...} = builtins
 
     fun sign loc t =
       (case t of
@@ -493,7 +493,7 @@ end
 (* Combination of all translation functions and invocation of serialization. *)
 
 fun translate config thy thms stream =
-  let val Config {strict, prefixes, markers, builtins, serialize} = config
+  let val {strict, prefixes, markers, builtins, serialize} = config
   in
     map Thm.prop_of thms
     |> SMT_Monomorph.monomorph thy

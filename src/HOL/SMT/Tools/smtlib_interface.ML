@@ -109,7 +109,7 @@ fun wr_expr loc env t =
           | wr_pat (T.SNoPat ts) = wrp "nopat" ts
       in par (wr_quant q #> fold wr_var vs #> wre b #> fold wr_pat ps) end)
 
-fun serialize attributes (T.Sign {typs, funs, preds}) ts stream =
+fun serialize attributes ({typs, funs, preds} : T.sign) ts stream =
   let
     fun wr_decl (n, Ts) = wr_line (sep (par (wr n #> fold wr1 Ts)))
   in
@@ -135,14 +135,14 @@ fun serialize attributes (T.Sign {typs, funs, preds}) ts stream =
 
 (* SMT solver interface using the SMT-LIB input format *)
 
-val basic_builtins = T.Builtins {
+val basic_builtins = {
   builtin_typ = builtin_typ,
   builtin_num = builtin_num,
   builtin_fun = (fn true => builtin_funcs | false => builtin_preds) }
 
 val default_attributes = [":logic AUFLIRA", ":status unknown"]
 
-fun gen_interface builtins attributes = SMT_Solver.Interface {
+fun gen_interface builtins attributes = {
   normalize = [
     SMT_Normalize.RewriteTrivialLets,
     SMT_Normalize.RewriteNegativeNumerals,
@@ -150,14 +150,14 @@ fun gen_interface builtins attributes = SMT_Solver.Interface {
     SMT_Normalize.AddAbsMinMaxRules,
     SMT_Normalize.AddPairRules,
     SMT_Normalize.AddFunUpdRules ],
-  translate = T.Config {
+  translate = {
     strict = true,
-    prefixes = T.Prefixes {
+    prefixes = {
       var_prefix = "x",
       typ_prefix = "T",
       fun_prefix = "uf_",
       pred_prefix = "up_" },
-    markers = T.Markers {
+    markers = {
       term_marker = term_marker,
       formula_marker = formula_marker },
     builtins = builtins,

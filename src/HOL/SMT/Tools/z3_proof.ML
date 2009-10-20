@@ -56,7 +56,7 @@ datatype context = Context of {
 fun make_context (Ttab, ttab, etab, ptab, nctxt) =
   Context {Ttab=Ttab, ttab=ttab, etab=etab, ptab=ptab, nctxt=nctxt}
 
-fun empty_context thy (SMT_Translate.Recon {typs, terms=ttab}) =
+fun empty_context thy ({typs, terms=ttab} : SMT_Translate.recon) =
   let
     val ttab' = Symtab.map (fn @{term True} => @{term "~False"} | t => t) ttab
     val ns = Symtab.fold (Term.add_free_names o snd) ttab' []

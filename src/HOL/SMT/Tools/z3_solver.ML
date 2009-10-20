@@ -52,22 +52,21 @@ fun check_unsat recon output =
     else error (solver_name ^ " failed")
   end
 
-fun core_oracle (SMT_Solver.ProofData {output, recon, ...}) =
+fun core_oracle ({output, recon, ...} : SMT_Solver.proof_data) =
   check_unsat recon output
   |> K @{cprop False}
 
-fun prover (SMT_Solver.ProofData {context, output, recon, assms}) =
+fun prover ({context, output, recon, assms} : SMT_Solver.proof_data) =
   check_unsat recon output
   |> Z3_Proof.reconstruct context assms recon
 
 fun solver oracle ctxt =
   let val with_proof = Config.get ctxt proofs
   in
-    SMT_Solver.SolverConfig {
-      command = {env_var=env_var, remote_name=solver_name},
-      arguments = cmdline_options ctxt,
-      interface = Z3_Interface.interface,
-      reconstruct = if with_proof then prover else oracle }
+    {command = {env_var=env_var, remote_name=solver_name},
+    arguments = cmdline_options ctxt,
+    interface = Z3_Interface.interface,
+    reconstruct = if with_proof then prover else oracle}
   end
 
 val setup =

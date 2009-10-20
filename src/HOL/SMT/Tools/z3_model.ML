@@ -47,7 +47,7 @@ datatype context = Context of {
 fun make_context (ttab, nctxt, vtab) =
   Context {ttab=ttab, nctxt=nctxt, vtab=vtab}
 
-fun empty_context (SMT_Translate.Recon {terms, ...}) =
+fun empty_context ({terms, ...} : SMT_Translate.recon) =
   let
     val ns = Symtab.fold (Term.add_free_names o snd) terms []
     val nctxt = Name.make_context ns

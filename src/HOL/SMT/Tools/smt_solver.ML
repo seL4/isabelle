@@ -8,17 +8,15 @@ signature SMT_SOLVER =
 sig
   exception SMT_COUNTEREXAMPLE of bool * term list
 
-  datatype interface = Interface of {
+  type interface = {
     normalize: SMT_Normalize.config list,
     translate: SMT_Translate.config }
-
-  datatype proof_data = ProofData of {
+  type proof_data = {
     context: Proof.context,
     output: string list,
     recon: SMT_Translate.recon,
     assms: thm list option }
-
-  datatype solver_config = SolverConfig of {
+  type solver_config = {
     command: {env_var: string, remote_name: string},
     arguments: string list,
     interface: interface,
@@ -58,17 +56,17 @@ struct
 exception SMT_COUNTEREXAMPLE of bool * term list
 
 
-datatype interface = Interface of {
+type interface = {
   normalize: SMT_Normalize.config list,
   translate: SMT_Translate.config }
 
-datatype proof_data = ProofData of {
+type proof_data = {
   context: Proof.context,
   output: string list,
   recon: SMT_Translate.recon,
   assms: thm list option }
 
-datatype solver_config = SolverConfig of {
+type solver_config = {
   command: {env_var: string, remote_name: string},
   arguments: string list,
   interface: interface,
@@ -144,12 +142,12 @@ fun run_solver ctxt {env_var, remote_name} args output =
 end
 
 fun make_proof_data ctxt ((recon, thms), ls) =
-  ProofData {context=ctxt, output=ls, recon=recon, assms=SOME thms}
+  {context=ctxt, output=ls, recon=recon, assms=SOME thms}
 
 fun gen_solver solver ctxt prems =
   let
-    val SolverConfig {command, arguments, interface, reconstruct} = solver ctxt
-    val Interface {normalize=nc, translate=tc} = interface
+    val {command, arguments, interface, reconstruct} = solver ctxt
+    val {normalize=nc, translate=tc} = interface
     val thy = ProofContext.theory_of ctxt
   in
     SMT_Normalize.normalize nc ctxt prems

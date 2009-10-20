@@ -811,12 +811,12 @@ end
 
 (** |- ((ALL x. P x) | Q) = (ALL x. P x | Q) **)
 val pull_quant =
-  Thm o by_tac (Tactic.rtac @{thm refl} ORELSE' Simplifier.simp_tac HOL_ss)
+  Thm o by_tac (Tactic.rtac @{thm refl} ORELSE' Classical.best_tac HOL_cs)
 
 
 (** |- (ALL x. P x & Q x) = ((ALL x. P x) & (ALL x. Q x)) **)
 val push_quant =
-  Thm o by_tac (Tactic.rtac @{thm refl} ORELSE' Simplifier.simp_tac HOL_ss)
+  Thm o by_tac (Tactic.rtac @{thm refl} ORELSE' Classical.best_tac HOL_cs)
 
 
 (**
@@ -1131,15 +1131,12 @@ local
     iff_intro (under_assumption (contra_left conj) ct) (contra_right ct)
 
   fun conj_disj ct =
-    let
-      val cp as (cl, _) = Thm.dest_binop (Thm.dest_arg ct)
-      val (lhs, rhs) = pairself Thm.term_of cp
+    let val cp as (cl, cr) = Thm.dest_binop (Thm.dest_arg ct)
     in
-      if is_conj lhs andalso rhs = @{term False}
-      then contradiction true cl
-      else if is_disj lhs andalso rhs = @{term "~False"}
-      then contrapos2 (contradiction false o fst) cp
-      else prove_conj_disj_eq (Thm.dest_arg ct)
+      (case Thm.term_of cr of
+        @{term False} => contradiction true cl
+      | @{term "~False"} => contrapos2 (contradiction false o fst) cp
+      | _ => prove_conj_disj_eq (Thm.dest_arg ct))
     end
 
   val distinct =
