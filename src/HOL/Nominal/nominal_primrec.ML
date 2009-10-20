@@ -228,7 +228,7 @@ fun find_dts (dt_info : NominalDatatype.nominal_datatype_info Symtab.table) _ []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a nominal datatype")
         | SOME dt =>
-            if tnames' subset (map (#1 o snd) (#descr dt)) then
+            if gen_subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
@@ -251,7 +251,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>
       map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) eqns
     val _ =
-      (if forall (curry eq_set lsrs) lsrss andalso forall
+      (if forall (curry (gen_eq_set (op =)) lsrs) lsrss andalso forall
          (fn (_, (_, _, (_, (ls, _, rs, _, _)) :: eqns)) =>
                forall (fn (_, (ls', _, rs', _, _)) =>
                  ls = ls' andalso rs = rs') eqns

@@ -147,7 +147,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                     in
                       if member (op =) nts l then       (*update production's lookahead*)
                       let
-                        val new_lambda = is_none tk andalso nts subset lambdas;
+                        val new_lambda = is_none tk andalso gen_subset (op =) (nts, lambdas);
 
                         val new_tks = subtract (op =) l_starts
                           ((if is_some tk then [the tk] else []) @

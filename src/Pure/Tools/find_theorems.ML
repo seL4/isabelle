@@ -227,7 +227,7 @@ fun filter_pattern ctxt pat =
 
     fun check (t, NONE) = check (t, SOME (get_thm_names t))
       | check ((_, thm), c as SOME thm_consts) =
-         (if pat_consts subset_string thm_consts andalso
+         (if gen_subset (op =) (pat_consts, thm_consts) andalso
             Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, Thm.full_prop_of thm)
           then SOME (0, 0) else NONE, c);
   in check end;

@@ -154,7 +154,7 @@ fun combterm_of dfg thy (Const(c,t)) =
   | combterm_of dfg thy (P $ Q) =
       let val (P',tsP) = combterm_of dfg thy P
           val (Q',tsQ) = combterm_of dfg thy Q
-      in  (CombApp(P',Q'), tsP union tsQ)  end
+      in  (CombApp(P',Q'), gen_union (op =) (tsP, tsQ))  end
   | combterm_of _ _ (t as Abs _) = raise RC.CLAUSE ("HOL CLAUSE", t);
 
 fun predicate_of dfg thy ((Const("Not",_) $ P), polarity) = predicate_of dfg thy (P, not polarity)
@@ -166,7 +166,7 @@ fun literals_of_term1 dfg thy args (Const("Trueprop",_) $ P) = literals_of_term1
   | literals_of_term1 dfg thy (lits,ts) P =
       let val ((pred,ts'),pol) = predicate_of dfg thy (P,true)
       in
-          (Literal(pol,pred)::lits, ts union ts')
+          (Literal(pol,pred)::lits, gen_union (op =) (ts, ts'))
       end;
 
 fun literals_of_term_dfg dfg thy P = literals_of_term1 dfg thy ([],[]) P;
@@ -475,7 +475,7 @@ fun tptp_write_file t_full file clauses =
     val (cma, cnh) = count_constants clauses
     val params = (t_full, cma, cnh)
     val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp params) conjectures)
-    val tfree_clss = map RC.tptp_tfree_clause (List.foldl (op union_string) [] tfree_litss)
+    val tfree_clss = map RC.tptp_tfree_clause (List.foldl (gen_union (op =)) [] tfree_litss)
     val _ =
       File.write_list file (
         map (#1 o (clause2tptp params)) axclauses @

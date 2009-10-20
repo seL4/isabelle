@@ -303,7 +303,7 @@ let
       fun check (Const ("Ex", _) $ Abs (_, _, P), n) = check (P, n + 1)
         | check (Const ("op &", _) $ (Const ("op =", _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
-            ((0 upto (n - 1)) subset add_loose_bnos (e, 0, []))
+            gen_subset (op =) (0 upto (n - 1), add_loose_bnos (e, 0, []))
         | check _ = false
 
         fun tr' (_ $ abs) =

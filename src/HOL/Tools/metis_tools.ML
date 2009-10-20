@@ -631,7 +631,7 @@ fun build_map mode0 ctxt cls ths =
         let val (mth, tfree_lits) = hol_thm_to_fol is_conjecture ctxt mode ith
         in
            {axioms = (mth, Meson.make_meta_clause ith) :: axioms,
-            tfrees = tfree_lits union tfrees}
+            tfrees = gen_union (op =) (tfree_lits, tfrees)}
         end;
       val lmap0 = List.foldl (add_thm true)
                         {axioms = [], tfrees = init_tfrees ctxt} cls

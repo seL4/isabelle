@@ -864,7 +864,7 @@ fun uncond_skel ((_, weak), (lhs, rhs)) =
   while the premises are solved.*)
 
 fun cond_skel (args as (_, (lhs, rhs))) =
-  if Term.add_vars rhs [] subset Term.add_vars lhs [] then uncond_skel args
+  if gen_subset (op =) (Term.add_vars rhs [], Term.add_vars lhs []) then uncond_skel args
   else skel0;
 
 (*

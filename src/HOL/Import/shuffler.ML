@@ -563,7 +563,7 @@ fun match_consts ignore t (* th *) =
         let
             val th_consts = add_consts(prop_of th,[])
         in
-            eq_set(t_consts,th_consts)
+            gen_eq_set (op =) (t_consts, th_consts)
         end
     end
 

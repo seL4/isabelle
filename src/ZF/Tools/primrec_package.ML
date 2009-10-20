@@ -65,7 +65,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
   in
     if has_duplicates (op =) lfrees then
       raise RecError "repeated variable name in pattern"
-    else if not ((map dest_Free (OldTerm.term_frees rhs)) subset lfrees) then
+    else if not (gen_subset (op =) (Term.add_frees rhs [], lfrees)) then
       raise RecError "extra variables on rhs"
     else if length middle > 1 then
       raise RecError "more than one non-variable in pattern"

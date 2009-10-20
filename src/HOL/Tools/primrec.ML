@@ -208,7 +208,7 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_error (quote tname ^ " is not a datatype")
         | SOME dt =>
-            if tnames' subset (map (#1 o snd) (#descr dt)) then
+            if gen_subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 

@@ -139,13 +139,13 @@ fun mk_renamings tgt rule_inst =
       val names = List.foldr OldTerm.add_term_names [] (tgt :: rule_conds);
       val (conds_tyvs,cond_vs) = 
           Library.foldl (fn ((tyvs, vs), t) => 
-                    (Library.union
+                    (gen_union (op =)
                        (OldTerm.term_tvars t, tyvs),
-                     Library.union 
+                     gen_union (op =)
                        (map Term.dest_Var (OldTerm.term_vars t), vs))) 
                 (([],[]), rule_conds);
       val termvars = map Term.dest_Var (OldTerm.term_vars tgt); 
-      val vars_to_fix = Library.union (termvars, cond_vs);
+      val vars_to_fix = gen_union (op =) (termvars, cond_vs);
       val (renamings, names2) = 
           List.foldr (fn (((n,i),ty), (vs, names')) => 
                     let val n' = Name.variant names' n in

@@ -1463,7 +1463,7 @@ fun rename_params_rule (cs, i) state =
     (case duplicates (op =) cs of
       a :: _ => (warning ("Can't rename.  Bound variables not distinct: " ^ a); state)
     | [] =>
-      (case cs inter_string freenames of
+      (case gen_inter (op =) (cs, freenames) of
         a :: _ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); state)
       | [] =>
         Thm (der,

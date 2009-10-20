@@ -104,7 +104,7 @@ fun rule_error (lhs, rhs) =
     val rvars = add_vars rhs [];
   in
     if has_duplicates (op =) lvars then SOME "duplicate vars in lhs"
-    else if not (rvars subset lvars) then SOME "rhs contains extra variables"
+    else if not (gen_subset (op =) (rvars, lvars)) then SOME "rhs contains extra variables"
     else NONE
   end;
 

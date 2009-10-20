@@ -385,7 +385,7 @@ fun elim (ineqs, hist) =
   let val (eqs, noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not (null eqs) then
      let val c =
-           fold (fn Lineq(_,_,l,_) => fn cs => l union cs) eqs []
+           fold (fn Lineq(_,_,l,_) => fn cs => gen_union (op =) (l, cs)) eqs []
            |> filter (fn i => i <> 0)
            |> sort (int_ord o pairself abs)
            |> hd

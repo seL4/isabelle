@@ -111,8 +111,8 @@ struct
 	  | indices False            = []
 	  | indices (BoolVar i)      = [i]
 	  | indices (Not fm)         = indices fm
-	  | indices (Or (fm1, fm2))  = (indices fm1) union_int (indices fm2)
-	  | indices (And (fm1, fm2)) = (indices fm1) union_int (indices fm2);
+	  | indices (Or (fm1, fm2))  = gen_union (op =) (indices fm1, indices fm2)
+	  | indices (And (fm1, fm2)) = gen_union (op =) (indices fm1, indices fm2);
 
 (* ------------------------------------------------------------------------- *)
 (* maxidx: computes the maximal variable index occuring in a formula of      *)

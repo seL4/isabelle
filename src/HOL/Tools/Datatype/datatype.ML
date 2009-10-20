@@ -489,7 +489,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
       let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
       in (case duplicates (op =) tvs of
-            [] => if eq_set (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
+            [] => if gen_eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
                   else error ("Mutually recursive datatypes must have same type parameters")
           | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
               " : " ^ commas dups))
