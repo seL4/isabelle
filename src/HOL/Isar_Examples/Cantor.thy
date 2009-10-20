@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Cantor.thy
+(*  Title:      HOL/Isar_Examples/Cantor.thy
     Author:     Markus Wenzel, TU Muenchen
 *)
 

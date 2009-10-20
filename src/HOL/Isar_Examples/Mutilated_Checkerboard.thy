@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Mutilated_Checkerboard.thy
+(*  Title:      HOL/Isar_Examples/Mutilated_Checkerboard.thy
     Author:     Markus Wenzel, TU Muenchen (Isar document)
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
 *)

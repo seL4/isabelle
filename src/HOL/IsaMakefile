@@ -25,7 +25,7 @@ test: \
   HOL-IOA \
   HOL-Imperative_HOL \
   HOL-Induct \
-  HOL-Isar_examples \
+  HOL-Isar_Examples \
   HOL-Lambda \
   HOL-Lattice \
   HOL-Matrix \
@@ -914,22 +914,22 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
-## HOL-Isar_examples
+## HOL-Isar_Examples
 
-HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
+HOL-Isar_Examples: HOL $(LOG)/HOL-Isar_Examples.gz
 
-$(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/Basic_Logic.thy	\
-  Isar_examples/Cantor.thy Isar_examples/Drinker.thy			\
-  Isar_examples/Expr_Compiler.thy Isar_examples/Fibonacci.thy		\
-  Isar_examples/Group.thy Isar_examples/Hoare.thy			\
-  Isar_examples/Hoare_Ex.thy Isar_examples/Knaster_Tarski.thy		\
-  Isar_examples/Mutilated_Checkerboard.thy				\
-  Isar_examples/Nested_Datatype.thy Isar_examples/Peirce.thy		\
-  Isar_examples/Puzzle.thy Isar_examples/Summation.thy			\
-  Isar_examples/ROOT.ML Isar_examples/document/proof.sty		\
-  Isar_examples/document/root.bib Isar_examples/document/root.tex	\
-  Isar_examples/document/style.tex Hoare/hoare_tac.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_examples
+$(LOG)/HOL-Isar_Examples.gz: $(OUT)/HOL Isar_Examples/Basic_Logic.thy	\
+  Isar_Examples/Cantor.thy Isar_Examples/Drinker.thy			\
+  Isar_Examples/Expr_Compiler.thy Isar_Examples/Fibonacci.thy		\
+  Isar_Examples/Group.thy Isar_Examples/Hoare.thy			\
+  Isar_Examples/Hoare_Ex.thy Isar_Examples/Knaster_Tarski.thy		\
+  Isar_Examples/Mutilated_Checkerboard.thy				\
+  Isar_Examples/Nested_Datatype.thy Isar_Examples/Peirce.thy		\
+  Isar_Examples/Puzzle.thy Isar_Examples/Summation.thy			\
+  Isar_Examples/ROOT.ML Isar_Examples/document/proof.sty		\
+  Isar_Examples/document/root.bib Isar_Examples/document/root.tex	\
+  Isar_Examples/document/style.tex Hoare/hoare_tac.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_Examples
 
 
 ## HOL-SET-Protocol
@@ -1304,7 +1304,7 @@ $(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
 clean:
 	@rm -f $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL		\
 		$(OUT)/HOL-Nominal $(OUT)/TLA $(LOG)/HOL.gz		\
-		$(LOG)/TLA.gz $(LOG)/HOL-Isar_examples.gz		\
+		$(LOG)/TLA.gz $(LOG)/HOL-Isar_Examples.gz		\
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
 		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
 		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\

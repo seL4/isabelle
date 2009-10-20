@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Hoare.thy
+(*  Title:      HOL/Isar_Examples/Hoare.thy
     Author:     Markus Wenzel, TU Muenchen
 
 A formulation of Hoare logic suitable for Isar.

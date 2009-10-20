@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Basic_Logic.thy
+(*  Title:      HOL/Isar_Examples/Basic_Logic.thy
     Author:     Markus Wenzel, TU Muenchen
 
 Basic propositional and quantifier reasoning.

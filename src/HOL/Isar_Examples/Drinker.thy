@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Drinker.thy
+(*  Title:      HOL/Isar_Examples/Drinker.thy
     Author:     Makarius
 *)
 

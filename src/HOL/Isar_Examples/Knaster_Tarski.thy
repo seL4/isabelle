@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Knaster_Tarski.thy
+(*  Title:      HOL/Isar_Examples/Knaster_Tarski.thy
     Author:     Markus Wenzel, TU Muenchen
 
 Typical textbook proof example.

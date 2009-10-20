@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Fibonacci.thy
+(*  Title:      HOL/Isar_Examples/Fibonacci.thy
     Author:     Gertrud Bauer
     Copyright   1999 Technische Universitaet Muenchen
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Group.thy
+(*  Title:      HOL/Isar_Examples/Group.thy
     Author:     Markus Wenzel, TU Muenchen
 *)
 

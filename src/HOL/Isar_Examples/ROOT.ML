@@ -1,8 +1,4 @@
-(*  Title:      HOL/Isar_examples/ROOT.ML
-    Author:     Markus Wenzel, TU Muenchen
-
-Miscellaneous Isabelle/Isar examples for Higher-Order Logic.
-*)
+(* Miscellaneous Isabelle/Isar examples for Higher-Order Logic. *)
 
 no_document use_thys ["../Old_Number_Theory/Primes", "../Old_Number_Theory/Fibonacci"];
 

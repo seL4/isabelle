@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Summation.thy
+(*  Title:      HOL/Isar_Examples/Summation.thy
     Author:     Markus Wenzel
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Expr_Compiler.thy
+(*  Title:      HOL/Isar_Examples/Expr_Compiler.thy
     Author:     Markus Wenzel, TU Muenchen
 
 Correctness of a simple expression/stack-machine compiler.

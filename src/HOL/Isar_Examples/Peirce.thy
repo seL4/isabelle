@@ -1,4 +1,4 @@
-(*  Title:      HOL/Isar_examples/Peirce.thy
+(*  Title:      HOL/Isar_Examples/Peirce.thy
     Author:     Markus Wenzel, TU Muenchen
 *)
 
