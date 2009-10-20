@@ -1,4 +1,4 @@
-(*  Title:      HOL/SET-Protocol/PublicSET.thy
+(*  Title:      HOL/SET_Protocol/Public_SET.thy
     Author:     Giampaolo Bella
     Author:     Fabio Massacci
     Author:     Lawrence C Paulson
@@ -6,7 +6,9 @@
 
 header{*The Public-Key Theory, Modified for SET*}
 
-theory PublicSET imports EventSET begin
+theory Public_SET
+imports Event_SET
+begin
 
 subsection{*Symmetric and Asymmetric Keys*}
 
@@ -346,9 +348,6 @@ subsection{*Specialized Methods for Possibility Theorems*}
 
 ML
 {*
-structure PublicSET =
-struct
-
 (*Tactic for possibility theorems*)
 fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
@@ -364,16 +363,14 @@ fun basic_possibility_tac ctxt =
     (ALLGOALS (asm_simp_tac (simpset_of ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
-
-end
 *}
 
 method_setup possibility = {*
-    Scan.succeed (SIMPLE_METHOD o PublicSET.possibility_tac) *}
+    Scan.succeed (SIMPLE_METHOD o possibility_tac) *}
     "for proving possibility theorems"
 
 method_setup basic_possibility = {*
-    Scan.succeed (SIMPLE_METHOD o PublicSET.basic_possibility_tac) *}
+    Scan.succeed (SIMPLE_METHOD o basic_possibility_tac) *}
     "for proving possibility theorems"
 
 

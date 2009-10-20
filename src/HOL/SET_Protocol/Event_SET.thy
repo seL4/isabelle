@@ -1,4 +1,4 @@
-(*  Title:      HOL/SET-Protocol/EventSET.thy
+(*  Title:      HOL/SET_Protocol/Event_SET.thy
     Author:     Giampaolo Bella
     Author:     Fabio Massacci
     Author:     Lawrence C Paulson
@@ -6,7 +6,9 @@
 
 header{*Theory of Events for SET*}
 
-theory EventSET imports MessageSET begin
+theory Event_SET
+imports Message_SET
+begin
 
 text{*The Root Certification Authority*}
 syntax        RCA :: agent

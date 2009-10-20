@@ -1,4 +1,4 @@
-(*  Title:      HOL/SET-Protocol/Merchant_Registration.thy
+(*  Title:      HOL/SET_Protocol/Merchant_Registration.thy
     Author:     Giampaolo Bella
     Author:     Fabio Massacci
     Author:     Lawrence C Paulson
@@ -6,7 +6,9 @@
 
 header{*The SET Merchant Registration Protocol*}
 
-theory Merchant_Registration imports PublicSET begin
+theory Merchant_Registration
+imports Public_SET
+begin
 
 text{*Copmpared with Cardholder Reigstration, @{text KeyCryptKey} is not
   needed: no session key encrypts another.  Instead we

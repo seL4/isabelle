@@ -1,4 +1,4 @@
-(*  Title:      HOL/SET-Protocol/MessageSET.thy
+(*  Title:      HOL/SET_Protocol/Message_SET.thy
     Author:     Giampaolo Bella
     Author:     Fabio Massacci
     Author:     Lawrence C Paulson
@@ -6,7 +6,7 @@
 
 header{*The Message Theory, Modified for SET*}
 
-theory MessageSET
+theory Message_SET
 imports Main Nat_Int_Bij
 begin
 

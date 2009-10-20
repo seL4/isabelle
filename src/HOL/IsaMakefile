@@ -38,7 +38,7 @@ test: \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
   HOL-Prolog \
-  HOL-SET-Protocol \
+  HOL-SET_Protocol \
   HOL-SizeChange \
   HOL-SMT-Examples \
   HOL-Statespace \
@@ -932,16 +932,16 @@ $(LOG)/HOL-Isar_Examples.gz: $(OUT)/HOL Isar_Examples/Basic_Logic.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_Examples
 
 
-## HOL-SET-Protocol
+## HOL-SET_Protocol
 
-HOL-SET-Protocol: HOL $(LOG)/HOL-SET-Protocol.gz
+HOL-SET_Protocol: HOL $(LOG)/HOL-SET_Protocol.gz
 
-$(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML		\
-  SET-Protocol/MessageSET.thy SET-Protocol/EventSET.thy			\
-  SET-Protocol/PublicSET.thy SET-Protocol/Cardholder_Registration.thy	\
-  SET-Protocol/Merchant_Registration.thy SET-Protocol/Purchase.thy	\
-  SET-Protocol/document/root.tex
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET-Protocol
+$(LOG)/HOL-SET_Protocol.gz: $(OUT)/HOL SET_Protocol/ROOT.ML		\
+  SET_Protocol/Message_SET.thy SET_Protocol/Event_SET.thy		\
+  SET_Protocol/Public_SET.thy SET_Protocol/Cardholder_Registration.thy	\
+  SET_Protocol/Merchant_Registration.thy SET_Protocol/Purchase.thy	\
+  SET_Protocol/document/root.tex
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET_Protocol
 
 
 ## HOL-Matrix
@@ -1315,7 +1315,7 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
-		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET-Protocol.gz	\
+		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET_Protocol.gz	\
 		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz			\
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\

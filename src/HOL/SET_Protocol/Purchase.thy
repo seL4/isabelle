@@ -1,4 +1,4 @@
-(*  Title:      HOL/SET-Protocol/Purchase.thy
+(*  Title:      HOL/SET_Protocol/Purchase.thy
     Author:     Giampaolo Bella
     Author:     Fabio Massacci
     Author:     Lawrence C Paulson
@@ -6,7 +6,9 @@
 
 header{*Purchase Phase of SET*}
 
-theory Purchase imports PublicSET begin
+theory Purchase
+imports Public_SET
+begin
 
 text{*
 Note: nonces seem to consist of 20 bytes.  That includes both freshness

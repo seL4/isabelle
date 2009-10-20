@@ -1,4 +1,4 @@
-(*  Title:      HOL/SET-Protocol/Cardholder_Registration.thy
+(*  Title:      HOL/SET_Protocol/Cardholder_Registration.thy
     Author:     Giampaolo Bella
     Author:     Fabio Massacci
     Author:     Lawrence C Paulson
@@ -7,7 +7,9 @@
 
 header{*The SET Cardholder Registration Protocol*}
 
-theory Cardholder_Registration imports PublicSET begin
+theory Cardholder_Registration
+imports Public_SET
+begin
 
 text{*Note: nonces seem to consist of 20 bytes.  That includes both freshness
 challenges (Chall-EE, etc.) and important secrets (CardSecret, PANsecret)

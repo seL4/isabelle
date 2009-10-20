@@ -1,5 +1,4 @@
-(*  Title:      HOL/SET-Protocol/ROOT.ML
-    ID:         $Id$
+(*  Title:      HOL/SET_Protocol/ROOT.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 
