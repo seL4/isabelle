@@ -658,7 +658,7 @@ fun dest_impl tm =
   in (ants,get_lhs eq)
   end;
 
-fun restricted t = isSome (S.find_term
+fun restricted t = is_some (S.find_term
                             (fn (Const(@{const_name Recdef.cut},_)) =>true | _ => false)
                             t)
 
@@ -784,7 +784,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val dummy = print_cterm "func:" (cterm_of thy func)
               val dummy = print_cterm "TC:" (cterm_of thy (HOLogic.mk_Trueprop TC))
               val dummy = tc_list := (TC :: !tc_list)
-              val nestedp = isSome (S.find_term is_func TC)
+              val nestedp = is_some (S.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
               val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"

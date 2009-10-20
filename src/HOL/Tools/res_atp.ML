@@ -352,7 +352,7 @@ fun make_unique xs =
   boost an ATP's performance (for some reason)*)
 fun subtract_cls c_clauses ax_clauses =
   let val ht = mk_clause_table 2200
-      fun known x = isSome (Polyhash.peek ht x)
+      fun known x = is_some (Polyhash.peek ht x)
   in
       app (ignore o Polyhash.peekInsert ht) ax_clauses;
       filter (not o known) c_clauses
@@ -391,7 +391,7 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 fun name_thm_pairs ctxt =
   let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
       val ht = mk_clause_table 900   (*ht for blacklisted theorems*)
-      fun blacklisted x = run_blacklist_filter andalso isSome (Polyhash.peek ht x)
+      fun blacklisted x = run_blacklist_filter andalso is_some (Polyhash.peek ht x)
   in
       app (fn th => ignore (Polyhash.peekInsert ht (th,()))) (ResBlacklist.get ctxt);
       filter (not o blacklisted o #2)

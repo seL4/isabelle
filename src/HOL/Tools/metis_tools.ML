@@ -123,7 +123,7 @@ fun metis_of_typeLit pos (ResClause.LTVar (s,x))  = metis_lit pos s [Metis.Term.
   | metis_of_typeLit pos (ResClause.LTFree (s,x)) = metis_lit pos s [Metis.Term.Fn(x,[])];
 
 fun default_sort _ (TVar _) = false
-  | default_sort ctxt (TFree (x, s)) = (s = Option.getOpt (Variable.def_sort ctxt (x, ~1), []));
+  | default_sort ctxt (TFree (x, s)) = (s = the_default [] (Variable.def_sort ctxt (x, ~1)));
 
 fun metis_of_tfree tf =
   Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_typeLit true tf));
@@ -204,7 +204,7 @@ fun mk_var (w,T) = Term.Var((w,1), T);
 (*include the default sort, if available*)
 fun mk_tfree ctxt w =
   let val ww = "'" ^ w
-  in  TFree(ww, getOpt (Variable.def_sort ctxt (ww,~1), HOLogic.typeS))  end;
+  in  TFree(ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))  end;
 
 (*Remove the "apply" operator from an HO term*)
 fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
@@ -342,7 +342,7 @@ fun print_thpair (fth,th) =
    trace_msg (fn () => "Isabelle: " ^ Display.string_of_thm_without_context th));
 
 fun lookth thpairs (fth : Metis.Thm.thm) =
-  valOf (AList.lookup (uncurry Metis.Thm.equal) thpairs fth)
+  the (AList.lookup (uncurry Metis.Thm.equal) thpairs fth)
   handle Option => error ("Failed to find a Metis theorem " ^ Metis.Thm.toString fth);
 
 fun is_TrueI th = Thm.eq_thm(TrueI,th);
@@ -372,7 +372,7 @@ fun inst_inf ctxt mode thpairs fsubst th =
   let val thy = ProofContext.theory_of ctxt
       val i_th   = lookth thpairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
-      fun find_var x = valOf (List.find (fn ((a,_),_) => a=x) i_th_vars)
+      fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
       fun subst_translation (x,y) =
             let val v = find_var x
                 val t = fol_term_to_hol ctxt mode y (*we call infer_types below*)

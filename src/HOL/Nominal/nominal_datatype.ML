@@ -50,7 +50,7 @@ fun dt_recs (DtTFree _) = []
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    fun the_bname i = Long_Name.base_name (#1 (valOf (AList.lookup (op =) descr i)));
+    fun the_bname i = Long_Name.base_name (#1 (the (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct op = (maps dt_recs args));
   in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
 
@@ -58,7 +58,7 @@ fun dt_cases (descr: descr) (_, args, constrs) =
 fun induct_cases descr =
   DatatypeProp.indexify_names (maps (dt_cases descr) (map #2 descr));
 
-fun exhaust_cases descr i = dt_cases descr (valOf (AList.lookup (op =) descr i));
+fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 
 in
 
@@ -233,7 +233,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     fun replace_types (Type ("Nominal.ABS", [T, U])) =
           Type ("fun", [T, Type ("Nominal.noption", [replace_types U])])
       | replace_types (Type (s, Ts)) =
-          Type (getOpt (AList.lookup op = ps s, s), map replace_types Ts)
+          Type (the_default s (AList.lookup op = ps s), map replace_types Ts)
       | replace_types T = T;
 
     val dts'' = map (fn (tvs, tname, mx, constrs) => (tvs, Binding.name (tname ^ "_Rep"), NoSyn,

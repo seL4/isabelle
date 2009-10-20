@@ -520,7 +520,7 @@ fun index_char str chr pos =
 fun rat_of_quotient (a,b) = if b = 0 then rat_0 else Rat.rat_of_quotient (a,b);
 fun rat_of_string s =
  let val n = index_char s #"/" 0 in
-  if n = ~1 then s |> Int.fromString |> valOf |> Rat.rat_of_int
+  if n = ~1 then s |> Int.fromString |> the |> Rat.rat_of_int
   else
    let val SOME numer = Int.fromString(String.substring(s,0,n))
        val SOME den = Int.fromString (String.substring(s,n+1,String.size s - n - 1))
@@ -1193,7 +1193,7 @@ in
 fun real_nonlinear_prover proof_method ctxt =
  let
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,
        real_poly_pow_conv,real_poly_sub_conv,real_poly_conv) = (add,mul,neg,pow,sub,main)
@@ -1308,7 +1308,7 @@ in
 fun real_nonlinear_subst_prover prover ctxt =
  let
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
 
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,

@@ -502,7 +502,7 @@ let
         | False => NONE
         | _     =>
           let
-            val x = valOf (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
+            val x = the (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
           in
             case dpll (x::xs') fm' of  (* passing fm' rather than fm should save some simplification work *)
               SOME xs'' => SOME xs''
@@ -893,7 +893,7 @@ let
               (* for its literals to obtain the empty clause                *)
               val vids         = map (fn l => l div 2) ls
               val rs           = cid :: map (fn v => !clause_offset + v) vids
-              val new_empty_id = getOpt (Inttab.max_key (!clause_table), !clause_offset) + 1
+              val new_empty_id = the_default (!clause_offset) (Inttab.max_key (!clause_table)) + 1
             in
               (* update clause table and conflict id *)
               clause_table := Inttab.update_new (new_empty_id, rs) (!clause_table)

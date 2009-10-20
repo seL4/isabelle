@@ -325,7 +325,7 @@ fun unify ctxt q =
     let val tab = fold Inttab.update
           (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty
     in
-      fn ct => valOf (Inttab.lookup tab (ct |> term_of |> dest_numeral))
+      fn ct => the (Inttab.lookup tab (ct |> term_of |> dest_numeral))
         handle Option =>
           (writeln ("noz: Theorems-Table contains no entry for " ^
               Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option)
@@ -416,7 +416,7 @@ let
    in equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
-     fn ct => valOf (Inttab.lookup tab (term_of ct |> dest_numeral))
+     fn ct => the (Inttab.lookup tab (term_of ct |> dest_numeral))
        handle Option =>
         (writeln ("dvd: Theorems-Table contains no entry for" ^
             Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option)
@@ -483,13 +483,13 @@ let
         (map (fn eq =>
                 let val (s,t) = cprop_of eq |> Thm.dest_arg |> Thm.dest_binop
                     val th = if term_of s = term_of t
-                             then valOf(Termtab.lookup inStab (term_of s))
+                             then the (Termtab.lookup inStab (term_of s))
                              else FWD (instantiate' [] [SOME s, SOME t] eqelem_th)
-                                [eq, valOf(Termtab.lookup inStab (term_of s))]
+                                [eq, the (Termtab.lookup inStab (term_of s))]
                  in (term_of t, th) end)
                   sths) Termtab.empty
         in
-          fn ct => valOf (Termtab.lookup tab (term_of ct))
+          fn ct => the (Termtab.lookup tab (term_of ct))
             handle Option =>
               (writeln ("inS: No theorem for " ^ Syntax.string_of_term ctxt (Thm.term_of ct));
                 raise Option)

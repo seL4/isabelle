@@ -672,7 +672,7 @@ let
       (case split_once_items ctxt subgoal of
         SOME new_subgoals => split_loop (new_subgoals @ subgoals)
       | NONE              => subgoal :: split_loop subgoals)
-  fun is_relevant t  = isSome (decomp ctxt t)
+  fun is_relevant t  = is_some (decomp ctxt t)
   (* filter_prems_tac is_relevant: *)
   val relevant_terms = filter_prems_tac_items is_relevant terms
   (* split_tac, NNF normalization: *)
@@ -746,7 +746,7 @@ end;  (* local *)
 fun pre_tac ctxt i =
 let
   val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
-  fun is_relevant t = isSome (decomp ctxt t)
+  fun is_relevant t = is_some (decomp ctxt t)
 in
   DETERM (
     TRY (filter_prems_tac is_relevant i)
@@ -878,7 +878,7 @@ end;
 local
 
 fun raw_tac ctxt ex =
-  (* FIXME: K true should be replaced by a sensible test (perhaps "isSome o
+  (* FIXME: K true should be replaced by a sensible test (perhaps "is_some o
      decomp sg"? -- but note that the test is applied to terms already before
      they are split/normalized) to speed things up in case there are lots of
      irrelevant terms involved; elimination of min/max can be optimized:

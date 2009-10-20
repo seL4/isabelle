@@ -583,7 +583,7 @@ and get_type_from_xml thy thyname types =
 
 fun input_types thyname (Elem("tylist",[("i",i)],xtys)) =
     let
-        val types = Array.array(valOf (Int.fromString i),XMLty (Elem("",[],[])))
+        val types = Array.array(the (Int.fromString i),XMLty (Elem("",[],[])))
         fun IT _ [] = ()
           | IT n (xty::xtys) =
             (Array.update(types,n,XMLty xty);
@@ -650,7 +650,7 @@ and get_term_from_xml thy thyname types terms =
 
 fun input_terms thyname types (Elem("tmlist",[("i",i)],xtms)) =
     let
-        val terms = Array.array(valOf(Int.fromString i),XMLtm (Elem("",[],[])))
+        val terms = Array.array(the (Int.fromString i), XMLtm (Elem("",[],[])))
 
         fun IT _ [] = ()
           | IT n (xtm::xtms) =
@@ -1239,7 +1239,7 @@ fun split_name str =
         val (newstr,u) = pairself Substring.string (Substring.splitr (fn c => c = #"_") f)
     in
         if not (idx = "") andalso u = "_"
-        then SOME (newstr,valOf(Int.fromString idx))
+        then SOME (newstr, the (Int.fromString idx))
         else NONE
     end
     handle _ => NONE  (* FIXME avoid handle _ *)
@@ -1914,7 +1914,7 @@ val spaces = space_implode " "
 fun new_definition thyname constname rhs thy =
     let
         val constname = rename_const thyname thy constname
-        val redeclared = isSome (Sign.const_type thy (Sign.intern_const thy constname));
+        val redeclared = is_some (Sign.const_type thy (Sign.intern_const thy constname));
         val _ = warning ("Introducing constant " ^ constname)
         val (thmname,thy) = get_defname thyname constname thy
         val (info,rhs') = disamb_term rhs

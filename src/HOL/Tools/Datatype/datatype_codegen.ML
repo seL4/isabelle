@@ -173,7 +173,7 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
                  [Pretty.block [str "(case", Pretty.brk 1,
                    str "i", Pretty.brk 1, str "of",
                    Pretty.brk 1, str "0 =>", Pretty.brk 1,
-                   mk_constr "0" true (cname, valOf (AList.lookup (op =) cs cname)),
+                   mk_constr "0" true (cname, the (AList.lookup (op =) cs cname)),
                    Pretty.brk 1, str "| _ =>", Pretty.brk 1,
                    mk_choice cs1, str ")"]]
                else [mk_choice cs2])) ::

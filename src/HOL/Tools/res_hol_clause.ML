@@ -69,12 +69,13 @@ exported *)
   use of the "apply" operator. Use of hBOOL is also minimized.*)
 val minimize_applies = true;
 
-fun min_arity_of const_min_arity c = getOpt (Symtab.lookup const_min_arity c, 0);
+fun min_arity_of const_min_arity c = the_default 0 (Symtab.lookup const_min_arity c);
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
-fun needs_hBOOL const_needs_hBOOL c = not minimize_applies orelse
-                    getOpt (Symtab.lookup const_needs_hBOOL c, false);
+fun needs_hBOOL const_needs_hBOOL c =
+  not minimize_applies orelse
+    the_default false (Symtab.lookup const_needs_hBOOL c);
 
 
 (******************************************************)
@@ -412,7 +413,7 @@ fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
         val axclauses = map #2 (make_axiom_clauses dfg thy axcls)
         val ct0 = List.foldl count_clause init_counters conjectures
         val ct = List.foldl (count_user_clause user_lemmas) ct0 axclauses
-        fun needed c = valOf (Symtab.lookup ct c) > 0
+        fun needed c = the (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK"
                  then cnf_helper_thms thy [comb_I,comb_K]
                  else []

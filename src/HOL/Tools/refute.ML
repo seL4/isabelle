@@ -1081,7 +1081,7 @@ struct
       | next max len sum (x1::x2::xs) =
       if x1>0 andalso (x2<max orelse max<0) then
         (* we can shift *)
-        SOME (valOf (make_first max (len+1) (sum+x1-1)) @ (x2+1) :: xs)
+        SOME (the (make_first max (len+1) (sum+x1-1)) @ (x2+1) :: xs)
       else
         (* continue search *)
         next max (len+1) (sum+x1) (x2::xs)

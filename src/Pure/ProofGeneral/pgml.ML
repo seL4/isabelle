@@ -155,6 +155,6 @@ struct
         XML.Elem("pgml",
                  opt_attr "version" version @
                  opt_attr "systemid" systemid @
-                 Option.getOpt(Option.map PgipTypes.attrs_of_displayarea area,[]),
+                 the_default [] (Option.map PgipTypes.attrs_of_displayarea area),
                  map pgmlterm_to_xml content)
 end

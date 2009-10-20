@@ -64,7 +64,7 @@ val truefalse = $$"$" |-- Symbol.scan_id >> (atom o tf);
 
 (*Integer constants, typically proof line numbers*)
 fun is_digit s = Char.isDigit (String.sub(s,0));
-val integer = Scan.many1 is_digit >> (valOf o Int.fromString o implode);
+val integer = Scan.many1 is_digit >> (the o Int.fromString o implode);
 
 (*Generalized FO terms, which include filenames, numbers, etc.*)
 fun termlist x = (term ::: Scan.repeat ($$"," |-- term)) x
@@ -225,8 +225,8 @@ fun lits_of_strees _ (vt, lits) [] = (vt, finish lits)
 (*Update TVars/TFrees with detected sort constraints.*)
 fun fix_sorts vt =
   let fun tysubst (Type (a, Ts)) = Type (a, map tysubst Ts)
-        | tysubst (TVar (xi, s)) = TVar (xi, getOpt (Vartab.lookup vt xi, s))
-        | tysubst (TFree (x, s)) = TFree (x, getOpt (Vartab.lookup vt (x,~1), s))
+        | tysubst (TVar (xi, s)) = TVar (xi, the_default s (Vartab.lookup vt xi))
+        | tysubst (TFree (x, s)) = TFree (x, the_default s (Vartab.lookup vt (x, ~1)))
       fun tmsubst (Const (a, T)) = Const (a, tysubst T)
         | tmsubst (Free (a, T)) = Free (a, tysubst T)
         | tmsubst (Var (xi, T)) = Var (xi, tysubst T)

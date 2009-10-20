@@ -408,7 +408,7 @@ fun mk_bintype n =
   in bin_of n end;
 
 fun numeral_tr (*"_NumeralType"*) [Const (str, _)] =
-      mk_bintype (valOf (Int.fromString str))
+      mk_bintype (the (Int.fromString str))
   | numeral_tr (*"_NumeralType"*) ts = raise TERM ("numeral_tr", ts);
 
 in [("_NumeralType", numeral_tr)] end;

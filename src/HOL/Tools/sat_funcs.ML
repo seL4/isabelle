@@ -218,9 +218,9 @@ let
 	fun index_of_literal chyp = (
 		case (HOLogic.dest_Trueprop o Thm.term_of) chyp of
 		  (Const ("Not", _) $ atom) =>
-			SOME (~(valOf (Termtab.lookup atom_table atom)))
+			SOME (~ (the (Termtab.lookup atom_table atom)))
 		| atom =>
-			SOME (valOf (Termtab.lookup atom_table atom))
+			SOME (the (Termtab.lookup atom_table atom))
 	) handle TERM _ => NONE;  (* 'chyp' is not a literal *)
 
 	(* int -> Thm.thm * (int * Thm.cterm) list *)
@@ -244,7 +244,7 @@ let
 			(* prove the clause, using information from 'clause_table' *)
 			let
 				val _      = if !trace_sat then tracing ("Proving clause #" ^ string_of_int id ^ " ...") else ()
-				val ids    = valOf (Inttab.lookup clause_table id)
+				val ids    = the (Inttab.lookup clause_table id)
 				val clause = resolve_raw_clauses (map prove_clause ids)
 				val _      = Array.update (clauses, id, RAW_CLAUSE clause)
 				val _      = if !trace_sat then tracing ("Replay chain successful; clause stored at #" ^ string_of_int id) else ()
@@ -367,7 +367,7 @@ in
 				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
 				val cnf_clauses = Conjunction.elim_balanced (length sorted_clauses) cnf_thm
 				(* initialize the clause array with the given clauses *)
-				val max_idx    = valOf (Inttab.max_key clause_table)
+				val max_idx    = the (Inttab.max_key clause_table)
 				val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
 				val _          = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) cnf_clauses 0
 				(* replay the proof to derive the empty clause *)
