@@ -81,14 +81,14 @@ end;
 signature PRIVATE_CONTEXT =
 sig
   include CONTEXT
-  structure TheoryData:
+  structure Theory_Data:
   sig
     val declare: Object.T -> (Object.T -> Object.T) -> (Object.T -> Object.T) ->
       (Pretty.pp -> Object.T * Object.T -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
   end
-  structure ProofData:
+  structure Proof_Data:
   sig
     val declare: (theory -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> Proof.context -> 'a
@@ -125,10 +125,10 @@ fun invoke f k =
 
 in
 
-fun invoke_empty k   = invoke (K o #empty) k ();
-val invoke_copy      = invoke #copy;
-val invoke_extend    = invoke #extend;
-fun invoke_merge pp  = invoke (fn kind => #merge kind pp);
+fun invoke_empty k = invoke (K o #empty) k ();
+val invoke_copy = invoke #copy;
+val invoke_extend = invoke #extend;
+fun invoke_merge pp = invoke (fn kind => #merge kind pp);
 
 fun declare_theory_data empty copy extend merge =
   let
@@ -176,9 +176,9 @@ exception THEORY of string * theory list;
 fun rep_theory (Theory args) = args;
 
 val identity_of = #1 o rep_theory;
-val data_of     = #2 o rep_theory;
+val data_of = #2 o rep_theory;
 val ancestry_of = #3 o rep_theory;
-val history_of  = #4 o rep_theory;
+val history_of = #4 o rep_theory;
 
 fun make_identity self draft id ids = {self = self, draft = draft, id = id, ids = ids};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
@@ -254,12 +254,12 @@ val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
   theory in external data structures -- a plain theory value would
   become stale as the self reference moves on*)
 
-datatype theory_ref = TheoryRef of theory Unsynchronized.ref;
+datatype theory_ref = Theory_Ref of theory Unsynchronized.ref;
 
-fun deref (TheoryRef (Unsynchronized.ref thy)) = thy;
+fun deref (Theory_Ref (Unsynchronized.ref thy)) = thy;
 
 fun check_thy thy =  (*thread-safe version*)
-  let val thy_ref = TheoryRef (the_self thy) in
+  let val thy_ref = Theory_Ref (the_self thy) in
     if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
     else thy_ref
   end;
@@ -294,7 +294,8 @@ fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
 (* consistent ancestors *)
 
 fun extend_ancestors thy thys =
-  if member eq_thy thys thy then raise THEORY ("Duplicate theory node", thy :: thys)
+  if member eq_thy thys thy then
+    raise THEORY ("Duplicate theory node", thy :: thys)
   else thy :: thys;
 
 fun extend_ancestors_of thy = extend_ancestors thy (ancestors_of thy);
@@ -417,7 +418,7 @@ val finish_thy = history_stage (fn _ => finished);
 
 (* theory data *)
 
-structure TheoryData =
+structure Theory_Data =
 struct
 
 val declare = declare_theory_data;
@@ -481,7 +482,7 @@ struct
   fun init thy = Proof.Context (init_data thy, check_thy thy);
 end;
 
-structure ProofData =
+structure Proof_Data =
 struct
 
 fun declare init =
@@ -592,19 +593,17 @@ end;
 functor TheoryDataFun(Data: THEORY_DATA_ARGS): THEORY_DATA =
 struct
 
-structure TheoryData = Context.TheoryData;
-
 type T = Data.T;
 exception Data of T;
 
-val kind = TheoryData.declare
+val kind = Context.Theory_Data.declare
   (Data Data.empty)
   (fn Data x => Data (Data.copy x))
   (fn Data x => Data (Data.extend x))
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
 
-val get = TheoryData.get kind (fn Data x => x);
-val put = TheoryData.put kind Data;
+val get = Context.Theory_Data.get kind (fn Data x => x);
+val put = Context.Theory_Data.put kind Data;
 fun map f thy = put (f (get thy)) thy;
 
 fun init thy = map I thy;
@@ -632,15 +631,13 @@ end;
 functor ProofDataFun(Data: PROOF_DATA_ARGS): PROOF_DATA =
 struct
 
-structure ProofData = Context.ProofData;
-
 type T = Data.T;
 exception Data of T;
 
-val kind = ProofData.declare (Data o Data.init);
+val kind = Context.Proof_Data.declare (Data o Data.init);
 
-val get = ProofData.get kind (fn Data x => x);
-val put = ProofData.put kind Data;
+val get = Context.Proof_Data.get kind (fn Data x => x);
+val put = Context.Proof_Data.put kind Data;
 fun map f prf = put (f (get prf)) prf;
 
 end;
@@ -668,16 +665,16 @@ end;
 functor GenericDataFun(Data: GENERIC_DATA_ARGS): GENERIC_DATA =
 struct
 
-structure ThyData = TheoryDataFun(open Data val copy = I);
-structure PrfData = ProofDataFun(type T = Data.T val init = ThyData.get);
+structure Thy_Data = TheoryDataFun(open Data val copy = I);
+structure Prf_Data = ProofDataFun(type T = Data.T val init = Thy_Data.get);
 
 type T = Data.T;
 
-fun get (Context.Theory thy) = ThyData.get thy
-  | get (Context.Proof prf) = PrfData.get prf;
+fun get (Context.Theory thy) = Thy_Data.get thy
+  | get (Context.Proof prf) = Prf_Data.get prf;
 
-fun put x (Context.Theory thy) = Context.Theory (ThyData.put x thy)
-  | put x (Context.Proof prf) = Context.Proof (PrfData.put x prf);
+fun put x (Context.Theory thy) = Context.Theory (Thy_Data.put x thy)
+  | put x (Context.Proof prf) = Context.Proof (Prf_Data.put x prf);
 
 fun map f ctxt = put (f (get ctxt)) ctxt;
 
