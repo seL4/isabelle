@@ -91,6 +91,9 @@ by (fast elim: someI)
 
 subsection {*Function Inverse*}
 
+lemma inv_def: "inv f = (%y. SOME x. f x = y)"
+by(simp add: inv_onto_def)
+
 lemma inv_onto_into: "x : f ` A ==> inv_onto A f x : A"
 apply (simp add: inv_onto_def)
 apply (fast intro: someI2)
