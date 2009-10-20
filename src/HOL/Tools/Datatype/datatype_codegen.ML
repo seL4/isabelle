@@ -403,14 +403,12 @@ fun add_equality vs dtcos thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun add_eq_thms dtco thy =
-      let
-        val (thms, thm) = mk_eq_eqns thy dtco
-      in
-        thy
-        |> Code.add_nbe_eqn thm
-        |> fold_rev Code.add_eqn thms
-      end;
+    fun add_eq_thms dtco =
+      Theory.checkpoint
+      #> `(fn thy => mk_eq_eqns thy dtco)
+      #-> (fn (thms, thm) =>
+        Code.add_nbe_eqn thm
+        #> fold_rev Code.add_eqn thms);
   in
     thy
     |> TheoryTarget.instantiation (dtcos, vs, [HOLogic.class_eq])
@@ -418,7 +416,6 @@ fun add_equality vs dtcos thy =
     |-> (fn def_thms => Class.prove_instantiation_exit_result (map o Morphism.thm)
          (fn _ => fn def_thms => tac def_thms) def_thms)
     |-> (fn def_thms => fold Code.del_eqn def_thms)
-    |> Theory.checkpoint
     |> fold add_eq_thms dtcos
   end;
 
