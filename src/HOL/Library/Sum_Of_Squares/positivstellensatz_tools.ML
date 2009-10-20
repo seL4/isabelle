@@ -97,7 +97,7 @@ fun repeat_sep s f = f ::: Scan.repeat (str s |-- f)
 val parse_id = Scan.one Symbol.is_letter ::: Scan.many Symbol.is_letdig >> implode
 
 fun parse_varpow ctxt = parse_id -- Scan.optional (str "^" |-- nat) 1 >>
-  (fn (x, k) => (cterm_of (Context.theory_of_proof ctxt) (Free (x, @{typ real})), k)) 
+  (fn (x, k) => (cterm_of (ProofContext.theory_of ctxt) (Free (x, @{typ real})), k)) 
 
 fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
   List.foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.empty

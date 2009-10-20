@@ -613,7 +613,7 @@ fun askrefs (Askrefs vs) =
                 (* TODO: interim: this is probably not right.
                    What we want is mapping onto simple PGIP name/context model. *)
                 val ctx = Toplevel.context_of (Isar.state ()) (* NB: raises UNDEF *)
-                val thy = Context.theory_of_proof ctx
+                val thy = ProofContext.theory_of ctx
                 val ths = [PureThy.get_thm thy thmname]
                 val deps = #2 (thms_deps ths);
             in

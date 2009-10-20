@@ -3462,9 +3462,9 @@ ML {*
 
   fun approx_form prec ctxt t =
           realify t
-       |> prepare_form (Context.theory_of_proof ctxt)
+       |> prepare_form (ProofContext.theory_of ctxt)
        |> (fn arith_term =>
-          reify_form (Context.theory_of_proof ctxt) arith_term
+          reify_form (ProofContext.theory_of ctxt) arith_term
        |> HOLogic.dest_Trueprop |> dest_interpret_form
        |> (fn (data, xs) =>
           mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
