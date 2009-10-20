@@ -346,7 +346,7 @@ val theory_context = context o ProofContext.init;
 fun activate_context thy ss =
   let
     val ctxt = the_context ss;
-    val ctxt' = Context.transfer_proof (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt;
+    val ctxt' = Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt;
   in context ctxt' ss end;
 
 

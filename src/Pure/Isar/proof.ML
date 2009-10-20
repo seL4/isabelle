@@ -7,7 +7,7 @@ context elements, goals, refinements, and facts.
 
 signature PROOF =
 sig
-  type context = Context.proof
+  type context = Proof.context
   type method = Method.method
   type state
   val init: context -> state
@@ -121,7 +121,7 @@ end;
 structure Proof: PROOF =
 struct
 
-type context = Context.proof;
+type context = Proof.context;
 type method = Method.method;
 
 

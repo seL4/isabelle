@@ -4,6 +4,11 @@
 Generic theory contexts with unique identity, arbitrarily typed data,
 monotonic development graph and history support.  Generic proof
 contexts with arbitrarily typed data.
+
+Firm naming conventions:
+   thy, thy', thy1, thy2: theory
+   ctxt, ctxt', ctxt1, ctxt2: Proof.context
+   context: Context.generic
 *)
 
 signature BASIC_CONTEXT =
@@ -11,6 +16,12 @@ sig
   type theory
   type theory_ref
   exception THEORY of string * theory list
+  structure Proof: sig type context end
+  structure ProofContext:
+  sig
+    val theory_of: Proof.context -> theory
+    val init: theory -> Proof.context
+  end
 end;
 
 signature CONTEXT =
@@ -41,25 +52,23 @@ sig
   val finish_thy: theory -> theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
   (*proof context*)
-  type proof
-  val theory_of_proof: proof -> theory
-  val transfer_proof: theory -> proof -> proof
-  val init_proof: theory -> proof
+  val raw_transfer: theory -> Proof.context -> Proof.context
   (*generic context*)
-  datatype generic = Theory of theory | Proof of proof
-  val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
-  val mapping: (theory -> theory) -> (proof -> proof) -> generic -> generic
-  val mapping_result: (theory -> 'a * theory) -> (proof -> 'a * proof) -> generic -> 'a * generic
+  datatype generic = Theory of theory | Proof of Proof.context
+  val cases: (theory -> 'a) -> (Proof.context -> 'a) -> generic -> 'a
+  val mapping: (theory -> theory) -> (Proof.context -> Proof.context) -> generic -> generic
+  val mapping_result: (theory -> 'a * theory) -> (Proof.context -> 'a * Proof.context) ->
+    generic -> 'a * generic
   val the_theory: generic -> theory
-  val the_proof: generic -> proof
+  val the_proof: generic -> Proof.context
   val map_theory: (theory -> theory) -> generic -> generic
-  val map_proof: (proof -> proof) -> generic -> generic
+  val map_proof: (Proof.context -> Proof.context) -> generic -> generic
   val map_theory_result: (theory -> 'a * theory) -> generic -> 'a * generic
-  val map_proof_result: (proof -> 'a * proof) -> generic -> 'a * generic
+  val map_proof_result: (Proof.context -> 'a * Proof.context) -> generic -> 'a * generic
   val theory_map: (generic -> generic) -> theory -> theory
-  val proof_map: (generic -> generic) -> proof -> proof
-  val theory_of: generic -> theory   (*total*)
-  val proof_of: generic -> proof     (*total*)
+  val proof_map: (generic -> generic) -> Proof.context -> Proof.context
+  val theory_of: generic -> theory  (*total*)
+  val proof_of: generic -> Proof.context  (*total*)
   (*thread data*)
   val thread_data: unit -> generic option
   val the_thread_data: unit -> generic
@@ -82,8 +91,8 @@ sig
   structure ProofData:
   sig
     val declare: (theory -> Object.T) -> serial
-    val get: serial -> (Object.T -> 'a) -> proof -> 'a
-    val put: serial -> ('a -> Object.T) -> 'a -> proof -> proof
+    val get: serial -> (Object.T -> 'a) -> Proof.context -> 'a
+    val put: serial -> ('a -> Object.T) -> 'a -> Proof.context -> Proof.context
   end
 end;
 
@@ -204,7 +213,8 @@ fun vitalize (thy as Theory ({self = SOME r, ...}, _, _, _)) = (r := thy; thy)
 val is_draft = #draft o identity_of;
 
 fun reject_draft thy =
-  if is_draft thy then raise THEORY ("Illegal draft theory -- stable checkpoint required", [thy])
+  if is_draft thy then
+    raise THEORY ("Illegal draft theory -- stable checkpoint required", [thy])
   else thy;
 
 
@@ -425,13 +435,16 @@ end;
 
 (*** proof context ***)
 
-(* datatype proof *)
+(* datatype Proof.context *)
 
-datatype proof = Prf of Object.T Datatab.table * theory_ref;
+structure Proof =
+struct
+  datatype context = Context of Object.T Datatab.table * theory_ref;
+end;
 
-fun theory_of_proof (Prf (_, thy_ref)) = deref thy_ref;
-fun data_of_proof (Prf (data, _)) = data;
-fun map_prf f (Prf (data, thy_ref)) = Prf (f data, thy_ref);
+fun theory_of_proof (Proof.Context (_, thy_ref)) = deref thy_ref;
+fun data_of_proof (Proof.Context (data, _)) = data;
+fun map_prf f (Proof.Context (data, thy_ref)) = Proof.Context (f data, thy_ref);
 
 
 (* proof data kinds *)
@@ -453,17 +466,20 @@ fun init_new_data data thy =
 
 in
 
-fun init_proof thy = Prf (init_data thy, check_thy thy);
-
-fun transfer_proof thy' (Prf (data, thy_ref)) =
+fun raw_transfer thy' (Proof.Context (data, thy_ref)) =
   let
     val thy = deref thy_ref;
     val _ = subthy (thy, thy') orelse error "transfer proof context: not a super theory";
     val _ = check_thy thy;
     val data' = init_new_data data thy';
     val thy_ref' = check_thy thy';
-  in Prf (data', thy_ref') end;
+  in Proof.Context (data', thy_ref') end;
 
+structure ProofContext =
+struct
+  val theory_of = theory_of_proof;
+  fun init thy = Proof.Context (init_data thy, check_thy thy);
+end;
 
 structure ProofData =
 struct
@@ -477,7 +493,7 @@ fun declare init =
 fun get k dest prf =
   dest (case Datatab.lookup (data_of_proof prf) k of
     SOME x => x
-  | NONE => invoke_init k (theory_of_proof prf));   (*adhoc value*)
+  | NONE => invoke_init k (ProofContext.theory_of prf));   (*adhoc value*)
 
 fun put k mk x = map_prf (Datatab.update (k, mk x));
 
@@ -489,7 +505,7 @@ end;
 
 (*** generic context ***)
 
-datatype generic = Theory of theory | Proof of proof;
+datatype generic = Theory of theory | Proof of Proof.context;
 
 fun cases f _ (Theory thy) = f thy
   | cases _ g (Proof prf) = g prf;
@@ -509,8 +525,8 @@ fun map_proof_result f = apsnd Proof o f o the_proof;
 fun theory_map f = the_theory o f o Theory;
 fun proof_map f = the_proof o f o Proof;
 
-val theory_of = cases I theory_of_proof;
-val proof_of = cases init_proof I;
+val theory_of = cases I ProofContext.theory_of;
+val proof_of = cases ProofContext.init I;
 
 
 
@@ -546,8 +562,8 @@ val _ = set_thread_data (SOME (Theory pre_pure_thy));
 
 end;
 
-structure BasicContext: BASIC_CONTEXT = Context;
-open BasicContext;
+structure Basic_Context: BASIC_CONTEXT = Context;
+open Basic_Context;
 
 
 
@@ -608,9 +624,9 @@ end;
 signature PROOF_DATA =
 sig
   type T
-  val get: Context.proof -> T
-  val put: T -> Context.proof -> Context.proof
-  val map: (T -> T) -> Context.proof -> Context.proof
+  val get: Proof.context -> T
+  val put: T -> Proof.context -> Proof.context
+  val map: (T -> T) -> Proof.context -> Proof.context
 end;
 
 functor ProofDataFun(Data: PROOF_DATA_ARGS): PROOF_DATA =
@@ -670,7 +686,3 @@ end;
 (*hide private interface*)
 structure Context: CONTEXT = Context;
 
-(*fake predeclarations*)
-structure Proof = struct type context = Context.proof end;
-structure ProofContext =
-struct val theory_of = Context.theory_of_proof val init = Context.init_proof end;

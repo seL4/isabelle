@@ -142,8 +142,7 @@ end;
 structure ProofContext: PROOF_CONTEXT =
 struct
 
-val theory_of = Context.theory_of_proof;
-val init = Context.init_proof;
+open ProofContext;
 
 
 (** inner syntax mode **)
@@ -259,7 +258,7 @@ fun transfer_syntax thy =
       else (Consts.merge (local_consts, thy_consts), thy_consts)
     end);
 
-fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
+fun transfer thy = Context.raw_transfer thy #> transfer_syntax thy;
 
 fun theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
