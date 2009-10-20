@@ -1,5 +1,4 @@
-(*  Title:      HOL/Isar_examples/ThreeDivides.thy
-    ID:         $Id$
+(*  Title:      HOL/ex/ThreeDivides.thy
     Author:     Benjamin Porter, 2005
 *)
 
