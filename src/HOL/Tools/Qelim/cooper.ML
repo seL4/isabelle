@@ -188,7 +188,7 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
     (Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c1 $ x1) $ r1,
     Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
    if x1 = x2 then
-     let val c = numeral2 (curry op +) c1 c2
+     let val c = numeral2 Integer.add c1 c2
       in if c = zero then linear_add vars r1 r2
          else addC$(mulC$c$x1)$(linear_add vars r1 r2)
      end
@@ -198,7 +198,7 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
       addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
  | (_, Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
       addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
- | (_, _) => numeral2 (curry op +) tm1 tm2;
+ | (_, _) => numeral2 Integer.add tm1 tm2;
 
 fun linear_neg tm = linear_cmul ~1 tm;
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2);

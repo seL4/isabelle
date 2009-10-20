@@ -9,7 +9,6 @@ sig
   val pss_tree_to_cert : RealArith.pss_tree -> string
 
   val cert_to_pss_tree : Proof.context -> string -> RealArith.pss_tree
-
 end
 
 
@@ -101,7 +100,7 @@ fun parse_varpow ctxt = parse_id -- Scan.optional (str "^" |-- nat) 1 >>
   (fn (x, k) => (cterm_of (Context.theory_of_proof ctxt) (Free (x, @{typ real})), k)) 
 
 fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
-  foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.empty
+  List.foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.empty
 
 fun parse_cmonomial ctxt =
   rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
@@ -109,7 +108,7 @@ fun parse_cmonomial ctxt =
   rat_int >> (fn r => (FuncUtil.Ctermfunc.empty, r))
 
 fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>
-  foldl (uncurry FuncUtil.Monomialfunc.update) FuncUtil.Monomialfunc.empty
+  List.foldl (uncurry FuncUtil.Monomialfunc.update) FuncUtil.Monomialfunc.empty
 
 (* positivstellensatz parser *)
 

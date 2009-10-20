@@ -42,7 +42,7 @@ fun invert_perm pi =
 (* rearrange_prems as a conversion *)
 fun rearrange_prems_conv pi ct =
     let
-      val pi' = 0 :: map (curry op + 1) pi
+      val pi' = 0 :: map (Integer.add 1) pi
       val fwd  = Thm.trivial ct
                   |> Drule.rearrange_prems pi'
       val back = Thm.trivial (snd (Thm.dest_implies (cprop_of fwd)))
