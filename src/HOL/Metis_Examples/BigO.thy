@@ -1,7 +1,7 @@
-(*  Title:      HOL/MetisExamples/BigO.thy
+(*  Title:      HOL/Metis_Examples/BigO.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Testing the metis method
+Testing the metis method.
 *)
 
 header {* Big O notation *}

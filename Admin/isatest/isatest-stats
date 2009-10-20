@@ -21,7 +21,7 @@ ISABELLE_SESSIONS="\
   HOL-HoareParallel \
   HOL-Lambda \
   HOL-Library \
-  HOL-MetisExamples \
+  HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-NSA \
   HOL-Nominal-Examples \

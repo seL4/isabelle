@@ -1,8 +1,7 @@
-(*  Title:      HOL/MetisExamples/Abstraction.thy
-    ID:         $Id$
+(*  Title:      HOL/Metis_Examples/Abstraction.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Testing the metis method
+Testing the metis method.
 *)
 
 theory Abstraction

@@ -301,7 +301,7 @@ fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
       then exists (excessive_lambdas_fm Ts) (#2 (strip_comb t))
       else excessive_lambdas (t, max_lambda_nesting);
 
-(*The max apply_depth of any metis call in MetisExamples (on 31-10-2007) was 11.*)
+(*The max apply_depth of any metis call in Metis_Examples (on 31-10-2007) was 11.*)
 val max_apply_depth = 15;
 
 fun apply_depth (f$t) = Int.max (apply_depth f, apply_depth t + 1)

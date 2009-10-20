@@ -29,7 +29,7 @@ test: \
   HOL-Lambda \
   HOL-Lattice \
   HOL-Matrix \
-  HOL-MetisExamples \
+  HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-Mirabelle \
   HOL-Modelcheck \
@@ -556,16 +556,16 @@ $(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hoare_Parallel
 
 
-## HOL-MetisExamples
+## HOL-Metis_Examples
 
-HOL-MetisExamples: HOL $(LOG)/HOL-MetisExamples.gz
+HOL-Metis_Examples: HOL $(LOG)/HOL-Metis_Examples.gz
 
-$(LOG)/HOL-MetisExamples.gz: $(OUT)/HOL MetisExamples/ROOT.ML	\
-  MetisExamples/Abstraction.thy MetisExamples/BigO.thy		\
-  MetisExamples/BT.thy MetisExamples/Message.thy		\
-  MetisExamples/Tarski.thy MetisExamples/TransClosure.thy	\
-  MetisExamples/set.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL MetisExamples
+$(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML	\
+  Metis_Examples/Abstraction.thy Metis_Examples/BigO.thy	\
+  Metis_Examples/BT.thy Metis_Examples/Message.thy		\
+  Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy	\
+  Metis_Examples/set.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
 
 
 ## HOL-Algebra

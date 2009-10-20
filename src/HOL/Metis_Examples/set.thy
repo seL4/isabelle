@@ -1,11 +1,11 @@
-(*  Title:      HOL/MetisExamples/set.thy
+(*  Title:      HOL/Metis_Examples/set.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Testing the metis method
+Testing the metis method.
 *)
 
-theory set imports Main
-
+theory set
+imports Main
 begin
 
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
