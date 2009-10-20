@@ -7,8 +7,6 @@ Code generator facilities for inductive datatypes.
 signature DATATYPE_CODEGEN =
 sig
   val find_shortest_path: Datatype.descr -> int -> (string * int) option
-  val mk_eq_eqns: theory -> string -> (thm * bool) list
-  val mk_case_cert: theory -> string -> thm
   val setup: theory -> theory
 end;
 
@@ -386,7 +384,7 @@ fun mk_eq_eqns thy dtco =
       (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
     fun prove prop = Skip_Proof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
-  in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
+  in (map prove (triv_injects @ injects @ distincts), prove refl) end;
 
 fun add_equality vs dtcos thy =
   let
@@ -405,14 +403,12 @@ fun add_equality vs dtcos thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun add_eq_thms dtco thy =
-      let
-        val const = AxClass.param_of_inst thy (@{const_name eq_class.eq}, dtco);
-        val thy_ref = Theory.check_thy thy;
-        fun mk_thms () = rev ((mk_eq_eqns (Theory.deref thy_ref) dtco));
-      in
-        Code.add_eqnl (const, Lazy.lazy mk_thms) thy
-      end;
+    fun add_eq_thms dtco =
+      Theory.checkpoint
+      #> `(fn thy => mk_eq_eqns thy dtco)
+      #-> (fn (thms, thm) =>
+        Code.add_nbe_eqn thm
+        #> fold_rev Code.add_eqn thms);
   in
     thy
     |> TheoryTarget.instantiation (dtcos, vs, [HOLogic.class_eq])
