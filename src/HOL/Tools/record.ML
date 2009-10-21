@@ -1834,7 +1834,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extN = full bname;
     val types = map snd fields;
     val alphas_fields = fold Term.add_tfree_namesT types [];
-    val alphas_ext = inter (op =) (alphas, alphas_fields);
+    val alphas_ext = inter (op =) alphas_fields alphas;
     val len = length fields;
     val variants =
       Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants)

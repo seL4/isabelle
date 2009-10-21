@@ -884,7 +884,7 @@ local
  fun isolate_monomials vars tm =
  let 
   val (cmons,vmons) =
-    List.partition (fn m => null (inter op aconvc (frees m, vars)))
+    List.partition (fn m => null (inter (op aconvc) vars (frees m)))
                    (striplist ring_dest_add tm)
   val cofactors = map (fn v => find_multipliers v vmons) vars
   val cnc = if null cmons then zero_tm
