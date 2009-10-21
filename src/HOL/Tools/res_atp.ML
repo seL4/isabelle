@@ -290,15 +290,6 @@ fun relevance_filter max_new theory_const thy axioms goals =
 (* Retrieving and filtering lemmas                             *)
 (***************************************************************)
 
-(*** white list and black list of lemmas ***)
-
-(*The rule subsetI is frequently omitted by the relevance filter.*)
-val whitelist_fo = [subsetI];
-(* ext has been a 'helper clause', always given to the atps.
-  As such it was not passed to metis, but metis does not include ext (in contrast
-  to the other helper_clauses *)
-val whitelist_ho = [ResHolClause.ext];
-
 (*** retrieve lemmas and filter them ***)
 
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
@@ -519,11 +510,8 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
     val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
                                      |> restrict_to_logic thy isFO
                                      |> remove_unwanted_clauses
-    val axcls = relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
-    (* add whitelist *)
-    val white_cls = ths_to_cls thy (whitelist_fo @ (if isFO then [] else whitelist_ho))
   in
-    white_cls @ axcls 
+    relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls) 
   end;
 
 (* prepare for passing to writer,
