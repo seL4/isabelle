@@ -222,7 +222,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
       | check_mode_prems vs ps = (case select_mode_prem thy modes' vs ps of
           NONE => NONE
         | SOME (x, _) => check_mode_prems
-            (case x of Prem (us, _, _) => union (op =) (vs, terms_vs us) | _ => vs)
+            (case x of Prem (us, _, _) => union (op =) vs (terms_vs us) | _ => vs)
             (filter_out (equal x) ps));
     val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (get_args is 1 ts));
     val in_vs = terms_vs in_ts;
@@ -230,7 +230,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
   in
     forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
-    (case check_mode_prems (union (op =) (arg_vs, in_vs)) ps of
+    (case check_mode_prems (union (op =) arg_vs in_vs) ps of
        NONE => false
      | SOME vs => subset (op =) (concl_vs, vs))
   end;

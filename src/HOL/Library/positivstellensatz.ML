@@ -620,7 +620,7 @@ local
   | NONE => (case eqs of 
     [] => 
      let val vars = remove (op aconvc) one_tm 
-           (fold_rev (curry (union (op aconvc)) o FuncUtil.Ctermfunc.dom o fst) (les@lts) []) 
+           (fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom o fst) (les@lts) []) 
      in linear_ineqs vars (les,lts) end
    | (e,p)::es => 
      if FuncUtil.Ctermfunc.is_empty e then linear_eqs (es,les,lts) else
@@ -679,7 +679,7 @@ fun real_linear_prover translator (eq,le,lt) =
   val le_pols = map rhs le
   val lt_pols = map rhs lt 
   val aliens =  filter is_alien
-      (fold_rev (curry (union (op aconvc)) o FuncUtil.Ctermfunc.dom) 
+      (fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom) 
           (eq_pols @ le_pols @ lt_pols) [])
   val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,Rat.one)) aliens
   val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)

@@ -348,7 +348,7 @@ fun resolve_proof vars prf =
   | Add(lin1,lin2) =>
         let val lis1 = resolve_proof vars lin1
             val lis2 = resolve_proof vars lin2
-            val dom = distinct (op =) (union (op =) (map fst lis1, map fst lis2))
+            val dom = distinct (op =) (union (op =) (map fst lis1) (map fst lis2))
         in
             map (fn n => let val a = these (AList.lookup (op =) lis1 n)
                              val b = these (AList.lookup (op =) lis2 n)

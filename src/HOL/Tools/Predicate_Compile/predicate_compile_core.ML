@@ -1047,16 +1047,16 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
             (if with_generator then
               (case select_mode_prem thy gen_modes' vs ps of
                 SOME (p as Prem _, SOME mode) => check_mode_prems ((gen_prem p, mode) :: acc_ps) 
-                  (case p of Prem (us, _) => union (op =) (vs, terms_vs us) | _ => vs)
+                  (case p of Prem (us, _) => union (op =) vs (terms_vs us) | _ => vs)
                   (filter_out (equal p) ps)
               | _ =>
                   let 
                     val all_generator_vs = all_subsets (prem_vs \\ vs) |> sort (int_ord o (pairself length))
                   in
                     case (find_first (fn generator_vs => is_some
-                      (select_mode_prem thy modes' (union (op =) (vs, generator_vs)) ps)) all_generator_vs) of
+                      (select_mode_prem thy modes' (union (op =) vs generator_vs) ps)) all_generator_vs) of
                       SOME generator_vs => check_mode_prems ((map (generator vTs) generator_vs) @ acc_ps)
-                        (union (op =) (vs, generator_vs)) ps
+                        (union (op =) vs generator_vs) ps
                     | NONE => let
                     val _ = tracing ("ps:" ^ (commas
                     (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
@@ -1065,7 +1065,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
             else
               NONE)
         | SOME (p, SOME mode) => check_mode_prems ((if with_generator then param_gen_prem param_vs p else p, mode) :: acc_ps) 
-            (case p of Prem (us, _) => union (op =) (vs, terms_vs us) | _ => vs)
+            (case p of Prem (us, _) => union (op =) vs (terms_vs us) | _ => vs)
             (filter_out (equal p) ps))
     val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (split_smode is ts));
     val in_vs = terms_vs in_ts;
@@ -1073,7 +1073,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
   in
     if forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
     forall (is_eqT o fastype_of) in_ts' then
-      case check_mode_prems [] (union (op =) (param_vs, in_vs)) ps of
+      case check_mode_prems [] (union (op =) param_vs in_vs) ps of
          NONE => NONE
        | SOME (acc_ps, vs) =>
          if with_generator then

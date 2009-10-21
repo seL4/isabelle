@@ -26,7 +26,7 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
-(*avoid popular infixes*)
-code_reserved SML union inter upto
+(*avoid popular infix*)
+code_reserved SML upto
 
 end

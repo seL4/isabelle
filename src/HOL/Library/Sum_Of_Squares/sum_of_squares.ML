@@ -244,7 +244,7 @@ fun monomial_degree x m =
 
 fun monomial_lcm m1 m2 =
   fold_rev (fn x => FuncUtil.Ctermfunc.update (x, max (monomial_degree x m1) (monomial_degree x m2)))
-          (union (is_equal o  FuncUtil.cterm_ord) (FuncUtil.Ctermfunc.dom m1, FuncUtil.Ctermfunc.dom m2)) (FuncUtil.Ctermfunc.empty);
+          (union (is_equal o FuncUtil.cterm_ord) (FuncUtil.Ctermfunc.dom m1) (FuncUtil.Ctermfunc.dom m2)) (FuncUtil.Ctermfunc.empty);
 
 fun monomial_multidegree m =
  FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => k + a) m 0;;
@@ -314,7 +314,7 @@ fun multidegree p =
   FuncUtil.Monomialfunc.fold (fn (m, c) => fn a => max (monomial_multidegree m) a) p 0;
 
 fun poly_variables p =
-  sort FuncUtil.cterm_ord (FuncUtil.Monomialfunc.fold_rev (fn (m, c) => curry (union (is_equal o FuncUtil.cterm_ord)) (monomial_variables m)) p []);;
+  sort FuncUtil.cterm_ord (FuncUtil.Monomialfunc.fold_rev (fn (m, c) => union (is_equal o FuncUtil.cterm_ord) (monomial_variables m)) p []);;
 
 (* Order monomials for human presentation.                                   *)
 
@@ -1059,8 +1059,8 @@ end
 
 fun real_positivnullstellensatz_general prover linf d eqs leqs pol =
 let
- val vars = fold_rev (curry (union (op aconvc)) o poly_variables)
-              (pol::eqs @ map fst leqs) []
+ val vars = fold_rev (union (op aconvc) o poly_variables)
+   (pol :: eqs @ map fst leqs) []
  val monoid = if linf then
       (poly_const rat_1,RealArith.Rational_lt rat_1)::
       (filter (fn (p,c) => multidegree p <= d) leqs)

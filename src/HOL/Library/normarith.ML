@@ -286,7 +286,7 @@ local
    val dests = distinct (op aconvc) (map snd rawdests)
    val srcfuns = map vector_lincomb sources
    val destfuns = map vector_lincomb dests 
-   val vvs = fold_rev (curry (union op aconvc) o FuncUtil.Ctermfunc.dom) (srcfuns @ destfuns) []
+   val vvs = fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom) (srcfuns @ destfuns) []
    val n = length srcfuns
    val nvs = 1 upto n
    val srccombs = srcfuns ~~ nvs
