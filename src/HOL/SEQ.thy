@@ -1089,10 +1089,10 @@ done
 
 subsubsection {* Cauchy Sequences are Convergent *}
 
-axclass complete_space \<subseteq> metric_space
-  Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
+class complete_space =
+  assumes Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
 
-axclass banach \<subseteq> real_normed_vector, complete_space
+class banach = real_normed_vector + complete_space
 
 theorem LIMSEQ_imp_Cauchy:
   assumes X: "X ----> a" shows "Cauchy X"

@@ -1154,7 +1154,7 @@ struct
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
-        union (op =) (acc, (ground_types thy t'))) ([], u :: axioms)
+        uncurry (union (op =)) (acc, (ground_types thy t'))) ([], u :: axioms)
       val _     = tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
