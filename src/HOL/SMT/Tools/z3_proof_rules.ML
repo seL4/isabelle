@@ -386,52 +386,55 @@ local
 
   datatype conj_disj = CONJ | DISJ | NCON | NDIS
   fun kind_of t =
-    if is_conj t then CONJ
-    else if is_disj t then DISJ
-    else if is_neg' is_conj t then NCON
-    else if is_neg' is_disj t then NDIS
-    else CONJ (*allows to prove equalities with single literals on each side*)
+    if is_conj t then SOME CONJ
+    else if is_disj t then SOME DISJ
+    else if is_neg' is_conj t then SOME NCON
+    else if is_neg' is_disj t then SOME NDIS
+    else NONE
 in
 fun prove_conj_disj_eq ct =
   let val cp = Thm.dest_binop ct
   in
     (case pairself (kind_of o Thm.term_of) cp of
-      (CONJ, CONJ) => prove_eq true true cp
-    | (CONJ, NDIS) => prove_eq true false cp
-    | (DISJ, DISJ) => contrapos1 (prove_eq false false) cp
-    | (DISJ, NCON) => contrapos2 (prove_eq false true) cp
-    | (NCON, NCON) => contrapos1 (prove_eq true true) cp
-    | (NCON, DISJ) => contrapos3 (prove_eq true false) cp
-    | (NDIS, NDIS) => prove_eq false false cp
-    | (NDIS, CONJ) => prove_eq false true cp)
+      (SOME CONJ, SOME CONJ) => prove_eq true true cp
+    | (SOME CONJ, SOME NDIS) => prove_eq true false cp
+    | (SOME CONJ, NONE) => prove_eq true true cp
+    | (SOME DISJ, SOME DISJ) => contrapos1 (prove_eq false false) cp
+    | (SOME DISJ, SOME NCON) => contrapos2 (prove_eq false true) cp
+    | (SOME DISJ, NONE) => contrapos1 (prove_eq false false) cp
+    | (SOME NCON, SOME NCON) => contrapos1 (prove_eq true true) cp
+    | (SOME NCON, SOME DISJ) => contrapos3 (prove_eq true false) cp
+    | (SOME NCON, NONE) => contrapos3 (prove_eq true false) cp
+    | (SOME NDIS, SOME NDIS) => prove_eq false false cp
+    | (SOME NDIS, SOME CONJ) => prove_eq false true cp
+    | (SOME NDIS, NONE) => prove_eq false true cp
+    | _ => raise CTERM ("prove_conj_disj_eq", [ct]))
   end
 end
 
 (** unfolding of distinct **)
 
 local
-  val distinct1 = @{lemma "distinct [] == ~False" by simp}
-  val distinct2 = @{lemma "distinct [x] == ~False" by simp}
-  val distinct3 = @{lemma "distinct (x # xs) == x ~: set xs & distinct xs"
+  val set1 = @{lemma "x ~: set [] == ~False" by simp}
+  val set2 = @{lemma "x ~: set [x] == False" by simp}
+  val set3 = @{lemma "x ~: set [y] == x ~= y" by simp}
+  val set4 = @{lemma "x ~: set (x # ys) == False" by simp}
+  val set5 = @{lemma "x ~: set (y # ys) == x ~= y & x ~: set ys" by simp}
+
+  fun set_conv ct =
+    (More_Conv.rewrs_conv [set1, set2, set3, set4] else_conv
+    (Conv.rewr_conv set5 then_conv Conv.arg_conv set_conv)) ct
+
+  val dist1 = @{lemma "distinct [] == ~False" by simp}
+  val dist2 = @{lemma "distinct [x] == ~False" by simp}
+  val dist3 = @{lemma "distinct (x # xs) == x ~: set xs & distinct xs"
     by simp}
 
-  val set1 = @{lemma "x ~: set [] == ~False" by simp}
-  val set2 = @{lemma "x ~: set [y] == x ~= y" by simp}
-  val set3 = @{lemma "x ~: set (y # ys) == x ~= y & x ~: set ys" by simp}
-
   fun binop_conv cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
-
-  fun unfold_conv rule1 rule2 rule3 sub_conv =
-    let
-      fun uconv ct =
-       (Conv.rewr_conv rule1 else_conv
-        Conv.rewr_conv rule2 else_conv
-       (Conv.rewr_conv rule3 then_conv binop_conv sub_conv uconv)) ct
-    in uconv end
-
-  val set_conv = unfold_conv set1 set2 set3 Conv.all_conv
 in
-val unfold_distinct_conv = unfold_conv distinct1 distinct2 distinct3 set_conv
+fun unfold_distinct_conv ct =
+  (More_Conv.rewrs_conv [dist1, dist2] else_conv
+  (Conv.rewr_conv dist3 then_conv binop_conv set_conv unfold_distinct_conv)) ct
 end
 
 

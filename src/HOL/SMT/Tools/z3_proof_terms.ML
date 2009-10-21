@@ -143,8 +143,8 @@ fun mk_quant q thy (n, T) e =
     fun dec (i, v) = if i = 0 then NONE else SOME (i - 1, v)
   in mk_preterm (Thm.capply cq (Thm.cabs cv ct), map_filter dec vs) end
 in
-val mk_forall = mk_quant (mk_inst_pair (destT1 o destT1) @{cpat All})
-val mk_exists = mk_quant (mk_inst_pair (destT1 o destT1) @{cpat Ex})
+fun mk_forall thy = mk_quant (mk_inst_pair (destT1 o destT1) @{cpat All}) thy
+fun mk_exists thy = mk_quant (mk_inst_pair (destT1 o destT1) @{cpat Ex}) thy
 end
 
 

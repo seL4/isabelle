@@ -192,9 +192,11 @@ fun application thy =
 
 val variables =
   par (this "vars" |-- bsep1 (par ((lift name >> K "x") --| blank -- sort)))
-val patterns = bsep (par ((this ":pat" || this ":nopat") |-- bsep1 (lift id)))
-val quant_kind =
-  this "forall" >> K T.mk_forall || this "exists" >> K T.mk_exists
+fun patterns st =
+  bsep (par ((this ":pat" || this ":nopat") |-- bsep1 (lift id))) st
+fun quant_kind st =
+ (this "forall" >> K T.mk_forall ||
+  this "exists" >> K T.mk_exists) st
 fun quantifier thy = par (quant_kind --| blank --
   variables --| patterns --| blank -- arg thy) >>
   (fn ((q, vs), body) => fold_rev (q thy) vs body)
