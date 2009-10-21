@@ -28,7 +28,7 @@ structure S = USyntax
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
-      (List.foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
+      (List.foldr (fn (th,A) => union (op aconv) (prems_of th, A)) [] rules);
 
 (*---------------------------------------------------------------------------
  * Three postprocessors are applied to the definition.  It
@@ -79,7 +79,7 @@ fun join_assums th =
       val {lhs,rhs} = S.dest_eq(#2 (S.strip_forall (concl th)))
       val cntxtl = (#1 o S.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o S.strip_imp) rhs  (* but union is solider *)
-      val cntxt = gen_union (op aconv) (cntxtl, cntxtr)
+      val cntxt = union (op aconv) (cntxtl, cntxtr)
   in
     R.GEN_ALL
       (R.DISCH_ALL

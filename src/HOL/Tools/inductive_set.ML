@@ -209,7 +209,7 @@ fun infer_arities thy arities (optf, t) fs = case strip_comb t of
       (case optf of
          NONE => fs
        | SOME f => AList.update op = (u, the_default f
-           (Option.map (curry op inter f) (AList.lookup op = fs u))) fs));
+           (Option.map (curry (inter (op =)) f) (AList.lookup op = fs u))) fs));
 
 
 (**************************************************************)

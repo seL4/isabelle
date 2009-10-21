@@ -84,7 +84,7 @@ local
  in h [] end;
 in 
 fun is_relevant ctxt ct = 
- gen_subset (op aconv) (term_constants (term_of ct) , snd (CooperData.get ctxt))
+ subset (op aconv) (term_constants (term_of ct) , snd (CooperData.get ctxt))
  andalso forall (fn Free (_,T) => T mem [@{typ "int"}, @{typ nat}]) (OldTerm.term_frees (term_of ct))
  andalso forall (fn Var (_,T) => T mem [@{typ "int"}, @{typ nat}]) (OldTerm.term_vars (term_of ct));
 

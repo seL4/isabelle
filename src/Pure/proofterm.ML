@@ -900,8 +900,8 @@ fun is_fun (Type ("fun", _)) = true
 
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then
-    vs union map_filter (fn Var (ixn, T) =>
-      if is_fun T then SOME ixn else NONE | _ => NONE) (vars_of t)
+    union (op =) (vs, map_filter (fn Var (ixn, T) =>
+      if is_fun T then SOME ixn else NONE | _ => NONE) (vars_of t))
   else vs;
 
 fun add_npvars q p Ts (vs, Const ("==>", _) $ t $ u) =
@@ -918,7 +918,7 @@ and add_npvars' Ts (vs, t) = (case strip_comb t of
   | (Abs (_, T, u), ts) => Library.foldl (add_npvars' (T::Ts)) (vs, u :: ts)
   | (_, ts) => Library.foldl (add_npvars' Ts) (vs, ts));
 
-fun prop_vars (Const ("==>", _) $ P $ Q) = prop_vars P union prop_vars Q
+fun prop_vars (Const ("==>", _) $ P $ Q) = union (op =) (prop_vars P, prop_vars Q)
   | prop_vars (Const ("all", _) $ Abs (_, _, t)) = prop_vars t
   | prop_vars t = (case strip_comb t of
       (Var (ixn, _), _) => [ixn] | _ => []);
@@ -936,9 +936,9 @@ fun is_proj t =
   end;
 
 fun needed_vars prop =
-  Library.foldl (op union)
-    ([], map (uncurry (insert (op =))) (add_npvars true true [] ([], prop))) union
-  prop_vars prop;
+  union (op =) (Library.foldl (union (op =))
+    ([], map (uncurry (insert (op =))) (add_npvars true true [] ([], prop))),
+  prop_vars prop);
 
 fun gen_axm_proof c name prop =
   let
@@ -975,7 +975,7 @@ val shrink_proof =
           let
             val p as (_, is', ch', prf') = shrink ls lev prf2;
             val (is, ch, ts', prf'') = shrink' ls lev ts (p::prfs) prf1
-          in (is union is', ch orelse ch', ts',
+          in (union (op =) (is, is'), ch orelse ch', ts',
               if ch orelse ch' then prf'' %% prf' else prf)
           end
       | shrink' ls lev ts prfs (prf as prf1 % t) =
@@ -1004,15 +1004,15 @@ val shrink_proof =
             val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
             val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
               insert (op =) ixn (case AList.lookup (op =) insts ixn of
-                  SOME (SOME t) => if is_proj t then ixns union ixns' else ixns'
-                | _ => ixns union ixns'))
+                  SOME (SOME t) => if is_proj t then union (op =) (ixns, ixns') else ixns'
+                | _ => union (op =) (ixns, ixns')))
                   (needed prop ts'' prfs, add_npvars false true [] ([], prop));
             val insts' = map
               (fn (ixn, x as SOME _) => if member (op =) nvs ixn then (false, x) else (true, NONE)
                 | (_, x) => (false, x)) insts
           in ([], false, insts' @ map (pair false) ts'', prf) end
     and needed (Const ("==>", _) $ t $ u) ts ((b, _, _, _)::prfs) =
-          (if b then map (fst o dest_Var) (vars_of t) else []) union needed u ts prfs
+          union (op =) (if b then map (fst o dest_Var) (vars_of t) else [], needed u ts prfs)
       | needed (Var (ixn, _)) (_::_) _ = [ixn]
       | needed _ _ _ = [];
   in shrink end;

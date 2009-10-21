@@ -473,7 +473,7 @@ fun expand_defs_tac st0 st =
       val remaining_hyps = filter_out (member (op aconv) (map Thm.term_of defs))
                                       (map Thm.term_of hyps)
       val fixed = OldTerm.term_frees (concl_of st) @
-                  List.foldl (gen_union (op aconv)) [] (map OldTerm.term_frees remaining_hyps)
+                  List.foldl (union (op aconv)) [] (map OldTerm.term_frees remaining_hyps)
   in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 

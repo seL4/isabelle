@@ -31,14 +31,14 @@ fun warn_duplicates [] = []
        dups);
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
-    let val dups = warn_duplicates (gen_inter Thm.eq_thm_prop (ths,safes))
+    let val dups = warn_duplicates (inter Thm.eq_thm_prop (ths,safes))
         val ths' = subtract Thm.eq_thm_prop dups ths
     in
         Pack(sort (make_ord less) (ths'@safes), unsafes)
     end;
 
 fun (Pack(safes,unsafes)) add_unsafes ths = 
-    let val dups = warn_duplicates (gen_inter Thm.eq_thm_prop (ths,unsafes))
+    let val dups = warn_duplicates (inter Thm.eq_thm_prop (ths,unsafes))
         val ths' = subtract Thm.eq_thm_prop dups ths
     in
         Pack(safes, sort (make_ord less) (ths'@unsafes))

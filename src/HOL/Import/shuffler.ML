@@ -78,7 +78,7 @@ structure ShuffleData = TheoryDataFun
   val empty = []
   val copy = I
   val extend = I
-  fun merge _ = Library.gen_union Thm.eq_thm
+  fun merge _ = Library.union Thm.eq_thm
 )
 
 fun print_shuffles thy =
@@ -563,7 +563,7 @@ fun match_consts ignore t (* th *) =
         let
             val th_consts = add_consts(prop_of th,[])
         in
-            eq_set(t_consts,th_consts)
+            eq_set (op =) (t_consts, th_consts)
         end
     end
 

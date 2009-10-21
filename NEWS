@@ -213,6 +213,9 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* Removed some old-style infix operations using polymorphic equality.
+INCOMPATIBILITY.
+
 * Structure Synchronized (cf. src/Pure/Concurrent/synchronized.ML)
 provides a high-level programming interface to synchronized state
 variables with atomic update.  This works via pure function

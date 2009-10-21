@@ -145,7 +145,7 @@ fun hide fully name space =
       space
       |> add_name' name name
       |> fold (del_name name)
-        (if fully then names else names inter_string [Long_Name.base_name name])
+        (if fully then names else inter (op =) (names, [Long_Name.base_name name]))
       |> fold (del_name_extra name) (get_accesses space name)
     end;
 

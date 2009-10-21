@@ -42,7 +42,7 @@ fun check_elem (chs as []) = err_elem "Illegal" chs
   | check_elem (chs as ["~"]) = err_elem "Illegal" chs
   | check_elem (chs as ["~", "~"]) = err_elem "Illegal" chs
   | check_elem chs =
-      (case ["/", "\\", "$", ":"] inter_string chs of
+      (case inter (op =) (["/", "\\", "$", ":"], chs) of
         [] => chs
       | bads => err_elem ("Illegal character(s) " ^ commas_quote bads ^ " in") chs);
 

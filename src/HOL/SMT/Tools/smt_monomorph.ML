@@ -55,7 +55,7 @@ fun instances thy is (n, Ts) env =
 fun proper_match ps env =
   forall (forall (not o typ_has_tvars o Envir.subst_type env) o snd) ps
 
-val eq_tab = gen_eq_set (op =) o pairself Vartab.dest
+val eq_tab = eq_set (op =) o pairself Vartab.dest
 
 fun specialize thy cs is ((r, ps), ces) (ts, ns) =
   let

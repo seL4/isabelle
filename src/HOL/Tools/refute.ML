@@ -1154,7 +1154,7 @@ struct
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
-        acc union (ground_types thy t')) ([], u :: axioms)
+        union (op =) (acc, (ground_types thy t'))) ([], u :: axioms)
       val _     = tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
@@ -2415,7 +2415,7 @@ struct
                       (#2 (the (AList.lookup (op =) descr idt_index)) ~~ (snd o dest_Type) IDT))
                   (* sanity check: typ_assoc must associate types to the   *)
                   (*               elements of 'dtyps' (and only to those) *)
-                  val _ = if not (Library.eq_set (dtyps, map fst typ_assoc))
+                  val _ = if not (eq_set (op =) (dtyps, map fst typ_assoc))
                     then
                       raise REFUTE ("IDT_recursion_interpreter",
                         "type association has extra/missing elements")
@@ -3007,7 +3007,7 @@ struct
         [Type ("fun", [T, Type ("bool", [])]),
          Type ("fun", [_, Type ("bool", [])])]),
          Type ("fun", [_, Type ("bool", [])])])) =>
-      let nonfix union (* because "union" is used below *)
+      let
         val size_elem = size_of_type thy model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)

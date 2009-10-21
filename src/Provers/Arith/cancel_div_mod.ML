@@ -74,7 +74,7 @@ fun cancel ss t pq =
 fun proc ss t =
   let val (divs,mods) = coll_div_mod t ([],[])
   in if null divs orelse null mods then NONE
-     else case divs inter mods of
+     else case inter (op =) (divs, mods) of
             pq :: _ => SOME (cancel ss t pq)
           | [] => NONE
   end

@@ -281,9 +281,10 @@ fun i mem L =
           | itr (a::rst) = i=a orelse itr rst
     in itr L end;
 
+infix union;
 fun [] union S = S
   | S union [] = S
-  | (a::rst) union S2 = rst union (insert (op =) a S2)
+  | (a::rst) union S2 = rst union (insert (op =) a S2);
 
 fun implode_subst [] = []
   | implode_subst (x::r::rest) = ((x,r)::(implode_subst rest))
@@ -1229,7 +1230,7 @@ fun match_consts t (* th *) =
           | add_consts (_, cs) = cs
         val t_consts = add_consts(t,[])
     in
-        fn th => eq_set(t_consts,add_consts(prop_of th,[]))
+        fn th => eq_set (op =) (t_consts, add_consts (prop_of th, []))
     end
 
 fun split_name str =

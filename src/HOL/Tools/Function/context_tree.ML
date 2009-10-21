@@ -90,7 +90,7 @@ fun cong_deps crule =
       IntGraph.empty
         |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
         |> fold_product (fn (i, (c1, _)) => fn (j, (_, t2)) => 
-               if i = j orelse null (c1 inter t2) 
+               if i = j orelse null (inter (op =) (c1, t2))
                then I else IntGraph.add_edge_acyclic (i,j))
              num_branches num_branches
     end

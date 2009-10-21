@@ -216,10 +216,10 @@ fun flexflex1(env,binders,F,Fty,is,js) =
 
 fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
   let fun ff(F,Fty,is,G as (a,_),Gty,js) =
-            if js subset_int is
+            if subset (op =) (js, is)
             then let val t= mkabs(binders,is,app(Var(G,Gty),map (idx is) js))
                  in Envir.update (((F, Fty), t), env) end
-            else let val ks = is inter_int js
+            else let val ks = inter (op =) (is, js)
                      val Hty = type_of_G env (Fty,length is,map (idx is) ks)
                      val (env',H) = Envir.genvar a (env,Hty)
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));
@@ -339,7 +339,7 @@ fun match_bind(itms,binders,ixn,T,is,t) =
   let val js = loose_bnos t
   in if null is
      then if null js then Vartab.update_new (ixn, (T, t)) itms else raise MATCH
-     else if js subset_int is
+     else if subset (op =) (js, is)
           then let val t' = if downto0(is,length binders - 1) then t
                             else mapbnd (idx is) t
                in Vartab.update_new (ixn, (T, mkabs (binders, is, t'))) itms end

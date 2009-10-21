@@ -364,7 +364,7 @@ fun eq_types t = t aconv HOLogic.true_const;
 fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
 
 fun replace_deps (old:int, new) (lno, t, deps) =
-      (lno, t, List.foldl (op union_int) [] (map (replace_dep (old, new)) deps));
+      (lno, t, List.foldl (union (op =)) [] (map (replace_dep (old, new)) deps));
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
