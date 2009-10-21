@@ -78,6 +78,9 @@ by (simp add: comp_def)
 lemma image_compose: "(f o g) ` r = f`(g`r)"
 by (simp add: comp_def, blast)
 
+lemma vimage_compose: "(g \<circ> f) -` x = f -` (g -` x)"
+  by auto
+
 lemma UN_o: "UNION A (g o f) = UNION (f`A) g"
 by (unfold comp_def, blast)
 

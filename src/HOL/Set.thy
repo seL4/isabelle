@@ -458,7 +458,7 @@ lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   unfolding mem_def by (erule le_funE, erule le_boolE)
   -- {* Rule in Modus Ponens style. *}
 
-lemma rev_subsetD [intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
+lemma rev_subsetD [noatp,intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
   -- {* The same, with reversed premises for use with @{text erule} --
       cf @{text rev_mp}. *}
   by (rule subsetD)
@@ -467,13 +467,13 @@ text {*
   \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
 *}
 
-lemma subsetCE [elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
+lemma subsetCE [noatp,elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
   -- {* Classical elimination rule. *}
   unfolding mem_def by (blast dest: le_funE le_boolE)
 
-lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
+lemma subset_eq [noatp]: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
-lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
+lemma contra_subsetD [noatp]: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
   by blast
 
 lemma subset_refl [simp]: "A \<subseteq> A"
@@ -488,8 +488,11 @@ lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
 lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
 
+lemma eq_mem_trans: "a=b ==> b \<in> A ==> a \<in> A"
+  by simp
+
 lemmas basic_trans_rules [trans] =
-  order_trans_rules set_rev_mp set_mp
+  order_trans_rules set_rev_mp set_mp eq_mem_trans
 
 
 subsubsection {* Equality *}
