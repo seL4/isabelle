@@ -1145,6 +1145,10 @@ struct
   fun find_model thy {sizes, minsize, maxsize, maxvars, maxtime, satsolver,
     expect} t negate =
   let
+    (* string -> unit *)
+    fun check_expect outcome_code =
+      if expect = "" orelse outcome_code = expect then ()
+      else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
     (* unit -> unit *)
     fun wrapper () =
     let
@@ -1237,8 +1241,7 @@ struct
           "unknown")
         val outcome_code = find_model_loop (first_universe types sizes minsize)
       in
-        if expect = "" orelse outcome_code = expect then ()
-        else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+        check_expect outcome_code
       end
     in
       (* some parameter sanity checks *)
@@ -1261,9 +1264,10 @@ struct
         TimeLimit.timeLimit (Time.fromSeconds maxtime)
           wrapper ()
         handle TimeLimit.TimeOut =>
-          priority ("Search terminated, time limit (" ^
-            string_of_int maxtime
-            ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.")
+          (priority ("Search terminated, time limit (" ^
+              string_of_int maxtime
+              ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.");
+           check_expect "unknown")
       ) else
         wrapper ()
     end;
