@@ -37,12 +37,12 @@ open FundefCommon
 val simp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Code.add_default_eqn_attribute,
-     Nitpick_Const_Simps.add,
+     Nitpick_Simps.add,
      Quickcheck_RecFun_Simps.add]
 
 val psimp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
-     Nitpick_Const_Psimps.add]
+     Nitpick_Psimps.add]
 
 fun note_theorem ((name, atts), ths) =
   LocalTheory.note Thm.generatedK ((Binding.qualified_name name, atts), ths)

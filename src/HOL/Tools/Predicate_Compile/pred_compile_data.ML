@@ -157,7 +157,7 @@ fun make_const_spec_table_warning thy =
 
 fun make_const_spec_table thy =
   fold store_thm (Predicate_Compile_Preproc_Const_Defs.get (ProofContext.init thy)) thy
-  |> (fn thy => fold store_thm (Nitpick_Const_Simps.get (ProofContext.init thy)) thy)
+  |> (fn thy => fold store_thm (Nitpick_Simps.get (ProofContext.init thy)) thy)
 *)
 fun make_const_spec_table thy =
   let
@@ -168,8 +168,8 @@ fun make_const_spec_table thy =
   in
     table   
     |> store ignore_consts Predicate_Compile_Preproc_Const_Defs.get
-    |> store ignore_consts Nitpick_Const_Simps.get
-    |> store ignore_consts Nitpick_Ind_Intros.get
+    |> store ignore_consts Nitpick_Simps.get
+    |> store ignore_consts Nitpick_Intros.get
   end
   (*
 fun get_specification thy constname =

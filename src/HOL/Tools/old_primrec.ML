@@ -284,7 +284,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
   in
     thy''
     |> note (("simps",
-        [Simplifier.simp_add, Nitpick_Const_Simps.add, Code.add_default_eqn_attribute]), simps'')
+        [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]), simps'')
     |> snd
     |> note (("induct", []), [prepare_induct (#2 (hd dts)) rec_eqns])
     |> snd
