@@ -28,7 +28,7 @@ val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
   (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
 
-fun preds_of ps t = inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
+fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
 val fresh_prod = thm "fresh_prod";
 

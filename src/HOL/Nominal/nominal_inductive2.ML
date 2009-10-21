@@ -33,7 +33,7 @@ val fresh_postprocess =
     [@{thm fresh_star_set_eq}, @{thm fresh_star_Un_elim},
      @{thm fresh_star_insert_elim}, @{thm fresh_star_empty_elim}]);
 
-fun preds_of ps t = inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
+fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
 val perm_bool = mk_meta_eq (thm "perm_bool");
 val perm_boolI = thm "perm_boolI";
