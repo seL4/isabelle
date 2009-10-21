@@ -398,7 +398,7 @@ fun vperm (Var _, Var _) = true
   | vperm (t, u) = (t = u);
 
 fun var_perm (t, u) =
-  vperm (t, u) andalso gen_eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
+  vperm (t, u) andalso eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
 
 (*simple test for looping rewrite rules and stupid orientations*)
 fun default_reorient thy prems lhs rhs =
@@ -864,7 +864,7 @@ fun uncond_skel ((_, weak), (lhs, rhs)) =
   while the premises are solved.*)
 
 fun cond_skel (args as (_, (lhs, rhs))) =
-  if gen_subset (op =) (Term.add_vars rhs [], Term.add_vars lhs []) then uncond_skel args
+  if subset (op =) (Term.add_vars rhs [], Term.add_vars lhs []) then uncond_skel args
   else skel0;
 
 (*

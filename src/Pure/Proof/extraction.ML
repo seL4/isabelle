@@ -198,7 +198,7 @@ structure ExtractionData = TheoryDataFun
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = AList.merge (op =) (K true) (types1, types2),
-     realizers = Symtab.merge_list (gen_eq_set (op =) o pairself #1) (realizers1, realizers2),
+     realizers = Symtab.merge_list (eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
@@ -468,7 +468,7 @@ fun extract thms thy =
 
       in List.foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
 
-    fun find (vs: string list) = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
+    fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
     fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw

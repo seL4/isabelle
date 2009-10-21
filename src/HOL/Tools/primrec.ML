@@ -208,7 +208,7 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_error (quote tname ^ " is not a datatype")
         | SOME dt =>
-            if gen_subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
+            if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
@@ -232,7 +232,7 @@ fun distill lthy fixes eqs =
     val defs = map (make_def lthy fixes fs) raw_defs;
     val names = map snd fnames;
     val names_eqns = map fst eqns;
-    val _ = if gen_eq_set (op =) (names, names_eqns) then ()
+    val _ = if eq_set (op =) (names, names_eqns) then ()
       else primrec_error ("functions " ^ commas_quote names_eqns ^
         "\nare not mutually recursive");
     val rec_rewrites' = map mk_meta_eq rec_rewrites;

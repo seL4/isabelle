@@ -471,8 +471,8 @@ let
         | forced_vars False             = []
         | forced_vars (BoolVar i)       = [i]
         | forced_vars (Not (BoolVar i)) = [~i]
-        | forced_vars (Or (fm1, fm2))   = gen_inter (op =) (forced_vars fm1, forced_vars fm2)
-        | forced_vars (And (fm1, fm2))  = gen_union (op =) (forced_vars fm1, forced_vars fm2)
+        | forced_vars (Or (fm1, fm2))   = inter (op =) (forced_vars fm1, forced_vars fm2)
+        | forced_vars (And (fm1, fm2))  = union (op =) (forced_vars fm1, forced_vars fm2)
         (* Above, i *and* ~i may be forced.  In this case the first occurrence takes   *)
         (* precedence, and the next partial evaluation of the formula returns 'False'. *)
         | forced_vars _                 = error "formula is not in negation normal form"

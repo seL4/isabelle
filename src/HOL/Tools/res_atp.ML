@@ -215,7 +215,7 @@ fun defines thy thm gctypes =
                 val ct = const_with_typ thy (dest_ConstFree rator)
             in
               forall is_Var args andalso uni_mem gctypes ct andalso
-                gen_subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
+                subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
             end
             handle ConstFree => false
     in    

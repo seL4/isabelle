@@ -162,10 +162,10 @@ sig
   val mem: ''a * ''a list -> bool
   val mem_int: int * int list -> bool
   val mem_string: string * string list -> bool
-  val gen_union: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
-  val gen_inter: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
-  val gen_subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val gen_eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val union: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
+  val inter: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
+  val subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val \ : ''a list * ''a -> ''a list
   val \\ : ''a list * ''a list -> ''a list
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
@@ -799,23 +799,23 @@ fun (x: int) mem_int xs = member (op =) xs x;
 fun (x: string) mem_string xs = member (op =) xs x;
 
 (*union of sets represented as lists: no repetitions*)
-fun gen_union eq (xs, []) = xs
-  | gen_union eq ([], ys) = ys
-  | gen_union eq (x :: xs, ys) = gen_union eq (xs, insert eq x ys);
+fun union eq (xs, []) = xs
+  | union eq ([], ys) = ys
+  | union eq (x :: xs, ys) = union eq (xs, insert eq x ys);
 
 (*intersection*)
-fun gen_inter eq ([], ys) = []
-  | gen_inter eq (x::xs, ys) =
-      if member eq ys x then x :: gen_inter eq (xs, ys)
-      else gen_inter eq (xs, ys);
+fun inter eq ([], ys) = []
+  | inter eq (x::xs, ys) =
+      if member eq ys x then x :: inter eq (xs, ys)
+      else inter eq (xs, ys);
 
 (*subset*)
-fun gen_subset eq (xs, ys) = forall (member eq ys) xs;
+fun subset eq (xs, ys) = forall (member eq ys) xs;
 
 (*set equality*)
-fun gen_eq_set eq (xs, ys) =
+fun eq_set eq (xs, ys) =
   eq_list eq (xs, ys) orelse
-    (gen_subset eq (xs, ys) andalso gen_subset (eq o swap) (ys, xs));
+    (subset eq (xs, ys) andalso subset (eq o swap) (ys, xs));
 
 
 (*removing an element from a list WITHOUT duplicates*)

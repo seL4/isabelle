@@ -599,7 +599,7 @@ fun mk_app _ p [] = p
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
 fun new_names t xs = Name.variant_list
-  (gen_union (op =) (map (fst o fst o dest_Var) (OldTerm.term_vars t),
+  (union (op =) (map (fst o fst o dest_Var) (OldTerm.term_vars t),
     OldTerm.add_term_names (t, ML_Syntax.reserved_names))) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);

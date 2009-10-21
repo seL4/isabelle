@@ -1230,7 +1230,7 @@ fun match_consts t (* th *) =
           | add_consts (_, cs) = cs
         val t_consts = add_consts(t,[])
     in
-        fn th => gen_eq_set (op =) (t_consts, add_consts (prop_of th, []))
+        fn th => eq_set (op =) (t_consts, add_consts (prop_of th, []))
     end
 
 fun split_name str =

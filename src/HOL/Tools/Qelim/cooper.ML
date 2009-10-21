@@ -308,7 +308,7 @@ fun unify ctxt q =
   | Const (@{const_name Not},_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
-  val l = Integer.lcms (gen_union (op =) (cs, ds))
+  val l = Integer.lcms (union (op =) (cs, ds))
   fun cv k ct =
     let val (tm as b$s$t) = term_of ct
     in ((HOLogic.eq_const bT)$tm$(b$(linear_cmul k s)$(linear_cmul k t))

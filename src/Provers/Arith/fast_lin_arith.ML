@@ -385,7 +385,7 @@ fun elim (ineqs, hist) =
   let val (eqs, noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not (null eqs) then
      let val c =
-           fold (fn Lineq(_,_,l,_) => fn cs => gen_union (op =) (l, cs)) eqs []
+           fold (fn Lineq(_,_,l,_) => fn cs => union (op =) (l, cs)) eqs []
            |> filter (fn i => i <> 0)
            |> sort (int_ord o pairself abs)
            |> hd
@@ -429,8 +429,8 @@ fun trace_msg msg =
 val warning_count = Unsynchronized.ref 0;
 val warning_count_max = 10;
 
-val union_term = curry (gen_union Pattern.aeconv);
-val union_bterm = curry (gen_union
+val union_term = curry (union Pattern.aeconv);
+val union_bterm = curry (union
   (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t')));
 
 fun add_atoms (lhs, _, _, rhs, _, _) =
