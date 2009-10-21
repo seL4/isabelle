@@ -531,7 +531,7 @@ fun lazyR_def thy fid tflCongs eqns =
                  then writeln (cat_lines ("Extractants =" ::
                   map (Display.string_of_thm_global thy) extractants))
                  else ()
-     val TCs = List.foldr (union (op aconv)) [] TCl
+     val TCs = List.foldr (uncurry (union (op aconv))) [] TCl
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'

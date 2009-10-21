@@ -101,7 +101,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
             val tos = connected_with chains' [lhs] [lhs];
         in (copy_lookahead tos [],
-            union (op =) (if member (op =) lambdas lhs then tos else [], lambdas))
+            union (op =) (if member (op =) lambdas lhs then tos else []) lambdas)
         end;
 
       (*test if new production can produce lambda
@@ -109,7 +109,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       val (new_lambda, lambdas') =
         if forall (fn (Nonterminal (id, _)) => member (op =) lambdas' id
                     | (Terminal _) => false) rhs then
-          (true, union (op =) (lambdas', connected_with chains' [lhs] [lhs]))
+          (true, union (op =) lambdas' (connected_with chains' [lhs] [lhs]))
         else
           (false, lambdas');
 
@@ -125,7 +125,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       (*get all known starting tokens for a nonterminal*)
       fun starts_for_nt nt = snd (fst (Array.sub (prods, nt)));
 
-      val token_union = union matching_tokens;
+      val token_union = uncurry (union matching_tokens);
 
       (*update prods, lookaheads, and lambdas according to new lambda NTs*)
       val (added_starts', lambdas') =
@@ -155,7 +155,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                         val added_tks' = token_union (new_tks, added_tks);
 
-                        val nt_dependencies' = union (op =) (nts, nt_dependencies);
+                        val nt_dependencies' = union (op =) nts nt_dependencies;
 
                         (*associate production with new starting tokens*)
                         fun copy ([]: token option list) nt_prods = nt_prods
@@ -413,7 +413,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
         fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
         val nt_prods =
-          Library.foldl (union op =) ([], map snd (snd (Array.sub (prods, tag)))) @
+          Library.foldl (uncurry (union (op =))) ([], map snd (snd (Array.sub (prods, tag)))) @
           map prod_of_chain ((these o AList.lookup (op =) chains) tag);
       in map (pretty_prod name) nt_prods end;
 
@@ -562,8 +562,8 @@ fun merge_grams gram_a gram_b =
     fun process_nt ~1 result = result
       | process_nt nt result =
         let
-          val nt_prods = Library.foldl (union op =)
-                             ([], map snd (snd (Array.sub (prods2, nt))));
+          val nt_prods = Library.foldl (uncurry (union (op =)))
+            ([], map snd (snd (Array.sub (prods2, nt))));
           val lhs_tag = convert_tag nt;
 
           (*convert tags in rhs*)

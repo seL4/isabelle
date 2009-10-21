@@ -257,7 +257,7 @@ fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) s
 fun get_nonrec_types descr sorts =
   map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
     Library.foldl (fn (Ts', (_, cargs)) =>
-      union (op =) (filter_out is_rec_type cargs, Ts')) (Ts, constrs)) ([], descr));
+      union (op =) (filter_out is_rec_type cargs) Ts') (Ts, constrs)) ([], descr));
 
 (* get all recursive types in datatype description *)
 
