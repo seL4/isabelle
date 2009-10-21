@@ -11,7 +11,7 @@ See also General/basics.ML for the most fundamental concepts.
 infix 2 ?
 infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
-infix orf andf \ \\ mem mem_int mem_string
+infix orf andf mem mem_int mem_string
 
 signature BASIC_LIBRARY =
 sig
@@ -166,8 +166,6 @@ sig
   val inter: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
   val subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val \ : ''a list * ''a -> ''a list
-  val \\ : ''a list * ''a list -> ''a list
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
@@ -816,12 +814,6 @@ fun subset eq (xs, ys) = forall (member eq ys) xs;
 fun eq_set eq (xs, ys) =
   eq_list eq (xs, ys) orelse
     (subset eq (xs, ys) andalso subset (eq o swap) (ys, xs));
-
-
-(*removing an element from a list WITHOUT duplicates*)
-fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
-  | [] \ x = [];
-fun ys \\ xs = foldl (op \) (ys,xs);
 
 
 (*makes a list of the distinct members of the input; preserves order, takes

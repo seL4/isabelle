@@ -285,7 +285,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
     val patts2 = Library.sort (Library.int_ord o Library.pairself row_of_pat) patts1
     val finals = map row_of_pat patts2
     val originals = map (row_of_pat o #2) rows
-    val _ = case originals \\ finals of
+    val _ = case subtract (op =) finals originals of
         [] => ()
         | is => (case config of Error => case_error | Warning => warning | Quiet => fn _ => {})
           ("The following clauses are redundant (covered by preceding clauses):\n" ^

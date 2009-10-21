@@ -106,7 +106,7 @@ fun assume_skofuns s th =
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
-                val args = OldTerm.term_frees xtp \\ skos  (*the formal parameters*)
+                val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
                 val id = "sko_" ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)

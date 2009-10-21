@@ -90,7 +90,7 @@ fun process_eqn thy eq rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (OldTerm.term_frees rhs) \\ lfrees);
+        (subtract (op =) lfrees (map dest_Free (OldTerm.term_frees rhs)));
       case AList.lookup (op =) rec_fns fnameT of
         NONE =>
           (fnameT, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns

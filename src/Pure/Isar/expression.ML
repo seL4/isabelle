@@ -628,7 +628,7 @@ fun def_pred bname parms defs ts norm_ts thy =
     val xs = filter (member (op =) env o #1) parms;
     val Ts = map #2 xs;
     val extraTs =
-      (Term.add_tfrees body [] \\ fold Term.add_tfreesT Ts [])
+      (subtract (op =) (fold Term.add_tfreesT Ts []) (Term.add_tfrees body []))
       |> Library.sort_wrt #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 
@@ -738,7 +738,7 @@ fun gen_add_locale prep_decl
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_bname parms text thy;
 
-    val extraTs = fold Term.add_tfrees exts' [] \\ fold Term.add_tfreesT (map snd parms) [];
+    val extraTs = subtract (op =) (fold Term.add_tfreesT (map snd parms) []) (fold Term.add_tfrees exts' []);
     val _ =
       if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^

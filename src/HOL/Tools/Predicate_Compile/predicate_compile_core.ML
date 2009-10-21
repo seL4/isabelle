@@ -1051,7 +1051,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                   (filter_out (equal p) ps)
               | _ =>
                   let 
-                    val all_generator_vs = all_subsets (prem_vs \\ vs) |> sort (int_ord o (pairself length))
+                    val all_generator_vs = all_subsets (subtract (op =) vs prem_vs) |> sort (int_ord o (pairself length))
                   in
                     case (find_first (fn generator_vs => is_some
                       (select_mode_prem thy modes' (union (op =) (vs, generator_vs)) ps)) all_generator_vs) of
@@ -1077,7 +1077,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
          NONE => NONE
        | SOME (acc_ps, vs) =>
          if with_generator then
-           SOME (ts, (rev acc_ps) @ (map (generator vTs) (concl_vs \\ vs))) 
+           SOME (ts, (rev acc_ps) @ (map (generator vTs) (subtract (op =) vs concl_vs)))
          else
            if subset (op =) (concl_vs, vs) then SOME (ts, rev acc_ps) else NONE
     else NONE
@@ -1119,7 +1119,7 @@ fun remove_from rem [] = []
   | remove_from rem ((k, vs) :: xs) =
     (case AList.lookup (op =) rem k of
       NONE => (k, vs)
-    | SOME vs' => (k, vs \\ vs'))
+    | SOME vs' => (k, subtract (op =) vs' vs))
     :: remove_from rem xs
     
 fun infer_modes_with_generator thy extra_modes all_modes param_vs clauses =
@@ -2167,7 +2167,7 @@ fun prepare_intrs thy prednames =
               [] => [(i + 1, NONE)]
             | [U] => [(i + 1, NONE)]
             | Us =>  (i + 1, NONE) ::
-              (map (pair (i + 1) o SOME) ((subsets 1 (length Us)) \\ [[], 1 upto (length Us)])))
+              (map (pair (i + 1) o SOME) (subtract (op =) [[], 1 upto (length Us)] (subsets 1 (length Us)))))
           Ts)
       in
         cprod (cprods (map (fn T => case strip_type T of
@@ -2218,7 +2218,7 @@ fun extend' value_of edges_of key (G, visited) =
     val (G', v) = case try (Graph.get_node G) key of
         SOME v => (G, v)
       | NONE => (Graph.new_node (key, value_of key) G, value_of key)
-    val (G'', visited') = fold (extend' value_of edges_of) (edges_of (key, v) \\ visited)
+    val (G'', visited') = fold (extend' value_of edges_of) (subtract (op =) visited (edges_of (key, v)))
       (G', key :: visited) 
   in
     (fold (Graph.add_edge o (pair key)) (edges_of (key, v)) G'', visited')

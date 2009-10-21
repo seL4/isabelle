@@ -343,7 +343,7 @@ fun mk_functional thy clauses =
      val patts2 = Library.sort (Library.int_ord o Library.pairself row_of_pat) patts1
      val finals = map row_of_pat patts2
      val originals = map (row_of_pat o #2) rows
-     val dummy = case (originals\\finals)
+     val dummy = case (subtract (op =) finals originals)
              of [] => ()
           | L => mk_functional_err
  ("The following clauses are redundant (covered by preceding clauses): " ^

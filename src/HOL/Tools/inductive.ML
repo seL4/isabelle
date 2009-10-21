@@ -596,7 +596,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
     val fp_name = if coind then @{const_name Inductive.gfp} else @{const_name Inductive.lfp};
 
     val argTs = fold (fn c => fn Ts => Ts @
-      (List.drop (binder_types (fastype_of c), length params) \\ Ts)) cs [];
+      (subtract (op =) Ts (List.drop (binder_types (fastype_of c), length params)))) cs [];
     val k = log 2 1 (length cs);
     val predT = replicate k HOLogic.boolT ---> argTs ---> HOLogic.boolT;
     val p :: xs = map Free (Variable.variant_frees ctxt intr_ts

@@ -567,15 +567,16 @@ fun match_consts ignore t (* th *) =
         end
     end
 
-val collect_ignored =
-    fold_rev (fn thm => fn cs =>
-              let
-                  val (lhs,rhs) = Logic.dest_equals (prop_of thm)
-                  val ignore_lhs = Term.add_const_names lhs [] \\ Term.add_const_names rhs []
-                  val ignore_rhs = Term.add_const_names rhs [] \\ Term.add_const_names lhs []
-              in
-                  fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
-              end)
+val collect_ignored = fold_rev (fn thm => fn cs =>
+  let
+    val (lhs, rhs) = Logic.dest_equals (prop_of thm);
+    val consts_lhs = Term.add_const_names lhs [];
+    val consts_rhs = Term.add_const_names rhs [];
+    val ignore_lhs = subtract (op =) consts_rhs consts_lhs;
+    val ignore_rhs = subtract (op =) consts_lhs consts_rhs;
+  in
+    fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
+  end)
 
 (* set_prop t thms tries to make a theorem with the proposition t from
 one of the theorems thms, by shuffling the propositions around.  If it

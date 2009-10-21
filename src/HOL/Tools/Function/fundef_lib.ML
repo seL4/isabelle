@@ -153,7 +153,7 @@ fun regroup_conv neu cn ac is ct =
    val mk = HOLogic.mk_binop cn
    val t = term_of ct
    val xs = dest_binop_list cn t
-   val js = 0 upto (length xs) - 1 \\ is
+   val js = subtract (op =) is (0 upto (length xs) - 1)
    val ty = fastype_of t
    val thy = theory_of_cterm ct
  in

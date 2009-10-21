@@ -504,7 +504,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
         fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
           let
             val (cargs', sorts'') = Library.foldl (prep_typ tmp_thy) (([], sorts'), cargs);
-            val _ = (case fold (curry OldTerm.add_typ_tfree_names) cargs' [] \\ tvs of
+            val _ = (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [(Sign.full_name_path tmp_thy tname'
@@ -530,7 +530,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
 
     val (dts', constr_syntax, sorts', i) =
       fold prep_dt_spec (dts ~~ new_type_names) ([], [], [], 0);
-    val sorts = sorts' @ (map (rpair (Sign.defaultS tmp_thy)) (tyvars \\ map fst sorts'));
+    val sorts = sorts' @ (map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars));
     val dt_info = get_all thy;
     val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>

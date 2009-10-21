@@ -259,7 +259,7 @@ fun reset_goals () =
 
 (*Generates the list of new theories when the proof state's theory changes*)
 fun thy_error (thy,thy') =
-  let val names = Context.display_names thy' \\ Context.display_names thy
+  let val names = subtract (op =) (Context.display_names thy) (Context.display_names thy')
   in  case names of
         [name] => "\nNew theory: " ^ name
       | _       => "\nNew theories: " ^ space_implode ", " names

@@ -108,7 +108,7 @@ fun solve (vs,eqs) = case (vs,eqs) of
          val vdef = int_lincomb_cmul (Rat.neg (Rat.inv c)) eq
          fun eliminate eqn = if not (FuncUtil.Intfunc.defined eqn v) then eqn 
                              else int_lincomb_add (int_lincomb_cmul (FuncUtil.Intfunc.apply eqn v) vdef) eqn
-        in (case solve (vs \ v,map eliminate oeqs) of
+        in (case solve (remove (op =) v vs, map eliminate oeqs) of
             NONE => NONE
           | SOME soln => SOME (FuncUtil.Intfunc.update (v, evaluate soln (FuncUtil.Intfunc.delete_safe v vdef)) soln))
         end

@@ -34,7 +34,7 @@ local open Conv in
 
 (* Compute inverse permutation *)
 fun invert_perm pi =
-      (pi @ ((0 upto (fold Integer.max pi 0)) \\ pi))
+      (pi @ subtract (op =) pi (0 upto (fold Integer.max pi 0)))
            |> map_index I
            |> sort (int_ord o pairself snd)
            |> map fst

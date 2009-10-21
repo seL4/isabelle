@@ -370,7 +370,8 @@ fun type_class_pairs thy tycons classes =
 fun iter_type_class_pairs thy tycons [] = ([], [])
   | iter_type_class_pairs thy tycons classes =
       let val cpairs = type_class_pairs thy tycons classes
-          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs))) \\ classes \\ HOLogic.typeS
+          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs)))
+            |> subtract (op =) classes |> subtract (op =) HOLogic.typeS
           val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
       in (union (op =) (classes', classes), union (op =) (cpairs', cpairs)) end;
 

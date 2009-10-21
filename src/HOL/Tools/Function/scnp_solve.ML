@@ -67,7 +67,7 @@ fun iforall n f = all (map f (0 upto n - 1))
 fun iexists n f = PropLogic.exists (map f (0 upto n - 1))
 fun iforall2 n m f = all (map_product f (0 upto n - 1) (0 upto m - 1))
 
-fun the_one var n x = all (var x :: map (Not o var) ((0 upto n - 1) \\ [x]))
+fun the_one var n x = all (var x :: map (Not o var) (remove (op =) x (0 upto n - 1)))
 fun exactly_one n f = iexists n (the_one f n)
 
 (* SAT solving *)

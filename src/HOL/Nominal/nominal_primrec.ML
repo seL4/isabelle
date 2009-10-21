@@ -305,8 +305,8 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       HOLogic.dest_eq |> fst |> strip_comb |> snd |> take_prefix is_Var |> fst;
     val (pvars, ctxtvars) = List.partition
       (equal HOLogic.boolT o body_type o snd)
-      (fold_rev Term.add_vars (map Logic.strip_assums_concl
-        (prems_of (hd rec_rewrites))) [] \\ map dest_Var fvars);
+      (subtract (op =) (map dest_Var fvars) (fold_rev Term.add_vars (map Logic.strip_assums_concl
+        (prems_of (hd rec_rewrites))) []));
     val cfs = defs' |> hd |> snd |> strip_comb |> snd |>
       curry (List.take o swap) (length fvars) |> map cert;
     val invs' = (case invs of

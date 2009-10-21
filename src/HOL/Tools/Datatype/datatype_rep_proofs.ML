@@ -72,8 +72,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val branchTs = get_branching_types descr' sorts;
     val branchT = if null branchTs then HOLogic.unitT
       else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
-    val arities = get_arities descr' \ 0;
-    val unneeded_vars = hd tyvars \\ List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs);
+    val arities = remove (op =) 0 (get_arities descr');
+    val unneeded_vars = subtract (op =) (List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
     val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);

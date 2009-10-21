@@ -240,7 +240,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
               if is_some (covering g true j) then SOME (j, b) else NONE
             fun get_wk_cover (j, b) = the (covering g false j)
 
-            val qs = lq \\ map_filter get_str_cover lq
+            val qs = subtract (op =) (map_filter get_str_cover lq) lq
             val ps = map get_wk_cover qs
 
             fun indices xs ys = map (fn y => Library.find_index (curry op = y) xs) ys
@@ -263,7 +263,8 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
             THEN EVERY (map2 (less_proof false) qs ps)
             THEN (if strict orelse qs <> lq
                   then LocalDefs.unfold_tac ctxt set_of_simps
-                       THEN steps_tac MAX true (lq \\ qs) (lp \\ ps)
+                       THEN steps_tac MAX true
+                       (subtract (op =) qs lq) (subtract (op =) ps lp)
                   else all_tac)
           end
       in
@@ -296,7 +297,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
            (@{thms split_conv} @ @{thms fst_conv} @ @{thms snd_conv})
          THEN REPEAT (SOMEGOAL (resolve_tac [@{thm Un_least}, @{thm empty_subsetI}]))
          THEN EVERY (map (prove_lev true) sl)
-         THEN EVERY (map (prove_lev false) ((0 upto length cs - 1) \\ sl)))
+         THEN EVERY (map (prove_lev false) (subtract (op =) sl (0 upto length cs - 1))))
     end
 
 

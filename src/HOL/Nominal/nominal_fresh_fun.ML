@@ -151,7 +151,7 @@ fun fresh_fun_tac no_asm i thm =
     fun inst_fresh vars params i st =
    let val vars' = OldTerm.term_vars (prop_of st);
        val thy = theory_of_thm st;
-   in case vars' \\ vars of
+   in case subtract (op =) vars vars' of
      [x] => Seq.single (Thm.instantiate ([],[(cterm_of thy x,cterm_of thy (list_abs (params,Bound 0)))]) st)
     | _ => error "fresh_fun_simp: Too many variables, please report."
   end
