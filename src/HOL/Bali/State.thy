@@ -19,15 +19,15 @@ design issues:
 section "objects"
 
 datatype  obj_tag =     --{* tag for generic object   *}
-	  CInst qtname  --{* class instance           *}
-	| Arr  ty int   --{* array with component type and length *}
+          CInst qtname  --{* class instance           *}
+        | Arr  ty int   --{* array with component type and length *}
     --{* | CStat qtname   the tag is irrelevant for a class object,
-			   i.e. the static fields of a class,
+                           i.e. the static fields of a class,
                            since its type is given already by the reference to 
                            it (see below) *}
 
-types	vn   = "fspec + int"                    --{* variable name      *}
-record	obj  = 
+types   vn   = "fspec + int"                    --{* variable name      *}
+record  obj  = 
           tag :: "obj_tag"                      --{* generalized object *}
           "values" :: "(vn, val) table"      
 
@@ -214,12 +214,12 @@ done
 
 section "stores"
 
-types	globs               --{* global variables: heap and static variables *}
-	= "(oref , obj) table"
-	heap
-	= "(loc  , obj) table"
-(*	locals                   
-	= "(lname, val) table" *) (* defined in Value.thy local variables *)
+types   globs               --{* global variables: heap and static variables *}
+        = "(oref , obj) table"
+        heap
+        = "(loc  , obj) table"
+(*      locals                   
+        = "(lname, val) table" *) (* defined in Value.thy local variables *)
 
 translations
  "globs"  <= (type) "(oref , obj) table"
@@ -227,7 +227,7 @@ translations
 (*  "locals" <= (type) "(lname, val) table" *)
 
 datatype st = (* pure state, i.e. contents of all variables *)
-	 st globs locals
+         st globs locals
 
 subsection "access"
 
@@ -481,7 +481,7 @@ primrec "the_Loc (Loc a) = a"
 primrec "the_Std (Std x) = x"
 
 
-	
+        
 
 constdefs
   abrupt_if    :: "bool \<Rightarrow> abopt \<Rightarrow> abopt \<Rightarrow> abopt"

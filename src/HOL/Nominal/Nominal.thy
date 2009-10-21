@@ -2659,7 +2659,7 @@ proof -
     obtain y::"'a" where fr: "y\<sharp>(c,pi\<bullet>Xs,As)" 
       apply(rule_tac at_exists_fresh[OF at, where x="(c,pi\<bullet>Xs,As)"])
       apply(auto simp add: supp_prod at_supp[OF at] at_fin_set_supp[OF at]
-	pt_supp_finite_pi[OF pt_fun_inst[OF at_pt_inst[OF at] pt_bool_inst at] at])
+        pt_supp_finite_pi[OF pt_fun_inst[OF at_pt_inst[OF at] pt_bool_inst at] at])
       done
     have "({y}\<union>(pi\<bullet>Xs))\<sharp>*c" using a1 fr by (simp add: fresh_star_def)
     moreover
@@ -2674,21 +2674,21 @@ proof -
     proof -
       have eq: "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
       proof -
-	have "(pi\<bullet>x)\<sharp>(pi\<bullet>Xs)" using b d2 
-	  by(simp add: pt_fresh_bij[OF pt_fun_inst, OF at_pt_inst[OF at], 
+        have "(pi\<bullet>x)\<sharp>(pi\<bullet>Xs)" using b d2 
+          by(simp add: pt_fresh_bij[OF pt_fun_inst, OF at_pt_inst[OF at], 
             OF pt_bool_inst, OF at, OF at]
             at_fin_set_fresh[OF at])
-	moreover
-	have "y\<sharp>(pi\<bullet>Xs)" using fr by simp
-	ultimately show "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
-	  by (simp add: pt_fresh_fresh[OF pt_fun_inst, 
+        moreover
+        have "y\<sharp>(pi\<bullet>Xs)" using fr by simp
+        ultimately show "[(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs) = (pi\<bullet>Xs)" 
+          by (simp add: pt_fresh_fresh[OF pt_fun_inst, 
             OF at_pt_inst[OF at], OF pt_bool_inst, OF at, OF at])
       qed
       have "(((pi\<bullet>x,y)#pi)\<bullet>({x}\<union>Xs)) = ([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>({x}\<union>Xs)))"
-	by (simp add: pt2[symmetric, OF pt_fun_inst, OF at_pt_inst[OF at], 
+        by (simp add: pt2[symmetric, OF pt_fun_inst, OF at_pt_inst[OF at], 
           OF pt_bool_inst, OF at])
       also have "\<dots> = {y}\<union>([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs))" 
-	by (simp only: union_eqvt perm_set_eq[OF at_pt_inst[OF at], OF at] at_calc[OF at])(auto)
+        by (simp only: union_eqvt perm_set_eq[OF at_pt_inst[OF at], OF at] at_calc[OF at])(auto)
       finally show "(((pi\<bullet>x,y)#pi)\<bullet>({x} \<union> Xs)) = {y}\<union>(pi\<bullet>Xs)" using eq by simp
     qed
     ultimately 
@@ -2795,30 +2795,30 @@ proof -
       assume a3: "(a::'x)\<sharp>h"
       show "h (a::'x) = h a0"
       proof (cases "a=a0")
-	case True thus "h (a::'x) = h a0" by simp
+        case True thus "h (a::'x) = h a0" by simp
       next
-	case False 
-	assume "a\<noteq>a0"
-	hence c1: "a\<notin>((supp a0)::'x set)" by  (simp add: fresh_def[symmetric] at_fresh[OF at])
-	have c2: "a\<notin>((supp h)::'x set)" using a3 by (simp add: fresh_def)
-	from c1 c2 have c3: "a\<notin>((supp h)\<union>((supp a0)::'x set))" by force
-	have f2: "finite ((supp a0)::'x set)" by (simp add: at_supp[OF at])
-	from f1 f2 have "((supp (h a0))::'x set)\<subseteq>((supp h)\<union>(supp a0))"
-	  by (simp add: pt_supp_fun_subset[OF ptb, OF pta, OF at])
-	hence "a\<notin>((supp (h a0))::'x set)" using c3 by force
-	hence "a\<sharp>(h a0)" by (simp add: fresh_def) 
-	with a2 have d1: "[(a0,a)]\<bullet>(h a0) = (h a0)" by (rule pt_fresh_fresh[OF pta, OF at])
-	from a1 a3 have d2: "[(a0,a)]\<bullet>h = h" by (rule pt_fresh_fresh[OF ptc, OF at])
-	from d1 have "h a0 = [(a0,a)]\<bullet>(h a0)" by simp
-	also have "\<dots>= ([(a0,a)]\<bullet>h)([(a0,a)]\<bullet>a0)" by (simp add: pt_fun_app_eq[OF ptb, OF at])
-	also have "\<dots> = h ([(a0,a)]\<bullet>a0)" using d2 by simp
-	also have "\<dots> = h a" by (simp add: at_calc[OF at])
-	finally show "h a = h a0" by simp
+        case False 
+        assume "a\<noteq>a0"
+        hence c1: "a\<notin>((supp a0)::'x set)" by  (simp add: fresh_def[symmetric] at_fresh[OF at])
+        have c2: "a\<notin>((supp h)::'x set)" using a3 by (simp add: fresh_def)
+        from c1 c2 have c3: "a\<notin>((supp h)\<union>((supp a0)::'x set))" by force
+        have f2: "finite ((supp a0)::'x set)" by (simp add: at_supp[OF at])
+        from f1 f2 have "((supp (h a0))::'x set)\<subseteq>((supp h)\<union>(supp a0))"
+          by (simp add: pt_supp_fun_subset[OF ptb, OF pta, OF at])
+        hence "a\<notin>((supp (h a0))::'x set)" using c3 by force
+        hence "a\<sharp>(h a0)" by (simp add: fresh_def) 
+        with a2 have d1: "[(a0,a)]\<bullet>(h a0) = (h a0)" by (rule pt_fresh_fresh[OF pta, OF at])
+        from a1 a3 have d2: "[(a0,a)]\<bullet>h = h" by (rule pt_fresh_fresh[OF ptc, OF at])
+        from d1 have "h a0 = [(a0,a)]\<bullet>(h a0)" by simp
+        also have "\<dots>= ([(a0,a)]\<bullet>h)([(a0,a)]\<bullet>a0)" by (simp add: pt_fun_app_eq[OF ptb, OF at])
+        also have "\<dots> = h ([(a0,a)]\<bullet>a0)" using d2 by simp
+        also have "\<dots> = h a" by (simp add: at_calc[OF at])
+        finally show "h a = h a0" by simp
       qed
     qed
   qed
 qed
-	    
+
 lemma freshness_lemma_unique:
   fixes h :: "'x\<Rightarrow>'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
@@ -3090,44 +3090,44 @@ proof -
       have "(c=a) \<or> (c=b) \<or> (c\<noteq>a \<and> c\<noteq>b)" by blast
       moreover  --"case c=a"
       { have "nSome(x) = nSome([(a,b)]\<bullet>y)" using a2 by simp
-	also have "\<dots> = nSome([(b,a)]\<bullet>y)" by (simp, rule pt3[OF pt], rule at_ds5[OF at])
-	finally have "nSome(x) = nSome([(b,a)]\<bullet>y)" by simp
-	moreover
-	assume "c=a"
-	ultimately have "?LHS=?RHS" using a1 a3 by simp
+        also have "\<dots> = nSome([(b,a)]\<bullet>y)" by (simp, rule pt3[OF pt], rule at_ds5[OF at])
+        finally have "nSome(x) = nSome([(b,a)]\<bullet>y)" by simp
+        moreover
+        assume "c=a"
+        ultimately have "?LHS=?RHS" using a1 a3 by simp
       }
       moreover  -- "case c=b"
       { have a4: "y=[(a,b)]\<bullet>x" using a2 by (simp only: pt_swap_bij[OF pt, OF at])
-	hence "a\<sharp>([(a,b)]\<bullet>x)" using a3 by simp
-	hence "b\<sharp>x" by (simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
-	moreover
-	assume "c=b"
-	ultimately have "?LHS=?RHS" using a1 a4 by simp
+        hence "a\<sharp>([(a,b)]\<bullet>x)" using a3 by simp
+        hence "b\<sharp>x" by (simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
+        moreover
+        assume "c=b"
+        ultimately have "?LHS=?RHS" using a1 a4 by simp
       }
       moreover  -- "case c\<noteq>a \<and> c\<noteq>b"
       { assume a5: "c\<noteq>a \<and> c\<noteq>b"
-	moreover 
-	have "c\<sharp>x = c\<sharp>y" using a2 a5 by (force simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
-	moreover 
-	have "c\<sharp>y \<longrightarrow> [(a,c)]\<bullet>x = [(b,c)]\<bullet>y" 
-	proof (intro strip)
-	  assume a6: "c\<sharp>y"
-	  have "[(a,c),(b,c),(a,c)] \<triangleq> [(a,b)]" using a1 a5 by (force intro: at_ds3[OF at])
-	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>([(a,c)]\<bullet>y)) = [(a,b)]\<bullet>y" 
-	    by (simp add: pt2[OF pt, symmetric] pt3[OF pt])
- 	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = [(a,b)]\<bullet>y" using a3 a6 
-	    by (simp add: pt_fresh_fresh[OF pt, OF at])
-	  hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = x" using a2 by simp
-	  hence "[(b,c)]\<bullet>y = [(a,c)]\<bullet>x" by (drule_tac pt_bij1[OF pt, OF at], simp)
-	  thus "[(a,c)]\<bullet>x = [(b,c)]\<bullet>y" by simp
-	qed
-	ultimately have "?LHS=?RHS" by simp
+        moreover 
+        have "c\<sharp>x = c\<sharp>y" using a2 a5 by (force simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
+        moreover 
+        have "c\<sharp>y \<longrightarrow> [(a,c)]\<bullet>x = [(b,c)]\<bullet>y" 
+        proof (intro strip)
+          assume a6: "c\<sharp>y"
+          have "[(a,c),(b,c),(a,c)] \<triangleq> [(a,b)]" using a1 a5 by (force intro: at_ds3[OF at])
+          hence "[(a,c)]\<bullet>([(b,c)]\<bullet>([(a,c)]\<bullet>y)) = [(a,b)]\<bullet>y" 
+            by (simp add: pt2[OF pt, symmetric] pt3[OF pt])
+          hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = [(a,b)]\<bullet>y" using a3 a6 
+            by (simp add: pt_fresh_fresh[OF pt, OF at])
+          hence "[(a,c)]\<bullet>([(b,c)]\<bullet>y) = x" using a2 by simp
+          hence "[(b,c)]\<bullet>y = [(a,c)]\<bullet>x" by (drule_tac pt_bij1[OF pt, OF at], simp)
+          thus "[(a,c)]\<bullet>x = [(b,c)]\<bullet>y" by simp
+        qed
+        ultimately have "?LHS=?RHS" by simp
       }
       ultimately show "?LHS = ?RHS" by blast
     qed
   qed
 qed
-	
+        
 (* alpha equivalence *)
 lemma abs_fun_eq: 
   fixes x  :: "'a"
@@ -3278,7 +3278,7 @@ lemma fresh_abs_funI1:
     have "\<exists>c::'x. c\<sharp>(b,a,x,[a].x)" 
     proof (rule at_exists_fresh'[OF at], auto simp add: supp_prod at_supp[OF at] f)
       show "finite ((supp ([a].x))::'x set)" using f
-	by (simp add: abs_fun_finite_supp[OF pt, OF at])	
+        by (simp add: abs_fun_finite_supp[OF pt, OF at])        
     qed
     then obtain c where fr1: "c\<noteq>b"
                   and   fr2: "c\<noteq>a"
@@ -3309,7 +3309,7 @@ proof -
   have "\<exists>c::'x. c\<sharp>(b,a,x,[a].x)"
   proof (rule at_exists_fresh'[OF at], auto simp add: supp_prod at_supp[OF at] f)
     show "finite ((supp ([a].x))::'x set)" using f
-      by (simp add: abs_fun_finite_supp[OF pt, OF at])	
+      by (simp add: abs_fun_finite_supp[OF pt, OF at])  
   qed
   then obtain c where fr1: "b\<noteq>c"
                 and   fr2: "c\<noteq>a"

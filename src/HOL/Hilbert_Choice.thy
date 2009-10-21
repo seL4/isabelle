@@ -1,5 +1,5 @@
 (*  Title:      HOL/Hilbert_Choice.thy
-    Author:     Lawrence C Paulson
+    Author:     Lawrence C Paulson, Tobias Nipkow
     Copyright   2001  University of Cambridge
 *)
 
@@ -31,12 +31,11 @@ print_translation {*
      in Syntax.const "_Eps" $ x $ t end)]
 *}
 
-constdefs
-  inv :: "('a => 'b) => ('b => 'a)"
-  "inv(f :: 'a => 'b) == %y. SOME x. f x = y"
+definition inv_onto :: "'a set => ('a => 'b) => ('b => 'a)" where
+"inv_onto A f == %x. SOME y. y : A & f y = x"
 
-  Inv :: "'a set => ('a => 'b) => ('b => 'a)"
-  "Inv A f == %x. SOME y. y \<in> A & f y = x"
+abbreviation inv :: "('a => 'b) => ('b => 'a)" where
+"inv == inv_onto UNIV"
 
 
 subsection {*Hilbert's Epsilon-operator*}
@@ -92,20 +91,41 @@ by (fast elim: someI)
 
 subsection {*Function Inverse*}
 
-lemma inv_id [simp]: "inv id = id"
-by (simp add: inv_def id_def)
+lemma inv_def: "inv f = (%y. SOME x. f x = y)"
+by(simp add: inv_onto_def)
 
-text{*A one-to-one function has an inverse.*}
-lemma inv_f_f [simp]: "inj f ==> inv f (f x) = x"
-by (simp add: inv_def inj_eq)
-
-lemma inv_f_eq: "[| inj f;  f x = y |] ==> inv f y = x"
-apply (erule subst)
-apply (erule inv_f_f)
+lemma inv_onto_into: "x : f ` A ==> inv_onto A f x : A"
+apply (simp add: inv_onto_def)
+apply (fast intro: someI2)
 done
 
-lemma inj_imp_inv_eq: "[| inj f; \<forall>x. f(g x) = x |] ==> inv f = g"
-by (blast intro: ext inv_f_eq)
+lemma inv_id [simp]: "inv id = id"
+by (simp add: inv_onto_def id_def)
+
+lemma inv_onto_f_f [simp]:
+  "[| inj_on f A;  x : A |] ==> inv_onto A f (f x) = x"
+apply (simp add: inv_onto_def inj_on_def)
+apply (blast intro: someI2)
+done
+
+lemma inv_f_f: "inj f ==> inv f (f x) = x"
+by (simp add: inv_onto_f_f)
+
+lemma f_inv_onto_f: "y : f`A  ==> f (inv_onto A f y) = y"
+apply (simp add: inv_onto_def)
+apply (fast intro: someI2)
+done
+
+lemma inv_onto_f_eq: "[| inj_on f A; x : A; f x = y |] ==> inv_onto A f y = x"
+apply (erule subst)
+apply (fast intro: inv_onto_f_f)
+done
+
+lemma inv_f_eq: "[| inj f; f x = y |] ==> inv f y = x"
+by (simp add:inv_onto_f_eq)
+
+lemma inj_imp_inv_eq: "[| inj f; ALL x. f(g x) = x |] ==> inv f = g"
+by (blast intro: ext inv_onto_f_eq)
 
 text{*But is it useful?*}
 lemma inj_transfer:
@@ -114,13 +134,12 @@ lemma inj_transfer:
 proof -
   have "f x \<in> range f" by auto
   hence "P(inv f (f x))" by (rule minor)
-  thus "P x" by (simp add: inv_f_f [OF injf])
+  thus "P x" by (simp add: inv_onto_f_f [OF injf])
 qed
-
 
 lemma inj_iff: "(inj f) = (inv f o f = id)"
 apply (simp add: o_def expand_fun_eq)
-apply (blast intro: inj_on_inverseI inv_f_f)
+apply (blast intro: inj_on_inverseI inv_onto_f_f)
 done
 
 lemma inv_o_cancel[simp]: "inj f ==> inv f o f = id"
@@ -129,36 +148,34 @@ by (simp add: inj_iff)
 lemma o_inv_o_cancel[simp]: "inj f ==> g o inv f o f = g"
 by (simp add: o_assoc[symmetric])
 
-lemma inv_image_cancel[simp]:
-  "inj f ==> inv f ` f ` S = S"
-by (simp add: image_compose[symmetric])
- 
-lemma inj_imp_surj_inv: "inj f ==> surj (inv f)"
-by (blast intro: surjI inv_f_f)
+lemma inv_onto_image_cancel[simp]:
+  "inj_on f A ==> S <= A ==> inv_onto A f ` f ` S = S"
+by(fastsimp simp: image_def)
 
-lemma f_inv_f: "y \<in> range(f) ==> f(inv f y) = y"
-apply (simp add: inv_def)
-apply (fast intro: someI)
-done
+lemma inj_imp_surj_inv: "inj f ==> surj (inv f)"
+by (blast intro: surjI inv_onto_f_f)
 
 lemma surj_f_inv_f: "surj f ==> f(inv f y) = y"
-by (simp add: f_inv_f surj_range)
+by (simp add: f_inv_onto_f surj_range)
 
-lemma inv_injective:
-  assumes eq: "inv f x = inv f y"
-      and x: "x: range f"
-      and y: "y: range f"
+lemma inv_onto_injective:
+  assumes eq: "inv_onto A f x = inv_onto A f y"
+      and x: "x: f`A"
+      and y: "y: f`A"
   shows "x=y"
 proof -
-  have "f (inv f x) = f (inv f y)" using eq by simp
-  thus ?thesis by (simp add: f_inv_f x y) 
+  have "f (inv_onto A f x) = f (inv_onto A f y)" using eq by simp
+  thus ?thesis by (simp add: f_inv_onto_f x y)
 qed
 
-lemma inj_on_inv: "A <= range(f) ==> inj_on (inv f) A"
-by (fast intro: inj_onI elim: inv_injective injD)
+lemma inj_on_inv_onto: "B <= f`A ==> inj_on (inv_onto A f) B"
+by (blast intro: inj_onI dest: inv_onto_injective injD)
+
+lemma bij_betw_inv_onto: "bij_betw f A B ==> bij_betw (inv_onto A f) B A"
+by (auto simp add: bij_betw_def inj_on_inv_onto)
 
 lemma surj_imp_inj_inv: "surj f ==> inj (inv f)"
-by (simp add: inj_on_inv surj_range)
+by (simp add: inj_on_inv_onto surj_range)
 
 lemma surj_iff: "(surj f) = (f o inv f = id)"
 apply (simp add: o_def expand_fun_eq)
@@ -176,7 +193,7 @@ by (simp add: bij_def inj_imp_surj_inv surj_imp_inj_inv)
 
 lemma inv_equality: "[| !!x. g (f x) = x;  !!y. f (g y) = y |] ==> inv f = g"
 apply (rule ext)
-apply (auto simp add: inv_def)
+apply (auto simp add: inv_onto_def)
 done
 
 lemma inv_inv_eq: "bij f ==> inv (inv f) = f"
@@ -191,11 +208,19 @@ done
     inv(inv f)=f all fail.
 **)
 
+lemma inv_onto_comp:
+  "[| inj_on f (g ` A); inj_on g A; x : f ` g ` A |] ==>
+  inv_onto A (f o g) x = (inv_onto A g o inv_onto (g ` A) f) x"
+apply (rule inv_onto_f_eq)
+  apply (fast intro: comp_inj_on)
+ apply (simp add: inv_onto_into)
+apply (simp add: f_inv_onto_f inv_onto_into)
+done
+
 lemma o_inv_distrib: "[| bij f; bij g |] ==> inv (f o g) = inv g o inv f"
 apply (rule inv_equality)
 apply (auto simp add: bij_def surj_f_inv_f)
 done
-
 
 lemma image_surj_f_inv_f: "surj f ==> f ` (inv f ` A) = A"
 by (simp add: image_eq_UN surj_f_inv_f)
@@ -214,7 +239,7 @@ done
 
 lemma bij_vimage_eq_inv_image: "bij f ==> f -` A = inv f ` A" 
 apply (auto simp add: bij_is_surj [THEN surj_f_inv_f])
-apply (blast intro: bij_is_inj [THEN inv_f_f, symmetric])
+apply (blast intro: bij_is_inj [THEN inv_onto_f_f, symmetric])
 done
 
 lemma finite_fun_UNIVD1:
@@ -231,64 +256,12 @@ proof -
   moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
   proof (rule UNIV_eq_I)
     fix x :: 'a
-    from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by (simp add: inv_def)
+    from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by (simp add: inv_onto_def)
     thus "x \<in> range (\<lambda>f\<Colon>'a \<Rightarrow> 'b. inv f b1)" by blast
   qed
   ultimately show "finite (UNIV :: 'a set)" by simp
 qed
 
-subsection {*Inverse of a PI-function (restricted domain)*}
-
-lemma Inv_f_f: "[| inj_on f A;  x \<in> A |] ==> Inv A f (f x) = x"
-apply (simp add: Inv_def inj_on_def)
-apply (blast intro: someI2)
-done
-
-lemma f_Inv_f: "y \<in> f`A  ==> f (Inv A f y) = y"
-apply (simp add: Inv_def)
-apply (fast intro: someI2)
-done
-
-lemma Inv_injective:
-  assumes eq: "Inv A f x = Inv A f y"
-      and x: "x: f`A"
-      and y: "y: f`A"
-  shows "x=y"
-proof -
-  have "f (Inv A f x) = f (Inv A f y)" using eq by simp
-  thus ?thesis by (simp add: f_Inv_f x y) 
-qed
-
-lemma inj_on_Inv: "B <= f`A ==> inj_on (Inv A f) B"
-apply (rule inj_onI)
-apply (blast intro: inj_onI dest: Inv_injective injD)
-done
-
-lemma Inv_mem: "[| f ` A = B;  x \<in> B |] ==> Inv A f x \<in> A"
-apply (simp add: Inv_def)
-apply (fast intro: someI2)
-done
-
-lemma Inv_f_eq: "[| inj_on f A; f x = y; x \<in> A |] ==> Inv A f y = x"
-  apply (erule subst)
-  apply (erule Inv_f_f, assumption)
-  done
-
-lemma Inv_comp:
-  "[| inj_on f (g ` A); inj_on g A; x \<in> f ` g ` A |] ==>
-  Inv A (f o g) x = (Inv A g o Inv (g ` A) f) x"
-  apply simp
-  apply (rule Inv_f_eq)
-    apply (fast intro: comp_inj_on)
-   apply (simp add: f_Inv_f Inv_mem)
-  apply (simp add: Inv_mem)
-  done
-
-lemma bij_betw_Inv: "bij_betw f A B \<Longrightarrow> bij_betw (Inv A f) B A"
-  apply (auto simp add: bij_betw_def inj_on_Inv Inv_mem)
-  apply (simp add: image_compose [symmetric] o_def)
-  apply (simp add: image_def Inv_f_f)
-  done
 
 subsection {*Other Consequences of Hilbert's Epsilon*}
 

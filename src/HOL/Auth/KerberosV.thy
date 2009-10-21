@@ -137,9 +137,9 @@ inductive_set kerbV :: "event list set"
             B \<noteq> Tgs;  authK \<in> symKeys;
             Says A' Tgs \<lbrace>
              (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK,
-				 Number Ta\<rbrace>),
+                                 Number Ta\<rbrace>),
              (Crypt authK \<lbrace>Agent A, Number T2\<rbrace>), Agent B\<rbrace>
-	        \<in> set evs4;
+                \<in> set evs4;
             \<not> expiredAK Ta evs4;
             \<not> expiredA T2 evs4;
             servKlife + (CT evs4) <= authKlife + Ta
@@ -155,14 +155,14 @@ inductive_set kerbV :: "event list set"
             A \<noteq> Kas; A \<noteq> Tgs;
             Says A Tgs
                 \<lbrace>authTicket, Crypt authK \<lbrace>Agent A, Number T2\<rbrace>,
-		  Agent B\<rbrace>
+                  Agent B\<rbrace>
               \<in> set evs5;
             Says Tgs' A \<lbrace>Crypt authK \<lbrace>Key servK, Agent B, Number Ts\<rbrace>,
                           servTicket\<rbrace>
                 \<in> set evs5;
             valid Ts wrt T2 \<rbrakk>
           \<Longrightarrow> Says A B \<lbrace>servTicket,
-			 Crypt servK \<lbrace>Agent A, Number (CT evs5)\<rbrace> \<rbrace>
+                         Crypt servK \<lbrace>Agent A, Number (CT evs5)\<rbrace> \<rbrace>
                # evs5 \<in> kerbV"
 
   | KV6:  "\<lbrakk> evs6 \<in> kerbV; B \<noteq> Kas; B \<noteq> Tgs;
@@ -1081,14 +1081,14 @@ text{*If Spy sees the Service Key sent in msg K4, then
 
 lemma Confidentiality_lemma [rule_format]:
      "\<lbrakk> Says Tgs A
-	    \<lbrace>Crypt authK \<lbrace>Key servK, Agent B, Number Ts\<rbrace>,
-	      Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>
-	   \<in> set evs;
-	Key authK \<notin> analz (spies evs);
+            \<lbrace>Crypt authK \<lbrace>Key servK, Agent B, Number Ts\<rbrace>,
+              Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>
+           \<in> set evs;
+        Key authK \<notin> analz (spies evs);
         servK \<in> symKeys;
-	A \<notin> bad;  B \<notin> bad; evs \<in> kerbV \<rbrakk>
+        A \<notin> bad;  B \<notin> bad; evs \<in> kerbV \<rbrakk>
       \<Longrightarrow> Key servK \<in> analz (spies evs) \<longrightarrow>
-	  expiredSK Ts evs"
+          expiredSK Ts evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbV.induct)

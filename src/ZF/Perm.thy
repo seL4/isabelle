@@ -1,5 +1,4 @@
-(*  Title:      ZF/perm
-    ID:         $Id$
+(*  Title:      ZF/Perm.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
@@ -485,7 +484,7 @@ lemma surj_disjoint_Un:
      ==> (f Un g) : surj(A Un C, B Un D)"
 apply (simp add: surj_def fun_disjoint_Un) 
 apply (blast dest!: domain_of_fun 
-	     intro!: fun_disjoint_apply1 fun_disjoint_apply2)
+             intro!: fun_disjoint_apply1 fun_disjoint_apply2)
 done
 
 (*A simple, high-level proof; the version for injections follows from it,

@@ -1,0 +1,8 @@
+(benchmark Isabelle
+:extrafuns (
+  (uf_1 Real)
+  (uf_2 Real)
+ )
+:assumption (not (= (- (* uf_1 (+ 1.0 uf_2)) (* uf_1 (- 1.0 uf_2))) (* (* 2.0 uf_1) uf_2)))
+:formula true
+)

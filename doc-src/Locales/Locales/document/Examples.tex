@@ -9,7 +9,7 @@
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
 \ Examples\isanewline
-\isakeyword{imports}\ Main\ GCD\isanewline
+\isakeyword{imports}\ Main\isanewline
 \isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
@@ -46,19 +46,20 @@ Locales are based on contexts.  A \emph{context} can be seen as a
 \[
   \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}{\isasymdots}x\isactrlsub n{\isachardot}\ {\isasymlbrakk}\ A\isactrlsub {\isadigit{1}}{\isacharsemicolon}\ {\isasymdots}\ {\isacharsemicolon}A\isactrlsub m\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymdots}}
 \]
-  where variables \isa{x\isactrlsub {\isadigit{1}}}, \ldots, \isa{x\isactrlsub n} are called
-  \emph{parameters} and the premises $\isa{A\isactrlsub {\isadigit{1}}}, \ldots,
-  \isa{A\isactrlsub m}$ \emph{assumptions}.  A formula \isa{C}
+  where variables~\isa{x\isactrlsub {\isadigit{1}}}, \ldots,~\isa{x\isactrlsub n} are called
+  \emph{parameters} and the premises $\isa{A\isactrlsub {\isadigit{1}}}, \ldots,~\isa{A\isactrlsub m}$ \emph{assumptions}.  A formula~\isa{C}
   is a \emph{theorem} in the context if it is a conclusion
 \[
-%\label{eq-fact-in-context}
   \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}{\isasymdots}x\isactrlsub n{\isachardot}\ {\isasymlbrakk}\ A\isactrlsub {\isadigit{1}}{\isacharsemicolon}\ {\isasymdots}\ {\isacharsemicolon}A\isactrlsub m\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ C}.
 \]
   Isabelle/Isar's notion of context goes beyond this logical view.
   Its contexts record, in a consecutive order, proved
-  conclusions along with attributes, which
-  may control proof procedures.  Contexts also contain syntax information
-  for parameters and for terms depending on them.%
+  conclusions along with \emph{attributes}, which can provide context
+  specific configuration information for proof procedures and concrete
+  syntax.  From a logical perspective, locales are just contexts that
+  have been made persistent.  To the user, though, they provide
+  powerful means for declaring and combining contexts, and for the
+  reuse of theorems proved in these contexts.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -67,7 +68,7 @@ Locales are based on contexts.  A \emph{context} can be seen as a
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Locales can be seen as persistent contexts.  In its simplest form, a
+In its simplest form, a
   \emph{locale declaration} consists of a sequence of context elements
   declaring parameters (keyword \isakeyword{fixes}) and assumptions
   (keyword \isakeyword{assumes}).  The following is the specification of
@@ -81,27 +82,79 @@ Locales can be seen as persistent contexts.  In its simplest form, a
 \ \ \ \ \ \ \isakeyword{and}\ anti{\isacharunderscore}sym\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \isakeyword{and}\ trans\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-The parameter of this locale is \isa{le}, with infix syntax
-  \isa{{\isasymsqsubseteq}}.  There is an implicit type parameter \isa{{\isacharprime}a}.  It
-  is not necessary to declare parameter types: most general types will
-  be inferred from the context elements for all parameters.
+The parameter of this locale is~\isa{le},
+  which is a binary predicate with infix syntax~\isa{{\isasymsqsubseteq}}.  The
+  parameter syntax is available in the subsequent
+  assumptions, which are the familiar partial order axioms.
 
-  The above declaration not only introduces the locale, it also
-  defines the \emph{locale predicate} \isa{partial{\isacharunderscore}order} with
-  definition \isa{partial{\isacharunderscore}order{\isacharunderscore}def}:
+  Isabelle recognises unbound names as free variables.  In locale
+  assumptions, these are implicitly universally quantified.  That is,
+  \isa{{\isasymlbrakk}x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z} in fact means
+  \isa{{\isasymAnd}x\ y\ z{\isachardot}\ {\isasymlbrakk}x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z}.
+
+  Two commands are provided to inspect locales:
+  \isakeyword{print\_locales} lists the names of all locales of the
+  current theory; \isakeyword{print\_locale}~$n$ prints the parameters
+  and assumptions of locale $n$; the variation \isakeyword{print\_locale!}~$n$
+  additionally outputs the conclusions that are stored in the locale.
+  We may inspect the new locale
+  by issuing \isakeyword{print\_locale!} \isa{partial{\isacharunderscore}order}.  The output
+  is the following list of context elements.
+\begin{small}
+\begin{alltt}
+  \isakeyword{fixes} le :: "'a \(\Rightarrow\) 'a \(\Rightarrow\)  bool" (\isakeyword{infixl} "\(\sqsubseteq\)" 50)
+  \isakeyword{assumes} "partial_order op \(\sqsubseteq\)"
+  \isakeyword{notes} assumption
+    refl [intro, simp] = `?x \(\sqsubseteq\) ?x`
+    \isakeyword{and}
+    anti_sym [intro] = `\(\isasymlbrakk\)?x \(\sqsubseteq\) ?y; ?y \(\sqsubseteq\) ?x\(\isasymrbrakk\) \(\Longrightarrow\) ?x = ?y`
+    \isakeyword{and}
+    trans [trans] = `\(\isasymlbrakk\)?x \(\sqsubseteq\) ?y; ?y \(\sqsubseteq\) ?z\(\isasymrbrakk\) \(\Longrightarrow\) ?x \(\sqsubseteq\) ?z`
+\end{alltt}
+\end{small}
+  The keyword \isakeyword{notes} denotes a conclusion element.  There
+  is one conclusion, which was added automatically.  Instead, there is
+  only one assumption, namely \isa{partial{\isacharunderscore}order\ op\ {\isasymsqsubseteq}}.  The locale
+  declaration has introduced the predicate \isa{partial{\isacharunderscore}order} to the theory.  This predicate is the
+  \emph{locale predicate}.  Its definition may be inspected by
+  issuing \isakeyword{thm} \isa{partial{\isacharunderscore}order{\isacharunderscore}def}.
   \begin{isabelle}%
 \ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymequiv}\isanewline
 \isaindent{\ \ }{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}le\ x\ x{\isacharparenright}\ {\isasymand}\isanewline
 \isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ x\ {\isasymlongrightarrow}\ x\ {\isacharequal}\ y{\isacharparenright}\ {\isasymand}\isanewline
 \isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y\ z{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ z\ {\isasymlongrightarrow}\ {\isacharquery}le\ x\ z{\isacharparenright}%
 \end{isabelle}
+  In our example, this is a unary predicate over the parameter of the
+  locale.  It is equivalent to the original assumptions, which have
+  been turned into conclusions and are
+  available as theorems in the context of the locale.  The names and
+  attributes from the locale declaration are associated to these
+  theorems and are effective in the context of the locale.
 
-  The specification of a locale is fixed, but its list of conclusions
+  Each conclusion has a \emph{foundational theorem} as counterpart
+  in the theory.  Technically, this is simply the theorem composed
+  of context and conclusion.  For the transitivity theorem, this is
+  \isa{partial{\isacharunderscore}order{\isachardot}trans}:
+  \begin{isabelle}%
+\ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymequiv}\isanewline
+\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}le\ x\ x{\isacharparenright}\ {\isasymand}\isanewline
+\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ x\ {\isasymlongrightarrow}\ x\ {\isacharequal}\ y{\isacharparenright}\ {\isasymand}\isanewline
+\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y\ z{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ z\ {\isasymlongrightarrow}\ {\isacharquery}le\ x\ z{\isacharparenright}%
+\end{isabelle}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Targets: Extending Locales%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The specification of a locale is fixed, but its list of conclusions
   may be extended through Isar commands that take a \emph{target} argument.
   In the following, \isakeyword{definition} and 
   \isakeyword{theorem} are illustrated.
   Table~\ref{tab:commands-with-target} lists Isar commands that accept
-  a target.  There are various ways of specifying the target.  A
+  a target.  Isar provides various ways of specifying the target.  A
   target for a single command may be indicated with keyword
   \isakeyword{in} in the following way:
 
@@ -131,24 +184,21 @@ The parameter of this locale is \isa{le}, with infix syntax
 \ \ \ \ less\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqsubset}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
 \ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqsubset}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqsubseteq}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-A definition in a locale depends on the locale parameters.
-  Here, a global constant \isa{partial{\isacharunderscore}order{\isachardot}less} is declared, which is lifted over the
-  locale parameter \isa{le}.  Its definition is the global theorem
-  \isa{partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def}:
+The strict order \isa{less} with infix
+  syntax~\isa{{\isasymsqsubset}} is
+  defined in terms of the locale parameter~\isa{le} and the general
+  equality of the object logic we work in.  The definition generates a
+  \emph{foundational constant}
+  \isa{partial{\isacharunderscore}order{\isachardot}less} with definition \isa{partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def}:
   \begin{isabelle}%
 \ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymLongrightarrow}\isanewline
 \isaindent{\ \ }partial{\isacharunderscore}order{\isachardot}less\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}
   At the same time, the locale is extended by syntax transformations
-  hiding this construction in the context of the locale.  That is,
-  \isa{partial{\isacharunderscore}order{\isachardot}less\ le} is printed and parsed as infix
-  \isa{{\isasymsqsubset}}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Finally, the conclusion of the definition
-  is added to the locale, \isa{less{\isacharunderscore}def}:
+  hiding this construction in the context of the locale.  Here, the
+  abbreviation \isa{less} is available for
+  \isa{partial{\isacharunderscore}order{\isachardot}less\ le}, and it is printed
+  and parsed as infix~\isa{{\isasymsqsubset}}.  Finally, the conclusion \isa{less{\isacharunderscore}def} is added to the locale:
   \begin{isabelle}%
 \ \ {\isacharparenleft}{\isacharquery}x\ {\isasymsqsubset}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ {\isasymsqsubseteq}\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}%
@@ -156,8 +206,9 @@ Finally, the conclusion of the definition
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-As an example of a theorem statement in the locale, here is the
-  derivation of a transitivity law.%
+The treatment of theorem statements is more straightforward.
+  As an example, here is the derivation of a transitivity law for the
+  strict order relation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{lemma}\isamarkupfalse%
@@ -180,11 +231,15 @@ As an example of a theorem statement in the locale, here is the
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-In the context of the proof, assumptions and theorems of the
-  locale may be used.  Attributes are effective: \isa{anti{\isacharunderscore}sym} was
+In the context of the proof, conclusions of the
+  locale may be used like theorems.  Attributes are effective: \isa{anti{\isacharunderscore}sym} was
   declared as introduction rule, hence it is in the context's set of
   rules used by the classical reasoner by default.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Context Blocks%
+}
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
@@ -199,7 +254,7 @@ When working with locales, sequences of commands with the same
 
   This style of working is illustrated in the block below, where
   notions of infimum and supremum for partial orders are introduced,
-  together with theorems.%
+  together with theorems about their uniqueness.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{context}\isamarkupfalse%
@@ -250,7 +305,7 @@ When working with locales, sequences of commands with the same
 \ is{\isacharunderscore}inf{\isacharunderscore}uniq{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}is{\isacharunderscore}inf\ x\ y\ i{\isacharsemicolon}\ is{\isacharunderscore}inf\ x\ y\ i{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharequal}\ i{\isacharprime}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
-\ \ %
+\ \ \ \ %
 \endisadelimproof
 %
 \isatagproof
@@ -367,7 +422,7 @@ When working with locales, sequences of commands with the same
 \ is{\isacharunderscore}sup{\isacharunderscore}uniq{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}is{\isacharunderscore}sup\ x\ y\ s{\isacharsemicolon}\ is{\isacharunderscore}sup\ x\ y\ s{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ s\ {\isacharequal}\ s{\isacharprime}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
-\ \ %
+\ \ \ \ %
 \endisadelimproof
 %
 \isatagproof
@@ -466,17 +521,12 @@ When working with locales, sequences of commands with the same
 \ \ \isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-Two commands are provided to inspect locales:
-  \isakeyword{print\_locales} lists the names of all locales of the
-  current theory; \isakeyword{print\_locale}~$n$ prints the parameters
-  and assumptions of locale $n$; \isakeyword{print\_locale!}~$n$
-  additionally outputs the conclusions.
-
-  The syntax of the locale commands discussed in this tutorial is
-  shown in Table~\ref{tab:commands}.  The grammer is complete with the
-  exception of additional context elements not discussed here.  See the
-  Isabelle/Isar Reference Manual~\cite{IsarRef}
-  for full documentation.%
+The syntax of the locale commands discussed in this tutorial is
+  shown in Table~\ref{tab:commands}.  The grammar is complete with the
+  exception of the context elements \isakeyword{constrains} and
+  \isakeyword{defines}, which are provided for backward
+  compatibility.  See the Isabelle/Isar Reference
+  Manual~\cite{IsarRef} for full documentation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -488,11 +538,15 @@ Two commands are provided to inspect locales:
 Algebraic structures are commonly defined by adding operations and
   properties to existing structures.  For example, partial orders
   are extended to lattices and total orders.  Lattices are extended to
-  distributive lattices.
-
-  With locales, this inheritance is achieved through \emph{import} of a
-  locale.  Import is a separate entity in the locale declaration.  If
-  present, it precedes the context elements.%
+  distributive lattices.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+With locales, this kind of inheritance is achieved through
+  \emph{import} of locales.  The import part of a locale declaration,
+  if present, precedes the context elements.  Here is an example,
+  where partial orders are extended to lattices.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
@@ -502,14 +556,13 @@ Algebraic structures are commonly defined by adding operations and
 \ \ \isakeyword{begin}%
 \begin{isamarkuptext}%
 These assumptions refer to the predicates for infimum
-  and supremum defined in \isa{partial{\isacharunderscore}order}.  We may now introduce
-  the notions of meet and join.%
+  and supremum defined for \isa{partial{\isacharunderscore}order} in the previous
+  section.  We now introduce the notions of meet and join.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
 \ \ \ \ meet\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqinter}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isacharequal}\ {\isacharparenleft}THE\ inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
 \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
 \ \ \ \ join\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqunion}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isacharequal}\ {\isacharparenleft}THE\ sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -1071,8 +1124,10 @@ Naming according to Jacobson I, p.\ 459.%
 \ \ \isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-Locales for total orders and distributive lattices follow.
-  Each comes with an example theorem.%
+Locales for total orders and distributive lattices follow to
+  establish a sufficiently rich landscape of locales for
+  further examples in this tutorial.  Each comes with an example
+  theorem.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
@@ -1147,12 +1202,13 @@ Locales for total orders and distributive lattices follow.
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-The locale hierachy obtained through these declarations is shown in Figure~\ref{fig:lattices}(a).
+The locale hierarchy obtained through these declarations is shown in
+  Figure~\ref{fig:lattices}(a).
 
 \begin{figure}
 \hrule \vspace{2ex}
 \begin{center}
-\subfigure[Declared hierachy]{
+\subfigure[Declared hierarchy]{
 \begin{tikzpicture}
   \node (po) at (0,0) {\isa{partial{\isacharunderscore}order}};
   \node (lat) at (-1.5,-1) {\isa{lattice}};
@@ -1201,12 +1257,37 @@ The locale hierachy obtained through these declarations is shown in Figure~\ref{
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Total orders are lattices.  Hence, by deriving the lattice
-  axioms for total orders, the hierarchy may be changed
-  and \isa{lattice} be placed between \isa{partial{\isacharunderscore}order}
-  and \isa{total{\isacharunderscore}order}, as shown in Figure~\ref{fig:lattices}(b).
-  Changes to the locale hierarchy may be declared
-  with the \isakeyword{sublocale} command.%
+Locales enable to prove theorems abstractly, relative to
+  sets of assumptions.  These theorems can then be used in other
+  contexts where the assumptions themselves, or
+  instances of the assumptions, are theorems.  This form of theorem
+  reuse is called \emph{interpretation}.  Locales generalise
+  interpretation from theorems to conclusions, enabling the reuse of
+  definitions and other constructs that are not part of the
+  specifications of the locales.
+
+  The first from of interpretation we will consider in this tutorial
+  is provided by the \isakeyword{sublocale} command.  It enables to
+  modify the import hierarchy to reflect the \emph{logical} relation
+  between locales.
+
+  Consider the locale hierarchy from Figure~\ref{fig:lattices}(a).
+  Total orders are lattices, although this is not reflected here, and
+  definitions, theorems and other conclusions
+  from \isa{lattice} are not available in \isa{total{\isacharunderscore}order}.  To
+  obtain the situation in Figure~\ref{fig:lattices}(b), it is
+  sufficient to add the conclusions of the latter locale to the former.
+  The \isakeyword{sublocale} command does exactly this.
+  The declaration \isakeyword{sublocale} $l_1
+  \subseteq l_2$ causes locale $l_2$ to be \emph{interpreted} in the
+  context of $l_1$.  This means that all conclusions of $l_2$ are made
+  available in $l_1$.
+
+  Of course, the change of hierarchy must be supported by a theorem
+  that reflects, in our example, that total orders are indeed
+  lattices.  Therefore the \isakeyword{sublocale} command generates a
+  goal, which must be discharged by the user.  This is illustrated in
+  the following paragraphs.  First the sublocale relation is stated.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1218,14 +1299,16 @@ Total orders are lattices.  Hence, by deriving the lattice
 \isacommand{sublocale}\isamarkupfalse%
 \ total{\isacharunderscore}order\ {\isasymsubseteq}\ lattice%
 \begin{isamarkuptxt}%
-This enters the context of locale \isa{total{\isacharunderscore}order}, in
+\normalsize
+  This enters the context of locale \isa{total{\isacharunderscore}order}, in
   which the goal \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ lattice\ op\ {\isasymsqsubseteq}%
-\end{isabelle} must be shown.  First, the
-  locale predicate needs to be unfolded --- for example using its
+\end{isabelle} must be shown.
+  Now the
+  locale predicate needs to be unfolded --- for example, using its
   definition or by introduction rules
-  provided by the locale package.  The methods \isa{intro{\isacharunderscore}locales}
-  and \isa{unfold{\isacharunderscore}locales} automate this.  They are aware of the
+  provided by the locale package.  For automation, the locale package
+  provides the methods \isa{intro{\isacharunderscore}locales} and \isa{unfold{\isacharunderscore}locales}.  They are aware of the
   current context and dependencies between locales and automatically
   discharge goals implied by these.  While \isa{unfold{\isacharunderscore}locales}
   always unfolds locale predicates to assumptions, \isa{intro{\isacharunderscore}locales} only unfolds definitions along the locale
@@ -1234,21 +1317,24 @@ This enters the context of locale \isa{total{\isacharunderscore}order}, in
   is smaller.
 
   For the current goal, we would like to get hold of
-  the assumptions of \isa{lattice}, hence \isa{unfold{\isacharunderscore}locales}
-  is appropriate.%
+  the assumptions of \isa{lattice}, which need to be shown, hence
+  \isa{unfold{\isacharunderscore}locales} is appropriate.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{proof}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales%
 \begin{isamarkuptxt}%
-Since both \isa{lattice} and \isa{total{\isacharunderscore}order}
-  inherit \isa{partial{\isacharunderscore}order}, the assumptions of the latter are
-  discharged, and the only subgoals that remain are the assumptions
-  introduced in \isa{lattice} \begin{isabelle}%
+\normalsize
+  Since the fact that both lattices and total orders are partial
+  orders is already reflected in the locale hierarchy, the assumptions
+  of \isa{partial{\isacharunderscore}order} are discharged automatically, and only the
+  assumptions introduced in \isa{lattice} remain as subgoals
+  \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ y{\isachardot}\ {\isasymexists}inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x\ y{\isachardot}\ {\isasymexists}sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup%
 \end{isabelle}
-  The proof for the first subgoal is%
+  The proof for the first subgoal is obtained by constructing an
+  infimum, whose existence is implied by totality.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
@@ -1263,7 +1349,8 @@ Since both \isa{lattice} and \isa{total{\isacharunderscore}order}
 \ {\isachardoublequoteopen}{\isasymexists}inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
-The proof for the second subgoal is analogous and not
+\normalsize
+   The proof for the second subgoal is analogous and not
   reproduced here.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -1315,14 +1402,15 @@ The proof for the second subgoal is analogous and not
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-Similarly, total orders are distributive lattices.%
+Similarly, we may establish that total orders are distributive
+  lattices with a second \isakeyword{sublocale} statement.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{sublocale}\isamarkupfalse%
 \ total{\isacharunderscore}order\ {\isasymsubseteq}\ distrib{\isacharunderscore}lattice\isanewline
 %
 \isadelimproof
-\ \ %
+\ \ \ \ %
 \endisadelimproof
 %
 \isatagproof
@@ -1396,7 +1484,22 @@ Jacobson I, p.\ 462%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-The locale hierarchy is now as shown in Figure~\ref{fig:lattices}(c).%
+The locale hierarchy is now as shown in
+  Figure~\ref{fig:lattices}(c).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Locale interpretation is \emph{dynamic}.  The statement
+  \isakeyword{sublocale} $l_1 \subseteq l_2$ will not just add the
+  current conclusions of $l_2$ to $l_1$.  Rather the dependency is
+  stored, and conclusions that will be
+  added to $l_2$ in future are automatically propagated to $l_1$.
+  The sublocale relation is transitive --- that is, propagation takes
+  effect along chains of sublocales.  Even cycles in the sublocale relation are
+  supported, as long as these cycles do not lead to infinite chains.
+  Details are discussed in the technical report \cite{Ballarin2006a}.
+  See also Section~\ref{sec:infinite-chains} of this tutorial.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

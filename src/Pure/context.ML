@@ -4,6 +4,11 @@
 Generic theory contexts with unique identity, arbitrarily typed data,
 monotonic development graph and history support.  Generic proof
 contexts with arbitrarily typed data.
+
+Firm naming conventions:
+   thy, thy', thy1, thy2: theory
+   ctxt, ctxt', ctxt1, ctxt2: Proof.context
+   context: Context.generic
 *)
 
 signature BASIC_CONTEXT =
@@ -11,6 +16,12 @@ sig
   type theory
   type theory_ref
   exception THEORY of string * theory list
+  structure Proof: sig type context end
+  structure ProofContext:
+  sig
+    val theory_of: Proof.context -> theory
+    val init: theory -> Proof.context
+  end
 end;
 
 signature CONTEXT =
@@ -41,25 +52,23 @@ sig
   val finish_thy: theory -> theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
   (*proof context*)
-  type proof
-  val theory_of_proof: proof -> theory
-  val transfer_proof: theory -> proof -> proof
-  val init_proof: theory -> proof
+  val raw_transfer: theory -> Proof.context -> Proof.context
   (*generic context*)
-  datatype generic = Theory of theory | Proof of proof
-  val cases: (theory -> 'a) -> (proof -> 'a) -> generic -> 'a
-  val mapping: (theory -> theory) -> (proof -> proof) -> generic -> generic
-  val mapping_result: (theory -> 'a * theory) -> (proof -> 'a * proof) -> generic -> 'a * generic
+  datatype generic = Theory of theory | Proof of Proof.context
+  val cases: (theory -> 'a) -> (Proof.context -> 'a) -> generic -> 'a
+  val mapping: (theory -> theory) -> (Proof.context -> Proof.context) -> generic -> generic
+  val mapping_result: (theory -> 'a * theory) -> (Proof.context -> 'a * Proof.context) ->
+    generic -> 'a * generic
   val the_theory: generic -> theory
-  val the_proof: generic -> proof
+  val the_proof: generic -> Proof.context
   val map_theory: (theory -> theory) -> generic -> generic
-  val map_proof: (proof -> proof) -> generic -> generic
+  val map_proof: (Proof.context -> Proof.context) -> generic -> generic
   val map_theory_result: (theory -> 'a * theory) -> generic -> 'a * generic
-  val map_proof_result: (proof -> 'a * proof) -> generic -> 'a * generic
+  val map_proof_result: (Proof.context -> 'a * Proof.context) -> generic -> 'a * generic
   val theory_map: (generic -> generic) -> theory -> theory
-  val proof_map: (generic -> generic) -> proof -> proof
-  val theory_of: generic -> theory   (*total*)
-  val proof_of: generic -> proof     (*total*)
+  val proof_map: (generic -> generic) -> Proof.context -> Proof.context
+  val theory_of: generic -> theory  (*total*)
+  val proof_of: generic -> Proof.context  (*total*)
   (*thread data*)
   val thread_data: unit -> generic option
   val the_thread_data: unit -> generic
@@ -72,18 +81,18 @@ end;
 signature PRIVATE_CONTEXT =
 sig
   include CONTEXT
-  structure TheoryData:
+  structure Theory_Data:
   sig
     val declare: Object.T -> (Object.T -> Object.T) -> (Object.T -> Object.T) ->
       (Pretty.pp -> Object.T * Object.T -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
   end
-  structure ProofData:
+  structure Proof_Data:
   sig
     val declare: (theory -> Object.T) -> serial
-    val get: serial -> (Object.T -> 'a) -> proof -> 'a
-    val put: serial -> ('a -> Object.T) -> 'a -> proof -> proof
+    val get: serial -> (Object.T -> 'a) -> Proof.context -> 'a
+    val put: serial -> ('a -> Object.T) -> 'a -> Proof.context -> Proof.context
   end
 end;
 
@@ -116,10 +125,10 @@ fun invoke f k =
 
 in
 
-fun invoke_empty k   = invoke (K o #empty) k ();
-val invoke_copy      = invoke #copy;
-val invoke_extend    = invoke #extend;
-fun invoke_merge pp  = invoke (fn kind => #merge kind pp);
+fun invoke_empty k = invoke (K o #empty) k ();
+val invoke_copy = invoke #copy;
+val invoke_extend = invoke #extend;
+fun invoke_merge pp = invoke (fn kind => #merge kind pp);
 
 fun declare_theory_data empty copy extend merge =
   let
@@ -167,9 +176,9 @@ exception THEORY of string * theory list;
 fun rep_theory (Theory args) = args;
 
 val identity_of = #1 o rep_theory;
-val data_of     = #2 o rep_theory;
+val data_of = #2 o rep_theory;
 val ancestry_of = #3 o rep_theory;
-val history_of  = #4 o rep_theory;
+val history_of = #4 o rep_theory;
 
 fun make_identity self draft id ids = {self = self, draft = draft, id = id, ids = ids};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
@@ -204,7 +213,8 @@ fun vitalize (thy as Theory ({self = SOME r, ...}, _, _, _)) = (r := thy; thy)
 val is_draft = #draft o identity_of;
 
 fun reject_draft thy =
-  if is_draft thy then raise THEORY ("Illegal draft theory -- stable checkpoint required", [thy])
+  if is_draft thy then
+    raise THEORY ("Illegal draft theory -- stable checkpoint required", [thy])
   else thy;
 
 
@@ -244,12 +254,12 @@ val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
   theory in external data structures -- a plain theory value would
   become stale as the self reference moves on*)
 
-datatype theory_ref = TheoryRef of theory Unsynchronized.ref;
+datatype theory_ref = Theory_Ref of theory Unsynchronized.ref;
 
-fun deref (TheoryRef (Unsynchronized.ref thy)) = thy;
+fun deref (Theory_Ref (Unsynchronized.ref thy)) = thy;
 
 fun check_thy thy =  (*thread-safe version*)
-  let val thy_ref = TheoryRef (the_self thy) in
+  let val thy_ref = Theory_Ref (the_self thy) in
     if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
     else thy_ref
   end;
@@ -284,7 +294,8 @@ fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
 (* consistent ancestors *)
 
 fun extend_ancestors thy thys =
-  if member eq_thy thys thy then raise THEORY ("Duplicate theory node", thy :: thys)
+  if member eq_thy thys thy then
+    raise THEORY ("Duplicate theory node", thy :: thys)
   else thy :: thys;
 
 fun extend_ancestors_of thy = extend_ancestors thy (ancestors_of thy);
@@ -407,7 +418,7 @@ val finish_thy = history_stage (fn _ => finished);
 
 (* theory data *)
 
-structure TheoryData =
+structure Theory_Data =
 struct
 
 val declare = declare_theory_data;
@@ -425,13 +436,16 @@ end;
 
 (*** proof context ***)
 
-(* datatype proof *)
+(* datatype Proof.context *)
 
-datatype proof = Prf of Object.T Datatab.table * theory_ref;
+structure Proof =
+struct
+  datatype context = Context of Object.T Datatab.table * theory_ref;
+end;
 
-fun theory_of_proof (Prf (_, thy_ref)) = deref thy_ref;
-fun data_of_proof (Prf (data, _)) = data;
-fun map_prf f (Prf (data, thy_ref)) = Prf (f data, thy_ref);
+fun theory_of_proof (Proof.Context (_, thy_ref)) = deref thy_ref;
+fun data_of_proof (Proof.Context (data, _)) = data;
+fun map_prf f (Proof.Context (data, thy_ref)) = Proof.Context (f data, thy_ref);
 
 
 (* proof data kinds *)
@@ -453,19 +467,22 @@ fun init_new_data data thy =
 
 in
 
-fun init_proof thy = Prf (init_data thy, check_thy thy);
-
-fun transfer_proof thy' (Prf (data, thy_ref)) =
+fun raw_transfer thy' (Proof.Context (data, thy_ref)) =
   let
     val thy = deref thy_ref;
     val _ = subthy (thy, thy') orelse error "transfer proof context: not a super theory";
     val _ = check_thy thy;
     val data' = init_new_data data thy';
     val thy_ref' = check_thy thy';
-  in Prf (data', thy_ref') end;
+  in Proof.Context (data', thy_ref') end;
 
+structure ProofContext =
+struct
+  val theory_of = theory_of_proof;
+  fun init thy = Proof.Context (init_data thy, check_thy thy);
+end;
 
-structure ProofData =
+structure Proof_Data =
 struct
 
 fun declare init =
@@ -477,7 +494,7 @@ fun declare init =
 fun get k dest prf =
   dest (case Datatab.lookup (data_of_proof prf) k of
     SOME x => x
-  | NONE => invoke_init k (theory_of_proof prf));   (*adhoc value*)
+  | NONE => invoke_init k (ProofContext.theory_of prf));   (*adhoc value*)
 
 fun put k mk x = map_prf (Datatab.update (k, mk x));
 
@@ -489,7 +506,7 @@ end;
 
 (*** generic context ***)
 
-datatype generic = Theory of theory | Proof of proof;
+datatype generic = Theory of theory | Proof of Proof.context;
 
 fun cases f _ (Theory thy) = f thy
   | cases _ g (Proof prf) = g prf;
@@ -509,8 +526,8 @@ fun map_proof_result f = apsnd Proof o f o the_proof;
 fun theory_map f = the_theory o f o Theory;
 fun proof_map f = the_proof o f o Proof;
 
-val theory_of = cases I theory_of_proof;
-val proof_of = cases init_proof I;
+val theory_of = cases I ProofContext.theory_of;
+val proof_of = cases ProofContext.init I;
 
 
 
@@ -546,8 +563,8 @@ val _ = set_thread_data (SOME (Theory pre_pure_thy));
 
 end;
 
-structure BasicContext: BASIC_CONTEXT = Context;
-open BasicContext;
+structure Basic_Context: BASIC_CONTEXT = Context;
+open Basic_Context;
 
 
 
@@ -576,19 +593,17 @@ end;
 functor TheoryDataFun(Data: THEORY_DATA_ARGS): THEORY_DATA =
 struct
 
-structure TheoryData = Context.TheoryData;
-
 type T = Data.T;
 exception Data of T;
 
-val kind = TheoryData.declare
+val kind = Context.Theory_Data.declare
   (Data Data.empty)
   (fn Data x => Data (Data.copy x))
   (fn Data x => Data (Data.extend x))
   (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
 
-val get = TheoryData.get kind (fn Data x => x);
-val put = TheoryData.put kind Data;
+val get = Context.Theory_Data.get kind (fn Data x => x);
+val put = Context.Theory_Data.put kind Data;
 fun map f thy = put (f (get thy)) thy;
 
 fun init thy = map I thy;
@@ -608,23 +623,21 @@ end;
 signature PROOF_DATA =
 sig
   type T
-  val get: Context.proof -> T
-  val put: T -> Context.proof -> Context.proof
-  val map: (T -> T) -> Context.proof -> Context.proof
+  val get: Proof.context -> T
+  val put: T -> Proof.context -> Proof.context
+  val map: (T -> T) -> Proof.context -> Proof.context
 end;
 
 functor ProofDataFun(Data: PROOF_DATA_ARGS): PROOF_DATA =
 struct
 
-structure ProofData = Context.ProofData;
-
 type T = Data.T;
 exception Data of T;
 
-val kind = ProofData.declare (Data o Data.init);
+val kind = Context.Proof_Data.declare (Data o Data.init);
 
-val get = ProofData.get kind (fn Data x => x);
-val put = ProofData.put kind Data;
+val get = Context.Proof_Data.get kind (fn Data x => x);
+val put = Context.Proof_Data.put kind Data;
 fun map f prf = put (f (get prf)) prf;
 
 end;
@@ -652,16 +665,16 @@ end;
 functor GenericDataFun(Data: GENERIC_DATA_ARGS): GENERIC_DATA =
 struct
 
-structure ThyData = TheoryDataFun(open Data val copy = I);
-structure PrfData = ProofDataFun(type T = Data.T val init = ThyData.get);
+structure Thy_Data = TheoryDataFun(open Data val copy = I);
+structure Prf_Data = ProofDataFun(type T = Data.T val init = Thy_Data.get);
 
 type T = Data.T;
 
-fun get (Context.Theory thy) = ThyData.get thy
-  | get (Context.Proof prf) = PrfData.get prf;
+fun get (Context.Theory thy) = Thy_Data.get thy
+  | get (Context.Proof prf) = Prf_Data.get prf;
 
-fun put x (Context.Theory thy) = Context.Theory (ThyData.put x thy)
-  | put x (Context.Proof prf) = Context.Proof (PrfData.put x prf);
+fun put x (Context.Theory thy) = Context.Theory (Thy_Data.put x thy)
+  | put x (Context.Proof prf) = Context.Proof (Prf_Data.put x prf);
 
 fun map f ctxt = put (f (get ctxt)) ctxt;
 
@@ -670,7 +683,3 @@ end;
 (*hide private interface*)
 structure Context: CONTEXT = Context;
 
-(*fake predeclarations*)
-structure Proof = struct type context = Context.proof end;
-structure ProofContext =
-struct val theory_of = Context.theory_of_proof val init = Context.init_proof end;

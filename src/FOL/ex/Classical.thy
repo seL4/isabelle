@@ -418,7 +418,7 @@ lemma "(\<forall>x. F(x) & ~G(x) --> (\<exists>y. H(x,y) & J(y))) &
 by fast
 
 text{*Halting problem: Formulation of Li Dafa (AAR Newsletter 27, Oct 1994.)
-	author U. Egly*}
+  author U. Egly*}
 lemma "((\<exists>x. A(x) & (\<forall>y. C(y) --> (\<forall>z. D(x,y,z)))) -->                
    (\<exists>w. C(w) & (\<forall>y. C(y) --> (\<forall>z. D(w,y,z)))))                   
   &                                                                      

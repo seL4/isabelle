@@ -46,7 +46,7 @@ fun graph_at (GP (_, gs), i) = nth gs i ;
 fun num_prog_pts (GP (arities, _)) = length arities ;
 fun num_graphs (GP (_, gs)) = length gs ;
 fun arity (GP (arities, gl)) i = nth arities i ;
-fun ndigits (GP (arities, _)) = IntInf.log2 (List.foldl (op +) 0 arities) + 1
+fun ndigits (GP (arities, _)) = IntInf.log2 (Integer.sum arities) + 1
 
 
 (** Propositional formulas **)
@@ -67,7 +67,7 @@ fun iforall n f = all (map f (0 upto n - 1))
 fun iexists n f = PropLogic.exists (map f (0 upto n - 1))
 fun iforall2 n m f = all (map_product f (0 upto n - 1) (0 upto m - 1))
 
-fun the_one var n x = all (var x :: map (Not o var) ((0 upto n - 1) \\ [x]))
+fun the_one var n x = all (var x :: map (Not o var) (remove (op =) x (0 upto n - 1)))
 fun exactly_one n f = iexists n (the_one f n)
 
 (* SAT solving *)
@@ -79,7 +79,7 @@ fun sat_solver x =
 fun var_constrs (gp as GP (arities, gl)) =
   let
     val n = Int.max (num_graphs gp, num_prog_pts gp)
-    val k = List.foldl Int.max 1 arities
+    val k = fold Integer.max arities 1
 
     (* Injective, provided  a < 8, x < n, and i < k. *)
     fun prod a x i j = ((j * k + i) * n + x) * 8 + a + 1

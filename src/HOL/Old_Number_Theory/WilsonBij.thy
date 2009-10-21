@@ -155,7 +155,7 @@ lemma inv_inj: "zprime p ==> inj_on (inv p) (d22set (p - 2))"
                apply (rule_tac [7] inv_g_1 [THEN aux2])
                  apply (unfold zprime_def)
                  apply (auto intro: d22set_g_1 d22set_le
-		   aux1 aux2 aux3 aux4)
+                   aux1 aux2 aux3 aux4)
   done
 
 lemma inv_d22set_d22set:

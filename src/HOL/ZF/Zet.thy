@@ -33,27 +33,12 @@ lemma zet_def': "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A = explode z
   apply (auto simp add: explode_def Sep)
   done
 
-lemma image_Inv_f_f: "inj_on f B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (Inv B f) ` f ` A = A"
-  apply (rule set_ext)
-  apply (auto simp add: Inv_f_f image_def)
-  apply (rule_tac x="f x" in exI)
-  apply (auto simp add: Inv_f_f)
-  done
-  
 lemma image_zet_rep: "A \<in> zet \<Longrightarrow> ? z . g ` A = explode z"
   apply (auto simp add: zet_def')
-  apply (rule_tac x="Repl z (g o (Inv A f))" in exI)
+  apply (rule_tac x="Repl z (g o (inv_onto A f))" in exI)
   apply (simp add: explode_Repl_eq)
   apply (subgoal_tac "explode z = f ` A")
-  apply (simp_all add: comp_image_eq image_Inv_f_f)  
-  done
-
-lemma Inv_f_f_mem:       
-  assumes "x \<in> A"
-  shows "Inv A g (g x) \<in> A"
-  apply (simp add: Inv_def)
-  apply (rule someI2)
-  using `x \<in> A` apply auto
+  apply (simp_all add: comp_image_eq)
   done
 
 lemma zet_image_mem:
@@ -64,10 +49,10 @@ proof -
     by (auto simp add: zet_def')
   then obtain f where injf: "inj_on (f :: _ \<Rightarrow> ZF) A"  
     by auto
-  let ?w = "f o (Inv A g)"
-  have subset: "(Inv A g) ` (g ` A) \<subseteq> A"
-    by (auto simp add: Inv_f_f_mem)
-  have "inj_on (Inv A g) (g ` A)" by (simp add: inj_on_Inv)
+  let ?w = "f o (inv_onto A g)"
+  have subset: "(inv_onto A g) ` (g ` A) \<subseteq> A"
+    by (auto simp add: inv_onto_into)
+  have "inj_on (inv_onto A g) (g ` A)" by (simp add: inj_on_inv_onto)
   then have injw: "inj_on ?w (g ` A)"
     apply (rule comp_inj_on)
     apply (rule subset_inj_on[where B=A])
@@ -101,7 +86,7 @@ lemma Rep_zet_eq_explode: "? z. Rep_zet A = explode z"
 lemma zexplode_zimplode: "zexplode (zimplode A) = A"
   apply (simp add: zimplode_def zexplode_def)
   apply (simp add: implode_def)
-  apply (subst f_inv_f[where y="Rep_zet A"])
+  apply (subst f_inv_onto_f[where y="Rep_zet A"])
   apply (auto simp add: Rep_zet_inverse Rep_zet_eq_explode image_def)
   done
 

@@ -1,8 +1,6 @@
-(*  Title       : NSA.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
-
-Converted to Isar and polished by lcp
+(*  Title:      HOL/NSA/NSA.thy
+    Author:     Jacques D. Fleuriot, University of Cambridge
+    Author:     Lawrence C Paulson, University of Cambridge
 *)
 
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
@@ -2289,10 +2287,10 @@ lemma real_seq_to_hypreal_Infinitesimal2:
      "\<forall>n. norm(X n - Y n) < inverse(real(Suc n))
       ==> star_n X - star_n Y \<in> Infinitesimal"
 by (auto intro!: bexI
-	 dest: FreeUltrafilterNat_inverse_real_of_posnat 
-	       FreeUltrafilterNat.Int
-	 intro: order_less_trans FreeUltrafilterNat.subset 
-	 simp add: Infinitesimal_FreeUltrafilterNat_iff star_n_diff 
+         dest: FreeUltrafilterNat_inverse_real_of_posnat 
+               FreeUltrafilterNat.Int
+         intro: order_less_trans FreeUltrafilterNat.subset 
+         simp add: Infinitesimal_FreeUltrafilterNat_iff star_n_diff 
                    star_n_inverse)
 
 end

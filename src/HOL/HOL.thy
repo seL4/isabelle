@@ -839,9 +839,6 @@ open BasicClassical;
 ML_Antiquote.value "claset"
   (Scan.succeed "Classical.claset_of (ML_Context.the_local_context ())");
 
-structure ResAtpset = Named_Thms
-  (val name = "atp" val description = "ATP rules");
-
 structure ResBlacklist = Named_Thms
   (val name = "noatp" val description = "theorems blacklisted for ATP");
 *}
@@ -860,7 +857,6 @@ in
   Hypsubst.hypsubst_setup
   #> ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
   #> Classical.setup
-  #> ResAtpset.setup
   #> ResBlacklist.setup
 end
 *}

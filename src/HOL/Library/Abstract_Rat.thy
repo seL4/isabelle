@@ -56,18 +56,18 @@ proof -
     moreover
     {assume b: "b > 0"
       from b have "?b' \<ge> 0" 
-	by (presburger add: pos_imp_zdiv_nonneg_iff[OF gpos])  
+        by (presburger add: pos_imp_zdiv_nonneg_iff[OF gpos])  
       with nz' have b': "?b' > 0" by arith 
       from b b' anz bnz nz' gp1 have ?thesis 
-	by (simp add: isnormNum_def normNum_def Let_def split_def fst_conv snd_conv)}
+        by (simp add: isnormNum_def normNum_def Let_def split_def fst_conv snd_conv)}
     moreover {assume b: "b < 0"
       {assume b': "?b' \<ge> 0" 
-	from gpos have th: "?g \<ge> 0" by arith
-	from mult_nonneg_nonneg[OF th b'] zdvd_mult_div_cancel[OF gdvd(2)]
-	have False using b by arith }
+        from gpos have th: "?g \<ge> 0" by arith
+        from mult_nonneg_nonneg[OF th b'] zdvd_mult_div_cancel[OF gdvd(2)]
+        have False using b by arith }
       hence b': "?b' < 0" by (presburger add: linorder_not_le[symmetric]) 
       from anz bnz nz' b b' gp1 have ?thesis 
-	by (simp add: isnormNum_def normNum_def Let_def split_def)}
+        by (simp add: isnormNum_def normNum_def Let_def split_def)}
     ultimately have ?thesis by blast
   }
   ultimately show ?thesis by blast
@@ -287,14 +287,14 @@ let ?z = "0:: 'a"
       hence "of_int b' * of_int a / (of_int b * of_int b') + of_int b * of_int a' / (of_int b * of_int b') = ?z"  by (simp add:add_divide_distrib) 
       hence th: "of_int a / of_int b + of_int a' / of_int b' = ?z" using bb' aa' by simp 
       from z aa' bb' have ?thesis 
-	by (simp add: th Nadd_def normNum_def INum_def split_def)}
+        by (simp add: th Nadd_def normNum_def INum_def split_def)}
     moreover {assume z: "a * b' + b * a' \<noteq> 0"
       let ?g = "gcd (a * b' + b * a') (b*b')"
       have gz: "?g \<noteq> 0" using z by simp
       have ?thesis using aa' bb' z gz
-	of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a * b' + b * a'" and y="b*b'"]]	of_int_div[where ?'a = 'a,
-	OF gz gcd_dvd2_int[where x="a * b' + b * a'" and y="b*b'"]]
-	by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
+        of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a * b' + b * a'" and y="b*b'"]]  of_int_div[where ?'a = 'a,
+        OF gz gcd_dvd2_int[where x="a * b' + b * a'" and y="b*b'"]]
+        by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
     ultimately have ?thesis using aa' bb' 
       by (simp add: Nadd_def INum_def normNum_def x y Let_def) }
   ultimately show ?thesis by blast

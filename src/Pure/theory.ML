@@ -237,7 +237,7 @@ fun check_overloading thy overloaded (c, T) =
   in
     if Sign.typ_instance thy (declT, T') then ()
     else if Type.raw_instance (declT, T') then
-      error (Library.setmp show_sorts true
+      error (setmp_CRITICAL show_sorts true
         message "imposes additional sort constraints on the constant declaration")
     else if overloaded then ()
     else warning (message "is strictly less general than the declared type");

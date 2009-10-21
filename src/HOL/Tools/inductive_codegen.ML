@@ -202,15 +202,15 @@ fun select_mode_prem thy modes vs ps =
             val dupTs = map snd (duplicates (op =) vTs) @
               map_filter (AList.lookup (op =) vTs) vs;
           in
-            terms_vs (in_ts @ in_ts') subset vs andalso
+            subset (op =) (terms_vs (in_ts @ in_ts'), vs) andalso
             forall (is_eqT o fastype_of) in_ts' andalso
-            term_vs t subset vs andalso
+            subset (op =) (term_vs t, vs) andalso
             forall is_eqT dupTs
           end)
             (if is_set then [Mode (([], []), [], [])]
              else modes_of modes t handle Option =>
                error ("Bad predicate: " ^ Syntax.string_of_term_global thy t))
-      | Sidecond t => if term_vs t subset vs then SOME (Mode (([], []), [], []))
+      | Sidecond t => if subset (op =) (term_vs t, vs) then SOME (Mode (([], []), [], []))
           else NONE) ps);
 
 fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
@@ -222,7 +222,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
       | check_mode_prems vs ps = (case select_mode_prem thy modes' vs ps of
           NONE => NONE
         | SOME (x, _) => check_mode_prems
-            (case x of Prem (us, _, _) => vs union terms_vs us | _ => vs)
+            (case x of Prem (us, _, _) => union (op =) vs (terms_vs us) | _ => vs)
             (filter_out (equal x) ps));
     val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (get_args is 1 ts));
     val in_vs = terms_vs in_ts;
@@ -230,9 +230,9 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
   in
     forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
-    (case check_mode_prems (arg_vs union in_vs) ps of
+    (case check_mode_prems (union (op =) arg_vs in_vs) ps of
        NONE => false
-     | SOME vs => concl_vs subset vs)
+     | SOME vs => subset (op =) (concl_vs, vs))
   end;
 
 fun check_modes_pred thy arg_vs preds modes (p, ms) =
@@ -477,12 +477,12 @@ fun print_arities arities = message ("Arities:\n" ^
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));
 
-fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
+fun prep_intrs intrs = map (rename_term o #prop o rep_thm o Drule.standard) intrs;
 
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs (s : string) of
       NONE => xs
-    | SOME xs' => xs inter xs') :: constrain cs ys;
+    | SOME xs' => inter (op =) xs' xs) :: constrain cs ys;
 
 fun mk_extra_defs thy defs gr dep names module ts =
   Library.foldl (fn (gr, name) =>

@@ -1,0 +1,12 @@
+(benchmark Isabelle
+:extrafuns (
+  (uf_1 BitVec[2] Int)
+ )
+:assumption (= (uf_1 bv0[2]) 0)
+:assumption (= (uf_1 bv1[2]) 1)
+:assumption (= (uf_1 bv2[2]) 2)
+:assumption (= (uf_1 bv3[2]) 3)
+:assumption (forall (?x1 BitVec[2]) (< 0 (uf_1 ?x1)))
+:assumption (not (forall (?x2 Int) (implies (< ?x2 0) (forall (?x3 BitVec[2]) (< ?x2 (uf_1 ?x3))))))
+:formula true
+)

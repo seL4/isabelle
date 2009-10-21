@@ -4,6 +4,8 @@ REMOTE_SMT_SOLVER="$ISABELLE_SMT/lib/scripts/remote_smt.pl"
 
 REMOTE_SMT_URL="http://www4.in.tum.de/smt/smt"
 
+CERT_SMT_SOLVER="$ISABELLE_SMT/lib/scripts/cert_smt.pl"
+
 #
 # Paths to local SMT solvers:
 #

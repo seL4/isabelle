@@ -1,5 +1,5 @@
-(*  Title:       Univ_Poly.thy
-    Author:      Amine Chaieb
+(*  Title:      HOL/Library/Univ_Poly.thy
+    Author:     Amine Chaieb
 *)
 
 header {* Univariate Polynomials *}
@@ -205,7 +205,7 @@ next
     obtain q r where qr: "x#xs = [r] +++ [- a, 1] *** q" by blast
     have "h#x#xs = [a*r + h] +++ [-a, 1] *** (r#q)"
       using qr by(cases q, simp_all add: algebra_simps diff_def[symmetric]
-	minus_mult_left[symmetric] right_minus)
+        minus_mult_left[symmetric] right_minus)
     hence "\<exists>q r. h#x#xs = [r] +++ [-a, 1] *** q" by blast}
   thus ?case by blast
 qed
@@ -220,7 +220,7 @@ proof-
   moreover
   {fix x xs assume p: "p = x#xs"
     {fix q assume "p = [-a, 1] *** q" hence "poly p a = 0"
-	by (simp add: poly_add poly_cmult minus_mult_left[symmetric])}
+        by (simp add: poly_add poly_cmult minus_mult_left[symmetric])}
     moreover
     {assume p0: "poly p a = 0"
       from poly_linear_rem[of x xs a] obtain q r
@@ -701,7 +701,7 @@ apply (case_tac "?poly p = ?poly []", auto)
 apply (simp add: divides_def fun_eq poly_mult)
 apply (rule_tac x = "[]" in exI)
 apply (auto dest!: order2 [where a=a]
-	    intro: poly_exp_divides simp del: pexp_Suc)
+            intro: poly_exp_divides simp del: pexp_Suc)
 done
 qed
 

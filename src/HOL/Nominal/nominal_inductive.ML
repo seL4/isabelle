@@ -28,7 +28,7 @@ val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
   (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
 
-fun preds_of ps t = gen_inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
+fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
 val fresh_prod = thm "fresh_prod";
 
@@ -154,7 +154,7 @@ fun prove_strong_ind s avoids ctxt =
     val elims = map (atomize_induct ctxt) elims;
     val monos = Inductive.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ fold (Term.add_const_names o Thm.prop_of) eqvt_thms [] of
+    val _ = (case subtract (op =) (fold (Term.add_const_names o Thm.prop_of) eqvt_thms []) names of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
@@ -170,7 +170,7 @@ fun prove_strong_ind s avoids ctxt =
       | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
     val _ = assert_all (null o duplicates op = o snd) avoids
       (fn (a, _) => error ("Duplicate variable names for case " ^ quote a));
-    val _ = (case map fst avoids \\ induct_cases of
+    val _ = (case subtract (op =) induct_cases (map fst avoids) of
         [] => ()
       | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));
     val avoids' = if null induct_cases then replicate (length intrs) ("", [])
@@ -606,7 +606,7 @@ fun prove_eqvt s xatoms ctxt =
         (case duplicates op = atoms of
              [] => ()
            | xs => error ("Duplicate atoms: " ^ commas xs);
-         case atoms \\ atoms' of
+         case subtract (op =) atoms' atoms of
              [] => ()
            | xs => error ("No such atoms: " ^ commas xs);
          atoms)

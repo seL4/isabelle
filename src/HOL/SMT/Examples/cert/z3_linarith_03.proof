@@ -1,0 +1,26 @@
+#2 := false
+#7 := 4::int
+#5 := 1::int
+#4 := 3::int
+#6 := (+ 3::int 1::int)
+#8 := (= #6 4::int)
+#9 := (not #8)
+#39 := (iff #9 false)
+#1 := true
+#34 := (not true)
+#37 := (iff #34 false)
+#38 := [rewrite]: #37
+#35 := (iff #9 #34)
+#32 := (iff #8 true)
+#27 := (= 4::int 4::int)
+#30 := (iff #27 true)
+#31 := [rewrite]: #30
+#28 := (iff #8 #27)
+#26 := [rewrite]: #8
+#29 := [monotonicity #26]: #28
+#33 := [trans #29 #31]: #32
+#36 := [monotonicity #33]: #35
+#40 := [trans #36 #38]: #39
+#25 := [asserted]: #9
+[mp #25 #40]: false
+unsat

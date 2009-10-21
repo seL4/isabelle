@@ -64,7 +64,7 @@ val truefalse = $$"$" |-- Symbol.scan_id >> (atom o tf);
 
 (*Integer constants, typically proof line numbers*)
 fun is_digit s = Char.isDigit (String.sub(s,0));
-val integer = Scan.many1 is_digit >> (valOf o Int.fromString o implode);
+val integer = Scan.many1 is_digit >> (the o Int.fromString o implode);
 
 (*Generalized FO terms, which include filenames, numbers, etc.*)
 fun termlist x = (term ::: Scan.repeat ($$"," |-- term)) x
@@ -216,7 +216,7 @@ fun finish [] = HOLogic.true_const  (*No "real" literals means only type informa
         | xs => foldr1 HOLogic.mk_disj (rev xs);
 
 (*Accumulate sort constraints in vt, with "real" literals in lits.*)
-fun lits_of_strees ctxt (vt, lits) [] = (vt, finish lits)
+fun lits_of_strees _ (vt, lits) [] = (vt, finish lits)
   | lits_of_strees ctxt (vt, lits) (t::ts) =
       lits_of_strees ctxt (add_constraint (constraint_of_stree true t, vt), lits) ts
       handle STREE _ =>
@@ -225,8 +225,8 @@ fun lits_of_strees ctxt (vt, lits) [] = (vt, finish lits)
 (*Update TVars/TFrees with detected sort constraints.*)
 fun fix_sorts vt =
   let fun tysubst (Type (a, Ts)) = Type (a, map tysubst Ts)
-        | tysubst (TVar (xi, s)) = TVar (xi, getOpt (Vartab.lookup vt xi, s))
-        | tysubst (TFree (x, s)) = TFree (x, getOpt (Vartab.lookup vt (x,~1), s))
+        | tysubst (TVar (xi, s)) = TVar (xi, the_default s (Vartab.lookup vt xi))
+        | tysubst (TFree (x, s)) = TFree (x, the_default s (Vartab.lookup vt (x, ~1)))
       fun tmsubst (Const (a, T)) = Const (a, tysubst T)
         | tmsubst (Free (a, T)) = Free (a, tysubst T)
         | tmsubst (Var (xi, T)) = Var (xi, tysubst T)
@@ -303,7 +303,7 @@ fun match_literal (t1$u1) (t2$u2) env =
   | match_literal (Free(a1,_)) (Free(a2,_)) env =
       if a1=a2 then env else raise MATCH_LITERAL
   | match_literal (Var(ix1,_)) (Var(ix2,_)) env = insert (op =) (ix1,ix2) env
-  | match_literal _ _ env = raise MATCH_LITERAL;
+  | match_literal _ _ _ = raise MATCH_LITERAL;
 
 (*Checking that all variable associations are unique. The list env contains no
   repetitions, but does it contain say (x,y) and (y,y)? *)
@@ -337,7 +337,7 @@ fun permuted_clause t =
             then SOME ctm else perm ctms
   in perm end;
 
-fun have_or_show "show " lname = "show \""
+fun have_or_show "show " _ = "show \""
   | have_or_show have lname = have ^ lname ^ ": \""
 
 (*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
@@ -345,7 +345,7 @@ fun have_or_show "show " lname = "show \""
 fun isar_lines ctxt ctms =
   let val string_of = PrintMode.setmp [] (fn term => Syntax.string_of_term ctxt term)
       val _ = trace ("\n\nisar_lines: start\n")
-      fun doline have (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
+      fun doline _ (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
            (case permuted_clause t ctms of
                 SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
               | NONE => "assume? " ^ lname ^ ": \"" ^ string_of t ^ "\"\n")  (*no match!!*)
@@ -354,7 +354,7 @@ fun isar_lines ctxt ctms =
             "\"\n  by (metis " ^ space_implode " " deps ^ ")\n"
       fun dolines [(lname, t, deps)] = [doline "show " (lname, t, deps)]
         | dolines ((lname, t, deps)::lines) = doline "have " (lname, t, deps) :: dolines lines
-  in setmp show_sorts (Config.get ctxt recon_sorts) dolines end;
+  in setmp_CRITICAL show_sorts (Config.get ctxt recon_sorts) dolines end;
 
 fun notequal t (_,t',_) = not (t aconv t');
 
@@ -364,7 +364,7 @@ fun eq_types t = t aconv HOLogic.true_const;
 fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
 
 fun replace_deps (old:int, new) (lno, t, deps) =
-      (lno, t, List.foldl (op union_int) [] (map (replace_dep (old, new)) deps));
+      (lno, t, List.foldl (uncurry (union (op =))) [] (map (replace_dep (old, new)) deps));
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
@@ -374,17 +374,17 @@ fun add_prfline ((lno, "axiom", t, []), lines) =  (*axioms are not proof lines*)
       else
        (case take_prefix (notequal t) lines of
            (_,[]) => lines                  (*no repetition of proof line*)
-         | (pre, (lno',t',deps')::post) =>  (*repetition: replace later line by earlier one*)
+         | (pre, (lno', _, _) :: post) =>   (*repetition: replace later line by earlier one*)
              pre @ map (replace_deps (lno', [lno])) post)
-  | add_prfline ((lno, role, t, []), lines) =  (*no deps: conjecture clause*)
+  | add_prfline ((lno, _, t, []), lines) =  (*no deps: conjecture clause*)
       (lno, t, []) :: lines
-  | add_prfline ((lno, role, t, deps), lines) =
+  | add_prfline ((lno, _, t, deps), lines) =
       if eq_types t then (lno, t, deps) :: lines
       (*Type information will be deleted later; skip repetition test.*)
       else (*FIXME: Doesn't this code risk conflating proofs involving different types??*)
       case take_prefix (notequal t) lines of
          (_,[]) => (lno, t, deps) :: lines  (*no repetition of proof line*)
-       | (pre, (lno',t',deps')::post) =>
+       | (pre, (lno', t', _) :: post) =>
            (lno, t', deps) ::               (*repetition: replace later line by earlier one*)
            (pre @ map (replace_deps (lno', [lno])) post);
 

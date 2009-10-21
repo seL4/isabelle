@@ -1081,7 +1081,7 @@ struct
       | next max len sum (x1::x2::xs) =
       if x1>0 andalso (x2<max orelse max<0) then
         (* we can shift *)
-        SOME (valOf (make_first max (len+1) (sum+x1-1)) @ (x2+1) :: xs)
+        SOME (the (make_first max (len+1) (sum+x1-1)) @ (x2+1) :: xs)
       else
         (* continue search *)
         next max (len+1) (sum+x1) (x2::xs)
@@ -1158,7 +1158,7 @@ struct
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
-        acc union (ground_types thy t')) ([], u :: axioms)
+        uncurry (union (op =)) (acc, (ground_types thy t'))) ([], u :: axioms)
       val _     = tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
@@ -1620,30 +1620,14 @@ struct
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* sum: returns the sum of a list 'xs' of integers                           *)
-(* ------------------------------------------------------------------------- *)
-
-  (* int list -> int *)
-
-  fun sum xs = List.foldl op+ 0 xs;
-
-(* ------------------------------------------------------------------------- *)
-(* product: returns the product of a list 'xs' of integers                   *)
-(* ------------------------------------------------------------------------- *)
-
-  (* int list -> int *)
-
-  fun product xs = List.foldl op* 1 xs;
-
-(* ------------------------------------------------------------------------- *)
 (* size_of_dtyp: the size of (an initial fragment of) an inductive data type *)
 (*               is the sum (over its constructors) of the product (over     *)
 (*               their arguments) of the size of the argument types          *)
 (* ------------------------------------------------------------------------- *)
 
   fun size_of_dtyp thy typ_sizes descr typ_assoc constructors =
-    sum (map (fn (_, dtyps) =>
-      product (map (size_of_type thy (typ_sizes, []) o
+    Integer.sum (map (fn (_, dtyps) =>
+      Integer.prod (map (size_of_type thy (typ_sizes, []) o
         (typ_of_dtyp descr typ_assoc)) dtyps))
           constructors);
 
@@ -2330,8 +2314,8 @@ struct
             let
               (* number of all constructors, including those of different  *)
               (* (mutually recursive) datatypes within the same descriptor *)
-              val mconstrs_count = sum (map (fn (_, (_, _, cs)) => length cs)
-                (#descr info))
+              val mconstrs_count =
+                Integer.sum (map (fn (_, (_, _, cs)) => length cs) (#descr info))
             in
               if mconstrs_count < length params then
                 (* too many actual parameters; for now we'll use the *)
@@ -2435,7 +2419,7 @@ struct
                       (#2 (the (AList.lookup (op =) descr idt_index)) ~~ (snd o dest_Type) IDT))
                   (* sanity check: typ_assoc must associate types to the   *)
                   (*               elements of 'dtyps' (and only to those) *)
-                  val _ = if not (Library.eq_set (dtyps, map fst typ_assoc))
+                  val _ = if not (eq_set (op =) (dtyps, map fst typ_assoc))
                     then
                       raise REFUTE ("IDT_recursion_interpreter",
                         "type association has extra/missing elements")
@@ -3027,7 +3011,7 @@ struct
         [Type ("fun", [T, Type ("bool", [])]),
          Type ("fun", [_, Type ("bool", [])])]),
          Type ("fun", [_, Type ("bool", [])])])) =>
-      let nonfix union (* because "union" is used below *)
+      let
         val size_elem = size_of_type thy model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)

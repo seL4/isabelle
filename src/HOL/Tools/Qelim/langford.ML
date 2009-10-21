@@ -101,8 +101,8 @@ fun prove_conj tab cjs =
 fun conj_aci_rule eq = 
  let 
   val (l,r) = Thm.dest_equals eq
-  fun tabl c = valOf (Termtab.lookup (mk_conj_tab (assume l)) (term_of c))
-  fun tabr c = valOf (Termtab.lookup (mk_conj_tab (assume r)) (term_of c))
+  fun tabl c = the (Termtab.lookup (mk_conj_tab (assume l)) (term_of c))
+  fun tabr c = the (Termtab.lookup (mk_conj_tab (assume r)) (term_of c))
   val ll = Thm.dest_arg l
   val rr = Thm.dest_arg r
   

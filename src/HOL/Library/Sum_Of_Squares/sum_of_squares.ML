@@ -21,8 +21,8 @@ val rat_1 = Rat.one;
 val rat_2 = Rat.two;
 val rat_10 = Rat.rat_of_int 10;
 val rat_1_2 = rat_1 // rat_2;
-val max = curry Int.max;
-val min = curry Int.min;
+val max = Integer.max;
+val min = Integer.min;
 
 val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
 val numerator_rat = Rat.quotient_of_rat #> fst #> Rat.rat_of_int;
@@ -223,7 +223,7 @@ val monomial_1 = FuncUtil.Ctermfunc.empty;
 fun monomial_var x = FuncUtil.Ctermfunc.onefunc (x, 1);
 
 val monomial_mul =
-  FuncUtil.Ctermfunc.combine (curry op +) (K false);
+  FuncUtil.Ctermfunc.combine Integer.add (K false);
 
 fun monomial_pow m k =
   if k = 0 then monomial_1
@@ -233,7 +233,7 @@ fun monomial_divides m1 m2 =
   FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => FuncUtil.Ctermfunc.tryapplyd m2 x 0 >= k andalso a) m1 true;;
 
 fun monomial_div m1 m2 =
- let val m = FuncUtil.Ctermfunc.combine (curry op +)
+ let val m = FuncUtil.Ctermfunc.combine Integer.add
    (fn x => x = 0) m1 (FuncUtil.Ctermfunc.map (fn x => ~ x) m2)
  in if FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => k >= 0 andalso a) m true then m
   else error "monomial_div: non-divisible"
@@ -244,7 +244,7 @@ fun monomial_degree x m =
 
 fun monomial_lcm m1 m2 =
   fold_rev (fn x => FuncUtil.Ctermfunc.update (x, max (monomial_degree x m1) (monomial_degree x m2)))
-          (gen_union (is_equal o  FuncUtil.cterm_ord) (FuncUtil.Ctermfunc.dom m1, FuncUtil.Ctermfunc.dom m2)) (FuncUtil.Ctermfunc.empty);
+          (union (is_equal o FuncUtil.cterm_ord) (FuncUtil.Ctermfunc.dom m1) (FuncUtil.Ctermfunc.dom m2)) (FuncUtil.Ctermfunc.empty);
 
 fun monomial_multidegree m =
  FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => k + a) m 0;;
@@ -314,7 +314,7 @@ fun multidegree p =
   FuncUtil.Monomialfunc.fold (fn (m, c) => fn a => max (monomial_multidegree m) a) p 0;
 
 fun poly_variables p =
-  sort FuncUtil.cterm_ord (FuncUtil.Monomialfunc.fold_rev (fn (m, c) => curry (gen_union (is_equal o FuncUtil.cterm_ord)) (monomial_variables m)) p []);;
+  sort FuncUtil.cterm_ord (FuncUtil.Monomialfunc.fold_rev (fn (m, c) => union (is_equal o FuncUtil.cterm_ord) (monomial_variables m)) p []);;
 
 (* Order monomials for human presentation.                                   *)
 
@@ -520,7 +520,7 @@ fun index_char str chr pos =
 fun rat_of_quotient (a,b) = if b = 0 then rat_0 else Rat.rat_of_quotient (a,b);
 fun rat_of_string s =
  let val n = index_char s #"/" 0 in
-  if n = ~1 then s |> Int.fromString |> valOf |> Rat.rat_of_int
+  if n = ~1 then s |> Int.fromString |> the |> Rat.rat_of_int
   else
    let val SOME numer = Int.fromString(String.substring(s,0,n))
        val SOME den = Int.fromString (String.substring(s,n+1,String.size s - n - 1))
@@ -1059,8 +1059,8 @@ end
 
 fun real_positivnullstellensatz_general prover linf d eqs leqs pol =
 let
- val vars = fold_rev (curry (gen_union (op aconvc)) o poly_variables)
-              (pol::eqs @ map fst leqs) []
+ val vars = fold_rev (union (op aconvc) o poly_variables)
+   (pol :: eqs @ map fst leqs) []
  val monoid = if linf then
       (poly_const rat_1,RealArith.Rational_lt rat_1)::
       (filter (fn (p,c) => multidegree p <= d) leqs)
@@ -1193,7 +1193,7 @@ in
 fun real_nonlinear_prover proof_method ctxt =
  let
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,
        real_poly_pow_conv,real_poly_sub_conv,real_poly_conv) = (add,mul,neg,pow,sub,main)
@@ -1308,7 +1308,7 @@ in
 fun real_nonlinear_subst_prover prover ctxt =
  let
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
 
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,

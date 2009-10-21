@@ -25,11 +25,11 @@ where "priK x  \<equiv>  invKey(pubK x)"
 primrec
         (*Agents know their private key and all public keys*)
   initState_Server:  "initState Server     =    
- 		         insert (Key (priK Server)) (Key ` range pubK)"
+                         insert (Key (priK Server)) (Key ` range pubK)"
   initState_Friend:  "initState (Friend i) =    
- 		         insert (Key (priK (Friend i))) (Key ` range pubK)"
+                         insert (Key (priK (Friend i))) (Key ` range pubK)"
   initState_Spy:     "initState Spy        =    
- 		         (Key`invKey`pubK`bad) Un (Key ` range pubK)"
+                         (Key`invKey`pubK`bad) Un (Key ` range pubK)"
 (*>*)
 
 text {*

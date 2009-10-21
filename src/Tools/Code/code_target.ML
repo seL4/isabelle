@@ -60,9 +60,9 @@ datatype destination = Compile | Export | File of Path.T | String of string list
 type serialization = destination -> (string * string option list) option;
 
 val code_width = Unsynchronized.ref 80; (*FIXME after Pretty module no longer depends on print mode*)
-fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
+fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL (!code_width) f);
 fun code_of_pretty p = code_setmp Pretty.string_of p ^ "\n";
-fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
+fun code_writeln p = Pretty.setmp_margin_CRITICAL (!code_width) Pretty.writeln p;
 
 (*FIXME why another code_setmp?*)
 fun compile f = (code_setmp f Compile; ());

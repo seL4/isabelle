@@ -47,45 +47,45 @@ proof -
       assume Q: "Eps ?Q = True"
       have neq: "?P \<noteq> ?Q"
       proof
-	assume "?P = ?Q"
-	hence "Eps ?P = Eps ?Q" by (rule arg_cong)
-	also note P
-	also note Q
-	finally show False by (rule False_neq_True)
+        assume "?P = ?Q"
+        hence "Eps ?P = Eps ?Q" by (rule arg_cong)
+        also note P
+        also note Q
+        finally show False by (rule False_neq_True)
       qed
       have "\<not> A"
       proof
-	assume a: A
-	have "?P = ?Q"
-	proof (rule ext)
-	  fix x show "?P x = ?Q x"
-	  proof
-	    assume "?P x"
-	    thus "?Q x"
-	    proof
-	      assume "x = False"
-	      from this and a have "x = False \<and> A" ..
-	      thus "?Q x" ..
-	    next
-	      assume "x = True \<and> A"
-	      hence "x = True" ..
-	      thus "?Q x" ..
-	    qed
-	  next
-	    assume "?Q x"
-	    thus "?P x"
-	    proof
-	      assume "x = False \<and> A"
-	      hence "x = False" ..
-	      thus "?P x" ..
-	    next
-	      assume "x = True"
-	      from this and a have "x = True \<and> A" ..
-	      thus "?P x" ..
-	    qed
-	  qed
-	qed
-	with neq show False by contradiction
+        assume a: A
+        have "?P = ?Q"
+        proof (rule ext)
+          fix x show "?P x = ?Q x"
+          proof
+            assume "?P x"
+            thus "?Q x"
+            proof
+              assume "x = False"
+              from this and a have "x = False \<and> A" ..
+              thus "?Q x" ..
+            next
+              assume "x = True \<and> A"
+              hence "x = True" ..
+              thus "?Q x" ..
+            qed
+          next
+            assume "?Q x"
+            thus "?P x"
+            proof
+              assume "x = False \<and> A"
+              hence "x = False" ..
+              thus "?P x" ..
+            next
+              assume "x = True"
+              from this and a have "x = True \<and> A" ..
+              thus "?P x" ..
+            qed
+          qed
+        qed
+        with neq show False by contradiction
       qed
       thus ?thesis ..
     qed

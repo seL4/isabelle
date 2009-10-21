@@ -155,6 +155,19 @@ lemma finite_conv_nat_seg_image:
   "finite A = (\<exists> (n::nat) f. A = f ` {i::nat. i<n})"
 by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
+lemma finite_imp_inj_to_nat_seg:
+assumes "finite A"
+shows "EX f n::nat. f`A = {i. i<n} & inj_on f A"
+proof -
+  from finite_imp_nat_seg_image_inj_on[OF `finite A`]
+  obtain f and n::nat where bij: "bij_betw f {i. i<n} A"
+    by (auto simp:bij_betw_def)
+  let ?f = "the_inv_onto {i. i<n} f"
+  have "inj_on ?f A & ?f ` A = {i. i<n}"
+    by (fold bij_betw_def) (rule bij_betw_the_inv_onto[OF bij])
+  thus ?thesis by blast
+qed
+
 lemma finite_Collect_less_nat[iff]: "finite{n::nat. n<k}"
 by(fastsimp simp: finite_conv_nat_seg_image)
 
@@ -236,22 +249,22 @@ proof -
     {
       fix c b :: "'a set"
       assume c: "finite c" and b: "finite b"
-	and P1: "P b" and P2: "!!x y. finite y ==> x \<in> y ==> P y ==> P (y - {x})"
+        and P1: "P b" and P2: "!!x y. finite y ==> x \<in> y ==> P y ==> P (y - {x})"
       have "c \<subseteq> b ==> P (b - c)"
-	using c
+        using c
       proof induct
-	case empty
-	from P1 show ?case by simp
+        case empty
+        from P1 show ?case by simp
       next
-	case (insert x F)
-	have "P (b - F - {x})"
-	proof (rule P2)
+        case (insert x F)
+        have "P (b - F - {x})"
+        proof (rule P2)
           from _ b show "finite (b - F)" by (rule finite_subset) blast
           from insert show "x \<in> b - F" by simp
           from insert show "P (b - F)" by simp
-	qed
-	also have "b - F - {x} = b - insert x F" by (rule Diff_insert [symmetric])
-	finally show ?case .
+        qed
+        also have "b - F - {x} = b - insert x F" by (rule Diff_insert [symmetric])
+        finally show ?case .
       qed
     }
     then show ?thesis by this (simp_all add: assms)
@@ -617,9 +630,9 @@ next
       show "inj_on (Fun.swap k m h) {i. i < Suc m}" using inj_hm nSuc by simp
       show "?hm m \<notin> A" by (simp add: swap_def hkeq anot) 
       show "insert (?hm m) A = ?hm ` {i. i < Suc m}"
-	using aA hkeq nSuc klessn
-	by (auto simp add: swap_def image_less_Suc fun_upd_image 
-			   less_Suc_eq inj_on_image_set_diff [OF inj_on])
+        using aA hkeq nSuc klessn
+        by (auto simp add: swap_def image_less_Suc fun_upd_image 
+                           less_Suc_eq inj_on_image_set_diff [OF inj_on])
     qed
   qed
 qed
@@ -665,26 +678,26 @@ proof (induct n arbitrary: A x x' h rule: less_induct)
       show "x'=x"
       proof cases
         assume "b=c"
-	then moreover have "B = C" using AbB AcC notinB notinC by auto
-	ultimately show ?thesis  using Bu Cv x x' IH [OF lessC Ceq inj_onC]
+        then moreover have "B = C" using AbB AcC notinB notinC by auto
+        ultimately show ?thesis  using Bu Cv x x' IH [OF lessC Ceq inj_onC]
           by auto
       next
-	assume diff: "b \<noteq> c"
-	let ?D = "B - {c}"
-	have B: "B = insert c ?D" and C: "C = insert b ?D"
-	  using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
-	have "finite A" by(rule fold_graph_imp_finite [OF Afoldx])
-	with AbB have "finite ?D" by simp
-	then obtain d where Dfoldd: "fold_graph f z ?D d"
-	  using finite_imp_fold_graph by iprover
-	moreover have cinB: "c \<in> B" using B by auto
-	ultimately have "fold_graph f z B (f c d)" by(rule Diff1_fold_graph)
-	hence "f c d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
+        assume diff: "b \<noteq> c"
+        let ?D = "B - {c}"
+        have B: "B = insert c ?D" and C: "C = insert b ?D"
+          using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
+        have "finite A" by(rule fold_graph_imp_finite [OF Afoldx])
+        with AbB have "finite ?D" by simp
+        then obtain d where Dfoldd: "fold_graph f z ?D d"
+          using finite_imp_fold_graph by iprover
+        moreover have cinB: "c \<in> B" using B by auto
+        ultimately have "fold_graph f z B (f c d)" by(rule Diff1_fold_graph)
+        hence "f c d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
         moreover have "f b d = v"
-	proof (rule IH[OF lessC Ceq inj_onC Cv])
-	  show "fold_graph f z C (f b d)" using C notinB Dfoldd by fastsimp
-	qed
-	ultimately show ?thesis
+        proof (rule IH[OF lessC Ceq inj_onC Cv])
+          show "fold_graph f z C (f b d)" using C notinB Dfoldd by fastsimp
+        qed
+        ultimately show ?thesis
           using fun_left_comm [of c b] x x' by (auto simp add: o_def)
       qed
     qed
@@ -2588,7 +2601,7 @@ proof -
     next
       assume "A' \<noteq> {}"
       with prems show ?thesis
-	by (simp add: fold1_insert mult_assoc [symmetric] mult_idem)
+        by (simp add: fold1_insert mult_assoc [symmetric] mult_idem)
     qed
   next
     assume "a \<noteq> x"

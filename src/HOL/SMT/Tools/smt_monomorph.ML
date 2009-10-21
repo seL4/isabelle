@@ -32,7 +32,7 @@ val ignored = member (op =) [
 fun consts_of ts = AList.group (op =) (fold Term.add_consts ts [])
   |> filter_out (ignored o fst)
 
-val join_consts = curry (AList.join (op =) (K (merge (op =))))
+fun join_consts cs ds = AList.join (op =) (K (merge (op =))) (cs, ds)
 fun diff_consts cs ds = 
   let fun diff (n, Ts) =
     (case AList.lookup (op =) cs n of
@@ -55,7 +55,7 @@ fun instances thy is (n, Ts) env =
 fun proper_match ps env =
   forall (forall (not o typ_has_tvars o Envir.subst_type env) o snd) ps
 
-val eq_tab = gen_eq_set (op =) o pairself Vartab.dest
+fun eq_tab (tab1, tab2) = eq_set (op =) (Vartab.dest tab1, Vartab.dest tab2)
 
 fun specialize thy cs is ((r, ps), ces) (ts, ns) =
   let

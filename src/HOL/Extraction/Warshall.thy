@@ -129,26 +129,26 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
       case (Cons a as j)
       show ?case
       proof (cases "a=i")
-      	case True
-      	show ?thesis
-      	proof
-	  from True and Cons have "r j i = T" by simp
-	  thus "list_all (\<lambda>x. x < i) [] \<and> is_path' r j [] i" by simp
-      	qed
+        case True
+        show ?thesis
+        proof
+          from True and Cons have "r j i = T" by simp
+          thus "list_all (\<lambda>x. x < i) [] \<and> is_path' r j [] i" by simp
+        qed
       next
-      	case False
-      	have "PROP ?ih as" by (rule Cons)
-      	then obtain ys where ys: "list_all (\<lambda>x. x < i) ys \<and> is_path' r a ys i"
-      	proof
-	  from Cons show "list_all (\<lambda>x. x < Suc i) as" by simp
-	  from Cons show "is_path' r a as k" by simp
-	  from Cons and False show "\<not> list_all (\<lambda>x. x < i) as" by (simp)
-      	qed
-      	show ?thesis
-      	proof
-	  from Cons False ys
-	  show "list_all (\<lambda>x. x<i) (a#ys) \<and> is_path' r j (a#ys) i" by simp
-      	qed
+        case False
+        have "PROP ?ih as" by (rule Cons)
+        then obtain ys where ys: "list_all (\<lambda>x. x < i) ys \<and> is_path' r a ys i"
+        proof
+          from Cons show "list_all (\<lambda>x. x < Suc i) as" by simp
+          from Cons show "is_path' r a as k" by simp
+          from Cons and False show "\<not> list_all (\<lambda>x. x < i) as" by (simp)
+        qed
+        show ?thesis
+        proof
+          from Cons False ys
+          show "list_all (\<lambda>x. x<i) (a#ys) \<and> is_path' r j (a#ys) i" by simp
+        qed
       qed
     qed
     show "\<And>k. list_all (\<lambda>x. x < Suc i) xs \<Longrightarrow> is_path' r j xs k \<Longrightarrow>
@@ -161,27 +161,27 @@ proof (simp cong add: conj_cong add: split_paired_all is_path_def, (erule conjE)
       case (snoc a as k)
       show ?case
       proof (cases "a=i")
-      	case True
-      	show ?thesis
-      	proof
-	  from True and snoc have "r i k = T" by simp
-	  thus "list_all (\<lambda>x. x < i) [] \<and> is_path' r i [] k" by simp
-      	qed
+        case True
+        show ?thesis
+        proof
+          from True and snoc have "r i k = T" by simp
+          thus "list_all (\<lambda>x. x < i) [] \<and> is_path' r i [] k" by simp
+        qed
       next
-      	case False
-      	have "PROP ?ih as" by (rule snoc)
-      	then obtain ys where ys: "list_all (\<lambda>x. x < i) ys \<and> is_path' r i ys a"
-      	proof
-	  from snoc show "list_all (\<lambda>x. x < Suc i) as" by simp
-	  from snoc show "is_path' r j as a" by simp
-	  from snoc and False show "\<not> list_all (\<lambda>x. x < i) as" by simp
-      	qed
-      	show ?thesis
-      	proof
-	  from snoc False ys
-	  show "list_all (\<lambda>x. x < i) (ys @ [a]) \<and> is_path' r i (ys @ [a]) k"
-	    by simp
-      	qed
+        case False
+        have "PROP ?ih as" by (rule snoc)
+        then obtain ys where ys: "list_all (\<lambda>x. x < i) ys \<and> is_path' r i ys a"
+        proof
+          from snoc show "list_all (\<lambda>x. x < Suc i) as" by simp
+          from snoc show "is_path' r j as a" by simp
+          from snoc and False show "\<not> list_all (\<lambda>x. x < i) as" by simp
+        qed
+        show ?thesis
+        proof
+          from snoc False ys
+          show "list_all (\<lambda>x. x < i) (ys @ [a]) \<and> is_path' r i (ys @ [a]) k"
+            by simp
+        qed
       qed
     qed
   qed (rule asms)+
@@ -219,24 +219,24 @@ next
     proof
       assume "\<not> (\<exists>p. is_path r p i j i)"
       with h1 have "\<not> (\<exists>p. is_path r p (Suc i) j k)"
-	by (iprover dest: lemma5')
+        by (iprover dest: lemma5')
       thus ?case ..
     next
       assume "\<exists>p. is_path r p i j i"
       then obtain p where h2: "is_path r p i j i" ..
       from Suc show ?case
       proof
-	assume "\<not> (\<exists>p. is_path r p i i k)"
-	with h1 have "\<not> (\<exists>p. is_path r p (Suc i) j k)"
-	  by (iprover dest: lemma5')
-	thus ?case ..
+        assume "\<not> (\<exists>p. is_path r p i i k)"
+        with h1 have "\<not> (\<exists>p. is_path r p (Suc i) j k)"
+          by (iprover dest: lemma5')
+        thus ?case ..
       next
-	assume "\<exists>q. is_path r q i i k"
-	then obtain q where "is_path r q i i k" ..
-	with h2 have "is_path r (conc p q) (Suc i) j k" 
-	  by (rule lemma3)
-	hence "\<exists>pq. is_path r pq (Suc i) j k" ..
-	thus ?case ..
+        assume "\<exists>q. is_path r q i i k"
+        then obtain q where "is_path r q i i k" ..
+        with h2 have "is_path r (conc p q) (Suc i) j k" 
+          by (rule lemma3)
+        hence "\<exists>pq. is_path r pq (Suc i) j k" ..
+        thus ?case ..
       qed
     qed
   next

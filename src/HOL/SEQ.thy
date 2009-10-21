@@ -1,9 +1,10 @@
-(*  Title       : SEQ.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
-    Description : Convergence of sequences and series
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2004
-    Additional contributions by Jeremy Avigad and Brian Huffman
+(*  Title:      HOL/SEQ.thy
+    Author:     Jacques D. Fleuriot, University of Cambridge
+    Author:     Lawrence C Paulson
+    Author:     Jeremy Avigad
+    Author:     Brian Huffman
+
+Convergence of sequences and series.
 *)
 
 header {* Sequences and Convergence *}
@@ -337,10 +338,10 @@ proof (auto simp add: LIMSEQ_def)
     have "\<bar>f (N+k) - l\<bar> < e"
     proof (induct k)
       case 0 show ?case using N
-	by simp   
+        by simp   
     next
       case (Suc k) thus ?case using N inc [of "N+k"]
-	by simp
+        by simp
     qed 
   } note 1 = this
   { fix n
@@ -549,11 +550,11 @@ proof (rule classical)
     proof (simp add: LIMSEQ_iff)
       assume "\<forall>r>0. \<exists>no. \<forall>n\<ge>no. \<bar>f n - lim f\<bar> < r"
       hence "\<exists>no. \<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
-	by (metis 0)
+        by (metis 0)
       from this obtain no where "\<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
-	by blast
+        by blast
       thus "lim f \<le> x"
-	by (metis add_cancel_end add_minus_cancel diff_def linorder_linear 
+        by (metis add_cancel_end add_minus_cancel diff_def linorder_linear 
                   linorder_not_le minus_diff_eq abs_diff_less_iff fn_le) 
     qed
 qed
@@ -685,45 +686,45 @@ proof-
     hence f0: "f 0 > 0" "\<forall>m \<ge> f 0. s m \<le> s (f 0)" by blast+
     {fix n
       have "?P (f (Suc n)) (f n)" 
-	unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
-	using H apply - 
+        unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
+        using H apply - 
       apply (erule allE[where x="f n"], erule exE, rule_tac x="p" in exI) 
       unfolding order_le_less by blast 
     hence "f (Suc n) > f n" "\<forall>m \<ge> f (Suc n). s m \<le> s (f (Suc n))" by blast+}
   note fSuc = this
     {fix p q assume pq: "p \<ge> f q"
       have "s p \<le> s(f(q))"  using f0(2)[rule_format, of p] pq fSuc
-	by (cases q, simp_all) }
+        by (cases q, simp_all) }
     note pqth = this
     {fix q
       have "f (Suc q) > f q" apply (induct q) 
-	using f0(1) fSuc(1)[of 0] apply simp by (rule fSuc(1))}
+        using f0(1) fSuc(1)[of 0] apply simp by (rule fSuc(1))}
     note fss = this
     from fss have th1: "subseq f" unfolding subseq_Suc_iff ..
     {fix a b 
       have "f a \<le> f (a + b)"
       proof(induct b)
-	case 0 thus ?case by simp
+        case 0 thus ?case by simp
       next
-	case (Suc b)
-	from fSuc(1)[of "a + b"] Suc.hyps show ?case by simp
+        case (Suc b)
+        from fSuc(1)[of "a + b"] Suc.hyps show ?case by simp
       qed}
     note fmon0 = this
     have "monoseq (\<lambda>n. s (f n))" 
     proof-
       {fix n
-	have "s (f n) \<ge> s (f (Suc n))" 
-	proof(cases n)
-	  case 0
-	  assume n0: "n = 0"
-	  from fSuc(1)[of 0] have th0: "f 0 \<le> f (Suc 0)" by simp
-	  from f0(2)[rule_format, OF th0] show ?thesis  using n0 by simp
-	next
-	  case (Suc m)
-	  assume m: "n = Suc m"
-	  from fSuc(1)[of n] m have th0: "f (Suc m) \<le> f (Suc (Suc m))" by simp
-	  from m fSuc(2)[rule_format, OF th0] show ?thesis by simp 
-	qed}
+        have "s (f n) \<ge> s (f (Suc n))" 
+        proof(cases n)
+          case 0
+          assume n0: "n = 0"
+          from fSuc(1)[of 0] have th0: "f 0 \<le> f (Suc 0)" by simp
+          from f0(2)[rule_format, OF th0] show ?thesis  using n0 by simp
+        next
+          case (Suc m)
+          assume m: "n = Suc m"
+          from fSuc(1)[of n] m have th0: "f (Suc m) \<le> f (Suc (Suc m))" by simp
+          from m fSuc(2)[rule_format, OF th0] show ?thesis by simp 
+        qed}
       thus "monoseq (\<lambda>n. s (f n))" unfolding monoseq_Suc by blast 
     qed
     with th1 have ?thesis by blast}
@@ -750,26 +751,26 @@ proof-
     hence f0: "f 0 > Suc N" "s (Suc N) < s (f 0)" by blast+
     {fix n
       have "f n > N \<and> ?P (f (Suc n)) (f n)"
-	unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
+        unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
       proof (induct n)
-	case 0 thus ?case
-	  using f0 N apply auto 
-	  apply (erule allE[where x="f 0"], clarsimp) 
-	  apply (rule_tac x="m" in exI, simp)
-	  by (subgoal_tac "f 0 \<noteq> m", auto)
+        case 0 thus ?case
+          using f0 N apply auto 
+          apply (erule allE[where x="f 0"], clarsimp) 
+          apply (rule_tac x="m" in exI, simp)
+          by (subgoal_tac "f 0 \<noteq> m", auto)
       next
-	case (Suc n)
-	from Suc.hyps have Nfn: "N < f n" by blast
-	from Suc.hyps obtain m where m: "m > f n" "s (f n) < s m" by blast
-	with Nfn have mN: "m > N" by arith
-	note key = Suc.hyps[unfolded some_eq_ex[of "\<lambda>p. ?P p (f n)", symmetric] f(2)[rule_format, of n, symmetric]]
-	
-	from key have th0: "f (Suc n) > N" by simp
-	from N[rule_format, OF th0]
-	obtain m' where m': "m' \<ge> f (Suc n)" "s (f (Suc n)) < s m'" by blast
-	have "m' \<noteq> f (Suc (n))" apply (rule ccontr) using m'(2) by auto
-	hence "m' > f (Suc n)" using m'(1) by simp
-	with key m'(2) show ?case by auto
+        case (Suc n)
+        from Suc.hyps have Nfn: "N < f n" by blast
+        from Suc.hyps obtain m where m: "m > f n" "s (f n) < s m" by blast
+        with Nfn have mN: "m > N" by arith
+        note key = Suc.hyps[unfolded some_eq_ex[of "\<lambda>p. ?P p (f n)", symmetric] f(2)[rule_format, of n, symmetric]]
+        
+        from key have th0: "f (Suc n) > N" by simp
+        from N[rule_format, OF th0]
+        obtain m' where m': "m' \<ge> f (Suc n)" "s (f (Suc n)) < s m'" by blast
+        have "m' \<noteq> f (Suc (n))" apply (rule ccontr) using m'(2) by auto
+        hence "m' > f (Suc n)" using m'(1) by simp
+        with key m'(2) show ?case by auto
       qed}
     note fSuc = this
     {fix n
@@ -1088,10 +1089,10 @@ done
 
 subsubsection {* Cauchy Sequences are Convergent *}
 
-axclass complete_space \<subseteq> metric_space
-  Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
+class complete_space =
+  assumes Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
 
-axclass banach \<subseteq> real_normed_vector, complete_space
+class banach = real_normed_vector + complete_space
 
 theorem LIMSEQ_imp_Cauchy:
   assumes X: "X ----> a" shows "Cauchy X"

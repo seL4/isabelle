@@ -166,19 +166,19 @@ next
       assume ind: "!q. q + k = m \<longrightarrow> P q"
       show "!q. Suc (q + k) = m \<longrightarrow> P q"
       proof (rule+)
-	fix q
-	assume "Suc (q + k) = m"
-	hence "(Suc q) + k = m"
-	  by simp
-	with ind
-	have psq: "P (Suc q)"
-	  by simp
-	from alln
-	have "P (Suc q) --> P q"
-	  ..
-	with psq
-	show "P q"
-	  by simp
+        fix q
+        assume "Suc (q + k) = m"
+        hence "(Suc q) + k = m"
+          by simp
+        with ind
+        have psq: "P (Suc q)"
+          by simp
+        from alln
+        have "P (Suc q) --> P q"
+          ..
+        with psq
+        show "P q"
+          by simp
       qed
     qed
   qed
@@ -457,9 +457,9 @@ proof safe
       assume "P x"
       from allx
       have "P x \<longrightarrow> 0 < x"
-	..
+        ..
       thus "0 < x"
-	by (simp add: prems)
+        by (simp add: prems)
     qed
   next
     from px

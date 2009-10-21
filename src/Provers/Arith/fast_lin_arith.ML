@@ -301,14 +301,14 @@ fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
   if n = 1 then i
   else if n = 0 andalso ty = Lt then sys_error "multiply_ineq"
   else if n < 0 andalso (ty=Le orelse ty=Lt) then sys_error "multiply_ineq"
-  else Lineq (n * k, ty, map (curry op* n) l, Multiplied (n, just));
+  else Lineq (n * k, ty, map (Integer.mult n) l, Multiplied (n, just));
 
 (* ------------------------------------------------------------------------- *)
 (* Add together (in)equations.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
-  let val l = map2 (curry (op +)) l1 l2
+  let val l = map2 Integer.add l1 l2
   in Lineq(k1+k2,find_add_type(ty1,ty2),l,Added(just1,just2)) end;
 
 (* ------------------------------------------------------------------------- *)
@@ -385,7 +385,7 @@ fun elim (ineqs, hist) =
   let val (eqs, noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not (null eqs) then
      let val c =
-           fold (fn Lineq(_,_,l,_) => fn cs => l union cs) eqs []
+           fold (fn Lineq(_,_,l,_) => fn cs => union (op =) l cs) eqs []
            |> filter (fn i => i <> 0)
            |> sort (int_ord o pairself abs)
            |> hd
@@ -429,9 +429,8 @@ fun trace_msg msg =
 val warning_count = Unsynchronized.ref 0;
 val warning_count_max = 10;
 
-val union_term = curry (gen_union Pattern.aeconv);
-val union_bterm = curry (gen_union
-  (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t')));
+val union_term = union Pattern.aeconv;
+val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t'));
 
 fun add_atoms (lhs, _, _, rhs, _, _) =
   union_term (map fst lhs) o union_term (map fst rhs);

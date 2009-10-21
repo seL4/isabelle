@@ -27,6 +27,27 @@ datatype 'term criterion =
   Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
   Pattern of 'term;
 
+fun apply_dummies tm =
+  strip_abs tm
+  |> fst
+  |> map (Term.dummy_pattern o snd)
+  |> betapplys o pair tm
+  |> (fn x => Term.replace_dummy_patterns x 1)
+  |> fst;
+
+fun parse_pattern ctxt nm =
+  let
+    val nm' = case Syntax.parse_term ctxt nm of Const (n, _) => n | _ => nm;
+    val consts = ProofContext.consts_of ctxt;
+  in
+    nm'
+    |> Consts.intern consts
+    |> Consts.the_abbreviation consts
+    |> snd
+    |> apply_dummies
+    handle TYPE _ => ProofContext.read_term_pattern ctxt nm
+  end;
+
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ IntroIff = IntroIff
@@ -34,7 +55,7 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
   | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term_pattern ctxt str)
-  | read_criterion ctxt (Pattern str) = Pattern (ProofContext.read_term_pattern ctxt str);
+  | read_criterion ctxt (Pattern str) = Pattern (parse_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
   let
@@ -109,7 +130,7 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
     fun bestmatch [] = NONE
-      | bestmatch xs = SOME (foldr1 Int.min xs);
+      | bestmatch xs = SOME (foldl1 Int.min xs);
 
     val match_thm = matches o refine_term;
   in
@@ -142,7 +163,7 @@ fun filter_dest ctxt goal (_, thm) =
     (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
     if not (null successful)
-    then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
+    then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
   end;
 
 fun filter_intro doiff ctxt goal (_, thm) =
@@ -173,7 +194,7 @@ fun filter_elim ctxt goal (_, thm) =
         assumption is as good as an intro rule with none*)
       if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
         andalso not (null successful)
-      then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
+      then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
     end
   else NONE
 
@@ -227,7 +248,7 @@ fun filter_pattern ctxt pat =
 
     fun check (t, NONE) = check (t, SOME (get_thm_names t))
       | check ((_, thm), c as SOME thm_consts) =
-         (if pat_consts subset_string thm_consts andalso
+         (if subset (op =) (pat_consts, thm_consts) andalso
             Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, Thm.full_prop_of thm)
           then SOME (0, 0) else NONE, c);
   in check end;

@@ -69,47 +69,47 @@ inductive_set bankerb_gets :: "event list set"
    Nil:  "[] \<in> bankerb_gets"
 
  | Fake: "\<lbrakk> evsf \<in> bankerb_gets;  X \<in> synth (analz (knows Spy evsf)) \<rbrakk>
-	  \<Longrightarrow> Says Spy B X # evsf \<in> bankerb_gets"
+          \<Longrightarrow> Says Spy B X # evsf \<in> bankerb_gets"
 
  | Reception: "\<lbrakk> evsr\<in> bankerb_gets; Says A B X \<in> set evsr \<rbrakk>
                 \<Longrightarrow> Gets B X # evsr \<in> bankerb_gets"
 
  | BK1:  "\<lbrakk> evs1 \<in> bankerb_gets \<rbrakk>
-	  \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B\<rbrace> # evs1
-		\<in>  bankerb_gets"
+          \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B\<rbrace> # evs1
+                \<in>  bankerb_gets"
 
 
  | BK2:  "\<lbrakk> evs2 \<in> bankerb_gets;  Key K \<notin> used evs2; K \<in> symKeys;
-	     Gets Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs2 \<rbrakk>
-	  \<Longrightarrow> Says Server A
-		(Crypt (shrK A)
-		   \<lbrace>Number (CT evs2), Agent B, Key K,
-		    (Crypt (shrK B) \<lbrace>Number (CT evs2), Agent A, Key K\<rbrace>)\<rbrace>)
-		# evs2 \<in> bankerb_gets"
+             Gets Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs2 \<rbrakk>
+          \<Longrightarrow> Says Server A
+                (Crypt (shrK A)
+                   \<lbrace>Number (CT evs2), Agent B, Key K,
+                    (Crypt (shrK B) \<lbrace>Number (CT evs2), Agent A, Key K\<rbrace>)\<rbrace>)
+                # evs2 \<in> bankerb_gets"
 
 
  | BK3:  "\<lbrakk> evs3 \<in> bankerb_gets;
-	     Gets A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
-	       \<in> set evs3;
-	     Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs3;
-	     \<not> expiredK Tk evs3 \<rbrakk>
-	  \<Longrightarrow> Says A B \<lbrace>Ticket, Crypt K \<lbrace>Agent A, Number (CT evs3)\<rbrace> \<rbrace>
-	       # evs3 \<in> bankerb_gets"
+             Gets A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
+               \<in> set evs3;
+             Says A Server \<lbrace>Agent A, Agent B\<rbrace> \<in> set evs3;
+             \<not> expiredK Tk evs3 \<rbrakk>
+          \<Longrightarrow> Says A B \<lbrace>Ticket, Crypt K \<lbrace>Agent A, Number (CT evs3)\<rbrace> \<rbrace>
+               # evs3 \<in> bankerb_gets"
 
 
  | BK4:  "\<lbrakk> evs4 \<in> bankerb_gets;
-	     Gets B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
-			 (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
-	     \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
-	  \<Longrightarrow> Says B A (Crypt K (Number Ta)) # evs4
-		\<in> bankerb_gets"
+             Gets B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
+                         (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
+             \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
+          \<Longrightarrow> Says B A (Crypt K (Number Ta)) # evs4
+                \<in> bankerb_gets"
 
-	(*Old session keys may become compromised*)
+        (*Old session keys may become compromised*)
  | Oops: "\<lbrakk> evso \<in> bankerb_gets;
          Says Server A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
-	       \<in> set evso;
-	     expiredK Tk evso \<rbrakk>
-	  \<Longrightarrow> Notes Spy \<lbrace>Number Tk, Key K\<rbrace> # evso \<in> bankerb_gets"
+               \<in> set evso;
+             expiredK Tk evso \<rbrakk>
+          \<Longrightarrow> Notes Spy \<lbrace>Number Tk, Key K\<rbrace> # evso \<in> bankerb_gets"
 
 
 declare Says_imp_knows_Spy [THEN parts.Inj, dest]
@@ -359,7 +359,7 @@ lemma BK4_imp_Gets:
    "\<lbrakk> Says B A (Crypt K (Number Ta)) \<in> set evs;
       B \<notin> bad; evs \<in> bankerb_gets \<rbrakk>
   \<Longrightarrow> \<exists> Tk. Gets B \<lbrace>Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>,
-	            Crypt K \<lbrace>Agent A, Number Ta\<rbrace>\<rbrace> \<in> set evs"
+                    Crypt K \<lbrace>Agent A, Number Ta\<rbrace>\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule bankerb_gets.induct)
 apply auto

@@ -1,7 +1,8 @@
-(*  Title       : HOL/Library/Zorn.thy
-    Author      : Jacques D. Fleuriot, Tobias Nipkow
-    Description : Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF)
-                  The well-ordering theorem
+(*  Title:      HOL/Library/Zorn.thy
+    Author:     Jacques D. Fleuriot, Tobias Nipkow
+
+Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF).
+The well-ordering theorem.
 *)
 
 header {* Zorn's Lemma *}
@@ -289,7 +290,7 @@ proof-
       assume "a \<in> Field r" "?B a \<in> C" "b \<in> Field r" "?B b \<in> C"
       hence "?B a \<subseteq> ?B b \<or> ?B b \<subseteq> ?B a" using 2 by auto
       thus "(a, b) \<in> r \<or> (b, a) \<in> r" using `Preorder r` `a:Field r` `b:Field r`
-	by(simp add:subset_Image1_Image1_iff)
+        by (simp add:subset_Image1_Image1_iff)
     qed
     then obtain u where uA: "u:Field r" "\<forall>a\<in>?A. (a,u) : r" using u by auto
     have "\<forall>A\<in>C. A \<subseteq> r^-1 `` {u}" (is "?P u")
@@ -297,7 +298,7 @@ proof-
       fix a B assume aB: "B:C" "a:B"
       with 1 obtain x where "x:Field r" "B = r^-1 `` {x}" by auto
       thus "(a,u) : r" using uA aB `Preorder r`
-	by (auto simp add: preorder_on_def refl_on_def) (metis transD)
+        by (auto simp add: preorder_on_def refl_on_def) (metis transD)
     qed
     thus "EX u:Field r. ?P u" using `u:Field r` by blast
   qed
@@ -381,9 +382,9 @@ proof(simp add:wf_iff_no_infinite_down_chain, rule ccontr, auto)
     next
       case (Suc i)
       moreover obtain s where "s\<in>R" and "(f(Suc(Suc i)), f(Suc i)) \<in> s"
-	using 1 by auto
+        using 1 by auto
       moreover hence "s initial_segment_of r \<or> r initial_segment_of s"
-	using assms(1) `r:R` by(simp add: Chain_def)
+        using assms(1) `r:R` by(simp add: Chain_def)
       ultimately show ?case by(simp add:init_seg_of_def) blast
     qed
   }
@@ -452,9 +453,9 @@ proof-
     proof
       assume "m={}"
       moreover have "Well_order {(x,x)}"
-	by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_def Range_def)
+        by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_def Range_def)
       ultimately show False using max
-	by (auto simp:I_def init_seg_of_def simp del:Field_insert)
+        by (auto simp:I_def init_seg_of_def simp del:Field_insert)
     qed
     hence "Field m \<noteq> {}" by(auto simp:Field_def)
     moreover have "wf(m-Id)" using `Well_order m`
@@ -476,10 +477,10 @@ proof-
     moreover have "wf(?m-Id)"
     proof-
       have "wf ?s" using `x \<notin> Field m`
-	by(auto simp add:wf_eq_minimal Field_def Domain_def Range_def) metis
+        by(auto simp add:wf_eq_minimal Field_def Domain_def Range_def) metis
       thus ?thesis using `wf(m-Id)` `x \<notin> Field m`
-	wf_subset[OF `wf ?s` Diff_subset]
-	by (fastsimp intro!: wf_Un simp add: Un_Diff Field_def)
+        wf_subset[OF `wf ?s` Diff_subset]
+        by (fastsimp intro!: wf_Un simp add: Un_Diff Field_def)
     qed
     ultimately have "Well_order ?m" by(simp add:order_on_defs)
 --{*We show that the extension is above m*}

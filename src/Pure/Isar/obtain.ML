@@ -215,7 +215,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val thy = ProofContext.theory_of ctxt;
     val certT = Thm.ctyp_of thy;
     val cert = Thm.cterm_of thy;
-    val string_of_term = setmp show_types true (Syntax.string_of_term ctxt);
+    val string_of_term = setmp_CRITICAL show_types true (Syntax.string_of_term ctxt);
 
     fun err msg th = error (msg ^ ":\n" ^ Display.string_of_thm ctxt th);
 

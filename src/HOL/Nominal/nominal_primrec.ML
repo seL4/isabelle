@@ -228,7 +228,7 @@ fun find_dts (dt_info : NominalDatatype.nominal_datatype_info Symtab.table) _ []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a nominal datatype")
         | SOME dt =>
-            if tnames' subset (map (#1 o snd) (#descr dt)) then
+            if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
@@ -251,7 +251,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>
       map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) eqns
     val _ =
-      (if forall (curry eq_set lsrs) lsrss andalso forall
+      (if forall (curry (eq_set (op =)) lsrs) lsrss andalso forall
          (fn (_, (_, _, (_, (ls, _, rs, _, _)) :: eqns)) =>
                forall (fn (_, (ls', _, rs', _, _)) =>
                  ls = ls' andalso rs = rs') eqns
@@ -276,7 +276,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
     val defs' = map (make_def lthy fixes fs) defs;
     val names1 = map snd fnames;
     val names2 = map fst eqns;
-    val _ = if gen_eq_set (op =) (names1, names2) then ()
+    val _ = if eq_set (op =) (names1, names2) then ()
       else primrec_err ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
     val (defs_thms, lthy') = lthy |>
@@ -305,8 +305,8 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       HOLogic.dest_eq |> fst |> strip_comb |> snd |> take_prefix is_Var |> fst;
     val (pvars, ctxtvars) = List.partition
       (equal HOLogic.boolT o body_type o snd)
-      (fold_rev Term.add_vars (map Logic.strip_assums_concl
-        (prems_of (hd rec_rewrites))) [] \\ map dest_Var fvars);
+      (subtract (op =) (map dest_Var fvars) (fold_rev Term.add_vars (map Logic.strip_assums_concl
+        (prems_of (hd rec_rewrites))) []));
     val cfs = defs' |> hd |> snd |> strip_comb |> snd |>
       curry (List.take o swap) (length fvars) |> map cert;
     val invs' = (case invs of

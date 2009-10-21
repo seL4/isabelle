@@ -27,8 +27,8 @@ design issues:
 \end{itemize}
 *}
 
-types	lenv
-	= "(lname, ty) table"  --{* local variables, including This and Result*}
+types lenv
+        = "(lname, ty) table"  --{* local variables, including This and Result*}
 
 record env = 
          prg:: "prog"    --{* program *}
@@ -121,7 +121,7 @@ constdefs
    max_spec     :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set"
 
  "max_spec G S rt sig \<equiv>{m. m \<in>appl_methds G S rt sig \<and>
-		      (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
+                      (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
 
 
 lemma max_spec2appl_meths: 
@@ -262,47 +262,47 @@ where
 
 --{* well-typed statements *}
 
-| Skip:					"E,dt\<Turnstile>Skip\<Colon>\<surd>"
+| Skip:                                 "E,dt\<Turnstile>Skip\<Colon>\<surd>"
 
-| Expr:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Expr e\<Colon>\<surd>"
+| Expr: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-T\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Expr e\<Colon>\<surd>"
   --{* cf. 14.6 *}
 | Lab:  "E,dt\<Turnstile>c\<Colon>\<surd> \<Longrightarrow>                   
                                          E,dt\<Turnstile>l\<bullet> c\<Colon>\<surd>" 
 
-| Comp:	"\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; 
-	  E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>c1;; c2\<Colon>\<surd>"
+| Comp: "\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; 
+          E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>c1;; c2\<Colon>\<surd>"
 
   --{* cf. 14.8 *}
-| If:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-PrimT Boolean;
-	  E,dt\<Turnstile>c1\<Colon>\<surd>;
-	  E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>If(e) c1 Else c2\<Colon>\<surd>"
+| If:   "\<lbrakk>E,dt\<Turnstile>e\<Colon>-PrimT Boolean;
+          E,dt\<Turnstile>c1\<Colon>\<surd>;
+          E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>If(e) c1 Else c2\<Colon>\<surd>"
 
   --{* cf. 14.10 *}
-| Loop:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-PrimT Boolean;
-	  E,dt\<Turnstile>c\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>l\<bullet> While(e) c\<Colon>\<surd>"
+| Loop: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-PrimT Boolean;
+          E,dt\<Turnstile>c\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>l\<bullet> While(e) c\<Colon>\<surd>"
   --{* cf. 14.13, 14.15, 14.16 *}
 | Jmp:                                   "E,dt\<Turnstile>Jmp jump\<Colon>\<surd>"
 
   --{* cf. 14.16 *}
 | Throw: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class tn;
-	  prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Throw e\<Colon>\<surd>"
+          prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Throw e\<Colon>\<surd>"
   --{* cf. 14.18 *}
-| Try:	"\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable;
-	  lcl E (VName vn)=None; E \<lparr>lcl := lcl E(VName vn\<mapsto>Class tn)\<rparr>,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk>
+| Try:  "\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable;
+          lcl E (VName vn)=None; E \<lparr>lcl := lcl E(VName vn\<mapsto>Class tn)\<rparr>,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk>
           \<Longrightarrow>
-					 E,dt\<Turnstile>Try c1 Catch(tn vn) c2\<Colon>\<surd>"
+                                         E,dt\<Turnstile>Try c1 Catch(tn vn) c2\<Colon>\<surd>"
 
   --{* cf. 14.18 *}
-| Fin:	"\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>c1 Finally c2\<Colon>\<surd>"
+| Fin:  "\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>c1 Finally c2\<Colon>\<surd>"
 
-| Init:	"\<lbrakk>is_class (prg E) C\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Init C\<Colon>\<surd>"
+| Init: "\<lbrakk>is_class (prg E) C\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Init C\<Colon>\<surd>"
   --{* @{term Init} is created on the fly during evaluation (see Eval.thy). 
      The class isn't necessarily accessible from the points @{term Init} 
      is called. Therefor we only demand @{term is_class} and not 
@@ -312,69 +312,69 @@ where
 --{* well-typed expressions *}
 
   --{* cf. 15.8 *}
-| NewC:	"\<lbrakk>is_acc_class (prg E) (pkg E) C\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>NewC C\<Colon>-Class C"
+| NewC: "\<lbrakk>is_acc_class (prg E) (pkg E) C\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>NewC C\<Colon>-Class C"
   --{* cf. 15.9 *}
-| NewA:	"\<lbrakk>is_acc_type (prg E) (pkg E) T;
-	  E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>New T[i]\<Colon>-T.[]"
+| NewA: "\<lbrakk>is_acc_type (prg E) (pkg E) T;
+          E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>New T[i]\<Colon>-T.[]"
 
   --{* cf. 15.15 *}
-| Cast:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T; is_acc_type (prg E) (pkg E) T';
-	  prg E\<turnstile>T\<preceq>? T'\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Cast T' e\<Colon>-T'"
+| Cast: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-T; is_acc_type (prg E) (pkg E) T';
+          prg E\<turnstile>T\<preceq>? T'\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Cast T' e\<Colon>-T'"
 
   --{* cf. 15.19.2 *}
-| Inst:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT T; is_acc_type (prg E) (pkg E) (RefT T');
-	  prg E\<turnstile>RefT T\<preceq>? RefT T'\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>e InstOf T'\<Colon>-PrimT Boolean"
+| Inst: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT T; is_acc_type (prg E) (pkg E) (RefT T');
+          prg E\<turnstile>RefT T\<preceq>? RefT T'\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>e InstOf T'\<Colon>-PrimT Boolean"
 
   --{* cf. 15.7.1 *}
-| Lit:	"\<lbrakk>typeof dt x = Some T\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Lit x\<Colon>-T"
+| Lit:  "\<lbrakk>typeof dt x = Some T\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Lit x\<Colon>-T"
 
 | UnOp: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-Te; wt_unop unop Te; T=PrimT (unop_type unop)\<rbrakk> 
           \<Longrightarrow>
-	  E,dt\<Turnstile>UnOp unop e\<Colon>-T"
+          E,dt\<Turnstile>UnOp unop e\<Colon>-T"
   
 | BinOp: "\<lbrakk>E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2; wt_binop (prg E) binop T1 T2; 
            T=PrimT (binop_type binop)\<rbrakk> 
            \<Longrightarrow>
-	   E,dt\<Turnstile>BinOp binop e1 e2\<Colon>-T"
+           E,dt\<Turnstile>BinOp binop e1 e2\<Colon>-T"
   
   --{* cf. 15.10.2, 15.11.1 *}
 | Super: "\<lbrakk>lcl E This = Some (Class C); C \<noteq> Object;
-	  class (prg E) C = Some c\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Super\<Colon>-Class (super c)"
+          class (prg E) C = Some c\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Super\<Colon>-Class (super c)"
 
   --{* cf. 15.13.1, 15.10.1, 15.12 *}
-| Acc:	"\<lbrakk>E,dt\<Turnstile>va\<Colon>=T\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Acc va\<Colon>-T"
+| Acc:  "\<lbrakk>E,dt\<Turnstile>va\<Colon>=T\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Acc va\<Colon>-T"
 
   --{* cf. 15.25, 15.25.1 *}
-| Ass:	"\<lbrakk>E,dt\<Turnstile>va\<Colon>=T; va \<noteq> LVar This;
-	  E,dt\<Turnstile>v \<Colon>-T';
-	  prg E\<turnstile>T'\<preceq>T\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>va:=v\<Colon>-T'"
+| Ass:  "\<lbrakk>E,dt\<Turnstile>va\<Colon>=T; va \<noteq> LVar This;
+          E,dt\<Turnstile>v \<Colon>-T';
+          prg E\<turnstile>T'\<preceq>T\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>va:=v\<Colon>-T'"
 
   --{* cf. 15.24 *}
-| Cond:	"\<lbrakk>E,dt\<Turnstile>e0\<Colon>-PrimT Boolean;
-	  E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2;
-	  prg E\<turnstile>T1\<preceq>T2 \<and> T = T2  \<or>  prg E\<turnstile>T2\<preceq>T1 \<and> T = T1\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>e0 ? e1 : e2\<Colon>-T"
+| Cond: "\<lbrakk>E,dt\<Turnstile>e0\<Colon>-PrimT Boolean;
+          E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2;
+          prg E\<turnstile>T1\<preceq>T2 \<and> T = T2  \<or>  prg E\<turnstile>T2\<preceq>T1 \<and> T = T1\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>e0 ? e1 : e2\<Colon>-T"
 
   --{* cf. 15.11.1, 15.11.2, 15.11.3 *}
-| Call:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT statT;
-	  E,dt\<Turnstile>ps\<Colon>\<doteq>pTs;
-	  max_spec (prg E) (cls E) statT \<lparr>name=mn,parTs=pTs\<rparr> 
+| Call: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT statT;
+          E,dt\<Turnstile>ps\<Colon>\<doteq>pTs;
+          max_spec (prg E) (cls E) statT \<lparr>name=mn,parTs=pTs\<rparr> 
             = {((statDeclT,m),pTs')}
          \<rbrakk> \<Longrightarrow>
-		   E,dt\<Turnstile>{cls E,statT,invmode m e}e\<cdot>mn({pTs'}ps)\<Colon>-(resTy m)"
+                   E,dt\<Turnstile>{cls E,statT,invmode m e}e\<cdot>mn({pTs'}ps)\<Colon>-(resTy m)"
 
 | Methd: "\<lbrakk>is_class (prg E) C;
-	  methd (prg E) C sig = Some m;
-	  E,dt\<Turnstile>Body (declclass m) (stmt (mbody (mthd m)))\<Colon>-T\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>Methd C sig\<Colon>-T"
+          methd (prg E) C sig = Some m;
+          E,dt\<Turnstile>Body (declclass m) (stmt (mbody (mthd m)))\<Colon>-T\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>Methd C sig\<Colon>-T"
  --{* The class @{term C} is the dynamic class of the method call 
     (cf. Eval.thy). 
     It hasn't got to be directly accessible from the current package 
@@ -386,11 +386,11 @@ where
     we would have to assume conformance of l here!
   *}
 
-| Body:	"\<lbrakk>is_class (prg E) D;
-	  E,dt\<Turnstile>blk\<Colon>\<surd>;
-	  (lcl E) Result = Some T;
+| Body: "\<lbrakk>is_class (prg E) D;
+          E,dt\<Turnstile>blk\<Colon>\<surd>;
+          (lcl E) Result = Some T;
           is_type (prg E) T\<rbrakk> \<Longrightarrow>
-   					 E,dt\<Turnstile>Body D blk\<Colon>-T"
+                                         E,dt\<Turnstile>Body D blk\<Colon>-T"
 --{* The class @{term D} implementing the method must not directly be 
      accessible  from the current package @{term "(pkg E)"}, but can also 
      be indirectly accessible due to inheritance (enshured in @{term Call})
@@ -402,27 +402,27 @@ where
 --{* well-typed variables *}
 
   --{* cf. 15.13.1 *}
-| LVar:	"\<lbrakk>lcl E vn = Some T; is_acc_type (prg E) (pkg E) T\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>LVar vn\<Colon>=T"
+| LVar: "\<lbrakk>lcl E vn = Some T; is_acc_type (prg E) (pkg E) T\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>LVar vn\<Colon>=T"
   --{* cf. 15.10.1 *}
-| FVar:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; 
-	  accfield (prg E) (cls E) C fn = Some (statDeclC,f)\<rbrakk> \<Longrightarrow>
-			 E,dt\<Turnstile>{cls E,statDeclC,is_static f}e..fn\<Colon>=(type f)"
+| FVar: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; 
+          accfield (prg E) (cls E) C fn = Some (statDeclC,f)\<rbrakk> \<Longrightarrow>
+                         E,dt\<Turnstile>{cls E,statDeclC,is_static f}e..fn\<Colon>=(type f)"
   --{* cf. 15.12 *}
-| AVar:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T.[]; 
-	  E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>e.[i]\<Colon>=T"
+| AVar: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-T.[]; 
+          E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>e.[i]\<Colon>=T"
 
 
 --{* well-typed expression lists *}
 
   --{* cf. 15.11.??? *}
-| Nil:					"E,dt\<Turnstile>[]\<Colon>\<doteq>[]"
+| Nil:                                  "E,dt\<Turnstile>[]\<Colon>\<doteq>[]"
 
   --{* cf. 15.11.??? *}
-| Cons:	"\<lbrakk>E,dt\<Turnstile>e \<Colon>-T;
-	  E,dt\<Turnstile>es\<Colon>\<doteq>Ts\<rbrakk> \<Longrightarrow>
-					 E,dt\<Turnstile>e#es\<Colon>\<doteq>T#Ts"
+| Cons: "\<lbrakk>E,dt\<Turnstile>e \<Colon>-T;
+          E,dt\<Turnstile>es\<Colon>\<doteq>Ts\<rbrakk> \<Longrightarrow>
+                                         E,dt\<Turnstile>e#es\<Colon>\<doteq>T#Ts"
 
 
 syntax (* for purely static typing *)
@@ -431,7 +431,7 @@ syntax (* for purely static typing *)
   "_ty_expr" :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_|-_:-_" [51,51,51] 50)
   "_ty_var"  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_|-_:=_" [51,51,51] 50)
   "_ty_exprs":: "env \<Rightarrow> [expr list,
-		     \<spacespace> ty   list] \<Rightarrow> bool" ("_|-_:#_" [51,51,51] 50)
+                     \<spacespace> ty   list] \<Rightarrow> bool" ("_|-_:#_" [51,51,51] 50)
 
 syntax (xsymbols)
   "_wt"      :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>_"  [51,51,51] 50)
@@ -439,14 +439,14 @@ syntax (xsymbols)
   "_ty_expr" :: "env \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>-_" [51,51,51] 50)
   "_ty_var"  :: "env \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>=_" [51,51,51] 50)
   "_ty_exprs" :: "env \<Rightarrow> [expr list,
-		    \<spacespace>  ty   list] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
+                    \<spacespace>  ty   list] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
 
 translations
-	"E\<turnstile>t\<Colon> T" == "E,empty_dt\<Turnstile>t\<Colon> T"
+        "E\<turnstile>t\<Colon> T" == "E,empty_dt\<Turnstile>t\<Colon> T"
         "E\<turnstile>s\<Colon>\<surd>"  == "E\<turnstile>In1r s\<Colon>Inl (PrimT Void)"
-	"E\<turnstile>e\<Colon>-T" == "E\<turnstile>In1l e\<Colon>Inl T"
-	"E\<turnstile>e\<Colon>=T" == "E\<turnstile>In2  e\<Colon>Inl T"
-	"E\<turnstile>e\<Colon>\<doteq>T" == "E\<turnstile>In3  e\<Colon>Inr T"
+        "E\<turnstile>e\<Colon>-T" == "E\<turnstile>In1l e\<Colon>Inl T"
+        "E\<turnstile>e\<Colon>=T" == "E\<turnstile>In2  e\<Colon>Inl T"
+        "E\<turnstile>e\<Colon>\<doteq>T" == "E\<turnstile>In3  e\<Colon>Inr T"
 
 
 declare not_None_eq [simp del] 
@@ -455,36 +455,36 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
 
 inductive_cases wt_elim_cases [cases set]:
-	"E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
-	"E,dt\<Turnstile>In2  ({accC,statDeclC,s}e..fn)\<Colon>T"
-	"E,dt\<Turnstile>In2  (e.[i])                 \<Colon>T"
-	"E,dt\<Turnstile>In1l (NewC C)                \<Colon>T"
-	"E,dt\<Turnstile>In1l (New T'[i])             \<Colon>T"
-	"E,dt\<Turnstile>In1l (Cast T' e)             \<Colon>T"
-	"E,dt\<Turnstile>In1l (e InstOf T')           \<Colon>T"
-	"E,dt\<Turnstile>In1l (Lit x)                 \<Colon>T"
+        "E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
+        "E,dt\<Turnstile>In2  ({accC,statDeclC,s}e..fn)\<Colon>T"
+        "E,dt\<Turnstile>In2  (e.[i])                 \<Colon>T"
+        "E,dt\<Turnstile>In1l (NewC C)                \<Colon>T"
+        "E,dt\<Turnstile>In1l (New T'[i])             \<Colon>T"
+        "E,dt\<Turnstile>In1l (Cast T' e)             \<Colon>T"
+        "E,dt\<Turnstile>In1l (e InstOf T')           \<Colon>T"
+        "E,dt\<Turnstile>In1l (Lit x)                 \<Colon>T"
         "E,dt\<Turnstile>In1l (UnOp unop e)           \<Colon>T"
         "E,dt\<Turnstile>In1l (BinOp binop e1 e2)     \<Colon>T"
-	"E,dt\<Turnstile>In1l (Super)                 \<Colon>T"
-	"E,dt\<Turnstile>In1l (Acc va)                \<Colon>T"
-	"E,dt\<Turnstile>In1l (Ass va v)              \<Colon>T"
-	"E,dt\<Turnstile>In1l (e0 ? e1 : e2)          \<Colon>T"
-	"E,dt\<Turnstile>In1l ({accC,statT,mode}e\<cdot>mn({pT'}p))\<Colon>T"
-	"E,dt\<Turnstile>In1l (Methd C sig)           \<Colon>T"
-	"E,dt\<Turnstile>In1l (Body D blk)            \<Colon>T"
-	"E,dt\<Turnstile>In3  ([])                    \<Colon>Ts"
-	"E,dt\<Turnstile>In3  (e#es)                  \<Colon>Ts"
-	"E,dt\<Turnstile>In1r  Skip                   \<Colon>x"
-	"E,dt\<Turnstile>In1r (Expr e)                \<Colon>x"
-	"E,dt\<Turnstile>In1r (c1;; c2)               \<Colon>x"
+        "E,dt\<Turnstile>In1l (Super)                 \<Colon>T"
+        "E,dt\<Turnstile>In1l (Acc va)                \<Colon>T"
+        "E,dt\<Turnstile>In1l (Ass va v)              \<Colon>T"
+        "E,dt\<Turnstile>In1l (e0 ? e1 : e2)          \<Colon>T"
+        "E,dt\<Turnstile>In1l ({accC,statT,mode}e\<cdot>mn({pT'}p))\<Colon>T"
+        "E,dt\<Turnstile>In1l (Methd C sig)           \<Colon>T"
+        "E,dt\<Turnstile>In1l (Body D blk)            \<Colon>T"
+        "E,dt\<Turnstile>In3  ([])                    \<Colon>Ts"
+        "E,dt\<Turnstile>In3  (e#es)                  \<Colon>Ts"
+        "E,dt\<Turnstile>In1r  Skip                   \<Colon>x"
+        "E,dt\<Turnstile>In1r (Expr e)                \<Colon>x"
+        "E,dt\<Turnstile>In1r (c1;; c2)               \<Colon>x"
         "E,dt\<Turnstile>In1r (l\<bullet> c)                  \<Colon>x" 
-	"E,dt\<Turnstile>In1r (If(e) c1 Else c2)      \<Colon>x"
-	"E,dt\<Turnstile>In1r (l\<bullet> While(e) c)         \<Colon>x"
+        "E,dt\<Turnstile>In1r (If(e) c1 Else c2)      \<Colon>x"
+        "E,dt\<Turnstile>In1r (l\<bullet> While(e) c)         \<Colon>x"
         "E,dt\<Turnstile>In1r (Jmp jump)              \<Colon>x"
-	"E,dt\<Turnstile>In1r (Throw e)               \<Colon>x"
-	"E,dt\<Turnstile>In1r (Try c1 Catch(tn vn) c2)\<Colon>x"
-	"E,dt\<Turnstile>In1r (c1 Finally c2)         \<Colon>x"
-	"E,dt\<Turnstile>In1r (Init C)                \<Colon>x"
+        "E,dt\<Turnstile>In1r (Throw e)               \<Colon>x"
+        "E,dt\<Turnstile>In1r (Try c1 Catch(tn vn) c2)\<Colon>x"
+        "E,dt\<Turnstile>In1r (c1 Finally c2)         \<Colon>x"
+        "E,dt\<Turnstile>In1r (Init C)                \<Colon>x"
 declare not_None_eq [simp] 
 declare split_if [split] split_if_asm [split]
 declare split_paired_All [simp] split_paired_Ex [simp]
@@ -549,7 +549,7 @@ lemma wt_Super:
 \<Longrightarrow> E,dt\<Turnstile>Super\<Colon>-Class D"
 by (auto elim: wt.Super)
 
-lemma wt_FVar:	
+lemma wt_FVar:  
 "\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; accfield (prg E) (cls E) C fn = Some (statDeclC,f);
   sf=is_static f; fT=(type f); accC=cls E\<rbrakk> 
 \<Longrightarrow> E,dt\<Turnstile>{accC,statDeclC,sf}e..fn\<Colon>=fT"
@@ -677,7 +677,7 @@ done
 lemma typeof_empty_is_type [rule_format (no_asm)]: 
   "typeof (\<lambda>a. None) v = Some T \<longrightarrow> is_type G T"
 apply (rule val.induct)
-apply    	auto
+apply           auto
 done
 
 (* unused *)

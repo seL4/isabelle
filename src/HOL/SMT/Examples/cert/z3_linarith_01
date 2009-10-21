@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (= 3 3))
+:formula true
+)

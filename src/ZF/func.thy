@@ -1,8 +1,6 @@
 (*  Title:      ZF/func.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
-
 *)
 
 header{*Functions, Function Spaces, Lambda-Abstraction*}
@@ -230,7 +228,7 @@ by (blast intro: fun_extension)
 (*thm by Mark Staples, proof by lcp*)
 lemma fun_subset_eq: "[| f:Pi(A,B); g:Pi(A,C) |] ==> f <= g <-> (f = g)"
 by (blast dest: apply_Pair
-	  intro: fun_extension apply_equality [symmetric])
+          intro: fun_extension apply_equality [symmetric])
 
 
 (*Every element of Pi(A,B) may be expressed as a lambda abstraction!*)

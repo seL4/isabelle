@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Separation.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -296,10 +295,10 @@ such as intersection, Cartesian Product and image.*}
 lemma M_basic_axioms_L: "M_basic_axioms(L)"
   apply (rule M_basic_axioms.intro)
        apply (assumption | rule
-	 Inter_separation Diff_separation cartprod_separation image_separation
-	 converse_separation restrict_separation
-	 comp_separation pred_separation Memrel_separation
-	 funspace_succ_replacement is_recfun_separation)+
+         Inter_separation Diff_separation cartprod_separation image_separation
+         converse_separation restrict_separation
+         comp_separation pred_separation Memrel_separation
+         funspace_succ_replacement is_recfun_separation)+
   done
 
 theorem M_basic_L: "PROP M_basic(L)"

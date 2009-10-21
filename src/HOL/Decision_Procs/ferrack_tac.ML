@@ -16,9 +16,9 @@ val trace = Unsynchronized.ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
 val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_less_iff}, 
-				@{thm real_of_int_le_iff}]
-	     in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
-	     end;
+                                @{thm real_of_int_le_iff}]
+             in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
+             end;
 
 val binarith =
   @{thms normalize_bin_simps} @ @{thms pred_bin_simps} @ @{thms succ_bin_simps} @
@@ -58,11 +58,11 @@ fun prepare_for_linr sg q fm =
       val rhs = hs
 (*    val (rhs,irhs) = List.partition (relevant (rev ps)) hs *)
     val np = length ps
-    val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
-      (foldr HOLogic.mk_imp c rhs, np) ps
+    val (fm',np) =  List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
+      (List.foldr HOLogic.mk_imp c rhs, np) ps
     val (vs, _) = List.partition (fn t => q orelse (type_of t) = HOLogic.natT)
       (OldTerm.term_frees fm' @ OldTerm.term_vars fm');
-    val fm2 = foldr mk_all2 fm' vs
+    val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 
 (*Object quantifier to meta --*)
@@ -74,8 +74,8 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun linr_tac ctxt q i = 
     (ObjectLogic.atomize_prems_tac i) 
-	THEN (REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}] i))
-	THEN (fn st =>
+        THEN (REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}] i))
+        THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
     val thy = ProofContext.theory_of ctxt

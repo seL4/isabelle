@@ -132,15 +132,15 @@ next
       case (Some r')
       with Node.hyps
       have "set_of r' \<subseteq> set_of r"
-	by simp
+        by simp
       with l'_l Some x_l_Some del
       show ?thesis
-	by (auto split: split_if_asm)
+        by (auto split: split_if_asm)
     next
       case None
       with l'_l Some x_l_Some del
       show ?thesis
-	by (fastsimp split: split_if_asm)
+        by (fastsimp split: split_if_asm)
     qed
   next
     case None
@@ -150,15 +150,15 @@ next
       case (Some r')
       with Node.hyps
       have "set_of r' \<subseteq> set_of r"
-	by simp
+        by simp
       with Some x_l_None del
       show ?thesis
-	by (fastsimp split: split_if_asm)
+        by (fastsimp split: split_if_asm)
     next
       case None
       with x_l_None del
       show ?thesis
-	by (fastsimp split: split_if_asm)
+        by (fastsimp split: split_if_asm)
     qed
   qed
 qed
@@ -191,18 +191,18 @@ next
       case (Some r')
       from Node.hyps (2) [OF Some dist_r]
       have dist_r': "all_distinct r'"
-	by simp
+        by simp
       from delete_Some_set_of [OF Some]
       have "set_of r' \<subseteq> set_of r".
       
       with dist_l' dist_r' l'_l Some x_l_Some del d dist_l_r
       show ?thesis
-	by fastsimp
+        by fastsimp
     next
       case None
       with l'_l dist_l'  x_l_Some del d dist_l_r dist_r
       show ?thesis
-	by fastsimp
+        by fastsimp
     qed
   next
     case None
@@ -212,17 +212,17 @@ next
       case (Some r')
       with Node.hyps (2) [OF Some dist_r]
       have dist_r': "all_distinct r'"
-	by simp
+        by simp
       from delete_Some_set_of [OF Some]
       have "set_of r' \<subseteq> set_of r".
       with Some dist_r' x_l_None del dist_l d dist_l_r
       show ?thesis
-	by fastsimp
+        by fastsimp
     next
       case None
       with x_l_None del dist_l dist_r d dist_l_r
       show ?thesis
-	by (fastsimp split: split_if_asm)
+        by (fastsimp split: split_if_asm)
     qed
   qed
 qed
@@ -255,17 +255,17 @@ next
       case (Some r')
       from Node.hyps (2) [OF Some]
       obtain x_r: "x \<in> set_of r" "x \<notin> set_of r'"
-	by simp
+        by simp
       from x_r x_l Some x_l_Some del 
       show ?thesis
-	by (clarsimp split: split_if_asm)
+        by (clarsimp split: split_if_asm)
     next
       case None
       then have "x \<notin> set_of r"
-	by (simp add: delete_None_set_of_conv)
+        by (simp add: delete_None_set_of_conv)
       with x_l None x_l_Some del
       show ?thesis
-	by (clarsimp split: split_if_asm)
+        by (clarsimp split: split_if_asm)
     qed
   next
     case None
@@ -277,17 +277,17 @@ next
       case (Some r')
       from Node.hyps (2) [OF Some]
       obtain x_r: "x \<in> set_of r" "x \<notin> set_of r'"
-	by simp
+        by simp
       from x_r x_notin_l Some x_l_None del 
       show ?thesis
-	by (clarsimp split: split_if_asm)
+        by (clarsimp split: split_if_asm)
     next
       case None
       then have "x \<notin> set_of r"
-	by (simp add: delete_None_set_of_conv)
+        by (simp add: delete_None_set_of_conv)
       with None x_l_None x_notin_l del
       show ?thesis
-	by (clarsimp split: split_if_asm)
+        by (clarsimp split: split_if_asm)
     qed
   qed
 qed
@@ -324,23 +324,23 @@ next
       have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
       show ?thesis
       proof (cases "subtract r t\<^isub>2''")
-	case (Some t\<^isub>2''')
-	from Node.hyps (2) [OF Some ] 
-	have "set_of t\<^isub>2''' \<subseteq> set_of t\<^isub>2''" .
-	with Some sub_l_Some del_x_Some sub t2''_t2' t2'_t2
-	show ?thesis
-	  by simp
+        case (Some t\<^isub>2''')
+        from Node.hyps (2) [OF Some ] 
+        have "set_of t\<^isub>2''' \<subseteq> set_of t\<^isub>2''" .
+        with Some sub_l_Some del_x_Some sub t2''_t2' t2'_t2
+        show ?thesis
+          by simp
       next
-	case None
-	with del_x_Some sub_l_Some sub
-	show ?thesis
-	  by simp
+        case None
+        with del_x_Some sub_l_Some sub
+        show ?thesis
+          by simp
       qed
     next
       case None
       with del_x_Some sub 
       show ?thesis
-	by simp
+        by simp
     qed
   next
     case None
@@ -374,23 +374,23 @@ next
       have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
       show ?thesis
       proof (cases "subtract r t\<^isub>2''")
-	case (Some t\<^isub>2''')
-	from Node.hyps (2) [OF Some ] 
-	have r_t\<^isub>2'': "set_of r \<subseteq> set_of t\<^isub>2''" .
-	from Some sub_l_Some del_x_Some sub r_t\<^isub>2'' l_t2' t2'_t2 t2''_t2' x_t2
-	show ?thesis
-	  by auto
+        case (Some t\<^isub>2''')
+        from Node.hyps (2) [OF Some ] 
+        have r_t\<^isub>2'': "set_of r \<subseteq> set_of t\<^isub>2''" .
+        from Some sub_l_Some del_x_Some sub r_t\<^isub>2'' l_t2' t2'_t2 t2''_t2' x_t2
+        show ?thesis
+          by auto
       next
-	case None
-	with del_x_Some sub_l_Some sub
-	show ?thesis
-	  by simp
+        case None
+        with del_x_Some sub_l_Some sub
+        show ?thesis
+          by simp
       qed
     next
       case None
       with del_x_Some sub 
       show ?thesis
-	by simp
+        by simp
     qed
   next
     case None
@@ -420,24 +420,24 @@ next
       have dist_t2'': "all_distinct t\<^isub>2''" .
       show ?thesis
       proof (cases "subtract r t\<^isub>2''")
-	case (Some t\<^isub>2''')
-	from Node.hyps (2) [OF Some dist_t2''] 
-	have dist_t2''': "all_distinct t\<^isub>2'''" .
-	from Some sub_l_Some del_x_Some sub 
+        case (Some t\<^isub>2''')
+        from Node.hyps (2) [OF Some dist_t2''] 
+        have dist_t2''': "all_distinct t\<^isub>2'''" .
+        from Some sub_l_Some del_x_Some sub 
              dist_t2'''
-	show ?thesis
-	  by simp
+        show ?thesis
+          by simp
       next
-	case None
-	with del_x_Some sub_l_Some sub
-	show ?thesis
-	  by simp
+        case None
+        with del_x_Some sub_l_Some sub
+        show ?thesis
+          by simp
       qed
     next
       case None
       with del_x_Some sub 
       show ?thesis
-	by simp
+        by simp
     qed
   next
     case None
@@ -472,34 +472,34 @@ next
       have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
       show ?thesis
       proof (cases "subtract r t\<^isub>2''")
-	case (Some t\<^isub>2''')
-	from Node.hyps (2) [OF Some] 
-	have dist_r_t2''': "set_of r \<inter> set_of t\<^isub>2''' = {}" .
-	from subtract_Some_set_of_res [OF Some]
-	have t2'''_t2'': "set_of t\<^isub>2''' \<subseteq> set_of t\<^isub>2''".
-	
-	from Some sub_l_Some del_x_Some sub t2'''_t2'' dist_l_t2'' dist_r_t2'''
+        case (Some t\<^isub>2''')
+        from Node.hyps (2) [OF Some] 
+        have dist_r_t2''': "set_of r \<inter> set_of t\<^isub>2''' = {}" .
+        from subtract_Some_set_of_res [OF Some]
+        have t2'''_t2'': "set_of t\<^isub>2''' \<subseteq> set_of t\<^isub>2''".
+        
+        from Some sub_l_Some del_x_Some sub t2'''_t2'' dist_l_t2'' dist_r_t2'''
              t2''_t2' t2'_t2 x_not_t2'
-	show ?thesis
-	  by auto
+        show ?thesis
+          by auto
       next
-	case None
-	with del_x_Some sub_l_Some sub
-	show ?thesis
-	  by simp
+        case None
+        with del_x_Some sub_l_Some sub
+        show ?thesis
+          by simp
       qed
     next
       case None
       with del_x_Some sub 
       show ?thesis
-	by simp
+        by simp
     qed
   next
     case None
     with sub show ?thesis by simp
   qed
 qed
-	
+        
 lemma subtract_Some_all_distinct:
   "\<And>t\<^isub>2 t. \<lbrakk>subtract t\<^isub>1 t\<^isub>2 = Some t; all_distinct t\<^isub>2\<rbrakk> \<Longrightarrow> all_distinct t\<^isub>1"
 proof (induct t\<^isub>1)
@@ -536,29 +536,29 @@ next
       have dist_l_t2'': "set_of l \<inter> set_of t\<^isub>2'' = {}".
       show ?thesis
       proof (cases "subtract r t\<^isub>2''")
-	case (Some t\<^isub>2''')
-	from Node.hyps (2) [OF Some dist_t2''] 
-	have dist_r: "all_distinct r" .
-	from subtract_Some_set_of [OF Some]
-	have r_t2'': "set_of r \<subseteq> set_of t\<^isub>2''" .
-	from subtract_Some_dist_res [OF Some]
-	have dist_r_t2''': "set_of r \<inter> set_of t\<^isub>2''' = {}".
+        case (Some t\<^isub>2''')
+        from Node.hyps (2) [OF Some dist_t2''] 
+        have dist_r: "all_distinct r" .
+        from subtract_Some_set_of [OF Some]
+        have r_t2'': "set_of r \<subseteq> set_of t\<^isub>2''" .
+        from subtract_Some_dist_res [OF Some]
+        have dist_r_t2''': "set_of r \<inter> set_of t\<^isub>2''' = {}".
 
-	from dist_l dist_r Some sub_l_Some del_x_Some r_t2'' l_t2' x_t2 x_not_t2' 
-	     t2''_t2' dist_l_t2'' dist_r_t2'''
-	show ?thesis
-	  by auto
+        from dist_l dist_r Some sub_l_Some del_x_Some r_t2'' l_t2' x_t2 x_not_t2' 
+             t2''_t2' dist_l_t2'' dist_r_t2'''
+        show ?thesis
+          by auto
       next
-	case None
-	with del_x_Some sub_l_Some sub
-	show ?thesis
-	  by simp
+        case None
+        with del_x_Some sub_l_Some sub
+        show ?thesis
+          by simp
       qed
     next
       case None
       with del_x_Some sub 
       show ?thesis
-	by simp
+        by simp
     qed
   next
     case None

@@ -1,4 +1,4 @@
-(*  ID:         $Id$
+(*  Title:      ZF/UNITY/Constrains.thy
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
 *)
@@ -315,7 +315,7 @@ lemma Elimination:
      ==> F \<in> ({s \<in> A. x(s):M}) Co (\<Union>m \<in> M. B(m))"
 apply (unfold Constrains_def, auto)
 apply (rule_tac A1 = "reachable (F) Int A" 
-	in UNITY.elimination [THEN constrains_weaken_L])
+        in UNITY.elimination [THEN constrains_weaken_L])
 apply (auto intro: constrains_weaken_L)
 done
 
@@ -397,7 +397,7 @@ lemma Always_eq_UN_invariant: "st_set(A) ==> Always(A) = (\<Union>I \<in> Pow(A)
 apply (simp (no_asm) add: Always_eq_includes_reachable)
 apply (rule equalityI, auto) 
 apply (blast intro: invariantI rev_subsetD [OF _ Init_into_reachable] 
-		    rev_subsetD [OF _ invariant_includes_reachable]  
+                    rev_subsetD [OF _ invariant_includes_reachable]  
              dest: invariant_type [THEN subsetD])+
 done
 

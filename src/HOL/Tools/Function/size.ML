@@ -164,7 +164,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     fun prove_unfolded_size_eqs size_ofp fs =
       if null recTs2 then []
-      else split_conj_thm (SkipProof.prove ctxt xs []
+      else split_conj_thm (Skip_Proof.prove ctxt xs []
         (HOLogic.mk_Trueprop (mk_conj (replicate l HOLogic.true_const @
            map (mk_unfolded_size_eq (AList.lookup op =
                (new_type_names ~~ map (app fs) rec_combs1)) size_ofp fs)
@@ -198,7 +198,7 @@ fun prove_size_thms (info : info) new_type_names thy =
 
     fun prove_size_eqs p size_fns size_ofp simpset =
       maps (fn (((_, (_, _, constrs)), size_const), T) =>
-        map (fn constr => standard (SkipProof.prove ctxt [] []
+        map (fn constr => Drule.standard (Skip_Proof.prove ctxt [] []
           (gen_mk_size_eq p (AList.lookup op = (new_type_names ~~ size_fns))
              size_ofp size_const T constr)
           (fn _ => simp_tac simpset 1))) constrs)

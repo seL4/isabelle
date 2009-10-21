@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 theory Basic imports Main begin
 
 lemma conj_rule: "\<lbrakk> P; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P)"
@@ -149,9 +148,9 @@ negation
 
 lemma "\<lbrakk>\<not>(P\<longrightarrow>Q); \<not>(R\<longrightarrow>Q)\<rbrakk> \<Longrightarrow> R"
 apply (erule_tac Q="R\<longrightarrow>Q" in contrapos_np)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (intro impI)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 by (erule notE)
 
 text {*
@@ -161,11 +160,11 @@ text {*
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
 apply (intro disjCI conjI)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 
 apply (elim conjE disjE)
  apply assumption
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 
 by (erule contrapos_np, rule conjI)
 text{*
@@ -241,18 +240,18 @@ by (drule mp)
 text{*rename_tac*}
 lemma "x < y \<Longrightarrow> \<forall>x y. P x (f y)"
 apply (intro allI)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rename_tac v w)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 oops
 
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (drule mp, assumption)
 apply (drule spec)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 by (drule mp)
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (f x); P a\<rbrakk> \<Longrightarrow> P(f (f a))"
@@ -276,11 +275,11 @@ instantiating quantifiers explicitly by rule_tac and erule_tac*}
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (drule mp, assumption)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (drule_tac x = "h a" in spec)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 by (drule mp)
 
 text {*
@@ -290,15 +289,15 @@ text {*
 
 lemma mult_dvd_mono: "\<lbrakk>i dvd m; j dvd n\<rbrakk> \<Longrightarrow> i*j dvd (m*n :: nat)"
 apply (simp add: dvd_def)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (erule exE) 
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (erule exE) 
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rename_tac l)
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule_tac x="k*l" in exI) 
-	--{* @{subgoals[display,indent=0,margin=65]} *}
+        --{* @{subgoals[display,indent=0,margin=65]} *}
 apply simp
 done
 

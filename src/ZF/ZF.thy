@@ -1,5 +1,4 @@
 (*  Title:      ZF/ZF.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
     Copyright   1993  University of Cambridge
 *)
@@ -285,7 +284,7 @@ defs
   field_def:    "field(r) == domain(r) Un range(r)"
   relation_def: "relation(r) == \<forall>z\<in>r. \<exists>x y. z = <x,y>"
   function_def: "function(r) ==
-		    \<forall>x y. <x,y>:r --> (\<forall>y'. <x,y'>:r --> y=y')"
+                    \<forall>x y. <x,y>:r --> (\<forall>y'. <x,y'>:r --> y=y')"
   image_def:    "r `` A  == {y : range(r) . \<exists>x\<in>A. <x,y> : r}"
   vimage_def:   "r -`` A == converse(r)``A"
 

@@ -64,6 +64,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* Isabelle ML SPECIFIC FUNCTIONS                                            *)
 (* ========================================================================= *)
@@ -348,6 +351,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* PP -- pretty-printing -- from the SML/NJ library                          *)
 (*                                                                           *)
@@ -1272,6 +1278,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
 (* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
@@ -1974,6 +1983,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
 (* Copyright (c) 2007 Joe Hurd, distributed under the BSD License      *)
@@ -2053,6 +2065,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* ORDERED TYPES                                                             *)
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
@@ -2189,6 +2204,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FINITE SETS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
@@ -2806,6 +2824,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FINITE SETS                                                               *)
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
@@ -3170,6 +3191,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FINITE MAPS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
@@ -3803,6 +3827,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FINITE MAPS                                                               *)
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
@@ -4083,6 +4110,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* PRESERVING SHARING OF ML VALUES                                           *)
 (* Copyright (c) 2005-2006 Joe Hurd, distributed under the BSD License *)
@@ -4271,6 +4301,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -4521,6 +4554,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* A HEAP DATATYPE FOR ML                                                    *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -4755,6 +4791,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* PARSER COMBINATORS                                                        *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -5258,6 +5297,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* PROCESSING COMMAND LINE OPTIONS                                           *)
 (* Copyright (c) 2003-2004 Joe Hurd, distributed under the BSD License *)
@@ -5527,6 +5569,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* NAMES                                                                     *)
 (* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
@@ -5802,6 +5847,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -6578,6 +6626,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
 (* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
@@ -6936,6 +6987,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -7373,6 +7427,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -8064,6 +8121,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -8498,6 +8558,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSES                                  *)
 (* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
@@ -8787,6 +8850,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -9459,6 +9525,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -10256,6 +10325,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
 (* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
@@ -11425,6 +11497,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
 (* Copyright (c) 2003-2007 Joe Hurd, distributed under the BSD License *)
@@ -12086,6 +12161,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -12334,6 +12412,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -12813,6 +12894,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -12935,6 +13019,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC LITERALS           *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -13073,6 +13160,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
 (* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
@@ -13442,6 +13532,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* KNUTH-BENDIX TERM ORDERING CONSTRAINTS                                    *)
 (* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
@@ -13793,6 +13886,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
 (* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License *)
@@ -14507,6 +14603,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
 (* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
@@ -14731,6 +14830,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
 (* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License *)
@@ -15145,6 +15247,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
 (* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
@@ -16009,6 +16114,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
 (* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License *)
@@ -16258,6 +16366,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
 (* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
@@ -16456,6 +16567,9 @@ nonfix ++ -- RL mem union subset;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;
+val foldl = List.foldl;
+val foldr = List.foldr;
+
 (* ========================================================================= *)
 (* THE TPTP PROBLEM FILE FORMAT (TPTP v2)                                    *)
 (* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)

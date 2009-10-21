@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (bvult bv23[8] bv27[8]))
+:formula true
+)

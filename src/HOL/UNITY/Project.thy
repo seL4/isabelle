@@ -1,11 +1,10 @@
 (*  Title:      HOL/UNITY/Project.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
-Projections of state sets (also of actions and programs)
+Projections of state sets (also of actions and programs).
 
-Inheritance of GUARANTEES properties under extension
+Inheritance of GUARANTEES properties under extension.
 *)
 
 header{*Projections of State Sets*}
@@ -14,15 +13,15 @@ theory Project imports Extend begin
 
 constdefs
   projecting :: "['c program => 'c set, 'a*'b => 'c, 
-		  'a program, 'c program set, 'a program set] => bool"
+                  'a program, 'c program set, 'a program set] => bool"
     "projecting C h F X' X ==
        \<forall>G. extend h F\<squnion>G \<in> X' --> F\<squnion>project h (C G) G \<in> X"
 
   extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
-		 'c program set, 'a program set] => bool"
+                 'c program set, 'a program set] => bool"
     "extending C h F Y' Y ==
        \<forall>G. extend h F  ok G --> F\<squnion>project h (C G) G \<in> Y
-	      --> extend h F\<squnion>G \<in> Y'"
+              --> extend h F\<squnion>G \<in> Y'"
 
   subset_closed :: "'a set set => bool"
     "subset_closed U == \<forall>A \<in> U. Pow A \<subseteq> U"  
@@ -566,8 +565,8 @@ lemma (in Extend) project_act_Restrict_subset_project_act:
      "project_act h (Restrict C act) \<subseteq> project_act h act"
 apply (auto simp add: project_act_def)
 done
-					   
-							   
+                                           
+                                                           
 lemma (in Extend) subset_closed_ok_extend_imp_ok_project:
      "[| extend h F ok G; subset_closed (AllowedActs F) |]  
       ==> F ok project h C G"

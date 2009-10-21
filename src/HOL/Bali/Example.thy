@@ -170,11 +170,11 @@ constdefs
   Ext_foo  :: mdecl
  "Ext_foo  \<equiv> (foo_sig, 
               \<lparr>access=Public,static=False,pars=[z],resT=Class Ext,
-	       mbody=\<lparr>lcls=[]
+               mbody=\<lparr>lcls=[]
                      ,stmt=Expr({Ext,Ext,False}Cast (Class Ext) (!!z)..vee := 
-       	                                                     Lit (Intg 1)) ;;
+                                                             Lit (Intg 1)) ;;
                                 Return (Lit Null)\<rparr>
-	      \<rparr>)"
+              \<rparr>)"
 
 constdefs
   
@@ -184,7 +184,7 @@ arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var"
 BaseCl :: "class"
 "BaseCl \<equiv> \<lparr>access=Public,
            cfields=[(arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>),
-	            (vee, \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)],
+                    (vee, \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)],
            methods=[Base_foo],
            init=Expr(arr_viewed_from Base Base 
                      :=New (PrimT Boolean)[Lit (Intg 2)]),

@@ -27,61 +27,61 @@ constdefs
 
 inductive_set ns_shared :: "event list set"
  where
-	(*Initial trace is empty*)
+        (*Initial trace is empty*)
   Nil:  "[] \<in> ns_shared"
-	(*The spy MAY say anything he CAN say.  We do not expect him to
-	  invent new nonces here, but he can also use NS1.  Common to
-	  all similar protocols.*)
+        (*The spy MAY say anything he CAN say.  We do not expect him to
+          invent new nonces here, but he can also use NS1.  Common to
+          all similar protocols.*)
 | Fake: "\<lbrakk>evsf \<in> ns_shared;  X \<in> synth (analz (spies evsf))\<rbrakk>
-	 \<Longrightarrow> Says Spy B X # evsf \<in> ns_shared"
+         \<Longrightarrow> Says Spy B X # evsf \<in> ns_shared"
 
-	(*Alice initiates a protocol run, requesting to talk to any B*)
+        (*Alice initiates a protocol run, requesting to talk to any B*)
 | NS1:  "\<lbrakk>evs1 \<in> ns_shared;  Nonce NA \<notin> used evs1\<rbrakk>
-	 \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> # evs1  \<in>  ns_shared"
+         \<Longrightarrow> Says A Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> # evs1  \<in>  ns_shared"
 
-	(*Server's response to Alice's message.
-	  !! It may respond more than once to A's request !!
-	  Server doesn't know who the true sender is, hence the A' in
-	      the sender field.*)
+        (*Server's response to Alice's message.
+          !! It may respond more than once to A's request !!
+          Server doesn't know who the true sender is, hence the A' in
+              the sender field.*)
 | NS2:  "\<lbrakk>evs2 \<in> ns_shared;  Key KAB \<notin> used evs2;  KAB \<in> symKeys;
-	  Says A' Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in> set evs2\<rbrakk>
-	 \<Longrightarrow> Says Server A
-	       (Crypt (shrK A)
-		  \<lbrace>Nonce NA, Agent B, Key KAB,
-		    (Crypt (shrK B) \<lbrace>Key KAB, Agent A\<rbrace>)\<rbrace>)
-	       # evs2 \<in> ns_shared"
+          Says A' Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in> set evs2\<rbrakk>
+         \<Longrightarrow> Says Server A
+               (Crypt (shrK A)
+                  \<lbrace>Nonce NA, Agent B, Key KAB,
+                    (Crypt (shrK B) \<lbrace>Key KAB, Agent A\<rbrace>)\<rbrace>)
+               # evs2 \<in> ns_shared"
 
-	 (*We can't assume S=Server.  Agent A "remembers" her nonce.
-	   Need A \<noteq> Server because we allow messages to self.*)
+         (*We can't assume S=Server.  Agent A "remembers" her nonce.
+           Need A \<noteq> Server because we allow messages to self.*)
 | NS3:  "\<lbrakk>evs3 \<in> ns_shared;  A \<noteq> Server;
-	  Says S A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>) \<in> set evs3;
-	  Says A Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in> set evs3\<rbrakk>
-	 \<Longrightarrow> Says A B X # evs3 \<in> ns_shared"
+          Says S A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>) \<in> set evs3;
+          Says A Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in> set evs3\<rbrakk>
+         \<Longrightarrow> Says A B X # evs3 \<in> ns_shared"
 
-	(*Bob's nonce exchange.  He does not know who the message came
-	  from, but responds to A because she is mentioned inside.*)
+        (*Bob's nonce exchange.  He does not know who the message came
+          from, but responds to A because she is mentioned inside.*)
 | NS4:  "\<lbrakk>evs4 \<in> ns_shared;  Nonce NB \<notin> used evs4;  K \<in> symKeys;
-	  Says A' B (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>) \<in> set evs4\<rbrakk>
-	 \<Longrightarrow> Says B A (Crypt K (Nonce NB)) # evs4 \<in> ns_shared"
+          Says A' B (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>) \<in> set evs4\<rbrakk>
+         \<Longrightarrow> Says B A (Crypt K (Nonce NB)) # evs4 \<in> ns_shared"
 
-	(*Alice responds with Nonce NB if she has seen the key before.
-	  Maybe should somehow check Nonce NA again.
-	  We do NOT send NB-1 or similar as the Spy cannot spoof such things.
-	  Letting the Spy add or subtract 1 lets him send all nonces.
-	  Instead we distinguish the messages by sending the nonce twice.*)
+        (*Alice responds with Nonce NB if she has seen the key before.
+          Maybe should somehow check Nonce NA again.
+          We do NOT send NB-1 or similar as the Spy cannot spoof such things.
+          Letting the Spy add or subtract 1 lets him send all nonces.
+          Instead we distinguish the messages by sending the nonce twice.*)
 | NS5:  "\<lbrakk>evs5 \<in> ns_shared;  K \<in> symKeys;
-	  Says B' A (Crypt K (Nonce NB)) \<in> set evs5;
-	  Says S  A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>)
-	    \<in> set evs5\<rbrakk>
-	 \<Longrightarrow> Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) # evs5 \<in> ns_shared"
+          Says B' A (Crypt K (Nonce NB)) \<in> set evs5;
+          Says S  A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>)
+            \<in> set evs5\<rbrakk>
+         \<Longrightarrow> Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) # evs5 \<in> ns_shared"
 
-	(*This message models possible leaks of session keys.
-	  The two Nonces identify the protocol run: the rule insists upon
-	  the true senders in order to make them accurate.*)
+        (*This message models possible leaks of session keys.
+          The two Nonces identify the protocol run: the rule insists upon
+          the true senders in order to make them accurate.*)
 | Oops: "\<lbrakk>evso \<in> ns_shared;  Says B A (Crypt K (Nonce NB)) \<in> set evso;
-	  Says Server A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>)
-	      \<in> set evso\<rbrakk>
-	 \<Longrightarrow> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> ns_shared"
+          Says Server A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>)
+              \<in> set evso\<rbrakk>
+         \<Longrightarrow> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> ns_shared"
 
 
 declare Says_imp_knows_Spy [THEN parts.Inj, dest]
@@ -98,7 +98,7 @@ lemma "[| A \<noteq> Server; Key K \<notin> used []; K \<in> symKeys |]
 apply (intro exI bexI)
 apply (rule_tac [2] ns_shared.Nil
        [THEN ns_shared.NS1, THEN ns_shared.NS2, THEN ns_shared.NS3,
-	THEN ns_shared.NS4, THEN ns_shared.NS5])
+        THEN ns_shared.NS4, THEN ns_shared.NS5])
 apply (possibility, simp add: used_Cons)
 done
 
@@ -275,7 +275,7 @@ txt{*NS2*}
 apply blast
 txt{*NS3*}
 apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
-	     dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
+             dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
 txt{*Oops*}
 apply (blast dest: unique_session_keys)
 done
@@ -355,8 +355,8 @@ lemma B_trusts_NS5_lemma [rule_format]:
   "\<lbrakk>B \<notin> bad;  evs \<in> ns_shared\<rbrakk> \<Longrightarrow>
      Key K \<notin> analz (spies evs) \<longrightarrow>
      Says Server A
-	  (Crypt (shrK A) \<lbrace>NA, Agent B, Key K,
-			    Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>\<rbrace>) \<in> set evs \<longrightarrow>
+          (Crypt (shrK A) \<lbrace>NA, Agent B, Key K,
+                            Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>\<rbrace>) \<in> set evs \<longrightarrow>
      Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace> \<in> parts (spies evs) \<longrightarrow>
      Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs"
 apply (erule ns_shared.induct, force)
@@ -366,7 +366,7 @@ txt{*NS2*}
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
 txt{*NS5*}
 apply (blast dest!: A_trusts_NS2
-	     dest: Says_imp_knows_Spy [THEN analz.Inj]
+             dest: Says_imp_knows_Spy [THEN analz.Inj]
                    unique_session_keys Crypt_Spy_analz_bad)
 done
 

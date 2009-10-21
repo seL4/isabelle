@@ -926,19 +926,19 @@ proof (induct arbitrary: ys rule: length_induct)
       case (Cons y ys')
       have x_in_ys: "x = y \<or> x \<in> set ys'"
       proof (cases "x = y")
-	case True then show ?thesis ..
+        case True then show ?thesis ..
       next
-	case False
-	from "1.prems" [symmetric] xCons Cons have "x :# multiset_of ys' + {#y#}" by simp
-	with False show ?thesis by (simp add: mem_set_multiset_eq)
+        case False
+        from "1.prems" [symmetric] xCons Cons have "x :# multiset_of ys' + {#y#}" by simp
+        with False show ?thesis by (simp add: mem_set_multiset_eq)
       qed
       from "1.hyps" have IH: "length xs' < length xs \<longrightarrow>
-	(\<forall>x. multiset_of xs' = multiset_of x \<longrightarrow> length xs' = length x)" by blast
+        (\<forall>x. multiset_of xs' = multiset_of x \<longrightarrow> length xs' = length x)" by blast
       from "1.prems" x_in_ys Cons xCons have "multiset_of xs' = multiset_of (remove1 x (y#ys'))"
-	apply -
-	apply (simp add: multiset_of_remove1, simp only: add_eq_conv_diff)
-	apply fastsimp
-	done
+        apply -
+        apply (simp add: multiset_of_remove1, simp only: add_eq_conv_diff)
+        apply fastsimp
+        done
       with IH xCons have IH': "length xs' = length (remove1 x (y#ys'))" by fastsimp
       from x_in_ys have "x \<noteq> y \<Longrightarrow> length ys' > 0" by auto
       with Cons xCons x_in_ys IH' show ?thesis by (auto simp add: length_remove1)

@@ -1,36 +1,28 @@
 theory Examples1
 imports Examples
 begin
+text {* \vspace{-5ex} *}
+section {* Use of Locales in Theories and Proofs
+  \label{sec:interpretation} *}
 
-section {* Use of Locales in Theories and Proofs *}
-
-text {* Locales enable to prove theorems abstractly, relative to
-  sets of assumptions.  These theorems can then be used in other
-  contexts where the assumptions themselves, or
-  instances of the assumptions, are theorems.  This form of theorem
-  reuse is called \emph{interpretation}.
-
-  The changes of the locale
-  hierarchy from the previous sections are examples of
-  interpretations.  The command \isakeyword{sublocale} $l_1
-  \subseteq l_2$ is said to \emph{interpret} locale $l_2$ in the
-  context of $l_1$.  It causes all theorems of $l_2$ to be made
-  available in $l_1$.  The interpretation is \emph{dynamic}: not only
-  theorems already present in $l_2$ are available in $l_1$.  Theorems
-  that will be added to $l_2$ in future will automatically be
-  propagated to $l_1$.
-
-  Locales can also be interpreted in the contexts of theories and
+text {*
+  Locales can be interpreted in the contexts of theories and
   structured proofs.  These interpretations are dynamic, too.
-  Theorems added to locales will be propagated to theories.
-  In this section the interpretation in
-  theories is illustrated; interpretation in proofs is analogous.
+  Conclusions of locales will be propagated to the current theory or
+  the current proof context.%
+\footnote{Strictly speaking, only interpretation in theories is
+  dynamic since it is not possible to change locales or the locale
+  hierarchy from within a proof.}
+  The focus of this section is on
+  interpretation in theories, but we will also encounter
+  interpretations in proofs, in
+  Section~\ref{sec:local-interpretation}.
 
-  As an example, consider the type of natural numbers @{typ nat}.  The
-  relation @{text \<le>} is a total order over @{typ nat},
-  divisibility @{text dvd} is a distributive lattice.  We start with the
-  interpretation that @{text \<le>} is a partial order.  The facilities of
-  the interpretation command are explored in three versions.
+  As an example, consider the type of integers @{typ int}.  The
+  relation @{term "op \<le>"} is a total order over @{typ int}.  We start
+  with the interpretation that @{term "op \<le>"} is a partial order.  The
+  facilities of the interpretation command are explored gradually in
+  three versions.
   *}
 
 
@@ -38,45 +30,60 @@ subsection {* First Version: Replacement of Parameters Only
   \label{sec:po-first} *}
 
 text {*
-  In the most basic form, interpretation just replaces the locale
-  parameters by terms.  The following command interprets the locale
-  @{text partial_order} in the global context of the theory.  The
-  parameter @{term le} is replaced by @{term "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"}. *} 
+  The command \isakeyword{interpretation} is for the interpretation of
+  locale in theories.  In the following example, the parameter of locale
+  @{text partial_order} is replaced by @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow>
+  bool"} and the locale instance is interpreted in the current
+  theory. *}
 
-  interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-txt {* The locale name is succeeded by a \emph{parameter
-  instantiation}.  This is a list of terms, which refer to
-  the parameters in the order of declaration in the locale.  The
-  locale name is preceded by an optional \emph{interpretation
-  qualifier}, here @{text nat}.
+  interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+txt {* \normalsize
+  The argument of the command is a simple \emph{locale expression}
+  consisting of the name of the interpreted locale, which is
+  preceded by the qualifier @{text "int:"} and succeeded by a
+  white-space-separated list of terms, which provide a full
+  instantiation of the locale parameters.  The parameters are referred
+  to by order of declaration, which is also the order in which
+  \isakeyword{print\_locale} outputs them.  The locale has only a
+  single parameter, hence the list of instantiation terms is a
+  singleton.
 
-  The command creates the goal%
-\footnote{Note that @{text op} binds tighter than functions
-  application: parentheses around @{text "op \<le>"} are not necessary.}
+  The command creates the goal
   @{subgoals [display]} which can be shown easily:
  *}
     by unfold_locales auto
 
-text {*  Now theorems from the locale are available in the theory,
-  interpreted for natural numbers, for example @{thm [source]
-  nat.trans}: @{thm [display, indent=2] nat.trans}
-
-  The interpretation qualifier, @{text nat} in the example, is applied
-  to all names processed by the interpretation.  If a qualifer is
-  given in the \isakeyword{interpretation} command, its use is
-  mandatory when referencing the name.  For example, the above theorem
-  cannot be referred to simply by @{text trans}.  This prevents
-  unwanted hiding of theorems. *}
+text {*  The effect of the command is that instances of all
+  conclusions of the locale are available in the theory, where names
+  are prefixed by the qualifier.  For example, transitivity for @{typ
+  int} is named @{thm [source] int.trans} and is the following
+  theorem:
+  @{thm [display, indent=2] int.trans}
+  It is not possible to reference this theorem simply as @{text
+  trans}.  This prevents unwanted hiding of existing theorems of the
+  theory by an interpretation. *}
 
 
 subsection {* Second Version: Replacement of Definitions *}
 
-text {* The above interpretation also creates the theorem
-  @{thm [source] nat.less_le_trans}: @{thm [display, indent=2]
-  nat.less_le_trans}
-  Here, @{term "partial_order.less (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"}
-  represents the strict order, although @{text "<"} is the natural
-  strict order for @{typ nat}.  Interpretation allows to map concepts
-  introduced by definitions in locales to the corresponding
-  concepts of the theory.  *}
+text {* Not only does the above interpretation qualify theorem names.
+  The prefix @{text int} is applied to all names introduced in locale
+  conclusions including names introduced in definitions.  The
+  qualified name @{text int.less} is short for
+  the interpretation of the definition, which is @{term int.less}.
+  Qualified name and expanded form may be used almost
+  interchangeably.%
+\footnote{Since @{term "op \<le>"} is polymorphic, for @{term int.less} a
+  more general type will be inferred than for @{text int.less} which
+  is over type @{typ int}.}
+  The latter is preferred on output, as for example in the theorem
+  @{thm [source] int.less_le_trans}: @{thm [display, indent=2]
+  int.less_le_trans}
+  Both notations for the strict order are not satisfactory.  The
+  constant @{term "op <"} is the strict order for @{typ int}.
+  In order to allow for the desired replacement, interpretation
+  accepts \emph{equations} in addition to the parameter instantiation.
+  These follow the locale expression and are indicated with the
+  keyword \isakeyword{where}.  This is the revised interpretation:
+  *}
 end

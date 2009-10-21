@@ -1,8 +1,6 @@
 (*  Title:      ZF/QUniv.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
 *)
 
 header{*A Small Universe for Lazy Recursive Types*}
@@ -11,15 +9,15 @@ theory QUniv imports Univ QPair begin
 
 (*Disjoint sums as a datatype*)
 rep_datatype 
-  elimination	sumE
-  induction	TrueI
-  case_eqns	case_Inl case_Inr
+  elimination   sumE
+  induction     TrueI
+  case_eqns     case_Inl case_Inr
 
 (*Variant disjoint sums as a datatype*)
 rep_datatype 
-  elimination	qsumE
-  induction	TrueI
-  case_eqns	qcase_QInl qcase_QInr
+  elimination   qsumE
+  induction     TrueI
+  case_eqns     qcase_QInl qcase_QInr
 
 definition
   quniv :: "i => i"  where

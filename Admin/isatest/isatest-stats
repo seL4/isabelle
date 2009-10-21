@@ -21,13 +21,13 @@ ISABELLE_SESSIONS="\
   HOL-HoareParallel \
   HOL-Lambda \
   HOL-Library \
-  HOL-MetisExamples \
+  HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-NSA \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
-  HOL-SET-Protocol \
+  HOL-SET_Protocol \
   HOL-UNITY \
   HOL-Word \
   HOL-ex \

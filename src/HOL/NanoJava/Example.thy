@@ -1,5 +1,4 @@
 (*  Title:      HOL/NanoJava/Example.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   2001 Technische Universitaet Muenchen
 *)
@@ -30,9 +29,9 @@ class Nat {
 
   public static void main(String[] args) // test x+1=1+x
     {
-	Nat one = new Nat().suc();
-	Nat x   = new Nat().suc().suc().suc().suc();
-	Nat ok = x.suc().eq(x.add(one));
+        Nat one = new Nat().suc();
+        Nat x   = new Nat().suc().suc().suc().suc();
+        Nat ok = x.suc().eq(x.add(one));
         System.out.println(ok != null);
     }
 }

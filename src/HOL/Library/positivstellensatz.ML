@@ -43,7 +43,7 @@ fun combine f z a b =
   in Tab.fold h a b end;
 
 fun choose f = case Tab.min_key f of 
-   SOME k => (k,valOf (Tab.lookup f k))
+   SOME k => (k, the (Tab.lookup f k))
  | NONE => error "FuncFun.choose : Completely empty function"
 
 fun onefunc kv = update kv empty
@@ -83,8 +83,8 @@ fun monomial_order (m1,m2) =
  else
   let val mon1 = dest_monomial m1 
       val mon2 = dest_monomial m2
-      val deg1 = fold (curry op + o snd) mon1 0
-      val deg2 = fold (curry op + o snd) mon2 0 
+      val deg1 = fold (Integer.add o snd) mon1 0
+      val deg2 = fold (Integer.add o snd) mon2 0 
   in if deg1 < deg2 then GREATER else if deg1 > deg2 then LESS
      else list_ord (prod_ord cterm_ord int_ord) (mon1,mon2)
   end;
@@ -568,7 +568,7 @@ local
   fun linear_cmul c = FuncUtil.Ctermfunc.map (fn x => c */ x)
   val one_tm = @{cterm "1::real"}
   fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p Rat.zero)) orelse
-     ((gen_eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso
+     ((eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso
        not(p(FuncUtil.Ctermfunc.apply e one_tm)))
 
   fun linear_ineqs vars (les,lts) = 
@@ -620,7 +620,7 @@ local
   | NONE => (case eqs of 
     [] => 
      let val vars = remove (op aconvc) one_tm 
-           (fold_rev (curry (gen_union (op aconvc)) o FuncUtil.Ctermfunc.dom o fst) (les@lts) []) 
+           (fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom o fst) (les@lts) []) 
      in linear_ineqs vars (les,lts) end
    | (e,p)::es => 
      if FuncUtil.Ctermfunc.is_empty e then linear_eqs (es,les,lts) else
@@ -679,7 +679,7 @@ fun real_linear_prover translator (eq,le,lt) =
   val le_pols = map rhs le
   val lt_pols = map rhs lt 
   val aliens =  filter is_alien
-      (fold_rev (curry (gen_union (op aconvc)) o FuncUtil.Ctermfunc.dom) 
+      (fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom) 
           (eq_pols @ le_pols @ lt_pols) [])
   val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,Rat.one)) aliens
   val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)
@@ -743,7 +743,7 @@ fun gen_prover_real_arith ctxt prover =
   fun simple_cterm_ord t u = TermOrd.term_ord (term_of t, term_of u) = LESS
   val {add,mul,neg,pow,sub,main} = 
      Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) 
+      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) 
      simple_cterm_ord
 in gen_real_arith ctxt
    (cterm_of_rat, field_comp_conv, field_comp_conv,field_comp_conv,

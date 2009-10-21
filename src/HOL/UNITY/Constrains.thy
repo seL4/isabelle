@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Constrains
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Constrains.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
@@ -21,7 +20,7 @@ inductive_set
     Init:  "s \<in> init ==> (s,[]) \<in> traces init acts"
 
   | Acts:  "[| act: acts;  (s,evs) \<in> traces init acts;  (s,s'): act |]
-	    ==> (s', s#evs) \<in> traces init acts"
+            ==> (s', s#evs) \<in> traces init acts"
 
 
 inductive_set
@@ -31,7 +30,7 @@ inductive_set
     Init:  "s \<in> Init F ==> s \<in> reachable F"
 
   | Acts:  "[| act: Acts F;  s \<in> reachable F;  (s,s'): act |]
-	    ==> s' \<in> reachable F"
+            ==> s' \<in> reachable F"
 
 constdefs
   Constrains :: "['a set, 'a set] => 'a program set"  (infixl "Co" 60)

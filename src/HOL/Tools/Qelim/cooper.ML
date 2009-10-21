@@ -188,7 +188,7 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
     (Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c1 $ x1) $ r1,
     Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
    if x1 = x2 then
-     let val c = numeral2 (curry op +) c1 c2
+     let val c = numeral2 Integer.add c1 c2
       in if c = zero then linear_add vars r1 r2
          else addC$(mulC$c$x1)$(linear_add vars r1 r2)
      end
@@ -198,7 +198,7 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
       addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
  | (_, Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
       addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
- | (_, _) => numeral2 (curry op +) tm1 tm2;
+ | (_, _) => numeral2 Integer.add tm1 tm2;
 
 fun linear_neg tm = linear_cmul ~1 tm;
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2);
@@ -308,7 +308,7 @@ fun unify ctxt q =
   | Const (@{const_name Not},_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
-  val l = Integer.lcms (cs union ds)
+  val l = Integer.lcms (union (op =) cs ds)
   fun cv k ct =
     let val (tm as b$s$t) = term_of ct
     in ((HOLogic.eq_const bT)$tm$(b$(linear_cmul k s)$(linear_cmul k t))
@@ -325,7 +325,7 @@ fun unify ctxt q =
     let val tab = fold Inttab.update
           (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty
     in
-      fn ct => valOf (Inttab.lookup tab (ct |> term_of |> dest_numeral))
+      fn ct => the (Inttab.lookup tab (ct |> term_of |> dest_numeral))
         handle Option =>
           (writeln ("noz: Theorems-Table contains no entry for " ^
               Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option)
@@ -416,7 +416,7 @@ let
    in equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
-     fn ct => valOf (Inttab.lookup tab (term_of ct |> dest_numeral))
+     fn ct => the (Inttab.lookup tab (term_of ct |> dest_numeral))
        handle Option =>
         (writeln ("dvd: Theorems-Table contains no entry for" ^
             Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option)
@@ -483,13 +483,13 @@ let
         (map (fn eq =>
                 let val (s,t) = cprop_of eq |> Thm.dest_arg |> Thm.dest_binop
                     val th = if term_of s = term_of t
-                             then valOf(Termtab.lookup inStab (term_of s))
+                             then the (Termtab.lookup inStab (term_of s))
                              else FWD (instantiate' [] [SOME s, SOME t] eqelem_th)
-                                [eq, valOf(Termtab.lookup inStab (term_of s))]
+                                [eq, the (Termtab.lookup inStab (term_of s))]
                  in (term_of t, th) end)
                   sths) Termtab.empty
         in
-          fn ct => valOf (Termtab.lookup tab (term_of ct))
+          fn ct => the (Termtab.lookup tab (term_of ct))
             handle Option =>
               (writeln ("inS: No theorem for " ^ Syntax.string_of_term ctxt (Thm.term_of ct));
                 raise Option)

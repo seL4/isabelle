@@ -12,7 +12,6 @@ sig
   val value: 'a -> 'a lazy
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
-  val map_force: ('a -> 'b) -> 'a lazy -> 'b lazy
 end;
 
 structure Lazy: LAZY =
@@ -48,8 +47,6 @@ fun force_result (Lazy var) =
       |> Future.join_result);
 
 fun force r = Exn.release (force_result r);
-
-fun map_force f = value o f o force;
 
 end;
 end;

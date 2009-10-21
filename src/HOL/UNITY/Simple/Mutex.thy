@@ -1,9 +1,8 @@
 (*  Title:      HOL/UNITY/Mutex.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
+Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra.
 *)
 
 theory Mutex imports "../UNITY_Main" begin
@@ -56,7 +55,7 @@ constdefs
   Mutex :: "state program"
     "Mutex == mk_total_program
                  ({s. ~ u s & ~ v s & m s = 0 & n s = 0},
-		  {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4},
+                  {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4},
                   UNIV)"
 
 
@@ -72,7 +71,7 @@ constdefs
 
   bad_IU :: "state set"
     "bad_IU == {s. (u s = (1 \<le> m s & m s \<le> 3)) &
-	           (3 \<le> m s & m s \<le> 4 --> ~ p s)}"
+                   (3 \<le> m s & m s \<le> 4 --> ~ p s)}"
 
 
 declare Mutex_def [THEN def_prg_Init, simp]

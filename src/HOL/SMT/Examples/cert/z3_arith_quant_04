@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (exists (?x1 Real) (< 0.0 ?x1)))
+:formula true
+)

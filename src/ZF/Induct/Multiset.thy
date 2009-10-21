@@ -1,5 +1,4 @@
 (*  Title:      ZF/Induct/Multiset.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
 
 A definitional theory of multisets,
@@ -50,7 +49,7 @@ definition
 definition
   mdiff  :: "[i, i] => i" (infixl "-#" 65)  where
   "M -# N ==  normalize(\<lambda>x \<in> mset_of(M).
-			if x \<in> mset_of(N) then M`x #- N`x else M`x)"
+                        if x \<in> mset_of(N) then M`x #- N`x else M`x)"
 
 definition
   (* set of elements of a multiset *)
@@ -94,7 +93,7 @@ definition
 
 definition
   multirel :: "[i, i] => i"  where
-  "multirel(A, r) == multirel1(A, r)^+" 		
+  "multirel(A, r) == multirel1(A, r)^+"                 
 
   (* ordinal multiset orderings *)
 
@@ -380,7 +379,7 @@ done
 
 lemma setsum_mcount_Int:
      "Finite(A) ==> setsum(%a. $# mcount(N, a), A Int mset_of(N))
-		  = setsum(%a. $# mcount(N, a), A)"
+                  = setsum(%a. $# mcount(N, a), A)"
 apply (induct rule: Finite_induct)
  apply auto
 apply (subgoal_tac "Finite (B Int mset_of (N))")

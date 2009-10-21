@@ -101,7 +101,7 @@ fun pattern_subtract ctx eq2 eq1 =
           let
             val t = Pattern.rewrite_term thy sigma [] feq1
           in
-            fold_rev Logic.all (map Free (frees_in_term ctx t) inter vs') t
+            fold_rev Logic.all (inter (op =) vs' (map Free (frees_in_term ctx t))) t
           end
     in
       map instantiate substs

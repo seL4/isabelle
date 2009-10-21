@@ -1,9 +1,8 @@
 (*  Title:      HOL/UNITY/Lift.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-The Lift-Control Example
+The Lift-Control Example.
 *)
 
 theory Lift
@@ -12,12 +11,12 @@ imports "../UNITY_Main"
 begin
 
 record state =
-  floor :: "int"	    --{*current position of the lift*}
-  "open" :: "bool"	    --{*whether the door is opened at floor*}
-  stop  :: "bool"	    --{*whether the lift is stopped at floor*}
-  req   :: "int set"	    --{*for each floor, whether the lift is requested*}
-  up    :: "bool"	    --{*current direction of movement*}
-  move  :: "bool"	    --{*whether moving takes precedence over opening*}
+  floor :: "int"            --{*current position of the lift*}
+  "open" :: "bool"          --{*whether the door is opened at floor*}
+  stop  :: "bool"           --{*whether the lift is stopped at floor*}
+  req   :: "int set"        --{*for each floor, whether the lift is requested*}
+  up    :: "bool"           --{*current direction of movement*}
+  move  :: "bool"           --{*whether moving takes precedence over opening*}
 
 consts
   Min :: "int"       --{*least and greatest floors*}
@@ -74,15 +73,15 @@ constdefs
   
   request_act :: "(state*state) set"
     "request_act == {(s,s'). s' = s (|stop:=True, move:=False|)
-		                  & ~ stop s & floor s \<in> req s}"
+                                  & ~ stop s & floor s \<in> req s}"
 
   open_act :: "(state*state) set"
     "open_act ==
          {(s,s'). s' = s (|open :=True,
-			   req  := req s - {floor s},
-			   move := True|)
-		       & stop s & ~ open s & floor s \<in> req s
-	               & ~(move s & s \<in> queueing)}"
+                           req  := req s - {floor s},
+                           move := True|)
+                       & stop s & ~ open s & floor s \<in> req s
+                       & ~(move s & s \<in> queueing)}"
 
   close_act :: "(state*state) set"
     "close_act == {(s,s'). s' = s (|open := False|) & open s}"
@@ -90,47 +89,47 @@ constdefs
   req_up :: "(state*state) set"
     "req_up ==
          {(s,s'). s' = s (|stop  :=False,
-			   floor := floor s + 1,
-			   up    := True|)
-		       & s \<in> (ready \<inter> goingup)}"
+                           floor := floor s + 1,
+                           up    := True|)
+                       & s \<in> (ready \<inter> goingup)}"
 
   req_down :: "(state*state) set"
     "req_down ==
          {(s,s'). s' = s (|stop  :=False,
-			   floor := floor s - 1,
-			   up    := False|)
-		       & s \<in> (ready \<inter> goingdown)}"
+                           floor := floor s - 1,
+                           up    := False|)
+                       & s \<in> (ready \<inter> goingdown)}"
 
   move_up :: "(state*state) set"
     "move_up ==
          {(s,s'). s' = s (|floor := floor s + 1|)
-		       & ~ stop s & up s & floor s \<notin> req s}"
+                       & ~ stop s & up s & floor s \<notin> req s}"
 
   move_down :: "(state*state) set"
     "move_down ==
          {(s,s'). s' = s (|floor := floor s - 1|)
-		       & ~ stop s & ~ up s & floor s \<notin> req s}"
+                       & ~ stop s & ~ up s & floor s \<notin> req s}"
 
   button_press  :: "(state*state) set"
       --{*This action is omitted from prior treatments, which therefore are
-	unrealistic: nobody asks the lift to do anything!  But adding this
-	action invalidates many of the existing progress arguments: various
-	"ensures" properties fail. Maybe it should be constrained to only
+        unrealistic: nobody asks the lift to do anything!  But adding this
+        action invalidates many of the existing progress arguments: various
+        "ensures" properties fail. Maybe it should be constrained to only
         allow button presses in the current direction of travel, like in a
         real lift.*}
     "button_press ==
          {(s,s'). \<exists>n. s' = s (|req := insert n (req s)|)
-		        & Min \<le> n & n \<le> Max}"
+                        & Min \<le> n & n \<le> Max}"
 
 
   Lift :: "state program"
     --{*for the moment, we OMIT @{text button_press}*}
     "Lift == mk_total_program
                 ({s. floor s = Min & ~ up s & move s & stop s &
-		          ~ open s & req s = {}},
-		 {request_act, open_act, close_act,
- 		  req_up, req_down, move_up, move_down},
-		 UNIV)"
+                          ~ open s & req s = {}},
+                 {request_act, open_act, close_act,
+                  req_up, req_down, move_up, move_down},
+                 UNIV)"
 
 
   --{*Invariants*}
@@ -158,10 +157,10 @@ constdefs
   metric :: "[int,state] => int"
     "metric ==
        %n s. if floor s < n then (if up s then n - floor s
-			          else (floor s - Min) + (n-Min))
+                                  else (floor s - Min) + (n-Min))
              else
              if n < floor s then (if up s then (Max - floor s) + (Max-n)
-		                  else floor s - n)
+                                  else floor s - n)
              else 0"
 
 locale Floor =

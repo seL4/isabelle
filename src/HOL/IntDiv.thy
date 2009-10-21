@@ -1,7 +1,6 @@
 (*  Title:      HOL/IntDiv.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
-
 *)
 
 header{* The Division Operators div and mod *}
@@ -73,24 +72,24 @@ Here is the division algorithm in ML:
     fun posDivAlg (a,b) =
       if a<b then (0,a)
       else let val (q,r) = posDivAlg(a, 2*b)
-	       in  if 0\<le>r-b then (2*q+1, r-b) else (2*q, r)
-	   end
+               in  if 0\<le>r-b then (2*q+1, r-b) else (2*q, r)
+           end
 
     fun negDivAlg (a,b) =
       if 0\<le>a+b then (~1,a+b)
       else let val (q,r) = negDivAlg(a, 2*b)
-	       in  if 0\<le>r-b then (2*q+1, r-b) else (2*q, r)
-	   end;
+               in  if 0\<le>r-b then (2*q+1, r-b) else (2*q, r)
+           end;
 
     fun negateSnd (q,r:int) = (q,~r);
 
     fun divmod (a,b) = if 0\<le>a then 
-			  if b>0 then posDivAlg (a,b) 
-			   else if a=0 then (0,0)
-				else negateSnd (negDivAlg (~a,~b))
-		       else 
-			  if 0<b then negDivAlg (a,b)
-			  else        negateSnd (posDivAlg (~a,~b));
+                          if b>0 then posDivAlg (a,b) 
+                           else if a=0 then (0,0)
+                                else negateSnd (negDivAlg (~a,~b))
+                       else 
+                          if 0<b then negDivAlg (a,b)
+                          else        negateSnd (posDivAlg (~a,~b));
 \end{verbatim}
 *}
 
@@ -143,7 +142,7 @@ text{*And positive divisors*}
 lemma adjust_eq [simp]:
      "adjust b (q,r) = 
       (let diff = r-b in  
-	if 0 \<le> diff then (2*q + 1, diff)   
+        if 0 \<le> diff then (2*q + 1, diff)   
                      else (2*q, r))"
 by (simp add: Let_def adjust_def)
 

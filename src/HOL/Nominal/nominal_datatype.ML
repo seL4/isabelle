@@ -50,7 +50,7 @@ fun dt_recs (DtTFree _) = []
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    fun the_bname i = Long_Name.base_name (#1 (valOf (AList.lookup (op =) descr i)));
+    fun the_bname i = Long_Name.base_name (#1 (the (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct op = (maps dt_recs args));
   in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
 
@@ -58,7 +58,7 @@ fun dt_cases (descr: descr) (_, args, constrs) =
 fun induct_cases descr =
   DatatypeProp.indexify_names (maps (dt_cases descr) (map #2 descr));
 
-fun exhaust_cases descr i = dt_cases descr (valOf (AList.lookup (op =) descr i));
+fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 
 in
 
@@ -153,7 +153,7 @@ val meta_spec = thm "meta_spec";
 
 fun projections rule =
   Project_Rule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
-  |> map (standard #> RuleCases.save rule);
+  |> map (Drule.standard #> RuleCases.save rule);
 
 val supp_prod = thm "supp_prod";
 val fresh_prod = thm "fresh_prod";
@@ -233,7 +233,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     fun replace_types (Type ("Nominal.ABS", [T, U])) =
           Type ("fun", [T, Type ("Nominal.noption", [replace_types U])])
       | replace_types (Type (s, Ts)) =
-          Type (getOpt (AList.lookup op = ps s, s), map replace_types Ts)
+          Type (the_default s (AList.lookup op = ps s), map replace_types Ts)
       | replace_types T = T;
 
     val dts'' = map (fn (tvs, tname, mx, constrs) => (tvs, Binding.name (tname ^ "_Rep"), NoSyn,
@@ -313,7 +313,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
-      else map standard (List.drop (split_conj_thm
+      else map Drule.standard (List.drop (split_conj_thm
         (Goal.prove_global thy2 [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
             (map (fn (c as (s, T), x) =>
@@ -333,7 +333,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val perm_empty_thms = maps (fn a =>
       let val permT = mk_permT (Type (a, []))
-      in map standard (List.take (split_conj_thm
+      in map Drule.standard (List.take (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a]
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -365,7 +365,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt_inst = pt_inst_of thy2 a;
         val pt2' = pt_inst RS pt2;
         val pt2_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "2") a);
-      in List.take (map standard (split_conj_thm
+      in List.take (map Drule.standard (split_conj_thm
         (Goal.prove_global thy2 [] []
            (augment_sort thy2 [pt_class_of thy2 a]
              (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -400,7 +400,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt3' = pt_inst RS pt3;
         val pt3_rev' = at_inst RS (pt_inst RS pt3_rev);
         val pt3_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "3") a);
-      in List.take (map standard (split_conj_thm
+      in List.take (map Drule.standard (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a] (Logic.mk_implies
              (HOLogic.mk_Trueprop (Const ("Nominal.prm_eq",
@@ -585,10 +585,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       (fn (x, (_, ("Nominal.noption", _, _))) => NONE | (x, _) => SOME x)
       (perm_indnames ~~ descr);
 
-    fun mk_perm_closed name = map (fn th => standard (th RS mp))
+    fun mk_perm_closed name = map (fn th => Drule.standard (th RS mp))
       (List.take (split_conj_thm (Goal.prove_global thy4 [] []
         (augment_sort thy4
-          (pt_class_of thy4 name :: map (cp_class_of thy4 name) (dt_atoms \ name))
+          (pt_class_of thy4 name :: map (cp_class_of thy4 name) (remove (op =) name dt_atoms))
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map
             (fn ((s, T), x) =>
                let
@@ -654,7 +654,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           let
             val pt_class = pt_class_of thy atom;
             val sort = Sign.certify_sort thy
-              (pt_class :: map (cp_class_of thy atom) (dt_atoms \ atom))
+              (pt_class :: map (cp_class_of thy atom) (remove (op =) atom dt_atoms))
           in AxClass.prove_arity
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [pt_class])
@@ -678,9 +678,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       let
         val cp_class = cp_class_of thy atom1 atom2;
         val sort = Sign.certify_sort thy
-          (pt_class_of thy atom1 :: map (cp_class_of thy atom1) (dt_atoms \ atom1) @
+          (pt_class_of thy atom1 :: map (cp_class_of thy atom1) (remove (op =) atom1 dt_atoms) @
            (if atom1 = atom2 then [cp_class_of thy atom1 atom1] else
-            pt_class_of thy atom2 :: map (cp_class_of thy atom2) (dt_atoms \ atom2)));
+            pt_class_of thy atom2 :: map (cp_class_of thy atom2) (remove (op =) atom2 dt_atoms)));
         val cp1' = cp_inst_of thy atom1 atom2 RS cp1
       in fold (fn ((((((Abs_inverse, Rep),
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
@@ -810,7 +810,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       let
         val rep_const = cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
-        val dist = standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+        val dist = Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
         val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
           ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
       in
@@ -852,7 +852,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       in
         Goal.prove_global thy8 [] []
           (augment_sort thy8
-            (pt_class_of thy8 atom :: map (cp_class_of thy8 atom) (dt_atoms \ atom))
+            (pt_class_of thy8 atom :: map (cp_class_of thy8 atom) (remove (op =) atom dt_atoms))
             (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (Const ("Nominal.perm", permT --> U --> U) $ pi $ (Rep $ x),
                Rep $ (Const ("Nominal.perm", permT --> T --> T) $ pi $ x)))))
@@ -874,7 +874,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
               simp_tac (global_simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
-          in dist_thm :: standard (dist_thm RS not_sym) ::
+          in dist_thm :: Drule.standard (dist_thm RS not_sym) ::
             prove_distinct_thms p (k, ts)
           end;
 
@@ -914,7 +914,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         in
           Goal.prove_global thy8 [] []
             (augment_sort thy8
-              (pt_class_of thy8 atom :: map (cp_class_of thy8 atom) (dt_atoms \ atom))
+              (pt_class_of thy8 atom :: map (cp_class_of thy8 atom) (remove (op =) atom dt_atoms))
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (perm (list_comb (c, l_args)), list_comb (c, r_args)))))
             (fn _ => EVERY
@@ -937,7 +937,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val pt_cp_sort =
       map (pt_class_of thy8) dt_atoms @
-      maps (fn s => map (cp_class_of thy8 s) (dt_atoms \ s)) dt_atoms;
+      maps (fn s => map (cp_class_of thy8 s) (remove (op =) s dt_atoms)) dt_atoms;
 
     val inject_thms = map (fn (((i, (_, _, constrs)), tname), constr_rep_thms) =>
       let val T = nth_dtyp' i
@@ -1089,7 +1089,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
-      in map standard (List.take
+      in map Drule.standard (List.take
         (split_conj_thm (Goal.prove_global thy8 [] []
            (augment_sort thy8 (fs_class_of thy8 atom :: pt_cp_sort)
              (HOLogic.mk_Trueprop
@@ -1107,7 +1107,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val simp_atts = replicate (length new_type_names) [Simplifier.simp_add];
 
-	(* Function to add both the simp and eqvt attributes *)
+        (* Function to add both the simp and eqvt attributes *)
         (* These two attributes are duplicated on all the types in the mutual nominal datatypes *)
 
     val simp_eqvt_atts = replicate (length new_type_names) [Simplifier.simp_add, NominalThmDecls.eqvt_add];
@@ -1276,7 +1276,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val fs_cp_sort =
       map (fs_class_of thy9) dt_atoms @
-      maps (fn s => map (cp_class_of thy9 s) (dt_atoms \ s)) dt_atoms;
+      maps (fn s => map (cp_class_of thy9 s) (remove (op =) s dt_atoms)) dt_atoms;
 
     (**********************************************************************
       The subgoals occurring in the proof of induct_aux have the
@@ -1535,7 +1535,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           in
             (R $ x $ y, R' $ mk_perm [] pi x $ mk_perm [] pi y)
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ rec_sets_pi ~~ (1 upto length recTs));
-        val ths = map (fn th => standard (th RS mp)) (split_conj_thm
+        val ths = map (fn th => Drule.standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 [] []
             (augment_sort thy1 pt_cp_sort
               (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps))))
@@ -1567,7 +1567,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (finite $ (Const ("Nominal.supp", T --> aset) $ f)))
             (rec_fns ~~ rec_fn_Ts)
       in
-        map (fn th => standard (th RS mp)) (split_conj_thm
+        map (fn th => Drule.standard (th RS mp)) (split_conj_thm
           (Goal.prove_global thy11 []
             (map (augment_sort thy11 fs_cp_sort) fins)
             (augment_sort thy11 fs_cp_sort
@@ -1610,7 +1610,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             val y = Free ("y", U);
             val y' = Free ("y'", U)
           in
-            standard (Goal.prove (ProofContext.init thy11) []
+            Drule.standard (Goal.prove (ProofContext.init thy11) []
               (map (augment_sort thy11 fs_cp_sort)
                 (finite_prems @
                    [HOLogic.mk_Trueprop (R $ x $ y),
@@ -2055,7 +2055,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
          ((Binding.name "rec_equiv'", flat rec_equiv_thms'), []),
          ((Binding.name "rec_fin_supp", flat rec_fin_supp_thms), []),
          ((Binding.name "rec_fresh", flat rec_fresh_thms), []),
-         ((Binding.name "rec_unique", map standard rec_unique_thms), []),
+         ((Binding.name "rec_unique", map Drule.standard rec_unique_thms), []),
          ((Binding.name "recs", rec_thms), [])] ||>
       Sign.parent_path ||>
       map_nominal_datatypes (fold Symtab.update dt_infos);

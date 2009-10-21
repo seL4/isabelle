@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/Normal.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 

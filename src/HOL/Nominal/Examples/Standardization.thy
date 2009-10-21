@@ -715,19 +715,19 @@ proof
       case (App ts t)
       show ?case
       proof
-	assume "Var t \<degree>\<degree> ts \<rightarrow>\<^sub>\<beta> t'"
-	then obtain rs where "ts [\<rightarrow>\<^sub>\<beta>]\<^sub>1 rs"
-	  by (iprover dest: head_Var_reduction)
-	with App show False
-	  by (induct rs arbitrary: ts) (auto del: in_listspD)
+        assume "Var t \<degree>\<degree> ts \<rightarrow>\<^sub>\<beta> t'"
+        then obtain rs where "ts [\<rightarrow>\<^sub>\<beta>]\<^sub>1 rs"
+          by (iprover dest: head_Var_reduction)
+        with App show False
+          by (induct rs arbitrary: ts) (auto del: in_listspD)
       qed
     next
       case (Abs t x)
       show ?case
       proof
-	assume "(Lam [x].t) \<rightarrow>\<^sub>\<beta> t'"
-	then show False using Abs
-	  by (cases rule: beta.strong_cases) (auto simp add: abs_fresh lam.inject alpha)
+        assume "(Lam [x].t) \<rightarrow>\<^sub>\<beta> t'"
+        then show False using Abs
+          by (cases rule: beta.strong_cases) (auto simp add: abs_fresh lam.inject alpha)
       qed
     qed
   qed
@@ -747,7 +747,7 @@ next
     proof (cases ts)
       case Nil
       from 2 have "\<forall>u'. \<not> u \<rightarrow>\<^sub>\<beta> u'"
-	by (auto intro: apps_preserves_beta)
+        by (auto intro: apps_preserves_beta)
       then have "NF u" by (rule 2)
       then have "NF (Lam [x].u)" by (rule NF.Abs)
       with Nil show ?thesis by simp
@@ -755,9 +755,9 @@ next
       case (Cons r rs)
       have "(Lam [x].u) \<degree> r \<rightarrow>\<^sub>\<beta> u[x::=r]" ..
       then have "(Lam [x].u) \<degree> r \<degree>\<degree> rs \<rightarrow>\<^sub>\<beta> u[x::=r] \<degree>\<degree> rs"
-	by (rule apps_preserves_beta)
+        by (rule apps_preserves_beta)
       with Cons have "(Lam [x].u) \<degree>\<degree> ts \<rightarrow>\<^sub>\<beta> u[x::=r] \<degree>\<degree> rs"
-	by simp
+        by simp
       with 2 show ?thesis by iprover
     qed
   qed

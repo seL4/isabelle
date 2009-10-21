@@ -1,5 +1,4 @@
 (*  Title:      ZF/AC/AC7_AC9.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
 The proofs needed to state that AC7, AC8 and AC9 are equivalent to the previous
@@ -77,7 +76,7 @@ apply (case_tac "A=0", simp)
 apply (rule AC7_AC6_lemma1)
 apply (erule allE) 
 apply (blast del: notI
-	     intro!: AC7_AC6_lemma2 intro: eqpoll_sym eqpoll_trans 
+             intro!: AC7_AC6_lemma2 intro: eqpoll_sym eqpoll_trans 
                     Sigma_fun_space_eqpoll)
 done
 

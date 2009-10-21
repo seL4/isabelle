@@ -168,7 +168,7 @@ val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
 val abs_defin' = iso_locale RS iso_abs_defin';
 val rep_defin' = iso_locale RS iso_rep_defin';
-val iso_rews = map standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
+val iso_rews = map Drule.standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
 
 (* ----- generating beta reduction rules from definitions-------------------- *)
 
@@ -251,7 +251,7 @@ in
   val exhaust = pg con_appls (mk_trp exh) (K tacs);
   val _ = trace " Proving casedist...";
   val casedist =
-    standard (rewrite_rule exh_casedists (exhaust RS exh_casedist0));
+    Drule.standard (rewrite_rule exh_casedists (exhaust RS exh_casedist0));
 end;
 
 local 
@@ -542,7 +542,7 @@ val dist_eqs =
         flat
           (ListPair.map (distinct c) ((map #1 cs),leqs)) @
         distincts cs;
-  in map standard (distincts (cons ~~ distincts_le)) end;
+  in map Drule.standard (distincts (cons ~~ distincts_le)) end;
 
 local 
   fun pgterm rel con args =
@@ -738,7 +738,7 @@ local
         maps (eq_tacs ctxt) eqs;
     in pg copy_take_defs goal tacs end;
 in
-  val take_rews = map standard
+  val take_rews = map Drule.standard
     (atomize global_ctxt take_stricts @ take_0s @ atomize global_ctxt take_apps);
 end; (* local *)
 

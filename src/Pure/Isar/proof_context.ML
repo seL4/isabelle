@@ -142,8 +142,7 @@ end;
 structure ProofContext: PROOF_CONTEXT =
 struct
 
-val theory_of = Context.theory_of_proof;
-val init = Context.init_proof;
+open ProofContext;
 
 
 (** inner syntax mode **)
@@ -259,7 +258,7 @@ fun transfer_syntax thy =
       else (Consts.merge (local_consts, thy_consts), thy_consts)
     end);
 
-fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
+fun transfer thy = Context.raw_transfer thy #> transfer_syntax thy;
 
 fun theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
@@ -366,7 +365,7 @@ fun var_or_skolem _ s =
       (case try Name.dest_skolem x of
         NONE => Pretty.mark Markup.var (Pretty.str s)
       | SOME x' => Pretty.mark Markup.skolem
-          (Pretty.str (setmp show_question_marks true Term.string_of_vname (x', i))))
+          (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
 fun class_markup _ c =    (* FIXME authentic name *)
@@ -1213,7 +1212,7 @@ val debug = Unsynchronized.ref false;
 val verbose = Unsynchronized.ref false;
 fun verb f x = if ! verbose then f (x ()) else [];
 
-fun setmp_verbose f x = Library.setmp verbose true f x;
+fun setmp_verbose f x = setmp_CRITICAL verbose true f x;
 
 
 (* local syntax *)

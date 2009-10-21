@@ -1,5 +1,4 @@
 (*  Title:      ZF/Order.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
@@ -17,15 +16,15 @@ text {* We adopt the following convention: @{text ord} is used for
   counterparts. *}
 
 definition
-  part_ord :: "[i,i]=>o"          	(*Strict partial ordering*)  where
+  part_ord :: "[i,i]=>o"                (*Strict partial ordering*)  where
    "part_ord(A,r) == irrefl(A,r) & trans[A](r)"
 
 definition
-  linear   :: "[i,i]=>o"          	(*Strict total ordering*)  where
+  linear   :: "[i,i]=>o"                (*Strict total ordering*)  where
    "linear(A,r) == (ALL x:A. ALL y:A. <x,y>:r | x=y | <y,x>:r)"
 
 definition
-  tot_ord  :: "[i,i]=>o"          	(*Strict total ordering*)  where
+  tot_ord  :: "[i,i]=>o"                (*Strict total ordering*)  where
    "tot_ord(A,r) == part_ord(A,r) & linear(A,r)"
 
 definition
@@ -41,25 +40,25 @@ abbreviation
   "Partial_order(r) \<equiv> partial_order_on(field(r), r)"
 
 definition
-  well_ord :: "[i,i]=>o"          	(*Well-ordering*)  where
+  well_ord :: "[i,i]=>o"                (*Well-ordering*)  where
    "well_ord(A,r) == tot_ord(A,r) & wf[A](r)"
 
 definition
-  mono_map :: "[i,i,i,i]=>i"      	(*Order-preserving maps*)  where
+  mono_map :: "[i,i,i,i]=>i"            (*Order-preserving maps*)  where
    "mono_map(A,r,B,s) ==
-	      {f: A->B. ALL x:A. ALL y:A. <x,y>:r --> <f`x,f`y>:s}"
+              {f: A->B. ALL x:A. ALL y:A. <x,y>:r --> <f`x,f`y>:s}"
 
 definition
-  ord_iso  :: "[i,i,i,i]=>i"		(*Order isomorphisms*)  where
+  ord_iso  :: "[i,i,i,i]=>i"            (*Order isomorphisms*)  where
    "ord_iso(A,r,B,s) ==
-	      {f: bij(A,B). ALL x:A. ALL y:A. <x,y>:r <-> <f`x,f`y>:s}"
+              {f: bij(A,B). ALL x:A. ALL y:A. <x,y>:r <-> <f`x,f`y>:s}"
 
 definition
-  pred     :: "[i,i,i]=>i"		(*Set of predecessors*)  where
+  pred     :: "[i,i,i]=>i"              (*Set of predecessors*)  where
    "pred(A,x,r) == {y:A. <y,x>:r}"
 
 definition
-  ord_iso_map :: "[i,i,i,i]=>i"      	(*Construction for linearity theorem*)  where
+  ord_iso_map :: "[i,i,i,i]=>i"         (*Construction for linearity theorem*)  where
    "ord_iso_map(A,r,B,s) ==
      \<Union>x\<in>A. \<Union>y\<in>B. \<Union>f \<in> ord_iso(pred(A,x,r), r, pred(B,y,s), s). {<x,y>}"
 
@@ -537,7 +536,7 @@ apply (rule well_ord_mono_ord_isoI)
    prefer 4
    apply (rule converse_ord_iso_map [THEN subst])
    apply (simp add: ord_iso_map_mono_map
-		    ord_iso_map_subset [THEN converse_converse])
+                    ord_iso_map_subset [THEN converse_converse])
 apply (blast intro!: domain_ord_iso_map range_ord_iso_map
              intro: well_ord_subset ord_iso_map_mono_map)+
 done
@@ -581,8 +580,8 @@ apply (rule domain_ord_iso_map [THEN equalityI])
 apply (erule Diff_eq_0_iff [THEN iffD1])
 (*The other case: the domain equals an initial segment*)
 apply (blast del: domainI subsetI
-	     elim!: predE
-	     intro!: domain_ord_iso_map_subset
+             elim!: predE
+             intro!: domain_ord_iso_map_subset
              intro: subsetI)+
 done
 

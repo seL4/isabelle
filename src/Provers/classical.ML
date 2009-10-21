@@ -363,7 +363,7 @@ fun addSE w th
     (warning ("Ignoring duplicate safe elimination (elim!)\n" ^
         Display.string_of_thm_without_context th); cs)
   else if has_fewer_prems 1 th then
-    	error ("Ill-formed elimination rule\n" ^ Display.string_of_thm_without_context th)
+        error ("Ill-formed elimination rule\n" ^ Display.string_of_thm_without_context th)
   else
   let
       val th' = classical_rule (flat_rule th)
@@ -390,7 +390,7 @@ fun cs addSEs ths = fold_rev (addSE NONE) ths cs;
 
 fun make_elim th =
     if has_fewer_prems 1 th then
-    	  error ("Ill-formed destruction rule\n" ^ Display.string_of_thm_without_context th)
+          error ("Ill-formed destruction rule\n" ^ Display.string_of_thm_without_context th)
     else Tactic.make_elim th;
 
 fun cs addSDs ths = cs addSEs (map make_elim ths);
@@ -431,7 +431,7 @@ fun addE w th
     (warning ("Ignoring duplicate elimination (elim)\n" ^
         Display.string_of_thm_without_context th); cs)
   else if has_fewer_prems 1 th then
-    	error("Ill-formed elimination rule\n" ^ Display.string_of_thm_without_context th)
+        error("Ill-formed elimination rule\n" ^ Display.string_of_thm_without_context th)
   else
   let
       val th' = classical_rule (flat_rule th)

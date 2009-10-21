@@ -56,7 +56,6 @@ fun remove ord x list =
 
 (* lists as sets *)
 
-nonfix subset;
 fun subset ord (list1, list2) =
   let
     fun sub [] _ = true
@@ -75,7 +74,6 @@ exception SAME;
 fun handle_same f x = f x handle SAME => x;
 
 (*union: insert elements of first list into second list*)
-nonfix union;
 fun union ord list1 list2 =
   let
     fun unio [] _ = raise SAME
@@ -88,7 +86,6 @@ fun union ord list1 list2 =
   in if pointer_eq (list1, list2) then list1 else handle_same (unio list1) list2 end;
 
 (*intersection: filter second list for elements present in first list*)
-nonfix inter;
 fun inter ord list1 list2 =
   let
     fun intr _ [] = raise SAME

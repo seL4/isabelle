@@ -263,13 +263,13 @@ fun calcr safe_propagation xlen names prec A b =
 
         val g = propagate_sure_bounds safe_propagation names g
 
-	val (r1, r2) = split_graph g
+        val (r1, r2) = split_graph g
 
         fun add_row_entry m index f vname value =
             let
-		val v = (case value of 
-			     SOME value => FloatSparseMatrixBuilder.mk_spvec_entry 0 value
-			   | NONE => FloatSparseMatrixBuilder.mk_spvec_entry' 0 (f $ (Var ((vname,0), HOLogic.realT))))
+                val v = (case value of 
+                             SOME value => FloatSparseMatrixBuilder.mk_spvec_entry 0 value
+                           | NONE => FloatSparseMatrixBuilder.mk_spvec_entry' 0 (f $ (Var ((vname,0), HOLogic.realT))))
                 val vec = cons_spvec v empty_spvec
             in
                 cons_spmat (FloatSparseMatrixBuilder.mk_spmat_entry index vec) m
@@ -286,7 +286,7 @@ fun calcr safe_propagation xlen names prec A b =
                     val b2 = Inttab.lookup r2 index
                 in
                     (add_row_entry r12_1 index @{term "lbound :: real => real"} ((names index)^"l") b1, 
-		     add_row_entry r12_2 index @{term "ubound :: real => real"} ((names index)^"u") b2)
+                     add_row_entry r12_2 index @{term "ubound :: real => real"} ((names index)^"u") b2)
                 end
 
         val (r1, r2) = abs_estimate xlen r1 r2
@@ -300,7 +300,7 @@ fun load filename prec safe_propagation =
         val prog = Cplex.load_cplexFile filename
         val prog = Cplex.elim_nonfree_bounds prog
         val prog = Cplex.relax_strict_ineqs prog
-        val (maximize, c, A, b, (xlen, names, _)) = CplexFloatSparseMatrixConverter.convert_prog prog			    
+        val (maximize, c, A, b, (xlen, names, _)) = CplexFloatSparseMatrixConverter.convert_prog prog                       
         val (r1, r2) = calcr safe_propagation xlen names prec A b
         val _ = if maximize then () else raise Load "sorry, cannot handle minimization problems"
         val (dualprog, indexof) = FloatSparseMatrixBuilder.dual_cplexProg c A b

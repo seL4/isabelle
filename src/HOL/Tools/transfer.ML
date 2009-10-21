@@ -143,7 +143,7 @@ fun gen_merge_entries {inj = inj0, emb = emb0, ret = ret0, cong = cg0, guess = g
  {inj = h inj0 inj1 inj2, emb = h emb0 emb1 emb2,
   ret = h ret0 ret1 ret2, cong = h cg0 cg1 cg2, guess = g1 andalso g2,
   hints = subtract (op = : string*string -> bool) hints0
-            (hints1 union_string hints2)}
+            (union (op =) hints1 hints2)}
  end;
 
 local
@@ -151,7 +151,7 @@ local
 in
 fun merge_entries ({inj = inj1, emb = emb1, ret = ret1, cong = cg1, guess = g1, hints = hints1},
                    {inj = inj2, emb = emb2, ret = ret2, cong = cg2, guess = g2, hints = hints2}) =
-    {inj = h inj1 inj2, emb = h emb1 emb2, ret = h ret1 ret2, cong = h cg1 cg2, guess = g1 andalso g2, hints = hints1 union_string hints2}
+    {inj = h inj1 inj2, emb = h emb1 emb2, ret = h ret1 ret2, cong = h cg1 cg2, guess = g1 andalso g2, hints = union (op =) hints1 hints2}
 end;
 
 fun add ((inja,injd), (emba,embd), (reta,retd), (cga,cgd), g, (hintsa, hintsd)) =

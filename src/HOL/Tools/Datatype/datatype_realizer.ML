@@ -136,7 +136,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
     val ivs1 = map Var (filter_out (fn (_, T) =>
       tname_of (body_type T) mem ["set", "bool"]) ivs);
-    val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (AList.lookup (op =) rvs ixn))) ivs;
+    val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf = List.foldr forall_intr_prf
      (List.foldr (fn ((f, p), prf) =>

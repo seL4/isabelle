@@ -7,8 +7,6 @@ Second part of main module (postprocessing of TFL definitions).
 
 signature TFL =
 sig
-  val tgoalw: theory -> thm list -> thm list -> thm list
-  val tgoal: theory -> thm list -> thm list
   val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
     term -> term list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
   val define: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
@@ -30,20 +28,7 @@ structure S = USyntax
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
-      (List.foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
-
-(*---------------------------------------------------------------------------
- * Finds the termination conditions in (highly massaged) definition and
- * puts them into a goalstack.
- *--------------------------------------------------------------------------*)
-fun tgoalw thy defs rules =
-  case termination_goals rules of
-      [] => error "tgoalw: no termination conditions to prove"
-    | L  => OldGoals.goalw_cterm defs
-              (Thm.cterm_of thy
-                        (HOLogic.mk_Trueprop(USyntax.list_mk_conj L)));
-
-fun tgoal thy = tgoalw thy [];
+      (List.foldr (fn (th,A) => uncurry (union (op aconv)) (prems_of th, A)) [] rules);
 
 (*---------------------------------------------------------------------------
  * Three postprocessors are applied to the definition.  It
@@ -94,7 +79,7 @@ fun join_assums th =
       val {lhs,rhs} = S.dest_eq(#2 (S.strip_forall (concl th)))
       val cntxtl = (#1 o S.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o S.strip_imp) rhs  (* but union is solider *)
-      val cntxt = gen_union (op aconv) (cntxtl, cntxtr)
+      val cntxt = union (op aconv) cntxtl cntxtr
   in
     R.GEN_ALL
       (R.DISCH_ALL
@@ -144,7 +129,7 @@ fun curry_rule rl =
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer =
-  curry_rule o standard o
+  curry_rule o Drule.standard o
   rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
@@ -166,7 +151,7 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (standard o ObjectLogic.rulify_no_asm)
+       val rules' = map (Drule.standard o ObjectLogic.rulify_no_asm)
                         (R.CONJUNCTS rules)
          in  {induct = meta_outer (ObjectLogic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
@@ -195,7 +180,7 @@ local
     | solve_eq (th, [a], i) = [(a, i)]
     | solve_eq (th, splitths as (_ :: _), i) = 
       (writeln "Proving unsplit equation...";
-      [((standard o ObjectLogic.rulify_no_asm)
+      [((Drule.standard o ObjectLogic.rulify_no_asm)
           (CaseSplit.splitto splitths th), i)])
       (* if there's an error, pretend nothing happened with this definition 
          We should probably print something out so that the user knows...? *)
@@ -252,7 +237,7 @@ fun defer_i thy congs fid eqs =
  in (theory,
      (*return the conjoined induction rule and recursion equations,
        with assumptions remaining to discharge*)
-     standard (induction RS (rules RS conjI)))
+     Drule.standard (induction RS (rules RS conjI)))
  end
 
 fun defer thy congs fid seqs =

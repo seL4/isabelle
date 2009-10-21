@@ -1,9 +1,8 @@
 (*  Title:      HOL/ZF/Games.thy
-    ID:         $Id$
     Author:     Steven Obua
 
-    An application of HOLZF: Partizan Games.
-    See "Partizan Games in Isabelle/HOLZF", available from http://www4.in.tum.de/~obua/partizan
+An application of HOLZF: Partizan Games.  See "Partizan Games in
+Isabelle/HOLZF", available from http://www4.in.tum.de/~obua/partizan
 *)
 
 theory Games 
@@ -421,23 +420,23 @@ proof (induct x rule: wf_induct[OF wf_option_of])
       from goal1 have "(y, g) \<in> option_of" by (auto)
       with 1 have "ge_game (y, y)" by auto
       with goal1 have "\<not> ge_game (g, y)" 
-	by (subst ge_game_eq, auto)
+        by (subst ge_game_eq, auto)
       with goal1 show ?case by auto}
     note right = this
     {case (goal2 y)
       from goal2 have "(y, g) \<in> option_of" by (auto)
       with 1 have "ge_game (y, y)" by auto
       with goal2 have "\<not> ge_game (y, g)" 
-	by (subst ge_game_eq, auto)
+        by (subst ge_game_eq, auto)
       with goal2 show ?case by auto}
     note left = this
     {case goal3
       from left right show ?case
-	by (subst ge_game_eq, auto)
+        by (subst ge_game_eq, auto)
     }
   qed
 qed
-	
+        
 constdefs
   eq_game :: "game \<Rightarrow> game \<Rightarrow> bool"
   "eq_game G H \<equiv> ge_game (G, H) \<and> ge_game (H, G)" 
@@ -462,36 +461,36 @@ proof -
       case (1 a)
       show ?case
       proof (rule allI | rule impI)+
-	case (goal1 x y z)
-	show ?case
-	proof -
-	  { fix xr
+        case (goal1 x y z)
+        show ?case
+        proof -
+          { fix xr
             assume xr:"zin xr (right_options x)"
-	    assume "ge_game (z, xr)"
-	    have "ge_game (y, xr)"
-	      apply (rule 1[rule_format, where y="[y,z,xr]"])
-	      apply (auto intro: xr lprod_3_1 simp add: prems)
-	      done
-	    moreover from xr have "\<not> ge_game (y, xr)"
-	      by (simp add: goal1(2)[simplified ge_game_eq[of x y], rule_format, of xr, simplified xr])
-	    ultimately have "False" by auto      
-	  }
-	  note xr = this
-	  { fix zl
-	    assume zl:"zin zl (left_options z)"
-	    assume "ge_game (zl, x)"
-	    have "ge_game (zl, y)"
-	      apply (rule 1[rule_format, where y="[zl,x,y]"])
-	      apply (auto intro: zl lprod_3_2 simp add: prems)
-	      done
-	    moreover from zl have "\<not> ge_game (zl, y)"
-	      by (simp add: goal1(3)[simplified ge_game_eq[of y z], rule_format, of zl, simplified zl])
-	    ultimately have "False" by auto
-	  }
-	  note zl = this
-	  show ?thesis
-	    by (auto simp add: ge_game_eq[of x z] intro: xr zl)
-	qed
+            assume "ge_game (z, xr)"
+            have "ge_game (y, xr)"
+              apply (rule 1[rule_format, where y="[y,z,xr]"])
+              apply (auto intro: xr lprod_3_1 simp add: prems)
+              done
+            moreover from xr have "\<not> ge_game (y, xr)"
+              by (simp add: goal1(2)[simplified ge_game_eq[of x y], rule_format, of xr, simplified xr])
+            ultimately have "False" by auto      
+          }
+          note xr = this
+          { fix zl
+            assume zl:"zin zl (left_options z)"
+            assume "ge_game (zl, x)"
+            have "ge_game (zl, y)"
+              apply (rule 1[rule_format, where y="[zl,x,y]"])
+              apply (auto intro: zl lprod_3_2 simp add: prems)
+              done
+            moreover from zl have "\<not> ge_game (zl, y)"
+              by (simp add: goal1(3)[simplified ge_game_eq[of y z], rule_format, of zl, simplified zl])
+            ultimately have "False" by auto
+          }
+          note zl = this
+          show ?thesis
+            by (auto simp add: ge_game_eq[of x z] intro: xr zl)
+        qed
       qed
     qed
   } 
@@ -550,12 +549,12 @@ proof -
       case (goal1 G H)
       note induct_hyp = prems[simplified goal1, simplified] and prems
       show ?case
-	apply (simp only: plus_game.simps[where G=G and H=H])
-	apply (simp add: game_ext_eq prems)
-	apply (auto simp add: 
-	  zimage_cong[where f = "\<lambda> g. plus_game (g, zero_game)" and g = "id"] 
-	  induct_hyp)
-	done
+        apply (simp only: plus_game.simps[where G=G and H=H])
+        apply (simp add: game_ext_eq prems)
+        apply (auto simp add: 
+          zimage_cong[where f = "\<lambda> g. plus_game (g, zero_game)" and g = "id"] 
+          induct_hyp)
+        done
     qed
   }
   then show ?thesis by auto
@@ -578,7 +577,7 @@ lemma right_options_plus:
   "right_options (plus_game (u, v)) =  zunion (zimage (\<lambda>g. plus_game (g, v)) (right_options u)) (zimage (\<lambda>h. plus_game (u, h)) (right_options v))"
   by (subst plus_game.simps, simp)
 
-lemma left_options_neg: "left_options (neg_game u) = zimage neg_game (right_options u)"	 
+lemma left_options_neg: "left_options (neg_game u) = zimage neg_game (right_options u)"  
   by (subst neg_game.simps, simp)
 
 lemma right_options_neg: "right_options (neg_game u) = zimage neg_game (left_options u)"
@@ -595,25 +594,25 @@ proof -
       let ?R = "plus_game (F, plus_game (G, H))"
       note options_plus = left_options_plus right_options_plus
       {
-	fix opt
-	note hyp = goal1(1)[simplified goal1(2), rule_format] 
-	have F: "zin opt (options F)  \<Longrightarrow> plus_game (plus_game (opt, G), H) = plus_game (opt, plus_game (G, H))"
-	  by (blast intro: hyp lprod_3_3)
-	have G: "zin opt (options G) \<Longrightarrow> plus_game (plus_game (F, opt), H) = plus_game (F, plus_game (opt, H))"
-	  by (blast intro: hyp lprod_3_4)
-	have H: "zin opt (options H) \<Longrightarrow> plus_game (plus_game (F, G), opt) = plus_game (F, plus_game (G, opt))" 
-	  by (blast intro: hyp lprod_3_5)
-	note F and G and H
+        fix opt
+        note hyp = goal1(1)[simplified goal1(2), rule_format] 
+        have F: "zin opt (options F)  \<Longrightarrow> plus_game (plus_game (opt, G), H) = plus_game (opt, plus_game (G, H))"
+          by (blast intro: hyp lprod_3_3)
+        have G: "zin opt (options G) \<Longrightarrow> plus_game (plus_game (F, opt), H) = plus_game (F, plus_game (opt, H))"
+          by (blast intro: hyp lprod_3_4)
+        have H: "zin opt (options H) \<Longrightarrow> plus_game (plus_game (F, G), opt) = plus_game (F, plus_game (G, opt))" 
+          by (blast intro: hyp lprod_3_5)
+        note F and G and H
       }
       note induct_hyp = this
       have "left_options ?L = left_options ?R \<and> right_options ?L = right_options ?R"
-	by (auto simp add: 
-	  plus_game.simps[where G="plus_game (F,G)" and H=H]
-	  plus_game.simps[where G="F" and H="plus_game (G,H)"] 
-	  zet_ext_eq zunion zimage_iff options_plus
-	  induct_hyp left_imp_options right_imp_options)
+        by (auto simp add: 
+          plus_game.simps[where G="plus_game (F,G)" and H=H]
+          plus_game.simps[where G="F" and H="plus_game (G,H)"] 
+          zet_ext_eq zunion zimage_iff options_plus
+          induct_hyp left_imp_options right_imp_options)
       then show ?case
-	by (simp add: game_ext_eq)
+        by (simp add: game_ext_eq)
     qed
   }
   then show ?thesis by auto
@@ -702,99 +701,99 @@ proof -
       case (goal1 a x y z)
       note induct_hyp = goal1(1)[rule_format, simplified goal1(2)]
       { 
-	assume hyp: "ge_game(plus_game (x, y), plus_game (x, z))"
-	have "ge_game (y, z)"
-	proof -
-	  { fix yr
-	    assume yr: "zin yr (right_options y)"
-	    from hyp have "\<not> (ge_game (plus_game (x, z), plus_game (x, yr)))"
-	      by (auto simp add: ge_game_eq[of "plus_game (x,y)" "plus_game(x,z)"]
-		right_options_plus zunion zimage_iff intro: yr)
-	    then have "\<not> (ge_game (z, yr))"
-	      apply (subst induct_hyp[where y="[x, z, yr]", of "x" "z" "yr"])
-	      apply (simp_all add: yr lprod_3_6)
-	      done
-	  }
-	  note yr = this
-	  { fix zl
-	    assume zl: "zin zl (left_options z)"
-	    from hyp have "\<not> (ge_game (plus_game (x, zl), plus_game (x, y)))"
-	      by (auto simp add: ge_game_eq[of "plus_game (x,y)" "plus_game(x,z)"]
-		left_options_plus zunion zimage_iff intro: zl)
-	    then have "\<not> (ge_game (zl, y))"
-	      apply (subst goal1(1)[rule_format, where y="[x, zl, y]", of "x" "zl" "y"])
-	      apply (simp_all add: goal1(2) zl lprod_3_7)
-	      done
-	  }	
-	  note zl = this
-	  show "ge_game (y, z)"
-	    apply (subst ge_game_eq)
-	    apply (auto simp add: yr zl)
-	    done
-	qed      
+        assume hyp: "ge_game(plus_game (x, y), plus_game (x, z))"
+        have "ge_game (y, z)"
+        proof -
+          { fix yr
+            assume yr: "zin yr (right_options y)"
+            from hyp have "\<not> (ge_game (plus_game (x, z), plus_game (x, yr)))"
+              by (auto simp add: ge_game_eq[of "plus_game (x,y)" "plus_game(x,z)"]
+                right_options_plus zunion zimage_iff intro: yr)
+            then have "\<not> (ge_game (z, yr))"
+              apply (subst induct_hyp[where y="[x, z, yr]", of "x" "z" "yr"])
+              apply (simp_all add: yr lprod_3_6)
+              done
+          }
+          note yr = this
+          { fix zl
+            assume zl: "zin zl (left_options z)"
+            from hyp have "\<not> (ge_game (plus_game (x, zl), plus_game (x, y)))"
+              by (auto simp add: ge_game_eq[of "plus_game (x,y)" "plus_game(x,z)"]
+                left_options_plus zunion zimage_iff intro: zl)
+            then have "\<not> (ge_game (zl, y))"
+              apply (subst goal1(1)[rule_format, where y="[x, zl, y]", of "x" "zl" "y"])
+              apply (simp_all add: goal1(2) zl lprod_3_7)
+              done
+          }     
+          note zl = this
+          show "ge_game (y, z)"
+            apply (subst ge_game_eq)
+            apply (auto simp add: yr zl)
+            done
+        qed      
       }
       note right_imp_left = this
       {
-	assume yz: "ge_game (y, z)"
-	{
-	  fix x'
-	  assume x': "zin x' (right_options x)"
-	  assume hyp: "ge_game (plus_game (x, z), plus_game (x', y))"
-	  then have n: "\<not> (ge_game (plus_game (x', y), plus_game (x', z)))"
-	    by (auto simp add: ge_game_eq[of "plus_game (x,z)" "plus_game (x', y)"] 
-	      right_options_plus zunion zimage_iff intro: x')
-	  have t: "ge_game (plus_game (x', y), plus_game (x', z))"
-	    apply (subst induct_hyp[symmetric])
-	    apply (auto intro: lprod_3_3 x' yz)
-	    done
-	  from n t have "False" by blast
-	}    
-	note case1 = this
-	{
-	  fix x'
-	  assume x': "zin x' (left_options x)"
-	  assume hyp: "ge_game (plus_game (x', z), plus_game (x, y))"
-	  then have n: "\<not> (ge_game (plus_game (x', y), plus_game (x', z)))"
-	    by (auto simp add: ge_game_eq[of "plus_game (x',z)" "plus_game (x, y)"] 
-	      left_options_plus zunion zimage_iff intro: x')
-	  have t: "ge_game (plus_game (x', y), plus_game (x', z))"
-	    apply (subst induct_hyp[symmetric])
-	    apply (auto intro: lprod_3_3 x' yz)
-	    done
-	  from n t have "False" by blast
-	}
-	note case3 = this
-	{
-	  fix y'
-	  assume y': "zin y' (right_options y)"
-	  assume hyp: "ge_game (plus_game(x, z), plus_game (x, y'))"
-	  then have "ge_game(z, y')"
-	    apply (subst induct_hyp[of "[x, z, y']" "x" "z" "y'"])
-	    apply (auto simp add: hyp lprod_3_6 y')
-	    done
-	  with yz have "ge_game (y, y')"
-	    by (blast intro: ge_game_trans)      
-	  with y' have "False" by (auto simp add: ge_game_leftright_refl)
-	}
-	note case2 = this
-	{
-	  fix z'
-	  assume z': "zin z' (left_options z)"
-	  assume hyp: "ge_game (plus_game(x, z'), plus_game (x, y))"
-	  then have "ge_game(z', y)"
-	    apply (subst induct_hyp[of "[x, z', y]" "x" "z'" "y"])
-	    apply (auto simp add: hyp lprod_3_7 z')
-	    done    
-	  with yz have "ge_game (z', z)"
-	    by (blast intro: ge_game_trans)      
-	  with z' have "False" by (auto simp add: ge_game_leftright_refl)
-	}
-	note case4 = this   
-	have "ge_game(plus_game (x, y), plus_game (x, z))"
-	  apply (subst ge_game_eq)
-	  apply (auto simp add: right_options_plus left_options_plus zunion zimage_iff)
-	  apply (auto intro: case1 case2 case3 case4)
-	  done
+        assume yz: "ge_game (y, z)"
+        {
+          fix x'
+          assume x': "zin x' (right_options x)"
+          assume hyp: "ge_game (plus_game (x, z), plus_game (x', y))"
+          then have n: "\<not> (ge_game (plus_game (x', y), plus_game (x', z)))"
+            by (auto simp add: ge_game_eq[of "plus_game (x,z)" "plus_game (x', y)"] 
+              right_options_plus zunion zimage_iff intro: x')
+          have t: "ge_game (plus_game (x', y), plus_game (x', z))"
+            apply (subst induct_hyp[symmetric])
+            apply (auto intro: lprod_3_3 x' yz)
+            done
+          from n t have "False" by blast
+        }    
+        note case1 = this
+        {
+          fix x'
+          assume x': "zin x' (left_options x)"
+          assume hyp: "ge_game (plus_game (x', z), plus_game (x, y))"
+          then have n: "\<not> (ge_game (plus_game (x', y), plus_game (x', z)))"
+            by (auto simp add: ge_game_eq[of "plus_game (x',z)" "plus_game (x, y)"] 
+              left_options_plus zunion zimage_iff intro: x')
+          have t: "ge_game (plus_game (x', y), plus_game (x', z))"
+            apply (subst induct_hyp[symmetric])
+            apply (auto intro: lprod_3_3 x' yz)
+            done
+          from n t have "False" by blast
+        }
+        note case3 = this
+        {
+          fix y'
+          assume y': "zin y' (right_options y)"
+          assume hyp: "ge_game (plus_game(x, z), plus_game (x, y'))"
+          then have "ge_game(z, y')"
+            apply (subst induct_hyp[of "[x, z, y']" "x" "z" "y'"])
+            apply (auto simp add: hyp lprod_3_6 y')
+            done
+          with yz have "ge_game (y, y')"
+            by (blast intro: ge_game_trans)      
+          with y' have "False" by (auto simp add: ge_game_leftright_refl)
+        }
+        note case2 = this
+        {
+          fix z'
+          assume z': "zin z' (left_options z)"
+          assume hyp: "ge_game (plus_game(x, z'), plus_game (x, y))"
+          then have "ge_game(z', y)"
+            apply (subst induct_hyp[of "[x, z', y]" "x" "z'" "y"])
+            apply (auto simp add: hyp lprod_3_7 z')
+            done    
+          with yz have "ge_game (z', z)"
+            by (blast intro: ge_game_trans)      
+          with z' have "False" by (auto simp add: ge_game_leftright_refl)
+        }
+        note case4 = this   
+        have "ge_game(plus_game (x, y), plus_game (x, z))"
+          apply (subst ge_game_eq)
+          apply (auto simp add: right_options_plus left_options_plus zunion zimage_iff)
+          apply (auto intro: case1 case2 case3 case4)
+          done
       }
       note left_imp_right = this
       show ?case by (auto intro: right_imp_left left_imp_right)
@@ -815,24 +814,24 @@ proof -
       case (goal1 a x y)
       note ihyp = goal1(1)[rule_format, simplified goal1(2)]
       { fix xl
-	assume xl: "zin xl (left_options x)"
-	have "ge_game (neg_game y, neg_game xl) = ge_game (xl, y)"
-	  apply (subst ihyp)
-	  apply (auto simp add: lprod_2_1 xl)
-	  done
+        assume xl: "zin xl (left_options x)"
+        have "ge_game (neg_game y, neg_game xl) = ge_game (xl, y)"
+          apply (subst ihyp)
+          apply (auto simp add: lprod_2_1 xl)
+          done
       }
       note xl = this
       { fix yr
-	assume yr: "zin yr (right_options y)"
-	have "ge_game (neg_game yr, neg_game x) = ge_game (x, yr)"
-	  apply (subst ihyp)
-	  apply (auto simp add: lprod_2_2 yr)
-	  done
+        assume yr: "zin yr (right_options y)"
+        have "ge_game (neg_game yr, neg_game x) = ge_game (x, yr)"
+          apply (subst ihyp)
+          apply (auto simp add: lprod_2_2 yr)
+          done
       }
       note yr = this
       show ?case
-	by (auto simp add: ge_game_eq[of "neg_game x" "neg_game y"] ge_game_eq[of "y" "x"]
-	  right_options_neg left_options_neg zimage_iff  xl yr)
+        by (auto simp add: ge_game_eq[of "neg_game x" "neg_game y"] ge_game_eq[of "y" "x"]
+          right_options_neg left_options_neg zimage_iff  xl yr)
     qed
   }
   note a = this[of "[x,y]"]

@@ -260,11 +260,11 @@ proof -
     proof (cases "the_Bool bv")
       case True
       with Cond show ?thesis using v bv
-	by (auto intro: hyp_CondL)
+        by (auto intro: hyp_CondL)
     next
       case False
       with Cond show ?thesis using v bv
-	by (auto intro: hyp_CondR)
+        by (auto intro: hyp_CondR)
     qed
   qed (simp_all)
   with const 
@@ -364,7 +364,7 @@ proof -
       hence "?Ass b e1" by (rule hyp_e1)
       with emptyC bv True
       show ?thesis
-	by simp
+        by simp
     next
       case False
       with const bv  
@@ -372,7 +372,7 @@ proof -
       hence "?Ass b e2" by (rule hyp_e2)
       with emptyC bv False
       show ?thesis
-	by simp
+        by simp
     qed
   qed (simp_all)
   with boolConst
@@ -411,7 +411,7 @@ proof -
       hence "?Ass b e1" by (rule hyp_e1)
       with bv True
       show ?thesis
-	by simp
+        by simp
     next
       case False
       with const bv  
@@ -419,7 +419,7 @@ proof -
       hence "?Ass b e2" by (rule hyp_e2)
       with bv False 
       show ?thesis
-	by simp
+        by simp
     qed
   qed (simp_all)
   with boolConst
@@ -959,14 +959,14 @@ proof -
       from `E\<turnstile>(Cast T e)\<Colon>- (PrimT Boolean)`
       obtain Te where "E\<turnstile>e\<Colon>-Te"
                            "prg E\<turnstile>Te\<preceq>? PrimT Boolean"
-	by cases simp
+        by cases simp
       thus ?thesis
-	by - (drule cast_Boolean2,simp)
+        by - (drule cast_Boolean2,simp)
     qed
     with Cast.hyps
     show ?case
       by simp
-  next	
+  next  
     case (Lit val) 
     thus ?case
       by - (erule wt_elim_cases, cases "val", auto simp add: empty_dt_def)
@@ -1000,17 +1000,17 @@ proof -
       case None
       with boolean_e1 boolean_e2
       show ?thesis
-	using hyp_e1 hyp_e2 
-	by (auto)
+        using hyp_e1 hyp_e2 
+        by (auto)
     next
       case (Some bv)
       show ?thesis
       proof (cases "the_Bool bv")
-	case True
-	with Some show ?thesis using hyp_e1 boolean_e1 by auto
+        case True
+        with Some show ?thesis using hyp_e1 boolean_e1 by auto
       next
-	case False
-	with Some show ?thesis using hyp_e2 boolean_e2 by auto
+        case False
+        with Some show ?thesis using hyp_e2 boolean_e2 by auto
       qed
     qed
   qed simp_all
@@ -1085,7 +1085,7 @@ proof -
       fix l'
       from hyp_brk
       have "rmlab l (brk C) l'  \<subseteq> rmlab l (brk C') l'"
-	by  (cases "l=l'") simp_all
+        by  (cases "l=l'") simp_all
     }
     moreover note A A'
     ultimately show ?case
@@ -1154,15 +1154,15 @@ proof -
     { fix l'
       have  "brk A l' \<subseteq> brk A' l'"
       proof (cases "constVal e")
-	case None
-	with A A' C' 
-	show ?thesis
-	   by (cases "l=l'") auto
+        case None
+        with A A' C' 
+        show ?thesis
+           by (cases "l=l'") auto
       next
-	case (Some bv)
-	with A A' C'
-	show ?thesis
-	  by (cases "the_Bool bv", cases "l=l'") auto
+        case (Some bv)
+        with A A' C'
+        show ?thesis
+          by (cases "the_Bool bv", cases "l=l'") auto
       qed
     }
     ultimately show ?case
@@ -1381,7 +1381,7 @@ proof -
     proof -
       from B'
       have "(B \<union> assigns_if True e) \<subseteq> (B' \<union> assigns_if True e)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle>" by (rule If.hyps)
       ultimately 
@@ -1391,7 +1391,7 @@ proof -
     obtain C2' where "Env\<turnstile> (B' \<union> assigns_if False e) \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
     proof - 
       from B' have "(B \<union> assigns_if False e) \<subseteq> (B' \<union> assigns_if False e)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False e) \<langle>c2\<rangle>" by (rule If.hyps)
       ultimately
@@ -1415,7 +1415,7 @@ proof -
     proof -
       from B'
       have "(B \<union> assigns_if True e) \<subseteq> (B' \<union> assigns_if True e)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle>" by (rule Loop.hyps)
       ultimately 
@@ -1461,7 +1461,7 @@ proof -
       moreover
       have "PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>) 
                       (B \<union> {VName vn}) \<langle>c2\<rangle>" 
-	by (rule Try.hyps)
+        by (rule Try.hyps)
       ultimately
       show ?thesis using that by iprover
     qed
@@ -1516,7 +1516,7 @@ proof -
     obtain E2' where "Env\<turnstile> B' \<union>  assigns_if True e1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'"
     proof -
       from B' have "B \<union> assigns_if True e1 \<subseteq> B' \<union>  assigns_if True e1"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True e1) \<langle>e2\<rangle>" by (rule CondAnd.hyps)
       ultimately show ?thesis using that by iprover
@@ -1538,7 +1538,7 @@ proof -
     obtain E2' where "Env\<turnstile> B' \<union> assigns_if False e1 \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'"
     proof -
       from B' have "B \<union> assigns_if False e1 \<subseteq> B' \<union>  assigns_if False e1"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False e1) \<langle>e2\<rangle>" by (rule CondOr.hyps)
       ultimately show ?thesis using that by iprover
@@ -1562,7 +1562,7 @@ proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1" by (rule BinOp.hyps)
       from this B' E1'
       have "nrm E1 \<subseteq> nrm E1'"
-	by (rule da_monotone [THEN conjE])
+        by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E1) \<langle>e2\<rangle>" by (rule BinOp.hyps)
       ultimately show ?thesis using that by iprover
@@ -1612,7 +1612,7 @@ proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> V" by (rule Ass.hyps)
       from this B' V'
       have "nrm V \<subseteq> nrm V'"
-	by (rule da_monotone [THEN conjE])
+        by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm V) \<langle>e\<rangle>" by (rule Ass.hyps)
       ultimately show ?thesis using that by iprover
@@ -1636,7 +1636,7 @@ proof -
     proof -
       from B'
       have "(B \<union> assigns_if True c) \<subseteq> (B' \<union> assigns_if True c)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle>" by (rule CondBool.hyps)
       ultimately 
@@ -1647,7 +1647,7 @@ proof -
     proof -
       from B'
       have "(B \<union> assigns_if False c) \<subseteq> (B' \<union> assigns_if False c)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle>" by(rule CondBool.hyps)
       ultimately 
@@ -1672,7 +1672,7 @@ proof -
     proof -
       from B'
       have "(B \<union> assigns_if True c) \<subseteq> (B' \<union> assigns_if True c)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle>" by (rule Cond.hyps)
       ultimately 
@@ -1683,7 +1683,7 @@ proof -
     proof -
       from B'
       have "(B \<union> assigns_if False c) \<subseteq> (B' \<union> assigns_if False c)"
-	by blast
+        by blast
       moreover
       have "PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle>" by (rule Cond.hyps)
       ultimately 
@@ -1708,7 +1708,7 @@ proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E" by (rule Call.hyps)
       from this B' E'
       have "nrm E \<subseteq> nrm E'"
-	by (rule da_monotone [THEN conjE])
+        by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E) \<langle>args\<rangle>" by (rule Call.hyps)
       ultimately show ?thesis using that by iprover
@@ -1728,10 +1728,10 @@ proof -
       moreover note B'
       moreover
       from B' obtain C' where da_c: "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
-	by (rule Body.hyps [elim_format]) blast
+        by (rule Body.hyps [elim_format]) blast
       ultimately
       have "nrm C \<subseteq> nrm C'"
-	by (rule da_monotone [THEN conjE])
+        by (rule da_monotone [THEN conjE])
       with da_c that show ?thesis by iprover
     qed
     moreover 
@@ -1762,7 +1762,7 @@ proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1" by (rule AVar.hyps)
       from this B' E1'
       have "nrm E1 \<subseteq> nrm E1'"
-	by (rule da_monotone [THEN conjE])
+        by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E1) \<langle>e2\<rangle>" by (rule AVar.hyps)
       ultimately show ?thesis using that by iprover
@@ -1788,7 +1788,7 @@ proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E" by (rule Cons.hyps)
       from this B' E'
       have "nrm E \<subseteq> nrm E'"
-	by (rule da_monotone [THEN conjE])
+        by (rule da_monotone [THEN conjE])
       moreover 
       have "PROP ?Hyp Env (nrm E) \<langle>es\<rangle>" by (rule Cons.hyps)
       ultimately show ?thesis using that by iprover

@@ -1,10 +1,9 @@
 (*  Title:      HOL/ex/Refute_Examples.thy
-    ID:         $Id$
     Author:     Tjark Weber
     Copyright   2003-2007
-*)
 
-(* See 'HOL/Refute.thy' for help. *)
+See HOL/Refute.thy for help.
+*)
 
 header {* Examples for the 'refute' command *}
 
@@ -517,10 +516,6 @@ subsubsection {* Inductive datatypes *}
 text {* With @{text quick_and_dirty} set, the datatype package does
   not generate certain axioms for recursion operators.  Without these
   axioms, refute may find spurious countermodels. *}
-
-(*
-ML {* reset quick_and_dirty; *}
-*)
 
 text {* unit *}
 

@@ -1,9 +1,8 @@
 (*  Title:      ZF/UNITY/ClientImpl.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
 
-Distributed Resource Management System:  Client Implementation
+Distributed Resource Management System:  Client Implementation.
 *)
 
 theory ClientImpl imports AllocBase Guar begin
@@ -38,7 +37,7 @@ definition
       of the action to be ignored **)
 definition
   "client_tok_act == {<s,t> \<in> state*state. t=s |
-		     t = s(tok:=succ(s`tok mod NbT))}"
+                     t = s(tok:=succ(s`tok mod NbT))}"
 
 definition
   "client_ask_act == {<s,t> \<in> state*state. t=s | (t=s(ask:=s`ask@[s`tok]))}"
@@ -46,11 +45,11 @@ definition
 definition
   "client_prog ==
    mk_program({s \<in> state. s`tok \<le> NbT & s`giv = Nil &
-	               s`ask = Nil & s`rel = Nil},
+                       s`ask = Nil & s`rel = Nil},
                     {client_rel_act, client_tok_act, client_ask_act},
                    \<Union>G \<in> preserves(lift(rel)) Int
-			 preserves(lift(ask)) Int
-	                 preserves(lift(tok)).  Acts(G))"
+                         preserves(lift(ask)) Int
+                         preserves(lift(tok)).  Acts(G))"
 
 
 declare type_assumes [simp] default_val_assumes [simp]

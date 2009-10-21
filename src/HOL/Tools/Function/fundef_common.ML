@@ -234,7 +234,7 @@ fun check_defs ctxt fixes eqs =
             val _ = length args > 0 orelse input_error "Function has no arguments:"
 
             fun add_bvs t is = add_loose_bnos (t, 0, is)
-            val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
+            val rvs = (subtract (op =) (fold add_bvs args []) (add_bvs rhs []))
                         |> map (fst o nth (rev qs))
                       
             val _ = null rvs orelse input_error 
@@ -267,7 +267,7 @@ fun check_defs ctxt fixes eqs =
           Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)
           orelse error (cat_lines 
           ["Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ":",
-           setmp show_sorts true (Syntax.string_of_typ ctxt) fT])
+           setmp_CRITICAL show_sorts true (Syntax.string_of_typ ctxt) fT])
 
       val _ = map check_sorts fixes
     in

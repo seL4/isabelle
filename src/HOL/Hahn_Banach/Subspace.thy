@@ -294,7 +294,7 @@ proof -
     proof
       fix x assume "x \<in> U + V"
       then obtain u v where "x = u + v" and
-	"u \<in> U" and "v \<in> V" ..
+        "u \<in> U" and "v \<in> V" ..
       then show "x \<in> E" by simp
     qed
     fix x y assume x: "x \<in> U + V" and y: "y \<in> U + V"
@@ -305,16 +305,16 @@ proof -
       from y obtain uy vy where "y = uy + vy" and "uy \<in> U" and "vy \<in> V" ..
       ultimately
       have "ux + uy \<in> U"
-	and "vx + vy \<in> V"
-	and "x + y = (ux + uy) + (vx + vy)"
-	using x y by (simp_all add: add_ac)
+        and "vx + vy \<in> V"
+        and "x + y = (ux + uy) + (vx + vy)"
+        using x y by (simp_all add: add_ac)
       then show ?thesis ..
     qed
     fix a show "a \<cdot> x \<in> U + V"
     proof -
       from x obtain u v where "x = u + v" and "u \<in> U" and "v \<in> V" ..
       then have "a \<cdot> u \<in> U" and "a \<cdot> v \<in> V"
-	and "a \<cdot> x = (a \<cdot> u) + (a \<cdot> v)" by (simp_all add: distrib)
+        and "a \<cdot> x = (a \<cdot> u) + (a \<cdot> v)" by (simp_all add: distrib)
       then show ?thesis ..
     qed
   qed
@@ -404,8 +404,8 @@ proof -
       show "a2 \<cdot> x' \<in> lin x'" ..
       show "H \<inter> lin x' = {0}"
       proof
-	show "H \<inter> lin x' \<subseteq> {0}"
-	proof
+        show "H \<inter> lin x' \<subseteq> {0}"
+        proof
           fix x assume x: "x \<in> H \<inter> lin x'"
           then obtain a where xx': "x = a \<cdot> x'"
             by blast
@@ -421,13 +421,13 @@ proof -
             with `x' \<notin> H` show ?thesis by contradiction
           qed
           then show "x \<in> {0}" ..
-	qed
-	show "{0} \<subseteq> H \<inter> lin x'"
-	proof -
+        qed
+        show "{0} \<subseteq> H \<inter> lin x'"
+        proof -
           have "0 \<in> H" using `vectorspace E` ..
           moreover have "0 \<in> lin x'" using `x' \<in> E` ..
           ultimately show ?thesis by blast
-	qed
+        qed
       qed
       show "lin x' \<unlhd> E" using `x' \<in> E` ..
     qed (rule `vectorspace E`, rule `subspace H E`, rule y1, rule y2, rule eq)

@@ -51,11 +51,11 @@ fun resolve_stack tm SEmpty = tm
 
 fun resolve (stack, closure) = 
     let
-	val _ = writeln "start resolving"
-	val t =	resolve_stack (resolve_closure' closure) stack
-	val _ = writeln "finished resolving"
+        val _ = writeln "start resolving"
+        val t = resolve_stack (resolve_closure' closure) stack
+        val _ = writeln "finished resolving"
     in
-	t
+        t
     end
 
 fun strip_closure args (CApp (a,b)) = strip_closure (b::args) a
@@ -102,13 +102,13 @@ fun check_freevars free (Var x) = x < free
 
 fun compile cache_patterns const_arity eqs =
     let
-	fun check p r = if check_freevars p r then () else raise Compile ("unbound variables in rule") 
-	fun check_guard p (Guard (a,b)) = (check p a; check p b) 
+        fun check p r = if check_freevars p r then () else raise Compile ("unbound variables in rule") 
+        fun check_guard p (Guard (a,b)) = (check p a; check p b) 
         fun clos_of_guard (Guard (a,b)) = (clos_of_term a, clos_of_term b)
         val eqs = map (fn (guards, p, r) => let val pcount = count_patternvars p val _ = map (check_guard pcount) (guards) val _ = check pcount r in 
                                               (pattern_key p, (p, clos_of_term r, map clos_of_guard guards)) end) eqs
-	fun merge (k, a) table = prog_struct.update (k, case prog_struct.lookup table k of NONE => [a] | SOME l => a::l) table
-	val p = fold merge eqs prog_struct.empty 
+        fun merge (k, a) table = prog_struct.update (k, case prog_struct.lookup table k of NONE => [a] | SOME l => a::l) table
+        val p = fold merge eqs prog_struct.empty 
     in
         Program p
     end
@@ -133,15 +133,15 @@ val max_reductions = Unsynchronized.ref (NONE : int option)
 
 fun do_reduction reduce p =
     let
-	val s = Unsynchronized.ref (Continue p)
-	val counter = Unsynchronized.ref 0
-	val _ = case !max_reductions of 
-		    NONE => while cont (!s) do (s := reduce (proj_C (!s)))
-		  | SOME m => while cont (!s) andalso (!counter < m) do (s := reduce (proj_C (!s)); counter := (!counter) + 1)
+        val s = Unsynchronized.ref (Continue p)
+        val counter = Unsynchronized.ref 0
+        val _ = case !max_reductions of 
+                    NONE => while cont (!s) do (s := reduce (proj_C (!s)))
+                  | SOME m => while cont (!s) andalso (!counter < m) do (s := reduce (proj_C (!s)); counter := (!counter) + 1)
     in
-	case !max_reductions of
-	    SOME m => if !counter >= m then raise InterruptedExecution (proj_S (!s)) else proj_S (!s)
-	  | NONE => proj_S (!s)
+        case !max_reductions of
+            SOME m => if !counter >= m then raise InterruptedExecution (proj_S (!s)) else proj_S (!s)
+          | NONE => proj_S (!s)
     end
 
 fun match_rules prog n [] clos = NONE

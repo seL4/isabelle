@@ -9,10 +9,10 @@ header {* A decision method for universal multivariate real arithmetic with addi
 theory Sum_Of_Squares
 imports Complex_Main (* "~~/src/HOL/Decision_Procs/Dense_Linear_Order" *)
 uses
-  ("positivstellensatz.ML")  (* duplicate use!? -- cf. Euclidian_Space.thy *)
-  ("Sum_Of_Squares/sum_of_squares.ML")
-  ("Sum_Of_Squares/positivstellensatz_tools.ML")
-  ("Sum_Of_Squares/sos_wrapper.ML")
+  "positivstellensatz.ML"  (* duplicate use!? -- cf. Euclidian_Space.thy *)
+  "Sum_Of_Squares/sum_of_squares.ML"
+  "Sum_Of_Squares/positivstellensatz_tools.ML"
+  "Sum_Of_Squares/sos_wrapper.ML"
 begin
 
 text {*
@@ -27,13 +27,6 @@ text {*
   sos generates a certificate which can be used to repeat the proof
   without calling an external prover.
 *}
-
-text {* setup sos tactic *}
-
-use "positivstellensatz.ML"
-use "Sum_Of_Squares/positivstellensatz_tools.ML"
-use "Sum_Of_Squares/sum_of_squares.ML"
-use "Sum_Of_Squares/sos_wrapper.ML"
 
 setup SOS_Wrapper.setup
 

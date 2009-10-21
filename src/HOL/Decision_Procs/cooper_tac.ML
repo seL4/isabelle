@@ -52,11 +52,11 @@ fun prepare_for_linz q fm =
     fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;
     val rhs = hs
     val np = length ps
-    val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
-      (foldr HOLogic.mk_imp c rhs, np) ps
+    val (fm',np) = List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
+      (List.foldr HOLogic.mk_imp c rhs, np) ps
     val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
       (OldTerm.term_frees fm' @ OldTerm.term_vars fm');
-    val fm2 = foldr mk_all2 fm' vs
+    val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 
 (*Object quantifier to meta --*)
@@ -74,16 +74,16 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
     val (t,np,nh) = prepare_for_linz q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss
-			addsimps [refl,mod_add_eq, mod_add_left_eq,
-				  mod_add_right_eq,
-				  nat_div_add_eq, int_div_add_eq,
-				  @{thm mod_self}, @{thm "zmod_self"},
-				  @{thm mod_by_0}, @{thm div_by_0},
-				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
-				  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
-				  Suc_eq_plus1]
-			addsimps @{thms add_ac}
-			addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
+      addsimps [refl,mod_add_eq, mod_add_left_eq,
+          mod_add_right_eq,
+          nat_div_add_eq, int_div_add_eq,
+          @{thm mod_self}, @{thm "zmod_self"},
+          @{thm mod_by_0}, @{thm div_by_0},
+          @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
+          @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
+          Suc_eq_plus1]
+      addsimps @{thms add_ac}
+      addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_eq_plus1]
       addsimps comp_arith

@@ -148,7 +148,7 @@ lemma inv_inv: "zprime p \<Longrightarrow>
       apply (subst zcong_zmod [symmetric])
       apply (subst inv_inv_aux)
        apply (subgoal_tac [2]
-	 "zcong (a * a^(nat (p - 1) * nat (p - 3))) (a * 1) p")
+         "zcong (a * a^(nat (p - 1) * nat (p - 3))) (a * 1) p")
         apply (rule_tac [3] zcong_zmult)
          apply (rule_tac [4] zcong_zpower_zmult)
          apply (erule_tac [4] Little_Fermat)
@@ -263,7 +263,7 @@ lemma wset_zcong_prod_1 [rule_format]:
   apply (subst setprod_insert)
     apply (tactic {* stac (thm "setprod_insert") 3 *})
       apply (subgoal_tac [5]
-	"zcong (a * inv p a * (\<Prod>x\<in> wset(a - 1, p). x)) (1 * 1) p")
+        "zcong (a * inv p a * (\<Prod>x\<in> wset(a - 1, p). x)) (1 * 1) p")
        prefer 5
        apply (simp add: zmult_assoc)
       apply (rule_tac [5] zcong_zmult)

@@ -1,5 +1,4 @@
 (*  Title:      HOL/NanoJava/Decl.thy
-    ID:         $Id$
     Author:     David von Oheimb
     Copyright   2001 Technische Universitaet Muenchen
 *)
@@ -13,27 +12,27 @@ datatype ty
   | Class cname  --{* class type *}
 
 text{* Field declaration *}
-types	fdecl		
-	= "fname \<times> ty"
+types   fdecl           
+        = "fname \<times> ty"
 
-record  methd		
-	= par :: ty 
+record  methd           
+        = par :: ty 
           res :: ty 
           lcl ::"(vname \<times> ty) list"
           bdy :: stmt
 
 text{* Method declaration *}
-types	mdecl
+types   mdecl
         = "mname \<times> methd"
 
-record	"class"
-	= super   :: cname
+record  "class"
+        = super   :: cname
           flds    ::"fdecl list"
           methods ::"mdecl list"
 
 text{* Class declaration *}
-types	cdecl
-	= "cname \<times> class"
+types   cdecl
+        = "cname \<times> class"
 
 types   prog
         = "cdecl list"
@@ -47,12 +46,12 @@ translations
 
 consts
 
-  Prog    :: prog	--{* program as a global value *}
-  Object  :: cname	--{* name of root class *}
+  Prog    :: prog       --{* program as a global value *}
+  Object  :: cname      --{* name of root class *}
 
 
 constdefs
-  "class"	     :: "cname \<rightharpoonup> class"
+ "class"     :: "cname \<rightharpoonup> class"
  "class      \<equiv> map_of Prog"
 
   is_class   :: "cname => bool"

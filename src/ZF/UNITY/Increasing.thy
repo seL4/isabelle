@@ -1,5 +1,4 @@
-(*  Title:      ZF/UNITY/Increasing
-    ID:         $Id \<in> Increasing.thy,v 1.2 2003/06/02 09:17:52 paulson Exp $
+(*  Title:      ZF/UNITY/Increasing.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 

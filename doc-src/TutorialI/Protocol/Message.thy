@@ -61,8 +61,8 @@ datatype
      msg = Agent  agent
          | Nonce  nat
          | Key    key
-	 | MPair  msg msg
-	 | Crypt  key msg
+         | MPair  msg msg
+         | Crypt  key msg
 
 text {*
 \noindent
@@ -855,8 +855,8 @@ fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
     (Fake_insert_simp_tac ss 1
      THEN
      IF_UNSOLVED (Blast.depth_tac
-		  (cs addIs [analz_insertI,
-				   impOfSubs analz_subset_parts]) 4 1))
+                  (cs addIs [analz_insertI,
+                                   impOfSubs analz_subset_parts]) 4 1))
 
 fun spy_analz_tac (cs,ss) i =
   DETERM

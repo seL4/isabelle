@@ -11,8 +11,7 @@ See also General/basics.ML for the most fundamental concepts.
 infix 2 ?
 infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
-infix orf andf \ \\ mem mem_int mem_string union union_int
-  union_string inter inter_int inter_string subset subset_int subset_string
+infix orf andf mem mem_int mem_string
 
 signature BASIC_LIBRARY =
 sig
@@ -58,7 +57,7 @@ sig
   val exists: ('a -> bool) -> 'a list -> bool
   val forall: ('a -> bool) -> 'a list -> bool
   val setmp_noncritical: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
-  val setmp: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  val setmp_CRITICAL: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
@@ -158,28 +157,15 @@ sig
   val insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
   val update: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
+  val union: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val subtract: ('b * 'a -> bool) -> 'b list -> 'a list -> 'a list
+  val inter: ('a * 'b -> bool) -> 'b list -> 'a list -> 'a list
   val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
   val mem: ''a * ''a list -> bool
   val mem_int: int * int list -> bool
   val mem_string: string * string list -> bool
-  val union: ''a list * ''a list -> ''a list
-  val union_int: int list * int list -> int list
-  val union_string: string list * string list -> string list
-  val gen_union: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
-  val gen_inter: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
-  val inter: ''a list * ''a list -> ''a list
-  val inter_int: int list * int list -> int list
-  val inter_string: string list * string list -> string list
-  val subset: ''a list * ''a list -> bool
-  val subset_int: int list * int list -> bool
-  val subset_string: string list * string list -> bool
-  val eq_set: ''a list * ''a list -> bool
-  val eq_set_string: string list * string list -> bool
-  val gen_subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val gen_eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val \ : ''a list * ''a -> ''a list
-  val \\ : ''a list * ''a list -> ''a list
+  val subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
@@ -217,6 +203,8 @@ sig
 
   (*misc*)
   val divide_and_conquer: ('a -> 'a list * ('b list -> 'b)) -> 'a -> 'b
+  val divide_and_conquer': ('a -> 'b -> ('a list * ('c list * 'b -> 'c * 'b)) * 'b) ->
+    'a -> 'b -> 'c * 'b
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
@@ -329,7 +317,7 @@ fun setmp_noncritical flag value f x =
       val _ = flag := orig_value;
     in Exn.release result end) ();
 
-fun setmp flag value f x =
+fun setmp_CRITICAL flag value f x =
   NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
 
 fun setmp_thread_data tag orig_data data f x =
@@ -794,6 +782,9 @@ fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
 fun update eq x xs = cons x (remove eq x xs);
 
+fun inter eq xs = filter (member eq xs);
+
+fun union eq = fold (insert eq);
 fun subtract eq = fold (remove eq);
 
 fun merge eq (xs, ys) =
@@ -808,80 +799,14 @@ fun x mem xs = member (op =) xs x;
 fun (x: int) mem_int xs = member (op =) xs x;
 fun (x: string) mem_string xs = member (op =) xs x;
 
-(*union of sets represented as lists: no repetitions*)
-fun xs union [] = xs
-  | [] union ys = ys
-  | (x :: xs) union ys = xs union (insert (op =) x ys);
 
-(*union of sets, optimized version for ints*)
-fun (xs:int list) union_int [] = xs
-  | [] union_int ys = ys
-  | (x :: xs) union_int ys = xs union_int (insert (op =) x ys);
+(* subset and set equality *)
 
-(*union of sets, optimized version for strings*)
-fun (xs:string list) union_string [] = xs
-  | [] union_string ys = ys
-  | (x :: xs) union_string ys = xs union_string (insert (op =) x ys);
+fun subset eq (xs, ys) = forall (member eq ys) xs;
 
-(*generalized union*)
-fun gen_union eq (xs, []) = xs
-  | gen_union eq ([], ys) = ys
-  | gen_union eq (x :: xs, ys) = gen_union eq (xs, insert eq x ys);
-
-
-(*intersection*)
-fun [] inter ys = []
-  | (x :: xs) inter ys =
-      if x mem ys then x :: (xs inter ys) else xs inter ys;
-
-(*intersection, optimized version for ints*)
-fun ([]:int list) inter_int ys = []
-  | (x :: xs) inter_int ys =
-      if x mem_int ys then x :: (xs inter_int ys) else xs inter_int ys;
-
-(*intersection, optimized version for strings *)
-fun ([]:string list) inter_string ys = []
-  | (x :: xs) inter_string ys =
-      if x mem_string ys then x :: (xs inter_string ys) else xs inter_string ys;
-
-(*generalized intersection*)
-fun gen_inter eq ([], ys) = []
-  | gen_inter eq (x::xs, ys) =
-      if member eq ys x then x :: gen_inter eq (xs, ys)
-      else gen_inter eq (xs, ys);
-
-
-(*subset*)
-fun [] subset ys = true
-  | (x :: xs) subset ys = x mem ys andalso xs subset ys;
-
-(*subset, optimized version for ints*)
-fun ([]: int list) subset_int ys = true
-  | (x :: xs) subset_int ys = x mem_int ys andalso xs subset_int ys;
-
-(*subset, optimized version for strings*)
-fun ([]: string list) subset_string ys = true
-  | (x :: xs) subset_string ys = x mem_string ys andalso xs subset_string ys;
-
-(*set equality*)
-fun eq_set (xs, ys) =
-  xs = ys orelse (xs subset ys andalso ys subset xs);
-
-(*set equality for strings*)
-fun eq_set_string ((xs: string list), ys) =
-  xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
-
-fun gen_subset eq (xs, ys) = forall (member eq ys) xs;
-
-fun gen_eq_set eq (xs, ys) =
+fun eq_set eq (xs, ys) =
   eq_list eq (xs, ys) orelse
-    (gen_subset eq (xs, ys) andalso gen_subset (eq o swap) (ys, xs));
-
-
-(*removing an element from a list WITHOUT duplicates*)
-fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
-  | [] \ x = [];
-fun ys \\ xs = foldl (op \) (ys,xs);
+    (subset eq (xs, ys) andalso subset (eq o swap) (ys, xs));
 
 
 (*makes a list of the distinct members of the input; preserves order, takes
@@ -1066,6 +991,10 @@ fun frequency xs =
 fun divide_and_conquer decomp x =
   let val (ys, recomb) = decomp x
   in recomb (map (divide_and_conquer decomp) ys) end;
+
+fun divide_and_conquer' decomp x s =
+  let val ((ys, recomb), s') = decomp x s
+  in recomb (fold_map (divide_and_conquer' decomp) ys s') end;
 
 
 (*Partition a list into buckets  [ bi, b(i+1), ..., bj ]

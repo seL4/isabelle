@@ -108,7 +108,7 @@ fun solve (vs,eqs) = case (vs,eqs) of
          val vdef = int_lincomb_cmul (Rat.neg (Rat.inv c)) eq
          fun eliminate eqn = if not (FuncUtil.Intfunc.defined eqn v) then eqn 
                              else int_lincomb_add (int_lincomb_cmul (FuncUtil.Intfunc.apply eqn v) vdef) eqn
-        in (case solve (vs \ v,map eliminate oeqs) of
+        in (case solve (remove (op =) v vs, map eliminate oeqs) of
             NONE => NONE
           | SOME soln => SOME (FuncUtil.Intfunc.update (v, evaluate soln (FuncUtil.Intfunc.delete_safe v vdef)) soln))
         end
@@ -167,7 +167,7 @@ fun inequality_canon_rule ctxt =
   (* FIXME : Should be computed statically!! *)
   val real_poly_conv = 
     Normalizer.semiring_normalize_wrapper ctxt
-     (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+     (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
  in fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv arg_conv (field_comp_conv then_conv real_poly_conv)))
 end;
 
@@ -278,7 +278,7 @@ local
    (* FIXME: Should be computed statically!!*)
    val real_poly_conv = 
       Normalizer.semiring_normalize_wrapper ctxt
-       (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+       (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
    val sources = map (Thm.dest_arg o Thm.dest_arg1 o concl) nubs
    val rawdests = fold_rev (find_normedterms o Thm.dest_arg o concl) (ges @ gts) [] 
    val _ = if not (forall fst rawdests) then error "real_vector_combo_prover: Sanity check" 
@@ -286,7 +286,7 @@ local
    val dests = distinct (op aconvc) (map snd rawdests)
    val srcfuns = map vector_lincomb sources
    val destfuns = map vector_lincomb dests 
-   val vvs = fold_rev (curry (gen_union op aconvc) o FuncUtil.Ctermfunc.dom) (srcfuns @ destfuns) []
+   val vvs = fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom) (srcfuns @ destfuns) []
    val n = length srcfuns
    val nvs = 1 upto n
    val srccombs = srcfuns ~~ nvs
@@ -384,7 +384,7 @@ local
   let 
    val real_poly_neg_conv = #neg
        (Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (valOf (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
+        (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
    val (th1,th2) = conj_pair(rawrule th)
   in th1::fconv_rule (arg_conv (arg_conv real_poly_neg_conv)) th2::acc
   end

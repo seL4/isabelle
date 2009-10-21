@@ -47,7 +47,7 @@ datatype context = Context of {
 fun make_context (ttab, nctxt, vtab) =
   Context {ttab=ttab, nctxt=nctxt, vtab=vtab}
 
-fun empty_context (SMT_Translate.Recon {terms, ...}) =
+fun empty_context ({terms, ...} : SMT_Translate.recon) =
   let
     val ns = Symtab.fold (Term.add_free_names o snd) terms []
     val nctxt = Name.make_context ns
@@ -82,12 +82,12 @@ fun space s = lift (Scan.many Symbol.is_ascii_blank) s
 fun spaced p = p --| space
 
 val key = spaced (lift name) #-> lift' ident
-val mapping = spaced (this "->")
+fun mapping st = spaced (this "->") st
 fun in_braces p = spaced ($$ "{") |-- p --| spaced ($$ "}")
 
-val bool_expr =
-  this "true" >> K @{term True} ||
-  this "false" >> K @{term False}
+fun bool_expr st =
+ (this "true" >> K @{term True} ||
+  this "false" >> K @{term False}) st
 
 fun number_expr T =
   let
@@ -95,7 +95,7 @@ fun number_expr T =
     fun frac n d = Const (@{const_name divide}, T --> T --> T) $ n $ d
   in num :|-- (fn n => Scan.optional ($$ "/" |-- num >> frac n) n) end
 
-val value = this "val!" |-- lift nat_num
+fun value st = (this "val!" |-- lift nat_num) st
 fun value_expr T = value #-> lift' (get_value T)
 
 val domT = Term.domain_type

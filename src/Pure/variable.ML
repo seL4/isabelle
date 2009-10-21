@@ -301,7 +301,7 @@ fun add_fixes xs ctxt =
     val names = names_of ctxt;
     val (xs', names') =
       if is_body ctxt then Name.variants xs names |>> map Name.skolem
-      else (no_dups (xs inter_string ys); no_dups (xs inter_string zs);
+      else (no_dups (inter (op =) xs ys); no_dups (inter (op =) xs zs);
         (xs, fold Name.declare xs names));
   in ctxt |> new_fixes names' xs xs' end;
 

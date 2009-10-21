@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Follows
+(*  Title:      HOL/UNITY/Follows.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)
@@ -39,8 +39,8 @@ by (simp add: Follows_def)
 
 lemma mono_Follows_o: "mono h ==> f Fols g \<subseteq> (h o f) Fols (h o g)"
 by (auto simp add: Follows_def mono_Increasing_o [THEN [2] rev_subsetD]
-		   mono_Always_o [THEN [2] rev_subsetD]
-		   mono_LeadsTo_o [THEN [2] rev_subsetD, THEN INT_D])
+                   mono_Always_o [THEN [2] rev_subsetD]
+                   mono_LeadsTo_o [THEN [2] rev_subsetD, THEN INT_D])
 
 lemma mono_Follows_apply:
      "mono h ==> f Fols g \<subseteq> (%x. h (f x)) Fols (%x. h (g x))"

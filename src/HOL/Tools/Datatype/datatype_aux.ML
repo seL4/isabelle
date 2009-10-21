@@ -6,14 +6,32 @@ Auxiliary functions for defining datatypes.
 
 signature DATATYPE_COMMON =
 sig
-  type config
+  type config = {strict : bool, quiet : bool}
   val default_config : config
   datatype dtyp =
       DtTFree of string
-    | DtType of string * (dtyp list)
-    | DtRec of int;
-  type descr
-  type info
+    | DtType of string * dtyp list
+    | DtRec of int
+  type descr = (int * (string * dtyp list * (string * dtyp list) list)) list
+  type info =
+   {index : int,
+    alt_names : string list option,
+    descr : descr,
+    sorts : (string * sort) list,
+    inject : thm list,
+    distinct : thm list,
+    induct : thm,
+    inducts : thm list,
+    exhaust : thm,
+    nchotomy : thm,
+    rec_names : string list,
+    rec_rewrites : thm list,
+    case_name : string,
+    case_rewrites : thm list,
+    case_cong : thm,
+    weak_case_cong : thm,
+    split : thm,
+    split_asm: thm}
 end
 
 signature DATATYPE_AUX =
@@ -68,11 +86,11 @@ struct
 
 (* datatype option flags *)
 
-type config = { strict: bool, quiet: bool };
-val default_config : config =
-  { strict = true, quiet = false };
-fun message ({ quiet, ...} : config) s =
-  if quiet then () else writeln s;
+type config = {strict : bool, quiet : bool};
+val default_config : config = {strict = true, quiet = false};
+
+fun message ({quiet = true, ...} : config) s = writeln s
+  | message _ _ = ();
 
 
 (* store theorems in theory *)
@@ -239,7 +257,7 @@ fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) s
 fun get_nonrec_types descr sorts =
   map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
     Library.foldl (fn (Ts', (_, cargs)) =>
-      filter_out is_rec_type cargs union Ts') (Ts, constrs)) ([], descr));
+      union (op =) (filter_out is_rec_type cargs) Ts') (Ts, constrs)) ([], descr));
 
 (* get all recursive types in datatype description *)
 

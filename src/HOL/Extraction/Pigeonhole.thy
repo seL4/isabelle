@@ -36,94 +36,94 @@ next
       let ?f = "\<lambda>i. if f i = Suc n then f (Suc (Suc n)) else f i"
       have "\<not> (\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j)"
       proof
-	assume "\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j"
-      	then obtain i j where i: "i \<le> Suc n" and j: "j < i"
-	  and f: "?f i = ?f j" by iprover
-      	from j have i_nz: "Suc 0 \<le> i" by simp
-      	from i have iSSn: "i \<le> Suc (Suc n)" by simp
-      	have S0SSn: "Suc 0 \<le> Suc (Suc n)" by simp
-      	show False
-      	proof cases
-	  assume fi: "f i = Suc n"
-	  show False
-	  proof cases
-	    assume fj: "f j = Suc n"
-	    from i_nz and iSSn and j have "f i \<noteq> f j" by (rule 0)
-	    moreover from fi have "f i = f j"
-	      by (simp add: fj [symmetric])
-	    ultimately show ?thesis ..
-	  next
-	    from i and j have "j < Suc (Suc n)" by simp
-	    with S0SSn and le_refl have "f (Suc (Suc n)) \<noteq> f j"
-	      by (rule 0)
-	    moreover assume "f j \<noteq> Suc n"
-	    with fi and f have "f (Suc (Suc n)) = f j" by simp
-	    ultimately show False ..
-	  qed
-      	next
-	  assume fi: "f i \<noteq> Suc n"
-	  show False
-	  proof cases
-	    from i have "i < Suc (Suc n)" by simp
-	    with S0SSn and le_refl have "f (Suc (Suc n)) \<noteq> f i"
-	      by (rule 0)
-	    moreover assume "f j = Suc n"
-	    with fi and f have "f (Suc (Suc n)) = f i" by simp
-	    ultimately show False ..
-	  next
-	    from i_nz and iSSn and j
-	    have "f i \<noteq> f j" by (rule 0)
-	    moreover assume "f j \<noteq> Suc n"
-	    with fi and f have "f i = f j" by simp
-	    ultimately show False ..
-	  qed
-      	qed
+        assume "\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j"
+        then obtain i j where i: "i \<le> Suc n" and j: "j < i"
+          and f: "?f i = ?f j" by iprover
+        from j have i_nz: "Suc 0 \<le> i" by simp
+        from i have iSSn: "i \<le> Suc (Suc n)" by simp
+        have S0SSn: "Suc 0 \<le> Suc (Suc n)" by simp
+        show False
+        proof cases
+          assume fi: "f i = Suc n"
+          show False
+          proof cases
+            assume fj: "f j = Suc n"
+            from i_nz and iSSn and j have "f i \<noteq> f j" by (rule 0)
+            moreover from fi have "f i = f j"
+              by (simp add: fj [symmetric])
+            ultimately show ?thesis ..
+          next
+            from i and j have "j < Suc (Suc n)" by simp
+            with S0SSn and le_refl have "f (Suc (Suc n)) \<noteq> f j"
+              by (rule 0)
+            moreover assume "f j \<noteq> Suc n"
+            with fi and f have "f (Suc (Suc n)) = f j" by simp
+            ultimately show False ..
+          qed
+        next
+          assume fi: "f i \<noteq> Suc n"
+          show False
+          proof cases
+            from i have "i < Suc (Suc n)" by simp
+            with S0SSn and le_refl have "f (Suc (Suc n)) \<noteq> f i"
+              by (rule 0)
+            moreover assume "f j = Suc n"
+            with fi and f have "f (Suc (Suc n)) = f i" by simp
+            ultimately show False ..
+          next
+            from i_nz and iSSn and j
+            have "f i \<noteq> f j" by (rule 0)
+            moreover assume "f j \<noteq> Suc n"
+            with fi and f have "f i = f j" by simp
+            ultimately show False ..
+          qed
+        qed
       qed
       moreover have "\<And>i. i \<le> Suc n \<Longrightarrow> ?f i \<le> n"
       proof -
-	fix i assume "i \<le> Suc n"
-	hence i: "i < Suc (Suc n)" by simp
-	have "f (Suc (Suc n)) \<noteq> f i"
-	  by (rule 0) (simp_all add: i)
-	moreover have "f (Suc (Suc n)) \<le> Suc n"
-	  by (rule Suc) simp
-	moreover from i have "i \<le> Suc (Suc n)" by simp
-	hence "f i \<le> Suc n" by (rule Suc)
-	ultimately show "?thesis i"
-	  by simp
+        fix i assume "i \<le> Suc n"
+        hence i: "i < Suc (Suc n)" by simp
+        have "f (Suc (Suc n)) \<noteq> f i"
+          by (rule 0) (simp_all add: i)
+        moreover have "f (Suc (Suc n)) \<le> Suc n"
+          by (rule Suc) simp
+        moreover from i have "i \<le> Suc (Suc n)" by simp
+        hence "f i \<le> Suc n" by (rule Suc)
+        ultimately show "?thesis i"
+          by simp
       qed
       hence "\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j"
-      	by (rule Suc)
+        by (rule Suc)
       ultimately show ?case ..
     next
       case (Suc k)
       from search [OF nat_eq_dec] show ?case
       proof
-	assume "\<exists>j<Suc k. f (Suc k) = f j"
-	thus ?case by (iprover intro: le_refl)
+        assume "\<exists>j<Suc k. f (Suc k) = f j"
+        thus ?case by (iprover intro: le_refl)
       next
-	assume nex: "\<not> (\<exists>j<Suc k. f (Suc k) = f j)"
-	have "\<exists>i j. i \<le> k \<and> j < i \<and> f i = f j"
-	proof (rule Suc)
-	  from Suc show "k \<le> Suc (Suc n)" by simp
-	  fix i j assume k: "Suc k \<le> i" and i: "i \<le> Suc (Suc n)"
-	    and j: "j < i"
-	  show "f i \<noteq> f j"
-	  proof cases
-	    assume eq: "i = Suc k"
-	    show ?thesis
-	    proof
-	      assume "f i = f j"
-	      hence "f (Suc k) = f j" by (simp add: eq)
-	      with nex and j and eq show False by iprover
-	    qed
-	  next
-	    assume "i \<noteq> Suc k"
-	    with k have "Suc (Suc k) \<le> i" by simp
-	    thus ?thesis using i and j by (rule Suc)
-	  qed
-	qed
-	thus ?thesis by (iprover intro: le_SucI)
+        assume nex: "\<not> (\<exists>j<Suc k. f (Suc k) = f j)"
+        have "\<exists>i j. i \<le> k \<and> j < i \<and> f i = f j"
+        proof (rule Suc)
+          from Suc show "k \<le> Suc (Suc n)" by simp
+          fix i j assume k: "Suc k \<le> i" and i: "i \<le> Suc (Suc n)"
+            and j: "j < i"
+          show "f i \<noteq> f j"
+          proof cases
+            assume eq: "i = Suc k"
+            show ?thesis
+            proof
+              assume "f i = f j"
+              hence "f (Suc k) = f j" by (simp add: eq)
+              with nex and j and eq show False by iprover
+            qed
+          next
+            assume "i \<noteq> Suc k"
+            with k have "Suc (Suc k) \<le> i" by simp
+            thus ?thesis using i and j by (rule Suc)
+          qed
+        qed
+        thus ?thesis by (iprover intro: le_SucI)
       qed
     qed
   }
@@ -159,16 +159,16 @@ next
       fix i assume i: "i \<le> Suc n"
       show "?thesis i"
       proof (cases "f i = Suc n")
-	case True
-	from i and nex have "f (Suc (Suc n)) \<noteq> f i" by simp
-	with True have "f (Suc (Suc n)) \<noteq> Suc n" by simp
-	moreover from Suc have "f (Suc (Suc n)) \<le> Suc n" by simp
-	ultimately have "f (Suc (Suc n)) \<le> n" by simp
-	with True show ?thesis by simp
+        case True
+        from i and nex have "f (Suc (Suc n)) \<noteq> f i" by simp
+        with True have "f (Suc (Suc n)) \<noteq> Suc n" by simp
+        moreover from Suc have "f (Suc (Suc n)) \<le> Suc n" by simp
+        ultimately have "f (Suc (Suc n)) \<le> n" by simp
+        with True show ?thesis by simp
       next
-	case False
-	from Suc and i have "f i \<le> Suc n" by simp
-	with False show ?thesis by simp
+        case False
+        from Suc and i have "f i \<le> Suc n" by simp
+        with False show ?thesis by simp
       qed
     qed
     hence "\<exists>i j. i \<le> Suc n \<and> j < i \<and> ?f i = ?f j" by (rule Suc)
@@ -179,23 +179,23 @@ next
       case True
       show ?thesis
       proof (cases "f j = Suc n")
-	assume "f j = Suc n"
-	with True show ?thesis by simp
+        assume "f j = Suc n"
+        with True show ?thesis by simp
       next
-	assume "f j \<noteq> Suc n"
-	moreover from i ji nex have "f (Suc (Suc n)) \<noteq> f j" by simp
-	ultimately show ?thesis using True f by simp
+        assume "f j \<noteq> Suc n"
+        moreover from i ji nex have "f (Suc (Suc n)) \<noteq> f j" by simp
+        ultimately show ?thesis using True f by simp
       qed
     next
       case False
       show ?thesis
       proof (cases "f j = Suc n")
-	assume "f j = Suc n"
-	moreover from i nex have "f (Suc (Suc n)) \<noteq> f i" by simp
-	ultimately show ?thesis using False f by simp
+        assume "f j = Suc n"
+        moreover from i nex have "f (Suc (Suc n)) \<noteq> f i" by simp
+        ultimately show ?thesis using False f by simp
       next
-	assume "f j \<noteq> Suc n"
-	with False f show ?thesis by simp
+        assume "f j \<noteq> Suc n"
+        with False f show ?thesis by simp
       qed
     qed
     moreover from i have "i \<le> Suc (Suc n)" by simp

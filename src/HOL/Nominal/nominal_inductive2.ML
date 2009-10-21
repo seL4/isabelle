@@ -33,7 +33,7 @@ val fresh_postprocess =
     [@{thm fresh_star_set_eq}, @{thm fresh_star_Un_elim},
      @{thm fresh_star_insert_elim}, @{thm fresh_star_empty_elim}]);
 
-fun preds_of ps t = gen_inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
+fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
 val perm_bool = mk_meta_eq (thm "perm_bool");
 val perm_boolI = thm "perm_boolI";
@@ -160,7 +160,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val elims = map (atomize_induct ctxt) elims;
     val monos = Inductive.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ fold (Term.add_const_names o Thm.prop_of) eqvt_thms [] of
+    val _ = (case subtract (op =) (fold (Term.add_const_names o Thm.prop_of) eqvt_thms []) names of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
@@ -176,7 +176,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val _ = (case duplicates (op = o pairself fst) avoids of
         [] => ()
       | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
-    val _ = (case map fst avoids \\ induct_cases of
+    val _ = (case subtract (op =) induct_cases (map fst avoids) of
         [] => ()
       | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));
     fun mk_avoids params name sets =
@@ -300,7 +300,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val pt_insts = map (NominalAtoms.pt_inst_of thy) atoms;
     val at_insts = map (NominalAtoms.at_inst_of thy) atoms;
     val dj_thms = maps (fn a =>
-      map (NominalAtoms.dj_thm_of thy a) (atoms \ a)) atoms;
+      map (NominalAtoms.dj_thm_of thy a) (remove (op =) a atoms)) atoms;
     val finite_ineq = map2 (fn th => fn th' => th' RS (th RS
       @{thm pt_set_finite_ineq})) pt_insts at_insts;
     val perm_set_forget =

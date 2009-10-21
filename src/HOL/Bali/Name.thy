@@ -7,7 +7,7 @@ header {* Java names *}
 theory Name imports Basis begin
 
 (* cf. 6.5 *) 
-typedecl tnam	--{* ordinary type name, i.e. class or interface name *}
+typedecl tnam   --{* ordinary type name, i.e. class or interface name *}
 typedecl pname  --{* package name *}
 typedecl mname  --{* method name *}
 typedecl vname  --{* variable or field name *}
@@ -28,10 +28,10 @@ translations
   "VName n" == "EName (VNam n)"
   "Result"  == "EName Res"
 
-datatype xname		--{* names of standard exceptions *}
-	= Throwable
-	| NullPointer | OutOfMemory | ClassCast   
-	| NegArrSize  | IndOutBound | ArrStore
+datatype xname          --{* names of standard exceptions *}
+        = Throwable
+        | NullPointer | OutOfMemory | ClassCast   
+        | NegArrSize  | IndOutBound | ArrStore
 
 lemma xn_cases: 
   "xn = Throwable   \<or> xn = NullPointer \<or>  
@@ -42,10 +42,10 @@ apply auto
 done
 
 
-datatype tname	--{* type names for standard classes and other type names *}
-	= Object'
-	| SXcpt'   xname
-	| TName   tnam
+datatype tname  --{* type names for standard classes and other type names *}
+        = Object'
+        | SXcpt'   xname
+        | TName   tnam
 
 record   qtname = --{* qualified tname cf. 6.5.3, 6.5.4*}
           pid :: pname  

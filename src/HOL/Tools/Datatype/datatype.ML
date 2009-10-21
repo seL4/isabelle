@@ -124,7 +124,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
       |> (pairself o map) (fn (_, (tyco, dTs, _)) => (tyco, map (typ_of_dtyp descr vs) dTs));
     
     val tycos = map fst dataTs;
-    val _ = if gen_eq_set (op =) (tycos, raw_tycos) then ()
+    val _ = if eq_set (op =) (tycos, raw_tycos) then ()
       else error ("Type constructors " ^ commas (map quote raw_tycos)
         ^ " do not belong exhaustively to one mutual recursive datatype");
 
@@ -489,7 +489,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
       let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
       in (case duplicates (op =) tvs of
-            [] => if eq_set (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
+            [] => if eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
                   else error ("Mutually recursive datatypes must have same type parameters")
           | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
               " : " ^ commas dups))
@@ -504,7 +504,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
         fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
           let
             val (cargs', sorts'') = Library.foldl (prep_typ tmp_thy) (([], sorts'), cargs);
-            val _ = (case fold (curry OldTerm.add_typ_tfree_names) cargs' [] \\ tvs of
+            val _ = (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [(Sign.full_name_path tmp_thy tname'
@@ -530,7 +530,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
 
     val (dts', constr_syntax, sorts', i) =
       fold prep_dt_spec (dts ~~ new_type_names) ([], [], [], 0);
-    val sorts = sorts' @ (map (rpair (Sign.defaultS tmp_thy)) (tyvars \\ map fst sorts'));
+    val sorts = sorts' @ (map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars));
     val dt_info = get_all thy;
     val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>

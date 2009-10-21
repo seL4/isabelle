@@ -65,7 +65,7 @@ fun rearrange t pq =
       val d1 = mk_times (snd pq,dpq) and d2 = mk_times (dpq,snd pq)
       val d = if d1 mem ts then d1 else d2
       val m = Data.mk_binop Data.mod_name pq
-  in mk_plus(mk_plus(d,m),Data.mk_sum(ts \ d \ m)) end
+  in mk_plus(mk_plus(d,m),Data.mk_sum(ts |> remove (op =) d |> remove (op =) m)) end
 
 fun cancel ss t pq =
   let val teqt' = Data.prove_eq_sums ss (t, rearrange t pq)
@@ -74,7 +74,7 @@ fun cancel ss t pq =
 fun proc ss t =
   let val (divs,mods) = coll_div_mod t ([],[])
   in if null divs orelse null mods then NONE
-     else case divs inter mods of
+     else case inter (op =) mods divs of
             pq :: _ => SOME (cancel ss t pq)
           | [] => NONE
   end

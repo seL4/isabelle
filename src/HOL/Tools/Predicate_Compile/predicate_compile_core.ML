@@ -615,7 +615,7 @@ fun find_indexes pred xs =
 fun guess_nparams T =
   let
     val argTs = binder_types T
-    val nparams = fold (curry Int.max)
+    val nparams = fold Integer.max
       (map (fn x => x + 1) (find_indexes is_predT argTs)) 0
   in nparams end;
 
@@ -661,7 +661,7 @@ fun register_intros pre_intros thy =
     val _ = tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
     val nparams = guess_nparams T
     val pre_elim = 
-      (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+      (Drule.standard o Skip_Proof.make_thm thy)
       (mk_casesrule (ProofContext.init thy) nparams pre_intros)
   in register_predicate (pre_intros, pre_elim, nparams) thy end
 
@@ -897,7 +897,7 @@ fun subsets i j = if i <= j then
 fun cprod ([], ys) = []
   | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
-fun cprods xss = foldr (map op :: o cprod) [[]] xss;
+fun cprods xss = List.foldr (map op :: o cprod) [[]] xss;
 
 fun cprods_subset [] = [[]]
   | cprods_subset (xs :: xss) =
@@ -984,20 +984,20 @@ fun select_mode_prem thy modes vs ps =
             val dupTs = map snd (duplicates (op =) vTs) @
               map_filter (AList.lookup (op =) vTs) vs;
           in
-            terms_vs (in_ts @ in_ts') subset vs andalso
+            subset (op =) (terms_vs (in_ts @ in_ts'), vs) andalso
             forall (is_eqT o fastype_of) in_ts' andalso
-            term_vs t subset vs andalso
+            subset (op =) (term_vs t, vs) andalso
             forall is_eqT dupTs
           end)
             (modes_of_term modes t handle Option =>
                error ("Bad predicate: " ^ Syntax.string_of_term_global thy t))
       | Negprem (us, t) => find_first (fn Mode (_, is, _) =>
             length us = length is andalso
-            terms_vs us subset vs andalso
-            term_vs t subset vs)
+            subset (op =) (terms_vs us, vs) andalso
+            subset (op =) (term_vs t, vs))
             (modes_of_term modes t handle Option =>
                error ("Bad predicate: " ^ Syntax.string_of_term_global thy t))
-      | Sidecond t => if term_vs t subset vs then SOME (Mode (([], []), [], []))
+      | Sidecond t => if subset (op =) (term_vs t, vs) then SOME (Mode (([], []), [], []))
           else NONE
       ) ps);
 
@@ -1047,16 +1047,16 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
             (if with_generator then
               (case select_mode_prem thy gen_modes' vs ps of
                 SOME (p as Prem _, SOME mode) => check_mode_prems ((gen_prem p, mode) :: acc_ps) 
-                  (case p of Prem (us, _) => vs union terms_vs us | _ => vs)
+                  (case p of Prem (us, _) => union (op =) vs (terms_vs us) | _ => vs)
                   (filter_out (equal p) ps)
               | _ =>
                   let 
-                    val all_generator_vs = all_subsets (prem_vs \\ vs) |> sort (int_ord o (pairself length))
+                    val all_generator_vs = all_subsets (subtract (op =) vs prem_vs) |> sort (int_ord o (pairself length))
                   in
                     case (find_first (fn generator_vs => is_some
-                      (select_mode_prem thy modes' (vs union generator_vs) ps)) all_generator_vs) of
+                      (select_mode_prem thy modes' (union (op =) vs generator_vs) ps)) all_generator_vs) of
                       SOME generator_vs => check_mode_prems ((map (generator vTs) generator_vs) @ acc_ps)
-                        (vs union generator_vs) ps
+                        (union (op =) vs generator_vs) ps
                     | NONE => let
                     val _ = tracing ("ps:" ^ (commas
                     (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
@@ -1065,7 +1065,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
             else
               NONE)
         | SOME (p, SOME mode) => check_mode_prems ((if with_generator then param_gen_prem param_vs p else p, mode) :: acc_ps) 
-            (case p of Prem (us, _) => vs union terms_vs us | _ => vs)
+            (case p of Prem (us, _) => union (op =) vs (terms_vs us) | _ => vs)
             (filter_out (equal p) ps))
     val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (split_smode is ts));
     val in_vs = terms_vs in_ts;
@@ -1073,13 +1073,13 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
   in
     if forall is_eqT (map snd (duplicates (op =) (maps term_vTs in_ts))) andalso
     forall (is_eqT o fastype_of) in_ts' then
-      case check_mode_prems [] (param_vs union in_vs) ps of
+      case check_mode_prems [] (union (op =) param_vs in_vs) ps of
          NONE => NONE
        | SOME (acc_ps, vs) =>
          if with_generator then
-           SOME (ts, (rev acc_ps) @ (map (generator vTs) (concl_vs \\ vs))) 
+           SOME (ts, (rev acc_ps) @ (map (generator vTs) (subtract (op =) vs concl_vs)))
          else
-           if concl_vs subset vs then SOME (ts, rev acc_ps) else NONE
+           if subset (op =) (concl_vs, vs) then SOME (ts, rev acc_ps) else NONE
     else NONE
   end;
 
@@ -1119,7 +1119,7 @@ fun remove_from rem [] = []
   | remove_from rem ((k, vs) :: xs) =
     (case AList.lookup (op =) rem k of
       NONE => (k, vs)
-    | SOME vs' => (k, vs \\ vs'))
+    | SOME vs' => (k, subtract (op =) vs' vs))
     :: remove_from rem xs
     
 fun infer_modes_with_generator thy extra_modes all_modes param_vs clauses =
@@ -2077,12 +2077,12 @@ fun prove_pred thy clauses preds modes pred mode (moded_clauses, compiled_term) 
       (if !do_proofs then
         (fn _ =>
         rtac @{thm pred_iffI} 1
-				THEN print_tac "after pred_iffI"
+        THEN print_tac "after pred_iffI"
         THEN prove_one_direction thy clauses preds modes pred mode moded_clauses
         THEN print_tac "proved one direction"
         THEN prove_other_direction thy modes pred mode moded_clauses
         THEN print_tac "proved other direction")
-      else (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy))
+      else fn _ => Skip_Proof.cheat_tac thy)
   end;
 
 (* composition of mode inference, definition, compilation and proof *)
@@ -2110,7 +2110,7 @@ fun prove thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (setmp quick_and_dirty true (SkipProof.make_thm thy) t))
+  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (Skip_Proof.make_thm thy t))
     compiled_terms
     
 fun prepare_intrs thy prednames =
@@ -2167,7 +2167,7 @@ fun prepare_intrs thy prednames =
               [] => [(i + 1, NONE)]
             | [U] => [(i + 1, NONE)]
             | Us =>  (i + 1, NONE) ::
-              (map (pair (i + 1) o SOME) ((subsets 1 (length Us)) \\ [[], 1 upto (length Us)])))
+              (map (pair (i + 1) o SOME) (subtract (op =) [[], 1 upto (length Us)] (subsets 1 (length Us)))))
           Ts)
       in
         cprod (cprods (map (fn T => case strip_type T of
@@ -2218,7 +2218,7 @@ fun extend' value_of edges_of key (G, visited) =
     val (G', v) = case try (Graph.get_node G) key of
         SOME v => (G, v)
       | NONE => (Graph.new_node (key, value_of key) G, value_of key)
-    val (G'', visited') = fold (extend' value_of edges_of) (edges_of (key, v) \\ visited)
+    val (G'', visited') = fold (extend' value_of edges_of) (subtract (op =) visited (edges_of (key, v)))
       (G', key :: visited) 
   in
     (fold (Graph.add_edge o (pair key)) (edges_of (key, v)) G'', visited')

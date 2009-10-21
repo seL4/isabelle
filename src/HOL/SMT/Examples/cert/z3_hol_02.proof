@@ -1,0 +1,62 @@
+#2 := false
+decl up_4 :: (-> T1 T2 bool)
+decl uf_3 :: T2
+#5 := uf_3
+decl uf_2 :: T1
+#4 := uf_2
+#7 := (up_4 uf_2 uf_3)
+#60 := (not #7)
+decl up_1 :: (-> T1 T2 bool)
+#6 := (up_1 uf_2 uf_3)
+#33 := (iff #6 #7)
+#49 := (or #6 #7 #33)
+#52 := (not #49)
+#1 := true
+#11 := (iff #7 true)
+#10 := (iff #6 true)
+#12 := (or #10 #11)
+#8 := (and #7 true)
+#9 := (iff #6 #8)
+#13 := (or #9 #12)
+#14 := (not #13)
+#55 := (iff #14 #52)
+#40 := (or #6 #7)
+#43 := (or #33 #40)
+#46 := (not #43)
+#53 := (iff #46 #52)
+#50 := (iff #43 #49)
+#51 := [rewrite]: #50
+#54 := [monotonicity #51]: #53
+#47 := (iff #14 #46)
+#44 := (iff #13 #43)
+#41 := (iff #12 #40)
+#38 := (iff #11 #7)
+#39 := [rewrite]: #38
+#36 := (iff #10 #6)
+#37 := [rewrite]: #36
+#42 := [monotonicity #37 #39]: #41
+#34 := (iff #9 #33)
+#31 := (iff #8 #7)
+#32 := [rewrite]: #31
+#35 := [monotonicity #32]: #34
+#45 := [monotonicity #35 #42]: #44
+#48 := [monotonicity #45]: #47
+#56 := [trans #48 #54]: #55
+#30 := [asserted]: #14
+#57 := [mp #30 #56]: #52
+#61 := [not-or-elim #57]: #60
+#58 := (not #6)
+#59 := [not-or-elim #57]: #58
+#72 := (or #7 #6)
+#66 := (iff #7 #58)
+#62 := (not #33)
+#64 := (iff #62 #66)
+#67 := [rewrite]: #64
+#63 := [not-or-elim #57]: #62
+#68 := [mp #63 #67]: #66
+#69 := (not #66)
+#70 := (or #7 #6 #69)
+#71 := [def-axiom]: #70
+#73 := [unit-resolution #71 #68]: #72
+[unit-resolution #73 #59 #61]: false
+unsat

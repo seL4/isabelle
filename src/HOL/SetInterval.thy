@@ -1,7 +1,7 @@
 (*  Title:      HOL/SetInterval.thy
-    Author:     Tobias Nipkow and Clemens Ballarin
-                Additions by Jeremy Avigad in March 2004
-    Copyright   2000  TU Muenchen
+    Author:     Tobias Nipkow
+    Author:     Clemens Ballarin
+    Author:     Jeremy Avigad
 
 lessThan, greaterThan, atLeast, atMost and two-sided intervals
 *)
@@ -15,19 +15,19 @@ begin
 context ord
 begin
 definition
-  lessThan    :: "'a => 'a set"	("(1{..<_})") where
+  lessThan    :: "'a => 'a set" ("(1{..<_})") where
   "{..<u} == {x. x < u}"
 
 definition
-  atMost      :: "'a => 'a set"	("(1{.._})") where
+  atMost      :: "'a => 'a set" ("(1{.._})") where
   "{..u} == {x. x \<le> u}"
 
 definition
-  greaterThan :: "'a => 'a set"	("(1{_<..})") where
+  greaterThan :: "'a => 'a set" ("(1{_<..})") where
   "{l<..} == {x. l<x}"
 
 definition
-  atLeast     :: "'a => 'a set"	("(1{_..})") where
+  atLeast     :: "'a => 'a set" ("(1{_..})") where
   "{l..} == {x. l\<le>x}"
 
 definition
@@ -395,6 +395,11 @@ lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
 lemma atLeastAtMostSuc_conv: "m \<le> Suc n \<Longrightarrow> {m..Suc n} = insert (Suc n) {m..n}"
 by (auto simp add: atLeastAtMost_def)
 
+lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \<union> {j..<j+k::nat}"
+  apply (induct k) 
+  apply (simp_all add: atLeastLessThanSuc)   
+  done
+
 subsubsection {* Image *}
 
 lemma image_add_atLeastAtMost:
@@ -522,20 +527,20 @@ lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>
 lemma UN_finite_subset: "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> C) \<Longrightarrow> (\<Union>n. A n) \<subseteq> C"
   by (subst UN_UN_finite_eq [symmetric]) blast
 
-lemma UN_finite2_subset:
-  assumes sb: "!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n}. B i)"
-  shows "(\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
-proof (rule UN_finite_subset)
-  fix n
-  have "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n}. B i)" by (rule sb)
-  also have "...  \<subseteq> (\<Union>n::nat. \<Union>i\<in>{0..<n}. B i)" by blast
-  also have "... = (\<Union>n. B n)" by (simp add: UN_UN_finite_eq) 
-  finally show "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>n. B n)" .
-qed
+lemma UN_finite2_subset: 
+     "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n+k}. B i)) \<Longrightarrow> (\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
+  apply (rule UN_finite_subset)
+  apply (subst UN_UN_finite_eq [symmetric, of B]) 
+  apply blast
+  done
 
 lemma UN_finite2_eq:
-  "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n}. B i)) \<Longrightarrow> (\<Union>n. A n) = (\<Union>n. B n)"
-  by (iprover intro: subset_antisym UN_finite2_subset elim: equalityE)  
+  "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n+k}. B i)) \<Longrightarrow> (\<Union>n. A n) = (\<Union>n. B n)"
+  apply (rule subset_antisym)
+   apply (rule UN_finite2_subset, blast)
+ apply (rule UN_finite2_subset [where k=k])
+ apply (force simp add: atLeastLessThan_add_Un [of 0] UN_Un) 
+ done
 
 
 subsubsection {* Cardinality *}

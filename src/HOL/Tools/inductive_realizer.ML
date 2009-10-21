@@ -70,7 +70,7 @@ fun dt_of_intrs thy vs nparms intrs =
     val params = map dest_Var (Library.take (nparms, ts));
     val tname = Binding.name (space_implode "_" (Long_Name.base_name s ^ "T" :: vs));
     fun constr_of_intr intr = (Binding.name (Long_Name.base_name (name_of_thm intr)),
-      map (Logic.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
+      map (Logic.unvarifyT o snd) (subtract (op =) params (rev (Term.add_vars (prop_of intr) []))) @
         filter_out (equal Extraction.nullT) (map
           (Logic.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
             NoSyn);
@@ -115,7 +115,7 @@ fun mk_realizes_eqn n vs nparms intrs =
     val r = if n then Extraction.nullt else Var ((Long_Name.base_name s, 0), rT);
     val S = list_comb (h, params @ xs);
     val rvs = relevant_vars S;
-    val vs' = map fst rvs \\ vs;
+    val vs' = subtract (op =) vs (map fst rvs);
     val rname = space_implode "_" (s ^ "R" :: vs);
 
     fun mk_Tprem n v =
@@ -141,7 +141,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
     val ctxt = ProofContext.init thy
     val args = map (Free o apfst fst o dest_Var) ivs;
     val args' = map (Free o apfst fst)
-      (Term.add_vars (prop_of intr) [] \\ params);
+      (subtract (op =) params (Term.add_vars (prop_of intr) []));
     val rule' = strip_all rule;
     val conclT = Extraction.etype_of thy vs [] (Logic.strip_imp_concl rule');
     val used = map (fst o dest_Free) args;
@@ -331,7 +331,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val rintrs = map (fn (intr, c) => Envir.eta_contract
       (Extraction.realizes_of thy2 vs
         (if c = Extraction.nullt then c else list_comb (c, map Var (rev
-          (Term.add_vars (prop_of intr) []) \\ params'))) (prop_of intr)))
+          (subtract (op =) params' (Term.add_vars (prop_of intr) []))))) (prop_of intr)))
             (maps snd rss ~~ flat constrss);
     val (rlzpreds, rlzpreds') =
       rintrs |> map (fn rintr =>
@@ -427,9 +427,9 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         val (prem :: prems) = prems_of elim;
         fun reorder1 (p, (_, intr)) =
           Library.foldl (fn (t, ((s, _), T)) => Logic.all (Free (s, T)) t)
-            (strip_all p, Term.add_vars (prop_of intr) [] \\ params');
+            (strip_all p, subtract (op =) params' (Term.add_vars (prop_of intr) []));
         fun reorder2 ((ivs, intr), i) =
-          let val fs = Term.add_vars (prop_of intr) [] \\ params'
+          let val fs = subtract (op =) params' (Term.add_vars (prop_of intr) [])
           in Library.foldl (fn (t, x) => lambda (Var x) t)
             (list_comb (Bound (i + length ivs), ivs), fs)
           end;
@@ -469,7 +469,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val thy5 = Extraction.add_realizers_i
       (map (mk_realizer thy4 vs) (map (fn (((rule, rrule), rlz), c) =>
          (name_of_thm rule, rule, rrule, rlz,
-            list_comb (c, map Var (rev (Term.add_vars (prop_of rule) []) \\ params'))))
+            list_comb (c, map Var (subtract (op =) params' (rev (Term.add_vars (prop_of rule) []))))))
               (maps snd rss ~~ #intrs ind_info ~~ rintrs ~~ flat constrss))) thy4;
     val elimps = map_filter (fn ((s, intrs), p) =>
       if s mem rsets then SOME (p, intrs) else NONE)
@@ -503,7 +503,7 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
     add_ind_realizers (hd sets)
       (case arg of
         NONE => sets | SOME NONE => []
-      | SOME (SOME sets') => sets \\ sets')
+      | SOME (SOME sets') => subtract (op =) sets' sets)
   end I);
 
 val setup =

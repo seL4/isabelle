@@ -5,10 +5,8 @@
 header {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Finite_Cartesian_Product Parity Fact Main
+imports Finite_Cartesian_Product Parity Fact
 begin
-
-  (* Why should I import Main just to solve the Typerep problem! *)
 
 definition permutes (infixr "permutes" 41) where
   "(p permutes S) \<longleftrightarrow> (\<forall>x. x \<notin> S \<longrightarrow> p x = x) \<and> (\<forall>y. \<exists>!x. p x = y)"
@@ -85,7 +83,7 @@ lemma permutes_univ: "p permutes UNIV \<longleftrightarrow> (\<forall>y. \<exist
   unfolding permutes_def by simp
 
 lemma permutes_inv_eq: "p permutes S ==> inv p y = x \<longleftrightarrow> p x = y"
-  unfolding permutes_def inv_def apply auto
+  unfolding permutes_def inv_onto_def apply auto
   apply (erule allE[where x=y])
   apply (erule allE[where x=y])
   apply (rule someI_ex) apply blast
@@ -95,10 +93,11 @@ lemma permutes_inv_eq: "p permutes S ==> inv p y = x \<longleftrightarrow> p x =
   done
 
 lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S ==> Fun.swap a b id permutes S"
-  unfolding permutes_def swap_def fun_upd_def  apply auto apply metis done
+  unfolding permutes_def swap_def fun_upd_def  by auto metis
 
-lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
-apply (simp add: Ball_def permutes_def Diff_iff) by metis
+lemma permutes_superset:
+  "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
+by (simp add: Ball_def permutes_def Diff_iff) metis
 
 (* ------------------------------------------------------------------------- *)
 (* Group properties.                                                         *)
@@ -181,42 +180,42 @@ proof-
       from hassize_insert[OF xF H0] have Fs: "F hassize (n - 1)" .
       from H Fs have pFs: "?pF hassize fact (n - 1)" by blast
       hence pF'f: "finite ?pF'" using H0 unfolding hassize_def
-	apply (simp only: Collect_split Collect_mem_eq)
-	apply (rule finite_cartesian_product)
-	apply simp_all
-	done
+        apply (simp only: Collect_split Collect_mem_eq)
+        apply (rule finite_cartesian_product)
+        apply simp_all
+        done
 
       have ginj: "inj_on ?g ?pF'"
       proof-
-	{
-	  fix b p c q assume bp: "(b,p) \<in> ?pF'" and cq: "(c,q) \<in> ?pF'"
-	    and eq: "?g (b,p) = ?g (c,q)"
-	  from bp cq have ths: "b \<in> insert x F" "c \<in> insert x F" "x \<in> insert x F" "p permutes F" "q permutes F" by auto
-	  from ths(4) xF eq have "b = ?g (b,p) x" unfolding permutes_def
-	    by (auto simp add: swap_def fun_upd_def expand_fun_eq)
-	  also have "\<dots> = ?g (c,q) x" using ths(5) xF eq
-	    by (auto simp add: swap_def fun_upd_def expand_fun_eq)
-	  also have "\<dots> = c"using ths(5) xF unfolding permutes_def
-	    by (auto simp add: swap_def fun_upd_def expand_fun_eq)
-	  finally have bc: "b = c" .
-	  hence "Fun.swap x b id = Fun.swap x c id" by simp
-	  with eq have "Fun.swap x b id o p = Fun.swap x b id o q" by simp
-	  hence "Fun.swap x b id o (Fun.swap x b id o p) = Fun.swap x b id o (Fun.swap x b id o q)" by simp
-	  hence "p = q" by (simp add: o_assoc)
-	  with bc have "(b,p) = (c,q)" by simp }
-	thus ?thesis  unfolding inj_on_def by blast
+        {
+          fix b p c q assume bp: "(b,p) \<in> ?pF'" and cq: "(c,q) \<in> ?pF'"
+            and eq: "?g (b,p) = ?g (c,q)"
+          from bp cq have ths: "b \<in> insert x F" "c \<in> insert x F" "x \<in> insert x F" "p permutes F" "q permutes F" by auto
+          from ths(4) xF eq have "b = ?g (b,p) x" unfolding permutes_def
+            by (auto simp add: swap_def fun_upd_def expand_fun_eq)
+          also have "\<dots> = ?g (c,q) x" using ths(5) xF eq
+            by (auto simp add: swap_def fun_upd_def expand_fun_eq)
+          also have "\<dots> = c"using ths(5) xF unfolding permutes_def
+            by (auto simp add: swap_def fun_upd_def expand_fun_eq)
+          finally have bc: "b = c" .
+          hence "Fun.swap x b id = Fun.swap x c id" by simp
+          with eq have "Fun.swap x b id o p = Fun.swap x b id o q" by simp
+          hence "Fun.swap x b id o (Fun.swap x b id o p) = Fun.swap x b id o (Fun.swap x b id o q)" by simp
+          hence "p = q" by (simp add: o_assoc)
+          with bc have "(b,p) = (c,q)" by simp }
+        thus ?thesis  unfolding inj_on_def by blast
       qed
       from xF H0 have n0: "n \<noteq> 0 " by (auto simp add: hassize_def)
       hence "\<exists>m. n = Suc m" by arith
       then obtain m where n[simp]: "n = Suc m" by blast
       from pFs H0 have xFc: "card ?xF = fact n"
-	unfolding xfgpF' card_image[OF ginj] hassize_def
-	apply (simp only: Collect_split Collect_mem_eq card_cartesian_product)
-	by simp
+        unfolding xfgpF' card_image[OF ginj] hassize_def
+        apply (simp only: Collect_split Collect_mem_eq card_cartesian_product)
+        by simp
       from finite_imageI[OF pF'f, of ?g] have xFf: "finite ?xF" unfolding xfgpF' by simp
       have "?xF hassize fact n"
-	using xFf xFc
-	unfolding hassize_def  xFf by blast }
+        using xFf xFc
+        unfolding hassize_def  xFf by blast }
     thus "\<forall>n. (insert x F hassize n) \<longrightarrow> ({p. p permutes insert x F} hassize fact n)"
       by blast
   qed
@@ -689,17 +688,17 @@ proof-
       using p le
     proof(induct n arbitrary: S rule: less_induct)
       fix n S assume H: "\<And>m S. \<lbrakk>m < n; p permutes S; \<forall>i\<in>S. p i \<le> i\<rbrakk> \<Longrightarrow> p m = m"
-	"p permutes S" "\<forall>i \<in>S. p i \<le> i"
+        "p permutes S" "\<forall>i \<in>S. p i \<le> i"
       {assume "n \<notin> S"
-	with H(2) have "p n = n" unfolding permutes_def by metis}
+        with H(2) have "p n = n" unfolding permutes_def by metis}
       moreover
       {assume ns: "n \<in> S"
-	from H(3)  ns have "p n < n \<or> p n = n" by auto
-	moreover{assume h: "p n < n"
-	  from H h have "p (p n) = p n" by metis
-	  with permutes_inj[OF H(2)] have "p n = n" unfolding inj_on_def by blast
-	  with h have False by simp}
-	ultimately have "p n = n" by blast }
+        from H(3)  ns have "p n < n \<or> p n = n" by auto
+        moreover{assume h: "p n < n"
+          from H h have "p (p n) = p n" by metis
+          with permutes_inj[OF H(2)] have "p n = n" unfolding inj_on_def by blast
+          with h have False by simp}
+        ultimately have "p n = n" by blast }
       ultimately show "p n = n"  by blast
     qed}
   thus ?thesis by (auto simp add: expand_fun_eq)
@@ -840,13 +839,13 @@ proof-
       and p: "p permutes S" and q: "q permutes S"
       and eq: "Fun.swap a b id o p = Fun.swap a c id o q"
       from p q aS have pa: "p a = a" and qa: "q a = a"
-	unfolding permutes_def by metis+
+        unfolding permutes_def by metis+
       from eq have "(Fun.swap a b id o p) a  = (Fun.swap a c id o q) a" by simp
       hence bc: "b = c"
-	by (simp add: permutes_def pa qa o_def fun_upd_def swap_def id_def cong del: if_weak_cong split: split_if_asm)
+        by (simp add: permutes_def pa qa o_def fun_upd_def swap_def id_def cong del: if_weak_cong split: split_if_asm)
       from eq[unfolded bc] have "(\<lambda>p. Fun.swap a c id o p) (Fun.swap a c id o p) = (\<lambda>p. Fun.swap a c id o p) (Fun.swap a c id o q)" by simp
       hence "p = q" unfolding o_assoc swap_id_idempotent
-	by (simp add: o_def)
+        by (simp add: o_def)
       with bc have "b = c \<and> p = q" by blast
     }
 

@@ -42,7 +42,7 @@ where
   "msort [] = []"
 | "msort [x] = [x]"
 | "msort xs = merge (msort (take (size xs div 2) xs))
-	                  (msort (drop (size xs div 2) xs))"
+                    (msort (drop (size xs div 2) xs))"
 
 theorem sorted_msort: "sorted (op \<le>) (msort xs)"
 by (induct xs rule: msort.induct) simp_all

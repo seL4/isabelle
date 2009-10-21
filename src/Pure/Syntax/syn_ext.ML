@@ -352,7 +352,7 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
   in
     SynExt {
       xprods = xprods,
-      consts = consts union_string mfix_consts,
+      consts = union (op =) consts mfix_consts,
       prmodes = distinct (op =) (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules' @ parse_rules,

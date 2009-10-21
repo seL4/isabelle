@@ -154,7 +154,7 @@ fun eval_antiquote lex state (txt, pos) =
           let val (opts, src) = T.read_antiq lex antiq (ss, pos) in
             options opts (fn () => command src state) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
-              (Output.no_warnings (options opts (fn () => command src state))) ()
+              (Output.no_warnings_CRITICAL (options opts (fn () => command src state))) ()
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
@@ -416,22 +416,22 @@ end;
 (* options *)
 
 val _ = add_options
- [("show_types", Library.setmp Syntax.show_types o boolean),
-  ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
-  ("show_structs", Library.setmp show_structs o boolean),
-  ("show_question_marks", Library.setmp show_question_marks o boolean),
-  ("long_names", Library.setmp NameSpace.long_names o boolean),
-  ("short_names", Library.setmp NameSpace.short_names o boolean),
-  ("unique_names", Library.setmp NameSpace.unique_names o boolean),
-  ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
-  ("display", Library.setmp display o boolean),
-  ("break", Library.setmp break o boolean),
-  ("quotes", Library.setmp quotes o boolean),
+ [("show_types", setmp_CRITICAL Syntax.show_types o boolean),
+  ("show_sorts", setmp_CRITICAL Syntax.show_sorts o boolean),
+  ("show_structs", setmp_CRITICAL show_structs o boolean),
+  ("show_question_marks", setmp_CRITICAL show_question_marks o boolean),
+  ("long_names", setmp_CRITICAL NameSpace.long_names o boolean),
+  ("short_names", setmp_CRITICAL NameSpace.short_names o boolean),
+  ("unique_names", setmp_CRITICAL NameSpace.unique_names o boolean),
+  ("eta_contract", setmp_CRITICAL Syntax.eta_contract o boolean),
+  ("display", setmp_CRITICAL display o boolean),
+  ("break", setmp_CRITICAL break o boolean),
+  ("quotes", setmp_CRITICAL quotes o boolean),
   ("mode", fn s => fn f => PrintMode.with_modes [s] f),
-  ("margin", Pretty.setmp_margin o integer),
-  ("indent", Library.setmp indent o integer),
-  ("source", Library.setmp source o boolean),
-  ("goals_limit", Library.setmp goals_limit o integer)];
+  ("margin", Pretty.setmp_margin_CRITICAL o integer),
+  ("indent", setmp_CRITICAL indent o integer),
+  ("source", setmp_CRITICAL source o boolean),
+  ("goals_limit", setmp_CRITICAL goals_limit o integer)];
 
 
 (* basic pretty printing *)

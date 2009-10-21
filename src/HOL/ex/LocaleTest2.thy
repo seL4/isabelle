@@ -302,8 +302,8 @@ proof (rule joinI)
     proof
       show "y \<sqsubseteq> w"
       proof -
-	have "y \<sqsubseteq> x \<squnion> y" ..
-	also have "... \<sqsubseteq> w" by fact
+        have "y \<sqsubseteq> x \<squnion> y" ..
+        also have "... \<sqsubseteq> w" by fact
         finally show ?thesis .
       qed
       show "z \<sqsubseteq> w" by fact
@@ -451,15 +451,15 @@ proof
   proof -
     { assume c: "y \<sqsubseteq> x" "z \<sqsubseteq> x"
       from c have "?l = y \<squnion> z"
-	by (metis c (*join_commute*) join_connection2 join_related2 (*meet_commute*) meet_connection meet_related2 total)
+        by (metis c (*join_commute*) join_connection2 join_related2 (*meet_commute*) meet_connection meet_related2 total)
       also from c have "... = ?r" by (metis (*c*) (*join_commute*) meet_related2)
       finally have "?l = ?r" . }
     moreover
     { assume c: "x \<sqsubseteq> y | x \<sqsubseteq> z"
       from c have "?l = x"
-	by (metis (*anti_sym*) (*c*) (*circular*) (*join_assoc*)(* join_commute *) join_connection2 (*join_left*) join_related2 meet_connection(* meet_related2*) total trans)
+        by (metis (*anti_sym*) (*c*) (*circular*) (*join_assoc*)(* join_commute *) join_connection2 (*join_left*) join_related2 meet_connection(* meet_related2*) total trans)
       also from c have "... = ?r"
-	by (metis join_commute join_related2 meet_connection meet_related2 total)
+        by (metis join_commute join_related2 meet_connection meet_related2 total)
       finally have "?l = ?r" . }
     moreover note total
     ultimately show ?thesis by blast
@@ -855,15 +855,15 @@ proof -
       proof (rule inj_onI)
         fix x y
         assume "f x = f y"
-	then have "(g o f) x = (g o f) y" by simp
-	with id2 show "x = y" by simp
+        then have "(g o f) x = (g o f) y" by simp
+        with id2 show "x = y" by simp
       qed
     next
       show "surj f"
       proof (rule surjI)
-	fix x
+        fix x
         from id1 have "(f o g) x = x" by simp
-	then show "f (g x) = x" by simp
+        then show "f (g x) = x" by simp
       qed
     qed
   next
@@ -897,7 +897,7 @@ apply (insert unit_id)
 apply simp
 done
   show "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
-apply (unfold Dmonoid.inv_def [OF Dmonoid] inv_def)
+apply (unfold Dmonoid.inv_def [OF Dmonoid])
 apply (insert unit_id)
 apply simp
 apply (rule the_equality)

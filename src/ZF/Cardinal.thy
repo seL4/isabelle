@@ -1,8 +1,6 @@
 (*  Title:      ZF/Cardinal.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*Cardinal Numbers Without the Axiom of Choice*}
@@ -60,7 +58,7 @@ by (rule bnd_monoI, blast+)
 lemma Banach_last_equation:
     "g: Y->X
      ==> g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =        
-	 X - lfp(X, %W. X - g``(Y - f``W))" 
+         X - lfp(X, %W. X - g``(Y - f``W))" 
 apply (rule_tac P = "%u. ?v = X-u" 
        in decomp_bnd_mono [THEN lfp_unfold, THEN ssubst])
 apply (simp add: double_complement  fun_is_rel [THEN image_subset])

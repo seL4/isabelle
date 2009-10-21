@@ -1,9 +1,9 @@
-(*  Title:      HOL/UNITY/Counterc
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/Counterc.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 
-A family of similar counters, version with a full use of "compatibility "
+A family of similar counters, version with a full use of
+"compatibility ".
 
 From Charpentier and Chandy,
 Examples of Program Composition Illustrating the Use of Universal Properties
@@ -41,8 +41,8 @@ constdefs
  
   Component :: "nat => state program"
   "Component i == mk_total_program({s. C s = 0 & (c s) i = 0},
-				   {a i},
- 	                           \<Union>G \<in> preserves (%s. (c s) i). Acts G)"
+                                   {a i},
+                                   \<Union>G \<in> preserves (%s. (c s) i). Acts G)"
 
 
 declare Component_def [THEN def_prg_Init, simp]
@@ -101,7 +101,7 @@ done
 lemma p2_p3_lemma1: 
      "[| OK {i. i<I} Component; i<I |] ==>  
       \<forall>k. Component i \<in> stable ({s. C s = c s i + sumj I i k} Int  
-	 	                {s. \<forall>j\<in>{i. i<I}. j\<noteq>i --> c s j = c k j})"
+                                {s. \<forall>j\<in>{i. i<I}. j\<noteq>i --> c s j = c k j})"
 by (blast intro: stable_Int [OF p2 p3])
 
 lemma p2_p3_lemma2:

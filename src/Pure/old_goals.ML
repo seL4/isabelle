@@ -259,7 +259,7 @@ fun reset_goals () =
 
 (*Generates the list of new theories when the proof state's theory changes*)
 fun thy_error (thy,thy') =
-  let val names = Context.display_names thy' \\ Context.display_names thy
+  let val names = subtract (op =) (Context.display_names thy) (Context.display_names thy')
   in  case names of
         [name] => "\nNew theory: " ^ name
       | _       => "\nNew theories: " ^ space_implode ", " names
@@ -305,7 +305,7 @@ fun prepare_proof atomic rths chorn =
             val th = Goal.conclude ath
             val thy' = Thm.theory_of_thm th
             val {hyps, prop, ...} = Thm.rep_thm th
-            val final_th = standard th
+            val final_th = Drule.standard th
         in  if not check then final_th
             else if not (Theory.eq_thy(thy,thy')) then !result_error_fn state
                 ("Theory of proof state has changed!" ^
@@ -367,9 +367,9 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 (*Two variants: one checking the result, one not.
   Neither prints runtime messages: they are for internal packages.*)
 fun prove_goalw_cterm rths chorn =
-        setmp Output.timing false (prove_goalw_cterm_general true rths chorn)
+        setmp_CRITICAL Output.timing false (prove_goalw_cterm_general true rths chorn)
 and prove_goalw_cterm_nocheck rths chorn =
-        setmp Output.timing false (prove_goalw_cterm_general false rths chorn);
+        setmp_CRITICAL Output.timing false (prove_goalw_cterm_general false rths chorn);
 
 
 (*Version taking the goal as a string*)
@@ -512,7 +512,7 @@ fun simple_prove_goal_cterm G f =
             0 => thm
           | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
   in
-    standard (implies_intr_list As
+    Drule.standard (implies_intr_list As
       (check (Seq.pull (EVERY (f asms) (trivial B)))))
   end;
 

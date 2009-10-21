@@ -1,5 +1,4 @@
 (*  Title:      ZF/Coind/ECR.thy
-    ID:         $Id$
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
@@ -29,8 +28,8 @@ coinductive
 definition
   hastyenv :: "[i,i] => o"  where
     "hastyenv(ve,te) ==                        
-	 ve_dom(ve) = te_dom(te) &          
-	 (\<forall>x \<in> ve_dom(ve). <ve_app(ve,x),te_app(te,x)> \<in> HasTyRel)"
+         ve_dom(ve) = te_dom(te) &          
+         (\<forall>x \<in> ve_dom(ve). <ve_app(ve,x),te_app(te,x)> \<in> HasTyRel)"
 
 (* Specialised co-induction rule *)
 

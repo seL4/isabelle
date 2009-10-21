@@ -1,8 +1,6 @@
-(*  Title:      ZF/InfDatatype.ML
-    ID:         $Id$
+(*  Title:      ZF/InfDatatype.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
-
 *)
 
 header{*Infinite-Branching Datatype Definitions*}
@@ -64,7 +62,7 @@ lemma Card_fun_Vcsucc:
      "InfCard(K) ==> K -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))"
 apply (frule InfCard_is_Card [THEN Card_is_Ord])
 apply (blast del: subsetI
-	     intro: fun_Vcsucc Ord_cardinal_le i_subset_Vfrom 
+             intro: fun_Vcsucc Ord_cardinal_le i_subset_Vfrom 
                    lt_csucc [THEN leI, THEN le_imp_subset, THEN subset_trans]) 
 done
 

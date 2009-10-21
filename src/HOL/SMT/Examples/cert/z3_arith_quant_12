@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (if_then_else (forall (?x1 Int) (or (< ?x1 0) (< 0 ?x1))) false true))
+:formula true
+)

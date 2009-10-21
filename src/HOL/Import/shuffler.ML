@@ -78,7 +78,7 @@ structure ShuffleData = TheoryDataFun
   val empty = []
   val copy = I
   val extend = I
-  fun merge _ = Library.gen_union Thm.eq_thm
+  fun merge _ = Library.merge Thm.eq_thm_prop
 )
 
 fun print_shuffles thy =
@@ -101,7 +101,7 @@ val weaken =
         val th4 = implies_elim_list (assume cPPQ) [th3,th3]
                                     |> implies_intr_list [cPPQ,cP]
     in
-        equal_intr th4 th1 |> standard
+        equal_intr th4 th1 |> Drule.standard
     end
 
 val imp_comm =
@@ -121,7 +121,7 @@ val imp_comm =
         val th2 = implies_elim_list (assume cQPR) [assume cQ,assume cP]
                                     |> implies_intr_list [cQPR,cP,cQ]
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 val def_norm =
@@ -148,7 +148,7 @@ val def_norm =
                               |> forall_intr cv
                               |> implies_intr cPQ
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 val all_comm =
@@ -174,7 +174,7 @@ val all_comm =
                          |> forall_intr_list [cy,cx]
                          |> implies_intr cl
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 val equiv_comm =
@@ -188,7 +188,7 @@ val equiv_comm =
         val th1  = assume ctu |> symmetric |> implies_intr ctu
         val th2  = assume cut |> symmetric |> implies_intr cut
     in
-        equal_intr th1 th2 |> standard
+        equal_intr th1 th2 |> Drule.standard
     end
 
 (* This simplification procedure rewrites !!x y. P x y
@@ -563,19 +563,20 @@ fun match_consts ignore t (* th *) =
         let
             val th_consts = add_consts(prop_of th,[])
         in
-            eq_set(t_consts,th_consts)
+            eq_set (op =) (t_consts, th_consts)
         end
     end
 
-val collect_ignored =
-    fold_rev (fn thm => fn cs =>
-              let
-                  val (lhs,rhs) = Logic.dest_equals (prop_of thm)
-                  val ignore_lhs = Term.add_const_names lhs [] \\ Term.add_const_names rhs []
-                  val ignore_rhs = Term.add_const_names rhs [] \\ Term.add_const_names lhs []
-              in
-                  fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
-              end)
+val collect_ignored = fold_rev (fn thm => fn cs =>
+  let
+    val (lhs, rhs) = Logic.dest_equals (prop_of thm);
+    val consts_lhs = Term.add_const_names lhs [];
+    val consts_rhs = Term.add_const_names rhs [];
+    val ignore_lhs = subtract (op =) consts_rhs consts_lhs;
+    val ignore_rhs = subtract (op =) consts_lhs consts_rhs;
+  in
+    fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
+  end)
 
 (* set_prop t thms tries to make a theorem with the proposition t from
 one of the theorems thms, by shuffling the propositions around.  If it

@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/WFrec.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -22,8 +21,8 @@ done
 text{*Expresses @{text is_recfun} as a recursion equation*}
 lemma is_recfun_iff_equation:
      "is_recfun(r,a,H,f) <->
-	   f \<in> r -`` {a} \<rightarrow> range(f) &
-	   (\<forall>x \<in> r-``{a}. f`x = H(x, restrict(f, r-``{x})))"  
+           f \<in> r -`` {a} \<rightarrow> range(f) &
+           (\<forall>x \<in> r-``{a}. f`x = H(x, restrict(f, r-``{x})))"  
 apply (rule iffI) 
  apply (simp add: is_recfun_type apply_recfun Ball_def vimage_singleton_iff, 
         clarify)  
@@ -174,8 +173,8 @@ lemma (in M_basic) restrict_Y_lemma:
    "[| wellfounded(M,r); trans(r); M(r);
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(Y);
        \<forall>b[M]. 
-	   b \<in> Y <->
-	   (\<exists>x[M]. <x,a1> \<in> r &
+           b \<in> Y <->
+           (\<exists>x[M]. <x,a1> \<in> r &
             (\<exists>y[M]. b = \<langle>x,y\<rangle> & (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g))));
           \<langle>x,a1\<rangle> \<in> r; is_recfun(r,x,H,f); M(f) |]
        ==> restrict(Y, r -`` {x}) = f"
@@ -187,7 +186,7 @@ apply (frule pair_components_in_M, assumption, clarify)
 apply (rule iffI)
  apply (frule_tac y="<y,z>" in transM, assumption)
  apply (clarsimp simp add: vimage_singleton_iff is_recfun_type [THEN apply_iff]
-			   apply_recfun is_recfun_cut) 
+                           apply_recfun is_recfun_cut) 
 txt{*Opposite inclusion: something in f, show in Y*}
 apply (frule_tac y="<y,z>" in transM, assumption)  
 apply (simp add: vimage_singleton_iff) 
@@ -276,7 +275,7 @@ definition
    "M_is_recfun(M,MH,r,a,f) == 
      \<forall>z[M]. z \<in> f <-> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
-	       pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
+               pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
                pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
                xa \<in> r & MH(x, f_r_sx, y))"
 

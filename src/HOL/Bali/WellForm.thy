@@ -59,9 +59,9 @@ A method head is wellformed if:
 constdefs
   wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool"
  "wf_mhead G P \<equiv> \<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
-			    \<spacespace> ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
+                            \<spacespace> ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
                             is_acc_type G P (resTy mh) \<and>
-			    \<spacespace> distinct (pars mh)"
+                            \<spacespace> distinct (pars mh)"
 
 
 text {*
@@ -87,7 +87,7 @@ constdefs callee_lcl:: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarro
                   VNam v 
                   \<Rightarrow>(table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
                 | Res \<Rightarrow> Some (resTy m))
-	  | This \<Rightarrow> if is_static m then None else Some (Class C))"
+          | This \<Rightarrow> if is_static m then None else Some (Class C))"
 
 constdefs parameters :: "methd \<Rightarrow> lname set"
 "parameters m \<equiv>  set (map (EName \<circ> VNam) (pars m)) 
@@ -97,10 +97,10 @@ constdefs
   wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarrow> bool"
  "wf_mdecl G C \<equiv> 
       \<lambda>(sig,m).
-	  wf_mhead G (pid C) sig (mhead m) \<and> 
+          wf_mhead G (pid C) sig (mhead m) \<and> 
           unique (lcls (mbody m)) \<and> 
           (\<forall>(vn,T)\<in>set (lcls (mbody m)). is_acc_type G (pid C) T) \<and> 
-	  (\<forall>pn\<in>set (pars m). table_of (lcls (mbody m)) pn = None) \<and>
+          (\<forall>pn\<in>set (pars m). table_of (lcls (mbody m)) pn = None) \<and>
           jumpNestingOkS {Ret} (stmt (mbody m)) \<and> 
           is_class G C \<and>
           \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd> \<and>
@@ -225,11 +225,11 @@ constdefs
  "wf_idecl G \<equiv> 
     \<lambda>(I,i). 
         ws_idecl G I (isuperIfs i) \<and> 
-	\<not>is_class G I \<and>
-	(\<forall>(sig,mh)\<in>set (imethods i). wf_mhead G (pid I) sig mh \<and> 
+        \<not>is_class G I \<and>
+        (\<forall>(sig,mh)\<in>set (imethods i). wf_mhead G (pid I) sig mh \<and> 
                                      \<not>is_static mh \<and>
                                       accmodi mh = Public) \<and>
-	unique (imethods i) \<and>
+        unique (imethods i) \<and>
         (\<forall> J\<in>set (isuperIfs i). is_acc_iface G (pid I) J) \<and>
         (table_of (imethods i)
           hiding (methd G Object)
@@ -238,7 +238,7 @@ constdefs
                              is_static new = is_static old)) \<and> 
         (Option.set \<circ> table_of (imethods i) 
                hidings Un_tables((\<lambda>J.(imethds G J))`set (isuperIfs i))
-	       entails (\<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old))"
+               entails (\<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old))"
 
 lemma wf_idecl_mhead: "\<lbrakk>wf_idecl G (I,i); (sig,mh)\<in>set (imethods i)\<rbrakk> \<Longrightarrow>  
   wf_mhead G (pid I) sig mh \<and> \<not>is_static mh \<and> accmodi mh = Public"
@@ -340,8 +340,8 @@ constdefs
       \<not>is_iface G C \<and>
       (\<forall>I\<in>set (superIfs c). is_acc_iface G (pid C) I \<and>
         (\<forall>s. \<forall> im \<in> imethds G I s.
-      	    (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy cm\<preceq>resTy im \<and>
-      	                             \<not> is_static cm \<and>
+            (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy cm\<preceq>resTy im \<and>
+                                     \<not> is_static cm \<and>
                                      accmodi im \<le> accmodi cm))) \<and>
       (\<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f) \<and> unique (cfields c) \<and> 
       (\<forall>m\<in>set (methods c). wf_mdecl G C m) \<and> unique (methods c) \<and>
@@ -355,10 +355,10 @@ constdefs
                        (G,sig\<turnstile>new overrides\<^sub>S old 
                         \<longrightarrow> (G\<turnstile>resTy new\<preceq>resTy old \<and>
                              accmodi old \<le> accmodi new \<and>
-      	                     \<not>is_static old)) \<and>
+                             \<not>is_static old)) \<and>
                        (G,sig\<turnstile>new hides old 
                          \<longrightarrow> (accmodi old \<le> accmodi new \<and>
-      	                      is_static old)))) 
+                              is_static old)))) 
             ))"
 
 (*
@@ -369,8 +369,8 @@ constdefs
       \<not>is_iface G C \<and>
       (\<forall>I\<in>set (superIfs c). is_acc_iface G (pid C) I \<and>
         (\<forall>s. \<forall> im \<in> imethds G I s.
-      	    (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy (mthd cm)\<preceq>resTy (mthd im) \<and>
-      	                             \<not> is_static cm \<and>
+            (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy (mthd cm)\<preceq>resTy (mthd im) \<and>
+                                     \<not> is_static cm \<and>
                                      accmodi im \<le> accmodi cm))) \<and>
       (\<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f) \<and> unique (cfields c) \<and> 
       (\<forall>m\<in>set (methods c). wf_mdecl G C m) \<and> unique (methods c) \<and> 
@@ -383,7 +383,7 @@ constdefs
               entails (\<lambda> new old. 
                            (G\<turnstile>resTy (mthd new)\<preceq>resTy (mthd old) \<and>
                             accmodi old \<le> accmodi new \<and>
-      	                   \<not> is_static old)))  \<and>
+                           \<not> is_static old)))  \<and>
             (table_of (map (\<lambda> (s,m). (s,C,m)) (methods c)) 
               hiding methd G (super c)
               under (\<lambda> new old. G\<turnstile>new hides old)
@@ -398,8 +398,8 @@ lemma wf_cdeclE [consumes 1]:
    \<lbrakk>\<not>is_iface G C;
     (\<forall>I\<in>set (superIfs c). is_acc_iface G (pid C) I \<and>
         (\<forall>s. \<forall> im \<in> imethds G I s.
-      	    (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy cm\<preceq>resTy im \<and>
-      	                             \<not> is_static cm \<and>
+            (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy cm\<preceq>resTy im \<and>
+                                     \<not> is_static cm \<and>
                                      accmodi im \<le> accmodi cm))); 
       \<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f; unique (cfields c); 
       \<forall>m\<in>set (methods c). wf_mdecl G C m; unique (methods c);
@@ -414,10 +414,10 @@ lemma wf_cdeclE [consumes 1]:
                        (G,sig\<turnstile>new overrides\<^sub>S old 
                         \<longrightarrow> (G\<turnstile>resTy new\<preceq>resTy old \<and>
                              accmodi old \<le> accmodi new \<and>
-      	                     \<not>is_static old)) \<and>
+                             \<not>is_static old)) \<and>
                        (G,sig\<turnstile>new hides old 
                          \<longrightarrow> (accmodi old \<le> accmodi new \<and>
-      	                      is_static old)))) 
+                              is_static old)))) 
             ))\<rbrakk> \<Longrightarrow> P
   \<rbrakk> \<Longrightarrow> P"
 by (unfold wf_cdecl_def) simp
@@ -522,11 +522,11 @@ A program declaration is wellformed if:
 constdefs
   wf_prog  :: "prog \<Rightarrow> bool"
  "wf_prog G \<equiv> let is = ifaces G; cs = classes G in
-	         ObjectC \<in> set cs \<and> 
+                 ObjectC \<in> set cs \<and> 
                 (\<forall> m\<in>set Object_mdecls. accmodi m \<noteq> Package) \<and>
                 (\<forall>xn. SXcptC xn \<in> set cs) \<and>
-		(\<forall>i\<in>set is. wf_idecl G i) \<and> unique is \<and>
-		(\<forall>c\<in>set cs. wf_cdecl G c) \<and> unique cs"
+                (\<forall>i\<in>set is. wf_idecl G i) \<and> unique is \<and>
+                (\<forall>c\<in>set cs. wf_cdecl G c) \<and> unique cs"
 
 lemma wf_prog_idecl: "\<lbrakk>iface G I = Some i; wf_prog G\<rbrakk> \<Longrightarrow> wf_idecl G (I,i)"
 apply (unfold wf_prog_def Let_def)
@@ -593,7 +593,7 @@ apply (fast dest!: map_of_SomeI)
 done
 
 lemma wf_ObjectC [simp]: 
-	"wf_cdecl G ObjectC = (\<not>is_iface G Object \<and> Ball (set Object_mdecls)
+        "wf_cdecl G ObjectC = (\<not>is_iface G Object \<and> Ball (set Object_mdecls)
   (wf_mdecl G Object) \<and> unique Object_mdecls)"
 apply (unfold wf_cdecl_def ws_cdecl_def ObjectC_def)
 apply (auto intro: da.Skip)
@@ -753,26 +753,26 @@ proof -
       let ?inherited = "Un_tables (imethds G ` set (isuperIfs i))"
       let ?new = "(Option.set \<circ> table_of (map (\<lambda>(s, mh). (s, I, mh)) (imethods i)))"
       from if_I wf im have imethds:"im \<in> (?inherited \<oplus>\<oplus> ?new) sig"
-	by (simp add: imethds_rec)
+        by (simp add: imethds_rec)
       from wf if_I have 
-	wf_supI: "\<forall> J. J \<in> set (isuperIfs i) \<longrightarrow> (\<exists> j. iface G J = Some j)"
-	by (blast dest: wf_prog_idecl wf_idecl_supD is_acc_ifaceD)
+        wf_supI: "\<forall> J. J \<in> set (isuperIfs i) \<longrightarrow> (\<exists> j. iface G J = Some j)"
+        by (blast dest: wf_prog_idecl wf_idecl_supD is_acc_ifaceD)
       from wf if_I have
-	"\<forall> im \<in> set (imethods i). \<not> is_static im \<and> accmodi im = Public"
-	by (auto dest!: wf_prog_idecl wf_idecl_mhead)
+        "\<forall> im \<in> set (imethods i). \<not> is_static im \<and> accmodi im = Public"
+        by (auto dest!: wf_prog_idecl wf_idecl_mhead)
       then have new_ok: "\<forall> im. table_of (imethods i) sig = Some im 
                          \<longrightarrow>  \<not> is_static im \<and> accmodi im = Public"
-	by (auto dest!: table_of_Some_in_set)
+        by (auto dest!: table_of_Some_in_set)
       show ?thesis
-	proof (cases "?new sig = {}")
-	  case True
-	  from True wf wf_supI if_I imethds hyp 
-	  show ?thesis by (auto simp del:  split_paired_All)  
-	next
-	  case False
-	  from False wf wf_supI if_I imethds new_ok hyp 
-	  show ?thesis by (auto dest: wf_idecl_hidings hidings_entailsD)
-	qed
+        proof (cases "?new sig = {}")
+          case True
+          from True wf wf_supI if_I imethds hyp 
+          show ?thesis by (auto simp del:  split_paired_All)  
+        next
+          case False
+          from False wf wf_supI if_I imethds new_ok hyp 
+          show ?thesis by (auto dest: wf_idecl_hidings hidings_entailsD)
+        qed
       qed
     qed
   with asm show ?thesis by (auto simp del: split_paired_All)
@@ -870,14 +870,14 @@ proof -
     proof -
       from stat_override 
       have "accmodi old \<noteq> Private"
-	by (rule no_Private_stat_override)
+        by (rule no_Private_stat_override)
       moreover
       from stat_override wf
       have "accmodi old \<le> accmodi new"
-	by (auto dest: wf_prog_stat_overridesD)
+        by (auto dest: wf_prog_stat_overridesD)
       ultimately
       show ?thesis
-	by (auto dest: acc_modi_bottom)
+        by (auto dest: acc_modi_bottom)
     qed
     with Direct resTy_widen not_static_old 
     show "?Overrides new old" 
@@ -935,50 +935,50 @@ proof -
        by (cases old) (auto dest: member_of_declC)
       have "?P C old"
       proof (cases "G\<turnstile>mid (msig old) undeclared_in C")
-	case True
-	with inheritable super accessible_super member_super
-	have "G\<turnstile>Method old member_of C"
-	  by (cases old) (auto intro: members.Inherited)
-	then show ?thesis
-	  by auto
+        case True
+        with inheritable super accessible_super member_super
+        have "G\<turnstile>Method old member_of C"
+          by (cases old) (auto intro: members.Inherited)
+        then show ?thesis
+          by auto
       next
-	case False
-	then obtain new_member where
-	     "G\<turnstile>new_member declared_in C" and
+        case False
+        then obtain new_member where
+             "G\<turnstile>new_member declared_in C" and
              "mid (msig old) = memberid new_member"
           by (auto dest: not_undeclared_declared)
-	then obtain new where
-	          new: "G\<turnstile>Method new declared_in C" and
+        then obtain new where
+                  new: "G\<turnstile>Method new declared_in C" and
                eq_sig: "msig old = msig new" and
-	    declC_new: "declclass new = C" 
-	  by (cases new_member) auto
-	then have member_new: "G\<turnstile>Method new member_of C"
-	  by (cases new) (auto intro: members.Immediate)
-	from declC_new super member_super
-	have subcls_new_old: "G\<turnstile>declclass new \<prec>\<^sub>C declclass old"
-	  by (auto dest!: member_of_subclseq_declC
-	            dest: r_into_trancl intro: trancl_rtrancl_trancl)
-	show ?thesis
-	proof (cases "is_static new")
-	  case False
-	  with eq_sig declC_new new old_declared inheritable
-	       super member_super subcls_new_old
-	  have "G\<turnstile>new overrides\<^sub>S old"
-	    by (auto intro!: stat_overridesR.Direct)
-	  with member_new show ?thesis
-	    by blast
-	next
-	  case True
-	  with eq_sig declC_new subcls_new_old new old_declared inheritable
-	  have "G\<turnstile>new hides old"
-	    by (auto intro: hidesI)    
-	  with wf 
-	  have "is_static old"
-	    by (blast dest: wf_prog_hidesD)
-	  with instance_method
-	  show ?thesis
-	    by (contradiction)
-	qed
+            declC_new: "declclass new = C" 
+          by (cases new_member) auto
+        then have member_new: "G\<turnstile>Method new member_of C"
+          by (cases new) (auto intro: members.Immediate)
+        from declC_new super member_super
+        have subcls_new_old: "G\<turnstile>declclass new \<prec>\<^sub>C declclass old"
+          by (auto dest!: member_of_subclseq_declC
+                    dest: r_into_trancl intro: trancl_rtrancl_trancl)
+        show ?thesis
+        proof (cases "is_static new")
+          case False
+          with eq_sig declC_new new old_declared inheritable
+               super member_super subcls_new_old
+          have "G\<turnstile>new overrides\<^sub>S old"
+            by (auto intro!: stat_overridesR.Direct)
+          with member_new show ?thesis
+            by blast
+        next
+          case True
+          with eq_sig declC_new subcls_new_old new old_declared inheritable
+          have "G\<turnstile>new hides old"
+            by (auto intro: hidesI)    
+          with wf 
+          have "is_static old"
+            by (blast dest: wf_prog_hidesD)
+          with instance_method
+          show ?thesis
+            by (contradiction)
+        qed
       qed
     } note hyp_member_super = this
     from subclsC cls_C 
@@ -991,60 +991,60 @@ proof -
       assume "super c = declclass old"
       with old_declared 
       have "G\<turnstile>Method old member_of (super c)" 
-	by (cases old) (auto intro: members.Immediate)
+        by (cases old) (auto intro: members.Immediate)
       with inheritable instance_method 
       show ?thesis
-	by (blast dest: hyp_member_super)
+        by (blast dest: hyp_member_super)
     next
       case Subcls
       assume "G\<turnstile>super c\<prec>\<^sub>C declclass old"
       moreover
       from inheritable accmodi_old
       have "G \<turnstile>Method old inheritable_in pid (super c)"
-	by (cases "accmodi old") (auto simp add: inheritable_in_def)
+        by (cases "accmodi old") (auto simp add: inheritable_in_def)
       ultimately
       have "?P (super c) old"
-	by (blast dest: hyp)
+        by (blast dest: hyp)
       then show ?thesis
       proof
-	assume "G \<turnstile>Method old member_of super c"
-	with inheritable instance_method
-	show ?thesis
-	  by (blast dest: hyp_member_super)
+        assume "G \<turnstile>Method old member_of super c"
+        with inheritable instance_method
+        show ?thesis
+          by (blast dest: hyp_member_super)
       next
-	assume "\<exists>new. G \<turnstile> new overrides\<^sub>S old \<and> G \<turnstile>Method new member_of super c"
-	then obtain super_new where
-	  super_new_override:  "G \<turnstile> super_new overrides\<^sub>S old" and
+        assume "\<exists>new. G \<turnstile> new overrides\<^sub>S old \<and> G \<turnstile>Method new member_of super c"
+        then obtain super_new where
+          super_new_override:  "G \<turnstile> super_new overrides\<^sub>S old" and
             super_new_member:  "G \<turnstile>Method super_new member_of super c"
-	  by blast
-	from super_new_override wf
-	have "accmodi old \<le> accmodi super_new"
-	  by (auto dest: wf_prog_stat_overridesD)
-	with inheritable accmodi_old
-	have "G \<turnstile>Method super_new inheritable_in pid C"
-	  by (auto simp add: inheritable_in_def 
-	              split: acc_modi.splits
+          by blast
+        from super_new_override wf
+        have "accmodi old \<le> accmodi super_new"
+          by (auto dest: wf_prog_stat_overridesD)
+        with inheritable accmodi_old
+        have "G \<turnstile>Method super_new inheritable_in pid C"
+          by (auto simp add: inheritable_in_def 
+                      split: acc_modi.splits
                        dest: acc_modi_le_Dests)
-	moreover
-	from super_new_override 
-	have "\<not> is_static super_new"
-	  by (auto dest: stat_overrides_commonD)
-	moreover
-	note super_new_member
-	ultimately have "?P C super_new"
-	  by (auto dest: hyp_member_super)
-	then show ?thesis
-	proof 
-	  assume "G \<turnstile>Method super_new member_of C"
-	  with super_new_override
-	  show ?thesis
-	    by blast
-	next
-	  assume "\<exists>new. G \<turnstile> new overrides\<^sub>S super_new \<and> 
+        moreover
+        from super_new_override 
+        have "\<not> is_static super_new"
+          by (auto dest: stat_overrides_commonD)
+        moreover
+        note super_new_member
+        ultimately have "?P C super_new"
+          by (auto dest: hyp_member_super)
+        then show ?thesis
+        proof 
+          assume "G \<turnstile>Method super_new member_of C"
+          with super_new_override
+          show ?thesis
+            by blast
+        next
+          assume "\<exists>new. G \<turnstile> new overrides\<^sub>S super_new \<and> 
                   G \<turnstile>Method new member_of C"
-	  with super_new_override show ?thesis
-	    by (blast intro: stat_overridesR.Indirect) 
-	qed
+          with super_new_override show ?thesis
+            by (blast intro: stat_overridesR.Indirect) 
+        qed
       qed
     qed
   qed
@@ -1095,46 +1095,46 @@ proof -
       assume "G \<turnstile>Method old member_of declclass new"
       then have "G\<turnstile>mid (msig old) undeclared_in declclass new"
       proof cases
-	case Immediate 
-	with subcls_new_old wf show ?thesis 	
-	  by (auto dest: subcls_irrefl)
+        case Immediate 
+        with subcls_new_old wf show ?thesis     
+          by (auto dest: subcls_irrefl)
       next
-	case Inherited
-	then show ?thesis
-	  by (cases old) auto
+        case Inherited
+        then show ?thesis
+          by (cases old) auto
       qed
       with eq_sig_new_old new_declared
       show ?thesis
-	by (cases old,cases new) (auto dest!: declared_not_undeclared)
+        by (cases old,cases new) (auto dest!: declared_not_undeclared)
     next
       case (Overriding new') 
       assume stat_override_new': "G \<turnstile> new' overrides\<^sub>S old"
       then have "msig new' = msig old"
-	by (auto dest: stat_overrides_commonD)
+        by (auto dest: stat_overrides_commonD)
       with eq_sig_new_old have eq_sig_new_new': "msig new=msig new'"
-	by simp
+        by simp
       assume "G \<turnstile>Method new' member_of declclass new"
       then show ?thesis
       proof (cases)
-	case Immediate
-	then have declC_new: "declclass new' = declclass new" 
-	  by auto
-	from Immediate 
-	have "G\<turnstile>Method new' declared_in declclass new"
-	  by (cases new') auto
-	with new_declared eq_sig_new_new' declC_new 
-	have "new=new'"
-	  by (cases new, cases new') (auto dest: unique_declared_in) 
-	with stat_override_new'
-	show ?thesis
-	  by simp
+        case Immediate
+        then have declC_new: "declclass new' = declclass new" 
+          by auto
+        from Immediate 
+        have "G\<turnstile>Method new' declared_in declclass new"
+          by (cases new') auto
+        with new_declared eq_sig_new_new' declC_new 
+        have "new=new'"
+          by (cases new, cases new') (auto dest: unique_declared_in) 
+        with stat_override_new'
+        show ?thesis
+          by simp
       next
-	case Inherited
-	then have "G\<turnstile>mid (msig new') undeclared_in declclass new"
-	  by (cases new') (auto)
-	with eq_sig_new_new' new_declared
-	show ?thesis
-	  by (cases new,cases new') (auto dest!: declared_not_undeclared)
+        case Inherited
+        then have "G\<turnstile>mid (msig new') undeclared_in declclass new"
+          by (cases new') (auto)
+        with eq_sig_new_new' new_declared
+        show ?thesis
+          by (cases new,cases new') (auto dest!: declared_not_undeclared)
       qed
     qed
   next
@@ -1151,12 +1151,12 @@ proof -
     proof -
       from stat_override_inter_old wf 
       have "accmodi old \<le> accmodi inter"
-	by (auto dest: wf_prog_stat_overridesD)
+        by (auto dest: wf_prog_stat_overridesD)
       with stat_override_inter_old accmodi_old
       show ?thesis
-	by (auto dest!: no_Private_stat_override
+        by (auto dest!: no_Private_stat_override
                  split: acc_modi.splits 
-	         dest: acc_modi_le_Dests)
+                 dest: acc_modi_le_Dests)
     qed
     ultimately show "?Overrides new old"
       by (blast intro: stat_overridesR.Indirect)
@@ -1297,59 +1297,59 @@ proof -
       note same_pack_old_inter = this
       show ?thesis
       proof (cases "pid (declclass inter) = pid (declclass new)")
-	case True
-	with same_pack_old_inter outside_pack
-	show ?thesis
-	  by auto
+        case True
+        with same_pack_old_inter outside_pack
+        show ?thesis
+          by auto
       next
-	case False
-	note diff_pack_inter_new = this
-	show ?thesis
-	proof (cases "accmodi inter = Package")
-	  case True
-	  with diff_pack_inter_new hyp_new_inter  
-	  obtain newinter where
-	    over_new_newinter: "G \<turnstile> new overrides newinter" and
+        case False
+        note diff_pack_inter_new = this
+        show ?thesis
+        proof (cases "accmodi inter = Package")
+          case True
+          with diff_pack_inter_new hyp_new_inter  
+          obtain newinter where
+            over_new_newinter: "G \<turnstile> new overrides newinter" and
             over_newinter_inter: "G \<turnstile> newinter overrides inter" and 
             eq_pid: "pid (declclass inter) = pid (declclass newinter)" and
             accmodi_newinter: "Protected \<le> accmodi newinter"
-	    by auto
-	  from over_newinter_inter override_inter_old
-	  have "G\<turnstile>newinter overrides old"
-	    by (rule overridesR.Indirect)
-	  moreover
-	  from eq_pid same_pack_old_inter 
-	  have "pid (declclass old) = pid (declclass newinter)"
-	    by simp
-	  moreover
-	  note over_new_newinter accmodi_newinter
-	  ultimately show ?thesis
-	    by blast
-	next
-	  case False
-	  with override_new_inter
-	  have "Protected \<le> accmodi inter"
-	    by (cases "accmodi inter") (auto dest: no_Private_override)
-	  with override_new_inter override_inter_old same_pack_old_inter
-	  show ?thesis
-	    by blast
-	qed
+            by auto
+          from over_newinter_inter override_inter_old
+          have "G\<turnstile>newinter overrides old"
+            by (rule overridesR.Indirect)
+          moreover
+          from eq_pid same_pack_old_inter 
+          have "pid (declclass old) = pid (declclass newinter)"
+            by simp
+          moreover
+          note over_new_newinter accmodi_newinter
+          ultimately show ?thesis
+            by blast
+        next
+          case False
+          with override_new_inter
+          have "Protected \<le> accmodi inter"
+            by (cases "accmodi inter") (auto dest: no_Private_override)
+          with override_new_inter override_inter_old same_pack_old_inter
+          show ?thesis
+            by blast
+        qed
       qed
     next
       case False
       with accmodi_old hyp_inter_old
       obtain newinter where
-	over_inter_newinter: "G \<turnstile> inter overrides newinter" and
+        over_inter_newinter: "G \<turnstile> inter overrides newinter" and
           over_newinter_old: "G \<turnstile> newinter overrides old" and 
                 eq_pid: "pid (declclass old) = pid (declclass newinter)" and
-	accmodi_newinter: "Protected \<le> accmodi newinter"
-	by auto
+        accmodi_newinter: "Protected \<le> accmodi newinter"
+        by auto
       from override_new_inter over_inter_newinter 
       have "G \<turnstile> new overrides newinter"
-	by (rule overridesR.Indirect)
+        by (rule overridesR.Indirect)
       with eq_pid over_newinter_old accmodi_newinter
       show ?thesis
-	by blast
+        by blast
     qed
   qed
 qed
@@ -1379,13 +1379,13 @@ proof (rule class_rec.induct,intro allI impI)
     proof (cases "?table sig")
       case None
       from this methd_C have "?filter (methd G (super c)) sig = Some m"
-	by simp
+        by simp
       moreover
       from wf cls_C False obtain sup where "class G (super c) = Some sup"
-	by (blast dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
+        by (blast dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
       moreover note wf False cls_C  
       ultimately have "G\<turnstile>super c \<preceq>\<^sub>C declclass m"  
-	by (auto intro: Hyp [rule_format])
+        by (auto intro: Hyp [rule_format])
       moreover from cls_C False have  "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c" by (rule subcls1I)
       ultimately show ?thesis by - (rule rtrancl_into_rtrancl2)
     next
@@ -1499,11 +1499,11 @@ proof -
     proof (cases rule: methd_rec_Some_cases)
       case NewMethod
       with clsC show ?thesis
-	by (auto dest: method_declared_inI intro!: members.Immediate)
+        by (auto dest: method_declared_inI intro!: members.Immediate)
     next
       case InheritedMethod
       then show "?thesis"
-	by (blast dest: inherits_member)
+        by (blast dest: inherits_member)
     qed
   qed
 qed
@@ -1611,7 +1611,7 @@ proof -
       by (auto dest: ws_prog_cdeclD)
     from clsC wf neq_C_Obj 
     have superAccessible: "G\<turnstile>(Class (super c)) accessible_in (pid C)" and
-	 subcls1_C_super: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c"
+         subcls1_C_super: "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c"
       by (auto dest: wf_prog_cdecl wf_cdecl_supD is_acc_classD
               intro: subcls1I)
     show "\<exists>new. ?Constraint C new old"
@@ -1619,87 +1619,87 @@ proof -
       case False
       from False Subcls 
       have eq_C_D: "C=D"
-	by (auto dest: subclseq_superD)
+        by (auto dest: subclseq_superD)
       with old 
       have "?Constraint C old old"
-	by auto
+        by auto
       with eq_C_D 
       show "\<exists> new. ?Constraint C new old" by auto
     next
       case True
       with hyp obtain super_method
-	where super: "?Constraint (super c) super_method old" by blast
+        where super: "?Constraint (super c) super_method old" by blast
       from super not_static_old
       have not_static_super: "\<not> is_static super_method"
-	by (auto dest!: stat_overrides_commonD)
+        by (auto dest!: stat_overrides_commonD)
       from super old wf accmodi_old
       have accmodi_super_method: "Protected \<le> accmodi super_method"
-	by (auto dest!: wf_prog_stat_overridesD)
+        by (auto dest!: wf_prog_stat_overridesD)
       from super accmodi_old wf
       have inheritable: "G\<turnstile>Methd sig super_method inheritable_in (pid C)"
-	by (auto dest!: wf_prog_stat_overridesD
+        by (auto dest!: wf_prog_stat_overridesD
                         acc_modi_le_Dests
-              simp add: inheritable_in_def)	           
+              simp add: inheritable_in_def)                
       from super wf is_cls_super
       have member: "G\<turnstile>Methd sig super_method member_of (super c)"
-	by (auto intro: methd_member_of) 
+        by (auto intro: methd_member_of) 
       from member
       have decl_super_method:
         "G\<turnstile>Methd sig super_method declared_in (declclass super_method)"
-	by (auto dest: member_of_declC)
+        by (auto dest: member_of_declC)
       from super subcls1_C_super ws is_cls_super 
       have subcls_C_super: "G\<turnstile>C \<prec>\<^sub>C (declclass super_method)"
-	by (auto intro: rtrancl_into_trancl2 dest: methd_declC) 
+        by (auto intro: rtrancl_into_trancl2 dest: methd_declC) 
       show "\<exists> new. ?Constraint C new old"
       proof (cases "methd G C sig")
-	case None
-	have "methd G (super c) sig = None"
-	proof -
-	  from clsC ws None 
-	  have no_new: "table_of (methods c) sig = None" 
-	    by (auto simp add: methd_rec)
-	  with clsC 
-	  have undeclared: "G\<turnstile>mid sig undeclared_in C"
-	    by (auto simp add: undeclared_in_def cdeclaredmethd_def)
-	  with inheritable member superAccessible subcls1_C_super
-	  have inherits: "G\<turnstile>C inherits (method sig super_method)"
-	    by (auto simp add: inherits_def)
-	  with clsC ws no_new super neq_C_Obj
-	  have "methd G C sig = Some super_method"
-	    by (auto simp add: methd_rec map_add_def intro: filter_tab_SomeI)
+        case None
+        have "methd G (super c) sig = None"
+        proof -
+          from clsC ws None 
+          have no_new: "table_of (methods c) sig = None" 
+            by (auto simp add: methd_rec)
+          with clsC 
+          have undeclared: "G\<turnstile>mid sig undeclared_in C"
+            by (auto simp add: undeclared_in_def cdeclaredmethd_def)
+          with inheritable member superAccessible subcls1_C_super
+          have inherits: "G\<turnstile>C inherits (method sig super_method)"
+            by (auto simp add: inherits_def)
+          with clsC ws no_new super neq_C_Obj
+          have "methd G C sig = Some super_method"
+            by (auto simp add: methd_rec map_add_def intro: filter_tab_SomeI)
           with None show ?thesis
-	    by simp
-	qed
-	with super show ?thesis by auto
+            by simp
+        qed
+        with super show ?thesis by auto
       next
-	case (Some new)
-	from this ws clsC neq_C_Obj
-	show ?thesis
-	proof (cases rule: methd_rec_Some_cases)
-	  case InheritedMethod
-	  with super Some show ?thesis 
-	    by auto
-	next
-	  case NewMethod
-	  assume new: "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig 
+        case (Some new)
+        from this ws clsC neq_C_Obj
+        show ?thesis
+        proof (cases rule: methd_rec_Some_cases)
+          case InheritedMethod
+          with super Some show ?thesis 
+            by auto
+        next
+          case NewMethod
+          assume new: "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig 
                        = Some new"
-	  from new 
-	  have declcls_new: "declclass new = C" 
-	    by auto
-	  from wf clsC neq_C_Obj super new not_static_super accmodi_super_method
-	  have not_static_new: "\<not> is_static new" 
-	    by (auto dest: wf_prog_staticD) 
-	  from clsC new
-	  have decl_new: "G\<turnstile>Methd sig new declared_in C"
-	    by (auto simp add: declared_in_def cdeclaredmethd_def)
-	  from not_static_new decl_new decl_super_method
-	       member subcls1_C_super inheritable declcls_new subcls_C_super 
-	  have "G,sig\<turnstile> new overrides\<^sub>S super_method"
-	    by (auto intro: stat_overridesR.Direct) 
-	  with super Some
-	  show ?thesis
-	    by (auto intro: stat_overridesR.Indirect)
-	qed
+          from new 
+          have declcls_new: "declclass new = C" 
+            by auto
+          from wf clsC neq_C_Obj super new not_static_super accmodi_super_method
+          have not_static_new: "\<not> is_static new" 
+            by (auto dest: wf_prog_staticD) 
+          from clsC new
+          have decl_new: "G\<turnstile>Methd sig new declared_in C"
+            by (auto simp add: declared_in_def cdeclaredmethd_def)
+          from not_static_new decl_new decl_super_method
+               member subcls1_C_super inheritable declcls_new subcls_C_super 
+          have "G,sig\<turnstile> new overrides\<^sub>S super_method"
+            by (auto intro: stat_overridesR.Direct) 
+          with super Some
+          show ?thesis
+            by (auto intro: stat_overridesR.Indirect)
+        qed
       qed
     qed
   qed
@@ -1749,7 +1749,7 @@ proof -
       by (auto dest!: wf_prog_stat_overridesD)
   qed
 qed
- 	      
+              
 (* local lemma *)
 lemma bexI': "x \<in> A \<Longrightarrow> P x \<Longrightarrow> \<exists>x\<in>A. P x" by blast
 lemma ballE': "\<forall>x\<in>A. P x \<Longrightarrow> (x \<notin> A \<Longrightarrow> Q) \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> Q" by blast
@@ -1789,32 +1789,32 @@ proof -
       case True
       with ifI SI hyp wf jm 
       show "?thesis" 
-	by (auto simp add: imethds_rec) 
+        by (auto simp add: imethds_rec) 
     next
       case False
       from ifI wf False
       have imethds: "imethds G I sig = ?newMethods sig"
-	by (simp add: imethds_rec)
+        by (simp add: imethds_rec)
       from False
       obtain im where
         imdef: "im \<in> ?newMethods sig" 
-	by (blast)
+        by (blast)
       with imethds 
       have im: "im \<in> imethds G I sig"
-	by (blast)
+        by (blast)
       with im wf ifI 
       obtain
-	 imStatic: "\<not> is_static im" and
+         imStatic: "\<not> is_static im" and
          imPublic: "accmodi im = Public"
-	by (auto dest!: imethds_wf_mhead)	
+        by (auto dest!: imethds_wf_mhead)       
       from ifI wf 
       have wf_I: "wf_idecl G (I,i)" 
-	by (rule wf_prog_idecl)
+        by (rule wf_prog_idecl)
       with SI wf  
       obtain si where
-	 ifSI: "iface G SI = Some si" and
-	wf_SI: "wf_idecl G (SI,si)" 
-	by (auto dest!: wf_idecl_supD is_acc_ifaceD
+         ifSI: "iface G SI = Some si" and
+        wf_SI: "wf_idecl G (SI,si)" 
+        by (auto dest!: wf_idecl_supD is_acc_ifaceD
                   dest: wf_prog_idecl)
       from jm hyp 
       obtain sim::"qtname \<times> mhead"  where
@@ -1822,24 +1822,24 @@ proof -
          eq_static_sim_jm: "is_static sim = is_static jm" and 
          eq_access_sim_jm: "accmodi sim = accmodi jm" and 
         resTy_widen_sim_jm: "G\<turnstile>resTy sim\<preceq>resTy jm"
-	by blast
+        by blast
       with wf_I SI imdef sim 
       have "G\<turnstile>resTy im\<preceq>resTy sim"   
-	by (auto dest!: wf_idecl_hidings hidings_entailsD)
+        by (auto dest!: wf_idecl_hidings hidings_entailsD)
       with wf resTy_widen_sim_jm 
       have resTy_widen_im_jm: "G\<turnstile>resTy im\<preceq>resTy jm"
-	by (blast intro: widen_trans)
+        by (blast intro: widen_trans)
       from sim wf ifSI  
       obtain
-	simStatic: "\<not> is_static sim" and
+        simStatic: "\<not> is_static sim" and
         simPublic: "accmodi sim = Public"
-	by (auto dest!: imethds_wf_mhead)
+        by (auto dest!: imethds_wf_mhead)
       from im 
            imStatic simStatic eq_static_sim_jm
            imPublic simPublic eq_access_sim_jm
            resTy_widen_im_jm
       show ?thesis 
-	by auto 
+        by auto 
     qed
   qed
 qed
@@ -1999,7 +1999,7 @@ proof -
       case Some
       from Some clsC nObj ws m declC
       show "?thesis" 
-	by (auto simp add: methd_rec
+        by (auto simp add: methd_rec
                      dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
     qed
   qed
@@ -2085,14 +2085,14 @@ proof -
       case NewMethod
       with ifI hyp_newmethod
       show ?thesis
-	by auto
+        by auto
     next
       case (InheritedMethod J)
       assume "J \<in> set (isuperIfs i)" 
              "new \<in> imethds G J sig"
       with hyp 
       show "?thesis"
-	by auto
+        by auto
     qed
   qed
 qed
@@ -2250,46 +2250,46 @@ proof -
        case True
        with statI 
        have dynlookup: "dynlookup G statT dynC sig = dynmethd G Object dynC sig"
-	 by (simp add: dynlookup_def dynimethd_def)
+         by (simp add: dynlookup_def dynimethd_def)
        from wf dynC 
        have subclsObj: "G\<turnstile>dynC \<preceq>\<^sub>C Object"
-	 by (auto intro: subcls_ObjectI)
+         by (auto intro: subcls_ObjectI)
        from wf dynC dynC_Prop istype sm subclsObj 
        obtain dm where
-	 "dynmethd G Object dynC sig = Some dm"
-	 "is_static dm = is_static sm" 
-	 "G\<turnstile>resTy (mthd dm)\<preceq>resTy (mthd sm)"  
-	 by (auto dest!: ws_dynmethd accmethd_SomeD 
+         "dynmethd G Object dynC sig = Some dm"
+         "is_static dm = is_static sm" 
+         "G\<turnstile>resTy (mthd dm)\<preceq>resTy (mthd sm)"  
+         by (auto dest!: ws_dynmethd accmethd_SomeD 
                   intro: class_Object [OF wf] intro: that)
        with dynlookup eq_mheads
        show ?thesis 
-	 by (cases emh type: *) (auto)
+         by (cases emh type: *) (auto)
      next
        case False
        with statI
        have dynlookup: "dynlookup G statT dynC sig = methd G dynC sig"
-	 by (simp add: dynlookup_def dynimethd_def)
+         by (simp add: dynlookup_def dynimethd_def)
        from istype statI
        have "is_iface G I"
-	 by auto
+         by auto
        with wf sm nPriv False 
        obtain im where
-	      im: "im \<in> imethds G I sig" and
-	 eq_stat: "is_static im = is_static sm" and
+              im: "im \<in> imethds G I sig" and
+         eq_stat: "is_static im = is_static sm" and
          resProp: "G\<turnstile>resTy (mthd im)\<preceq>resTy (mthd sm)"
-	 by (auto dest: wf_imethds_hiding_objmethdsD accmethd_SomeD)
+         by (auto dest: wf_imethds_hiding_objmethdsD accmethd_SomeD)
        from im wf statI istype eq_stat eq_mheads
        have not_static_sm: "\<not> is_static emh"
-	 by (cases emh) (auto dest: wf_prog_idecl imethds_wf_mhead)
+         by (cases emh) (auto dest: wf_prog_idecl imethds_wf_mhead)
        from im wf dynC_Prop dynC istype statI not_static_sm
        obtain dm where
-	 "methd G dynC sig = Some dm"
-	 "is_static dm = is_static im" 
-	 "G\<turnstile>resTy (mthd dm)\<preceq>resTy (mthd im)" 
-	 by (auto dest: implmt_methd)
+         "methd G dynC sig = Some dm"
+         "is_static dm = is_static im" 
+         "G\<turnstile>resTy (mthd dm)\<preceq>resTy (mthd im)" 
+         by (auto dest: implmt_methd)
        with wf eq_stat resProp dynlookup eq_mheads
        show ?thesis 
-	 by (cases emh type: *) (auto intro: widen_trans)
+         by (cases emh type: *) (auto intro: widen_trans)
      qed
   next
     case Array_Object_methd
@@ -2382,7 +2382,7 @@ lemma methd_declclass:
 proof -
   assume asm: "class G C = Some c" "wf_prog G" "methd G C sig = Some m"
   have "wf_prog G  \<longrightarrow> 
-	   (\<forall> c m. class G C = Some c \<longrightarrow>  methd G C sig = Some m 
+           (\<forall> c m. class G C = Some c \<longrightarrow>  methd G C sig = Some m 
                    \<longrightarrow>  methd G (declclass m) sig = Some m)"      (is "?P G C") 
   proof (rule class_rec.induct,intro allI impI)
     fix G C c m
@@ -2400,23 +2400,23 @@ proof -
       case False
       with cls_C wf m
       have methd_C: "(?filter (methd G (super c)) ++ ?table) sig = Some m "
-	by (simp add: methd_rec)
+        by (simp add: methd_rec)
       show ?thesis
       proof (cases "?table sig")
-	case None
-	from this methd_C have "?filter (methd G (super c)) sig = Some m"
-	  by simp
-	moreover
-	from wf cls_C False obtain sup where "class G (super c) = Some sup"
-	  by (blast dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
-	moreover note wf False cls_C 
-	ultimately show ?thesis by (auto intro: hyp [rule_format])
+        case None
+        from this methd_C have "?filter (methd G (super c)) sig = Some m"
+          by simp
+        moreover
+        from wf cls_C False obtain sup where "class G (super c) = Some sup"
+          by (blast dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
+        moreover note wf False cls_C 
+        ultimately show ?thesis by (auto intro: hyp [rule_format])
       next
-	case Some
-	from this methd_C m show ?thesis by auto 
+        case Some
+        from this methd_C m show ?thesis by auto 
       qed
     qed
-  qed	
+  qed   
   with asm show ?thesis by auto
 qed
 
@@ -2650,15 +2650,15 @@ proof -
       assume "dynC=statC"
       moreover
       from is_cls_statC obtain c
-	where "class G statC = Some c"
-	by auto
+        where "class G statC = Some c"
+        by auto
       moreover 
       note statM ws dynmethd 
       ultimately
       have "newM=statM" 
-	by (auto simp add: dynmethd_C_C)
+        by (auto simp add: dynmethd_C_C)
       with neq show ?thesis 
-	by (contradiction)
+        by (contradiction)
     next
       case Subcls then show ?thesis .
     qed 
@@ -2771,26 +2771,26 @@ proof -
       case False
       with statT dynC_prop 
       have widen_dynC: "G\<turnstile>Class dynC \<preceq> RefT statT"
-	by simp
+        by simp
       from statT widen_dynC
       have implmnt: "G\<turnstile>dynC\<leadsto>I"
-	by auto    
+        by auto    
       from eq_static False 
       have not_static_dynM: "\<not> is_static dynM" 
-	by simp
+        by simp
       from iface_methd implmnt isif_I wf dynM'
       show ?thesis
-	by - (drule implmt_dynimethd_access, auto)
+        by - (drule implmt_dynimethd_access, auto)
     next
       case True
       assume "is_static emh"
       moreover
       from wf isT_statT statT im 
       have "\<not> is_static im"
-	by (auto dest: accimethdsD wf_prog_idecl imethds_wf_mhead)
+        by (auto dest: accimethdsD wf_prog_idecl imethds_wf_mhead)
       moreover note eq_mhds
       ultimately show ?thesis
-	by (cases emh) auto
+        by (cases emh) auto
     qed
   next
     case (Iface_Object_methd I statM)
@@ -2809,43 +2809,43 @@ proof -
       case True
       from dynM statT True
       have dynM': "dynmethd G Object dynC sig = Some dynM"
-	by (simp add: dynlookup_def dynimethd_def)
+        by (simp add: dynlookup_def dynimethd_def)
       from statT  
       have "G\<turnstile>RefT statT \<preceq>Class Object"
-	by auto
+        by auto
       with statM statT_acc stat_acc widen_dynC_Obj statT isT_statT 
         wf dynM' eq_static dynC_prop  
       show ?thesis
-	by - (drule dynmethd_access_prop,force+) 
+        by - (drule dynmethd_access_prop,force+) 
     next
       case False
       then obtain im where
-	im: "im \<in>  imethds G I sig"
-	by auto
+        im: "im \<in>  imethds G I sig"
+        by auto
       have not_static_emh: "\<not> is_static emh"
       proof -
-	from im statM statT isT_statT wf not_Private_statM 
-	have "is_static im = is_static statM"
-	  by (fastsimp dest: wf_imethds_hiding_objmethdsD)
-	with wf isT_statT statT im 
-	have "\<not> is_static statM"
-	  by (auto dest: wf_prog_idecl imethds_wf_mhead)
-	with eq_mhds
-	show ?thesis  
-	  by (cases emh) auto
+        from im statM statT isT_statT wf not_Private_statM 
+        have "is_static im = is_static statM"
+          by (fastsimp dest: wf_imethds_hiding_objmethdsD)
+        with wf isT_statT statT im 
+        have "\<not> is_static statM"
+          by (auto dest: wf_prog_idecl imethds_wf_mhead)
+        with eq_mhds
+        show ?thesis  
+          by (cases emh) auto
       qed
       with statT dynC_prop
       have implmnt: "G\<turnstile>dynC\<leadsto>I"
-	by simp
+        by simp
       with isT_statT statT
       have isif_I: "is_iface G I"
-	by simp
+        by simp
       from dynM statT
       have dynM': "dynimethd G I dynC sig = Some dynM"
-	by (simp add: dynlookup_def) 
+        by (simp add: dynlookup_def) 
       from False implmnt isif_I wf dynM'
       show ?thesis
-	by - (drule implmt_dynimethd_access, auto)
+        by - (drule implmt_dynimethd_access, auto)
     qed
   next
     case (Array_Object_methd T statM)

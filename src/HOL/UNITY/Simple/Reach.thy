@@ -1,10 +1,9 @@
 (*  Title:      HOL/UNITY/Reach.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
 Reachability in Directed Graphs.  From Chandy and Misra, section 6.4.
-	[this example took only four days!]
+[this example took only four days!]
 *)
 
 theory Reach imports "../UNITY_Main" begin

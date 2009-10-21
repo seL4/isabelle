@@ -93,8 +93,8 @@ next
       then obtain t'' where "\<langle>c,t\<rangle> \<longrightarrow>\<^sub>c t''" and "\<langle>While b c,t''\<rangle> \<longrightarrow>\<^sub>c t'"
         using WhileTrue(6,7) by auto
       have "\<forall>x\<in>Dep b \<union> A \<union> L c A. s'' x = t'' x"
-	using IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` `\<langle>c,t\<rangle> \<longrightarrow>\<^sub>c t''`] WhileTrue(6,8)
-	by (auto simp:L_gen_kill)
+        using IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` `\<langle>c,t\<rangle> \<longrightarrow>\<^sub>c t''`] WhileTrue(6,8)
+        by (auto simp:L_gen_kill)
       moreover then have "\<forall>x\<in>L (While b c) A. s'' x = t'' x" by auto
       ultimately show ?case using WhileTrue(5,6) `\<langle>While b c,t''\<rangle> \<longrightarrow>\<^sub>c t'` by metis
     qed auto }
@@ -155,14 +155,14 @@ next
       have "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''" using WhileTrue(2,6) by simp
       have "b t" using WhileTrue by (simp add: ball_Un)(blast dest:dep_on)
       then obtain t'' where tt'': "\<langle>bury c (Dep b \<union> A \<union> L c A),t\<rangle> \<longrightarrow>\<^sub>c t''"
-	and "\<langle>bury (While b c) A,t''\<rangle> \<longrightarrow>\<^sub>c t'"
+        and "\<langle>bury (While b c) A,t''\<rangle> \<longrightarrow>\<^sub>c t'"
         using WhileTrue(6,7) by auto
       have "\<forall>x\<in>Dep b \<union> A \<union> L c A. s'' x = t'' x"
-	using IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` tt''] WhileTrue(6,8)
-	by (auto simp:L_gen_kill)
+        using IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` tt''] WhileTrue(6,8)
+        by (auto simp:L_gen_kill)
       moreover then have "\<forall>x\<in>L (While b c) A. s'' x = t'' x" by auto
       ultimately show ?case
-	using WhileTrue(5,6) `\<langle>bury (While b c) A,t''\<rangle> \<longrightarrow>\<^sub>c t'` by metis
+        using WhileTrue(5,6) `\<langle>bury (While b c) A,t''\<rangle> \<longrightarrow>\<^sub>c t'` by metis
     qed auto }
   from this[OF IH(3) _ IH(4,2)] show ?case by metis
 qed

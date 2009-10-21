@@ -177,7 +177,7 @@ fun print_classes thy =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
     fun mk_param (c, ty) = Pretty.str (Sign.extern_const thy c ^ " :: "
-      ^ setmp show_sorts false (Syntax.string_of_typ ctxt o Type.strip_sorts) ty);
+      ^ setmp_CRITICAL show_sorts false (Syntax.string_of_typ ctxt o Type.strip_sorts) ty);
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ Sign.extern_class thy class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
@@ -239,7 +239,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
     val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
-    val classrel = SkipProof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
+    val classrel = Skip_Proof.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
       (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])

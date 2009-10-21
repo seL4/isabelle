@@ -266,21 +266,21 @@ fun too_many_clauses ctxto t =
   fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
     | signed_nclauses b (Const("Not",_) $ t) = signed_nclauses (not b) t
     | signed_nclauses b (Const("op &",_) $ t $ u) =
-	if b then sum (signed_nclauses b t) (signed_nclauses b u)
-	     else prod (signed_nclauses b t) (signed_nclauses b u)
+        if b then sum (signed_nclauses b t) (signed_nclauses b u)
+             else prod (signed_nclauses b t) (signed_nclauses b u)
     | signed_nclauses b (Const("op |",_) $ t $ u) =
-	if b then prod (signed_nclauses b t) (signed_nclauses b u)
-	     else sum (signed_nclauses b t) (signed_nclauses b u)
+        if b then prod (signed_nclauses b t) (signed_nclauses b u)
+             else sum (signed_nclauses b t) (signed_nclauses b u)
     | signed_nclauses b (Const("op -->",_) $ t $ u) =
-	if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
-	     else sum (signed_nclauses (not b) t) (signed_nclauses b u)
+        if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
+             else sum (signed_nclauses (not b) t) (signed_nclauses b u)
     | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) =
-	if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
-	    if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
-			  (prod (signed_nclauses (not b) u) (signed_nclauses b t))
-		 else sum (prod (signed_nclauses b t) (signed_nclauses b u))
-			  (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
-	else 1
+        if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
+            if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
+                          (prod (signed_nclauses (not b) u) (signed_nclauses b t))
+                 else sum (prod (signed_nclauses b t) (signed_nclauses b u))
+                          (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
+        else 1
     | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
     | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
     | signed_nclauses _ _ = 1; (* literal *)
@@ -347,9 +347,9 @@ fun cnf skoths ctxt (th,ths) =
           | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
       val cls = 
-	    if too_many_clauses (SOME ctxt) (concl_of th)
-	    then (trace_msg (fn () => "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
-	    else cnf_aux (th,ths)
+            if too_many_clauses (SOME ctxt) (concl_of th)
+            then (trace_msg (fn () => "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
+            else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
 fun make_cnf skoths th ctxt = cnf skoths ctxt (th, []);

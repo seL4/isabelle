@@ -6,6 +6,7 @@
 \usepackage{subfigure}
 \usepackage{../../../isabelle,../../../isabellesym}
 \usepackage{verbatim}
+\usepackage{alltt}
 \usepackage{array}
 
 \usepackage{amssymb}
@@ -22,26 +23,26 @@
 
 \begin{document}
 
-\title{Tutorial to Locales and Locale Interpretation \\[1ex]
-  \large 2nd revision, for Isabelle 2009}
+\title{Tutorial to Locales and Locale Interpretation}
 \author{Clemens Ballarin}
 \date{}
 
 \maketitle
 
 \begin{abstract}
-  Locales are Isabelle's mechanism for dealing with parametric theories.
-  We present typical examples of locale specifications,
-  along with interpretations between locales to change their
-  hierarchic dependencies and interpretations to reuse locales in
-  theory contexts and proofs.
+  Locales are Isabelle's approach for dealing with parametric
+  theories.  They have been designed as a module system for a
+  theorem prover that can adequately represent the complex
+  inter-dependencies between structures found in abstract algebra, but
+  have proven fruitful also in other applications --- for example,
+  software verification.
 
-  This tutorial is intended for locale novices; familiarity with
-  Isabelle and Isar is presumed.
-  The second revision accommodates changes introduced by the locales
-  reimplementation for Isabelle 2009.  Most notably, in complex
-  specifications (\emph{locale expressions}) renaming has been
-  generalised to instantiation.
+  Both design and implementation of locales have evolved considerably
+  since Kamm\"uller did his initial experiments.  Today, locales
+  are a simple yet powerful extension of the Isar proof language.
+  The present tutorial covers all major facilities of locales.  It is
+  intended for locale novices; familiarity with Isabelle and Isar is
+  presumed.
 \end{abstract}
 
 \parindent 0pt\parskip 0.5ex

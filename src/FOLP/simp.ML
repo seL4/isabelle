@@ -519,7 +519,7 @@ val SIMP_THM = REWRITE ([ASMS(0),SIMP_LHS,IF,REFL,STOP],false);
 (* Compute Congruence rules for individual constants using the substition
    rules *)
 
-val subst_thms = map standard subst_thms;
+val subst_thms = map Drule.standard subst_thms;
 
 
 fun exp_app(0,t) = t
@@ -543,7 +543,7 @@ in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 fun find_subst sg T =
 let fun find (thm::thms) =
         let val (Const(_,cT), va, vb) = dest_red(hd(prems_of thm));
-            val [P] = OldTerm.add_term_vars(concl_of thm,[]) \\ [va,vb]
+            val [P] = subtract (op =) [va, vb] (OldTerm.add_term_vars (concl_of thm, []));
             val eqT::_ = binder_types cT
         in if Sign.typ_instance sg (T,eqT) then SOME(thm,va,vb,P)
            else find thms

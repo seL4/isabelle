@@ -29,7 +29,7 @@ constdefs
   Reach :: "edges \<Rightarrow> nat set"
   "Reach E \<equiv> {x. (\<exists>path. 1<length path \<and> path!(length path - 1)\<in>Roots \<and> x=path!0
               \<and> (\<forall>i<length path - 1. (\<exists>j<length E. E!j=(path!(i+1), path!i))))
-	      \<or> x\<in>Roots}"
+              \<or> x\<in>Roots}"
 
 text{* Reach: the set of reachable nodes is the set of Roots together with the
 nodes reachable from some Root by a path represented by a list of

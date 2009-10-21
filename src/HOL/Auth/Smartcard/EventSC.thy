@@ -38,13 +38,13 @@ specification (bad)
 specification (stolen)
   (*The server's card is secure by assumption\<dots>*)
   Card_Server_not_stolen [iff]: "Card Server \<notin> stolen"
-  Card_Spy_not_stolen  	 [iff]: "Card Spy \<notin> stolen"
+  Card_Spy_not_stolen    [iff]: "Card Spy \<notin> stolen"
   apply blast done
 
 specification (cloned)
   (*\<dots> the spy's card is secure because she already can use it freely*)
   Card_Server_not_cloned [iff]: "Card Server \<notin> cloned"
-  Card_Spy_not_cloned  	 [iff]: "Card Spy \<notin> cloned"
+  Card_Spy_not_cloned    [iff]: "Card Spy \<notin> cloned"
   apply blast done
 
 
@@ -52,28 +52,28 @@ primrec (*This definition is extended over the new events, subject to the
           assumption of secure means*)
   knows_Nil:   "knows A [] = initState A"
   knows_Cons:  "knows A (ev # evs) =
-	 (case ev of
-	    Says A' B X => 
+         (case ev of
+            Says A' B X => 
                 if (A=A' | A=Spy) then insert X (knows A evs) else knows A evs
-	  | Notes A' X  => 
-	        if (A=A' | (A=Spy & A'\<in>bad)) then insert X (knows A evs) 
+          | Notes A' X  => 
+                if (A=A' | (A=Spy & A'\<in>bad)) then insert X (knows A evs) 
                                              else knows A evs 
           | Gets A' X   =>
-		if (A=A' & A \<noteq> Spy) then insert X (knows A evs) 
+                if (A=A' & A \<noteq> Spy) then insert X (knows A evs) 
                                      else knows A evs
           | Inputs A' C X =>
-	      if secureM then
-                if A=A' then insert X (knows A evs) else knows A evs
-	      else
-	        if (A=A' | A=Spy) then insert X (knows A evs) else knows A evs
-          | C_Gets C X   => knows A evs
-          | Outpts C A' X =>
-	      if secureM then
+              if secureM then
                 if A=A' then insert X (knows A evs) else knows A evs
               else
-	        if A=Spy then insert X (knows A evs) else knows A evs
+                if (A=A' | A=Spy) then insert X (knows A evs) else knows A evs
+          | C_Gets C X   => knows A evs
+          | Outpts C A' X =>
+              if secureM then
+                if A=A' then insert X (knows A evs) else knows A evs
+              else
+                if A=Spy then insert X (knows A evs) else knows A evs
           | A_Gets A' X   =>
-		if (A=A' & A \<noteq> Spy) then insert X (knows A evs) 
+                if (A=A' & A \<noteq> Spy) then insert X (knows A evs) 
                                      else knows A evs)"
 
 
@@ -86,14 +86,14 @@ consts
 primrec
   used_Nil:   "used []         = (UN B. parts (initState B))"
   used_Cons:  "used (ev # evs) =
-	         (case ev of
-		    Says A B X => parts {X} \<union> (used evs)
-		  | Notes A X  => parts {X} \<union> (used evs)
-		  | Gets A X   => used evs
+                 (case ev of
+                    Says A B X => parts {X} \<union> (used evs)
+                  | Notes A X  => parts {X} \<union> (used evs)
+                  | Gets A X   => used evs
                   | Inputs A C X  => parts{X} \<union> (used evs) 
-		  | C_Gets C X   => used evs
+                  | C_Gets C X   => used evs
                   | Outpts C A X  => parts{X} \<union> (used evs)
-		  | A_Gets A X   => used evs)"
+                  | A_Gets A X   => used evs)"
     --{*@{term Gets} always follows @{term Says} in real protocols. 
        Likewise, @{term C_Gets} will always have to follow @{term Inputs}
        and @{term A_Gets} will always have to follow @{term Outpts}*}

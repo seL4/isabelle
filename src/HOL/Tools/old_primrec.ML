@@ -90,7 +90,7 @@ fun process_eqn thy eq rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (OldTerm.term_frees rhs) \\ lfrees);
+        (subtract (op =) lfrees (map dest_Free (OldTerm.term_frees rhs)));
       case AList.lookup (op =) rec_fns fnameT of
         NONE =>
           (fnameT, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
@@ -226,7 +226,7 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a datatype")
         | SOME dt =>
-            if tnames' subset (map (#1 o snd) (#descr dt)) then
+            if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
@@ -265,7 +265,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
     val defs' = map (make_def thy fs) defs;
     val nameTs1 = map snd fnameTs;
     val nameTs2 = map fst rec_eqns;
-    val _ = if gen_eq_set (op =) (nameTs1, nameTs2) then ()
+    val _ = if eq_set (op =) (nameTs1, nameTs2) then ()
             else primrec_err ("functions " ^ commas_quote (map fst nameTs2) ^
               "\nare not mutually recursive");
     val primrec_name =

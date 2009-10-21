@@ -1,5 +1,4 @@
 (*  Title:      ZF/UNITY/UNITY.thy
-    ID:         $Id$
     Author:     Sidi O Ehmety, Computer Laboratory
     Copyright   2001  University of Cambridge
 *)
@@ -20,8 +19,8 @@ consts
 definition
   program  :: i  where
   "program == {<init, acts, allowed>:
-	       Pow(state) * Pow(Pow(state*state)) * Pow(Pow(state*state)).
-	       id(state) \<in> acts & id(state) \<in> allowed}"
+               Pow(state) * Pow(Pow(state*state)) * Pow(Pow(state*state)).
+               id(state) \<in> acts & id(state) \<in> allowed}"
 
 definition
   mk_program :: "[i,i,i]=>i"  where

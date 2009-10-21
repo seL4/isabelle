@@ -1,4 +1,4 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory, NICTA *)
+(*  Author:     Jia Meng, Cambridge University Computer Laboratory, NICTA *)
 
 signature RES_ATP =
 sig
@@ -38,8 +38,6 @@ val run_relevance_filter = true;
 val pass_mark = 0.5;
 val convergence = 3.2;    (*Higher numbers allow longer inference chains*)
 val follow_defs = false;  (*Follow definitions. Makes problems bigger.*)
-val include_all = true;
-val include_atpset = true;
   
 (***************************************************************)
 (* Relevance Filtering                                         *)
@@ -112,7 +110,7 @@ fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
   | add_term_consts_typs_rm thy (t $ u, tab) =
       add_term_consts_typs_rm thy (t, add_term_consts_typs_rm thy (u, tab))
   | add_term_consts_typs_rm thy (Abs(_,_,t), tab) = add_term_consts_typs_rm thy (t, tab)
-  | add_term_consts_typs_rm thy (_, tab) = tab;
+  | add_term_consts_typs_rm _ (_, tab) = tab;
 
 (*The empty list here indicates that the constant is being ignored*)
 fun add_standard_const (s,tab) = Symtab.update (s,[]) tab;
@@ -156,17 +154,17 @@ structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_o
 
 fun count_axiom_consts theory_const thy ((thm,_), tab) = 
   let fun count_const (a, T, tab) =
-	let val (c, cts) = const_with_typ thy (a,T)
-	in  (*Two-dimensional table update. Constant maps to types maps to count.*)
-	    Symtab.map_default (c, CTtab.empty) 
-	                       (CTtab.map_default (cts,0) (fn n => n+1)) tab
-	end
+        let val (c, cts) = const_with_typ thy (a,T)
+        in  (*Two-dimensional table update. Constant maps to types maps to count.*)
+            Symtab.map_default (c, CTtab.empty) 
+                               (CTtab.map_default (cts,0) (fn n => n+1)) tab
+        end
       fun count_term_consts (Const(a,T), tab) = count_const(a,T,tab)
-	| count_term_consts (Free(a,T), tab) = count_const(a,T,tab)
-	| count_term_consts (t $ u, tab) =
-	    count_term_consts (t, count_term_consts (u, tab))
-	| count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
-	| count_term_consts (_, tab) = tab
+        | count_term_consts (Free(a,T), tab) = count_const(a,T,tab)
+        | count_term_consts (t $ u, tab) =
+            count_term_consts (t, count_term_consts (u, tab))
+        | count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
+        | count_term_consts (_, tab) = tab
   in  count_term_consts (const_prop_of theory_const thm, tab)  end;
 
 
@@ -189,7 +187,7 @@ fun clause_weight ctab gctyps consts_typs =
     let val rel = filter (uni_mem gctyps) consts_typs
         val rel_weight = List.foldl (add_ct_weight ctab) 0.0 rel
     in
-	rel_weight / (rel_weight + real (length consts_typs - length rel))
+        rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
     
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
@@ -208,19 +206,20 @@ fun dest_ConstFree (Const aT) = aT
   | dest_ConstFree _ = raise ConstFree;
 
 (*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
-fun defines thy (thm,(name,n)) gctypes =
+fun defines thy thm gctypes =
     let val tm = prop_of thm
-	fun defs lhs rhs =
+        fun defs lhs rhs =
             let val (rator,args) = strip_comb lhs
-		val ct = const_with_typ thy (dest_ConstFree rator)
-            in  forall is_Var args andalso uni_mem gctypes ct andalso
-                Term.add_vars rhs [] subset Term.add_vars lhs []
+                val ct = const_with_typ thy (dest_ConstFree rator)
+            in
+              forall is_Var args andalso uni_mem gctypes ct andalso
+                subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
             end
-	    handle ConstFree => false
+            handle ConstFree => false
     in    
-	case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ rhs) => 
-		   defs lhs rhs 
-		 | _ => false
+        case tm of Const ("Trueprop",_) $ (Const("op =",_) $ lhs $ rhs) => 
+                   defs lhs rhs 
+                 | _ => false
     end;
 
 type annotd_cls = (thm * (string * int)) * ((string * const_typ list) list);
@@ -238,40 +237,40 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
           val accepted = List.take (cls, max_new)
       in
         ResAxioms.trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
-		       ", exceeds the limit of " ^ Int.toString (max_new)));
+                       ", exceeds the limit of " ^ Int.toString (max_new)));
         ResAxioms.trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         ResAxioms.trace_msg (fn () => "Actually passed: " ^
           space_implode ", " (map (fn (((_,(name,_)),_),_) => name) accepted));
 
-	(map #1 accepted, map #1 (List.drop (cls, max_new)))
+        (map #1 accepted, map #1 (List.drop (cls, max_new)))
       end
   end;
 
 fun relevant_clauses max_new thy ctab p rel_consts =
   let fun relevant ([],_) [] = [] : (thm * (string * int)) list  (*Nothing added this iteration*)
-	| relevant (newpairs,rejects) [] =
-	    let val (newrels,more_rejects) = take_best max_new newpairs
-		val new_consts = maps #2 newrels
-		val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
-		val newp = p + (1.0-p) / convergence
-	    in
+        | relevant (newpairs,rejects) [] =
+            let val (newrels,more_rejects) = take_best max_new newpairs
+                val new_consts = maps #2 newrels
+                val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
+                val newp = p + (1.0-p) / convergence
+            in
               ResAxioms.trace_msg (fn () => ("relevant this iteration: " ^ Int.toString (length newrels)));
-	       (map #1 newrels) @ 
-	       (relevant_clauses max_new thy ctab newp rel_consts' (more_rejects@rejects))
-	    end
-	| relevant (newrels,rejects) ((ax as (clsthm as (_,(name,n)),consts_typs)) :: axs) =
-	    let val weight = clause_weight ctab rel_consts consts_typs
-	    in
-	      if p <= weight orelse (follow_defs andalso defines thy clsthm rel_consts)
-	      then (ResAxioms.trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
-	                                    " passes: " ^ Real.toString weight));
-	            relevant ((ax,weight)::newrels, rejects) axs)
-	      else relevant (newrels, ax::rejects) axs
-	    end
+               (map #1 newrels) @ 
+               (relevant_clauses max_new thy ctab newp rel_consts' (more_rejects@rejects))
+            end
+        | relevant (newrels,rejects) ((ax as (clsthm as (_,(name,n)),consts_typs)) :: axs) =
+            let val weight = clause_weight ctab rel_consts consts_typs
+            in
+              if p <= weight orelse (follow_defs andalso defines thy (#1 clsthm) rel_consts)
+              then (ResAxioms.trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
+                                            " passes: " ^ Real.toString weight));
+                    relevant ((ax,weight)::newrels, rejects) axs)
+              else relevant (newrels, ax::rejects) axs
+            end
     in  ResAxioms.trace_msg (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
         relevant ([],[]) 
     end;
-	
+        
 fun relevance_filter max_new theory_const thy axioms goals = 
  if run_relevance_filter andalso pass_mark >= 0.1
  then
@@ -291,17 +290,7 @@ fun relevance_filter max_new theory_const thy axioms goals =
 (* Retrieving and filtering lemmas                             *)
 (***************************************************************)
 
-(*** white list and black list of lemmas ***)
-
-(*The rule subsetI is frequently omitted by the relevance filter. This could be theory data
-  or identified with ATPset (which however is too big currently)*)
-val whitelist_fo = [subsetI];
-(* ext has been a 'helper clause', always given to the atps.
-  As such it was not passed to metis, but metis does not include ext (in contrast
-  to the other helper_clauses *)
-val whitelist_ho = [ResHolClause.ext];
-
-(*** retrieve lemmas from clasimpset and atpset, may filter them ***)
+(*** retrieve lemmas and filter them ***)
 
 (*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
 
@@ -355,7 +344,7 @@ fun make_unique xs =
   boost an ATP's performance (for some reason)*)
 fun subtract_cls c_clauses ax_clauses =
   let val ht = mk_clause_table 2200
-      fun known x = isSome (Polyhash.peek ht x)
+      fun known x = is_some (Polyhash.peek ht x)
   in
       app (ignore o Polyhash.peekInsert ht) ax_clauses;
       filter (not o known) c_clauses
@@ -394,7 +383,7 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 fun name_thm_pairs ctxt =
   let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
       val ht = mk_clause_table 900   (*ht for blacklisted theorems*)
-      fun blacklisted x = run_blacklist_filter andalso isSome (Polyhash.peek ht x)
+      fun blacklisted x = run_blacklist_filter andalso is_some (Polyhash.peek ht x)
   in
       app (fn th => ignore (Polyhash.peekInsert ht (th,()))) (ResBlacklist.get ctxt);
       filter (not o blacklisted o #2)
@@ -403,20 +392,13 @@ fun name_thm_pairs ctxt =
 
 fun check_named ("", th) =
       (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)
-  | check_named (_, th) = true;
+  | check_named _ = true;
 
-(* get lemmas from claset, simpset, atpset and extra supplied rules *)
-fun get_clasimp_atp_lemmas ctxt =
+fun get_all_lemmas ctxt =
   let val included_thms =
-    if include_all
-    then (tap (fn ths => ResAxioms.trace_msg
-                 (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
-              (name_thm_pairs ctxt))
-    else
-    let val atpset_thms =
-            if include_atpset then ResAxioms.atpset_rules_of ctxt
-            else []
-    in  atpset_thms  end
+        tap (fn ths => ResAxioms.trace_msg
+                     (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
+            (name_thm_pairs ctxt)
   in
     filter check_named included_thms
   end;
@@ -440,7 +422,7 @@ fun tfree_classes_of_terms ts =
 
 (*fold type constructors*)
 fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
-  | fold_type_consts f T x = x;
+  | fold_type_consts _ _ x = x;
 
 val add_type_consts_in_type = fold_type_consts setinsert;
 
@@ -448,7 +430,7 @@ val add_type_consts_in_type = fold_type_consts setinsert;
 fun add_type_consts_in_term thy =
   let val const_typargs = Sign.const_typargs thy
       fun add_tcs (Const cT) x = fold add_type_consts_in_type (const_typargs cT) x
-        | add_tcs (Abs (_, T, u)) x = add_tcs u x
+        | add_tcs (Abs (_, _, u)) x = add_tcs u x
         | add_tcs (t $ u) x = add_tcs t (add_tcs u x)
         | add_tcs _ x = x
   in  add_tcs  end
@@ -524,15 +506,12 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
     val isFO = isFO thy goal_cls
-    val included_thms = get_clasimp_atp_lemmas ctxt
+    val included_thms = get_all_lemmas ctxt
     val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
                                      |> restrict_to_logic thy isFO
                                      |> remove_unwanted_clauses
-    val axcls = relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
-    (* add whitelist *)
-    val white_cls = ths_to_cls thy (whitelist_fo @ (if isFO then [] else whitelist_ho))
   in
-    white_cls @ axcls 
+    relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls) 
   end;
 
 (* prepare for passing to writer,

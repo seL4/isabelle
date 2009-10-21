@@ -29,8 +29,6 @@ sig
   val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
-  val standard: thm -> thm
-  val standard': thm -> thm
   val rotate_prems: int -> thm -> thm
   val rearrange_prems: int list -> thm -> thm
   val RSN: thm * (int * thm) -> thm
@@ -77,6 +75,8 @@ sig
   val beta_conv: cterm -> cterm -> cterm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val flexflex_unique: thm -> thm
+  val standard: thm -> thm
+  val standard': thm -> thm
   val get_def: theory -> xstring -> thm
   val store_thm: bstring -> thm -> thm
   val store_standard_thm: bstring -> thm -> thm

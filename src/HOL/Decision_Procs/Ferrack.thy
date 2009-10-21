@@ -601,7 +601,7 @@ lemma reducecoeff: "real (numgcd t) * (Inum bs (reducecoeff t)) = Inum bs t"
 proof-
   let ?g = "numgcd t"
   have "?g \<ge> 0"  by (simp add: numgcd_pos)
-  hence	"?g = 0 \<or> ?g = 1 \<or> ?g > 1" by auto
+  hence "?g = 0 \<or> ?g = 1 \<or> ?g > 1" by auto
   moreover {assume "?g = 0" hence ?thesis by (simp add: numgcd0)} 
   moreover {assume "?g = 1" hence ?thesis by (simp add: reducecoeff_def)} 
   moreover { assume g1:"?g > 1"
@@ -750,20 +750,20 @@ proof-
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis by (simp add: Let_def simp_num_pair_def simpnum_ci)}
       moreover {assume g'1:"?g'>1"
-	from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff ?t' ?g" ..
-	let ?tt = "reducecoeffh ?t' ?g'"
-	let ?t = "Inum bs ?tt"
-	have gpdg: "?g' dvd ?g" by simp
-	have gpdd: "?g' dvd n" by simp 
-	have gpdgp: "?g' dvd ?g'" by simp
-	from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
-	have th2:"real ?g' * ?t = Inum bs ?t'" by simp
-	from prems have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
-	also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))" by simp
-	also have "\<dots> = (Inum bs ?t' / real n)"
-	  using real_of_int_div[OF gp0 gpdd] th2 gp0 by simp
-	finally have "?lhs = Inum bs t / real n" by (simp add: simpnum_ci)
-	then have ?thesis using prems by (simp add: simp_num_pair_def)}
+        from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff ?t' ?g" ..
+        let ?tt = "reducecoeffh ?t' ?g'"
+        let ?t = "Inum bs ?tt"
+        have gpdg: "?g' dvd ?g" by simp
+        have gpdd: "?g' dvd n" by simp 
+        have gpdgp: "?g' dvd ?g'" by simp
+        from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
+        have th2:"real ?g' * ?t = Inum bs ?t'" by simp
+        from prems have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
+        also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))" by simp
+        also have "\<dots> = (Inum bs ?t' / real n)"
+          using real_of_int_div[OF gp0 gpdd] th2 gp0 by simp
+        finally have "?lhs = Inum bs t / real n" by (simp add: simpnum_ci)
+        then have ?thesis using prems by (simp add: simp_num_pair_def)}
       ultimately have ?thesis by blast}
     ultimately have ?thesis by blast} 
   ultimately show ?thesis by blast
@@ -785,16 +785,16 @@ proof-
       hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
       moreover {assume "?g'=1" hence ?thesis using prems 
-	  by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0)}
+          by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0)}
       moreover {assume g'1:"?g'>1"
-	have gpdg: "?g' dvd ?g" by simp
-	have gpdd: "?g' dvd n" by simp 
-	have gpdgp: "?g' dvd ?g'" by simp
-	from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
-	from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
-	have "n div ?g' >0" by simp
-	hence ?thesis using prems 
-	  by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0 simpnum_numbound0)}
+        have gpdg: "?g' dvd ?g" by simp
+        have gpdd: "?g' dvd n" by simp 
+        have gpdgp: "?g' dvd ?g'" by simp
+        from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
+        from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
+        have "n div ?g' >0" by simp
+        hence ?thesis using prems 
+          by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0 simpnum_numbound0)}
       ultimately have ?thesis by blast}
     ultimately have ?thesis by blast} 
   ultimately show ?thesis by blast
@@ -1510,7 +1510,7 @@ proof (induct p rule: isrlfm.induct)
     hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
     moreover {assume y: "y < (-?N x e)/ real c"
       hence "y * real c < - ?N x e"
-	by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+        by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
       hence "real c * y + ?N x e < 0" by (simp add: algebra_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y > (- ?N x e) / real c" 
@@ -1529,7 +1529,7 @@ next
     hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
     moreover {assume y: "y < (-?N x e)/ real c"
       hence "y * real c < - ?N x e"
-	by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+        by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
       hence "real c * y + ?N x e < 0" by (simp add: algebra_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y > (- ?N x e) / real c" 
@@ -1548,7 +1548,7 @@ next
     hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
     moreover {assume y: "y > (-?N x e)/ real c"
       hence "y * real c > - ?N x e"
-	by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+        by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
       hence "real c * y + ?N x e > 0" by (simp add: algebra_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y < (- ?N x e) / real c" 
@@ -1567,7 +1567,7 @@ next
     hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
     moreover {assume y: "y > (-?N x e)/ real c"
       hence "y * real c > - ?N x e"
-	by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+        by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
       hence "real c * y + ?N x e > 0" by (simp add: algebra_simps)
       hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
     moreover {assume y: "y < (- ?N x e) / real c" 
@@ -1694,8 +1694,8 @@ proof-
     moreover{
       assume "\<exists> t1\<in> ?M. \<exists> t2 \<in> ?M. (\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M) \<and> t1 < a \<and> a < t2 \<and> ?I a p"
       then obtain t1 and t2 where t1M: "t1 \<in> ?M" and t2M: "t2\<in> ?M" 
-	and noM: "\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M" and t1x: "t1 < a" and xt2: "a < t2" and px: "?I a p"
-	by blast
+        and noM: "\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M" and t1x: "t1 < a" and xt2: "a < t2" and px: "?I a p"
+        by blast
       from t1M have "\<exists> (t1u,t1n) \<in> ?U. t1 = ?N a t1u / real t1n" by auto
       then obtain "t1u" "t1n" where t1uU: "(t1u,t1n) \<in> ?U" and t1u: "t1 = ?N a t1u / real t1n" by blast
       from t2M have "\<exists> (t2u,t2n) \<in> ?U. t2 = ?N a t2u / real t2n" by auto
@@ -1751,13 +1751,13 @@ proof
     let ?N = "\<lambda> t. Inum (x#bs) t"
     {fix t n s m assume "(t,n)\<in> set (uset p)" and "(s,m) \<in> set (uset p)"
       with uset_l[OF lp] have tnb: "numbound0 t" and np:"real n > 0" and snb: "numbound0 s" and mp:"real m > 0"
-	by auto
+        by auto
       let ?st = "Add (Mul m t) (Mul n s)"
       from mult_pos_pos[OF np mp] have mnp: "real (2*n*m) > 0" 
-	by (simp add: mult_commute)
+        by (simp add: mult_commute)
       from tnb snb have st_nb: "numbound0 ?st" by simp
       have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
-	using mnp mp np by (simp add: algebra_simps add_divide_distrib)
+        using mnp mp np by (simp add: algebra_simps add_divide_distrib)
       from usubst_I[OF lp mnp st_nb, where x="x" and bs="bs"] 
       have "?I x (usubst p (?st,2*n*m)) = ?I ((?N t / real n + ?N s / real m) /2) p" by (simp only: st[symmetric])}
     with rinf_uset[OF lp nmi npi px] have "?F" by blast hence "?D" by blast}
@@ -1928,7 +1928,7 @@ proof-
     { fix t n assume tnY: "(t,n) \<in> set ?Y" 
       hence "(t,n) \<in> set ?SS" by simp
       hence "\<exists> (t',n') \<in> set ?S. simp_num_pair (t',n') = (t,n)"
-	by (auto simp add: split_def) (rule_tac x="((aa,ba),(ab,bb))" in bexI, simp_all)
+        by (auto simp add: split_def) (rule_tac x="((aa,ba),(ab,bb))" in bexI, simp_all)
       then obtain t' n' where tn'S: "(t',n') \<in> set ?S" and tns: "simp_num_pair (t',n') = (t,n)" by blast
       from tn'S Snb have tnb: "numbound0 t'" and np: "n' > 0" by auto
       from simp_num_pair_l[OF tnb np tns]

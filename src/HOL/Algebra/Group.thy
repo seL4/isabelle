@@ -553,11 +553,11 @@ lemma iso_refl: "(%x. x) \<in> G \<cong> G"
 by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
 lemma (in group) iso_sym:
-     "h \<in> G \<cong> H \<Longrightarrow> Inv (carrier G) h \<in> H \<cong> G"
-apply (simp add: iso_def bij_betw_Inv) 
-apply (subgoal_tac "Inv (carrier G) h \<in> carrier H \<rightarrow> carrier G") 
- prefer 2 apply (simp add: bij_betw_imp_funcset [OF bij_betw_Inv]) 
-apply (simp add: hom_def bij_betw_def Inv_f_eq f_Inv_f Pi_def)
+     "h \<in> G \<cong> H \<Longrightarrow> inv_onto (carrier G) h \<in> H \<cong> G"
+apply (simp add: iso_def bij_betw_inv_onto) 
+apply (subgoal_tac "inv_onto (carrier G) h \<in> carrier H \<rightarrow> carrier G") 
+ prefer 2 apply (simp add: bij_betw_imp_funcset [OF bij_betw_inv_onto]) 
+apply (simp add: hom_def bij_betw_def inv_onto_f_eq f_inv_onto_f Pi_def)
 done
 
 lemma (in group) iso_trans: 
@@ -785,16 +785,16 @@ next
       assume H: "H \<in> A"
       with L have subgroupH: "subgroup H G" by auto
       from subgroupH have groupH: "group (G (| carrier := H |))" (is "group ?H")
-	by (rule subgroup_imp_group)
+        by (rule subgroup_imp_group)
       from groupH have monoidH: "monoid ?H"
-	by (rule group.is_monoid)
+        by (rule group.is_monoid)
       from H have Int_subset: "?Int \<subseteq> H" by fastsimp
       then show "le ?L ?Int H" by simp
     next
       fix H
       assume H: "H \<in> Lower ?L A"
       with L Int_subgroup show "le ?L H ?Int"
-	by (fastsimp simp: Lower_def intro: Inter_greatest)
+        by (fastsimp simp: Lower_def intro: Inter_greatest)
     next
       show "A \<subseteq> carrier ?L" by (rule L)
     next

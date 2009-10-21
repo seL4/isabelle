@@ -1,8 +1,7 @@
 (*  Title:      ZF/AC/DC.thy
-    ID:         $Id$
     Author:     Krzysztof Grabczewski
 
-The proofs concerning the Axiom of Dependent Choice
+The proofs concerning the Axiom of Dependent Choice.
 *)
 
 theory DC
@@ -83,8 +82,8 @@ by (fast elim!: not_emptyE)
 definition
   DC  :: "i => o"  where
     "DC(a) == \<forall>X R. R \<subseteq> Pow(X)*X  &
-		    (\<forall>Y \<in> Pow(X). Y \<prec> a --> (\<exists>x \<in> X. <Y,x> \<in> R)) 
-		    --> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
+                    (\<forall>Y \<in> Pow(X). Y \<prec> a --> (\<exists>x \<in> X. <Y,x> \<in> R)) 
+                    --> (\<exists>f \<in> a->X. \<forall>b<a. <f``b,f`b> \<in> R)"
 
 definition
   DC0 :: o  where
@@ -94,7 +93,7 @@ definition
 definition
   ff  :: "[i, i, i, i] => i"  where
     "ff(b, X, Q, R) ==
-	   transrec(b, %c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
+           transrec(b, %c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
 
 
 locale DC0_imp =
@@ -180,7 +179,7 @@ apply (simp add: XX_def, safe)
 apply (rule rev_bexI, assumption)
 apply (subgoal_tac "0 \<in> y", force)
 apply (force simp add: RR_def
-	     intro: ltD elim!: nat_0_le [THEN leE])
+             intro: ltD elim!: nat_0_le [THEN leE])
 (** LEVEL 7, other subgoal **)
 apply (drule bspec [OF _ nat_succI], assumption)
 apply (subgoal_tac "f ` succ (succ (x)) \<in> succ (k) ->X")
@@ -218,7 +217,7 @@ apply (rule restrict_eq_imp_val_eq [symmetric])
  apply (simp add: RR_def)
 apply (drule lemma2, assumption+)
 apply (blast dest!: domain_of_fun 
-	     intro: nat_into_Ord OrdmemD [THEN subsetD])
+             intro: nat_into_Ord OrdmemD [THEN subsetD])
 done
 
 lemma (in DC0_imp) lemma3:
@@ -268,10 +267,10 @@ done
 
     RR = {<z1,z2>:Fin(XX)*XX. 
            (domain(z2)=succ(\<Union>f \<in> z1. domain(f)) &
-	    (\<forall>f \<in> z1. restrict(z2, domain(f)) = f)) |      
-	   (~ (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f)) &
-	                (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) &           
-	    z2={<0,x>})}                                          
+            (\<forall>f \<in> z1. restrict(z2, domain(f)) = f)) |      
+           (~ (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f)) &
+                        (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) &           
+            z2={<0,x>})}                                          
                                                                           
    Then XX and RR satisfy the hypotheses of DC(omega).                    
    So applying DC:                                                        
@@ -291,26 +290,26 @@ lemma singleton_in_funs:
             (\<Union>n \<in> nat. {f \<in> succ(n)->X. \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
 apply (rule nat_0I [THEN UN_I])
 apply (force simp add: singleton_0 [symmetric]
-	     intro!: singleton_fun [THEN Pi_type])
+             intro!: singleton_fun [THEN Pi_type])
 done
 
 
 locale imp_DC0 =
   fixes XX and RR and x and R and f and allRR
   defines XX_def: "XX == (\<Union>n \<in> nat.
-		      {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
+                      {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
       and RR_def:
-	 "RR == {<z1,z2>:Fin(XX)*XX. 
-		  (domain(z2)=succ(\<Union>f \<in> z1. domain(f))  
-		    & (\<forall>f \<in> z1. restrict(z2, domain(f)) = f))
-		  | (~ (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f))  
-		     & (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) & z2={<0,x>})}"
+         "RR == {<z1,z2>:Fin(XX)*XX. 
+                  (domain(z2)=succ(\<Union>f \<in> z1. domain(f))  
+                    & (\<forall>f \<in> z1. restrict(z2, domain(f)) = f))
+                  | (~ (\<exists>g \<in> XX. domain(g)=succ(\<Union>f \<in> z1. domain(f))  
+                     & (\<forall>f \<in> z1. restrict(g, domain(f)) = f)) & z2={<0,x>})}"
       and allRR_def:
-	"allRR == \<forall>b<nat.
-		   <f``b, f`b> \<in>  
-		    {<z1,z2>\<in>Fin(XX)*XX. (domain(z2)=succ(\<Union>f \<in> z1. domain(f))
-				    & (\<Union>f \<in> z1. domain(f)) = b  
-				    & (\<forall>f \<in> z1. restrict(z2,domain(f)) = f))}"
+        "allRR == \<forall>b<nat.
+                   <f``b, f`b> \<in>  
+                    {<z1,z2>\<in>Fin(XX)*XX. (domain(z2)=succ(\<Union>f \<in> z1. domain(f))
+                                    & (\<Union>f \<in> z1. domain(f)) = b  
+                                    & (\<forall>f \<in> z1. restrict(z2,domain(f)) = f))}"
 
 lemma (in imp_DC0) lemma4:
      "[| range(R) \<subseteq> domain(R);  x \<in> domain(R) |]   
@@ -417,10 +416,10 @@ apply (rule_tac x = "cons(<succ(m), z>, f`m)" in bexI)
 prefer 2 apply (blast intro: cons_fun_type2) 
 apply (rule conjI)
 prefer 2 apply (fast del: ballI subsetI
-		 elim: trans [OF _ subst_context, THEN domain_cons_eq_succ]
-		       subst_context
-		       all_in_image_restrict_eq [simplified XX_def]
-		       trans equalityD1)
+                 elim: trans [OF _ subst_context, THEN domain_cons_eq_succ]
+                       subst_context
+                       all_in_image_restrict_eq [simplified XX_def]
+                       trans equalityD1)
 (*one remaining subgoal*)
 apply (rule ballI)
 apply (erule succE)

@@ -27,7 +27,7 @@ val limit = Unsynchronized.ref 5;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-  (setmp auto true (fn () =>
+  (setmp_CRITICAL auto true (fn () =>
     Preferences.bool_pref auto
       "auto-solve"
       "Try to solve newly declared lemmas with existing theorems.") ());

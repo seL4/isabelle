@@ -343,7 +343,7 @@ fun mk_functional thy clauses =
      val patts2 = Library.sort (Library.int_ord o Library.pairself row_of_pat) patts1
      val finals = map row_of_pat patts2
      val originals = map (row_of_pat o #2) rows
-     val dummy = case (originals\\finals)
+     val dummy = case (subtract (op =) finals originals)
              of [] => ()
           | L => mk_functional_err
  ("The following clauses are redundant (covered by preceding clauses): " ^
@@ -531,7 +531,7 @@ fun lazyR_def thy fid tflCongs eqns =
                  then writeln (cat_lines ("Extractants =" ::
                   map (Display.string_of_thm_global thy) extractants))
                  else ()
-     val TCs = List.foldr (gen_union (op aconv)) [] TCl
+     val TCs = List.foldr (uncurry (union (op aconv))) [] TCl
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
@@ -724,7 +724,7 @@ local infix 5 ==>
 in
 fun build_ih f P (pat,TCs) =
  let val globals = S.free_vars_lr pat
-     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
          let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
              val (R,y,_) = S.dest_relation R_y_pat
@@ -753,7 +753,7 @@ in
 fun build_ih f (P,SV) (pat,TCs) =
  let val pat_vars = S.free_vars_lr pat
      val globals = pat_vars@SV
-     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
          let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
              val (R,y,_) = S.dest_relation R_y_pat
@@ -786,7 +786,7 @@ fun prove_case f thy (tm,TCs_locals,thm) =
  let val tych = Thry.typecheck thy
      val antc = tych(#ant(S.dest_imp tm))
      val thm' = R.SPEC_ALL thm
-     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
      fun get_cntxt TC = tych(#ant(S.dest_imp(#2(S.strip_forall(concl TC)))))
      fun mk_ih ((TC,locals),th2,nested) =
          R.GENL (map tych locals)

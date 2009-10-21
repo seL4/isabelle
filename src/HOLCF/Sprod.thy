@@ -23,9 +23,9 @@ instance "**" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Sprod below_Sprod_def])
 
 syntax (xsymbols)
-  "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
+  "**"          :: "[type, type] => type"        ("(_ \<otimes>/ _)" [21,20] 20)
 syntax (HTML output)
-  "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
+  "**"          :: "[type, type] => type"        ("(_ \<otimes>/ _)" [21,20] 20)
 
 lemma spair_lemma:
   "(strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a) \<in> Sprod"

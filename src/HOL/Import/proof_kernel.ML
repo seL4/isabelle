@@ -201,10 +201,10 @@ fun simple_smart_string_of_cterm ct =
     in
         quote (
         PrintMode.setmp [] (
-        Library.setmp show_brackets false (
-        Library.setmp show_all_types true (
-        Library.setmp Syntax.ambiguity_is_error false (
-        Library.setmp show_sorts true (Syntax.string_of_term_global thy o Thm.term_of)))))
+        setmp_CRITICAL show_brackets false (
+        setmp_CRITICAL show_all_types true (
+        setmp_CRITICAL Syntax.ambiguity_is_error false (
+        setmp_CRITICAL show_sorts true (Syntax.string_of_term_global thy o Thm.term_of)))))
         ct)
     end
 
@@ -219,15 +219,15 @@ fun smart_string_of_cterm ct =
         val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
                    handle TERM _ => ct)
         fun match u = t aconv u
-        fun G 0 = Library.setmp show_types true (Library.setmp show_sorts true)
-          | G 1 = Library.setmp show_brackets true (G 0)
-          | G 2 = Library.setmp show_all_types true (G 0)
-          | G 3 = Library.setmp show_brackets true (G 2)
+        fun G 0 = setmp_CRITICAL show_types true (setmp_CRITICAL show_sorts true)
+          | G 1 = setmp_CRITICAL show_brackets true (G 0)
+          | G 2 = setmp_CRITICAL show_all_types true (G 0)
+          | G 3 = setmp_CRITICAL show_brackets true (G 2)
           | G _ = raise SMART_STRING
         fun F n =
             let
                 val str =
-                  Library.setmp show_brackets false (G n (Syntax.string_of_term ctxt o term_of)) ct
+                  setmp_CRITICAL show_brackets false (G n (Syntax.string_of_term ctxt o term_of)) ct
                 val u = Syntax.parse_term ctxt str
                   |> TypeInfer.constrain T |> Syntax.check_term ctxt
             in
@@ -239,7 +239,7 @@ fun smart_string_of_cterm ct =
               | SMART_STRING =>
                   error ("smart_string failed for: "^ G 0 (Syntax.string_of_term ctxt o term_of) ct)
     in
-      PrintMode.setmp [] (Library.setmp Syntax.ambiguity_is_error true F) 0
+      PrintMode.setmp [] (setmp_CRITICAL Syntax.ambiguity_is_error true F) 0
     end
     handle ERROR mesg => simple_smart_string_of_cterm ct
 
@@ -281,9 +281,10 @@ fun i mem L =
           | itr (a::rst) = i=a orelse itr rst
     in itr L end;
 
+infix union;
 fun [] union S = S
   | S union [] = S
-  | (a::rst) union S2 = rst union (insert (op =) a S2)
+  | (a::rst) union S2 = rst union (insert (op =) a S2);
 
 fun implode_subst [] = []
   | implode_subst (x::r::rest) = ((x,r)::(implode_subst rest))
@@ -583,7 +584,7 @@ and get_type_from_xml thy thyname types =
 
 fun input_types thyname (Elem("tylist",[("i",i)],xtys)) =
     let
-        val types = Array.array(valOf (Int.fromString i),XMLty (Elem("",[],[])))
+        val types = Array.array(the (Int.fromString i),XMLty (Elem("",[],[])))
         fun IT _ [] = ()
           | IT n (xty::xtys) =
             (Array.update(types,n,XMLty xty);
@@ -650,7 +651,7 @@ and get_term_from_xml thy thyname types terms =
 
 fun input_terms thyname types (Elem("tmlist",[("i",i)],xtms)) =
     let
-        val terms = Array.array(valOf(Int.fromString i),XMLtm (Elem("",[],[])))
+        val terms = Array.array(the (Int.fromString i), XMLtm (Elem("",[],[])))
 
         fun IT _ [] = ()
           | IT n (xtm::xtms) =
@@ -1229,7 +1230,7 @@ fun match_consts t (* th *) =
           | add_consts (_, cs) = cs
         val t_consts = add_consts(t,[])
     in
-        fn th => eq_set(t_consts,add_consts(prop_of th,[]))
+        fn th => eq_set (op =) (t_consts, add_consts (prop_of th, []))
     end
 
 fun split_name str =
@@ -1239,7 +1240,7 @@ fun split_name str =
         val (newstr,u) = pairself Substring.string (Substring.splitr (fn c => c = #"_") f)
     in
         if not (idx = "") andalso u = "_"
-        then SOME (newstr,valOf(Int.fromString idx))
+        then SOME (newstr, the (Int.fromString idx))
         else NONE
     end
     handle _ => NONE  (* FIXME avoid handle _ *)
@@ -1914,7 +1915,7 @@ val spaces = space_implode " "
 fun new_definition thyname constname rhs thy =
     let
         val constname = rename_const thyname thy constname
-        val redeclared = isSome (Sign.const_type thy (Sign.intern_const thy constname));
+        val redeclared = is_some (Sign.const_type thy (Sign.intern_const thy constname));
         val _ = warning ("Introducing constant " ^ constname)
         val (thmname,thy) = get_defname thyname constname thy
         val (info,rhs') = disamb_term rhs
@@ -2124,7 +2125,7 @@ fun new_type_definition thyname thmname tycname hth thy =
                                 else "(" ^ commas tnames ^ ") "
             val proc_prop = if null tnames
                             then smart_string_of_cterm
-                            else Library.setmp show_all_types true smart_string_of_cterm
+                            else setmp_CRITICAL show_all_types true smart_string_of_cterm
             val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " "
                                  ^ (string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
 
@@ -2219,7 +2220,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
                                 else "(" ^ commas tnames ^ ") "
             val proc_prop = if null tnames
                             then smart_string_of_cterm
-                            else Library.setmp show_all_types true smart_string_of_cterm
+                            else setmp_CRITICAL show_all_types true smart_string_of_cterm
             val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^
               " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " ^
               (string_of_mixfix tsyn) ^ " morphisms "^
