@@ -591,12 +591,15 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
 
 (** specification of (co)inductive predicates **)
 
+fun drop_first f [] = []
+  | drop_first f (x :: xs) = if f x then xs else x :: drop_first f xs;
+
 fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos params cnames_syn ctxt =
   let
     val fp_name = if coind then @{const_name Inductive.gfp} else @{const_name Inductive.lfp};
 
     val argTs = fold (fn c => fn Ts => Ts @
-      (subtract (op =) Ts (List.drop (binder_types (fastype_of c), length params)))) cs [];
+      (fold (fn T => drop_first (curry (op =) T)) Ts (List.drop (binder_types (fastype_of c), length params)))) cs [];
     val k = log 2 1 (length cs);
     val predT = replicate k HOLogic.boolT ---> argTs ---> HOLogic.boolT;
     val p :: xs = map Free (Variable.variant_frees ctxt intr_ts
