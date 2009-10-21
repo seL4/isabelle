@@ -159,11 +159,11 @@ sig
   val update: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list
   val union: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
   val subtract: ('b * 'a -> bool) -> 'b list -> 'a list -> 'a list
+  val inter: ('a * 'b -> bool) -> 'b list -> 'a list -> 'a list
   val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
   val mem: ''a * ''a list -> bool
   val mem_int: int * int list -> bool
   val mem_string: string * string list -> bool
-  val inter: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
   val subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
@@ -782,6 +782,8 @@ fun insert eq x xs = if member eq xs x then xs else x :: xs;
 fun remove eq x xs = if member eq xs x then filter_out (fn y => eq (x, y)) xs else xs;
 fun update eq x xs = cons x (remove eq x xs);
 
+fun inter eq xs = filter (member eq xs);
+
 fun union eq = fold (insert eq);
 fun subtract eq = fold (remove eq);
 
@@ -797,16 +799,11 @@ fun x mem xs = member (op =) xs x;
 fun (x: int) mem_int xs = member (op =) xs x;
 fun (x: string) mem_string xs = member (op =) xs x;
 
-(*intersection*)
-fun inter eq ([], ys) = []
-  | inter eq (x::xs, ys) =
-      if member eq ys x then x :: inter eq (xs, ys)
-      else inter eq (xs, ys);
 
-(*subset*)
+(* subset and set equality *)
+
 fun subset eq (xs, ys) = forall (member eq ys) xs;
 
-(*set equality*)
 fun eq_set eq (xs, ys) =
   eq_list eq (xs, ys) orelse
     (subset eq (xs, ys) andalso subset (eq o swap) (ys, xs));

@@ -219,7 +219,7 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
             if subset (op =) (js, is)
             then let val t= mkabs(binders,is,app(Var(G,Gty),map (idx is) js))
                  in Envir.update (((F, Fty), t), env) end
-            else let val ks = inter (op =) (is, js)
+            else let val ks = inter (op =) js is
                      val Hty = type_of_G env (Fty,length is,map (idx is) ks)
                      val (env',H) = Envir.genvar a (env,Hty)
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));

@@ -482,7 +482,7 @@ fun prep_intrs intrs = map (rename_term o #prop o rep_thm o Drule.standard) intr
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs (s : string) of
       NONE => xs
-    | SOME xs' => inter (op =) (xs, xs')) :: constrain cs ys;
+    | SOME xs' => inter (op =) xs' xs) :: constrain cs ys;
 
 fun mk_extra_defs thy defs gr dep names module ts =
   Library.foldl (fn (gr, name) =>
