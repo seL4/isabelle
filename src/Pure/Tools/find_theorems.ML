@@ -27,6 +27,27 @@ datatype 'term criterion =
   Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
   Pattern of 'term;
 
+fun apply_dummies tm =
+  strip_abs tm
+  |> fst
+  |> map (Term.dummy_pattern o snd)
+  |> betapplys o pair tm
+  |> (fn x => Term.replace_dummy_patterns x 1)
+  |> fst;
+
+fun parse_pattern ctxt nm =
+  let
+    val nm' = case Syntax.parse_term ctxt nm of Const (n, _) => n | _ => nm;
+    val consts = ProofContext.consts_of ctxt;
+  in
+    nm'
+    |> Consts.intern consts
+    |> Consts.the_abbreviation consts
+    |> snd
+    |> apply_dummies
+    handle TYPE _ => ProofContext.read_term_pattern ctxt nm
+  end;
+
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ IntroIff = IntroIff
@@ -34,7 +55,7 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
   | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term_pattern ctxt str)
-  | read_criterion ctxt (Pattern str) = Pattern (ProofContext.read_term_pattern ctxt str);
+  | read_criterion ctxt (Pattern str) = Pattern (parse_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
   let
