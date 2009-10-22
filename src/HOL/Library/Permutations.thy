@@ -83,7 +83,7 @@ lemma permutes_univ: "p permutes UNIV \<longleftrightarrow> (\<forall>y. \<exist
   unfolding permutes_def by simp
 
 lemma permutes_inv_eq: "p permutes S ==> inv p y = x \<longleftrightarrow> p x = y"
-  unfolding permutes_def inv_onto_def apply auto
+  unfolding permutes_def inv_def apply auto
   apply (erule allE[where x=y])
   apply (erule allE[where x=y])
   apply (rule someI_ex) apply blast

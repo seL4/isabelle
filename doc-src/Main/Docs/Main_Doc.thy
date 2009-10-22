@@ -170,13 +170,13 @@ Hilbert's selection ($\varepsilon$) operator: @{term"SOME x. P"}.
 \smallskip
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
-@{const Hilbert_Choice.inv_onto} & @{term_type_only Hilbert_Choice.inv_onto "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"}
+@{const Hilbert_Choice.inv_into} & @{term_type_only Hilbert_Choice.inv_into "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"}
 \end{tabular}
 
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-@{term inv} & @{term[source]"inv_onto UNIV"}
+@{term inv} & @{term[source]"inv_into UNIV"}
 \end{tabular}
 
 \section{Fixed Points}

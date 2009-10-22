@@ -121,7 +121,7 @@ lemma fst_inv_equalityI:
      assumes surj_h: "surj h"
          and prem:   "!! x y. g (h(x,y)) = x"
      shows "fst (inv h z) = g z"
-by (metis UNIV_I f_inv_onto_f pair_collapse prem surj_h surj_range)
+by (metis UNIV_I f_inv_into_f pair_collapse prem surj_h surj_range)
 
 
 subsection{*Trivial properties of f, g, h*}

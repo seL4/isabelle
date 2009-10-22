@@ -153,8 +153,8 @@ may occationally break, since the O_assoc rule was not rewritten like
 this.  Fix using O_assoc[symmetric].  The same applies to the curried
 version "R OO S".
 
-* Function "Inv" is renamed to "inv_onto" and function "inv" is now an
-abbreviation for "inv_onto UNIV". Lemmas are renamed accordingly.
+* Function "Inv" is renamed to "inv_into" and function "inv" is now an
+abbreviation for "inv_into UNIV". Lemmas are renamed accordingly.
 INCOMPATIBILITY.
 
 * ML antiquotation @{code_datatype} inserts definition of a datatype
