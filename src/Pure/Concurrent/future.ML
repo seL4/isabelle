@@ -153,9 +153,7 @@ fun future_job group (e: unit -> 'a) =
             Exn.capture (fn () =>
               Multithreading.with_attributes Multithreading.private_interrupts (fn _ => e ())) ()
           else Exn.Exn Exn.Interrupt;
-        val _ = Synchronized.change result
-          (fn NONE => SOME res
-            | SOME _ => raise Fail "Duplicate assignment of future value");
+        val _ = Synchronized.assign result (K (SOME res));
       in
         (case res of
           Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
@@ -349,8 +347,7 @@ fun get_result x =
   | SOME res => res);
 
 fun join_wait x =
-  Synchronized.guarded_access (result_of x)
-    (fn NONE => NONE | some => SOME ((), some));
+  Synchronized.readonly_access (result_of x) (fn NONE => NONE | SOME _ => SOME ());
 
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
