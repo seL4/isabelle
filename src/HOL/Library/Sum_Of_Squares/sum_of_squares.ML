@@ -537,8 +537,8 @@ fun isnum x = x mem_string ["0","1","2","3","4","5","6","7","8","9"]
  fun token s =
   Scan.repeat ($$ " ") |-- word s --| Scan.repeat ($$ " ")
  val numeral = Scan.one isnum
- val decimalint = Scan.bulk numeral >> (rat_of_string o implode)
- val decimalfrac = Scan.bulk numeral
+ val decimalint = Scan.repeat numeral >> (rat_of_string o implode)
+ val decimalfrac = Scan.repeat numeral
     >> (fn s => rat_of_string(implode s) // pow10 (length s))
  val decimalsig =
     decimalint -- Scan.option (Scan.$$ "." |-- decimalfrac)
@@ -564,7 +564,9 @@ fun emptyin def xs = if null xs then (def,xs) else Scan.fail xs
 (* Parse back csdp output.                                                      *)
 
  fun ignore inp = ((),[])
- fun csdpoutput inp =  ((decimal -- Scan.bulk (Scan.$$ " " |-- Scan.option decimal) >> (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
+ fun csdpoutput inp =
+   ((decimal -- Scan.repeat (Scan.$$ " " |-- Scan.option decimal) >>
+    (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
  val parse_csdpoutput = mkparser csdpoutput
 
 (* Run prover on a problem in linear form.                       *)
