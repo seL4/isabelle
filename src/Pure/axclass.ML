@@ -364,12 +364,11 @@ fun add_arity raw_th thy =
       |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
       |> (map o apsnd o map_atyps) (K T);
     val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
-    val th' = Drule.unconstrainTs th;
   in
     thy
     |> fold (snd oo declare_overloaded) missing_params
     |> Sign.primitive_arity (t, Ss, [c])
-    |> put_arity ((t, Ss, c), th')
+    |> put_arity ((t, Ss, c), Thm.close_derivation (Drule.unconstrainTs th))
   end;
 
 
