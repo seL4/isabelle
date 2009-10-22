@@ -731,9 +731,6 @@ fun dfs_int_reachable g u =
  in u :: dfs_visit g u end;
 
 
-fun indexComps components =
-    ListPair.map (fn (a,b) => (a,b)) (0 upto (length components -1), components);
-
 fun indexNodes IndexComp =
     maps (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp;
 
@@ -1109,7 +1106,7 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
 |   mk_sccGraphs components leqG neqG ntc =
     let
     (* Liste (Index der Komponente, Komponente *)
-    val IndexComp = indexComps components;
+    val IndexComp = map_index I components;
 
 
     fun handleContr edge g =
@@ -1211,7 +1208,7 @@ fun gen_solve mkconcl sign (asms, concl) =
  let
   val (leqG, neqG, neqE) = mkGraphs asms
   val components = scc_term leqG
-  val ntc = indexNodes (indexComps components)
+  val ntc = indexNodes (map_index I components)
   val (sccGraph, sccSubgraphs) = mk_sccGraphs components leqG neqG ntc
  in
    let

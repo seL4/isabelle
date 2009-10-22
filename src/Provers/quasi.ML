@@ -118,8 +118,8 @@ fun getprf   (Less (_, _, p)) = p
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkasm_trans sign (t, n) =
-  case Less.decomp_trans sign t of
+fun mkasm_trans thy (t, n) =
+  case Less.decomp_trans thy t of
     SOME (x, rel, y) =>
     (case rel of
      "<="  =>  [Le (x, y, Asm n)]
@@ -137,8 +137,8 @@ fun mkasm_trans sign (t, n) =
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkasm_quasi sign (t, n) =
-  case Less.decomp_quasi sign t of
+fun mkasm_quasi thy (t, n) =
+  case Less.decomp_quasi thy t of
     SOME (x, rel, y) => (case rel of
       "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], Less.less_reflE))
                else [Less (x, y, Asm n)]
@@ -164,8 +164,8 @@ fun mkasm_quasi sign (t, n) =
 (* ************************************************************************ *)
 
 
-fun mkconcl_trans sign t =
-  case Less.decomp_trans sign t of
+fun mkconcl_trans thy t =
+  case Less.decomp_trans thy t of
     SOME (x, rel, y) => (case rel of
      "<="  => (Le (x, y, Asm ~1), Asm 0)
     | _  => raise Cannot)
@@ -181,8 +181,8 @@ fun mkconcl_trans sign t =
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkconcl_quasi sign t =
-  case Less.decomp_quasi sign t of
+fun mkconcl_quasi thy t =
+  case Less.decomp_quasi thy t of
     SOME (x, rel, y) => (case rel of
       "<"   => ([Less (x, y, Asm ~1)], Asm 0)
     | "<="  => ([Le (x, y, Asm ~1)], Asm 0)
@@ -503,12 +503,12 @@ fun findQuasiProof (leG, neqE) subgoal =
 (*                                                                         *)
 (* *********************************************************************** *)
 
-fun solveLeTrans sign (asms, concl) =
+fun solveLeTrans thy (asms, concl) =
  let
   val g = mkGraph asms
  in
    let
-    val (subgoal, prf) = mkconcl_trans sign concl
+    val (subgoal, prf) = mkconcl_trans thy concl
     val (found, path) = findPath (lower subgoal) (upper subgoal) g
    in
     if found then [getprf (transPath (tl path, hd path))]
@@ -526,12 +526,12 @@ fun solveLeTrans sign (asms, concl) =
 (*                                                                         *)
 (* *********************************************************************** *)
 
-fun solveQuasiOrder sign (asms, concl) =
+fun solveQuasiOrder thy (asms, concl) =
  let
   val (leG, neqE) = mkQuasiGraph asms
  in
    let
-   val (subgoals, prf) = mkconcl_quasi sign concl
+   val (subgoals, prf) = mkconcl_quasi thy concl
    fun solve facts less =
        (case triv_solv less of NONE => findQuasiProof (leG, neqE) less
        | SOME prf => prf )
@@ -555,7 +555,7 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
-  val lesss = flat (ListPair.map (mkasm_trans thy) (Hs, 0 upto (length Hs - 1)));
+  val lesss = flat (map_index (mkasm_trans thy o swap) Hs);
   val prfs = solveLeTrans thy (lesss, C);
 
   val (subgoal, prf) = mkconcl_trans thy C;
@@ -576,7 +576,7 @@ fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
-  val lesss = flat (ListPair.map (mkasm_quasi thy) (Hs, 0 upto (length Hs - 1)));
+  val lesss = flat (map_index (mkasm_quasi thy o swap) Hs);
   val prfs = solveQuasiOrder thy (lesss, C);
   val (subgoals, prf) = mkconcl_quasi thy C;
  in

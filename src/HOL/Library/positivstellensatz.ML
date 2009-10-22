@@ -643,9 +643,9 @@ local
 
   fun linear_prover (eq,le,lt) = 
    let 
-    val eqs = map2 (fn p => fn n => (p,Axiom_eq n)) eq (0 upto (length eq - 1))
-    val les = map2 (fn p => fn n => (p,Axiom_le n)) le (0 upto (length le - 1))
-    val lts = map2 (fn p => fn n => (p,Axiom_lt n)) lt (0 upto (length lt - 1))
+    val eqs = map_index (fn (n, p) => (p,Axiom_eq n)) eq
+    val les = map_index (fn (n, p) => (p,Axiom_le n)) le
+    val lts = map_index (fn (n, p) => (p,Axiom_lt n)) lt
    in linear_eqs(eqs,les,lts)
    end 
   

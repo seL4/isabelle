@@ -89,6 +89,7 @@ sig
   val nth_list: 'a list list -> int -> 'a list
   val map_index: (int * 'a -> 'b) -> 'a list -> 'b list
   val fold_index: (int * 'a -> 'b -> 'b) -> 'a list -> 'b -> 'b
+  val map_range: (int -> 'a) -> int -> 'a list
   val split_last: 'a list -> 'a list * 'a
   val find_index: ('a -> bool) -> 'a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
@@ -462,6 +463,12 @@ fun fold_index f =
     fun fold_aux (_: int) [] y = y
       | fold_aux i (x :: xs) y = fold_aux (i + 1) xs (f (i, x) y);
   in fold_aux 0 end;
+
+fun map_range f i =
+  let
+    fun mapp k =
+      if k < i then f k :: mapp (k + 1) else [];
+  in mapp 0 end;
 
 val last_elem = List.last;
 

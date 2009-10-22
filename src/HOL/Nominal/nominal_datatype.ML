@@ -102,7 +102,7 @@ val get_nominal_datatype = Symtab.lookup o get_nominal_datatypes;
 (**** make datatype info ****)
 
 fun make_dt_info descr sorts induct reccomb_names rec_thms
-    (((i, (_, (tname, _, _))), distinct), inject) =
+    (i, (((_, (tname, _, _)), distinct), inject)) =
   (tname,
    {index = i,
     descr = descr,
@@ -2045,8 +2045,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       end) (rec_eq_prems ~~
         DatatypeProp.make_primrecs new_type_names descr' sorts thy12);
 
-    val dt_infos = map (make_dt_info pdescr sorts induct reccomb_names rec_thms)
-      ((0 upto length descr1 - 1) ~~ descr1 ~~ distinct_thms ~~ inject_thms);
+    val dt_infos = map_index (make_dt_info pdescr sorts induct reccomb_names rec_thms)
+      (descr1 ~~ distinct_thms ~~ inject_thms);
 
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy13) = thy12 |>

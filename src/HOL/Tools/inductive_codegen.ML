@@ -625,7 +625,7 @@ fun mk_fun thy defs name eqns dep module module' gr =
 fun conv_ntuple fs ts p =
   let
     val k = length fs;
-    val xs = map (fn i => str ("x" ^ string_of_int i)) (0 upto k);
+    val xs = map_range (fn i => str ("x" ^ string_of_int i)) (k + 1);
     val xs' = map (fn Bound i => nth xs (k - i)) ts;
     fun conv xs js =
       if js mem fs then

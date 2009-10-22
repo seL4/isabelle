@@ -538,7 +538,7 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val C = Logic.strip_assums_concl A;
   val (rel, subgoals, prf) = mkconcl_trancl C;
 
-  val prems = flat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)));
+  val prems = flat (map_index (mkasm_trancl rel o swap) Hs);
   val prfs = solveTrancl (prems, C);
  in
   Subgoal.FOCUS (fn {prems, ...} =>
@@ -555,7 +555,7 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   val C = Logic.strip_assums_concl A;
   val (rel, subgoals, prf) = mkconcl_rtrancl C;
 
-  val prems = flat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)));
+  val prems = flat (map_index (mkasm_rtrancl rel o swap) Hs);
   val prfs = solveRtrancl (prems, C);
  in
   Subgoal.FOCUS (fn {prems, ...} =>

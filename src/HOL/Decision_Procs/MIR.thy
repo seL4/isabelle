@@ -5898,7 +5898,7 @@ in
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
     val fs = OldTerm.term_frees t;
-    val vs = fs ~~ (0 upto (length fs - 1));
+    val vs = map_index swap fs;
     val qe = if proofs then @{code mirlfrqe} else @{code mircfrqe};
     val t' = (term_of_fm vs o qe o fm_of_term vs) t;
   in (cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end

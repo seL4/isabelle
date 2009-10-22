@@ -534,7 +534,7 @@ fun eta_Var(ixn,T) = exp_abs(T,Var(ixn,T),0);
 
 fun Pinst(f,fT,(eq,eqT),k,i,T,yik,Ts) =
 let fun xn_list(x,n) =
-        let val ixs = map (fn i => (x^(radixstring(26,"a",i)),0)) (0 upto n);
+        let val ixs = map_range (fn i => (x^(radixstring(26,"a",i)),0)) (n - 1);
         in ListPair.map eta_Var (ixs, Library.take(n+1,Ts)) end
     val lhs = list_comb(f,xn_list("X",k-1))
     val rhs = list_comb(f,xn_list("X",i-1) @ [Bound 0] @ yik)

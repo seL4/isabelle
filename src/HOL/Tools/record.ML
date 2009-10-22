@@ -1894,8 +1894,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             more;
       in
         if more = HOLogic.unit
-        then build (map recT (0 upto parent_len))
-        else build (map rec_schemeT (0 upto parent_len))
+        then build (map_range recT (parent_len + 1))
+        else build (map_range rec_schemeT (parent_len + 1))
       end;
 
     val r_rec0 = mk_rec all_vars_more 0;

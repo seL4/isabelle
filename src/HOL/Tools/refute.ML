@@ -2618,8 +2618,7 @@ struct
                           "unexpected size of IDT (wrong type associated?)")
                       else ()
                   (* interpretation *)
-                  val rec_op = Node (map (compute_array_entry idt_index)
-                    (0 upto (idt_size - 1)))
+                  val rec_op = Node (map_range (compute_array_entry idt_index) idt_size)
                 in
                   SOME (rec_op, model', args')
                 end
@@ -2784,8 +2783,8 @@ struct
                 (replicate (size_of_nat - element - 1) False))
           end
       in
-        SOME (Node (map (fn m => Node (map (plus m) (0 upto size_of_nat-1)))
-          (0 upto size_of_nat-1)), model, args)
+        SOME (Node (map_range (fn m => Node (map_range (plus m) size_of_nat)) size_of_nat),
+          model, args)
       end
     | _ =>
       NONE;
@@ -2812,8 +2811,8 @@ struct
               (replicate (size_of_nat - element - 1) False))
           end
       in
-        SOME (Node (map (fn m => Node (map (minus m) (0 upto size_of_nat-1)))
-          (0 upto size_of_nat-1)), model, args)
+        SOME (Node (map_range (fn m => Node (map_range (minus m) size_of_nat)) size_of_nat),
+          model, args)
       end
     | _ =>
       NONE;
@@ -2843,8 +2842,8 @@ struct
                 (replicate (size_of_nat - element - 1) False))
           end
       in
-        SOME (Node (map (fn m => Node (map (mult m) (0 upto size_of_nat-1)))
-          (0 upto size_of_nat-1)), model, args)
+        SOME (Node (map_range (fn m => Node (map_range (mult m) size_of_nat)) size_of_nat),
+          model, args)
       end
     | _ =>
       NONE;

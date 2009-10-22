@@ -56,7 +56,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
     val {maxidx, ...} = rep_thm induct;
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
-    fun prove_casedist_thm ((i, t), T) =
+    fun prove_casedist_thm (i, (T, t)) =
       let
         val dummyPs = map (fn (Var (_, Type (_, [T', T'']))) =>
           Abs ("z", T', Const ("True", T''))) induct_Ps;
@@ -77,8 +77,8 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
              REPEAT (rtac TrueI 1)])
       end;
 
-    val casedist_thms = map prove_casedist_thm ((0 upto (length newTs - 1)) ~~
-      (DatatypeProp.make_casedists descr sorts) ~~ newTs)
+    val casedist_thms = map_index prove_casedist_thm
+      (newTs ~~ DatatypeProp.make_casedists descr sorts)
   in
     thy
     |> store_thms_atts "exhaust" new_type_names (map single case_names_exhausts) casedist_thms

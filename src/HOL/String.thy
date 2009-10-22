@@ -48,7 +48,7 @@ primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
 
 setup {*
 let
-  val nibbles = map (Thm.cterm_of @{theory} o HOLogic.mk_nibble) (0 upto 15);
+  val nibbles = map_range (Thm.cterm_of @{theory} o HOLogic.mk_nibble) 16;
   val thms = map_product
    (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
       nibbles nibbles;

@@ -363,7 +363,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
 
     val ineqss = mk_ineqs R scheme
                    |> map (map (pairself (assume o cert)))
-    val complete = map (mk_completeness ctxt scheme #> cert #> assume) (0 upto (length branches - 1))
+    val complete = map_range (mk_completeness ctxt scheme #> cert #> assume) (length branches)
     val wf_thm = mk_wf ctxt R scheme |> cert |> assume
 
     val (descent, pres) = split_list (flat ineqss)
