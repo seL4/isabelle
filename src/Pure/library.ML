@@ -466,7 +466,7 @@ fun fold_index f =
 
 fun map_range f i =
   let
-    fun mapp k =
+    fun mapp (k: int) =
       if k < i then f k :: mapp (k + 1) else [];
   in mapp 0 end;
 
