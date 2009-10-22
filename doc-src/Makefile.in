@@ -45,6 +45,9 @@ isabelle_hol.eps:
 isabelle_zf.eps:
 	test -r isabelle_zf.eps || ln -s ../gfx/isabelle_zf.eps .
 
+isabelle_nitpick.eps:
+	test -r isabelle_nitpick.eps || ln -s ../gfx/isabelle_nitpick.eps .
+
 
 isabelle.pdf:
 	test -r isabelle.pdf || ln -s ../gfx/isabelle.pdf .
@@ -57,6 +60,9 @@ isabelle_hol.pdf:
 
 isabelle_zf.pdf:
 	test -r isabelle_zf.pdf || ln -s ../gfx/isabelle_zf.pdf .
+
+isabelle_nitpick.pdf:
+	test -r isabelle_nitpick.pdf || ln -s ../gfx/isabelle_nitpick.pdf .
 
 typedef.ps:
 	test -r typedef.ps || ln -s ../gfx/typedef.ps .
