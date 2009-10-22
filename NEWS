@@ -50,6 +50,9 @@ solvers using the oracle mechanism; for the SMT solver Z3,
 this method is proof-producing. Certificates are provided to
 avoid calling the external solvers solely for re-checking proofs.
 
+* New counterexample generator tool "nitpick" based on the Kodkod
+relational model finder.
+
 * Reorganization of number theory:
   * former session NumberTheory now named Old_Number_Theory
   * new session Number_Theory by Jeremy Avigad; if possible, prefer this.
