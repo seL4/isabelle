@@ -26,7 +26,6 @@ sig
   val info_of_constr : theory -> string * typ -> info option
   val info_of_case : theory -> string -> info option
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
-  val distinct_simproc : simproc
   val make_case :  Proof.context -> DatatypeCase.config -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
@@ -159,49 +158,6 @@ fun get_constrs thy dtco =
 
 (** various auxiliary **)
 
-(* simplification procedure for showing distinctness of constructors *)
-
-fun stripT (i, Type ("fun", [_, T])) = stripT (i + 1, T)
-  | stripT p = p;
-
-fun stripC (i, f $ x) = stripC (i + 1, f)
-  | stripC p = p;
-
-val distinctN = "constr_distinct";
-
-fun distinct_rule thy ss tname eq_t = Goal.prove (Simplifier.the_context ss) [] [] eq_t
-  (K (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
-    atac 2, resolve_tac (#distinct (the_info thy tname)) 1, etac FalseE 1]));
-
-fun get_constr thy dtco =
-  get_info thy dtco
-  |> Option.map (fn { descr, index, ... } => (#3 o the o AList.lookup (op =) descr) index);
-
-fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
-  (case (stripC (0, t1), stripC (0, t2)) of
-     ((i, Const (cname1, T1)), (j, Const (cname2, T2))) =>
-         (case (stripT (0, T1), stripT (0, T2)) of
-            ((i', Type (tname1, _)), (j', Type (tname2, _))) =>
-                if tname1 = tname2 andalso not (cname1 = cname2) andalso i = i' andalso j = j' then
-                   (case get_constr thy tname1 of
-                      SOME constrs => let val cnames = map fst constrs
-                        in if cname1 mem cnames andalso cname2 mem cnames then
-                             SOME (distinct_rule thy ss tname1
-                               (Logic.mk_equals (t, HOLogic.false_const)))
-                           else NONE
-                        end
-                    | NONE => NONE)
-                else NONE
-          | _ => NONE)
-   | _ => NONE)
-  | distinct_proc _ _ _ = NONE;
-
-val distinct_simproc =
-  Simplifier.simproc @{theory HOL} distinctN ["s = t"] distinct_proc;
-
-val simproc_setup =
-  Simplifier.map_simpset (fn ss => ss addsimprocs [distinct_simproc]);
-
 (* prepare datatype specifications *)
 
 fun read_typ thy ((Ts, sorts), str) =
@@ -271,7 +227,8 @@ val trfun_setup =
     [("_case_syntax", DatatypeCase.case_tr true info_of_constr)],
     [], []);
 
-(* document antiquotation *)
+
+(** document antiquotation **)
 
 val _ = ThyOutput.antiquotation "datatype" Args.tyname
   (fn {source = src, context = ctxt, ...} => fn dtco =>
@@ -593,4 +550,3 @@ val _ =
 end;
 
 end;
-
