@@ -670,9 +670,11 @@ fun add_datatype_cmd raw_cs thy =
 
 (* code equations *)
 
-fun gen_add_eqn default (eqn as (thm, _)) thy =
-  let val c = const_eqn thy thm
-  in change_eqns false c (add_thm thy default eqn) thy end;
+fun gen_add_eqn default (thm, proper) thy =
+  let
+    val thm' = Thm.close_derivation thm;
+    val c = const_eqn thy thm';
+  in change_eqns false c (add_thm thy default (thm', proper)) thy end;
 
 fun add_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (thm, true)) thy;
