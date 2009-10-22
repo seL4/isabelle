@@ -2049,33 +2049,33 @@ subsection {* Nitpick setup *}
 text {* This will be relocated once Nitpick is moved to HOL. *}
 
 ML {*
-structure Nitpick_Const_Defs = Named_Thms
+structure Nitpick_Defs = Named_Thms
 (
-  val name = "nitpick_const_def"
+  val name = "nitpick_def"
   val description = "alternative definitions of constants as needed by Nitpick"
 )
-structure Nitpick_Const_Simps = Named_Thms
+structure Nitpick_Simps = Named_Thms
 (
-  val name = "nitpick_const_simp"
+  val name = "nitpick_simp"
   val description = "equational specification of constants as needed by Nitpick"
 )
-structure Nitpick_Const_Psimps = Named_Thms
+structure Nitpick_Psimps = Named_Thms
 (
-  val name = "nitpick_const_psimp"
+  val name = "nitpick_psimp"
   val description = "partial equational specification of constants as needed by Nitpick"
 )
-structure Nitpick_Ind_Intros = Named_Thms
+structure Nitpick_Intros = Named_Thms
 (
-  val name = "nitpick_ind_intro"
+  val name = "nitpick_intro"
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
 *}
 
 setup {*
-  Nitpick_Const_Defs.setup
-  #> Nitpick_Const_Simps.setup
-  #> Nitpick_Const_Psimps.setup
-  #> Nitpick_Ind_Intros.setup
+  Nitpick_Defs.setup
+  #> Nitpick_Simps.setup
+  #> Nitpick_Psimps.setup
+  #> Nitpick_Intros.setup
 *}
 
 

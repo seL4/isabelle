@@ -31,11 +31,11 @@ print_translation {*
      in Syntax.const "_Eps" $ x $ t end)]
 *}
 
-definition inv_onto :: "'a set => ('a => 'b) => ('b => 'a)" where
-"inv_onto A f == %x. SOME y. y : A & f y = x"
+definition inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
+"inv_into A f == %x. SOME y. y : A & f y = x"
 
 abbreviation inv :: "('a => 'b) => ('b => 'a)" where
-"inv == inv_onto UNIV"
+"inv == inv_into UNIV"
 
 
 subsection {*Hilbert's Epsilon-operator*}
@@ -92,40 +92,40 @@ by (fast elim: someI)
 subsection {*Function Inverse*}
 
 lemma inv_def: "inv f = (%y. SOME x. f x = y)"
-by(simp add: inv_onto_def)
+by(simp add: inv_into_def)
 
-lemma inv_onto_into: "x : f ` A ==> inv_onto A f x : A"
-apply (simp add: inv_onto_def)
+lemma inv_into_into: "x : f ` A ==> inv_into A f x : A"
+apply (simp add: inv_into_def)
 apply (fast intro: someI2)
 done
 
 lemma inv_id [simp]: "inv id = id"
-by (simp add: inv_onto_def id_def)
+by (simp add: inv_into_def id_def)
 
-lemma inv_onto_f_f [simp]:
-  "[| inj_on f A;  x : A |] ==> inv_onto A f (f x) = x"
-apply (simp add: inv_onto_def inj_on_def)
+lemma inv_into_f_f [simp]:
+  "[| inj_on f A;  x : A |] ==> inv_into A f (f x) = x"
+apply (simp add: inv_into_def inj_on_def)
 apply (blast intro: someI2)
 done
 
 lemma inv_f_f: "inj f ==> inv f (f x) = x"
-by (simp add: inv_onto_f_f)
+by (simp add: inv_into_f_f)
 
-lemma f_inv_onto_f: "y : f`A  ==> f (inv_onto A f y) = y"
-apply (simp add: inv_onto_def)
+lemma f_inv_into_f: "y : f`A  ==> f (inv_into A f y) = y"
+apply (simp add: inv_into_def)
 apply (fast intro: someI2)
 done
 
-lemma inv_onto_f_eq: "[| inj_on f A; x : A; f x = y |] ==> inv_onto A f y = x"
+lemma inv_into_f_eq: "[| inj_on f A; x : A; f x = y |] ==> inv_into A f y = x"
 apply (erule subst)
-apply (fast intro: inv_onto_f_f)
+apply (fast intro: inv_into_f_f)
 done
 
 lemma inv_f_eq: "[| inj f; f x = y |] ==> inv f y = x"
-by (simp add:inv_onto_f_eq)
+by (simp add:inv_into_f_eq)
 
 lemma inj_imp_inv_eq: "[| inj f; ALL x. f(g x) = x |] ==> inv f = g"
-by (blast intro: ext inv_onto_f_eq)
+by (blast intro: ext inv_into_f_eq)
 
 text{*But is it useful?*}
 lemma inj_transfer:
@@ -134,12 +134,12 @@ lemma inj_transfer:
 proof -
   have "f x \<in> range f" by auto
   hence "P(inv f (f x))" by (rule minor)
-  thus "P x" by (simp add: inv_onto_f_f [OF injf])
+  thus "P x" by (simp add: inv_into_f_f [OF injf])
 qed
 
 lemma inj_iff: "(inj f) = (inv f o f = id)"
 apply (simp add: o_def expand_fun_eq)
-apply (blast intro: inj_on_inverseI inv_onto_f_f)
+apply (blast intro: inj_on_inverseI inv_into_f_f)
 done
 
 lemma inv_o_cancel[simp]: "inj f ==> inv f o f = id"
@@ -148,34 +148,34 @@ by (simp add: inj_iff)
 lemma o_inv_o_cancel[simp]: "inj f ==> g o inv f o f = g"
 by (simp add: o_assoc[symmetric])
 
-lemma inv_onto_image_cancel[simp]:
-  "inj_on f A ==> S <= A ==> inv_onto A f ` f ` S = S"
+lemma inv_into_image_cancel[simp]:
+  "inj_on f A ==> S <= A ==> inv_into A f ` f ` S = S"
 by(fastsimp simp: image_def)
 
 lemma inj_imp_surj_inv: "inj f ==> surj (inv f)"
-by (blast intro: surjI inv_onto_f_f)
+by (blast intro: surjI inv_into_f_f)
 
 lemma surj_f_inv_f: "surj f ==> f(inv f y) = y"
-by (simp add: f_inv_onto_f surj_range)
+by (simp add: f_inv_into_f surj_range)
 
-lemma inv_onto_injective:
-  assumes eq: "inv_onto A f x = inv_onto A f y"
+lemma inv_into_injective:
+  assumes eq: "inv_into A f x = inv_into A f y"
       and x: "x: f`A"
       and y: "y: f`A"
   shows "x=y"
 proof -
-  have "f (inv_onto A f x) = f (inv_onto A f y)" using eq by simp
-  thus ?thesis by (simp add: f_inv_onto_f x y)
+  have "f (inv_into A f x) = f (inv_into A f y)" using eq by simp
+  thus ?thesis by (simp add: f_inv_into_f x y)
 qed
 
-lemma inj_on_inv_onto: "B <= f`A ==> inj_on (inv_onto A f) B"
-by (blast intro: inj_onI dest: inv_onto_injective injD)
+lemma inj_on_inv_into: "B <= f`A ==> inj_on (inv_into A f) B"
+by (blast intro: inj_onI dest: inv_into_injective injD)
 
-lemma bij_betw_inv_onto: "bij_betw f A B ==> bij_betw (inv_onto A f) B A"
-by (auto simp add: bij_betw_def inj_on_inv_onto)
+lemma bij_betw_inv_into: "bij_betw f A B ==> bij_betw (inv_into A f) B A"
+by (auto simp add: bij_betw_def inj_on_inv_into)
 
 lemma surj_imp_inj_inv: "surj f ==> inj (inv f)"
-by (simp add: inj_on_inv_onto surj_range)
+by (simp add: inj_on_inv_into surj_range)
 
 lemma surj_iff: "(surj f) = (f o inv f = id)"
 apply (simp add: o_def expand_fun_eq)
@@ -193,7 +193,7 @@ by (simp add: bij_def inj_imp_surj_inv surj_imp_inj_inv)
 
 lemma inv_equality: "[| !!x. g (f x) = x;  !!y. f (g y) = y |] ==> inv f = g"
 apply (rule ext)
-apply (auto simp add: inv_onto_def)
+apply (auto simp add: inv_into_def)
 done
 
 lemma inv_inv_eq: "bij f ==> inv (inv f) = f"
@@ -208,13 +208,13 @@ done
     inv(inv f)=f all fail.
 **)
 
-lemma inv_onto_comp:
+lemma inv_into_comp:
   "[| inj_on f (g ` A); inj_on g A; x : f ` g ` A |] ==>
-  inv_onto A (f o g) x = (inv_onto A g o inv_onto (g ` A) f) x"
-apply (rule inv_onto_f_eq)
+  inv_into A (f o g) x = (inv_into A g o inv_into (g ` A) f) x"
+apply (rule inv_into_f_eq)
   apply (fast intro: comp_inj_on)
- apply (simp add: inv_onto_into)
-apply (simp add: f_inv_onto_f inv_onto_into)
+ apply (simp add: inv_into_into)
+apply (simp add: f_inv_into_f inv_into_into)
 done
 
 lemma o_inv_distrib: "[| bij f; bij g |] ==> inv (f o g) = inv g o inv f"
@@ -239,7 +239,7 @@ done
 
 lemma bij_vimage_eq_inv_image: "bij f ==> f -` A = inv f ` A" 
 apply (auto simp add: bij_is_surj [THEN surj_f_inv_f])
-apply (blast intro: bij_is_inj [THEN inv_onto_f_f, symmetric])
+apply (blast intro: bij_is_inj [THEN inv_into_f_f, symmetric])
 done
 
 lemma finite_fun_UNIVD1:
@@ -256,7 +256,7 @@ proof -
   moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
   proof (rule UNIV_eq_I)
     fix x :: 'a
-    from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by (simp add: inv_onto_def)
+    from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by (simp add: inv_into_def)
     thus "x \<in> range (\<lambda>f\<Colon>'a \<Rightarrow> 'b. inv f b1)" by blast
   qed
   ultimately show "finite (UNIV :: 'a set)" by simp

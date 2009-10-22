@@ -104,7 +104,7 @@ theorem Schroeder_Bernstein:
     --{*The term above can be synthesized by a sufficiently detailed proof.*}
   apply (rule bij_if_then_else)
      apply (rule_tac [4] refl)
-    apply (rule_tac [2] inj_on_inv_onto)
+    apply (rule_tac [2] inj_on_inv_into)
     apply (erule subset_inj_on [OF _ subset_UNIV])
    apply blast
   apply (erule ssubst, subst double_complement, erule inv_image_comp [symmetric])

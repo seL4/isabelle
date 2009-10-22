@@ -372,8 +372,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
          in
            lthy''
            |> LocalTheory.note Thm.generatedK ((qualify (Binding.name "simps"),
-                map (Attrib.internal o K)
-                    [Simplifier.simp_add, Nitpick_Const_Simps.add]),
+                map (Attrib.internal o K) [Simplifier.simp_add, Nitpick_Simps.add]),
                 maps snd simps')
            |> snd
          end)

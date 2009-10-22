@@ -162,9 +162,9 @@ proof -
   from finite_imp_nat_seg_image_inj_on[OF `finite A`]
   obtain f and n::nat where bij: "bij_betw f {i. i<n} A"
     by (auto simp:bij_betw_def)
-  let ?f = "the_inv_onto {i. i<n} f"
+  let ?f = "the_inv_into {i. i<n} f"
   have "inj_on ?f A & ?f ` A = {i. i<n}"
-    by (fold bij_betw_def) (rule bij_betw_the_inv_onto[OF bij])
+    by (fold bij_betw_def) (rule bij_betw_the_inv_into[OF bij])
   thus ?thesis by blast
 qed
 

@@ -2323,8 +2323,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val final_thy =
       thms_thy
       |> (snd oo PureThy.add_thmss)
-          [((Binding.name "simps", sel_upd_simps),
-            [Simplifier.simp_add, Nitpick_Const_Simps.add]),
+          [((Binding.name "simps", sel_upd_simps), [Simplifier.simp_add]),
            ((Binding.name "iffs", iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme' ext_def)
       |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs (fold_congs', unfold_congs')

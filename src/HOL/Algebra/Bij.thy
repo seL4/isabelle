@@ -31,8 +31,8 @@ lemma Bij_imp_funcset: "f \<in> Bij S \<Longrightarrow> f \<in> S \<rightarrow> 
 
 subsection {*Bijections Form a Group *}
 
-lemma restrict_inv_onto_Bij: "f \<in> Bij S \<Longrightarrow> (\<lambda>x \<in> S. (inv_onto S f) x) \<in> Bij S"
-  by (simp add: Bij_def bij_betw_inv_onto)
+lemma restrict_inv_into_Bij: "f \<in> Bij S \<Longrightarrow> (\<lambda>x \<in> S. (inv_into S f) x) \<in> Bij S"
+  by (simp add: Bij_def bij_betw_inv_into)
 
 lemma id_Bij: "(\<lambda>x\<in>S. x) \<in> Bij S "
   by (auto simp add: Bij_def bij_betw_def inj_on_def)
@@ -41,8 +41,8 @@ lemma compose_Bij: "\<lbrakk>x \<in> Bij S; y \<in> Bij S\<rbrakk> \<Longrightar
   by (auto simp add: Bij_def bij_betw_compose) 
 
 lemma Bij_compose_restrict_eq:
-     "f \<in> Bij S \<Longrightarrow> compose S (restrict (inv_onto S f) S) f = (\<lambda>x\<in>S. x)"
-  by (simp add: Bij_def compose_inv_onto_id)
+     "f \<in> Bij S \<Longrightarrow> compose S (restrict (inv_into S f) S) f = (\<lambda>x\<in>S. x)"
+  by (simp add: Bij_def compose_inv_into_id)
 
 theorem group_BijGroup: "group (BijGroup S)"
 apply (simp add: BijGroup_def)
@@ -52,19 +52,19 @@ apply (rule groupI)
   apply (simp add: compose_Bij)
   apply (blast intro: compose_assoc [symmetric] dest: Bij_imp_funcset)
  apply (simp add: id_Bij Bij_imp_funcset Bij_imp_extensional, simp)
-apply (blast intro: Bij_compose_restrict_eq restrict_inv_onto_Bij)
+apply (blast intro: Bij_compose_restrict_eq restrict_inv_into_Bij)
 done
 
 
 subsection{*Automorphisms Form a Group*}
 
-lemma Bij_inv_onto_mem: "\<lbrakk> f \<in> Bij S;  x \<in> S\<rbrakk> \<Longrightarrow> inv_onto S f x \<in> S"
-by (simp add: Bij_def bij_betw_def inv_onto_into)
+lemma Bij_inv_into_mem: "\<lbrakk> f \<in> Bij S;  x \<in> S\<rbrakk> \<Longrightarrow> inv_into S f x \<in> S"
+by (simp add: Bij_def bij_betw_def inv_into_into)
 
-lemma Bij_inv_onto_lemma:
+lemma Bij_inv_into_lemma:
  assumes eq: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> h(g x y) = g (h x) (h y)"
  shows "\<lbrakk>h \<in> Bij S;  g \<in> S \<rightarrow> S \<rightarrow> S;  x \<in> S;  y \<in> S\<rbrakk>
-        \<Longrightarrow> inv_onto S h (g x y) = g (inv_onto S h x) (inv_onto S h y)"
+        \<Longrightarrow> inv_into S h (g x y) = g (inv_into S h x) (inv_into S h y)"
 apply (simp add: Bij_def bij_betw_def)
 apply (subgoal_tac "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' & y = h y'", clarify)
  apply (simp add: eq [symmetric] inv_f_f funcset_mem [THEN funcset_mem], blast)
@@ -84,17 +84,17 @@ lemma (in group) id_in_auto: "(\<lambda>x \<in> carrier G. x) \<in> auto G"
 lemma (in group) mult_funcset: "mult G \<in> carrier G \<rightarrow> carrier G \<rightarrow> carrier G"
   by (simp add:  Pi_I group.axioms)
 
-lemma (in group) restrict_inv_onto_hom:
+lemma (in group) restrict_inv_into_hom:
       "\<lbrakk>h \<in> hom G G; h \<in> Bij (carrier G)\<rbrakk>
-       \<Longrightarrow> restrict (inv_onto (carrier G) h) (carrier G) \<in> hom G G"
-  by (simp add: hom_def Bij_inv_onto_mem restrictI mult_funcset
-                group.axioms Bij_inv_onto_lemma)
+       \<Longrightarrow> restrict (inv_into (carrier G) h) (carrier G) \<in> hom G G"
+  by (simp add: hom_def Bij_inv_into_mem restrictI mult_funcset
+                group.axioms Bij_inv_into_lemma)
 
 lemma inv_BijGroup:
-     "f \<in> Bij S \<Longrightarrow> m_inv (BijGroup S) f = (\<lambda>x \<in> S. (inv_onto S f) x)"
+     "f \<in> Bij S \<Longrightarrow> m_inv (BijGroup S) f = (\<lambda>x \<in> S. (inv_into S f) x)"
 apply (rule group.inv_equality)
 apply (rule group_BijGroup)
-apply (simp_all add:BijGroup_def restrict_inv_onto_Bij Bij_compose_restrict_eq)
+apply (simp_all add:BijGroup_def restrict_inv_into_Bij Bij_compose_restrict_eq)
 done
 
 lemma (in group) subgroup_auto:
@@ -115,7 +115,7 @@ next
   assume "x \<in> auto G" 
   thus "inv\<^bsub>BijGroup (carrier G)\<^esub> x \<in> auto G"
     by (simp del: restrict_apply
-        add: inv_BijGroup auto_def restrict_inv_onto_Bij restrict_inv_onto_hom)
+        add: inv_BijGroup auto_def restrict_inv_into_Bij restrict_inv_into_hom)
 qed
 
 theorem (in group) AutoGroup: "group (AutoGroup G)"

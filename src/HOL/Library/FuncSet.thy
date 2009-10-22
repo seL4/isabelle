@@ -190,20 +190,20 @@ lemma extensionalityI:
       !!x. x\<in>A ==> f x = g x |] ==> f = g"
 by (force simp add: expand_fun_eq extensional_def)
 
-lemma inv_onto_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_onto A f x) : B -> A"
-by (unfold inv_onto_def) (fast intro: someI2)
+lemma inv_into_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_into A f x) : B -> A"
+by (unfold inv_into_def) (fast intro: someI2)
 
-lemma compose_inv_onto_id:
-  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. inv_onto A f y) f = (\<lambda>x\<in>A. x)"
+lemma compose_inv_into_id:
+  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. inv_into A f y) f = (\<lambda>x\<in>A. x)"
 apply (simp add: bij_betw_def compose_def)
 apply (rule restrict_ext, auto)
 done
 
-lemma compose_id_inv_onto:
-  "f ` A = B ==> compose B f (\<lambda>y\<in>B. inv_onto A f y) = (\<lambda>x\<in>B. x)"
+lemma compose_id_inv_into:
+  "f ` A = B ==> compose B f (\<lambda>y\<in>B. inv_into A f y) = (\<lambda>x\<in>B. x)"
 apply (simp add: compose_def)
 apply (rule restrict_ext)
-apply (simp add: f_inv_onto_f)
+apply (simp add: f_inv_into_f)
 done
 
 
