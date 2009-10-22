@@ -18,7 +18,7 @@ ISABELLE_SESSIONS="\
   HOL-Decision_Procs \
   HOL-Extraction \
   HOL-Hoare \
-  HOL-HoareParallel \
+  HOL-Hoare_Parallel \
   HOL-Lambda \
   HOL-Library \
   HOL-Metis_Examples \
