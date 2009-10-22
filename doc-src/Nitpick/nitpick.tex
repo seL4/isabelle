@@ -1439,10 +1439,10 @@ The \textit{wf} predicate formalizes this description:
 \phantom{``}$(\textrm{if}~t = \Lambda~\textrm{then}$ \\
 \phantom{``$(\quad$}$k = 1 \mathrel{\land} (u = \Lambda \mathrel{\lor} (\textit{level}~u = 1 \mathrel{\land} \textit{left}~u = \Lambda \mathrel{\land} \textit{right}~u = \Lambda))$ \\
 \phantom{``$($}$\textrm{else}$ \\
-\hbox{\phantom{``$(\quad$}$\textit{wf}~t \mathrel{\land} \textit{wf}~u
+\hbox{}\phantom{``$(\quad$}$\textit{wf}~t \mathrel{\land} \textit{wf}~u
 \mathrel{\land} u \not= \Lambda \mathrel{\land} \textit{level}~t < k
-\mathrel{\land} \textit{level}~u \le k \mathrel{\land}
-\textit{level}~(\textit{right}~u) < k)$''}\kern-200mm
+\mathrel{\land} \textit{level}~u \le k$ \\
+\hbox{}\phantom{``$(\quad$}${\land}\; \textit{level}~(\textit{right}~u) < k)$''
 \postw
 
 Rebalancing the tree upon insertion and removal of elements is performed by two
