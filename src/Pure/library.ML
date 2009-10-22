@@ -174,6 +174,7 @@ sig
   (*lists as multisets*)
   val remove1: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list
   val combine: ('a * 'a -> bool) -> 'a list -> 'a list -> 'a list
+  val submultiset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
 
   (*orders*)
   val is_equal: order -> bool
@@ -862,6 +863,9 @@ fun remove1 eq x [] = []
   | remove1 eq x (y :: ys) = if eq (x, y) then ys else y :: remove1 eq x ys;
 
 fun combine eq xs ys = fold (remove1 eq) ys xs @ ys;
+
+fun submultiset _ ([], _)  = true
+  | submultiset eq (x :: xs, ys) = member eq ys x andalso submultiset eq (xs, remove1 eq x ys);
 
 
 
