@@ -131,6 +131,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
+  Nitpick.thy \
   Option.thy \
   OrderedGroup.thy \
   Orderings.thy \
@@ -176,6 +177,21 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/size.ML \
   Tools/Function/sum_tree.ML \
   Tools/Function/termination.ML \
+  Tools/Nitpick/kodkod.ML \
+  Tools/Nitpick/kodkod_sat.ML \
+  Tools/Nitpick/minipick.ML \
+  Tools/Nitpick/nitpick.ML \
+  Tools/Nitpick/nitpick_hol.ML \
+  Tools/Nitpick/nitpick_isar.ML \
+  Tools/Nitpick/nitpick_kodkod.ML \
+  Tools/Nitpick/nitpick_model.ML \
+  Tools/Nitpick/nitpick_mono.ML \
+  Tools/Nitpick/nitpick_nut.ML \
+  Tools/Nitpick/nitpick_peephole.ML \
+  Tools/Nitpick/nitpick_rep.ML \
+  Tools/Nitpick/nitpick_scope.ML \
+  Tools/Nitpick/nitpick_tests.ML \
+  Tools/Nitpick/nitpick_util.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \

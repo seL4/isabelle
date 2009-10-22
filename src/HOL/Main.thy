@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Quickcheck Map Recdef SAT
+imports Plain Nitpick Quickcheck Recdef
 begin
 
 text {*
