@@ -66,6 +66,10 @@ fun ml_prompts p1 p2 =
   (Control.primaryPrompt := p1; Control.secondaryPrompt := p2);
 
 (*dummy implementation*)
+fun magic_immutability_test _ = false;
+fun magic_immutability_mark _ = ();
+
+(*dummy implementation*)
 fun profile (n: int) f x = f x;
 
 (*dummy implementation*)
@@ -177,8 +181,6 @@ val pwd = OS.FileSys.getDir;
 
 val system_out = (fn (output, rc) => (output, mk_int rc)) o system_out;
 
-
-(*Convert a process ID to a decimal string (chiefly for tracing)*)
 fun process_id pid =
   Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord (Posix.ProcEnv.getpid ())));
 

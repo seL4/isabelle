@@ -128,3 +128,12 @@ fun profile 0 f x = f x
         val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
       in Exn.release res end;
 
+
+(* magic immutability -- for internal use only! *)
+
+fun magic_immutability_mark (r: 'a Unsynchronized.ref) =
+  ignore (RunCall.run_call1 RuntimeCalls.POLY_SYS_lockseg r);
+
+fun magic_immutability_test (r: 'a Unsynchronized.ref) =
+  Word8.andb (0wx40, RunCall.run_call1 RuntimeCalls.POLY_SYS_get_flags r) = 0w0;
+
