@@ -20,8 +20,13 @@ fun timed_access (Var var) _ f =
 
 fun guarded_access var f = the (timed_access var (K NONE) f);
 
+fun readonly_access var f =
+  guarded_access var (fn x => (case f x of NONE => NONE | SOME y => SOME (y, x)));
+
 fun change_result var f = guarded_access var (SOME o f);
 fun change var f = change_result var (fn x => ((), f x));
+
+val assign = change;
 
 end;
 end;
