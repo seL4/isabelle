@@ -840,7 +840,7 @@ fun parse (Gram {tags, prods, chains, ...}) start toks =
 
 fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
   let
-    fun freeze a = map (curry Array.sub a) (0 upto Array.length a - 1);
+    fun freeze a = map_range (curry Array.sub a) (Array.length a);
     val prods = maps snd (maps snd (freeze (#prods gram)));
     fun guess (SOME ([Nonterminal (_, k), Terminal (Token (Literal, s, _)), Nonterminal (_, l)], _, j)) =
           if k = j andalso l = j + 1 then SOME (s, true, false, j)

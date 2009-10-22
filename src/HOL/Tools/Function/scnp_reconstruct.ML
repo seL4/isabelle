@@ -119,7 +119,7 @@ fun gen_probl D cs =
         G (p, q, edges)
       end
   in
-    GP (map arity (0 upto n - 1), map mk_graph cs)
+    GP (map_range arity n, map mk_graph cs)
   end
 
 (* General reduction pair application *)
@@ -312,8 +312,8 @@ fun print_cell (SOME (Less _)) = "<"
 fun print_error ctxt D = CALLS (fn (cs, i) =>
   let
     val np = get_num_points D
-    val ms = map (get_measures D) (0 upto np - 1)
-    val tys = map (get_types D) (0 upto np - 1)
+    val ms = map_range (get_measures D) np
+    val tys = map_range (get_types D) np
     fun index xs = (1 upto length xs) ~~ xs
     fun outp s t f xs = map (fn (x, y) => s ^ Int.toString x ^ t ^ f y ^ "\n") xs
     val ims = index (map index ms)

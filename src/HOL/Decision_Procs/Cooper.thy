@@ -2035,8 +2035,8 @@ in fn ct =>
     val t = Thm.term_of ct;
     val fs = OldTerm.term_frees t;
     val bs = term_bools [] t;
-    val vs = fs ~~ (0 upto (length fs - 1))
-    val ps = bs ~~ (0 upto (length bs - 1))
+    val vs = map_index swap fs;
+    val ps = map_index swap bs;
     val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
   in (Thm.cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;

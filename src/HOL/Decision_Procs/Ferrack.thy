@@ -2073,7 +2073,7 @@ in fn ct =>
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
     val fs = OldTerm.term_frees t;
-    val vs = fs ~~ (0 upto (length fs - 1));
+    val vs = map_index swap fs;
     val res = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, term_of_fm vs (@{code linrqe} (fm_of_term vs t))));
   in Thm.cterm_of thy res end
 end;

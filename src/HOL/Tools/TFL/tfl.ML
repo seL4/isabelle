@@ -54,8 +54,6 @@ val hyp = #1 o R.dest_thm;
 
 val list_mk_type = U.end_itlist (curry (op -->));
 
-fun enumerate xs = ListPair.zip(xs, 0 upto (length xs - 1));
-
 fun front_last [] = raise TFL_ERR "front_last" "empty list"
   | front_last [x] = ([],x)
   | front_last (h::t) =
@@ -328,7 +326,7 @@ fun mk_functional thy clauses =
      val (fname,ftype) = dest_atom atom
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
-                              map (fn (t,i) => (t,(i,true))) (enumerate R))
+                              map_index (fn (i, t) => (t,(i,true))) R)
      val names = List.foldr OldTerm.add_term_names [] R
      val atype = type_of(hd pats)
      and aname = Name.variant names "a"

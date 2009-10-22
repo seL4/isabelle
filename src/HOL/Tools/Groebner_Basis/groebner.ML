@@ -312,7 +312,7 @@ fun grobner_interreduce rpols ipols =
 (* Overall function.                                                         *)
 
 fun grobner pols =
-    let val npols = map2 (fn p => fn n => (p,Start n)) pols (0 upto (length pols - 1))
+    let val npols = map_index (fn (n, p) => (p, Start n)) pols
         val phists = filter (fn (p,_) => not (null p)) npols
         val bas = grobner_interreduce [] (map monic phists)
         val prs0 = map_product pair bas bas
@@ -802,8 +802,8 @@ fun ideal tms tm ord =
   val pols = map (grobify_term vars) tms
   val pol = grobify_term vars tm
   val cert = grobner_ideal vars pols pol
- in map (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
-        (0 upto (length pols - 1))
+ in map_range (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
+   (length pols)
  end
 
 fun poly_eq_conv t = 

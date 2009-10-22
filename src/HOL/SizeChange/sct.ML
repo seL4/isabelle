@@ -156,9 +156,9 @@ fun measures_of ctxt RD =
 val mk_number = HOLogic.mk_nat
 val dest_number = HOLogic.dest_nat
 
-fun nums_to i = map mk_number (0 upto (i - 1))
+fun nums_to i = map_range mk_number i
 
-val nth_simps = [thm "List.nth_Cons_0", thm "List.nth_Cons_Suc"]
+val nth_simps = [@{thm List.nth_Cons_0}, @{thm List.nth_Cons_Suc}]
 val nth_ss = (HOL_basic_ss addsimps nth_simps)
 val simp_nth_tac = simp_tac nth_ss
 
@@ -166,7 +166,7 @@ val simp_nth_tac = simp_tac nth_ss
 fun tabulate_tlist thy l =
     let
       val n = length (HOLogic.dest_list l)
-      val table = Inttab.make (map (fn i => (i, Simplifier.rewrite nth_ss (cterm_of thy (mk_nth l $ mk_number i)))) (0 upto n - 1))
+      val table = Inttab.make (map_range (fn i => (i, Simplifier.rewrite nth_ss (cterm_of thy (mk_nth l $ mk_number i)))) n)
     in
       the o Inttab.lookup table
     end
@@ -250,7 +250,7 @@ fun setup_probe_goal ctxt domT Dtab Mtab (i, j) =
 
           val goal = HOLogic.mk_Trueprop (mk_approx (Var (("G", 0), scgT)) RD1 RD2 Ms1 Ms2)
 
-          val tac = (EVERY (map (fn n => EVERY (map (set_m1 n) (0 upto M - 1))) (0 upto N - 1)))
+          val tac = (EVERY (map_range (fn n => EVERY (map_range (set_m1 n) M)) N))
                       THEN (rtac approx_empty 1)
 
           val approx_thm = goal

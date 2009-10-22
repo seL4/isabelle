@@ -408,9 +408,8 @@ fun inst_thm thy tvars' thm =
   in Thm.instantiate (insts, []) thm end;
 
 fun add_arity thy vardeps (class, tyco) =
-  AList.default (op =)
-    ((class, tyco), map (fn k => (snd o Vargraph.get_node vardeps) (Inst (class, tyco), k))
-      (0 upto Sign.arity_number thy tyco - 1));
+  AList.default (op =) ((class, tyco),
+    map_range (fn k => (snd o Vargraph.get_node vardeps) (Inst (class, tyco), k)) (Sign.arity_number thy tyco));
 
 fun add_eqs thy vardeps (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
   if can (Graph.get_node eqngr) c then (rhss, eqngr)
