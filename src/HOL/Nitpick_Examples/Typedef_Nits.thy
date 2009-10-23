@@ -157,11 +157,11 @@ nitpick [expect = none]
 by (rule Rep_Nat_inverse)
 
 lemma "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})"
-nitpick [card = 1\<midarrow>2, timeout = 30 s, max_potential = 0, expect = unknown]
+nitpick [card = 1, timeout = 30 s, max_potential = 0, expect = none]
 by (rule Zero_int_def_raw)
 
 lemma "Abs_Integ (Rep_Integ a) = a"
-nitpick [card = 1\<midarrow>2, timeout = 30 s, max_potential = 0, expect = none]
+nitpick [card = 1, timeout = 30 s, max_potential = 0, expect = none]
 by (rule Rep_Integ_inverse)
 
 lemma "Abs_list (Rep_list a) = a"
@@ -173,15 +173,15 @@ record point =
   Ycoord :: int
 
 lemma "Abs_point_ext_type (Rep_point_ext_type a) = a"
-nitpick [expect = none]
+nitpick [expect = unknown]
 by (rule Rep_point_ext_type_inverse)
 
 lemma "Fract a b = of_int a / of_int b"
-nitpick [card = 1\<midarrow>2, expect = potential]
+nitpick [card = 1\<midarrow>2, expect = unknown]
 by (rule Fract_of_int_quotient)
 
 lemma "Abs_Rat (Rep_Rat a) = a"
-nitpick [card = 1\<midarrow>2, expect = none]
+nitpick [card = 1\<midarrow>2, expect = unknown]
 by (rule Rep_Rat_inverse)
 
 end

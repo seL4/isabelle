@@ -714,7 +714,7 @@ by (simp add: curry_def)
 
 lemma "{} = (\<lambda>x. False)"
 nitpick [expect = none]
-by (metis Collect_def bot_set_eq empty_def)
+by (metis Collect_def empty_def)
 
 lemma "x \<in> {}"
 nitpick [expect = genuine]

@@ -40,15 +40,15 @@ nitpick [card = 2, max Nibble2 = 0, expect = none]
 nitpick [card = 2, max Nibble3 = 0, expect = none]
 oops
 
-lemma "fun_pow 15 rot n \<noteq> n"
+lemma "(rot ^^ 15) n \<noteq> n"
 nitpick [card = 17, expect = none]
 sorry
 
-lemma "fun_pow 15 rot n = n"
+lemma "(rot ^^ 15) n = n"
 nitpick [card = 17, expect = genuine]
 oops
 
-lemma "fun_pow 16 rot n = n"
+lemma "(rot ^^ 16) n = n"
 nitpick [card = 17, expect = none]
 oops
 
