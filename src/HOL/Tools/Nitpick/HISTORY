@@ -1,0 +1,155 @@
+Version 2010
+
+  * Moved into Isabelle/HOL "Main"
+  * Renamed "nitpick_const_def" to "nitpick_def", "nitpick_const_simp" to
+    "nitpick_simp", "nitpick_const_psimp" to "nitpick_psimp", and
+    "nitpick_ind_intro" to "nitpick_intro"
+  * Replaced "special_depth" and "skolemize_depth" options by "specialize"
+    and "skolemize"
+  * Fixed monotonicity check
+
+Version 1.2.2 (16 Oct 2009)
+
+  * Added and implemented "star_linear_preds" option
+  * Added and implemented "format" option
+  * Added and implemented "coalesce_type_vars" option
+  * Added and implemented "max_genuine" option
+  * Fixed soundness issues related to "set", "distinct", "image", "Sigma",
+    "-1::nat", subset, constructors, sort axioms, and partially applied
+    interpreted constants
+  * Fixed error in "show_consts" for boxed specialized constants
+  * Fixed errors in Kodkod encoding of "The", "Eps", and "ind"
+  * Fixed display of Skolem constants
+  * Fixed error in "check_potential" and "check_genuine"
+  * Added boxing support for higher-order constructor parameters
+  * Changed notation used for coinductive datatypes
+  * Optimized Kodkod encoding of "If", "card", and "setsum"
+  * Improved the monotonicity check
+
+Version 1.2.1 (25 Sep 2009)
+
+  * Added explicit support for coinductive datatypes
+  * Added and implemented "box" option
+  * Added and implemented "fast_descrs" option
+  * Added and implemented "uncurry" option
+  * Renamed and generalized "sync_cards" and "inductive_mood" to "mono" and "wf"
+  * Fixed soundness issue related to nullary constructors
+  * Fixed soundness issue related to higher-order quantifiers
+  * Fixed soundness issue related to the "destroy_constrs" optimization
+  * Fixed soundness issues related to the "special_depth" optimization
+  * Added support for PicoSAT and incorporated it with the Nitpick package
+  * Added automatic detection of installed SAT solvers based on naming
+    convention
+  * Optimized handling of quantifiers by moving them inward whenever possible
+  * Optimized and improved precision of "wf" and "wfrec"
+  * Improved handling of definitions made in locales
+  * Fixed checked scope count in message shown upon interruption and timeout
+  * Added minimalistic Nitpick-like tool called Minipick
+
+Version 1.2.0 (27 Jul 2009)
+
+  * Optimized Kodkod encoding of datatypes and records
+  * Optimized coinductive definitions
+  * Fixed soundness issues related to pairs of functions
+  * Fixed soundness issue in the peephole optimizer
+  * Improved precision of non-well-founded predicates occurring positively in
+    the formula to falsify
+  * Added and implemented "destroy_constrs" option
+  * Changed semantics of "inductive_mood" option to ensure soundness
+  * Fixed semantics of "lockstep" option (broken in 1.1.1) and renamed it
+    "sync_cards"
+  * Improved precision of "trancl" and "rtrancl"
+  * Optimized Kodkod encoding of "tranclp" and "rtranclp"
+  * Made detection of inconsistent scope specifications more robust
+  * Fixed a few Kodkod generation bugs that resulted in exceptions
+
+Version 1.1.1 (24 Jun 2009)
+
+  * Added "show_all" option
+  * Fixed soundness issues related to type classes
+  * Improved precision of some set constructs
+  * Fiddled with the automatic monotonicity check
+  * Fixed performance issues related to scope enumeration
+  * Fixed a few Kodkod generation bugs that resulted in exceptions or stack
+    overflows
+
+Version 1.1.0 (16 Jun 2009)
+
+  * Redesigned handling of datatypes to provide an interface baded on "card" and
+    "max", obsoleting "mult"
+  * Redesigned handling of typedefs, "rat", and "real"
+  * Made "lockstep" option a three-state option and added an automatic
+    monotonicity check
+  * Made "batch_size" a (n + 1)-state option whose default depends on whether
+    "debug" is enabled
+  * Made "debug" automatically enable "verbose"
+  * Added "destroy_equals" option
+  * Added "no_assms" option
+  * Fixed bug in computation of ground type 
+  * Fixed performance issue related to datatype acyclicity constraint generation
+  * Fixed performance issue related to axiom selection
+  * Improved precision of some well-founded inductive predicates
+  * Added more checks to guard against very large cardinalities
+  * Improved hit rate of potential counterexamples
+  * Fixed several soundness issues
+  * Optimized the Kodkod encoding to benefit more from symmetry breaking
+  * Optimized relational composition, cartesian product, and converse
+  * Added support for HaifaSat
+
+Version 1.0.3 (17 Mar 2009)
+
+  * Added "HOL-Nominal-Nitpick" as a target in addition to "HOL-Nitpick"
+  * Added "overlord" option to assist debugging
+  * Increased default value of "special_depth" option
+  * Fixed a bug that effectively disabled the "nitpick_const_def" attribute
+  * Ensured that no scopes are skipped when multithreading is enabled
+  * Fixed soundness issue in handling of "The", "Eps", and partial functions
+    defined using Isabelle's function package
+  * Fixed soundness issue in handling of non-definitional axioms
+  * Fixed soundness issue in handling of "Abs_" and "Rep_" functions for "unit",
+    "nat", "int", and "*"
+  * Fixed a few Kodkod generation bugs that resulted in exceptions
+  * Optimized "div", "mod", and "dvd" on "nat" and "int"
+
+Version 1.0.2 (12 Mar 2009)
+
+  * Added support for non-definitional axioms
+  * Improved Isar integration
+  * Added support for multiplicities of 0
+  * Added "max_threads" option and support for multithreaded Kodkodi
+  * Added "blocking" option to control whether Nitpick should be run
+    synchronously or asynchronously
+  * Merged "auto_timeout" and "wellfounded_timeout" into "tac_timeout"
+  * Added "auto" option to run Nitpick automatically (like Auto Quickcheck)
+  * Introduced "auto_timeout" to specify Auto Nitpick's time limit
+  * Renamed the possible values for the "expect" option
+  * Renamed the "peephole" option to "peephole_optim"
+  * Added negative versions of all Boolean options and made "= true" optional
+  * Altered order of automatic SAT solver selection
+
+Version 1.0.1 (6 Mar 2009)
+
+  * Eliminated the need to import "Nitpick" to use "nitpick"
+  * Added "debug" option
+  * Replaced "specialize_funs" with the more general "special_depth" option
+  * Renamed "watch" option to "eval"
+  * Improved parsing of "card", "mult", and "iter" options
+  * Fixed a soundness bug in the "specialize_funs" optimization
+  * Increased the scope of the "specialize_funs" optimization
+  * Fixed a soundness bug in the treatment of "<" and "<=" on type "int"
+  * Fixed a soundness bug in the "subterm property" optimization for types of
+    cardinality 1
+  * Improved the axiom selection for overloaded constants, which led to an
+    infinite loop for "Nominal.perm"
+  * Added support for multiple instantiations of non-well-founded inductive
+    predicates, which previously raised an exception
+  * Fixed a Kodkod generation bug that resulted in an exception
+  * Altered order of scope enumeration and automatic SAT solver selection
+  * Optimized "Eps", "nat_case", and "list_case"
+  * Improved output formatting
+  * Added checks to prevent infinite loops in axiom selector and constant
+    unfolding
+
+Version 1.0.0 (27 Feb 2009)
+
+  * First release

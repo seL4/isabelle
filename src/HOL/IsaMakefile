@@ -34,6 +34,7 @@ test: \
   HOL-Mirabelle \
   HOL-Modelcheck \
   HOL-NanoJava \
+  HOL-Nitpick_Examples \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
@@ -43,9 +44,9 @@ test: \
   HOL-SMT-Examples \
   HOL-Statespace \
   HOL-Subst \
-      TLA-Buffer \
-      TLA-Inc \
-      TLA-Memory \
+  TLA-Buffer \
+  TLA-Inc \
+  TLA-Memory \
   HOL-UNITY \
   HOL-Unix \
   HOL-W0 \
@@ -582,6 +583,21 @@ $(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML	\
   Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy	\
   Metis_Examples/set.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
+
+
+## HOL-Nitpick_Examples
+
+HOL-Nitpick_Examples: HOL $(LOG)/HOL-Nitpick_Examples.gz
+
+$(LOG)/HOL-Nitpick_Examples.gz: $(OUT)/HOL Nitpick_Examples/ROOT.ML \
+  Nitpick_Examples/Core_Nits.thy Nitpick_Examples/Datatype_Nits.thy \
+  Nitpick_Examples/Induct_Nits.thy Nitpick_Examples/Manual_Nits.thy \
+  Nitpick_Examples/Mini_Nits.thy Nitpick_Examples/Mono_Nits.thy \
+  Nitpick_Examples/Nitpick_Examples.thy Nitpick_Examples/Pattern_Nits.thy \
+  Nitpick_Examples/Record_Nits.thy Nitpick_Examples/Refute_Nits.thy \
+  Nitpick_Examples/Special_Nits.thy Nitpick_Examples/Tests_Nits.thy \
+  Nitpick_Examples/Typedef_Nits.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Nitpick_Examples
 
 
 ## HOL-Algebra

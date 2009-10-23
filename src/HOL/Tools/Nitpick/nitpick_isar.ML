@@ -55,11 +55,7 @@ val default_default_params =
    ("max_threads", ["0"]),
    ("verbose", ["false"]),
    ("debug", ["false"]),
-   ("overlord", [if exists (fn s => String.isSuffix s (getenv "HOME"))
-                           ["blanchet", "blanchette"] then
-                   "true"
-                 else
-                   "false"]),
+   ("overlord", ["false"]),
    ("show_all", ["false"]),
    ("show_skolems", ["true"]),
    ("show_datatypes", ["false"]),

@@ -970,15 +970,14 @@ fun is_arity_type_axiom (Const (@{const_name HOL.type_class}, _)
                          $ Const (@{const_name TYPE}, _)) = true
   | is_arity_type_axiom _ = false
 (* theory -> bool -> term -> bool *)
-fun is_typedef_axiom thy only_boring (@{const "==>"} $ _ $ t2) =
-    is_typedef_axiom thy only_boring t2
-  | is_typedef_axiom thy only_boring
+fun is_typedef_axiom thy boring (@{const "==>"} $ _ $ t2) =
+    is_typedef_axiom thy boring t2
+  | is_typedef_axiom thy boring
         (@{const Trueprop} $ (Const (@{const_name Typedef.type_definition}, _)
-         $ Const (_, Type ("fun", [T as Type (s, _), _])) $ Const _ $ _)) =
-    is_typedef thy s
-    andalso not (only_boring andalso
-                 (s mem [@{type_name unit}, @{type_name "*"}, @{type_name "+"}]
-                  orelse is_frac_type thy T))
+         $ Const (_, Type ("fun", [Type (s, _), _])) $ Const _ $ _)) =
+    boring <> (s mem [@{type_name unit}, @{type_name "*"}, @{type_name "+"}]
+               orelse is_frac_type thy (Type (s, [])))
+    andalso is_typedef thy s
   | is_typedef_axiom _ _ _ = false
 
 (* Distinguishes between (1) constant definition axioms, (2) type arity and
@@ -995,8 +994,8 @@ fun partition_axioms_by_definitionality thy axioms def_names =
       |> filter_out ((is_arity_type_axiom orf is_typedef_axiom thy true) o snd)
   in pairself (map snd) (defs, nondefs) end
 
-(* Ideally we would check against "Complex_Main", not "Quickcheck", but any
-   theory will do as long as it contains all the "axioms" and "axiomatization"
+(* Ideally we would check against "Complex_Main", not "Refute", but any theory
+   will do as long as it contains all the "axioms" and "axiomatization"
    commands. *)
 (* theory -> bool *)
 fun is_built_in_theory thy = Theory.subthy (thy, @{theory Refute})
@@ -1040,18 +1039,20 @@ fun all_axioms_of thy =
     (* theory list -> term list *)
     val axioms_of_thys = maps Thm.axioms_of #> map (apsnd prop_of)
     val specs = Defs.all_specifications_of (Theory.defs_of thy)
-    val def_names =
-      specs |> maps snd
-      |> filter #is_def |> map #name |> OrdList.make fast_string_ord
+    val def_names = specs |> maps snd |> filter #is_def |> map #name
+                    |> OrdList.make fast_string_ord
     val thys = thy :: Theory.ancestors_of thy
     val (built_in_thys, user_thys) = List.partition is_built_in_theory thys
     val built_in_axioms = axioms_of_thys built_in_thys
     val user_axioms = axioms_of_thys user_thys
     val (built_in_defs, built_in_nondefs) =
       partition_axioms_by_definitionality thy built_in_axioms def_names
-      |> apsnd (filter (is_typedef_axiom thy false))
+      ||> filter (is_typedef_axiom thy false)
     val (user_defs, user_nondefs) =
       partition_axioms_by_definitionality thy user_axioms def_names
+    val (built_in_nondefs, user_nondefs) =
+      List.partition (is_typedef_axiom thy false) user_nondefs
+      |>> append built_in_nondefs
     val defs = built_in_built_in_defs @
                (thy |> PureThy.all_thms_of
                     |> filter (equal Thm.definitionK o Thm.get_kind o snd)
@@ -1230,30 +1231,31 @@ fun add_simps simp_table s eqs =
 (* Similar to "Refute.specialize_type" but returns all matches rather than only
    the first (preorder) match. *)
 (* theory -> styp -> term -> term list *)
-fun multi_specialize_type thy (x as (s, T)) t =
+fun multi_specialize_type thy slack (x as (s, T)) t =
   let
     (* term -> (typ * term) list -> (typ * term) list *)
     fun aux (Const (s', T')) ys =
         if s = s' then
-          (if AList.defined (op =) ys T' then
-             I
-           else if T = T' then
-             cons (T, t)
-           else
-             cons (T', Refute.monomorphic_term
-                           (Sign.typ_match thy (T', T) Vartab.empty) t)
-             handle Type.TYPE_MATCH => I) ys
+          ys |> (if AList.defined (op =) ys T' then
+                   I
+                else
+                  cons (T', Refute.monomorphic_term
+                                (Sign.typ_match thy (T', T) Vartab.empty) t)
+                  handle Type.TYPE_MATCH => I
+                       | Refute.REFUTE _ =>
+                         if slack then
+                           I
+                         else
+                           raise NOT_SUPPORTED ("too much polymorphism in \
+                                                \axiom involving " ^ quote s))
         else
           ys
       | aux _ ys = ys
   in map snd (fold_aterms aux t []) end
 
-(* theory -> const_table -> styp -> term list *)
-fun nondef_props_for_const thy table (x as (s, _)) =
-  these (Symtab.lookup table s) |> maps (multi_specialize_type thy x)
-  handle Refute.REFUTE _ =>
-         raise NOT_SUPPORTED ("too much polymorphism in axiom involving " ^
-                              quote s)
+(* theory -> bool -> const_table -> styp -> term list *)
+fun nondef_props_for_const thy slack table (x as (s, _)) =
+  these (Symtab.lookup table s) |> maps (multi_specialize_type thy slack x)
 
 (* theory -> styp list -> term list *)
 fun optimized_typedef_axioms thy (abs_s, abs_Ts) =
@@ -1680,7 +1682,7 @@ fun is_well_founded_inductive_pred
         (x as (s, _)) =
   case triple_lookup (const_match thy) wfs x of
     SOME (SOME b) => b
-  | _ => s = @{const_name fold_graph'}
+  | _ => s mem [@{const_name Nats}, @{const_name fold_graph'}]
          orelse case AList.lookup (op =) (!wf_cache) x of
                   SOME (_, wf) => wf
                 | NONE =>
@@ -3025,15 +3027,15 @@ fun axioms_for_term
                     accum
              else if is_abs_fun thy x then
                accum |> fold (add_nondef_axiom depth)
-                             (nondef_props_for_const thy nondef_table x)
+                             (nondef_props_for_const thy false nondef_table x)
                      |> fold (add_def_axiom depth)
-                             (nondef_props_for_const thy
+                             (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
              else if is_rep_fun thy x then
                accum |> fold (add_nondef_axiom depth)
-                             (nondef_props_for_const thy nondef_table x)
+                             (nondef_props_for_const thy false nondef_table x)
                      |> fold (add_def_axiom depth)
-                             (nondef_props_for_const thy
+                             (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
                      |> add_axioms_for_term depth
                                             (Const (mate_of_rep_fun thy x))
@@ -3041,7 +3043,7 @@ fun axioms_for_term
              else
                accum |> user_axioms <> SOME false
                         ? fold (add_nondef_axiom depth)
-                               (nondef_props_for_const thy nondef_table x)
+                               (nondef_props_for_const thy false nondef_table x)
            end)
         |> add_axioms_for_type depth T
       | Free (_, T) => add_axioms_for_type depth T accum
