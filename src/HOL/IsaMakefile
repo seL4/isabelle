@@ -156,7 +156,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Datatype/datatype_realizer.ML \
   Tools/Datatype/datatype_rep_proofs.ML \
   Tools/dseq.ML \
-  Tools/Function/auto_term.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/decompose.ML \
   Tools/Function/descent.ML \
@@ -172,6 +171,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/mutual.ML \
   Tools/Function/pat_completeness.ML \
   Tools/Function/pattern_split.ML \
+  Tools/Function/relation.ML \
   Tools/Function/scnp_reconstruct.ML \
   Tools/Function/scnp_solve.ML \
   Tools/Function/size.ML \

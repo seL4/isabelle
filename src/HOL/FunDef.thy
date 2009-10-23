@@ -18,7 +18,7 @@ uses
   ("Tools/Function/mutual.ML")
   ("Tools/Function/pattern_split.ML")
   ("Tools/Function/function.ML")
-  ("Tools/Function/auto_term.ML")
+  ("Tools/Function/relation.ML")
   ("Tools/Function/measure_functions.ML")
   ("Tools/Function/lexicographic_order.ML")
   ("Tools/Function/pat_completeness.ML")
@@ -112,7 +112,7 @@ use "Tools/Function/function_core.ML"
 use "Tools/Function/sum_tree.ML"
 use "Tools/Function/mutual.ML"
 use "Tools/Function/pattern_split.ML"
-use "Tools/Function/auto_term.ML"
+use "Tools/Function/relation.ML"
 use "Tools/Function/function.ML"
 use "Tools/Function/pat_completeness.ML"
 use "Tools/Function/fun.ML"

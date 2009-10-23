@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Function/auto_term.ML
+(*  Title:      HOL/Tools/Function/relation.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.
