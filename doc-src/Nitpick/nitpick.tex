@@ -108,6 +108,10 @@ after the locale's \textbf{begin} keyword. To falsify \textit{False}, Nitpick
 must find a model for the axioms. If it finds no model, we have an indication
 that the axioms might be unsatisfiable.
 
+Nitpick requires the Kodkodi package for Isabelle as well as a Java 1.5 virtual
+machine called \texttt{java}. The examples presented in this manual can be found
+in Isabelle's \texttt{src/HOL/Nitpick\_Examples/Manual\_Nits.thy} theory.
+
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
@@ -2474,7 +2478,7 @@ detail.
 \item[$\bullet$] Local definitions are not supported and result in an error.
 
 \item[$\bullet$] All constants and types whose names start with
-\textit{Nitpick}{.} or \textit{NitpickDefs}{.} are reserved for internal use.
+\textit{Nitpick}{.} are reserved for internal use.
 \end{enum}
 
 \let\em=\sl
