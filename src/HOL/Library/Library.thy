@@ -14,9 +14,7 @@ imports
   Commutative_Ring
   Continuity
   ContNotDenum
-  Convex_Euclidean_Space
   Countable
-  Determinants
   Diagonalize
   Efficient_Nat
   Enum
@@ -54,7 +52,6 @@ imports
   RBT
   State_Monad
   Sum_Of_Squares
-  Topology_Euclidean_Space
   Univ_Poly
   While_Combinator
   Word

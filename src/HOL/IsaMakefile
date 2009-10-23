@@ -323,15 +323,14 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy Library/BigO.thy Library/ContNotDenum.thy	\
-  Library/Efficient_Nat.thy Library/Euclidean_Space.thy			\
+  Library/Efficient_Nat.thy 			 			\
   Library/Sum_Of_Squares.thy Library/Sum_Of_Squares/sos_wrapper.ML	\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Convex_Euclidean_Space.thy Library/Glbs.thy			\
+  Library/Glbs.thy							\
   Library/normarith.ML Library/Executable_Set.thy			\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
-  Library/Permutations.thy Library/Determinants.thy Library/Bit.thy	\
-  Library/Topology_Euclidean_Space.thy					\
-  Library/Finite_Cartesian_Product.thy Library/FrechetDeriv.thy		\
+  Library/Permutations.thy Library/Bit.thy				\
+  Library/FrechetDeriv.thy		\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
   Library/Lattice_Syntax.thy			\
@@ -1004,6 +1003,19 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
   TLA/Memory/RPCMemoryParams.thy TLA/Memory/RPCParameters.thy
 	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Memory
 
+
+## HOL-Multivariate_Analysis
+
+HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
+
+$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL Multivariate_Analysis/ROOT.ML \
+  Multivariate_Analysis/Multivariate_Analysis.thy \
+  Multivariate_Analysis/Determinants.thy \
+  Multivariate_Analysis/Finite_Cartesian_Product.thy \
+  Multivariate_Analysis/Euclidean_Space.thy \
+  Multivariate_Analysis/Topology_Euclidean_Space.thy \
+  Multivariate_Analysis/Convex_Euclidean_Space.thy
+	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 ## HOL-Nominal
 
