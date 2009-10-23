@@ -3059,10 +3059,6 @@ fun axioms_for_term
       | @{typ prop} => I
       | @{typ bool} => I
       | @{typ unit} => I
-      | Type (@{type_name Datatype.node}, _) =>
-        raise NOT_SUPPORTED "internal datatype node type"
-      | Type (@{type_name tuple_isomorphism}, _) =>
-        raise NOT_SUPPORTED "internal record tuple type"
       | TFree (_, S) => add_axioms_for_sort depth T S
       | TVar (_, S) => add_axioms_for_sort depth T S
       | Type (z as (_, Ts)) =>
