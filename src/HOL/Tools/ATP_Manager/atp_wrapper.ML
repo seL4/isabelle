@@ -141,7 +141,8 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
 
     (* write out problem file and call prover *)
     fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
-      [File.shell_path cmd, args, File.shell_path probfile] ^ " ; } 2>&1"
+      [File.shell_path cmd, args, File.shell_path probfile] ^ " 2> /dev/null" ^
+      " ; } 2>&1"
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
