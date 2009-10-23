@@ -209,6 +209,8 @@ fun make_bool_args f g [] i = []
 fun make_bool_args' xs =
   make_bool_args (K HOLogic.false_const) (K HOLogic.true_const) xs;
 
+fun arg_types_of k c = Library.drop (k, binder_types (fastype_of c));
+
 fun find_arg T x [] = sys_error "find_arg"
   | find_arg T x ((p as (_, (SOME _, _))) :: ps) =
       apsnd (cons p) (find_arg T x ps)
@@ -231,8 +233,7 @@ fun dest_predicate cs params t =
     val i = find_index (fn c' => c' = c) cs;
   in
     if xs = params andalso i >= 0 then
-      SOME (c, i, ys, chop (length ys)
-        (List.drop (binder_types (fastype_of c), k)))
+      SOME (c, i, ys, chop (length ys) (arg_types_of k c))
     else NONE
   end;
 
@@ -383,7 +384,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
 
     fun prove_elim c =
       let
-        val Ts = List.drop (binder_types (fastype_of c), length params);
+        val Ts = arg_types_of (length params) c;
         val (anames, ctxt'') = Variable.variant_fixes (mk_names "a" (length Ts)) ctxt';
         val frees = map Free (anames ~~ Ts);
 
@@ -493,9 +494,8 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     val (pnames, ctxt') = ctxt |>
       Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
       Variable.variant_fixes (mk_names "P" (length cs));
-    val preds = map Free (pnames ~~
-      map (fn c => List.drop (binder_types (fastype_of c), length params) --->
-        HOLogic.boolT) cs);
+    val preds = map2 (curry Free) pnames
+      (map (fn c => arg_types_of (length params) c ---> HOLogic.boolT) cs);
 
     (* transform an introduction rule into a premise for induction rule *)
 
@@ -591,15 +591,11 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
 
 (** specification of (co)inductive predicates **)
 
-fun drop_first f [] = []
-  | drop_first f (x :: xs) = if f x then xs else x :: drop_first f xs;
-
 fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos params cnames_syn ctxt =
   let
     val fp_name = if coind then @{const_name Inductive.gfp} else @{const_name Inductive.lfp};
 
-    val argTs = fold (fn c => fn Ts => Ts @
-      (fold (fn T => drop_first (curry (op =) T)) Ts (List.drop (binder_types (fastype_of c), length params)))) cs [];
+    val argTs = fold (combine (op =) o arg_types_of (length params)) cs [];
     val k = log 2 1 (length cs);
     val predT = replicate k HOLogic.boolT ---> argTs ---> HOLogic.boolT;
     val p :: xs = map Free (Variable.variant_frees ctxt intr_ts
@@ -663,7 +659,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
     val specs = if length cs < 2 then [] else
       map_index (fn (i, (name_mx, c)) =>
         let
-          val Ts = List.drop (binder_types (fastype_of c), length params);
+          val Ts = arg_types_of (length params) c;
           val xs = map Free (Variable.variant_frees ctxt intr_ts
             (mk_names "x" (length Ts) ~~ Ts))
         in
