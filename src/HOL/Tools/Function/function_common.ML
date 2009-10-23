@@ -5,10 +5,10 @@ A package for general recursive function definitions.
 Common definitions and other infrastructure.
 *)
 
-structure FundefCommon =
+structure Function_Common =
 struct
 
-local open FundefLib in
+local open Function_Lib in
 
 (* Profiling *)
 val profile = Unsynchronized.ref false;
@@ -42,8 +42,8 @@ val apply_termination_rule = resolve_tac o get_termination_rules o Context.Proof
 
 (* Function definition result data *)
 
-datatype fundef_result =
-  FundefResult of
+datatype function_result =
+  FunctionResult of
      {
       fs: term list,
       G: term,
@@ -59,8 +59,8 @@ datatype fundef_result =
      }
 
 
-datatype fundef_context_data =
-  FundefCtxData of
+datatype function_context_data =
+  FunctionCtxData of
      {
       defname : string,
 
@@ -77,30 +77,30 @@ datatype fundef_context_data =
       termination: thm
      }
 
-fun morph_fundef_data (FundefCtxData {add_simps, case_names, fs, R, 
+fun morph_function_data (FunctionCtxData {add_simps, case_names, fs, R, 
                                       psimps, pinducts, termination, defname}) phi =
     let
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
       val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
-      FundefCtxData { add_simps = add_simps, case_names = case_names,
+      FunctionCtxData { add_simps = add_simps, case_names = case_names,
                       fs = map term fs, R = term R, psimps = fact psimps, 
                       pinducts = fact pinducts, termination = thm termination,
                       defname = name defname }
     end
 
-structure FundefData = GenericDataFun
+structure FunctionData = GenericDataFun
 (
-  type T = (term * fundef_context_data) Item_Net.T;
+  type T = (term * function_context_data) Item_Net.T;
   val empty = Item_Net.init
-    (op aconv o pairself fst : (term * fundef_context_data) * (term * fundef_context_data) -> bool)
+    (op aconv o pairself fst : (term * function_context_data) * (term * function_context_data) -> bool)
     fst;
   val copy = I;
   val extend = I;
   fun merge _ (tab1, tab2) = Item_Net.merge (tab1, tab2)
 );
 
-val get_fundef = FundefData.get o Context.Proof;
+val get_function = FunctionData.get o Context.Proof;
 
 
 (* Generally useful?? *)
@@ -112,33 +112,33 @@ fun lift_morphism thy f =
        $> Morphism.typ_morphism (Logic.type_map term)
     end
 
-fun import_fundef_data t ctxt =
+fun import_function_data t ctxt =
     let
       val thy = ProofContext.theory_of ctxt
       val ct = cterm_of thy t
       val inst_morph = lift_morphism thy o Thm.instantiate 
 
       fun match (trm, data) = 
-          SOME (morph_fundef_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
+          SOME (morph_function_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
           handle Pattern.MATCH => NONE
     in 
-      get_first match (Item_Net.retrieve (get_fundef ctxt) t)
+      get_first match (Item_Net.retrieve (get_function ctxt) t)
     end
 
-fun import_last_fundef ctxt =
-    case Item_Net.content (get_fundef ctxt) of
+fun import_last_function ctxt =
+    case Item_Net.content (get_function ctxt) of
       [] => NONE
     | (t, data) :: _ =>
       let 
         val ([t'], ctxt') = Variable.import_terms true [t] ctxt
       in
-        import_fundef_data t' ctxt'
+        import_function_data t' ctxt'
       end
 
-val all_fundef_data = Item_Net.content o get_fundef
+val all_function_data = Item_Net.content o get_function
 
-fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
-    FundefData.map (fold (fn f => Item_Net.insert (f, data)) fs)
+fun add_function_data (data as FunctionCtxData {fs, termination, ...}) =
+    FunctionData.map (fold (fn f => Item_Net.insert (f, data)) fs)
     #> store_termination_rule termination
 
 
@@ -166,14 +166,14 @@ val get_termination_prover = TerminationProver.get o Context.Proof
 
 
 (* Configuration management *)
-datatype fundef_opt 
+datatype function_opt 
   = Sequential
   | Default of string
   | DomIntros
   | Tailrec
 
-datatype fundef_config
-  = FundefConfig of
+datatype function_config
+  = FunctionConfig of
    {
     sequential: bool,
     default: string,
@@ -181,17 +181,17 @@ datatype fundef_config
     tailrec: bool
    }
 
-fun apply_opt Sequential (FundefConfig {sequential, default, domintros,tailrec}) = 
-    FundefConfig {sequential=true, default=default, domintros=domintros, tailrec=tailrec}
-  | apply_opt (Default d) (FundefConfig {sequential, default, domintros,tailrec}) = 
-    FundefConfig {sequential=sequential, default=d, domintros=domintros, tailrec=tailrec}
-  | apply_opt DomIntros (FundefConfig {sequential, default, domintros,tailrec}) =
-    FundefConfig {sequential=sequential, default=default, domintros=true,tailrec=tailrec}
-  | apply_opt Tailrec (FundefConfig {sequential, default, domintros,tailrec}) =
-    FundefConfig {sequential=sequential, default=default, domintros=domintros,tailrec=true}
+fun apply_opt Sequential (FunctionConfig {sequential, default, domintros,tailrec}) = 
+    FunctionConfig {sequential=true, default=default, domintros=domintros, tailrec=tailrec}
+  | apply_opt (Default d) (FunctionConfig {sequential, default, domintros,tailrec}) = 
+    FunctionConfig {sequential=sequential, default=d, domintros=domintros, tailrec=tailrec}
+  | apply_opt DomIntros (FunctionConfig {sequential, default, domintros,tailrec}) =
+    FunctionConfig {sequential=sequential, default=default, domintros=true,tailrec=tailrec}
+  | apply_opt Tailrec (FunctionConfig {sequential, default, domintros,tailrec}) =
+    FunctionConfig {sequential=sequential, default=default, domintros=domintros,tailrec=true}
 
 val default_config =
-  FundefConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), 
+  FunctionConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), 
                  domintros=false, tailrec=false }
 
 
@@ -278,7 +278,7 @@ fun check_defs ctxt fixes eqs =
 
 type fixes = ((string * typ) * mixfix) list
 type 'a spec = (Attrib.binding * 'a list) list
-type preproc = fundef_config -> Proof.context -> fixes -> term spec 
+type preproc = function_config -> Proof.context -> fixes -> term spec 
                -> (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
 val fname_of = fst o dest_Free o fst o strip_comb o fst 
@@ -333,7 +333,7 @@ local
       (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 option_parser) --| P.$$$ ")") [])
         >> (fn opts => fold apply_opt opts default)
 in
-  fun fundef_parser default_cfg = 
+  fun function_parser default_cfg = 
       config_parser default_cfg -- P.fixes -- SpecParse.where_alt_specs
 end
 

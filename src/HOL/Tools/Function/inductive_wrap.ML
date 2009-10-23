@@ -6,17 +6,17 @@ A wrapper around the inductive package, restoring the quantifiers in
 the introduction and elimination rules.
 *)
 
-signature FUNDEF_INDUCTIVE_WRAP =
+signature FUNCTION_INDUCTIVE_WRAP =
 sig
   val inductive_def :  term list 
                        -> ((bstring * typ) * mixfix) * local_theory
                        -> thm list * (term * thm * thm * local_theory)
 end
 
-structure FundefInductiveWrap: FUNDEF_INDUCTIVE_WRAP =
+structure Function_Inductive_Wrap: FUNCTION_INDUCTIVE_WRAP =
 struct
 
-open FundefLib
+open Function_Lib
 
 fun requantify ctxt lfix orig_def thm =
     let

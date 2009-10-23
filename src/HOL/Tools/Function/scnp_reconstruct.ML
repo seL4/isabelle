@@ -38,8 +38,8 @@ end
 structure ScnpReconstruct : SCNP_RECONSTRUCT =
 struct
 
-val PROFILE = FundefCommon.PROFILE
-fun TRACE x = if ! FundefCommon.profile then tracing x else ()
+val PROFILE = Function_Common.PROFILE
+fun TRACE x = if ! Function_Common.profile then tracing x else ()
 
 open ScnpSolve
 
@@ -64,7 +64,7 @@ datatype multiset_setup =
    reduction_pair : thm
   }
 
-structure MultisetSetup = TheoryDataFun
+structure Multiset_Setup = TheoryDataFun
 (
   type T = multiset_setup option
   val empty = NONE
@@ -73,10 +73,10 @@ structure MultisetSetup = TheoryDataFun
   fun merge _ (v1, v2) = if is_some v2 then v2 else v1
 )
 
-val multiset_setup = MultisetSetup.put o SOME
+val multiset_setup = Multiset_Setup.put o SOME
 
 fun undef x = error "undef"
-fun get_multiset_setup thy = MultisetSetup.get thy
+fun get_multiset_setup thy = Multiset_Setup.get thy
   |> the_default (Multiset
 { msetT = undef, mk_mset=undef,
   mset_regroup_conv=undef, mset_member_tac = undef,
@@ -287,7 +287,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
         |> cterm_of thy
     in
       PROFILE "Proof Reconstruction"
-        (CONVERSION (Conv.arg_conv (Conv.arg_conv (FundefLib.regroup_union_conv sl))) 1
+        (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv sl))) 1
          THEN (rtac @{thm reduction_pair_lemma} 1)
          THEN (rtac @{thm rp_inv_image_rp} 1)
          THEN (rtac (order_rpair ms_rp label) 1)
@@ -350,7 +350,7 @@ end
 
 fun single_scnp_tac use_tags orders ctxt cont err_cont D = Termination.CALLS (fn (cs, i) =>
   let
-    val ms_configured = is_some (MultisetSetup.get (ProofContext.theory_of ctxt))
+    val ms_configured = is_some (Multiset_Setup.get (ProofContext.theory_of ctxt))
     val orders' = if ms_configured then orders
                   else filter_out (curry op = MS) orders
     val gp = gen_probl D cs
@@ -395,7 +395,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
   end
 
 fun gen_sizechange_tac orders autom_tac ctxt err_cont =
-  TRY (FundefCommon.apply_termination_rule ctxt 1)
+  TRY (Function_Common.apply_termination_rule ctxt 1)
   THEN TRY (Termination.wf_union_tac ctxt)
   THEN
    (rtac @{thm wf_empty} 1
@@ -406,7 +406,7 @@ fun sizechange_tac ctxt autom_tac =
 
 fun decomp_scnp orders ctxt =
   let
-    val extra_simps = FundefCommon.Termination_Simps.get ctxt
+    val extra_simps = Function_Common.Termination_Simps.get ctxt
     val autom_tac = auto_tac (clasimpset_of ctxt addsimps2 extra_simps)
   in
     SIMPLE_METHOD

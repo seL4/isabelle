@@ -5,16 +5,16 @@ A package for general recursive function definitions.
 Isar commands.
 *)
 
-signature FUNDEF =
+signature FUNCTION =
 sig
-    val add_fundef :  (binding * typ option * mixfix) list
+    val add_function :  (binding * typ option * mixfix) list
                        -> (Attrib.binding * term) list
-                       -> FundefCommon.fundef_config
+                       -> Function_Common.function_config
                        -> local_theory
                        -> Proof.state
-    val add_fundef_cmd :  (binding * string option * mixfix) list
+    val add_function_cmd :  (binding * string option * mixfix) list
                       -> (Attrib.binding * string) list
-                      -> FundefCommon.fundef_config
+                      -> Function_Common.function_config
                       -> local_theory
                       -> Proof.state
 
@@ -28,11 +28,11 @@ sig
 end
 
 
-structure Fundef : FUNDEF =
+structure Function : FUNCTION =
 struct
 
-open FundefLib
-open FundefCommon
+open Function_Lib
+open Function_Common
 
 val simp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
@@ -68,22 +68,22 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
        fold2 add_for_f fnames simps_by_f lthy)
     end
 
-fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy =
+fun gen_add_function is_external prep default_constraint fixspec eqns config lthy =
     let
       val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
       val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
       val fixes = map (apfst (apfst Binding.name_of)) fixes0;
       val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
-      val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config ctxt' fixes spec
+      val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
       val defname = mk_defname fixes
 
       val ((goalstate, cont), lthy) =
-          FundefMutual.prepare_fundef_mutual config defname fixes eqs lthy
+          Function_Mutual.prepare_function_mutual config defname fixes eqs lthy
 
       fun afterqed [[proof]] lthy =
         let
-          val FundefResult {fs, R, psimps, trsimps,  simple_pinducts, termination,
+          val FunctionResult {fs, R, psimps, trsimps,  simple_pinducts, termination,
                             domintros, cases, ...} =
           cont (Thm.close_derivation proof)
 
@@ -105,7 +105,7 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy 
                    [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
-          val cdata = FundefCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
+          val cdata = FunctionCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
                                       pinducts=snd pinducts', termination=termination',
                                       fs=fs, R=R, defname=defname }
           val _ =
@@ -113,7 +113,7 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy 
             else Specification.print_consts lthy (K false) (map fst fixes)
         in
           lthy
-          |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
+          |> LocalTheory.declaration (add_function_data o morph_function_data cdata)
         end
     in
       lthy
@@ -122,19 +122,19 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy 
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
 
-val add_fundef = gen_add_fundef false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
-val add_fundef_cmd = gen_add_fundef true Specification.read_spec "_::type"
+val add_function = gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
 
 fun gen_termination_proof prep_term raw_term_opt lthy =
     let
       val term_opt = Option.map (prep_term lthy) raw_term_opt
       val data = the (case term_opt of
-                        SOME t => (import_fundef_data t lthy
+                        SOME t => (import_function_data t lthy
                           handle Option.Option =>
                             error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
-                      | NONE => (import_last_fundef lthy handle Option.Option => error "Not a function"))
+                      | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
 
-        val FundefCtxData { termination, R, add_simps, case_names, psimps,
+        val FunctionCtxData { termination, R, add_simps, case_names, psimps,
                             pinducts, defname, ...} = data
         val domT = domain_type (fastype_of R)
         val goal = HOLogic.mk_Trueprop
@@ -181,11 +181,11 @@ fun termination_cmd term_opt lthy =
   |> termination_proof_cmd term_opt;
 
 
-(* Datatype hook to declare datatype congs as "fundef_congs" *)
+(* Datatype hook to declare datatype congs as "function_congs" *)
 
 
 fun add_case_cong n thy =
-    Context.theory_map (FundefCtxTree.map_fundef_congs (Thm.add_thm
+    Context.theory_map (Function_Ctx_Tree.map_function_congs (Thm.add_thm
                           (Datatype.the_info thy n
                            |> #case_cong
                            |> safe_mk_meta_eq)))
@@ -198,13 +198,13 @@ val setup_case_cong = Datatype.interpretation (K (fold add_case_cong))
 
 val setup =
   Attrib.setup @{binding fundef_cong}
-    (Attrib.add_del FundefCtxTree.cong_add FundefCtxTree.cong_del)
+    (Attrib.add_del Function_Ctx_Tree.cong_add Function_Ctx_Tree.cong_del)
     "declaration of congruence rule for function definitions"
   #> setup_case_cong
-  #> FundefRelation.setup
-  #> FundefCommon.Termination_Simps.setup
+  #> Function_Relation.setup
+  #> Function_Common.Termination_Simps.setup
 
-val get_congs = FundefCtxTree.get_fundef_congs
+val get_congs = Function_Ctx_Tree.get_function_congs
 
 
 (* outer syntax *)
@@ -213,8 +213,8 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
-  (fundef_parser default_config
-     >> (fn ((config, fixes), statements) => add_fundef_cmd fixes statements config));
+  (function_parser default_config
+     >> (fn ((config, fixes), statements) => add_function_cmd fixes statements config));
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal

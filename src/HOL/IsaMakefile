@@ -160,10 +160,10 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/context_tree.ML \
   Tools/Function/decompose.ML \
   Tools/Function/descent.ML \
-  Tools/Function/fundef_common.ML \
-  Tools/Function/fundef_core.ML \
-  Tools/Function/fundef_lib.ML \
-  Tools/Function/fundef.ML \
+  Tools/Function/function_common.ML \
+  Tools/Function/function_core.ML \
+  Tools/Function/function_lib.ML \
+  Tools/Function/function.ML \
   Tools/Function/fun.ML \
   Tools/Function/induction_scheme.ML \
   Tools/Function/inductive_wrap.ML \

@@ -9,15 +9,15 @@ imports Wellfounded
 uses
   "Tools/prop_logic.ML"
   "Tools/sat_solver.ML"
-  ("Tools/Function/fundef_lib.ML")
-  ("Tools/Function/fundef_common.ML")
+  ("Tools/Function/function_lib.ML")
+  ("Tools/Function/function_common.ML")
   ("Tools/Function/inductive_wrap.ML")
   ("Tools/Function/context_tree.ML")
-  ("Tools/Function/fundef_core.ML")
+  ("Tools/Function/function_core.ML")
   ("Tools/Function/sum_tree.ML")
   ("Tools/Function/mutual.ML")
   ("Tools/Function/pattern_split.ML")
-  ("Tools/Function/fundef.ML")
+  ("Tools/Function/function.ML")
   ("Tools/Function/auto_term.ML")
   ("Tools/Function/measure_functions.ML")
   ("Tools/Function/lexicographic_order.ML")
@@ -104,25 +104,25 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-use "Tools/Function/fundef_lib.ML"
-use "Tools/Function/fundef_common.ML"
+use "Tools/Function/function_lib.ML"
+use "Tools/Function/function_common.ML"
 use "Tools/Function/inductive_wrap.ML"
 use "Tools/Function/context_tree.ML"
-use "Tools/Function/fundef_core.ML"
+use "Tools/Function/function_core.ML"
 use "Tools/Function/sum_tree.ML"
 use "Tools/Function/mutual.ML"
 use "Tools/Function/pattern_split.ML"
 use "Tools/Function/auto_term.ML"
-use "Tools/Function/fundef.ML"
+use "Tools/Function/function.ML"
 use "Tools/Function/pat_completeness.ML"
 use "Tools/Function/fun.ML"
 use "Tools/Function/induction_scheme.ML"
 
 setup {* 
-  Fundef.setup
+  Function.setup
   #> Pat_Completeness.setup
   #> Function_Fun.setup
-  #> InductionScheme.setup
+  #> Induction_Scheme.setup
 *}
 
 subsection {* Measure Functions *}
@@ -142,7 +142,7 @@ lemma measure_snd[measure_function]: "is_measure f \<Longrightarrow> is_measure 
 by (rule is_measure_trivial)
 
 use "Tools/Function/lexicographic_order.ML"
-setup LexicographicOrder.setup 
+setup Lexicographic_Order.setup 
 
 
 subsection {* Congruence Rules *}
@@ -320,7 +320,7 @@ setup {* ScnpReconstruct.setup *}
 
 ML_val -- "setup inactive"
 {*
-  Context.theory_map (FundefCommon.set_termination_prover (ScnpReconstruct.decomp_scnp 
+  Context.theory_map (Function_Common.set_termination_prover (ScnpReconstruct.decomp_scnp 
   [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])) 
 *}
 

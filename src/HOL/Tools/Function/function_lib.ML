@@ -5,7 +5,8 @@ A package for general recursive function definitions.
 Some fairly general functions that should probably go somewhere else... 
 *)
 
-structure FundefLib = struct
+structure Function_Lib =
+struct
 
 fun map_option f NONE = NONE 
   | map_option f (SOME x) = SOME (f x);

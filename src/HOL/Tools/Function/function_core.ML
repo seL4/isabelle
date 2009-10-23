@@ -1,15 +1,15 @@
-(*  Title:      HOL/Tools/Function/fundef_core.ML
+(*  Title:      HOL/Tools/Function/function_core.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions:
 Main functionality.
 *)
 
-signature FUNDEF_CORE =
+signature FUNCTION_CORE =
 sig
     val trace: bool Unsynchronized.ref
 
-    val prepare_fundef : FundefCommon.fundef_config
+    val prepare_function : Function_Common.function_config
                          -> string (* defname *)
                          -> ((bstring * typ) * mixfix) list (* defined symbol *)
                          -> ((bstring * typ) list * term list * term * term) list (* specification *)
@@ -17,12 +17,12 @@ sig
 
                          -> (term   (* f *)
                              * thm  (* goalstate *)
-                             * (thm -> FundefCommon.fundef_result) (* continuation *)
+                             * (thm -> Function_Common.function_result) (* continuation *)
                             ) * local_theory
 
 end
 
-structure FundefCore : FUNDEF_CORE =
+structure Function_Core : FUNCTION_CORE =
 struct
 
 val trace = Unsynchronized.ref false;
@@ -31,8 +31,8 @@ fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 val boolT = HOLogic.boolT
 val mk_eq = HOLogic.mk_eq
 
-open FundefLib
-open FundefCommon
+open Function_Lib
+open Function_Common
 
 datatype globals =
    Globals of {
@@ -90,7 +90,7 @@ datatype clause_info =
       qglr : ((string * typ) list * term list * term * term),
       cdata : clause_context,
 
-      tree: FundefCtxTree.ctx_tree,
+      tree: Function_Ctx_Tree.ctx_tree,
       lGI: thm,
       RCs: rec_call_info list
      }
@@ -118,7 +118,7 @@ fun find_calls tree =
       fun add_Ri (fixes,assumes) (_ $ arg) _ (_, xs) = ([], (fixes, assumes, arg) :: xs)
         | add_Ri _ _ _ _ = raise Match
     in
-      rev (FundefCtxTree.traverse_tree add_Ri tree [])
+      rev (Function_Ctx_Tree.traverse_tree add_Ri tree [])
     end
 
 
@@ -308,7 +308,7 @@ fun mk_replacement_lemma thy h ih_elim clause =
         val Ris = map (fn RCInfo {llRI, ...} => llRI) RCs
         val h_assums = map (fn RCInfo {h_assum, ...} => assume (cterm_of thy (subst_bounds (rev qs, h_assum)))) RCs
 
-        val (eql, _) = FundefCtxTree.rewrite_by_tree thy h ih_elim_case (Ris ~~ h_assums) tree
+        val (eql, _) = Function_Ctx_Tree.rewrite_by_tree thy h ih_elim_case (Ris ~~ h_assums) tree
 
         val replace_lemma = (eql RS meta_eq_to_obj_eq)
                                 |> implies_intr (cprop_of case_hyp)
@@ -473,7 +473,7 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
       val G_intros = map2 mk_GIntro clauses RCss
 
       val (GIntro_thms, (G, G_elim, G_induct, lthy)) =
-          FundefInductiveWrap.inductive_def G_intros ((dest_Free Gvar, NoSyn), lthy)
+          Function_Inductive_Wrap.inductive_def G_intros ((dest_Free Gvar, NoSyn), lthy)
     in
       ((G, GIntro_thms, G_elim, G_induct), lthy)
     end
@@ -511,7 +511,7 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
       val R_intross = map2 (map o mk_RIntro) (clauses ~~ qglrs) RCss
 
       val (RIntro_thmss, (R, R_elim, _, lthy)) =
-          fold_burrow FundefInductiveWrap.inductive_def R_intross ((dest_Free Rvar, NoSyn), lthy)
+          fold_burrow Function_Inductive_Wrap.inductive_def R_intross ((dest_Free Rvar, NoSyn), lthy)
     in
       ((R, RIntro_thmss, R_elim), lthy)
     end
@@ -728,11 +728,11 @@ fun mk_nest_term_case thy globals R' ihyp clause =
 
       fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) =
           let
-            val used = map (fn (ctx,thm) => FundefCtxTree.export_thm thy ctx thm) (u @ sub)
+            val used = map (fn (ctx,thm) => Function_Ctx_Tree.export_thm thy ctx thm) (u @ sub)
 
             val hyp = HOLogic.mk_Trueprop (R' $ arg $ lhs)
                       |> fold_rev (curry Logic.mk_implies o prop_of) used (* additional hyps *)
-                      |> FundefCtxTree.export_term (fixes, assumes)
+                      |> Function_Ctx_Tree.export_term (fixes, assumes)
                       |> fold_rev (curry Logic.mk_implies o prop_of) ags
                       |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
                       |> cterm_of thy
@@ -740,7 +740,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
             val thm = assume hyp
                       |> fold forall_elim cqs
                       |> fold Thm.elim_implies ags
-                      |> FundefCtxTree.import_thm thy (fixes, assumes)
+                      |> Function_Ctx_Tree.import_thm thy (fixes, assumes)
                       |> fold Thm.elim_implies used (*  "(arg, lhs) : R'"  *)
 
             val z_eq_arg = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (z, arg))))
@@ -750,7 +750,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
             |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (K (symmetric (z_eq_arg RS eq_reflection)))))
 
             val ethm = z_acc_local
-                         |> FundefCtxTree.export_thm thy (fixes,
+                         |> Function_Ctx_Tree.export_thm thy (fixes,
                                                           z_eq_arg :: case_hyp :: ags @ assumes)
                          |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
@@ -760,7 +760,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
           end
         | step _ _ _ _ = raise Match
     in
-      FundefCtxTree.traverse_tree step tree
+      Function_Ctx_Tree.traverse_tree step tree
     end
 
 
@@ -862,9 +862,9 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
     end
 
 
-fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
+fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
     let
-      val FundefConfig {domintros, tailrec, default=default_str, ...} = config
+      val FunctionConfig {domintros, tailrec, default=default_str, ...} = config
 
       val fvar = Free (fname, fT)
       val domT = domain_type fT
@@ -882,7 +882,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
       val n = length abstract_qglrs
 
       fun build_tree (ClauseContext { ctxt, rhs, ...}) =
-            FundefCtxTree.mk_tree (fname, fT) h ctxt rhs
+            Function_Ctx_Tree.mk_tree (fname, fT) h ctxt rhs
 
       val trees = map build_tree clauses
       val RCss = map find_calls trees
@@ -894,7 +894,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
           PROFILE "def_fun" (define_function (defname ^ "_sumC_def") (fname, mixfix) domT ranT G default) lthy
 
       val RCss = map (map (inst_RC (ProofContext.theory_of lthy) fvar f)) RCss
-      val trees = map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
+      val trees = map (Function_Ctx_Tree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
 
       val ((R, RIntro_thmss, R_elim), lthy) =
           PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
@@ -943,7 +943,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
             val trsimps = if tailrec then SOME (mk_trsimps psimps) else NONE
 
           in
-            FundefResult {fs=[f], G=G, R=R, cases=complete_thm,
+            FunctionResult {fs=[f], G=G, R=R, cases=complete_thm,
                           psimps=psimps, simple_pinducts=[simple_pinduct],
                           termination=total_intro, trsimps=trsimps,
                           domintros=dom_intros}

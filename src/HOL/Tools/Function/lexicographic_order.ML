@@ -13,10 +13,10 @@ sig
   val setup: theory -> theory
 end
 
-structure LexicographicOrder : LEXICOGRAPHIC_ORDER =
+structure Lexicographic_Order : LEXICOGRAPHIC_ORDER =
 struct
 
-open FundefLib
+open Function_Lib
 
 (** General stuff **)
 
@@ -58,7 +58,7 @@ fun pr_cell (Less _ ) = " < "
 
 fun dest_term (t : term) =
     let
-      val (vars, prop) = FundefLib.dest_all_all t
+      val (vars, prop) = Function_Lib.dest_all_all t
       val (prems, concl) = Logic.strip_horn prop
       val (lhs, rhs) = concl
                          |> HOLogic.dest_Trueprop
@@ -215,9 +215,9 @@ fun lex_order_tac ctxt solve_tac (st: thm) =
     end
 
 fun lexicographic_order_tac ctxt =
-  TRY (FundefCommon.apply_termination_rule ctxt 1)
+  TRY (Function_Common.apply_termination_rule ctxt 1)
   THEN lex_order_tac ctxt
-    (auto_tac (clasimpset_of ctxt addsimps2 FundefCommon.Termination_Simps.get ctxt))
+    (auto_tac (clasimpset_of ctxt addsimps2 Function_Common.Termination_Simps.get ctxt))
 
 val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac
 
@@ -225,7 +225,7 @@ val setup =
   Method.setup @{binding lexicographic_order}
     (Method.sections clasimp_modifiers >> (K lexicographic_order))
     "termination prover for lexicographic orderings"
-  #> Context.theory_map (FundefCommon.set_termination_prover lexicographic_order)
+  #> Context.theory_map (Function_Common.set_termination_prover lexicographic_order)
 
 end;
 

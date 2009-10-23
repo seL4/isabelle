@@ -13,10 +13,10 @@ sig
 end
 
 
-structure InductionScheme : INDUCTION_SCHEME =
+structure Induction_Scheme : INDUCTION_SCHEME =
 struct
 
-open FundefLib
+open Function_Lib
 
 
 type rec_call_info = int * (string * typ) list * term list * term list
