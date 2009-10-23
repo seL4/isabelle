@@ -165,7 +165,8 @@ procedure only.
 
 * New implementation of quickcheck uses generic code generator;
 default generators are provided for all suitable HOL types, records
-and datatypes.
+and datatypes.  Old quickcheck can be re-activated importing
+theory Library/SML_Quickcheck.
 
 * Renamed theorems:
 Suc_eq_add_numeral_1 -> Suc_eq_plus1

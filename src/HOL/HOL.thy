@@ -2002,7 +2002,11 @@ method_setup normalization = {*
 *} "solve goal by normalization"
 
 
+subsection {* Counterexample Search Units *}
+
 subsubsection {* Quickcheck *}
+
+quickcheck_params [size = 5, iterations = 50]
 
 ML {*
 structure Quickcheck_RecFun_Simps = Named_Thms
@@ -2014,37 +2018,8 @@ structure Quickcheck_RecFun_Simps = Named_Thms
 
 setup Quickcheck_RecFun_Simps.setup
 
-setup {*
-  Quickcheck.add_generator ("SML", Codegen.test_term)
-*}
 
-quickcheck_params [size = 5, iterations = 50]
-
-subsection {* Preprocessing for the predicate compiler *}
-
-ML {*
-structure Predicate_Compile_Alternative_Defs = Named_Thms
-(
-  val name = "code_pred_def"
-  val description = "alternative definitions of constants for the Predicate Compiler"
-)
-*}
-
-ML {*
-structure Predicate_Compile_Inline_Defs = Named_Thms
-(
-  val name = "code_pred_inline"
-  val description = "inlining definitions for the Predicate Compiler"
-)
-*}
-
-setup {*
-  Predicate_Compile_Alternative_Defs.setup
-  #> Predicate_Compile_Inline_Defs.setup
-  #> Predicate_Compile_Preproc_Const_Defs.setup
-*}
-
-subsection {* Nitpick setup *}
+subsubsection {* Nitpick setup *}
 
 text {* This will be relocated once Nitpick is moved to HOL. *}
 
@@ -2076,6 +2051,31 @@ setup {*
   #> Nitpick_Simps.setup
   #> Nitpick_Psimps.setup
   #> Nitpick_Intros.setup
+*}
+
+
+subsection {* Preprocessing for the predicate compiler *}
+
+ML {*
+structure Predicate_Compile_Alternative_Defs = Named_Thms
+(
+  val name = "code_pred_def"
+  val description = "alternative definitions of constants for the Predicate Compiler"
+)
+*}
+
+ML {*
+structure Predicate_Compile_Inline_Defs = Named_Thms
+(
+  val name = "code_pred_inline"
+  val description = "inlining definitions for the Predicate Compiler"
+)
+*}
+
+setup {*
+  Predicate_Compile_Alternative_Defs.setup
+  #> Predicate_Compile_Inline_Defs.setup
+  #> Predicate_Compile_Preproc_Const_Defs.setup
 *}
 
 

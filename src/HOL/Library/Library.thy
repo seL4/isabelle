@@ -52,6 +52,7 @@ imports
   Ramsey
   Reflection
   RBT
+  SML_Quickcheck
   State_Monad
   Sum_Of_Squares
   Topology_Euclidean_Space
