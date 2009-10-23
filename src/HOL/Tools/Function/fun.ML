@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Function/fundef_datatype.ML
+(*  Title:      HOL/Tools/Function/fun.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-A tactic to prove completeness of datatype patterns.
+Sequential mode for function definitions
+Command "fun" for fully automated function definitions
 *)
 
-signature FUNDEF_DATATYPE =
+signature FUNCTION_FUN =
 sig
     val add_fun : FundefCommon.fundef_config ->
       (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
@@ -17,7 +17,7 @@ sig
     val setup : theory -> theory
 end
 
-structure FundefDatatype : FUNDEF_DATATYPE =
+structure Function_Fun : FUNCTION_FUN =
 struct
 
 open FundefLib

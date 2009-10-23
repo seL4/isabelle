@@ -22,7 +22,7 @@ uses
   ("Tools/Function/measure_functions.ML")
   ("Tools/Function/lexicographic_order.ML")
   ("Tools/Function/pat_completeness.ML")
-  ("Tools/Function/fundef_datatype.ML")
+  ("Tools/Function/fun.ML")
   ("Tools/Function/induction_scheme.ML")
   ("Tools/Function/termination.ML")
   ("Tools/Function/decompose.ML")
@@ -115,13 +115,13 @@ use "Tools/Function/pattern_split.ML"
 use "Tools/Function/auto_term.ML"
 use "Tools/Function/fundef.ML"
 use "Tools/Function/pat_completeness.ML"
-use "Tools/Function/fundef_datatype.ML"
+use "Tools/Function/fun.ML"
 use "Tools/Function/induction_scheme.ML"
 
 setup {* 
   Fundef.setup
   #> Pat_Completeness.setup
-  #> FundefDatatype.setup
+  #> Function_Fun.setup
   #> InductionScheme.setup
 *}
 
