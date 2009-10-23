@@ -244,7 +244,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
      (* Rule for case splitting along the sum types *)
       val xss = map (fn (SchemeBranch { xs, ... }) => map Free xs) branches
       val pats = map_index (uncurry inject) xss
-      val sum_split_rule = FundefDatatype.prove_completeness thy [x] (P_comp $ x) xss (map single pats)
+      val sum_split_rule = Pat_Completeness.prove_completeness thy [x] (P_comp $ x) xss (map single pats)
 
       fun prove_branch (bidx, (SchemeBranch { P, xs, ws, Cs, ... }, (complete_thm, pat))) =
           let

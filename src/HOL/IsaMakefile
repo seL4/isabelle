@@ -170,6 +170,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
+  Tools/Function/pat_completeness.ML \
   Tools/Function/pattern_split.ML \
   Tools/Function/scnp_reconstruct.ML \
   Tools/Function/scnp_solve.ML \
