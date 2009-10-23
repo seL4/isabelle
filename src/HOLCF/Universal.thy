@@ -805,7 +805,7 @@ qed
 
 lemma basis_emb_prj_less: "ubasis_le (basis_emb (basis_prj x)) x"
 unfolding basis_prj_def
- apply (subst f_inv_onto_f [where f=basis_emb])
+ apply (subst f_inv_into_f [where f=basis_emb])
   apply (rule ubasis_until)
   apply (rule range_eqI [where x=compact_bot])
   apply simp
