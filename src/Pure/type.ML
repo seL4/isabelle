@@ -16,7 +16,7 @@ sig
   val rep_tsig: tsig ->
    {classes: NameSpace.T * Sorts.algebra,
     default: sort,
-    types: ((decl * Properties.T) * serial) NameSpace.table,
+    types: (decl * Properties.T) NameSpace.table,
     log_types: string list}
   val empty_tsig: tsig
   val defaultS: tsig -> sort
@@ -94,10 +94,6 @@ datatype decl =
   Abbreviation of string list * typ * bool |
   Nonterminal;
 
-fun str_of_decl (LogicalType _) = "logical type constructor"
-  | str_of_decl (Abbreviation _) = "type abbreviation"
-  | str_of_decl Nonterminal = "syntactic type";
-
 
 (* type tsig *)
 
@@ -105,7 +101,7 @@ datatype tsig =
   TSig of {
     classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
-    types: ((decl * Properties.T) * serial) NameSpace.table, (*declared types*)
+    types: (decl * Properties.T) NameSpace.table,  (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
 fun rep_tsig (TSig comps) = comps;
@@ -113,12 +109,12 @@ fun rep_tsig (TSig comps) = comps;
 fun make_tsig (classes, default, types, log_types) =
   TSig {classes = classes, default = default, types = types, log_types = log_types};
 
-fun build_tsig ((space, classes), default, types) =
+fun build_tsig (classes, default, types) =
   let
     val log_types =
-      Symtab.fold (fn (c, ((LogicalType n, _), _)) => cons (c, n) | _ => I) (snd types) []
-      |> Library.sort (Library.int_ord o pairself snd) |> map fst;
-  in make_tsig ((space, classes), default, types, log_types) end;
+      Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (snd types) []
+      |> Library.sort (int_ord o pairself snd) |> map fst;
+  in make_tsig (classes, default, types, log_types) end;
 
 fun map_tsig f (TSig {classes, default, types, log_types = _}) =
   build_tsig (f (classes, default, types));
@@ -167,7 +163,7 @@ fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
-fun lookup_type (TSig {types, ...}) = Option.map fst o Symtab.lookup (snd types);
+fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
 
 fun the_tags tsig c =
   (case lookup_type tsig c of
@@ -515,7 +511,7 @@ fun add_class pp naming (c, cs) tsig =
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
-      val (c', space') = space |> NameSpace.declare naming c;
+      val (c', space') = space |> NameSpace.declare true naming c;
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
@@ -530,7 +526,7 @@ fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), defau
     val _ =
       (case lookup_type tsig t of
         SOME (LogicalType n, _) => if length Ss <> n then error (bad_nargs t) else ()
-      | SOME (decl, _) => error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t)
+      | SOME _ => error ("Logical type constructor expected: " ^ quote t)
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
       handle TYPE (msg, _, _) => error msg;
@@ -559,23 +555,11 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 
 local
 
-fun err_in_decls c decl decl' =
-  let val s = str_of_decl decl and s' = str_of_decl decl' in
-    if s = s' then error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
-    else error ("Conflict of " ^ s ^ " with " ^ s' ^ ": " ^ quote c)
-  end;
-
-fun new_decl naming tags (c, decl) (space, types) =
+fun new_decl naming tags (c, decl) types =
   let
     val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val (c', space') = NameSpace.declare naming c space;
-    val types' =
-      (case Symtab.lookup types c' of
-        SOME ((decl', _), _) => err_in_decls c' decl decl'
-      | NONE => Symtab.update (c', ((decl, tags'), serial ())) types);
-  in (space', types') end;
-
-fun the_decl (_, types) = fst o fst o the o Symtab.lookup types;
+    val (_, types') = NameSpace.define true naming (c, (decl, tags')) types;
+  in types' end;
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
@@ -585,37 +569,33 @@ fun map_types f = map_tsig (fn (classes, default, types) =>
   in (classes, default, (space', tab')) end);
 
 fun syntactic types (Type (c, Ts)) =
-      (case Symtab.lookup types c of SOME ((Nonterminal, _), _) => true | _ => false)
+      (case Symtab.lookup types c of SOME (Nonterminal, _) => true | _ => false)
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 
 in
 
 fun add_type naming tags (c, n) =
-  if n < 0 then error ("Bad type constructor declaration: " ^ quote (Binding.str_of c))
+  if n < 0 then error ("Bad type constructor declaration " ^ quote (Binding.str_of c))
   else map_types (new_decl naming tags (c, LogicalType n));
 
 fun add_abbrev naming tags (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
-      cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote (Binding.str_of a));
+      cat_error msg ("The error(s) above occurred in type abbreviation " ^ quote (Binding.str_of a));
     val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
-  in
-    (case duplicates (op =) vs of
-      [] => []
-    | dups => err ("Duplicate variables on lhs: " ^ commas_quote dups));
-    (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
-      [] => []
-    | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
-    types |> new_decl naming tags (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs'))
-  end);
+    val _ =
+      (case duplicates (op =) vs of
+        [] => []
+      | dups => err ("Duplicate variables on lhs: " ^ commas_quote dups));
+    val _ =
+      (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
+        [] => []
+      | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
+  in types |> new_decl naming tags (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
 
 fun add_nonterminal naming tags = map_types o new_decl naming tags o rpair Nonterminal;
-
-fun merge_types (types1, types2) =
-  NameSpace.merge_tables (Library.eq_snd (op = : serial * serial -> bool)) (types1, types2)
-    handle Symtab.DUP d => err_in_decls d (the_decl types1 d) (the_decl types2 d);
 
 end;
 
@@ -635,7 +615,7 @@ fun merge_tsigs pp (tsig1, tsig2) =
     val space' = NameSpace.merge (space1, space2);
     val classes' = Sorts.merge_algebra pp (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
-    val types' = merge_types (types1, types2);
+    val types' = NameSpace.merge_tables (types1, types2);
   in build_tsig ((space', classes'), default', types') end;
 
 end;
