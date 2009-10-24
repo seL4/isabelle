@@ -171,7 +171,7 @@ fun flat_higher_order_arguments (intross, thy) =
         val constname = fst (dest_Const (fst (strip_comb
           (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of intro))))))
         val (intro_ts, (new_defs, thy)) = fold_map_atoms (process constname) (prop_of intro) (new_defs, thy)
-        val th = setmp quick_and_dirty true (SkipProof.make_thm thy) intro_ts
+        val th = Skip_Proof.make_thm thy intro_ts
       in
         (th, (new_defs, thy))
       end

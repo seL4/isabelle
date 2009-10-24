@@ -119,7 +119,7 @@ fun split_all_pairs thy th =
 
 fun normalize_equation thy th =
   mk_meta_equation th
-  |> Pred_Compile_Set.unfold_set_notation
+  |> Predicate_Compile_Set.unfold_set_notation
   |> full_fun_cong_expand
   |> split_all_pairs thy
   |> tap check_equation_format

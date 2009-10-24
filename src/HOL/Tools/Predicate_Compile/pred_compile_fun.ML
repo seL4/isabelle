@@ -64,6 +64,8 @@ structure Pred_Compile_Preproc = TheoryDataFun
   fun merge _ = Symtab.merge (op =);
 )
 
+fun pred_of_function thy name = Symtab.lookup (Pred_Compile_Preproc.get thy) name
+
 fun defined thy = Symtab.defined (Pred_Compile_Preproc.get thy) 
 
 
@@ -100,23 +102,29 @@ fun pred_of f =
       (Free (Long_Name.base_name name ^ "P", pred_type T))
   end
 
-fun mk_param lookup_pred (t as Free (v, _)) = lookup_pred t
-  | mk_param lookup_pred t =
+fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
+  | mk_param thy lookup_pred t =
   let
-    val (vs, body) = strip_abs t
-    val names = Term.add_free_names body []
-    val vs_names = Name.variant_list names (map fst vs)
-    val vs' = map2 (curry Free) vs_names (map snd vs)
-    val body' = subst_bounds (rev vs', body)
-    val (f, args) = strip_comb body'
-    val resname = Name.variant (vs_names @ names) "res"
-    val resvar = Free (resname, body_type (fastype_of body'))
-    val P = lookup_pred f
-    val pred_body = list_comb (P, args @ [resvar])
-    val param = fold_rev lambda (vs' @ [resvar]) pred_body
-  in param end;
-
-
+  val _ = tracing ("called param with " ^ (Syntax.string_of_term_global thy t))
+  in if Predicate_Compile_Aux.is_predT (fastype_of t) then
+    t
+  else
+    let
+      val (vs, body) = strip_abs t
+      val names = Term.add_free_names body []
+      val vs_names = Name.variant_list names (map fst vs)
+      val vs' = map2 (curry Free) vs_names (map snd vs)
+      val body' = subst_bounds (rev vs', body)
+      val (f, args) = strip_comb body'
+      val resname = Name.variant (vs_names @ names) "res"
+      val resvar = Free (resname, body_type (fastype_of body'))
+      (*val P = case try lookup_pred f of SOME P => P | NONE => error "mk_param"
+      val pred_body = list_comb (P, args @ [resvar])
+      *)
+      val pred_body = HOLogic.mk_eq (body', resvar)
+      val param = fold_rev lambda (vs' @ [resvar]) pred_body
+    in param end
+  end
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
 

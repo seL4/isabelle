@@ -121,7 +121,7 @@ fun maps_premises f intro =
 (* lifting term operations to theorems *)
 
 fun map_term thy f th =
-  setmp quick_and_dirty true (SkipProof.make_thm thy) (f (prop_of th))
+  Skip_Proof.make_thm thy (f (prop_of th))
 
 (*
 fun equals_conv lhs_cv rhs_cv ct =

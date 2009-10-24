@@ -423,7 +423,7 @@ fun check_expected_modes (options : Predicate_Compile_Aux.options) modes =
   case expected_modes options of
     SOME (s, ms) => (case AList.lookup (op =) modes s of
       SOME modes =>
-        if not (eq_set (map (map (rpair NONE)) ms, map snd modes)) then
+        if not (eq_set (op =) (map (map (rpair NONE)) ms, map snd modes)) then
           error ("expected modes were not inferred:\n"
           ^ "inferred modes for " ^ s ^ ": "
           ^ commas (map ((enclose "[" "]") o string_of_smode o snd) modes))
@@ -439,8 +439,8 @@ fun unify_consts thy cs intr_ts =
      fun varify (t, (i, ts)) =
        let val t' = map_types (Logic.incr_tvar (i + 1)) (#2 (Type.varify [] t))
        in (maxidx_of_term t', t'::ts) end;
-     val (i, cs') = foldr varify (~1, []) cs;
-     val (i', intr_ts') = foldr varify (i, []) intr_ts;
+     val (i, cs') = List.foldr varify (~1, []) cs;
+     val (i', intr_ts') = List.foldr varify (i, []) intr_ts;
      val rec_consts = fold add_term_consts_2 cs' [];
      val intr_consts = fold add_term_consts_2 intr_ts' [];
      fun unify (cname, cT) =
@@ -555,7 +555,7 @@ fun preprocess_elim thy nparams elimrule =
     val bigeq = (Thm.symmetric (Conv.implies_concl_conv
       (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
         (cterm_of thy elimrule')))
-    val tac = (fn _ => setmp quick_and_dirty true (SkipProof.cheat_tac thy))    
+    val tac = (fn _ => Skip_Proof.cheat_tac thy)    
     val eq = Goal.prove ctxt' [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
   in
     Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
@@ -599,7 +599,7 @@ fun fetch_pred_data thy name =
         (*val elim = singleton (ind_set_codegen_preproc thy) (preprocess_elim thy nparams 
           (expand_tuples_elim pre_elim))*)
         val elim =
-          (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+          (Drule.standard o Skip_Proof.make_thm thy)
           (mk_casesrule (ProofContext.init thy) pred nparams intros)
         val (intros, elim) = (*if null intros then noclause thy name elim else*) (intros, elim)
       in
@@ -702,7 +702,7 @@ fun register_intros (constname, pre_intros) thy =
     val pred = Const (constname, T)
     val nparams = guess_nparams T
     val pre_elim = 
-      (Drule.standard o SkipProof.make_thm thy)
+      (Drule.standard o Skip_Proof.make_thm thy)
       (mk_casesrule (ProofContext.init thy) pred nparams pre_intros)
   in register_predicate (constname, pre_intros, pre_elim, nparams) thy end
 
@@ -2010,7 +2010,7 @@ fun prove_pred options thy clauses preds modes pred mode (moded_clauses, compile
         THEN print_tac' options "proved one direction"
         THEN prove_other_direction options thy modes pred mode moded_clauses
         THEN print_tac' options "proved other direction")
-      else (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy))
+      else (fn _ => Skip_Proof.cheat_tac thy))
   end;
 
 (* composition of mode inference, definition, compilation and proof *)
@@ -2038,7 +2038,7 @@ fun prove options thy clauses preds modes moded_clauses compiled_terms =
     (join_preds_modes moded_clauses compiled_terms)
 
 fun prove_by_skip options thy _ _ _ _ compiled_terms =
-  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (setmp quick_and_dirty true (SkipProof.make_thm thy) t))
+  map_preds_modes (fn pred => fn mode => fn t => Drule.standard (Skip_Proof.make_thm thy t))
     compiled_terms
 
 fun dest_prem thy params t =
@@ -2145,7 +2145,7 @@ fun check_intros_elim_match thy prednames =
         val elim = the_elim_of thy predname
         val nparams = nparams_of thy predname
         val elim' =
-          (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+          (Drule.standard o (Skip_Proof.make_thm thy))
           (mk_casesrule (ProofContext.init thy) nparams intros)
       in
         if not (Thm.equiv_thm (elim, elim')) then
