@@ -210,7 +210,7 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
   let
     fun mk_prems' (t as Const (name, T)) (names, prems) =
       if is_constr thy name orelse (is_none (try lookup_pred t)) then
-        [(t ,(names, prems))]
+        [(t, (names, prems))]
       else [(lookup_pred t, (names, prems))]
     | mk_prems' (t as Free (f, T)) (names, prems) = 
       [(lookup_pred t, (names, prems))]
@@ -243,7 +243,8 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
             maps mk_prems_of_assm assms
           end
         else
-          let 
+          let
+            val _ = tracing ("Flattening term " ^ (Syntax.string_of_term_global thy t))
             val (f, args) = strip_comb t
             val resname = Name.variant names "res"
             val resvar = Free (resname, body_type (fastype_of t))
@@ -281,7 +282,15 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
                        val prem = HOLogic.mk_Trueprop (list_comb (pred, argvs @ [resvar]))
                      in (names', prem :: prems') end)
                 end
-            | mk_prems'' t = error ("Invalid term: " ^ Syntax.string_of_term_global thy t)
+            | mk_prems'' t =
+                let
+                  val _ = tracing ("must define new constant for "
+                    ^ (Syntax.string_of_term_global thy t))
+                in 
+                  (*if is_predT (fastype_of t) then
+                  else*)
+                  error ("Invalid term: " ^ Syntax.string_of_term_global thy t)
+                end
           in
             map (pair resvar) (mk_prems'' f)
           end

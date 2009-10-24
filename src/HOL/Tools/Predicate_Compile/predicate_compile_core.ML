@@ -120,10 +120,17 @@ open Predicate_Compile_Aux;
 
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
-fun print_tac s = Seq.single; (*Tactical.print_tac s;*) (* (if ! Toplevel.debug then Tactical.print_tac s else Seq.single); *)
+fun print_tac s = Seq.single;
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
 
 val do_proofs = Unsynchronized.ref true;
+
+datatype assertion = Max_number_of_subgoals of int
+fun assert_tac (Max_number_of_subgoals i) st =
+  if (nprems_of st <= i) then Seq.single st
+  else error ("assert_tac: Numbers of subgoals mismatch at goal state :"
+    ^ "\n" ^ Pretty.string_of (Pretty.chunks
+      (Goal_Display.pretty_goals_without_context (! Goal_Display.goals_limit) st)));
 
 (* reference to preprocessing of InductiveSet package *)
 
@@ -1433,7 +1440,7 @@ fun compile_clause compfuns size final_term thy all_vs param_vs (iss, is) inp (t
                    (u, rest)
                  end
           in
-            compile_match thy compfuns constr_vs' eqs out_ts'' 
+            compile_match thy compfuns constr_vs' eqs out_ts''
               (mk_bind compfuns (compiled_clause, rest))
           end
     val prem_t = compile_prems in_ts' param_vs all_vs' moded_ps;
@@ -1914,10 +1921,15 @@ fun prove_match2 thy out_ts = let
           | _ => PureThy.get_thms thy (((fst o dest_Type o fastype_of) t) ^ ".split_asm")
         val (_, ts) = strip_comb t
       in
-        (Splitter.split_asm_tac split_rules 1)
-(*        THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
-          THEN (DETERM (TRY (etac @{thm Pair_inject} 1))) *)
+        (print_tac ("Term " ^ (Syntax.string_of_term_global thy t) ^ 
+          "splitting with rules \n" ^
+        commas (map (Display.string_of_thm_global thy) split_rules)))
+        THEN (Splitter.split_asm_tac split_rules 1)
+        THEN (print_tac "after splitting with split_asm rules")
+        (* THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
+          THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
         THEN (REPEAT_DETERM_N (num_of_constrs - 1) (etac @{thm botE} 1 ORELSE etac @{thm botE} 2))
+        THEN (assert_tac (Max_number_of_subgoals 2))
         THEN (EVERY (map split_term_tac ts))
       end
     else all_tac
@@ -2241,9 +2253,11 @@ fun expand_tuples thy intro =
       fold (rewrite_prem o dest_prem thy params o HOLogic.dest_Trueprop)
       (Logic.strip_imp_prems intro_t') (intro_t', frees')
     val _ = tracing ("intro_t': " ^ (Syntax.string_of_term_global thy intro_t'))
+    val tac = 
+      (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy)
   in
     Goal.prove (ProofContext.init thy) (Term.add_free_names intro_t' []) []
-      intro_t' (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy)
+      intro_t' tac
   end
 
 (** main function of predicate compiler **)

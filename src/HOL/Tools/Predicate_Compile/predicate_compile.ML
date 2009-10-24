@@ -10,6 +10,9 @@ end;
 structure Predicate_Compile : PREDICATE_COMPILE =
 struct
 
+(* options *)
+val fail_safe_mode = false
+
 open Predicate_Compile_Aux;
 
 val priority = tracing;
@@ -39,9 +42,11 @@ fun preprocess_strong_conn_constnames gr constnames thy =
     val _ = priority "Replacing functions in introrules..."
       (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
     val intross' =
-      case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross of
-        SOME intross' => intross'
-      | NONE => let val _ = warning "Function replacement failed!" in intross end
+      if fail_safe_mode then
+        case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross of
+          SOME intross' => intross'
+        | NONE => let val _ = warning "Function replacement failed!" in intross end
+      else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross
     val _ = tracing ("Introduction rules with replaced functions: " ^
       commas (map (Display.string_of_thm_global thy'') (flat intross')))
     val intross'' = burrow (maps remove_pointless_clauses) intross'
