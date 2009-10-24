@@ -45,7 +45,7 @@ definition lift_random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Right
   where "lift_random g = scomp g (Pair o (Predicate.single o fst))"
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a rpred \<Rightarrow> 'b rpred)"
-where "map f P = bind P (return o f)"
+  where "map f P = bind P (return o f)"
 
 hide (open) const return bind supp map
   

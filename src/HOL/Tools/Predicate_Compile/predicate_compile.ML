@@ -145,19 +145,17 @@ val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace",
   "show_mode_inference", "show_compilation", "skip_proof", "inductify", "rpred", "depth_limited"]
 
-val _ = List.app OuterKeyword.keyword ("mode" :: bool_options)
-
 local structure P = OuterParse
 in
 
 val opt_modes =
-  Scan.optional (P.$$$ "(" |-- P.$$$ "mode" |-- P.$$$ ":" |--
+  Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
    P.enum1 "," (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]")
   --| P.$$$ ")" >> SOME) NONE
 
 val scan_params =
   let
-    val scan_bool_param = foldl1 (op ||) (map P.$$$ bool_options)
+    val scan_bool_param = foldl1 (op ||) (map Args.$$$ bool_options)
   in
     Scan.optional (P.$$$ "[" |-- P.enum1 "," scan_bool_param --| P.$$$ "]") []
   end
