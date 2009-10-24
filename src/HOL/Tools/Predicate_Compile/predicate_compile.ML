@@ -29,13 +29,17 @@ fun tracing s = ()
 fun print_intross options thy msg intross =
   if show_intermediate_results options then
    Output.tracing (msg ^ 
-    (space_implode "; " (map 
-      (fn intros => commas (map (Display.string_of_thm_global thy) intros)) intross)))
+    (space_implode "\n" (map 
+      (fn (c, intros) => "Introduction rule(s) of " ^ c ^ ":\n" ^
+         commas (map (Display.string_of_thm_global thy) intros)) intross)))
   else ()
       
 fun print_specs thy specs =
   map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
     ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
+
+fun map_specs f specs =
+  map (fn (s, ths) => (s, f ths)) specs
 
 fun process_specification options specs thy' =
   let
@@ -47,10 +51,10 @@ fun process_specification options specs thy' =
     val _ = print_step options "Replacing functions in introrules..."
     val intross2 =
       if fail_safe_mode then
-        case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
+        case try (map_specs (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
           SOME intross => intross
         | NONE => let val _ = warning "Function replacement failed!" in intross1 end
-      else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
+      else map_specs (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
     val _ = print_intross options thy'' "Introduction rules with replaced functions: " intross2
     val _ = print_step options "Introducing new constants for abstractions at higher-order argument positions..."
     val (intross3, (new_defs, thy''')) = Predicate_Compile_Pred.flat_higher_order_arguments (intross2, thy'')
@@ -80,10 +84,10 @@ fun preprocess_strong_conn_constnames options gr constnames thy =
     val specs = (get_specs prednames) @ fun_pred_specs
     val (intross3, thy''') = process_specification options specs thy'
     val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
-    val intross4 = map (maps remove_pointless_clauses) intross3
+    val intross4 = map_specs (maps remove_pointless_clauses) intross3
     val _ = print_intross options thy''' "After removing pointless clauses: " intross4
-    val intross5 = map (map (AxClass.overload thy''')) intross4
-    val intross6 = map (map (expand_tuples thy''')) intross5
+      (*val intross5 = map (fn s, ths) => ( s, map (AxClass.overload thy''') ths)) intross4*)
+    val intross6 = map_specs (map (expand_tuples thy''')) intross4
     val _ = print_intross options thy''' "introduction rules before registering: " intross6
     val _ = print_step options "Registering introduction rules..."
     val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''

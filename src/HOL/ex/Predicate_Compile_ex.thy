@@ -43,7 +43,7 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
     "append [] xs xs"
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) [inductify] append .
+code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
 code_pred [depth_limited] append .
 code_pred [rpred] append .
 
@@ -366,7 +366,7 @@ code_pred [rpred] lexn .
 
 thm lexn.rpred_equation
 
-code_pred [inductify] lenlex .
+code_pred [inductify, show_steps] lenlex .
 thm lenlex.equation
 
 code_pred [inductify, rpred] lenlex .
@@ -425,13 +425,20 @@ thm rel_comp.equation
 code_pred [inductify] Image .
 thm Image.equation
 (*TODO: *)
-(*code_pred [inductify] Id_on .*)
+ML {* Toplevel.debug := true *}
+declare Id_on_def[unfolded UNION_def, code_pred_def]
+
+code_pred [inductify] Id_on .
+thm Id_on.equation
 code_pred [inductify] Domain .
 thm Domain.equation
 code_pred [inductify] Range .
 thm sym_def
 code_pred [inductify] Field .
-(* code_pred [inductify] refl_on .*)
+declare Sigma_def[unfolded UNION_def, code_pred_def]
+declare refl_on_def[unfolded UNION_def, code_pred_def]
+code_pred [inductify] refl_on .
+thm refl_on.equation
 code_pred [inductify] total_on .
 thm total_on.equation
 (*

@@ -126,7 +126,7 @@ fun preprocess (constname, specs) thy =
     val (intros', (local_defs, thy')) = flatten_intros constname intros thy
     val (intross, thy'') = fold_map preprocess local_defs thy'
   in
-    (intros' :: flat intross,thy'')
+    ((constname, intros') :: flat intross,thy'')
   end;
 
 fun preprocess_term t thy = error "preprocess_pred_term: to implement" 
@@ -158,14 +158,11 @@ fun flat_higher_order_arguments (intross, thy) =
             val ([definition], thy') = thy
               |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
               |> PureThy.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
-            
           in
             (list_comb (Logic.varify const, vars), ((full_constname, [definition])::new_defs, thy'))
           end
         | replace_abs_arg arg (new_defs, thy) = (arg, (new_defs, thy))
-
-      val (args', (new_defs', thy')) = fold_map replace_abs_arg args (new_defs, thy)
-            (*        val _ = if not (null abs_args) then error "Found some abs argument" else ()*)
+        val (args', (new_defs', thy')) = fold_map replace_abs_arg args (new_defs, thy)
       in
         (list_comb (pred, args'), (new_defs', thy'))
       end
@@ -178,7 +175,13 @@ fun flat_higher_order_arguments (intross, thy) =
       in
         (th, (new_defs, thy))
       end
-    val (intross', (new_defs, thy')) = fold_map (fold_map flat_intro) intross ([], thy)
+    fun fold_map_spec f [] s = ([], s)
+      | fold_map_spec f ((c, ths) :: specs) s =
+        let
+          val (ths', s') = f ths s
+          val (specs', s'') = fold_map_spec f specs s'
+        in ((c, ths') :: specs', s'') end
+    val (intross', (new_defs, thy')) = fold_map_spec (fold_map flat_intro) intross ([], thy)
   in
     (intross', (new_defs, thy'))
   end
