@@ -17,7 +17,73 @@ open Predicate_Compile_Aux;
 
 val priority = tracing;
 
+(* tuple processing *)
+
+fun expand_tuples thy intro =
+  let
+    fun rewrite_args [] (pats, intro_t, ctxt) = (pats, intro_t, ctxt)
+      | rewrite_args (arg::args) (pats, intro_t, ctxt) = 
+      (case HOLogic.strip_tupleT (fastype_of arg) of
+        (Ts as _ :: _ :: _) =>
+        let
+          fun rewrite_arg' (Const ("Pair", _) $ _ $ t2, Type ("*", [_, T2]))
+            (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
+            | rewrite_arg' (t, Type ("*", [T1, T2])) (args, (pats, intro_t, ctxt)) =
+              let
+                val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
+                val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))
+                  (*val _ = tracing ("Rewriting term " ^
+                    (Syntax.string_of_term_global thy (fst pat)) ^ " to " ^
+                    (Syntax.string_of_term_global thy (snd pat)) ^ " in " ^
+                  (Syntax.string_of_term_global thy intro_t))*)
+                val intro_t' = Pattern.rewrite_term thy [pat] [] intro_t
+                val args' = map (Pattern.rewrite_term thy [pat] []) args
+              in
+                rewrite_arg' (Free (y, T2), T2) (args', (pat::pats, intro_t', ctxt'))
+              end
+            | rewrite_arg' _ (args, (pats, intro_t, ctxt)) = (args, (pats, intro_t, ctxt))
+          val (args', (pats, intro_t', ctxt')) = rewrite_arg' (arg, fastype_of arg)
+            (args, (pats, intro_t, ctxt))
+        in
+          rewrite_args args' (pats, intro_t', ctxt')
+        end
+      | _ => rewrite_args args (pats, intro_t, ctxt))
+    fun rewrite_prem atom =
+      let
+        val (_, args) = strip_comb atom
+      in rewrite_args args end
+    val ctxt = ProofContext.init thy
+    val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
+    val intro_t = prop_of intro'
+    val concl = Logic.strip_imp_concl intro_t
+    val (p, args) = strip_comb (HOLogic.dest_Trueprop concl)
+    val (pats', intro_t', ctxt2) = rewrite_args args ([], intro_t, ctxt1)
+    val (pats', intro_t', ctxt3) = 
+      fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
+    (*val _ = Output.tracing ("intro_t': " ^ (Syntax.string_of_term_global thy intro_t'))
+    val _ = Output.tracing ("pats : " ^ (commas (map
+      (fn (t1, t2) => (Syntax.string_of_term_global thy t1) ^ " -> " ^
+      Syntax.string_of_term_global thy t2) pats'))*)
+    fun rewrite_pat (ct1, ct2) =
+      (ct1, cterm_of thy (Pattern.rewrite_term thy pats' [] (term_of ct2)))
+    val t_insts' = map rewrite_pat t_insts
+      (*val _ = Output.tracing ("t_insts':" ^ (commas (map
+      (fn (ct1, ct2) => (Syntax.string_of_term_global thy (term_of ct1) ^ " -> " ^
+    Syntax.string_of_term_global thy (term_of ct2))) t_insts')))*)
+    val intro'' = Thm.instantiate (T_insts, t_insts') intro
+      (*val _ = Output.tracing ("intro'':" ^ (Display.string_of_thm_global thy intro''))*)
+    val [intro'''] = Variable.export ctxt3 ctxt [intro'']
+    (*val _ = Output.tracing ("intro''':" ^ (Display.string_of_thm_global thy intro'''))*)
+  in
+    intro'''
+  end 
+
+  (* eliminating fst/snd functions *)
+val simplify_fst_snd = Simplifier.full_simplify
+  (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
+
 (* Some last processing *)
+
 fun remove_pointless_clauses intro =
   if Logic.strip_imp_prems (prop_of intro) = [@{prop "False"}] then
     []
@@ -35,24 +101,25 @@ fun preprocess_strong_conn_constnames gr constnames thy =
       thy |> not (null funnames) ? Predicate_Compile_Fun.define_predicates
       (get_specs funnames)
     val _ = priority "Compiling predicates to flat introrules..."
-    val (intross, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess
+    val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess
       (get_specs prednames) thy')
     val _ = tracing ("Flattened introduction rules: " ^
-      commas (map (Display.string_of_thm_global thy'') (flat intross)))
+      commas (map (Display.string_of_thm_global thy'') (flat intross1)))
     val _ = priority "Replacing functions in introrules..."
       (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
-    val intross' =
+    val intross2 =
       if fail_safe_mode then
-        case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross of
-          SOME intross' => intross'
-        | NONE => let val _ = warning "Function replacement failed!" in intross end
-      else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross
+        case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
+          SOME intross => intross
+        | NONE => let val _ = warning "Function replacement failed!" in intross1 end
+      else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
     val _ = tracing ("Introduction rules with replaced functions: " ^
-      commas (map (Display.string_of_thm_global thy'') (flat intross')))
-    val intross'' = burrow (maps remove_pointless_clauses) intross'
-    val intross'' = burrow (map (AxClass.overload thy'')) intross''
+      commas (map (Display.string_of_thm_global thy'') (flat intross2)))
+    val intross3 = burrow (maps remove_pointless_clauses) intross2
+    val intross4 = burrow (map (AxClass.overload thy'')) intross3
+    val intross5 = burrow (map (simplify_fst_snd o expand_tuples thy'')) intross4
     val _ = priority "Registering intro rules..."
-    val thy''' = fold Predicate_Compile_Core.register_intros intross'' thy''
+    val thy''' = fold Predicate_Compile_Core.register_intros intross5 thy''
   in
     thy'''
   end;

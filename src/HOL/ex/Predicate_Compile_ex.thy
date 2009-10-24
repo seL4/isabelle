@@ -55,7 +55,7 @@ where
 | "[| ys = fst (xa, y); x # zs = snd (xa, y);
  tupled_append' (xs, ys, x # zs) |] ==> tupled_append' (x # xs, xa, y)"
 
-code_pred tupled_append' .
+code_pred (inductify_all) tupled_append' .
 thm tupled_append'.equation
 (* TODO: Missing a few modes! *)
 
@@ -64,7 +64,9 @@ where
   "tupled_append'' ([], xs, xs)"
 | "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, x # zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
 
-code_pred tupled_append'' .
+thm tupled_append''.cases
+
+code_pred (inductify_all) tupled_append'' .
 thm tupled_append''.equation
 (* TODO: Missing a few modes *)
 
@@ -73,10 +75,19 @@ where
   "tupled_append''' ([], xs, xs)"
 | "yszs = (ys, zs) ==> tupled_append''' (xs, yszs) \<Longrightarrow> tupled_append''' (x # xs, ys, x # zs)"
 
-code_pred tupled_append''' .
+code_pred (inductify_all) tupled_append''' .
 thm tupled_append'''.equation
 (* TODO: Missing a few modes *)
+thm fst_conv snd_conv
+thm map_of.simps
+term "map_of"
+inductive map_ofP :: "('a \<times> 'b) list \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+where
+  "map_ofP ((a, b)#xs) a b"
+| "map_ofP xs a b \<Longrightarrow> map_ofP (x#xs) a b"
 
+code_pred map_ofP .
+thm map_ofP.equation
 section {* reverse *}
 
 inductive rev where
@@ -420,13 +431,13 @@ where
   "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] ==> test w"
 ML {* @{term "[x \<leftarrow> w. x = a]"} *}
 code_pred (inductify_all) test .
-
+(*
 theorem S\<^isub>3_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
 (*quickcheck[generator=SML]*)
 quickcheck[generator=pred_compile, size=10, iterations=100]
 oops
-
+*)
 inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
   "[] \<in> S\<^isub>4"
 | "w \<in> A\<^isub>4 \<Longrightarrow> b # w \<in> S\<^isub>4"

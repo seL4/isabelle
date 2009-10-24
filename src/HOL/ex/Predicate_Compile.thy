@@ -25,7 +25,7 @@ lemma set_ConsI2 [code_pred_intros]:
   "set xs x ==> set (x' # xs) x" 
 unfolding mem_def[symmetric, of _ x]
 by auto
-
+(*
 code_pred set
 proof -
   case set
@@ -38,6 +38,7 @@ proof -
     apply auto
     done
 qed
+*)
 
 section {* Alternative rules for list_all2 *}
 
@@ -47,6 +48,7 @@ by auto
 lemma list_all2_ConsI [code_pred_intros]: "list_all2 P xs ys ==> P x y ==> list_all2 P (x#xs) (y#ys)"
 by auto
 
+(*
 code_pred list_all2
 proof -
   case list_all2
@@ -59,5 +61,5 @@ proof -
     apply auto
     done
 qed
-
+*)
 end

@@ -73,8 +73,15 @@ fun focus_ex t nctxt =
 
 (*
 fun map_atoms f intro = 
-fun fold_atoms f intro =
 *)
+fun fold_atoms f intro s =
+  let
+    val (literals, head) = Logic.strip_horn intro
+    fun appl t s = (case t of
+      (@{term "Not"} $ t') => f t' s
+      | _ => f t s)
+  in fold appl (map HOLogic.dest_Trueprop literals) s end
+
 fun fold_map_atoms f intro s =
   let
     val (literals, head) = Logic.strip_horn intro

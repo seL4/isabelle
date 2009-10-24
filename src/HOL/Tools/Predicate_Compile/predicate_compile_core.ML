@@ -108,6 +108,7 @@ sig
   val is_predT : typ -> bool
   val guess_nparams : typ -> int
   val cprods_subset : 'a list list -> 'a list list
+  val dest_prem : theory -> term list ->  term -> indprem
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
@@ -527,7 +528,7 @@ fun preprocess_elim thy nparams elimrule =
     val bigeq = (Thm.symmetric (Conv.implies_concl_conv
       (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
         (cterm_of thy elimrule')))
-    val tac = (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy)    
+    val tac = (fn _ => setmp quick_and_dirty true (SkipProof.cheat_tac thy))    
     val eq = Goal.prove ctxt' [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
     val _ = Output.tracing "Preprocessed elimination rule"
   in
@@ -2205,54 +2206,7 @@ fun check_format_of_intro_rule thy intro =
     forall (check_prem o dest_prem thy params o HOLogic.dest_Trueprop) prems
   end
 
-fun expand_tuples thy intro =
-  let
-    fun rewrite_args [] (intro_t, names) = (intro_t, names)
-      | rewrite_args (arg::args) (intro_t, names) = 
-      (case HOLogic.strip_tupleT (fastype_of arg) of
-        (Ts as _ :: _ :: _) =>
-        let
-          fun rewrite_arg' (Const ("Pair", _) $ _ $ t2, Type ("*", [_, T2]))
-            (args, (intro_t, names)) = rewrite_arg' (t2, T2) (args, (intro_t, names))
-            | rewrite_arg' (t, Type ("*", [T1, T2])) (args, (intro_t, names)) =
-              let
-                val [x, y] = Name.variant_list names ["x", "y"]
-                val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))
-                val _ = tracing ("Rewriting term " ^
-                    (Syntax.string_of_term_global thy (fst pat)) ^ " to " ^
-                    (Syntax.string_of_term_global thy (snd pat)) ^ " in " ^
-                  (Syntax.string_of_term_global thy intro_t))
-                val intro_t' = Pattern.rewrite_term thy [pat] [] intro_t
-                val args' = map (Pattern.rewrite_term thy [pat] []) args
-              in
-                rewrite_arg' (Free (y, T2), T2) (args', (intro_t', x::y::names))
-              end
-            | rewrite_arg' _ (args, (intro_t, names)) = (args, (intro_t, names))
-          val (args', (intro_t', names')) = rewrite_arg' (arg, fastype_of arg)
-            (args, (intro_t, names))
-        in
-          rewrite_args args' (intro_t', names')
-        end
-      | _ => rewrite_args args (intro_t, names))
-    fun rewrite_prem (Prem (args, _)) = rewrite_args args
-      | rewrite_prem (Negprem (args, _)) = rewrite_args args
-      | rewrite_prem _ = I
-    val intro_t = Logic.unvarify (prop_of intro)
-    val frees = Term.add_free_names intro_t []
-    val concl = Logic.strip_imp_concl intro_t
-    val (p, args) = strip_comb (HOLogic.dest_Trueprop concl)
-    val params = List.take (args, nparams_of thy (fst (dest_Const p)))
-    val (intro_t', frees') = rewrite_args args (intro_t, frees)
-    val (intro_t', _) = 
-      fold (rewrite_prem o dest_prem thy params o HOLogic.dest_Trueprop)
-      (Logic.strip_imp_prems intro_t') (intro_t', frees')
-    val _ = tracing ("intro_t': " ^ (Syntax.string_of_term_global thy intro_t'))
-    val tac = 
-      (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy)
-  in
-    Goal.prove (ProofContext.init thy) (Term.add_free_names intro_t' []) []
-      intro_t' tac
-  end
+
 
 (** main function of predicate compiler **)
 
@@ -2260,10 +2214,9 @@ fun add_equations_of steps prednames thy =
   let
     val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
     val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
-    val intros' = map (expand_tuples thy) (maps (intros_of thy) prednames)
-    val _ = map (check_format_of_intro_rule thy) intros'
+    val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
-      prepare_intrs thy prednames intros'
+      prepare_intrs thy prednames (maps (intros_of thy) prednames)
     val _ = Output.tracing "Infering modes..."
     val moded_clauses = #infer_modes steps thy extra_modes all_modes param_vs clauses 
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
