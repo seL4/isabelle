@@ -31,6 +31,17 @@ values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
 
+inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
+where
+  "tupled_append ([], xs, xs)"
+| "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
+
+code_pred tupled_append .
+
+thm tupled_append.equation
+(*
+values "{xs. tupled_append ([1,2,3], [4,5], xs)}"
+*)
 inductive rev where
     "rev [] []"
   | "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
@@ -41,6 +52,13 @@ thm rev.equation
 
 values "{xs. rev [0, 1, 2, 3::nat] xs}"
 
+inductive tupled_rev where
+  "tupled_rev ([], [])"
+| "tupled_rev (xs, xs') \<Longrightarrow> tupled_append (xs', [x], ys) \<Longrightarrow> tupled_rev (x#xs, ys)"
+
+code_pred tupled_rev .
+thm tupled_rev.equation
+
 inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for f where
     "partition f [] [] []"
@@ -49,8 +67,15 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
 
 code_pred partition .
 
-thm partition.equation
+inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<times> 'a list \<times> 'a list) \<Rightarrow> bool"
+  for f where
+   "tupled_partition f ([], [], [])"
+  | "f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, x # ys, zs)"
+  | "\<not> f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, ys, x # zs)"
 
+code_pred tupled_partition .
+
+thm tupled_partition.equation
 
 inductive member
 for xs
@@ -93,6 +118,7 @@ code_pred (inductify_all) (rpred) tranclp .
 thm tranclp.equation
 thm tranclp.rpred_equation
 *)
+
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
@@ -141,6 +167,16 @@ values "{t. exec
  (While (%s. s!0 > 0) (Seq (Ass 0 (%s. s!0 - 1)) (Ass 1 (%s. s!1 + 1))))
  [3,5] t}"
 
+inductive tupled_exec :: "(com \<times> state \<times> state) \<Rightarrow> bool" where
+"tupled_exec (Skip, s, s)" |
+"tupled_exec (Ass x e, s, s[x := e(s)])" |
+"tupled_exec (c1, s1, s2) ==> tupled_exec (c2, s2, s3) ==> tupled_exec (Seq c1 c2, s1, s3)" |
+"b s ==> tupled_exec (c1, s, t) ==> tupled_exec (IF b c1 c2, s, t)" |
+"~b s ==> tupled_exec (c2, s, t) ==> tupled_exec (IF b c1 c2, s, t)" |
+"~b s ==> tupled_exec (While b c, s, s)" |
+"b s1 ==> tupled_exec (c, s1, s2) ==> tupled_exec (While b c, s2, s3) ==> tupled_exec (While b c, s1, s3)"
+
+code_pred tupled_exec .
 
 subsection{* CCS *}
 
@@ -170,6 +206,17 @@ values 5
 (* FIXME
 values 3 "{(a,q). step (par nil nil) a q}"
 *)
+
+inductive tupled_step :: "(proc \<times> nat \<times> proc) \<Rightarrow> bool"
+where
+"tupled_step (pre n p, n, p)" |
+"tupled_step (p1, a, q) \<Longrightarrow> tupled_step (or p1 p2, a, q)" |
+"tupled_step (p2, a, q) \<Longrightarrow> tupled_step (or p1 p2, a, q)" |
+"tupled_step (p1, a, q) \<Longrightarrow> tupled_step (par p1 p2, a, par q p2)" |
+"tupled_step (p2, a, q) \<Longrightarrow> tupled_step (par p1 p2, a, par p1 q)"
+
+code_pred tupled_step .
+thm tupled_step.equation
 
 subsection {* divmod *}
 
