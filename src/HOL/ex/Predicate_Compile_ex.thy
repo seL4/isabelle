@@ -135,6 +135,48 @@ where
 code_pred (mode: [1], [1, 2], [1, 2, 3], [1, 3]) map_ofP .
 thm map_ofP.equation
 
+inductive filter1
+for P
+where
+  "filter1 P [] []"
+| "P x ==> filter1 P xs ys ==> filter1 P (x#xs) (x#ys)"
+| "\<not> P x ==> filter1 P xs ys ==> filter1 P (x#xs) ys"
+
+code_pred (mode: [1], [1, 2]) filter1 .
+code_pred [depth_limited] filter1 .
+code_pred [rpred] filter1 .
+
+thm filter1.equation
+
+inductive filter2
+where
+  "filter2 P [] []"
+| "P x ==> filter2 P xs ys ==> filter2 P (x#xs) (x#ys)"
+| "\<not> P x ==> filter2 P xs ys ==> filter2 P (x#xs) ys"
+
+code_pred (mode: [1, 2, 3], [1, 2]) filter2 .
+code_pred [depth_limited] filter2 .
+code_pred [rpred] filter2 .
+thm filter2.equation
+thm filter2.rpred_equation
+
+inductive filter3
+for P
+where
+  "List.filter P xs = ys ==> filter3 P xs ys"
+
+code_pred filter3 .
+code_pred [depth_limited] filter3 .
+thm filter3.depth_limited_equation
+(*code_pred [rpred] filter3 .*)
+inductive filter4
+where
+  "List.filter P xs = ys ==> filter4 P xs ys"
+
+code_pred filter4 .
+code_pred [depth_limited] filter4 .
+code_pred [rpred] filter4 .
+
 section {* reverse *}
 
 inductive rev where
