@@ -55,7 +55,6 @@ sig
   val rpred_compfuns : compilation_funs
   val add_quickcheck_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_depth_limited_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-    (*val is_inductive_predicate : theory -> string -> bool*)
   val all_modes_of : theory -> (string * mode list) list
   val all_generator_modes_of : theory -> (string * mode list) list
 end;
@@ -1470,23 +1469,10 @@ fun compile_pred compfuns mk_fun_of' depth_limited thy all_vs param_vs s T mode 
     val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     val full_mode = null Us2
     val depth_compilation =
-      if full_mode then
-        if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
-        $ (if_const $ polarity $ mk_bot compfuns (dest_predT compfuns T') $
-            mk_single compfuns HOLogic.unit)
+      if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
+        $ (if_const $ polarity $ mk_bot compfuns (dest_predT compfuns T')
+          $ (if full_mode then mk_single compfuns HOLogic.unit else Const (@{const_name undefined}, T')))
         $ compilation
-      else
-        let
-        val compilation_without_depth_limit =
-          foldr1 (mk_sup compfuns)
-            (map (compile_clause compfuns mk_fun_of NONE
-               thy all_vs param_vs mode (mk_tuple in_ts)) moded_cls)
-        in
-          if_const $ polarity $ 
-            (if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"}) $
-            mk_bot compfuns (dest_predT compfuns T') $ compilation)
-          $ compilation_without_depth_limit
-        end
     val fun_const = mk_fun_of' compfuns thy (s, T) mode
     val eq = if depth_limited then
       (list_comb (fun_const, params @ in_ts @ [polarity, depth]), depth_compilation)

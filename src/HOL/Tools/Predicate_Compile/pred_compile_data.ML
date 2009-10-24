@@ -155,7 +155,7 @@ fun make_const_spec_table thy =
       |> store [] Predicate_Compile_Alternative_Defs.get
     val ignore_consts = Symtab.keys table
   in
-    table   
+    table
     |> store ignore_consts Predicate_Compile_Preproc_Const_Defs.get
     |> store ignore_consts Nitpick_Const_Simps.get
     |> store ignore_consts Nitpick_Ind_Intros.get
