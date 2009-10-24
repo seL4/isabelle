@@ -697,6 +697,9 @@ fun register_predicate (pre_intros, pre_elim, nparams) thy =
 fun register_intros pre_intros thy =
   let
     val (c, T) = dest_Const (fst (strip_intro_concl 0 (prop_of (hd pre_intros))))
+    fun constname_of_intro intr = fst (dest_Const (fst (strip_intro_concl 0 (prop_of intr))))
+    val _ = if not (forall (fn intr => constname_of_intro intr = c) pre_intros) then
+      error "register_intros: Introduction rules of different constants are used" else ()
     val _ = Output.tracing ("Registering introduction rules of " ^ c)
     val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
     val nparams = guess_nparams T

@@ -1,5 +1,5 @@
 theory Predicate_Compile_ex
-imports Main Predicate_Compile
+imports Main Predicate_Compile_Alternative_Defs
 begin
 
 inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" where
@@ -122,7 +122,7 @@ where
   "map_ofP ((a, b)#xs) a b"
 | "map_ofP xs a b \<Longrightarrow> map_ofP (x#xs) a b"
 
-code_pred map_ofP .
+code_pred (mode: [1], [1, 2], [1, 2, 3], [1, 3]) map_ofP .
 thm map_ofP.equation
 section {* reverse *}
 
@@ -371,10 +371,7 @@ primrec
 
 code_pred (inductify_all) avl .
 thm avl.equation
-(*
-lemma [code_pred_inline]: "bot_fun_inst.bot_fun == (\<lambda>(y::'a::type). False)"
-unfolding bot_fun_inst.bot_fun[symmetric] bot_bool_eq[symmetric] bot_fun_eq by simp
-*)
+
 fun set_of
 where
 "set_of ET = {}"
@@ -385,33 +382,10 @@ where
 "is_ord ET = True"
 | "is_ord (MKT n l r h) =
  ((\<forall>n' \<in> set_of l. n' < n) \<and> (\<forall>n' \<in> set_of r. n < n') \<and> is_ord l \<and> is_ord r)"
-(*
-lemma empty_set[code_pred_def]: "{} = (\<lambda>x. False)" unfolding empty_def by simp
-thm set_of.simps[unfolded empty_set Un_def]
-*)
-(*
-declare empty_def[code_pred_def]
-*)
-ML {* prop_of (@{thm set_of.simps(1)}) *}
-thm Un_def
-thm eq_refl
-declare eq_reflection[OF empty_def, code_pred_inline]
-thm Un_def
-definition Un' where "Un' A B == A Un B"
 
-lemma [code_pred_intros]: "A x ==> Un' A B x"
-and  [code_pred_intros] : "B x ==> Un' A B x"
-sorry
-
-code_pred Un' sorry
-
-lemmas a = Un'_def[symmetric]
-declare a[code_pred_inline]
-declare set_of.simps
-ML {* prop_of @{thm Un_def} *}
-ML {* tap *}
 code_pred (inductify_all) set_of .
 thm set_of.equation
+text {* expected mode: [1], [1, 2] *}
 (* FIXME *)
 (*
 code_pred (inductify_all) is_ord .

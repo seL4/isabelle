@@ -89,6 +89,13 @@ fun remove_pointless_clauses intro =
     []
   else [intro]
 
+
+fun print_intross thy msg intross =
+  tracing (msg ^ 
+    (space_implode "; " (map 
+      (fn intros => commas (map (Display.string_of_thm_global thy) intros)) intross)))
+
+  
 fun preprocess_strong_conn_constnames gr constnames thy =
   let
     val get_specs = map (fn k => (k, Graph.get_node gr k))
@@ -103,8 +110,7 @@ fun preprocess_strong_conn_constnames gr constnames thy =
     val _ = priority "Compiling predicates to flat introrules..."
     val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess
       (get_specs prednames) thy')
-    val _ = tracing ("Flattened introduction rules: " ^
-      commas (map (Display.string_of_thm_global thy'') (flat intross1)))
+    val _ = print_intross thy'' "Flattened introduction rules: " intross1
     val _ = priority "Replacing functions in introrules..."
       (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
     val intross2 =
@@ -113,11 +119,12 @@ fun preprocess_strong_conn_constnames gr constnames thy =
           SOME intross => intross
         | NONE => let val _ = warning "Function replacement failed!" in intross1 end
       else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
-    val _ = tracing ("Introduction rules with replaced functions: " ^
-      commas (map (Display.string_of_thm_global thy'') (flat intross2)))
-    val intross3 = burrow (maps remove_pointless_clauses) intross2
+    val _ = print_intross thy'' "Introduction rules with replaced functions: " intross2
+    val intross3 = map (maps remove_pointless_clauses) intross2
+    val _ = print_intross thy'' "After removing pointless clauses: " intross3
     val intross4 = burrow (map (AxClass.overload thy'')) intross3
     val intross5 = burrow (map (simplify_fst_snd o expand_tuples thy'')) intross4
+    val _ = print_intross thy'' "introduction rules before registering: " intross5
     val _ = priority "Registering intro rules..."
     val thy''' = fold Predicate_Compile_Core.register_intros intross5 thy''
   in
