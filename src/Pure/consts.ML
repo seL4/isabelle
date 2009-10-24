@@ -29,7 +29,7 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> Name_Space.naming -> Properties.T -> (binding * typ) -> T -> T
+  val declare: bool -> Name_Space.naming -> Properties.T -> binding * typ -> T -> T
   val constrain: string * typ option -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> Name_Space.naming -> string -> Properties.T ->
     binding * term -> T -> (term * term) * T
@@ -307,7 +307,7 @@ end;
 
 (* empty and merge *)
 
-val empty = make_consts (Name_Space.empty_table, Symtab.empty, Symtab.empty);
+val empty = make_consts (Name_Space.empty_table "constant", Symtab.empty, Symtab.empty);
 
 fun merge
    (Consts {decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1},

@@ -89,18 +89,18 @@ fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrapp
 structure ThyData = TheoryDataFun
 (
   type T = thy;
-  val empty = make_thy (Name_Space.empty_table, Defs.empty, ([], []));
+  val empty_axioms = Name_Space.empty_table "axiom";
+  val empty = make_thy (empty_axioms, Defs.empty, ([], []));
   val copy = I;
 
-  fun extend (Thy {axioms = _, defs, wrappers}) =
-    make_thy (Name_Space.empty_table, defs, wrappers);
+  fun extend (Thy {axioms = _, defs, wrappers}) = make_thy (empty_axioms, defs, wrappers);
 
   fun merge pp (thy1, thy2) =
     let
       val Thy {axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
       val Thy {axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
-      val axioms' = Name_Space.empty_table;
+      val axioms' = empty_axioms;
       val defs' = Defs.merge pp (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);

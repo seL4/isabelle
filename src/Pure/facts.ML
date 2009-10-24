@@ -126,7 +126,7 @@ datatype T = Facts of
   props: thm Net.net};
 
 fun make_facts facts props = Facts {facts = facts, props = props};
-val empty = make_facts Name_Space.empty_table Net.empty;
+val empty = make_facts (Name_Space.empty_table "fact") Net.empty;
 
 
 (* named facts *)

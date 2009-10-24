@@ -20,7 +20,9 @@ sig
   val hidden: string -> string
   val is_hidden: string -> bool
   type T
-  val empty: T
+  val empty: string -> T
+  val kind_of: T -> string
+  val the_entry: T -> string -> {is_system: bool, pos: Position.T, id: serial}
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
@@ -38,7 +40,7 @@ sig
   val mandatory_path: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
   val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
-  val empty_table: 'a table
+  val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables:
     (string -> 'a * 'a -> 'a) (*Symtab.SAME*) -> 'a table * 'a table -> 'a table
@@ -66,41 +68,63 @@ type entry =
   pos: Position.T,
   id: serial};
 
-fun make_entry (externals, is_system, pos, id) : entry =
-  {externals = externals, is_system = is_system, pos = pos, id = id};
-
 fun str_of_entry def (name, {pos, id, ...}: entry) =
   let
     val occurrence = (if def then Markup.defN else Markup.refN, string_of_int id);
     val props = occurrence :: Position.properties_of pos;
   in Markup.markup (Markup.properties props (Markup.entity name)) name end;
 
+fun err_dup kind entry1 entry2 =
+  error ("Duplicate " ^ kind ^ " declaration " ^
+    quote (str_of_entry true entry1) ^ " vs. " ^ quote (str_of_entry true entry2));
+
 
 (* datatype T *)
 
 datatype T =
   Name_Space of
-    (string list * string list) Symtab.table *   (*internals, hidden internals*)
-    entry Symtab.table;
+   {kind: string,
+    internals: (string list * string list) Symtab.table,  (*visible, hidden*)
+    entries: entry Symtab.table};
 
-val empty = Name_Space (Symtab.empty, Symtab.empty);
+fun make_name_space (kind, internals, entries) =
+  Name_Space {kind = kind, internals = internals, entries = entries};
 
-fun lookup (Name_Space (tab, _)) xname =
-  (case Symtab.lookup tab xname of
+fun map_name_space f (Name_Space {kind = kind, internals = internals, entries = entries}) =
+  make_name_space (f (kind, internals, entries));
+
+fun map_internals f xname = map_name_space (fn (kind, internals, entries) =>
+  (kind, Symtab.map_default (xname, ([], [])) f internals, entries));
+
+
+fun empty kind = make_name_space (kind, Symtab.empty, Symtab.empty);
+
+fun kind_of (Name_Space {kind, ...}) = kind;
+
+fun the_entry (Name_Space {kind, entries, ...}) name =
+  (case Symtab.lookup entries name of
+    NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
+  | SOME {is_system, pos, id, ...} => {is_system = is_system, pos = pos, id = id});
+
+
+(* name accesses *)
+
+fun lookup (Name_Space {internals, ...}) xname =
+  (case Symtab.lookup internals xname of
     NONE => (xname, true)
   | SOME ([], []) => (xname, true)
   | SOME ([name], _) => (name, true)
   | SOME (name :: _, _) => (name, false)
   | SOME ([], name' :: _) => (hidden name', true));
 
-fun get_accesses (Name_Space (_, entries)) name =
+fun get_accesses (Name_Space {entries, ...}) name =
   (case Symtab.lookup entries name of
     NONE => [name]
   | SOME {externals, ...} => externals);
 
-fun valid_accesses (Name_Space (tab, _)) name =
+fun valid_accesses (Name_Space {internals, ...}) name =
   Symtab.fold (fn (xname, (names, _)) =>
-    if not (null names) andalso hd names = name then cons xname else I) tab [];
+    if not (null names) andalso hd names = name then cons xname else I) internals [];
 
 
 (* intern and extern *)
@@ -132,21 +156,13 @@ fun extern space name =
     unique_names = ! unique_names} space name;
 
 
-(* basic operations *)
+(* modify internals *)
 
-local
-
-fun map_space f xname (Name_Space (tab, entries)) =
-  Name_Space (Symtab.map_default (xname, ([], [])) f tab, entries);
-
-in
-
-val del_name = map_space o apfst o remove (op =);
-fun del_name_extra name = map_space (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
-val add_name = map_space o apfst o update (op =);
-val add_name' = map_space o apsnd o update (op =);
-
-end;
+val del_name = map_internals o apfst o remove (op =);
+fun del_name_extra name =
+  map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
+val add_name = map_internals o apfst o update (op =);
+val add_name' = map_internals o apsnd o update (op =);
 
 
 (* hide *)
@@ -168,9 +184,15 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (Name_Space (tab1, entries1), Name_Space (tab2, entries2)) =
+fun merge
+  (Name_Space {kind = kind1, internals = internals1, entries = entries1},
+    Name_Space {kind = kind2, internals = internals2, entries = entries2}) =
   let
-    val tab' = (tab1, tab2) |> Symtab.join
+    val kind' =
+      if kind1 = kind2 then kind1
+      else error ("Attempt to merge different kinds of name spaces " ^
+        quote kind1 ^ " vs. " ^ quote kind2);
+    val internals' = (internals1, internals2) |> Symtab.join
       (K (fn ((names1, names1'), (names2, names2')) =>
         if pointer_eq (names1, names2) andalso pointer_eq (names1', names2')
         then raise Symtab.SAME
@@ -178,11 +200,8 @@ fun merge (Name_Space (tab1, entries1), Name_Space (tab2, entries2)) =
     val entries' = (entries1, entries2) |> Symtab.join
       (fn name => fn (entry1, entry2) =>
         if #id entry1 = #id entry2 then raise Symtab.SAME
-        else
-          error ("Duplicate declaration " ^
-            quote (str_of_entry true (name, entry1)) ^ " vs. " ^
-            quote (str_of_entry true (name, entry2))));
-  in Name_Space (tab', entries') end;
+        else err_dup kind' (name, entry1) (name, entry2));
+  in make_name_space (kind', internals', entries') end;
 
 
 
@@ -245,13 +264,14 @@ fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
 (* declaration *)
 
-fun new_entry strict entry (Name_Space (tab, entries)) =
-  let
-    val entries' =
-      (if strict then Symtab.update_new else Symtab.update) entry entries
-        handle Symtab.DUP _ =>
-          error ("Duplicate declaration " ^ quote (str_of_entry true entry));
-  in Name_Space (tab, entries') end;
+fun new_entry strict entry =
+  map_name_space (fn (kind, internals, entries) =>
+    let
+      val entries' =
+        (if strict then Symtab.update_new else Symtab.update) entry entries
+          handle Symtab.DUP dup =>
+            err_dup kind (dup, the (Symtab.lookup entries dup)) entry;
+    in (kind, internals, entries') end);
 
 fun declare strict naming binding space =
   let
@@ -259,12 +279,12 @@ fun declare strict naming binding space =
     val name = Long_Name.implode names;
     val _ = name = "" andalso err_bad binding;
     val (accs, accs') = accesses naming binding;
-
-    val is_system = false;  (* FIXME *)
-    val entry = make_entry (accs', is_system, Binding.pos_of binding, serial ());
-    val space' = space
-      |> fold (add_name name) accs
-      |> new_entry strict (name, entry);
+    val entry =
+     {externals = accs',
+      is_system = false,
+      pos = Binding.pos_of binding,
+      id = serial ()};
+    val space' = space |> fold (add_name name) accs |> new_entry strict (name, entry);
   in (name, space') end;
 
 
@@ -277,7 +297,7 @@ fun define strict naming (binding, x) (space, tab) =
   let val (name, space') = declare strict naming binding space
   in (name, (space', Symtab.update (name, x) tab)) end;
 
-val empty_table = (empty, Symtab.empty);
+fun empty_table kind = (empty kind, Symtab.empty);
 
 fun merge_tables ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), Symtab.merge (K true) (tab1, tab2));

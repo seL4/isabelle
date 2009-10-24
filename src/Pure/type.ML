@@ -120,7 +120,7 @@ fun map_tsig f (TSig {classes, default, types, log_types = _}) =
   build_tsig (f (classes, default, types));
 
 val empty_tsig =
-  build_tsig ((Name_Space.empty, Sorts.empty_algebra), [], Name_Space.empty_table);
+  build_tsig ((Name_Space.empty "class", Sorts.empty_algebra), [], Name_Space.empty_table "type");
 
 
 (* classes and sorts *)

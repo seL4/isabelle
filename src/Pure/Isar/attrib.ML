@@ -68,7 +68,7 @@ val empty_binding: binding = (Binding.empty, []);
 structure Attributes = TheoryDataFun
 (
   type T = ((src -> attribute) * string) Name_Space.table;
-  val empty = Name_Space.empty_table;
+  val empty = Name_Space.empty_table "attribute";
   val copy = I;
   val extend = I;
   fun merge _ tables : T = Name_Space.merge_tables tables;

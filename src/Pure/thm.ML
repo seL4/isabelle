@@ -1727,7 +1727,7 @@ end;
 structure Oracles = TheoryDataFun
 (
   type T = unit Name_Space.table;
-  val empty = Name_Space.empty_table;
+  val empty = Name_Space.empty_table "oracle";
   val copy = I;
   val extend = I;
   fun merge _ oracles : T = Name_Space.merge_tables oracles;
