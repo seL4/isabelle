@@ -92,9 +92,7 @@ values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-ML {* Random_Engine.run *}
-term "Predicate.map"
-values [depth_limit = 5 random] "{(ys, zs). append [1::nat, 2] ys zs}"
+values [depth_limit = 10 random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
@@ -119,13 +117,20 @@ qed
 
 subsection {* Tricky cases with tuples *}
 
+inductive zerozero :: "nat * nat => bool"
+where
+  "zerozero (0, 0)"
+
+code_pred zerozero .
+code_pred [rpred] zerozero .
+
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
   "tupled_append ([], xs, xs)"
 | "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
 
 code_pred tupled_append .
-
+code_pred [rpred] tupled_append .
 thm tupled_append.equation
 (*
 TODO: values with tupled modes
@@ -136,22 +141,20 @@ inductive tupled_append'
 where
 "tupled_append' ([], xs, xs)"
 | "[| ys = fst (xa, y); x # zs = snd (xa, y);
- tupled_append' (xs, ys, x # zs) |] ==> tupled_append' (x # xs, xa, y)"
-ML {* aconv *}
+ tupled_append' (xs, ys, zs) |] ==> tupled_append' (x # xs, xa, y)"
+
 code_pred tupled_append' .
 thm tupled_append'.equation
-(* TODO: Modeanalysis returns mode [2] ?? *)
 
 inductive tupled_append'' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
   "tupled_append'' ([], xs, xs)"
-| "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, x # zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
+| "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
 
 thm tupled_append''.cases
 
 code_pred [inductify] tupled_append'' .
 thm tupled_append''.equation
-(* TODO: Modeanalysis returns mode [2] ?? *)
 
 inductive tupled_append''' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
@@ -255,8 +258,9 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
 
 code_pred succ .
-
+code_pred [rpred] succ .
 thm succ.equation
+thm succ.rpred_equation
 
 values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
@@ -378,13 +382,36 @@ inductive filterP for Pa where
 code_pred (inductify_all) (rpred) filterP .
 thm filterP.rpred_equation
 *)
-
+thm lexord_def
 code_pred [inductify] lexord .
-
+code_pred [inductify, rpred] lexord .
 thm lexord.equation
+inductive less_than_nat :: "nat * nat => bool"
+where
+  "less_than_nat (0, x)"
+| "less_than_nat (x, y) ==> less_than_nat (Suc x, Suc y)"
+ 
+code_pred less_than_nat .
+code_pred [depth_limited] less_than_nat .
+code_pred [rpred] less_than_nat .
+
+inductive test_lexord :: "nat list * nat list => bool"
+where
+  "lexord less_than_nat (xs, ys) ==> test_lexord (xs, ys)"
+
+code_pred [rpred] test_lexord .
+code_pred [depth_limited] test_lexord .
+thm test_lexord.depth_limited_equation
+thm test_lexord.rpred_equation
+
+values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
+
+values [depth_limit = 25 random] "{xys. test_lexord xys}"
+
+values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"
 
 lemma "(u, v) : lexord r ==> (x @ u, y @ v) : lexord r"
-(*quickcheck[generator=pred_compile]*)
+quickcheck[generator=pred_compile]
 oops
 
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
@@ -415,15 +442,18 @@ primrec
   "avl ET = True"
   "avl (MKT x l r h) = ((height l = height r \<or> height l = 1 + height r \<or> height r = 1+height l) \<and> 
   h = max (height l) (height r) + 1 \<and> avl l \<and> avl r)"
-
+(*
 code_pred [inductify] avl .
 thm avl.equation
-
+*)
+code_pred [inductify, rpred] avl .
+find_theorems "avl_aux"
+thm avl.rpred_equation
+values [depth_limit = 50 random] 10 "{t. avl (t::int tree)}"
 fun set_of
 where
 "set_of ET = {}"
 | "set_of (MKT n l r h) = insert n (set_of l \<union> set_of r)"
-
 
 fun is_ord :: "nat tree => bool"
 where
@@ -453,6 +483,10 @@ section {* List functions *}
 code_pred [inductify] length .
 thm size_listP.equation
 
+code_pred [inductify, rpred] length .
+thm size_listP.rpred_equation
+values [depth_limit = 10 random] 20 "{xs. size_listP (xs::nat list) (5::nat)}"
+
 code_pred [inductify] concat .
 thm concatP.equation
 
@@ -473,17 +507,20 @@ code_pred [inductify] distinct .
 code_pred [inductify] replicate .
 code_pred [inductify] splice .
 code_pred [inductify] List.rev .
-thm map.simps
 code_pred [inductify] map .
 code_pred [inductify] foldr .
 code_pred [inductify] foldl .
 code_pred [inductify] filter .
-
-definition test where "test xs = filter (\<lambda>x. x = (1::nat)) xs"
 (*
-TODO: implement higher-order replacement correctly
+code_pred [inductify, rpred] filter .
+thm filterP.equation
+*)
+definition test where "test xs = filter (\<lambda>x. x = (1::nat)) xs"
+
+(* TODO: implement higher-order replacement correctly *)
 code_pred [inductify] test .
 thm testP.equation
+(*
 code_pred [inductify, rpred] test .
 *)
 section {* Handling set operations *}
@@ -502,15 +539,19 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 | "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
 | "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
 
-code_pred [inductify] S\<^isub>1p .
+code_pred [inductify, rpred] S\<^isub>1p .
 
 thm S\<^isub>1p.equation
-(*
+thm S\<^isub>1p.rpred_equation
+
+values [depth_limit = 5 random] "{x. S\<^isub>1p x}"
+
+
 theorem S\<^isub>1_sound:
 "w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=pred_compile]
+(*quickcheck[generator=pred_compile]*)
 oops
-*)
+
 inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
   "[] \<in> S\<^isub>2"
 | "w \<in> A\<^isub>2 \<Longrightarrow> b # w \<in> S\<^isub>2"
@@ -518,12 +559,14 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 | "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
 | "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
 | "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
-(*
+
 code_pred [inductify, rpred] S\<^isub>2 .
 thm S\<^isub>2.rpred_equation
 thm A\<^isub>2.rpred_equation
 thm B\<^isub>2.rpred_equation
-*)
+
+values [depth_limit = 10 random] "{x. S\<^isub>2 x}"
+
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 (*quickcheck[generator=SML]*)
@@ -539,6 +582,9 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 | "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
 
 code_pred [inductify] S\<^isub>3 .
+thm S\<^isub>3.equation
+
+values 10 "{x. S\<^isub>3 x}"
 
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
@@ -564,6 +610,7 @@ theorem S\<^isub>3_complete:
 quickcheck[generator=pred_compile, size=10, iterations=100]
 oops
 *)
+
 inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
   "[] \<in> S\<^isub>4"
 | "w \<in> A\<^isub>4 \<Longrightarrow> b # w \<in> S\<^isub>4"

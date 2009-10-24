@@ -73,8 +73,8 @@ fun quickcheck ctxt t =
       if member (op =) modes ([], []) then
         let
           val name = Predicate_Compile_Core.generator_name_of thy'' full_constname ([], [])
-          val T = @{typ code_numeral} --> (mk_rpredT (HOLogic.mk_tupleT (map snd vs')))
-        in Const (name, T) $ Bound 0 end
+          val T = [@{typ bool}, @{typ code_numeral}] ---> (mk_rpredT (HOLogic.mk_tupleT (map snd vs')))
+          in Const (name, T) $ @{term True} $ Bound 0 end
       else if member (op =) depth_limited_modes ([], []) then
         let
           val name = Predicate_Compile_Core.depth_limited_function_name_of thy'' full_constname ([], [])

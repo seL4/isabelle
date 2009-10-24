@@ -147,7 +147,7 @@ fun flat_higher_order_arguments (intross, thy) =
             val vars = map Var (Term.add_vars abs_arg [])
             val abs_arg' = Logic.unvarify abs_arg
             val frees = map Free (Term.add_frees abs_arg' [])
-            val constname = Name.variant []
+            val constname = Name.variant (map (Long_Name.base_name o fst) new_defs)
               ((Long_Name.base_name constname) ^ "_hoaux")
             val full_constname = Sign.full_bname thy constname
             val constT = map fastype_of frees ---> (fastype_of abs_arg')

@@ -33,9 +33,9 @@ where
 
 (* Missing a good definition for negation: not_rpred *)
 
-definition not_rpred :: "unit Predicate.pred \<Rightarrow> unit rpred"
+definition not_rpred :: "unit rpred \<Rightarrow> unit rpred"
 where
-  "not_rpred = Pair o Predicate.not_pred"
+  "not_rpred P = (\<lambda>s. let (P', s') = P s in if Predicate.eval P' () then (Orderings.bot, s') else (Predicate.single (), s'))"
 
 definition lift_pred :: "'a Predicate.pred \<Rightarrow> 'a rpred"
   where
