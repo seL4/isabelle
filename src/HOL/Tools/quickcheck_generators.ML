@@ -317,7 +317,7 @@ fun perhaps_constrain thy insts raw_vs =
       |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
       |> fold meet_random insts;
   in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
-  end handle CLASS_ERROR => NONE;
+  end handle Sorts.CLASS_ERROR _ => NONE;
 
 fun ensure_random_datatype config raw_tycos thy =
   let
