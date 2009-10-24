@@ -99,20 +99,6 @@ fun mk_eq (x, xs) =
             HOLogic.mk_eq (Free (a, fastype_of b), b) :: mk_eqs a cs
   in mk_eqs x xs end;
 
-fun mk_tupleT [] = HOLogic.unitT
-  | mk_tupleT Ts = foldr1 HOLogic.mk_prodT Ts;
-
-fun dest_tupleT (Type (@{type_name Product_Type.unit}, [])) = []
-  | dest_tupleT (Type (@{type_name "*"}, [T1, T2])) = T1 :: (dest_tupleT T2)
-  | dest_tupleT t = [t]
-
-fun mk_tuple [] = HOLogic.unit
-  | mk_tuple ts = foldr1 HOLogic.mk_prod ts;
-
-fun dest_tuple (Const (@{const_name Product_Type.Unity}, _)) = []
-  | dest_tuple (Const (@{const_name Pair}, _) $ t1 $ t2) = t1 :: (dest_tuple t2)
-  | dest_tuple t = [t]
-
 fun mk_scomp (t, u) =
   let
     val T = fastype_of t
@@ -769,7 +755,7 @@ fun funT_of compfuns (iss, is) T =
     val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
     val paramTs' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) iss paramTs
   in
-    (paramTs' @ inargTs) ---> (mk_predT compfuns (mk_tupleT outargTs))
+    (paramTs' @ inargTs) ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
   end;
 
 fun mk_fun_of compfuns thy (name, T) mode = 
@@ -897,7 +883,8 @@ fun depth_limited_funT_of compfuns (iss, is) T =
     val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
     val paramTs' = map2 (fn SOME is => depth_limited_funT_of compfuns ([], is) | NONE => I) iss paramTs 
   in
-    (paramTs' @ inargTs @ [@{typ bool}, @{typ "code_numeral"}]) ---> (mk_predT compfuns (mk_tupleT outargTs))
+    (paramTs' @ inargTs @ [@{typ bool}, @{typ "code_numeral"}])
+      ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
   end;  
 
 fun mk_depth_limited_fun_of compfuns thy (name, T) mode =
@@ -1214,7 +1201,8 @@ fun mk_Eval_of additional_arguments ((x, T), NONE) names = (x, names)
 			end
 		val (inoutargs, args) = split_list (map mk_arg (1 upto (length Ts) ~~ Ts))
     val (inargs, outargs) = pairself flat (split_list inoutargs)
-		val r = PredicateCompFuns.mk_Eval (list_comb (x, inargs @ additional_arguments), mk_tuple outargs)
+		val r = PredicateCompFuns.mk_Eval 
+      (list_comb (x, inargs @ additional_arguments), HOLogic.mk_tuple outargs)
     val t = fold_rev mk_split_lambda args r
   in
     (t, names)
@@ -1242,7 +1230,7 @@ fun compile_match compilation_modifiers compfuns additional_arguments param_vs i
     val names = fold Term.add_free_names (success_t :: eqs'' @ out_ts) [];
     val name = Name.variant names "x";
     val name' = Name.variant (name :: names) "y";
-    val T = mk_tupleT (map fastype_of out_ts);
+    val T = HOLogic.mk_tupleT (map fastype_of out_ts);
     val U = fastype_of success_t;
     val U' = dest_predT compfuns U;
     val v = Free (name, T);
@@ -1250,7 +1238,7 @@ fun compile_match compilation_modifiers compfuns additional_arguments param_vs i
   in
     lambda v (fst (Datatype.make_case
       (ProofContext.init thy) DatatypeCase.Quiet [] v
-      [(mk_tuple out_ts,
+      [(HOLogic.mk_tuple out_ts,
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $
           foldr1 HOLogic.mk_conj eqs'' $ success_t $
@@ -1321,7 +1309,7 @@ fun compile_clause compilation_modifiers compfuns thy all_vs param_vs additional
               out_ts'' (names', map (rpair []) vs);
           in
             compile_match constr_vs (eqs @ eqs') out_ts'''
-              (mk_single compfuns (mk_tuple out_ts))
+              (mk_single compfuns (HOLogic.mk_tuple out_ts))
           end
       | compile_prems out_ts vs names ((p, mode as Mode ((_, is), _, _)) :: ps) =
           let
@@ -1402,10 +1390,10 @@ fun compile_pred compilation_modifiers compfuns thy all_vs param_vs s T mode mod
     val additional_arguments = #additional_arguments compilation_modifiers (all_vs @ param_vs)
     val cl_ts =
       map (compile_clause compilation_modifiers compfuns
-        thy all_vs param_vs additional_arguments mode (mk_tuple in_ts)) moded_cls;
+        thy all_vs param_vs additional_arguments mode (HOLogic.mk_tuple in_ts)) moded_cls;
     val compilation = #wrap_compilation compilation_modifiers compfuns s T mode additional_arguments
       (if null cl_ts then
-        mk_bot compfuns (mk_tupleT Us2)
+        mk_bot compfuns (HOLogic.mk_tupleT Us2)
       else foldr1 (mk_sup compfuns) cl_ts)
     val fun_const =
       Const (#const_name_of compilation_modifiers thy s mode,
@@ -1467,9 +1455,9 @@ let
   val param_eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (param_vs ~~ params')
   val funargs = params @ inargs
   val funpropE = HOLogic.mk_Trueprop (PredicateCompFuns.mk_Eval (list_comb (funtrm, funargs),
-                  if null outargs then Free("y", HOLogic.unitT) else mk_tuple outargs))
+                  if null outargs then Free("y", HOLogic.unitT) else HOLogic.mk_tuple outargs))
   val funpropI = HOLogic.mk_Trueprop (PredicateCompFuns.mk_Eval (list_comb (funtrm, funargs),
-                   mk_tuple outargs))
+                   HOLogic.mk_tuple outargs))
   val introtrm = Logic.list_implies (predpropI :: param_eqs, funpropI)
   val simprules = [defthm, @{thm eval_pred},
 	  @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm pair_collapse}]
@@ -1531,7 +1519,7 @@ fun create_definitions preds (name, modes) thy =
       val (Ts1, Ts2) = chop (length iss) Ts
       val (Us1, Us2) =  split_smodeT is Ts2
       val Ts1' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) iss Ts1
-      val funT = (Ts1' @ Us1) ---> (mk_predT compfuns (mk_tupleT Us2))
+      val funT = (Ts1' @ Us1) ---> (mk_predT compfuns (HOLogic.mk_tupleT Us2))
       val names = Name.variant_list []
         (map (fn i => "x" ^ string_of_int i) (1 upto (length Ts)));
 			(* old *)
@@ -1614,7 +1602,8 @@ fun generator_funT_of (iss, is) T =
     val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
     val paramTs' = map2 (fn SOME is => generator_funT_of ([], is) | NONE => I) iss paramTs
   in
-    (paramTs' @ inargTs @ [@{typ code_numeral}]) ---> (mk_predT RPredCompFuns.compfuns (mk_tupleT outargTs))
+    (paramTs' @ inargTs @ [@{typ code_numeral}]) --->
+      (mk_predT RPredCompFuns.compfuns (HOLogic.mk_tupleT outargTs))
   end
 
 fun rpred_create_definitions preds (name, modes) thy =
@@ -1858,7 +1847,7 @@ fun prove_match2 thy out_ts = let
       end
     else all_tac
   in
-    split_term_tac (mk_tuple out_ts)
+    split_term_tac (HOLogic.mk_tuple out_ts)
     THEN (DETERM (TRY ((Splitter.split_asm_tac [@{thm "split_if_asm"}] 1) THEN (etac @{thm botE} 2))))
   end
 
@@ -2253,7 +2242,7 @@ val depth_limited_comp_modifiers =
       val [polarity, depth] = additional_arguments
       val (_, Ts2) = chop (length (fst mode)) (binder_types T)
       val (_, Us2) = split_smodeT (snd mode) Ts2
-      val T' = mk_predT compfuns (mk_tupleT Us2)
+      val T' = mk_predT compfuns (HOLogic.mk_tupleT Us2)
       val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
       val full_mode = null Us2
     in
