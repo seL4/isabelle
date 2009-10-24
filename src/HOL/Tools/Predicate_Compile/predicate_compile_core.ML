@@ -258,23 +258,33 @@ fun string_of_tmode (Mode (predmode, termmode, param_modes)) =
 
 (* generation of case rules from user-given introduction rules *)
 
+(* how to detect polymorphic type dependencies in mutual recursive inductive predicates? *)
 fun import_intros [] ctxt = ([], ctxt)
   | import_intros (th :: ths) ctxt =
     let
       val ((_, [th']), ctxt') = Variable.import false [th] ctxt
-      val (pred, _) = strip_intro_concl 0 (prop_of th')
+      val thy = ProofContext.theory_of ctxt'
+      val (pred, ([], args)) = strip_intro_concl 0 (prop_of th')
+      val ho_args = filter (is_predT o fastype_of) args
       fun instantiate_typ th =
         let
           val (pred', _) = strip_intro_concl 0 (prop_of th)
-          val subst = Sign.typ_match (ProofContext.theory_of ctxt')
+          val _ = if not (fst (dest_Const pred) = fst (dest_Const pred')) then
+            error "Trying to instantiate another predicate" else ()
+          val subst = Sign.typ_match thy
             (fastype_of pred', fastype_of pred) Vartab.empty
           val _ = Output.tracing (commas (map (fn ((x, i), (s, T)) => x ^ " instantiate to " ^ (Syntax.string_of_typ ctxt' T))
           (Vartab.dest subst)))
           val subst' = map (fn (indexname, (s, T)) => ((indexname, s), T))
             (Vartab.dest subst)
         in Thm.certify_instantiate (subst', []) th end;
+      fun instantiate_ho_args th =
+        let
+          val (_, (_, args')) = strip_intro_concl 0 (prop_of th)
+          val ho_args' = map dest_Var (filter (is_predT o fastype_of) args')
+        in Thm.certify_instantiate ([], ho_args' ~~ ho_args) th end
       val ((_, ths'), ctxt1) =
-        Variable.import false (map instantiate_typ ths) ctxt'
+        Variable.import false (map (instantiate_typ #> instantiate_ho_args) ths) ctxt'
     in
       (th' :: ths', ctxt1)
     end

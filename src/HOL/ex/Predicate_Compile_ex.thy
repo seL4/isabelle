@@ -446,7 +446,7 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 code_pred (inductify_all) S\<^isub>1p .
 
 thm S\<^isub>1p.equation
-(*
+
 theorem S\<^isub>1_sound:
 "w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[generator=pred_compile]
@@ -477,9 +477,8 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 | "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
 | "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
 
-(*
 code_pred (inductify_all) S\<^isub>3 .
-*)
+
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[generator=pred_compile, size=10, iterations=1]
@@ -488,7 +487,7 @@ oops
 lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
 quickcheck[size=10, generator = pred_compile]
 oops
-*)
+
 inductive test
 where
   "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] ==> test w"
