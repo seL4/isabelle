@@ -17,8 +17,8 @@ end
 structure Pat_Completeness : PAT_COMPLETENESS =
 struct
 
-open FundefLib
-open FundefCommon
+open Function_Lib
+open Function_Common
 
 
 fun mk_argvar i T = Free ("_av" ^ (string_of_int i), T)

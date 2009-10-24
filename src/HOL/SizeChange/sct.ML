@@ -112,7 +112,7 @@ fun dest_case rebind t =
     end
 
 fun bind_many [] = I
-  | bind_many vs = FundefLib.tupled_lambda (foldr1 HOLogic.mk_prod vs)
+  | bind_many vs = Function_Lib.tupled_lambda (foldr1 HOLogic.mk_prod vs)
 
 (* Builds relation descriptions from a relation definition *)
 fun mk_reldescs (Abs a) =

@@ -1607,7 +1607,7 @@ let
       rtac @{thm nonempty_plus} ORELSE' rtac @{thm nonempty_single}
 
   val regroup_munion_conv =
-      FundefLib.regroup_conv @{const_name Multiset.Mempty} @{const_name plus}
+      Function_Lib.regroup_conv @{const_name Multiset.Mempty} @{const_name plus}
         (map (fn t => t RS eq_reflection) (@{thms union_ac} @ @{thms empty_idemp}))
 
   fun unfold_pwleq_tac i =
