@@ -293,8 +293,6 @@ fun import_intros [] ctxt = ([], ctxt)
             error "Trying to instantiate another predicate" else ()
           val subst = Sign.typ_match thy
             (fastype_of pred', fastype_of pred) Vartab.empty
-          val _ = tracing (commas (map (fn ((x, i), (s, T)) => x ^ " instantiate to " ^ (Syntax.string_of_typ ctxt' T))
-          (Vartab.dest subst)))
           val subst' = map (fn (indexname, (s, T)) => ((indexname, s), T))
             (Vartab.dest subst)
         in Thm.certify_instantiate (subst', []) th end;
@@ -567,23 +565,21 @@ fun preprocess_intro thy rule =
 
 fun preprocess_elim thy nparams elimrule =
   let
-    val _ = tracing ("Preprocessing elimination rule "
-      ^ (Display.string_of_thm_global thy elimrule))
     fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
      | replace_eqs t = t
-   val ctxt = ProofContext.init thy
-   val ((_, [elimrule]), ctxt') = Variable.import false [elimrule] ctxt
-   val prems = Thm.prems_of elimrule
+    val ctxt = ProofContext.init thy
+    val ((_, [elimrule]), ctxt') = Variable.import false [elimrule] ctxt
+    val prems = Thm.prems_of elimrule
     val nargs = length (snd (strip_comb (HOLogic.dest_Trueprop (hd prems)))) - nparams
     fun preprocess_case t =
-     let
+      let
        val params = Logic.strip_params t
        val (assums1, assums2) = chop nargs (Logic.strip_assums_hyp t)
        val assums_hyp' = assums1 @ (map replace_eqs assums2)
-     in
+      in
        list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t))
-     end
+      end
     val cases' = map preprocess_case (tl prems)
     val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
     val bigeq = (Thm.symmetric (Conv.implies_concl_conv
@@ -591,7 +587,6 @@ fun preprocess_elim thy nparams elimrule =
         (cterm_of thy elimrule')))
     val tac = (fn _ => setmp quick_and_dirty true (SkipProof.cheat_tac thy))    
     val eq = Goal.prove ctxt' [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
-    val _ = tracing "Preprocessed elimination rule"
   in
     Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
   end;
@@ -729,8 +724,6 @@ fun register_intros pre_intros thy =
     fun constname_of_intro intr = fst (dest_Const (fst (strip_intro_concl 0 (prop_of intr))))
     val _ = if not (forall (fn intr => constname_of_intro intr = c) pre_intros) then
       error "register_intros: Introduction rules of different constants are used" else ()
-    val _ = tracing ("Registering introduction rules of " ^ c ^ "...")
-    val _ = tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
     val nparams = guess_nparams T
     val pre_elim = 
       (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
@@ -1124,10 +1117,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                       (select_mode_prem thy modes' (vs union generator_vs) ps)) all_generator_vs) of
                       SOME generator_vs => check_mode_prems ((map (generator vTs) generator_vs) @ acc_ps)
                         (vs union generator_vs) ps
-                    | NONE => let
-                    val _ = tracing ("ps:" ^ (commas
-                    (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
-                  in (*error "mode analysis failed"*)NONE end
+                    | NONE => NONE
                   end)
             else
               NONE)
@@ -1950,14 +1940,14 @@ fun select_sup 1 1 = []
   | select_sup _ 1 = [rtac @{thm supI1}]
   | select_sup n i = (rtac @{thm supI2})::(select_sup (n - 1) (i - 1));
 
-fun prove_one_direction thy clauses preds modes pred mode moded_clauses =
+fun prove_one_direction options thy clauses preds modes pred mode moded_clauses =
   let
     val T = the (AList.lookup (op =) preds pred)
     val nargs = length (binder_types T) - nparams_of thy pred
     val pred_case_rule = the_elim_of thy pred
   in
     REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"}))
-		THEN print_tac "before applying elim rule"
+		THEN print_tac' options "before applying elim rule"
     THEN etac (predfun_elim_of thy pred mode) 1
     THEN etac pred_case_rule 1
     THEN (EVERY (map
@@ -2150,7 +2140,7 @@ fun prove_pred options thy clauses preds modes pred mode (moded_clauses, compile
         (fn _ =>
         rtac @{thm pred_iffI} 1
 				THEN print_tac' options "after pred_iffI"
-        THEN prove_one_direction thy clauses preds modes pred mode moded_clauses
+        THEN prove_one_direction options thy clauses preds modes pred mode moded_clauses
         THEN print_tac' options "proved one direction"
         THEN prove_other_direction thy modes pred mode moded_clauses
         THEN print_tac' options "proved other direction")
@@ -2285,8 +2275,6 @@ fun check_intros_elim_match thy prednames =
         val elim' =
           (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
           (mk_casesrule (ProofContext.init thy) nparams intros)
-        val _ = Output.tracing (Display.string_of_thm_global thy elim)
-        val _ = Output.tracing (Display.string_of_thm_global thy elim')
       in
         if not (Thm.equiv_thm (elim, elim')) then
           error "Introduction and elimination rules do not match!"

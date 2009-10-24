@@ -55,8 +55,6 @@ value [code] "Predicate.the (append_3 ([]::int list))"
 
 subsection {* Tricky case with alternative rules *}
 
-text {* This cannot be handled correctly yet *}
-(*
 inductive append2
 where
   "append2 [] xs xs"
@@ -72,7 +70,7 @@ proof -
   case append2
   from append2.cases[OF append2(1)] append2(2-3) show thesis by blast
 qed
-*)
+
 subsection {* Tricky cases with tuples *}
 
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -560,15 +558,15 @@ where
   "[]\<langle>i\<rangle> = None"
 | "(x # xs)\<langle>i\<rangle> = (case i of 0 \<Rightarrow> Some x | Suc j \<Rightarrow> xs \<langle>j\<rangle>)"
 
-(*
+
 inductive nth_el' :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> bool"
 where
   "nth_el' (x # xs) 0 x"
 | "nth_el' xs i y \<Longrightarrow> nth_el' (x # xs) (Suc i) y"
-*)
+
 inductive typing :: "type list \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
   where
-    Var [intro!]: "nth_el env x = Some T \<Longrightarrow> env \<turnstile> Var x : T"
+    Var [intro!]: "nth_el' env x T \<Longrightarrow> env \<turnstile> Var x : T"
   | Abs [intro!]: "T # env \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs T t : (T \<Rightarrow> U)"
 (*  | App [intro!]: "env \<turnstile> s : T \<Rightarrow> U \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<degree> t) : U" *)
   | App [intro!]: "env \<turnstile> s : U \<Rightarrow> T \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<degree> t) : U"
@@ -596,7 +594,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
 
 lemma "Gamma \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> Gamma \<turnstile> t' : T"
-quickcheck[generator = pred_compile, size = 10, iterations = 100]
+quickcheck[generator = pred_compile, size = 10, iterations = 1]
 oops
 
 lemma filter_eq_ConsD:
