@@ -73,10 +73,6 @@ sig
   val rpred_create_definitions :(string * typ) list -> string * mode list
     -> theory -> theory 
   val split_smode : int list -> term list -> (term list * term list) *)
-  val print_moded_clauses :
-    theory -> (moded_clause list) pred_mode_table -> unit
-  val print_compiled_terms : theory -> term pred_mode_table -> unit
-  (*val rpred_prove_preds : theory -> term pred_mode_table -> thm pred_mode_table*)
   val pred_compfuns : compilation_funs
   val rpred_compfuns : compilation_funs
   val dest_funT : typ -> typ * typ
@@ -111,6 +107,7 @@ open Predicate_Compile_Aux;
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
 fun print_tac s = Seq.single;
+
 fun print_tac' options s = 
   if show_proof_trace options then Tactical.print_tac s else Seq.single;
 
@@ -438,9 +435,11 @@ fun string_of_clause thy pred (ts, prems) =
   (map (string_of_prem thy) prems)) ^ " --> " ^ pred ^ " "
    ^ (space_implode " " (map (Syntax.string_of_term_global thy) ts))
 
-fun print_compiled_terms thy =
-  print_pred_mode_table (fn _ => fn _ => Syntax.string_of_term_global thy) thy
-    
+fun print_compiled_terms options thy =
+  if show_compilation options then
+    print_pred_mode_table (fn _ => fn _ => Syntax.string_of_term_global thy) thy
+  else K ()
+
 fun print_stored_rules thy =
   let
     val preds = (Graph.keys o PredData.get) thy
@@ -1294,8 +1293,6 @@ fun compile_expr depth_limited thy compfuns mk_fun_of ((Mode (mode, is, ms)), t)
        let
          val params' = map (compile_param depth_limited thy compfuns mk_fun_of) (ms ~~ params)
            (*val mk_fun_of = if depth_limited then mk_depth_limited_fun_of else mk_fun_of*)
-         val _ = if mode = ([], [(0, NONE)]) then error "something is wrong" else ()
-           val _ = Output.tracing ("compile_expr mode: " ^ string_of_mode mode)
        in
          (*lift_pred compfuns*)(list_comb (mk_fun_of compfuns thy (name, T) mode, params' @ inargs))
        end
@@ -1475,7 +1472,7 @@ fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (t
     mk_bind compfuns (mk_single compfuns inp, prem_t)
   end
 
-fun compile_pred compfuns mk_fun_of depth_limited thy all_vs param_vs s T mode moded_cls =
+fun compile_pred compfuns mk_fun_of' depth_limited thy all_vs param_vs s T mode moded_cls =
   let
 	  val (Ts1, Ts2) = chop (length (fst mode)) (binder_types T)
     val (Us1, Us2) = split_smodeT (snd mode) Ts2
@@ -1504,20 +1501,30 @@ fun compile_pred compfuns mk_fun_of depth_limited thy all_vs param_vs s T mode m
       else
         NONE
     val cl_ts =
-      map (compile_clause compfuns mk_fun_of decr_depth
+      map (compile_clause compfuns mk_fun_of' decr_depth
         thy all_vs param_vs mode (mk_tuple in_ts)) moded_cls;
     val compilation = foldr1 (mk_sup compfuns) cl_ts
     val T' = mk_predT compfuns (mk_tupleT Us2)
     val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     val full_mode = null Us2
-    val depth_compilation = 
-      if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
-      $ (if full_mode then 
-          if_const $ polarity $ mk_bot compfuns (dest_predT compfuns T') $ mk_single compfuns HOLogic.unit
-        else
-          mk_bot compfuns (dest_predT compfuns T'))
-      $ compilation
-    val fun_const = mk_fun_of compfuns thy (s, T) mode
+    val depth_compilation =
+      if full_mode then
+        if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
+        $ (if_const $ polarity $ mk_bot compfuns (dest_predT compfuns T') $
+            mk_single compfuns HOLogic.unit)
+        $ compilation
+      else
+        let
+          val compilation_without_depth_limit = foldr1 (mk_sup compfuns)
+            (map (compile_clause compfuns mk_fun_of NONE
+               thy all_vs param_vs mode (mk_tuple in_ts)) moded_cls)
+        in
+          if_const $ polarity $ 
+            (if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"}) $
+            mk_bot compfuns (dest_predT compfuns T') $ compilation)
+          $ compilation_without_depth_limit
+        end
+    val fun_const = mk_fun_of' compfuns thy (s, T) mode
     val eq = if depth_limited then
       (list_comb (fun_const, params @ in_ts @ [polarity, depth]), depth_compilation)
     else
@@ -1733,7 +1740,6 @@ fun rpred_create_definitions preds (name, modes) thy =
     val T = AList.lookup (op =) preds name |> the
     fun create_definition mode thy =
       let
-      val _ = Output.tracing ("mode: " ^ string_of_mode mode)
         val mode_cname = create_constname_of_mode thy "gen_" name mode
         val funT = generator_funT_of mode T
       in
@@ -2121,7 +2127,7 @@ fun prove_pred options thy clauses preds modes pred mode (moded_clauses, compile
     val clauses = the (AList.lookup (op =) clauses pred)
   in
     Goal.prove ctxt (Term.add_free_names compiled_term []) [] compiled_term
-      (if !do_proofs then
+      (if skip_proof options then
         (fn _ =>
         rtac @{thm pred_iffI} 1
 				THEN print_tac' options "after pred_iffI"
@@ -2284,14 +2290,14 @@ fun add_equations_of steps options prednames thy =
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = check_expected_modes options modes
     val _ = print_modes modes
-    val _ = print_moded_clauses thy moded_clauses
+      (*val _ = print_moded_clauses thy moded_clauses*)
     val _ = print_step options "Defining executable functions..."
     val thy' = fold (#create_definitions steps preds) modes thy
       |> Theory.checkpoint
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
       (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
-    val _ = print_compiled_terms thy' compiled_terms
+    val _ = print_compiled_terms options thy' compiled_terms
     val _ = print_step options "Proving equations..."
     val result_thms = #prove steps options thy' clauses preds (extra_modes @ modes)
       moded_clauses compiled_terms

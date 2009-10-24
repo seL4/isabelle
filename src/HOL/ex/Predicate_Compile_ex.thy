@@ -409,15 +409,19 @@ values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
 values [depth_limit = 25 random] "{xys. test_lexord xys}"
 
 values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"
-
-lemma "(u, v) : lexord r ==> (x @ u, y @ v) : lexord r"
+ML {* Predicate_Compile_Core.do_proofs := false *}
+lemma "(u, v) : lexord less_than_nat ==> (x @ u, y @ v) : lexord less_than_nat"
 quickcheck[generator=pred_compile]
 oops
 
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
-
+(*
 code_pred [inductify] lexn .
 thm lexn.equation
+*)
+code_pred [inductify, rpred] lexn .
+
+thm lexn.rpred_equation
 
 code_pred [inductify] lenlex .
 thm lenlex.equation
@@ -447,9 +451,14 @@ code_pred [inductify] avl .
 thm avl.equation
 *)
 code_pred [inductify, rpred] avl .
-find_theorems "avl_aux"
 thm avl.rpred_equation
 values [depth_limit = 50 random] 10 "{t. avl (t::int tree)}"
+
+lemma "avl t ==> t = ET"
+quickcheck[generator=code]
+quickcheck[generator = pred_compile]
+oops
+
 fun set_of
 where
 "set_of ET = {}"
@@ -546,11 +555,72 @@ thm S\<^isub>1p.rpred_equation
 
 values [depth_limit = 5 random] "{x. S\<^isub>1p x}"
 
+inductive is_a where
+"is_a a"
+
+inductive is_b where
+  "is_b b"
+
+code_pred is_a .
+code_pred [depth_limited] is_a .
+code_pred [rpred] is_a .
+
+values [depth_limit=5 random] "{x. is_a x}"
+code_pred [rpred] is_b .
+
+code_pred [rpred] filterP .
+values [depth_limit=5 random] "{x. filterP is_a [a, b] x}"
+values [depth_limit=3 random] "{x. filterP is_b [a, b] x}"
+
+lemma "w \<in> S\<^isub>1 \<Longrightarrow> length (filter (\<lambda>x. x = a) w) = 1"
+quickcheck[generator=pred_compile, size=10]
+oops
+
+inductive test_lemma where
+  "S\<^isub>1p w ==> filterP is_a w r1 ==> size_listP r1 r2 ==> filterP is_b w r3 ==> size_listP r3 r4 ==> r2 \<noteq> r4 ==> test_lemma w"
+
+code_pred [rpred] test_lemma .
+
+definition test_lemma' where
+  "test_lemma' w == (w \<in> S\<^isub>1 \<and> (\<not> length [x <- w. x = a] = length [x <- w. x = b]))"
+
+code_pred [inductify, rpred] test_lemma' .
+thm test_lemma'.rpred_equation
+(*thm test_lemma'.rpred_equation*)
+(*
+values [depth_limit=3 random] "{x. S\<^isub>1 x}"
+*)
+code_pred [depth_limited] is_b .
+code_pred [inductify, depth_limited] filter .
+thm  filterP.intros
+thm filterP.equation
+
+values [depth_limit=3] "{x. filterP is_b [a, b] x}"
+find_theorems "test_lemma'_hoaux"
+code_pred [depth_limited] test_lemma'_hoaux .
+thm test_lemma'_hoaux.depth_limited_equation
+values [depth_limit=2] "{x. test_lemma'_hoaux b}"
+inductive test1 where
+  "\<not> test_lemma'_hoaux x ==> test1 x"
+code_pred test1 .
+code_pred [depth_limited] test1 .
+thm test1.depth_limited_equation
+thm test_lemma'_hoaux.depth_limited_equation
+thm test1.intros
+
+values [depth_limit=2] "{x. test1 b}"
+
+thm filterP.intros
+thm filterP.depth_limited_equation
+values [depth_limit=3] "{x. filterP test_lemma'_hoaux [a, b] x}"
+values [depth_limit=4 random] "{w. test_lemma w}"
+values [depth_limit=4 random] "{w. test_lemma' w}"
 
 theorem S\<^isub>1_sound:
-"w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-(*quickcheck[generator=pred_compile]*)
+"w \<in> S\<^isub>1p \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[generator=pred_compile, size=5]
 oops
+
 
 inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
   "[] \<in> S\<^isub>2"
@@ -565,12 +635,12 @@ thm S\<^isub>2.rpred_equation
 thm A\<^isub>2.rpred_equation
 thm B\<^isub>2.rpred_equation
 
-values [depth_limit = 10 random] "{x. S\<^isub>2 x}"
+values [depth_limit = 4 random] "{x. S\<^isub>2 x}"
 
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 (*quickcheck[generator=SML]*)
-(*quickcheck[generator=pred_compile, size=15, iterations=100]*)
+quickcheck[generator=pred_compile, size=4, iterations=1]
 oops
 
 inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
@@ -588,7 +658,7 @@ values 10 "{x. S\<^isub>3 x}"
 
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-(*quickcheck[generator=pred_compile, size=10, iterations=1]*)
+quickcheck[generator=pred_compile, size=10, iterations=1]
 oops
 
 lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"

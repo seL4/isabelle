@@ -138,6 +138,8 @@ datatype options = Options of {
   show_mode_inference : bool,
   show_proof_trace : bool,
   show_intermediate_results : bool,
+  show_compilation : bool,
+  skip_proof : bool,
 
   inductify : bool,
   rpred : bool,
@@ -149,6 +151,8 @@ fun show_steps (Options opt) = #show_steps opt
 fun show_mode_inference (Options opt) = #show_mode_inference opt
 fun show_intermediate_results (Options opt) = #show_intermediate_results opt
 fun show_proof_trace (Options opt) = #show_proof_trace opt
+fun show_compilation (Options opt) = #show_compilation opt
+fun skip_proof (Options opt) = #skip_proof opt
 
 fun is_inductify (Options opt) = #inductify opt
 fun is_rpred (Options opt) = #rpred opt
@@ -160,6 +164,9 @@ val default_options = Options {
   show_intermediate_results = false,
   show_proof_trace = false,
   show_mode_inference = false,
+  show_compilation = false,
+  skip_proof = false,
+  
   inductify = false,
   rpred = false,
   depth_limited = false
@@ -168,7 +175,6 @@ val default_options = Options {
 
 fun print_step options s =
   if show_steps options then tracing s else ()
-
 
 (* tuple processing *)
 

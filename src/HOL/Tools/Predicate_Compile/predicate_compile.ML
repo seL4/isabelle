@@ -11,7 +11,7 @@ structure Predicate_Compile : PREDICATE_COMPILE =
 struct
 
 (* options *)
-val fail_safe_mode = false
+val fail_safe_mode = true
 
 open Predicate_Compile_Aux;
 
@@ -111,6 +111,8 @@ fun extract_options ((modes, raw_options), const) =
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
       show_mode_inference = chk "show_mode_inference",
+      show_compilation = chk "show_compilation",
+      skip_proof = chk "skip_proof",
       inductify = chk "inductify",
       rpred = chk "rpred",
       depth_limited = chk "depth_limited"
@@ -141,7 +143,7 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace",
-  "show_mode_inference", "inductify", "rpred", "depth_limited"]
+  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "rpred", "depth_limited"]
 
 val _ = List.app OuterKeyword.keyword ("mode" :: bool_options)
 
