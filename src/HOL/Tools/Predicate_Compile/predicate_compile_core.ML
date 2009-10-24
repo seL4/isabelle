@@ -17,7 +17,6 @@ sig
   val is_registered : theory -> string -> bool
   val predfun_intro_of: theory -> string -> mode -> thm
   val predfun_elim_of: theory -> string -> mode -> thm
-    (*  val strip_intro_concl: int -> term -> term * (term list * term list)*)
   val predfun_name_of: theory -> string -> mode -> string
   val all_preds_of : theory -> string list
   val modes_of: theory -> string -> mode list
@@ -33,17 +32,13 @@ sig
   val set_nparams : string -> int -> theory -> theory
   val print_stored_rules: theory -> unit
   val print_all_modes: theory -> unit
-  val do_proofs: bool Unsynchronized.ref
   val mk_casesrule : Proof.context -> int -> thm list -> term
-    (*  val analyze_compr: theory -> compfuns -> int option * bool -> term -> term*)
   val eval_ref : (unit -> term Predicate.pred) option Unsynchronized.ref
   val random_eval_ref : (unit -> int * int -> term Predicate.pred * (int * int)) option Unsynchronized.ref
   val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val code_pred_intros_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (* temporary for testing of the compilation *)
-  datatype indprem = Prem of term list * term | Negprem of term list * term | Sidecond of term |
-    GeneratorPrem of term list * term | Generator of (string * typ);
   datatype compilation_funs = CompilationFuns of {
     mk_predT : typ -> typ,
     dest_predT : typ -> typ,
@@ -55,45 +50,14 @@ sig
     mk_not : term -> term,
     mk_map : typ -> typ -> term -> term -> term,
     lift_pred : term -> term
-  };  
-  type moded_clause = term list * (indprem * tmode) list
-  type 'a pred_mode_table = (string * (mode * 'a) list) list
-  val infer_modes : Predicate_Compile_Aux.options -> theory -> (string * mode list) list
-    -> (string * mode list) list
-    -> string list
-    -> (string * (term list * indprem list) list) list
-    -> (moded_clause list) pred_mode_table
-  val infer_modes_with_generator : Predicate_Compile_Aux.options -> theory -> (string * mode list) list
-    -> (string * mode list) list
-    -> string list
-    -> (string * (term list * indprem list) list) list
-    -> (moded_clause list) pred_mode_table  
-  (*val compile_preds : theory -> compilation_funs -> string list -> string list
-    -> (string * typ) list -> (moded_clause list) pred_mode_table -> term pred_mode_table
-  val rpred_create_definitions :(string * typ) list -> string * mode list
-    -> theory -> theory 
-  val split_smode : int list -> term list -> (term list * term list) *)
+  };
   val pred_compfuns : compilation_funs
   val rpred_compfuns : compilation_funs
-  val dest_funT : typ -> typ * typ
- (* val depending_preds_of : theory -> thm list -> string list *)
   val add_quickcheck_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_depth_limited_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-  val is_inductive_predicate : theory -> string -> bool
-  val terms_vs : term list -> string list
-  val subsets : int -> int -> int list list
-  val check_mode_clause : bool -> theory -> string list ->
-    (string * mode list) list -> (string * mode list) list -> mode -> (term list * indprem list)
-      -> (term list * (indprem * tmode) list) option
-  val string_of_moded_prem : theory -> (indprem * tmode) -> string
+    (*val is_inductive_predicate : theory -> string -> bool*)
   val all_modes_of : theory -> (string * mode list) list
   val all_generator_modes_of : theory -> (string * mode list) list
-  val preprocess_intro : theory -> thm -> thm
-  val is_constrt : theory -> term -> bool
-  val is_predT : typ -> bool
-  val guess_nparams : typ -> int
-  val cprods_subset : 'a list list -> 'a list list
-  val dest_prem : theory -> term list ->  term -> indprem
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
@@ -112,8 +76,6 @@ fun print_tac' options s =
   if show_proof_trace options then Tactical.print_tac s else Seq.single;
 
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
-
-val do_proofs = Unsynchronized.ref true;
 
 datatype assertion = Max_number_of_subgoals of int
 fun assert_tac (Max_number_of_subgoals i) st =
@@ -1515,7 +1477,8 @@ fun compile_pred compfuns mk_fun_of' depth_limited thy all_vs param_vs s T mode 
         $ compilation
       else
         let
-          val compilation_without_depth_limit = foldr1 (mk_sup compfuns)
+        val compilation_without_depth_limit =
+          foldr1 (mk_sup compfuns)
             (map (compile_clause compfuns mk_fun_of NONE
                thy all_vs param_vs mode (mk_tuple in_ts)) moded_cls)
         in

@@ -3,14 +3,14 @@
 A quickcheck generator based on the predicate compiler
 *)
 
-signature PRED_COMPILE_QUICKCHECK =
+signature PREDICATE_COMPILE_QUICKCHECK =
 sig
   val quickcheck : Proof.context -> term -> int -> term list option
   val test_ref :
     ((unit -> int -> int * int -> term list Predicate.pred * (int * int)) option) Unsynchronized.ref
 end;
 
-structure Pred_Compile_Quickcheck : PRED_COMPILE_QUICKCHECK =
+structure Predicate_Compile_Quickcheck : PREDICATE_COMPILE_QUICKCHECK =
 struct
 
 val test_ref =
@@ -85,7 +85,7 @@ fun quickcheck ctxt t =
       mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
       (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))))
     val _ = tracing (Syntax.string_of_term ctxt' qc_term)
-    val compile = Code_ML.eval (SOME target) ("Pred_Compile_Quickcheck.test_ref", test_ref)
+    val compile = Code_ML.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
       (fn proc => fn g => fn s => g s #>> (Predicate.map o map) proc)
       thy'' qc_term []
   in

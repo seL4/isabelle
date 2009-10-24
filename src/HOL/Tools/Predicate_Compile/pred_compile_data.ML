@@ -3,7 +3,7 @@
 Book-keeping datastructure for the predicate compiler
 
 *)
-signature PRED_COMPILE_DATA =
+signature PREDICATE_COMPILE_DATA =
 sig
   type specification_table;
   val make_const_spec_table : theory -> specification_table
@@ -12,7 +12,7 @@ sig
   val normalize_equation : theory -> thm -> thm
 end;
 
-structure Pred_Compile_Data : PRED_COMPILE_DATA =
+structure Predicate_Compile_Data : PREDICATE_COMPILE_DATA =
 struct
 
 open Predicate_Compile_Aux;
@@ -119,7 +119,7 @@ fun split_all_pairs thy th =
 
 fun normalize_equation thy th =
   mk_meta_equation th
-	|> Pred_Compile_Set.unfold_set_notation
+	|> Predicate_Compile_Set.unfold_set_notation
   |> full_fun_cong_expand
   |> split_all_pairs thy
   |> tap check_equation_format
@@ -131,7 +131,7 @@ fun store_thm_in_table ignore_consts thy th=
   let
     val th = th
       |> inline_equations thy
-      |> Pred_Compile_Set.unfold_set_notation
+      |> Predicate_Compile_Set.unfold_set_notation
       |> AxClass.unoverload thy
     val (const, th) =
       if is_equationlike th then

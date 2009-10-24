@@ -8,16 +8,17 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "odd n \<Longrightarrow> even (Suc n)"
 
 code_pred (mode: [], [1]) [show_steps] even .
-code_pred [depth_limited] even .
-code_pred [rpred] even .
+code_pred [depth_limited, show_compilation] even .
+(*code_pred [rpred] even .*)
 
 thm odd.equation
 thm even.equation
 thm odd.depth_limited_equation
 thm even.depth_limited_equation
+(*
 thm even.rpred_equation
 thm odd.rpred_equation
-
+*)
 (*
 lemma unit: "unit_case f = (\<lambda>x. f)"
 apply (rule ext)
@@ -82,17 +83,17 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
 
 code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) [inductify] append .
 code_pred [depth_limited] append .
-code_pred [rpred] append .
+(*code_pred [rpred] append .*)
 
 thm append.equation
 thm append.depth_limited_equation
-thm append.rpred_equation
+(*thm append.rpred_equation*)
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-values [depth_limit = 10 random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
+(*values [depth_limit = 10 random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"*)
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
@@ -130,7 +131,7 @@ where
 | "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
 
 code_pred tupled_append .
-code_pred [rpred] tupled_append .
+(*code_pred [rpred] tupled_append .*)
 thm tupled_append.equation
 (*
 TODO: values with tupled modes
@@ -198,8 +199,8 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
 code_pred (mode: [1], [2, 3], [1, 2], [1, 3], [1, 2, 3]) partition .
-code_pred [depth_limited] partition .
-thm partition.depth_limited_equation
+(*code_pred [depth_limited] partition .*)
+(*thm partition.depth_limited_equation*)
 (*code_pred [rpred] partition .*)
 
 inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<times> 'a list \<times> 'a list) \<Rightarrow> bool"
@@ -258,9 +259,9 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
 
 code_pred succ .
-code_pred [rpred] succ .
+(*code_pred [rpred] succ .*)
 thm succ.equation
-thm succ.rpred_equation
+(*thm succ.rpred_equation*)
 
 values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
@@ -384,7 +385,7 @@ thm filterP.rpred_equation
 *)
 thm lexord_def
 code_pred [inductify] lexord .
-code_pred [inductify, rpred] lexord .
+(*code_pred [inductify, rpred] lexord .*)
 thm lexord.equation
 inductive less_than_nat :: "nat * nat => bool"
 where
@@ -393,25 +394,25 @@ where
  
 code_pred less_than_nat .
 code_pred [depth_limited] less_than_nat .
-code_pred [rpred] less_than_nat .
+(*code_pred [rpred] less_than_nat .*)
 
 inductive test_lexord :: "nat list * nat list => bool"
 where
   "lexord less_than_nat (xs, ys) ==> test_lexord (xs, ys)"
 
-code_pred [rpred] test_lexord .
+(*code_pred [rpred] test_lexord .*)
 code_pred [depth_limited] test_lexord .
 thm test_lexord.depth_limited_equation
-thm test_lexord.rpred_equation
+(*thm test_lexord.rpred_equation*)
 
-values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
+(*values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"*)
 
-values [depth_limit = 25 random] "{xys. test_lexord xys}"
+(*values [depth_limit = 25 random] "{xys. test_lexord xys}"*)
 
-values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"
-ML {* Predicate_Compile_Core.do_proofs := false *}
+(*values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"*)
+
 lemma "(u, v) : lexord less_than_nat ==> (x @ u, y @ v) : lexord less_than_nat"
-quickcheck[generator=pred_compile]
+(*quickcheck[generator=pred_compile]*)
 oops
 
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
@@ -419,9 +420,9 @@ lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 code_pred [inductify] lexn .
 thm lexn.equation
 *)
-code_pred [inductify, rpred] lexn .
+(*code_pred [inductify, rpred] lexn .*)
 
-thm lexn.rpred_equation
+(*thm lexn.rpred_equation*)
 
 code_pred [inductify] lenlex .
 thm lenlex.equation
@@ -450,15 +451,15 @@ primrec
 code_pred [inductify] avl .
 thm avl.equation
 *)
-code_pred [inductify, rpred] avl .
+(*code_pred [inductify, rpred] avl .
 thm avl.rpred_equation
 values [depth_limit = 50 random] 10 "{t. avl (t::int tree)}"
-
+*)(*
 lemma "avl t ==> t = ET"
 quickcheck[generator=code]
 quickcheck[generator = pred_compile]
 oops
-
+*)
 fun set_of
 where
 "set_of ET = {}"
@@ -470,10 +471,9 @@ where
 | "is_ord (MKT n l r h) =
  ((\<forall>n' \<in> set_of l. n' < n) \<and> (\<forall>n' \<in> set_of r. n < n') \<and> is_ord l \<and> is_ord r)"
 
-code_pred [inductify] set_of .
+code_pred (mode: [1], [1, 2]) [inductify] set_of .
 thm set_of.equation
 
-text {* expected mode: [1], [1, 2] *}
 (* FIXME *)
 (*
 code_pred (inductify_all) is_ord .
@@ -491,11 +491,11 @@ section {* List functions *}
 
 code_pred [inductify] length .
 thm size_listP.equation
-
+(*
 code_pred [inductify, rpred] length .
 thm size_listP.rpred_equation
 values [depth_limit = 10 random] 20 "{xs. size_listP (xs::nat list) (5::nat)}"
-
+*)
 code_pred [inductify] concat .
 thm concatP.equation
 
@@ -548,12 +548,12 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 | "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
 | "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
 
-code_pred [inductify, rpred] S\<^isub>1p .
+code_pred [inductify] S\<^isub>1p .
 
 thm S\<^isub>1p.equation
-thm S\<^isub>1p.rpred_equation
+(*thm S\<^isub>1p.rpred_equation*)
 
-values [depth_limit = 5 random] "{x. S\<^isub>1p x}"
+(*values [depth_limit = 5 random] "{x. S\<^isub>1p x}"*)
 
 inductive is_a where
 "is_a a"
@@ -568,31 +568,36 @@ code_pred [rpred] is_a .
 values [depth_limit=5 random] "{x. is_a x}"
 code_pred [rpred] is_b .
 
-code_pred [rpred] filterP .
-values [depth_limit=5 random] "{x. filterP is_a [a, b] x}"
+(*code_pred [rpred] filterP .*)
+(*values [depth_limit=5 random] "{x. filterP is_a [a, b] x}"
 values [depth_limit=3 random] "{x. filterP is_b [a, b] x}"
-
+*)
+(*
 lemma "w \<in> S\<^isub>1 \<Longrightarrow> length (filter (\<lambda>x. x = a) w) = 1"
 quickcheck[generator=pred_compile, size=10]
 oops
-
+*)
 inductive test_lemma where
   "S\<^isub>1p w ==> filterP is_a w r1 ==> size_listP r1 r2 ==> filterP is_b w r3 ==> size_listP r3 r4 ==> r2 \<noteq> r4 ==> test_lemma w"
-
+(*
 code_pred [rpred] test_lemma .
-
+*)
+(*
 definition test_lemma' where
   "test_lemma' w == (w \<in> S\<^isub>1 \<and> (\<not> length [x <- w. x = a] = length [x <- w. x = b]))"
 
 code_pred [inductify, rpred] test_lemma' .
 thm test_lemma'.rpred_equation
+*)
 (*thm test_lemma'.rpred_equation*)
 (*
 values [depth_limit=3 random] "{x. S\<^isub>1 x}"
 *)
 code_pred [depth_limited] is_b .
+
 code_pred [inductify, depth_limited] filter .
-thm  filterP.intros
+
+thm filterP.intros
 thm filterP.equation
 
 values [depth_limit=3] "{x. filterP is_b [a, b] x}"

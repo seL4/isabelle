@@ -12,6 +12,6 @@ uses
 begin
 
 setup {* Predicate_Compile.setup *}
-setup {* Quickcheck.add_generator ("pred_compile", Pred_Compile_Quickcheck.quickcheck) *}
+setup {* Quickcheck.add_generator ("pred_compile", Predicate_Compile_Quickcheck.quickcheck) *}
 
 end

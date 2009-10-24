@@ -41,7 +41,7 @@ fun process_specification options specs thy' =
   let
     val _ = print_step options "Compiling predicates to flat introrules..."
     val specs = map (apsnd (map
-      (fn th => if is_equationlike th then Pred_Compile_Data.normalize_equation thy' th else th))) specs
+      (fn th => if is_equationlike th then Predicate_Compile_Data.normalize_equation thy' th else th))) specs
     val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess specs thy')
     val _ = print_intross options thy'' "Flattened introduction rules: " intross1
     val _ = print_step options "Replacing functions in introrules..."
@@ -94,8 +94,8 @@ fun preprocess_strong_conn_constnames options gr constnames thy =
 fun preprocess options const thy =
   let
     val _ = print_step options "Fetching definitions from theory..."
-    val table = Pred_Compile_Data.make_const_spec_table thy
-    val gr = Pred_Compile_Data.obtain_specification_graph thy table const
+    val table = Predicate_Compile_Data.make_const_spec_table thy
+    val gr = Predicate_Compile_Data.obtain_specification_graph thy table const
     val gr = Graph.subgraph (member (op =) (Graph.all_succs gr [const])) gr
   in fold_rev (preprocess_strong_conn_constnames options gr)
     (Graph.strong_conn gr) thy
