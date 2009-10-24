@@ -55,7 +55,7 @@ values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-values [depth_limit = 10 random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
+values [random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
@@ -350,8 +350,8 @@ thm test_lexord.rpred_equation
 
 values "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
 values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
-values [depth_limit = 12 random] "{xys. test_lexord xys}"
-values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"
+(*values [random] "{xys. test_lexord xys}"*)
+(*values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"*)
 (*
 lemma "(u, v) : lexord less_than_nat ==> (x @ u, y @ v) : lexord less_than_nat"
 quickcheck[generator=pred_compile]
@@ -395,7 +395,7 @@ thm avl.equation
 
 code_pred [rpred] avl .
 thm avl.rpred_equation
-values [depth_limit = 50 random] 10 "{t. avl (t::int tree)}"
+(*values [random] 10 "{t. avl (t::int tree)}"*)
 
 fun set_of
 where
@@ -410,8 +410,6 @@ where
 
 code_pred (mode: [1], [1, 2]) [inductify] set_of .
 thm set_of.equation
-
-(* FIXME *)
 
 code_pred [inductify] is_ord .
 thm is_ord.equation
@@ -432,7 +430,7 @@ code_pred [inductify] length .
 thm size_listP.equation
 code_pred [inductify, rpred] length .
 thm size_listP.rpred_equation
-values [depth_limit = 10 random] 20 "{xs. size_listP (xs::nat list) (5::nat)}"
+values [random] 20 "{xs. size_listP (xs::nat list) (5::nat)}"
 
 code_pred [inductify] concat .
 code_pred [inductify] hd .
@@ -481,7 +479,7 @@ code_pred [inductify, rpred] S\<^isub>1p .
 thm S\<^isub>1p.equation
 thm S\<^isub>1p.rpred_equation
 
-values [depth_limit = 5 random] "{x. S\<^isub>1p x}"
+values [random] 5 "{x. S\<^isub>1p x}"
 
 inductive is_a where
   "is_a a"
@@ -493,7 +491,7 @@ code_pred is_a .
 code_pred [depth_limited] is_a .
 code_pred [rpred] is_a .
 
-values [depth_limit=5 random] "{x. is_a x}"
+values [random] "{x. is_a x}"
 code_pred [depth_limited] is_b .
 code_pred [rpred] is_b .
 
@@ -503,7 +501,7 @@ values [depth_limit=5] "{x. filterP is_a [a, b] x}"
 values [depth_limit=3] "{x. filterP is_b [a, b] x}"
 
 lemma "w \<in> S\<^isub>1 \<Longrightarrow> length (filter (\<lambda>x. x = a) w) = 1"
-quickcheck[generator=pred_compile, size=10]
+(*quickcheck[generator=pred_compile, size=10]*)
 oops
 
 inductive test_lemma where
@@ -569,7 +567,7 @@ thm S\<^isub>2.rpred_equation
 thm A\<^isub>2.rpred_equation
 thm B\<^isub>2.rpred_equation
 
-values [depth_limit = 15 random] "{x. S\<^isub>2 x}"
+values [random] 10 "{x. S\<^isub>2 x}"
 
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"

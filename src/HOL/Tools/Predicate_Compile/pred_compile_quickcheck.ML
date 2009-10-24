@@ -15,6 +15,7 @@ struct
 
 val test_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int * int -> term list Predicate.pred * (int * int)) option)
+
 val target = "Quickcheck"
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
@@ -64,9 +65,9 @@ fun quickcheck ctxt t =
     val thy'' = thy'
       |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
       |> Predicate_Compile.preprocess Predicate_Compile_Aux.default_options full_constname
-      |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]
+      (* |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]*)
       (*  |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]*)
-      |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname]
+      (* |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname] *)
     val depth_limited_modes = Predicate_Compile_Core.depth_limited_modes_of thy'' full_constname
     val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
     val prog =

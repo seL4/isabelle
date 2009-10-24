@@ -24,6 +24,8 @@ sig
   val depth_limited_function_name_of : theory -> string -> mode -> string
   val generator_modes_of: theory -> string -> mode list
   val generator_name_of : theory -> string -> mode -> string
+  val all_modes_of : theory -> (string * mode list) list
+  val all_generator_modes_of : theory -> (string * mode list) list
   val string_of_mode : mode -> string
   val intros_of: theory -> string -> thm list
   val nparams_of: theory -> string -> int
@@ -35,7 +37,6 @@ sig
   val mk_casesrule : Proof.context -> int -> thm list -> term
   val eval_ref : (unit -> term Predicate.pred) option Unsynchronized.ref
   val random_eval_ref : (unit -> int * int -> term Predicate.pred * (int * int)) option Unsynchronized.ref
-  val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val code_pred_intros_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (* temporary for testing of the compilation *)
@@ -53,10 +54,10 @@ sig
   };
   val pred_compfuns : compilation_funs
   val rpred_compfuns : compilation_funs
+    (*  val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_quickcheck_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_depth_limited_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-  val all_modes_of : theory -> (string * mode list) list
-  val all_generator_modes_of : theory -> (string * mode list) list
+  *)
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
@@ -1232,38 +1233,36 @@ fun mk_funcomp f t =
     fold_rev lambda vs (f (list_comb (t, vs)))
   end;
 
-fun compile_param depth_limited thy compfuns mk_fun_of (NONE, t) = t
-  | compile_param depth_limited thy compfuns mk_fun_of (m as SOME (Mode ((iss, is'), is, ms)), t) =
+fun compile_param compilation_modifiers compfuns thy (NONE, t) = t
+  | compile_param compilation_modifiers compfuns thy (m as SOME (Mode (mode, _, ms)), t) =
    let
      val (f, args) = strip_comb (Envir.eta_contract t)
      val (params, args') = chop (length ms) args
-     val params' = map (compile_param depth_limited thy compfuns mk_fun_of) (ms ~~ params)
-     val funT_of = if depth_limited then depth_limited_funT_of else funT_of
+     val params' = map (compile_param compilation_modifiers compfuns thy) (ms ~~ params)
      val f' =
        case f of
-         Const (name, T) => mk_fun_of compfuns thy (name, T) (iss, is')
-       | Free (name, T) => Free (name, funT_of compfuns (iss, is') T)
+         Const (name, T) => Const (#const_name_of compilation_modifiers thy name mode,
+           #funT_of compilation_modifiers compfuns mode T)
+       | Free (name, T) => Free (name, #funT_of compilation_modifiers compfuns mode T)
        | _ => error ("PredicateCompiler: illegal parameter term")
    in
      list_comb (f', params' @ args')
    end
 
-fun compile_expr depth_limited thy compfuns mk_fun_of ((Mode (mode, is, ms)), t) inargs =
+fun compile_expr compilation_modifiers compfuns thy ((Mode (mode, _, ms)), t) inargs additional_arguments =
   case strip_comb t of
     (Const (name, T), params) =>
        let
-         val params' = map (compile_param depth_limited thy compfuns mk_fun_of) (ms ~~ params)
+         val params' = map (compile_param compilation_modifiers compfuns thy) (ms ~~ params)
            (*val mk_fun_of = if depth_limited then mk_depth_limited_fun_of else mk_fun_of*)
+         val name' = #const_name_of compilation_modifiers thy name mode
+         val T' = #funT_of compilation_modifiers compfuns mode T
        in
-         (*lift_pred compfuns*)(list_comb (mk_fun_of compfuns thy (name, T) mode, params' @ inargs))
+         (list_comb (Const (name', T'), params' @ inargs @ additional_arguments))
        end
   | (Free (name, T), params) =>
-       let 
-         val funT_of = if depth_limited then depth_limited_funT_of else funT_of
-       in
-         list_comb (Free (name, funT_of compfuns ([], is) T), params @ inargs)
-       end;
-
+    list_comb (Free (name, #funT_of compilation_modifiers compfuns mode T), params @ inargs @ additional_arguments)
+       (*
 fun compile_gen_expr depth_limited thy compfuns mk_fun_of ((Mode (mode, is, ms)), t) inargs =
   case strip_comb t of
     (Const (name, T), params) =>
@@ -1275,7 +1274,7 @@ fun compile_gen_expr depth_limited thy compfuns mk_fun_of ((Mode (mode, is, ms))
   | (Free (name, T), params) =>
   (*lift_pred RPredCompFuns.compfuns*)
   (list_comb (Free (name, depth_limited_funT_of RPredCompFuns.compfuns ([], is) T), params @ inargs))
-
+  *)
 (** specific rpred functions -- move them to the correct place in this file *)
 
 fun mk_Eval_of depth ((x, T), NONE) names = (x, names)
@@ -1344,7 +1343,7 @@ fun compile_arg depth thy param_vs iss arg =
       | map_params t = t
     in map_aterms map_params arg end
   
-fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (ts, moded_ps) =
+fun compile_clause compilation_modifiers compfuns thy all_vs param_vs additional_arguments (iss, is) inp (ts, moded_ps) =
   let
     fun check_constrt t (names, eqs) =
       if is_constrt thy t then (t, (names, eqs)) else
@@ -1374,16 +1373,21 @@ fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (t
               fold_map check_constrt out_ts (names, [])
             val (out_ts'', (names'', constr_vs')) = fold_map distinct_v
               out_ts' ((names', map (rpair []) vs))
+            val additional_arguments' =
+              #transform_additional_arguments compilation_modifiers p additional_arguments
             val (compiled_clause, rest) = case p of
                Prem (us, t) =>
                  let
                    val (in_ts, out_ts''') = split_smode is us;
-                   val in_ts = map (compile_arg depth thy param_vs iss) in_ts
+                     (* add test case for compile_arg *)
+                   (*val in_ts = map (compile_arg depth thy param_vs iss) in_ts*)
+                     (* additional_arguments
                    val args = case depth of
                      NONE => in_ts
                    | SOME (polarity, depth_t) => in_ts @ [polarity, depth_t]
+                   *)
                    val u =
-                     (compile_expr (is_some depth) thy compfuns mk_fun_of (mode, t) args)
+                     compile_expr compilation_modifiers compfuns thy (mode, t) in_ts additional_arguments'
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -1391,11 +1395,13 @@ fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (t
              | Negprem (us, t) =>
                  let
                    val (in_ts, out_ts''') = split_smode is us
+                     (* additional_arguments
                    val args = case depth of
                      NONE => in_ts
                    | SOME (polarity, depth_t) => in_ts @ [HOLogic.mk_not polarity, depth_t]
-                 val u = (*lift_pred compfuns*) (mk_not compfuns
-                     (compile_expr (is_some depth) thy compfuns mk_fun_of (mode, t) args))
+                   *)
+                   val u = mk_not compfuns
+                     (compile_expr compilation_modifiers compfuns thy (mode, t) in_ts additional_arguments')
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -1407,7 +1413,17 @@ fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (t
                    (mk_if compfuns t, rest)
                  end
              | GeneratorPrem (us, t) =>
+                   (* TODO: remove GeneratorPrem --  is not used anymore *)
                  let
+                   val (in_ts, out_ts''') = split_smode is us;
+                   val u =
+                     compile_expr compilation_modifiers compfuns thy (mode, t) in_ts additional_arguments'
+                   val rest = compile_prems out_ts''' vs' names'' ps
+                 in
+                   (u, rest)
+                 end
+
+             (* let
                    val (in_ts, out_ts''') = split_smode is us;
                    val args = case depth of
                        NONE => in_ts
@@ -1416,10 +1432,11 @@ fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (t
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
-                 end
+                 end*)
              | Generator (v, T) =>
                  let
-                 val u = lift_random (HOLogic.mk_random T (snd (the depth)))
+                   val [size] = additional_arguments
+                   val u = lift_random (HOLogic.mk_random T size)
                    val rest = compile_prems [Free (v, T)]  vs' names'' ps;
                  in
                    (u, rest)
@@ -1433,13 +1450,14 @@ fun compile_clause compfuns mk_fun_of depth thy all_vs param_vs (iss, is) inp (t
     mk_bind compfuns (mk_single compfuns inp, prem_t)
   end
 
-fun compile_pred compfuns mk_fun_of' depth_limited thy all_vs param_vs s T mode moded_cls =
+fun compile_pred compilation_modifiers compfuns thy all_vs param_vs s T mode moded_cls =
   let
 	  val (Ts1, Ts2) = chop (length (fst mode)) (binder_types T)
     val (Us1, Us2) = split_smodeT (snd mode) Ts2
-    val funT_of = if depth_limited then depth_limited_funT_of else funT_of
-    val Ts1' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) (fst mode) Ts1
-  	fun mk_input_term (i, NONE) =
+    val Ts1' =
+      map2 (fn NONE => I | SOME is => #funT_of compilation_modifiers compfuns ([], is)) (fst mode) Ts1
+
+    fun mk_input_term (i, NONE) =
 		    [Free (Name.variant (all_vs @ param_vs) ("x" ^ string_of_int i), nth Ts2 (i - 1))]
 		  | mk_input_term (i, SOME pis) = case HOLogic.strip_tupleT (nth Ts2 (i - 1)) of
 						   [] => error "strange unit input"
@@ -1452,36 +1470,47 @@ fun compile_pred compfuns mk_fun_of' depth_limited thy all_vs param_vs s T mode 
 						   else [HOLogic.mk_tuple (map Free (vnames ~~ map (fn j => nth Ts (j - 1)) pis))] end
 		val in_ts = maps mk_input_term (snd mode)
     val params = map2 (fn s => fn T => Free (s, T)) param_vs Ts1'
+
+          (* additional arguments *)
+    (*
     val [depth_name, polarity_name] = Name.variant_list (all_vs @ param_vs) ["depth", "polarity"]
     val depth = Free (depth_name, @{typ "code_numeral"})
     val polarity = Free (polarity_name, @{typ "bool"})
+    *)
+    val additional_arguments = #additional_arguments compilation_modifiers (all_vs @ param_vs)
+      (* additional_argument_transformer *)
+      (*
     val decr_depth =
       if depth_limited then
         SOME (polarity, Const ("HOL.minus_class.minus", @{typ "code_numeral => code_numeral => code_numeral"})
           $ depth $ Const ("HOL.one_class.one", @{typ "Code_Numeral.code_numeral"}))
       else
         NONE
+      *)
     val cl_ts =
-      map (compile_clause compfuns mk_fun_of' decr_depth
-        thy all_vs param_vs mode (mk_tuple in_ts)) moded_cls;
-    val compilation = foldr1 (mk_sup compfuns) cl_ts
-    val T' = mk_predT compfuns (mk_tupleT Us2)
+      map (compile_clause compilation_modifiers compfuns
+        thy all_vs param_vs additional_arguments mode (mk_tuple in_ts)) moded_cls;
+       (* wrap_compilation *)
+    val compilation = #wrap_compilation compilation_modifiers compfuns s T mode additional_arguments
+        (foldr1 (mk_sup compfuns) cl_ts)
+      (*    val T' = mk_predT compfuns (mk_tupleT Us2)
     val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     val full_mode = null Us2
+      
     val depth_compilation =
       if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
         $ (if_const $ polarity $ mk_bot compfuns (dest_predT compfuns T')
           $ (if full_mode then mk_single compfuns HOLogic.unit else Const (@{const_name undefined}, T')))
         $ compilation
-    val fun_const = mk_fun_of' compfuns thy (s, T) mode
-    val eq = if depth_limited then
-      (list_comb (fun_const, params @ in_ts @ [polarity, depth]), depth_compilation)
-    else
-      (list_comb (fun_const, params @ in_ts), compilation)
+        *)
+    val fun_const =
+      Const (#const_name_of compilation_modifiers thy s mode,
+        #funT_of compilation_modifiers compfuns mode T)
   in
-    HOLogic.mk_Trueprop (HOLogic.mk_eq eq)
+    HOLogic.mk_Trueprop
+      (HOLogic.mk_eq (list_comb (fun_const, params @ in_ts @ additional_arguments), compilation))
   end;
-  
+
 (* special setup for simpset *)                  
 val HOL_basic_ss' = HOL_basic_ss addsimps (@{thms "HOL.simp_thms"} @ [@{thm Pair_eq}])
   setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
@@ -1681,7 +1710,7 @@ fun generator_funT_of (iss, is) T =
     val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
     val paramTs' = map2 (fn SOME is => generator_funT_of ([], is) | NONE => I) iss paramTs
   in
-    (paramTs' @ inargTs @ [@{typ "bool"}, @{typ "code_numeral"}]) ---> (mk_predT RPredCompFuns.compfuns (mk_tupleT outargTs))
+    (paramTs' @ inargTs @ [@{typ code_numeral}]) ---> (mk_predT RPredCompFuns.compfuns (mk_tupleT outargTs))
   end
 
 fun rpred_create_definitions preds (name, modes) thy =
@@ -2076,7 +2105,7 @@ fun prove_pred options thy clauses preds modes pred mode (moded_clauses, compile
     val clauses = the (AList.lookup (op =) clauses pred)
   in
     Goal.prove ctxt (Term.add_free_names compiled_term []) [] compiled_term
-      (if skip_proof options then
+      (if not (skip_proof options) then
         (fn _ =>
         rtac @{thm pred_iffI} 1
 				THEN print_tac' options "after pred_iffI"
@@ -2103,10 +2132,10 @@ fun maps_modes preds_modes_table =
   map (fn (pred, modes) =>
     (pred, map (fn (mode, value) => value) modes)) preds_modes_table  
     
-fun compile_preds compfuns mk_fun_of depth_limited thy all_vs param_vs preds moded_clauses =
-  map_preds_modes (fn pred => compile_pred compfuns mk_fun_of depth_limited thy all_vs param_vs pred
-      (the (AList.lookup (op =) preds pred))) moded_clauses  
-  
+fun compile_preds comp_modifiers compfuns thy all_vs param_vs preds moded_clauses =
+  map_preds_modes (fn pred => compile_pred comp_modifiers compfuns thy all_vs param_vs pred
+      (the (AList.lookup (op =) preds pred))) moded_clauses
+
 fun prove options thy clauses preds modes moded_clauses compiled_terms =
   map_preds_modes (prove_pred options thy clauses preds modes)
     (join_preds_modes moded_clauses compiled_terms)
@@ -2291,10 +2320,60 @@ fun gen_add_equations steps options names thy =
 
 (* different instantiantions of the predicate compiler *)
 
+val predicate_comp_modifiers =
+  {const_name_of = predfun_name_of,
+  funT_of = funT_of,
+  additional_arguments = K [],
+  wrap_compilation = K (K (K (K (K I)))),
+  transform_additional_arguments = K I
+  }
+
+val depth_limited_comp_modifiers =
+  {const_name_of = depth_limited_function_name_of,
+  funT_of = depth_limited_funT_of,
+  additional_arguments = fn names =>
+    let
+      val [depth_name, polarity_name] = Name.variant_list names ["depth", "polarity"]
+    in [Free (polarity_name, @{typ "bool"}), Free (depth_name, @{typ "code_numeral"})] end,
+  wrap_compilation =
+    fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
+    let
+      val [polarity, depth] = additional_arguments
+      val (_, Ts2) = chop (length (fst mode)) (binder_types T)
+      val (_, Us2) = split_smodeT (snd mode) Ts2
+      val T' = mk_predT compfuns (mk_tupleT Us2)
+      val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
+      val full_mode = null Us2
+    in
+      if_const $ HOLogic.mk_eq (depth, @{term "0 :: code_numeral"})
+        $ (if_const $ polarity $ mk_bot compfuns (dest_predT compfuns T')
+          $ (if full_mode then mk_single compfuns HOLogic.unit else Const (@{const_name undefined}, T')))
+        $ compilation
+    end,
+  transform_additional_arguments =
+    fn prem => fn additional_arguments =>
+    let
+      val [polarity, depth] = additional_arguments
+      val polarity' = (case prem of Prem _ => I | Negprem _ => HOLogic.mk_not) polarity
+      val depth' =
+        Const ("HOL.minus_class.minus", @{typ "code_numeral => code_numeral => code_numeral"})
+          $ depth $ Const ("HOL.one_class.one", @{typ "Code_Numeral.code_numeral"})
+    in [polarity', depth'] end
+  }
+
+val rpred_comp_modifiers =
+  {const_name_of = generator_name_of,
+  funT_of = K generator_funT_of,
+  additional_arguments = fn names => [Free (Name.variant names "size", @{typ code_numeral})],
+  wrap_compilation = K (K (K (K (K I)))),
+  transform_additional_arguments = K I
+  }
+
+
 val add_equations = gen_add_equations
   {infer_modes = infer_modes,
   create_definitions = create_definitions,
-  compile_preds = compile_preds PredicateCompFuns.compfuns mk_fun_of false,
+  compile_preds = compile_preds predicate_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove,
   are_not_defined = fn thy => forall (null o modes_of thy),
   qname = "equation"}
@@ -2302,16 +2381,15 @@ val add_equations = gen_add_equations
 val add_depth_limited_equations = gen_add_equations
   {infer_modes = infer_modes,
   create_definitions = create_definitions_of_depth_limited_functions,
-  compile_preds = compile_preds PredicateCompFuns.compfuns mk_depth_limited_fun_of true,
+  compile_preds = compile_preds depth_limited_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove_by_skip,
   are_not_defined = fn thy => forall (null o depth_limited_modes_of thy),
-  qname = "depth_limited_equation"
-  }
+  qname = "depth_limited_equation"}
 
 val add_quickcheck_equations = gen_add_equations
   {infer_modes = infer_modes_with_generator,
   create_definitions = rpred_create_definitions,
-  compile_preds = compile_preds RPredCompFuns.compfuns mk_generator_of true,
+  compile_preds = compile_preds rpred_comp_modifiers RPredCompFuns.compfuns,
   prove = prove_by_skip,
   are_not_defined = fn thy => forall (null o rpred_modes_of thy),
   qname = "rpred_equation"}
@@ -2368,7 +2446,7 @@ fun generic_code_pred prep_const options raw_const lthy =
         goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
           (if is_rpred options then
             (add_equations options [const] #>
-              (*add_depth_limited_equations options [const] #> *)add_quickcheck_equations options [const])
+            add_quickcheck_equations options [const])
            else if is_depth_limited options then
              add_depth_limited_equations options [const]
            else
@@ -2399,7 +2477,7 @@ fun analyze_compr thy compfuns (depth_limit, random) t_compr =
         else SOME (i+1) | _ => SOME (i+1)) args); (*FIXME dangling bounds should not occur*)
     val user_mode' = map (rpair NONE) user_mode
     val all_modes_of = if random then all_generator_modes_of else all_modes_of
-    val compile_expr = if random then compile_gen_expr else compile_expr
+      (*val compile_expr = if random then compile_gen_expr else compile_expr*)
     val modes = filter (fn Mode (_, is, _) => is = user_mode')
       (modes_of_term (all_modes_of thy) (list_comb (pred, params)));
     val m = case modes
@@ -2409,14 +2487,17 @@ fun analyze_compr thy compfuns (depth_limit, random) t_compr =
       | m :: _ :: _ => (warning ("Multiple modes possible for comprehension "
                 ^ Syntax.string_of_term_global thy t_compr); m);
     val (inargs, outargs) = split_smode user_mode' args;
-    val inargs' =
+    val additional_arguments =
       case depth_limit of
-        NONE => inargs
-      | SOME d => inargs @ [@{term "True"}, HOLogic.mk_number @{typ "code_numeral"} d]
+        NONE => (if random then [@{term "5 :: code_numeral"}] else [])
+      | SOME d => [@{term "True"}, HOLogic.mk_number @{typ "code_numeral"} d]
+    val comp_modifiers =
+      case depth_limit of NONE => 
+      (if random then rpred_comp_modifiers else predicate_comp_modifiers) | SOME _ => depth_limited_comp_modifiers
     val mk_fun_of = if random then mk_generator_of else
       if (is_some depth_limit) then mk_depth_limited_fun_of else mk_fun_of
-    val t_pred = compile_expr (is_some depth_limit) thy compfuns mk_fun_of
-      (m, list_comb (pred, params)) inargs';
+    val t_pred = compile_expr comp_modifiers compfuns thy
+      (m, list_comb (pred, params)) inargs additional_arguments;
     val t_eval = if null outargs then t_pred else
       let
         val outargs_bounds = map (fn Bound i => i) outargs;
