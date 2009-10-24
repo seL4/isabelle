@@ -291,7 +291,7 @@ fun import_intros [] ctxt = ([], ctxt)
 
 fun mk_casesrule ctxt nparams introrules =
   let
-    val (intros_th, ctxt1) = import_intros introrules ctxt
+    val ((_, intros_th), ctxt1) = Variable.import false introrules ctxt
     val intros = map prop_of intros_th
     val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
     val ([propname], ctxt2) = Variable.variant_fixes ["thesis"] ctxt1
@@ -2174,7 +2174,7 @@ fun dest_prem thy params t =
     
 fun prepare_intrs thy prednames intros =
   let
-    val (intrs, _) =  import_intros intros (ProofContext.init thy)
+    val ((_, intrs), _) = Variable.import false intros (ProofContext.init thy)
     val intrs = map prop_of intrs
     val nparams = nparams_of thy (hd prednames)
     val extra_modes = all_modes_of thy |> filter_out (fn (name, _) => member (op =) prednames name)
