@@ -2,7 +2,7 @@ theory RPred
 imports Quickcheck Random Predicate
 begin
 
-types 'a rpred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
+types 'a "rpred" = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
 
 section {* The RandomPred Monad *}
 
@@ -44,9 +44,9 @@ definition lift_pred :: "'a Predicate.pred \<Rightarrow> 'a rpred"
 definition lift_random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> 'a rpred"
   where "lift_random g = scomp g (Pair o (Predicate.single o fst))"
 
-definition map_rpred :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a rpred \<Rightarrow> 'b rpred)"
-where "map_rpred f P = bind P (return o f)"
+definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a rpred \<Rightarrow> 'b rpred)"
+where "map f P = bind P (return o f)"
 
-hide (open) const return bind supp 
+hide (open) const return bind supp map
   
 end

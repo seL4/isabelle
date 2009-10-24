@@ -9,15 +9,15 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
 
 code_pred (mode: [], [1]) [show_steps] even .
 code_pred [depth_limited] even .
-(*code_pred [rpred] even .*)
+code_pred [rpred] even .
+
 thm odd.equation
 thm even.equation
 thm odd.depth_limited_equation
 thm even.depth_limited_equation
-(*
 thm even.rpred_equation
 thm odd.rpred_equation
-*)
+
 (*
 lemma unit: "unit_case f = (\<lambda>x. f)"
 apply (rule ext)
@@ -65,6 +65,7 @@ lemma [code_pred_intros]:
   "even'' 0"
   "odd'' x ==> even'' (Suc x)"
   "\<not> even'' x ==> odd'' x"
+apply (auto simp add: even''_def odd''_def intro: even_odd.intros)
 sorry
 
 code_pred odd'' sorry
@@ -80,18 +81,20 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
 code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) [inductify] append .
-thm append.equation
-
 code_pred [depth_limited] append .
+code_pred [rpred] append .
 
 thm append.equation
 thm append.depth_limited_equation
-(*thm append.rpred_equation*)
+thm append.rpred_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
+ML {* Random_Engine.run *}
+term "Predicate.map"
+values [depth_limit = 5 random] "{(ys, zs). append [1::nat, 2] ys zs}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
