@@ -7,8 +7,8 @@ to equations.
 signature PREDICATE_COMPILE_CORE =
 sig
   val setup: theory -> theory
-  val code_pred: Predicate_Compile_Aux.options -> int list list option -> bool -> string -> Proof.context -> Proof.state
-  val code_pred_cmd: Predicate_Compile_Aux.options -> int list list option -> bool -> string -> Proof.context -> Proof.state
+  val code_pred: Predicate_Compile_Aux.options -> int list list option -> string -> Proof.context -> Proof.state
+  val code_pred_cmd: Predicate_Compile_Aux.options -> int list list option -> string -> Proof.context -> Proof.state
   type smode = (int * int list option) list
   type mode = smode option list * smode
   datatype tmode = Mode of mode * smode * tmode option list;
@@ -2308,7 +2308,7 @@ fun check_intros_elim_match thy prednames =
 fun add_equations_of steps options expected_modes prednames thy =
   let
     val _ = print_step options ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
-    val _ = tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
+    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
       (*val _ = check_intros_elim_match thy prednames*)
       (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
@@ -2425,7 +2425,7 @@ val setup = PredData.put (Graph.empty) #>
   (*FIXME why distinguished attribute for cases?*)
 
 (* TODO: make TheoryDataFun to GenericDataFun & remove duplication of local theory and theory *)
-fun generic_code_pred prep_const options modes rpred raw_const lthy =
+fun generic_code_pred prep_const options modes raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
@@ -2454,7 +2454,7 @@ fun generic_code_pred prep_const options modes rpred raw_const lthy =
           (ProofContext.init (ProofContext.theory_of goal_ctxt)) (map the_single thms)
       in
         goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
-          (if rpred then
+          (if is_rpred options then
             (add_equations options NONE [const] #>
              add_sizelim_equations options NONE [const] #> add_quickcheck_equations options NONE [const])
            else add_equations options modes [const]))

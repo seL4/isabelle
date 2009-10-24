@@ -131,10 +131,10 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
           | NONE => const
         val _ = print_step options "Starting Predicate Compile Core..."
       in
-        Predicate_Compile_Core.code_pred options modes (is_rpred options) const lthy'
+        Predicate_Compile_Core.code_pred options modes const lthy'
       end
     else
-      Predicate_Compile_Core.code_pred_cmd options modes (is_rpred options) raw_const lthy
+      Predicate_Compile_Core.code_pred_cmd options modes raw_const lthy
   end
 
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
