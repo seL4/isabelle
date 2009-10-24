@@ -37,7 +37,7 @@ sig
   val print_all_modes: theory -> unit
   val do_proofs: bool Unsynchronized.ref
   val mk_casesrule : Proof.context -> int -> thm list -> term
-  val analyze_compr: theory -> term -> term
+  val analyze_compr: theory -> int option -> term -> term
   val eval_ref: (unit -> term Predicate.pred) option Unsynchronized.ref
   val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val code_pred_intros_attrib : attribute
@@ -1278,14 +1278,14 @@ fun mk_funcomp f t =
     fold_rev lambda vs (f (list_comb (t, vs)))
   end;
 
-fun compile_param depth thy compfuns (NONE, t) = t
-  | compile_param depth thy compfuns (m as SOME (Mode ((iss, is'), is, ms)), t) =
+fun compile_param depth_limited thy compfuns (NONE, t) = t
+  | compile_param depth_limited thy compfuns (m as SOME (Mode ((iss, is'), is, ms)), t) =
    let
      val (f, args) = strip_comb (Envir.eta_contract t)
      val (params, args') = chop (length ms) args
-     val params' = map (compile_param depth thy compfuns) (ms ~~ params)
-     val mk_fun_of = case depth of NONE => mk_fun_of | SOME _ => mk_depth_limited_fun_of
-     val funT_of = case depth of NONE => funT_of | SOME _ => depth_limited_funT_of
+     val params' = map (compile_param depth_limited thy compfuns) (ms ~~ params)
+     val mk_fun_of = if depth_limited then mk_depth_limited_fun_of else mk_fun_of
+     val funT_of = if depth_limited then depth_limited_funT_of else funT_of
      val f' =
        case f of
          Const (name, T) => mk_fun_of compfuns thy (name, T) (iss, is')
@@ -1295,18 +1295,18 @@ fun compile_param depth thy compfuns (NONE, t) = t
      list_comb (f', params' @ args')
    end
 
-fun compile_expr depth thy ((Mode (mode, is, ms)), t) =
+fun compile_expr depth_limited thy ((Mode (mode, is, ms)), t) =
   case strip_comb t of
     (Const (name, T), params) =>
        let
-         val params' = map (compile_param depth thy PredicateCompFuns.compfuns) (ms ~~ params)
-         val mk_fun_of = case depth of NONE => mk_fun_of | SOME _ => mk_depth_limited_fun_of
+         val params' = map (compile_param depth_limited thy PredicateCompFuns.compfuns) (ms ~~ params)
+         val mk_fun_of = if depth_limited then mk_depth_limited_fun_of else mk_fun_of
        in
          list_comb (mk_fun_of PredicateCompFuns.compfuns thy (name, T) mode, params')
        end
   | (Free (name, T), args) =>
        let 
-         val funT_of = case depth of NONE => funT_of | SOME _ => depth_limited_funT_of 
+         val funT_of = if depth_limited then depth_limited_funT_of else funT_of
        in
          list_comb (Free (name, funT_of PredicateCompFuns.compfuns ([], is) T), args)
        end;
@@ -1431,7 +1431,7 @@ fun compile_clause compfuns depth thy all_vs param_vs (iss, is) inp (ts, moded_p
                      NONE => in_ts
                    | SOME (polarity, depth_t) => in_ts @ [polarity, depth_t]
                    val u = lift_pred compfuns
-                     (list_comb (compile_expr depth thy (mode, t), args))
+                     (list_comb (compile_expr (is_some depth) thy (mode, t), args))
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -1439,12 +1439,11 @@ fun compile_clause compfuns depth thy all_vs param_vs (iss, is) inp (ts, moded_p
              | Negprem (us, t) =>
                  let
                    val (in_ts, out_ts''') = split_smode is us
-                   val depth' = Option.map (apfst HOLogic.mk_not) depth
-                   val args = case depth' of
+                   val args = case depth of
                      NONE => in_ts
-                   | SOME (polarity, depth_t) => in_ts @ [polarity, depth_t]
+                   | SOME (polarity, depth_t) => in_ts @ [HOLogic.mk_not polarity, depth_t]
                    val u = lift_pred compfuns (mk_not PredicateCompFuns.compfuns
-                     (list_comb (compile_expr depth' thy (mode, t), args)))
+                   (list_comb (compile_expr (is_some depth) thy (mode, t), args)))
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -1461,7 +1460,7 @@ fun compile_clause compfuns depth thy all_vs param_vs (iss, is) inp (ts, moded_p
                    val args = case depth of
                      NONE => in_ts
                      | SOME (polarity, depth_t) => in_ts @ [polarity, depth_t]
-                   val u = compile_gen_expr depth thy compfuns (mode, t) args
+                   val u = compile_gen_expr (is_some depth) thy compfuns (mode, t) args
                    val rest = compile_prems out_ts''' vs' names'' ps
                  in
                    (u, rest)
@@ -2438,7 +2437,7 @@ val code_pred_cmd = generic_code_pred Code.read_const
 val eval_ref = Unsynchronized.ref (NONE : (unit -> term Predicate.pred) option);
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
-fun analyze_compr thy t_compr =
+fun analyze_compr thy depth_limit t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t_compr);
@@ -2458,7 +2457,10 @@ fun analyze_compr thy t_compr =
       | m :: _ :: _ => (warning ("Multiple modes possible for comprehension "
                 ^ Syntax.string_of_term_global thy t_compr); m);
     val (inargs, outargs) = split_smode user_mode' args;
-    val t_pred = list_comb (compile_expr NONE thy (m, list_comb (pred, params)), inargs);
+    val inargs' = case depth_limit of NONE => inargs
+      | SOME d => inargs @ [@{term "True"}, HOLogic.mk_number @{typ "code_numeral"} d]
+    val t_pred = list_comb (compile_expr (is_some depth_limit) thy
+      (m, list_comb (pred, params)), inargs');
     val t_eval = if null outargs then t_pred else
       let
         val outargs_bounds = map (fn Bound i => i) outargs;
@@ -2474,17 +2476,17 @@ fun analyze_compr thy t_compr =
       in mk_map PredicateCompFuns.compfuns T_pred T_compr arrange t_pred end
   in t_eval end;
 
-fun eval thy t_compr =
+fun eval thy depth_limit t_compr =
   let
-    val t = analyze_compr thy t_compr;
+    val t = analyze_compr thy depth_limit t_compr;
     val T = dest_predT PredicateCompFuns.compfuns (fastype_of t);
     val t' = mk_map PredicateCompFuns.compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
   in (T, Code_ML.eval NONE ("Predicate_Compile_Core.eval_ref", eval_ref) Predicate.map thy t' []) end;
 
-fun values ctxt k t_compr =
+fun values ctxt depth_limit k t_compr =
   let
     val thy = ProofContext.theory_of ctxt;
-    val (T, t) = eval thy t_compr;
+    val (T, t) = eval thy depth_limit t_compr;
     val setT = HOLogic.mk_setT T;
     val (ts, _) = Predicate.yieldn k t;
     val elemsT = HOLogic.mk_set T ts;
@@ -2499,11 +2501,11 @@ fun random_values ctxt k t =
   in
   end;
   *)
-fun values_cmd modes k raw_t state =
+fun values_cmd modes depth_limit k raw_t state =
   let
     val ctxt = Toplevel.context_of state;
     val t = Syntax.read_term ctxt raw_t;
-    val t' = values ctxt k t;
+    val t' = values ctxt depth_limit k t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t' ctxt;
     val p = PrintMode.with_modes modes (fn () =>
@@ -2515,10 +2517,15 @@ local structure P = OuterParse in
 
 val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
+val _ = List.app OuterKeyword.keyword ["depth_limit"]
+
+val opt_depth_limit =
+  Scan.optional (P.$$$ "[" |-- P.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat --| P.$$$ "]" >> SOME) NONE
+
 val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
-  (opt_modes -- Scan.optional P.nat ~1 -- P.term
-    >> (fn ((modes, k), t) => Toplevel.no_timing o Toplevel.keep
-        (values_cmd modes k t)));
+  (opt_modes -- opt_depth_limit -- Scan.optional P.nat ~1 -- P.term
+    >> (fn (((modes, depth_limit), k), t) => Toplevel.no_timing o Toplevel.keep
+        (values_cmd modes depth_limit k t)));
 
 end;
 
