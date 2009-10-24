@@ -129,8 +129,10 @@ fun inline_equations thy th = Conv.fconv_rule (Simplifier.rewrite
 
 fun store_thm_in_table ignore_consts thy th=
   let
-    val th = AxClass.unoverload thy th
+    val th = th
       |> inline_equations thy
+      |> Pred_Compile_Set.unfold_set_notation
+      |> AxClass.unoverload thy
     val (const, th) =
       if is_equationlike th then
         let
@@ -139,9 +141,7 @@ fun store_thm_in_table ignore_consts thy th=
         in
           (defining_const_of_equation eq, eq)
         end
-      else if (is_introlike th) then
-        let val th = Pred_Compile_Set.unfold_set_notation th
-        in (defining_const_of_introrule th, th) end
+      else if (is_introlike th) then (defining_const_of_introrule th, th)
       else error "store_thm: unexpected definition format"
   in
     if not (member (op =) ignore_consts const) then
@@ -191,7 +191,9 @@ fun get_specification table constname =
 val logic_operator_names =
   [@{const_name "=="}, @{const_name "op ="}, @{const_name "op -->"}, @{const_name "All"}, @{const_name "op &"}]
 
-val special_cases = member (op =) [@{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
+val special_cases = member (op =) [
+    @{const_name "False"},
+    @{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
     @{const_name Nat.one_nat_inst.one_nat},
 @{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"}, @{const_name "HOL.zero_class.zero"},
 @{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
