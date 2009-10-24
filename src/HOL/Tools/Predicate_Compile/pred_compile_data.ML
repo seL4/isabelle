@@ -8,7 +8,7 @@ sig
   type specification_table;
   val make_const_spec_table : theory -> specification_table
   val get_specification :  specification_table -> string -> thm list
-  val obtain_specification_graph : specification_table -> string -> thm list Graph.T
+  val obtain_specification_graph : theory -> specification_table -> string -> thm list Graph.T
   val normalize_equation : theory -> thm -> thm
 end;
 
@@ -195,8 +195,6 @@ val special_cases = member (op =) [@{const_name "Suc"}, @{const_name Nat.zero_na
     @{const_name Nat.one_nat_inst.one_nat},
 @{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"}, @{const_name "HOL.zero_class.zero"},
 @{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
-@{const_name "Nat.nat.nat_case"}, @{const_name "List.list.list_case"},
-@{const_name "Option.option.option_case"},
 @{const_name Nat.ord_nat_inst.less_eq_nat},
 @{const_name number_nat_inst.number_of_nat},
   @{const_name Int.Bit0},
@@ -205,13 +203,16 @@ val special_cases = member (op =) [@{const_name "Suc"}, @{const_name Nat.zero_na
 @{const_name "Int.zero_int_inst.zero_int"},
 @{const_name "List.filter"}]
 
-fun obtain_specification_graph table constname =
+fun case_consts thy s = is_some (Datatype.info_of_case thy s)
+
+fun obtain_specification_graph thy table constname =
   let
     fun is_nondefining_constname c = member (op =) logic_operator_names c
     val is_defining_constname = member (op =) (Symtab.keys table)
     fun defiants_of specs =
       fold (Term.add_const_names o prop_of) specs []
       |> filter is_defining_constname
+      |> filter_out (case_consts thy)
       |> filter_out special_cases
     fun extend constname =
       let
