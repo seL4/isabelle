@@ -89,13 +89,40 @@ fun remove_pointless_clauses intro =
     []
   else [intro]
 
-
 fun print_intross thy msg intross =
   tracing (msg ^ 
     (space_implode "; " (map 
       (fn intros => commas (map (Display.string_of_thm_global thy) intros)) intross)))
 
-  
+fun process_specification specs thy' =
+  let
+  val specs = map (apsnd (map
+  (fn th => if is_equationlike th then Pred_Compile_Data.normalize_equation thy' th else th))) specs
+    val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess specs thy')
+    val _ = print_intross thy'' "Flattened introduction rules: " intross1
+    val _ = priority "Replacing functions in introrules..."
+      (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
+    val intross2 =
+      if fail_safe_mode then
+        case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
+          SOME intross => intross
+        | NONE => let val _ = warning "Function replacement failed!" in intross1 end
+      else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
+    val _ = print_intross thy'' "Introduction rules with replaced functions: " intross2
+    val _ = priority "Introducing new constants for abstractions at higher-order argument positions..."
+    val (intross3, (new_defs, thy''')) = Predicate_Compile_Pred.flat_higher_order_arguments (intross2, thy'')
+    val _ = tracing ("Now derive introduction rules for new_defs: "
+        ^ space_implode "\n" 
+        (map (fn (c, ths) => c ^ ": " ^ 
+    commas (map (Display.string_of_thm_global thy''') ths)) new_defs))
+  val (new_intross, thy'''')  = if not (null new_defs) then
+    process_specification new_defs thy'''
+    else ([], thy''')
+  in
+    (intross3 @ new_intross, thy'''')
+  end
+
+
 fun preprocess_strong_conn_constnames gr constnames thy =
   let
     val get_specs = map (fn k => (k, Graph.get_node gr k))
@@ -108,27 +135,18 @@ fun preprocess_strong_conn_constnames gr constnames thy =
       thy |> not (null funnames) ? Predicate_Compile_Fun.define_predicates
       (get_specs funnames)
     val _ = priority "Compiling predicates to flat introrules..."
-    val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess
-      (get_specs prednames) thy')
-    val _ = print_intross thy'' "Flattened introduction rules: " intross1
-    val _ = priority "Replacing functions in introrules..."
-      (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
-    val intross2 =
-      if fail_safe_mode then
-        case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
-          SOME intross => intross
-        | NONE => let val _ = warning "Function replacement failed!" in intross1 end
-      else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
-    val _ = print_intross thy'' "Introduction rules with replaced functions: " intross2
-    val intross3 = map (maps remove_pointless_clauses) intross2
-    val _ = print_intross thy'' "After removing pointless clauses: " intross3
-    val intross4 = burrow (map (AxClass.overload thy'')) intross3
-    val intross5 = burrow (map (simplify_fst_snd o expand_tuples thy'')) intross4
-    val _ = print_intross thy'' "introduction rules before registering: " intross5
+    val specs = (get_specs prednames) 
+    val (intross3, thy''') = process_specification specs thy'
+    val _ = print_intross thy''' "Introduction rules with new constants: " intross3
+    val intross4 = map (maps remove_pointless_clauses) intross3
+    val _ = print_intross thy''' "After removing pointless clauses: " intross4
+    val intross5 = burrow (map (AxClass.overload thy''')) intross4
+    val intross6 = burrow (map (simplify_fst_snd o expand_tuples thy''')) intross5
+    val _ = print_intross thy''' "introduction rules before registering: " intross6
     val _ = priority "Registering intro rules..."
-    val thy''' = fold Predicate_Compile_Core.register_intros intross5 thy''
+    val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
   in
-    thy'''
+    thy''''
   end;
 
 fun preprocess const thy =
