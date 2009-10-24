@@ -6,8 +6,16 @@ Auxilary functions for predicate compiler
 structure Predicate_Compile_Aux =
 struct
 
+(* general syntactic functions *)
+
+(*Like dest_conj, but flattens conjunctions however nested*)
+fun conjuncts_aux (Const ("op &", _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+  | conjuncts_aux t conjs = t::conjs;
+
+fun conjuncts t = conjuncts_aux t [];
+
 (* syntactic functions *)
- 
+
 fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
   | is_equationlike_term (Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ _)) = true
   | is_equationlike_term _ = false
@@ -73,9 +81,16 @@ fun focus_ex t nctxt =
 
 (* combinators to apply a function to all literals of an introduction rules *)
 
-(*
 fun map_atoms f intro = 
-*)
+  let
+    val (literals, head) = Logic.strip_horn intro
+    fun appl t = (case t of
+        (@{term "Not"} $ t') => HOLogic.mk_not (f t')
+      | _ => f t)
+  in
+    Logic.list_implies
+      (map (HOLogic.mk_Trueprop o appl o HOLogic.dest_Trueprop) literals, head)
+  end
 
 fun fold_atoms f intro s =
   let
@@ -89,16 +104,25 @@ fun fold_map_atoms f intro s =
   let
     val (literals, head) = Logic.strip_horn intro
     fun appl t s = (case t of
-      (@{term "Not"} $ t') =>
-        let
-          val (t'', s') = f t' s
-        in (@{term "Not"} $ t'', s') end
+      (@{term "Not"} $ t') => apfst HOLogic.mk_not (f t' s)
       | _ => f t s)
     val (literals', s') = fold_map appl (map HOLogic.dest_Trueprop literals) s
   in
     (Logic.list_implies (map HOLogic.mk_Trueprop literals', head), s')
   end;
+
+fun maps_premises f intro =
+  let
+    val (premises, head) = Logic.strip_horn intro
+  in
+    Logic.list_implies (maps f premises, head)
+  end
   
+(* lifting term operations to theorems *)
+
+fun map_term thy f th =
+  setmp quick_and_dirty true (SkipProof.make_thm thy) (f (prop_of th))
+
 (*
 fun equals_conv lhs_cv rhs_cv ct =
   case Thm.term_of ct of
@@ -122,6 +146,7 @@ datatype options = Options of {
 };
 
 fun show_steps (Options opt) = #show_steps opt
+fun show_mode_inference (Options opt) = #show_mode_inference opt
 fun show_intermediate_results (Options opt) = #show_intermediate_results opt
 fun show_proof_trace (Options opt) = #show_proof_trace opt
 
@@ -141,7 +166,7 @@ val default_options = Options {
 
 fun print_step options s =
   if show_steps options then tracing s else ()
-  
+
 
 (* tuple processing *)
 
@@ -190,8 +215,12 @@ fun expand_tuples thy intro =
     val intro'''' = Simplifier.full_simplify
       (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
       intro'''
+    (* splitting conjunctions introduced by Pair_eq*)
+    fun split_conj prem =
+      map HOLogic.mk_Trueprop (conjuncts (HOLogic.dest_Trueprop prem))
+    val intro''''' = map_term thy (maps_premises split_conj) intro''''
   in
-    intro''''
+    intro'''''
   end
 
 

@@ -132,7 +132,7 @@ fun store_thm_in_table ignore_consts thy th=
     val th = th
       |> inline_equations thy
       |> Pred_Compile_Set.unfold_set_notation
-      (*  |> AxClass.unoverload thy *)
+      |> AxClass.unoverload thy
     val (const, th) =
       if is_equationlike th then
         let

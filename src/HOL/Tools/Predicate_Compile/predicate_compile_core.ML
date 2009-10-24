@@ -67,12 +67,12 @@ sig
   };  
   type moded_clause = term list * (indprem * tmode) list
   type 'a pred_mode_table = (string * (mode * 'a) list) list
-  val infer_modes : theory -> (string * mode list) list
+  val infer_modes : Predicate_Compile_Aux.options -> theory -> (string * mode list) list
     -> (string * mode list) list
     -> string list
     -> (string * (term list * indprem list) list) list
     -> (moded_clause list) pred_mode_table
-  val infer_modes_with_generator : theory -> (string * mode list) list
+  val infer_modes_with_generator : Predicate_Compile_Aux.options -> theory -> (string * mode list) list
     -> (string * mode list) list
     -> string list
     -> (string * (term list * indprem list) list) list
@@ -411,6 +411,14 @@ fun print_pred_mode_table string_of_entry thy pred_mode_table =
     val _ = tracing (cat_lines (map print_pred pred_mode_table))
   in () end;
 
+fun string_of_prem thy (Prem (ts, p)) =
+    (Syntax.string_of_term_global thy (list_comb (p, ts))) ^ "(premise)"
+  | string_of_prem thy (Negprem (ts, p)) =
+    (Syntax.string_of_term_global thy (HOLogic.mk_not (list_comb (p, ts)))) ^ "(negative premise)"
+  | string_of_prem thy (Sidecond t) =
+    (Syntax.string_of_term_global thy t) ^ "(sidecondition)"
+  | string_of_prem thy _ = error "string_of_prem: unexpected input"
+
 fun string_of_moded_prem thy (Prem (ts, p), tmode) =
     (Syntax.string_of_term_global thy (list_comb (p, ts))) ^
     "(" ^ (string_of_tmode tmode) ^ ")"
@@ -426,14 +434,19 @@ fun string_of_moded_prem thy (Prem (ts, p), tmode) =
     (Syntax.string_of_term_global thy t) ^
     "(sidecond mode: " ^ string_of_smode is ^ ")"    
   | string_of_moded_prem _ _ = error "string_of_moded_prem: unimplemented"
-     
+
 fun print_moded_clauses thy =
-  let        
+  let
     fun string_of_clause pred mode clauses =
       cat_lines (map (fn (ts, prems) => (space_implode " --> "
         (map (string_of_moded_prem thy) prems)) ^ " --> " ^ pred ^ " "
         ^ (space_implode " " (map (Syntax.string_of_term_global thy) ts))) clauses)
   in print_pred_mode_table string_of_clause thy end;
+
+fun string_of_clause thy pred (ts, prems) =
+  (space_implode " --> "
+  (map (string_of_prem thy) prems)) ^ " --> " ^ pred ^ " "
+   ^ (space_implode " " (map (Syntax.string_of_term_global thy) ts))
 
 fun print_compiled_terms thy =
   print_pred_mode_table (fn _ => fn _ => Syntax.string_of_term_global thy) thy
@@ -1139,19 +1152,26 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
     else NONE
   end;
 
-fun check_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms) =
+fun print_failed_mode options thy modes p m rs i =
+  if show_mode_inference options then
+    let
+      val _ = Output.tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
+      p ^ " violates mode " ^ string_of_mode m)
+      val _ = Output.tracing (string_of_clause thy p (nth rs i))
+    in () end
+  else ()
+
+fun check_modes_pred options with_generator thy param_vs clauses modes gen_modes (p, ms) =
   let val SOME rs = AList.lookup (op =) clauses p
   in (p, List.filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
-    | i => (tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
-      p ^ " violates mode " ^ string_of_mode m);
-        tracing (commas (map (Syntax.string_of_term_global thy) (fst (nth rs i)))); false)) ms)
+    | i => (print_failed_mode options thy modes p m rs i; false)) ms)
   end;
 
 fun get_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms) =
   let
-    val SOME rs = AList.lookup (op =) clauses p 
+    val SOME rs = AList.lookup (op =) clauses p
   in
     (p, map (fn m =>
       (m, map (the o check_mode_clause with_generator thy param_vs modes gen_modes m) rs)) ms)
@@ -1161,11 +1181,11 @@ fun fixp f (x : (string * mode list) list) =
   let val y = f x
   in if x = y then x else fixp f y end;
 
-fun infer_modes thy extra_modes all_modes param_vs clauses =
+fun infer_modes options thy extra_modes all_modes param_vs clauses =
   let
     val modes =
       fixp (fn modes =>
-        map (check_modes_pred false thy param_vs clauses (modes @ extra_modes) []) modes)
+        map (check_modes_pred options false thy param_vs clauses (modes @ extra_modes) []) modes)
           all_modes
   in
     map (get_modes_pred false thy param_vs clauses (modes @ extra_modes) []) modes
@@ -1178,16 +1198,16 @@ fun remove_from rem [] = []
     | SOME vs' => (k, vs \\ vs'))
     :: remove_from rem xs
     
-fun infer_modes_with_generator thy extra_modes all_modes param_vs clauses =
+fun infer_modes_with_generator options thy extra_modes all_modes param_vs clauses =
   let
     val prednames = map fst clauses
     val extra_modes = all_modes_of thy
     val gen_modes = all_generator_modes_of thy
       |> filter_out (fn (name, _) => member (op =) prednames name)
-    val starting_modes = remove_from extra_modes all_modes 
+    val starting_modes = remove_from extra_modes all_modes
     val modes =
       fixp (fn modes =>
-        map (check_modes_pred true thy param_vs clauses extra_modes (gen_modes @ modes)) modes)
+        map (check_modes_pred options true thy param_vs clauses extra_modes (gen_modes @ modes)) modes)
          starting_modes 
   in
     map (get_modes_pred true thy param_vs clauses extra_modes (gen_modes @ modes)) modes
@@ -2294,7 +2314,7 @@ fun add_equations_of steps options expected_modes prednames thy =
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames (maps (intros_of thy) prednames)
     val _ = print_step options "Infering modes..."
-    val moded_clauses = #infer_modes steps thy extra_modes all_modes param_vs clauses 
+    val moded_clauses = #infer_modes steps options thy extra_modes all_modes param_vs clauses 
     val modes : (string * ((int * int list option) list option list * (int * int list option) list) list) list = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val all_smodes : (((int * int list option) list) list) list = map (map snd) (map snd modes)
     val _ = case expected_modes of
