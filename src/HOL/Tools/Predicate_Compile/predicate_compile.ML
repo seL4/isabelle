@@ -11,7 +11,7 @@ structure Predicate_Compile : PREDICATE_COMPILE =
 struct
 
 (* options *)
-val fail_safe_mode = true
+val fail_safe_mode = false
 
 open Predicate_Compile_Aux;
 
@@ -94,6 +94,10 @@ fun print_intross thy msg intross =
     (space_implode "; " (map 
       (fn intros => commas (map (Display.string_of_thm_global thy) intros)) intross)))
 
+fun print_specs thy specs =
+  map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
+    ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
+
 fun process_specification specs thy' =
   let
   val specs = map (apsnd (map
@@ -101,7 +105,6 @@ fun process_specification specs thy' =
     val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess specs thy')
     val _ = print_intross thy'' "Flattened introduction rules: " intross1
     val _ = priority "Replacing functions in introrules..."
-      (*  val _ = burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross  *)
     val intross2 =
       if fail_safe_mode then
         case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of
@@ -131,11 +134,12 @@ fun preprocess_strong_conn_constnames gr constnames thy =
     (* untangle recursion by defining predicates for all functions *)
     val _ = priority "Compiling functions to predicates..."
     val _ = Output.tracing ("funnames: " ^ commas funnames)
-    val thy' =
-      thy |> not (null funnames) ? Predicate_Compile_Fun.define_predicates
-      (get_specs funnames)
+    val (fun_pred_specs, thy') =
+      if not (null funnames) then Predicate_Compile_Fun.define_predicates
+      (get_specs funnames) thy else ([], thy)
+    val _ = print_specs thy' fun_pred_specs
     val _ = priority "Compiling predicates to flat introrules..."
-    val specs = (get_specs prednames) 
+    val specs = (get_specs prednames) @ fun_pred_specs
     val (intross3, thy''') = process_specification specs thy'
     val _ = print_intross thy''' "Introduction rules with new constants: " intross3
     val intross4 = map (maps remove_pointless_clauses) intross3
