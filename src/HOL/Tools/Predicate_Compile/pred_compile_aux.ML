@@ -141,7 +141,7 @@ datatype options = Options of {
 
   inductify : bool,
   rpred : bool,
-  sizelim : bool
+  depth_limited : bool
 };
 
 fun expected_modes (Options opt) = #expected_modes opt
@@ -152,7 +152,7 @@ fun show_proof_trace (Options opt) = #show_proof_trace opt
 
 fun is_inductify (Options opt) = #inductify opt
 fun is_rpred (Options opt) = #rpred opt
-fun is_sizelim (Options opt) = #sizelim opt
+fun is_depth_limited (Options opt) = #depth_limited opt
 
 val default_options = Options {
   expected_modes = NONE,
@@ -162,7 +162,7 @@ val default_options = Options {
   show_mode_inference = false,
   inductify = false,
   rpred = false,
-  sizelim = false
+  depth_limited = false
 }
 
 

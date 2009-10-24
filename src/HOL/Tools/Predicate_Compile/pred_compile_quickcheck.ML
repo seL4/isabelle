@@ -65,9 +65,9 @@ fun quickcheck ctxt t =
       |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
       |> Predicate_Compile.preprocess Predicate_Compile_Aux.default_options full_constname
       |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]
-      |> Predicate_Compile_Core.add_sizelim_equations Predicate_Compile_Aux.default_options [full_constname]
+      |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]
       |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname]
-    val sizelim_modes = Predicate_Compile_Core.sizelim_modes_of thy'' full_constname
+    val depth_limited_modes = Predicate_Compile_Core.depth_limited_modes_of thy'' full_constname
     val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
     val prog =
       if member (op =) modes ([], []) then
@@ -75,9 +75,9 @@ fun quickcheck ctxt t =
           val name = Predicate_Compile_Core.generator_name_of thy'' full_constname ([], [])
           val T = @{typ code_numeral} --> (mk_rpredT (HOLogic.mk_tupleT (map snd vs')))
         in Const (name, T) $ Bound 0 end
-      else if member (op =) sizelim_modes ([], []) then
+      else if member (op =) depth_limited_modes ([], []) then
         let
-          val name = Predicate_Compile_Core.sizelim_function_name_of thy'' full_constname ([], [])
+          val name = Predicate_Compile_Core.depth_limited_function_name_of thy'' full_constname ([], [])
           val T = @{typ code_numeral} --> (mk_predT (HOLogic.mk_tupleT (map snd vs')))
         in lift_pred (Const (name, T) $ Bound 0) end
       else error "Predicate Compile Quickcheck failed"
