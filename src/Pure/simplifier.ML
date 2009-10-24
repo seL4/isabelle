@@ -143,9 +143,6 @@ val _ = ML_Antiquote.value "simpset"
 
 (** named simprocs **)
 
-fun err_dup_simproc name = error ("Duplicate simproc: " ^ quote name);
-
-
 (* data *)
 
 structure Simprocs = GenericDataFun
@@ -153,8 +150,7 @@ structure Simprocs = GenericDataFun
   type T = simproc NameSpace.table;
   val empty = NameSpace.empty_table;
   val extend = I;
-  fun merge _ simprocs = NameSpace.merge_tables eq_simproc simprocs
-    handle Symtab.DUP dup => err_dup_simproc dup;
+  fun merge _ simprocs = NameSpace.merge_tables simprocs;
 );
 
 
@@ -201,9 +197,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
         val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;
       in
-        Simprocs.map (fn simprocs =>
-          NameSpace.define naming (b', simproc') simprocs |> snd
-            handle Symtab.DUP dup => err_dup_simproc dup)
+        Simprocs.map (#2 o NameSpace.define true naming (b', simproc'))
         #> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;

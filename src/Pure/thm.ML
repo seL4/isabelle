@@ -1724,16 +1724,13 @@ end;
 
 (* authentic derivation names *)
 
-fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
-
 structure Oracles = TheoryDataFun
 (
-  type T = serial NameSpace.table;
+  type T = unit NameSpace.table;
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ oracles : T = NameSpace.merge_tables (op =) oracles
-    handle Symtab.DUP dup => err_dup_ora dup;
+  fun merge _ oracles : T = NameSpace.merge_tables oracles;
 );
 
 val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
@@ -1741,8 +1738,7 @@ val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
 fun add_oracle (b, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val (name, tab') = NameSpace.define naming (b, serial ()) (Oracles.get thy)
-      handle Symtab.DUP _ => err_dup_ora (Binding.str_of b);
+    val (name, tab') = NameSpace.define true naming (b, ()) (Oracles.get thy);
     val thy' = Oracles.put tab' thy;
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 

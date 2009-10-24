@@ -86,8 +86,6 @@ datatype thy = Thy of
 
 fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrappers = wrappers};
 
-fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
-
 structure ThyData = TheoryDataFun
 (
   type T = thy;
@@ -166,7 +164,7 @@ fun cert_axm thy (b, raw_tm) =
 
 fun read_axm thy (b, str) =
   cert_axm thy (b, Syntax.read_prop_global thy str) handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in axiom: " ^ quote (Binding.str_of b));
+    cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
 
 
 (* add_axioms(_i) *)
@@ -176,8 +174,7 @@ local
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
     val axms = map (apsnd Logic.varify o prep_axm thy) raw_axms;
-    val axioms' = fold (snd oo NameSpace.define (Sign.naming_of thy)) axms axioms
-      handle Symtab.DUP dup => err_dup_axm dup;
+    val axioms' = fold (#2 oo NameSpace.define true (Sign.naming_of thy)) axms axioms;
   in axioms' end);
 
 in

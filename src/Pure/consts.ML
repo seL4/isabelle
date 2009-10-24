@@ -50,7 +50,7 @@ type decl = {T: typ, typargs: int list list, tags: Properties.T, authentic: bool
 type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
 
 datatype T = Consts of
- {decls: ((decl * abbrev option) * serial) NameSpace.table,
+ {decls: (decl * abbrev option) NameSpace.table,
   constraints: typ Symtab.table,
   rev_abbrevs: (term * term) Item_Net.T Symtab.table};
 
@@ -84,7 +84,7 @@ fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
 
 fun dest (Consts {decls = (space, decls), constraints, ...}) =
  {constants = (space,
-    Symtab.fold (fn (c, (({T, ...}, abbr), _)) =>
+    Symtab.fold (fn (c, ({T, ...}, abbr)) =>
       Symtab.update (c, (T, Option.map #rhs abbr))) decls Symtab.empty),
   constraints = (space, constraints)};
 
@@ -93,7 +93,7 @@ fun dest (Consts {decls = (space, decls), constraints, ...}) =
 
 fun the_const (Consts {decls = (_, tab), ...}) c =
   (case Symtab.lookup tab c of
-    SOME (decl, _) => decl
+    SOME decl => decl
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
 fun the_type consts c =
@@ -221,13 +221,6 @@ fun instance consts (c, Ts) =
 
 (** build consts **)
 
-fun err_dup_const c =
-  error ("Duplicate declaration of constant " ^ quote c);
-
-fun extend_decls naming decl tab = NameSpace.define naming decl tab
-  handle Symtab.DUP c => err_dup_const c;
-
-
 (* name space *)
 
 fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
@@ -236,12 +229,13 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 
 (* declarations *)
 
-fun declare authentic naming tags (b, declT) = map_consts (fn (decls, constraints, rev_abbrevs) =>
-  let
-    val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val decl = {T = declT, typargs = typargs_of declT, tags = tags', authentic = authentic};
-    val (_, decls') = decls |> extend_decls naming (b, ((decl, NONE), serial ()));
-  in (decls', constraints, rev_abbrevs) end);
+fun declare authentic naming tags (b, declT) =
+  map_consts (fn (decls, constraints, rev_abbrevs) =>
+    let
+      val tags' = tags |> Position.default_properties (Position.thread_data ());
+      val decl = {T = declT, typargs = typargs_of declT, tags = tags', authentic = authentic};
+      val (_, decls') = decls |> NameSpace.define true naming (b, (decl, NONE));
+    in (decls', constraints, rev_abbrevs) end);
 
 
 (* constraints *)
@@ -278,7 +272,7 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
     val force_expand = mode = PrintMode.internal;
 
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
-      error ("Illegal schematic variables on rhs of abbreviation: " ^ Binding.str_of b);
+      error ("Illegal schematic variables on rhs of abbreviation " ^ quote (Binding.str_of b));
 
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)
@@ -294,7 +288,7 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
         val decl = {T = T, typargs = typargs_of T, tags = tags', authentic = true};
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
         val (_, decls') = decls
-          |> extend_decls naming (b, ((decl, SOME abbr), serial ()));
+          |> NameSpace.define true naming (b, (decl, SOME abbr));
         val rev_abbrevs' = rev_abbrevs
           |> insert_abbrevs mode (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)
@@ -319,8 +313,7 @@ fun merge
    (Consts {decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1},
     Consts {decls = decls2, constraints = constraints2, rev_abbrevs = rev_abbrevs2}) =
   let
-    val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
-      handle Symtab.DUP c => err_dup_const c;
+    val decls' = NameSpace.merge_tables (decls1, decls2);
     val constraints' = Symtab.join (K fst) (constraints1, constraints2);
     val rev_abbrevs' = Symtab.join (K Item_Net.merge) (rev_abbrevs1, rev_abbrevs2);
   in make_consts (decls', constraints', rev_abbrevs') end;

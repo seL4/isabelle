@@ -322,27 +322,25 @@ fun finish_text (NONE, immed) = Basic (close immed)
 
 structure Methods = TheoryDataFun
 (
-  type T = (((src -> Proof.context -> method) * string) * stamp) NameSpace.table;
+  type T = ((src -> Proof.context -> method) * string) NameSpace.table;
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUP dup =>
-    error ("Attempt to merge different versions of method " ^ quote dup);
+  fun merge _ tables : T = NameSpace.merge_tables tables;
 );
 
 fun print_methods thy =
   let
     val meths = Methods.get thy;
-    fun prt_meth (name, ((_, comment), _)) = Pretty.block
+    fun prt_meth (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
     [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
-fun add_method name meth comment thy = thy |> Methods.map (fn meths =>
-  #2 (NameSpace.define (Sign.naming_of thy) (name, ((meth, comment), stamp ())) meths)
-    handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup));
+fun add_method name meth comment thy = thy
+  |> Methods.map (#2 o NameSpace.define true (Sign.naming_of thy) (name, (meth, comment)));
 
 
 (* get methods *)
@@ -357,7 +355,7 @@ fun method_i thy =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup meths name of
           NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | SOME ((mth, _), _) => (Position.report (Markup.method name) pos; mth src))
+        | SOME (mth, _) => (Position.report (Markup.method name) pos; mth src))
       end;
   in meth end;
 

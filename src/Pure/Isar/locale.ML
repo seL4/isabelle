@@ -143,7 +143,7 @@ fun the_locale thy name =
   | NONE => error ("Unknown locale " ^ quote name));
 
 fun register_locale binding parameters spec intros axioms decls notes dependencies thy =
-  thy |> Locales.map (NameSpace.define (Sign.naming_of thy)
+  thy |> Locales.map (NameSpace.define true (Sign.naming_of thy)
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
         ((pairself (map (fn decl => (decl, stamp ()))) decls, map (fn n => (n, stamp ())) notes),

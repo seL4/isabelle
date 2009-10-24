@@ -337,15 +337,16 @@ fun assoc_type (s, syn) thy =
     val tc = Sign.intern_type thy s;
   in
     case Symtab.lookup (snd (#types (Type.rep_tsig (Sign.tsig_of thy)))) tc of
-      SOME ((Type.LogicalType i, _), _) =>
+      SOME (Type.LogicalType i, _) =>
         if num_args_of (fst syn) > i then
           error ("More arguments than corresponding type constructor " ^ s)
-        else (case AList.lookup (op =) types tc of
-          NONE => CodegenData.put {codegens = codegens,
-            tycodegens = tycodegens, consts = consts,
-            types = (tc, syn) :: types,
-            preprocs = preprocs, modules = modules} thy
-        | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
+        else
+          (case AList.lookup (op =) types tc of
+            NONE => CodegenData.put {codegens = codegens,
+              tycodegens = tycodegens, consts = consts,
+              types = (tc, syn) :: types,
+              preprocs = preprocs, modules = modules} thy
+          | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
     | _ => error ("Not a type constructor: " ^ s)
   end;
 
