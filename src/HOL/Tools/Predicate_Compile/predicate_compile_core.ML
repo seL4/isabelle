@@ -1926,11 +1926,11 @@ fun prove_match2 thy out_ts = let
         (print_tac ("Term " ^ (Syntax.string_of_term_global thy t) ^ 
           "splitting with rules \n" ^
         commas (map (Display.string_of_thm_global thy) split_rules)))
-        THEN (Splitter.split_asm_tac split_rules 1)
+        THEN TRY ((Splitter.split_asm_tac split_rules 1)
         THEN (print_tac "after splitting with split_asm rules")
         (* THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
           THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
-        THEN (REPEAT_DETERM_N (num_of_constrs - 1) (etac @{thm botE} 1 ORELSE etac @{thm botE} 2))
+          THEN (REPEAT_DETERM_N (num_of_constrs - 1) (etac @{thm botE} 1 ORELSE etac @{thm botE} 2)))
         THEN (assert_tac (Max_number_of_subgoals 2))
         THEN (EVERY (map split_term_tac ts))
       end
