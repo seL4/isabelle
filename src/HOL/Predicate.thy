@@ -471,49 +471,49 @@ lemma is_empty_sup:
   "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
   by (auto simp add: is_empty_def intro: sup_eq_bot_eq1 sup_eq_bot_eq2)
 
-definition singleton :: "'a pred \<Rightarrow> 'a" where
-  "singleton A = (if \<exists>!x. eval A x then THE x. eval A x else undefined)"
+definition singleton :: "'a \<Rightarrow> 'a pred \<Rightarrow> 'a" where
+  "singleton dfault A = (if \<exists>!x. eval A x then THE x. eval A x else dfault)"
 
 lemma singleton_eqI:
-  "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton A = x"
+  "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton dfault A = x"
   by (auto simp add: singleton_def)
 
 lemma eval_singletonI:
-  "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton A)"
+  "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton dfault A)"
 proof -
   assume assm: "\<exists>!x. eval A x"
   then obtain x where "eval A x" ..
-  moreover with assm have "singleton A = x" by (rule singleton_eqI)
+  moreover with assm have "singleton dfault A = x" by (rule singleton_eqI)
   ultimately show ?thesis by simp 
 qed
 
 lemma single_singleton:
-  "\<exists>!x. eval A x \<Longrightarrow> single (singleton A) = A"
+  "\<exists>!x. eval A x \<Longrightarrow> single (singleton dfault A) = A"
 proof -
   assume assm: "\<exists>!x. eval A x"
-  then have "eval A (singleton A)"
+  then have "eval A (singleton dfault A)"
     by (rule eval_singletonI)
-  moreover from assm have "\<And>x. eval A x \<Longrightarrow> singleton A = x"
+  moreover from assm have "\<And>x. eval A x \<Longrightarrow> singleton dfault A = x"
     by (rule singleton_eqI)
-  ultimately have "eval (single (singleton A)) = eval A"
+  ultimately have "eval (single (singleton dfault A)) = eval A"
     by (simp (no_asm_use) add: single_def expand_fun_eq) blast
   then show ?thesis by (simp add: eval_inject)
 qed
 
 lemma singleton_undefinedI:
-  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton A = undefined"
+  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton dfault A = dfault"
   by (simp add: singleton_def)
 
 lemma singleton_bot:
-  "singleton \<bottom> = undefined"
+  "singleton dfault \<bottom> = dfault"
   by (auto simp add: bot_pred_def intro: singleton_undefinedI)
 
 lemma singleton_single:
-  "singleton (single x) = x"
+  "singleton dfault (single x) = x"
   by (auto simp add: intro: singleton_eqI singleI elim: singleE)
 
 lemma singleton_sup_single_single:
-  "singleton (single x \<squnion> single y) = (if x = y then x else undefined)"
+  "singleton dfault (single x \<squnion> single y) = (if x = y then x else dfault)"
 proof (cases "x = y")
   case True then show ?thesis by (simp add: singleton_single)
 next
@@ -523,25 +523,25 @@ next
   by (auto intro: supI1 supI2 singleI)
   with False have "\<not> (\<exists>!z. eval (single x \<squnion> single y) z)"
     by blast
-  then have "singleton (single x \<squnion> single y) = undefined"
+  then have "singleton dfault (single x \<squnion> single y) = dfault"
     by (rule singleton_undefinedI)
   with False show ?thesis by simp
 qed
 
 lemma singleton_sup_aux:
-  "singleton (A \<squnion> B) = (if A = \<bottom> then singleton B
-    else if B = \<bottom> then singleton A
-    else singleton
-      (single (singleton A) \<squnion> single (singleton B)))"
+  "singleton dfault (A \<squnion> B) = (if A = \<bottom> then singleton dfault B
+    else if B = \<bottom> then singleton dfault A
+    else singleton dfault
+      (single (singleton dfault A) \<squnion> single (singleton dfault B)))"
 proof (cases "(\<exists>!x. eval A x) \<and> (\<exists>!y. eval B y)")
   case True then show ?thesis by (simp add: single_singleton)
 next
   case False
   from False have A_or_B:
-    "singleton A = undefined \<or> singleton B = undefined"
+    "singleton dfault A = dfault \<or> singleton dfault B = dfault"
     by (auto intro!: singleton_undefinedI)
-  then have rhs: "singleton
-    (single (singleton A) \<squnion> single (singleton B)) = undefined"
+  then have rhs: "singleton dfault
+    (single (singleton dfault A) \<squnion> single (singleton dfault B)) = dfault"
     by (auto simp add: singleton_sup_single_single singleton_single)
   from False have not_unique:
     "\<not> (\<exists>!x. eval A x) \<or> \<not> (\<exists>!y. eval B y)" by simp
@@ -551,7 +551,7 @@ next
       by (blast elim: not_bot)
     with True not_unique have "\<not> (\<exists>!x. eval (A \<squnion> B) x)"
       by (auto simp add: sup_pred_def bot_pred_def)
-    then have "singleton (A \<squnion> B) = undefined" by (rule singleton_undefinedI)
+    then have "singleton dfault (A \<squnion> B) = dfault" by (rule singleton_undefinedI)
     with True rhs show ?thesis by simp
   next
     case False then show ?thesis by auto
@@ -559,10 +559,10 @@ next
 qed
 
 lemma singleton_sup:
-  "singleton (A \<squnion> B) = (if A = \<bottom> then singleton B
-    else if B = \<bottom> then singleton A
-    else if singleton A = singleton B then singleton A else undefined)"
-using singleton_sup_aux [of A B] by (simp only: singleton_sup_single_single)
+  "singleton dfault (A \<squnion> B) = (if A = \<bottom> then singleton dfault B
+    else if B = \<bottom> then singleton dfault A
+    else if singleton dfault A = singleton dfault B then singleton dfault A else dfault)"
+using singleton_sup_aux [of dfault A B] by (simp only: singleton_sup_single_single)
 
 
 subsubsection {* Derived operations *}
@@ -743,32 +743,39 @@ lemma is_empty_code [code]:
   "is_empty (Seq f) \<longleftrightarrow> null (f ())"
   by (simp add: null_is_empty Seq_def)
 
-primrec the_only :: "'a seq \<Rightarrow> 'a" where
-  [code del]: "the_only Empty = undefined"
-  | "the_only (Insert x P) = (if is_empty P then x else let y = singleton P in if x = y then x else undefined)"
-  | "the_only (Join P xq) = (if is_empty P then the_only xq else if null xq then singleton P
-       else let x = singleton P; y = the_only xq in
-       if x = y then x else undefined)"
+primrec the_only :: "'a \<Rightarrow> 'a seq \<Rightarrow> 'a" where
+  [code del]: "the_only dfault Empty = dfault"
+  | "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault)"
+  | "the_only dfault (Join P xq) = (if is_empty P then the_only dfault xq else if null xq then singleton dfault P
+       else let x = singleton dfault P; y = the_only dfault xq in
+       if x = y then x else dfault)"
 
 lemma the_only_singleton:
-  "the_only xq = singleton (pred_of_seq xq)"
+  "the_only dfault xq = singleton dfault (pred_of_seq xq)"
   by (induct xq)
     (auto simp add: singleton_bot singleton_single is_empty_def
     null_is_empty Let_def singleton_sup)
 
 lemma singleton_code [code]:
-  "singleton (Seq f) = (case f ()
-   of Empty \<Rightarrow> undefined
+  "singleton dfault (Seq f) = (case f ()
+   of Empty \<Rightarrow> dfault
     | Insert x P \<Rightarrow> if is_empty P then x
-        else let y = singleton P in
-          if x = y then x else undefined
-    | Join P xq \<Rightarrow> if is_empty P then the_only xq
-        else if null xq then singleton P
-        else let x = singleton P; y = the_only xq in
-          if x = y then x else undefined)"
+        else let y = singleton dfault P in
+          if x = y then x else dfault
+    | Join P xq \<Rightarrow> if is_empty P then the_only dfault xq
+        else if null xq then singleton dfault P
+        else let x = singleton dfault P; y = the_only dfault xq in
+          if x = y then x else dfault)"
   by (cases "f ()")
    (auto simp add: Seq_def the_only_singleton is_empty_def
       null_is_empty singleton_bot singleton_single singleton_sup Let_def)
+
+definition not_unique :: "'a pred => 'a"
+where
+  "not_unique A = (THE x. eval A x)"
+
+lemma The_eq_singleton: "(THE x. eval A x) = singleton (not_unique A) A"
+by (auto simp add: singleton_def not_unique_def)
 
 ML {*
 signature PREDICATE =
@@ -814,6 +821,8 @@ code_type pred and seq
 
 code_const Seq and Empty and Insert and Join
   (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
+
+code_abort not_unique
 
 text {* dummy setup for @{text code_pred} and @{text values} keywords *}
 
