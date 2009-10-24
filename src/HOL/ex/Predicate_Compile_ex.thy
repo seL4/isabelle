@@ -53,6 +53,24 @@ values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
 
+subsection {* Tricky case with alternative rules *}
+
+inductive append2
+where
+  "append2 [] xs xs"
+| "append2 xs ys zs \<Longrightarrow> append2 (x # xs) ys (x # zs)"
+
+lemma append2_Nil: "append2 [] (xs::'b list) xs"
+  by (simp add: append2.intros(1))
+
+lemmas [code_pred_intros] = append2_Nil append2.intros(2)
+
+code_pred append2
+proof -
+  case append2
+  from append2.cases[OF append2(1)] append2(2-3) show thesis by blast
+qed
+
 subsection {* Tricky cases with tuples *}
 
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -412,6 +430,7 @@ code_pred (inductify_all) List.rev .
 thm revP.equation
 
 
+
 section {* Context Free Grammar *}
 
 datatype alphabet = a | b
@@ -475,6 +494,8 @@ where
   "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] ==> test w"
 ML {* @{term "[x \<leftarrow> w. x = a]"} *}
 code_pred (inductify_all) test .
+
+thm test.equation
 (*
 theorem S\<^isub>3_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
