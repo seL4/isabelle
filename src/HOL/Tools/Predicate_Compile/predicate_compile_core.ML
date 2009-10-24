@@ -510,7 +510,9 @@ fun preprocess_elim thy nparams elimrule =
     fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
      | replace_eqs t = t
-    val prems = Thm.prems_of elimrule
+   val ctxt = ProofContext.init thy
+   val ((_, [elimrule]), ctxt') = Variable.import false [elimrule] ctxt
+   val prems = Thm.prems_of elimrule
     val nargs = length (snd (strip_comb (HOLogic.dest_Trueprop (hd prems)))) - nparams
     fun preprocess_case t =
      let
@@ -522,22 +524,14 @@ fun preprocess_elim thy nparams elimrule =
      end
     val cases' = map preprocess_case (tl prems)
     val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
-    (*val _ =  Output.tracing ("elimrule': "^ (Syntax.string_of_term_global thy elimrule'))*)
     val bigeq = (Thm.symmetric (Conv.implies_concl_conv
       (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
         (cterm_of thy elimrule')))
-    (*
-    val _ = Output.tracing ("bigeq:" ^ (Display.string_of_thm_global thy bigeq))   
-    val res = 
-    Thm.equal_elim bigeq elimrule
-    *)
-    (*
-    val t = (fn {...} => mycheat_tac thy 1)
-    val eq = Goal.prove (ProofContext.init thy) [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) t
-    *)
+    val tac = (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy)    
+    val eq = Goal.prove ctxt' [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
     val _ = Output.tracing "Preprocessed elimination rule"
   in
-    Thm.equal_elim bigeq elimrule
+    Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
   end;
 
 (* special case: predicate with no introduction rule *)
