@@ -7,7 +7,7 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "even n \<Longrightarrow> odd (Suc n)"
   | "odd n \<Longrightarrow> even (Suc n)"
 
-code_pred (mode: [], [1]) even .
+code_pred (mode: [], [1]) [show_steps, inductify] even .
 
 thm odd.equation
 thm even.equation
@@ -38,22 +38,23 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
     "append [] xs xs"
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
+code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) [inductify] append .
 thm append.equation
 
-code_pred (inductify_all) (rpred) append .
+code_pred [rpred] append .
 
 thm append.equation
 thm append.rpred_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
-values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
+values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
 
 subsection {* Tricky case with alternative rules *}
+
 text {* This cannot be handled correctly yet *}
 (*
 inductive append2
@@ -92,8 +93,8 @@ where
 "tupled_append' ([], xs, xs)"
 | "[| ys = fst (xa, y); x # zs = snd (xa, y);
  tupled_append' (xs, ys, x # zs) |] ==> tupled_append' (x # xs, xa, y)"
-
-code_pred (inductify_all) tupled_append' .
+ML {* aconv *}
+code_pred tupled_append' .
 thm tupled_append'.equation
 (* TODO: Modeanalysis returns mode [2] ?? *)
 
@@ -104,7 +105,7 @@ where
 
 thm tupled_append''.cases
 
-code_pred (inductify_all) tupled_append'' .
+code_pred [inductify] tupled_append'' .
 thm tupled_append''.equation
 (* TODO: Modeanalysis returns mode [2] ?? *)
 
@@ -113,7 +114,7 @@ where
   "tupled_append''' ([], xs, xs)"
 | "yszs = (ys, zs) ==> tupled_append''' (xs, yszs) \<Longrightarrow> tupled_append''' (x # xs, ys, x # zs)"
 
-code_pred (inductify_all) tupled_append''' .
+code_pred [inductify] tupled_append''' .
 thm tupled_append'''.equation
 (* TODO: Missing a few modes *)
 
@@ -130,7 +131,7 @@ inductive rev where
     "rev [] []"
   | "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
 
-code_pred rev .
+code_pred (mode: [1], [2], [1, 2]) rev .
 
 thm rev.equation
 
@@ -149,7 +150,7 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-code_pred partition .
+code_pred (mode: [1], [2, 3], [1, 2], [1, 3], [1, 2, 3]) partition .
 
 inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<times> 'a list \<times> 'a list) \<Rightarrow> bool"
   for f where
@@ -197,11 +198,10 @@ proof -
   case tranclp
   from this converse_tranclpE[OF this(1)] show thesis by metis
 qed
-(*
-code_pred (inductify_all) (rpred) tranclp .
+
+code_pred [inductify, rpred] tranclp .
 thm tranclp.equation
 thm tranclp.rpred_equation
-*)
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
@@ -222,8 +222,6 @@ values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
 *)
-
-subsection{* *}
 
 subsection{* IMP *}
 
@@ -319,7 +317,7 @@ section {* Executing definitions *}
 definition Min
 where "Min s r x \<equiv> s x \<and> (\<forall>y. r x y \<longrightarrow> x = y)"
 
-code_pred (inductify_all) Min .
+code_pred [inductify] Min .
 
 subsection {* Examples with lists *}
 (*
@@ -334,7 +332,7 @@ code_pred (inductify_all) (rpred) filterP .
 thm filterP.rpred_equation
 *)
 
-code_pred (inductify_all) lexord .
+code_pred [inductify] lexord .
 
 thm lexord.equation
 
@@ -344,19 +342,21 @@ oops
 
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 
-code_pred (inductify_all) lexn .
+code_pred [inductify] lexn .
 thm lexn.equation
 
-code_pred (inductify_all) lenlex .
+code_pred [inductify] lenlex .
 thm lenlex.equation
-(*
-code_pred (inductify_all) (rpred) lenlex .
+
+code_pred [inductify, rpred] lenlex .
 thm lenlex.rpred_equation
-*)
+
 thm lists.intros
-code_pred (inductify_all) lists .
+code_pred [inductify] lists .
 
 thm lists.equation
+
+section {* AVL Tree Example *}
 
 datatype 'a tree = ET | MKT 'a "'a tree" "'a tree" nat
 fun height :: "'a tree => nat" where
@@ -369,9 +369,9 @@ primrec
   "avl (MKT x l r h) = ((height l = height r \<or> height l = 1 + height r \<or> height r = 1+height l) \<and> 
   h = max (height l) (height r) + 1 \<and> avl l \<and> avl r)"
 
-code_pred (inductify_all) avl .
+code_pred [inductify] avl .
 thm avl.equation
-(*
+
 fun set_of
 where
 "set_of ET = {}"
@@ -383,11 +383,10 @@ where
 "is_ord ET = True"
 | "is_ord (MKT n l r h) =
  ((\<forall>n' \<in> set_of l. n' < n) \<and> (\<forall>n' \<in> set_of r. n < n') \<and> is_ord l \<and> is_ord r)"
-ML {*  *}
 
-code_pred (inductify_all) set_of .
+code_pred [inductify] set_of .
 thm set_of.equation
-*)
+
 text {* expected mode: [1], [1, 2] *}
 (* FIXME *)
 (*
@@ -396,50 +395,47 @@ thm is_ord.equation
 *)
 section {* Definitions about Relations *}
 
-code_pred (inductify_all) converse .
+code_pred [inductify] converse .
 thm converse.equation
 
-code_pred (inductify_all) Domain .
+code_pred [inductify] Domain .
 thm Domain.equation
 
 section {* List functions *}
 
-code_pred (inductify_all) length .
+code_pred [inductify] length .
 thm size_listP.equation
 
-code_pred (inductify_all) concat .
+code_pred [inductify] concat .
 thm concatP.equation
 
-code_pred (inductify_all) hd .
-code_pred (inductify_all) tl .
-code_pred (inductify_all) last .
-code_pred (inductify_all) butlast .
-(*code_pred (inductify_all) listsum .*)
-code_pred (inductify_all) take .
-code_pred (inductify_all) drop .
-code_pred (inductify_all) zip .
-code_pred (inductify_all) upt .
-code_pred set sorry
-code_pred (inductify_all) remdups .
-code_pred (inductify_all) remove1 .
-code_pred (inductify_all) removeAll .
-code_pred (inductify_all) distinct .
-code_pred (inductify_all) replicate .
-code_pred (inductify_all) splice .
-code_pred (inductify_all) List.rev .
-thm revP.equation
-
-code_pred (inductify_all) foldl .
-thm foldlP.equation
-
-code_pred (inductify_all) filter .
+code_pred [inductify] hd .
+code_pred [inductify] tl .
+code_pred [inductify] last .
+code_pred [inductify] butlast .
+thm listsum.simps
+(*code_pred [inductify] listsum .*)
+code_pred [inductify] take .
+code_pred [inductify] drop .
+code_pred [inductify] zip .
+code_pred [inductify] upt .
+code_pred [inductify] remdups .
+code_pred [inductify] remove1 .
+code_pred [inductify] removeAll .
+code_pred [inductify] distinct .
+code_pred [inductify] replicate .
+code_pred [inductify] splice .
+code_pred [inductify] List.rev .
+code_pred [inductify] foldr .
+code_pred [inductify] foldl .
+code_pred [inductify] filter .
 
 definition test where "test xs = filter (\<lambda>x. x = (1::nat)) xs"
-term "one_nat_inst.one_nat"
-code_pred (inductify_all) test .
-thm testP.equation
 (*
-code_pred (inductify_all) (rpred) test .
+TODO: implement higher-order replacement correctly
+code_pred [inductify] test .
+thm testP.equation
+code_pred [inductify, rpred] test .
 *)
 section {* Handling set operations *}
 
@@ -457,7 +453,7 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 | "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
 | "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
 
-code_pred (inductify_all) S\<^isub>1p .
+code_pred [inductify] S\<^isub>1p .
 
 thm S\<^isub>1p.equation
 (*
@@ -473,10 +469,12 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 | "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
 | "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
 | "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
-(*
-code_pred (inductify_all) (rpred) S\<^isub>2 .
-ML {* Predicate_Compile_Core.intros_of @{theory} @{const_name "B\<^isub>2"} *}
-*)
+
+code_pred [inductify, rpred] S\<^isub>2 .
+thm S\<^isub>2.rpred_equation
+thm A\<^isub>2.rpred_equation
+thm B\<^isub>2.rpred_equation
+
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 (*quickcheck[generator=SML]*)
@@ -491,7 +489,7 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 | "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
 | "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
 
-code_pred (inductify_all) S\<^isub>3 .
+code_pred [inductify] S\<^isub>3 .
 
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
@@ -598,21 +596,6 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
 lemma "Gamma \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> Gamma \<turnstile> t' : T"
 quickcheck[generator = pred_compile, size = 10, iterations = 100]
 oops
-(* FIXME *)
-
-inductive test' for P where
-"[| filter P vs = res |]
-==> test' P vs res"
-
-code_pred (inductify_all) test' .
-thm test'.equation
-
-(*
-export_code test_for_1_yields_1_2 in SML file -
-code_pred (inductify_all) (rpred) test .
-
-thm test.equation
-*)
 
 lemma filter_eq_ConsD:
  "filter P ys = x#xs \<Longrightarrow>

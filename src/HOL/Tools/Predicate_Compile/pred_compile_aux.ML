@@ -137,4 +137,57 @@ fun print_step options s =
   if is_show_steps options then tracing s else ()
   
 
+(* tuple processing *)
+
+fun expand_tuples thy intro =
+  let
+    fun rewrite_args [] (pats, intro_t, ctxt) = (pats, intro_t, ctxt)
+      | rewrite_args (arg::args) (pats, intro_t, ctxt) = 
+      (case HOLogic.strip_tupleT (fastype_of arg) of
+        (Ts as _ :: _ :: _) =>
+        let
+          fun rewrite_arg' (Const ("Pair", _) $ _ $ t2, Type ("*", [_, T2]))
+            (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
+            | rewrite_arg' (t, Type ("*", [T1, T2])) (args, (pats, intro_t, ctxt)) =
+              let
+                val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
+                val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))
+                val intro_t' = Pattern.rewrite_term thy [pat] [] intro_t
+                val args' = map (Pattern.rewrite_term thy [pat] []) args
+              in
+                rewrite_arg' (Free (y, T2), T2) (args', (pat::pats, intro_t', ctxt'))
+              end
+            | rewrite_arg' _ (args, (pats, intro_t, ctxt)) = (args, (pats, intro_t, ctxt))
+          val (args', (pats, intro_t', ctxt')) = rewrite_arg' (arg, fastype_of arg)
+            (args, (pats, intro_t, ctxt))
+        in
+          rewrite_args args' (pats, intro_t', ctxt')
+        end
+      | _ => rewrite_args args (pats, intro_t, ctxt))
+    fun rewrite_prem atom =
+      let
+        val (_, args) = strip_comb atom
+      in rewrite_args args end
+    val ctxt = ProofContext.init thy
+    val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
+    val intro_t = prop_of intro'
+    val concl = Logic.strip_imp_concl intro_t
+    val (p, args) = strip_comb (HOLogic.dest_Trueprop concl)
+    val (pats', intro_t', ctxt2) = rewrite_args args ([], intro_t, ctxt1)
+    val (pats', intro_t', ctxt3) = 
+      fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
+    fun rewrite_pat (ct1, ct2) =
+      (ct1, cterm_of thy (Pattern.rewrite_term thy pats' [] (term_of ct2)))
+    val t_insts' = map rewrite_pat t_insts
+    val intro'' = Thm.instantiate (T_insts, t_insts') intro
+    val [intro'''] = Variable.export ctxt3 ctxt [intro'']
+    val intro'''' = Simplifier.full_simplify
+      (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
+      intro'''
+  in
+    intro''''
+  end
+
+
+
 end;

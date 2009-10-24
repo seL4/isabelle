@@ -592,6 +592,8 @@ in
   ([intro], elim)
 end
 
+fun expand_tuples_elim th = th
+
 fun fetch_pred_data thy name =
   case try (Inductive.the_inductive (ProofContext.init thy)) name of
     SOME (info as (_, result)) => 
@@ -600,17 +602,21 @@ fun fetch_pred_data thy name =
           let
             val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
           in (fst (dest_Const const) = name) end;      
-        val intros = ind_set_codegen_preproc thy ((map (preprocess_intro thy))
-          (filter is_intro_of (#intrs result)))
+        val intros = ind_set_codegen_preproc thy
+          (map (expand_tuples thy #> preprocess_intro thy) (filter is_intro_of (#intrs result)))
         val pre_elim = nth (#elims result) (find_index (fn s => s = name) (#names (fst info)))
         val nparams = length (Inductive.params_of (#raw_induct result))
-        val elim = singleton (ind_set_codegen_preproc thy) (preprocess_elim thy nparams pre_elim)
+        (*val elim = singleton (ind_set_codegen_preproc thy) (preprocess_elim thy nparams 
+          (expand_tuples_elim pre_elim))*)
+        val elim =
+          (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+          (mk_casesrule (ProofContext.init thy) nparams intros)
         val (intros, elim) = if null intros then noclause thy name elim else (intros, elim)
       in
         mk_pred_data ((intros, SOME elim, nparams), ([], [], []))
       end                                                                    
   | NONE => error ("No such predicate: " ^ quote name)
-  
+
 (* updaters *)
 
 fun apfst3 f (x, y, z) =  (f x, y, z)
@@ -2243,6 +2249,26 @@ fun check_format_of_intro_rule thy intro =
     forall (check_prem o dest_prem thy params o HOLogic.dest_Trueprop) prems
   end
 
+(*
+fun check_intros_elim_match thy prednames =
+  let
+    fun check predname =
+      let
+        val intros = intros_of thy predname
+        val elim = the_elim_of thy predname
+        val nparams = nparams_of thy predname
+        val elim' =
+          (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
+          (mk_casesrule (ProofContext.init thy) nparams intros)
+        val _ = Output.tracing (Display.string_of_thm_global thy elim)
+        val _ = Output.tracing (Display.string_of_thm_global thy elim')
+      in
+        if not (Thm.equiv_thm (elim, elim')) then
+          error "Introduction and elimination rules do not match!"
+        else true
+      end
+  in forall check prednames end
+*)
 
 
 (** main function of predicate compiler **)
@@ -2251,6 +2277,7 @@ fun add_equations_of steps options expected_modes prednames thy =
   let
     val _ = print_step options ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
     val _ = tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
+      (*val _ = check_intros_elim_match thy prednames*)
       (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames (maps (intros_of thy) prednames)
