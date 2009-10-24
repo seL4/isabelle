@@ -123,9 +123,6 @@ fun preprocess (constname, specs) thy =
       else
         error ("unexpected specification for constant " ^ quote constname ^ ":\n"
           ^ commas (map (quote o Display.string_of_thm_global thy) specs))
-    val _ = tracing ("Introduction rules of definitions before flattening: "
-      ^ commas (map (Display.string_of_thm ctxt) intros))
-    val _ = tracing "Defining local predicates and their intro rules..."
     val (intros', (local_defs, thy')) = flatten_intros constname intros thy
     val (intross, thy'') = fold_map preprocess local_defs thy'
   in

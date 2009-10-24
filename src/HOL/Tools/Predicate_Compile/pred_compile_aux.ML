@@ -69,11 +69,14 @@ fun focus_ex t nctxt =
   in ((ps', t''), nctxt') end;
 
 
+(* introduction rule combinators *)
 
+(* combinators to apply a function to all literals of an introduction rules *)
 
 (*
 fun map_atoms f intro = 
 *)
+
 fun fold_atoms f intro s =
   let
     val (literals, head) = Logic.strip_horn intro
@@ -103,5 +106,35 @@ fun equals_conv lhs_cv rhs_cv ct =
   | _ => error "equals_conv"  
 *)
 
+(* Different options for compiler *)
+
+datatype options = Options of {  
+  (*check_modes : (string * int list list) list,*)
+  show_steps : bool,
+  show_mode_inference : bool,
+  
+  (*
+  inductify_functions : bool,
+  *)
+  inductify : bool,
+  rpred : bool
+};
+
+fun is_show_steps (Options opt) = #show_steps opt
+fun is_inductify (Options opt) = #inductify opt
+fun is_rpred (Options opt) = #rpred opt
+
+
+val default_options = Options {
+  show_steps = false,
+  show_mode_inference = false,
+  inductify = false,
+  rpred = false
+}
+
+
+fun print_step options s =
+  if is_show_steps options then tracing s else ()
+  
 
 end;

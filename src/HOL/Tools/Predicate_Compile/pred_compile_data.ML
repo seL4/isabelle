@@ -136,7 +136,6 @@ fun store_thm_in_table ignore_consts thy th=
     val (const, th) =
       if is_equationlike th then
         let
-          val _ = priority "Normalizing definition..."
           val eq = normalize_equation thy th
         in
           (defining_const_of_equation eq, eq)
@@ -149,18 +148,6 @@ fun store_thm_in_table ignore_consts thy th=
     else I
   end
 
-(*
-fun make_const_spec_table_warning thy =
-  fold
-    (fn th => fn thy => case try (store_thm th) thy of
-      SOME thy => thy
-    | NONE => (warning ("store_thm fails for " ^ Display.string_of_thm_global thy th) ; thy))
-      (Predicate_Compile_Preproc_Const_Defs.get (ProofContext.init thy)) thy
-
-fun make_const_spec_table thy =
-  fold store_thm (Predicate_Compile_Preproc_Const_Defs.get (ProofContext.init thy)) thy
-  |> (fn thy => fold store_thm (Nitpick_Const_Simps.get (ProofContext.init thy)) thy)
-*)
 fun make_const_spec_table thy =
   let
     fun store ignore_const f = fold (store_thm_in_table ignore_const thy) (map (Thm.transfer thy) (f (ProofContext.init thy)))
@@ -173,23 +160,15 @@ fun make_const_spec_table thy =
     |> store ignore_consts Nitpick_Const_Simps.get
     |> store ignore_consts Nitpick_Ind_Intros.get
   end
-  (*
-fun get_specification thy constname =
-  case Symtab.lookup (#const_spec_table (Data.get thy)) constname of
-    SOME thms => thms
-  | NONE => error ("get_specification: lookup of constant " ^ quote constname ^ " failed")
-  *)
+
 fun get_specification table constname =
   case Symtab.lookup table constname of
-  SOME thms =>
-    let
-      val _ = tracing ("Looking up specification of " ^ constname ^ ": "
-        ^ (commas (map Display.string_of_thm_without_context thms)))
-    in thms end
+    SOME thms => thms
   | NONE => error ("get_specification: lookup of constant " ^ quote constname ^ " failed")
 
 val logic_operator_names =
-  [@{const_name "=="}, @{const_name "op ="}, @{const_name "op -->"}, @{const_name "All"}, @{const_name "op &"}]
+  [@{const_name "=="}, @{const_name "op ="}, @{const_name "op -->"}, @{const_name "All"}, @{const_name "Ex"}, 
+   @{const_name "op &"}]
 
 val special_cases = member (op =) [
     @{const_name "False"},
@@ -215,6 +194,7 @@ fun obtain_specification_graph thy table constname =
     fun defiants_of specs =
       fold (Term.add_const_names o prop_of) specs []
       |> filter is_defining_constname
+      |> filter_out is_nondefining_constname
       |> filter_out has_code_pred_intros
       |> filter_out (case_consts thy)
       |> filter_out special_cases

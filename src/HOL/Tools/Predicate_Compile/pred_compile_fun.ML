@@ -107,8 +107,6 @@ fun mk_param lookup_pred (t as Free (v, _)) = lookup_pred t
   if Predicate_Compile_Aux.is_predT (fastype_of t) then
     t
   else
-    error "not implemented"
-  (*  
     let
       val (vs, body) = strip_abs t
       val names = Term.add_free_names body []
@@ -122,7 +120,6 @@ fun mk_param lookup_pred (t as Free (v, _)) = lookup_pred t
       val pred_body = list_comb (P, args @ [resvar])
       val param = fold_rev lambda (vs' @ [resvar]) pred_body
     in param end;
-  *)
 
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
@@ -256,7 +253,6 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
           end
         else
           let
-            val _ = tracing ("Flattening term " ^ (Syntax.string_of_term_global thy t))
             val (f, args) = strip_comb t
             (* TODO: special procedure for higher-order functions: split arguments in
               simple types and function types *)
@@ -276,7 +272,6 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
                   val pred = lookup_pred t
                   val nparams = get_nparams pred
                   val (params, args) = chop nparams args
-                  val _ = tracing ("mk_prems'': " ^ (Syntax.string_of_term_global thy t) ^ " has " ^ string_of_int nparams ^ " parameters.")
                   val params' = map (mk_param lookup_pred) params
                 in
                   folds_map mk_prems' args (names', prems)
@@ -366,10 +361,7 @@ fun define_predicates specs thy =
   in
     case try (maps mk_intros) ((funs ~~ preds) ~~ (argss' ~~ rhss)) of
       NONE => ([], thy) 
-    | SOME intr_ts => let
-        val _ = map (tracing o (Syntax.string_of_term_global thy)) intr_ts
-        val _ = map (cterm_of thy) intr_ts
-      in
+    | SOME intr_ts =>
         if is_some (try (map (cterm_of thy)) intr_ts) then
           let
             val (ind_result, thy') =
@@ -391,12 +383,8 @@ fun define_predicates specs thy =
           end
         else
           let
-            val (p, _) = strip_comb (HOLogic.dest_Trueprop (hd (Logic.strip_imp_prems (hd intr_ts))))
-            val (_, T) = dest_Const p
-            val _ = tracing (Syntax.string_of_typ_global thy T)
             val _ = tracing "Introduction rules of function_predicate are not welltyped"
           in ([], thy) end
-      end
   end
 
 (* preprocessing intro rules - uses oracle *)
@@ -417,7 +405,6 @@ fun rewrite_intro thy intro =
     | get_nparams t = error ("No parameters for " ^ (Syntax.string_of_term_global thy t))
     
     val intro_t = (Logic.unvarify o prop_of) intro
-    val _ = tracing (Syntax.string_of_term_global thy intro_t)
     val (prems, concl) = Logic.strip_horn intro_t
     val frees = map fst (Term.add_frees intro_t [])
     fun rewrite prem names =
@@ -441,8 +428,6 @@ fun rewrite_intro thy intro =
         rewrite concl frees'
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
-    val _ = Output.tracing ("intro_ts': " ^
-      commas (map (Syntax.string_of_term_global thy) intro_ts'))
   in
     map (Drule.standard o the_oracle () o cterm_of thy) intro_ts'
   end; 

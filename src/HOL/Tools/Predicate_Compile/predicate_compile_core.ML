@@ -7,8 +7,8 @@ to equations.
 signature PREDICATE_COMPILE_CORE =
 sig
   val setup: theory -> theory
-  val code_pred: int list list option -> bool -> string -> Proof.context -> Proof.state
-  val code_pred_cmd: int list list option -> bool -> string -> Proof.context -> Proof.state
+  val code_pred: Predicate_Compile_Aux.options -> int list list option -> bool -> string -> Proof.context -> Proof.state
+  val code_pred_cmd: Predicate_Compile_Aux.options -> int list list option -> bool -> string -> Proof.context -> Proof.state
   type smode = (int * int list option) list
   type mode = smode option list * smode
   datatype tmode = Mode of mode * smode * tmode option list;
@@ -39,7 +39,7 @@ sig
   val mk_casesrule : Proof.context -> int -> thm list -> term
   val analyze_compr: theory -> term -> term
   val eval_ref: (unit -> term Predicate.pred) option Unsynchronized.ref
-  val add_equations : int list list option -> string list -> theory -> theory
+  val add_equations : Predicate_Compile_Aux.options -> int list list option -> string list -> theory -> theory
   val code_pred_intros_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (*val funT_of : mode -> typ -> typ
@@ -90,8 +90,8 @@ sig
   val rpred_compfuns : compilation_funs
   val dest_funT : typ -> typ * typ
  (* val depending_preds_of : theory -> thm list -> string list *)
-  val add_quickcheck_equations : int list list option -> string list -> theory -> theory
-  val add_sizelim_equations : int list list option -> string list -> theory -> theory
+  val add_quickcheck_equations : Predicate_Compile_Aux.options -> int list list option -> string list -> theory -> theory
+  val add_sizelim_equations : Predicate_Compile_Aux.options -> int list list option -> string list -> theory -> theory
   val is_inductive_predicate : theory -> string -> bool
   val terms_vs : term list -> string list
   val subsets : int -> int -> int list list
@@ -273,7 +273,7 @@ fun import_intros [] ctxt = ([], ctxt)
             error "Trying to instantiate another predicate" else ()
           val subst = Sign.typ_match thy
             (fastype_of pred', fastype_of pred) Vartab.empty
-          val _ = Output.tracing (commas (map (fn ((x, i), (s, T)) => x ^ " instantiate to " ^ (Syntax.string_of_typ ctxt' T))
+          val _ = tracing (commas (map (fn ((x, i), (s, T)) => x ^ " instantiate to " ^ (Syntax.string_of_typ ctxt' T))
           (Vartab.dest subst)))
           val subst' = map (fn (indexname, (s, T)) => ((indexname, s), T))
             (Vartab.dest subst)
@@ -453,7 +453,7 @@ val sizelim_function_name_of = #name ooo the_sizelim_function_data
      
 (* diagnostic display functions *)
 
-fun print_modes modes = Output.tracing ("Inferred modes:\n" ^
+fun print_modes modes = tracing ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
@@ -463,7 +463,7 @@ fun print_pred_mode_table string_of_entry thy pred_mode_table =
       ^ (string_of_entry pred mode entry)  
     fun print_pred (pred, modes) =
       "predicate " ^ pred ^ ": " ^ cat_lines (map (print_mode pred) modes)
-    val _ = Output.tracing (cat_lines (map print_pred pred_mode_table))
+    val _ = tracing (cat_lines (map print_pred pred_mode_table))
   in () end;
 
 fun string_of_moded_prem thy (Prem (ts, p), tmode) =
@@ -544,7 +544,7 @@ fun preprocess_intro thy rule =
 
 fun preprocess_elim thy nparams elimrule =
   let
-    val _ = Output.tracing ("Preprocessing elimination rule "
+    val _ = tracing ("Preprocessing elimination rule "
       ^ (Display.string_of_thm_global thy elimrule))
     fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
@@ -568,7 +568,7 @@ fun preprocess_elim thy nparams elimrule =
         (cterm_of thy elimrule')))
     val tac = (fn _ => setmp quick_and_dirty true (SkipProof.cheat_tac thy))    
     val eq = Goal.prove ctxt' [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
-    val _ = Output.tracing "Preprocessed elimination rule"
+    val _ = tracing "Preprocessed elimination rule"
   in
     Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
   end;
@@ -700,8 +700,8 @@ fun register_intros pre_intros thy =
     fun constname_of_intro intr = fst (dest_Const (fst (strip_intro_concl 0 (prop_of intr))))
     val _ = if not (forall (fn intr => constname_of_intro intr = c) pre_intros) then
       error "register_intros: Introduction rules of different constants are used" else ()
-    val _ = Output.tracing ("Registering introduction rules of " ^ c)
-    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
+    val _ = tracing ("Registering introduction rules of " ^ c ^ "...")
+    val _ = tracing (commas (map (Display.string_of_thm_global thy) pre_intros))
     val nparams = guess_nparams T
     val pre_elim = 
       (Drule.standard o (setmp quick_and_dirty true (SkipProof.make_thm thy)))
@@ -1071,11 +1071,6 @@ fun param_gen_prem param_vs (p as Prem (us, t as Free (v, _))) =
   
 fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts, ps) =
   let
-    (*
-  val _ = Output.tracing ("param_vs:" ^ commas param_vs)
-  val _ = Output.tracing ("iss:" ^
-    commas (map (fn is => case is of SOME is => string_of_smode is | NONE => "NONE") iss))
-    *)
     val modes' = modes @ List.mapPartial
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (param_vs ~~ iss);
@@ -1101,7 +1096,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
                       SOME generator_vs => check_mode_prems ((map (generator vTs) generator_vs) @ acc_ps)
                         (vs union generator_vs) ps
                     | NONE => let
-                    val _ = Output.tracing ("ps:" ^ (commas
+                    val _ = tracing ("ps:" ^ (commas
                     (map (fn p => string_of_moded_prem thy (p, Mode (([], []), [], []))) ps)))
                   in (*error "mode analysis failed"*)NONE end
                   end)
@@ -1131,9 +1126,9 @@ fun check_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms)
   in (p, List.filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
-    | i => (Output.tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
+    | i => (tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
       p ^ " violates mode " ^ string_of_mode m);
-        Output.tracing (commas (map (Syntax.string_of_term_global thy) (fst (nth rs i)))); false)) ms)
+        tracing (commas (map (Syntax.string_of_term_global thy) (fst (nth rs i)))); false)) ms)
   end;
 
 fun get_modes_pred with_generator thy param_vs clauses modes gen_modes (p, ms) =
@@ -2252,14 +2247,14 @@ fun check_format_of_intro_rule thy intro =
 
 (** main function of predicate compiler **)
 
-fun add_equations_of steps expected_modes prednames thy =
+fun add_equations_of steps options expected_modes prednames thy =
   let
-    val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
-    val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
+    val _ = print_step options ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
+    val _ = tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
       (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames (maps (intros_of thy) prednames)
-    val _ = Output.tracing "Infering modes..."
+    val _ = print_step options "Infering modes..."
     val moded_clauses = #infer_modes steps thy extra_modes all_modes param_vs clauses 
     val modes : (string * ((int * int list option) list option list * (int * int list option) list) list) list = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val all_smodes : (((int * int list option) list) list) list = map (map snd) (map snd modes)
@@ -2269,14 +2264,14 @@ fun add_equations_of steps expected_modes prednames thy =
       | NONE => ()
     val _ = print_modes modes
     val _ = print_moded_clauses thy moded_clauses
-    val _ = Output.tracing "Defining executable functions..."
+    val _ = print_step options "Defining executable functions..."
     val thy' = fold (#create_definitions steps preds) modes thy
       |> Theory.checkpoint
-    val _ = Output.tracing "Compiling equations..."
+    val _ = print_step options "Compiling equations..."
     val compiled_terms =
       (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
     val _ = print_compiled_terms thy' compiled_terms
-    val _ = Output.tracing "Proving equations..."
+    val _ = print_step options "Proving equations..."
     val result_thms = #prove steps thy' clauses preds (extra_modes @ modes)
       moded_clauses compiled_terms
     val qname = #qname steps
@@ -2305,7 +2300,7 @@ fun extend' value_of edges_of key (G, visited) =
 
 fun extend value_of edges_of key G = fst (extend' value_of edges_of key (G, [])) 
   
-fun gen_add_equations steps expected_modes names thy =
+fun gen_add_equations steps options expected_modes names thy =
   let
     val thy' = PredData.map (fold (extend (fetch_pred_data thy) (depending_preds_of thy)) names) thy
       |> Theory.checkpoint;
@@ -2314,7 +2309,8 @@ fun gen_add_equations steps expected_modes names thy =
     val scc = strong_conn_of (PredData.get thy') names
     val thy'' = fold_rev
       (fn preds => fn thy =>
-        if #are_not_defined steps thy preds then add_equations_of steps expected_modes preds thy else thy)
+        if #are_not_defined steps thy preds then
+          add_equations_of steps options expected_modes preds thy else thy)
       scc thy' |> Theory.checkpoint
   in thy'' end
 
@@ -2370,7 +2366,7 @@ val setup = PredData.put (Graph.empty) #>
   (*FIXME why distinguished attribute for cases?*)
 
 (* TODO: make TheoryDataFun to GenericDataFun & remove duplication of local theory and theory *)
-fun generic_code_pred prep_const modes rpred raw_const lthy =
+fun generic_code_pred prep_const options modes rpred raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
@@ -2400,9 +2396,9 @@ fun generic_code_pred prep_const modes rpred raw_const lthy =
       in
         goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
           (if rpred then
-            (add_equations NONE [const] #>
-             add_sizelim_equations NONE [const] #> add_quickcheck_equations NONE [const])
-           else add_equations modes [const]))
+            (add_equations options NONE [const] #>
+             add_sizelim_equations options NONE [const] #> add_quickcheck_equations options NONE [const])
+           else add_equations options modes [const]))
       end  
   in
     Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy''

@@ -322,13 +322,13 @@ where "Min s r x \<equiv> s x \<and> (\<forall>y. r x y \<longrightarrow> x = y)
 code_pred (inductify_all) Min .
 
 subsection {* Examples with lists *}
-
+(*
 inductive filterP for Pa where
 "(filterP::('a => bool) => 'a list => 'a list => bool) (Pa::'a => bool) [] []"
 | "[| (res::'a list) = (y::'a) # (resa::'a list); (filterP::('a => bool) => 'a list => 'a list => bool) (Pa::'a => bool) (xt::'a list) resa; Pa y |]
 ==> filterP Pa (y # xt) res"
 | "[| (filterP::('a => bool) => 'a list => 'a list => bool) (Pa::'a => bool) (xt::'a list) (res::'a list); ~ Pa (y::'a) |] ==> filterP Pa (y # xt) res"
-
+*)
 (*
 code_pred (inductify_all) (rpred) filterP .
 thm filterP.rpred_equation
@@ -371,20 +371,23 @@ primrec
 
 code_pred (inductify_all) avl .
 thm avl.equation
-
+(*
 fun set_of
 where
 "set_of ET = {}"
 | "set_of (MKT n l r h) = insert n (set_of l \<union> set_of r)"
 
-fun is_ord
+
+fun is_ord :: "nat tree => bool"
 where
 "is_ord ET = True"
 | "is_ord (MKT n l r h) =
  ((\<forall>n' \<in> set_of l. n' < n) \<and> (\<forall>n' \<in> set_of r. n < n') \<and> is_ord l \<and> is_ord r)"
+ML {*  *}
 
 code_pred (inductify_all) set_of .
 thm set_of.equation
+*)
 text {* expected mode: [1], [1, 2] *}
 (* FIXME *)
 (*
@@ -426,6 +429,18 @@ code_pred (inductify_all) splice .
 code_pred (inductify_all) List.rev .
 thm revP.equation
 
+code_pred (inductify_all) foldl .
+thm foldlP.equation
+
+code_pred (inductify_all) filter .
+
+definition test where "test xs = filter (\<lambda>x. x = (1::nat)) xs"
+term "one_nat_inst.one_nat"
+code_pred (inductify_all) test .
+thm testP.equation
+(*
+code_pred (inductify_all) (rpred) test .
+*)
 section {* Handling set operations *}
 
 
@@ -445,12 +460,12 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 code_pred (inductify_all) S\<^isub>1p .
 
 thm S\<^isub>1p.equation
-
+(*
 theorem S\<^isub>1_sound:
 "w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[generator=pred_compile]
 oops
-
+*)
 inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
   "[] \<in> S\<^isub>2"
 | "w \<in> A\<^isub>2 \<Longrightarrow> b # w \<in> S\<^isub>2"
@@ -465,7 +480,7 @@ ML {* Predicate_Compile_Core.intros_of @{theory} @{const_name "B\<^isub>2"} *}
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 (*quickcheck[generator=SML]*)
-quickcheck[generator=pred_compile, size=15, iterations=100]
+(*quickcheck[generator=pred_compile, size=15, iterations=100]*)
 oops
 
 inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
@@ -480,23 +495,24 @@ code_pred (inductify_all) S\<^isub>3 .
 
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=pred_compile, size=10, iterations=1]
+(*quickcheck[generator=pred_compile, size=10, iterations=1]*)
 oops
 
 lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
-quickcheck[size=10, generator = pred_compile]
+(*quickcheck[size=10, generator = pred_compile]*)
 oops
-
+(*
 inductive test
 where
-  "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] ==> test w"
+  "length [x \<leftarrow> w. a = x] = length [x \<leftarrow> w. x = b] ==> test w"
 ML {* @{term "[x \<leftarrow> w. x = a]"} *}
 code_pred (inductify_all) test .
 
 thm test.equation
+*)
 (*
 theorem S\<^isub>3_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. b = x] \<longrightarrow> w \<in> S\<^isub>3"
 (*quickcheck[generator=SML]*)
 quickcheck[generator=pred_compile, size=10, iterations=100]
 oops
@@ -509,15 +525,15 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 | "\<lbrakk>v \<in> A\<^isub>4; w \<in> A\<^isub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^isub>4"
 | "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
 | "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
-
+(*
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[generator = pred_compile, size=2, iterations=1]
 oops
-
+*)
 theorem S\<^isub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
-quickcheck[generator = pred_compile, size=5, iterations=1]
+(*quickcheck[generator = pred_compile, size=5, iterations=1]*)
 oops
 
 theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
@@ -580,16 +596,17 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
 
 lemma "Gamma \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> Gamma \<turnstile> t' : T"
-quickcheck[generator = pred_compile, size = 10, iterations = 1000]
+quickcheck[generator = pred_compile, size = 10, iterations = 100]
 oops
 (* FIXME *)
-(*
-inductive test for P where
-"[| filter P vs = res |]
-==> test P vs res"
 
-code_pred test .
-*)
+inductive test' for P where
+"[| filter P vs = res |]
+==> test' P vs res"
+
+code_pred (inductify_all) test' .
+thm test'.equation
+
 (*
 export_code test_for_1_yields_1_2 in SML file -
 code_pred (inductify_all) (rpred) test .
