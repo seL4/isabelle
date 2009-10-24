@@ -133,18 +133,18 @@ fun equals_conv lhs_cv rhs_cv ct =
 (* Different options for compiler *)
 
 datatype options = Options of {  
-  (*check_modes : (string * int list list) list,*)
+  expected_modes : (string * int list list) option,
   show_steps : bool,
   show_mode_inference : bool,
   show_proof_trace : bool,
   show_intermediate_results : bool,
-  (*
-  inductify_functions : bool,
-  *)
+
   inductify : bool,
-  rpred : bool
+  rpred : bool,
+  sizelim : bool
 };
 
+fun expected_modes (Options opt) = #expected_modes opt
 fun show_steps (Options opt) = #show_steps opt
 fun show_mode_inference (Options opt) = #show_mode_inference opt
 fun show_intermediate_results (Options opt) = #show_intermediate_results opt
@@ -152,15 +152,17 @@ fun show_proof_trace (Options opt) = #show_proof_trace opt
 
 fun is_inductify (Options opt) = #inductify opt
 fun is_rpred (Options opt) = #rpred opt
-
+fun is_sizelim (Options opt) = #sizelim opt
 
 val default_options = Options {
+  expected_modes = NONE,
   show_steps = false,
   show_intermediate_results = false,
   show_proof_trace = false,
   show_mode_inference = false,
   inductify = false,
-  rpred = false
+  rpred = false,
+  sizelim = false
 }
 
 

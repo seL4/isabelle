@@ -101,46 +101,47 @@ fun preprocess options const thy =
     (Graph.strong_conn gr) thy
   end
 
-fun extract_options ((modes, raw_options), raw_const) =
+fun extract_options ((modes, raw_options), const) =
   let
     fun chk s = member (op =) raw_options s
   in
     Options {
+      expected_modes = Option.map (pair const) modes,
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
       show_mode_inference = chk "show_mode_inference",
       inductify = chk "inductify",
-      rpred = chk "rpred"
+      rpred = chk "rpred",
+      sizelim = chk "sizelim"
     }
   end
 
 fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
   let
-    val options = extract_options ((modes, raw_options), raw_const)
-  in  
+     val thy = ProofContext.theory_of lthy
+     val const = Code.read_const thy raw_const
+     val options = extract_options ((modes, raw_options), const)
+  in
     if (is_inductify options) then
       let
-        val thy = ProofContext.theory_of lthy
-        val const = Code.read_const thy raw_const
         val lthy' = LocalTheory.theory (preprocess options const) lthy
           |> LocalTheory.checkpoint
-          
         val const = case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
             SOME c => c
           | NONE => const
         val _ = print_step options "Starting Predicate Compile Core..."
       in
-        Predicate_Compile_Core.code_pred options modes const lthy'
+        Predicate_Compile_Core.code_pred options const lthy'
       end
     else
-      Predicate_Compile_Core.code_pred_cmd options modes raw_const lthy
+      Predicate_Compile_Core.code_pred_cmd options raw_const lthy
   end
 
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace",
-  "show_mode_inference", "inductify", "rpred"]
+  "show_mode_inference", "inductify", "rpred", "sizelim"]
 
 val _ = List.app OuterKeyword.keyword ("mode" :: bool_options)
 
