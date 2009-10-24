@@ -122,7 +122,7 @@ fun selections (name, [th]) = [(Named ((name, Position.none), NONE), th)]
 datatype fact = Static of thm list | Dynamic of Context.generic -> thm list;
 
 datatype T = Facts of
- {facts: (fact * serial) NameSpace.table,
+ {facts: fact NameSpace.table,
   props: thm Net.net};
 
 fun make_facts facts props = Facts {facts = facts, props = props};
@@ -144,10 +144,11 @@ val defined = Symtab.defined o table_of;
 fun lookup context facts name =
   (case Symtab.lookup (table_of facts) name of
     NONE => NONE
-  | SOME (Static ths, _) => SOME (true, ths)
-  | SOME (Dynamic f, _) => SOME (false, f context));
+  | SOME (Static ths) => SOME (true, ths)
+  | SOME (Dynamic f) => SOME (false, f context));
 
-fun fold_static f = Symtab.fold (fn (name, (Static ths, _)) => f (name, ths) | _ => I) o table_of;
+fun fold_static f =
+  Symtab.fold (fn (name, Static ths) => f (name, ths) | _ => I) o table_of;
 
 
 (* content difference *)
@@ -174,57 +175,48 @@ fun could_unify (Facts {props, ...}) = Net.unify_term props;
 
 (* merge facts *)
 
-fun err_dup_fact name = error ("Duplicate fact " ^ quote name);
-
-(* FIXME stamp identity! *)
-fun eq_entry ((Static ths1, _), (Static ths2, _)) = is_equal (list_ord Thm.thm_ord (ths1, ths2))
-  | eq_entry ((_, id1: serial), (_, id2)) = id1 = id2;
-
 fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props = props2}) =
   let
-    val facts' = NameSpace.merge_tables eq_entry (facts1, facts2)
-      handle Symtab.DUP dup => err_dup_fact dup;
+    val facts' = NameSpace.merge_tables (facts1, facts2);
     val props' = Net.merge (is_equal o prop_ord) (props1, props2);
   in make_facts facts' props' end;
 
 
 (* add static entries *)
 
-fun add permissive do_props naming (b, ths) (Facts {facts, props}) =
+local
+
+fun add strict do_props naming (b, ths) (Facts {facts, props}) =
   let
-    val (name, facts') = if Binding.is_empty b then ("", facts)
-      else let
-        val (space, tab) = facts;
-        val (name, space') = NameSpace.declare naming b space;
-        val entry = (name, (Static ths, serial ()));
-        val tab' = (if permissive then Symtab.update else Symtab.update_new) entry tab
-          handle Symtab.DUP dup => err_dup_fact dup;
-      in (name, (space', tab')) end;
+    val (name, facts') =
+      if Binding.is_empty b then ("", facts)
+      else NameSpace.define strict naming (b, Static ths) facts;
     val props' =
-      if do_props then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
+      if do_props
+      then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
       else props;
   in (name, make_facts facts' props') end;
 
-val add_global = add false false;
-val add_local = add true;
+in
+
+val add_global = add true false;
+val add_local = add false;
+
+end;
 
 
 (* add dynamic entries *)
 
-fun add_dynamic naming (b, f) (Facts {facts = (space, tab), props}) =
-  let
-    val (name, space') = NameSpace.declare naming b space;
-    val entry = (name, (Dynamic f, serial ()));
-    val tab' = Symtab.update_new entry tab
-      handle Symtab.DUP dup => err_dup_fact dup;
-  in (name, make_facts (space', tab') props) end;
+fun add_dynamic naming (b, f) (Facts {facts, props}) =
+  let val (name, facts') = NameSpace.define true naming (b, Dynamic f) facts;
+  in (name, make_facts facts' props) end;
 
 
 (* remove entries *)
 
 fun del name (Facts {facts = (space, tab), props}) =
   let
-    val space' = NameSpace.hide true name space handle ERROR _ => space;
+    val space' = NameSpace.hide true name space handle ERROR _ => space;  (* FIXME handle?? *)
     val tab' = Symtab.delete_safe name tab;
   in make_facts (space', tab') props end;
 
