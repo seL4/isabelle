@@ -18,6 +18,9 @@ sig
   val kindN: string
   val internalK: string
   val property_internal: Properties.property
+  val entityN: string val entity: string -> T
+  val defN: string
+  val refN: string
   val lineN: string
   val columnN: string
   val offsetN: string
@@ -159,6 +162,14 @@ val kindN = "kind";
 
 val internalK = "internal";
 val property_internal = (kindN, internalK);
+
+
+(* formal entities *)
+
+val (entityN, entity) = markup_string "entity" nameN;
+
+val defN = "def";
+val refN = "ref";
 
 
 (* position *)
