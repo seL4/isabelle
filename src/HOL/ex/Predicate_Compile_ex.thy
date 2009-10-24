@@ -7,7 +7,7 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "even n \<Longrightarrow> odd (Suc n)"
   | "odd n \<Longrightarrow> even (Suc n)"
 
-code_pred (mode: [], [1]) [show_steps, inductify] even .
+code_pred (mode: [], [1]) [show_steps] even .
 
 thm odd.equation
 thm even.equation
@@ -425,7 +425,7 @@ code_pred [inductify] replicate .
 code_pred [inductify] splice .
 code_pred [inductify] List.rev .
 thm map.simps
-code_pred [inductify, show_steps, show_intermediate_results] map .
+code_pred [inductify] map .
 code_pred [inductify] foldr .
 code_pred [inductify] foldl .
 code_pred [inductify] filter .

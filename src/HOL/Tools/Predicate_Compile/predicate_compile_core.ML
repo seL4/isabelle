@@ -259,82 +259,6 @@ fun string_of_tmode (Mode (predmode, termmode, param_modes)) =
   (if null param_modes then "" else
     "; " ^ "params: " ^ commas (map (the_default "NONE" o Option.map string_of_tmode) param_modes))
 
-fun unify_consts thy cs intr_ts =
-  (let
-     val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
-     fun varify (t, (i, ts)) =
-       let val t' = map_types (Logic.incr_tvar (i + 1)) (#2 (Type.varify [] t))
-       in (maxidx_of_term t', t'::ts) end;
-     val (i, cs') = foldr varify (~1, []) cs;
-     val (i', intr_ts') = foldr varify (i, []) intr_ts;
-     val rec_consts = fold add_term_consts_2 cs' [];
-     val intr_consts = fold add_term_consts_2 intr_ts' [];
-     fun unify (cname, cT) =
-       let val consts = map snd (List.filter (fn c => fst c = cname) intr_consts)
-       in fold (Sign.typ_unify thy) ((replicate (length consts) cT) ~~ consts) end;
-     val (env, _) = fold unify rec_consts (Vartab.empty, i');
-     val subst = map_types (Envir.norm_type env)
-   in (map subst cs', map subst intr_ts')
-   end) handle Type.TUNIFY =>
-     (warning "Occurrences of recursive constant have non-unifiable types"; (cs, intr_ts));
-
-(* how to detect polymorphic type dependencies in mutual recursive inductive predicates? *)
-fun import_intros [] ctxt = ([], ctxt)
-  | import_intros (th :: ths) ctxt =
-    let
-      val ((_, [th']), ctxt') = Variable.import false [th] ctxt
-      val thy = ProofContext.theory_of ctxt'
-      val (pred, ([], args)) = strip_intro_concl 0 (prop_of th')
-      val ho_args = filter (is_predT o fastype_of) args
-      fun instantiate_typ th =
-        let
-          val (pred', _) = strip_intro_concl 0 (prop_of th)
-          val _ = if not (fst (dest_Const pred) = fst (dest_Const pred')) then
-            error "Trying to instantiate another predicate" else ()
-          val subst = Sign.typ_match thy
-            (fastype_of pred', fastype_of pred) Vartab.empty
-          val subst' = map (fn (indexname, (s, T)) => ((indexname, s), T))
-            (Vartab.dest subst)
-        in Thm.certify_instantiate (subst', []) th end;
-      fun instantiate_ho_args th =
-        let
-          val (_, (_, args')) = strip_intro_concl 0 (prop_of th)
-          val ho_args' = map dest_Var (filter (is_predT o fastype_of) args')
-        in Thm.certify_instantiate ([], ho_args' ~~ ho_args) th end
-      val ((_, ths'), ctxt1) =
-        Variable.import false (map (instantiate_typ #> instantiate_ho_args) ths) ctxt'
-    in
-      (th' :: ths', ctxt1)
-    end
-
-
-(* generation of case rules from user-given introduction rules *)
-
-fun mk_casesrule ctxt nparams introrules =
-  let
-    val (intros_th, ctxt1) = import_intros introrules ctxt
-    val intros = map prop_of intros_th
-    val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
-    val ([propname], ctxt2) = Variable.variant_fixes ["thesis"] ctxt1
-    val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
-    val (argnames, ctxt3) = Variable.variant_fixes
-      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt2
-    val argvs = map2 (curry Free) argnames (map fastype_of args)
-    fun mk_case intro =
-      let
-        val (_, (_, args)) = strip_intro_concl nparams intro
-        val prems = Logic.strip_imp_prems intro
-        val eqprems = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (argvs ~~ args)
-        val frees = (fold o fold_aterms)
-          (fn t as Free _ =>
-              if member (op aconv) params t then I else insert (op aconv) t
-           | _ => I) (args @ prems) []
-      in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
-    val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
-    val cases = map mk_case intros
-  in Logic.list_implies (assm :: cases, prop) end;
-    
-
 datatype indprem = Prem of term list * term | Negprem of term list * term | Sidecond of term |
   GeneratorPrem of term list * term | Generator of (string * typ);
 
@@ -544,7 +468,82 @@ fun print_all_modes thy =
   in
     fold print (all_modes_of thy) ()
   end
-  
+
+(* importing introduction rules *)   
+
+fun unify_consts thy cs intr_ts =
+  (let
+     val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
+     fun varify (t, (i, ts)) =
+       let val t' = map_types (Logic.incr_tvar (i + 1)) (#2 (Type.varify [] t))
+       in (maxidx_of_term t', t'::ts) end;
+     val (i, cs') = foldr varify (~1, []) cs;
+     val (i', intr_ts') = foldr varify (i, []) intr_ts;
+     val rec_consts = fold add_term_consts_2 cs' [];
+     val intr_consts = fold add_term_consts_2 intr_ts' [];
+     fun unify (cname, cT) =
+       let val consts = map snd (List.filter (fn c => fst c = cname) intr_consts)
+       in fold (Sign.typ_unify thy) ((replicate (length consts) cT) ~~ consts) end;
+     val (env, _) = fold unify rec_consts (Vartab.empty, i');
+     val subst = map_types (Envir.norm_type env)
+   in (map subst cs', map subst intr_ts')
+   end) handle Type.TUNIFY =>
+     (warning "Occurrences of recursive constant have non-unifiable types"; (cs, intr_ts));
+
+fun import_intros _ [] ctxt = ([], ctxt)
+  | import_intros nparams (th :: ths) ctxt =
+    let
+      val ((_, [th']), ctxt') = Variable.import false [th] ctxt
+      val thy = ProofContext.theory_of ctxt'
+      val (pred, (params, args)) = strip_intro_concl nparams (prop_of th')
+      val ho_args = filter (is_predT o fastype_of) args
+      fun instantiate_typ th =
+        let
+          val (pred', _) = strip_intro_concl 0 (prop_of th)
+          val _ = if not (fst (dest_Const pred) = fst (dest_Const pred')) then
+            error "Trying to instantiate another predicate" else ()
+          val subst = Sign.typ_match thy
+            (fastype_of pred', fastype_of pred) Vartab.empty
+          val subst' = map (fn (indexname, (s, T)) => ((indexname, s), T))
+            (Vartab.dest subst)
+        in Thm.certify_instantiate (subst', []) th end;
+      fun instantiate_ho_args th =
+        let
+          val (_, (params', args')) = strip_intro_concl nparams (prop_of th)
+          val ho_args' = map dest_Var (filter (is_predT o fastype_of) args')
+        in Thm.certify_instantiate ([], map dest_Var params' ~~ params) th end
+      val ((_, ths'), ctxt1) =
+        Variable.import false (map (instantiate_typ #> instantiate_ho_args) ths) ctxt'
+    in
+      (th' :: ths', ctxt1)
+    end
+
+(* generation of case rules from user-given introduction rules *)
+
+fun mk_casesrule ctxt nparams introrules =
+  let
+    val (intros_th, ctxt1) = import_intros nparams introrules ctxt
+    val intros = map prop_of intros_th
+    val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
+    val ([propname], ctxt2) = Variable.variant_fixes ["thesis"] ctxt1
+    val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
+    val (argnames, ctxt3) = Variable.variant_fixes
+      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt2
+    val argvs = map2 (curry Free) argnames (map fastype_of args)
+    fun mk_case intro =
+      let
+        val (_, (_, args)) = strip_intro_concl nparams intro
+        val prems = Logic.strip_imp_prems intro
+        val eqprems = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (argvs ~~ args)
+        val frees = (fold o fold_aterms)
+          (fn t as Free _ =>
+              if member (op aconv) params t then I else insert (op aconv) t
+           | _ => I) (args @ prems) []
+      in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
+    val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
+    val cases = map mk_case intros
+  in Logic.list_implies (assm :: cases, prop) end;
+
 (** preprocessing rules **)  
 
 fun imp_prems_conv cv ct =

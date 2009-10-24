@@ -40,7 +40,7 @@ inductive
           ("_ \<turnstile> _ -_[\<succ>]_-> _" [51,82,60,51,82] 81)
   and exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
           ("_ \<turnstile> _ -_-> _" [51,82,60,82] 81)
-  (*for G :: "java_mb prog"*)
+  for G :: "java_mb prog"
 where
 
   -- "evaluation of expressions"

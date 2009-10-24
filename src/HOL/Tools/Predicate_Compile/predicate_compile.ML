@@ -44,7 +44,7 @@ fun process_specification options specs thy' =
       (fn th => if is_equationlike th then Pred_Compile_Data.normalize_equation thy' th else th))) specs
     val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess specs thy')
     val _ = print_intross options thy'' "Flattened introduction rules: " intross1
-    val _ =  "Replacing functions in introrules..."
+    val _ = print_step options "Replacing functions in introrules..."
     val intross2 =
       if fail_safe_mode then
         case try (burrow (maps (Predicate_Compile_Fun.rewrite_intro thy''))) intross1 of

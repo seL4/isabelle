@@ -102,9 +102,11 @@ fun pred_of f =
       (Free (Long_Name.base_name name ^ "P", pred_type T))
   end
 
-fun mk_param lookup_pred (t as Free (v, _)) = lookup_pred t
-  | mk_param lookup_pred t =
-  if Predicate_Compile_Aux.is_predT (fastype_of t) then
+fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
+  | mk_param thy lookup_pred t =
+  let
+  val _ = tracing ("called param with " ^ (Syntax.string_of_term_global thy t))
+  in if Predicate_Compile_Aux.is_predT (fastype_of t) then
     t
   else
     let
@@ -116,11 +118,13 @@ fun mk_param lookup_pred (t as Free (v, _)) = lookup_pred t
       val (f, args) = strip_comb body'
       val resname = Name.variant (vs_names @ names) "res"
       val resvar = Free (resname, body_type (fastype_of body'))
-      val P = lookup_pred f
+      (*val P = case try lookup_pred f of SOME P => P | NONE => error "mk_param"
       val pred_body = list_comb (P, args @ [resvar])
+      *)
+      val pred_body = HOLogic.mk_eq (body', resvar)
       val param = fold_rev lambda (vs' @ [resvar]) pred_body
-    in param end;
-
+    in param end
+  end
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
 
@@ -272,7 +276,7 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
                   val pred = lookup_pred t
                   val nparams = get_nparams pred
                   val (params, args) = chop nparams args
-                  val params' = map (mk_param lookup_pred) params
+                  val params' = map (mk_param thy lookup_pred) params
                 in
                   folds_map mk_prems' args (names', prems)
                   |> map (fn (argvs, (names'', prems')) =>
@@ -318,16 +322,14 @@ fun define_predicates specs thy =
     val funnames = map (fst o dest_Const) funs
     val fun_pred_names = (funnames ~~ prednames)  
       (* mapping from term (Free or Const) to term *)
-    fun lookup_pred (Const (@{const_name Cons}, T)) =
-      Const ("Preprocessing.ConsP", pred_type T) (* FIXME: temporary - Cons lookup *)
-      | lookup_pred (Const (name, T)) =
+    fun lookup_pred (Const (name, T)) =
       (case (Symtab.lookup (Pred_Compile_Preproc.get thy) name) of
           SOME c => Const (c, pred_type T)
         | NONE =>
           (case AList.lookup op = fun_pred_names name of
             SOME f => Free (f, pred_type T)
           | NONE => Const (name, T)))
-      | lookup_pred  (Free (name, T)) =
+      | lookup_pred (Free (name, T)) =
         if member op = (map fst pnames) name then
           Free (name, transform_ho_typ T)
         else
