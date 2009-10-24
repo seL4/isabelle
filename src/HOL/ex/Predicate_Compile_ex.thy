@@ -426,6 +426,8 @@ code_pred [inductify] distinct .
 code_pred [inductify] replicate .
 code_pred [inductify] splice .
 code_pred [inductify] List.rev .
+thm map.simps
+code_pred [inductify, show_steps, show_intermediate_results] map .
 code_pred [inductify] foldr .
 code_pred [inductify] foldl .
 code_pred [inductify] filter .
