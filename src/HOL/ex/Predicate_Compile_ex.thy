@@ -8,9 +8,16 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "odd n \<Longrightarrow> even (Suc n)"
 
 code_pred (mode: [], [1]) [show_steps] even .
-
+code_pred [depth_limited] even .
+(*code_pred [rpred] even .*)
 thm odd.equation
 thm even.equation
+thm odd.depth_limited_equation
+thm even.depth_limited_equation
+(*
+thm even.rpred_equation
+thm odd.rpred_equation
+*)
 (*
 lemma unit: "unit_case f = (\<lambda>x. f)"
 apply (rule ext)
@@ -33,6 +40,40 @@ values "{x. even 2}"
 values "{x. odd 2}"
 values 10 "{n. even n}"
 values 10 "{n. odd n}"
+values [depth_limit = 2] "{x. even 6}"
+values [depth_limit = 7] "{x. even 6}"
+values [depth_limit = 2] "{x. odd 7}"
+values [depth_limit = 8] "{x. odd 7}"
+
+values [depth_limit = 7] 10 "{n. even n}"
+definition odd' where "odd' x == \<not> even x"
+
+code_pred [inductify] odd' .
+code_pred [inductify, depth_limited] odd' .
+(*code_pred [inductify, rpred] odd' .*)
+
+thm odd'.depth_limited_equation
+values [depth_limit = 2] "{x. odd' 7}"
+values [depth_limit = 9] "{x. odd' 7}"
+
+definition even'' where "even'' = even"
+definition odd'' where "odd'' = odd"
+
+
+
+lemma [code_pred_intros]:
+  "even'' 0"
+  "odd'' x ==> even'' (Suc x)"
+  "\<not> even'' x ==> odd'' x"
+sorry
+
+code_pred odd'' sorry
+thm odd''.equation
+code_pred [depth_limited] odd'' sorry
+
+values "{x. odd'' 10}"
+values "{x. even'' 10}"
+values [depth_limit=5] "{x. odd'' 10}"
 
 inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
     "append [] xs xs"
@@ -41,14 +82,16 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
 code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) [inductify] append .
 thm append.equation
 
-code_pred [rpred] append .
+code_pred [depth_limited] append .
 
 thm append.equation
-thm append.rpred_equation
+thm append.depth_limited_equation
+(*thm append.rpred_equation*)
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
+values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
@@ -149,6 +192,9 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
 code_pred (mode: [1], [2, 3], [1, 2], [1, 3], [1, 2, 3]) partition .
+code_pred [depth_limited] partition .
+thm partition.depth_limited_equation
+(*code_pred [rpred] partition .*)
 
 inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<times> 'a list \<times> 'a list) \<Rightarrow> bool"
   for f where
@@ -197,9 +243,9 @@ proof -
   from this converse_tranclpE[OF this(1)] show thesis by metis
 qed
 
-code_pred [inductify, rpred] tranclp .
+(*code_pred [inductify, rpred] tranclp .*)
 thm tranclp.equation
-thm tranclp.rpred_equation
+(*thm tranclp.rpred_equation*)
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
@@ -345,10 +391,10 @@ thm lexn.equation
 
 code_pred [inductify] lenlex .
 thm lenlex.equation
-
+(*
 code_pred [inductify, rpred] lenlex .
 thm lenlex.rpred_equation
-
+*)
 thm lists.intros
 code_pred [inductify] lists .
 
@@ -469,12 +515,12 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 | "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
 | "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
 | "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
-
+(*
 code_pred [inductify, rpred] S\<^isub>2 .
 thm S\<^isub>2.rpred_equation
 thm A\<^isub>2.rpred_equation
 thm B\<^isub>2.rpred_equation
-
+*)
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 (*quickcheck[generator=SML]*)
@@ -594,7 +640,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
 
 lemma "Gamma \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> Gamma \<turnstile> t' : T"
-quickcheck[generator = pred_compile, size = 10, iterations = 1]
+(*quickcheck[generator = pred_compile, size = 10, iterations = 1]*)
 oops
 
 lemma filter_eq_ConsD:
