@@ -45,7 +45,7 @@ val aT = "'a";
 
 (* checked binding *)
 
-val of_binding = Long_Name.base_name o NameSpace.full_name NameSpace.default_naming;
+val of_binding = Long_Name.base_name o Name_Space.full_name Name_Space.default_naming;
 
 
 (* encoded bounds *)

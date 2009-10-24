@@ -146,7 +146,7 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
   else
     let
       val naming = Sign.naming_of thy;
-      val name = NameSpace.full_name naming b;
+      val name = Name_Space.full_name naming b;
       val (thy', thms') =
         register_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
       val thms'' = map (Thm.transfer thy') thms';

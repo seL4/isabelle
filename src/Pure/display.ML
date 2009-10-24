@@ -179,25 +179,25 @@ fun pretty_full_theory verbose thy =
     val {restricts, reducts} = Defs.dest defs;
     val {naming = _, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {constants, constraints} = Consts.dest consts;
-    val extern_const = NameSpace.extern (#1 constants);
+    val extern_const = Name_Space.extern (#1 constants);
     val {classes, default, types, ...} = Type.rep_tsig tsig;
     val (class_space, class_algebra) = classes;
     val {classes, arities} = Sorts.rep_algebra class_algebra;
 
-    val clsses = NameSpace.dest_table (class_space, Symtab.make (Graph.dest classes));
-    val tdecls = NameSpace.dest_table types;
-    val arties = NameSpace.dest_table (Sign.type_space thy, arities);
+    val clsses = Name_Space.dest_table (class_space, Symtab.make (Graph.dest classes));
+    val tdecls = Name_Space.dest_table types;
+    val arties = Name_Space.dest_table (Sign.type_space thy, arities);
 
     fun prune_const c = not verbose andalso
       member (op =) (Consts.the_tags consts c) Markup.property_internal;
-    val cnsts = NameSpace.extern_table (#1 constants,
+    val cnsts = Name_Space.extern_table (#1 constants,
       Symtab.make (filter_out (prune_const o fst) (Symtab.dest (#2 constants))));
 
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = NameSpace.extern_table constraints;
+    val cnstrs = Name_Space.extern_table constraints;
 
-    val axms = NameSpace.extern_table axioms;
+    val axms = Name_Space.extern_table axioms;
 
     val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
       |> map (fn (lhs, rhs) =>

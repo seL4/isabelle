@@ -1726,19 +1726,19 @@ end;
 
 structure Oracles = TheoryDataFun
 (
-  type T = unit NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = unit Name_Space.table;
+  val empty = Name_Space.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ oracles : T = NameSpace.merge_tables oracles;
+  fun merge _ oracles : T = Name_Space.merge_tables oracles;
 );
 
-val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
+val extern_oracles = map #1 o Name_Space.extern_table o Oracles.get;
 
 fun add_oracle (b, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val (name, tab') = NameSpace.define true naming (b, ()) (Oracles.get thy);
+    val (name, tab') = Name_Space.define true naming (b, ()) (Oracles.get thy);
     val thy' = Oracles.put tab' thy;
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 

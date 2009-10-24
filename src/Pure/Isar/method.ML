@@ -322,11 +322,11 @@ fun finish_text (NONE, immed) = Basic (close immed)
 
 structure Methods = TheoryDataFun
 (
-  type T = ((src -> Proof.context -> method) * string) NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = ((src -> Proof.context -> method) * string) Name_Space.table;
+  val empty = Name_Space.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables tables;
+  fun merge _ tables : T = Name_Space.merge_tables tables;
 );
 
 fun print_methods thy =
@@ -335,17 +335,17 @@ fun print_methods thy =
     fun prt_meth (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
-    [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
+    [Pretty.big_list "methods:" (map prt_meth (Name_Space.extern_table meths))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
 fun add_method name meth comment thy = thy
-  |> Methods.map (#2 o NameSpace.define true (Sign.naming_of thy) (name, (meth, comment)));
+  |> Methods.map (#2 o Name_Space.define true (Sign.naming_of thy) (name, (meth, comment)));
 
 
 (* get methods *)
 
-val intern = NameSpace.intern o #1 o Methods.get;
+val intern = Name_Space.intern o #1 o Methods.get;
 val defined = Symtab.defined o #2 o Methods.get;
 
 fun method_i thy =
@@ -359,7 +359,7 @@ fun method_i thy =
       end;
   in meth end;
 
-fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (Methods.get thy)));
+fun method thy = method_i thy o Args.map_name (Name_Space.intern (#1 (Methods.get thy)));
 
 
 (* method setup *)

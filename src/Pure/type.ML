@@ -14,9 +14,9 @@ sig
     Nonterminal
   type tsig
   val rep_tsig: tsig ->
-   {classes: NameSpace.T * Sorts.algebra,
+   {classes: Name_Space.T * Sorts.algebra,
     default: sort,
-    types: (decl * Properties.T) NameSpace.table,
+    types: (decl * Properties.T) Name_Space.table,
     log_types: string list}
   val empty_tsig: tsig
   val defaultS: tsig -> sort
@@ -70,12 +70,12 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Pretty.pp -> NameSpace.naming -> binding * class list -> tsig -> tsig
+  val add_class: Pretty.pp -> Name_Space.naming -> binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_type: NameSpace.naming -> Properties.T -> binding * int -> tsig -> tsig
-  val add_abbrev: NameSpace.naming -> Properties.T -> binding * string list * typ -> tsig -> tsig
-  val add_nonterminal: NameSpace.naming -> Properties.T -> binding -> tsig -> tsig
+  val add_type: Name_Space.naming -> Properties.T -> binding * int -> tsig -> tsig
+  val add_abbrev: Name_Space.naming -> Properties.T -> binding * string list * typ -> tsig -> tsig
+  val add_nonterminal: Name_Space.naming -> Properties.T -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
@@ -99,9 +99,9 @@ datatype decl =
 
 datatype tsig =
   TSig of {
-    classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
+    classes: Name_Space.T * Sorts.algebra,  (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
-    types: (decl * Properties.T) NameSpace.table,  (*declared types*)
+    types: (decl * Properties.T) Name_Space.table,  (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
 fun rep_tsig (TSig comps) = comps;
@@ -120,7 +120,7 @@ fun map_tsig f (TSig {classes, default, types, log_types = _}) =
   build_tsig (f (classes, default, types));
 
 val empty_tsig =
-  build_tsig ((NameSpace.empty, Sorts.empty_algebra), [], NameSpace.empty_table);
+  build_tsig ((Name_Space.empty, Sorts.empty_algebra), [], Name_Space.empty_table);
 
 
 (* classes and sorts *)
@@ -511,12 +511,12 @@ fun add_class pp naming (c, cs) tsig =
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
-      val (c', space') = space |> NameSpace.declare true naming c;
+      val (c', space') = space |> Name_Space.declare true naming c;
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
 fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
-  ((NameSpace.hide fully c space, classes), default, types));
+  ((Name_Space.hide fully c space, classes), default, types));
 
 
 (* arities *)
@@ -558,13 +558,13 @@ local
 fun new_decl naming tags (c, decl) types =
   let
     val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val (_, types') = NameSpace.define true naming (c, (decl, tags')) types;
+    val (_, types') = Name_Space.define true naming (c, (decl, tags')) types;
   in types' end;
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
     val (space', tab') = f types;
-    val _ = NameSpace.intern space' "dummy" = "dummy" orelse
+    val _ = Name_Space.intern space' "dummy" = "dummy" orelse
       error "Illegal declaration of dummy type";
   in (classes, default, (space', tab')) end);
 
@@ -600,7 +600,7 @@ fun add_nonterminal naming tags = map_types o new_decl naming tags o rpair Nonte
 end;
 
 fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
-  (classes, default, (NameSpace.hide fully c space, types)));
+  (classes, default, (Name_Space.hide fully c space, types)));
 
 
 (* merge type signatures *)
@@ -612,10 +612,10 @@ fun merge_tsigs pp (tsig1, tsig2) =
     val (TSig {classes = (space2, classes2), default = default2, types = types2,
       log_types = _}) = tsig2;
 
-    val space' = NameSpace.merge (space1, space2);
+    val space' = Name_Space.merge (space1, space2);
     val classes' = Sorts.merge_algebra pp (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
-    val types' = NameSpace.merge_tables (types1, types2);
+    val types' = Name_Space.merge_tables (types1, types2);
   in build_tsig ((space', classes'), default', types') end;
 
 end;

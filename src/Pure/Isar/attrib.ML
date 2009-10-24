@@ -67,11 +67,11 @@ val empty_binding: binding = (Binding.empty, []);
 
 structure Attributes = TheoryDataFun
 (
-  type T = ((src -> attribute) * string) NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = ((src -> attribute) * string) Name_Space.table;
+  val empty = Name_Space.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables tables;
+  fun merge _ tables : T = Name_Space.merge_tables tables;
 );
 
 fun print_attributes thy =
@@ -80,20 +80,20 @@ fun print_attributes thy =
     fun prt_attr (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
-    [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
+    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table attribs))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
 fun add_attribute name att comment thy = thy
-  |> Attributes.map (#2 o NameSpace.define true (Sign.naming_of thy) (name, (att, comment)));
+  |> Attributes.map (#2 o Name_Space.define true (Sign.naming_of thy) (name, (att, comment)));
 
 
 (* name space *)
 
-val intern = NameSpace.intern o #1 o Attributes.get;
+val intern = Name_Space.intern o #1 o Attributes.get;
 val intern_src = Args.map_name o intern;
 
-val extern = NameSpace.extern o #1 o Attributes.get o ProofContext.theory_of;
+val extern = Name_Space.extern o #1 o Attributes.get o ProofContext.theory_of;
 
 
 (* pretty printing *)
@@ -338,7 +338,7 @@ fun print_configs ctxt =
         Pretty.block [Pretty.str (name ^ ": " ^ Config.print_type value ^ " ="), Pretty.brk 1,
           Pretty.str (Config.print_value value)]
       end;
-    val configs = NameSpace.extern_table (#1 (Attributes.get thy), Configs.get thy);
+    val configs = Name_Space.extern_table (#1 (Attributes.get thy), Configs.get thy);
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 

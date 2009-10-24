@@ -1810,7 +1810,7 @@ fun meta_to_obj_all thm =
 
 fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
   let
-    val external_names = NameSpace.external_names (Sign.naming_of thy);
+    val external_names = Name_Space.external_names (Sign.naming_of thy);
 
     val alphas = map fst args;
     val name = Sign.full_bname thy bname;

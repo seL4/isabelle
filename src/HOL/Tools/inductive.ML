@@ -144,7 +144,7 @@ fun print_inductives ctxt =
     val (tab, monos) = get_inductives ctxt;
     val space = Consts.space_of (ProofContext.consts_of ctxt);
   in
-    [Pretty.strs ("(co)inductives:" :: map #1 (NameSpace.extern_table (space, tab))),
+    [Pretty.strs ("(co)inductives:" :: map #1 (Name_Space.extern_table (space, tab))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
     |> Pretty.chunks |> Pretty.writeln
   end;

@@ -8,11 +8,11 @@ signature, polymorphic constants.
 signature SIGN =
 sig
   val rep_sg: theory ->
-   {naming: NameSpace.naming,
+   {naming: Name_Space.naming,
     syn: Syntax.syntax,
     tsig: Type.tsig,
     consts: Consts.T}
-  val naming_of: theory -> NameSpace.naming
+  val naming_of: theory -> Name_Space.naming
   val full_name: theory -> binding -> string
   val full_name_path: theory -> string -> binding -> string
   val full_bname: theory -> bstring -> string
@@ -44,9 +44,9 @@ sig
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
   val mk_const: theory -> string * typ list -> term
-  val class_space: theory -> NameSpace.T
-  val type_space: theory -> NameSpace.T
-  val const_space: theory -> NameSpace.T
+  val class_space: theory -> Name_Space.T
+  val type_space: theory -> Name_Space.T
+  val const_space: theory -> Name_Space.T
   val intern_class: theory -> xstring -> string
   val extern_class: theory -> string -> xstring
   val intern_type: theory -> xstring -> string
@@ -137,7 +137,7 @@ struct
 (** datatype sign **)
 
 datatype sign = Sign of
- {naming: NameSpace.naming,     (*common naming conventions*)
+ {naming: Name_Space.naming,    (*common naming conventions*)
   syn: Syntax.syntax,           (*concrete syntax for terms, types, sorts*)
   tsig: Type.tsig,              (*order-sorted signature of types*)
   consts: Consts.T};            (*polymorphic constants*)
@@ -150,17 +150,17 @@ structure SignData = TheoryDataFun
   type T = sign;
   val copy = I;
   fun extend (Sign {syn, tsig, consts, ...}) =
-    make_sign (NameSpace.default_naming, syn, tsig, consts);
+    make_sign (Name_Space.default_naming, syn, tsig, consts);
 
   val empty =
-    make_sign (NameSpace.default_naming, Syntax.basic_syn, Type.empty_tsig, Consts.empty);
+    make_sign (Name_Space.default_naming, Syntax.basic_syn, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let
       val Sign {naming = _, syn = syn1, tsig = tsig1, consts = consts1} = sign1;
       val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
-      val naming = NameSpace.default_naming;
+      val naming = Name_Space.default_naming;
       val syn = Syntax.merge_syntaxes syn1 syn2;
       val tsig = Type.merge_tsigs pp (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
@@ -182,10 +182,10 @@ fun map_consts f = map_sign (fn (naming, syn, tsig, consts) => (naming, syn, tsi
 
 val naming_of = #naming o rep_sg;
 
-val full_name = NameSpace.full_name o naming_of;
-fun full_name_path thy path = NameSpace.full_name (NameSpace.add_path path (naming_of thy));
+val full_name = Name_Space.full_name o naming_of;
+fun full_name_path thy path = Name_Space.full_name (Name_Space.add_path path (naming_of thy));
 
-fun full_bname thy = NameSpace.full_name (naming_of thy) o Binding.name;
+fun full_bname thy = Name_Space.full_name (naming_of thy) o Binding.name;
 fun full_bname_path thy path = full_name_path thy path o Binding.name;
 
 
@@ -240,12 +240,12 @@ val class_space = #1 o #classes o Type.rep_tsig o tsig_of;
 val type_space = #1 o #types o Type.rep_tsig o tsig_of;
 val const_space = Consts.space_of o consts_of;
 
-val intern_class = NameSpace.intern o class_space;
-val extern_class = NameSpace.extern o class_space;
-val intern_type = NameSpace.intern o type_space;
-val extern_type = NameSpace.extern o type_space;
-val intern_const = NameSpace.intern o const_space;
-val extern_const = NameSpace.extern o const_space;
+val intern_class = Name_Space.intern o class_space;
+val extern_class = Name_Space.extern o class_space;
+val intern_type = Name_Space.intern o type_space;
+val extern_type = Name_Space.extern o type_space;
+val intern_const = Name_Space.intern o const_space;
+val extern_const = Name_Space.extern o const_space;
 
 val intern_sort = map o intern_class;
 val extern_sort = map o extern_class;
@@ -612,10 +612,10 @@ val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 
 (* naming *)
 
-val add_path = map_naming o NameSpace.add_path;
-val root_path = map_naming NameSpace.root_path;
-val parent_path = map_naming NameSpace.parent_path;
-val mandatory_path = map_naming o NameSpace.mandatory_path;
+val add_path = map_naming o Name_Space.add_path;
+val root_path = map_naming Name_Space.root_path;
+val parent_path = map_naming Name_Space.parent_path;
+val mandatory_path = map_naming o Name_Space.mandatory_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 

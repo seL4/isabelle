@@ -17,7 +17,7 @@ sig
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val checkpoint: local_theory -> local_theory
-  val full_naming: local_theory -> NameSpace.naming
+  val full_naming: local_theory -> Name_Space.naming
   val full_name: local_theory -> binding -> string
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
@@ -139,9 +139,9 @@ val checkpoint = raw_theory Theory.checkpoint;
 
 fun full_naming lthy =
   Sign.naming_of (ProofContext.theory_of lthy)
-  |> NameSpace.mandatory_path (#theory_prefix (get_lthy lthy));
+  |> Name_Space.mandatory_path (#theory_prefix (get_lthy lthy));
 
-fun full_name naming = NameSpace.full_name (full_naming naming);
+fun full_name naming = Name_Space.full_name (full_naming naming);
 
 fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
   |> Sign.mandatory_path (#theory_prefix (get_lthy lthy))

@@ -147,10 +147,10 @@ val _ = ML_Antiquote.value "simpset"
 
 structure Simprocs = GenericDataFun
 (
-  type T = simproc NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = simproc Name_Space.table;
+  val empty = Name_Space.empty_table;
   val extend = I;
-  fun merge _ simprocs = NameSpace.merge_tables simprocs;
+  fun merge _ simprocs = Name_Space.merge_tables simprocs;
 );
 
 
@@ -159,7 +159,7 @@ structure Simprocs = GenericDataFun
 fun get_simproc context xname =
   let
     val (space, tab) = Simprocs.get context;
-    val name = NameSpace.intern space xname;
+    val name = Name_Space.intern space xname;
   in
     (case Symtab.lookup tab name of
       SOME proc => proc
@@ -197,7 +197,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
         val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;
       in
-        Simprocs.map (#2 o NameSpace.define true naming (b', simproc'))
+        Simprocs.map (#2 o Name_Space.define true naming (b', simproc'))
         #> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;

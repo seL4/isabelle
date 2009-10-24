@@ -21,7 +21,7 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
-  val naming_of: Proof.context -> NameSpace.naming
+  val naming_of: Proof.context -> Name_Space.naming
   val full_name: Proof.context -> binding -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
@@ -170,7 +170,7 @@ val mode_abbrev    = make_mode (false, false, false, true);
 datatype ctxt =
   Ctxt of
    {mode: mode,                                       (*inner syntax mode*)
-    naming: NameSpace.naming,                         (*local naming conventions*)
+    naming: Name_Space.naming,                        (*local naming conventions*)
     syntax: LocalSyntax.T,                            (*local syntax*)
     consts: Consts.T * Consts.T,                      (*local/global consts*)
     facts: Facts.T,                                   (*local facts*)
@@ -180,7 +180,7 @@ fun make_ctxt (mode, naming, syntax, consts, facts, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
     consts = consts, facts = facts, cases = cases};
 
-val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
+val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
 structure ContextData = ProofDataFun
 (
@@ -231,7 +231,7 @@ fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
-val full_name = NameSpace.full_name o naming_of;
+val full_name = Name_Space.full_name o naming_of;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
@@ -924,10 +924,10 @@ end;
 
 (* name space operations *)
 
-val add_path        = map_naming o NameSpace.add_path;
-val mandatory_path  = map_naming o NameSpace.mandatory_path;
-val restore_naming  = map_naming o K o naming_of;
-val reset_naming    = map_naming (K local_naming);
+val add_path = map_naming o Name_Space.add_path;
+val mandatory_path = map_naming o Name_Space.mandatory_path;
+val restore_naming = map_naming o K o naming_of;
+val reset_naming = map_naming (K local_naming);
 
 
 (* facts *)
@@ -1230,7 +1230,7 @@ fun pretty_abbrevs show_globals ctxt =
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
+    val abbrevs = Name_Space.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
   in
     if null abbrevs andalso not (! verbose) then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]

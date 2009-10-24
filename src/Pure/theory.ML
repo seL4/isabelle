@@ -19,7 +19,7 @@ sig
   val checkpoint: theory -> theory
   val copy: theory -> theory
   val requires: theory -> string -> string -> unit
-  val axiom_space: theory -> NameSpace.T
+  val axiom_space: theory -> Name_Space.T
   val axiom_table: theory -> term Symtab.table
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
@@ -80,7 +80,7 @@ fun apply_wrappers (wrappers: wrapper list) =
   perhaps (perhaps_loop (perhaps_apply (map fst wrappers)));
 
 datatype thy = Thy of
- {axioms: term NameSpace.table,
+ {axioms: term Name_Space.table,
   defs: Defs.T,
   wrappers: wrapper list * wrapper list};
 
@@ -89,18 +89,18 @@ fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrapp
 structure ThyData = TheoryDataFun
 (
   type T = thy;
-  val empty = make_thy (NameSpace.empty_table, Defs.empty, ([], []));
+  val empty = make_thy (Name_Space.empty_table, Defs.empty, ([], []));
   val copy = I;
 
   fun extend (Thy {axioms = _, defs, wrappers}) =
-    make_thy (NameSpace.empty_table, defs, wrappers);
+    make_thy (Name_Space.empty_table, defs, wrappers);
 
   fun merge pp (thy1, thy2) =
     let
       val Thy {axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
       val Thy {axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
-      val axioms' = NameSpace.empty_table;
+      val axioms' = Name_Space.empty_table;
       val defs' = Defs.merge pp (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
@@ -174,7 +174,7 @@ local
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
     val axms = map (apsnd Logic.varify o prep_axm thy) raw_axms;
-    val axioms' = fold (#2 oo NameSpace.define true (Sign.naming_of thy)) axms axioms;
+    val axioms' = fold (#2 oo Name_Space.define true (Sign.naming_of thy)) axms axioms;
   in axioms' end);
 
 in

@@ -46,7 +46,7 @@ sig
   val extern_table: 'a table -> (xstring * 'a) list
 end;
 
-structure NameSpace: NAME_SPACE =
+structure Name_Space: NAME_SPACE =
 struct
 
 
@@ -79,13 +79,13 @@ fun str_of_entry def (name, {pos, id, ...}: entry) =
 (* datatype T *)
 
 datatype T =
-  NameSpace of
+  Name_Space of
     (string list * string list) Symtab.table *   (*internals, hidden internals*)
     entry Symtab.table;
 
-val empty = NameSpace (Symtab.empty, Symtab.empty);
+val empty = Name_Space (Symtab.empty, Symtab.empty);
 
-fun lookup (NameSpace (tab, _)) xname =
+fun lookup (Name_Space (tab, _)) xname =
   (case Symtab.lookup tab xname of
     NONE => (xname, true)
   | SOME ([], []) => (xname, true)
@@ -93,12 +93,12 @@ fun lookup (NameSpace (tab, _)) xname =
   | SOME (name :: _, _) => (name, false)
   | SOME ([], name' :: _) => (hidden name', true));
 
-fun get_accesses (NameSpace (_, entries)) name =
+fun get_accesses (Name_Space (_, entries)) name =
   (case Symtab.lookup entries name of
     NONE => [name]
   | SOME {externals, ...} => externals);
 
-fun valid_accesses (NameSpace (tab, _)) name =
+fun valid_accesses (Name_Space (tab, _)) name =
   Symtab.fold (fn (xname, (names, _)) =>
     if not (null names) andalso hd names = name then cons xname else I) tab [];
 
@@ -136,8 +136,8 @@ fun extern space name =
 
 local
 
-fun map_space f xname (NameSpace (tab, entries)) =
-  NameSpace (Symtab.map_default (xname, ([], [])) f tab, entries);
+fun map_space f xname (Name_Space (tab, entries)) =
+  Name_Space (Symtab.map_default (xname, ([], [])) f tab, entries);
 
 in
 
@@ -168,7 +168,7 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (NameSpace (tab1, entries1), NameSpace (tab2, entries2)) =
+fun merge (Name_Space (tab1, entries1), Name_Space (tab2, entries2)) =
   let
     val tab' = (tab1, tab2) |> Symtab.join
       (K (fn ((names1, names1'), (names2, names2')) =>
@@ -182,7 +182,7 @@ fun merge (NameSpace (tab1, entries1), NameSpace (tab2, entries2)) =
           error ("Duplicate declaration " ^
             quote (str_of_entry true (name, entry1)) ^ " vs. " ^
             quote (str_of_entry true (name, entry2))));
-  in NameSpace (tab', entries') end;
+  in Name_Space (tab', entries') end;
 
 
 
@@ -245,13 +245,13 @@ fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
 (* declaration *)
 
-fun new_entry strict entry (NameSpace (tab, entries)) =
+fun new_entry strict entry (Name_Space (tab, entries)) =
   let
     val entries' =
       (if strict then Symtab.update_new else Symtab.update) entry entries
         handle Symtab.DUP _ =>
           error ("Duplicate declaration " ^ quote (str_of_entry true entry));
-  in NameSpace (tab, entries') end;
+  in Name_Space (tab, entries') end;
 
 fun declare strict naming binding space =
   let
@@ -294,6 +294,6 @@ fun extern_table tab = map (apfst #2) (ext_table tab);
 
 end;
 
-structure Basic_Name_Space: BASIC_NAME_SPACE = NameSpace;
+structure Basic_Name_Space: BASIC_NAME_SPACE = Name_Space;
 open Basic_Name_Space;
 

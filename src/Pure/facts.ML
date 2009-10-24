@@ -20,7 +20,7 @@ sig
   val selections: string * thm list -> (ref * thm) list
   type T
   val empty: T
-  val space_of: T -> NameSpace.T
+  val space_of: T -> Name_Space.T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
@@ -31,9 +31,9 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
-  val add_global: NameSpace.naming -> binding * thm list -> T -> string * T
-  val add_local: bool -> NameSpace.naming -> binding * thm list -> T -> string * T
-  val add_dynamic: NameSpace.naming -> binding * (Context.generic -> thm list) -> T -> string * T
+  val add_global: Name_Space.naming -> binding * thm list -> T -> string * T
+  val add_local: bool -> Name_Space.naming -> binding * thm list -> T -> string * T
+  val add_dynamic: Name_Space.naming -> binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
 end;
@@ -122,11 +122,11 @@ fun selections (name, [th]) = [(Named ((name, Position.none), NONE), th)]
 datatype fact = Static of thm list | Dynamic of Context.generic -> thm list;
 
 datatype T = Facts of
- {facts: fact NameSpace.table,
+ {facts: fact Name_Space.table,
   props: thm Net.net};
 
 fun make_facts facts props = Facts {facts = facts, props = props};
-val empty = make_facts NameSpace.empty_table Net.empty;
+val empty = make_facts Name_Space.empty_table Net.empty;
 
 
 (* named facts *)
@@ -136,8 +136,8 @@ fun facts_of (Facts {facts, ...}) = facts;
 val space_of = #1 o facts_of;
 val table_of = #2 o facts_of;
 
-val intern = NameSpace.intern o space_of;
-val extern = NameSpace.extern o space_of;
+val intern = Name_Space.intern o space_of;
+val extern = Name_Space.extern o space_of;
 
 val defined = Symtab.defined o table_of;
 
@@ -177,7 +177,7 @@ fun could_unify (Facts {props, ...}) = Net.unify_term props;
 
 fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props = props2}) =
   let
-    val facts' = NameSpace.merge_tables (facts1, facts2);
+    val facts' = Name_Space.merge_tables (facts1, facts2);
     val props' = Net.merge (is_equal o prop_ord) (props1, props2);
   in make_facts facts' props' end;
 
@@ -190,7 +190,7 @@ fun add strict do_props naming (b, ths) (Facts {facts, props}) =
   let
     val (name, facts') =
       if Binding.is_empty b then ("", facts)
-      else NameSpace.define strict naming (b, Static ths) facts;
+      else Name_Space.define strict naming (b, Static ths) facts;
     val props' =
       if do_props
       then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
@@ -208,7 +208,7 @@ end;
 (* add dynamic entries *)
 
 fun add_dynamic naming (b, f) (Facts {facts, props}) =
-  let val (name, facts') = NameSpace.define true naming (b, Dynamic f) facts;
+  let val (name, facts') = Name_Space.define true naming (b, Dynamic f) facts;
   in (name, make_facts facts' props) end;
 
 
@@ -216,11 +216,11 @@ fun add_dynamic naming (b, f) (Facts {facts, props}) =
 
 fun del name (Facts {facts = (space, tab), props}) =
   let
-    val space' = NameSpace.hide true name space handle ERROR _ => space;  (* FIXME handle?? *)
+    val space' = Name_Space.hide true name space handle ERROR _ => space;  (* FIXME handle?? *)
     val tab' = Symtab.delete_safe name tab;
   in make_facts (space', tab') props end;
 
 fun hide fully name (Facts {facts = (space, tab), props}) =
-  make_facts (NameSpace.hide fully name space, tab) props;
+  make_facts (Name_Space.hide fully name space, tab) props;
 
 end;
