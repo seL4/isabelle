@@ -81,11 +81,13 @@ fun mk_meta_equation th =
     Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ _) => th RS @{thm eq_reflection}
   | _ => th
 
+val meta_fun_cong = @{lemma "f == g ==> f x == g x" by simp}
+
 fun full_fun_cong_expand th =
   let
     val (f, args) = strip_comb (fst (Logic.dest_equals (prop_of th)))
     val i = length (binder_types (fastype_of f)) - length args
-  in funpow i (fn th => th RS @{thm meta_fun_cong}) th end;
+  in funpow i (fn th => th RS meta_fun_cong) th end;
 
 fun declare_names s xs ctxt =
   let

@@ -361,8 +361,8 @@ theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
 (*quickcheck[generator = pred_compile, size=5, iterations=1]*)
 oops
 
-
 section {* Lambda *}
+
 datatype type =
     Atom nat
   | Fun type type    (infixr "\<Rightarrow>" 200)
