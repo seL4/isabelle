@@ -7,11 +7,28 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "even n \<Longrightarrow> odd (Suc n)"
   | "odd n \<Longrightarrow> even (Suc n)"
 
-code_pred even .
+code_pred (mode: [], [1]) even .
 
 thm odd.equation
 thm even.equation
+(*
+lemma unit: "unit_case f = (\<lambda>x. f)"
+apply (rule ext)
+apply (case_tac x)
+apply (simp only: unit.cases)
+done
 
+lemma "even_1 (Suc (Suc n)) = even_1 n"
+thm even.equation(2)
+unfolding even.equation(1)[of "Suc (Suc n)"]
+unfolding odd.equation
+unfolding single_bind
+apply simp
+apply (simp add: unit)
+unfolding bind_single
+apply (rule refl)
+done
+*)
 values "{x. even 2}"
 values "{x. odd 2}"
 values 10 "{n. even n}"
@@ -21,7 +38,9 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
     "append [] xs xs"
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-code_pred append .
+code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
+thm append.equation
+
 code_pred (inductify_all) (rpred) append .
 
 thm append.equation
@@ -57,7 +76,7 @@ where
 
 code_pred (inductify_all) tupled_append' .
 thm tupled_append'.equation
-(* TODO: Missing a few modes! *)
+(* TODO: Modeanalysis returns mode [2] ?? *)
 
 inductive tupled_append'' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
@@ -68,7 +87,7 @@ thm tupled_append''.cases
 
 code_pred (inductify_all) tupled_append'' .
 thm tupled_append''.equation
-(* TODO: Missing a few modes *)
+(* TODO: Modeanalysis returns mode [2] ?? *)
 
 inductive tupled_append''' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
@@ -78,9 +97,7 @@ where
 code_pred (inductify_all) tupled_append''' .
 thm tupled_append'''.equation
 (* TODO: Missing a few modes *)
-thm fst_conv snd_conv
-thm map_of.simps
-term "map_of"
+
 inductive map_ofP :: "('a \<times> 'b) list \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
 where
   "map_ofP ((a, b)#xs) a b"
@@ -366,6 +383,33 @@ thm converse.equation
 
 code_pred (inductify_all) Domain .
 thm Domain.equation
+
+section {* List functions *}
+
+code_pred (inductify_all) length .
+thm size_listP.equation
+
+code_pred (inductify_all) concat .
+thm concatP.equation
+
+code_pred (inductify_all) hd .
+code_pred (inductify_all) tl .
+code_pred (inductify_all) last .
+code_pred (inductify_all) butlast .
+(*code_pred (inductify_all) listsum .*)
+code_pred (inductify_all) take .
+code_pred (inductify_all) drop .
+code_pred (inductify_all) zip .
+code_pred (inductify_all) upt .
+code_pred set sorry
+code_pred (inductify_all) remdups .
+code_pred (inductify_all) remove1 .
+code_pred (inductify_all) removeAll .
+code_pred (inductify_all) distinct .
+code_pred (inductify_all) replicate .
+code_pred (inductify_all) splice .
+code_pred (inductify_all) List.rev .
+thm revP.equation
 
 
 section {* Context Free Grammar *}

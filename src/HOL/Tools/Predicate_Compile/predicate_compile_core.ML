@@ -7,8 +7,8 @@ to equations.
 signature PREDICATE_COMPILE_CORE =
 sig
   val setup: theory -> theory
-  val code_pred: bool -> string -> Proof.context -> Proof.state
-  val code_pred_cmd: bool -> string -> Proof.context -> Proof.state
+  val code_pred: int list list option -> bool -> string -> Proof.context -> Proof.state
+  val code_pred_cmd: int list list option -> bool -> string -> Proof.context -> Proof.state
   type smode = (int * int list option) list
   type mode = smode option list * smode
   datatype tmode = Mode of mode * smode * tmode option list;
@@ -39,7 +39,7 @@ sig
   val mk_casesrule : Proof.context -> int -> thm list -> term
   val analyze_compr: theory -> term -> term
   val eval_ref: (unit -> term Predicate.pred) option Unsynchronized.ref
-  val add_equations : string list -> theory -> theory
+  val add_equations : int list list option -> string list -> theory -> theory
   val code_pred_intros_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (*val funT_of : mode -> typ -> typ
@@ -90,8 +90,8 @@ sig
   val rpred_compfuns : compilation_funs
   val dest_funT : typ -> typ * typ
  (* val depending_preds_of : theory -> thm list -> string list *)
-  val add_quickcheck_equations : string list -> theory -> theory
-  val add_sizelim_equations : string list -> theory -> theory
+  val add_quickcheck_equations : int list list option -> string list -> theory -> theory
+  val add_sizelim_equations : int list list option -> string list -> theory -> theory
   val is_inductive_predicate : theory -> string -> bool
   val terms_vs : term list -> string list
   val subsets : int -> int -> int list list
@@ -197,6 +197,13 @@ in (pred, (params, args)) end
 
 (** data structures **)
 
+(* new datatype for modes: *)
+(*
+datatype instantiation = Input | Output
+type arg_mode = Tuple of instantiation list | Atom of instantiation | HigherOrderMode of mode
+type mode = arg_mode list
+type tmode = Mode of mode * 
+*)
 type smode = (int * int list option) list
 type mode = smode option list * smode;
 datatype tmode = Mode of mode * smode * tmode option list;
@@ -2193,7 +2200,8 @@ fun check_format_of_intro_rule thy intro =
     fun check_arg arg = case HOLogic.strip_tupleT (fastype_of arg) of
       (Ts as _ :: _ :: _) =>
         if (length (HOLogic.strip_tuple arg) = length Ts) then true
-        else error ("Format of introduction rule is invalid: tuples must be expanded:"
+        else
+        error ("Format of introduction rule is invalid: tuples must be expanded:"
         ^ (Syntax.string_of_term_global thy arg) ^ " in " ^
         (Display.string_of_thm_global thy intro)) 
       | _ => true
@@ -2210,16 +2218,21 @@ fun check_format_of_intro_rule thy intro =
 
 (** main function of predicate compiler **)
 
-fun add_equations_of steps prednames thy =
+fun add_equations_of steps expected_modes prednames thy =
   let
     val _ = Output.tracing ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
     val _ = Output.tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
-    val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)
+      (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
       prepare_intrs thy prednames (maps (intros_of thy) prednames)
     val _ = Output.tracing "Infering modes..."
     val moded_clauses = #infer_modes steps thy extra_modes all_modes param_vs clauses 
-    val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
+    val modes : (string * ((int * int list option) list option list * (int * int list option) list) list) list = map (fn (p, mps) => (p, map fst mps)) moded_clauses
+    val all_smodes : (((int * int list option) list) list) list = map (map snd) (map snd modes)
+    val _ = case expected_modes of
+      SOME ms => if not (forall (fn smodes => eq_set (map (map (rpair NONE)) ms, smodes)) all_smodes) then
+      error ("expected modes were not inferred - " ^ commas (map string_of_smode (flat all_smodes))) else ()
+      | NONE => ()
     val _ = print_modes modes
     val _ = print_moded_clauses thy moded_clauses
     val _ = Output.tracing "Defining executable functions..."
@@ -2258,7 +2271,7 @@ fun extend' value_of edges_of key (G, visited) =
 
 fun extend value_of edges_of key G = fst (extend' value_of edges_of key (G, [])) 
   
-fun gen_add_equations steps names thy =
+fun gen_add_equations steps expected_modes names thy =
   let
     val thy' = PredData.map (fold (extend (fetch_pred_data thy) (depending_preds_of thy)) names) thy
       |> Theory.checkpoint;
@@ -2267,7 +2280,7 @@ fun gen_add_equations steps names thy =
     val scc = strong_conn_of (PredData.get thy') names
     val thy'' = fold_rev
       (fn preds => fn thy =>
-        if #are_not_defined steps thy preds then add_equations_of steps preds thy else thy)
+        if #are_not_defined steps thy preds then add_equations_of steps expected_modes preds thy else thy)
       scc thy' |> Theory.checkpoint
   in thy'' end
 
@@ -2323,7 +2336,7 @@ val setup = PredData.put (Graph.empty) #>
   (*FIXME why distinguished attribute for cases?*)
 
 (* TODO: make TheoryDataFun to GenericDataFun & remove duplication of local theory and theory *)
-fun generic_code_pred prep_const rpred raw_const lthy =
+fun generic_code_pred prep_const modes rpred raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
@@ -2353,9 +2366,9 @@ fun generic_code_pred prep_const rpred raw_const lthy =
       in
         goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
           (if rpred then
-            (add_equations [const] #>
-             add_sizelim_equations [const] #> add_quickcheck_equations [const])
-        else add_equations [const]))
+            (add_equations NONE [const] #>
+             add_sizelim_equations NONE [const] #> add_quickcheck_equations NONE [const])
+           else add_equations modes [const]))
       end  
   in
     Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy''
@@ -2441,7 +2454,6 @@ fun values_cmd modes k raw_t state =
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
   in Pretty.writeln p end;
-
 
 local structure P = OuterParse in
 

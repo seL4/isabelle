@@ -64,9 +64,9 @@ fun quickcheck ctxt t =
     val thy'' = thy'
       |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
       |> Predicate_Compile.preprocess full_constname
-      |> Predicate_Compile_Core.add_equations [full_constname]
-      |> Predicate_Compile_Core.add_sizelim_equations [full_constname]
-      |> Predicate_Compile_Core.add_quickcheck_equations [full_constname]
+      |> Predicate_Compile_Core.add_equations NONE [full_constname]
+      |> Predicate_Compile_Core.add_sizelim_equations NONE [full_constname]
+      |> Predicate_Compile_Core.add_quickcheck_equations NONE [full_constname]
     val sizelim_modes = Predicate_Compile_Core.sizelim_modes_of thy'' full_constname
     val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
     val prog =

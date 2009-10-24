@@ -135,28 +135,38 @@ fun preprocess const thy =
     (Graph.strong_conn gr) thy
   end
 
-fun code_pred_cmd ((inductify_all, rpred), raw_const) lthy =
+fun code_pred_cmd (((modes, inductify_all), rpred), raw_const) lthy =
   if inductify_all then
     let
       val thy = ProofContext.theory_of lthy
       val const = Code.read_const thy raw_const
       val lthy' = LocalTheory.theory (preprocess const) lthy
         |> LocalTheory.checkpoint
+        
+      val const = case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
+          SOME c => c
+        | NONE => const
       val _ = tracing "Starting Predicate Compile Core..."
-    in Predicate_Compile_Core.code_pred_cmd rpred raw_const lthy' end
+    in Predicate_Compile_Core.code_pred modes rpred const lthy' end
   else
-    Predicate_Compile_Core.code_pred_cmd rpred raw_const lthy
+    Predicate_Compile_Core.code_pred_cmd modes rpred raw_const lthy
 
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
-val _ = List.app OuterKeyword.keyword ["inductify_all", "rpred"]
+val _ = List.app OuterKeyword.keyword ["inductify_all", "rpred", "mode"]
 
 local structure P = OuterParse
 in
 
+val opt_modes =
+  Scan.optional (P.$$$ "(" |-- P.$$$ "mode" |-- P.$$$ ":" |--
+   P.enum1 "," (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]")
+  --| P.$$$ ")" >> SOME) NONE
+
 val _ = OuterSyntax.local_theory_to_proof "code_pred"
   "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal (P.opt_keyword "inductify_all" -- P.opt_keyword "rpred" -- P.term_group >> code_pred_cmd)
+  OuterKeyword.thy_goal (opt_modes --
+    P.opt_keyword "inductify_all" -- P.opt_keyword "rpred" -- P.term_group >> code_pred_cmd)
 
 end
 

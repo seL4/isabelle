@@ -8,6 +8,7 @@ sig
   val define_predicates : (string * thm list) list -> theory -> theory
   val rewrite_intro : theory -> thm -> thm list
   val setup_oracle : theory -> theory
+  val pred_of_function : theory -> string -> string option
 end;
 
 structure Predicate_Compile_Fun : PREDICATE_COMPILE_FUN =
@@ -62,6 +63,8 @@ structure Pred_Compile_Preproc = TheoryDataFun
   val extend = I;
   fun merge _ = Symtab.merge (op =);
 )
+
+fun pred_of_function thy name = Symtab.lookup (Pred_Compile_Preproc.get thy) name
 
 fun defined thy = Symtab.defined (Pred_Compile_Preproc.get thy) 
 
@@ -246,6 +249,8 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
           let
             val _ = tracing ("Flattening term " ^ (Syntax.string_of_term_global thy t))
             val (f, args) = strip_comb t
+            (* TODO: special procedure for higher-order functions: split arguments in
+              simple types and function types *)
             val resname = Name.variant names "res"
             val resvar = Free (resname, body_type (fastype_of t))
             val names' = resname :: names
@@ -356,7 +361,7 @@ fun define_predicates specs thy =
             Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
         end
     fun mk_rewr_thm (func, pred) = @{thm refl}
-  in    
+  in
     case try (maps mk_intros) ((funs ~~ preds) ~~ (argss' ~~ rhss)) of
       NONE => thy 
     | SOME intr_ts => let
