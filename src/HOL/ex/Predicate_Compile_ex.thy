@@ -34,6 +34,8 @@ values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
 
+subsection {* Tricky cases with tuples *}
+
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
   "tupled_append ([], xs, xs)"
@@ -43,8 +45,40 @@ code_pred tupled_append .
 
 thm tupled_append.equation
 (*
+TODO: values with tupled modes
 values "{xs. tupled_append ([1,2,3], [4,5], xs)}"
 *)
+
+inductive tupled_append'
+where
+"tupled_append' ([], xs, xs)"
+| "[| ys = fst (xa, y); x # zs = snd (xa, y);
+ tupled_append' (xs, ys, x # zs) |] ==> tupled_append' (x # xs, xa, y)"
+
+code_pred tupled_append' .
+thm tupled_append'.equation
+(* TODO: Missing a few modes! *)
+
+inductive tupled_append'' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
+where
+  "tupled_append'' ([], xs, xs)"
+| "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, x # zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
+
+code_pred tupled_append'' .
+thm tupled_append''.equation
+(* TODO: Missing a few modes *)
+
+inductive tupled_append''' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
+where
+  "tupled_append''' ([], xs, xs)"
+| "yszs = (ys, zs) ==> tupled_append''' (xs, yszs) \<Longrightarrow> tupled_append''' (x # xs, ys, x # zs)"
+
+code_pred tupled_append''' .
+thm tupled_append'''.equation
+(* TODO: Missing a few modes *)
+
+section {* reverse *}
+
 inductive rev where
     "rev [] []"
   | "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
@@ -141,6 +175,8 @@ values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
 *)
+
+subsection{* *}
 
 subsection{* IMP *}
 

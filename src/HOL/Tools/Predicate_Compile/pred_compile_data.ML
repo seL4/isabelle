@@ -209,9 +209,11 @@ fun obtain_specification_graph thy table constname =
   let
     fun is_nondefining_constname c = member (op =) logic_operator_names c
     val is_defining_constname = member (op =) (Symtab.keys table)
+    fun has_code_pred_intros c = is_some (try (Predicate_Compile_Core.intros_of thy) c)
     fun defiants_of specs =
       fold (Term.add_const_names o prop_of) specs []
       |> filter is_defining_constname
+      |> filter_out has_code_pred_intros
       |> filter_out (case_consts thy)
       |> filter_out special_cases
     fun extend constname =

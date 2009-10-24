@@ -15,7 +15,7 @@ end;
 structure Pred_Compile_Set : PRED_COMPILE_SET =
 struct
 (*FIXME: unfolding Ball in pretty adhoc here *)
-val unfold_set_lemmas = [@{thm Collect_def}, @{thm mem_def}, @{thm Ball_def}]
+val unfold_set_lemmas = [@{thm Collect_def}, @{thm mem_def}, @{thm Ball_def}, @{thm Bex_def}]
 
 val unfold_set_notation = Simplifier.rewrite_rule unfold_set_lemmas
 

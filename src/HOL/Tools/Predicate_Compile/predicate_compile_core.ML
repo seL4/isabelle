@@ -993,7 +993,7 @@ fun select_mode_prem thy modes vs ps =
             (modes_of_term modes t handle Option =>
                error ("Bad predicate: " ^ Syntax.string_of_term_global thy t))
       | Negprem (us, t) => find_first (fn Mode (_, is, _) =>
-            length us = length is andalso
+        is = map (rpair NONE) (1 upto length us) andalso
             terms_vs us subset vs andalso
             term_vs t subset vs)
             (modes_of_term modes t handle Option =>
@@ -2135,8 +2135,8 @@ fun dest_prem thy params t =
     
 fun prepare_intrs thy prednames intros =
   let
-    val intrs = intros
-      |> map (Logic.unvarify o prop_of)
+    val ((_, intrs), _) = Variable.import false intros (ProofContext.init thy)
+    val intrs = map prop_of intrs
     val nparams = nparams_of thy (hd prednames)
     val extra_modes = all_modes_of thy |> filter_out (fn (name, _) => member (op =) prednames name)
     val preds = distinct (op =) (map (dest_Const o fst o (strip_intro_concl nparams)) intrs)
