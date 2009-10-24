@@ -526,8 +526,7 @@ fun add_consts_i args = snd o gen_add_consts (K I) false [] args;
 fun declare_const tags ((b, T), mx) thy =
   let
     val pos = Binding.pos_of b;
-    val tags' = Position.default_properties pos tags;
-    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true tags' [(b, T, mx)] thy;
+    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true tags [(b, T, mx)] thy;
     val _ = Position.report (Markup.const_decl c) pos;
   in (const, thy') end;
 

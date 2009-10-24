@@ -42,8 +42,8 @@ sig
   val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
-  val join_tables:
-    (string -> 'a * 'a -> 'a) (*Symtab.SAME*) -> 'a table * 'a table -> 'a table
+  val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
+    'a table * 'a table -> 'a table
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
 end;
@@ -282,7 +282,7 @@ fun declare strict naming binding space =
     val entry =
      {externals = accs',
       is_system = false,
-      pos = Binding.pos_of binding,
+      pos = Position.default (Binding.pos_of binding),
       id = serial ()};
     val space' = space |> fold (add_name name) accs |> new_entry strict (name, entry);
   in (name, space') end;

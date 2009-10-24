@@ -556,10 +556,7 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 local
 
 fun new_decl naming tags (c, decl) types =
-  let
-    val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val (_, types') = Name_Space.define true naming (c, (decl, tags')) types;
-  in types' end;
+  #2 (Name_Space.define true naming (c, (decl, tags)) types);
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let

@@ -232,8 +232,7 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 fun declare authentic naming tags (b, declT) =
   map_consts (fn (decls, constraints, rev_abbrevs) =>
     let
-      val tags' = tags |> Position.default_properties (Position.thread_data ());
-      val decl = {T = declT, typargs = typargs_of declT, tags = tags', authentic = authentic};
+      val decl = {T = declT, typargs = typargs_of declT, tags = tags, authentic = authentic};
       val (_, decls') = decls |> Name_Space.define true naming (b, (decl, NONE));
     in (decls', constraints, rev_abbrevs) end);
 
@@ -284,8 +283,7 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
-        val tags' = tags |> Position.default_properties (Position.thread_data ());
-        val decl = {T = T, typargs = typargs_of T, tags = tags', authentic = true};
+        val decl = {T = T, typargs = typargs_of T, tags = tags, authentic = true};
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
         val (_, decls') = decls
           |> Name_Space.define true naming (b, (decl, SOME abbr));
