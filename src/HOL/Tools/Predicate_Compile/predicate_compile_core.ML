@@ -122,6 +122,9 @@ open Predicate_Compile_Aux;
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
 fun print_tac s = Seq.single;
+fun print_tac' options s = 
+  if show_proof_trace options then Tactical.print_tac s else Seq.single;
+
 fun debug_tac msg = Seq.single; (* (fn st => (Output.tracing msg; Seq.single st)); *)
 
 val do_proofs = Unsynchronized.ref true;
@@ -2137,7 +2140,7 @@ fun prove_other_direction thy modes pred mode moded_clauses =
 
 (** proof procedure **)
 
-fun prove_pred thy clauses preds modes pred mode (moded_clauses, compiled_term) =
+fun prove_pred options thy clauses preds modes pred mode (moded_clauses, compiled_term) =
   let
     val ctxt = ProofContext.init thy
     val clauses = the (AList.lookup (op =) clauses pred)
@@ -2146,11 +2149,11 @@ fun prove_pred thy clauses preds modes pred mode (moded_clauses, compiled_term) 
       (if !do_proofs then
         (fn _ =>
         rtac @{thm pred_iffI} 1
-				THEN print_tac "after pred_iffI"
+				THEN print_tac' options "after pred_iffI"
         THEN prove_one_direction thy clauses preds modes pred mode moded_clauses
-        THEN print_tac "proved one direction"
+        THEN print_tac' options "proved one direction"
         THEN prove_other_direction thy modes pred mode moded_clauses
-        THEN print_tac "proved other direction")
+        THEN print_tac' options "proved other direction")
       else (fn _ => setmp quick_and_dirty true SkipProof.cheat_tac thy))
   end;
 
@@ -2174,11 +2177,11 @@ fun compile_preds compfuns mk_fun_of use_size thy all_vs param_vs preds moded_cl
   map_preds_modes (fn pred => compile_pred compfuns mk_fun_of use_size thy all_vs param_vs pred
       (the (AList.lookup (op =) preds pred))) moded_clauses  
   
-fun prove thy clauses preds modes moded_clauses compiled_terms =
-  map_preds_modes (prove_pred thy clauses preds modes)
+fun prove options thy clauses preds modes moded_clauses compiled_terms =
+  map_preds_modes (prove_pred options thy clauses preds modes)
     (join_preds_modes moded_clauses compiled_terms)
 
-fun prove_by_skip thy _ _ _ _ compiled_terms =
+fun prove_by_skip options thy _ _ _ _ compiled_terms =
   map_preds_modes (fn pred => fn mode => fn t => Drule.standard (setmp quick_and_dirty true (SkipProof.make_thm thy) t))
     compiled_terms
 
@@ -2321,7 +2324,7 @@ fun add_equations_of steps options expected_modes prednames thy =
       (#compile_preds steps) thy' all_vs param_vs preds moded_clauses
     val _ = print_compiled_terms thy' compiled_terms
     val _ = print_step options "Proving equations..."
-    val result_thms = #prove steps thy' clauses preds (extra_modes @ modes)
+    val result_thms = #prove steps options thy' clauses preds (extra_modes @ modes)
       moded_clauses compiled_terms
     val qname = #qname steps
     (* val attrib = gn thy => Attrib.attribute_i thy Code.add_eqn_attrib *)

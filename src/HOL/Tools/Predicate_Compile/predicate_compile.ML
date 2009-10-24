@@ -108,6 +108,7 @@ fun extract_options ((modes, raw_options), raw_const) =
     Options {
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
+      show_proof_trace = chk "show_proof_trace",
       show_mode_inference = chk "show_mode_inference",
       inductify = chk "inductify",
       rpred = chk "rpred"
@@ -138,7 +139,8 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
 
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
-val bool_options = ["show_steps", "show_intermediate_results", "show_mode_inference", "inductify", "rpred"]
+val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace",
+  "show_mode_inference", "inductify", "rpred"]
 
 val _ = List.app OuterKeyword.keyword ("mode" :: bool_options)
 
