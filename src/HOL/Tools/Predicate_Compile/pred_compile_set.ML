@@ -3,7 +3,7 @@
 Preprocessing sets to predicates
 *)
 
-signature PRED_COMPILE_SET =
+signature PREDICATE_COMPILE_SET =
 sig
 (*
   val preprocess_intro : thm -> theory -> thm * theory
@@ -12,10 +12,11 @@ sig
   val unfold_set_notation : thm -> thm;
 end;
 
-structure Pred_Compile_Set : PRED_COMPILE_SET =
+structure Predicate_Compile_Set : PREDICATE_COMPILE_SET =
 struct
 (*FIXME: unfolding Ball in pretty adhoc here *)
-val unfold_set_lemmas = [@{thm Collect_def}, @{thm mem_def}, @{thm Ball_def}]
+val unfold_set_lemmas = [@{thm Collect_def}, @{thm mem_def},
+@{thm Ball_def}, @{thm Bex_def}]
 
 val unfold_set_notation = Simplifier.rewrite_rule unfold_set_lemmas
 

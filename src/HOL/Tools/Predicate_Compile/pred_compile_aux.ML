@@ -6,8 +6,16 @@ Auxilary functions for predicate compiler
 structure Predicate_Compile_Aux =
 struct
 
+(* general syntactic functions *)
+
+(*Like dest_conj, but flattens conjunctions however nested*)
+fun conjuncts_aux (Const ("op &", _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+  | conjuncts_aux t conjs = t::conjs;
+
+fun conjuncts t = conjuncts_aux t [];
+
 (* syntactic functions *)
- 
+
 fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
   | is_equationlike_term (Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ _)) = true
   | is_equationlike_term _ = false
@@ -69,32 +77,160 @@ fun focus_ex t nctxt =
   in ((ps', t''), nctxt') end;
 
 
+(* introduction rule combinators *)
 
+(* combinators to apply a function to all literals of an introduction rules *)
 
-(*
 fun map_atoms f intro = 
-fun fold_atoms f intro =
-*)
+  let
+    val (literals, head) = Logic.strip_horn intro
+    fun appl t = (case t of
+        (@{term "Not"} $ t') => HOLogic.mk_not (f t')
+      | _ => f t)
+  in
+    Logic.list_implies
+      (map (HOLogic.mk_Trueprop o appl o HOLogic.dest_Trueprop) literals, head)
+  end
+
+fun fold_atoms f intro s =
+  let
+    val (literals, head) = Logic.strip_horn intro
+    fun appl t s = (case t of
+      (@{term "Not"} $ t') => f t' s
+      | _ => f t s)
+  in fold appl (map HOLogic.dest_Trueprop literals) s end
+
 fun fold_map_atoms f intro s =
   let
     val (literals, head) = Logic.strip_horn intro
     fun appl t s = (case t of
-      (@{term "Not"} $ t') =>
-        let
-          val (t'', s') = f t' s
-        in (@{term "Not"} $ t'', s') end
+      (@{term "Not"} $ t') => apfst HOLogic.mk_not (f t' s)
       | _ => f t s)
     val (literals', s') = fold_map appl (map HOLogic.dest_Trueprop literals) s
   in
     (Logic.list_implies (map HOLogic.mk_Trueprop literals', head), s')
   end;
+
+fun maps_premises f intro =
+  let
+    val (premises, head) = Logic.strip_horn intro
+  in
+    Logic.list_implies (maps f premises, head)
+  end
   
+(* lifting term operations to theorems *)
+
+fun map_term thy f th =
+  setmp quick_and_dirty true (SkipProof.make_thm thy) (f (prop_of th))
+
 (*
 fun equals_conv lhs_cv rhs_cv ct =
   case Thm.term_of ct of
     Const ("==", _) $ _ $ _ => Conv.arg_conv cv ct  
   | _ => error "equals_conv"  
 *)
+
+(* Different options for compiler *)
+
+datatype options = Options of {  
+  expected_modes : (string * int list list) option,
+  show_steps : bool,
+  show_mode_inference : bool,
+  show_proof_trace : bool,
+  show_intermediate_results : bool,
+  show_compilation : bool,
+  skip_proof : bool,
+
+  inductify : bool,
+  rpred : bool,
+  depth_limited : bool
+};
+
+fun expected_modes (Options opt) = #expected_modes opt
+fun show_steps (Options opt) = #show_steps opt
+fun show_mode_inference (Options opt) = #show_mode_inference opt
+fun show_intermediate_results (Options opt) = #show_intermediate_results opt
+fun show_proof_trace (Options opt) = #show_proof_trace opt
+fun show_compilation (Options opt) = #show_compilation opt
+fun skip_proof (Options opt) = #skip_proof opt
+
+fun is_inductify (Options opt) = #inductify opt
+fun is_rpred (Options opt) = #rpred opt
+fun is_depth_limited (Options opt) = #depth_limited opt
+
+val default_options = Options {
+  expected_modes = NONE,
+  show_steps = false,
+  show_intermediate_results = false,
+  show_proof_trace = false,
+  show_mode_inference = false,
+  show_compilation = false,
+  skip_proof = false,
+  
+  inductify = false,
+  rpred = false,
+  depth_limited = false
+}
+
+
+fun print_step options s =
+  if show_steps options then tracing s else ()
+
+(* tuple processing *)
+
+fun expand_tuples thy intro =
+  let
+    fun rewrite_args [] (pats, intro_t, ctxt) = (pats, intro_t, ctxt)
+      | rewrite_args (arg::args) (pats, intro_t, ctxt) = 
+      (case HOLogic.strip_tupleT (fastype_of arg) of
+        (Ts as _ :: _ :: _) =>
+        let
+          fun rewrite_arg' (Const ("Pair", _) $ _ $ t2, Type ("*", [_, T2]))
+            (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
+            | rewrite_arg' (t, Type ("*", [T1, T2])) (args, (pats, intro_t, ctxt)) =
+              let
+                val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
+                val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))
+                val intro_t' = Pattern.rewrite_term thy [pat] [] intro_t
+                val args' = map (Pattern.rewrite_term thy [pat] []) args
+              in
+                rewrite_arg' (Free (y, T2), T2) (args', (pat::pats, intro_t', ctxt'))
+              end
+            | rewrite_arg' _ (args, (pats, intro_t, ctxt)) = (args, (pats, intro_t, ctxt))
+          val (args', (pats, intro_t', ctxt')) = rewrite_arg' (arg, fastype_of arg)
+            (args, (pats, intro_t, ctxt))
+        in
+          rewrite_args args' (pats, intro_t', ctxt')
+        end
+      | _ => rewrite_args args (pats, intro_t, ctxt))
+    fun rewrite_prem atom =
+      let
+        val (_, args) = strip_comb atom
+      in rewrite_args args end
+    val ctxt = ProofContext.init thy
+    val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
+    val intro_t = prop_of intro'
+    val concl = Logic.strip_imp_concl intro_t
+    val (p, args) = strip_comb (HOLogic.dest_Trueprop concl)
+    val (pats', intro_t', ctxt2) = rewrite_args args ([], intro_t, ctxt1)
+    val (pats', intro_t', ctxt3) = 
+      fold_atoms rewrite_prem intro_t' (pats', intro_t', ctxt2)
+    fun rewrite_pat (ct1, ct2) =
+      (ct1, cterm_of thy (Pattern.rewrite_term thy pats' [] (term_of ct2)))
+    val t_insts' = map rewrite_pat t_insts
+    val intro'' = Thm.instantiate (T_insts, t_insts') intro
+    val [intro'''] = Variable.export ctxt3 ctxt [intro'']
+    val intro'''' = Simplifier.full_simplify
+      (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
+      intro'''
+    (* splitting conjunctions introduced by Pair_eq*)
+    fun split_conj prem =
+      map HOLogic.mk_Trueprop (conjuncts (HOLogic.dest_Trueprop prem))
+    val intro''''' = map_term thy (maps_premises split_conj) intro''''
+  in
+    intro'''''
+  end
+
 
 
 end;
