@@ -420,9 +420,32 @@ section {* Definitions about Relations *}
 
 code_pred [inductify] converse .
 thm converse.equation
-
+code_pred [inductify] rel_comp .
+thm rel_comp.equation
+code_pred [inductify] Image .
+thm Image.equation
+(*TODO: *)
+(*code_pred [inductify] Id_on .*)
 code_pred [inductify] Domain .
 thm Domain.equation
+code_pred [inductify] Range .
+thm sym_def
+code_pred [inductify] Field .
+(* code_pred [inductify] refl_on .*)
+code_pred [inductify] total_on .
+thm total_on.equation
+(*
+code_pred [inductify] sym .
+thm sym.equation
+*)
+code_pred [inductify] antisym .
+thm antisym.equation
+code_pred [inductify] trans .
+thm trans.equation
+code_pred [inductify] single_valued .
+thm single_valued.equation
+code_pred [inductify] inv_image .
+thm inv_image.equation
 
 section {* List functions *}
 

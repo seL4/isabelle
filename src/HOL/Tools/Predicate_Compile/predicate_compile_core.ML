@@ -942,43 +942,6 @@ fun cprods_subset [] = [[]]
     val yss = (cprods_subset xss)
   in maps (fn ys => map (fn x => cons x ys) xs) yss @ yss end
   
-(*TODO: cleanup function and put together with modes_of_term *)
-(*
-fun modes_of_param default modes t = let
-    val (vs, t') = strip_abs t
-    val b = length vs
-    fun mk_modes name args = Option.map (maps (fn (m as (iss, is)) =>
-        let
-          val (args1, args2) =
-            if length args < length iss then
-              error ("Too few arguments for inductive predicate " ^ name)
-            else chop (length iss) args;
-          val k = length args2;
-          val perm = map (fn i => (find_index_eq (Bound (b - i)) args2) + 1)
-            (1 upto b)  
-          val partial_mode = (1 upto k) \\ perm
-        in
-          if not (partial_mode subset is) then [] else
-          let
-            val is' = 
-            (fold_index (fn (i, j) => if j mem is then cons (i + 1) else I) perm [])
-            |> fold (fn i => if i > k then cons (i - k + b) else I) is
-              
-           val res = map (fn x => Mode (m, is', x)) (cprods (map
-            (fn (NONE, _) => [NONE]
-              | (SOME js, arg) => map SOME (filter
-                  (fn Mode (_, js', _) => js=js') (modes_of_term modes arg)))
-                    (iss ~~ args1)))
-          in res end
-        end)) (AList.lookup op = modes name)
-  in case strip_comb t' of
-    (Const (name, _), args) => the_default default (mk_modes name args)
-    | (Var ((name, _), _), args) => the (mk_modes name args)
-    | (Free (name, _), args) => the (mk_modes name args)
-    | _ => default end
-  
-and
-*)
 fun modes_of_term modes t =
   let
     val ks = map_index (fn (i, T) => (i + 1, NONE)) (binder_types (fastype_of t));
@@ -1249,19 +1212,7 @@ fun compile_expr compilation_modifiers compfuns thy ((Mode (mode, _, ms)), t) in
        end
   | (Free (name, T), params) =>
     list_comb (Free (name, #funT_of compilation_modifiers compfuns mode T), params @ inargs @ additional_arguments)
-       (*
-fun compile_gen_expr depth_limited thy compfuns mk_fun_of ((Mode (mode, is, ms)), t) inargs =
-  case strip_comb t of
-    (Const (name, T), params) =>
-      let
-        val params' = map (compile_param depth_limited thy RPredCompFuns.compfuns mk_fun_of) (ms ~~ params)
-      in
-        list_comb (mk_generator_of RPredCompFuns.compfuns thy (name, T) mode, params' @ inargs)
-      end
-  | (Free (name, T), params) =>
-  (*lift_pred RPredCompFuns.compfuns*)
-  (list_comb (Free (name, depth_limited_funT_of RPredCompFuns.compfuns ([], is) T), params @ inargs))
-  *)
+
 (** specific rpred functions -- move them to the correct place in this file *)
 
 fun mk_Eval_of depth ((x, T), NONE) names = (x, names)
@@ -1366,7 +1317,7 @@ fun compile_clause compilation_modifiers compfuns thy all_vs param_vs additional
                Prem (us, t) =>
                  let
                    val (in_ts, out_ts''') = split_smode is us;
-                     (* add test case for compile_arg *)
+                     (* TODO: add test case for compile_arg *)
                    (*val in_ts = map (compile_arg depth thy param_vs iss) in_ts*)
                      (* additional_arguments
                    val args = case depth of
@@ -2189,7 +2140,6 @@ fun check_intros_elim_match thy prednames =
       end
   in forall check prednames end
 *)
-
 
 (** main function of predicate compiler **)
 
