@@ -471,8 +471,8 @@ lemma is_empty_sup:
   "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
   by (auto simp add: is_empty_def intro: sup_eq_bot_eq1 sup_eq_bot_eq2)
 
-definition singleton :: "'a \<Rightarrow> 'a pred \<Rightarrow> 'a" where
-  "singleton dfault A = (if \<exists>!x. eval A x then THE x. eval A x else dfault)"
+definition singleton :: "(unit => 'a) \<Rightarrow> 'a pred \<Rightarrow> 'a" where
+  "singleton dfault A = (if \<exists>!x. eval A x then THE x. eval A x else dfault ())"
 
 lemma singleton_eqI:
   "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton dfault A = x"
@@ -501,11 +501,11 @@ proof -
 qed
 
 lemma singleton_undefinedI:
-  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton dfault A = dfault"
+  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton dfault A = dfault ()"
   by (simp add: singleton_def)
 
 lemma singleton_bot:
-  "singleton dfault \<bottom> = dfault"
+  "singleton dfault \<bottom> = dfault ()"
   by (auto simp add: bot_pred_def intro: singleton_undefinedI)
 
 lemma singleton_single:
@@ -513,7 +513,7 @@ lemma singleton_single:
   by (auto simp add: intro: singleton_eqI singleI elim: singleE)
 
 lemma singleton_sup_single_single:
-  "singleton dfault (single x \<squnion> single y) = (if x = y then x else dfault)"
+  "singleton dfault (single x \<squnion> single y) = (if x = y then x else dfault ())"
 proof (cases "x = y")
   case True then show ?thesis by (simp add: singleton_single)
 next
@@ -523,7 +523,7 @@ next
   by (auto intro: supI1 supI2 singleI)
   with False have "\<not> (\<exists>!z. eval (single x \<squnion> single y) z)"
     by blast
-  then have "singleton dfault (single x \<squnion> single y) = dfault"
+  then have "singleton dfault (single x \<squnion> single y) = dfault ()"
     by (rule singleton_undefinedI)
   with False show ?thesis by simp
 qed
@@ -538,10 +538,10 @@ proof (cases "(\<exists>!x. eval A x) \<and> (\<exists>!y. eval B y)")
 next
   case False
   from False have A_or_B:
-    "singleton dfault A = dfault \<or> singleton dfault B = dfault"
+    "singleton dfault A = dfault () \<or> singleton dfault B = dfault ()"
     by (auto intro!: singleton_undefinedI)
   then have rhs: "singleton dfault
-    (single (singleton dfault A) \<squnion> single (singleton dfault B)) = dfault"
+    (single (singleton dfault A) \<squnion> single (singleton dfault B)) = dfault ()"
     by (auto simp add: singleton_sup_single_single singleton_single)
   from False have not_unique:
     "\<not> (\<exists>!x. eval A x) \<or> \<not> (\<exists>!y. eval B y)" by simp
@@ -551,7 +551,7 @@ next
       by (blast elim: not_bot)
     with True not_unique have "\<not> (\<exists>!x. eval (A \<squnion> B) x)"
       by (auto simp add: sup_pred_def bot_pred_def)
-    then have "singleton dfault (A \<squnion> B) = dfault" by (rule singleton_undefinedI)
+    then have "singleton dfault (A \<squnion> B) = dfault ()" by (rule singleton_undefinedI)
     with True rhs show ?thesis by simp
   next
     case False then show ?thesis by auto
@@ -561,7 +561,7 @@ qed
 lemma singleton_sup:
   "singleton dfault (A \<squnion> B) = (if A = \<bottom> then singleton dfault B
     else if B = \<bottom> then singleton dfault A
-    else if singleton dfault A = singleton dfault B then singleton dfault A else dfault)"
+    else if singleton dfault A = singleton dfault B then singleton dfault A else dfault ())"
 using singleton_sup_aux [of dfault A B] by (simp only: singleton_sup_single_single)
 
 
@@ -743,12 +743,12 @@ lemma is_empty_code [code]:
   "is_empty (Seq f) \<longleftrightarrow> null (f ())"
   by (simp add: null_is_empty Seq_def)
 
-primrec the_only :: "'a \<Rightarrow> 'a seq \<Rightarrow> 'a" where
-  [code del]: "the_only dfault Empty = dfault"
-  | "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault)"
+primrec the_only :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a seq \<Rightarrow> 'a" where
+  [code del]: "the_only dfault Empty = dfault ()"
+  | "the_only dfault (Insert x P) = (if is_empty P then x else let y = singleton dfault P in if x = y then x else dfault ())"
   | "the_only dfault (Join P xq) = (if is_empty P then the_only dfault xq else if null xq then singleton dfault P
        else let x = singleton dfault P; y = the_only dfault xq in
-       if x = y then x else dfault)"
+       if x = y then x else dfault ())"
 
 lemma the_only_singleton:
   "the_only dfault xq = singleton dfault (pred_of_seq xq)"
@@ -758,24 +758,28 @@ lemma the_only_singleton:
 
 lemma singleton_code [code]:
   "singleton dfault (Seq f) = (case f ()
-   of Empty \<Rightarrow> dfault
+   of Empty \<Rightarrow> dfault ()
     | Insert x P \<Rightarrow> if is_empty P then x
         else let y = singleton dfault P in
-          if x = y then x else dfault
+          if x = y then x else dfault ()
     | Join P xq \<Rightarrow> if is_empty P then the_only dfault xq
         else if null xq then singleton dfault P
         else let x = singleton dfault P; y = the_only dfault xq in
-          if x = y then x else dfault)"
+          if x = y then x else dfault ())"
   by (cases "f ()")
    (auto simp add: Seq_def the_only_singleton is_empty_def
       null_is_empty singleton_bot singleton_single singleton_sup Let_def)
 
 definition not_unique :: "'a pred => 'a"
 where
-  "not_unique A = (THE x. eval A x)"
+  [code del]: "not_unique A = (THE x. eval A x)"
 
-lemma The_eq_singleton: "(THE x. eval A x) = singleton (not_unique A) A"
-by (auto simp add: singleton_def not_unique_def)
+definition the :: "'a pred => 'a"
+where
+  [code del]: "the A = (THE x. eval A x)"
+
+lemma the_eq[code]: "the A = singleton (\<lambda>x. not_unique A) A"
+by (auto simp add: the_def singleton_def not_unique_def)
 
 ML {*
 signature PREDICATE =
@@ -857,6 +861,6 @@ no_notation
 
 hide (open) type pred seq
 hide (open) const Pred eval single bind is_empty singleton if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map not_unique the
 
 end

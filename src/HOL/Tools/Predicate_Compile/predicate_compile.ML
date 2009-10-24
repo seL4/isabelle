@@ -11,7 +11,7 @@ structure Predicate_Compile : PREDICATE_COMPILE =
 struct
 
 (* options *)
-val fail_safe_mode = false
+val fail_safe_mode = true
 
 open Predicate_Compile_Aux;
 

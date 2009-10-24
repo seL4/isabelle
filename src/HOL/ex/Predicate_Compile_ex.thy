@@ -31,6 +31,9 @@ values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
 
+value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
+value [code] "Predicate.the (append_3 ([]::int list))"
+
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
 where
   "tupled_append ([], xs, xs)"
@@ -226,7 +229,7 @@ inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
 
 code_pred divmod_rel ..
 
-value [code] "Predicate.singleton (divmod_rel_1_2 1705 42)"
+value [code] "Predicate.the (divmod_rel_1_2 1705 42)"
 
 section {* Executing definitions *}
 
