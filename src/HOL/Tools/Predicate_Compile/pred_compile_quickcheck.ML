@@ -3,18 +3,19 @@
 A quickcheck generator based on the predicate compiler
 *)
 
-signature PRED_COMPILE_QUICKCHECK =
+signature PREDICATE_COMPILE_QUICKCHECK =
 sig
   val quickcheck : Proof.context -> term -> int -> term list option
   val test_ref :
     ((unit -> int -> int * int -> term list Predicate.pred * (int * int)) option) Unsynchronized.ref
 end;
 
-structure Pred_Compile_Quickcheck : PRED_COMPILE_QUICKCHECK =
+structure Predicate_Compile_Quickcheck : PREDICATE_COMPILE_QUICKCHECK =
 struct
 
 val test_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int * int -> term list Predicate.pred * (int * int)) option)
+
 val target = "Quickcheck"
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
@@ -63,21 +64,21 @@ fun quickcheck ctxt t =
     val _ = tracing (Display.string_of_thm ctxt' intro)
     val thy'' = thy'
       |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
-      |> Predicate_Compile.preprocess full_constname
-      |> Predicate_Compile_Core.add_equations [full_constname]
-      |> Predicate_Compile_Core.add_sizelim_equations [full_constname]
-      |> Predicate_Compile_Core.add_quickcheck_equations [full_constname]
-    val sizelim_modes = Predicate_Compile_Core.sizelim_modes_of thy'' full_constname
+      |> Predicate_Compile.preprocess Predicate_Compile_Aux.default_options full_constname
+      (* |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]*)
+      (*  |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]*)
+      (* |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname] *)
+    val depth_limited_modes = Predicate_Compile_Core.depth_limited_modes_of thy'' full_constname
     val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
     val prog =
       if member (op =) modes ([], []) then
         let
           val name = Predicate_Compile_Core.generator_name_of thy'' full_constname ([], [])
-          val T = @{typ code_numeral} --> (mk_rpredT (HOLogic.mk_tupleT (map snd vs')))
-        in Const (name, T) $ Bound 0 end
-      else if member (op =) sizelim_modes ([], []) then
+          val T = [@{typ bool}, @{typ code_numeral}] ---> (mk_rpredT (HOLogic.mk_tupleT (map snd vs')))
+          in Const (name, T) $ @{term True} $ Bound 0 end
+      else if member (op =) depth_limited_modes ([], []) then
         let
-          val name = Predicate_Compile_Core.sizelim_function_name_of thy'' full_constname ([], [])
+          val name = Predicate_Compile_Core.depth_limited_function_name_of thy'' full_constname ([], [])
           val T = @{typ code_numeral} --> (mk_predT (HOLogic.mk_tupleT (map snd vs')))
         in lift_pred (Const (name, T) $ Bound 0) end
       else error "Predicate Compile Quickcheck failed"
@@ -85,7 +86,7 @@ fun quickcheck ctxt t =
       mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
       (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))))
     val _ = tracing (Syntax.string_of_term ctxt' qc_term)
-    val compile = Code_ML.eval (SOME target) ("Pred_Compile_Quickcheck.test_ref", test_ref)
+    val compile = Code_ML.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
       (fn proc => fn g => fn s => g s #>> (Predicate.map o map) proc)
       thy'' qc_term []
   in

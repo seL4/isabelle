@@ -3,16 +3,16 @@
 Book-keeping datastructure for the predicate compiler
 
 *)
-signature PRED_COMPILE_DATA =
+signature PREDICATE_COMPILE_DATA =
 sig
   type specification_table;
   val make_const_spec_table : theory -> specification_table
   val get_specification :  specification_table -> string -> thm list
-  val obtain_specification_graph : specification_table -> string -> thm list Graph.T
+  val obtain_specification_graph : theory -> specification_table -> string -> thm list Graph.T
   val normalize_equation : theory -> thm -> thm
 end;
 
-structure Pred_Compile_Data : PRED_COMPILE_DATA =
+structure Predicate_Compile_Data : PREDICATE_COMPILE_DATA =
 struct
 
 open Predicate_Compile_Aux;
@@ -81,11 +81,13 @@ fun mk_meta_equation th =
     Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ _) => th RS @{thm eq_reflection}
   | _ => th
 
+val meta_fun_cong = @{lemma "f == g ==> f x == g x" by simp}
+
 fun full_fun_cong_expand th =
   let
     val (f, args) = strip_comb (fst (Logic.dest_equals (prop_of th)))
     val i = length (binder_types (fastype_of f)) - length args
-  in funpow i (fn th => th RS @{thm meta_fun_cong}) th end;
+  in funpow i (fn th => th RS meta_fun_cong) th end;
 
 fun declare_names s xs ctxt =
   let
@@ -117,7 +119,7 @@ fun split_all_pairs thy th =
 
 fun normalize_equation thy th =
   mk_meta_equation th
-  |> Pred_Compile_Set.unfold_set_notation
+  |> Predicate_Compile_Set.unfold_set_notation
   |> full_fun_cong_expand
   |> split_all_pairs thy
   |> tap check_equation_format
@@ -127,19 +129,18 @@ fun inline_equations thy th = Conv.fconv_rule (Simplifier.rewrite
 
 fun store_thm_in_table ignore_consts thy th=
   let
-    val th = AxClass.unoverload thy th
+    val th = th
       |> inline_equations thy
+      |> Predicate_Compile_Set.unfold_set_notation
+      |> AxClass.unoverload thy
     val (const, th) =
       if is_equationlike th then
         let
-          val _ = priority "Normalizing definition..."
           val eq = normalize_equation thy th
         in
           (defining_const_of_equation eq, eq)
         end
-      else if (is_introlike th) then
-        let val th = Pred_Compile_Set.unfold_set_notation th
-        in (defining_const_of_introrule th, th) end
+      else if (is_introlike th) then (defining_const_of_introrule th, th)
       else error "store_thm: unexpected definition format"
   in
     if not (member (op =) ignore_consts const) then
@@ -147,18 +148,6 @@ fun store_thm_in_table ignore_consts thy th=
     else I
   end
 
-(*
-fun make_const_spec_table_warning thy =
-  fold
-    (fn th => fn thy => case try (store_thm th) thy of
-      SOME thy => thy
-    | NONE => (warning ("store_thm fails for " ^ Display.string_of_thm_global thy th) ; thy))
-      (Predicate_Compile_Preproc_Const_Defs.get (ProofContext.init thy)) thy
-
-fun make_const_spec_table thy =
-  fold store_thm (Predicate_Compile_Preproc_Const_Defs.get (ProofContext.init thy)) thy
-  |> (fn thy => fold store_thm (Nitpick_Simps.get (ProofContext.init thy)) thy)
-*)
 fun make_const_spec_table thy =
   let
     fun store ignore_const f = fold (store_thm_in_table ignore_const thy) (map (Thm.transfer thy) (f (ProofContext.init thy)))
@@ -166,35 +155,27 @@ fun make_const_spec_table thy =
       |> store [] Predicate_Compile_Alternative_Defs.get
     val ignore_consts = Symtab.keys table
   in
-    table   
+    table
     |> store ignore_consts Predicate_Compile_Preproc_Const_Defs.get
     |> store ignore_consts Nitpick_Simps.get
     |> store ignore_consts Nitpick_Intros.get
   end
-  (*
-fun get_specification thy constname =
-  case Symtab.lookup (#const_spec_table (Data.get thy)) constname of
-    SOME thms => thms
-  | NONE => error ("get_specification: lookup of constant " ^ quote constname ^ " failed")
-  *)
+
 fun get_specification table constname =
   case Symtab.lookup table constname of
-  SOME thms =>
-    let
-      val _ = tracing ("Looking up specification of " ^ constname ^ ": "
-        ^ (commas (map Display.string_of_thm_without_context thms)))
-    in thms end
+    SOME thms => thms
   | NONE => error ("get_specification: lookup of constant " ^ quote constname ^ " failed")
 
 val logic_operator_names =
-  [@{const_name "=="}, @{const_name "op ="}, @{const_name "op -->"}, @{const_name "All"}, @{const_name "op &"}]
+  [@{const_name "=="}, @{const_name "op ="}, @{const_name "op -->"}, @{const_name "All"}, @{const_name "Ex"}, 
+   @{const_name "op &"}]
 
-val special_cases = member (op =) [@{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
+val special_cases = member (op =) [
+    @{const_name "False"},
+    @{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
     @{const_name Nat.one_nat_inst.one_nat},
 @{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"}, @{const_name "HOL.zero_class.zero"},
 @{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
-@{const_name "Nat.nat.nat_case"}, @{const_name "List.list.list_case"},
-@{const_name "Option.option.option_case"},
 @{const_name Nat.ord_nat_inst.less_eq_nat},
 @{const_name number_nat_inst.number_of_nat},
   @{const_name Int.Bit0},
@@ -203,13 +184,19 @@ val special_cases = member (op =) [@{const_name "Suc"}, @{const_name Nat.zero_na
 @{const_name "Int.zero_int_inst.zero_int"},
 @{const_name "List.filter"}]
 
-fun obtain_specification_graph table constname =
+fun case_consts thy s = is_some (Datatype.info_of_case thy s)
+
+fun obtain_specification_graph thy table constname =
   let
     fun is_nondefining_constname c = member (op =) logic_operator_names c
     val is_defining_constname = member (op =) (Symtab.keys table)
+    fun has_code_pred_intros c = is_some (try (Predicate_Compile_Core.intros_of thy) c)
     fun defiants_of specs =
       fold (Term.add_const_names o prop_of) specs []
       |> filter is_defining_constname
+      |> filter_out is_nondefining_constname
+      |> filter_out has_code_pred_intros
+      |> filter_out (case_consts thy)
       |> filter_out special_cases
     fun extend constname =
       let
