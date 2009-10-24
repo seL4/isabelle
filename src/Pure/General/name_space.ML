@@ -29,7 +29,7 @@ sig
   val merge: T * T -> T
   type naming
   val default_naming: naming
-  val declare: naming -> binding -> T -> string * T
+  val declare: bool -> naming -> binding -> T -> string * T
   val full_name: naming -> binding -> string
   val external_names: naming -> string -> string list
   val add_path: string -> naming -> naming
@@ -37,11 +37,11 @@ sig
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
-  val define: naming -> binding * 'a -> 'a table -> string * 'a table (*exception Symtab.DUP*)
+  val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: 'a table
-  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table (*exception Symtab.DUP*)
-  val join_tables: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*) ->
-    'a table * 'a table -> 'a table (*exception Symtab.DUP*)
+  val merge_tables: 'a table * 'a table -> 'a table
+  val join_tables:
+    (string -> 'a * 'a -> 'a) (*Symtab.SAME*) -> 'a table * 'a table -> 'a table
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
 end;
@@ -58,12 +58,30 @@ fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
 
 
+(* datatype entry *)
+
+type entry =
+ {externals: xstring list,
+  is_system: bool,
+  pos: Position.T,
+  id: serial};
+
+fun make_entry (externals, is_system, pos, id) : entry =
+  {externals = externals, is_system = is_system, pos = pos, id = id};
+
+fun str_of_entry def (name, {pos, id, ...}: entry) =
+  let
+    val occurrence = (if def then Markup.defN else Markup.refN, string_of_int id);
+    val props = occurrence :: Position.properties_of pos;
+  in Markup.markup (Markup.properties props (Markup.entity name)) name end;
+
+
 (* datatype T *)
 
 datatype T =
   NameSpace of
     (string list * string list) Symtab.table *   (*internals, hidden internals*)
-    xstring list Symtab.table;                   (*externals*)
+    entry Symtab.table;
 
 val empty = NameSpace (Symtab.empty, Symtab.empty);
 
@@ -75,16 +93,14 @@ fun lookup (NameSpace (tab, _)) xname =
   | SOME (name :: _, _) => (name, false)
   | SOME ([], name' :: _) => (hidden name', true));
 
-fun get_accesses (NameSpace (_, xtab)) name =
-  (case Symtab.lookup xtab name of
+fun get_accesses (NameSpace (_, entries)) name =
+  (case Symtab.lookup entries name of
     NONE => [name]
-  | SOME xnames => xnames);
+  | SOME {externals, ...} => externals);
 
-fun put_accesses name xnames (NameSpace (tab, xtab)) =
-  NameSpace (tab, Symtab.update (name, xnames) xtab);
-
-fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, (names, _)) =>
-  if not (null names) andalso hd names = name then cons xname else I) tab [];
+fun valid_accesses (NameSpace (tab, _)) name =
+  Symtab.fold (fn (xname, (names, _)) =>
+    if not (null names) andalso hd names = name then cons xname else I) tab [];
 
 
 (* intern and extern *)
@@ -120,8 +136,8 @@ fun extern space name =
 
 local
 
-fun map_space f xname (NameSpace (tab, xtab)) =
-  NameSpace (Symtab.map_default (xname, ([], [])) f tab, xtab);
+fun map_space f xname (NameSpace (tab, entries)) =
+  NameSpace (Symtab.map_default (xname, ([], [])) f tab, entries);
 
 in
 
@@ -152,17 +168,21 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
+fun merge (NameSpace (tab1, entries1), NameSpace (tab2, entries2)) =
   let
     val tab' = (tab1, tab2) |> Symtab.join
       (K (fn ((names1, names1'), (names2, names2')) =>
-        if pointer_eq (names1, names2) andalso pointer_eq (names1', names2') then raise Symtab.SAME
+        if pointer_eq (names1, names2) andalso pointer_eq (names1', names2')
+        then raise Symtab.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
-    val xtab' = (xtab1, xtab2) |> Symtab.join
-      (K (fn xnames =>
-        if pointer_eq xnames then raise Symtab.SAME
-        else (Library.merge (op =) xnames)));
-  in NameSpace (tab', xtab') end;
+    val entries' = (entries1, entries2) |> Symtab.join
+      (fn name => fn (entry1, entry2) =>
+        if #id entry1 = #id entry2 then raise Symtab.SAME
+        else
+          error ("Duplicate declaration " ^
+            quote (str_of_entry true (name, entry1)) ^ " vs. " ^
+            quote (str_of_entry true (name, entry2))));
+  in NameSpace (tab', entries') end;
 
 
 
@@ -225,13 +245,26 @@ fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
 (* declaration *)
 
-fun declare naming binding space =
+fun new_entry strict entry (NameSpace (tab, entries)) =
+  let
+    val entries' =
+      (if strict then Symtab.update_new else Symtab.update) entry entries
+        handle Symtab.DUP _ =>
+          error ("Duplicate declaration " ^ quote (str_of_entry true entry));
+  in NameSpace (tab, entries') end;
+
+fun declare strict naming binding space =
   let
     val names = full naming binding;
     val name = Long_Name.implode names;
     val _ = name = "" andalso err_bad binding;
     val (accs, accs') = accesses naming binding;
-    val space' = space |> fold (add_name name) accs |> put_accesses name accs';
+
+    val is_system = false;  (* FIXME *)
+    val entry = make_entry (accs', is_system, Binding.pos_of binding, serial ());
+    val space' = space
+      |> fold (add_name name) accs
+      |> new_entry strict (name, entry);
   in (name, space') end;
 
 
@@ -240,14 +273,14 @@ fun declare naming binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun define naming (binding, x) (space, tab) =
-  let val (name, space') = declare naming binding space
-  in (name, (space', Symtab.update_new (name, x) tab)) end;
+fun define strict naming (binding, x) (space, tab) =
+  let val (name, space') = declare strict naming binding space
+  in (name, (space', Symtab.update (name, x) tab)) end;
 
 val empty_table = (empty, Symtab.empty);
 
-fun merge_tables eq ((space1, tab1), (space2, tab2)) =
-  (merge (space1, space2), Symtab.merge eq (tab1, tab2));
+fun merge_tables ((space1, tab1), (space2, tab2)) =
+  (merge (space1, space2), Symtab.merge (K true) (tab1, tab2));
 
 fun join_tables f ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), Symtab.join f (tab1, tab2));
