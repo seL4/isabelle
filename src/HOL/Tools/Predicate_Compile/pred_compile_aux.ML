@@ -112,7 +112,7 @@ datatype options = Options of {
   (*check_modes : (string * int list list) list,*)
   show_steps : bool,
   show_mode_inference : bool,
-  
+  show_intermediate_results : bool,
   (*
   inductify_functions : bool,
   *)
@@ -120,13 +120,16 @@ datatype options = Options of {
   rpred : bool
 };
 
-fun is_show_steps (Options opt) = #show_steps opt
+fun show_steps (Options opt) = #show_steps opt
+fun show_intermediate_results (Options opt) = #show_intermediate_results opt
+
 fun is_inductify (Options opt) = #inductify opt
 fun is_rpred (Options opt) = #rpred opt
 
 
 val default_options = Options {
   show_steps = false,
+  show_intermediate_results = false,
   show_mode_inference = false,
   inductify = false,
   rpred = false
@@ -134,7 +137,7 @@ val default_options = Options {
 
 
 fun print_step options s =
-  if is_show_steps options then tracing s else ()
+  if show_steps options then tracing s else ()
   
 
 (* tuple processing *)

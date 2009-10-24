@@ -26,11 +26,13 @@ fun remove_pointless_clauses intro =
 
 fun tracing s = ()
 
-fun print_intross thy msg intross =
-  tracing (msg ^ 
+fun print_intross options thy msg intross =
+  if show_intermediate_results options then
+   Output.tracing (msg ^ 
     (space_implode "; " (map 
       (fn intros => commas (map (Display.string_of_thm_global thy) intros)) intross)))
-
+  else ()
+      
 fun print_specs thy specs =
   map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
     ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
@@ -41,7 +43,7 @@ fun process_specification options specs thy' =
     val specs = map (apsnd (map
       (fn th => if is_equationlike th then Pred_Compile_Data.normalize_equation thy' th else th))) specs
     val (intross1, thy'') = apfst flat (fold_map Predicate_Compile_Pred.preprocess specs thy')
-    val _ = print_intross thy'' "Flattened introduction rules: " intross1
+    val _ = print_intross options thy'' "Flattened introduction rules: " intross1
     val _ =  "Replacing functions in introrules..."
     val intross2 =
       if fail_safe_mode then
@@ -49,7 +51,7 @@ fun process_specification options specs thy' =
           SOME intross => intross
         | NONE => let val _ = warning "Function replacement failed!" in intross1 end
       else burrow (maps (Predicate_Compile_Fun.rewrite_intro thy'')) intross1
-    val _ = print_intross thy'' "Introduction rules with replaced functions: " intross2
+    val _ = print_intross options thy'' "Introduction rules with replaced functions: " intross2
     val _ = print_step options "Introducing new constants for abstractions at higher-order argument positions..."
     val (intross3, (new_defs, thy''')) = Predicate_Compile_Pred.flat_higher_order_arguments (intross2, thy'')
     val (new_intross, thy'''')  =
@@ -77,12 +79,12 @@ fun preprocess_strong_conn_constnames options gr constnames thy =
     val _ = print_specs thy' fun_pred_specs
     val specs = (get_specs prednames) @ fun_pred_specs
     val (intross3, thy''') = process_specification options specs thy'
-    val _ = print_intross thy''' "Introduction rules with new constants: " intross3
+    val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
     val intross4 = map (maps remove_pointless_clauses) intross3
-    val _ = print_intross thy''' "After removing pointless clauses: " intross4
+    val _ = print_intross options thy''' "After removing pointless clauses: " intross4
     val intross5 = map (map (AxClass.overload thy''')) intross4
     val intross6 = burrow (map (expand_tuples thy''')) intross5
-    val _ = print_intross thy''' "introduction rules before registering: " intross6
+    val _ = print_intross options thy''' "introduction rules before registering: " intross6
     val _ = print_step options "Registering introduction rules..."
     val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
   in
@@ -105,6 +107,7 @@ fun extract_options ((modes, raw_options), raw_const) =
   in
     Options {
       show_steps = chk "show_steps",
+      show_intermediate_results = chk "show_intermediate_results",
       show_mode_inference = chk "show_mode_inference",
       inductify = chk "inductify",
       rpred = chk "rpred"
@@ -135,7 +138,7 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
 
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
-val bool_options = ["show_steps", "show_mode_inference", "inductify", "rpred"]
+val bool_options = ["show_steps", "show_intermediate_results", "show_mode_inference", "inductify", "rpred"]
 
 val _ = List.app OuterKeyword.keyword ("mode" :: bool_options)
 
