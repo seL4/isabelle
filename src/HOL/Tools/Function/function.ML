@@ -77,6 +77,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
       val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
       val defname = mk_defname fixes
+      val FunctionConfig {partials, ...} = config
 
       val ((goalstate, cont), lthy) =
           Function_Mutual.prepare_function_mutual config defname fixes eqs lthy

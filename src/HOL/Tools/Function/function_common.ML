@@ -170,6 +170,7 @@ datatype function_opt
   = Sequential
   | Default of string
   | DomIntros
+  | No_Partials
   | Tailrec
 
 datatype function_config
@@ -178,21 +179,24 @@ datatype function_config
     sequential: bool,
     default: string,
     domintros: bool,
+    partials: bool,
     tailrec: bool
    }
 
-fun apply_opt Sequential (FunctionConfig {sequential, default, domintros,tailrec}) = 
-    FunctionConfig {sequential=true, default=default, domintros=domintros, tailrec=tailrec}
-  | apply_opt (Default d) (FunctionConfig {sequential, default, domintros,tailrec}) = 
-    FunctionConfig {sequential=sequential, default=d, domintros=domintros, tailrec=tailrec}
-  | apply_opt DomIntros (FunctionConfig {sequential, default, domintros,tailrec}) =
-    FunctionConfig {sequential=sequential, default=default, domintros=true,tailrec=tailrec}
-  | apply_opt Tailrec (FunctionConfig {sequential, default, domintros,tailrec}) =
-    FunctionConfig {sequential=sequential, default=default, domintros=domintros,tailrec=true}
+fun apply_opt Sequential (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
+    FunctionConfig {sequential=true, default=default, domintros=domintros, partials=partials, tailrec=tailrec}
+  | apply_opt (Default d) (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
+    FunctionConfig {sequential=sequential, default=d, domintros=domintros, partials=partials, tailrec=tailrec}
+  | apply_opt DomIntros (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
+    FunctionConfig {sequential=sequential, default=default, domintros=true, partials=partials, tailrec=tailrec}
+  | apply_opt Tailrec (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
+    FunctionConfig {sequential=sequential, default=default, domintros=domintros, partials=partials, tailrec=true}
+  | apply_opt No_Partials (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
+    FunctionConfig {sequential=sequential, default=default, domintros=domintros, partials=false, tailrec=true}
 
 val default_config =
   FunctionConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), 
-                 domintros=false, tailrec=false }
+    domintros=false, partials=true, tailrec=false }
 
 
 (* Analyzing function equations *)
@@ -327,6 +331,7 @@ local
       P.group "option" ((P.reserved "sequential" >> K Sequential)
                     || ((P.reserved "default" |-- P.term) >> Default)
                     || (P.reserved "domintros" >> K DomIntros)
+                    || (P.reserved "no_partials" >> K No_Partials)
                     || (P.reserved "tailrec" >> K Tailrec))
 
   fun config_parser default = 

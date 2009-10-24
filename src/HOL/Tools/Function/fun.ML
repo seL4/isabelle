@@ -148,7 +148,7 @@ val setup =
 
 
 val fun_config = FunctionConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
-                                domintros=false, tailrec=false }
+  domintros=false, partials=false, tailrec=false }
 
 fun gen_fun add config fixes statements int lthy =
   let val group = serial_string () in
