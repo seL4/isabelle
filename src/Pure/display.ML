@@ -146,14 +146,14 @@ fun pretty_full_theory verbose thy =
       [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
 
     val tfrees = map (fn v => TFree (v, []));
-    fun pretty_type syn (t, (Type.LogicalType n, _)) =
+    fun pretty_type syn (t, (Type.LogicalType n)) =
           if syn then NONE
           else SOME (prt_typ (Type (t, tfrees (Name.invents Name.context Name.aT n))))
-      | pretty_type syn (t, (Type.Abbreviation (vs, U, syn'), _)) =
+      | pretty_type syn (t, (Type.Abbreviation (vs, U, syn'))) =
           if syn <> syn' then NONE
           else SOME (Pretty.block
             [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
-      | pretty_type syn (t, (Type.Nonterminal, _)) =
+      | pretty_type syn (t, Type.Nonterminal) =
           if not syn then NONE
           else SOME (prt_typ (Type (t, [])));
 

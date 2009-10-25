@@ -119,8 +119,7 @@ sig
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
-  val add_abbrev: string -> Properties.T ->
-    binding * term -> Proof.context -> (term * term) * Proof.context
+  val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool Unsynchronized.ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -133,9 +132,6 @@ sig
   val prems_limit: int Unsynchronized.ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
-  val query_type: Proof.context -> string -> Properties.T
-  val query_const: Proof.context -> string -> Properties.T
-  val query_class: Proof.context -> string -> Properties.T
 end;
 
 structure ProofContext: PROOF_CONTEXT =
@@ -1051,13 +1047,13 @@ fun add_const_constraint (c, opt_T) ctxt =
       in cert_term ctxt (Const (c, T)); T end;
   in ctxt |> (map_consts o apfst) (Consts.constrain (c, Option.map prepT opt_T)) end;
 
-fun add_abbrev mode tags (b, raw_t) ctxt =
+fun add_abbrev mode (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (b, t);
+      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (b, t);
   in
     ctxt
     |> (map_consts o apfst) (K consts')
@@ -1382,15 +1378,5 @@ fun pretty_context ctxt =
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))
   end;
-
-
-(* query meta data *)
-
-val query_type = Type.the_tags o tsig_of;
-
-fun query_const ctxt name =
-  Consts.the_tags (consts_of ctxt) name handle TYPE (msg, _, _) => error msg;
-
-fun query_class ctxt name = query_const ctxt (Logic.const_of_class name);
 
 end;

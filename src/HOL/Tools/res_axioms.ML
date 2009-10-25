@@ -85,7 +85,7 @@ fun declare_skofuns s th =
             val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
                     (*Forms a lambda-abstraction over the formal parameters*)
             val (c, thy') =
-              Sign.declare_const [] ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
+              Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
             val cdef = cname ^ "_def"
             val thy'' = Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
             val ax = Thm.axiom thy'' (Sign.full_bname thy'' cdef)

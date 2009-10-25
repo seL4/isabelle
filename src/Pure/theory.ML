@@ -35,7 +35,7 @@ sig
   val add_defs: bool -> bool -> (binding * string) list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
-  val specify_const: Properties.T -> (binding * typ) * mixfix -> theory -> term * theory
+  val specify_const: (binding * typ) * mixfix -> theory -> term * theory
 end
 
 structure Theory: THEORY =
@@ -219,8 +219,8 @@ fun add_deps a raw_lhs raw_rhs thy =
     val name = if a = "" then (#1 lhs ^ " axiom") else a;
   in thy |> map_defs (dependencies thy false false name lhs rhs) end;
 
-fun specify_const tags decl thy =
-  let val (t as Const const, thy') = Sign.declare_const tags decl thy
+fun specify_const decl thy =
+  let val (t as Const const, thy') = Sign.declare_const decl thy
   in (t, add_deps "" const [] thy') end;
 
 

@@ -237,7 +237,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
         val syn = (the_default NoSyn o AList.lookup Binding.eq_name global_syntax) b;
       in
         thy
-        |> Sign.declare_const [] ((b, ty0), syn)
+        |> Sign.declare_const ((b, ty0), syn)
         |> snd
         |> pair ((Name.of_binding b, ty), (c, ty'))
       end;

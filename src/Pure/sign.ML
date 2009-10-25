@@ -90,10 +90,10 @@ sig
   val del_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
   val del_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val declare_const: Properties.T -> (binding * typ) * mixfix -> theory -> term * theory
+  val declare_const: (binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (binding * string * mixfix) list -> theory -> theory
   val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
-  val add_abbrev: string -> Properties.T -> binding * term -> theory -> (term * term) * theory
+  val add_abbrev: string -> binding * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: binding * class list -> theory -> theory
@@ -434,7 +434,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Name.of_binding a, n, mx)) types) syn;
     val decls = map (fn (a, n, mx) => (Binding.map_name (Syntax.type_name mx) a, n)) types;
-    val tsig' = fold (Type.add_type naming []) decls tsig;
+    val tsig' = fold (Type.add_type naming) decls tsig;
   in (naming, syn', tsig', consts) end);
 
 
@@ -443,7 +443,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     val syn' = Syntax.update_consts (map Name.of_binding ns) syn;
-    val tsig' = fold (Type.add_nonterminal naming []) ns tsig;
+    val tsig' = fold (Type.add_nonterminal naming) ns tsig;
   in (naming, syn', tsig', consts) end);
 
 
@@ -457,7 +457,7 @@ fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
       val b = Binding.map_name (Syntax.type_name mx) a;
       val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
-      val tsig' = Type.add_abbrev naming [] abbr tsig;
+      val tsig' = Type.add_abbrev naming abbr tsig;
     in (naming, syn', tsig', consts) end);
 
 val add_tyabbrs = fold (gen_add_tyabbr Syntax.parse_typ);
@@ -495,7 +495,7 @@ fun notation add mode args thy =
 
 local
 
-fun gen_add_consts parse_typ authentic tags raw_args thy =
+fun gen_add_consts parse_typ authentic raw_args thy =
   let
     val ctxt = ProofContext.init thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
@@ -512,20 +512,20 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
     val args = map prep raw_args;
   in
     thy
-    |> map_consts (fold (Consts.declare authentic (naming_of thy) tags o #1) args)
+    |> map_consts (fold (Consts.declare authentic (naming_of thy) o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;
 
 in
 
-fun add_consts args = snd o gen_add_consts Syntax.parse_typ false [] args;
-fun add_consts_i args = snd o gen_add_consts (K I) false [] args;
+fun add_consts args = snd o gen_add_consts Syntax.parse_typ false args;
+fun add_consts_i args = snd o gen_add_consts (K I) false args;
 
-fun declare_const tags ((b, T), mx) thy =
+fun declare_const ((b, T), mx) thy =
   let
     val pos = Binding.pos_of b;
-    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true tags [(b, T, mx)] thy;
+    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true [(b, T, mx)] thy;
     val _ = Position.report (Markup.const_decl c) pos;
   in (const, thy') end;
 
@@ -534,14 +534,14 @@ end;
 
 (* abbreviations *)
 
-fun add_abbrev mode tags (b, raw_t) thy =
+fun add_abbrev mode (b, raw_t) thy =
   let
     val pp = Syntax.pp_global thy;
     val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (b, t);
+      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode (b, t);
   in (res, thy |> map_consts (K consts')) end;
 
 fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);

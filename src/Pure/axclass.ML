@@ -305,7 +305,7 @@ fun declare_overloaded (c, T) thy =
   in
     thy
     |> Sign.mandatory_path name_inst
-    |> Sign.declare_const [] ((Binding.name c', T'), NoSyn)
+    |> Sign.declare_const ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))

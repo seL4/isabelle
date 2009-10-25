@@ -21,10 +21,8 @@ sig
 
   val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
-  val declare: class -> Properties.T
-    -> (binding * mixfix) * term -> theory -> theory
-  val abbrev: class -> Syntax.mode -> Properties.T
-    -> (binding * mixfix) * term -> theory -> theory
+  val declare: class -> (binding * mixfix) * term -> theory -> theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> theory -> theory
   val class_prefix: string -> string
   val refresh_syntax: class -> Proof.context -> Proof.context
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
@@ -325,7 +323,7 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-fun declare class pos ((c, mx), dict) thy =
+fun declare class ((c, mx), dict) thy =
   let
     val morph = morphism thy class;
     val b = Morphism.binding morph c;
@@ -337,7 +335,7 @@ fun declare class pos ((c, mx), dict) thy =
       |> map_types Type.strip_sorts;
   in
     thy
-    |> Sign.declare_const pos ((b, Type.strip_sorts ty'), mx)
+    |> Sign.declare_const ((b, Type.strip_sorts ty'), mx)
     |> snd
     |> Thm.add_def false false (b_def, def_eq)
     |>> Thm.varifyT
@@ -347,7 +345,7 @@ fun declare class pos ((c, mx), dict) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun abbrev class prmode pos ((c, mx), rhs) thy =
+fun abbrev class prmode ((c, mx), rhs) thy =
   let
     val morph = morphism thy class;
     val unchecks = these_unchecks thy [class];
@@ -358,7 +356,7 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
     val rhs'' = map_types Logic.varifyT rhs';
   in
     thy
-    |> Sign.add_abbrev (#1 prmode) pos (b, rhs'')
+    |> Sign.add_abbrev (#1 prmode) (b, rhs'')
     |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]

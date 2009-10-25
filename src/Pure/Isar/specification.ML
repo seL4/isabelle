@@ -161,7 +161,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
     val xs = map (fn ((b, T), _) => (Name.of_binding b, T)) vars;
 
     (*consts*)
-    val (consts, consts_thy) = thy |> fold_map (Theory.specify_const []) vars;
+    val (consts, consts_thy) = thy |> fold_map Theory.specify_const vars;
     val subst = Term.subst_atomic (map Free xs ~~ consts);
 
     (*axioms*)

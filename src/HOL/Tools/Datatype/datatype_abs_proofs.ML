@@ -321,7 +321,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
                 fns2 @ (flat (Library.drop (i + 1, case_dummy_fns))) )));
           val ([def_thm], thy') =
             thy
-            |> Sign.declare_const [] decl |> snd
+            |> Sign.declare_const decl |> snd
             |> (PureThy.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')

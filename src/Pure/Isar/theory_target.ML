@@ -187,8 +187,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
-        (Sign.add_abbrev PrintMode.internal [] arg)
-        (ProofContext.add_abbrev PrintMode.internal [] arg)
+        (Sign.add_abbrev PrintMode.internal arg)
+        (ProofContext.add_abbrev PrintMode.internal arg)
       #-> (fn (lhs' as Const (d, _), _) =>
           similar_body ?
             (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
@@ -214,13 +214,13 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
                 if mx3 <> NoSyn then syntax_error c'
                 else LocalTheory.theory_result (Overloading.declare (c', U))
                   ##> Overloading.confirm b
-            | NONE => LocalTheory.theory_result (Sign.declare_const [] ((b, U), mx3))));
+            | NONE => LocalTheory.theory_result (Sign.declare_const ((b, U), mx3))));
     val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
     |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default ((b, mx2), t))
-    |> is_class ? class_target ta (Class_Target.declare target [] ((b, mx1), t))
+    |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
     |> LocalDefs.add_def ((b, NoSyn), t)
   end;
 
@@ -241,17 +241,17 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
   in
     lthy |>
      (if is_locale then
-        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal [] (b, global_rhs))
+        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal (b, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode ((b, mx2), lhs')) #>
-            is_class ? class_target ta (Class_Target.abbrev target prmode [] ((b, mx1), t'))
+            is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
           end)
       else
         LocalTheory.theory
-          (Sign.add_abbrev (#1 prmode) [] (b, global_rhs) #-> (fn (lhs, _) =>
+          (Sign.add_abbrev (#1 prmode) (b, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
-    |> ProofContext.add_abbrev PrintMode.internal [] (b, t) |> snd
+    |> ProofContext.add_abbrev PrintMode.internal (b, t) |> snd
     |> LocalDefs.fixed_abbrev ((b, NoSyn), t)
   end;
 

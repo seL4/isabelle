@@ -16,7 +16,6 @@ sig
   val the_type: T -> string -> typ                             (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
-  val the_tags: T -> string -> Properties.T                    (*exception TYPE*)
   val is_monomorphic: T -> string -> bool                      (*exception TYPE*)
   val the_constraint: T -> string -> typ                       (*exception TYPE*)
   val space_of: T -> Name_Space.T
@@ -30,9 +29,9 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> Name_Space.naming -> Properties.T -> binding * typ -> T -> T
+  val declare: bool -> Name_Space.naming -> binding * typ -> T -> T
   val constrain: string * typ option -> T -> T
-  val abbreviate: Pretty.pp -> Type.tsig -> Name_Space.naming -> string -> Properties.T ->
+  val abbreviate: Pretty.pp -> Type.tsig -> Name_Space.naming -> string ->
     binding * term -> T -> (term * term) * T
   val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
@@ -47,7 +46,7 @@ struct
 
 (* datatype T *)
 
-type decl = {T: typ, typargs: int list list, tags: Properties.T, authentic: bool};
+type decl = {T: typ, typargs: int list list, authentic: bool};
 type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
 
 datatype T = Consts of
@@ -71,7 +70,8 @@ fun map_consts f (Consts {decls, constraints, rev_abbrevs}) =
 
 (* reverted abbrevs *)
 
-val empty_abbrevs = Item_Net.init (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u') #1;
+val empty_abbrevs =
+  Item_Net.init (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u') #1;
 
 fun insert_abbrevs mode abbrs =
   Symtab.map_default (mode, empty_abbrevs) (Item_Net.insert abbrs);
@@ -110,7 +110,6 @@ fun the_abbreviation consts c =
 val the_decl = #1 oo the_const;
 val type_scheme = #T oo the_decl;
 val type_arguments = #typargs oo the_decl;
-val the_tags = #tags oo the_decl;
 
 val is_monomorphic = null oo type_arguments;
 
@@ -232,10 +231,10 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 
 (* declarations *)
 
-fun declare authentic naming tags (b, declT) =
+fun declare authentic naming (b, declT) =
   map_consts (fn (decls, constraints, rev_abbrevs) =>
     let
-      val decl = {T = declT, typargs = typargs_of declT, tags = tags, authentic = authentic};
+      val decl = {T = declT, typargs = typargs_of declT, authentic = authentic};
       val (_, decls') = decls |> Name_Space.define true naming (b, (decl, NONE));
     in (decls', constraints, rev_abbrevs) end);
 
@@ -267,7 +266,7 @@ fun rev_abbrev lhs rhs =
 
 in
 
-fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
+fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
   let
     val cert_term = certify pp tsig false consts;
     val expand_term = certify pp tsig true consts;
@@ -286,7 +285,7 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
-        val decl = {T = T, typargs = typargs_of T, tags = tags, authentic = true};
+        val decl = {T = T, typargs = typargs_of T, authentic = true};
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
         val (_, decls') = decls
           |> Name_Space.define true naming (b, (decl, SOME abbr));
