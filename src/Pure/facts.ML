@@ -21,6 +21,7 @@ sig
   type T
   val empty: T
   val space_of: T -> Name_Space.T
+  val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
@@ -44,7 +45,7 @@ struct
 (** fact references **)
 
 fun the_single _ [th] : thm = th
-  | the_single name _ = error ("Single theorem expected " ^ quote name);
+  | the_single name _ = error ("Expected singleton fact " ^ quote name);
 
 
 (* datatype interval *)
@@ -126,6 +127,7 @@ datatype T = Facts of
   props: thm Net.net};
 
 fun make_facts facts props = Facts {facts = facts, props = props};
+
 val empty = make_facts (Name_Space.empty_table "fact") Net.empty;
 
 
@@ -135,6 +137,8 @@ fun facts_of (Facts {facts, ...}) = facts;
 
 val space_of = #1 o facts_of;
 val table_of = #2 o facts_of;
+
+val is_concealed = Name_Space.is_concealed o space_of;
 
 val intern = Name_Space.intern o space_of;
 val extern = Name_Space.extern o space_of;
@@ -216,7 +220,7 @@ fun add_dynamic naming (b, f) (Facts {facts, props}) =
 
 fun del name (Facts {facts = (space, tab), props}) =
   let
-    val space' = Name_Space.hide true name space handle ERROR _ => space;  (* FIXME handle?? *)
+    val space' = Name_Space.hide true name space handle ERROR _ => space;
     val tab' = Symtab.delete_safe name tab;
   in make_facts (space', tab') props end;
 
