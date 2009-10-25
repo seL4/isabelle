@@ -83,9 +83,6 @@ sig
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
-  val get_group: thm -> string option
-  val put_group: string -> thm -> thm
-  val group: string -> attribute
   val axiomK: string
   val assumptionK: string
   val definitionK: string
@@ -415,15 +412,6 @@ val has_name_hint = can the_name_hint;
 val get_name_hint = the_default "??.unknown" o try the_name_hint;
 
 fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
-
-
-(* theorem groups *)
-
-fun get_group thm = Properties.get (Thm.get_tags thm) Markup.groupN;
-
-fun put_group name = if name = "" then I else Thm.map_tags (Properties.put (Markup.groupN, name));
-
-fun group name = rule_attribute (K (put_group name));
 
 
 (* theorem kinds *)

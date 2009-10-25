@@ -158,8 +158,8 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
     val global_facts = PureThy.map_facts #2 facts'
       |> Attrib.map_facts (if is_locale then K I else Attrib.attribute_i thy);
   in
-    lthy |> LocalTheory.theory
-      (PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd)
+    lthy
+    |> LocalTheory.theory (PureThy.note_thmss kind global_facts #> snd)
     |> not is_locale ? LocalTheory.target (ProofContext.note_thmss kind global_facts #> snd)
     |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
     |> ProofContext.note_thmss kind local_facts
@@ -173,7 +173,7 @@ fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   else if not is_class then (NoSyn, mx, NoSyn)
   else (mx, NoSyn, NoSyn);
 
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b, mx), rhs) phi =
+fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) phi =
   let
     val b' = Morphism.binding phi b;
     val rhs' = Morphism.term phi rhs;
@@ -187,8 +187,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
-        (Sign.add_abbrev PrintMode.internal tags arg)
-        (ProofContext.add_abbrev PrintMode.internal tags arg)
+        (Sign.add_abbrev PrintMode.internal [] arg)
+        (ProofContext.add_abbrev PrintMode.internal [] arg)
       #-> (fn (lhs' as Const (d, _), _) =>
           similar_body ?
             (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
@@ -199,7 +199,6 @@ fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ q
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
   let
-    val tags = LocalTheory.group_position_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
@@ -215,13 +214,13 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
                 if mx3 <> NoSyn then syntax_error c'
                 else LocalTheory.theory_result (Overloading.declare (c', U))
                   ##> Overloading.confirm b
-            | NONE => LocalTheory.theory_result (Sign.declare_const tags ((b, U), mx3))));
+            | NONE => LocalTheory.theory_result (Sign.declare_const [] ((b, U), mx3))));
     val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
-    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default tags ((b, mx2), t))
-    |> is_class ? class_target ta (Class_Target.declare target tags ((b, mx1), t))
+    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default ((b, mx2), t))
+    |> is_class ? class_target ta (Class_Target.declare target [] ((b, mx1), t))
     |> LocalDefs.add_def ((b, NoSyn), t)
   end;
 
@@ -230,7 +229,6 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
-    val tags = LocalTheory.group_position_of lthy;
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target_ctxt = LocalTheory.target_of lthy;
 
@@ -243,17 +241,17 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
   in
     lthy |>
      (if is_locale then
-        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal tags (b, global_rhs))
+        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal [] (b, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
-            term_syntax ta (locale_const ta prmode tags ((b, mx2), lhs')) #>
-            is_class ? class_target ta (Class_Target.abbrev target prmode tags ((b, mx1), t'))
+            term_syntax ta (locale_const ta prmode ((b, mx2), lhs')) #>
+            is_class ? class_target ta (Class_Target.abbrev target prmode [] ((b, mx1), t'))
           end)
       else
         LocalTheory.theory
-          (Sign.add_abbrev (#1 prmode) tags (b, global_rhs) #-> (fn (lhs, _) =>
+          (Sign.add_abbrev (#1 prmode) [] (b, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
-    |> ProofContext.add_abbrev PrintMode.internal tags (b, t) |> snd
+    |> ProofContext.add_abbrev PrintMode.internal [] (b, t) |> snd
     |> LocalDefs.fixed_abbrev ((b, NoSyn), t)
   end;
 

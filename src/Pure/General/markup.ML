@@ -13,7 +13,6 @@ sig
   val nameN: string
   val name: string -> T -> T
   val bindingN: string val binding: string -> T
-  val groupN: string
   val theory_nameN: string
   val kindN: string
   val internalK: string
@@ -151,7 +150,6 @@ fun name a = properties [(nameN, a)];
 
 val (bindingN, binding) = markup_string "binding" nameN;
 
-val groupN = "group";
 val theory_nameN = "theory_name";
 
 
