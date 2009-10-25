@@ -141,7 +141,12 @@ fun begin_theory name imports =
   let
     val thy = Context.begin_thy Syntax.pp_global name imports;
     val wrappers = begin_wrappers thy;
-  in thy |> Sign.local_path |> apply_wrappers wrappers end;
+  in
+    thy
+    |> Sign.local_path
+    |> Sign.map_naming (Name_Space.set_theory_name name)
+    |> apply_wrappers wrappers
+  end;
 
 fun end_theory thy =
   thy |> apply_wrappers (end_wrappers thy) |> Context.finish_thy;
