@@ -47,7 +47,7 @@ sig
     (Attrib.binding * string) list ->
     (Facts.ref * Attrib.src list) list ->
     bool -> local_theory -> inductive_result * local_theory
-  val add_inductive_global: string -> inductive_flags ->
+  val add_inductive_global: serial -> inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
     thm list -> theory -> inductive_result * theory
   val arities_of: thm -> (string * int) list
@@ -859,7 +859,7 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
       skip_mono = false, fork_mono = not int};
   in
     lthy
-    |> LocalTheory.set_group (serial_string ())
+    |> LocalTheory.set_group (serial ())
     |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos
   end;
 

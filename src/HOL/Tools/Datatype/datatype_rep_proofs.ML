@@ -170,7 +170,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names');
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
-        Inductive.add_inductive_global (serial_string ())
+        Inductive.add_inductive_global (serial ())
           {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rec_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true, fork_mono = false}

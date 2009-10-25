@@ -367,7 +367,7 @@ fun define_predicates specs thy =
         if is_some (try (map (cterm_of thy)) intr_ts) then
           let
             val (ind_result, thy') =
-              Inductive.add_inductive_global (serial_string ())
+              Inductive.add_inductive_global (serial ())
                 {quiet_mode = false, verbose = false, kind = Thm.internalK,
                   alt_name = Binding.empty, coind = false, no_elim = false,
                   no_ind = false, skip_mono = false, fork_mono = false}

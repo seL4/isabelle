@@ -118,7 +118,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
         end
     in
       lthy
-        |> is_external ? LocalTheory.set_group (serial_string ())
+        |> is_external ? LocalTheory.set_group (serial ())
         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
@@ -173,12 +173,12 @@ val termination_proof_cmd = gen_termination_proof Syntax.read_term;
 
 fun termination term_opt lthy =
   lthy
-  |> LocalTheory.set_group (serial_string ())
+  |> LocalTheory.set_group (serial ())
   |> termination_proof term_opt;
 
 fun termination_cmd term_opt lthy =
   lthy
-  |> LocalTheory.set_group (serial_string ())
+  |> LocalTheory.set_group (serial ())
   |> termination_proof_cmd term_opt;
 
 
