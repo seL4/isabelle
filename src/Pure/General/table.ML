@@ -54,8 +54,7 @@ sig
   val update_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
   val make_list: (key * 'a) list -> 'a list table
   val dest_list: 'a list table -> (key * 'a) list
-  val merge_list: ('a * 'a -> bool) ->
-    'a list table * 'a list table -> 'a list table                     (*exception DUP*)
+  val merge_list: ('a * 'a -> bool) -> 'a list table * 'a list table -> 'a list table
 end;
 
 functor Table(Key: KEY): TABLE =
