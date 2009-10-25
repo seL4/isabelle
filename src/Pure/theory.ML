@@ -89,7 +89,7 @@ fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrapp
 structure ThyData = TheoryDataFun
 (
   type T = thy;
-  val empty_axioms = Name_Space.empty_table "axiom";
+  val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;
   val empty = make_thy (empty_axioms, Defs.empty, ([], []));
   val copy = I;
 

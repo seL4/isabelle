@@ -125,7 +125,7 @@ fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2
 structure Locales = TheoryDataFun
 (
   type T = locale Name_Space.table;
-  val empty = Name_Space.empty_table "locale";
+  val empty : T = Name_Space.empty_table "locale";
   val copy = I;
   val extend = I;
   fun merge _ = Name_Space.join_tables (K merge_locale);

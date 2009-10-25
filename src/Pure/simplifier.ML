@@ -148,7 +148,7 @@ val _ = ML_Antiquote.value "simpset"
 structure Simprocs = GenericDataFun
 (
   type T = simproc Name_Space.table;
-  val empty = Name_Space.empty_table "simproc";
+  val empty : T = Name_Space.empty_table "simproc";
   val extend = I;
   fun merge _ simprocs = Name_Space.merge_tables simprocs;
 );
