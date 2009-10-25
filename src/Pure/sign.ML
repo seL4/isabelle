@@ -434,8 +434,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Name.of_binding a, n, mx)) types) syn;
     val decls = map (fn (a, n, mx) => (Binding.map_name (Syntax.type_name mx) a, n)) types;
-    val tags = [(Markup.theory_nameN, Context.theory_name thy)];
-    val tsig' = fold (Type.add_type naming tags) decls tsig;
+    val tsig' = fold (Type.add_type naming []) decls tsig;
   in (naming, syn', tsig', consts) end);
 
 
@@ -511,10 +510,9 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
         val T' = Logic.varifyT T;
       in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
-    val tags' = tags |> Properties.put (Markup.theory_nameN, Context.theory_name thy);
   in
     thy
-    |> map_consts (fold (Consts.declare authentic (naming_of thy) tags' o #1) args)
+    |> map_consts (fold (Consts.declare authentic (naming_of thy) tags o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;

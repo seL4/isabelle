@@ -446,13 +446,8 @@ fun del_nodes ks (gr, x) = (Graph.del_nodes ks gr, x);
 fun map_node k f (gr, x) = (Graph.map_node k f gr, x);
 fun new_node p (gr, x) = (Graph.new_node p gr, x);
 
-fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
-
-fun thyname_of_type thy =
-  thyname_of thy (Type.the_tags (Sign.tsig_of thy));
-
-fun thyname_of_const thy =
-  thyname_of thy (Consts.the_tags (Sign.consts_of thy));
+fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
+fun thyname_of_const thy = #theory_name o Name_Space.the_entry (Sign.const_space thy);
 
 fun rename_terms ts =
   let
