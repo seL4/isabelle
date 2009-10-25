@@ -22,22 +22,24 @@ sig
   type T
   val empty: string -> T
   val kind_of: T -> string
-  val the_entry: T -> string -> {is_system: bool, pos: Position.T, id: serial}
+  val the_entry: T -> string -> {concealed: bool, pos: Position.T, id: serial}
+  val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val extern: T -> string -> xstring
   val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
     T -> string -> xstring
+  val extern: T -> string -> xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
   val default_naming: naming
-  val declare: bool -> naming -> binding -> T -> string * T
-  val full_name: naming -> binding -> string
-  val external_names: naming -> string -> string list
   val add_path: string -> naming -> naming
   val root_path: naming -> naming
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
+  val conceal: naming -> naming
+  val full_name: naming -> binding -> string
+  val external_names: naming -> string -> string list
+  val declare: bool -> naming -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
@@ -64,7 +66,7 @@ val is_hidden = String.isPrefix "??.";
 
 type entry =
  {externals: xstring list,
-  is_system: bool,
+  concealed: bool,
   pos: Position.T,
   id: serial};
 
@@ -104,7 +106,9 @@ fun kind_of (Name_Space {kind, ...}) = kind;
 fun the_entry (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
     NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
-  | SOME {is_system, pos, id, ...} => {is_system = is_system, pos = pos, id = id});
+  | SOME {concealed, pos, id, ...} => {concealed = concealed, pos = pos, id = id});
+
+fun is_concealed space name = #concealed (the_entry space name);
 
 
 (* name accesses *)
@@ -209,36 +213,41 @@ fun merge
 
 (* datatype naming *)
 
-datatype naming = Naming of (string * bool) list;
-fun map_naming f (Naming path) = Naming (f path);
+datatype naming = Naming of bool * (string * bool) list;
 
-val default_naming = Naming [];
+fun map_naming f (Naming (conceal, path)) = Naming (f (conceal, path));
+fun map_path f = map_naming (apsnd f);
 
-fun add_path elems = map_naming (fn path => path @ [(elems, false)]);
-val root_path = map_naming (fn _ => []);
-val parent_path = map_naming (perhaps (try (#1 o split_last)));
-fun mandatory_path elems = map_naming (fn path => path @ [(elems, true)]);
+val default_naming = Naming (false, []);
+
+fun add_path elems = map_path (fn path => path @ [(elems, false)]);
+val root_path = map_path (fn _ => []);
+val parent_path = map_path (perhaps (try (#1 o split_last)));
+fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
+
+val conceal = map_naming (fn (_, path) => (true, path));
 
 
 (* full name *)
 
 fun err_bad binding = error ("Bad name binding " ^ quote (Binding.str_of binding));
 
-fun name_spec (Naming path) binding =
+fun name_spec (Naming (conceal1, path)) binding =
   let
-    val (prefix, name) = Binding.dest binding;
+    val (conceal2, prefix, name) = Binding.dest binding;
     val _ = Long_Name.is_qualified name andalso err_bad binding;
 
+    val concealed = conceal1 orelse conceal2;
     val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path @ prefix);
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
     val _ =
       exists (fn (a, _) => a = "" orelse a = "??" orelse exists_string (fn s => s = "\"") a) spec
       andalso err_bad binding;
-  in if null spec2 then [] else spec end;
+  in (concealed, if null spec2 then [] else spec) end;
 
-fun full naming = name_spec naming #> map fst;
-fun full_name naming = full naming #> Long_Name.implode;
+fun full_name naming =
+  name_spec naming #> snd #> map fst #> Long_Name.implode;
 
 
 (* accesses *)
@@ -254,7 +263,7 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
   let
-    val spec = name_spec naming binding;
+    val spec = #2 (name_spec naming binding);
     val sfxs = mandatory_suffixes spec;
     val pfxs = mandatory_prefixes spec;
   in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
@@ -275,13 +284,15 @@ fun new_entry strict entry =
 
 fun declare strict naming binding space =
   let
-    val names = full naming binding;
-    val name = Long_Name.implode names;
-    val _ = name = "" andalso err_bad binding;
+    val (concealed, spec) = name_spec naming binding;
     val (accs, accs') = accesses naming binding;
+
+    val name = Long_Name.implode (map fst spec);
+    val _ = name = "" andalso err_bad binding;
+
     val entry =
      {externals = accs',
-      is_system = false,
+      concealed = concealed,
       pos = Position.default (Binding.pos_of binding),
       id = serial ()};
     val space' = space |> fold (add_name name) accs |> new_entry strict (name, entry);
