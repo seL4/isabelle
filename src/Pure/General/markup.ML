@@ -17,7 +17,6 @@ sig
   val theory_nameN: string
   val kindN: string
   val internalK: string
-  val property_internal: Properties.property
   val entityN: string val entity: string -> T
   val defN: string
   val refN: string
@@ -161,7 +160,6 @@ val theory_nameN = "theory_name";
 val kindN = "kind";
 
 val internalK = "internal";
-val property_internal = (kindN, internalK);
 
 
 (* formal entities *)

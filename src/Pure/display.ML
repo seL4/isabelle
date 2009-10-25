@@ -188,8 +188,7 @@ fun pretty_full_theory verbose thy =
     val tdecls = Name_Space.dest_table types;
     val arties = Name_Space.dest_table (Sign.type_space thy, arities);
 
-    fun prune_const c = not verbose andalso
-      member (op =) (Consts.the_tags consts c) Markup.property_internal;
+    fun prune_const c = not verbose andalso Consts.is_concealed consts c;
     val cnsts = Name_Space.extern_table (#1 constants,
       Symtab.make (filter_out (prune_const o fst) (Symtab.dest (#2 constants))));
 

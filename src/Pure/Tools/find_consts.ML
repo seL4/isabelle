@@ -87,9 +87,8 @@ fun find_consts ctxt raw_criteria =
     val thy = ProofContext.theory_of ctxt;
     val low_ranking = 10000;
 
-    fun not_internal consts (nm, _) =
-      if member (op =) (Consts.the_tags consts nm) Markup.property_internal
-      then NONE else SOME low_ranking;
+    fun user_visible consts (nm, _) =
+      if Consts.is_concealed consts nm then NONE else SOME low_ranking;
 
     fun make_pattern crit =
       let
@@ -119,7 +118,7 @@ fun find_consts ctxt raw_criteria =
     val consts = Sign.consts_of thy;
     val (_, consts_tab) = #constants (Consts.dest consts);
     fun eval_entry c =
-      fold filter_const (not_internal consts :: criteria)
+      fold filter_const (user_visible consts :: criteria)
         (SOME (c, low_ranking));
 
     val matches =
