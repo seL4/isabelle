@@ -162,7 +162,8 @@ fun map_node f (Node {context, facts, mode, goal}) =
   make_node (f (context, facts, mode, goal));
 
 val init_context =
-  ProofContext.set_stmt true #> ProofContext.reset_naming;
+  ProofContext.set_stmt true #>
+  ProofContext.map_naming (K ProofContext.local_naming);
 
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));

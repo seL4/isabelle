@@ -21,7 +21,10 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
+  val local_naming: Name_Space.naming
+  val map_naming: (Name_Space.naming -> Name_Space.naming) -> Proof.context -> Proof.context
   val naming_of: Proof.context -> Name_Space.naming
+  val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
@@ -92,11 +95,6 @@ sig
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
-  val add_path: string -> Proof.context -> Proof.context
-  val mandatory_path: string -> Proof.context -> Proof.context
-  val conceal: Proof.context -> Proof.context
-  val restore_naming: Proof.context -> Proof.context -> Proof.context
-  val reset_naming: Proof.context -> Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
@@ -232,6 +230,7 @@ fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
+val restore_naming = map_naming o K o naming_of
 val full_name = Name_Space.full_name o naming_of;
 
 val syntax_of = #syntax o rep_context;
@@ -921,15 +920,6 @@ fun get_thms ctxt = get_fact ctxt o Facts.named;
 fun get_thm ctxt = get_fact_single ctxt o Facts.named;
 
 end;
-
-
-(* name space operations *)
-
-val add_path = map_naming o Name_Space.add_path;
-val mandatory_path = map_naming o Name_Space.mandatory_path;
-val conceal = map_naming Name_Space.conceal;
-val restore_naming = map_naming o K o naming_of;
-val reset_naming = map_naming (K local_naming);
 
 
 (* facts *)
