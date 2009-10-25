@@ -177,9 +177,9 @@ local
 fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   let
     val b = Binding.name name;
-    val naming = LocalTheory.full_naming lthy;
+    val naming = LocalTheory.naming_of lthy;
     val simproc = make_simproc
-      {name = LocalTheory.full_name lthy b,
+      {name = Name_Space.full_name naming b,
        lhss =
         let
           val lhss' = prep lthy lhss;
