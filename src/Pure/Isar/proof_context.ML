@@ -94,6 +94,7 @@ sig
   val get_thm: Proof.context -> xstring -> thm
   val add_path: string -> Proof.context -> Proof.context
   val mandatory_path: string -> Proof.context -> Proof.context
+  val conceal: Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
@@ -926,6 +927,7 @@ end;
 
 val add_path = map_naming o Name_Space.add_path;
 val mandatory_path = map_naming o Name_Space.mandatory_path;
+val conceal = map_naming Name_Space.conceal;
 val restore_naming = map_naming o K o naming_of;
 val reset_naming = map_naming (K local_naming);
 

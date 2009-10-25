@@ -125,6 +125,7 @@ sig
   val parent_path: theory -> theory
   val mandatory_path: string -> theory -> theory
   val local_path: theory -> theory
+  val conceal: theory -> theory
   val restore_naming: theory -> theory -> theory
   val hide_class: bool -> string -> theory -> theory
   val hide_type: bool -> string -> theory -> theory
@@ -617,6 +618,8 @@ val parent_path = map_naming Name_Space.parent_path;
 val mandatory_path = map_naming o Name_Space.mandatory_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
+
+val conceal = map_naming Name_Space.conceal;
 
 val restore_naming = map_naming o K o naming_of;
 
