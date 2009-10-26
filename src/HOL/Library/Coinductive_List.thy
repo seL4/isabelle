@@ -850,8 +850,8 @@ proof -
 qed
 
 setup {*
-Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
-                            (map dest_Const [@{term LNil}, @{term LCons}])
+  Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
+    (map dest_Const [@{term LNil}, @{term LCons}])
 *}
 
 end

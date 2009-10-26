@@ -1064,22 +1064,22 @@ fun rat_of_int i = (i, 1);
 *}
 
 setup {*
-Nitpick.register_frac_type @{type_name rat}
-    [(@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
-     (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
-     (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),
-     (@{const_name times_rat_inst.times_rat}, @{const_name Nitpick.times_frac}),
-     (@{const_name uminus_rat_inst.uminus_rat}, @{const_name Nitpick.uminus_frac}),
-     (@{const_name number_rat_inst.number_of_rat}, @{const_name Nitpick.number_of_frac}),
-     (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
-     (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
-     (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac}),
-     (@{const_name field_char_0_class.Rats}, @{const_name UNIV})]
+  Nitpick.register_frac_type @{type_name rat}
+   [(@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
+    (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
+    (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),
+    (@{const_name times_rat_inst.times_rat}, @{const_name Nitpick.times_frac}),
+    (@{const_name uminus_rat_inst.uminus_rat}, @{const_name Nitpick.uminus_frac}),
+    (@{const_name number_rat_inst.number_of_rat}, @{const_name Nitpick.number_of_frac}),
+    (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
+    (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
+    (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac}),
+    (@{const_name field_char_0_class.Rats}, @{const_name UNIV})]
 *}
 
 lemmas [nitpick_def] = inverse_rat_inst.inverse_rat
-    number_rat_inst.number_of_rat one_rat_inst.one_rat ord_rat_inst.less_eq_rat
-    plus_rat_inst.plus_rat times_rat_inst.times_rat uminus_rat_inst.uminus_rat
-    zero_rat_inst.zero_rat
+  number_rat_inst.number_of_rat one_rat_inst.one_rat ord_rat_inst.less_eq_rat
+  plus_rat_inst.plus_rat times_rat_inst.times_rat uminus_rat_inst.uminus_rat
+  zero_rat_inst.zero_rat
 
 end
