@@ -34,6 +34,7 @@ test: \
   HOL-Mirabelle \
   HOL-Modelcheck \
   HOL-NanoJava \
+  HOL-Nitpick_Examples \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
@@ -43,9 +44,9 @@ test: \
   HOL-SMT-Examples \
   HOL-Statespace \
   HOL-Subst \
-      TLA-Buffer \
-      TLA-Inc \
-      TLA-Memory \
+  TLA-Buffer \
+  TLA-Inc \
+  TLA-Memory \
   HOL-UNITY \
   HOL-Unix \
   HOL-W0 \
@@ -131,6 +132,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
+  Nitpick.thy \
   Option.thy \
   OrderedGroup.thy \
   Orderings.thy \
@@ -177,6 +179,21 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/size.ML \
   Tools/Function/sum_tree.ML \
   Tools/Function/termination.ML \
+  Tools/Nitpick/kodkod.ML \
+  Tools/Nitpick/kodkod_sat.ML \
+  Tools/Nitpick/minipick.ML \
+  Tools/Nitpick/nitpick.ML \
+  Tools/Nitpick/nitpick_hol.ML \
+  Tools/Nitpick/nitpick_isar.ML \
+  Tools/Nitpick/nitpick_kodkod.ML \
+  Tools/Nitpick/nitpick_model.ML \
+  Tools/Nitpick/nitpick_mono.ML \
+  Tools/Nitpick/nitpick_nut.ML \
+  Tools/Nitpick/nitpick_peephole.ML \
+  Tools/Nitpick/nitpick_rep.ML \
+  Tools/Nitpick/nitpick_scope.ML \
+  Tools/Nitpick/nitpick_tests.ML \
+  Tools/Nitpick/nitpick_util.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
@@ -566,6 +583,21 @@ $(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML	\
   Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy	\
   Metis_Examples/set.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
+
+
+## HOL-Nitpick_Examples
+
+HOL-Nitpick_Examples: HOL $(LOG)/HOL-Nitpick_Examples.gz
+
+$(LOG)/HOL-Nitpick_Examples.gz: $(OUT)/HOL Nitpick_Examples/ROOT.ML \
+  Nitpick_Examples/Core_Nits.thy Nitpick_Examples/Datatype_Nits.thy \
+  Nitpick_Examples/Induct_Nits.thy Nitpick_Examples/Manual_Nits.thy \
+  Nitpick_Examples/Mini_Nits.thy Nitpick_Examples/Mono_Nits.thy \
+  Nitpick_Examples/Nitpick_Examples.thy Nitpick_Examples/Pattern_Nits.thy \
+  Nitpick_Examples/Record_Nits.thy Nitpick_Examples/Refute_Nits.thy \
+  Nitpick_Examples/Special_Nits.thy Nitpick_Examples/Tests_Nits.thy \
+  Nitpick_Examples/Typedef_Nits.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Nitpick_Examples
 
 
 ## HOL-Algebra

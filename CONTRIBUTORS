@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2009: Jasmin Blanchette, TUM
+  Nitpick: yet another counterexample generator for Isabelle/HOL
+
 * October 2009: Sascha Boehme, TUM
   Extension of SMT method: proof-reconstruction for the SMT solver Z3
 

@@ -36,12 +36,9 @@
       <OPERATOR>..</OPERATOR>
       <INVALID>Isabelle.command</INVALID>
       <INVALID>Isar.begin_document</INVALID>
-      <INVALID>Isar.command</INVALID>
       <INVALID>Isar.define_command</INVALID>
       <INVALID>Isar.edit_document</INVALID>
       <INVALID>Isar.end_document</INVALID>
-      <INVALID>Isar.insert</INVALID>
-      <INVALID>Isar.remove</INVALID>
       <OPERATOR>ML</OPERATOR>
       <LABEL>ML_command</LABEL>
       <OPERATOR>ML_prf</OPERATOR>
@@ -196,6 +193,8 @@
       <OPERATOR>moreover</OPERATOR>
       <KEYWORD4>morphisms</KEYWORD4>
       <OPERATOR>next</OPERATOR>
+      <LABEL>nitpick</LABEL>
+      <OPERATOR>nitpick_params</OPERATOR>
       <OPERATOR>no_notation</OPERATOR>
       <OPERATOR>no_syntax</OPERATOR>
       <OPERATOR>no_translations</OPERATOR>
@@ -246,6 +245,7 @@
       <LABEL>print_drafts</LABEL>
       <LABEL>print_facts</LABEL>
       <LABEL>print_induct_rules</LABEL>
+      <LABEL>print_interps</LABEL>
       <LABEL>print_locale</LABEL>
       <LABEL>print_locales</LABEL>
       <LABEL>print_methods</LABEL>
