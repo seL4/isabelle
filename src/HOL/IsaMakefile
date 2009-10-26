@@ -6,7 +6,20 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-SMT HOL-Word TLA HOL4
+
+images: \
+  HOL \
+  HOL-Algebra \
+  HOL-Base \
+  HOL-Main \
+  HOL-Multivariate_Analysis \
+  HOL-NSA \
+  HOL-Nominal \
+  HOL-Plain \
+  HOL-SMT \
+  HOL-Word \
+  HOL4 \
+  TLA
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -19,11 +32,11 @@ test: \
   HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-Hoare_Parallel \
-  HOL-Import \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
   HOL-Imperative_HOL \
+  HOL-Import \
   HOL-Induct \
   HOL-Isar_Examples \
   HOL-Lambda \
@@ -33,7 +46,6 @@ test: \
   HOL-MicroJava \
   HOL-Mirabelle \
   HOL-Modelcheck \
-  HOL-Multivariate_Analysis \
   HOL-NanoJava \
   HOL-Nitpick_Examples \
   HOL-Nominal-Examples \
@@ -41,13 +53,13 @@ test: \
   HOL-Old_Number_Theory \
   HOL-Prolog \
   HOL-SET_Protocol \
-  HOL-SizeChange \
   HOL-SMT-Examples \
+  HOL-SizeChange \
   HOL-Statespace \
   HOL-Subst \
-  TLA-Buffer \
-  TLA-Inc \
-  TLA-Memory \
+      TLA-Buffer \
+      TLA-Inc \
+      TLA-Memory \
   HOL-UNITY \
   HOL-Unix \
   HOL-W0 \
