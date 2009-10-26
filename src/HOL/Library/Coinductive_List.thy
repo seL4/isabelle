@@ -200,6 +200,7 @@ definition
   [code del]: "llist_case c d l =
     List_case c (\<lambda>x y. d (inv Datatype.Leaf x) (Abs_llist y)) (Rep_llist l)"
 
+
 syntax  (* FIXME? *)
   LNil :: logic
   LCons :: logic
@@ -847,5 +848,10 @@ proof -
     then show ?case ..
   qed
 qed
+
+setup {*
+Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
+                            (map dest_Const [@{term LNil}, @{term LCons}])
+*}
 
 end

@@ -905,4 +905,9 @@ text{*Without strong coinduction, three case analyses might be needed*}
 lemma lappend_assoc': "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)"
 by (rule_tac l = l1 in llist_fun_equalityI, auto)
 
+setup {*
+Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
+                            (map dest_Const [@{term LNil}, @{term LCons}])
+*}
+
 end
