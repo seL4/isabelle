@@ -1632,7 +1632,7 @@ val cached_timeout = Unsynchronized.ref (SOME Time.zeroTime)
 val cached_wf_props : (term * bool) list Unsynchronized.ref =
   Unsynchronized.ref []
 
-val termination_tacs = [LexicographicOrder.lex_order_tac,
+val termination_tacs = [Lexicographic_Order.lex_order_tac,
                         ScnpReconstruct.sizechange_tac]
 
 (* extended_context -> const_table -> styp -> bool *)
