@@ -5,7 +5,7 @@
 header {* Implementation of finite sets by lists *}
 
 theory Executable_Set
-imports Main Fset
+imports Main Fset SML_Quickcheck
 begin
 
 subsection {* Preprocessor setup *}

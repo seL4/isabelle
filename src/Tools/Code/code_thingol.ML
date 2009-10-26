@@ -399,7 +399,7 @@ end; (* local *)
 fun expand_eta thy k thm =
   let
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
-    val (head, args) = strip_comb lhs;
+    val (_, args) = strip_comb lhs;
     val l = if k = ~1
       then (length o fst o strip_abs) rhs
       else Int.max (0, k - length args);
