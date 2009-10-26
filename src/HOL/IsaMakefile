@@ -33,6 +33,7 @@ test: \
   HOL-MicroJava \
   HOL-Mirabelle \
   HOL-Modelcheck \
+  HOL-Multivariate_Analysis \
   HOL-NanoJava \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
@@ -323,20 +324,17 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy Library/BigO.thy Library/ContNotDenum.thy	\
-  Library/Efficient_Nat.thy 			 			\
-  Library/Sum_Of_Squares.thy Library/Sum_Of_Squares/sos_wrapper.ML	\
+  Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
+  Library/Sum_Of_Squares/sos_wrapper.ML					\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Glbs.thy							\
-  Library/normarith.ML Library/Executable_Set.thy			\
+  Library/Glbs.thy Library/normarith.ML Library/Executable_Set.thy	\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
-  Library/Permutations.thy Library/Bit.thy				\
-  Library/FrechetDeriv.thy		\
+  Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/Lattice_Syntax.thy			\
-  Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
-  Library/State_Monad.thy Library/Nat_Int_Bij.thy Library/Multiset.thy	\
-  Library/Permutation.thy	\
+  Library/Lattice_Syntax.thy Library/Library.thy			\
+  Library/List_Prefix.thy Library/List_Set.thy Library/State_Monad.thy	\
+  Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Quotient.thy Library/Quicksort.thy Library/Nat_Infinity.thy	\
   Library/Word.thy Library/README.html Library/Continuity.thy		\
   Library/Order_Relation.thy Library/Nested_Environment.thy		\
@@ -1326,6 +1324,7 @@ clean:
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
 		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
+		$(OUT)/HOL-Multivariate_Analysis			\
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
 		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET_Protocol.gz	\
@@ -1333,7 +1332,7 @@ clean:
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
-		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
-                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz               \
-                $(LOG)/HOL-SMT-Examples.gz
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz		\
+		$(LOG)/HOL-Mirabelle.gz $(OUT)/HOL-SMT			\
+		$(LOG)/HOL-SMT.gz $(LOG)/HOL-SMT-Examples.gz
 
