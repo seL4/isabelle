@@ -322,9 +322,9 @@ text %mlref {*
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
-  @{index_ML Sign.declare_const: "Properties.T -> (binding * typ) * mixfix ->
+  @{index_ML Sign.declare_const: "(binding * typ) * mixfix ->
   theory -> term * theory"} \\
-  @{index_ML Sign.add_abbrev: "string -> Properties.T -> binding * term ->
+  @{index_ML Sign.add_abbrev: "string -> binding * term ->
   theory -> (term * term) * theory"} \\
   @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
@@ -370,11 +370,11 @@ text %mlref {*
   "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
   abstraction.
 
-  \item @{ML Sign.declare_const}~@{text "properties ((c, \<sigma>), mx)"}
+  \item @{ML Sign.declare_const}~@{text "((c, \<sigma>), mx)"}
   declares a new constant @{text "c :: \<sigma>"} with optional mixfix
   syntax.
 
-  \item @{ML Sign.add_abbrev}~@{text "print_mode properties (c, t)"}
+  \item @{ML Sign.add_abbrev}~@{text "print_mode (c, t)"}
   introduces a new term abbreviation @{text "c \<equiv> t"}.
 
   \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML

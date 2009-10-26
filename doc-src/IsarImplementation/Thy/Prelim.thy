@@ -689,19 +689,19 @@ text %mlref {*
   @{index_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type NameSpace.naming} \\
-  @{index_ML NameSpace.default_naming: NameSpace.naming} \\
-  @{index_ML NameSpace.add_path: "string -> NameSpace.naming -> NameSpace.naming"} \\
-  @{index_ML NameSpace.full_name: "NameSpace.naming -> binding -> string"} \\
+  @{index_ML_type Name_Space.naming} \\
+  @{index_ML Name_Space.default_naming: Name_Space.naming} \\
+  @{index_ML Name_Space.add_path: "string -> Name_Space.naming -> Name_Space.naming"} \\
+  @{index_ML Name_Space.full_name: "Name_Space.naming -> binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML_type NameSpace.T} \\
-  @{index_ML NameSpace.empty: NameSpace.T} \\
-  @{index_ML NameSpace.merge: "NameSpace.T * NameSpace.T -> NameSpace.T"} \\
-  @{index_ML NameSpace.declare: "NameSpace.naming -> binding -> NameSpace.T ->
-  string * NameSpace.T"} \\
-  @{index_ML NameSpace.intern: "NameSpace.T -> string -> string"} \\
-  @{index_ML NameSpace.extern: "NameSpace.T -> string -> string"} \\
+  @{index_ML_type Name_Space.T} \\
+  @{index_ML Name_Space.empty: "string -> Name_Space.T"} \\
+  @{index_ML Name_Space.merge: "Name_Space.T * Name_Space.T -> Name_Space.T"} \\
+  @{index_ML Name_Space.declare: "bool -> Name_Space.naming -> binding -> Name_Space.T ->
+  string * Name_Space.T"} \\
+  @{index_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
+  @{index_ML Name_Space.extern: "Name_Space.T -> string -> string"} \\
   \end{mldecls}
 
   \begin{description}
@@ -719,41 +719,43 @@ text %mlref {*
   Long_Name.explode}~@{text "name"} convert between the packed string
   representation and the explicit list form of qualified names.
 
-  \item @{ML_type NameSpace.naming} represents the abstract concept of
+  \item @{ML_type Name_Space.naming} represents the abstract concept of
   a naming policy.
 
-  \item @{ML NameSpace.default_naming} is the default naming policy.
+  \item @{ML Name_Space.default_naming} is the default naming policy.
   In a theory context, this is usually augmented by a path prefix
   consisting of the theory name.
 
-  \item @{ML NameSpace.add_path}~@{text "path naming"} augments the
+  \item @{ML Name_Space.add_path}~@{text "path naming"} augments the
   naming policy by extending its path component.
 
-  \item @{ML NameSpace.full_name}~@{text "naming binding"} turns a
+  \item @{ML Name_Space.full_name}~@{text "naming binding"} turns a
   name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
-  \item @{ML_type NameSpace.T} represents name spaces.
+  \item @{ML_type Name_Space.T} represents name spaces.
 
-  \item @{ML NameSpace.empty} and @{ML NameSpace.merge}~@{text
+  \item @{ML Name_Space.empty}~@{text "kind"} and @{ML Name_Space.merge}~@{text
   "(space\<^isub>1, space\<^isub>2)"} are the canonical operations for
   maintaining name spaces according to theory data management
-  (\secref{sec:context-data}).
+  (\secref{sec:context-data}); @{text "kind"} is a formal comment
+  to characterize the purpose of a name space.
 
-  \item @{ML NameSpace.declare}~@{text "naming bindings space"} enters a
-  name binding as fully qualified internal name into the name space,
-  with external accesses determined by the naming policy.
+  \item @{ML Name_Space.declare}~@{text "strict naming bindings
+  space"} enters a name binding as fully qualified internal name into
+  the name space, with external accesses determined by the naming
+  policy.
 
-  \item @{ML NameSpace.intern}~@{text "space name"} internalizes a
+  \item @{ML Name_Space.intern}~@{text "space name"} internalizes a
   (partially qualified) external name.
 
   This operation is mostly for parsing!  Note that fully qualified
   names stemming from declarations are produced via @{ML
-  "NameSpace.full_name"} and @{ML "NameSpace.declare"}
+  "Name_Space.full_name"} and @{ML "Name_Space.declare"}
   (or their derivatives for @{ML_type theory} and
   @{ML_type Proof.context}).
 
-  \item @{ML NameSpace.extern}~@{text "space name"} externalizes a
+  \item @{ML Name_Space.extern}~@{text "space name"} externalizes a
   (fully qualified) internal name.
 
   This operation is mostly for printing!  User code should not rely on
