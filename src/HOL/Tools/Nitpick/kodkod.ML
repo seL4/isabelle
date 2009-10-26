@@ -1043,7 +1043,8 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
             let
               val code =
                 system ("env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
-                        \\"$ISABELLE_TOOL\" java \
+                        \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
+                        \$JAVA_LIBRARY_PATH\" \"$ISABELLE_TOOL\" java \
                         \de.tum.in.isabelle.Kodkodi.Kodkodi" ^
                         (if ms >= 0 then " -max-msecs " ^ Int.toString ms
                          else "") ^
