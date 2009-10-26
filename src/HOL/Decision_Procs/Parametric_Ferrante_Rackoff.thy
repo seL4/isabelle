@@ -2993,7 +2993,7 @@ fun num_of_term m t =
  | Const(@{const_name "power"},_)$a$n => FRPar.Pw (num_of_term m a, dest_nat n)
  | Const(@{const_name "HOL.divide"},_)$a$b => FRPar.C (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
  | _ => (FRPar.C (HOLogic.dest_number t |> snd,1) 
-         handle TERM _ => FRPar.Bound (AList.lookup (op aconv) m t |> valOf));
+         handle TERM _ => FRPar.Bound (AList.lookup (op aconv) m t |> the));
 
 fun tm_of_term m m' t = 
  case t of
@@ -3002,14 +3002,14 @@ fun tm_of_term m m' t =
  | Const(@{const_name "HOL.minus"},_)$a$b => FRPar.tm_Sub (tm_of_term m m' a, tm_of_term m m' b)
  | Const(@{const_name "HOL.times"},_)$a$b => FRPar.tm_Mul (num_of_term m' a, tm_of_term m m' b)
  | _ => (FRPar.CP (num_of_term m' t) 
-         handle TERM _ => FRPar.tm_Bound (AList.lookup (op aconv) m t |> valOf)
-              | Option => FRPar.tm_Bound (AList.lookup (op aconv) m t |> valOf));
+         handle TERM _ => FRPar.tm_Bound (AList.lookup (op aconv) m t |> the)
+              | Option => FRPar.tm_Bound (AList.lookup (op aconv) m t |> the));
 
 fun term_of_num T m t = 
  case t of
   FRPar.C (a,b) => (if b = 1 then num T a else if b=0 then (rz T) 
                                         else (divt T) $ num T a $ num T b)
-| FRPar.Bound i => AList.lookup (op = : int*int -> bool) m i |> valOf
+| FRPar.Bound i => AList.lookup (op = : int*int -> bool) m i |> the
 | FRPar.Add(a,b) => (plust T)$(term_of_num T m a)$(term_of_num T m b)
 | FRPar.Mul(a,b) => (timest T)$(term_of_num T m a)$(term_of_num T m b)
 | FRPar.Sub(a,b) => (minust T)$(term_of_num T m a)$(term_of_num T m b)
@@ -3021,7 +3021,7 @@ fun term_of_num T m t =
 fun term_of_tm T m m' t = 
  case t of
   FRPar.CP p => term_of_num T m' p
-| FRPar.tm_Bound i => AList.lookup (op = : int*int -> bool) m i |> valOf
+| FRPar.tm_Bound i => AList.lookup (op = : int*int -> bool) m i |> the
 | FRPar.tm_Add(a,b) => (plust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
 | FRPar.tm_Mul(a,b) => (timest T)$(term_of_num T m' a)$(term_of_tm T m m' b)
 | FRPar.tm_Sub(a,b) => (minust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
