@@ -1,0 +1,2486 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[french,english]{babel}
+\usepackage{color}
+\usepackage{graphicx}
+%\usepackage{mathpazo}
+\usepackage{multicol}
+\usepackage{stmaryrd}
+%\usepackage[scaled=.85]{beramono}
+\usepackage{../iman,../pdfsetup}
+
+%\oddsidemargin=4.6mm
+%\evensidemargin=4.6mm
+%\textwidth=150mm
+%\topmargin=4.6mm
+%\headheight=0mm
+%\headsep=0mm
+%\textheight=234mm
+
+\def\Colon{\mathord{:\mkern-1.5mu:}}
+%\def\lbrakk{\mathopen{\lbrack\mkern-3.25mu\lbrack}}
+%\def\rbrakk{\mathclose{\rbrack\mkern-3.255mu\rbrack}}
+\def\lparr{\mathopen{(\mkern-4mu\mid}}
+\def\rparr{\mathclose{\mid\mkern-4mu)}}
+
+\def\undef{\textit{undefined}}
+\def\unk{{?}}
+%\def\unr{\textit{others}}
+\def\unr{\ldots}
+\def\Abs#1{\hbox{\rm{\flqq}}{\,#1\,}\hbox{\rm{\frqq}}}
+\def\Q{{\smash{\lower.2ex\hbox{$\scriptstyle?$}}}}
+
+\hyphenation{Mini-Sat size-change First-Steps grand-parent nit-pick
+counter-example counter-examples data-type data-types co-data-type 
+co-data-types in-duc-tive co-in-duc-tive}
+
+\urlstyle{tt}
+
+\begin{document}
+
+\title{\includegraphics[scale=0.5]{isabelle_nitpick} \\[4ex]
+Picking Nits \\[\smallskipamount]
+\Large A User's Guide to Nitpick for Isabelle/HOL 2010}
+\author{\hbox{} \\
+Jasmin Christian Blanchette \\
+{\normalsize Fakult\"at f\"ur Informatik, Technische Universit\"at M\"unchen} \\
+\hbox{}}
+
+\maketitle
+
+\tableofcontents
+
+\setlength{\parskip}{.7em plus .2em minus .1em}
+\setlength{\parindent}{0pt}
+\setlength{\abovedisplayskip}{\parskip}
+\setlength{\abovedisplayshortskip}{.9\parskip}
+\setlength{\belowdisplayskip}{\parskip}
+\setlength{\belowdisplayshortskip}{.9\parskip}
+
+% General-purpose enum environment with correct spacing
+\newenvironment{enum}%
+    {\begin{list}{}{%
+        \setlength{\topsep}{.1\parskip}%
+        \setlength{\partopsep}{.1\parskip}%
+        \setlength{\itemsep}{\parskip}%
+        \advance\itemsep by-\parsep}}
+    {\end{list}}
+
+\def\pre{\begingroup\vskip0pt plus1ex\advance\leftskip by\leftmargin
+\advance\rightskip by\leftmargin}
+\def\post{\vskip0pt plus1ex\endgroup}
+
+\def\prew{\pre\advance\rightskip by-\leftmargin}
+\def\postw{\post}
+
+\section{Introduction}
+\label{introduction}
+
+Nitpick \cite{blanchette-nipkow-2009} is a counterexample generator for
+Isabelle/HOL \cite{isa-tutorial} that is designed to handle formulas
+combining (co)in\-duc\-tive datatypes, (co)in\-duc\-tively defined predicates, and
+quantifiers. It builds on Kodkod \cite{torlak-jackson-2007}, a highly optimized
+first-order relational model finder developed by the Software Design Group at
+MIT. It is conceptually similar to Refute \cite{weber-2008}, from which it
+borrows many ideas and code fragments, but it benefits from Kodkod's
+optimizations and a new encoding scheme. The name Nitpick is shamelessly
+appropriated from a now retired Alloy precursor.
+
+Nitpick is easy to use---you simply enter \textbf{nitpick} after a putative
+theorem and wait a few seconds. Nonetheless, there are situations where knowing
+how it works under the hood and how it reacts to various options helps
+increase the test coverage. This manual also explains how to install the tool on
+your workstation. Should the motivation fail you, think of the many hours of
+hard work Nitpick will save you. Proving non-theorems is \textsl{hard work}.
+
+Another common use of Nitpick is to find out whether the axioms of a locale are
+satisfiable, while the locale is being developed. To check this, it suffices to
+write
+
+\prew
+\textbf{lemma}~``$\textit{False}$'' \\
+\textbf{nitpick}~[\textit{show\_all}]
+\postw
+
+after the locale's \textbf{begin} keyword. To falsify \textit{False}, Nitpick
+must find a model for the axioms. If it finds no model, we have an indication
+that the axioms might be unsatisfiable.
+
+Nitpick requires the Kodkodi package for Isabelle as well as a Java 1.5 virtual
+machine called \texttt{java}. The examples presented in this manual can be found
+in Isabelle's \texttt{src/HOL/Nitpick\_Examples/Manual\_Nits.thy} theory.
+
+\newbox\boxA
+\setbox\boxA=\hbox{\texttt{nospam}}
+
+The known bugs and limitations at the time of writing are listed in
+\S\ref{known-bugs-and-limitations}. Comments and bug reports concerning Nitpick
+or this manual should be directed to
+\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+in.\allowbreak tum.\allowbreak de}.
+
+\vskip2.5\smallskipamount
+
+\textbf{Acknowledgment.} The author would like to thank Mark Summerfield for
+suggesting several textual improvements.
+% and Perry James for reporting a typo.
+
+\section{First Steps}
+\label{first-steps}
+
+This section introduces Nitpick by presenting small examples. If possible, you
+should try out the examples on your workstation. Your theory file should start
+the standard way:
+
+\prew
+\textbf{theory}~\textit{Scratch} \\
+\textbf{imports}~\textit{Main} \\
+\textbf{begin}
+\postw
+
+The results presented here were obtained using the JNI version of MiniSat and
+with multithreading disabled to reduce nondeterminism. This was done by adding
+the line
+
+\prew
+\textbf{nitpick\_params} [\textit{sat\_solver}~= \textit{MiniSatJNI}, \,\textit{max\_threads}~= 1]
+\postw
+
+after the \textbf{begin} keyword. The JNI version of MiniSat is bundled with
+Kodkodi and is precompiled for the major platforms. Other SAT solvers can also
+be installed, as explained in \S\ref{optimizations}. If you have already
+configured SAT solvers in Isabelle (e.g., for Refute), these will also be
+available to Nitpick.
+
+Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
+Nitpick also provides an automatic mode that can be enabled by specifying
+
+\prew
+\textbf{nitpick\_params} [\textit{auto}]
+\postw
+
+at the beginning of the theory file. In this mode, Nitpick is run for up to 5
+seconds (by default) on every newly entered theorem, much like Auto Quickcheck.
+
+\subsection{Propositional Logic}
+\label{propositional-logic}
+
+Let's start with a trivial example from propositional logic:
+
+\prew
+\textbf{lemma}~``$P \longleftrightarrow Q$'' \\
+\textbf{nitpick}
+\postw
+
+You should get the following output:
+
+\prew
+\slshape
+Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \textit{True}$ \\
+\hbox{}\qquad\qquad $Q = \textit{False}$
+\postw
+
+Nitpick can also be invoked on individual subgoals, as in the example below:
+
+\prew
+\textbf{apply}~\textit{auto} \\[2\smallskipamount]
+{\slshape goal (2 subgoals): \\
+\ 1. $P\,\Longrightarrow\, Q$ \\
+\ 2. $Q\,\Longrightarrow\, P$} \\[2\smallskipamount]
+\textbf{nitpick}~1 \\[2\smallskipamount]
+{\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \textit{True}$ \\
+\hbox{}\qquad\qquad $Q = \textit{False}$} \\[2\smallskipamount]
+\textbf{nitpick}~2 \\[2\smallskipamount]
+{\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \textit{False}$ \\
+\hbox{}\qquad\qquad $Q = \textit{True}$} \\[2\smallskipamount]
+\textbf{oops}
+\postw
+
+\subsection{Type Variables}
+\label{type-variables}
+
+If you are left unimpressed by the previous example, don't worry. The next
+one is more mind- and computer-boggling:
+
+\prew
+\textbf{lemma} ``$P~x\,\Longrightarrow\, P~(\textrm{THE}~y.\;P~y)$''
+\postw
+\pagebreak[2] %% TYPESETTING
+
+The putative lemma involves the definite description operator, {THE}, presented
+in section 5.10.1 of the Isabelle tutorial \cite{isa-tutorial}. The
+operator is defined by the axiom $(\textrm{THE}~x.\; x = a) = a$. The putative
+lemma is merely asserting the indefinite description operator axiom with {THE}
+substituted for {SOME}.
+
+The free variable $x$ and the bound variable $y$ have type $'a$. For formulas
+containing type variables, Nitpick enumerates the possible domains for each type
+variable, up to a given cardinality (8 by default), looking for a finite
+countermodel:
+
+\prew
+\textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
+\slshape
+Trying 8 scopes: \nopagebreak \\
+\hbox{}\qquad \textit{card}~$'a$~= 1; \\
+\hbox{}\qquad \textit{card}~$'a$~= 2; \\
+\hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
+\hbox{}\qquad \textit{card}~$'a$~= 8. \\[2\smallskipamount]
+Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
+\hbox{}\qquad\qquad $x = a_3$ \\[2\smallskipamount]
+Total time: 580 ms.
+\postw
+
+Nitpick found a counterexample in which $'a$ has cardinality 3. (For
+cardinalities 1 and 2, the formula holds.) In the counterexample, the three
+values of type $'a$ are written $a_1$, $a_2$, and $a_3$.
+
+The message ``Trying $n$ scopes: {\ldots}''\ is shown only if the option
+\textit{verbose} is enabled. You can specify \textit{verbose} each time you
+invoke \textbf{nitpick}, or you can set it globally using the command
+
+\prew
+\textbf{nitpick\_params} [\textit{verbose}]
+\postw
+
+This command also displays the current default values for all of the options
+supported by Nitpick. The options are listed in \S\ref{option-reference}.
+
+\subsection{Constants}
+\label{constants}
+
+By just looking at Nitpick's output, it might not be clear why the
+counterexample in \S\ref{type-variables} is genuine. Let's invoke Nitpick again,
+this time telling it to show the values of the constants that occur in the
+formula:
+
+\prew
+\textbf{lemma}~``$P~x\,\Longrightarrow\, P~(\textrm{THE}~y.\;P~y)$'' \\
+\textbf{nitpick}~[\textit{show\_consts}] \\[2\smallskipamount]
+\slshape
+Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
+\hbox{}\qquad\qquad $x = a_3$ \\
+\hbox{}\qquad Constant: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{The}~\textsl{fallback} = a_1$
+\postw
+
+We can see more clearly now. Since the predicate $P$ isn't true for a unique
+value, $\textrm{THE}~y.\;P~y$ can denote any value of type $'a$, even
+$a_1$. Since $P~a_1$ is false, the entire formula is falsified.
+
+As an optimization, Nitpick's preprocessor introduced the special constant
+``\textit{The} fallback'' corresponding to $\textrm{THE}~y.\;P~y$ (i.e.,
+$\mathit{The}~(\lambda y.\;P~y)$) when there doesn't exist a unique $y$
+satisfying $P~y$. We disable this optimization by passing the
+\textit{full\_descrs} option:
+
+\prew
+\textbf{nitpick}~[\textit{full\_descrs},\, \textit{show\_consts}] \\[2\smallskipamount]
+\slshape
+Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
+\hbox{}\qquad\qquad $x = a_3$ \\
+\hbox{}\qquad Constant: \nopagebreak \\
+\hbox{}\qquad\qquad $\hbox{\slshape THE}~y.\;P~y = a_1$
+\postw
+
+As the result of another optimization, Nitpick directly assigned a value to the
+subterm $\textrm{THE}~y.\;P~y$, rather than to the \textit{The} constant. If we
+disable this second optimization by using the command
+
+\prew
+\textbf{nitpick}~[\textit{dont\_specialize},\, \textit{full\_descrs},\,
+\textit{show\_consts}]
+\postw
+
+we finally get \textit{The}:
+
+\prew
+\slshape Constant: \nopagebreak \\
+\hbox{}\qquad $\mathit{The} = \undef{}
+    (\!\begin{aligned}[t]%
+    & \{\} := a_3,\> \{a_3\} := a_3,\> \{a_2\} := a_2, \\[-2pt] %% TYPESETTING
+    & \{a_2, a_3\} := a_1,\> \{a_1\} := a_1,\> \{a_1, a_3\} := a_3, \\[-2pt]
+    & \{a_1, a_2\} := a_3,\> \{a_1, a_2, a_3\} := a_3)\end{aligned}$
+\postw
+
+Notice that $\textit{The}~(\lambda y.\;P~y) = \textit{The}~\{a_2, a_3\} = a_1$,
+just like before.\footnote{The \undef{} symbol's presence is explained as
+follows: In higher-order logic, any function can be built from the undefined
+function using repeated applications of the function update operator $f(x :=
+y)$, just like any list can be built from the empty list using $x \mathbin{\#}
+xs$.}
+
+Our misadventures with THE suggest adding `$\exists!x{.}$' (``there exists a
+unique $x$ such that'') at the front of our putative lemma's assumption:
+
+\prew
+\textbf{lemma}~``$\exists {!}x.\; P~x\,\Longrightarrow\, P~(\textrm{THE}~y.\;P~y)$''
+\postw
+
+The fix appears to work:
+
+\prew
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found no counterexample.
+\postw
+
+We can further increase our confidence in the formula by exhausting all
+cardinalities up to 50:
+
+\prew
+\textbf{nitpick} [\textit{card} $'a$~= 1--50]\footnote{The symbol `--'
+can be entered as \texttt{-} (hyphen) or
+\texttt{\char`\\\char`\<midarrow\char`\>}.} \\[2\smallskipamount]
+\slshape Nitpick found no counterexample.
+\postw
+
+Let's see if Sledgehammer \cite{sledgehammer-2009} can find a proof:
+
+\prew
+\textbf{sledgehammer} \\[2\smallskipamount]
+{\slshape Sledgehammer: external prover ``$e$'' for subgoal 1: \\
+$\exists{!}x.\; P~x\,\Longrightarrow\, P~(\hbox{\slshape THE}~y.\; P~y)$ \\
+Try this command: \textrm{apply}~(\textit{metis~the\_equality})} \\[2\smallskipamount]
+\textbf{apply}~(\textit{metis~the\_equality\/}) \nopagebreak \\[2\smallskipamount]
+{\slshape No subgoals!}% \\[2\smallskipamount]
+%\textbf{done}
+\postw
+
+This must be our lucky day.
+
+\subsection{Skolemization}
+\label{skolemization}
+
+Are all invertible functions onto? Let's find out:
+
+\prew
+\textbf{lemma} ``$\exists g.\; \forall x.~g~(f~x) = x
+ \,\Longrightarrow\, \forall y.\; \exists x.~y = f~x$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape
+Nitpick found a counterexample for \textit{card} $'a$~= 2 and \textit{card} $'b$~=~1: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $f = \undef{}(b_1 := a_1)$ \\
+\hbox{}\qquad Skolem constants: \nopagebreak \\
+\hbox{}\qquad\qquad $g = \undef{}(a_1 := b_1,\> a_2 := b_1)$ \\
+\hbox{}\qquad\qquad $y = a_2$
+\postw
+
+Although $f$ is the only free variable occurring in the formula, Nitpick also
+displays values for the bound variables $g$ and $y$. These values are available
+to Nitpick because it performs skolemization as a preprocessing step.
+
+In the previous example, skolemization only affected the outermost quantifiers.
+This is not always the case, as illustrated below:
+
+\prew
+\textbf{lemma} ``$\exists x.\; \forall f.\; f~x = x$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape
+Nitpick found a counterexample for \textit{card} $'a$~= 2: \\[2\smallskipamount]
+\hbox{}\qquad Skolem constant: \nopagebreak \\
+\hbox{}\qquad\qquad $\lambda x.\; f =
+    \undef{}(\!\begin{aligned}[t]
+    & a_1 := \undef{}(a_1 := a_2,\> a_2 := a_1), \\[-2pt]
+    & a_2 := \undef{}(a_1 := a_1,\> a_2 := a_1))\end{aligned}$
+\postw
+
+The variable $f$ is bound within the scope of $x$; therefore, $f$ depends on
+$x$, as suggested by the notation $\lambda x.\,f$. If $x = a_1$, then $f$ is the
+function that maps $a_1$ to $a_2$ and vice versa; otherwise, $x = a_2$ and $f$
+maps both $a_1$ and $a_2$ to $a_1$. In both cases, $f~x \not= x$.
+
+The source of the Skolem constants is sometimes more obscure:
+
+\prew
+\textbf{lemma} ``$\mathit{refl}~r\,\Longrightarrow\, \mathit{sym}~r$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape
+Nitpick found a counterexample for \textit{card} $'a$~= 2: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $r = \{(a_1, a_1),\, (a_2, a_1),\, (a_2, a_2)\}$ \\
+\hbox{}\qquad Skolem constants: \nopagebreak \\
+\hbox{}\qquad\qquad $\mathit{sym}.x = a_2$ \\
+\hbox{}\qquad\qquad $\mathit{sym}.y = a_1$
+\postw
+
+What happened here is that Nitpick expanded the \textit{sym} constant to its
+definition:
+
+\prew
+$\mathit{sym}~r \,\equiv\,
+ \forall x\> y.\,\> (x, y) \in r \longrightarrow (y, x) \in r.$
+\postw
+
+As their names suggest, the Skolem constants $\mathit{sym}.x$ and
+$\mathit{sym}.y$ are simply the bound variables $x$ and $y$
+from \textit{sym}'s definition.
+
+Although skolemization is a useful optimization, you can disable it by invoking
+Nitpick with \textit{dont\_skolemize}. See \S\ref{optimizations} for details.
+
+\subsection{Natural Numbers and Integers}
+\label{natural-numbers-and-integers}
+
+Because of the axiom of infinity, the type \textit{nat} does not admit any
+finite models. To deal with this, Nitpick considers prefixes $\{0,\, 1,\,
+\ldots,\, K - 1\}$ of \textit{nat} (where $K = \textit{card}~\textit{nat}$) and
+maps all other numbers to the undefined value ($\unk$). The type \textit{int} is
+handled in a similar way: If $K = \textit{card}~\textit{int}$, the subset of
+\textit{int} known to Nitpick is $\{-\lceil K/2 \rceil + 1,\, \ldots,\, +\lfloor
+K/2 \rfloor\}$. Undefined values lead to a three-valued logic.
+
+Here is an example involving \textit{int}:
+
+\prew
+\textbf{lemma} ``$\lbrakk i \le j;\> n \le (m{\Colon}\mathit{int})\rbrakk \,\Longrightarrow\, i * n + j * m \le i * m + j * n$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $i = 0$ \\
+\hbox{}\qquad\qquad $j = 1$ \\
+\hbox{}\qquad\qquad $m = 1$ \\
+\hbox{}\qquad\qquad $n = 0$
+\postw
+
+With infinite types, we don't always have the luxury of a genuine counterexample
+and must often content ourselves with a potential one. The tedious task of
+finding out whether the potential counterexample is in fact genuine can be
+outsourced to \textit{auto} by passing the option \textit{check\_potential}. For
+example:
+
+\prew
+\textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
+\textbf{nitpick} [\textit{card~nat}~= 100,\, \textit{check\_potential}] \\[2\smallskipamount]
+\slshape Nitpick found a potential counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \textit{False}$ \\[2\smallskipamount]
+Confirmation by ``\textit{auto}'': The above counterexample is genuine.
+\postw
+
+You might wonder why the counterexample is first reported as potential. The root
+of the problem is that the bound variable in $\forall n.\; \textit{Suc}~n
+\mathbin{\not=} n$ ranges over an infinite type. If Nitpick finds an $n$ such
+that $\textit{Suc}~n \mathbin{=} n$, it evaluates the assumption to
+\textit{False}; but otherwise, it does not know anything about values of $n \ge
+\textit{card~nat}$ and must therefore evaluate the assumption to $\unk$, not
+\textit{True}. Since the assumption can never be satisfied, the putative lemma
+can never be falsified.
+
+Incidentally, if you distrust the so-called genuine counterexamples, you can
+enable \textit{check\_\allowbreak genuine} to verify them as well. However, be
+aware that \textit{auto} will often fail to prove that the counterexample is
+genuine or spurious.
+
+Some conjectures involving elementary number theory make Nitpick look like a
+giant with feet of clay:
+
+\prew
+\textbf{lemma} ``$P~\textit{Suc}$'' \\
+\textbf{nitpick} [\textit{card} = 1--6] \\[2\smallskipamount]
+\slshape
+Nitpick found no counterexample.
+\postw
+
+For any cardinality $k$, \textit{Suc} is the partial function $\{0 \mapsto 1,\,
+1 \mapsto 2,\, \ldots,\, k - 1 \mapsto \unk\}$, which evaluates to $\unk$ when
+it is passed as argument to $P$. As a result, $P~\textit{Suc}$ is always $\unk$.
+The next example is similar:
+
+\prew
+\textbf{lemma} ``$P~(\textit{op}~{+}\Colon
+\textit{nat}\mathbin{\Rightarrow}\textit{nat}\mathbin{\Rightarrow}\textit{nat})$'' \\
+\textbf{nitpick} [\textit{card nat} = 1] \\[2\smallskipamount]
+{\slshape Nitpick found a counterexample:} \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \{\}$ \\[2\smallskipamount]
+\textbf{nitpick} [\textit{card nat} = 2] \\[2\smallskipamount]
+{\slshape Nitpick found no counterexample.}
+\postw
+
+The problem here is that \textit{op}~+ is total when \textit{nat} is taken to be
+$\{0\}$ but becomes partial as soon as we add $1$, because $1 + 1 \notin \{0,
+1\}$.
+
+Because numbers are infinite and are approximated using a three-valued logic,
+there is usually no need to systematically enumerate domain sizes. If Nitpick
+cannot find a genuine counterexample for \textit{card~nat}~= $k$, it is very
+unlikely that one could be found for smaller domains. (The $P~(\textit{op}~{+})$
+example above is an exception to this principle.) Nitpick nonetheless enumerates
+all cardinalities from 1 to 8 for \textit{nat}, mainly because smaller
+cardinalities are fast to handle and give rise to simpler counterexamples. This
+is explained in more detail in \S\ref{scope-monotonicity}.
+
+\subsection{Inductive Datatypes}
+\label{inductive-datatypes}
+
+Like natural numbers and integers, inductive datatypes with recursive
+constructors admit no finite models and must be approximated by a subterm-closed
+subset. For example, using a cardinality of 10 for ${'}a~\textit{list}$,
+Nitpick looks for all counterexamples that can be built using at most 10
+different lists.
+
+Let's see with an example involving \textit{hd} (which returns the first element
+of a list) and $@$ (which concatenates two lists):
+
+\prew
+\textbf{lemma} ``$\textit{hd}~(\textit{xs} \mathbin{@} [y, y]) = \textit{hd}~\textit{xs}$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{xs} = []$ \\
+\hbox{}\qquad\qquad $\textit{y} = a_3$
+\postw
+
+To see why the counterexample is genuine, we enable \textit{show\_consts}
+and \textit{show\_\allowbreak datatypes}:
+
+\prew
+{\slshape Datatype:} \\
+\hbox{}\qquad $'a$~\textit{list}~= $\{[],\, [a_3, a_3],\, [a_3],\, \unr\}$ \\
+{\slshape Constants:} \\
+\hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \undef([] := [a_3, a_3],\> [a_3, a_3] := \unk,\> [a_3] := \unk)$ \\
+\hbox{}\qquad $\textit{hd} = \undef([] := a_2,\> [a_3, a_3] := a_3,\> [a_3] := a_3)$
+\postw
+
+Since $\mathit{hd}~[]$ is undefined in the logic, it may be given any value,
+including $a_2$.
+
+The second constant, $\lambda x_1.\; x_1 \mathbin{@} [y, y]$, is simply the
+append operator whose second argument is fixed to be $[y, y]$. Appending $[a_3,
+a_3]$ to $[a_3]$ would normally give $[a_3, a_3, a_3]$, but this value is not
+representable in the subset of $'a$~\textit{list} considered by Nitpick, which
+is shown under the ``Datatype'' heading; hence the result is $\unk$. Similarly,
+appending $[a_3, a_3]$ to itself gives $\unk$.
+
+Given \textit{card}~$'a = 3$ and \textit{card}~$'a~\textit{list} = 3$, Nitpick
+considers the following subsets:
+
+\kern-.5\smallskipamount %% TYPESETTING
+
+\prew
+\begin{multicols}{3}
+$\{[],\, [a_1],\, [a_2]\}$; \\
+$\{[],\, [a_1],\, [a_3]\}$; \\
+$\{[],\, [a_2],\, [a_3]\}$; \\
+$\{[],\, [a_1],\, [a_1, a_1]\}$; \\
+$\{[],\, [a_1],\, [a_2, a_1]\}$; \\
+$\{[],\, [a_1],\, [a_3, a_1]\}$; \\
+$\{[],\, [a_2],\, [a_1, a_2]\}$; \\
+$\{[],\, [a_2],\, [a_2, a_2]\}$; \\
+$\{[],\, [a_2],\, [a_3, a_2]\}$; \\
+$\{[],\, [a_3],\, [a_1, a_3]\}$; \\
+$\{[],\, [a_3],\, [a_2, a_3]\}$; \\
+$\{[],\, [a_3],\, [a_3, a_3]\}$.
+\end{multicols}
+\postw
+
+\kern-2\smallskipamount %% TYPESETTING
+
+All subterm-closed subsets of $'a~\textit{list}$ consisting of three values
+are listed and only those. As an example of a non-subterm-closed subset,
+consider $\mathcal{S} = \{[],\, [a_1],\,\allowbreak [a_1, a_3]\}$, and observe
+that $[a_1, a_3]$ (i.e., $a_1 \mathbin{\#} [a_3]$) has $[a_3] \notin
+\mathcal{S}$ as a subterm.
+
+Here's another m\"ochtegern-lemma that Nitpick can refute without a blink:
+
+\prew
+\textbf{lemma} ``$\lbrakk \textit{length}~\textit{xs} = 1;\> \textit{length}~\textit{ys} = 1
+\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys}$''
+\\
+\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{xs} = [a_2]$ \\
+\hbox{}\qquad\qquad $\textit{ys} = [a_3]$ \\
+\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
+\hbox{}\qquad\qquad $'a$~\textit{list} = $\{[],\, [a_3],\, [a_2],\, \unr\}$
+\postw
+
+Because datatypes are approximated using a three-valued logic, there is usually
+no need to systematically enumerate cardinalities: If Nitpick cannot find a
+genuine counterexample for \textit{card}~$'a~\textit{list}$~= 10, it is very
+unlikely that one could be found for smaller cardinalities.
+
+\subsection{Typedefs, Records, Rationals, and Reals}
+\label{typedefs-records-rationals-and-reals}
+
+Nitpick generally treats types declared using \textbf{typedef} as datatypes
+whose single constructor is the corresponding \textit{Abs\_\kern.1ex} function.
+For example:
+
+\prew
+\textbf{typedef}~\textit{three} = ``$\{0\Colon\textit{nat},\, 1,\, 2\}$'' \\
+\textbf{by}~\textit{blast} \\[2\smallskipamount]
+\textbf{definition}~$A \mathbin{\Colon} \textit{three}$ \textbf{where} ``\kern-.1em$A \,\equiv\, \textit{Abs\_\allowbreak three}~0$'' \\
+\textbf{definition}~$B \mathbin{\Colon} \textit{three}$ \textbf{where} ``$B \,\equiv\, \textit{Abs\_three}~1$'' \\
+\textbf{definition}~$C \mathbin{\Colon} \textit{three}$ \textbf{where} ``$C \,\equiv\, \textit{Abs\_three}~2$'' \\[2\smallskipamount]
+\textbf{lemma} ``$\lbrakk P~A;\> P~B\rbrakk \,\Longrightarrow\, P~x$'' \\
+\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $P = \{\Abs{1},\, \Abs{0}\}$ \\
+\hbox{}\qquad\qquad $x = \Abs{2}$ \\
+\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{three} = \{\Abs{2},\, \Abs{1},\, \Abs{0},\, \unr\}$
+\postw
+
+%% MARK
+In the output above, $\Abs{n}$ abbreviates $\textit{Abs\_three}~n$.
+
+%% MARK
+Records, which are implemented as \textbf{typedef}s behind the scenes, are
+handled in much the same way:
+
+\prew
+\textbf{record} \textit{point} = \\
+\hbox{}\quad $\textit{Xcoord} \mathbin{\Colon} \textit{int}$ \\
+\hbox{}\quad $\textit{Ycoord} \mathbin{\Colon} \textit{int}$ \\[2\smallskipamount]
+\textbf{lemma} ``$\textit{Xcoord}~(p\Colon\textit{point}) = \textit{Xcoord}~(q\Colon\textit{point})$'' \\
+\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $p = \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr$ \\
+\hbox{}\qquad\qquad $q = \lparr\textit{Xcoord} = 1,\> \textit{Ycoord} = 1\rparr$ \\
+\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad\qquad $\textit{int} = \{0,\, 1,\, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{point} = \{\lparr\textit{Xcoord} = 1,\>
+\textit{Ycoord} = 1\rparr,\> \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr,\, \unr\}$\kern-1pt %% QUIET
+\postw
+
+Finally, Nitpick provides rudimentary support for rationals and reals using a
+similar approach:
+
+\prew
+\textbf{lemma} ``$4 * x + 3 * (y\Colon\textit{real}) \not= 1/2$'' \\
+\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $x = 1/2$ \\
+\hbox{}\qquad\qquad $y = -1/2$ \\
+\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, 3,\, 4,\, 5,\, 6,\, 7,\, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{int} = \{0,\, 1,\, 2,\, 3,\, 4,\, -3,\, -2,\, -1,\, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{real} = \{1,\, 0,\, 4,\, -3/2,\, 3,\, 2,\, 1/2,\, -1/2,\, \unr\}$
+\postw
+
+\subsection{Inductive and Coinductive Predicates}
+\label{inductive-and-coinductive-predicates}
+
+Inductively defined predicates (and sets) are particularly problematic for
+counterexample generators. They can make Quickcheck~\cite{berghofer-nipkow-2004}
+loop forever and Refute~\cite{weber-2008} run out of resources. The crux of
+the problem is that they are defined using a least fixed point construction.
+
+Nitpick's philosophy is that not all inductive predicates are equal. Consider
+the \textit{even} predicate below:
+
+\prew
+\textbf{inductive}~\textit{even}~\textbf{where} \\
+``\textit{even}~0'' $\,\mid$ \\
+``\textit{even}~$n\,\Longrightarrow\, \textit{even}~(\textit{Suc}~(\textit{Suc}~n))$''
+\postw
+
+This predicate enjoys the desirable property of being well-founded, which means
+that the introduction rules don't give rise to infinite chains of the form
+
+\prew
+$\cdots\,\Longrightarrow\, \textit{even}~k''
+       \,\Longrightarrow\, \textit{even}~k'
+       \,\Longrightarrow\, \textit{even}~k.$
+\postw
+
+For \textit{even}, this is obvious: Any chain ending at $k$ will be of length
+$k/2 + 1$:
+
+\prew
+$\textit{even}~0\,\Longrightarrow\, \textit{even}~2\,\Longrightarrow\, \cdots
+       \,\Longrightarrow\, \textit{even}~(k - 2)
+       \,\Longrightarrow\, \textit{even}~k.$
+\postw
+
+Wellfoundedness is desirable because it enables Nitpick to use a very efficient
+fixed point computation.%
+\footnote{If an inductive predicate is
+well-founded, then it has exactly one fixed point, which is simultaneously the
+least and the greatest fixed point. In these circumstances, the computation of
+the least fixed point amounts to the computation of an arbitrary fixed point,
+which can be performed using a straightforward recursive equation.}
+Moreover, Nitpick can prove wellfoundedness of most well-founded predicates,
+just as Isabelle's \textbf{function} package usually discharges termination
+proof obligations automatically.
+
+Let's try an example:
+
+\prew
+\textbf{lemma} ``$\exists n.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
+\textbf{nitpick}~[\textit{card nat}~= 100,\, \textit{verbose}] \\[2\smallskipamount]
+\slshape The inductive predicate ``\textit{even}'' was proved well-founded.
+Nitpick can compute it efficiently. \\[2\smallskipamount]
+Trying 1 scope: \\
+\hbox{}\qquad \textit{card nat}~= 100. \\[2\smallskipamount]
+Nitpick found a potential counterexample for \textit{card nat}~= 100: \\[2\smallskipamount]
+\hbox{}\qquad Empty assignment \\[2\smallskipamount]
+Nitpick could not find a better counterexample. \\[2\smallskipamount]
+Total time: 2274 ms.
+\postw
+
+No genuine counterexample is possible because Nitpick cannot rule out the
+existence of a natural number $n \ge 100$ such that both $\textit{even}~n$ and
+$\textit{even}~(\textit{Suc}~n)$ are true. To help Nitpick, we can bound the
+existential quantifier:
+
+\prew
+\textbf{lemma} ``$\exists n \mathbin{\le} 99.\; \textit{even}~n \mathrel{\land} \textit{even}~(\textit{Suc}~n)$'' \\
+\textbf{nitpick}~[\textit{card nat}~= 100] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Empty assignment
+\postw
+
+So far we were blessed by the wellfoundedness of \textit{even}. What happens if
+we use the following definition instead?
+
+\prew
+\textbf{inductive} $\textit{even}'$ \textbf{where} \\
+``$\textit{even}'~(0{\Colon}\textit{nat})$'' $\,\mid$ \\
+``$\textit{even}'~2$'' $\,\mid$ \\
+``$\lbrakk\textit{even}'~m;\> \textit{even}'~n\rbrakk \,\Longrightarrow\, \textit{even}'~(m + n)$''
+\postw
+
+This definition is not well-founded: From $\textit{even}'~0$ and
+$\textit{even}'~0$, we can derive that $\textit{even}'~0$. Nonetheless, the
+predicates $\textit{even}$ and $\textit{even}'$ are equivalent.
+
+Let's check a property involving $\textit{even}'$. To make up for the
+foreseeable computational hurdles entailed by non-wellfoundedness, we decrease
+\textit{nat}'s cardinality to a mere 10:
+
+\prew
+\textbf{lemma}~``$\exists n \in \{0, 2, 4, 6, 8\}.\;
+\lnot\;\textit{even}'~n$'' \\
+\textbf{nitpick}~[\textit{card nat}~= 10,\, \textit{verbose},\, \textit{show\_consts}] \\[2\smallskipamount]
+\slshape
+The inductive predicate ``$\textit{even}'\!$'' could not be proved well-founded.
+Nitpick might need to unroll it. \\[2\smallskipamount]
+Trying 6 scopes: \\
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 0; \\
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 1; \\
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 2; \\
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 4; \\
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 8; \\
+\hbox{}\qquad \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 9. \\[2\smallskipamount]
+Nitpick found a counterexample for \textit{card nat}~= 10 and \textit{iter} $\textit{even}'$~= 2: \\[2\smallskipamount]
+\hbox{}\qquad Constant: \nopagebreak \\
+\hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\undef(\!\begin{aligned}[t]
+& 2 := \{0, 2, 4, 6, 8, 1^\Q, 3^\Q, 5^\Q, 7^\Q, 9^\Q\}, \\[-2pt]
+& 1 := \{0, 2, 4, 1^\Q, 3^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\}, \\[-2pt]
+& 0 := \{0, 2, 1^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\})\end{aligned}$ \\[2\smallskipamount]
+Total time: 1140 ms.
+\postw
+
+Nitpick's output is very instructive. First, it tells us that the predicate is
+unrolled, meaning that it is computed iteratively from the empty set. Then it
+lists six scopes specifying different bounds on the numbers of iterations:\ 0,
+1, 2, 4, 8, and~9.
+
+The output also shows how each iteration contributes to $\textit{even}'$. The
+notation $\lambda i.\; \textit{even}'$ indicates that the value of the
+predicate depends on an iteration counter. Iteration 0 provides the basis
+elements, $0$ and $2$. Iteration 1 contributes $4$ ($= 2 + 2$). Iteration 2
+throws $6$ ($= 2 + 4 = 4 + 2$) and $8$ ($= 4 + 4$) into the mix. Further
+iterations would not contribute any new elements.
+
+Some values are marked with superscripted question
+marks~(`\lower.2ex\hbox{$^\Q$}'). These are the elements for which the
+predicate evaluates to $\unk$. Thus, $\textit{even}'$ evaluates to either
+\textit{True} or $\unk$, never \textit{False}.
+
+When unrolling a predicate, Nitpick tries 0, 1, 2, 4, 8, 12, 16, and 24
+iterations. However, these numbers are bounded by the cardinality of the
+predicate's domain. With \textit{card~nat}~= 10, no more than 9 iterations are
+ever needed to compute the value of a \textit{nat} predicate. You can specify
+the number of iterations using the \textit{iter} option, as explained in
+\S\ref{scope-of-search}.
+
+In the next formula, $\textit{even}'$ occurs both positively and negatively:
+
+\prew
+\textbf{lemma} ``$\textit{even}'~(n - 2) \,\Longrightarrow\, \textit{even}'~n$'' \\
+\textbf{nitpick} [\textit{card nat} = 10,\, \textit{show\_consts}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $n = 1$ \\
+\hbox{}\qquad Constants: \nopagebreak \\
+\hbox{}\qquad\qquad $\lambda i.\; \textit{even}'$ = $\undef(\!\begin{aligned}[t]
+& 0 := \{0, 2, 1^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\})\end{aligned}$  \\
+\hbox{}\qquad\qquad $\textit{even}' \subseteq \{0, 2, 4, 6, 8, \unr\}$
+\postw
+
+Notice the special constraint $\textit{even}' \subseteq \{0,\, 2,\, 4,\, 6,\,
+8,\, \unr\}$ in the output, whose right-hand side represents an arbitrary
+fixed point (not necessarily the least one). It is used to falsify
+$\textit{even}'~n$. In contrast, the unrolled predicate is used to satisfy
+$\textit{even}'~(n - 2)$.
+
+Coinductive predicates are handled dually. For example:
+
+\prew
+\textbf{coinductive} \textit{nats} \textbf{where} \\
+``$\textit{nats}~(x\Colon\textit{nat}) \,\Longrightarrow\, \textit{nats}~x$'' \\[2\smallskipamount]
+\textbf{lemma} ``$\textit{nats} = \{0, 1, 2, 3, 4\}$'' \\
+\textbf{nitpick}~[\textit{card nat} = 10,\, \textit{show\_consts}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample:
+\\[2\smallskipamount]
+\hbox{}\qquad Constants: \nopagebreak \\
+\hbox{}\qquad\qquad $\lambda i.\; \textit{nats} = \undef(0 := \{\!\begin{aligned}[t]
+& 0^\Q, 1^\Q, 2^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q, \\[-2pt]
+& \unr\})\end{aligned}$ \\
+\hbox{}\qquad\qquad $nats \supseteq \{9, 5^\Q, 6^\Q, 7^\Q, 8^\Q, \unr\}$
+\postw
+
+As a special case, Nitpick uses Kodkod's transitive closure operator to encode
+negative occurrences of non-well-founded ``linear inductive predicates,'' i.e.,
+inductive predicates for which each the predicate occurs in at most one
+assumption of each introduction rule. For example:
+
+\prew
+\textbf{inductive} \textit{odd} \textbf{where} \\
+``$\textit{odd}~1$'' $\,\mid$ \\
+``$\lbrakk \textit{odd}~m;\>\, \textit{even}~n\rbrakk \,\Longrightarrow\, \textit{odd}~(m + n)$'' \\[2\smallskipamount]
+\textbf{lemma}~``$\textit{odd}~n \,\Longrightarrow\, \textit{odd}~(n - 2)$'' \\
+\textbf{nitpick}~[\textit{card nat} = 10,\, \textit{show\_consts}] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample:
+\\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $n = 1$ \\
+\hbox{}\qquad Constants: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{even} = \{0, 2, 4, 6, 8, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{odd}_{\textsl{base}} = \{1, \unr\}$ \\
+\hbox{}\qquad\qquad $\textit{odd}_{\textsl{step}} = \!
+\!\begin{aligned}[t]
+  & \{(0, 0), (0, 2), (0, 4), (0, 6), (0, 8), (1, 1), (1, 3), (1, 5), \\[-2pt]
+  & \phantom{\{} (1, 7), (1, 9), (2, 2), (2, 4), (2, 6), (2, 8), (3, 3),
+       (3, 5), \\[-2pt]
+  & \phantom{\{} (3, 7), (3, 9), (4, 4), (4, 6), (4, 8), (5, 5), (5, 7), (5, 9), \\[-2pt]
+  & \phantom{\{} (6, 6), (6, 8), (7, 7), (7, 9), (8, 8), (9, 9), \unr\}\end{aligned}$ \\
+\hbox{}\qquad\qquad $\textit{odd} \subseteq \{1, 3, 5, 7, 9, 8^\Q, \unr\}$
+\postw
+
+\noindent
+In the output, $\textit{odd}_{\textrm{base}}$ represents the base elements and
+$\textit{odd}_{\textrm{step}}$ is a transition relation that computes new
+elements from known ones. The set $\textit{odd}$ consists of all the values
+reachable through the reflexive transitive closure of
+$\textit{odd}_{\textrm{step}}$ starting with any element from
+$\textit{odd}_{\textrm{base}}$, namely 1, 3, 5, 7, and 9. Using Kodkod's
+transitive closure to encode linear predicates is normally either more thorough
+or more efficient than unrolling (depending on the value of \textit{iter}), but
+for those cases where it isn't you can disable it by passing the
+\textit{dont\_star\_linear\_preds} option.
+
+\subsection{Coinductive Datatypes}
+\label{coinductive-datatypes}
+
+While Isabelle regrettably lacks a high-level mechanism for defining coinductive
+datatypes, the \textit{Coinductive\_List} theory provides a coinductive ``lazy
+list'' datatype, $'a~\textit{llist}$, defined the hard way. Nitpick supports
+these lazy lists seamlessly and provides a hook, described in
+\S\ref{registration-of-coinductive-datatypes}, to register custom coinductive
+datatypes.
+
+(Co)intuitively, a coinductive datatype is similar to an inductive datatype but
+allows infinite objects. Thus, the infinite lists $\textit{ps}$ $=$ $[a, a, a,
+\ldots]$, $\textit{qs}$ $=$ $[a, b, a, b, \ldots]$, and $\textit{rs}$ $=$ $[0,
+1, 2, 3, \ldots]$ can be defined as lazy lists using the
+$\textit{LNil}\mathbin{\Colon}{'}a~\textit{llist}$ and
+$\textit{LCons}\mathbin{\Colon}{'}a \mathbin{\Rightarrow} {'}a~\textit{llist}
+\mathbin{\Rightarrow} {'}a~\textit{llist}$ constructors.
+
+Although it is otherwise no friend of infinity, Nitpick can find counterexamples
+involving cyclic lists such as \textit{ps} and \textit{qs} above as well as
+finite lists:
+
+\prew
+\textbf{lemma} ``$\textit{xs} \not= \textit{LCons}~a~\textit{xs}$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample for {\itshape card}~$'a$ = 1: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{a} = a_1$ \\
+\hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$
+\postw
+
+The notation $\textrm{THE}~\omega.\; \omega = t(\omega)$ stands
+for the infinite term $t(t(t(\ldots)))$. Hence, \textit{xs} is simply the
+infinite list $[a_1, a_1, a_1, \ldots]$.
+
+The next example is more interesting:
+
+\prew
+\textbf{lemma}~``$\lbrakk\textit{xs} = \textit{LCons}~a~\textit{xs};\>\,
+\textit{ys} = \textit{iterates}~(\lambda b.\> a)~b\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys}$'' \\
+\textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
+\slshape The type ``\kern1pt$'a$'' passed the monotonicity test. Nitpick might be able to skip
+some scopes. \\[2\smallskipamount]
+Trying 8 scopes: \\
+\hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} ``\kern1pt$'a~\textit{list}$''~= 1,
+and \textit{bisim\_depth}~= 0. \\
+\hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
+\hbox{}\qquad \textit{card} $'a$~= 8, \textit{card} ``\kern1pt$'a~\textit{list}$''~= 8,
+and \textit{bisim\_depth}~= 7. \\[2\smallskipamount]
+Nitpick found a counterexample for {\itshape card}~$'a$ = 2,
+\textit{card}~``\kern1pt$'a~\textit{list}$''~= 2, and \textit{bisim\_\allowbreak
+depth}~= 1:
+\\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{a} = a_2$ \\
+\hbox{}\qquad\qquad $\textit{b} = a_1$ \\
+\hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega$ \\
+\hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_1~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega)$ \\[2\smallskipamount]
+Total time: 726 ms.
+\postw
+
+The lazy list $\textit{xs}$ is simply $[a_2, a_2, a_2, \ldots]$, whereas
+$\textit{ys}$ is $[a_1, a_2, a_2, a_2, \ldots]$, i.e., a lasso-shaped list with
+$[a_1]$ as its stem and $[a_2]$ as its cycle. In general, the list segment
+within the scope of the {THE} binder corresponds to the lasso's cycle, whereas
+the segment leading to the binder is the stem.
+
+A salient property of coinductive datatypes is that two objects are considered
+equal if and only if they lead to the same observations. For example, the lazy
+lists $\textrm{THE}~\omega.\; \omega =
+\textit{LCons}~a~(\textit{LCons}~b~\omega)$ and
+$\textit{LCons}~a~(\textrm{THE}~\omega.\; \omega =
+\textit{LCons}~b~(\textit{LCons}~a~\omega))$ are identical, because both lead
+to the sequence of observations $a$, $b$, $a$, $b$, \hbox{\ldots} (or,
+equivalently, both encode the infinite list $[a, b, a, b, \ldots]$). This
+concept of equality for coinductive datatypes is called bisimulation and is
+defined coinductively.
+
+Internally, Nitpick encodes the coinductive bisimilarity predicate as part of
+the Kodkod problem to ensure that distinct objects lead to different
+observations. This precaution is somewhat expensive and often unnecessary, so it
+can be disabled by setting the \textit{bisim\_depth} option to $-1$. The
+bisimilarity check is then performed \textsl{after} the counterexample has been
+found to ensure correctness. If this after-the-fact check fails, the
+counterexample is tagged as ``likely genuine'' and Nitpick recommends to try
+again with \textit{bisim\_depth} set to a nonnegative integer. Disabling the
+check for the previous example saves approximately 150~milli\-seconds; the speed
+gains can be more significant for larger scopes.
+
+The next formula illustrates the need for bisimilarity (either as a Kodkod
+predicate or as an after-the-fact check) to prevent spurious counterexamples:
+
+\prew
+\textbf{lemma} ``$\lbrakk xs = \textit{LCons}~a~\textit{xs};\>\, \textit{ys} = \textit{LCons}~a~\textit{ys}\rbrakk
+\,\Longrightarrow\, \textit{xs} = \textit{ys}$'' \\
+\textbf{nitpick} [\textit{bisim\_depth} = $-1$,\, \textit{show\_datatypes}] \\[2\smallskipamount]
+\slshape Nitpick found a likely genuine counterexample for $\textit{card}~'a$ = 2: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $a = a_2$ \\
+\hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega =
+\textit{LCons}~a_2~\omega$ \\
+\hbox{}\qquad\qquad $\textit{ys} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega$ \\
+\hbox{}\qquad Codatatype:\strut \nopagebreak \\
+\hbox{}\qquad\qquad $'a~\textit{llist} =
+\{\!\begin{aligned}[t]
+  & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega, \\[-2pt]
+  & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_2~\omega,\> \unr\}\end{aligned}$
+\\[2\smallskipamount]
+Try again with ``\textit{bisim\_depth}'' set to a nonnegative value to confirm
+that the counterexample is genuine. \\[2\smallskipamount]
+{\upshape\textbf{nitpick}} \\[2\smallskipamount]
+\slshape Nitpick found no counterexample.
+\postw
+
+In the first \textbf{nitpick} invocation, the after-the-fact check discovered 
+that the two known elements of type $'a~\textit{llist}$ are bisimilar.
+
+A compromise between leaving out the bisimilarity predicate from the Kodkod
+problem and performing the after-the-fact check is to specify a lower
+nonnegative \textit{bisim\_depth} value than the default one provided by
+Nitpick. In general, a value of $K$ means that Nitpick will require all lists to
+be distinguished from each other by their prefixes of length $K$. Be aware that
+setting $K$ to a too low value can overconstrain Nitpick, preventing it from
+finding any counterexamples.
+
+\subsection{Boxing}
+\label{boxing}
+
+Nitpick normally maps function and product types directly to the corresponding
+Kodkod concepts. As a consequence, if $'a$ has cardinality 3 and $'b$ has
+cardinality 4, then $'a \times {'}b$ has cardinality 12 ($= 4 \times 3$) and $'a
+\Rightarrow {'}b$ has cardinality 64 ($= 4^3$). In some circumstances, it pays
+off to treat these types in the same way as plain datatypes, by approximating
+them by a subset of a given cardinality. This technique is called ``boxing'' and
+is particularly useful for functions passed as arguments to other functions, for
+high-arity functions, and for large tuples. Under the hood, boxing involves
+wrapping occurrences of the types $'a \times {'}b$ and $'a \Rightarrow {'}b$ in
+isomorphic datatypes, as can be seen by enabling the \textit{debug} option.
+
+To illustrate boxing, we consider a formalization of $\lambda$-terms represented
+using de Bruijn's notation:
+
+\prew
+\textbf{datatype} \textit{tm} = \textit{Var}~\textit{nat}~$\mid$~\textit{Lam}~\textit{tm} $\mid$ \textit{App~tm~tm}
+\postw
+
+The $\textit{lift}~t~k$ function increments all variables with indices greater
+than or equal to $k$ by one:
+
+\prew
+\textbf{primrec} \textit{lift} \textbf{where} \\
+``$\textit{lift}~(\textit{Var}~j)~k = \textit{Var}~(\textrm{if}~j < k~\textrm{then}~j~\textrm{else}~j + 1)$'' $\mid$ \\
+``$\textit{lift}~(\textit{Lam}~t)~k = \textit{Lam}~(\textit{lift}~t~(k + 1))$'' $\mid$ \\
+``$\textit{lift}~(\textit{App}~t~u)~k = \textit{App}~(\textit{lift}~t~k)~(\textit{lift}~u~k)$''
+\postw
+
+The $\textit{loose}~t~k$ predicate returns \textit{True} if and only if
+term $t$ has a loose variable with index $k$ or more:
+
+\prew
+\textbf{primrec}~\textit{loose} \textbf{where} \\
+``$\textit{loose}~(\textit{Var}~j)~k = (j \ge k)$'' $\mid$ \\
+``$\textit{loose}~(\textit{Lam}~t)~k = \textit{loose}~t~(\textit{Suc}~k)$'' $\mid$ \\
+``$\textit{loose}~(\textit{App}~t~u)~k = (\textit{loose}~t~k \mathrel{\lor} \textit{loose}~u~k)$''
+\postw
+
+Next, the $\textit{subst}~\sigma~t$ function applies the substitution $\sigma$
+on $t$:
+
+\prew
+\textbf{primrec}~\textit{subst} \textbf{where} \\
+``$\textit{subst}~\sigma~(\textit{Var}~j) = \sigma~j$'' $\mid$ \\
+``$\textit{subst}~\sigma~(\textit{Lam}~t) = {}$\phantom{''} \\
+\phantom{``}$\textit{Lam}~(\textit{subst}~(\lambda n.\> \textrm{case}~n~\textrm{of}~0 \Rightarrow \textit{Var}~0 \mid \textit{Suc}~m \Rightarrow \textit{lift}~(\sigma~m)~1)~t)$'' $\mid$ \\
+``$\textit{subst}~\sigma~(\textit{App}~t~u) = \textit{App}~(\textit{subst}~\sigma~t)~(\textit{subst}~\sigma~u)$''
+\postw
+
+A substitution is a function that maps variable indices to terms. Observe that
+$\sigma$ is a function passed as argument and that Nitpick can't optimize it
+away, because the recursive call for the \textit{Lam} case involves an altered
+version. Also notice the \textit{lift} call, which increments the variable
+indices when moving under a \textit{Lam}.
+
+A reasonable property to expect of substitution is that it should leave closed
+terms unchanged. Alas, even this simple property does not hold:
+
+\pre
+\textbf{lemma}~``$\lnot\,\textit{loose}~t~0 \,\Longrightarrow\, \textit{subst}~\sigma~t = t$'' \\
+\textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
+\slshape
+Trying 8 scopes: \nopagebreak \\
+\hbox{}\qquad \textit{card~nat}~= 1, \textit{card tm}~= 1, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 1; \\
+\hbox{}\qquad \textit{card~nat}~= 2, \textit{card tm}~= 2, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 2; \\
+\hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
+\hbox{}\qquad \textit{card~nat}~= 8, \textit{card tm}~= 8, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 8. \\[2\smallskipamount]
+Nitpick found a counterexample for \textit{card~nat}~= 6, \textit{card~tm}~= 6,
+and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm}$''~= 6: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $\sigma = \undef(\!\begin{aligned}[t]
+& 0 := \textit{Var}~0,\>
+  1 := \textit{Var}~0,\>
+  2 := \textit{Var}~0, \\[-2pt]
+& 3 := \textit{Var}~0,\>
+  4 := \textit{Var}~0,\>
+  5 := \textit{Var}~0)\end{aligned}$ \\
+\hbox{}\qquad\qquad $t = \textit{Lam}~(\textit{Lam}~(\textit{Var}~1))$ \\[2\smallskipamount]
+Total time: $4679$ ms.
+\postw
+
+Using \textit{eval}, we find out that $\textit{subst}~\sigma~t =
+\textit{Lam}~(\textit{Lam}~(\textit{Var}~0))$. Using the traditional
+$\lambda$-term notation, $t$~is
+$\lambda x\, y.\> x$ whereas $\textit{subst}~\sigma~t$ is $\lambda x\, y.\> y$.
+The bug is in \textit{subst}: The $\textit{lift}~(\sigma~m)~1$ call should be
+replaced with $\textit{lift}~(\sigma~m)~0$.
+
+An interesting aspect of Nitpick's verbose output is that it assigned inceasing
+cardinalities from 1 to 8 to the type $\textit{nat} \Rightarrow \textit{tm}$.
+For the formula of interest, knowing 6 values of that type was enough to find
+the counterexample. Without boxing, $46\,656$ ($= 6^6$) values must be
+considered, a hopeless undertaking:
+
+\prew
+\textbf{nitpick} [\textit{dont\_box}] \\[2\smallskipamount]
+{\slshape Nitpick ran out of time after checking 4 of 8 scopes.}
+\postw
+
+{\looseness=-1
+Boxing can be enabled or disabled globally or on a per-type basis using the
+\textit{box} option. Moreover, setting the cardinality of a function or
+product type implicitly enables boxing for that type. Nitpick usually performs
+reasonable choices about which types should be boxed, but option tweaking
+sometimes helps.
+
+}
+
+\subsection{Scope Monotonicity}
+\label{scope-monotonicity}
+
+The \textit{card} option (together with \textit{iter}, \textit{bisim\_depth},
+and \textit{max}) controls which scopes are actually tested. In general, to
+exhaust all models below a certain cardinality bound, the number of scopes that
+Nitpick must consider increases exponentially with the number of type variables
+(and \textbf{typedecl}'d types) occurring in the formula. Given the default
+cardinality specification of 1--8, no fewer than $8^4 = 4096$ scopes must be
+considered for a formula involving $'a$, $'b$, $'c$, and $'d$.
+
+Fortunately, many formulas exhibit a property called \textsl{scope
+monotonicity}, meaning that if the formula is falsifiable for a given scope,
+it is also falsifiable for all larger scopes \cite[p.~165]{jackson-2006}.
+
+Consider the formula
+
+\prew
+\textbf{lemma}~``$\textit{length~xs} = \textit{length~ys} \,\Longrightarrow\, \textit{rev}~(\textit{zip~xs~ys}) = \textit{zip~xs}~(\textit{rev~ys})$''
+\postw
+
+where \textit{xs} is of type $'a~\textit{list}$ and \textit{ys} is of type
+$'b~\textit{list}$. A priori, Nitpick would need to consider 512 scopes to
+exhaust the specification \textit{card}~= 1--8. However, our intuition tells us
+that any counterexample found with a small scope would still be a counterexample
+in a larger scope---by simply ignoring the fresh $'a$ and $'b$ values provided
+by the larger scope. Nitpick comes to the same conclusion after a careful
+inspection of the formula and the relevant definitions:
+
+\prew
+\textbf{nitpick}~[\textit{verbose}] \\[2\smallskipamount]
+\slshape
+The types ``\kern1pt$'a$'' and ``\kern1pt$'b$'' passed the monotonicity test.
+Nitpick might be able to skip some scopes.
+ \\[2\smallskipamount]
+Trying 8 scopes: \\
+\hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} $'b$~= 1,
+\textit{card} \textit{nat}~= 1, \textit{card} ``$('a \times {'}b)$
+\textit{list}''~= 1, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list}''~= 1, and
+\textit{card} ``\kern1pt$'b$ \textit{list}''~= 1. \\
+\hbox{}\qquad \textit{card} $'a$~= 2, \textit{card} $'b$~= 2,
+\textit{card} \textit{nat}~= 2, \textit{card} ``$('a \times {'}b)$
+\textit{list}''~= 2, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list}''~= 2, and
+\textit{card} ``\kern1pt$'b$ \textit{list}''~= 2. \\
+\hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
+\hbox{}\qquad \textit{card} $'a$~= 8, \textit{card} $'b$~= 8,
+\textit{card} \textit{nat}~= 8, \textit{card} ``$('a \times {'}b)$
+\textit{list}''~= 8, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list}''~= 8, and
+\textit{card} ``\kern1pt$'b$ \textit{list}''~= 8.
+\\[2\smallskipamount]
+Nitpick found a counterexample for
+\textit{card} $'a$~= 5, \textit{card} $'b$~= 5,
+\textit{card} \textit{nat}~= 5, \textit{card} ``$('a \times {'}b)$
+\textit{list}''~= 5, \textit{card} ``\kern1pt$'a$ \textit{list}''~= 5, and
+\textit{card} ``\kern1pt$'b$ \textit{list}''~= 5:
+\\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $\textit{xs} = [a_4, a_5]$ \\
+\hbox{}\qquad\qquad $\textit{ys} = [b_3, b_3]$ \\[2\smallskipamount]
+Total time: 1636 ms.
+\postw
+
+In theory, it should be sufficient to test a single scope:
+
+\prew
+\textbf{nitpick}~[\textit{card}~= 8]
+\postw
+
+However, this is often less efficient in practice and may lead to overly complex
+counterexamples.
+
+If the monotonicity check fails but we believe that the formula is monotonic (or
+we don't mind missing some counterexamples), we can pass the
+\textit{mono} option. To convince yourself that this option is risky,
+simply consider this example from \S\ref{skolemization}:
+
+\prew
+\textbf{lemma} ``$\exists g.\; \forall x\Colon 'b.~g~(f~x) = x
+ \,\Longrightarrow\, \forall y\Colon {'}a.\; \exists x.~y = f~x$'' \\
+\textbf{nitpick} [\textit{mono}] \\[2\smallskipamount]
+{\slshape Nitpick found no counterexample.} \\[2\smallskipamount]
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape
+Nitpick found a counterexample for \textit{card} $'a$~= 2 and \textit{card} $'b$~=~1: \\
+\hbox{}\qquad $\vdots$
+\postw
+
+(It turns out the formula holds if and only if $\textit{card}~'a \le
+\textit{card}~'b$.) Although this is rarely advisable, the automatic
+monotonicity checks can be disabled by passing \textit{non\_mono}
+(\S\ref{optimizations}).
+
+As insinuated in \S\ref{natural-numbers-and-integers} and
+\S\ref{inductive-datatypes}, \textit{nat}, \textit{int}, and inductive datatypes
+are normally monotonic and treated as such. The same is true for record types,
+\textit{rat}, \textit{real}, and some \textbf{typedef}'d types. Thus, given the
+cardinality specification 1--8, a formula involving \textit{nat}, \textit{int},
+\textit{int~list}, \textit{rat}, and \textit{rat~list} will lead Nitpick to
+consider only 8~scopes instead of $32\,768$.
+
+\section{Case Studies}
+\label{case-studies}
+
+As a didactic device, the previous section focused mostly on toy formulas whose
+validity can easily be assessed just by looking at the formula. We will now
+review two somewhat more realistic case studies that are within Nitpick's
+reach:\ a context-free grammar modeled by mutually inductive sets and a
+functional implementation of AA trees. The results presented in this
+section were produced with the following settings:
+
+\prew
+\textbf{nitpick\_params} [\textit{max\_potential}~= 0,\, \textit{max\_threads} = 2]
+\postw
+
+\subsection{A Context-Free Grammar}
+\label{a-context-free-grammar}
+
+Our first case study is taken from section 7.4 in the Isabelle tutorial
+\cite{isa-tutorial}. The following grammar, originally due to Hopcroft and
+Ullman, produces all strings with an equal number of $a$'s and $b$'s:
+
+\prew
+\begin{tabular}{@{}r@{$\;\,$}c@{$\;\,$}l@{}}
+$S$ & $::=$ & $\epsilon \mid bA \mid aB$ \\
+$A$ & $::=$ & $aS \mid bAA$ \\
+$B$ & $::=$ & $bS \mid aBB$
+\end{tabular}
+\postw
+
+The intuition behind the grammar is that $A$ generates all string with one more
+$a$ than $b$'s and $B$ generates all strings with one more $b$ than $a$'s.
+
+The alphabet consists exclusively of $a$'s and $b$'s:
+
+\prew
+\textbf{datatype} \textit{alphabet}~= $a$ $\mid$ $b$
+\postw
+
+Strings over the alphabet are represented by \textit{alphabet list}s.
+Nonterminals in the grammar become sets of strings. The production rules
+presented above can be expressed as a mutually inductive definition:
+
+\prew
+\textbf{inductive\_set} $S$ \textbf{and} $A$ \textbf{and} $B$ \textbf{where} \\
+\textit{R1}:\kern.4em ``$[] \in S$'' $\,\mid$ \\
+\textit{R2}:\kern.4em ``$w \in A\,\Longrightarrow\, b \mathbin{\#} w \in S$'' $\,\mid$ \\
+\textit{R3}:\kern.4em ``$w \in B\,\Longrightarrow\, a \mathbin{\#} w \in S$'' $\,\mid$ \\
+\textit{R4}:\kern.4em ``$w \in S\,\Longrightarrow\, a \mathbin{\#} w \in A$'' $\,\mid$ \\
+\textit{R5}:\kern.4em ``$w \in S\,\Longrightarrow\, b \mathbin{\#} w \in S$'' $\,\mid$ \\
+\textit{R6}:\kern.4em ``$\lbrakk v \in B;\> v \in B\rbrakk \,\Longrightarrow\, a \mathbin{\#} v \mathbin{@} w \in B$''
+\postw
+
+The conversion of the grammar into the inductive definition was done manually by
+Joe Blow, an underpaid undergraduate student. As a result, some errors might
+have sneaked in.
+
+Debugging faulty specifications is at the heart of Nitpick's \textsl{raison
+d'\^etre}. A good approach is to state desirable properties of the specification
+(here, that $S$ is exactly the set of strings over $\{a, b\}$ with as many $a$'s
+as $b$'s) and check them with Nitpick. If the properties are correctly stated,
+counterexamples will point to bugs in the specification. For our grammar
+example, we will proceed in two steps, separating the soundness and the
+completeness of the set $S$. First, soundness:
+
+\prew
+\textbf{theorem}~\textit{S\_sound}: \\
+``$w \in S \longrightarrow \textit{length}~[x\mathbin{\leftarrow} w.\; x = a] =
+  \textit{length}~[x\mathbin{\leftarrow} w.\; x = b]$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $w = [b]$
+\postw
+
+It would seem that $[b] \in S$. How could this be? An inspection of the
+introduction rules reveals that the only rule with a right-hand side of the form
+$b \mathbin{\#} {\ldots} \in S$ that could have introduced $[b]$ into $S$ is
+\textit{R5}:
+
+\prew
+``$w \in S\,\Longrightarrow\, b \mathbin{\#} w \in S$''
+\postw
+
+On closer inspection, we can see that this rule is wrong. To match the
+production $B ::= bS$, the second $S$ should be a $B$. We fix the typo and try
+again:
+
+\prew
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $w = [a, a, b]$
+\postw
+
+Some detective work is necessary to find out what went wrong here. To get $[a,
+a, b] \in S$, we need $[a, b] \in B$ by \textit{R3}, which in turn can only come
+from \textit{R6}:
+
+\prew
+``$\lbrakk v \in B;\> v \in B\rbrakk \,\Longrightarrow\, a \mathbin{\#} v \mathbin{@} w \in B$''
+\postw
+
+Now, this formula must be wrong: The same assumption occurs twice, and the
+variable $w$ is unconstrained. Clearly, one of the two occurrences of $v$ in
+the assumptions should have been a $w$.
+
+With the correction made, we don't get any counterexample from Nitpick. Let's
+move on and check completeness:
+
+\prew
+\textbf{theorem}~\textit{S\_complete}: \\
+``$\textit{length}~[x\mathbin{\leftarrow} w.\; x = a] =
+   \textit{length}~[x\mathbin{\leftarrow} w.\; x = b]
+  \longrightarrow w \in S$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variable: \nopagebreak \\
+\hbox{}\qquad\qquad $w = [b, b, a, a]$
+\postw
+
+Apparently, $[b, b, a, a] \notin S$, even though it has the same numbers of
+$a$'s and $b$'s. But since our inductive definition passed the soundness check,
+the introduction rules we have are probably correct. Perhaps we simply lack an
+introduction rule. Comparing the grammar with the inductive definition, our
+suspicion is confirmed: Joe Blow simply forgot the production $A ::= bAA$,
+without which the grammar cannot generate two or more $b$'s in a row. So we add
+the rule
+
+\prew
+``$\lbrakk v \in A;\> w \in A\rbrakk \,\Longrightarrow\, b \mathbin{\#} v \mathbin{@} w \in A$''
+\postw
+
+With this last change, we don't get any counterexamples from Nitpick for either
+soundness or completeness. We can even generalize our result to cover $A$ and
+$B$ as well:
+
+\prew
+\textbf{theorem} \textit{S\_A\_B\_sound\_and\_complete}: \\
+``$w \in S \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = b]$'' \\
+``$w \in A \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] + 1$'' \\
+``$w \in B \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] + 1$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found no counterexample.
+\postw
+
+\subsection{AA Trees}
+\label{aa-trees}
+
+AA trees are a kind of balanced trees discovered by Arne Andersson that provide
+similar performance to red-black trees, but with a simpler implementation
+\cite{andersson-1993}. They can be used to store sets of elements equipped with
+a total order $<$. We start by defining the datatype and some basic extractor
+functions:
+
+\prew
+\textbf{datatype} $'a$~\textit{tree} = $\Lambda$ $\mid$ $N$ ``\kern1pt$'a\Colon \textit{linorder}$'' \textit{nat} ``\kern1pt$'a$ \textit{tree}'' ``\kern1pt$'a$ \textit{tree}''  \\[2\smallskipamount]
+\textbf{primrec} \textit{data} \textbf{where} \\
+``$\textit{data}~\Lambda = \undef$'' $\,\mid$ \\
+``$\textit{data}~(N~x~\_~\_~\_) = x$'' \\[2\smallskipamount]
+\textbf{primrec} \textit{dataset} \textbf{where} \\
+``$\textit{dataset}~\Lambda = \{\}$'' $\,\mid$ \\
+``$\textit{dataset}~(N~x~\_~t~u) = \{x\} \cup \textit{dataset}~t \mathrel{\cup} \textit{dataset}~u$'' \\[2\smallskipamount]
+\textbf{primrec} \textit{level} \textbf{where} \\
+``$\textit{level}~\Lambda = 0$'' $\,\mid$ \\
+``$\textit{level}~(N~\_~k~\_~\_) = k$'' \\[2\smallskipamount]
+\textbf{primrec} \textit{left} \textbf{where} \\
+``$\textit{left}~\Lambda = \Lambda$'' $\,\mid$ \\
+``$\textit{left}~(N~\_~\_~t~\_) = t$'' \\[2\smallskipamount]
+\textbf{primrec} \textit{right} \textbf{where} \\
+``$\textit{right}~\Lambda = \Lambda$'' $\,\mid$ \\
+``$\textit{right}~(N~\_~\_~\_~u) = u$''
+\postw
+
+The wellformedness criterion for AA trees is fairly complex. Wikipedia states it
+as follows \cite{wikipedia-2009-aa-trees}:
+
+\kern.2\parskip %% TYPESETTING
+
+\pre
+Each node has a level field, and the following invariants must remain true for
+the tree to be valid:
+
+\raggedright
+
+\kern-.4\parskip %% TYPESETTING
+
+\begin{enum}
+\item[]
+\begin{enum}
+\item[1.] The level of a leaf node is one.
+\item[2.] The level of a left child is strictly less than that of its parent.
+\item[3.] The level of a right child is less than or equal to that of its parent.
+\item[4.] The level of a right grandchild is strictly less than that of its grandparent.
+\item[5.] Every node of level greater than one must have two children.
+\end{enum}
+\end{enum}
+\post
+
+\kern.4\parskip %% TYPESETTING
+
+The \textit{wf} predicate formalizes this description:
+
+\prew
+\textbf{primrec} \textit{wf} \textbf{where} \\
+``$\textit{wf}~\Lambda = \textit{True}$'' $\,\mid$ \\
+``$\textit{wf}~(N~\_~k~t~u) =$ \\
+\phantom{``}$(\textrm{if}~t = \Lambda~\textrm{then}$ \\
+\phantom{``$(\quad$}$k = 1 \mathrel{\land} (u = \Lambda \mathrel{\lor} (\textit{level}~u = 1 \mathrel{\land} \textit{left}~u = \Lambda \mathrel{\land} \textit{right}~u = \Lambda))$ \\
+\phantom{``$($}$\textrm{else}$ \\
+\hbox{}\phantom{``$(\quad$}$\textit{wf}~t \mathrel{\land} \textit{wf}~u
+\mathrel{\land} u \not= \Lambda \mathrel{\land} \textit{level}~t < k
+\mathrel{\land} \textit{level}~u \le k$ \\
+\hbox{}\phantom{``$(\quad$}${\land}\; \textit{level}~(\textit{right}~u) < k)$''
+\postw
+
+Rebalancing the tree upon insertion and removal of elements is performed by two
+auxiliary functions called \textit{skew} and \textit{split}, defined below:
+
+\prew
+\textbf{primrec} \textit{skew} \textbf{where} \\
+``$\textit{skew}~\Lambda = \Lambda$'' $\,\mid$ \\
+``$\textit{skew}~(N~x~k~t~u) = {}$ \\
+\phantom{``}$(\textrm{if}~t \not= \Lambda \mathrel{\land} k =
+\textit{level}~t~\textrm{then}$ \\
+\phantom{``(\quad}$N~(\textit{data}~t)~k~(\textit{left}~t)~(N~x~k~
+(\textit{right}~t)~u)$ \\
+\phantom{``(}$\textrm{else}$ \\
+\phantom{``(\quad}$N~x~k~t~u)$''
+\postw
+
+\prew
+\textbf{primrec} \textit{split} \textbf{where} \\
+``$\textit{split}~\Lambda = \Lambda$'' $\,\mid$ \\
+``$\textit{split}~(N~x~k~t~u) = {}$ \\
+\phantom{``}$(\textrm{if}~u \not= \Lambda \mathrel{\land} k =
+\textit{level}~(\textit{right}~u)~\textrm{then}$ \\
+\phantom{``(\quad}$N~(\textit{data}~u)~(\textit{Suc}~k)~
+(N~x~k~t~(\textit{left}~u))~(\textit{right}~u)$ \\
+\phantom{``(}$\textrm{else}$ \\
+\phantom{``(\quad}$N~x~k~t~u)$''
+\postw
+
+Performing a \textit{skew} or a \textit{split} should have no impact on the set
+of elements stored in the tree:
+
+\prew
+\textbf{theorem}~\textit{dataset\_skew\_split}:\\
+``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
+``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
+\postw
+
+Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
+should not alter the tree:
+
+\prew
+\textbf{theorem}~\textit{wf\_skew\_split}:\\
+``$\textit{wf}~t\,\Longrightarrow\, \textit{skew}~t = t$'' \\
+``$\textit{wf}~t\,\Longrightarrow\, \textit{split}~t = t$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+{\slshape Nitpick found no counterexample.}
+\postw
+
+Insertion is implemented recursively. It preserves the sort order:
+
+\prew
+\textbf{primrec}~\textit{insort} \textbf{where} \\
+``$\textit{insort}~\Lambda~x = N~x~1~\Lambda~\Lambda$'' $\,\mid$ \\
+``$\textit{insort}~(N~y~k~t~u)~x =$ \\
+\phantom{``}$({*}~(\textit{split} \circ \textit{skew})~{*})~(N~y~k~(\textrm{if}~x < y~\textrm{then}~\textit{insort}~t~x~\textrm{else}~t)$ \\
+\phantom{``$({*}~(\textit{split} \circ \textit{skew})~{*})~(N~y~k~$}$(\textrm{if}~x > y~\textrm{then}~\textit{insort}~u~x~\textrm{else}~u))$''
+\postw
+
+Notice that we deliberately commented out the application of \textit{skew} and
+\textit{split}. Let's see if this causes any problems:
+
+\prew
+\textbf{theorem}~\textit{wf\_insort}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\slshape Nitpick found a counterexample for \textit{card} $'a$ = 4: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $t = N~a_3~1~\Lambda~\Lambda$ \\
+\hbox{}\qquad\qquad $x = a_4$ \\[2\smallskipamount]
+Hint: Maybe you forgot a type constraint?
+\postw
+
+It's hard to see why this is a counterexample. The hint is of no help here. To
+improve readability, we will restrict the theorem to \textit{nat}, so that we
+don't need to look up the value of the $\textit{op}~{<}$ constant to find out
+which element is smaller than the other. In addition, we will tell Nitpick to
+display the value of $\textit{insort}~t~x$ using the \textit{eval} option. This
+gives
+
+\prew
+\textbf{theorem} \textit{wf\_insort\_nat}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~(x\Colon\textit{nat}))$'' \\
+\textbf{nitpick} [\textit{eval} = ``$\textit{insort}~t~x$''] \\[2\smallskipamount]
+\slshape Nitpick found a counterexample: \\[2\smallskipamount]
+\hbox{}\qquad Free variables: \nopagebreak \\
+\hbox{}\qquad\qquad $t = N~1~1~\Lambda~\Lambda$ \\
+\hbox{}\qquad\qquad $x = 0$ \\
+\hbox{}\qquad Evaluated term: \\
+\hbox{}\qquad\qquad $\textit{insort}~t~x = N~1~1~(N~0~1~\Lambda~\Lambda)~\Lambda$
+\postw
+
+Nitpick's output reveals that the element $0$ was added as a left child of $1$,
+where both have a level of 1. This violates the second AA tree invariant, which
+states that a left child's level must be less than its parent's. This shouldn't
+come as a surprise, considering that we commented out the tree rebalancing code.
+Reintroducing the code seems to solve the problem:
+
+\prew
+\textbf{theorem}~\textit{wf\_insort}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+{\slshape Nitpick ran out of time after checking 6 of 8 scopes.}
+\postw
+
+Insertion should transform the set of elements represented by the tree in the
+obvious way:
+
+\prew
+\textbf{theorem} \textit{dataset\_insort}:\kern.4em
+``$\textit{dataset}~(\textit{insort}~t~x) = \{x\} \cup \textit{dataset}~t$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+{\slshape Nitpick ran out of time after checking 5 of 8 scopes.}
+\postw
+
+We could continue like this and sketch a complete theory of AA trees without
+performing a single proof. Once the definitions and main theorems are in place
+and have been thoroughly tested using Nitpick, we could start working on the
+proofs. Developing theories this way usually saves time, because faulty theorems
+and definitions are discovered much earlier in the process.
+
+\section{Option Reference}
+\label{option-reference}
+
+\def\flushitem#1{\item[]\noindent\kern-\leftmargin \textbf{#1}}
+\def\qty#1{$\left<\textit{#1}\right>$}
+\def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1}}\right>}$}
+\def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{true}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{false}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\quad [\textit{smart}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\ops#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
+\def\opt#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\quad [\textit{#3}]} \nopagebreak\\[\parskip]}
+\def\opu#1#2#3{\flushitem{\textit{#1} \qtybf{#2} = \qtybf{#3}} \nopagebreak\\[\parskip]}
+\def\opusmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+
+Nitpick's behavior can be influenced by various options, which can be specified
+in brackets after the \textbf{nitpick} command. Default values can be set
+using \textbf{nitpick\_\allowbreak params}. For example:
+
+\prew
+\textbf{nitpick\_params} [\textit{verbose}, \,\textit{timeout} = 60$\,s$]
+\postw
+
+The options are categorized as follows:\ mode of operation
+(\S\ref{mode-of-operation}), scope of search (\S\ref{scope-of-search}), output
+format (\S\ref{output-format}), automatic counterexample checks
+(\S\ref{authentication}), optimizations
+(\S\ref{optimizations}), and timeouts (\S\ref{timeouts}).
+
+The number of options can be overwhelming at first glance. Do not let that worry
+you: Nitpick's defaults have been chosen so that it almost always does the right
+thing, and the most important options have been covered in context in
+\S\ref{first-steps}.
+
+The descriptions below refer to the following syntactic quantities:
+
+\begin{enum}
+\item[$\bullet$] \qtybf{string}: A string.
+\item[$\bullet$] \qtybf{bool}: \textit{true} or \textit{false}.
+\item[$\bullet$] \qtybf{bool\_or\_smart}: \textit{true}, \textit{false}, or \textit{smart}.
+\item[$\bullet$] \qtybf{int}: An integer. Negative integers are prefixed with a hyphen.
+\item[$\bullet$] \qtybf{int\_or\_smart}: An integer or \textit{smart}.
+\item[$\bullet$] \qtybf{int\_range}: An integer (e.g., 3) or a range
+of nonnegative integers (e.g., $1$--$4$). The range symbol `--' can be entered as \texttt{-} (hyphen) or \texttt{\char`\\\char`\<midarrow\char`\>}.
+
+\item[$\bullet$] \qtybf{int\_seq}: A comma-separated sequence of ranges of integers (e.g.,~1{,}3{,}\allowbreak6--8).
+\item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes), $s$ (seconds), or \textit{ms}
+(milliseconds), or the keyword \textit{none} ($\infty$ years).
+\item[$\bullet$] \qtybf{const}: The name of a HOL constant.
+\item[$\bullet$] \qtybf{term}: A HOL term (e.g., ``$f~x$'').
+\item[$\bullet$] \qtybf{term\_list}: A space-separated list of HOL terms (e.g.,
+``$f~x$''~``$g~y$'').
+\item[$\bullet$] \qtybf{type}: A HOL type.
+\end{enum}
+
+Default values are indicated in square brackets. Boolean options have a negated
+counterpart (e.g., \textit{auto} vs.\ \textit{no\_auto}). When setting Boolean
+options, ``= \textit{true}'' may be omitted.
+
+\subsection{Mode of Operation}
+\label{mode-of-operation}
+
+\begin{enum}
+\opfalse{auto}{no\_auto}
+Specifies whether Nitpick should be run automatically on newly entered theorems.
+For automatic runs, \textit{user\_axioms} (\S\ref{mode-of-operation}) and
+\textit{assms} (\S\ref{mode-of-operation}) are implicitly enabled,
+\textit{blocking} (\S\ref{mode-of-operation}), \textit{verbose}
+(\S\ref{output-format}), and \textit{debug} (\S\ref{output-format}) are
+disabled, \textit{max\_potential} (\S\ref{output-format}) is taken to be 0, and
+\textit{auto\_timeout} (\S\ref{timeouts}) is used as the time limit instead of
+\textit{timeout} (\S\ref{timeouts}). The output is also more concise.
+
+\nopagebreak
+{\small See also \textit{auto\_timeout} (\S\ref{timeouts}).}
+
+\optrue{blocking}{non\_blocking}
+Specifies whether the \textbf{nitpick} command should operate synchronously.
+The asynchronous (non-blocking) mode lets the user start proving the putative
+theorem while Nitpick looks for a counterexample, but it can also be more
+confusing. For technical reasons, automatic runs currently always block.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation}).}
+
+\optrue{falsify}{satisfy}
+Specifies whether Nitpick should look for falsifying examples (countermodels) or
+satisfying examples (models). This manual assumes throughout that
+\textit{falsify} is enabled.
+
+\opsmart{user\_axioms}{no\_user\_axioms}
+Specifies whether the user-defined axioms (specified using 
+\textbf{axiomatization} and \textbf{axioms}) should be considered. If the option
+is set to \textit{smart}, Nitpick performs an ad hoc axiom selection based on
+the constants that occur in the formula to falsify. The option is implicitly set
+to \textit{true} for automatic runs.
+
+\textbf{Warning:} If the option is set to \textit{true}, Nitpick might
+nonetheless ignore some polymorphic axioms. Counterexamples generated under
+these conditions are tagged as ``likely genuine.'' The \textit{debug}
+(\S\ref{output-format}) option can be used to find out which axioms were
+considered.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation}), \textit{assms}
+(\S\ref{mode-of-operation}), and \textit{debug} (\S\ref{output-format}).}
+
+\optrue{assms}{no\_assms}
+Specifies whether the relevant assumptions in structured proof should be
+considered. The option is implicitly enabled for automatic runs.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation})
+and \textit{user\_axioms} (\S\ref{mode-of-operation}).}
+
+\opfalse{overlord}{no\_overlord}
+Specifies whether Nitpick should put its temporary files in
+\texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
+debugging Nitpick but also unsafe if several instances of the tool are run
+simultaneously.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+\end{enum}
+
+\subsection{Scope of Search}
+\label{scope-of-search}
+
+\begin{enum}
+\opu{card}{type}{int\_seq}
+Specifies the sequence of cardinalities to use for a given type. For
+\textit{nat} and \textit{int}, the cardinality fully specifies the subset used
+to approximate the type. For example:
+%
+$$\hbox{\begin{tabular}{@{}rll@{}}%
+\textit{card nat} = 4 & induces & $\{0,\, 1,\, 2,\, 3\}$ \\
+\textit{card int} = 4 & induces & $\{-1,\, 0,\, +1,\, +2\}$ \\
+\textit{card int} = 5 & induces & $\{-2,\, -1,\, 0,\, +1,\, +2\}.$%
+\end{tabular}}$$
+%
+In general:
+%
+$$\hbox{\begin{tabular}{@{}rll@{}}%
+\textit{card nat} = $K$ & induces & $\{0,\, \ldots,\, K - 1\}$ \\
+\textit{card int} = $K$ & induces & $\{-\lceil K/2 \rceil + 1,\, \ldots,\, +\lfloor K/2 \rfloor\}.$%
+\end{tabular}}$$
+%
+For free types, and often also for \textbf{typedecl}'d types, it usually makes
+sense to specify cardinalities as a range of the form \textit{$1$--$n$}.
+Although function and product types are normally mapped directly to the
+corresponding Kodkod concepts, setting
+the cardinality of such types is also allowed and implicitly enables ``boxing''
+for them, as explained in the description of the \textit{box}~\qty{type}
+and \textit{box} (\S\ref{scope-of-search}) options.
+
+\nopagebreak
+{\small See also \textit{mono} (\S\ref{scope-of-search}).}
+
+\opt{card}{int\_seq}{$\mathbf{1}$--$\mathbf{8}$}
+Specifies the default sequence of cardinalities to use. This can be overridden
+on a per-type basis using the \textit{card}~\qty{type} option described above.
+
+\opu{max}{const}{int\_seq}
+Specifies the sequence of maximum multiplicities to use for a given
+(co)in\-duc\-tive datatype constructor. A constructor's multiplicity is the
+number of distinct values that it can construct. Nonsensical values (e.g.,
+\textit{max}~[]~$=$~2) are silently repaired. This option is only available for
+datatypes equipped with several constructors.
+
+\ops{max}{int\_seq}
+Specifies the default sequence of maximum multiplicities to use for
+(co)in\-duc\-tive datatype constructors. This can be overridden on a per-constructor
+basis using the \textit{max}~\qty{const} option described above.
+
+\opusmart{wf}{const}{non\_wf}
+Specifies whether the specified (co)in\-duc\-tively defined predicate is
+well-founded. The option can take the following values:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{true}}: Tentatively treat the (co)in\-duc\-tive
+predicate as if it were well-founded. Since this is generally not sound when the
+predicate is not well-founded, the counterexamples are tagged as ``likely
+genuine.''
+
+\item[$\bullet$] \textbf{\textit{false}}: Treat the (co)in\-duc\-tive predicate
+as if it were not well-founded. The predicate is then unrolled as prescribed by
+the \textit{star\_linear\_preds}, \textit{iter}~\qty{const}, and \textit{iter}
+options.
+
+\item[$\bullet$] \textbf{\textit{smart}}: Try to prove that the inductive
+predicate is well-founded using Isabelle's \textit{lexicographic\_order} and
+\textit{sizechange} tactics. If this succeeds (or the predicate occurs with an
+appropriate polarity in the formula to falsify), use an efficient fixed point
+equation as specification of the predicate; otherwise, unroll the predicates
+according to the \textit{iter}~\qty{const} and \textit{iter} options.
+\end{enum}
+
+\nopagebreak
+{\small See also \textit{iter} (\S\ref{scope-of-search}),
+\textit{star\_linear\_preds} (\S\ref{optimizations}), and \textit{tac\_timeout}
+(\S\ref{timeouts}).}
+
+\opsmart{wf}{non\_wf}
+Specifies the default wellfoundedness setting to use. This can be overridden on
+a per-predicate basis using the \textit{wf}~\qty{const} option above.
+
+\opu{iter}{const}{int\_seq}
+Specifies the sequence of iteration counts to use when unrolling a given
+(co)in\-duc\-tive predicate. By default, unrolling is applied for inductive
+predicates that occur negatively and coinductive predicates that occur
+positively in the formula to falsify and that cannot be proved to be
+well-founded, but this behavior is influenced by the \textit{wf} option. The
+iteration counts are automatically bounded by the cardinality of the predicate's
+domain.
+
+{\small See also \textit{wf} (\S\ref{scope-of-search}) and
+\textit{star\_linear\_preds} (\S\ref{optimizations}).}
+
+\opt{iter}{int\_seq}{$\mathbf{1{,}2{,}4{,}8{,}12{,}16{,}24{,}32}$}
+Specifies the sequence of iteration counts to use when unrolling (co)in\-duc\-tive
+predicates. This can be overridden on a per-predicate basis using the
+\textit{iter} \qty{const} option above.
+
+\opt{bisim\_depth}{int\_seq}{$\mathbf{7}$}
+Specifies the sequence of iteration counts to use when unrolling the
+bisimilarity predicate generated by Nitpick for coinductive datatypes. A value
+of $-1$ means that no predicate is generated, in which case Nitpick performs an
+after-the-fact check to see if the known coinductive datatype values are
+bidissimilar. If two values are found to be bisimilar, the counterexample is
+tagged as ``likely genuine.'' The iteration counts are automatically bounded by
+the sum of the cardinalities of the coinductive datatypes occurring in the
+formula to falsify.
+
+\opusmart{box}{type}{dont\_box}
+Specifies whether Nitpick should attempt to wrap (``box'') a given function or
+product type in an isomorphic datatype internally. Boxing is an effective mean
+to reduce the search space and speed up Nitpick, because the isomorphic datatype
+is approximated by a subset of the possible function or pair values;
+like other drastic optimizations, it can also prevent the discovery of
+counterexamples. The option can take the following values:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{true}}: Box the specified type whenever
+practicable.
+\item[$\bullet$] \textbf{\textit{false}}: Never box the type.
+\item[$\bullet$] \textbf{\textit{smart}}: Box the type only in contexts where it
+is likely to help. For example, $n$-tuples where $n > 2$ and arguments to
+higher-order functions are good candidates for boxing.
+\end{enum}
+
+Setting the \textit{card}~\qty{type} option for a function or product type
+implicitly enables boxing for that type.
+
+\nopagebreak
+{\small See also \textit{verbose} (\S\ref{output-format})
+and \textit{debug} (\S\ref{output-format}).}
+
+\opsmart{box}{dont\_box}
+Specifies the default boxing setting to use. This can be overridden on a
+per-type basis using the \textit{box}~\qty{type} option described above.
+
+\opusmart{mono}{type}{non\_mono}
+Specifies whether the specified type should be considered monotonic when
+enumerating scopes. If the option is set to \textit{smart}, Nitpick performs a
+monotonicity check on the type. Setting this option to \textit{true} can reduce
+the number of scopes tried, but it also diminishes the theoretical chance of
+finding a counterexample, as demonstrated in \S\ref{scope-monotonicity}.
+
+\nopagebreak
+{\small See also \textit{card} (\S\ref{scope-of-search}),
+\textit{coalesce\_type\_vars} (\S\ref{scope-of-search}), and \textit{verbose}
+(\S\ref{output-format}).}
+
+\opsmart{mono}{non\_box}
+Specifies the default monotonicity setting to use. This can be overridden on a
+per-type basis using the \textit{mono}~\qty{type} option described above.
+
+\opfalse{coalesce\_type\_vars}{dont\_coalesce\_type\_vars}
+Specifies whether type variables with the same sort constraints should be
+merged. Setting this option to \textit{true} can reduce the number of scopes
+tried and the size of the generated Kodkod formulas, but it also diminishes the
+theoretical chance of finding a counterexample.
+
+{\small See also \textit{mono} (\S\ref{scope-of-search}).}
+\end{enum}
+
+\subsection{Output Format}
+\label{output-format}
+
+\begin{enum}
+\opfalse{verbose}{quiet}
+Specifies whether the \textbf{nitpick} command should explain what it does. This
+option is useful to determine which scopes are tried or which SAT solver is
+used. This option is implicitly disabled for automatic runs.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation}).}
+
+\opfalse{debug}{no\_debug}
+Specifies whether Nitpick should display additional debugging information beyond
+what \textit{verbose} already displays. Enabling \textit{debug} also enables
+\textit{verbose} and \textit{show\_all} behind the scenes. The \textit{debug}
+option is implicitly disabled for automatic runs.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation}), \textit{overlord}
+(\S\ref{mode-of-operation}), and \textit{batch\_size} (\S\ref{optimizations}).}
+
+\optrue{show\_skolems}{hide\_skolem}
+Specifies whether the values of Skolem constants should be displayed as part of
+counterexamples. Skolem constants correspond to bound variables in the original
+formula and usually help us to understand why the counterexample falsifies the
+formula.
+
+\nopagebreak
+{\small See also \textit{skolemize} (\S\ref{optimizations}).}
+
+\opfalse{show\_datatypes}{hide\_datatypes}
+Specifies whether the subsets used to approximate (co)in\-duc\-tive datatypes should
+be displayed as part of counterexamples. Such subsets are sometimes helpful when
+investigating whether a potential counterexample is genuine or spurious, but
+their potential for clutter is real.
+
+\opfalse{show\_consts}{hide\_consts}
+Specifies whether the values of constants occurring in the formula (including
+its axioms) should be displayed along with any counterexample. These values are
+sometimes helpful when investigating why a counterexample is
+genuine, but they can clutter the output.
+
+\opfalse{show\_all}{dont\_show\_all}
+Enabling this option effectively enables \textit{show\_skolems},
+\textit{show\_datatypes}, and \textit{show\_consts}.
+
+\opt{max\_potential}{int}{$\mathbf{1}$}
+Specifies the maximum number of potential counterexamples to display. Setting
+this option to 0 speeds up the search for a genuine counterexample. This option
+is implicitly set to 0 for automatic runs. If you set this option to a value
+greater than 1, you will need an incremental SAT solver: For efficiency, it is
+recommended to install the JNI version of MiniSat and set \textit{sat\_solver} =
+\textit{MiniSatJNI}. Also be aware that many of the counterexamples may look
+identical, unless the \textit{show\_all} (\S\ref{output-format}) option is
+enabled.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation}),
+\textit{check\_potential} (\S\ref{authentication}), and
+\textit{sat\_solver} (\S\ref{optimizations}).}
+
+\opt{max\_genuine}{int}{$\mathbf{1}$}
+Specifies the maximum number of genuine counterexamples to display. If you set
+this option to a value greater than 1, you will need an incremental SAT solver:
+For efficiency, it is recommended to install the JNI version of MiniSat and set
+\textit{sat\_solver} = \textit{MiniSatJNI}. Also be aware that many of the
+counterexamples may look identical, unless the \textit{show\_all}
+(\S\ref{output-format}) option is enabled.
+
+\nopagebreak
+{\small See also \textit{check\_genuine} (\S\ref{authentication}) and
+\textit{sat\_solver} (\S\ref{optimizations}).}
+
+\ops{eval}{term\_list}
+Specifies the list of terms whose values should be displayed along with
+counterexamples. This option suffers from an ``observer effect'': Nitpick might
+find different counterexamples for different values of this option.
+
+\opu{format}{term}{int\_seq}
+Specifies how to uncurry the value displayed for a variable or constant.
+Uncurrying sometimes increases the readability of the output for high-arity
+functions. For example, given the variable $y \mathbin{\Colon} {'a}\Rightarrow
+{'b}\Rightarrow {'c}\Rightarrow {'d}\Rightarrow {'e}\Rightarrow {'f}\Rightarrow
+{'g}$, setting \textit{format}~$y$ = 3 tells Nitpick to group the last three
+arguments, as if the type had been ${'a}\Rightarrow {'b}\Rightarrow
+{'c}\Rightarrow {'d}\times {'e}\times {'f}\Rightarrow {'g}$. In general, a list
+of values $n_1,\ldots,n_k$ tells Nitpick to show the last $n_k$ arguments as an
+$n_k$-tuple, the previous $n_{k-1}$ arguments as an $n_{k-1}$-tuple, and so on;
+arguments that are not accounted for are left alone, as if the specification had
+been $1,\ldots,1,n_1,\ldots,n_k$.
+
+\nopagebreak
+{\small See also \textit{uncurry} (\S\ref{optimizations}).}
+
+\opt{format}{int\_seq}{$\mathbf{1}$}
+Specifies the default format to use. Irrespective of the default format, the
+extra arguments to a Skolem constant corresponding to the outer bound variables
+are kept separated from the remaining arguments, the \textbf{for} arguments of
+an inductive definitions are kept separated from the remaining arguments, and
+the iteration counter of an unrolled inductive definition is shown alone. The
+default format can be overridden on a per-variable or per-constant basis using
+the \textit{format}~\qty{term} option described above.
+\end{enum}
+
+%% MARK: Authentication
+\subsection{Authentication}
+\label{authentication}
+
+\begin{enum}
+\opfalse{check\_potential}{trust\_potential}
+Specifies whether potential counterexamples should be given to Isabelle's
+\textit{auto} tactic to assess their validity. If a potential counterexample is
+shown to be genuine, Nitpick displays a message to this effect and terminates.
+
+\nopagebreak
+{\small See also \textit{max\_potential} (\S\ref{output-format}) and
+\textit{auto\_timeout} (\S\ref{timeouts}).}
+
+\opfalse{check\_genuine}{trust\_genuine}
+Specifies whether genuine and likely genuine counterexamples should be given to
+Isabelle's \textit{auto} tactic to assess their validity. If a ``genuine''
+counterexample is shown to be spurious, the user is kindly asked to send a bug
+report to the author at
+\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@in.tum.de}.
+
+\nopagebreak
+{\small See also \textit{max\_genuine} (\S\ref{output-format}) and
+\textit{auto\_timeout} (\S\ref{timeouts}).}
+
+\ops{expect}{string}
+Specifies the expected outcome, which must be one of the following:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{genuine}}: Nitpick found a genuine counterexample.
+\item[$\bullet$] \textbf{\textit{likely\_genuine}}: Nitpick found a ``likely
+genuine'' counterexample (i.e., a counterexample that is genuine unless
+it contradicts a missing axiom or a dangerous option was used inappropriately).
+\item[$\bullet$] \textbf{\textit{potential}}: Nitpick found a potential counterexample.
+\item[$\bullet$] \textbf{\textit{none}}: Nitpick found no counterexample.
+\item[$\bullet$] \textbf{\textit{unknown}}: Nitpick encountered some problem (e.g.,
+Kodkod ran out of memory).
+\end{enum}
+
+Nitpick emits an error if the actual outcome differs from the expected outcome.
+This option is useful for regression testing.
+\end{enum}
+
+\subsection{Optimizations}
+\label{optimizations}
+
+\def\cpp{C\nobreak\raisebox{.1ex}{+}\nobreak\raisebox{.1ex}{+}}
+
+\sloppy
+
+\begin{enum}
+\opt{sat\_solver}{string}{smart}
+Specifies which SAT solver to use. SAT solvers implemented in C or \cpp{} tend
+to be faster than their Java counterparts, but they can be more difficult to
+install. Also, if you set the \textit{max\_potential} (\S\ref{output-format}) or
+\textit{max\_genuine} (\S\ref{output-format}) option to a value greater than 1,
+you will need an incremental SAT solver, such as \textit{MiniSatJNI}
+(recommended) or \textit{SAT4J}.
+
+The supported solvers are listed below:
+
+\begin{enum}
+
+\item[$\bullet$] \textbf{\textit{MiniSat}}: MiniSat is an efficient solver
+written in \cpp{}. To use MiniSat, set the environment variable
+\texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
+executable. The \cpp{} sources and executables for MiniSat are available at
+\url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
+and 2.0 beta (2007-07-21).
+
+\item[$\bullet$] \textbf{\textit{MiniSatJNI}}: The JNI (Java Native Interface)
+version of MiniSat is bundled in \texttt{nativesolver.\allowbreak tgz}, which
+you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
+version of MiniSat, the JNI version can be used incrementally.
+
+\item[$\bullet$] \textbf{\textit{PicoSAT}}: PicoSAT is an efficient solver
+written in C. It is bundled with Kodkodi and requires no further installation or
+configuration steps. Alternatively, you can install a standard version of
+PicoSAT and set the environment variable \texttt{PICOSAT\_HOME} to the directory
+that contains the \texttt{picosat} executable. The C sources for PicoSAT are
+available at \url{http://fmv.jku.at/picosat/} and are also bundled with Kodkodi.
+Nitpick has been tested with version 913.
+
+\item[$\bullet$] \textbf{\textit{zChaff}}: zChaff is an efficient solver written
+in \cpp{}. To use zChaff, set the environment variable \texttt{ZCHAFF\_HOME} to
+the directory that contains the \texttt{zchaff} executable. The \cpp{} sources
+and executables for zChaff are available at
+\url{http://www.princeton.edu/~chaff/zchaff.html}. Nitpick has been tested with
+versions 2004-05-13, 2004-11-15, and 2007-03-12.
+
+\item[$\bullet$] \textbf{\textit{zChaffJNI}}: The JNI version of zChaff is
+bundled in \texttt{native\-solver.\allowbreak tgz}, which you will find on
+Kodkod's web site \cite{kodkod-2009}.
+
+\item[$\bullet$] \textbf{\textit{RSat}}: RSat is an efficient solver written in
+\cpp{}. To use RSat, set the environment variable \texttt{RSAT\_HOME} to the
+directory that contains the \texttt{rsat} executable. The \cpp{} sources for
+RSat are available at \url{http://reasoning.cs.ucla.edu/rsat/}. Nitpick has been
+tested with version 2.01.
+
+\item[$\bullet$] \textbf{\textit{BerkMin}}: BerkMin561 is an efficient solver
+written in C. To use BerkMin, set the environment variable
+\texttt{BERKMIN\_HOME} to the directory that contains the \texttt{BerkMin561}
+executable. The BerkMin executables are available at
+\url{http://eigold.tripod.com/BerkMin.html}.
+
+\item[$\bullet$] \textbf{\textit{BerkMinAlloy}}: Variant of BerkMin that is
+included with Alloy 4 and calls itself ``sat56'' in its banner text. To use this
+version of BerkMin, set the environment variable
+\texttt{BERKMINALLOY\_HOME} to the directory that contains the \texttt{berkmin}
+executable.
+
+\item[$\bullet$] \textbf{\textit{Jerusat}}: Jerusat 1.3 is an efficient solver
+written in C. To use Jerusat, set the environment variable
+\texttt{JERUSAT\_HOME} to the directory that contains the \texttt{Jerusat1.3}
+executable. The C sources for Jerusat are available at
+\url{http://www.cs.tau.ac.il/~ale1/Jerusat1.3.tgz}.
+
+\item[$\bullet$] \textbf{\textit{SAT4J}}: SAT4J is a reasonably efficient solver
+written in Java that can be used incrementally. It is bundled with Kodkodi and
+requires no further installation or configuration steps. Do not attempt to
+install the official SAT4J packages, because their API is incompatible with
+Kodkod.
+
+\item[$\bullet$] \textbf{\textit{SAT4JLight}}: Variant of SAT4J that is
+optimized for small problems. It can also be used incrementally.
+
+\item[$\bullet$] \textbf{\textit{HaifaSat}}: HaifaSat 1.0 beta is an
+experimental solver written in \cpp. To use HaifaSat, set the environment
+variable \texttt{HAIFASAT\_\allowbreak HOME} to the directory that contains the
+\texttt{HaifaSat} executable. The \cpp{} sources for HaifaSat are available at
+\url{http://cs.technion.ac.il/~gershman/HaifaSat.htm}.
+
+\item[$\bullet$] \textbf{\textit{smart}}: If \textit{sat\_solver} is set to
+\textit{smart}, Nitpick selects the first solver among MiniSat, PicoSAT, zChaff,
+RSat, BerkMin, BerkMinAlloy, and Jerusat that is recognized by Isabelle. If none
+is found, it falls back on SAT4J, which should always be available. If
+\textit{verbose} is enabled, Nitpick displays which SAT solver was chosen.
+
+\end{enum}
+\fussy
+
+\opt{batch\_size}{int\_or\_smart}{smart}
+Specifies the maximum number of Kodkod problems that should be lumped together
+when invoking Kodkodi. Each problem corresponds to one scope. Lumping problems
+together ensures that Kodkodi is launched less often, but it makes the verbose
+output less readable and is sometimes detrimental to performance. If
+\textit{batch\_size} is set to \textit{smart}, the actual value used is 1 if
+\textit{debug} (\S\ref{output-format}) is set and 64 otherwise.
+
+\optrue{destroy\_constrs}{dont\_destroy\_constrs}
+Specifies whether formulas involving (co)in\-duc\-tive datatype constructors should
+be rewritten to use (automatically generated) discriminators and destructors.
+This optimization can drastically reduce the size of the Boolean formulas given
+to the SAT solver.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+
+\optrue{specialize}{dont\_specialize}
+Specifies whether functions invoked with static arguments should be specialized.
+This optimization can drastically reduce the search space, especially for
+higher-order functions.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}) and
+\textit{show\_consts} (\S\ref{output-format}).}
+
+\optrue{skolemize}{dont\_skolemize}
+Specifies whether the formula should be skolemized. For performance reasons,
+(positive) $\forall$-quanti\-fiers that occur in the scope of a higher-order
+(positive) $\exists$-quanti\-fier are left unchanged.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}) and
+\textit{show\_skolems} (\S\ref{output-format}).}
+
+\optrue{star\_linear\_preds}{dont\_star\_linear\_preds}
+Specifies whether Nitpick should use Kodkod's transitive closure operator to
+encode non-well-founded ``linear inductive predicates,'' i.e., inductive
+predicates for which each the predicate occurs in at most one assumption of each
+introduction rule. Using the reflexive transitive closure is in principle
+equivalent to setting \textit{iter} to the cardinality of the predicate's
+domain, but it is usually more efficient.
+
+{\small See also \textit{wf} (\S\ref{scope-of-search}), \textit{debug}
+(\S\ref{output-format}), and \textit{iter} (\S\ref{scope-of-search}).}
+
+\optrue{uncurry}{dont\_uncurry}
+Specifies whether Nitpick should uncurry functions. Uncurrying has on its own no
+tangible effect on efficiency, but it creates opportunities for the boxing 
+optimization.
+
+\nopagebreak
+{\small See also \textit{box} (\S\ref{scope-of-search}), \textit{debug}
+(\S\ref{output-format}), and \textit{format} (\S\ref{output-format}).}
+
+\optrue{fast\_descrs}{full\_descrs}
+Specifies whether Nitpick should optimize the definite and indefinite
+description operators (THE and SOME). The optimized versions usually help
+Nitpick generate more counterexamples or at least find them faster, but only the
+unoptimized versions are complete when all types occurring in the formula are
+finite.
+
+{\small See also \textit{debug} (\S\ref{output-format}).}
+
+\optrue{peephole\_optim}{no\_peephole\_optim}
+Specifies whether Nitpick should simplify the generated Kodkod formulas using a
+peephole optimizer. These optimizations can make a significant difference.
+Unless you are tracking down a bug in Nitpick or distrust the peephole
+optimizer, you should leave this option enabled.
+
+\opt{sym\_break}{int}{20}
+Specifies an upper bound on the number of relations for which Kodkod generates
+symmetry breaking predicates. According to the Kodkod documentation
+\cite{kodkod-2009-options}, ``in general, the higher this value, the more
+symmetries will be broken, and the faster the formula will be solved. But,
+setting the value too high may have the opposite effect and slow down the
+solving.''
+
+\opt{sharing\_depth}{int}{3}
+Specifies the depth to which Kodkod should check circuits for equivalence during
+the translation to SAT. The default of 3 is the same as in Alloy. The minimum
+allowed depth is 1. Increasing the sharing may result in a smaller SAT problem,
+but can also slow down Kodkod.
+
+\opfalse{flatten\_props}{dont\_flatten\_props}
+Specifies whether Kodkod should try to eliminate intermediate Boolean variables.
+Although this might sound like a good idea, in practice it can drastically slow
+down Kodkod.
+
+\opt{max\_threads}{int}{0}
+Specifies the maximum number of threads to use in Kodkod. If this option is set
+to 0, Kodkod will compute an appropriate value based on the number of processor
+cores available.
+
+\nopagebreak
+{\small See also \textit{batch\_size} (\S\ref{optimizations}) and
+\textit{timeout} (\S\ref{timeouts}).}
+\end{enum}
+
+\subsection{Timeouts}
+\label{timeouts}
+
+\begin{enum}
+\opt{timeout}{time}{$\mathbf{30}$ s}
+Specifies the maximum amount of time that the \textbf{nitpick} command should
+spend looking for a counterexample. Nitpick tries to honor this constraint as
+well as it can but offers no guarantees. For automatic runs,
+\textit{auto\_timeout} is used instead.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation})
+and \textit{max\_threads} (\S\ref{optimizations}).}
+
+\opt{auto\_timeout}{time}{$\mathbf{5}$ s}
+Specifies the maximum amount of time that Nitpick should use to find a
+counterexample when running automatically. Nitpick tries to honor this
+constraint as well as it can but offers no guarantees.
+
+\nopagebreak
+{\small See also \textit{auto} (\S\ref{mode-of-operation}).}
+
+\opt{tac\_timeout}{time}{$\mathbf{500}$ ms}
+Specifies the maximum amount of time that the \textit{auto} tactic should use
+when checking a counterexample, and similarly that \textit{lexicographic\_order}
+and \textit{sizechange} should use when checking whether a (co)in\-duc\-tive
+predicate is well-founded. Nitpick tries to honor this constraint as well as it
+can but offers no guarantees.
+
+\nopagebreak
+{\small See also \textit{wf} (\S\ref{scope-of-search}),
+\textit{check\_potential} (\S\ref{authentication}),
+and \textit{check\_genuine} (\S\ref{authentication}).}
+\end{enum}
+
+\section{Attribute Reference}
+\label{attribute-reference}
+
+Nitpick needs to consider the definitions of all constants occurring in a
+formula in order to falsify it. For constants introduced using the
+\textbf{definition} command, the definition is simply the associated
+\textit{\_def} axiom. In contrast, instead of using the internal representation
+of functions synthesized by Isabelle's \textbf{primrec}, \textbf{function}, and
+\textbf{nominal\_primrec} packages, Nitpick relies on the more natural
+equational specification entered by the user.
+
+Behind the scenes, Isabelle's built-in packages and theories rely on the
+following attributes to affect Nitpick's behavior:
+
+\begin{itemize}
+\flushitem{\textit{nitpick\_def}}
+
+\nopagebreak
+This attribute specifies an alternative definition of a constant. The
+alternative definition should be logically equivalent to the constant's actual
+axiomatic definition and should be of the form
+
+\qquad $c~{?}x_1~\ldots~{?}x_n \,\equiv\, t$,
+
+where ${?}x_1, \ldots, {?}x_n$ are distinct variables and $c$ does not occur in
+$t$.
+
+\flushitem{\textit{nitpick\_simp}}
+
+\nopagebreak
+This attribute specifies the equations that constitute the specification of a
+constant. For functions defined using the \textbf{primrec}, \textbf{function},
+and \textbf{nominal\_\allowbreak primrec} packages, this corresponds to the
+\textit{simps} rules. The equations must be of the form
+
+\qquad $c~t_1~\ldots\ t_n \,=\, u.$
+
+\flushitem{\textit{nitpick\_psimp}}
+
+\nopagebreak
+This attribute specifies the equations that constitute the partial specification
+of a constant. For functions defined using the \textbf{function} package, this
+corresponds to the \textit{psimps} rules. The conditional equations must be of
+the form
+
+\qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \,=\, u$.
+
+\flushitem{\textit{nitpick\_intro}}
+
+\nopagebreak
+This attribute specifies the introduction rules of a (co)in\-duc\-tive predicate.
+For predicates defined using the \textbf{inductive} or \textbf{coinductive}
+command, this corresponds to the \textit{intros} rules. The introduction rules
+must be of the form
+
+\qquad $\lbrakk P_1;\> \ldots;\> P_m;\> M~(c\ t_{11}\ \ldots\ t_{1n});\>
+\ldots;\> M~(c\ t_{k1}\ \ldots\ t_{kn})\rbrakk \,\Longrightarrow\, c\ u_1\
+\ldots\ u_n$,
+
+where the $P_i$'s are side conditions that do not involve $c$ and $M$ is an
+optional monotonic operator. The order of the assumptions is irrelevant.
+
+\end{itemize}
+
+When faced with a constant, Nitpick proceeds as follows:
+
+\begin{enum}
+\item[1.] If the \textit{nitpick\_simp} set associated with the constant
+is not empty, Nitpick uses these rules as the specification of the constant.
+
+\item[2.] Otherwise, if the \textit{nitpick\_psimp} set associated with
+the constant is not empty, it uses these rules as the specification of the
+constant.
+
+\item[3.] Otherwise, it looks up the definition of the constant:
+
+\begin{enum}
+\item[1.] If the \textit{nitpick\_def} set associated with the constant
+is not empty, it uses the latest rule added to the set as the definition of the
+constant; otherwise it uses the actual definition axiom.
+\item[2.] If the definition is of the form
+
+\qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{lfp}~(\lambda f.\; t)$,
+
+then Nitpick assumes that the definition was made using an inductive package and
+based on the introduction rules marked with \textit{nitpick\_\allowbreak
+ind\_\allowbreak intros} tries to determine whether the definition is
+well-founded.
+\end{enum}
+\end{enum}
+
+As an illustration, consider the inductive definition
+
+\prew
+\textbf{inductive}~\textit{odd}~\textbf{where} \\
+``\textit{odd}~1'' $\,\mid$ \\
+``\textit{odd}~$n\,\Longrightarrow\, \textit{odd}~(\textit{Suc}~(\textit{Suc}~n))$''
+\postw
+
+Isabelle automatically attaches the \textit{nitpick\_intro} attribute to
+the above rules. Nitpick then uses the \textit{lfp}-based definition in
+conjunction with these rules. To override this, we can specify an alternative
+definition as follows:
+
+\prew
+\textbf{lemma} $\mathit{odd\_def}'$ [\textit{nitpick\_def}]: ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
+\postw
+
+Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
+= 1$. Alternatively, we can specify an equational specification of the constant:
+
+\prew
+\textbf{lemma} $\mathit{odd\_simp}'$ [\textit{nitpick\_simp}]: ``$\textit{odd}~n = (n~\textrm{mod}~2 = 1)$''
+\postw
+
+Such tweaks should be done with great care, because Nitpick will assume that the
+constant is completely defined by its equational specification. For example, if
+you make ``$\textit{odd}~(2 * k + 1)$'' a \textit{nitpick\_simp} rule and neglect to provide rules to handle the $2 * k$ case, Nitpick will define
+$\textit{odd}~n$ arbitrarily for even values of $n$. The \textit{debug}
+(\S\ref{output-format}) option is extremely useful to understand what is going
+on when experimenting with \textit{nitpick\_} attributes.
+
+\section{Standard ML Interface}
+\label{standard-ml-interface}
+
+Nitpick provides a rich Standard ML interface used mainly for internal purposes
+and debugging. Among the most interesting functions exported by Nitpick are
+those that let you invoke the tool programmatically and those that let you
+register and unregister custom coinductive datatypes.
+
+\subsection{Invocation of Nitpick}
+\label{invocation-of-nitpick}
+
+The \textit{Nitpick} structure offers the following functions for invoking your
+favorite counterexample generator:
+
+\prew
+$\textbf{val}\,~\textit{pick\_nits\_in\_term} : \\
+\hbox{}\quad\textit{Proof.state} \rightarrow \textit{params} \rightarrow \textit{bool} \rightarrow \textit{term~list} \rightarrow \textit{term} \\
+\hbox{}\quad{\rightarrow}\; \textit{string} * \textit{Proof.state}$ \\
+$\textbf{val}\,~\textit{pick\_nits\_in\_subgoal} : \\
+\hbox{}\quad\textit{Proof.state} \rightarrow \textit{params} \rightarrow \textit{bool} \rightarrow \textit{int} \rightarrow \textit{string} * \textit{Proof.state}$
+\postw
+
+The return value is a new proof state paired with an outcome string
+(``genuine'', ``likely\_genuine'', ``potential'', ``none'', or ``unknown''). The
+\textit{params} type is a large record that lets you set Nitpick's options. The
+current default options can be retrieved by calling the following function
+defined in the \textit{NitpickIsar} structure:
+
+\prew
+$\textbf{val}\,~\textit{default\_params} :\,
+\textit{theory} \rightarrow (\textit{string} * \textit{string})~\textit{list} \rightarrow \textit{params}$
+\postw
+
+The second argument lets you override option values before they are parsed and
+put into a \textit{params} record. Here is an example:
+
+\prew
+$\textbf{val}\,~\textit{params} = \textit{NitpickIsar.default\_params}~\textit{thy}~[(\textrm{``}\textrm{timeout}\textrm{''},\, \textrm{``}\textrm{none}\textrm{''})]$ \\
+$\textbf{val}\,~(\textit{outcome},\, \textit{state}') = \textit{Nitpick.pick\_nits\_in\_subgoal}~\begin{aligned}[t]
+& \textit{state}~\textit{params}~\textit{false} \\[-2pt]
+& \textit{subgoal}\end{aligned}$
+\postw
+
+\subsection{Registration of Coinductive Datatypes}
+\label{registration-of-coinductive-datatypes}
+
+\let\antiq=\textrm
+
+If you have defined a custom coinductive datatype, you can tell Nitpick about
+it, so that it can use an efficient Kodkod axiomatization similar to the one it
+uses for lazy lists. The interface for registering and unregistering coinductive
+datatypes consists of the following pair of functions defined in the
+\textit{Nitpick} structure:
+
+\prew
+$\textbf{val}\,~\textit{register\_codatatype} :\,
+\textit{typ} \rightarrow \textit{string} \rightarrow \textit{styp~list} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
+$\textbf{val}\,~\textit{unregister\_codatatype} :\,
+\textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
+\postw
+
+The type $'a~\textit{llist}$ of lazy lists is already registered; had it
+not been, you could have told Nitpick about it by adding the following line
+to your theory file:
+
+\prew
+$\textbf{setup}~\,\{{*}\,~\!\begin{aligned}[t]
+& \textit{Nitpick.register\_codatatype} \\[-2pt]
+& \qquad @\{\antiq{typ}~``\kern1pt'a~\textit{llist}\textrm{''}\}~@\{\antiq{const\_name}~ \textit{llist\_case}\} \\[-2pt] %% TYPESETTING
+& \qquad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])\,\ {*}\}\end{aligned}$
+\postw
+
+The \textit{register\_codatatype} function takes a coinductive type, its case
+function, and the list of its constructors. The case function must take its
+arguments in the order that the constructors are listed. If no case function
+with the correct signature is available, simply pass the empty string.
+
+On the other hand, if your goal is to cripple Nitpick, add the following line to
+your theory file and try to check a few conjectures about lazy lists:
+
+\prew
+$\textbf{setup}~\,\{{*}\,~\textit{Nitpick.unregister\_codatatype}~@\{\antiq{typ}~``
+\kern1pt'a~\textit{list}\textrm{''}\}\ \,{*}\}$
+\postw
+
+\section{Known Bugs and Limitations}
+\label{known-bugs-and-limitations}
+
+Here are the known bugs and limitations in Nitpick at the time of writing:
+
+\begin{enum}
+\item[$\bullet$] Underspecified functions defined using the \textbf{primrec},
+\textbf{function}, or \textbf{nominal\_\allowbreak primrec} packages can lead
+Nitpick to generate spurious counterexamples for theorems that refer to values
+for which the function is not defined. For example:
+
+\prew
+\textbf{primrec} \textit{prec} \textbf{where} \\
+``$\textit{prec}~(\textit{Suc}~n) = n$'' \\[2\smallskipamount]
+\textbf{lemma} ``$\textit{prec}~0 = \undef$'' \\
+\textbf{nitpick} \\[2\smallskipamount]
+\quad{\slshape Nitpick found a counterexample for \textit{card nat}~= 2: 
+\nopagebreak
+\\[2\smallskipamount]
+\hbox{}\qquad Empty assignment} \nopagebreak\\[2\smallskipamount]
+\textbf{by}~(\textit{auto simp}: \textit{prec\_def})
+\postw
+
+Such theorems are considered bad style because they rely on the internal
+representation of functions synthesized by Isabelle, which is an implementation
+detail.
+
+\item[$\bullet$] Nitpick produces spurious counterexamples when invoked after a
+\textbf{guess} command in a structured proof.
+
+\item[$\bullet$] The \textit{nitpick\_} attributes and the
+\textit{Nitpick.register\_} functions can cause havoc if used improperly.
+
+\item[$\bullet$] Local definitions are not supported and result in an error.
+
+\item[$\bullet$] All constants and types whose names start with
+\textit{Nitpick}{.} are reserved for internal use.
+\end{enum}
+
+\let\em=\sl
+\bibliography{../manual}{}
+\bibliographystyle{abbrv}
+
+\end{document}
