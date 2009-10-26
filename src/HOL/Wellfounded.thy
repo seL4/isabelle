@@ -59,14 +59,16 @@ lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
 lemma wf_not_sym: "wf r ==> (a, x) : r ==> (x, a) ~: r"
   by (induct a arbitrary: x set: wf) blast
 
-(* [| wf r;  ~Z ==> (a,x) : r;  (x,a) ~: r ==> Z |] ==> Z *)
-lemmas wf_asym = wf_not_sym [elim_format]
+lemma wf_asym:
+  assumes "wf r" "(a, x) \<in> r"
+  obtains "(x, a) \<notin> r"
+  by (drule wf_not_sym[OF assms])
 
 lemma wf_not_refl [simp]: "wf r ==> (a, a) ~: r"
   by (blast elim: wf_asym)
 
-(* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
-lemmas wf_irrefl = wf_not_refl [elim_format]
+lemma wf_irrefl: assumes "wf r" obtains "(a, a) \<notin> r"
+by (drule wf_not_refl[OF assms])
 
 lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"
