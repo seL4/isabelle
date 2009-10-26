@@ -41,7 +41,7 @@ fun max_threads_value () =
   let val m = ! max_threads in
     if m > 0 then m
     else if not tested_platform then 1
-    else Int.min (Int.max (Thread.numProcessors (), 1), 8)
+    else Int.min (Int.max (Thread.numProcessors (), 1), 4)
   end;
 
 fun enabled () = max_threads_value () > 1;
