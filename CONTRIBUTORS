@@ -8,43 +8,44 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * October 2009: Sascha Boehme, TUM
-  Extension of SMT method: proof-reconstruction for the SMT solver Z3
+  Extension of SMT method: proof-reconstruction for the SMT solver Z3.
 
 * October 2009: Florian Haftmann, TUM
-  Refinement of parts of the HOL datatype package
+  Refinement of parts of the HOL datatype package.
 
 * October 2009: Florian Haftmann, TUM
-  Generic term styles for term antiquotations
+  Generic term styles for term antiquotations.
 
 * September 2009: Thomas Sewell, NICTA
-  More efficient HOL/record implementation
+  More efficient HOL/record implementation.
 
 * September 2009: Sascha Boehme, TUM
-  SMT method using external SMT solvers
+  SMT method using external SMT solvers.
 
 * September 2009: Florian Haftmann, TUM
-  Refinement of sets and lattices
+  Refinement of sets and lattices.
 
 * July 2009: Jeremy Avigad and Amine Chaieb
-  New number theory
+  New number theory.
 
 * July 2009: Philipp Meyer, TUM
-  HOL/Library/Sum_of_Squares: functionality to call a remote csdp prover
+  HOL/Library/Sum_Of_Squares: functionality to call a remote csdp
+  prover.
 
 * July 2009: Florian Haftmann, TUM
-  New quickcheck implementation using new code generator
+  New quickcheck implementation using new code generator.
 
 * July 2009: Florian Haftmann, TUM
-  HOL/Library/FSet: an explicit type of sets; finite sets ready to use for code generation
-
-* June 2009: Andreas Lochbihler, Uni Karlsruhe
-  HOL/Library/Fin_Fun: almost everywhere constant functions
+  HOL/Library/FSet: an explicit type of sets; finite sets ready to use
+  for code generation.
 
 * June 2009: Florian Haftmann, TUM
-  HOL/Library/Tree: searchtrees implementing mappings, ready to use for code generation
+  HOL/Library/Tree: searchtrees implementing mappings, ready to use
+  for code generation.
 
 * March 2009: Philipp Meyer, TUM
-  minimalization algorithm for results from sledgehammer call
+  Minimalization algorithm for results from sledgehammer call.
+
 
 Contributions to Isabelle2009
 -----------------------------
