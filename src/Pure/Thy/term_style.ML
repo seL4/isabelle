@@ -54,10 +54,11 @@ val parse = Args.context :|-- (fn ctxt => Scan.lift
       >> fold I
   || Scan.succeed I));
 
-val parse_bare = Args.context :|-- (fn ctxt => Scan.lift Args.liberal_name
+val parse_bare = Args.context :|-- (fn ctxt => (Output.legacy_feature "Old-style antiquotation style.";
+  Scan.lift Args.liberal_name
   >> (fn name => fst (Args.context_syntax "style"
        (Scan.lift (the_style (ProofContext.theory_of ctxt) name))
-          (Args.src (("style", []), Position.none)) ctxt |>> (fn f => f ctxt))));
+          (Args.src (("style", []), Position.none)) ctxt |>> (fn f => f ctxt)))));
 
 
 (* predefined styles *)
@@ -84,10 +85,13 @@ val style_prem = Args.name >> (fn raw_i => fn ctxt => fn t =>
 fun style_parm_premise i = Scan.succeed (fn ctxt => fn t =>
   let
     val i_str = string_of_int i;
+    val _ = Output.legacy_feature (quote ("prem" ^ i_str)
+      ^ " term style encountered; use explicit argument syntax "
+      ^ quote ("prem " ^ i_str) ^ " instead.");
     val prems = Logic.strip_imp_prems t;
   in
     if i <= length prems then nth prems (i - 1)
-    else error ("Not enough premises for prem" ^ string_of_int i ^
+    else error ("Not enough premises for prem" ^ i_str ^
       " in propositon: " ^ Syntax.string_of_term ctxt t)
   end);
 
