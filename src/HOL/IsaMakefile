@@ -1054,6 +1054,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/Lam_Funs.thy \
   Nominal/Examples/Lambda_mu.thy \
   Nominal/Examples/LocalWeakening.thy \
+  Nominal/Examples/Pattern.thy \
   Nominal/Examples/ROOT.ML \
   Nominal/Examples/SN.thy \
   Nominal/Examples/SOS.thy \
