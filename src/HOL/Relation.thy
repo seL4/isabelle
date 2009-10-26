@@ -607,6 +607,9 @@ lemma trans_inv_image: "trans r ==> trans (inv_image r f)"
 lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
   by (auto simp:inv_image_def)
 
+lemma converse_inv_image[simp]: "(inv_image R f)^-1 = inv_image (R^-1) f"
+unfolding inv_image_def converse_def by auto
+
 
 subsection {* Finiteness *}
 
