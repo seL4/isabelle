@@ -14,18 +14,11 @@ begin
 
 subsection {* Basic Definitions *}
 
-constdefs
-  wf         :: "('a * 'a)set => bool"
+definition wf :: "('a * 'a) set => bool" where
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
 
-  wfP :: "('a => 'a => bool) => bool"
+definition wfP :: "('a => 'a => bool) => bool" where
   "wfP r == wf {(x, y). r x y}"
-
-  acyclic :: "('a*'a)set => bool"
-  "acyclic r == !x. (x,x) ~: r^+"
-
-abbreviation acyclicP :: "('a => 'a => bool) => bool" where
-  "acyclicP r == acyclic {(x, y). r x y}"
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
@@ -388,7 +381,13 @@ lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
   by (rule wf_union_merge [where S = "{}", simplified])
 
 
-subsubsection {* acyclic *}
+subsection {* Acyclic relations *}
+
+definition acyclic :: "('a * 'a) set => bool" where
+  "acyclic r == !x. (x,x) ~: r^+"
+
+abbreviation acyclicP :: "('a => 'a => bool) => bool" where
+  "acyclicP r == acyclic {(x, y). r x y}"
 
 lemma acyclicI: "ALL x. (x, x) ~: r^+ ==> acyclic r"
   by (simp add: acyclic_def)
