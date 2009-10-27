@@ -1,7 +1,10 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_aux.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-Auxilary functions for predicate compiler
+Auxilary functions for predicate compiler.
 *)
+
+(* FIXME proper signature *)
 
 structure Predicate_Compile_Aux =
 struct
@@ -233,7 +236,5 @@ fun expand_tuples thy intro =
   in
     intro'''''
   end
-
-
 
 end;

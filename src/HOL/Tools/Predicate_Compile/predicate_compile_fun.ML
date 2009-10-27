@@ -1,6 +1,7 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_fun.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-Preprocessing functions to predicates
+Preprocessing functions to predicates.
 *)
 
 signature PREDICATE_COMPILE_FUN =

@@ -1,6 +1,7 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_quickcheck.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-A quickcheck generator based on the predicate compiler
+A quickcheck generator based on the predicate compiler.
 *)
 
 signature PREDICATE_COMPILE_QUICKCHECK =

@@ -1,6 +1,7 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_set.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-Preprocessing sets to predicates
+Preprocessing sets to predicates.
 *)
 
 signature PREDICATE_COMPILE_SET =

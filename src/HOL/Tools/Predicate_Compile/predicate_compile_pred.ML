@@ -1,6 +1,7 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_pred.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-Preprocessing definitions of predicates to introduction rules
+Preprocessing definitions of predicates to introduction rules.
 *)
 
 signature PREDICATE_COMPILE_PRED =
@@ -16,7 +17,8 @@ sig
   (*val rewrite : thm -> thm*)
   
 end;
-(* : PREDICATE_COMPILE_PREPROC_PRED *)
+
+(* : PREDICATE_COMPILE_PREPROC_PRED *)  (* FIXME *)
 structure Predicate_Compile_Pred =
 struct
 
