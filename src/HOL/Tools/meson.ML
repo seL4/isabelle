@@ -323,7 +323,7 @@ fun apply_skolem_ths (th, rls) =
   Strips universal quantifiers and breaks up conjunctions.
   Eliminates existential quantifiers using skoths: Skolemization theorems.*)
 fun cnf skoths ctxt (th,ths) =
-  let val ctxtr = Unsynchronized.ref ctxt
+  let val ctxtr = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
         else if not (has_conns ["All","Ex","op &"] (prop_of th))

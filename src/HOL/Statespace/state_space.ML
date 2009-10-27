@@ -297,7 +297,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
 
           val tt' = tt |> fold upd all_names;
           val activate_simproc =
-              Output.no_warnings_CRITICAL
+              Output.no_warnings_CRITICAL   (* FIXME !?! *)
                (Simplifier.map_ss (fn ss => ss addsimprocs [distinct_simproc]));
           val ctxt' =
               ctxt
