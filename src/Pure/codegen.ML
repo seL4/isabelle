@@ -105,7 +105,7 @@ struct
 val quiet_mode = Unsynchronized.ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
-val mode = Unsynchronized.ref ([] : string list);
+val mode = Unsynchronized.ref ([] : string list);   (* FIXME proper functional argument *)
 
 val margin = Unsynchronized.ref 80;
 
@@ -928,7 +928,7 @@ fun eval_term thy t =
                 [str "(result ())"],
               str ");"]) ^
           "\n\nend;\n";
-        val _ = NAMED_CRITICAL "codegen" (fn () =>
+        val _ = NAMED_CRITICAL "codegen" (fn () =>   (* FIXME ??? *)
           ML_Context.eval_in (SOME ctxt) false Position.none s);
       in !eval_result end;
   in e () end;

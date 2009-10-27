@@ -41,16 +41,22 @@ local val load_path = Unsynchronized.ref [Path.current] in
 
 fun show_path () = map Path.implode (! load_path);
 
-fun del_path s = CRITICAL (fn () =>
-    Unsynchronized.change load_path (remove (op =) (Path.explode s)));
-fun add_path s = CRITICAL (fn () =>
-    (del_path s; Unsynchronized.change load_path (cons (Path.explode s))));
-fun path_add s = CRITICAL (fn () =>
+fun del_path s =
+  CRITICAL (fn () => Unsynchronized.change load_path (remove (op =) (Path.explode s)));
+
+fun add_path s =
+  CRITICAL (fn () => (del_path s; Unsynchronized.change load_path (cons (Path.explode s))));
+
+fun path_add s =
+  CRITICAL (fn () =>
     (del_path s; Unsynchronized.change load_path (fn path => path @ [Path.explode s])));
+
 fun reset_path () = load_path := [Path.current];
 
 fun with_paths ss f x =
-  CRITICAL (fn () => setmp_CRITICAL load_path (! load_path @ map Path.explode ss) f x);
+  CRITICAL (fn () =>
+    setmp_CRITICAL load_path (! load_path @ map Path.explode ss) f x);
+
 fun with_path s f x = with_paths [s] f x;
 
 fun search_path dir path =

@@ -101,8 +101,8 @@ in
 
 (* access current syntax *)
 
-fun get_commands () = CRITICAL (fn () => ! global_commands);
-fun get_markups () = CRITICAL (fn () => ! global_markups);
+fun get_commands () = ! global_commands;
+fun get_markups () = ! global_markups;
 
 fun get_command () = Symtab.lookup (get_commands ());
 fun get_syntax () = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_command ()));

@@ -71,7 +71,7 @@ fun rhs_extra_types lhsT rhs =
   prefix for the Skolem constant.*)
 fun declare_skofuns s th =
   let
-    val nref = Unsynchronized.ref 0
+    val nref = Unsynchronized.ref 0    (* FIXME ??? *)
     fun dec_sko (Const ("Ex",_) $ (xtp as Abs (_, T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
@@ -87,7 +87,8 @@ fun declare_skofuns s th =
             val (c, thy') =
               Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
             val cdef = cname ^ "_def"
-            val thy'' = Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
+            val thy'' =
+              Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
             val ax = Thm.axiom thy'' (Sign.full_bname thy'' cdef)
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
       | dec_sko (Const ("All", _) $ (Abs (a, T, p))) thx =
@@ -102,7 +103,7 @@ fun declare_skofuns s th =
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
-  let val sko_count = Unsynchronized.ref 0
+  let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
