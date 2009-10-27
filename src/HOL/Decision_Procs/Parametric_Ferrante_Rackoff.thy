@@ -35,7 +35,7 @@ primrec
   "Itm vs bs (Add a b) = Itm vs bs a + Itm vs bs b"
   "Itm vs bs (Sub a b) = Itm vs bs a - Itm vs bs b"
   "Itm vs bs (Mul c a) = (Ipoly vs c) * Itm vs bs a"
-  "Itm vs bs (CNP n c t) = (Ipoly vs c)*(bs!n) + Itm vs bs t"	
+  "Itm vs bs (CNP n c t) = (Ipoly vs c)*(bs!n) + Itm vs bs t"   
 
 
 fun allpolys:: "(poly \<Rightarrow> bool) \<Rightarrow> tm \<Rightarrow> bool"  where
@@ -153,14 +153,14 @@ next
       {assume mxs: "m \<le> length (x#xs)" hence ?case using prems by (cases m, auto)}
       moreover
       {assume mxs: "\<not> (m \<le> length (x#xs))" 
-	have th: "length (removen n (x#xs)) = length xs" 
-	  using removen_length[where n="n" and xs="x#xs"] nxs by simp
-	with mxs have mxs':"m \<ge> length (removen n (x#xs))" by auto
-	hence "(removen n (x#xs))!m = [] ! (m - length xs)" 
-	  using th nth_length_exceeds[OF mxs'] by auto
-	hence th: "(removen n (x#xs))!m = [] ! (m - (length (x#xs) - 1))" 
-	  by auto
-	hence ?case using nxs mln mxs by auto }
+        have th: "length (removen n (x#xs)) = length xs" 
+          using removen_length[where n="n" and xs="x#xs"] nxs by simp
+        with mxs have mxs':"m \<ge> length (removen n (x#xs))" by auto
+        hence "(removen n (x#xs))!m = [] ! (m - length xs)" 
+          using th nth_length_exceeds[OF mxs'] by auto
+        hence th: "(removen n (x#xs))!m = [] ! (m - (length (x#xs) - 1))" 
+          by auto
+        hence ?case using nxs mln mxs by auto }
       ultimately have ?case by blast
     }
     ultimately have ?case by blast
@@ -443,7 +443,7 @@ recdef fmsize "measure size"
   "fmsize (A p) = 4+ fmsize p"
   "fmsize p = 1"
   (* several lemmas about fmsize *)
-lemma fmsize_pos: "fmsize p > 0"	
+lemma fmsize_pos: "fmsize p > 0"        
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
@@ -1393,16 +1393,16 @@ next
       using eq[OF nc(2), of vs] eq[OF nc(1), of vs] by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x < - ?e"
-	using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x" and vs=vs and bs=bs] by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x" and vs=vs and bs=bs] by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x > - ?e"
-	using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Eq (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
   case (4 c e)  hence nbe: "tmbound0 e" by simp
@@ -1414,16 +1414,16 @@ next
   moreover {assume "?c = 0" hence ?case using eqs by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x < - ?e"
-	using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x > - ?e"
-	using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (NEq (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
   case (5 c e)  hence nbe: "tmbound0 e" by simp
@@ -1436,16 +1436,16 @@ next
   moreover {assume "?c = 0" hence ?case using eqs by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x < - ?e"
-	using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x > - ?e"
-	using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Lt (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] cp by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] cp by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
   case (6 c e)  hence nbe: "tmbound0 e" by simp
@@ -1458,16 +1458,16 @@ next
   moreover {assume "?c = 0" hence ?case using eqs by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x < - ?e"
-	using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x < -?e / ?c" hence "?c * x > - ?e"
-	using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_less_divide_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (minusinf (Le (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
   ultimately show ?case by blast
 qed (auto)
 
@@ -1489,16 +1489,16 @@ next
       using eq[OF nc(2), of vs] eq[OF nc(1), of vs] by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x > - ?e" 
-	using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Eq (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x" and vs=vs and bs=bs] by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x" and vs=vs and bs=bs] by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x < - ?e"
-	using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (Eq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Eq (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
   case (4 c e)  hence nbe: "tmbound0 e" by simp
@@ -1510,16 +1510,16 @@ next
   moreover {assume "?c = 0" hence ?case using eqs by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x > - ?e"
-	using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (NEq (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x < - ?e"
-	using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (NEq (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (NEq (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
   case (5 c e)  hence nbe: "tmbound0 e" by simp
@@ -1532,16 +1532,16 @@ next
   moreover {assume "?c = 0" hence ?case using eqs by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x > - ?e"
-	using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Lt (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x < - ?e"
-	using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (Lt (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Lt (CNP 0 c e)))"
-	using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] cp by auto} hence ?case by auto}
+        using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] cp by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
   case (6 c e)  hence nbe: "tmbound0 e" by simp
@@ -1554,16 +1554,16 @@ next
   moreover {assume "?c = 0" hence ?case using eqs by auto}
   moreover {assume cp: "?c > 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x > - ?e"
-	using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using pos_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e > 0" by simp
       hence "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Le (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
   moreover {assume cp: "?c < 0"
     {fix x assume xz: "x > -?e / ?c" hence "?c * x < - ?e"
-	using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
+        using neg_divide_less_eq[OF cp, where a="x" and b="-?e"] by (simp add: mult_commute)
       hence "?c * x + ?e < 0" by simp
       hence "Ifm vs (x#bs) (Le (CNP 0 c e)) = Ifm vs (x#bs) (plusinf (Le (CNP 0 c e)))"
-	using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
+        using tmbound0_I[OF nbe, where b="y" and b'="x"] cp eqs by auto} hence ?case by auto}
   ultimately show ?case by blast
 qed (auto)
 
@@ -1698,10 +1698,10 @@ proof (induct p rule: islin.induct)
   {assume c: "?N c > 0"
       from px pos_less_divide_eq[OF c, where a="x" and b="-?Nt x s"]  
       have px': "x < - ?Nt x s / ?N c" 
-	by (auto simp add: not_less ring_simps) 
+        by (auto simp add: not_less ring_simps) 
     {assume y: "y < - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
-	by (simp add: pos_less_divide_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: pos_less_divide_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
       hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
@@ -1715,10 +1715,10 @@ proof (induct p rule: islin.induct)
   {assume c: "?N c < 0"
       from px neg_divide_less_eq[OF c, where a="x" and b="-?Nt x s"]  
       have px': "x > - ?Nt x s / ?N c" 
-	by (auto simp add: not_less ring_simps) 
+        by (auto simp add: not_less ring_simps) 
     {assume y: "y > - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
-	by (simp add: neg_divide_less_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: neg_divide_less_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
       hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
@@ -1746,7 +1746,7 @@ next
       have px': "x <= - ?Nt x s / ?N c" by (simp add: not_less ring_simps) 
     {assume y: "y < - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
-	by (simp add: pos_less_divide_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: pos_less_divide_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
       hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
@@ -1762,7 +1762,7 @@ next
       have px': "x >= - ?Nt x s / ?N c" by (simp add: ring_simps) 
     {assume y: "y > - ?Nt x s / ?N c" 
       hence "y * ?N c < - ?Nt x s"
-	by (simp add: neg_divide_less_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
+        by (simp add: neg_divide_less_eq[OF c, where a="y" and b="-?Nt x s", symmetric])
       hence "?N c * y + ?Nt x s < 0" by (simp add: ring_simps)
       hence ?case using tmbound0_I[OF lin(3), where bs="bs" and b="x" and b'="y"] by simp}
     moreover
@@ -1899,8 +1899,8 @@ proof-
     moreover{
       assume "\<exists> t1\<in> ?M. \<exists> t2 \<in> ?M. (\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M) \<and> t1 < a \<and> a < t2 \<and> ?I a p"
       then obtain t1 and t2 where t1M: "t1 \<in> ?M" and t2M: "t2\<in> ?M" 
-	and noM: "\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M" and t1x: "t1 < a" and xt2: "a < t2" and px: "?I a p"
-	by blast
+        and noM: "\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M" and t1x: "t1 < a" and xt2: "a < t2" and px: "?I a p"
+        by blast
       from t1M have "\<exists> (t1n,t1u) \<in> ?U. t1 = - ?Nt a t1u / ?N t1n" by auto
       then obtain "t1u" "t1n" where t1uU: "(t1n,t1u) \<in> ?U" and t1u: "t1 = - ?Nt a t1u / ?N t1n" by blast
       from t2M have "\<exists> (t2n,t2u) \<in> ?U. t2 = - ?Nt a t2u / ?N t2n" by auto
@@ -2236,7 +2236,7 @@ proof-
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_less_cancel_left_disj[of "(1 + 1) * ?c" 0 "?a* (- ?t / ((1 + 1)*?c))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  (1 + 1)*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
-	by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
       apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
@@ -2270,7 +2270,7 @@ proof-
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_less_cancel_left_disj[of "(1 + 1) * ?d" 0 "?a* (- ?s / ((1 + 1)*?d))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?s -  (1 + 1)*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
-	by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
       apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstlt_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
@@ -2392,7 +2392,7 @@ proof-
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_le_cancel_left[of "(1 + 1) * ?c" 0 "?a* (- ?t / ((1 + 1)*?c))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  (1 + 1)*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
-	by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
       apply(simp add: r[of "- (?t / ((1 + 1)*?c))"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
@@ -2426,7 +2426,7 @@ proof-
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_le_cancel_left[of "(1 + 1) * ?d" 0 "?a* (- ?s / ((1 + 1)*?d))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?s -  (1 + 1)*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
-	by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: ring_simps diff_divide_distrib del:  left_distrib)
     finally have ?thesis using c d nc nd 
       apply(simp add: r[of "- (?s / ((1 + 1)*?d))"] msubstle_def Let_def evaldjf_ex ring_simps lt polyneg_norm polymul_norm)
       apply (simp only: one_add_one_is_two[symmetric] of_int_add)
@@ -2638,8 +2638,8 @@ proof
     moreover
     {assume z: "?c \<noteq> 0" "?d \<noteq> 0"
       from z have ?F using ct
-	apply - apply (rule bexI[where x = "(c,t)"], simp_all)
-	by (rule bexI[where x = "(d,s)"], simp_all)
+        apply - apply (rule bexI[where x = "(c,t)"], simp_all)
+        by (rule bexI[where x = "(d,s)"], simp_all)
       hence ?D by blast}
     ultimately have ?D by auto}
   ultimately show "?D" by blast
@@ -2799,17 +2799,17 @@ proof-
       from H(1) th have "isnpoly n" by blast
       hence nn: "isnpoly (n *\<^sub>p (C (-2,1)))" by (simp_all add: polymul_norm n2)
       have nn': "allpolys isnpoly (CP (~\<^sub>p (n *\<^sub>p C (-2, 1))))"
-	by (simp add: polyneg_norm nn)
+        by (simp add: polyneg_norm nn)
       hence nn2: "\<lparr>n *\<^sub>p(C (-2,1)) \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>n \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" using H(2) nn' nn 
-	by (auto simp add: msubst2_def lt zero_less_mult_iff mult_less_0_iff)
+        by (auto simp add: msubst2_def lt zero_less_mult_iff mult_less_0_iff)
       from msubst2[OF lp nn nn2(1), of x bs t]
       have "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * (1 + 1)) # bs) p"
-	using H(2) nn2 by (simp add: of_int_minus2 del: minus_add_distrib)}
+        using H(2) nn2 by (simp add: of_int_minus2 del: minus_add_distrib)}
     moreover
     {fix n t assume H: "(n, t)\<in>set (uset p)" "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * (1 + 1)) # bs) p"
       from H(1) th have "isnpoly n" by blast
       hence nn: "isnpoly (n *\<^sub>p (C (-2,1)))" "\<lparr>n *\<^sub>p(C (-2,1)) \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
-	using H(2) by (simp_all add: polymul_norm n2)
+        using H(2) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs t] have "?I (msubst2 p (n *\<^sub>p (C (-2,1))) t)" using H(2,3) by (simp add: of_int_minus2 del: minus_add_distrib)}
     ultimately show ?thesis by blast
   qed
@@ -2820,21 +2820,21 @@ proof-
      "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))"
       from H(1,2) th have "isnpoly c" "isnpoly d" by blast+
       hence nn: "isnpoly (C (-2, 1) *\<^sub>p c*\<^sub>p d)" 
-	by (simp_all add: polymul_norm n2)
+        by (simp_all add: polymul_norm n2)
       have stupid: "allpolys isnpoly (CP (~\<^sub>p (C (-2, 1) *\<^sub>p c *\<^sub>p d)))" "allpolys isnpoly (CP ((C (-2, 1) *\<^sub>p c *\<^sub>p d)))"
-	by (simp_all add: polyneg_norm nn)
+        by (simp_all add: polyneg_norm nn)
       have nn': "\<lparr>(C (-2, 1) *\<^sub>p c*\<^sub>p d)\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
-	using H(3) by (auto simp add: msubst2_def lt[OF stupid(1)]  lt[OF stupid(2)] zero_less_mult_iff mult_less_0_iff)
+        using H(3) by (auto simp add: msubst2_def lt[OF stupid(1)]  lt[OF stupid(2)] zero_less_mult_iff mult_less_0_iff)
       from msubst2[OF lp nn nn'(1), of x bs ] H(3) nn'
       have "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1 + 1) # bs) p" 
-	apply (simp add: add_divide_distrib of_int_minus2 del: minus_add_distrib)
-	by (simp add: mult_commute)}
+        apply (simp add: add_divide_distrib of_int_minus2 del: minus_add_distrib)
+        by (simp add: mult_commute)}
     moreover
     {fix c t d s assume H: "(c,t) \<in> set (uset p)" "(d,s) \<in> set (uset p)" 
       "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / (1 + 1) # bs) p"
      from H(1,2) th have "isnpoly c" "isnpoly d" by blast+
       hence nn: "isnpoly (C (-2, 1) *\<^sub>p c*\<^sub>p d)" "\<lparr>(C (-2, 1) *\<^sub>p c*\<^sub>p d)\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
-	using H(3,4) by (simp_all add: polymul_norm n2)
+        using H(3,4) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs ] H(3,4,5) 
       have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))" apply (simp add: add_divide_distrib of_int_minus2 del: minus_add_distrib)by (simp add: mult_commute)}
     ultimately show ?thesis by blast
@@ -2906,16 +2906,16 @@ proof-
     proof
       assume H: ?lhs
       hence z: "\<lparr>C (-2, 1) *\<^sub>p b *\<^sub>p d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>C (-2, 1) *\<^sub>p d *\<^sub>p b\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" 
-	by (auto simp add: msubst2_def lt[OF stupid(3)] lt[OF stupid(1)] mult_less_0_iff zero_less_mult_iff)
+        by (auto simp add: msubst2_def lt[OF stupid(3)] lt[OF stupid(1)] mult_less_0_iff zero_less_mult_iff)
       from msubst2[OF lq norm2(1) z(1), of x bs] 
-	msubst2[OF lq norm2(2) z(2), of x bs] H 
+        msubst2[OF lq norm2(2) z(2), of x bs] H 
       show ?rhs by (simp add: ring_simps)
     next
       assume H: ?rhs
       hence z: "\<lparr>C (-2, 1) *\<^sub>p b *\<^sub>p d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>C (-2, 1) *\<^sub>p d *\<^sub>p b\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" 
-	by (auto simp add: msubst2_def lt[OF stupid(4)] lt[OF stupid(2)] mult_less_0_iff zero_less_mult_iff)
+        by (auto simp add: msubst2_def lt[OF stupid(4)] lt[OF stupid(2)] mult_less_0_iff zero_less_mult_iff)
       from msubst2[OF lq norm2(1) z(1), of x bs] 
-	msubst2[OF lq norm2(2) z(2), of x bs] H 
+        msubst2[OF lq norm2(2) z(2), of x bs] H 
       show ?lhs by (simp add: ring_simps)
     qed}
   hence th0: "\<forall>x \<in> set ?U. \<forall>y \<in> set ?U. ?I (?s (x, y)) \<longleftrightarrow> ?I (?s (y, x))"

@@ -391,7 +391,7 @@ proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
   {assume nn':"\<not> n' < n" hence "n < n' \<or> n = n'" by arith
     moreover {assume "n < n'" with prems have ?case by simp }
     moreover {assume eq: "n = n'" hence ?case using prems 
-	by (cases "p +\<^sub>p p' = 0\<^sub>p", auto simp add: Let_def) }
+        by (cases "p +\<^sub>p p' = 0\<^sub>p", auto simp add: Let_def) }
     ultimately have ?case by blast}
   ultimately show ?case by blast
 qed simp_all
@@ -413,10 +413,10 @@ proof(induct p q arbitrary: n0 n1 m rule: polymul.induct)
       by simp_all
     {assume "?c = 0\<^sub>N" hence ?case by auto}
       moreover {assume cnz: "?c \<noteq> 0\<^sub>N" 
-	from "2.hyps"(1)[rule_format,where xb="n'",  OF cnz n(1) n(3)] 
-	  "2.hyps"(2)[rule_format, where x="Suc n'" 
-	  and xa="Suc n'" and xb = "n'", OF cnz ] cnz n have ?case
-	  by (auto simp add: min_def)}
+        from "2.hyps"(1)[rule_format,where xb="n'",  OF cnz n(1) n(3)] 
+          "2.hyps"(2)[rule_format, where x="Suc n'" 
+          and xa="Suc n'" and xb = "n'", OF cnz ] cnz n have ?case
+          by (auto simp add: min_def)}
       ultimately show ?case by blast
   next
     case (2 n0 n1) thus ?case by auto 
@@ -431,10 +431,10 @@ next
       by simp_all
     {assume "?c' = 0\<^sub>N" hence ?case by auto}
       moreover {assume cnz: "?c' \<noteq> 0\<^sub>N"
-	from "3.hyps"(1)[rule_format,where xb="n",  OF cnz n(3) n(1)] 
-	  "3.hyps"(2)[rule_format, where x="Suc n" 
-	  and xa="Suc n" and xb = "n", OF cnz ] cnz n have ?case
-	  by (auto simp add: min_def)}
+        from "3.hyps"(1)[rule_format,where xb="n",  OF cnz n(3) n(1)] 
+          "3.hyps"(2)[rule_format, where x="Suc n" 
+          and xa="Suc n" and xb = "n", OF cnz ] cnz n have ?case
+          by (auto simp add: min_def)}
       ultimately show ?case by blast
   next
     case (2 n0 n1) thus ?case apply auto done
@@ -446,32 +446,32 @@ next
     {fix n0 n1
       assume "isnpolyh ?cnp n0" and "isnpolyh ?cnp' n1"
       hence cnp: "isnpolyh ?cnp n" and cnp': "isnpolyh ?cnp' n'"
-	and np: "isnpolyh p n" and nc: "isnpolyh c (Suc n)" 
-	and np': "isnpolyh p' n'" and nc': "isnpolyh c' (Suc n')"
-	and nn0: "n \<ge> n0" and nn1:"n' \<ge> n1"
-	by simp_all
+        and np: "isnpolyh p n" and nc: "isnpolyh c (Suc n)" 
+        and np': "isnpolyh p' n'" and nc': "isnpolyh c' (Suc n')"
+        and nn0: "n \<ge> n0" and nn1:"n' \<ge> n1"
+        by simp_all
       have "n < n' \<or> n' < n \<or> n' = n" by auto
       moreover
       {assume nn': "n < n'"
-	with "4.hyps"(5)[rule_format, OF nn' np cnp', where xb ="n"] 
-	  "4.hyps"(6)[rule_format, OF nn' nc cnp', where xb="n"] nn' nn0 nn1 cnp
-	have "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)"
-	  by (simp add: min_def) }
+        with "4.hyps"(5)[rule_format, OF nn' np cnp', where xb ="n"] 
+          "4.hyps"(6)[rule_format, OF nn' nc cnp', where xb="n"] nn' nn0 nn1 cnp
+        have "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)"
+          by (simp add: min_def) }
       moreover
 
       {assume nn': "n > n'" hence stupid: "n' < n \<and> \<not> n < n'" by arith
-	with "4.hyps"(3)[rule_format, OF stupid cnp np', where xb="n'"]
-	  "4.hyps"(4)[rule_format, OF stupid cnp nc', where xb="Suc n'"] 
-	  nn' nn0 nn1 cnp'
-	have "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)"
-	  by (cases "Suc n' = n", simp_all add: min_def)}
+        with "4.hyps"(3)[rule_format, OF stupid cnp np', where xb="n'"]
+          "4.hyps"(4)[rule_format, OF stupid cnp nc', where xb="Suc n'"] 
+          nn' nn0 nn1 cnp'
+        have "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)"
+          by (cases "Suc n' = n", simp_all add: min_def)}
       moreover
       {assume nn': "n' = n" hence stupid: "\<not> n' < n \<and> \<not> n < n'" by arith
-	from "4.hyps"(1)[rule_format, OF stupid cnp np', where xb="n"]
-	  "4.hyps"(2)[rule_format, OF stupid cnp nc', where xb="n"] nn' cnp cnp' nn1
-	
-	have "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)"
-	  by simp (rule polyadd_normh,simp_all add: min_def isnpolyh_mono[OF nn0]) }
+        from "4.hyps"(1)[rule_format, OF stupid cnp np', where xb="n"]
+          "4.hyps"(2)[rule_format, OF stupid cnp nc', where xb="n"] nn' cnp cnp' nn1
+        
+        have "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)"
+          by simp (rule polyadd_normh,simp_all add: min_def isnpolyh_mono[OF nn0]) }
       ultimately show "isnpolyh (?cnp *\<^sub>p ?cnp') (min n0 n1)" by blast }
     note th = this
     {fix n0 n1 m
@@ -484,86 +484,86 @@ next
       have "n'<n \<or> n < n' \<or> n' = n" by auto
       moreover 
       {assume "n' < n \<or> n < n'"
-	with "4.hyps" np np' m 
-	have ?eq apply (cases "n' < n", simp_all)
-	apply (erule allE[where x="n"],erule allE[where x="n"],auto) 
-	done }
+        with "4.hyps" np np' m 
+        have ?eq apply (cases "n' < n", simp_all)
+        apply (erule allE[where x="n"],erule allE[where x="n"],auto) 
+        done }
       moreover
       {assume nn': "n' = n"  hence nn:"\<not> n' < n \<and> \<not> n < n'" by arith
- 	from "4.hyps"(1)[rule_format, OF nn, where x="n" and xa ="n'" and xb="n"]
-	  "4.hyps"(2)[rule_format, OF nn, where x="n" and xa ="Suc n'" and xb="n"] 
-	  np np' nn'
-	have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
-	  "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
-	  "(?cnp *\<^sub>p c' = 0\<^sub>p) = (c' = 0\<^sub>p)" 
-	  "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p" by (auto simp add: min_def)
-	{assume mn: "m = n" 
-	  from "4.hyps"(1)[rule_format, OF nn norm(1,4), where xb="n"]
-	    "4.hyps"(2)[rule_format, OF nn norm(1,2), where xb="n"] norm nn' mn
-	  have degs:  "degreen (?cnp *\<^sub>p c') n = 
-	    (if c'=0\<^sub>p then 0 else ?d1 + degreen c' n)"
-	    "degreen (?cnp *\<^sub>p p') n = ?d1  + degreen p' n" by (simp_all add: min_def)
-	  from degs norm
-	  have th1: "degreen(?cnp *\<^sub>p c') n < degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) n" by simp
-	  hence neq: "degreen (?cnp *\<^sub>p c') n \<noteq> degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) n"
-	    by simp
-	  have nmin: "n \<le> min n n" by (simp add: min_def)
-	  from polyadd_different_degreen[OF norm(3,6) neq nmin] th1
-	  have deg: "degreen (CN c n p *\<^sub>p c' +\<^sub>p CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n = degreen (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n" by simp 
-	  from "4.hyps"(1)[rule_format, OF nn norm(1,4), where xb="n"]
-	    "4.hyps"(2)[rule_format, OF nn norm(1,2), where xb="n"]
-	    mn norm m nn' deg
-	  have ?eq by simp}
-	moreover
-	{assume mn: "m \<noteq> n" hence mn': "m < n" using m np by auto
-	  from nn' m np have max1: "m \<le> max n n"  by simp 
-	  hence min1: "m \<le> min n n" by simp	
-	  hence min2: "m \<le> min n (Suc n)" by simp
-	  {assume "c' = 0\<^sub>p"
-	    from `c' = 0\<^sub>p` have ?eq
-	      using "4.hyps"(1)[rule_format, OF nn norm(1,4) min1]
-	    "4.hyps"(2)[rule_format, OF nn norm(1,2) min2] mn nn'
-	      apply simp
-	      done}
-	  moreover
-	  {assume cnz: "c' \<noteq> 0\<^sub>p"
-	    from "4.hyps"(1)[rule_format, OF nn norm(1,4) min1]
-	      "4.hyps"(2)[rule_format, OF nn norm(1,2) min2]
-	      degreen_polyadd[OF norm(3,6) max1]
+        from "4.hyps"(1)[rule_format, OF nn, where x="n" and xa ="n'" and xb="n"]
+          "4.hyps"(2)[rule_format, OF nn, where x="n" and xa ="Suc n'" and xb="n"] 
+          np np' nn'
+        have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
+          "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
+          "(?cnp *\<^sub>p c' = 0\<^sub>p) = (c' = 0\<^sub>p)" 
+          "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p" by (auto simp add: min_def)
+        {assume mn: "m = n" 
+          from "4.hyps"(1)[rule_format, OF nn norm(1,4), where xb="n"]
+            "4.hyps"(2)[rule_format, OF nn norm(1,2), where xb="n"] norm nn' mn
+          have degs:  "degreen (?cnp *\<^sub>p c') n = 
+            (if c'=0\<^sub>p then 0 else ?d1 + degreen c' n)"
+            "degreen (?cnp *\<^sub>p p') n = ?d1  + degreen p' n" by (simp_all add: min_def)
+          from degs norm
+          have th1: "degreen(?cnp *\<^sub>p c') n < degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) n" by simp
+          hence neq: "degreen (?cnp *\<^sub>p c') n \<noteq> degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) n"
+            by simp
+          have nmin: "n \<le> min n n" by (simp add: min_def)
+          from polyadd_different_degreen[OF norm(3,6) neq nmin] th1
+          have deg: "degreen (CN c n p *\<^sub>p c' +\<^sub>p CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n = degreen (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n" by simp 
+          from "4.hyps"(1)[rule_format, OF nn norm(1,4), where xb="n"]
+            "4.hyps"(2)[rule_format, OF nn norm(1,2), where xb="n"]
+            mn norm m nn' deg
+          have ?eq by simp}
+        moreover
+        {assume mn: "m \<noteq> n" hence mn': "m < n" using m np by auto
+          from nn' m np have max1: "m \<le> max n n"  by simp 
+          hence min1: "m \<le> min n n" by simp     
+          hence min2: "m \<le> min n (Suc n)" by simp
+          {assume "c' = 0\<^sub>p"
+            from `c' = 0\<^sub>p` have ?eq
+              using "4.hyps"(1)[rule_format, OF nn norm(1,4) min1]
+            "4.hyps"(2)[rule_format, OF nn norm(1,2) min2] mn nn'
+              apply simp
+              done}
+          moreover
+          {assume cnz: "c' \<noteq> 0\<^sub>p"
+            from "4.hyps"(1)[rule_format, OF nn norm(1,4) min1]
+              "4.hyps"(2)[rule_format, OF nn norm(1,2) min2]
+              degreen_polyadd[OF norm(3,6) max1]
 
-	    have "degreen (?cnp *\<^sub>p c' +\<^sub>p CN 0\<^sub>p n (?cnp *\<^sub>p p')) m 
-	      \<le> max (degreen (?cnp *\<^sub>p c') m) (degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) m)"
-	      using mn nn' cnz np np' by simp
-	    with "4.hyps"(1)[rule_format, OF nn norm(1,4) min1]
-	      "4.hyps"(2)[rule_format, OF nn norm(1,2) min2]
-	      degreen_0[OF norm(3) mn'] have ?eq using nn' mn cnz np np' by clarsimp}
-	  ultimately have ?eq by blast }
-	ultimately have ?eq by blast}
+            have "degreen (?cnp *\<^sub>p c' +\<^sub>p CN 0\<^sub>p n (?cnp *\<^sub>p p')) m 
+              \<le> max (degreen (?cnp *\<^sub>p c') m) (degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) m)"
+              using mn nn' cnz np np' by simp
+            with "4.hyps"(1)[rule_format, OF nn norm(1,4) min1]
+              "4.hyps"(2)[rule_format, OF nn norm(1,2) min2]
+              degreen_0[OF norm(3) mn'] have ?eq using nn' mn cnz np np' by clarsimp}
+          ultimately have ?eq by blast }
+        ultimately have ?eq by blast}
       ultimately show ?eq by blast}
     note degth = this
     { case (2 n0 n1)
       hence np: "isnpolyh ?cnp n0" and np': "isnpolyh ?cnp' n1" 
-	and m: "m \<le> min n0 n1" by simp_all
+        and m: "m \<le> min n0 n1" by simp_all
       hence mn: "m \<le> n" by simp
       let ?c0p = "CN 0\<^sub>p n (?cnp *\<^sub>p p')"
       {assume C: "?cnp *\<^sub>p c' +\<^sub>p ?c0p = 0\<^sub>p" "n' = n"
-	hence nn: "\<not>n' < n \<and> \<not> n<n'" by simp
-	from "4.hyps"(1) [rule_format, OF nn, where x="n" and xa = "n" and xb="n"] 
-	  "4.hyps"(2) [rule_format, OF nn, where x="n" and xa = "Suc n" and xb="n"] 
-	  np np' C(2) mn
-	have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
-	  "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
-	  "(?cnp *\<^sub>p c' = 0\<^sub>p) = (c' = 0\<^sub>p)" 
-	  "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p" 
-	  "degreen (?cnp *\<^sub>p c') n = (if c'=0\<^sub>p then 0 else degreen ?cnp n + degreen c' n)"
-	    "degreen (?cnp *\<^sub>p p') n = degreen ?cnp n + degreen p' n"
-	  by (simp_all add: min_def)
-	    
-	  from norm have cn: "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n" by simp
-	  have degneq: "degreen (?cnp *\<^sub>p c') n < degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) n" 
-	    using norm by simp
-	from polyadd_eq_const_degreen[OF norm(3) cn C(1), where m="n"]  degneq
-	have "False" by simp }
+        hence nn: "\<not>n' < n \<and> \<not> n<n'" by simp
+        from "4.hyps"(1) [rule_format, OF nn, where x="n" and xa = "n" and xb="n"] 
+          "4.hyps"(2) [rule_format, OF nn, where x="n" and xa = "Suc n" and xb="n"] 
+          np np' C(2) mn
+        have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
+          "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
+          "(?cnp *\<^sub>p c' = 0\<^sub>p) = (c' = 0\<^sub>p)" 
+          "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p" 
+          "degreen (?cnp *\<^sub>p c') n = (if c'=0\<^sub>p then 0 else degreen ?cnp n + degreen c' n)"
+            "degreen (?cnp *\<^sub>p p') n = degreen ?cnp n + degreen p' n"
+          by (simp_all add: min_def)
+            
+          from norm have cn: "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n" by simp
+          have degneq: "degreen (?cnp *\<^sub>p c') n < degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) n" 
+            using norm by simp
+        from polyadd_eq_const_degreen[OF norm(3) cn C(1), where m="n"]  degneq
+        have "False" by simp }
       thus ?case using "4.hyps" by clarsimp}
 qed auto
 
@@ -1022,8 +1022,8 @@ proof (induct n\<equiv>"maxindex p" arbitrary: p n0 rule: nat_less_induct)
       have "\<forall>x. poly (polypoly' (?ts @ xs) p) x = poly [] x"  by simp
       hence "poly (polypoly' (?ts @ xs) p) = poly []" by (auto intro: ext) 
       hence "\<forall> c \<in> set (coefficients p). Ipoly (?ts @ xs) (decrpoly c) = 0"
-	thm poly_zero
-	using poly_zero[where ?'a='a] by (simp add: polypoly'_def list_all_iff)
+        thm poly_zero
+        using poly_zero[where ?'a='a] by (simp add: polypoly'_def list_all_iff)
       with coefficients_head[of p, symmetric]
       have th0: "Ipoly (?ts @ xs) ?hd = 0" by simp
       from bs have wf'': "wf_bs ?ts ?hd" unfolding wf_bs_def by simp
@@ -1272,18 +1272,18 @@ next
       by (simp add: min_def)
     {assume np: "n > 0"
       with nn' head_isnpolyh_Suc'[OF np nth]
-	head_isnpolyh_Suc'[OF np norm(5)] head_isnpolyh_Suc'[OF np norm(6)[simplified nn']]
+        head_isnpolyh_Suc'[OF np norm(5)] head_isnpolyh_Suc'[OF np norm(6)[simplified nn']]
       have ?case by simp}
     moreover
     {moreover assume nz: "n = 0"
       from polymul_degreen[OF norm(5,4), where m="0"]
-	polymul_degreen[OF norm(5,3), where m="0"] nn' nz degree_eq_degreen0
+        polymul_degreen[OF norm(5,3), where m="0"] nn' nz degree_eq_degreen0
       norm(5,6) degree_npolyhCN[OF norm(6)]
     have dth:"degree (CN c 0 p *\<^sub>p c') < degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))" by simp
     hence dth':"degree (CN c 0 p *\<^sub>p c') \<noteq> degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))" by simp
     from polyadd_head[OF ncnpc'[simplified nz] ncnpp0'[simplified nz] dth'] dth
     have ?case   using norm prems(2)[rule_format, OF stupid norm(5,3)]
-	prems(3)[rule_format, OF stupid norm(5,4)] nn' nz by simp }
+        prems(3)[rule_format, OF stupid norm(5,4)] nn' nz by simp }
     ultimately have ?case by (cases n) auto} 
   ultimately show ?case by blast
 qed simp_all
@@ -1399,182 +1399,182 @@ proof(induct d\<equiv>"degree s" arbitrary: s k k' r n1 rule: nat_less_induct)
     moreover 
     {assume dn': "\<not> d < n" hence dn: "d \<ge> n" by arith
       have degsp': "degree s = degree ?p'" 
-	using ds dn ndp funpow_shift1_degree[where k = "d - n" and p="p"] by simp
+        using ds dn ndp funpow_shift1_degree[where k = "d - n" and p="p"] by simp
       {assume ba: "?b = a"
-	hence headsp': "head s = head ?p'" using ap headp' by simp
-	have nr: "isnpolyh (s -\<^sub>p ?p') 0" using polysub_normh[OF ns np'] by simp
-	from ds degree_polysub_samehead[OF ns np' headsp' degsp']
-	have "degree (s -\<^sub>p ?p') < d \<or> s -\<^sub>p ?p' = 0\<^sub>p" by simp
-	moreover 
-	{assume deglt:"degree (s -\<^sub>p ?p') < d"
-	  from  H[rule_format, OF deglt nr,simplified] 
-	  have domsp: "?D (a, n, p, k, s -\<^sub>p ?p')" by blast 
-	  have dom: ?dths apply (rule polydivide_aux_real_domintros) 
-	    using ba ds dn' domsp by simp_all
-	  from polydivide_aux.psimps[OF dom] sz dn' ba ds
-	  have eq: "polydivide_aux (a,n,p,k,s) = polydivide_aux (a,n,p,k, s -\<^sub>p ?p')"
-	    by (simp add: Let_def)
-	  {assume h1: "polydivide_aux (a, n, p, k, s) = (k', r)"
-	    from H[rule_format, OF deglt nr, where xa = "k" and xb="k'" and xc="r", simplified]
-	      trans[OF eq[symmetric] h1]
-	    have kk': "k \<le> k'" and nr:"\<exists>nr. isnpolyh r nr" and dr: "degree r = 0 \<or> degree r < degree p"
-	      and q1:"\<exists>q nq. isnpolyh q nq \<and> (a ^\<^sub>p k' - k *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r)" by auto
-	    from q1 obtain q n1 where nq: "isnpolyh q n1" 
-	      and asp:"a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r"  by blast
-	    from nr obtain nr where nr': "isnpolyh r nr" by blast
-	    from polymul_normh[OF nakk' ns] have nakks': "isnpolyh (a ^\<^sub>p (k' - k) *\<^sub>p s) 0" by simp
-	    from polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]
-	    have nq': "isnpolyh (?akk' *\<^sub>p ?xdn +\<^sub>p q) 0" by simp
-	    from polyadd_normh[OF polymul_normh[OF np 
-	      polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]] nr']
-	    have nqr': "isnpolyh (p *\<^sub>p (?akk' *\<^sub>p ?xdn +\<^sub>p q) +\<^sub>p r) 0" by simp 
-	    from asp have "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p')) = 
-	      Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
-	    hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a^\<^sub>p (k' - k)*\<^sub>p s) = 
-	      Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs ?p' + Ipoly bs p * Ipoly bs q + Ipoly bs r" 
-	      by (simp add: ring_simps)
-	    hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-	      Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (d - n) shift1 1\<^sub>p *\<^sub>p p) 
-	      + Ipoly bs p * Ipoly bs q + Ipoly bs r"
-	      by (auto simp only: funpow_shift1_1) 
-	    hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-	      Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (d - n) shift1 1\<^sub>p) 
-	      + Ipoly bs q) + Ipoly bs r" by (simp add: ring_simps)
-	    hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-	      Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
-	    with isnpolyh_unique[OF nakks' nqr']
-	    have "a ^\<^sub>p (k' - k) *\<^sub>p s = 
-	      p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r" by blast
-	    hence ?qths using nq'
-	      apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q" in exI)
-	      apply (rule_tac x="0" in exI) by simp
-	    with kk' nr dr have "k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p) \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
-	      by blast } hence ?qrths by blast
-	  with dom have ?ths by blast} 
-	moreover 
-	{assume spz:"s -\<^sub>p ?p' = 0\<^sub>p"
-	  hence domsp: "?D (a, n, p, k, s -\<^sub>p ?p')" 
-	    apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
-	  have dom: ?dths apply (rule polydivide_aux_real_domintros) 
-	    using ba ds dn' domsp by simp_all
-	  from spz isnpolyh_unique[OF polysub_normh[OF ns np'], where q="0\<^sub>p", symmetric, where ?'a = "'a::{ring_char_0,division_by_zero,field}"]
-	  have " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs ?p'" by simp
-	  hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)" using np nxdn apply simp
-	    by (simp only: funpow_shift1_1) simp
-	  hence sp': "s = ?xdn *\<^sub>p p" using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]] by blast
-	  {assume h1: "polydivide_aux (a,n,p,k,s) = (k',r)"
-	    from polydivide_aux.psimps[OF dom] sz dn' ba ds
-	    have eq: "polydivide_aux (a,n,p,k,s) = polydivide_aux (a,n,p,k, s -\<^sub>p ?p')"
-	      by (simp add: Let_def)
-	    also have "\<dots> = (k,0\<^sub>p)" using polydivide_aux.psimps[OF domsp] spz by simp
-	    finally have "(k',r) = (k,0\<^sub>p)" using h1 by simp
-	    with sp' ns np nxdn polyadd_0(1)[OF polymul_normh[OF np nxdn]]
-	      polyadd_0(2)[OF polymul_normh[OF np nxdn]] have ?qrths
-	      apply auto
-	      apply (rule exI[where x="?xdn"]) 	      
-	      apply auto
-	      apply (rule polymul_commute)
-	      apply simp_all
-	      done}
-	  with dom have ?ths by blast}
-	ultimately have ?ths by blast }
+        hence headsp': "head s = head ?p'" using ap headp' by simp
+        have nr: "isnpolyh (s -\<^sub>p ?p') 0" using polysub_normh[OF ns np'] by simp
+        from ds degree_polysub_samehead[OF ns np' headsp' degsp']
+        have "degree (s -\<^sub>p ?p') < d \<or> s -\<^sub>p ?p' = 0\<^sub>p" by simp
+        moreover 
+        {assume deglt:"degree (s -\<^sub>p ?p') < d"
+          from  H[rule_format, OF deglt nr,simplified] 
+          have domsp: "?D (a, n, p, k, s -\<^sub>p ?p')" by blast 
+          have dom: ?dths apply (rule polydivide_aux_real_domintros) 
+            using ba ds dn' domsp by simp_all
+          from polydivide_aux.psimps[OF dom] sz dn' ba ds
+          have eq: "polydivide_aux (a,n,p,k,s) = polydivide_aux (a,n,p,k, s -\<^sub>p ?p')"
+            by (simp add: Let_def)
+          {assume h1: "polydivide_aux (a, n, p, k, s) = (k', r)"
+            from H[rule_format, OF deglt nr, where xa = "k" and xb="k'" and xc="r", simplified]
+              trans[OF eq[symmetric] h1]
+            have kk': "k \<le> k'" and nr:"\<exists>nr. isnpolyh r nr" and dr: "degree r = 0 \<or> degree r < degree p"
+              and q1:"\<exists>q nq. isnpolyh q nq \<and> (a ^\<^sub>p k' - k *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r)" by auto
+            from q1 obtain q n1 where nq: "isnpolyh q n1" 
+              and asp:"a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r"  by blast
+            from nr obtain nr where nr': "isnpolyh r nr" by blast
+            from polymul_normh[OF nakk' ns] have nakks': "isnpolyh (a ^\<^sub>p (k' - k) *\<^sub>p s) 0" by simp
+            from polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]
+            have nq': "isnpolyh (?akk' *\<^sub>p ?xdn +\<^sub>p q) 0" by simp
+            from polyadd_normh[OF polymul_normh[OF np 
+              polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]] nr']
+            have nqr': "isnpolyh (p *\<^sub>p (?akk' *\<^sub>p ?xdn +\<^sub>p q) +\<^sub>p r) 0" by simp 
+            from asp have "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p')) = 
+              Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
+            hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a^\<^sub>p (k' - k)*\<^sub>p s) = 
+              Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs ?p' + Ipoly bs p * Ipoly bs q + Ipoly bs r" 
+              by (simp add: ring_simps)
+            hence " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (d - n) shift1 1\<^sub>p *\<^sub>p p) 
+              + Ipoly bs p * Ipoly bs q + Ipoly bs r"
+              by (auto simp only: funpow_shift1_1) 
+            hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (d - n) shift1 1\<^sub>p) 
+              + Ipoly bs q) + Ipoly bs r" by (simp add: ring_simps)
+            hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
+            with isnpolyh_unique[OF nakks' nqr']
+            have "a ^\<^sub>p (k' - k) *\<^sub>p s = 
+              p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r" by blast
+            hence ?qths using nq'
+              apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (d - n) shift1 1\<^sub>p) +\<^sub>p q" in exI)
+              apply (rule_tac x="0" in exI) by simp
+            with kk' nr dr have "k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p) \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
+              by blast } hence ?qrths by blast
+          with dom have ?ths by blast} 
+        moreover 
+        {assume spz:"s -\<^sub>p ?p' = 0\<^sub>p"
+          hence domsp: "?D (a, n, p, k, s -\<^sub>p ?p')" 
+            apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
+          have dom: ?dths apply (rule polydivide_aux_real_domintros) 
+            using ba ds dn' domsp by simp_all
+          from spz isnpolyh_unique[OF polysub_normh[OF ns np'], where q="0\<^sub>p", symmetric, where ?'a = "'a::{ring_char_0,division_by_zero,field}"]
+          have " \<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs ?p'" by simp
+          hence "\<forall>(bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)" using np nxdn apply simp
+            by (simp only: funpow_shift1_1) simp
+          hence sp': "s = ?xdn *\<^sub>p p" using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]] by blast
+          {assume h1: "polydivide_aux (a,n,p,k,s) = (k',r)"
+            from polydivide_aux.psimps[OF dom] sz dn' ba ds
+            have eq: "polydivide_aux (a,n,p,k,s) = polydivide_aux (a,n,p,k, s -\<^sub>p ?p')"
+              by (simp add: Let_def)
+            also have "\<dots> = (k,0\<^sub>p)" using polydivide_aux.psimps[OF domsp] spz by simp
+            finally have "(k',r) = (k,0\<^sub>p)" using h1 by simp
+            with sp' ns np nxdn polyadd_0(1)[OF polymul_normh[OF np nxdn]]
+              polyadd_0(2)[OF polymul_normh[OF np nxdn]] have ?qrths
+              apply auto
+              apply (rule exI[where x="?xdn"])        
+              apply auto
+              apply (rule polymul_commute)
+              apply simp_all
+              done}
+          with dom have ?ths by blast}
+        ultimately have ?ths by blast }
       moreover
       {assume ba: "?b \<noteq> a"
-	from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] 
-	  polymul_normh[OF head_isnpolyh[OF ns] np']]
-	have nth: "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0" by(simp add: min_def)
-	have nzths: "a *\<^sub>p s \<noteq> 0\<^sub>p" "?b *\<^sub>p ?p' \<noteq> 0\<^sub>p"
-	  using polymul_eq0_iff[OF head_isnpolyh[OF np0, simplified ap] ns] 
-	    polymul_eq0_iff[OF head_isnpolyh[OF ns] np']head_nz[OF np0] ap pnz sz head_nz[OF ns]
-	    funpow_shift1_nz[OF pnz] by simp_all
-	from polymul_head_polyeq[OF head_isnpolyh[OF np] ns] head_nz[OF np] sz ap head_head[OF np] pnz
-	  polymul_head_polyeq[OF head_isnpolyh[OF ns] np'] head_nz [OF ns] sz funpow_shift1_nz[OF pnz, where n="d - n"]
-	have hdth: "head (a *\<^sub>p s) = head (?b *\<^sub>p ?p')" 
-	  using head_head[OF ns] funpow_shift1_head[OF np pnz]
-	    polymul_commute[OF head_isnpolyh[OF np] head_isnpolyh[OF ns]]
-	  by (simp add: ap)
-	from polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
-	  head_nz[OF np] pnz sz ap[symmetric]
-	  funpow_shift1_nz[OF pnz, where n="d - n"]
-	  polymul_degreen[OF head_isnpolyh[OF ns] np', where m="0"]  head_nz[OF ns]
-	  ndp ds[symmetric] dn
-	have degth: "degree (a *\<^sub>p s) = degree (?b *\<^sub>p ?p') "
-	  by (simp add: degree_eq_degreen0[symmetric] funpow_shift1_degree)
-	{assume dth: "degree ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) < d"
-	  have th: "?D (a, n, p, Suc k, (a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))"
-	    using H[rule_format, OF dth nth, simplified] by blast 
-	  have dom: ?dths
-	    using ba ds dn' th apply simp apply (rule polydivide_aux_real_domintros)  
-	    using ba ds dn'  by simp_all
-	  from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np] ns] polymul_normh[OF head_isnpolyh[OF ns]np']]
-	  ap have nasbp': "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0" by simp
-	  {assume h1:"polydivide_aux (a,n,p,k,s) = (k', r)"
-	    from h1  polydivide_aux.psimps[OF dom] sz dn' ba ds
-	    have eq:"polydivide_aux (a,n,p,Suc k,(a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = (k',r)"
-	      by (simp add: Let_def)
-	    with H[rule_format, OF dth nasbp', simplified, where xa="Suc k" and xb="k'" and xc="r"]
-	    obtain q nq nr where kk': "Suc k \<le> k'" and nr: "isnpolyh r nr" and nq: "isnpolyh q nq" 
-	      and dr: "degree r = 0 \<or> degree r < degree p"
-	      and qr: "a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = p *\<^sub>p q +\<^sub>p r" by auto
-	    from kk' have kk'':"Suc (k' - Suc k) = k' - k" by arith
-	    {fix bs:: "'a::{ring_char_0,division_by_zero,field} list"
-	      
-	    from qr isnpolyh_unique[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k", simplified ap] nasbp', symmetric]
-	    have "Ipoly bs (a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))) = Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
-	    hence "Ipoly bs a ^ (Suc (k' - Suc k)) * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?p' + Ipoly bs r"
-	      by (simp add: ring_simps power_Suc)
-	    hence "Ipoly bs a ^ (k' - k)  * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn * Ipoly bs p + Ipoly bs r"
-	      by (simp add:kk'' funpow_shift1_1[where n="d - n" and p="p"])
-	    hence "Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = Ipoly bs p * (Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn) + Ipoly bs r"
-	      by (simp add: ring_simps)}
-	    hence ieq:"\<forall>(bs :: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-	      Ipoly bs (p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r)" by auto 
-	    let ?q = "q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)"
-	    from polyadd_normh[OF nq polymul_normh[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k"] head_isnpolyh[OF ns], simplified ap ] nxdn]]
-	    have nqw: "isnpolyh ?q 0" by simp
-	    from ieq isnpolyh_unique[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - k"] ns, simplified ap] polyadd_normh[OF polymul_normh[OF np nqw] nr]]
-	    have asth: "(a ^\<^sub>p (k' - k) *\<^sub>p s) = p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r" by blast
-	    from dr kk' nr h1 asth nqw have ?qrths apply simp
-	      apply (rule conjI)
-	      apply (rule exI[where x="nr"], simp)
-	      apply (rule exI[where x="(q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn))"], simp)
-	      apply (rule exI[where x="0"], simp)
-	      done}
-	  hence ?qrths by blast
-	  with dom have ?ths by blast}
-	moreover 
-	{assume spz: "a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p') = 0\<^sub>p"
-	  hence domsp: "?D (a, n, p, Suc k, a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p'))" 
-	    apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
-	  have dom: ?dths using sz ba dn' ds domsp 
-	    by - (rule polydivide_aux_real_domintros, simp_all)
-	  {fix bs :: "'a::{ring_char_0,division_by_zero,field} list"
-	    from isnpolyh_unique[OF nth, where ?'a="'a" and q="0\<^sub>p",simplified,symmetric] spz
-	  have "Ipoly bs (a*\<^sub>p s) = Ipoly bs ?b * Ipoly bs ?p'" by simp
-	  hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (?b *\<^sub>p ?xdn) * Ipoly bs p" 
-	    by (simp add: funpow_shift1_1[where n="d - n" and p="p"])
-	  hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" by simp
-	}
-	hence hth: "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
-	  from hth
-	  have asq: "a *\<^sub>p s = p *\<^sub>p (?b *\<^sub>p ?xdn)" 
-	    using isnpolyh_unique[where ?'a = "'a::{ring_char_0,division_by_zero,field}", OF polymul_normh[OF head_isnpolyh[OF np] ns] 
+        from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] 
+          polymul_normh[OF head_isnpolyh[OF ns] np']]
+        have nth: "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0" by(simp add: min_def)
+        have nzths: "a *\<^sub>p s \<noteq> 0\<^sub>p" "?b *\<^sub>p ?p' \<noteq> 0\<^sub>p"
+          using polymul_eq0_iff[OF head_isnpolyh[OF np0, simplified ap] ns] 
+            polymul_eq0_iff[OF head_isnpolyh[OF ns] np']head_nz[OF np0] ap pnz sz head_nz[OF ns]
+            funpow_shift1_nz[OF pnz] by simp_all
+        from polymul_head_polyeq[OF head_isnpolyh[OF np] ns] head_nz[OF np] sz ap head_head[OF np] pnz
+          polymul_head_polyeq[OF head_isnpolyh[OF ns] np'] head_nz [OF ns] sz funpow_shift1_nz[OF pnz, where n="d - n"]
+        have hdth: "head (a *\<^sub>p s) = head (?b *\<^sub>p ?p')" 
+          using head_head[OF ns] funpow_shift1_head[OF np pnz]
+            polymul_commute[OF head_isnpolyh[OF np] head_isnpolyh[OF ns]]
+          by (simp add: ap)
+        from polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
+          head_nz[OF np] pnz sz ap[symmetric]
+          funpow_shift1_nz[OF pnz, where n="d - n"]
+          polymul_degreen[OF head_isnpolyh[OF ns] np', where m="0"]  head_nz[OF ns]
+          ndp ds[symmetric] dn
+        have degth: "degree (a *\<^sub>p s) = degree (?b *\<^sub>p ?p') "
+          by (simp add: degree_eq_degreen0[symmetric] funpow_shift1_degree)
+        {assume dth: "degree ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) < d"
+          have th: "?D (a, n, p, Suc k, (a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))"
+            using H[rule_format, OF dth nth, simplified] by blast 
+          have dom: ?dths
+            using ba ds dn' th apply simp apply (rule polydivide_aux_real_domintros)  
+            using ba ds dn'  by simp_all
+          from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np] ns] polymul_normh[OF head_isnpolyh[OF ns]np']]
+          ap have nasbp': "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0" by simp
+          {assume h1:"polydivide_aux (a,n,p,k,s) = (k', r)"
+            from h1  polydivide_aux.psimps[OF dom] sz dn' ba ds
+            have eq:"polydivide_aux (a,n,p,Suc k,(a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = (k',r)"
+              by (simp add: Let_def)
+            with H[rule_format, OF dth nasbp', simplified, where xa="Suc k" and xb="k'" and xc="r"]
+            obtain q nq nr where kk': "Suc k \<le> k'" and nr: "isnpolyh r nr" and nq: "isnpolyh q nq" 
+              and dr: "degree r = 0 \<or> degree r < degree p"
+              and qr: "a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = p *\<^sub>p q +\<^sub>p r" by auto
+            from kk' have kk'':"Suc (k' - Suc k) = k' - k" by arith
+            {fix bs:: "'a::{ring_char_0,division_by_zero,field} list"
+              
+            from qr isnpolyh_unique[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k", simplified ap] nasbp', symmetric]
+            have "Ipoly bs (a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))) = Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
+            hence "Ipoly bs a ^ (Suc (k' - Suc k)) * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?p' + Ipoly bs r"
+              by (simp add: ring_simps power_Suc)
+            hence "Ipoly bs a ^ (k' - k)  * Ipoly bs s = Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn * Ipoly bs p + Ipoly bs r"
+              by (simp add:kk'' funpow_shift1_1[where n="d - n" and p="p"])
+            hence "Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = Ipoly bs p * (Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn) + Ipoly bs r"
+              by (simp add: ring_simps)}
+            hence ieq:"\<forall>(bs :: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
+              Ipoly bs (p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r)" by auto 
+            let ?q = "q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)"
+            from polyadd_normh[OF nq polymul_normh[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k"] head_isnpolyh[OF ns], simplified ap ] nxdn]]
+            have nqw: "isnpolyh ?q 0" by simp
+            from ieq isnpolyh_unique[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - k"] ns, simplified ap] polyadd_normh[OF polymul_normh[OF np nqw] nr]]
+            have asth: "(a ^\<^sub>p (k' - k) *\<^sub>p s) = p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r" by blast
+            from dr kk' nr h1 asth nqw have ?qrths apply simp
+              apply (rule conjI)
+              apply (rule exI[where x="nr"], simp)
+              apply (rule exI[where x="(q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn))"], simp)
+              apply (rule exI[where x="0"], simp)
+              done}
+          hence ?qrths by blast
+          with dom have ?ths by blast}
+        moreover 
+        {assume spz: "a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p') = 0\<^sub>p"
+          hence domsp: "?D (a, n, p, Suc k, a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p'))" 
+            apply (simp) by (rule polydivide_aux_real_domintros, simp_all)
+          have dom: ?dths using sz ba dn' ds domsp 
+            by - (rule polydivide_aux_real_domintros, simp_all)
+          {fix bs :: "'a::{ring_char_0,division_by_zero,field} list"
+            from isnpolyh_unique[OF nth, where ?'a="'a" and q="0\<^sub>p",simplified,symmetric] spz
+          have "Ipoly bs (a*\<^sub>p s) = Ipoly bs ?b * Ipoly bs ?p'" by simp
+          hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (?b *\<^sub>p ?xdn) * Ipoly bs p" 
+            by (simp add: funpow_shift1_1[where n="d - n" and p="p"])
+          hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" by simp
+        }
+        hence hth: "\<forall> (bs:: 'a::{ring_char_0,division_by_zero,field} list). Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
+          from hth
+          have asq: "a *\<^sub>p s = p *\<^sub>p (?b *\<^sub>p ?xdn)" 
+            using isnpolyh_unique[where ?'a = "'a::{ring_char_0,division_by_zero,field}", OF polymul_normh[OF head_isnpolyh[OF np] ns] 
                     polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]],
-	      simplified ap] by simp
-	  {assume h1: "polydivide_aux (a,n,p,k,s) = (k', r)"
-	  from h1 sz ds ba dn' spz polydivide_aux.psimps[OF dom] polydivide_aux.psimps[OF domsp] 
-	  have "(k',r) = (Suc k, 0\<^sub>p)" by (simp add: Let_def)
-	  with h1 np head_isnpolyh[OF np, simplified ap] ns polymul_normh[OF head_isnpolyh[OF ns] nxdn]
-	    polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]] asq
-	  have ?qrths apply (clarsimp simp add: Let_def)
-	    apply (rule exI[where x="?b *\<^sub>p ?xdn"]) apply simp
-	    apply (rule exI[where x="0"], simp)
-	    done}
-	hence ?qrths by blast
-	with dom have ?ths by blast}
-	ultimately have ?ths using  degree_polysub_samehead[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] polymul_normh[OF head_isnpolyh[OF ns] np'] hdth degth] polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
-	  head_nz[OF np] pnz sz ap[symmetric] ds[symmetric] 
-	  by (simp add: degree_eq_degreen0[symmetric]) blast }
+              simplified ap] by simp
+          {assume h1: "polydivide_aux (a,n,p,k,s) = (k', r)"
+          from h1 sz ds ba dn' spz polydivide_aux.psimps[OF dom] polydivide_aux.psimps[OF domsp] 
+          have "(k',r) = (Suc k, 0\<^sub>p)" by (simp add: Let_def)
+          with h1 np head_isnpolyh[OF np, simplified ap] ns polymul_normh[OF head_isnpolyh[OF ns] nxdn]
+            polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]] asq
+          have ?qrths apply (clarsimp simp add: Let_def)
+            apply (rule exI[where x="?b *\<^sub>p ?xdn"]) apply simp
+            apply (rule exI[where x="0"], simp)
+            done}
+        hence ?qrths by blast
+        with dom have ?ths by blast}
+        ultimately have ?ths using  degree_polysub_samehead[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] polymul_normh[OF head_isnpolyh[OF ns] np'] hdth degth] polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
+          head_nz[OF np] pnz sz ap[symmetric] ds[symmetric] 
+          by (simp add: degree_eq_degreen0[symmetric]) blast }
       ultimately have ?ths by blast
     }
     ultimately have ?ths by blast}
@@ -1732,7 +1732,7 @@ consts isweaknpoly :: "poly \<Rightarrow> bool"
 recdef isweaknpoly "measure size"
   "isweaknpoly (C c) = True"
   "isweaknpoly (CN c n p) \<longleftrightarrow> isweaknpoly c \<and> isweaknpoly p"
-  "isweaknpoly p = False"	
+  "isweaknpoly p = False"       
 
 lemma isnpolyh_isweaknpoly: "isnpolyh p n0 \<Longrightarrow> isweaknpoly p" 
   by (induct p arbitrary: n0, auto)

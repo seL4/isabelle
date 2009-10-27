@@ -669,17 +669,17 @@ proof (induct p arbitrary: q t u \<Delta>)
     proof
       assume "x = x' \<and> t = u"
       with PVar PVar' have "PVar x T = ([]::name prm) \<bullet> q \<and>
-	t = ([]::name prm) \<bullet> u \<and>
-	set ([]::name prm) \<subseteq> (supp (PVar x T) \<union> supp q) \<times>
+        t = ([]::name prm) \<bullet> u \<and>
+        set ([]::name prm) \<subseteq> (supp (PVar x T) \<union> supp q) \<times>
           (supp (PVar x T) \<union> supp q)" by simp
       then show ?thesis ..
     next
       assume "x \<noteq> x' \<and> t = [(x, x')] \<bullet> u \<and> x \<sharp> u"
       with PVar PVar' have "PVar x T = [(x, x')] \<bullet> q \<and>
-	t = [(x, x')] \<bullet> u \<and>
-	set [(x, x')] \<subseteq> (supp (PVar x T) \<union> supp q) \<times>
+        t = [(x, x')] \<bullet> u \<and>
+        set [(x, x')] \<subseteq> (supp (PVar x T) \<union> supp q) \<times>
           (supp (PVar x T) \<union> supp q)"
-	by (simp add: perm_swap swap_simps supp_atm perm_type)
+        by (simp add: perm_swap swap_simps supp_atm perm_type)
       then show ?thesis ..
     qed
   next

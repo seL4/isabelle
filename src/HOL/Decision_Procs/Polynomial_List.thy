@@ -1,8 +1,8 @@
-(*  Title:       HOL/Decision_Procs/Polynomial_List.thy
-    Author:      Amine Chaieb
+(*  Title:      HOL/Decision_Procs/Polynomial_List.thy
+    Author:     Amine Chaieb
 *)
 
-header{*Univariate Polynomials as Lists *}
+header {* Univariate Polynomials as Lists *}
 
 theory Polynomial_List
 imports Main
@@ -653,7 +653,7 @@ apply (case_tac "poly p = poly []", auto)
 apply (simp add: divides_def fun_eq poly_mult)
 apply (rule_tac x = "[]" in exI)
 apply (auto dest!: order2 [where a=a]
-	    intro: poly_exp_divides simp del: pexp_Suc)
+            intro: poly_exp_divides simp del: pexp_Suc)
 done
 
 lemma order_decomp:
@@ -780,4 +780,5 @@ apply (auto intro!: mult_mono simp add: abs_mult)
 done
 
 lemma poly_Sing: "poly [c] x = c" by simp
+
 end
