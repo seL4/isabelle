@@ -11,6 +11,6 @@ theory Tests_Nits
 imports Main
 begin
 
-ML {* NitpickTests.run_all_tests () *}
+ML {* Nitpick_Tests.run_all_tests () *}
 
 end

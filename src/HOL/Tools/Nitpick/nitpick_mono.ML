@@ -7,17 +7,17 @@ Monotonicity predicate for higher-order logic.
 
 signature NITPICK_MONO =
 sig
-  type extended_context = NitpickHOL.extended_context
+  type extended_context = Nitpick_HOL.extended_context
 
   val formulas_monotonic :
     extended_context -> typ -> term list -> term list -> term -> bool
 end;
 
-structure NitpickMono : NITPICK_MONO =
+structure Nitpick_Mono : NITPICK_MONO =
 struct
 
-open NitpickUtil
-open NitpickHOL
+open Nitpick_Util
+open Nitpick_HOL
 
 type var = int
 
@@ -363,11 +363,11 @@ fun do_ctype_comp _ _ _ _ NONE = NONE
                   accum =
     (accum |> fold (uncurry (do_ctype_comp cmp xs)) [(C11, C21), (C12, C22)]
      handle Library.UnequalLengths =>
-            raise CTYPE ("NitpickMono.do_ctype_comp", [C1, C2]))
+            raise CTYPE ("Nitpick_Mono.do_ctype_comp", [C1, C2]))
   | do_ctype_comp cmp xs (CType _) (CType _) accum =
     accum (* no need to compare them thanks to the cache *)
   | do_ctype_comp _ _ C1 C2 _ =
-    raise CTYPE ("NitpickMono.do_ctype_comp", [C1, C2])
+    raise CTYPE ("Nitpick_Mono.do_ctype_comp", [C1, C2])
 
 (* comp_op -> ctype -> ctype -> constraint_set -> constraint_set *)
 fun add_ctype_comp _ _ _ UnsolvableCSet = UnsolvableCSet
@@ -413,7 +413,7 @@ fun do_notin_ctype_fv _ _ _ NONE = NONE
   | do_notin_ctype_fv sn sexp (CType (_, Cs)) accum =
     accum |> fold (do_notin_ctype_fv sn sexp) Cs
   | do_notin_ctype_fv _ _ C _ =
-    raise CTYPE ("NitpickMono.do_notin_ctype_fv", [C])
+    raise CTYPE ("Nitpick_Mono.do_notin_ctype_fv", [C])
 
 (* sign -> ctype -> constraint_set -> constraint_set *)
 fun add_notin_ctype_fv _ _ UnsolvableCSet = UnsolvableCSet
@@ -584,13 +584,13 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
       case ctype_for (nth_range_type 2 T) of
         C as CPair (a_C, b_C) =>
         (CFun (a_C, S Neg, CFun (b_C, S Neg, C)), accum)
-      | C => raise CTYPE ("NitpickMono.consider_term.do_pair_constr", [C])
+      | C => raise CTYPE ("Nitpick_Mono.consider_term.do_pair_constr", [C])
     (* int -> typ -> accumulator -> ctype * accumulator *)
     fun do_nth_pair_sel n T =
       case ctype_for (domain_type T) of
         C as CPair (a_C, b_C) =>
         pair (CFun (C, S Neg, if n = 0 then a_C else b_C))
-      | C => raise CTYPE ("NitpickMono.consider_term.do_nth_pair_sel", [C])
+      | C => raise CTYPE ("Nitpick_Mono.consider_term.do_nth_pair_sel", [C])
     val unsolvable = (CType ("unsolvable", []), unsolvable_accum)
     (* typ -> term -> accumulator -> ctype * accumulator *)
     fun do_bounded_quantifier abs_T bound_t body_t accum =
@@ -770,7 +770,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
              | _ => case C1 of
                       CFun (C11, _, C12) =>
                       (C12, accum ||> add_is_sub_ctype C2 C11)
-                    | _ => raise CTYPE ("NitpickMono.consider_term.do_term \
+                    | _ => raise CTYPE ("Nitpick_Mono.consider_term.do_term \
                                         \(op $)", [C1])
            end)
         |> tap (fn (C, _) =>
@@ -906,7 +906,7 @@ fun consider_definitional_axiom (cdata as {ext_ctxt as {thy, ...}, ...}) t =
           | Const (@{const_name "op ="}, _) $ t1 $ t2 => do_equals t1 t2 accum
           | @{const "op &"} $ t1 $ t2 => accum |> do_formula t1 |> do_formula t2
           | @{const "op -->"} $ t1 $ t2 => do_implies t1 t2 accum
-          | _ => raise TERM ("NitpickMono.consider_definitional_axiom.\
+          | _ => raise TERM ("Nitpick_Mono.consider_definitional_axiom.\
                              \do_formula", [t])
     in do_formula t end
 

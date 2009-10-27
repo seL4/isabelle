@@ -7,7 +7,7 @@ Scope enumerator for Nitpick.
 
 signature NITPICK_SCOPE =
 sig
-  type extended_context = NitpickHOL.extended_context
+  type extended_context = Nitpick_HOL.extended_context
 
   type constr_spec = {
     const: styp,
@@ -47,11 +47,11 @@ sig
     -> int list -> typ list -> typ list -> scope list
 end;
 
-structure NitpickScope : NITPICK_SCOPE =
+structure Nitpick_Scope : NITPICK_SCOPE =
 struct
 
-open NitpickUtil
-open NitpickHOL
+open Nitpick_Util
+open Nitpick_HOL
 
 type constr_spec = {
   const: styp,
@@ -85,7 +85,7 @@ fun datatype_spec (dtypes : dtype_spec list) T =
   List.find (equal T o #typ) dtypes
 
 (* dtype_spec list -> styp -> constr_spec *)
-fun constr_spec [] x = raise TERM ("NitpickScope.constr_spec", [Const x])
+fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
   | constr_spec ({constrs, ...} :: dtypes : dtype_spec list) (x as (s, T)) =
     case List.find (equal (s, body_type T) o (apsnd body_type o #const))
                    constrs of
@@ -115,7 +115,7 @@ fun offset_of_type ofs T =
 (* scope -> typ -> int * int *)
 fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
   (card_of_type card_assigns T
-   handle TYPE ("NitpickHOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
+   handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
 (* (string -> string) -> scope
    -> string list * string list * string list * string list * string list *)
@@ -205,17 +205,17 @@ fun project_block (column, block) = map (project_row column) block
 fun lookup_ints_assign eq asgns key =
   case triple_lookup eq asgns key of
     SOME ks => ks
-  | NONE => raise ARG ("NitpickScope.lookup_ints_assign", "")
+  | NONE => raise ARG ("Nitpick_Scope.lookup_ints_assign", "")
 (* theory -> (typ option * int list) list -> typ -> int list *)
 fun lookup_type_ints_assign thy asgns T =
   map (curry Int.max 1) (lookup_ints_assign (type_match thy) asgns T)
-  handle ARG ("NitpickScope.lookup_ints_assign", _) =>
-         raise TYPE ("NitpickScope.lookup_type_ints_assign", [T], [])
+  handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
+         raise TYPE ("Nitpick_Scope.lookup_type_ints_assign", [T], [])
 (* theory -> (styp option * int list) list -> styp -> int list *)
 fun lookup_const_ints_assign thy asgns x =
   lookup_ints_assign (const_match thy) asgns x
-  handle ARG ("NitpickScope.lookup_ints_assign", _) =>
-         raise TERM ("NitpickScope.lookup_const_ints_assign", [Const x])
+  handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
+         raise TERM ("Nitpick_Scope.lookup_const_ints_assign", [Const x])
 
 (* theory -> (styp option * int list) list -> styp -> row option *)
 fun row_for_constr thy maxes_asgns constr =
@@ -315,7 +315,7 @@ fun is_surely_inconsistent_card_assign thy (card_asgns, max_asgns) (T, k) =
       max < k
       orelse (forall (not_equal 0) precise_cards andalso doms_card () < k)
     end
-    handle TYPE ("NitpickHOL.card_of_type", _, _) => false
+    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => false
 
 (* theory -> scope_desc -> bool *)
 fun is_surely_inconsistent_scope_description thy (desc as (card_asgns, _)) =

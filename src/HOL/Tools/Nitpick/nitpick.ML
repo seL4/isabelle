@@ -62,15 +62,15 @@ end;
 structure Nitpick : NITPICK =
 struct
 
-open NitpickUtil
-open NitpickHOL
-open NitpickMono
-open NitpickScope
-open NitpickPeephole
-open NitpickRep
-open NitpickNut
-open NitpickKodkod
-open NitpickModel
+open Nitpick_Util
+open Nitpick_HOL
+open Nitpick_Mono
+open Nitpick_Scope
+open Nitpick_Peephole
+open Nitpick_Rep
+open Nitpick_Nut
+open Nitpick_Kodkod
+open Nitpick_Model
 
 type params = {
   cards_assigns: (typ option * int list) list,
@@ -355,21 +355,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val effective_sat_solver =
       if sat_solver <> "smart" then
         if need_incremental andalso
-           not (sat_solver mem KodkodSAT.configured_sat_solvers true) then
+           not (sat_solver mem Kodkod_SAT.configured_sat_solvers true) then
           (print_m (K ("An incremental SAT solver is required: \"SAT4J\" will \
                        \be used instead of " ^ quote sat_solver ^ "."));
            "SAT4J")
         else
           sat_solver
       else
-        KodkodSAT.smart_sat_solver_name need_incremental
+        Kodkod_SAT.smart_sat_solver_name need_incremental
     val _ =
       if sat_solver = "smart" then
         print_v (fn () => "Using SAT solver " ^ quote effective_sat_solver ^
                           ". The following" ^
                           (if need_incremental then " incremental " else " ") ^
                           "solvers are configured: " ^
-                          commas (map quote (KodkodSAT.configured_sat_solvers
+                          commas (map quote (Kodkod_SAT.configured_sat_solvers
                                                        need_incremental)) ^ ".")
       else
         ()
@@ -439,7 +439,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         val formula = fold (fold s_and) [def_fs, nondef_fs] core_f
         val comment = (if liberal then "liberal" else "conservative") ^ "\n" ^
                       PrintMode.setmp [] multiline_string_for_scope scope
-        val kodkod_sat_solver = KodkodSAT.sat_solver_spec effective_sat_solver
+        val kodkod_sat_solver = Kodkod_SAT.sat_solver_spec effective_sat_solver
                                 |> snd
         val delay = if liberal then
                       Option.map (fn time => Time.- (time, Time.now ()))
@@ -483,7 +483,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                defs = nondef_fs @ def_fs @ declarative_axioms})
       end
       handle LIMIT (loc, msg) =>
-             if loc = "NitpickKodkod.check_arity"
+             if loc = "Nitpick_Kodkod.check_arity"
                 andalso not (Typtab.is_empty ofs) then
                problem_for_scope liberal
                    {ext_ctxt = ext_ctxt, card_assigns = card_assigns,

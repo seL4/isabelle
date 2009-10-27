@@ -86,11 +86,11 @@ sig
   val kodkod_constrs : bool -> int -> int -> int -> kodkod_constrs
 end;
 
-structure NitpickPeephole : NITPICK_PEEPHOLE =
+structure Nitpick_Peephole : NITPICK_PEEPHOLE =
 struct
 
 open Kodkod
-open NitpickUtil
+open Nitpick_Util
 
 type name_pool = {
   rels: n_ary_index list,
@@ -188,20 +188,20 @@ fun rel_expr_intersects (Atom j1) (Atom j2) = SOME (j1 = j2)
     if is_none_product r1 orelse is_none_product r2 then SOME false else NONE
 
 (* int -> rel_expr *)
-fun empty_n_ary_rel 0 = raise ARG ("NitpickPeephole.empty_n_ary_rel", "0")
+fun empty_n_ary_rel 0 = raise ARG ("Nitpick_Peephole.empty_n_ary_rel", "0")
   | empty_n_ary_rel n = funpow (n - 1) (curry Product None) None
 
 (* decl -> rel_expr *)
 fun decl_one_set (DeclOne (_, r)) = r
   | decl_one_set _ =
-    raise ARG ("NitpickPeephole.decl_one_set", "not \"DeclOne\"")
+    raise ARG ("Nitpick_Peephole.decl_one_set", "not \"DeclOne\"")
 
 (* int_expr -> bool *)
 fun is_Num (Num _) = true
   | is_Num _ = false
 (* int_expr -> int *)
 fun dest_Num (Num k) = k
-  | dest_Num _ = raise ARG ("NitpickPeephole.dest_Num", "not \"Num\"")
+  | dest_Num _ = raise ARG ("Nitpick_Peephole.dest_Num", "not \"Num\"")
 (* int -> int -> int_expr list *)
 fun num_seq j0 n = map Num (index_seq j0 n)
 

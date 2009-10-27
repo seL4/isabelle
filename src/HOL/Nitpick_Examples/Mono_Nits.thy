@@ -14,8 +14,8 @@ begin
 ML {*
 exception FAIL
 
-val defs = NitpickHOL.all_axioms_of @{theory} |> #1
-val def_table = NitpickHOL.const_def_table @{context} defs
+val defs = Nitpick_HOL.all_axioms_of @{theory} |> #1
+val def_table = Nitpick_HOL.const_def_table @{context} defs
 val ext_ctxt =
   {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],
    user_axioms = NONE, debug = false, wfs = [], destroy_constrs = false,

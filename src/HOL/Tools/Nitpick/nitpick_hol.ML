@@ -139,10 +139,10 @@ sig
     extended_context -> term -> ((term list * term list) * (bool * bool)) * term
 end;
 
-structure NitpickHOL : NITPICK_HOL =
+structure Nitpick_HOL : NITPICK_HOL =
 struct
 
-open NitpickUtil
+open Nitpick_Util
 
 type const_table = term list Symtab.table
 type special_fun = (styp * int list * term list) * styp
@@ -263,7 +263,7 @@ fun original_name s =
 val after_name_sep = snd o strip_first_name_sep
 
 (* When you add constants to these lists, make sure to handle them in
-   "NitpickNut.nut_from_term", and perhaps in "NitpickMono.consider_term" as
+   "Nitpick_Nut.nut_from_term", and perhaps in "Nitpick_Mono.consider_term" as
    well. *)
 val built_in_consts =
   [(@{const_name all}, 1),
@@ -405,7 +405,7 @@ fun iterator_type_for_const gfp (s, T) =
 (* typ -> styp *)
 fun const_for_iterator_type (Type (s, Ts)) = (after_name_sep s, Ts ---> bool_T)
   | const_for_iterator_type T =
-    raise TYPE ("NitpickHOL.const_for_iterator_type", [T], [])
+    raise TYPE ("Nitpick_HOL.const_for_iterator_type", [T], [])
 
 (* int -> typ -> typ * typ *)
 fun strip_n_binders 0 T = ([], T)
@@ -413,7 +413,7 @@ fun strip_n_binders 0 T = ([], T)
     strip_n_binders (n - 1) T2 |>> cons T1
   | strip_n_binders n (Type (@{type_name fun_box}, Ts)) =
     strip_n_binders n (Type ("fun", Ts))
-  | strip_n_binders _ T = raise TYPE ("NitpickHOL.strip_n_binders", [T], [])
+  | strip_n_binders _ T = raise TYPE ("Nitpick_HOL.strip_n_binders", [T], [])
 (* typ -> typ *)
 val nth_range_type = snd oo strip_n_binders
 
@@ -432,7 +432,7 @@ fun maybe_curried_binder_types T =
 fun mk_flat_tuple _ [t] = t
   | mk_flat_tuple (Type ("*", [T1, T2])) (t :: ts) =
     HOLogic.pair_const T1 T2 $ t $ (mk_flat_tuple T2 ts)
-  | mk_flat_tuple T ts = raise TYPE ("NitpickHOL.mk_flat_tuple", [T], ts)
+  | mk_flat_tuple T ts = raise TYPE ("Nitpick_HOL.mk_flat_tuple", [T], ts)
 (* int -> term -> term list *)
 fun dest_n_tuple 1 t = [t]
   | dest_n_tuple n t = HOLogic.dest_prod t ||> dest_n_tuple (n - 1) |> op ::
@@ -441,7 +441,8 @@ fun dest_n_tuple 1 t = [t]
 fun dest_n_tuple_type 1 T = [T]
   | dest_n_tuple_type n (Type (_, [T1, T2])) =
     T1 :: dest_n_tuple_type (n - 1) T2
-  | dest_n_tuple_type _ T = raise TYPE ("NitpickHOL.dest_n_tuple_type", [T], [])
+  | dest_n_tuple_type _ T =
+    raise TYPE ("Nitpick_HOL.dest_n_tuple_type", [T], [])
 
 (* (typ * typ) list -> typ -> typ *)
 fun typ_subst [] T = T
@@ -460,7 +461,7 @@ fun instantiate_type thy T1 T1' T2 =
                    (Sign.typ_match thy (Logic.varifyT T1, T1') Vartab.empty))
               (Logic.varifyT T2)
   handle Type.TYPE_MATCH =>
-         raise TYPE ("NitpickHOL.instantiate_type", [T1, T1'], [])
+         raise TYPE ("Nitpick_HOL.instantiate_type", [T1, T1'], [])
 
 (* theory -> typ -> typ -> styp *)
 fun repair_constr_type thy body_T' T =
@@ -483,7 +484,7 @@ fun register_codatatype co_T case_name constr_xs thy =
     val (co_s, co_Ts) = dest_Type co_T
     val _ =
       if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts) then ()
-      else raise TYPE ("NitpickHOL.register_codatatype", [co_T], [])
+      else raise TYPE ("Nitpick_HOL.register_codatatype", [co_T], [])
     val codatatypes = AList.update (op =) (co_s, (case_name, constr_xs))
                                    codatatypes
   in TheoryData.put {frac_types = frac_types, codatatypes = codatatypes} thy end
@@ -586,8 +587,8 @@ fun is_rep_fun thy (s, Type ("fun", [Type (s', _), _])) =
 fun mate_of_rep_fun thy (x as (_, Type ("fun", [T1 as Type (s', _), T2]))) =
     (case typedef_info thy s' of
        SOME {Abs_name, ...} => (Abs_name, Type ("fun", [T2, T1]))
-     | NONE => raise TERM ("NitpickHOL.mate_of_rep_fun", [Const x]))
-  | mate_of_rep_fun _ x = raise TERM ("NitpickHOL.mate_of_rep_fun", [Const x])
+     | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
+  | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 
 (* theory -> styp -> bool *)
 fun is_coconstr thy (s, T) =
@@ -874,7 +875,7 @@ fun card_of_type asgns (Type ("fun", [T1, T2])) =
     case AList.lookup (op =) asgns T of
       SOME k => k
     | NONE => if T = @{typ bisim_iterator} then 0
-              else raise TYPE ("NitpickHOL.card_of_type", [T], [])
+              else raise TYPE ("Nitpick_HOL.card_of_type", [T], [])
 (* int -> (typ * int) list -> typ -> int *)
 fun bounded_card_of_type max default_card asgns (Type ("fun", [T1, T2])) =
     let
@@ -894,7 +895,7 @@ fun bounded_card_of_type max default_card asgns (Type ("fun", [T1, T2])) =
                     card_of_type asgns T
                   else
                     card_of_type asgns T
-                    handle TYPE ("NitpickHOL.card_of_type", _, _) =>
+                    handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
 (* theory -> int -> (typ * int) list -> typ -> int *)
 fun bounded_precise_card_of_type thy max default_card asgns T =
@@ -1110,13 +1111,13 @@ fun normalized_rhs_of thy t =
     (* term -> term *)
     fun aux (v as Var _) t = lambda v t
       | aux (c as Const (@{const_name TYPE}, T)) t = lambda c t
-      | aux _ _ = raise TERM ("NitpickHOL.normalized_rhs_of", [t])
+      | aux _ _ = raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
     val (lhs, rhs) =
       case t of
         Const (@{const_name "=="}, _) $ t1 $ t2 => (t1, t2)
       | @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t1 $ t2) =>
         (t1, t2)
-      | _ => raise TERM ("NitpickHOL.normalized_rhs_of", [t])
+      | _ => raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
     val args = strip_comb lhs |> snd
   in fold_rev aux args rhs end
 
@@ -1170,7 +1171,7 @@ fun pair_for_prop t =
   case term_under_def t of
     Const (s, _) => (s, t)
   | Free _ => raise NOT_SUPPORTED "local definitions"
-  | t' => raise TERM ("NitpickHOL.pair_for_prop", [t, t'])
+  | t' => raise TERM ("Nitpick_HOL.pair_for_prop", [t, t'])
 
 (* (Proof.context -> term list) -> Proof.context -> const_table *)
 fun table_for get ctxt =
@@ -1308,7 +1309,7 @@ fun optimized_case_def thy dataT res_T =
     |> fold_rev (curry absdummy) (func_Ts @ [dataT])
   end
 
-val redefined_in_NitpickDefs_thy =
+val redefined_in_Nitpick_thy =
   [@{const_name option_case}, @{const_name nat_case}, @{const_name list_case},
    @{const_name list_size}]
 
@@ -1325,7 +1326,8 @@ fun optimized_record_get thy s rec_T res_T t =
                  select_nth_constr_arg thy constr_x t j res_T
                  |> optimized_record_get thy s rec_T' res_T
                end
-             | _ => raise TYPE ("NitpickHOL.optimized_record_get", [rec_T], []))
+             | _ => raise TYPE ("Nitpick_HOL.optimized_record_get", [rec_T],
+                                []))
     | j => select_nth_constr_arg thy constr_x t j res_T
   end
 (* theory -> string -> typ -> term -> term -> term *)
@@ -1380,7 +1382,7 @@ fun is_equational_fun (ext_ctxt as {thy, def_table, ...}) =
   (is_real_equational_fun ext_ctxt orf is_real_inductive_pred ext_ctxt
    orf (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
   andf (not o has_trivial_definition thy def_table)
-  andf (not o member (op =) redefined_in_NitpickDefs_thy o fst)
+  andf (not o member (op =) redefined_in_Nitpick_thy o fst)
 
 (* term * term -> term *)
 fun s_betapply (Const (@{const_name If}, _) $ @{const True} $ t, _) = t
@@ -1532,7 +1534,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
               else case def_of_const thy def_table x of
                 SOME def =>
                 if depth > unfold_max_depth then
-                  raise LIMIT ("NitpickHOL.unfold_defs_in_term",
+                  raise LIMIT ("Nitpick_HOL.unfold_defs_in_term",
                                "too many nested definitions (" ^
                                string_of_int depth ^ ") while expanding " ^
                                quote s)
@@ -1640,7 +1642,8 @@ fun is_is_well_founded_inductive_pred
         ({thy, ctxt, debug, fast_descrs, tac_timeout, intro_table, ...}
          : extended_context) (x as (_, T)) =
   case def_props_for_const thy fast_descrs intro_table x of
-    [] => raise TERM ("NitpickHOL.is_is_well_founded_inductive_pred", [Const x])
+    [] => raise TERM ("Nitpick_HOL.is_is_well_founded_inductive_pred",
+                      [Const x])
   | intro_ts =>
     (case map (triple_for_intro_rule thy x) intro_ts
           |> filter_out (null o #2) of
@@ -1772,7 +1775,7 @@ val linear_pred_base_and_step_rhss =
                               |> ap_split tuple_T bool_T))
         end
       | aux t =
-        raise TERM ("NitpickHOL.linear_pred_base_and_step_rhss.aux", [t])
+        raise TERM ("Nitpick_HOL.linear_pred_base_and_step_rhss.aux", [t])
   in aux end
 
 (* extended_context -> styp -> term -> term *)
@@ -1834,8 +1837,8 @@ fun unrolled_inductive_pred_const (ext_ctxt as {thy, star_linear_preds,
         val rhs = case fp_app of
                     Const _ $ t =>
                     betapply (t, list_comb (Const x', next :: outer_bounds))
-                  | _ => raise TERM ("NitpickHOL.unrolled_inductive_pred_const",
-                                     [fp_app])
+                  | _ => raise TERM ("Nitpick_HOL.unrolled_inductive_pred_\
+                                     \const", [fp_app])
         val (inner, naked_rhs) = strip_abs rhs
         val all = outer @ inner
         val bounds = map Bound (length all - 1 downto 0)
@@ -1854,7 +1857,7 @@ fun raw_inductive_pred_axiom ({thy, def_table, ...} : extended_context) x =
     val outer_bounds = map Bound (length outer - 1 downto 0)
     val rhs = case fp_app of
                 Const _ $ t => betapply (t, list_comb (Const x, outer_bounds))
-              | _ => raise TERM ("NitpickHOL.raw_inductive_pred_axiom",
+              | _ => raise TERM ("Nitpick_HOL.raw_inductive_pred_axiom",
                                  [fp_app])
     val (inner, naked_rhs) = strip_abs rhs
     val all = outer @ inner
@@ -1876,7 +1879,7 @@ fun inductive_pred_axiom ext_ctxt (x as (s, T)) =
 (* extended_context -> styp -> term list *)
 fun raw_equational_fun_axioms (ext_ctxt as {thy, fast_descrs, simp_table,
                                             psimp_table, ...}) (x as (s, _)) =
-  if s mem redefined_in_NitpickDefs_thy then
+  if s mem redefined_in_Nitpick_thy then
     []
   else case def_props_for_const thy fast_descrs (!simp_table) x of
     [] => (case def_props_for_const thy fast_descrs psimp_table x of
@@ -2329,7 +2332,7 @@ fun push_quantifiers_inward thy =
                                 ts
                    (* (term * int list) list -> term *)
                    fun mk_connection [] =
-                       raise ARG ("NitpickHOL.push_quantifiers_inward.aux.\
+                       raise ARG ("Nitpick_HOL.push_quantifiers_inward.aux.\
                                   \mk_connection", "")
                      | mk_connection ts_cum_bounds =
                        ts_cum_bounds |> map fst
@@ -2720,7 +2723,7 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
              |> new_s <> "fun"
                 ? construct_value thy (@{const_name FunBox},
                                        Type ("fun", new_Ts) --> new_T) o single
-           | t' => raise TERM ("NitpickHOL.box_fun_and_pair_in_term.\
+           | t' => raise TERM ("Nitpick_HOL.box_fun_and_pair_in_term.\
                                \coerce_term", [t']))
         | (Type (new_s, new_Ts as [new_T1, new_T2]),
            Type (old_s, old_Ts as [old_T1, old_T2])) =>
@@ -2740,7 +2743,7 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
                    else @{const_name PairBox}, new_Ts ---> new_T)
                   [coerce_term Ts new_T1 old_T1 t1,
                    coerce_term Ts new_T2 old_T2 t2]
-            | t' => raise TERM ("NitpickHOL.box_fun_and_pair_in_term.\
+            | t' => raise TERM ("Nitpick_HOL.box_fun_and_pair_in_term.\
                                 \coerce_term", [t'])
           else
             raise TYPE ("coerce_term", [new_T, old_T], [t])
@@ -2753,7 +2756,7 @@ fun box_fun_and_pair_in_term (ext_ctxt as {thy, fast_descrs, ...}) def orig_t =
         (case T' of
            Type (_, [T1, T2]) =>
            fold (add_boxed_types_for_var z) [(T1, t1), (T2, t2)]
-         | _ => raise TYPE ("NitpickHOL.box_fun_and_pair_in_term.\
+         | _ => raise TYPE ("Nitpick_HOL.box_fun_and_pair_in_term.\
                             \add_boxed_types_for_var", [T'], []))
       | _ => exists_subterm (equal (Var z)) t' ? insert (op =) T
     (* typ list -> typ list -> term -> indexname * typ -> typ *)
@@ -3008,7 +3011,7 @@ fun axioms_for_term
          else
            let val accum as (xs, _) = (x :: xs, axs) in
              if depth > axioms_max_depth then
-               raise LIMIT ("NitpickHOL.axioms_for_term.add_axioms_for_term",
+               raise LIMIT ("Nitpick_HOL.axioms_for_term.add_axioms_for_term",
                             "too many nested axioms (" ^ string_of_int depth ^
                             ")")
              else if Refute.is_const_of_class thy x then
@@ -3081,7 +3084,7 @@ fun axioms_for_term
                          [] => t
                        | [(x, S)] =>
                          Refute.monomorphic_term (Vartab.make [(x, (S, T))]) t
-                       | _ => raise TERM ("NitpickHOL.axioms_for_term.\
+                       | _ => raise TERM ("Nitpick_HOL.axioms_for_term.\
                                           \add_axioms_for_sort", [t]))
               class_axioms
       in fold (add_nondef_axiom depth) monomorphic_class_axioms end

@@ -7,11 +7,11 @@ Nitpick underlying terms (nuts).
 
 signature NITPICK_NUT =
 sig
-  type special_fun = NitpickHOL.special_fun
-  type extended_context = NitpickHOL.extended_context
-  type scope = NitpickScope.scope
-  type name_pool = NitpickPeephole.name_pool
-  type rep = NitpickRep.rep
+  type special_fun = Nitpick_HOL.special_fun
+  type extended_context = Nitpick_HOL.extended_context
+  type scope = Nitpick_Scope.scope
+  type name_pool = Nitpick_Peephole.name_pool
+  type rep = Nitpick_Rep.rep
 
   datatype cst =
     Unity |
@@ -121,14 +121,14 @@ sig
   val rename_vars_in_nut : name_pool -> nut NameTable.table -> nut -> nut
 end;
 
-structure NitpickNut : NITPICK_NUT =
+structure Nitpick_Nut : NITPICK_NUT =
 struct
 
-open NitpickUtil
-open NitpickHOL
-open NitpickScope
-open NitpickPeephole
-open NitpickRep
+open Nitpick_Util
+open Nitpick_HOL
+open Nitpick_Scope
+open Nitpick_Peephole
+open Nitpick_Rep
 
 datatype cst =
   Unity |
@@ -357,16 +357,16 @@ fun nickname_of (BoundName (_, _, _, nick)) = nick
   | nickname_of (ConstName (s, _, _)) = s
   | nickname_of (BoundRel (_, _, _, nick)) = nick
   | nickname_of (FreeRel (_, _, _, nick)) = nick
-  | nickname_of u = raise NUT ("NitpickNut.nickname_of", [u])
+  | nickname_of u = raise NUT ("Nitpick_Nut.nickname_of", [u])
 
 (* nut -> bool *)
 fun is_skolem_name u =
   space_explode name_sep (nickname_of u)
   |> exists (String.isPrefix skolem_prefix)
-  handle NUT ("NitpickNut.nickname_of", _) => false
+  handle NUT ("Nitpick_Nut.nickname_of", _) => false
 fun is_eval_name u =
   String.isPrefix eval_prefix (nickname_of u)
-  handle NUT ("NitpickNut.nickname_of", _) => false
+  handle NUT ("Nitpick_Nut.nickname_of", _) => false
 (* cst -> nut -> bool *)
 fun is_Cst cst (Cst (cst', _, _)) = (cst = cst')
   | is_Cst _ _ = false
@@ -407,7 +407,7 @@ fun name_ord (BoundName (j1, _, _, _), BoundName (j2, _, _, _)) =
     (case fast_string_ord (s1, s2) of
        EQUAL => TermOrd.typ_ord (T1, T2)
      | ord => ord)
-  | name_ord (u1, u2) = raise NUT ("NitpickNut.name_ord", [u1, u2])
+  | name_ord (u1, u2) = raise NUT ("Nitpick_Nut.name_ord", [u1, u2])
 
 (* nut -> nut -> int *)
 fun num_occs_in_nut needle_u stack_u =
@@ -430,7 +430,7 @@ val add_free_and_const_names =
 fun modify_name_rep (BoundName (j, T, _, nick)) R = BoundName (j, T, R, nick)
   | modify_name_rep (FreeName (s, T, _)) R = FreeName (s, T, R)
   | modify_name_rep (ConstName (s, T, _)) R = ConstName (s, T, R)
-  | modify_name_rep u _ = raise NUT ("NitpickNut.modify_name_rep", [u])
+  | modify_name_rep u _ = raise NUT ("Nitpick_Nut.modify_name_rep", [u])
 
 structure NameTable = Table(type key = nut val ord = name_ord)
 
@@ -438,12 +438,12 @@ structure NameTable = Table(type key = nut val ord = name_ord)
 fun the_name table name =
   case NameTable.lookup table name of
     SOME u => u
-  | NONE => raise NUT ("NitpickNut.the_name", [name])
+  | NONE => raise NUT ("Nitpick_Nut.the_name", [name])
 (* nut NameTable.table -> nut -> Kodkod.n_ary_index *)
 fun the_rel table name =
   case the_name table name of
     FreeRel (x, _, _, _) => x
-  | u => raise NUT ("NitpickNut.the_rel", [u])
+  | u => raise NUT ("Nitpick_Nut.the_rel", [u])
 
 (* typ * term -> typ * term *)
 fun mk_fst (_, Const (@{const_name Pair}, T) $ t1 $ _) = (domain_type T, t1)
@@ -669,13 +669,13 @@ fun nut_from_term thy fast_descrs special_funs eq =
             (case arity_of_built_in_const fast_descrs x of
                SOME n =>
                (case n - length ts of
-                  0 => raise TERM ("NitpickNut.nut_from_term.aux", [t])
+                  0 => raise TERM ("Nitpick_Nut.nut_from_term.aux", [t])
                 | k => if k > 0 then sub (eta_expand Ts t k)
                        else do_apply t0 ts)
              | NONE => if null ts then ConstName (s, T, Any)
                        else do_apply t0 ts)
         | (Free (s, T), []) => FreeName (s, T, Any)
-        | (Var _, []) => raise TERM ("NitpickNut.nut_from_term", [t])
+        | (Var _, []) => raise TERM ("Nitpick_Nut.nut_from_term", [t])
         | (Bound j, []) =>
           BoundName (length Ts - j - 1, nth Ts j, Any, nth ss j)
         | (Abs (s, T, t1), []) =>
@@ -1106,7 +1106,7 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                  else
                    unopt_rep R
              in s_op2 Lambda T R u1' u2' end
-           | R => raise NUT ("NitpickNut.aux.choose_reps_in_nut", [u]))
+           | R => raise NUT ("Nitpick_Nut.aux.choose_reps_in_nut", [u]))
         | Op2 (oper, T, _, u1, u2) =>
           if oper mem [All, Exist] then
             let
@@ -1274,9 +1274,9 @@ fun shape_tuple (T as Type ("*", [T1, T2])) (R as Struct [R1, R2]) us =
   | shape_tuple (T as Type ("fun", [_, T2])) (R as Vect (k, R')) us =
     Tuple (T, R, map (shape_tuple T2 R') (batch_list (length us div k) us))
   | shape_tuple T R [u] =
-    if type_of u = T then u else raise NUT ("NitpickNut.shape_tuple", [u])
+    if type_of u = T then u else raise NUT ("Nitpick_Nut.shape_tuple", [u])
   | shape_tuple T Unit [] = Cst (Unity, T, Unit)
-  | shape_tuple _ _ us = raise NUT ("NitpickNut.shape_tuple", us)
+  | shape_tuple _ _ us = raise NUT ("Nitpick_Nut.shape_tuple", us)
 
 (* bool -> nut -> nut list * name_pool * nut NameTable.table
    -> nut list * name_pool * nut NameTable.table *)

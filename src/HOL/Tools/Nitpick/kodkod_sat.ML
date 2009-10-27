@@ -12,13 +12,15 @@ sig
   val sat_solver_spec : string -> string * string list
 end;
 
-structure KodkodSAT : KODKOD_SAT =
+structure Kodkod_SAT : KODKOD_SAT =
 struct
 
 datatype sink = ToStdout | ToFile
+datatype availability = Java | JNI
+datatype mode = Batch | Incremental
 
 datatype sat_solver_info =
-  Internal of bool * string list |
+  Internal of availability * mode * string list |
   External of sink * string * string * string list |
   ExternalV2 of sink * string * string * string list * string * string * string
 
@@ -26,9 +28,11 @@ val berkmin_exec = getenv "BERKMIN_EXE"
 
 (* (string * sat_solver_info) list *)
 val static_list =
-  [("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
+  [("MiniSatJNI", Internal (JNI, Incremental, ["MiniSat"])),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
                            "UNSAT")),
    ("PicoSAT", External (ToStdout, "PICOSAT_HOME", "picosat", [])),
+   ("zChaffJNI", Internal (JNI, Batch, ["zChaff"])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
@@ -40,10 +44,8 @@ val static_list =
                            "solution =", "UNSATISFIABLE          !!")),
    ("BerkMinAlloy", External (ToStdout, "BERKMINALLOY_HOME", "berkmin", [])),
    ("Jerusat", External (ToStdout, "JERUSAT_HOME", "Jerusat1.3", [])),
-   ("SAT4J", Internal (true, ["DefaultSAT4J"])),
-   ("MiniSatJNI", Internal (true, ["MiniSat"])),
-   ("zChaffJNI", Internal (false, ["zChaff"])),
-   ("SAT4JLight", Internal (true, ["LightSAT4J"])),
+   ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
+   ("SAT4JLight", Internal (Java, Incremental, ["LightSAT4J"])),
    ("HaifaSat", ExternalV2 (ToStdout, "HAIFASAT_HOME", "HaifaSat", ["-p", "1"],
                             "s SATISFIABLE", "v ", "s UNSATISFIABLE"))]
 
@@ -72,13 +74,27 @@ fun dynamic_entry_for_external name dev home exec args markers =
                           end)
 (* bool -> string * sat_solver_info
    -> (string * (unit -> string list)) option *)
-fun dynamic_entry_for_info false (name, Internal (_, ss)) = SOME (name, K ss)
+fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
+    if incremental andalso mode = Batch then NONE else SOME (name, K ss)
+  | dynamic_entry_for_info incremental (name, Internal (JNI, mode, ss)) =
+    if incremental andalso mode = Batch then
+      NONE
+    else
+      let
+        val lib_paths = getenv "KODKODI_JAVA_LIBRARY_PATH"
+                        |> space_explode ":"
+      in
+        if exists (fn path => File.exists (Path.explode (path ^ "/")))
+                  lib_paths then
+          SOME (name, K ss)
+        else
+          NONE
+      end
   | dynamic_entry_for_info false (name, External (dev, home, exec, args)) =
     dynamic_entry_for_external name dev home exec args []
   | dynamic_entry_for_info false (name, ExternalV2 (dev, home, exec, args,
                                                     m1, m2, m3)) =
     dynamic_entry_for_external name dev home exec args [m1, m2, m3]
-  | dynamic_entry_for_info true (name, Internal (true, ss)) = SOME (name, K ss)
   | dynamic_entry_for_info true _ = NONE
 (* bool -> (string * (unit -> string list)) list *)
 fun dynamic_list incremental =
