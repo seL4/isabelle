@@ -589,7 +589,7 @@ fun type_ext thy tms =
 (* ------------------------------------------------------------------------- *)
 
 type logic_map =
-  {axioms : (Metis.Thm.thm * Thm.thm) list,
+  {axioms : (Metis.Thm.thm * thm) list,
    tfrees : ResClause.type_literal list};
 
 fun const_in_metis c (pred, tm_list) =

@@ -10,17 +10,17 @@ sig
   val fix_sorts: sort Vartab.table -> term -> term
   val invert_const: string -> string
   val invert_type_const: string -> string
-  val num_typargs: Context.theory -> string -> int
+  val num_typargs: theory -> string -> int
   val make_tvar: string -> typ
   val strip_prefix: string -> string -> string option
-  val setup: Context.theory -> Context.theory
+  val setup: theory -> theory
   (* extracting lemma list*)
   val find_failure: string -> string option
   val lemma_list: bool -> string ->
-    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string * string list
+    string * string vector * (int * int) * Proof.context * thm * int -> string * string list
   (* structured proofs *)
   val structured_proof: string ->
-    string * string vector * (int * int) * Proof.context * Thm.thm * int -> string * string list
+    string * string vector * (int * int) * Proof.context * thm * int -> string * string list
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =

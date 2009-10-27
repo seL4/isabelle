@@ -74,7 +74,7 @@ sig
   val get_rec_types : descr -> (string * sort) list -> typ list
   val interpret_construction : descr -> (string * sort) list
     -> { atyp: typ -> 'a, dtyp: typ list -> int * bool -> string * typ list -> 'a }
-    -> ((string * Term.typ list) * (string * 'a list) list) list
+    -> ((string * typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
   val unfold_datatypes : 
     theory -> descr -> (string * sort) list -> info Symtab.table ->

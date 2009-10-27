@@ -37,9 +37,9 @@ sig
 	val eval : (int -> bool) -> prop_formula -> bool  (* semantics *)
 
 	(* propositional representation of HOL terms *)
-	val prop_formula_of_term : Term.term -> int Termtab.table -> prop_formula * int Termtab.table
+	val prop_formula_of_term : term -> int Termtab.table -> prop_formula * int Termtab.table
 	(* HOL term representation of propositional formulae *)
-	val term_of_prop_formula : prop_formula -> Term.term
+	val term_of_prop_formula : prop_formula -> term
 end;
 
 structure PropLogic : PROP_LOGIC =

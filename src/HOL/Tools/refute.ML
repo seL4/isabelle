@@ -25,16 +25,15 @@ sig
 
   exception MAXVARS_EXCEEDED
 
-  val add_interpreter : string -> (theory -> model -> arguments -> Term.term ->
+  val add_interpreter : string -> (theory -> model -> arguments -> term ->
     (interpretation * model * arguments) option) -> theory -> theory
-  val add_printer     : string -> (theory -> model -> Term.typ ->
-    interpretation -> (int -> bool) -> Term.term option) -> theory -> theory
+  val add_printer     : string -> (theory -> model -> typ ->
+    interpretation -> (int -> bool) -> term option) -> theory -> theory
 
-  val interpret : theory -> model -> arguments -> Term.term ->
+  val interpret : theory -> model -> arguments -> term ->
     (interpretation * model * arguments)
 
-  val print       : theory -> model -> Term.typ -> interpretation ->
-    (int -> bool) -> Term.term
+  val print       : theory -> model -> typ -> interpretation -> (int -> bool) -> term
   val print_model : theory -> model -> (int -> bool) -> string
 
 (* ------------------------------------------------------------------------- *)
@@ -46,10 +45,10 @@ sig
   val get_default_params : theory -> (string * string) list
   val actual_params      : theory -> (string * string) list -> params
 
-  val find_model : theory -> params -> Term.term -> bool -> unit
+  val find_model : theory -> params -> term -> bool -> unit
 
   (* tries to find a model for a formula: *)
-  val satisfy_term   : theory -> (string * string) list -> Term.term -> unit
+  val satisfy_term   : theory -> (string * string) list -> term -> unit
   (* tries to find a model that refutes a formula: *)
   val refute_term : theory -> (string * string) list -> term -> unit
   val refute_goal : theory -> (string * string) list -> thm -> int -> unit
@@ -60,20 +59,18 @@ sig
 (* Additional functions used by Nitpick (to be factored out)                 *)
 (* ------------------------------------------------------------------------- *)
 
-  val close_form : Term.term -> Term.term
-  val get_classdef : theory -> string -> (string * Term.term) option
-  val norm_rhs : Term.term -> Term.term
-  val get_def : theory -> string * Term.typ -> (string * Term.term) option
-  val get_typedef : theory -> Term.typ -> (string * Term.term) option
-  val is_IDT_constructor : theory -> string * Term.typ -> bool
-  val is_IDT_recursor : theory -> string * Term.typ -> bool
-  val is_const_of_class: theory -> string * Term.typ -> bool
-  val monomorphic_term : Type.tyenv -> Term.term -> Term.term
-  val specialize_type : theory -> (string * Term.typ) -> Term.term -> Term.term
-  val string_of_typ : Term.typ -> string
-  val typ_of_dtyp :
-    Datatype.descr -> (Datatype.dtyp * Term.typ) list -> Datatype.dtyp
-    -> Term.typ
+  val close_form : term -> term
+  val get_classdef : theory -> string -> (string * term) option
+  val norm_rhs : term -> term
+  val get_def : theory -> string * typ -> (string * term) option
+  val get_typedef : theory -> typ -> (string * term) option
+  val is_IDT_constructor : theory -> string * typ -> bool
+  val is_IDT_recursor : theory -> string * typ -> bool
+  val is_const_of_class: theory -> string * typ -> bool
+  val monomorphic_term : Type.tyenv -> term -> term
+  val specialize_type : theory -> (string * typ) -> term -> term
+  val string_of_typ : typ -> string
+  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
 end;  (* signature REFUTE *)
 
 structure Refute : REFUTE =
@@ -185,7 +182,7 @@ struct
 (* ------------------------------------------------------------------------- *)
 
   type model =
-    (Term.typ * int) list * (Term.term * interpretation) list;
+    (typ * int) list * (term * interpretation) list;
 
 (* ------------------------------------------------------------------------- *)
 (* arguments: additional arguments required during interpretation of terms   *)
@@ -207,10 +204,10 @@ struct
   structure RefuteData = TheoryDataFun
   (
     type T =
-      {interpreters: (string * (theory -> model -> arguments -> Term.term ->
+      {interpreters: (string * (theory -> model -> arguments -> term ->
         (interpretation * model * arguments) option)) list,
-       printers: (string * (theory -> model -> Term.typ -> interpretation ->
-        (int -> bool) -> Term.term option)) list,
+       printers: (string * (theory -> model -> typ -> interpretation ->
+        (int -> bool) -> term option)) list,
        parameters: string Symtab.table};
     val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
     val copy = I;

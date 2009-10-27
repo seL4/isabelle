@@ -92,8 +92,8 @@ fun lit_ord (i, j) =
 (* ------------------------------------------------------------------------- *)
 
 datatype CLAUSE = NO_CLAUSE
-                | ORIG_CLAUSE of Thm.thm
-                | RAW_CLAUSE of Thm.thm * (int * Thm.cterm) list;
+                | ORIG_CLAUSE of thm
+                | RAW_CLAUSE of thm * (int * cterm) list;
 
 (* ------------------------------------------------------------------------- *)
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)

@@ -8,7 +8,7 @@ sig
   type seed = Random_Engine.seed
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
-    -> seed -> (('a -> 'b) * (unit -> Term.term)) * seed
+    -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val ensure_random_typecopy: string -> theory -> theory
   val random_aux_specification: string -> string -> term list -> local_theory -> local_theory
   val mk_random_aux_eqs: theory -> Datatype.descr -> (string * sort) list

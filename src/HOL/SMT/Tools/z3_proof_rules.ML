@@ -13,7 +13,7 @@ sig
 
   (*proof reconstruction*)
   type proof
-  val make_proof: rule -> int list -> Thm.cterm * Thm.cterm list -> proof
+  val make_proof: rule -> int list -> cterm * cterm list -> proof
   val prove: Proof.context -> thm list option -> proof Inttab.table -> int ->
     thm
 
@@ -103,11 +103,11 @@ datatype proof =
   Unproved of {
     rule: rule,
     subs: int list,
-    prop: Thm.cterm,
-    vars: Thm.cterm list } |
+    prop: cterm,
+    vars: cterm list } |
   Sequent of {
-    hyps: Thm.cterm list,
-    vars: Thm.cterm list,
+    hyps: cterm list,
+    vars: cterm list,
     thm: theorem }
 
 fun make_proof r ps (ct, cvs) = Unproved {rule=r, subs=ps, prop=ct, vars=cvs}
