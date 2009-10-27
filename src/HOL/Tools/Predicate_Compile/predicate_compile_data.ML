@@ -8,7 +8,8 @@ sig
   type specification_table;
   val make_const_spec_table : theory -> specification_table
   val get_specification :  specification_table -> string -> thm list
-  val obtain_specification_graph : theory -> specification_table -> string -> thm list Graph.T
+  val obtain_specification_graph : Predicate_Compile_Aux.options -> theory ->
+    specification_table -> string -> thm list Graph.T
   val normalize_equation : theory -> thm -> thm
 end;
 
@@ -186,7 +187,13 @@ val special_cases = member (op =) [
 
 fun case_consts thy s = is_some (Datatype.info_of_case thy s)
 
-fun obtain_specification_graph thy table constname =
+fun print_specification options thy constname specs = 
+  if show_intermediate_results options then
+    tracing ("Specification of " ^ constname ^ ":\n" ^
+      cat_lines (map (Display.string_of_thm_global thy) specs))
+  else ()
+
+fun obtain_specification_graph options thy table constname =
   let
     fun is_nondefining_constname c = member (op =) logic_operator_names c
     val is_defining_constname = member (op =) (Symtab.keys table)
@@ -201,6 +208,7 @@ fun obtain_specification_graph thy table constname =
     fun extend constname =
       let
         val specs = get_specification table constname
+        val _ = print_specification options thy constname specs
       in (specs, defiants_of specs) end;
   in
     Graph.extend extend constname Graph.empty

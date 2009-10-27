@@ -99,7 +99,7 @@ fun preprocess options const thy =
   let
     val _ = print_step options "Fetching definitions from theory..."
     val table = Predicate_Compile_Data.make_const_spec_table thy
-    val gr = Predicate_Compile_Data.obtain_specification_graph thy table const
+    val gr = Predicate_Compile_Data.obtain_specification_graph options thy table const
     val gr = Graph.subgraph (member (op =) (Graph.all_succs gr [const])) gr
   in fold_rev (preprocess_strong_conn_constnames options gr)
     (Graph.strong_conn gr) thy
