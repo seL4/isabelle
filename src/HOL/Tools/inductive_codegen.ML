@@ -41,7 +41,7 @@ structure CodegenData = TheoryDataFun
 fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
   Display.string_of_thm_without_context thm);
 
-fun add_node (g, x) = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
+fun add_node x g = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
 
 fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping (fn thy =>
   let
@@ -72,7 +72,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
            Symtab.update (s, (AList.update Thm.eq_thm_prop
              (thm, (thyname_of s, nparms)) rules)),
            graph = List.foldr (uncurry (Graph.add_edge o pair s))
-             (Library.foldl add_node (graph, s :: cs)) cs,
+             (fold add_node (s :: cs) graph) cs,
            eqns = eqns} thy
         end
     | _ => (warn thm; thy))
@@ -266,19 +266,22 @@ fun mk_tuple xs = Pretty.block (str "(" ::
   flat (separate [str ",", Pretty.brk 1] (map single xs)) @
   [str ")"]);
 
-fun mk_v ((names, vs), s) = (case AList.lookup (op =) vs s of
-      NONE => ((names, (s, [s])::vs), s)
-    | SOME xs => let val s' = Name.variant names s in
-        ((s'::names, AList.update (op =) (s, s'::xs) vs), s') end);
+fun mk_v s (names, vs) =
+  (case AList.lookup (op =) vs s of
+    NONE => (s, (names, (s, [s])::vs))
+  | SOME xs =>
+      let val s' = Name.variant names s
+      in (s', (s'::names, AList.update (op =) (s, s'::xs) vs)) end);
 
-fun distinct_v (nvs, Var ((s, 0), T)) =
-      apsnd (Var o rpair T o rpair 0) (mk_v (nvs, s))
-  | distinct_v (nvs, t $ u) =
+fun distinct_v (Var ((s, 0), T)) nvs =
+      let val (s', nvs') = mk_v s nvs
+      in (Var ((s', 0), T), nvs') end
+  | distinct_v (t $ u) nvs =
       let
-        val (nvs', t') = distinct_v (nvs, t);
-        val (nvs'', u') = distinct_v (nvs', u);
-      in (nvs'', t' $ u') end
-  | distinct_v x = x;
+        val (t', nvs') = distinct_v t nvs;
+        val (u', nvs'') = distinct_v u nvs';
+      in (t' $ u', nvs'') end
+  | distinct_v t nvs = (t, nvs);
 
 fun is_exhaustive (Var _) = true
   | is_exhaustive (Const ("Pair", _) $ t $ u) =
@@ -346,30 +349,29 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
 
-    fun check_constrt ((names, eqs), t) =
-      if is_constrt thy t then ((names, eqs), t) else
+    fun check_constrt t (names, eqs) =
+      if is_constrt thy t then (t, (names, eqs))
+      else
         let val s = Name.variant names "x";
-        in ((s::names, (s, t)::eqs), Var ((s, 0), fastype_of t)) end;
+        in (Var ((s, 0), fastype_of t), (s::names, (s, t)::eqs)) end;
 
     fun compile_eq (s, t) gr =
       apfst (Pretty.block o cons (str (s ^ " = ")) o single)
         (invoke_codegen thy defs dep module false t gr);
 
     val (in_ts, out_ts) = get_args is 1 ts;
-    val ((all_vs', eqs), in_ts') =
-      Library.foldl_map check_constrt ((all_vs, []), in_ts);
+    val (in_ts', (all_vs', eqs)) = fold_map check_constrt in_ts (all_vs, []);
 
     fun compile_prems out_ts' vs names [] gr =
           let
-            val (out_ps, gr2) = fold_map
-              (invoke_codegen thy defs dep module false) out_ts gr;
+            val (out_ps, gr2) =
+              fold_map (invoke_codegen thy defs dep module false) out_ts gr;
             val (eq_ps, gr3) = fold_map compile_eq eqs gr2;
-            val ((names', eqs'), out_ts'') =
-              Library.foldl_map check_constrt ((names, []), out_ts');
-            val (nvs, out_ts''') = Library.foldl_map distinct_v
-              ((names', map (fn x => (x, [x])) vs), out_ts'');
-            val (out_ps', gr4) = fold_map
-              (invoke_codegen thy defs dep module false) (out_ts''') gr3;
+            val (out_ts'', (names', eqs')) = fold_map check_constrt out_ts' (names, []);
+            val (out_ts''', nvs) =
+              fold_map distinct_v out_ts'' (names', map (fn x => (x, [x])) vs);
+            val (out_ps', gr4) =
+              fold_map (invoke_codegen thy defs dep module false) out_ts''' gr3;
             val (eq_ps', gr5) = fold_map compile_eq eqs' gr4;
           in
             (compile_match (snd nvs) (eq_ps @ eq_ps') out_ps'
@@ -379,15 +381,11 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
       | compile_prems out_ts vs names ps gr =
           let
             val vs' = distinct (op =) (flat (vs :: map term_vs out_ts));
-            val SOME (p, mode as SOME (Mode (_, js, _))) =
-              select_mode_prem thy modes' vs' ps;
+            val SOME (p, mode as SOME (Mode (_, js, _))) = select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;
-            val ((names', eqs), out_ts') =
-              Library.foldl_map check_constrt ((names, []), out_ts);
-            val (nvs, out_ts'') = Library.foldl_map distinct_v
-              ((names', map (fn x => (x, [x])) vs), out_ts');
-            val (out_ps, gr0) = fold_map
-              (invoke_codegen thy defs dep module false) out_ts'' gr;
+            val (out_ts', (names', eqs)) = fold_map check_constrt out_ts (names, []);
+            val (out_ts'', nvs) = fold_map distinct_v out_ts' (names', map (fn x => (x, [x])) vs);
+            val (out_ps, gr0) = fold_map (invoke_codegen thy defs dep module false) out_ts'' gr;
             val (eq_ps, gr1) = fold_map compile_eq eqs gr0;
           in
             (case p of
@@ -480,19 +478,22 @@ fun print_arities arities = message ("Arities:\n" ^
 fun prep_intrs intrs = map (rename_term o #prop o rep_thm o Drule.standard) intrs;
 
 fun constrain cs [] = []
-  | constrain cs ((s, xs) :: ys) = (s, case AList.lookup (op =) cs (s : string) of
-      NONE => xs
-    | SOME xs' => inter (op =) xs' xs) :: constrain cs ys;
+  | constrain cs ((s, xs) :: ys) =
+      (s,
+        case AList.lookup (op =) cs (s : string) of
+          NONE => xs
+        | SOME xs' => inter (op =) xs' xs) :: constrain cs ys;
 
 fun mk_extra_defs thy defs gr dep names module ts =
-  Library.foldl (fn (gr, name) =>
+  fold (fn name => fn gr =>
     if name mem names then gr
-    else (case get_clauses thy name of
+    else
+      (case get_clauses thy name of
         NONE => gr
       | SOME (names, thyname, nparms, intrs) =>
           mk_ind_def thy defs gr dep names (if_library thyname module)
             [] (prep_intrs intrs) nparms))
-            (gr, fold Term.add_const_names ts [])
+    (fold Term.add_const_names ts []) gr
 
 and mk_ind_def thy defs gr dep names module modecs intrs nparms =
   add_edge_acyclic (hd names, dep) gr handle
@@ -562,17 +563,16 @@ fun mk_ind_call thy defs dep module is_query s T ts names thyname k intrs gr =
     val (ts1, ts2) = chop k ts;
     val u = list_comb (Const (s, T), ts1);
 
-    fun mk_mode (((ts, mode), i), Const ("dummy_pattern", _)) =
-          ((ts, mode), i+1)
-      | mk_mode (((ts, mode), i), t) = ((ts @ [t], mode @ [i]), i+1);
+    fun mk_mode (Const ("dummy_pattern", _)) ((ts, mode), i) = ((ts, mode), i + 1)
+      | mk_mode t ((ts, mode), i) = ((ts @ [t], mode @ [i]), i + 1);
 
     val module' = if_library thyname module;
     val gr1 = mk_extra_defs thy defs
       (mk_ind_def thy defs gr dep names module'
       [] (prep_intrs intrs) k) dep names module' [u];
     val (modes, _) = lookup_modes gr1 dep;
-    val (ts', is) = if is_query then
-        fst (Library.foldl mk_mode ((([], []), 1), ts2))
+    val (ts', is) =
+      if is_query then fst (fold mk_mode ts2 (([], []), 1))
       else (ts2, 1 upto length (binder_types T) - k);
     val mode = find_mode gr1 dep s u modes is;
     val (in_ps, gr2) = fold_map (invoke_codegen thy defs dep module true) ts' gr1;
@@ -697,8 +697,9 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
 
 val setup =
   add_codegen "inductive" inductive_codegen #>
-  Attrib.setup @{binding code_ind} (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) --
-    Scan.option (Args.$$$ "params" |-- Args.colon |-- OuterParse.nat) >> uncurry add))
+  Attrib.setup @{binding code_ind}
+    (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) --
+      Scan.option (Args.$$$ "params" |-- Args.colon |-- OuterParse.nat) >> uncurry add))
     "introduction rules for executable predicates";
 
 end;

@@ -255,9 +255,8 @@ fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) s
 (* find all non-recursive types in datatype description *)
 
 fun get_nonrec_types descr sorts =
-  map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
-    Library.foldl (fn (Ts', (_, cargs)) =>
-      union (op =) (filter_out is_rec_type cargs) Ts') (Ts, constrs)) ([], descr));
+  map (typ_of_dtyp descr sorts) (fold (fn (_, (_, _, constrs)) =>
+    fold (fn (_, cargs) => union (op =) (filter_out is_rec_type cargs)) constrs) descr []);
 
 (* get all recursive types in datatype description *)
 
@@ -335,7 +334,7 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
 
     (* unfold a single constructor argument *)
 
-    fun unfold_arg ((i, Ts, descrs), T) =
+    fun unfold_arg T (i, Ts, descrs) =
       if is_rec_type T then
         let val (Us, U) = strip_dtyp T
         in if exists is_rec_type Us then
@@ -353,19 +352,17 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
 
     (* unfold a constructor *)
 
-    fun unfold_constr ((i, constrs, descrs), (cname, cargs)) =
-      let val (i', cargs', descrs') = Library.foldl unfold_arg ((i, [], descrs), cargs)
+    fun unfold_constr (cname, cargs) (i, constrs, descrs) =
+      let val (i', cargs', descrs') = fold unfold_arg cargs (i, [], descrs)
       in (i', constrs @ [(cname, cargs')], descrs') end;
 
     (* unfold a single datatype *)
 
-    fun unfold_datatype ((i, dtypes, descrs), (j, (tname, tvars, constrs))) =
-      let val (i', constrs', descrs') =
-        Library.foldl unfold_constr ((i, [], descrs), constrs)
-      in (i', dtypes @ [(j, (tname, tvars, constrs'))], descrs')
-      end;
+    fun unfold_datatype (j, (tname, tvars, constrs)) (i, dtypes, descrs) =
+      let val (i', constrs', descrs') = fold unfold_constr constrs (i, [], descrs)
+      in (i', dtypes @ [(j, (tname, tvars, constrs'))], descrs') end;
 
-    val (i', descr', descrs) = Library.foldl unfold_datatype ((i, [],[]), descr);
+    val (i', descr', descrs) = fold unfold_datatype descr (i, [], []);
 
   in (descr' :: descrs, i') end;
 

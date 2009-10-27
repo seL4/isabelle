@@ -29,8 +29,7 @@ sig
   val make_case :  Proof.context -> DatatypeCase.config -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
-  val read_typ: theory ->
-    (typ list * (string * sort) list) * string -> typ list * (string * sort) list
+  val read_typ: theory -> string -> (string * sort) list -> typ * (string * sort) list
   val setup: theory -> theory
 end;
 
@@ -160,23 +159,24 @@ fun get_constrs thy dtco =
 
 (* prepare datatype specifications *)
 
-fun read_typ thy ((Ts, sorts), str) =
+fun read_typ thy str sorts =
   let
     val ctxt = ProofContext.init thy
       |> fold (Variable.declare_typ o TFree) sorts;
     val T = Syntax.read_typ ctxt str;
-  in (Ts @ [T], Term.add_tfreesT T sorts) end;
+  in (T, Term.add_tfreesT T sorts) end;
 
-fun cert_typ sign ((Ts, sorts), raw_T) =
+fun cert_typ sign raw_T sorts =
   let
-    val T = Type.no_tvars (Sign.certify_typ sign raw_T) handle
-      TYPE (msg, _, _) => error msg;
+    val T = Type.no_tvars (Sign.certify_typ sign raw_T)
+      handle TYPE (msg, _, _) => error msg;
     val sorts' = Term.add_tfreesT T sorts;
-  in (Ts @ [T],
+    val _ =
       case duplicates (op =) (map fst sorts') of
-         [] => sorts'
-       | dups => error ("Inconsistent sort constraints for " ^ commas dups))
-  end;
+        [] => ()
+      | dups => error ("Inconsistent sort constraints for " ^ commas dups)
+  in (T, sorts') end;
+
 
 (* case names *)
 
@@ -460,8 +460,9 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
       let
         fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
           let
-            val (cargs', sorts'') = Library.foldl (prep_typ tmp_thy) (([], sorts'), cargs);
-            val _ = (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
+            val (cargs', sorts'') = fold_map (prep_typ tmp_thy) cargs sorts';
+            val _ =
+              (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [(Sign.full_name_path tmp_thy tname'

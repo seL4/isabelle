@@ -65,9 +65,9 @@ fun mk_suffix thy defs (s, T) = (case get_defn thy defs s T of
 
 exception EQN of string * typ * string;
 
-fun cycle g (xs, x : string) =
+fun cycle g x xs =
   if member (op =) xs x then xs
-  else Library.foldl (cycle g) (x :: xs, flat (Graph.all_paths (fst g) (x, x)));
+  else fold (cycle g) (flat (Graph.all_paths (fst g) (x, x))) (x :: xs);
 
 fun add_rec_funs thy defs dep module eqs gr =
   let
@@ -107,7 +107,7 @@ fun add_rec_funs thy defs dep module eqs gr =
            val gr1 = add_edge (dname, dep)
              (new_node (dname, (SOME (EQN (s, T, "")), module, "")) gr);
            val (fundef, gr2) = mk_fundef module "" true eqs' gr1 ;
-           val xs = cycle gr2 ([], dname);
+           val xs = cycle gr2 dname [];
            val cs = map (fn x => case get_node gr2 x of
                (SOME (EQN (s, T, _)), _, _) => (s, T)
              | _ => error ("RecfunCodegen: illegal cyclic dependencies:\n" ^

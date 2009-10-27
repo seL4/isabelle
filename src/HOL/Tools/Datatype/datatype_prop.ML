@@ -221,7 +221,7 @@ fun make_primrecs new_type_names descr sorts thy =
       (Const (name, reccomb_fn_Ts @ [T] ---> T'), rec_fns))
         (reccomb_names ~~ recTs ~~ rec_result_Ts);
 
-    fun make_primrec T comb_t ((ts, f::fs), (cname, cargs)) =
+    fun make_primrec T comb_t (cname, cargs) (ts, f::fs) =
       let
         val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
@@ -242,11 +242,12 @@ fun make_primrecs new_type_names descr sorts thy =
       in (ts @ [HOLogic.mk_Trueprop (HOLogic.mk_eq
         (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
          list_comb (f, frees @ reccombs')))], fs)
-      end
+      end;
 
-  in fst (Library.foldl (fn (x, ((dt, T), comb_t)) =>
-    Library.foldl (make_primrec T comb_t) (x, #3 (snd dt)))
-      (([], rec_fns), descr' ~~ recTs ~~ reccombs))
+  in
+    fold (fn ((dt, T), comb_t) => fold (make_primrec T comb_t) (#3 (snd dt)))
+      (descr' ~~ recTs ~~ reccombs) ([], rec_fns)
+    |> fst
   end;
 
 (****************** make terms of form  t_case f1 ... fn  *********************)
