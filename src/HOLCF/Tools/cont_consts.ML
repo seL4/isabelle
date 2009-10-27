@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Tools/cont_consts.ML
-    ID:         $Id$
     Author:     Tobias Mayr, David von Oheimb, and Markus Wenzel
 
 HOLCF version of consts: handle continuous function types in mixfix
@@ -12,7 +11,7 @@ sig
   val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
 end;
 
-structure ContConsts :> CONT_CONSTS =
+structure ContConsts: CONT_CONSTS =
 struct
 
 
@@ -29,18 +28,23 @@ fun change_arrow 0 T               = T
 |   change_arrow n (Type(_,[S,T])) = Type ("fun",[S,change_arrow (n-1) T])
 |   change_arrow _ _               = sys_error "cont_consts: change_arrow";
 
-fun trans_rules name2 name1 n mx = let
-  fun argnames _ 0 = []
-  |   argnames c n = chr c::argnames (c+1) (n-1);
-  val vnames = argnames (ord "A") n;
-  val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1);
-  in [Syntax.ParsePrintRule (Syntax.mk_appl (Constant name2) (map Variable vnames),
-                          Library.foldl (fn (t,arg) => (Syntax.mk_appl (Constant "Rep_CFun")
-                                                [t,Variable arg]))
-                          (Constant name1,vnames))]
-     @(case mx of InfixName _ => [extra_parse_rule]
-                | InfixlName _ => [extra_parse_rule]
-                | InfixrName _ => [extra_parse_rule] | _ => []) end;
+fun trans_rules name2 name1 n mx =
+  let
+    fun argnames _ 0 = []
+    |   argnames c n = chr c::argnames (c+1) (n-1);
+    val vnames = argnames (ord "A") n;
+    val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1);
+  in
+    [Syntax.ParsePrintRule
+      (Syntax.mk_appl (Constant name2) (map Variable vnames),
+        fold (fn arg => fn t => Syntax.mk_appl (Constant "Rep_CFun") [t, Variable arg])
+          vnames (Constant name1))] @
+    (case mx of
+      InfixName _ => [extra_parse_rule]
+    | InfixlName _ => [extra_parse_rule]
+    | InfixrName _ => [extra_parse_rule]
+    | _ => [])
+  end;
 
 
 (* transforming infix/mixfix declarations of constants with type ...->...
@@ -59,7 +63,8 @@ fun fix_mixfix (syn                 , T, mx as Infix           p ) =
                (const_binding mx syn, T,       InfixrName (Binding.name_of syn, p))
   | fix_mixfix decl = decl;
 
-fun transform decl = let
+fun transform decl =
+    let
         val (c, T, mx) = fix_mixfix decl;
         val c1 = Binding.name_of c;
         val c2 = "_cont_" ^ c1;

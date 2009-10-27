@@ -40,11 +40,11 @@ fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_prf
 
 fun mk_var env Ts T =
   let val (env', v) = Envir.genvar "a" (env, rev Ts ---> T)
-  in (env', list_comb (v, map Bound (length Ts - 1 downto 0))) end;
+  in (list_comb (v, map Bound (length Ts - 1 downto 0)), env') end;
 
-fun mk_tvar (Envir.Envir {maxidx, tenv, tyenv}, s) =
-  (Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv},
-   TVar (("'t", maxidx + 1), s));
+fun mk_tvar S (Envir.Envir {maxidx, tenv, tyenv}) =
+  (TVar (("'t", maxidx + 1), S),
+    Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv});
 
 val mk_abs = fold (fn T => fn u => Abs ("", T, u));
 
@@ -73,14 +73,14 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
   | infer_type thy env Ts vTs (t as Free (s, T)) =
       if T = dummyT then (case Symtab.lookup vTs s of
           NONE =>
-            let val (env', T) = mk_tvar (env, [])
+            let val (T, env') = mk_tvar [] env
             in (Free (s, T), T, Symtab.update_new (s, T) vTs, env') end
         | SOME T => (Free (s, T), T, vTs, env))
       else (t, T, vTs, env)
   | infer_type thy env Ts vTs (Var _) = error "reconstruct_proof: internal error"
   | infer_type thy env Ts vTs (Abs (s, T, t)) =
       let
-        val (env', T') = if T = dummyT then mk_tvar (env, []) else (env, T);
+        val (T', env') = if T = dummyT then mk_tvar [] env else (T, env);
         val (t', U, vTs', env'') = infer_type thy env' (T' :: Ts) vTs t
       in (Abs (s, T', t'), T' --> U, vTs', env'') end
   | infer_type thy env Ts vTs (t $ u) =
@@ -90,7 +90,7 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
       in (case chaseT env2 T of
           Type ("fun", [U', V]) => (t' $ u', V, vTs2, unifyT thy env2 U U')
         | _ =>
-          let val (env3, V) = mk_tvar (env2, [])
+          let val (V, env3) = mk_tvar [] env2
           in (t' $ u', V, vTs2, unifyT thy env3 T (U --> V)) end)
       end
   | infer_type thy env Ts vTs (t as Bound i) = ((t, nth Ts i, vTs, env)
@@ -99,21 +99,24 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
 fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
   Syntax.string_of_term_global thy t ^ "\n\n" ^ Syntax.string_of_term_global thy u);
 
-fun decompose thy Ts (env, p as (t, u)) =
-  let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify thy p
-    else apsnd flat (Library.foldl_map (decompose thy Ts) (uT env T U, ts ~~ us))
-  in case pairself (strip_comb o Envir.head_norm env) p of
+fun decompose thy Ts (p as (t, u)) env =
+  let
+    fun rigrig (a, T) (b, U) uT ts us =
+      if a <> b then cantunify thy p
+      else apfst flat (fold_map (decompose thy Ts) (ts ~~ us) (uT env T U))
+  in
+    case pairself (strip_comb o Envir.head_norm env) p of
       ((Const c, ts), (Const d, us)) => rigrig c d (unifyT thy) ts us
     | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT thy) ts us
     | ((Bound i, ts), (Bound j, us)) =>
         rigrig (i, dummyT) (j, dummyT) (K o K) ts us
     | ((Abs (_, T, t), []), (Abs (_, U, u), [])) =>
-        decompose thy (T::Ts) (unifyT thy env T U, (t, u))
+        decompose thy (T::Ts) (t, u) (unifyT thy env T U)
     | ((Abs (_, T, t), []), _) =>
-        decompose thy (T::Ts) (env, (t, incr_boundvars 1 u $ Bound 0))
+        decompose thy (T::Ts) (t, incr_boundvars 1 u $ Bound 0) env
     | (_, (Abs (_, T, u), [])) =>
-        decompose thy (T::Ts) (env, (incr_boundvars 1 t $ Bound 0, u))
-    | _ => (env, [(mk_abs Ts t, mk_abs Ts u)])
+        decompose thy (T::Ts) (incr_boundvars 1 t $ Bound 0, u) env
+    | _ => ([(mk_abs Ts t, mk_abs Ts u)], env)
   end;
 
 fun make_constraints_cprf thy env cprf =
@@ -125,7 +128,7 @@ fun make_constraints_cprf thy env cprf =
       in
         (prop, prf, cs, Pattern.unify thy (t', u') env, vTs)
         handle Pattern.Pattern =>
-            let val (env', cs') = decompose thy [] (env, (t', u'))
+            let val (cs', env') = decompose thy [] (t', u') env
             in (prop, prf, cs @ cs', env', vTs) end
         | Pattern.Unif =>
             cantunify thy (Envir.norm_term env t', Envir.norm_term env u')
@@ -135,10 +138,10 @@ fun make_constraints_cprf thy env cprf =
           let
             val tvars = OldTerm.term_tvars prop;
             val tfrees = OldTerm.term_tfrees prop;
-            val (env', Ts) =
+            val (Ts, env') =
               (case opTs of
-                NONE => Library.foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
-              | SOME Ts => (env, Ts));
+                NONE => fold_map mk_tvar (map snd tvars @ map snd tfrees) env
+              | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
               (forall_intr_vfs prop) handle Library.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^
@@ -152,8 +155,10 @@ fun make_constraints_cprf thy env cprf =
           handle Subscript => error ("mk_cnstrts: bad variable index " ^ string_of_int i))
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
-            val (env', T) = (case opT of
-              NONE => mk_tvar (env, []) | SOME T => (env, T));
+            val (T, env') =
+              (case opT of
+                NONE => mk_tvar [] env
+              | SOME T => (T, env));
             val (t, prf, cnstrts, env'', vTs') =
               mk_cnstrts env' (T::Ts) (map (incr_boundvars 1) Hs) vTs cprf;
           in (Const ("all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, SOME T, prf),
@@ -167,7 +172,7 @@ fun make_constraints_cprf thy env cprf =
           end
       | mk_cnstrts env Ts Hs vTs (AbsP (s, NONE, cprf)) =
           let
-            val (env', t) = mk_var env Ts propT;
+            val (t, env') = mk_var env Ts propT;
             val (u, prf, cnstrts, env'', vTs') = mk_cnstrts env' Ts (t::Hs) vTs cprf;
           in (Logic.mk_implies (t, u), AbsP (s, SOME t, prf), cnstrts, env'', vTs')
           end
@@ -178,7 +183,7 @@ fun make_constraints_cprf thy env cprf =
                 add_cnstrt Ts t' (prf1 %% prf2) (cnstrts' @ cnstrts)
                   env'' vTs'' (u, u')
             | (t, prf1, cnstrts', env'', vTs'') =>
-                let val (env''', v) = mk_var env'' Ts propT
+                let val (v, env''') = mk_var env'' Ts propT
                 in add_cnstrt Ts v (prf1 %% prf2) (cnstrts' @ cnstrts)
                   env''' vTs'' (t, Logic.mk_implies (u, v))
                 end)
@@ -192,7 +197,7 @@ fun make_constraints_cprf thy env cprf =
                in (betapply (f, t'), prf % SOME t', cnstrts, env3, vTs2)
                end
            | (u, prf, cnstrts, env2, vTs2) =>
-               let val (env3, v) = mk_var env2 Ts (U --> propT);
+               let val (v, env3) = mk_var env2 Ts (U --> propT);
                in
                  add_cnstrt Ts (v $ t') (prf % SOME t') cnstrts env3 vTs2
                    (u, Const ("all", (U --> propT) --> propT) $ v)
@@ -202,14 +207,14 @@ fun make_constraints_cprf thy env cprf =
           (case head_norm (mk_cnstrts env Ts Hs vTs cprf) of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', vTs') =>
-               let val (env'', t) = mk_var env' Ts T
+               let val (t, env'') = mk_var env' Ts T
                in (betapply (f, t), prf % SOME t, cnstrts, env'', vTs')
                end
            | (u, prf, cnstrts, env', vTs') =>
                let
-                 val (env1, T) = mk_tvar (env', []);
-                 val (env2, v) = mk_var env1 Ts (T --> propT);
-                 val (env3, t) = mk_var env2 Ts T
+                 val (T, env1) = mk_tvar [] env';
+                 val (v, env2) = mk_var env1 Ts (T --> propT);
+                 val (t, env3) = mk_var env2 Ts T
                in
                  add_cnstrt Ts (v $ t) (prf % SOME t) cnstrts env3 vTs'
                    (u, Const ("all", (T --> propT) --> propT) $ v)
@@ -267,7 +272,7 @@ fun solve _ [] bigenv = bigenv
                     (Pattern.unify thy (tn1, tn2) env, ps) handle Pattern.Unif =>
                        cantunify thy (tn1, tn2)
                   else
-                    let val (env', cs') = decompose thy [] (env, (tn1, tn2))
+                    let val (cs', env') = decompose thy [] (tn1, tn2) env
                     in if cs' = [(tn1, tn2)] then
                          apsnd (cons (false, (tn1, tn2), vs)) (search env ps)
                        else search env' (map (fn q => (true, q, vs)) cs' @ ps)

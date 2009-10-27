@@ -254,13 +254,13 @@ fun insert_thm_warn th net =
 
 val insert_thms = fold_rev insert_thm_warn;
 
-fun addrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
+fun addrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let val thms = mk_simps thm
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = (thm,thms)::simps, simp_net = insert_thms thms simp_net}
 end;
 
-val op addrews = Library.foldl addrew;
+fun ss addrews thms = fold addrew thms ss;
 
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
@@ -287,7 +287,7 @@ in SS{auto_tac=auto_tac, congs= congs',
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
 end;
 
-fun delrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
+fun delrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let fun find((p as (th,ths))::ps',ps) =
           if Thm.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
       | find([],simps') =
@@ -298,7 +298,7 @@ in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = simps', simp_net = delete_thms thms simp_net }
 end;
 
-val op delrews = Library.foldl delrew;
+fun ss delrews thms = fold delrew thms ss;
 
 
 fun op setauto(SS{congs,cong_net,mk_simps,simps,simp_net,...}, auto_tac) =

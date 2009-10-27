@@ -716,8 +716,9 @@ fun extract thms thy =
           quote name ^ " has no computational content")
       in (Reconstruct.reconstruct_proof thy prop prf, vs) end;
 
-    val defs = Library.foldl (fn (defs, (prf, vs)) =>
-      fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);
+    val defs =
+      fold (fn (prf, vs) => fn defs => fst (extr 0 defs vs [] [] [] prf))
+        (map prep_thm thms) [];
 
     fun add_def (s, (vs, ((t, u), (prf, _)))) thy =
       (case Sign.const_type thy (extr_name s vs) of

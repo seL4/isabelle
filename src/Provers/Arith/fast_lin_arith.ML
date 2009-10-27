@@ -702,12 +702,11 @@ in
   result
 end;
 
-fun add_datoms (dats : (bool * term) list, ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _)) :
-  (bool * term) list =
+fun add_datoms ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _) (dats : (bool * term) list) =
   union_bterm (map (pair d o fst) lhs) (union_bterm (map (pair d o fst) rhs) dats);
 
 fun discr (initems : (LA_Data.decomp * int) list) : bool list =
-  map fst (Library.foldl add_datoms ([],initems));
+  map fst (fold add_datoms initems []);
 
 fun refutes ctxt params show_ex :
     (typ list * (LA_Data.decomp * int) list) list -> injust list -> injust list option =

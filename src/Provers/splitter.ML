@@ -151,7 +151,7 @@ fun mk_cntxt_splitthm t tt T =
 
 
 (* add all loose bound variables in t to list is *)
-fun add_lbnos (is,t) = add_loose_bnos (t,0,is);
+fun add_lbnos t is = add_loose_bnos (t, 0, is);
 
 (* check if the innermost abstraction that needs to be removed
    has a body of type T; otherwise the expansion thm will fail later on
@@ -191,7 +191,7 @@ fun type_test (T, lbnos, apsns) =
 fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
-           val lbnos = Library.foldl add_lbnos ([],Library.take(n,ts))
+           val lbnos = fold add_lbnos (Library.take (n, ts)) []
            val flbnos = List.filter (fn i => i < lev) lbnos
            val tt = incr_boundvars (~lev) t
        in if null flbnos then
@@ -253,20 +253,21 @@ fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg 
       | posns Ts pos apsns t =
           let
             val (h, ts) = strip_comb t
-            fun iter((i, a), t) = (i+1, (posns Ts (i::pos) apsns t) @ a);
-            val a = case h of
-              Const(c, cT) =>
-                let fun find [] = []
-                      | find ((gcT, pat, thm, T, n)::tups) =
-                          let val t2 = list_comb (h, Library.take (n, ts))
-                          in if Sign.typ_instance sg (cT, gcT)
-                                andalso fomatch sg (Ts,pat,t2)
-                             then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
-                             else find tups
-                          end
-                in find (these (AList.lookup (op =) cmap c)) end
-            | _ => []
-          in snd(Library.foldl iter ((0, a), ts)) end
+            fun iter t (i, a) = (i+1, (posns Ts (i::pos) apsns t) @ a);
+            val a =
+              case h of
+                Const(c, cT) =>
+                  let fun find [] = []
+                        | find ((gcT, pat, thm, T, n)::tups) =
+                            let val t2 = list_comb (h, Library.take (n, ts))
+                            in if Sign.typ_instance sg (cT, gcT)
+                                  andalso fomatch sg (Ts,pat,t2)
+                               then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
+                               else find tups
+                            end
+                  in find (these (AList.lookup (op =) cmap c)) end
+              | _ => []
+          in snd (fold iter ts (0, a)) end
   in posns Ts [] [] t end;
 
 fun nth_subgoal i thm = List.nth (prems_of thm, i-1);
@@ -336,8 +337,8 @@ fun inst_split Ts t tt thm TB state i =
       (Logic.strip_assums_concl (Thm.prop_of thm'))));
     val cert = cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
-    val abss = Library.foldl (fn (t, T) => Abs ("", T, t));
-  in cterm_instantiate [(cert P, cert (abss (cntxt, Ts)))] thm'
+    val abss = fold (fn T => fn t => Abs ("", T, t));
+  in cterm_instantiate [(cert P, cert (abss Ts cntxt))] thm'
   end;
 
 

@@ -1139,8 +1139,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
       end
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
-        transitive1 (Library.foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
-            (Option.map (disch false prem) eq2)) (NONE, eqns ~~ prems'))
+        transitive1 (fold (fn (eq1, prem) => fn eq2 => transitive1 eq1
+            (Option.map (disch false prem) eq2)) (eqns ~~ prems') NONE)
           (if changed > 0 then
              mut_impc (rev prems') concl (rev rrss') (rev asms')
                [] [] [] [] ss ~1 changed

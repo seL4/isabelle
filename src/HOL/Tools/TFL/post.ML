@@ -189,12 +189,11 @@ local
 in
 fun derive_init_eqs sgn rules eqs = 
     let 
-      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) 
-                      eqs
-      fun countlist l = 
-          (rev o snd o (Library.foldl (fn ((i,L), e) => (i + 1,(e,i) :: L)))) ((0,[]), l)
+      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) eqs
+      fun countlist l =
+        rev (snd (fold (fn e => fn (i, L) => (i + 1, (e, i) :: L)) l (0, [])))
     in
-      maps (fn (e,i) => solve_eq (e, (get_related_thms i rules), i)) (countlist eqths)
+      maps (fn (e, i) => solve_eq (e, (get_related_thms i rules), i)) (countlist eqths)
     end;
 end;
 
