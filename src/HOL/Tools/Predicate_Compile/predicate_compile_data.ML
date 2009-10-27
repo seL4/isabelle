@@ -1,8 +1,9 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_data.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-Book-keeping datastructure for the predicate compiler
-
+Book-keeping datastructure for the predicate compiler.
 *)
+
 signature PREDICATE_COMPILE_DATA =
 sig
   type specification_table;

@@ -1,4 +1,6 @@
-(* Author: Stefan Berghofer, Lukas Bulwahn, Florian Haftmann, TU Muenchen *)
+(*  Title:      HOL/Predicate_Compile.thy
+    Author:     Stefan Berghofer, Lukas Bulwahn, Florian Haftmann, TU Muenchen
+*)
 
 header {* A compiler for predicates defined by introduction rules *}
 
@@ -14,6 +16,6 @@ uses
   "Tools/Predicate_Compile/predicate_compile.ML"
 begin
 
-setup {* Predicate_Compile.setup *}
+setup Predicate_Compile.setup
 
 end

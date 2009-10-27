@@ -1,6 +1,9 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
+FIXME.
 *)
+
 signature PREDICATE_COMPILE =
 sig
   val setup : theory -> theory

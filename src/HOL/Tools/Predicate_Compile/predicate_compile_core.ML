@@ -1,7 +1,7 @@
-(* Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_core.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-(Prototype of) A compiler from predicates specified by intro/elim rules
-to equations.
+A compiler from predicates specified by intro/elim rules to equations.
 *)
 
 signature PREDICATE_COMPILE_CORE =
