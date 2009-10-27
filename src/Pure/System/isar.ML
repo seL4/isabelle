@@ -47,10 +47,10 @@ fun edit_history count f = NAMED_CRITICAL "Isar" (fn () =>
       | edit n (st, hist) = edit (n - 1) (f st hist);
   in edit count (! global_state, ! global_history) end);
 
-fun state () = NAMED_CRITICAL "Isar" (fn () => ! global_state);
+fun state () = ! global_state;
 
-fun exn () = NAMED_CRITICAL "Isar" (fn () => ! global_exn);
-fun set_exn exn =  NAMED_CRITICAL "Isar" (fn () => global_exn := exn);
+fun exn () = ! global_exn;
+fun set_exn exn =  global_exn := exn;
 
 end;
 

@@ -90,10 +90,10 @@ local
     Unsynchronized.ref (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
 in
 
-fun check_cache (path, time) = CRITICAL (fn () =>
+fun check_cache (path, time) =
   (case Symtab.lookup (! ident_cache) path of
     NONE => NONE
-  | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE));
+  | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE);
 
 fun update_cache (path, (time, id)) = CRITICAL (fn () =>
   Unsynchronized.change ident_cache

@@ -121,8 +121,8 @@ val global_lexicons = Unsynchronized.ref (Scan.empty_lexicon, Scan.empty_lexicon
 
 in
 
-fun get_commands () = CRITICAL (fn () => ! global_commands);
-fun get_lexicons () = CRITICAL (fn () => ! global_lexicons);
+fun get_commands () = ! global_commands;
+fun get_lexicons () = ! global_lexicons;
 
 fun change_commands f = CRITICAL (fn () => Unsynchronized.change global_commands f);
 fun change_lexicons f = CRITICAL (fn () => Unsynchronized.change global_lexicons f);
