@@ -53,10 +53,9 @@ sig
   };
   val pred_compfuns : compilation_funs
   val randompred_compfuns : compilation_funs
-    (*  val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
+  val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_quickcheck_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_depth_limited_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
-  *)
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =

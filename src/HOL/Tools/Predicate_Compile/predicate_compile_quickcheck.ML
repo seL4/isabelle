@@ -20,10 +20,9 @@ val target = "Quickcheck"
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
 val mk_predT = #mk_predT (dest_compfuns Predicate_Compile_Core.pred_compfuns)
-val mk_rpredT = #mk_predT (dest_compfuns Predicate_Compile_Core.rpred_compfuns)
-val mk_return = #mk_single (dest_compfuns Predicate_Compile_Core.rpred_compfuns)
-val mk_bind = #mk_bind (dest_compfuns Predicate_Compile_Core.rpred_compfuns)
-val lift_pred = #lift_pred (dest_compfuns Predicate_Compile_Core.rpred_compfuns)
+val mk_randompredT = #mk_predT (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
+val mk_return = #mk_single (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
+val mk_bind = #mk_bind (dest_compfuns Predicate_Compile_Core.randompred_compfuns)
 
 fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
   | mk_split_lambda [x] t = lambda x t
@@ -65,22 +64,22 @@ fun quickcheck ctxt t =
     val thy'' = thy'
       |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
       |> Predicate_Compile.preprocess Predicate_Compile_Aux.default_options full_constname
-      (* |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]*)
+      |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]
       (*  |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]*)
-      (* |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname] *)
+      |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname]
     val depth_limited_modes = Predicate_Compile_Core.depth_limited_modes_of thy'' full_constname
     val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
     val prog =
       if member (op =) modes ([], []) then
         let
           val name = Predicate_Compile_Core.generator_name_of thy'' full_constname ([], [])
-          val T = [@{typ bool}, @{typ code_numeral}] ---> (mk_rpredT (HOLogic.mk_tupleT (map snd vs')))
+          val T = [@{typ bool}, @{typ code_numeral}] ---> (mk_randompredT (HOLogic.mk_tupleT (map snd vs')))
           in Const (name, T) $ @{term True} $ Bound 0 end
-      else if member (op =) depth_limited_modes ([], []) then
+      (*else if member (op =) depth_limited_modes ([], []) then
         let
           val name = Predicate_Compile_Core.depth_limited_function_name_of thy'' full_constname ([], [])
           val T = @{typ code_numeral} --> (mk_predT (HOLogic.mk_tupleT (map snd vs')))
-        in lift_pred (Const (name, T) $ Bound 0) end
+        in lift_pred (Const (name, T) $ Bound 0) end*)
       else error "Predicate Compile Quickcheck failed"
     val qc_term = Abs ("size", @{typ code_numeral}, mk_bind (prog,
       mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
