@@ -271,7 +271,7 @@ fun start_prover name birth_time death_time i proof_state =
                     Markup.markup Markup.sendback "apply metis")
                 | ERROR msg => (false, "Error: " ^ msg);
             val _ = unregister result (Thread.self ());
-          in () end handle Exn.Interrupt => ())
+          in () end)
       in () end);
 
 
