@@ -2467,7 +2467,7 @@ Such theorems are considered bad style because they rely on the internal
 representation of functions synthesized by Isabelle, which is an implementation
 detail.
 
-\item[$\bullet$] Nitpick maintains a global cache of wellformedness conditions,
+\item[$\bullet$] Nitpick maintains a global cache of wellfoundedness conditions,
 which can become invalid if you change the definition of an inductive predicate
 that is registered in the cache. To clear the cache,
 run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
