@@ -90,6 +90,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
 
     fun make_cpo admissible (type_def, below_def, set_def) theory =
       let
+        (* FIXME fold_rule might fold user input inintentionally *)
         val admissible' = fold_rule (the_list set_def) admissible;
         val cpo_thms = map (Thm.transfer theory) [type_def, below_def, admissible'];
         val theory' = theory
@@ -112,6 +113,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
 
     fun make_pcpo UU_mem (type_def, below_def, set_def) theory =
       let
+        (* FIXME fold_rule might fold user input inintentionally *)
         val UU_mem' = fold_rule (the_list set_def) UU_mem;
         val pcpo_thms = map (Thm.transfer theory) [type_def, below_def, UU_mem'];
         val theory' = theory
