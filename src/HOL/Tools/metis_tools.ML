@@ -21,8 +21,6 @@ struct
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
-structure Recon = ResReconstruct;
-
 val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" true;
 
 datatype mode = FO | HO | FT  (*first-order, higher-order, fully-typed*)
@@ -211,14 +209,14 @@ fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
   | strip_happ args x = (x, args);
 
 fun fol_type_to_isa _ (Metis.Term.Var v) =
-     (case Recon.strip_prefix ResClause.tvar_prefix v of
-          SOME w => Recon.make_tvar w
-        | NONE   => Recon.make_tvar v)
+     (case ResReconstruct.strip_prefix ResClause.tvar_prefix v of
+          SOME w => ResReconstruct.make_tvar w
+        | NONE   => ResReconstruct.make_tvar v)
   | fol_type_to_isa ctxt (Metis.Term.Fn(x, tys)) =
-     (case Recon.strip_prefix ResClause.tconst_prefix x of
-          SOME tc => Term.Type (Recon.invert_type_const tc, map (fol_type_to_isa ctxt) tys)
+     (case ResReconstruct.strip_prefix ResClause.tconst_prefix x of
+          SOME tc => Term.Type (ResReconstruct.invert_type_const tc, map (fol_type_to_isa ctxt) tys)
         | NONE    =>
-      case Recon.strip_prefix ResClause.tfree_prefix x of
+      case ResReconstruct.strip_prefix ResClause.tfree_prefix x of
           SOME tf => mk_tfree ctxt tf
         | NONE    => error ("fol_type_to_isa: " ^ x));
 
@@ -227,10 +225,10 @@ fun fol_term_to_hol_RAW ctxt fol_tm =
   let val thy = ProofContext.theory_of ctxt
       val _ = trace_msg (fn () => "fol_term_to_hol: " ^ Metis.Term.toString fol_tm)
       fun tm_to_tt (Metis.Term.Var v) =
-             (case Recon.strip_prefix ResClause.tvar_prefix v of
-                  SOME w => Type (Recon.make_tvar w)
+             (case ResReconstruct.strip_prefix ResClause.tvar_prefix v of
+                  SOME w => Type (ResReconstruct.make_tvar w)
                 | NONE =>
-              case Recon.strip_prefix ResClause.schematic_var_prefix v of
+              case ResReconstruct.strip_prefix ResClause.schematic_var_prefix v of
                   SOME w => Term (mk_var (w, HOLogic.typeT))
                 | NONE   => Term (mk_var (v, HOLogic.typeT)) )
                     (*Var from Metis with a name like _nnn; possibly a type variable*)
@@ -247,14 +245,14 @@ fun fol_term_to_hol_RAW ctxt fol_tm =
       and applic_to_tt ("=",ts) =
             Term (list_comb(Const ("op =", HOLogic.typeT), terms_of (map tm_to_tt ts)))
         | applic_to_tt (a,ts) =
-            case Recon.strip_prefix ResClause.const_prefix a of
+            case ResReconstruct.strip_prefix ResClause.const_prefix a of
                 SOME b =>
-                  let val c = Recon.invert_const b
-                      val ntypes = Recon.num_typargs thy c
+                  let val c = ResReconstruct.invert_const b
+                      val ntypes = ResReconstruct.num_typargs thy c
                       val nterms = length ts - ntypes
                       val tts = map tm_to_tt ts
                       val tys = types_of (List.take(tts,ntypes))
-                      val ntyargs = Recon.num_typargs thy c
+                      val ntyargs = ResReconstruct.num_typargs thy c
                   in if length tys = ntyargs then
                          apply_list (Const (c, dummyT)) nterms (List.drop(tts,ntypes))
                      else error ("Constant " ^ c ^ " expects " ^ Int.toString ntyargs ^
@@ -265,13 +263,14 @@ fun fol_term_to_hol_RAW ctxt fol_tm =
                                  cat_lines (map (Syntax.string_of_term ctxt) (terms_of tts)))
                      end
               | NONE => (*Not a constant. Is it a type constructor?*)
-            case Recon.strip_prefix ResClause.tconst_prefix a of
-                SOME b => Type (Term.Type(Recon.invert_type_const b, types_of (map tm_to_tt ts)))
+            case ResReconstruct.strip_prefix ResClause.tconst_prefix a of
+                SOME b =>
+                  Type (Term.Type (ResReconstruct.invert_type_const b, types_of (map tm_to_tt ts)))
               | NONE => (*Maybe a TFree. Should then check that ts=[].*)
-            case Recon.strip_prefix ResClause.tfree_prefix a of
+            case ResReconstruct.strip_prefix ResClause.tfree_prefix a of
                 SOME b => Type (mk_tfree ctxt b)
               | NONE => (*a fixed variable? They are Skolem functions.*)
-            case Recon.strip_prefix ResClause.fixed_var_prefix a of
+            case ResReconstruct.strip_prefix ResClause.fixed_var_prefix a of
                 SOME b =>
                   let val opr = Term.Free(b, HOLogic.typeT)
                   in  apply_list opr (length ts) (map tm_to_tt ts)  end
@@ -282,16 +281,16 @@ fun fol_term_to_hol_RAW ctxt fol_tm =
 fun fol_term_to_hol_FT ctxt fol_tm =
   let val _ = trace_msg (fn () => "fol_term_to_hol_FT: " ^ Metis.Term.toString fol_tm)
       fun cvt (Metis.Term.Fn ("ti", [Metis.Term.Var v, _])) =
-             (case Recon.strip_prefix ResClause.schematic_var_prefix v of
+             (case ResReconstruct.strip_prefix ResClause.schematic_var_prefix v of
                   SOME w =>  mk_var(w, dummyT)
                 | NONE   => mk_var(v, dummyT))
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn ("=",[]), _])) =
             Const ("op =", HOLogic.typeT)
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (x,[]), ty])) =
-           (case Recon.strip_prefix ResClause.const_prefix x of
-                SOME c => Const (Recon.invert_const c, dummyT)
+           (case ResReconstruct.strip_prefix ResClause.const_prefix x of
+                SOME c => Const (ResReconstruct.invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
-            case Recon.strip_prefix ResClause.fixed_var_prefix x of
+            case ResReconstruct.strip_prefix ResClause.fixed_var_prefix x of
                 SOME v => Free (v, fol_type_to_isa ctxt ty)
               | NONE => error ("fol_term_to_hol_FT bad constant: " ^ x))
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (".",[tm1,tm2]), _])) =
@@ -302,13 +301,15 @@ fun fol_term_to_hol_FT ctxt fol_tm =
         | cvt (Metis.Term.Fn ("=", [tm1,tm2])) =
             list_comb(Const ("op =", HOLogic.typeT), map cvt [tm1,tm2])
         | cvt (t as Metis.Term.Fn (x, [])) =
-           (case Recon.strip_prefix ResClause.const_prefix x of
-                SOME c => Const (Recon.invert_const c, dummyT)
+           (case ResReconstruct.strip_prefix ResClause.const_prefix x of
+                SOME c => Const (ResReconstruct.invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
-            case Recon.strip_prefix ResClause.fixed_var_prefix x of
+            case ResReconstruct.strip_prefix ResClause.fixed_var_prefix x of
                 SOME v => Free (v, dummyT)
-              | NONE =>  (trace_msg (fn () => "fol_term_to_hol_FT bad const: " ^ x); fol_term_to_hol_RAW ctxt t))
-        | cvt t = (trace_msg (fn () => "fol_term_to_hol_FT bad term: " ^ Metis.Term.toString t); fol_term_to_hol_RAW ctxt t)
+              | NONE => (trace_msg (fn () => "fol_term_to_hol_FT bad const: " ^ x);
+                  fol_term_to_hol_RAW ctxt t))
+        | cvt t = (trace_msg (fn () => "fol_term_to_hol_FT bad term: " ^ Metis.Term.toString t);
+            fol_term_to_hol_RAW ctxt t)
   in  cvt fol_tm   end;
 
 fun fol_term_to_hol ctxt FO = fol_term_to_hol_RAW ctxt
@@ -382,9 +383,9 @@ fun inst_inf ctxt mode thpairs fsubst th =
                                        " in " ^ Display.string_of_thm ctxt i_th);
                  NONE)
       fun remove_typeinst (a, t) =
-            case Recon.strip_prefix ResClause.schematic_var_prefix a of
+            case ResReconstruct.strip_prefix ResClause.schematic_var_prefix a of
                 SOME b => SOME (b, t)
-              | NONE   => case Recon.strip_prefix ResClause.tvar_prefix a of
+              | NONE   => case ResReconstruct.strip_prefix ResClause.tvar_prefix a of
                 SOME _ => NONE          (*type instantiations are forbidden!*)
               | NONE   => SOME (a,t)    (*internal Metis var?*)
       val _ = trace_msg (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
@@ -451,7 +452,7 @@ fun refl_inf ctxt mode t =
   in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
 
 fun get_ty_arg_size _ (Const ("op =", _)) = 0  (*equality has no type arguments*)
-  | get_ty_arg_size thy (Const (c, _)) = (Recon.num_typargs thy c handle TYPE _ => 0)
+  | get_ty_arg_size thy (Const (c, _)) = (ResReconstruct.num_typargs thy c handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0;
 
 (* INFERENCE RULE: EQUALITY *)
@@ -522,7 +523,7 @@ fun equality_inf ctxt mode (pos, atm) fp fr =
       val subst' = incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
       val _ = trace_msg (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
       val eq_terms = map (pairself (cterm_of thy))
-                         (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
+        (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
   in  cterm_instantiate eq_terms subst'  end;
 
 val factor = Seq.hd o distinct_subgoals_tac;
