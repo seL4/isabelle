@@ -8,7 +8,7 @@ inductive False' :: "bool"
 
 code_pred (mode: []) False' .
 code_pred [depth_limited] False' .
-code_pred [rpred, show_compilation] False' .
+code_pred [rpred] False' .
 
 inductive EmptySet :: "'a \<Rightarrow> bool"
 
@@ -35,12 +35,12 @@ where
 
 code_pred (mode: []) False'' .
 
-inductive EmptySet' :: "'a \<Rightarrow> bool"
+inductive EmptySet'' :: "'a \<Rightarrow> bool"
 where
-  "False \<Longrightarrow> EmptySet' x"
+  "False \<Longrightarrow> EmptySet'' x"
 
-code_pred (mode: [1]) EmptySet' .
-code_pred (mode: [], [1]) [inductify] EmptySet' .
+code_pred (mode: [1]) EmptySet'' .
+code_pred (mode: [], [1]) [inductify] EmptySet'' .
 
 inductive True' :: "bool"
 where
@@ -62,6 +62,36 @@ where
 
 code_pred zerozero .
 code_pred [rpred, show_compilation] zerozero .
+
+subsection {* Preprocessor Inlining  *}
+
+definition "equals == (op =)"
+ 
+inductive zerozero' where
+  "equals (x, y) (0, 0) ==> zerozero' (x, y)"
+
+code_pred (mode: [1]) zerozero' .
+
+lemma zerozero'_eq: "zerozero' == zerozero"
+proof -
+  have "zerozero' = zerozero"
+    apply (auto simp add: mem_def)
+    apply (cases rule: zerozero'.cases)
+    apply (auto simp add: equals_def intro: zerozero.intros)
+    apply (cases rule: zerozero.cases)
+    apply (auto simp add: equals_def intro: zerozero'.intros)
+    done
+  from this show "zerozero' == zerozero" by auto
+qed
+
+declare zerozero'_eq [code_pred_inline]
+
+definition "zerozero'' x == zerozero' x"
+
+text {* if preprocessing fails, zerozero'' will not have all modes. *}
+ML {* Predicate_Compile_Inline_Defs.get @{context} *}
+(* TODO: *)
+code_pred (mode: [1]) [inductify, show_intermediate_results] zerozero'' .
 
 subsection {* even predicate *}
 
@@ -516,10 +546,11 @@ thm rel_comp.equation
 code_pred [inductify] Image .
 thm Image.equation
 (*TODO: *)
+
 declare Id_on_def[unfolded UNION_def, code_pred_def]
 
-(*code_pred [inductify] Id_on .
-thm Id_on.equation*)
+code_pred [inductify] Id_on .
+thm Id_on.equation
 code_pred [inductify] Domain .
 thm Domain.equation
 code_pred [inductify] Range .
@@ -527,8 +558,8 @@ thm Range.equation
 code_pred [inductify] Field .
 declare Sigma_def[unfolded UNION_def, code_pred_def]
 declare refl_on_def[unfolded UNION_def, code_pred_def]
-(*code_pred [inductify] refl_on .
-thm refl_on.equation*)
+code_pred [inductify] refl_on .
+thm refl_on.equation
 code_pred [inductify] total_on .
 thm total_on.equation
 code_pred [inductify] antisym .
