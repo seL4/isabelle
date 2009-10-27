@@ -177,7 +177,7 @@ code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
 
 code_reserved Quickcheck Quickcheck_Generators
 
-
+hide (open) fact empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
 hide (open) type randompred
 hide (open) const random collapse beyond random_fun_aux random_fun_lift
   empty single bind union if_randompred not_randompred Random map
