@@ -14,6 +14,11 @@ inductive EmptySet :: "'a \<Rightarrow> bool"
 
 code_pred (mode: [], [1]) EmptySet .
 
+definition EmptySet' :: "'a \<Rightarrow> bool"
+where "EmptySet' = {}"
+
+code_pred (mode: [], [1]) [inductify, show_intermediate_results] EmptySet' .
+
 inductive EmptyRel :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
 
 code_pred (mode: [], [1], [2], [1, 2]) EmptyRel .
@@ -447,13 +452,6 @@ thm test_lexord.rpred_equation
 values "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
 values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
 
-(*values [random] "{xys. test_lexord xys}"*)
-(*values [depth_limit = 5 random] "{xy. lexord less_than_nat xy}"*)
-(*
-lemma "(u, v) : lexord less_than_nat ==> (x @ u, y @ v) : lexord less_than_nat"
-quickcheck[generator=pred_compile]
-oops
-*)
 lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 
 code_pred [inductify] lexn .
@@ -469,9 +467,7 @@ thm lenlex.equation
 code_pred [inductify, rpred] lenlex .
 thm lenlex.rpred_equation
 
-thm lists.intros
 code_pred [inductify] lists .
-
 thm lists.equation
 
 subsection {* AVL Tree *}
@@ -510,8 +506,6 @@ thm set_of.equation
 code_pred [inductify] is_ord .
 thm is_ord.equation
 
-code_pred [rpred] is_ord .
-thm is_ord.rpred_equation
 
 subsection {* Definitions about Relations *}
 
@@ -524,17 +518,17 @@ thm Image.equation
 (*TODO: *)
 declare Id_on_def[unfolded UNION_def, code_pred_def]
 
-code_pred [inductify] Id_on .
-thm Id_on.equation
+(*code_pred [inductify] Id_on .
+thm Id_on.equation*)
 code_pred [inductify] Domain .
 thm Domain.equation
 code_pred [inductify] Range .
-thm sym_def
+thm Range.equation
 code_pred [inductify] Field .
 declare Sigma_def[unfolded UNION_def, code_pred_def]
 declare refl_on_def[unfolded UNION_def, code_pred_def]
-code_pred [inductify] refl_on .
-thm refl_on.equation
+(*code_pred [inductify] refl_on .
+thm refl_on.equation*)
 code_pred [inductify] total_on .
 thm total_on.equation
 code_pred [inductify] antisym .
