@@ -1133,7 +1133,7 @@ proof-
     hence "x + y \<in> s" using `?lhs`[unfolded convex_def, THEN conjunct1]
       apply(erule_tac x="2*\<^sub>R x" in ballE) apply(erule_tac x="2*\<^sub>R y" in ballE)
       apply(erule_tac x="1/2" in allE) apply simp apply(erule_tac x="1/2" in allE) by auto  }
-  thus ?thesis unfolding convex_def cone_def by blast
+  thus ?thesis unfolding convex_def cone_def by auto
 qed
 
 lemma affine_dependent_biggerset: fixes s::"(real^'n::finite) set"
@@ -1742,17 +1742,16 @@ next
     using separating_hyperplane_closed_point[OF convex_differences[OF assms(1,3)], of 0]
     using closed_compact_differences[OF assms(2,4)] using assms(6) by(auto, blast)
   hence ab:"\<forall>x\<in>s. \<forall>y\<in>t. b + inner a y < inner a x" apply- apply(rule,rule) apply(erule_tac x="x - y" in ballE) by (auto simp add: inner_diff)
-  def k \<equiv> "rsup ((\<lambda>x. inner a x) ` t)"
+  def k \<equiv> "Sup ((\<lambda>x. inner a x) ` t)"
   show ?thesis apply(rule_tac x="-a" in exI, rule_tac x="-(k + b / 2)" in exI)
     apply(rule,rule) defer apply(rule) unfolding inner_minus_left and neg_less_iff_less proof-
     from ab have "((\<lambda>x. inner a x) ` t) *<= (inner a y - b)"
       apply(erule_tac x=y in ballE) apply(rule setleI) using `y\<in>s` by auto
-    hence k:"isLub UNIV ((\<lambda>x. inner a x) ` t) k" unfolding k_def apply(rule_tac rsup) using assms(5) by auto
+    hence k:"isLub UNIV ((\<lambda>x. inner a x) ` t) k" unfolding k_def apply(rule_tac Sup) using assms(5) by auto
     fix x assume "x\<in>t" thus "inner a x < (k + b / 2)" using `0<b` and isLubD2[OF k, of "inner a x"] by auto
   next
     fix x assume "x\<in>s" 
-    hence "k \<le> inner a x - b" unfolding k_def apply(rule_tac rsup_le) using assms(5)
-      unfolding setle_def
+    hence "k \<le> inner a x - b" unfolding k_def apply(rule_tac Sup_least) using assms(5)
       using ab[THEN bspec[where x=x]] by auto
     thus "k + b / 2 < inner a x" using `0 < b` by auto
   qed
@@ -1794,11 +1793,20 @@ lemma separating_hyperplane_sets:
   assumes "convex s" "convex (t::(real^'n::finite) set)" "s \<noteq> {}" "t \<noteq> {}" "s \<inter> t = {}"
   shows "\<exists>a b. a \<noteq> 0 \<and> (\<forall>x\<in>s. inner a x \<le> b) \<and> (\<forall>x\<in>t. inner a x \<ge> b)"
 proof- from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
-  obtain a where "a\<noteq>0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x"  using assms(3-5) by auto 
-  hence "\<forall>x\<in>t. \<forall>y\<in>s. inner a y \<le> inner a x" apply- apply(rule, rule) apply(erule_tac x="x - y" in ballE) by (auto simp add: inner_diff)
-  thus ?thesis apply(rule_tac x=a in exI, rule_tac x="rsup ((\<lambda>x. inner a x) ` s)" in exI) using `a\<noteq>0`
-    apply(rule) apply(rule,rule) apply(rule rsup[THEN isLubD2]) prefer 4 apply(rule,rule rsup_le) unfolding setle_def
-    prefer 4 using assms(3-5) by blast+ qed
+  obtain a where "a\<noteq>0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x" 
+    using assms(3-5) by auto 
+  hence "\<forall>x\<in>t. \<forall>y\<in>s. inner a y \<le> inner a x"
+    by (force simp add: inner_diff)
+  thus ?thesis
+    apply(rule_tac x=a in exI, rule_tac x="Sup ((\<lambda>x. inner a x) ` s)" in exI) using `a\<noteq>0`
+    apply auto
+    apply (rule Sup[THEN isLubD2]) 
+    prefer 4
+    apply (rule Sup_least) 
+     using assms(3-5) apply (auto simp add: setle_def)
+    apply (metis COMBC_def Collect_def Collect_mem_eq) 
+    done
+qed
 
 subsection {* More convexity generalities. *}
 
@@ -2571,12 +2579,17 @@ lemma convex_on_continuous:
     thus "f y \<le> k" apply(rule_tac k[rule_format]) unfolding mem_cball mem_interval dist_norm 
       by(auto simp add: vector_component_simps) qed
   hence "continuous_on (ball x d) f" apply(rule_tac convex_on_bounded_continuous)
-    apply(rule open_ball, rule convex_on_subset[OF conv], rule ball_subset_cball) by auto
-  thus "continuous (at x) f" unfolding continuous_on_eq_continuous_at[OF open_ball] using `d>0` by auto qed
+    apply(rule open_ball, rule convex_on_subset[OF conv], rule ball_subset_cball)
+    apply force
+    done
+  thus "continuous (at x) f" unfolding continuous_on_eq_continuous_at[OF open_ball]
+    using `d>0` by auto 
+qed
 
-subsection {* Line segments, starlike sets etc.                                         *)
-(* Use the same overloading tricks as for intervals, so that                 *)
-(* segment[a,b] is closed and segment(a,b) is open relative to affine hull. *}
+subsection {* Line segments, Starlike Sets, etc.*}
+
+(* Use the same overloading tricks as for intervals, so that 
+   segment[a,b] is closed and segment(a,b) is open relative to affine hull. *)
 
 definition
   midpoint :: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 'n" where

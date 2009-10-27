@@ -307,6 +307,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   RealVector.thy \
   SEQ.thy \
   Series.thy \
+  SupInf.thy \
   Taylor.thy \
   Transcendental.thy \
   Tools/float_syntax.ML \
