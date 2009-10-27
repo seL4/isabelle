@@ -13,10 +13,27 @@ end;
 structure Predicate_Compile_Quickcheck : PREDICATE_COMPILE_QUICKCHECK =
 struct
 
+open Predicate_Compile_Aux;
+
 val test_ref =
   Unsynchronized.ref (NONE : (unit -> int -> int * int -> term list Predicate.pred * (int * int)) option)
 
 val target = "Quickcheck"
+
+val options = Options {
+  expected_modes = NONE,
+  show_steps = true,
+  show_intermediate_results = true,
+  show_proof_trace = false,
+  show_modes = true,
+  show_mode_inference = false,
+  show_compilation = true,
+  skip_proof = false,
+  
+  inductify = false,
+  rpred = false,
+  depth_limited = false
+}
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
 val mk_predT = #mk_predT (dest_compfuns Predicate_Compile_Core.pred_compfuns)
@@ -63,18 +80,18 @@ fun quickcheck ctxt t =
     val _ = tracing (Display.string_of_thm ctxt' intro)
     val thy'' = thy'
       |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
-      |> Predicate_Compile.preprocess Predicate_Compile_Aux.default_options full_constname
-      |> Predicate_Compile_Core.add_equations Predicate_Compile_Aux.default_options [full_constname]
+      |> Predicate_Compile.preprocess options full_constname
+      |> Predicate_Compile_Core.add_equations options [full_constname]
       (*  |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]*)
-      |> Predicate_Compile_Core.add_quickcheck_equations Predicate_Compile_Aux.default_options [full_constname]
+      |> Predicate_Compile_Core.add_quickcheck_equations options [full_constname]
     val depth_limited_modes = Predicate_Compile_Core.depth_limited_modes_of thy'' full_constname
     val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
     val prog =
       if member (op =) modes ([], []) then
         let
           val name = Predicate_Compile_Core.generator_name_of thy'' full_constname ([], [])
-          val T = [@{typ bool}, @{typ code_numeral}] ---> (mk_randompredT (HOLogic.mk_tupleT (map snd vs')))
-          in Const (name, T) $ @{term True} $ Bound 0 end
+          val T = [@{typ code_numeral}] ---> (mk_randompredT (HOLogic.mk_tupleT (map snd vs')))
+          in Const (name, T) $ Bound 0 end
       (*else if member (op =) depth_limited_modes ([], []) then
         let
           val name = Predicate_Compile_Core.depth_limited_function_name_of thy'' full_constname ([], [])
