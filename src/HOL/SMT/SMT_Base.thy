@@ -29,7 +29,7 @@ datatype pattern = Pattern
 definition pat :: "'a \<Rightarrow> pattern"
 where "pat _ = Pattern"
 
-definition nopat :: "bool \<Rightarrow> pattern"
+definition nopat :: "'a \<Rightarrow> pattern"
 where "nopat _ = Pattern"
 
 definition andpat :: "pattern \<Rightarrow> 'a \<Rightarrow> pattern" (infixl "andpat" 60)

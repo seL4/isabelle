@@ -1187,12 +1187,11 @@ HOL-SMT: HOL-Word $(OUT)/HOL-SMT
 
 $(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/SMT_Base.thy SMT/Z3.thy		\
   SMT/SMT.thy SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML	\
-  SMT/Tools/smt_translate.ML SMT/Tools/smt_builtin.ML			\
-  SMT/Tools/smtlib_interface.ML SMT/Tools/smt_solver.ML			\
-  SMT/Tools/cvc3_solver.ML SMT/Tools/yices_solver.ML			\
-  SMT/Tools/z3_proof_terms.ML SMT/Tools/z3_proof_rules.ML		\
-  SMT/Tools/z3_proof.ML SMT/Tools/z3_model.ML				\
-  SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML
+  SMT/Tools/smt_translate.ML SMT/Tools/smtlib_interface.ML              \
+  SMT/Tools/smt_solver.ML SMT/Tools/cvc3_solver.ML                      \
+  SMT/Tools/yices_solver.ML SMT/Tools/z3_proof_terms.ML                 \
+  SMT/Tools/z3_proof_rules.ML SMT/Tools/z3_proof.ML                     \
+  SMT/Tools/z3_model.ML SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML
 	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
 
 
