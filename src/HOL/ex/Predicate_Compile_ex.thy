@@ -28,7 +28,7 @@ for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 code_pred (mode: [], [1], [2], [1, 2])EmptyClosure .
 thm EmptyClosure.equation
-
+(* TODO: inductive package is broken!
 inductive False'' :: "bool"
 where
   "False \<Longrightarrow> False''"
@@ -41,7 +41,7 @@ where
 
 code_pred (mode: [1]) EmptySet'' .
 code_pred (mode: [], [1]) [inductify] EmptySet'' .
-
+*)
 inductive True' :: "bool"
 where
   "True \<Longrightarrow> True'"
