@@ -432,7 +432,7 @@ fun pick_nits override_params auto subgoal state =
     if auto orelse blocking then
       go ()
     else
-      (SimpleThread.fork true (fn () => (go (); ()) handle Exn.Interrupt => ());
+      (SimpleThread.fork true (fn () => (go (); ()));
        state)
   end
 
