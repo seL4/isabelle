@@ -22,6 +22,7 @@ sig
     card: int,
     co: bool,
     precise: bool,
+    shallow: bool,
     constrs: constr_spec list}
 
   type scope = {
@@ -44,7 +45,7 @@ sig
   val all_scopes :
     extended_context -> int -> (typ option * int list) list
     -> (styp option * int list) list -> (styp option * int list) list
-    -> int list -> typ list -> typ list -> scope list
+    -> int list -> typ list -> typ list -> typ list -> scope list
 end;
 
 structure Nitpick_Scope : NITPICK_SCOPE =
@@ -66,6 +67,7 @@ type dtype_spec = {
   card: int,
   co: bool,
   precise: bool,
+  shallow: bool,
   constrs: constr_spec list}
 
 type scope = {
@@ -126,7 +128,7 @@ fun quintuple_for_scope quote ({ext_ctxt as {thy, ctxt, ...}, card_assigns,
       card_assigns |> filter_out (equal @{typ bisim_iterator} o fst)
                    |> List.partition (is_fp_iterator_type o fst)
     val (unimportant_card_asgns, important_card_asgns) =
-      card_asgns |> List.partition ((is_datatype thy orf is_integer_type) o fst)
+      card_asgns |> List.partition ((is_integer_type orf is_datatype thy) o fst)
     val cards =
       map (fn (T, k) => quote (string_for_type ctxt T) ^ " = " ^
                         string_of_int k)
@@ -431,10 +433,11 @@ fun add_constr_spec (card_asgns, max_asgns) co card sum_dom_cards num_self_recs
      explicit_max = max, total = total} :: constrs
   end
 
-(* extended_context -> scope_desc -> typ * int -> dtype_spec *)
-fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...})
+(* extended_context -> typ list -> scope_desc -> typ * int -> dtype_spec *)
+fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) shallow_dataTs
                                         (desc as (card_asgns, _)) (T, card) =
   let
+    val shallow = T mem shallow_dataTs
     val co = is_codatatype thy T
     val xs = boxed_datatype_constrs ext_ctxt T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
@@ -448,14 +451,18 @@ fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...})
     val constrs =
       fold_rev (add_constr_spec desc co card sum_dom_cards num_self_recs
                                 num_non_self_recs) (self_recs ~~ xs) []
-  in {typ = T, card = card, co = co, precise = precise, constrs = constrs} end
+  in
+    {typ = T, card = card, co = co, precise = precise, shallow = shallow,
+     constrs = constrs}
+  end
 
-(* extended_context -> int -> scope_desc -> scope *)
-fun scope_from_descriptor (ext_ctxt as {thy, ...}) sym_break
+(* extended_context -> int -> typ list -> scope_desc -> scope *)
+fun scope_from_descriptor (ext_ctxt as {thy, ...}) sym_break shallow_dataTs
                           (desc as (card_asgns, _)) =
   let
-    val datatypes = map (datatype_spec_from_scope_descriptor ext_ctxt desc)
-                        (filter (is_datatype thy o fst) card_asgns)
+    val datatypes =
+      map (datatype_spec_from_scope_descriptor ext_ctxt shallow_dataTs desc)
+          (filter (is_datatype thy o fst) card_asgns)
     val bisim_depth = card_of_type card_asgns @{typ bisim_iterator} - 1
   in
     {ext_ctxt = ext_ctxt, card_assigns = card_asgns, datatypes = datatypes,
@@ -480,9 +487,9 @@ val distinct_threshold = 512
 
 (* extended_context -> int -> (typ option * int list) list
    -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> typ list -> typ list -> scope list *)
+   -> typ list -> typ list -> typ list -> scope list *)
 fun all_scopes (ext_ctxt as {thy, ctxt, ...}) sym_break cards_asgns maxes_asgns
-               iters_asgns bisim_depths mono_Ts nonmono_Ts =
+               iters_asgns bisim_depths mono_Ts nonmono_Ts shallow_dataTs =
   let
     val cards_asgns = fix_cards_assigns_wrt_boxing thy mono_Ts cards_asgns
     val blocks = blocks_for_types ctxt cards_asgns maxes_asgns iters_asgns
@@ -492,7 +499,7 @@ fun all_scopes (ext_ctxt as {thy, ctxt, ...}) sym_break cards_asgns maxes_asgns
                 |> map_filter (scope_descriptor_from_combination thy blocks)
   in
     descs |> length descs <= distinct_threshold ? distinct (op =)
-          |> map (scope_from_descriptor ext_ctxt sym_break)
+          |> map (scope_from_descriptor ext_ctxt sym_break shallow_dataTs)
   end
 
 end;

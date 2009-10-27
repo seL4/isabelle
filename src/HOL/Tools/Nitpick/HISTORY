@@ -7,6 +7,8 @@ Version 2010
   * Replaced "special_depth" and "skolemize_depth" options by "specialize"
     and "skolemize"
   * Renamed "coalesce_type_vars" to "merge_type_vars"
+  * Optimized Kodkod encoding of datatypes whose constructors don't appear in
+    the formula to falsify
   * Fixed monotonicity check
 
 Version 1.2.2 (16 Oct 2009)
