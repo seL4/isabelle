@@ -28,7 +28,6 @@ begin
 
 typedecl bisim_iterator
 
-(* FIXME: use axiomatization (here and elsewhere) *)
 axiomatization unknown :: 'a
            and undefined_fast_The :: 'a
            and undefined_fast_Eps :: 'a

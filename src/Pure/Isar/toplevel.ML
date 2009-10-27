@@ -552,7 +552,7 @@ fun error_msg tr exn_info =
 local val hooks = Unsynchronized.ref ([]: (transition -> state -> state -> unit) list) in
 
 fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
-fun get_hooks () = CRITICAL (fn () => ! hooks);
+fun get_hooks () = ! hooks;
 
 end;
 

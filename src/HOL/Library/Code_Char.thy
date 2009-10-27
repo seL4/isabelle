@@ -35,4 +35,28 @@ code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
 code_const "Code_Evaluation.term_of \<Colon> char \<Rightarrow> term"
   (Eval "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
 
+
+definition implode :: "string \<Rightarrow> String.literal" where
+  "implode = STR"
+
+primrec explode :: "String.literal \<Rightarrow> string" where
+  "explode (STR s) = s"
+
+lemma [code]:
+  "literal_case f s = f (explode s)"
+  "literal_rec f s = f (explode s)"
+  by (cases s, simp)+
+
+code_reserved SML String
+
+code_const implode
+  (SML "String.implode")
+  (OCaml "failwith/ \"implode\"")
+  (Haskell "_")
+
+code_const explode
+  (SML "String.explode")
+  (OCaml "failwith/ \"explode\"")
+  (Haskell "_")
+
 end

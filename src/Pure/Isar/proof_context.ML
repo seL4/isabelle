@@ -122,7 +122,7 @@ sig
   val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool Unsynchronized.ref
-  val setmp_verbose: ('a -> 'b) -> 'a -> 'b
+  val setmp_verbose_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
@@ -1200,7 +1200,7 @@ val debug = Unsynchronized.ref false;
 val verbose = Unsynchronized.ref false;
 fun verb f x = if ! verbose then f (x ()) else [];
 
-fun setmp_verbose f x = setmp_CRITICAL verbose true f x;
+fun setmp_verbose_CRITICAL f x = setmp_CRITICAL verbose true f x;
 
 
 (* local syntax *)

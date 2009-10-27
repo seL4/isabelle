@@ -155,7 +155,7 @@ subsection {* Strings as dedicated datatype *}
 
 datatype literal = STR string
 
-lemmas [code del] = literal.recs literal.cases
+declare literal.cases [code del] literal.recs [code del]
 
 lemma [code]: "size (s\<Colon>literal) = 0"
   by (cases s) simp_all
@@ -167,6 +167,9 @@ lemma [code]: "literal_size (s\<Colon>literal) = 0"
 subsection {* Code generator *}
 
 use "Tools/string_code.ML"
+
+code_reserved SML string
+code_reserved OCaml string
 
 code_type literal
   (SML "string")
@@ -184,9 +187,6 @@ code_const "eq_class.eq \<Colon> literal \<Rightarrow> literal \<Rightarrow> boo
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")
-
-code_reserved SML string
-code_reserved OCaml string
 
 
 types_code

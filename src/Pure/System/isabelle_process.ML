@@ -61,9 +61,6 @@ fun message_pos trees = trees |> get_first
         else message_pos ts
     | _ => NONE);
 
-fun output out_stream s = NAMED_CRITICAL "IO" (fn () =>
-  (TextIO.output (out_stream, s); TextIO.output (out_stream, "\n")));
-
 in
 
 fun message _ _ "" = ()
@@ -74,14 +71,16 @@ fun message _ _ "" = ()
           Position.properties_of (Position.thread_data ())
           |> Position.default_properties pos;
         val txt = clean_string [Symbol.STX] body;
-      in output out_stream (special ch ^ message_props props ^ txt ^ special_end) end;
+        val msg = special ch ^ message_props props ^ txt ^ special_end ^ "\n";
+      in TextIO.output (out_stream, msg) end;
 
 fun init_message out_stream =
   let
     val pid = (Markup.pidN, process_id ());
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
     val text = Session.welcome ();
-  in output out_stream (special "A" ^ message_props [pid, session] ^ text ^ special_end) end;
+    val msg = special "A" ^ message_props [pid, session] ^ text ^ special_end ^ "\n";
+  in TextIO.output (out_stream, msg) end;
 
 end;
 
