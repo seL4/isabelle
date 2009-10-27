@@ -626,7 +626,18 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         else
           case Kodkod.solve_any_problem overlord deadline max_threads
                                         max_solutions (map fst problems) of
-            Kodkod.Normal ([], unsat_js) =>
+            Kodkod.NotInstalled =>
+            (print_m (fn () =>
+                         "Nitpick requires the external Java program Kodkodi. \
+                         \To install it, download the package from Isabelle's \
+                         \web page and add the \"kodkodi-x.y.z\" directory's \
+                         \full path to \"" ^
+                         Path.implode (Path.expand (Path.appends
+                             (Path.variable "ISABELLE_HOME" ::
+                              (map Path.basic ["etc", "components"])))) ^
+                         "\".");
+             (max_potential, max_genuine, donno + 1))
+          | Kodkod.Normal ([], unsat_js) =>
             (update_checked_problems problems unsat_js;
              (max_potential, max_genuine, donno))
           | Kodkod.Normal (sat_ps, unsat_js) =>
@@ -785,7 +796,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     (* int -> int -> scope list -> int * int * int -> Kodkod.outcome *)
     fun run_batches _ _ [] (max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "ran out of resources"); "unknown")
+          (print_m (fn () => excipit "ran into difficulties"); "unknown")
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_m (K ("Nitpick found no " ^ word_model ^ ".")); "none")
