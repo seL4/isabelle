@@ -125,7 +125,7 @@ sig
   val is_inductive_pred : extended_context -> styp -> bool
   val is_constr_pattern_lhs : theory -> term -> bool
   val is_constr_pattern_formula : theory -> term -> bool
-  val coalesce_type_vars_in_terms : term list -> term list
+  val merge_type_vars_in_terms : term list -> term list
   val ground_types_in_type : extended_context -> typ -> typ list
   val ground_types_in_terms : extended_context -> term list -> typ list
   val format_type : int list -> int list -> typ -> typ
@@ -1016,24 +1016,6 @@ val is_plain_definition =
       | do_eq _ = false
   in do_eq end
 
-(* This table is not pretty. A better approach would be to avoid expanding the
-   operators to their low-level definitions, but this would require dealing with
-   overloading. *)
-val built_in_built_in_defs =
-  [@{thm div_int_inst.div_int}, @{thm div_int_inst.mod_int},
-   @{thm div_nat_inst.div_nat}, @{thm div_nat_inst.mod_nat},
-   @{thm lower_semilattice_fun_inst.inf_fun}, @{thm minus_fun_inst.minus_fun},
-   @{thm minus_int_inst.minus_int}, @{thm minus_nat_inst.minus_nat},
-   @{thm one_int_inst.one_int}, @{thm one_nat_inst.one_nat},
-   @{thm ord_fun_inst.less_eq_fun}, @{thm ord_int_inst.less_eq_int},
-   @{thm ord_int_inst.less_int}, @{thm ord_nat_inst.less_eq_nat},
-   @{thm ord_nat_inst.less_nat}, @{thm plus_int_inst.plus_int},
-   @{thm plus_nat_inst.plus_nat}, @{thm times_int_inst.times_int},
-   @{thm times_nat_inst.times_nat}, @{thm uminus_int_inst.uminus_int},
-   @{thm upper_semilattice_fun_inst.sup_fun}, @{thm zero_int_inst.zero_int},
-   @{thm zero_nat_inst.zero_nat}]
-  |> map prop_of
-
 (* theory -> term list * term list * term list *)
 fun all_axioms_of thy =
   let
@@ -1054,8 +1036,7 @@ fun all_axioms_of thy =
     val (built_in_nondefs, user_nondefs) =
       List.partition (is_typedef_axiom thy false) user_nondefs
       |>> append built_in_nondefs
-    val defs = built_in_built_in_defs @
-               (thy |> PureThy.all_thms_of
+    val defs = (thy |> PureThy.all_thms_of
                     |> filter (equal Thm.definitionK o Thm.get_kind o snd)
                     |> map (prop_of o snd) |> filter is_plain_definition) @
                user_defs @ built_in_defs
@@ -1309,10 +1290,6 @@ fun optimized_case_def thy dataT res_T =
     |> fold_rev (curry absdummy) (func_Ts @ [dataT])
   end
 
-val redefined_in_Nitpick_thy =
-  [@{const_name option_case}, @{const_name nat_case}, @{const_name list_case},
-   @{const_name list_size}]
-
 (* theory -> string -> typ -> typ -> term -> term *)
 fun optimized_record_get thy s rec_T res_T t =
   let val constr_x = the_single (datatype_constrs thy rec_T) in
@@ -1382,7 +1359,6 @@ fun is_equational_fun (ext_ctxt as {thy, def_table, ...}) =
   (is_real_equational_fun ext_ctxt orf is_real_inductive_pred ext_ctxt
    orf (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
   andf (not o has_trivial_definition thy def_table)
-  andf (not o member (op =) redefined_in_Nitpick_thy o fst)
 
 (* term * term -> term *)
 fun s_betapply (Const (@{const_name If}, _) $ @{const True} $ t, _) = t
@@ -1879,9 +1855,7 @@ fun inductive_pred_axiom ext_ctxt (x as (s, T)) =
 (* extended_context -> styp -> term list *)
 fun raw_equational_fun_axioms (ext_ctxt as {thy, fast_descrs, simp_table,
                                             psimp_table, ...}) (x as (s, _)) =
-  if s mem redefined_in_Nitpick_thy then
-    []
-  else case def_props_for_const thy fast_descrs (!simp_table) x of
+  case def_props_for_const thy fast_descrs (!simp_table) x of
     [] => (case def_props_for_const thy fast_descrs psimp_table x of
              [] => [inductive_pred_axiom ext_ctxt x]
            | psimps => psimps)
@@ -1890,7 +1864,7 @@ fun raw_equational_fun_axioms (ext_ctxt as {thy, fast_descrs, simp_table,
 val equational_fun_axioms = map extensionalize oo raw_equational_fun_axioms
 
 (* term list -> term list *)
-fun coalesce_type_vars_in_terms ts =
+fun merge_type_vars_in_terms ts =
   let
     (* typ -> (sort * string) list -> (sort * string) list *)
     fun add_type (TFree (s, S)) table =

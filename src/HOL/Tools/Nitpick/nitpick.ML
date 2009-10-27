@@ -23,7 +23,7 @@ sig
     overlord: bool,
     user_axioms: bool option,
     assms: bool,
-    coalesce_type_vars: bool,
+    merge_type_vars: bool,
     destroy_constrs: bool,
     specialize: bool,
     skolemize: bool,
@@ -88,7 +88,7 @@ type params = {
   overlord: bool,
   user_axioms: bool option,
   assms: bool,
-  coalesce_type_vars: bool,
+  merge_type_vars: bool,
   destroy_constrs: bool,
   specialize: bool,
   skolemize: bool,
@@ -175,7 +175,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val ctxt = Proof.context_of state
     val {cards_assigns, maxes_assigns, iters_assigns, bisim_depths, boxes,
          monos, wfs, sat_solver, blocking, falsify, debug, verbose, overlord,
-         user_axioms, assms, coalesce_type_vars, destroy_constrs, specialize,
+         user_axioms, assms, merge_type_vars, destroy_constrs, specialize,
          skolemize, star_linear_preds, uncurry, fast_descrs, peephole_optim,
          tac_timeout, sym_break, sharing_depth, flatten_props, max_threads,
          show_skolems, show_datatypes, show_consts, evals, formats,
@@ -220,7 +220,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                     neg_t
     val (assms_t, evals) =
       assms_t :: evals
-      |> coalesce_type_vars ? coalesce_type_vars_in_terms
+      |> merge_type_vars ? merge_type_vars_in_terms
       |> hd pairf tl
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
@@ -778,11 +778,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                    case scope_count (do_filter (!generated_problems)) scope of
                      0 => I
                    | n =>
-                     if scope_count (do_filter (these (!checked_problems)))
-                                    scope = n then
-                       Integer.add 1
-                     else
-                       I) (!generated_scopes) 0
+                     scope_count (do_filter (these (!checked_problems)))
+                                 scope = n
+                     ? Integer.add 1) (!generated_scopes) 0
       in
         "Nitpick " ^ did_so_and_so ^
         (if is_some (!checked_problems) andalso total > 0 then

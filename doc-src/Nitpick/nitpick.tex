@@ -1836,14 +1836,14 @@ finding a counterexample, as demonstrated in \S\ref{scope-monotonicity}.
 
 \nopagebreak
 {\small See also \textit{card} (\S\ref{scope-of-search}),
-\textit{coalesce\_type\_vars} (\S\ref{scope-of-search}), and \textit{verbose}
+\textit{merge\_type\_vars} (\S\ref{scope-of-search}), and \textit{verbose}
 (\S\ref{output-format}).}
 
 \opsmart{mono}{non\_box}
 Specifies the default monotonicity setting to use. This can be overridden on a
 per-type basis using the \textit{mono}~\qty{type} option described above.
 
-\opfalse{coalesce\_type\_vars}{dont\_coalesce\_type\_vars}
+\opfalse{merge\_type\_vars}{dont\_merge\_type\_vars}
 Specifies whether type variables with the same sort constraints should be
 merged. Setting this option to \textit{true} can reduce the number of scopes
 tried and the size of the generated Kodkod formulas, but it also diminishes the
@@ -2220,7 +2220,7 @@ constraint as well as it can but offers no guarantees.
 \nopagebreak
 {\small See also \textit{auto} (\S\ref{mode-of-operation}).}
 
-\opt{tac\_timeout}{time}{$\mathbf{500}$ ms}
+\opt{tac\_timeout}{time}{$\mathbf{500}$\,ms}
 Specifies the maximum amount of time that the \textit{auto} tactic should use
 when checking a counterexample, and similarly that \textit{lexicographic\_order}
 and \textit{sizechange} should use when checking whether a (co)in\-duc\-tive
@@ -2466,6 +2466,12 @@ for which the function is not defined. For example:
 Such theorems are considered bad style because they rely on the internal
 representation of functions synthesized by Isabelle, which is an implementation
 detail.
+
+\item[$\bullet$] Nitpick maintains a global cache of wellformedness conditions,
+which can become invalid if you change the definition of an inductive predicate
+that is registered in the cache. To clear the cache,
+run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
+501$\,\textit{ms}$).
 
 \item[$\bullet$] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.

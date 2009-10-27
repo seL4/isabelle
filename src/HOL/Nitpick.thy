@@ -28,7 +28,6 @@ begin
 
 typedecl bisim_iterator
 
-(* FIXME: use axiomatization (here and elsewhere) *)
 axiomatization unknown :: 'a
            and undefined_fast_The :: 'a
            and undefined_fast_Eps :: 'a
@@ -118,12 +117,16 @@ apply (subgoal_tac "u = ()")
  apply (simp only: unit.cases)
 by simp
 
+declare unit.cases [nitpick_simp del]
+
 lemma nat_case_def [nitpick_def]:
 "nat_case x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
 by (case_tac n) auto
 
-lemmas dvd_def = dvd_eq_mod_eq_0 [THEN eq_reflection, nitpick_def]
+declare nat.cases [nitpick_simp del]
+
+lemmas [nitpick_def] = dvd_eq_mod_eq_0 [THEN eq_reflection]
 
 lemma list_size_simp [nitpick_simp]:
 "list_size f xs = (if xs = [] then 0
@@ -207,6 +210,21 @@ definition less_eq_frac :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
 "of_frac q \<equiv> of_int (num q) / of_int (denom q)"
 
+(* While Nitpick normally avoids to unfold definitions for locales, it
+   unfortunately needs to unfold them when dealing with the following built-in
+   constants. A cleaner approach would be to change "Nitpick_HOL" and
+   "Nitpick_Nits" so that they handle the unexpanded overloaded constants
+   directly, but this is slightly more tricky to implement. *)
+lemmas [nitpick_def] = div_int_inst.div_int div_int_inst.mod_int
+    div_nat_inst.div_nat div_nat_inst.mod_nat lower_semilattice_fun_inst.inf_fun
+    minus_fun_inst.minus_fun minus_int_inst.minus_int minus_nat_inst.minus_nat
+    one_int_inst.one_int one_nat_inst.one_nat ord_fun_inst.less_eq_fun
+    ord_int_inst.less_eq_int ord_int_inst.less_int ord_nat_inst.less_eq_nat
+    ord_nat_inst.less_nat plus_int_inst.plus_int plus_nat_inst.plus_nat
+    times_int_inst.times_int times_nat_inst.times_nat uminus_int_inst.uminus_int
+    upper_semilattice_fun_inst.sup_fun zero_int_inst.zero_int
+    zero_nat_inst.zero_nat
+
 use "Tools/Nitpick/kodkod.ML"
 use "Tools/Nitpick/kodkod_sat.ML"
 use "Tools/Nitpick/nitpick_util.ML"
@@ -231,10 +249,10 @@ hide (open) const unknown undefined_fast_The undefined_fast_Eps bisim
 hide (open) type bisim_iterator pair_box fun_box
 hide (open) fact If_def Ex1_def rtrancl_def rtranclp_def tranclp_def refl'_def
     wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def fold_graph'_def
-    The_psimp Eps_psimp unit_case_def nat_case_def dvd_def list_size_simp
-    nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def
-    one_frac_def num_def denom_def norm_frac_def frac_def plus_frac_def
-    times_frac_def uminus_frac_def number_of_frac_def inverse_frac_def
-    less_eq_frac_def of_frac_def
+    The_psimp Eps_psimp unit_case_def nat_case_def list_size_simp nat_gcd_def
+    nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def one_frac_def
+    num_def denom_def norm_frac_def frac_def plus_frac_def times_frac_def
+    uminus_frac_def number_of_frac_def inverse_frac_def less_eq_frac_def
+    of_frac_def
 
 end

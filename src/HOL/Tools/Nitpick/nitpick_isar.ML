@@ -38,7 +38,7 @@ val default_default_params =
    ("falsify", ["true"]),
    ("user_axioms", ["smart"]),
    ("assms", ["true"]),
-   ("coalesce_type_vars", ["false"]),
+   ("merge_type_vars", ["false"]),
    ("destroy_constrs", ["true"]),
    ("specialize", ["true"]),
    ("skolemize", ["true"]),
@@ -75,7 +75,7 @@ val negated_params =
    ("satisfy", "falsify"),
    ("no_user_axioms", "user_axioms"),
    ("no_assms", "assms"),
-   ("dont_coalesce_type_vars", "coalesce_type_vars"),
+   ("dont_merge_type_vars", "merge_type_vars"),
    ("dont_destroy_constrs", "destroy_constrs"),
    ("dont_specialize", "specialize"),
    ("dont_skolemize", "skolemize"),
@@ -305,7 +305,7 @@ fun extract_params ctxt auto default_params override_params =
     val overlord = lookup_bool "overlord"
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
-    val coalesce_type_vars = lookup_bool "coalesce_type_vars"
+    val merge_type_vars = lookup_bool "merge_type_vars"
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
     val skolemize = lookup_bool "skolemize"
@@ -341,7 +341,7 @@ fun extract_params ctxt auto default_params override_params =
      monos = monos, wfs = wfs, sat_solver = sat_solver, blocking = blocking,
      falsify = falsify, debug = debug, verbose = verbose, overlord = overlord,
      user_axioms = user_axioms, assms = assms,
-     coalesce_type_vars = coalesce_type_vars, destroy_constrs = destroy_constrs,
+     merge_type_vars = merge_type_vars, destroy_constrs = destroy_constrs,
      specialize = specialize, skolemize = skolemize,
      star_linear_preds = star_linear_preds, uncurry = uncurry,
      fast_descrs = fast_descrs, peephole_optim = peephole_optim,
