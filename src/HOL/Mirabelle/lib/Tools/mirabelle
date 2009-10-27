@@ -35,8 +35,17 @@ function usage() {
   echo "  either NAME or NAME[OPTION,...,OPTION]. Available actions are:"
   print_action_names
   echo
-  echo "  A list of available OPTIONs can be found here:"
-  echo "    $MIRABELLE_HOME/doc/options.txt"
+  echo "  Available OPTIONs for the ACTION sledgehammer:"
+  echo "    * prover=NAME: name of the external prover to call"
+  echo "    * prover_timeout=TIME: timeout for invoked ATP (seconds of process time)"
+  echo "    * prover_hard_timeout=TIME: timeout for invoked ATP (seconds of elapsed"
+  echo "      time)"
+  echo "    * keep=PATH: path where to keep temporary files created by sledgehammer"
+  echo "    * full_types: enable fully-typed encoding"
+  echo "    * minimize: enable minimization of theorem set found by sledgehammer"
+  echo "    * minimize_timeout=TIME: timeout for each minimization step (seconds of"
+  echo "      process time)"
+  echo "    * metis: apply metis to the theorems found by sledgehammer"
   echo
   echo "  FILES is a list of theory files, where each file is either NAME.thy"
   echo "  or NAME.thy[START:END] and START and END are numbers indicating the"

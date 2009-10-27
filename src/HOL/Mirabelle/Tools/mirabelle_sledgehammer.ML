@@ -302,8 +302,11 @@ datatype sh_result =
 fun run_sh prover hard_timeout timeout dir st =
   let
     val (ctxt, goal) = Proof.get_goal st
-    val ctxt' = if is_none dir then ctxt
-      else Config.put ATP_Wrapper.destdir (the dir) ctxt
+    val change_dir = (fn SOME d => Config.put ATP_Wrapper.destdir d | _ => I)
+    val ctxt' =
+      ctxt
+      |> change_dir dir
+      |> Config.put ATP_Wrapper.measure_runtime true
     val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', goal);
 
     val time_limit =

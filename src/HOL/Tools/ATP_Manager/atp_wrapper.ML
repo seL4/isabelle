@@ -9,6 +9,7 @@ sig
   (*hooks for problem files*)
   val destdir: string Config.T
   val problem_prefix: string Config.T
+  val measure_runtime: bool Config.T
   val setup: theory -> theory
 
   (*prover configuration, problem format, and prover result*)
@@ -61,7 +62,10 @@ val (destdir, destdir_setup) = Attrib.config_string "atp_destdir" "";
 val (problem_prefix, problem_prefix_setup) =
   Attrib.config_string "atp_problem_prefix" "prob";
 
-val setup = destdir_setup #> problem_prefix_setup;
+val (measure_runtime, measure_runtime_setup) =
+  Attrib.config_bool "atp_measure_runtime" false;
+
+val setup = destdir_setup #> problem_prefix_setup #> measure_runtime_setup;
 
 
 (* prover configuration, problem format, and prover result *)
@@ -140,9 +144,14 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
       end;
 
     (* write out problem file and call prover *)
-    fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
-      [File.shell_path cmd, args, File.shell_path probfile] ^ " 2> /dev/null" ^
-      " ; } 2>&1"
+    fun cmd_line probfile =
+      if Config.get ctxt measure_runtime
+      then (* Warning: suppresses error messages of ATPs *)
+        "TIMEFORMAT='%3U'; { time " ^ space_implode " " [File.shell_path cmd,
+        args, File.shell_path probfile] ^ " 2> /dev/null" ^ " ; } 2>&1"
+      else
+        space_implode " " ["exec", File.shell_path cmd, args,
+        File.shell_path probfile];
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
@@ -154,10 +163,12 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (proof, as_time t) end;
+    fun split_time' s =
+      if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
         write probfile clauses
-        |> pair (apfst split_time (system_out (cmd_line probfile)))
+        |> pair (apfst split_time' (system_out (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd);
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
