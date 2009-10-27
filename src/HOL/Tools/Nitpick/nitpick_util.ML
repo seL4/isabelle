@@ -72,7 +72,7 @@ sig
   val maybe_quote : string -> string
 end
 
-structure NitpickUtil : NITPICK_UTIL =
+structure Nitpick_Util : NITPICK_UTIL =
 struct
 
 type styp = string * typ
@@ -107,7 +107,7 @@ fun reasonable_power a 0 = 1
   | reasonable_power 1 _ = 1
   | reasonable_power a b =
     if b < 0 orelse b > max_exponent then
-      raise LIMIT ("NitpickUtil.reasonable_power",
+      raise LIMIT ("Nitpick_Util.reasonable_power",
                    "too large exponent (" ^ signed_string_of_int b ^ ")")
     else
       let
@@ -123,7 +123,7 @@ fun exact_log m n =
     if reasonable_power m r = n then
       r
     else
-      raise ARG ("NitpickUtil.exact_log",
+      raise ARG ("Nitpick_Util.exact_log",
                  commas (map signed_string_of_int [m, n]))
   end
 
@@ -133,7 +133,7 @@ fun exact_root m n =
     if reasonable_power r m = n then
       r
     else
-      raise ARG ("NitpickUtil.exact_root",
+      raise ARG ("Nitpick_Util.exact_root",
                  commas (map signed_string_of_int [m, n]))
   end
 
@@ -156,7 +156,7 @@ fun filter_indices js xs =
     fun aux _ [] _ = []
       | aux i (j :: js) (x :: xs) =
         if i = j then x :: aux (i + 1) js xs else aux (i + 1) (j :: js) xs
-      | aux _ _ _ = raise ARG ("NitpickUtil.filter_indices",
+      | aux _ _ _ = raise ARG ("Nitpick_Util.filter_indices",
                                "indices unordered or out of range")
   in aux 0 js xs end
 fun filter_out_indices js xs =
@@ -165,7 +165,7 @@ fun filter_out_indices js xs =
     fun aux _ [] xs = xs
       | aux i (j :: js) (x :: xs) =
         if i = j then aux (i + 1) js xs else x :: aux (i + 1) (j :: js) xs
-      | aux _ _ _ = raise ARG ("NitpickUtil.filter_out_indices",
+      | aux _ _ _ = raise ARG ("Nitpick_Util.filter_out_indices",
                                "indices unordered or out of range")
   in aux 0 js xs end
 
@@ -303,5 +303,5 @@ fun maybe_quote y =
 
 end;
 
-structure BasicNitpickUtil : BASIC_NITPICK_UTIL = NitpickUtil;
-open BasicNitpickUtil;
+structure Basic_Nitpick_Util : BASIC_NITPICK_UTIL = Nitpick_Util;
+open Basic_Nitpick_Util;

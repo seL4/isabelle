@@ -14,10 +14,10 @@ structure Minipick : MINIPICK =
 struct
 
 open Kodkod
-open NitpickUtil
-open NitpickHOL
-open NitpickPeephole
-open NitpickKodkod
+open Nitpick_Util
+open Nitpick_HOL
+open Nitpick_Peephole
+open Nitpick_Kodkod
 
 (* theory -> typ -> unit *)
 fun check_type ctxt (Type ("fun", Ts)) = List.app (check_type ctxt) Ts

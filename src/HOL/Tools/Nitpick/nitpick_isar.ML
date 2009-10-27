@@ -13,13 +13,13 @@ sig
   val default_params : theory -> (string * string) list -> params
 end
 
-structure NitpickIsar : NITPICK_ISAR =
+structure Nitpick_Isar : NITPICK_ISAR =
 struct
 
-open NitpickUtil
-open NitpickHOL
-open NitpickRep
-open NitpickNut
+open Nitpick_Util
+open Nitpick_HOL
+open Nitpick_Rep
+open Nitpick_Nut
 open Nitpick
 
 type raw_param = string * string list

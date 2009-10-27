@@ -2381,7 +2381,7 @@ The return value is a new proof state paired with an outcome string
 (``genuine'', ``likely\_genuine'', ``potential'', ``none'', or ``unknown''). The
 \textit{params} type is a large record that lets you set Nitpick's options. The
 current default options can be retrieved by calling the following function
-defined in the \textit{NitpickIsar} structure:
+defined in the \textit{Nitpick\_Isar} structure:
 
 \prew
 $\textbf{val}\,~\textit{default\_params} :\,
@@ -2392,7 +2392,7 @@ The second argument lets you override option values before they are parsed and
 put into a \textit{params} record. Here is an example:
 
 \prew
-$\textbf{val}\,~\textit{params} = \textit{NitpickIsar.default\_params}~\textit{thy}~[(\textrm{``}\textrm{timeout}\textrm{''},\, \textrm{``}\textrm{none}\textrm{''})]$ \\
+$\textbf{val}\,~\textit{params} = \textit{Nitpick\_Isar.default\_params}~\textit{thy}~[(\textrm{``}\textrm{timeout}\textrm{''},\, \textrm{``}\textrm{none}\textrm{''})]$ \\
 $\textbf{val}\,~(\textit{outcome},\, \textit{state}') = \textit{Nitpick.pick\_nits\_in\_subgoal}~\begin{aligned}[t]
 & \textit{state}~\textit{params}~\textit{false} \\[-2pt]
 & \textit{subgoal}\end{aligned}$

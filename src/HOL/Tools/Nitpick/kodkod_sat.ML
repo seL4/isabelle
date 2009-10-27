@@ -12,7 +12,7 @@ sig
   val sat_solver_spec : string -> string * string list
 end;
 
-structure KodkodSAT : KODKOD_SAT =
+structure Kodkod_SAT : KODKOD_SAT =
 struct
 
 datatype sink = ToStdout | ToFile

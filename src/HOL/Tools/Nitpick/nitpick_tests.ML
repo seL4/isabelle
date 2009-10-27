@@ -10,15 +10,14 @@ sig
   val run_all_tests : unit -> unit
 end
 
-structure NitpickTests =
+structure Nitpick_Tests =
 struct
 
-open NitpickUtil
-open NitpickPeephole
-open NitpickRep
-open NitpickNut
-open NitpickKodkod
-open Nitpick
+open Nitpick_Util
+open Nitpick_Peephole
+open Nitpick_Rep
+open Nitpick_Nut
+open Nitpick_Kodkod
 
 val settings =
   [("solver", "\"zChaff\""),

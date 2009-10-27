@@ -7,9 +7,9 @@ Model reconstruction for Nitpick.
 
 signature NITPICK_MODEL =
 sig
-  type scope = NitpickScope.scope
-  type rep = NitpickRep.rep
-  type nut = NitpickNut.nut
+  type scope = Nitpick_Scope.scope
+  type rep = Nitpick_Rep.rep
+  type nut = Nitpick_Nut.nut
 
   type params = {
     show_skolems: bool,
@@ -29,15 +29,15 @@ sig
     -> Kodkod.raw_bound list -> term -> bool option
 end;
 
-structure NitpickModel : NITPICK_MODEL =
+structure Nitpick_Model : NITPICK_MODEL =
 struct
 
-open NitpickUtil
-open NitpickHOL
-open NitpickScope
-open NitpickPeephole
-open NitpickRep
-open NitpickNut
+open Nitpick_Util
+open Nitpick_HOL
+open Nitpick_Scope
+open Nitpick_Peephole
+open Nitpick_Rep
+open Nitpick_Nut
 
 type params = {
   show_skolems: bool,
@@ -57,7 +57,7 @@ fun atom_name prefix (T as Type (s, _)) j =
     prefix ^ substring (short_name s, 0, 1) ^ nat_subscript (j + 1)
   | atom_name prefix (T as TFree (s, _)) j =
     prefix ^ perhaps (try (unprefix "'")) s ^ nat_subscript (j + 1)
-  | atom_name _ T _ = raise TYPE ("NitpickModel.atom_name", [T], [])
+  | atom_name _ T _ = raise TYPE ("Nitpick_Model.atom_name", [T], [])
 (* bool -> typ -> int -> term *)
 fun atom for_auto T j =
   if for_auto then
@@ -130,7 +130,7 @@ val dest_plain_fun =
     fun aux (Const (s, _)) = (s <> non_opt_name, ([], []))
       | aux (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) =
         let val (s, (ts1, ts2)) = aux t0 in (s, (t1 :: ts1, t2 :: ts2)) end
-      | aux t = raise TERM ("NitpickModel.dest_plain_fun", [t])
+      | aux t = raise TERM ("Nitpick_Model.dest_plain_fun", [t])
   in apsnd (pairself rev) o aux end
 
 (* typ -> term -> term list * term *)
@@ -138,7 +138,7 @@ fun break_in_two (Type ("*", [T1, T2]))
                  (Const (@{const_name Pair}, _) $ t1 $ t2) =
     break_in_two T2 t2 |>> cons t1
   | break_in_two _ (Const (@{const_name Pair}, _) $ t1 $ t2) = ([t1], t2)
-  | break_in_two _ t = raise TERM ("NitpickModel.break_in_two", [t])
+  | break_in_two _ t = raise TERM ("Nitpick_Model.break_in_two", [t])
 (* typ -> term -> term -> term *)
 fun pair_up (Type ("*", [T1', T2']))
             (t1 as Const (@{const_name Pair},
@@ -180,7 +180,7 @@ fun typecast_fun (Type ("fun", [T1', T2'])) T1 T2 t =
                  [T1' --> T2', T1', T2'] ---> T1' --> T2')
           $ do_arrow T1' T2' T1 T2 t0 $ do_term T1' T1 t1 $ do_term T2' T2 t2
         | do_arrow _ _ _ _ t =
-          raise TERM ("NitpickModel.typecast_fun.do_arrow", [t])
+          raise TERM ("Nitpick_Model.typecast_fun.do_arrow", [t])
       and do_fun T1' T2' T1 T2 t =
         case factor_out_types T1' T1 of
           ((_, NONE), (_, NONE)) => t |> do_arrow T1' T2' T1 T2
@@ -188,7 +188,7 @@ fun typecast_fun (Type ("fun", [T1', T2'])) T1 T2 t =
           t |> do_curry T1a T1b T2 |> do_arrow T1' T2' T1a (T1b --> T2)
         | ((T1a', SOME T1b'), (_, NONE)) =>
           t |> do_arrow T1a' (T1b' --> T2') T1 T2 |> do_uncurry T1' T2'
-        | _ => raise TYPE ("NitpickModel.typecast_fun.do_fun", [T1, T1'], [])
+        | _ => raise TYPE ("Nitpick_Model.typecast_fun.do_fun", [T1, T1'], [])
       (* typ -> typ -> term -> term *)
       and do_term (Type ("fun", [T1', T2'])) (Type ("fun", [T1, T2])) t =
           do_fun T1' T2' T1 T2 t
@@ -198,9 +198,9 @@ fun typecast_fun (Type ("fun", [T1', T2'])) T1 T2 t =
           $ do_term T1' T1 t1 $ do_term T2' T2 t2
         | do_term T' T t =
           if T = T' then t
-          else raise TYPE ("NitpickModel.typecast_fun.do_term", [T, T'], [])
+          else raise TYPE ("Nitpick_Model.typecast_fun.do_term", [T, T'], [])
     in if T1' = T1 andalso T2' = T2 then t else do_fun T1' T2' T1 T2 t end
-  | typecast_fun T' _ _ _ = raise TYPE ("NitpickModel.typecast_fun", [T'], [])
+  | typecast_fun T' _ _ _ = raise TYPE ("Nitpick_Model.typecast_fun", [T'], [])
 
 (* term -> string *)
 fun truth_const_sort_key @{const True} = "0"
@@ -302,7 +302,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
           term_for_rep seen T T' (Vect (k1, Atom (k2, 0)))
                        [nth_combination (replicate k1 (k2, 0)) j]
           handle General.Subscript =>
-                 raise ARG ("NitpickModel.reconstruct_term.term_for_atom",
+                 raise ARG ("Nitpick_Model.reconstruct_term.term_for_atom",
                             signed_string_of_int j ^ " for " ^
                             string_for_rep (Vect (k1, Atom (k2, 0))))
         end
@@ -350,7 +350,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
               map (fn x => get_first
                                (fn ConstName (s', T', R) =>
                                    if (s', T') = x then SOME R else NONE
-                                 | u => raise NUT ("NitpickModel.reconstruct_\
+                                 | u => raise NUT ("Nitpick_Model.reconstruct_\
                                                    \term.term_for_atom", [u]))
                                sel_names |> the) sel_xs
             val arg_Rs = map (snd o dest_Func) sel_Rs
@@ -389,7 +389,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
                                  | n2 => Const (@{const_name HOL.divide},
                                                 [num_T, num_T] ---> num_T)
                                          $ mk_num n1 $ mk_num n2)
-                      | _ => raise TERM ("NitpickModel.reconstruct_term.term_\
+                      | _ => raise TERM ("Nitpick_Model.reconstruct_term.term_\
                                          \for_atom (Abs_Frac)", ts)
                     end
                   else if not for_auto andalso is_abs_fun thy constr_x then
@@ -421,7 +421,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
     and term_for_rep seen T T' Unit [[]] = term_for_atom seen T T' 0
       | term_for_rep seen T T' (R as Atom (k, j0)) [[j]] =
         if j >= j0 andalso j < j0 + k then term_for_atom seen T T' (j - j0)
-        else raise REP ("NitpickModel.reconstruct_term.term_for_rep", [R])
+        else raise REP ("Nitpick_Model.reconstruct_term.term_for_rep", [R])
       | term_for_rep seen (Type ("*", [T1, T2])) _ (Struct [R1, R2]) [js] =
         let
           val arity1 = arity_of_rep R1
@@ -454,7 +454,7 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
       | term_for_rep seen T T' (Opt R) jss =
         if null jss then Const (unknown, T) else term_for_rep seen T T' R jss
       | term_for_rep seen T _ R jss =
-        raise ARG ("NitpickModel.reconstruct_term.term_for_rep",
+        raise ARG ("Nitpick_Model.reconstruct_term.term_for_rep",
                    Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
   in
@@ -576,7 +576,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
             (assign_operator_for_const (s, T),
              user_friendly_const ext_ctxt (base_name, step_name) formats (s, T),
              T)
-          | _ => raise NUT ("NitpickModel.reconstruct_hol_model.\
+          | _ => raise NUT ("Nitpick_Model.reconstruct_hol_model.\
                             \pretty_for_assign", [name])
         val t2 = if rep_of name = Any then
                    Const (@{const_name undefined}, T')
@@ -601,7 +601,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
         precise = false, constrs = []}]
-      handle TYPE ("NitpickHOL.card_of_type", _, _) => []
+      handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       List.partition #co datatypes
       ||> append (integer_datatype nat_T @ integer_datatype int_T)
@@ -637,7 +637,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
                           free_names of
                 [name] => name
               | [] => FreeName (s, T, Any)
-              | _ => raise TERM ("NitpickModel.reconstruct_hol_model",
+              | _ => raise TERM ("Nitpick_Model.reconstruct_hol_model",
                                  [Const x])) all_frees
     val chunks = block_of_names true "Free variable" free_names @
                  block_of_names show_skolems "Skolem constant" skolem_names @
