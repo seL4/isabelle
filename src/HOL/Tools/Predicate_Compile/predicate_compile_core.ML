@@ -332,10 +332,12 @@ val depth_limited_function_name_of = #name ooo the_depth_limited_function_data
 
 (* diagnostic display functions *)
 
-fun print_modes modes =
-  Output.tracing ("Inferred modes:\n" ^
-    cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
-      string_of_mode ms)) modes));
+fun print_modes options modes =
+  if show_modes options then
+    Output.tracing ("Inferred modes:\n" ^
+      cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
+        string_of_mode ms)) modes))
+  else ()
 
 fun print_pred_mode_table string_of_entry thy pred_mode_table =
   let
@@ -2150,7 +2152,7 @@ fun add_equations_of steps options prednames thy =
     val moded_clauses = #infer_modes steps options thy extra_modes all_modes param_vs clauses 
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = check_expected_modes options modes
-    val _ = print_modes modes
+    val _ = print_modes options modes
       (*val _ = print_moded_clauses thy moded_clauses*)
     val _ = print_step options "Defining executable functions..."
     val thy' = fold (#create_definitions steps preds) modes thy
