@@ -124,15 +124,15 @@ fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2
 
 structure Locales = TheoryDataFun
 (
-  type T = locale NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = locale Name_Space.table;
+  val empty : T = Name_Space.empty_table "locale";
   val copy = I;
   val extend = I;
-  fun merge _ = NameSpace.join_tables (K merge_locale);
+  fun merge _ = Name_Space.join_tables (K merge_locale);
 );
 
-val intern = NameSpace.intern o #1 o Locales.get;
-val extern = NameSpace.extern o #1 o Locales.get;
+val intern = Name_Space.intern o #1 o Locales.get;
+val extern = Name_Space.extern o #1 o Locales.get;
 
 val get_locale = Symtab.lookup o #2 o Locales.get;
 val defined = Symtab.defined o #2 o Locales.get;
@@ -143,7 +143,7 @@ fun the_locale thy name =
   | NONE => error ("Unknown locale " ^ quote name));
 
 fun register_locale binding parameters spec intros axioms decls notes dependencies thy =
-  thy |> Locales.map (NameSpace.define (Sign.naming_of thy)
+  thy |> Locales.map (Name_Space.define true (Sign.naming_of thy)
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
         ((pairself (map (fn decl => (decl, stamp ()))) decls, map (fn n => (n, stamp ())) notes),
@@ -153,7 +153,7 @@ fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
 
 fun print_locales thy =
-  Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (Locales.get thy)))
+  Pretty.strs ("locales:" :: map #1 (Name_Space.extern_table (Locales.get thy)))
   |> Pretty.writeln;
 
 

@@ -853,7 +853,7 @@ fun map_transpose f xss =
      of [] => 0
       | [n] => n
       | _ => raise UnequalLengths;
-  in map (fn m => f (map (fn xs => nth xs m) xss)) (0 upto n - 1) end;
+  in map_range (fn m => f (map (fn xs => nth xs m) xss)) n end;
 
 
 

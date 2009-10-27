@@ -153,7 +153,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
         (descr' ~~ recTs ~~ rec_sets') ([], 0);
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
-        Inductive.add_inductive_global (serial_string ())
+        Inductive.add_inductive_global (serial ())
           {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
             alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true, fork_mono = false}
@@ -321,7 +321,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
                 fns2 @ (flat (Library.drop (i + 1, case_dummy_fns))) )));
           val ([def_thm], thy') =
             thy
-            |> Sign.declare_const [] decl |> snd
+            |> Sign.declare_const decl |> snd
             |> (PureThy.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')

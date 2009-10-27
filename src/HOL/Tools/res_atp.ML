@@ -355,7 +355,7 @@ fun valid_facts facts =
     if run_blacklist_filter andalso is_package_def name then I
     else
       let val xname = Facts.extern facts name in
-        if NameSpace.is_hidden xname then I
+        if Name_Space.is_hidden xname then I
         else cons (xname, filter_out ResAxioms.bad_for_atp ths)
       end) facts [];
 

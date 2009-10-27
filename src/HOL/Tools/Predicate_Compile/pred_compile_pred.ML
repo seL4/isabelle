@@ -123,16 +123,67 @@ fun preprocess (constname, specs) thy =
       else
         error ("unexpected specification for constant " ^ quote constname ^ ":\n"
           ^ commas (map (quote o Display.string_of_thm_global thy) specs))
-    val _ = tracing ("Introduction rules of definitions before flattening: "
-      ^ commas (map (Display.string_of_thm ctxt) intros))
-    val _ = tracing "Defining local predicates and their intro rules..."
     val (intros', (local_defs, thy')) = flatten_intros constname intros thy
     val (intross, thy'') = fold_map preprocess local_defs thy'
   in
-    (intros' :: flat intross,thy'')
+    ((constname, intros') :: flat intross,thy'')
   end;
 
 fun preprocess_term t thy = error "preprocess_pred_term: to implement" 
-  
-  
+
+fun is_Abs (Abs _) = true
+  | is_Abs _       = false
+
+fun flat_higher_order_arguments (intross, thy) =
+  let
+    fun process constname atom (new_defs, thy) =
+      let
+        val (pred, args) = strip_comb atom
+        val abs_args = filter is_Abs args
+        fun replace_abs_arg (abs_arg as Abs _ ) (new_defs, thy) =
+          let
+            val _ = tracing ("Introduce new constant for " ^
+              Syntax.string_of_term_global thy abs_arg)
+            val vars = map Var (Term.add_vars abs_arg [])
+            val abs_arg' = Logic.unvarify abs_arg
+            val frees = map Free (Term.add_frees abs_arg' [])
+            val constname = Name.variant (map (Long_Name.base_name o fst) new_defs)
+              ((Long_Name.base_name constname) ^ "_hoaux")
+            val full_constname = Sign.full_bname thy constname
+            val constT = map fastype_of frees ---> (fastype_of abs_arg')
+            val const = Const (full_constname, constT)
+            val lhs = list_comb (const, frees)
+            val def = Logic.mk_equals (lhs, abs_arg')
+            val _ = tracing (Syntax.string_of_term_global thy def)
+            val ([definition], thy') = thy
+              |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
+              |> PureThy.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
+          in
+            (list_comb (Logic.varify const, vars), ((full_constname, [definition])::new_defs, thy'))
+          end
+        | replace_abs_arg arg (new_defs, thy) = (arg, (new_defs, thy))
+        val (args', (new_defs', thy')) = fold_map replace_abs_arg args (new_defs, thy)
+      in
+        (list_comb (pred, args'), (new_defs', thy'))
+      end
+    fun flat_intro intro (new_defs, thy) =
+      let
+        val constname = fst (dest_Const (fst (strip_comb
+          (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of intro))))))
+        val (intro_ts, (new_defs, thy)) = fold_map_atoms (process constname) (prop_of intro) (new_defs, thy)
+        val th = Skip_Proof.make_thm thy intro_ts
+      in
+        (th, (new_defs, thy))
+      end
+    fun fold_map_spec f [] s = ([], s)
+      | fold_map_spec f ((c, ths) :: specs) s =
+        let
+          val (ths', s') = f ths s
+          val (specs', s'') = fold_map_spec f specs s'
+        in ((c, ths') :: specs', s'') end
+    val (intross', (new_defs, thy')) = fold_map_spec (fold_map flat_intro) intross ([], thy)
+  in
+    (intross', (new_defs, thy'))
+  end
+
 end;

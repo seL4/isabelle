@@ -20,33 +20,40 @@ sig
   val hidden: string -> string
   val is_hidden: string -> bool
   type T
-  val empty: T
+  val empty: string -> T
+  val kind_of: T -> string
+  val the_entry: T -> string ->
+    {concealed: bool, group: serial option, theory_name: string, pos: Position.T, id: serial}
+  val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val extern: T -> string -> xstring
   val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
     T -> string -> xstring
+  val extern: T -> string -> xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
   val default_naming: naming
-  val declare: naming -> binding -> T -> string * T
-  val full_name: naming -> binding -> string
-  val external_names: naming -> string -> string list
+  val conceal: naming -> naming
+  val set_group: serial -> naming -> naming
+  val set_theory_name: string -> naming -> naming
   val add_path: string -> naming -> naming
   val root_path: naming -> naming
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
+  val full_name: naming -> binding -> string
+  val external_names: naming -> string -> string list
+  val declare: bool -> naming -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
-  val define: naming -> binding * 'a -> 'a table -> string * 'a table (*exception Symtab.DUP*)
-  val empty_table: 'a table
-  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table (*exception Symtab.DUP*)
-  val join_tables: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*) ->
-    'a table * 'a table -> 'a table (*exception Symtab.DUP*)
+  val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
+  val empty_table: string -> 'a table
+  val merge_tables: 'a table * 'a table -> 'a table
+  val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
+    'a table * 'a table -> 'a table
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
 end;
 
-structure NameSpace: NAME_SPACE =
+structure Name_Space: NAME_SPACE =
 struct
 
 
@@ -58,33 +65,76 @@ fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
 
 
+(* datatype entry *)
+
+type entry =
+ {externals: xstring list,
+  concealed: bool,
+  group: serial option,
+  theory_name: string,
+  pos: Position.T,
+  id: serial};
+
+fun str_of_entry def (name, {pos, id, ...}: entry) =
+  let
+    val occurrence = (if def then Markup.defN else Markup.refN, string_of_int id);
+    val props = occurrence :: Position.properties_of pos;
+  in Markup.markup (Markup.properties props (Markup.entity name)) name end;
+
+fun err_dup kind entry1 entry2 =
+  error ("Duplicate " ^ kind ^ " declaration " ^
+    quote (str_of_entry true entry1) ^ " vs. " ^ quote (str_of_entry true entry2));
+
+
 (* datatype T *)
 
 datatype T =
-  NameSpace of
-    (string list * string list) Symtab.table *   (*internals, hidden internals*)
-    xstring list Symtab.table;                   (*externals*)
+  Name_Space of
+   {kind: string,
+    internals: (string list * string list) Symtab.table,  (*visible, hidden*)
+    entries: entry Symtab.table};
 
-val empty = NameSpace (Symtab.empty, Symtab.empty);
+fun make_name_space (kind, internals, entries) =
+  Name_Space {kind = kind, internals = internals, entries = entries};
 
-fun lookup (NameSpace (tab, _)) xname =
-  (case Symtab.lookup tab xname of
+fun map_name_space f (Name_Space {kind = kind, internals = internals, entries = entries}) =
+  make_name_space (f (kind, internals, entries));
+
+fun map_internals f xname = map_name_space (fn (kind, internals, entries) =>
+  (kind, Symtab.map_default (xname, ([], [])) f internals, entries));
+
+
+fun empty kind = make_name_space (kind, Symtab.empty, Symtab.empty);
+
+fun kind_of (Name_Space {kind, ...}) = kind;
+
+fun the_entry (Name_Space {kind, entries, ...}) name =
+  (case Symtab.lookup entries name of
+    NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
+  | SOME {concealed, group, theory_name, pos, id, ...} =>
+      {concealed = concealed, group = group, theory_name = theory_name, pos = pos, id = id});
+
+fun is_concealed space name = #concealed (the_entry space name);
+
+
+(* name accesses *)
+
+fun lookup (Name_Space {internals, ...}) xname =
+  (case Symtab.lookup internals xname of
     NONE => (xname, true)
   | SOME ([], []) => (xname, true)
   | SOME ([name], _) => (name, true)
   | SOME (name :: _, _) => (name, false)
   | SOME ([], name' :: _) => (hidden name', true));
 
-fun get_accesses (NameSpace (_, xtab)) name =
-  (case Symtab.lookup xtab name of
+fun get_accesses (Name_Space {entries, ...}) name =
+  (case Symtab.lookup entries name of
     NONE => [name]
-  | SOME xnames => xnames);
+  | SOME {externals, ...} => externals);
 
-fun put_accesses name xnames (NameSpace (tab, xtab)) =
-  NameSpace (tab, Symtab.update (name, xnames) xtab);
-
-fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, (names, _)) =>
-  if not (null names) andalso hd names = name then cons xname else I) tab [];
+fun valid_accesses (Name_Space {internals, ...}) name =
+  Symtab.fold (fn (xname, (names, _)) =>
+    if not (null names) andalso hd names = name then cons xname else I) internals [];
 
 
 (* intern and extern *)
@@ -116,21 +166,13 @@ fun extern space name =
     unique_names = ! unique_names} space name;
 
 
-(* basic operations *)
+(* modify internals *)
 
-local
-
-fun map_space f xname (NameSpace (tab, xtab)) =
-  NameSpace (Symtab.map_default (xname, ([], [])) f tab, xtab);
-
-in
-
-val del_name = map_space o apfst o remove (op =);
-fun del_name_extra name = map_space (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
-val add_name = map_space o apfst o update (op =);
-val add_name' = map_space o apsnd o update (op =);
-
-end;
+val del_name = map_internals o apfst o remove (op =);
+fun del_name_extra name =
+  map_internals (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
+val add_name = map_internals o apfst o update (op =);
+val add_name' = map_internals o apsnd o update (op =);
 
 
 (* hide *)
@@ -152,17 +194,24 @@ fun hide fully name space =
 
 (* merge *)
 
-fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
+fun merge
+  (Name_Space {kind = kind1, internals = internals1, entries = entries1},
+    Name_Space {kind = kind2, internals = internals2, entries = entries2}) =
   let
-    val tab' = (tab1, tab2) |> Symtab.join
+    val kind' =
+      if kind1 = kind2 then kind1
+      else error ("Attempt to merge different kinds of name spaces " ^
+        quote kind1 ^ " vs. " ^ quote kind2);
+    val internals' = (internals1, internals2) |> Symtab.join
       (K (fn ((names1, names1'), (names2, names2')) =>
-        if pointer_eq (names1, names2) andalso pointer_eq (names1', names2') then raise Symtab.SAME
+        if pointer_eq (names1, names2) andalso pointer_eq (names1', names2')
+        then raise Symtab.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
-    val xtab' = (xtab1, xtab2) |> Symtab.join
-      (K (fn xnames =>
-        if pointer_eq xnames then raise Symtab.SAME
-        else (Library.merge (op =) xnames)));
-  in NameSpace (tab', xtab') end;
+    val entries' = (entries1, entries2) |> Symtab.join
+      (fn name => fn (entry1, entry2) =>
+        if #id entry1 = #id entry2 then raise Symtab.SAME
+        else err_dup kind' (name, entry1) (name, entry2));
+  in make_name_space (kind', internals', entries') end;
 
 
 
@@ -170,36 +219,59 @@ fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
 
 (* datatype naming *)
 
-datatype naming = Naming of (string * bool) list;
-fun map_naming f (Naming path) = Naming (f path);
+datatype naming = Naming of
+ {conceal: bool,
+  group: serial option,
+  theory_name: string,
+  path: (string * bool) list};
 
-val default_naming = Naming [];
+fun make_naming (conceal, group, theory_name, path) =
+  Naming {conceal = conceal, group = group, theory_name = theory_name, path = path};
 
-fun add_path elems = map_naming (fn path => path @ [(elems, false)]);
-val root_path = map_naming (fn _ => []);
-val parent_path = map_naming (perhaps (try (#1 o split_last)));
-fun mandatory_path elems = map_naming (fn path => path @ [(elems, true)]);
+fun map_naming f (Naming {conceal, group, theory_name, path}) =
+  make_naming (f (conceal, group, theory_name, path));
+
+fun map_path f = map_naming (fn (conceal, group, theory_name, path) =>
+  (conceal, group, theory_name, f path));
+
+
+val default_naming = make_naming (false, NONE, "", []);
+
+val conceal = map_naming (fn (_, group, theory_name, path) =>
+  (true, group, theory_name, path));
+
+fun set_group group = map_naming (fn (conceal, _, theory_name, path) =>
+  (conceal, SOME group, theory_name, path));
+
+fun set_theory_name theory_name = map_naming (fn (conceal, group, _, path) =>
+  (conceal, group, theory_name, path));
+
+fun add_path elems = map_path (fn path => path @ [(elems, false)]);
+val root_path = map_path (fn _ => []);
+val parent_path = map_path (perhaps (try (#1 o split_last)));
+fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 
 
 (* full name *)
 
 fun err_bad binding = error ("Bad name binding " ^ quote (Binding.str_of binding));
 
-fun name_spec (Naming path) binding =
+fun name_spec (Naming {conceal = conceal1, path, ...}) binding =
   let
-    val (prefix, name) = Binding.dest binding;
+    val (conceal2, prefix, name) = Binding.dest binding;
     val _ = Long_Name.is_qualified name andalso err_bad binding;
 
+    val concealed = conceal1 orelse conceal2;
     val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path @ prefix);
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
     val _ =
       exists (fn (a, _) => a = "" orelse a = "??" orelse exists_string (fn s => s = "\"") a) spec
       andalso err_bad binding;
-  in if null spec2 then [] else spec end;
+  in (concealed, if null spec2 then [] else spec) end;
 
-fun full naming = name_spec naming #> map fst;
-fun full_name naming = full naming #> Long_Name.implode;
+fun full_name naming =
+  name_spec naming #> #2 #> map #1 #> Long_Name.implode;
 
 
 (* accesses *)
@@ -215,7 +287,7 @@ fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses naming binding =
   let
-    val spec = name_spec naming binding;
+    val spec = #2 (name_spec naming binding);
     val sfxs = mandatory_suffixes spec;
     val pfxs = mandatory_prefixes spec;
   in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
@@ -225,13 +297,32 @@ fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
 (* declaration *)
 
-fun declare naming binding space =
+fun new_entry strict entry =
+  map_name_space (fn (kind, internals, entries) =>
+    let
+      val entries' =
+        (if strict then Symtab.update_new else Symtab.update) entry entries
+          handle Symtab.DUP dup =>
+            err_dup kind (dup, the (Symtab.lookup entries dup)) entry;
+    in (kind, internals, entries') end);
+
+fun declare strict naming binding space =
   let
-    val names = full naming binding;
-    val name = Long_Name.implode names;
-    val _ = name = "" andalso err_bad binding;
+    val Naming {group, theory_name, ...} = naming;
+    val (concealed, spec) = name_spec naming binding;
     val (accs, accs') = accesses naming binding;
-    val space' = space |> fold (add_name name) accs |> put_accesses name accs';
+
+    val name = Long_Name.implode (map fst spec);
+    val _ = name = "" andalso err_bad binding;
+
+    val entry =
+     {externals = accs',
+      concealed = concealed,
+      group = group,
+      theory_name = theory_name,
+      pos = Position.default (Binding.pos_of binding),
+      id = serial ()};
+    val space' = space |> fold (add_name name) accs |> new_entry strict (name, entry);
   in (name, space') end;
 
 
@@ -240,14 +331,14 @@ fun declare naming binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun define naming (binding, x) (space, tab) =
-  let val (name, space') = declare naming binding space
-  in (name, (space', Symtab.update_new (name, x) tab)) end;
+fun define strict naming (binding, x) (space, tab) =
+  let val (name, space') = declare strict naming binding space
+  in (name, (space', Symtab.update (name, x) tab)) end;
 
-val empty_table = (empty, Symtab.empty);
+fun empty_table kind = (empty kind, Symtab.empty);
 
-fun merge_tables eq ((space1, tab1), (space2, tab2)) =
-  (merge (space1, space2), Symtab.merge eq (tab1, tab2));
+fun merge_tables ((space1, tab1), (space2, tab2)) =
+  (merge (space1, space2), Symtab.merge (K true) (tab1, tab2));
 
 fun join_tables f ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), Symtab.join f (tab1, tab2));
@@ -261,6 +352,6 @@ fun extern_table tab = map (apfst #2) (ext_table tab);
 
 end;
 
-structure Basic_Name_Space: BASIC_NAME_SPACE = NameSpace;
+structure Basic_Name_Space: BASIC_NAME_SPACE = Name_Space;
 open Basic_Name_Space;
 

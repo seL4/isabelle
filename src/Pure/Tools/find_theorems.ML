@@ -326,7 +326,7 @@ end;
 local
 
 val index_ord = option_ord (K EQUAL);
-val hidden_ord = bool_ord o pairself NameSpace.is_hidden;
+val hidden_ord = bool_ord o pairself Name_Space.is_hidden;
 val qual_ord = int_ord o pairself (length o Long_Name.explode);
 val txt_ord = int_ord o pairself size;
 
@@ -355,7 +355,8 @@ fun nicer_shortest ctxt =
     val space = Facts.space_of (PureThy.facts_of (ProofContext.theory_of ctxt));
 
     val shorten =
-      NameSpace.extern_flags {long_names = false, short_names = false, unique_names = false} space;
+      Name_Space.extern_flags
+        {long_names = false, short_names = false, unique_names = false} space;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (shorten x, i) (shorten y, j)

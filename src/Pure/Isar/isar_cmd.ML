@@ -400,7 +400,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
     val {classes = (space, algebra), ...} = Type.rep_tsig (Sign.tsig_of thy);
     val {classes, ...} = Sorts.rep_algebra algebra;
     fun entry (c, (i, (_, cs))) =
-      (i, {name = NameSpace.extern space c, ID = c, parents = cs,
+      (i, {name = Name_Space.extern space c, ID = c, parents = cs,
             dir = "", unfold = true, path = ""});
     val gr =
       Graph.fold (cons o entry) classes []

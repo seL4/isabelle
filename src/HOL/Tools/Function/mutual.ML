@@ -5,29 +5,26 @@ A package for general recursive function definitions.
 Tools for mutual recursive definitions.
 *)
 
-signature FUNDEF_MUTUAL =
+signature FUNCTION_MUTUAL =
 sig
 
-  val prepare_fundef_mutual : FundefCommon.fundef_config
+  val prepare_function_mutual : Function_Common.function_config
                               -> string (* defname *)
                               -> ((string * typ) * mixfix) list
                               -> term list
                               -> local_theory
                               -> ((thm (* goalstate *)
-                                   * (thm -> FundefCommon.fundef_result) (* proof continuation *)
+                                   * (thm -> Function_Common.function_result) (* proof continuation *)
                                   ) * local_theory)
 
 end
 
 
-structure FundefMutual: FUNDEF_MUTUAL =
+structure Function_Mutual: FUNCTION_MUTUAL =
 struct
 
-open FundefLib
-open FundefCommon
-
-
-
+open Function_Lib
+open Function_Common
 
 type qgar = string * (string * typ) list * term list * term list * term
 
@@ -268,7 +265,7 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, RST, parts, ...})
 fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) proof =
     let
       val result = inner_cont proof
-      val FundefResult {fs=[f], G, R, cases, psimps, trsimps, simple_pinducts=[simple_pinduct],
+      val FunctionResult {fs=[f], G, R, cases, psimps, trsimps, simple_pinducts=[simple_pinduct],
                         termination,domintros} = result
                                                                                                                
       val (all_f_defs, fs) = map (fn MutualPart {f_defthm = SOME f_def, f = SOME f, cargTs, ...} =>
@@ -288,20 +285,20 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
       val mtermination = full_simplify rew_ss termination
       val mdomintros = map_option (map (full_simplify rew_ss)) domintros
     in
-      FundefResult { fs=fs, G=G, R=R,
+      FunctionResult { fs=fs, G=G, R=R,
                      psimps=mpsimps, simple_pinducts=minducts,
                      cases=cases, termination=mtermination,
                      domintros=mdomintros,
                      trsimps=mtrsimps}
     end
       
-fun prepare_fundef_mutual config defname fixes eqss lthy =
+fun prepare_function_mutual config defname fixes eqss lthy =
     let
       val mutual = analyze_eqs lthy defname (map fst fixes) (map Envir.beta_eta_contract eqss)
       val Mutual {fsum_var=(n, T), qglrs, ...} = mutual
           
       val ((fsum, goalstate, cont), lthy') =
-          FundefCore.prepare_fundef config defname [((n, T), NoSyn)] qglrs lthy
+          Function_Core.prepare_function config defname [((n, T), NoSyn)] qglrs lthy
           
       val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
 

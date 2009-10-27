@@ -1827,24 +1827,28 @@ code_datatype Trueprop "prop"
 text {* Code equations *}
 
 lemma [code]:
-  shows "(True \<Longrightarrow> PROP P) \<equiv> PROP P" 
-    and "(False \<Longrightarrow> Q) \<equiv> Trueprop True" 
-    and "(PROP P \<Longrightarrow> True) \<equiv> Trueprop True" 
-    and "(Q \<Longrightarrow> False) \<equiv> Trueprop (\<not> Q)" by (auto intro!: equal_intr_rule)
+  shows "(False \<Longrightarrow> P) \<equiv> Trueprop True" 
+    and "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q" 
+    and "(P \<Longrightarrow> False) \<equiv> Trueprop (\<not> P)"
+    and "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True" by (auto intro!: equal_intr_rule)
 
 lemma [code]:
-  shows "False \<and> x \<longleftrightarrow> False"
-    and "True \<and> x \<longleftrightarrow> x"
-    and "x \<and> False \<longleftrightarrow> False"
-    and "x \<and> True \<longleftrightarrow> x" by simp_all
+  shows "False \<and> P \<longleftrightarrow> False"
+    and "True \<and> P \<longleftrightarrow> P"
+    and "P \<and> False \<longleftrightarrow> False"
+    and "P \<and> True \<longleftrightarrow> P" by simp_all
 
 lemma [code]:
-  shows "False \<or> x \<longleftrightarrow> x"
-    and "True \<or> x \<longleftrightarrow> True"
-    and "x \<or> False \<longleftrightarrow> x"
-    and "x \<or> True \<longleftrightarrow> True" by simp_all
+  shows "False \<or> P \<longleftrightarrow> P"
+    and "True \<or> P \<longleftrightarrow> True"
+    and "P \<or> False \<longleftrightarrow> P"
+    and "P \<or> True \<longleftrightarrow> True" by simp_all
 
-declare imp_conv_disj [code, code_unfold_post]
+lemma [code]:
+  shows "(False \<longrightarrow> P) \<longleftrightarrow> True"
+    and "(True \<longrightarrow> P) \<longleftrightarrow> P"
+    and "(P \<longrightarrow> False) \<longleftrightarrow> \<not> P"
+    and "(P \<longrightarrow> True) \<longleftrightarrow> True" by simp_all
 
 instantiation itself :: (type) eq
 begin
@@ -2002,7 +2006,11 @@ method_setup normalization = {*
 *} "solve goal by normalization"
 
 
+subsection {* Counterexample Search Units *}
+
 subsubsection {* Quickcheck *}
+
+quickcheck_params [size = 5, iterations = 50]
 
 ML {*
 structure Quickcheck_RecFun_Simps = Named_Thms
@@ -2014,37 +2022,8 @@ structure Quickcheck_RecFun_Simps = Named_Thms
 
 setup Quickcheck_RecFun_Simps.setup
 
-setup {*
-  Quickcheck.add_generator ("SML", Codegen.test_term)
-*}
 
-quickcheck_params [size = 5, iterations = 50]
-
-subsection {* Preprocessing for the predicate compiler *}
-
-ML {*
-structure Predicate_Compile_Alternative_Defs = Named_Thms
-(
-  val name = "code_pred_def"
-  val description = "alternative definitions of constants for the Predicate Compiler"
-)
-*}
-
-ML {*
-structure Predicate_Compile_Inline_Defs = Named_Thms
-(
-  val name = "code_pred_inline"
-  val description = "inlining definitions for the Predicate Compiler"
-)
-*}
-
-setup {*
-  Predicate_Compile_Alternative_Defs.setup
-  #> Predicate_Compile_Inline_Defs.setup
-  #> Predicate_Compile_Preproc_Const_Defs.setup
-*}
-
-subsection {* Nitpick setup *}
+subsubsection {* Nitpick setup *}
 
 text {* This will be relocated once Nitpick is moved to HOL. *}
 
@@ -2076,6 +2055,31 @@ setup {*
   #> Nitpick_Simps.setup
   #> Nitpick_Psimps.setup
   #> Nitpick_Intros.setup
+*}
+
+
+subsection {* Preprocessing for the predicate compiler *}
+
+ML {*
+structure Predicate_Compile_Alternative_Defs = Named_Thms
+(
+  val name = "code_pred_def"
+  val description = "alternative definitions of constants for the Predicate Compiler"
+)
+*}
+
+ML {*
+structure Predicate_Compile_Inline_Defs = Named_Thms
+(
+  val name = "code_pred_inline"
+  val description = "inlining definitions for the Predicate Compiler"
+)
+*}
+
+setup {*
+  Predicate_Compile_Alternative_Defs.setup
+  #> Predicate_Compile_Inline_Defs.setup
+  #> Predicate_Compile_Preproc_Const_Defs.setup
 *}
 
 

@@ -1,27 +1,27 @@
-(*  Title:      HOL/Tools/Function/fundef_datatype.ML
+(*  Title:      HOL/Tools/Function/fun.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-A tactic to prove completeness of datatype patterns.
+Sequential mode for function definitions
+Command "fun" for fully automated function definitions
 *)
 
-signature FUNDEF_DATATYPE =
+signature FUNCTION_FUN =
 sig
-    val add_fun : FundefCommon.fundef_config ->
+    val add_fun : Function_Common.function_config ->
       (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
       bool -> local_theory -> Proof.context
-    val add_fun_cmd : FundefCommon.fundef_config ->
+    val add_fun_cmd : Function_Common.function_config ->
       (binding * string option * mixfix) list -> (Attrib.binding * string) list ->
       bool -> local_theory -> Proof.context
 
     val setup : theory -> theory
 end
 
-structure FundefDatatype : FUNDEF_DATATYPE =
+structure Function_Fun : FUNCTION_FUN =
 struct
 
-open FundefLib
-open FundefCommon
+open Function_Lib
+open Function_Common
 
 
 fun check_pats ctxt geq =
@@ -62,7 +62,7 @@ val by_pat_completeness_auto =
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 fun termination_by method int =
-    Fundef.termination_proof NONE
+    Function.termination_proof NONE
     #> Proof.global_future_terminal_proof (Method.Basic method, NONE) int
 
 fun mk_catchall fixes arity_of =
@@ -104,7 +104,7 @@ fun warn_if_redundant ctxt origs tss =
     end
 
 
-fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spec =
+fun sequential_preproc (config as FunctionConfig {sequential, ...}) ctxt fixes spec =
       if sequential then
         let
           val (bnds, eqss) = split_list spec
@@ -118,7 +118,7 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spe
           val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
 
           val spliteqs = warn_if_redundant ctxt feqs
-                           (FundefSplit.split_all_equations ctxt compleqs)
+                           (Function_Split.split_all_equations ctxt compleqs)
 
           fun restore_spec thms =
               bnds ~~ Library.take (length bnds, Library.unflat spliteqs thms)
@@ -141,28 +141,28 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spe
           (flat spliteqs, restore_spec, sort, case_names)
         end
       else
-        FundefCommon.empty_preproc check_defs config ctxt fixes spec
+        Function_Common.empty_preproc check_defs config ctxt fixes spec
 
 val setup =
-  Context.theory_map (FundefCommon.set_preproc sequential_preproc)
+  Context.theory_map (Function_Common.set_preproc sequential_preproc)
 
 
-val fun_config = FundefConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
-                                domintros=false, tailrec=false }
+val fun_config = FunctionConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
+  domintros=false, partials=false, tailrec=false }
 
 fun gen_fun add config fixes statements int lthy =
-  let val group = serial_string () in
+  let val group = serial () in
     lthy
       |> LocalTheory.set_group group
       |> add fixes statements config
       |> by_pat_completeness_auto int
       |> LocalTheory.restore
       |> LocalTheory.set_group group
-      |> termination_by (FundefCommon.get_termination_prover lthy) int
+      |> termination_by (Function_Common.get_termination_prover lthy) int
   end;
 
-val add_fun = gen_fun Fundef.add_fundef
-val add_fun_cmd = gen_fun Fundef.add_fundef_cmd
+val add_fun = gen_fun Function.add_function
+val add_fun_cmd = gen_fun Function.add_function_cmd
 
 
 
@@ -170,7 +170,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ =
   OuterSyntax.local_theory' "fun" "define general recursive functions (short version)" K.thy_decl
-  (fundef_parser fun_config
+  (function_parser fun_config
      >> (fn ((config, fixes), statements) => add_fun_cmd config fixes statements));
 
 end

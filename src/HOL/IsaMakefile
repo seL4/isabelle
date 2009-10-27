@@ -6,7 +6,20 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-SMT HOL-Word TLA HOL4
+
+images: \
+  HOL \
+  HOL-Algebra \
+  HOL-Base \
+  HOL-Main \
+  HOL-Multivariate_Analysis \
+  HOL-NSA \
+  HOL-Nominal \
+  HOL-Plain \
+  HOL-SMT \
+  HOL-Word \
+  HOL4 \
+  TLA
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -19,11 +32,11 @@ test: \
   HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-Hoare_Parallel \
-  HOL-Import \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
   HOL-Imperative_HOL \
+  HOL-Import \
   HOL-Induct \
   HOL-Isar_Examples \
   HOL-Lambda \
@@ -34,13 +47,14 @@ test: \
   HOL-Mirabelle \
   HOL-Modelcheck \
   HOL-NanoJava \
+  HOL-Nitpick_Examples \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
   HOL-Prolog \
   HOL-SET_Protocol \
-  HOL-SizeChange \
   HOL-SMT-Examples \
+  HOL-SizeChange \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -131,6 +145,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
+  Nitpick.thy \
   Option.thy \
   OrderedGroup.thy \
   Orderings.thy \
@@ -156,15 +171,14 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Datatype/datatype_realizer.ML \
   Tools/Datatype/datatype_rep_proofs.ML \
   Tools/dseq.ML \
-  Tools/Function/auto_term.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/decompose.ML \
   Tools/Function/descent.ML \
-  Tools/Function/fundef_common.ML \
-  Tools/Function/fundef_core.ML \
-  Tools/Function/fundef_datatype.ML \
-  Tools/Function/fundef_lib.ML \
-  Tools/Function/fundef.ML \
+  Tools/Function/function_common.ML \
+  Tools/Function/function_core.ML \
+  Tools/Function/function_lib.ML \
+  Tools/Function/function.ML \
+  Tools/Function/fun.ML \
   Tools/Function/induction_scheme.ML \
   Tools/Function/inductive_wrap.ML \
   Tools/Function/lexicographic_order.ML \
@@ -172,11 +186,27 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/mutual.ML \
   Tools/Function/pat_completeness.ML \
   Tools/Function/pattern_split.ML \
+  Tools/Function/relation.ML \
   Tools/Function/scnp_reconstruct.ML \
   Tools/Function/scnp_solve.ML \
   Tools/Function/size.ML \
   Tools/Function/sum_tree.ML \
   Tools/Function/termination.ML \
+  Tools/Nitpick/kodkod.ML \
+  Tools/Nitpick/kodkod_sat.ML \
+  Tools/Nitpick/minipick.ML \
+  Tools/Nitpick/nitpick.ML \
+  Tools/Nitpick/nitpick_hol.ML \
+  Tools/Nitpick/nitpick_isar.ML \
+  Tools/Nitpick/nitpick_kodkod.ML \
+  Tools/Nitpick/nitpick_model.ML \
+  Tools/Nitpick/nitpick_mono.ML \
+  Tools/Nitpick/nitpick_nut.ML \
+  Tools/Nitpick/nitpick_peephole.ML \
+  Tools/Nitpick/nitpick_rep.ML \
+  Tools/Nitpick/nitpick_scope.ML \
+  Tools/Nitpick/nitpick_tests.ML \
+  Tools/Nitpick/nitpick_util.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
@@ -324,21 +354,17 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy Library/BigO.thy Library/ContNotDenum.thy	\
-  Library/Efficient_Nat.thy Library/Euclidean_Space.thy			\
-  Library/Sum_Of_Squares.thy Library/Sum_Of_Squares/sos_wrapper.ML	\
+  Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
+  Library/Sum_Of_Squares/sos_wrapper.ML					\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Convex_Euclidean_Space.thy Library/Glbs.thy			\
-  Library/normarith.ML Library/Executable_Set.thy			\
+  Library/Glbs.thy Library/normarith.ML Library/Executable_Set.thy	\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
-  Library/Permutations.thy Library/Determinants.thy Library/Bit.thy	\
-  Library/Topology_Euclidean_Space.thy					\
-  Library/Finite_Cartesian_Product.thy Library/FrechetDeriv.thy		\
+  Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/Lattice_Syntax.thy			\
-  Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
-  Library/State_Monad.thy Library/Nat_Int_Bij.thy Library/Multiset.thy	\
-  Library/Permutation.thy	\
+  Library/Lattice_Syntax.thy Library/Library.thy			\
+  Library/List_Prefix.thy Library/List_Set.thy Library/State_Monad.thy	\
+  Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Quotient.thy Library/Quicksort.thy Library/Nat_Infinity.thy	\
   Library/Word.thy Library/README.html Library/Continuity.thy		\
   Library/Order_Relation.thy Library/Nested_Environment.thy		\
@@ -360,7 +386,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML		\
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
-  Library/OptionalSugar.thy
+  Library/OptionalSugar.thy Library/SML_Quickcheck.thy
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
@@ -568,6 +594,21 @@ $(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML	\
   Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy	\
   Metis_Examples/set.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
+
+
+## HOL-Nitpick_Examples
+
+HOL-Nitpick_Examples: HOL $(LOG)/HOL-Nitpick_Examples.gz
+
+$(LOG)/HOL-Nitpick_Examples.gz: $(OUT)/HOL Nitpick_Examples/ROOT.ML \
+  Nitpick_Examples/Core_Nits.thy Nitpick_Examples/Datatype_Nits.thy \
+  Nitpick_Examples/Induct_Nits.thy Nitpick_Examples/Manual_Nits.thy \
+  Nitpick_Examples/Mini_Nits.thy Nitpick_Examples/Mono_Nits.thy \
+  Nitpick_Examples/Nitpick_Examples.thy Nitpick_Examples/Pattern_Nits.thy \
+  Nitpick_Examples/Record_Nits.thy Nitpick_Examples/Refute_Nits.thy \
+  Nitpick_Examples/Special_Nits.thy Nitpick_Examples/Tests_Nits.thy \
+  Nitpick_Examples/Typedef_Nits.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Nitpick_Examples
 
 
 ## HOL-Algebra
@@ -1006,6 +1047,19 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
 	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Memory
 
 
+## HOL-Multivariate_Analysis
+
+HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
+
+$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL Multivariate_Analysis/ROOT.ML \
+  Multivariate_Analysis/Multivariate_Analysis.thy \
+  Multivariate_Analysis/Determinants.thy \
+  Multivariate_Analysis/Finite_Cartesian_Product.thy \
+  Multivariate_Analysis/Euclidean_Space.thy \
+  Multivariate_Analysis/Topology_Euclidean_Space.thy \
+  Multivariate_Analysis/Convex_Euclidean_Space.thy
+	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
+
 ## HOL-Nominal
 
 HOL-Nominal: HOL $(OUT)/HOL-Nominal
@@ -1043,6 +1097,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/Lam_Funs.thy \
   Nominal/Examples/Lambda_mu.thy \
   Nominal/Examples/LocalWeakening.thy \
+  Nominal/Examples/Pattern.thy \
   Nominal/Examples/ROOT.ML \
   Nominal/Examples/SN.thy \
   Nominal/Examples/SOS.thy \
@@ -1315,6 +1370,7 @@ clean:
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
 		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
+		$(OUT)/HOL-Multivariate_Analysis			\
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
 		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET_Protocol.gz	\
@@ -1322,7 +1378,7 @@ clean:
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
-		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
-                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz               \
-                $(LOG)/HOL-SMT-Examples.gz
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz		\
+		$(LOG)/HOL-Mirabelle.gz $(OUT)/HOL-SMT			\
+		$(LOG)/HOL-SMT.gz $(LOG)/HOL-SMT-Examples.gz
 

@@ -21,7 +21,10 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
-  val naming_of: Proof.context -> NameSpace.naming
+  val local_naming: Name_Space.naming
+  val map_naming: (Name_Space.naming -> Name_Space.naming) -> Proof.context -> Proof.context
+  val naming_of: Proof.context -> Name_Space.naming
+  val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
@@ -92,10 +95,6 @@ sig
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
-  val add_path: string -> Proof.context -> Proof.context
-  val mandatory_path: string -> Proof.context -> Proof.context
-  val restore_naming: Proof.context -> Proof.context -> Proof.context
-  val reset_naming: Proof.context -> Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
@@ -120,8 +119,7 @@ sig
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
-  val add_abbrev: string -> Properties.T ->
-    binding * term -> Proof.context -> (term * term) * Proof.context
+  val add_abbrev: string -> binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool Unsynchronized.ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -134,9 +132,6 @@ sig
   val prems_limit: int Unsynchronized.ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
-  val query_type: Proof.context -> string -> Properties.T
-  val query_const: Proof.context -> string -> Properties.T
-  val query_class: Proof.context -> string -> Properties.T
 end;
 
 structure ProofContext: PROOF_CONTEXT =
@@ -170,7 +165,7 @@ val mode_abbrev    = make_mode (false, false, false, true);
 datatype ctxt =
   Ctxt of
    {mode: mode,                                       (*inner syntax mode*)
-    naming: NameSpace.naming,                         (*local naming conventions*)
+    naming: Name_Space.naming,                        (*local naming conventions*)
     syntax: LocalSyntax.T,                            (*local syntax*)
     consts: Consts.T * Consts.T,                      (*local/global consts*)
     facts: Facts.T,                                   (*local facts*)
@@ -180,7 +175,7 @@ fun make_ctxt (mode, naming, syntax, consts, facts, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
     consts = consts, facts = facts, cases = cases};
 
-val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
+val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
 structure ContextData = ProofDataFun
 (
@@ -231,7 +226,8 @@ fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
-val full_name = NameSpace.full_name o naming_of;
+val restore_naming = map_naming o K o naming_of
+val full_name = Name_Space.full_name o naming_of;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
@@ -922,14 +918,6 @@ fun get_thm ctxt = get_fact_single ctxt o Facts.named;
 end;
 
 
-(* name space operations *)
-
-val add_path        = map_naming o NameSpace.add_path;
-val mandatory_path  = map_naming o NameSpace.mandatory_path;
-val restore_naming  = map_naming o K o naming_of;
-val reset_naming    = map_naming (K local_naming);
-
-
 (* facts *)
 
 local
@@ -1059,13 +1047,13 @@ fun add_const_constraint (c, opt_T) ctxt =
       in cert_term ctxt (Const (c, T)); T end;
   in ctxt |> (map_consts o apfst) (Consts.constrain (c, Option.map prepT opt_T)) end;
 
-fun add_abbrev mode tags (b, raw_t) ctxt =
+fun add_abbrev mode (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (b, t);
+      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (b, t);
   in
     ctxt
     |> (map_consts o apfst) (K consts')
@@ -1230,7 +1218,7 @@ fun pretty_abbrevs show_globals ctxt =
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = NameSpace.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
+    val abbrevs = Name_Space.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
   in
     if null abbrevs andalso not (! verbose) then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
@@ -1390,15 +1378,5 @@ fun pretty_context ctxt =
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))
   end;
-
-
-(* query meta data *)
-
-val query_type = Type.the_tags o tsig_of;
-
-fun query_const ctxt name =
-  Consts.the_tags (consts_of ctxt) name handle TYPE (msg, _, _) => error msg;
-
-fun query_class ctxt name = query_const ctxt (Logic.const_of_class name);
 
 end;

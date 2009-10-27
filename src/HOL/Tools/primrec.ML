@@ -275,7 +275,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
         [Simplifier.simp_add, Nitpick_Simps.add, Quickcheck_RecFun_Simps.add]);
   in
     lthy
-    |> set_group ? LocalTheory.set_group (serial_string ())
+    |> set_group ? LocalTheory.set_group (serial ())
     |> add_primrec_simple fixes (map snd spec)
     |-> (fn (prefix, simps) => fold_map (LocalTheory.note Thm.generatedK)
           (attr_bindings prefix ~~ simps)

@@ -2,7 +2,7 @@
 theory Itrev
 imports Main
 begin
-ML"Unsynchronized.reset NameSpace.unique_names"
+ML"Unsynchronized.reset unique_names"
 (*>*)
 
 section{*Induction Heuristics*}
@@ -141,6 +141,6 @@ to learn about some advanced techniques for inductive proofs.%
 \index{induction heuristics|)}
 *}
 (*<*)
-ML"Unsynchronized.set NameSpace.unique_names"
+ML"Unsynchronized.set unique_names"
 end
 (*>*)

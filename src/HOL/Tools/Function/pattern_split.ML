@@ -8,7 +8,7 @@ turns a specification with overlaps into an overlap-free specification.
 
 *)
 
-signature FUNDEF_SPLIT =
+signature FUNCTION_SPLIT =
 sig
   val split_some_equations :
       Proof.context -> (bool * term) list -> term list list
@@ -17,10 +17,10 @@ sig
       Proof.context -> term list -> term list list
 end
 
-structure FundefSplit : FUNDEF_SPLIT =
+structure Function_Split : FUNCTION_SPLIT =
 struct
 
-open FundefLib
+open Function_Lib
 
 (* We use proof context for the variable management *)
 (* FIXME: no __ *)

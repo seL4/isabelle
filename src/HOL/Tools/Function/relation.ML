@@ -1,17 +1,17 @@
-(*  Title:      HOL/Tools/Function/auto_term.ML
+(*  Title:      HOL/Tools/Function/relation.ML
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.
 Method "relation" to commence a termination proof using a user-specified relation.
 *)
 
-signature FUNDEF_RELATION =
+signature FUNCTION_RELATION =
 sig
   val relation_tac: Proof.context -> term -> int -> tactic
   val setup: theory -> theory
 end
 
-structure FundefRelation : FUNDEF_RELATION =
+structure Function_Relation : FUNCTION_RELATION =
 struct
 
 fun inst_thm ctxt rel st =
@@ -25,7 +25,7 @@ fun inst_thm ctxt rel st =
     end
 
 fun relation_tac ctxt rel i = 
-    TRY (FundefCommon.apply_termination_rule ctxt i)
+    TRY (Function_Common.apply_termination_rule ctxt i)
     THEN PRIMITIVE (inst_thm ctxt rel)
 
 val setup =

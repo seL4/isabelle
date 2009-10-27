@@ -15,7 +15,7 @@ structure SimpleThread: SIMPLE_THREAD =
 struct
 
 fun fork interrupts body =
-  Thread.fork (fn () => exception_trace (fn () => body ()),
+  Thread.fork (fn () => exception_trace (fn () => body () handle Exn.Interrupt => ()),
     if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts);
 
 fun interrupt thread = Thread.interrupt thread handle Thread _ => ();

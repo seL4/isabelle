@@ -14,18 +14,11 @@ begin
 
 subsection {* Basic Definitions *}
 
-constdefs
-  wf         :: "('a * 'a)set => bool"
+definition wf :: "('a * 'a) set => bool" where
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
 
-  wfP :: "('a => 'a => bool) => bool"
+definition wfP :: "('a => 'a => bool) => bool" where
   "wfP r == wf {(x, y). r x y}"
-
-  acyclic :: "('a*'a)set => bool"
-  "acyclic r == !x. (x,x) ~: r^+"
-
-abbreviation acyclicP :: "('a => 'a => bool) => bool" where
-  "acyclicP r == acyclic {(x, y). r x y}"
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
@@ -59,14 +52,16 @@ lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
 lemma wf_not_sym: "wf r ==> (a, x) : r ==> (x, a) ~: r"
   by (induct a arbitrary: x set: wf) blast
 
-(* [| wf r;  ~Z ==> (a,x) : r;  (x,a) ~: r ==> Z |] ==> Z *)
-lemmas wf_asym = wf_not_sym [elim_format]
+lemma wf_asym:
+  assumes "wf r" "(a, x) \<in> r"
+  obtains "(x, a) \<notin> r"
+  by (drule wf_not_sym[OF assms])
 
 lemma wf_not_refl [simp]: "wf r ==> (a, a) ~: r"
   by (blast elim: wf_asym)
 
-(* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
-lemmas wf_irrefl = wf_not_refl [elim_format]
+lemma wf_irrefl: assumes "wf r" obtains "(a, a) \<notin> r"
+by (drule wf_not_refl[OF assms])
 
 lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"
@@ -82,7 +77,62 @@ unfolding wf_def by (blast intro: less_induct)
 
 subsection {* Basic Results *}
 
-text{*transitive closure of a well-founded relation is well-founded! *}
+text {* Point-free characterization of well-foundedness *}
+
+lemma wfE_pf:
+  assumes wf: "wf R"
+  assumes a: "A \<subseteq> R `` A"
+  shows "A = {}"
+proof -
+  { fix x
+    from wf have "x \<notin> A"
+    proof induct
+      fix x assume "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<notin> A"
+      then have "x \<notin> R `` A" by blast
+      with a show "x \<notin> A" by blast
+    qed
+  } thus ?thesis by auto
+qed
+
+lemma wfI_pf:
+  assumes a: "\<And>A. A \<subseteq> R `` A \<Longrightarrow> A = {}"
+  shows "wf R"
+proof (rule wfUNIVI)
+  fix P :: "'a \<Rightarrow> bool" and x
+  let ?A = "{x. \<not> P x}"
+  assume "\<forall>x. (\<forall>y. (y, x) \<in> R \<longrightarrow> P y) \<longrightarrow> P x"
+  then have "?A \<subseteq> R `` ?A" by blast
+  with a show "P x" by blast
+qed
+
+text{*Minimal-element characterization of well-foundedness*}
+
+lemma wfE_min:
+  assumes wf: "wf R" and Q: "x \<in> Q"
+  obtains z where "z \<in> Q" "\<And>y. (y, z) \<in> R \<Longrightarrow> y \<notin> Q"
+  using Q wfE_pf[OF wf, of Q] by blast
+
+lemma wfI_min:
+  assumes a: "\<And>x Q. x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q"
+  shows "wf R"
+proof (rule wfI_pf)
+  fix A assume b: "A \<subseteq> R `` A"
+  { fix x assume "x \<in> A"
+    from a[OF this] b have "False" by blast
+  }
+  thus "A = {}" by blast
+qed
+
+lemma wf_eq_minimal: "wf r = (\<forall>Q x. x\<in>Q --> (\<exists>z\<in>Q. \<forall>y. (y,z)\<in>r --> y\<notin>Q))"
+apply auto
+apply (erule wfE_min, assumption, blast)
+apply (rule wfI_min, auto)
+done
+
+lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
+
+text{* Well-foundedness of transitive closure *}
+
 lemma wf_trancl:
   assumes "wf r"
   shows "wf (r^+)"
@@ -122,43 +172,8 @@ lemma wf_converse_trancl: "wf (r^-1) ==> wf ((r^+)^-1)"
   apply (erule wf_trancl)
   done
 
-
-text{*Minimal-element characterization of well-foundedness*}
-lemma wf_eq_minimal: "wf r = (\<forall>Q x. x\<in>Q --> (\<exists>z\<in>Q. \<forall>y. (y,z)\<in>r --> y\<notin>Q))"
-proof (intro iffI strip)
-  fix Q :: "'a set" and x
-  assume "wf r" and "x \<in> Q"
-  then show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
-    unfolding wf_def
-    by (blast dest: spec [of _ "%x. x\<in>Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y,z) \<in> r \<longrightarrow> y\<notin>Q)"]) 
-next
-  assume 1: "\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)"
-  show "wf r"
-  proof (rule wfUNIVI)
-    fix P :: "'a \<Rightarrow> bool" and x
-    assume 2: "\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x"
-    let ?Q = "{x. \<not> P x}"
-    have "x \<in> ?Q \<longrightarrow> (\<exists>z \<in> ?Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> ?Q)"
-      by (rule 1 [THEN spec, THEN spec])
-    then have "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> (\<forall>y. (y, z) \<in> r \<longrightarrow> P y))" by simp
-    with 2 have "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> P z)" by fast
-    then show "P x" by simp
-  qed
-qed
-
-lemma wfE_min: 
-  assumes "wf R" "x \<in> Q"
-  obtains z where "z \<in> Q" "\<And>y. (y, z) \<in> R \<Longrightarrow> y \<notin> Q"
-  using assms unfolding wf_eq_minimal by blast
-
-lemma wfI_min:
-  "(\<And>x Q. x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q)
-  \<Longrightarrow> wf R"
-  unfolding wf_eq_minimal by blast
-
-lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
-
 text {* Well-foundedness of subsets *}
+
 lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
   apply (simp (no_asm_use) add: wf_eq_minimal)
   apply fast
@@ -167,7 +182,8 @@ lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
 lemmas wfP_subset = wf_subset [to_pred]
 
 text {* Well-foundedness of the empty relation *}
-lemma wf_empty [iff]: "wf({})"
+
+lemma wf_empty [iff]: "wf {}"
   by (simp add: wf_def)
 
 lemma wfP_empty [iff]:
@@ -187,7 +203,20 @@ lemma wf_Int2: "wf r ==> wf (r' Int r)"
   apply (rule Int_lower2)
   done  
 
-text{*Well-foundedness of insert*}
+text {* Exponentiation *}
+
+lemma wf_exp:
+  assumes "wf (R ^^ n)"
+  shows "wf R"
+proof (rule wfI_pf)
+  fix A assume "A \<subseteq> R `` A"
+  then have "A \<subseteq> (R ^^ n) `` A" by (induct n) force+
+  with `wf (R ^^ n)`
+  show "A = {}" by (rule wfE_pf)
+qed
+
+text {* Well-foundedness of insert *}
+
 lemma wf_insert [iff]: "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)"
 apply (rule iffI)
  apply (blast elim: wf_trancl [THEN wf_irrefl]
@@ -210,6 +239,7 @@ apply (fast intro: converse_rtrancl_into_rtrancl)
 done
 
 text{*Well-foundedness of image*}
+
 lemma wf_prod_fun_image: "[| wf r; inj f |] ==> wf(prod_fun f f ` r)"
 apply (simp only: wf_eq_minimal, clarify)
 apply (case_tac "EX p. f p : Q")
@@ -351,7 +381,13 @@ lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
   by (rule wf_union_merge [where S = "{}", simplified])
 
 
-subsubsection {* acyclic *}
+subsection {* Acyclic relations *}
+
+definition acyclic :: "('a * 'a) set => bool" where
+  "acyclic r == !x. (x,x) ~: r^+"
+
+abbreviation acyclicP :: "('a => 'a => bool) => bool" where
+  "acyclicP r == acyclic {(x, y). r x y}"
 
 lemma acyclicI: "ALL x. (x, x) ~: r^+ ==> acyclic r"
   by (simp add: acyclic_def)

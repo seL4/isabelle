@@ -36,7 +36,7 @@ sig
   val lookup_inst_param: Consts.T -> ((string * string) * 'a) list -> string * typ -> 'a option
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
-  val arity_property: theory -> class * string -> string -> string list
+  val thynames_of_arity: theory -> class * string -> string list
   type cache
   val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
   val cache: cache
@@ -92,8 +92,8 @@ val classrel_prefix = "classrel_";
 val arity_prefix = "arity_";
 
 type instances =
-  ((class * class) * thm) list *
-  ((class * sort list) * thm) list Symtab.table;
+  ((class * class) * thm) list *  (*classrel theorems*)
+  ((class * sort list) * (thm * string)) list Symtab.table;  (*arity theorems with theory name*)
 
 fun merge_instances ((classrel1, arities1): instances, (classrel2, arities2)) =
  (merge (eq_fst op =) (classrel1, classrel2),
@@ -175,35 +175,32 @@ fun put_classrel arg = map_instances (fn (classrel, arities) =>
 
 fun the_arity thy a (c, Ss) =
   (case AList.lookup (op =) (Symtab.lookup_list (#2 (get_instances thy)) a) (c, Ss) of
-    SOME th => Thm.transfer thy th
+    SOME (th, _) => Thm.transfer thy th
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
 
-fun arity_property thy (c, a) x =
-  Symtab.lookup_list (snd (get_instances thy)) a
-  |> map_filter (fn ((c', _), th) => if c = c'
-      then AList.lookup (op =) (Thm.get_tags th) x else NONE)
+fun thynames_of_arity thy (c, a) =
+  Symtab.lookup_list (#2 (get_instances thy)) a
+  |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
   |> rev;
 
-fun insert_arity_completions thy (t, ((c, Ss), th)) arities =
+fun insert_arity_completions thy (t, ((c, Ss), (th, thy_name))) arities =
   let
     val algebra = Sign.classes_of thy;
-    val super_class_completions = Sign.super_classes thy c
+    val super_class_completions =
+      Sign.super_classes thy c
       |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) => c1 = c2
-          andalso Sorts.sorts_le algebra (Ss2, Ss)) (Symtab.lookup_list arities t))
-    val tags = Thm.get_tags th;
+          andalso Sorts.sorts_le algebra (Ss2, Ss)) (Symtab.lookup_list arities t));
     val completions = map (fn c1 => (Sorts.weaken algebra
       (fn (th, c2) => fn c3 => th RS the_classrel thy (c2, c3)) (th, c) c1
-        |> Thm.map_tags (K tags) |> Thm.close_derivation, c1)) super_class_completions;
-    val arities' = fold (fn (th1, c1) => Symtab.cons_list (t, ((c1, Ss), th1)))
+        |> Thm.close_derivation, c1)) super_class_completions;
+    val arities' = fold (fn (th1, c1) => Symtab.cons_list (t, ((c1, Ss), (th1, thy_name))))
       completions arities;
-  in (completions, arities') end;
+  in (null completions, arities') end;
 
 fun put_arity ((t, Ss, c), th) thy =
   let
-    val th' = (Thm.map_tags o AList.default (op =))
-      (Markup.theory_nameN, Context.theory_name thy) th;
-    val arity' = (t, ((c, Ss), th'));
+    val arity' = (t, ((c, Ss), (th, Context.theory_name thy)));
   in
     thy
     |> map_instances (fn (classrel, arities) => (classrel,
@@ -216,11 +213,10 @@ fun put_arity ((t, Ss, c), th) thy =
 fun complete_arities thy =
   let
     val arities = snd (get_instances thy);
-    val (completions, arities') = arities
-      |> fold_map (insert_arity_completions thy) (Symtab.dest_list arities)
-      |>> flat;
-  in if null completions
-    then NONE
+    val (finished, arities') = arities
+      |> fold_map (insert_arity_completions thy) (Symtab.dest_list arities);
+  in
+    if forall I finished then NONE
     else SOME (thy |> map_instances (fn (classrel, _) => (classrel, arities')))
   end;
 
@@ -309,7 +305,7 @@ fun declare_overloaded (c, T) thy =
   in
     thy
     |> Sign.mandatory_path name_inst
-    |> Sign.declare_const [] ((Binding.name c', T'), NoSyn)
+    |> Sign.declare_const ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))

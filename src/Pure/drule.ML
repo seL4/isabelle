@@ -452,7 +452,7 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 
 val read_prop = certify o SimpleSyntax.read_prop;
 
-fun get_def thy = Thm.axiom thy o NameSpace.intern (Theory.axiom_space thy) o Thm.def_name;
+fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
 
 fun store_thm name th =
   Context.>>> (Context.map_theory_result (PureThy.store_thm (Binding.name name, th)));

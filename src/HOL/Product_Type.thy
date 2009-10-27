@@ -6,7 +6,7 @@
 header {* Cartesian products *}
 
 theory Product_Type
-imports Inductive
+imports Inductive Nat
 uses
   ("Tools/split_rule.ML")
   ("Tools/inductive_set.ML")

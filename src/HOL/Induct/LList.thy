@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/LList.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Shares NIL, CONS, List_case with List.thy
@@ -904,5 +903,10 @@ by (rule_tac l = l in llist_fun_equalityI, auto)
 text{*Without strong coinduction, three case analyses might be needed*}
 lemma lappend_assoc': "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)"
 by (rule_tac l = l1 in llist_fun_equalityI, auto)
+
+setup {*
+  Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
+    (map dest_Const [@{term LNil}, @{term LCons}])
+*}
 
 end

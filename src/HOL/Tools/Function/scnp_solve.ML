@@ -73,7 +73,7 @@ fun exactly_one n f = iexists n (the_one f n)
 (* SAT solving *)
 val solver = Unsynchronized.ref "auto";
 fun sat_solver x =
-  FundefCommon.PROFILE "sat_solving..." (SatSolver.invoke_solver (!solver)) x
+  Function_Common.PROFILE "sat_solving..." (SatSolver.invoke_solver (!solver)) x
 
 (* "Virtual constructors" for various propositional variables *)
 fun var_constrs (gp as GP (arities, gl)) =

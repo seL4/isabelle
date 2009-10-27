@@ -143,18 +143,14 @@ val _ = ML_Antiquote.value "simpset"
 
 (** named simprocs **)
 
-fun err_dup_simproc name = error ("Duplicate simproc: " ^ quote name);
-
-
 (* data *)
 
 structure Simprocs = GenericDataFun
 (
-  type T = simproc NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = simproc Name_Space.table;
+  val empty : T = Name_Space.empty_table "simproc";
   val extend = I;
-  fun merge _ simprocs = NameSpace.merge_tables eq_simproc simprocs
-    handle Symtab.DUP dup => err_dup_simproc dup;
+  fun merge _ simprocs = Name_Space.merge_tables simprocs;
 );
 
 
@@ -163,7 +159,7 @@ structure Simprocs = GenericDataFun
 fun get_simproc context xname =
   let
     val (space, tab) = Simprocs.get context;
-    val name = NameSpace.intern space xname;
+    val name = Name_Space.intern space xname;
   in
     (case Symtab.lookup tab name of
       SOME proc => proc
@@ -181,9 +177,9 @@ local
 fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   let
     val b = Binding.name name;
-    val naming = LocalTheory.full_naming lthy;
+    val naming = LocalTheory.naming_of lthy;
     val simproc = make_simproc
-      {name = LocalTheory.full_name lthy b,
+      {name = Name_Space.full_name naming b,
        lhss =
         let
           val lhss' = prep lthy lhss;
@@ -201,9 +197,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
         val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;
       in
-        Simprocs.map (fn simprocs =>
-          NameSpace.define naming (b', simproc') simprocs |> snd
-            handle Symtab.DUP dup => err_dup_simproc dup)
+        Simprocs.map (#2 o Name_Space.define true naming (b', simproc'))
         #> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;

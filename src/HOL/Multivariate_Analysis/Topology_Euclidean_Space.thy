@@ -4435,7 +4435,6 @@ qed
 lemma diameter_bounded_bound:
  "bounded s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s ==> norm(x - y) \<le> diameter s"
   using diameter_bounded by blast
-atp_minimize [atp=remote_vampire] Collect_def Max_ge add_increasing2 add_le_cancel_left diameter_def_raw equation_minus_iff finite finite_imageI norm_imp_pos_and_ge rangeI
 
 lemma diameter_compact_attained:
   fixes s :: "'a::real_normed_vector set"

@@ -337,15 +337,16 @@ fun assoc_type (s, syn) thy =
     val tc = Sign.intern_type thy s;
   in
     case Symtab.lookup (snd (#types (Type.rep_tsig (Sign.tsig_of thy)))) tc of
-      SOME ((Type.LogicalType i, _), _) =>
+      SOME (Type.LogicalType i) =>
         if num_args_of (fst syn) > i then
           error ("More arguments than corresponding type constructor " ^ s)
-        else (case AList.lookup (op =) types tc of
-          NONE => CodegenData.put {codegens = codegens,
-            tycodegens = tycodegens, consts = consts,
-            types = (tc, syn) :: types,
-            preprocs = preprocs, modules = modules} thy
-        | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
+        else
+          (case AList.lookup (op =) types tc of
+            NONE => CodegenData.put {codegens = codegens,
+              tycodegens = tycodegens, consts = consts,
+              types = (tc, syn) :: types,
+              preprocs = preprocs, modules = modules} thy
+          | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
     | _ => error ("Not a type constructor: " ^ s)
   end;
 
@@ -445,13 +446,8 @@ fun del_nodes ks (gr, x) = (Graph.del_nodes ks gr, x);
 fun map_node k f (gr, x) = (Graph.map_node k f gr, x);
 fun new_node p (gr, x) = (Graph.new_node p gr, x);
 
-fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
-
-fun thyname_of_type thy =
-  thyname_of thy (Type.the_tags (Sign.tsig_of thy));
-
-fun thyname_of_const thy =
-  thyname_of thy (Consts.the_tags (Sign.consts_of thy));
+fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
+fun thyname_of_const thy = #theory_name o Name_Space.the_entry (Sign.const_space thy);
 
 fun rename_terms ts =
   let

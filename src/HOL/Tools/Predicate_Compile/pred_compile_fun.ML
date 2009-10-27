@@ -5,9 +5,10 @@ Preprocessing functions to predicates
 
 signature PREDICATE_COMPILE_FUN =
 sig
-  val define_predicates : (string * thm list) list -> theory -> theory
+val define_predicates : (string * thm list) list -> theory -> (string * thm list) list * theory
   val rewrite_intro : theory -> thm -> thm list
   val setup_oracle : theory -> theory
+  val pred_of_function : theory -> string -> string option
 end;
 
 structure Predicate_Compile_Fun : PREDICATE_COMPILE_FUN =
@@ -63,6 +64,8 @@ structure Pred_Compile_Preproc = TheoryDataFun
   fun merge _ = Symtab.merge (op =);
 )
 
+fun pred_of_function thy name = Symtab.lookup (Pred_Compile_Preproc.get thy) name
+
 fun defined thy = Symtab.defined (Pred_Compile_Preproc.get thy) 
 
 
@@ -99,23 +102,29 @@ fun pred_of f =
       (Free (Long_Name.base_name name ^ "P", pred_type T))
   end
 
-fun mk_param lookup_pred (t as Free (v, _)) = lookup_pred t
-  | mk_param lookup_pred t =
+fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
+  | mk_param thy lookup_pred t =
   let
-    val (vs, body) = strip_abs t
-    val names = Term.add_free_names body []
-    val vs_names = Name.variant_list names (map fst vs)
-    val vs' = map2 (curry Free) vs_names (map snd vs)
-    val body' = subst_bounds (rev vs', body)
-    val (f, args) = strip_comb body'
-    val resname = Name.variant (vs_names @ names) "res"
-    val resvar = Free (resname, body_type (fastype_of body'))
-    val P = lookup_pred f
-    val pred_body = list_comb (P, args @ [resvar])
-    val param = fold_rev lambda (vs' @ [resvar]) pred_body
-  in param end;
-
-
+  val _ = tracing ("called param with " ^ (Syntax.string_of_term_global thy t))
+  in if Predicate_Compile_Aux.is_predT (fastype_of t) then
+    t
+  else
+    let
+      val (vs, body) = strip_abs t
+      val names = Term.add_free_names body []
+      val vs_names = Name.variant_list names (map fst vs)
+      val vs' = map2 (curry Free) vs_names (map snd vs)
+      val body' = subst_bounds (rev vs', body)
+      val (f, args) = strip_comb body'
+      val resname = Name.variant (vs_names @ names) "res"
+      val resvar = Free (resname, body_type (fastype_of body'))
+      (*val P = case try lookup_pred f of SOME P => P | NONE => error "mk_param"
+      val pred_body = list_comb (P, args @ [resvar])
+      *)
+      val pred_body = HOLogic.mk_eq (body', resvar)
+      val param = fold_rev lambda (vs' @ [resvar]) pred_body
+    in param end
+  end
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
 
@@ -210,10 +219,14 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
   let
     fun mk_prems' (t as Const (name, T)) (names, prems) =
       if is_constr thy name orelse (is_none (try lookup_pred t)) then
-        [(t ,(names, prems))]
+        [(t, (names, prems))]
       else [(lookup_pred t, (names, prems))]
     | mk_prems' (t as Free (f, T)) (names, prems) = 
       [(lookup_pred t, (names, prems))]
+    | mk_prems' (t as Abs _) (names, prems) =
+      if Predicate_Compile_Aux.is_predT (fastype_of t) then
+      [(t, (names, prems))] else error "mk_prems': Abs "
+      (* mk_param *)
     | mk_prems' t (names, prems) =
       if Predicate_Compile_Aux.is_constrt thy t then
         [(t, (names, prems))]
@@ -243,8 +256,10 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
             maps mk_prems_of_assm assms
           end
         else
-          let 
+          let
             val (f, args) = strip_comb t
+            (* TODO: special procedure for higher-order functions: split arguments in
+              simple types and function types *)
             val resname = Name.variant names "res"
             val resvar = Free (resname, body_type (fastype_of t))
             val names' = resname :: names
@@ -261,8 +276,7 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
                   val pred = lookup_pred t
                   val nparams = get_nparams pred
                   val (params, args) = chop nparams args
-                  val _ = tracing ("mk_prems'': " ^ (Syntax.string_of_term_global thy t) ^ " has " ^ string_of_int nparams ^ " parameters.")
-                  val params' = map (mk_param lookup_pred) params
+                  val params' = map (mk_param thy lookup_pred) params
                 in
                   folds_map mk_prems' args (names', prems)
                   |> map (fn (argvs, (names'', prems')) =>
@@ -281,7 +295,8 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
                        val prem = HOLogic.mk_Trueprop (list_comb (pred, argvs @ [resvar]))
                      in (names', prem :: prems') end)
                 end
-            | mk_prems'' t = error ("Invalid term: " ^ Syntax.string_of_term_global thy t)
+            | mk_prems'' t =
+              error ("Invalid term: " ^ Syntax.string_of_term_global thy t)
           in
             map (pair resvar) (mk_prems'' f)
           end
@@ -292,7 +307,7 @@ fun mk_prems thy (lookup_pred, get_nparams) t (names, prems) =
 (* assumption: mutual recursive predicates all have the same parameters. *)  
 fun define_predicates specs thy =
   if forall (fn (const, _) => member (op =) (Symtab.keys (Pred_Compile_Preproc.get thy)) const) specs then
-    thy
+    ([], thy)
   else
   let
     val consts = map fst specs
@@ -307,16 +322,14 @@ fun define_predicates specs thy =
     val funnames = map (fst o dest_Const) funs
     val fun_pred_names = (funnames ~~ prednames)  
       (* mapping from term (Free or Const) to term *)
-    fun lookup_pred (Const (@{const_name Cons}, T)) =
-      Const ("Preprocessing.ConsP", pred_type T) (* FIXME: temporary - Cons lookup *)
-      | lookup_pred (Const (name, T)) =
+    fun lookup_pred (Const (name, T)) =
       (case (Symtab.lookup (Pred_Compile_Preproc.get thy) name) of
           SOME c => Const (c, pred_type T)
         | NONE =>
           (case AList.lookup op = fun_pred_names name of
             SOME f => Free (f, pred_type T)
           | NONE => Const (name, T)))
-      | lookup_pred  (Free (name, T)) =
+      | lookup_pred (Free (name, T)) =
         if member op = (map fst pnames) name then
           Free (name, transform_ho_typ T)
         else
@@ -347,16 +360,14 @@ fun define_predicates specs thy =
             Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
         end
     fun mk_rewr_thm (func, pred) = @{thm refl}
-  in    
+  in
     case try (maps mk_intros) ((funs ~~ preds) ~~ (argss' ~~ rhss)) of
-      NONE => thy 
-    | SOME intr_ts => let
-        val _ = map (tracing o (Syntax.string_of_term_global thy)) intr_ts      
-      in
+      NONE => ([], thy) 
+    | SOME intr_ts =>
         if is_some (try (map (cterm_of thy)) intr_ts) then
           let
             val (ind_result, thy') =
-              Inductive.add_inductive_global (serial_string ())
+              Inductive.add_inductive_global (serial ())
                 {quiet_mode = false, verbose = false, kind = Thm.internalK,
                   alt_name = Binding.empty, coind = false, no_elim = false,
                   no_ind = false, skip_mono = false, fork_mono = false}
@@ -367,10 +378,15 @@ fun define_predicates specs thy =
             val prednames = map (fst o dest_Const) (#preds ind_result)
             (* val rewr_thms = map mk_rewr_eq ((distinct (op =) funs) ~~ (#preds ind_result)) *)
             (* add constants to my table *)
-          in Pred_Compile_Preproc.map (fold Symtab.update_new (consts ~~ prednames)) thy' end
+            val specs = map (fn predname => (predname, filter (Predicate_Compile_Aux.is_intro predname) (#intrs ind_result))) prednames
+            val thy'' = Pred_Compile_Preproc.map (fold Symtab.update_new (consts ~~ prednames)) thy'
+          in
+            (specs, thy'')
+          end
         else
-          thy
-      end
+          let
+            val _ = tracing "Introduction rules of function_predicate are not welltyped"
+          in ([], thy) end
   end
 
 (* preprocessing intro rules - uses oracle *)
@@ -391,7 +407,6 @@ fun rewrite_intro thy intro =
     | get_nparams t = error ("No parameters for " ^ (Syntax.string_of_term_global thy t))
     
     val intro_t = (Logic.unvarify o prop_of) intro
-    val _ = tracing (Syntax.string_of_term_global thy intro_t)
     val (prems, concl) = Logic.strip_horn intro_t
     val frees = map fst (Term.add_frees intro_t [])
     fun rewrite prem names =
@@ -415,8 +430,6 @@ fun rewrite_intro thy intro =
         rewrite concl frees'
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
-    val _ = tracing ("intro_ts': " ^
-      commas (map (Syntax.string_of_term_global thy) intro_ts'))
   in
     map (Drule.standard o the_oracle () o cterm_of thy) intro_ts'
   end; 

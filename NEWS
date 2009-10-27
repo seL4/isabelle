@@ -50,6 +50,9 @@ solvers using the oracle mechanism; for the SMT solver Z3,
 this method is proof-producing. Certificates are provided to
 avoid calling the external solvers solely for re-checking proofs.
 
+* New counterexample generator tool "nitpick" based on the Kodkod
+relational model finder.
+
 * Reorganization of number theory:
   * former session NumberTheory now named Old_Number_Theory
   * new session Number_Theory by Jeremy Avigad; if possible, prefer this.
@@ -167,7 +170,8 @@ procedure only.
 
 * New implementation of quickcheck uses generic code generator;
 default generators are provided for all suitable HOL types, records
-and datatypes.
+and datatypes.  Old quickcheck can be re-activated importing
+theory Library/SML_Quickcheck.
 
 * Renamed theorems:
 Suc_eq_add_numeral_1 -> Suc_eq_plus1

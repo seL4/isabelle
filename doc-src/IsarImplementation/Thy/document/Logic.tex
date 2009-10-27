@@ -325,9 +325,9 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   \indexdef{}{ML}{fastype\_of}\verb|fastype_of: term -> typ| \\
   \indexdef{}{ML}{lambda}\verb|lambda: term -> term -> term| \\
   \indexdef{}{ML}{betapply}\verb|betapply: term * term -> term| \\
-  \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: Properties.T -> (binding * typ) * mixfix ->|\isasep\isanewline%
+  \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: (binding * typ) * mixfix ->|\isasep\isanewline%
 \verb|  theory -> term * theory| \\
-  \indexdef{}{ML}{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> Properties.T -> binding * term ->|\isasep\isanewline%
+  \indexdef{}{ML}{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> binding * term ->|\isasep\isanewline%
 \verb|  theory -> (term * term) * theory| \\
   \indexdef{}{ML}{Sign.const\_typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
   \indexdef{}{ML}{Sign.const\_instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
@@ -365,11 +365,11 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   \item \verb|betapply|~\isa{{\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion if \isa{t} is an
   abstraction.
 
-  \item \verb|Sign.declare_const|~\isa{properties\ {\isacharparenleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharparenright}{\isacharcomma}\ mx{\isacharparenright}}
+  \item \verb|Sign.declare_const|~\isa{{\isacharparenleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharparenright}{\isacharcomma}\ mx{\isacharparenright}}
   declares a new constant \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with optional mixfix
   syntax.
 
-  \item \verb|Sign.add_abbrev|~\isa{print{\isacharunderscore}mode\ properties\ {\isacharparenleft}c{\isacharcomma}\ t{\isacharparenright}}
+  \item \verb|Sign.add_abbrev|~\isa{print{\isacharunderscore}mode\ {\isacharparenleft}c{\isacharcomma}\ t{\isacharparenright}}
   introduces a new term abbreviation \isa{c\ {\isasymequiv}\ t}.
 
   \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} and \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}}
