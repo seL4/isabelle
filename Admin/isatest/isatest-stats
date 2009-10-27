@@ -6,7 +6,7 @@
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-PLATFORMS="at-poly at64-poly mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp at-sml-dev"
+PLATFORMS="at-poly at64-poly mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp at-sml-dev sun-poly"
 
 ISABELLE_SESSIONS="\
   HOL-Plain \
