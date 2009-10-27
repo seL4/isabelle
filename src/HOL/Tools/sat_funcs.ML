@@ -92,8 +92,8 @@ fun lit_ord (i, j) =
 (* ------------------------------------------------------------------------- *)
 
 datatype CLAUSE = NO_CLAUSE
-                | ORIG_CLAUSE of Thm.thm
-                | RAW_CLAUSE of Thm.thm * (int * Thm.cterm) list;
+                | ORIG_CLAUSE of thm
+                | RAW_CLAUSE of thm * (int * cterm) list;
 
 (* ------------------------------------------------------------------------- *)
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
@@ -346,11 +346,16 @@ let
 		fold Thm.weaken (rev sorted_clauses) False_thm
 	end
 in
-	case (tracing ("Invoking solver " ^ (!solver)); SatSolver.invoke_solver (!solver) fm) of
+	case
+	  let val the_solver = ! solver
+	  in (tracing ("Invoking solver " ^ the_solver); SatSolver.invoke_solver the_solver fm) end
+	of
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
-				"clauses: " ^ ML_Syntax.print_list (ML_Syntax.print_pair Int.toString (ML_Syntax.print_list Int.toString)) (Inttab.dest clause_table) ^ "\n" ^
+				"clauses: " ^ ML_Syntax.print_list
+				  (ML_Syntax.print_pair Int.toString (ML_Syntax.print_list Int.toString))
+				  (Inttab.dest clause_table) ^ "\n" ^
 				"empty clause: " ^ Int.toString empty_id)
 		else ();
 		if !quick_and_dirty then
@@ -388,8 +393,9 @@ in
 			val msg = "SAT solver found a countermodel:\n"
 				^ (commas
 					o map (fn (term, idx) =>
-						Syntax.string_of_term_global @{theory} term ^ ": "
-							^ (case assignment idx of NONE => "arbitrary" | SOME true => "true" | SOME false => "false")))
+						Syntax.string_of_term_global @{theory} term ^ ": " ^
+						  (case assignment idx of NONE => "arbitrary"
+							| SOME true => "true" | SOME false => "false")))
 					(Termtab.dest atom_table)
 		in
 			raise THM (msg, 0, [])

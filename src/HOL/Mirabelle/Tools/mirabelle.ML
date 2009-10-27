@@ -28,8 +28,8 @@ sig
   val goal_thm_of : Proof.state -> thm
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
-  val theorems_in_proof_term : Thm.thm -> Thm.thm list
-  val theorems_of_sucessful_proof : Toplevel.state option -> Thm.thm list
+  val theorems_in_proof_term : thm -> thm list
+  val theorems_of_sucessful_proof : Toplevel.state option -> thm list
   val get_setting : (string * string) list -> string * string -> string
   val get_int_setting : (string * string) list -> string * int -> int
   val cpu_time : ('a -> 'b) -> 'a -> 'b * int

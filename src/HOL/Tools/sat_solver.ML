@@ -370,13 +370,13 @@ struct
 
   (* string * solver -> unit *)
 
-    fun add_solver (name, new_solver) =
+    fun add_solver (name, new_solver) = CRITICAL (fn () =>
       let
         val the_solvers = !solvers;
         val _ = if AList.defined (op =) the_solvers name
           then warning ("SAT solver " ^ quote name ^ " was defined before")
           else ();
-      in solvers := AList.update (op =) (name, new_solver) the_solvers end;
+      in solvers := AList.update (op =) (name, new_solver) the_solvers end);
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)

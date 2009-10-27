@@ -165,7 +165,7 @@ fun process_spec axiomatic cos alt_props thy =
         val cnames = map (fst o dest_Const) proc_consts
         fun post_process (arg as (thy,thm)) =
             let
-                fun inst_all thy (thm,v) =
+                fun inst_all thy v thm =
                     let
                         val cv = cterm_of thy v
                         val cT = ctyp_of_term cv
@@ -174,7 +174,7 @@ fun process_spec axiomatic cos alt_props thy =
                         thm RS spec'
                     end
                 fun remove_alls frees thm =
-                    Library.foldl (inst_all (Thm.theory_of_thm thm)) (thm,frees)
+                    fold (inst_all (Thm.theory_of_thm thm)) frees thm
                 fun process_single ((name,atts),rew_imp,frees) args =
                     let
                         fun undo_imps thm =

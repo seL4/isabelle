@@ -6,15 +6,15 @@ Reconstruction functions for terms occurring in Z3 proofs.
 
 signature Z3_PROOF_TERMS =
 sig
-  val mk_prop: Thm.cterm -> Thm.cterm
-  val mk_meta_eq: Thm.cterm -> Thm.cterm -> Thm.cterm
+  val mk_prop: cterm -> cterm
+  val mk_meta_eq: cterm -> cterm -> cterm
 
   type preterm
 
-  val compile: theory -> Name.context -> preterm -> Thm.cterm * Thm.cterm list
+  val compile: theory -> Name.context -> preterm -> cterm * cterm list
 
   val mk_bound: theory -> int -> typ -> preterm
-  val mk_fun: Thm.cterm -> preterm list -> preterm
+  val mk_fun: cterm -> preterm list -> preterm
   val mk_forall: theory -> string * typ -> preterm -> preterm
   val mk_exists: theory -> string * typ -> preterm -> preterm
 
@@ -73,8 +73,8 @@ fun mk_meta_eq ct = Thm.mk_binop (instT (Thm.ctyp_of_term ct) meta_eq) ct
 
 
 datatype preterm = Preterm of {
-  cterm: Thm.cterm,
-  vars: (int * Thm.cterm) list }
+  cterm: cterm,
+  vars: (int * cterm) list }
 
 fun mk_preterm (ct, vs) = Preterm {cterm=ct, vars=vs}
 fun dest_preterm (Preterm {cterm, vars}) = (cterm, vars)

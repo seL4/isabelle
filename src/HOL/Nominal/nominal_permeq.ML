@@ -301,9 +301,9 @@ fun finite_guess_tac_i tactical ss i st =
             val ps = Logic.strip_params (term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 x [];
-            val s = Library.foldr (fn (v, s) =>
+            val s = fold_rev (fn v => fn s =>
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
-              (vs, HOLogic.unit);
+              vs HOLogic.unit;
             val s' = list_abs (ps,
               Const ("Nominal.supp", fastype_of1 (Ts, s) -->
                 snd (split_last (binder_types T)) --> HOLogic.boolT) $ s);
@@ -343,9 +343,9 @@ fun fresh_guess_tac_i tactical ss i st =
             val ps = Logic.strip_params (term_of goal);
             val Ts = rev (map snd ps);
             val vs = collect_vars 0 t [];
-            val s = Library.foldr (fn (v, s) =>
+            val s = fold_rev (fn v => fn s =>
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
-              (vs, HOLogic.unit);
+              vs HOLogic.unit;
             val s' = list_abs (ps,
               Const ("Nominal.supp", fastype_of1 (Ts, s) --> (HOLogic.mk_setT T)) $ s);
             val supports_fresh_rule' = Thm.lift_rule goal supports_fresh_rule;

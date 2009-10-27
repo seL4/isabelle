@@ -697,9 +697,9 @@ fun scc_term G =
      dfs_visit along with u form a connected component. We
      collect all the connected components together in a
      list, which is what is returned. *)
-  Library.foldl (fn (comps,u) =>
+  fold (fn u => fn comps =>
       if been_visited u then comps
-      else ((u :: dfs_visit (transpose (op aconv) G) u) :: comps))  ([],(!finish))
+      else (u :: dfs_visit (transpose (op aconv) G) u) :: comps) (!finish) []
 end;
 
 

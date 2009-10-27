@@ -25,16 +25,15 @@ sig
 
   exception MAXVARS_EXCEEDED
 
-  val add_interpreter : string -> (theory -> model -> arguments -> Term.term ->
+  val add_interpreter : string -> (theory -> model -> arguments -> term ->
     (interpretation * model * arguments) option) -> theory -> theory
-  val add_printer     : string -> (theory -> model -> Term.typ ->
-    interpretation -> (int -> bool) -> Term.term option) -> theory -> theory
+  val add_printer     : string -> (theory -> model -> typ ->
+    interpretation -> (int -> bool) -> term option) -> theory -> theory
 
-  val interpret : theory -> model -> arguments -> Term.term ->
+  val interpret : theory -> model -> arguments -> term ->
     (interpretation * model * arguments)
 
-  val print       : theory -> model -> Term.typ -> interpretation ->
-    (int -> bool) -> Term.term
+  val print       : theory -> model -> typ -> interpretation -> (int -> bool) -> term
   val print_model : theory -> model -> (int -> bool) -> string
 
 (* ------------------------------------------------------------------------- *)
@@ -46,10 +45,10 @@ sig
   val get_default_params : theory -> (string * string) list
   val actual_params      : theory -> (string * string) list -> params
 
-  val find_model : theory -> params -> Term.term -> bool -> unit
+  val find_model : theory -> params -> term -> bool -> unit
 
   (* tries to find a model for a formula: *)
-  val satisfy_term   : theory -> (string * string) list -> Term.term -> unit
+  val satisfy_term   : theory -> (string * string) list -> term -> unit
   (* tries to find a model that refutes a formula: *)
   val refute_term : theory -> (string * string) list -> term -> unit
   val refute_goal : theory -> (string * string) list -> thm -> int -> unit
@@ -60,20 +59,18 @@ sig
 (* Additional functions used by Nitpick (to be factored out)                 *)
 (* ------------------------------------------------------------------------- *)
 
-  val close_form : Term.term -> Term.term
-  val get_classdef : theory -> string -> (string * Term.term) option
-  val norm_rhs : Term.term -> Term.term
-  val get_def : theory -> string * Term.typ -> (string * Term.term) option
-  val get_typedef : theory -> Term.typ -> (string * Term.term) option
-  val is_IDT_constructor : theory -> string * Term.typ -> bool
-  val is_IDT_recursor : theory -> string * Term.typ -> bool
-  val is_const_of_class: theory -> string * Term.typ -> bool
-  val monomorphic_term : Type.tyenv -> Term.term -> Term.term
-  val specialize_type : theory -> (string * Term.typ) -> Term.term -> Term.term
-  val string_of_typ : Term.typ -> string
-  val typ_of_dtyp :
-    Datatype.descr -> (Datatype.dtyp * Term.typ) list -> Datatype.dtyp
-    -> Term.typ
+  val close_form : term -> term
+  val get_classdef : theory -> string -> (string * term) option
+  val norm_rhs : term -> term
+  val get_def : theory -> string * typ -> (string * term) option
+  val get_typedef : theory -> typ -> (string * term) option
+  val is_IDT_constructor : theory -> string * typ -> bool
+  val is_IDT_recursor : theory -> string * typ -> bool
+  val is_const_of_class: theory -> string * typ -> bool
+  val monomorphic_term : Type.tyenv -> term -> term
+  val specialize_type : theory -> (string * typ) -> term -> term
+  val string_of_typ : typ -> string
+  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
 end;  (* signature REFUTE *)
 
 structure Refute : REFUTE =
@@ -185,7 +182,7 @@ struct
 (* ------------------------------------------------------------------------- *)
 
   type model =
-    (Term.typ * int) list * (Term.term * interpretation) list;
+    (typ * int) list * (term * interpretation) list;
 
 (* ------------------------------------------------------------------------- *)
 (* arguments: additional arguments required during interpretation of terms   *)
@@ -207,10 +204,10 @@ struct
   structure RefuteData = TheoryDataFun
   (
     type T =
-      {interpreters: (string * (theory -> model -> arguments -> Term.term ->
+      {interpreters: (string * (theory -> model -> arguments -> term ->
         (interpretation * model * arguments) option)) list,
-       printers: (string * (theory -> model -> Term.typ -> interpretation ->
-        (int -> bool) -> Term.term option)) list,
+       printers: (string * (theory -> model -> typ -> interpretation ->
+        (int -> bool) -> term option)) list,
        parameters: string Symtab.table};
     val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
     val copy = I;
@@ -433,9 +430,8 @@ struct
     (* (Term.indexname * Term.typ) list *)
     val vars = sort_wrt (fst o fst) (map dest_Var (OldTerm.term_vars t))
   in
-    Library.foldl (fn (t', ((x, i), T)) =>
-      (Term.all T) $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
-      (t, vars)
+    fold (fn ((x, i), T) => fn t' =>
+      Term.all T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -768,60 +764,55 @@ struct
     val _ = tracing "Adding axioms..."
     val axioms = Theory.all_axioms_of thy
     fun collect_this_axiom (axname, ax) axs =
-    let
-      val ax' = unfold_defs thy ax
-    in
-      if member (op aconv) axs ax' then axs
-      else (tracing axname; collect_term_axioms (ax' :: axs, ax'))
-    end
-    (* Term.term list * Term.typ -> Term.term list *)
-    and collect_sort_axioms (axs, T) =
-    let
-      (* string list *)
-      val sort = (case T of
-          TFree (_, sort) => sort
-        | TVar (_, sort)  => sort
-        | _               => raise REFUTE ("collect_axioms", "type " ^
-          Syntax.string_of_typ_global thy T ^ " is not a variable"))
-      (* obtain axioms for all superclasses *)
-      val superclasses = sort @ (maps (Sign.super_classes thy) sort)
-      (* merely an optimization, because 'collect_this_axiom' disallows *)
-      (* duplicate axioms anyway:                                       *)
-      val superclasses = distinct (op =) superclasses
-      val class_axioms = maps (fn class => map (fn ax =>
-        ("<" ^ class ^ ">", Thm.prop_of ax))
-        (#axioms (AxClass.get_info thy class) handle ERROR _ => []))
-        superclasses
-      (* replace the (at most one) schematic type variable in each axiom *)
-      (* by the actual type 'T'                                          *)
-      val monomorphic_class_axioms = map (fn (axname, ax) =>
-        (case Term.add_tvars ax [] of
-          [] =>
-          (axname, ax)
-        | [(idx, S)] =>
-          (axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
-        | _ =>
-          raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^
-            Syntax.string_of_term_global thy ax ^
-            ") contains more than one type variable")))
-        class_axioms
-    in
-      fold collect_this_axiom monomorphic_class_axioms axs
-    end
-    (* Term.term list * Term.typ -> Term.term list *)
-    and collect_type_axioms (axs, T) =
+      let
+        val ax' = unfold_defs thy ax
+      in
+        if member (op aconv) axs ax' then axs
+        else (tracing axname; collect_term_axioms ax' (ax' :: axs))
+      end
+    and collect_sort_axioms T axs =
+      let
+        val sort =
+          (case T of
+            TFree (_, sort) => sort
+          | TVar (_, sort)  => sort
+          | _ => raise REFUTE ("collect_axioms",
+              "type " ^ Syntax.string_of_typ_global thy T ^ " is not a variable"))
+        (* obtain axioms for all superclasses *)
+        val superclasses = sort @ maps (Sign.super_classes thy) sort
+        (* merely an optimization, because 'collect_this_axiom' disallows *)
+        (* duplicate axioms anyway:                                       *)
+        val superclasses = distinct (op =) superclasses
+        val class_axioms = maps (fn class => map (fn ax =>
+          ("<" ^ class ^ ">", Thm.prop_of ax))
+          (#axioms (AxClass.get_info thy class) handle ERROR _ => []))
+          superclasses
+        (* replace the (at most one) schematic type variable in each axiom *)
+        (* by the actual type 'T'                                          *)
+        val monomorphic_class_axioms = map (fn (axname, ax) =>
+          (case Term.add_tvars ax [] of
+            [] => (axname, ax)
+          | [(idx, S)] => (axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
+          | _ =>
+            raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^
+              Syntax.string_of_term_global thy ax ^
+              ") contains more than one type variable")))
+          class_axioms
+      in
+        fold collect_this_axiom monomorphic_class_axioms axs
+      end
+    and collect_type_axioms T axs =
       case T of
       (* simple types *)
-        Type ("prop", [])      => axs
-      | Type ("fun", [T1, T2]) => collect_type_axioms
-        (collect_type_axioms (axs, T1), T2)
+        Type ("prop", []) => axs
+      | Type ("fun", [T1, T2]) => collect_type_axioms T2 (collect_type_axioms T1 axs)
       (* axiomatic type classes *)
-      | Type ("itself", [T1])  => collect_type_axioms (axs, T1)
-      | Type (s, Ts)           =>
+      | Type ("itself", [T1]) => collect_type_axioms T1 axs
+      | Type (s, Ts) =>
         (case Datatype.get_info thy s of
           SOME info =>  (* inductive datatype *)
             (* only collect relevant type axioms for the argument types *)
-            Library.foldl collect_type_axioms (axs, Ts)
+            fold collect_type_axioms Ts axs
         | NONE =>
           (case get_typedef thy T of
             SOME (axname, ax) =>
@@ -829,20 +820,19 @@ struct
           | NONE =>
             (* unspecified type, perhaps introduced with "typedecl" *)
             (* at least collect relevant type axioms for the argument types *)
-            Library.foldl collect_type_axioms (axs, Ts)))
+            fold collect_type_axioms Ts axs))
       (* axiomatic type classes *)
-      | TFree _                => collect_sort_axioms (axs, T)
+      | TFree _ => collect_sort_axioms T axs
       (* axiomatic type classes *)
-      | TVar _                 => collect_sort_axioms (axs, T)
-    (* Term.term list * Term.term -> Term.term list *)
-    and collect_term_axioms (axs, t) =
+      | TVar _ => collect_sort_axioms T axs
+    and collect_term_axioms t axs =
       case t of
       (* Pure *)
         Const (@{const_name all}, _) => axs
       | Const (@{const_name "=="}, _) => axs
       | Const (@{const_name "==>"}, _) => axs
       (* axiomatic type classes *)
-      | Const (@{const_name TYPE}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name TYPE}, T) => collect_type_axioms T axs
       (* HOL *)
       | Const (@{const_name Trueprop}, _) => axs
       | Const (@{const_name Not}, _) => axs
@@ -850,7 +840,7 @@ struct
       | Const (@{const_name True}, _) => axs
       (* redundant, since 'False' is also an IDT constructor *)
       | Const (@{const_name False}, _) => axs
-      | Const (@{const_name undefined}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name undefined}, T) => collect_type_axioms T axs
       | Const (@{const_name The}, T) =>
         let
           val ax = specialize_type thy (@{const_name The}, T)
@@ -865,74 +855,68 @@ struct
         in
           collect_this_axiom ("Hilbert_Choice.someI", ax) axs
         end
-      | Const (@{const_name All}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name Ex}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name "op ="}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name All}, T) => collect_type_axioms T axs
+      | Const (@{const_name Ex}, T) => collect_type_axioms T axs
+      | Const (@{const_name "op ="}, T) => collect_type_axioms T axs
       | Const (@{const_name "op &"}, _) => axs
       | Const (@{const_name "op |"}, _) => axs
       | Const (@{const_name "op -->"}, _) => axs
       (* sets *)
-      | Const (@{const_name Collect}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name "op :"}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name Collect}, T) => collect_type_axioms T axs
+      | Const (@{const_name "op :"}, T) => collect_type_axioms T axs
       (* other optimizations *)
-      | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms T axs
       | Const (@{const_name Finite_Set.finite}, T) =>
-        collect_type_axioms (axs, T)
+        collect_type_axioms T axs
       | Const (@{const_name HOL.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
-          collect_type_axioms (axs, T)
+          collect_type_axioms T axs
       | Const (@{const_name HOL.plus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
-          collect_type_axioms (axs, T)
+          collect_type_axioms T axs
       | Const (@{const_name HOL.minus}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
-          collect_type_axioms (axs, T)
+          collect_type_axioms T axs
       | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
-          collect_type_axioms (axs, T)
-      | Const (@{const_name List.append}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name lfp}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name gfp}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name fst}, T) => collect_type_axioms (axs, T)
-      | Const (@{const_name snd}, T) => collect_type_axioms (axs, T)
+          collect_type_axioms T axs
+      | Const (@{const_name List.append}, T) => collect_type_axioms T axs
+      | Const (@{const_name lfp}, T) => collect_type_axioms T axs
+      | Const (@{const_name gfp}, T) => collect_type_axioms T axs
+      | Const (@{const_name fst}, T) => collect_type_axioms T axs
+      | Const (@{const_name snd}, T) => collect_type_axioms T axs
       (* simply-typed lambda calculus *)
       | Const (s, T) =>
           if is_const_of_class thy (s, T) then
             (* axiomatic type classes: add "OFCLASS(?'a::c, c_class)" *)
             (* and the class definition                               *)
             let
-              val class   = Logic.class_of_const s
+              val class = Logic.class_of_const s
               val of_class = Logic.mk_of_class (TVar (("'a", 0), [class]), class)
-              val ax_in   = SOME (specialize_type thy (s, T) of_class)
+              val ax_in = SOME (specialize_type thy (s, T) of_class)
                 (* type match may fail due to sort constraints *)
                 handle Type.TYPE_MATCH => NONE
-              val ax_1 = Option.map (fn ax => (Syntax.string_of_term_global thy ax, ax))
-                ax_in
-              val ax_2 = Option.map (apsnd (specialize_type thy (s, T)))
-                (get_classdef thy class)
+              val ax_1 = Option.map (fn ax => (Syntax.string_of_term_global thy ax, ax)) ax_in
+              val ax_2 = Option.map (apsnd (specialize_type thy (s, T))) (get_classdef thy class)
             in
-              collect_type_axioms (fold collect_this_axiom
-                (map_filter I [ax_1, ax_2]) axs, T)
+              collect_type_axioms T (fold collect_this_axiom (map_filter I [ax_1, ax_2]) axs)
             end
           else if is_IDT_constructor thy (s, T)
             orelse is_IDT_recursor thy (s, T) then
             (* only collect relevant type axioms *)
-            collect_type_axioms (axs, T)
+            collect_type_axioms T axs
           else
             (* other constants should have been unfolded, with some *)
             (* exceptions: e.g. Abs_xxx/Rep_xxx functions for       *)
             (* typedefs, or type-class related constants            *)
             (* only collect relevant type axioms *)
-            collect_type_axioms (axs, T)
-      | Free (_, T)      => collect_type_axioms (axs, T)
-      | Var (_, T)       => collect_type_axioms (axs, T)
-      | Bound i          => axs
-      | Abs (_, T, body) => collect_term_axioms
-        (collect_type_axioms (axs, T), body)
-      | t1 $ t2          => collect_term_axioms
-        (collect_term_axioms (axs, t1), t2)
-    (* Term.term list *)
-    val result = map close_form (collect_term_axioms ([], t))
+            collect_type_axioms T axs
+      | Free (_, T) => collect_type_axioms T axs
+      | Var (_, T) => collect_type_axioms T axs
+      | Bound _ => axs
+      | Abs (_, T, body) => collect_term_axioms body (collect_type_axioms T axs)
+      | t1 $ t2 => collect_term_axioms t2 (collect_term_axioms t1 axs)
+    val result = map close_form (collect_term_axioms t [])
     val _ = tracing " ...done."
   in
     result
@@ -1040,7 +1024,7 @@ struct
     fun size_of_typ T =
       case AList.lookup (op =) sizes (string_of_typ T) of
         SOME n => n
-      | NONE   => minsize
+      | NONE => minsize
   in
     map (fn T => (T, size_of_typ T)) xs
   end;
@@ -1094,13 +1078,13 @@ struct
     case next (maxsize-minsize) 0 0 diffs of
       SOME diffs' =>
       (* merge with those types for which the size is fixed *)
-      SOME (snd (Library.foldl_map (fn (ds, (T, _)) =>
+      SOME (fst (fold_map (fn (T, _) => fn ds =>
         case AList.lookup (op =) sizes (string_of_typ T) of
         (* return the fixed size *)
-          SOME n => (ds, (T, n))
+          SOME n => ((T, n), ds)
         (* consume the head of 'ds', add 'minsize' *)
-        | NONE   => (tl ds, (T, minsize + hd ds)))
-        (diffs', xs)))
+        | NONE   => ((T, minsize + hd ds), tl ds))
+        xs diffs'))
     | NONE =>
       NONE
   end;
@@ -1157,8 +1141,7 @@ struct
       val _      = tracing ("Unfolded term: " ^ Syntax.string_of_term_global thy u)
       val axioms = collect_axioms thy u
       (* Term.typ list *)
-      val types = Library.foldl (fn (acc, t') =>
-        uncurry (union (op =)) (acc, (ground_types thy t'))) ([], u :: axioms)
+      val types = fold (union (op =) o ground_types thy) (u :: axioms) []
       val _     = tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
@@ -1197,15 +1180,15 @@ struct
         val _ = tracing ("Translating term (sizes: "
           ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
         (* translate 'u' and all axioms *)
-        val ((model, args), intrs) = Library.foldl_map (fn ((m, a), t') =>
+        val (intrs, (model, args)) = fold_map (fn t' => fn (m, a) =>
           let
             val (i, m', a') = interpret thy m a t'
           in
             (* set 'def_eq' to 'true' *)
-            ((m', {maxvars = #maxvars a', def_eq = true,
+            (i, (m', {maxvars = #maxvars a', def_eq = true,
               next_idx = #next_idx a', bounds = #bounds a',
-              wellformed = #wellformed a'}), i)
-          end) ((init_model, init_args), u :: axioms)
+              wellformed = #wellformed a'}))
+          end) (u :: axioms) (init_model, init_args)
         (* make 'u' either true or false, and make all axioms true, and *)
         (* add the well-formedness side condition                       *)
         val fm_u  = (if negate then toFalse else toTrue) (hd intrs)
@@ -1309,10 +1292,9 @@ struct
     (* (Term.indexname * Term.typ) list *)
     val vars = sort_wrt (fst o fst) (map dest_Var (OldTerm.term_vars t))
     (* Term.term *)
-    val ex_closure = Library.foldl (fn (t', ((x, i), T)) =>
-      (HOLogic.exists_const T) $
-        Abs (x, T, abstract_over (Var ((x, i), T), t')))
-      (t, vars)
+    val ex_closure = fold (fn ((x, i), T) => fn t' =>
+      HOLogic.exists_const T $
+        Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
     (* Note: If 't' is of type 'propT' (rather than 'boolT'), applying   *)
     (* 'HOLogic.exists_const' is not type-correct.  However, this is not *)
     (* really a problem as long as 'find_model' still interprets the     *)
@@ -1733,8 +1715,8 @@ struct
           (* create all constants of type 'T' *)
           val constants = make_constants thy model T
           (* interpret the 'body' separately for each constant *)
-          val ((model', args'), bodies) = Library.foldl_map
-            (fn ((m, a), c) =>
+          val (bodies, (model', args')) = fold_map
+            (fn c => fn (m, a) =>
               let
                 (* add 'c' to 'bounds' *)
                 val (i', m', a') = interpret thy m {maxvars = #maxvars a,
@@ -1743,15 +1725,15 @@ struct
               in
                 (* keep the new model m' and 'next_idx' and 'wellformed', *)
                 (* but use old 'bounds'                                   *)
-                ((m', {maxvars = maxvars, def_eq = def_eq,
+                (i', (m', {maxvars = maxvars, def_eq = def_eq,
                   next_idx = #next_idx a', bounds = bounds,
-                  wellformed = #wellformed a'}), i')
+                  wellformed = #wellformed a'}))
               end)
-            ((model, args), constants)
+            constants (model, args)
         in
           SOME (Node bodies, model', args')
         end
-      | t1 $ t2          =>
+      | t1 $ t2 =>
         let
           (* interpret 't1' and 't2' separately *)
           val (intr1, model1, args1) = interpret thy model args t1
@@ -2212,14 +2194,14 @@ struct
                       Node (replicate size (make_undef ds))
                     end
                   (* returns the interpretation for a constructor *)
-                  fun make_constr (offset, []) =
-                    if offset<total then
-                      (offset+1, Leaf ((replicate offset False) @ True ::
-                        (replicate (total-offset-1) False)))
+                  fun make_constr [] offset =
+                    if offset < total then
+                      (Leaf (replicate offset False @ True ::
+                        (replicate (total - offset - 1) False)), offset + 1)
                     else
                       raise REFUTE ("IDT_constructor_interpreter",
                         "offset >= total")
-                    | make_constr (offset, d::ds) =
+                    | make_constr (d::ds) offset =
                     let
                       (* Term.typ *)
                       val dT = typ_of_dtyp descr typ_assoc d
@@ -2228,8 +2210,8 @@ struct
                       (* for the IDT)                                     *)
                       val terms' = canonical_terms typs' dT
                       (* sanity check *)
-                      val _ = if length terms' <>
-                        size_of_type thy (typs', []) dT
+                      val _ =
+                        if length terms' <> size_of_type thy (typs', []) dT
                         then
                           raise REFUTE ("IDT_constructor_interpreter",
                             "length of terms' is not equal to old size")
@@ -2239,46 +2221,52 @@ struct
                       (* for the IDT)                                     *)
                       val terms = canonical_terms typs dT
                       (* sanity check *)
-                      val _ = if length terms <> size_of_type thy (typs, []) dT
+                      val _ =
+                        if length terms <> size_of_type thy (typs, []) dT
                         then
                           raise REFUTE ("IDT_constructor_interpreter",
                             "length of terms is not equal to current size")
                         else ()
                       (* sanity check *)
-                      val _ = if length terms < length terms' then
+                      val _ =
+                        if length terms < length terms' then
                           raise REFUTE ("IDT_constructor_interpreter",
                             "current size is less than old size")
                         else ()
                       (* sanity check: every element of terms' must also be *)
                       (*               present in terms                     *)
-                      val _ = if List.all (member op= terms) terms' then ()
+                      val _ =
+                        if List.all (member (op =) terms) terms' then ()
                         else
                           raise REFUTE ("IDT_constructor_interpreter",
                             "element has disappeared")
                       (* sanity check: the order on elements of terms' is    *)
                       (*               the same in terms, for those elements *)
-                      val _ = let
+                      val _ =
+                        let
                           fun search (x::xs) (y::ys) =
-                            if x = y then search xs ys else search (x::xs) ys
+                                if x = y then search xs ys else search (x::xs) ys
                             | search (x::xs) [] =
-                            raise REFUTE ("IDT_constructor_interpreter",
-                              "element order not preserved")
+                                raise REFUTE ("IDT_constructor_interpreter",
+                                  "element order not preserved")
                             | search [] _ = ()
                         in  search terms' terms  end
                       (* int * interpretation list *)
-                      val (new_offset, intrs) = Library.foldl_map (fn (off, t_elem) =>
-                        (* if 't_elem' existed at the previous depth,    *)
-                        (* proceed recursively, otherwise map the entire *)
-                        (* subtree to "undefined"                        *)
-                        if t_elem mem terms' then
-                          make_constr (off, ds)
-                        else
-                          (off, make_undef ds)) (offset, terms)
+                      val (intrs, new_offset) =
+                        fold_map (fn t_elem => fn off =>
+                          (* if 't_elem' existed at the previous depth,    *)
+                          (* proceed recursively, otherwise map the entire *)
+                          (* subtree to "undefined"                        *)
+                          if t_elem mem terms' then
+                            make_constr ds off
+                          else
+                            (make_undef ds, off))
+                        terms offset
                     in
-                      (new_offset, Node intrs)
+                      (Node intrs, new_offset)
                     end
                 in
-                  SOME (snd (make_constr (offset, ctypes)), model, args)
+                  SOME (fst (make_constr ctypes offset), model, args)
                 end
             end
           | NONE =>  (* body type is not an inductive datatype *)
@@ -2332,12 +2320,12 @@ struct
               else  (* mconstrs_count = length params *)
                 let
                   (* interpret each parameter separately *)
-                  val ((model', args'), p_intrs) = Library.foldl_map (fn ((m, a), p) =>
+                  val (p_intrs, (model', args')) = fold_map (fn p => fn (m, a) =>
                     let
                       val (i, m', a') = interpret thy m a p
                     in
-                      ((m', a'), i)
-                    end) ((model, args), params)
+                      (i, (m', a'))
+                    end) params (model, args)
                   val (typs, _) = model'
                   (* 'index' is /not/ necessarily the index of the IDT that *)
                   (* the recursion operator is associated with, but merely  *)
@@ -2440,14 +2428,14 @@ struct
                     end) descr
                   (* associate constructors with corresponding parameters *)
                   (* (int * (interpretation * interpretation) list) list *)
-                  val (p_intrs', mc_p_intrs) = Library.foldl_map
-                    (fn (p_intrs', (idx, c_intrs)) =>
+                  val (mc_p_intrs, p_intrs') = fold_map
+                    (fn (idx, c_intrs) => fn p_intrs' =>
                       let
                         val len = length c_intrs
                       in
-                        (List.drop (p_intrs', len),
-                          (idx, c_intrs ~~ List.take (p_intrs', len)))
-                      end) (p_intrs, mc_intrs)
+                        ((idx, c_intrs ~~ List.take (p_intrs', len)),
+                          List.drop (p_intrs', len))
+                      end) mc_intrs p_intrs
                   (* sanity check: no 'p_intr' may be left afterwards *)
                   val _ = if p_intrs' <> [] then
                       raise REFUTE ("IDT_recursion_interpreter",
@@ -2672,15 +2660,15 @@ struct
       let
         (* interpretation -> int *)
         fun number_of_elements (Node xs) =
-          Library.foldl (fn (n, x) =>
-            if x=TT then
-              n+1
-            else if x=FF then
-              n
-            else
-              raise REFUTE ("Finite_Set_card_interpreter",
-                "interpretation for set type does not yield a Boolean"))
-            (0, xs)
+            fold (fn x => fn n =>
+              if x = TT then
+                n + 1
+              else if x = FF then
+                n
+              else
+                raise REFUTE ("Finite_Set_card_interpreter",
+                  "interpretation for set type does not yield a Boolean"))
+              xs 0
           | number_of_elements (Leaf _) =
           raise REFUTE ("Finite_Set_card_interpreter",
             "interpretation for set type is a leaf")
@@ -2885,7 +2873,7 @@ struct
         (* of width 'size_elem' and depth 'length_list' (with 'size_list'    *)
         (* nodes total)                                                      *)
         (* (int * (int * int)) list *)
-        val (_, lenoff_lists) = Library.foldl_map (fn ((offsets, off), elem) =>
+        val (lenoff_lists, _) = fold_map (fn elem => fn (offsets, off) =>
           (* corresponds to a pre-order traversal of the tree *)
           let
             val len = length offsets
@@ -2894,10 +2882,10 @@ struct
           in
             if len < list_length then
               (* go to first child node *)
-              ((off :: offsets, off * size_elem), assoc)
+              (assoc, (off :: offsets, off * size_elem))
             else if off mod size_elem < size_elem - 1 then
               (* go to next sibling node *)
-              ((offsets, off + 1), assoc)
+              (assoc, (offsets, off + 1))
             else
               (* go back up the stack until we find a level where we can go *)
               (* to the next sibling node                                   *)
@@ -2909,12 +2897,12 @@ struct
                   [] =>
                   (* we're at the last node in the tree; the next value *)
                   (* won't be used anyway                               *)
-                  (([], 0), assoc)
+                  (assoc, ([], 0))
                 | off'::offs' =>
                   (* go to next sibling node *)
-                  ((offs', off' + 1), assoc)
+                  (assoc, (offs', off' + 1))
               end
-          end) (([], 0), elements)
+          end) elements ([], 0)
         (* we also need the reverse association (from length/offset to *)
         (* index)                                                      *)
         val lenoff'_lists = map Library.swap lenoff_lists
@@ -3251,7 +3239,7 @@ struct
                 print thy (typs, []) dT (List.nth (consts, n)) assignment
               end) (cargs ~~ args)
           in
-            SOME (Library.foldl op$ (cTerm, argsTerms))
+            SOME (list_comb (cTerm, argsTerms))
           end
         end
       | NONE =>  (* not an inductive datatype *)

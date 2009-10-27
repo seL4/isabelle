@@ -462,14 +462,13 @@ fun rhyps (Const("==>",_) $ (Const("Trueprop",_) $ A) $ phi,
 (** Detecting repeated assumptions in a subgoal **)
 
 (*The stringtree detects repeated assumptions.*)
-fun ins_term (net,t) = Net.insert_term (op aconv) (t,t) net;
+fun ins_term t net = Net.insert_term (op aconv) (t, t) net;
 
 (*detects repetitions in a list of terms*)
 fun has_reps [] = false
   | has_reps [_] = false
   | has_reps [t,u] = (t aconv u)
-  | has_reps ts = (Library.foldl ins_term (Net.empty, ts);  false)
-                  handle Net.INSERT => true;
+  | has_reps ts = (fold ins_term ts Net.empty; false) handle Net.INSERT => true;
 
 (*Like TRYALL eq_assume_tac, but avoids expensive THEN calls*)
 fun TRYING_eq_assume_tac 0 st = Seq.single st

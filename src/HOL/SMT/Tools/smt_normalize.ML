@@ -14,8 +14,8 @@ Normalization steps on theorems required by SMT solvers:
 signature SMT_NORMALIZE =
 sig
   val normalize_rule: Proof.context -> thm -> thm
-  val instantiate_free: Thm.cterm * Thm.cterm -> thm -> thm
-  val discharge_definition: Thm.cterm -> thm -> thm
+  val instantiate_free: cterm * cterm -> thm -> thm
+  val discharge_definition: cterm -> thm -> thm
 
   val trivial_let: Proof.context -> thm list -> thm list
   val positive_numerals: Proof.context -> thm list -> thm list
@@ -33,8 +33,7 @@ sig
     AddFunUpdRules |
     AddAbsMinMaxRules
 
-  val normalize: config list -> Proof.context -> thm list ->
-    Thm.cterm list * thm list
+  val normalize: config list -> Proof.context -> thm list -> cterm list * thm list
 
   val setup: theory -> theory
 end

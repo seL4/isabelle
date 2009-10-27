@@ -248,16 +248,16 @@ fun freeze_thaw_term t =
         val tvars = OldTerm.term_tvars t
         val tfree_names = OldTerm.add_term_tfree_names(t,[])
         val (type_inst,_) =
-            Library.foldl (fn ((inst,used),(w as (v,_),S)) =>
+            fold (fn (w as (v,_), S) => fn (inst, used) =>
                       let
                           val v' = Name.variant used v
                       in
                           ((w,TFree(v',S))::inst,v'::used)
                       end)
-                  (([],tfree_names),tvars)
+                  tvars ([], tfree_names)
         val t' = subst_TVars type_inst t
     in
-        (t',map (fn (w,TFree(v,S)) => (v,TVar(w,S))
+        (t', map (fn (w,TFree(v,S)) => (v,TVar(w,S))
                   | _ => error "Internal error in Shuffler.freeze_thaw") type_inst)
     end
 

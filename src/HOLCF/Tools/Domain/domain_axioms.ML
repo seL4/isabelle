@@ -17,7 +17,7 @@ sig
 end;
 
 
-structure Domain_Axioms :> DOMAIN_AXIOMS =
+structure Domain_Axioms : DOMAIN_AXIOMS =
 struct
 
 open Domain_Library;
@@ -218,13 +218,13 @@ fun add_axioms comp_dnam (eqs : eq list) thy' =
           ("bisim_def",
            %%:(comp_dname^"_bisim")==mk_lam("R", foldr1 mk_conj (mapn one_comp 0 eqs)));
           
-      fun add_one (thy,(dnam,axs,dfs)) =
-          thy |> Sign.add_path dnam
-              |> add_defs_infer dfs
-              |> add_axioms_infer axs
-              |> Sign.parent_path;
+      fun add_one (dnam, axs, dfs) =
+          Sign.add_path dnam
+          #> add_defs_infer dfs
+          #> add_axioms_infer axs
+          #> Sign.parent_path;
 
-      val thy = Library.foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
+      val thy = fold add_one (mapn (calc_axioms comp_dname eqs) 0 eqs) thy';
 
     in thy |> Sign.add_path comp_dnam  
            |> add_defs_infer (bisim_def::(if length eqs>1 then [copy_def] else []))

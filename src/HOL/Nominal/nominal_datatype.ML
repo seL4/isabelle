@@ -202,15 +202,15 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val atoms = atoms_of thy;
 
-    fun prep_constr ((constrs, sorts), (cname, cargs, mx)) =
-      let val (cargs', sorts') = Library.foldl (prep_typ tmp_thy) (([], sorts), cargs)
+    fun prep_constr (cname, cargs, mx) (constrs, sorts) =
+      let val (cargs', sorts') = fold_map (prep_typ tmp_thy) cargs sorts
       in (constrs @ [(cname, cargs', mx)], sorts') end
 
-    fun prep_dt_spec ((dts, sorts), (tvs, tname, mx, constrs)) =
-      let val (constrs', sorts') = Library.foldl prep_constr (([], sorts), constrs)
+    fun prep_dt_spec (tvs, tname, mx, constrs) (dts, sorts) =
+      let val (constrs', sorts') = fold prep_constr constrs ([], sorts)
       in (dts @ [(tvs, tname, mx, constrs')], sorts') end
 
-    val (dts', sorts) = Library.foldl prep_dt_spec (([], []), dts);
+    val (dts', sorts) = fold prep_dt_spec dts ([], []);
     val tyvars = map (map (fn s =>
       (s, the (AList.lookup (op =) sorts s))) o #1) dts';
 
@@ -770,8 +770,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val full_new_type_names = map (Sign.full_bname thy) new_type_names;
 
-    fun make_constr_def tname T T' ((thy, defs, eqns),
-        (((cname_rep, _), (cname, cargs)), (cname', mx))) =
+    fun make_constr_def tname T T' (((cname_rep, _), (cname, cargs)), (cname', mx))
+        (thy, defs, eqns) =
       let
         fun constr_arg ((dts, dt), (j, l_args, r_args)) =
           let
@@ -805,22 +805,24 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (PureThy.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
-    fun dt_constr_defs ((thy, defs, eqns, dist_lemmas), ((((((_, (_, _, constrs)),
-        (_, (_, _, constrs'))), tname), T), T'), constr_syntax)) =
+    fun dt_constr_defs ((((((_, (_, _, constrs)),
+        (_, (_, _, constrs'))), tname), T), T'), constr_syntax) (thy, defs, eqns, dist_lemmas) =
       let
         val rep_const = cterm_of thy
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
-        val dist = Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
-        val (thy', defs', eqns') = Library.foldl (make_constr_def tname T T')
-          ((Sign.add_path tname thy, defs, []), constrs ~~ constrs' ~~ constr_syntax)
+        val dist =
+          Drule.standard (cterm_instantiate [(cterm_of thy distinct_f, rep_const)] distinct_lemma);
+        val (thy', defs', eqns') = fold (make_constr_def tname T T')
+          (constrs ~~ constrs' ~~ constr_syntax) (Sign.add_path tname thy, defs, [])
       in
         (Sign.parent_path thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
       end;
 
-    val (thy8, constr_defs, constr_rep_eqns, dist_lemmas) = Library.foldl dt_constr_defs
-      ((thy7, [], [], []), List.take (descr, length new_type_names) ~~
+    val (thy8, constr_defs, constr_rep_eqns, dist_lemmas) = fold dt_constr_defs
+      (List.take (descr, length new_type_names) ~~
         List.take (pdescr, length new_type_names) ~~
-        new_type_names ~~ newTs ~~ newTs' ~~ constr_syntax);
+        new_type_names ~~ newTs ~~ newTs' ~~ constr_syntax)
+      (thy7, [], [], []);
 
     val abs_inject_thms = map (collect_simp o #Abs_inject o fst) typedefs
     val rep_inject_thms = map (#Rep_inject o fst) typedefs
@@ -1031,7 +1033,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     (**** weak induction theorem ****)
 
-    fun mk_indrule_lemma ((prems, concls), (((i, _), T), U)) =
+    fun mk_indrule_lemma (((i, _), T), U) (prems, concls) =
       let
         val Rep_t = Const (List.nth (rep_names, i), T --> U) $
           mk_Free "x" T i;
@@ -1045,7 +1047,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       end;
 
     val (indrule_lemma_prems, indrule_lemma_concls) =
-      Library.foldl mk_indrule_lemma (([], []), (descr'' ~~ recTs ~~ recTs'));
+      fold mk_indrule_lemma (descr'' ~~ recTs ~~ recTs') ([], []);
 
     val indrule_lemma = Goal.prove_global thy8 [] []
       (Logic.mk_implies
@@ -1455,8 +1457,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     (* FIXME: avoid collisions with other variable names? *)
     val rec_ctxt = Free ("z", fsT');
 
-    fun make_rec_intr T p rec_set ((rec_intr_ts, rec_prems, rec_prems',
-          rec_eq_prems, l), ((cname, cargs), idxs)) =
+    fun make_rec_intr T p rec_set ((cname, cargs), idxs)
+        (rec_intr_ts, rec_prems, rec_prems', rec_eq_prems, l) =
       let
         val Ts = map (typ_of_dtyp descr'' sorts) cargs;
         val frees = map (fn i => "x" ^ string_of_int i) (1 upto length Ts) ~~ Ts;
@@ -1500,9 +1502,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       end;
 
     val (rec_intr_ts, rec_prems, rec_prems', rec_eq_prems, _) =
-      Library.foldl (fn (x, ((((d, d'), T), p), rec_set)) =>
-        Library.foldl (make_rec_intr T p rec_set) (x, #3 (snd d) ~~ snd d'))
-          (([], [], [], [], 0), descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets');
+      fold (fn ((((d, d'), T), p), rec_set) =>
+        fold (make_rec_intr T p rec_set) (#3 (snd d) ~~ snd d'))
+          (descr'' ~~ ndescr ~~ recTs ~~ rec_preds ~~ rec_sets')
+          ([], [], [], [], 0);
 
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>

@@ -269,7 +269,7 @@ fun clean_unify_z sgn ix pat z =
 (* FOR DEBUGGING...
 type trace_subst_errT = int (* subgoal *)
         * thm (* thm with all goals *)
-        * (Thm.cterm list (* certified free var placeholders for vars *)
+        * (cterm list (* certified free var placeholders for vars *)
            * thm)  (* trivial thm of goal concl *)
             (* possible matches/unifiers *)
         * thm (* rule *)

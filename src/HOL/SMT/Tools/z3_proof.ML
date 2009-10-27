@@ -48,7 +48,7 @@ datatype sym = Sym of string * sym list
 
 datatype context = Context of {
   Ttab: typ Symtab.table,
-  ttab: Thm.cterm Symtab.table,
+  ttab: cterm Symtab.table,
   etab: T.preterm Inttab.table,
   ptab: R.proof Inttab.table,
   nctxt: Name.context }
