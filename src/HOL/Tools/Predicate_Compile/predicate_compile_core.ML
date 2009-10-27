@@ -49,11 +49,10 @@ sig
     mk_sup : term * term -> term,
     mk_if : term -> term,
     mk_not : term -> term,
-    mk_map : typ -> typ -> term -> term -> term,
-    lift_pred : term -> term
+    mk_map : typ -> typ -> term -> term -> term
   };
   val pred_compfuns : compilation_funs
-  val rpred_compfuns : compilation_funs
+  val randompred_compfuns : compilation_funs
     (*  val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_quickcheck_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_depth_limited_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
@@ -720,12 +719,6 @@ fun set_depth_limited_function_name pred mode name =
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
 
-(** data structures for generic compilation for different monads **)
-
-(* maybe rename functions more generic:
-  mk_predT -> mk_monadT; dest_predT -> dest_monadT
-  mk_single -> mk_return (?)
-*)
 datatype compilation_funs = CompilationFuns of {
   mk_predT : typ -> typ,
   dest_predT : typ -> typ,
@@ -735,8 +728,7 @@ datatype compilation_funs = CompilationFuns of {
   mk_sup : term * term -> term,
   mk_if : term -> term,
   mk_not : term -> term,
-  mk_map : typ -> typ -> term -> term -> term,
-  lift_pred : term -> term
+  mk_map : typ -> typ -> term -> term -> term
 };
 
 fun mk_predT (CompilationFuns funs) = #mk_predT funs
@@ -748,7 +740,6 @@ fun mk_sup (CompilationFuns funs) = #mk_sup funs
 fun mk_if (CompilationFuns funs) = #mk_if funs
 fun mk_not (CompilationFuns funs) = #mk_not funs
 fun mk_map (CompilationFuns funs) = #mk_map funs
-fun lift_pred (CompilationFuns funs) = #lift_pred funs
 
 fun funT_of compfuns (iss, is) T =
   let
@@ -766,9 +757,9 @@ fun mk_fun_of compfuns thy (name, T) mode =
 structure PredicateCompFuns =
 struct
 
-fun mk_predT T = Type (@{type_name "Predicate.pred"}, [T])
+fun mk_predT T = Type (@{type_name Predicate.pred}, [T])
 
-fun dest_predT (Type (@{type_name "Predicate.pred"}, [T])) = T
+fun dest_predT (Type (@{type_name Predicate.pred}, [T])) = T
   | dest_predT T = raise TYPE ("dest_predT", [T], []);
 
 fun mk_bot T = Const (@{const_name Orderings.bot}, mk_predT T);
@@ -807,75 +798,65 @@ fun mk_Eval (f, x) =
 fun mk_map T1 T2 tf tp = Const (@{const_name Predicate.map},
   (T1 --> T2) --> mk_predT T1 --> mk_predT T2) $ tf $ tp;
 
-val lift_pred = I
-
 val compfuns = CompilationFuns {mk_predT = mk_predT, dest_predT = dest_predT, mk_bot = mk_bot,
   mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if, mk_not = mk_not,
-  mk_map = mk_map, lift_pred = lift_pred};
+  mk_map = mk_map};
 
 end;
 
-structure RPredCompFuns =
+structure RandomPredCompFuns =
 struct
 
-fun mk_rpredT T =
-  @{typ "Random.seed"} --> HOLogic.mk_prodT (PredicateCompFuns.mk_predT T, @{typ "Random.seed"})
+fun mk_randompredT T =
+  @{typ Random.seed} --> HOLogic.mk_prodT (PredicateCompFuns.mk_predT T, @{typ Random.seed})
 
-fun dest_rpredT (Type ("fun", [_,
-  Type (@{type_name "*"}, [Type (@{type_name "Predicate.pred"}, [T]), _])])) = T
-  | dest_rpredT T = raise TYPE ("dest_rpredT", [T], []); 
+fun dest_randompredT (Type ("fun", [@{typ Random.seed}, Type (@{type_name "*"},
+  [Type (@{type_name "Predicate.pred"}, [T]), @{typ Random.seed}])])) = T
+  | dest_randompredT T = raise TYPE ("dest_randompredT", [T], []);
 
-fun mk_bot T = Const(@{const_name RPred.bot}, mk_rpredT T)
+fun mk_bot T = Const(@{const_name Quickcheck.empty}, mk_randompredT T)
 
 fun mk_single t =
   let
     val T = fastype_of t
   in
-    Const (@{const_name RPred.return}, T --> mk_rpredT T) $ t
+    Const (@{const_name Quickcheck.single}, T --> mk_randompredT T) $ t
   end;
 
 fun mk_bind (x, f) =
   let
     val T as (Type ("fun", [_, U])) = fastype_of f
   in
-    Const (@{const_name RPred.bind}, fastype_of x --> T --> U) $ x $ f
+    Const (@{const_name Quickcheck.bind}, fastype_of x --> T --> U) $ x $ f
   end
 
-val mk_sup = HOLogic.mk_binop @{const_name RPred.supp}
+val mk_sup = HOLogic.mk_binop @{const_name Quickcheck.union}
 
-fun mk_if cond = Const (@{const_name RPred.if_rpred},
-  HOLogic.boolT --> mk_rpredT HOLogic.unitT) $ cond;
+fun mk_if cond = Const (@{const_name Quickcheck.if_randompred},
+  HOLogic.boolT --> mk_randompredT HOLogic.unitT) $ cond;
 
-fun mk_not t = let val T = mk_rpredT HOLogic.unitT
-  in Const (@{const_name RPred.not_rpred}, T --> T) $ t end
+fun mk_not t = let val T = mk_randompredT HOLogic.unitT
+  in Const (@{const_name Quickcheck.not_randompred}, T --> T) $ t end
 
-fun mk_map T1 T2 tf tp = Const (@{const_name RPred.map},
-  (T1 --> T2) --> mk_rpredT T1 --> mk_rpredT T2) $ tf $ tp
+fun mk_map T1 T2 tf tp = Const (@{const_name Quickcheck.map},
+  (T1 --> T2) --> mk_randompredT T1 --> mk_randompredT T2) $ tf $ tp
 
-fun lift_pred t =
-  let
-    val T = PredicateCompFuns.dest_predT (fastype_of t)
-    val lift_predT = PredicateCompFuns.mk_predT T --> mk_rpredT T 
-  in
-    Const (@{const_name "RPred.lift_pred"}, lift_predT) $ t  
-  end;
-
-val compfuns = CompilationFuns {mk_predT = mk_rpredT, dest_predT = dest_rpredT, mk_bot = mk_bot,
+val compfuns = CompilationFuns {mk_predT = mk_randompredT, dest_predT = dest_randompredT, mk_bot = mk_bot,
     mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if, mk_not = mk_not,
-    mk_map = mk_map, lift_pred = lift_pred};
+    mk_map = mk_map};
 
 end;
 (* for external use with interactive mode *)
 val pred_compfuns = PredicateCompFuns.compfuns
-val rpred_compfuns = RPredCompFuns.compfuns;
+val randompred_compfuns = RandomPredCompFuns.compfuns;
 
 fun lift_random random =
   let
     val T = dest_randomT (fastype_of random)
   in
-    Const (@{const_name lift_random}, (@{typ Random.seed} -->
+    Const (@{const_name Quickcheck.Random}, (@{typ Random.seed} -->
       HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) --> 
-      RPredCompFuns.mk_rpredT T) $ random
+      RandomPredCompFuns.mk_randompredT T) $ random
   end;
 
 fun depth_limited_funT_of compfuns (iss, is) T =
@@ -1604,7 +1585,7 @@ fun generator_funT_of (iss, is) T =
     val paramTs' = map2 (fn SOME is => generator_funT_of ([], is) | NONE => I) iss paramTs
   in
     (paramTs' @ inargTs @ [@{typ code_numeral}]) --->
-      (mk_predT RPredCompFuns.compfuns (HOLogic.mk_tupleT outargTs))
+      (mk_predT RandomPredCompFuns.compfuns (HOLogic.mk_tupleT outargTs))
   end
 
 fun rpred_create_definitions preds (name, modes) thy =
@@ -2291,7 +2272,7 @@ val add_depth_limited_equations = gen_add_equations
 val add_quickcheck_equations = gen_add_equations
   {infer_modes = infer_modes_with_generator,
   create_definitions = rpred_create_definitions,
-  compile_preds = compile_preds rpred_comp_modifiers RPredCompFuns.compfuns,
+  compile_preds = compile_preds rpred_comp_modifiers RandomPredCompFuns.compfuns,
   prove = prove_by_skip,
   are_not_defined = fn thy => forall (null o rpred_modes_of thy),
   qname = "rpred_equation"}
@@ -2420,7 +2401,7 @@ fun analyze_compr thy compfuns (depth_limit, random) t_compr =
 
 fun eval thy (options as (depth_limit, random)) t_compr =
   let
-    val compfuns = if random then RPredCompFuns.compfuns else PredicateCompFuns.compfuns
+    val compfuns = if random then RandomPredCompFuns.compfuns else PredicateCompFuns.compfuns
     val t = analyze_compr thy compfuns options t_compr;
     val T = dest_predT compfuns (fastype_of t);
     val t' = mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
@@ -2467,12 +2448,10 @@ local structure P = OuterParse in
 
 val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
-val _ = List.app OuterKeyword.keyword ["depth_limit", "random"]
-
 val options =
   let
-    val depth_limit = Scan.optional (P.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
-    val random = Scan.optional (P.$$$ "random" >> K true) false
+    val depth_limit = Scan.optional (Args.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
+    val random = Scan.optional (Args.$$$ "random" >> K true) false
   in
     Scan.optional (P.$$$ "[" |-- depth_limit -- random --| P.$$$ "]") (NONE, false)
   end

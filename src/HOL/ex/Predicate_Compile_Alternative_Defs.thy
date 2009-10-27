@@ -1,5 +1,5 @@
 theory Predicate_Compile_Alternative_Defs
-imports Predicate_Compile
+imports Main
 begin
 
 section {* Set operations *}

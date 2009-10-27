@@ -255,6 +255,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Map.thy \
   Nat_Numeral.thy \
   Presburger.thy \
+  Predicate_Compile.thy \
   Quickcheck.thy \
   Random.thy \
   Recdef.thy \
@@ -283,6 +284,13 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
   Tools/polyhash.ML \
+  Tools/Predicate_Compile/predicate_compile_aux.ML \
+  Tools/Predicate_Compile/predicate_compile_core.ML \
+  Tools/Predicate_Compile/predicate_compile_data.ML \
+  Tools/Predicate_Compile/predicate_compile_fun.ML \
+  Tools/Predicate_Compile/predicate_compile.ML \
+  Tools/Predicate_Compile/predicate_compile_pred.ML \
+  Tools/Predicate_Compile/predicate_compile_set.ML \
   Tools/quickcheck_generators.ML \
   Tools/Qelim/cooper_data.ML \
   Tools/Qelim/cooper.ML \
@@ -945,7 +953,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Intuitionistic.thy ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy	\
   ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\
   ex/Multiquote.thy ex/NatSum.thy ex/Numeral.thy ex/PER.thy		\
-  ex/Predicate_Compile.thy ex/Predicate_Compile_ex.thy			\
+  ex/Predicate_Compile_ex.thy			\
   ex/PresburgerEx.thy ex/Primrec.thy ex/Quickcheck_Examples.thy		\
   ex/ROOT.ML ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
