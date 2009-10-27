@@ -33,14 +33,9 @@ val available = true;
 
 val max_threads = Unsynchronized.ref 0;
 
-val tested_platform =
-  let val ml_platform = getenv "ML_PLATFORM"
-  in String.isSuffix "linux" ml_platform orelse String.isSuffix "darwin" ml_platform end;
-
 fun max_threads_value () =
   let val m = ! max_threads in
     if m > 0 then m
-    else if not tested_platform then 1
     else Int.min (Int.max (Thread.numProcessors (), 1), 4)
   end;
 
