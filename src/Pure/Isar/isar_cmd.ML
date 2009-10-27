@@ -333,14 +333,14 @@ val print_abbrevs = Toplevel.unknown_context o
   Toplevel.keep (ProofContext.print_abbrevs o Toplevel.context_of);
 
 val print_facts = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose
+  ProofContext.setmp_verbose_CRITICAL
     ProofContext.print_lthms (Toplevel.context_of state));
 
 val print_configs = Toplevel.unknown_context o Toplevel.keep (fn state =>
   Attrib.print_configs (Toplevel.context_of state));
 
 val print_theorems_proof = Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose
+  ProofContext.setmp_verbose_CRITICAL
     ProofContext.print_lthms (Proof.context_of (Toplevel.proof_of state)));
 
 val print_theorems_theory = Toplevel.keep (fn state =>
@@ -431,10 +431,10 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
 (* print proof context contents *)
 
 val print_binds = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose ProofContext.print_binds (Toplevel.context_of state));
+  ProofContext.setmp_verbose_CRITICAL ProofContext.print_binds (Toplevel.context_of state));
 
 val print_cases = Toplevel.unknown_context o Toplevel.keep (fn state =>
-  ProofContext.setmp_verbose ProofContext.print_cases (Toplevel.context_of state));
+  ProofContext.setmp_verbose_CRITICAL ProofContext.print_cases (Toplevel.context_of state));
 
 
 (* print theorems, terms, types etc. *)
