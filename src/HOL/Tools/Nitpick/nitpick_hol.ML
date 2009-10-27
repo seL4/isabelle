@@ -1606,6 +1606,7 @@ fun terminates_by ctxt timeout goal tac =
                                  (tac ctxt (auto_tac (clasimpset_of ctxt))))
        #> the #> Goal.finish ctxt) goal
 
+val max_cached_wfs = 100
 val cached_timeout = Unsynchronized.ref (SOME Time.zeroTime)
 val cached_wf_props : (term * bool) list Unsynchronized.ref =
   Unsynchronized.ref []
@@ -1639,8 +1640,11 @@ fun is_is_well_founded_inductive_pred
                  else
                    ()
        in
-         if tac_timeout = (!cached_timeout) then ()
-         else (cached_wf_props := []; cached_timeout := tac_timeout);
+         if tac_timeout = (!cached_timeout)
+            andalso length (!cached_wf_props) < max_cached_wfs then
+           ()
+         else
+           (cached_wf_props := []; cached_timeout := tac_timeout);
          case AList.lookup (op =) (!cached_wf_props) prop of
            SOME wf => wf
          | NONE =>
