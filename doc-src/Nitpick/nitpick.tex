@@ -2091,11 +2091,11 @@ variable \texttt{HAIFASAT\_\allowbreak HOME} to the directory that contains the
 \url{http://cs.technion.ac.il/~gershman/HaifaSat.htm}.
 
 \item[$\bullet$] \textbf{\textit{smart}}: If \textit{sat\_solver} is set to
-\textit{smart}, Nitpick selects the first solver among MiniSat, PicoSAT, zChaff,
-RSat, BerkMin, BerkMinAlloy, and Jerusat that is recognized by Isabelle. If none
-is found, it falls back on SAT4J, which should always be available. If
-\textit{verbose} is enabled, Nitpick displays which SAT solver was chosen.
-
+\textit{smart}, Nitpick selects the first solver among MiniSatJNI, MiniSat,
+PicoSAT, zChaffJNI, zChaff, RSat, BerkMin, BerkMinAlloy, and Jerusat that is
+recognized by Isabelle. If none is found, it falls back on SAT4J, which should
+always be available. If \textit{verbose} is enabled, Nitpick displays which SAT
+solver was chosen.
 \end{enum}
 \fussy
 
