@@ -6,7 +6,7 @@
 header {* Cartesian products *}
 
 theory Product_Type
-imports Inductive Nat
+imports Inductive
 uses
   ("Tools/split_rule.ML")
   ("Tools/inductive_set.ML")
@@ -93,8 +93,6 @@ instance ..
 end
 
 text {* code generator setup *}
-
-instance unit :: eq ..
 
 lemma [code]:
   "eq_class.eq (u\<Colon>unit) v \<longleftrightarrow> True" unfolding eq unit_eq [of u] unit_eq [of v] by rule+
@@ -931,8 +929,6 @@ lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd
   by (auto, rule_tac p = "f x" in PairE, auto)
 
 subsubsection {* Code generator setup *}
-
-instance * :: (eq, eq) eq ..
 
 lemma [code]:
   "eq_class.eq (x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by (simp add: eq)
