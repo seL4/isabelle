@@ -1,12 +1,12 @@
 theory Predicate_Compile_ex
-imports Main Predicate_Compile_Alternative_Defs
+imports "../Main" Predicate_Compile_Alternative_Defs
 begin
 
 subsection {* Basic predicates *}
 
 inductive False' :: "bool"
 
-code_pred (mode: []) False' .
+code_pred (mode: X ! []) False' .
 code_pred [depth_limited] False' .
 code_pred [rpred] False' .
 
@@ -26,7 +26,13 @@ code_pred (mode: [], [1], [2], [1, 2]) EmptyRel .
 inductive EmptyClosure :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
-code_pred (mode: [], [1], [2], [1, 2])EmptyClosure .
+code_pred
+(*  (mode: [] => [], [] => [1], [] => [2], [] => [1, 2],
+         [1] => [], [1] => [1], [1] => [2], [1] => [1, 2],
+         [2] => [], [2] => [1], [2] => [2], [2] => [1, 2],
+         [1, 2] => [], [1, 2] => [1], [1, 2] => [2], [1, 2] => [1, 2])*)
+  EmptyClosure .
+
 thm EmptyClosure.equation
 (* TODO: inductive package is broken!
 inductive False'' :: "bool"
@@ -272,7 +278,7 @@ where
   "tupled_append ([], xs, xs)"
 | "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
 
-code_pred tupled_append .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append .
 code_pred [rpred] tupled_append .
 thm tupled_append.equation
 (*
@@ -286,7 +292,7 @@ where
 | "[| ys = fst (xa, y); x # zs = snd (xa, y);
  tupled_append' (xs, ys, zs) |] ==> tupled_append' (x # xs, xa, y)"
 
-code_pred tupled_append' .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append' .
 thm tupled_append'.equation
 
 inductive tupled_append'' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -294,9 +300,7 @@ where
   "tupled_append'' ([], xs, xs)"
 | "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
 
-thm tupled_append''.cases
-
-code_pred [inductify] tupled_append'' .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) [inductify] tupled_append'' .
 thm tupled_append''.equation
 
 inductive tupled_append''' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -304,7 +308,7 @@ where
   "tupled_append''' ([], xs, xs)"
 | "yszs = (ys, zs) ==> tupled_append''' (xs, yszs) \<Longrightarrow> tupled_append''' (x # xs, ys, x # zs)"
 
-code_pred [inductify] tupled_append''' .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) [inductify] tupled_append''' .
 thm tupled_append'''.equation
 
 subsection {* map_ofP predicate *}
@@ -325,8 +329,8 @@ where
   "filter1 P [] []"
 | "P x ==> filter1 P xs ys ==> filter1 P (x#xs) (x#ys)"
 | "\<not> P x ==> filter1 P xs ys ==> filter1 P (x#xs) ys"
-
-code_pred (mode: [1], [1, 2]) filter1 .
+ML {* Scan.optional *}
+code_pred ( mode : [1], [1, 2]) filter1 .
 code_pred [depth_limited] filter1 .
 code_pred [rpred] filter1 .
 

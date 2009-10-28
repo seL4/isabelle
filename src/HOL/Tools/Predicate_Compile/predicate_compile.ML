@@ -156,10 +156,33 @@ val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace
 local structure P = OuterParse
 in
 
+(*val parse_argmode' = P.nat >> rpair NONE || P.$$$ "(" |-- P.enum1 "," --| P.$$$ ")"*)
+datatype raw_argmode = Argmode of string | Argmode_Tuple of string list
+
+val parse_argmode' =
+  ((Args.$$$ "i" || Args.$$$ "o") >> Argmode) ||
+  (Args.$$$ "(" |-- P.enum1 "," (Args.$$$ "i" || Args.$$$ "o") --| Args.$$$ ")" >> Argmode_Tuple)
+
+fun mk_numeral_mode ss = flat (map_index (fn (i, s) => if s = "i" then [i + 1] else []) ss)
+
+val parse_smode' = P.$$$ "[" |-- P.enum1 "," parse_argmode' --| P.$$$ "]"
+  >> (fn m => flat (map_index
+    (fn (i, Argmode s) => if s = "i" then [(i + 1, NONE)] else []
+      | (i, Argmode_Tuple ss) => [(i + 1, SOME (mk_numeral_mode ss))]) m))
+
+val parse_smode = (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]") >> map (rpair NONE)
+
+fun gen_parse_mode smode_parser =
+  (Scan.optional
+    (P.enum "!" ((P.$$$ "X" >> K NONE) || (smode_parser >> SOME)) --| P.$$$ "!") []) -- smode_parser
+
+val parse_mode = gen_parse_mode parse_smode
+
+val parse_mode' = gen_parse_mode parse_smode'
+
 val opt_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-   P.enum1 "," (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]")
-  --| P.$$$ ")" >> SOME) NONE
+    P.enum1 "," (parse_mode || parse_mode') --| P.$$$ ")" >> SOME) NONE
 
 val scan_params =
   let

@@ -421,10 +421,10 @@ fun check_expected_modes (options : Predicate_Compile_Aux.options) modes =
   case expected_modes options of
     SOME (s, ms) => (case AList.lookup (op =) modes s of
       SOME modes =>
-        if not (eq_set (op =) (map (map (rpair NONE)) ms, map snd modes)) then
+        if not (eq_set (op =) (ms, modes)) then
           error ("expected modes were not inferred:\n"
-          ^ "inferred modes for " ^ s ^ ": "
-          ^ commas (map ((enclose "[" "]") o string_of_smode o snd) modes))
+          ^ "inferred modes for " ^ s ^ ": " ^ commas (map string_of_mode modes)
+          ^ "\n expected modes for " ^ s ^ ": " ^ commas (map string_of_mode ms))
         else ()
       | NONE => ())
   | NONE => ()

@@ -9,6 +9,9 @@ Auxilary functions for predicate compiler.
 structure Predicate_Compile_Aux =
 struct
 
+type smode = (int * int list option) list
+type mode = smode option list * smode
+
 (* general syntactic functions *)
 
 (*Like dest_conj, but flattens conjunctions however nested*)
@@ -136,7 +139,7 @@ fun equals_conv lhs_cv rhs_cv ct =
 (* Different options for compiler *)
 
 datatype options = Options of {  
-  expected_modes : (string * int list list) option,
+  expected_modes : (string * mode list) option,
   show_steps : bool,
   show_proof_trace : bool,
   show_intermediate_results : bool,
