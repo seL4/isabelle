@@ -205,6 +205,9 @@ lemma LIMSEQ_iff:
   shows "(X ----> L) = (\<forall>r>0. \<exists>no. \<forall>n \<ge> no. norm (X n - L) < r)"
 unfolding LIMSEQ_def dist_norm ..
 
+lemma LIMSEQ_iff_nz: "X ----> L = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
+  by (auto simp add: LIMSEQ_def) (metis Suc_leD zero_less_Suc)  
+
 lemma LIMSEQ_Zseq_iff: "((\<lambda>n. X n) ----> L) = Zseq (\<lambda>n. X n - L)"
 by (simp only: LIMSEQ_iff Zseq_def)
 

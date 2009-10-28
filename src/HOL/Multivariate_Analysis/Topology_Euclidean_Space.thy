@@ -2100,59 +2100,54 @@ lemma bounded_real:
   shows "bounded S \<longleftrightarrow>  (\<exists>a. \<forall>x\<in>S. abs x <= a)"
   by (simp add: bounded_iff)
 
-lemma bounded_has_rsup: assumes "bounded S" "S \<noteq> {}"
-  shows "\<forall>x\<in>S. x <= rsup S" and "\<forall>b. (\<forall>x\<in>S. x <= b) \<longrightarrow> rsup S <= b"
+lemma bounded_has_Sup:
+  fixes S :: "real set"
+  assumes "bounded S" "S \<noteq> {}"
+  shows "\<forall>x\<in>S. x <= Sup S" and "\<forall>b. (\<forall>x\<in>S. x <= b) \<longrightarrow> Sup S <= b"
 proof
   fix x assume "x\<in>S"
-  from assms(1) obtain a where a:"\<forall>x\<in>S. \<bar>x\<bar> \<le> a" unfolding bounded_real by auto
-  hence *:"S *<= a" using setleI[of S a] by (metis abs_le_interval_iff mem_def)
-  thus "x \<le> rsup S" using rsup[OF `S\<noteq>{}`] using assms(1)[unfolded bounded_real] using isLubD2[of UNIV S "rsup S" x] using `x\<in>S` by auto
+  thus "x \<le> Sup S"
+    by (metis SupInf.Sup_upper abs_le_D1 assms(1) bounded_real)
 next
-  show "\<forall>b. (\<forall>x\<in>S. x \<le> b) \<longrightarrow> rsup S \<le> b" using assms
-  using rsup[of S, unfolded isLub_def isUb_def leastP_def setle_def setge_def]
-  apply (auto simp add: bounded_real)
-  by (auto simp add: isLub_def isUb_def leastP_def setle_def setge_def)
+  show "\<forall>b. (\<forall>x\<in>S. x \<le> b) \<longrightarrow> Sup S \<le> b" using assms
+    by (metis SupInf.Sup_least)
 qed
 
-lemma rsup_insert: assumes "bounded S"
-  shows "rsup(insert x S) = (if S = {} then x else max x (rsup S))"
-proof(cases "S={}")
-  case True thus ?thesis using rsup_finite_in[of "{x}"] by auto
-next
-  let ?S = "insert x S"
-  case False
-  hence *:"\<forall>x\<in>S. x \<le> rsup S" using bounded_has_rsup(1)[of S] using assms by auto
-  hence "insert x S *<= max x (rsup S)" unfolding setle_def by auto
-  hence "isLub UNIV ?S (rsup ?S)" using rsup[of ?S] by auto
-  moreover
-  have **:"isUb UNIV ?S (max x (rsup S))" unfolding isUb_def setle_def using * by auto
-  { fix y assume as:"isUb UNIV (insert x S) y"
-    hence "max x (rsup S) \<le> y" unfolding isUb_def using rsup_le[OF `S\<noteq>{}`]
-      unfolding setle_def by auto  }
-  hence "max x (rsup S) <=* isUb UNIV (insert x S)" unfolding setge_def Ball_def mem_def by auto
-  hence "isLub UNIV ?S (max x (rsup S))" using ** isLubI2[of UNIV ?S "max x (rsup S)"] unfolding Collect_def by auto
-  ultimately show ?thesis using real_isLub_unique[of UNIV ?S] using `S\<noteq>{}` by auto
-qed
+lemma Sup_insert:
+  fixes S :: "real set"
+  shows "bounded S ==> Sup(insert x S) = (if S = {} then x else max x (Sup S))" 
+by auto (metis Int_absorb Sup_insert_nonempty assms bounded_has_Sup(1) disjoint_iff_not_equal) 
 
-lemma sup_insert_finite: "finite S \<Longrightarrow> rsup(insert x S) = (if S = {} then x else max x (rsup S))"
-  apply (rule rsup_insert)
+lemma Sup_insert_finite:
+  fixes S :: "real set"
+  shows "finite S \<Longrightarrow> Sup(insert x S) = (if S = {} then x else max x (Sup S))"
+  apply (rule Sup_insert)
   apply (rule finite_imp_bounded)
   by simp
 
-lemma bounded_has_rinf:
+lemma bounded_has_Inf:
+  fixes S :: "real set"
   assumes "bounded S"  "S \<noteq> {}"
-  shows "\<forall>x\<in>S. x >= rinf S" and "\<forall>b. (\<forall>x\<in>S. x >= b) \<longrightarrow> rinf S >= b"
+  shows "\<forall>x\<in>S. x >= Inf S" and "\<forall>b. (\<forall>x\<in>S. x >= b) \<longrightarrow> Inf S >= b"
 proof
   fix x assume "x\<in>S"
   from assms(1) obtain a where a:"\<forall>x\<in>S. \<bar>x\<bar> \<le> a" unfolding bounded_real by auto
-  hence *:"- a <=* S" using setgeI[of S "-a"] unfolding abs_le_interval_iff by auto
-  thus "x \<ge> rinf S" using rinf[OF `S\<noteq>{}`] using isGlbD2[of UNIV S "rinf S" x] using `x\<in>S` by auto
+  thus "x \<ge> Inf S" using `x\<in>S`
+    by (metis Inf_lower_EX abs_le_D2 minus_le_iff)
 next
-  show "\<forall>b. (\<forall>x\<in>S. x >= b) \<longrightarrow> rinf S \<ge> b" using assms
-  using rinf[of S, unfolded isGlb_def isLb_def greatestP_def setle_def setge_def]
-  apply (auto simp add: bounded_real)
-  by (auto simp add: isGlb_def isLb_def greatestP_def setle_def setge_def)
+  show "\<forall>b. (\<forall>x\<in>S. x >= b) \<longrightarrow> Inf S \<ge> b" using assms
+    by (metis SupInf.Inf_greatest)
 qed
+
+lemma Inf_insert:
+  fixes S :: "real set"
+  shows "bounded S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))" 
+by auto (metis Int_absorb Inf_insert_nonempty bounded_has_Inf(1) disjoint_iff_not_equal) 
+lemma Inf_insert_finite:
+  fixes S :: "real set"
+  shows "finite S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))"
+  by (rule Inf_insert, rule finite_imp_bounded, simp)
+
 
 (* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
 lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
@@ -2160,29 +2155,6 @@ lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
   apply (frule_tac x = y in isGlb_isLb)
   apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
   done
-
-lemma rinf_insert: assumes "bounded S"
-  shows "rinf(insert x S) = (if S = {} then x else min x (rinf S))" (is "?lhs = ?rhs")
-proof(cases "S={}")
-  case True thus ?thesis using rinf_finite_in[of "{x}"] by auto
-next
-  let ?S = "insert x S"
-  case False
-  hence *:"\<forall>x\<in>S. x \<ge> rinf S" using bounded_has_rinf(1)[of S] using assms by auto
-  hence "min x (rinf S) <=* insert x S" unfolding setge_def by auto
-  hence "isGlb UNIV ?S (rinf ?S)" using rinf[of ?S] by auto
-  moreover
-  have **:"isLb UNIV ?S (min x (rinf S))" unfolding isLb_def setge_def using * by auto
-  { fix y assume as:"isLb UNIV (insert x S) y"
-    hence "min x (rinf S) \<ge> y" unfolding isLb_def using rinf_ge[OF `S\<noteq>{}`]
-      unfolding setge_def by auto  }
-  hence "isLb UNIV (insert x S) *<= min x (rinf S)" unfolding setle_def Ball_def mem_def by auto
-  hence "isGlb UNIV ?S (min x (rinf S))" using ** isGlbI2[of UNIV ?S "min x (rinf S)"] unfolding Collect_def by auto
-  ultimately show ?thesis using real_isGlb_unique[of UNIV ?S] using `S\<noteq>{}` by auto
-qed
-
-lemma inf_insert_finite: "finite S ==> rinf(insert x S) = (if S = {} then x else min x (rinf S))"
-  by (rule rinf_insert, rule finite_imp_bounded, simp)
 
 subsection{* Compactness (the definition is the one based on convegent subsequences). *}
 
@@ -4120,30 +4092,35 @@ lemma compact_attains_sup:
   shows "\<exists>x \<in> s. \<forall>y \<in> s. y \<le> x"
 proof-
   from assms(1) have a:"bounded s" "closed s" unfolding compact_eq_bounded_closed by auto
-  { fix e::real assume as: "\<forall>x\<in>s. x \<le> rsup s" "rsup s \<notin> s"  "0 < e" "\<forall>x'\<in>s. x' = rsup s \<or> \<not> rsup s - x' < e"
-    have "isLub UNIV s (rsup s)" using rsup[OF assms(2)] unfolding setle_def using as(1) by auto
-    moreover have "isUb UNIV s (rsup s - e)" unfolding isUb_def unfolding setle_def using as(4,2) by auto
-    ultimately have False using isLub_le_isUb[of UNIV s "rsup s" "rsup s - e"] using `e>0` by auto  }
-  thus ?thesis using bounded_has_rsup(1)[OF a(1) assms(2)] using a(2)[unfolded closed_real, THEN spec[where x="rsup s"]]
-    apply(rule_tac x="rsup s" in bexI) by auto
+  { fix e::real assume as: "\<forall>x\<in>s. x \<le> Sup s" "Sup s \<notin> s"  "0 < e" "\<forall>x'\<in>s. x' = Sup s \<or> \<not> Sup s - x' < e"
+    have "isLub UNIV s (Sup s)" using Sup[OF assms(2)] unfolding setle_def using as(1) by auto
+    moreover have "isUb UNIV s (Sup s - e)" unfolding isUb_def unfolding setle_def using as(4,2) by auto
+    ultimately have False using isLub_le_isUb[of UNIV s "Sup s" "Sup s - e"] using `e>0` by auto  }
+  thus ?thesis using bounded_has_Sup(1)[OF a(1) assms(2)] using a(2)[unfolded closed_real, THEN spec[where x="Sup s"]]
+    apply(rule_tac x="Sup s" in bexI) by auto
 qed
+
+lemma Inf:
+  fixes S :: "real set"
+  shows "S \<noteq> {} ==> (\<exists>b. b <=* S) ==> isGlb UNIV S (Inf S)"
+by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def) 
 
 lemma compact_attains_inf:
   fixes s :: "real set"
   assumes "compact s" "s \<noteq> {}"  shows "\<exists>x \<in> s. \<forall>y \<in> s. x \<le> y"
 proof-
   from assms(1) have a:"bounded s" "closed s" unfolding compact_eq_bounded_closed by auto
-  { fix e::real assume as: "\<forall>x\<in>s. x \<ge> rinf s"  "rinf s \<notin> s"  "0 < e"
-      "\<forall>x'\<in>s. x' = rinf s \<or> \<not> abs (x' - rinf s) < e"
-    have "isGlb UNIV s (rinf s)" using rinf[OF assms(2)] unfolding setge_def using as(1) by auto
+  { fix e::real assume as: "\<forall>x\<in>s. x \<ge> Inf s"  "Inf s \<notin> s"  "0 < e"
+      "\<forall>x'\<in>s. x' = Inf s \<or> \<not> abs (x' - Inf s) < e"
+    have "isGlb UNIV s (Inf s)" using Inf[OF assms(2)] unfolding setge_def using as(1) by auto
     moreover
     { fix x assume "x \<in> s"
-      hence *:"abs (x - rinf s) = x - rinf s" using as(1)[THEN bspec[where x=x]] by auto
-      have "rinf s + e \<le> x" using as(4)[THEN bspec[where x=x]] using as(2) `x\<in>s` unfolding * by auto }
-    hence "isLb UNIV s (rinf s + e)" unfolding isLb_def and setge_def by auto
-    ultimately have False using isGlb_le_isLb[of UNIV s "rinf s" "rinf s + e"] using `e>0` by auto  }
-  thus ?thesis using bounded_has_rinf(1)[OF a(1) assms(2)] using a(2)[unfolded closed_real, THEN spec[where x="rinf s"]]
-    apply(rule_tac x="rinf s" in bexI) by auto
+      hence *:"abs (x - Inf s) = x - Inf s" using as(1)[THEN bspec[where x=x]] by auto
+      have "Inf s + e \<le> x" using as(4)[THEN bspec[where x=x]] using as(2) `x\<in>s` unfolding * by auto }
+    hence "isLb UNIV s (Inf s + e)" unfolding isLb_def and setge_def by auto
+    ultimately have False using isGlb_le_isLb[of UNIV s "Inf s" "Inf s + e"] using `e>0` by auto  }
+  thus ?thesis using bounded_has_Inf(1)[OF a(1) assms(2)] using a(2)[unfolded closed_real, THEN spec[where x="Inf s"]]
+    apply(rule_tac x="Inf s" in bexI) by auto
 qed
 
 lemma continuous_attains_sup:
@@ -4413,7 +4390,7 @@ qed
 
 text{* We can state this in terms of diameter of a set.                          *}
 
-definition "diameter s = (if s = {} then 0::real else rsup {norm(x - y) | x y. x \<in> s \<and> y \<in> s})"
+definition "diameter s = (if s = {} then 0::real else Sup {norm(x - y) | x y. x \<in> s \<and> y \<in> s})"
   (* TODO: generalize to class metric_space *)
 
 lemma diameter_bounded:
@@ -4427,12 +4404,22 @@ proof-
     hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: ring_simps)  }
   note * = this
   { fix x y assume "x\<in>s" "y\<in>s"  hence "s \<noteq> {}" by auto
-    have lub:"isLub UNIV ?D (rsup ?D)" using * rsup[of ?D] using `s\<noteq>{}` unfolding setle_def by auto
+    have lub:"isLub UNIV ?D (Sup ?D)" using * Sup[of ?D] using `s\<noteq>{}` unfolding setle_def
+      apply auto    (*FIXME: something horrible has happened here!*)
+      apply atomize
+      apply safe
+      apply metis +
+      done
     have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s` isLubD1[OF lub] unfolding setle_def by auto  }
   moreover
   { fix d::real assume "d>0" "d < diameter s"
     hence "s\<noteq>{}" unfolding diameter_def by auto
-    hence lub:"isLub UNIV ?D (rsup ?D)" using * rsup[of ?D] unfolding setle_def by auto
+    hence lub:"isLub UNIV ?D (Sup ?D)" using * Sup[of ?D] unfolding setle_def 
+      apply auto    (*FIXME: something horrible has happened here!*)
+      apply atomize
+      apply safe
+      apply metis +
+      done
     have "\<exists>d' \<in> ?D. d' > d"
     proof(rule ccontr)
       assume "\<not> (\<exists>d'\<in>{norm (x - y) |x y. x \<in> s \<and> y \<in> s}. d < d')"
@@ -4456,8 +4443,8 @@ lemma diameter_compact_attained:
 proof-
   have b:"bounded s" using assms(1) by (rule compact_imp_bounded)
   then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. norm (u - v) \<le> norm (x - y)" using compact_sup_maxdistance[OF assms] by auto
-  hence "diameter s \<le> norm (x - y)" using rsup_le[of "{norm (x - y) |x y. x \<in> s \<and> y \<in> s}" "norm (x - y)"]
-    unfolding setle_def and diameter_def by auto
+  hence "diameter s \<le> norm (x - y)" 
+    by (force simp add: diameter_def intro!: Sup_least) 
   thus ?thesis using diameter_bounded(1)[OF b, THEN bspec[where x=x], THEN bspec[where x=y], OF xys] and xys by auto
 qed
 

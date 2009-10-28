@@ -2297,242 +2297,9 @@ proof-
   ultimately show ?thesis by metis
 qed
 
-(* Supremum and infimum of real sets *)
-
-
-definition rsup:: "real set \<Rightarrow> real" where
-  "rsup S = (SOME a. isLub UNIV S a)"
-
-lemma rsup_alt: "rsup S = (SOME a. (\<forall>x \<in> S. x \<le> a) \<and> (\<forall>b. (\<forall>x \<in> S. x \<le> b) \<longrightarrow> a \<le> b))"  by (auto simp  add: isLub_def rsup_def leastP_def isUb_def setle_def setge_def)
-
-lemma rsup: assumes Se: "S \<noteq> {}" and b: "\<exists>b. S *<= b"
-  shows "isLub UNIV S (rsup S)"
-using Se b
-unfolding rsup_def
-apply clarify
-apply (rule someI_ex)
-apply (rule reals_complete)
-by (auto simp add: isUb_def setle_def)
-
-lemma rsup_le: assumes Se: "S \<noteq> {}" and Sb: "S *<= b" shows "rsup S \<le> b"
-proof-
-  from Sb have bu: "isUb UNIV S b" by (simp add: isUb_def setle_def)
-  from rsup[OF Se] Sb have "isLub UNIV S (rsup S)"  by blast
-  then show ?thesis using bu by (auto simp add: isLub_def leastP_def setle_def setge_def)
-qed
-
-lemma rsup_finite_Max: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "rsup S = Max S"
-using fS Se
-proof-
-  let ?m = "Max S"
-  from Max_ge[OF fS] have Sm: "\<forall> x\<in> S. x \<le> ?m" by metis
-  with rsup[OF Se] have lub: "isLub UNIV S (rsup S)" by (metis setle_def)
-  from Max_in[OF fS Se] lub have mrS: "?m \<le> rsup S"
-    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def)
-  moreover
-  have "rsup S \<le> ?m" using Sm lub
-    by (auto simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-  ultimately  show ?thesis by arith
-qed
-
-lemma rsup_finite_in: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "rsup S \<in> S"
-  using rsup_finite_Max[OF fS Se] Max_in[OF fS Se] by metis
-
-lemma rsup_finite_Ub: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "isUb S S (rsup S)"
-  using rsup_finite_Max[OF fS Se] rsup_finite_in[OF fS Se] Max_ge[OF fS]
-  unfolding isUb_def setle_def by metis
-
-lemma rsup_finite_ge_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a \<le> rsup S \<longleftrightarrow> (\<exists> x \<in> S. a \<le> x)"
-using rsup_finite_Ub[OF fS Se] by (auto simp add: isUb_def setle_def)
-
-lemma rsup_finite_le_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a \<ge> rsup S \<longleftrightarrow> (\<forall> x \<in> S. a \<ge> x)"
-using rsup_finite_Ub[OF fS Se] by (auto simp add: isUb_def setle_def)
-
-lemma rsup_finite_gt_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a < rsup S \<longleftrightarrow> (\<exists> x \<in> S. a < x)"
-using rsup_finite_Ub[OF fS Se] by (auto simp add: isUb_def setle_def)
-
-lemma rsup_finite_lt_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a > rsup S \<longleftrightarrow> (\<forall> x \<in> S. a > x)"
-using rsup_finite_Ub[OF fS Se] by (auto simp add: isUb_def setle_def)
-
-lemma rsup_unique: assumes b: "S *<= b" and S: "\<forall>b' < b. \<exists>x \<in> S. b' < x"
-  shows "rsup S = b"
-using b S
-unfolding setle_def rsup_alt
-apply -
-apply (rule some_equality)
-apply (metis  linorder_not_le order_eq_iff[symmetric])+
-done
-
-lemma rsup_le_subset: "S\<noteq>{} \<Longrightarrow> S \<subseteq> T \<Longrightarrow> (\<exists>b. T *<= b) \<Longrightarrow> rsup S \<le> rsup T"
-  apply (rule rsup_le)
-  apply simp
-  using rsup[of T] by (auto simp add: isLub_def leastP_def setge_def setle_def isUb_def)
-
-lemma isUb_def': "isUb R S = (\<lambda>x. S *<= x \<and> x \<in> R)"
-  apply (rule ext)
-  by (metis isUb_def)
-
-lemma UNIV_trivial: "UNIV x" using UNIV_I[of x] by (metis mem_def)
-lemma rsup_bounds: assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
-  shows "a \<le> rsup S \<and> rsup S \<le> b"
-proof-
-  from rsup[OF Se] u have lub: "isLub UNIV S (rsup S)" by blast
-  hence b: "rsup S \<le> b" using u by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def')
-  from Se obtain y where y: "y \<in> S" by blast
-  from lub l have "a \<le> rsup S" apply (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def')
-    apply (erule ballE[where x=y])
-    apply (erule ballE[where x=y])
-    apply arith
-    using y apply auto
-    done
-  with b show ?thesis by blast
-qed
-
-lemma rsup_abs_le: "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>rsup S\<bar> \<le> a"
-  unfolding abs_le_interval_iff  using rsup_bounds[of S "-a" a]
-  by (auto simp add: setge_def setle_def)
-
-lemma rsup_asclose: assumes S:"S \<noteq> {}" and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e" shows "\<bar>rsup S - l\<bar> \<le> e"
-proof-
-  have th: "\<And>(x::real) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e" by arith
-  show ?thesis using S b rsup_bounds[of S "l - e" "l+e"] unfolding th
-    by  (auto simp add: setge_def setle_def)
-qed
-
-definition rinf:: "real set \<Rightarrow> real" where
-  "rinf S = (SOME a. isGlb UNIV S a)"
-
-lemma rinf_alt: "rinf S = (SOME a. (\<forall>x \<in> S. x \<ge> a) \<and> (\<forall>b. (\<forall>x \<in> S. x \<ge> b) \<longrightarrow> a \<ge> b))"  by (auto simp  add: isGlb_def rinf_def greatestP_def isLb_def setle_def setge_def)
-
-lemma reals_complete_Glb: assumes Se: "\<exists>x. x \<in> S" and lb: "\<exists> y. isLb UNIV S y"
-  shows "\<exists>(t::real). isGlb UNIV S t"
-proof-
-  let ?M = "uminus ` S"
-  from lb have th: "\<exists>y. isUb UNIV ?M y" apply (auto simp add: isUb_def isLb_def setle_def setge_def)
-    by (rule_tac x="-y" in exI, auto)
-  from Se have Me: "\<exists>x. x \<in> ?M" by blast
-  from reals_complete[OF Me th] obtain t where t: "isLub UNIV ?M t" by blast
-  have "isGlb UNIV S (- t)" using t
-    apply (auto simp add: isLub_def isGlb_def leastP_def greatestP_def setle_def setge_def isUb_def isLb_def)
-    apply (erule_tac x="-y" in allE)
-    apply auto
-    done
-  then show ?thesis by metis
-qed
-
-lemma rinf: assumes Se: "S \<noteq> {}" and b: "\<exists>b. b <=* S"
-  shows "isGlb UNIV S (rinf S)"
-using Se b
-unfolding rinf_def
-apply clarify
-apply (rule someI_ex)
-apply (rule reals_complete_Glb)
-apply (auto simp add: isLb_def setle_def setge_def)
-done
-
-lemma rinf_ge: assumes Se: "S \<noteq> {}" and Sb: "b <=* S" shows "rinf S \<ge> b"
-proof-
-  from Sb have bu: "isLb UNIV S b" by (simp add: isLb_def setge_def)
-  from rinf[OF Se] Sb have "isGlb UNIV S (rinf S)"  by blast
-  then show ?thesis using bu by (auto simp add: isGlb_def greatestP_def setle_def setge_def)
-qed
-
-lemma rinf_finite_Min: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "rinf S = Min S"
-using fS Se
-proof-
-  let ?m = "Min S"
-  from Min_le[OF fS] have Sm: "\<forall> x\<in> S. x \<ge> ?m" by metis
-  with rinf[OF Se] have glb: "isGlb UNIV S (rinf S)" by (metis setge_def)
-  from Min_in[OF fS Se] glb have mrS: "?m \<ge> rinf S"
-    by (auto simp add: isGlb_def greatestP_def setle_def setge_def isLb_def)
-  moreover
-  have "rinf S \<ge> ?m" using Sm glb
-    by (auto simp add: isGlb_def greatestP_def isLb_def setle_def setge_def)
-  ultimately  show ?thesis by arith
-qed
-
-lemma rinf_finite_in: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "rinf S \<in> S"
-  using rinf_finite_Min[OF fS Se] Min_in[OF fS Se] by metis
-
-lemma rinf_finite_Lb: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "isLb S S (rinf S)"
-  using rinf_finite_Min[OF fS Se] rinf_finite_in[OF fS Se] Min_le[OF fS]
-  unfolding isLb_def setge_def by metis
-
-lemma rinf_finite_ge_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a \<le> rinf S \<longleftrightarrow> (\<forall> x \<in> S. a \<le> x)"
-using rinf_finite_Lb[OF fS Se] by (auto simp add: isLb_def setge_def)
-
-lemma rinf_finite_le_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a \<ge> rinf S \<longleftrightarrow> (\<exists> x \<in> S. a \<ge> x)"
-using rinf_finite_Lb[OF fS Se] by (auto simp add: isLb_def setge_def)
-
-lemma rinf_finite_gt_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a < rinf S \<longleftrightarrow> (\<forall> x \<in> S. a < x)"
-using rinf_finite_Lb[OF fS Se] by (auto simp add: isLb_def setge_def)
-
-lemma rinf_finite_lt_iff: assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a > rinf S \<longleftrightarrow> (\<exists> x \<in> S. a > x)"
-using rinf_finite_Lb[OF fS Se] by (auto simp add: isLb_def setge_def)
-
-lemma rinf_unique: assumes b: "b <=* S" and S: "\<forall>b' > b. \<exists>x \<in> S. b' > x"
-  shows "rinf S = b"
-using b S
-unfolding setge_def rinf_alt
-apply -
-apply (rule some_equality)
-apply (metis  linorder_not_le order_eq_iff[symmetric])+
-done
-
-lemma rinf_ge_subset: "S\<noteq>{} \<Longrightarrow> S \<subseteq> T \<Longrightarrow> (\<exists>b. b <=* T) \<Longrightarrow> rinf S >= rinf T"
-  apply (rule rinf_ge)
-  apply simp
-  using rinf[of T] by (auto simp add: isGlb_def greatestP_def setge_def setle_def isLb_def)
-
-lemma isLb_def': "isLb R S = (\<lambda>x. x <=* S \<and> x \<in> R)"
-  apply (rule ext)
-  by (metis isLb_def)
-
-lemma rinf_bounds: assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
-  shows "a \<le> rinf S \<and> rinf S \<le> b"
-proof-
-  from rinf[OF Se] l have lub: "isGlb UNIV S (rinf S)" by blast
-  hence b: "a \<le> rinf S" using l by (auto simp add: isGlb_def greatestP_def setle_def setge_def isLb_def')
-  from Se obtain y where y: "y \<in> S" by blast
-  from lub u have "b \<ge> rinf S" apply (auto simp add: isGlb_def greatestP_def setle_def setge_def isLb_def')
-    apply (erule ballE[where x=y])
-    apply (erule ballE[where x=y])
-    apply arith
-    using y apply auto
-    done
-  with b show ?thesis by blast
-qed
-
-lemma rinf_abs_ge: "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>rinf S\<bar> \<le> a"
-  unfolding abs_le_interval_iff  using rinf_bounds[of S "-a" a]
-  by (auto simp add: setge_def setle_def)
-
-lemma rinf_asclose: assumes S:"S \<noteq> {}" and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e" shows "\<bar>rinf S - l\<bar> \<le> e"
-proof-
-  have th: "\<And>(x::real) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e" by arith
-  show ?thesis using S b rinf_bounds[of S "l - e" "l+e"] unfolding th
-    by  (auto simp add: setge_def setle_def)
-qed
-
-
-
 subsection{* Operator norm. *}
 
-definition "onorm f = rsup {norm (f x)| x. norm x = 1}"
+definition "onorm f = Sup {norm (f x)| x. norm x = 1}"
 
 lemma norm_bound_generalize:
   fixes f:: "real ^'n::finite \<Rightarrow> real^'m::finite"
@@ -2578,7 +2345,7 @@ proof-
     have Se: "?S \<noteq> {}" using  norm_basis by auto
     from linear_bounded[OF lf] have b: "\<exists> b. ?S *<= b"
       unfolding norm_bound_generalize[OF lf, symmetric] by (auto simp add: setle_def)
-    {from rsup[OF Se b, unfolded onorm_def[symmetric]]
+    {from Sup[OF Se b, unfolded onorm_def[symmetric]]
       show "norm (f x) <= onorm f * norm x"
         apply -
         apply (rule spec[where x = x])
@@ -2586,7 +2353,7 @@ proof-
         by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
     {
       show "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
-        using rsup[OF Se b, unfolded onorm_def[symmetric]]
+        using Sup[OF Se b, unfolded onorm_def[symmetric]]
         unfolding norm_bound_generalize[OF lf, symmetric]
         by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
   }
@@ -2612,7 +2379,7 @@ proof-
     by(auto intro: vector_choose_size set_ext)
   show ?thesis
     unfolding onorm_def th
-    apply (rule rsup_unique) by (simp_all  add: setle_def)
+    apply (rule Sup_unique) by (simp_all  add: setle_def)
 qed
 
 lemma onorm_pos_lt: assumes lf: "linear (f::real ^ 'n::finite \<Rightarrow> real ^'m::finite)"
@@ -3052,31 +2819,6 @@ proof-
     with xc[rule_format, of n] have "n = 0" by arith
     with n c have False by simp}
   then show ?thesis by blast
-qed
-
-(* ------------------------------------------------------------------------- *)
-(* Relate max and min to sup and inf.                                        *)
-(* ------------------------------------------------------------------------- *)
-
-lemma real_max_rsup: "max x y = rsup {x,y}"
-proof-
-  have f: "finite {x, y}" "{x,y} \<noteq> {}"  by simp_all
-  from rsup_finite_le_iff[OF f, of "max x y"] have "rsup {x,y} \<le> max x y" by simp
-  moreover
-  have "max x y \<le> rsup {x,y}" using rsup_finite_ge_iff[OF f, of "max x y"]
-    by (simp add: linorder_linear)
-  ultimately show ?thesis by arith
-qed
-
-lemma real_min_rinf: "min x y = rinf {x,y}"
-proof-
-  have f: "finite {x, y}" "{x,y} \<noteq> {}"  by simp_all
-  from rinf_finite_le_iff[OF f, of "min x y"] have "rinf {x,y} \<le> min x y"
-    by (simp add: linorder_linear)
-  moreover
-  have "min x y \<le> rinf {x,y}" using rinf_finite_ge_iff[OF f, of "min x y"]
-    by simp
-  ultimately show ?thesis by arith
 qed
 
 (* ------------------------------------------------------------------------- *)
@@ -5048,7 +4790,7 @@ unfolding dot_matrix_product transp_columnvector[symmetric]
 
 (* Infinity norm.                                                            *)
 
-definition "infnorm (x::real^'n::finite) = rsup {abs(x$i) |i. i\<in> (UNIV :: 'n set)}"
+definition "infnorm (x::real^'n::finite) = Sup {abs(x$i) |i. i\<in> (UNIV :: 'n set)}"
 
 lemma numseg_dimindex_nonempty: "\<exists>i. i \<in> (UNIV :: 'n set)"
   by auto
@@ -5065,7 +4807,7 @@ lemma infnorm_set_lemma:
 
 lemma infnorm_pos_le: "0 \<le> infnorm (x::real^'n::finite)"
   unfolding infnorm_def
-  unfolding rsup_finite_ge_iff[ OF infnorm_set_lemma]
+  unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
   unfolding infnorm_set_image
   by auto
 
@@ -5076,13 +4818,13 @@ proof-
   have th2: "\<And>x (y::real). abs(x + y) - abs(x) <= abs(y)" by arith
   show ?thesis
   unfolding infnorm_def
-  unfolding rsup_finite_le_iff[ OF infnorm_set_lemma]
+  unfolding Sup_finite_le_iff[ OF infnorm_set_lemma]
   apply (subst diff_le_eq[symmetric])
-  unfolding rsup_finite_ge_iff[ OF infnorm_set_lemma]
+  unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
   unfolding infnorm_set_image bex_simps
   apply (subst th)
   unfolding th1
-  unfolding rsup_finite_ge_iff[ OF infnorm_set_lemma]
+  unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
 
   unfolding infnorm_set_image ball_simps bex_simps
   apply simp
@@ -5094,7 +4836,7 @@ lemma infnorm_eq_0: "infnorm x = 0 \<longleftrightarrow> (x::real ^'n::finite) =
 proof-
   have "infnorm x <= 0 \<longleftrightarrow> x = 0"
     unfolding infnorm_def
-    unfolding rsup_finite_le_iff[OF infnorm_set_lemma]
+    unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image ball_simps
     by vector
   then show ?thesis using infnorm_pos_le[of x] by simp
@@ -5105,7 +4847,7 @@ lemma infnorm_0: "infnorm 0 = 0"
 
 lemma infnorm_neg: "infnorm (- x) = infnorm x"
   unfolding infnorm_def
-  apply (rule cong[of "rsup" "rsup"])
+  apply (rule cong[of "Sup" "Sup"])
   apply blast
   apply (rule set_ext)
   apply auto
@@ -5140,14 +4882,15 @@ proof-
     apply (rule finite_imageI) unfolding Collect_def mem_def by simp
   have S0: "?S \<noteq> {}" by blast
   have th1: "\<And>S f. f ` S = { f i| i. i \<in> S}" by blast
-  from rsup_finite_in[OF fS S0] rsup_finite_Ub[OF fS S0]
-  show ?thesis unfolding infnorm_def isUb_def setle_def
-    unfolding infnorm_set_image ball_simps by auto
+  from Sup_finite_in[OF fS S0] 
+  show ?thesis unfolding infnorm_def infnorm_set_image 
+    by (metis Sup_finite_ge_iff finite finite_imageI UNIV_not_empty image_is_empty 
+              rangeI real_le_refl)
 qed
 
 lemma infnorm_mul_lemma: "infnorm(a *s x) <= \<bar>a\<bar> * infnorm x"
   apply (subst infnorm_def)
-  unfolding rsup_finite_le_iff[OF infnorm_set_lemma]
+  unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
   unfolding infnorm_set_image ball_simps
   apply (simp add: abs_mult)
   apply (rule allI)
@@ -5180,7 +4923,7 @@ lemma infnorm_pos_lt: "infnorm x > 0 \<longleftrightarrow> x \<noteq> 0"
 (* Prove that it differs only up to a bound from Euclidean norm.             *)
 
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
-  unfolding infnorm_def rsup_finite_le_iff[OF infnorm_set_lemma]
+  unfolding infnorm_def Sup_finite_le_iff[OF infnorm_set_lemma]
   unfolding infnorm_set_image  ball_simps
   by (metis component_le_norm)
 lemma card_enum: "card {1 .. n} = n" by auto
@@ -5200,7 +4943,7 @@ proof-
     apply (rule setsum_bounded)
     apply (rule power_mono)
     unfolding abs_of_nonneg[OF infnorm_pos_le]
-    unfolding infnorm_def  rsup_finite_ge_iff[OF infnorm_set_lemma]
+    unfolding infnorm_def  Sup_finite_ge_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image bex_simps
     apply blast
     by (rule abs_ge_zero)
