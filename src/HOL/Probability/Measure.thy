@@ -823,13 +823,7 @@ qed
   
 lemma (in sigma_algebra) sigma_algebra_extend:
      "sigma_algebra \<lparr>space = space M, sets = sets M, measure_space.measure = f\<rparr>"
-proof -
-  have 1: "sigma_algebra M \<Longrightarrow> ?thesis"
-    by (simp add: sigma_algebra_def algebra_def sigma_algebra_axioms_def) 
-  show ?thesis
-    by (rule 1) intro_locales
-qed
-
+   by unfold_locales (auto intro!: space_closed)
 
 lemma (in sigma_algebra) finite_additivity_sufficient:
   assumes fin: "finite (space M)"
