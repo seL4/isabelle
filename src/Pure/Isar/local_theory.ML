@@ -25,6 +25,8 @@ sig
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val map_contexts: (Context.generic -> Context.generic) -> local_theory -> local_theory
+  val standard_morphism: local_theory -> Proof.context -> morphism
+  val target_morphism: local_theory -> morphism
   val pretty: local_theory -> Pretty.T list
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
@@ -37,7 +39,6 @@ sig
   val term_syntax: declaration -> local_theory -> local_theory
   val declaration: declaration -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val target_morphism: local_theory -> morphism
   val init: string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
   val reinit: local_theory -> local_theory
@@ -166,6 +167,15 @@ fun map_contexts f =
   Context.proof_map f;
 
 
+(* morphisms *)
+
+fun standard_morphism lthy ctxt =
+  ProofContext.norm_export_morphism lthy ctxt $>
+  Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
+
+fun target_morphism lthy = standard_morphism lthy (target_of lthy);
+
+
 (* basic operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
@@ -181,9 +191,6 @@ val term_syntax = checkpoint oo operation1 #term_syntax;
 val declaration = checkpoint oo operation1 #declaration;
 
 fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
-
-fun target_morphism lthy =
-  ProofContext.norm_export_morphism lthy (target_of lthy);
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
@@ -218,14 +225,14 @@ val exit_global = ProofContext.theory_of o exit;
 fun exit_result f (x, lthy) =
   let
     val ctxt = exit lthy;
-    val phi = ProofContext.norm_export_morphism lthy ctxt;
+    val phi = standard_morphism lthy ctxt;
   in (f phi x, ctxt) end;
 
 fun exit_result_global f (x, lthy) =
   let
     val thy = exit_global lthy;
     val thy_ctxt = ProofContext.init thy;
-    val phi = ProofContext.norm_export_morphism lthy thy_ctxt;
+    val phi = standard_morphism lthy thy_ctxt;
   in (f phi x, thy) end;
 
 end;
