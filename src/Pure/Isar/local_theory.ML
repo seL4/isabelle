@@ -15,6 +15,7 @@ sig
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
   val conceal: local_theory -> local_theory
   val set_group: serial -> local_theory -> local_theory
+  val restore_naming: local_theory -> local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
@@ -110,6 +111,8 @@ fun map_naming f = map_lthy (fn (naming, theory_prefix, operations, target) =>
 
 val conceal = map_naming Name_Space.conceal;
 val set_group = map_naming o Name_Space.set_group;
+
+val restore_naming = map_naming o K o naming_of;
 
 
 (* target *)
