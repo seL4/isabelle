@@ -174,7 +174,8 @@ val parse_smode = (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]") >> map (rpair N
 
 fun gen_parse_mode smode_parser =
   (Scan.optional
-    (P.enum "!" ((P.$$$ "X" >> K NONE) || (smode_parser >> SOME)) --| P.$$$ "!") []) -- smode_parser
+    ((P.enum "=>" ((Args.$$$ "X" >> K NONE) || (smode_parser >> SOME))) --| Args.$$$ "==>") [])
+    -- smode_parser
 
 val parse_mode = gen_parse_mode parse_smode
 
@@ -193,8 +194,7 @@ val scan_params =
 
 val _ = OuterSyntax.local_theory_to_proof "code_pred"
   "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal (opt_modes -- scan_params -- P.term_group >>
-    code_pred_cmd)
+  OuterKeyword.thy_goal (opt_modes -- scan_params -- P.term_group >> code_pred_cmd)
 
 end
 

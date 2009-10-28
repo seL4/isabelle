@@ -6,7 +6,7 @@ subsection {* Basic predicates *}
 
 inductive False' :: "bool"
 
-code_pred (mode: X ! []) False' .
+code_pred (mode : []) False' .
 code_pred [depth_limited] False' .
 code_pred [rpred] False' .
 
@@ -27,10 +27,10 @@ inductive EmptyClosure :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow
 for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 code_pred
-(*  (mode: [] => [], [] => [1], [] => [2], [] => [1, 2],
-         [1] => [], [1] => [1], [1] => [2], [1] => [1, 2],
-         [2] => [], [2] => [1], [2] => [2], [2] => [1, 2],
-         [1, 2] => [], [1, 2] => [1], [1, 2] => [2], [1, 2] => [1, 2])*)
+  (mode: [] ==> [], [] ==> [1], [] ==> [2], [] ==> [1, 2],
+         [1] ==> [], [1] ==> [1], [1] ==> [2], [1] ==> [1, 2],
+         [2] ==> [], [2] ==> [1], [2] ==> [2], [2] ==> [1, 2],
+         [1, 2] ==> [], [1, 2] ==> [1], [1, 2] ==> [2], [1, 2] ==> [1, 2])
   EmptyClosure .
 
 thm EmptyClosure.equation
@@ -66,12 +66,12 @@ inductive zerozero :: "nat * nat => bool"
 where
   "zerozero (0, 0)"
 
-code_pred zerozero .
+code_pred (mode: [i], [(i, o)], [(o, i)], [o]) zerozero .
 code_pred [rpred] zerozero .
 
 subsection {* Alternative Rules *}
 
-datatype char = C | D | E | F | G
+datatype char = C | D | E | F | G | H
 
 inductive is_C_or_D
 where
@@ -130,7 +130,7 @@ where
 
 text {* Compilation of is_FGH requires elimination rule for is_F_or_G *}
 
-code_pred is_FGH
+code_pred (mode: [], [1]) is_FGH
 proof -
   case is_F_or_G
   from this(1) show thesis
@@ -209,7 +209,7 @@ values [depth_limit = 7] 10 "{n. even n}"
 
 definition odd' where "odd' x == \<not> even x"
 
-code_pred [inductify] odd' .
+code_pred (mode: [1]) [inductify] odd' .
 code_pred [inductify, depth_limited] odd' .
 code_pred [inductify, rpred] odd' .
 
@@ -221,7 +221,7 @@ inductive is_even :: "nat \<Rightarrow> bool"
 where
   "n mod 2 = 0 \<Longrightarrow> is_even n"
 
-code_pred is_even .
+code_pred (mode: [1]) is_even .
 
 subsection {* append predicate *}
 
@@ -258,7 +258,7 @@ lemma append2_Nil: "append2 [] (xs::'b list) xs"
 
 lemmas [code_pred_intros] = append2_Nil append2.intros(2)
 
-code_pred append2
+code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append2
 proof -
   case append2
   from append2(1) show thesis
@@ -329,8 +329,8 @@ where
   "filter1 P [] []"
 | "P x ==> filter1 P xs ys ==> filter1 P (x#xs) (x#ys)"
 | "\<not> P x ==> filter1 P xs ys ==> filter1 P (x#xs) ys"
-ML {* Scan.optional *}
-code_pred ( mode : [1], [1, 2]) filter1 .
+
+code_pred (mode: [1] ==> [1], [1] ==> [1, 2]) filter1 .
 code_pred [depth_limited] filter1 .
 code_pred [rpred] filter1 .
 
@@ -353,7 +353,7 @@ for P
 where
   "List.filter P xs = ys ==> filter3 P xs ys"
 
-code_pred filter3 .
+code_pred (mode: [] ==> [1], [] ==> [1, 2], [1] ==> [1], [1] ==> [1, 2]) filter3 .
 code_pred [depth_limited] filter3 .
 thm filter3.depth_limited_equation
 
@@ -361,7 +361,7 @@ inductive filter4
 where
   "List.filter P xs = ys ==> filter4 P xs ys"
 
-code_pred filter4 .
+code_pred (mode: [1, 2], [1, 2, 3]) filter4 .
 code_pred [depth_limited] filter4 .
 code_pred [rpred] filter4 .
 
@@ -381,7 +381,7 @@ inductive tupled_rev where
   "tupled_rev ([], [])"
 | "tupled_rev (xs, xs') \<Longrightarrow> tupled_append (xs', [x], ys) \<Longrightarrow> tupled_rev (x#xs, ys)"
 
-code_pred tupled_rev .
+code_pred (mode: [(i, o)], [(o, i)], [i]) tupled_rev .
 thm tupled_rev.equation
 
 subsection {* partition predicate *}
@@ -392,7 +392,7 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-code_pred (mode: [1], [2, 3], [1, 2], [1, 3], [1, 2, 3]) partition .
+code_pred (mode: [1] ==> [1], [1] ==> [2, 3], [1] ==> [1, 2], [1] ==> [1, 3], [1] ==> [1, 2, 3]) partition .
 code_pred [depth_limited] partition .
 code_pred [rpred] partition .
 
@@ -407,7 +407,7 @@ inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<
   | "f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, x # ys, zs)"
   | "\<not> f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, ys, x # zs)"
 
-code_pred tupled_partition .
+code_pred (mode: [i] ==> [i], [i] ==> [(i, i, o)], [i] ==> [(i, o, i)], [i] ==> [(o, i, i)], [i] ==> [(i, o, o)]) tupled_partition .
 
 thm tupled_partition.equation
 
@@ -418,7 +418,7 @@ lemma [code_pred_intros]:
 
 subsection {* transitive predicate *}
 
-code_pred tranclp
+code_pred (mode: [1] ==> [1, 2], [1] ==> [1], [2] ==> [1, 2], [2] ==> [2], [] ==> [1, 2], [] ==> [1], [] ==> [2], [] ==> []) tranclp
 proof -
   case tranclp
   from this converse_tranclpE[OF this(1)] show thesis by metis
