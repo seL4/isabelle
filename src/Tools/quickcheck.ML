@@ -7,10 +7,10 @@ Generic counterexample search engine.
 signature QUICKCHECK =
 sig
   val auto: bool Unsynchronized.ref
-  val auto_time_limit: int Unsynchronized.ref
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
   val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
+  val setup: theory -> theory
   val quickcheck: (string * string) list -> int -> Proof.state -> (string * term) list option
 end;
 
@@ -20,20 +20,13 @@ struct
 (* preferences *)
 
 val auto = Unsynchronized.ref false;
-val auto_time_limit = Unsynchronized.ref 2500;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
   (setmp_CRITICAL auto true (fn () =>
     Preferences.bool_pref auto
       "auto-quickcheck"
-      "Whether to enable quickcheck automatically.") ());
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
-    (Preferences.nat_pref auto_time_limit
-      "auto-quickcheck-time-limit"
-      "Time limit for automatic quickcheck (in milliseconds).");
+      "Whether to run Quickcheck automatically.") ());
 
 
 (* quickcheck configuration -- default parameters, test generators *)
@@ -143,7 +136,7 @@ fun test_goal quiet generator_name size iterations default_T insts i assms state
     val thy = Proof.theory_of state;
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
-    val (_, st) = Proof.flat_goal state;
+    val (_, (_, st)) = Proof.get_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
     val gi' = Logic.list_implies (assms, subst_bounds (frees, strip gi))
       |> monomorphic_term thy insts default_T
@@ -159,28 +152,26 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
 
 (* automatic testing *)
 
-val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
-  let
-    val ctxt = Proof.context_of state;
-    val assms = map term_of (Assumption.all_assms_of ctxt);
-    val Test_Params { size, iterations, default_type } =
-      (snd o Data.get o Proof.theory_of) state;
-    fun test () =
-      let
-        val res = TimeLimit.timeLimit (Time.fromMilliseconds (!auto_time_limit))
-          (try (test_goal true NONE size iterations default_type [] 1 assms)) state;
-      in
-        case res of
-          NONE => state
-        | SOME NONE => state
-        | SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
-            Pretty.mark Markup.hilite (pretty_counterex ctxt cex)]) state
-      end handle TimeLimit.TimeOut => (warning "Auto quickcheck: timeout."; state);
-  in
-    if int andalso !auto andalso not (!Toplevel.quiet)
-    then test ()
-    else state
-  end));
+fun auto_quickcheck state =
+  if not (!auto) then
+    (false, state)
+  else
+    let
+      val ctxt = Proof.context_of state;
+      val assms = map term_of (Assumption.all_assms_of ctxt);
+      val Test_Params { size, iterations, default_type } =
+        (snd o Data.get o Proof.theory_of) state;
+      val res =
+        try (test_goal true NONE size iterations default_type [] 1 assms) state;
+    in
+      case res of
+        NONE => (false, state)
+      | SOME NONE => (false, state)
+      | SOME cex => (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
+          Pretty.mark Markup.hilite (pretty_counterex ctxt cex)])) state)
+    end
+
+val setup = Auto_Counterexample.register_tool ("quickcheck", auto_quickcheck)
 
 
 (* Isar commands *)
@@ -251,4 +242,3 @@ end;
 
 
 val auto_quickcheck = Quickcheck.auto;
-val auto_quickcheck_time_limit = Quickcheck.auto_time_limit;
