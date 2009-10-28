@@ -126,6 +126,8 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 
+setup {* Quickcheck.setup *}
+
 use "Tools/quickcheck_generators.ML"
 setup {* Quickcheck_Generators.setup *}
 

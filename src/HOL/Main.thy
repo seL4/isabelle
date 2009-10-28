@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Nitpick Quickcheck Recdef
+imports Plain Nitpick
 begin
 
 text {*

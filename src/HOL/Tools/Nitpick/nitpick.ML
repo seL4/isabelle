@@ -187,7 +187,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val pprint =
       if auto then
         Unsynchronized.change state_ref o Proof.goal_message o K
-        o curry Pretty.blk 0 o cons (Pretty.str "") o single
+        o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Markup.hilite
       else
         priority o Pretty.string_of
