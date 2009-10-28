@@ -361,11 +361,6 @@ lemma Inf_insert_if:
   shows "Inf (insert a X) = (if X={} then a else min a (Inf X))"
 by auto (metis Inf_insert_nonempty z) 
 
-text{*We could prove the analogous result for the supremum, and also generalise it to the union operator.*}
-lemma Inf_binary:
-  "Inf{a, b::real} = min a b"
-  by (subst Inf_insert_nonempty, auto)
-
 lemma Inf_greater:
   fixes z :: real
   shows "X \<noteq> {} \<Longrightarrow>  Inf X < z \<Longrightarrow> \<exists>x \<in> X. x < z"
@@ -437,7 +432,7 @@ proof -
     by (simp add: Inf_real_def)
 qed
 
-subsection{*Relate max and min to sup and inf.*}
+subsection{*Relate max and min to Sup and Inf.*}
 
 lemma real_max_Sup:
   fixes x :: real

@@ -51,6 +51,7 @@ test: \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
+  HOL-Probability \
   HOL-Prolog \
   HOL-SET_Protocol \
   HOL-SMT-Examples \
@@ -1059,6 +1060,18 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL Multivariate_Analysis/ROOT.ML \
   Multivariate_Analysis/Topology_Euclidean_Space.thy \
   Multivariate_Analysis/Convex_Euclidean_Space.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
+
+## HOL-Probability
+
+HOL-Probability: HOL $(LOG)/HOL-Probability.gz
+
+$(LOG)/HOL-Probability.gz: $(OUT)/HOL Probability/ROOT.ML \
+  Probability/Probability.thy \
+  Probability/Sigma_Algebra.thy \
+  Probability/SeriesPlus.thy \
+  Probability/Caratheodory.thy \
+  Probability/Measure.thy
+	$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Probability
 
 ## HOL-Nominal
 

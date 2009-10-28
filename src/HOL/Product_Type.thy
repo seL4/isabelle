@@ -927,6 +927,9 @@ lemma insert_times_insert[simp]:
    insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
 by blast
 
+lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
+  by (auto, rule_tac p = "f x" in PairE, auto)
+
 subsubsection {* Code generator setup *}
 
 instance * :: (eq, eq) eq ..
