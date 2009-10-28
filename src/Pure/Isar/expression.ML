@@ -641,7 +641,8 @@ fun def_pred bname parms defs ts norm_ts thy =
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const ((bname, predT), NoSyn) |> snd
       |> PureThy.add_defs false
-        [((Binding.map_name Thm.def_name bname, Logic.mk_equals (head, body)), [Thm.kind_internal])];
+        [((Binding.conceal (Binding.map_name Thm.def_name bname), Logic.mk_equals (head, body)),
+          [Thm.kind_internal])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
@@ -682,7 +683,7 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
             thy'
             |> Sign.mandatory_path (Binding.name_of aname)
             |> PureThy.note_thmss Thm.internalK
-              [((Binding.name introN, []), [([intro], [Locale.unfold_add])])]
+              [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =
@@ -696,8 +697,8 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
             thy'''
             |> Sign.mandatory_path (Binding.name_of pname)
             |> PureThy.note_thmss Thm.internalK
-                 [((Binding.name introN, []), [([intro], [Locale.intro_add])]),
-                  ((Binding.name axiomsN, []),
+                 [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
+                  ((Binding.conceal (Binding.name axiomsN), []),
                     [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
         in (SOME statement, SOME intro, axioms, thy'''') end;
@@ -753,10 +754,10 @@ fun gen_add_locale prep_decl
     val asm = if is_some b_statement then b_statement else a_statement;
 
     val notes =
-      if is_some asm
-      then [(Thm.internalK, [((Binding.suffix_name ("_" ^ axiomsN) bname, []),
-        [([Assumption.assume (cterm_of thy' (the asm))],
-          [(Attrib.internal o K) Locale.witness_add])])])]
+      if is_some asm then
+        [(Thm.internalK, [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) bname), []),
+          [([Assumption.assume (cterm_of thy' (the asm))],
+            [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
 
     val notes' = body_elems |>

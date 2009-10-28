@@ -39,7 +39,9 @@ fun requantify ctxt lfix orig_def thm =
 fun inductive_def defs (((R, T), mixfix), lthy) =
     let
       val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
-          Inductive.add_inductive_i
+        lthy
+        |> LocalTheory.conceal
+        |> Inductive.add_inductive_i
             {quiet_mode = false,
               verbose = ! Toplevel.debug,
               kind = Thm.internalK,
@@ -53,7 +55,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
             [] (* no parameters *)
             (map (fn t => (Attrib.empty_binding, t)) defs) (* the intros *)
             [] (* no special monos *)
-            lthy
+        ||> LocalTheory.restore_naming lthy
 
       val intrs = map2 (requantify lthy (R, T)) defs intrs_gen
                   

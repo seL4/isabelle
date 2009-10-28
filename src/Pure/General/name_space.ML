@@ -40,6 +40,7 @@ sig
   val root_path: naming -> naming
   val parent_path: naming -> naming
   val mandatory_path: string -> naming -> naming
+  val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val external_names: naming -> string -> string list
   val declare: bool -> naming -> binding -> T -> string * T
@@ -254,14 +255,17 @@ fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 
 (* full name *)
 
+fun transform_binding (Naming {conceal = true, ...}) = Binding.conceal
+  | transform_binding _ = I;
+
 fun err_bad binding = error ("Bad name binding " ^ quote (Binding.str_of binding));
 
-fun name_spec (Naming {conceal = conceal1, path, ...}) binding =
+fun name_spec (naming as Naming {path, ...}) raw_binding =
   let
-    val (conceal2, prefix, name) = Binding.dest binding;
+    val binding = transform_binding naming raw_binding;
+    val (concealed, prefix, name) = Binding.dest binding;
     val _ = Long_Name.is_qualified name andalso err_bad binding;
 
-    val concealed = conceal1 orelse conceal2;
     val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path @ prefix);
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
