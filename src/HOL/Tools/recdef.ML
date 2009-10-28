@@ -263,8 +263,9 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    Specification.theorem Thm.internalK NONE (K I) (Binding.name bname, atts)
-      [] (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
+    Specification.theorem Thm.internalK NONE (K I)
+      (Binding.conceal (Binding.name bname), atts) []
+      (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 
 val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;

@@ -488,7 +488,9 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
               |> Syntax.check_term lthy
 
       val ((f, (_, f_defthm)), lthy) =
-        LocalTheory.define Thm.internalK ((Binding.name (function_name fname), mixfix), ((Binding.name fdefname, []), f_def)) lthy
+        LocalTheory.define Thm.internalK
+          ((Binding.name (function_name fname), mixfix),
+            ((Binding.conceal (Binding.name fdefname), []), f_def)) lthy
     in
       ((f, f_defthm), lthy)
     end
