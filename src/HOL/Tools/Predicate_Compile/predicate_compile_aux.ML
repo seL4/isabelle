@@ -9,8 +9,28 @@ Auxilary functions for predicate compiler.
 structure Predicate_Compile_Aux =
 struct
 
+
+(* mode *)
+
 type smode = (int * int list option) list
 type mode = smode option list * smode
+datatype tmode = Mode of mode * smode * tmode option list;
+
+fun string_of_smode js =
+    commas (map
+      (fn (i, is) =>
+        string_of_int i ^ (case is of NONE => ""
+    | SOME is => "p" ^ enclose "[" "]" (commas (map string_of_int is)))) js)
+
+fun string_of_mode (iss, is) = space_implode " -> " (map
+  (fn NONE => "X"
+    | SOME js => enclose "[" "]" (string_of_smode js))
+       (iss @ [SOME is]));
+
+fun string_of_tmode (Mode (predmode, termmode, param_modes)) =
+  "predmode: " ^ (string_of_mode predmode) ^ 
+  (if null param_modes then "" else
+    "; " ^ "params: " ^ commas (map (the_default "NONE" o Option.map string_of_tmode) param_modes))
 
 (* general syntactic functions *)
 

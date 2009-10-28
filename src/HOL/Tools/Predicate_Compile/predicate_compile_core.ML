@@ -9,24 +9,20 @@ sig
   val setup: theory -> theory
   val code_pred: Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
   val code_pred_cmd: Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
-  type smode = (int * int list option) list
-  type mode = smode option list * smode
-  datatype tmode = Mode of mode * smode * tmode option list;
   val register_predicate : (string * thm list * thm * int) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
   val is_registered : theory -> string -> bool
-  val predfun_intro_of: theory -> string -> mode -> thm
-  val predfun_elim_of: theory -> string -> mode -> thm
-  val predfun_name_of: theory -> string -> mode -> string
+  val predfun_intro_of: theory -> string -> Predicate_Compile_Aux.mode -> thm
+  val predfun_elim_of: theory -> string -> Predicate_Compile_Aux.mode -> thm
+  val predfun_name_of: theory -> string -> Predicate_Compile_Aux.mode -> string
   val all_preds_of : theory -> string list
-  val modes_of: theory -> string -> mode list
-  val depth_limited_modes_of: theory -> string -> mode list
-  val depth_limited_function_name_of : theory -> string -> mode -> string
-  val generator_modes_of: theory -> string -> mode list
-  val generator_name_of : theory -> string -> mode -> string
-  val all_modes_of : theory -> (string * mode list) list
-  val all_generator_modes_of : theory -> (string * mode list) list
-  val string_of_mode : mode -> string
+  val modes_of: theory -> string -> Predicate_Compile_Aux.mode list
+  val depth_limited_modes_of: theory -> string -> Predicate_Compile_Aux.mode list
+  val depth_limited_function_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string
+  val generator_modes_of: theory -> string -> Predicate_Compile_Aux.mode list
+  val generator_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string
+  val all_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
+  val all_generator_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
   val intros_of: theory -> string -> thm list
   val nparams_of: theory -> string -> int
   val add_intro: thm -> theory -> theory
@@ -138,9 +134,6 @@ type arg_mode = Tuple of instantiation list | Atom of instantiation | HigherOrde
 type mode = arg_mode list
 type tmode = Mode of mode * 
 *)
-type smode = (int * int list option) list
-type mode = smode option list * smode;
-datatype tmode = Mode of mode * smode * tmode option list;
 
 fun gen_split_smode (mk_tuple, strip_tuple) smode ts =
   let
@@ -173,22 +166,6 @@ fun gen_split_mode split_smode (iss, is) ts =
 
 val split_mode = gen_split_mode split_smode
 val split_modeT = gen_split_mode split_smodeT
-
-fun string_of_smode js =
-    commas (map
-      (fn (i, is) =>
-        string_of_int i ^ (case is of NONE => ""
-    | SOME is => "p" ^ enclose "[" "]" (commas (map string_of_int is)))) js)
-
-fun string_of_mode (iss, is) = space_implode " -> " (map
-  (fn NONE => "X"
-    | SOME js => enclose "[" "]" (string_of_smode js))
-       (iss @ [SOME is]));
-
-fun string_of_tmode (Mode (predmode, termmode, param_modes)) =
-  "predmode: " ^ (string_of_mode predmode) ^ 
-  (if null param_modes then "" else
-    "; " ^ "params: " ^ commas (map (the_default "NONE" o Option.map string_of_tmode) param_modes))
 
 datatype indprem = Prem of term list * term | Negprem of term list * term | Sidecond of term
   | Generator of (string * typ);
