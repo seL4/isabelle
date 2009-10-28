@@ -311,7 +311,7 @@ fun declare_overloaded (c, T) thy =
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
       #>> Thm.varifyT
       #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
-      #> PureThy.add_thm ((Binding.name c', thm), [Thm.kind_internal])
+      #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [Thm.kind_internal])
       #> snd
       #> Sign.restore_naming thy
       #> pair (Const (c, T))))

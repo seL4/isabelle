@@ -368,14 +368,18 @@ fun define_predicates specs thy =
         if is_some (try (map (cterm_of thy)) intr_ts) then
           let
             val (ind_result, thy') =
-              Inductive.add_inductive_global (serial ())
+              thy
+              |> Sign.map_naming Name_Space.conceal
+              |> Inductive.add_inductive_global (serial ())
                 {quiet_mode = false, verbose = false, kind = Thm.internalK,
                   alt_name = Binding.empty, coind = false, no_elim = false,
                   no_ind = false, skip_mono = false, fork_mono = false}
-                (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (distinct (op =) (map dest_Free preds)))
+                (map (fn (s, T) =>
+                  ((Binding.name s, T), NoSyn)) (distinct (op =) (map dest_Free preds)))
                 pnames
                 (map (fn x => (Attrib.empty_binding, x)) intr_ts)
-                [] thy
+                []
+              ||> Sign.restore_naming thy
             val prednames = map (fst o dest_Const) (#preds ind_result)
             (* val rewr_thms = map mk_rewr_eq ((distinct (op =) funs) ~~ (#preds ind_result)) *)
             (* add constants to my table *)

@@ -78,10 +78,10 @@ sig
   val standard: thm -> thm
   val standard': thm -> thm
   val get_def: theory -> xstring -> thm
-  val store_thm: bstring -> thm -> thm
-  val store_standard_thm: bstring -> thm -> thm
-  val store_thm_open: bstring -> thm -> thm
-  val store_standard_thm_open: bstring -> thm -> thm
+  val store_thm: binding -> thm -> thm
+  val store_standard_thm: binding -> thm -> thm
+  val store_thm_open: binding -> thm -> thm
+  val store_standard_thm_open: binding -> thm -> thm
   val compose_single: thm * int * thm -> thm
   val imp_cong_rule: thm -> thm -> thm
   val arg_cong_rule: cterm -> thm -> thm
@@ -455,27 +455,32 @@ val read_prop = certify o SimpleSyntax.read_prop;
 fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
 
 fun store_thm name th =
-  Context.>>> (Context.map_theory_result (PureThy.store_thm (Binding.name name, th)));
+  Context.>>> (Context.map_theory_result (PureThy.store_thm (name, th)));
 
 fun store_thm_open name th =
-  Context.>>> (Context.map_theory_result (PureThy.store_thm_open (Binding.name name, th)));
+  Context.>>> (Context.map_theory_result (PureThy.store_thm_open (name, th)));
 
 fun store_standard_thm name th = store_thm name (standard th);
 fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
 
 val reflexive_thm =
   let val cx = certify (Var(("x",0),TVar(("'a",0),[])))
-  in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
+  in store_standard_thm_open (Binding.name "reflexive") (Thm.reflexive cx) end;
 
 val symmetric_thm =
-  let val xy = read_prop "x::'a == y::'a"
-  in store_standard_thm_open "symmetric" (Thm.implies_intr xy (Thm.symmetric (Thm.assume xy))) end;
+  let
+    val xy = read_prop "x::'a == y::'a";
+    val thm = Thm.implies_intr xy (Thm.symmetric (Thm.assume xy));
+  in store_standard_thm_open (Binding.name "symmetric") thm end;
 
 val transitive_thm =
-  let val xy = read_prop "x::'a == y::'a"
-      val yz = read_prop "y::'a == z::'a"
-      val xythm = Thm.assume xy and yzthm = Thm.assume yz
-  in store_standard_thm_open "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
+  let
+    val xy = read_prop "x::'a == y::'a";
+    val yz = read_prop "y::'a == z::'a";
+    val xythm = Thm.assume xy;
+    val yzthm = Thm.assume yz;
+    val thm = Thm.implies_intr yz (Thm.transitive xythm yzthm);
+  in store_standard_thm_open (Binding.name "transitive") thm end;
 
 fun symmetric_fun thm = thm RS symmetric_thm;
 
@@ -485,7 +490,8 @@ fun extensional eq =
   in equal_elim (eta_conversion (cprop_of eq')) eq' end;
 
 val equals_cong =
-  store_standard_thm_open "equals_cong" (Thm.reflexive (read_prop "x::'a == y::'a"));
+  store_standard_thm_open (Binding.name "equals_cong")
+    (Thm.reflexive (read_prop "x::'a == y::'a"));
 
 val imp_cong =
   let
@@ -494,7 +500,7 @@ val imp_cong =
     val AC = read_prop "A ==> C"
     val A = read_prop "A"
   in
-    store_standard_thm_open "imp_cong" (implies_intr ABC (equal_intr
+    store_standard_thm_open (Binding.name "imp_cong") (implies_intr ABC (equal_intr
       (implies_intr AB (implies_intr A
         (equal_elim (implies_elim (assume ABC) (assume A))
           (implies_elim (assume AB) (assume A)))))
@@ -510,11 +516,12 @@ val swap_prems_eq =
     val A = read_prop "A"
     val B = read_prop "B"
   in
-    store_standard_thm_open "swap_prems_eq" (equal_intr
-      (implies_intr ABC (implies_intr B (implies_intr A
-        (implies_elim (implies_elim (assume ABC) (assume A)) (assume B)))))
-      (implies_intr BAC (implies_intr A (implies_intr B
-        (implies_elim (implies_elim (assume BAC) (assume B)) (assume A))))))
+    store_standard_thm_open (Binding.name "swap_prems_eq")
+      (equal_intr
+        (implies_intr ABC (implies_intr B (implies_intr A
+          (implies_elim (implies_elim (assume ABC) (assume A)) (assume B)))))
+        (implies_intr BAC (implies_intr A (implies_intr B
+          (implies_elim (implies_elim (assume BAC) (assume B)) (assume A))))))
   end;
 
 val imp_cong_rule = Thm.combination o Thm.combination (Thm.reflexive implies);
@@ -577,37 +584,41 @@ end;
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "?psi"));
-val _ = store_thm_open "_" asm_rl;
+val asm_rl = store_standard_thm_open (Binding.name "asm_rl") (Thm.trivial (read_prop "?psi"));
+val _ = store_thm_open (Binding.name "_") asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
-  store_standard_thm_open "cut_rl"
+  store_standard_thm_open (Binding.name "cut_rl")
     (Thm.trivial (read_prop "?psi ==> ?theta"));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
      [| PROP V;  PROP V ==> PROP W |] ==> PROP W *)
 val revcut_rl =
-  let val V = read_prop "V"
-      and VW = read_prop "V ==> W";
+  let
+    val V = read_prop "V";
+    val VW = read_prop "V ==> W";
   in
-    store_standard_thm_open "revcut_rl"
+    store_standard_thm_open (Binding.name "revcut_rl")
       (implies_intr V (implies_intr VW (implies_elim (assume VW) (assume V))))
   end;
 
 (*for deleting an unwanted assumption*)
 val thin_rl =
-  let val V = read_prop "V"
-      and W = read_prop "W";
-  in store_standard_thm_open "thin_rl" (implies_intr V (implies_intr W (assume W))) end;
+  let
+    val V = read_prop "V";
+    val W = read_prop "W";
+    val thm = implies_intr V (implies_intr W (assume W));
+  in store_standard_thm_open (Binding.name "thin_rl") thm end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
 val triv_forall_equality =
-  let val V  = read_prop "V"
-      and QV = read_prop "!!x::'a. V"
-      and x  = certify (Free ("x", Term.aT []));
+  let
+    val V = read_prop "V";
+    val QV = read_prop "!!x::'a. V";
+    val x = certify (Free ("x", Term.aT []));
   in
-    store_standard_thm_open "triv_forall_equality"
+    store_standard_thm_open (Binding.name "triv_forall_equality")
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))
         (implies_intr V  (forall_intr x (assume V))))
   end;
@@ -617,10 +628,10 @@ val triv_forall_equality =
 *)
 val distinct_prems_rl =
   let
-    val AAB = read_prop "Phi ==> Phi ==> Psi"
+    val AAB = read_prop "Phi ==> Phi ==> Psi";
     val A = read_prop "Phi";
   in
-    store_standard_thm_open "distinct_prems_rl"
+    store_standard_thm_open (Binding.name "distinct_prems_rl")
       (implies_intr_list [AAB, A] (implies_elim_list (assume AAB) [assume A, assume A]))
   end;
 
@@ -629,15 +640,17 @@ val distinct_prems_rl =
    `thm COMP swap_prems_rl' swaps the first two premises of `thm'
 *)
 val swap_prems_rl =
-  let val cmajor = read_prop "PhiA ==> PhiB ==> Psi";
-      val major = assume cmajor;
-      val cminor1 = read_prop "PhiA";
-      val minor1 = assume cminor1;
-      val cminor2 = read_prop "PhiB";
-      val minor2 = assume cminor2;
-  in store_standard_thm_open "swap_prems_rl"
-       (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
-         (implies_elim (implies_elim major minor1) minor2))))
+  let
+    val cmajor = read_prop "PhiA ==> PhiB ==> Psi";
+    val major = assume cmajor;
+    val cminor1 = read_prop "PhiA";
+    val minor1 = assume cminor1;
+    val cminor2 = read_prop "PhiB";
+    val minor2 = assume cminor2;
+  in
+    store_standard_thm_open (Binding.name "swap_prems_rl")
+      (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
+        (implies_elim (implies_elim major minor1) minor2))))
   end;
 
 (* [| PROP ?phi ==> PROP ?psi; PROP ?psi ==> PROP ?phi |]
@@ -645,29 +658,36 @@ val swap_prems_rl =
    Introduction rule for == as a meta-theorem.
 *)
 val equal_intr_rule =
-  let val PQ = read_prop "phi ==> psi"
-      and QP = read_prop "psi ==> phi"
+  let
+    val PQ = read_prop "phi ==> psi";
+    val QP = read_prop "psi ==> phi";
   in
-    store_standard_thm_open "equal_intr_rule"
+    store_standard_thm_open (Binding.name "equal_intr_rule")
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
 
 (* PROP ?phi == PROP ?psi ==> PROP ?phi ==> PROP ?psi *)
 val equal_elim_rule1 =
-  let val eq = read_prop "phi::prop == psi::prop"
-      and P = read_prop "phi"
-  in store_standard_thm_open "equal_elim_rule1"
-    (Thm.equal_elim (assume eq) (assume P) |> implies_intr_list [eq, P])
+  let
+    val eq = read_prop "phi::prop == psi::prop";
+    val P = read_prop "phi";
+  in
+    store_standard_thm_open (Binding.name "equal_elim_rule1")
+      (Thm.equal_elim (assume eq) (assume P) |> implies_intr_list [eq, P])
   end;
 
 (* PROP ?psi == PROP ?phi ==> PROP ?phi ==> PROP ?psi *)
 val equal_elim_rule2 =
-  store_standard_thm_open "equal_elim_rule2" (symmetric_thm RS equal_elim_rule1);
+  store_standard_thm_open (Binding.name "equal_elim_rule2")
+    (symmetric_thm RS equal_elim_rule1);
 
 (* PROP ?phi ==> PROP ?phi ==> PROP ?psi ==> PROP ?psi *)
 val remdups_rl =
-  let val P = read_prop "phi" and Q = read_prop "psi";
-  in store_standard_thm_open "remdups_rl" (implies_intr_list [P, P, Q] (Thm.assume Q)) end;
+  let
+    val P = read_prop "phi";
+    val Q = read_prop "psi";
+    val thm = implies_intr_list [P, P, Q] (Thm.assume Q);
+  in store_standard_thm_open (Binding.name "remdups_rl") thm end;
 
 
 
@@ -688,13 +708,18 @@ in
 
 val protect = Thm.capply (certify Logic.protectC);
 
-val protectI = store_thm "protectI" (Thm.kind_rule Thm.internalK (standard
-    (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
+val protectI =
+  store_thm (Binding.conceal (Binding.name "protectI"))
+    (Thm.kind_rule Thm.internalK (standard
+      (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
 
-val protectD = store_thm "protectD" (Thm.kind_rule Thm.internalK (standard
-    (Thm.equal_elim prop_def (Thm.assume (protect A)))));
+val protectD =
+  store_thm (Binding.conceal (Binding.name "protectD"))
+    (Thm.kind_rule Thm.internalK (standard
+      (Thm.equal_elim prop_def (Thm.assume (protect A)))));
 
-val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
+val protect_cong =
+  store_standard_thm_open (Binding.name "protect_cong") (Thm.reflexive (protect A));
 
 fun implies_intr_protected asms th =
   let val asms' = map protect asms in
@@ -707,8 +732,10 @@ fun implies_intr_protected asms th =
 
 (* term *)
 
-val termI = store_thm "termI" (Thm.kind_rule Thm.internalK (standard
-    (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
+val termI =
+  store_thm (Binding.conceal (Binding.name "termI"))
+    (Thm.kind_rule Thm.internalK (standard
+      (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
 
 fun mk_term ct =
   let
@@ -735,13 +762,17 @@ val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
 
 (* sort_constraint *)
 
-val sort_constraintI = store_thm "sort_constraintI" (Thm.kind_rule Thm.internalK (standard
-  (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T))));
+val sort_constraintI =
+  store_thm (Binding.conceal (Binding.name "sort_constraintI"))
+    (Thm.kind_rule Thm.internalK (standard
+      (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T))));
 
-val sort_constraint_eq = store_thm "sort_constraint_eq" (Thm.kind_rule Thm.internalK (standard
-  (Thm.equal_intr
-    (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
-    (implies_intr_list [A, C] (Thm.assume A)))));
+val sort_constraint_eq =
+  store_thm (Binding.conceal (Binding.name "sort_constraint_eq"))
+    (Thm.kind_rule Thm.internalK (standard
+      (Thm.equal_intr
+        (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
+        (implies_intr_list [A, C] (Thm.assume A)))));
 
 end;
 
@@ -773,7 +804,7 @@ val norm_hhf_eq =
         |> Thm.forall_intr cx
         |> Thm.implies_intr cphi
         |> Thm.implies_intr rhs)
-    |> store_standard_thm_open "norm_hhf_eq"
+    |> store_standard_thm_open (Binding.name "norm_hhf_eq")
   end;
 
 val norm_hhf_prop = Logic.dest_equals (Thm.prop_of norm_hhf_eq);
