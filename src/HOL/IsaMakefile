@@ -138,7 +138,6 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Complete_Lattice.thy \
   Datatype.thy \
-  Divides.thy \
   Extraction.thy \
   Finite_Set.thy \
   Fun.thy \
@@ -246,6 +245,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
+  Divides.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
