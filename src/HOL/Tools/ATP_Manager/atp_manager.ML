@@ -254,7 +254,7 @@ fun start_prover name birth_time death_time i proof_state =
     NONE => warning ("Unknown external prover: " ^ quote name)
   | SOME prover =>
       let
-        val full_goal as (ctxt, (_, goal)) = Proof.get_goal proof_state;
+        val {context = ctxt, facts, goal} = Proof.raw_goal proof_state; (* FIXME Proof.goal *)
         val desc =
           "external prover " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
             Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
@@ -262,7 +262,7 @@ fun start_prover name birth_time death_time i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birth_time death_time (Thread.self (), desc);
-            val problem = ATP_Wrapper.problem_of_goal (! full_types) i full_goal;
+            val problem = ATP_Wrapper.problem_of_goal (! full_types) i (ctxt, (facts, goal));
             val result =
               let val {success, message, ...} = prover (! timeout) problem;
               in (success, message) end

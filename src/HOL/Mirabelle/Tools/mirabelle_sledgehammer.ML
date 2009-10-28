@@ -301,13 +301,13 @@ datatype sh_result =
 
 fun run_sh prover hard_timeout timeout dir st =
   let
-    val (ctxt, goal) = Proof.get_goal st
+    val {context = ctxt, facts, goal} = Proof.raw_goal st   (* FIXME ?? *)
     val change_dir = (fn SOME d => Config.put ATP_Wrapper.destdir d | _ => I)
     val ctxt' =
       ctxt
       |> change_dir dir
       |> Config.put ATP_Wrapper.measure_runtime true
-    val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', goal);
+    val problem = ATP_Wrapper.problem_of_goal (! ATP_Manager.full_types) 1 (ctxt', (facts, goal));
 
     val time_limit =
       (case hard_timeout of
@@ -424,7 +424,7 @@ fun run_metis (inc_metis_calls, inc_metis_success, inc_metis_proofs, inc_metis_t
   end
 
 fun sledgehammer_action args id (st as {log, pre, name, ...}: Mirabelle.run_args) =
-  let val goal = Thm.major_prem_of(snd(snd(Proof.get_goal pre))) in
+  let val goal = Thm.major_prem_of (#goal (Proof.raw_goal pre))  (* FIXME ?? *) in
   if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
   then () else
   let
