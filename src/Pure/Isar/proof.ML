@@ -29,7 +29,6 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
-  val get_goal: state -> context * (thm list * thm)
   val show_main_goal: bool Unsynchronized.ref
   val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
@@ -37,9 +36,11 @@ sig
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
-  val flat_goal: state -> Proof.context * thm
   val goal_tac: thm -> int -> tactic
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
+  val raw_goal: state -> {context: context, facts: thm list, goal: thm}
+  val goal: state -> {context: context, facts: thm list, goal: thm}
+  val simple_goal: state -> {context: context, goal: thm}
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
@@ -436,12 +437,6 @@ fun refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
 
-fun flat_goal state =
-  let
-    val (_, (using, _)) = get_goal state;
-    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
-  in (ctxt, goal) end;
-
 
 (* refine via sub-proof *)
 
@@ -506,6 +501,21 @@ fun conclude_goal ctxt goal propss =
       | recover_result [] [] = []
       | recover_result _ _ = lost_structure ();
   in recover_result propss results end;
+
+
+(* goal views -- corresponding to methods *)
+
+fun raw_goal state =
+  let val (ctxt, (facts, goal)) = get_goal state
+  in {context = ctxt, facts = facts, goal = goal} end;
+
+val goal = raw_goal o refine_insert [];
+
+fun simple_goal state =
+  let
+    val (_, (facts, _)) = get_goal state;
+    val (ctxt, (_, goal)) = get_goal (refine_insert facts state);
+  in {context = ctxt, goal = goal} end;
 
 
 
