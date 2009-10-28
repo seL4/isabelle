@@ -329,7 +329,8 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
           NONE => atom for_auto T j
-        | SOME {constrs, co, ...} =>
+        | SOME {shallow = true, ...} => atom for_auto T j
+        | SOME {co, constrs, ...} =>
           let
             (* styp -> int list *)
             fun tuples_for_const (s, T) =
@@ -600,11 +601,12 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        precise = false, constrs = []}]
+        precise = false, shallow = false, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
-      List.partition #co datatypes
-      ||> append (integer_datatype nat_T @ integer_datatype int_T)
+      datatypes |> filter_out #shallow
+                |> List.partition #co
+                ||> append (integer_datatype nat_T @ integer_datatype int_T)
     val block_of_datatypes =
       if show_datatypes andalso not (null datatypes) then
         [Pretty.big_list ("Datatype" ^ plural_s_for_list datatypes ^ ":")
