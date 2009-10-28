@@ -67,8 +67,6 @@ open Predicate_Compile_Aux;
 
 (* debug stuff *)
 
-fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
-
 fun print_tac s = Seq.single;
 
 fun print_tac' options s = 
@@ -333,7 +331,7 @@ val depth_limited_function_name_of = #name ooo the_depth_limited_function_data
 
 fun print_modes options modes =
   if show_modes options then
-    Output.tracing ("Inferred modes:\n" ^
+    tracing ("Inferred modes:\n" ^
       cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
         string_of_mode ms)) modes))
   else ()
@@ -344,7 +342,7 @@ fun print_pred_mode_table string_of_entry thy pred_mode_table =
       ^ (string_of_entry pred mode entry)  
     fun print_pred (pred, modes) =
       "predicate " ^ pred ^ ": " ^ cat_lines (map (print_mode pred) modes)
-    val _ = Output.tracing (cat_lines (map print_pred pred_mode_table))
+    val _ = tracing (cat_lines (map print_pred pred_mode_table))
   in () end;
 
 fun string_of_prem thy (Prem (ts, p)) =
@@ -661,7 +659,7 @@ fun add_intro thm thy = let
    fun cons_intro gr =
      case try (Graph.get_node gr) name of
        SOME pred_data => Graph.map_node name (map_pred_data
-         (apfst (fn (intros, elim, nparams) => (thm::intros, elim, nparams)))) gr
+         (apfst (fn (intros, elim, nparams) => (intros @ [thm], elim, nparams)))) gr
      | NONE =>
        let
          val nparams = the_default (guess_nparams T)  (try (#nparams o rep_pred_data o (fetch_pred_data thy)) name)
@@ -1052,9 +1050,9 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
 fun print_failed_mode options thy modes p m rs i =
   if show_mode_inference options then
     let
-      val _ = Output.tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
+      val _ = tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
       p ^ " violates mode " ^ string_of_mode m)
-      val _ = Output.tracing (string_of_clause thy p (nth rs i))
+      val _ = tracing (string_of_clause thy p (nth rs i))
     in () end
   else ()
 
@@ -2142,7 +2140,6 @@ fun check_intros_elim_match thy prednames =
 fun add_equations_of steps options prednames thy =
   let
     val _ = print_step options ("Starting predicate compiler for predicates " ^ commas prednames ^ "...")
-    val _ = tracing (commas (map (Display.string_of_thm_global thy) (maps (intros_of thy) prednames)))
       (*val _ = check_intros_elim_match thy prednames*)
       (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
@@ -2181,7 +2178,7 @@ fun extend' value_of edges_of key (G, visited) =
         SOME v => (G, v)
       | NONE => (Graph.new_node (key, value_of key) G, value_of key)
     val (G'', visited') = fold (extend' value_of edges_of) (subtract (op =) visited (edges_of (key, v)))
-      (G', key :: visited) 
+      (G', key :: visited)
   in
     (fold (Graph.add_edge o (pair key)) (edges_of (key, v)) G'', visited')
   end;
@@ -2307,7 +2304,7 @@ fun generic_code_pred prep_const options raw_const lthy =
         (extend (fetch_pred_data thy) (depending_preds_of thy) const)) lthy
       |> LocalTheory.checkpoint
     val thy' = ProofContext.theory_of lthy'
-    val preds = Graph.all_preds (PredData.get thy') [const] |> filter_out (has_elim thy')
+    val preds = Graph.all_succs (PredData.get thy') [const] |> filter_out (has_elim thy')
     fun mk_cases const =
       let
         val T = Sign.the_const_type thy const

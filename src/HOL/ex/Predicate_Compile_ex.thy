@@ -17,7 +17,7 @@ code_pred (mode: [], [1]) EmptySet .
 definition EmptySet' :: "'a \<Rightarrow> bool"
 where "EmptySet' = {}"
 
-code_pred (mode: [], [1]) [inductify, show_intermediate_results] EmptySet' .
+code_pred (mode: [], [1]) [inductify] EmptySet' .
 
 inductive EmptyRel :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
 
@@ -61,7 +61,87 @@ where
   "zerozero (0, 0)"
 
 code_pred zerozero .
-code_pred [rpred, show_compilation] zerozero .
+code_pred [rpred] zerozero .
+
+subsection {* Alternative Rules *}
+
+datatype char = C | D | E | F | G
+
+inductive is_C_or_D
+where
+  "(x = C) \<or> (x = D) ==> is_C_or_D x"
+
+code_pred (mode: [1]) is_C_or_D .
+thm is_C_or_D.equation
+
+inductive is_D_or_E
+where
+  "(x = D) \<or> (x = E) ==> is_D_or_E x"
+
+lemma [code_pred_intros]:
+  "is_D_or_E D"
+by (auto intro: is_D_or_E.intros)
+
+lemma [code_pred_intros]:
+  "is_D_or_E E"
+by (auto intro: is_D_or_E.intros)
+
+code_pred (mode: [], [1]) is_D_or_E
+proof -
+  case is_D_or_E
+  from this(1) show thesis
+  proof
+    fix x
+    assume x: "a1 = x"
+    assume "x = D \<or> x = E"
+    from this show thesis
+    proof
+      assume "x = D" from this x is_D_or_E(2) show thesis by simp
+    next
+      assume "x = E" from this x is_D_or_E(3) show thesis by simp
+    qed
+  qed
+qed
+
+thm is_D_or_E.equation
+
+inductive is_F_or_G
+where
+  "x = F \<or> x = G ==> is_F_or_G x"
+
+lemma [code_pred_intros]:
+  "is_F_or_G F"
+by (auto intro: is_F_or_G.intros)
+
+lemma [code_pred_intros]:
+  "is_F_or_G G"
+by (auto intro: is_F_or_G.intros)
+
+inductive is_FGH
+where
+  "is_F_or_G x ==> is_FGH x"
+| "is_FGH H"
+
+text {* Compilation of is_FGH requires elimination rule for is_F_or_G *}
+
+code_pred is_FGH
+proof -
+  case is_F_or_G
+  from this(1) show thesis
+  proof
+    fix x
+    assume x: "a1 = x"
+    assume "x = F \<or> x = G"
+    from this show thesis
+    proof
+      assume "x = F"
+      from this x is_F_or_G(2) show thesis by simp
+    next
+      assume "x = G"
+      from this x is_F_or_G(3) show thesis by simp
+    qed
+  qed
+qed
 
 subsection {* Preprocessor Inlining  *}
 
@@ -175,7 +255,16 @@ lemmas [code_pred_intros] = append2_Nil append2.intros(2)
 code_pred append2
 proof -
   case append2
-  from append2.cases[OF append2(1)] append2(2-3) show thesis by blast
+  from append2(1) show thesis
+  proof
+    fix xs
+    assume "a1 = []" "a2 = xs" "a3 = xs"
+    from this append2(2) show thesis by simp
+  next
+    fix xs ys zs x
+    assume "a1 = x # xs" "a2 = ys" "a3 = x # zs" "append2 xs ys zs"
+    from this append2(3) show thesis by fastsimp
+  qed
 qed
 
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -658,6 +747,8 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 | "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
 | "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
 
+code_pred (mode: [], [1]) S\<^isub>4p .
+
 subsection {* Lambda *}
 
 datatype type =
@@ -707,5 +798,11 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
   | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
+
+code_pred (mode: [1, 2], [1, 2, 3]) typing .
+thm typing.equation
+
+code_pred (mode: [1], [1, 2]) beta .
+thm beta.equation
 
 end

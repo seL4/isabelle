@@ -45,7 +45,7 @@ proof -
     unfolding mem_def[symmetric, of _ a2]
     apply auto
     unfolding mem_def
-    apply auto
+    apply fastsimp
     done
 qed
 
