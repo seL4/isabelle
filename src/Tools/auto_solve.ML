@@ -61,9 +61,9 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
       end;
 
     fun seek_against_goal () =
-      (case try Proof.flat_goal state of
+      (case try Proof.simple_goal state of
         NONE => NONE
-      | SOME (_, st) =>
+      | SOME {goal = st, ...} =>
           let
             val subgoals = Drule.strip_imp_prems (Thm.cprop_of st);
             val rs =
