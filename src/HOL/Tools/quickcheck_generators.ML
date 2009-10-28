@@ -84,7 +84,7 @@ fun mk_random_typecopy tyco vs constr T' thy =
     thy
     |> TheoryTarget.instantiation ([tyco], vs, @{sort random})
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (apfst (Binding.conceal) Attrib.empty_binding, eq)))
+    |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
@@ -177,7 +177,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
         val proj_eqs = map2 (fn v => fn proj => (v, lambda arg proj)) vs projs;
         val proj_defs = map2 (fn Free (name, _) => fn (_, rhs) =>
           ((Binding.conceal (Binding.name name), NoSyn),
-            (apfst (Binding.conceal) Attrib.empty_binding, rhs))) vs proj_eqs;
+            (apfst Binding.conceal Attrib.empty_binding, rhs))) vs proj_eqs;
         val aux_eq' = Pattern.rewrite_term thy proj_eqs [] aux_eq;
         fun prove_eqs aux_simp proj_defs lthy = 
           let
@@ -305,7 +305,7 @@ fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy
     |> random_aux_specification prfx random_auxN auxs_eqs
     |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
     |-> (fn random_defs' => fold_map (fn random_def =>
-          Specification.definition (NONE, (apfst (Binding.conceal)
+          Specification.definition (NONE, (apfst Binding.conceal
             Attrib.empty_binding, random_def))) random_defs')
     |> snd
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
