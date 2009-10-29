@@ -54,15 +54,15 @@ text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> 
   and @{term "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} operations. *}
 
 definition divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  [code del]: "divmod_aux = Divides.divmod"
+  [code del]: "divmod_aux = divmod_nat"
 
 lemma [code]:
-  "Divides.divmod n m = (if m = 0 then (0, n) else divmod_aux n m)"
-  unfolding divmod_aux_def divmod_div_mod by simp
+  "divmod_nat n m = (if m = 0 then (0, n) else divmod_aux n m)"
+  unfolding divmod_aux_def divmod_nat_div_mod by simp
 
 lemma divmod_aux_code [code]:
   "divmod_aux n m = (nat (of_nat n div of_nat m), nat (of_nat n mod of_nat m))"
-  unfolding divmod_aux_def divmod_div_mod zdiv_int [symmetric] zmod_int [symmetric] by simp
+  unfolding divmod_aux_def divmod_nat_div_mod zdiv_int [symmetric] zmod_int [symmetric] by simp
 
 lemma eq_nat_code [code]:
   "eq_class.eq n m \<longleftrightarrow> eq_class.eq (of_nat n \<Colon> int) (of_nat m)"
