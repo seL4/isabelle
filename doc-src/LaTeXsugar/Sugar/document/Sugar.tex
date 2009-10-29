@@ -173,16 +173,17 @@ results in \isa{{\isasymlbrakk}P{\isacharsemicolon}\ Q{\isasymrbrakk}\ {\isasymL
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
 \begin{verbatim}
-reset show_question_marks;
+show_question_marks := false;
 \end{verbatim}
 at the beginning of your file \texttt{ROOT.ML}.
-The rest of this document is produced with this flag reset.
+The rest of this document is produced with this flag set to \texttt{false}.
 
-Hint: Resetting \verb!show_question_marks! only suppresses question
-marks; variables that end in digits, e.g. \isa{x{\isadigit{1}}}, are still
-printed with a trailing \isa{{\isachardot}{\isadigit{0}}}, e.g. \isa{x{\isadigit{1}}{\isachardot}{\isadigit{0}}}, their
-internal index. This can be avoided by turning the last digit into a
-subscript: write \verb!x\<^isub>1! and obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
+Hint: Setting \verb!show_question_marks! to \texttt{false} only
+suppresses question marks; variables that end in digits,
+e.g. \isa{x{\isadigit{1}}}, are still printed with a trailing \isa{{\isachardot}{\isadigit{0}}},
+e.g. \isa{x{\isadigit{1}}{\isachardot}{\isadigit{0}}}, their internal index. This can be avoided by
+turning the last digit into a subscript: write \verb!x\<^isub>1! and
+obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -537,7 +538,7 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   \begin{quote}
     \verb!\begin{center}!\\
     \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-    \verb!@!\verb!{thm (lhs) foldl_Nil} & @!\verb!{thm (rhs) foldl_Nil}!\\
+    \verb!@!\verb!{thm (lhs) foldl_Nil} & @!\verb!{thm (rhs) foldl_Nil}\\!\\
     \verb!@!\verb!{thm (lhs) foldl_Cons} & @!\verb!{thm (rhs) foldl_Cons}!\\
     \verb!\end{tabular}!\\
     \verb!\end{center}!
@@ -552,16 +553,16 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
-    \isa{{\isacharparenleft}xs\ {\isasymColon}\ {\isacharprime}a\ list{\isacharparenright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+    \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
   \end{center}
   To print just the conclusion,
   \begin{center}
-    \isa{hd\ {\isacharparenleft}xs\ {\isasymColon}\ {\isacharprime}a\ list{\isacharparenright}{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+    \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
   \end{center}
   type
   \begin{quote}
     \verb!\begin{center}!\\
-    \verb!@!\verb!{thm [show_types] (concl) hd_Cons_tl}!\\
+    \verb!@!\verb!{thm (concl) hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
   Beware that any options must be placed \emph{before}
