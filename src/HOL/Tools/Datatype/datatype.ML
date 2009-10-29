@@ -63,9 +63,11 @@ structure DatatypesData = TheoryDataFun
 
 val get_all = #types o DatatypesData.get;
 val get_info = Symtab.lookup o get_all;
-fun the_info thy name = (case get_info thy name of
-      SOME info => info
-    | NONE => error ("Unknown datatype " ^ quote name));
+
+fun the_info thy name =
+  (case get_info thy name of
+    SOME info => info
+  | NONE => error ("Unknown datatype " ^ quote name));
 
 fun info_of_constr thy (c, T) =
   let
@@ -319,7 +321,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       [((Binding.empty, [nth inducts index]), [Induct.induct_type tname]),
        ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
     val unnamed_rules = map (fn induct =>
-      ((Binding.empty, [induct]), [Thm.kind_internal, Induct.induct_type ""]))
+      ((Binding.empty, [induct]), [RuleCases.inner_rule, Induct.induct_type ""]))
         (Library.drop (length dt_names, inducts));
   in
     thy9

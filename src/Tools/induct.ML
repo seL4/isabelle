@@ -570,7 +570,7 @@ fun get_inductT ctxt insts =
       ((fn [] => NONE | ts => List.last ts) #>
         (fn NONE => TVar (("'a", 0), []) | SOME t => Term.fastype_of t) #>
         find_inductT ctxt)) [[]]
-  |> filter_out (forall Thm.is_internal);
+  |> filter_out (forall RuleCases.is_inner_rule);
 
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
