@@ -1,4 +1,6 @@
-(*  Author:     Jia Meng, Cambridge University Computer Laboratory, NICTA *)
+(*  Title:      HOL/Tools/res_atp.ML
+    Author:     Jia Meng, Cambridge University Computer Laboratory, NICTA
+*)
 
 signature RES_ATP =
 sig
@@ -366,29 +368,29 @@ fun all_valid_thms ctxt =
     val local_facts = ProofContext.facts_of ctxt;
   in valid_facts global_facts @ valid_facts local_facts end;
 
-fun multi_name a (th, (n,pairs)) =
-  (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
+fun multi_name a th (n, pairs) =
+  (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);
 
-fun add_single_names ((a, []), pairs) = pairs
-  | add_single_names ((a, [th]), pairs) = (a,th)::pairs
-  | add_single_names ((a, ths), pairs) = #2 (List.foldl (multi_name a) (1,pairs) ths);
+fun add_single_names (a, []) pairs = pairs
+  | add_single_names (a, [th]) pairs = (a, th) :: pairs
+  | add_single_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs));
 
 (*Ignore blacklisted basenames*)
-fun add_multi_names ((a, ths), pairs) =
-  if (Long_Name.base_name a) mem_string ResAxioms.multi_base_blacklist  then pairs
-  else add_single_names ((a, ths), pairs);
+fun add_multi_names (a, ths) pairs =
+  if (Long_Name.base_name a) mem_string ResAxioms.multi_base_blacklist then pairs
+  else add_single_names (a, ths) pairs;
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (*The single theorems go BEFORE the multiple ones. Blacklist is applied to all.*)
 fun name_thm_pairs ctxt =
-  let val (mults, singles) = List.partition is_multi (all_valid_thms ctxt)
-      val ht = mk_clause_table 900   (*ht for blacklisted theorems*)
-      fun blacklisted x = run_blacklist_filter andalso is_some (Polyhash.peek ht x)
+  let
+    val (mults, singles) = List.partition is_multi (all_valid_thms ctxt)
+    fun blacklisted (_, th) =
+      run_blacklist_filter andalso ResBlacklist.blacklisted ctxt th
   in
-      app (fn th => ignore (Polyhash.peekInsert ht (th,()))) (ResBlacklist.get ctxt);
-      filter (not o blacklisted o #2)
-        (List.foldl add_single_names (List.foldl add_multi_names [] mults) singles)
+    filter_out blacklisted
+      (fold add_single_names singles (fold add_multi_names mults []))
   end;
 
 fun check_named ("", th) =
