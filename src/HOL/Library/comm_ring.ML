@@ -12,9 +12,6 @@ end
 structure CommRing: COMM_RING =
 struct
 
-(* The Cring exception for erronous uses of cring_tac *)
-exception CRing of string;
-
 (* Zero and One of the commutative ring *)
 fun cring_zero T = Const (@{const_name HOL.zero}, T);
 fun cring_one T = Const (@{const_name HOL.one}, T);
@@ -76,8 +73,8 @@ fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
           val crhs = cterm_of thy (reif_polex T fs rhs);
           val ca = ctyp_of thy T;
         in (ca, cvs, clhs, crhs) end
-      else raise CRing ("reif_eq: not an equation over " ^ Syntax.string_of_sort_global thy cr_sort)
-  | reif_eq _ _ = raise CRing "reif_eq: not an equation";
+      else error ("reif_eq: not an equation over " ^ Syntax.string_of_sort_global thy cr_sort)
+  | reif_eq _ _ = error "reif_eq: not an equation";
 
 (* The cring tactic *)
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
