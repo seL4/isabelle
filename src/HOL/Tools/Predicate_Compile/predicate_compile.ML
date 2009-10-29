@@ -170,7 +170,8 @@ val parse_smode' = P.$$$ "[" |-- P.enum1 "," parse_argmode' --| P.$$$ "]"
     (fn (i, Argmode s) => if s = "i" then [(i + 1, NONE)] else []
       | (i, Argmode_Tuple ss) => [(i + 1, SOME (mk_numeral_mode ss))]) m))
 
-val parse_smode = (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]") >> map (rpair NONE)
+val parse_smode = (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]")
+  >> map (rpair (NONE : int list option))
 
 fun gen_parse_mode smode_parser =
   (Scan.optional
