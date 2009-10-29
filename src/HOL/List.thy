@@ -3587,8 +3587,8 @@ lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
 by (blast intro: listrel.intros)
 
 lemma listrel_Cons:
-     "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})";
-by (auto simp add: set_Cons_def intro: listrel.intros) 
+     "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})"
+by (auto simp add: set_Cons_def intro: listrel.intros)
 
 
 subsection {* Size function *}
@@ -3613,6 +3613,45 @@ by (induct xs) auto
 lemma list_size_pointwise[termination_simp]: 
   "(\<And>x. x \<in> set xs \<Longrightarrow> f x < g x) \<Longrightarrow> list_size f xs \<le> list_size g xs"
 by (induct xs) force+
+
+
+subsection {* Transfer *}
+
+definition
+  embed_list :: "nat list \<Rightarrow> int list"
+where
+  "embed_list l = map int l"
+
+definition
+  nat_list :: "int list \<Rightarrow> bool"
+where
+  "nat_list l = nat_set (set l)"
+
+definition
+  return_list :: "int list \<Rightarrow> nat list"
+where
+  "return_list l = map nat l"
+
+lemma transfer_nat_int_list_return_embed: "nat_list l \<longrightarrow>
+    embed_list (return_list l) = l"
+  unfolding embed_list_def return_list_def nat_list_def nat_set_def
+  apply (induct l)
+  apply auto
+done
+
+lemma transfer_nat_int_list_functions:
+  "l @ m = return_list (embed_list l @ embed_list m)"
+  "[] = return_list []"
+  unfolding return_list_def embed_list_def
+  apply auto
+  apply (induct l, auto)
+  apply (induct m, auto)
+done
+
+(*
+lemma transfer_nat_int_fold1: "fold f l x =
+    fold (%x. f (nat x)) (embed_list l) x";
+*)
 
 
 subsection {* Code generator *}
@@ -4016,6 +4055,5 @@ by(simp add: all_from_to_int_iff_ball list_all_iff)
 lemma list_ex_iff_not_all_from_to_not_int[code_unfold]:
   "list_ex P [i..j] = (~ all_from_to_int (%x. ~P x) i j)"
 by(simp add: all_from_to_int_iff_ball list_ex_iff)
-
 
 end
