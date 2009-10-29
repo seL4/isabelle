@@ -352,7 +352,8 @@ fun subtract_cls c_clauses ax_clauses =
 
 fun valid_facts facts =
   Facts.fold_static (fn (name, ths) =>
-    if run_blacklist_filter andalso is_package_def name then I
+    if Facts.is_concealed facts name orelse
+      (run_blacklist_filter andalso is_package_def name) then I
     else
       let val xname = Facts.extern facts name in
         if Name_Space.is_hidden xname then I
@@ -381,7 +382,7 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (*The single theorems go BEFORE the multiple ones. Blacklist is applied to all.*)
 fun name_thm_pairs ctxt =
-  let val (mults,singles) = List.partition is_multi (all_valid_thms ctxt)
+  let val (mults, singles) = List.partition is_multi (all_valid_thms ctxt)
       val ht = mk_clause_table 900   (*ht for blacklisted theorems*)
       fun blacklisted x = run_blacklist_filter andalso is_some (Polyhash.peek ht x)
   in
@@ -499,17 +500,14 @@ fun isFO thy goal_cls = case linkup_logic_mode of
     | Fol => true
     | Hol => false
 
-fun ths_to_cls thy ths =
-  ResAxioms.cnf_rules_pairs thy (filter check_named (map ResAxioms.pairname ths))
-
 fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
     val isFO = isFO thy goal_cls
-    val included_thms = get_all_lemmas ctxt
-    val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
-                                     |> restrict_to_logic thy isFO
-                                     |> remove_unwanted_clauses
+    val included_cls = get_all_lemmas ctxt
+      |> ResAxioms.cnf_rules_pairs thy |> make_unique
+      |> restrict_to_logic thy isFO
+      |> remove_unwanted_clauses
   in
     relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls) 
   end;
@@ -519,7 +517,8 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
 fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
     (* add chain thms *)
-    val chain_cls = ths_to_cls thy chain_ths
+    val chain_cls =
+      ResAxioms.cnf_rules_pairs thy (filter check_named (map ResAxioms.pairname chain_ths))
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
     val isFO = isFO thy goal_cls
