@@ -77,12 +77,12 @@ type rules =
 
 val empty_rules : rules = {next = 0, rs = [], net = Net.empty};
 
-fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
+fun add_rule (r as (_, (lhs, _))) ({next, rs, net} : rules) =
   {next = next - 1, rs = r :: rs, net = Net.insert_term (K false)
      (Envir.eta_contract lhs, (next, r)) net};
 
 fun merge_rules ({next, rs = rs1, net} : rules) ({rs = rs2, ...} : rules) =
-  List.foldr add_rule {next = next, rs = rs1, net = net} (subtract (op =) rs1 rs2);
+  fold_rev add_rule (subtract (op =) rs1 rs2) {next = next, rs = rs1, net = net};
 
 fun condrew thy rules procs =
   let
@@ -231,7 +231,7 @@ fun gen_add_realizes_eqns prep_eq eqns thy =
     defs, expand, prep} = ExtractionData.get thy;
   in
     ExtractionData.put
-      {realizes_eqns = List.foldr add_rule realizes_eqns (map (prep_eq thy) eqns),
+      {realizes_eqns = fold_rev add_rule (map (prep_eq thy) eqns) realizes_eqns,
        typeof_eqns = typeof_eqns, types = types, realizers = realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
@@ -249,7 +249,7 @@ fun gen_add_typeof_eqns prep_eq eqns thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, realizers = realizers,
-       typeof_eqns = List.foldr add_rule typeof_eqns eqns',
+       typeof_eqns = fold_rev add_rule eqns' typeof_eqns,
        types = types, defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -359,8 +359,8 @@ fun add_expand_thm thm thy =
   in
     (ExtractionData.put (if is_def then
         {realizes_eqns = realizes_eqns,
-         typeof_eqns = add_rule (([],
-           Logic.dest_equals (prop_of (Drule.abs_def thm))), typeof_eqns),
+         typeof_eqns = add_rule ([],
+           Logic.dest_equals (prop_of (Drule.abs_def thm))) typeof_eqns,
          types = types,
          realizers = realizers, defs = insert Thm.eq_thm thm defs,
          expand = expand, prep = prep}
@@ -458,7 +458,7 @@ fun extract thms thy =
         val vars = vars_of prop;
         val n = Int.min (length vars, length ts);
 
-        fun add_args ((Var ((a, i), _), t), (vs', tye)) =
+        fun add_args (Var ((a, i), _), t) (vs', tye) =
           if member (op =) rvs a then
             let val T = etype_of thy' vs Ts t
             in if T = nullT then (vs', tye)
@@ -466,7 +466,7 @@ fun extract thms thy =
             end
           else (vs', tye)
 
-      in List.foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
+      in fold_rev add_args (Library.take (n, vars) ~~ Library.take (n, ts)) ([], []) end;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
     fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
