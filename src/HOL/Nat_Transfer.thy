@@ -67,8 +67,7 @@ lemma transfer_nat_int_function_closures:
     "(2::int) >= 0"
     "(3::int) >= 0"
     "int z >= 0"
-  apply (auto simp add: zero_le_mult_iff tsub_def)
-done
+  by (auto simp add: zero_le_mult_iff tsub_def)
 
 lemma transfer_nat_int_relations:
     "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow>
