@@ -153,16 +153,16 @@ lemma adjust: "adjust b (q, r) = (if 0 \<le> r - b then (2 * q + 1, r - b) else 
 lemma negateSnd: "negateSnd (q, r) = (q, -r)" 
   by (simp add: negateSnd_def)
 
-lemma divmod: "IntDiv.divmod a b = (if 0\<le>a then
+lemma divmod: "divmod_int a b = (if 0\<le>a then
                   if 0\<le>b then posDivAlg a b
                   else if a=0 then (0, 0)
                        else negateSnd (negDivAlg (-a) (-b))
                else 
                   if 0<b then negDivAlg a b
                   else negateSnd (posDivAlg (-a) (-b)))"
-  by (auto simp only: IntDiv.divmod_def)
+  by (auto simp only: divmod_int_def)
 
-lemmas compute_div_mod = div_def mod_def divmod adjust negateSnd posDivAlg.simps negDivAlg.simps
+lemmas compute_div_mod = div_int_def mod_int_def divmod adjust negateSnd posDivAlg.simps negDivAlg.simps
 
 
 
