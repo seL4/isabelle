@@ -588,8 +588,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
                    |> term_for_rep T T' (rep_of name)
       in
         Pretty.block (Pretty.breaks
-            [(setmp_CRITICAL show_question_marks false o setmp_show_all_types)
-                 (Syntax.pretty_term ctxt) t1,
+            [setmp_show_all_types (Syntax.pretty_term ctxt) t1,
              Pretty.str oper, Syntax.pretty_term ctxt t2])
       end
     (* dtype_spec -> Pretty.T *)

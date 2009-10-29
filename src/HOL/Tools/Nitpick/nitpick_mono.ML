@@ -505,7 +505,7 @@ fun solve _ UnsolvableCSet = (print_g "*** Problem: Unsolvable"; NONE)
                                 map prop_for_comp comps @
                                 map prop_for_sign_expr sexps)
     in
-      case silence (SatSolver.invoke_solver "dpll") prop of
+      case SatSolver.invoke_solver "dpll" prop of
         SatSolver.SATISFIABLE asgns =>
         SOME (literals_from_assignments max_var asgns lits
               |> tap print_solution)

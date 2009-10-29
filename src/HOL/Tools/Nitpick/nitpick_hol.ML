@@ -313,7 +313,7 @@ val built_in_consts =
    (@{const_name times_int_inst.times_int}, 0),
    (@{const_name div_int_inst.div_int}, 0),
    (@{const_name div_int_inst.mod_int}, 0),
-   (@{const_name uminus_int_inst.uminus_int}, 0), (* FIXME: needed? *)
+   (@{const_name uminus_int_inst.uminus_int}, 0),
    (@{const_name ord_int_inst.less_int}, 2),
    (@{const_name ord_int_inst.less_eq_int}, 2),
    (@{const_name Tha}, 1),
@@ -966,6 +966,14 @@ fun special_bounds ts =
 (* indexname * typ -> term -> term *)
 fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
 
+(* theory -> string -> bool *)
+fun is_funky_typedef_name thy s =
+  s mem [@{type_name unit}, @{type_name "*"}, @{type_name "+"},
+         @{type_name int}]
+  orelse is_frac_type thy (Type (s, []))
+(* theory -> term -> bool *)
+fun is_funky_typedef thy (Type (s, _)) = is_funky_typedef_name thy s
+  | is_funky_typedef _ _ = false
 (* term -> bool *)
 fun is_arity_type_axiom (Const (@{const_name HOL.type_class}, _)
                          $ Const (@{const_name TYPE}, _)) = true
@@ -976,9 +984,7 @@ fun is_typedef_axiom thy boring (@{const "==>"} $ _ $ t2) =
   | is_typedef_axiom thy boring
         (@{const Trueprop} $ (Const (@{const_name Typedef.type_definition}, _)
          $ Const (_, Type ("fun", [Type (s, _), _])) $ Const _ $ _)) =
-    boring <> (s mem [@{type_name unit}, @{type_name "*"}, @{type_name "+"}]
-               orelse is_frac_type thy (Type (s, [])))
-    andalso is_typedef thy s
+    boring <> is_funky_typedef_name thy s andalso is_typedef thy s
   | is_typedef_axiom _ _ _ = false
 
 (* Distinguishes between (1) constant definition axioms, (2) type arity and
@@ -2543,7 +2549,6 @@ fun specialize_consts_in_term (ext_ctxt as {thy, specialize, simp_table,
     t
   else
     let
-      (* FIXME: strong enough in the face of user-defined axioms? *)
       val blacklist = if depth = 0 then []
                       else case term_under_def t of Const x => [x] | _ => []
       (* term list -> typ list -> term -> term *)
@@ -3009,14 +3014,16 @@ fun axioms_for_term
              else if is_abs_fun thy x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
-                     |> fold (add_def_axiom depth)
-                             (nondef_props_for_const thy true
+                     |> is_funky_typedef thy (range_type T)
+                        ? fold (add_def_axiom depth)
+                               (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
              else if is_rep_fun thy x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
-                     |> fold (add_def_axiom depth)
-                             (nondef_props_for_const thy true
+                     |> is_funky_typedef thy (range_type T)
+                        ? fold (add_def_axiom depth)
+                               (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
                      |> add_axioms_for_term depth
                                             (Const (mate_of_rep_fun thy x))

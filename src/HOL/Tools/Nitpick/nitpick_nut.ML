@@ -1059,11 +1059,12 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                                Op2 (And, bool_T, Any,
                                     case u2 of
                                       Op2 (Lambda, _, _, u21, u22) =>
-                                      if num_occs_in_nut u21 u22 = 0 then (* FIXME: move to s_op2 *)
+                                      if num_occs_in_nut u21 u22 = 0 then
                                         u22
                                       else
                                         Op2 (Apply, bool_T, Any, u2, x_u)
                                     | _ => Op2 (Apply, bool_T, Any, u2, x_u),
+
                                     Op2 (Eq, bool_T, Any, y_u,
                                          Op2 (Apply, ran_T, Any, u1, x_u)))))
                      |> sub

@@ -343,7 +343,6 @@ fun decls_for_atom_schema j0 schema =
 
 (* The type constraint below is a workaround for a Poly/ML bug. *)
 
-(* FIXME: clean up *)
 (* kodkod_constrs -> rep -> Kodkod.rel_expr -> Kodkod.formula *)
 fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
                      R r =
@@ -371,7 +370,6 @@ fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
       Kodkod.True
   end
 fun kk_n_ary_function kk R (r as Kodkod.Rel _) =
-    (* FIXME: weird test *)
     if not (is_opt_rep R) then
       if r = suc_rel then
         Kodkod.False
