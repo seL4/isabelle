@@ -1,5 +1,5 @@
-(*
-   Author: Jia Meng, NICTA
+(*  Title:      HOL/Tools/res_hol_clause.ML
+    Author:     Jia Meng, NICTA
 
 FOL clauses translated from HOL formulae.
 *)
@@ -527,4 +527,5 @@ fun dfg_write_file t_full file clauses =
       length helper_clauses + 1, length tfree_clss + length dfg_clss)
   end;
 
-end
+end;
+

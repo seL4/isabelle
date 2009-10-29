@@ -1,4 +1,5 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory
+(*  Title:      HOL/Tools/res_axioms.ML
+    Author:     Jia Meng, Cambridge University Computer Laboratory
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
