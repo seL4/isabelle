@@ -473,7 +473,7 @@ fun change_bnos banned =
       if i<lev then Bound i
       else  if member (op =) banned (i-lev)
       then raise CHANGE_FAIL (**flexible occurrence: give up**)
-      else  Bound (i - length (List.filter (fn j => j < i-lev) banned))
+      else  Bound (i - length (filter (fn j => j < i-lev) banned))
   | change lev (Abs (a,T,t)) = Abs (a, T, change(lev+1) t)
   | change lev (t$u) = change lev t $ change lev u
   | change lev t = t

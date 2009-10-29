@@ -1,8 +1,9 @@
-(*  Author:     L C Paulson and Claire Quigley, Cambridge University Computer Laboratory *)
+(*  Title:      HOL/Tools/res_reconstruct.ML
+    Author:     Lawrence C Paulson and Claire Quigley, Cambridge University Computer Laboratory
 
-(***************************************************************************)
-(*  Code to deal with the transfer of proofs from a prover process         *)
-(***************************************************************************)
+Transfer of proofs from external provers.
+*)
+
 signature RES_RECONSTRUCT =
 sig
   val chained_hint: string
@@ -23,13 +24,13 @@ sig
     string * string vector * (int * int) * Proof.context * thm * int -> string * string list
 end;
 
-structure ResReconstruct : RES_RECONSTRUCT =
+structure Res_Reconstruct : RES_RECONSTRUCT =
 struct
 
 val trace_path = Path.basic "atp_trace";
 
 fun trace s =
-  if ! ResAxioms.trace then File.append (File.tmp_path trace_path) s
+  if ! Res_Axioms.trace then File.append (File.tmp_path trace_path) s
   else ();
 
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
@@ -106,12 +107,12 @@ exception STREE of stree;
 (*If string s has the prefix s1, return the result of deleting it.*)
 fun strip_prefix s1 s =
   if String.isPrefix s1 s
-  then SOME (ResClause.undo_ascii_of (String.extract (s, size s1, NONE)))
+  then SOME (Res_Clause.undo_ascii_of (String.extract (s, size s1, NONE)))
   else NONE;
 
 (*Invert the table of translations between Isabelle and ATPs*)
 val type_const_trans_table_inv =
-      Symtab.make (map swap (Symtab.dest ResClause.type_const_trans_table));
+      Symtab.make (map swap (Symtab.dest Res_Clause.type_const_trans_table));
 
 fun invert_type_const c =
     case Symtab.lookup type_const_trans_table_inv c of
@@ -129,15 +130,15 @@ fun type_of_stree t =
     | Br (a,ts) =>
         let val Ts = map type_of_stree ts
         in
-          case strip_prefix ResClause.tconst_prefix a of
+          case strip_prefix Res_Clause.tconst_prefix a of
               SOME b => Type(invert_type_const b, Ts)
             | NONE =>
                 if not (null ts) then raise STREE t  (*only tconsts have type arguments*)
                 else
-                case strip_prefix ResClause.tfree_prefix a of
+                case strip_prefix Res_Clause.tfree_prefix a of
                     SOME b => TFree("'" ^ b, HOLogic.typeS)
                   | NONE =>
-                case strip_prefix ResClause.tvar_prefix a of
+                case strip_prefix Res_Clause.tvar_prefix a of
                     SOME b => make_tvar b
                   | NONE => make_tvar a   (*Variable from the ATP, say X1*)
         end;
@@ -145,7 +146,7 @@ fun type_of_stree t =
 (*Invert the table of translations between Isabelle and ATPs*)
 val const_trans_table_inv =
       Symtab.update ("fequal", "op =")
-        (Symtab.make (map swap (Symtab.dest ResClause.const_trans_table)));
+        (Symtab.make (map swap (Symtab.dest Res_Clause.const_trans_table)));
 
 fun invert_const c =
     case Symtab.lookup const_trans_table_inv c of
@@ -166,7 +167,7 @@ fun term_of_stree args thy t =
     | Br ("hBOOL",[t]) => term_of_stree [] thy t  (*ignore hBOOL*)
     | Br ("hAPP",[t,u]) => term_of_stree (u::args) thy t
     | Br (a,ts) =>
-        case strip_prefix ResClause.const_prefix a of
+        case strip_prefix Res_Clause.const_prefix a of
             SOME "equal" =>
               list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree [] thy) ts)
           | SOME b =>
@@ -180,10 +181,10 @@ fun term_of_stree args thy t =
           | NONE => (*a variable, not a constant*)
               let val T = HOLogic.typeT
                   val opr = (*a Free variable is typically a Skolem function*)
-                    case strip_prefix ResClause.fixed_var_prefix a of
+                    case strip_prefix Res_Clause.fixed_var_prefix a of
                         SOME b => Free(b,T)
                       | NONE =>
-                    case strip_prefix ResClause.schematic_var_prefix a of
+                    case strip_prefix Res_Clause.schematic_var_prefix a of
                         SOME b => make_var (b,T)
                       | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
               in  list_comb (opr, List.map (term_of_stree [] thy) (ts@args))  end;
@@ -193,7 +194,7 @@ fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
   | constraint_of_stree pol t = case t of
         Int _ => raise STREE t
       | Br (a,ts) =>
-            (case (strip_prefix ResClause.class_prefix a, map type_of_stree ts) of
+            (case (strip_prefix Res_Clause.class_prefix a, map type_of_stree ts) of
                  (SOME b, [T]) => (pol, b, T)
                | _ => raise STREE t);
 
@@ -443,11 +444,11 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val _ = trace (Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
       val (_,lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
       val _ = trace (Int.toString (length lines) ^ " lines extracted\n")
-      val (ccls,fixes) = ResAxioms.neg_conjecture_clauses ctxt th sgno
+      val (ccls,fixes) = Res_Axioms.neg_conjecture_clauses ctxt th sgno
       val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")
       val ccls = map forall_intr_vars ccls
       val _ =
-        if ! ResAxioms.trace then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
+        if ! Res_Axioms.trace then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
         else ()
       val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
       val _ = trace "\ndecode_tstp_file: finishing\n"
@@ -456,124 +457,128 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   end;
 
 
-  (*=== EXTRACTING PROOF-TEXT === *)
+(*=== EXTRACTING PROOF-TEXT === *)
 
-  val begin_proof_strings = ["# SZS output start CNFRefutation.",
-      "=========== Refutation ==========",
+val begin_proof_strings = ["# SZS output start CNFRefutation.",
+  "=========== Refutation ==========",
   "Here is a proof"];
-  val end_proof_strings = ["# SZS output end CNFRefutation",
-      "======= End of refutation =======",
+
+val end_proof_strings = ["# SZS output end CNFRefutation",
+  "======= End of refutation =======",
   "Formulae used in the proof"];
-  fun get_proof_extract proof =
-    let
+
+fun get_proof_extract proof =
+  let
     (*splits to_split by the first possible of a list of splitters*)
     val (begin_string, end_string) =
       (find_first (fn s => String.isSubstring s proof) begin_proof_strings,
       find_first (fn s => String.isSubstring s proof) end_proof_strings)
-    in
-      if is_none begin_string orelse is_none end_string
-      then error "Could not extract proof (no substring indicating a proof)"
-      else proof |> first_field (the begin_string) |> the |> snd
-                 |> first_field (the end_string) |> the |> fst end;
+  in
+    if is_none begin_string orelse is_none end_string
+    then error "Could not extract proof (no substring indicating a proof)"
+    else proof |> first_field (the begin_string) |> the |> snd
+               |> first_field (the end_string) |> the |> fst
+  end;
 
 (* ==== CHECK IF PROOF OF E OR VAMPIRE WAS SUCCESSFUL === *)
 
-  val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable",
-    "SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
-  val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
-  val failure_strings_SPASS = ["SPASS beiseite: Completion found.",
-    "SPASS beiseite: Ran out of time.", "SPASS beiseite: Maximal number of loops exceeded."];
-  val failure_strings_remote = ["Remote-script could not extract proof"];
-  fun find_failure proof =
-    let val failures =
-      map_filter (fn s => if String.isSubstring s proof then SOME s else NONE)
-        (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS @ failure_strings_remote)
-    val correct = null failures andalso
-      exists (fn s => String.isSubstring s proof) begin_proof_strings andalso
-      exists (fn s => String.isSubstring s proof) end_proof_strings
-    in
-      if correct then NONE
-      else if null failures then SOME "Output of ATP not in proper format"
-      else SOME (hd failures) end;
+val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable",
+  "SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
+val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
+val failure_strings_SPASS = ["SPASS beiseite: Completion found.",
+  "SPASS beiseite: Ran out of time.", "SPASS beiseite: Maximal number of loops exceeded."];
+val failure_strings_remote = ["Remote-script could not extract proof"];
+fun find_failure proof =
+  let val failures =
+    map_filter (fn s => if String.isSubstring s proof then SOME s else NONE)
+      (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS @ failure_strings_remote)
+  val correct = null failures andalso
+    exists (fn s => String.isSubstring s proof) begin_proof_strings andalso
+    exists (fn s => String.isSubstring s proof) end_proof_strings
+  in
+    if correct then NONE
+    else if null failures then SOME "Output of ATP not in proper format"
+    else SOME (hd failures) end;
 
-  (* === EXTRACTING LEMMAS === *)
-  (* lines have the form "cnf(108, axiom, ...",
-  the number (108) has to be extracted)*)
-  fun get_step_nums false proofextract =
-    let val toks = String.tokens (not o Char.isAlphaNum)
-    fun inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
-      | inputno ("cnf"::ntok::"negated"::"conjecture"::_) = Int.fromString ntok
-      | inputno _ = NONE
-    val lines = split_lines proofextract
-    in  map_filter (inputno o toks) lines  end
-  (*String contains multiple lines. We want those of the form
-    "253[0:Inp] et cetera..."
-    A list consisting of the first number in each line is returned. *)
-  |  get_step_nums true proofextract =
-    let val toks = String.tokens (not o Char.isAlphaNum)
-    fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
-      | inputno _ = NONE
-    val lines = split_lines proofextract
-    in  map_filter (inputno o toks) lines  end
-    
-  (*extracting lemmas from tstp-output between the lines from above*)
-  fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =
+(* === EXTRACTING LEMMAS === *)
+(* lines have the form "cnf(108, axiom, ...",
+the number (108) has to be extracted)*)
+fun get_step_nums false proofextract =
+  let val toks = String.tokens (not o Char.isAlphaNum)
+  fun inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
+    | inputno ("cnf"::ntok::"negated"::"conjecture"::_) = Int.fromString ntok
+    | inputno _ = NONE
+  val lines = split_lines proofextract
+  in  map_filter (inputno o toks) lines  end
+(*String contains multiple lines. We want those of the form
+  "253[0:Inp] et cetera..."
+  A list consisting of the first number in each line is returned. *)
+|  get_step_nums true proofextract =
+  let val toks = String.tokens (not o Char.isAlphaNum)
+  fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
+    | inputno _ = NONE
+  val lines = split_lines proofextract
+  in  map_filter (inputno o toks) lines  end
+  
+(*extracting lemmas from tstp-output between the lines from above*)
+fun extract_lemmas get_step_nums (proof, thm_names, conj_count, _, _, _) =
+  let
+  (* get the names of axioms from their numbers*)
+  fun get_axiom_names thm_names step_nums =
     let
-    (* get the names of axioms from their numbers*)
-    fun get_axiom_names thm_names step_nums =
-      let
-      val last_axiom = Vector.length thm_names
-      fun is_axiom n = n <= last_axiom
-      fun is_conj n = n >= fst conj_count andalso n < fst conj_count + snd conj_count
-      fun getname i = Vector.sub(thm_names, i-1)
-      in
-        (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
-          (map getname (filter is_axiom step_nums))),
-        exists is_conj step_nums)
-      end
-    val proofextract = get_proof_extract proof
+    val last_axiom = Vector.length thm_names
+    fun is_axiom n = n <= last_axiom
+    fun is_conj n = n >= fst conj_count andalso n < fst conj_count + snd conj_count
+    fun getname i = Vector.sub(thm_names, i-1)
     in
-      get_axiom_names thm_names (get_step_nums proofextract)
-    end;
+      (sort_distinct string_ord (filter (fn x => x <> "??.unknown")
+        (map getname (filter is_axiom step_nums))),
+      exists is_conj step_nums)
+    end
+  val proofextract = get_proof_extract proof
+  in
+    get_axiom_names thm_names (get_step_nums proofextract)
+  end;
 
-  (*Used to label theorems chained into the sledgehammer call*)
-  val chained_hint = "CHAINED";
-  val nochained = filter_out (fn y => y = chained_hint)
-    
-  (* metis-command *)
-  fun metis_line [] = "apply metis"
-    | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
+(*Used to label theorems chained into the sledgehammer call*)
+val chained_hint = "CHAINED";
+val nochained = filter_out (fn y => y = chained_hint)
+  
+(* metis-command *)
+fun metis_line [] = "apply metis"
+  | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
 
-  (* atp_minimize [atp=<prover>] <lemmas> *)
-  fun minimize_line _ [] = ""
-    | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
-          (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^
-                                           space_implode " " (nochained lemmas))
+(* atp_minimize [atp=<prover>] <lemmas> *)
+fun minimize_line _ [] = ""
+  | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
+        (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^
+                                         space_implode " " (nochained lemmas))
 
-  fun sendback_metis_nochained lemmas =
-    (Markup.markup Markup.sendback o metis_line) (nochained lemmas)
+fun sendback_metis_nochained lemmas =
+  (Markup.markup Markup.sendback o metis_line) (nochained lemmas)
 
-  fun lemma_list dfg name result =
-    let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
-    in (sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas ^
-      (if used_conj then ""
-       else "\nWarning: Goal is provable because context is inconsistent."),
-       nochained lemmas)
-    end;
+fun lemma_list dfg name result =
+  let val (lemmas, used_conj) = extract_lemmas (get_step_nums dfg) result
+  in (sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas ^
+    (if used_conj then ""
+     else "\nWarning: Goal is provable because context is inconsistent."),
+     nochained lemmas)
+  end;
 
-  (* === Extracting structured Isar-proof === *)
-  fun structured_proof name (result as (proof, thm_names, conj_count, ctxt, goal, subgoalno)) =
-    let
-    (*Could use split_lines, but it can return blank lines...*)
-    val lines = String.tokens (equal #"\n");
-    val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
-    val proofextract = get_proof_extract proof
-    val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-    val (one_line_proof, lemma_names) = lemma_list false name result
-    val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
-                else decode_tstp_file cnfs ctxt goal subgoalno thm_names
-    in
-    (one_line_proof ^ "\n\n" ^ (Markup.markup Markup.sendback) structured, lemma_names)
-  end
+(* === Extracting structured Isar-proof === *)
+fun structured_proof name (result as (proof, thm_names, conj_count, ctxt, goal, subgoalno)) =
+  let
+  (*Could use split_lines, but it can return blank lines...*)
+  val lines = String.tokens (equal #"\n");
+  val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
+  val proofextract = get_proof_extract proof
+  val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
+  val (one_line_proof, lemma_names) = lemma_list false name result
+  val structured =
+    if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
+    else decode_tstp_file cnfs ctxt goal subgoalno thm_names
+  in
+  (one_line_proof ^ "\n\n" ^ Markup.markup Markup.sendback structured, lemma_names)
+end
 
 end;

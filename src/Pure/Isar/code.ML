@@ -639,7 +639,8 @@ fun print_codesetup thy =
 
 (* datatypes *)
 
-structure Type_Interpretation = InterpretationFun(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
+structure Type_Interpretation =
+  Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
 
 fun add_datatype raw_cs thy =
   let

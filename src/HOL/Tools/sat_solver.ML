@@ -272,7 +272,7 @@ struct
       else
         parse_lines lines
   in
-    (parse_lines o (List.filter (fn l => l <> "")) o split_lines o File.read) path
+    (parse_lines o filter (fn l => l <> "") o split_lines o File.read) path
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -352,7 +352,7 @@ struct
     o (map int_from_string)
     o (maps (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
     o filter_preamble
-    o (List.filter (fn l => l <> ""))
+    o filter (fn l => l <> "")
     o split_lines
     o File.read)
       path

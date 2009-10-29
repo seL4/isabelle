@@ -103,7 +103,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
   let
     val _ = priority ("Testing " ^ string_of_int (length name_thms_pairs) ^ " theorems... ")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
-    val axclauses = ResAxioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
+    val axclauses = Res_Axioms.cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.raw_goal state   (* FIXME ?? *)
     val problem =
      {with_full_types = ! ATP_Manager.full_types,
@@ -138,9 +138,9 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
           val to_use =
             if length ordered_used < length name_thms_pairs then
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
-            else
-              name_thms_pairs
-          val (min_thms, n) = if null to_use then ([], 0)
+            else name_thms_pairs
+          val (min_thms, n) =
+            if null to_use then ([], 0)
             else minimal (test_thms (SOME filtered)) to_use
           val min_names = sort_distinct string_ord (map fst min_thms)
           val _ = priority (cat_lines
@@ -157,7 +157,7 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
         (NONE, "Error in prover: " ^ msg)
     | (Failure, _) =>
         (NONE, "Failure: No proof with the theorems supplied"))
-    handle ResHolClause.TOO_TRIVIAL =>
+    handle Res_HOL_Clause.TOO_TRIVIAL =>
         (SOME ([], 0), "Trivial: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
       | ERROR msg => (NONE, "Error: " ^ msg)
   end

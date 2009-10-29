@@ -1,12 +1,12 @@
 theory Predicate_Compile_ex
-imports Main Predicate_Compile_Alternative_Defs
+imports "../Main" Predicate_Compile_Alternative_Defs
 begin
 
 subsection {* Basic predicates *}
 
 inductive False' :: "bool"
 
-code_pred (mode: []) False' .
+code_pred (mode : []) False' .
 code_pred [depth_limited] False' .
 code_pred [rpred] False' .
 
@@ -17,7 +17,7 @@ code_pred (mode: [], [1]) EmptySet .
 definition EmptySet' :: "'a \<Rightarrow> bool"
 where "EmptySet' = {}"
 
-code_pred (mode: [], [1]) [inductify, show_intermediate_results] EmptySet' .
+code_pred (mode: [], [1]) [inductify] EmptySet' .
 
 inductive EmptyRel :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
 
@@ -26,7 +26,13 @@ code_pred (mode: [], [1], [2], [1, 2]) EmptyRel .
 inductive EmptyClosure :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
-code_pred (mode: [], [1], [2], [1, 2])EmptyClosure .
+code_pred
+  (mode: [] ==> [], [] ==> [1], [] ==> [2], [] ==> [1, 2],
+         [1] ==> [], [1] ==> [1], [1] ==> [2], [1] ==> [1, 2],
+         [2] ==> [], [2] ==> [1], [2] ==> [2], [2] ==> [1, 2],
+         [1, 2] ==> [], [1, 2] ==> [1], [1, 2] ==> [2], [1, 2] ==> [1, 2])
+  EmptyClosure .
+
 thm EmptyClosure.equation
 (* TODO: inductive package is broken!
 inductive False'' :: "bool"
@@ -60,8 +66,88 @@ inductive zerozero :: "nat * nat => bool"
 where
   "zerozero (0, 0)"
 
-code_pred zerozero .
-code_pred [rpred, show_compilation] zerozero .
+code_pred (mode: [i], [(i, o)], [(o, i)], [o]) zerozero .
+code_pred [rpred] zerozero .
+
+subsection {* Alternative Rules *}
+
+datatype char = C | D | E | F | G | H
+
+inductive is_C_or_D
+where
+  "(x = C) \<or> (x = D) ==> is_C_or_D x"
+
+code_pred (mode: [1]) is_C_or_D .
+thm is_C_or_D.equation
+
+inductive is_D_or_E
+where
+  "(x = D) \<or> (x = E) ==> is_D_or_E x"
+
+lemma [code_pred_intros]:
+  "is_D_or_E D"
+by (auto intro: is_D_or_E.intros)
+
+lemma [code_pred_intros]:
+  "is_D_or_E E"
+by (auto intro: is_D_or_E.intros)
+
+code_pred (mode: [], [1]) is_D_or_E
+proof -
+  case is_D_or_E
+  from this(1) show thesis
+  proof
+    fix x
+    assume x: "a1 = x"
+    assume "x = D \<or> x = E"
+    from this show thesis
+    proof
+      assume "x = D" from this x is_D_or_E(2) show thesis by simp
+    next
+      assume "x = E" from this x is_D_or_E(3) show thesis by simp
+    qed
+  qed
+qed
+
+thm is_D_or_E.equation
+
+inductive is_F_or_G
+where
+  "x = F \<or> x = G ==> is_F_or_G x"
+
+lemma [code_pred_intros]:
+  "is_F_or_G F"
+by (auto intro: is_F_or_G.intros)
+
+lemma [code_pred_intros]:
+  "is_F_or_G G"
+by (auto intro: is_F_or_G.intros)
+
+inductive is_FGH
+where
+  "is_F_or_G x ==> is_FGH x"
+| "is_FGH H"
+
+text {* Compilation of is_FGH requires elimination rule for is_F_or_G *}
+
+code_pred (mode: [], [1]) is_FGH
+proof -
+  case is_F_or_G
+  from this(1) show thesis
+  proof
+    fix x
+    assume x: "a1 = x"
+    assume "x = F \<or> x = G"
+    from this show thesis
+    proof
+      assume "x = F"
+      from this x is_F_or_G(2) show thesis by simp
+    next
+      assume "x = G"
+      from this x is_F_or_G(3) show thesis by simp
+    qed
+  qed
+qed
 
 subsection {* Preprocessor Inlining  *}
 
@@ -123,7 +209,7 @@ values [depth_limit = 7] 10 "{n. even n}"
 
 definition odd' where "odd' x == \<not> even x"
 
-code_pred [inductify] odd' .
+code_pred (mode: [1]) [inductify] odd' .
 code_pred [inductify, depth_limited] odd' .
 code_pred [inductify, rpred] odd' .
 
@@ -135,7 +221,7 @@ inductive is_even :: "nat \<Rightarrow> bool"
 where
   "n mod 2 = 0 \<Longrightarrow> is_even n"
 
-code_pred is_even .
+code_pred (mode: [1]) is_even .
 
 subsection {* append predicate *}
 
@@ -172,10 +258,19 @@ lemma append2_Nil: "append2 [] (xs::'b list) xs"
 
 lemmas [code_pred_intros] = append2_Nil append2.intros(2)
 
-code_pred append2
+code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append2
 proof -
   case append2
-  from append2.cases[OF append2(1)] append2(2-3) show thesis by blast
+  from append2(1) show thesis
+  proof
+    fix xs
+    assume "a1 = []" "a2 = xs" "a3 = xs"
+    from this append2(2) show thesis by simp
+  next
+    fix xs ys zs x
+    assume "a1 = x # xs" "a2 = ys" "a3 = x # zs" "append2 xs ys zs"
+    from this append2(3) show thesis by fastsimp
+  qed
 qed
 
 inductive tupled_append :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -183,7 +278,7 @@ where
   "tupled_append ([], xs, xs)"
 | "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
 
-code_pred tupled_append .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append .
 code_pred [rpred] tupled_append .
 thm tupled_append.equation
 (*
@@ -197,7 +292,7 @@ where
 | "[| ys = fst (xa, y); x # zs = snd (xa, y);
  tupled_append' (xs, ys, zs) |] ==> tupled_append' (x # xs, xa, y)"
 
-code_pred tupled_append' .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append' .
 thm tupled_append'.equation
 
 inductive tupled_append'' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -205,9 +300,7 @@ where
   "tupled_append'' ([], xs, xs)"
 | "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
 
-thm tupled_append''.cases
-
-code_pred [inductify] tupled_append'' .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) [inductify] tupled_append'' .
 thm tupled_append''.equation
 
 inductive tupled_append''' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -215,7 +308,7 @@ where
   "tupled_append''' ([], xs, xs)"
 | "yszs = (ys, zs) ==> tupled_append''' (xs, yszs) \<Longrightarrow> tupled_append''' (x # xs, ys, x # zs)"
 
-code_pred [inductify] tupled_append''' .
+code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) [inductify] tupled_append''' .
 thm tupled_append'''.equation
 
 subsection {* map_ofP predicate *}
@@ -237,7 +330,7 @@ where
 | "P x ==> filter1 P xs ys ==> filter1 P (x#xs) (x#ys)"
 | "\<not> P x ==> filter1 P xs ys ==> filter1 P (x#xs) ys"
 
-code_pred (mode: [1], [1, 2]) filter1 .
+code_pred (mode: [1] ==> [1], [1] ==> [1, 2]) filter1 .
 code_pred [depth_limited] filter1 .
 code_pred [rpred] filter1 .
 
@@ -260,7 +353,7 @@ for P
 where
   "List.filter P xs = ys ==> filter3 P xs ys"
 
-code_pred filter3 .
+code_pred (mode: [] ==> [1], [] ==> [1, 2], [1] ==> [1], [1] ==> [1, 2]) filter3 .
 code_pred [depth_limited] filter3 .
 thm filter3.depth_limited_equation
 
@@ -268,7 +361,7 @@ inductive filter4
 where
   "List.filter P xs = ys ==> filter4 P xs ys"
 
-code_pred filter4 .
+code_pred (mode: [1, 2], [1, 2, 3]) filter4 .
 code_pred [depth_limited] filter4 .
 code_pred [rpred] filter4 .
 
@@ -288,7 +381,7 @@ inductive tupled_rev where
   "tupled_rev ([], [])"
 | "tupled_rev (xs, xs') \<Longrightarrow> tupled_append (xs', [x], ys) \<Longrightarrow> tupled_rev (x#xs, ys)"
 
-code_pred tupled_rev .
+code_pred (mode: [(i, o)], [(o, i)], [i]) tupled_rev .
 thm tupled_rev.equation
 
 subsection {* partition predicate *}
@@ -299,7 +392,7 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-code_pred (mode: [1], [2, 3], [1, 2], [1, 3], [1, 2, 3]) partition .
+code_pred (mode: [1] ==> [1], [1] ==> [2, 3], [1] ==> [1, 2], [1] ==> [1, 3], [1] ==> [1, 2, 3]) partition .
 code_pred [depth_limited] partition .
 code_pred [rpred] partition .
 
@@ -314,7 +407,7 @@ inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<
   | "f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, x # ys, zs)"
   | "\<not> f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, ys, x # zs)"
 
-code_pred tupled_partition .
+code_pred (mode: [i] ==> [i], [i] ==> [(i, i, o)], [i] ==> [(i, o, i)], [i] ==> [(o, i, i)], [i] ==> [(i, o, o)]) tupled_partition .
 
 thm tupled_partition.equation
 
@@ -325,7 +418,7 @@ lemma [code_pred_intros]:
 
 subsection {* transitive predicate *}
 
-code_pred tranclp
+code_pred (mode: [1] ==> [1, 2], [1] ==> [1], [2] ==> [1, 2], [2] ==> [2], [] ==> [1, 2], [] ==> [1], [] ==> [2], [] ==> []) tranclp
 proof -
   case tranclp
   from this converse_tranclpE[OF this(1)] show thesis by metis
@@ -658,6 +751,8 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 | "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
 | "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
 
+code_pred (mode: [], [1]) S\<^isub>4p .
+
 subsection {* Lambda *}
 
 datatype type =
@@ -707,5 +802,11 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
   | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
+
+code_pred (mode: [1, 2], [1, 2, 3]) typing .
+thm typing.equation
+
+code_pred (mode: [1], [1, 2]) beta .
+thm beta.equation
 
 end

@@ -96,8 +96,8 @@ fun mk_Un (t1, t2) = @{const Un} $ t1 $ t2;
 fun union_params (rec_tm, cs) =
   let val (_,args) = strip_comb rec_tm
       fun is_ind arg = (type_of arg = iT)
-  in  case List.filter is_ind (args @ cs) of
-         []     => @{const 0}
+  in  case filter is_ind (args @ cs) of
+         [] => @{const 0}
        | u_args => Balanced_Tree.make mk_Un u_args
   end;
 

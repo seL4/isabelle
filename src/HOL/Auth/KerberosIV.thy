@@ -780,7 +780,7 @@ done
 lemma u_NotexpiredSK_NotexpiredAK:
      "\<lbrakk> \<not> expiredSK Ts evs; servKlife + Ts <= authKlife + Ta \<rbrakk>
       \<Longrightarrow> \<not> expiredAK Ta evs"
-  by (metis nat_add_commute le_less_trans)
+  by (metis le_less_trans)
 
 
 subsection{* Reliability: friendly agents send something if something else happened*}

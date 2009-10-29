@@ -423,13 +423,13 @@ in
 end;
 
 
-fun givens pats = map pat_of (List.filter given pats);
+fun givens pats = map pat_of (filter given pats);
 
 fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory
      val f = #lhs(S.dest_eq(concl def))
      val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
-     val pats' = List.filter given pats
+     val pats' = filter given pats
      val given_pats = map pat_of pats'
      val rows = map row_of_pat pats'
      val WFR = #ant(S.dest_imp(concl corollary))
@@ -821,7 +821,7 @@ fun LEFT_ABS_VSTRUCT tych thm =
         let val ex_tm = S.mk_exists{Bvar=v,Body=tm}
         in (ex_tm, R.CHOOSE(tych v, R.ASSUME (tych ex_tm)) thm)
         end
-      val [veq] = List.filter (can S.dest_eq) (#1 (R.dest_thm thm))
+      val [veq] = filter (can S.dest_eq) (#1 (R.dest_thm thm))
       val {lhs,rhs} = S.dest_eq veq
       val L = S.free_vars_lr rhs
   in  #2 (fold_rev CHOOSER L (veq,thm))  end;

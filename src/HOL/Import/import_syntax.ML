@@ -61,7 +61,7 @@ fun end_import toks =
                 val thyname = get_generating_thy thy
                 val segname = get_import_segment thy
                 val (int_thms,facts) = Replay.setup_int_thms thyname thy
-                val thmnames = List.filter (not o should_ignore thyname thy) facts
+                val thmnames = filter_out (should_ignore thyname thy) facts
                 fun replay thy = 
                     let
                         val _ = ImportRecorder.load_history thyname

@@ -440,7 +440,7 @@ fun could_IH x = Term.could_unify(x,hd (prems_of @{thm rcallT})) orelse
 
 fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   let val bvs = bvars Bi []
-      val ihs = List.filter could_IH (Logic.strip_assums_hyp Bi)
+      val ihs = filter could_IH (Logic.strip_assums_hyp Bi)
       val rnames = map (fn x=>
                     let val (a,b) = get_bno [] 0 x
                     in (List.nth(bvs,a),b) end) ihs

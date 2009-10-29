@@ -42,8 +42,8 @@ open Codegen;
 
 fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
   let
-    val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
-    val rtnames = map (#1 o snd) (List.filter (fn (_, (_, _, cs)) =>
+    val descr' = filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
+    val rtnames = map (#1 o snd) (filter (fn (_, (_, _, cs)) =>
       exists (exists DatatypeAux.is_rec_type o snd) cs) descr');
 
     val (_, (tname, _, _)) :: _ = descr';

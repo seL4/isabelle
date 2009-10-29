@@ -18,7 +18,7 @@ sig
     (bool * string criterion) list -> unit
 end;
 
-structure FindTheorems: FIND_THEOREMS =
+structure Find_Theorems: FIND_THEOREMS =
 struct
 
 (** search criteria **)
@@ -28,24 +28,22 @@ datatype 'term criterion =
   Pattern of 'term;
 
 fun apply_dummies tm =
-  strip_abs tm
-  |> fst
-  |> map (Term.dummy_pattern o snd)
-  |> betapplys o pair tm
-  |> (fn x => Term.replace_dummy_patterns x 1)
-  |> fst;
+  let
+    val (xs, _) = Term.strip_abs tm;
+    val tm' = Term.betapplys (tm, map (Term.dummy_pattern o #2) xs);
+  in #1 (Term.replace_dummy_patterns tm' 1) end;
 
 fun parse_pattern ctxt nm =
   let
-    val nm' = case Syntax.parse_term ctxt nm of Const (n, _) => n | _ => nm;
     val consts = ProofContext.consts_of ctxt;
+    val nm' =
+      (case Syntax.parse_term ctxt nm of
+        Const (c, _) => c
+      | _ => Consts.intern consts nm);
   in
-    nm'
-    |> Consts.intern consts
-    |> Consts.the_abbreviation consts
-    |> snd
-    |> apply_dummies
-    handle TYPE _ => ProofContext.read_term_pattern ctxt nm
+    (case try (Consts.the_abbreviation consts) nm' of
+      SOME (_, rhs) => apply_dummies rhs
+    | NONE => ProofContext.read_term_pattern ctxt nm)
   end;
 
 fun read_criterion _ (Name name) = Name name

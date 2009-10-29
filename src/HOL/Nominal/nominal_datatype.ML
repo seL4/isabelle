@@ -66,7 +66,7 @@ fun mk_case_names_induct descr = RuleCases.case_names (induct_cases descr);
 
 fun mk_case_names_exhausts descr new =
   map (RuleCases.case_names o exhaust_cases descr o #1)
-    (List.filter (fn ((_, (name, _, _))) => name mem_string new) descr);
+    (filter (fn ((_, (name, _, _))) => name mem_string new) descr);
 
 end;
 
@@ -1166,11 +1166,11 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     fun make_ind_prem fsT f k T ((cname, cargs), idxs) =
       let
-        val recs = List.filter is_rec_type cargs;
+        val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr'' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr'' sorts) recs;
         val tnames = Name.variant_list pnames (DatatypeProp.make_tnames Ts);
-        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
+        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val frees' = partition_cargs idxs frees;
         val z = (Name.variant tnames "z", fsT);

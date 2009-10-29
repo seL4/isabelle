@@ -117,8 +117,8 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths;
-    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses ctxt th subgoalno);
+    val chain_ths = map (Thm.put_name_hint Res_Reconstruct.chained_hint) chain_ths;
+    val goal_cls = #1 (Res_Axioms.neg_conjecture_clauses ctxt th subgoalno);
     val the_filtered_clauses =
       (case filtered_clauses of
         NONE => relevance_filter goal goal_cls
@@ -204,14 +204,14 @@ fun gen_tptp_prover (name, prover_config) timeout problem =
     val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem;
   in
     external_prover
-      (ResAtp.get_relevant max_new_clauses insert_theory_const)
-      (ResAtp.prepare_clauses false)
-      (ResHolClause.tptp_write_file with_full_types)
+      (Res_ATP.get_relevant max_new_clauses insert_theory_const)
+      (Res_ATP.prepare_clauses false)
+      (Res_HOL_Clause.tptp_write_file with_full_types)
       command
       (arguments timeout)
-      ResReconstruct.find_failure
-      (if emit_structured_proof then ResReconstruct.structured_proof
-       else ResReconstruct.lemma_list false)
+      Res_Reconstruct.find_failure
+      (if emit_structured_proof then Res_Reconstruct.structured_proof
+       else Res_Reconstruct.lemma_list false)
       axiom_clauses
       filtered_clauses
       name
@@ -280,13 +280,13 @@ fun gen_dfg_prover (name, prover_config: prover_config) timeout problem =
     val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
   in
     external_prover
-      (ResAtp.get_relevant max_new_clauses insert_theory_const)
-      (ResAtp.prepare_clauses true)
-      (ResHolClause.dfg_write_file with_full_types)
+      (Res_ATP.get_relevant max_new_clauses insert_theory_const)
+      (Res_ATP.prepare_clauses true)
+      (Res_HOL_Clause.dfg_write_file with_full_types)
       command
       (arguments timeout)
-      ResReconstruct.find_failure
-      (ResReconstruct.lemma_list true)
+      Res_Reconstruct.find_failure
+      (Res_Reconstruct.lemma_list true)
       axiom_clauses
       filtered_clauses
       name

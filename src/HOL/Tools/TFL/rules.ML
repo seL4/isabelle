@@ -807,7 +807,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
       (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = equal_elim th1 th
  in
- (th2, List.filter (not o restricted) (!tc_list))
+ (th2, filter_out restricted (!tc_list))
  end;
 
 

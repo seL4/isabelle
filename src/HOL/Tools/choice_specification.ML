@@ -143,7 +143,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val (_, c') = Type.varify [] c
                 val (cname,ctyp) = dest_Const c'
             in
-                case List.filter (fn t => let val (name,typ) = dest_Const t
+                case filter (fn t => let val (name,typ) = dest_Const t
                                      in name = cname andalso Sign.typ_equiv thy (typ, ctyp)
                                      end) thawed_prop_consts of
                     [] => error ("Specification: No suitable instances of constant \"" ^ Syntax.string_of_term_global thy c ^ "\" found")

@@ -174,7 +174,7 @@ fun modes_of modes t =
           let val is' = map (fn i => i - k) (List.drop (is, k))
           in map (fn x => Mode (m, is', x)) (cprods (map
             (fn (NONE, _) => [NONE]
-              | (SOME js, arg) => map SOME (List.filter
+              | (SOME js, arg) => map SOME (filter
                   (fn Mode (_, js', _) => js=js') (modes_of modes arg)))
                     (iss ~~ args1)))
           end
@@ -237,7 +237,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
 
 fun check_modes_pred thy arg_vs preds modes (p, ms) =
   let val SOME rs = AList.lookup (op =) preds p
-  in (p, List.filter (fn m => case find_index
+  in (p, filter (fn m => case find_index
     (not o check_mode_clause thy arg_vs modes m) rs of
       ~1 => true
     | i => (message ("Clause " ^ string_of_int (i+1) ^ " of " ^

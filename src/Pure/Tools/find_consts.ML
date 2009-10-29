@@ -11,11 +11,10 @@ sig
       Strict of string
     | Loose of string
     | Name of string
-
   val find_consts : Proof.context -> (bool * criterion) list -> unit
 end;
 
-structure FindConsts : FIND_CONSTS =
+structure Find_Consts : FIND_CONSTS =
 struct
 
 (* search criteria *)
@@ -162,7 +161,7 @@ in
 
 val _ =
   OuterSyntax.improper_command "find_consts" "search constants by type pattern" K.diag
-    (Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+    (Scan.repeat ((Scan.option P.minus >> is_none) -- criterion)
       >> (Toplevel.no_timing oo find_consts_cmd));
 
 end;

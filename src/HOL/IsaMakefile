@@ -302,6 +302,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/recdef.ML \
   Tools/res_atp.ML \
   Tools/res_axioms.ML \
+  Tools/res_blacklist.ML \
   Tools/res_clause.ML \
   Tools/res_hol_clause.ML \
   Tools/res_reconstruct.ML \

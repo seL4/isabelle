@@ -1,5 +1,5 @@
-(*
-   Author: Jia Meng, NICTA
+(*  Title:      HOL/Tools/res_hol_clause.ML
+    Author:     Jia Meng, NICTA
 
 FOL clauses translated from HOL formulae.
 *)
@@ -17,13 +17,13 @@ sig
   type polarity = bool
   type clause_id = int
   datatype combterm =
-      CombConst of string * ResClause.fol_type * ResClause.fol_type list (*Const and Free*)
-    | CombVar of string * ResClause.fol_type
+      CombConst of string * Res_Clause.fol_type * Res_Clause.fol_type list (*Const and Free*)
+    | CombVar of string * Res_Clause.fol_type
     | CombApp of combterm * combterm
   datatype literal = Literal of polarity * combterm
   datatype clause = Clause of {clause_id: clause_id, axiom_name: axiom_name, th: thm,
-                    kind: ResClause.kind,literals: literal list, ctypes_sorts: typ list}
-  val type_of_combterm: combterm -> ResClause.fol_type
+                    kind: Res_Clause.kind,literals: literal list, ctypes_sorts: typ list}
+  val type_of_combterm: combterm -> Res_Clause.fol_type
   val strip_comb: combterm -> combterm * combterm list
   val literals_of_term: theory -> term -> literal list * typ list
   exception TOO_TRIVIAL
@@ -38,18 +38,18 @@ sig
        clause list
   val tptp_write_file: bool -> Path.T ->
     clause list * clause list * clause list * clause list *
-    ResClause.classrelClause list * ResClause.arityClause list ->
+    Res_Clause.classrelClause list * Res_Clause.arityClause list ->
     int * int
   val dfg_write_file: bool -> Path.T ->
     clause list * clause list * clause list * clause list *
-    ResClause.classrelClause list * ResClause.arityClause list ->
+    Res_Clause.classrelClause list * Res_Clause.arityClause list ->
     int * int
 end
 
-structure ResHolClause: RES_HOL_CLAUSE =
+structure Res_HOL_Clause: RES_HOL_CLAUSE =
 struct
 
-structure RC = ResClause;
+structure RC = Res_Clause;   (* FIXME avoid structure alias *)
 
 (* theorems for combinators and function extensionality *)
 val ext = thm "HOL.ext";
@@ -404,7 +404,7 @@ fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) =
   else ct;
 
 fun cnf_helper_thms thy =
-  ResAxioms.cnf_rules_pairs thy o map ResAxioms.pairname
+  Res_Axioms.cnf_rules_pairs thy o map Res_Axioms.pairname
 
 fun get_helper_clauses dfg thy isFO (conjectures, axcls, user_lemmas) =
   if isFO then []  (*first-order*)
@@ -454,7 +454,7 @@ fun count_constants_clause (Clause{literals,...}) (const_min_arity, const_needs_
   fold count_constants_lit literals (const_min_arity, const_needs_hBOOL);
 
 fun display_arity const_needs_hBOOL (c,n) =
-  ResAxioms.trace_msg (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
+  Res_Axioms.trace_msg (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
                 (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, _, extra_clauses, helper_clauses, _, _) =
@@ -527,4 +527,5 @@ fun dfg_write_file t_full file clauses =
       length helper_clauses + 1, length tfree_clss + length dfg_clss)
   end;
 
-end
+end;
+

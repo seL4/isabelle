@@ -91,13 +91,9 @@ sig
   val lemmaK: string
   val corollaryK: string
   val internalK: string
-  val has_kind: thm -> bool
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
-  val kind_internal: attribute
-  val has_internal: Properties.property list -> bool
-  val is_internal: thm -> bool
 end;
 
 structure Thm: THM =
@@ -425,16 +421,10 @@ val lemmaK = "lemma";
 val corollaryK = "corollary";
 val internalK = Markup.internalK;
 
-fun the_kind thm = the (Properties.get (Thm.get_tags thm) Markup.kindN);
-
-val has_kind = can the_kind;
-val get_kind = the_default "" o try the_kind;
+fun get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
-fun kind_internal x = kind internalK x;
-fun has_internal tags = exists (fn tg => tg = (Markup.kindN, internalK)) tags;
-val is_internal = has_internal o Thm.get_tags;
 
 
 open Thm;
