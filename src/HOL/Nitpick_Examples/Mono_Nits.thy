@@ -28,7 +28,7 @@ val ext_ctxt =
    skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
    unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref []}
 (* term -> bool *)
-val is_mono = NitpickMono.formulas_monotonic ext_ctxt @{typ 'a} [] []
+val is_mono = Nitpick_Mono.formulas_monotonic ext_ctxt @{typ 'a} [] []
 fun is_const t =
   let val T = fastype_of t in
     is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t),

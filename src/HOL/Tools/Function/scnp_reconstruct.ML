@@ -197,7 +197,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
               else if b <= a then @{thm pair_leqI2} else @{thm pair_leqI1}
           in
             rtac rule 1 THEN PRIMITIVE (Thm.elim_implies stored_thm)
-            THEN (if tag_flag then Arith_Data.verbose_arith_tac ctxt 1 else all_tac)
+            THEN (if tag_flag then Arith_Data.arith_tac ctxt 1 else all_tac)
           end
 
         fun steps_tac MAX strict lq lp =

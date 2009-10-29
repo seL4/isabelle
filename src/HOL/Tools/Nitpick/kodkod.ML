@@ -1027,12 +1027,10 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
         val err_path = path_for "kodkodi" "err"
         val _ = write_problem_file out (map snd indexed_problems)
         val _ = File.write_buffer in_path (!in_buf)
-        (* (int list -> outcome) -> outcome *)
-        fun stopped constr =
-          let val nontriv_js = map reindex (snd (read_output_file out_path)) in
-            constr (triv_js @ nontriv_js)
-            handle Exn.Interrupt => Interrupted NONE
-          end
+        (* unit -> unit *)
+        fun remove_temporary_files () =
+          if overlord then ()
+          else List.app File.rm [in_path, out_path, err_path]
       in
         let
           val ms =
@@ -1085,12 +1083,16 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
               else
                 Normal (ps, js)
             end
-        in
-          if overlord then ()
-          else List.app File.rm [in_path, out_path, err_path];
-          outcome
-        end
-        handle Exn.Interrupt => stopped (Interrupted o SOME)
+        in remove_temporary_files (); outcome end
+        handle Exn.Interrupt =>
+               let
+                 val nontriv_js = map reindex (snd (read_output_file out_path))
+               in
+                 (remove_temporary_files ();
+                  Interrupted (SOME (triv_js @ nontriv_js)))
+                 handle Exn.Interrupt =>
+                        (remove_temporary_files (); Interrupted NONE)
+               end
       end
   end
 
