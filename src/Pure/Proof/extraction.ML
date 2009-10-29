@@ -651,7 +651,7 @@ fun extract thms thy =
                     val nt = Envir.beta_norm t;
                     val args = filter_out (fn v => member (op =) rtypes
                       (tname_of (body_type (fastype_of v)))) (vfs_of prop);
-                    val args' = List.filter (fn v => Logic.occs (v, nt)) args;
+                    val args' = filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs nt args';
                     val T = fastype_of t';
                     val cname = extr_name s vs';

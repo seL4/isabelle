@@ -450,7 +450,7 @@ fun name_thms label =
 (*Is the given disjunction an all-negative support clause?*)
 fun is_negative th = forall (not o #1) (literals (prop_of th));
 
-val neg_clauses = List.filter is_negative;
+val neg_clauses = filter is_negative;
 
 
 (***** MESON PROOF PROCEDURE *****)

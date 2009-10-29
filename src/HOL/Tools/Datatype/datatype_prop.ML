@@ -130,11 +130,11 @@ fun make_ind descr sorts =
             (make_pred (body_index dt) U $ app_bnds (Free (s, T)) (length Us)))
           end;
 
-        val recs = List.filter is_rec_type cargs;
+        val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr' sorts) recs;
         val tnames = Name.variant_list pnames (make_tnames Ts);
-        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
+        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
 
@@ -190,7 +190,7 @@ fun make_primrec_Ts descr sorts used =
       map (fn (_, cargs) =>
         let
           val Ts = map (typ_of_dtyp descr' sorts) cargs;
-          val recs = List.filter (is_rec_type o fst) (cargs ~~ Ts);
+          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
 
           fun mk_argT (dt, T) =
             binder_types T ---> List.nth (rec_result_Ts, body_index dt);
@@ -223,11 +223,11 @@ fun make_primrecs new_type_names descr sorts thy =
 
     fun make_primrec T comb_t (cname, cargs) (ts, f::fs) =
       let
-        val recs = List.filter is_rec_type cargs;
+        val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr' sorts) recs;
         val tnames = make_tnames Ts;
-        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
+        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = map Free (tnames ~~ Ts);
         val frees' = map Free (rec_tnames ~~ recTs');
 

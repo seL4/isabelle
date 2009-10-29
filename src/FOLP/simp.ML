@@ -215,7 +215,7 @@ in thm'' end;
 
 fun add_norm_tags congs =
     let val ccs = map cong_const congs
-        val new_asms = List.filter (exists not o #2)
+        val new_asms = filter (exists not o #2)
                 (ccs ~~ (map (map atomic o prems_of) congs));
     in add_norms(congs,ccs,new_asms) end;
 

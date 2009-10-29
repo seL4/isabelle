@@ -192,7 +192,7 @@ fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
            val lbnos = fold add_lbnos (Library.take (n, ts)) []
-           val flbnos = List.filter (fn i => i < lev) lbnos
+           val flbnos = filter (fn i => i < lev) lbnos
            val tt = incr_boundvars (~lev) t
        in if null flbnos then
             if T = T' then [(thm,[],pos,TB,tt)] else []

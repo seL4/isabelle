@@ -680,7 +680,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val _ = trace_msg (fn () => "mode = " ^ string_of_mode mode)
       val _ = trace_msg (fn () => "START METIS PROVE PROCESS")
   in
-      case List.filter (is_false o prop_of) cls of
+      case filter (is_false o prop_of) cls of
           false_th::_ => [false_th RS @{thm FalseE}]
         | [] =>
       case refute thms of

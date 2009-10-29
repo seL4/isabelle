@@ -446,7 +446,7 @@ local
       val nlas = nonlazy args;
       val vns = map vname args;
       val vnn = List.nth (vns, n);
-      val nlas' = List.filter (fn v => v <> vnn) nlas;
+      val nlas' = filter (fn v => v <> vnn) nlas;
       val lhs = (%%:sel)`(con_app con args);
       val goal = lift_defined %: (nlas', mk_trp (lhs === %:vnn));
       fun tacs1 ctxt =
@@ -555,7 +555,7 @@ local
       val sargs = case largs of [_] => [] | _ => nonlazy args;
       val prop = lift_defined %: (sargs, mk_trp (prem === concl));
     in pg con_appls prop end;
-  val cons' = List.filter (fn (_,args) => args<>[]) cons;
+  val cons' = filter (fn (_,args) => args<>[]) cons;
 in
   val _ = trace " Proving inverts...";
   val inverts =
@@ -593,7 +593,7 @@ local
           else (%# arg);
       val rhs = con_app2 con one_rhs args;
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
-      val args' = List.filter (fn a => not (is_rec a orelse is_lazy a)) args;
+      val args' = filter_out (fn a => is_rec a orelse is_lazy a) args;
       val stricts = abs_strict :: rep_strict :: @{thms domain_fun_stricts};
       fun tacs1 ctxt = map (case_UU_tac ctxt stricts 1 o vname) args';
       val rules = [ax_abs_iso] @ @{thms domain_fun_simps};
@@ -616,7 +616,7 @@ local
   fun has_nonlazy_rec (_, args) = exists is_nonlazy_rec args;
 in
   val _ = trace " Proving copy_stricts...";
-  val copy_stricts = map one_strict (List.filter has_nonlazy_rec cons);
+  val copy_stricts = map one_strict (filter has_nonlazy_rec cons);
 end;
 
 val copy_rews = copy_strict :: copy_apps @ copy_stricts;
@@ -722,7 +722,7 @@ local
         in Library.foldr mk_all (map vname args, lhs === rhs) end;
       fun mk_eqns ((dn, _), cons) = map (mk_eqn dn) cons;
       val goal = mk_trp (foldr1 mk_conj (maps mk_eqns eqs));
-      val simps = List.filter (has_fewer_prems 1) copy_rews;
+      val simps = filter (has_fewer_prems 1) copy_rews;
       fun con_tac ctxt (con, args) =
         if nonlazy_rec args = []
         then all_tac
@@ -747,7 +747,7 @@ local
     let
       fun ind_hyp arg = %:(P_name (1 + rec_of arg)) $ bound_arg args arg;
       val t1 = mk_trp (%:p $ con_app2 con (bound_arg args) args);
-      val t2 = lift ind_hyp (List.filter is_rec args, t1);
+      val t2 = lift ind_hyp (filter is_rec args, t1);
       val t3 = lift_defined (bound_arg (map vname args)) (nonlazy args, t2);
     in Library.foldr mk_All (map vname args, t3) end;
 
@@ -767,7 +767,7 @@ local
         maps (fn (_,args) => 
           resolve_tac prems 1 ::
           map (K(atac 1)) (nonlazy args) @
-          map (K(atac 1)) (List.filter is_rec args))
+          map (K(atac 1)) (filter is_rec args))
         cons))
       conss);
   local 
@@ -812,10 +812,10 @@ in (* local *)
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
           fun con_tacs (con, args) = 
             asm_simp_tac take_ss 1 ::
-            map arg_tac (List.filter is_nonlazy_rec args) @
+            map arg_tac (filter is_nonlazy_rec args) @
             [resolve_tac prems 1] @
-            map (K (atac 1))      (nonlazy args) @
-            map (K (etac spec 1)) (List.filter is_rec args);
+            map (K (atac 1)) (nonlazy args) @
+            map (K (etac spec 1)) (filter is_rec args);
           fun cases_tacs (cons, cases) =
             res_inst_tac context [(("x", 0), "x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::

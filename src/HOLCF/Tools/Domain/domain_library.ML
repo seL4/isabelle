@@ -241,8 +241,8 @@ val     vname =       third;
 val upd_vname =   upd_third;
 fun is_rec         arg = rec_of arg >=0;
 fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
-fun nonlazy     args   = map vname (filter_out is_lazy    args);
-fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
+fun nonlazy     args   = map vname (filter_out is_lazy args);
+fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 
 
 (* ----- combinators for making dtyps ----- *)

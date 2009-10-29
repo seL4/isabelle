@@ -340,7 +340,7 @@ fun is_contradictory (ans as Lineq(k,ty,l,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
 fun calc_blowup l =
-  let val (p,n) = List.partition (curry (op <) 0) (List.filter (curry (op <>) 0) l)
+  let val (p,n) = List.partition (curry (op <) 0) (filter (curry (op <>) 0) l)
   in length p * length n end;
 
 (* ------------------------------------------------------------------------- *)

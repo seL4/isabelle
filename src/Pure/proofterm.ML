@@ -1024,7 +1024,7 @@ exception PMatch;
 
 (** see pattern.ML **)
 
-fun flt (i: int) = List.filter (fn n => n < i);
+fun flt (i: int) = filter (fn n => n < i);
 
 fun fomatch Ts tymatch j =
   let

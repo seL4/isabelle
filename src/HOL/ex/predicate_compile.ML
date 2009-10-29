@@ -999,7 +999,7 @@ fun check_mode_clause with_generator thy param_vs modes gen_modes (iss, is) (ts,
 
 fun check_modes_pred with_generator thy param_vs preds modes gen_modes (p, ms) =
   let val SOME rs = AList.lookup (op =) preds p
-  in (p, List.filter (fn m => case find_index
+  in (p, filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
     | i => (tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^

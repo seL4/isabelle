@@ -444,7 +444,7 @@ fun unify_consts thy cs intr_ts =
      val rec_consts = fold add_term_consts_2 cs' [];
      val intr_consts = fold add_term_consts_2 intr_ts' [];
      fun unify (cname, cT) =
-       let val consts = map snd (List.filter (fn c => fst c = cname) intr_consts)
+       let val consts = map snd (filter (fn c => fst c = cname) intr_consts)
        in fold (Sign.typ_unify thy) ((replicate (length consts) cT) ~~ consts) end;
      val (env, _) = fold unify rec_consts (Vartab.empty, i');
      val subst = map_types (Envir.norm_type env)
@@ -1061,7 +1061,7 @@ fun print_failed_mode options thy modes p m rs i =
 fun check_modes_pred options with_generator thy param_vs clauses modes gen_modes (p, ms) =
   let
     val rs = case AList.lookup (op =) clauses p of SOME rs => rs | NONE => []
-  in (p, List.filter (fn m => case find_index
+  in (p, filter (fn m => case find_index
     (is_none o check_mode_clause with_generator thy param_vs modes gen_modes m) rs of
       ~1 => true
     | i => (print_failed_mode options thy modes p m rs i; false)) ms)

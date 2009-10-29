@@ -394,7 +394,7 @@ struct
     (* (string * int) list *)
     val sizes     = map_filter
       (fn (name, value) => Option.map (pair name) (Int.fromString value))
-      (List.filter (fn (name, _) => name<>"minsize" andalso name<>"maxsize"
+      (filter (fn (name, _) => name<>"minsize" andalso name<>"maxsize"
         andalso name<>"maxvars" andalso name<>"maxtime"
         andalso name<>"satsolver") allparams)
   in
@@ -1070,8 +1070,7 @@ struct
         (* continue search *)
         next max (len+1) (sum+x1) (x2::xs)
     (* only consider those types for which the size is not fixed *)
-    val mutables = List.filter
-      (not o (AList.defined (op =) sizes) o string_of_typ o fst) xs
+    val mutables = filter_out (AList.defined (op =) sizes o string_of_typ o fst) xs
     (* subtract 'minsize' from every size (will be added again at the end) *)
     val diffs = map (fn (_, n) => n-minsize) mutables
   in
@@ -2552,7 +2551,7 @@ struct
                         (* arguments                                         *)
                         val (_, _, constrs) = the (AList.lookup (op =) descr idx)
                         val (_, dtyps)      = List.nth (constrs, c)
-                        val rec_dtyps_args  = List.filter
+                        val rec_dtyps_args  = filter
                           (DatatypeAux.is_rec_type o fst) (dtyps ~~ args)
                         (* map those indices to interpretations *)
                         val rec_dtyps_intrs = map (fn (dtyp, arg) =>
