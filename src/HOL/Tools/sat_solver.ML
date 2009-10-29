@@ -546,7 +546,7 @@ let
         (if name="dpll" orelse name="enumerate" then
           warning ("Using SAT solver " ^ quote name ^ "; for better performance, consider using an external solver.")
         else
-          tracing ("Using SAT solver " ^ quote name ^ "."));
+          ());
         (* apply 'solver' to 'fm' *)
         solver fm
           handle SatSolver.NOT_CONFIGURED => loop solvers
