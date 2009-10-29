@@ -1025,7 +1025,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                  val b' = #1 (Term.dest_Free (Thm.term_of v));
                  val _ =
                    if b <> b' then
-                     warning ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b')
+                     tracing ("Simplifier: renamed bound variable " ^ quote b ^ " to " ^ quote b')
                    else ();
                  val ss' = add_bound ((b', T), a) ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
