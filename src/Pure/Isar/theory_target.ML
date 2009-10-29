@@ -181,9 +181,10 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
     val prefix' = Binding.prefix_of b';
-    val class_global = Binding.eq_name (b, b')
-      andalso not (null prefix')
-      andalso (fst o snd o split_last) prefix' = Class_Target.class_prefix target;
+    val class_global =
+      Binding.eq_name (b, b') andalso
+      not (null prefix') andalso
+      fst (snd (split_last prefix')) = Class_Target.class_prefix target;
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
@@ -202,7 +203,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
-    val declare_const =
+    val (const, lthy') = lthy |>
       (case Class_Target.instantiation_param lthy b of
         SOME c' =>
           if mx3 <> NoSyn then syntax_error c'
@@ -215,7 +216,6 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
                 else LocalTheory.theory_result (Overloading.declare (c', U))
                   ##> Overloading.confirm b
             | NONE => LocalTheory.theory_result (Sign.declare_const ((b, U), mx3))));
-    val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
@@ -275,13 +275,13 @@ fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
 
     (*def*)
     val (global_def, lthy3) = lthy2
-      |> LocalTheory.theory_result (case Overloading.operation lthy b of
-          SOME (_, checked) =>
-            Overloading.define checked name' ((fst o dest_Const) lhs', rhs')
+      |> LocalTheory.theory_result
+        (case Overloading.operation lthy b of
+          SOME (_, checked) => Overloading.define checked name' (fst (dest_Const lhs'), rhs')
         | NONE =>
             if is_none (Class_Target.instantiation_param lthy b)
             then Thm.add_def false false (name', Logic.mk_equals (lhs', rhs'))
-            else AxClass.define_overloaded name' ((fst o dest_Const) lhs', rhs'));
+            else AxClass.define_overloaded name' (fst (dest_Const lhs'), rhs'));
     val def = LocalDefs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
@@ -340,6 +340,9 @@ fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SO
 
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (Locale.intern thy target)) thy;
+
+
+(* other targets *)
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false arities []);
 fun instantiation_cmd raw_arities thy =

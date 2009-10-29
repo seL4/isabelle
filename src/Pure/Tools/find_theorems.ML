@@ -456,7 +456,7 @@ fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
     let
       val proof_state = Toplevel.enter_proof_body state;
       val ctxt = Proof.context_of proof_state;
-      val opt_goal = try Proof.flat_goal proof_state |> Option.map #2;
+      val opt_goal = try Proof.simple_goal proof_state |> Option.map #goal;
     in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 local

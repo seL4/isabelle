@@ -222,22 +222,13 @@ val _ =
 
 (* constant definitions and abbreviations *)
 
-val constdecl =
-  P.binding --
-    (P.where_ >> K (NONE, NoSyn) ||
-      P.$$$ "::" |-- P.!!! ((P.typ >> SOME) -- P.opt_mixfix' --| P.where_) ||
-      Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
-  >> P.triple2;
-
-val constdef = Scan.option constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
-
 val _ =
   OuterSyntax.local_theory "definition" "constant definition" K.thy_decl
-    (constdef >> (fn args => #2 o Specification.definition_cmd args));
+    (SpecParse.constdef >> (fn args => #2 o Specification.definition_cmd args));
 
 val _ =
   OuterSyntax.local_theory "abbreviation" "constant abbreviation" K.thy_decl
-    (opt_mode -- (Scan.option constdecl -- P.prop)
+    (opt_mode -- (Scan.option SpecParse.constdecl -- P.prop)
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =

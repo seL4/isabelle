@@ -62,7 +62,7 @@ axiomatization symm_f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   symm_f: "symm_f x y = symm_f y x"
 lemma "a = a \<and> symm_f a b = symm_f b a"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_prop_09"]]
-  by (smt add: symm_f)
+  by (smt symm_f)
 
 (* 
 Taken from ~~/src/HOL/ex/SAT_Examples.thy.
@@ -524,7 +524,7 @@ definition prime_nat :: "nat \<Rightarrow> bool" where
   "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_nat_arith_07"]]
-  by (smt add: prime_nat_def)
+  by (smt prime_nat_def)
 
 
 section {* Bitvectors *}
@@ -686,7 +686,7 @@ lemma "(f g x = (g x \<and> True)) \<or> (f g x = True) \<or> (g x = True)"
 
 lemma "id 3 = 3 \<and> id True = True"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_hol_03"]]
-  by (smt add: id_def)
+  by (smt id_def)
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 := v2)) i = f i"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_hol_04"]]
@@ -694,7 +694,7 @@ lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 
 
 lemma "map (\<lambda>i::nat. i + 1) [0, 1] = [1, 2]"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_hol_05"]]
-  by (smt add: map.simps)
+  by (smt map.simps)
 
 lemma "(ALL x. P x) | ~ All P"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_hol_06"]]
@@ -704,7 +704,7 @@ fun dec_10 :: "nat \<Rightarrow> nat" where
   "dec_10 n = (if n < 10 then n else dec_10 (n - 10))"
 lemma "dec_10 (4 * dec_10 4) = 6"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_hol_07"]]
-  by (smt add: dec_10.simps)
+  by (smt dec_10.simps)
 
 axiomatization
   eval_dioph :: "int list \<Rightarrow> nat list \<Rightarrow> int"
@@ -721,7 +721,7 @@ lemma
     eval_dioph ks (map (\<lambda>x. x div 2) xs) =
       (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_hol_08"]]
-  by (smt add: eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
+  by (smt eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
 
 
 section {* Monomorphization examples *}
@@ -730,7 +730,7 @@ definition P :: "'a \<Rightarrow> bool" where "P x = True"
 lemma poly_P: "P x \<and> (P [x] \<or> \<not>P[x])" by (simp add: P_def)
 lemma "P (1::int)"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_mono_01"]]
-  by (smt add: poly_P)
+  by (smt poly_P)
 
 consts g :: "'a \<Rightarrow> nat"
 axioms
@@ -739,6 +739,6 @@ axioms
   g3: "g xs = length xs"
 lemma "g (Some (3::int)) = g (Some True)"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_mono_02"]]
-  by (smt add: g1 g2 g3 list.size)
+  by (smt g1 g2 g3 list.size)
 
 end

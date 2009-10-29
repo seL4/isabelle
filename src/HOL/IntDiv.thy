@@ -1024,138 +1024,15 @@ subsection {* The Divides Relation *}
 lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
   dvd_eq_mod_eq_0 [of "number_of x::int" "number_of y::int", standard]
 
-lemma zdvd_anti_sym:
-    "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
-  apply (simp add: dvd_def, auto)
-  apply (simp add: mult_assoc zero_less_mult_iff zmult_eq_1_iff)
-  done
-
-lemma zdvd_dvd_eq: assumes "a \<noteq> 0" and "(a::int) dvd b" and "b dvd a" 
-  shows "\<bar>a\<bar> = \<bar>b\<bar>"
-proof-
-  from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast 
-  from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
-  from k k' have "a = a*k*k'" by simp
-  with mult_cancel_left1[where c="a" and b="k*k'"]
-  have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult_assoc)
-  hence "k = 1 \<and> k' = 1 \<or> k = -1 \<and> k' = -1" by (simp add: zmult_eq_1_iff)
-  thus ?thesis using k k' by auto
-qed
-
-lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
-  apply (subgoal_tac "m = n + (m - n)")
-   apply (erule ssubst)
-   apply (blast intro: dvd_add, simp)
-  done
-
-lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"
-apply (rule iffI)
- apply (erule_tac [2] dvd_add)
- apply (subgoal_tac "n = (n + k * m) - k * m")
-  apply (erule ssubst)
-  apply (erule dvd_diff)
-  apply(simp_all)
-done
-
 lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
   by (rule dvd_mod) (* TODO: remove *)
 
 lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
   by (rule dvd_mod_imp_dvd) (* TODO: remove *)
 
-lemma dvd_imp_le_int: "(i::int) ~= 0 ==> d dvd i ==> abs d <= abs i"
-apply(auto simp:abs_if)
-   apply(clarsimp simp:dvd_def mult_less_0_iff)
-  using mult_le_cancel_left_neg[of _ "-1::int"]
-  apply(clarsimp simp:dvd_def mult_less_0_iff)
- apply(clarsimp simp:dvd_def mult_less_0_iff
-         minus_mult_right simp del: mult_minus_right)
-apply(clarsimp simp:dvd_def mult_less_0_iff)
-done
-
-lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
-  apply (auto elim!: dvdE)
-  apply (subgoal_tac "0 < n")
-   prefer 2
-   apply (blast intro: order_less_trans)
-  apply (simp add: zero_less_mult_iff)
-  done
-
 lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
   using zmod_zdiv_equality[where a="m" and b="n"]
   by (simp add: algebra_simps)
-
-lemma zdvd_mult_div_cancel:"(n::int) dvd m \<Longrightarrow> n * (m div n) = m"
-apply (subgoal_tac "m mod n = 0")
- apply (simp add: zmult_div_cancel)
-apply (simp only: dvd_eq_mod_eq_0)
-done
-
-lemma zdvd_mult_cancel: assumes d:"k * m dvd k * n" and kz:"k \<noteq> (0::int)"
-  shows "m dvd n"
-proof-
-  from d obtain h where h: "k*n = k*m * h" unfolding dvd_def by blast
-  {assume "n \<noteq> m*h" hence "k* n \<noteq> k* (m*h)" using kz by simp
-    with h have False by (simp add: mult_assoc)}
-  hence "n = m * h" by blast
-  thus ?thesis by simp
-qed
-
-theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
-proof -
-  have "\<And>k. int y = int x * k \<Longrightarrow> x dvd y"
-  proof -
-    fix k
-    assume A: "int y = int x * k"
-    then show "x dvd y" proof (cases k)
-      case (1 n) with A have "y = x * n" by (simp add: zmult_int)
-      then show ?thesis ..
-    next
-      case (2 n) with A have "int y = int x * (- int (Suc n))" by simp
-      also have "\<dots> = - (int x * int (Suc n))" by (simp only: mult_minus_right)
-      also have "\<dots> = - int (x * Suc n)" by (simp only: zmult_int)
-      finally have "- int (x * Suc n) = int y" ..
-      then show ?thesis by (simp only: negative_eq_positive) auto
-    qed
-  qed
-  then show ?thesis by (auto elim!: dvdE simp only: dvd_triv_left int_mult)
-qed
-
-lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
-proof
-  assume d: "x dvd 1" hence "int (nat \<bar>x\<bar>) dvd int (nat 1)" by simp
-  hence "nat \<bar>x\<bar> dvd 1" by (simp add: zdvd_int)
-  hence "nat \<bar>x\<bar> = 1"  by simp
-  thus "\<bar>x\<bar> = 1" by (cases "x < 0", auto)
-next
-  assume "\<bar>x\<bar>=1" thus "x dvd 1" 
-    by(cases "x < 0",simp_all add: minus_equation_iff dvd_eq_mod_eq_0)
-qed
-lemma zdvd_mult_cancel1: 
-  assumes mp:"m \<noteq>(0::int)" shows "(m * n dvd m) = (\<bar>n\<bar> = 1)"
-proof
-  assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m" 
-    by (cases "n >0", auto simp add: minus_dvd_iff minus_equation_iff)
-next
-  assume H: "m * n dvd m" hence H2: "m * n dvd m * 1" by simp
-  from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)
-qed
-
-lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
-  unfolding zdvd_int by (cases "z \<ge> 0") simp_all
-
-lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
-  unfolding zdvd_int by (cases "z \<ge> 0") simp_all
-
-lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
-  by (auto simp add: dvd_int_iff)
-
-lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
-  apply (rule_tac z=n in int_cases)
-  apply (auto simp add: dvd_int_iff)
-  apply (rule_tac z=z in int_cases)
-  apply (auto simp add: dvd_imp_le)
-  done
 
 lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
 apply (induct "y", auto)
@@ -1181,6 +1058,12 @@ done
 
 lemma abs_div: "(y::int) dvd x \<Longrightarrow> abs (x div y) = abs x div abs y"
 by (unfold dvd_def, cases "y=0", auto simp add: abs_mult)
+
+lemma zdvd_mult_div_cancel:"(n::int) dvd m \<Longrightarrow> n * (m div n) = m"
+apply (subgoal_tac "m mod n = 0")
+ apply (simp add: zmult_div_cancel)
+apply (simp only: dvd_eq_mod_eq_0)
+done
 
 text{*Suggested by Matthias Daum*}
 lemma int_power_div_base:
@@ -1317,6 +1200,73 @@ next
   hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
   thus  ?lhs by simp
 qed
+
+lemma div_nat_number_of [simp]:
+     "(number_of v :: nat)  div  number_of v' =  
+          (if neg (number_of v :: int) then 0  
+           else nat (number_of v div number_of v'))"
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_div_distrib)
+
+lemma one_div_nat_number_of [simp]:
+     "Suc 0 div number_of v' = nat (1 div number_of v')" 
+by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
+
+lemma mod_nat_number_of [simp]:
+     "(number_of v :: nat)  mod  number_of v' =  
+        (if neg (number_of v :: int) then 0  
+         else if neg (number_of v' :: int) then number_of v  
+         else nat (number_of v mod number_of v'))"
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_mod_distrib)
+
+lemma one_mod_nat_number_of [simp]:
+     "Suc 0 mod number_of v' =  
+        (if neg (number_of v' :: int) then Suc 0
+         else nat (1 mod number_of v'))"
+by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
+
+lemmas dvd_eq_mod_eq_0_number_of =
+  dvd_eq_mod_eq_0 [of "number_of x" "number_of y", standard]
+
+declare dvd_eq_mod_eq_0_number_of [simp]
+
+
+subsection {* Transfer setup *}
+
+lemma transfer_nat_int_functions:
+    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) div (nat y) = nat (x div y)"
+    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) mod (nat y) = nat (x mod y)"
+  by (auto simp add: nat_div_distrib nat_mod_distrib)
+
+lemma transfer_nat_int_function_closures:
+    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x div y >= 0"
+    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x mod y >= 0"
+  apply (cases "y = 0")
+  apply (auto simp add: pos_imp_zdiv_nonneg_iff)
+  apply (cases "y = 0")
+  apply auto
+done
+
+declare TransferMorphism_nat_int[transfer add return:
+  transfer_nat_int_functions
+  transfer_nat_int_function_closures
+]
+
+lemma transfer_int_nat_functions:
+    "(int x) div (int y) = int (x div y)"
+    "(int x) mod (int y) = int (x mod y)"
+  by (auto simp add: zdiv_int zmod_int)
+
+lemma transfer_int_nat_function_closures:
+    "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x div y)"
+    "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x mod y)"
+  by (simp_all only: is_nat_def transfer_nat_int_function_closures)
+
+declare TransferMorphism_int_nat[transfer add return:
+  transfer_int_nat_functions
+  transfer_int_nat_function_closures
+]
 
 
 subsection {* Code generation *}

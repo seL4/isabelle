@@ -6,8 +6,16 @@
 header {* The division operators div and mod *}
 
 theory Divides
-imports Nat Power Product_Type
-uses "~~/src/Provers/Arith/cancel_div_mod.ML"
+imports Nat_Numeral Nat_Transfer
+uses
+  "~~/src/Provers/Arith/assoc_fold.ML"
+  "~~/src/Provers/Arith/cancel_numerals.ML"
+  "~~/src/Provers/Arith/combine_numerals.ML"
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  ("Tools/numeral_simprocs.ML")
+  ("Tools/nat_numeral_simprocs.ML")
+  "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 
 subsection {* Syntactic division operations *}
@@ -177,6 +185,9 @@ by (rule dvd_eq_mod_eq_0[THEN iffD1])
 
 lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
 by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)
+
+lemma dvd_mult_div_cancel: "a dvd b \<Longrightarrow> a * (b div a) = b"
+by (drule dvd_div_mult_self) (simp add: mult_commute)
 
 lemma dvd_div_mult: "a dvd b \<Longrightarrow> (b div a) * c = b * c div a"
 apply (cases "a = 0")
@@ -866,79 +877,6 @@ apply (simp add: linorder_not_less le_Suc_eq mod_geq)
 apply (auto simp add: Suc_diff_le le_mod_geq)
 done
 
-
-subsubsection {* The Divides Relation *}
-
-lemma dvd_1_left [iff]: "Suc 0 dvd k"
-  unfolding dvd_def by simp
-
-lemma dvd_1_iff_1 [simp]: "(m dvd Suc 0) = (m = Suc 0)"
-by (simp add: dvd_def)
-
-lemma nat_dvd_1_iff_1 [simp]: "m dvd (1::nat) \<longleftrightarrow> m = 1"
-by (simp add: dvd_def)
-
-lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
-  unfolding dvd_def
-  by (force dest: mult_eq_self_implies_10 simp add: mult_assoc mult_eq_1_iff)
-
-text {* @{term "op dvd"} is a partial order *}
-
-interpretation dvd: order "op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"
-  proof qed (auto intro: dvd_refl dvd_trans dvd_anti_sym)
-
-lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
-unfolding dvd_def
-by (blast intro: diff_mult_distrib2 [symmetric])
-
-lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
-  apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
-  apply (blast intro: dvd_add)
-  done
-
-lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
-by (drule_tac m = m in dvd_diff_nat, auto)
-
-lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
-  apply (rule iffI)
-   apply (erule_tac [2] dvd_add)
-   apply (rule_tac [2] dvd_refl)
-  apply (subgoal_tac "n = (n+k) -k")
-   prefer 2 apply simp
-  apply (erule ssubst)
-  apply (erule dvd_diff_nat)
-  apply (rule dvd_refl)
-  done
-
-lemma dvd_mult_cancel: "!!k::nat. [| k*m dvd k*n; 0<k |] ==> m dvd n"
-  unfolding dvd_def
-  apply (erule exE)
-  apply (simp add: mult_ac)
-  done
-
-lemma dvd_mult_cancel1: "0<m ==> (m*n dvd m) = (n = (1::nat))"
-  apply auto
-   apply (subgoal_tac "m*n dvd m*1")
-   apply (drule dvd_mult_cancel, auto)
-  done
-
-lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
-  apply (subst mult_commute)
-  apply (erule dvd_mult_cancel1)
-  done
-
-lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
-  by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
-
-lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
-  by (simp add: dvd_eq_mod_eq_0 mult_div_cancel)
-
-lemma power_dvd_imp_le:
-  "i ^ m dvd i ^ n \<Longrightarrow> (1::nat) < i \<Longrightarrow> m \<le> n"
-  apply (rule power_le_imp_le_exp, assumption)
-  apply (erule dvd_imp_le, simp)
-  done
-
 lemma mod_eq_0_iff: "(m mod d = 0) = (\<exists>q::nat. m = d*q)"
 by (auto simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 
@@ -1162,9 +1100,158 @@ proof -
   with j show ?thesis by blast
 qed
 
-lemma nat_dvd_not_less:
-  fixes m n :: nat
-  shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
-by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+lemma div2_Suc_Suc [simp]: "Suc (Suc m) div 2 = Suc (m div 2)"
+by (auto simp add: numeral_2_eq_2 le_div_geq)
+
+lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
+by (simp add: nat_mult_2 [symmetric])
+
+lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
+apply (subgoal_tac "m mod 2 < 2")
+apply (erule less_2_cases [THEN disjE])
+apply (simp_all (no_asm_simp) add: Let_def mod_Suc nat_1)
+done
+
+lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
+proof -
+  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (induct n) simp_all }
+  moreover have "m mod 2 < 2" by simp
+  ultimately have "m mod 2 = 0 \<or> m mod 2 = 1" .
+  then show ?thesis by auto
+qed
+
+text{*These lemmas collapse some needless occurrences of Suc:
+    at least three Sucs, since two and fewer are rewritten back to Suc again!
+    We already have some rules to simplify operands smaller than 3.*}
+
+lemma div_Suc_eq_div_add3 [simp]: "m div (Suc (Suc (Suc n))) = m div (3+n)"
+by (simp add: Suc3_eq_add_3)
+
+lemma mod_Suc_eq_mod_add3 [simp]: "m mod (Suc (Suc (Suc n))) = m mod (3+n)"
+by (simp add: Suc3_eq_add_3)
+
+lemma Suc_div_eq_add3_div: "(Suc (Suc (Suc m))) div n = (3+m) div n"
+by (simp add: Suc3_eq_add_3)
+
+lemma Suc_mod_eq_add3_mod: "(Suc (Suc (Suc m))) mod n = (3+m) mod n"
+by (simp add: Suc3_eq_add_3)
+
+lemmas Suc_div_eq_add3_div_number_of =
+    Suc_div_eq_add3_div [of _ "number_of v", standard]
+declare Suc_div_eq_add3_div_number_of [simp]
+
+lemmas Suc_mod_eq_add3_mod_number_of =
+    Suc_mod_eq_add3_mod [of _ "number_of v", standard]
+declare Suc_mod_eq_add3_mod_number_of [simp]
+
+
+subsection {* Proof Tools setup; Combination and Cancellation Simprocs *}
+
+declare split_div[of _ _ "number_of k", standard, arith_split]
+declare split_mod[of _ _ "number_of k", standard, arith_split]
+
+
+subsubsection{*For @{text combine_numerals}*}
+
+lemma left_add_mult_distrib: "i*u + (j*u + k) = (i+j)*u + (k::nat)"
+by (simp add: add_mult_distrib)
+
+
+subsubsection{*For @{text cancel_numerals}*}
+
+lemma nat_diff_add_eq1:
+     "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)"
+by (simp split add: nat_diff_split add: add_mult_distrib)
+
+lemma nat_diff_add_eq2:
+     "i <= (j::nat) ==> ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))"
+by (simp split add: nat_diff_split add: add_mult_distrib)
+
+lemma nat_eq_add_iff1:
+     "j <= (i::nat) ==> (i*u + m = j*u + n) = ((i-j)*u + m = n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_eq_add_iff2:
+     "i <= (j::nat) ==> (i*u + m = j*u + n) = (m = (j-i)*u + n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_less_add_iff1:
+     "j <= (i::nat) ==> (i*u + m < j*u + n) = ((i-j)*u + m < n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_less_add_iff2:
+     "i <= (j::nat) ==> (i*u + m < j*u + n) = (m < (j-i)*u + n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_le_add_iff1:
+     "j <= (i::nat) ==> (i*u + m <= j*u + n) = ((i-j)*u + m <= n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_le_add_iff2:
+     "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+
+subsubsection{*For @{text cancel_numeral_factors} *}
+
+lemma nat_mult_le_cancel1: "(0::nat) < k ==> (k*m <= k*n) = (m<=n)"
+by auto
+
+lemma nat_mult_less_cancel1: "(0::nat) < k ==> (k*m < k*n) = (m<n)"
+by auto
+
+lemma nat_mult_eq_cancel1: "(0::nat) < k ==> (k*m = k*n) = (m=n)"
+by auto
+
+lemma nat_mult_div_cancel1: "(0::nat) < k ==> (k*m) div (k*n) = (m div n)"
+by auto
+
+lemma nat_mult_dvd_cancel_disj[simp]:
+  "(k*m) dvd (k*n) = (k=0 | m dvd (n::nat))"
+by(auto simp: dvd_eq_mod_eq_0 mod_mult_distrib2[symmetric])
+
+lemma nat_mult_dvd_cancel1: "0 < k \<Longrightarrow> (k*m) dvd (k*n::nat) = (m dvd n)"
+by(auto)
+
+
+subsubsection{*For @{text cancel_factor} *}
+
+lemma nat_mult_le_cancel_disj: "(k*m <= k*n) = ((0::nat) < k --> m<=n)"
+by auto
+
+lemma nat_mult_less_cancel_disj: "(k*m < k*n) = ((0::nat) < k & m<n)"
+by auto
+
+lemma nat_mult_eq_cancel_disj: "(k*m = k*n) = (k = (0::nat) | m=n)"
+by auto
+
+lemma nat_mult_div_cancel_disj[simp]:
+     "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
+by (simp add: nat_mult_div_cancel1)
+
+
+use "Tools/numeral_simprocs.ML"
+
+use "Tools/nat_numeral_simprocs.ML"
+
+declaration {* 
+  K (Lin_Arith.add_simps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
+  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1},
+     @{thm nat_0}, @{thm nat_1},
+     @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
+     @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
+     @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
+     @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
+     @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
+     @{thm mult_Suc}, @{thm mult_Suc_right},
+     @{thm add_Suc}, @{thm add_Suc_right},
+     @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
+     @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of},
+     @{thm if_True}, @{thm if_False}])
+  #> Lin_Arith.add_simprocs (Numeral_Simprocs.assoc_fold_simproc
+      :: Numeral_Simprocs.combine_numerals
+      :: Numeral_Simprocs.cancel_numerals)
+  #> Lin_Arith.add_simprocs (Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals))
+*}
 
 end

@@ -28,6 +28,13 @@ instance ..
 
 end
 
+lemma transfer_int_nat_relations:
+  "even (int x) \<longleftrightarrow> even x"
+  by (simp add: even_nat_def)
+
+declare TransferMorphism_int_nat[transfer add return:
+  transfer_int_nat_relations
+]
 
 lemma even_zero_int[simp]: "even (0::int)" by presburger
 
@@ -309,6 +316,8 @@ next
 qed
 
 subsection {* General Lemmas About Division *}
+
+(*FIXME move to Divides.thy*)
 
 lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1" 
 apply (induct "m")

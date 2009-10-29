@@ -5,7 +5,7 @@
 header {* An experimental alternative numeral representation. *}
 
 theory Numeral
-imports Int Inductive
+imports Plain Divides
 begin
 
 subsection {* The @{text num} type *}

@@ -65,6 +65,10 @@ INCOMPATIBILITY.
 of finite and infinite sets. It is shown that they form a complete
 lattice.
 
+* New theory SupInf of the supremum and infimum operators for sets of reals.
+
+* New theory Probability, which contains a development of measure theory, eventually leading to Lebesgue integration and probability.
+
 * Split off prime number ingredients from theory GCD
 to theory Number_Theory/Primes;
 

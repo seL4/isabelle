@@ -454,7 +454,7 @@ fun string_of_prfs full state arg =
     (case arg of
       NONE =>
         let
-          val (ctxt, thm) = Proof.flat_goal state;
+          val {context = ctxt, goal = thm} = Proof.simple_goal state;
           val thy = ProofContext.theory_of ctxt;
           val prf = Thm.proof_of thm;
           val prop = Thm.full_prop_of thm;

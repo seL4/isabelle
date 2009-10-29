@@ -153,13 +153,17 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
         (descr' ~~ recTs ~~ rec_sets') ([], 0);
 
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
-        Inductive.add_inductive_global (serial ())
+      thy0
+      |> Sign.map_naming Name_Space.conceal
+      |> Inductive.add_inductive_global (serial ())
           {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
             alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) [] thy0;
+          (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) []
+      ||> Sign.restore_naming thy0
+      ||> Theory.checkpoint;
 
     (* prove uniqueness and termination of primrec combinators *)
 

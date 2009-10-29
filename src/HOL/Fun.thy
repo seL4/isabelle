@@ -7,7 +7,6 @@ header {* Notions about functions *}
 
 theory Fun
 imports Complete_Lattice
-uses ("Tools/transfer.ML")
 begin
 
 text{*As a simplification rule, it replaces all function equalities by
@@ -602,16 +601,6 @@ let
     end
 in proc end
 *}
-
-
-subsection {* Generic transfer procedure *}
-
-definition TransferMorphism:: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> bool"
-  where "TransferMorphism a B \<longleftrightarrow> True"
-
-use "Tools/transfer.ML"
-
-setup Transfer.setup
 
 
 subsection {* Code generator setup *}

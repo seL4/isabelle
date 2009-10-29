@@ -8,7 +8,7 @@ and * (for div and mod, see theory Divides).
 header {* Natural numbers *}
 
 theory Nat
-imports Inductive Ring_and_Field
+imports Inductive Product_Type Ring_and_Field
 uses
   "~~/src/Tools/rat.ML"
   "~~/src/Provers/Arith/cancel_sums.ML"
@@ -1598,6 +1598,75 @@ declare diff_diff_left [simp]  add_diff_assoc [simp] add_diff_assoc2[simp]
 
 text{*At present we prove no analogue of @{text not_less_Least} or @{text
 Least_Suc}, since there appears to be no need.*}
+
+
+subsection {* The divides relation on @{typ nat} *}
+
+lemma dvd_1_left [iff]: "Suc 0 dvd k"
+unfolding dvd_def by simp
+
+lemma dvd_1_iff_1 [simp]: "(m dvd Suc 0) = (m = Suc 0)"
+by (simp add: dvd_def)
+
+lemma nat_dvd_1_iff_1 [simp]: "m dvd (1::nat) \<longleftrightarrow> m = 1"
+by (simp add: dvd_def)
+
+lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
+  unfolding dvd_def
+  by (force dest: mult_eq_self_implies_10 simp add: mult_assoc mult_eq_1_iff)
+
+text {* @{term "op dvd"} is a partial order *}
+
+interpretation dvd: order "op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"
+  proof qed (auto intro: dvd_refl dvd_trans dvd_anti_sym)
+
+lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
+unfolding dvd_def
+by (blast intro: diff_mult_distrib2 [symmetric])
+
+lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
+  apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
+  apply (blast intro: dvd_add)
+  done
+
+lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
+by (drule_tac m = m in dvd_diff_nat, auto)
+
+lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
+  apply (rule iffI)
+   apply (erule_tac [2] dvd_add)
+   apply (rule_tac [2] dvd_refl)
+  apply (subgoal_tac "n = (n+k) -k")
+   prefer 2 apply simp
+  apply (erule ssubst)
+  apply (erule dvd_diff_nat)
+  apply (rule dvd_refl)
+  done
+
+lemma dvd_mult_cancel: "!!k::nat. [| k*m dvd k*n; 0<k |] ==> m dvd n"
+  unfolding dvd_def
+  apply (erule exE)
+  apply (simp add: mult_ac)
+  done
+
+lemma dvd_mult_cancel1: "0<m ==> (m*n dvd m) = (n = (1::nat))"
+  apply auto
+   apply (subgoal_tac "m*n dvd m*1")
+   apply (drule dvd_mult_cancel, auto)
+  done
+
+lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
+  apply (subst mult_commute)
+  apply (erule dvd_mult_cancel1)
+  done
+
+lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
+by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+
+lemma nat_dvd_not_less:
+  fixes m n :: nat
+  shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
+by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 
 subsection {* size of a datatype value *}

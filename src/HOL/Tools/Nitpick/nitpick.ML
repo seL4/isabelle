@@ -854,7 +854,7 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...})
 fun pick_nits_in_subgoal state params auto subgoal =
   let
     val ctxt = Proof.context_of state
-    val t = state |> Proof.get_goal |> snd |> snd |> prop_of
+    val t = state |> Proof.raw_goal |> #goal |> prop_of
   in
     if Logic.count_prems t = 0 then
       (priority "No subgoal!"; ("none", state))

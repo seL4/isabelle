@@ -230,7 +230,7 @@ fun smt_tac' pass_smt_exns ctxt =
 val smt_tac = smt_tac' false
 
 val smt_method =
-  Scan.optional (Scan.lift (Args.add -- Args.colon) |-- Attrib.thms) [] >>
+  Scan.optional Attrib.thms [] >>
   (fn thms => fn ctxt => METHOD (fn facts =>
     HEADGOAL (smt_tac ctxt (thms @ facts))))
 

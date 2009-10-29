@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 header {* GCD *}
 
 theory GCD
-imports Fact
+imports Fact Parity
 begin
 
 declare One_nat_def [simp del]

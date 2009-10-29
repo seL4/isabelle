@@ -10,7 +10,7 @@ Additional contributions by Jeremy Avigad
 header{*Finite Summation and Infinite Series*}
 
 theory Series
-imports SEQ
+imports SEQ Deriv
 begin
 
 definition
@@ -285,6 +285,26 @@ done
 text{*A summable series of positive terms has limit that is at least as
 great as any partial sum.*}
 
+lemma pos_summable:
+  fixes f:: "nat \<Rightarrow> real"
+  assumes pos: "!!n. 0 \<le> f n" and le: "!!n. setsum f {0..<n} \<le> x"
+  shows "summable f"
+proof -
+  have "convergent (\<lambda>n. setsum f {0..<n})" 
+    proof (rule Bseq_mono_convergent)
+      show "Bseq (\<lambda>n. setsum f {0..<n})"
+	by (rule f_inc_g_dec_Beq_f [of "(\<lambda>n. setsum f {0..<n})" "\<lambda>n. x"])
+           (auto simp add: le pos)  
+    next 
+      show "\<forall>m n. m \<le> n \<longrightarrow> setsum f {0..<m} \<le> setsum f {0..<n}"
+	by (auto intro: setsum_mono2 pos) 
+    qed
+  then obtain L where "(%n. setsum f {0..<n}) ----> L"
+    by (blast dest: convergentD)
+  thus ?thesis
+    by (force simp add: summable_def sums_def) 
+qed
+
 lemma series_pos_le:
   fixes f :: "nat \<Rightarrow> real"
   shows "\<lbrakk>summable f; \<forall>m\<ge>n. 0 \<le> f m\<rbrakk> \<Longrightarrow> setsum f {0..<n} \<le> suminf f"
@@ -360,6 +380,19 @@ lemma summable_geometric:
   fixes x :: "'a::{real_normed_field}"
   shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
 by (rule geometric_sums [THEN sums_summable])
+
+lemma half: "0 < 1 / (2::'a::{number_ring,division_by_zero,ordered_field})"
+  by arith 
+
+lemma power_half_series: "(\<lambda>n. (1/2::real)^Suc n) sums 1"
+proof -
+  have 2: "(\<lambda>n. (1/2::real)^n) sums 2" using geometric_sums [of "1/2::real"]
+    by auto
+  have "(\<lambda>n. (1/2::real)^Suc n) = (\<lambda>n. (1 / 2) ^ n / 2)"
+    by simp
+  thus ?thesis using divide.sums [OF 2, of 2]
+    by simp
+qed
 
 text{*Cauchy-type criterion for convergence of series (c.f. Harrison)*}
 

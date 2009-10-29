@@ -417,7 +417,7 @@ fun pick_nits override_params auto subgoal state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val thm = snd (snd (Proof.get_goal state))
+    val thm = #goal (Proof.raw_goal state)
     val _ = List.app check_raw_param override_params
     val params as {blocking, debug, ...} =
       extract_params ctxt auto (default_raw_params thy) override_params

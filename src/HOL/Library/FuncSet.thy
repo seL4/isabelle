@@ -101,6 +101,19 @@ text{*Contravariance of Pi-sets in their first argument*}
 lemma Pi_anti_mono: "A' <= A ==> Pi A B <= Pi A' B"
 by auto
 
+lemma prod_final:
+  assumes 1: "fst \<circ> f \<in> Pi A B" and 2: "snd \<circ> f \<in> Pi A C"
+  shows "f \<in> (\<Pi> z \<in> A. B z \<times> C z)"
+proof (rule Pi_I) 
+  fix z
+  assume z: "z \<in> A" 
+  have "f z = (fst (f z), snd (f z))" 
+    by simp
+  also have "...  \<in> B z \<times> C z"
+    by (metis SigmaI PiE o_apply 1 2 z) 
+  finally show "f z \<in> B z \<times> C z" .
+qed
+
 
 subsection{*Composition With a Restricted Domain: @{term compose}*}
 

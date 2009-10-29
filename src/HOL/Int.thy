@@ -13,12 +13,6 @@ uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")
   ("Tools/int_arith.ML")
-  "~~/src/Provers/Arith/assoc_fold.ML"
-  "~~/src/Provers/Arith/cancel_numerals.ML"
-  "~~/src/Provers/Arith/combine_numerals.ML"
-  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
-  "~~/src/Provers/Arith/extract_common_term.ML"
-  ("Tools/numeral_simprocs.ML")
 begin
 
 subsection {* The equivalence relation underlying the integers *}
@@ -1093,7 +1087,7 @@ subsubsection {* Comparisons, for Ordered Rings *}
 lemmas double_eq_0_iff = double_zero
 
 lemma odd_nonzero:
-  "1 + z + z \<noteq> (0::int)";
+  "1 + z + z \<noteq> (0::int)"
 proof (cases z rule: int_cases)
   case (nonneg n)
   have le: "0 \<le> z+z" by (simp add: nonneg add_increasing) 
@@ -1163,7 +1157,7 @@ proof -
 qed
 
 lemma odd_less_0:
-  "(1 + z + z < 0) = (z < (0::int))";
+  "(1 + z + z < 0) = (z < (0::int))"
 proof (cases z rule: int_cases)
   case (nonneg n)
   thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
@@ -1368,7 +1362,7 @@ lemma Ints_number_of:
 
 lemma Ints_odd_less_0: 
   assumes in_Ints: "a \<in> Ints"
-  shows "(1 + a + a < 0) = (a < (0::'a::ordered_idom))";
+  shows "(1 + a + a < 0) = (a < (0::'a::ordered_idom))"
 proof -
   from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .
   then obtain z where a: "a = of_int z" ..
@@ -1503,8 +1497,6 @@ lemmas int_arith_rules =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
   of_int_0 of_int_1 of_int_add of_int_mult
 
-use "Tools/numeral_simprocs.ML"
-
 use "Tools/int_arith.ML"
 setup {* Int_Arith.global_setup *}
 declaration {* K Int_Arith.setup *}
@@ -1540,11 +1532,7 @@ by (simp add: number_of_eq)
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 lemma mult_2: "2 * z = (z+z::'a::number_ring)"
-proof -
-  have "2*z = (1 + 1)*z" by simp
-  also have "... = z+z" by (simp add: left_distrib)
-  finally show ?thesis .
-qed
+unfolding one_add_one_is_two [symmetric] left_distrib by simp
 
 lemma mult_2_right: "z * 2 = (z+z::'a::number_ring)"
 by (subst mult_commute, rule mult_2)
@@ -1830,14 +1818,15 @@ apply (rule iffI)
  apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
-(* Could be simplified but Presburger only becomes available too late *)
-lemma infinite_UNIV_int: "~finite(UNIV::int set)"
+lemma infinite_UNIV_int: "\<not> finite (UNIV::int set)"
 proof
-  assume "finite(UNIV::int set)"
-  moreover have "~(EX i::int. 2*i = 1)"
-    by (auto simp: pos_zmult_eq_1_iff)
-  ultimately show False using finite_UNIV_inj_surj[of "%n::int. n+n"]
-    by (simp add:inj_on_def surj_def) (blast intro:sym)
+  assume "finite (UNIV::int set)"
+  moreover have "inj (\<lambda>i\<Colon>int. 2 * i)"
+    by (rule injI) simp
+  ultimately have "surj (\<lambda>i\<Colon>int. 2 * i)"
+    by (rule finite_UNIV_inj_surj)
+  then obtain i :: int where "1 = 2 * i" by (rule surjE)
+  then show False by (simp add: pos_zmult_eq_1_iff)
 qed
 
 
@@ -1993,6 +1982,135 @@ lemma half_gt_zero_iff:
 by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
+
+
+subsection {* The divides relation *}
+
+lemma zdvd_anti_sym:
+    "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
+  apply (simp add: dvd_def, auto)
+  apply (simp add: mult_assoc zero_less_mult_iff zmult_eq_1_iff)
+  done
+
+lemma zdvd_dvd_eq: assumes "a \<noteq> 0" and "(a::int) dvd b" and "b dvd a" 
+  shows "\<bar>a\<bar> = \<bar>b\<bar>"
+proof-
+  from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast 
+  from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
+  from k k' have "a = a*k*k'" by simp
+  with mult_cancel_left1[where c="a" and b="k*k'"]
+  have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult_assoc)
+  hence "k = 1 \<and> k' = 1 \<or> k = -1 \<and> k' = -1" by (simp add: zmult_eq_1_iff)
+  thus ?thesis using k k' by auto
+qed
+
+lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
+  apply (subgoal_tac "m = n + (m - n)")
+   apply (erule ssubst)
+   apply (blast intro: dvd_add, simp)
+  done
+
+lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"
+apply (rule iffI)
+ apply (erule_tac [2] dvd_add)
+ apply (subgoal_tac "n = (n + k * m) - k * m")
+  apply (erule ssubst)
+  apply (erule dvd_diff)
+  apply(simp_all)
+done
+
+lemma dvd_imp_le_int:
+  fixes d i :: int
+  assumes "i \<noteq> 0" and "d dvd i"
+  shows "\<bar>d\<bar> \<le> \<bar>i\<bar>"
+proof -
+  from `d dvd i` obtain k where "i = d * k" ..
+  with `i \<noteq> 0` have "k \<noteq> 0" by auto
+  then have "1 \<le> \<bar>k\<bar>" and "0 \<le> \<bar>d\<bar>" by auto
+  then have "\<bar>d\<bar> * 1 \<le> \<bar>d\<bar> * \<bar>k\<bar>" by (rule mult_left_mono)
+  with `i = d * k` show ?thesis by (simp add: abs_mult)
+qed
+
+lemma zdvd_not_zless:
+  fixes m n :: int
+  assumes "0 < m" and "m < n"
+  shows "\<not> n dvd m"
+proof
+  from assms have "0 < n" by auto
+  assume "n dvd m" then obtain k where k: "m = n * k" ..
+  with `0 < m` have "0 < n * k" by auto
+  with `0 < n` have "0 < k" by (simp add: zero_less_mult_iff)
+  with k `0 < n` `m < n` have "n * k < n * 1" by simp
+  with `0 < n` `0 < k` show False unfolding mult_less_cancel_left by auto
+qed
+
+lemma zdvd_mult_cancel: assumes d:"k * m dvd k * n" and kz:"k \<noteq> (0::int)"
+  shows "m dvd n"
+proof-
+  from d obtain h where h: "k*n = k*m * h" unfolding dvd_def by blast
+  {assume "n \<noteq> m*h" hence "k* n \<noteq> k* (m*h)" using kz by simp
+    with h have False by (simp add: mult_assoc)}
+  hence "n = m * h" by blast
+  thus ?thesis by simp
+qed
+
+theorem zdvd_int: "(x dvd y) = (int x dvd int y)"
+proof -
+  have "\<And>k. int y = int x * k \<Longrightarrow> x dvd y"
+  proof -
+    fix k
+    assume A: "int y = int x * k"
+    then show "x dvd y" proof (cases k)
+      case (1 n) with A have "y = x * n" by (simp add: of_nat_mult [symmetric])
+      then show ?thesis ..
+    next
+      case (2 n) with A have "int y = int x * (- int (Suc n))" by simp
+      also have "\<dots> = - (int x * int (Suc n))" by (simp only: mult_minus_right)
+      also have "\<dots> = - int (x * Suc n)" by (simp only: of_nat_mult [symmetric])
+      finally have "- int (x * Suc n) = int y" ..
+      then show ?thesis by (simp only: negative_eq_positive) auto
+    qed
+  qed
+  then show ?thesis by (auto elim!: dvdE simp only: dvd_triv_left of_nat_mult)
+qed
+
+lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
+proof
+  assume d: "x dvd 1" hence "int (nat \<bar>x\<bar>) dvd int (nat 1)" by simp
+  hence "nat \<bar>x\<bar> dvd 1" by (simp add: zdvd_int)
+  hence "nat \<bar>x\<bar> = 1"  by simp
+  thus "\<bar>x\<bar> = 1" by (cases "x < 0", auto)
+next
+  assume "\<bar>x\<bar>=1"
+  then have "x = 1 \<or> x = -1" by auto
+  then show "x dvd 1" by (auto intro: dvdI)
+qed
+
+lemma zdvd_mult_cancel1: 
+  assumes mp:"m \<noteq>(0::int)" shows "(m * n dvd m) = (\<bar>n\<bar> = 1)"
+proof
+  assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m" 
+    by (cases "n >0", auto simp add: minus_dvd_iff minus_equation_iff)
+next
+  assume H: "m * n dvd m" hence H2: "m * n dvd m * 1" by simp
+  from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)
+qed
+
+lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
+  unfolding zdvd_int by (cases "z \<ge> 0") simp_all
+
+lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
+  unfolding zdvd_int by (cases "z \<ge> 0") simp_all
+
+lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
+  by (auto simp add: dvd_int_iff)
+
+lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
+  apply (rule_tac z=n in int_cases)
+  apply (auto simp add: dvd_int_iff)
+  apply (rule_tac z=z in int_cases)
+  apply (auto simp add: dvd_imp_le)
+  done
 
 
 subsection {* Configuration of the code generator *}
