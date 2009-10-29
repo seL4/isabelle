@@ -244,10 +244,10 @@
 \<Inter>                code: 0x0022c2  font: Isabelle  abbrev: Inter
 \<union>                code: 0x00222a  font: Isabelle  abbrev: Un
 \<Union>                code: 0x0022c3  font: Isabelle  abbrev: Union
-\<squnion>              code: 0x002294  font: Isabelle  abbrev: |_|
-\<Squnion>              code: 0x002a06  font: Isabelle  abbrev: |||
-\<sqinter>              code: 0x002293  font: Isabelle  abbrev: &&
-\<Sqinter>              code: 0x002a05  font: Isabelle  abbrev: &&&
+\<squnion>              code: 0x002294  font: Isabelle
+\<Squnion>              code: 0x002a06  font: Isabelle
+\<sqinter>              code: 0x002293  font: Isabelle
+\<Sqinter>              code: 0x002a05  font: Isabelle
 \<setminus>             code: 0x002216  font: Isabelle
 \<propto>               code: 0x00221d  font: Isabelle
 \<uplus>                code: 0x00228e  font: Isabelle
