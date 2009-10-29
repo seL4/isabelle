@@ -86,7 +86,7 @@ val global_state = Synchronized.var "atp_manager"
 
 (* unregister ATP thread *)
 
-fun unregister (success, message) thread = Synchronized.change global_state
+fun unregister message thread = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     (case lookup_thread active thread of
       SOME (birth_time, _, description) =>
@@ -149,7 +149,7 @@ fun check_thread_manager () = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister (false, "Interrupted (reached timeout)"));
+            |> List.app (unregister "Interrupted (reached timeout)");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -263,14 +263,11 @@ fun start_prover name birth_time death_time i proof_state =
           let
             val _ = register birth_time death_time (Thread.self (), desc);
             val problem = ATP_Wrapper.problem_of_goal (! full_types) i (ctxt, (facts, goal));
-            val result =
-              let val {success, message, ...} = prover (! timeout) problem;
-              in (success, message) end
+            val message = #message (prover (! timeout) problem)
               handle ResHolClause.TOO_TRIVIAL =>   (* FIXME !? *)
-                  (true, "Empty clause: Try this command: " ^
-                    Markup.markup Markup.sendback "apply metis")
-                | ERROR msg => (false, "Error: " ^ msg);
-            val _ = unregister result (Thread.self ());
+                  "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis"
+                | ERROR msg => ("Error: " ^ msg);
+            val _ = unregister message (Thread.self ());
           in () end)
       in () end);
 
