@@ -77,7 +77,7 @@ sig
   val tptp_classrelClause : classrelClause -> string
 end
 
-structure ResClause: RES_CLAUSE =
+structure Res_Clause: RES_CLAUSE =
 struct
 
 val schematic_var_prefix = "V_";

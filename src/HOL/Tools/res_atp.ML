@@ -11,14 +11,14 @@ sig
   val get_relevant : int -> bool -> Proof.context * (thm list * 'a) -> thm list ->
     (thm * (string * int)) list
   val prepare_clauses : bool -> thm list -> thm list ->
-    (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list ->
-    (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list -> theory ->
-    ResHolClause.axiom_name vector *
-      (ResHolClause.clause list * ResHolClause.clause list * ResHolClause.clause list *
-      ResHolClause.clause list * ResClause.classrelClause list * ResClause.arityClause list)
+    (thm * (Res_HOL_Clause.axiom_name * Res_HOL_Clause.clause_id)) list ->
+    (thm * (Res_HOL_Clause.axiom_name * Res_HOL_Clause.clause_id)) list -> theory ->
+    Res_HOL_Clause.axiom_name vector *
+      (Res_HOL_Clause.clause list * Res_HOL_Clause.clause list * Res_HOL_Clause.clause list *
+      Res_HOL_Clause.clause list * Res_Clause.classrelClause list * Res_Clause.arityClause list)
 end;
 
-structure ResAtp: RES_ATP =
+structure Res_ATP: RES_ATP =
 struct
 
 
@@ -238,10 +238,10 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
       let val cls = sort compare_pairs newpairs
           val accepted = List.take (cls, max_new)
       in
-        ResAxioms.trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
+        Res_Axioms.trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
                        ", exceeds the limit of " ^ Int.toString (max_new)));
-        ResAxioms.trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
-        ResAxioms.trace_msg (fn () => "Actually passed: " ^
+        Res_Axioms.trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
+        Res_Axioms.trace_msg (fn () => "Actually passed: " ^
           space_implode ", " (map (fn (((_,(name,_)),_),_) => name) accepted));
 
         (map #1 accepted, map #1 (List.drop (cls, max_new)))
@@ -256,7 +256,7 @@ fun relevant_clauses max_new thy ctab p rel_consts =
                 val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
                 val newp = p + (1.0-p) / convergence
             in
-              ResAxioms.trace_msg (fn () => ("relevant this iteration: " ^ Int.toString (length newrels)));
+              Res_Axioms.trace_msg (fn () => "relevant this iteration: " ^ Int.toString (length newrels));
                (map #1 newrels) @ 
                (relevant_clauses max_new thy ctab newp rel_consts' (more_rejects@rejects))
             end
@@ -264,12 +264,12 @@ fun relevant_clauses max_new thy ctab p rel_consts =
             let val weight = clause_weight ctab rel_consts consts_typs
             in
               if p <= weight orelse (follow_defs andalso defines thy (#1 clsthm) rel_consts)
-              then (ResAxioms.trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
+              then (Res_Axioms.trace_msg (fn () => (name ^ " clause " ^ Int.toString n ^ 
                                             " passes: " ^ Real.toString weight));
                     relevant ((ax,weight)::newrels, rejects) axs)
               else relevant (newrels, ax::rejects) axs
             end
-    in  ResAxioms.trace_msg (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
+    in  Res_Axioms.trace_msg (fn () => ("relevant_clauses, current pass mark = " ^ Real.toString p));
         relevant ([],[]) 
     end;
         
@@ -278,12 +278,12 @@ fun relevance_filter max_new theory_const thy axioms goals =
  then
   let val const_tab = List.foldl (count_axiom_consts theory_const thy) Symtab.empty axioms
       val goal_const_tab = get_goal_consts_typs thy goals
-      val _ = ResAxioms.trace_msg (fn () => ("Initial constants: " ^
+      val _ = Res_Axioms.trace_msg (fn () => ("Initial constants: " ^
                                  space_implode ", " (Symtab.keys goal_const_tab)));
       val rels = relevant_clauses max_new thy const_tab (pass_mark) 
                    goal_const_tab  (map (pair_consts_typs_axiom theory_const thy) axioms)
   in
-      ResAxioms.trace_msg (fn () => ("Total relevant: " ^ Int.toString (length rels)));
+      Res_Axioms.trace_msg (fn () => ("Total relevant: " ^ Int.toString (length rels)));
       rels
   end
  else axioms;
@@ -337,7 +337,7 @@ fun mk_clause_table n =
 fun make_unique xs =
   let val ht = mk_clause_table 7000
   in
-      ResAxioms.trace_msg (fn () => ("make_unique gets " ^ Int.toString (length xs) ^ " clauses"));
+      Res_Axioms.trace_msg (fn () => ("make_unique gets " ^ Int.toString (length xs) ^ " clauses"));
       app (ignore o Polyhash.peekInsert ht) xs;
       Polyhash.listItems ht
   end;
@@ -359,7 +359,7 @@ fun valid_facts facts =
     else
       let val xname = Facts.extern facts name in
         if Name_Space.is_hidden xname then I
-        else cons (xname, filter_out ResAxioms.bad_for_atp ths)
+        else cons (xname, filter_out Res_Axioms.bad_for_atp ths)
       end) facts [];
 
 fun all_valid_thms ctxt =
@@ -377,7 +377,7 @@ fun add_single_names (a, []) pairs = pairs
 
 (*Ignore blacklisted basenames*)
 fun add_multi_names (a, ths) pairs =
-  if (Long_Name.base_name a) mem_string ResAxioms.multi_base_blacklist then pairs
+  if (Long_Name.base_name a) mem_string Res_Axioms.multi_base_blacklist then pairs
   else add_single_names (a, ths) pairs;
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
@@ -387,7 +387,7 @@ fun name_thm_pairs ctxt =
   let
     val (mults, singles) = List.partition is_multi (all_valid_thms ctxt)
     fun blacklisted (_, th) =
-      run_blacklist_filter andalso ResBlacklist.blacklisted ctxt th
+      run_blacklist_filter andalso Res_Blacklist.blacklisted ctxt th
   in
     filter_out blacklisted
       (fold add_single_names singles (fold add_multi_names mults []))
@@ -399,7 +399,7 @@ fun check_named ("", th) =
 
 fun get_all_lemmas ctxt =
   let val included_thms =
-        tap (fn ths => ResAxioms.trace_msg
+        tap (fn ths => Res_Axioms.trace_msg
                      (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
             (name_thm_pairs ctxt)
   in
@@ -507,7 +507,7 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
     val thy = ProofContext.theory_of ctxt
     val isFO = isFO thy goal_cls
     val included_cls = get_all_lemmas ctxt
-      |> ResAxioms.cnf_rules_pairs thy |> make_unique
+      |> Res_Axioms.cnf_rules_pairs thy |> make_unique
       |> restrict_to_logic thy isFO
       |> remove_unwanted_clauses
   in
@@ -520,24 +520,24 @@ fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
     (* add chain thms *)
     val chain_cls =
-      ResAxioms.cnf_rules_pairs thy (filter check_named (map ResAxioms.pairname chain_ths))
+      Res_Axioms.cnf_rules_pairs thy (filter check_named (map Res_Axioms.pairname chain_ths))
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
     val isFO = isFO thy goal_cls
     val ccls = subtract_cls goal_cls extra_cls
-    val _ = app (fn th => ResAxioms.trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
+    val _ = app (fn th => Res_Axioms.trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls
     and axtms = map (prop_of o #1) extra_cls
     val subs = tfree_classes_of_terms ccltms
     and supers = tvar_classes_of_terms axtms
     and tycons = type_consts_of_terms thy (ccltms@axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures = ResHolClause.make_conjecture_clauses dfg thy ccls
-    val (_, extra_clauses) = ListPair.unzip (ResHolClause.make_axiom_clauses dfg thy extra_cls)
-    val (clnames,axiom_clauses) = ListPair.unzip (ResHolClause.make_axiom_clauses dfg thy axcls)
-    val helper_clauses = ResHolClause.get_helper_clauses dfg thy isFO (conjectures, extra_cls, [])
-    val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
-    val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
+    val conjectures = Res_HOL_Clause.make_conjecture_clauses dfg thy ccls
+    val (_, extra_clauses) = ListPair.unzip (Res_HOL_Clause.make_axiom_clauses dfg thy extra_cls)
+    val (clnames,axiom_clauses) = ListPair.unzip (Res_HOL_Clause.make_axiom_clauses dfg thy axcls)
+    val helper_clauses = Res_HOL_Clause.get_helper_clauses dfg thy isFO (conjectures, extra_cls, [])
+    val (supers',arity_clauses) = Res_Clause.make_arity_clauses_dfg dfg thy tycons supers
+    val classrel_clauses = Res_Clause.make_classrel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
       (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))

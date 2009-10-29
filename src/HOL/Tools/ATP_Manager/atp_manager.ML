@@ -264,7 +264,7 @@ fun start_prover name birth_time death_time i proof_state =
             val _ = register birth_time death_time (Thread.self (), desc);
             val problem = ATP_Wrapper.problem_of_goal (! full_types) i (ctxt, (facts, goal));
             val message = #message (prover (! timeout) problem)
-              handle ResHolClause.TOO_TRIVIAL =>   (* FIXME !? *)
+              handle Res_HOL_Clause.TOO_TRIVIAL =>   (* FIXME !? *)
                   "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis"
                 | ERROR msg => ("Error: " ^ msg);
             val _ = unregister message (Thread.self ());

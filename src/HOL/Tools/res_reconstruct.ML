@@ -24,13 +24,13 @@ sig
     string * string vector * (int * int) * Proof.context * thm * int -> string * string list
 end;
 
-structure ResReconstruct : RES_RECONSTRUCT =
+structure Res_Reconstruct : RES_RECONSTRUCT =
 struct
 
 val trace_path = Path.basic "atp_trace";
 
 fun trace s =
-  if ! ResAxioms.trace then File.append (File.tmp_path trace_path) s
+  if ! Res_Axioms.trace then File.append (File.tmp_path trace_path) s
   else ();
 
 fun string_of_thm ctxt = PrintMode.setmp [] (Display.string_of_thm ctxt);
@@ -107,12 +107,12 @@ exception STREE of stree;
 (*If string s has the prefix s1, return the result of deleting it.*)
 fun strip_prefix s1 s =
   if String.isPrefix s1 s
-  then SOME (ResClause.undo_ascii_of (String.extract (s, size s1, NONE)))
+  then SOME (Res_Clause.undo_ascii_of (String.extract (s, size s1, NONE)))
   else NONE;
 
 (*Invert the table of translations between Isabelle and ATPs*)
 val type_const_trans_table_inv =
-      Symtab.make (map swap (Symtab.dest ResClause.type_const_trans_table));
+      Symtab.make (map swap (Symtab.dest Res_Clause.type_const_trans_table));
 
 fun invert_type_const c =
     case Symtab.lookup type_const_trans_table_inv c of
@@ -130,15 +130,15 @@ fun type_of_stree t =
     | Br (a,ts) =>
         let val Ts = map type_of_stree ts
         in
-          case strip_prefix ResClause.tconst_prefix a of
+          case strip_prefix Res_Clause.tconst_prefix a of
               SOME b => Type(invert_type_const b, Ts)
             | NONE =>
                 if not (null ts) then raise STREE t  (*only tconsts have type arguments*)
                 else
-                case strip_prefix ResClause.tfree_prefix a of
+                case strip_prefix Res_Clause.tfree_prefix a of
                     SOME b => TFree("'" ^ b, HOLogic.typeS)
                   | NONE =>
-                case strip_prefix ResClause.tvar_prefix a of
+                case strip_prefix Res_Clause.tvar_prefix a of
                     SOME b => make_tvar b
                   | NONE => make_tvar a   (*Variable from the ATP, say X1*)
         end;
@@ -146,7 +146,7 @@ fun type_of_stree t =
 (*Invert the table of translations between Isabelle and ATPs*)
 val const_trans_table_inv =
       Symtab.update ("fequal", "op =")
-        (Symtab.make (map swap (Symtab.dest ResClause.const_trans_table)));
+        (Symtab.make (map swap (Symtab.dest Res_Clause.const_trans_table)));
 
 fun invert_const c =
     case Symtab.lookup const_trans_table_inv c of
@@ -167,7 +167,7 @@ fun term_of_stree args thy t =
     | Br ("hBOOL",[t]) => term_of_stree [] thy t  (*ignore hBOOL*)
     | Br ("hAPP",[t,u]) => term_of_stree (u::args) thy t
     | Br (a,ts) =>
-        case strip_prefix ResClause.const_prefix a of
+        case strip_prefix Res_Clause.const_prefix a of
             SOME "equal" =>
               list_comb(Const ("op =", HOLogic.typeT), List.map (term_of_stree [] thy) ts)
           | SOME b =>
@@ -181,10 +181,10 @@ fun term_of_stree args thy t =
           | NONE => (*a variable, not a constant*)
               let val T = HOLogic.typeT
                   val opr = (*a Free variable is typically a Skolem function*)
-                    case strip_prefix ResClause.fixed_var_prefix a of
+                    case strip_prefix Res_Clause.fixed_var_prefix a of
                         SOME b => Free(b,T)
                       | NONE =>
-                    case strip_prefix ResClause.schematic_var_prefix a of
+                    case strip_prefix Res_Clause.schematic_var_prefix a of
                         SOME b => make_var (b,T)
                       | NONE => make_var (a,T)    (*Variable from the ATP, say X1*)
               in  list_comb (opr, List.map (term_of_stree [] thy) (ts@args))  end;
@@ -194,7 +194,7 @@ fun constraint_of_stree pol (Br("c_Not",[t])) = constraint_of_stree (not pol) t
   | constraint_of_stree pol t = case t of
         Int _ => raise STREE t
       | Br (a,ts) =>
-            (case (strip_prefix ResClause.class_prefix a, map type_of_stree ts) of
+            (case (strip_prefix Res_Clause.class_prefix a, map type_of_stree ts) of
                  (SOME b, [T]) => (pol, b, T)
                | _ => raise STREE t);
 
@@ -444,11 +444,11 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val _ = trace (Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
       val (_,lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
       val _ = trace (Int.toString (length lines) ^ " lines extracted\n")
-      val (ccls,fixes) = ResAxioms.neg_conjecture_clauses ctxt th sgno
+      val (ccls,fixes) = Res_Axioms.neg_conjecture_clauses ctxt th sgno
       val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")
       val ccls = map forall_intr_vars ccls
       val _ =
-        if ! ResAxioms.trace then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
+        if ! Res_Axioms.trace then app (fn th => trace ("\nccl: " ^ string_of_thm ctxt th)) ccls
         else ()
       val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
       val _ = trace "\ndecode_tstp_file: finishing\n"

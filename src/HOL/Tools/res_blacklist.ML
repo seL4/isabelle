@@ -16,7 +16,7 @@ sig
   val del: attribute
 end;
 
-structure ResBlacklist: RES_BLACKLIST =
+structure Res_Blacklist: RES_BLACKLIST =
 struct
 
 structure Data = GenericDataFun

@@ -35,7 +35,8 @@ uses
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
-setup ResBlacklist.setup
+
+setup Res_Blacklist.setup
 
 
 subsection {* Primitive logic *}
