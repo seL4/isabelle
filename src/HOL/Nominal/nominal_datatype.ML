@@ -526,7 +526,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     fun make_intr s T (cname, cargs) =
       let
-        fun mk_prem (dt, (j, j', prems, ts)) =
+        fun mk_prem dt (j, j', prems, ts) =
           let
             val (dts, dt') = strip_option dt;
             val (dts', dt'') = strip_dtyp dt';
@@ -535,7 +535,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             val T = typ_of_dtyp descr sorts dt'';
             val free = mk_Free "x" (Us ---> T) j;
             val free' = app_bnds free (length Us);
-            fun mk_abs_fun (T, (i, t)) =
+            fun mk_abs_fun T (i, t) =
               let val U = fastype_of t
               in (i + 1, Const ("Nominal.abs_fun", [T, U, T] --->
                 Type ("Nominal.noption", [U])) $ mk_Free "y" T i $ t)
@@ -546,10 +546,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                   HOLogic.mk_Trueprop (Free (List.nth (rep_set_names, k),
                     T --> HOLogic.boolT) $ free')) :: prems
               | _ => prems,
-            snd (List.foldr mk_abs_fun (j', free) Ts) :: ts)
+            snd (fold_rev mk_abs_fun Ts (j', free)) :: ts)
           end;
 
-        val (_, _, prems, ts) = List.foldr mk_prem (1, 1, [], []) cargs;
+        val (_, _, prems, ts) = fold_rev mk_prem cargs (1, 1, [], []);
         val concl = HOLogic.mk_Trueprop (Free (s, T --> HOLogic.boolT) $
           list_comb (Const (cname, map fastype_of ts ---> T), ts))
       in Logic.list_implies (prems, concl)
@@ -710,7 +710,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     (**** constructors ****)
 
-    fun mk_abs_fun (x, t) =
+    fun mk_abs_fun x t =
       let
         val T = fastype_of x;
         val U = fastype_of t
@@ -776,7 +776,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     fun make_constr_def tname T T' (((cname_rep, _), (cname, cargs)), (cname', mx))
         (thy, defs, eqns) =
       let
-        fun constr_arg ((dts, dt), (j, l_args, r_args)) =
+        fun constr_arg (dts, dt) (j, l_args, r_args) =
           let
             val xs = map (fn (dt, i) => mk_Free "x" (typ_of_dtyp descr'' sorts dt) i)
               (dts ~~ (j upto j + length dts - 1))
@@ -784,16 +784,16 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           in
             (j + length dts + 1,
              xs @ x :: l_args,
-             List.foldr mk_abs_fun
+             fold_rev mk_abs_fun xs
                (case dt of
                   DtRec k => if k < length new_type_names then
                       Const (List.nth (rep_names, k), typ_of_dtyp descr'' sorts dt -->
                         typ_of_dtyp descr sorts dt) $ x
                     else error "nested recursion not (yet) supported"
-                | _ => x) xs :: r_args)
+                | _ => x) :: r_args)
           end
 
-        val (_, l_args, r_args) = List.foldr constr_arg (1, [], []) cargs;
+        val (_, l_args, r_args) = fold_rev constr_arg cargs (1, [], []);
         val abs_name = Sign.intern_const thy ("Abs_" ^ tname);
         val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
         val constrT = map fastype_of l_args ---> T;
@@ -902,7 +902,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             let val T = fastype_of t
             in Const ("Nominal.perm", permT --> T --> T) $ pi $ t end;
 
-          fun constr_arg ((dts, dt), (j, l_args, r_args)) =
+          fun constr_arg (dts, dt) (j, l_args, r_args) =
             let
               val Ts = map (typ_of_dtyp descr'' sorts) dts;
               val xs = map (fn (T, i) => mk_Free "x" T i)
@@ -914,7 +914,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                map perm (xs @ [x]) @ r_args)
             end
 
-          val (_, l_args, r_args) = List.foldr constr_arg (1, [], []) dts;
+          val (_, l_args, r_args) = fold_rev constr_arg dts (1, [], []);
           val c = Const (cname, map fastype_of l_args ---> T)
         in
           Goal.prove_global thy8 [] []
@@ -952,7 +952,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           val cname = Sign.intern_const thy8
             (Long_Name.append tname (Long_Name.base_name cname));
 
-          fun make_inj ((dts, dt), (j, args1, args2, eqs)) =
+          fun make_inj (dts, dt) (j, args1, args2, eqs) =
             let
               val Ts_idx = map (typ_of_dtyp descr'' sorts) dts ~~ (j upto j + length dts - 1);
               val xs = map (fn (T, i) => mk_Free "x" T i) Ts_idx;
@@ -963,10 +963,10 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               (j + length dts + 1,
                xs @ (x :: args1), ys @ (y :: args2),
                HOLogic.mk_eq
-                 (List.foldr mk_abs_fun x xs, List.foldr mk_abs_fun y ys) :: eqs)
+                 (fold_rev mk_abs_fun xs x, fold_rev mk_abs_fun ys y) :: eqs)
             end;
 
-          val (_, args1, args2, eqs) = List.foldr make_inj (1, [], [], []) dts;
+          val (_, args1, args2, eqs) = fold_rev make_inj dts (1, [], [], []);
           val Ts = map fastype_of args1;
           val c = Const (cname, Ts ---> T)
         in
@@ -995,17 +995,17 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             (Long_Name.append tname (Long_Name.base_name cname));
           val atomT = Type (atom, []);
 
-          fun process_constr ((dts, dt), (j, args1, args2)) =
+          fun process_constr (dts, dt) (j, args1, args2) =
             let
               val Ts_idx = map (typ_of_dtyp descr'' sorts) dts ~~ (j upto j + length dts - 1);
               val xs = map (fn (T, i) => mk_Free "x" T i) Ts_idx;
               val x = mk_Free "x" (typ_of_dtyp descr'' sorts dt) (j + length dts)
             in
               (j + length dts + 1,
-               xs @ (x :: args1), List.foldr mk_abs_fun x xs :: args2)
+               xs @ (x :: args1), fold_rev mk_abs_fun xs x :: args2)
             end;
 
-          val (_, args1, args2) = List.foldr process_constr (1, [], []) dts;
+          val (_, args1, args2) = fold_rev process_constr dts (1, [], []);
           val Ts = map fastype_of args1;
           val c = list_comb (Const (cname, Ts ---> T), args1);
           fun supp t =

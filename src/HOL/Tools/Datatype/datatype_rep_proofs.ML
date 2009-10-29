@@ -73,8 +73,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val branchT = if null branchTs then HOLogic.unitT
       else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = remove (op =) 0 (get_arities descr');
-    val unneeded_vars = subtract (op =) (List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
-    val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
+    val unneeded_vars =
+      subtract (op =) (List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
+    val leafTs = leafTs' @ map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars;
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
     val oldTs = Library.drop (length (hd descr), recTs);
@@ -133,7 +134,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       in mk_inj branchT (length branchTs) (1 + find_index (fn T'' => T'' = T') branchTs)
       end;
 
-    val mk_lim = List.foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
+    fun mk_lim t Ts = fold_rev (fn T => fn t => Lim $ mk_fun_inj T (Abs ("x", T, t))) Ts t;
 
     (************** generate introduction rules for representing set **********)
 
@@ -143,7 +144,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     fun make_intr s n (i, (_, cargs)) =
       let
-        fun mk_prem (dt, (j, prems, ts)) = (case strip_dtyp dt of
+        fun mk_prem dt (j, prems, ts) =
+          (case strip_dtyp dt of
             (dts, DtRec k) =>
               let
                 val Ts = map (typ_of_dtyp descr' sorts) dts;
@@ -159,7 +161,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               in (j + 1, prems, (Leaf $ mk_inj T (mk_Free "x" T j))::ts)
               end);
 
-        val (_, prems, ts) = List.foldr mk_prem (1, [], []) cargs;
+        val (_, prems, ts) = fold_rev mk_prem cargs (1, [], []);
         val concl = HOLogic.mk_Trueprop
           (Free (s, UnivT') $ mk_univ_inj ts n i)
       in Logic.list_implies (prems, concl)
@@ -213,7 +215,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     fun make_constr_def tname T n ((cname, cargs), (cname', mx)) (thy, defs, eqns, i) =
       let
-        fun constr_arg (dt, (j, l_args, r_args)) =
+        fun constr_arg dt (j, l_args, r_args) =
           let val T = typ_of_dtyp descr' sorts dt;
               val free_t = mk_Free "x" T j
           in (case (strip_dtyp dt, strip_type T) of
@@ -223,7 +225,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
             | _ => (j + 1, free_t::l_args, (Leaf $ mk_inj T free_t)::r_args))
           end;
 
-        val (_, l_args, r_args) = List.foldr constr_arg (1, [], []) cargs;
+        val (_, l_args, r_args) = fold_rev constr_arg cargs (1, [], []);
         val constrT = (map (typ_of_dtyp descr' sorts) cargs) ---> T;
         val abs_name = Sign.intern_const thy ("Abs_" ^ tname);
         val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
@@ -387,7 +389,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val fun_congs = map (fn T => make_elim (Drule.instantiate'
       [SOME (ctyp_of thy5 T)] [] fun_cong)) branchTs;
 
-    fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
+    fun prove_iso_thms ds (inj_thms, elem_thms) =
       let
         val (_, (tname, _, _)) = hd ds;
         val induct = (#induct o the o Symtab.lookup dt_info) tname;
@@ -445,8 +447,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
 
-    val (iso_inj_thms_unfolded, iso_elem_thms) = List.foldr prove_iso_thms
-      ([], map #3 newT_iso_axms) (tl descr);
+    val (iso_inj_thms_unfolded, iso_elem_thms) =
+      fold_rev prove_iso_thms (tl descr) ([], map #3 newT_iso_axms);
     val iso_inj_thms = map snd newT_iso_inj_thms @
       map (fn r => r RS @{thm injD}) iso_inj_thms_unfolded;
 

@@ -517,16 +517,17 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
             | (Abs (a, T, t)) => (Abs (a, T, fst (subst t)), NONE)
             | _ => (s, NONE)));
 
-        fun mk_prem (s, prems) = (case subst s of
-              (_, SOME (t, u)) => t :: u :: prems
-            | (t, _) => t :: prems);
+        fun mk_prem s prems =
+          (case subst s of
+            (_, SOME (t, u)) => t :: u :: prems
+          | (t, _) => t :: prems);
 
         val SOME (_, i, ys, _) = dest_predicate cs params
           (HOLogic.dest_Trueprop (Logic.strip_assums_concl r))
 
       in list_all_free (Logic.strip_params r,
-        Logic.list_implies (map HOLogic.mk_Trueprop (List.foldr mk_prem
-          [] (map HOLogic.dest_Trueprop (Logic.strip_assums_hyp r))),
+        Logic.list_implies (map HOLogic.mk_Trueprop (fold_rev mk_prem
+          (map HOLogic.dest_Trueprop (Logic.strip_assums_hyp r)) []),
             HOLogic.mk_Trueprop (list_comb (List.nth (preds, i), ys))))
       end;
 
@@ -549,9 +550,9 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     (* make predicate for instantiation of abstract induction rule *)
 
     val ind_pred = fold_rev lambda (bs @ xs) (foldr1 HOLogic.mk_conj
-      (map_index (fn (i, P) => List.foldr HOLogic.mk_imp
-         (list_comb (P, make_args' argTs xs (binder_types (fastype_of P))))
-         (make_bool_args HOLogic.mk_not I bs i)) preds));
+      (map_index (fn (i, P) => fold_rev (curry HOLogic.mk_imp)
+         (make_bool_args HOLogic.mk_not I bs i)
+         (list_comb (P, make_args' argTs xs (binder_types (fastype_of P))))) preds));
 
     val ind_concl = HOLogic.mk_Trueprop
       (HOLogic.mk_binrel "HOL.ord_class.less_eq" (rec_const, ind_pred));
@@ -631,9 +632,10 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
           map HOLogic.mk_eq (make_args' argTs xs Ts ~~ ts) @
           map (subst o HOLogic.dest_Trueprop)
             (Logic.strip_assums_hyp r)
-      in List.foldr (fn ((x, T), P) => HOLogic.exists_const T $ (Abs (x, T, P)))
-        (if null ps then HOLogic.true_const else foldr1 HOLogic.mk_conj ps)
-        (Logic.strip_params r)
+      in
+        fold_rev (fn (x, T) => fn P => HOLogic.exists_const T $ Abs (x, T, P))
+          (Logic.strip_params r)
+          (if null ps then HOLogic.true_const else foldr1 HOLogic.mk_conj ps)
       end
 
     (* make a disjunction of all introduction rules *)

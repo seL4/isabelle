@@ -125,7 +125,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
 
     fun make_rec_intr T rec_set (cname, cargs) (rec_intr_ts, l) =
       let
-        fun mk_prem ((dt, U), (j, k, prems, t1s, t2s)) =
+        fun mk_prem (dt, U) (j, k, prems, t1s, t2s) =
           let val free1 = mk_Free "x" U j
           in (case (strip_dtyp dt, strip_type U) of
              ((_, DtRec m), (Us, _)) =>
@@ -141,7 +141,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           end;
 
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val (_, _, prems, t1s, t2s) = List.foldr mk_prem (1, 1, [], [], []) (cargs ~~ Ts)
+        val (_, _, prems, t1s, t2s) = fold_rev mk_prem (cargs ~~ Ts) (1, 1, [], [], [])
 
       in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop
         (rec_set $ list_comb (Const (cname, Ts ---> T), t1s) $

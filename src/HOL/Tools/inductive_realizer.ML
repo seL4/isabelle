@@ -263,8 +263,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
     val rlz' = fold_rev Logic.all (vs2 @ rs) (prop_of rrule);
     val rlz'' = fold_rev Logic.all vs2 rlz
   in (name, (vs,
-    if rt = Extraction.nullt then rt else
-      List.foldr (uncurry lambda) rt vs1,
+    if rt = Extraction.nullt then rt else fold_rev lambda vs1 rt,
     ProofRewriteRules.un_hhf_proof rlz' rlz''
       (fold_rev forall_intr_prf (vs2 @ rs) (prf_of rrule))))
   end;
