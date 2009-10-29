@@ -645,9 +645,9 @@ end;  (* split_once_items *)
 
 fun filter_prems_tac_items (p : term -> bool) (terms : term list) : term list =
 let
-  fun filter_prems (t, (left, right)) =
-    if  p t  then  (left, right @ [t])  else  (left @ right, [])
-  val (left, right) = List.foldl filter_prems ([], []) terms
+  fun filter_prems t (left, right) =
+    if p t then (left, right @ [t]) else (left @ right, [])
+  val (left, right) = fold filter_prems terms ([], [])
 in
   right @ left
 end;

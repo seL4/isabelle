@@ -64,8 +64,8 @@ fun lift_meta_eq_to_obj_eq i st =
     else
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
-        fun mk_simp_implies Q = List.foldr (fn (R, S) =>
-          Const ("HOL.simp_implies", propT --> propT --> propT) $ R $ S) Q Ps
+        fun mk_simp_implies Q = fold_rev (fn R => fn S =>
+          Const ("HOL.simp_implies", propT --> propT --> propT) $ R $ S) Ps Q
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)

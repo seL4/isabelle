@@ -131,8 +131,7 @@ fun DISCH_ALL thm = fold_rev DISCH (#hyps (Thm.crep_thm thm)) thm;
 
 fun FILTER_DISCH_ALL P thm =
  let fun check tm = P (#t (Thm.rep_cterm tm))
- in  List.foldr (fn (tm,th) => if check tm then DISCH tm th else th)
-              thm (chyps thm)
+ in  fold_rev (fn tm => fn th => if check tm then DISCH tm th else th) (chyps thm) thm
  end;
 
 (* freezeT expensive! *)

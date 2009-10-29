@@ -407,8 +407,8 @@ fun op APPEND (f, g) x =
         make (fn () => copy (f x))
     end
 
-fun EVERY fs = List.foldr (op THEN) succeed fs
-fun FIRST fs = List.foldr (op ORELSE) fail fs
+fun EVERY fs = fold_rev (curry op THEN) fs succeed
+fun FIRST fs = fold_rev (curry op ORELSE) fs fail
 
 fun TRY f x =
     make (fn () =>

@@ -66,7 +66,7 @@ val rhs_of = #3 o dest_red;
 fun eq_brl ((b1 : bool, th1), (b2, th2)) = b1 = b2 andalso Thm.eq_thm_prop (th1, th2);
 
 (*insert a thm in a discrimination net by its lhs*)
-fun lhs_insert_thm (th,net) =
+fun lhs_insert_thm th net =
     Net.insert_term eq_brl (lhs_of (concl_of th), (false,th)) net
     handle  Net.INSERT => net;
 
@@ -434,7 +434,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         val thms = map (trivial o cterm_of(Thm.theory_of_thm thm)) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
-        val anet' = List.foldr lhs_insert_thm anet rwrls
+        val anet' = fold_rev lhs_insert_thm rwrls anet;
     in  if !tracing andalso not(null new_rws)
         then writeln (cat_lines
           ("Adding rewrites:" :: map Display.string_of_thm_without_context new_rws))

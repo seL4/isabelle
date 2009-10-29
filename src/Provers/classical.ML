@@ -198,10 +198,10 @@ val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac rls =
-    let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
+    let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
     in  assume_tac      ORELSE'
         contr_tac       ORELSE'
-        biresolve_tac (List.foldr addrl [] rls)
+        biresolve_tac (fold_rev addrl rls [])
     end;
 
 (*Duplication of hazardous rules, for complete provers*)

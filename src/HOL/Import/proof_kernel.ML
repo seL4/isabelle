@@ -776,7 +776,7 @@ fun xml_to_proof thyname types terms prf thy =
                 val (c,asl) = case terms of
                                   [] => raise ERR "x2p" "Bad oracle description"
                                 | (hd::tl) => (hd,tl)
-                val tg = List.foldr (fn (oracle,tg) => Tag.merge (Tag.read oracle) tg) Tag.empty_tag ors
+                val tg = fold_rev (Tag.merge o Tag.read) ors Tag.empty_tag
             in
                 mk_proof (POracle(tg,map xml_to_term asl,xml_to_term c))
             end
@@ -1160,7 +1160,7 @@ fun disambiguate_frees thm =
         | replace_name n' _ = ERR "replace_name"
       (* map: old or fresh name -> old free,
          invmap: old free which has fresh name assigned to it -> fresh name *)
-      fun dis (v, mapping as (map,invmap)) =
+      fun dis v (mapping as (map,invmap)) =
           let val n = name_of v in
             case Symtab.lookup map n of
               NONE => (Symtab.update (n, v) map, invmap)
@@ -1179,11 +1179,11 @@ fun disambiguate_frees thm =
       else
         let
           val (_, invmap) =
-              List.foldl dis (Symtab.empty, Termtab.empty) frees
-          fun make_subst ((oldfree, newname), (intros, elims)) =
+              fold dis frees (Symtab.empty, Termtab.empty)
+          fun make_subst (oldfree, newname) (intros, elims) =
               (cterm_of thy oldfree :: intros,
                cterm_of thy (replace_name newname oldfree) :: elims)
-          val (intros, elims) = List.foldl make_subst ([], []) (Termtab.dest invmap)
+          val (intros, elims) = fold make_subst (Termtab.dest invmap) ([], [])
         in
           forall_elim_list elims (forall_intr_list intros thm)
         end
@@ -1837,7 +1837,7 @@ fun GEN_ABS copt vlist hth thy =
                       | inst_type ty1 ty2 (ty as Type(name,tys)) =
                         Type(name,map (inst_type ty1 ty2) tys)
                 in
-                    List.foldr (fn (v,th) =>
+                    fold_rev (fn v => fn th =>
                               let
                                   val cdom = fst (dom_rng (fst (dom_rng cty)))
                                   val vty  = type_of v
@@ -1845,11 +1845,11 @@ fun GEN_ABS copt vlist hth thy =
                                   val cc = cterm_of thy (Const(cname,newcty))
                               in
                                   mk_COMB (mk_REFL cc) (mk_ABS v th thy) thy
-                              end) th vlist'
+                              end) vlist' th
                 end
               | SOME _ => raise ERR "GEN_ABS" "Bad constant"
               | NONE =>
-                List.foldr (fn (v,th) => mk_ABS v th thy) th vlist'
+                fold_rev (fn v => fn th => mk_ABS v th thy) vlist' th
         val res = HOLThm(rens_of info',th1)
         val _ = message "RESULT:"
         val _ = if_debug pth res
@@ -2020,8 +2020,8 @@ fun new_specification thyname thmname names hth thy =
                                Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) consts) thy'
                            end
 
-            val thy1 = List.foldr (fn(name,thy)=>
-                                snd (get_defname thyname name thy)) thy1 names
+            val thy1 = fold_rev (fn name => fn thy =>
+                                snd (get_defname thyname name thy)) names thy1
             fun new_name name = fst (get_defname thyname name thy1)
             val names' = map (fn name => (new_name name,name,false)) names
             val (thy',res) = Choice_Specification.add_specification NONE
@@ -2041,12 +2041,12 @@ fun new_specification thyname thmname names hth thy =
                      then quotename name
                      else (quotename newname) ^ ": " ^ (quotename name),thy')
                 end
-            val (new_names,thy') = List.foldr (fn(name,(names,thy)) =>
+            val (new_names,thy') = fold_rev (fn name => fn (names, thy) =>
                                             let
                                                 val (name',thy') = handle_const (name,thy)
                                             in
                                                 (name'::names,thy')
-                                            end) ([],thy') names
+                                            end) names ([], thy')
             val thy'' = add_dump ("specification (" ^ (spaces new_names) ^ ") " ^ thmname ^ ": " ^ (smart_string_of_thm th) ^
                                   "\n  by (import " ^ thyname ^ " " ^ thmname ^ ")")
                                  thy'
