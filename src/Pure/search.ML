@@ -21,6 +21,7 @@ sig
   val iter_deepen_limit: int Unsynchronized.ref
   val THEN_ITER_DEEPEN: tactic -> (thm -> bool) -> (int -> tactic) -> tactic
   val ITER_DEEPEN: (thm -> bool) -> (int -> tactic) -> tactic
+  val trace_DEEPEN: bool Unsynchronized.ref
   val DEEPEN: int * int -> (int -> int -> tactic) -> int -> int -> tactic
   val trace_BEST_FIRST: bool Unsynchronized.ref
   val THEN_BEST_FIRST: tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic
@@ -174,13 +175,15 @@ val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
 
 (*Simple iterative deepening tactical.  It merely "deepens" any search tactic
   using increment "inc" up to limit "lim". *)
+val trace_DEEPEN = Unsynchronized.ref false;
+
 fun DEEPEN (inc,lim) tacf m i =
   let fun dpn m st =
        st |> (if has_fewer_prems i st then no_tac
               else if m>lim then
-                       (warning "Search depth limit exceeded: giving up";
+                       (tracing "Search depth limit exceeded: giving up";
                         no_tac)
-              else (priority ("Search depth = " ^ string_of_int m);
+              else (if !trace_DEEPEN then tracing ("Search depth = " ^ string_of_int m) else ();
                              tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
 
