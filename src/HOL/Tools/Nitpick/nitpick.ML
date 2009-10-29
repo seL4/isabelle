@@ -23,7 +23,7 @@ sig
     overlord: bool,
     user_axioms: bool option,
     assms: bool,
-    coalesce_type_vars: bool,
+    merge_type_vars: bool,
     destroy_constrs: bool,
     specialize: bool,
     skolemize: bool,
@@ -88,7 +88,7 @@ type params = {
   overlord: bool,
   user_axioms: bool option,
   assms: bool,
-  coalesce_type_vars: bool,
+  merge_type_vars: bool,
   destroy_constrs: bool,
   specialize: bool,
   skolemize: bool,
@@ -175,7 +175,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val ctxt = Proof.context_of state
     val {cards_assigns, maxes_assigns, iters_assigns, bisim_depths, boxes,
          monos, wfs, sat_solver, blocking, falsify, debug, verbose, overlord,
-         user_axioms, assms, coalesce_type_vars, destroy_constrs, specialize,
+         user_axioms, assms, merge_type_vars, destroy_constrs, specialize,
          skolemize, star_linear_preds, uncurry, fast_descrs, peephole_optim,
          tac_timeout, sym_break, sharing_depth, flatten_props, max_threads,
          show_skolems, show_datatypes, show_consts, evals, formats,
@@ -187,7 +187,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val pprint =
       if auto then
         Unsynchronized.change state_ref o Proof.goal_message o K
-        o curry Pretty.blk 0 o cons (Pretty.str "") o single
+        o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Markup.hilite
       else
         priority o Pretty.string_of
@@ -220,7 +220,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                     neg_t
     val (assms_t, evals) =
       assms_t :: evals
-      |> coalesce_type_vars ? coalesce_type_vars_in_terms
+      |> merge_type_vars ? merge_type_vars_in_terms
       |> hd pairf tl
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
@@ -283,6 +283,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
             handle TYPE (_, Ts, ts) =>
                    raise TYPE ("Nitpick.pick_them_nits_in_term", Ts, ts)
 
+    val core_u = nut_from_term thy fast_descrs (!special_funs) Eq core_t
+    val def_us = map (nut_from_term thy fast_descrs (!special_funs) DefEq)
+                     def_ts
+    val nondef_us = map (nut_from_term thy fast_descrs (!special_funs) Eq)
+                        nondef_ts
+    val (free_names, const_names) =
+      fold add_free_and_const_names (core_u :: def_us @ nondef_us) ([], [])
+    val (sel_names, nonsel_names) =
+      List.partition (is_sel o nickname_of) const_names
+    val would_be_genuine = got_all_user_axioms andalso none_true wfs
+(*
+    val _ = List.app (priority o string_for_nut ctxt)
+                     (core_u :: def_us @ nondef_us)
+*)
+
     val unique_scope = forall (equal 1 o length o snd) cards_assigns
     (* typ -> bool *)
     fun is_free_type_monotonic T =
@@ -298,6 +313,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         not (is_pure_typedef thy T) orelse is_univ_typedef thy T
         orelse is_number_type thy T
         orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
+    fun is_datatype_shallow T =
+      not (exists (equal T o domain_type o type_of) sel_names)
     val Ts = ground_types_in_terms ext_ctxt (core_t :: def_ts @ nondef_ts)
              |> sort TermOrd.typ_ord
     val (all_dataTs, all_free_Ts) =
@@ -326,7 +343,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         ()
     val mono_Ts = mono_dataTs @ mono_free_Ts
     val nonmono_Ts = nonmono_dataTs @ nonmono_free_Ts
-
+    val shallow_dataTs = filter is_datatype_shallow mono_dataTs
 (*
     val _ = priority "Monotonic datatypes:"
     val _ = List.app (priority o string_for_type ctxt) mono_dataTs
@@ -338,19 +355,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val _ = List.app (priority o string_for_type ctxt) nonmono_free_Ts
 *)
 
-    val core_u = nut_from_term thy fast_descrs (!special_funs) Eq core_t
-    val def_us = map (nut_from_term thy fast_descrs (!special_funs) DefEq)
-                     def_ts
-    val nondef_us = map (nut_from_term thy fast_descrs (!special_funs) Eq)
-                        nondef_ts
-    val (free_names, const_names) =
-      fold add_free_and_const_names (core_u :: def_us @ nondef_us) ([], [])
-    val nonsel_names = filter_out (is_sel o nickname_of) const_names
-    val would_be_genuine = got_all_user_axioms andalso none_true wfs
-(*
-    val _ = List.app (priority o string_for_nut ctxt)
-                     (core_u :: def_us @ nondef_us)
-*)
     val need_incremental = Int.max (max_potential, max_genuine) >= 2
     val effective_sat_solver =
       if sat_solver <> "smart" then
@@ -778,11 +782,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                    case scope_count (do_filter (!generated_problems)) scope of
                      0 => I
                    | n =>
-                     if scope_count (do_filter (these (!checked_problems)))
-                                    scope = n then
-                       Integer.add 1
-                     else
-                       I) (!generated_scopes) 0
+                     scope_count (do_filter (these (!checked_problems)))
+                                 scope = n
+                     ? Integer.add 1) (!generated_scopes) 0
       in
         "Nitpick " ^ did_so_and_so ^
         (if is_some (!checked_problems) andalso total > 0 then
@@ -814,6 +816,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
 
     val _ = scopes := all_scopes ext_ctxt sym_break cards_assigns maxes_assigns
                                  iters_assigns bisim_depths mono_Ts nonmono_Ts
+                                 shallow_dataTs
     val batches = batch_list batch_size (!scopes)
     val outcome_code =
       (run_batches 0 (length batches) batches (max_potential, max_genuine, 0)

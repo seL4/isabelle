@@ -749,8 +749,9 @@ fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
            (~1 upto num_sels_for_constr_type T - 1)
 (* scope -> dtype_spec -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_sels_of_datatype scope ({constrs, ...} : dtype_spec) =
-  fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
+fun choose_rep_for_sels_of_datatype _ ({shallow = true, ...} : dtype_spec) = I
+  | choose_rep_for_sels_of_datatype scope {constrs, ...} =
+    fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
 (* scope -> rep NameTable.table -> nut list * rep NameTable.table *)
 fun choose_reps_for_all_sels (scope as {datatypes, ...}) =
   fold (choose_rep_for_sels_of_datatype scope) datatypes o pair []
