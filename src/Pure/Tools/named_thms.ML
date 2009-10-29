@@ -1,7 +1,8 @@
 (*  Title:      Pure/Tools/named_thms.ML
     Author:     Makarius
 
-Named collections of theorems in canonical order.
+Named collections of theorems in canonical order.  Based on naive data
+structures -- not scalable!
 *)
 
 signature NAMED_THMS =
