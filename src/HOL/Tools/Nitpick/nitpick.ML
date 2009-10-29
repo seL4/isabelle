@@ -137,6 +137,15 @@ fun pretties_for_formulas _ _ [] = []
                                  Pretty.str (if j = 1 then "." else ";")])
                (length ts downto 1) ts))]
 
+(* unit -> string *)
+fun install_kodkodi_message () =
+  "Nitpick requires the external Java program Kodkodi. To install it, download \
+  \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
+  \directory's full path to \"" ^
+  Path.implode (Path.expand (Path.appends
+      (Path.variable "ISABELLE_HOME_USER" ::
+       map Path.basic ["etc", "components"]))) ^ "\"."
+
 val max_liberal_delay_ms = 200
 val max_liberal_delay_percent = 2
 
@@ -165,6 +174,9 @@ fun is_tfree_with_weaselly_sort thy (TFree (_, S)) =
 (* theory term -> bool *)
 val has_weaselly_sorts =
   exists_type o exists_subtype o is_tfree_with_weaselly_sort
+
+(* (unit -> string) -> Pretty.T *)
+fun plazy f = Pretty.blk (0, pstrs (f ()))
 
 (* Time.time -> Proof.state -> params -> bool -> term -> string * Proof.state *)
 fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
@@ -198,9 +210,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     (* string -> unit *)
     val print = pprint o curry Pretty.blk 0 o pstrs
     (* (unit -> string) -> unit *)
-    fun print_m f = pprint_m (curry Pretty.blk 0 o pstrs o f)
-    fun print_v f = pprint_v (curry Pretty.blk 0 o pstrs o f)
-    fun print_d f = pprint_d (curry Pretty.blk 0 o pstrs o f)
+    val print_m = pprint_m o K o plazy
+    val print_v = pprint_v o K o plazy
+    val print_d = pprint_d o K o plazy
 
     (* unit -> unit *)
     fun check_deadline () =
@@ -631,15 +643,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
           case Kodkod.solve_any_problem overlord deadline max_threads
                                         max_solutions (map fst problems) of
             Kodkod.NotInstalled =>
-            (print_m (fn () =>
-                         "Nitpick requires the external Java program Kodkodi. \
-                         \To install it, download the package from Isabelle's \
-                         \web page and add the \"kodkodi-x.y.z\" directory's \
-                         \full path to \"" ^
-                         Path.implode (Path.expand (Path.appends
-                             (Path.variable "ISABELLE_HOME" ::
-                              (map Path.basic ["etc", "components"])))) ^
-                         "\".");
+            (print_m install_kodkodi_message;
              (max_potential, max_genuine, donno + 1))
           | Kodkod.Normal ([], unsat_js) =>
             (update_checked_problems problems unsat_js;
@@ -842,16 +846,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
 (* Proof.state -> params -> bool -> term -> string * Proof.state *)
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...})
                       auto orig_assm_ts orig_t =
-  let
-    val deadline = Option.map (curry Time.+ (Time.now ())) timeout
-    val outcome as (outcome_code, _) =
-      time_limit (if debug then NONE else timeout)
-          (pick_them_nits_in_term deadline state params auto orig_assm_ts)
-          orig_t
-  in
-    if expect = "" orelse outcome_code = expect then outcome
-    else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-  end
+  if getenv "KODKODI" = "" then
+    (if auto then ()
+     else warning (Pretty.string_of (plazy install_kodkodi_message));
+     ("unknown", state))
+  else
+    let
+      val deadline = Option.map (curry Time.+ (Time.now ())) timeout
+      val outcome as (outcome_code, _) =
+        time_limit (if debug then NONE else timeout)
+            (pick_them_nits_in_term deadline state params auto orig_assm_ts)
+            orig_t
+    in
+      if expect = "" orelse outcome_code = expect then outcome
+      else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+    end
 
 (* Proof.state -> params -> thm -> int -> string * Proof.state *)
 fun pick_nits_in_subgoal state params auto subgoal =
