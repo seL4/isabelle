@@ -13,12 +13,6 @@ uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")
   ("Tools/int_arith.ML")
-  "~~/src/Provers/Arith/assoc_fold.ML"
-  "~~/src/Provers/Arith/cancel_numerals.ML"
-  "~~/src/Provers/Arith/combine_numerals.ML"
-  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
-  "~~/src/Provers/Arith/extract_common_term.ML"
-  ("Tools/numeral_simprocs.ML")
 begin
 
 subsection {* The equivalence relation underlying the integers *}
@@ -1093,7 +1087,7 @@ subsubsection {* Comparisons, for Ordered Rings *}
 lemmas double_eq_0_iff = double_zero
 
 lemma odd_nonzero:
-  "1 + z + z \<noteq> (0::int)";
+  "1 + z + z \<noteq> (0::int)"
 proof (cases z rule: int_cases)
   case (nonneg n)
   have le: "0 \<le> z+z" by (simp add: nonneg add_increasing) 
@@ -1163,7 +1157,7 @@ proof -
 qed
 
 lemma odd_less_0:
-  "(1 + z + z < 0) = (z < (0::int))";
+  "(1 + z + z < 0) = (z < (0::int))"
 proof (cases z rule: int_cases)
   case (nonneg n)
   thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
@@ -1368,7 +1362,7 @@ lemma Ints_number_of:
 
 lemma Ints_odd_less_0: 
   assumes in_Ints: "a \<in> Ints"
-  shows "(1 + a + a < 0) = (a < (0::'a::ordered_idom))";
+  shows "(1 + a + a < 0) = (a < (0::'a::ordered_idom))"
 proof -
   from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .
   then obtain z where a: "a = of_int z" ..
@@ -1503,8 +1497,6 @@ lemmas int_arith_rules =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
   of_int_0 of_int_1 of_int_add of_int_mult
 
-use "Tools/numeral_simprocs.ML"
-
 use "Tools/int_arith.ML"
 setup {* Int_Arith.global_setup *}
 declaration {* K Int_Arith.setup *}
@@ -1540,11 +1532,7 @@ by (simp add: number_of_eq)
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 lemma mult_2: "2 * z = (z+z::'a::number_ring)"
-proof -
-  have "2*z = (1 + 1)*z" by simp
-  also have "... = z+z" by (simp add: left_distrib)
-  finally show ?thesis .
-qed
+unfolding one_add_one_is_two [symmetric] left_distrib by simp
 
 lemma mult_2_right: "z * 2 = (z+z::'a::number_ring)"
 by (subst mult_commute, rule mult_2)
@@ -1830,14 +1818,15 @@ apply (rule iffI)
  apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
-(* Could be simplified but Presburger only becomes available too late *)
-lemma infinite_UNIV_int: "~finite(UNIV::int set)"
+lemma infinite_UNIV_int: "\<not> finite (UNIV::int set)"
 proof
-  assume "finite(UNIV::int set)"
-  moreover have "~(EX i::int. 2*i = 1)"
-    by (auto simp: pos_zmult_eq_1_iff)
-  ultimately show False using finite_UNIV_inj_surj[of "%n::int. n+n"]
-    by (simp add:inj_on_def surj_def) (blast intro:sym)
+  assume "finite (UNIV::int set)"
+  moreover have "inj (\<lambda>i\<Colon>int. 2 * i)"
+    by (rule injI) simp
+  ultimately have "surj (\<lambda>i\<Colon>int. 2 * i)"
+    by (rule finite_UNIV_inj_surj)
+  then obtain i :: int where "1 = 2 * i" by (rule surjE)
+  then show False by (simp add: pos_zmult_eq_1_iff)
 qed
 
 

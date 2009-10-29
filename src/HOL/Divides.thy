@@ -6,8 +6,16 @@
 header {* The division operators div and mod *}
 
 theory Divides
-imports Nat Power Product_Type
-uses "~~/src/Provers/Arith/cancel_div_mod.ML"
+imports Nat_Numeral
+uses
+  "~~/src/Provers/Arith/assoc_fold.ML"
+  "~~/src/Provers/Arith/cancel_numerals.ML"
+  "~~/src/Provers/Arith/combine_numerals.ML"
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  ("Tools/numeral_simprocs.ML")
+  ("Tools/nat_numeral_simprocs.ML")
+  "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 
 subsection {* Syntactic division operations *}
@@ -1091,5 +1099,159 @@ proof -
   qed
   with j show ?thesis by blast
 qed
+
+lemma div2_Suc_Suc [simp]: "Suc (Suc m) div 2 = Suc (m div 2)"
+by (auto simp add: numeral_2_eq_2 le_div_geq)
+
+lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
+by (simp add: nat_mult_2 [symmetric])
+
+lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
+apply (subgoal_tac "m mod 2 < 2")
+apply (erule less_2_cases [THEN disjE])
+apply (simp_all (no_asm_simp) add: Let_def mod_Suc nat_1)
+done
+
+lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
+proof -
+  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (induct n) simp_all }
+  moreover have "m mod 2 < 2" by simp
+  ultimately have "m mod 2 = 0 \<or> m mod 2 = 1" .
+  then show ?thesis by auto
+qed
+
+text{*These lemmas collapse some needless occurrences of Suc:
+    at least three Sucs, since two and fewer are rewritten back to Suc again!
+    We already have some rules to simplify operands smaller than 3.*}
+
+lemma div_Suc_eq_div_add3 [simp]: "m div (Suc (Suc (Suc n))) = m div (3+n)"
+by (simp add: Suc3_eq_add_3)
+
+lemma mod_Suc_eq_mod_add3 [simp]: "m mod (Suc (Suc (Suc n))) = m mod (3+n)"
+by (simp add: Suc3_eq_add_3)
+
+lemma Suc_div_eq_add3_div: "(Suc (Suc (Suc m))) div n = (3+m) div n"
+by (simp add: Suc3_eq_add_3)
+
+lemma Suc_mod_eq_add3_mod: "(Suc (Suc (Suc m))) mod n = (3+m) mod n"
+by (simp add: Suc3_eq_add_3)
+
+lemmas Suc_div_eq_add3_div_number_of =
+    Suc_div_eq_add3_div [of _ "number_of v", standard]
+declare Suc_div_eq_add3_div_number_of [simp]
+
+lemmas Suc_mod_eq_add3_mod_number_of =
+    Suc_mod_eq_add3_mod [of _ "number_of v", standard]
+declare Suc_mod_eq_add3_mod_number_of [simp]
+
+
+subsection {* Proof Tools setup; Combination and Cancellation Simprocs *}
+
+declare split_div[of _ _ "number_of k", standard, arith_split]
+declare split_mod[of _ _ "number_of k", standard, arith_split]
+
+
+subsubsection{*For @{text combine_numerals}*}
+
+lemma left_add_mult_distrib: "i*u + (j*u + k) = (i+j)*u + (k::nat)"
+by (simp add: add_mult_distrib)
+
+
+subsubsection{*For @{text cancel_numerals}*}
+
+lemma nat_diff_add_eq1:
+     "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)"
+by (simp split add: nat_diff_split add: add_mult_distrib)
+
+lemma nat_diff_add_eq2:
+     "i <= (j::nat) ==> ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))"
+by (simp split add: nat_diff_split add: add_mult_distrib)
+
+lemma nat_eq_add_iff1:
+     "j <= (i::nat) ==> (i*u + m = j*u + n) = ((i-j)*u + m = n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_eq_add_iff2:
+     "i <= (j::nat) ==> (i*u + m = j*u + n) = (m = (j-i)*u + n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_less_add_iff1:
+     "j <= (i::nat) ==> (i*u + m < j*u + n) = ((i-j)*u + m < n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_less_add_iff2:
+     "i <= (j::nat) ==> (i*u + m < j*u + n) = (m < (j-i)*u + n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_le_add_iff1:
+     "j <= (i::nat) ==> (i*u + m <= j*u + n) = ((i-j)*u + m <= n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+lemma nat_le_add_iff2:
+     "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)"
+by (auto split add: nat_diff_split simp add: add_mult_distrib)
+
+
+subsubsection{*For @{text cancel_numeral_factors} *}
+
+lemma nat_mult_le_cancel1: "(0::nat) < k ==> (k*m <= k*n) = (m<=n)"
+by auto
+
+lemma nat_mult_less_cancel1: "(0::nat) < k ==> (k*m < k*n) = (m<n)"
+by auto
+
+lemma nat_mult_eq_cancel1: "(0::nat) < k ==> (k*m = k*n) = (m=n)"
+by auto
+
+lemma nat_mult_div_cancel1: "(0::nat) < k ==> (k*m) div (k*n) = (m div n)"
+by auto
+
+lemma nat_mult_dvd_cancel_disj[simp]:
+  "(k*m) dvd (k*n) = (k=0 | m dvd (n::nat))"
+by(auto simp: dvd_eq_mod_eq_0 mod_mult_distrib2[symmetric])
+
+lemma nat_mult_dvd_cancel1: "0 < k \<Longrightarrow> (k*m) dvd (k*n::nat) = (m dvd n)"
+by(auto)
+
+
+subsubsection{*For @{text cancel_factor} *}
+
+lemma nat_mult_le_cancel_disj: "(k*m <= k*n) = ((0::nat) < k --> m<=n)"
+by auto
+
+lemma nat_mult_less_cancel_disj: "(k*m < k*n) = ((0::nat) < k & m<n)"
+by auto
+
+lemma nat_mult_eq_cancel_disj: "(k*m = k*n) = (k = (0::nat) | m=n)"
+by auto
+
+lemma nat_mult_div_cancel_disj[simp]:
+     "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
+by (simp add: nat_mult_div_cancel1)
+
+
+use "Tools/numeral_simprocs.ML"
+
+use "Tools/nat_numeral_simprocs.ML"
+
+declaration {* 
+  K (Lin_Arith.add_simps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
+  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1},
+     @{thm nat_0}, @{thm nat_1},
+     @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
+     @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
+     @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
+     @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
+     @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
+     @{thm mult_Suc}, @{thm mult_Suc_right},
+     @{thm add_Suc}, @{thm add_Suc_right},
+     @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
+     @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of},
+     @{thm if_True}, @{thm if_False}])
+  #> Lin_Arith.add_simprocs (Numeral_Simprocs.assoc_fold_simproc
+      :: Numeral_Simprocs.combine_numerals
+      :: Numeral_Simprocs.cancel_numerals)
+  #> Lin_Arith.add_simprocs (Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals))
+*}
 
 end

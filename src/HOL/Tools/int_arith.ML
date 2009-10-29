@@ -98,9 +98,7 @@ val setup =
   #> Lin_Arith.add_lessD @{thm zless_imp_add1_zle}
   #> Lin_Arith.add_simps (@{thms simp_thms} @ @{thms arith_simps} @ @{thms rel_simps}
       @ @{thms arith_special} @ @{thms int_arith_rules})
-  #> Lin_Arith.add_simprocs (Numeral_Simprocs.assoc_fold_simproc :: zero_one_idom_simproc
-      :: Numeral_Simprocs.combine_numerals
-      :: Numeral_Simprocs.cancel_numerals)
+  #> Lin_Arith.add_simprocs [zero_one_idom_simproc]
   #> Lin_Arith.set_number_of number_of
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT)
   #> Lin_Arith.add_discrete_type @{type_name Int.int}
