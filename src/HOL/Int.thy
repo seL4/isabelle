@@ -2105,6 +2105,14 @@ lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
 lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
   by (auto simp add: dvd_int_iff)
 
+lemma eq_nat_nat_iff:
+  "0 \<le> z \<Longrightarrow> 0 \<le> z' \<Longrightarrow> nat z = nat z' \<longleftrightarrow> z = z'"
+  by (auto elim!: nonneg_eq_int)
+
+lemma nat_power_eq:
+  "0 \<le> z \<Longrightarrow> nat (z ^ n) = nat z ^ n"
+  by (induct n) (simp_all add: nat_mult_distrib)
+
 lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
   apply (rule_tac z=n in int_cases)
   apply (auto simp add: dvd_int_iff)
