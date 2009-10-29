@@ -313,20 +313,20 @@ fun make_splits new_type_names descr sorts thy =
         val (_, fs) = strip_comb comb_t;
         val used = ["P", "x"] @ (map (fst o dest_Free) fs);
 
-        fun process_constr (((cname, cargs), f), (t1s, t2s)) =
+        fun process_constr ((cname, cargs), f) (t1s, t2s) =
           let
             val Ts = map (typ_of_dtyp descr' sorts) cargs;
             val frees = map Free (Name.variant_list used (make_tnames Ts) ~~ Ts);
             val eqn = HOLogic.mk_eq (Free ("x", T),
               list_comb (Const (cname, Ts ---> T), frees));
             val P' = P $ list_comb (f, frees)
-          in ((List.foldr (fn (Free (s, T), t) => HOLogic.mk_all (s, T, t))
-                (HOLogic.imp $ eqn $ P') frees)::t1s,
-              (List.foldr (fn (Free (s, T), t) => HOLogic.mk_exists (s, T, t))
-                (HOLogic.conj $ eqn $ (HOLogic.Not $ P')) frees)::t2s)
+          in (fold_rev (fn Free (s, T) => fn t => HOLogic.mk_all (s, T, t)) frees
+                (HOLogic.imp $ eqn $ P') :: t1s,
+              fold_rev (fn Free (s, T) => fn t => HOLogic.mk_exists (s, T, t)) frees
+                (HOLogic.conj $ eqn $ (HOLogic.Not $ P')) :: t2s)
           end;
 
-        val (t1s, t2s) = List.foldr process_constr ([], []) (constrs ~~ fs);
+        val (t1s, t2s) = fold_rev process_constr (constrs ~~ fs) ([], []);
         val lhs = P $ (comb_t $ Free ("x", T))
       in
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, mk_conj t1s)),
@@ -423,9 +423,9 @@ fun make_nchotomys descr sorts =
         val tnames = Name.variant_list ["v"] (make_tnames Ts);
         val frees = tnames ~~ Ts
       in
-        List.foldr (fn ((s, T'), t) => HOLogic.mk_exists (s, T', t))
+        fold_rev (fn (s, T') => fn t => HOLogic.mk_exists (s, T', t)) frees
           (HOLogic.mk_eq (Free ("v", T),
-            list_comb (Const (cname, Ts ---> T), map Free frees))) frees
+            list_comb (Const (cname, Ts ---> T), map Free frees)))
       end
 
   in map (fn ((_, (_, _, constrs)), T) =>

@@ -628,15 +628,14 @@ fun build_map mode0 ctxt cls ths =
         | set_mode FT = FT
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)
-      fun add_thm is_conjecture (ith, {axioms, tfrees}) : logic_map =
+      fun add_thm is_conjecture ith {axioms, tfrees} : logic_map =
         let val (mth, tfree_lits) = hol_thm_to_fol is_conjecture ctxt mode ith
         in
            {axioms = (mth, Meson.make_meta_clause ith) :: axioms,
             tfrees = union (op =) tfree_lits tfrees}
         end;
-      val lmap0 = List.foldl (add_thm true)
-                        {axioms = [], tfrees = init_tfrees ctxt} cls
-      val lmap = List.foldl (add_thm false) (add_tfrees lmap0) ths
+      val lmap0 = fold (add_thm true) cls {axioms = [], tfrees = init_tfrees ctxt}
+      val lmap = fold (add_thm false) ths (add_tfrees lmap0)
       val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
       fun used c = exists (Metis.LiteralSet.exists (const_in_metis c o #2)) clause_lists
       (*Now check for the existence of certain combinators*)
@@ -647,7 +646,7 @@ fun build_map mode0 ctxt cls ths =
       val thS   = if used "c_COMBS" then [comb_S] else []
       val thEQ  = if used "c_fequal" then [fequal_imp_equal', equal_imp_fequal'] else []
       val lmap' = if mode=FO then lmap
-                  else List.foldl (add_thm false) lmap (thEQ @ thS @ thC @ thB @ thK @ thI)
+                  else fold (add_thm false) (thEQ @ thS @ thC @ thB @ thK @ thI) lmap
   in
       (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap')
   end;

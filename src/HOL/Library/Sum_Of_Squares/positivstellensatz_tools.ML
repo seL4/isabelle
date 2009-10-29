@@ -100,7 +100,7 @@ fun parse_varpow ctxt = parse_id -- Scan.optional (str "^" |-- nat) 1 >>
   (fn (x, k) => (cterm_of (ProofContext.theory_of ctxt) (Free (x, @{typ real})), k)) 
 
 fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
-  List.foldl (uncurry FuncUtil.Ctermfunc.update) FuncUtil.Ctermfunc.empty
+  (fn xs => fold FuncUtil.Ctermfunc.update xs FuncUtil.Ctermfunc.empty)
 
 fun parse_cmonomial ctxt =
   rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
@@ -108,7 +108,7 @@ fun parse_cmonomial ctxt =
   rat_int >> (fn r => (FuncUtil.Ctermfunc.empty, r))
 
 fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>
-  List.foldl (uncurry FuncUtil.Monomialfunc.update) FuncUtil.Monomialfunc.empty
+  (fn xs => fold FuncUtil.Monomialfunc.update xs FuncUtil.Monomialfunc.empty)
 
 (* positivstellensatz parser *)
 

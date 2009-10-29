@@ -28,7 +28,7 @@ structure S = USyntax
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
-      (List.foldr (fn (th,A) => uncurry (union (op aconv)) (prems_of th, A)) [] rules);
+      (fold_rev (union (op aconv) o prems_of) rules []);
 
 (*---------------------------------------------------------------------------
  * Three postprocessors are applied to the definition.  It

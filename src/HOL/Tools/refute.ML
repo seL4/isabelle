@@ -954,7 +954,7 @@ struct
             (* required for mutually recursive datatypes; those need to   *)
             (* be added even if they are an instance of an otherwise non- *)
             (* recursive datatype                                         *)
-            fun collect_dtyp (d, acc) =
+            fun collect_dtyp d acc =
             let
               val dT = typ_of_dtyp descr typ_assoc d
             in
@@ -962,7 +962,7 @@ struct
                 DatatypeAux.DtTFree _ =>
                 collect_types dT acc
               | DatatypeAux.DtType (_, ds) =>
-                collect_types dT (List.foldr collect_dtyp acc ds)
+                collect_types dT (fold_rev collect_dtyp ds acc)
               | DatatypeAux.DtRec i =>
                 if dT mem acc then
                   acc  (* prevent infinite recursion *)
@@ -976,9 +976,9 @@ struct
                         insert (op =) dT acc
                       else acc
                     (* collect argument types *)
-                    val acc_dtyps = List.foldr collect_dtyp acc_dT dtyps
+                    val acc_dtyps = fold_rev collect_dtyp dtyps acc_dT
                     (* collect constructor types *)
-                    val acc_dconstrs = List.foldr collect_dtyp acc_dtyps (maps snd dconstrs)
+                    val acc_dconstrs = fold_rev collect_dtyp (maps snd dconstrs) acc_dtyps
                   in
                     acc_dconstrs
                   end
@@ -986,7 +986,7 @@ struct
           in
             (* argument types 'Ts' could be added here, but they are also *)
             (* added by 'collect_dtyp' automatically                      *)
-            collect_dtyp (DatatypeAux.DtRec index, acc)
+            collect_dtyp (DatatypeAux.DtRec index) acc
           end
         | NONE =>
           (* not an inductive datatype, e.g. defined via "typedef" or *)
@@ -1596,8 +1596,9 @@ struct
     val Ts = Term.binder_types (Term.fastype_of t)
     val t' = Term.incr_boundvars i t
   in
-    List.foldr (fn (T, term) => Abs ("<eta_expand>", T, term))
-      (Term.list_comb (t', map Bound (i-1 downto 0))) (List.take (Ts, i))
+    fold_rev (fn T => fn term => Abs ("<eta_expand>", T, term))
+      (List.take (Ts, i))
+      (Term.list_comb (t', map Bound (i-1 downto 0)))
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2058,7 +2059,7 @@ struct
             Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
         in
           (* functions as graphs, i.e. as a (HOL) set of pairs "(x, y)" *)
-          map (List.foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
+          map (fn ps => fold_rev (fn pair => fn acc => HOLogic_insert $ pair $ acc) ps
             HOLogic_empty_set) pairss
         end
       | Type (s, Ts) =>
@@ -2590,8 +2591,8 @@ struct
                         (* interpretation list *)
                         val arg_intrs = map (uncurry rec_intr) rec_dtyps_intrs
                         (* apply 'intr' to all recursive arguments *)
-                        val result = List.foldl (fn (arg_i, i) =>
-                          interpretation_apply (i, arg_i)) intr arg_intrs
+                        val result = fold (fn arg_i => fn i =>
+                          interpretation_apply (i, arg_i)) arg_intrs intr
                         (* update 'REC_OPERATORS' *)
                         val _ = Array.update (arr, elem, (true, result))
                       in
@@ -2970,11 +2971,11 @@ struct
             "intersection: interpretation for set is not a node")
         (* interpretation -> interpretaion *)
         fun lfp (Node resultsets) =
-          List.foldl (fn ((set, resultset), acc) =>
+          fold (fn (set, resultset) => fn acc =>
             if is_subset (resultset, set) then
               intersection (acc, set)
             else
-              acc) i_univ (i_sets ~~ resultsets)
+              acc) (i_sets ~~ resultsets) i_univ
           | lfp _ =
             raise REFUTE ("lfp_interpreter",
               "lfp: interpretation for function is not a node")
@@ -3025,11 +3026,11 @@ struct
             "union: interpretation for set is not a node")
         (* interpretation -> interpretaion *)
         fun gfp (Node resultsets) =
-          List.foldl (fn ((set, resultset), acc) =>
+          fold (fn (set, resultset) => fn acc =>
             if is_subset (set, resultset) then
               union (acc, set)
             else
-              acc) i_univ (i_sets ~~ resultsets)
+              acc) (i_sets ~~ resultsets) i_univ
           | gfp _ =
             raise REFUTE ("gfp_interpreter",
               "gfp: interpretation for function is not a node")
@@ -3127,8 +3128,7 @@ struct
         val HOLogic_insert    =
           Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
       in
-        SOME (List.foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
-          HOLogic_empty_set pairs)
+        SOME (fold_rev (fn pair => fn acc => HOLogic_insert $ pair $ acc) pairs HOLogic_empty_set)
       end
     | Type ("prop", [])      =>
       (case index_from_interpretation intr of

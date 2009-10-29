@@ -138,21 +138,24 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
       tname_of (body_type T) mem ["set", "bool"]) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
-    val prf = List.foldr forall_intr_prf
-     (List.foldr (fn ((f, p), prf) =>
-        (case head_of (strip_abs_body f) of
-           Free (s, T) =>
-             let val T' = Logic.varifyT T
-             in Abst (s, SOME T', Proofterm.prf_abstract_over
-               (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
-             end
-         | _ => AbsP ("H", SOME p, prf)))
-           (Proofterm.proof_combP
-             (prf_of thm', map PBound (length prems - 1 downto 0))) (rec_fns ~~ prems_of thm)) ivs2;
+    val prf =
+      List.foldr forall_intr_prf
+        (fold_rev (fn (f, p) => fn prf =>
+          (case head_of (strip_abs_body f) of
+             Free (s, T) =>
+               let val T' = Logic.varifyT T
+               in Abst (s, SOME T', Proofterm.prf_abstract_over
+                 (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
+               end
+          | _ => AbsP ("H", SOME p, prf)))
+            (rec_fns ~~ prems_of thm)
+            (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0)))) ivs2;
 
-    val r' = if null is then r else Logic.varify (List.foldr (uncurry lambda)
-      r (map Logic.unvarify ivs1 @ filter_out is_unit
-          (map (head_of o strip_abs_body) rec_fns)));
+    val r' =
+      if null is then r
+      else Logic.varify (fold_rev lambda
+        (map Logic.unvarify ivs1 @ filter_out is_unit
+            (map (head_of o strip_abs_body) rec_fns)) r);
 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
@@ -200,10 +203,10 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
-      List.foldr (fn ((p, r), prf) =>
-        forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p),
-          prf))) (Proofterm.proof_combP (prf_of thm',
-            map PBound (length prems - 1 downto 0))) (prems ~~ rs)));
+      fold_rev (fn (p, r) => fn prf =>
+          forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p), prf)))
+        (prems ~~ rs)
+        (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0)))));
     val r' = Logic.varify (Abs ("y", T,
       list_abs (map dest_Free rs, list_comb (r,
         map Bound ((length rs - 1 downto 0) @ [length rs])))));

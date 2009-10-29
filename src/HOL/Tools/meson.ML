@@ -432,7 +432,7 @@ fun make_horn crules th =
 
 (*Generate Horn clauses for all contrapositives of a clause. The input, th,
   is a HOL disjunction.*)
-fun add_contras crules (th,hcs) =
+fun add_contras crules th hcs =
   let fun rots (0,th) = hcs
         | rots (k,th) = zero_var_indexes (make_horn crules th) ::
                         rots(k-1, assoc_right (th RS disj_comm))
@@ -443,9 +443,9 @@ fun add_contras crules (th,hcs) =
 
 (*Use "theorem naming" to label the clauses*)
 fun name_thms label =
-    let fun name1 (th, (k,ths)) =
+    let fun name1 th (k, ths) =
           (k-1, Thm.put_name_hint (label ^ string_of_int k) th :: ths)
-    in  fn ths => #2 (List.foldr name1 (length ths, []) ths)  end;
+    in  fn ths => #2 (fold_rev name1 ths (length ths, []))  end;
 
 (*Is the given disjunction an all-negative support clause?*)
 fun is_negative th = forall (not o #1) (literals (prop_of th));
@@ -491,9 +491,9 @@ fun prolog_step_tac horns i =
     TRYALL_eq_assume_tac;
 
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
-fun addconcl(prem,sz) = size_of_term(Logic.strip_assums_concl prem) + sz
+fun addconcl prem sz = size_of_term (Logic.strip_assums_concl prem) + sz;
 
-fun size_of_subgoals st = List.foldr addconcl 0 (prems_of st);
+fun size_of_subgoals st = fold_rev addconcl (prems_of st) 0;
 
 
 (*Negation Normal Form*)
@@ -553,19 +553,19 @@ fun skolemize_nnf_list _ [] = []
        (trace_msg (fn () => "Failed to Skolemize " ^ Display.string_of_thm ctxt th);
         skolemize_nnf_list ctxt ths);
 
-fun add_clauses (th,cls) =
+fun add_clauses th cls =
   let val ctxt0 = Variable.thm_context th
-      val (cnfs,ctxt) = make_cnf [] th ctxt0
+      val (cnfs, ctxt) = make_cnf [] th ctxt0
   in Variable.export ctxt ctxt0 cnfs @ cls end;
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses ths = sort_clauses (List.foldr add_clauses [] ths);
+fun make_clauses ths = sort_clauses (fold_rev add_clauses ths []);
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
     name_thms "Horn#"
-      (distinct Thm.eq_thm_prop (List.foldr (add_contras clause_rules) [] ths));
+      (distinct Thm.eq_thm_prop (fold_rev (add_contras clause_rules) ths []));
 
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)

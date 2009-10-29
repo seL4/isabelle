@@ -71,8 +71,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
           {intros = intros |>
            Symtab.update (s, (AList.update Thm.eq_thm_prop
              (thm, (thyname_of s, nparms)) rules)),
-           graph = List.foldr (uncurry (Graph.add_edge o pair s))
-             (fold add_node (s :: cs) graph) cs,
+           graph = fold_rev (Graph.add_edge o pair s) cs (fold add_node (s :: cs) graph),
            eqns = eqns} thy
         end
     | _ => (warn thm; thy))
