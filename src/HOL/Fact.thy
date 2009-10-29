@@ -8,7 +8,7 @@
 header{*Factorial Function*}
 
 theory Fact
-imports Nat_Transfer
+imports Main
 begin
 
 class fact =
@@ -265,9 +265,6 @@ subsection {* @{term fact} and @{term of_nat} *}
 
 lemma of_nat_fact_not_zero [simp]: "of_nat (fact n) \<noteq> (0::'a::semiring_char_0)"
 by auto
-
-class ordered_semiring_1 = ordered_semiring + semiring_1
-class ordered_semiring_1_strict = ordered_semiring_strict + semiring_1
 
 lemma of_nat_fact_gt_zero [simp]: "(0::'a::{ordered_semidom}) < of_nat(fact n)" by auto
 

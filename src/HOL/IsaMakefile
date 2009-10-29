@@ -225,7 +225,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
   Tools/split_rule.ML \
-  Tools/transfer.ML \
   Tools/typecopy.ML \
   Tools/typedef_codegen.ML \
   Tools/typedef.ML \
@@ -257,6 +256,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Main.thy \
   Map.thy \
   Nat_Numeral.thy \
+  Nat_Transfer.thy \
   Presburger.thy \
   Predicate_Compile.thy \
   Quickcheck.thy \
@@ -278,6 +278,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer.ML \
   Tools/Groebner_Basis/normalizer_data.ML \
+  Tools/choice_specification.ML \
   Tools/int_arith.ML \
   Tools/list_code.ML \
   Tools/meson.ML \
@@ -301,7 +302,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
   Tools/recdef.ML \
-  Tools/choice_specification.ML \
   Tools/res_atp.ML \
   Tools/res_axioms.ML \
   Tools/res_clause.ML \
@@ -309,6 +309,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/res_reconstruct.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
+  Tools/transfer.ML \
   Tools/TFL/casesplit.ML \
   Tools/TFL/dcterm.ML \
   Tools/TFL/post.ML \
@@ -336,7 +337,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Log.thy \
   Lubs.thy \
   MacLaurin.thy \
-  Nat_Transfer.thy \
   NthRoot.thy \
   PReal.thy \
   Parity.thy \
