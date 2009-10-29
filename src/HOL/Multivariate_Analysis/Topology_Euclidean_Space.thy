@@ -507,7 +507,7 @@ lemma islimpt_approachable_le:
   shows "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x <= e)"
   unfolding islimpt_approachable
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
-  by metis (* FIXME: VERY slow! *)
+  by metis 
 
 class perfect_space =
   (* FIXME: perfect_space should inherit from topological_space *)
@@ -746,7 +746,7 @@ proof-
   { fix x
     have "x \<in> interior S \<longleftrightarrow> x \<in> UNIV - (closure (UNIV - S))"
       unfolding interior_def closure_def islimpt_def
-      by blast (* FIXME: VERY slow! *)
+      by auto
   }
   thus ?thesis
     by blast
@@ -911,7 +911,7 @@ proof
       hence ?rhse using `?lhs`
         unfolding frontier_closures closure_def islimpt_def
         using open_ball[of a e] `e > 0`
-        by (auto, erule_tac x = "ball a e" in allE, auto) (* FIXME: VERY slow! *)
+          by simp (metis centre_in_ball mem_ball open_ball) 
     }
     ultimately have ?rhse by auto
   }
@@ -1052,10 +1052,7 @@ unfolding eventually_within eventually_at dist_nz by auto
 lemma eventually_within_le: "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)" (is "?lhs = ?rhs")
 unfolding eventually_within
-apply safe
-apply (rule_tac x="d/2" in exI, simp)
-apply (rule_tac x="d" in exI, simp)
-done
+by auto (metis Rats_dense_in_nn_real order_le_less_trans order_refl) 
 
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
   unfolding eventually_def trivial_limit_def
@@ -4404,28 +4401,20 @@ proof-
     hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: ring_simps)  }
   note * = this
   { fix x y assume "x\<in>s" "y\<in>s"  hence "s \<noteq> {}" by auto
-    have lub:"isLub UNIV ?D (Sup ?D)" using * Sup[of ?D] using `s\<noteq>{}` unfolding setle_def
-      apply auto    (*FIXME: something horrible has happened here!*)
-      apply atomize
-      apply safe
-      apply metis +
-      done
-    have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s` isLubD1[OF lub] unfolding setle_def by auto  }
+    have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s`  
+      by simp (blast intro!: Sup_upper *) }
   moreover
   { fix d::real assume "d>0" "d < diameter s"
     hence "s\<noteq>{}" unfolding diameter_def by auto
-    hence lub:"isLub UNIV ?D (Sup ?D)" using * Sup[of ?D] unfolding setle_def 
-      apply auto    (*FIXME: something horrible has happened here!*)
-      apply atomize
-      apply safe
-      apply metis +
-      done
     have "\<exists>d' \<in> ?D. d' > d"
     proof(rule ccontr)
       assume "\<not> (\<exists>d'\<in>{norm (x - y) |x y. x \<in> s \<and> y \<in> s}. d < d')"
-      hence as:"\<forall>d'\<in>?D. d' \<le> d" apply auto apply(erule_tac x="norm (x - y)" in allE) by auto
-      hence "isUb UNIV ?D d" unfolding isUb_def unfolding setle_def by auto
-      thus False using `d < diameter s` `s\<noteq>{}` isLub_le_isUb[OF lub, of d] unfolding diameter_def  by auto
+      hence "\<forall>d'\<in>?D. d' \<le> d" by auto (metis not_leE) 
+      thus False using `d < diameter s` `s\<noteq>{}` 
+        apply (auto simp add: diameter_def) 
+        apply (drule Sup_real_iff [THEN [2] rev_iffD2])
+        apply (auto, force) 
+        done
     qed
     hence "\<exists>x\<in>s. \<exists>y\<in>s. norm(x - y) > d" by auto  }
   ultimately show "\<forall>x\<in>s. \<forall>y\<in>s. norm(x - y) \<le> diameter s"
@@ -4445,7 +4434,8 @@ proof-
   then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. norm (u - v) \<le> norm (x - y)" using compact_sup_maxdistance[OF assms] by auto
   hence "diameter s \<le> norm (x - y)" 
     by (force simp add: diameter_def intro!: Sup_least) 
-  thus ?thesis using diameter_bounded(1)[OF b, THEN bspec[where x=x], THEN bspec[where x=y], OF xys] and xys by auto
+  thus ?thesis
+    by (metis b diameter_bounded_bound order_antisym xys) 
 qed
 
 text{* Related results with closure as the conclusion.                           *}
@@ -5291,7 +5281,7 @@ lemma homeomorphic_sym:
  "s homeomorphic t \<longleftrightarrow> t homeomorphic s"
 unfolding homeomorphic_def
 unfolding homeomorphism_def
-by blast (* FIXME: slow *)
+by blast 
 
 lemma homeomorphic_trans:
   assumes "s homeomorphic t" "t homeomorphic u" shows "s homeomorphic u"
@@ -5459,7 +5449,7 @@ lemma complete_isometric_image:
   shows "complete(f ` s)"
 proof-
   { fix g assume as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"Cauchy g"
-    then obtain x where "\<forall>n. x n \<in> s \<and> g n = f (x n)" unfolding image_iff and Bex_def
+    then obtain x where "\<forall>n. x n \<in> s \<and> g n = f (x n)" 
       using choice[of "\<lambda> n xa. xa \<in> s \<and> g n = f xa"] by auto
     hence x:"\<forall>n. x n \<in> s"  "\<forall>n. g n = f (x n)" by auto
     hence "f \<circ> x = g" unfolding expand_fun_eq by auto
