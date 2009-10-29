@@ -263,7 +263,7 @@ val _ = ThyOutput.antiquotation "datatype" Args.tyname
 
 (** abstract theory extensions relative to a datatype characterisation **)
 
-structure Datatype_Interpretation = InterpretationFun
+structure Datatype_Interpretation = Interpretation
   (type T = config * string list val eq: T * T -> bool = eq_snd op =);
 fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
 

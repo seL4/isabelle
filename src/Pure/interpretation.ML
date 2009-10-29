@@ -13,7 +13,7 @@ sig
   val init: theory -> theory
 end;
 
-functor InterpretationFun(type T val eq: T * T -> bool): INTERPRETATION =
+functor Interpretation(type T val eq: T * T -> bool): INTERPRETATION =
 struct
 
 type T = T;
