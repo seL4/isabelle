@@ -33,7 +33,8 @@ sig
     AddFunUpdRules |
     AddAbsMinMaxRules
 
-  val normalize: config list -> Proof.context -> thm list -> cterm list * thm list
+  val normalize: config list -> Proof.context -> thm list ->
+    cterm list * thm list
 
   val setup: theory -> theory
 end
@@ -41,10 +42,42 @@ end
 structure SMT_Normalize: SMT_NORMALIZE =
 struct
 
-val norm_binder_conv = Conv.try_conv (More_Conv.rewrs_conv [
-  @{lemma "All P == ALL x. P x" by (rule reflexive)},
-  @{lemma "Ex P == EX x. P x" by (rule reflexive)},
-  @{lemma "Let c P == let x = c in P x" by (rule reflexive)}])
+local
+  val all1 = @{lemma "All P == ALL x. P x" by (rule reflexive)}
+  val all2 = @{lemma "All == (%P. ALL x. P x)" by (rule reflexive)}
+  val ex1 = @{lemma "Ex P == EX x. P x" by (rule reflexive)}
+  val ex2 = @{lemma "Ex == (%P. EX x. P x)" by (rule reflexive)}
+  val let1 = @{lemma "Let c P == let x = c in P x" by (rule reflexive)}
+  val let2 = @{lemma "Let c == (%P. let x = c in P x)" by (rule reflexive)}
+  val let3 = @{lemma "Let == (%c P. let x = c in P x)" by (rule reflexive)}
+
+  fun all_abs_conv cv ctxt =
+    Conv.abs_conv (all_abs_conv cv o snd) ctxt else_conv cv ctxt
+  fun keep_conv ctxt = More_Conv.binder_conv norm_conv ctxt
+  and unfold_conv rule ctxt =
+    Conv.rewr_conv rule then_conv all_abs_conv keep_conv ctxt
+  and unfold_let_conv rule ctxt =
+    Conv.rewr_conv rule then_conv
+    all_abs_conv (fn cx => Conv.combination_conv
+      (Conv.arg_conv (norm_conv cx)) (Conv.abs_conv (norm_conv o snd) cx)) ctxt
+  and norm_conv ctxt ct =
+    (case Thm.term_of ct of
+      Const (@{const_name All}, _) $ Abs _ => keep_conv
+    | Const (@{const_name All}, _) $ _ => unfold_conv all1
+    | Const (@{const_name All}, _) => unfold_conv all2
+    | Const (@{const_name Ex}, _) $ Abs _ => keep_conv
+    | Const (@{const_name Ex}, _) $ _ => unfold_conv ex1
+    | Const (@{const_name Ex}, _) => unfold_conv ex2
+    | Const (@{const_name Let}, _) $ _ $ Abs _ => keep_conv
+    | Const (@{const_name Let}, _) $ _ $ _ => unfold_let_conv let1
+    | Const (@{const_name Let}, _) $ _ => unfold_let_conv let2
+    | Const (@{const_name Let}, _) => unfold_let_conv let3
+    | Abs _ => Conv.abs_conv (norm_conv o snd)
+    | _ $ _ => Conv.comb_conv o norm_conv
+    | _ => K Conv.all_conv) ctxt ct
+in
+val norm_binder_conv = norm_conv
+end
 
 fun cert ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
 
@@ -65,10 +98,10 @@ fun normalize_rule ctxt =
   Conv.fconv_rule (
     Thm.beta_conversion true then_conv
     Thm.eta_conversion then_conv
-    More_Conv.bottom_conv (K norm_binder_conv) ctxt) #>
+    norm_binder_conv ctxt) #>
   norm_def ctxt #>
   Drule.forall_intr_vars #>
-  Conv.fconv_rule ObjectLogic.atomize
+  Conv.fconv_rule (ObjectLogic.atomize then_conv norm_binder_conv ctxt)
 
 fun instantiate_free (cv, ct) thm =
   if Term.exists_subterm (equal (Thm.term_of cv)) (Thm.prop_of thm)
@@ -321,11 +354,9 @@ local
         | Abs _ => at_lambda cvs
         | _ $ _ => in_comb (repl cvs) (repl cvs)
         | _ => none) ct
-      and at_lambda cvs ct cx =
-        let
-          val (thm1, cx') = in_abs repl cvs ct cx
-          val (thm2, cx'') = replace ctxt cvs (Thm.rhs_of thm1) cx'
-        in (Thm.transitive thm1 thm2, cx'') end
+      and at_lambda cvs ct =
+        in_abs repl cvs ct #-> (fn thm =>
+        replace ctxt cvs (Thm.rhs_of thm) #>> Thm.transitive thm)
     in repl [] end
 in
 fun lift_lambdas ctxt thms =

@@ -201,9 +201,9 @@ local
   fun dest_trigger (@{term trigger} $ tl $ t) = (HOLogic.dest_list tl, t)
     | dest_trigger t = ([], t)
 
-  fun pat f ps (Const (@{const_name pat}, _) $ p) = SPat (rev (f p :: ps))
-    | pat f ps (Const (@{const_name nopat}, _) $ p) = SNoPat (rev (f p :: ps))
-    | pat f ps (Const (@{const_name andpat}, _) $ p $ t) = pat f (f p :: ps) t
+  fun pat f ts (Const (@{const_name pat}, _) $ t) = SPat (rev (f t :: ts))
+    | pat f ts (Const (@{const_name nopat}, _) $ t) = SNoPat (rev (f t :: ts))
+    | pat f ts (Const (@{const_name andpat}, _) $ p $ t) = pat f (f t :: ts) p
     | pat _ _ t = raise TERM ("pat", [t])
 
   fun trans Ts t =

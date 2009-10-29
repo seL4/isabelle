@@ -43,8 +43,11 @@ fun raise_cex real recon ls =
 
 fun check_unsat recon output =
   let
-    val raw = not o String.isPrefix "WARNING" orf String.isPrefix "ERROR"
-    val (ls, l) = the_default ([], "") (try split_last (filter raw output))
+    fun jnk l =
+      String.isPrefix "WARNING" l orelse
+      String.isPrefix "ERROR" l orelse
+      forall Symbol.is_ascii_blank (Symbol.explode l)
+    val (ls, l) = the_default ([], "") (try split_last (filter_out jnk output))
   in
     if String.isPrefix "unsat" l then ls
     else if String.isPrefix "sat" l then raise_cex true recon ls
