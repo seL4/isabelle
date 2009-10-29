@@ -420,10 +420,6 @@ subsection{*Comparisons*}
 
 subsubsection{*Equals (=) *}
 
-lemma eq_nat_nat_iff:
-     "[| (0::int) <= z;  0 <= z' |] ==> (nat z = nat z') = (z=z')"
-by (auto elim!: nonneg_eq_int)
-
 lemma eq_nat_number_of [simp]:
      "((number_of v :: nat) = number_of v') =  
       (if neg (number_of v :: int) then (number_of v' :: int) \<le> 0
@@ -624,11 +620,6 @@ apply auto
 done
  
 subsection{*Literal arithmetic involving powers*}
-
-lemma nat_power_eq: "(0::int) <= z ==> nat (z^n) = nat z ^ n"
-apply (induct "n")
-apply (simp_all (no_asm_simp) add: nat_mult_distrib)
-done
 
 lemma power_nat_number_of:
      "(number_of v :: nat) ^ n =  
