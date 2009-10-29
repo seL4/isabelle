@@ -694,10 +694,11 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used
-                val unused = filter (fn (_, cls) => not (common_thm used cls)) th_cls_pairs
+                val unused = th_cls_pairs |> map_filter (fn (name, cls) =>
+                  if common_thm used cls then NONE else SOME name)
             in
                 if null unused then ()
-                else warning ("Metis: unused theorems " ^ commas_quote (map #1 unused));
+                else warning ("Metis: unused theorems " ^ commas_quote unused);
                 case result of
                     (_,ith)::_ =>
                         (trace_msg (fn () => "success: " ^ Display.string_of_thm ctxt ith);

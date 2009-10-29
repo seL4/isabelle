@@ -138,9 +138,9 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
           val to_use =
             if length ordered_used < length name_thms_pairs then
               filter (fn (name1, _) => List.exists (equal name1) ordered_used) name_thms_pairs
-            else
-              name_thms_pairs
-          val (min_thms, n) = if null to_use then ([], 0)
+            else name_thms_pairs
+          val (min_thms, n) =
+            if null to_use then ([], 0)
             else minimal (test_thms (SOME filtered)) to_use
           val min_names = sort_distinct string_ord (map fst min_thms)
           val _ = priority (cat_lines
