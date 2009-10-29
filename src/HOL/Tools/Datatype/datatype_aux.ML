@@ -231,7 +231,7 @@ fun mk_fun_dtyp [] U = U
 
 fun name_of_typ (Type (s, Ts)) =
       let val s' = Long_Name.base_name s
-      in space_implode "_" (List.filter (not o equal "") (map name_of_typ Ts) @
+      in space_implode "_" (filter_out (equal "") (map name_of_typ Ts) @
         [if Syntax.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
@@ -272,7 +272,7 @@ fun get_branching_types descr sorts =
 
 fun get_arities descr = fold (fn (_, (_, _, constrs)) =>
   fold (fn (_, cargs) => fold (insert op =) (map (length o fst o strip_dtyp)
-    (List.filter is_rec_type cargs))) constrs) descr [];
+    (filter is_rec_type cargs))) constrs) descr [];
 
 (* interpret construction of datatype *)
 

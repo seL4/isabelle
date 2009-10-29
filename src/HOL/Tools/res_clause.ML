@@ -1,11 +1,12 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory
-    Copyright 2004 University of Cambridge
+(*  Title:      HOL/Tools/res_clause.ML
+    Author:     Jia Meng, Cambridge University Computer Laboratory
 
-Storing/printing FOL clauses and arity clauses.
-Typed equality is treated differently.
+Storing/printing FOL clauses and arity clauses.  Typed equality is
+treated differently.
+
+FIXME: combine with res_hol_clause!
 *)
 
-(*FIXME: combine with res_hol_clause!*)
 signature RES_CLAUSE =
 sig
   val schematic_var_prefix: string
@@ -76,7 +77,7 @@ sig
   val tptp_classrelClause : classrelClause -> string
 end
 
-structure ResClause: RES_CLAUSE =
+structure Res_Clause: RES_CLAUSE =
 struct
 
 val schematic_var_prefix = "V_";

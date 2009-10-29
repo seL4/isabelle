@@ -615,11 +615,11 @@ type state =
 
 
 (*Get all rhss with precedence >= minPrec*)
-fun getRHS minPrec = List.filter (fn (_, _, prec:int) => prec >= minPrec);
+fun getRHS minPrec = filter (fn (_, _, prec:int) => prec >= minPrec);
 
 (*Get all rhss with precedence >= minPrec and < maxPrec*)
 fun getRHS' minPrec maxPrec =
-  List.filter (fn (_, _, prec:int) => prec >= minPrec andalso prec < maxPrec);
+  filter (fn (_, _, prec:int) => prec >= minPrec andalso prec < maxPrec);
 
 (*Make states using a list of rhss*)
 fun mkStates i minPrec lhsID rhss =
@@ -655,19 +655,19 @@ fun update_prec (A: nt_tag, prec) used =
   in update (used, []) end;
 
 fun getS A maxPrec Si =
-  List.filter
+  filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
           => A = B andalso prec <= maxPrec
       | _ => false) Si;
 
 fun getS' A maxPrec minPrec Si =
-  List.filter
+  filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
           => A = B andalso prec > minPrec andalso prec <= maxPrec
       | _ => false) Si;
 
 fun getStates Estate i ii A maxPrec =
-  List.filter
+  filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
           => A = B andalso prec <= maxPrec
       | _ => false)

@@ -319,7 +319,7 @@ fun run_sh prover hard_timeout timeout dir st =
     if success then (message, SH_OK (time_isa, time_atp, theorem_names))
     else (message, SH_FAIL(time_isa, time_atp))
   end
-  handle ResHolClause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
+  handle Res_HOL_Clause.TOO_TRIVIAL => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 

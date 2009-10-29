@@ -71,7 +71,7 @@ fun mk_meta_eq r = case concl_of r of
   |   _ => r RS P_imp_P_eq_True
 
 (*Is this the best way to invoke the simplifier??*)
-fun rewrite L = rewrite_rule (map mk_meta_eq (List.filter(not o id_thm) L))
+fun rewrite L = rewrite_rule (map mk_meta_eq (filter_out id_thm L))
 
 fun join_assums th =
   let val thy = Thm.theory_of_thm th

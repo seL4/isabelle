@@ -292,7 +292,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
     val case_dummy_fns = map (fn (_, (_, _, constrs)) => map (fn (_, cargs) =>
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val Ts' = map mk_dummyT (List.filter is_rec_type cargs)
+        val Ts' = map mk_dummyT (filter is_rec_type cargs)
       in Const (@{const_name undefined}, Ts @ Ts' ---> T')
       end) constrs) descr';
 
@@ -305,7 +305,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
           val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
             let
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
-              val Ts' = Ts @ map mk_dummyT (List.filter is_rec_type cargs);
+              val Ts' = Ts @ map mk_dummyT (filter is_rec_type cargs);
               val frees' = map (uncurry (mk_Free "x")) (Ts' ~~ (1 upto length Ts'));
               val frees = Library.take (length cargs, frees');
               val free = mk_Free "f" (Ts ---> T') j

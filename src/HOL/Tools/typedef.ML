@@ -53,8 +53,8 @@ fun put_info name info = TypedefData.map (Symtab.update (name, info));
 
 fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-structure TypedefInterpretation = InterpretationFun(type T = string val eq = op =);
-val interpretation = TypedefInterpretation.interpretation;
+structure Typedef_Interpretation = Interpretation(type T = string val eq = op =);
+val interpretation = Typedef_Interpretation.interpretation;
 
 fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
@@ -169,7 +169,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         in
           thy2
           |> put_info full_tname info
-          |> TypedefInterpretation.data full_tname
+          |> Typedef_Interpretation.data full_tname
           |> pair (full_tname, info)
         end);
 
@@ -264,6 +264,6 @@ val _ =
 end;
 
 
-val setup = TypedefInterpretation.init;
+val setup = Typedef_Interpretation.init;
 
 end;

@@ -24,6 +24,7 @@ uses
   "~~/src/Tools/coherent.ML"
   "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
+  "Tools/res_blacklist.ML"
   ("Tools/simpdata.ML")
   "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
@@ -34,6 +35,8 @@ uses
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
+
+setup Res_Blacklist.setup
 
 
 subsection {* Primitive logic *}
@@ -833,19 +836,14 @@ struct
   val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
 end);
 
-structure BasicClassical: BASIC_CLASSICAL = Classical; 
-open BasicClassical;
+structure Basic_Classical: BASIC_CLASSICAL = Classical; 
+open Basic_Classical;
 
 ML_Antiquote.value "claset"
   (Scan.succeed "Classical.claset_of (ML_Context.the_local_context ())");
-
-structure ResBlacklist = Named_Thms
-  (val name = "noatp" val description = "theorems blacklisted for ATP");
 *}
 
-text {*ResBlacklist holds theorems blacklisted to sledgehammer. 
-  These theorems typically produce clauses that are prolific (match too many equality or
-  membership literals) and relate to seldom-used facts. Some duplicate other rules.*}
+setup Classical.setup
 
 setup {*
 let
@@ -856,8 +854,6 @@ let
 in
   Hypsubst.hypsubst_setup
   #> ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
-  #> Classical.setup
-  #> ResBlacklist.setup
 end
 *}
 

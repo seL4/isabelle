@@ -1,4 +1,5 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory
+(*  Title:      HOL/Tools/res_axioms.ML
+    Author:     Jia Meng, Cambridge University Computer Laboratory
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
@@ -22,7 +23,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure ResAxioms: RES_AXIOMS =
+structure Res_Axioms: RES_AXIOMS =
 struct
 
 val trace = Unsynchronized.ref false;
@@ -285,7 +286,7 @@ fun assume_skolem_of_def s th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
 
-(*** Blacklisting (duplicated in ResAtp?) ***)
+(*** Blacklisting (duplicated in Res_ATP?) ***)
 
 val max_lambda_nesting = 3;
 
@@ -316,18 +317,17 @@ fun too_complex t =
 
 fun is_strange_thm th =
   case head_of (concl_of th) of
-      Const (a,_) => (a <> "Trueprop" andalso a <> "==")
+      Const (a, _) => (a <> "Trueprop" andalso a <> "==")
     | _ => false;
 
 fun bad_for_atp th =
-  Thm.is_internal th
-  orelse too_complex (prop_of th)
+  too_complex (prop_of th)
   orelse exists_type type_has_empty_sort (prop_of th)
   orelse is_strange_thm th;
 
 val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm",
-   "cases","ext_cases"];  (*FIXME: put other record thms here, or use the "Internal" marker*)
+   "cases","ext_cases"];  (* FIXME put other record thms here, or declare as "noatp" *)
 
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (Long_Name.explode s);
@@ -387,14 +387,14 @@ fun pair_name_cls k (n, []) = []
 fun cnf_rules_pairs_aux _ pairs [] = pairs
   | cnf_rules_pairs_aux thy pairs ((name,th)::ths) =
       let val pairs' = (pair_name_cls 0 (name, cnf_axiom thy th)) @ pairs
-                       handle THM _ => pairs | ResClause.CLAUSE _ => pairs
+                       handle THM _ => pairs | Res_Clause.CLAUSE _ => pairs
       in  cnf_rules_pairs_aux thy pairs' ths  end;
 
 (*The combination of rev and tail recursion preserves the original order*)
 fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 
-(**** Convert all facts of the theory into clauses (ResClause.clause, or ResHolClause.clause) ****)
+(**** Convert all facts of the theory into clauses (Res_Clause.clause, or Res_HOL_Clause.clause) ****)
 
 local
 
@@ -421,8 +421,10 @@ in
 
 fun saturate_skolem_cache thy =
   let
-    val new_facts = (PureThy.facts_of thy, []) |-> Facts.fold_static (fn (name, ths) =>
-      if already_seen thy name then I else cons (name, ths));
+    val facts = PureThy.facts_of thy;
+    val new_facts = (facts, []) |-> Facts.fold_static (fn (name, ths) =>
+      if Facts.is_concealed facts name orelse already_seen thy name then I
+      else cons (name, ths));
     val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
       if member (op =) multi_base_blacklist (Long_Name.base_name name) then I
       else fold_index (fn (i, th) =>

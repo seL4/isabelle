@@ -44,8 +44,8 @@ val get_info = Symtab.lookup o TypecopyData.get;
 
 (* interpretation of type copies *)
 
-structure TypecopyInterpretation = InterpretationFun(type T = string val eq = op =);
-val interpretation = TypecopyInterpretation.interpretation;
+structure Typecopy_Interpretation = Interpretation(type T = string val eq = op =);
+val interpretation = Typecopy_Interpretation.interpretation;
 
 
 (* introducing typecopies *)
@@ -76,7 +76,7 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
         in
           thy
           |> (TypecopyData.map o Symtab.update_new) (tyco, info)
-          |> TypecopyInterpretation.data tyco
+          |> Typecopy_Interpretation.data tyco
           |> pair (tyco, info)
         end
   in
@@ -126,7 +126,7 @@ fun add_default_code tyco thy =
   end;
 
 val setup =
-  TypecopyInterpretation.init
+  Typecopy_Interpretation.init
   #> interpretation add_default_code
 
 end;

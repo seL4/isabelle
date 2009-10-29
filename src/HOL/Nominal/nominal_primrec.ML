@@ -193,7 +193,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
      NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const (@{const_name undefined},
-           replicate ((length cargs) + (length (List.filter is_rec_type cargs)))
+           replicate (length cargs + length (filter is_rec_type cargs))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)
        in

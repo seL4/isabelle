@@ -184,7 +184,7 @@ fun add_axioms comp_dnam (eqs : eq list) thy' =
 
       fun one_con (con,args) = let
         val nonrec_args = filter_out is_rec args;
-        val    rec_args = List.filter     is_rec args;
+        val    rec_args = filter is_rec args;
         val    recs_cnt = length rec_args;
         val allargs     = nonrec_args @ rec_args
                           @ map (upd_vname (fn s=> s^"'")) rec_args;

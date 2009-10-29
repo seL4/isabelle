@@ -63,9 +63,11 @@ structure DatatypesData = TheoryDataFun
 
 val get_all = #types o DatatypesData.get;
 val get_info = Symtab.lookup o get_all;
-fun the_info thy name = (case get_info thy name of
-      SOME info => info
-    | NONE => error ("Unknown datatype " ^ quote name));
+
+fun the_info thy name =
+  (case get_info thy name of
+    SOME info => info
+  | NONE => error ("Unknown datatype " ^ quote name));
 
 fun info_of_constr thy (c, T) =
   let
@@ -93,6 +95,7 @@ fun register (dt_infos : (string * info) list) =
             (#3 (the (AList.lookup op = descr index)))) dt_infos),
      cases = cases |> fold Symtab.update
        (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)});
+
 
 (* complex queries *)
 
@@ -155,6 +158,7 @@ fun get_constrs thy dtco =
     | NONE => NONE;
 
 
+
 (** various auxiliary **)
 
 (* prepare datatype specifications *)
@@ -207,6 +211,7 @@ fun mk_case_names_exhausts descr new =
 
 end;
 
+
 (* translation rules for case *)
 
 fun make_case ctxt = DatatypeCase.make_case
@@ -226,6 +231,7 @@ val trfun_setup =
   Sign.add_advanced_trfuns ([],
     [("_case_syntax", DatatypeCase.case_tr true info_of_constr)],
     [], []);
+
 
 
 (** document antiquotation **)
@@ -254,15 +260,17 @@ val _ = ThyOutput.antiquotation "datatype" Args.tyname
     in ThyOutput.output (ThyOutput.maybe_pretty_source (K pretty_datatype) src [()]) end);
 
 
+
 (** abstract theory extensions relative to a datatype characterisation **)
 
-structure DatatypeInterpretation = InterpretationFun
+structure Datatype_Interpretation = Interpretation
   (type T = config * string list val eq: T * T -> bool = eq_snd op =);
-fun interpretation f = DatatypeInterpretation.interpretation (uncurry f);
+fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
 
 fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
     (index, (((((((((((_, (tname, _, _))), inject), distinct),
-      exhaust), nchotomy), case_name), case_rewrites), case_cong), weak_case_cong), (split, split_asm))) =
+      exhaust), nchotomy), case_name), case_rewrites), case_cong), weak_case_cong),
+        (split, split_asm))) =
   (tname,
    {index = index,
     alt_names = alt_names,
@@ -309,7 +317,8 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
 
     val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
-    val dt_infos = map_index (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
+    val dt_infos = map_index
+      (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
         case_names ~~ case_rewrites ~~ case_congs ~~ weak_case_congs ~~ splits);
     val dt_names = map fst dt_infos;
@@ -319,7 +328,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       [((Binding.empty, [nth inducts index]), [Induct.induct_type tname]),
        ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
     val unnamed_rules = map (fn induct =>
-      ((Binding.empty, [induct]), [Thm.kind_internal, Induct.induct_type ""]))
+      ((Binding.empty, [induct]), [RuleCases.inner_rule, Induct.induct_type ""]))
         (Library.drop (length dt_names, inducts));
   in
     thy9
@@ -337,14 +346,16 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     |> snd
     |> add_case_tr' case_names
     |> register dt_infos
-    |> DatatypeInterpretation.data (config, dt_names)
+    |> Datatype_Interpretation.data (config, dt_names)
     |> pair dt_names
   end;
 
 
+
 (** declare existing type as datatype **)
 
-fun prove_rep_datatype config dt_names alt_names descr sorts raw_inject half_distinct raw_induct thy1 =
+fun prove_rep_datatype config dt_names alt_names descr sorts
+    raw_inject half_distinct raw_induct thy1 =
   let
     val raw_distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
@@ -417,7 +428,8 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
             (*FIXME somehow dubious*)
       in
         ProofContext.theory_result
-          (prove_rep_datatype config dt_names alt_names descr vs raw_inject half_distinct raw_induct)
+          (prove_rep_datatype config dt_names alt_names descr vs
+            raw_inject half_distinct raw_induct)
         #-> after_qed
       end;
   in
@@ -428,6 +440,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
 val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global default_config (K I);
+
 
 
 (** definitional introduction of datatypes **)
@@ -445,16 +458,20 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     val (tyvars, _, _, _)::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
       let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
-      in (case duplicates (op =) tvs of
-            [] => if eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
-                  else error ("Mutually recursive datatypes must have same type parameters")
-          | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
-              " : " ^ commas dups))
+      in
+        (case duplicates (op =) tvs of
+          [] =>
+            if eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
+            else error ("Mutually recursive datatypes must have same type parameters")
+        | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
+            " : " ^ commas dups))
       end) dts);
     val dt_names = map fst new_dts;
 
-    val _ = (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
-      [] => () | dups => error ("Duplicate datatypes: " ^ commas dups));
+    val _ =
+      (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
+        [] => ()
+      | dups => error ("Duplicate datatypes: " ^ commas dups));
 
     fun prep_dt_spec ((tvs, tname, mx, constrs), tname') (dts', constr_syntax, sorts, i) =
       let
@@ -508,13 +525,15 @@ val add_datatype = gen_add_datatype cert_typ;
 val datatype_cmd = snd ooo gen_add_datatype read_typ default_config;
 
 
+
 (** package setup **)
 
 (* setup theory *)
 
 val setup =
   trfun_setup #>
-  DatatypeInterpretation.init;
+  Datatype_Interpretation.init;
+
 
 (* outer syntax *)
 

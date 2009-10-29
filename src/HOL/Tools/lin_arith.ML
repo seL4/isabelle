@@ -681,7 +681,7 @@ let
   val beta_eta_norm  = map (apsnd (map (Envir.eta_contract o Envir.beta_norm)))
     split_goals
   (* TRY (etac notE) THEN eq_assume_tac: *)
-  val result         = List.filter (not o negated_term_occurs_positively o snd)
+  val result         = filter_out (negated_term_occurs_positively o snd)
     beta_eta_norm
 in
   result
