@@ -458,8 +458,8 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
       lthy
       |> LocalTheory.conceal
       |> Inductive.add_inductive_i
-          {quiet_mode = false,
-            verbose = ! Toplevel.debug,
+          {quiet_mode = true,
+            verbose = ! trace,
             kind = Thm.internalK,
             alt_name = Binding.empty,
             coind = false,
