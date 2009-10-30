@@ -1,5 +1,5 @@
 theory Predicate_Compile_ex
-imports "../Main" Predicate_Compile_Alternative_Defs
+imports Main Predicate_Compile_Alternative_Defs
 begin
 
 subsection {* Basic predicates *}
@@ -8,7 +8,7 @@ inductive False' :: "bool"
 
 code_pred (mode : []) False' .
 code_pred [depth_limited] False' .
-code_pred [rpred] False' .
+code_pred [random] False' .
 
 inductive EmptySet :: "'a \<Rightarrow> bool"
 
@@ -67,7 +67,7 @@ where
   "zerozero (0, 0)"
 
 code_pred (mode: [i], [(i, o)], [(o, i)], [o]) zerozero .
-code_pred [rpred] zerozero .
+code_pred [random] zerozero .
 
 subsection {* Alternative Rules *}
 
@@ -188,14 +188,14 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
 
 code_pred (mode: [], [1]) even .
 code_pred [depth_limited] even .
-code_pred [rpred] even .
+code_pred [random] even .
 
 thm odd.equation
 thm even.equation
 thm odd.depth_limited_equation
 thm even.depth_limited_equation
-thm even.rpred_equation
-thm odd.rpred_equation
+thm even.random_equation
+thm odd.random_equation
 
 values "{x. even 2}"
 values "{x. odd 2}"
@@ -211,7 +211,7 @@ definition odd' where "odd' x == \<not> even x"
 
 code_pred (mode: [1]) [inductify] odd' .
 code_pred [inductify, depth_limited] odd' .
-code_pred [inductify, rpred] odd' .
+code_pred [inductify, random] odd' .
 
 thm odd'.depth_limited_equation
 values [depth_limit = 2] "{x. odd' 7}"
@@ -231,11 +231,11 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
 
 code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
 code_pred [depth_limited] append .
-code_pred [rpred] append .
+code_pred [random] append .
 
 thm append.equation
 thm append.depth_limited_equation
-thm append.rpred_equation
+thm append.random_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
@@ -279,7 +279,7 @@ where
 | "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
 
 code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append .
-code_pred [rpred] tupled_append .
+code_pred [random] tupled_append .
 thm tupled_append.equation
 (*
 TODO: values with tupled modes
@@ -332,7 +332,7 @@ where
 
 code_pred (mode: [1] ==> [1], [1] ==> [1, 2]) filter1 .
 code_pred [depth_limited] filter1 .
-code_pred [rpred] filter1 .
+code_pred [random] filter1 .
 
 thm filter1.equation
 
@@ -344,9 +344,9 @@ where
 
 code_pred (mode: [1, 2, 3], [1, 2]) filter2 .
 code_pred [depth_limited] filter2 .
-code_pred [rpred] filter2 .
+code_pred [random] filter2 .
 thm filter2.equation
-thm filter2.rpred_equation
+thm filter2.random_equation
 
 inductive filter3
 for P
@@ -363,7 +363,7 @@ where
 
 code_pred (mode: [1, 2], [1, 2, 3]) filter4 .
 code_pred [depth_limited] filter4 .
-code_pred [rpred] filter4 .
+code_pred [random] filter4 .
 
 subsection {* reverse predicate *}
 
@@ -394,7 +394,7 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
 
 code_pred (mode: [1] ==> [1], [1] ==> [2, 3], [1] ==> [1, 2], [1] ==> [1, 3], [1] ==> [1, 2, 3]) partition .
 code_pred [depth_limited] partition .
-code_pred [rpred] partition .
+code_pred [random] partition .
 
 values 10 "{(ys, zs). partition is_even
   [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}"
@@ -425,18 +425,18 @@ proof -
 qed
 
 code_pred [depth_limited] tranclp .
-code_pred [rpred] tranclp .
+code_pred [random] tranclp .
 thm tranclp.equation
-thm tranclp.rpred_equation
+thm tranclp.random_equation
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
 
 code_pred succ .
-code_pred [rpred] succ .
+code_pred [random] succ .
 thm succ.equation
-thm succ.rpred_equation
+thm succ.random_equation
 
 values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
@@ -549,9 +549,9 @@ code_pred [inductify] Min .
 subsection {* Lexicographic order *}
 
 code_pred [inductify] lexord .
-code_pred [inductify, rpred] lexord .
+code_pred [inductify, random] lexord .
 thm lexord.equation
-thm lexord.rpred_equation
+thm lexord.random_equation
 
 inductive less_than_nat :: "nat * nat => bool"
 where
@@ -561,16 +561,16 @@ where
 code_pred less_than_nat .
 
 code_pred [depth_limited] less_than_nat .
-code_pred [rpred] less_than_nat .
+code_pred [random] less_than_nat .
 
 inductive test_lexord :: "nat list * nat list => bool"
 where
   "lexord less_than_nat (xs, ys) ==> test_lexord (xs, ys)"
 
-code_pred [rpred] test_lexord .
+code_pred [random] test_lexord .
 code_pred [depth_limited] test_lexord .
 thm test_lexord.depth_limited_equation
-thm test_lexord.rpred_equation
+thm test_lexord.random_equation
 
 values "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
 values [depth_limit = 5] "{x. test_lexord ([1, 2, 3], [1, 2, 5])}"
@@ -580,15 +580,15 @@ lemmas [code_pred_def] = lexn_conv lex_conv lenlex_conv
 code_pred [inductify] lexn .
 thm lexn.equation
 
-code_pred [rpred] lexn .
+code_pred [random] lexn .
 
-thm lexn.rpred_equation
+thm lexn.random_equation
 
-code_pred [inductify, show_steps] lenlex .
+code_pred [inductify] lenlex .
 thm lenlex.equation
 
-code_pred [inductify, rpred] lenlex .
-thm lenlex.rpred_equation
+code_pred [inductify, random] lenlex .
+thm lenlex.random_equation
 
 code_pred [inductify] lists .
 thm lists.equation
@@ -609,8 +609,8 @@ primrec
 code_pred [inductify] avl .
 thm avl.equation
 
-code_pred [rpred] avl .
-thm avl.rpred_equation
+code_pred [random] avl .
+thm avl.random_equation
 
 fun set_of
 where
@@ -667,9 +667,9 @@ thm inv_image.equation
 subsection {* Inverting list functions *}
 
 code_pred [inductify] length .
-code_pred [inductify, rpred] length .
+code_pred [inductify, random] length .
 thm size_listP.equation
-thm size_listP.rpred_equation
+thm size_listP.random_equation
 
 values [random] 20 "{xs. size_listP (xs::nat list) (5::nat)}"
 
@@ -693,7 +693,7 @@ code_pred [inductify] map .
 code_pred [inductify] foldr .
 code_pred [inductify] foldl .
 code_pred [inductify] filter .
-code_pred [inductify, rpred] filter .
+code_pred [inductify, random] filter .
 
 subsection {* Context Free Grammar *}
 
@@ -708,9 +708,9 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 | "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
 
 code_pred [inductify] S\<^isub>1p .
-code_pred [inductify, rpred] S\<^isub>1p .
+code_pred [inductify, random] S\<^isub>1p .
 thm S\<^isub>1p.equation
-thm S\<^isub>1p.rpred_equation
+thm S\<^isub>1p.random_equation
 
 values [random] 5 "{x. S\<^isub>1p x}"
 
@@ -722,10 +722,10 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 | "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
 | "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
 
-code_pred [inductify, rpred] S\<^isub>2 .
-thm S\<^isub>2.rpred_equation
-thm A\<^isub>2.rpred_equation
-thm B\<^isub>2.rpred_equation
+code_pred [inductify, random] S\<^isub>2 .
+thm S\<^isub>2.random_equation
+thm A\<^isub>2.random_equation
+thm B\<^isub>2.random_equation
 
 values [random] 10 "{x. S\<^isub>2 x}"
 

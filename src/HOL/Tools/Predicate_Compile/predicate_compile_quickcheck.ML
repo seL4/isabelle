@@ -32,7 +32,7 @@ val options = Options {
   skip_proof = false,
   
   inductify = false,
-  rpred = false,
+  random = false,
   depth_limited = false
 }
 

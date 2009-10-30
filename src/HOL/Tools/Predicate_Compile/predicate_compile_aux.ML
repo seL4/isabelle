@@ -169,7 +169,7 @@ datatype options = Options of {
   skip_proof : bool,
 
   inductify : bool,
-  rpred : bool,
+  random : bool,
   depth_limited : bool
 };
 
@@ -183,7 +183,7 @@ fun show_compilation (Options opt) = #show_compilation opt
 fun skip_proof (Options opt) = #skip_proof opt
 
 fun is_inductify (Options opt) = #inductify opt
-fun is_rpred (Options opt) = #rpred opt
+fun is_random (Options opt) = #random opt
 fun is_depth_limited (Options opt) = #depth_limited opt
 
 val default_options = Options {
@@ -197,7 +197,7 @@ val default_options = Options {
   skip_proof = false,
   
   inductify = false,
-  rpred = false,
+  random = false,
   depth_limited = false
 }
 

@@ -32,10 +32,10 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 | "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
 | "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
 
-code_pred [inductify, rpred] S\<^isub>2 .
-thm S\<^isub>2.rpred_equation
-thm A\<^isub>2.rpred_equation
-thm B\<^isub>2.rpred_equation
+code_pred [inductify, random] S\<^isub>2 .
+thm S\<^isub>2.random_equation
+thm A\<^isub>2.random_equation
+thm B\<^isub>2.random_equation
 
 values [random] 10 "{x. S\<^isub>2 x}"
 

@@ -144,8 +144,6 @@ fun flat_higher_order_arguments (intross, thy) =
         val abs_args = filter is_Abs args
         fun replace_abs_arg (abs_arg as Abs _ ) (new_defs, thy) =
           let
-            val _ = tracing ("Introduce new constant for " ^
-              Syntax.string_of_term_global thy abs_arg)
             val vars = map Var (Term.add_vars abs_arg [])
             val abs_arg' = Logic.unvarify abs_arg
             val frees = map Free (Term.add_frees abs_arg' [])
@@ -156,7 +154,6 @@ fun flat_higher_order_arguments (intross, thy) =
             val const = Const (full_constname, constT)
             val lhs = list_comb (const, frees)
             val def = Logic.mk_equals (lhs, abs_arg')
-            val _ = tracing (Syntax.string_of_term_global thy def)
             val ([definition], thy') = thy
               |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
               |> PureThy.add_defs false [((Binding.name (constname ^ "_def"), def), [])]

@@ -122,7 +122,7 @@ fun extract_options ((modes, raw_options), const) =
       show_compilation = chk "show_compilation",
       skip_proof = chk "skip_proof",
       inductify = chk "inductify",
-      rpred = chk "rpred",
+      random = chk "random",
       depth_limited = chk "depth_limited"
     }
   end
@@ -151,7 +151,7 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
-  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "rpred", "depth_limited"]
+  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "random", "depth_limited"]
 
 local structure P = OuterParse
 in
