@@ -268,7 +268,8 @@ val old_appl_syntax_setup =
 (* main content *)
 
 val _ = Context.>> (Context.map_theory
-  (OldApplSyntax.init #>
+  (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
+   OldApplSyntax.init #>
    Sign.add_types
    [(Binding.name "fun", 2, NoSyn),
     (Binding.name "prop", 0, NoSyn),
