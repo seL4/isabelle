@@ -424,22 +424,13 @@ code_const "Code_Evaluation.term_of \<Colon> nat \<Rightarrow> term"
 text {* Module names *}
 
 code_modulename SML
-  Nat Integer
-  Divides Integer
-  Ring_and_Field Integer
-  Efficient_Nat Integer
+  Efficient_Nat Arith
 
 code_modulename OCaml
-  Nat Integer
-  Divides Integer
-  Ring_and_Field Integer
-  Efficient_Nat Integer
+  Efficient_Nat Arith
 
 code_modulename Haskell
-  Nat Integer
-  Divides Integer
-  Ring_and_Field Integer
-  Efficient_Nat Integer
+  Efficient_Nat Arith
 
 hide const int
 

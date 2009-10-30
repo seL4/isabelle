@@ -131,7 +131,7 @@ proof -
   note that ultimately show thesis by blast
 qed
 
-lemma dvd_eq_mod_eq_0 [code_unfold]: "a dvd b \<longleftrightarrow> b mod a = 0"
+lemma dvd_eq_mod_eq_0 [code, code_unfold, code_inline del]: "a dvd b \<longleftrightarrow> b mod a = 0"
 proof
   assume "b mod a = 0"
   with mod_div_equality [of b a] have "b div a * a = b" by simp
@@ -2459,5 +2459,14 @@ proof -
     by (auto simp add: not_less sgn_if)
   then show ?thesis by (simp add: divmod_int_pdivmod)
 qed
+
+code_modulename SML
+  Divides Arith
+
+code_modulename OCaml
+  Divides Arith
+
+code_modulename Haskell
+  Divides Arith
 
 end
