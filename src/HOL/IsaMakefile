@@ -248,12 +248,12 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
   Int.thy \
-  IntDiv.thy \
   List.thy \
   Main.thy \
   Map.thy \
   Nat_Numeral.thy \
   Nat_Transfer.thy \
+  Numeral_Simprocs.thy \
   Presburger.thy \
   Predicate_Compile.thy \
   Quickcheck.thy \
@@ -382,7 +382,6 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/While_Combinator.thy Library/Product_ord.thy			\
   Library/Char_nat.thy Library/Char_ord.thy Library/Option_ord.thy	\
   Library/Sublist_Order.thy Library/List_lexord.thy			\
-  Library/Commutative_Ring.thy Library/comm_ring.ML			\
   Library/Coinductive_List.thy Library/AssocList.thy			\
   Library/Formal_Power_Series.thy Library/Binomial.thy			\
   Library/Eval_Witness.thy Library/Code_Char.thy			\
@@ -785,6 +784,9 @@ HOL-Decision_Procs: HOL $(LOG)/HOL-Decision_Procs.gz
 
 $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/Approximation.thy \
+  Decision_Procs/Commutative_Ring.thy \
+  Decision_Procs/Commutative_Ring_Complete.thy \
+  Decision_Procs/commutative_ring_tac.ML \
   Decision_Procs/Cooper.thy \
   Decision_Procs/cooper_tac.ML \
   Decision_Procs/Dense_Linear_Order.thy \
@@ -795,6 +797,7 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/Decision_Procs.thy \
   Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
   Decision_Procs/ex/Approximation_Ex.thy \
+  Decision_Procs/ex/Commutative_Ring_Ex.thy \
   Decision_Procs/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 
@@ -937,7 +940,7 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
 
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
-$(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
+$(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy		\
   Number_Theory/Primes.thy						\
   Tools/Predicate_Compile/predicate_compile_core.ML			\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy		\
@@ -945,8 +948,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
   ex/CodegenSML_Test.thy ex/Codegenerator_Candidates.thy		\
   ex/Codegenerator_Pretty.thy ex/Codegenerator_Pretty_Test.thy		\
-  ex/Codegenerator_Test.thy ex/Coherent.thy ex/Commutative_RingEx.thy	\
-  ex/Commutative_Ring_Complete.thy ex/Efficient_Nat_examples.thy	\
+  ex/Codegenerator_Test.thy ex/Coherent.thy	\
+  ex/Efficient_Nat_examples.thy	\
   ex/Eval_Examples.thy ex/Fundefs.thy ex/Groebner_Examples.thy		\
   ex/Guess.thy ex/HarmonicSeries.thy ex/Hebrew.thy			\
   ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy			\

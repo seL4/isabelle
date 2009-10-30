@@ -45,8 +45,6 @@ use_thys [
   "Groebner_Examples",
   "MT",
   "Unification",
-  "Commutative_RingEx",
-  "Commutative_Ring_Complete",
   "Primrec",
   "Tarski",
   "Adder",
