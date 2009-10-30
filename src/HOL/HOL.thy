@@ -1818,7 +1818,7 @@ code_datatype True False
 
 code_datatype "TYPE('a\<Colon>{})"
 
-code_datatype Trueprop "prop"
+code_datatype "prop" Trueprop
 
 text {* Code equations *}
 

@@ -2246,13 +2246,13 @@ lemma one_is_num_one [code, code_unfold_post]:
   by simp
 
 code_modulename SML
-  Int Integer
+  Int Arith
 
 code_modulename OCaml
-  Int Integer
+  Int Arith
 
 code_modulename Haskell
-  Int Integer
+  Int Arith
 
 types_code
   "int" ("int")
