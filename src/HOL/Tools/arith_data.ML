@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/arith_data.ML
     Author:     Markus Wenzel, Stefan Berghofer, and Tobias Nipkow
 
-Common arithmetic proof auxiliary.
+Common arithmetic proof auxiliary and legacy.
 *)
 
 signature ARITH_DATA =
@@ -10,6 +10,11 @@ sig
   val verbose_arith_tac: Proof.context -> int -> tactic
   val add_tactic: string -> (bool -> Proof.context -> int -> tactic) -> theory -> theory
   val get_arith_facts: Proof.context -> thm list
+
+  val mk_number: typ -> int -> term
+  val mk_sum: typ -> term list -> term
+  val long_mk_sum: typ -> term list -> term
+  val dest_sum: term -> term list
 
   val prove_conv_nohyps: tactic list -> Proof.context -> term * term -> thm option
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
@@ -65,6 +70,36 @@ val setup =
       METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ get_arith_facts ctxt @ facts)
         THEN' verbose_arith_tac ctxt))))
     "various arithmetic decision procedures";
+
+
+(* some specialized syntactic operations *)
+
+fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
+
+val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
+
+fun mk_minus t = 
+  let val T = Term.fastype_of t
+  in Const (@{const_name HOL.uminus}, T --> T) $ t end;
+
+(*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
+fun mk_sum T []        = mk_number T 0
+  | mk_sum T [t,u]     = mk_plus (t, u)
+  | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
+
+(*this version ALWAYS includes a trailing zero*)
+fun long_mk_sum T []        = mk_number T 0
+  | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
+
+(*decompose additions AND subtractions as a sum*)
+fun dest_summing (pos, Const (@{const_name HOL.plus}, _) $ t $ u, ts) =
+        dest_summing (pos, t, dest_summing (pos, u, ts))
+  | dest_summing (pos, Const (@{const_name HOL.minus}, _) $ t $ u, ts) =
+        dest_summing (pos, t, dest_summing (not pos, u, ts))
+  | dest_summing (pos, t, ts) =
+        if pos then t::ts else mk_minus t :: ts;
+
+fun dest_sum t = dest_summing (true, t, []);
 
 
 (* various auxiliary and legacy *)

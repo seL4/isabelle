@@ -37,6 +37,11 @@ Styles can be also applied for antiquotations prop, term_type and typeof.
 
 *** HOL ***
 
+* Combined former theories Divides and IntDiv to one theory Divides
+in the spirit of other number theory theories in HOL;  some constants
+(and to a lesser extent also facts) have been suffixed with _nat und _int
+respectively.  INCOMPATIBILITY.
+
 * Most rules produced by inductive and datatype package
 have mandatory prefixes.
 INCOMPATIBILITY.

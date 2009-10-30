@@ -3,17 +3,14 @@
 Tactic for solving equalities over commutative rings.
 *)
 
-signature COMM_RING =
+signature COMMUTATIVE_RING_TAC =
 sig
-  val comm_ring_tac : Proof.context -> int -> tactic
-  val setup : theory -> theory
+  val tac: Proof.context -> int -> tactic
+  val setup: theory -> theory
 end
 
-structure CommRing: COMM_RING =
+structure Commutative_Ring_Tac: COMMUTATIVE_RING_TAC =
 struct
-
-(* The Cring exception for erronous uses of cring_tac *)
-exception CRing of string;
 
 (* Zero and One of the commutative ring *)
 fun cring_zero T = Const (@{const_name HOL.zero}, T);
@@ -21,21 +18,21 @@ fun cring_one T = Const (@{const_name HOL.one}, T);
 
 (* reification functions *)
 (* add two polynom expressions *)
-fun polT t = Type ("Commutative_Ring.pol", [t]);
-fun polexT t = Type ("Commutative_Ring.polex", [t]);
+fun polT t = Type (@{type_name Commutative_Ring.pol}, [t]);
+fun polexT t = Type (@{type_name Commutative_Ring.polex}, [t]);
 
 (* pol *)
-fun pol_Pc t = Const ("Commutative_Ring.pol.Pc", t --> polT t);
-fun pol_Pinj t = Const ("Commutative_Ring.pol.Pinj", HOLogic.natT --> polT t --> polT t);
-fun pol_PX t = Const ("Commutative_Ring.pol.PX", polT t --> HOLogic.natT --> polT t --> polT t);
+fun pol_Pc t = Const (@{const_name Commutative_Ring.pol.Pc}, t --> polT t);
+fun pol_Pinj t = Const (@{const_name Commutative_Ring.pol.Pinj}, HOLogic.natT --> polT t --> polT t);
+fun pol_PX t = Const (@{const_name Commutative_Ring.pol.PX}, polT t --> HOLogic.natT --> polT t --> polT t);
 
 (* polex *)
-fun polex_add t = Const ("Commutative_Ring.polex.Add", polexT t --> polexT t --> polexT t);
-fun polex_sub t = Const ("Commutative_Ring.polex.Sub", polexT t --> polexT t --> polexT t);
-fun polex_mul t = Const ("Commutative_Ring.polex.Mul", polexT t --> polexT t --> polexT t);
-fun polex_neg t = Const ("Commutative_Ring.polex.Neg", polexT t --> polexT t);
-fun polex_pol t = Const ("Commutative_Ring.polex.Pol", polT t --> polexT t);
-fun polex_pow t = Const ("Commutative_Ring.polex.Pow", polexT t --> HOLogic.natT --> polexT t);
+fun polex_add t = Const (@{const_name Commutative_Ring.polex.Add}, polexT t --> polexT t --> polexT t);
+fun polex_sub t = Const (@{const_name Commutative_Ring.polex.Sub}, polexT t --> polexT t --> polexT t);
+fun polex_mul t = Const (@{const_name Commutative_Ring.polex.Mul}, polexT t --> polexT t --> polexT t);
+fun polex_neg t = Const (@{const_name Commutative_Ring.polex.Neg}, polexT t --> polexT t);
+fun polex_pol t = Const (@{const_name Commutative_Ring.polex.Pol}, polT t --> polexT t);
+fun polex_pow t = Const (@{const_name Commutative_Ring.polex.Pow}, polexT t --> HOLogic.natT --> polexT t);
 
 (* reification of polynoms : primitive cring expressions *)
 fun reif_pol T vs (t as Free _) =
@@ -67,7 +64,7 @@ fun reif_polex T vs (Const (@{const_name HOL.plus}, _) $ a $ b) =
 (* reification of the equation *)
 val cr_sort = @{sort "comm_ring_1"};
 
-fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
+fun reif_eq thy (eq as Const(@{const_name "op ="}, Type("fun", [T, _])) $ lhs $ rhs) =
       if Sign.of_sort thy (T, cr_sort) then
         let
           val fs = OldTerm.term_frees eq;
@@ -76,8 +73,8 @@ fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
           val crhs = cterm_of thy (reif_polex T fs rhs);
           val ca = ctyp_of thy T;
         in (ca, cvs, clhs, crhs) end
-      else raise CRing ("reif_eq: not an equation over " ^ Syntax.string_of_sort_global thy cr_sort)
-  | reif_eq _ _ = raise CRing "reif_eq: not an equation";
+      else error ("reif_eq: not an equation over " ^ Syntax.string_of_sort_global thy cr_sort)
+  | reif_eq _ _ = error "reif_eq: not an equation";
 
 (* The cring tactic *)
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
@@ -86,7 +83,7 @@ val cring_simps =
   [@{thm mkPX_def}, @{thm mkPinj_def}, @{thm sub_def}, @{thm power_add},
     @{thm even_def}, @{thm pow_if}, sym OF [@{thm power_add}]];
 
-fun comm_ring_tac ctxt = SUBGOAL (fn (g, i) =>
+fun tac ctxt = SUBGOAL (fn (g, i) =>
   let
     val thy = ProofContext.theory_of ctxt;
     val cring_ss = Simplifier.simpset_of ctxt  (*FIXME really the full simpset!?*)
@@ -101,9 +98,7 @@ fun comm_ring_tac ctxt = SUBGOAL (fn (g, i) =>
   end);
 
 val setup =
-  Method.setup @{binding comm_ring} (Scan.succeed (SIMPLE_METHOD' o comm_ring_tac))
-    "reflective decision procedure for equalities over commutative rings" #>
-  Method.setup @{binding algebra} (Scan.succeed (SIMPLE_METHOD' o comm_ring_tac))
-    "method for proving algebraic properties (same as comm_ring)";
+  Method.setup @{binding comm_ring} (Scan.succeed (SIMPLE_METHOD' o tac))
+    "reflective decision procedure for equalities over commutative rings";
 
 end;
