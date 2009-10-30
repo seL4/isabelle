@@ -451,20 +451,58 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
       (goalstate, values)
     end
 
+(* wrapper -- restores quantifiers in rule specifications *)
+fun inductive_def (binding as ((R, T), _)) intrs lthy =
+  let
+    val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
+      lthy
+      |> LocalTheory.conceal
+      |> Inductive.add_inductive_i
+          {quiet_mode = false,
+            verbose = ! Toplevel.debug,
+            kind = Thm.internalK,
+            alt_name = Binding.empty,
+            coind = false,
+            no_elim = false,
+            no_ind = false,
+            skip_mono = true,
+            fork_mono = false}
+          [binding] (* relation *)
+          [] (* no parameters *)
+          (map (fn t => (Attrib.empty_binding, t)) intrs) (* intro rules *)
+          [] (* no special monos *)
+      ||> LocalTheory.restore_naming lthy
+
+    val cert = cterm_of (ProofContext.theory_of lthy)
+    fun requantify orig_intro thm =
+      let
+        val (qs, t) = dest_all_all orig_intro
+        val frees = frees_in_term lthy t |> remove (op =) (Binding.name_of R, T)
+        val vars = Term.add_vars (prop_of thm) [] |> rev
+        val varmap = AList.lookup (op =) (frees ~~ map fst vars)
+          #> the_default ("",0)
+      in
+        fold_rev (fn Free (n, T) =>
+          forall_intr_rename (n, cert (Var (varmap (n, T), T)))) qs thm
+      end
+  in
+      ((map2 requantify intrs intrs_gen, Rdef, forall_intr_vars elim_gen, induct), lthy)
+  end
+
 
 fun define_graph Gname fvar domT ranT clauses RCss lthy =
     let
       val GT = domT --> ranT --> boolT
-      val Gvar = Free (the_single (Variable.variant_frees lthy [] [(Gname, GT)]))
+      val (Gvar as (n, T)) = the_single (Variable.variant_frees lthy [] [(Gname, GT)])
 
       fun mk_GIntro (ClauseContext {qs, gs, lhs, rhs, ...}) RCs =
           let
             fun mk_h_assm (rcfix, rcassm, rcarg) =
-                HOLogic.mk_Trueprop (Gvar $ rcarg $ (fvar $ rcarg))
+                HOLogic.mk_Trueprop (Free Gvar $ rcarg $ (fvar $ rcarg))
                           |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
                           |> fold_rev (Logic.all o Free) rcfix
           in
-            HOLogic.mk_Trueprop (Gvar $ lhs $ rhs)
+            HOLogic.mk_Trueprop (Free Gvar $ lhs $ rhs)
                       |> fold_rev (curry Logic.mk_implies o mk_h_assm) RCs
                       |> fold_rev (curry Logic.mk_implies) gs
                       |> fold_rev Logic.all (fvar :: qs)
@@ -472,8 +510,8 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 
       val G_intros = map2 mk_GIntro clauses RCss
 
-      val (GIntro_thms, (G, G_elim, G_induct, lthy)) =
-          Function_Inductive_Wrap.inductive_def G_intros ((dest_Free Gvar, NoSyn), lthy)
+      val ((GIntro_thms, G, G_elim, G_induct), lthy) =
+        inductive_def ((Binding.name n, T), NoSyn) G_intros lthy
     in
       ((G, GIntro_thms, G_elim, G_induct), lthy)
     end
@@ -500,10 +538,10 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
     let
 
       val RT = domT --> domT --> boolT
-      val Rvar = Free (the_single (Variable.variant_frees lthy [] [(Rname, RT)]))
+      val (Rvar as (n, T)) = the_single (Variable.variant_frees lthy [] [(Rname, RT)])
 
       fun mk_RIntro (ClauseContext {qs, gs, lhs, ...}, (oqs, _, _, _)) (rcfix, rcassm, rcarg) =
-          HOLogic.mk_Trueprop (Rvar $ rcarg $ lhs)
+          HOLogic.mk_Trueprop (Free Rvar $ rcarg $ lhs)
                     |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
                     |> fold_rev (curry Logic.mk_implies) gs
                     |> fold_rev (Logic.all o Free) rcfix
@@ -512,10 +550,10 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
 
       val R_intross = map2 (map o mk_RIntro) (clauses ~~ qglrs) RCss
 
-      val (RIntro_thmss, (R, R_elim, _, lthy)) =
-          fold_burrow Function_Inductive_Wrap.inductive_def R_intross ((dest_Free Rvar, NoSyn), lthy)
+      val ((RIntro_thms, R, R_elim, _), lthy) =
+        inductive_def ((Binding.name n, T), NoSyn) (flat R_intross) lthy
     in
-      ((R, RIntro_thmss, R_elim), lthy)
+      ((R, Library.unflat R_intross RIntro_thms, R_elim), lthy)
     end
 
 

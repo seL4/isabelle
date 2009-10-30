@@ -11,7 +11,6 @@ uses
   "Tools/sat_solver.ML"
   ("Tools/Function/function_lib.ML")
   ("Tools/Function/function_common.ML")
-  ("Tools/Function/inductive_wrap.ML")
   ("Tools/Function/context_tree.ML")
   ("Tools/Function/function_core.ML")
   ("Tools/Function/sum_tree.ML")
@@ -106,7 +105,6 @@ lemma wf_in_rel:
 
 use "Tools/Function/function_lib.ML"
 use "Tools/Function/function_common.ML"
-use "Tools/Function/inductive_wrap.ML"
 use "Tools/Function/context_tree.ML"
 use "Tools/Function/function_core.ML"
 use "Tools/Function/sum_tree.ML"

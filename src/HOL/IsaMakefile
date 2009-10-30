@@ -180,7 +180,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/function.ML \
   Tools/Function/fun.ML \
   Tools/Function/induction_scheme.ML \
-  Tools/Function/inductive_wrap.ML \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
