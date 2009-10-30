@@ -1,0 +1,33 @@
+
+This distribution of SPASS 3.0 has been compiled according to the
+INSTALL instructions of the official source download from
+http://www.spass-prover.org
+
+The following example is for x86-linux:
+
+  $ tar xvzf spass30.tgz
+  $ cd SPASS-3.0
+  $ ./configure --prefix="$HOME/tmp/spass" --exec-prefix="$HOME/tmp/spass/x86-linux"
+  $ make
+  $ make install
+
+
+The x86-darwin platform works the same; use "make distclean" before
+reconfiguration.
+
+Native x86_64 is avoided here, due to numerous compiler warnings about
+int/pointer casts of different size.  The x86 binaries are used
+instead.
+
+For x86-cygwin we have removed the "__inline__" configuration to
+workaround a problem with "___sgetc_r":
+
+diff configure-orig configure
+3522c3522
+<   CFLAGS="-O3 -D__inline__="
+---
+>   CFLAGS="-O3"
+
+
+        Makarius
+        30-Oct-2009
