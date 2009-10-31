@@ -18,8 +18,6 @@ val fail_safe_mode = true
 
 open Predicate_Compile_Aux;
 
-val priority = tracing;
-
 (* Some last processing *)
 
 fun remove_pointless_clauses intro =
@@ -27,14 +25,12 @@ fun remove_pointless_clauses intro =
     []
   else [intro]
 
-fun tracing s = ()
-
 fun print_intross options thy msg intross =
   if show_intermediate_results options then
-   Output.tracing (msg ^ 
-    (space_implode "\n" (map 
-      (fn (c, intros) => "Introduction rule(s) of " ^ c ^ ":\n" ^
-         commas (map (Display.string_of_thm_global thy) intros)) intross)))
+    tracing (msg ^ 
+      (space_implode "\n" (map 
+        (fn (c, intros) => "Introduction rule(s) of " ^ c ^ ":\n" ^
+           commas (map (Display.string_of_thm_global thy) intros)) intross)))
   else ()
       
 fun print_specs thy specs =

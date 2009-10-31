@@ -126,8 +126,9 @@ fun normalize_equation thy th =
   |> split_all_pairs thy
   |> tap check_equation_format
 
-fun inline_equations thy th = Conv.fconv_rule (Simplifier.rewrite
-((Simplifier.theory_context thy Simplifier.empty_ss) addsimps (Predicate_Compile_Inline_Defs.get (ProofContext.init thy)))) th
+fun inline_equations thy th = Conv.fconv_rule
+  (Simplifier.rewrite ((Simplifier.theory_context thy Simplifier.empty_ss)
+    addsimps (Predicate_Compile_Inline_Defs.get (ProofContext.init thy)))) th
 
 fun store_thm_in_table ignore_consts thy th=
   let
