@@ -71,10 +71,10 @@ fun map_consts f (Consts {decls, constraints, rev_abbrevs}) =
 (* reverted abbrevs *)
 
 val empty_abbrevs =
-  Item_Net.init (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u') #1;
+  Item_Net.init (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u') (single o #1);
 
-fun insert_abbrevs mode abbrs =
-  Symtab.map_default (mode, empty_abbrevs) (Item_Net.insert abbrs);
+fun update_abbrevs mode abbrs =
+  Symtab.map_default (mode, empty_abbrevs) (Item_Net.update abbrs);
 
 fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
   let val nets = map_filter (Symtab.lookup rev_abbrevs) modes
@@ -290,7 +290,7 @@ fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
         val (_, decls') = decls
           |> Name_Space.define true naming (b, (decl, SOME abbr));
         val rev_abbrevs' = rev_abbrevs
-          |> insert_abbrevs mode (rev_abbrev lhs rhs);
+          |> update_abbrevs mode (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)
     |> pair (lhs, rhs)
   end;
@@ -299,7 +299,7 @@ fun revert_abbrev mode c consts = consts |> map_consts (fn (decls, constraints, 
   let
     val (T, rhs) = the_abbreviation consts c;
     val rev_abbrevs' = rev_abbrevs
-      |> insert_abbrevs mode (rev_abbrev (Const (c, T)) rhs);
+      |> update_abbrevs mode (rev_abbrev (Const (c, T)) rhs);
   in (decls, constraints, rev_abbrevs') end);
 
 end;

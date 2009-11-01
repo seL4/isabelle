@@ -113,9 +113,10 @@ end;
 
 type rules = (string * thm) Item_Net.T;
 
-val init_rules =
-  Item_Net.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
-    Thm.eq_thm_prop (th1, th2));
+fun init_rules index : rules =
+  Item_Net.init
+    (fn ((s1, th1), (s2, th2)) => s1 = s2 andalso Thm.eq_thm_prop (th1, th2))
+    (single o index);
 
 fun filter_rules (rs: rules) th =
   filter (fn (_, th') => Thm.eq_thm_prop (th, th')) (Item_Net.content rs);
@@ -203,18 +204,18 @@ fun mk_att f g name arg =
   let val (x, thm) = g arg in (InductData.map (f (name, thm)) x, thm) end;
 
 fun del_att which = Thm.declaration_attribute (fn th => InductData.map (which (pairself (fn rs =>
-  fold Item_Net.delete (filter_rules rs th) rs))));
+  fold Item_Net.remove (filter_rules rs th) rs))));
 
 fun map1 f (x, y, z) = (f x, y, z);
 fun map2 f (x, y, z) = (x, f y, z);
 fun map3 f (x, y, z) = (x, y, f z);
 
-fun add_casesT rule x = map1 (apfst (Item_Net.insert rule)) x;
-fun add_casesP rule x = map1 (apsnd (Item_Net.insert rule)) x;
-fun add_inductT rule x = map2 (apfst (Item_Net.insert rule)) x;
-fun add_inductP rule x = map2 (apsnd (Item_Net.insert rule)) x;
-fun add_coinductT rule x = map3 (apfst (Item_Net.insert rule)) x;
-fun add_coinductP rule x = map3 (apsnd (Item_Net.insert rule)) x;
+fun add_casesT rule x = map1 (apfst (Item_Net.update rule)) x;
+fun add_casesP rule x = map1 (apsnd (Item_Net.update rule)) x;
+fun add_inductT rule x = map2 (apfst (Item_Net.update rule)) x;
+fun add_inductP rule x = map2 (apsnd (Item_Net.update rule)) x;
+fun add_coinductT rule x = map3 (apfst (Item_Net.update rule)) x;
+fun add_coinductP rule x = map3 (apsnd (Item_Net.update rule)) x;
 
 val consumes0 = Rule_Cases.consumes_default 0;
 val consumes1 = Rule_Cases.consumes_default 1;
