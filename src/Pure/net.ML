@@ -22,9 +22,13 @@ sig
   exception INSERT
   val insert: ('a * 'a -> bool) -> key list * 'a -> 'a net -> 'a net
   val insert_term: ('a * 'a -> bool) -> term * 'a -> 'a net -> 'a net
+  val insert_safe: ('a * 'a -> bool) -> key list * 'a -> 'a net -> 'a net
+  val insert_term_safe: ('a * 'a -> bool) -> term * 'a -> 'a net -> 'a net
   exception DELETE
   val delete: ('b * 'a -> bool) -> key list * 'b -> 'a net -> 'a net
   val delete_term: ('b * 'a -> bool) -> term * 'b -> 'a net -> 'a net
+  val delete_safe: ('b * 'a -> bool) -> key list * 'b -> 'a net -> 'a net
+  val delete_term_safe: ('b * 'a -> bool) -> term * 'b -> 'a net -> 'a net
   val lookup: 'a net -> key list -> 'a list
   val match_term: 'a net -> term -> 'a list
   val unify_term: 'a net -> term -> 'a list
@@ -99,8 +103,10 @@ fun insert eq (keys,x) net =
             in  Net{comb=comb, var=var, atoms=atoms'}  end
   in  ins1 (keys,net)  end;
 
-fun insert_safe eq entry net = insert eq entry net handle INSERT => net;
 fun insert_term eq (t, x) = insert eq (key_of_term t, x);
+
+fun insert_safe eq entry net = insert eq entry net handle INSERT => net;
+fun insert_term_safe eq entry net = insert_term eq entry net handle INSERT => net;
 
 
 (*** Deletion from a discrimination net ***)
@@ -136,6 +142,9 @@ fun delete eq (keys, x) net =
   in  del1 (keys,net)  end;
 
 fun delete_term eq (t, x) = delete eq (key_of_term t, x);
+
+fun delete_safe eq entry net = delete eq entry net handle DELETE => net;
+fun delete_term_safe eq entry net = delete_term eq entry net handle DELETE => net;
 
 
 (*** Retrieval functions for discrimination nets ***)
