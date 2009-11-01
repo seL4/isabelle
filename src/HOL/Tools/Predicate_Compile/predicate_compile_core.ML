@@ -2332,7 +2332,7 @@ fun generic_code_pred prep_const options raw_const lthy =
       in mk_casesrule lthy' pred nparams intros end  
     val cases_rules = map mk_cases preds
     val cases =
-      map (fn case_rule => RuleCases.Case {fixes = [],
+      map (fn case_rule => Rule_Cases.Case {fixes = [],
         assumes = [("", Logic.strip_imp_prems case_rule)],
         binds = [], cases = []}) cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases

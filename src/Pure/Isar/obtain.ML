@@ -222,7 +222,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val maxidx = fold (Term.maxidx_typ o snd o fst) vars ~1;
     val rule = Thm.incr_indexes (maxidx + 1) raw_rule;
 
-    val params = RuleCases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
+    val params = Rule_Cases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
     val m = length vars;
     val n = length params;
     val _ = m <= n orelse err "More variables than parameters in obtained rule" rule;

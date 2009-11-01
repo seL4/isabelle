@@ -164,7 +164,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
-    val induct_cases = map fst (fst (RuleCases.get (the
+    val induct_cases = map fst (fst (Rule_Cases.get (the
       (Induct.lookup_inductP ctxt (hd names)))));
     val induct_cases' = if null induct_cases then replicate (length intrs) ""
       else induct_cases;
@@ -449,7 +449,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
-        val ind_case_names = RuleCases.case_names induct_cases;
+        val ind_case_names = Rule_Cases.case_names induct_cases;
         val induct_cases' = Inductive.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
         val thss' = map (map atomize_intr) thss;
@@ -458,9 +458,9 @@ fun prove_strong_ind s alt_name avoids ctxt =
           mk_ind_proof ctxt thss' |> Inductive.rulify;
         val strong_induct =
           if length names > 1 then
-            (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
+            (strong_raw_induct, [ind_case_names, Rule_Cases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
-            [ind_case_names, RuleCases.consumes 1]);
+            [ind_case_names, Rule_Cases.consumes 1]);
         val (induct_name, inducts_name) =
           case alt_name of
             NONE => (rec_qualified (Binding.name "strong_induct"),
@@ -477,7 +477,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         LocalTheory.note Thm.generatedK
           ((inducts_name,
             [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (RuleCases.consumes 1))]),
+             Attrib.internal (K (Rule_Cases.consumes 1))]),
            strong_inducts) |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)

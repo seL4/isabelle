@@ -98,12 +98,12 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
                  psimp_attribs psimps
             ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
             ||>> note_theorem ((qualify "pinduct",
-                   [Attrib.internal (K (RuleCases.case_names cnames)),
-                    Attrib.internal (K (RuleCases.consumes 1)),
+                   [Attrib.internal (K (Rule_Cases.case_names cnames)),
+                    Attrib.internal (K (Rule_Cases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
             ||> (snd o note_theorem ((qualify "cases",
-                   [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
+                   [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
           val cdata = FunctionCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
@@ -153,7 +153,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
             |> add_simps I "simps" simp_attribs tsimps |> snd
             |> note_theorem
                ((qualify "induct",
-                 [Attrib.internal (K (RuleCases.case_names case_names))]),
+                 [Attrib.internal (K (Rule_Cases.case_names case_names))]),
                 tinduct) |> snd
           end
     in

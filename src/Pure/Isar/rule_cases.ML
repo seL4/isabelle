@@ -47,7 +47,7 @@ sig
   val strict_mutual_rule: Proof.context -> thm list -> int list * thm
 end;
 
-structure RuleCases: RULE_CASES =
+structure Rule_Cases: RULE_CASES =
 struct
 
 (** cases **)
@@ -379,5 +379,5 @@ fun strict_mutual_rule ctxt ths =
 
 end;
 
-structure Basic_Rule_Cases: BASIC_RULE_CASES = RuleCases;
+structure Basic_Rule_Cases: BASIC_RULE_CASES = Rule_Cases;
 open Basic_Rule_Cases;

@@ -693,15 +693,15 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
     val rec_name = Binding.name_of rec_binding;
     fun rec_qualified qualified = Binding.qualify qualified rec_name;
     val intr_names = map Binding.name_of intr_bindings;
-    val ind_case_names = RuleCases.case_names intr_names;
+    val ind_case_names = Rule_Cases.case_names intr_names;
     val induct =
       if coind then
-        (raw_induct, [RuleCases.case_names [rec_name],
-          RuleCases.case_conclusion (rec_name, intr_names),
-          RuleCases.consumes 1, Induct.coinduct_pred (hd cnames)])
+        (raw_induct, [Rule_Cases.case_names [rec_name],
+          Rule_Cases.case_conclusion (rec_name, intr_names),
+          Rule_Cases.consumes 1, Induct.coinduct_pred (hd cnames)])
       else if no_ind orelse length cnames > 1 then
-        (raw_induct, [ind_case_names, RuleCases.consumes 0])
-      else (raw_induct RSN (2, rev_mp), [ind_case_names, RuleCases.consumes 1]);
+        (raw_induct, [ind_case_names, Rule_Cases.consumes 0])
+      else (raw_induct RSN (2, rev_mp), [ind_case_names, Rule_Cases.consumes 1]);
 
     val (intrs', ctxt1) =
       ctxt |>
@@ -716,8 +716,8 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
       LocalTheory.note kind ((rec_qualified true (Binding.name "intros"), []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
         LocalTheory.note kind ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
-          [Attrib.internal (K (RuleCases.case_names cases)),
-           Attrib.internal (K (RuleCases.consumes 1)),
+          [Attrib.internal (K (Rule_Cases.case_names cases)),
+           Attrib.internal (K (Rule_Cases.consumes 1)),
            Attrib.internal (K (Induct.cases_pred name)),
            Attrib.internal (K (ContextRules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
@@ -732,7 +732,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
         LocalTheory.notes kind [((rec_qualified true (Binding.name "inducts"), []),
           inducts |> map (fn (name, th) => ([th],
             [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (RuleCases.consumes 1)),
+             Attrib.internal (K (Rule_Cases.consumes 1)),
              Attrib.internal (K (Induct.induct_pred name))])))] |> snd
       end
   in (intrs', elims', induct', ctxt3) end;

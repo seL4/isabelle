@@ -203,10 +203,10 @@ fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 
 in
 
-fun mk_case_names_induct descr = RuleCases.case_names (induct_cases descr);
+fun mk_case_names_induct descr = Rule_Cases.case_names (induct_cases descr);
 
 fun mk_case_names_exhausts descr new =
-  map (RuleCases.case_names o exhaust_cases descr o #1)
+  map (Rule_Cases.case_names o exhaust_cases descr o #1)
     (filter (fn ((_, (name, _, _))) => member (op =) new name) descr);
 
 end;
@@ -328,7 +328,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       [((Binding.empty, [nth inducts index]), [Induct.induct_type tname]),
        ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
     val unnamed_rules = map (fn induct =>
-      ((Binding.empty, [induct]), [RuleCases.inner_rule, Induct.induct_type ""]))
+      ((Binding.empty, [induct]), [Rule_Cases.inner_rule, Induct.induct_type ""]))
         (Library.drop (length dt_names, inducts));
   in
     thy9

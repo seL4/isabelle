@@ -158,7 +158,7 @@ fun prove_strong_ind s avoids ctxt =
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
-    val induct_cases = map fst (fst (RuleCases.get (the
+    val induct_cases = map fst (fst (Rule_Cases.get (the
       (Induct.lookup_inductP ctxt (hd names)))));
     val ([raw_induct'], ctxt') = Variable.import_terms false [prop_of raw_induct] ctxt;
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
@@ -547,7 +547,7 @@ fun prove_strong_ind s avoids ctxt =
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
-        val ind_case_names = RuleCases.case_names induct_cases;
+        val ind_case_names = Rule_Cases.case_names induct_cases;
         val induct_cases' = Inductive.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
         val thss' = map (map atomize_intr) thss;
@@ -558,9 +558,9 @@ fun prove_strong_ind s avoids ctxt =
           (thsss ~~ elims ~~ cases_prems ~~ cases_prems');
         val strong_induct =
           if length names > 1 then
-            (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
+            (strong_raw_induct, [ind_case_names, Rule_Cases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
-            [ind_case_names, RuleCases.consumes 1]);
+            [ind_case_names, Rule_Cases.consumes 1]);
         val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.generatedK
           ((rec_qualified (Binding.name "strong_induct"),
             map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
@@ -572,12 +572,12 @@ fun prove_strong_ind s avoids ctxt =
         LocalTheory.note Thm.generatedK
           ((rec_qualified (Binding.name "strong_inducts"),
             [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (RuleCases.consumes 1))]),
+             Attrib.internal (K (Rule_Cases.consumes 1))]),
            strong_inducts) |> snd |>
         LocalTheory.notes Thm.generatedK (map (fn ((name, elim), (_, cases)) =>
             ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
-              [Attrib.internal (K (RuleCases.case_names (map snd cases))),
-               Attrib.internal (K (RuleCases.consumes 1))]), [([elim], [])]))
+              [Attrib.internal (K (Rule_Cases.case_names (map snd cases))),
+               Attrib.internal (K (Rule_Cases.consumes 1))]), [([elim], [])]))
           (strong_cases ~~ induct_cases')) |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)
