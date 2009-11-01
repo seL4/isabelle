@@ -853,7 +853,7 @@ let
       (nth (Thm.prems_of thm) (i - 1)) then Hypsubst.hyp_subst_tac i thm else no_tac thm;
 in
   Hypsubst.hypsubst_setup
-  #> ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
+  #> Context_Rules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
 end
 *}
 

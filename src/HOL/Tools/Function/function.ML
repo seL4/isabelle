@@ -159,11 +159,11 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
     in
       lthy
       |> ProofContext.note_thmss ""
-         [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
+         [((Binding.empty, [Context_Rules.rule_del]), [([allI], [])])] |> snd
       |> ProofContext.note_thmss ""
-         [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+         [((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
       |> ProofContext.note_thmss ""
-         [((Binding.name "termination", [ContextRules.intro_bang (SOME 0)]),
+         [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
            [([Goal.norm_result termination], [])])] |> snd
       |> Proof.theorem_i NONE afterqed [[(goal, [])]]
     end

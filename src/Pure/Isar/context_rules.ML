@@ -33,7 +33,7 @@ sig
     attribute context_parser
 end;
 
-structure ContextRules: CONTEXT_RULES =
+structure Context_Rules: CONTEXT_RULES =
 struct
 
 

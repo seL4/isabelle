@@ -157,7 +157,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume_i
-      [((Binding.name that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
+      [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(Thm.empty_binding, [(thesis, [])])] false

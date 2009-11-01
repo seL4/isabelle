@@ -708,7 +708,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
       LocalTheory.notes kind
         (map (rec_qualified false) intr_bindings ~~ intr_atts ~~
           map (fn th => [([th],
-           [Attrib.internal (K (ContextRules.intro_query NONE)),
+           [Attrib.internal (K (Context_Rules.intro_query NONE)),
             Attrib.internal (K Nitpick_Intros.add)])]) intrs) |>>
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), ctxt2) =
@@ -719,7 +719,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
           [Attrib.internal (K (Rule_Cases.case_names cases)),
            Attrib.internal (K (Rule_Cases.consumes 1)),
            Attrib.internal (K (Induct.cases_pred name)),
-           Attrib.internal (K (ContextRules.elim_query NONE))]), [elim]) #>
+           Attrib.internal (K (Context_Rules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       LocalTheory.note kind
         ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),

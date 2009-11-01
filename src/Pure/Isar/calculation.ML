@@ -71,10 +71,11 @@ val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o
 
 val sym_add =
   Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.add_thm)
-  #> ContextRules.elim_query NONE;
+  #> Context_Rules.elim_query NONE;
+
 val sym_del =
   Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.del_thm)
-  #> ContextRules.rule_del;
+  #> Context_Rules.rule_del;
 
 
 (* symmetric *)

@@ -313,7 +313,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             ctxt' |> (snd o ProofContext.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
             ctxt' |> Variable.auto_fixes asm
             |> ProofContext.add_assms_i Assumption.assume_export
-              [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
+              [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;
 
