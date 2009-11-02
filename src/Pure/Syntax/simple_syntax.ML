@@ -11,7 +11,7 @@ sig
   val read_prop: string -> term
 end;
 
-structure SimpleSyntax: SIMPLE_SYNTAX =
+structure Simple_Syntax: SIMPLE_SYNTAX =
 struct
 
 (* scanning tokens *)

@@ -12,7 +12,7 @@ sig
   val mk_defpair: term * term -> string * term
 end;
 
-structure PrimitiveDefs: PRIMITIVE_DEFS =
+structure Primitive_Defs: PRIMITIVE_DEFS =
 struct
 
 fun term_kind (Const _) = "existing constant "

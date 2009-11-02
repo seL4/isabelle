@@ -14,7 +14,7 @@ sig
   val no_facts: (indexname * term option) list
 end;
 
-structure AutoBind: AUTO_BIND =
+structure Auto_Bind: AUTO_BIND =
 struct
 
 (** bindings **)

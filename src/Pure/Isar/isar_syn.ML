@@ -685,7 +685,7 @@ val _ =
   OuterSyntax.command "proof" "backward proof"
     (K.tag_proof K.prf_block)
     (Scan.option Method.parse >> (fn m => Toplevel.print o
-      Toplevel.actual_proof (ProofNode.applys (Proof.proof m)) o
+      Toplevel.actual_proof (Proof_Node.applys (Proof.proof m)) o
       Toplevel.skip_proof (fn i => i + 1)));
 
 
@@ -720,7 +720,7 @@ val _ =
 val _ =
   OuterSyntax.command "back" "backtracking of proof command"
     (K.tag_proof K.prf_script)
-    (Scan.succeed (Toplevel.print o Toplevel.actual_proof ProofNode.back o Toplevel.skip_proof I));
+    (Scan.succeed (Toplevel.print o Toplevel.actual_proof Proof_Node.back o Toplevel.skip_proof I));
 
 
 (* nested commands *)

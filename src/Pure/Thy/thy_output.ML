@@ -478,7 +478,7 @@ fun pretty_abbrev ctxt s =
     val ctxt' = Variable.auto_fixes eq ctxt;
   in ProofContext.pretty_term_abbrev ctxt' eq end;
 
-fun pretty_prf full ctxt = ProofSyntax.pretty_proof_of ctxt full;
+fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 
 fun pretty_theory ctxt name =
   (Theory.requires (ProofContext.theory_of ctxt) name "presentation"; Pretty.str name);

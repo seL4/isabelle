@@ -17,7 +17,7 @@ sig
   val proof_of_xml: XML.tree -> Proofterm.proof
 end;
 
-structure XMLSyntax : XML_SYNTAX =
+structure XML_Syntax : XML_SYNTAX =
 struct
 
 (**** XML output ****)

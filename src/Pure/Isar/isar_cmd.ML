@@ -324,7 +324,7 @@ fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
 val print_context = Toplevel.keep Toplevel.print_state_context;
 
 fun print_theory verbose = Toplevel.unknown_theory o
-  Toplevel.keep (Pretty.writeln o ProofDisplay.pretty_full_theory verbose o Toplevel.theory_of);
+  Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory verbose o Toplevel.theory_of);
 
 val print_syntax = Toplevel.unknown_context o
   Toplevel.keep (ProofContext.print_syntax o Toplevel.context_of);
@@ -346,8 +346,8 @@ val print_theorems_proof = Toplevel.keep (fn state =>
 val print_theorems_theory = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
   (case Toplevel.previous_context_of state of
-    SOME prev => ProofDisplay.print_theorems_diff (ProofContext.theory_of prev)
-  | NONE => ProofDisplay.print_theorems));
+    SOME prev => Proof_Display.print_theorems_diff (ProofContext.theory_of prev)
+  | NONE => Proof_Display.print_theorems));
 
 val print_theorems = Toplevel.unknown_context o print_theorems_theory o print_theorems_proof;
 
@@ -408,7 +408,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   in Present.display_graph gr end);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
+  Thm_Deps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
 
 
 (* find unused theorems *)
@@ -419,7 +419,7 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     val ctxt = Toplevel.context_of state;
     fun pretty_thm (a, th) = ProofContext.pretty_fact ctxt (a, [th]);
   in
-    ThmDeps.unused_thms
+    Thm_Deps.unused_thms
       (case opt_range of
         NONE => (Theory.parents_of thy, [thy])
       | SOME (xs, NONE) => (map ThyInfo.get_theory xs, [thy])
@@ -460,11 +460,11 @@ fun string_of_prfs full state arg =
           val prop = Thm.full_prop_of thm;
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
         in
-          ProofSyntax.pretty_proof ctxt
+          Proof_Syntax.pretty_proof ctxt
             (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')
         end
     | SOME args => Pretty.chunks
-        (map (ProofSyntax.pretty_proof_of (Proof.context_of state) full)
+        (map (Proof_Syntax.pretty_proof_of (Proof.context_of state) full)
           (Proof.get_thmss state args)));
 
 fun string_of_prop state s =

@@ -47,11 +47,11 @@ fun cert_def ctxt eq =
       quote (Syntax.string_of_term ctxt eq));
     val ((lhs, _), eq') = eq
       |> Sign.no_vars (Syntax.pp ctxt)
-      |> PrimitiveDefs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
+      |> Primitive_Defs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
-val abs_def = PrimitiveDefs.abs_def #>> Term.dest_Free;
+val abs_def = Primitive_Defs.abs_def #>> Term.dest_Free;
 
 fun mk_def ctxt args =
   let

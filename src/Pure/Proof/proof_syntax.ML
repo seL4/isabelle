@@ -19,7 +19,7 @@ sig
   val pretty_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
 
-structure ProofSyntax : PROOF_SYNTAX =
+structure Proof_Syntax : PROOF_SYNTAX =
 struct
 
 open Proofterm;

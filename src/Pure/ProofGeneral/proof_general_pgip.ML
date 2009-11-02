@@ -658,7 +658,7 @@ fun showid (Showid vs) =
         fun strings_of_thm (thy, name) =
           map (Display.string_of_thm_global thy) (PureThy.get_thms thy name)
 
-        val string_of_thy = Pretty.string_of o ProofDisplay.pretty_full_theory false
+        val string_of_thy = Pretty.string_of o Proof_Display.pretty_full_theory false
     in
         case (thyname, objtype) of
             (_, ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]

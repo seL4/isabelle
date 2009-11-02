@@ -12,7 +12,7 @@ sig
   val report_visible: Proof.context -> Markup.T -> Position.T -> unit
 end;
 
-structure ContextPosition: CONTEXT_POSITION =
+structure Context_Position: CONTEXT_POSITION =
 struct
 
 structure Data = ProofDataFun

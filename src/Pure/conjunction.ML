@@ -30,7 +30,7 @@ struct
 (** abstract syntax **)
 
 fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
-val read_prop = certify o SimpleSyntax.read_prop;
+val read_prop = certify o Simple_Syntax.read_prop;
 
 val true_prop = certify Logic.true_prop;
 val conjunction = certify Logic.conjunction;

@@ -300,7 +300,7 @@ fun prep_realizer thy =
     val rtypes = map fst types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val thy' = add_syntax thy;
-    val rd = ProofSyntax.read_proof thy' false
+    val rd = Proof_Syntax.read_proof thy' false;
   in fn (thm, (vs, s1, s2)) =>
     let
       val name = Thm.get_name thm;

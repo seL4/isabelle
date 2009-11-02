@@ -225,7 +225,7 @@ fun the_fact state =
 
 fun put_facts facts =
   map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  put_thms true (AutoBind.thisN, facts);
+  put_thms true (Auto_Bind.thisN, facts);
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> put_facts (SOME (maps snd named_factss @ more_facts)));
@@ -710,7 +710,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   in
     state'
     |> assume_i assumptions
-    |> bind_terms AutoBind.no_facts
+    |> bind_terms Auto_Bind.no_facts
     |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 
@@ -941,7 +941,7 @@ val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false
 local
 
 fun gen_have prep_att prepp before_qed after_qed stmt int =
-  local_goal (ProofDisplay.print_results int) prep_att prepp "have" before_qed after_qed stmt;
+  local_goal (Proof_Display.print_results int) prep_att prepp "have" before_qed after_qed stmt;
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
   let
@@ -949,14 +949,14 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val rule = Unsynchronized.ref (NONE: thm option);
     fun fail_msg ctxt =
       "Local statement will fail to refine any pending goal" ::
-      (case ! rule of NONE => [] | SOME th => [ProofDisplay.string_of_rule ctxt "Failed" th])
+      (case ! rule of NONE => [] | SOME th => [Proof_Display.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
     fun print_results ctxt res =
-      if ! testing then () else ProofDisplay.print_results int ctxt res;
+      if ! testing then () else Proof_Display.print_results int ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
-      else if int then priority (ProofDisplay.string_of_rule ctxt "Successful" th)
+      else if int then priority (Proof_Display.string_of_rule ctxt "Successful" th)
       else ();
     val test_proof =
       try (local_skip_proof true)
@@ -1026,10 +1026,10 @@ fun future_proof done get_context fork_proof state =
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
 
-    fun after_local' [[th]] = put_thms false (AutoBind.thisN, SOME [th]);
-    fun after_global' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    fun after_local' [[th]] = put_thms false (Auto_Bind.thisN, SOME [th]);
+    fun after_global' [[th]] = ProofContext.put_thms false (Auto_Bind.thisN, SOME [th]);
     val after_qed' = (after_local', after_global');
-    val this_name = ProofContext.full_name goal_ctxt (Binding.name AutoBind.thisN);
+    val this_name = ProofContext.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
 
     val result_ctxt =
       state
