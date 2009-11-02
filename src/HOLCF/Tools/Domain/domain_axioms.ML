@@ -66,7 +66,7 @@ fun calc_axioms
                                                                                         Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
           
       val copy_def =
-          let fun r i = cproj (Bound 0) eqs i;
+          let fun r i = proj (Bound 0) eqs i;
           in ("copy_def", %%:(dname^"_copy") ==
                           /\ "f" (dc_abs oo (copy_of_dtyp r (dtyp_of_eq eqn)) oo dc_rep)) end;
 
@@ -128,12 +128,12 @@ fun calc_axioms
 
       (* ----- axiom and definitions concerning induction ------------------------- *)
 
-      val reach_ax = ("reach", mk_trp(cproj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
+      val reach_ax = ("reach", mk_trp(proj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
                                             `%x_name === %:x_name));
       val take_def =
           ("take_def",
            %%:(dname^"_take") ==
-              mk_lam("n",cproj
+              mk_lam("n",proj
                            (mk_iterate (Bound 0, %%:(comp_dname^"_copy"), UU)) eqs n));
       val finite_def =
           ("finite_def",

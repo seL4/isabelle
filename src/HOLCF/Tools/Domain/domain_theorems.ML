@@ -33,6 +33,8 @@ val adm_subst = @{thm adm_subst};
 val antisym_less_inverse = @{thm below_antisym_inverse};
 val beta_cfun = @{thm beta_cfun};
 val cfun_arg_cong = @{thm cfun_arg_cong};
+val ch2ch_fst = @{thm ch2ch_fst};
+val ch2ch_snd = @{thm ch2ch_snd};
 val ch2ch_Rep_CFunL = @{thm ch2ch_Rep_CFunL};
 val ch2ch_Rep_CFunR = @{thm ch2ch_Rep_CFunR};
 val chain_iterate = @{thm chain_iterate};
@@ -43,6 +45,14 @@ val compact_spair = @{thm compact_spair};
 val compact_up = @{thm compact_up};
 val contlub_cfun_arg = @{thm contlub_cfun_arg};
 val contlub_cfun_fun = @{thm contlub_cfun_fun};
+val contlub_fst = @{thm contlub_fst};
+val contlub_snd = @{thm contlub_snd};
+val contlubE = @{thm contlubE};
+val cont_const = @{thm cont_const};
+val cont_id = @{thm cont_id};
+val cont2cont_fst = @{thm cont2cont_fst};
+val cont2cont_snd = @{thm cont2cont_snd};
+val cont2cont_Rep_CFun = @{thm cont2cont_Rep_CFun};
 val fix_def2 = @{thm fix_def2};
 val injection_eq = @{thm injection_eq};
 val injection_less = @{thm injection_below};
@@ -116,7 +126,7 @@ fun case_UU_tac ctxt rews i v =
 
 val chain_tac =
   REPEAT_DETERM o resolve_tac 
-    [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL];
+    [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL, ch2ch_fst, ch2ch_snd];
 
 (* ----- general proofs ----------------------------------------------------- *)
 
@@ -589,7 +599,7 @@ local
       val lhs = dc_copy`%"f"`(con_app con args);
       fun one_rhs arg =
           if DatatypeAux.is_rec_type (dtyp_of arg)
-          then Domain_Axioms.copy_of_dtyp (cproj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
+          then Domain_Axioms.copy_of_dtyp (proj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
           else (%# arg);
       val rhs = con_app2 con one_rhs args;
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
@@ -836,12 +846,14 @@ in (* local *)
           val rhs = dc_take dn $ Bound 0 `%(x_name n^"'");
           val concl = mk_trp (%:(x_name n) === %:(x_name n^"'"));
           val goal = mk_All ("n", mk_trp (lhs === rhs)) ===> concl;
+          val rules = [contlub_fst RS contlubE RS ssubst,
+                       contlub_snd RS contlubE RS ssubst];
           fun tacf {prems, context} = [
             res_inst_tac context [(("t", 0), x_name n    )] (ax_reach RS subst) 1,
             res_inst_tac context [(("t", 0), x_name n^"'")] (ax_reach RS subst) 1,
             stac fix_def2 1,
             REPEAT (CHANGED
-              (rtac (contlub_cfun_arg RS ssubst) 1 THEN chain_tac 1)),
+              (resolve_tac rules 1 THEN chain_tac 1)),
             stac contlub_cfun_fun 1,
             stac contlub_cfun_fun 2,
             rtac lub_equal 3,
@@ -955,6 +967,9 @@ in (* local *)
             fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
             fun concf n dn = %:(P_name n) $ %:(x_name n);
           in Logic.list_implies (mapn one_adm 1 dnames, ind_term concf) end;
+        val cont_rules =
+            [cont_id, cont_const, cont2cont_Rep_CFun,
+             cont2cont_fst, cont2cont_snd];
         fun tacf {prems, context} =
           map (fn ax_reach => rtac (ax_reach RS subst) 1) axs_reach @ [
           quant_tac context 1,
@@ -963,13 +978,14 @@ in (* local *)
           REPEAT_DETERM (
             TRY (rtac adm_conj 1) THEN 
             rtac adm_subst 1 THEN 
-            cont_tacR 1 THEN resolve_tac prems 1),
+            REPEAT (resolve_tac cont_rules 1) THEN
+            resolve_tac prems 1),
           strip_tac 1,
           rtac (rewrite_rule axs_take_def finite_ind) 1,
           ind_prems_tac prems];
         val ind = (pg'' thy [] goal tacf
           handle ERROR _ =>
-            (warning "Cannot prove infinite induction rule"; refl));
+            (warning "Cannot prove infinite induction rule"; TrueI));
       in (finites, ind) end
   )
       handle THM _ =>
