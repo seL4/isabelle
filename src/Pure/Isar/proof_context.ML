@@ -166,7 +166,7 @@ datatype ctxt =
   Ctxt of
    {mode: mode,                                       (*inner syntax mode*)
     naming: Name_Space.naming,                        (*local naming conventions*)
-    syntax: LocalSyntax.T,                            (*local syntax*)
+    syntax: Local_Syntax.T,                           (*local syntax*)
     consts: Consts.T * Consts.T,                      (*local/global consts*)
     facts: Facts.T,                                   (*local facts*)
     cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
@@ -181,7 +181,7 @@ structure ContextData = ProofDataFun
 (
   type T = ctxt;
   fun init thy =
-    make_ctxt (mode_default, local_naming, LocalSyntax.init thy,
+    make_ctxt (mode_default, local_naming, Local_Syntax.init thy,
       (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
 );
 
@@ -230,9 +230,9 @@ val restore_naming = map_naming o K o naming_of
 val full_name = Name_Space.full_name o naming_of;
 
 val syntax_of = #syntax o rep_context;
-val syn_of = LocalSyntax.syn_of o syntax_of;
-val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
-val restore_syntax_mode = map_syntax o LocalSyntax.restore_mode o syntax_of;
+val syn_of = Local_Syntax.syn_of o syntax_of;
+val set_syntax_mode = map_syntax o Local_Syntax.set_mode;
+val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 
 val consts_of = #1 o #consts o rep_context;
 val const_syntax_name = Consts.syntax_name o consts_of;
@@ -247,7 +247,7 @@ val cases_of = #cases o rep_context;
 (* theory transfer *)
 
 fun transfer_syntax thy =
-  map_syntax (LocalSyntax.rebuild thy) #>
+  map_syntax (Local_Syntax.rebuild thy) #>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
       if Consts.eq_consts (thy_consts, global_consts) then consts
@@ -710,8 +710,8 @@ fun unparse_term ctxt t =
   in
     t
     |> Sign.extern_term (Consts.extern_early consts) thy
-    |> LocalSyntax.extern_term syntax
-    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt (LocalSyntax.syn_of syntax)
+    |> Local_Syntax.extern_term syntax
+    |> Syntax.standard_unparse_term (Consts.extern consts) ctxt (Local_Syntax.syn_of syntax)
         (not (PureThy.old_appl_syntax thy))
   end;
 
@@ -1029,7 +1029,7 @@ in
 
 fun notation add mode args ctxt =
   ctxt |> map_syntax
-    (LocalSyntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
+    (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
 
 fun target_notation add mode args phi =
   let val args' = filter (fn (t, _) => Type.similar_types (t, Morphism.term phi t)) args;
@@ -1083,7 +1083,7 @@ fun add_fixes raw_vars ctxt =
     val ctxt'' =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-      |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix);
+      |-> (map_syntax o Local_Syntax.add_syntax (theory_of ctxt) o map prep_mixfix);
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
       Context_Position.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
   in (xs', ctxt'') end;
@@ -1316,7 +1316,7 @@ fun pretty_ctxt ctxt =
       val prt_term = Syntax.pretty_term ctxt;
 
       (*structures*)
-      val structs = LocalSyntax.structs_of (syntax_of ctxt);
+      val structs = Local_Syntax.structs_of (syntax_of ctxt);
       val prt_structs = if null structs then []
         else [Pretty.block (Pretty.str "structures:" :: Pretty.brk 1 ::
           Pretty.commas (map Pretty.str structs))];

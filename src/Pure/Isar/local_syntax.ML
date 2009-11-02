@@ -21,7 +21,7 @@ sig
   val extern_term: T -> term -> term
 end;
 
-structure LocalSyntax: LOCAL_SYNTAX =
+structure Local_Syntax: LOCAL_SYNTAX =
 struct
 
 (* datatype T *)
