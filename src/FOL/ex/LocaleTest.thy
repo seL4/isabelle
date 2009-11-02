@@ -146,12 +146,14 @@ begin
 thm d1_def d2_def  (* should print as "d1(?x) <-> ..." and "d2(?x) <-> ..." *)
 
 ML {*
+val print_mode' = print_mode_value (); print_mode := [];
 if Display.string_of_thm @{context} @{thm d1_def} <>
- "\^E\^Fterm\^E\^E\^Fconst\^Fname=local.d1\^Ed1\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Ffixed\^Fname=p1\^E\^E\^Ffree\^Ep1\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E))\^E\^F\^E" 
+ "d1(?x) <-> ~ p2(p1(?x))" 
 then error "Theorem syntax 'd1(?x) <-> ~ p2(p1(?x))' expected." else ();
 if Display.string_of_thm @{context} @{thm d2_def} <>
- "\^E\^Fterm\^E\^E\^Fconst\^Fname=local.d2\^Ed2\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E)\^E\^F\^E"
+ "d2(?x) <-> ~ p2(?x)"
 then error "Theorem syntax 'd2(?x) <-> ~ p2(?x)' expected." else ();
+print_mode := print_mode'
 *}
 
 end
@@ -163,13 +165,15 @@ thm d1_def d2_def
   (* should print as "syntax.d1(p3, p2, ?x) <-> ..." and "d2(?x) <-> ..." *)
 
 ML {*
+val print_mode' = print_mode_value (); print_mode := [];
 if Display.string_of_thm @{context} @{thm d1_def} <>
- "\^E\^Fterm\^E\^E\^Fconst\^Fname=LocaleTest.syntax.d1\^Esyntax.d1\^E\^F\^E(\^E\^Ffixed\^Fname=p3\^E\^E\^Ffree\^Ep3\^E\^F\^E\^E\^F\^E, \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E, \^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Ffixed\^Fname=p3\^E\^E\^Ffree\^Ep3\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E))\^E\^F\^E"
+ "syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))"
 then error "Theorem syntax 'syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))' expected."
 else ();
 if Display.string_of_thm @{context} @{thm d2_def} <>
- "\^E\^Fterm\^E\^E\^Fconst\^Fname=local.d2\^Ed2\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E)\^E\^F\^E"
+ "d2(?x) <-> ~ p2(?x)"
 then error "Theorem syntax 'd2(?x) <-> ~ p2(?x)' expected." else ();
+print_mode := print_mode'
 *}
 
 end
