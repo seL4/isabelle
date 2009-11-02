@@ -178,13 +178,16 @@ val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
 val trace_DEEPEN = Unsynchronized.ref false;
 
 fun DEEPEN (inc,lim) tacf m i =
-  let fun dpn m st =
-       st |> (if has_fewer_prems i st then no_tac
-              else if m>lim then
-                       (tracing "Search depth limit exceeded: giving up";
-                        no_tac)
-              else (if !trace_DEEPEN then tracing ("Search depth = " ^ string_of_int m) else ();
-                             tacf m i  ORELSE  dpn (m+inc)))
+  let
+    fun dpn m st =
+      st |>
+       (if has_fewer_prems i st then no_tac
+        else if m>lim then
+          (if !trace_DEEPEN then tracing "Search depth limit exceeded: giving up" else ();
+            no_tac)
+        else
+          (if !trace_DEEPEN then tracing ("Search depth = " ^ string_of_int m) else ();
+            tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
 
 
