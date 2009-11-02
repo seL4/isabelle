@@ -376,9 +376,9 @@ end;
 
 fun all_facts_of ctxt =
   let
-    fun visible_facts facttab =
-      Facts.dest_static [] facttab
-      |> filter_out (Facts.is_concealed facttab o #1)
+    fun visible_facts facts =
+      Facts.dest_static [] facts
+      |> filter_out (Facts.is_concealed facts o #1);
   in
     maps Facts.selections
      (visible_facts (PureThy.facts_of (ProofContext.theory_of ctxt)) @
