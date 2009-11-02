@@ -932,7 +932,7 @@ fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
     val pos = Binding.pos_of b;
     val name = full_name ctxt b;
-    val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
+    val _ = Context_Position.report_visible ctxt (Markup.local_fact_decl name) pos;
 
     val facts = PureThy.name_thmss false pos name raw_facts;
     fun app (th, attrs) x =
@@ -945,9 +945,9 @@ fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
 
 fun put_thms do_props thms ctxt = ctxt
   |> map_naming (K local_naming)
-  |> ContextPosition.set_visible false
+  |> Context_Position.set_visible false
   |> update_thms do_props (apfst Binding.name thms)
-  |> ContextPosition.restore_visible ctxt
+  |> Context_Position.restore_visible ctxt
   |> restore_naming ctxt;
 
 end;
@@ -1085,7 +1085,7 @@ fun add_fixes raw_vars ctxt =
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
       |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix);
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
-      ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
+      Context_Position.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
   in (xs', ctxt'') end;
 
 end;
