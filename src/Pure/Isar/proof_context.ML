@@ -773,8 +773,8 @@ fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (x
 
 fun auto_bind f ts ctxt = ctxt |> bind_terms (map drop_schematic (f (theory_of ctxt) ts));
 
-val auto_bind_goal = auto_bind AutoBind.goal;
-val auto_bind_facts = auto_bind AutoBind.facts;
+val auto_bind_goal = auto_bind Auto_Bind.goal;
+val auto_bind_facts = auto_bind Auto_Bind.facts;
 
 
 (* match_bind(_i) *)

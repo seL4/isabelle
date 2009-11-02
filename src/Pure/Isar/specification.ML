@@ -298,7 +298,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
-        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
+        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
@@ -323,7 +323,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val stmt = [((Binding.empty, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
-          |> (snd o ProofContext.add_fixes [(Binding.name AutoBind.thesisN, NONE, NoSyn)])
+          |> (snd o ProofContext.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
                 [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
@@ -369,7 +369,7 @@ fun gen_theorem prep_att prep_stmt
   in
     goal_ctxt
     |> ProofContext.note_thmss Thm.assumptionK
-      [((Binding.name AutoBind.assmsN, []), [(prems, [])])]
+      [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)

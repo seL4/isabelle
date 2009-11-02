@@ -225,7 +225,7 @@ fun the_fact state =
 
 fun put_facts facts =
   map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  put_thms true (AutoBind.thisN, facts);
+  put_thms true (Auto_Bind.thisN, facts);
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> put_facts (SOME (maps snd named_factss @ more_facts)));
@@ -710,7 +710,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   in
     state'
     |> assume_i assumptions
-    |> bind_terms AutoBind.no_facts
+    |> bind_terms Auto_Bind.no_facts
     |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 
@@ -1026,10 +1026,10 @@ fun future_proof done get_context fork_proof state =
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
 
-    fun after_local' [[th]] = put_thms false (AutoBind.thisN, SOME [th]);
-    fun after_global' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    fun after_local' [[th]] = put_thms false (Auto_Bind.thisN, SOME [th]);
+    fun after_global' [[th]] = ProofContext.put_thms false (Auto_Bind.thisN, SOME [th]);
     val after_qed' = (after_local', after_global');
-    val this_name = ProofContext.full_name goal_ctxt (Binding.name AutoBind.thisN);
+    val this_name = ProofContext.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
 
     val result_ctxt =
       state
