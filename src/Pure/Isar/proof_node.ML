@@ -15,36 +15,36 @@ sig
   val apply: (Proof.state -> Proof.state) -> T -> T
 end;
 
-structure ProofNode: PROOF_NODE =
+structure Proof_Node: PROOF_NODE =
 struct
 
 (* datatype *)
 
-datatype T = ProofNode of
+datatype T = Proof_Node of
   (Proof.state *                (*first result*)
    Proof.state Seq.seq) *       (*alternative results*)
   int;                          (*linear proof position*)
 
-fun init st = ProofNode ((st, Seq.empty), 0);
+fun init st = Proof_Node ((st, Seq.empty), 0);
 
-fun current (ProofNode ((st, _), _)) = st;
-fun position (ProofNode (_, n)) = n;
+fun current (Proof_Node ((st, _), _)) = st;
+fun position (Proof_Node (_, n)) = n;
 
 
 (* backtracking *)
 
-fun back (ProofNode ((_, stq), n)) =
+fun back (Proof_Node ((_, stq), n)) =
   (case Seq.pull stq of
     NONE => error "back: no alternatives"
-  | SOME res => ProofNode (res, n));
+  | SOME res => Proof_Node (res, n));
 
 
 (* apply transformer *)
 
-fun applys f (ProofNode ((st, _), n)) =
+fun applys f (Proof_Node ((st, _), n)) =
   (case Seq.pull (f st) of
     NONE => error "empty result sequence -- proof command failed"
-  | SOME res => ProofNode (res, n + 1));
+  | SOME res => Proof_Node (res, n + 1));
 
 fun apply f = applys (Seq.single o f);
 
