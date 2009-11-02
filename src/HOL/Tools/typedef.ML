@@ -115,7 +115,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         theory
         |> Sign.add_consts_i [(name, setT', NoSyn)]
         |> PureThy.add_defs false [Thm.no_attributes (apfst (Binding.name)
-            (PrimitiveDefs.mk_defpair (setC, set)))]
+            (Primitive_Defs.mk_defpair (setC, set)))]
         |-> (fn [th] => pair (SOME th))
       else (NONE, theory);
     fun contract_def NONE th = th

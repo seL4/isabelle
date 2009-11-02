@@ -392,7 +392,7 @@ fun cert_def ctxt tm =
   let val ((lhs, rhs), _) = tm
     |> no_vars (Syntax.pp ctxt)
     |> Logic.strip_imp_concl
-    |> PrimitiveDefs.dest_def ctxt Term.is_Const (K false) (K false)
+    |> Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false)
   in (Term.dest_Const (Term.head_of lhs), rhs) end
   handle TERM (msg, _) => error msg;
 

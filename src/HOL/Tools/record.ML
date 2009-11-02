@@ -262,7 +262,7 @@ infix 0 :== ===;
 infixr 0 ==>;
 
 val op $$ = Term.list_comb;
-val op :== = PrimitiveDefs.mk_defpair;
+val op :== = Primitive_Defs.mk_defpair;
 val op === = Trueprop o HOLogic.mk_eq;
 val op ==> = Logic.mk_implies;
 
