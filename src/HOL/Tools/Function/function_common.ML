@@ -65,8 +65,9 @@ datatype function_context_data =
       defname : string,
 
       (* contains no logical entities: invariant under morphisms *)
-      add_simps : (binding -> binding) -> string -> Attrib.src list -> thm list 
-                  -> local_theory -> thm list * local_theory,
+      add_simps : (binding -> binding) -> string -> (binding -> binding) ->
+        Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+
       case_names : string list,
 
       fs : term list,

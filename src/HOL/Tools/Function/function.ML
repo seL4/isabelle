@@ -49,7 +49,7 @@ fun note_theorem ((binding, atts), ths) =
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
-fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
+fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lthy =
     let
       val spec = post simps
                    |> map (apfst (apsnd (fn ats => moreatts @ ats)))
@@ -62,7 +62,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
       val simps_by_f = sort saved_simps
 
       fun add_for_f fname simps =
-        note_theorem ((Binding.qualified_name (Long_Name.qualify fname label), []), simps)
+        note_theorem ((mod_binding (Binding.qualify true fname (Binding.name label)), []), simps)
         #> snd
     in
       (saved_simps,
@@ -92,15 +92,16 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
           val fnames = map (fst o fst) fixes
           fun qualify n = Binding.name n
             |> Binding.qualify true defname
+          val conceal_partial = if partials then I else Binding.conceal
 
           val addsmps = add_simps fnames post sort_cont
 
           val (((psimps', pinducts'), (_, [termination'])), lthy) =
             lthy
-            |> addsmps (Binding.qualify false "partial") "psimps"
-                 psimp_attribs psimps
-            ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
-            ||>> note_theorem ((qualify "pinduct",
+            |> addsmps (conceal_partial o Binding.qualify false "partial")
+                 "psimps" conceal_partial psimp_attribs psimps
+            ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
+            ||>> note_theorem ((conceal_partial (qualify "pinduct"),
                    [Attrib.internal (K (Rule_Cases.case_names cnames)),
                     Attrib.internal (K (Rule_Cases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
@@ -154,7 +155,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
               |> Binding.qualify true defname
           in
             lthy
-            |> add_simps I "simps" simp_attribs tsimps |> snd
+            |> add_simps I "simps" I simp_attribs tsimps |> snd
             |> note_theorem
                ((qualify "induct",
                  [Attrib.internal (K (Rule_Cases.case_names case_names))]),
