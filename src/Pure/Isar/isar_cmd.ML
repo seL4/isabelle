@@ -460,11 +460,11 @@ fun string_of_prfs full state arg =
           val prop = Thm.full_prop_of thm;
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
         in
-          ProofSyntax.pretty_proof ctxt
+          Proof_Syntax.pretty_proof ctxt
             (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')
         end
     | SOME args => Pretty.chunks
-        (map (ProofSyntax.pretty_proof_of (Proof.context_of state) full)
+        (map (Proof_Syntax.pretty_proof_of (Proof.context_of state) full)
           (Proof.get_thmss state args)));
 
 fun string_of_prop state s =
