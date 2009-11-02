@@ -21,7 +21,7 @@ sig
   val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
 end
 
-structure ProofDisplay: PROOF_DISPLAY =
+structure Proof_Display: PROOF_DISPLAY =
 struct
 
 (* toplevel pretty printing *)

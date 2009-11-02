@@ -941,7 +941,7 @@ val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false
 local
 
 fun gen_have prep_att prepp before_qed after_qed stmt int =
-  local_goal (ProofDisplay.print_results int) prep_att prepp "have" before_qed after_qed stmt;
+  local_goal (Proof_Display.print_results int) prep_att prepp "have" before_qed after_qed stmt;
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
   let
@@ -949,14 +949,14 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val rule = Unsynchronized.ref (NONE: thm option);
     fun fail_msg ctxt =
       "Local statement will fail to refine any pending goal" ::
-      (case ! rule of NONE => [] | SOME th => [ProofDisplay.string_of_rule ctxt "Failed" th])
+      (case ! rule of NONE => [] | SOME th => [Proof_Display.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
     fun print_results ctxt res =
-      if ! testing then () else ProofDisplay.print_results int ctxt res;
+      if ! testing then () else Proof_Display.print_results int ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
-      else if int then priority (ProofDisplay.string_of_rule ctxt "Successful" th)
+      else if int then priority (Proof_Display.string_of_rule ctxt "Successful" th)
       else ();
     val test_proof =
       try (local_skip_proof true)
