@@ -44,8 +44,8 @@ val psimp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Nitpick_Psimps.add]
 
-fun note_theorem ((name, atts), ths) =
-  LocalTheory.note Thm.generatedK ((Binding.qualified_name name, atts), ths)
+fun note_theorem ((binding, atts), ths) =
+  LocalTheory.note Thm.generatedK ((binding, atts), ths)
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
@@ -62,7 +62,8 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
       val simps_by_f = sort saved_simps
 
       fun add_for_f fname simps =
-        note_theorem ((Long_Name.qualify fname label, []), simps) #> snd
+        note_theorem ((Binding.qualified_name (Long_Name.qualify fname label), []), simps)
+        #> snd
     in
       (saved_simps,
        fold2 add_for_f fnames simps_by_f lthy)
@@ -89,7 +90,9 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
           cont (Thm.close_derivation proof)
 
           val fnames = map (fst o fst) fixes
-          val qualify = Long_Name.qualify defname
+          fun qualify n = Binding.name n
+            |> Binding.qualify true defname
+
           val addsmps = add_simps fnames post sort_cont
 
           val (((psimps', pinducts'), (_, [termination'])), lthy) =
@@ -101,7 +104,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
                    [Attrib.internal (K (Rule_Cases.case_names cnames)),
                     Attrib.internal (K (Rule_Cases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
-            ||>> note_theorem ((qualify "termination", []), [termination])
+            ||>> note_theorem ((Binding.conceal (qualify "termination"), []), [termination])
             ||> (snd o note_theorem ((qualify "cases",
                    [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
@@ -147,7 +150,8 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
               full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
             val tsimps = map remove_domain_condition psimps
             val tinduct = map remove_domain_condition pinducts
-            val qualify = Long_Name.qualify defname;
+            fun qualify n = Binding.name n
+              |> Binding.qualify true defname
           in
             lthy
             |> add_simps I "simps" simp_attribs tsimps |> snd
