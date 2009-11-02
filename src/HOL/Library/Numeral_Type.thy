@@ -188,7 +188,7 @@ lemma Abs_inverse: "m \<in> {0..<n} \<Longrightarrow> Rep (Abs m) = m"
 by (rule type_definition.Abs_inverse [OF type])
 
 lemma Rep_Abs_mod: "Rep (Abs (m mod n)) = m mod n"
-by (simp add: Abs_inverse IntDiv.pos_mod_conj [OF size0])
+by (simp add: Abs_inverse pos_mod_conj [OF size0])
 
 lemma Rep_Abs_0: "Rep (Abs 0) = 0"
 by (simp add: Abs_inverse size0)

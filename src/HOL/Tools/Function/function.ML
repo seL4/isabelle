@@ -98,12 +98,12 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
                  psimp_attribs psimps
             ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
             ||>> note_theorem ((qualify "pinduct",
-                   [Attrib.internal (K (RuleCases.case_names cnames)),
-                    Attrib.internal (K (RuleCases.consumes 1)),
+                   [Attrib.internal (K (Rule_Cases.case_names cnames)),
+                    Attrib.internal (K (Rule_Cases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
             ||> (snd o note_theorem ((qualify "cases",
-                   [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
+                   [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
           val cdata = FunctionCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
@@ -153,17 +153,17 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
             |> add_simps I "simps" simp_attribs tsimps |> snd
             |> note_theorem
                ((qualify "induct",
-                 [Attrib.internal (K (RuleCases.case_names case_names))]),
+                 [Attrib.internal (K (Rule_Cases.case_names case_names))]),
                 tinduct) |> snd
           end
     in
       lthy
       |> ProofContext.note_thmss ""
-         [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
+         [((Binding.empty, [Context_Rules.rule_del]), [([allI], [])])] |> snd
       |> ProofContext.note_thmss ""
-         [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+         [((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
       |> ProofContext.note_thmss ""
-         [((Binding.name "termination", [ContextRules.intro_bang (SOME 0)]),
+         [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
            [([Goal.norm_result termination], [])])] |> snd
       |> Proof.theorem_i NONE afterqed [[(goal, [])]]
     end

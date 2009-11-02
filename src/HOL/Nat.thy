@@ -1674,4 +1674,16 @@ subsection {* size of a datatype value *}
 class size =
   fixes size :: "'a \<Rightarrow> nat" -- {* see further theory @{text Wellfounded} *}
 
+
+subsection {* code module namespace *}
+
+code_modulename SML
+  Nat Arith
+
+code_modulename OCaml
+  Nat Arith
+
+code_modulename Haskell
+  Nat Arith
+
 end

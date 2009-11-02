@@ -371,7 +371,7 @@ val print_simpset = Toplevel.unknown_context o
     in Pretty.writeln (Simplifier.pretty_ss ctxt (simpset_of ctxt)) end);
 
 val print_rules = Toplevel.unknown_context o
-  Toplevel.keep (ContextRules.print_rules o Toplevel.context_of);
+  Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of);
 
 val print_trans_rules = Toplevel.unknown_context o
   Toplevel.keep (Calculation.print_rules o Toplevel.context_of);

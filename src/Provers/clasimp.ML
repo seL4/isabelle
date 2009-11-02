@@ -139,9 +139,9 @@ fun delIff delcs delss ((cs, ss), th) =
 fun modifier att (x, ths) =
   fst (Library.foldl_map (Library.apply [att]) (x, rev ths));
 
-val addXIs = modifier (ContextRules.intro_query NONE);
-val addXEs = modifier (ContextRules.elim_query NONE);
-val delXs = modifier ContextRules.rule_del;
+val addXIs = modifier (Context_Rules.intro_query NONE);
+val addXEs = modifier (Context_Rules.elim_query NONE);
+val delXs = modifier Context_Rules.rule_del;
 
 in
 

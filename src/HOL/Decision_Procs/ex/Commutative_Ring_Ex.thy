@@ -1,10 +1,8 @@
-(*  ID:         $Id$
-    Author:     Bernhard Haeupler
-*)
+(*  Author:     Bernhard Haeupler *)
 
 header {* Some examples demonstrating the comm-ring method *}
 
-theory Commutative_RingEx
+theory Commutative_Ring_Ex
 imports Commutative_Ring
 begin
 

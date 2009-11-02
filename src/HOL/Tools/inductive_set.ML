@@ -343,7 +343,7 @@ fun to_pred thms ctxt thm =
     Simplifier.full_simplify (HOL_basic_ss addsimprocs
       [to_pred_simproc (mem_Collect_eq :: split_conv :: to_pred_simps)]) |>
     eta_contract_thm (is_pred pred_arities) |>
-    RuleCases.save thm
+    Rule_Cases.save thm
   end;
 
 val to_pred_att = Thm.rule_attribute o to_pred;
@@ -374,7 +374,7 @@ fun to_set thms ctxt thm =
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (HOL_basic_ss addsimps to_set_simps
         addsimprocs [strong_ind_simproc pred_arities, collect_mem_simproc]) |>
-    RuleCases.save thm
+    Rule_Cases.save thm
   end;
 
 val to_set_att = Thm.rule_attribute o to_set;
@@ -522,7 +522,7 @@ fun add_ind_set_def
       Inductive.declare_rules kind rec_name coind no_ind cnames
       (map (to_set [] (Context.Proof ctxt3)) intrs) intr_names intr_atts
       (map (fn th => (to_set [] (Context.Proof ctxt3) th,
-         map fst (fst (RuleCases.get th)))) elims)
+         map fst (fst (Rule_Cases.get th)))) elims)
       raw_induct' ctxt3
   in
     ({intrs = intrs', elims = elims', induct = induct,

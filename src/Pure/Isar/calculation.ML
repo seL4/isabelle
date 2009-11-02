@@ -66,15 +66,16 @@ fun put_calculation calc =
 
 (* add/del rules *)
 
-val trans_add = Thm.declaration_attribute (CalculationData.map o apfst o apfst o Item_Net.insert);
-val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o Item_Net.delete);
+val trans_add = Thm.declaration_attribute (CalculationData.map o apfst o apfst o Item_Net.update);
+val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o Item_Net.remove);
 
 val sym_add =
   Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.add_thm)
-  #> ContextRules.elim_query NONE;
+  #> Context_Rules.elim_query NONE;
+
 val sym_del =
   Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.del_thm)
-  #> ContextRules.rule_del;
+  #> Context_Rules.rule_del;
 
 
 (* symmetric *)
@@ -130,7 +131,8 @@ fun calculate prep_rules final raw_rules int state =
     fun combine ths =
       (case opt_rules of SOME rules => rules
       | NONE =>
-          (case ths of [] => Item_Net.content (#1 (get_rules state))
+          (case ths of
+            [] => Item_Net.content (#1 (get_rules state))
           | th :: _ => Item_Net.retrieve (#1 (get_rules state)) (strip_assums_concl th)))
       |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
       |> Seq.filter (not o projection ths);

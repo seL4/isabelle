@@ -86,9 +86,9 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
     val argss = map (map (Option.map induct_var)) varss;
     val rule =
       (case opt_rules of
-        SOME rules => #2 (RuleCases.strict_mutual_rule ctxt rules)
+        SOME rules => #2 (Rule_Cases.strict_mutual_rule ctxt rules)
       | NONE =>
-          (case map_filter (RuleCases.mutual_rule ctxt) (Induct.get_inductT ctxt argss) of
+          (case map_filter (Rule_Cases.mutual_rule ctxt) (Induct.get_inductT ctxt argss) of
             (_, rule) :: _ => rule
           | [] => raise THM ("No induction rules", 0, [])));
 

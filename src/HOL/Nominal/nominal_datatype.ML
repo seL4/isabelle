@@ -62,10 +62,10 @@ fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 
 in
 
-fun mk_case_names_induct descr = RuleCases.case_names (induct_cases descr);
+fun mk_case_names_induct descr = Rule_Cases.case_names (induct_cases descr);
 
 fun mk_case_names_exhausts descr new =
-  map (RuleCases.case_names o exhaust_cases descr o #1)
+  map (Rule_Cases.case_names o exhaust_cases descr o #1)
     (filter (fn ((_, (name, _, _))) => name mem_string new) descr);
 
 end;
@@ -153,7 +153,7 @@ val meta_spec = thm "meta_spec";
 
 fun projections rule =
   Project_Rule.projections (ProofContext.init (Thm.theory_of_thm rule)) rule
-  |> map (Drule.standard #> RuleCases.save rule);
+  |> map (Drule.standard #> Rule_Cases.save rule);
 
 val supp_prod = thm "supp_prod";
 val fresh_prod = thm "fresh_prod";

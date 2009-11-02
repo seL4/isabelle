@@ -69,7 +69,6 @@ fun par f = sep (wr "(" #> f #> wr ")")
 
 fun wr1 s = sep (wr s)
 fun wrn f n = (fn [] => wr1 n | ts => par (wr n #> fold f ts))
-fun ins s f = (fn [] => I | x::xs => f x #> fold (fn x => wr1 s #> f x) xs)
 
 val term_marker = "__term"
 val formula_marker = "__form"
@@ -104,7 +103,7 @@ fun wr_expr loc env t =
 
         val wre = wr_expr loc (map (tvar o fst) (rev vs) @ env)
 
-        fun wrp s ts = wr1 (":" ^ s ^ "{") #> ins "," wre ts #> wr1 "}"
+        fun wrp s ts = wr1 (":" ^ s ^ " {") #> fold wre ts #> wr1 "}"
         fun wr_pat (T.SPat ts) = wrp "pat" ts
           | wr_pat (T.SNoPat ts) = wrp "nopat" ts
       in par (wr_quant q #> fold wr_var vs #> wre b #> fold wr_pat ps) end)

@@ -246,8 +246,8 @@ val add_thm = update eq_thm_prop;
 val del_thm = remove eq_thm_prop;
 val merge_thms = merge eq_thm_prop;
 
-val intro_rules = Item_Net.init eq_thm_prop Thm.concl_of;
-val elim_rules = Item_Net.init eq_thm_prop Thm.major_prem_of;
+val intro_rules = Item_Net.init eq_thm_prop (single o Thm.concl_of);
+val elim_rules = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 
 
 

@@ -1409,4 +1409,13 @@ ML {*
   Addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv];
 *}
 
+code_modulename SML
+  OrderedGroup Arith
+
+code_modulename OCaml
+  OrderedGroup Arith
+
+code_modulename Haskell
+  OrderedGroup Arith
+
 end

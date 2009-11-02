@@ -313,12 +313,12 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             ctxt' |> (snd o ProofContext.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
             ctxt' |> Variable.auto_fixes asm
             |> ProofContext.add_assms_i Assumption.assume_export
-              [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
+              [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;
 
         val atts = map (Attrib.internal o K)
-          [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
+          [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names];
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = [((Binding.empty, atts), [(thesis, [])])];
 

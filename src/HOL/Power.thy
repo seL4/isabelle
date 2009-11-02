@@ -467,4 +467,13 @@ lemma power_power_power [code, code_unfold, code_inline del]:
 
 declare power.power.simps [code]
 
+code_modulename SML
+  Power Arith
+
+code_modulename OCaml
+  Power Arith
+
+code_modulename Haskell
+  Power Arith
+
 end

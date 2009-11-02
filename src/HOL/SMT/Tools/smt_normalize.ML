@@ -318,7 +318,7 @@ local
   fun replace ctxt cvs ct (cx as (nctxt, defs)) =
     let
       val cvs' = used_vars cvs ct
-      val ct' = fold Thm.cabs cvs' ct
+      val ct' = fold_rev Thm.cabs cvs' ct
       val mk_repl = fold (fn ct => fn cu => Thm.capply cu ct) cvs'
     in
       (case Termtab.lookup defs (Thm.term_of ct') of

@@ -157,7 +157,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume_i
-      [((Binding.name that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
+      [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(Thm.empty_binding, [(thesis, [])])] false
@@ -222,7 +222,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val maxidx = fold (Term.maxidx_typ o snd o fst) vars ~1;
     val rule = Thm.incr_indexes (maxidx + 1) raw_rule;
 
-    val params = RuleCases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
+    val params = Rule_Cases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
     val m = length vars;
     val n = length params;
     val _ = m <= n orelse err "More variables than parameters in obtained rule" rule;

@@ -6,8 +6,8 @@ Proving equalities in commutative rings done "right" in Isabelle/HOL.
 header {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
-imports List Parity Main
-uses ("comm_ring.ML")
+imports Main Parity
+uses ("commutative_ring_tac.ML")
 begin
 
 text {* Syntax of multivariate polynomials (pol) and polynomial expressions. *}
@@ -313,7 +313,7 @@ proof -
 qed
 
 
-use "comm_ring.ML"
-setup CommRing.setup
+use "commutative_ring_tac.ML"
+setup Commutative_Ring_Tac.setup
 
 end

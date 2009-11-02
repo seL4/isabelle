@@ -2374,4 +2374,14 @@ proof -
   then show ?thesis by simp
 qed
 
+
+code_modulename SML
+  Ring_and_Field Arith
+
+code_modulename OCaml
+  Ring_and_Field Arith
+
+code_modulename Haskell
+  Ring_and_Field Arith
+
 end

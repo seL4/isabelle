@@ -11,7 +11,6 @@ imports
   Code_Char_chr
   Code_Integer
   Coinductive_List
-  Commutative_Ring
   Continuity
   ContNotDenum
   Countable

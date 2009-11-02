@@ -112,9 +112,9 @@ sig
   val add_assms_i: Assumption.export ->
     (Thm.binding * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
-  val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
-  val get_case: Proof.context -> string -> string option list -> RuleCases.T
+  val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
+  val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
+  val get_case: Proof.context -> string -> string option list -> Rule_Cases.T
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
@@ -169,7 +169,7 @@ datatype ctxt =
     syntax: LocalSyntax.T,                            (*local syntax*)
     consts: Consts.T * Consts.T,                      (*local/global consts*)
     facts: Facts.T,                                   (*local facts*)
-    cases: (string * (RuleCases.T * bool)) list};     (*named case contexts*)
+    cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
 
 fun make_ctxt (mode, naming, syntax, consts, facts, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
@@ -1150,13 +1150,13 @@ fun prep_case name fxs c =
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
       | replace [] ys = ys
       | replace (_ :: _) [] = error ("Too many parameters for case " ^ quote name);
-    val RuleCases.Case {fixes, assumes, binds, cases} = c;
+    val Rule_Cases.Case {fixes, assumes, binds, cases} = c;
     val fixes' = replace fxs fixes;
     val binds' = map drop_schematic binds;
   in
     if null (fold (Term.add_tvarsT o snd) fixes []) andalso
       null (fold (fold Term.add_vars o snd) assumes []) then
-        RuleCases.Case {fixes = fixes', assumes = assumes, binds = binds', cases = cases}
+        Rule_Cases.Case {fixes = fixes', assumes = assumes, binds = binds', cases = cases}
     else error ("Illegal schematic variable(s) in case " ^ quote name)
   end;
 
@@ -1172,9 +1172,9 @@ fun add_cases is_proper = map_cases o fold (add_case is_proper);
 
 fun case_result c ctxt =
   let
-    val RuleCases.Case {fixes, ...} = c;
+    val Rule_Cases.Case {fixes, ...} = c;
     val (ts, ctxt') = ctxt |> fold_map fix fixes;
-    val RuleCases.Case {assumes, binds, cases, ...} = RuleCases.apply ts c;
+    val Rule_Cases.Case {assumes, binds, cases, ...} = Rule_Cases.apply ts c;
   in
     ctxt'
     |> bind_terms (map drop_schematic binds)
@@ -1292,7 +1292,7 @@ in
 fun pretty_cases ctxt =
   let
     fun add_case (_, (_, false)) = I
-      | add_case (name, (c as RuleCases.Case {fixes, ...}, true)) =
+      | add_case (name, (c as Rule_Cases.Case {fixes, ...}, true)) =
           cons (name, (fixes, case_result c ctxt));
     val cases = fold add_case (cases_of ctxt) [];
   in

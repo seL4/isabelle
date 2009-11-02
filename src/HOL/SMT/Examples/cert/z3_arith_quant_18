@@ -2,6 +2,6 @@
 :extrafuns (
   (uf_1 Int)
  )
-:assumption (not (forall (?x1 Int) (implies (< ?x1 uf_1) (< (* 2 ?x1) (* 2 uf_1))) :pat{ ?x1 }))
+:assumption (not (forall (?x1 Int) (implies (< ?x1 uf_1) (< (* 2 ?x1) (* 2 uf_1))) :pat { ?x1 }))
 :formula true
 )

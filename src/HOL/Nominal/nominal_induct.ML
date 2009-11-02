@@ -7,7 +7,7 @@ structure NominalInduct:
 sig
   val nominal_induct_tac: Proof.context -> (binding option * term) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
-    thm list -> int -> RuleCases.cases_tactic
+    thm list -> int -> Rule_Cases.cases_tactic
   val nominal_induct_method: (Proof.context -> Proof.method) context_parser
 end =
 struct
@@ -31,9 +31,9 @@ val split_all_tuples =
 
 fun inst_mutual_rule ctxt insts avoiding rules =
   let
-    val (nconcls, joined_rule) = RuleCases.strict_mutual_rule ctxt rules;
+    val (nconcls, joined_rule) = Rule_Cases.strict_mutual_rule ctxt rules;
     val concls = Logic.dest_conjunctions (Thm.concl_of joined_rule);
-    val (cases, consumes) = RuleCases.get joined_rule;
+    val (cases, consumes) = Rule_Cases.get joined_rule;
 
     val l = length rules;
     val _ =
@@ -93,12 +93,12 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
       split_all_tuples
       #> rename_params_rule true
         (map (Name.clean o ProofContext.revert_skolem defs_ctxt o fst) avoiding);
-    fun rule_cases r = RuleCases.make_nested true (Thm.prop_of r) (Induct.rulified_term r);
+    fun rule_cases r = Rule_Cases.make_nested true (Thm.prop_of r) (Induct.rulified_term r);
   in
     (fn i => fn st =>
       rules
       |> inst_mutual_rule ctxt insts avoiding
-      |> RuleCases.consume (flat defs) facts
+      |> Rule_Cases.consume (flat defs) facts
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS

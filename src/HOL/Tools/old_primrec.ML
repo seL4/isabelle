@@ -237,8 +237,8 @@ fun prepare_induct ({descr, induct, ...}: info) rec_eqns =
     val params_of = these o AList.lookup (op =) (maps constrs_of rec_eqns);
   in
     induct
-    |> RuleCases.rename_params (map params_of (maps (map #1 o #3 o #2) descr))
-    |> RuleCases.save induct
+    |> Rule_Cases.rename_params (map params_of (maps (map #1 o #3 o #2) descr))
+    |> Rule_Cases.save induct
   end;
 
 local

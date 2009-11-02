@@ -177,7 +177,7 @@ fun read_instantiate_mixed ctxt mixed_insts thm =
         else
           T.assign (SOME (T.Term (the (AList.lookup (op =) term_insts xi)))) arg);
   in
-    Drule.instantiate insts thm |> RuleCases.save thm
+    Drule.instantiate insts thm |> Rule_Cases.save thm
   end;
 
 fun read_instantiate_mixed' ctxt (args, concl_args) thm =
