@@ -375,9 +375,15 @@ end;
 (* print_theorems *)
 
 fun all_facts_of ctxt =
-  maps Facts.selections
-   (Facts.dest_static [] (PureThy.facts_of (ProofContext.theory_of ctxt)) @
-    Facts.dest_static [] (ProofContext.facts_of ctxt));
+  let
+    fun visible_facts facttab =
+      Facts.dest_static [] facttab
+      |> filter_out (Facts.is_concealed facttab o #1)
+  in
+    maps Facts.selections
+     (visible_facts (PureThy.facts_of (ProofContext.theory_of ctxt)) @
+      visible_facts (ProofContext.facts_of ctxt))
+  end;
 
 val limit = Unsynchronized.ref 40;
 
