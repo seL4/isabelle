@@ -10,7 +10,7 @@ sig
   val unused_thms: theory list * theory list -> (string * thm) list
 end;
 
-structure ThmDeps: THM_DEPS =
+structure Thm_Deps: THM_DEPS =
 struct
 
 (* thm_deps *)
