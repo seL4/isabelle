@@ -197,7 +197,7 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
       val measure_funs = MeasureFunctions.get_measure_functions ctxt domT (* 1: generate measures *)
 
       (* 2: create table *)
-      val table = map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
+      val table = Par_List.map (fn t => Par_List.map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
     in
       case search_table table of
         NONE => if quiet then no_tac st else error (no_order_msg ctxt table tl measure_funs)
