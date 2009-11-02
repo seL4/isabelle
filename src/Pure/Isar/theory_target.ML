@@ -178,7 +178,9 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
     val b' = Morphism.binding phi b;
     val rhs' = Morphism.term phi rhs;
     val arg = (b', Term.close_schematic_term rhs');
-    val similar_body = Type.similar_types (rhs, rhs');
+(*    val similar_body = Type.similar_types (rhs, rhs'); *)
+    val same_shape = op aconv o pairself (Term.map_types (fn _ => Term.dummyT));
+    val similar_body = same_shape (rhs, rhs');
     (* FIXME workaround based on educated guess *)
     val prefix' = Binding.prefix_of b';
     val class_global = Binding.eq_name (b, b')

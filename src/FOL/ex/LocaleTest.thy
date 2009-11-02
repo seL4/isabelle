@@ -124,6 +124,57 @@ interpretation var?: extra_type "0" "%x y. x = 0" .
 thm var.test_def
 
 
+text {* Under which circumstances term syntax remains active. *}
+
+locale "syntax" =
+  fixes p1 :: "'a => 'b"
+    and p2 :: "'b => o"
+begin
+
+definition d1 :: "'a => o" where "d1(x) <-> ~ p2(p1(x))"
+definition d2 :: "'b => o" where "d2(x) <-> ~ p2(x)"
+
+thm d1_def d2_def
+
+end
+
+thm syntax.d1_def syntax.d2_def
+
+locale syntax' = "syntax" p1 p2 for p1 :: "'a => 'a" and p2 :: "'a => o"
+begin
+
+thm d1_def d2_def  (* should print as "d1(?x) <-> ..." and "d2(?x) <-> ..." *)
+
+ML {*
+if Display.string_of_thm @{context} @{thm d1_def} <>
+ "\^E\^Fterm\^E\^E\^Fconst\^Fname=local.d1\^Ed1\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Ffixed\^Fname=p1\^E\^E\^Ffree\^Ep1\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E))\^E\^F\^E" 
+then error "Theorem syntax 'd1(?x) <-> ~ p2(p1(?x))' expected." else ();
+if Display.string_of_thm @{context} @{thm d2_def} <>
+ "\^E\^Fterm\^E\^E\^Fconst\^Fname=local.d2\^Ed2\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E)\^E\^F\^E"
+then error "Theorem syntax 'd2(?x) <-> ~ p2(?x)' expected." else ();
+*}
+
+end
+
+locale syntax'' = "syntax" p3 p2 for p3 :: "'a => 'b" and p2 :: "'b => o"
+begin
+
+thm d1_def d2_def
+  (* should print as "syntax.d1(p3, p2, ?x) <-> ..." and "d2(?x) <-> ..." *)
+
+ML {*
+if Display.string_of_thm @{context} @{thm d1_def} <>
+ "\^E\^Fterm\^E\^E\^Fconst\^Fname=LocaleTest.syntax.d1\^Esyntax.d1\^E\^F\^E(\^E\^Ffixed\^Fname=p3\^E\^E\^Ffree\^Ep3\^E\^F\^E\^E\^F\^E, \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E, \^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Ffixed\^Fname=p3\^E\^E\^Ffree\^Ep3\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E))\^E\^F\^E"
+then error "Theorem syntax 'syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))' expected."
+else ();
+if Display.string_of_thm @{context} @{thm d2_def} <>
+ "\^E\^Fterm\^E\^E\^Fconst\^Fname=local.d2\^Ed2\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E) <-> ~ \^E\^Ffixed\^Fname=p2\^E\^E\^Ffree\^Ep2\^E\^F\^E\^E\^F\^E(\^E\^Fvar\^E?x\^E\^F\^E)\^E\^F\^E"
+then error "Theorem syntax 'd2(?x) <-> ~ p2(?x)' expected." else ();
+*}
+
+end
+
+
 section {* Foundational versions of theorems *}
 
 thm logic.assoc
