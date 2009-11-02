@@ -29,7 +29,7 @@ let
     | typerep_tr' _ T ts = raise Match;
 in
   Sign.add_syntax_i
-    [("_TYPEREP", SimpleSyntax.read_typ "type => logic", Delimfix "(1TYPEREP/(1'(_')))")]
+    [("_TYPEREP", Simple_Syntax.read_typ "type => logic", Delimfix "(1TYPEREP/(1'(_')))")]
   #> Sign.add_trfuns ([], [("_TYPEREP", typerep_tr)], [], [])
   #> Sign.add_trfunsT [(@{const_syntax typerep}, typerep_tr')]
 end

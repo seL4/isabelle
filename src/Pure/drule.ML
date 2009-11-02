@@ -450,7 +450,7 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*** Meta-Rewriting Rules ***)
 
-val read_prop = certify o SimpleSyntax.read_prop;
+val read_prop = certify o Simple_Syntax.read_prop;
 
 fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o Thm.def_name;
 
