@@ -52,6 +52,7 @@ translations
 
 translations
   "\<Lambda>(CONST cpair\<cdot>x\<cdot>y). t" == "CONST csplit\<cdot>(\<Lambda> x y. t)"
+  "\<Lambda>(CONST Pair x y). t" => "CONST csplit\<cdot>(\<Lambda> x y. t)"
 
 
 subsection {* Convert all lemmas to the continuous versions *}
@@ -149,6 +150,9 @@ by (simp add: csplit_def)
 
 lemma csplit3 [simp]: "csplit\<cdot>cpair\<cdot>z = z"
 by (simp add: csplit_def cpair_cfst_csnd)
+
+lemma csplit_Pair [simp]: "csplit\<cdot>f\<cdot>(x, y) = f\<cdot>x\<cdot>y"
+by (simp add: csplit_def cfst_def csnd_def)
 
 lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2
 
