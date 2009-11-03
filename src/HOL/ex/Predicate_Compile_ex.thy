@@ -153,12 +153,12 @@ subsection {* Preprocessor Inlining  *}
 
 definition "equals == (op =)"
  
-inductive zerozero' where
+inductive zerozero' :: "nat * nat => bool" where
   "equals (x, y) (0, 0) ==> zerozero' (x, y)"
 
 code_pred (mode: [1]) zerozero' .
 
-lemma zerozero'_eq: "zerozero' == zerozero"
+lemma zerozero'_eq: "zerozero' x == zerozero x"
 proof -
   have "zerozero' = zerozero"
     apply (auto simp add: mem_def)
@@ -167,7 +167,7 @@ proof -
     apply (cases rule: zerozero.cases)
     apply (auto simp add: equals_def intro: zerozero'.intros)
     done
-  from this show "zerozero' == zerozero" by auto
+  from this show "zerozero' x == zerozero x" by auto
 qed
 
 declare zerozero'_eq [code_pred_inline]
@@ -175,9 +175,27 @@ declare zerozero'_eq [code_pred_inline]
 definition "zerozero'' x == zerozero' x"
 
 text {* if preprocessing fails, zerozero'' will not have all modes. *}
-ML {* Predicate_Compile_Inline_Defs.get @{context} *}
-(* TODO: *)
-code_pred (mode: [1]) [inductify, show_intermediate_results] zerozero'' .
+
+code_pred (mode: [o], [(i, o)], [(o,i)], [i]) [inductify] zerozero'' .
+
+subsection {* Numerals *}
+
+definition
+  "one_or_two == {Suc 0, (Suc (Suc 0))}"
+
+(*code_pred [inductify] one_or_two .*)
+code_pred [inductify, random] one_or_two .
+(*values "{x. one_or_two x}"*)
+values [random] "{x. one_or_two x}"
+
+definition one_or_two':
+  "one_or_two' == {1, (2::nat)}"
+
+code_pred [inductify] one_or_two' .
+thm one_or_two'.equation
+(* TODO: handling numerals *)
+(*values "{x. one_or_two' x}"*)
+
 
 subsection {* even predicate *}
 
@@ -666,12 +684,12 @@ thm inv_image.equation
 
 subsection {* Inverting list functions *}
 
-code_pred [inductify] length .
+code_pred [inductify, show_intermediate_results] length .
 code_pred [inductify, random] length .
 thm size_listP.equation
 thm size_listP.random_equation
 
-values [random] 20 "{xs. size_listP (xs::nat list) (5::nat)}"
+(*values [random] 1 "{xs. size_listP (xs::nat list) (5::nat)}"*)
 
 code_pred [inductify] concat .
 code_pred [inductify] hd .
