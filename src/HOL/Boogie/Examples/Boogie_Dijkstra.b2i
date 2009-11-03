@@ -1,0 +1,1879 @@
+type-decl Vertex 0 0
+fun-decl G 1 0
+    array 3
+      type-con Vertex 0
+      type-con Vertex 0
+      int
+fun-decl Infinity 1 0
+    int
+fun-decl Source 1 0
+    type-con Vertex 0
+axiom 0
+    forall 2 0 3
+      var x
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.3:15
+      attribute uniqueId 1
+        string-attr 0
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    not
+    =
+    var x
+      type-con Vertex 0
+    var y
+      type-con Vertex 0
+    <
+    int-num 0
+    select 3
+    fun G 0
+    var x
+      type-con Vertex 0
+    var y
+      type-con Vertex 0
+axiom 0
+    forall 2 0 3
+      var x
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.4:15
+      attribute uniqueId 1
+        string-attr 1
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    =
+    var x
+      type-con Vertex 0
+    var y
+      type-con Vertex 0
+    =
+    select 3
+    fun G 0
+    var x
+      type-con Vertex 0
+    var y
+      type-con Vertex 0
+    int-num 0
+axiom 0
+    <
+    int-num 0
+    fun Infinity 0
+var-decl SP 0
+    array 2
+      type-con Vertex 0
+      int
+vc Dijkstra 1
+    implies
+    label pos 26 3
+    true
+    implies
+    true
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.27:18
+      attribute uniqueId 1
+        string-attr 5
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    =
+    var x
+      type-con Vertex 0
+    fun Source 0
+    =
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    int-num 0
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.28:18
+      attribute uniqueId 1
+        string-attr 6
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    not
+    =
+    var x
+      type-con Vertex 0
+    fun Source 0
+    =
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    fun Infinity 0
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.31:18
+      attribute uniqueId 1
+        string-attr 7
+      attribute bvZ3Native 1
+        string-attr False
+    not
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var x
+      type-con Vertex 0
+    implies
+    true
+    and 2
+    label neg 34 5
+    =
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    implies
+    =
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    and 2
+    label neg 35 5
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.35:23
+      attribute uniqueId 1
+        string-attr 9
+      attribute bvZ3Native 1
+        string-attr False
+    >=
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    int-num 0
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.35:23
+      attribute uniqueId 1
+        string-attr 9
+      attribute bvZ3Native 1
+        string-attr False
+    >=
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    int-num 0
+    and 2
+    label neg 36 5
+    forall 2 0 3
+      var y
+        type-con Vertex 0
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.36:23
+      attribute uniqueId 1
+        string-attr 10
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <=
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    implies
+    forall 2 0 3
+      var y
+        type-con Vertex 0
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.36:23
+      attribute uniqueId 1
+        string-attr 10
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <=
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 38 5
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.38:23
+      attribute uniqueId 1
+        string-attr 11
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.38:23
+      attribute uniqueId 1
+        string-attr 11
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 40 5
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.40:23
+      attribute uniqueId 1
+        string-attr 13
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.41:15
+      attribute uniqueId 1
+        string-attr 12
+      attribute bvZ3Native 1
+        string-attr False
+    and 3
+    <
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.40:23
+      attribute uniqueId 1
+        string-attr 13
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.41:15
+      attribute uniqueId 1
+        string-attr 12
+      attribute bvZ3Native 1
+        string-attr False
+    and 3
+    <
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@0
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@0
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    label pos 33 3
+    true
+    implies
+    true
+    implies
+    =
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.35:23
+      attribute uniqueId 1
+        string-attr 9
+      attribute bvZ3Native 1
+        string-attr False
+    >=
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    int-num 0
+    implies
+    forall 2 0 3
+      var y
+        type-con Vertex 0
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.36:23
+      attribute uniqueId 1
+        string-attr 10
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <=
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    implies
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.38:23
+      attribute uniqueId 1
+        string-attr 11
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.40:23
+      attribute uniqueId 1
+        string-attr 13
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.41:15
+      attribute uniqueId 1
+        string-attr 12
+      attribute bvZ3Native 1
+        string-attr False
+    and 3
+    <
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    true
+    and 2
+    implies
+    label pos 33 3
+    true
+    implies
+    true
+    implies
+    not
+    exists 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.33:18
+      attribute uniqueId 1
+        string-attr 8
+      attribute bvZ3Native 1
+        string-attr False
+    and 2
+    not
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var x
+      type-con Vertex 0
+    <
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    fun Infinity 0
+    implies
+    true
+    implies
+    label pos 0 0
+    true
+    implies
+    =
+    var Visited@3
+      array 2
+        type-con Vertex 0
+        bool
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    implies
+    =
+    var v@2
+      type-con Vertex 0
+    var v@0
+      type-con Vertex 0
+    implies
+    =
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    implies
+    =
+    var oldSP@1
+      array 2
+        type-con Vertex 0
+        int
+    var oldSP@0
+      array 2
+        type-con Vertex 0
+        int
+    implies
+    label pos 0 0
+    true
+    and 2
+    label neg 17 3
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.17:19
+      attribute uniqueId 1
+        string-attr 4
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.18:13
+      attribute uniqueId 1
+        string-attr 3
+      attribute bvZ3Native 1
+        string-attr False
+    and 2
+    <
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    =
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.17:19
+      attribute uniqueId 1
+        string-attr 4
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.18:13
+      attribute uniqueId 1
+        string-attr 3
+      attribute bvZ3Native 1
+        string-attr False
+    and 2
+    <
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    =
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 15 3
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.15:19
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    fun Infinity 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.15:19
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    fun Infinity 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 14 3
+    =
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    implies
+    =
+    select 2
+    var SP@3
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    true
+    implies
+    label pos 44 5
+    true
+    implies
+    true
+    implies
+    exists 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.33:18
+      attribute uniqueId 1
+        string-attr 8
+      attribute bvZ3Native 1
+        string-attr False
+    and 2
+    not
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var x
+      type-con Vertex 0
+    <
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    fun Infinity 0
+    implies
+    not
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var v@1
+      type-con Vertex 0
+    implies
+    <
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var v@1
+      type-con Vertex 0
+    fun Infinity 0
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.47:20
+      attribute uniqueId 1
+        string-attr 14
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    not
+    select 2
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var x
+      type-con Vertex 0
+    <=
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var v@1
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    implies
+    =
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    store 3
+    var Visited@1
+      array 2
+        type-con Vertex 0
+        bool
+    var v@1
+      type-con Vertex 0
+    true
+    implies
+    forall 1 0 3
+      var u
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.53:20
+      attribute uniqueId 1
+        string-attr 15
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <
+    select 3
+    fun G 0
+    var v@1
+      type-con Vertex 0
+    var u
+      type-con Vertex 0
+    fun Infinity 0
+    <
+    +
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var v@1
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var v@1
+      type-con Vertex 0
+    var u
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var u
+      type-con Vertex 0
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var u
+      type-con Vertex 0
+    +
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var v@1
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var v@1
+      type-con Vertex 0
+    var u
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var u
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.56:20
+      attribute uniqueId 1
+        string-attr 16
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    not
+    and 2
+    <
+    select 3
+    fun G 0
+    var v@1
+      type-con Vertex 0
+    var u
+      type-con Vertex 0
+    fun Infinity 0
+    <
+    +
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var v@1
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var v@1
+      type-con Vertex 0
+    var u
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var u
+      type-con Vertex 0
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var u
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var u
+      type-con Vertex 0
+    and 2
+    label neg 59 5
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.59:20
+      attribute uniqueId 1
+        string-attr 17
+      attribute bvZ3Native 1
+        string-attr False
+    <=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.59:20
+      attribute uniqueId 1
+        string-attr 17
+      attribute bvZ3Native 1
+        string-attr False
+    <=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 60 5
+    forall 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.60:20
+      attribute uniqueId 1
+        string-attr 18
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.60:20
+      attribute uniqueId 1
+        string-attr 18
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@1
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    implies
+    true
+    implies
+    label pos 0 0
+    true
+    and 2
+    label neg 34 5
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    implies
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    fun Source 0
+    int-num 0
+    and 2
+    label neg 35 5
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.35:23
+      attribute uniqueId 1
+        string-attr 9
+      attribute bvZ3Native 1
+        string-attr False
+    >=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    int-num 0
+    implies
+    forall 1 0 3
+      var x
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.35:23
+      attribute uniqueId 1
+        string-attr 9
+      attribute bvZ3Native 1
+        string-attr False
+    >=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var x
+      type-con Vertex 0
+    int-num 0
+    and 2
+    label neg 36 5
+    forall 2 0 3
+      var y
+        type-con Vertex 0
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.36:23
+      attribute uniqueId 1
+        string-attr 10
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    implies
+    forall 2 0 3
+      var y
+        type-con Vertex 0
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.36:23
+      attribute uniqueId 1
+        string-attr 10
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 38 5
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.38:23
+      attribute uniqueId 1
+        string-attr 11
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 2 0 3
+      var z
+        type-con Vertex 0
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.38:23
+      attribute uniqueId 1
+        string-attr 11
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    <
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    <=
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    and 2
+    label neg 40 5
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.40:23
+      attribute uniqueId 1
+        string-attr 13
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.41:15
+      attribute uniqueId 1
+        string-attr 12
+      attribute bvZ3Native 1
+        string-attr False
+    and 3
+    <
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    forall 1 0 3
+      var z
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.40:23
+      attribute uniqueId 1
+        string-attr 13
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    not
+    =
+    var z
+      type-con Vertex 0
+    fun Source 0
+    <
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    fun Infinity 0
+    exists 1 0 3
+      var y
+        type-con Vertex 0
+      attribute qid 1
+        string-attr BoogieDi.41:15
+      attribute uniqueId 1
+        string-attr 12
+      attribute bvZ3Native 1
+        string-attr False
+    and 3
+    <
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    select 2
+    var Visited@2
+      array 2
+        type-con Vertex 0
+        bool
+    var y
+      type-con Vertex 0
+    =
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var z
+      type-con Vertex 0
+    +
+    select 2
+    var SP@2
+      array 2
+        type-con Vertex 0
+        int
+    var y
+      type-con Vertex 0
+    select 3
+    fun G 0
+    var y
+      type-con Vertex 0
+    var z
+      type-con Vertex 0
+    implies
+    false
+    true

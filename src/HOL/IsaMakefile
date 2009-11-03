@@ -10,6 +10,7 @@ generate: HOL-Generate-HOL HOL-Generate-HOLLight
 images: \
   HOL \
   HOL-Algebra \
+  HOL-Boogie \
   HOL-Base \
   HOL-Main \
   HOL-Multivariate_Analysis \
@@ -27,6 +28,7 @@ test: \
   HOL-ex \
   HOL-Auth \
   HOL-Bali \
+  HOL-Boogie_Examples \
   HOL-Decision_Procs \
   HOL-Extraction \
   HOL-Hahn_Banach \
@@ -54,7 +56,7 @@ test: \
   HOL-Probability \
   HOL-Prolog \
   HOL-SET_Protocol \
-  HOL-SMT-Examples \
+  HOL-SMT_Examples \
   HOL-SizeChange \
   HOL-Statespace \
   HOL-Subst \
@@ -1212,7 +1214,7 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
 
 HOL-SMT: HOL-Word $(OUT)/HOL-SMT
 
-$(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/SMT_Base.thy SMT/Z3.thy		\
+$(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/ROOT.ML SMT/SMT_Base.thy SMT/Z3.thy \
   SMT/SMT.thy SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML	\
   SMT/Tools/smt_translate.ML SMT/Tools/smtlib_interface.ML              \
   SMT/Tools/smt_solver.ML SMT/Tools/cvc3_solver.ML                      \
@@ -1222,11 +1224,11 @@ $(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/SMT_Base.thy SMT/Z3.thy		\
 	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
 
 
-## HOL-SMT-Examples
+## HOL-SMT_Examples
 
-HOL-SMT-Examples: HOL-SMT $(LOG)/HOL-SMT-Examples.gz
+HOL-SMT_Examples: HOL-SMT $(LOG)/HOL-SMT_Examples.gz
 
-$(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
+$(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
   SMT/Examples/SMT_Examples.thy SMT/Examples/cert/z3_arith_quant_01	\
   SMT/Examples/cert/z3_arith_quant_01.proof				\
   SMT/Examples/cert/z3_arith_quant_02					\
@@ -1379,6 +1381,33 @@ $(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
   SMT/Examples/cert/z3_prop_09.proof SMT/Examples/cert/z3_prop_10	\
   SMT/Examples/cert/z3_prop_10.proof
 	@cd SMT; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SMT Examples
+
+
+## HOL-Boogie
+
+HOL-Boogie: HOL-SMT $(OUT)/HOL-Boogie
+
+$(OUT)/HOL-Boogie: $(OUT)/HOL-SMT Boogie/ROOT.ML Boogie/Boogie.thy      \
+  Boogie/Tools/boogie_vcs.ML Boogie/Tools/boogie_loader.ML              \
+  Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_split.ML
+	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Boogie
+
+
+## HOL-Boogie_Examples
+
+HOL-Boogie_Examples: HOL-Boogie $(LOG)/HOL-Boogie_Examples.gz
+
+$(LOG)/HOL-Boogie_Examples.gz: $(OUT)/HOL-SMT Boogie/Examples/ROOT.ML   \
+  Boogie/Examples/Boogie_Max.thy Boogie/Examples/Boogie_Max.b2i         \
+  Boogie/Examples/Boogie_Dijkstra.thy Boogie/Examples/VCC_Max.thy       \
+  Boogie/Examples/Boogie_Dijkstra.b2i Boogie/Examples/VCC_Max.b2i       \
+  Boogie/Examples/cert/Boogie_b_max                                     \
+  Boogie/Examples/cert/Boogie_b_max.proof                               \
+  Boogie/Examples/cert/Boogie_b_Dijkstra                                \
+  Boogie/Examples/cert/Boogie_b_Dijkstra.proof                          \
+  Boogie/Examples/cert/VCC_b_maximum                                    \
+  Boogie/Examples/cert/VCC_b_maximum.proof
+	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
 
 
 ## clean

@@ -1,0 +1,131 @@
+(*  Title:      HOL/Boogie/Tools/boogie_split.ML
+    Author:     Sascha Boehme, TU Muenchen
+
+Method to split Boogie-generate verification conditions and pass the splinters
+to user-supplied automated sub-tactics.
+*)
+
+signature BOOGIE_SPLIT =
+sig
+  val add_sub_tactic: string * (Proof.context -> int -> tactic) -> theory ->
+    theory
+  val sub_tactic_names: theory -> string list
+  val setup: theory -> theory
+end
+
+structure Boogie_Split: BOOGIE_SPLIT =
+struct
+
+(* sub-tactics store *)
+
+structure Sub_Tactics = TheoryDataFun
+(
+  type T = (Proof.context -> int -> tactic) Symtab.table
+  val empty = Symtab.empty
+  val copy = I
+  val extend = I
+  fun merge _ = Symtab.merge (K true)
+)
+
+fun add_sub_tactic tac = Sub_Tactics.map (Symtab.update_new tac)
+
+val sub_tactic_names = Symtab.keys o Sub_Tactics.get
+
+fun lookup_sub_tactic ctxt name =
+  (case Symtab.lookup (Sub_Tactics.get (ProofContext.theory_of ctxt)) name of
+    SOME tac => SOME (name, tac)
+  | NONE => (warning ("Unknown sub-tactic: " ^ quote name); NONE))
+
+fun as_meta_eq eq = eq RS @{thm eq_reflection}
+
+fun full_implies_conv cv ct =
+  (case try Thm.dest_implies ct of
+    NONE => cv ct
+  | SOME (cp, cc) => Drule.imp_cong_rule (cv cp) (full_implies_conv cv cc))
+
+fun sub_tactics_tac ctxt (verbose, sub_tac_names) case_name =
+  let
+    fun trace msg = if verbose then tracing msg else ()
+    fun trying name = trace ("Trying tactic " ^ quote name ^ " on case " ^
+      quote case_name ^ " ...")
+    fun solved () = trace ("Case solved: " ^ quote case_name)
+    fun failed () = trace ("Case remains unsolved: " ^ quote case_name)
+
+    infix IF_UNSOLVED
+    fun (tac1 IF_UNSOLVED tac2) i st = st |> (tac1 i THEN (fn st' =>
+      if i > i + nprems_of st' - nprems_of st
+      then (solved (); Tactical.all_tac st')
+      else Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'))
+    
+    fun TRY_ALL [] _ st = (failed (); Tactical.no_tac st)
+      | TRY_ALL ((name, tac) :: tacs) i st = (trying name;
+          (TRY o tac ctxt IF_UNSOLVED TRY_ALL tacs) i st)
+
+    val unfold_labels = Conv.try_conv (Conv.arg_conv
+      (More_Conv.rewrs_conv (map as_meta_eq @{thms labels})))
+  in
+    CONVERSION (full_implies_conv unfold_labels)
+    THEN' TRY_ALL (map_filter (lookup_sub_tactic ctxt) sub_tac_names)
+  end
+
+
+(* splitting method *)
+
+local
+  fun case_name_of _ i = "goal" ^ string_of_int i
+    (*FIXME: proper case names*)
+
+  val split_rules = [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+
+  fun prep_tac ctxt args facts =
+    Method.insert_tac facts
+    THEN' REPEAT_ALL_NEW (Tactic.resolve_tac split_rules)
+    THEN_ALL_NEW SUBGOAL (fn (t, i) =>
+      TRY (sub_tactics_tac ctxt args (case_name_of t i) i))
+
+  fun case_names st =
+    map_index (fn (i, t) => (case_name_of t (i + 1), [])) (Thm.prems_of st)
+
+  val drop_assert_at = Conv.concl_conv ~1 (Conv.try_conv (Conv.arg_conv
+    (Conv.rewr_conv (as_meta_eq @{thm assert_at_def}))))
+
+  fun split_vc args ctxt = METHOD_CASES (fn facts =>
+    prep_tac ctxt args facts 1 #>
+    Seq.maps (fn st =>
+      st
+      |> ALLGOALS (CONVERSION drop_assert_at)
+      |> Seq.map (pair (case_names st))) #>
+    Seq.maps (fn (names, st) =>
+      CASES
+        (Rule_Cases.make_common false
+          (ProofContext.theory_of ctxt, Thm.prop_of st) names)
+        Tactical.all_tac st))
+
+  val verbose_opt = Args.parens (Args.$$$ "verbose") >> K true
+  val sub_tactics = Args.$$$ "try" -- Args.colon |-- Scan.repeat1 Args.name
+in
+val setup_split_vc = Method.setup @{binding split_vc}
+  (Scan.lift (Scan.optional verbose_opt false -- Scan.optional sub_tactics [])
+    >> split_vc)
+  ("Splits a Boogie-generated verification conditions into smaller problems" ^
+   " and tries to solve the splinters with the supplied sub-tactics.")
+end
+
+
+(* predefined sub-tactics *)
+
+fun fast_sub_tac ctxt = Classical.fast_tac (Classical.claset_of ctxt)
+fun simp_sub_tac ctxt =
+  Simplifier.asm_full_simp_tac (Simplifier.simpset_of ctxt)
+fun smt_sub_tac ctxt = SMT_Solver.smt_tac ctxt (Split_VC_SMT_Rules.get ctxt)
+
+
+(* setup *)
+
+val setup =
+  setup_split_vc #>
+  add_sub_tactic ("fast", fast_sub_tac) #>
+  add_sub_tactic ("simp", simp_sub_tac) #>
+  add_sub_tactic ("smt", smt_sub_tac)  
+
+end
