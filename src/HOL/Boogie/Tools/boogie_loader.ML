@@ -398,8 +398,8 @@ fun expr tds fds =
       scan_line "label" (label_kind -- num -- num) -- exp >>
         (fn (((l, line), col), t) =>
           if line = 0 orelse col = 0 then t
-          else l $ Free ("Line_" ^ string_of_int line ^ "_Column_" ^
-            string_of_int col, @{typ bool}) $ t) ||
+          else l $ Free ("L_" ^ string_of_int line ^ "_" ^ string_of_int col,
+            @{typ bool}) $ t) ||
       scan_line "int-num" num >> HOLogic.mk_number @{typ int} ||
       binexp "<" (binop @{term "op < :: int => _"}) ||
       binexp "<=" (binop @{term "op <= :: int => _"}) ||

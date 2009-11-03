@@ -53,9 +53,11 @@ fun sub_tactics_tac ctxt (verbose, sub_tac_names) case_name =
 
     infix IF_UNSOLVED
     fun (tac1 IF_UNSOLVED tac2) i st = st |> (tac1 i THEN (fn st' =>
-      if i > i + nprems_of st' - nprems_of st
-      then (solved (); Tactical.all_tac st')
-      else Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'))
+      let val j = i + Thm.nprems_of st' - Thm.nprems_of st
+      in
+        if i > j then (solved (); Tactical.all_tac st')
+        else Seq.INTERVAL tac2 i j st'
+      end))
     
     fun TRY_ALL [] _ st = (failed (); Tactical.no_tac st)
       | TRY_ALL ((name, tac) :: tacs) i st = (trying name;
@@ -69,32 +71,66 @@ fun sub_tactics_tac ctxt (verbose, sub_tac_names) case_name =
   end
 
 
+(* case names *)
+
+fun case_name_of t =
+  (case HOLogic.dest_Trueprop (Logic.strip_imp_concl t) of
+    @{term assert_at} $ Free (n, _) $ _ => n
+  | _ => raise TERM ("case_name_of", [t]))
+
+local
+  fun make_case_name (i, t) =
+    the_default ("B_" ^ string_of_int (i + 1)) (try case_name_of t)
+
+  val assert_intro = Thm.symmetric (as_meta_eq @{thm assert_at_def})
+  val l = Thm.dest_arg1 (Thm.rhs_of assert_intro)
+  fun intro new =
+    Conv.rewr_conv (Thm.instantiate ([], [(l, new)]) assert_intro)
+
+  val assert_eq = @{lemma "assert_at x t == assert_at y t"
+    by (simp add: assert_at_def)}
+  val (x, y) = pairself Thm.dest_arg1 (Thm.dest_binop (Thm.cprop_of assert_eq))
+  fun rename old new =
+    Conv.rewr_conv (Thm.instantiate ([], [(x, old), (y, new)]) assert_eq)
+
+  fun at_concl cv = Conv.concl_conv ~1 (Conv.arg_conv cv)
+  fun make_label thy name = Thm.cterm_of thy (Free (name, @{typ bool}))
+
+  fun rename_case thy new ct =
+    (case try case_name_of (Thm.term_of ct) of
+      NONE => at_concl (intro (make_label thy new))
+    | SOME old => if new = old then Conv.all_conv
+        else at_concl (rename (make_label thy old) (make_label thy new))) ct
+in
+fun unique_case_names thy st =
+  let
+    val names = map_index make_case_name (Thm.prems_of st)
+      |> ` (duplicates (op =)) |-> Name.variant_list
+  in ALLGOALS (fn i => CONVERSION (rename_case thy (nth names (i-1))) i) st end
+end
+
+
 (* splitting method *)
 
 local
-  fun case_name_of _ i = "goal" ^ string_of_int i
-    (*FIXME: proper case names*)
-
   val split_rules = [@{thm impI}, @{thm conjI}, @{thm TrueI}]
 
   fun prep_tac ctxt args facts =
-    Method.insert_tac facts
-    THEN' REPEAT_ALL_NEW (Tactic.resolve_tac split_rules)
-    THEN_ALL_NEW SUBGOAL (fn (t, i) =>
-      TRY (sub_tactics_tac ctxt args (case_name_of t i) i))
-
-  fun case_names st =
-    map_index (fn (i, t) => (case_name_of t (i + 1), [])) (Thm.prems_of st)
+    HEADGOAL (Method.insert_tac facts)
+    THEN HEADGOAL (REPEAT_ALL_NEW (Tactic.resolve_tac split_rules))
+    THEN unique_case_names (ProofContext.theory_of ctxt)
+    THEN ALLGOALS (SUBGOAL (fn (t, i) =>
+      TRY (sub_tactics_tac ctxt args (case_name_of t) i)))
 
   val drop_assert_at = Conv.concl_conv ~1 (Conv.try_conv (Conv.arg_conv
     (Conv.rewr_conv (as_meta_eq @{thm assert_at_def}))))
 
   fun split_vc args ctxt = METHOD_CASES (fn facts =>
-    prep_tac ctxt args facts 1 #>
+    prep_tac ctxt args facts #>
     Seq.maps (fn st =>
       st
       |> ALLGOALS (CONVERSION drop_assert_at)
-      |> Seq.map (pair (case_names st))) #>
+      |> Seq.map (pair (map (rpair [] o case_name_of) (Thm.prems_of st)))) #>
     Seq.maps (fn (names, st) =>
       CASES
         (Rule_Cases.make_common false
