@@ -360,14 +360,10 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     fun serialize_module1 (module_name', (deps, (stmts, _))) =
       let
         val stmt_names = map fst stmts;
-        val deps' = subtract (op =) stmt_names deps
+        val qualified = is_none module_name;
+        val imports = subtract (op =) stmt_names deps
           |> distinct (op =)
-          |> map_filter (try deresolver);
-        val qualified = is_none module_name andalso
-          map deresolver stmt_names @ deps'
-          |> map Long_Name.base_name
-          |> has_duplicates (op =);
-        val imports = deps'
+          |> map_filter (try deresolver)
           |> map Long_Name.qualifier
           |> distinct (op =);
         fun pr_import_include (name, _) = str ("import qualified " ^ name ^ ";");
