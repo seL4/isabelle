@@ -222,7 +222,7 @@ where
 definition
   cprod_fun :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<times> 'c \<rightarrow> 'b \<times> 'd"
 where
-  "cprod_fun = (\<Lambda> f g. csplit\<cdot>(\<Lambda> x y. <f\<cdot>x, g\<cdot>y>))"
+  "cprod_fun = (\<Lambda> f g. csplit\<cdot>(\<Lambda> x y. (f\<cdot>x, g\<cdot>y)))"
 
 definition
   u_fun :: "('a \<rightarrow> 'b) \<rightarrow> 'a u \<rightarrow> 'b u"
