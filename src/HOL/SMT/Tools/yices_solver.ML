@@ -17,12 +17,7 @@ val env_var = "YICES_SOLVER"
 
 val options = ["--smtlib"]
 
-fun cex_kind true = "Counterexample"
-  | cex_kind false = "Possible counterexample"
-
-fun raise_cex real = error (cex_kind real ^ " found.")
-
-structure S = SMT_Solver
+fun raise_cex real = raise SMT_Solver.SMT_COUNTEREXAMPLE (real, [])
 
 fun core_oracle ({context, output, recon, ...} : SMT_Solver.proof_data) =
   let
@@ -33,7 +28,7 @@ fun core_oracle ({context, output, recon, ...} : SMT_Solver.proof_data) =
     if String.isPrefix "unsat" l then @{cprop False}
     else if String.isPrefix "sat" l then raise_cex true
     else if String.isPrefix "unknown" l then raise_cex false
-    else error (solver_name ^ " failed")
+    else raise SMT_Solver.SMT (solver_name ^ " failed")
   end
 
 fun smtlib_solver oracle _ = {

@@ -16,7 +16,7 @@ struct
 structure T = Z3_Proof_Terms
 structure R = Z3_Proof_Rules
 
-fun z3_exn msg = error ("Z3 proof reconstruction: " ^ msg)
+fun z3_exn msg = raise SMT_Solver.SMT ("Z3 proof reconstruction: " ^ msg)
 
 
 fun lift f (x, y) = apsnd (pair x) (f y)
@@ -223,10 +223,11 @@ fun node thy =
   def :|-- (fn k => expr thy k #> pair NONE || rule thy k #>> K NONE) ||
   rule thy ~1 #>> SOME
 
-fun parse_error line_no ((_, xs), _) =
-  "parse error at line " ^ string_of_int line_no ^ ": " ^ quote (implode xs)
-
-fun handle_errors ln scan = Scan.error (Scan.!! (parse_error ln) scan)
+fun handle_errors line_no scan (st as (_, xs)) =
+  (case try scan st of
+    SOME y => y
+  | NONE => z3_exn ("parse error at line " ^ string_of_int line_no ^ ": " ^
+      quote (implode xs)))
 
 fun parse_line thy l (st as (stop, line_no, cx)) =
   if is_some stop then st

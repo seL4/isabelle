@@ -21,10 +21,7 @@ val is_sat = String.isPrefix "Satisfiable."
 val is_unsat = String.isPrefix "Unsatisfiable."
 val is_unknown = String.isPrefix "Unknown."
 
-fun cex_kind true = "Counterexample"
-  | cex_kind false = "Possible counterexample"
-
-fun raise_cex real = error (cex_kind real ^ " found.")
+fun raise_cex real = raise SMT_Solver.SMT_COUNTEREXAMPLE (real, [])
 
 fun core_oracle ({context, output, recon, ...} : SMT_Solver.proof_data) =
   let
@@ -35,7 +32,7 @@ fun core_oracle ({context, output, recon, ...} : SMT_Solver.proof_data) =
     if is_unsat l then @{cprop False}
     else if is_sat l then raise_cex true
     else if is_unknown l then raise_cex false
-    else error (solver_name ^ " failed")
+    else raise SMT_Solver.SMT (solver_name ^ " failed")
   end
 
 fun smtlib_solver oracle _ = {

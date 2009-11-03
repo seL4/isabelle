@@ -26,7 +26,7 @@ struct
 
 structure T = Z3_Proof_Terms
 
-fun z3_exn msg = error ("Z3 proof reconstruction: " ^ msg)
+fun z3_exn msg = raise SMT_Solver.SMT ("Z3 proof reconstruction: " ^ msg)
 
 
 (* proof rule names *)
