@@ -31,6 +31,11 @@ text {* Lifting can turn a strict constructor into a lazy one. *}
 fixrec from_sinl_up :: "'a u \<oplus> 'b \<rightarrow> 'a"
 where "from_sinl_up\<cdot>(sinl\<cdot>(up\<cdot>x)) = x"
 
+text {* Fixrec also works with the HOL pair constructor. *}
+
+fixrec down2 :: "'a u \<times> 'b u \<rightarrow> 'a \<times> 'b"
+where "down2\<cdot>(up\<cdot>x, up\<cdot>y) = (x, y)"
+
 
 subsection {* Examples using @{text fixpat} *}
 

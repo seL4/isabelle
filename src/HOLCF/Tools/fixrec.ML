@@ -36,19 +36,8 @@ fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
 
 infixr 6 ->>; val (op ->>) = cfunT;
 
-fun cfunsT (Ts, U) = List.foldr cfunT U Ts;
-
 fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
-
-fun binder_cfun (Type(@{type_name "->"},[T, U])) = T :: binder_cfun U
-  | binder_cfun _   =  [];
-
-fun body_cfun (Type(@{type_name "->"},[T, U])) = body_cfun U
-  | body_cfun T   =  T;
-
-fun strip_cfun T : typ list * typ =
-  (binder_cfun T, body_cfun T);
 
 fun maybeT T = Type(@{type_name "maybe"}, [T]);
 
@@ -59,9 +48,27 @@ fun tupleT [] = HOLogic.unitT
   | tupleT [T] = T
   | tupleT (T :: Ts) = HOLogic.mk_prodT (T, tupleT Ts);
 
+local
+
+fun binder_cfun (Type(@{type_name "->"},[T, U])) = T :: binder_cfun U
+  | binder_cfun (Type(@{type_name "fun"},[T, U])) = T :: binder_cfun U
+  | binder_cfun _   =  [];
+
+fun body_cfun (Type(@{type_name "->"},[T, U])) = body_cfun U
+  | body_cfun (Type(@{type_name "fun"},[T, U])) = body_cfun U
+  | body_cfun T   =  T;
+
+fun strip_cfun T : typ list * typ =
+  (binder_cfun T, body_cfun T);
+
+fun cfunsT (Ts, U) = List.foldr cfunT U Ts;
+
+in
+
 fun matchT (T, U) =
   body_cfun T ->> cfunsT (binder_cfun T, U) ->> U;
 
+end
 
 (*************************************************************************)
 (***************************** building terms ****************************)
@@ -235,10 +242,16 @@ fun pre_build match_name pat rhs vs taken =
   | Const(@{const_name Rep_CFun},_)$f$x =>
       let val (rhs', v, taken') = pre_build match_name x rhs [] taken;
       in pre_build match_name f rhs' (v::vs) taken' end
+  | f$(v as Free(n,T)) =>
+      pre_build match_name f rhs (v::vs) taken
+  | f$x =>
+      let val (rhs', v, taken') = pre_build match_name x rhs [] taken;
+      in pre_build match_name f rhs' (v::vs) taken' end
   | Const(c,T) =>
       let
         val n = Name.variant taken "v";
         fun result_type (Type(@{type_name "->"},[_,T])) (x::xs) = result_type T xs
+          | result_type (Type (@{type_name "fun"},[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);
         val m = Const(match_name c, matchT (T, fastype_of rhs));

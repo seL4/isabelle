@@ -526,7 +526,8 @@ by (simp_all add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
   "match_cpair\<cdot>\<langle>x, y\<rangle>\<cdot>k = k\<cdot>x\<cdot>y"
-by (simp add: match_cpair_def)
+  "match_cpair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
+by (simp_all add: match_cpair_def)
 
 lemma match_spair_simps [simp]:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> match_spair\<cdot>(:x, y:)\<cdot>k = k\<cdot>x\<cdot>y"
@@ -610,6 +611,7 @@ setup {*
       (@{const_name sinr}, @{const_name match_sinr}),
       (@{const_name spair}, @{const_name match_spair}),
       (@{const_name cpair}, @{const_name match_cpair}),
+      (@{const_name Pair}, @{const_name match_cpair}),
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
       (@{const_name FF}, @{const_name match_FF}),
