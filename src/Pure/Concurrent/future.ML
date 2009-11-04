@@ -64,7 +64,7 @@ type task = Task_Queue.task;
 type group = Task_Queue.group;
 
 local
-  val tag = Universal.tag () : (string * task * group) option Universal.tag;
+  val tag = Universal.tag () : (task * group) option Universal.tag;
 in
   fun thread_data () = the_default NONE (Thread.getLocal tag);
   fun setmp_thread_data data f x =
@@ -72,8 +72,8 @@ in
 end;
 
 val is_worker = is_some o thread_data;
-val worker_task = Option.map #2 o thread_data;
-val worker_group = Option.map #3 o thread_data;
+val worker_task = Option.map #1 o thread_data;
+val worker_group = Option.map #2 o thread_data;
 
 
 (* datatype future *)
@@ -166,10 +166,10 @@ fun do_cancel group = (*requires SYNCHRONIZED*)
  (Unsynchronized.change canceled (insert Task_Queue.eq_group group);
   broadcast scheduler_event);
 
-fun execute name (task, group, jobs) =
+fun execute (task, group, jobs) =
   let
     val valid = not (Task_Queue.is_canceled group);
-    val ok = setmp_thread_data (name, task, group) (fn () =>
+    val ok = setmp_thread_data (task, group) (fn () =>
       fold (fn job => fn ok => job valid andalso ok) jobs true) ();
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
@@ -223,7 +223,7 @@ fun worker_next has_work = (*requires SYNCHRONIZED*)
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next false) of
     NONE => ()
-  | SOME work => (execute name work; worker_loop name));
+  | SOME work => (execute work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
   Unsynchronized.change workers (cons (SimpleThread.fork false (fn () => worker_loop name),
@@ -375,7 +375,7 @@ fun join_next deps = (*requires SYNCHRONIZED*)
     | (SOME work, deps') => SOME (work, deps'));
 
 fun execute_work NONE = ()
-  | execute_work (SOME (work, deps')) = (execute "join" work; join_work deps')
+  | execute_work (SOME (work, deps')) = (execute work; join_work deps')
 and join_work deps =
   execute_work (SYNCHRONIZED "join" (fn () => join_next deps));
 
