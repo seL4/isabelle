@@ -146,14 +146,19 @@ begin
 thm d1_def d2_def  (* should print as "d1(?x) <-> ..." and "d2(?x) <-> ..." *)
 
 ML {*
-val print_mode' = print_mode_value (); print_mode := [];
-if Display.string_of_thm @{context} @{thm d1_def} <>
- "d1(?x) <-> ~ p2(p1(?x))" 
-then error "Theorem syntax 'd1(?x) <-> ~ p2(p1(?x))' expected." else ();
-if Display.string_of_thm @{context} @{thm d2_def} <>
- "d2(?x) <-> ~ p2(?x)"
-then error "Theorem syntax 'd2(?x) <-> ~ p2(?x)' expected." else ();
-print_mode := print_mode'
+  fun check_syntax ctxt thm expected =
+    let
+      val obtained = PrintMode.setmp [] (Display.string_of_thm ctxt) thm;
+    in
+      if obtained <> expected
+      then error ("Theorem syntax '" ^ obtained ^ "' obtained, but '" ^ expected ^ "' expected.")
+      else ()
+    end;
+*}
+
+ML {*
+  check_syntax @{context} @{thm d1_def} "d1(?x) <-> ~ p2(p1(?x))";
+  check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
 *}
 
 end
@@ -165,15 +170,8 @@ thm d1_def d2_def
   (* should print as "syntax.d1(p3, p2, ?x) <-> ..." and "d2(?x) <-> ..." *)
 
 ML {*
-val print_mode' = print_mode_value (); print_mode := [];
-if Display.string_of_thm @{context} @{thm d1_def} <>
- "syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))"
-then error "Theorem syntax 'syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))' expected."
-else ();
-if Display.string_of_thm @{context} @{thm d2_def} <>
- "d2(?x) <-> ~ p2(?x)"
-then error "Theorem syntax 'd2(?x) <-> ~ p2(?x)' expected." else ();
-print_mode := print_mode'
+  check_syntax @{context} @{thm d1_def} "syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))";
+  check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
 *}
 
 end
