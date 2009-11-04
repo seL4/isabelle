@@ -379,21 +379,19 @@ fun fixrec_simp_tac ctxt =
   let
     val tab = FixrecUnfoldData.get (Context.Proof ctxt);
     val ss = FixrecSimpData.get (Context.Proof ctxt);
-    (* TODO: fail gracefully if t has the wrong form *)
     fun concl t =
       if Logic.is_all t then concl (snd (Logic.dest_all t))
       else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
-    fun unfold_thm t =
-      case chead_of (fst (HOLogic.dest_eq (concl t))) of
-        Const (c, T) => Symtab.lookup tab c
-      | t => NONE;
     fun tac (t, i) =
-      case unfold_thm t of
-        SOME thm => rtac (thm RS @{thm ssubst_lhs}) i THEN
-                         asm_simp_tac ss i
-      | NONE => asm_simp_tac ss i;
+      let
+        val Const (c, T) = chead_of (fst (HOLogic.dest_eq (concl t)));
+        val unfold_thm = the (Symtab.lookup tab c);
+        val rule = unfold_thm RS @{thm ssubst_lhs};
+      in
+        CHANGED (rtac rule i THEN asm_simp_tac ss i)
+      end
   in
-    SUBGOAL tac
+    SUBGOAL (fn ti => tac ti handle _ => no_tac)
   end;
 
 val fixrec_simp_add : Thm.attribute =
