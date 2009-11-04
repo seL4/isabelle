@@ -640,7 +640,8 @@ in
         ((Binding.name "casedist"  , [casedist]  ), [Induct.cases_type dname]),
         ((Binding.name "when_rews" , when_rews   ), [Simplifier.simp_add]),
         ((Binding.name "compacts"  , con_compacts), [Simplifier.simp_add]),
-        ((Binding.name "con_rews"  , con_rews    ), [Simplifier.simp_add]),
+        ((Binding.name "con_rews"  , con_rews    ),
+         [Simplifier.simp_add, Fixrec.fixrec_simp_add]),
         ((Binding.name "sel_rews"  , sel_rews    ), [Simplifier.simp_add]),
         ((Binding.name "dis_rews"  , dis_rews    ), [Simplifier.simp_add]),
         ((Binding.name "pat_rews"  , pat_rews    ), [Simplifier.simp_add]),
@@ -649,7 +650,8 @@ in
         ((Binding.name "inverts"   , inverts     ), [Simplifier.simp_add]),
         ((Binding.name "injects"   , injects     ), [Simplifier.simp_add]),
         ((Binding.name "copy_rews" , copy_rews   ), [Simplifier.simp_add]),
-        ((Binding.name "match_rews", mat_rews    ), [Simplifier.simp_add])]
+        ((Binding.name "match_rews", mat_rews    ),
+         [Simplifier.simp_add, Fixrec.fixrec_simp_add])]
     |> Sign.parent_path
     |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
         pat_rews @ dist_les @ dist_eqs @ copy_rews)

@@ -13,8 +13,8 @@ sig
   val add_fixpat: Thm.binding * term list -> theory -> theory
   val add_fixpat_cmd: Attrib.binding * string list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
-  val add_fixrec_simp: Thm.attribute
-  val del_fixrec_simp: Thm.attribute
+  val fixrec_simp_add: Thm.attribute
+  val fixrec_simp_del: Thm.attribute
   val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
@@ -396,11 +396,11 @@ fun fixrec_simp_tac ctxt =
     SUBGOAL tac
   end;
 
-val add_fixrec_simp : Thm.attribute =
+val fixrec_simp_add : Thm.attribute =
   Thm.declaration_attribute
     (fn th => FixrecSimpData.map (fn ss => ss addsimps [th]));
 
-val del_fixrec_simp : Thm.attribute =
+val fixrec_simp_del : Thm.attribute =
   Thm.declaration_attribute
     (fn th => FixrecSimpData.map (fn ss => ss delsimps [th]));
 
@@ -527,7 +527,7 @@ end;
 val setup =
   FixrecMatchData.init
   #> Attrib.setup @{binding fixrec_simp}
-                     (Attrib.add_del add_fixrec_simp del_fixrec_simp)
+                     (Attrib.add_del fixrec_simp_add fixrec_simp_del)
                      "declaration of fixrec simp rule"
   #> Method.setup @{binding fixrec_simp}
                      (Scan.succeed (SIMPLE_METHOD' o fixrec_simp_tac))
