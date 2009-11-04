@@ -205,14 +205,14 @@ fun worker_wait cond = (*requires SYNCHRONIZED*)
     val _ = active := true;
   in () end;
 
-fun worker_next has_work = (*requires SYNCHRONIZED*)
+fun worker_next have_work = (*requires SYNCHRONIZED*)
   if length (! workers) > ! max_workers then
     (Unsynchronized.change workers (AList.delete Thread.equal (Thread.self ()));
+     if have_work then signal work_available else ();
      broadcast scheduler_event;
-     if has_work then signal work_available else ();
      NONE)
   else if count_active () > ! max_active then
-    (if has_work then signal work_available else ();
+    (if have_work then signal work_available else ();
      worker_wait scheduler_event;
      worker_next false)
   else
@@ -267,11 +267,13 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ =
       if forall (Thread.isActive o #1) (! workers) then ()
       else
-        (case List.partition (Thread.isActive o #1) (! workers) of
-          (_, []) => ()
-        | (alive, dead) =>
-            (workers := alive; Multithreading.tracing 0 (fn () =>
-              "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")));
+        let
+          val  (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
+          val _ = workers := alive;
+        in
+          Multithreading.tracing 0 (fn () =>
+            "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")
+        end;
 
     val m = if ! do_shutdown then 0 else Multithreading.max_threads_value ();
     val _ = max_active := m;
@@ -363,7 +365,7 @@ fun get_result x =
       Exn.Exn (Exn.EXCEPTIONS (Exn.flatten_list (Task_Queue.group_status (group_of x))))
   | SOME res => res);
 
-fun join_wait x =
+fun passive_wait x =
   Synchronized.readonly_access (result_of x) (fn NONE => NONE | SOME _ => SOME ());
 
 fun join_next deps = (*requires SYNCHRONIZED*)
@@ -392,7 +394,7 @@ fun join_results xs =
   else
     (case worker_task () of
       SOME task => join_depend task (map task_of xs)
-    | NONE => List.app join_wait xs;
+    | NONE => List.app passive_wait xs;
     map get_result xs);
 
 end;
