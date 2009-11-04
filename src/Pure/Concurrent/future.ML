@@ -185,7 +185,7 @@ fun execute (task, group, jobs) =
           else if Task_Queue.cancel (! queue) group then ()
           else do_cancel group;
         val _ = broadcast work_finished;
-        val _ = if maximal then () else broadcast work_available;
+        val _ = if maximal then () else signal work_available;
       in () end);
   in () end;
 
@@ -216,7 +216,7 @@ fun worker_next have_work = (*requires SYNCHRONIZED*)
   else
     (case Unsynchronized.change_result queue (Task_Queue.dequeue (Thread.self ())) of
       NONE => (worker_wait false work_available; worker_next true)
-    | some => some);
+    | some => (signal work_available; some));
 
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next false) of
@@ -281,7 +281,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val mm =
       if ! do_shutdown then 0
       else if m = 9999 then 1
-      else Int.min (Int.max (count_workers Working + 2 * count_workers Waiting, m), 2 * m);
+      else Int.min (Int.max (count_workers Working + 2 * count_workers Waiting, m), 4 * m);
     val _ =
       if tick andalso mm > ! max_workers then
         Unsynchronized.change worker_trend (fn w => if w < 0 then 0 else w + 1)
@@ -289,8 +289,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
         Unsynchronized.change worker_trend (fn w => if w > 0 then 0 else w - 1)
       else ();
     val _ =
-      if mm = 0 orelse ! worker_trend > 5 orelse ! worker_trend < ~50
-      then max_workers := mm
+      if mm = 0 orelse ! worker_trend > 50 orelse ! worker_trend < ~50 then max_workers := mm
+      else if ! worker_trend > 5 then max_workers := Int.min (mm, 2 * m)
       else ();
 
     val missing = ! max_workers - length (! workers);
