@@ -508,7 +508,7 @@ proof cases
   proof(induct A rule:finite_linorder_max_induct)
     case empty thus ?case by auto
   next
-    case (insert A b)
+    case (insert b A)
     moreover hence "b ~: A" by auto
     moreover have "A <= {k..<k+card A}" and "b = k+card A"
       using `b ~: A` insert by fastsimp+
