@@ -40,6 +40,7 @@ use_thys [
   "CTL",
   "Arith_Examples",
   "BT",
+  "Tree23",
   "MergeSort",
   "Lagrange",
   "Groebner_Examples",
