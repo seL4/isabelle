@@ -13,6 +13,9 @@ sig
   val add_fixpat: Thm.binding * term list -> theory -> theory
   val add_fixpat_cmd: Attrib.binding * string list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
+  val add_fixrec_simp: Thm.attribute
+  val del_fixrec_simp: Thm.attribute
+  val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -157,6 +160,31 @@ fun lambda_tuple [] rhs = Term.lambda (Free("unit", HOLogic.unitT)) rhs
 (************* fixed-point definitions and unfolding theorems ************)
 (*************************************************************************)
 
+structure FixrecUnfoldData = GenericDataFun (
+  type T = thm Symtab.table;
+  val empty = Symtab.empty;
+  val copy = I;
+  val extend = I;
+  val merge = K (Symtab.merge (K true));
+);
+
+local
+
+fun name_of (Const (n, T)) = n
+  | name_of (Free (n, T)) = n
+  | name_of _ = fixrec_err "name_of"
+
+val lhs_name =
+  name_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
+
+in
+
+val add_unfold : Thm.attribute =
+  Thm.declaration_attribute
+    (fn th => FixrecUnfoldData.map (Symtab.insert (K true) (lhs_name th, th)));
+
+end
+
 fun add_fixdefs
   (fixes : ((binding * typ) * mixfix) list)
   (spec : (Attrib.binding * term) list)
@@ -194,16 +222,28 @@ fun add_fixdefs
     val tuple_unfold_thm = (def_cont_fix_eq OF [tuple_fixdef_thm, cont_thm])
       |> LocalDefs.unfold lthy' @{thms split_conv};
     fun unfolds [] thm = []
-      | unfolds (n::[]) thm = [(n^"_unfold", thm)]
+      | unfolds (n::[]) thm = [(n, thm)]
       | unfolds (n::ns) thm = let
           val thmL = thm RS @{thm Pair_eqD1};
           val thmR = thm RS @{thm Pair_eqD2};
-        in (n^"_unfold", thmL) :: unfolds ns thmR end;
+        in (n, thmL) :: unfolds ns thmR end;
     val unfold_thms = unfolds names tuple_unfold_thm;
-    fun mk_note (n, thm) = ((Binding.name n, []), [thm]);
+    val induct_note : Attrib.binding * Thm.thm list =
+      let
+        val thm_name = Binding.name (all_names ^ "_induct");
+      in
+        ((thm_name, []), [tuple_induct_thm])
+      end;
+    fun unfold_note (name, thm) : Attrib.binding * Thm.thm list =
+      let
+        val thm_name = Binding.name (name ^ "_unfold");
+        val src = Attrib.internal (K add_unfold);
+      in
+        ((thm_name, [src]), [thm])
+      end;
     val (thmss, lthy'') = lthy'
-      |> fold_map (LocalTheory.note Thm.generatedK o mk_note)
-        ((all_names ^ "_induct", tuple_induct_thm) :: unfold_thms);
+      |> fold_map (LocalTheory.note Thm.generatedK)
+        (induct_note :: map unfold_note unfold_thms);
   in
     (lthy'', names, fixdef_thms, map snd unfold_thms)
   end;
@@ -217,7 +257,7 @@ structure FixrecMatchData = TheoryDataFun (
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ tabs : T = Symtab.merge (K true) tabs;
+  val merge = K (Symtab.merge (K true));
 );
 
 (* associate match functions with pattern constants *)
@@ -322,6 +362,47 @@ fun compile_pats match_name eqs =
 (*************************************************************************)
 (********************** Proving associated theorems **********************)
 (*************************************************************************)
+
+structure FixrecSimpData = GenericDataFun (
+  type T = simpset;
+  val empty =
+    HOL_basic_ss
+      addsimps simp_thms
+      addsimps [@{thm beta_cfun}]
+      addsimprocs [@{simproc cont_proc}];
+  val copy = I;
+  val extend = I;
+  val merge = K merge_ss;
+);
+
+fun fixrec_simp_tac ctxt =
+  let
+    val tab = FixrecUnfoldData.get (Context.Proof ctxt);
+    val ss = FixrecSimpData.get (Context.Proof ctxt);
+    (* TODO: fail gracefully if t has the wrong form *)
+    fun concl t =
+      if Logic.is_all t then concl (snd (Logic.dest_all t))
+      else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
+    fun unfold_thm t =
+      case chead_of (fst (HOLogic.dest_eq (concl t))) of
+        Const (c, T) => Symtab.lookup tab c
+      | t => NONE;
+    fun tac (t, i) =
+      case unfold_thm t of
+        SOME thm => rtac (thm RS @{thm ssubst_lhs}) i THEN
+                         asm_simp_tac ss i
+      | NONE => asm_simp_tac ss i;
+  in
+    SUBGOAL tac
+  end;
+
+val add_fixrec_simp : Thm.attribute =
+  Thm.declaration_attribute
+    (fn th => FixrecSimpData.map (fn ss => ss addsimps [th]));
+
+val del_fixrec_simp : Thm.attribute =
+  Thm.declaration_attribute
+    (fn th => FixrecSimpData.map (fn ss => ss delsimps [th]));
 
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
@@ -440,9 +521,16 @@ val _ = OuterSyntax.local_theory "fixrec" "define recursive functions (HOLCF)" K
 
 val _ = OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
   (SpecParse.specs >> (Toplevel.theory o add_fixpat_cmd));
-  
+
 end;
 
-val setup = FixrecMatchData.init;
+val setup =
+  FixrecMatchData.init
+  #> Attrib.setup @{binding fixrec_simp}
+                     (Attrib.add_del add_fixrec_simp del_fixrec_simp)
+                     "declaration of fixrec simp rule"
+  #> Method.setup @{binding fixrec_simp}
+                     (Scan.succeed (SIMPLE_METHOD' o fixrec_simp_tac))
+                     "pattern prover for fixrec constants";
 
 end;
