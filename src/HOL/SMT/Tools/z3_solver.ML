@@ -52,7 +52,7 @@ fun check_unsat recon output =
     if String.isPrefix "unsat" l then ls
     else if String.isPrefix "sat" l then raise_cex true recon ls
     else if String.isPrefix "unknown" l then raise_cex false recon ls
-    else error (solver_name ^ " failed")
+    else raise SMT_Solver.SMT (solver_name ^ " failed")
   end
 
 fun core_oracle ({output, recon, ...} : SMT_Solver.proof_data) =

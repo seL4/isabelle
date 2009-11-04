@@ -66,8 +66,8 @@ val cex = space |-- Scan.repeat (space |-- name --| mapping --
 
 fun read_cex ls =
   explode (cat_lines ls)
-  |> Scan.catch (Scan.finite Symbol.stopper (Scan.error cex))
-  |> fst
+  |> try (fst o Scan.finite Symbol.stopper cex)
+  |> the_default []
 
 
 (* translation into terms *)

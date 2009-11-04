@@ -7,7 +7,7 @@ Book-keeping datastructure for the predicate compiler.
 signature PREDICATE_COMPILE_DATA =
 sig
   type specification_table;
-  val make_const_spec_table : theory -> specification_table
+  val make_const_spec_table : Predicate_Compile_Aux.options -> theory -> specification_table
   val get_specification :  specification_table -> string -> thm list
   val obtain_specification_graph : Predicate_Compile_Aux.options -> theory ->
     specification_table -> string -> thm list Graph.T
@@ -126,14 +126,22 @@ fun normalize_equation thy th =
   |> split_all_pairs thy
   |> tap check_equation_format
 
-fun inline_equations thy th = Conv.fconv_rule
-  (Simplifier.rewrite ((Simplifier.theory_context thy Simplifier.empty_ss)
-    addsimps (Predicate_Compile_Inline_Defs.get (ProofContext.init thy)))) th
+fun inline_equations options thy th =
+  let
+    val inline_defs = Predicate_Compile_Inline_Defs.get (ProofContext.init thy)
+    val th' = (Simplifier.full_simplify (HOL_basic_ss addsimps inline_defs)) th
+    (*val _ = print_step options 
+      ("Inlining " ^ (Syntax.string_of_term_global thy (prop_of th))
+       ^ "with " ^ (commas (map ((Syntax.string_of_term_global thy) o prop_of) inline_defs))
+       ^" to " ^ (Syntax.string_of_term_global thy (prop_of th')))*)
+  in
+    th'
+  end
 
-fun store_thm_in_table ignore_consts thy th=
+fun store_thm_in_table options ignore_consts thy th=
   let
     val th = th
-      |> inline_equations thy
+      |> inline_equations options thy
       |> Predicate_Compile_Set.unfold_set_notation
       |> AxClass.unoverload thy
     val (const, th) =
@@ -151,9 +159,9 @@ fun store_thm_in_table ignore_consts thy th=
     else I
   end
 
-fun make_const_spec_table thy =
+fun make_const_spec_table options thy =
   let
-    fun store ignore_const f = fold (store_thm_in_table ignore_const thy) (map (Thm.transfer thy) (f (ProofContext.init thy)))
+    fun store ignore_const f = fold (store_thm_in_table options ignore_const thy) (map (Thm.transfer thy) (f (ProofContext.init thy)))
     val table = Symtab.empty
       |> store [] Predicate_Compile_Alternative_Defs.get
     val ignore_consts = Symtab.keys table

@@ -5,6 +5,31 @@ begin
 
 section {* Sets *}
 
+lemma "x \<in> {(1::nat)} ==> False"
+quickcheck[generator=predicate_compile]
+oops
+
+lemma "x \<in> {Suc 0, Suc (Suc 0)} ==> x \<noteq> Suc 0"
+oops
+
+lemma "x \<in> {Suc 0, Suc (Suc 0)} ==> x = Suc 0"
+quickcheck[generator=predicate_compile]
+oops
+ 
+lemma "x \<in> {Suc 0, Suc (Suc 0)} ==> x <= Suc 0"
+quickcheck[generator=predicate_compile]
+oops
+
+section {* Numerals *}
+
+lemma
+  "x \<in> {1, 2, (3::nat)} ==> x < 3"
+(*quickcheck[generator=predicate_compile]*)
+oops
+lemma
+  "x \<in> {1, 2} \<union> {3, 4} ==> x > 4"
+(*quickcheck[generator=predicate_compile]*)
+oops
 
 section {* Context Free Grammar *}
 

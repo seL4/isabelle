@@ -87,7 +87,7 @@ fun wr_expr loc env t =
         SOME (loc', t') => wr_expr loc' env t'
       | NONE => wrn (wr_expr loc env) n ts)
   | T.SLet ((v, _), t1, t2) =>
-      if loc then raise TERM ("SMTLIB: let expression in term", [])
+      if loc then raise SMT_Solver.SMT "SMTLIB: let expression in term"
       else
         let
           val (loc', t1') = the (dest_marker t1)

@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* November 2009: Sascha Boehme, TUM
+  HOL-Boogie: an interactive prover back-end for Boogie and VCC
+
 * October 2009: Jasmin Blanchette, TUM
   Nitpick: yet another counterexample generator for Isabelle/HOL
 

@@ -261,7 +261,8 @@ local
     | NONE => (case Code.get_datatype_of_constr thy c
        of SOME dtco => Codegen.thyname_of_type thy dtco
         | NONE => Codegen.thyname_of_const thy c);
-  fun purify_base "op &" = "and"
+  fun purify_base "==>" = "follows"
+    | purify_base "op &" = "and"
     | purify_base "op |" = "or"
     | purify_base "op -->" = "implies"
     | purify_base "op :" = "member"

@@ -6,6 +6,7 @@ SMT solvers registry and SMT tactic.
 
 signature SMT_SOLVER =
 sig
+  exception SMT of string
   exception SMT_COUNTEREXAMPLE of bool * term list
 
   type interface = {
@@ -53,6 +54,7 @@ end
 structure SMT_Solver: SMT_SOLVER =
 struct
 
+exception SMT of string
 exception SMT_COUNTEREXAMPLE of bool * term list
 
 
@@ -79,7 +81,7 @@ val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" 30
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
-  handle TimeLimit.TimeOut => error ("SMT: timeout")
+  handle TimeLimit.TimeOut => raise SMT "timeout"
 
 val (trace, setup_trace) = Attrib.config_bool "smt_trace" false
 
@@ -112,13 +114,17 @@ fun with_files ctxt f x =
 
 fun run in_path out_path (ctxt, cmd, output) =
   let
+    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
+      (map Pretty.str ls))
+
     val x = File.open_output output in_path
-    val _ = trace_msg ctxt File.read in_path
+    val _ = trace_msg ctxt (pretty "SMT problem:" o split_lines o File.read)
+      in_path
 
     val _ = with_timeout ctxt system_out (cmd in_path out_path)
     fun lines_of path = the_default [] (try (File.fold_lines cons out_path) [])
     val ls = rev (dropwhile (equal "") (lines_of out_path))
-    val _ = trace_msg ctxt cat_lines ls
+    val _ = trace_msg ctxt (pretty "SMT result:") ls
   in (x, ls) end
 
 in
@@ -206,28 +212,34 @@ val solver_of = gen_solver o raw_solver_of
 
 (* SMT tactic *)
 
-fun smt_unsat_tac solver ctxt rules =
+local
+  fun pretty_cex ctxt (real, ex) =
+    let
+      val msg = if real then "SMT: counterexample found"
+        else "SMT: potential counterexample found"
+    in
+      if null ex then msg ^ "."
+      else Pretty.string_of (Pretty.big_list (msg ^ ":")
+        (map (Syntax.pretty_term ctxt) ex))
+    end
+
+  fun fail_tac ctxt msg st = (trace_msg ctxt I msg; Tactical.no_tac st)
+
+  fun SAFE pass_exns tac ctxt i st =
+    if pass_exns then tac ctxt i st
+    else (tac ctxt i st
+      handle SMT msg => fail_tac ctxt ("SMT: " ^ msg) st
+           | SMT_COUNTEREXAMPLE cex => fail_tac ctxt (pretty_cex ctxt cex) st)
+
+  fun smt_solver rules ctxt = solver_of (Context.Proof ctxt) ctxt rules
+in
+fun smt_tac' pass_exns ctxt rules =
   Tactic.rtac @{thm ccontr} THEN'
   SUBPROOF (fn {context, prems, ...} =>
-    Tactic.rtac (solver context (rules @ prems)) 1) ctxt
-
-fun pretty_counterex ctxt (real, ex) =
-  let
-    val msg = if real then "SMT: counterexample found:"
-      else "SMT: potential counterexample found:"
-    val cex = if null ex then [Pretty.str "(no assignments)"]
-      else map (Syntax.pretty_term ctxt) ex
-  in Pretty.string_of (Pretty.big_list msg cex) end
-
-fun smt_tac' pass_smt_exns ctxt =
-  let
-    val solver = solver_of (Context.Proof ctxt)
-    fun safe_solver ctxt thms = solver ctxt thms
-      handle SMT_COUNTEREXAMPLE cex => error (pretty_counterex ctxt cex)
-    val solver' = if pass_smt_exns then solver else safe_solver
-  in smt_unsat_tac solver' ctxt end
+    SAFE pass_exns (Tactic.rtac o smt_solver (rules @ prems)) context 1) ctxt
 
 val smt_tac = smt_tac' false
+end
 
 val smt_method =
   Scan.optional Attrib.thms [] >>
