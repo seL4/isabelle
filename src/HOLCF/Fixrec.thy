@@ -622,6 +622,7 @@ hide (open) const return bind fail run cases
 
 lemmas [fixrec_simp] =
   run_strict run_fail run_return
+  mplus_strict mplus_fail mplus_return
   spair_strict_iff
   sinl_defined_iff
   sinr_defined_iff
