@@ -7,8 +7,6 @@ Code generator facilities for inductive datatypes.
 signature DATATYPE_CODEGEN =
 sig
   val find_shortest_path: Datatype.descr -> int -> (string * int) option
-  val mk_eq_eqns: theory -> string -> (thm * bool) list
-  val mk_case_cert: theory -> string -> thm
   val setup: theory -> theory
 end;
 
@@ -22,7 +20,7 @@ fun find_nonempty (descr: Datatype.descr) is i =
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
     fun arg_nonempty (_, DatatypeAux.DtRec i) = if member (op =) is i
           then NONE
-          else Option.map (curry op + 1 o snd) (find_nonempty descr (i::is) i)
+          else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
     fun max xs = Library.foldl
       (fn (NONE, _) => NONE
@@ -44,8 +42,8 @@ open Codegen;
 
 fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
   let
-    val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
-    val rtnames = map (#1 o snd) (List.filter (fn (_, (_, _, cs)) =>
+    val descr' = filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
+    val rtnames = map (#1 o snd) (filter (fn (_, (_, _, cs)) =>
       exists (exists DatatypeAux.is_rec_type o snd) cs) descr');
 
     val (_, (tname, _, _)) :: _ = descr';
@@ -175,7 +173,7 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
                  [Pretty.block [str "(case", Pretty.brk 1,
                    str "i", Pretty.brk 1, str "of",
                    Pretty.brk 1, str "0 =>", Pretty.brk 1,
-                   mk_constr "0" true (cname, valOf (AList.lookup (op =) cs cname)),
+                   mk_constr "0" true (cname, the (AList.lookup (op =) cs cname)),
                    Pretty.brk 1, str "| _ =>", Pretty.brk 1,
                    mk_choice cs1, str ")"]]
                else [mk_choice cs2])) ::
@@ -386,7 +384,7 @@ fun mk_eq_eqns thy dtco =
       (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
     fun prove prop = Skip_Proof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
-  in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
+  in (map prove (triv_injects @ injects @ distincts), prove refl) end;
 
 fun add_equality vs dtcos thy =
   let
@@ -405,14 +403,12 @@ fun add_equality vs dtcos thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun add_eq_thms dtco thy =
-      let
-        val const = AxClass.param_of_inst thy (@{const_name eq_class.eq}, dtco);
-        val thy_ref = Theory.check_thy thy;
-        fun mk_thms () = rev ((mk_eq_eqns (Theory.deref thy_ref) dtco));
-      in
-        Code.add_eqnl (const, Lazy.lazy mk_thms) thy
-      end;
+    fun add_eq_thms dtco =
+      Theory.checkpoint
+      #> `(fn thy => mk_eq_eqns thy dtco)
+      #-> (fn (thms, thm) =>
+        Code.add_nbe_eqn thm
+        #> fold_rev Code.add_eqn thms);
   in
     thy
     |> TheoryTarget.instantiation (dtcos, vs, [HOLogic.class_eq])

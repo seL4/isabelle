@@ -9,7 +9,6 @@ imports
   AssocList
   Binomial
   Fset
-  Commutative_Ring
   Enum
   List_Prefix
   Nat_Infinity
@@ -22,11 +21,11 @@ imports
   Tree
   While_Combinator
   Word
-  "~~/src/HOL/ex/Commutative_Ring_Complete"
+  "~~/src/HOL/Decision_Procs/Commutative_Ring_Complete"
   "~~/src/HOL/ex/Records"
 begin
 
-(*avoid popular infixes*)
-code_reserved SML union inter upto
+(*avoid popular infix*)
+code_reserved SML upto
 
 end

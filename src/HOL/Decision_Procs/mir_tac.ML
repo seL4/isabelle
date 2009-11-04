@@ -73,11 +73,11 @@ fun prepare_for_mir thy q fm =
       val rhs = hs
 (*    val (rhs,irhs) = List.partition (relevant (rev ps)) hs *)
     val np = length ps
-    val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
-      (foldr HOLogic.mk_imp c rhs, np) ps
+    val (fm',np) = List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
+      (List.foldr HOLogic.mk_imp c rhs, np) ps
     val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
       (OldTerm.term_frees fm' @ OldTerm.term_vars fm');
-    val fm2 = foldr mk_all2 fm' vs
+    val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 
 (*Object quantifier to meta --*)

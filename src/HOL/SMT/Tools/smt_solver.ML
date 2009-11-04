@@ -6,22 +6,21 @@ SMT solvers registry and SMT tactic.
 
 signature SMT_SOLVER =
 sig
+  exception SMT of string
   exception SMT_COUNTEREXAMPLE of bool * term list
 
-  datatype interface = Interface of {
+  type interface = {
     normalize: SMT_Normalize.config list,
     translate: SMT_Translate.config }
-
-  datatype proof_data = ProofData of {
+  type proof_data = {
     context: Proof.context,
     output: string list,
     recon: SMT_Translate.recon,
     assms: thm list option }
-
-  datatype solver_config = SolverConfig of {
-    name: {env_var: string, remote_name: string},
-    interface: interface,
+  type solver_config = {
+    command: {env_var: string, remote_name: string},
     arguments: string list,
+    interface: interface,
     reconstruct: proof_data -> thm }
 
   (*options*)
@@ -29,6 +28,8 @@ sig
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
   val trace: bool Config.T
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
+  val keep: string Config.T
+  val cert: string Config.T
 
   (*solvers*)
   type solver = Proof.context -> thm list -> thm
@@ -53,23 +54,24 @@ end
 structure SMT_Solver: SMT_SOLVER =
 struct
 
+exception SMT of string
 exception SMT_COUNTEREXAMPLE of bool * term list
 
 
-datatype interface = Interface of {
+type interface = {
   normalize: SMT_Normalize.config list,
   translate: SMT_Translate.config }
 
-datatype proof_data = ProofData of {
+type proof_data = {
   context: Proof.context,
   output: string list,
   recon: SMT_Translate.recon,
   assms: thm list option }
 
-datatype solver_config = SolverConfig of {
-  name: {env_var: string, remote_name: string},
-  interface: interface,
+type solver_config = {
+  command: {env_var: string, remote_name: string},
   arguments: string list,
+  interface: interface,
   reconstruct: proof_data -> thm }
 
 
@@ -79,35 +81,50 @@ val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" 30
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
-  handle TimeLimit.TimeOut => error ("SMT: timeout")
+  handle TimeLimit.TimeOut => raise SMT "timeout"
 
 val (trace, setup_trace) = Attrib.config_bool "smt_trace" false
 
 fun trace_msg ctxt f x =
   if Config.get ctxt trace then tracing (f x) else ()
 
+val (keep, setup_keep) = Attrib.config_string "smt_keep" ""
+val (cert, setup_cert) = Attrib.config_string "smt_cert" ""
+
 
 (* interface to external solvers *)
 
 local
 
-fun with_tmp_files f x =
+fun with_files ctxt f x =
   let
-    fun tmp_path () = File.tmp_path (Path.explode ("smt-" ^ serial_string ()))
-    val in_path = tmp_path () and out_path = tmp_path ()
-    val y = Exn.capture (f in_path out_path) x
-    val _ = try File.rm in_path and _ = try File.rm out_path
+    fun make_names n = (n, n ^ ".proof")
+
+    val keep' = Config.get ctxt keep
+    val paths as (problem_path, proof_path) =
+      if keep' <> "" andalso File.exists (Path.dir (Path.explode keep'))
+      then pairself Path.explode (make_names keep')
+      else pairself (File.tmp_path o Path.explode)
+        (make_names ("smt-" ^ serial_string ()))
+
+    val y = Exn.capture (f problem_path proof_path) x
+
+    val _ = if keep' = "" then (pairself (try File.rm) paths; ()) else ()
   in Exn.release y end
 
 fun run in_path out_path (ctxt, cmd, output) =
   let
+    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
+      (map Pretty.str ls))
+
     val x = File.open_output output in_path
-    val _ = trace_msg ctxt File.read in_path
+    val _ = trace_msg ctxt (pretty "SMT problem:" o split_lines o File.read)
+      in_path
 
     val _ = with_timeout ctxt system_out (cmd in_path out_path)
     fun lines_of path = the_default [] (try (File.fold_lines cons out_path) [])
     val ls = rev (dropwhile (equal "") (lines_of out_path))
-    val _ = trace_msg ctxt cat_lines ls
+    val _ = trace_msg ctxt (pretty "SMT result:") ls
   in (x, ls) end
 
 in
@@ -115,26 +132,32 @@ in
 fun run_solver ctxt {env_var, remote_name} args output =
   let
     val qf = File.shell_path and qq = File.shell_quote
-    val path = getenv env_var and remote = getenv "REMOTE_SMT_SOLVER"
+    val qs = qf o Path.explode
+    val local_name = getenv env_var
+    val cert_name = Config.get ctxt cert
+    val remote = qs (getenv "REMOTE_SMT_SOLVER")
+    val cert_script = qs (getenv "CERT_SMT_SOLVER")
     fun cmd f1 f2 =
-      if path <> ""
-      then map qq (path :: args) @ [qf f1, ">", qf f2]
-      else "perl -w" :: map qq (remote :: remote_name :: args) @ [qf f1, qf f2]
-  in with_tmp_files run (ctxt, space_implode " " oo cmd, output) end
+      if cert_name <> ""
+      then "perl -w" :: [cert_script, qs cert_name, qf f1, ">", qf f2]
+      else if local_name <> ""
+      then qs local_name :: map qq args @ [qf f1, ">", qf f2]
+      else "perl -w" :: remote :: map qq (remote_name :: args) @ [qf f1, qf f2]
+  in with_files ctxt run (ctxt, space_implode " " oo cmd, output) end
 
 end
 
 fun make_proof_data ctxt ((recon, thms), ls) =
-  ProofData {context=ctxt, output=ls, recon=recon, assms=SOME thms}
+  {context=ctxt, output=ls, recon=recon, assms=SOME thms}
 
 fun gen_solver solver ctxt prems =
   let
-    val SolverConfig {name, interface, arguments, reconstruct} = solver ctxt
-    val Interface {normalize=nc, translate=tc} = interface
+    val {command, arguments, interface, reconstruct} = solver ctxt
+    val {normalize=nc, translate=tc} = interface
     val thy = ProofContext.theory_of ctxt
   in
     SMT_Normalize.normalize nc ctxt prems
-    ||> run_solver ctxt name arguments o SMT_Translate.translate tc thy
+    ||> run_solver ctxt command arguments o SMT_Translate.translate tc thy
     ||> reconstruct o make_proof_data ctxt
     |-> fold SMT_Normalize.discharge_definition
   end
@@ -189,28 +212,39 @@ val solver_of = gen_solver o raw_solver_of
 
 (* SMT tactic *)
 
-fun smt_unsat_tac solver ctxt rules =
+local
+  fun pretty_cex ctxt (real, ex) =
+    let
+      val msg = if real then "SMT: counterexample found"
+        else "SMT: potential counterexample found"
+    in
+      if null ex then msg ^ "."
+      else Pretty.string_of (Pretty.big_list (msg ^ ":")
+        (map (Syntax.pretty_term ctxt) ex))
+    end
+
+  fun fail_tac ctxt msg st = (trace_msg ctxt I msg; Tactical.no_tac st)
+
+  fun SAFE pass_exns tac ctxt i st =
+    if pass_exns then tac ctxt i st
+    else (tac ctxt i st
+      handle SMT msg => fail_tac ctxt ("SMT: " ^ msg) st
+           | SMT_COUNTEREXAMPLE cex => fail_tac ctxt (pretty_cex ctxt cex) st)
+
+  fun smt_solver rules ctxt = solver_of (Context.Proof ctxt) ctxt rules
+in
+fun smt_tac' pass_exns ctxt rules =
   Tactic.rtac @{thm ccontr} THEN'
   SUBPROOF (fn {context, prems, ...} =>
-    Tactic.rtac (solver context (rules @ prems)) 1) ctxt
-
-fun pretty_counterex ctxt (real, ex) =
-  let
-    val msg = if real then "Counterexample found:"
-      else "Potential counterexample found:"
-    val cex = if null ex then [Pretty.str "(no assignments)"]
-      else map (Syntax.pretty_term ctxt) ex
-  in Pretty.string_of (Pretty.big_list msg cex) end
-
-fun smt_tac' pass_smt_exns ctxt =
-  let
-    val solver = solver_of (Context.Proof ctxt)
-    fun safe_solver ctxt thms = solver ctxt thms
-      handle SMT_COUNTEREXAMPLE cex => error (pretty_counterex ctxt cex)
-    val solver' = if pass_smt_exns then solver else safe_solver
-  in smt_unsat_tac solver' ctxt end
+    SAFE pass_exns (Tactic.rtac o smt_solver (rules @ prems)) context 1) ctxt
 
 val smt_tac = smt_tac' false
+end
+
+val smt_method =
+  Scan.optional Attrib.thms [] >>
+  (fn thms => fn ctxt => METHOD (fn facts =>
+    HEADGOAL (smt_tac ctxt (thms @ facts))))
 
 
 (* setup *)
@@ -221,7 +255,11 @@ val setup =
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration" #>
   setup_timeout #>
-  setup_trace
+  setup_trace #>
+  setup_keep #>
+  setup_cert #>
+  Method.setup (Binding.name "smt") smt_method
+    "Applies an SMT solver to the current goal."
 
 fun print_setup gen =
   let
@@ -242,5 +280,11 @@ fun print_setup gen =
       Pretty.str ("Current timeout: " ^ t ^ " seconds"),
       Pretty.big_list "Solver-specific settings:" infos])
   end
+
+val _ = OuterSyntax.improper_command "smt_status"
+  "Show the available SMT solvers and the currently selected solver."
+  OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
+      print_setup (Context.Proof (Toplevel.context_of state)))))
 
 end

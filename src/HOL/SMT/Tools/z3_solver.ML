@@ -8,7 +8,6 @@ signature Z3_SOLVER =
 sig
   val proofs: bool Config.T
   val options: string Config.T
-
   val setup: theory -> theory
 end
 
@@ -44,33 +43,33 @@ fun raise_cex real recon ls =
 
 fun check_unsat recon output =
   let
-    val raw = not o String.isPrefix "WARNING" orf String.isPrefix "ERROR"
-    val (ls, l) = the_default ([], "") (try split_last (filter raw output))
+    fun jnk l =
+      String.isPrefix "WARNING" l orelse
+      String.isPrefix "ERROR" l orelse
+      forall Symbol.is_ascii_blank (Symbol.explode l)
+    val (ls, l) = the_default ([], "") (try split_last (filter_out jnk output))
   in
     if String.isPrefix "unsat" l then ls
     else if String.isPrefix "sat" l then raise_cex true recon ls
     else if String.isPrefix "unknown" l then raise_cex false recon ls
-    else error (solver_name ^ " failed")
+    else raise SMT_Solver.SMT (solver_name ^ " failed")
   end
 
-fun core_oracle (SMT_Solver.ProofData {output, recon, ...}) =
+fun core_oracle ({output, recon, ...} : SMT_Solver.proof_data) =
   check_unsat recon output
   |> K @{cprop False}
 
-(* FIXME
-fun prover (SMT_Solver.ProofData {context, output, recon, assms}) =
+fun prover ({context, output, recon, assms} : SMT_Solver.proof_data) =
   check_unsat recon output
   |> Z3_Proof.reconstruct context assms recon
-*)
 
 fun solver oracle ctxt =
   let val with_proof = Config.get ctxt proofs
   in
-    SMT_Solver.SolverConfig {
-      name = {env_var=env_var, remote_name=solver_name},
-      interface = Z3_Interface.interface,
-      arguments = cmdline_options ctxt,
-      reconstruct = (*FIXME:if with_proof then prover else*) oracle }
+    {command = {env_var=env_var, remote_name=solver_name},
+    arguments = cmdline_options ctxt,
+    interface = Z3_Interface.interface,
+    reconstruct = if with_proof then prover else oracle}
   end
 
 val setup =

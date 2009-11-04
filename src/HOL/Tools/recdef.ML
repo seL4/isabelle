@@ -202,7 +202,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
         tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
-    val simp_att = if null tcs then [Simplifier.simp_add, Nitpick_Const_Simps.add,
+    val simp_att = if null tcs then [Simplifier.simp_add, Nitpick_Simps.add,
       Code.add_default_eqn_attribute, Quickcheck_RecFun_Simps.add] else [];
 
     val ((simps' :: rules', [induct']), thy) =
@@ -263,8 +263,9 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    Specification.theorem Thm.internalK NONE (K I) (Binding.name bname, atts)
-      [] (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
+    Specification.theorem Thm.internalK NONE (K I)
+      (Binding.conceal (Binding.name bname), atts) []
+      (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 
 val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;

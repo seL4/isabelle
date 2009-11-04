@@ -6,6 +6,7 @@ Learning and using Isabelle
   classes         Tutorial on Type Classes
   functions       Tutorial on Function Definitions
   codegen         Tutorial on Code Generation
+  nitpick         User's Guide to Nitpick in Isabelle/HOL
   sugar           LaTeX Sugar for Isabelle documents
 
 Reference Manuals

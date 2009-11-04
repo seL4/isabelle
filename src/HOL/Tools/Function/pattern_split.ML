@@ -8,7 +8,7 @@ turns a specification with overlaps into an overlap-free specification.
 
 *)
 
-signature FUNDEF_SPLIT =
+signature FUNCTION_SPLIT =
 sig
   val split_some_equations :
       Proof.context -> (bool * term) list -> term list list
@@ -17,10 +17,10 @@ sig
       Proof.context -> term list -> term list list
 end
 
-structure FundefSplit : FUNDEF_SPLIT =
+structure Function_Split : FUNCTION_SPLIT =
 struct
 
-open FundefLib
+open Function_Lib
 
 (* We use proof context for the variable management *)
 (* FIXME: no __ *)
@@ -101,7 +101,7 @@ fun pattern_subtract ctx eq2 eq1 =
           let
             val t = Pattern.rewrite_term thy sigma [] feq1
           in
-            fold_rev Logic.all (map Free (frees_in_term ctx t) inter vs') t
+            fold_rev Logic.all (inter (op =) vs' (map Free (frees_in_term ctx t))) t
           end
     in
       map instantiate substs

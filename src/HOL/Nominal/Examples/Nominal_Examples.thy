@@ -20,6 +20,7 @@ imports
   Contexts
   Standardization
   W
+  Pattern
 begin
 
 end

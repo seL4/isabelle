@@ -66,7 +66,7 @@ let
 
   val intr_specs = map (apfst (apfst Binding.name_of)) raw_intr_specs;
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
-  val case_names = RuleCases.case_names intr_names;
+  val case_names = Rule_Cases.case_names intr_names;
 
   (*recT and rec_params should agree for all mutually recursive components*)
   val rec_hds = map head_of rec_tms;
@@ -110,7 +110,7 @@ let
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
     let val prems = map dest_tprop (Logic.strip_imp_prems intr)
         val dummy = List.app (fn rec_hd => List.app (chk_prem rec_hd) prems) rec_hds
-        val exfrees = OldTerm.term_frees intr \\ rec_params
+        val exfrees = subtract (op =) rec_params (OldTerm.term_frees intr)
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
     in List.foldr FOLogic.mk_exists
              (Balanced_Tree.make FOLogic.mk_conj (zeq::prems)) exfrees
@@ -156,7 +156,7 @@ let
   val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
   (*The individual sets must already be declared*)
-  val axpairs = map PrimitiveDefs.mk_defpair
+  val axpairs = map Primitive_Defs.mk_defpair
         ((big_rec_tm, fp_rhs) ::
          (case parts of
              [_] => []                        (*no mutual recursion*)
@@ -297,7 +297,7 @@ let
 
      (*Make a premise of the induction rule.*)
      fun induct_prem ind_alist intr =
-       let val quantfrees = map dest_Free (OldTerm.term_frees intr \\ rec_params)
+       let val quantfrees = map dest_Free (subtract (op =) rec_params (OldTerm.term_frees intr))
            val iprems = List.foldr (add_induct_prem ind_alist) []
                               (Logic.strip_imp_prems intr)
            val (t,X) = Ind_Syntax.rule_concl intr

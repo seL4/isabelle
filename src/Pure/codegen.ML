@@ -105,7 +105,7 @@ struct
 val quiet_mode = Unsynchronized.ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
-val mode = Unsynchronized.ref ([] : string list);
+val mode = Unsynchronized.ref ([] : string list);   (* FIXME proper functional argument *)
 
 val margin = Unsynchronized.ref 80;
 
@@ -137,7 +137,7 @@ fun args_of [] xs = ([], xs)
   | args_of (Ignore :: ms) (_ :: xs) = args_of ms xs
   | args_of (_ :: ms) xs = args_of ms xs;
 
-fun num_args_of x = length (List.filter is_arg x);
+fun num_args_of x = length (filter is_arg x);
 
 
 (**** theory data ****)
@@ -337,15 +337,16 @@ fun assoc_type (s, syn) thy =
     val tc = Sign.intern_type thy s;
   in
     case Symtab.lookup (snd (#types (Type.rep_tsig (Sign.tsig_of thy)))) tc of
-      SOME ((Type.LogicalType i, _), _) =>
+      SOME (Type.LogicalType i) =>
         if num_args_of (fst syn) > i then
           error ("More arguments than corresponding type constructor " ^ s)
-        else (case AList.lookup (op =) types tc of
-          NONE => CodegenData.put {codegens = codegens,
-            tycodegens = tycodegens, consts = consts,
-            types = (tc, syn) :: types,
-            preprocs = preprocs, modules = modules} thy
-        | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
+        else
+          (case AList.lookup (op =) types tc of
+            NONE => CodegenData.put {codegens = codegens,
+              tycodegens = tycodegens, consts = consts,
+              types = (tc, syn) :: types,
+              preprocs = preprocs, modules = modules} thy
+          | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
     | _ => error ("Not a type constructor: " ^ s)
   end;
 
@@ -445,13 +446,8 @@ fun del_nodes ks (gr, x) = (Graph.del_nodes ks gr, x);
 fun map_node k f (gr, x) = (Graph.map_node k f gr, x);
 fun new_node p (gr, x) = (Graph.new_node p gr, x);
 
-fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
-
-fun thyname_of_type thy =
-  thyname_of thy (Type.the_tags (Sign.tsig_of thy));
-
-fun thyname_of_const thy =
-  thyname_of thy (Consts.the_tags (Sign.consts_of thy));
+fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
+fun thyname_of_const thy = #theory_name o Name_Space.the_entry (Sign.const_space thy);
 
 fun rename_terms ts =
   let
@@ -500,8 +496,6 @@ fun mk_deftab thy =
   let
     val axmss = map (fn thy' => (Context.theory_name thy', Theory.axiom_table thy'))
       (thy :: Theory.ancestors_of thy);
-    fun prep_def def = (case preprocess thy [def] of
-      [def'] => prop_of def' | _ => error "mk_deftab: bad preprocessor");
     fun add_def thyname (name, t) = (case dest_prim_def t of
         NONE => I
       | SOME (s, (T, _)) => Symtab.map_default (s, [])
@@ -601,8 +595,8 @@ fun mk_app _ p [] = p
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
 fun new_names t xs = Name.variant_list
-  (map (fst o fst o dest_Var) (OldTerm.term_vars t) union
-    OldTerm.add_term_names (t, ML_Syntax.reserved_names)) (map mk_id xs);
+  (union (op =) (map (fst o fst o dest_Var) (OldTerm.term_vars t))
+    (OldTerm.add_term_names (t, ML_Syntax.reserved_names))) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
 
@@ -934,7 +928,7 @@ fun eval_term thy t =
                 [str "(result ())"],
               str ");"]) ^
           "\n\nend;\n";
-        val _ = NAMED_CRITICAL "codegen" (fn () =>
+        val _ = NAMED_CRITICAL "codegen" (fn () =>   (* FIXME ??? *)
           ML_Context.eval_in (SOME ctxt) false Position.none s);
       in !eval_result end;
   in e () end;

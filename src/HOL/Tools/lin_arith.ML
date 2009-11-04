@@ -645,9 +645,9 @@ end;  (* split_once_items *)
 
 fun filter_prems_tac_items (p : term -> bool) (terms : term list) : term list =
 let
-  fun filter_prems (t, (left, right)) =
-    if  p t  then  (left, right @ [t])  else  (left @ right, [])
-  val (left, right) = List.foldl filter_prems ([], []) terms
+  fun filter_prems t (left, right) =
+    if p t then (left, right @ [t]) else (left @ right, [])
+  val (left, right) = fold filter_prems terms ([], [])
 in
   right @ left
 end;
@@ -672,7 +672,7 @@ let
       (case split_once_items ctxt subgoal of
         SOME new_subgoals => split_loop (new_subgoals @ subgoals)
       | NONE              => subgoal :: split_loop subgoals)
-  fun is_relevant t  = isSome (decomp ctxt t)
+  fun is_relevant t  = is_some (decomp ctxt t)
   (* filter_prems_tac is_relevant: *)
   val relevant_terms = filter_prems_tac_items is_relevant terms
   (* split_tac, NNF normalization: *)
@@ -681,7 +681,7 @@ let
   val beta_eta_norm  = map (apsnd (map (Envir.eta_contract o Envir.beta_norm)))
     split_goals
   (* TRY (etac notE) THEN eq_assume_tac: *)
-  val result         = List.filter (not o negated_term_occurs_positively o snd)
+  val result         = filter_out (negated_term_occurs_positively o snd)
     beta_eta_norm
 in
   result
@@ -746,7 +746,7 @@ end;  (* local *)
 fun pre_tac ctxt i =
 let
   val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
-  fun is_relevant t = isSome (decomp ctxt t)
+  fun is_relevant t = is_some (decomp ctxt t)
 in
   DETERM (
     TRY (filter_prems_tac is_relevant i)
@@ -878,7 +878,7 @@ end;
 local
 
 fun raw_tac ctxt ex =
-  (* FIXME: K true should be replaced by a sensible test (perhaps "isSome o
+  (* FIXME: K true should be replaced by a sensible test (perhaps "is_some o
      decomp sg"? -- but note that the test is applied to terms already before
      they are split/normalized) to speed things up in case there are lots of
      irrelevant terms involved; elimination of min/max can be optimized:

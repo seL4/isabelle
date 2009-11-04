@@ -28,6 +28,13 @@ instance ..
 
 end
 
+lemma transfer_int_nat_relations:
+  "even (int x) \<longleftrightarrow> even x"
+  by (simp add: even_nat_def)
+
+declare TransferMorphism_int_nat[transfer add return:
+  transfer_int_nat_relations
+]
 
 lemma even_zero_int[simp]: "even (0::int)" by presburger
 
@@ -307,40 +314,6 @@ next
     with `x \<le> y` show ?thesis using power_mono by auto
   qed
 qed
-
-subsection {* General Lemmas About Division *}
-
-lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1" 
-apply (induct "m")
-apply (simp_all add: mod_Suc)
-done
-
-declare Suc_times_mod_eq [of "number_of w", standard, simp]
-
-lemma [simp]: "n div k \<le> (Suc n) div k"
-by (simp add: div_le_mono) 
-
-lemma Suc_n_div_2_gt_zero [simp]: "(0::nat) < n ==> 0 < (n + 1) div 2"
-by arith
-
-lemma div_2_gt_zero [simp]: "(1::nat) < n ==> 0 < n div 2" 
-by arith
-
-  (* Potential use of algebra : Equality modulo n*)
-lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
-by (simp add: mult_ac add_ac)
-
-lemma mod_mult_self4 [simp]: "Suc (k*n + m) mod n = Suc m mod n"
-proof -
-  have "Suc (k * n + m) mod n = (k * n + Suc m) mod n" by simp
-  also have "... = Suc m mod n" by (rule mod_mult_self3) 
-  finally show ?thesis .
-qed
-
-lemma mod_Suc_eq_Suc_mod: "Suc m mod n = Suc (m mod n) mod n"
-apply (subst mod_Suc [of m]) 
-apply (subst mod_Suc [of "m mod n"], simp) 
-done
 
 
 subsection {* More Even/Odd Results *}

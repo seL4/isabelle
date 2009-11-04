@@ -45,7 +45,7 @@ sig
                  uwrappers: (string * wrapper) list,
                  safe0_netpair: netpair, safep_netpair: netpair,
                  haz_netpair: netpair, dup_netpair: netpair,
-                 xtra_netpair: ContextRules.netpair}
+                 xtra_netpair: Context_Rules.netpair}
   val merge_cs          : claset * claset -> claset
   val addDs             : claset * thm list -> claset
   val addEs             : claset * thm list -> claset
@@ -198,10 +198,10 @@ val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac rls =
-    let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
+    let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
     in  assume_tac      ORELSE'
         contr_tac       ORELSE'
-        biresolve_tac (List.foldr addrl [] rls)
+        biresolve_tac (fold_rev addrl rls [])
     end;
 
 (*Duplication of hazardous rules, for complete provers*)
@@ -224,7 +224,7 @@ datatype claset =
          safep_netpair  : netpair,                 (*nets for >0 subgoals*)
          haz_netpair    : netpair,                 (*nets for unsafe rules*)
          dup_netpair    : netpair,                 (*nets for duplication*)
-         xtra_netpair   : ContextRules.netpair};   (*nets for extra rules*)
+         xtra_netpair   : Context_Rules.netpair};  (*nets for extra rules*)
 
 (*Desired invariants are
         safe0_netpair = build safe0_brls,
@@ -670,7 +670,7 @@ fun nsubgoalsP n (k,brl) = (subgoals_of_brl brl = n);
 (*version of bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac n =
-    biresolution_from_nets_tac (order_list o List.filter (nsubgoalsP n)) true;
+    biresolution_from_nets_tac (order_list o filter (nsubgoalsP n)) true;
 
 fun eq_contr_tac i = ematch_tac [not_elim] i  THEN  eq_assume_tac i;
 val eq_assume_contr_tac = eq_assume_tac ORELSE' eq_contr_tac;
@@ -898,7 +898,7 @@ val safe_intro = attrib o addSI;
 fun haz_dest w = attrib (addE w o make_elim);
 val haz_elim = attrib o addE;
 val haz_intro = attrib o addI;
-val rule_del = attrib delrule o ContextRules.rule_del;
+val rule_del = attrib delrule o Context_Rules.rule_del;
 
 
 end;
@@ -914,11 +914,11 @@ val destN = "dest";
 val setup_attrs =
   Attrib.setup @{binding swapped} (Scan.succeed swapped)
     "classical swap of introduction rule" #>
-  Attrib.setup @{binding dest} (ContextRules.add safe_dest haz_dest ContextRules.dest_query)
+  Attrib.setup @{binding dest} (Context_Rules.add safe_dest haz_dest Context_Rules.dest_query)
     "declaration of Classical destruction rule" #>
-  Attrib.setup @{binding elim} (ContextRules.add safe_elim haz_elim ContextRules.elim_query)
+  Attrib.setup @{binding elim} (Context_Rules.add safe_elim haz_elim Context_Rules.elim_query)
     "declaration of Classical elimination rule" #>
-  Attrib.setup @{binding intro} (ContextRules.add safe_intro haz_intro ContextRules.intro_query)
+  Attrib.setup @{binding intro} (Context_Rules.add safe_intro haz_intro Context_Rules.intro_query)
     "declaration of Classical introduction rule" #>
   Attrib.setup @{binding rule} (Scan.lift Args.del >> K rule_del)
     "remove declaration of intro/elim/dest rule";
@@ -931,9 +931,9 @@ local
 
 fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   let
-    val [rules1, rules2, rules4] = ContextRules.find_rules false facts goal ctxt;
+    val [rules1, rules2, rules4] = Context_Rules.find_rules false facts goal ctxt;
     val CS {xtra_netpair, ...} = claset_of ctxt;
-    val rules3 = ContextRules.find_rules_netpair true facts goal xtra_netpair;
+    val rules3 = Context_Rules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves facts rules;
   in

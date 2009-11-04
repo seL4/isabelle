@@ -11,18 +11,14 @@ imports
   Code_Char_chr
   Code_Integer
   Coinductive_List
-  Commutative_Ring
   Continuity
   ContNotDenum
-  Convex_Euclidean_Space
   Countable
-  Determinants
   Diagonalize
   Efficient_Nat
   Enum
   Eval_Witness
   Executable_Set
-  Fin_Fun
   Float
   Formal_Power_Series
   Fraction_Field
@@ -52,9 +48,9 @@ imports
   Ramsey
   Reflection
   RBT
+  SML_Quickcheck
   State_Monad
   Sum_Of_Squares
-  Topology_Euclidean_Space
   Univ_Poly
   While_Combinator
   Word

@@ -177,7 +177,7 @@ fun read_instantiate_mixed ctxt mixed_insts thm =
         else
           T.assign (SOME (T.Term (the (AList.lookup (op =) term_insts xi)))) arg);
   in
-    Drule.instantiate insts thm |> RuleCases.save thm
+    Drule.instantiate insts thm |> Rule_Cases.save thm
   end;
 
 fun read_instantiate_mixed' ctxt (args, concl_args) thm =
@@ -268,7 +268,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     (* Separate type and term insts *)
     fun has_type_var ((x, _), _) =
       (case Symbol.explode x of "'" :: _ => true | _ => false);
-    val Tinsts = List.filter has_type_var insts;
+    val Tinsts = filter has_type_var insts;
     val tinsts = filter_out has_type_var insts;
 
     (* Tactic *)

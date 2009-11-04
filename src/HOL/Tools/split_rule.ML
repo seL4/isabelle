@@ -118,7 +118,7 @@ fun complete_split_rule rl =
     fst (fold_rev complete_split_rule_var vars (rl, xs))
     |> remove_internal_split
     |> Drule.standard
-    |> RuleCases.save rl
+    |> Rule_Cases.save rl
   end;
 
 
@@ -138,7 +138,7 @@ fun split_rule_goal ctxt xss rl =
     |> fold_index one_goal xss
     |> Simplifier.full_simplify split_rule_ss
     |> Drule.standard
-    |> RuleCases.save rl
+    |> Rule_Cases.save rl
   end;
 
 

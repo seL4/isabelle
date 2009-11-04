@@ -200,6 +200,7 @@ definition
   [code del]: "llist_case c d l =
     List_case c (\<lambda>x y. d (inv Datatype.Leaf x) (Abs_llist y)) (Rep_llist l)"
 
+
 syntax  (* FIXME? *)
   LNil :: logic
   LCons :: logic
@@ -260,7 +261,7 @@ proof (unfold llist_def)
   qed
 qed
 
-lemma llist_corec [code, nitpick_const_simp]:
+lemma llist_corec [code, nitpick_simp]:
   "llist_corec a f =
     (case f a of None \<Rightarrow> LNil | Some (z, w) \<Rightarrow> LCons z (llist_corec w f))"
 proof (cases "f a")
@@ -656,8 +657,8 @@ proof -
   qed
 qed
 
-lemma lmap_LNil [simp, nitpick_const_simp]: "lmap f LNil = LNil"
-  and lmap_LCons [simp, nitpick_const_simp]:
+lemma lmap_LNil [simp, nitpick_simp]: "lmap f LNil = LNil"
+  and lmap_LCons [simp, nitpick_simp]:
   "lmap f (LCons M N) = LCons (f M) (lmap f N)"
   by (simp_all add: lmap_def llist_corec)
 
@@ -729,9 +730,9 @@ proof -
   qed
 qed
 
-lemma lappend_LNil_LNil [simp, nitpick_const_simp]: "lappend LNil LNil = LNil"
-  and lappend_LNil_LCons [simp, nitpick_const_simp]: "lappend LNil (LCons l l') = LCons l (lappend LNil l')"
-  and lappend_LCons [simp, nitpick_const_simp]: "lappend (LCons l l') m = LCons l (lappend l' m)"
+lemma lappend_LNil_LNil [simp, nitpick_simp]: "lappend LNil LNil = LNil"
+  and lappend_LNil_LCons [simp, nitpick_simp]: "lappend LNil (LCons l l') = LCons l (lappend LNil l')"
+  and lappend_LCons [simp, nitpick_simp]: "lappend (LCons l l') m = LCons l (lappend l' m)"
   by (simp_all add: lappend_def llist_corec)
 
 lemma lappend_LNil1 [simp]: "lappend LNil l = l"
@@ -755,7 +756,7 @@ definition
   iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
   "iterates f a = llist_corec a (\<lambda>x. Some (x, f x))"
 
-lemma iterates [nitpick_const_simp]: "iterates f x = LCons x (iterates f (f x))"
+lemma iterates [nitpick_simp]: "iterates f x = LCons x (iterates f (f x))"
   apply (unfold iterates_def)
   apply (subst llist_corec)
   apply simp
@@ -847,5 +848,10 @@ proof -
     then show ?case ..
   qed
 qed
+
+setup {*
+  Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
+    (map dest_Const [@{term LNil}, @{term LCons}])
+*}
 
 end

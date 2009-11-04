@@ -72,7 +72,7 @@ sig
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
-  val actual_proof: (ProofNode.T -> ProofNode.T) -> transition -> transition
+  val actual_proof: (Proof_Node.T -> Proof_Node.T) -> transition -> transition
   val skip_proof: (int -> int) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val get_id: transition -> string option
@@ -121,7 +121,7 @@ fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
 datatype node =
   Theory of generic_theory * Proof.context option
     (*theory with presentation context*) |
-  Proof of ProofNode.T * ((Proof.context -> generic_theory) * generic_theory)
+  Proof of Proof_Node.T * ((Proof.context -> generic_theory) * generic_theory)
     (*proof node, finish, original theory*) |
   SkipProof of int * (generic_theory * generic_theory);
     (*proof depth, resulting theory, original theory*)
@@ -130,7 +130,7 @@ val theory_node = fn Theory (gthy, _) => SOME gthy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 
 fun cases_node f _ (Theory (gthy, _)) = f gthy
-  | cases_node _ g (Proof (prf, _)) = g (ProofNode.current prf)
+  | cases_node _ g (Proof (prf, _)) = g (Proof_Node.current prf)
   | cases_node f _ (SkipProof (_, (gthy, _))) = f gthy;
 
 val context_node = cases_node Context.proof_of Proof.context_of;
@@ -148,7 +148,7 @@ fun is_toplevel (State (NONE, _)) = true
 
 fun level (State (NONE, _)) = 0
   | level (State (SOME (Theory _, _), _)) = 0
-  | level (State (SOME (Proof (prf, _), _), _)) = Proof.level (ProofNode.current prf)
+  | level (State (SOME (Proof (prf, _), _), _)) = Proof.level (Proof_Node.current prf)
   | level (State (SOME (SkipProof (d, _), _), _)) = d + 1;   (*different notion of proof depth!*)
 
 fun str_of_state (State (NONE, _)) = "at top level"
@@ -184,7 +184,7 @@ val proof_of = node_case (fn _ => raise UNDEF) I;
 
 fun proof_position_of state =
   (case node_of state of
-    Proof (prf, _) => ProofNode.position prf
+    Proof (prf, _) => Proof_Node.position prf
   | _ => raise UNDEF);
 
 val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_forward;
@@ -207,7 +207,7 @@ fun print_state prf_only state =
     NONE => []
   | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
   | SOME (Proof (prf, _)) =>
-      Proof.pretty_state (ProofNode.position prf) (ProofNode.current prf)
+      Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
   | SOME (SkipProof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
   |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
 
@@ -450,7 +450,7 @@ end;
 
 fun end_proof f = transaction (fn int =>
   (fn Proof (prf, (finish, _)) =>
-        let val state = ProofNode.current prf in
+        let val state = Proof_Node.current prf in
           if can (Proof.assert_bottom true) state then
             let
               val ctxt' = f int state;
@@ -475,7 +475,7 @@ fun begin_proof init finish = transaction (fn int =>
       else ();
       if skip andalso not schematic then
         SkipProof (0, (finish gthy (Proof.global_skip_proof int prf), gthy))
-      else Proof (ProofNode.init prf, (finish gthy, gthy))
+      else Proof (Proof_Node.init prf, (finish gthy, gthy))
     end
   | _ => raise UNDEF));
 
@@ -499,12 +499,12 @@ val forget_proof = transaction (fn _ =>
     | _ => raise UNDEF));
 
 val present_proof = present_transaction (fn _ =>
-  (fn Proof (prf, x) => Proof (ProofNode.apply I prf, x)
+  (fn Proof (prf, x) => Proof (Proof_Node.apply I prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
 
 fun proofs' f = transaction (fn int =>
-  (fn Proof (prf, x) => Proof (ProofNode.applys (f int) prf, x)
+  (fn Proof (prf, x) => Proof (Proof_Node.applys (f int) prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
 
@@ -552,7 +552,7 @@ fun error_msg tr exn_info =
 local val hooks = Unsynchronized.ref ([]: (transition -> state -> state -> unit) list) in
 
 fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
-fun get_hooks () = CRITICAL (fn () => ! hooks);
+fun get_hooks () = ! hooks;
 
 end;
 
@@ -654,7 +654,7 @@ fun proof_result immediate (tr, proof_trs) st =
             Future.fork_pri ~1 (fn () =>
               let val (states, result_state) =
                 (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
-                  => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
+                  => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy)), exit), prev))
                 |> fold_map command_result body_trs
                 ||> command (end_tr |> set_print false);
               in (states, presentation_context_of result_state) end))

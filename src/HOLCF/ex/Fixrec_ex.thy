@@ -31,8 +31,13 @@ text {* Lifting can turn a strict constructor into a lazy one. *}
 fixrec from_sinl_up :: "'a u \<oplus> 'b \<rightarrow> 'a"
 where "from_sinl_up\<cdot>(sinl\<cdot>(up\<cdot>x)) = x"
 
+text {* Fixrec also works with the HOL pair constructor. *}
 
-subsection {* Examples using @{text fixpat} *}
+fixrec down2 :: "'a u \<times> 'b u \<rightarrow> 'a \<times> 'b"
+where "down2\<cdot>(up\<cdot>x, up\<cdot>y) = (x, y)"
+
+
+subsection {* Examples using @{text fixrec_simp} *}
 
 text {* A type of lazy lists. *}
 
@@ -48,28 +53,30 @@ where
   "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip\<cdot>lNil\<cdot>lNil = lNil"
 
-text {* @{text fixpat} is useful for producing strictness theorems. *}
+text {* @{text fixrec_simp} is useful for producing strictness theorems. *}
 text {* Note that pattern matching is done in left-to-right order. *}
 
-fixpat lzip_stricts [simp]:
-  "lzip\<cdot>\<bottom>\<cdot>ys"
-  "lzip\<cdot>lNil\<cdot>\<bottom>"
-  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom>"
+lemma lzip_stricts [simp]:
+  "lzip\<cdot>\<bottom>\<cdot>ys = \<bottom>"
+  "lzip\<cdot>lNil\<cdot>\<bottom> = \<bottom>"
+  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp+
 
-text {* @{text fixpat} can also produce rules for missing cases. *}
+text {* @{text fixrec_simp} can also produce rules for missing cases. *}
 
-fixpat lzip_undefs [simp]:
-  "lzip\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys)"
-  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil"
+lemma lzip_undefs [simp]:
+  "lzip\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys) = \<bottom>"
+  "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil = \<bottom>"
+by fixrec_simp+
 
 
 subsection {* Pattern matching with bottoms *}
 
 text {*
-  As an alternative to using @{text fixpat}, it is also possible to
-  use bottom as a constructor pattern.  When using a bottom pattern,
-  the right-hand-side must also be bottom; otherwise, @{text fixrec}
-  will not be able to prove the equation.
+  As an alternative to using @{text fixrec_simp}, it is also possible
+  to use bottom as a constructor pattern.  When using a bottom
+  pattern, the right-hand-side must also be bottom; otherwise, @{text
+  fixrec} will not be able to prove the equation.
 *}
 
 fixrec
@@ -83,7 +90,7 @@ text {*
   pattern does not change the meaning of the function.  For example,
   in the definition of @{term from_sinr_up}, the first equation is
   actually redundant, and could have been proven separately by
-  @{text fixpat}.
+  @{text fixrec_simp}.
 *}
 
 text {*
@@ -120,17 +127,19 @@ text {*
   does not produce any simp rules.
 *}
 
-text {* Simp rules can be generated later using @{text fixpat}. *}
+text {* Simp rules can be generated later using @{text fixrec_simp}. *}
 
-fixpat lzip2_simps [simp]:
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys)"
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil"
-  "lzip2\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys)"
-  "lzip2\<cdot>lNil\<cdot>lNil"
+lemma lzip2_simps [simp]:
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil = lNil"
+  "lzip2\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys) = lNil"
+  "lzip2\<cdot>lNil\<cdot>lNil = lNil"
+by fixrec_simp+
 
-fixpat lzip2_stricts [simp]:
-  "lzip2\<cdot>\<bottom>\<cdot>ys"
-  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom>"
+lemma lzip2_stricts [simp]:
+  "lzip2\<cdot>\<bottom>\<cdot>ys = \<bottom>"
+  "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp+
 
 
 subsection {* Mutual recursion with @{text fixrec} *}
@@ -156,8 +165,11 @@ where
 | "ts \<noteq> \<bottom> \<Longrightarrow>
     map_forest\<cdot>f\<cdot>(Trees\<cdot>t\<cdot>ts) = Trees\<cdot>(map_tree\<cdot>f\<cdot>t)\<cdot>(map_forest\<cdot>f\<cdot>ts)"
 
-fixpat map_tree_strict [simp]: "map_tree\<cdot>f\<cdot>\<bottom>"
-fixpat map_forest_strict [simp]: "map_forest\<cdot>f\<cdot>\<bottom>"
+lemma map_tree_strict [simp]: "map_tree\<cdot>f\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
+
+lemma map_forest_strict [simp]: "map_forest\<cdot>f\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
 
 text {*
   Theorems generated:

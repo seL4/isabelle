@@ -7,7 +7,7 @@ context elements, goals, refinements, and facts.
 
 signature PROOF =
 sig
-  type context = Context.proof
+  type context = Proof.context
   type method = Method.method
   type state
   val init: context -> state
@@ -29,7 +29,6 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
-  val get_goal: state -> context * (thm list * thm)
   val show_main_goal: bool Unsynchronized.ref
   val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
@@ -37,9 +36,11 @@ sig
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
-  val flat_goal: state -> Proof.context * thm
   val goal_tac: thm -> int -> tactic
   val refine_goals: (context -> thm -> unit) -> context -> thm list -> state -> state Seq.seq
+  val raw_goal: state -> {context: context, facts: thm list, goal: thm}
+  val goal: state -> {context: context, facts: thm list, goal: thm}
+  val simple_goal: state -> {context: context, goal: thm}
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
@@ -121,7 +122,7 @@ end;
 structure Proof: PROOF =
 struct
 
-type context = Context.proof;
+type context = Proof.context;
 type method = Method.method;
 
 
@@ -162,7 +163,8 @@ fun map_node f (Node {context, facts, mode, goal}) =
   make_node (f (context, facts, mode, goal));
 
 val init_context =
-  ProofContext.set_stmt true #> ProofContext.reset_naming;
+  ProofContext.set_stmt true #>
+  ProofContext.map_naming (K ProofContext.local_naming);
 
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
@@ -223,7 +225,7 @@ fun the_fact state =
 
 fun put_facts facts =
   map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal)) #>
-  put_thms true (AutoBind.thisN, facts);
+  put_thms true (Auto_Bind.thisN, facts);
 
 fun these_factss more_facts (named_factss, state) =
   (named_factss, state |> put_facts (SOME (maps snd named_factss @ more_facts)));
@@ -385,7 +387,7 @@ fun goals st = map goalN (1 upto Thm.nprems_of st);
 fun no_goal_cases st = map (rpair NONE) (goals st);
 
 fun goal_cases st =
-  RuleCases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
+  Rule_Cases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
 fun apply_method current_context meth state =
   let
@@ -434,12 +436,6 @@ val refine_end = apply_text false;
 fun refine_insert ths = Seq.hd o refine (Method.Basic (K (Method.insert ths)));
 
 end;
-
-fun flat_goal state =
-  let
-    val (_, (using, _)) = get_goal state;
-    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
-  in (ctxt, goal) end;
 
 
 (* refine via sub-proof *)
@@ -505,6 +501,21 @@ fun conclude_goal ctxt goal propss =
       | recover_result [] [] = []
       | recover_result _ _ = lost_structure ();
   in recover_result propss results end;
+
+
+(* goal views -- corresponding to methods *)
+
+fun raw_goal state =
+  let val (ctxt, (facts, goal)) = get_goal state
+  in {context = ctxt, facts = facts, goal = goal} end;
+
+val goal = raw_goal o refine_insert [];
+
+fun simple_goal state =
+  let
+    val (_, (facts, _)) = get_goal state;
+    val (ctxt, (_, goal)) = get_goal (refine_insert facts state);
+  in {context = ctxt, goal = goal} end;
 
 
 
@@ -699,7 +710,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   in
     state'
     |> assume_i assumptions
-    |> bind_terms AutoBind.no_facts
+    |> bind_terms Auto_Bind.no_facts
     |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 
@@ -930,7 +941,7 @@ val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false
 local
 
 fun gen_have prep_att prepp before_qed after_qed stmt int =
-  local_goal (ProofDisplay.print_results int) prep_att prepp "have" before_qed after_qed stmt;
+  local_goal (Proof_Display.print_results int) prep_att prepp "have" before_qed after_qed stmt;
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
   let
@@ -938,14 +949,14 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val rule = Unsynchronized.ref (NONE: thm option);
     fun fail_msg ctxt =
       "Local statement will fail to refine any pending goal" ::
-      (case ! rule of NONE => [] | SOME th => [ProofDisplay.string_of_rule ctxt "Failed" th])
+      (case ! rule of NONE => [] | SOME th => [Proof_Display.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
     fun print_results ctxt res =
-      if ! testing then () else ProofDisplay.print_results int ctxt res;
+      if ! testing then () else Proof_Display.print_results int ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
-      else if int then priority (ProofDisplay.string_of_rule ctxt "Successful" th)
+      else if int then priority (Proof_Display.string_of_rule ctxt "Successful" th)
       else ();
     val test_proof =
       try (local_skip_proof true)
@@ -1015,10 +1026,10 @@ fun future_proof done get_context fork_proof state =
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
 
-    fun after_local' [[th]] = put_thms false (AutoBind.thisN, SOME [th]);
-    fun after_global' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    fun after_local' [[th]] = put_thms false (Auto_Bind.thisN, SOME [th]);
+    fun after_global' [[th]] = ProofContext.put_thms false (Auto_Bind.thisN, SOME [th]);
     val after_qed' = (after_local', after_global');
-    val this_name = ProofContext.full_name goal_ctxt (Binding.name AutoBind.thisN);
+    val this_name = ProofContext.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
 
     val result_ctxt =
       state

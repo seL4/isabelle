@@ -798,19 +798,19 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \indexdef{}{ML}{Long\_Name.explode}\verb|Long_Name.explode: string -> string list| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexdef{}{ML type}{NameSpace.naming}\verb|type NameSpace.naming| \\
-  \indexdef{}{ML}{NameSpace.default\_naming}\verb|NameSpace.default_naming: NameSpace.naming| \\
-  \indexdef{}{ML}{NameSpace.add\_path}\verb|NameSpace.add_path: string -> NameSpace.naming -> NameSpace.naming| \\
-  \indexdef{}{ML}{NameSpace.full\_name}\verb|NameSpace.full_name: NameSpace.naming -> binding -> string| \\
+  \indexdef{}{ML type}{Name\_Space.naming}\verb|type Name_Space.naming| \\
+  \indexdef{}{ML}{Name\_Space.default\_naming}\verb|Name_Space.default_naming: Name_Space.naming| \\
+  \indexdef{}{ML}{Name\_Space.add\_path}\verb|Name_Space.add_path: string -> Name_Space.naming -> Name_Space.naming| \\
+  \indexdef{}{ML}{Name\_Space.full\_name}\verb|Name_Space.full_name: Name_Space.naming -> binding -> string| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexdef{}{ML type}{NameSpace.T}\verb|type NameSpace.T| \\
-  \indexdef{}{ML}{NameSpace.empty}\verb|NameSpace.empty: NameSpace.T| \\
-  \indexdef{}{ML}{NameSpace.merge}\verb|NameSpace.merge: NameSpace.T * NameSpace.T -> NameSpace.T| \\
-  \indexdef{}{ML}{NameSpace.declare}\verb|NameSpace.declare: NameSpace.naming -> binding -> NameSpace.T ->|\isasep\isanewline%
-\verb|  string * NameSpace.T| \\
-  \indexdef{}{ML}{NameSpace.intern}\verb|NameSpace.intern: NameSpace.T -> string -> string| \\
-  \indexdef{}{ML}{NameSpace.extern}\verb|NameSpace.extern: NameSpace.T -> string -> string| \\
+  \indexdef{}{ML type}{Name\_Space.T}\verb|type Name_Space.T| \\
+  \indexdef{}{ML}{Name\_Space.empty}\verb|Name_Space.empty: string -> Name_Space.T| \\
+  \indexdef{}{ML}{Name\_Space.merge}\verb|Name_Space.merge: Name_Space.T * Name_Space.T -> Name_Space.T| \\
+  \indexdef{}{ML}{Name\_Space.declare}\verb|Name_Space.declare: bool -> Name_Space.naming -> binding -> Name_Space.T ->|\isasep\isanewline%
+\verb|  string * Name_Space.T| \\
+  \indexdef{}{ML}{Name\_Space.intern}\verb|Name_Space.intern: Name_Space.T -> string -> string| \\
+  \indexdef{}{ML}{Name\_Space.extern}\verb|Name_Space.extern: Name_Space.T -> string -> string| \\
   \end{mldecls}
 
   \begin{description}
@@ -827,39 +827,40 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \item \verb|Long_Name.implode|~\isa{names} and \verb|Long_Name.explode|~\isa{name} convert between the packed string
   representation and the explicit list form of qualified names.
 
-  \item \verb|NameSpace.naming| represents the abstract concept of
+  \item \verb|Name_Space.naming| represents the abstract concept of
   a naming policy.
 
-  \item \verb|NameSpace.default_naming| is the default naming policy.
+  \item \verb|Name_Space.default_naming| is the default naming policy.
   In a theory context, this is usually augmented by a path prefix
   consisting of the theory name.
 
-  \item \verb|NameSpace.add_path|~\isa{path\ naming} augments the
+  \item \verb|Name_Space.add_path|~\isa{path\ naming} augments the
   naming policy by extending its path component.
 
-  \item \verb|NameSpace.full_name|~\isa{naming\ binding} turns a
+  \item \verb|Name_Space.full_name|~\isa{naming\ binding} turns a
   name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
-  \item \verb|NameSpace.T| represents name spaces.
+  \item \verb|Name_Space.T| represents name spaces.
 
-  \item \verb|NameSpace.empty| and \verb|NameSpace.merge|~\isa{{\isacharparenleft}space\isactrlisub {\isadigit{1}}{\isacharcomma}\ space\isactrlisub {\isadigit{2}}{\isacharparenright}} are the canonical operations for
+  \item \verb|Name_Space.empty|~\isa{kind} and \verb|Name_Space.merge|~\isa{{\isacharparenleft}space\isactrlisub {\isadigit{1}}{\isacharcomma}\ space\isactrlisub {\isadigit{2}}{\isacharparenright}} are the canonical operations for
   maintaining name spaces according to theory data management
-  (\secref{sec:context-data}).
+  (\secref{sec:context-data}); \isa{kind} is a formal comment
+  to characterize the purpose of a name space.
 
-  \item \verb|NameSpace.declare|~\isa{naming\ bindings\ space} enters a
-  name binding as fully qualified internal name into the name space,
-  with external accesses determined by the naming policy.
+  \item \verb|Name_Space.declare|~\isa{strict\ naming\ bindings\ space} enters a name binding as fully qualified internal name into
+  the name space, with external accesses determined by the naming
+  policy.
 
-  \item \verb|NameSpace.intern|~\isa{space\ name} internalizes a
+  \item \verb|Name_Space.intern|~\isa{space\ name} internalizes a
   (partially qualified) external name.
 
   This operation is mostly for parsing!  Note that fully qualified
-  names stemming from declarations are produced via \verb|NameSpace.full_name| and \verb|NameSpace.declare|
+  names stemming from declarations are produced via \verb|Name_Space.full_name| and \verb|Name_Space.declare|
   (or their derivatives for \verb|theory| and
   \verb|Proof.context|).
 
-  \item \verb|NameSpace.extern|~\isa{space\ name} externalizes a
+  \item \verb|Name_Space.extern|~\isa{space\ name} externalizes a
   (fully qualified) internal name.
 
   This operation is mostly for printing!  User code should not rely on

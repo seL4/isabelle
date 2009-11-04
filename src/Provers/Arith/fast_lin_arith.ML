@@ -301,14 +301,14 @@ fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
   if n = 1 then i
   else if n = 0 andalso ty = Lt then sys_error "multiply_ineq"
   else if n < 0 andalso (ty=Le orelse ty=Lt) then sys_error "multiply_ineq"
-  else Lineq (n * k, ty, map (curry op* n) l, Multiplied (n, just));
+  else Lineq (n * k, ty, map (Integer.mult n) l, Multiplied (n, just));
 
 (* ------------------------------------------------------------------------- *)
 (* Add together (in)equations.                                               *)
 (* ------------------------------------------------------------------------- *)
 
 fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
-  let val l = map2 (curry (op +)) l1 l2
+  let val l = map2 Integer.add l1 l2
   in Lineq(k1+k2,find_add_type(ty1,ty2),l,Added(just1,just2)) end;
 
 (* ------------------------------------------------------------------------- *)
@@ -340,7 +340,7 @@ fun is_contradictory (ans as Lineq(k,ty,l,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
 fun calc_blowup l =
-  let val (p,n) = List.partition (curry (op <) 0) (List.filter (curry (op <>) 0) l)
+  let val (p,n) = List.partition (curry (op <) 0) (filter (curry (op <>) 0) l)
   in length p * length n end;
 
 (* ------------------------------------------------------------------------- *)
@@ -385,7 +385,7 @@ fun elim (ineqs, hist) =
   let val (eqs, noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not (null eqs) then
      let val c =
-           fold (fn Lineq(_,_,l,_) => fn cs => l union cs) eqs []
+           fold (fn Lineq(_,_,l,_) => fn cs => union (op =) l cs) eqs []
            |> filter (fn i => i <> 0)
            |> sort (int_ord o pairself abs)
            |> hd
@@ -429,9 +429,8 @@ fun trace_msg msg =
 val warning_count = Unsynchronized.ref 0;
 val warning_count_max = 10;
 
-val union_term = curry (gen_union Pattern.aeconv);
-val union_bterm = curry (gen_union
-  (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t')));
+val union_term = union Pattern.aeconv;
+val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t'));
 
 fun add_atoms (lhs, _, _, rhs, _, _) =
   union_term (map fst lhs) o union_term (map fst rhs);
@@ -703,12 +702,11 @@ in
   result
 end;
 
-fun add_datoms (dats : (bool * term) list, ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _)) :
-  (bool * term) list =
+fun add_datoms ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _) (dats : (bool * term) list) =
   union_bterm (map (pair d o fst) lhs) (union_bterm (map (pair d o fst) rhs) dats);
 
 fun discr (initems : (LA_Data.decomp * int) list) : bool list =
-  map fst (Library.foldl add_datoms ([],initems));
+  map fst (fold add_datoms initems []);
 
 fun refutes ctxt params show_ex :
     (typ list * (LA_Data.decomp * int) list) list -> injust list -> injust list option =

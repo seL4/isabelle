@@ -489,7 +489,7 @@ let
 				else
 					NONE
 		in
-			Int.max (max, getOpt (idx, 0))
+			Int.max (max, the_default 0 idx)
 		end) (OldTerm.term_frees simp) 0)
 	(* finally, convert to definitional CNF (this should preserve the simplification) *)
 	val cnfx_thm = make_cnfx_thm_from_nnf simp

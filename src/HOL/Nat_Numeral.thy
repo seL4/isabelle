@@ -6,8 +6,7 @@
 header {* Binary numerals for the natural numbers *}
 
 theory Nat_Numeral
-imports IntDiv
-uses ("Tools/nat_numeral_simprocs.ML")
+imports Int
 begin
 
 subsection {* Numerals for natural numbers *}
@@ -246,12 +245,12 @@ end
 lemma power2_sum:
   fixes x y :: "'a::number_ring"
   shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
-  by (simp add: ring_distribs power2_eq_square)
+  by (simp add: ring_distribs power2_eq_square mult_2) (rule mult_commute)
 
 lemma power2_diff:
   fixes x y :: "'a::number_ring"
   shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
-  by (simp add: ring_distribs power2_eq_square)
+  by (simp add: ring_distribs power2_eq_square mult_2) (rule mult_commute)
 
 
 subsection {* Predicate for negative binary numbers *}
@@ -417,52 +416,9 @@ lemma mult_nat_number_of [simp]:
   by (simp add: nat_mult_distrib)
 
 
-subsubsection{*Quotient *}
-
-lemma div_nat_number_of [simp]:
-     "(number_of v :: nat)  div  number_of v' =  
-          (if neg (number_of v :: int) then 0  
-           else nat (number_of v div number_of v'))"
-  unfolding nat_number_of_def number_of_is_id neg_def
-  by (simp add: nat_div_distrib)
-
-lemma one_div_nat_number_of [simp]:
-     "Suc 0 div number_of v' = nat (1 div number_of v')" 
-by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
-
-
-subsubsection{*Remainder *}
-
-lemma mod_nat_number_of [simp]:
-     "(number_of v :: nat)  mod  number_of v' =  
-        (if neg (number_of v :: int) then 0  
-         else if neg (number_of v' :: int) then number_of v  
-         else nat (number_of v mod number_of v'))"
-  unfolding nat_number_of_def number_of_is_id neg_def
-  by (simp add: nat_mod_distrib)
-
-lemma one_mod_nat_number_of [simp]:
-     "Suc 0 mod number_of v' =  
-        (if neg (number_of v' :: int) then Suc 0
-         else nat (1 mod number_of v'))"
-by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
-
-
-subsubsection{* Divisibility *}
-
-lemmas dvd_eq_mod_eq_0_number_of =
-  dvd_eq_mod_eq_0 [of "number_of x" "number_of y", standard]
-
-declare dvd_eq_mod_eq_0_number_of [simp]
-
-
 subsection{*Comparisons*}
 
 subsubsection{*Equals (=) *}
-
-lemma eq_nat_nat_iff:
-     "[| (0::int) <= z;  0 <= z' |] ==> (nat z = nat z') = (z=z')"
-by (auto elim!: nonneg_eq_int)
 
 lemma eq_nat_number_of [simp]:
      "((number_of v :: nat) = number_of v') =  
@@ -665,11 +621,6 @@ done
  
 subsection{*Literal arithmetic involving powers*}
 
-lemma nat_power_eq: "(0::int) <= z ==> nat (z^n) = nat z ^ n"
-apply (induct "n")
-apply (simp_all (no_asm_simp) add: nat_mult_distrib)
-done
-
 lemma power_nat_number_of:
      "(number_of v :: nat) ^ n =  
        (if neg (number_of v :: int) then 0^n else nat ((number_of v :: int) ^ n))"
@@ -687,21 +638,16 @@ text{*For arbitrary rings*}
 lemma power_number_of_even:
   fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit0 w) = (let w = z ^ (number_of w) in w * w)"
-unfolding Let_def nat_number_of_def number_of_Bit0
-apply (rule_tac x = "number_of w" in spec, clarify)
-apply (case_tac " (0::int) <= x")
-apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
-done
+by (cases "w \<ge> 0") (auto simp add: Let_def Bit0_def nat_number_of_def number_of_is_id
+  nat_add_distrib power_add simp del: nat_number_of)
 
 lemma power_number_of_odd:
   fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit1 w) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
-unfolding Let_def nat_number_of_def number_of_Bit1
-apply (rule_tac x = "number_of w" in spec, auto)
-apply (simp only: nat_add_distrib nat_mult_distrib)
-apply simp
-apply (auto simp add: nat_add_distrib nat_mult_distrib power_even_eq power2_eq_square neg_nat power_Suc)
+apply (auto simp add: Let_def Bit1_def nat_number_of_def number_of_is_id
+  mult_assoc nat_add_distrib power_add not_le simp del: nat_number_of)
+apply (simp add: not_le mult_2 [symmetric] add_assoc)
 done
 
 lemmas zpower_number_of_even = power_number_of_even [where 'a=int]
@@ -713,11 +659,6 @@ lemmas power_number_of_even_number_of [simp] =
 lemmas power_number_of_odd_number_of [simp] =
     power_number_of_odd [of "number_of v", standard]
 
-
-(* Enable arith to deal with div/mod k where k is a numeral: *)
-declare split_div[of _ _ "number_of k", standard, arith_split]
-declare split_mod[of _ _ "number_of k", standard, arith_split]
-
 lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
   by (simp add: number_of_Pls nat_number_of_def)
 
@@ -727,28 +668,44 @@ lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
 
 lemma nat_number_of_Bit0:
     "number_of (Int.Bit0 w) = (let n::nat = number_of w in n + n)"
-  unfolding nat_number_of_def number_of_is_id numeral_simps Let_def
-  by auto
+by (cases "w \<ge> 0") (auto simp add: Let_def Bit0_def nat_number_of_def number_of_is_id
+  nat_add_distrib simp del: nat_number_of)
 
 lemma nat_number_of_Bit1:
   "number_of (Int.Bit1 w) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
-  unfolding nat_number_of_def number_of_is_id numeral_simps neg_def Let_def
-  by auto
+apply (auto simp add: Let_def Bit1_def nat_number_of_def number_of_is_id neg_def
+  nat_add_distrib simp del: nat_number_of)
+apply (simp add: mult_2 [symmetric] add_assoc)
+done
 
 lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
   nat_number_of_Bit0 nat_number_of_Bit1
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
-  by (simp add: Let_def)
+  by (fact Let_def)
 
 lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring})"
   by (simp only: number_of_Min power_minus1_even)
 
 lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring})"
   by (simp only: number_of_Min power_minus1_odd)
+
+lemma nat_number_of_add_left:
+     "number_of v + (number_of v' + (k::nat)) =  
+         (if neg (number_of v :: int) then number_of v' + k  
+          else if neg (number_of v' :: int) then number_of v + k  
+          else number_of (v + v') + k)"
+by (auto simp add: neg_def)
+
+lemma nat_number_of_mult_left:
+     "number_of v * (number_of v' * (k::nat)) =  
+         (if v < Int.Pls then 0
+          else number_of (v * v') * k)"
+by (auto simp add: not_less Pls_def nat_number_of_def number_of_is_id
+  nat_mult_distrib simp del: nat_number_of)
 
 
 subsection{*Literal arithmetic and @{term of_nat}*}
@@ -765,131 +722,13 @@ lemma of_nat_number_of_lemma:
          (if 0 \<le> (number_of v :: int) 
           then (number_of v :: 'a :: number_ring)
           else 0)"
-by (simp add: int_number_of_def nat_number_of_def number_of_eq of_nat_nat);
+by (simp add: int_number_of_def nat_number_of_def number_of_eq of_nat_nat)
 
 lemma of_nat_number_of_eq [simp]:
      "of_nat (number_of v :: nat) =  
          (if neg (number_of v :: int) then 0  
           else (number_of v :: 'a :: number_ring))"
 by (simp only: of_nat_number_of_lemma neg_def, simp) 
-
-
-subsection {*Lemmas for the Combination and Cancellation Simprocs*}
-
-lemma nat_number_of_add_left:
-     "number_of v + (number_of v' + (k::nat)) =  
-         (if neg (number_of v :: int) then number_of v' + k  
-          else if neg (number_of v' :: int) then number_of v + k  
-          else number_of (v + v') + k)"
-  unfolding nat_number_of_def number_of_is_id neg_def
-  by auto
-
-lemma nat_number_of_mult_left:
-     "number_of v * (number_of v' * (k::nat)) =  
-         (if v < Int.Pls then 0
-          else number_of (v * v') * k)"
-by simp
-
-
-subsubsection{*For @{text combine_numerals}*}
-
-lemma left_add_mult_distrib: "i*u + (j*u + k) = (i+j)*u + (k::nat)"
-by (simp add: add_mult_distrib)
-
-
-subsubsection{*For @{text cancel_numerals}*}
-
-lemma nat_diff_add_eq1:
-     "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)"
-by (simp split add: nat_diff_split add: add_mult_distrib)
-
-lemma nat_diff_add_eq2:
-     "i <= (j::nat) ==> ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))"
-by (simp split add: nat_diff_split add: add_mult_distrib)
-
-lemma nat_eq_add_iff1:
-     "j <= (i::nat) ==> (i*u + m = j*u + n) = ((i-j)*u + m = n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
-
-lemma nat_eq_add_iff2:
-     "i <= (j::nat) ==> (i*u + m = j*u + n) = (m = (j-i)*u + n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
-
-lemma nat_less_add_iff1:
-     "j <= (i::nat) ==> (i*u + m < j*u + n) = ((i-j)*u + m < n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
-
-lemma nat_less_add_iff2:
-     "i <= (j::nat) ==> (i*u + m < j*u + n) = (m < (j-i)*u + n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
-
-lemma nat_le_add_iff1:
-     "j <= (i::nat) ==> (i*u + m <= j*u + n) = ((i-j)*u + m <= n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
-
-lemma nat_le_add_iff2:
-     "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)"
-by (auto split add: nat_diff_split simp add: add_mult_distrib)
-
-
-subsubsection{*For @{text cancel_numeral_factors} *}
-
-lemma nat_mult_le_cancel1: "(0::nat) < k ==> (k*m <= k*n) = (m<=n)"
-by auto
-
-lemma nat_mult_less_cancel1: "(0::nat) < k ==> (k*m < k*n) = (m<n)"
-by auto
-
-lemma nat_mult_eq_cancel1: "(0::nat) < k ==> (k*m = k*n) = (m=n)"
-by auto
-
-lemma nat_mult_div_cancel1: "(0::nat) < k ==> (k*m) div (k*n) = (m div n)"
-by auto
-
-lemma nat_mult_dvd_cancel_disj[simp]:
-  "(k*m) dvd (k*n) = (k=0 | m dvd (n::nat))"
-by(auto simp: dvd_eq_mod_eq_0 mod_mult_distrib2[symmetric])
-
-lemma nat_mult_dvd_cancel1: "0 < k \<Longrightarrow> (k*m) dvd (k*n::nat) = (m dvd n)"
-by(auto)
-
-
-subsubsection{*For @{text cancel_factor} *}
-
-lemma nat_mult_le_cancel_disj: "(k*m <= k*n) = ((0::nat) < k --> m<=n)"
-by auto
-
-lemma nat_mult_less_cancel_disj: "(k*m < k*n) = ((0::nat) < k & m<n)"
-by auto
-
-lemma nat_mult_eq_cancel_disj: "(k*m = k*n) = (k = (0::nat) | m=n)"
-by auto
-
-lemma nat_mult_div_cancel_disj[simp]:
-     "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
-by (simp add: nat_mult_div_cancel1)
-
-
-subsection {* Simprocs for the Naturals *}
-
-use "Tools/nat_numeral_simprocs.ML"
-
-declaration {* 
-  K (Lin_Arith.add_simps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
-  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1},
-     @{thm nat_0}, @{thm nat_1},
-     @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
-     @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
-     @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
-     @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
-     @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
-     @{thm mult_Suc}, @{thm mult_Suc_right},
-     @{thm add_Suc}, @{thm add_Suc_right},
-     @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
-     @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of},
-     @{thm if_True}, @{thm if_False}])
-  #> Lin_Arith.add_simprocs (Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals))
-*}
 
 
 subsubsection{*For simplifying @{term "Suc m - K"} and  @{term "K - Suc m"}*}
@@ -977,35 +816,14 @@ text {*Evens and Odds, for Mutilated Chess Board*}
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 lemma nat_mult_2: "2 * z = (z+z::nat)"
-proof -
-  have "2*z = (1 + 1)*z" by simp
-  also have "... = z+z" by (simp add: left_distrib)
-  finally show ?thesis .
-qed
+unfolding nat_1_add_1 [symmetric] left_distrib by simp
 
 lemma nat_mult_2_right: "z * 2 = (z+z::nat)"
 by (subst mult_commute, rule nat_mult_2)
 
 text{*Case analysis on @{term "n<2"}*}
 lemma less_2_cases: "(n::nat) < 2 ==> n = 0 | n = Suc 0"
-by arith
-
-lemma div2_Suc_Suc [simp]: "Suc(Suc m) div 2 = Suc (m div 2)"
-by arith
-
-lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
-by (simp add: nat_mult_2 [symmetric])
-
-lemma mod2_Suc_Suc [simp]: "Suc(Suc(m)) mod 2 = m mod 2"
-apply (subgoal_tac "m mod 2 < 2")
-apply (erule less_2_cases [THEN disjE])
-apply (simp_all (no_asm_simp) add: Let_def mod_Suc nat_1)
-done
-
-lemma mod2_gr_0 [simp]: "!!m::nat. (0 < m mod 2) = (m mod 2 = 1)"
-apply (subgoal_tac "m mod 2 < 2")
-apply (force simp del: mod_less_divisor, simp)
-done
+by (auto simp add: nat_1_add_1 [symmetric])
 
 text{*Removal of Small Numerals: 0, 1 and (in additive positions) 2*}
 
@@ -1018,30 +836,5 @@ by simp
 text{*Can be used to eliminate long strings of Sucs, but not by default*}
 lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
 by simp
-
-
-text{*These lemmas collapse some needless occurrences of Suc:
-    at least three Sucs, since two and fewer are rewritten back to Suc again!
-    We already have some rules to simplify operands smaller than 3.*}
-
-lemma div_Suc_eq_div_add3 [simp]: "m div (Suc (Suc (Suc n))) = m div (3+n)"
-by (simp add: Suc3_eq_add_3)
-
-lemma mod_Suc_eq_mod_add3 [simp]: "m mod (Suc (Suc (Suc n))) = m mod (3+n)"
-by (simp add: Suc3_eq_add_3)
-
-lemma Suc_div_eq_add3_div: "(Suc (Suc (Suc m))) div n = (3+m) div n"
-by (simp add: Suc3_eq_add_3)
-
-lemma Suc_mod_eq_add3_mod: "(Suc (Suc (Suc m))) mod n = (3+m) mod n"
-by (simp add: Suc3_eq_add_3)
-
-lemmas Suc_div_eq_add3_div_number_of =
-    Suc_div_eq_add3_div [of _ "number_of v", standard]
-declare Suc_div_eq_add3_div_number_of [simp]
-
-lemmas Suc_mod_eq_add3_mod_number_of =
-    Suc_mod_eq_add3_mod [of _ "number_of v", standard]
-declare Suc_mod_eq_add3_mod_number_of [simp]
 
 end

@@ -88,7 +88,7 @@ val builtin_preds = T.builtin_make [
   (@{term word_sless}, "bvslt"),
   (@{term word_sle}, "bvsle")]
 
-val builtins = T.Builtins {
+val builtins = {
   builtin_typ = builtin_typ,
   builtin_num = builtin_num,
   builtin_fun = (fn true => builtin_funcs | false => builtin_preds) }

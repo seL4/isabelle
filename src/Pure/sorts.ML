@@ -72,8 +72,8 @@ struct
 (** ordered lists of sorts **)
 
 val make = OrdList.make TermOrd.sort_ord;
-val op subset = OrdList.subset TermOrd.sort_ord;
-val op union = OrdList.union TermOrd.sort_ord;
+val subset = OrdList.subset TermOrd.sort_ord;
+val union = OrdList.union TermOrd.sort_ord;
 val subtract = OrdList.subtract TermOrd.sort_ord;
 
 val remove_sort = OrdList.remove TermOrd.sort_ord;

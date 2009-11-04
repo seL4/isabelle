@@ -12,14 +12,14 @@ notation scomp (infixl "o\<rightarrow>" 60)
 
 subsection {* Auxiliary functions *}
 
+fun log :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
+  "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
+
 definition inc_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "inc_shift v k = (if v = k then 1 else k + 1)"
 
 definition minus_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "minus_shift r k l = (if k < l then r + k - l else k - l)"
-
-fun log :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
-  "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
 
 
 subsection {* Random seeds *}
@@ -29,28 +29,19 @@ types seed = "code_numeral \<times> code_numeral"
 primrec "next" :: "seed \<Rightarrow> code_numeral \<times> seed" where
   "next (v, w) = (let
      k =  v div 53668;
-     v' = minus_shift 2147483563 (40014 * (v mod 53668)) (k * 12211);
+     v' = minus_shift 2147483563 ((v mod 53668) * 40014) (k * 12211);
      l =  w div 52774;
-     w' = minus_shift 2147483399 (40692 * (w mod 52774)) (l * 3791);
+     w' = minus_shift 2147483399 ((w mod 52774) * 40692) (l * 3791);
      z =  minus_shift 2147483562 v' (w' + 1) + 1
    in (z, (v', w')))"
-
-lemma next_not_0:
-  "fst (next s) \<noteq> 0"
-  by (cases s) (auto simp add: minus_shift_def Let_def)
-
-primrec seed_invariant :: "seed \<Rightarrow> bool" where
-  "seed_invariant (v, w) \<longleftrightarrow> 0 < v \<and> v < 9438322952 \<and> 0 < w \<and> True"
 
 definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
   "split_seed s = (let
      (v, w) = s;
      (v', w') = snd (next s);
      v'' = inc_shift 2147483562 v;
-     s'' = (v'', w');
-     w'' = inc_shift 2147483398 w;
-     s''' = (v', w'')
-   in (s'', s'''))"
+     w'' = inc_shift 2147483398 w
+   in ((v'', w'), (v', w'')))"
 
 
 subsection {* Base selectors *}
@@ -175,7 +166,7 @@ end;
 *}
 
 hide (open) type seed
-hide (open) const inc_shift minus_shift log "next" seed_invariant split_seed
+hide (open) const inc_shift minus_shift log "next" split_seed
   iterate range select pick select_weight
 
 no_notation fcomp (infixl "o>" 60)

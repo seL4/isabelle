@@ -119,13 +119,13 @@ local
 in
 
 fun change_states f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_states f);
-fun get_states () = NAMED_CRITICAL "Isar" (fn () => ! global_states);
+fun get_states () = ! global_states;
 
 fun change_commands f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_commands f);
-fun get_commands () = NAMED_CRITICAL "Isar" (fn () => ! global_commands);
+fun get_commands () = ! global_commands;
 
 fun change_documents f = NAMED_CRITICAL "Isar" (fn () => Unsynchronized.change global_documents f);
-fun get_documents () = NAMED_CRITICAL "Isar" (fn () => ! global_documents);
+fun get_documents () = ! global_documents;
 
 fun init () = NAMED_CRITICAL "Isar" (fn () =>
  (global_states := Symtab.empty;

@@ -1028,7 +1028,7 @@ fun ml_code_datatype_antiq (raw_tyco, raw_constrs) {struct_name, background} =
     val tyco = Sign.intern_type thy raw_tyco;
     val constrs = map (Code.check_const thy) raw_constrs;
     val constrs' = (map fst o snd o Code.get_datatype thy) tyco;
-    val _ = if gen_eq_set (op =) (constrs, constrs') then ()
+    val _ = if eq_set (op =) (constrs, constrs') then ()
       else error ("Type " ^ quote tyco ^ ": given constructors diverge from real constructors")
     val is_first = is_first_occ background;
     val background' = register_datatype tyco constrs background;

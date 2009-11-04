@@ -123,8 +123,8 @@ local
                      REPEAT (resolve_tac prems 1)]);
 
   val sig_move_thm = Thm.theory_of_thm move_thm;
-  val bCterm = cterm_of sig_move_thm (valOf (search_var "b" (concl_of move_thm)));
-  val aCterm = cterm_of sig_move_thm (valOf (search_var "a" (hd(prems_of move_thm)))); 
+  val bCterm = cterm_of sig_move_thm (the (search_var "b" (concl_of move_thm)));
+  val aCterm = cterm_of sig_move_thm (the (search_var "a" (hd(prems_of move_thm)))); 
 
 in
 

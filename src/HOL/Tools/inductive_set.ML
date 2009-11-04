@@ -209,7 +209,7 @@ fun infer_arities thy arities (optf, t) fs = case strip_comb t of
       (case optf of
          NONE => fs
        | SOME f => AList.update op = (u, the_default f
-           (Option.map (curry op inter f) (AList.lookup op = fs u))) fs));
+           (Option.map (fn g => inter (op =) g f) (AList.lookup op = fs u))) fs));
 
 
 (**************************************************************)
@@ -343,7 +343,7 @@ fun to_pred thms ctxt thm =
     Simplifier.full_simplify (HOL_basic_ss addsimprocs
       [to_pred_simproc (mem_Collect_eq :: split_conv :: to_pred_simps)]) |>
     eta_contract_thm (is_pred pred_arities) |>
-    RuleCases.save thm
+    Rule_Cases.save thm
   end;
 
 val to_pred_att = Thm.rule_attribute o to_pred;
@@ -374,7 +374,7 @@ fun to_set thms ctxt thm =
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (HOL_basic_ss addsimps to_set_simps
         addsimprocs [strong_ind_simproc pred_arities, collect_mem_simproc]) |>
-    RuleCases.save thm
+    Rule_Cases.save thm
   end;
 
 val to_set_att = Thm.rule_attribute o to_set;
@@ -407,7 +407,7 @@ fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
 fun add_ind_set_def
     {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
     cs intros monos params cnames_syn ctxt =
-  let
+  let (* FIXME proper naming convention: lthy *)
     val thy = ProofContext.theory_of ctxt;
     val {set_arities, pred_arities, to_pred_simps, ...} =
       PredSetConvData.get (Context.Proof ctxt);
@@ -419,7 +419,8 @@ fun add_ind_set_def
     val new_arities = filter_out
       (fn (x as Free (_, T), _) => x mem params andalso length (binder_types T) > 1
         | _ => false) (fold (snd #> infer) intros []);
-    val params' = map (fn x => (case AList.lookup op = new_arities x of
+    val params' = map (fn x =>
+      (case AList.lookup op = new_arities x of
         SOME fs =>
           let
             val T = HOLogic.dest_setT (fastype_of x);
@@ -482,11 +483,14 @@ fun add_ind_set_def
         cs' intros' monos' params1 cnames_syn' ctxt;
 
     (* define inductive sets using previously defined predicates *)
-    val (defs, ctxt2) = fold_map (LocalTheory.define Thm.internalK)
-      (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
-         fold_rev lambda params (HOLogic.Collect_const U $
-           HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
-         (cnames_syn ~~ cs_info ~~ preds)) ctxt1;
+    val (defs, ctxt2) = ctxt1
+      |> LocalTheory.conceal  (* FIXME ?? *)
+      |> fold_map (LocalTheory.define Thm.internalK)
+        (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
+           fold_rev lambda params (HOLogic.Collect_const U $
+             HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
+           (cnames_syn ~~ cs_info ~~ preds))
+      ||> LocalTheory.restore_naming ctxt1;
 
     (* prove theorems for converting predicate to set notation *)
     val ctxt3 = fold
@@ -518,7 +522,7 @@ fun add_ind_set_def
       Inductive.declare_rules kind rec_name coind no_ind cnames
       (map (to_set [] (Context.Proof ctxt3)) intrs) intr_names intr_atts
       (map (fn th => (to_set [] (Context.Proof ctxt3) th,
-         map fst (fst (RuleCases.get th)))) elims)
+         map fst (fst (Rule_Cases.get th)))) elims)
       raw_induct' ctxt3
   in
     ({intrs = intrs', elims = elims', induct = induct,

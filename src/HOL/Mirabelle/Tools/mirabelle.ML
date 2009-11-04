@@ -28,8 +28,8 @@ sig
   val goal_thm_of : Proof.state -> thm
   val can_apply : Time.time -> (Proof.context -> int -> tactic) ->
     Proof.state -> bool
-  val theorems_in_proof_term : Thm.thm -> Thm.thm list
-  val theorems_of_sucessful_proof : Toplevel.state option -> Thm.thm list
+  val theorems_in_proof_term : thm -> thm list
+  val theorems_of_sucessful_proof : Toplevel.state option -> thm list
   val get_setting : (string * string) list -> string * string -> string
   val get_int_setting : (string * string) list -> string * int -> int
   val cpu_time : ('a -> 'b) -> 'a -> 'b * int
@@ -151,11 +151,11 @@ fun step_hook tr pre post =
 
 (* Mirabelle utility functions *)
 
-val goal_thm_of = snd o snd o Proof.get_goal
+val goal_thm_of = #goal o Proof.raw_goal  (* FIXME ?? *)
 
 fun can_apply time tac st =
   let
-    val (ctxt, (facts, goal)) = Proof.get_goal st
+    val {context = ctxt, facts, goal} = Proof.raw_goal st   (* FIXME ?? *)
     val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
   in
     (case TimeLimit.timeLimit time (Seq.pull o full_tac) goal of

@@ -50,7 +50,7 @@ translations
 (* type constraints with spacing *)
 setup {*
 let
-  val typ = SimpleSyntax.read_typ;
+  val typ = Simple_Syntax.read_typ;
   val typeT = Syntax.typeT;
   val spropT = Syntax.spropT;
 in

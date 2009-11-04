@@ -452,6 +452,12 @@ next
   from power_strict_increasing_iff [OF this] less show ?thesis ..
 qed
 
+lemma power_dvd_imp_le:
+  "i ^ m dvd i ^ n \<Longrightarrow> (1::nat) < i \<Longrightarrow> m \<le> n"
+  apply (rule power_le_imp_le_exp, assumption)
+  apply (erule dvd_imp_le, simp)
+  done
+
 
 subsection {* Code generator tweak *}
 
@@ -460,5 +466,14 @@ lemma power_power_power [code, code_unfold, code_inline del]:
   unfolding power_def power.power_def ..
 
 declare power.power.simps [code]
+
+code_modulename SML
+  Power Arith
+
+code_modulename OCaml
+  Power Arith
+
+code_modulename Haskell
+  Power Arith
 
 end

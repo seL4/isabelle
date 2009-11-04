@@ -219,8 +219,8 @@ fun setrefs (Setrefs vs) =
         fun fileurl_to_xml url = XML.Elem ("fileurl", attrs_of_pgipurl url, [])
     in
         XML.Elem ("setrefs",
-                  (Option.getOpt (Option.map attrs_of_pgipurl url,[])) @ 
-                  (Option.getOpt (Option.map attrs_of_objtype objtype,[])) @
+                  (the_default [] (Option.map attrs_of_pgipurl url)) @ 
+                  (the_default [] (Option.map attrs_of_objtype objtype)) @
                   (opt_attr "thyname" thyname) @
                   (opt_attr "name" name),
                   (map idtable_to_xml idtables) @ 

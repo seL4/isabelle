@@ -212,6 +212,7 @@ use "Isar/code.ML";
 
 (*specifications*)
 use "Isar/spec_parse.ML";
+use "Isar/spec_rules.ML";
 use "Isar/specification.ML";
 use "Isar/constdefs.ML";
 

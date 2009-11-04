@@ -12,15 +12,18 @@ end
 structure Z3_Model: Z3_MODEL =
 struct
 
-(* parsing primitives *)
+(* counterexample expressions *)
 
-fun lift f (x, y) = apsnd (pair x) (f y)
-fun lift' f v (x, y) = apsnd (rpair y) (f v x)
+datatype expr = True | False | Number of int * int option | Value of int |
+  Array of array
+and array = Fresh of expr | Store of (array * expr) * expr
 
-fun $$ s = lift (Scan.$$ s)
-fun this s = lift (Scan.this_string s)
 
-fun par scan = $$ "(" |-- scan --| $$ ")"
+(* parsing *)
+
+val space = Scan.many Symbol.is_ascii_blank
+fun in_parens p = Scan.$$ "(" |-- p --| Scan.$$ ")"
+fun in_braces p = (space -- Scan.$$ "{") |-- p --| (space -- Scan.$$ "}")
 
 val digit = (fn
   "0" => SOME 0 | "1" => SOME 1 | "2" => SOME 2 | "3" => SOME 3 |
@@ -29,131 +32,113 @@ val digit = (fn
 
 val nat_num = Scan.repeat1 (Scan.some digit) >>
   (fn ds => fold (fn d => fn i => i * 10 + d) ds 0)
-val int_num = Scan.optional (Scan.$$ "-" >> K (fn i => ~i)) I :|--
+val int_num = Scan.optional ($$ "-" >> K (fn i => ~i)) I :|--
   (fn sign => nat_num >> sign)
 
 val is_char = Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf
   member (op =) (explode "_+*-/%~=<>$&|?!.@^#")
 val name = Scan.many1 is_char >> implode
 
+fun array_expr st = st |>
+  in_parens (space |-- (
+  Scan.this_string "const" |-- expr >> Fresh ||
+  Scan.this_string "store" -- space |-- array_expr -- expr -- expr >> Store))
 
-(* parsing counterexamples *)
+and expr st = st |> (space |-- (
+  Scan.this_string "true" >> K True ||
+  Scan.this_string "false" >> K False ||
+  int_num -- Scan.option (Scan.$$ "/" |-- int_num) >> Number ||
+  Scan.this_string "val!" |-- nat_num >> Value ||
+  array_expr >> Array))
 
-datatype context = Context of {
-  ttab: term Symtab.table,
-  nctxt: Name.context,
-  vtab: term Inttab.table }
+val mapping = space -- Scan.this_string "->"
+val value = mapping |-- expr
 
-fun make_context (ttab, nctxt, vtab) =
-  Context {ttab=ttab, nctxt=nctxt, vtab=vtab}
+val args_case = Scan.repeat expr -- value
+val else_case = space -- Scan.this_string "else" |-- value >> pair []
 
-fun empty_context (SMT_Translate.Recon {terms, ...}) =
+val func =
+  let fun cases st = (else_case >> single || args_case ::: cases) st
+  in in_braces cases end
+
+val cex = space |-- Scan.repeat (space |-- name --| mapping --
+  (func || expr >> (single o pair [])))
+
+fun read_cex ls =
+  explode (cat_lines ls)
+  |> try (fst o Scan.finite Symbol.stopper cex)
+  |> the_default []
+
+
+(* translation into terms *)
+
+fun lookup_term tab (name, e) = Option.map (rpair e) (Symtab.lookup tab name)
+
+fun with_name_context tab f xs =
   let
-    val ns = Symtab.fold (Term.add_free_names o snd) terms []
+    val ns = Symtab.fold (Term.add_free_names o snd) tab []
     val nctxt = Name.make_context ns
-  in make_context (terms, nctxt, Inttab.empty) end
+  in fst (fold_map f xs (Inttab.empty, nctxt)) end
 
-fun map_context f (Context {ttab, nctxt, vtab}) =
-  make_context (f (ttab, nctxt, vtab))
-
-fun fresh_name (cx as Context {nctxt, ...}) =
+fun fresh_term T (tab, nctxt) =
   let val (n, nctxt') = yield_singleton Name.variants "" nctxt
-  in (n, map_context (fn (ttab, _, vtab) => (ttab, nctxt', vtab)) cx) end
+  in (Free (n, T), (tab, nctxt')) end
 
-fun ident name (cx as Context {ttab, ...}) = 
-  (case Symtab.lookup ttab name of
+fun term_of_value T i (cx as (tab, _)) =
+  (case Inttab.lookup tab i of
     SOME t => (t, cx)
   | NONE =>
-      let val (n, cx') = fresh_name cx
-      in (Free (n, Term.dummyT), cx) end)
+      let val (t, (tab', nctxt')) = fresh_term T cx
+      in (t, (Inttab.update (i, t) tab', nctxt')) end)
 
-fun set_value t i = map_context (fn (ttab, nctxt, vtab) =>
-  (ttab, nctxt, Inttab.update (i, t) vtab))
+fun trans_expr _ True = pair @{term True}
+  | trans_expr _ False = pair @{term False}
+  | trans_expr T (Number (i, NONE)) = pair (HOLogic.mk_number T i)
+  | trans_expr T (Number (i, SOME j)) =
+      pair (Const (@{const_name divide}, [T, T] ---> T) $
+        HOLogic.mk_number T i $ HOLogic.mk_number T j)
+  | trans_expr T (Value i) = term_of_value T i
+  | trans_expr T (Array a) = trans_array T a
 
-fun get_value T i (cx as Context {vtab, ...}) =
-  (case Inttab.lookup vtab i of
-    SOME t => (t, cx)
-  | _ => cx |> fresh_name |-> (fn n =>
-      let val t = Free (n, T)
-      in set_value t i #> pair t end))
-
-
-fun space s = lift (Scan.many Symbol.is_ascii_blank) s
-fun spaced p = p --| space
-
-val key = spaced (lift name) #-> lift' ident
-val mapping = spaced (this "->")
-fun in_braces p = spaced ($$ "{") |-- p --| spaced ($$ "}")
-
-val bool_expr =
-  this "true" >> K @{term True} ||
-  this "false" >> K @{term False}
-
-fun number_expr T =
-  let
-    val num = lift int_num >> HOLogic.mk_number T
-    fun frac n d = Const (@{const_name divide}, T --> T --> T) $ n $ d
-  in num :|-- (fn n => Scan.optional ($$ "/" |-- num >> frac n) n) end
-
-val value = this "val!" |-- lift nat_num
-fun value_expr T = value #-> lift' (get_value T)
-
-val domT = Term.domain_type
-val ranT = Term.range_type
-fun const_array T t = Abs ("x", T, t)
-fun upd_array T ((a, t), u) =
-  Const (@{const_name fun_upd}, [T, domT T, ranT T] ---> T) $ a $ t $ u
-fun array_expr T st = if not (can domT T) then Scan.fail st else st |> (
-  par (spaced (this "const") |-- expr (ranT T)) >> const_array (domT T) ||
-  par (spaced (this "store") |-- spaced (array_expr T) --
-    expr (Term.domain_type T) -- expr (Term.range_type T)) >> upd_array T)
-
-and expr T st =
-  spaced (bool_expr || number_expr T || value_expr T || array_expr T) st
-
-fun const_val t =
-  let fun rep u = spaced value #-> apfst o set_value u #> pair []
+and trans_array T a =
+  let val dT = Term.domain_type T and rT = Term.range_type T
   in
-    if can HOLogic.dest_number t then rep t
-    else if t = @{term TT} then rep @{term True}
-    else expr (Term.fastype_of t) >> (fn u => [HOLogic.mk_eq (t, u)])
+    (case a of
+      Fresh e => trans_expr rT e #>> (fn t => Abs ("x", dT, t))
+    | Store ((a', e1), e2) =>
+        trans_array T a' ##>> trans_expr dT e1 ##>> trans_expr rT e2 #>>
+        (fn ((m, k), v) =>
+          Const (@{const_name fun_upd}, [T, dT, rT] ---> T) $ m $ k $ v))
   end
 
-fun func_value T = mapping |-- expr T
+fun trans_pat i T f x =
+  f (Term.domain_type T) ##>> trans (i-1) (Term.range_type T) x #>>
+  (fn (u, (us, t)) => (u :: us, t))
 
-fun first_pat T =
-  let
-    fun args T = if not (can domT T) then Scan.succeed [] else
-      expr (domT T) ::: args (ranT T)
-    fun value ts = func_value (snd (SMT_Translate.dest_funT (length ts) T))
-  in args T :-- value end
+and trans i T ([], v) =
+      if i > 0 then trans_pat i T fresh_term ([], v)
+      else trans_expr T v #>> pair []
+  | trans i T (p :: ps, v) = trans_pat i T (fn U => trans_expr U p) (ps, v)
 
-fun func_pat (Ts, T) = fold_map expr Ts -- func_value T
-fun else_pat (Ts, T) =
-  let fun else_arg T cx = cx |> fresh_name |>> (fn n => Free (n, T))
-  in
-    fold_map (lift' else_arg) Ts ##>>
-    spaced (this "else") |-- func_value T
-  end
-fun next_pats T (fts as (ts, _)) =
-  let val Tps = SMT_Translate.dest_funT (length ts) T
-  in Scan.repeat (func_pat Tps) @@@ (else_pat Tps >> single) >> cons fts end
+fun mk_eq' t us u = HOLogic.mk_eq (Term.list_comb (t, us), u)
+fun mk_eq (Const (@{const_name apply}, _)) (u' :: us', u) = mk_eq' u' us' u
+  | mk_eq t (us, u) = mk_eq' t us u
 
-fun mk_def' f (ts, t) = HOLogic.mk_eq (Term.list_comb (f, ts), t)
-fun mk_def (Const (@{const_name apply}, _)) (u :: us, t) = mk_def' u (us, t)
-  | mk_def f (ts, t) = mk_def' f (ts, t)
-fun func_pats t =
+fun translate (t, cs) =
   let val T = Term.fastype_of t
-  in first_pat T :|-- next_pats T >> map (mk_def t) end
+  in
+    (case (can HOLogic.dest_number t, cs) of
+      (true, [c]) => trans 0 T c #>> (fn (_, u) => [mk_eq u ([], t)])
+    | (_, (es, _) :: _) => fold_map (trans (length es) T) cs #>> map (mk_eq t))
+  end
 
-val assign =
-  key --| mapping :|-- (fn t => in_braces (func_pats t) || const_val t)
 
-val cex = space |-- Scan.repeat assign
+(* overall procedure *)
 
-fun parse_counterex recon ls =
-  (empty_context recon, explode (cat_lines ls))
-  |> Scan.catch (Scan.finite' Symbol.stopper (Scan.error cex))
-  |> flat o fst
+fun parse_counterex ({terms, ...} : SMT_Translate.recon) ls =
+  read_cex ls
+  |> map_filter (lookup_term terms)
+  |> with_name_context terms translate
+  |> flat
 
 end

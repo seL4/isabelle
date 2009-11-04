@@ -6,17 +6,17 @@ Method for termination proofs with lexicographic orderings.
 
 signature LEXICOGRAPHIC_ORDER =
 sig
-  val lex_order_tac : Proof.context -> tactic -> tactic
-  val lexicographic_order_tac : Proof.context -> tactic
+  val lex_order_tac : bool -> Proof.context -> tactic -> tactic
+  val lexicographic_order_tac : bool -> Proof.context -> tactic
   val lexicographic_order : Proof.context -> Proof.method
 
   val setup: theory -> theory
 end
 
-structure LexicographicOrder : LEXICOGRAPHIC_ORDER =
+structure Lexicographic_Order : LEXICOGRAPHIC_ORDER =
 struct
 
-open FundefLib
+open Function_Lib
 
 (** General stuff **)
 
@@ -58,7 +58,7 @@ fun pr_cell (Less _ ) = " < "
 
 fun dest_term (t : term) =
     let
-      val (vars, prop) = FundefLib.dest_all_all t
+      val (vars, prop) = Function_Lib.dest_all_all t
       val (prems, concl) = Logic.strip_horn prop
       val (lhs, rhs) = concl
                          |> HOLogic.dest_Trueprop
@@ -187,7 +187,7 @@ fun no_order_msg ctxt table tl measure_funs =
 
 (** The Main Function **)
 
-fun lex_order_tac ctxt solve_tac (st: thm) =
+fun lex_order_tac quiet ctxt solve_tac (st: thm) =
     let
       val thy = ProofContext.theory_of ctxt
       val ((trueprop $ (wf $ rel)) :: tl) = prems_of st
@@ -197,35 +197,38 @@ fun lex_order_tac ctxt solve_tac (st: thm) =
       val measure_funs = MeasureFunctions.get_measure_functions ctxt domT (* 1: generate measures *)
 
       (* 2: create table *)
-      val table = map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
+      val table = Par_List.map (fn t => Par_List.map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
+    in
+      case search_table table of
+        NONE => if quiet then no_tac st else error (no_order_msg ctxt table tl measure_funs)
+      | SOME order =>
+          let 
+            val clean_table = map (fn x => map (nth x) order) table
+            val relation = mk_measures domT (map (nth measure_funs) order)
+            val _ = if not quiet
+              then writeln ("Found termination order: " ^ quote (Syntax.string_of_term ctxt relation))
+              else ()
 
-      val order = the (search_table table) (* 3: search table *)
-          handle Option => error (no_order_msg ctxt table tl measure_funs)
-
-      val clean_table = map (fn x => map (nth x) order) table
-
-      val relation = mk_measures domT (map (nth measure_funs) order)
-      val _ = writeln ("Found termination order: " ^ quote (Syntax.string_of_term ctxt relation))
-
-    in (* 4: proof reconstruction *)
-      st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])
-              THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
-              THEN (rtac @{thm "wf_empty"} 1)
-              THEN EVERY (map prove_row clean_table))
+          in (* 4: proof reconstruction *)
+            st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])
+            THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
+            THEN (rtac @{thm "wf_empty"} 1)
+            THEN EVERY (map prove_row clean_table))
+          end
     end
 
-fun lexicographic_order_tac ctxt =
-  TRY (FundefCommon.apply_termination_rule ctxt 1)
-  THEN lex_order_tac ctxt
-    (auto_tac (clasimpset_of ctxt addsimps2 FundefCommon.Termination_Simps.get ctxt))
+fun lexicographic_order_tac quiet ctxt =
+  TRY (Function_Common.apply_termination_rule ctxt 1)
+  THEN lex_order_tac quiet ctxt
+    (auto_tac (clasimpset_of ctxt addsimps2 Function_Common.Termination_Simps.get ctxt))
 
-val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac
+val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac false
 
 val setup =
   Method.setup @{binding lexicographic_order}
     (Method.sections clasimp_modifiers >> (K lexicographic_order))
     "termination prover for lexicographic orderings"
-  #> Context.theory_map (FundefCommon.set_termination_prover lexicographic_order)
+  #> Context.theory_map (Function_Common.set_termination_prover lexicographic_order)
 
 end;
 

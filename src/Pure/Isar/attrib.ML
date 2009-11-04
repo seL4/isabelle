@@ -67,35 +67,33 @@ val empty_binding: binding = (Binding.empty, []);
 
 structure Attributes = TheoryDataFun
 (
-  type T = (((src -> attribute) * string) * stamp) NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = ((src -> attribute) * string) Name_Space.table;
+  val empty : T = Name_Space.empty_table "attribute";
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUP dup =>
-    error ("Attempt to merge different versions of attribute " ^ quote dup);
+  fun merge _ tables : T = Name_Space.merge_tables tables;
 );
 
 fun print_attributes thy =
   let
     val attribs = Attributes.get thy;
-    fun prt_attr (name, ((_, comment), _)) = Pretty.block
+    fun prt_attr (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
-    [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
+    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table attribs))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
-fun add_attribute name att comment thy = thy |> Attributes.map (fn atts =>
-  #2 (NameSpace.define (Sign.naming_of thy) (name, ((att, comment), stamp ())) atts)
-    handle Symtab.DUP dup => error ("Duplicate declaration of attribute " ^ quote dup));
+fun add_attribute name att comment thy = thy
+  |> Attributes.map (#2 o Name_Space.define true (Sign.naming_of thy) (name, (att, comment)));
 
 
 (* name space *)
 
-val intern = NameSpace.intern o #1 o Attributes.get;
+val intern = Name_Space.intern o #1 o Attributes.get;
 val intern_src = Args.map_name o intern;
 
-val extern = NameSpace.extern o #1 o Attributes.get o ProofContext.theory_of;
+val extern = Name_Space.extern o #1 o Attributes.get o ProofContext.theory_of;
 
 
 (* pretty printing *)
@@ -117,7 +115,7 @@ fun attribute_i thy =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup attrs name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME ((att, _), _) => (Position.report (Markup.attribute name) pos; att src))
+        | SOME (att, _) => (Position.report (Markup.attribute name) pos; att src))
       end;
   in attr end;
 
@@ -289,15 +287,15 @@ val _ = Context.>> (Context.map_theory
     "rename bound variables in abstractions" #>
   setup (Binding.name "unfolded") unfolded "unfolded definitions" #>
   setup (Binding.name "folded") folded "folded definitions" #>
-  setup (Binding.name "consumes") (Scan.lift (Scan.optional P.nat 1) >> RuleCases.consumes)
+  setup (Binding.name "consumes") (Scan.lift (Scan.optional P.nat 1) >> Rule_Cases.consumes)
     "number of consumed facts" #>
-  setup (Binding.name "case_names") (Scan.lift (Scan.repeat1 Args.name) >> RuleCases.case_names)
+  setup (Binding.name "case_names") (Scan.lift (Scan.repeat1 Args.name) >> Rule_Cases.case_names)
     "named rule cases" #>
   setup (Binding.name "case_conclusion")
-    (Scan.lift (Args.name -- Scan.repeat Args.name) >> RuleCases.case_conclusion)
+    (Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion)
     "named conclusion of rule cases" #>
   setup (Binding.name "params")
-    (Scan.lift (P.and_list1 (Scan.repeat Args.name)) >> RuleCases.params)
+    (Scan.lift (P.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
     "named rule parameters" #>
   setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.standard)))
     "result put into standard form (legacy)" #>
@@ -340,7 +338,7 @@ fun print_configs ctxt =
         Pretty.block [Pretty.str (name ^ ": " ^ Config.print_type value ^ " ="), Pretty.brk 1,
           Pretty.str (Config.print_value value)]
       end;
-    val configs = NameSpace.extern_table (#1 (Attributes.get thy), Configs.get thy);
+    val configs = Name_Space.extern_table (#1 (Attributes.get thy), Configs.get thy);
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 

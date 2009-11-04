@@ -67,7 +67,7 @@ struct
 (* diagnostics *)
 
 fun print_consts _ _ [] = ()
-  | print_consts ctxt pred cs = Pretty.writeln (ProofDisplay.pretty_consts ctxt pred cs);
+  | print_consts ctxt pred cs = Pretty.writeln (Proof_Display.pretty_consts ctxt pred cs);
 
 
 (* prepare specification *)
@@ -161,7 +161,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
     val xs = map (fn ((b, T), _) => (Name.of_binding b, T)) vars;
 
     (*consts*)
-    val (consts, consts_thy) = thy |> fold_map (Theory.specify_const []) vars;
+    val (consts, consts_thy) = thy |> fold_map Theory.specify_const vars;
     val subst = Term.subst_atomic (map Free xs ~~ consts);
 
     (*axioms*)
@@ -267,7 +267,7 @@ fun gen_theorems prep_fact prep_att kind raw_facts lthy =
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
     val (res, lthy') = lthy |> LocalTheory.notes kind facts;
-    val _ = ProofDisplay.print_results true lthy' ((kind, ""), res);
+    val _ = Proof_Display.print_results true lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 val theorems = gen_theorems (K I) (K I);
@@ -298,7 +298,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
-        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
+        val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
@@ -313,17 +313,17 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             ctxt' |> (snd o ProofContext.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
             ctxt' |> Variable.auto_fixes asm
             |> ProofContext.add_assms_i Assumption.assume_export
-              [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
+              [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;
 
         val atts = map (Attrib.internal o K)
-          [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
+          [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names];
         val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = [((Binding.empty, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
-          |> (snd o ProofContext.add_fixes [(Binding.name AutoBind.thesisN, NONE, NoSyn)])
+          |> (snd o ProofContext.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
                 [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
@@ -357,19 +357,19 @@ fun gen_theorem prep_att prep_stmt
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           if Binding.is_empty name andalso null atts then
-            (ProofDisplay.print_results true lthy' ((kind, ""), res); lthy')
+            (Proof_Display.print_results true lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') = lthy'
                 |> LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])];
-              val _ = ProofDisplay.print_results true lthy' ((kind, res_name), res);
+              val _ = Proof_Display.print_results true lthy' ((kind, res_name), res);
             in lthy'' end)
         |> after_qed results'
       end;
   in
     goal_ctxt
     |> ProofContext.note_thmss Thm.assumptionK
-      [((Binding.name AutoBind.assmsN, []), [(prems, [])])]
+      [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)

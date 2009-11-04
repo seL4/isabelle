@@ -1,4 +1,5 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory
+(*  Title:      HOL/Tools/res_axioms.ML
+    Author:     Jia Meng, Cambridge University Computer Laboratory
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
@@ -17,13 +18,12 @@ sig
   val expand_defs_tac: thm -> tactic
   val combinators: thm -> thm
   val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
-  val atpset_rules_of: Proof.context -> (string * thm) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
   val setup: theory -> theory
 end;
 
-structure ResAxioms: RES_AXIOMS =
+structure Res_Axioms: RES_AXIOMS =
 struct
 
 val trace = Unsynchronized.ref false;
@@ -72,7 +72,7 @@ fun rhs_extra_types lhsT rhs =
   prefix for the Skolem constant.*)
 fun declare_skofuns s th =
   let
-    val nref = Unsynchronized.ref 0
+    val nref = Unsynchronized.ref 0    (* FIXME ??? *)
     fun dec_sko (Const ("Ex",_) $ (xtp as Abs (_, T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
@@ -86,12 +86,13 @@ fun declare_skofuns s th =
             val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
                     (*Forms a lambda-abstraction over the formal parameters*)
             val (c, thy') =
-              Sign.declare_const [Markup.property_internal] ((Binding.name cname, cT), NoSyn) thy
+              Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
             val cdef = cname ^ "_def"
-            val thy'' = Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
+            val thy'' =
+              Theory.add_defs_i true false [(Binding.name cdef, Logic.mk_equals (c, rhs))] thy'
             val ax = Thm.axiom thy'' (Sign.full_bname thy'' cdef)
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
-      | dec_sko (Const ("All", _) $ (xtp as Abs (a, T, p))) thx =
+      | dec_sko (Const ("All", _) $ (Abs (a, T, p))) thx =
           (*Universal quant: insert a free variable into body and continue*)
           let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
           in dec_sko (subst_bound (Free (fname, T), p)) thx end
@@ -103,11 +104,11 @@ fun declare_skofuns s th =
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
-  let val sko_count = Unsynchronized.ref 0
+  let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
-                val args = OldTerm.term_frees xtp \\ skos  (*the formal parameters*)
+                val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
                 val id = "sko_" ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)
@@ -119,7 +120,7 @@ fun assume_skofuns s th =
             in dec_sko (subst_bound (list_comb(c,args), p))
                        (def :: defs)
             end
-        | dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) defs =
+        | dec_sko (Const ("All",_) $ Abs (a, T, p)) defs =
             (*Universal quant: insert a free variable into body and continue*)
             let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
             in dec_sko (subst_bound (Free(fname,T), p)) defs end
@@ -157,8 +158,6 @@ fun strip_lambdas 0 th = th
         | _ => th;
 
 val lambda_free = not o Term.has_abs;
-
-val monomorphic = not o Term.exists_type (Term.exists_subtype Term.is_TVar);
 
 val [f_B,g_B] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_B}));
 val [g_C,f_C] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_C}));
@@ -216,14 +215,14 @@ fun combinators_aux ct =
   else
   case term_of ct of
       Abs _ =>
-        let val (cv,cta) = Thm.dest_abs NONE ct
-            val (v,Tv) = (dest_Free o term_of) cv
+        let val (cv, cta) = Thm.dest_abs NONE ct
+            val (v, _) = dest_Free (term_of cv)
             val u_th = combinators_aux cta
             val cu = Thm.rhs_of u_th
             val comb_eq = abstract (Thm.cabs cv cu)
         in transitive (abstract_rule v cv u_th) comb_eq end
-    | t1 $ t2 =>
-        let val (ct1,ct2) = Thm.dest_comb ct
+    | _ $ _ =>
+        let val (ct1, ct2) = Thm.dest_comb ct
         in  combination (combinators_aux ct1) (combinators_aux ct2)  end;
 
 fun combinators th =
@@ -286,13 +285,8 @@ fun to_nnf th ctxt0 =
 fun assume_skolem_of_def s th =
   map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
-fun assert_lambda_free ths msg =
-  case filter (not o lambda_free o prop_of) ths of
-      [] => ()
-    | ths' => error (cat_lines (msg :: map Display.string_of_thm_without_context ths'));
 
-
-(*** Blacklisting (duplicated in ResAtp?) ***)
+(*** Blacklisting (duplicated in Res_ATP?) ***)
 
 val max_lambda_nesting = 3;
 
@@ -309,7 +303,7 @@ fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
       then exists (excessive_lambdas_fm Ts) (#2 (strip_comb t))
       else excessive_lambdas (t, max_lambda_nesting);
 
-(*The max apply_depth of any metis call in MetisExamples (on 31-10-2007) was 11.*)
+(*The max apply_depth of any metis call in Metis_Examples (on 31-10-2007) was 11.*)
 val max_apply_depth = 15;
 
 fun apply_depth (f$t) = Int.max (apply_depth f, apply_depth t + 1)
@@ -323,18 +317,17 @@ fun too_complex t =
 
 fun is_strange_thm th =
   case head_of (concl_of th) of
-      Const (a,_) => (a <> "Trueprop" andalso a <> "==")
+      Const (a, _) => (a <> "Trueprop" andalso a <> "==")
     | _ => false;
 
 fun bad_for_atp th =
-  Thm.is_internal th
-  orelse too_complex (prop_of th)
+  too_complex (prop_of th)
   orelse exists_type type_has_empty_sort (prop_of th)
   orelse is_strange_thm th;
 
 val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm",
-   "cases","ext_cases"];  (*FIXME: put other record thms here, or use the "Internal" marker*)
+   "cases","ext_cases"];  (* FIXME put other record thms here, or declare as "noatp" *)
 
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (Long_Name.explode s);
@@ -342,10 +335,6 @@ fun flatten_name s = space_implode "_X" (Long_Name.explode s);
 fun fake_name th =
   if Thm.has_name_hint th then flatten_name (Thm.get_name_hint th)
   else gensym "unknown_thm_";
-
-fun name_or_string th =
-  if Thm.has_name_hint th then Thm.get_name_hint th
-  else Display.string_of_thm_without_context th;
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s, th) =
@@ -389,8 +378,6 @@ fun cnf_axiom thy th0 =
 
 fun pairname th = (Thm.get_name_hint th, th);
 
-fun atpset_rules_of ctxt = map pairname (ResAtpset.get ctxt);
-
 
 (**** Translate a set of theorems into CNF ****)
 
@@ -400,14 +387,14 @@ fun pair_name_cls k (n, []) = []
 fun cnf_rules_pairs_aux _ pairs [] = pairs
   | cnf_rules_pairs_aux thy pairs ((name,th)::ths) =
       let val pairs' = (pair_name_cls 0 (name, cnf_axiom thy th)) @ pairs
-                       handle THM _ => pairs | ResClause.CLAUSE _ => pairs
+                       handle THM _ => pairs | Res_Clause.CLAUSE _ => pairs
       in  cnf_rules_pairs_aux thy pairs' ths  end;
 
 (*The combination of rev and tail recursion preserves the original order*)
 fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 
-(**** Convert all facts of the theory into clauses (ResClause.clause, or ResHolClause.clause) ****)
+(**** Convert all facts of the theory into clauses (Res_Clause.clause, or Res_HOL_Clause.clause) ****)
 
 local
 
@@ -434,8 +421,10 @@ in
 
 fun saturate_skolem_cache thy =
   let
-    val new_facts = (PureThy.facts_of thy, []) |-> Facts.fold_static (fn (name, ths) =>
-      if already_seen thy name then I else cons (name, ths));
+    val facts = PureThy.facts_of thy;
+    val new_facts = (facts, []) |-> Facts.fold_static (fn (name, ths) =>
+      if Facts.is_concealed facts name orelse already_seen thy name then I
+      else cons (name, ths));
     val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
       if member (op =) multi_base_blacklist (Long_Name.base_name name) then I
       else fold_index (fn (i, th) =>
@@ -487,7 +476,7 @@ fun expand_defs_tac st0 st =
       val remaining_hyps = filter_out (member (op aconv) (map Thm.term_of defs))
                                       (map Thm.term_of hyps)
       val fixed = OldTerm.term_frees (concl_of st) @
-                  List.foldl (gen_union (op aconv)) [] (map OldTerm.term_frees remaining_hyps)
+                  fold (union (op aconv)) (map OldTerm.term_frees remaining_hyps) []
   in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 

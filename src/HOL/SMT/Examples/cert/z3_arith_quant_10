@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (forall (?x1 Int) (?x2 Int) (or (< 2 (+ ?x1 ?x2)) (or (= (+ ?x1 ?x2) 2) (< (+ ?x1 ?x2) 2)))))
+:formula true
+)

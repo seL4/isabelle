@@ -18,6 +18,11 @@ use "ML-Systems/use_context.ML";
 
 val forget_structure = PolyML.Compiler.forgetStructure;
 
+val _ = PolyML.Compiler.forgetValue "isSome";
+val _ = PolyML.Compiler.forgetValue "getOpt";
+val _ = PolyML.Compiler.forgetValue "valOf";
+val _ = PolyML.Compiler.forgetValue "foldl";
+val _ = PolyML.Compiler.forgetValue "foldr";
 val _ = PolyML.Compiler.forgetValue "print";
 val _ = PolyML.Compiler.forgetValue "ref";
 val _ = PolyML.Compiler.forgetType "ref";
@@ -125,4 +130,13 @@ fun profile 0 f x = f x
         val res = Exn.capture f x;
         val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
       in Exn.release res end;
+
+
+(* magic immutability -- for internal use only! *)
+
+fun magic_immutability_mark (r: 'a Unsynchronized.ref) =
+  ignore (RunCall.run_call1 RuntimeCalls.POLY_SYS_lockseg r);
+
+fun magic_immutability_test (r: 'a Unsynchronized.ref) =
+  Word8.andb (0wx40, RunCall.run_call1 RuntimeCalls.POLY_SYS_get_flags r) = 0w0;
 

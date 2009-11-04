@@ -1,11 +1,12 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory
-    Copyright 2004 University of Cambridge
+(*  Title:      HOL/Tools/res_clause.ML
+    Author:     Jia Meng, Cambridge University Computer Laboratory
 
-Storing/printing FOL clauses and arity clauses.
-Typed equality is treated differently.
+Storing/printing FOL clauses and arity clauses.  Typed equality is
+treated differently.
+
+FIXME: combine with res_hol_clause!
 *)
 
-(*FIXME: combine with res_hol_clause!*)
 signature RES_CLAUSE =
 sig
   val schematic_var_prefix: string
@@ -76,7 +77,7 @@ sig
   val tptp_classrelClause : classrelClause -> string
 end
 
-structure ResClause: RES_CLAUSE =
+structure Res_Clause: RES_CLAUSE =
 struct
 
 val schematic_var_prefix = "V_";
@@ -93,7 +94,7 @@ val const_prefix = "c_";
 val tconst_prefix = "tc_";
 val class_prefix = "class_";
 
-fun union_all xss = List.foldl (op union) [] xss;
+fun union_all xss = List.foldl (uncurry (union (op =))) [] xss;
 
 (*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
@@ -263,7 +264,7 @@ fun pred_of_sort (LTVar (s,ty)) = (s,1)
   | pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_typs Ts = List.foldl (op union) [] (map sorts_on_typs Ts);
+fun add_typs Ts = List.foldl (uncurry (union (op =))) [] (map sorts_on_typs Ts);
 
 (*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
   * Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
@@ -370,9 +371,10 @@ fun type_class_pairs thy tycons classes =
 fun iter_type_class_pairs thy tycons [] = ([], [])
   | iter_type_class_pairs thy tycons classes =
       let val cpairs = type_class_pairs thy tycons classes
-          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs))) \\ classes \\ HOLogic.typeS
+          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs)))
+            |> subtract (op =) classes |> subtract (op =) HOLogic.typeS
           val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
-      in  (classes' union classes, cpairs' union cpairs)  end;
+      in (union (op =) classes' classes, union (op =) cpairs' cpairs) end;
 
 fun make_arity_clauses_dfg dfg thy tycons classes =
   let val (classes', cpairs) = iter_type_class_pairs thy tycons classes

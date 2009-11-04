@@ -939,7 +939,7 @@ fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
   | free_dummy_patterns a used = (a, used);
 
 fun replace_dummy Ts (Const ("dummy_pattern", T)) i =
-      (list_comb (Var (("_dummy_", i), Ts ---> T), map Bound (0 upto length Ts - 1)), i + 1)
+      (list_comb (Var (("_dummy_", i), Ts ---> T), map_range Bound (length Ts)), i + 1)
   | replace_dummy Ts (Abs (x, T, t)) i =
       let val (t', i') = replace_dummy (T :: Ts) t i
       in (Abs (x, T, t'), i') end

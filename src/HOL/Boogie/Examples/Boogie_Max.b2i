@@ -1,0 +1,748 @@
+vc max 1
+    implies
+    label pos 10 7
+    true
+    implies
+    <
+    int-num 0
+    var length
+      int
+    implies
+    true
+    implies
+    =
+    var max@0
+      int
+    select 2
+    var array
+      array 2
+        int
+        int
+    int-num 0
+    implies
+    and 4
+    <=
+    int-num 0
+    int-num 0
+    <=
+    int-num 0
+    int-num 0
+    <=
+    int-num 1
+    int-num 1
+    <=
+    int-num 1
+    int-num 1
+    and 2
+    label neg 14 5
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    int-num 1
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@0
+      int
+    implies
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    int-num 1
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@0
+      int
+    and 2
+    label neg 15 5
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    int-num 0
+    var max@0
+      int
+    implies
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    int-num 0
+    var max@0
+      int
+    implies
+    label pos 13 3
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var p@0
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@1
+      int
+    implies
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var k@0
+      int
+    var max@1
+      int
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    and 2
+    implies
+    label pos 13 3
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    >=
+    var p@0
+      int
+    var length
+      int
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    label pos 0 0
+    true
+    implies
+    =
+    var k@2
+      int
+    var k@0
+      int
+    implies
+    =
+    var max@4
+      int
+    var max@1
+      int
+    implies
+    =
+    var p@2
+      int
+    var p@0
+      int
+    implies
+    label pos 0 0
+    true
+    and 2
+    label neg 5 3
+    exists 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.5:19
+      attribute uniqueId 1
+        string-attr 1
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var length
+      int
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@4
+      int
+    implies
+    exists 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.5:19
+      attribute uniqueId 1
+        string-attr 1
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var length
+      int
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@4
+      int
+    and 2
+    label neg 4 3
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.4:19
+      attribute uniqueId 1
+        string-attr 0
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var length
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@4
+      int
+    implies
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.4:19
+      attribute uniqueId 1
+        string-attr 0
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var length
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@4
+      int
+    true
+    implies
+    label pos 17 5
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    <
+    var p@0
+      int
+    var length
+      int
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    and 2
+    implies
+    label pos 17 31
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    >
+    select 2
+    var array
+      array 2
+        int
+        int
+    var p@0
+      int
+    var max@1
+      int
+    implies
+    =
+    var max@2
+      int
+    select 2
+    var array
+      array 2
+        int
+        int
+    var p@0
+      int
+    implies
+    and 2
+    <=
+    int-num 1
+    var p@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    label pos 0 0
+    true
+    implies
+    =
+    var k@1
+      int
+    var p@0
+      int
+    implies
+    =
+    var max@3
+      int
+    var max@2
+      int
+    implies
+    label pos 18 7
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@1
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    =
+    var p@1
+      int
+    +
+    var p@0
+      int
+    int-num 1
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@1
+      int
+    <=
+    int-num 2
+    var p@1
+      int
+    implies
+    label pos 0 0
+    true
+    and 2
+    label neg 14 5
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var p@1
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@3
+      int
+    implies
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var p@1
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@3
+      int
+    and 2
+    label neg 15 5
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var k@1
+      int
+    var max@3
+      int
+    implies
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var k@1
+      int
+    var max@3
+      int
+    implies
+    false
+    true
+    implies
+    label pos 17 5
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var p@0
+      int
+    var max@1
+      int
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@0
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    label pos 0 0
+    true
+    implies
+    =
+    var k@1
+      int
+    var k@0
+      int
+    implies
+    =
+    var max@3
+      int
+    var max@1
+      int
+    implies
+    label pos 18 7
+    true
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@1
+      int
+    <=
+    int-num 1
+    var p@0
+      int
+    implies
+    =
+    var p@1
+      int
+    +
+    var p@0
+      int
+    int-num 1
+    implies
+    and 2
+    <=
+    int-num 0
+    var k@1
+      int
+    <=
+    int-num 2
+    var p@1
+      int
+    implies
+    label pos 0 0
+    true
+    and 2
+    label neg 14 5
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var p@1
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@3
+      int
+    implies
+    forall 1 0 3
+      var i
+        int
+      attribute qid 1
+        string-attr BoogieMa.14:23
+      attribute uniqueId 1
+        string-attr 2
+      attribute bvZ3Native 1
+        string-attr False
+    implies
+    and 2
+    <=
+    int-num 0
+    var i
+      int
+    <
+    var i
+      int
+    var p@1
+      int
+    <=
+    select 2
+    var array
+      array 2
+        int
+        int
+    var i
+      int
+    var max@3
+      int
+    and 2
+    label neg 15 5
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var k@1
+      int
+    var max@3
+      int
+    implies
+    =
+    select 2
+    var array
+      array 2
+        int
+        int
+    var k@1
+      int
+    var max@3
+      int
+    implies
+    false
+    true

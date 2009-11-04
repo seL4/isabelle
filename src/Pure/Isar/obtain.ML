@@ -129,7 +129,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val _ = Variable.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     (*obtain statements*)
-    val thesisN = Name.variant xs AutoBind.thesisN;
+    val thesisN = Name.variant xs Auto_Bind.thesisN;
     val (thesis_var, thesis) = #1 (bind_judgment fix_ctxt thesisN);
 
     val asm_frees = fold Term.add_frees asm_props [];
@@ -142,7 +142,7 @@ fun gen_obtain prep_att prep_vars prep_propp
       Term.list_all_free (parms, Logic.list_implies (asm_props, thesis))
       |> Library.curry Logic.list_rename_params xs;
     val obtain_prop =
-      Logic.list_rename_params ([AutoBind.thesisN],
+      Logic.list_rename_params ([Auto_Bind.thesisN],
         Term.list_all_free ([thesis_var], Logic.mk_implies (that_prop, thesis)));
 
     fun after_qed _ =
@@ -157,7 +157,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume_i
-      [((Binding.name that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
+      [((Binding.name that_name, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
     ||> Proof.show_i NONE after_qed [(Thm.empty_binding, [(thesis, [])])] false
@@ -189,7 +189,7 @@ fun result tac facts ctxt =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt AutoBind.thesisN;
+    val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt Auto_Bind.thesisN;
     val rule =
       (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) (Goal.init (cert thesis)) of
         NONE => raise THM ("Obtain.result: tactic failed", 0, facts)
@@ -222,7 +222,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val maxidx = fold (Term.maxidx_typ o snd o fst) vars ~1;
     val rule = Thm.incr_indexes (maxidx + 1) raw_rule;
 
-    val params = RuleCases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
+    val params = Rule_Cases.strip_params (Logic.nth_prem (1, Thm.prop_of rule));
     val m = length vars;
     val n = length params;
     val _ = m <= n orelse err "More variables than parameters in obtained rule" rule;
@@ -273,7 +273,7 @@ fun gen_guess prep_vars raw_vars int state =
     val ctxt = Proof.context_of state;
     val chain_facts = if can Proof.assert_chain state then Proof.the_facts state else [];
 
-    val (thesis_var, thesis) = #1 (bind_judgment ctxt AutoBind.thesisN);
+    val (thesis_var, thesis) = #1 (bind_judgment ctxt Auto_Bind.thesisN);
     val vars = ctxt |> prep_vars raw_vars |-> fold_map inferred_type |> fst |> polymorphic ctxt;
 
     fun guess_context raw_rule state' =
@@ -293,12 +293,12 @@ fun gen_guess prep_vars raw_vars int state =
         |> Proof.fix_i (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm_i
           (obtain_export fix_ctxt rule (map cert ts)) [(Thm.empty_binding, asms)])
-        |> Proof.bind_terms AutoBind.no_facts
+        |> Proof.bind_terms Auto_Bind.no_facts
       end;
 
     val goal = Var (("guess", 0), propT);
     fun print_result ctxt' (k, [(s, [_, th])]) =
-      ProofDisplay.print_results int ctxt' (k, [(s, [th])]);
+      Proof_Display.print_results int ctxt' (k, [(s, [th])]);
     val before_qed = SOME (Method.primitive_text (Goal.conclude #> MetaSimplifier.norm_hhf #>
         (fn th => Goal.protect (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th))));
     fun after_qed [[_, res]] =
@@ -307,7 +307,7 @@ fun gen_guess prep_vars raw_vars int state =
     state
     |> Proof.enter_forward
     |> Proof.begin_block
-    |> Proof.fix_i [(Binding.name AutoBind.thesisN, NONE, NoSyn)]
+    |> Proof.fix_i [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal print_result (K I) (apsnd (rpair I))
       "guess" before_qed after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]

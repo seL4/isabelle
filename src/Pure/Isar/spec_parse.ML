@@ -18,6 +18,8 @@ sig
   val xthm: (Facts.ref * Attrib.src list) parser
   val xthms1: (Facts.ref * Attrib.src list) list parser
   val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
+  val constdecl: (binding * string option * mixfix) parser
+  val constdef: ((binding * string option * mixfix) option * (Attrib.binding * string)) parser
   val locale_mixfix: mixfix parser
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
@@ -64,6 +66,18 @@ val xthm =
 val xthms1 = Scan.repeat1 xthm;
 
 val name_facts = P.and_list1 (opt_thm_name "=" -- xthms1);
+
+
+(* basic constant specifications *)
+
+val constdecl =
+  P.binding --
+    (P.where_ >> K (NONE, NoSyn) ||
+      P.$$$ "::" |-- P.!!! ((P.typ >> SOME) -- P.opt_mixfix' --| P.where_) ||
+      Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
+  >> P.triple2;
+
+val constdef = Scan.option constdecl -- (opt_thm_name ":" -- P.prop);
 
 
 (* locale and context elements *)

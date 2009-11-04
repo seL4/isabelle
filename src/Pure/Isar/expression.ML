@@ -611,7 +611,7 @@ fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
   else raise Match);
 
 (* define one predicate including its intro rule and axioms
-   - bname: predicate name
+   - binding: predicate name
    - parms: locale parameters
    - defs: thms representing substitutions from defines elements
    - ts: terms representing locale assumptions (not normalised wrt. defs)
@@ -619,16 +619,16 @@ fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
    - thy: the theory
 *)
 
-fun def_pred bname parms defs ts norm_ts thy =
+fun def_pred binding parms defs ts norm_ts thy =
   let
-    val name = Sign.full_name thy bname;
+    val name = Sign.full_name thy binding;
 
     val (body, bodyT, body_eq) = atomize_spec thy norm_ts;
     val env = Term.add_free_names body [];
     val xs = filter (member (op =) env o #1) parms;
     val Ts = map #2 xs;
     val extraTs =
-      (Term.add_tfrees body [] \\ fold Term.add_tfreesT Ts [])
+      (subtract (op =) (fold Term.add_tfreesT Ts []) (Term.add_tfrees body []))
       |> Library.sort_wrt #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 
@@ -639,9 +639,10 @@ fun def_pred bname parms defs ts norm_ts thy =
     val ([pred_def], defs_thy) =
       thy
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
-      |> Sign.declare_const [] ((bname, predT), NoSyn) |> snd
+      |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
       |> PureThy.add_defs false
-        [((Binding.map_name Thm.def_name bname, Logic.mk_equals (head, body)), [Thm.kind_internal])];
+        [((Binding.conceal (Binding.map_name Thm.def_name binding),
+            Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
@@ -666,7 +667,7 @@ in
 
 (* main predicate definition function *)
 
-fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
+fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
   let
     val defs' = map (cterm_of thy #> Assumption.assume #> Drule.abs_def) defs;
 
@@ -674,15 +675,15 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
       if null exts then (NONE, NONE, [], thy)
       else
         let
-          val aname = if null ints then pname else Binding.suffix_name ("_" ^ axiomsN) pname;
+          val abinding = if null ints then binding else Binding.suffix_name ("_" ^ axiomsN) binding;
           val ((statement, intro, axioms), thy') =
             thy
-            |> def_pred aname parms defs' exts exts';
+            |> def_pred abinding parms defs' exts exts';
           val (_, thy'') =
             thy'
-            |> Sign.mandatory_path (Binding.name_of aname)
+            |> Sign.mandatory_path (Binding.name_of abinding)
             |> PureThy.note_thmss Thm.internalK
-              [((Binding.name introN, []), [([intro], [Locale.unfold_add])])]
+              [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =
@@ -691,13 +692,13 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
         let
           val ((statement, intro, axioms), thy''') =
             thy''
-            |> def_pred pname parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
+            |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val (_, thy'''') =
             thy'''
-            |> Sign.mandatory_path (Binding.name_of pname)
+            |> Sign.mandatory_path (Binding.name_of binding)
             |> PureThy.note_thmss Thm.internalK
-                 [((Binding.name introN, []), [([intro], [Locale.intro_add])]),
-                  ((Binding.name axiomsN, []),
+                 [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
+                  ((Binding.conceal (Binding.name axiomsN), []),
                     [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
         in (SOME statement, SOME intro, axioms, thy'''') end;
@@ -722,9 +723,9 @@ fun defines_to_notes thy (Defines defs) =
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
-    bname raw_predicate_bname raw_import raw_body thy =
+    binding raw_predicate_binding raw_import raw_body thy =
   let
-    val name = Sign.full_name thy bname;
+    val name = Sign.full_name thy binding;
     val _ = Locale.defined thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
@@ -732,17 +733,17 @@ fun gen_add_locale prep_decl
       prep_decl raw_import I raw_body (ProofContext.init thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
-    val predicate_bname =
-      if Binding.is_empty raw_predicate_bname then bname
-      else raw_predicate_bname;
+    val predicate_binding =
+      if Binding.is_empty raw_predicate_binding then binding
+      else raw_predicate_binding;
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
-      define_preds predicate_bname parms text thy;
+      define_preds predicate_binding parms text thy;
 
-    val extraTs = fold Term.add_tfrees exts' [] \\ fold Term.add_tfreesT (map snd parms) [];
+    val extraTs = subtract (op =) (fold Term.add_tfreesT (map snd parms) []) (fold Term.add_tfrees exts' []);
     val _ =
       if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^
-        quote (Binding.str_of bname));
+        quote (Binding.str_of binding));
 
     val a_satisfy = Element.satisfy_morphism a_axioms;
     val b_satisfy = Element.satisfy_morphism b_axioms;
@@ -753,10 +754,10 @@ fun gen_add_locale prep_decl
     val asm = if is_some b_statement then b_statement else a_statement;
 
     val notes =
-      if is_some asm
-      then [(Thm.internalK, [((Binding.suffix_name ("_" ^ axiomsN) bname, []),
-        [([Assumption.assume (cterm_of thy' (the asm))],
-          [(Attrib.internal o K) Locale.witness_add])])])]
+      if is_some asm then
+        [(Thm.internalK, [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
+          [([Assumption.assume (cterm_of thy' (the asm))],
+            [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
 
     val notes' = body_elems |>
@@ -771,7 +772,7 @@ fun gen_add_locale prep_decl
     val axioms = map Element.conclude_witness b_axioms;
 
     val loc_ctxt = thy'
-      |> Locale.register_locale bname (extraTs, params)
+      |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms ([], []) (rev notes) (rev deps')
       |> TheoryTarget.init (SOME name)
       |> fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes';

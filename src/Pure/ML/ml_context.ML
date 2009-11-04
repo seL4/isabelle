@@ -54,7 +54,7 @@ fun exec (e: unit -> unit) context =
 
 (* theorem bindings *)
 
-val stored_thms: thm list Unsynchronized.ref = Unsynchronized.ref [];
+val stored_thms: thm list Unsynchronized.ref = Unsynchronized.ref [];  (* FIXME via context!? *)
 
 fun ml_store sel (name, ths) =
   let
@@ -195,6 +195,7 @@ fun eval_file path = eval true (Path.position path) (File.read path);
 fun eval_in ctxt verbose pos txt =
   Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos txt) ();
 
+(* FIXME not thread-safe -- reference can be accessed directly *)
 fun evaluate ctxt verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
     val _ = r := NONE;

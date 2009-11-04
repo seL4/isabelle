@@ -10,7 +10,7 @@ sig
   val exn: unit -> (exn * string) option
   val state: unit -> Toplevel.state
   val context: unit -> Proof.context
-  val goal: unit -> thm
+  val goal: unit -> {context: Proof.context, facts: thm list, goal: thm}
   val print: unit -> unit
   val >> : Toplevel.transition -> bool
   val >>> : Toplevel.transition list -> unit
@@ -47,10 +47,10 @@ fun edit_history count f = NAMED_CRITICAL "Isar" (fn () =>
       | edit n (st, hist) = edit (n - 1) (f st hist);
   in edit count (! global_state, ! global_history) end);
 
-fun state () = NAMED_CRITICAL "Isar" (fn () => ! global_state);
+fun state () = ! global_state;
 
-fun exn () = NAMED_CRITICAL "Isar" (fn () => ! global_exn);
-fun set_exn exn =  NAMED_CRITICAL "Isar" (fn () => global_exn := exn);
+fun exn () = ! global_exn;
+fun set_exn exn =  global_exn := exn;
 
 end;
 
@@ -60,7 +60,7 @@ fun init () = edit_history 1 (K (K (Toplevel.toplevel, [])));
 fun context () = Toplevel.context_of (state ())
   handle Toplevel.UNDEF => error "Unknown context";
 
-fun goal () = #2 (#2 (Proof.get_goal (Toplevel.proof_of (state ()))))
+fun goal () = Proof.goal (Toplevel.proof_of (state ()))
   handle Toplevel.UNDEF => error "No goal present";
 
 fun print () = Toplevel.print_state false (state ());

@@ -1,15 +1,26 @@
 
 (* Authors: Jeremy Avigad and Amine Chaieb *)
 
-header {* Sets up transfer from nats to ints and back. *}
+header {* Generic transfer machinery;  specific transfer from nats to ints and back. *}
 
 theory Nat_Transfer
-imports Main Parity
+imports Nat_Numeral
+uses ("Tools/transfer.ML")
 begin
+
+subsection {* Generic transfer machinery *}
+
+definition TransferMorphism:: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> bool"
+  where "TransferMorphism a B \<longleftrightarrow> True"
+
+use "Tools/transfer.ML"
+
+setup Transfer.setup
+
 
 subsection {* Set up transfer from nat to int *}
 
-(* set up transfer direction *)
+text {* set up transfer direction *}
 
 lemma TransferMorphism_nat_int: "TransferMorphism nat (op <= (0::int))"
   by (simp add: TransferMorphism_def)
@@ -20,7 +31,7 @@ declare TransferMorphism_nat_int[transfer
   labels: natint
 ]
 
-(* basic functions and relations *)
+text {* basic functions and relations *}
 
 lemma transfer_nat_int_numerals:
     "(0::nat) = nat 0"
@@ -43,32 +54,20 @@ lemma transfer_nat_int_functions:
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) * (nat y) = nat (x * y)"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) - (nat y) = nat (tsub x y)"
     "(x::int) >= 0 \<Longrightarrow> (nat x)^n = nat (x^n)"
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) div (nat y) = nat (x div y)"
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) mod (nat y) = nat (x mod y)"
   by (auto simp add: eq_nat_nat_iff nat_mult_distrib
-      nat_power_eq nat_div_distrib nat_mod_distrib tsub_def)
+      nat_power_eq tsub_def)
 
 lemma transfer_nat_int_function_closures:
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x + y >= 0"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x * y >= 0"
     "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> tsub x y >= 0"
     "(x::int) >= 0 \<Longrightarrow> x^n >= 0"
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x div y >= 0"
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x mod y >= 0"
     "(0::int) >= 0"
     "(1::int) >= 0"
     "(2::int) >= 0"
     "(3::int) >= 0"
     "int z >= 0"
-  apply (auto simp add: zero_le_mult_iff tsub_def)
-  apply (case_tac "y = 0")
-  apply auto
-  apply (subst pos_imp_zdiv_nonneg_iff, auto)
-  apply (case_tac "y = 0")
-  apply force
-  apply (rule pos_mod_sign)
-  apply arith
-done
+  by (auto simp add: zero_le_mult_iff tsub_def)
 
 lemma transfer_nat_int_relations:
     "x >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow>
@@ -89,7 +88,21 @@ declare TransferMorphism_nat_int[transfer add return:
 ]
 
 
-(* first-order quantifiers *)
+text {* first-order quantifiers *}
+
+lemma all_nat: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x\<ge>0. P (nat x))"
+  by (simp split add: split_nat)
+
+lemma ex_nat: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> P (nat x))"
+proof
+  assume "\<exists>x. P x"
+  then obtain x where "P x" ..
+  then have "int x \<ge> 0 \<and> P (nat (int x))" by simp
+  then show "\<exists>x\<ge>0. P (nat x)" ..
+next
+  assume "\<exists>x\<ge>0. P (nat x)"
+  then show "\<exists>x. P x" by auto
+qed
 
 lemma transfer_nat_int_quantifiers:
     "(ALL (x::nat). P x) = (ALL (x::int). x >= 0 \<longrightarrow> P (nat x))"
@@ -110,7 +123,7 @@ declare TransferMorphism_nat_int[transfer add
   cong: all_cong ex_cong]
 
 
-(* if *)
+text {* if *}
 
 lemma nat_if_cong: "(if P then (nat x) else (nat y)) =
     nat (if P then x else y)"
@@ -119,7 +132,7 @@ lemma nat_if_cong: "(if P then (nat x) else (nat y)) =
 declare TransferMorphism_nat_int [transfer add return: nat_if_cong]
 
 
-(* operations with sets *)
+text {* operations with sets *}
 
 definition
   nat_set :: "int set \<Rightarrow> bool"
@@ -132,8 +145,6 @@ lemma transfer_nat_int_set_functions:
     "A Un B = nat ` (int ` A Un int ` B)"
     "A Int B = nat ` (int ` A Int int ` B)"
     "{x. P x} = nat ` {x. x >= 0 & P(nat x)}"
-    "{..n} = nat ` {0..int n}"
-    "{m..n} = nat ` {int m..int n}"  (* need all variants of these! *)
   apply (rule card_image [symmetric])
   apply (auto simp add: inj_on_def image_def)
   apply (rule_tac x = "int x" in bexI)
@@ -144,17 +155,12 @@ lemma transfer_nat_int_set_functions:
   apply auto
   apply (rule_tac x = "int x" in exI)
   apply auto
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
 done
 
 lemma transfer_nat_int_set_function_closures:
     "nat_set {}"
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> nat_set (A Un B)"
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> nat_set (A Int B)"
-    "x >= 0 \<Longrightarrow> nat_set {x..y}"
     "nat_set {x. x >= 0 & P x}"
     "nat_set (int ` C)"
     "nat_set A \<Longrightarrow> x : A \<Longrightarrow> x >= 0" (* does it hurt to turn this on? *)
@@ -167,7 +173,6 @@ lemma transfer_nat_int_set_relations:
     "(A = B) = (int ` A = int ` B)"
     "(A < B) = (int ` A < int ` B)"
     "(A <= B) = (int ` A <= int ` B)"
-
   apply (rule iffI)
   apply (erule finite_imageI)
   apply (erule finite_imageD)
@@ -194,7 +199,7 @@ declare TransferMorphism_nat_int[transfer add
 ]
 
 
-(* setsum and setprod *)
+text {* setsum and setprod *}
 
 (* this handles the case where the *domain* of f is nat *)
 lemma transfer_nat_int_sum_prod:
@@ -262,52 +267,10 @@ declare TransferMorphism_nat_int[transfer add
     transfer_nat_int_sum_prod_closure
   cong: transfer_nat_int_sum_prod_cong]
 
-(* lists *)
-
-definition
-  embed_list :: "nat list \<Rightarrow> int list"
-where
-  "embed_list l = map int l";
-
-definition
-  nat_list :: "int list \<Rightarrow> bool"
-where
-  "nat_list l = nat_set (set l)";
-
-definition
-  return_list :: "int list \<Rightarrow> nat list"
-where
-  "return_list l = map nat l";
-
-thm nat_0_le;
-
-lemma transfer_nat_int_list_return_embed: "nat_list l \<longrightarrow>
-    embed_list (return_list l) = l";
-  unfolding embed_list_def return_list_def nat_list_def nat_set_def
-  apply (induct l);
-  apply auto;
-done;
-
-lemma transfer_nat_int_list_functions:
-  "l @ m = return_list (embed_list l @ embed_list m)"
-  "[] = return_list []";
-  unfolding return_list_def embed_list_def;
-  apply auto;
-  apply (induct l, auto);
-  apply (induct m, auto);
-done;
-
-(*
-lemma transfer_nat_int_fold1: "fold f l x =
-    fold (%x. f (nat x)) (embed_list l) x";
-*)
-
-
-
 
 subsection {* Set up transfer from int to nat *}
 
-(* set up transfer direction *)
+text {* set up transfer direction *}
 
 lemma TransferMorphism_int_nat: "TransferMorphism int (UNIV :: nat set)"
   by (simp add: TransferMorphism_def)
@@ -319,7 +282,11 @@ declare TransferMorphism_int_nat[transfer add
 ]
 
 
-(* basic functions and relations *)
+text {* basic functions and relations *}
+
+lemma UNIV_apply:
+  "UNIV x = True"
+  by (simp add: top_fun_eq top_bool_eq)
 
 definition
   is_nat :: "int \<Rightarrow> bool"
@@ -338,17 +305,13 @@ lemma transfer_int_nat_functions:
     "(int x) * (int y) = int (x * y)"
     "tsub (int x) (int y) = int (x - y)"
     "(int x)^n = int (x^n)"
-    "(int x) div (int y) = int (x div y)"
-    "(int x) mod (int y) = int (x mod y)"
-  by (auto simp add: int_mult tsub_def int_power zdiv_int zmod_int)
+  by (auto simp add: int_mult tsub_def int_power)
 
 lemma transfer_int_nat_function_closures:
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x + y)"
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x * y)"
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (tsub x y)"
     "is_nat x \<Longrightarrow> is_nat (x^n)"
-    "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x div y)"
-    "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x mod y)"
     "is_nat 0"
     "is_nat 1"
     "is_nat 2"
@@ -361,12 +324,7 @@ lemma transfer_int_nat_relations:
     "(int x < int y) = (x < y)"
     "(int x <= int y) = (x <= y)"
     "(int x dvd int y) = (x dvd y)"
-    "(even (int x)) = (even x)"
-  by (auto simp add: zdvd_int even_nat_def)
-
-lemma UNIV_apply:
-  "UNIV x = True"
-  by (simp add: top_fun_eq top_bool_eq)
+  by (auto simp add: zdvd_int)
 
 declare TransferMorphism_int_nat[transfer add return:
   transfer_int_nat_numerals
@@ -377,7 +335,7 @@ declare TransferMorphism_int_nat[transfer add return:
 ]
 
 
-(* first-order quantifiers *)
+text {* first-order quantifiers *}
 
 lemma transfer_int_nat_quantifiers:
     "(ALL (x::int) >= 0. P x) = (ALL (x::nat). P (int x))"
@@ -392,7 +350,7 @@ declare TransferMorphism_int_nat[transfer add
   return: transfer_int_nat_quantifiers]
 
 
-(* if *)
+text {* if *}
 
 lemma int_if_cong: "(if P then (int x) else (int y)) =
     int (if P then x else y)"
@@ -402,7 +360,7 @@ declare TransferMorphism_int_nat [transfer add return: int_if_cong]
 
 
 
-(* operations with sets *)
+text {* operations with sets *}
 
 lemma transfer_int_nat_set_functions:
     "nat_set A \<Longrightarrow> card A = card (nat ` A)"
@@ -410,7 +368,6 @@ lemma transfer_int_nat_set_functions:
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> A Un B = int ` (nat ` A Un nat ` B)"
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> A Int B = int ` (nat ` A Int nat ` B)"
     "{x. x >= 0 & P x} = int ` {x. P(int x)}"
-    "is_nat m \<Longrightarrow> is_nat n \<Longrightarrow> {m..n} = int ` {nat m..nat n}"
        (* need all variants of these! *)
   by (simp_all only: is_nat_def transfer_nat_int_set_functions
           transfer_nat_int_set_function_closures
@@ -421,7 +378,6 @@ lemma transfer_int_nat_set_function_closures:
     "nat_set {}"
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> nat_set (A Un B)"
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> nat_set (A Int B)"
-    "is_nat x \<Longrightarrow> nat_set {x..y}"
     "nat_set {x. x >= 0 & P x}"
     "nat_set (int ` C)"
     "nat_set A \<Longrightarrow> x : A \<Longrightarrow> is_nat x"
@@ -454,7 +410,7 @@ declare TransferMorphism_int_nat[transfer add
 ]
 
 
-(* setsum and setprod *)
+text {* setsum and setprod *}
 
 (* this handles the case where the *domain* of f is int *)
 lemma transfer_int_nat_sum_prod:

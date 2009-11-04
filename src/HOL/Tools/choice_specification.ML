@@ -120,7 +120,8 @@ fun process_spec axiomatic cos alt_props thy =
                 val frees = OldTerm.term_frees prop
                 val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
-                val prop_closed = List.foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
+                val prop_closed = fold_rev (fn (vname, T) => fn prop =>
+                  HOLogic.mk_all (vname, T, prop)) (map dest_Free frees) prop
             in
                 (prop_closed,frees)
             end
@@ -143,7 +144,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val (_, c') = Type.varify [] c
                 val (cname,ctyp) = dest_Const c'
             in
-                case List.filter (fn t => let val (name,typ) = dest_Const t
+                case filter (fn t => let val (name,typ) = dest_Const t
                                      in name = cname andalso Sign.typ_equiv thy (typ, ctyp)
                                      end) thawed_prop_consts of
                     [] => error ("Specification: No suitable instances of constant \"" ^ Syntax.string_of_term_global thy c ^ "\" found")
@@ -151,7 +152,7 @@ fun process_spec axiomatic cos alt_props thy =
                   | _ => error ("Specification: Several variations of \"" ^ Syntax.string_of_term_global thy c ^ "\" found (try applying explicit type constraints)")
             end
         val proc_consts = map proc_const consts
-        fun mk_exist (c,prop) =
+        fun mk_exist c prop =
             let
                 val T = type_of c
                 val cname = Long_Name.base_name (fst (dest_Const c))
@@ -161,11 +162,11 @@ fun process_spec axiomatic cos alt_props thy =
             in
                 HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c,prop))
             end
-        val ex_prop = List.foldr mk_exist prop proc_consts
+        val ex_prop = fold_rev mk_exist proc_consts prop
         val cnames = map (fst o dest_Const) proc_consts
         fun post_process (arg as (thy,thm)) =
             let
-                fun inst_all thy (thm,v) =
+                fun inst_all thy v thm =
                     let
                         val cv = cterm_of thy v
                         val cT = ctyp_of_term cv
@@ -174,7 +175,7 @@ fun process_spec axiomatic cos alt_props thy =
                         thm RS spec'
                     end
                 fun remove_alls frees thm =
-                    Library.foldl (inst_all (Thm.theory_of_thm thm)) (thm,frees)
+                    fold (inst_all (Thm.theory_of_thm thm)) frees thm
                 fun process_single ((name,atts),rew_imp,frees) args =
                     let
                         fun undo_imps thm =

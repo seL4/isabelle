@@ -15,6 +15,13 @@ object Markup
   val KIND = "kind"
 
 
+  /* formal entities */
+
+  val ENTITY = "entity"
+  val DEF = "def"
+  val REF = "ref"
+
+
   /* position */
 
   val LINE = "line"

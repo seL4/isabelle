@@ -312,7 +312,7 @@ fun grobner_interreduce rpols ipols =
 (* Overall function.                                                         *)
 
 fun grobner pols =
-    let val npols = map2 (fn p => fn n => (p,Start n)) pols (0 upto (length pols - 1))
+    let val npols = map_index (fn (n, p) => (p, Start n)) pols
         val phists = filter (fn (p,_) => not (null p)) npols
         val bas = grobner_interreduce [] (map monic phists)
         val prs0 = map_product pair bas bas
@@ -348,7 +348,7 @@ fun resolve_proof vars prf =
   | Add(lin1,lin2) =>
         let val lis1 = resolve_proof vars lin1
             val lis2 = resolve_proof vars lin2
-            val dom = distinct (op =) ((map fst lis1) union (map fst lis2))
+            val dom = distinct (op =) (union (op =) (map fst lis1) (map fst lis2))
         in
             map (fn n => let val a = these (AList.lookup (op =) lis1 n)
                              val b = these (AList.lookup (op =) lis2 n)
@@ -380,7 +380,7 @@ fun grobner_strong vars pols pol =
         val pol' = augment pol
         val allpols = (grob_sub (grob_mul grob_z pol') grob_1)::pols'
         val (l,cert) = grobner_weak vars' allpols
-        val d = fold_rev (fold_rev (curry Int.max o hd o snd) o snd) cert 0
+        val d = fold (fold (Integer.max o hd o snd) o snd) cert 0
         fun transform_monomial (c,m) =
             grob_cmul (c,tl m) (grob_pow vars pol (d - hd m))
         fun transform_polynomial q = fold_rev (grob_add o transform_monomial) q []
@@ -505,8 +505,8 @@ fun conj_ac_rule eq =
   val (l,r) = Thm.dest_equals eq
   val ctabl = mk_conj_tab (assume (Thm.capply @{cterm Trueprop} l))
   val ctabr = mk_conj_tab (assume (Thm.capply @{cterm Trueprop} r))
-  fun tabl c = valOf (Termtab.lookup ctabl (term_of c))
-  fun tabr c = valOf (Termtab.lookup ctabr (term_of c))
+  fun tabl c = the (Termtab.lookup ctabl (term_of c))
+  fun tabr c = the (Termtab.lookup ctabr (term_of c))
   val thl  = prove_conj tabl (conjuncts r) |> implies_intr_hyps
   val thr  = prove_conj tabr (conjuncts l) |> implies_intr_hyps
   val eqI = instantiate' [] [SOME l, SOME r] @{thm iffI}
@@ -802,8 +802,8 @@ fun ideal tms tm ord =
   val pols = map (grobify_term vars) tms
   val pol = grobify_term vars tm
   val cert = grobner_ideal vars pols pol
- in map (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
-        (0 upto (length pols - 1))
+ in map_range (fn n => these (AList.lookup (op =) cert n) |> holify_polynomial vars)
+   (length pols)
  end
 
 fun poly_eq_conv t = 
@@ -839,7 +839,7 @@ fun poly_eq_conv t =
    val (v,th1) = 
    case find_first(fn v=> is_defined v (Thm.dest_arg1 (Thm.rhs_of th))) vars of
     SOME v => (v,th')
-   | NONE => (valOf (find_first 
+   | NONE => (the (find_first 
           (fn v => is_defined v (Thm.dest_arg1 (Thm.rhs_of th'))) vars) ,th)
    val th2 = transitive th1 
         (instantiate' []  [(SOME o Thm.dest_arg1 o Thm.rhs_of) th1, SOME v] 
@@ -851,7 +851,7 @@ fun poly_eq_conv t =
  let 
   val (vars,bod) = strip_exists tm
   val cjs = striplist (dest_binary @{cterm "op &"}) bod
-  val th1 = (valOf (get_first (try (isolate_variable vars)) cjs) 
+  val th1 = (the (get_first (try (isolate_variable vars)) cjs) 
              handle Option => raise CTERM ("unwind_polys_conv",[tm]))
   val eq = Thm.lhs_of th1
   val bod' = list_mk_binop @{cterm "op &"} (eq::(remove op aconvc eq cjs))
@@ -884,7 +884,7 @@ local
  fun isolate_monomials vars tm =
  let 
   val (cmons,vmons) =
-    List.partition (fn m => null (gen_inter op aconvc (frees m, vars)))
+    List.partition (fn m => null (inter (op aconvc) vars (frees m)))
                    (striplist ring_dest_add tm)
   val cofactors = map (fn v => find_multipliers v vmons) vars
   val cnc = if null cmons then zero_tm
@@ -906,7 +906,7 @@ in
  fun solve_idealism evs ps eqs =
   if null evs then [] else
   let 
-   val (eq,cfs) = get_first (try (isolate_variables evs ps)) eqs |> valOf
+   val (eq,cfs) = get_first (try (isolate_variables evs ps)) eqs |> the
    val evs' = subtract op aconvc evs (map snd cfs)
    val eqs' = map (subst_in_poly cfs) (remove op aconvc eq eqs)
   in cfs @ solve_idealism evs' ps eqs'

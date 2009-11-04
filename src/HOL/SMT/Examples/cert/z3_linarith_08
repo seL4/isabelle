@@ -1,0 +1,7 @@
+(benchmark Isabelle
+:extrafuns (
+  (uf_1 Int)
+ )
+:assumption (not (or (<= 4 (+ uf_1 3)) (< uf_1 1)))
+:formula true
+)

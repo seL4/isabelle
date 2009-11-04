@@ -78,7 +78,7 @@ structure ShuffleData = TheoryDataFun
   val empty = []
   val copy = I
   val extend = I
-  fun merge _ = Library.gen_union Thm.eq_thm
+  fun merge _ = Library.merge Thm.eq_thm_prop
 )
 
 fun print_shuffles thy =
@@ -248,16 +248,16 @@ fun freeze_thaw_term t =
         val tvars = OldTerm.term_tvars t
         val tfree_names = OldTerm.add_term_tfree_names(t,[])
         val (type_inst,_) =
-            Library.foldl (fn ((inst,used),(w as (v,_),S)) =>
+            fold (fn (w as (v,_), S) => fn (inst, used) =>
                       let
                           val v' = Name.variant used v
                       in
                           ((w,TFree(v',S))::inst,v'::used)
                       end)
-                  (([],tfree_names),tvars)
+                  tvars ([], tfree_names)
         val t' = subst_TVars type_inst t
     in
-        (t',map (fn (w,TFree(v,S)) => (v,TVar(w,S))
+        (t', map (fn (w,TFree(v,S)) => (v,TVar(w,S))
                   | _ => error "Internal error in Shuffler.freeze_thaw") type_inst)
     end
 
@@ -563,19 +563,20 @@ fun match_consts ignore t (* th *) =
         let
             val th_consts = add_consts(prop_of th,[])
         in
-            eq_set(t_consts,th_consts)
+            eq_set (op =) (t_consts, th_consts)
         end
     end
 
-val collect_ignored =
-    fold_rev (fn thm => fn cs =>
-              let
-                  val (lhs,rhs) = Logic.dest_equals (prop_of thm)
-                  val ignore_lhs = Term.add_const_names lhs [] \\ Term.add_const_names rhs []
-                  val ignore_rhs = Term.add_const_names rhs [] \\ Term.add_const_names lhs []
-              in
-                  fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
-              end)
+val collect_ignored = fold_rev (fn thm => fn cs =>
+  let
+    val (lhs, rhs) = Logic.dest_equals (prop_of thm);
+    val consts_lhs = Term.add_const_names lhs [];
+    val consts_rhs = Term.add_const_names rhs [];
+    val ignore_lhs = subtract (op =) consts_rhs consts_lhs;
+    val ignore_rhs = subtract (op =) consts_lhs consts_rhs;
+  in
+    fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
+  end)
 
 (* set_prop t thms tries to make a theorem with the proposition t from
 one of the theorems thms, by shuffling the propositions around.  If it
@@ -627,7 +628,7 @@ fun find_potential thy t =
         val all_thms =
           map (`Thm.get_name_hint) (maps #2 (Facts.dest_static [] (PureThy.facts_of thy)))
     in
-        List.filter (match_consts ignored t) all_thms
+        filter (match_consts ignored t) all_thms
     end
 
 fun gen_shuffle_tac ctxt search thms i st =

@@ -10,7 +10,7 @@ sig
   val unused_thms: theory list * theory list -> (string * thm) list
 end;
 
-structure ThmDeps: THM_DEPS =
+structure Thm_Deps: THM_DEPS =
 struct
 
 (* thm_deps *)
@@ -48,37 +48,49 @@ fun thm_deps thms =
 
 fun unused_thms (base_thys, thys) =
   let
-    fun add_fact (name, ths) =
+    fun add_fact space (name, ths) =
       if exists (fn thy => PureThy.defined_fact thy name) base_thys then I
-      else fold_rev (fn th => (case Thm.get_name th of "" => I | a => cons (a, th))) ths;
+      else
+        let val {concealed, group, ...} = Name_Space.the_entry space name in
+          fold_rev (fn th =>
+            (case Thm.get_name th of
+              "" => I
+            | a => cons (a, (th, concealed, group)))) ths
+        end;
+    fun add_facts facts = Facts.fold_static (add_fact (Facts.space_of facts)) facts;
+
     val thms =
-      fold (Facts.fold_static add_fact o PureThy.facts_of) thys []
+      fold (add_facts o PureThy.facts_of) thys []
       |> sort_distinct (string_ord o pairself #1);
 
     val tab =
       Proofterm.fold_body_thms
-        (fn (name, prop, _) => name <> "" ? Symtab.insert_list (op =) (name, prop))
-        (map (Proofterm.strip_thm o Thm.proof_body_of o snd) thms) Symtab.empty;
-    fun is_unused (name, th) =
-      not (member (op aconv) (Symtab.lookup_list tab name) (Thm.prop_of th));
+        (fn (a, prop, _) => a <> "" ? Symtab.insert_list (op =) (a, prop))
+        (map (Proofterm.strip_thm o Thm.proof_body_of o #1 o #2) thms) Symtab.empty;
+
+    fun is_unused (a, th) =
+      not (member (op aconv) (Symtab.lookup_list tab a) (Thm.prop_of th));
 
     (* groups containing at least one used theorem *)
-    val grps = fold (fn p as (_, thm) => if is_unused p then I else
-      case Thm.get_group thm of
-        NONE => I | SOME grp => Symtab.update (grp, ())) thms Symtab.empty;
-    val (thms', _) = fold (fn p as (s, thm) => fn q as (thms, grps') =>
-      if member (op =) [Thm.theoremK, Thm.generatedK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK] (Thm.get_kind thm)
-        andalso is_unused p
+    val used_groups = fold (fn (a, (th, _, group)) =>
+      if is_unused (a, th) then I
+      else
+        (case group of
+          NONE => I
+        | SOME grp => Inttab.update (grp, ()))) thms Inttab.empty;
+    val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, grps') =>
+      if member (op =) [Thm.theoremK, Thm.generatedK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK]
+        (Thm.get_kind th) andalso not concealed andalso is_unused (a, th)
       then
-        (case Thm.get_group thm of
-           NONE => (p :: thms, grps')
+        (case group of
+           NONE => ((a, th) :: thms, grps')
          | SOME grp =>
              (* do not output theorem if another theorem in group has been used *)
-             if Symtab.defined grps grp then q
+             if Inttab.defined used_groups grp then q
              (* output at most one unused theorem per group *)
-             else if Symtab.defined grps' grp then q
-             else (p :: thms, Symtab.update (grp, ()) grps'))
-      else q) thms ([], Symtab.empty)
+             else if Inttab.defined grps' grp then q
+             else ((a, th) :: thms, Inttab.update (grp, ()) grps'))
+      else q) thms ([], Inttab.empty)
   in rev thms' end;
 
 end;

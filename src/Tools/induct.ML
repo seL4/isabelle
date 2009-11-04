@@ -113,9 +113,10 @@ end;
 
 type rules = (string * thm) Item_Net.T;
 
-val init_rules =
-  Item_Net.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
-    Thm.eq_thm_prop (th1, th2));
+fun init_rules index : rules =
+  Item_Net.init
+    (fn ((s1, th1), (s2, th2)) => s1 = s2 andalso Thm.eq_thm_prop (th1, th2))
+    (single o index);
 
 fun filter_rules (rs: rules) th =
   filter (fn (_, th') => Thm.eq_thm_prop (th, th')) (Item_Net.content rs);
@@ -203,21 +204,21 @@ fun mk_att f g name arg =
   let val (x, thm) = g arg in (InductData.map (f (name, thm)) x, thm) end;
 
 fun del_att which = Thm.declaration_attribute (fn th => InductData.map (which (pairself (fn rs =>
-  fold Item_Net.delete (filter_rules rs th) rs))));
+  fold Item_Net.remove (filter_rules rs th) rs))));
 
 fun map1 f (x, y, z) = (f x, y, z);
 fun map2 f (x, y, z) = (x, f y, z);
 fun map3 f (x, y, z) = (x, y, f z);
 
-fun add_casesT rule x = map1 (apfst (Item_Net.insert rule)) x;
-fun add_casesP rule x = map1 (apsnd (Item_Net.insert rule)) x;
-fun add_inductT rule x = map2 (apfst (Item_Net.insert rule)) x;
-fun add_inductP rule x = map2 (apsnd (Item_Net.insert rule)) x;
-fun add_coinductT rule x = map3 (apfst (Item_Net.insert rule)) x;
-fun add_coinductP rule x = map3 (apsnd (Item_Net.insert rule)) x;
+fun add_casesT rule x = map1 (apfst (Item_Net.update rule)) x;
+fun add_casesP rule x = map1 (apsnd (Item_Net.update rule)) x;
+fun add_inductT rule x = map2 (apfst (Item_Net.update rule)) x;
+fun add_inductP rule x = map2 (apsnd (Item_Net.update rule)) x;
+fun add_coinductT rule x = map3 (apfst (Item_Net.update rule)) x;
+fun add_coinductP rule x = map3 (apsnd (Item_Net.update rule)) x;
 
-val consumes0 = RuleCases.consumes_default 0;
-val consumes1 = RuleCases.consumes_default 1;
+val consumes0 = Rule_Cases.consumes_default 0;
+val consumes1 = Rule_Cases.consumes_default 1;
 
 in
 
@@ -344,10 +345,10 @@ fun cases_tac ctxt insts opt_rule facts =
     val thy = ProofContext.theory_of ctxt;
 
     fun inst_rule r =
-      if null insts then `RuleCases.get r
+      if null insts then `Rule_Cases.get r
       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
         |> maps (prep_inst ctxt align_left I)
-        |> Drule.cterm_instantiate) r |> pair (RuleCases.get r);
+        |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r);
 
     val ruleq =
       (case opt_rule of
@@ -359,9 +360,9 @@ fun cases_tac ctxt insts opt_rule facts =
   in
     fn i => fn st =>
       ruleq
-      |> Seq.maps (RuleCases.consume [] facts)
+      |> Seq.maps (Rule_Cases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        CASES (RuleCases.make_common false (thy, Thm.prop_of rule) cases)
+        CASES (Rule_Cases.make_common false (thy, Thm.prop_of rule) cases)
           (Method.insert_tac more_facts i THEN Tactic.rtac rule i) st)
   end;
 
@@ -483,7 +484,7 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
           in Logic.list_implies (map rename_asm As, C) end;
         val cp' = cterm_fun rename_prop (Thm.cprop_of thm);
         val thm' = Thm.equal_elim (Thm.reflexive cp') thm;
-      in [RuleCases.save thm thm'] end
+      in [Rule_Cases.save thm thm'] end
   | special_rename_params _ _ ths = ths;
 
 
@@ -570,7 +571,7 @@ fun get_inductT ctxt insts =
       ((fn [] => NONE | ts => List.last ts) #>
         (fn NONE => TVar (("'a", 0), []) | SOME t => Term.fastype_of t) #>
         find_inductT ctxt)) [[]]
-  |> filter_out (forall Thm.is_internal);
+  |> filter_out (forall Rule_Cases.is_inner_rule);
 
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
@@ -583,29 +584,29 @@ fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
     val atomized_defs = map (map (Conv.fconv_rule ObjectLogic.atomize)) defs;
 
     fun inst_rule (concls, r) =
-      (if null insts then `RuleCases.get r
+      (if null insts then `Rule_Cases.get r
        else (align_left "Rule has fewer conclusions than arguments given"
           (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
         |> maps (prep_inst ctxt align_right (atomize_term thy))
-        |> Drule.cterm_instantiate) r |> pair (RuleCases.get r))
+        |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r))
       |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
     val ruleq =
       (case opt_rule of
-        SOME rs => Seq.single (inst_rule (RuleCases.strict_mutual_rule ctxt rs))
+        SOME rs => Seq.single (inst_rule (Rule_Cases.strict_mutual_rule ctxt rs))
       | NONE =>
           (get_inductP ctxt facts @
             map (special_rename_params defs_ctxt insts) (get_inductT ctxt insts))
-          |> map_filter (RuleCases.mutual_rule ctxt)
+          |> map_filter (Rule_Cases.mutual_rule ctxt)
           |> tap (trace_rules ctxt inductN o map #2)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
     fun rule_cases rule =
-      RuleCases.make_nested false (Thm.prop_of rule) (rulified_term rule);
+      Rule_Cases.make_nested false (Thm.prop_of rule) (rulified_term rule);
   in
     (fn i => fn st =>
       ruleq
-      |> Seq.maps (RuleCases.consume (flat defs) facts)
+      |> Seq.maps (Rule_Cases.consume (flat defs) facts)
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS
@@ -643,7 +644,7 @@ fun get_coinductT ctxt (SOME t :: _) = find_coinductT ctxt (Term.fastype_of t)
 fun get_coinductP ctxt goal = find_coinductP ctxt (Logic.strip_assums_concl goal);
 
 fun main_prop_of th =
-  if RuleCases.get_consumes th > 0 then Thm.major_prem_of th else Thm.concl_of th;
+  if Rule_Cases.get_consumes th > 0 then Thm.major_prem_of th else Thm.concl_of th;
 
 in
 
@@ -652,9 +653,9 @@ fun coinduct_tac ctxt inst taking opt_rule facts =
     val thy = ProofContext.theory_of ctxt;
 
     fun inst_rule r =
-      if null inst then `RuleCases.get r
+      if null inst then `Rule_Cases.get r
       else Drule.cterm_instantiate (prep_inst ctxt align_right I (main_prop_of r, inst)) r
-        |> pair (RuleCases.get r);
+        |> pair (Rule_Cases.get r);
 
     fun ruleq goal =
       (case opt_rule of
@@ -666,12 +667,12 @@ fun coinduct_tac ctxt inst taking opt_rule facts =
   in
     SUBGOAL_CASES (fn (goal, i) => fn st =>
       ruleq goal
-      |> Seq.maps (RuleCases.consume [] facts)
+      |> Seq.maps (Rule_Cases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
         guess_instance ctxt rule i st
         |> Seq.map (rule_instance ctxt (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
-          CASES (RuleCases.make_common false (thy, Thm.prop_of rule') cases)
+          CASES (Rule_Cases.make_common false (thy, Thm.prop_of rule') cases)
             (Method.insert_tac more_facts i THEN Tactic.rtac rule' i) st)))
   end;
 

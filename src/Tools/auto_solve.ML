@@ -5,7 +5,7 @@ Check whether a newly stated theorem can be solved directly by an
 existing theorem.  Duplicate lemmas can be detected in this way.
 
 The implementation is based in part on Berghofer and Haftmann's
-quickcheck.ML.  It relies critically on the FindTheorems solves
+quickcheck.ML.  It relies critically on the Find_Theorems solves
 feature.
 *)
 
@@ -45,8 +45,8 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
   let
     val ctxt = Proof.context_of state;
 
-    val crits = [(true, FindTheorems.Solves)];
-    fun find g = snd (FindTheorems.find_theorems ctxt (SOME g) (SOME (! limit)) false crits);
+    val crits = [(true, Find_Theorems.Solves)];
+    fun find g = snd (Find_Theorems.find_theorems ctxt (SOME g) (SOME (! limit)) false crits);
 
     fun prt_result (goal, results) =
       let
@@ -57,13 +57,13 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
       in
         Pretty.big_list
           (msg ^ " could be solved directly with:")
-          (map (FindTheorems.pretty_thm ctxt) results)
+          (map (Find_Theorems.pretty_thm ctxt) results)
       end;
 
     fun seek_against_goal () =
-      (case try Proof.flat_goal state of
+      (case try Proof.simple_goal state of
         NONE => NONE
-      | SOME (_, st) =>
+      | SOME {goal = st, ...} =>
           let
             val subgoals = Drule.strip_imp_prems (Thm.cprop_of st);
             val rs =

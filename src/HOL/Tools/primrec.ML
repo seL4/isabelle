@@ -178,7 +178,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
      NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const ("HOL.undefined",
-           replicate ((length cargs) + (length (List.filter is_rec_type cargs)))
+           replicate (length cargs + length (filter is_rec_type cargs))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)
        in
@@ -208,7 +208,7 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_error (quote tname ^ " is not a datatype")
         | SOME dt =>
-            if tnames' subset (map (#1 o snd) (#descr dt)) then
+            if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
@@ -232,7 +232,7 @@ fun distill lthy fixes eqs =
     val defs = map (make_def lthy fixes fs) raw_defs;
     val names = map snd fnames;
     val names_eqns = map fst eqns;
-    val _ = if gen_eq_set (op =) (names, names_eqns) then ()
+    val _ = if eq_set (op =) (names, names_eqns) then ()
       else primrec_error ("functions " ^ commas_quote names_eqns ^
         "\nare not mutually recursive");
     val rec_rewrites' = map mk_meta_eq rec_rewrites;
@@ -272,10 +272,10 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
       (Binding.qualify false prefix b, Code.add_default_eqn_attrib :: attrs)) spec;
     fun simp_attr_binding prefix = (Binding.qualify true prefix (Binding.name "simps"),
       map (Attrib.internal o K)
-        [Simplifier.simp_add, Nitpick_Const_Simps.add, Quickcheck_RecFun_Simps.add]);
+        [Simplifier.simp_add, Nitpick_Simps.add, Quickcheck_RecFun_Simps.add]);
   in
     lthy
-    |> set_group ? LocalTheory.set_group (serial_string ())
+    |> set_group ? LocalTheory.set_group (serial ())
     |> add_primrec_simple fixes (map snd spec)
     |-> (fn (prefix, simps) => fold_map (LocalTheory.note Thm.generatedK)
           (attr_bindings prefix ~~ simps)

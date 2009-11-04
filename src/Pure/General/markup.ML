@@ -13,11 +13,11 @@ sig
   val nameN: string
   val name: string -> T -> T
   val bindingN: string val binding: string -> T
-  val groupN: string
-  val theory_nameN: string
   val kindN: string
   val internalK: string
-  val property_internal: Properties.property
+  val entityN: string val entity: string -> T
+  val defN: string
+  val refN: string
   val lineN: string
   val columnN: string
   val offsetN: string
@@ -149,16 +149,20 @@ fun name a = properties [(nameN, a)];
 
 val (bindingN, binding) = markup_string "binding" nameN;
 
-val groupN = "group";
-val theory_nameN = "theory_name";
-
 
 (* kind *)
 
 val kindN = "kind";
 
 val internalK = "internal";
-val property_internal = (kindN, internalK);
+
+
+(* formal entities *)
+
+val (entityN, entity) = markup_string "entity" nameN;
+
+val defN = "def";
+val refN = "ref";
 
 
 (* position *)

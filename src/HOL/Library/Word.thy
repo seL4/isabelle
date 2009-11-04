@@ -5,7 +5,7 @@
 header {* Binary Words *}
 
 theory Word
-imports "~~/src/HOL/Main"
+imports Main
 begin
 
 subsection {* Auxilary Lemmas *}
@@ -561,35 +561,17 @@ lemma nat_helper1:
   shows        "nat_to_bv (2 * bv_to_nat w + bitval x) = norm_unsigned (w @ [x])"
 proof (cases x)
   assume [simp]: "x = \<one>"
-  show ?thesis
-    apply (simp add: nat_to_bv_non0)
-    apply safe
-  proof -
-    fix q
-    assume "Suc (2 * bv_to_nat w) = 2 * q"
-    hence orig: "(2 * bv_to_nat w + 1) mod 2 = 2 * q mod 2" (is "?lhs = ?rhs")
-      by simp
-    have "?lhs = (1 + 2 * bv_to_nat w) mod 2"
-      by (simp add: add_commute)
-    also have "... = 1"
-      by (subst mod_add_eq) simp
-    finally have eq1: "?lhs = 1" .
-    have "?rhs  = 0" by simp
-    with orig and eq1
-    show "nat_to_bv (Suc (2 * bv_to_nat w) div 2) @ [\<zero>] = norm_unsigned (w @ [\<one>])"
-      by simp
-  next
-    have "nat_to_bv (Suc (2 * bv_to_nat w) div 2) @ [\<one>] =
-        nat_to_bv ((1 + 2 * bv_to_nat w) div 2) @ [\<one>]"
-      by (simp add: add_commute)
-    also have "... = nat_to_bv (bv_to_nat w) @ [\<one>]"
-      by (subst div_add1_eq) simp
-    also have "... = norm_unsigned w @ [\<one>]"
-      by (subst ass) (rule refl)
-    also have "... = norm_unsigned (w @ [\<one>])"
-      by (cases "norm_unsigned w") simp_all
-    finally show "nat_to_bv (Suc (2 * bv_to_nat w) div 2) @ [\<one>] = norm_unsigned (w @ [\<one>])" .
-  qed
+  have "nat_to_bv (Suc (2 * bv_to_nat w) div 2) @ [\<one>] =
+      nat_to_bv ((1 + 2 * bv_to_nat w) div 2) @ [\<one>]"
+    by (simp add: add_commute)
+  also have "... = nat_to_bv (bv_to_nat w) @ [\<one>]"
+    by (subst div_add1_eq) simp
+  also have "... = norm_unsigned w @ [\<one>]"
+    by (subst ass) (rule refl)
+  also have "... = norm_unsigned (w @ [\<one>])"
+    by (cases "norm_unsigned w") simp_all
+  finally have "nat_to_bv (Suc (2 * bv_to_nat w) div 2) @ [\<one>] = norm_unsigned (w @ [\<one>])" .
+  then show ?thesis by (simp add: nat_to_bv_non0)
 next
   assume [simp]: "x = \<zero>"
   show ?thesis

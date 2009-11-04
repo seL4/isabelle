@@ -1463,7 +1463,7 @@ fun rename_params_rule (cs, i) state =
     (case duplicates (op =) cs of
       a :: _ => (warning ("Can't rename.  Bound variables not distinct: " ^ a); state)
     | [] =>
-      (case cs inter_string freenames of
+      (case inter (op =) cs freenames of
         a :: _ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); state)
       | [] =>
         Thm (der,
@@ -1724,25 +1724,21 @@ end;
 
 (* authentic derivation names *)
 
-fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
-
 structure Oracles = TheoryDataFun
 (
-  type T = serial NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = unit Name_Space.table;
+  val empty : T = Name_Space.empty_table "oracle";
   val copy = I;
   val extend = I;
-  fun merge _ oracles : T = NameSpace.merge_tables (op =) oracles
-    handle Symtab.DUP dup => err_dup_ora dup;
+  fun merge _ oracles : T = Name_Space.merge_tables oracles;
 );
 
-val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
+val extern_oracles = map #1 o Name_Space.extern_table o Oracles.get;
 
 fun add_oracle (b, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val (name, tab') = NameSpace.define naming (b, serial ()) (Oracles.get thy)
-      handle Symtab.DUP _ => err_dup_ora (Binding.str_of b);
+    val (name, tab') = Name_Space.define true naming (b, ()) (Oracles.get thy);
     val thy' = Oracles.put tab' thy;
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 

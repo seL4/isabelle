@@ -26,9 +26,10 @@ end
 signature SPLITTER =
 sig
   (* somewhat more internal functions *)
-  val cmap_of_split_thms : thm list -> (string * (typ * term * thm * typ * int) list) list
-  val split_posns        : (string * (typ * term * thm * typ * int) list) list -> theory -> typ list -> term ->
-    (thm * (typ * typ * int list) list * int list * typ * term) list  (* first argument is a "cmap", returns a list of "split packs" *)
+  val cmap_of_split_thms: thm list -> (string * (typ * term * thm * typ * int) list) list
+  val split_posns: (string * (typ * term * thm * typ * int) list) list ->
+    theory -> typ list -> term -> (thm * (typ * typ * int list) list * int list * typ * term) list
+    (* first argument is a "cmap", returns a list of "split packs" *)
   (* the "real" interface, providing a number of tactics *)
   val split_tac       : thm list -> int -> tactic
   val split_inside_tac: thm list -> int -> tactic
@@ -57,36 +58,32 @@ val const_Trueprop = ObjectLogic.judgment_name Data.thy;
 
 fun split_format_err () = error "Wrong format for split rule";
 
-(* thm -> (string * typ) * bool *)
 fun split_thm_info thm = case concl_of (Data.mk_eq thm) of
      Const("==", _) $ (Var _ $ t) $ c => (case strip_comb t of
        (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
      | _ => split_format_err ())
    | _ => split_format_err ();
 
-(* thm list -> (string * (typ * term * thm * typ * int) list) list *)
 fun cmap_of_split_thms thms =
 let
   val splits = map Data.mk_eq thms
-  fun add_thm (cmap, thm) =
-        (case concl_of thm of _$(t as _$lhs)$_ =>
-           (case strip_comb lhs of (Const(a,aT),args) =>
-              let val info = (aT,lhs,thm,fastype_of t,length args)
-              in case AList.lookup (op =) cmap a of
-                   SOME infos => AList.update (op =) (a, info::infos) cmap
-                 | NONE => (a,[info])::cmap
-              end
-            | _ => split_format_err())
-         | _ => split_format_err())
+  fun add_thm thm cmap =
+    (case concl_of thm of _ $ (t as _ $ lhs) $ _ =>
+       (case strip_comb lhs of (Const(a,aT),args) =>
+          let val info = (aT,lhs,thm,fastype_of t,length args)
+          in case AList.lookup (op =) cmap a of
+               SOME infos => AList.update (op =) (a, info::infos) cmap
+             | NONE => (a,[info])::cmap
+          end
+        | _ => split_format_err())
+     | _ => split_format_err())
 in
-  Library.foldl add_thm ([], splits)
+  fold add_thm splits []
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* mk_case_split_tac                                                         *)
 (* ------------------------------------------------------------------------- *)
-
-(* (int * int -> order) -> thm list -> int -> tactic * <split_posns> *)
 
 fun mk_case_split_tac order =
 let
@@ -154,14 +151,14 @@ fun mk_cntxt_splitthm t tt T =
 
 
 (* add all loose bound variables in t to list is *)
-fun add_lbnos (is,t) = add_loose_bnos (t,0,is);
+fun add_lbnos t is = add_loose_bnos (t, 0, is);
 
 (* check if the innermost abstraction that needs to be removed
    has a body of type T; otherwise the expansion thm will fail later on
 *)
-fun type_test (T,lbnos,apsns) =
-  let val (_,U: typ,_) = List.nth(apsns, Library.foldl Int.min (hd lbnos, tl lbnos))
-  in T=U end;
+fun type_test (T, lbnos, apsns) =
+  let val (_, U: typ, _) = List.nth (apsns, foldl1 Int.min lbnos)
+  in T = U end;
 
 (*************************************************************************
    Create a "split_pack".
@@ -194,8 +191,8 @@ fun type_test (T,lbnos,apsns) =
 fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
-           val lbnos = Library.foldl add_lbnos ([],Library.take(n,ts))
-           val flbnos = List.filter (fn i => i < lev) lbnos
+           val lbnos = fold add_lbnos (Library.take (n, ts)) []
+           val flbnos = filter (fn i => i < lev) lbnos
            val tt = incr_boundvars (~lev) t
        in if null flbnos then
             if T = T' then [(thm,[],pos,TB,tt)] else []
@@ -225,13 +222,11 @@ fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
 local
   exception MATCH
 in
-  (* Context.theory -> Type.tyenv * (Term.typ * Term.typ) -> Type.tyenv *)
   fun typ_match sg (tyenv, TU) = (Sign.typ_match sg TU tyenv)
                             handle Type.TYPE_MATCH => raise MATCH
-  (* Context.theory -> Term.typ list * Term.term * Term.term -> bool *)
+
   fun fomatch sg args =
     let
-      (* Type.tyenv -> Term.typ list * Term.term * Term.term -> Type.tyenv *)
       fun mtch tyinsts = fn
           (Ts, Var(_,T), t) =>
             typ_match sg (tyinsts, (T, fastype_of1(Ts,t)))
@@ -247,10 +242,8 @@ in
             mtch (mtch tyinsts (Ts,f,g)) (Ts, t, u)
         | _ => raise MATCH
     in (mtch Vartab.empty args; true) handle MATCH => false end;
-end  (* local *)
+end;
 
-(* (string * (Term.typ * Term.term * Thm.thm * Term.typ * int) list) list -> Context.theory -> Term.typ list -> Term.term ->
-  (Thm.thm * (Term.typ * Term.typ * int list) list * int list * Term.typ * Term.term) list *)
 fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg Ts t =
   let
     val T' = fastype_of1 (Ts, t);
@@ -260,20 +253,21 @@ fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg 
       | posns Ts pos apsns t =
           let
             val (h, ts) = strip_comb t
-            fun iter((i, a), t) = (i+1, (posns Ts (i::pos) apsns t) @ a);
-            val a = case h of
-              Const(c, cT) =>
-                let fun find [] = []
-                      | find ((gcT, pat, thm, T, n)::tups) =
-                          let val t2 = list_comb (h, Library.take (n, ts))
-                          in if Sign.typ_instance sg (cT, gcT)
-                                andalso fomatch sg (Ts,pat,t2)
-                             then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
-                             else find tups
-                          end
-                in find (these (AList.lookup (op =) cmap c)) end
-            | _ => []
-          in snd(Library.foldl iter ((0, a), ts)) end
+            fun iter t (i, a) = (i+1, (posns Ts (i::pos) apsns t) @ a);
+            val a =
+              case h of
+                Const(c, cT) =>
+                  let fun find [] = []
+                        | find ((gcT, pat, thm, T, n)::tups) =
+                            let val t2 = list_comb (h, Library.take (n, ts))
+                            in if Sign.typ_instance sg (cT, gcT)
+                                  andalso fomatch sg (Ts,pat,t2)
+                               then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
+                               else find tups
+                            end
+                  in find (these (AList.lookup (op =) cmap c)) end
+              | _ => []
+          in snd (fold iter ts (0, a)) end
   in posns Ts [] [] t end;
 
 fun nth_subgoal i thm = List.nth (prems_of thm, i-1);
@@ -343,8 +337,8 @@ fun inst_split Ts t tt thm TB state i =
       (Logic.strip_assums_concl (Thm.prop_of thm'))));
     val cert = cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
-    val abss = Library.foldl (fn (t, T) => Abs ("", T, t));
-  in cterm_instantiate [(cert P, cert (abss (cntxt, Ts)))] thm'
+    val abss = fold (fn T => fn t => Abs ("", T, t));
+  in cterm_instantiate [(cert P, cert (abss Ts cntxt))] thm'
   end;
 
 
@@ -354,8 +348,6 @@ fun inst_split Ts t tt thm TB state i =
    splits : list of split-theorems to be tried
    i      : number of subgoal the tactic should be applied to
 *****************************************************************************)
-
-(* thm list -> int -> tactic *)
 
 fun split_tac [] i = no_tac
   | split_tac splits i =
@@ -379,9 +371,9 @@ fun split_tac [] i = no_tac
 in (split_tac, exported_split_posns) end;  (* mk_case_split_tac *)
 
 
-val (split_tac, split_posns)        = mk_case_split_tac              int_ord;
+val (split_tac, split_posns) = mk_case_split_tac int_ord;
 
-val (split_inside_tac, _)           = mk_case_split_tac (rev_order o int_ord);
+val (split_inside_tac, _) = mk_case_split_tac (rev_order o int_ord);
 
 
 (*****************************************************************************
@@ -389,7 +381,7 @@ val (split_inside_tac, _)           = mk_case_split_tac (rev_order o int_ord);
 
    splits : list of split-theorems to be tried
 ****************************************************************************)
-fun split_asm_tac []     = K no_tac
+fun split_asm_tac [] = K no_tac
   | split_asm_tac splits =
 
   let val cname_list = map (fst o fst o split_thm_info) splits;
@@ -431,25 +423,28 @@ fun gen_split_tac [] = K no_tac
 
 (* addsplits / delsplits *)
 
-fun string_of_typ (Type (s, Ts)) = (if null Ts then ""
-      else enclose "(" ")" (commas (map string_of_typ Ts))) ^ s
+fun string_of_typ (Type (s, Ts)) =
+      (if null Ts then "" else enclose "(" ")" (commas (map string_of_typ Ts))) ^ s
   | string_of_typ _ = "_";
 
 fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
 fun ss addsplits splits =
-  let fun addsplit (ss,split) =
-        let val (name,asm) = split_thm_info split
-        in Simplifier.addloop (ss, (split_name name asm,
-                       (if asm then split_asm_tac else split_tac) [split])) end
-  in Library.foldl addsplit (ss,splits) end;
+  let
+    fun addsplit split ss =
+      let
+        val (name, asm) = split_thm_info split
+        val tac = (if asm then split_asm_tac else split_tac) [split]
+      in Simplifier.addloop (ss, (split_name name asm, tac)) end
+  in fold addsplit splits ss end;
 
 fun ss delsplits splits =
-  let fun delsplit(ss,split) =
-        let val (name,asm) = split_thm_info split
-        in Simplifier.delloop (ss, split_name name asm)
-  end in Library.foldl delsplit (ss,splits) end;
+  let
+    fun delsplit split ss =
+      let val (name, asm) = split_thm_info split
+      in Simplifier.delloop (ss, split_name name asm) end
+  in fold delsplit splits ss end;
 
 
 (* attributes *)
@@ -471,7 +466,8 @@ val split_modifiers =
 (* theory setup *)
 
 val setup =
-  Attrib.setup @{binding split} (Attrib.add_del split_add split_del) "declare case split rule" #>
+  Attrib.setup @{binding split}
+    (Attrib.add_del split_add split_del) "declare case split rule" #>
   Method.setup @{binding split}
     (Attrib.thms >> (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths))))
     "apply case split rule";

@@ -767,6 +767,8 @@ by (force simp add: mult_right_mono not_le [symmetric])
 
 end
 
+class ordered_semiring_1 = ordered_semiring + semiring_1
+
 class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
   assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
   assumes mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
@@ -883,6 +885,8 @@ proof (rule ccontr)
 qed  
 
 end
+
+class ordered_semiring_1_strict = ordered_semiring_strict + semiring_1
 
 class mult_mono1 = times + zero + ord +
   assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
@@ -2025,15 +2029,15 @@ subsection {* Reasoning about inequalities with division *}
 
 lemma mult_right_le_one_le: "0 <= (x::'a::ordered_idom) ==> 0 <= y ==> y <= 1
     ==> x * y <= x"
-by (auto simp add: mult_compare_simps);
+by (auto simp add: mult_compare_simps)
 
 lemma mult_left_le_one_le: "0 <= (x::'a::ordered_idom) ==> 0 <= y ==> y <= 1
     ==> y * x <= x"
-by (auto simp add: mult_compare_simps);
+by (auto simp add: mult_compare_simps)
 
 lemma mult_imp_div_pos_le: "0 < (y::'a::ordered_field) ==> x <= z * y ==>
-    x / y <= z";
-by (subst pos_divide_le_eq, assumption+);
+    x / y <= z"
+by (subst pos_divide_le_eq, assumption+)
 
 lemma mult_imp_le_div_pos: "0 < (y::'a::ordered_field) ==> z * y <= x ==>
     z <= x / y"
@@ -2060,8 +2064,8 @@ done
 lemma frac_less: "(0::'a::ordered_field) <= x ==> 
     x < y ==> 0 < w ==> w <= z  ==> x / z < y / w"
   apply (rule mult_imp_div_pos_less)
-  apply simp;
-  apply (subst times_divide_eq_left);
+  apply simp
+  apply (subst times_divide_eq_left)
   apply (rule mult_imp_less_div_pos, assumption)
   apply (erule mult_less_le_imp_less)
   apply simp_all
@@ -2071,7 +2075,7 @@ lemma frac_less2: "(0::'a::ordered_field) < x ==>
     x <= y ==> 0 < w ==> w < z  ==> x / z < y / w"
   apply (rule mult_imp_div_pos_less)
   apply simp_all
-  apply (subst times_divide_eq_left);
+  apply (subst times_divide_eq_left)
   apply (rule mult_imp_less_div_pos, assumption)
   apply (erule mult_le_less_imp_less)
   apply simp_all
@@ -2369,5 +2373,15 @@ proof -
     by (simp only: minus_le_iff)
   then show ?thesis by simp
 qed
+
+
+code_modulename SML
+  Ring_and_Field Arith
+
+code_modulename OCaml
+  Ring_and_Field Arith
+
+code_modulename Haskell
+  Ring_and_Field Arith
 
 end

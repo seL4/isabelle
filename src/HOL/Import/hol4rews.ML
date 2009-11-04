@@ -165,7 +165,7 @@ structure HOL4Rewrites = TheoryDataFun
   val empty = []
   val copy = I
   val extend = I
-  fun merge _ = Library.gen_union Thm.eq_thm
+  fun merge _ = Library.merge Thm.eq_thm_prop
 )
 
 val hol4_debug = Unsynchronized.ref false

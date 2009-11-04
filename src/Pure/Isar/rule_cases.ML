@@ -37,6 +37,8 @@ sig
   val name: string list -> thm -> thm
   val case_names: string list -> attribute
   val case_conclusion: string * string list -> attribute
+  val is_inner_rule: thm -> bool
+  val inner_rule: attribute
   val save: thm -> thm -> thm
   val get: thm -> (string * string list) list * int
   val rename_params: string list list -> thm -> thm
@@ -45,7 +47,7 @@ sig
   val strict_mutual_rule: Proof.context -> thm list -> int list * thm
 end;
 
-structure RuleCases: RULE_CASES =
+structure Rule_Cases: RULE_CASES =
 struct
 
 (** cases **)
@@ -90,7 +92,7 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
 
 fun extract_case is_open thy (case_outline, raw_prop) name concls =
   let
-    val rename = if is_open then I else (apfst (Name.internal o Name.clean));
+    val rename = if is_open then I else apfst (Name.internal o Name.clean);
 
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
     val len = length props;
@@ -212,7 +214,7 @@ end;
 val consumes_tagN = "consumes";
 
 fun lookup_consumes th =
-  (case AList.lookup (op =) (Thm.get_tags th) (consumes_tagN) of
+  (case AList.lookup (op =) (Thm.get_tags th) consumes_tagN of
     NONE => NONE
   | SOME s =>
       (case Lexicon.read_nat s of SOME n => SOME n
@@ -223,14 +225,13 @@ fun get_consumes th = the_default 0 (lookup_consumes th);
 fun put_consumes NONE th = th
   | put_consumes (SOME n) th = th
       |> Thm.untag_rule consumes_tagN
-      |> Thm.tag_rule
-        (consumes_tagN, Library.string_of_int (if n < 0 then Thm.nprems_of th + n else n));
+      |> Thm.tag_rule (consumes_tagN, string_of_int (if n < 0 then Thm.nprems_of th + n else n));
 
 fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
 
 val save_consumes = put_consumes o lookup_consumes;
 
-fun consumes n x = Thm.rule_attribute (K (put_consumes (SOME n))) x;
+fun consumes n = Thm.rule_attribute (K (put_consumes (SOME n)));
 
 fun consumes_default n x =
   if is_some (lookup_consumes (#2 x)) then x else consumes n x;
@@ -282,7 +283,24 @@ fun save_case_concls th =
       else NONE)
   in fold add_case_concl concls end;
 
-fun case_conclusion concl = Thm.rule_attribute (fn _ => add_case_concl concl);
+fun case_conclusion concl = Thm.rule_attribute (K (add_case_concl concl));
+
+
+
+(** inner rule **)
+
+val inner_rule_tagN = "inner_rule";
+
+fun is_inner_rule th =
+  AList.defined (op =) (Thm.get_tags th) inner_rule_tagN;
+
+fun put_inner_rule inner =
+  Thm.untag_rule inner_rule_tagN
+  #> inner ? Thm.tag_rule (inner_rule_tagN, "");
+
+val save_inner_rule = put_inner_rule o is_inner_rule;
+
+val inner_rule = Thm.rule_attribute (K (put_inner_rule true));
 
 
 
@@ -290,7 +308,11 @@ fun case_conclusion concl = Thm.rule_attribute (fn _ => add_case_concl concl);
 
 (* access hints *)
 
-fun save th = save_consumes th #> save_case_names th #> save_case_concls th;
+fun save th =
+  save_consumes th #>
+  save_case_names th #>
+  save_case_concls th #>
+  save_inner_rule th;
 
 fun get th =
   let
@@ -357,5 +379,5 @@ fun strict_mutual_rule ctxt ths =
 
 end;
 
-structure BasicRuleCases: BASIC_RULE_CASES = RuleCases;
-open BasicRuleCases;
+structure Basic_Rule_Cases: BASIC_RULE_CASES = Rule_Cases;
+open Basic_Rule_Cases;

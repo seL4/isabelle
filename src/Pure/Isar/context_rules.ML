@@ -7,8 +7,7 @@ Provers/classical.ML for a more specialized version of the same idea).
 
 signature CONTEXT_RULES =
 sig
-  type netpair
-  type T
+  type netpair = ((int * int) * (bool * thm)) Net.net * ((int * int) * (bool * thm)) Net.net
   val netpair_bang: Proof.context -> netpair
   val netpair: Proof.context -> netpair
   val orderlist: ((int * int) * 'a) list -> 'a list
@@ -33,7 +32,7 @@ sig
     attribute context_parser
 end;
 
-structure ContextRules: CONTEXT_RULES =
+structure Context_Rules: CONTEXT_RULES =
 struct
 
 
@@ -65,7 +64,7 @@ val rule_indexes = distinct (op =) (map #1 rule_kinds);
 type netpair = ((int * int) * (bool * thm)) Net.net * ((int * int) * (bool * thm)) Net.net;
 val empty_netpairs: netpair list = replicate (length rule_indexes) (Net.empty, Net.empty);
 
-datatype T = Rules of
+datatype rules = Rules of
  {next: int,
   rules: (int * ((int * bool) * thm)) list,
   netpairs: netpair list,
@@ -92,7 +91,7 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
 
 structure Rules = GenericDataFun
 (
-  type T = T;
+  type T = rules;
   val empty = make_rules ~1 [] empty_netpairs ([], []);
   val extend = I;
 

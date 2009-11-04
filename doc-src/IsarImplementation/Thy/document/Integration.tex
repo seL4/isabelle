@@ -335,7 +335,8 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
   \indexdef{}{ML}{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
   \indexdef{}{ML}{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
   \indexdef{}{ML}{Isar.context}\verb|Isar.context: unit -> Proof.context| \\
-  \indexdef{}{ML}{Isar.goal}\verb|Isar.goal: unit -> thm| \\
+  \indexdef{}{ML}{Isar.goal}\verb|Isar.goal: unit ->|\isasep\isanewline%
+\verb|  {context: Proof.context, facts: thm list, goal: thm}| \\
   \end{mldecls}
 
   \begin{description}
@@ -353,7 +354,9 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
   \item \verb|Isar.context ()| produces the proof context from \verb|Isar.state ()|, analogous to \verb|Context.proof_of|
   (\secref{sec:generic-context}).
 
-  \item \verb|Isar.goal ()| picks the tactical goal from \verb|Isar.state ()|, represented as a theorem according to
+  \item \verb|Isar.goal ()| produces the full Isar goal state,
+  consisting of proof context, facts that have been indicated for
+  immediate use, and the tactical goal according to
   \secref{sec:tactical-goals}.
 
   \end{description}%

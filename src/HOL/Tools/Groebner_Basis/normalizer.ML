@@ -391,8 +391,8 @@ val morder =
  in fn tm1 => fn tm2 =>
   let val vdegs1 = map dest_varpow (powervars tm1)
       val vdegs2 = map dest_varpow (powervars tm2)
-      val deg1 = fold_rev ((curry (op +)) o snd) vdegs1 num_0
-      val deg2 = fold_rev ((curry (op +)) o snd) vdegs2 num_0
+      val deg1 = fold (Integer.add o snd) vdegs1 num_0
+      val deg2 = fold (Integer.add o snd) vdegs2 num_0
   in if deg1 < deg2 then ~1 else if deg1 > deg2 then 1
                             else lexorder vdegs1 vdegs2
   end

@@ -94,7 +94,6 @@ sig
   val mk_iterate : term * term * term -> term;
   val mk_fail : term;
   val mk_return : term -> term;
-  val cproj : term -> 'a list -> int -> term;
   val list_ccomb : term * term list -> term;
   (*
    val con_app : string -> ('a * 'b * string) list -> term;
@@ -241,8 +240,8 @@ val     vname =       third;
 val upd_vname =   upd_third;
 fun is_rec         arg = rec_of arg >=0;
 fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
-fun nonlazy     args   = map vname (filter_out is_lazy    args);
-fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
+fun nonlazy     args   = map vname (filter_out is_lazy args);
+fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 
 
 (* ----- combinators for making dtyps ----- *)
@@ -312,8 +311,6 @@ fun mk_adm t = %%: @{const_name adm} $ t;
 fun mk_compact t = %%: @{const_name compact} $ t;
 val ID = %%: @{const_name ID};
 fun mk_strictify t = %%: @{const_name strictify}`t;
-fun mk_cfst t = %%: @{const_name cfst}`t;
-fun mk_csnd t = %%: @{const_name csnd}`t;
 (*val csplitN    = "Cprod.csplit";*)
 (*val sfstN      = "Sprod.sfst";*)
 (*val ssndN      = "Sprod.ssnd";*)
@@ -344,7 +341,6 @@ fun prj _  _  x (   _::[]) _ = x
   | prj f1 _  x (_::y::ys) 0 = f1 x y
   | prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
-fun cproj x      = prj (fn S => K(mk_cfst S)) (fn S => K(mk_csnd S)) x;
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
 fun /\ v T = %%: @{const_name Abs_CFun} $ mk_lam(v,T);
@@ -353,7 +349,7 @@ infixr 9 oo; fun S oo T = %%: @{const_name cfcomp}`S`T;
 val UU = %%: @{const_name UU};
 fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
-fun cpair (t,u) = %%: @{const_name cpair}`t`u;
+fun cpair (t,u) = %%: @{const_name Pair} $ t $ u;
 fun spair (t,u) = %%: @{const_name spair}`t`u;
 fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
   | mk_ctuple ts = foldr1 cpair ts;

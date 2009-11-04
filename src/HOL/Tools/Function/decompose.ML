@@ -33,8 +33,8 @@ fun derive_chains ctxt chain_tac cont D = Termination.CALLS (fn (cs, i) =>
                                       Const (@{const_name Set.empty}, fastype_of c1))
                        |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
 
-            val chain = case FundefLib.try_proof (cterm_of thy goal) chain_tac of
-                          FundefLib.Solved thm => SOME thm
+            val chain = case Function_Lib.try_proof (cterm_of thy goal) chain_tac of
+                          Function_Lib.Solved thm => SOME thm
                         | _ => NONE
           in
             Termination.note_chain c1 c2 chain D
@@ -62,7 +62,7 @@ fun regroup_calls_tac cs = Termination.CALLS (fn (cs', i) =>
    let
      val is = map (fn c => find_index (curry op aconv c) cs') cs
    in
-     CONVERSION (Conv.arg_conv (Conv.arg_conv (FundefLib.regroup_union_conv is))) i
+     CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv is))) i
    end)
 
 

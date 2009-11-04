@@ -33,6 +33,8 @@ val adm_subst = @{thm adm_subst};
 val antisym_less_inverse = @{thm below_antisym_inverse};
 val beta_cfun = @{thm beta_cfun};
 val cfun_arg_cong = @{thm cfun_arg_cong};
+val ch2ch_fst = @{thm ch2ch_fst};
+val ch2ch_snd = @{thm ch2ch_snd};
 val ch2ch_Rep_CFunL = @{thm ch2ch_Rep_CFunL};
 val ch2ch_Rep_CFunR = @{thm ch2ch_Rep_CFunR};
 val chain_iterate = @{thm chain_iterate};
@@ -43,6 +45,14 @@ val compact_spair = @{thm compact_spair};
 val compact_up = @{thm compact_up};
 val contlub_cfun_arg = @{thm contlub_cfun_arg};
 val contlub_cfun_fun = @{thm contlub_cfun_fun};
+val contlub_fst = @{thm contlub_fst};
+val contlub_snd = @{thm contlub_snd};
+val contlubE = @{thm contlubE};
+val cont_const = @{thm cont_const};
+val cont_id = @{thm cont_id};
+val cont2cont_fst = @{thm cont2cont_fst};
+val cont2cont_snd = @{thm cont2cont_snd};
+val cont2cont_Rep_CFun = @{thm cont2cont_Rep_CFun};
 val fix_def2 = @{thm fix_def2};
 val injection_eq = @{thm injection_eq};
 val injection_less = @{thm injection_below};
@@ -116,7 +126,7 @@ fun case_UU_tac ctxt rews i v =
 
 val chain_tac =
   REPEAT_DETERM o resolve_tac 
-    [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL];
+    [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL, ch2ch_fst, ch2ch_snd];
 
 (* ----- general proofs ----------------------------------------------------- *)
 
@@ -446,7 +456,7 @@ local
       val nlas = nonlazy args;
       val vns = map vname args;
       val vnn = List.nth (vns, n);
-      val nlas' = List.filter (fn v => v <> vnn) nlas;
+      val nlas' = filter (fn v => v <> vnn) nlas;
       val lhs = (%%:sel)`(con_app con args);
       val goal = lift_defined %: (nlas', mk_trp (lhs === %:vnn));
       fun tacs1 ctxt =
@@ -555,7 +565,7 @@ local
       val sargs = case largs of [_] => [] | _ => nonlazy args;
       val prop = lift_defined %: (sargs, mk_trp (prem === concl));
     in pg con_appls prop end;
-  val cons' = List.filter (fn (_,args) => args<>[]) cons;
+  val cons' = filter (fn (_,args) => args<>[]) cons;
 in
   val _ = trace " Proving inverts...";
   val inverts =
@@ -589,11 +599,11 @@ local
       val lhs = dc_copy`%"f"`(con_app con args);
       fun one_rhs arg =
           if DatatypeAux.is_rec_type (dtyp_of arg)
-          then Domain_Axioms.copy_of_dtyp (cproj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
+          then Domain_Axioms.copy_of_dtyp (proj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
           else (%# arg);
       val rhs = con_app2 con one_rhs args;
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
-      val args' = List.filter (fn a => not (is_rec a orelse is_lazy a)) args;
+      val args' = filter_out (fn a => is_rec a orelse is_lazy a) args;
       val stricts = abs_strict :: rep_strict :: @{thms domain_fun_stricts};
       fun tacs1 ctxt = map (case_UU_tac ctxt stricts 1 o vname) args';
       val rules = [ax_abs_iso] @ @{thms domain_fun_simps};
@@ -616,7 +626,7 @@ local
   fun has_nonlazy_rec (_, args) = exists is_nonlazy_rec args;
 in
   val _ = trace " Proving copy_stricts...";
-  val copy_stricts = map one_strict (List.filter has_nonlazy_rec cons);
+  val copy_stricts = map one_strict (filter has_nonlazy_rec cons);
 end;
 
 val copy_rews = copy_strict :: copy_apps @ copy_stricts;
@@ -630,7 +640,8 @@ in
         ((Binding.name "casedist"  , [casedist]  ), [Induct.cases_type dname]),
         ((Binding.name "when_rews" , when_rews   ), [Simplifier.simp_add]),
         ((Binding.name "compacts"  , con_compacts), [Simplifier.simp_add]),
-        ((Binding.name "con_rews"  , con_rews    ), [Simplifier.simp_add]),
+        ((Binding.name "con_rews"  , con_rews    ),
+         [Simplifier.simp_add, Fixrec.fixrec_simp_add]),
         ((Binding.name "sel_rews"  , sel_rews    ), [Simplifier.simp_add]),
         ((Binding.name "dis_rews"  , dis_rews    ), [Simplifier.simp_add]),
         ((Binding.name "pat_rews"  , pat_rews    ), [Simplifier.simp_add]),
@@ -639,7 +650,8 @@ in
         ((Binding.name "inverts"   , inverts     ), [Simplifier.simp_add]),
         ((Binding.name "injects"   , injects     ), [Simplifier.simp_add]),
         ((Binding.name "copy_rews" , copy_rews   ), [Simplifier.simp_add]),
-        ((Binding.name "match_rews", mat_rews    ), [Simplifier.simp_add])]
+        ((Binding.name "match_rews", mat_rews    ),
+         [Simplifier.simp_add, Fixrec.fixrec_simp_add])]
     |> Sign.parent_path
     |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
         pat_rews @ dist_les @ dist_eqs @ copy_rews)
@@ -722,7 +734,7 @@ local
         in Library.foldr mk_all (map vname args, lhs === rhs) end;
       fun mk_eqns ((dn, _), cons) = map (mk_eqn dn) cons;
       val goal = mk_trp (foldr1 mk_conj (maps mk_eqns eqs));
-      val simps = List.filter (has_fewer_prems 1) copy_rews;
+      val simps = filter (has_fewer_prems 1) copy_rews;
       fun con_tac ctxt (con, args) =
         if nonlazy_rec args = []
         then all_tac
@@ -747,7 +759,7 @@ local
     let
       fun ind_hyp arg = %:(P_name (1 + rec_of arg)) $ bound_arg args arg;
       val t1 = mk_trp (%:p $ con_app2 con (bound_arg args) args);
-      val t2 = lift ind_hyp (List.filter is_rec args, t1);
+      val t2 = lift ind_hyp (filter is_rec args, t1);
       val t3 = lift_defined (bound_arg (map vname args)) (nonlazy args, t2);
     in Library.foldr mk_All (map vname args, t3) end;
 
@@ -767,7 +779,7 @@ local
         maps (fn (_,args) => 
           resolve_tac prems 1 ::
           map (K(atac 1)) (nonlazy args) @
-          map (K(atac 1)) (List.filter is_rec args))
+          map (K(atac 1)) (filter is_rec args))
         cons))
       conss);
   local 
@@ -812,10 +824,10 @@ in (* local *)
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
           fun con_tacs (con, args) = 
             asm_simp_tac take_ss 1 ::
-            map arg_tac (List.filter is_nonlazy_rec args) @
+            map arg_tac (filter is_nonlazy_rec args) @
             [resolve_tac prems 1] @
-            map (K (atac 1))      (nonlazy args) @
-            map (K (etac spec 1)) (List.filter is_rec args);
+            map (K (atac 1)) (nonlazy args) @
+            map (K (etac spec 1)) (filter is_rec args);
           fun cases_tacs (cons, cases) =
             res_inst_tac context [(("x", 0), "x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
@@ -836,12 +848,14 @@ in (* local *)
           val rhs = dc_take dn $ Bound 0 `%(x_name n^"'");
           val concl = mk_trp (%:(x_name n) === %:(x_name n^"'"));
           val goal = mk_All ("n", mk_trp (lhs === rhs)) ===> concl;
+          val rules = [contlub_fst RS contlubE RS ssubst,
+                       contlub_snd RS contlubE RS ssubst];
           fun tacf {prems, context} = [
             res_inst_tac context [(("t", 0), x_name n    )] (ax_reach RS subst) 1,
             res_inst_tac context [(("t", 0), x_name n^"'")] (ax_reach RS subst) 1,
             stac fix_def2 1,
             REPEAT (CHANGED
-              (rtac (contlub_cfun_arg RS ssubst) 1 THEN chain_tac 1)),
+              (resolve_tac rules 1 THEN chain_tac 1)),
             stac contlub_cfun_fun 1,
             stac contlub_cfun_fun 2,
             rtac lub_equal 3,
@@ -955,6 +969,9 @@ in (* local *)
             fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
             fun concf n dn = %:(P_name n) $ %:(x_name n);
           in Logic.list_implies (mapn one_adm 1 dnames, ind_term concf) end;
+        val cont_rules =
+            [cont_id, cont_const, cont2cont_Rep_CFun,
+             cont2cont_fst, cont2cont_snd];
         fun tacf {prems, context} =
           map (fn ax_reach => rtac (ax_reach RS subst) 1) axs_reach @ [
           quant_tac context 1,
@@ -963,13 +980,14 @@ in (* local *)
           REPEAT_DETERM (
             TRY (rtac adm_conj 1) THEN 
             rtac adm_subst 1 THEN 
-            cont_tacR 1 THEN resolve_tac prems 1),
+            REPEAT (resolve_tac cont_rules 1) THEN
+            resolve_tac prems 1),
           strip_tac 1,
           rtac (rewrite_rule axs_take_def finite_ind) 1,
           ind_prems_tac prems];
         val ind = (pg'' thy [] goal tacf
           handle ERROR _ =>
-            (warning "Cannot prove infinite induction rule"; refl));
+            (warning "Cannot prove infinite induction rule"; TrueI));
       in (finites, ind) end
   )
       handle THM _ =>

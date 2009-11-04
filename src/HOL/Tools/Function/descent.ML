@@ -35,7 +35,7 @@ fun gen_descent diag ctxt tac cont D = Termination.CALLS (fn (cs, i) =>
                (measures_of p) (measures_of q) D
       end
   in
-    cont (FundefCommon.PROFILE "deriving descents" (fold derive cs) D) i
+    cont (Function_Common.PROFILE "deriving descents" (fold derive cs) D) i
   end)
 
 val derive_diag = gen_descent true

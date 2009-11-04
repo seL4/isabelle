@@ -346,7 +346,7 @@ val theory_context = context o ProofContext.init;
 fun activate_context thy ss =
   let
     val ctxt = the_context ss;
-    val ctxt' = Context.transfer_proof (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt;
+    val ctxt' = Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt;
   in context ctxt' ss end;
 
 
@@ -398,7 +398,7 @@ fun vperm (Var _, Var _) = true
   | vperm (t, u) = (t = u);
 
 fun var_perm (t, u) =
-  vperm (t, u) andalso gen_eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
+  vperm (t, u) andalso eq_set (op =) (Term.add_vars t [], Term.add_vars u []);
 
 (*simple test for looping rewrite rules and stupid orientations*)
 fun default_reorient thy prems lhs rhs =
@@ -864,7 +864,7 @@ fun uncond_skel ((_, weak), (lhs, rhs)) =
   while the premises are solved.*)
 
 fun cond_skel (args as (_, (lhs, rhs))) =
-  if Term.add_vars rhs [] subset Term.add_vars lhs [] then uncond_skel args
+  if subset (op =) (Term.add_vars rhs [], Term.add_vars lhs []) then uncond_skel args
   else skel0;
 
 (*
@@ -1139,8 +1139,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
       end
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
-        transitive1 (Library.foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
-            (Option.map (disch false prem) eq2)) (NONE, eqns ~~ prems'))
+        transitive1 (fold (fn (eq1, prem) => fn eq2 => transitive1 eq1
+            (Option.map (disch false prem) eq2)) (eqns ~~ prems') NONE)
           (if changed > 0 then
              mut_impc (rev prems') concl (rev rrss') (rev asms')
                [] [] [] [] ss ~1 changed
@@ -1158,8 +1158,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
             let
               val prem' = Thm.rhs_of eqn;
               val tprems = map term_of prems;
-              val i = 1 + Library.foldl Int.max (~1, map (fn p =>
-                find_index (fn q => q aconv p) tprems) (#hyps (rep_thm eqn)));
+              val i = 1 + fold Integer.max (map (fn p =>
+                find_index (fn q => q aconv p) tprems) (#hyps (rep_thm eqn))) ~1;
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (SOME (fold_rev (disch true)

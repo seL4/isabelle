@@ -1,0 +1,4 @@
+(benchmark Isabelle
+:assumption (not (= (bvlshr bv19[8] bv2[8]) bv4[8]))
+:formula true
+)

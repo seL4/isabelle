@@ -66,7 +66,7 @@ val rhs_of = #3 o dest_red;
 fun eq_brl ((b1 : bool, th1), (b2, th2)) = b1 = b2 andalso Thm.eq_thm_prop (th1, th2);
 
 (*insert a thm in a discrimination net by its lhs*)
-fun lhs_insert_thm (th,net) =
+fun lhs_insert_thm th net =
     Net.insert_term eq_brl (lhs_of (concl_of th), (false,th)) net
     handle  Net.INSERT => net;
 
@@ -215,7 +215,7 @@ in thm'' end;
 
 fun add_norm_tags congs =
     let val ccs = map cong_const congs
-        val new_asms = List.filter (exists not o #2)
+        val new_asms = filter (exists not o #2)
                 (ccs ~~ (map (map atomic o prems_of) congs));
     in add_norms(congs,ccs,new_asms) end;
 
@@ -254,13 +254,13 @@ fun insert_thm_warn th net =
 
 val insert_thms = fold_rev insert_thm_warn;
 
-fun addrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
+fun addrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let val thms = mk_simps thm
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = (thm,thms)::simps, simp_net = insert_thms thms simp_net}
 end;
 
-val op addrews = Library.foldl addrew;
+fun ss addrews thms = fold addrew thms ss;
 
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
@@ -287,7 +287,7 @@ in SS{auto_tac=auto_tac, congs= congs',
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
 end;
 
-fun delrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
+fun delrew thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
 let fun find((p as (th,ths))::ps',ps) =
           if Thm.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
       | find([],simps') =
@@ -298,7 +298,7 @@ in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = simps', simp_net = delete_thms thms simp_net }
 end;
 
-val op delrews = Library.foldl delrew;
+fun ss delrews thms = fold delrew thms ss;
 
 
 fun op setauto(SS{congs,cong_net,mk_simps,simps,simp_net,...}, auto_tac) =
@@ -434,7 +434,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         val thms = map (trivial o cterm_of(Thm.theory_of_thm thm)) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
-        val anet' = List.foldr lhs_insert_thm anet rwrls
+        val anet' = fold_rev lhs_insert_thm rwrls anet;
     in  if !tracing andalso not(null new_rws)
         then writeln (cat_lines
           ("Adding rewrites:" :: map Display.string_of_thm_without_context new_rws))
@@ -534,7 +534,7 @@ fun eta_Var(ixn,T) = exp_abs(T,Var(ixn,T),0);
 
 fun Pinst(f,fT,(eq,eqT),k,i,T,yik,Ts) =
 let fun xn_list(x,n) =
-        let val ixs = map (fn i => (x^(radixstring(26,"a",i)),0)) (0 upto n);
+        let val ixs = map_range (fn i => (x^(radixstring(26,"a",i)),0)) (n - 1);
         in ListPair.map eta_Var (ixs, Library.take(n+1,Ts)) end
     val lhs = list_comb(f,xn_list("X",k-1))
     val rhs = list_comb(f,xn_list("X",i-1) @ [Bound 0] @ yik)
@@ -543,7 +543,7 @@ in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 fun find_subst sg T =
 let fun find (thm::thms) =
         let val (Const(_,cT), va, vb) = dest_red(hd(prems_of thm));
-            val [P] = OldTerm.add_term_vars(concl_of thm,[]) \\ [va,vb]
+            val [P] = subtract (op =) [va, vb] (OldTerm.add_term_vars (concl_of thm, []));
             val eqT::_ = binder_types cT
         in if Sign.typ_instance sg (T,eqT) then SOME(thm,va,vb,P)
            else find thms

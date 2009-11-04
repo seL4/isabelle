@@ -303,7 +303,7 @@ fun assemble_eqnss idx_of deps eqnss =
     fun subst_nonlin_vars args =
       let
         val vs = (fold o Code_Thingol.fold_varnames)
-          (fn v => AList.map_default (op =) (v, 0) (curry (op +) 1)) args [];
+          (fn v => AList.map_default (op =) (v, 0) (Integer.add 1)) args [];
         val names = Name.make_context (map fst vs);
         fun declare v k ctxt = let val vs = Name.invents ctxt v k
           in (vs, fold Name.declare vs ctxt) end;

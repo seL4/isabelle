@@ -14,8 +14,15 @@ end;
 structure Transfer : TRANSFER =
 struct
 
-type entry = {inj : thm list, emb : thm list, ret : thm list, cong : thm list,
-  guess : bool, hints : string list};
+type entry = { inj : thm list, emb : thm list, ret : thm list, cong : thm list,
+  guess : bool, hints : string list };
+
+fun merge_entry ({ inj = inj1, emb = emb1, ret = ret1, cong = cong1, guess = guess1, hints = hints1 } : entry,
+  { inj = inj2, emb = emb2, ret = ret2, cong = cong2, guess = guess2, hints = hints2 } : entry) =
+    { inj = merge Thm.eq_thm (inj1, inj2), emb = merge Thm.eq_thm (emb1, emb2),
+      ret = merge Thm.eq_thm (ret1, ret2), cong = merge Thm.eq_thm (cong1, cong2),
+      guess = guess1 andalso guess2, hints = merge (op =) (hints1, hints2) };
+
 type data = simpset * (thm * entry) list;
 
 structure Data = GenericDataFun
@@ -24,7 +31,7 @@ structure Data = GenericDataFun
   val empty = (HOL_ss, []);
   val extend  = I;
   fun merge _ ((ss1, e1), (ss2, e2)) =
-    (merge_ss (ss1, ss2), AList.merge Thm.eq_thm (K true) (e1, e2));
+    (merge_ss (ss1, ss2), AList.join Thm.eq_thm (K merge_entry) (e1, e2));
 );
 
 val get = Data.get o Context.Proof;
@@ -143,7 +150,7 @@ fun gen_merge_entries {inj = inj0, emb = emb0, ret = ret0, cong = cg0, guess = g
  {inj = h inj0 inj1 inj2, emb = h emb0 emb1 emb2,
   ret = h ret0 ret1 ret2, cong = h cg0 cg1 cg2, guess = g1 andalso g2,
   hints = subtract (op = : string*string -> bool) hints0
-            (hints1 union_string hints2)}
+            (union (op =) hints1 hints2)}
  end;
 
 local
@@ -151,7 +158,7 @@ local
 in
 fun merge_entries ({inj = inj1, emb = emb1, ret = ret1, cong = cg1, guess = g1, hints = hints1},
                    {inj = inj2, emb = emb2, ret = ret2, cong = cg2, guess = g2, hints = hints2}) =
-    {inj = h inj1 inj2, emb = h emb1 emb2, ret = h ret1 ret2, cong = h cg1 cg2, guess = g1 andalso g2, hints = hints1 union_string hints2}
+    {inj = h inj1 inj2, emb = h emb1 emb2, ret = h ret1 ret2, cong = h cg1 cg2, guess = g1 andalso g2, hints = union (op =) hints1 hints2}
 end;
 
 fun add ((inja,injd), (emba,embd), (reta,retd), (cga,cgd), g, (hintsa, hintsd)) =

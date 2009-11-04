@@ -16,9 +16,6 @@ and d = gcd(m,m') and n=m/d and n'=m'/d.
 
 signature NUMERAL_SIMPROCS =
 sig
-  val mk_sum: typ -> term list -> term
-  val dest_sum: term -> term list
-
   val assoc_fold_simproc: simproc
   val combine_numerals: simproc
   val cancel_numerals: simproc list
@@ -32,39 +29,10 @@ end;
 structure Numeral_Simprocs : NUMERAL_SIMPROCS =
 struct
 
-fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
-
-fun find_first_numeral past (t::terms) =
-        ((snd (HOLogic.dest_number t), rev past @ terms)
-         handle TERM _ => find_first_numeral (t::past) terms)
-  | find_first_numeral past [] = raise TERM("find_first_numeral", []);
-
-val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
-
-fun mk_minus t = 
-  let val T = Term.fastype_of t
-  in Const (@{const_name HOL.uminus}, T --> T) $ t end;
-
-(*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
-fun mk_sum T []        = mk_number T 0
-  | mk_sum T [t,u]     = mk_plus (t, u)
-  | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
-
-(*this version ALWAYS includes a trailing zero*)
-fun long_mk_sum T []        = mk_number T 0
-  | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
-
-val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} Term.dummyT;
-
-(*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (@{const_name HOL.plus}, _) $ t $ u, ts) =
-        dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (@{const_name HOL.minus}, _) $ t $ u, ts) =
-        dest_summing (pos, t, dest_summing (not pos, u, ts))
-  | dest_summing (pos, t, ts) =
-        if pos then t::ts else mk_minus t :: ts;
-
-fun dest_sum t = dest_summing (true, t, []);
+val mk_number = Arith_Data.mk_number;
+val mk_sum = Arith_Data.mk_sum;
+val long_mk_sum = Arith_Data.long_mk_sum;
+val dest_sum = Arith_Data.dest_sum;
 
 val mk_diff = HOLogic.mk_binop @{const_name HOL.minus};
 val dest_diff = HOLogic.dest_bin @{const_name HOL.minus} Term.dummyT;
@@ -94,6 +62,11 @@ fun dest_prod t =
       let val (t,u) = dest_times t
       in dest_prod t @ dest_prod u end
       handle TERM _ => [t];
+
+fun find_first_numeral past (t::terms) =
+        ((snd (HOLogic.dest_number t), rev past @ terms)
+         handle TERM _ => find_first_numeral (t::past) terms)
+  | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 (*DON'T do the obvious simplifications; that would create special cases*)
 fun mk_coeff (k, t) = mk_times (mk_number (Term.fastype_of t) k, t);

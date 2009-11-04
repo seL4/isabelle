@@ -14,9 +14,9 @@ sig
     Nonterminal
   type tsig
   val rep_tsig: tsig ->
-   {classes: NameSpace.T * Sorts.algebra,
+   {classes: Name_Space.T * Sorts.algebra,
     default: sort,
-    types: ((decl * Properties.T) * serial) NameSpace.table,
+    types: decl Name_Space.table,
     log_types: string list}
   val empty_tsig: tsig
   val defaultS: tsig -> sort
@@ -39,7 +39,6 @@ sig
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
   val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
-  val the_tags: tsig -> string -> Properties.T
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
@@ -70,12 +69,12 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Pretty.pp -> NameSpace.naming -> binding * class list -> tsig -> tsig
+  val add_class: Pretty.pp -> Name_Space.naming -> binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_type: NameSpace.naming -> Properties.T -> binding * int -> tsig -> tsig
-  val add_abbrev: NameSpace.naming -> Properties.T -> binding * string list * typ -> tsig -> tsig
-  val add_nonterminal: NameSpace.naming -> Properties.T -> binding -> tsig -> tsig
+  val add_type: Name_Space.naming -> binding * int -> tsig -> tsig
+  val add_abbrev: Name_Space.naming -> binding * string list * typ -> tsig -> tsig
+  val add_nonterminal: Name_Space.naming -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
@@ -94,18 +93,14 @@ datatype decl =
   Abbreviation of string list * typ * bool |
   Nonterminal;
 
-fun str_of_decl (LogicalType _) = "logical type constructor"
-  | str_of_decl (Abbreviation _) = "type abbreviation"
-  | str_of_decl Nonterminal = "syntactic type";
-
 
 (* type tsig *)
 
 datatype tsig =
   TSig of {
-    classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
+    classes: Name_Space.T * Sorts.algebra,  (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
-    types: ((decl * Properties.T) * serial) NameSpace.table, (*declared types*)
+    types: decl Name_Space.table,           (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
 fun rep_tsig (TSig comps) = comps;
@@ -113,18 +108,18 @@ fun rep_tsig (TSig comps) = comps;
 fun make_tsig (classes, default, types, log_types) =
   TSig {classes = classes, default = default, types = types, log_types = log_types};
 
-fun build_tsig ((space, classes), default, types) =
+fun build_tsig (classes, default, types) =
   let
     val log_types =
-      Symtab.fold (fn (c, ((LogicalType n, _), _)) => cons (c, n) | _ => I) (snd types) []
-      |> Library.sort (Library.int_ord o pairself snd) |> map fst;
-  in make_tsig ((space, classes), default, types, log_types) end;
+      Symtab.fold (fn (c, LogicalType n) => cons (c, n) | _ => I) (snd types) []
+      |> Library.sort (int_ord o pairself snd) |> map fst;
+  in make_tsig (classes, default, types, log_types) end;
 
 fun map_tsig f (TSig {classes, default, types, log_types = _}) =
   build_tsig (f (classes, default, types));
 
 val empty_tsig =
-  build_tsig ((NameSpace.empty, Sorts.empty_algebra), [], NameSpace.empty_table);
+  build_tsig ((Name_Space.empty "class", Sorts.empty_algebra), [], Name_Space.empty_table "type");
 
 
 (* classes and sorts *)
@@ -167,12 +162,7 @@ fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
-fun lookup_type (TSig {types, ...}) = Option.map fst o Symtab.lookup (snd types);
-
-fun the_tags tsig c =
-  (case lookup_type tsig c of
-    SOME (_, tags) => tags
-  | NONE => error (undecl_type c));
+fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
 
 
 (* certified types *)
@@ -201,13 +191,13 @@ fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
             (case lookup_type tsig c of
-              SOME (LogicalType n, _) => (nargs n; Type (c, Ts'))
-            | SOME (Abbreviation (vs, U, syn), _) =>
+              SOME (LogicalType n) => (nargs n; Type (c, Ts'))
+            | SOME (Abbreviation (vs, U, syn)) =>
                (nargs (length vs);
                 if syn then check_logical c else ();
                 if normalize then inst_typ (vs ~~ Ts') U
                 else Type (c, Ts'))
-            | SOME (Nonterminal, _) => (nargs 0; check_logical c; T)
+            | SOME Nonterminal => (nargs 0; check_logical c; T)
             | NONE => err (undecl_type c))
           end
       | cert (TFree (x, S)) = TFree (x, cert_sort tsig S)
@@ -228,7 +218,7 @@ end;
 
 fun arity_number tsig a =
   (case lookup_type tsig a of
-    SOME (LogicalType n, _) => n
+    SOME (LogicalType n) => n
   | _ => error (undecl_type a));
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
@@ -515,12 +505,12 @@ fun add_class pp naming (c, cs) tsig =
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
-      val (c', space') = space |> NameSpace.declare naming c;
+      val (c', space') = space |> Name_Space.declare true naming c;
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
 fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
-  ((NameSpace.hide fully c space, classes), default, types));
+  ((Name_Space.hide fully c space, classes), default, types));
 
 
 (* arities *)
@@ -529,8 +519,8 @@ fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), defau
   let
     val _ =
       (case lookup_type tsig t of
-        SOME (LogicalType n, _) => if length Ss <> n then error (bad_nargs t) else ()
-      | SOME (decl, _) => error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t)
+        SOME (LogicalType n) => if length Ss <> n then error (bad_nargs t) else ()
+      | SOME _ => error ("Logical type constructor expected: " ^ quote t)
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
       handle TYPE (msg, _, _) => error msg;
@@ -559,68 +549,50 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 
 local
 
-fun err_in_decls c decl decl' =
-  let val s = str_of_decl decl and s' = str_of_decl decl' in
-    if s = s' then error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
-    else error ("Conflict of " ^ s ^ " with " ^ s' ^ ": " ^ quote c)
-  end;
-
-fun new_decl naming tags (c, decl) (space, types) =
-  let
-    val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val (c', space') = NameSpace.declare naming c space;
-    val types' =
-      (case Symtab.lookup types c' of
-        SOME ((decl', _), _) => err_in_decls c' decl decl'
-      | NONE => Symtab.update (c', ((decl, tags'), serial ())) types);
-  in (space', types') end;
-
-fun the_decl (_, types) = fst o fst o the o Symtab.lookup types;
+fun new_decl naming (c, decl) types =
+  #2 (Name_Space.define true naming (c, decl) types);
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
     val (space', tab') = f types;
-    val _ = NameSpace.intern space' "dummy" = "dummy" orelse
+    val _ = Name_Space.intern space' "dummy" = "dummy" orelse
       error "Illegal declaration of dummy type";
   in (classes, default, (space', tab')) end);
 
 fun syntactic types (Type (c, Ts)) =
-      (case Symtab.lookup types c of SOME ((Nonterminal, _), _) => true | _ => false)
+      (case Symtab.lookup types c of SOME Nonterminal => true | _ => false)
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 
 in
 
-fun add_type naming tags (c, n) =
-  if n < 0 then error ("Bad type constructor declaration: " ^ quote (Binding.str_of c))
-  else map_types (new_decl naming tags (c, LogicalType n));
+fun add_type naming (c, n) =
+  if n < 0 then error ("Bad type constructor declaration " ^ quote (Binding.str_of c))
+  else map_types (new_decl naming (c, LogicalType n));
 
-fun add_abbrev naming tags (a, vs, rhs) tsig = tsig |> map_types (fn types =>
+fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
-      cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote (Binding.str_of a));
+      cat_error msg ("The error(s) above occurred in type abbreviation " ^
+        quote (Binding.str_of a));
     val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
-  in
-    (case duplicates (op =) vs of
-      [] => []
-    | dups => err ("Duplicate variables on lhs: " ^ commas_quote dups));
-    (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
-      [] => []
-    | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
-    types |> new_decl naming tags (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs'))
-  end);
+    val _ =
+      (case duplicates (op =) vs of
+        [] => []
+      | dups => err ("Duplicate variables on lhs: " ^ commas_quote dups));
+    val _ =
+      (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
+        [] => []
+      | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
+  in types |> new_decl naming (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
 
-fun add_nonterminal naming tags = map_types o new_decl naming tags o rpair Nonterminal;
-
-fun merge_types (types1, types2) =
-  NameSpace.merge_tables (Library.eq_snd (op = : serial * serial -> bool)) (types1, types2)
-    handle Symtab.DUP d => err_in_decls d (the_decl types1 d) (the_decl types2 d);
+fun add_nonterminal naming = map_types o new_decl naming o rpair Nonterminal;
 
 end;
 
 fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
-  (classes, default, (NameSpace.hide fully c space, types)));
+  (classes, default, (Name_Space.hide fully c space, types)));
 
 
 (* merge type signatures *)
@@ -632,10 +604,10 @@ fun merge_tsigs pp (tsig1, tsig2) =
     val (TSig {classes = (space2, classes2), default = default2, types = types2,
       log_types = _}) = tsig2;
 
-    val space' = NameSpace.merge (space1, space2);
+    val space' = Name_Space.merge (space1, space2);
     val classes' = Sorts.merge_algebra pp (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
-    val types' = merge_types (types1, types2);
+    val types' = Name_Space.merge_tables (types1, types2);
   in build_tsig ((space', classes'), default', types') end;
 
 end;

@@ -8,7 +8,7 @@ sig
   type seed = Random_Engine.seed
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
-    -> seed -> (('a -> 'b) * (unit -> Term.term)) * seed
+    -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val ensure_random_typecopy: string -> theory -> theory
   val random_aux_specification: string -> string -> term list -> local_theory -> local_theory
   val mk_random_aux_eqs: theory -> Datatype.descr -> (string * sort) list
@@ -84,7 +84,7 @@ fun mk_random_typecopy tyco vs constr T' thy =
     thy
     |> TheoryTarget.instantiation ([tyco], vs, @{sort random})
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (Attrib.empty_binding, eq)))
+    |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
@@ -140,7 +140,7 @@ fun random_aux_primrec eq lthy =
       subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, eqs2), lthy') = Primrec.add_primrec_simple
-      [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
+      [((Binding.conceal (Binding.name random_aux), T), NoSyn)] eqs1 lthy;
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
@@ -176,7 +176,8 @@ fun random_aux_primrec_multi auxname [eq] lthy =
         val projs = mk_proj (aux_lhs) Ts;
         val proj_eqs = map2 (fn v => fn proj => (v, lambda arg proj)) vs projs;
         val proj_defs = map2 (fn Free (name, _) => fn (_, rhs) =>
-          ((Binding.name name, NoSyn), (Attrib.empty_binding, rhs))) vs proj_eqs;
+          ((Binding.conceal (Binding.name name), NoSyn),
+            (apfst Binding.conceal Attrib.empty_binding, rhs))) vs proj_eqs;
         val aux_eq' = Pattern.rewrite_term thy proj_eqs [] aux_eq;
         fun prove_eqs aux_simp proj_defs lthy = 
           let
@@ -207,14 +208,15 @@ fun random_aux_specification prfx name eqs lthy =
         val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
         val tac = ALLGOALS (ProofContext.fact_tac ext_simps);
       in (map (fn prop => Skip_Proof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
-    val b = Binding.qualify true prfx (Binding.qualify true name (Binding.name "simps"));
+    val b = Binding.conceal (Binding.qualify true prfx
+      (Binding.qualify true name (Binding.name "simps")));
   in
     lthy
     |> random_aux_primrec_multi (name ^ prfx) proto_eqs
     |-> (fn proto_simps => prove_simps proto_simps)
     |-> (fn simps => LocalTheory.note Thm.generatedK ((b,
            Code.add_default_eqn_attrib :: map (Attrib.internal o K)
-          [Simplifier.simp_add, Nitpick_Const_Simps.add, Quickcheck_RecFun_Simps.add]),
+          [Simplifier.simp_add, Nitpick_Simps.add, Quickcheck_RecFun_Simps.add]),
             simps))
     |> snd
   end
@@ -256,7 +258,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
         val T = termifyT simpleT;
         val tTs = (map o apsnd) termifyT simple_tTs;
         val is_rec = exists is_some ks;
-        val k = fold (fn NONE => I | SOME k => curry Int.max k) ks 0;
+        val k = fold (fn NONE => I | SOME k => Integer.max k) ks 0;
         val vs = Name.names Name.context "x" (map snd simple_tTs);
         val vs' = (map o apsnd) termifyT vs;
         val tc = HOLogic.mk_return T @{typ Random.seed}
@@ -303,8 +305,8 @@ fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy
     |> random_aux_specification prfx random_auxN auxs_eqs
     |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
     |-> (fn random_defs' => fold_map (fn random_def =>
-          Specification.definition (NONE, (Attrib.empty_binding,
-            random_def))) random_defs')
+          Specification.definition (NONE, (apfst Binding.conceal
+            Attrib.empty_binding, random_def))) random_defs')
     |> snd
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
@@ -317,7 +319,7 @@ fun perhaps_constrain thy insts raw_vs =
       |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
       |> fold meet_random insts;
   in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
-  end handle CLASS_ERROR => NONE;
+  end handle Sorts.CLASS_ERROR _ => NONE;
 
 fun ensure_random_datatype config raw_tycos thy =
   let

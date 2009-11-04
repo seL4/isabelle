@@ -132,18 +132,19 @@ results in @{thm conjI[no_vars]}.
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
 \begin{verbatim}
-reset show_question_marks;
+show_question_marks := false;
 \end{verbatim}
 at the beginning of your file \texttt{ROOT.ML}.
-The rest of this document is produced with this flag reset.
+The rest of this document is produced with this flag set to \texttt{false}.
 
-Hint: Resetting \verb!show_question_marks! only suppresses question
-marks; variables that end in digits, e.g. @{text"x1"}, are still
-printed with a trailing @{text".0"}, e.g. @{text"x1.0"}, their
-internal index. This can be avoided by turning the last digit into a
-subscript: write \verb!x\<^isub>1! and obtain the much nicer @{text"x\<^isub>1"}. *}
+Hint: Setting \verb!show_question_marks! to \texttt{false} only
+suppresses question marks; variables that end in digits,
+e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
+e.g. @{text"x1.0"}, their internal index. This can be avoided by
+turning the last digit into a subscript: write \verb!x\<^isub>1! and
+obtain the much nicer @{text"x\<^isub>1"}. *}
 
-(*<*)ML"Unsynchronized.reset show_question_marks"(*>*)
+(*<*)ML"show_question_marks := false"(*>*)
 
 subsection {*Qualified names*}
 
@@ -415,7 +416,7 @@ text {*
   \begin{quote}
     \verb!\begin{center}!\\
     \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
-    \verb!@!\verb!{thm (lhs) foldl_Nil} & @!\verb!{thm (rhs) foldl_Nil}!\\
+    \verb!@!\verb!{thm (lhs) foldl_Nil} & @!\verb!{thm (rhs) foldl_Nil}\\!\\
     \verb!@!\verb!{thm (lhs) foldl_Cons} & @!\verb!{thm (rhs) foldl_Cons}!\\
     \verb!\end{tabular}!\\
     \verb!\end{center}!
@@ -430,16 +431,16 @@ text {*
   Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
-    @{thm [show_types] hd_Cons_tl}
+    @{thm hd_Cons_tl}
   \end{center}
   To print just the conclusion,
   \begin{center}
-    @{thm [show_types] (concl) hd_Cons_tl}
+    @{thm (concl) hd_Cons_tl}
   \end{center}
   type
   \begin{quote}
     \verb!\begin{center}!\\
-    \verb!@!\verb!{thm [show_types] (concl) hd_Cons_tl}!\\
+    \verb!@!\verb!{thm (concl) hd_Cons_tl}!\\
     \verb!\end{center}!
   \end{quote}
   Beware that any options must be placed \emph{before}

@@ -5,7 +5,7 @@
 header {* Semiring normalization and Groebner Bases *}
 
 theory Groebner_Basis
-imports Nat_Numeral
+imports Numeral_Simprocs
 uses
   "Tools/Groebner_Basis/misc.ML"
   "Tools/Groebner_Basis/normalizer_data.ML"

@@ -9,6 +9,7 @@ sig
   (*hooks for problem files*)
   val destdir: string Config.T
   val problem_prefix: string Config.T
+  val measure_runtime: bool Config.T
   val setup: theory -> theory
 
   (*prover configuration, problem format, and prover result*)
@@ -61,7 +62,10 @@ val (destdir, destdir_setup) = Attrib.config_string "atp_destdir" "";
 val (problem_prefix, problem_prefix_setup) =
   Attrib.config_string "atp_problem_prefix" "prob";
 
-val setup = destdir_setup #> problem_prefix_setup;
+val (measure_runtime, measure_runtime_setup) =
+  Attrib.config_bool "atp_measure_runtime" false;
+
+val setup = destdir_setup #> problem_prefix_setup #> measure_runtime_setup;
 
 
 (* prover configuration, problem format, and prover result *)
@@ -113,8 +117,8 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
     (* get clauses and prepare them for writing *)
     val (ctxt, (chain_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths;
-    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses ctxt th subgoalno);
+    val chain_ths = map (Thm.put_name_hint Res_Reconstruct.chained_hint) chain_ths;
+    val goal_cls = #1 (Res_Axioms.neg_conjecture_clauses ctxt th subgoalno);
     val the_filtered_clauses =
       (case filtered_clauses of
         NONE => relevance_filter goal goal_cls
@@ -140,8 +144,14 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
       end;
 
     (* write out problem file and call prover *)
-    fun cmd_line probfile = "TIMEFORMAT='%3U'; { time " ^ space_implode " "
-      [File.shell_path cmd, args, File.shell_path probfile] ^ " ; } 2>&1"
+    fun cmd_line probfile =
+      if Config.get ctxt measure_runtime
+      then (* Warning: suppresses error messages of ATPs *)
+        "TIMEFORMAT='%3U'; { time " ^ space_implode " " [File.shell_path cmd,
+        args, File.shell_path probfile] ^ " 2> /dev/null" ^ " ; } 2>&1"
+      else
+        space_implode " " ["exec", File.shell_path cmd, args,
+        File.shell_path probfile];
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
@@ -153,10 +163,12 @@ fun external_prover relevance_filter prepare write cmd args find_failure produce
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (proof, as_time t) end;
+    fun split_time' s =
+      if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists cmd then
         write probfile clauses
-        |> pair (apfst split_time (system_out (cmd_line probfile)))
+        |> pair (apfst split_time' (system_out (cmd_line probfile)))
       else error ("Bad executable: " ^ Path.implode cmd);
 
     (* if problemfile has not been exported, delete problemfile; otherwise export proof, too *)
@@ -192,14 +204,14 @@ fun gen_tptp_prover (name, prover_config) timeout problem =
     val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem;
   in
     external_prover
-      (ResAtp.get_relevant max_new_clauses insert_theory_const)
-      (ResAtp.prepare_clauses false)
-      (ResHolClause.tptp_write_file with_full_types)
+      (Res_ATP.get_relevant max_new_clauses insert_theory_const)
+      (Res_ATP.prepare_clauses false)
+      (Res_HOL_Clause.tptp_write_file with_full_types)
       command
       (arguments timeout)
-      ResReconstruct.find_failure
-      (if emit_structured_proof then ResReconstruct.structured_proof
-       else ResReconstruct.lemma_list false)
+      Res_Reconstruct.find_failure
+      (if emit_structured_proof then Res_Reconstruct.structured_proof
+       else Res_Reconstruct.lemma_list false)
       axiom_clauses
       filtered_clauses
       name
@@ -268,13 +280,13 @@ fun gen_dfg_prover (name, prover_config: prover_config) timeout problem =
     val {with_full_types, subgoal, goal, axiom_clauses, filtered_clauses} = problem
   in
     external_prover
-      (ResAtp.get_relevant max_new_clauses insert_theory_const)
-      (ResAtp.prepare_clauses true)
-      (ResHolClause.dfg_write_file with_full_types)
+      (Res_ATP.get_relevant max_new_clauses insert_theory_const)
+      (Res_ATP.prepare_clauses true)
+      (Res_HOL_Clause.dfg_write_file with_full_types)
       command
       (arguments timeout)
-      ResReconstruct.find_failure
-      (ResReconstruct.lemma_list true)
+      Res_Reconstruct.find_failure
+      (Res_Reconstruct.lemma_list true)
       axiom_clauses
       filtered_clauses
       name

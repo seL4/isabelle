@@ -34,7 +34,7 @@ local open Conv in
 
 (* Compute inverse permutation *)
 fun invert_perm pi =
-      (pi @ ((0 upto (fold (curry Int.max) pi 0)) \\ pi))
+      (pi @ subtract (op =) pi (0 upto (fold Integer.max pi 0)))
            |> map_index I
            |> sort (int_ord o pairself snd)
            |> map fst
@@ -42,7 +42,7 @@ fun invert_perm pi =
 (* rearrange_prems as a conversion *)
 fun rearrange_prems_conv pi ct =
     let
-      val pi' = 0 :: map (curry op + 1) pi
+      val pi' = 0 :: map (Integer.add 1) pi
       val fwd  = Thm.trivial ct
                   |> Drule.rearrange_prems pi'
       val back = Thm.trivial (snd (Thm.dest_implies (cprop_of fwd)))

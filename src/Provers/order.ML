@@ -307,7 +307,7 @@ fun getprf   (Less (_, _, p)) = p
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkasm_partial decomp (less_thms : less_arith) sign (t, n) =
+fun mkasm_partial decomp (less_thms : less_arith) sign (n, t) =
   case decomp sign t of
     SOME (x, rel, y) => (case rel of
       "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], #less_reflE less_thms))
@@ -335,7 +335,7 @@ fun mkasm_partial decomp (less_thms : less_arith) sign (t, n) =
 (*                                                                          *)
 (* ************************************************************************ *)
 
-fun mkasm_linear decomp (less_thms : less_arith) sign (t, n) =
+fun mkasm_linear decomp (less_thms : less_arith) sign (n, t) =
   case decomp sign t of
     SOME (x, rel, y) => (case rel of
       "<"   => if (x aconv y) then raise Contr (Thm ([Asm n], #less_reflE less_thms))
@@ -697,9 +697,9 @@ fun scc_term G =
      dfs_visit along with u form a connected component. We
      collect all the connected components together in a
      list, which is what is returned. *)
-  Library.foldl (fn (comps,u) =>
+  fold (fn u => fn comps =>
       if been_visited u then comps
-      else ((u :: dfs_visit (transpose (op aconv) G) u) :: comps))  ([],(!finish))
+      else (u :: dfs_visit (transpose (op aconv) G) u) :: comps) (!finish) []
 end;
 
 
@@ -730,9 +730,6 @@ fun dfs_int_reachable g u =
 
  in u :: dfs_visit g u end;
 
-
-fun indexComps components =
-    ListPair.map (fn (a,b) => (a,b)) (0 upto (length components -1), components);
 
 fun indexNodes IndexComp =
     maps (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp;
@@ -1109,7 +1106,7 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
 |   mk_sccGraphs components leqG neqG ntc =
     let
     (* Liste (Index der Komponente, Komponente *)
-    val IndexComp = indexComps components;
+    val IndexComp = map_index I components;
 
 
     fun handleContr edge g =
@@ -1211,7 +1208,7 @@ fun gen_solve mkconcl sign (asms, concl) =
  let
   val (leqG, neqG, neqE) = mkGraphs asms
   val components = scc_term leqG
-  val ntc = indexNodes (indexComps components)
+  val ntc = indexNodes (map_index I components)
   val (sccGraph, sccSubgraphs) = mk_sccGraphs components leqG neqG ntc
  in
    let
@@ -1231,7 +1228,7 @@ in
    val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
    val Hs = map prop_of prems @ map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
    val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-   val lesss = flat (ListPair.map (mkasm decomp less_thms thy) (Hs, 0 upto (length Hs - 1)))
+   val lesss = flat (map_index (mkasm decomp less_thms thy) Hs)
    val prfs = gen_solve mkconcl thy (lesss, C);
    val (subgoals, prf) = mkconcl decomp less_thms thy C;
   in

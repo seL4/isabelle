@@ -74,7 +74,7 @@ sig
   val get_rec_types : descr -> (string * sort) list -> typ list
   val interpret_construction : descr -> (string * sort) list
     -> { atyp: typ -> 'a, dtyp: typ list -> int * bool -> string * typ list -> 'a }
-    -> ((string * Term.typ list) * (string * 'a list) list) list
+    -> ((string * typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
   val unfold_datatypes : 
     theory -> descr -> (string * sort) list -> info Symtab.table ->
@@ -162,8 +162,7 @@ fun exh_tac exh_thm_of i state =
     val prem' = hd (prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' = cterm_instantiate [(cterm_of thy (head_of lhs),
-      cterm_of thy (List.foldr (fn ((_, T), t) => Abs ("z", T, t))
-        (Bound 0) params))] exhaustion
+      cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))] exhaustion
   in compose_tac (false, exhaustion', nprems_of exhaustion) i state
   end;
 
@@ -231,7 +230,7 @@ fun mk_fun_dtyp [] U = U
 
 fun name_of_typ (Type (s, Ts)) =
       let val s' = Long_Name.base_name s
-      in space_implode "_" (List.filter (not o equal "") (map name_of_typ Ts) @
+      in space_implode "_" (filter_out (equal "") (map name_of_typ Ts) @
         [if Syntax.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
@@ -255,9 +254,8 @@ fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, (the o AList.lookup (op =) s
 (* find all non-recursive types in datatype description *)
 
 fun get_nonrec_types descr sorts =
-  map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
-    Library.foldl (fn (Ts', (_, cargs)) =>
-      filter_out is_rec_type cargs union Ts') (Ts, constrs)) ([], descr));
+  map (typ_of_dtyp descr sorts) (fold (fn (_, (_, _, constrs)) =>
+    fold (fn (_, cargs) => union (op =) (filter_out is_rec_type cargs)) constrs) descr []);
 
 (* get all recursive types in datatype description *)
 
@@ -273,7 +271,7 @@ fun get_branching_types descr sorts =
 
 fun get_arities descr = fold (fn (_, (_, _, constrs)) =>
   fold (fn (_, cargs) => fold (insert op =) (map (length o fst o strip_dtyp)
-    (List.filter is_rec_type cargs))) constrs) descr [];
+    (filter is_rec_type cargs))) constrs) descr [];
 
 (* interpret construction of datatype *)
 
@@ -335,7 +333,7 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
 
     (* unfold a single constructor argument *)
 
-    fun unfold_arg ((i, Ts, descrs), T) =
+    fun unfold_arg T (i, Ts, descrs) =
       if is_rec_type T then
         let val (Us, U) = strip_dtyp T
         in if exists is_rec_type Us then
@@ -353,19 +351,17 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
 
     (* unfold a constructor *)
 
-    fun unfold_constr ((i, constrs, descrs), (cname, cargs)) =
-      let val (i', cargs', descrs') = Library.foldl unfold_arg ((i, [], descrs), cargs)
+    fun unfold_constr (cname, cargs) (i, constrs, descrs) =
+      let val (i', cargs', descrs') = fold unfold_arg cargs (i, [], descrs)
       in (i', constrs @ [(cname, cargs')], descrs') end;
 
     (* unfold a single datatype *)
 
-    fun unfold_datatype ((i, dtypes, descrs), (j, (tname, tvars, constrs))) =
-      let val (i', constrs', descrs') =
-        Library.foldl unfold_constr ((i, [], descrs), constrs)
-      in (i', dtypes @ [(j, (tname, tvars, constrs'))], descrs')
-      end;
+    fun unfold_datatype (j, (tname, tvars, constrs)) (i, dtypes, descrs) =
+      let val (i', constrs', descrs') = fold unfold_constr constrs (i, [], descrs)
+      in (i', dtypes @ [(j, (tname, tvars, constrs'))], descrs') end;
 
-    val (i', descr', descrs) = Library.foldl unfold_datatype ((i, [],[]), descr);
+    val (i', descr', descrs) = fold unfold_datatype descr (i, [], []);
 
   in (descr' :: descrs, i') end;
 

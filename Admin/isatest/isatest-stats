@@ -6,7 +6,7 @@
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-PLATFORMS="at-poly at64-poly mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp at-sml-dev"
+PLATFORMS="at-poly at64-poly mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp at-sml-dev sun-poly"
 
 ISABELLE_SESSIONS="\
   HOL-Plain \
@@ -18,16 +18,16 @@ ISABELLE_SESSIONS="\
   HOL-Decision_Procs \
   HOL-Extraction \
   HOL-Hoare \
-  HOL-HoareParallel \
+  HOL-Hoare_Parallel \
   HOL-Lambda \
   HOL-Library \
-  HOL-MetisExamples \
+  HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-NSA \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
-  HOL-SET-Protocol \
+  HOL-SET_Protocol \
   HOL-UNITY \
   HOL-Word \
   HOL-ex \

@@ -240,7 +240,7 @@ fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val rules =
       if not (null arg_rules) then arg_rules
-      else flat (ContextRules.find_rules false facts goal ctxt)
+      else flat (Context_Rules.find_rules false facts goal ctxt)
   in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
@@ -322,32 +322,30 @@ fun finish_text (NONE, immed) = Basic (close immed)
 
 structure Methods = TheoryDataFun
 (
-  type T = (((src -> Proof.context -> method) * string) * stamp) NameSpace.table;
-  val empty = NameSpace.empty_table;
+  type T = ((src -> Proof.context -> method) * string) Name_Space.table;
+  val empty : T = Name_Space.empty_table "method";
   val copy = I;
   val extend = I;
-  fun merge _ tables : T = NameSpace.merge_tables (eq_snd (op =)) tables handle Symtab.DUP dup =>
-    error ("Attempt to merge different versions of method " ^ quote dup);
+  fun merge _ tables : T = Name_Space.merge_tables tables;
 );
 
 fun print_methods thy =
   let
     val meths = Methods.get thy;
-    fun prt_meth (name, ((_, comment), _)) = Pretty.block
+    fun prt_meth (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
-    [Pretty.big_list "methods:" (map prt_meth (NameSpace.extern_table meths))]
+    [Pretty.big_list "methods:" (map prt_meth (Name_Space.extern_table meths))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
-fun add_method name meth comment thy = thy |> Methods.map (fn meths =>
-  #2 (NameSpace.define (Sign.naming_of thy) (name, ((meth, comment), stamp ())) meths)
-    handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup));
+fun add_method name meth comment thy = thy
+  |> Methods.map (#2 o Name_Space.define true (Sign.naming_of thy) (name, (meth, comment)));
 
 
 (* get methods *)
 
-val intern = NameSpace.intern o #1 o Methods.get;
+val intern = Name_Space.intern o #1 o Methods.get;
 val defined = Symtab.defined o #2 o Methods.get;
 
 fun method_i thy =
@@ -357,11 +355,11 @@ fun method_i thy =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup meths name of
           NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | SOME ((mth, _), _) => (Position.report (Markup.method name) pos; mth src))
+        | SOME (mth, _) => (Position.report (Markup.method name) pos; mth src))
       end;
   in meth end;
 
-fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (Methods.get thy)));
+fun method thy = method_i thy o Args.map_name (Name_Space.intern (#1 (Methods.get thy)));
 
 
 (* method setup *)

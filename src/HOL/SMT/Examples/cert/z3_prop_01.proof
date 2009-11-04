@@ -1,0 +1,8 @@
+#2 := false
+#1 := true
+#4 := (not true)
+#21 := (iff #4 false)
+#22 := [rewrite]: #21
+#20 := [asserted]: #4
+[mp #20 #22]: false
+unsat

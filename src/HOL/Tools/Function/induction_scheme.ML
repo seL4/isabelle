@@ -13,10 +13,10 @@ sig
 end
 
 
-structure InductionScheme : INDUCTION_SCHEME =
+structure Induction_Scheme : INDUCTION_SCHEME =
 struct
 
-open FundefLib
+open Function_Lib
 
 
 type rec_call_info = int * (string * typ) list * term list * term list
@@ -244,7 +244,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
      (* Rule for case splitting along the sum types *)
       val xss = map (fn (SchemeBranch { xs, ... }) => map Free xs) branches
       val pats = map_index (uncurry inject) xss
-      val sum_split_rule = FundefDatatype.prove_completeness thy [x] (P_comp $ x) xss (map single pats)
+      val sum_split_rule = Pat_Completeness.prove_completeness thy [x] (P_comp $ x) xss (map single pats)
 
       fun prove_branch (bidx, (SchemeBranch { P, xs, ws, Cs, ... }, (complete_thm, pat))) =
           let
@@ -363,7 +363,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
 
     val ineqss = mk_ineqs R scheme
                    |> map (map (pairself (assume o cert)))
-    val complete = map (mk_completeness ctxt scheme #> cert #> assume) (0 upto (length branches - 1))
+    val complete = map_range (mk_completeness ctxt scheme #> cert #> assume) (length branches)
     val wf_thm = mk_wf ctxt R scheme |> cert |> assume
 
     val (descent, pres) = split_list (flat ineqss)

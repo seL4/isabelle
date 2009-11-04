@@ -18,7 +18,7 @@ sig
     (bool * string criterion) list -> unit
 end;
 
-structure FindTheorems: FIND_THEOREMS =
+structure Find_Theorems: FIND_THEOREMS =
 struct
 
 (** search criteria **)
@@ -27,6 +27,25 @@ datatype 'term criterion =
   Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
   Pattern of 'term;
 
+fun apply_dummies tm =
+  let
+    val (xs, _) = Term.strip_abs tm;
+    val tm' = Term.betapplys (tm, map (Term.dummy_pattern o #2) xs);
+  in #1 (Term.replace_dummy_patterns tm' 1) end;
+
+fun parse_pattern ctxt nm =
+  let
+    val consts = ProofContext.consts_of ctxt;
+    val nm' =
+      (case Syntax.parse_term ctxt nm of
+        Const (c, _) => c
+      | _ => Consts.intern consts nm);
+  in
+    (case try (Consts.the_abbreviation consts) nm' of
+      SOME (_, rhs) => apply_dummies rhs
+    | NONE => ProofContext.read_term_pattern ctxt nm)
+  end;
+
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ IntroIff = IntroIff
@@ -34,7 +53,7 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
   | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term_pattern ctxt str)
-  | read_criterion ctxt (Pattern str) = Pattern (ProofContext.read_term_pattern ctxt str);
+  | read_criterion ctxt (Pattern str) = Pattern (parse_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
   let
@@ -109,7 +128,7 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
     fun bestmatch [] = NONE
-      | bestmatch xs = SOME (foldr1 Int.min xs);
+      | bestmatch xs = SOME (foldl1 Int.min xs);
 
     val match_thm = matches o refine_term;
   in
@@ -142,7 +161,7 @@ fun filter_dest ctxt goal (_, thm) =
     (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
     if not (null successful)
-    then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
+    then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
   end;
 
 fun filter_intro doiff ctxt goal (_, thm) =
@@ -173,7 +192,7 @@ fun filter_elim ctxt goal (_, thm) =
         assumption is as good as an intro rule with none*)
       if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
         andalso not (null successful)
-      then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
+      then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
     end
   else NONE
 
@@ -227,7 +246,7 @@ fun filter_pattern ctxt pat =
 
     fun check (t, NONE) = check (t, SOME (get_thm_names t))
       | check ((_, thm), c as SOME thm_consts) =
-         (if pat_consts subset_string thm_consts andalso
+         (if subset (op =) (pat_consts, thm_consts) andalso
             Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, Thm.full_prop_of thm)
           then SOME (0, 0) else NONE, c);
   in check end;
@@ -305,7 +324,7 @@ end;
 local
 
 val index_ord = option_ord (K EQUAL);
-val hidden_ord = bool_ord o pairself NameSpace.is_hidden;
+val hidden_ord = bool_ord o pairself Name_Space.is_hidden;
 val qual_ord = int_ord o pairself (length o Long_Name.explode);
 val txt_ord = int_ord o pairself size;
 
@@ -334,7 +353,8 @@ fun nicer_shortest ctxt =
     val space = Facts.space_of (PureThy.facts_of (ProofContext.theory_of ctxt));
 
     val shorten =
-      NameSpace.extern_flags {long_names = false, short_names = false, unique_names = false} space;
+      Name_Space.extern_flags
+        {long_names = false, short_names = false, unique_names = false} space;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (shorten x, i) (shorten y, j)
@@ -355,9 +375,15 @@ end;
 (* print_theorems *)
 
 fun all_facts_of ctxt =
-  maps Facts.selections
-   (Facts.dest_static [] (PureThy.facts_of (ProofContext.theory_of ctxt)) @
-    Facts.dest_static [] (ProofContext.facts_of ctxt));
+  let
+    fun visible_facts facts =
+      Facts.dest_static [] facts
+      |> filter_out (Facts.is_concealed facts o #1);
+  in
+    maps Facts.selections
+     (visible_facts (PureThy.facts_of (ProofContext.theory_of ctxt)) @
+      visible_facts (ProofContext.facts_of ctxt))
+  end;
 
 val limit = Unsynchronized.ref 40;
 
@@ -434,7 +460,7 @@ fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
     let
       val proof_state = Toplevel.enter_proof_body state;
       val ctxt = Proof.context_of proof_state;
-      val opt_goal = try Proof.flat_goal proof_state |> Option.map #2;
+      val opt_goal = try Proof.simple_goal proof_state |> Option.map #goal;
     in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 local

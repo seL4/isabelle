@@ -126,6 +126,47 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 
+subsection {* the Random-Predicate Monad *} 
+
+types 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
+
+definition empty :: "'a randompred"
+  where "empty = Pair (bot_class.bot)"
+
+definition single :: "'a => 'a randompred"
+  where "single x = Pair (Predicate.single x)"
+
+definition bind :: "'a randompred \<Rightarrow> ('a \<Rightarrow> 'b randompred) \<Rightarrow> 'b randompred"
+  where
+    "bind R f = (\<lambda>s. let
+       (P, s') = R s;
+       (s1, s2) = Random.split_seed s'
+     in (Predicate.bind P (%a. fst (f a s1)), s2))"
+
+definition union :: "'a randompred \<Rightarrow> 'a randompred \<Rightarrow> 'a randompred"
+where
+  "union R1 R2 = (\<lambda>s. let
+     (P1, s') = R1 s; (P2, s'') = R2 s'
+   in (upper_semilattice_class.sup P1 P2, s''))"
+
+definition if_randompred :: "bool \<Rightarrow> unit randompred"
+where
+  "if_randompred b = (if b then single () else empty)"
+
+definition not_randompred :: "unit randompred \<Rightarrow> unit randompred"
+where
+  "not_randompred P = (\<lambda>s. let
+     (P', s') = P s
+   in if Predicate.eval P' () then (Orderings.bot, s') else (Predicate.single (), s'))"
+
+definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> 'a randompred"
+  where "Random g = scomp g (Pair o (Predicate.single o fst))"
+
+definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
+  where "map f P = bind P (single o f)"
+
+subsection {* Code setup *}
+
 use "Tools/quickcheck_generators.ML"
 setup {* Quickcheck_Generators.setup *}
 
@@ -136,8 +177,10 @@ code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
 
 code_reserved Quickcheck Quickcheck_Generators
 
-
+hide (open) fact empty_def single_def bind_def union_def if_randompred_def not_randompred_def Random_def map_def
+hide (open) type randompred
 hide (open) const random collapse beyond random_fun_aux random_fun_lift
+  empty single bind union if_randompred not_randompred Random map
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)

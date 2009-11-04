@@ -101,6 +101,19 @@ text{*Contravariance of Pi-sets in their first argument*}
 lemma Pi_anti_mono: "A' <= A ==> Pi A B <= Pi A' B"
 by auto
 
+lemma prod_final:
+  assumes 1: "fst \<circ> f \<in> Pi A B" and 2: "snd \<circ> f \<in> Pi A C"
+  shows "f \<in> (\<Pi> z \<in> A. B z \<times> C z)"
+proof (rule Pi_I) 
+  fix z
+  assume z: "z \<in> A" 
+  have "f z = (fst (f z), snd (f z))" 
+    by simp
+  also have "...  \<in> B z \<times> C z"
+    by (metis SigmaI PiE o_apply 1 2 z) 
+  finally show "f z \<in> B z \<times> C z" .
+qed
+
 
 subsection{*Composition With a Restricted Domain: @{term compose}*}
 
@@ -157,7 +170,7 @@ text{*The definition of @{const bij_betw} is in @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
 
 lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
-by (auto simp add: bij_betw_def inj_on_Inv)
+by (auto simp add: bij_betw_def)
 
 lemma inj_on_compose:
   "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
@@ -190,22 +203,20 @@ lemma extensionalityI:
       !!x. x\<in>A ==> f x = g x |] ==> f = g"
 by (force simp add: expand_fun_eq extensional_def)
 
-lemma Inv_funcset: "f ` A = B ==> (\<lambda>x\<in>B. Inv A f x) : B -> A"
-by (unfold Inv_def) (fast intro: someI2)
+lemma inv_into_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_into A f x) : B -> A"
+by (unfold inv_into_def) (fast intro: someI2)
 
-lemma compose_Inv_id:
-  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. Inv A f y) f = (\<lambda>x\<in>A. x)"
+lemma compose_inv_into_id:
+  "bij_betw f A B ==> compose A (\<lambda>y\<in>B. inv_into A f y) f = (\<lambda>x\<in>A. x)"
 apply (simp add: bij_betw_def compose_def)
 apply (rule restrict_ext, auto)
-apply (erule subst)
-apply (simp add: Inv_f_f)
 done
 
-lemma compose_id_Inv:
-  "f ` A = B ==> compose B f (\<lambda>y\<in>B. Inv A f y) = (\<lambda>x\<in>B. x)"
+lemma compose_id_inv_into:
+  "f ` A = B ==> compose B f (\<lambda>y\<in>B. inv_into A f y) = (\<lambda>x\<in>B. x)"
 apply (simp add: compose_def)
 apply (rule restrict_ext)
-apply (simp add: f_Inv_f)
+apply (simp add: f_inv_into_f)
 done
 
 

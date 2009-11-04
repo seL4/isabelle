@@ -526,7 +526,8 @@ by (simp_all add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
   "match_cpair\<cdot>\<langle>x, y\<rangle>\<cdot>k = k\<cdot>x\<cdot>y"
-by (simp add: match_cpair_def)
+  "match_cpair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
+by (simp_all add: match_cpair_def)
 
 lemma match_spair_simps [simp]:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> match_spair\<cdot>(:x, y:)\<cdot>k = k\<cdot>x\<cdot>y"
@@ -610,6 +611,7 @@ setup {*
       (@{const_name sinr}, @{const_name match_sinr}),
       (@{const_name spair}, @{const_name match_spair}),
       (@{const_name cpair}, @{const_name match_cpair}),
+      (@{const_name Pair}, @{const_name match_cpair}),
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
       (@{const_name FF}, @{const_name match_FF}),
@@ -617,5 +619,24 @@ setup {*
 *}
 
 hide (open) const return bind fail run cases
+
+lemmas [fixrec_simp] =
+  run_strict run_fail run_return
+  mplus_strict mplus_fail mplus_return
+  spair_strict_iff
+  sinl_defined_iff
+  sinr_defined_iff
+  up_defined
+  ONE_defined
+  dist_eq_tr(1,2)
+  match_UU_simps
+  match_cpair_simps
+  match_spair_simps
+  match_sinl_simps
+  match_sinr_simps
+  match_up_simps
+  match_ONE_simps
+  match_TT_simps
+  match_FF_simps
 
 end

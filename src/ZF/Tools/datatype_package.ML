@@ -108,7 +108,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     let val ncon = length con_ty_list    (*number of constructors*)
         fun mk_def (((id,T,syn), name, args, prems), kcon) =
               (*kcon is index of constructor*)
-            PrimitiveDefs.mk_defpair (list_comb (Const (full_name name, T), args),
+            Primitive_Defs.mk_defpair (list_comb (Const (full_name name, T), args),
                         mk_inject npart kpart
                         (mk_inject ncon kcon (mk_tuple args)))
     in  ListPair.map mk_def (con_ty_list, 1 upto ncon)  end;
@@ -129,7 +129,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
 
   (*The function variable for a single constructor*)
-  fun add_case (((_, T, _), name, args, _), (opno, cases)) =
+  fun add_case ((_, T, _), name, args, _) (opno, cases) =
     if Syntax.is_identifier name then
       (opno, (Free (case_varname ^ "_" ^ name, T), args) :: cases)
     else
@@ -138,12 +138,12 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Treatment of a list of constructors, for one part
     Result adds a list of terms, each a function variable with arguments*)
-  fun add_case_list (con_ty_list, (opno, case_lists)) =
-    let val (opno', case_list) = List.foldr add_case (opno, []) con_ty_list
+  fun add_case_list con_ty_list (opno, case_lists) =
+    let val (opno', case_list) = fold_rev add_case con_ty_list (opno, [])
     in (opno', case_list :: case_lists) end;
 
   (*Treatment of all parts*)
-  val (_, case_lists) = List.foldr add_case_list (1,[]) con_ty_lists;
+  val (_, case_lists) = fold_rev add_case_list con_ty_lists (1, []);
 
   (*extract the types of all the variables*)
   val case_typ = maps (map (#2 o #1)) con_ty_lists ---> @{typ "i => i"};
@@ -157,7 +157,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val case_const = Const (case_name, case_typ);
   val case_tm = list_comb (case_const, case_args);
 
-  val case_def = PrimitiveDefs.mk_defpair
+  val case_def = Primitive_Defs.mk_defpair
     (case_tm, Balanced_Tree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_case case_lists));
 
 
@@ -215,7 +215,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val rec_ty_lists = (map (map rec_ty_elem) con_ty_lists);
 
   (*Treatment of all parts*)
-  val (_, recursor_lists) = List.foldr add_case_list (1,[]) rec_ty_lists;
+  val (_, recursor_lists) = fold_rev add_case_list rec_ty_lists (1, []);
 
   (*extract the types of all the variables*)
   val recursor_typ = maps (map (#2 o #1)) rec_ty_lists ---> @{typ "i => i"};
@@ -232,7 +232,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val recursor_cases = map call_recursor (flat case_lists ~~ flat recursor_lists);
 
   val recursor_def =
-      PrimitiveDefs.mk_defpair
+      Primitive_Defs.mk_defpair
         (recursor_tm,
          @{const Univ.Vrecursor} $
            absfree ("rec", @{typ i}, list_comb (case_const, recursor_cases)));

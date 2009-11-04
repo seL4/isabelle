@@ -252,7 +252,7 @@ fun freeze_thaw t =
       fun newName (Var(ix,_), (pairs,used)) = 
           let val v = Name.variant used (string_of_indexname ix)
           in  ((ix,v)::pairs, v::used)  end;
-      val (alist, _) = foldr newName ([], used) vars;
+      val (alist, _) = List.foldr newName ([], used) vars;
       fun mk_inst (Var(v,T)) = (Var(v,T),
            Free ((the o AList.lookup (op =) alist) v, T));
       val insts = map mk_inst vars;

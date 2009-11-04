@@ -1,0 +1,11 @@
+(benchmark Isabelle
+:extrasorts ( T1)
+:extrafuns (
+  (uf_1 T1 T1 T1)
+  (uf_2 T1)
+  (uf_3 T1)
+ )
+:assumption (forall (?x1 T1) (?x2 T1) (= (uf_1 ?x1 ?x2) (uf_1 ?x2 ?x1)))
+:assumption (not (and (= uf_2 uf_2) (= (uf_1 uf_2 uf_3) (uf_1 uf_3 uf_2))))
+:formula true
+)

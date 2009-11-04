@@ -90,7 +90,7 @@ fun typedecl (a, vs, mx) thy =
     val base_sort = get_base_sort thy;
     val b = Binding.map_name (Syntax.type_name mx) a;
     val _ = has_duplicates (op =) vs andalso
-      error ("Duplicate parameters in type declaration: " ^ quote (Binding.str_of b));
+      error ("Duplicate parameters in type declaration " ^ quote (Binding.str_of b));
     val name = Sign.full_name thy b;
     val n = length vs;
     val T = Type (name, map (fn v => TFree (v, [])) vs);

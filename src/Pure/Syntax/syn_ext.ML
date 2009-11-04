@@ -218,7 +218,7 @@ val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
 val read_symbs = map_filter I o the o Scan.read Symbol.stopper scan_symbs;
 
 fun unique_index xsymbs =
-  if length (List.filter is_index xsymbs) <= 1 then xsymbs
+  if length (filter is_index xsymbs) <= 1 then xsymbs
   else error "Duplicate index arguments (\\<index>)";
 
 in
@@ -226,7 +226,7 @@ in
 val read_mfix = unique_index o read_symbs o Symbol.explode;
 
 fun mfix_delims sy = fold_rev (fn Delim s => cons s | _ => I) (read_mfix sy) [];
-val mfix_args = length o List.filter is_argument o read_mfix;
+val mfix_args = length o filter is_argument o read_mfix;
 
 val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 
@@ -276,7 +276,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
 
 
     val raw_symbs = read_mfix sy handle ERROR msg => err_in_mfix msg mfix;
-    val args = List.filter (fn Argument _ => true | _ => false) raw_symbs;
+    val args = filter (fn Argument _ => true | _ => false) raw_symbs;
     val (const', typ', parse_rules) =
       if not (exists is_index args) then (const, typ, [])
       else
@@ -312,7 +312,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
     val xprod' =
       if Lexicon.is_terminal lhs' then err_in_mfix ("Illegal lhs: " ^ lhs') mfix
       else if const <> "" then xprod
-      else if length (List.filter is_argument symbs') <> 1 then
+      else if length (filter is_argument symbs') <> 1 then
         err_in_mfix "Copy production must have exactly one argument" mfix
       else if exists is_terminal symbs' then xprod
       else XProd (lhs', map rem_pri symbs', "", chain_pri);
@@ -352,7 +352,7 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
   in
     SynExt {
       xprods = xprods,
-      consts = consts union_string mfix_consts,
+      consts = union (op =) consts mfix_consts,
       prmodes = distinct (op =) (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules' @ parse_rules,

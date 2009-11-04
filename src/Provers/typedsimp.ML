@@ -64,12 +64,12 @@ fun subconv_rule rl = rl RS trans_red;
 
 (*If the rule proves an equality then add both forms to simp_rls
   else add the rule to other_rls*)
-fun add_rule (rl, (simp_rls, other_rls)) =
+fun add_rule rl (simp_rls, other_rls) =
     (simp_rule rl :: resimp_rule rl :: simp_rls, other_rls)
     handle THM _ => (simp_rls, rl :: other_rls);
 
 (*Given the list rls, return the pair (simp_rls, other_rls).*)
-fun process_rules rls = List.foldr add_rule ([],[]) rls;
+fun process_rules rls = fold_rev add_rule rls ([], []);
 
 (*Given list of rewrite rules, return list of both forms, reject others*)
 fun process_rewrites rls = 

@@ -9,7 +9,7 @@ lessThan, greaterThan, atLeast, atMost and two-sided intervals
 header {* Set intervals *}
 
 theory SetInterval
-imports Int
+imports Int Nat_Transfer
 begin
 
 context ord
@@ -395,6 +395,11 @@ lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
 lemma atLeastAtMostSuc_conv: "m \<le> Suc n \<Longrightarrow> {m..Suc n} = insert (Suc n) {m..n}"
 by (auto simp add: atLeastAtMost_def)
 
+lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \<union> {j..<j+k::nat}"
+  apply (induct k) 
+  apply (simp_all add: atLeastLessThanSuc)   
+  done
+
 subsubsection {* Image *}
 
 lemma image_add_atLeastAtMost:
@@ -503,7 +508,7 @@ proof cases
   proof(induct A rule:finite_linorder_max_induct)
     case empty thus ?case by auto
   next
-    case (insert A b)
+    case (insert b A)
     moreover hence "b ~: A" by auto
     moreover have "A <= {k..<k+card A}" and "b = k+card A"
       using `b ~: A` insert by fastsimp+
@@ -522,20 +527,20 @@ lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>
 lemma UN_finite_subset: "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> C) \<Longrightarrow> (\<Union>n. A n) \<subseteq> C"
   by (subst UN_UN_finite_eq [symmetric]) blast
 
-lemma UN_finite2_subset:
-  assumes sb: "!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n}. B i)"
-  shows "(\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
-proof (rule UN_finite_subset)
-  fix n
-  have "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n}. B i)" by (rule sb)
-  also have "...  \<subseteq> (\<Union>n::nat. \<Union>i\<in>{0..<n}. B i)" by blast
-  also have "... = (\<Union>n. B n)" by (simp add: UN_UN_finite_eq) 
-  finally show "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>n. B n)" .
-qed
+lemma UN_finite2_subset: 
+     "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n+k}. B i)) \<Longrightarrow> (\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
+  apply (rule UN_finite_subset)
+  apply (subst UN_UN_finite_eq [symmetric, of B]) 
+  apply blast
+  done
 
 lemma UN_finite2_eq:
-  "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n}. B i)) \<Longrightarrow> (\<Union>n. A n) = (\<Union>n. B n)"
-  by (iprover intro: subset_antisym UN_finite2_subset elim: equalityE)  
+  "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n+k}. B i)) \<Longrightarrow> (\<Union>n. A n) = (\<Union>n. B n)"
+  apply (rule subset_antisym)
+   apply (rule UN_finite2_subset, blast)
+ apply (rule UN_finite2_subset [where k=k])
+ apply (force simp add: atLeastLessThan_add_Un [of 0] UN_Un) 
+ done
 
 
 subsubsection {* Cardinality *}
@@ -1144,5 +1149,42 @@ translations
   "\<Prod>x=a..<b. t" == "CONST setprod (%x. t) {a..<b}"
   "\<Prod>i\<le>n. t" == "CONST setprod (\<lambda>i. t) {..n}"
   "\<Prod>i<n. t" == "CONST setprod (\<lambda>i. t) {..<n}"
+
+subsection {* Transfer setup *}
+
+lemma transfer_nat_int_set_functions:
+    "{..n} = nat ` {0..int n}"
+    "{m..n} = nat ` {int m..int n}"  (* need all variants of these! *)
+  apply (auto simp add: image_def)
+  apply (rule_tac x = "int x" in bexI)
+  apply auto
+  apply (rule_tac x = "int x" in bexI)
+  apply auto
+  done
+
+lemma transfer_nat_int_set_function_closures:
+    "x >= 0 \<Longrightarrow> nat_set {x..y}"
+  by (simp add: nat_set_def)
+
+declare TransferMorphism_nat_int[transfer add
+  return: transfer_nat_int_set_functions
+    transfer_nat_int_set_function_closures
+]
+
+lemma transfer_int_nat_set_functions:
+    "is_nat m \<Longrightarrow> is_nat n \<Longrightarrow> {m..n} = int ` {nat m..nat n}"
+  by (simp only: is_nat_def transfer_nat_int_set_functions
+    transfer_nat_int_set_function_closures
+    transfer_nat_int_set_return_embed nat_0_le
+    cong: transfer_nat_int_set_cong)
+
+lemma transfer_int_nat_set_function_closures:
+    "is_nat x \<Longrightarrow> nat_set {x..y}"
+  by (simp only: transfer_nat_int_set_function_closures is_nat_def)
+
+declare TransferMorphism_int_nat[transfer add
+  return: transfer_int_nat_set_functions
+    transfer_int_nat_set_function_closures
+]
 
 end

@@ -473,7 +473,7 @@ fun change_bnos banned =
       if i<lev then Bound i
       else  if member (op =) banned (i-lev)
       then raise CHANGE_FAIL (**flexible occurrence: give up**)
-      else  Bound (i - length (List.filter (fn j => j < i-lev) banned))
+      else  Bound (i - length (filter (fn j => j < i-lev) banned))
   | change lev (Abs (a,T,t)) = Abs (a, T, change(lev+1) t)
   | change lev (t$u) = change lev t $ change lev u
   | change lev t = t
@@ -531,12 +531,12 @@ fun add_tpair (rbinder, (t0,u0), tpairs) : (term*term) list =
   Bound vars in the binder are "banned" unless used in both t AND u *)
 fun clean_ffpair thy ((rbinder, t, u), (env,tpairs)) =
   let val loot = loose_bnos t  and  loou = loose_bnos u
-      fun add_index (((a,T), j), (bnos, newbinder)) =
+      fun add_index (j, (a,T)) (bnos, newbinder) =
             if  member (op =) loot j  andalso  member (op =) loou j
             then  (bnos, (a,T)::newbinder)  (*needed by both: keep*)
             else  (j::bnos, newbinder);   (*remove*)
-      val indices = 0 upto (length rbinder - 1);
-      val (banned,rbin') = List.foldr add_index ([],[]) (rbinder~~indices);
+      val (banned,rbin') = fold_rev add_index
+        ((0 upto (length rbinder - 1)) ~~ rbinder) ([],[]);
       val (env', t') = clean_term banned (env, t);
       val (env'',u') = clean_term banned (env',u)
   in  (ff_assign thy (env'', rbin', t', u'), tpairs)

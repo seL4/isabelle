@@ -6,7 +6,21 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
+
+images: \
+  HOL \
+  HOL-Algebra \
+  HOL-Boogie \
+  HOL-Base \
+  HOL-Main \
+  HOL-Multivariate_Analysis \
+  HOL-NSA \
+  HOL-Nominal \
+  HOL-Plain \
+  HOL-SMT \
+  HOL-Word \
+  HOL4 \
+  TLA
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -14,33 +28,36 @@ test: \
   HOL-ex \
   HOL-Auth \
   HOL-Bali \
+  HOL-Boogie_Examples \
   HOL-Decision_Procs \
   HOL-Extraction \
   HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-Hoare_Parallel \
-  HOL-Import \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
   HOL-Imperative_HOL \
+  HOL-Import \
   HOL-Induct \
-  HOL-Isar_examples \
+  HOL-Isar_Examples \
   HOL-Lambda \
   HOL-Lattice \
   HOL-Matrix \
-  HOL-MetisExamples \
+  HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-Mirabelle \
   HOL-Modelcheck \
   HOL-NanoJava \
+  HOL-Nitpick_Examples \
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
+  HOL-Probability \
   HOL-Prolog \
-  HOL-SET-Protocol \
+  HOL-SET_Protocol \
+  HOL-SMT_Examples \
   HOL-SizeChange \
-  HOL-SMT \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -123,7 +140,6 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Complete_Lattice.thy \
   Datatype.thy \
-  Divides.thy \
   Extraction.thy \
   Finite_Set.thy \
   Fun.thy \
@@ -131,6 +147,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
+  Nitpick.thy \
   Option.thy \
   OrderedGroup.thy \
   Orderings.thy \
@@ -156,26 +173,41 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Datatype/datatype_realizer.ML \
   Tools/Datatype/datatype_rep_proofs.ML \
   Tools/dseq.ML \
-  Tools/Function/auto_term.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/decompose.ML \
   Tools/Function/descent.ML \
-  Tools/Function/fundef_common.ML \
-  Tools/Function/fundef_core.ML \
-  Tools/Function/fundef_datatype.ML \
-  Tools/Function/fundef_lib.ML \
-  Tools/Function/fundef.ML \
+  Tools/Function/function_common.ML \
+  Tools/Function/function_core.ML \
+  Tools/Function/function_lib.ML \
+  Tools/Function/function.ML \
+  Tools/Function/fun.ML \
   Tools/Function/induction_scheme.ML \
-  Tools/Function/inductive_wrap.ML \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
+  Tools/Function/pat_completeness.ML \
   Tools/Function/pattern_split.ML \
+  Tools/Function/relation.ML \
   Tools/Function/scnp_reconstruct.ML \
   Tools/Function/scnp_solve.ML \
   Tools/Function/size.ML \
   Tools/Function/sum_tree.ML \
   Tools/Function/termination.ML \
+  Tools/Nitpick/kodkod.ML \
+  Tools/Nitpick/kodkod_sat.ML \
+  Tools/Nitpick/minipick.ML \
+  Tools/Nitpick/nitpick.ML \
+  Tools/Nitpick/nitpick_hol.ML \
+  Tools/Nitpick/nitpick_isar.ML \
+  Tools/Nitpick/nitpick_kodkod.ML \
+  Tools/Nitpick/nitpick_model.ML \
+  Tools/Nitpick/nitpick_mono.ML \
+  Tools/Nitpick/nitpick_nut.ML \
+  Tools/Nitpick/nitpick_peephole.ML \
+  Tools/Nitpick/nitpick_rep.ML \
+  Tools/Nitpick/nitpick_scope.ML \
+  Tools/Nitpick/nitpick_tests.ML \
+  Tools/Nitpick/nitpick_util.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
@@ -192,7 +224,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
   Tools/split_rule.ML \
-  Tools/transfer.ML \
   Tools/typecopy.ML \
   Tools/typedef_codegen.ML \
   Tools/typedef.ML \
@@ -214,16 +245,19 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
+  Divides.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
   Int.thy \
-  IntDiv.thy \
   List.thy \
   Main.thy \
   Map.thy \
   Nat_Numeral.thy \
+  Nat_Transfer.thy \
+  Numeral_Simprocs.thy \
   Presburger.thy \
+  Predicate_Compile.thy \
   Quickcheck.thy \
   Random.thy \
   Recdef.thy \
@@ -243,6 +277,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer.ML \
   Tools/Groebner_Basis/normalizer_data.ML \
+  Tools/choice_specification.ML \
   Tools/int_arith.ML \
   Tools/list_code.ML \
   Tools/meson.ML \
@@ -252,6 +287,13 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
   Tools/polyhash.ML \
+  Tools/Predicate_Compile/predicate_compile_aux.ML \
+  Tools/Predicate_Compile/predicate_compile_core.ML \
+  Tools/Predicate_Compile/predicate_compile_data.ML \
+  Tools/Predicate_Compile/predicate_compile_fun.ML \
+  Tools/Predicate_Compile/predicate_compile.ML \
+  Tools/Predicate_Compile/predicate_compile_pred.ML \
+  Tools/Predicate_Compile/predicate_compile_set.ML \
   Tools/quickcheck_generators.ML \
   Tools/Qelim/cooper_data.ML \
   Tools/Qelim/cooper.ML \
@@ -259,14 +301,15 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
   Tools/recdef.ML \
-  Tools/choice_specification.ML \
   Tools/res_atp.ML \
   Tools/res_axioms.ML \
+  Tools/res_blacklist.ML \
   Tools/res_clause.ML \
   Tools/res_hol_clause.ML \
   Tools/res_reconstruct.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
+  Tools/transfer.ML \
   Tools/TFL/casesplit.ML \
   Tools/TFL/dcterm.ML \
   Tools/TFL/post.ML \
@@ -294,7 +337,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Log.thy \
   Lubs.thy \
   MacLaurin.thy \
-  Nat_Transfer.thy \
   NthRoot.thy \
   PReal.thy \
   Parity.thy \
@@ -306,6 +348,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   RealVector.thy \
   SEQ.thy \
   Series.thy \
+  SupInf.thy \
   Taylor.thy \
   Transcendental.thy \
   Tools/float_syntax.ML \
@@ -322,21 +365,17 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy Library/BigO.thy Library/ContNotDenum.thy	\
-  Library/Efficient_Nat.thy Library/Euclidean_Space.thy			\
-  Library/Sum_Of_Squares.thy Library/Sum_Of_Squares/sos_wrapper.ML	\
+  Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
+  Library/Sum_Of_Squares/sos_wrapper.ML					\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Convex_Euclidean_Space.thy Library/Glbs.thy			\
-  Library/normarith.ML Library/Executable_Set.thy			\
+  Library/Glbs.thy Library/normarith.ML Library/Executable_Set.thy	\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
-  Library/Permutations.thy Library/Determinants.thy Library/Bit.thy	\
-  Library/Topology_Euclidean_Space.thy					\
-  Library/Finite_Cartesian_Product.thy Library/FrechetDeriv.thy		\
+  Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/Lattice_Syntax.thy			\
-  Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
-  Library/State_Monad.thy Library/Nat_Int_Bij.thy Library/Multiset.thy	\
-  Library/Permutation.thy	\
+  Library/Lattice_Syntax.thy Library/Library.thy			\
+  Library/List_Prefix.thy Library/List_Set.thy Library/State_Monad.thy	\
+  Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Quotient.thy Library/Quicksort.thy Library/Nat_Infinity.thy	\
   Library/Word.thy Library/README.html Library/Continuity.thy		\
   Library/Order_Relation.thy Library/Nested_Environment.thy		\
@@ -345,7 +384,6 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/While_Combinator.thy Library/Product_ord.thy			\
   Library/Char_nat.thy Library/Char_ord.thy Library/Option_ord.thy	\
   Library/Sublist_Order.thy Library/List_lexord.thy			\
-  Library/Commutative_Ring.thy Library/comm_ring.ML			\
   Library/Coinductive_List.thy Library/AssocList.thy			\
   Library/Formal_Power_Series.thy Library/Binomial.thy			\
   Library/Eval_Witness.thy Library/Code_Char.thy			\
@@ -358,7 +396,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML		\
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
-  Library/OptionalSugar.thy
+  Library/OptionalSugar.thy Library/SML_Quickcheck.thy
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
@@ -556,16 +594,31 @@ $(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hoare_Parallel
 
 
-## HOL-MetisExamples
+## HOL-Metis_Examples
 
-HOL-MetisExamples: HOL $(LOG)/HOL-MetisExamples.gz
+HOL-Metis_Examples: HOL $(LOG)/HOL-Metis_Examples.gz
 
-$(LOG)/HOL-MetisExamples.gz: $(OUT)/HOL MetisExamples/ROOT.ML	\
-  MetisExamples/Abstraction.thy MetisExamples/BigO.thy		\
-  MetisExamples/BT.thy MetisExamples/Message.thy		\
-  MetisExamples/Tarski.thy MetisExamples/TransClosure.thy	\
-  MetisExamples/set.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL MetisExamples
+$(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML	\
+  Metis_Examples/Abstraction.thy Metis_Examples/BigO.thy	\
+  Metis_Examples/BT.thy Metis_Examples/Message.thy		\
+  Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy	\
+  Metis_Examples/set.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
+
+
+## HOL-Nitpick_Examples
+
+HOL-Nitpick_Examples: HOL $(LOG)/HOL-Nitpick_Examples.gz
+
+$(LOG)/HOL-Nitpick_Examples.gz: $(OUT)/HOL Nitpick_Examples/ROOT.ML \
+  Nitpick_Examples/Core_Nits.thy Nitpick_Examples/Datatype_Nits.thy \
+  Nitpick_Examples/Induct_Nits.thy Nitpick_Examples/Manual_Nits.thy \
+  Nitpick_Examples/Mini_Nits.thy Nitpick_Examples/Mono_Nits.thy \
+  Nitpick_Examples/Nitpick_Examples.thy Nitpick_Examples/Pattern_Nits.thy \
+  Nitpick_Examples/Record_Nits.thy Nitpick_Examples/Refute_Nits.thy \
+  Nitpick_Examples/Special_Nits.thy Nitpick_Examples/Tests_Nits.thy \
+  Nitpick_Examples/Typedef_Nits.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Nitpick_Examples
 
 
 ## HOL-Algebra
@@ -733,6 +786,9 @@ HOL-Decision_Procs: HOL $(LOG)/HOL-Decision_Procs.gz
 
 $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/Approximation.thy \
+  Decision_Procs/Commutative_Ring.thy \
+  Decision_Procs/Commutative_Ring_Complete.thy \
+  Decision_Procs/commutative_ring_tac.ML \
   Decision_Procs/Cooper.thy \
   Decision_Procs/cooper_tac.ML \
   Decision_Procs/Dense_Linear_Order.thy \
@@ -743,6 +799,7 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/Decision_Procs.thy \
   Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
   Decision_Procs/ex/Approximation_Ex.thy \
+  Decision_Procs/ex/Commutative_Ring_Ex.thy \
   Decision_Procs/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 
@@ -837,14 +894,15 @@ $(LOG)/HOL-NanoJava.gz: $(OUT)/HOL NanoJava/ROOT.ML NanoJava/Term.thy	\
 
 HOL-Bali: HOL $(LOG)/HOL-Bali.gz
 
-$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/Bali.thy Bali/AxCompl.thy Bali/AxExample.thy	\
-  Bali/AxSem.thy Bali/AxSound.thy Bali/Basis.thy Bali/Conform.thy	\
-  Bali/Decl.thy Bali/DeclConcepts.thy Bali/Eval.thy Bali/Evaln.thy	\
-  Bali/Example.thy Bali/Name.thy Bali/ROOT.ML Bali/State.thy		\
-  Bali/Table.thy Bali/Term.thy Bali/Trans.thy Bali/Type.thy		\
-  Bali/TypeRel.thy Bali/TypeSafe.thy Bali/Value.thy Bali/WellForm.thy	\
-  Bali/DefiniteAssignment.thy Bali/DefiniteAssignmentCorrect.thy	\
-  Bali/WellType.thy Bali/document/root.tex
+$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/Bali.thy Bali/AxCompl.thy		\
+  Bali/AxExample.thy Bali/AxSem.thy Bali/AxSound.thy Bali/Basis.thy	\
+  Bali/Conform.thy Bali/Decl.thy Bali/DeclConcepts.thy Bali/Eval.thy	\
+  Bali/Evaln.thy Bali/Example.thy Bali/Name.thy Bali/ROOT.ML		\
+  Bali/State.thy Bali/Table.thy Bali/Term.thy Bali/Trans.thy		\
+  Bali/Type.thy Bali/TypeRel.thy Bali/TypeSafe.thy Bali/Value.thy	\
+  Bali/WellForm.thy Bali/DefiniteAssignment.thy				\
+  Bali/DefiniteAssignmentCorrect.thy Bali/WellType.thy			\
+  Bali/document/root.tex
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Bali
 
 
@@ -884,64 +942,63 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
 
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
-$(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
-  Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
-  ex/Arith_Examples.thy				\
+$(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy		\
+  Number_Theory/Primes.thy						\
+  Tools/Predicate_Compile/predicate_compile_core.ML			\
+  ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy		\
   ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
-  ex/CodegenSML_Test.thy ex/Codegenerator_Candidates.thy				\
-  ex/Codegenerator_Pretty.thy ex/Codegenerator_Test.thy \
-  ex/Codegenerator_Pretty_Test.thy ex/Coherent.thy				\
-  ex/Commutative_RingEx.thy ex/Commutative_Ring_Complete.thy		\
-  ex/Efficient_Nat_examples.thy		\
-  ex/Eval_Examples.thy	ex/Fundefs.thy			\
-  ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
-  ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Hilbert_Classical.thy			\
-  ex/Induction_Scheme.thy ex/InductiveInvariant.thy			\
-  ex/InductiveInvariant_examples.thy ex/Intuitionistic.thy		\
-  ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy		\
-  ex/Meson_Test.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
-  ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
-  ex/Quickcheck_Examples.thy ex/ROOT.ML	\
-  ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy			\
+  ex/CodegenSML_Test.thy ex/Codegenerator_Candidates.thy		\
+  ex/Codegenerator_Pretty.thy ex/Codegenerator_Pretty_Test.thy		\
+  ex/Codegenerator_Test.thy ex/Coherent.thy	\
+  ex/Efficient_Nat_examples.thy	\
+  ex/Eval_Examples.thy ex/Fundefs.thy ex/Groebner_Examples.thy		\
+  ex/Guess.thy ex/HarmonicSeries.thy ex/Hebrew.thy			\
+  ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy			\
+  ex/Hilbert_Classical.thy ex/Induction_Scheme.thy			\
+  ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\
+  ex/Intuitionistic.thy ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy	\
+  ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\
+  ex/Multiquote.thy ex/NatSum.thy ex/Numeral.thy ex/PER.thy		\
+  ex/Predicate_Compile_ex.thy ex/Predicate_Compile_Quickcheck.thy			\
+  ex/PresburgerEx.thy ex/Primrec.thy ex/Quickcheck_Examples.thy		\
+  ex/ROOT.ML ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
-  ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy \
-  ex/Sudoku.thy ex/Tarski.thy \
-  ex/Termination.thy ex/Transfer_Ex.thy ex/Unification.thy ex/document/root.bib		\
-  ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
-  ex/Predicate_Compile.thy Tools/Predicate_Compile/predicate_compile_core.ML ex/Predicate_Compile_ex.thy
+  ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy ex/Sudoku.thy		\
+  ex/Tarski.thy ex/Termination.thy ex/Transfer_Ex.thy ex/Tree23.thy     \
+  ex/Unification.thy ex/document/root.bib ex/document/root.tex		\
+  ex/set.thy ex/svc_funcs.ML ex/svc_test.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
-## HOL-Isar_examples
+## HOL-Isar_Examples
 
-HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
+HOL-Isar_Examples: HOL $(LOG)/HOL-Isar_Examples.gz
 
-$(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/Basic_Logic.thy	\
-  Isar_examples/Cantor.thy Isar_examples/Drinker.thy			\
-  Isar_examples/Expr_Compiler.thy Isar_examples/Fibonacci.thy		\
-  Isar_examples/Group.thy Isar_examples/Hoare.thy			\
-  Isar_examples/Hoare_Ex.thy Isar_examples/Knaster_Tarski.thy		\
-  Isar_examples/Mutilated_Checkerboard.thy				\
-  Isar_examples/Nested_Datatype.thy Isar_examples/Peirce.thy		\
-  Isar_examples/Puzzle.thy Isar_examples/Summation.thy			\
-  Isar_examples/ROOT.ML Isar_examples/document/proof.sty		\
-  Isar_examples/document/root.bib Isar_examples/document/root.tex	\
-  Isar_examples/document/style.tex Hoare/hoare_tac.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_examples
+$(LOG)/HOL-Isar_Examples.gz: $(OUT)/HOL Isar_Examples/Basic_Logic.thy	\
+  Isar_Examples/Cantor.thy Isar_Examples/Drinker.thy			\
+  Isar_Examples/Expr_Compiler.thy Isar_Examples/Fibonacci.thy		\
+  Isar_Examples/Group.thy Isar_Examples/Hoare.thy			\
+  Isar_Examples/Hoare_Ex.thy Isar_Examples/Knaster_Tarski.thy		\
+  Isar_Examples/Mutilated_Checkerboard.thy				\
+  Isar_Examples/Nested_Datatype.thy Isar_Examples/Peirce.thy		\
+  Isar_Examples/Puzzle.thy Isar_Examples/Summation.thy			\
+  Isar_Examples/ROOT.ML Isar_Examples/document/proof.sty		\
+  Isar_Examples/document/root.bib Isar_Examples/document/root.tex	\
+  Isar_Examples/document/style.tex Hoare/hoare_tac.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_Examples
 
 
-## HOL-SET-Protocol
+## HOL-SET_Protocol
 
-HOL-SET-Protocol: HOL $(LOG)/HOL-SET-Protocol.gz
+HOL-SET_Protocol: HOL $(LOG)/HOL-SET_Protocol.gz
 
-$(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML		\
-  SET-Protocol/MessageSET.thy SET-Protocol/EventSET.thy			\
-  SET-Protocol/PublicSET.thy SET-Protocol/Cardholder_Registration.thy	\
-  SET-Protocol/Merchant_Registration.thy SET-Protocol/Purchase.thy	\
-  SET-Protocol/document/root.tex
-	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET-Protocol
+$(LOG)/HOL-SET_Protocol.gz: $(OUT)/HOL SET_Protocol/ROOT.ML		\
+  SET_Protocol/Message_SET.thy SET_Protocol/Event_SET.thy		\
+  SET_Protocol/Public_SET.thy SET_Protocol/Cardholder_Registration.thy	\
+  SET_Protocol/Merchant_Registration.thy SET_Protocol/Purchase.thy	\
+  SET_Protocol/document/root.tex
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET_Protocol
 
 
 ## HOL-Matrix
@@ -987,7 +1044,8 @@ $(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy
 
 TLA-Buffer: TLA $(LOG)/TLA-Buffer.gz
 
-$(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy TLA/Buffer/DBuffer.thy
+$(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy	\
+  TLA/Buffer/DBuffer.thy
 	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Buffer
 
 
@@ -1001,6 +1059,33 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
   TLA/Memory/ProcedureInterface.thy TLA/Memory/RPC.thy			\
   TLA/Memory/RPCMemoryParams.thy TLA/Memory/RPCParameters.thy
 	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Memory
+
+
+## HOL-Multivariate_Analysis
+
+HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
+
+$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL Multivariate_Analysis/ROOT.ML \
+  Multivariate_Analysis/Multivariate_Analysis.thy \
+  Multivariate_Analysis/Determinants.thy \
+  Multivariate_Analysis/Finite_Cartesian_Product.thy \
+  Multivariate_Analysis/Euclidean_Space.thy \
+  Multivariate_Analysis/Topology_Euclidean_Space.thy \
+  Multivariate_Analysis/Convex_Euclidean_Space.thy
+	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
+
+
+## HOL-Probability
+
+HOL-Probability: HOL $(LOG)/HOL-Probability.gz
+
+$(LOG)/HOL-Probability.gz: $(OUT)/HOL Probability/ROOT.ML \
+  Probability/Probability.thy \
+  Probability/Sigma_Algebra.thy \
+  Probability/SeriesPlus.thy \
+  Probability/Caratheodory.thy \
+  Probability/Measure.thy
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Probability
 
 
 ## HOL-Nominal
@@ -1040,6 +1125,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/Lam_Funs.thy \
   Nominal/Examples/Lambda_mu.thy \
   Nominal/Examples/LocalWeakening.thy \
+  Nominal/Examples/Pattern.thy \
   Nominal/Examples/ROOT.ML \
   Nominal/Examples/SN.thy \
   Nominal/Examples/SOS.thy \
@@ -1056,8 +1142,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
 
 HOL-Word: HOL $(OUT)/HOL-Word
 
-$(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML	\
-  Library/Boolean_Algebra.thy			\
+$(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Boolean_Algebra.thy	\
   Library/Numeral_Type.thy Word/Num_Lemmas.thy Word/TdThs.thy		\
   Word/Size.thy Word/BinGeneral.thy Word/BinOperations.thy		\
   Word/BinBoolList.thy Word/BitSyntax.thy Word/WordDefinition.thy	\
@@ -1092,30 +1177,13 @@ $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
 
 HOL-NSA: HOL $(OUT)/HOL-NSA
 
-$(OUT)/HOL-NSA: $(OUT)/HOL \
-  NSA/CLim.thy \
-  NSA/CStar.thy \
-  NSA/NSCA.thy \
-  NSA/NSComplex.thy \
-  NSA/HDeriv.thy \
-  NSA/HLim.thy \
-  NSA/HLog.thy \
-  NSA/HSEQ.thy \
-  NSA/HSeries.thy \
-  NSA/HTranscendental.thy \
-  NSA/Hypercomplex.thy \
-  NSA/HyperDef.thy \
-  NSA/HyperNat.thy \
-  NSA/Hyperreal.thy \
-  NSA/Filter.thy \
-  NSA/NatStar.thy \
-  NSA/NSA.thy \
-  NSA/StarDef.thy \
-  NSA/Star.thy \
-  NSA/transfer.ML \
-  Library/Infinite_Set.thy \
-  Library/Zorn.thy \
-  NSA/ROOT.ML
+$(OUT)/HOL-NSA: $(OUT)/HOL NSA/CLim.thy NSA/CStar.thy NSA/NSCA.thy	\
+  NSA/NSComplex.thy NSA/HDeriv.thy NSA/HLim.thy NSA/HLog.thy		\
+  NSA/HSEQ.thy NSA/HSeries.thy NSA/HTranscendental.thy			\
+  NSA/Hypercomplex.thy NSA/HyperDef.thy NSA/HyperNat.thy		\
+  NSA/Hyperreal.thy NSA/Filter.thy NSA/NatStar.thy NSA/NSA.thy		\
+  NSA/StarDef.thy NSA/Star.thy NSA/transfer.ML				\
+  Library/Infinite_Set.thy Library/Zorn.thy NSA/ROOT.ML
 	@cd NSA; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-NSA
 
 
@@ -1132,27 +1200,214 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 
 HOL-Mirabelle: HOL $(LOG)/HOL-Mirabelle.gz
 
-$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy \
-  Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML Mirabelle/ROOT.ML \
-  Mirabelle/Tools/mirabelle_arith.ML \
-  Mirabelle/Tools/mirabelle_metis.ML \
-  Mirabelle/Tools/mirabelle_quickcheck.ML \
-  Mirabelle/Tools/mirabelle_refute.ML \
+$(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
+  Mirabelle/Mirabelle.thy Mirabelle/Tools/mirabelle.ML			\
+  Mirabelle/ROOT.ML Mirabelle/Tools/mirabelle_arith.ML			\
+  Mirabelle/Tools/mirabelle_metis.ML					\
+  Mirabelle/Tools/mirabelle_quickcheck.ML				\
+  Mirabelle/Tools/mirabelle_refute.ML					\
   Mirabelle/Tools/mirabelle_sledgehammer.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 
 
 ## HOL-SMT
 
-HOL-SMT: HOL-Word $(LOG)/HOL-SMT.gz
+HOL-SMT: HOL-Word $(OUT)/HOL-SMT
 
-$(LOG)/HOL-SMT.gz: $(OUT)/HOL-Word SMT/SMT_Definitions.thy SMT/SMT.thy \
-  SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML \
-  SMT/Tools/smt_translate.ML SMT/Tools/smt_builtin.ML \
-  SMT/Tools/smtlib_interface.ML SMT/Tools/smt_solver.ML \
-  SMT/Tools/cvc3_solver.ML SMT/Tools/yices_solver.ML \
-  SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML SMT/Tools/z3_model.ML
+$(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/ROOT.ML SMT/SMT_Base.thy SMT/Z3.thy \
+  SMT/SMT.thy SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML	\
+  SMT/Tools/smt_translate.ML SMT/Tools/smtlib_interface.ML              \
+  SMT/Tools/smt_solver.ML SMT/Tools/cvc3_solver.ML                      \
+  SMT/Tools/yices_solver.ML SMT/Tools/z3_proof_terms.ML                 \
+  SMT/Tools/z3_proof_rules.ML SMT/Tools/z3_proof.ML                     \
+  SMT/Tools/z3_model.ML SMT/Tools/z3_interface.ML SMT/Tools/z3_solver.ML
 	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
+
+
+## HOL-SMT_Examples
+
+HOL-SMT_Examples: HOL-SMT $(LOG)/HOL-SMT_Examples.gz
+
+$(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
+  SMT/Examples/SMT_Examples.thy SMT/Examples/cert/z3_arith_quant_01	\
+  SMT/Examples/cert/z3_arith_quant_01.proof				\
+  SMT/Examples/cert/z3_arith_quant_02					\
+  SMT/Examples/cert/z3_arith_quant_02.proof				\
+  SMT/Examples/cert/z3_arith_quant_03					\
+  SMT/Examples/cert/z3_arith_quant_03.proof				\
+  SMT/Examples/cert/z3_arith_quant_04					\
+  SMT/Examples/cert/z3_arith_quant_04.proof				\
+  SMT/Examples/cert/z3_arith_quant_05					\
+  SMT/Examples/cert/z3_arith_quant_05.proof				\
+  SMT/Examples/cert/z3_arith_quant_06					\
+  SMT/Examples/cert/z3_arith_quant_06.proof				\
+  SMT/Examples/cert/z3_arith_quant_07					\
+  SMT/Examples/cert/z3_arith_quant_07.proof				\
+  SMT/Examples/cert/z3_arith_quant_08					\
+  SMT/Examples/cert/z3_arith_quant_08.proof				\
+  SMT/Examples/cert/z3_arith_quant_09					\
+  SMT/Examples/cert/z3_arith_quant_09.proof				\
+  SMT/Examples/cert/z3_arith_quant_10					\
+  SMT/Examples/cert/z3_arith_quant_10.proof				\
+  SMT/Examples/cert/z3_arith_quant_11					\
+  SMT/Examples/cert/z3_arith_quant_11.proof				\
+  SMT/Examples/cert/z3_arith_quant_12					\
+  SMT/Examples/cert/z3_arith_quant_12.proof				\
+  SMT/Examples/cert/z3_arith_quant_13					\
+  SMT/Examples/cert/z3_arith_quant_13.proof				\
+  SMT/Examples/cert/z3_arith_quant_14					\
+  SMT/Examples/cert/z3_arith_quant_14.proof				\
+  SMT/Examples/cert/z3_arith_quant_15					\
+  SMT/Examples/cert/z3_arith_quant_15.proof				\
+  SMT/Examples/cert/z3_arith_quant_16					\
+  SMT/Examples/cert/z3_arith_quant_16.proof				\
+  SMT/Examples/cert/z3_arith_quant_17					\
+  SMT/Examples/cert/z3_arith_quant_17.proof				\
+  SMT/Examples/cert/z3_arith_quant_18					\
+  SMT/Examples/cert/z3_arith_quant_18.proof SMT/Examples/cert/z3_bv_01	\
+  SMT/Examples/cert/z3_bv_01.proof SMT/Examples/cert/z3_bv_02		\
+  SMT/Examples/cert/z3_bv_02.proof SMT/Examples/cert/z3_bv_arith_01	\
+  SMT/Examples/cert/z3_bv_arith_01.proof				\
+  SMT/Examples/cert/z3_bv_arith_02					\
+  SMT/Examples/cert/z3_bv_arith_02.proof				\
+  SMT/Examples/cert/z3_bv_arith_03					\
+  SMT/Examples/cert/z3_bv_arith_03.proof				\
+  SMT/Examples/cert/z3_bv_arith_04					\
+  SMT/Examples/cert/z3_bv_arith_04.proof				\
+  SMT/Examples/cert/z3_bv_arith_05					\
+  SMT/Examples/cert/z3_bv_arith_05.proof				\
+  SMT/Examples/cert/z3_bv_arith_06					\
+  SMT/Examples/cert/z3_bv_arith_06.proof				\
+  SMT/Examples/cert/z3_bv_arith_07					\
+  SMT/Examples/cert/z3_bv_arith_07.proof				\
+  SMT/Examples/cert/z3_bv_arith_08					\
+  SMT/Examples/cert/z3_bv_arith_08.proof				\
+  SMT/Examples/cert/z3_bv_arith_09					\
+  SMT/Examples/cert/z3_bv_arith_09.proof				\
+  SMT/Examples/cert/z3_bv_arith_10					\
+  SMT/Examples/cert/z3_bv_arith_10.proof				\
+  SMT/Examples/cert/z3_bv_bit_01 SMT/Examples/cert/z3_bv_bit_01.proof	\
+  SMT/Examples/cert/z3_bv_bit_02 SMT/Examples/cert/z3_bv_bit_02.proof	\
+  SMT/Examples/cert/z3_bv_bit_03 SMT/Examples/cert/z3_bv_bit_03.proof	\
+  SMT/Examples/cert/z3_bv_bit_04 SMT/Examples/cert/z3_bv_bit_04.proof	\
+  SMT/Examples/cert/z3_bv_bit_05 SMT/Examples/cert/z3_bv_bit_05.proof	\
+  SMT/Examples/cert/z3_bv_bit_06 SMT/Examples/cert/z3_bv_bit_06.proof	\
+  SMT/Examples/cert/z3_bv_bit_07 SMT/Examples/cert/z3_bv_bit_07.proof	\
+  SMT/Examples/cert/z3_bv_bit_08 SMT/Examples/cert/z3_bv_bit_08.proof	\
+  SMT/Examples/cert/z3_bv_bit_09 SMT/Examples/cert/z3_bv_bit_09.proof	\
+  SMT/Examples/cert/z3_bv_bit_10 SMT/Examples/cert/z3_bv_bit_10.proof	\
+  SMT/Examples/cert/z3_bv_bit_11 SMT/Examples/cert/z3_bv_bit_11.proof	\
+  SMT/Examples/cert/z3_bv_bit_12 SMT/Examples/cert/z3_bv_bit_12.proof	\
+  SMT/Examples/cert/z3_bv_bit_13 SMT/Examples/cert/z3_bv_bit_13.proof	\
+  SMT/Examples/cert/z3_bv_bit_14 SMT/Examples/cert/z3_bv_bit_14.proof	\
+  SMT/Examples/cert/z3_bv_bit_15 SMT/Examples/cert/z3_bv_bit_15.proof	\
+  SMT/Examples/cert/z3_fol_01 SMT/Examples/cert/z3_fol_01.proof		\
+  SMT/Examples/cert/z3_fol_02 SMT/Examples/cert/z3_fol_02.proof		\
+  SMT/Examples/cert/z3_fol_03 SMT/Examples/cert/z3_fol_03.proof		\
+  SMT/Examples/cert/z3_fol_04 SMT/Examples/cert/z3_fol_04.proof		\
+  SMT/Examples/cert/z3_hol_01 SMT/Examples/cert/z3_hol_01.proof		\
+  SMT/Examples/cert/z3_hol_02 SMT/Examples/cert/z3_hol_02.proof		\
+  SMT/Examples/cert/z3_hol_03 SMT/Examples/cert/z3_hol_03.proof		\
+  SMT/Examples/cert/z3_hol_04 SMT/Examples/cert/z3_hol_04.proof		\
+  SMT/Examples/cert/z3_hol_05 SMT/Examples/cert/z3_hol_05.proof		\
+  SMT/Examples/cert/z3_hol_06 SMT/Examples/cert/z3_hol_06.proof		\
+  SMT/Examples/cert/z3_hol_07 SMT/Examples/cert/z3_hol_07.proof		\
+  SMT/Examples/cert/z3_hol_08 SMT/Examples/cert/z3_hol_08.proof		\
+  SMT/Examples/cert/z3_linarith_01					\
+  SMT/Examples/cert/z3_linarith_01.proof				\
+  SMT/Examples/cert/z3_linarith_02					\
+  SMT/Examples/cert/z3_linarith_02.proof				\
+  SMT/Examples/cert/z3_linarith_03					\
+  SMT/Examples/cert/z3_linarith_03.proof				\
+  SMT/Examples/cert/z3_linarith_04					\
+  SMT/Examples/cert/z3_linarith_04.proof				\
+  SMT/Examples/cert/z3_linarith_05					\
+  SMT/Examples/cert/z3_linarith_05.proof				\
+  SMT/Examples/cert/z3_linarith_06					\
+  SMT/Examples/cert/z3_linarith_06.proof				\
+  SMT/Examples/cert/z3_linarith_07					\
+  SMT/Examples/cert/z3_linarith_07.proof				\
+  SMT/Examples/cert/z3_linarith_08					\
+  SMT/Examples/cert/z3_linarith_08.proof				\
+  SMT/Examples/cert/z3_linarith_09					\
+  SMT/Examples/cert/z3_linarith_09.proof				\
+  SMT/Examples/cert/z3_linarith_10					\
+  SMT/Examples/cert/z3_linarith_10.proof				\
+  SMT/Examples/cert/z3_linarith_11					\
+  SMT/Examples/cert/z3_linarith_11.proof				\
+  SMT/Examples/cert/z3_linarith_12					\
+  SMT/Examples/cert/z3_linarith_12.proof				\
+  SMT/Examples/cert/z3_linarith_13					\
+  SMT/Examples/cert/z3_linarith_13.proof				\
+  SMT/Examples/cert/z3_linarith_14					\
+  SMT/Examples/cert/z3_linarith_14.proof				\
+  SMT/Examples/cert/z3_linarith_15					\
+  SMT/Examples/cert/z3_linarith_15.proof				\
+  SMT/Examples/cert/z3_linarith_16					\
+  SMT/Examples/cert/z3_linarith_16.proof SMT/Examples/cert/z3_mono_01	\
+  SMT/Examples/cert/z3_mono_01.proof SMT/Examples/cert/z3_mono_02	\
+  SMT/Examples/cert/z3_mono_02.proof SMT/Examples/cert/z3_nat_arith_01	\
+  SMT/Examples/cert/z3_nat_arith_01.proof				\
+  SMT/Examples/cert/z3_nat_arith_02					\
+  SMT/Examples/cert/z3_nat_arith_02.proof				\
+  SMT/Examples/cert/z3_nat_arith_03					\
+  SMT/Examples/cert/z3_nat_arith_03.proof				\
+  SMT/Examples/cert/z3_nat_arith_04					\
+  SMT/Examples/cert/z3_nat_arith_04.proof				\
+  SMT/Examples/cert/z3_nat_arith_05					\
+  SMT/Examples/cert/z3_nat_arith_05.proof				\
+  SMT/Examples/cert/z3_nat_arith_06					\
+  SMT/Examples/cert/z3_nat_arith_06.proof				\
+  SMT/Examples/cert/z3_nat_arith_07					\
+  SMT/Examples/cert/z3_nat_arith_07.proof				\
+  SMT/Examples/cert/z3_nlarith_01					\
+  SMT/Examples/cert/z3_nlarith_01.proof					\
+  SMT/Examples/cert/z3_nlarith_02					\
+  SMT/Examples/cert/z3_nlarith_02.proof					\
+  SMT/Examples/cert/z3_nlarith_03					\
+  SMT/Examples/cert/z3_nlarith_03.proof					\
+  SMT/Examples/cert/z3_nlarith_04					\
+  SMT/Examples/cert/z3_nlarith_04.proof SMT/Examples/cert/z3_pair_01	\
+  SMT/Examples/cert/z3_pair_01.proof SMT/Examples/cert/z3_pair_02	\
+  SMT/Examples/cert/z3_pair_02.proof SMT/Examples/cert/z3_prop_01	\
+  SMT/Examples/cert/z3_prop_01.proof SMT/Examples/cert/z3_prop_02	\
+  SMT/Examples/cert/z3_prop_02.proof SMT/Examples/cert/z3_prop_03	\
+  SMT/Examples/cert/z3_prop_03.proof SMT/Examples/cert/z3_prop_04	\
+  SMT/Examples/cert/z3_prop_04.proof SMT/Examples/cert/z3_prop_05	\
+  SMT/Examples/cert/z3_prop_05.proof SMT/Examples/cert/z3_prop_06	\
+  SMT/Examples/cert/z3_prop_06.proof SMT/Examples/cert/z3_prop_07	\
+  SMT/Examples/cert/z3_prop_07.proof SMT/Examples/cert/z3_prop_08	\
+  SMT/Examples/cert/z3_prop_08.proof SMT/Examples/cert/z3_prop_09	\
+  SMT/Examples/cert/z3_prop_09.proof SMT/Examples/cert/z3_prop_10	\
+  SMT/Examples/cert/z3_prop_10.proof
+	@cd SMT; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SMT Examples
+
+
+## HOL-Boogie
+
+HOL-Boogie: HOL-SMT $(OUT)/HOL-Boogie
+
+$(OUT)/HOL-Boogie: $(OUT)/HOL-SMT Boogie/ROOT.ML Boogie/Boogie.thy      \
+  Boogie/Tools/boogie_vcs.ML Boogie/Tools/boogie_loader.ML              \
+  Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_split.ML
+	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Boogie
+
+
+## HOL-Boogie_Examples
+
+HOL-Boogie_Examples: HOL-Boogie $(LOG)/HOL-Boogie_Examples.gz
+
+$(LOG)/HOL-Boogie_Examples.gz: $(OUT)/HOL-SMT Boogie/Examples/ROOT.ML   \
+  Boogie/Examples/Boogie_Max.thy Boogie/Examples/Boogie_Max.b2i         \
+  Boogie/Examples/Boogie_Dijkstra.thy Boogie/Examples/VCC_Max.thy       \
+  Boogie/Examples/Boogie_Dijkstra.b2i Boogie/Examples/VCC_Max.b2i       \
+  Boogie/Examples/cert/Boogie_b_max                                     \
+  Boogie/Examples/cert/Boogie_b_max.proof                               \
+  Boogie/Examples/cert/Boogie_b_Dijkstra                                \
+  Boogie/Examples/cert/Boogie_b_Dijkstra.proof                          \
+  Boogie/Examples/cert/VCC_b_maximum                                    \
+  Boogie/Examples/cert/VCC_b_maximum.proof
+	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
 
 
 ## clean
@@ -1160,7 +1415,7 @@ $(LOG)/HOL-SMT.gz: $(OUT)/HOL-Word SMT/SMT_Definitions.thy SMT/SMT.thy \
 clean:
 	@rm -f $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL		\
 		$(OUT)/HOL-Nominal $(OUT)/TLA $(LOG)/HOL.gz		\
-		$(LOG)/TLA.gz $(LOG)/HOL-Isar_examples.gz		\
+		$(LOG)/TLA.gz $(LOG)/HOL-Isar_Examples.gz		\
 		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
 		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
 		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\
@@ -1169,12 +1424,15 @@ clean:
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
 		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
+		$(OUT)/HOL-Multivariate_Analysis			\
 		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
-		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET-Protocol.gz	\
+		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET_Protocol.gz	\
 		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz			\
 		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
 		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
 		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
-		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz            \
-                $(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-SMT.gz
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz		\
+		$(LOG)/HOL-Mirabelle.gz $(OUT)/HOL-SMT			\
+		$(LOG)/HOL-SMT.gz $(LOG)/HOL-SMT-Examples.gz
+

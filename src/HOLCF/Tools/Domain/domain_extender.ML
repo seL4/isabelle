@@ -59,8 +59,8 @@ fun check_and_sort_domain
             fun analyse indirect (TFree(v,s))  =
                 (case AList.lookup (op =) tvars v of 
                    NONE => error ("Free type variable " ^ quote v ^ " on rhs.")
-                 | SOME sort => if eq_set_string (s,defaultS) orelse
-                                   eq_set_string (s,sort    )
+                 | SOME sort => if eq_set (op =) (s, defaultS) orelse
+                                   eq_set (op =) (s, sort)
                                 then TFree(v,sort)
                                 else error ("Inconsistent sort constraint" ^
                                             " for type variable " ^ quote v))

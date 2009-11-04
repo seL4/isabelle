@@ -83,9 +83,6 @@ sig
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
-  val get_group: thm -> string option
-  val put_group: string -> thm -> thm
-  val group: string -> attribute
   val axiomK: string
   val assumptionK: string
   val definitionK: string
@@ -94,13 +91,9 @@ sig
   val lemmaK: string
   val corollaryK: string
   val internalK: string
-  val has_kind: thm -> bool
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
-  val kind_internal: attribute
-  val has_internal: Properties.property list -> bool
-  val is_internal: thm -> bool
 end;
 
 structure Thm: THM =
@@ -253,8 +246,8 @@ val add_thm = update eq_thm_prop;
 val del_thm = remove eq_thm_prop;
 val merge_thms = merge eq_thm_prop;
 
-val intro_rules = Item_Net.init eq_thm_prop Thm.concl_of;
-val elim_rules = Item_Net.init eq_thm_prop Thm.major_prem_of;
+val intro_rules = Item_Net.init eq_thm_prop (single o Thm.concl_of);
+val elim_rules = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 
 
 
@@ -417,15 +410,6 @@ val get_name_hint = the_default "??.unknown" o try the_name_hint;
 fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
 
 
-(* theorem groups *)
-
-fun get_group thm = Properties.get (Thm.get_tags thm) Markup.groupN;
-
-fun put_group name = if name = "" then I else Thm.map_tags (Properties.put (Markup.groupN, name));
-
-fun group name = rule_attribute (K (put_group name));
-
-
 (* theorem kinds *)
 
 val axiomK = "axiom";
@@ -437,16 +421,10 @@ val lemmaK = "lemma";
 val corollaryK = "corollary";
 val internalK = Markup.internalK;
 
-fun the_kind thm = the (Properties.get (Thm.get_tags thm) Markup.kindN);
-
-val has_kind = can the_kind;
-val get_kind = the_default "" o try the_kind;
+fun get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
-fun kind_internal x = kind internalK x;
-fun has_internal tags = exists (fn tg => tg = (Markup.kindN, internalK)) tags;
-val is_internal = has_internal o Thm.get_tags;
 
 
 open Thm;

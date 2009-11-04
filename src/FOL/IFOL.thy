@@ -646,7 +646,7 @@ lemmas [Pure.elim!] = disjE iffE FalseE conjE exE
   and [Pure.elim 2] = allE notE' impE'
   and [Pure.intro] = exI disjI2 disjI1
 
-setup {* ContextRules.addSWrapper (fn tac => hyp_subst_tac ORELSE' tac) *}
+setup {* Context_Rules.addSWrapper (fn tac => hyp_subst_tac ORELSE' tac) *}
 
 
 lemma iff_not_sym: "~ (Q <-> P) ==> ~ (P <-> Q)"

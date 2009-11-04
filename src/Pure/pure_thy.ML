@@ -32,8 +32,6 @@ sig
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
     -> theory -> (string * thm list) list * theory
-  val note_thmss_grouped: string -> string -> (Thm.binding * (thm list * attribute list) list) list
-    -> theory -> (string * thm list) list * theory
   val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
   val add_axioms_cmd: ((binding * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
@@ -146,7 +144,7 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
   else
     let
       val naming = Sign.naming_of thy;
-      val name = NameSpace.full_name naming b;
+      val name = Name_Space.full_name naming b;
       val (thy', thms') =
         register_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
       val thms'' = map (Thm.transfer thy') thms';
@@ -192,9 +190,7 @@ fun add_thms_dynamic (b, f) thy = thy
 
 (* note_thmss *)
 
-local
-
-fun gen_note_thmss tag = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
+fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
   let
     val pos = Binding.pos_of b;
     val name = Sign.full_name thy b;
@@ -203,15 +199,8 @@ fun gen_note_thmss tag = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
     fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
       (name_thmss true pos) (name_thms false true pos) (apsnd flat o Library.foldl_map app)
-      (b, map (fn (ths, atts) => (ths, surround tag (atts @ more_atts))) ths_atts);
+      (b, map (fn (ths, atts) => (ths, surround (Thm.kind kind) (atts @ more_atts))) ths_atts);
   in ((name, thms), thy') end);
-
-in
-
-fun note_thmss k = gen_note_thmss (Thm.kind k);
-fun note_thmss_grouped k g = gen_note_thmss (Thm.kind k #> Thm.group g);
-
-end;
 
 
 (* store axioms as theorems *)
@@ -238,8 +227,8 @@ end;
 
 (*** Pure theory syntax and logical content ***)
 
-val typ = SimpleSyntax.read_typ;
-val prop = SimpleSyntax.read_prop;
+val typ = Simple_Syntax.read_typ;
+val prop = Simple_Syntax.read_prop;
 
 val typeT = Syntax.typeT;
 val spropT = Syntax.spropT;
@@ -279,7 +268,8 @@ val old_appl_syntax_setup =
 (* main content *)
 
 val _ = Context.>> (Context.map_theory
-  (OldApplSyntax.init #>
+  (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
+   OldApplSyntax.init #>
    Sign.add_types
    [(Binding.name "fun", 2, NoSyn),
     (Binding.name "prop", 0, NoSyn),

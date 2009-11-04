@@ -34,11 +34,11 @@ fun primrec_eq_err thy s eq =
   same type in all introduction rules*)
 fun unify_consts thy cs intr_ts =
   (let
-    fun varify (t, (i, ts)) =
+    fun varify t (i, ts) =
       let val t' = map_types (Logic.incr_tvar (i + 1)) (snd (Type.varify [] t))
       in (maxidx_of_term t', t'::ts) end;
-    val (i, cs') = List.foldr varify (~1, []) cs;
-    val (i', intr_ts') = List.foldr varify (i, []) intr_ts;
+    val (i, cs') = fold_rev varify cs (~1, []);
+    val (i', intr_ts') = fold_rev varify intr_ts (i, []);
     val rec_consts = fold Term.add_consts cs' [];
     val intr_consts = fold Term.add_consts intr_ts' [];
     fun unify (cname, cT) =
@@ -90,7 +90,7 @@ fun process_eqn thy eq rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (OldTerm.term_frees rhs) \\ lfrees);
+        (subtract (op =) lfrees (map dest_Free (OldTerm.term_frees rhs)));
       case AList.lookup (op =) rec_fns fnameT of
         NONE =>
           (fnameT, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
@@ -195,7 +195,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
      NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const ("HOL.undefined",
-           replicate ((length cargs) + (length (List.filter is_rec_type cargs)))
+           replicate (length cargs + length (filter is_rec_type cargs))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)
        in
@@ -226,7 +226,7 @@ fun find_dts (dt_info : info Symtab.table) _ [] = []
       (case Symtab.lookup dt_info tname of
           NONE => primrec_err (quote tname ^ " is not a datatype")
         | SOME dt =>
-            if tnames' subset (map (#1 o snd) (#descr dt)) then
+            if subset (op =) (tnames', map (#1 o snd) (#descr dt)) then
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
@@ -237,8 +237,8 @@ fun prepare_induct ({descr, induct, ...}: info) rec_eqns =
     val params_of = these o AList.lookup (op =) (maps constrs_of rec_eqns);
   in
     induct
-    |> RuleCases.rename_params (map params_of (maps (map #1 o #3 o #2) descr))
-    |> RuleCases.save induct
+    |> Rule_Cases.rename_params (map params_of (maps (map #1 o #3 o #2) descr))
+    |> Rule_Cases.save induct
   end;
 
 local
@@ -265,7 +265,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
     val defs' = map (make_def thy fs) defs;
     val nameTs1 = map snd fnameTs;
     val nameTs2 = map fst rec_eqns;
-    val _ = if gen_eq_set (op =) (nameTs1, nameTs2) then ()
+    val _ = if eq_set (op =) (nameTs1, nameTs2) then ()
             else primrec_err ("functions " ^ commas_quote (map fst nameTs2) ^
               "\nare not mutually recursive");
     val primrec_name =
@@ -284,7 +284,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
   in
     thy''
     |> note (("simps",
-        [Simplifier.simp_add, Nitpick_Const_Simps.add, Code.add_default_eqn_attribute]), simps'')
+        [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]), simps'')
     |> snd
     |> note (("induct", []), [prepare_induct (#2 (hd dts)) rec_eqns])
     |> snd

@@ -242,14 +242,14 @@ Recent versions of Poly/ML (5.2.1 or later) support robust
   view being presented to the user.
 
   Occasionally, such global process flags are treated like implicit
-  arguments to certain operations, by using the \verb|setmp| combinator
+  arguments to certain operations, by using the \verb|setmp_CRITICAL| combinator
   for safe temporary assignment.  Its traditional purpose was to
   ensure proper recovery of the original value when exceptions are
   raised in the body, now the functionality is extended to enter the
   \emph{critical section} (with its usual potential of degrading
   parallelism).
 
-  Note that recovery of plain value passing semantics via \verb|setmp|~\isa{ref\ value} assumes that this \isa{ref} is
+  Note that recovery of plain value passing semantics via \verb|setmp_CRITICAL|~\isa{ref\ value} assumes that this \isa{ref} is
   exclusively manipulated within the critical section.  In particular,
   any persistent global assignment of \isa{ref\ {\isacharcolon}{\isacharequal}\ value} needs to
   be marked critical as well, to prevent intruding another threads
@@ -277,7 +277,7 @@ Recent versions of Poly/ML (5.2.1 or later) support robust
 \begin{mldecls}
   \indexdef{}{ML}{NAMED\_CRITICAL}\verb|NAMED_CRITICAL: string -> (unit -> 'a) -> 'a| \\
   \indexdef{}{ML}{CRITICAL}\verb|CRITICAL: (unit -> 'a) -> 'a| \\
-  \indexdef{}{ML}{setmp}\verb|setmp: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
+  \indexdef{}{ML}{setmp\_CRITICAL}\verb|setmp_CRITICAL: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
   \end{mldecls}
 
   \begin{description}
@@ -291,7 +291,7 @@ Recent versions of Poly/ML (5.2.1 or later) support robust
   \item \verb|CRITICAL| is the same as \verb|NAMED_CRITICAL| with empty
   name argument.
 
-  \item \verb|setmp|~\isa{ref\ value\ f\ x} evaluates \isa{f\ x}
+  \item \verb|setmp_CRITICAL|~\isa{ref\ value\ f\ x} evaluates \isa{f\ x}
   while staying within the critical section and having \isa{ref\ {\isacharcolon}{\isacharequal}\ value} assigned temporarily.  This recovers a value-passing
   semantics involving global references, regardless of exceptions or
   concurrency.
@@ -366,7 +366,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
   a theory by constant declararion and primitive definitions:
 
   \smallskip\begin{mldecls}
-  \verb|Sign.declare_const: Properties.T -> (binding * typ) * mixfix|\isasep\isanewline%
+  \verb|Sign.declare_const: (binding * typ) * mixfix|\isasep\isanewline%
 \verb|  -> theory -> term * theory| \\
   \verb|Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory|
   \end{mldecls}
@@ -378,7 +378,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
   \smallskip\begin{mldecls}
   \verb|(fn (t, thy) => Thm.add_def false false|\isasep\isanewline%
 \verb|  (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
-\verb|    (Sign.declare_const []|\isasep\isanewline%
+\verb|    (Sign.declare_const|\isasep\isanewline%
 \verb|      ((Binding.name "bar", @{typ "foo => foo"}), NoSyn) thy)|
   \end{mldecls}
 
@@ -394,7 +394,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 
   \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|> (fn (t, thy) => thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Thm.add_def false false|\isasep\isanewline%
 \verb|     (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})))|
@@ -433,7 +433,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 
   \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
 \verb|      (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 
@@ -443,7 +443,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 
   \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|>> (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn def => Thm.add_def false false (Binding.name "bar_def", def))|\isasep\isanewline%
 
@@ -454,7 +454,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 
   \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.add_path "foobar"|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
 \verb|      (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
@@ -466,8 +466,8 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 
   \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
-\verb||\verb,|,\verb||\verb,|,\verb|>> Sign.declare_const [] ((Binding.name "foobar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb||\verb,|,\verb|>> Sign.declare_const ((Binding.name "foobar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn (t1, t2) => Thm.add_def false false|\isasep\isanewline%
 \verb|      (Binding.name "bar_def", Logic.mk_equals (t1, t2)))|\isasep\isanewline%
 
@@ -527,7 +527,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb|  val consts = ["foo", "bar"];|\isasep\isanewline%
 \verb|in|\isasep\isanewline%
 \verb|  thy|\isasep\isanewline%
-\verb|  |\verb,|,\verb|> fold_map (fn const => Sign.declare_const []|\isasep\isanewline%
+\verb|  |\verb,|,\verb|> fold_map (fn const => Sign.declare_const|\isasep\isanewline%
 \verb|       ((Binding.name const, @{typ "foo => foo"}), NoSyn)) consts|\isasep\isanewline%
 \verb|  |\verb,|,\verb|>> map (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
 \verb|  |\verb,|,\verb|-> (fn defs => fold_map (fn def =>|\isasep\isanewline%
@@ -596,11 +596,11 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
   \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> tap (fn _ => writeln "now adding constant")|\isasep\isanewline%
-\verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
+\verb||\verb,|,\verb|> Sign.declare_const ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|>> `(fn thy => Sign.declared_const thy|\isasep\isanewline%
 \verb|         (Sign.full_name thy (Binding.name "foobar")))|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn (t, b) => if b then I|\isasep\isanewline%
-\verb|       else Sign.declare_const []|\isasep\isanewline%
+\verb|       else Sign.declare_const|\isasep\isanewline%
 \verb|         ((Binding.name "foobar", @{typ "foo => foo"}), NoSyn) #> snd)|\isasep\isanewline%
 
   \end{mldecls}%

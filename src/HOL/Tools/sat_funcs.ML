@@ -92,8 +92,8 @@ fun lit_ord (i, j) =
 (* ------------------------------------------------------------------------- *)
 
 datatype CLAUSE = NO_CLAUSE
-                | ORIG_CLAUSE of Thm.thm
-                | RAW_CLAUSE of Thm.thm * (int * Thm.cterm) list;
+                | ORIG_CLAUSE of thm
+                | RAW_CLAUSE of thm * (int * cterm) list;
 
 (* ------------------------------------------------------------------------- *)
 (* resolve_raw_clauses: given a non-empty list of raw clauses, we fold       *)
@@ -218,9 +218,9 @@ let
 	fun index_of_literal chyp = (
 		case (HOLogic.dest_Trueprop o Thm.term_of) chyp of
 		  (Const ("Not", _) $ atom) =>
-			SOME (~(valOf (Termtab.lookup atom_table atom)))
+			SOME (~ (the (Termtab.lookup atom_table atom)))
 		| atom =>
-			SOME (valOf (Termtab.lookup atom_table atom))
+			SOME (the (Termtab.lookup atom_table atom))
 	) handle TERM _ => NONE;  (* 'chyp' is not a literal *)
 
 	(* int -> Thm.thm * (int * Thm.cterm) list *)
@@ -244,7 +244,7 @@ let
 			(* prove the clause, using information from 'clause_table' *)
 			let
 				val _      = if !trace_sat then tracing ("Proving clause #" ^ string_of_int id ^ " ...") else ()
-				val ids    = valOf (Inttab.lookup clause_table id)
+				val ids    = the (Inttab.lookup clause_table id)
 				val clause = resolve_raw_clauses (map prove_clause ids)
 				val _      = Array.update (clauses, id, RAW_CLAUSE clause)
 				val _      = if !trace_sat then tracing ("Replay chain successful; clause stored at #" ^ string_of_int id) else ()
@@ -346,11 +346,16 @@ let
 		fold Thm.weaken (rev sorted_clauses) False_thm
 	end
 in
-	case (tracing ("Invoking solver " ^ (!solver)); SatSolver.invoke_solver (!solver) fm) of
+	case
+	  let val the_solver = ! solver
+	  in (tracing ("Invoking solver " ^ the_solver); SatSolver.invoke_solver the_solver fm) end
+	of
 	  SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) => (
 		if !trace_sat then
 			tracing ("Proof trace from SAT solver:\n" ^
-				"clauses: " ^ ML_Syntax.print_list (ML_Syntax.print_pair Int.toString (ML_Syntax.print_list Int.toString)) (Inttab.dest clause_table) ^ "\n" ^
+				"clauses: " ^ ML_Syntax.print_list
+				  (ML_Syntax.print_pair Int.toString (ML_Syntax.print_list Int.toString))
+				  (Inttab.dest clause_table) ^ "\n" ^
 				"empty clause: " ^ Int.toString empty_id)
 		else ();
 		if !quick_and_dirty then
@@ -367,7 +372,7 @@ in
 				(* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
 				val cnf_clauses = Conjunction.elim_balanced (length sorted_clauses) cnf_thm
 				(* initialize the clause array with the given clauses *)
-				val max_idx    = valOf (Inttab.max_key clause_table)
+				val max_idx    = the (Inttab.max_key clause_table)
 				val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
 				val _          = fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1)) cnf_clauses 0
 				(* replay the proof to derive the empty clause *)
@@ -388,8 +393,9 @@ in
 			val msg = "SAT solver found a countermodel:\n"
 				^ (commas
 					o map (fn (term, idx) =>
-						Syntax.string_of_term_global @{theory} term ^ ": "
-							^ (case assignment idx of NONE => "arbitrary" | SOME true => "true" | SOME false => "false")))
+						Syntax.string_of_term_global @{theory} term ^ ": " ^
+						  (case assignment idx of NONE => "arbitrary"
+							| SOME true => "true" | SOME false => "false")))
 					(Termtab.dest atom_table)
 		in
 			raise THM (msg, 0, [])

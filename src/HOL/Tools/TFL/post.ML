@@ -28,7 +28,7 @@ structure S = USyntax
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
-      (List.foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
+      (fold_rev (union (op aconv) o prems_of) rules []);
 
 (*---------------------------------------------------------------------------
  * Three postprocessors are applied to the definition.  It
@@ -71,7 +71,7 @@ fun mk_meta_eq r = case concl_of r of
   |   _ => r RS P_imp_P_eq_True
 
 (*Is this the best way to invoke the simplifier??*)
-fun rewrite L = rewrite_rule (map mk_meta_eq (List.filter(not o id_thm) L))
+fun rewrite L = rewrite_rule (map mk_meta_eq (filter_out id_thm L))
 
 fun join_assums th =
   let val thy = Thm.theory_of_thm th
@@ -79,7 +79,7 @@ fun join_assums th =
       val {lhs,rhs} = S.dest_eq(#2 (S.strip_forall (concl th)))
       val cntxtl = (#1 o S.strip_imp) lhs  (* cntxtl should = cntxtr *)
       val cntxtr = (#1 o S.strip_imp) rhs  (* but union is solider *)
-      val cntxt = gen_union (op aconv) (cntxtl, cntxtr)
+      val cntxt = union (op aconv) cntxtl cntxtr
   in
     R.GEN_ALL
       (R.DISCH_ALL
@@ -189,12 +189,11 @@ local
 in
 fun derive_init_eqs sgn rules eqs = 
     let 
-      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) 
-                      eqs
-      fun countlist l = 
-          (rev o snd o (Library.foldl (fn ((i,L), e) => (i + 1,(e,i) :: L)))) ((0,[]), l)
+      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) eqs
+      fun countlist l =
+        rev (snd (fold (fn e => fn (i, L) => (i + 1, (e, i) :: L)) l (0, [])))
     in
-      maps (fn (e,i) => solve_eq (e, (get_related_thms i rules), i)) (countlist eqths)
+      maps (fn (e, i) => solve_eq (e, (get_related_thms i rules), i)) (countlist eqths)
     end;
 end;
 

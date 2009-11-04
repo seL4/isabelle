@@ -86,7 +86,7 @@ function init_component ()
   local COMPONENT="$1"
 
   if [ ! -d "$COMPONENT" ]; then
-    echo >&2 "Bad Isabelle component: $COMPONENT"
+    echo >&2 "Bad Isabelle component: \"$COMPONENT\""
     exit 2
   elif [ -z "$ISABELLE_COMPONENTS" ]; then
     ISABELLE_COMPONENTS="$COMPONENT"

@@ -38,8 +38,7 @@ end
 structure ScnpReconstruct : SCNP_RECONSTRUCT =
 struct
 
-val PROFILE = FundefCommon.PROFILE
-fun TRACE x = if ! FundefCommon.profile then tracing x else ()
+val PROFILE = Function_Common.PROFILE
 
 open ScnpSolve
 
@@ -64,7 +63,7 @@ datatype multiset_setup =
    reduction_pair : thm
   }
 
-structure MultisetSetup = TheoryDataFun
+structure Multiset_Setup = TheoryDataFun
 (
   type T = multiset_setup option
   val empty = NONE
@@ -73,10 +72,10 @@ structure MultisetSetup = TheoryDataFun
   fun merge _ (v1, v2) = if is_some v2 then v2 else v1
 )
 
-val multiset_setup = MultisetSetup.put o SOME
+val multiset_setup = Multiset_Setup.put o SOME
 
 fun undef x = error "undef"
-fun get_multiset_setup thy = MultisetSetup.get thy
+fun get_multiset_setup thy = Multiset_Setup.get thy
   |> the_default (Multiset
 { msetT = undef, mk_mset=undef,
   mset_regroup_conv=undef, mset_member_tac = undef,
@@ -119,7 +118,7 @@ fun gen_probl D cs =
         G (p, q, edges)
       end
   in
-    GP (map arity (0 upto n - 1), map mk_graph cs)
+    GP (map_range arity n, map mk_graph cs)
   end
 
 (* General reduction pair application *)
@@ -197,7 +196,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
               else if b <= a then @{thm pair_leqI2} else @{thm pair_leqI1}
           in
             rtac rule 1 THEN PRIMITIVE (Thm.elim_implies stored_thm)
-            THEN (if tag_flag then Arith_Data.verbose_arith_tac ctxt 1 else all_tac)
+            THEN (if tag_flag then Arith_Data.arith_tac ctxt 1 else all_tac)
           end
 
         fun steps_tac MAX strict lq lp =
@@ -240,7 +239,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
               if is_some (covering g true j) then SOME (j, b) else NONE
             fun get_wk_cover (j, b) = the (covering g false j)
 
-            val qs = lq \\ map_filter get_str_cover lq
+            val qs = subtract (op =) (map_filter get_str_cover lq) lq
             val ps = map get_wk_cover qs
 
             fun indices xs ys = map (fn y => Library.find_index (curry op = y) xs) ys
@@ -263,7 +262,8 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
             THEN EVERY (map2 (less_proof false) qs ps)
             THEN (if strict orelse qs <> lq
                   then LocalDefs.unfold_tac ctxt set_of_simps
-                       THEN steps_tac MAX true (lq \\ qs) (lp \\ ps)
+                       THEN steps_tac MAX true
+                       (subtract (op =) qs lq) (subtract (op =) ps lp)
                   else all_tac)
           end
       in
@@ -286,7 +286,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
         |> cterm_of thy
     in
       PROFILE "Proof Reconstruction"
-        (CONVERSION (Conv.arg_conv (Conv.arg_conv (FundefLib.regroup_union_conv sl))) 1
+        (CONVERSION (Conv.arg_conv (Conv.arg_conv (Function_Lib.regroup_union_conv sl))) 1
          THEN (rtac @{thm reduction_pair_lemma} 1)
          THEN (rtac @{thm rp_inv_image_rp} 1)
          THEN (rtac (order_rpair ms_rp label) 1)
@@ -296,7 +296,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
            (@{thms split_conv} @ @{thms fst_conv} @ @{thms snd_conv})
          THEN REPEAT (SOMEGOAL (resolve_tac [@{thm Un_least}, @{thm empty_subsetI}]))
          THEN EVERY (map (prove_lev true) sl)
-         THEN EVERY (map (prove_lev false) ((0 upto length cs - 1) \\ sl)))
+         THEN EVERY (map (prove_lev false) (subtract (op =) sl (0 upto length cs - 1))))
     end
 
 
@@ -311,8 +311,8 @@ fun print_cell (SOME (Less _)) = "<"
 fun print_error ctxt D = CALLS (fn (cs, i) =>
   let
     val np = get_num_points D
-    val ms = map (get_measures D) (0 upto np - 1)
-    val tys = map (get_types D) (0 upto np - 1)
+    val ms = map_range (get_measures D) np
+    val tys = map_range (get_types D) np
     fun index xs = (1 upto length xs) ~~ xs
     fun outp s t f xs = map (fn (x, y) => s ^ Int.toString x ^ t ^ f y ^ "\n") xs
     val ims = index (map index ms)
@@ -346,17 +346,13 @@ fun print_error ctxt D = CALLS (fn (cs, i) =>
   end)
 end
 
-
 fun single_scnp_tac use_tags orders ctxt cont err_cont D = Termination.CALLS (fn (cs, i) =>
   let
-    val ms_configured = is_some (MultisetSetup.get (ProofContext.theory_of ctxt))
+    val ms_configured = is_some (Multiset_Setup.get (ProofContext.theory_of ctxt))
     val orders' = if ms_configured then orders
                   else filter_out (curry op = MS) orders
     val gp = gen_probl D cs
-(*    val _ = TRACE ("SCNP instance: " ^ makestring gp)*)
     val certificate = generate_certificate use_tags orders' gp
-(*    val _ = TRACE ("Certificate: " ^ makestring certificate)*)
-
   in
     case certificate
      of NONE => err_cont D i
@@ -394,7 +390,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
   end
 
 fun gen_sizechange_tac orders autom_tac ctxt err_cont =
-  TRY (FundefCommon.apply_termination_rule ctxt 1)
+  TRY (Function_Common.apply_termination_rule ctxt 1)
   THEN TRY (Termination.wf_union_tac ctxt)
   THEN
    (rtac @{thm wf_empty} 1
@@ -405,7 +401,7 @@ fun sizechange_tac ctxt autom_tac =
 
 fun decomp_scnp orders ctxt =
   let
-    val extra_simps = FundefCommon.Termination_Simps.get ctxt
+    val extra_simps = Function_Common.Termination_Simps.get ctxt
     val autom_tac = auto_tac (clasimpset_of ctxt addsimps2 extra_simps)
   in
     SIMPLE_METHOD

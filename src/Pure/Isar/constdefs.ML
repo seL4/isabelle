@@ -60,7 +60,7 @@ fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =
     val ctxt = ProofContext.init thy;
     val (structs, _) = prep_vars (map (fn (x, T) => (x, T, Structure)) raw_structs) ctxt;
     val (decls, thy') = fold_map (gen_constdef prep_vars prep_prop prep_att structs) specs thy;
-  in Pretty.writeln (ProofDisplay.pretty_consts ctxt (K true) decls); thy' end;
+  in Pretty.writeln (Proof_Display.pretty_consts ctxt (K true) decls); thy' end;
 
 val add_constdefs = gen_constdefs ProofContext.read_vars Syntax.read_prop Attrib.attribute;
 val add_constdefs_i = gen_constdefs ProofContext.cert_vars ProofContext.cert_prop (K I);

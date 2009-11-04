@@ -17,7 +17,7 @@ sig
 end;
 
 
-structure Domain_Axioms :> DOMAIN_AXIOMS =
+structure Domain_Axioms : DOMAIN_AXIOMS =
 struct
 
 open Domain_Library;
@@ -66,7 +66,7 @@ fun calc_axioms
                                                                                         Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
           
       val copy_def =
-          let fun r i = cproj (Bound 0) eqs i;
+          let fun r i = proj (Bound 0) eqs i;
           in ("copy_def", %%:(dname^"_copy") ==
                           /\ "f" (dc_abs oo (copy_of_dtyp r (dtyp_of_eq eqn)) oo dc_rep)) end;
 
@@ -128,12 +128,12 @@ fun calc_axioms
 
       (* ----- axiom and definitions concerning induction ------------------------- *)
 
-      val reach_ax = ("reach", mk_trp(cproj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
+      val reach_ax = ("reach", mk_trp(proj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
                                             `%x_name === %:x_name));
       val take_def =
           ("take_def",
            %%:(dname^"_take") ==
-              mk_lam("n",cproj
+              mk_lam("n",proj
                            (mk_iterate (Bound 0, %%:(comp_dname^"_copy"), UU)) eqs n));
       val finite_def =
           ("finite_def",
@@ -184,7 +184,7 @@ fun add_axioms comp_dnam (eqs : eq list) thy' =
 
       fun one_con (con,args) = let
         val nonrec_args = filter_out is_rec args;
-        val    rec_args = List.filter     is_rec args;
+        val    rec_args = filter is_rec args;
         val    recs_cnt = length rec_args;
         val allargs     = nonrec_args @ rec_args
                           @ map (upd_vname (fn s=> s^"'")) rec_args;
@@ -218,13 +218,13 @@ fun add_axioms comp_dnam (eqs : eq list) thy' =
           ("bisim_def",
            %%:(comp_dname^"_bisim")==mk_lam("R", foldr1 mk_conj (mapn one_comp 0 eqs)));
           
-      fun add_one (thy,(dnam,axs,dfs)) =
-          thy |> Sign.add_path dnam
-              |> add_defs_infer dfs
-              |> add_axioms_infer axs
-              |> Sign.parent_path;
+      fun add_one (dnam, axs, dfs) =
+          Sign.add_path dnam
+          #> add_defs_infer dfs
+          #> add_axioms_infer axs
+          #> Sign.parent_path;
 
-      val thy = Library.foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
+      val thy = fold add_one (mapn (calc_axioms comp_dname eqs) 0 eqs) thy';
 
     in thy |> Sign.add_path comp_dnam  
            |> add_defs_infer (bisim_def::(if length eqs>1 then [copy_def] else []))

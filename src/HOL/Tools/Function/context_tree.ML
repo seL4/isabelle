@@ -5,15 +5,15 @@ A package for general recursive function definitions.
 Builds and traverses trees of nested contexts along a term.
 *)
 
-signature FUNDEF_CTXTREE =
+signature FUNCTION_CTXTREE =
 sig
     type ctxt = (string * typ) list * thm list (* poor man's contexts: fixes + assumes *)
     type ctx_tree
 
     (* FIXME: This interface is a mess and needs to be cleaned up! *)
-    val get_fundef_congs : Proof.context -> thm list
-    val add_fundef_cong : thm -> Context.generic -> Context.generic
-    val map_fundef_congs : (thm list -> thm list) -> Context.generic -> Context.generic
+    val get_function_congs : Proof.context -> thm list
+    val add_function_cong : thm -> Context.generic -> Context.generic
+    val map_function_congs : (thm list -> thm list) -> Context.generic -> Context.generic
 
     val cong_add: attribute
     val cong_del: attribute
@@ -36,15 +36,15 @@ sig
     val rewrite_by_tree : theory -> term -> thm -> (thm * thm) list -> ctx_tree -> thm * (thm * thm) list
 end
 
-structure FundefCtxTree : FUNDEF_CTXTREE =
+structure Function_Ctx_Tree : FUNCTION_CTXTREE =
 struct
 
 type ctxt = (string * typ) list * thm list
 
-open FundefCommon
-open FundefLib
+open Function_Common
+open Function_Lib
 
-structure FundefCongs = GenericDataFun
+structure FunctionCongs = GenericDataFun
 (
   type T = thm list
   val empty = []
@@ -52,14 +52,14 @@ structure FundefCongs = GenericDataFun
   fun merge _ = Thm.merge_thms
 );
 
-val get_fundef_congs = FundefCongs.get o Context.Proof
-val map_fundef_congs = FundefCongs.map
-val add_fundef_cong = FundefCongs.map o Thm.add_thm
+val get_function_congs = FunctionCongs.get o Context.Proof
+val map_function_congs = FunctionCongs.map
+val add_function_cong = FunctionCongs.map o Thm.add_thm
 
 (* congruence rules *)
 
-val cong_add = Thm.declaration_attribute (map_fundef_congs o Thm.add_thm o safe_mk_meta_eq);
-val cong_del = Thm.declaration_attribute (map_fundef_congs o Thm.del_thm o safe_mk_meta_eq);
+val cong_add = Thm.declaration_attribute (map_function_congs o Thm.add_thm o safe_mk_meta_eq);
+val cong_del = Thm.declaration_attribute (map_function_congs o Thm.del_thm o safe_mk_meta_eq);
 
 
 type depgraph = int IntGraph.T
@@ -90,7 +90,7 @@ fun cong_deps crule =
       IntGraph.empty
         |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
         |> fold_product (fn (i, (c1, _)) => fn (j, (_, t2)) => 
-               if i = j orelse null (c1 inter t2) 
+               if i = j orelse null (inter (op =) c1 t2)
                then I else IntGraph.add_edge_acyclic (i,j))
              num_branches num_branches
     end
@@ -128,7 +128,7 @@ fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
 
 fun mk_tree fvar h ctxt t =
     let 
-      val congs = get_fundef_congs ctxt
+      val congs = get_function_congs ctxt
       val congs_deps = map (fn c => (c, cong_deps c)) (congs @ default_congs) (* FIXME: Save in theory *)
 
       fun matchcall (a $ b) = if a = Free fvar then SOME b else NONE

@@ -3,7 +3,7 @@
 header {* Type of target language numerals *}
 
 theory Code_Numeral
-imports Nat_Numeral
+imports Nat_Numeral Nat_Transfer Divides
 begin
 
 text {*
@@ -172,7 +172,7 @@ definition [simp, code del]:
   "n < m \<longleftrightarrow> nat_of n < nat_of m"
 
 instance proof
-qed (auto simp add: code_numeral left_distrib div_mult_self1)
+qed (auto simp add: code_numeral left_distrib intro: mult_commute)
 
 end
 
@@ -268,7 +268,15 @@ definition int_of :: "code_numeral \<Rightarrow> int" where
 lemma int_of_code [code]:
   "int_of k = (if k = 0 then 0
     else (if k mod 2 = 0 then 2 * int_of (k div 2) else 2 * int_of (k div 2) + 1))"
-  by (auto simp add: int_of_def mod_div_equality')
+proof -
+  have "(nat_of k div 2) * 2 + nat_of k mod 2 = nat_of k" 
+    by (rule mod_div_equality)
+  then have "int ((nat_of k div 2) * 2 + nat_of k mod 2) = int (nat_of k)" 
+    by simp
+  then have "int (nat_of k) = int (nat_of k div 2) * 2 + int (nat_of k mod 2)" 
+    unfolding int_mult zadd_int [symmetric] by simp
+  then show ?thesis by (auto simp add: int_of_def mult_ac)
+qed
 
 hide (open) const of_nat nat_of int_of
 

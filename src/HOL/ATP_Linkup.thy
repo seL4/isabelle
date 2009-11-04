@@ -91,9 +91,9 @@ done
 
 subsection {* Setup of external ATPs *}
 
-use "Tools/res_axioms.ML" setup ResAxioms.setup
+use "Tools/res_axioms.ML" setup Res_Axioms.setup
 use "Tools/res_hol_clause.ML"
-use "Tools/res_reconstruct.ML" setup ResReconstruct.setup
+use "Tools/res_reconstruct.ML" setup Res_Reconstruct.setup
 use "Tools/res_atp.ML"
 
 use "Tools/ATP_Manager/atp_wrapper.ML" setup ATP_Wrapper.setup

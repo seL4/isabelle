@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 header {* GCD *}
 
 theory GCD
-imports Fact
+imports Fact Parity
 begin
 
 declare One_nat_def [simp del]
@@ -1701,5 +1701,13 @@ proof -
   interpret fun_left_comm_idem "gcd::int\<Rightarrow>int\<Rightarrow>int" by (rule fun_left_comm_idem_gcd_int)
   show ?thesis by(simp add: Gcd_def fold_set gcd_commute_int)
 qed
+
+lemma gcd_eq_nitpick_gcd [nitpick_def]: "gcd x y \<equiv> Nitpick.nat_gcd x y"
+apply (rule eq_reflection)
+apply (induct x y rule: nat_gcd.induct)
+by (simp add: gcd_nat.simps Nitpick.nat_gcd.simps)
+
+lemma lcm_eq_nitpick_lcm [nitpick_def]: "lcm x y \<equiv> Nitpick.nat_lcm x y"
+by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 end

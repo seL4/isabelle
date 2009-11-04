@@ -420,9 +420,9 @@ val _ = add_options
   ("show_sorts", setmp_CRITICAL Syntax.show_sorts o boolean),
   ("show_structs", setmp_CRITICAL show_structs o boolean),
   ("show_question_marks", setmp_CRITICAL show_question_marks o boolean),
-  ("long_names", setmp_CRITICAL NameSpace.long_names o boolean),
-  ("short_names", setmp_CRITICAL NameSpace.short_names o boolean),
-  ("unique_names", setmp_CRITICAL NameSpace.unique_names o boolean),
+  ("long_names", setmp_CRITICAL Name_Space.long_names o boolean),
+  ("short_names", setmp_CRITICAL Name_Space.short_names o boolean),
+  ("unique_names", setmp_CRITICAL Name_Space.unique_names o boolean),
   ("eta_contract", setmp_CRITICAL Syntax.eta_contract o boolean),
   ("display", setmp_CRITICAL display o boolean),
   ("break", setmp_CRITICAL break o boolean),
@@ -478,7 +478,7 @@ fun pretty_abbrev ctxt s =
     val ctxt' = Variable.auto_fixes eq ctxt;
   in ProofContext.pretty_term_abbrev ctxt' eq end;
 
-fun pretty_prf full ctxt = ProofSyntax.pretty_proof_of ctxt full;
+fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 
 fun pretty_theory ctxt name =
   (Theory.requires (ProofContext.theory_of ctxt) name "presentation"; Pretty.str name);

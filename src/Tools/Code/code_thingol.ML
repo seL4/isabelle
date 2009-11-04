@@ -252,20 +252,17 @@ fun locally_monomorphic (IConst _) = false
 (* policies *)
 
 local
-  fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
-  fun thyname_of_class thy =
-    thyname_of thy (ProofContext.query_class (ProofContext.init thy));
-  fun thyname_of_tyco thy =
-    thyname_of thy (Type.the_tags (Sign.tsig_of thy));
-  fun thyname_of_instance thy inst = case AxClass.arity_property thy inst Markup.theory_nameN
-   of [] => error ("no such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
+  fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
+  fun thyname_of_instance thy inst = case AxClass.thynames_of_arity thy inst
+   of [] => error ("No such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
     | thyname :: _ => thyname;
   fun thyname_of_const thy c = case AxClass.class_of_param thy c
    of SOME class => thyname_of_class thy class
     | NONE => (case Code.get_datatype_of_constr thy c
-       of SOME dtco => thyname_of_tyco thy dtco
-        | NONE => thyname_of thy (Consts.the_tags (Sign.consts_of thy)) c);
-  fun purify_base "op &" = "and"
+       of SOME dtco => Codegen.thyname_of_type thy dtco
+        | NONE => Codegen.thyname_of_const thy c);
+  fun purify_base "==>" = "follows"
+    | purify_base "op &" = "and"
     | purify_base "op |" = "or"
     | purify_base "op -->" = "implies"
     | purify_base "op :" = "member"
@@ -282,10 +279,11 @@ in
 
 fun namify_class thy = namify thy Long_Name.base_name thyname_of_class;
 fun namify_classrel thy = namify thy (fn (class1, class2) => 
-  Long_Name.base_name class2 ^ "_" ^ Long_Name.base_name class1) (fn thy => thyname_of_class thy o fst);
+    Long_Name.base_name class2 ^ "_" ^ Long_Name.base_name class1)
+  (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun namify_tyco thy "fun" = "Pure.fun"
-  | namify_tyco thy tyco = namify thy Long_Name.base_name thyname_of_tyco tyco;
+  | namify_tyco thy tyco = namify thy Long_Name.base_name Codegen.thyname_of_type tyco;
 fun namify_instance thy = namify thy (fn (class, tyco) => 
   Long_Name.base_name class ^ "_" ^ Long_Name.base_name tyco) thyname_of_instance;
 fun namify_const thy = namify thy Long_Name.base_name thyname_of_const;
@@ -402,7 +400,7 @@ end; (* local *)
 fun expand_eta thy k thm =
   let
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
-    val (head, args) = strip_comb lhs;
+    val (_, args) = strip_comb lhs;
     val l = if k = ~1
       then (length o fst o strip_abs) rhs
       else Int.max (0, k - length args);
@@ -420,7 +418,7 @@ fun expand_eta thy k thm =
 fun same_arity thy thms =
   let
     val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
+    val k = fold (Integer.max o num_args_of o Thm.prop_of) thms 0;
   in map (expand_eta thy k) thms end;
 
 fun mk_desymbolization pre post mk vs =

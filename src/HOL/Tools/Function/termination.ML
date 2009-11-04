@@ -48,7 +48,7 @@ end
 structure Termination : TERMINATION =
 struct
 
-open FundefLib
+open Function_Lib
 
 val term2_ord = prod_ord TermOrd.fast_term_ord TermOrd.fast_term_ord
 structure Term2tab = Table(type key = term * term val ord = term2_ord);
@@ -145,7 +145,7 @@ fun mk_sumcases (sk, _, _, _, _) T fs =
 
 fun mk_sum_skel rel =
   let
-    val cs = FundefLib.dest_binop_list @{const_name Lattices.sup} rel
+    val cs = Function_Lib.dest_binop_list @{const_name Lattices.sup} rel
     fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
       let
         val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ Gam)
@@ -233,7 +233,7 @@ fun derive_descents thy tac c D =
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
   else case Thm.term_of (Thm.cprem_of st i) of
-    (_ $ (_ $ rel)) => tac (FundefLib.dest_binop_list @{const_name Lattices.sup} rel, i) st
+    (_ $ (_ $ rel)) => tac (Function_Lib.dest_binop_list @{const_name Lattices.sup} rel, i) st
   |_ => no_tac st
 
 type ttac = (data -> int -> tactic) -> (data -> int -> tactic) -> data -> int -> tactic
@@ -251,7 +251,7 @@ fun TERMINATION ctxt tac =
 local
 fun dest_term (t : term) = (* FIXME, cf. Lexicographic order *)
     let
-      val (vars, prop) = FundefLib.dest_all_all t
+      val (vars, prop) = Function_Lib.dest_all_all t
       val (prems, concl) = Logic.strip_horn prop
       val (lhs, rhs) = concl
                          |> HOLogic.dest_Trueprop

@@ -1,0 +1,9 @@
+(benchmark Isabelle
+:extrafuns (
+  (uf_1 Int)
+  (uf_2 Int)
+  (uf_3 Int)
+ )
+:assumption (not (= (+ uf_1 (+ uf_2 uf_3)) (+ uf_2 (+ uf_3 uf_1))))
+:formula true
+)

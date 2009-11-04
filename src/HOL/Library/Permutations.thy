@@ -5,10 +5,8 @@
 header {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Finite_Cartesian_Product Parity Fact Main
+imports Finite_Cartesian_Product Parity Fact
 begin
-
-  (* Why should I import Main just to solve the Typerep problem! *)
 
 definition permutes (infixr "permutes" 41) where
   "(p permutes S) \<longleftrightarrow> (\<forall>x. x \<notin> S \<longrightarrow> p x = x) \<and> (\<forall>y. \<exists>!x. p x = y)"
@@ -95,10 +93,11 @@ lemma permutes_inv_eq: "p permutes S ==> inv p y = x \<longleftrightarrow> p x =
   done
 
 lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S ==> Fun.swap a b id permutes S"
-  unfolding permutes_def swap_def fun_upd_def  apply auto apply metis done
+  unfolding permutes_def swap_def fun_upd_def  by auto metis
 
-lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
-apply (simp add: Ball_def permutes_def Diff_iff) by metis
+lemma permutes_superset:
+  "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
+by (simp add: Ball_def permutes_def Diff_iff) metis
 
 (* ------------------------------------------------------------------------- *)
 (* Group properties.                                                         *)

@@ -33,7 +33,7 @@ val fresh_postprocess =
     [@{thm fresh_star_set_eq}, @{thm fresh_star_Un_elim},
      @{thm fresh_star_insert_elim}, @{thm fresh_star_empty_elim}]);
 
-fun preds_of ps t = gen_inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
+fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
 val perm_bool = mk_meta_eq (thm "perm_bool");
 val perm_boolI = thm "perm_boolI";
@@ -160,11 +160,11 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val elims = map (atomize_induct ctxt) elims;
     val monos = Inductive.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ fold (Term.add_const_names o Thm.prop_of) eqvt_thms [] of
+    val _ = (case subtract (op =) (fold (Term.add_const_names o Thm.prop_of) eqvt_thms []) names of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
-    val induct_cases = map fst (fst (RuleCases.get (the
+    val induct_cases = map fst (fst (Rule_Cases.get (the
       (Induct.lookup_inductP ctxt (hd names)))));
     val induct_cases' = if null induct_cases then replicate (length intrs) ""
       else induct_cases;
@@ -176,7 +176,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val _ = (case duplicates (op = o pairself fst) avoids of
         [] => ()
       | xs => error ("Duplicate case names: " ^ commas_quote (map fst xs)));
-    val _ = (case map fst avoids \\ induct_cases of
+    val _ = (case subtract (op =) induct_cases (map fst avoids) of
         [] => ()
       | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));
     fun mk_avoids params name sets =
@@ -300,7 +300,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val pt_insts = map (NominalAtoms.pt_inst_of thy) atoms;
     val at_insts = map (NominalAtoms.at_inst_of thy) atoms;
     val dj_thms = maps (fn a =>
-      map (NominalAtoms.dj_thm_of thy a) (atoms \ a)) atoms;
+      map (NominalAtoms.dj_thm_of thy a) (remove (op =) a atoms)) atoms;
     val finite_ineq = map2 (fn th => fn th' => th' RS (th RS
       @{thm pt_set_finite_ineq})) pt_insts at_insts;
     val perm_set_forget =
@@ -449,7 +449,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
-        val ind_case_names = RuleCases.case_names induct_cases;
+        val ind_case_names = Rule_Cases.case_names induct_cases;
         val induct_cases' = Inductive.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
         val thss' = map (map atomize_intr) thss;
@@ -458,9 +458,9 @@ fun prove_strong_ind s alt_name avoids ctxt =
           mk_ind_proof ctxt thss' |> Inductive.rulify;
         val strong_induct =
           if length names > 1 then
-            (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
+            (strong_raw_induct, [ind_case_names, Rule_Cases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
-            [ind_case_names, RuleCases.consumes 1]);
+            [ind_case_names, Rule_Cases.consumes 1]);
         val (induct_name, inducts_name) =
           case alt_name of
             NONE => (rec_qualified (Binding.name "strong_induct"),
@@ -477,7 +477,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         LocalTheory.note Thm.generatedK
           ((inducts_name,
             [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (RuleCases.consumes 1))]),
+             Attrib.internal (K (Rule_Cases.consumes 1))]),
            strong_inducts) |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)

@@ -1,0 +1,19 @@
+#2 := false
+decl up_1 :: bool
+#4 := up_1
+#5 := (not up_1)
+#6 := (or up_1 #5)
+#7 := (not #6)
+#31 := (iff #7 false)
+#1 := true
+#26 := (not true)
+#29 := (iff #26 false)
+#30 := [rewrite]: #29
+#27 := (iff #7 #26)
+#24 := (iff #6 true)
+#25 := [rewrite]: #24
+#28 := [monotonicity #25]: #27
+#32 := [trans #28 #30]: #31
+#23 := [asserted]: #7
+[mp #23 #32]: false
+unsat

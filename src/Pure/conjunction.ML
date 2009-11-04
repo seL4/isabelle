@@ -30,7 +30,7 @@ struct
 (** abstract syntax **)
 
 fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
-val read_prop = certify o SimpleSyntax.read_prop;
+val read_prop = certify o Simple_Syntax.read_prop;
 
 val true_prop = certify Logic.true_prop;
 val conjunction = certify Logic.conjunction;
@@ -83,15 +83,16 @@ fun conjunctionD which =
 
 in
 
-val conjunctionD1 = Drule.store_standard_thm "conjunctionD1" (conjunctionD #1);
-val conjunctionD2 = Drule.store_standard_thm "conjunctionD2" (conjunctionD #2);
+val conjunctionD1 = Drule.store_standard_thm (Binding.name "conjunctionD1") (conjunctionD #1);
+val conjunctionD2 = Drule.store_standard_thm (Binding.name "conjunctionD2") (conjunctionD #2);
 
-val conjunctionI = Drule.store_standard_thm "conjunctionI"
-  (Drule.implies_intr_list [A, B]
-    (Thm.equal_elim
-      (Thm.symmetric conjunction_def)
-      (Thm.forall_intr C (Thm.implies_intr ABC
-        (Drule.implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B])))));
+val conjunctionI =
+  Drule.store_standard_thm (Binding.name "conjunctionI")
+    (Drule.implies_intr_list [A, B]
+      (Thm.equal_elim
+        (Thm.symmetric conjunction_def)
+        (Thm.forall_intr C (Thm.implies_intr ABC
+          (Drule.implies_elim_list (Thm.assume ABC) [Thm.assume A, Thm.assume B])))));
 
 
 fun intr tha thb =

@@ -638,8 +638,8 @@ fun mk_valtermify_app c vs T =
     val Ts = map snd vs;
     val t = Const (c, Ts ---> T);
     val tt = mk_prod (t, Abs ("u", unitT, reflect_term t));
-    fun app (t, (fT, (v, T))) = valapp T fT $ t $ Free (v, termifyT T);
-  in Library.foldl app (tt, mk_fTs Ts T ~~ vs) end;
+    fun app (fT, (v, T)) t = valapp T fT $ t $ Free (v, termifyT T);
+  in fold app (mk_fTs Ts T ~~ vs) tt end;
 
 
 (* open state monads *)

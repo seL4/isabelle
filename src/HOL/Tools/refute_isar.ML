@@ -28,7 +28,7 @@ val _ =
         Toplevel.keep (fn state =>
           let
             val thy = Toplevel.theory_of state;
-            val (_, st) = Proof.flat_goal (Toplevel.proof_of state);
+            val {goal = st, ...} = Proof.raw_goal (Toplevel.proof_of state);
           in Refute.refute_goal thy parms st i end)));
 
 

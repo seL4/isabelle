@@ -54,8 +54,6 @@ val hyp = #1 o R.dest_thm;
 
 val list_mk_type = U.end_itlist (curry (op -->));
 
-fun enumerate xs = ListPair.zip(xs, 0 upto (length xs - 1));
-
 fun front_last [] = raise TFL_ERR "front_last" "empty list"
   | front_last [x] = ([],x)
   | front_last (h::t) =
@@ -328,7 +326,7 @@ fun mk_functional thy clauses =
      val (fname,ftype) = dest_atom atom
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
-                              map (fn (t,i) => (t,(i,true))) (enumerate R))
+                              map_index (fn (i, t) => (t,(i,true))) R)
      val names = List.foldr OldTerm.add_term_names [] R
      val atype = type_of(hd pats)
      and aname = Name.variant names "a"
@@ -343,7 +341,7 @@ fun mk_functional thy clauses =
      val patts2 = Library.sort (Library.int_ord o Library.pairself row_of_pat) patts1
      val finals = map row_of_pat patts2
      val originals = map (row_of_pat o #2) rows
-     val dummy = case (originals\\finals)
+     val dummy = case (subtract (op =) finals originals)
              of [] => ()
           | L => mk_functional_err
  ("The following clauses are redundant (covered by preceding clauses): " ^
@@ -425,13 +423,13 @@ in
 end;
 
 
-fun givens pats = map pat_of (List.filter given pats);
+fun givens pats = map pat_of (filter given pats);
 
 fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory
      val f = #lhs(S.dest_eq(concl def))
      val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
-     val pats' = List.filter given pats
+     val pats' = filter given pats
      val given_pats = map pat_of pats'
      val rows = map row_of_pat pats'
      val WFR = #ant(S.dest_imp(concl corollary))
@@ -531,7 +529,7 @@ fun lazyR_def thy fid tflCongs eqns =
                  then writeln (cat_lines ("Extractants =" ::
                   map (Display.string_of_thm_global thy) extractants))
                  else ()
-     val TCs = List.foldr (gen_union (op aconv)) [] TCl
+     val TCs = fold_rev (union (op aconv)) TCl []
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
@@ -724,7 +722,7 @@ local infix 5 ==>
 in
 fun build_ih f P (pat,TCs) =
  let val globals = S.free_vars_lr pat
-     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
          let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
              val (R,y,_) = S.dest_relation R_y_pat
@@ -753,7 +751,7 @@ in
 fun build_ih f (P,SV) (pat,TCs) =
  let val pat_vars = S.free_vars_lr pat
      val globals = pat_vars@SV
-     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
          let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
              val (R,y,_) = S.dest_relation R_y_pat
@@ -786,7 +784,7 @@ fun prove_case f thy (tm,TCs_locals,thm) =
  let val tych = Thry.typecheck thy
      val antc = tych(#ant(S.dest_imp tm))
      val thm' = R.SPEC_ALL thm
-     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
      fun get_cntxt TC = tych(#ant(S.dest_imp(#2(S.strip_forall(concl TC)))))
      fun mk_ih ((TC,locals),th2,nested) =
          R.GENL (map tych locals)
@@ -823,7 +821,7 @@ fun LEFT_ABS_VSTRUCT tych thm =
         let val ex_tm = S.mk_exists{Bvar=v,Body=tm}
         in (ex_tm, R.CHOOSE(tych v, R.ASSUME (tych ex_tm)) thm)
         end
-      val [veq] = List.filter (can S.dest_eq) (#1 (R.dest_thm thm))
+      val [veq] = filter (can S.dest_eq) (#1 (R.dest_thm thm))
       val {lhs,rhs} = S.dest_eq veq
       val L = S.free_vars_lr rhs
   in  #2 (fold_rev CHOOSER L (veq,thm))  end;

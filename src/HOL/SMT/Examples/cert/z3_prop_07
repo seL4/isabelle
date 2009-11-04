@@ -1,0 +1,8 @@
+(benchmark Isabelle
+:extrasorts ( T1)
+:extrapreds (
+  (up_1)
+ )
+:assumption (not (iff (iff (iff (iff (iff (iff (iff (iff (iff up_1 up_1) up_1) up_1) up_1) up_1) up_1) up_1) up_1) up_1))
+:formula true
+)

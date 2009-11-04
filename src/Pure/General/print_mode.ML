@@ -35,7 +35,7 @@ fun print_mode_value () =
   let val modes =
     (case Thread.getLocal tag of
       SOME (SOME modes) => modes
-    | _ => NAMED_CRITICAL "print_mode" (fn () => ! print_mode))
+    | _ => ! print_mode)
   in subtract (op =) [input, internal] modes end;
 
 fun print_mode_active mode = member (op =) (print_mode_value ()) mode;

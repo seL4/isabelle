@@ -157,8 +157,6 @@ val lookup_simproc =
       | _ => NONE ));
 
 
-fun foldl1 f (x::xs) = foldl f x xs;
-
 local
 val meta_ext = @{thm StateFun.meta_ext};
 val ss' = (HOL_ss addsimps
@@ -182,7 +180,7 @@ val update_simproc =
                in (Const ("Fun.comp",gT --> fT --> T)$g$f,T) end
 
              fun mk_comps fs = 
-                   foldl1 (fn ((f,fT),(g,gT)) => mk_comp f fT g gT) fs;
+                   foldl1 (fn ((f,fT),(g,gT)) => mk_comp g gT f fT) fs;
 
              fun append n c cT f fT d dT comps =
                (case AList.lookup (op aconv) comps n of

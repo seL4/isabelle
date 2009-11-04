@@ -272,7 +272,7 @@ struct
       else
         parse_lines lines
   in
-    (parse_lines o (List.filter (fn l => l <> "")) o split_lines o File.read) path
+    (parse_lines o filter (fn l => l <> "") o split_lines o File.read) path
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -352,7 +352,7 @@ struct
     o (map int_from_string)
     o (maps (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
     o filter_preamble
-    o (List.filter (fn l => l <> ""))
+    o filter (fn l => l <> "")
     o split_lines
     o File.read)
       path
@@ -370,13 +370,13 @@ struct
 
   (* string * solver -> unit *)
 
-    fun add_solver (name, new_solver) =
+    fun add_solver (name, new_solver) = CRITICAL (fn () =>
       let
         val the_solvers = !solvers;
         val _ = if AList.defined (op =) the_solvers name
           then warning ("SAT solver " ^ quote name ^ " was defined before")
           else ();
-      in solvers := AList.update (op =) (name, new_solver) the_solvers end;
+      in solvers := AList.update (op =) (name, new_solver) the_solvers end);
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)
@@ -471,8 +471,8 @@ let
         | forced_vars False             = []
         | forced_vars (BoolVar i)       = [i]
         | forced_vars (Not (BoolVar i)) = [~i]
-        | forced_vars (Or (fm1, fm2))   = (forced_vars fm1) inter_int (forced_vars fm2)
-        | forced_vars (And (fm1, fm2))  = (forced_vars fm1) union_int (forced_vars fm2)
+        | forced_vars (Or (fm1, fm2))   = inter (op =) (forced_vars fm1) (forced_vars fm2)
+        | forced_vars (And (fm1, fm2))  = union (op =) (forced_vars fm1) (forced_vars fm2)
         (* Above, i *and* ~i may be forced.  In this case the first occurrence takes   *)
         (* precedence, and the next partial evaluation of the formula returns 'False'. *)
         | forced_vars _                 = error "formula is not in negation normal form"
@@ -502,7 +502,7 @@ let
         | False => NONE
         | _     =>
           let
-            val x = valOf (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
+            val x = the (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
           in
             case dpll (x::xs') fm' of  (* passing fm' rather than fm should save some simplification work *)
               SOME xs'' => SOME xs''
@@ -893,7 +893,7 @@ let
               (* for its literals to obtain the empty clause                *)
               val vids         = map (fn l => l div 2) ls
               val rs           = cid :: map (fn v => !clause_offset + v) vids
-              val new_empty_id = getOpt (Inttab.max_key (!clause_table), !clause_offset) + 1
+              val new_empty_id = the_default (!clause_offset) (Inttab.max_key (!clause_table)) + 1
             in
               (* update clause table and conflict id *)
               clause_table := Inttab.update_new (new_empty_id, rs) (!clause_table)

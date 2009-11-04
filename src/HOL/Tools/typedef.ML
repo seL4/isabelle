@@ -53,8 +53,8 @@ fun put_info name info = TypedefData.map (Symtab.update (name, info));
 
 fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-structure TypedefInterpretation = InterpretationFun(type T = string val eq = op =);
-val interpretation = TypedefInterpretation.interpretation;
+structure Typedef_Interpretation = Interpretation(type T = string val eq = op =);
+val interpretation = Typedef_Interpretation.interpretation;
 
 fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
@@ -115,7 +115,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         theory
         |> Sign.add_consts_i [(name, setT', NoSyn)]
         |> PureThy.add_defs false [Thm.no_attributes (apfst (Binding.name)
-            (PrimitiveDefs.mk_defpair (setC, set)))]
+            (Primitive_Defs.mk_defpair (setC, set)))]
         |-> (fn [th] => pair (SOME th))
       else (NONE, theory);
     fun contract_def NONE th = th
@@ -152,13 +152,13 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
                 ((Binding.suffix_name "_inject" Rep_name, make @{thm type_definition.Rep_inject}), []),
                 ((Binding.suffix_name "_inject" Abs_name, make @{thm type_definition.Abs_inject}), []),
                 ((Binding.suffix_name "_cases" Rep_name, make @{thm type_definition.Rep_cases}),
-                  [RuleCases.case_names [Binding.name_of Rep_name], Induct.cases_pred full_name]),
+                  [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.cases_pred full_name]),
                 ((Binding.suffix_name "_cases" Abs_name, make @{thm type_definition.Abs_cases}),
-                  [RuleCases.case_names [Binding.name_of Abs_name], Induct.cases_type full_tname]),
+                  [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.cases_type full_tname]),
                 ((Binding.suffix_name "_induct" Rep_name, make @{thm type_definition.Rep_induct}),
-                  [RuleCases.case_names [Binding.name_of Rep_name], Induct.induct_pred full_name]),
+                  [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.induct_pred full_name]),
                 ((Binding.suffix_name "_induct" Abs_name, make @{thm type_definition.Abs_induct}),
-                  [RuleCases.case_names [Binding.name_of Abs_name], Induct.induct_type full_tname])]
+                  [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.induct_type full_tname])]
             ||> Sign.parent_path;
           val info = {rep_type = oldT, abs_type = newT,
             Rep_name = full Rep_name, Abs_name = full Abs_name,
@@ -169,7 +169,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         in
           thy2
           |> put_info full_tname info
-          |> TypedefInterpretation.data full_tname
+          |> Typedef_Interpretation.data full_tname
           |> pair (full_tname, info)
         end);
 
@@ -264,6 +264,6 @@ val _ =
 end;
 
 
-val setup = TypedefInterpretation.init;
+val setup = Typedef_Interpretation.init;
 
 end;

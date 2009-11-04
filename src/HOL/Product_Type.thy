@@ -94,8 +94,6 @@ end
 
 text {* code generator setup *}
 
-instance unit :: eq ..
-
 lemma [code]:
   "eq_class.eq (u\<Colon>unit) v \<longleftrightarrow> True" unfolding eq unit_eq [of u] unit_eq [of v] by rule+
 
@@ -927,9 +925,10 @@ lemma insert_times_insert[simp]:
    insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
 by blast
 
-subsubsection {* Code generator setup *}
+lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
+  by (auto, rule_tac p = "f x" in PairE, auto)
 
-instance * :: (eq, eq) eq ..
+subsubsection {* Code generator setup *}
 
 lemma [code]:
   "eq_class.eq (x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by (simp add: eq)

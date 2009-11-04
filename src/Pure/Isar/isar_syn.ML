@@ -222,22 +222,13 @@ val _ =
 
 (* constant definitions and abbreviations *)
 
-val constdecl =
-  P.binding --
-    (P.where_ >> K (NONE, NoSyn) ||
-      P.$$$ "::" |-- P.!!! ((P.typ >> SOME) -- P.opt_mixfix' --| P.where_) ||
-      Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
-  >> P.triple2;
-
-val constdef = Scan.option constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
-
 val _ =
   OuterSyntax.local_theory "definition" "constant definition" K.thy_decl
-    (constdef >> (fn args => #2 o Specification.definition_cmd args));
+    (SpecParse.constdef >> (fn args => #2 o Specification.definition_cmd args));
 
 val _ =
   OuterSyntax.local_theory "abbreviation" "constant abbreviation" K.thy_decl
-    (opt_mode -- (Scan.option constdecl -- P.prop)
+    (opt_mode -- (Scan.option SpecParse.constdecl -- P.prop)
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =
@@ -694,7 +685,7 @@ val _ =
   OuterSyntax.command "proof" "backward proof"
     (K.tag_proof K.prf_block)
     (Scan.option Method.parse >> (fn m => Toplevel.print o
-      Toplevel.actual_proof (ProofNode.applys (Proof.proof m)) o
+      Toplevel.actual_proof (Proof_Node.applys (Proof.proof m)) o
       Toplevel.skip_proof (fn i => i + 1)));
 
 
@@ -729,7 +720,7 @@ val _ =
 val _ =
   OuterSyntax.command "back" "backtracking of proof command"
     (K.tag_proof K.prf_script)
-    (Scan.succeed (Toplevel.print o Toplevel.actual_proof ProofNode.back o Toplevel.skip_proof I));
+    (Scan.succeed (Toplevel.print o Toplevel.actual_proof Proof_Node.back o Toplevel.skip_proof I));
 
 
 (* nested commands *)

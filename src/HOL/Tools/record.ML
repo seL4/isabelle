@@ -262,7 +262,7 @@ infix 0 :== ===;
 infixr 0 ==>;
 
 val op $$ = Term.list_comb;
-val op :== = PrimitiveDefs.mk_defpair;
+val op :== = Primitive_Defs.mk_defpair;
 val op === = Trueprop o HOLogic.mk_eq;
 val op ==> = Logic.mk_implies;
 
@@ -750,7 +750,7 @@ fun gen_ext_type_tr sep mark sfx more ctxt t =
                     val types = map snd flds';
                     val (args, rest) = splitargs (map fst flds') fargs;
                     val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
-                    val midx = fold (fn T => fn i => Int.max (maxidx_of_typ T, i)) argtypes 0;
+                    val midx = fold Term.maxidx_typ argtypes 0;
                     val varifyT = varifyT midx;
                     val vartypes = map varifyT types;
 
@@ -1553,7 +1553,7 @@ fun cert_typ ctxt raw_T env =
 
 (* attributes *)
 
-fun case_names_fields x = RuleCases.case_names ["fields"] x;
+fun case_names_fields x = Rule_Cases.case_names ["fields"] x;
 fun induct_type_global name = [case_names_fields, Induct.induct_type name];
 fun cases_type_global name = [case_names_fields, Induct.cases_type name];
 
@@ -1810,7 +1810,7 @@ fun meta_to_obj_all thm =
 
 fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
   let
-    val external_names = NameSpace.external_names (Sign.naming_of thy);
+    val external_names = Name_Space.external_names (Sign.naming_of thy);
 
     val alphas = map fst args;
     val name = Sign.full_bname thy bname;
@@ -1834,7 +1834,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extN = full bname;
     val types = map snd fields;
     val alphas_fields = fold Term.add_tfree_namesT types [];
-    val alphas_ext = alphas inter alphas_fields;
+    val alphas_ext = inter (op =) alphas_fields alphas;
     val len = length fields;
     val variants =
       Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants)
@@ -1894,8 +1894,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             more;
       in
         if more = HOLogic.unit
-        then build (map recT (0 upto parent_len))
-        else build (map rec_schemeT (0 upto parent_len))
+        then build (map_range recT (parent_len + 1))
+        else build (map_range rec_schemeT (parent_len + 1))
       end;
 
     val r_rec0 = mk_rec all_vars_more 0;
@@ -2323,8 +2323,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val final_thy =
       thms_thy
       |> (snd oo PureThy.add_thmss)
-          [((Binding.name "simps", sel_upd_simps),
-            [Simplifier.simp_add, Nitpick_Const_Simps.add]),
+          [((Binding.name "simps", sel_upd_simps), [Simplifier.simp_add]),
            ((Binding.name "iffs", iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme' ext_def)
       |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs (fold_congs', unfold_congs')

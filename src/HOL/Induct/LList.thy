@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/LList.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Shares NIL, CONS, List_case with List.thy
@@ -665,7 +664,7 @@ apply (rule rangeI, safe)
 apply (subst LList_corec, force)
 done
 
-lemma llist_corec [nitpick_const_simp]: 
+lemma llist_corec [nitpick_simp]: 
     "llist_corec a f =   
      (case f a of None => LNil | Some(z,w) => LCons z (llist_corec w f))"
 apply (unfold llist_corec_def LNil_def LCons_def)
@@ -774,10 +773,10 @@ done
 
 subsection{* The functional @{text lmap} *}
 
-lemma lmap_LNil [simp, nitpick_const_simp]: "lmap f LNil = LNil"
+lemma lmap_LNil [simp, nitpick_simp]: "lmap f LNil = LNil"
 by (rule lmap_def [THEN def_llist_corec, THEN trans], simp)
 
-lemma lmap_LCons [simp, nitpick_const_simp]:
+lemma lmap_LCons [simp, nitpick_simp]:
 "lmap f (LCons M N) = LCons (f M) (lmap f N)"
 by (rule lmap_def [THEN def_llist_corec, THEN trans], simp)
 
@@ -793,7 +792,7 @@ by (rule_tac l = l in llist_fun_equalityI, simp_all)
 
 subsection{* iterates -- @{text llist_fun_equalityI} cannot be used! *}
 
-lemma iterates [nitpick_const_simp]: "iterates f x = LCons x (iterates f (f x))"
+lemma iterates [nitpick_simp]: "iterates f x = LCons x (iterates f (f x))"
 by (rule iterates_def [THEN def_llist_corec, THEN trans], simp)
 
 lemma lmap_iterates [simp]: "lmap f (iterates f x) = iterates f (f x)"
@@ -848,18 +847,18 @@ done
 
 subsection{* @{text lappend} -- its two arguments cause some complications! *}
 
-lemma lappend_LNil_LNil [simp, nitpick_const_simp]: "lappend LNil LNil = LNil"
+lemma lappend_LNil_LNil [simp, nitpick_simp]: "lappend LNil LNil = LNil"
 apply (simp add: lappend_def)
 apply (rule llist_corec [THEN trans], simp)
 done
 
-lemma lappend_LNil_LCons [simp, nitpick_const_simp]: 
+lemma lappend_LNil_LCons [simp, nitpick_simp]: 
     "lappend LNil (LCons l l') = LCons l (lappend LNil l')"
 apply (simp add: lappend_def)
 apply (rule llist_corec [THEN trans], simp)
 done
 
-lemma lappend_LCons [simp, nitpick_const_simp]: 
+lemma lappend_LCons [simp, nitpick_simp]: 
     "lappend (LCons l l') N = LCons l (lappend l' N)"
 apply (simp add: lappend_def)
 apply (rule llist_corec [THEN trans], simp)
@@ -904,5 +903,10 @@ by (rule_tac l = l in llist_fun_equalityI, auto)
 text{*Without strong coinduction, three case analyses might be needed*}
 lemma lappend_assoc': "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)"
 by (rule_tac l = l1 in llist_fun_equalityI, auto)
+
+setup {*
+  Nitpick.register_codatatype @{typ "'a llist"} @{const_name llist_case}
+    (map dest_Const [@{term LNil}, @{term LCons}])
+*}
 
 end

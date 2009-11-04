@@ -77,12 +77,12 @@ type rules =
 
 val empty_rules : rules = {next = 0, rs = [], net = Net.empty};
 
-fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
+fun add_rule (r as (_, (lhs, _))) ({next, rs, net} : rules) =
   {next = next - 1, rs = r :: rs, net = Net.insert_term (K false)
      (Envir.eta_contract lhs, (next, r)) net};
 
 fun merge_rules ({next, rs = rs1, net} : rules) ({rs = rs2, ...} : rules) =
-  List.foldr add_rule {next = next, rs = rs1, net = net} (subtract (op =) rs1 rs2);
+  fold_rev add_rule (subtract (op =) rs1 rs2) {next = next, rs = rs1, net = net};
 
 fun condrew thy rules procs =
   let
@@ -198,7 +198,7 @@ structure ExtractionData = TheoryDataFun
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = AList.merge (op =) (K true) (types1, types2),
-     realizers = Symtab.merge_list (gen_eq_set (op =) o pairself #1) (realizers1, realizers2),
+     realizers = Symtab.merge_list (eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
@@ -231,7 +231,7 @@ fun gen_add_realizes_eqns prep_eq eqns thy =
     defs, expand, prep} = ExtractionData.get thy;
   in
     ExtractionData.put
-      {realizes_eqns = List.foldr add_rule realizes_eqns (map (prep_eq thy) eqns),
+      {realizes_eqns = fold_rev add_rule (map (prep_eq thy) eqns) realizes_eqns,
        typeof_eqns = typeof_eqns, types = types, realizers = realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
@@ -249,7 +249,7 @@ fun gen_add_typeof_eqns prep_eq eqns thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, realizers = realizers,
-       typeof_eqns = List.foldr add_rule typeof_eqns eqns',
+       typeof_eqns = fold_rev add_rule eqns' typeof_eqns,
        types = types, defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -300,7 +300,7 @@ fun prep_realizer thy =
     val rtypes = map fst types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val thy' = add_syntax thy;
-    val rd = ProofSyntax.read_proof thy' false
+    val rd = Proof_Syntax.read_proof thy' false;
   in fn (thm, (vs, s1, s2)) =>
     let
       val name = Thm.get_name thm;
@@ -359,8 +359,8 @@ fun add_expand_thm thm thy =
   in
     (ExtractionData.put (if is_def then
         {realizes_eqns = realizes_eqns,
-         typeof_eqns = add_rule (([],
-           Logic.dest_equals (prop_of (Drule.abs_def thm))), typeof_eqns),
+         typeof_eqns = add_rule ([],
+           Logic.dest_equals (prop_of (Drule.abs_def thm))) typeof_eqns,
          types = types,
          realizers = realizers, defs = insert Thm.eq_thm thm defs,
          expand = expand, prep = prep}
@@ -458,7 +458,7 @@ fun extract thms thy =
         val vars = vars_of prop;
         val n = Int.min (length vars, length ts);
 
-        fun add_args ((Var ((a, i), _), t), (vs', tye)) =
+        fun add_args (Var ((a, i), _), t) (vs', tye) =
           if member (op =) rvs a then
             let val T = etype_of thy' vs Ts t
             in if T = nullT then (vs', tye)
@@ -466,9 +466,9 @@ fun extract thms thy =
             end
           else (vs', tye)
 
-      in List.foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
+      in fold_rev add_args (Library.take (n, vars) ~~ Library.take (n, ts)) ([], []) end;
 
-    fun find (vs: string list) = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
+    fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
     fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
@@ -651,7 +651,7 @@ fun extract thms thy =
                     val nt = Envir.beta_norm t;
                     val args = filter_out (fn v => member (op =) rtypes
                       (tname_of (body_type (fastype_of v)))) (vfs_of prop);
-                    val args' = List.filter (fn v => Logic.occs (v, nt)) args;
+                    val args' = filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs nt args';
                     val T = fastype_of t';
                     val cname = extr_name s vs';
@@ -716,8 +716,9 @@ fun extract thms thy =
           quote name ^ " has no computational content")
       in (Reconstruct.reconstruct_proof thy prop prf, vs) end;
 
-    val defs = Library.foldl (fn (defs, (prf, vs)) =>
-      fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);
+    val defs =
+      fold (fn (prf, vs) => fn defs => fst (extr 0 defs vs [] [] [] prf))
+        (map prep_thm thms) [];
 
     fun add_def (s, (vs, ((t, u), (prf, _)))) thy =
       (case Sign.const_type thy (extr_name s vs) of

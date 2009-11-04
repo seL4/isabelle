@@ -47,8 +47,8 @@ fun projects ctxt is raw_rule =
         Thm.permute_prems 0 (~ k)
         #> singleton (Variable.export ctxt' ctxt)
         #> Drule.zero_var_indexes
-        #> RuleCases.save raw_rule
-        #> RuleCases.add_consumes k);
+        #> Rule_Cases.save raw_rule
+        #> Rule_Cases.add_consumes k);
   in map result is end;
 
 fun project ctxt i th = hd (projects ctxt [i] th);

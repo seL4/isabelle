@@ -1185,4 +1185,22 @@ attach {*
 fun real_of_int i = (i, 1);
 *}
 
+setup {*
+  Nitpick.register_frac_type @{type_name real}
+   [(@{const_name zero_real_inst.zero_real}, @{const_name Nitpick.zero_frac}),
+    (@{const_name one_real_inst.one_real}, @{const_name Nitpick.one_frac}),
+    (@{const_name plus_real_inst.plus_real}, @{const_name Nitpick.plus_frac}),
+    (@{const_name times_real_inst.times_real}, @{const_name Nitpick.times_frac}),
+    (@{const_name uminus_real_inst.uminus_real}, @{const_name Nitpick.uminus_frac}),
+    (@{const_name number_real_inst.number_of_real}, @{const_name Nitpick.number_of_frac}),
+    (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
+    (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
+*}
+
+lemmas [nitpick_def] = inverse_real_inst.inverse_real
+    number_real_inst.number_of_real one_real_inst.one_real
+    ord_real_inst.less_eq_real plus_real_inst.plus_real
+    times_real_inst.times_real uminus_real_inst.uminus_real
+    zero_real_inst.zero_real
+
 end
