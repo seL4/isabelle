@@ -1296,8 +1296,6 @@ fun fulfill_proof _ [] body0 = body0
       in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
 fun fulfill_proof_future _ [] body = Future.value body
-  | fulfill_proof_future thy [(i, promise)] body =
-      Future.map (fn p => fulfill_proof thy [(i, p)] body) promise
   | fulfill_proof_future thy promises body =
       Future.fork_deps (map snd promises) (fn () =>
         fulfill_proof thy (map (apsnd Future.join) promises) body);
