@@ -663,7 +663,7 @@ ALGEBRA_DEPENDENCIES = $(OUT)/HOL \
   Algebra/poly/UnivPoly2.thy \
   Algebra/ringsimp.ML
 
-$(LOG)/HOL-Algebra.gz: $(ALGEBRA_DEPENDENCIES)
+$(OUT)/HOL-Algebra: $(ALGEBRA_DEPENDENCIES)
 	@cd Algebra; $(ISABELLE_TOOL) usedir -b -g true -V outline=/proof,/ML $(OUT)/HOL HOL-Algebra
 
 
