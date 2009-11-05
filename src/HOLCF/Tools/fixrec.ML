@@ -13,8 +13,8 @@ sig
   val add_fixpat: Thm.binding * term list -> theory -> theory
   val add_fixpat_cmd: Attrib.binding * string list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
-  val fixrec_simp_add: Thm.attribute
-  val fixrec_simp_del: Thm.attribute
+  val fixrec_simp_add: attribute
+  val fixrec_simp_del: attribute
   val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
@@ -165,7 +165,7 @@ structure FixrecUnfoldData = GenericDataFun (
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  val merge = K (Symtab.merge (K true));
+  fun merge _ = Symtab.merge (K true);
 );
 
 local
@@ -179,7 +179,7 @@ val lhs_name =
 
 in
 
-val add_unfold : Thm.attribute =
+val add_unfold : attribute =
   Thm.declaration_attribute
     (fn th => FixrecUnfoldData.map (Symtab.insert (K true) (lhs_name th, th)));
 
@@ -257,7 +257,7 @@ structure FixrecMatchData = TheoryDataFun (
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  val merge = K (Symtab.merge (K true));
+  fun merge _ = Symtab.merge (K true);
 );
 
 (* associate match functions with pattern constants *)
@@ -372,7 +372,7 @@ structure FixrecSimpData = GenericDataFun (
       addsimprocs [@{simproc cont_proc}];
   val copy = I;
   val extend = I;
-  val merge = K merge_ss;
+  fun merge _ = merge_ss;
 );
 
 fun fixrec_simp_tac ctxt =
@@ -391,14 +391,14 @@ fun fixrec_simp_tac ctxt =
         CHANGED (rtac rule i THEN asm_simp_tac ss i)
       end
   in
-    SUBGOAL (fn ti => tac ti handle _ => no_tac)
+    SUBGOAL (fn ti => tac ti handle _ => no_tac)  (* FIXME avoid handle _ *)
   end;
 
-val fixrec_simp_add : Thm.attribute =
+val fixrec_simp_add : attribute =
   Thm.declaration_attribute
     (fn th => FixrecSimpData.map (fn ss => ss addsimps [th]));
 
-val fixrec_simp_del : Thm.attribute =
+val fixrec_simp_del : attribute =
   Thm.declaration_attribute
     (fn th => FixrecSimpData.map (fn ss => ss delsimps [th]));
 

@@ -81,9 +81,9 @@ implementation Dijkstra()
 
 boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Dijkstra"
 
-boogie_vc b_Dijkstra
+boogie_vc Dijkstra
   unfolding labels
-  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_b_Dijkstra"]]
+  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_Dijkstra"]]
   using [[z3_proofs=true]]
   by (smt boogie)
 

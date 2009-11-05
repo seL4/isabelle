@@ -546,9 +546,9 @@ fun noclause thy predname elim = let
   val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))
   val elim_t = Logic.list_implies ([clausehd, Logic.mk_implies (@{prop False}, P)], P)
   val intro = Goal.prove (ProofContext.init thy) names [] intro_t
-        (fn {...} => etac @{thm FalseE} 1)
+        (fn _ => etac @{thm FalseE} 1)
   val elim = Goal.prove (ProofContext.init thy) ("P" :: names) [] elim_t
-        (fn {...} => etac elim 1) 
+        (fn _ => etac elim 1) 
 in
   ([intro], elim)
 end
@@ -1440,10 +1440,14 @@ let
   val simprules = [defthm, @{thm eval_pred},
     @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm pair_collapse}]
   val unfolddef_tac = Simplifier.asm_full_simp_tac (HOL_basic_ss addsimps simprules) 1
-  val introthm = Goal.prove (ProofContext.init thy) (argnames @ param_names @ param_names' @ ["y"]) [] introtrm (fn {...} => unfolddef_tac)
+  val introthm =
+    Goal.prove (ProofContext.init thy) (argnames @ param_names @ param_names' @ ["y"]) [] introtrm
+      (fn _ => unfolddef_tac)
   val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT));
   val elimtrm = Logic.list_implies ([funpropE, Logic.mk_implies (predpropE, P)], P)
-  val elimthm = Goal.prove (ProofContext.init thy) (argnames @ param_names @ param_names' @ ["y", "P"]) [] elimtrm (fn {...} => unfolddef_tac)
+  val elimthm =
+    Goal.prove (ProofContext.init thy) (argnames @ param_names @ param_names' @ ["y", "P"]) [] elimtrm
+      (fn _ => unfolddef_tac)
 in
   (introthm, elimthm)
 end;
@@ -2157,7 +2161,7 @@ fun add_code_equations thy nparams preds result_thmss =
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
             val def = predfun_definition_of thy predname full_mode
-            val tac = fn {...} => Simplifier.simp_tac
+            val tac = fn _ => Simplifier.simp_tac
               (HOL_basic_ss addsimps [def, @{thm eval_pred}]) 1
             val eq = Goal.prove (ProofContext.init thy) arg_names [] eq_term tac
           in
