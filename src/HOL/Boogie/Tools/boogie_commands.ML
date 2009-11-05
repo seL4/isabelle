@@ -40,7 +40,11 @@ fun boogie_vc name lthy =
         fun store thm = Boogie_VCs.discharge (name, thm)
         fun after_qed [[thm]] = LocalTheory.theory (store thm)
           | after_qed _ = I
-      in lthy |> Proof.theorem_i NONE after_qed [[(vc, [])]] end)
+      in
+        lthy
+        |> Variable.auto_fixes vc
+        |> Proof.theorem_i NONE after_qed [[(vc, [])]]
+      end)
 
 fun boogie_end thy =
   let

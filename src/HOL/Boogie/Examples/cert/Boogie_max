@@ -1,18 +1,18 @@
 (benchmark Isabelle
 :extrafuns (
-  (uf_3 Int Int)
   (uf_5 Int)
   (uf_7 Int)
   (uf_11 Int)
   (uf_4 Int)
   (uf_9 Int)
   (uf_13 Int)
-  (uf_1 Int)
   (uf_2 Int)
   (uf_6 Int)
   (uf_10 Int)
   (uf_8 Int)
   (uf_12 Int)
+  (uf_3 Int Int)
+  (uf_1 Int)
  )
 :assumption (not (implies true (implies (< 0 uf_1) (implies true (implies (= uf_2 (uf_3 0)) (implies (and (<= 1 1) (and (<= 1 1) (and (<= 0 0) (<= 0 0)))) (and (implies (forall (?x1 Int) (implies (and (< ?x1 1) (<= 0 ?x1)) (<= (uf_3 ?x1) uf_2))) (and (implies (= (uf_3 0) uf_2) (implies true (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies (forall (?x2 Int) (implies (and (< ?x2 uf_4) (<= 0 ?x2)) (<= (uf_3 ?x2) uf_6))) (implies (= (uf_3 uf_5) uf_6) (implies (and (<= 1 uf_4) (<= 0 uf_5)) (and (implies true (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies (< uf_4 uf_1) (implies (and (<= 1 uf_4) (<= 0 uf_5)) (and (implies true (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies (<= (uf_3 uf_4) uf_6) (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies true (implies (= uf_7 uf_5) (implies (= uf_8 uf_6) (implies true (implies (and (<= 1 uf_4) (<= 0 uf_7)) (implies (= uf_9 (+ uf_4 1)) (implies (and (<= 2 uf_9) (<= 0 uf_7)) (implies true (and (implies (forall (?x3 Int) (implies (and (< ?x3 uf_9) (<= 0 ?x3)) (<= (uf_3 ?x3) uf_8))) (and (implies (= (uf_3 uf_7) uf_8) (implies false true)) (= (uf_3 uf_7) uf_8))) (forall (?x4 Int) (implies (and (< ?x4 uf_9) (<= 0 ?x4)) (<= (uf_3 ?x4) uf_8)))))))))))))))) (implies true (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies (< uf_6 (uf_3 uf_4)) (implies (= uf_10 (uf_3 uf_4)) (implies (and (<= 1 uf_4) (<= 1 uf_4)) (implies true (implies (= uf_7 uf_4) (implies (= uf_8 uf_10) (implies true (implies (and (<= 1 uf_4) (<= 0 uf_7)) (implies (= uf_9 (+ uf_4 1)) (implies (and (<= 2 uf_9) (<= 0 uf_7)) (implies true (and (implies (forall (?x5 Int) (implies (and (< ?x5 uf_9) (<= 0 ?x5)) (<= (uf_3 ?x5) uf_8))) (and (implies (= (uf_3 uf_7) uf_8) (implies false true)) (= (uf_3 uf_7) uf_8))) (forall (?x6 Int) (implies (and (< ?x6 uf_9) (<= 0 ?x6)) (<= (uf_3 ?x6) uf_8)))))))))))))))))))))) (implies true (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies (<= uf_1 uf_4) (implies (and (<= 1 uf_4) (<= 0 uf_5)) (implies true (implies (= uf_11 uf_5) (implies (= uf_12 uf_6) (implies (= uf_13 uf_4) (implies true (and (implies (exists (?x7 Int) (implies (and (< ?x7 uf_1) (<= 0 ?x7)) (= (uf_3 ?x7) uf_12))) (and (implies (forall (?x8 Int) (implies (and (< ?x8 uf_1) (<= 0 ?x8)) (<= (uf_3 ?x8) uf_12))) true) (forall (?x9 Int) (implies (and (< ?x9 uf_1) (<= 0 ?x9)) (<= (uf_3 ?x9) uf_12))))) (exists (?x10 Int) (implies (and (< ?x10 uf_1) (<= 0 ?x10)) (= (uf_3 ?x10) uf_12)))))))))))))))))))) (= (uf_3 0) uf_2))) (forall (?x11 Int) (implies (and (< ?x11 1) (<= 0 ?x11)) (<= (uf_3 ?x11) uf_2))))))))))
 :formula true

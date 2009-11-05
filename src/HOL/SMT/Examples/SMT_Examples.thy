@@ -5,7 +5,7 @@
 header {* Examples for the 'smt' tactic. *}
 
 theory SMT_Examples
-imports SMT
+imports "../SMT"
 begin
 
 declare [[smt_solver=z3, z3_proofs=true]]
@@ -387,6 +387,26 @@ lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
          x9 = abs x8 - x7; x10 = abs x9 - x8; x11 = abs x10 - x9 \<rbrakk>
  \<Longrightarrow> x1 = x10 & x2 = (x11::int)"
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_16"]]
+  by smt
+
+
+lemma "let P = 2 * x + 1 > x + (x::real) in P \<or> False \<or> P"
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_17"]]
+  by smt
+
+lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)"
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_18"]]
+  by smt
+
+lemma "x + (let y = x mod 2 in y + y) < x + (3::int)"
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_19"]]
+  by smt
+
+lemma 
+  assumes "x \<noteq> (0::real)"
+  shows "x + x \<noteq> (let P = (abs x > 1) in if P \<or> \<not>P then 4 else 2) * x"
+  using assms
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_20"]]
   by smt
 
 
