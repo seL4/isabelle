@@ -406,11 +406,11 @@ fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
 
 fun add_ind_set_def
     {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
-    cs intros monos params cnames_syn ctxt =
-  let (* FIXME proper naming convention: lthy *)
-    val thy = ProofContext.theory_of ctxt;
+    cs intros monos params cnames_syn lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
     val {set_arities, pred_arities, to_pred_simps, ...} =
-      PredSetConvData.get (Context.Proof ctxt);
+      PredSetConvData.get (Context.Proof lthy);
     fun infer (Abs (_, _, t)) = infer t
       | infer (Const ("op :", _) $ t $ u) =
           infer_arities thy set_arities (SOME (HOLogic.flat_tuple_paths t), u)
@@ -446,9 +446,9 @@ fun add_ind_set_def
         val (Us, U) = split_last (binder_types T);
         val _ = Us = paramTs orelse error (Pretty.string_of (Pretty.chunks
           [Pretty.str "Argument types",
-           Pretty.block (Pretty.commas (map (Syntax.pretty_typ ctxt) Us)),
+           Pretty.block (Pretty.commas (map (Syntax.pretty_typ lthy) Us)),
            Pretty.str ("of " ^ s ^ " do not agree with types"),
-           Pretty.block (Pretty.commas (map (Syntax.pretty_typ ctxt) paramTs)),
+           Pretty.block (Pretty.commas (map (Syntax.pretty_typ lthy) paramTs)),
            Pretty.str "of declared parameters"]));
         val Ts = HOLogic.strip_ptupleT fs U;
         val c' = Free (s ^ "p",
@@ -474,29 +474,29 @@ fun add_ind_set_def
         Pattern.rewrite_term thy [] [to_pred_proc thy eqns'] |>
         eta_contract (member op = cs' orf is_pred pred_arities))) intros;
     val cnames_syn' = map (fn (b, _) => (Binding.suffix_name "p" b, NoSyn)) cnames_syn;
-    val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
-    val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
+    val monos' = map (to_pred [] (Context.Proof lthy)) monos;
+    val ({preds, intrs, elims, raw_induct, ...}, lthy1) =
       Inductive.add_ind_def
         {quiet_mode = quiet_mode, verbose = verbose, kind = kind, alt_name = Binding.empty,
           coind = coind, no_elim = no_elim, no_ind = no_ind,
           skip_mono = skip_mono, fork_mono = fork_mono}
-        cs' intros' monos' params1 cnames_syn' ctxt;
+        cs' intros' monos' params1 cnames_syn' lthy;
 
     (* define inductive sets using previously defined predicates *)
-    val (defs, ctxt2) = ctxt1
+    val (defs, lthy2) = lthy1
       |> LocalTheory.conceal  (* FIXME ?? *)
       |> fold_map (LocalTheory.define Thm.internalK)
         (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
            fold_rev lambda params (HOLogic.Collect_const U $
              HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
            (cnames_syn ~~ cs_info ~~ preds))
-      ||> LocalTheory.restore_naming ctxt1;
+      ||> LocalTheory.restore_naming lthy1;
 
     (* prove theorems for converting predicate to set notation *)
-    val ctxt3 = fold
-      (fn (((p, c as Free (s, _)), (fs, U, Ts)), (_, (_, def))) => fn ctxt =>
+    val lthy3 = fold
+      (fn (((p, c as Free (s, _)), (fs, U, Ts)), (_, (_, def))) => fn lthy =>
         let val conv_thm =
-          Goal.prove ctxt (map (fst o dest_Free) params) []
+          Goal.prove lthy (map (fst o dest_Free) params) []
             (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (list_comb (p, params3),
                list_abs (map (pair "x") Ts, HOLogic.mk_mem
@@ -505,29 +505,29 @@ fun add_ind_set_def
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, split_conv]) 1))
         in
-          ctxt |> LocalTheory.note kind ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
+          lthy |> LocalTheory.note kind ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),
               [conv_thm]) |> snd
-        end) (preds ~~ cs ~~ cs_info ~~ defs) ctxt2;
+        end) (preds ~~ cs ~~ cs_info ~~ defs) lthy2;
 
     (* convert theorems to set notation *)
     val rec_name =
       if Binding.is_empty alt_name then
         Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
       else alt_name;
-    val cnames = map (LocalTheory.full_name ctxt3 o #1) cnames_syn;  (* FIXME *)
+    val cnames = map (LocalTheory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
-    val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
-    val (intrs', elims', induct, ctxt4) =
+    val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
+    val (intrs', elims', induct, lthy4) =
       Inductive.declare_rules kind rec_name coind no_ind cnames
-      (map (to_set [] (Context.Proof ctxt3)) intrs) intr_names intr_atts
-      (map (fn th => (to_set [] (Context.Proof ctxt3) th,
+      (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
+      (map (fn th => (to_set [] (Context.Proof lthy3) th,
          map fst (fst (Rule_Cases.get th)))) elims)
-      raw_induct' ctxt3
+      raw_induct' lthy3
   in
     ({intrs = intrs', elims = elims', induct = induct,
       raw_induct = raw_induct', preds = map fst defs},
-     ctxt4)
+     lthy4)
   end;
 
 val add_inductive_i = Inductive.gen_add_inductive_i add_ind_set_def;
@@ -544,8 +544,10 @@ val mono_del_att = to_pred_att [] #> Inductive.mono_del;
 val setup =
   Attrib.setup @{binding pred_set_conv} (Scan.succeed pred_set_conv_att)
     "declare rules for converting between predicate and set notation" #>
-  Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att) "convert rule to set notation" #>
-  Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att) "convert rule to predicate notation" #>
+  Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att)
+    "convert rule to set notation" #>
+  Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att)
+    "convert rule to predicate notation" #>
   Attrib.setup @{binding code_ind_set}
     (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att))
     "introduction rules for executable predicates" #>
@@ -562,10 +564,12 @@ local structure P = OuterParse and K = OuterKeyword in
 val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 
 val _ =
-  OuterSyntax.local_theory' "inductive_set" "define inductive sets" K.thy_decl (ind_set_decl false);
+  OuterSyntax.local_theory' "inductive_set" "define inductive sets" K.thy_decl
+    (ind_set_decl false);
 
 val _ =
-  OuterSyntax.local_theory' "coinductive_set" "define coinductive sets" K.thy_decl (ind_set_decl true);
+  OuterSyntax.local_theory' "coinductive_set" "define coinductive sets" K.thy_decl
+    (ind_set_decl true);
 
 end;
 
