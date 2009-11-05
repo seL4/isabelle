@@ -1,7 +1,9 @@
-(* Title:      Library/Sum_Of_Squares/positivstellensatz
-   Author:     Amine Chaieb, University of Cambridge
-   Description: A generic arithmetic prover based on Positivstellensatz certificates --- 
-    also implements Fourrier-Motzkin elimination as a special case Fourrier-Motzkin elimination.
+(*  Title:      HOL/Library/positivstellensatz.ML
+    Author:     Amine Chaieb, University of Cambridge
+
+A generic arithmetic prover based on Positivstellensatz certificates
+--- also implements Fourrier-Motzkin elimination as a special case
+Fourrier-Motzkin elimination.
 *)
 
 (* A functor for finite mappings based on Tables *)
@@ -187,87 +189,90 @@ fun prove_hyp tha thb =
   if exists (curry op aconv (concl_of tha)) (#hyps (rep_thm thb)) 
   then equal_elim (symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
-fun conjunctions th = case try Conjunction.elim th of
-   SOME (th1,th2) => (conjunctions th1) @ conjunctions th2
- | NONE => [th];
-
-val pth = @{lemma "(((x::real) < y) == (y - x > 0)) &&& ((x <= y) == (y - x >= 0)) 
-     &&& ((x = y) == (x - y = 0)) &&& ((~(x < y)) == (x - y >= 0)) &&& ((~(x <= y)) == (x - y > 0))
-     &&& ((~(x = y)) == (x - y > 0 | -(x - y) > 0))"
-  by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)} |> 
-conjunctions;
+val pth = @{lemma "(((x::real) < y) == (y - x > 0))" and "((x <= y) == (y - x >= 0))" and
+     "((x = y) == (x - y = 0))" and "((~(x < y)) == (x - y >= 0))" and
+     "((~(x <= y)) == (x - y > 0))" and "((~(x = y)) == (x - y > 0 | -(x - y) > 0))"
+  by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)};
 
 val pth_final = @{lemma "(~p ==> False) ==> p" by blast}
 val pth_add = 
- @{lemma "(x = (0::real) ==> y = 0 ==> x + y = 0 ) &&& ( x = 0 ==> y >= 0 ==> x + y >= 0) 
-    &&& (x = 0 ==> y > 0 ==> x + y > 0) &&& (x >= 0 ==> y = 0 ==> x + y >= 0) 
-    &&& (x >= 0 ==> y >= 0 ==> x + y >= 0) &&& (x >= 0 ==> y > 0 ==> x + y > 0) 
-    &&& (x > 0 ==> y = 0 ==> x + y > 0) &&& (x > 0 ==> y >= 0 ==> x + y > 0) 
-    &&& (x > 0 ==> y > 0 ==> x + y > 0)"  by simp_all} |> conjunctions ;
+  @{lemma "(x = (0::real) ==> y = 0 ==> x + y = 0 )" and "( x = 0 ==> y >= 0 ==> x + y >= 0)" and
+    "(x = 0 ==> y > 0 ==> x + y > 0)" and "(x >= 0 ==> y = 0 ==> x + y >= 0)" and
+    "(x >= 0 ==> y >= 0 ==> x + y >= 0)" and "(x >= 0 ==> y > 0 ==> x + y > 0)" and
+    "(x > 0 ==> y = 0 ==> x + y > 0)" and "(x > 0 ==> y >= 0 ==> x + y > 0)" and
+    "(x > 0 ==> y > 0 ==> x + y > 0)" by simp_all};
 
 val pth_mul = 
-  @{lemma "(x = (0::real) ==> y = 0 ==> x * y = 0) &&& (x = 0 ==> y >= 0 ==> x * y = 0) &&& 
-           (x = 0 ==> y > 0 ==> x * y = 0) &&& (x >= 0 ==> y = 0 ==> x * y = 0) &&& 
-           (x >= 0 ==> y >= 0 ==> x * y >= 0 ) &&& ( x >= 0 ==> y > 0 ==> x * y >= 0 ) &&&
-           (x > 0 ==>  y = 0 ==> x * y = 0 ) &&& ( x > 0 ==> y >= 0 ==> x * y >= 0 ) &&&
-           (x > 0 ==>  y > 0 ==> x * y > 0)"
+  @{lemma "(x = (0::real) ==> y = 0 ==> x * y = 0)" and "(x = 0 ==> y >= 0 ==> x * y = 0)" and
+    "(x = 0 ==> y > 0 ==> x * y = 0)" and "(x >= 0 ==> y = 0 ==> x * y = 0)" and
+    "(x >= 0 ==> y >= 0 ==> x * y >= 0)" and "(x >= 0 ==> y > 0 ==> x * y >= 0)" and
+    "(x > 0 ==>  y = 0 ==> x * y = 0)" and "(x > 0 ==> y >= 0 ==> x * y >= 0)" and
+    "(x > 0 ==>  y > 0 ==> x * y > 0)"
   by (auto intro: mult_mono[where a="0::real" and b="x" and d="y" and c="0", simplified]
-    mult_strict_mono[where b="x" and d="y" and a="0" and c="0", simplified])} |> conjunctions;
+    mult_strict_mono[where b="x" and d="y" and a="0" and c="0", simplified])};
 
 val pth_emul = @{lemma "y = (0::real) ==> x * y = 0"  by simp};
 val pth_square = @{lemma "x * x >= (0::real)"  by simp};
 
-val weak_dnf_simps = List.take (simp_thms, 34) 
-    @ conjunctions @{lemma "((P & (Q | R)) = ((P&Q) | (P&R))) &&& ((Q | R) & P) = ((Q&P) | (R&P)) &&& (P & Q) = (Q & P) &&& ((P | Q) = (Q | P))" by blast+};
+val weak_dnf_simps =
+  List.take (simp_thms, 34) @
+    @{lemma "((P & (Q | R)) = ((P&Q) | (P&R)))" and "((Q | R) & P) = ((Q&P) | (R&P))" and
+      "(P & Q) = (Q & P)" and "((P | Q) = (Q | P))" by blast+};
 
-val nnfD_simps = conjunctions @{lemma "((~(P & Q)) = (~P | ~Q)) &&& ((~(P | Q)) = (~P & ~Q) ) &&& ((P --> Q) = (~P | Q) ) &&& ((P = Q) = ((P & Q) | (~P & ~ Q))) &&& ((~(P = Q)) = ((P & ~ Q) | (~P & Q)) ) &&& ((~ ~(P)) = P)" by blast+}
+val nnfD_simps =
+  @{lemma "((~(P & Q)) = (~P | ~Q))" and "((~(P | Q)) = (~P & ~Q) )" and
+    "((P --> Q) = (~P | Q) )" and "((P = Q) = ((P & Q) | (~P & ~ Q)))" and
+    "((~(P = Q)) = ((P & ~ Q) | (~P & Q)) )" and "((~ ~(P)) = P)" by blast+};
 
 val choice_iff = @{lemma "(ALL x. EX y. P x y) = (EX f. ALL x. P x (f x))" by metis};
-val prenex_simps = map (fn th => th RS sym) ([@{thm "all_conj_distrib"}, @{thm "ex_disj_distrib"}] @ @{thms "all_simps"(1-4)} @ @{thms "ex_simps"(1-4)});
+val prenex_simps =
+  map (fn th => th RS sym)
+    ([@{thm "all_conj_distrib"}, @{thm "ex_disj_distrib"}] @
+      @{thms "all_simps"(1-4)} @ @{thms "ex_simps"(1-4)});
 
-val real_abs_thms1 = conjunctions @{lemma
-  "((-1 * abs(x::real) >= r) = (-1 * x >= r & 1 * x >= r)) &&&
-  ((-1 * abs(x) + a >= r) = (a + -1 * x >= r & a + 1 * x >= r)) &&&
-  ((a + -1 * abs(x) >= r) = (a + -1 * x >= r & a + 1 * x >= r)) &&&
-  ((a + -1 * abs(x) + b >= r) = (a + -1 * x + b >= r & a + 1 * x + b >= r)) &&&
-  ((a + b + -1 * abs(x) >= r) = (a + b + -1 * x >= r & a + b + 1 * x >= r)) &&&
-  ((a + b + -1 * abs(x) + c >= r) = (a + b + -1 * x + c >= r & a + b + 1 * x + c >= r)) &&&
-  ((-1 * max x y >= r) = (-1 * x >= r & -1 * y >= r)) &&&
-  ((-1 * max x y + a >= r) = (a + -1 * x >= r & a + -1 * y >= r)) &&&
-  ((a + -1 * max x y >= r) = (a + -1 * x >= r & a + -1 * y >= r)) &&&
-  ((a + -1 * max x y + b >= r) = (a + -1 * x + b >= r & a + -1 * y  + b >= r)) &&&
-  ((a + b + -1 * max x y >= r) = (a + b + -1 * x >= r & a + b + -1 * y >= r)) &&&
-  ((a + b + -1 * max x y + c >= r) = (a + b + -1 * x + c >= r & a + b + -1 * y  + c >= r)) &&&
-  ((1 * min x y >= r) = (1 * x >= r & 1 * y >= r)) &&&
-  ((1 * min x y + a >= r) = (a + 1 * x >= r & a + 1 * y >= r)) &&&
-  ((a + 1 * min x y >= r) = (a + 1 * x >= r & a + 1 * y >= r)) &&&
-  ((a + 1 * min x y + b >= r) = (a + 1 * x + b >= r & a + 1 * y  + b >= r) )&&&
-  ((a + b + 1 * min x y >= r) = (a + b + 1 * x >= r & a + b + 1 * y >= r)) &&&
-  ((a + b + 1 * min x y + c >= r) = (a + b + 1 * x + c >= r & a + b + 1 * y  + c >= r)) &&&
-  ((min x y >= r) = (x >= r &  y >= r)) &&&
-  ((min x y + a >= r) = (a + x >= r & a + y >= r)) &&&
-  ((a + min x y >= r) = (a + x >= r & a + y >= r)) &&&
-  ((a + min x y + b >= r) = (a + x + b >= r & a + y  + b >= r)) &&&
-  ((a + b + min x y >= r) = (a + b + x >= r & a + b + y >= r) )&&&
-  ((a + b + min x y + c >= r) = (a + b + x + c >= r & a + b + y + c >= r)) &&&
-  ((-1 * abs(x) > r) = (-1 * x > r & 1 * x > r)) &&&
-  ((-1 * abs(x) + a > r) = (a + -1 * x > r & a + 1 * x > r)) &&&
-  ((a + -1 * abs(x) > r) = (a + -1 * x > r & a + 1 * x > r)) &&&
-  ((a + -1 * abs(x) + b > r) = (a + -1 * x + b > r & a + 1 * x + b > r)) &&&
-  ((a + b + -1 * abs(x) > r) = (a + b + -1 * x > r & a + b + 1 * x > r)) &&&
-  ((a + b + -1 * abs(x) + c > r) = (a + b + -1 * x + c > r & a + b + 1 * x + c > r)) &&&
-  ((-1 * max x y > r) = ((-1 * x > r) & -1 * y > r)) &&&
-  ((-1 * max x y + a > r) = (a + -1 * x > r & a + -1 * y > r)) &&&
-  ((a + -1 * max x y > r) = (a + -1 * x > r & a + -1 * y > r)) &&&
-  ((a + -1 * max x y + b > r) = (a + -1 * x + b > r & a + -1 * y  + b > r)) &&&
-  ((a + b + -1 * max x y > r) = (a + b + -1 * x > r & a + b + -1 * y > r)) &&&
-  ((a + b + -1 * max x y + c > r) = (a + b + -1 * x + c > r & a + b + -1 * y  + c > r)) &&&
-  ((min x y > r) = (x > r &  y > r)) &&&
-  ((min x y + a > r) = (a + x > r & a + y > r)) &&&
-  ((a + min x y > r) = (a + x > r & a + y > r)) &&&
-  ((a + min x y + b > r) = (a + x + b > r & a + y  + b > r)) &&&
-  ((a + b + min x y > r) = (a + b + x > r & a + b + y > r)) &&&
-  ((a + b + min x y + c > r) = (a + b + x + c > r & a + b + y + c > r))"
+val real_abs_thms1 = @{lemma
+  "((-1 * abs(x::real) >= r) = (-1 * x >= r & 1 * x >= r))" and
+  "((-1 * abs(x) + a >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
+  "((a + -1 * abs(x) >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
+  "((a + -1 * abs(x) + b >= r) = (a + -1 * x + b >= r & a + 1 * x + b >= r))" and
+  "((a + b + -1 * abs(x) >= r) = (a + b + -1 * x >= r & a + b + 1 * x >= r))" and
+  "((a + b + -1 * abs(x) + c >= r) = (a + b + -1 * x + c >= r & a + b + 1 * x + c >= r))" and
+  "((-1 * max x y >= r) = (-1 * x >= r & -1 * y >= r))" and
+  "((-1 * max x y + a >= r) = (a + -1 * x >= r & a + -1 * y >= r))" and
+  "((a + -1 * max x y >= r) = (a + -1 * x >= r & a + -1 * y >= r))" and
+  "((a + -1 * max x y + b >= r) = (a + -1 * x + b >= r & a + -1 * y  + b >= r))" and
+  "((a + b + -1 * max x y >= r) = (a + b + -1 * x >= r & a + b + -1 * y >= r))" and
+  "((a + b + -1 * max x y + c >= r) = (a + b + -1 * x + c >= r & a + b + -1 * y  + c >= r))" and
+  "((1 * min x y >= r) = (1 * x >= r & 1 * y >= r))" and
+  "((1 * min x y + a >= r) = (a + 1 * x >= r & a + 1 * y >= r))" and
+  "((a + 1 * min x y >= r) = (a + 1 * x >= r & a + 1 * y >= r))" and
+  "((a + 1 * min x y + b >= r) = (a + 1 * x + b >= r & a + 1 * y  + b >= r))" and
+  "((a + b + 1 * min x y >= r) = (a + b + 1 * x >= r & a + b + 1 * y >= r))" and
+  "((a + b + 1 * min x y + c >= r) = (a + b + 1 * x + c >= r & a + b + 1 * y  + c >= r))" and
+  "((min x y >= r) = (x >= r &  y >= r))" and
+  "((min x y + a >= r) = (a + x >= r & a + y >= r))" and
+  "((a + min x y >= r) = (a + x >= r & a + y >= r))" and
+  "((a + min x y + b >= r) = (a + x + b >= r & a + y  + b >= r))" and
+  "((a + b + min x y >= r) = (a + b + x >= r & a + b + y >= r))" and
+  "((a + b + min x y + c >= r) = (a + b + x + c >= r & a + b + y + c >= r))" and
+  "((-1 * abs(x) > r) = (-1 * x > r & 1 * x > r))" and
+  "((-1 * abs(x) + a > r) = (a + -1 * x > r & a + 1 * x > r))" and
+  "((a + -1 * abs(x) > r) = (a + -1 * x > r & a + 1 * x > r))" and
+  "((a + -1 * abs(x) + b > r) = (a + -1 * x + b > r & a + 1 * x + b > r))" and
+  "((a + b + -1 * abs(x) > r) = (a + b + -1 * x > r & a + b + 1 * x > r))" and
+  "((a + b + -1 * abs(x) + c > r) = (a + b + -1 * x + c > r & a + b + 1 * x + c > r))" and
+  "((-1 * max x y > r) = ((-1 * x > r) & -1 * y > r))" and
+  "((-1 * max x y + a > r) = (a + -1 * x > r & a + -1 * y > r))" and
+  "((a + -1 * max x y > r) = (a + -1 * x > r & a + -1 * y > r))" and
+  "((a + -1 * max x y + b > r) = (a + -1 * x + b > r & a + -1 * y  + b > r))" and
+  "((a + b + -1 * max x y > r) = (a + b + -1 * x > r & a + b + -1 * y > r))" and
+  "((a + b + -1 * max x y + c > r) = (a + b + -1 * x + c > r & a + b + -1 * y  + c > r))" and
+  "((min x y > r) = (x > r &  y > r))" and
+  "((min x y + a > r) = (a + x > r & a + y > r))" and
+  "((a + min x y > r) = (a + x > r & a + y > r))" and
+  "((a + min x y + b > r) = (a + x + b > r & a + y  + b > r))" and
+  "((a + b + min x y > r) = (a + b + x > r & a + b + y > r))" and
+  "((a + b + min x y + c > r) = (a + b + x + c > r & a + b + y + c > r))"
   by auto};
 
 val abs_split' = @{lemma "P (abs (x::'a::ordered_idom)) == (x >= 0 & P x | x < 0 & P (-x))"
