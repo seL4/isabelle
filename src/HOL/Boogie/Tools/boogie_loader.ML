@@ -19,7 +19,7 @@ fun log verbose text args thy =
 
 val isabelle_name =
   let 
-    fun purge s = if Symbol.is_letdig s then s else
+    fun purge s = if Symbol.is_letter s orelse Symbol.is_digit s then s else
       (case s of
         "." => "_o_"
       | "_" => "_n_"
@@ -29,6 +29,11 @@ val isabelle_name =
       | "^" => "_T_"
       | _   => ("_" ^ string_of_int (ord s) ^ "_"))
   in prefix "b_" o translate_string purge end
+
+val short_name =
+  translate_string (fn s => if Symbol.is_letdig s then s else "")
+
+fun label_name line col = "L_" ^ string_of_int line ^ "_" ^ string_of_int col
 
 datatype attribute_value = StringValue of string | TermValue of Term.term
 
@@ -193,20 +198,38 @@ end
 
 
 
+local
+  fun burrow_distinct eq f xs =
+    let
+      val ys = distinct eq xs
+      val tab = ys ~~ f ys
+    in map (the o AList.lookup eq tab) xs end
+
+  fun indexed names =
+    let
+      val dup = member (op =) (duplicates (op =) (map fst names))
+      fun make_name (n, i) = n ^ (if dup n then "_" ^ string_of_int i else "")
+    in map make_name names end
+
+  fun rename idx_names =
+    idx_names
+    |> burrow_fst (burrow_distinct (op =)
+         (map short_name #> ` (duplicates (op =)) #-> Name.variant_list))
+    |> indexed
+in
 fun add_vcs verbose vcs thy =
   let
-    val reused = duplicates (op =) (map (fst o fst) vcs)
-    fun rename (n, i) = isabelle_name n ^
-      (if member (op =) reused n then "_" ^ string_of_int i else "")
-
-    fun decorate (name, t) = (rename name, HOLogic.mk_Trueprop t)
-    val vcs' = map decorate vcs
+    val vcs' =
+      vcs
+      |> burrow_fst rename
+      |> map (apsnd HOLogic.mk_Trueprop)
   in
     thy
     |> Boogie_VCs.set vcs'
     |> log verbose "The following verification conditions were loaded:"
          (map fst vcs')
   end
+end
 
 
 
@@ -314,7 +337,7 @@ local
     quant "forall" HOLogic.all_const ||
     quant "exists" HOLogic.exists_const ||
     scan_fail "illegal quantifier kind"
-  fun mk_quant q (n, T) t = q T $ Term.absfree (isabelle_name n, T, t)
+  fun mk_quant q (n, T) t = q T $ Term.absfree (n, T, t)
 
   val patternT = @{typ pattern}
   fun mk_pattern _ [] = raise TERM ("mk_pattern", [])
@@ -366,6 +389,31 @@ local
       val T1 = Term.fastype_of t1 and T2 = Term.fastype_of t2
       val U = mk_wordT (dest_wordT T1 + dest_wordT T2)
     in Const (@{const_name boogie_bv_concat}, [T1, T2] ---> U) $ t1 $ t2 end
+
+  val var_name = str >> prefix "V"
+  val dest_var_name = unprefix "V"
+  fun rename_variables t =
+    let
+      fun make_context names = Name.make_context (duplicates (op =) names)
+      fun short_var_name n = short_name (dest_var_name n)
+
+      val (names, nctxt) =
+        Term.add_free_names t []
+        |> map_filter (try (fn n => (n, short_var_name n)))
+        |> split_list
+        ||>> (fn names => Name.variants names (make_context names))
+        |>> Symtab.make o (op ~~)
+
+      fun rename_free n = the_default n (Symtab.lookup names n)
+      fun rename_abs n = yield_singleton Name.variants (short_var_name n)
+
+      fun rename _ (Free (n, T)) = Free (rename_free n, T)
+        | rename nctxt (Abs (n, T, t)) =
+            let val (n', nctxt') = rename_abs n nctxt
+            in Abs (n', T, rename nctxt' t) end
+        | rename nctxt (t $ u) = rename nctxt t $ rename nctxt u
+        | rename _ t = t
+    in rename nctxt t end
 in
 fun expr tds fds =
   let
@@ -385,12 +433,12 @@ fun expr tds fds =
         (fn [] => @{term True}
           | ts as (t :: _) => mk_distinct (Term.fastype_of t) ts) ||
       binexp "=" HOLogic.mk_eq ||
-      scan_line "var" str -- typ tds >> (Free o apfst isabelle_name) ||
+      scan_line "var" var_name -- typ tds >> Free ||
       scan_line "fun" (str -- num) :|-- (fn (name, arity) =>
         scan_lookup "constant" fds name -- scan_count exp arity >>
         Term.list_comb) ||
       quants :|-- (fn (q, ((n, k), i)) =>
-        scan_count (scan_line "var" str -- typ tds) n --
+        scan_count (scan_line "var" var_name -- typ tds) n --
         scan_count (pattern exp) k --
         scan_count (attribute tds fds) i --
         exp >> (fn (((vs, ps), _), t) =>
@@ -398,8 +446,7 @@ fun expr tds fds =
       scan_line "label" (label_kind -- num -- num) -- exp >>
         (fn (((l, line), col), t) =>
           if line = 0 orelse col = 0 then t
-          else l $ Free ("L_" ^ string_of_int line ^ "_" ^ string_of_int col,
-            @{typ bool}) $ t) ||
+          else l $ Free (label_name line col, @{typ bool}) $ t) ||
       scan_line "int-num" num >> HOLogic.mk_number @{typ int} ||
       binexp "<" (binop @{term "op < :: int => _"}) ||
       binexp "<=" (binop @{term "op <= :: int => _"}) ||
@@ -421,7 +468,7 @@ fun expr tds fds =
       scan_line "bv-extract" (num -- num) -- exp >> mk_extract ||
       binexp "bv-concat" mk_concat ||
       scan_fail "illegal expression") st
-  in exp end
+  in exp >> rename_variables end
 
 and attribute tds fds =
   let

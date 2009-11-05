@@ -1,0 +1,8 @@
+(benchmark Isabelle
+:extrasorts ( T1)
+:extrafuns (
+  (uf_1 Real)
+ )
+:assumption (not (flet ($x1 (< (+ uf_1 uf_1) (+ (* 2.0 uf_1) 1.0))) (or $x1 (or false $x1))))
+:formula true
+)
