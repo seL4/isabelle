@@ -2459,6 +2459,10 @@ run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
 \item[$\bullet$] The \textit{nitpick\_} attributes and the
 \textit{Nitpick.register\_} functions can cause havoc if used improperly.
 
+\item[$\bullet$] Although this has never been observed, arbitrary theorem
+morphisms could possibly confuse Nitpick and lead it to generate spurious
+counterexamples.
+
 \item[$\bullet$] Local definitions are not supported and result in an error.
 
 \item[$\bullet$] All constants and types whose names start with
