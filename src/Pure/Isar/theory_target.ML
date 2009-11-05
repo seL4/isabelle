@@ -71,25 +71,37 @@ fun pretty (Target {target, is_class, instantiation, overloading, ...}) ctxt =
      else pretty_thy ctxt target is_class);
 
 
-(* target declarations *)
+(* generic declarations *)
 
-fun target_decl add (Target {target, ...}) d lthy =
+local
+
+fun direct_decl decl =
+  let val decl0 = Morphism.form decl in
+    LocalTheory.theory (Context.theory_map decl0) #>
+    LocalTheory.target (Context.proof_map decl0)
+  end;
+
+fun target_decl add (Target {target, ...}) pervasive decl lthy =
   let
-    val d' = Morphism.transform (LocalTheory.target_morphism lthy) d;
-    val d0 = Morphism.form d';
+    val global_decl = Morphism.transform (LocalTheory.global_morphism lthy) decl;
+    val target_decl = Morphism.transform (LocalTheory.target_morphism lthy) decl;
   in
     if target = "" then
       lthy
-      |> LocalTheory.theory (Context.theory_map d0)
-      |> LocalTheory.target (Context.proof_map d0)
+      |> direct_decl target_decl
     else
       lthy
-      |> LocalTheory.target (add target d')
+      |> pervasive ? direct_decl global_decl
+      |> LocalTheory.target (add target target_decl)
   end;
+
+in
 
 val type_syntax = target_decl Locale.add_type_syntax;
 val term_syntax = target_decl Locale.add_term_syntax;
 val declaration = target_decl Locale.add_declaration;
+
+end;
 
 fun class_target (Target {target, ...}) f =
   LocalTheory.raw_theory f #>
@@ -219,7 +231,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
-    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default ((b, mx2), t))
+    |> is_locale ? term_syntax ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
     |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), t))
     |> LocalDefs.add_def ((b, NoSyn), t)
   end;
@@ -244,7 +256,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
         LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal (b, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
-            term_syntax ta (locale_const ta prmode ((b, mx2), lhs')) #>
+            term_syntax ta false (locale_const ta prmode ((b, mx2), lhs')) #>
             is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
           end)
       else

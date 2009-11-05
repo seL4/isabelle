@@ -27,6 +27,7 @@ sig
   val map_contexts: (Context.generic -> Context.generic) -> local_theory -> local_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
+  val global_morphism: local_theory -> morphism
   val pretty: local_theory -> Pretty.T list
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
@@ -35,9 +36,9 @@ sig
   val note: string -> Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
   val notes: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
-  val type_syntax: declaration -> local_theory -> local_theory
-  val term_syntax: declaration -> local_theory -> local_theory
-  val declaration: declaration -> local_theory -> local_theory
+  val type_syntax: bool -> declaration -> local_theory -> local_theory
+  val term_syntax: bool -> declaration -> local_theory -> local_theory
+  val declaration: bool -> declaration -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val init: string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
@@ -65,9 +66,9 @@ type operations =
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory,
-  type_syntax: declaration -> local_theory -> local_theory,
-  term_syntax: declaration -> local_theory -> local_theory,
-  declaration: declaration -> local_theory -> local_theory,
+  type_syntax: bool -> declaration -> local_theory -> local_theory,
+  term_syntax: bool -> declaration -> local_theory -> local_theory,
+  declaration: bool -> declaration -> local_theory -> local_theory,
   reinit: local_theory -> local_theory,
   exit: local_theory -> Proof.context};
 
@@ -174,27 +175,27 @@ fun standard_morphism lthy ctxt =
   Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
+fun global_morphism lthy = standard_morphism lthy (ProofContext.init (ProofContext.theory_of lthy));
 
 
 (* basic operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
-fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
 val define = apsnd checkpoint ooo operation2 #define;
 val notes = apsnd checkpoint ooo operation2 #notes;
-val type_syntax = checkpoint oo operation1 #type_syntax;
-val term_syntax = checkpoint oo operation1 #term_syntax;
-val declaration = checkpoint oo operation1 #declaration;
+val type_syntax = checkpoint ooo operation2 #type_syntax;
+val term_syntax = checkpoint ooo operation2 #term_syntax;
+val declaration = checkpoint ooo operation2 #declaration;
 
 fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
-  in term_syntax (ProofContext.target_notation add mode args) lthy end;
+  in term_syntax false (ProofContext.target_notation add mode args) lthy end;
 
 
 (* init *)
