@@ -1344,7 +1344,15 @@ $(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
   SMT/Examples/cert/z3_linarith_15					\
   SMT/Examples/cert/z3_linarith_15.proof				\
   SMT/Examples/cert/z3_linarith_16					\
-  SMT/Examples/cert/z3_linarith_16.proof SMT/Examples/cert/z3_mono_01	\
+  SMT/Examples/cert/z3_linarith_16.proof				\
+  SMT/Examples/cert/z3_linarith_17					\
+  SMT/Examples/cert/z3_linarith_17.proof				\
+  SMT/Examples/cert/z3_linarith_18					\
+  SMT/Examples/cert/z3_linarith_18.proof				\
+  SMT/Examples/cert/z3_linarith_19					\
+  SMT/Examples/cert/z3_linarith_19.proof				\
+  SMT/Examples/cert/z3_linarith_20					\
+  SMT/Examples/cert/z3_linarith_20.proof SMT/Examples/cert/z3_mono_01	\
   SMT/Examples/cert/z3_mono_01.proof SMT/Examples/cert/z3_mono_02	\
   SMT/Examples/cert/z3_mono_02.proof SMT/Examples/cert/z3_nat_arith_01	\
   SMT/Examples/cert/z3_nat_arith_01.proof				\
