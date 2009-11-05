@@ -391,7 +391,7 @@ fun fixrec_simp_tac ctxt =
         CHANGED (rtac rule i THEN asm_simp_tac ss i)
       end
   in
-    SUBGOAL (fn ti => tac ti handle _ => no_tac)
+    SUBGOAL (fn ti => the_default no_tac (try tac ti))
   end;
 
 val fixrec_simp_add : Thm.attribute =
