@@ -337,13 +337,14 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end
   handle Exn.Interrupt =>
    (Multithreading.tracing 1 (fn () => "Interrupt");
-    uninterruptible (fn _ => fn () => List.app do_cancel (Task_Queue.cancel_all (! queue))) ();
-    scheduler_next ());
+    List.app do_cancel (Task_Queue.cancel_all (! queue)); true);
 
 fun scheduler_loop () =
-  Multithreading.with_attributes
-    (Multithreading.sync_interrupts Multithreading.public_interrupts)
-    (fn _ => while SYNCHRONIZED "scheduler" (fn () => scheduler_next ()) do ());
+  while
+    Multithreading.with_attributes
+      (Multithreading.sync_interrupts Multithreading.public_interrupts)
+      (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
+  do ();
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
