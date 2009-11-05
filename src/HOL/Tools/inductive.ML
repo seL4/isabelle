@@ -653,7 +653,8 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
       |> LocalTheory.conceal
       |> LocalTheory.define Thm.internalK
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         (Attrib.empty_binding, fold_rev lambda params
+         ((Binding.empty, [Attrib.internal (K Nitpick_Defs.add)]),
+         fold_rev lambda params
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> LocalTheory.restore_naming ctxt;
     val fp_def' = Simplifier.rewrite (HOL_basic_ss addsimps [fp_def])
