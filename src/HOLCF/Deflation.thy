@@ -55,6 +55,9 @@ qed
 
 end
 
+lemma deflation_strict: "deflation d \<Longrightarrow> d\<cdot>\<bottom> = \<bottom>"
+by (rule deflation.below [THEN UU_I])
+
 lemma adm_deflation: "adm (\<lambda>d. deflation d)"
 by (simp add: deflation_def)
 
