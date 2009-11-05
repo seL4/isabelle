@@ -343,7 +343,6 @@ fun decls_for_atom_schema j0 schema =
 
 (* The type constraint below is a workaround for a Poly/ML bug. *)
 
-(* FIXME: clean up *)
 (* kodkod_constrs -> rep -> Kodkod.rel_expr -> Kodkod.formula *)
 fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
                      R r =
@@ -371,7 +370,6 @@ fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
       Kodkod.True
   end
 fun kk_n_ary_function kk R (r as Kodkod.Rel _) =
-    (* FIXME: weird test *)
     if not (is_opt_rep R) then
       if r = suc_rel then
         Kodkod.False
@@ -716,8 +714,8 @@ fun nfa_transitions_for_constr ext_ctxt kk rel_table dtypes (x as (_, T)) =
 (* extended_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> dtype_spec -> nfa_entry option *)
 fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
-  | nfa_entry_for_datatype ext_ctxt kk rel_table dtypes
-                           ({typ, constrs, ...} : dtype_spec) =
+  | nfa_entry_for_datatype _ _ _ _ {shallow = true, ...} = NONE
+  | nfa_entry_for_datatype ext_ctxt kk rel_table dtypes {typ, constrs, ...} =
     SOME (typ, maps (nfa_transitions_for_constr ext_ctxt kk rel_table dtypes
                      o #const) constrs)
 
@@ -884,12 +882,13 @@ fun partition_axioms_for_datatype j0 (kk as {kk_rel_eq, kk_union, ...})
 
 (* extended_context -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
    -> dtype_spec -> Kodkod.formula list *)
-fun other_axioms_for_datatype ext_ctxt ofs kk rel_table (dtype as {typ, ...}) =
-  let val j0 = offset_of_type ofs typ in
-    sel_axioms_for_datatype ext_ctxt j0 kk rel_table dtype @
-    uniqueness_axioms_for_datatype ext_ctxt kk rel_table dtype @
-    partition_axioms_for_datatype j0 kk rel_table dtype
-  end
+fun other_axioms_for_datatype _ _ _ _ {shallow = true, ...} = []
+  | other_axioms_for_datatype ext_ctxt ofs kk rel_table (dtype as {typ, ...}) =
+    let val j0 = offset_of_type ofs typ in
+      sel_axioms_for_datatype ext_ctxt j0 kk rel_table dtype @
+      uniqueness_axioms_for_datatype ext_ctxt kk rel_table dtype @
+      partition_axioms_for_datatype j0 kk rel_table dtype
+    end
 
 (* extended_context -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
    -> dtype_spec list -> Kodkod.formula list *)

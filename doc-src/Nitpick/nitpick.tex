@@ -2,7 +2,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[french,english]{babel}
+\usepackage[english,french]{babel}
 \usepackage{color}
 \usepackage{graphicx}
 %\usepackage{mathpazo}
@@ -39,6 +39,8 @@ co-data-types in-duc-tive co-in-duc-tive}
 \urlstyle{tt}
 
 \begin{document}
+
+\selectlanguage{english}
 
 \title{\includegraphics[scale=0.5]{isabelle_nitpick} \\[4ex]
 Picking Nits \\[\smallskipamount]
@@ -112,6 +114,13 @@ Nitpick requires the Kodkodi package for Isabelle as well as a Java 1.5 virtual
 machine called \texttt{java}. The examples presented in this manual can be found
 in Isabelle's \texttt{src/HOL/Nitpick\_Examples/Manual\_Nits.thy} theory.
 
+Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
+Nitpick also provides an automatic mode that can be enabled using the
+``Auto Nitpick'' option from the ``Isabelle'' menu in Proof General. In this
+mode, Nitpick is run on every newly entered theorem, much like Auto Quickcheck.
+The collective time limit for Auto Nitpick and Auto Quickcheck can be set using
+the ``Auto Counterexample Time Limit'' option.
+
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
@@ -153,16 +162,6 @@ Kodkodi and is precompiled for the major platforms. Other SAT solvers can also
 be installed, as explained in \S\ref{optimizations}. If you have already
 configured SAT solvers in Isabelle (e.g., for Refute), these will also be
 available to Nitpick.
-
-Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
-Nitpick also provides an automatic mode that can be enabled by specifying
-
-\prew
-\textbf{nitpick\_params} [\textit{auto}]
-\postw
-
-at the beginning of the theory file. In this mode, Nitpick is run for up to 5
-seconds (by default) on every newly entered theorem, much like Auto Quickcheck.
 
 \subsection{Propositional Logic}
 \label{propositional-logic}
@@ -1595,6 +1594,17 @@ format (\S\ref{output-format}), automatic counterexample checks
 (\S\ref{authentication}), optimizations
 (\S\ref{optimizations}), and timeouts (\S\ref{timeouts}).
 
+You can instruct Nitpick to run automatically on newly entered theorems by
+enabling the ``Auto Nitpick'' option from the ``Isabelle'' menu in Proof
+General. For automatic runs, \textit{user\_axioms} (\S\ref{mode-of-operation})
+and \textit{assms} (\S\ref{mode-of-operation}) are implicitly enabled,
+\textit{blocking} (\S\ref{mode-of-operation}), \textit{verbose}
+(\S\ref{output-format}), and \textit{debug} (\S\ref{output-format}) are
+disabled, \textit{max\_potential} (\S\ref{output-format}) is taken to be 0, and
+\textit{timeout} (\S\ref{timeouts}) is superseded by the ``Auto Counterexample
+Time Limit'' in Proof General's ``Isabelle'' menu. Nitpick's output is also more
+concise.
+
 The number of options can be overwhelming at first glance. Do not let that worry
 you: Nitpick's defaults have been chosen so that it almost always does the right
 thing, and the most important options have been covered in context in
@@ -1622,34 +1632,18 @@ of nonnegative integers (e.g., $1$--$4$). The range symbol `--' can be entered a
 \end{enum}
 
 Default values are indicated in square brackets. Boolean options have a negated
-counterpart (e.g., \textit{auto} vs.\ \textit{no\_auto}). When setting Boolean
-options, ``= \textit{true}'' may be omitted.
+counterpart (e.g., \textit{blocking} vs.\ \textit{no\_blocking}). When setting
+Boolean options, ``= \textit{true}'' may be omitted.
 
 \subsection{Mode of Operation}
 \label{mode-of-operation}
 
 \begin{enum}
-\opfalse{auto}{no\_auto}
-Specifies whether Nitpick should be run automatically on newly entered theorems.
-For automatic runs, \textit{user\_axioms} (\S\ref{mode-of-operation}) and
-\textit{assms} (\S\ref{mode-of-operation}) are implicitly enabled,
-\textit{blocking} (\S\ref{mode-of-operation}), \textit{verbose}
-(\S\ref{output-format}), and \textit{debug} (\S\ref{output-format}) are
-disabled, \textit{max\_potential} (\S\ref{output-format}) is taken to be 0, and
-\textit{auto\_timeout} (\S\ref{timeouts}) is used as the time limit instead of
-\textit{timeout} (\S\ref{timeouts}). The output is also more concise.
-
-\nopagebreak
-{\small See also \textit{auto\_timeout} (\S\ref{timeouts}).}
-
 \optrue{blocking}{non\_blocking}
 Specifies whether the \textbf{nitpick} command should operate synchronously.
 The asynchronous (non-blocking) mode lets the user start proving the putative
 theorem while Nitpick looks for a counterexample, but it can also be more
 confusing. For technical reasons, automatic runs currently always block.
-
-\nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation}).}
 
 \optrue{falsify}{satisfy}
 Specifies whether Nitpick should look for falsifying examples (countermodels) or
@@ -1670,16 +1664,15 @@ these conditions are tagged as ``likely genuine.'' The \textit{debug}
 considered.
 
 \nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation}), \textit{assms}
-(\S\ref{mode-of-operation}), and \textit{debug} (\S\ref{output-format}).}
+{\small See also \textit{assms} (\S\ref{mode-of-operation}) and \textit{debug}
+(\S\ref{output-format}).}
 
 \optrue{assms}{no\_assms}
 Specifies whether the relevant assumptions in structured proof should be
 considered. The option is implicitly enabled for automatic runs.
 
 \nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation})
-and \textit{user\_axioms} (\S\ref{mode-of-operation}).}
+{\small See also \textit{user\_axioms} (\S\ref{mode-of-operation}).}
 
 \opfalse{overlord}{no\_overlord}
 Specifies whether Nitpick should put its temporary files in
@@ -1836,14 +1829,14 @@ finding a counterexample, as demonstrated in \S\ref{scope-monotonicity}.
 
 \nopagebreak
 {\small See also \textit{card} (\S\ref{scope-of-search}),
-\textit{coalesce\_type\_vars} (\S\ref{scope-of-search}), and \textit{verbose}
+\textit{merge\_type\_vars} (\S\ref{scope-of-search}), and \textit{verbose}
 (\S\ref{output-format}).}
 
 \opsmart{mono}{non\_box}
 Specifies the default monotonicity setting to use. This can be overridden on a
 per-type basis using the \textit{mono}~\qty{type} option described above.
 
-\opfalse{coalesce\_type\_vars}{dont\_coalesce\_type\_vars}
+\opfalse{merge\_type\_vars}{dont\_merge\_type\_vars}
 Specifies whether type variables with the same sort constraints should be
 merged. Setting this option to \textit{true} can reduce the number of scopes
 tried and the size of the generated Kodkod formulas, but it also diminishes the
@@ -1861,9 +1854,6 @@ Specifies whether the \textbf{nitpick} command should explain what it does. This
 option is useful to determine which scopes are tried or which SAT solver is
 used. This option is implicitly disabled for automatic runs.
 
-\nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation}).}
-
 \opfalse{debug}{no\_debug}
 Specifies whether Nitpick should display additional debugging information beyond
 what \textit{verbose} already displays. Enabling \textit{debug} also enables
@@ -1871,8 +1861,8 @@ what \textit{verbose} already displays. Enabling \textit{debug} also enables
 option is implicitly disabled for automatic runs.
 
 \nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation}), \textit{overlord}
-(\S\ref{mode-of-operation}), and \textit{batch\_size} (\S\ref{optimizations}).}
+{\small See also \textit{overlord} (\S\ref{mode-of-operation}) and
+\textit{batch\_size} (\S\ref{optimizations}).}
 
 \optrue{show\_skolems}{hide\_skolem}
 Specifies whether the values of Skolem constants should be displayed as part of
@@ -1910,8 +1900,7 @@ identical, unless the \textit{show\_all} (\S\ref{output-format}) option is
 enabled.
 
 \nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation}),
-\textit{check\_potential} (\S\ref{authentication}), and
+{\small See also \textit{check\_potential} (\S\ref{authentication}) and
 \textit{sat\_solver} (\S\ref{optimizations}).}
 
 \opt{max\_genuine}{int}{$\mathbf{1}$}
@@ -1968,8 +1957,7 @@ Specifies whether potential counterexamples should be given to Isabelle's
 shown to be genuine, Nitpick displays a message to this effect and terminates.
 
 \nopagebreak
-{\small See also \textit{max\_potential} (\S\ref{output-format}) and
-\textit{auto\_timeout} (\S\ref{timeouts}).}
+{\small See also \textit{max\_potential} (\S\ref{output-format}).}
 
 \opfalse{check\_genuine}{trust\_genuine}
 Specifies whether genuine and likely genuine counterexamples should be given to
@@ -1979,8 +1967,7 @@ report to the author at
 \texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@in.tum.de}.
 
 \nopagebreak
-{\small See also \textit{max\_genuine} (\S\ref{output-format}) and
-\textit{auto\_timeout} (\S\ref{timeouts}).}
+{\small See also \textit{max\_genuine} (\S\ref{output-format}).}
 
 \ops{expect}{string}
 Specifies the expected outcome, which must be one of the following:
@@ -2206,21 +2193,14 @@ cores available.
 Specifies the maximum amount of time that the \textbf{nitpick} command should
 spend looking for a counterexample. Nitpick tries to honor this constraint as
 well as it can but offers no guarantees. For automatic runs,
-\textit{auto\_timeout} is used instead.
+\textit{timeout} is ignored; instead, Auto Quickcheck and Auto Nitpick share
+a time slot whose length is specified by the ``Auto Counterexample Time
+Limit'' option in Proof General.
 
 \nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation})
-and \textit{max\_threads} (\S\ref{optimizations}).}
+{\small See also \textit{max\_threads} (\S\ref{optimizations}).}
 
-\opt{auto\_timeout}{time}{$\mathbf{5}$ s}
-Specifies the maximum amount of time that Nitpick should use to find a
-counterexample when running automatically. Nitpick tries to honor this
-constraint as well as it can but offers no guarantees.
-
-\nopagebreak
-{\small See also \textit{auto} (\S\ref{mode-of-operation}).}
-
-\opt{tac\_timeout}{time}{$\mathbf{500}$ ms}
+\opt{tac\_timeout}{time}{$\mathbf{500}$\,ms}
 Specifies the maximum amount of time that the \textit{auto} tactic should use
 when checking a counterexample, and similarly that \textit{lexicographic\_order}
 and \textit{sizechange} should use when checking whether a (co)in\-duc\-tive
@@ -2398,10 +2378,10 @@ $\textbf{val}\,~(\textit{outcome},\, \textit{state}') = \textit{Nitpick.pick\_ni
 & \textit{subgoal}\end{aligned}$
 \postw
 
+\let\antiq=\textrm
+
 \subsection{Registration of Coinductive Datatypes}
 \label{registration-of-coinductive-datatypes}
-
-\let\antiq=\textrm
 
 If you have defined a custom coinductive datatype, you can tell Nitpick about
 it, so that it can use an efficient Kodkod axiomatization similar to the one it
@@ -2466,6 +2446,12 @@ for which the function is not defined. For example:
 Such theorems are considered bad style because they rely on the internal
 representation of functions synthesized by Isabelle, which is an implementation
 detail.
+
+\item[$\bullet$] Nitpick maintains a global cache of wellfoundedness conditions,
+which can become invalid if you change the definition of an inductive predicate
+that is registered in the cache. To clear the cache,
+run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
+501$\,\textit{ms}$).
 
 \item[$\bullet$] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.

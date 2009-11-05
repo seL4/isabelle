@@ -5,7 +5,7 @@
 header {* Loading the code generator modules *}
 
 theory Code_Generator
-imports Pure
+imports Auto_Counterexample
 uses
   "~~/src/Tools/value.ML"
   "~~/src/Tools/quickcheck.ML"
