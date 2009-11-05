@@ -87,6 +87,7 @@ sig
   val is_abs_fun : theory -> styp -> bool
   val is_rep_fun : theory -> styp -> bool
   val is_constr : theory -> styp -> bool
+  val is_stale_constr : theory -> styp -> bool
   val is_sel : string -> bool
   val discr_for_constr : styp -> styp
   val num_sels_for_constr_type : typ -> int
@@ -612,9 +613,13 @@ fun is_constr_like thy (s, T) =
     orelse x = (@{const_name zero_nat_inst.zero_nat}, nat_T)
     orelse is_coconstr thy x
   end
+fun is_stale_constr thy (x as (_, T)) =
+  is_codatatype thy (body_type T) andalso is_constr_like thy x
+  andalso not (is_coconstr thy x)
 fun is_constr thy (x as (_, T)) =
   is_constr_like thy x
   andalso not (is_basic_datatype (fst (dest_Type (body_type T))))
+  andalso not (is_stale_constr thy x)
 (* string -> bool *)
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
 val is_sel_like_and_no_discr =
@@ -730,35 +735,37 @@ fun suc_const T = Const (@{const_name Suc}, T --> T)
 
 (* theory -> typ -> styp list *)
 fun uncached_datatype_constrs thy (T as Type (s, Ts)) =
-    if is_datatype thy T then
-      case Datatype.get_info thy s of
-        SOME {index, descr, ...} =>
-        let val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the in
-          map (fn (s', Us) =>
-                  (s', map (Refute.typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
-              constrs
-         end
-      | NONE =>
-        case AList.lookup (op =) (#codatatypes (TheoryData.get thy)) s of
-          SOME (_, xs' as (_ :: _)) =>
-          map (apsnd (repair_constr_type thy T)) xs'
-        | _ =>
-          if is_record_type T then
-            let
-              val s' = unsuffix Record.ext_typeN s ^ Record.extN
-              val T' = (Record.get_extT_fields thy T
-                       |> apsnd single |> uncurry append |> map snd) ---> T
-            in [(s', T')] end
-          else case typedef_info thy s of
-            SOME {abs_type, rep_type, Abs_name, ...} =>
-            [(Abs_name, instantiate_type thy abs_type T rep_type --> T)]
-          | NONE =>
-            if T = @{typ ind} then
-              [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
-            else
-              []
-    else
-      []
+    (case AList.lookup (op =) (#codatatypes (TheoryData.get thy)) s of
+       SOME (_, xs' as (_ :: _)) =>
+       map (apsnd (repair_constr_type thy T)) xs'
+     | _ =>
+       if is_datatype thy T then
+         case Datatype.get_info thy s of
+           SOME {index, descr, ...} =>
+           let
+             val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the
+           in
+             map (fn (s', Us) =>
+                     (s', map (Refute.typ_of_dtyp descr (dtyps ~~ Ts)) Us
+                          ---> T)) constrs
+           end
+         | NONE =>
+           if is_record_type T then
+             let
+               val s' = unsuffix Record.ext_typeN s ^ Record.extN
+               val T' = (Record.get_extT_fields thy T
+                        |> apsnd single |> uncurry append |> map snd) ---> T
+             in [(s', T')] end
+           else case typedef_info thy s of
+             SOME {abs_type, rep_type, Abs_name, ...} =>
+             [(Abs_name, instantiate_type thy abs_type T rep_type --> T)]
+           | NONE =>
+             if T = @{typ ind} then
+               [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
+             else
+               []
+       else
+         [])
   | uncached_datatype_constrs _ _ = []
 (* extended_context -> typ -> styp list *)
 fun datatype_constrs (ext_ctxt as {thy, constr_cache, ...} : extended_context)
@@ -1502,6 +1509,9 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
             | _ =>
               if is_constr thy x then
                 (Const x, ts)
+              else if is_stale_constr thy x then
+                raise NOT_SUPPORTED ("(non-co-)constructors of codatatypes \
+                                     \(\"" ^ s ^ "\")")
               else if is_record_get thy x then
                 case length ts of
                   0 => (do_term depth Ts (eta_expand Ts t 1), [])

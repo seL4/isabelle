@@ -2420,6 +2420,11 @@ $\textbf{setup}~\,\{{*}\,~\textit{Nitpick.unregister\_codatatype}~@\{\antiq{typ}
 \kern1pt'a~\textit{list}\textrm{''}\}\ \,{*}\}$
 \postw
 
+Inductive datatypes can be registered as coinductive datatypes, given
+appropriate coinductive constructors. However, doing so precludes
+the use of the inductive constructors---Nitpick will generate an error if they
+are needed.
+
 \section{Known Bugs and Limitations}
 \label{known-bugs-and-limitations}
 
@@ -2460,8 +2465,7 @@ run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
 \textit{Nitpick.register\_} functions can cause havoc if used improperly.
 
 \item[$\bullet$] Although this has never been observed, arbitrary theorem
-morphisms could possibly confuse Nitpick and lead it to generate spurious
-counterexamples.
+morphisms could possibly confuse Nitpick, resulting in spurious counterexamples.
 
 \item[$\bullet$] Local definitions are not supported and result in an error.
 

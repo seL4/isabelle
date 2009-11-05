@@ -9,8 +9,10 @@ Version 2010
   * Renamed "coalesce_type_vars" to "merge_type_vars"
   * Optimized Kodkod encoding of datatypes whose constructors don't appear in
     the formula to falsify
+  * Added support for codatatype view of datatypes
   * Fixed monotonicity check
   * Fixed error in display of uncurried constants
+  * Speeded up scope enumeration
 
 Version 1.2.2 (16 Oct 2009)
 
