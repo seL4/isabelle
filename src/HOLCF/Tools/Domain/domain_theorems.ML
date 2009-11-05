@@ -589,7 +589,7 @@ val copy_strict =
   let
     val _ = trace " Proving copy_strict...";
     val goal = mk_trp (strict (dc_copy `% "f"));
-    val rules = [abs_strict, rep_strict] @ @{thms domain_fun_stricts};
+    val rules = [abs_strict, rep_strict] @ @{thms domain_map_stricts};
     val tacs = [asm_simp_tac (HOLCF_ss addsimps rules) 1];
   in pg [ax_copy_def] goal (K tacs) end;
 
@@ -604,9 +604,9 @@ local
       val rhs = con_app2 con one_rhs args;
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val args' = filter_out (fn a => is_rec a orelse is_lazy a) args;
-      val stricts = abs_strict :: rep_strict :: @{thms domain_fun_stricts};
+      val stricts = abs_strict :: rep_strict :: @{thms domain_map_stricts};
       fun tacs1 ctxt = map (case_UU_tac ctxt stricts 1 o vname) args';
-      val rules = [ax_abs_iso] @ @{thms domain_fun_simps};
+      val rules = [ax_abs_iso] @ @{thms domain_map_simps};
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps rules) 1];
     in pg (ax_copy_def::con_appls) goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 in

@@ -28,11 +28,11 @@ infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
 (* FIXME: use theory data for this *)
 val copy_tab : string Symtab.table =
-    Symtab.make [(@{type_name "->"}, @{const_name "cfun_fun"}),
-                 (@{type_name "++"}, @{const_name "ssum_fun"}),
-                 (@{type_name "**"}, @{const_name "sprod_fun"}),
-                 (@{type_name "*"}, @{const_name "cprod_fun"}),
-                 (@{type_name "u"}, @{const_name "u_fun"})];
+    Symtab.make [(@{type_name "->"}, @{const_name "cfun_map"}),
+                 (@{type_name "++"}, @{const_name "ssum_map"}),
+                 (@{type_name "**"}, @{const_name "sprod_map"}),
+                 (@{type_name "*"}, @{const_name "cprod_map"}),
+                 (@{type_name "u"}, @{const_name "u_map"})];
 
 fun copy_of_dtyp r dt = if DatatypeAux.is_rec_type dt then copy r dt else ID
 and copy r (DatatypeAux.DtRec i) = r i

@@ -290,6 +290,43 @@ by (simp add: up_def fup_def cont_Iup cont_Ifup1 cont_Ifup2 cont2cont_LAM)
 lemma fup3 [simp]: "fup\<cdot>up\<cdot>x = x"
 by (cases x, simp_all)
 
+subsection {* Map function for lifted cpo *}
+
+definition
+  u_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a u \<rightarrow> 'b u"
+where
+  "u_map = (\<Lambda> f. fup\<cdot>(up oo f))"
+
+lemma u_map_strict [simp]: "u_map\<cdot>f\<cdot>\<bottom> = \<bottom>"
+unfolding u_map_def by simp
+
+lemma u_map_up [simp]: "u_map\<cdot>f\<cdot>(up\<cdot>x) = up\<cdot>(f\<cdot>x)"
+unfolding u_map_def by simp
+
+lemma ep_pair_u_map: "ep_pair e p \<Longrightarrow> ep_pair (u_map\<cdot>e) (u_map\<cdot>p)"
+apply default
+apply (case_tac x, simp, simp add: ep_pair.e_inverse)
+apply (case_tac y, simp, simp add: ep_pair.e_p_below)
+done
+
+lemma deflation_u_map: "deflation d \<Longrightarrow> deflation (u_map\<cdot>d)"
+apply default
+apply (case_tac x, simp, simp add: deflation.idem)
+apply (case_tac x, simp, simp add: deflation.below)
+done
+
+lemma finite_deflation_u_map:
+  assumes "finite_deflation d" shows "finite_deflation (u_map\<cdot>d)"
+proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+  interpret d: finite_deflation d by fact
+  have "deflation d" by fact
+  thus "deflation (u_map\<cdot>d)" by (rule deflation_u_map)
+  have "{x. u_map\<cdot>d\<cdot>x = x} \<subseteq> insert \<bottom> ((\<lambda>x. up\<cdot>x) ` {x. d\<cdot>x = x})"
+    by (rule subsetI, case_tac x, simp_all)
+  thus "finite {x. u_map\<cdot>d\<cdot>x = x}"
+    by (rule finite_subset, simp add: d.finite_fixes)
+qed
+
 subsection {* Lifted cpo is a bifinite domain *}
 
 instantiation u :: (profinite) bifinite
@@ -297,7 +334,7 @@ begin
 
 definition
   approx_up_def:
-    "approx = (\<lambda>n. fup\<cdot>(\<Lambda> x. up\<cdot>(approx n\<cdot>x)))"
+    "approx = (\<lambda>n. u_map\<cdot>(approx n))"
 
 instance proof
   fix i :: nat and x :: "'a u"
@@ -305,16 +342,15 @@ instance proof
     unfolding approx_up_def by simp
   show "(\<Squnion>i. approx i\<cdot>x) = x"
     unfolding approx_up_def
-    by (simp add: lub_distribs eta_cfun)
+    by (induct x, simp, simp add: lub_distribs)
   show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
     unfolding approx_up_def
-    by (induct x, simp, simp)
-  have "{x::'a u. approx i\<cdot>x = x} \<subseteq>
-        insert \<bottom> ((\<lambda>x. up\<cdot>x) ` {x::'a. approx i\<cdot>x = x})"
+    by (induct x) simp_all
+  show "finite {x::'a u. approx i\<cdot>x = x}"
     unfolding approx_up_def
-    by (rule subsetI, case_tac x, simp_all)
-  thus "finite {x::'a u. approx i\<cdot>x = x}"
-    by (rule finite_subset, simp add: finite_fixes_approx)
+    by (intro finite_deflation.finite_fixes
+              finite_deflation_u_map
+              finite_deflation_approx)
 qed
 
 end
