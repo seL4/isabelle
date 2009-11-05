@@ -1401,12 +1401,12 @@ $(LOG)/HOL-Boogie_Examples.gz: $(OUT)/HOL-SMT Boogie/Examples/ROOT.ML   \
   Boogie/Examples/Boogie_Max.thy Boogie/Examples/Boogie_Max.b2i         \
   Boogie/Examples/Boogie_Dijkstra.thy Boogie/Examples/VCC_Max.thy       \
   Boogie/Examples/Boogie_Dijkstra.b2i Boogie/Examples/VCC_Max.b2i       \
-  Boogie/Examples/cert/Boogie_b_max                                     \
-  Boogie/Examples/cert/Boogie_b_max.proof                               \
-  Boogie/Examples/cert/Boogie_b_Dijkstra                                \
-  Boogie/Examples/cert/Boogie_b_Dijkstra.proof                          \
-  Boogie/Examples/cert/VCC_b_maximum                                    \
-  Boogie/Examples/cert/VCC_b_maximum.proof
+  Boogie/Examples/cert/Boogie_max                                     \
+  Boogie/Examples/cert/Boogie_max.proof                               \
+  Boogie/Examples/cert/Boogie_Dijkstra                                \
+  Boogie/Examples/cert/Boogie_Dijkstra.proof                          \
+  Boogie/Examples/cert/VCC_maximum                                    \
+  Boogie/Examples/cert/VCC_maximum.proof
 	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
 
 
