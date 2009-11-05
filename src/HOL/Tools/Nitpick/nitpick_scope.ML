@@ -45,7 +45,7 @@ sig
   val all_scopes :
     extended_context -> int -> (typ option * int list) list
     -> (styp option * int list) list -> (styp option * int list) list
-    -> int list -> typ list -> typ list -> typ list -> scope list
+    -> int list -> typ list -> typ list -> typ list -> int * scope list
 end;
 
 structure Nitpick_Scope : NITPICK_SCOPE =
@@ -224,33 +224,31 @@ fun row_for_constr thy maxes_asgns constr =
   SOME (Max constr, lookup_const_ints_assign thy maxes_asgns constr)
   handle TERM ("lookup_const_ints_assign", _) => NONE
 
-(* Proof.context -> (typ option * int list) list
+(* extended_context -> (typ option * int list) list
    -> (styp option * int list) list -> (styp option * int list) list -> int list
    -> typ -> block *)
-fun block_for_type ctxt cards_asgns maxes_asgns iters_asgns bisim_depths T =
-  let val thy = ProofContext.theory_of ctxt in
-    if T = @{typ bisim_iterator} then
-      [(Card T, map (fn k => Int.max (0, k) + 1) bisim_depths)]
-    else if is_fp_iterator_type T then
-      [(Card T, map (fn k => Int.max (0, k) + 1)
-                    (lookup_const_ints_assign thy iters_asgns
-                                              (const_for_iterator_type T)))]
-    else
-      (Card T, lookup_type_ints_assign thy cards_asgns T) ::
-      (case datatype_constrs thy T of
-         [_] => []
-       | constrs => map_filter (row_for_constr thy maxes_asgns) constrs)
-  end
+fun block_for_type (ext_ctxt as {thy, ...}) cards_asgns maxes_asgns iters_asgns
+                   bisim_depths T =
+  if T = @{typ bisim_iterator} then
+    [(Card T, map (fn k => Int.max (0, k) + 1) bisim_depths)]
+  else if is_fp_iterator_type T then
+    [(Card T, map (fn k => Int.max (0, k) + 1)
+                  (lookup_const_ints_assign thy iters_asgns
+                                            (const_for_iterator_type T)))]
+  else
+    (Card T, lookup_type_ints_assign thy cards_asgns T) ::
+    (case datatype_constrs ext_ctxt T of
+       [_] => []
+     | constrs => map_filter (row_for_constr thy maxes_asgns) constrs)
 
-(* Proof.context -> (typ option * int list) list
+(* extended_context -> (typ option * int list) list
    -> (styp option * int list) list -> (styp option * int list) list -> int list
    -> typ list -> typ list -> block list *)
-fun blocks_for_types ctxt cards_asgns maxes_asgns iters_asgns bisim_depths
+fun blocks_for_types ext_ctxt cards_asgns maxes_asgns iters_asgns bisim_depths
                      mono_Ts nonmono_Ts =
   let
-    val thy = ProofContext.theory_of ctxt
     (* typ -> block *)
-    val block_for = block_for_type ctxt cards_asgns maxes_asgns iters_asgns
+    val block_for = block_for_type ext_ctxt cards_asgns maxes_asgns iters_asgns
                                    bisim_depths
     val mono_block = maps block_for mono_Ts
     val nonmono_blocks = map block_for nonmono_Ts
@@ -291,15 +289,15 @@ fun constr_max maxes x = the_default ~1 (AList.lookup (op =) maxes x)
 
 type scope_desc = (typ * int) list * (styp * int) list
 
-(* theory -> scope_desc -> typ * int -> bool *)
-fun is_surely_inconsistent_card_assign thy (card_asgns, max_asgns) (T, k) =
-  case datatype_constrs thy T of
+(* extended_context -> scope_desc -> typ * int -> bool *)
+fun is_surely_inconsistent_card_assign ext_ctxt (card_asgns, max_asgns) (T, k) =
+  case datatype_constrs ext_ctxt T of
     [] => false
   | xs =>
     let
       val precise_cards =
         map (Integer.prod
-             o map (bounded_precise_card_of_type thy k 0 card_asgns)
+             o map (bounded_precise_card_of_type ext_ctxt k 0 card_asgns)
              o binder_types o snd) xs
       val maxes = map (constr_max max_asgns) xs
       (* int -> int -> int *)
@@ -319,18 +317,19 @@ fun is_surely_inconsistent_card_assign thy (card_asgns, max_asgns) (T, k) =
     end
     handle TYPE ("Nitpick_HOL.card_of_type", _, _) => false
 
-(* theory -> scope_desc -> bool *)
-fun is_surely_inconsistent_scope_description thy (desc as (card_asgns, _)) =
-  exists (is_surely_inconsistent_card_assign thy desc) card_asgns
+(* extended_context -> scope_desc -> bool *)
+fun is_surely_inconsistent_scope_description ext_ctxt
+                                             (desc as (card_asgns, _)) =
+  exists (is_surely_inconsistent_card_assign ext_ctxt desc) card_asgns
 
-(* theory -> scope_desc -> (typ * int) list option *)
-fun repair_card_assigns thy (card_asgns, max_asgns) =
+(* extended_context -> scope_desc -> (typ * int) list option *)
+fun repair_card_assigns ext_ctxt (card_asgns, max_asgns) =
   let
     (* (typ * int) list -> (typ * int) list -> (typ * int) list option *)
     fun aux seen [] = SOME seen
       | aux seen ((T, 0) :: _) = NONE
       | aux seen ((T, k) :: asgns) =
-        (if is_surely_inconsistent_scope_description thy
+        (if is_surely_inconsistent_scope_description ext_ctxt
                 ((T, k) :: seen, max_asgns) then
            raise SAME ()
          else
@@ -362,12 +361,12 @@ fun add_row_to_scope_descriptor (kind, ks) (card_asgns, max_asgns) =
 (* block -> scope_desc *)
 fun scope_descriptor_from_block block =
   fold_rev add_row_to_scope_descriptor block ([], [])
-(* theory -> block list -> int list -> scope_desc option *)
-fun scope_descriptor_from_combination thy blocks columns =
+(* extended_context -> block list -> int list -> scope_desc option *)
+fun scope_descriptor_from_combination (ext_ctxt as {thy, ...}) blocks columns =
   let
     val (card_asgns, max_asgns) =
       maps project_block (columns ~~ blocks) |> scope_descriptor_from_block
-    val card_asgns = repair_card_assigns thy (card_asgns, max_asgns) |> the
+    val card_asgns = repair_card_assigns ext_ctxt (card_asgns, max_asgns) |> the
   in
     SOME (map (repair_iterator_assign thy card_asgns) card_asgns, max_asgns)
   end
@@ -443,7 +442,7 @@ fun datatype_spec_from_scope_descriptor (ext_ctxt as {thy, ...}) shallow_dataTs
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
       List.partition (equal true) self_recs |> pairself length
-    val precise = (card = bounded_precise_card_of_type thy (card + 1) 0
+    val precise = (card = bounded_precise_card_of_type ext_ctxt (card + 1) 0
                                                        card_asgns T)
     (* int -> int *)
     fun sum_dom_cards max =
@@ -483,23 +482,27 @@ fun fix_cards_assigns_wrt_boxing _ _ [] = []
   | fix_cards_assigns_wrt_boxing thy Ts ((NONE, ks) :: cards_asgns) =
     (NONE, ks) :: fix_cards_assigns_wrt_boxing thy Ts cards_asgns
 
+val max_scopes = 4096
 val distinct_threshold = 512
 
 (* extended_context -> int -> (typ option * int list) list
    -> (styp option * int list) list -> (styp option * int list) list -> int list
-   -> typ list -> typ list -> typ list -> scope list *)
-fun all_scopes (ext_ctxt as {thy, ctxt, ...}) sym_break cards_asgns maxes_asgns
+   -> typ list -> typ list -> typ list -> int * scope list *)
+fun all_scopes (ext_ctxt as {thy, ...}) sym_break cards_asgns maxes_asgns
                iters_asgns bisim_depths mono_Ts nonmono_Ts shallow_dataTs =
   let
     val cards_asgns = fix_cards_assigns_wrt_boxing thy mono_Ts cards_asgns
-    val blocks = blocks_for_types ctxt cards_asgns maxes_asgns iters_asgns
+    val blocks = blocks_for_types ext_ctxt cards_asgns maxes_asgns iters_asgns
                                   bisim_depths mono_Ts nonmono_Ts
     val ranks = map rank_of_block blocks
-    val descs = all_combinations_ordered_smartly (map (rpair 0) ranks)
-                |> map_filter (scope_descriptor_from_combination thy blocks)
+    val all = all_combinations_ordered_smartly (map (rpair 0) ranks)
+    val head = Library.take (max_scopes, all)
+    val descs = map_filter (scope_descriptor_from_combination ext_ctxt blocks)
+                           head
   in
-    descs |> length descs <= distinct_threshold ? distinct (op =)
-          |> map (scope_from_descriptor ext_ctxt sym_break shallow_dataTs)
+    (length all - length head,
+     descs |> length descs <= distinct_threshold ? distinct (op =)
+           |> map (scope_from_descriptor ext_ctxt sym_break shallow_dataTs))
   end
 
 end;

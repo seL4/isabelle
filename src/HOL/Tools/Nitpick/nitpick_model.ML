@@ -530,7 +530,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
                        evals, case_names, def_table, nondef_table, user_nondefs,
                        simp_table, psimp_table, intro_table, ground_thm_table,
                        ersatz_table, skolems, special_funs, unrolled_preds,
-                       wf_cache},
+                       wf_cache, constr_cache},
          card_assigns, bisim_depth, datatypes, ofs} : scope) formats all_frees
         free_names sel_names nonsel_names rel_table bounds =
   let
@@ -548,7 +548,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
        intro_table = intro_table, ground_thm_table = ground_thm_table,
        ersatz_table = ersatz_table, skolems = skolems,
        special_funs = special_funs, unrolled_preds = unrolled_preds,
-       wf_cache = wf_cache}
+       wf_cache = wf_cache, constr_cache = constr_cache}
     val scope = {ext_ctxt = ext_ctxt, card_assigns = card_assigns,
                  bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
     (* typ -> typ -> rep -> int list list -> term *)

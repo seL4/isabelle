@@ -263,7 +263,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
        intro_table = intro_table, ground_thm_table = ground_thm_table,
        ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
        special_funs = Unsynchronized.ref [],
-       unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref []}
+       unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
+       constr_cache = Unsynchronized.ref []}
     val frees = Term.add_frees assms_t []
     val _ = null (Term.add_tvars assms_t [])
             orelse raise NOT_SUPPORTED "schematic type variables"
@@ -818,9 +819,19 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
           run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
         end
 
-    val _ = scopes := all_scopes ext_ctxt sym_break cards_assigns maxes_assigns
-                                 iters_assigns bisim_depths mono_Ts nonmono_Ts
-                                 shallow_dataTs
+    val (skipped, the_scopes) =
+      all_scopes ext_ctxt sym_break cards_assigns maxes_assigns iters_assigns
+                 bisim_depths mono_Ts nonmono_Ts shallow_dataTs
+    val _ = if skipped > 0 then
+              print_m (fn () => "Too many scopes. Dropping " ^
+                                string_of_int skipped ^ " scope" ^
+                                plural_s skipped ^
+                                ". (Consider using \"mono\" or \
+                                \\"merge_type_vars\" to prevent this.)")
+            else
+              ()
+    val _ = scopes := the_scopes
+
     val batches = batch_list batch_size (!scopes)
     val outcome_code =
       (run_batches 0 (length batches) batches (max_potential, max_genuine, 0)

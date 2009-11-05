@@ -215,7 +215,7 @@ fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
           | NONE =>
             let
               val _ = Unsynchronized.change datatype_cache (cons (z, CRec z))
-              val xs = datatype_constrs thy T
+              val xs = datatype_constrs ext_ctxt T
               val (all_Cs, constr_Cs) =
                 fold_rev (fn (_, T') => fn (all_Cs, constr_Cs) =>
                              let
