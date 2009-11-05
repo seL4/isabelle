@@ -41,7 +41,7 @@ structure Rules = GenericDataFun
 val get = Item_Net.content o Rules.get o Context.Proof;
 val get_global = Item_Net.content o Rules.get o Context.Theory;
 
-fun add class (ts, ths) = LocalTheory.declaration
+fun add class (ts, ths) = LocalTheory.declaration true
   (fn phi =>
     let
       val ts' = map (Morphism.term phi) ts;

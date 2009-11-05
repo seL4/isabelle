@@ -792,7 +792,7 @@ fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, sk
        induct = induct};
 
     val ctxt3 = ctxt2
-      |> LocalTheory.declaration (fn phi =>
+      |> LocalTheory.declaration false (fn phi =>
         let val result' = morph_result phi result;
         in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
   in (result, ctxt3) end;
