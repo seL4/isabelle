@@ -520,10 +520,10 @@ fun add_ind_set_def
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
     val (intrs', elims', induct, lthy4) =
       Inductive.declare_rules kind rec_name coind no_ind cnames
-      (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
-      (map (fn th => (to_set [] (Context.Proof lthy3) th,
-         map fst (fst (Rule_Cases.get th)))) elims)
-      raw_induct' lthy3
+        (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
+        (map (fn th => (to_set [] (Context.Proof lthy3) th,
+           map fst (fst (Rule_Cases.get th)))) elims)
+        raw_induct' lthy3;
   in
     ({intrs = intrs', elims = elims', induct = induct,
       raw_induct = raw_induct', preds = map fst defs},

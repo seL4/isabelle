@@ -778,12 +778,14 @@ fun add_ind_def
 
     val (intrs, unfold) = prove_intrs quiet_mode coind mono fp_def (length bs + length xs)
       params intr_ts rec_preds_defs lthy1;
-    val elims = if no_elim then [] else
-      prove_elims quiet_mode cs params intr_ts (map Binding.name_of intr_names)
-        unfold rec_preds_defs lthy1;
+    val elims =
+      if no_elim then []
+      else
+        prove_elims quiet_mode cs params intr_ts (map Binding.name_of intr_names)
+          unfold rec_preds_defs lthy1;
     val raw_induct = zero_var_indexes
-      (if no_ind then Drule.asm_rl else
-       if coind then
+      (if no_ind then Drule.asm_rl
+       else if coind then
          singleton (ProofContext.export
            (snd (Variable.add_fixes (map (fst o dest_Free) params) lthy1)) lthy1)
            (rotate_prems ~1 (ObjectLogic.rulify
