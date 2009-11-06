@@ -178,7 +178,7 @@ unfolding inst_cprod_pcpo by simp
 lemma fst_strict [simp]: "fst \<bottom> = \<bottom>"
 unfolding inst_cprod_pcpo by (rule fst_conv)
 
-lemma csnd_strict [simp]: "snd \<bottom> = \<bottom>"
+lemma snd_strict [simp]: "snd \<bottom> = \<bottom>"
 unfolding inst_cprod_pcpo by (rule snd_conv)
 
 lemma Pair_strict [simp]: "(\<bottom>, \<bottom>) = \<bottom>"
