@@ -87,11 +87,11 @@ fun quickcheck ctxt t =
       (*  |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]*)
       |> Predicate_Compile_Core.add_quickcheck_equations options [full_constname]
     val depth_limited_modes = Predicate_Compile_Core.depth_limited_modes_of thy'' full_constname
-    val modes = Predicate_Compile_Core.generator_modes_of thy'' full_constname  
+    val modes = Predicate_Compile_Core.random_modes_of thy'' full_constname  
     val prog =
       if member (op =) modes ([], []) then
         let
-          val name = Predicate_Compile_Core.generator_name_of thy'' full_constname ([], [])
+          val name = Predicate_Compile_Core.random_function_name_of thy'' full_constname ([], [])
           val T = [@{typ code_numeral}] ---> (mk_randompredT (HOLogic.mk_tupleT (map snd vs')))
           in Const (name, T) $ Bound 0 end
       (*else if member (op =) depth_limited_modes ([], []) then
