@@ -227,7 +227,9 @@ the derivative of most elementary terms.
 * Maclauren.DERIV_tac and Maclauren.deriv_tac was removed, they are
 replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
-* Renamed method "sizechange" to "size_change".
+* Renamed methods:
+    sizechange -> size_change
+    induct_scheme -> induction_schema
 
 
 *** ML ***
