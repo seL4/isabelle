@@ -2074,7 +2074,7 @@ fun dest_prem thy params t =
     (v as Free _, ts) => if v mem params then Prem (ts, v) else Sidecond t
   | (c as Const (@{const_name Not}, _), [t]) => (case dest_prem thy params t of          
       Prem (ts, t) => Negprem (ts, t)
-    | Negprem _ => error ("Double negation not allowed in premise: " ^ (Syntax.string_of_term_global thy (c $ t))) 
+    | Negprem _ => error ("Double negation not allowed in premise: " ^ Syntax.string_of_term_global thy (c $ t)) 
     | Sidecond t => Sidecond (c $ t))
   | (c as Const (s, _), ts) =>
     if is_registered thy s then
@@ -2206,7 +2206,7 @@ fun add_code_equations thy nparams preds result_thmss =
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
             val def = predfun_definition_of thy predname full_mode
-            val tac = fn {...} => Simplifier.simp_tac
+            val tac = fn _ => Simplifier.simp_tac
               (HOL_basic_ss addsimps [def, @{thm eval_pred}]) 1
             val eq = Goal.prove (ProofContext.init thy) arg_names [] eq_term tac
           in
@@ -2506,7 +2506,7 @@ fun analyze_compr thy compfuns (depth_limit, (random, annotated)) t_compr =
         NONE => (if random then [@{term "5 :: code_numeral"}] else [])
       | SOME d => [@{term "True"}, HOLogic.mk_number @{typ "code_numeral"} d]
     val comp_modifiers =
-      case depth_limit of NONE => 
+      case depth_limit of NONE =>
       (if random then random_comp_modifiers else
        if annotated then annotated_comp_modifiers else predicate_comp_modifiers) | SOME _ => depth_limited_comp_modifiers
     val mk_fun_of =

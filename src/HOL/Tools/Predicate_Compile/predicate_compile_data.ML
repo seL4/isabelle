@@ -161,7 +161,9 @@ fun store_thm_in_table options ignore_consts thy th=
 
 fun make_const_spec_table options thy =
   let
-    fun store ignore_const f = fold (store_thm_in_table options ignore_const thy) (map (Thm.transfer thy) (f (ProofContext.init thy)))
+    fun store ignore_const f =
+      fold (store_thm_in_table options ignore_const thy)
+        (map (Thm.transfer thy) (f (ProofContext.init thy)))
     val table = Symtab.empty
       |> store [] Predicate_Compile_Alternative_Defs.get
     val ignore_consts = Symtab.keys table
