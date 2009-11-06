@@ -293,8 +293,8 @@ fun finite scan path =
 fun read_int' s = (case read_int (explode s) of (i, []) => SOME i | _ => NONE)
 
 fun $$$ s = Scan.one (fn (_, Token s') => s = s' | _ => false)
-val str = Scan.some (fn (_, Token s) => SOME s | _ => NONE)
-val num = Scan.some (fn (_, Token s) => read_int' s | _ => NONE)
+fun str st = Scan.some (fn (_, Token s) => SOME s | _ => NONE) st
+fun num st = Scan.some (fn (_, Token s) => read_int' s | _ => NONE) st
 
 fun scan_line key scan =
   $$$ key |-- scan --| Scan.one (fn (_, Newline) => true | _ => false)

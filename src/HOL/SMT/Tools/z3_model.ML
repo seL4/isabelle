@@ -55,7 +55,8 @@ val mapping = space -- Scan.this_string "->"
 val value = mapping |-- expr
 
 val args_case = Scan.repeat expr -- value
-val else_case = space -- Scan.this_string "else" |-- value >> pair []
+val else_case = space -- Scan.this_string "else" |-- value >>
+  pair ([] : expr list)
 
 val func =
   let fun cases st = (else_case >> single || args_case ::: cases) st
