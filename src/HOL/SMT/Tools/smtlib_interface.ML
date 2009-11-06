@@ -79,29 +79,39 @@ fun dest_marker (T.SApp ("__term", [t])) = SOME (true, t)
 val tvar = prefix "?"
 val fvar = prefix "$"
 
+datatype lexpr =
+  LVar of string |
+  LTerm of lexpr list * (string, string) T.sterm
+
 fun wr_expr loc env t =
   (case t of
-    T.SVar i => wr1 (nth env i)
+    T.SVar i =>
+      (case nth env i of
+        LVar name => wr1 name
+      | LTerm (env', t') => wr_expr loc env' t')
   | T.SApp (n, ts) =>
       (case dest_marker t of
         SOME (loc', t') => wr_expr loc' env t'
       | NONE => wrn (wr_expr loc env) n ts)
   | T.SLet ((v, _), t1, t2) =>
-      if loc then raise SMT_Solver.SMT "SMTLIB: let expression in term"
+      if loc
+      then
+        let val (_, t1') = the (dest_marker t1)
+        in wr_expr loc (LTerm (env, t1') :: env) t2 end
       else
         let
           val (loc', t1') = the (dest_marker t1)
           val (kind, v') = if loc' then ("let", tvar v)  else ("flet", fvar v)
         in
           par (wr kind #> par (wr v' #> wr_expr loc' env t1') #>
-            wr_expr loc (v' :: env) t2)
+            wr_expr loc (LVar v' :: env) t2)
         end
   | T.SQuant (q, vs, ps, b) =>
       let
         val wr_quant = wr o (fn T.SForall => "forall" | T.SExists => "exists")
         fun wr_var (n, s) = par (wr (tvar n) #> wr1 s)
 
-        val wre = wr_expr loc (map (tvar o fst) (rev vs) @ env)
+        val wre = wr_expr loc (map (LVar o tvar o fst) (rev vs) @ env)
 
         fun wrp s ts = wr1 (":" ^ s ^ " {") #> fold wre ts #> wr1 "}"
         fun wr_pat (T.SPat ts) = wrp "pat" ts

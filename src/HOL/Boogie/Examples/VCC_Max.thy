@@ -48,9 +48,9 @@ boogie_open (quiet) "~~/src/HOL/Boogie/Examples/VCC_Max"
 
 boogie_status
 
-boogie_vc b_maximum
+boogie_vc maximum
   unfolding labels
-  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/VCC_b_maximum"]]
+  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/VCC_maximum"]]
   using [[z3_proofs=true]]
   by (smt boogie)
 

@@ -13,6 +13,22 @@ uses
   ("Tools/boogie_split.ML")
 begin
 
+text {*
+HOL-Boogie and its applications are described in:
+\begin{itemize}
+
+\item Sascha B"ohme, K. Rustan M. Leino, and Burkhart Wolff.
+HOL-Boogie --- An Interactive Prover for the Boogie Program-Verifier.
+Theorem Proving in Higher Order Logics, 2008.
+
+\item Sascha B"ohme, Micha{\l} Moskal, Wolfram Schulte, and Burkhart Wolff.
+HOL-Boogie --- An Interactive Prover-Backend for the Verifying C Compiler.
+Journal of Automated Reasoning, 2009.
+
+\end{itemize}
+*}
+
+
 section {* Built-in types and functions of Boogie *}
 
 subsection {* Labels *}
