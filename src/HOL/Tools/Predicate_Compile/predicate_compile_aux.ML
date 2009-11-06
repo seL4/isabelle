@@ -170,7 +170,8 @@ datatype options = Options of {
 
   inductify : bool,
   random : bool,
-  depth_limited : bool
+  depth_limited : bool,
+  annotated : bool
 };
 
 fun expected_modes (Options opt) = #expected_modes opt
@@ -185,6 +186,7 @@ fun skip_proof (Options opt) = #skip_proof opt
 fun is_inductify (Options opt) = #inductify opt
 fun is_random (Options opt) = #random opt
 fun is_depth_limited (Options opt) = #depth_limited opt
+fun is_annotated (Options opt) = #annotated opt
 
 val default_options = Options {
   expected_modes = NONE,
@@ -198,7 +200,8 @@ val default_options = Options {
   
   inductify = false,
   random = false,
-  depth_limited = false
+  depth_limited = false,
+  annotated = false
 }
 
 

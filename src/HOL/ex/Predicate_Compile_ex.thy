@@ -247,13 +247,15 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
     "append [] xs xs"
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
+(*code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .*)
 code_pred [depth_limited] append .
-code_pred [random] append .
+(*code_pred [random] append .*)
+code_pred [annotated] append .
 
-thm append.equation
+(*thm append.equation
 thm append.depth_limited_equation
-thm append.random_equation
+thm append.random_equation*)
+thm append.annotated_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"

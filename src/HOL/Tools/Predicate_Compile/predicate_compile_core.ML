@@ -52,6 +52,7 @@ sig
   val add_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_quickcheck_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
   val add_depth_limited_equations : Predicate_Compile_Aux.options -> string list -> theory -> theory
+  val mk_tracing : string -> term -> term
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
@@ -115,6 +116,10 @@ fun mk_fun_comp (t, u) =
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
   Type ("*", [Type ("*", [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])
+
+fun mk_tracing s t =
+  Const(@{const_name Code_Evaluation.tracing},
+    @{typ String.literal} --> (fastype_of t) --> (fastype_of t)) $ (HOLogic.mk_literal s) $ t
 
 (* destruction of intro rules *)
 
@@ -198,16 +203,21 @@ datatype pred_data = PredData of {
   elim : thm option,
   nparams : int,
   functions : (mode * predfun_data) list,
-  generators : (mode * function_data) list,
-  depth_limited_functions : (mode * function_data) list 
+  generators : (mode * function_data) list, (*TODO: maybe rename to random_functions *)
+  depth_limited_functions : (mode * function_data) list,
+  annotated_functions : (mode * function_data) list
 };
 
 fun rep_pred_data (PredData data) = data;
-fun mk_pred_data ((intros, elim, nparams), (functions, generators, depth_limited_functions)) =
+fun mk_pred_data ((intros, elim, nparams),
+  (functions, generators, depth_limited_functions, annotated_functions)) =
   PredData {intros = intros, elim = elim, nparams = nparams,
-    functions = functions, generators = generators, depth_limited_functions = depth_limited_functions}
-fun map_pred_data f (PredData {intros, elim, nparams, functions, generators, depth_limited_functions}) =
-  mk_pred_data (f ((intros, elim, nparams), (functions, generators, depth_limited_functions)))
+    functions = functions, generators = generators,
+    depth_limited_functions = depth_limited_functions, annotated_functions = annotated_functions}
+fun map_pred_data f (PredData {intros, elim, nparams,
+  functions, generators, depth_limited_functions, annotated_functions}) =
+  mk_pred_data (f ((intros, elim, nparams), (functions, generators,
+    depth_limited_functions, annotated_functions)))
 
 fun eq_option eq (NONE, NONE) = true
   | eq_option eq (SOME x, SOME y) = eq (x, y)
@@ -301,6 +311,19 @@ fun the_depth_limited_function_data thy name mode = case lookup_depth_limited_fu
    | SOME data => data
 
 val depth_limited_function_name_of = #name ooo the_depth_limited_function_data
+
+fun lookup_annotated_function_data thy name mode =
+  Option.map rep_function_data (AList.lookup (op =)
+  (#annotated_functions (the_pred_data thy name)) mode)
+
+fun the_annotated_function_data thy name mode = case lookup_annotated_function_data thy name mode
+  of NONE => error ("No annotated function defined for mode " ^ string_of_mode mode
+    ^ " of predicate " ^ name)
+   | SOME data => data
+
+val annotated_modes_of = (map fst) o #annotated_functions oo the_pred_data
+
+val annotated_function_name_of = #name ooo the_annotated_function_data
 
 (* diagnostic display functions *)
 
@@ -576,19 +599,20 @@ fun fetch_pred_data thy name =
           (mk_casesrule (ProofContext.init thy) pred nparams intros)
         val (intros, elim) = (*if null intros then noclause thy name elim else*) (intros, elim)
       in
-        mk_pred_data ((intros, SOME elim, nparams), ([], [], []))
+        mk_pred_data ((intros, SOME elim, nparams), ([], [], [], []))
       end                                                                    
   | NONE => error ("No such predicate: " ^ quote name)
 
 (* updaters *)
 
-fun apfst3 f (x, y, z) =  (f x, y, z)
-fun apsnd3 f (x, y, z) =  (x, f y, z)
-fun aptrd3 f (x, y, z) =  (x, y, f z)
+fun apfst4 f (x1, x2, x3, x4) = (f x1, x2, x3, x4)
+fun apsnd4 f (x1, x2, x3, x4) = (x1, f x2, x3, x4)
+fun aptrd4 f (x1, x2, x3, x4) = (x1, x2, f x3, x4)
+fun apfourth4 f (x1, x2, x3, x4) = (x1, x2, x3, f x4)
 
 fun add_predfun name mode data =
   let
-    val add = (apsnd o apfst3 o cons) (mode, mk_predfun_data data)
+    val add = (apsnd o apfst4 o cons) (mode, mk_predfun_data data)
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
 fun is_inductive_predicate thy name =
@@ -638,7 +662,7 @@ fun add_intro thm thy = let
      | NONE =>
        let
          val nparams = the_default (guess_nparams T)  (try (#nparams o rep_pred_data o (fetch_pred_data thy)) name)
-       in Graph.new_node (name, mk_pred_data (([thm], NONE, nparams), ([], [], []))) gr end;
+       in Graph.new_node (name, mk_pred_data (([thm], NONE, nparams), ([], [], [], []))) gr end;
   in PredData.map cons_intro thy end
 
 fun set_elim thm = let
@@ -659,7 +683,7 @@ fun register_predicate (constname, pre_intros, pre_elim, nparams) thy =
   in
     if not (member (op =) (Graph.keys (PredData.get thy)) constname) then
       PredData.map
-        (Graph.new_node (constname, mk_pred_data ((intros, SOME elim, nparams), ([], [], [])))) thy
+        (Graph.new_node (constname, mk_pred_data ((intros, SOME elim, nparams), ([], [], [], [])))) thy
     else thy
   end
 
@@ -681,14 +705,21 @@ fun register_intros (constname, pre_intros) thy =
 
 fun set_generator_name pred mode name = 
   let
-    val set = (apsnd o apsnd3 o cons) (mode, mk_function_data (name, NONE))
+    val set = (apsnd o apsnd4 o cons) (mode, mk_function_data (name, NONE))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
 
 fun set_depth_limited_function_name pred mode name = 
   let
-    val set = (apsnd o aptrd3 o cons) (mode, mk_function_data (name, NONE))
+    val set = (apsnd o aptrd4 o cons) (mode, mk_function_data (name, NONE))
+  in
+    PredData.map (Graph.map_node pred (map_pred_data set))
+  end
+
+fun set_annotated_function_name pred mode name =
+  let
+    val set = (apsnd o apfourth4 o cons) (mode, mk_function_data (name, NONE))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
@@ -714,19 +745,6 @@ fun mk_sup (CompilationFuns funs) = #mk_sup funs
 fun mk_if (CompilationFuns funs) = #mk_if funs
 fun mk_not (CompilationFuns funs) = #mk_not funs
 fun mk_map (CompilationFuns funs) = #mk_map funs
-
-fun funT_of compfuns (iss, is) T =
-  let
-    val Ts = binder_types T
-    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
-    val paramTs' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) iss paramTs
-  in
-    (paramTs' @ inargTs) ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
-  end;
-
-fun mk_fun_of compfuns thy (name, T) mode = 
-  Const (predfun_name_of thy name mode, funT_of compfuns mode T)
-
 
 structure PredicateCompFuns =
 struct
@@ -833,6 +851,8 @@ fun lift_random random =
       RandomPredCompFuns.mk_randompredT T) $ random
   end;
 
+(* function types and names of different compilations *)
+
 fun depth_limited_funT_of compfuns (iss, is) T =
   let
     val Ts = binder_types T
@@ -841,7 +861,22 @@ fun depth_limited_funT_of compfuns (iss, is) T =
   in
     (paramTs' @ inargTs @ [@{typ bool}, @{typ "code_numeral"}])
       ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
-  end;  
+  end;
+
+fun funT_of compfuns (iss, is) T =
+  let
+    val Ts = binder_types T
+    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
+    val paramTs' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) iss paramTs
+  in
+    (paramTs' @ inargTs) ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
+  end;
+
+fun mk_fun_of compfuns thy (name, T) mode = 
+  Const (predfun_name_of thy name mode, funT_of compfuns mode T)
+
+fun mk_annotated_fun_of compfuns thy (name, T) mode =
+  Const (annotated_function_name_of thy name mode, funT_of compfuns mode T)
 
 fun mk_depth_limited_fun_of compfuns thy (name, T) mode =
   Const (depth_limited_function_name_of thy name mode, depth_limited_funT_of compfuns mode T)
@@ -1370,9 +1405,7 @@ fun compile_pred compilation_modifiers compfuns thy all_vs param_vs s T mode mod
       map (compile_clause compilation_modifiers compfuns
         thy all_vs param_vs additional_arguments mode (HOLogic.mk_tuple in_ts)) moded_cls;
     val compilation = Comp_Mod.wrap_compilation compilation_modifiers compfuns s T mode additional_arguments
-      (if null cl_ts then
-        mk_bot compfuns (HOLogic.mk_tupleT Us2)
-      else foldr1 (mk_sup compfuns) cl_ts)
+      (if null cl_ts then mk_bot compfuns (HOLogic.mk_tupleT Us2) else foldr1 (mk_sup compfuns) cl_ts)
     val fun_const =
       Const (Comp_Mod.const_name_of compilation_modifiers thy s mode,
         Comp_Mod.funT_of compilation_modifiers compfuns mode T)
@@ -1598,7 +1631,23 @@ fun random_create_definitions preds (name, modes) thy =
   in
     fold create_definition modes thy
   end;
-  
+
+fun create_definitions_of_annotated_functions preds (name, modes) thy =
+  let
+    val T = AList.lookup (op =) preds name |> the
+    fun create_definition mode thy =
+      let
+        val mode_cname = create_constname_of_mode thy "annotated_" name mode
+        val funT = funT_of PredicateCompFuns.compfuns mode T
+      in
+        thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
+        |> set_annotated_function_name name mode mode_cname 
+      end;
+  in
+    fold create_definition modes thy
+  end;
+
+
 (* Proving equivalence of term *)
 
 fun is_Type (Type _) = true
@@ -2308,6 +2357,16 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   transform_additional_arguments = K I : (indprem -> term list -> term list)
   }
 
+val annotated_comp_modifiers = Comp_Mod.Comp_Modifiers
+  {const_name_of = annotated_function_name_of,
+  funT_of = funT_of : (compilation_funs -> mode -> typ -> typ),
+  additional_arguments = K [],
+  wrap_compilation =
+    fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
+      mk_tracing ("calling predicate " ^ s ^ " with mode " ^ string_of_mode mode) compilation,
+  transform_additional_arguments = K I : (indprem -> term list -> term list)
+  }
+
 val add_equations = gen_add_equations
   (Steps {infer_modes = infer_modes,
   create_definitions = create_definitions,
@@ -2325,6 +2384,15 @@ val add_depth_limited_equations = gen_add_equations
   add_code_equations = K (K (K I)),
   are_not_defined = fn thy => forall (null o depth_limited_modes_of thy),
   qname = "depth_limited_equation"})
+
+val add_annotated_equations = gen_add_equations
+  (Steps {infer_modes = infer_modes,
+  create_definitions = create_definitions_of_annotated_functions,
+  compile_preds = compile_preds annotated_comp_modifiers PredicateCompFuns.compfuns,
+  prove = prove_by_skip,
+  add_code_equations = K (K (K I)),
+  are_not_defined = fn thy => forall (null o annotated_modes_of thy),
+  qname = "annotated_equation"})
 
 val add_quickcheck_equations = gen_add_equations
   (Steps {infer_modes = infer_modes_with_generator,
@@ -2392,6 +2460,8 @@ fun generic_code_pred prep_const options raw_const lthy =
             add_quickcheck_equations options [const])
            else if is_depth_limited options then
              add_depth_limited_equations options [const]
+           else if is_annotated options then
+             add_annotated_equations options [const]
            else
              add_equations options [const]))
       end
@@ -2409,7 +2479,7 @@ val random_eval_ref = Unsynchronized.ref (NONE : (unit -> int * int -> term Pred
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 (* TODO: *)
-fun analyze_compr thy compfuns (depth_limit, random) t_compr =
+fun analyze_compr thy compfuns (depth_limit, (random, annotated)) t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t_compr);
@@ -2437,8 +2507,11 @@ fun analyze_compr thy compfuns (depth_limit, random) t_compr =
       | SOME d => [@{term "True"}, HOLogic.mk_number @{typ "code_numeral"} d]
     val comp_modifiers =
       case depth_limit of NONE => 
-      (if random then random_comp_modifiers else predicate_comp_modifiers) | SOME _ => depth_limited_comp_modifiers
-    val mk_fun_of = if random then mk_generator_of else
+      (if random then random_comp_modifiers else
+       if annotated then annotated_comp_modifiers else predicate_comp_modifiers) | SOME _ => depth_limited_comp_modifiers
+    val mk_fun_of =
+      if random then mk_generator_of else
+      if annotated then mk_annotated_fun_of else
       if (is_some depth_limit) then mk_depth_limited_fun_of else mk_fun_of
     val t_pred = compile_expr comp_modifiers compfuns thy
       (m, list_comb (pred, params)) inargs additional_arguments;
@@ -2457,7 +2530,7 @@ fun analyze_compr thy compfuns (depth_limit, random) t_compr =
       in mk_map compfuns T_pred T_compr arrange t_pred end
   in t_eval end;
 
-fun eval thy (options as (depth_limit, random)) t_compr =
+fun eval thy (options as (depth_limit, (random, annotated))) t_compr =
   let
     val compfuns = if random then RandomPredCompFuns.compfuns else PredicateCompFuns.compfuns
     val t = analyze_compr thy compfuns options t_compr;
@@ -2510,8 +2583,10 @@ val options =
   let
     val depth_limit = Scan.optional (Args.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
     val random = Scan.optional (Args.$$$ "random" >> K true) false
+    val annotated = Scan.optional (Args.$$$ "annotated" >> K true) false
   in
-    Scan.optional (P.$$$ "[" |-- depth_limit -- random --| P.$$$ "]") (NONE, false)
+    Scan.optional (P.$$$ "[" |-- depth_limit -- (random -- annotated) --| P.$$$ "]")
+      (NONE, (false, false))
   end
 
 val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
