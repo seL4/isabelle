@@ -168,7 +168,7 @@ where
 
 
 
-subsection {* Refined analysis: The @{text sizechange} method *}
+subsection {* Refined analysis: The @{text size_change} method *}
 
 text {* Unsolvable for @{text lexicographic_order} *}
 
@@ -179,7 +179,7 @@ where
 | "fun1 (Suc a, 0) = 0"
 | "fun1 (Suc a, Suc b) = fun1 (b, a)"
 by pat_completeness auto
-termination by sizechange
+termination by size_change
 
 
 text {* 
@@ -195,7 +195,7 @@ where
 | "oprod x y z = eprod x (y - 1) (z+x)"
 | "eprod x y z = (if y=0 then z else prod (2*x) (y div 2) z)"
 by pat_completeness auto
-termination by sizechange
+termination by size_change
 
 text {* 
   Permutations of arguments:
@@ -207,7 +207,7 @@ where
                   else if n > 0 then perm r (n - 1) m
                   else m)"
 by auto
-termination by sizechange
+termination by size_change
 
 text {*
   Artificial examples and regression tests:
@@ -227,6 +227,6 @@ where
            0
       )"
 by pat_completeness auto
-termination by sizechange -- {* requires Multiset *}
+termination by size_change -- {* requires Multiset *}
 
 end
