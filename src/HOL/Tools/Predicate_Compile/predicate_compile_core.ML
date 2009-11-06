@@ -871,6 +871,15 @@ fun lift_random random =
 
 (* function types and names of different compilations *)
 
+fun funT_of compfuns (iss, is) T =
+  let
+    val Ts = binder_types T
+    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
+    val paramTs' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) iss paramTs
+  in
+    (paramTs' @ inargTs) ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
+  end;
+
 fun depth_limited_funT_of compfuns (iss, is) T =
   let
     val Ts = binder_types T
@@ -882,26 +891,15 @@ fun depth_limited_funT_of compfuns (iss, is) T =
       ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
   end;
 
-fun funT_of compfuns (iss, is) T =
+fun random_function_funT_of (iss, is) T =
   let
     val Ts = binder_types T
     val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
-    val paramTs' = map2 (fn NONE => I | SOME is => funT_of compfuns ([], is)) iss paramTs
+    val paramTs' = map2 (fn SOME is => random_function_funT_of ([], is) | NONE => I) iss paramTs
   in
-    (paramTs' @ inargTs) ---> (mk_predT compfuns (HOLogic.mk_tupleT outargTs))
-  end;
-
-fun mk_fun_of compfuns thy (name, T) mode = 
-  Const (predfun_name_of thy name mode, funT_of compfuns mode T)
-
-fun mk_annotated_fun_of compfuns thy (name, T) mode =
-  Const (annotated_function_name_of thy name mode, funT_of compfuns mode T)
-
-fun mk_depth_limited_fun_of compfuns thy (name, T) mode =
-  Const (depth_limited_function_name_of thy name mode, depth_limited_funT_of compfuns mode T)
-  
-fun mk_random_fun_of compfuns thy (name, T) mode = 
-  Const (random_function_name_of thy name mode, depth_limited_funT_of compfuns mode T)
+    (paramTs' @ inargTs @ [@{typ code_numeral}]) --->
+      (mk_predT RandomPredCompFuns.compfuns (HOLogic.mk_tupleT outargTs))
+  end
 
 (* Mode analysis *)
 
@@ -1227,7 +1225,9 @@ struct
 
 datatype comp_modifiers = Comp_Modifiers of
 {
-  const_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string,
+  function_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string,
+  set_function_name : string -> Predicate_Compile_Aux.mode -> string -> theory -> theory,
+  function_name_prefix : string,
   funT_of : compilation_funs -> mode -> typ -> typ,
   additional_arguments : string list -> term list,
   wrap_compilation : compilation_funs -> string -> typ -> mode -> term list -> term -> term,
@@ -1236,7 +1236,9 @@ datatype comp_modifiers = Comp_Modifiers of
 
 fun dest_comp_modifiers (Comp_Modifiers c) = c
 
-val const_name_of = #const_name_of o dest_comp_modifiers
+val function_name_of = #function_name_of o dest_comp_modifiers
+val set_function_name = #set_function_name o dest_comp_modifiers
+val function_name_prefix = #function_name_prefix o dest_comp_modifiers
 val funT_of = #funT_of o dest_comp_modifiers
 val additional_arguments = #additional_arguments o dest_comp_modifiers
 val wrap_compilation = #wrap_compilation o dest_comp_modifiers
@@ -1302,7 +1304,7 @@ fun compile_param compilation_modifiers compfuns thy (NONE, t) = t
      val params' = map (compile_param compilation_modifiers compfuns thy) (ms ~~ params)
      val f' =
        case f of
-         Const (name, T) => Const (Comp_Mod.const_name_of compilation_modifiers thy name mode,
+         Const (name, T) => Const (Comp_Mod.function_name_of compilation_modifiers thy name mode,
            Comp_Mod.funT_of compilation_modifiers compfuns mode T)
        | Free (name, T) => Free (name, Comp_Mod.funT_of compilation_modifiers compfuns mode T)
        | _ => error ("PredicateCompiler: illegal parameter term")
@@ -1316,8 +1318,7 @@ fun compile_expr compilation_modifiers compfuns thy ((Mode (mode, _, ms)), t)
     (Const (name, T), params) =>
        let
          val params' = map (compile_param compilation_modifiers compfuns thy) (ms ~~ params)
-           (*val mk_fun_of = if depth_limited then mk_depth_limited_fun_of else mk_fun_of*)
-         val name' = Comp_Mod.const_name_of compilation_modifiers thy name mode
+         val name' = Comp_Mod.function_name_of compilation_modifiers thy name mode
          val T' = Comp_Mod.funT_of compilation_modifiers compfuns mode T
        in
          (list_comb (Const (name', T'), params' @ inargs @ additional_arguments))
@@ -1443,7 +1444,7 @@ fun compile_pred compilation_modifiers compfuns thy all_vs param_vs s T mode mod
         mk_bot compfuns (HOLogic.mk_tupleT Us2)
       else foldr1 (mk_sup compfuns) cl_ts)
     val fun_const =
-      Const (Comp_Mod.const_name_of compilation_modifiers thy s mode,
+      Const (Comp_Mod.function_name_of compilation_modifiers thy s mode,
         Comp_Mod.funT_of compilation_modifiers compfuns mode T)
   in
     HOLogic.mk_Trueprop
@@ -1634,61 +1635,21 @@ fun create_definitions preds (name, modes) thy =
     fold create_definition modes thy
   end;
 
-fun create_definitions_of_depth_limited_functions preds (name, modes) thy =
+fun define_functions comp_modifiers compfuns preds (name, modes) thy =
   let
     val T = AList.lookup (op =) preds name |> the
     fun create_definition mode thy =
       let
-        val mode_cname = create_constname_of_mode thy "depth_limited_" name mode
-        val funT = depth_limited_funT_of PredicateCompFuns.compfuns mode T
+        val function_name_prefix = Comp_Mod.function_name_prefix comp_modifiers
+        val mode_cname = create_constname_of_mode thy function_name_prefix name mode
+        val funT = Comp_Mod.funT_of comp_modifiers compfuns mode T
       in
         thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
-        |> set_depth_limited_function_name name mode mode_cname 
+        |> Comp_Mod.set_function_name comp_modifiers name mode mode_cname
       end;
   in
     fold create_definition modes thy
   end;
-
-fun random_function_funT_of (iss, is) T =
-  let
-    val Ts = binder_types T
-    val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
-    val paramTs' = map2 (fn SOME is => random_function_funT_of ([], is) | NONE => I) iss paramTs
-  in
-    (paramTs' @ inargTs @ [@{typ code_numeral}]) --->
-      (mk_predT RandomPredCompFuns.compfuns (HOLogic.mk_tupleT outargTs))
-  end
-
-fun random_create_definitions preds (name, modes) thy =
-  let
-    val T = AList.lookup (op =) preds name |> the
-    fun create_definition mode thy =
-      let
-        val mode_cname = create_constname_of_mode thy "gen_" name mode
-        val funT = random_function_funT_of mode T
-      in
-        thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
-        |> set_random_function_name name mode mode_cname
-      end;
-  in
-    fold create_definition modes thy
-  end;
-
-fun create_definitions_of_annotated_functions preds (name, modes) thy =
-  let
-    val T = AList.lookup (op =) preds name |> the
-    fun create_definition mode thy =
-      let
-        val mode_cname = create_constname_of_mode thy "annotated_" name mode
-        val funT = funT_of PredicateCompFuns.compfuns mode T
-      in
-        thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
-        |> set_annotated_function_name name mode mode_cname 
-      end;
-  in
-    fold create_definition modes thy
-  end;
-
 
 (* Proving equivalence of term *)
 
@@ -2277,7 +2238,7 @@ datatype steps = Steps of
   {
   compile_preds : theory -> string list -> string list -> (string * typ) list
     -> (moded_clause list) pred_mode_table -> term pred_mode_table,
-  create_definitions: (string * typ) list -> string * mode list -> theory -> theory,
+  define_functions : (string * typ) list -> string * mode list -> theory -> theory,
   infer_modes : options -> theory -> (string * mode list) list -> (string * mode list) list
     -> string list -> (string * (term list * indprem list) list) list
     -> moded_clause list pred_mode_table,
@@ -2308,7 +2269,7 @@ fun add_equations_of steps options prednames thy =
     val _ = print_modes options modes
       (*val _ = print_moded_clauses thy moded_clauses*)
     val _ = print_step options "Defining executable functions..."
-    val thy' = fold (#create_definitions (dest_steps steps) preds) modes thy
+    val thy' = fold (#define_functions (dest_steps steps) preds) modes thy
       |> Theory.checkpoint
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
@@ -2364,7 +2325,9 @@ fun gen_add_equations steps options names thy =
 (* different instantiantions of the predicate compiler *)
 
 val predicate_comp_modifiers = Comp_Mod.Comp_Modifiers
-  {const_name_of = predfun_name_of : (theory -> string -> mode -> string),
+  {function_name_of = predfun_name_of : (theory -> string -> mode -> string),
+  set_function_name = (fn _ => fn _ => fn _ => I),
+  function_name_prefix = "",
   funT_of = funT_of : (compilation_funs -> mode -> typ -> typ),
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -2373,8 +2336,10 @@ val predicate_comp_modifiers = Comp_Mod.Comp_Modifiers
   }
 
 val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
-  {const_name_of = depth_limited_function_name_of,
+  {function_name_of = depth_limited_function_name_of,
+  set_function_name = set_depth_limited_function_name,
   funT_of = depth_limited_funT_of : (compilation_funs -> mode -> typ -> typ),
+  function_name_prefix = "depth_limited_",
   additional_arguments = fn names =>
     let
       val [depth_name, polarity_name] = Name.variant_list names ["depth", "polarity"]
@@ -2407,7 +2372,9 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   }
 
 val random_comp_modifiers = Comp_Mod.Comp_Modifiers
-  {const_name_of = random_function_name_of,
+  {function_name_of = random_function_name_of,
+  set_function_name = set_random_function_name,
+  function_name_prefix = "random",
   funT_of = K random_function_funT_of : (compilation_funs -> mode -> typ -> typ),
   additional_arguments = fn names => [Free (Name.variant names "size", @{typ code_numeral})],
   wrap_compilation = K (K (K (K (K I))))
@@ -2416,7 +2383,9 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   }
 
 val annotated_comp_modifiers = Comp_Mod.Comp_Modifiers
-  {const_name_of = annotated_function_name_of,
+  {function_name_of = annotated_function_name_of,
+  set_function_name = set_annotated_function_name,
+  function_name_prefix = "annotated",
   funT_of = funT_of : (compilation_funs -> mode -> typ -> typ),
   additional_arguments = K [],
   wrap_compilation =
@@ -2427,7 +2396,7 @@ val annotated_comp_modifiers = Comp_Mod.Comp_Modifiers
 
 val add_equations = gen_add_equations
   (Steps {infer_modes = infer_modes,
-  create_definitions = create_definitions,
+  define_functions = create_definitions,
   compile_preds = compile_preds predicate_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove,
   add_code_equations = add_code_equations,
@@ -2436,7 +2405,7 @@ val add_equations = gen_add_equations
 
 val add_depth_limited_equations = gen_add_equations
   (Steps {infer_modes = infer_modes,
-  create_definitions = create_definitions_of_depth_limited_functions,
+  define_functions = define_functions depth_limited_comp_modifiers PredicateCompFuns.compfuns,
   compile_preds = compile_preds depth_limited_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove_by_skip,
   add_code_equations = K (K (K I)),
@@ -2445,7 +2414,7 @@ val add_depth_limited_equations = gen_add_equations
 
 val add_annotated_equations = gen_add_equations
   (Steps {infer_modes = infer_modes,
-  create_definitions = create_definitions_of_annotated_functions,
+  define_functions = define_functions annotated_comp_modifiers PredicateCompFuns.compfuns,
   compile_preds = compile_preds annotated_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove_by_skip,
   add_code_equations = K (K (K I)),
@@ -2454,7 +2423,7 @@ val add_annotated_equations = gen_add_equations
 
 val add_quickcheck_equations = gen_add_equations
   (Steps {infer_modes = infer_modes_with_generator,
-  create_definitions = random_create_definitions,
+  define_functions = define_functions random_comp_modifiers RandomPredCompFuns.compfuns,
   compile_preds = compile_preds random_comp_modifiers RandomPredCompFuns.compfuns,
   prove = prove_by_skip,
   add_code_equations = K (K (K I)),
@@ -2537,7 +2506,7 @@ val random_eval_ref =
   Unsynchronized.ref (NONE : (unit -> int * int -> term Predicate.pred * (int * int)) option);
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
-(* TODO: *)
+(* TODO: make analyze_compr generic with respect to the compilation modifiers*)
 fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated)) t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
@@ -2578,10 +2547,6 @@ fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated
           (if random then random_comp_modifiers else
            if annotated then annotated_comp_modifiers else predicate_comp_modifiers)
       | SOME _ => depth_limited_comp_modifiers
-    val mk_fun_of =
-      if random then mk_random_fun_of else
-      if annotated then mk_annotated_fun_of else
-      if (is_some depth_limit) then mk_depth_limited_fun_of else mk_fun_of
     val t_pred = compile_expr comp_modifiers compfuns thy
       (m, list_comb (pred, params)) inargs additional_arguments;
     val t_eval = if null outargs then t_pred else
