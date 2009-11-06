@@ -1,11 +1,15 @@
 (*  Title:      HOL/Tools/ATP_Manager/atp_minimal.ML
     Author:     Philipp Meyer, TU Muenchen
 
-Minimalization of theorem list for metis by using an external automated theorem prover
+Minimization of theorem list for metis by using an external automated theorem prover
 *)
 
 signature ATP_MINIMAL =
 sig
+  val minimize: ATP_Wrapper.prover -> string -> int -> Proof.state ->
+    (string * thm list) list -> ((string * thm list) list * int) option * string
+  (* To be removed once TN has finished his measurements;
+     the int component of the result should then be removed: *)
   val minimalize: ATP_Wrapper.prover -> string -> int -> Proof.state ->
     (string * thm list) list -> ((string * thm list) list * int) option * string
 end
@@ -13,7 +17,16 @@ end
 structure ATP_Minimal: ATP_MINIMAL =
 struct
 
-(* minimalization algorithm *)
+(* Linear minimization *)
+
+fun lin_gen_minimize p s =
+let
+  fun min [] needed = needed
+    | min (x::xs) needed =
+        if p(xs @ needed) then min xs needed else min xs (x::needed)
+in (min s [], length s) end;
+
+(* Clever minimalization algorithm *)
 
 local
   fun isplit (l, r) [] = (l, r)
@@ -120,7 +133,7 @@ fun sh_test_thms prover time_limit subgoalno state filtered name_thms_pairs =
 
 (* minimalization of thms *)
 
-fun minimalize prover prover_name time_limit state name_thms_pairs =
+fun gen_minimalize gen_min prover prover_name time_limit state name_thms_pairs =
   let
     val _ =
       priority ("Minimize called with " ^ string_of_int (length name_thms_pairs) ^
@@ -141,11 +154,11 @@ fun minimalize prover prover_name time_limit state name_thms_pairs =
             else name_thms_pairs
           val (min_thms, n) =
             if null to_use then ([], 0)
-            else minimal (test_thms (SOME filtered)) to_use
+            else gen_min (test_thms (SOME filtered)) to_use
           val min_names = sort_distinct string_ord (map fst min_thms)
           val _ = priority (cat_lines
-            ["Interations: " ^ string_of_int n,
-              "Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
+            ["Iterations: " ^ string_of_int n (* FIXME TN remove later *),
+             "Minimal " ^ string_of_int (length min_thms) ^ " theorems"])
         in
           (SOME (min_thms, n), "Try this command: " ^
             Markup.markup Markup.sendback ("apply (metis " ^ space_implode " " min_names ^ ")"))
@@ -193,6 +206,10 @@ fun get_opt (name, a) (p, t) =
 
 fun get_options args = fold get_opt args (default_prover, default_time_limit)
 
+val minimize = gen_minimalize lin_gen_minimize
+
+val minimalize = gen_minimalize minimal
+
 fun sh_min_command args thm_names state =
   let
     val (prover_name, time_limit) = get_options args
@@ -202,10 +219,11 @@ fun sh_min_command args thm_names state =
       | NONE => error ("Unknown prover: " ^ quote prover_name))
     val name_thms_pairs = get_thms (Proof.context_of state) thm_names
   in
-    writeln (#2 (minimalize prover prover_name time_limit state name_thms_pairs))
+    writeln (#2 (minimize prover prover_name time_limit state name_thms_pairs))
   end
 
-val parse_args = Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
+val parse_args =
+  Scan.optional (Args.bracks (P.list (P.xname --| P.$$$ "=" -- P.xname))) []
 val parse_thm_names = Scan.repeat (P.xname -- Scan.option Attrib.thm_sel)
 
 val _ =
@@ -217,4 +235,3 @@ val _ =
 end
 
 end
-
