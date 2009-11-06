@@ -200,8 +200,8 @@ val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname -
 
 val opt_smode = (P.$$$ "_" >> K NONE) || (parse_smode >> SOME)
 
-val opt_param_modes = Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-  P.enum ", " opt_smode --| P.$$$ ")" >> SOME) NONE
+val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
+  P.enum ", " opt_smode --| P.$$$ "]" >> SOME) NONE
 
 val value_options =
   let
