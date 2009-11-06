@@ -180,7 +180,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/function_lib.ML \
   Tools/Function/function.ML \
   Tools/Function/fun.ML \
-  Tools/Function/induction_scheme.ML \
+  Tools/Function/induction_schema.ML \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
@@ -939,7 +939,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Efficient_Nat_examples.thy ex/Eval_Examples.thy ex/Fundefs.thy	\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
   ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Hilbert_Classical.thy ex/Induction_Scheme.thy			\
+  ex/Hilbert_Classical.thy ex/Induction_Schema.thy			\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\
   ex/Intuitionistic.thy ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy	\
   ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\

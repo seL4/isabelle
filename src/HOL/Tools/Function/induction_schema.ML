@@ -1,19 +1,19 @@
-(*  Title:      HOL/Tools/Function/induction_scheme.ML
+(*  Title:      HOL/Tools/Function/induction_schema.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A method to prove induction schemes.
+A method to prove induction schemas.
 *)
 
-signature INDUCTION_SCHEME =
+signature INDUCTION_SCHEMA =
 sig
   val mk_ind_tac : (int -> tactic) -> (int -> tactic) -> (int -> tactic)
                    -> Proof.context -> thm list -> tactic
-  val induct_scheme_tac : Proof.context -> thm list -> tactic
+  val induction_schema_tac : Proof.context -> thm list -> tactic
   val setup : theory -> theory
 end
 
 
-structure Induction_Scheme : INDUCTION_SCHEME =
+structure Induction_Schema : INDUCTION_SCHEMA =
 struct
 
 open Function_Lib
@@ -395,11 +395,11 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
   end))
 
 
-fun induct_scheme_tac ctxt =
+fun induction_schema_tac ctxt =
   mk_ind_tac (K all_tac) (assume_tac APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt;
 
 val setup =
-  Method.setup @{binding induct_scheme} (Scan.succeed (RAW_METHOD o induct_scheme_tac))
+  Method.setup @{binding induction_schema} (Scan.succeed (RAW_METHOD o induction_schema_tac))
     "proves an induction principle"
 
 end

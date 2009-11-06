@@ -22,7 +22,7 @@ uses
   ("Tools/Function/lexicographic_order.ML")
   ("Tools/Function/pat_completeness.ML")
   ("Tools/Function/fun.ML")
-  ("Tools/Function/induction_scheme.ML")
+  ("Tools/Function/induction_schema.ML")
   ("Tools/Function/termination.ML")
   ("Tools/Function/decompose.ML")
   ("Tools/Function/descent.ML")
@@ -114,13 +114,13 @@ use "Tools/Function/relation.ML"
 use "Tools/Function/function.ML"
 use "Tools/Function/pat_completeness.ML"
 use "Tools/Function/fun.ML"
-use "Tools/Function/induction_scheme.ML"
+use "Tools/Function/induction_schema.ML"
 
 setup {* 
   Function.setup
   #> Pat_Completeness.setup
   #> Function_Fun.setup
-  #> Induction_Scheme.setup
+  #> Induction_Schema.setup
 *}
 
 subsection {* Measure Functions *}
