@@ -21,10 +21,10 @@ sig
   val modes_of: theory -> string -> Predicate_Compile_Aux.mode list
   val depth_limited_modes_of: theory -> string -> Predicate_Compile_Aux.mode list
   val depth_limited_function_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string
-  val generator_modes_of: theory -> string -> Predicate_Compile_Aux.mode list
-  val generator_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string
+  val random_modes_of: theory -> string -> Predicate_Compile_Aux.mode list
+  val random_function_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string
   val all_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
-  val all_generator_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
+  val all_random_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
   val intros_of : theory -> string -> thm list
   val nparams_of : theory -> string -> int
   val add_intro : thm -> theory -> theory
@@ -207,20 +207,20 @@ datatype pred_data = PredData of {
   elim : thm option,
   nparams : int,
   functions : bool * (mode * predfun_data) list,
-  generators : bool * (mode * function_data) list, (*TODO: maybe rename to random_functions *)
+  random_functions : bool * (mode * function_data) list,
   depth_limited_functions : bool * (mode * function_data) list,
   annotated_functions : bool * (mode * function_data) list
 };
 
 fun rep_pred_data (PredData data) = data;
 fun mk_pred_data ((intros, elim, nparams),
-  (functions, generators, depth_limited_functions, annotated_functions)) =
+  (functions, random_functions, depth_limited_functions, annotated_functions)) =
   PredData {intros = intros, elim = elim, nparams = nparams,
-    functions = functions, generators = generators,
+    functions = functions, random_functions = random_functions,
     depth_limited_functions = depth_limited_functions, annotated_functions = annotated_functions}
 fun map_pred_data f (PredData {intros, elim, nparams,
-  functions, generators, depth_limited_functions, annotated_functions}) =
-  mk_pred_data (f ((intros, elim, nparams), (functions, generators,
+  functions, random_functions, depth_limited_functions, annotated_functions}) =
+  mk_pred_data (f ((intros, elim, nparams), (functions, random_functions,
     depth_limited_functions, annotated_functions)))
 
 fun eq_option eq (NONE, NONE) = true
@@ -287,27 +287,23 @@ val predfun_intro_of = #intro ooo the_predfun_data
 
 val predfun_elim_of = #elim ooo the_predfun_data
 
-fun lookup_generator_data thy name mode =
+fun lookup_random_function_data thy name mode =
   Option.map rep_function_data
-  (AList.lookup (op =) (snd (#generators (the_pred_data thy name))) mode)
+  (AList.lookup (op =) (snd (#random_functions (the_pred_data thy name))) mode)
 
-fun the_generator_data thy name mode = case lookup_generator_data thy name mode
-  of NONE => error ("No generator defined for mode " ^ string_of_mode mode ^
-    " of predicate " ^ name)
+fun the_random_function_data thy name mode = case lookup_random_function_data thy name mode of
+     NONE => error ("No random function defined for mode " ^ string_of_mode mode ^
+       " of predicate " ^ name)
    | SOME data => data
 
-val generator_name_of = #name ooo the_generator_data
+val random_function_name_of = #name ooo the_random_function_data
 
-(* TODO: duplicated function *)
-val generator_modes_of = (map fst) o snd o #generators oo the_pred_data
+val random_modes_of = (map fst) o snd o #random_functions oo the_pred_data
 
-(* TODO: duplicated function *)
-val random_modes_of = (map fst) o snd o #generators oo the_pred_data
+val defined_random_functions = fst o #random_functions oo the_pred_data
 
-val defined_random_functions = fst o #generators oo the_pred_data
-
-fun all_generator_modes_of thy =
-  map (fn name => (name, generator_modes_of thy name)) (all_preds_of thy) 
+fun all_random_modes_of thy =
+  map (fn name => (name, random_modes_of thy name)) (all_preds_of thy) 
 
 fun lookup_depth_limited_function_data thy name mode =
   Option.map rep_function_data
@@ -724,7 +720,7 @@ fun register_intros (constname, pre_intros) thy =
       (mk_casesrule (ProofContext.init thy) pred nparams pre_intros)
   in register_predicate (constname, pre_intros, pre_elim, nparams) thy end
 
-fun set_generator_name pred mode name = 
+fun set_random_function_name pred mode name = 
   let
     val set = (apsnd o apsnd4) (fn (x, y) => (true, cons (mode, mk_function_data (name, NONE)) y))
   in
@@ -904,8 +900,8 @@ fun mk_annotated_fun_of compfuns thy (name, T) mode =
 fun mk_depth_limited_fun_of compfuns thy (name, T) mode =
   Const (depth_limited_function_name_of thy name mode, depth_limited_funT_of compfuns mode T)
   
-fun mk_generator_of compfuns thy (name, T) mode = 
-  Const (generator_name_of thy name mode, depth_limited_funT_of compfuns mode T)
+fun mk_random_fun_of compfuns thy (name, T) mode = 
+  Const (random_function_name_of thy name mode, depth_limited_funT_of compfuns mode T)
 
 (* Mode analysis *)
 
@@ -1135,7 +1131,7 @@ fun infer_modes_with_generator options thy extra_modes all_modes param_vs clause
   let
     val prednames = map fst clauses
     val extra_modes' = all_modes_of thy
-    val gen_modes = all_generator_modes_of thy
+    val gen_modes = all_random_modes_of thy
       |> filter_out (fn (name, _) => member (op =) prednames name)
     val starting_modes = remove_from extra_modes' all_modes
     fun eq_mode (m1, m2) = (m1 = m2)
@@ -1653,11 +1649,11 @@ fun create_definitions_of_depth_limited_functions preds (name, modes) thy =
     fold create_definition modes thy
   end;
 
-fun generator_funT_of (iss, is) T =
+fun random_function_funT_of (iss, is) T =
   let
     val Ts = binder_types T
     val (paramTs, (inargTs, outargTs)) = split_modeT (iss, is) Ts
-    val paramTs' = map2 (fn SOME is => generator_funT_of ([], is) | NONE => I) iss paramTs
+    val paramTs' = map2 (fn SOME is => random_function_funT_of ([], is) | NONE => I) iss paramTs
   in
     (paramTs' @ inargTs @ [@{typ code_numeral}]) --->
       (mk_predT RandomPredCompFuns.compfuns (HOLogic.mk_tupleT outargTs))
@@ -1669,10 +1665,10 @@ fun random_create_definitions preds (name, modes) thy =
     fun create_definition mode thy =
       let
         val mode_cname = create_constname_of_mode thy "gen_" name mode
-        val funT = generator_funT_of mode T
+        val funT = random_function_funT_of mode T
       in
         thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
-        |> set_generator_name name mode mode_cname
+        |> set_random_function_name name mode mode_cname
       end;
   in
     fold create_definition modes thy
@@ -2411,8 +2407,8 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   }
 
 val random_comp_modifiers = Comp_Mod.Comp_Modifiers
-  {const_name_of = generator_name_of,
-  funT_of = K generator_funT_of : (compilation_funs -> mode -> typ -> typ),
+  {const_name_of = random_function_name_of,
+  funT_of = K random_function_funT_of : (compilation_funs -> mode -> typ -> typ),
   additional_arguments = fn names => [Free (Name.variant names "size", @{typ code_numeral})],
   wrap_compilation = K (K (K (K (K I))))
     : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
@@ -2553,7 +2549,7 @@ fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated
       (fn (i, t) => case t of Bound j => if j < length Ts then NONE
         else SOME (i+1) | _ => SOME (i+1)) args); (*FIXME dangling bounds should not occur*)
     val user_mode' = map (rpair NONE) user_mode
-    val all_modes_of = if random then all_generator_modes_of else all_modes_of
+    val all_modes_of = if random then all_random_modes_of else all_modes_of
     fun fits_to is NONE = true
       | fits_to is (SOME pm) = (is = pm)
     fun valid ((SOME (Mode (_, is, ms))) :: ms') (pm :: pms) =
@@ -2583,7 +2579,7 @@ fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated
            if annotated then annotated_comp_modifiers else predicate_comp_modifiers)
       | SOME _ => depth_limited_comp_modifiers
     val mk_fun_of =
-      if random then mk_generator_of else
+      if random then mk_random_fun_of else
       if annotated then mk_annotated_fun_of else
       if (is_some depth_limit) then mk_depth_limited_fun_of else mk_fun_of
     val t_pred = compile_expr comp_modifiers compfuns thy
