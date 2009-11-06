@@ -418,7 +418,7 @@ val orders =
      (Args.$$$ "ms" >> K MS))
   || Scan.succeed [MAX, MS, MIN]
 
-val setup = Method.setup @{binding sizechange}
+val setup = Method.setup @{binding size_change}
   (Scan.lift orders --| Method.sections clasimp_modifiers >> decomp_scnp)
   "termination prover with graph decomposition and the NP subset of size change termination"
 
