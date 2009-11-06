@@ -6,9 +6,10 @@ A compiler from predicates specified by intro/elim rules to equations.
 
 signature PREDICATE_COMPILE_CORE =
 sig
-  val setup: theory -> theory
-  val code_pred: Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
-  val code_pred_cmd: Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
+  val setup : theory -> theory
+  val code_pred : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
+  val code_pred_cmd : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
+  val values_cmd : string list -> int option * (bool * bool) -> int -> string -> Toplevel.state -> unit
   val register_predicate : (string * thm list * thm * int) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
   val is_registered : theory -> string -> bool
@@ -23,13 +24,13 @@ sig
   val generator_name_of : theory -> string -> Predicate_Compile_Aux.mode -> string
   val all_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
   val all_generator_modes_of : theory -> (string * Predicate_Compile_Aux.mode list) list
-  val intros_of: theory -> string -> thm list
-  val nparams_of: theory -> string -> int
-  val add_intro: thm -> theory -> theory
-  val set_elim: thm -> theory -> theory
+  val intros_of : theory -> string -> thm list
+  val nparams_of : theory -> string -> int
+  val add_intro : thm -> theory -> theory
+  val set_elim : thm -> theory -> theory
   val set_nparams : string -> int -> theory -> theory
-  val print_stored_rules: theory -> unit
-  val print_all_modes: theory -> unit
+  val print_stored_rules : theory -> unit
+  val print_all_modes : theory -> unit
   val mk_casesrule : Proof.context -> term -> int -> thm list -> term
   val eval_ref : (unit -> term Predicate.pred) option Unsynchronized.ref
   val random_eval_ref : (unit -> int * int -> term Predicate.pred * (int * int)) option Unsynchronized.ref
@@ -2564,37 +2565,16 @@ fun random_values ctxt k t =
   in
   end;
   *)
-fun values_cmd modes options k raw_t state =
+fun values_cmd print_modes options k raw_t state =
   let
     val ctxt = Toplevel.context_of state;
     val t = Syntax.read_term ctxt raw_t;
     val t' = values ctxt options k t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t' ctxt;
-    val p = PrintMode.with_modes modes (fn () =>
+    val p = PrintMode.with_modes print_modes (fn () =>
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
   in Pretty.writeln p end;
-
-local structure P = OuterParse in
-
-val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
-
-val options =
-  let
-    val depth_limit = Scan.optional (Args.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
-    val random = Scan.optional (Args.$$$ "random" >> K true) false
-    val annotated = Scan.optional (Args.$$$ "annotated" >> K true) false
-  in
-    Scan.optional (P.$$$ "[" |-- depth_limit -- (random -- annotated) --| P.$$$ "]")
-      (NONE, (false, false))
-  end
-
-val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
-  (opt_modes -- options -- Scan.optional P.nat ~1 -- P.term
-    >> (fn (((modes, options), k), t) => Toplevel.no_timing o Toplevel.keep
-        (values_cmd modes options k t)));
-
-end;
 
 end;
