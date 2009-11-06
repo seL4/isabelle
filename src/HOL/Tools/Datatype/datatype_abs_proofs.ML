@@ -338,8 +338,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
   in
     thy2
-    |> Context.the_theory o fold (fold Nitpick_Simps.add_thm) case_thms
-       o Context.Theory
+    |> Context.theory_map ((fold o fold) Nitpick_Simps.add_thm case_thms)
     |> Sign.parent_path
     |> store_thmss "cases" new_type_names case_thms
     |-> (fn thmss => pair (thmss, case_names))

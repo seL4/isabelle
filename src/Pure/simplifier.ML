@@ -192,7 +192,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
        identifier = identifier}
       |> morph_simproc (LocalTheory.target_morphism lthy);
   in
-    lthy |> LocalTheory.declaration (fn phi =>
+    lthy |> LocalTheory.declaration false (fn phi =>
       let
         val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;

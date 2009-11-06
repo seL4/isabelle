@@ -1,8 +1,7 @@
 (*  Title:      Pure/Tools/named_thms.ML
     Author:     Makarius
 
-Named collections of theorems in canonical order.  Based on naive data
-structures -- not scalable!
+Named collections of theorems in canonical order.
 *)
 
 signature NAMED_THMS =
@@ -20,22 +19,23 @@ struct
 
 structure Data = GenericDataFun
 (
-  type T = thm list;
-  val empty = [];
+  type T = thm Item_Net.T;
+  val empty = Thm.full_rules;
   val extend = I;
-  fun merge _ = Thm.merge_thms;
+  fun merge _ = Item_Net.merge;
 );
 
-val get = Data.get o Context.Proof;
+val content = Item_Net.content o Data.get;
+val get = content o Context.Proof;
 
-val add_thm = Data.map o Thm.add_thm;
-val del_thm = Data.map o Thm.del_thm;
+val add_thm = Data.map o Item_Net.update;
+val del_thm = Data.map o Item_Net.remove;
 
 val add = Thm.declaration_attribute add_thm;
 val del = Thm.declaration_attribute del_thm;
 
 val setup =
   Attrib.setup (Binding.name name) (Attrib.add_del add del) ("declaration of " ^ description) #>
-  PureThy.add_thms_dynamic (Binding.name name, Data.get);
+  PureThy.add_thms_dynamic (Binding.name name, content);
 
 end;
