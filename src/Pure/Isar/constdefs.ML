@@ -44,7 +44,8 @@ fun gen_constdef prep_vars prep_prop prep_att
           else ());
     val b = Binding.name c;
 
-    val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_bname thy c, T))] prop;
+    val head = Const (Sign.full_bname thy c, T);
+    val def = Term.subst_atomic [(Free (c, T), head)] prop;
     val name = Thm.def_binding_optional b raw_name;
     val atts = map (prep_att thy) raw_atts;
 
@@ -52,7 +53,10 @@ fun gen_constdef prep_vars prep_prop prep_att
       thy
       |> Sign.add_consts_i [(b, T, mx)]
       |> PureThy.add_defs false [((name, def), atts)]
-      |-> (fn [thm] => Code.add_default_eqn thm #> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm thm));
+      |-> (fn [thm] =>  (* FIXME thm vs. atts !? *)
+        Spec_Rules.add_global Spec_Rules.Equational ([Logic.varify head], [thm]) #>
+        Code.add_default_eqn thm #>
+        Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm thm));
   in ((c, T), thy') end;
 
 fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =

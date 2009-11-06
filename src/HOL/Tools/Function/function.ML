@@ -118,7 +118,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
             else Specification.print_consts lthy (K false) (map fst fixes)
         in
           lthy
-          |> LocalTheory.declaration (add_function_data o morph_function_data cdata)
+          |> LocalTheory.declaration false (add_function_data o morph_function_data cdata)
         end
     in
       lthy

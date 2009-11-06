@@ -5,7 +5,7 @@
 header {* Examples for the 'smt' tactic. *}
 
 theory SMT_Examples
-imports "../SMT"
+imports SMT
 begin
 
 declare [[smt_solver=z3, z3_proofs=true]]
