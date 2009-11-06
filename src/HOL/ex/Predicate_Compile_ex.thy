@@ -276,6 +276,7 @@ values [random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
 
+
 text {* tricky case with alternative rules *}
 
 inductive append2
@@ -660,6 +661,7 @@ code_pred (mode: [1], [1, 2]) [inductify] set_of .
 thm set_of.equation
 
 code_pred [inductify] is_ord .
+thm is_ord_aux.equation
 thm is_ord.equation
 
 
@@ -714,7 +716,7 @@ code_pred [inductify] butlast .
 code_pred [inductify] take .
 code_pred [inductify] drop .
 code_pred [inductify] zip .
-code_pred [inductify] upt .
+(*code_pred [inductify] upt .*)
 code_pred [inductify] remdups .
 code_pred [inductify] remove1 .
 code_pred [inductify] removeAll .
