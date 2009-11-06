@@ -36,7 +36,7 @@ fun core_oracle ({context, output, recon, ...} : SMT_Solver.proof_data) =
   end
 
 fun smtlib_solver oracle _ = {
-  command = {env_var=env_var, remote_name=solver_name},
+  command = {env_var=env_var, remote_name=SOME solver_name},
   arguments = options,
   interface = SMTLIB_Interface.interface,
   reconstruct = oracle }
