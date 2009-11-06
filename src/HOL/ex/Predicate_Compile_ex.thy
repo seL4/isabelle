@@ -257,14 +257,14 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
     "append [] xs xs"
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-(*code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .*)
+code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
 code_pred [depth_limited] append .
-(*code_pred [random] append .*)
+code_pred [random] append .
 code_pred [annotated] append .
 
-(*thm append.equation
+thm append.equation
 thm append.depth_limited_equation
-thm append.random_equation*)
+thm append.random_equation
 thm append.annotated_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
@@ -541,10 +541,13 @@ inductive steps where
 
 code_pred steps .
 
+values 3 
+ "{as . steps (par (or (pre 0 nil) (pre 1 nil)) (pre 2 nil)) as (par nil nil)}"
+
 values 5
  "{as . steps (par (or (pre 0 nil) (pre 1 nil)) (pre 2 nil)) as (par nil nil)}"
 
-(* FIXME
+(* FIXME:
 values 3 "{(a,q). step (par nil nil) a q}"
 *)
 
