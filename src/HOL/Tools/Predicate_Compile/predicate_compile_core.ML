@@ -2552,8 +2552,9 @@ fun values ctxt options k t_compr =
     val (ts, _) = Predicate.yieldn k ts;
     val setT = HOLogic.mk_setT T;
     val elemsT = HOLogic.mk_set T ts;
+    val cont = Free ("...", setT)
   in if k = ~1 orelse length ts < k then elemsT
-    else Const (@{const_name Set.union}, setT --> setT --> setT) $ elemsT $ t_compr
+    else Const (@{const_name Set.union}, setT --> setT --> setT) $ elemsT $ cont
   end;
   (*
 fun random_values ctxt k t = 
