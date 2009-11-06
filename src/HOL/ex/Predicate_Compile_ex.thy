@@ -472,13 +472,13 @@ values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
 values "{m. succ m 0}"
 
-(* FIXME: why does this not terminate? -- value chooses mode [] --> [1] and then starts enumerating all successors *)
+text {* values command needs mode annotation of the parameter succ
+to disambiguate which mode is to be chosen. *} 
 
-(*
-values 20 "{n. tranclp succ 10 n}"
-values "{n. tranclp succ n 10}"
+values [mode: [1]] 20 "{n. tranclp succ 10 n}"
+values [mode: [2]] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
-*)
+
 
 subsection {* IMP *}
 

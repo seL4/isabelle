@@ -198,6 +198,11 @@ val scan_options =
 
 val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
+val opt_smode = (P.$$$ "_" >> K NONE) || (parse_smode >> SOME)
+
+val opt_param_modes = Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
+  P.enum ", " opt_smode --| P.$$$ ")" >> SOME) NONE
+
 val value_options =
   let
     val depth_limit = Scan.optional (Args.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
@@ -215,9 +220,9 @@ val _ = OuterSyntax.local_theory_to_proof "code_pred"
   OuterKeyword.thy_goal (opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
 
 val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
-  (opt_print_modes -- value_options -- Scan.optional P.nat ~1 -- P.term
-    >> (fn (((modes, options), k), t) => Toplevel.no_timing o Toplevel.keep
-        (Predicate_Compile_Core.values_cmd modes options k t)));
+  (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional P.nat ~1 -- P.term
+    >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.no_timing o Toplevel.keep
+        (Predicate_Compile_Core.values_cmd print_modes param_modes options k t)));
 
 end
 

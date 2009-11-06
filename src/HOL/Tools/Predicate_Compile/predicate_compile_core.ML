@@ -9,7 +9,8 @@ sig
   val setup : theory -> theory
   val code_pred : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
   val code_pred_cmd : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
-  val values_cmd : string list -> int option * (bool * bool) -> int -> string -> Toplevel.state -> unit
+  val values_cmd : string list -> Predicate_Compile_Aux.smode option list option
+    -> int option * (bool * bool) -> int -> string -> Toplevel.state -> unit
   val register_predicate : (string * thm list * thm * int) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
   val is_registered : theory -> string -> bool
@@ -2480,7 +2481,7 @@ val random_eval_ref = Unsynchronized.ref (NONE : (unit -> int * int -> term Pred
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 (* TODO: *)
-fun analyze_compr thy compfuns (depth_limit, (random, annotated)) t_compr =
+fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated)) t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t_compr);
@@ -2492,8 +2493,15 @@ fun analyze_compr thy compfuns (depth_limit, (random, annotated)) t_compr =
         else SOME (i+1) | _ => SOME (i+1)) args); (*FIXME dangling bounds should not occur*)
     val user_mode' = map (rpair NONE) user_mode
     val all_modes_of = if random then all_generator_modes_of else all_modes_of
-      (*val compile_expr = if random then compile_gen_expr else compile_expr*)
-    val modes = filter (fn Mode (_, is, _) => is = user_mode')
+    fun fits_to is NONE = true
+      | fits_to is (SOME pm) = (is = pm)
+    fun valid ((SOME (Mode (_, is, ms))) :: ms') (pm :: pms) = fits_to is pm andalso valid (ms @ ms') pms
+      | valid (NONE :: ms') pms = valid ms' pms
+      | valid [] [] = true
+      | valid [] _ = error "Too many mode annotations"
+      | valid (SOME _ :: _) [] = error "Not enough mode annotations"
+    val modes = filter (fn Mode (_, is, ms) => is = user_mode'
+        andalso (the_default true (Option.map (valid ms) param_user_modes)))
       (modes_of_term (all_modes_of thy) (list_comb (pred, params)));
     val m = case modes
      of [] => error ("No mode possible for comprehension "
@@ -2531,10 +2539,10 @@ fun analyze_compr thy compfuns (depth_limit, (random, annotated)) t_compr =
       in mk_map compfuns T_pred T_compr arrange t_pred end
   in t_eval end;
 
-fun eval thy (options as (depth_limit, (random, annotated))) t_compr =
+fun eval thy param_user_modes (options as (depth_limit, (random, annotated))) t_compr =
   let
     val compfuns = if random then RandomPredCompFuns.compfuns else PredicateCompFuns.compfuns
-    val t = analyze_compr thy compfuns options t_compr;
+    val t = analyze_compr thy compfuns param_user_modes options t_compr;
     val T = dest_predT compfuns (fastype_of t);
     val t' = mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t;
     val eval =
@@ -2546,10 +2554,10 @@ fun eval thy (options as (depth_limit, (random, annotated))) t_compr =
         Code_ML.eval NONE ("Predicate_Compile_Core.eval_ref", eval_ref) Predicate.map thy t' []
   in (T, eval) end;
 
-fun values ctxt options k t_compr =
+fun values ctxt param_user_modes options k t_compr =
   let
     val thy = ProofContext.theory_of ctxt;
-    val (T, ts) = eval thy options t_compr;
+    val (T, ts) = eval thy param_user_modes options t_compr;
     val (ts, _) = Predicate.yieldn k ts;
     val setT = HOLogic.mk_setT T;
     val elemsT = HOLogic.mk_set T ts;
@@ -2565,11 +2573,11 @@ fun random_values ctxt k t =
   in
   end;
   *)
-fun values_cmd print_modes options k raw_t state =
+fun values_cmd print_modes param_user_modes options k raw_t state =
   let
     val ctxt = Toplevel.context_of state;
     val t = Syntax.read_term ctxt raw_t;
-    val t' = values ctxt options k t;
+    val t' = values ctxt param_user_modes options k t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t' ctxt;
     val p = PrintMode.with_modes print_modes (fn () =>
