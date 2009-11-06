@@ -37,8 +37,7 @@ fun print_specs thy specs =
   map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
     ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
 
-(* TODO: *)
-fun overload_const thy s = s
+fun overload_const thy s = the_default s (Option.map fst (AxClass.inst_of_param thy s))
 
 fun map_specs f specs =
   map (fn (s, ths) => (s, f ths)) specs
@@ -87,8 +86,8 @@ fun preprocess_strong_conn_constnames options gr constnames thy =
     val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
     val intross4 = map_specs (maps remove_pointless_clauses) intross3
     val _ = print_intross options thy''' "After removing pointless clauses: " intross4
-    val intross5 = (*map (fn (s, ths) => (overload_const s, map (AxClass.overload thy''') ths))*) intross4
-    val intross6 = map_specs (map (expand_tuples thy''')) intross4
+    val intross5 = map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross4
+    val intross6 = map_specs (map (expand_tuples thy''')) intross5
     val _ = print_intross options thy''' "introduction rules before registering: " intross6
     val _ = print_step options "Registering introduction rules..."
     val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''

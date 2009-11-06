@@ -188,13 +188,23 @@ code_pred [inductify, random] one_or_two .
 (*values "{x. one_or_two x}"*)
 values [random] "{x. one_or_two x}"
 
-definition one_or_two':
-  "one_or_two' == {1, (2::nat)}"
+inductive one_or_two' :: "nat => bool"
+where
+  "one_or_two' 1"
+| "one_or_two' 2"
 
-code_pred [inductify] one_or_two' .
+code_pred one_or_two' .
 thm one_or_two'.equation
-(* TODO: handling numerals *)
-(*values "{x. one_or_two' x}"*)
+
+values "{x. one_or_two' x}"
+
+definition one_or_two'':
+  "one_or_two'' == {1, (2::nat)}"
+
+code_pred [inductify] one_or_two'' .
+thm one_or_two''.equation
+
+values "{x. one_or_two'' x}"
 
 
 subsection {* even predicate *}

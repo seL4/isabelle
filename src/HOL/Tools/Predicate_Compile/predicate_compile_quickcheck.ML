@@ -33,7 +33,8 @@ val options = Options {
   
   inductify = false,
   random = false,
-  depth_limited = false
+  depth_limited = false,
+  annotated = false
 }
 
 fun dest_compfuns (Predicate_Compile_Core.CompilationFuns funs) = funs
