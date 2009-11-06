@@ -136,13 +136,11 @@ local
     in get_first is_builtin end
 
   fun lookup_const thy name T =
-    let
-      val intern = Sign.intern_const thy name
-      val is_type_instance = Type.typ_instance o Sign.tsig_of
+    let val intern = Sign.intern_const thy name
     in
       if Sign.declared_const thy intern
       then
-        if is_type_instance thy (T, Sign.the_const_type thy intern)
+        if Sign.typ_instance thy (T, Sign.the_const_type thy intern)
         then SOME (Const (intern, T))
         else error ("Boogie: function already declared with different type: " ^
           quote name)

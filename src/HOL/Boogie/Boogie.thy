@@ -193,8 +193,8 @@ ML {*
 structure Boogie_Axioms = Named_Thms
 (
   val name = "boogie"
-  val description = ("Boogie background axioms" ^
-    " loaded along with Boogie verification conditions")
+  val description =
+    "Boogie background axioms loaded along with Boogie verification conditions"
 )
 *}
 setup Boogie_Axioms.setup
@@ -207,8 +207,8 @@ ML {*
 structure Split_VC_SMT_Rules = Named_Thms
 (
   val name = "split_vc_smt"
-  val description = ("Theorems given to the SMT sub-tactic" ^
-    " of the split_vc method")
+  val description =
+    "theorems given to the SMT sub-tactic of the split_vc method"
 )
 *}
 setup Split_VC_SMT_Rules.setup
