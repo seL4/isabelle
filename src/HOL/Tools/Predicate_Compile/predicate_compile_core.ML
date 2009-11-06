@@ -206,10 +206,10 @@ datatype pred_data = PredData of {
   intros : thm list,
   elim : thm option,
   nparams : int,
-  functions : (mode * predfun_data) list,
-  generators : (mode * function_data) list, (*TODO: maybe rename to random_functions *)
-  depth_limited_functions : (mode * function_data) list,
-  annotated_functions : (mode * function_data) list
+  functions : bool * (mode * predfun_data) list,
+  generators : bool * (mode * function_data) list, (*TODO: maybe rename to random_functions *)
+  depth_limited_functions : bool * (mode * function_data) list,
+  annotated_functions : bool * (mode * function_data) list
 };
 
 fun rep_pred_data (PredData data) = data;
@@ -264,19 +264,15 @@ val has_elim = is_some o #elim oo the_pred_data;
 
 val nparams_of = #nparams oo the_pred_data
 
-val modes_of = (map fst) o #functions oo the_pred_data
+val modes_of = (map fst) o snd o #functions oo the_pred_data
 
-val depth_limited_modes_of = (map fst) o #depth_limited_functions oo the_pred_data
-
-val random_modes_of = (map fst) o #generators oo the_pred_data
-  
 fun all_modes_of thy = map (fn name => (name, modes_of thy name)) (all_preds_of thy) 
 
-val is_compiled = not o null o #functions oo the_pred_data
+val defined_functions = fst o #functions oo the_pred_data
 
 fun lookup_predfun_data thy name mode =
-  Option.map rep_predfun_data (AList.lookup (op =)
-  (#functions (the_pred_data thy name)) mode)
+  Option.map rep_predfun_data
+    (AList.lookup (op =) (snd (#functions (the_pred_data thy name))) mode)
 
 fun the_predfun_data thy name mode = case lookup_predfun_data thy name mode
   of NONE => error ("No function defined for mode " ^ string_of_mode mode ^
@@ -291,9 +287,9 @@ val predfun_intro_of = #intro ooo the_predfun_data
 
 val predfun_elim_of = #elim ooo the_predfun_data
 
-fun lookup_generator_data thy name mode = 
-  Option.map rep_function_data (AList.lookup (op =)
-  (#generators (the_pred_data thy name)) mode)
+fun lookup_generator_data thy name mode =
+  Option.map rep_function_data
+  (AList.lookup (op =) (snd (#generators (the_pred_data thy name))) mode)
 
 fun the_generator_data thy name mode = case lookup_generator_data thy name mode
   of NONE => error ("No generator defined for mode " ^ string_of_mode mode ^
@@ -302,14 +298,20 @@ fun the_generator_data thy name mode = case lookup_generator_data thy name mode
 
 val generator_name_of = #name ooo the_generator_data
 
-val generator_modes_of = (map fst) o #generators oo the_pred_data
+(* TODO: duplicated function *)
+val generator_modes_of = (map fst) o snd o #generators oo the_pred_data
+
+(* TODO: duplicated function *)
+val random_modes_of = (map fst) o snd o #generators oo the_pred_data
+
+val defined_random_functions = fst o #generators oo the_pred_data
 
 fun all_generator_modes_of thy =
   map (fn name => (name, generator_modes_of thy name)) (all_preds_of thy) 
 
 fun lookup_depth_limited_function_data thy name mode =
-  Option.map rep_function_data (AList.lookup (op =)
-  (#depth_limited_functions (the_pred_data thy name)) mode)
+  Option.map rep_function_data
+    (AList.lookup (op =) (snd (#depth_limited_functions (the_pred_data thy name))) mode)
 
 fun the_depth_limited_function_data thy name mode =
   case lookup_depth_limited_function_data thy name mode of
@@ -319,18 +321,24 @@ fun the_depth_limited_function_data thy name mode =
 
 val depth_limited_function_name_of = #name ooo the_depth_limited_function_data
 
+val depth_limited_modes_of = (map fst) o snd o #depth_limited_functions oo the_pred_data
+
+val defined_depth_limited_functions = fst o #depth_limited_functions oo the_pred_data
+
 fun lookup_annotated_function_data thy name mode =
-  Option.map rep_function_data (AList.lookup (op =)
-  (#annotated_functions (the_pred_data thy name)) mode)
+  Option.map rep_function_data
+    (AList.lookup (op =) (snd (#annotated_functions (the_pred_data thy name))) mode)
 
 fun the_annotated_function_data thy name mode = case lookup_annotated_function_data thy name mode
   of NONE => error ("No annotated function defined for mode " ^ string_of_mode mode
     ^ " of predicate " ^ name)
    | SOME data => data
 
-val annotated_modes_of = (map fst) o #annotated_functions oo the_pred_data
-
 val annotated_function_name_of = #name ooo the_annotated_function_data
+
+val annotated_modes_of = (map fst) o snd o #annotated_functions oo the_pred_data
+
+val defined_annotated_functions = fst o #annotated_functions oo the_pred_data
 
 (* diagnostic display functions *)
 
@@ -585,6 +593,16 @@ end
 
 fun expand_tuples_elim th = th
 
+(* updaters *)
+
+fun apfst4 f (x1, x2, x3, x4) = (f x1, x2, x3, x4)
+fun apsnd4 f (x1, x2, x3, x4) = (x1, f x2, x3, x4)
+fun aptrd4 f (x1, x2, x3, x4) = (x1, x2, f x3, x4)
+fun apfourth4 f (x1, x2, x3, x4) = (x1, x2, x3, f x4)
+fun appair f g (x, y) = (f x, g x)
+
+val no_compilation = ((false, []), (false, []), (false, []), (false, []))
+
 fun fetch_pred_data thy name =
   case try (Inductive.the_inductive (ProofContext.init thy)) name of
     SOME (info as (_, result)) => 
@@ -606,20 +624,13 @@ fun fetch_pred_data thy name =
           (mk_casesrule (ProofContext.init thy) pred nparams intros)
         val (intros, elim) = (*if null intros then noclause thy name elim else*) (intros, elim)
       in
-        mk_pred_data ((intros, SOME elim, nparams), ([], [], [], []))
-      end                                                                    
+        mk_pred_data ((intros, SOME elim, nparams), no_compilation)
+      end
   | NONE => error ("No such predicate: " ^ quote name)
-
-(* updaters *)
-
-fun apfst4 f (x1, x2, x3, x4) = (f x1, x2, x3, x4)
-fun apsnd4 f (x1, x2, x3, x4) = (x1, f x2, x3, x4)
-fun aptrd4 f (x1, x2, x3, x4) = (x1, x2, f x3, x4)
-fun apfourth4 f (x1, x2, x3, x4) = (x1, x2, x3, f x4)
 
 fun add_predfun name mode data =
   let
-    val add = (apsnd o apfst4 o cons) (mode, mk_predfun_data data)
+    val add = (apsnd o apfst4) (fn (x, y) => (true, cons (mode, mk_predfun_data data) y))
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
 fun is_inductive_predicate thy name =
@@ -671,7 +682,7 @@ fun add_intro thm thy = let
        let
          val nparams = the_default (guess_nparams T)
            (try (#nparams o rep_pred_data o (fetch_pred_data thy)) name)
-       in Graph.new_node (name, mk_pred_data (([thm], NONE, nparams), ([], [], [], []))) gr end;
+       in Graph.new_node (name, mk_pred_data (([thm], NONE, nparams), no_compilation)) gr end;
   in PredData.map cons_intro thy end
 
 fun set_elim thm = let
@@ -693,7 +704,7 @@ fun register_predicate (constname, pre_intros, pre_elim, nparams) thy =
     if not (member (op =) (Graph.keys (PredData.get thy)) constname) then
       PredData.map
         (Graph.new_node (constname,
-          mk_pred_data ((intros, SOME elim, nparams), ([], [], [], [])))) thy
+          mk_pred_data ((intros, SOME elim, nparams), no_compilation))) thy
     else thy
   end
 
@@ -715,21 +726,22 @@ fun register_intros (constname, pre_intros) thy =
 
 fun set_generator_name pred mode name = 
   let
-    val set = (apsnd o apsnd4 o cons) (mode, mk_function_data (name, NONE))
+    val set = (apsnd o apsnd4) (fn (x, y) => (true, cons (mode, mk_function_data (name, NONE)) y))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
 
 fun set_depth_limited_function_name pred mode name = 
   let
-    val set = (apsnd o aptrd4 o cons) (mode, mk_function_data (name, NONE))
+    val set = (apsnd o aptrd4) (fn (x, y) => (true, cons (mode, mk_function_data (name, NONE)) y))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
 
 fun set_annotated_function_name pred mode name =
   let
-    val set = (apsnd o apfourth4 o cons) (mode, mk_function_data (name, NONE))
+    val set = (apsnd o apfourth4)
+      (fn (x, y) => (true, cons (mode, mk_function_data (name, NONE)) y))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
@@ -2278,7 +2290,7 @@ datatype steps = Steps of
     -> moded_clause list pred_mode_table -> term pred_mode_table -> thm pred_mode_table,
   add_code_equations : theory -> int -> (string * typ) list
     -> (string * thm list) list -> (string * thm list) list,
-  are_not_defined : theory -> string list -> bool,
+  defined : theory -> string -> bool,
   qname : bstring
   }
 
@@ -2347,8 +2359,9 @@ fun gen_add_equations steps options names thy =
     val scc = strong_conn_of (PredData.get thy') names
     val thy'' = fold_rev
       (fn preds => fn thy =>
-        if #are_not_defined (dest_steps steps) thy preds then
-          add_equations_of steps options preds thy else thy)
+        if not (forall (#defined (dest_steps steps) thy) preds) then
+          add_equations_of steps options preds thy
+        else thy)
       scc thy' |> Theory.checkpoint
   in thy'' end
 
@@ -2422,7 +2435,7 @@ val add_equations = gen_add_equations
   compile_preds = compile_preds predicate_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove,
   add_code_equations = add_code_equations,
-  are_not_defined = fn thy => forall (null o modes_of thy),
+  defined = defined_functions,
   qname = "equation"})
 
 val add_depth_limited_equations = gen_add_equations
@@ -2431,7 +2444,7 @@ val add_depth_limited_equations = gen_add_equations
   compile_preds = compile_preds depth_limited_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove_by_skip,
   add_code_equations = K (K (K I)),
-  are_not_defined = fn thy => forall (null o depth_limited_modes_of thy),
+  defined = defined_depth_limited_functions,
   qname = "depth_limited_equation"})
 
 val add_annotated_equations = gen_add_equations
@@ -2440,7 +2453,7 @@ val add_annotated_equations = gen_add_equations
   compile_preds = compile_preds annotated_comp_modifiers PredicateCompFuns.compfuns,
   prove = prove_by_skip,
   add_code_equations = K (K (K I)),
-  are_not_defined = fn thy => forall (null o annotated_modes_of thy),
+  defined = defined_annotated_functions,
   qname = "annotated_equation"})
 
 val add_quickcheck_equations = gen_add_equations
@@ -2449,7 +2462,7 @@ val add_quickcheck_equations = gen_add_equations
   compile_preds = compile_preds random_comp_modifiers RandomPredCompFuns.compfuns,
   prove = prove_by_skip,
   add_code_equations = K (K (K I)),
-  are_not_defined = fn thy => forall (null o random_modes_of thy),
+  defined = defined_random_functions,
   qname = "random_equation"})
 
 (** user interface **)
