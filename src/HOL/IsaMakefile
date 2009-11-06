@@ -57,7 +57,6 @@ test: \
   HOL-Prolog \
   HOL-SET_Protocol \
   HOL-SMT-Examples \
-  HOL-SizeChange \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -766,19 +765,6 @@ $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Heap.thy \
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Imperative_HOL
 
 
-## HOL-SizeChange
-
-HOL-SizeChange: HOL $(LOG)/HOL-SizeChange.gz
-
-$(LOG)/HOL-SizeChange.gz: $(OUT)/HOL Library/Kleene_Algebra.thy	\
-  SizeChange/Graphs.thy SizeChange/Misc_Tools.thy			\
-  SizeChange/Criterion.thy SizeChange/Correctness.thy			\
-  SizeChange/Interpretation.thy SizeChange/Implementation.thy		\
-  SizeChange/Size_Change_Termination.thy SizeChange/Examples.thy	\
-  SizeChange/sct.ML SizeChange/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL SizeChange
-
-
 ## HOL-Decision_Procs
 
 HOL-Decision_Procs: HOL $(LOG)/HOL-Decision_Procs.gz
@@ -1443,7 +1429,7 @@ clean:
 		$(LOG)/HOL-Old_Number_Theory.gz $(LOG)/HOL-Plain.gz	\
 		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
 		$(LOG)/HOL-SET_Protocol.gz $(LOG)/HOL-SMT-Examples.gz	\
-		$(LOG)/HOL-SMT.gz $(LOG)/HOL-SizeChange.gz		\
+		$(LOG)/HOL-SMT.gz					\
 		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
 		$(LOG)/HOL-W0.gz $(LOG)/HOL-Word-Examples.gz		\
