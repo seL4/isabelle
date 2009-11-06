@@ -549,7 +549,7 @@ lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)"
 
 section {* Bitvectors *}
 
-locale bv
+locale z3_bv_test
 begin
 
 text {*

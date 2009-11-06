@@ -66,7 +66,7 @@ fun prover ({context, output, recon, assms} : SMT_Solver.proof_data) =
 fun solver oracle ctxt =
   let val with_proof = Config.get ctxt proofs
   in
-    {command = {env_var=env_var, remote_name=solver_name},
+    {command = {env_var=env_var, remote_name=SOME solver_name},
     arguments = cmdline_options ctxt,
     interface = Z3_Interface.interface,
     reconstruct = if with_proof then prover else oracle}
