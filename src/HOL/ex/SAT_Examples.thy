@@ -1,7 +1,6 @@
 (*  Title:      HOL/ex/SAT_Examples.thy
-    ID:         $Id$
     Author:     Alwen Tiu, Tjark Weber
-    Copyright   2005-2006
+    Copyright   2005-2009
 *)
 
 header {* Examples for the 'sat' and 'satx' tactic *}
@@ -533,5 +532,39 @@ by rawsat  -- {* this is without CNF conversion *}
 *)
 
 (* ML {* Toplevel.profiling := 0; *} *)
+
+text {*
+Function {\tt benchmark} takes the name of an existing DIMACS CNF
+file, parses this file, passes the problem to a SAT solver, and checks
+the proof of unsatisfiability found by the solver.  The function
+measures the time spent on proof reconstruction (at least real time
+also includes time spent in the SAT solver), and additionally returns
+the number of resolution steps in the proof.
+*}
+
+(* ML {*
+sat.solver := "zchaff_with_proofs";
+Unsynchronized.reset sat.trace_sat;
+Unsynchronized.reset quick_and_dirty;
+*} *)
+
+ML {*
+fun benchmark dimacsfile =
+let
+  val prop_fm = SatSolver.read_dimacs_cnf_file (Path.explode dimacsfile)
+  fun and_to_list (PropLogic.And (fm1, fm2)) acc =
+    and_to_list fm2 (fm1 :: acc)
+    | and_to_list fm acc =
+    rev (fm :: acc)
+  val clauses = and_to_list prop_fm []
+  val terms   = map (HOLogic.mk_Trueprop o PropLogic.term_of_prop_formula)
+    clauses
+  val cterms  = map (Thm.cterm_of @{theory}) terms
+  val timer   = start_timing ()
+  val thm     = sat.rawsat_thm @{context} cterms
+in
+  (end_timing timer, !sat.counter)
+end;
+*}
 
 end
