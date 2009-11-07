@@ -8,7 +8,7 @@ theory HarmonicSeries
 imports Complex_Main
 begin
 
-section {* Abstract *}
+subsection {* Abstract *}
 
 text {* The following document presents a proof of the Divergence of
 Harmonic Series theorem formalised in the Isabelle/Isar theorem
@@ -35,7 +35,7 @@ converge to any number.
   QED.
 *}
 
-section {* Formal Proof *}
+subsection {* Formal Proof *}
 
 lemma two_pow_sub:
   "0 < m \<Longrightarrow> (2::nat)^m - 2^(m - 1) = 2^(m - 1)"
