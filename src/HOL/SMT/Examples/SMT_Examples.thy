@@ -390,6 +390,26 @@ lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
   by smt
 
 
+lemma "let P = 2 * x + 1 > x + (x::real) in P \<or> False \<or> P"
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_17"]]
+  by smt
+
+lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)"
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_18"]]
+  by smt
+
+lemma "x + (let y = x mod 2 in y + y) < x + (3::int)"
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_19"]]
+  by smt
+
+lemma 
+  assumes "x \<noteq> (0::real)"
+  shows "x + x \<noteq> (let P = (abs x > 1) in if P \<or> \<not>P then 4 else 2) * x"
+  using assms
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_20"]]
+  by smt
+
+
 subsection {* Linear arithmetic with quantifiers *}
 
 lemma "~ (\<exists>x::int. False)"
@@ -529,7 +549,7 @@ lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)"
 
 section {* Bitvectors *}
 
-locale bv
+locale z3_bv_test
 begin
 
 text {*

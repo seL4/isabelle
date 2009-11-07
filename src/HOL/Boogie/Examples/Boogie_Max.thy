@@ -41,9 +41,9 @@ boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Max"
 text {*
 Approach 1: Discharge the verification condition fully automatically by SMT:
 *}
-boogie_vc b_max
+boogie_vc max
   unfolding labels
-  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_b_max"]]
+  using [[smt_cert="~~/src/HOL/Boogie/Examples/cert/Boogie_max"]]
   using [[z3_proofs=true]]
   by (smt boogie)
 
@@ -53,7 +53,7 @@ a selection of automated proof tools, and show the remaining subgoals by an
 explicit proof. This approach is most useful in an interactive debug-and-fix
 mode. 
 *}
-boogie_vc b_max
+boogie_vc max
 proof (split_vc (verbose) try: fast simp)
   print_cases
   case L_14_5c

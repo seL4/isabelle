@@ -188,13 +188,23 @@ code_pred [inductify, random] one_or_two .
 (*values "{x. one_or_two x}"*)
 values [random] "{x. one_or_two x}"
 
-definition one_or_two':
-  "one_or_two' == {1, (2::nat)}"
+inductive one_or_two' :: "nat => bool"
+where
+  "one_or_two' 1"
+| "one_or_two' 2"
 
-code_pred [inductify] one_or_two' .
+code_pred one_or_two' .
 thm one_or_two'.equation
-(* TODO: handling numerals *)
-(*values "{x. one_or_two' x}"*)
+
+values "{x. one_or_two' x}"
+
+definition one_or_two'':
+  "one_or_two'' == {1, (2::nat)}"
+
+code_pred [inductify] one_or_two'' .
+thm one_or_two''.equation
+
+values "{x. one_or_two'' x}"
 
 
 subsection {* even predicate *}
@@ -250,10 +260,12 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
 code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
 code_pred [depth_limited] append .
 code_pred [random] append .
+code_pred [annotated] append .
 
 thm append.equation
 thm append.depth_limited_equation
 thm append.random_equation
+thm append.annotated_equation
 
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
@@ -263,6 +275,7 @@ values [random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
+
 
 text {* tricky case with alternative rules *}
 
@@ -460,13 +473,13 @@ values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
 values "{m. succ m 0}"
 
-(* FIXME: why does this not terminate? -- value chooses mode [] --> [1] and then starts enumerating all successors *)
+text {* values command needs mode annotation of the parameter succ
+to disambiguate which mode is to be chosen. *} 
 
-(*
-values 20 "{n. tranclp succ 10 n}"
-values "{n. tranclp succ n 10}"
+values [mode: [1]] 20 "{n. tranclp succ 10 n}"
+values [mode: [2]] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
-*)
+
 
 subsection {* IMP *}
 
@@ -529,10 +542,13 @@ inductive steps where
 
 code_pred steps .
 
+values 3 
+ "{as . steps (par (or (pre 0 nil) (pre 1 nil)) (pre 2 nil)) as (par nil nil)}"
+
 values 5
  "{as . steps (par (or (pre 0 nil) (pre 1 nil)) (pre 2 nil)) as (par nil nil)}"
 
-(* FIXME
+(* FIXME:
 values 3 "{(a,q). step (par nil nil) a q}"
 *)
 
@@ -645,6 +661,7 @@ code_pred (mode: [1], [1, 2]) [inductify] set_of .
 thm set_of.equation
 
 code_pred [inductify] is_ord .
+thm is_ord_aux.equation
 thm is_ord.equation
 
 
@@ -699,7 +716,7 @@ code_pred [inductify] butlast .
 code_pred [inductify] take .
 code_pred [inductify] drop .
 code_pred [inductify] zip .
-code_pred [inductify] upt .
+(*code_pred [inductify] upt .*)
 code_pred [inductify] remdups .
 code_pred [inductify] remove1 .
 code_pred [inductify] removeAll .

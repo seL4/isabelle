@@ -201,19 +201,23 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
                 Position.str_of (Binding.pos_of b));
           in (b, mx) end);
     val name = Thm.def_binding_optional b raw_name;
-    val ((lhs, (_, th)), lthy2) = lthy
+    val ((lhs, (_, raw_th)), lthy2) = lthy
       |> LocalTheory.define Thm.definitionK
         (var, ((Binding.suffix_name "_raw" name, []), rhs));
-    val ((def_name, [th']), lthy3) = lthy2
-      |> LocalTheory.note Thm.definitionK
-        ((name, Predicate_Compile_Preproc_Const_Defs.add_attrib :: Code.add_default_eqn_attrib :: atts),
-          [prove lthy2 th]);
 
-    val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
+    val th = prove lthy2 raw_th;
+    val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
+
+    val ((def_name, [th']), lthy4) = lthy3
+      |> LocalTheory.note Thm.definitionK
+        ((name, Predicate_Compile_Preproc_Const_Defs.add_attrib ::
+            Code.add_default_eqn_attrib :: atts), [th]);
+
+    val lhs' = Morphism.term (LocalTheory.target_morphism lthy4) lhs;
     val _ =
       if not do_print then ()
-      else print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
-  in ((lhs, (def_name, th')), lthy3) end;
+      else print_consts lthy4 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
+  in ((lhs, (def_name, th')), lthy4) end;
 
 val definition = gen_def false check_free_spec;
 val definition_cmd = gen_def true read_free_spec;

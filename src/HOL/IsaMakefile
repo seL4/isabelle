@@ -57,7 +57,6 @@ test: \
   HOL-Prolog \
   HOL-SET_Protocol \
   HOL-SMT-Examples \
-  HOL-SizeChange \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -181,7 +180,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/function_lib.ML \
   Tools/Function/function.ML \
   Tools/Function/fun.ML \
-  Tools/Function/induction_scheme.ML \
+  Tools/Function/induction_schema.ML \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
@@ -663,7 +662,7 @@ ALGEBRA_DEPENDENCIES = $(OUT)/HOL \
   Algebra/poly/UnivPoly2.thy \
   Algebra/ringsimp.ML
 
-$(LOG)/HOL-Algebra.gz: $(ALGEBRA_DEPENDENCIES)
+$(OUT)/HOL-Algebra: $(ALGEBRA_DEPENDENCIES)
 	@cd Algebra; $(ISABELLE_TOOL) usedir -b -g true -V outline=/proof,/ML $(OUT)/HOL HOL-Algebra
 
 
@@ -764,19 +763,6 @@ $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Heap.thy \
   Imperative_HOL/ex/Subarray.thy \
   Imperative_HOL/ex/Sublist.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Imperative_HOL
-
-
-## HOL-SizeChange
-
-HOL-SizeChange: HOL $(LOG)/HOL-SizeChange.gz
-
-$(LOG)/HOL-SizeChange.gz: $(OUT)/HOL Library/Kleene_Algebra.thy	\
-  SizeChange/Graphs.thy SizeChange/Misc_Tools.thy			\
-  SizeChange/Criterion.thy SizeChange/Correctness.thy			\
-  SizeChange/Interpretation.thy SizeChange/Implementation.thy		\
-  SizeChange/Size_Change_Termination.thy SizeChange/Examples.thy	\
-  SizeChange/sct.ML SizeChange/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL SizeChange
 
 
 ## HOL-Decision_Procs
@@ -953,7 +939,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Efficient_Nat_examples.thy ex/Eval_Examples.thy ex/Fundefs.thy	\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
   ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Hilbert_Classical.thy ex/Induction_Scheme.thy			\
+  ex/Hilbert_Classical.thy ex/Induction_Schema.thy			\
   ex/InductiveInvariant.thy ex/InductiveInvariant_examples.thy		\
   ex/Intuitionistic.thy ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy	\
   ex/MergeSort.thy ex/Meson_Test.thy ex/MonoidGroup.thy			\
@@ -1343,7 +1329,15 @@ $(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
   SMT/Examples/cert/z3_linarith_15					\
   SMT/Examples/cert/z3_linarith_15.proof				\
   SMT/Examples/cert/z3_linarith_16					\
-  SMT/Examples/cert/z3_linarith_16.proof SMT/Examples/cert/z3_mono_01	\
+  SMT/Examples/cert/z3_linarith_16.proof				\
+  SMT/Examples/cert/z3_linarith_17					\
+  SMT/Examples/cert/z3_linarith_17.proof				\
+  SMT/Examples/cert/z3_linarith_18					\
+  SMT/Examples/cert/z3_linarith_18.proof				\
+  SMT/Examples/cert/z3_linarith_19					\
+  SMT/Examples/cert/z3_linarith_19.proof				\
+  SMT/Examples/cert/z3_linarith_20					\
+  SMT/Examples/cert/z3_linarith_20.proof SMT/Examples/cert/z3_mono_01	\
   SMT/Examples/cert/z3_mono_01.proof SMT/Examples/cert/z3_mono_02	\
   SMT/Examples/cert/z3_mono_02.proof SMT/Examples/cert/z3_nat_arith_01	\
   SMT/Examples/cert/z3_nat_arith_01.proof				\
@@ -1400,40 +1394,50 @@ $(LOG)/HOL-Boogie-Examples.gz: $(OUT)/HOL-Boogie			\
   Boogie/Examples/ROOT.ML Boogie/Examples/Boogie_Max.thy		\
   Boogie/Examples/Boogie_Max.b2i Boogie/Examples/Boogie_Dijkstra.thy	\
   Boogie/Examples/VCC_Max.thy Boogie/Examples/Boogie_Dijkstra.b2i	\
-  Boogie/Examples/VCC_Max.b2i Boogie/Examples/cert/Boogie_b_max		\
-  Boogie/Examples/cert/Boogie_b_max.proof				\
-  Boogie/Examples/cert/Boogie_b_Dijkstra				\
-  Boogie/Examples/cert/Boogie_b_Dijkstra.proof				\
-  Boogie/Examples/cert/VCC_b_maximum					\
-  Boogie/Examples/cert/VCC_b_maximum.proof
+  Boogie/Examples/VCC_Max.b2i Boogie/Examples/cert/Boogie_max		\
+  Boogie/Examples/cert/Boogie_max.proof					\
+  Boogie/Examples/cert/Boogie_Dijkstra					\
+  Boogie/Examples/cert/Boogie_Dijkstra.proof				\
+  Boogie/Examples/cert/VCC_maximum					\
+  Boogie/Examples/cert/VCC_maximum.proof
 	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
 
 
 ## clean
 
 clean:
-	@rm -f $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL		\
-		$(OUT)/HOL-Nominal $(OUT)/TLA $(LOG)/HOL.gz		\
-		$(LOG)/TLA.gz $(LOG)/HOL-Isar_Examples.gz		\
-		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
-		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
-		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\
-		$(LOG)/HOL-Hoare_Parallel.gz $(LOG)/HOL-Lex.gz		\
-		$(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz		\
-		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
-		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
-		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
-		$(OUT)/HOL-Multivariate_Analysis			\
-		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
-		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
-		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-SET_Protocol.gz	\
-		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz			\
-		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
-		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
-		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
-		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz		\
-		$(LOG)/HOL-Mirabelle.gz $(OUT)/HOL-SMT			\
-		$(LOG)/HOL-SMT.gz $(LOG)/HOL-SMT-Examples.gz 		\
-		$(OUT)/HOL-Boogie $(LOG)/HOL-Boogie.gz 			\
-		$(LOG)/HOL-Boogie-Examples.gz
-
+	@rm -f $(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz			\
+		$(LOG)/HOL-Bali.gz $(LOG)/HOL-Base.gz			\
+		$(LOG)/HOL-Boogie-Examples.gz $(LOG)/HOL-Boogie.gz	\
+		$(LOG)/HOL-Decision_Procs.gz $(LOG)/HOL-Extraction.gz	\
+		$(LOG)/HOL-Hahn_Banach.gz $(LOG)/HOL-Hoare.gz		\
+		$(LOG)/HOL-Hoare_Parallel.gz $(LOG)/HOL-IMP.gz		\
+		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-IOA.gz			\
+		$(LOG)/HOL-Imperative_HOL.gz $(LOG)/HOL-Import.gz	\
+		$(LOG)/HOL-Induct.gz $(LOG)/HOL-Isar_Examples.gz	\
+		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Lattice			\
+		$(LOG)/HOL-Lattice.gz $(LOG)/HOL-Lex.gz			\
+		$(LOG)/HOL-Library.gz $(LOG)/HOL-Main.gz		\
+		$(LOG)/HOL-Matrix $(LOG)/HOL-Matrix.gz			\
+		$(LOG)/HOL-Metis_Examples.gz $(LOG)/HOL-MicroJava.gz	\
+		$(LOG)/HOL-Mirabelle.gz $(LOG)/HOL-Modelcheck.gz	\
+		$(LOG)/HOL-Multivariate_Analysis.gz			\
+		$(LOG)/HOL-NSA-Examples.gz $(LOG)/HOL-NSA.gz		\
+		$(LOG)/HOL-NanoJava.gz $(LOG)/HOL-Nitpick_Examples.gz	\
+		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-Nominal.gz	\
+		$(LOG)/HOL-Number_Theory.gz				\
+		$(LOG)/HOL-Old_Number_Theory.gz $(LOG)/HOL-Plain.gz	\
+		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
+		$(LOG)/HOL-SET_Protocol.gz $(LOG)/HOL-SMT-Examples.gz	\
+		$(LOG)/HOL-SMT.gz					\
+		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
+		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
+		$(LOG)/HOL-W0.gz $(LOG)/HOL-Word-Examples.gz		\
+		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
+		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
+		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
+		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
+		$(OUT)/HOL-Boogie $(OUT)/HOL-Main			\
+		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
+		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain $(OUT)/HOL-SMT	\
+		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA

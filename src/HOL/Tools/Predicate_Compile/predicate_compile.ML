@@ -37,8 +37,7 @@ fun print_specs thy specs =
   map (fn (c, thms) => "Constant " ^ c ^ " has specification:\n"
     ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
 
-(* TODO: *)
-fun overload_const thy s = s
+fun overload_const thy s = the_default s (Option.map fst (AxClass.inst_of_param thy s))
 
 fun map_specs f specs =
   map (fn (s, ths) => (s, f ths)) specs
@@ -87,8 +86,8 @@ fun preprocess_strong_conn_constnames options gr constnames thy =
     val _ = print_intross options thy''' "Introduction rules with new constants: " intross3
     val intross4 = map_specs (maps remove_pointless_clauses) intross3
     val _ = print_intross options thy''' "After removing pointless clauses: " intross4
-    val intross5 = (*map (fn (s, ths) => (overload_const s, map (AxClass.overload thy''') ths))*) intross4
-    val intross6 = map_specs (map (expand_tuples thy''')) intross4
+    val intross5 = map (fn (s, ths) => (overload_const thy''' s, map (AxClass.overload thy''') ths)) intross4
+    val intross6 = map_specs (map (expand_tuples thy''')) intross5
     val _ = print_intross options thy''' "introduction rules before registering: " intross6
     val _ = print_step options "Registering introduction rules..."
     val thy'''' = fold Predicate_Compile_Core.register_intros intross6 thy'''
@@ -121,7 +120,8 @@ fun extract_options ((modes, raw_options), const) =
       skip_proof = chk "skip_proof",
       inductify = chk "inductify",
       random = chk "random",
-      depth_limited = chk "depth_limited"
+      depth_limited = chk "depth_limited",
+      annotated = chk "annotated"
     }
   end
 
@@ -149,10 +149,13 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
 val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
-  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "random", "depth_limited"]
+  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "random", "depth_limited",
+  "annotated"]
 
 local structure P = OuterParse
 in
+
+(* Parser for mode annotations *)
 
 (*val parse_argmode' = P.nat >> rpair NONE || P.$$$ "(" |-- P.enum1 "," --| P.$$$ ")"*)
 datatype raw_argmode = Argmode of string | Argmode_Tuple of string list
@@ -184,16 +187,42 @@ val opt_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
     P.enum1 "," (parse_mode || parse_mode') --| P.$$$ ")" >> SOME) NONE
 
-val scan_params =
+(* Parser for options *)
+
+val scan_options =
   let
-    val scan_bool_param = foldl1 (op ||) (map Args.$$$ bool_options)
+    val scan_bool_option = foldl1 (op ||) (map Args.$$$ bool_options)
   in
-    Scan.optional (P.$$$ "[" |-- P.enum1 "," scan_bool_param --| P.$$$ "]") []
+    Scan.optional (P.$$$ "[" |-- P.enum1 "," scan_bool_option --| P.$$$ "]") []
   end
+
+val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+
+val opt_smode = (P.$$$ "_" >> K NONE) || (parse_smode >> SOME)
+
+val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
+  P.enum ", " opt_smode --| P.$$$ "]" >> SOME) NONE
+
+val value_options =
+  let
+    val depth_limit = Scan.optional (Args.$$$ "depth_limit" |-- P.$$$ "=" |-- P.nat >> SOME) NONE
+    val random = Scan.optional (Args.$$$ "random" >> K true) false
+    val annotated = Scan.optional (Args.$$$ "annotated" >> K true) false
+  in
+    Scan.optional (P.$$$ "[" |-- depth_limit -- (random -- annotated) --| P.$$$ "]")
+      (NONE, (false, false))
+  end
+
+(* code_pred command and values command *)
 
 val _ = OuterSyntax.local_theory_to_proof "code_pred"
   "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal (opt_modes -- scan_params -- P.term_group >> code_pred_cmd)
+  OuterKeyword.thy_goal (opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
+
+val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
+  (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional P.nat ~1 -- P.term
+    >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.no_timing o Toplevel.keep
+        (Predicate_Compile_Core.values_cmd print_modes param_modes options k t)));
 
 end
 

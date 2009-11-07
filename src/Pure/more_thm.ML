@@ -48,6 +48,7 @@ sig
   val add_thm: thm -> thm list -> thm list
   val del_thm: thm -> thm list -> thm list
   val merge_thms: thm list * thm list -> thm list
+  val full_rules: thm Item_Net.T
   val intro_rules: thm Item_Net.T
   val elim_rules: thm Item_Net.T
   val elim_implies: thm -> thm -> thm
@@ -246,6 +247,7 @@ val add_thm = update eq_thm_prop;
 val del_thm = remove eq_thm_prop;
 val merge_thms = merge eq_thm_prop;
 
+val full_rules = Item_Net.init eq_thm_prop (single o Thm.full_prop_of);
 val intro_rules = Item_Net.init eq_thm_prop (single o Thm.concl_of);
 val elim_rules = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 

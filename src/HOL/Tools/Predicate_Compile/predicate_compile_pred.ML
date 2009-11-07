@@ -98,7 +98,7 @@ fun introrulify thy ths =
               THEN REPEAT_DETERM (rtac @{thm conjI} 1 THEN atac 1)
               THEN TRY (atac 1)
           in
-            Goal.prove ctxt' (map fst ps) [] introrule (fn {...} => tac)
+            Goal.prove ctxt' (map fst ps) [] introrule (fn _ => tac)
           end
       in
         map_index prove_introrule (map mk_introrule disjuncts)

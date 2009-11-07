@@ -1,4 +1,5 @@
-(*  Author:     Stefan Berghofer, TU Muenchen
+(*  Title:      HOLCF/Tools/adm_tac.ML
+    Author:     Stefan Berghofer, TU Muenchen
 
 Admissibility tactic.
 
@@ -18,7 +19,7 @@ sig
   val adm_tac: Proof.context -> (int -> tactic) -> int -> tactic
 end;
 
-structure Adm :> ADM =
+structure Adm : ADM =
 struct
 
 

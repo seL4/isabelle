@@ -226,8 +226,7 @@ by (induct xs) (auto intro: less_eq_list.drop)
 lemma le_list_filter: "xs \<le> ys \<Longrightarrow> filter f xs \<le> filter f ys"
 by (induct rule: less_eq_list.induct) (auto intro: less_eq_list.drop)
 
-
-lemma "xs <= ys \<longleftrightarrow> (EX N. xs = sublist ys N)" (is "?L = ?R")
+lemma "xs \<le> ys \<longleftrightarrow> (EX N. xs = sublist ys N)" (is "?L = ?R")
 proof
   assume ?L
   thus ?R

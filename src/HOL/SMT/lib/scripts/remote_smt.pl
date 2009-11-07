@@ -8,17 +8,12 @@ use strict;
 use LWP;
 
 
-# environment
-
-my $remote_smt_url = $ENV{"REMOTE_SMT_URL"};
-
-
 # arguments
 
-my $solver = $ARGV[0];
-my @options = @ARGV[1 .. ($#ARGV - 2)];
-my $problem_file = $ARGV[-2];
-my $output_file = $ARGV[-1];
+my $url = $ARGV[0];
+my $solver = $ARGV[1];
+my @options = @ARGV[2 .. ($#ARGV - 1)];
+my $problem_file = $ARGV[-1];
 
 
 # call solver
@@ -26,7 +21,7 @@ my $output_file = $ARGV[-1];
 my $agent = LWP::UserAgent->new;
 $agent->agent("SMT-Request");
 $agent->timeout(180);
-my $response = $agent->post($remote_smt_url, [
+my $response = $agent->post($url, [
   "Solver" => $solver,
   "Options" => join(" ", @options),
   "Problem" => [$problem_file] ],
@@ -36,8 +31,6 @@ if (not $response->is_success) {
   exit 1;
 }
 else {
-  open(FILE, ">$output_file");
-  print FILE $response->content;
-  close(FILE);
+  print $response->content;
+  exit 0;
 }
-

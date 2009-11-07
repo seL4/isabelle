@@ -24,7 +24,7 @@ use_thys [
   "Binary",
   "Recdefs",
   "Fundefs",
-  "Induction_Scheme",
+  "Induction_Schema",
   "InductiveInvariant_examples",
   "LocaleTest2",
   "Records",

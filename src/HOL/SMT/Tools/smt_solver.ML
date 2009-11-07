@@ -18,7 +18,7 @@ sig
     recon: SMT_Translate.recon,
     assms: thm list option }
   type solver_config = {
-    command: {env_var: string, remote_name: string},
+    command: {env_var: string, remote_name: string option},
     arguments: string list,
     interface: interface,
     reconstruct: proof_data -> thm }
@@ -69,7 +69,7 @@ type proof_data = {
   assms: thm list option }
 
 type solver_config = {
-  command: {env_var: string, remote_name: string},
+  command: {env_var: string, remote_name: string option},
   arguments: string list,
   interface: interface,
   reconstruct: proof_data -> thm }
@@ -96,7 +96,7 @@ val (cert, setup_cert) = Attrib.config_string "smt_cert" ""
 
 local
 
-fun with_files ctxt f x =
+fun with_files ctxt f =
   let
     fun make_names n = (n, n ^ ".proof")
 
@@ -107,43 +107,79 @@ fun with_files ctxt f x =
       else pairself (File.tmp_path o Path.explode)
         (make_names ("smt-" ^ serial_string ()))
 
-    val y = Exn.capture (f problem_path proof_path) x
+    val y = Exn.capture f (problem_path, proof_path)
 
     val _ = if keep' = "" then (pairself (try File.rm) paths; ()) else ()
   in Exn.release y end
 
-fun run in_path out_path (ctxt, cmd, output) =
+fun invoke ctxt output f (paths as (problem_path, proof_path)) =
   let
     fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
       (map Pretty.str ls))
 
-    val x = File.open_output output in_path
+    val x = File.open_output output problem_path
     val _ = trace_msg ctxt (pretty "SMT problem:" o split_lines o File.read)
-      in_path
+      problem_path
 
-    val _ = with_timeout ctxt system_out (cmd in_path out_path)
-    fun lines_of path = the_default [] (try (File.fold_lines cons out_path) [])
-    val ls = rev (dropwhile (equal "") (lines_of out_path))
+    val _ = with_timeout ctxt f paths
+    fun lines_of path = the_default [] (try (File.fold_lines cons path) [])
+    val ls = rev (dropwhile (equal "") (lines_of proof_path))
     val _ = trace_msg ctxt (pretty "SMT result:") ls
   in (x, ls) end
 
+val expand_name = Path.implode o Path.expand o Path.explode 
+
+fun run_perl name args ps =
+  system_out (space_implode " " ("perl -w" ::
+    File.shell_path (Path.explode (getenv name)) ::
+    map File.shell_quote args @ ps))
+
+fun use_certificate ctxt ps =
+  let val name = Config.get ctxt cert
+  in
+    if name = "" then false
+    else
+     (tracing ("Using certificate " ^ quote (expand_name name) ^ " ...");
+      run_perl "CERT_SMT_SOLVER" [expand_name name] ps;
+      true)
+  end
+
+fun run_locally f ctxt env_var args ps =
+  if getenv env_var = ""
+  then f ("Undefined Isabelle environment variable: " ^ quote env_var)
+  else
+    let val app = Path.expand (Path.explode (getenv env_var))
+    in
+      if not (File.exists app)
+      then f ("No such file: " ^ quote (Path.implode app))
+      else
+       (tracing ("Invoking local SMT solver " ^ quote (Path.implode app) ^
+          " ...");
+        system_out (space_implode " " (File.shell_path app ::
+        map File.shell_quote args @ ps)); ())
+    end
+
+fun run_remote remote_name args ps msg =
+  (case remote_name of
+    NONE => error msg
+  | SOME name =>
+      let
+        val url = getenv "REMOTE_SMT_URL"
+        val _ = tracing ("Invoking remote SMT solver " ^ quote name ^ " at " ^
+          quote url ^ " ...")
+      in (run_perl "REMOTE_SMT_SOLVER" (url :: name :: args) ps; ()) end)
+
+fun run ctxt {env_var, remote_name} args (problem_path, proof_path) =
+  let val ps = [File.shell_path problem_path, ">", File.shell_path proof_path]
+  in
+    if use_certificate ctxt ps then ()
+    else run_locally (run_remote remote_name args ps) ctxt env_var args ps
+  end
+
 in
 
-fun run_solver ctxt {env_var, remote_name} args output =
-  let
-    val qf = File.shell_path and qq = File.shell_quote
-    val qs = qf o Path.explode
-    val local_name = getenv env_var
-    val cert_name = Config.get ctxt cert
-    val remote = qs (getenv "REMOTE_SMT_SOLVER")
-    val cert_script = qs (getenv "CERT_SMT_SOLVER")
-    fun cmd f1 f2 =
-      if cert_name <> ""
-      then "perl -w" :: [cert_script, qs cert_name, qf f1, ">", qf f2]
-      else if local_name <> ""
-      then qs local_name :: map qq args @ [qf f1, ">", qf f2]
-      else "perl -w" :: remote :: map qq (remote_name :: args) @ [qf f1, qf f2]
-  in with_files ctxt run (ctxt, space_implode " " oo cmd, output) end
+fun run_solver ctxt cmd args output =
+  with_files ctxt (invoke ctxt output (run ctxt cmd args))
 
 end
 
@@ -223,13 +259,13 @@ local
         (map (Syntax.pretty_term ctxt) ex))
     end
 
-  fun fail_tac ctxt msg st = (trace_msg ctxt I msg; Tactical.no_tac st)
+  fun fail_tac f msg st = (f msg; Tactical.no_tac st)
 
   fun SAFE pass_exns tac ctxt i st =
     if pass_exns then tac ctxt i st
     else (tac ctxt i st
-      handle SMT msg => fail_tac ctxt ("SMT: " ^ msg) st
-           | SMT_COUNTEREXAMPLE cex => fail_tac ctxt (pretty_cex ctxt cex) st)
+      handle SMT msg => fail_tac (trace_msg ctxt (prefix "SMT: ")) msg st
+           | SMT_COUNTEREXAMPLE ce => fail_tac tracing (pretty_cex ctxt ce) st)
 
   fun smt_solver rules ctxt = solver_of (Context.Proof ctxt) ctxt rules
 in

@@ -13,6 +13,22 @@ uses
   ("Tools/boogie_split.ML")
 begin
 
+text {*
+HOL-Boogie and its applications are described in:
+\begin{itemize}
+
+\item Sascha B"ohme, K. Rustan M. Leino, and Burkhart Wolff.
+HOL-Boogie --- An Interactive Prover for the Boogie Program-Verifier.
+Theorem Proving in Higher Order Logics, 2008.
+
+\item Sascha B"ohme, Micha{\l} Moskal, Wolfram Schulte, and Burkhart Wolff.
+HOL-Boogie --- An Interactive Prover-Backend for the Verifying C Compiler.
+Journal of Automated Reasoning, 2009.
+
+\end{itemize}
+*}
+
+
 section {* Built-in types and functions of Boogie *}
 
 subsection {* Labels *}
@@ -177,8 +193,8 @@ ML {*
 structure Boogie_Axioms = Named_Thms
 (
   val name = "boogie"
-  val description = ("Boogie background axioms" ^
-    " loaded along with Boogie verification conditions")
+  val description =
+    "Boogie background axioms loaded along with Boogie verification conditions"
 )
 *}
 setup Boogie_Axioms.setup
@@ -191,8 +207,8 @@ ML {*
 structure Split_VC_SMT_Rules = Named_Thms
 (
   val name = "split_vc_smt"
-  val description = ("Theorems given to the SMT sub-tactic" ^
-    " of the split_vc method")
+  val description =
+    "theorems given to the SMT sub-tactic of the split_vc method"
 )
 *}
 setup Split_VC_SMT_Rules.setup

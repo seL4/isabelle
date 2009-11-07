@@ -243,6 +243,26 @@ end
 hide const dummy_term App valapp
 hide (open) const Const termify valtermify term_of term_of_num
 
+subsection {* Tracing of generated and evaluated code *}
+
+definition tracing :: "String.literal => 'a => 'a"
+where
+  [code del]: "tracing s x = x"
+
+ML {*
+structure Code_Evaluation =
+struct
+
+fun tracing s x = (Output.tracing s; x)
+
+end
+*}
+
+code_const "tracing :: String.literal => 'a => 'a"
+  (Eval "Code'_Evaluation.tracing")
+
+hide (open) const tracing
+code_reserved Eval Code_Evaluation
 
 subsection {* Evaluation setup *}
 

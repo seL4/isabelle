@@ -16,7 +16,7 @@ sig
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
   val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
-  val declaration: Symbol_Pos.text * Position.T -> local_theory -> local_theory
+  val declaration: bool -> Symbol_Pos.text * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> Symbol_Pos.text * Position.T -> string list ->
     local_theory -> local_theory
   val hide_names: bool -> string * xstring list -> theory -> theory
@@ -178,10 +178,10 @@ fun add_defs ((unchecked, overloaded), args) =
 
 (* declarations *)
 
-fun declaration (txt, pos) =
+fun declaration pervasive (txt, pos) =
   txt |> ML_Context.expression pos
     "val declaration: Morphism.declaration"
-    "Context.map_proof (LocalTheory.declaration declaration)"
+    ("Context.map_proof (LocalTheory.declaration " ^ Bool.toString pervasive ^ " declaration)")
   |> Context.proof_map;
 
 
