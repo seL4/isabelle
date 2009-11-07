@@ -93,11 +93,9 @@ lemma perm_sing_eq2 [iff]: "([y] <~~> ys) = (ys = [y])"
 
 subsection {* Removing elements *}
 
-consts
-  remove :: "'a => 'a list => 'a list"
-primrec
-  "remove x [] = []"
-  "remove x (y # ys) = (if x = y then ys else y # remove x ys)"
+primrec remove :: "'a => 'a list => 'a list" where
+    "remove x [] = []"
+  | "remove x (y # ys) = (if x = y then ys else y # remove x ys)"
 
 lemma perm_remove: "x \<in> set ys ==> ys <~~> x # remove x ys"
   by (induct ys) auto
@@ -156,7 +154,7 @@ lemma multiset_of_eq_perm: "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
   done
 
 lemma multiset_of_le_perm_append:
-    "(multiset_of xs \<le># multiset_of ys) = (\<exists>zs. xs @ zs <~~> ys)";
+    "(multiset_of xs \<le># multiset_of ys) = (\<exists>zs. xs @ zs <~~> ys)"
   apply (auto simp: multiset_of_eq_perm[THEN sym] mset_le_exists_conv)
   apply (insert surj_multiset_of, drule surjD)
   apply (blast intro: sym)+

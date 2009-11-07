@@ -25,6 +25,13 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
+inductive sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+    empty: "sublist [] xs"
+  | drop: "sublist ys xs \<Longrightarrow> sublist ys (x # xs)"
+  | take: "sublist ys xs \<Longrightarrow> sublist (x # ys) (x # xs)"
+
+code_pred sublist .
+
 (*avoid popular infix*)
 code_reserved SML upto
 
