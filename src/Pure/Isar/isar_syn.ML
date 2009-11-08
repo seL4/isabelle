@@ -780,7 +780,7 @@ val _ =
 val _ =
   OuterSyntax.improper_command "print_theorems"
       "print theorems of local theory or proof context" K.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_theorems));
+    (opt_bang >> (Toplevel.no_timing oo IsarCmd.print_theorems));
 
 val _ =
   OuterSyntax.improper_command "print_locales" "print locales of this theory" K.diag

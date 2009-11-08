@@ -41,7 +41,7 @@
   \end{matharray}
 
   \begin{rail}
-    'print\_theory' ( '!'?)
+    ('print\_theory' | 'print\_theorems') ('!'?)
     ;
 
     'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (thmcriterion *)
@@ -76,8 +76,8 @@
   \item \hyperlink{command.print-attributes}{\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}} prints all attributes
   available in the current theory context.
   
-  \item \hyperlink{command.print-theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}} prints theorems resulting from
-  the last command.
+  \item \hyperlink{command.print-theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}} prints theorems resulting from the
+  last command; the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' option indicates extra verbosity.
   
   \item \hyperlink{command.find-theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}~\isa{criteria} retrieves facts
   from the theory or proof context matching all of given search

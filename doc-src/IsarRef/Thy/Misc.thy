@@ -21,7 +21,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'print\_theory' ( '!'?)
+    ('print\_theory' | 'print\_theorems') ('!'?)
     ;
 
     'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (thmcriterion *)
@@ -56,8 +56,8 @@ text {*
   \item @{command "print_attributes"} prints all attributes
   available in the current theory context.
   
-  \item @{command "print_theorems"} prints theorems resulting from
-  the last command.
+  \item @{command "print_theorems"} prints theorems resulting from the
+  last command; the ``@{text "!"}'' option indicates extra verbosity.
   
   \item @{command "find_theorems"}~@{text criteria} retrieves facts
   from the theory or proof context matching all of given search
