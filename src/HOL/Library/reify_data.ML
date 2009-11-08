@@ -17,12 +17,13 @@ end;
 structure Reify_Data : REIFY_DATA =
 struct
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = thm list * thm list;
   val empty = ([], []);
   val extend = I;
-  fun merge _ = pairself Thm.merge_thms;
+  fun merge ((ths1, rths1), (ths2, rths2)) =
+    (Thm.merge_thms (ths1, ths2), Thm.merge_thms (rths1, rths2));
 );
 
 val get = Data.get o Context.Proof;
