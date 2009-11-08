@@ -26,7 +26,7 @@ structure Data = Generic_Data
        identifier and operations identify the structure uniquely. *)
   val empty = [];
   val extend = I;
-  val merge = AList.join struct_eq (K (Library.merge Thm.eq_thm_prop));
+  val merge = AList.join struct_eq (K Thm.merge_thms);
 );
 
 fun print_structures ctxt =

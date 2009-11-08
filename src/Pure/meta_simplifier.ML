@@ -772,7 +772,7 @@ fun merge_ss (ss1, ss2) =
         loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
 
       val rules' = Net.merge eq_rrule (rules1, rules2);
-      val prems' = merge Thm.eq_thm_prop (prems1, prems2);
+      val prems' = Thm.merge_thms (prems1, prems2);
       val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
       val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
       val congs' = merge (Thm.eq_thm_prop o pairself #2) (congs1, congs2);

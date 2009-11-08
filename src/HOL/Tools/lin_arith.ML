@@ -82,7 +82,7 @@ structure Lin_Arith_Data = Generic_Data
   fun merge
    ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
     {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) : T =
-   {splits = Library.merge Thm.eq_thm_prop (splits1, splits2),
+   {splits = Thm.merge_thms (splits1, splits2),
     inj_consts = Library.merge (op =) (inj_consts1, inj_consts2),
     discrete = Library.merge (op =) (discrete1, discrete2)};
 );
