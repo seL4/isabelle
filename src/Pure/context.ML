@@ -572,7 +572,7 @@ open Basic_Context;
 
 (** theory data **)
 
-signature THEORY_DATA_ARGS =
+signature OLD_THEORY_DATA_ARGS =
 sig
   type T
   val empty: T
@@ -581,7 +581,7 @@ sig
   val merge: Pretty.pp -> T * T -> T
 end;
 
-signature THEORY_DATA =
+signature OLD_THEORY_DATA =
 sig
   type T
   val get: theory -> T
@@ -590,7 +590,7 @@ sig
   val init: theory -> theory
 end;
 
-functor TheoryDataFun(Data: THEORY_DATA_ARGS): THEORY_DATA =
+functor TheoryDataFun(Data: OLD_THEORY_DATA_ARGS): OLD_THEORY_DATA =
 struct
 
 type T = Data.T;
@@ -607,6 +607,38 @@ val put = Context.Theory_Data.put kind Data;
 fun map f thy = put (f (get thy)) thy;
 
 fun init thy = map I thy;
+
+end;
+
+signature THEORY_DATA_ARGS =
+sig
+  type T
+  val empty: T
+  val extend: T -> T
+  val merge: T * T -> T
+end;
+
+signature THEORY_DATA =
+sig
+  type T
+  val get: theory -> T
+  val put: T -> theory -> theory
+  val map: (T -> T) -> theory -> theory
+end;
+
+functor Theory_Data(Data: THEORY_DATA_ARGS): THEORY_DATA =
+struct
+
+structure Result = TheoryDataFun
+(
+  type T = Data.T;
+  val empty = Data.empty;
+  val copy = I;
+  val extend = Data.extend;
+  fun merge _ = Data.merge;
+);
+
+open Result;
 
 end;
 
@@ -628,7 +660,7 @@ sig
   val map: (T -> T) -> Proof.context -> Proof.context
 end;
 
-functor ProofDataFun(Data: PROOF_DATA_ARGS): PROOF_DATA =
+functor Proof_Data(Data: PROOF_DATA_ARGS): PROOF_DATA =
 struct
 
 type T = Data.T;
@@ -651,7 +683,7 @@ sig
   type T
   val empty: T
   val extend: T -> T
-  val merge: Pretty.pp -> T * T -> T
+  val merge: T * T -> T
 end;
 
 signature GENERIC_DATA =
@@ -662,11 +694,11 @@ sig
   val map: (T -> T) -> Context.generic -> Context.generic
 end;
 
-functor GenericDataFun(Data: GENERIC_DATA_ARGS): GENERIC_DATA =
+functor Generic_Data(Data: GENERIC_DATA_ARGS): GENERIC_DATA =
 struct
 
-structure Thy_Data = TheoryDataFun(open Data val copy = I);
-structure Prf_Data = ProofDataFun(type T = Data.T val init = Thy_Data.get);
+structure Thy_Data = Theory_Data(Data);
+structure Prf_Data = Proof_Data(type T = Data.T val init = Thy_Data.get);
 
 type T = Data.T;
 
