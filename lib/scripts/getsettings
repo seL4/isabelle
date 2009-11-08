@@ -98,7 +98,8 @@ function init_component ()
   fi
   if [ -f "$COMPONENT/etc/components" ]; then
     {
-      while read; do
+      while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+      do
         case "$REPLY" in
           \#* | "") ;;
           /*) init_component "$REPLY" ;;
