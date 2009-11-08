@@ -398,7 +398,7 @@ datatype instantiation = Instantiation of {
     (*(instantiation parameter, type constructor), (local instantiation parameter, typ)*)
 }
 
-structure Instantiation = ProofDataFun
+structure Instantiation = Proof_Data
 (
   type T = instantiation
   fun init _ = Instantiation { arities = ([], [], []), params = [] };

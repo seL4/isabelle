@@ -25,12 +25,12 @@ end;
 structure NominalThmDecls: NOMINAL_THMDECLS =
 struct
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = thm list
-  val empty = []:T
+  val empty = []
   val extend = I
-  fun merge _ (r1:T, r2:T) = Thm.merge_thms (r1, r2)
+  val merge = Thm.merge_thms
 )
 
 (* Exception for when a theorem does not conform with form of an equivariance lemma. *)

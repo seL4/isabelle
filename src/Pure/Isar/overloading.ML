@@ -30,7 +30,8 @@ type improvable_syntax = ((((string * typ) list * (string * typ) list) *
   ((((string * typ -> (typ * typ) option) * (string * typ -> (typ * term) option)) * bool) *
     (term * term) list)) * bool);
 
-structure ImprovableSyntax = ProofDataFun(
+structure ImprovableSyntax = Proof_Data
+(
   type T = {
     primary_constraints: (string * typ) list,
     secondary_constraints: (string * typ) list,
@@ -119,7 +120,7 @@ val add_improvable_syntax =
 
 (* bookkeeping *)
 
-structure OverloadingData = ProofDataFun
+structure OverloadingData = Proof_Data
 (
   type T = ((string * typ) * (string * bool)) list;
   fun init _ = [];

@@ -89,13 +89,13 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
     else make_rules next (filter_out eq_th rules) (map (del false o del true) netpairs) wrappers
   end;
 
-structure Rules = GenericDataFun
+structure Rules = Generic_Data
 (
   type T = rules;
   val empty = make_rules ~1 [] empty_netpairs ([], []);
   val extend = I;
-
-  fun merge _ (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
+  fun merge
+    (Rules {rules = rules1, wrappers = (ws1, ws1'), ...},
       Rules {rules = rules2, wrappers = (ws2, ws2'), ...}) =
     let
       val wrappers =

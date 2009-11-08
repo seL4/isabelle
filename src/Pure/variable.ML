@@ -86,7 +86,7 @@ fun make_data (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, c
   Data {is_body = is_body, names = names, consts = consts, fixes = fixes, binds = binds,
     type_occs = type_occs, maxidx = maxidx, sorts = sorts, constraints = constraints};
 
-structure Data = ProofDataFun
+structure Data = Proof_Data
 (
   type T = data;
   fun init _ =

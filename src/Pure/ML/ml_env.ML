@@ -16,7 +16,7 @@ struct
 
 (* context data *)
 
-structure Env = GenericDataFun
+structure Env = Generic_Data
 (
   type T =
     ML_Name_Space.valueVal Symtab.table *
@@ -27,7 +27,7 @@ structure Env = GenericDataFun
     ML_Name_Space.functorVal Symtab.table;
   val empty = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
   val extend = I;
-  fun merge _
+  fun merge
    ((val1, type1, fixity1, structure1, signature1, functor1),
     (val2, type2, fixity2, structure2, signature2, functor2)) : T =
     (Symtab.merge (K true) (val1, val2),

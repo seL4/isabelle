@@ -177,7 +177,7 @@ fun make_ctxt (mode, naming, syntax, consts, facts, cases) =
 
 val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
-structure ContextData = ProofDataFun
+structure ContextData = Proof_Data
 (
   type T = ctxt;
   fun init thy =
@@ -515,7 +515,7 @@ fun prepare_patternT ctxt T =
 
 local
 
-structure Allow_Dummies = ProofDataFun(type T = bool fun init _ = false);
+structure Allow_Dummies = Proof_Data(type T = bool fun init _ = false);
 
 fun check_dummies ctxt t =
   if Allow_Dummies.get ctxt then t

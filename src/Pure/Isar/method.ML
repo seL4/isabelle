@@ -270,7 +270,7 @@ fun intros_tac intros facts =
 
 (* ML tactics *)
 
-structure TacticData = ProofDataFun
+structure TacticData = Proof_Data
 (
   type T = thm list -> tactic;
   fun init _ = undefined;

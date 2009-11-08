@@ -27,13 +27,12 @@ struct
 
 (** calculation data **)
 
-structure CalculationData = GenericDataFun
+structure CalculationData = Generic_Data
 (
   type T = (thm Item_Net.T * thm list) * (thm list * int) option;
   val empty = ((Thm.elim_rules, []), NONE);
   val extend = I;
-
-  fun merge _ (((trans1, sym1), _), ((trans2, sym2), _)) =
+  fun merge (((trans1, sym1), _), ((trans2, sym2), _)) =
     ((Item_Net.merge (trans1, trans2), Thm.merge_thms (sym1, sym2)), NONE);
 );
 

@@ -93,20 +93,16 @@ val lookup_ss = (HOL_basic_ss
 
 val ex_lookup_ss = HOL_ss addsimps @{thms StateFun.ex_id};
 
-structure StateFunArgs =
-struct
-  type T = (simpset * simpset * bool); 
+
+structure StateFunData = Generic_Data
+(
+  type T = simpset * simpset * bool;
            (* lookup simpset, ex_lookup simpset, are simprocs installed *)
   val empty = (empty_ss, empty_ss, false);
   val extend = I;
-  fun merge pp ((ss1,ex_ss1,b1),(ss2,ex_ss2,b2)) = 
-               (merge_ss (ss1,ss2)
-               ,merge_ss (ex_ss1,ex_ss2)
-               ,b1 orelse b2);
-end;
-
-
-structure StateFunData = GenericDataFun(StateFunArgs);
+  fun merge ((ss1, ex_ss1, b1), (ss2, ex_ss2, b2)) =
+    (merge_ss (ss1, ss2), merge_ss (ex_ss1, ex_ss2), b1 orelse b2);
+);
 
 val init_state_fun_data =
   Context.theory_map (StateFunData.put (lookup_ss,ex_lookup_ss,false));

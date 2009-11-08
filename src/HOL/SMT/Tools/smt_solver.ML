@@ -223,12 +223,13 @@ fun add_solver_info (n, i) = Solvers.map (Symtab.map_entry n (apsnd (K i)))
 
 (* selected solver *)
 
-structure SelectedSolver = GenericDataFun
+structure SelectedSolver = Generic_Data
 (
   type T = serial * string
   val empty = (serial (), no_solver)
   val extend = I
-  fun merge _ (sl1 as (s1, _), sl2 as (s2, _)) = if s1 > s2 then sl1 else sl2
+  fun merge (sl1 as (s1, _), sl2 as (s2, _)) =
+    if s1 > s2 then sl1 else sl2   (* FIXME depends on accidental load order !?! *)
 )
 
 val solver_name_of = snd o SelectedSolver.get

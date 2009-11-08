@@ -40,12 +40,12 @@ type entry =
 val eq_key = Thm.eq_thm;
 fun eq_data arg = eq_fst eq_key arg;
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = simpset * (thm * entry) list;
   val empty = (HOL_basic_ss, []);
   val extend = I;
-  fun merge _ ((ss, e), (ss', e')) =
+  fun merge ((ss, e), (ss', e')) : T =
     (merge_ss (ss, ss'), AList.merge eq_key (K true) (e, e'));
 );
 

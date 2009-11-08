@@ -741,14 +741,14 @@ local
 type key = int * bool;
 type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
 
-structure Checks = GenericDataFun
+structure Checks = Generic_Data
 (
   type T =
     ((key * ((string * typ check) * stamp) list) list *
      (key * ((string * term check) * stamp) list) list);
   val empty = ([], []);
   val extend = I;
-  fun merge _ ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
+  fun merge ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
     (AList.join (op =) (K (Library.merge (eq_snd (op =)))) (typ_checks1, typ_checks2),
      AList.join (op =) (K (Library.merge (eq_snd (op =)))) (term_checks1, term_checks2));
 );
@@ -877,7 +877,7 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 
 (* global pretty printing *)
 
-structure PrettyGlobal = ProofDataFun(type T = bool fun init _ = false);
+structure PrettyGlobal = Proof_Data(type T = bool fun init _ = false);
 val is_pretty_global = PrettyGlobal.get;
 val set_pretty_global = PrettyGlobal.put;
 val init_pretty_global = set_pretty_global true o ProofContext.init;

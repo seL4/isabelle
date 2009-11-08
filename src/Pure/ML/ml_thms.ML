@@ -15,7 +15,7 @@ struct
 
 (* auxiliary facts table *)
 
-structure AuxFacts = ProofDataFun
+structure AuxFacts = Proof_Data
 (
   type T = thm list Inttab.table;
   fun init _ = Inttab.empty;

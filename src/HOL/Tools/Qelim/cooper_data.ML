@@ -44,12 +44,12 @@ val allowed_consts =
    @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
    @{term "True"}, @{term "False"}];
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
-  type T = simpset * (term list);
+  type T = simpset * term list;
   val empty = (start_ss, allowed_consts);
   val extend  = I;
-  fun merge _ ((ss1, ts1), (ss2, ts2)) =
+  fun merge ((ss1, ts1), (ss2, ts2)) =
     (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
 );
 

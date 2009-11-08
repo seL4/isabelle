@@ -25,12 +25,12 @@ fun merge_entry ({ inj = inj1, emb = emb1, ret = ret1, cong = cong1, guess = gue
 
 type data = simpset * (thm * entry) list;
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = data;
   val empty = (HOL_ss, []);
   val extend  = I;
-  fun merge _ ((ss1, e1), (ss2, e2)) =
+  fun merge ((ss1, e1), (ss2, e2)) : T =
     (merge_ss (ss1, ss2), AList.join Thm.eq_thm (K merge_entry) (e1, e2));
 );
 

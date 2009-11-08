@@ -85,7 +85,7 @@ fun make_lthy (naming, theory_prefix, operations, target) =
 
 (* context data *)
 
-structure Data = ProofDataFun
+structure Data = Proof_Data
 (
   type T = lthy option;
   fun init _ = NONE;

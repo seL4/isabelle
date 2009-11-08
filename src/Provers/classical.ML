@@ -868,7 +868,7 @@ fun del_context_unsafe_wrapper name = map_context_cs (apsnd ((AList.delete (op =
 
 (* local clasets *)
 
-structure LocalClaset = ProofDataFun
+structure LocalClaset = Proof_Data
 (
   type T = claset;
   val init = get_global_claset;

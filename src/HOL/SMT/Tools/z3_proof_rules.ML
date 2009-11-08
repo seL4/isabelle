@@ -1091,12 +1091,12 @@ struct
   val name = "z3_rewrite"
   val descr = "Z3 rewrite rules used in proof reconstruction"
 
-  structure Data = GenericDataFun
+  structure Data = Generic_Data
   (
     type T = thm Net.net
     val empty = Net.empty
     val extend = I
-    fun merge _ = Net.merge Thm.eq_thm_prop
+    val merge = Net.merge Thm.eq_thm_prop
   )
   val get = Data.get o Context.Proof
 

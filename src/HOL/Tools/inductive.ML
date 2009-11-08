@@ -136,12 +136,12 @@ fun morph_result phi {preds, elims, raw_induct: thm, induct, intrs} =
 type inductive_info =
   {names: string list, coind: bool} * inductive_result;
 
-structure InductiveData = GenericDataFun
+structure InductiveData = Generic_Data
 (
   type T = inductive_info Symtab.table * thm list;
   val empty = (Symtab.empty, []);
   val extend = I;
-  fun merge _ ((tab1, monos1), (tab2, monos2)) =
+  fun merge ((tab1, monos1), (tab2, monos2)) : T =
     (Symtab.merge (K true) (tab1, tab2), Thm.merge_thms (monos1, monos2));
 );
 

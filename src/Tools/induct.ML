@@ -130,7 +130,7 @@ fun pretty_rules ctxt kind rs =
 
 (* context data *)
 
-structure InductData = GenericDataFun
+structure InductData = Generic_Data
 (
   type T = (rules * rules) * (rules * rules) * (rules * rules);
   val empty =
@@ -138,7 +138,7 @@ structure InductData = GenericDataFun
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)));
   val extend = I;
-  fun merge _ (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1)),
+  fun merge (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1)),
       ((casesT2, casesP2), (inductT2, inductP2), (coinductT2, coinductP2))) =
     ((Item_Net.merge (casesT1, casesT2), Item_Net.merge (casesP1, casesP2)),
       (Item_Net.merge (inductT1, inductT2), Item_Net.merge (inductP1, inductP2)),

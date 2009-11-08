@@ -72,14 +72,14 @@ end;  (* LA_Logic *)
 
 (* arith context data *)
 
-structure Lin_Arith_Data = GenericDataFun
+structure Lin_Arith_Data = Generic_Data
 (
   type T = {splits: thm list,
             inj_consts: (string * typ) list,
             discrete: string list};
   val empty = {splits = [], inj_consts = [], discrete = []};
   val extend = I;
-  fun merge _
+  fun merge
    ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
     {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) : T =
    {splits = Library.merge Thm.eq_thm_prop (splits1, splits2),

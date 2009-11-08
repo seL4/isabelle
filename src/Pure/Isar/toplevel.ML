@@ -631,7 +631,7 @@ fun run_command thy_name tr st =
 
 (* excursion of units, consisting of commands with proof *)
 
-structure States = ProofDataFun
+structure States = Proof_Data
 (
   type T = state list future option;
   fun init _ = NONE;

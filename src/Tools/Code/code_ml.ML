@@ -947,7 +947,7 @@ fun eval some_target reff postproc thy t args =
 
 local
 
-structure CodeAntiqData = ProofDataFun
+structure CodeAntiqData = Proof_Data
 (
   type T = (string list * string list) * (bool * (string
     * (string * ((string * string) list * (string * string) list)) lazy));

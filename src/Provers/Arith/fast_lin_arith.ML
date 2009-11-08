@@ -109,7 +109,7 @@ struct
 
 fun no_number_of _ _ _ = raise CTERM ("number_of", [])
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T =
    {add_mono_thms: thm list,
@@ -124,7 +124,7 @@ structure Data = GenericDataFun
                lessD = [], neqE = [], simpset = Simplifier.empty_ss,
                number_of = (serial (), no_number_of) } : T;
   val extend = I;
-  fun merge _
+  fun merge
     ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,
       lessD = lessD1, neqE=neqE1, simpset = simpset1,
       number_of = (number_of1 as (s1, _))},
@@ -137,6 +137,7 @@ structure Data = GenericDataFun
      lessD = Thm.merge_thms (lessD1, lessD2),
      neqE = Thm.merge_thms (neqE1, neqE2),
      simpset = Simplifier.merge_ss (simpset1, simpset2),
+     (* FIXME depends on accidental load order !?! *)
      number_of = if s1 > s2 then number_of1 else number_of2};
 );
 

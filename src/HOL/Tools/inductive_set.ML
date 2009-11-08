@@ -152,7 +152,7 @@ fun eta_contract_thm p =
 (* where s and p are parameters                            *)
 (***********************************************************)
 
-structure PredSetConvData = GenericDataFun
+structure PredSetConvData = Generic_Data
 (
   type T =
     {(* rules for converting predicates to sets *)
@@ -166,7 +166,7 @@ structure PredSetConvData = GenericDataFun
   val empty = {to_set_simps = [], to_pred_simps = [],
     set_arities = Symtab.empty, pred_arities = Symtab.empty};
   val extend = I;
-  fun merge _
+  fun merge
     ({to_set_simps = to_set_simps1, to_pred_simps = to_pred_simps1,
       set_arities = set_arities1, pred_arities = pred_arities1},
      {to_set_simps = to_set_simps2, to_pred_simps = to_pred_simps2,

@@ -115,7 +115,7 @@ val get_global_hints = #2 o GlobalRecdefData.get;
 
 (* proof data *)
 
-structure LocalRecdefData = ProofDataFun
+structure LocalRecdefData = Proof_Data
 (
   type T = hints;
   val init = get_global_hints;

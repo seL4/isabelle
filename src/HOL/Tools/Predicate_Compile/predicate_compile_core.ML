@@ -2450,7 +2450,7 @@ val setup = PredData.put (Graph.empty) #>
   (*FIXME name discrepancy in attribs and ML code*)
   (*FIXME intros should be better named intro*)
 
-(* TODO: make TheoryDataFun to GenericDataFun & remove duplication of local theory and theory *)
+(* TODO: make TheoryDataFun to Generic_Data & remove duplication of local theory and theory *)
 fun generic_code_pred prep_const options raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy

@@ -794,12 +794,12 @@ end;
 structure Predicate_Compile_Preproc_Const_Defs : PREDICATE_COMPILE_PREPROC_CONST_DEFS =
 struct
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = thm list;
   val empty = [];
   val extend = I;
-  fun merge _ = Thm.merge_thms;
+  val merge = Thm.merge_thms;
 );
 
 val get = Data.get o Context.Proof;

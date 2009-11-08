@@ -17,12 +17,13 @@ type entry = {qe_bnds: thm, qe_nolb : thm , qe_noub: thm,
 val eq_key = Thm.eq_thm;
 fun eq_data arg = eq_fst eq_key arg;
 
-structure Data = GenericDataFun
-( type T = simpset * (thm * entry) list;
+structure Data = Generic_Data
+(
+  type T = simpset * (thm * entry) list;
   val empty = (HOL_basic_ss, []);
   val extend = I;
-  fun merge _ ((ss1,es1), (ss2,es2)) = 
-       (merge_ss (ss1,ss2), AList.merge eq_key (K true) (es1,es2));;
+  fun merge ((ss1, es1), (ss2, es2)) : T =
+    (merge_ss (ss1, ss2), AList.merge eq_key (K true) (es1, es2));
 );
 
 val get = Data.get o Context.Proof;

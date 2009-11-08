@@ -43,15 +43,13 @@ fun del_rule th (tcs as TC {rules, net}) =
 
 (* generic data *)
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
-  type T = tcset
+  type T = tcset;
   val empty = TC {rules = [], net = Net.empty};
   val extend = I;
-
-  fun merge _ (TC {rules, net}, TC {rules = rules', net = net'}) =
-    TC {rules = Thm.merge_thms (rules, rules'),
-        net = Net.merge Thm.eq_thm_prop (net, net')};
+  fun merge (TC {rules, net}, TC {rules = rules', net = net'}) =
+    TC {rules = Thm.merge_thms (rules, rules'), net = Net.merge Thm.eq_thm_prop (net, net')};
 );
 
 val TC_add = Thm.declaration_attribute (Data.map o add_rule);

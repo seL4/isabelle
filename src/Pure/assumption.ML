@@ -60,7 +60,7 @@ datatype data = Data of
 
 fun make_data (assms, prems) = Data {assms = assms, prems = prems};
 
-structure Data = ProofDataFun
+structure Data = Proof_Data
 (
   type T = data;
   fun init _ = make_data ([], []);

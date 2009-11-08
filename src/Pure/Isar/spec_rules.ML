@@ -24,7 +24,7 @@ struct
 datatype rough_classification = Unknown | Equational | Inductive | Co_Inductive;
 type spec = rough_classification * (term list * thm list);
 
-structure Rules = GenericDataFun
+structure Rules = Generic_Data
 (
   type T = spec Item_Net.T;
   val empty : T =
@@ -35,7 +35,7 @@ structure Rules = GenericDataFun
         eq_list Thm.eq_thm_prop (ths1, ths2))
       (#1 o #2);
   val extend = I;
-  fun merge _ = Item_Net.merge;
+  fun merge data = Item_Net.merge data;
 );
 
 val get = Item_Net.content o Rules.get o Context.Proof;

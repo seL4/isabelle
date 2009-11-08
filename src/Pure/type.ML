@@ -147,7 +147,7 @@ val mode_default = Mode {normalize = true, logical = true};
 val mode_syntax = Mode {normalize = true, logical = false};
 val mode_abbrev = Mode {normalize = false, logical = false};
 
-structure Mode = ProofDataFun
+structure Mode = Proof_Data
 (
   type T = mode;
   fun init _ = mode_default;

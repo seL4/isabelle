@@ -106,19 +106,18 @@ type namespace_info =
   silent: bool
  };
 
-structure NameSpaceArgs =
-struct
+structure NameSpaceData = Generic_Data
+(
   type T = namespace_info;
   val empty = {declinfo = Termtab.empty, distinctthm = Symtab.empty, silent = false};
   val extend = I;
-  fun merge pp ({declinfo=declinfo1, distinctthm=distinctthm1, silent=silent1},
-                {declinfo=declinfo2, distinctthm=distinctthm2, silent=silent2}) =
-                {declinfo = Termtab.merge (K true) (declinfo1, declinfo2),
-                 distinctthm = Symtab.merge (K true) (distinctthm1, distinctthm2),
-                 silent = silent1 andalso silent2}
-end;
-
-structure NameSpaceData = GenericDataFun(NameSpaceArgs);
+  fun merge
+    ({declinfo=declinfo1, distinctthm=distinctthm1, silent=silent1},
+      {declinfo=declinfo2, distinctthm=distinctthm2, silent=silent2}) : T =
+    {declinfo = Termtab.merge (K true) (declinfo1, declinfo2),
+     distinctthm = Symtab.merge (K true) (distinctthm1, distinctthm2),
+     silent = silent1 andalso silent2}
+);
 
 fun make_namespace_data declinfo distinctthm silent =
      {declinfo=declinfo,distinctthm=distinctthm,silent=silent};
@@ -172,17 +171,13 @@ type statespace_info =
   types: typ list (* range types of state space *)
  };
 
-structure StateSpaceArgs =
-struct
-  val name = "HOL/StateSpace";
+structure StateSpaceData = Generic_Data
+(
   type T = statespace_info Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-
-  fun merge pp (nt1,nt2) = Symtab.merge (K true) (nt1, nt2);
-end;
-
-structure StateSpaceData = GenericDataFun(StateSpaceArgs);
+  fun merge data : T = Symtab.merge (K true) data;
+);
 
 fun add_statespace name args parents components types ctxt =
      StateSpaceData.put

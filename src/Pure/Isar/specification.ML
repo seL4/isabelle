@@ -333,12 +333,12 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
                 [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
       in ((prems, stmt, SOME facts), goal_ctxt) end);
 
-structure TheoremHook = GenericDataFun
+structure TheoremHook = Generic_Data
 (
   type T = ((bool -> Proof.state -> Proof.state) * stamp) list;
   val empty = [];
   val extend = I;
-  fun merge _ hooks : T = Library.merge (eq_snd op =) hooks;
+  fun merge hooks : T = Library.merge (eq_snd op =) hooks;
 );
 
 fun gen_theorem prep_att prep_stmt

@@ -160,12 +160,12 @@ fun lambda_tuple [] rhs = Term.lambda (Free("unit", HOLogic.unitT)) rhs
 (************* fixed-point definitions and unfolding theorems ************)
 (*************************************************************************)
 
-structure FixrecUnfoldData = GenericDataFun (
+structure FixrecUnfoldData = Generic_Data
+(
   type T = thm Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge (K true);
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 local
@@ -363,16 +363,16 @@ fun compile_pats match_name eqs =
 (********************** Proving associated theorems **********************)
 (*************************************************************************)
 
-structure FixrecSimpData = GenericDataFun (
+structure FixrecSimpData = Generic_Data
+(
   type T = simpset;
   val empty =
     HOL_basic_ss
       addsimps simp_thms
       addsimps [@{thm beta_cfun}]
       addsimprocs [@{simproc cont_proc}];
-  val copy = I;
   val extend = I;
-  fun merge _ = merge_ss;
+  val merge = merge_ss;
 );
 
 fun fixrec_simp_tac ctxt =

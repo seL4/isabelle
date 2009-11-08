@@ -20,7 +20,7 @@ struct
 
 (* ML names *)
 
-structure NamesData = ProofDataFun
+structure NamesData = Proof_Data
 (
   type T = Name.context;
   fun init _ = ML_Syntax.reserved;

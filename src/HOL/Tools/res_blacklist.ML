@@ -19,12 +19,12 @@ end;
 structure Res_Blacklist: RES_BLACKLIST =
 struct
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = thm Termtab.table;
   val empty = Termtab.empty;
   val extend = I;
-  fun merge _ tabs = Termtab.merge (K true) tabs;
+  fun merge tabs = Termtab.merge (K true) tabs;
 );
 
 fun blacklisted ctxt th =

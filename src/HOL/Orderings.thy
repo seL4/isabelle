@@ -302,7 +302,7 @@ struct
 fun struct_eq ((s1: string, ts1), (s2, ts2)) =
   (s1 = s2) andalso eq_list (op aconv) (ts1, ts2);
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = ((string * term list) * Order_Tac.less_arith) list;
     (* Order structures:
@@ -311,7 +311,7 @@ structure Data = GenericDataFun
        identifier and operations identify the structure uniquely. *)
   val empty = [];
   val extend = I;
-  fun merge _ = AList.join struct_eq (K fst);
+  fun merge data = AList.join struct_eq (K fst) data;
 );
 
 fun print_structures ctxt =

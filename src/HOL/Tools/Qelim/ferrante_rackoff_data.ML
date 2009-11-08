@@ -38,12 +38,12 @@ type entry =
 val eq_key = Thm.eq_thm;
 fun eq_data arg = eq_fst eq_key arg;
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = (thm * entry) list;
   val empty = [];
   val extend = I;
-  fun merge _ = AList.merge eq_key (K true);
+  fun merge data : T = AList.merge eq_key (K true) data;
 );
 
 val get = Data.get o Context.Proof;

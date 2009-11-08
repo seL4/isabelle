@@ -17,12 +17,12 @@ end;
 functor Named_Thms(val name: string val description: string): NAMED_THMS =
 struct
 
-structure Data = GenericDataFun
+structure Data = Generic_Data
 (
   type T = thm Item_Net.T;
   val empty = Thm.full_rules;
   val extend = I;
-  fun merge _ = Item_Net.merge;
+  val merge = Item_Net.merge;
 );
 
 val content = Item_Net.content o Data.get;

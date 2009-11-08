@@ -99,12 +99,12 @@ fun pretty_ss ctxt ss =
 
 (** simpset data **)
 
-structure SimpsetData = GenericDataFun
+structure SimpsetData = Generic_Data
 (
   type T = simpset;
   val empty = empty_ss;
   fun extend ss = MetaSimplifier.inherit_context empty_ss ss;
-  fun merge _ = merge_ss;
+  val merge = merge_ss;
 );
 
 val get_ss = SimpsetData.get;
@@ -145,12 +145,12 @@ val _ = ML_Antiquote.value "simpset"
 
 (* data *)
 
-structure Simprocs = GenericDataFun
+structure Simprocs = Generic_Data
 (
   type T = simproc Name_Space.table;
   val empty : T = Name_Space.empty_table "simproc";
   val extend = I;
-  fun merge _ simprocs = Name_Space.merge_tables simprocs;
+  fun merge simprocs = Name_Space.merge_tables simprocs;
 );
 
 

@@ -188,12 +188,12 @@ local
 
 datatype 'a delayed = Ready of 'a | ToDo of 'a delayed * 'a delayed;
 
-structure Identifiers = GenericDataFun
+structure Identifiers = Generic_Data
 (
   type T = (string * term list) list delayed;
   val empty = Ready [];
   val extend = I;
-  fun merge _ = ToDo;
+  val merge = ToDo;
 );
 
 fun finish thy (ToDo (i1, i2)) = merge (ident_eq thy) (finish thy i1, finish thy i2)
@@ -569,12 +569,12 @@ end;
 
 (* Storage for witnesses, intro and unfold rules *)
 
-structure Thms = GenericDataFun
+structure Thms = Generic_Data
 (
   type T = thm list * thm list * thm list;
   val empty = ([], [], []);
   val extend = I;
-  fun merge _ ((witnesses1, intros1, unfolds1), (witnesses2, intros2, unfolds2)) =
+  fun merge ((witnesses1, intros1, unfolds1), (witnesses2, intros2, unfolds2)) =
    (Thm.merge_thms (witnesses1, witnesses2),
     Thm.merge_thms (intros1, intros2),
     Thm.merge_thms (unfolds1, unfolds2));

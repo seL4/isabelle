@@ -34,7 +34,7 @@ fun make_target target is_locale is_class instantiation overloading =
 
 val global_target = make_target "" false false ([], [], []) [];
 
-structure Data = ProofDataFun
+structure Data = Proof_Data
 (
   type T = target;
   fun init _ = global_target;

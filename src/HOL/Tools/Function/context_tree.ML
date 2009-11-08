@@ -44,12 +44,12 @@ type ctxt = (string * typ) list * thm list
 open Function_Common
 open Function_Lib
 
-structure FunctionCongs = GenericDataFun
+structure FunctionCongs = Generic_Data
 (
   type T = thm list
   val empty = []
   val extend = I
-  fun merge _ = Thm.merge_thms
+  val merge = Thm.merge_thms
 );
 
 val get_function_congs = FunctionCongs.get o Context.Proof

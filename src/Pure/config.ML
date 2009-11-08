@@ -90,12 +90,12 @@ fun put_thy config value = map_thy config (K value);
 
 (* context information *)
 
-structure Value = GenericDataFun
+structure Value = Generic_Data
 (
   type T = value Inttab.table;
   val empty = Inttab.empty;
   val extend = I;
-  fun merge _ = Inttab.merge (K true);
+  fun merge data = Inttab.merge (K true) data;
 );
 
 fun declare global name default =

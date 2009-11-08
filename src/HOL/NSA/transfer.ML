@@ -15,7 +15,7 @@ end;
 structure Transfer: TRANSFER =
 struct
 
-structure TransferData = GenericDataFun
+structure TransferData = Generic_Data
 (
   type T = {
     intros: thm list,
@@ -25,15 +25,15 @@ structure TransferData = GenericDataFun
   };
   val empty = {intros = [], unfolds = [], refolds = [], consts = []};
   val extend = I;
-  fun merge _
+  fun merge
     ({intros = intros1, unfolds = unfolds1,
       refolds = refolds1, consts = consts1},
      {intros = intros2, unfolds = unfolds2,
-      refolds = refolds2, consts = consts2}) =
+      refolds = refolds2, consts = consts2}) : T =
    {intros = Thm.merge_thms (intros1, intros2),
     unfolds = Thm.merge_thms (unfolds1, unfolds2),
     refolds = Thm.merge_thms (refolds1, refolds2),
-    consts = Library.merge (op =) (consts1, consts2)} : T;
+    consts = Library.merge (op =) (consts1, consts2)};
 );
 
 fun unstar_typ (Type ("StarDef.star",[t])) = unstar_typ t

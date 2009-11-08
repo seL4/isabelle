@@ -186,12 +186,12 @@ end;
 
 (* transformation rules *)
 
-structure Rules = GenericDataFun
+structure Rules = Generic_Data
 (
   type T = thm list;
-  val empty = []
+  val empty = [];
   val extend = I;
-  fun merge _ = Thm.merge_thms;
+  val merge = Thm.merge_thms;
 );
 
 fun print_rules ctxt =

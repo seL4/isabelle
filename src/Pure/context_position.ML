@@ -15,7 +15,7 @@ end;
 structure Context_Position: CONTEXT_POSITION =
 struct
 
-structure Data = ProofDataFun
+structure Data = Proof_Data
 (
   type T = bool;
   fun init _ = true;

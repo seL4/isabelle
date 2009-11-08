@@ -27,12 +27,12 @@ val dom_name = suffix "_dom"
 
 (* Termination rules *)
 
-structure TerminationRule = GenericDataFun
+structure TerminationRule = Generic_Data
 (
   type T = thm list
   val empty = []
   val extend = I
-  fun merge _ = Thm.merge_thms
+  val merge = Thm.merge_thms
 );
 
 val get_termination_rules = TerminationRule.get
@@ -90,13 +90,12 @@ fun morph_function_data (FunctionCtxData {add_simps, case_names, fs, R,
                       defname = name defname }
     end
 
-structure FunctionData = GenericDataFun
+structure FunctionData = Generic_Data
 (
   type T = (term * function_context_data) Item_Net.T;
   val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst);
-  val copy = I;
   val extend = I;
-  fun merge _ (tab1, tab2) = Item_Net.merge (tab1, tab2)
+  fun merge tabs : T = Item_Net.merge tabs;
 );
 
 val get_function = FunctionData.get o Context.Proof;
@@ -152,12 +151,12 @@ structure Termination_Simps = Named_Thms
 
 (* Default Termination Prover *)
 
-structure TerminationProver = GenericDataFun
+structure TerminationProver = Generic_Data
 (
   type T = Proof.context -> Proof.method
   val empty = (fn _ => error "Termination prover not configured")
   val extend = I
-  fun merge _ (a,b) = b (* FIXME *)
+  fun merge (a, b) = b  (* FIXME ? *)
 );
 
 val set_termination_prover = TerminationProver.put
@@ -310,12 +309,12 @@ fun empty_preproc check _ ctxt fixes spec =
       (ts, curry op ~~ bnds o Library.unflat tss, sort, cnames)
     end
 
-structure Preprocessor = GenericDataFun
+structure Preprocessor = Generic_Data
 (
   type T = preproc
   val empty : T = empty_preproc check_defs
   val extend = I
-  fun merge _ (a, _) = a
+  fun merge (a, _) = a
 );
 
 val get_preproc = Preprocessor.get o Context.Proof
