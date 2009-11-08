@@ -923,22 +923,21 @@ declare power_minus_Dig1 [simp]
 
 declare Suc_of_num [simp]
 
-thm numeral
-
 
 subsection {* Simplification Procedures *}
 
 subsubsection {* Reorientation of equalities *}
 
 setup {*
-  ReorientProc.add
+  Reorient_Proc.add
     (fn Const(@{const_name of_num}, _) $ _ => true
       | Const(@{const_name uminus}, _) $
           (Const(@{const_name of_num}, _) $ _) => true
       | _ => false)
 *}
 
-simproc_setup reorient_num ("of_num n = x" | "- of_num m = y") = ReorientProc.proc
+simproc_setup reorient_num ("of_num n = x" | "- of_num m = y") = Reorient_Proc.proc
+
 
 subsubsection {* Constant folding for multiplication in semirings *}
 

@@ -1502,11 +1502,11 @@ setup {* Int_Arith.global_setup *}
 declaration {* K Int_Arith.setup *}
 
 setup {*
-  ReorientProc.add
+  Reorient_Proc.add
     (fn Const (@{const_name number_of}, _) $ _ => true | _ => false)
 *}
 
-simproc_setup reorient_numeral ("number_of w = x") = ReorientProc.proc
+simproc_setup reorient_numeral ("number_of w = x") = Reorient_Proc.proc
 
 
 subsection{*Lemmas About Small Numerals*}

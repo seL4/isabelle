@@ -196,11 +196,11 @@ end
 text {* Simproc to rewrite @{term "\<bottom> = x"} to @{term "x = \<bottom>"}. *}
 
 setup {*
-  ReorientProc.add
+  Reorient_Proc.add
     (fn Const(@{const_name UU}, _) => true | _ => false)
 *}
 
-simproc_setup reorient_bottom ("\<bottom> = x") = ReorientProc.proc
+simproc_setup reorient_bottom ("\<bottom> = x") = Reorient_Proc.proc
 
 context pcpo
 begin
