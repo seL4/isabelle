@@ -204,13 +204,12 @@ fun gen_solver solver ctxt prems =
 type solver = Proof.context -> thm list -> thm
 type solver_info = Context.generic -> Pretty.T list
 
-structure Solvers = TheoryDataFun
+structure Solvers = Theory_Data
 (
   type T = ((Proof.context -> solver_config) * solver_info) Symtab.table
   val empty = Symtab.empty
-  val copy = I
   val extend = I
-  fun merge _ = Symtab.merge (K true)
+  fun merge data = Symtab.merge (K true) data
     handle Symtab.DUP name => error ("Duplicate SMT solver: " ^ quote name)
 )
 
