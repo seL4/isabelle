@@ -177,8 +177,8 @@ text %mlref {*
   update will result in two related, valid theories.
 
   \item @{ML "Theory.copy"}~@{text "thy"} produces a variant of @{text
-  "thy"} that holds a copy of the same data.  The result is not
-  related to the original; the original is unchanged.
+  "thy"} with the same data.  The result is not related to the
+  original; the original is unchanged.
 
   \item @{ML_type theory_ref} represents a sliding reference to an
   always valid theory; updates on the original are propagated
@@ -298,25 +298,18 @@ text %mlref {*
 
 subsection {* Context data \label{sec:context-data} *}
 
-text {*
-  The main purpose of theory and proof contexts is to manage arbitrary
-  data.  New data types can be declared incrementally at compile time.
-  There are separate declaration mechanisms for any of the three kinds
-  of contexts: theory, proof, generic.
+text {* The main purpose of theory and proof contexts is to manage
+  arbitrary (pure) data.  New data types can be declared incrementally
+  at compile time.  There are separate declaration mechanisms for any
+  of the three kinds of contexts: theory, proof, generic.
 
-  \paragraph{Theory data} may refer to destructive entities, which are
-  maintained in direct correspondence to the linear evolution of
-  theory values, including explicit copies.\footnote{Most existing
-  instances of destructive theory data are merely historical relics
-  (e.g.\ the destructive theorem storage, and destructive hints for
-  the Simplifier and Classical rules).}  A theory data declaration
-  needs to implement the following SML signature:
+  \paragraph{Theory data} declarations need to implement the following
+  SML signature:
 
   \medskip
   \begin{tabular}{ll}
   @{text "\<type> T"} & representing type \\
   @{text "\<val> empty: T"} & empty default value \\
-  @{text "\<val> copy: T \<rightarrow> T"} & refresh impure data \\
   @{text "\<val> extend: T \<rightarrow> T"} & re-initialize on import \\
   @{text "\<val> merge: T \<times> T \<rightarrow> T"} & join on import \\
   \end{tabular}
@@ -324,13 +317,10 @@ text {*
 
   \noindent The @{text "empty"} value acts as initial default for
   \emph{any} theory that does not declare actual data content; @{text
-  "copy"} maintains persistent integrity for impure data, it is just
-  the identity for pure values; @{text "extend"} is acts like a
-  unitary version of @{text "merge"}, both operations should also
-  include the functionality of @{text "copy"} for impure data.
+  "extend"} is acts like a unitary version of @{text "merge"}.
 
-  \paragraph{Proof context data} is purely functional.  A declaration
-  needs to implement the following SML signature:
+  \paragraph{Proof context data} declarations need to implement the
+  following SML signature:
 
   \medskip
   \begin{tabular}{ll}
@@ -343,52 +333,48 @@ text {*
   value from the given background theory.
 
   \paragraph{Generic data} provides a hybrid interface for both theory
-  and proof data.  The declaration is essentially the same as for
-  (pure) theory data, without @{text "copy"}.  The @{text "init"}
-  operation for proof contexts merely selects the current data value
-  from the background theory.
+  and proof data.  The @{text "init"} operation for proof contexts is
+  predefined to select the current data value from the background
+  theory.
 
   \bigskip A data declaration of type @{text "T"} results in the
   following interface:
 
   \medskip
   \begin{tabular}{ll}
-  @{text "init: theory \<rightarrow> T"} \\
   @{text "get: context \<rightarrow> T"} \\
   @{text "put: T \<rightarrow> context \<rightarrow> context"} \\
   @{text "map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context"} \\
   \end{tabular}
   \medskip
 
-  \noindent Here @{text "init"} is only applicable to impure theory
-  data to install a fresh copy persistently (destructive update on
-  uninitialized has no permanent effect).  The other operations provide
-  access for the particular kind of context (theory, proof, or generic
-  context).  Note that this is a safe interface: there is no other way
-  to access the corresponding data slot of a context.  By keeping
-  these operations private, a component may maintain abstract values
-  authentically, without other components interfering.
+  \noindent These other operations provide access for the particular
+  kind of context (theory, proof, or generic context).  Note that this
+  is a safe interface: there is no other way to access the
+  corresponding data slot of a context.  By keeping these operations
+  private, a component may maintain abstract values authentically,
+  without other components interfering.
 *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_functor TheoryDataFun} \\
-  @{index_ML_functor ProofDataFun} \\
-  @{index_ML_functor GenericDataFun} \\
+  @{index_ML_functor Theory_Data} \\
+  @{index_ML_functor Proof_Data} \\
+  @{index_ML_functor Generic_Data} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_functor TheoryDataFun}@{text "(spec)"} declares data for
+  \item @{ML_functor Theory_Data}@{text "(spec)"} declares data for
   type @{ML_type theory} according to the specification provided as
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \item @{ML_functor ProofDataFun}@{text "(spec)"} is analogous to
-  @{ML_functor TheoryDataFun} for type @{ML_type Proof.context}.
+  \item @{ML_functor Proof_Data}@{text "(spec)"} is analogous to
+  @{ML_functor Theory_Data} for type @{ML_type Proof.context}.
 
-  \item @{ML_functor GenericDataFun}@{text "(spec)"} is analogous to
-  @{ML_functor TheoryDataFun} for type @{ML_type Context.generic}.
+  \item @{ML_functor Generic_Data}@{text "(spec)"} is analogous to
+  @{ML_functor Theory_Data} for type @{ML_type Context.generic}.
 
   \end{description}
 *}

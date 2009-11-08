@@ -236,6 +236,11 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 
 *** ML ***
 
+* Theory and context data is now introduced by the simplified and
+modernized functors Theory_Data, Proof_Data, Generic_Data.  Data needs
+to be pure, but the old TheoryDataFun for mutable data (with explicit
+copy operation) is still available for some time.
+
 * Removed some old-style infix operations using polymorphic equality.
 INCOMPATIBILITY.
 

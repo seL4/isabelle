@@ -201,8 +201,8 @@ A \emph{theory} is a data container with explicit name and unique
   stepping stone in the linear development of \isa{thy}.  The next
   update will result in two related, valid theories.
 
-  \item \verb|Theory.copy|~\isa{thy} produces a variant of \isa{thy} that holds a copy of the same data.  The result is not
-  related to the original; the original is unchanged.
+  \item \verb|Theory.copy|~\isa{thy} produces a variant of \isa{thy} with the same data.  The result is not related to the
+  original; the original is unchanged.
 
   \item \verb|theory_ref| represents a sliding reference to an
   always valid theory; updates on the original are propagated
@@ -356,37 +356,28 @@ A generic context is the disjoint sum of either a theory or proof
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The main purpose of theory and proof contexts is to manage arbitrary
-  data.  New data types can be declared incrementally at compile time.
-  There are separate declaration mechanisms for any of the three kinds
-  of contexts: theory, proof, generic.
+The main purpose of theory and proof contexts is to manage
+  arbitrary (pure) data.  New data types can be declared incrementally
+  at compile time.  There are separate declaration mechanisms for any
+  of the three kinds of contexts: theory, proof, generic.
 
-  \paragraph{Theory data} may refer to destructive entities, which are
-  maintained in direct correspondence to the linear evolution of
-  theory values, including explicit copies.\footnote{Most existing
-  instances of destructive theory data are merely historical relics
-  (e.g.\ the destructive theorem storage, and destructive hints for
-  the Simplifier and Classical rules).}  A theory data declaration
-  needs to implement the following SML signature:
+  \paragraph{Theory data} declarations need to implement the following
+  SML signature:
 
   \medskip
   \begin{tabular}{ll}
   \isa{{\isasymtype}\ T} & representing type \\
   \isa{{\isasymval}\ empty{\isacharcolon}\ T} & empty default value \\
-  \isa{{\isasymval}\ copy{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & refresh impure data \\
   \isa{{\isasymval}\ extend{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & re-initialize on import \\
   \isa{{\isasymval}\ merge{\isacharcolon}\ T\ {\isasymtimes}\ T\ {\isasymrightarrow}\ T} & join on import \\
   \end{tabular}
   \medskip
 
   \noindent The \isa{empty} value acts as initial default for
-  \emph{any} theory that does not declare actual data content; \isa{copy} maintains persistent integrity for impure data, it is just
-  the identity for pure values; \isa{extend} is acts like a
-  unitary version of \isa{merge}, both operations should also
-  include the functionality of \isa{copy} for impure data.
+  \emph{any} theory that does not declare actual data content; \isa{extend} is acts like a unitary version of \isa{merge}.
 
-  \paragraph{Proof context data} is purely functional.  A declaration
-  needs to implement the following SML signature:
+  \paragraph{Proof context data} declarations need to implement the
+  following SML signature:
 
   \medskip
   \begin{tabular}{ll}
@@ -399,31 +390,27 @@ The main purpose of theory and proof contexts is to manage arbitrary
   value from the given background theory.
 
   \paragraph{Generic data} provides a hybrid interface for both theory
-  and proof data.  The declaration is essentially the same as for
-  (pure) theory data, without \isa{copy}.  The \isa{init}
-  operation for proof contexts merely selects the current data value
-  from the background theory.
+  and proof data.  The \isa{init} operation for proof contexts is
+  predefined to select the current data value from the background
+  theory.
 
   \bigskip A data declaration of type \isa{T} results in the
   following interface:
 
   \medskip
   \begin{tabular}{ll}
-  \isa{init{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} \\
   \isa{get{\isacharcolon}\ context\ {\isasymrightarrow}\ T} \\
   \isa{put{\isacharcolon}\ T\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
   \isa{map{\isacharcolon}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
   \end{tabular}
   \medskip
 
-  \noindent Here \isa{init} is only applicable to impure theory
-  data to install a fresh copy persistently (destructive update on
-  uninitialized has no permanent effect).  The other operations provide
-  access for the particular kind of context (theory, proof, or generic
-  context).  Note that this is a safe interface: there is no other way
-  to access the corresponding data slot of a context.  By keeping
-  these operations private, a component may maintain abstract values
-  authentically, without other components interfering.%
+  \noindent These other operations provide access for the particular
+  kind of context (theory, proof, or generic context).  Note that this
+  is a safe interface: there is no other way to access the
+  corresponding data slot of a context.  By keeping these operations
+  private, a component may maintain abstract values authentically,
+  without other components interfering.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -435,23 +422,23 @@ The main purpose of theory and proof contexts is to manage arbitrary
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML functor}{TheoryDataFun}\verb|functor TheoryDataFun| \\
-  \indexdef{}{ML functor}{ProofDataFun}\verb|functor ProofDataFun| \\
-  \indexdef{}{ML functor}{GenericDataFun}\verb|functor GenericDataFun| \\
+  \indexdef{}{ML functor}{Theory\_Data}\verb|functor Theory_Data| \\
+  \indexdef{}{ML functor}{Proof\_Data}\verb|functor Proof_Data| \\
+  \indexdef{}{ML functor}{Generic\_Data}\verb|functor Generic_Data| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|TheoryDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} declares data for
+  \item \verb|Theory_Data|\isa{{\isacharparenleft}spec{\isacharparenright}} declares data for
   type \verb|theory| according to the specification provided as
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \item \verb|ProofDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
-  \verb|TheoryDataFun| for type \verb|Proof.context|.
+  \item \verb|Proof_Data|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
+  \verb|Theory_Data| for type \verb|Proof.context|.
 
-  \item \verb|GenericDataFun|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
-  \verb|TheoryDataFun| for type \verb|Context.generic|.
+  \item \verb|Generic_Data|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
+  \verb|Theory_Data| for type \verb|Context.generic|.
 
   \end{description}%
 \end{isamarkuptext}%
