@@ -232,13 +232,12 @@ fun eq_pred_data (PredData d1, PredData d2) =
   eq_option (Thm.eq_thm) (#elim d1, #elim d2) andalso
   #nparams d1 = #nparams d2
 
-structure PredData = TheoryDataFun
+structure PredData = Theory_Data
 (
   type T = pred_data Graph.T;
   val empty = Graph.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Graph.merge eq_pred_data;
+  val merge = Graph.merge eq_pred_data;
 );
 
 (* queries *)
@@ -2450,7 +2449,7 @@ val setup = PredData.put (Graph.empty) #>
   (*FIXME name discrepancy in attribs and ML code*)
   (*FIXME intros should be better named intro*)
 
-(* TODO: make TheoryDataFun to Generic_Data & remove duplication of local theory and theory *)
+(* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
 fun generic_code_pred prep_const options raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy

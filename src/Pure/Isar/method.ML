@@ -320,13 +320,12 @@ fun finish_text (NONE, immed) = Basic (close immed)
 
 (* method definitions *)
 
-structure Methods = TheoryDataFun
+structure Methods = Theory_Data
 (
   type T = ((src -> Proof.context -> method) * string) Name_Space.table;
   val empty : T = Name_Space.empty_table "method";
-  val copy = I;
   val extend = I;
-  fun merge _ tables : T = Name_Space.merge_tables tables;
+  fun merge data : T = Name_Space.merge_tables data;
 );
 
 fun print_methods thy =

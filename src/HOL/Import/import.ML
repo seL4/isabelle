@@ -9,13 +9,12 @@ sig
     val setup      : theory -> theory
 end
 
-structure ImportData = TheoryDataFun
+structure ImportData = Theory_Data
 (
-  type T = ProofKernel.thm option array option
+  type T = ProofKernel.thm option array option  (* FIXME mutable array !??!!! *)
   val empty = NONE
-  val copy = I
   val extend = I
-  fun merge _ _ = NONE
+  fun merge _ = NONE
 )
 
 structure Import :> IMPORT =

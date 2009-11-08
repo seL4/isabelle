@@ -52,16 +52,16 @@ fun merge_test_params (Test_Params { size = size1, iterations = iterations1, def
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     case default_type1 of NONE => default_type2 | _ => default_type1);
 
-structure Data = TheoryDataFun(
+structure Data = Theory_Data
+(
   type T = (string * (Proof.context -> term -> int -> term list option)) list
     * test_params;
   val empty = ([], Test_Params { size = 10, iterations = 100, default_type = NONE });
-  val copy = I;
   val extend = I;
-  fun merge pp ((generators1, params1), (generators2, params2)) =
-    (AList.merge (op = : string * string -> bool) (K true) (generators1, generators2),
+  fun merge ((generators1, params1), (generators2, params2)) : T =
+    (AList.merge (op =) (K true) (generators1, generators2),
       merge_test_params (params1, params2));
-)
+);
 
 val add_generator = Data.map o apfst o AList.update (op =);
 

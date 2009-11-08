@@ -18,13 +18,12 @@ struct
 
 type T = T;
 
-structure Interp = TheoryDataFun
+structure Interp = Theory_Data
 (
   type T = T list * (((T -> theory -> theory) * stamp) * T list) list;
   val empty = ([], []);
   val extend = I;
-  val copy = I;
-  fun merge _ ((data1, interps1), (data2, interps2)) : T =
+  fun merge ((data1, interps1), (data2, interps2)) : T =
     (Library.merge eq (data1, data2),
      AList.join (eq_snd (op =)) (K (Library.merge eq)) (interps1, interps2));
 );

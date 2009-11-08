@@ -233,15 +233,14 @@ end;
 
 (* management data *)
 
-structure Management_Data = TheoryDataFun
+structure Management_Data = Theory_Data
 (
   type T =
     Task_Queue.group option *   (*worker thread group*)
     int;                        (*abstract update time*)
   val empty = (NONE, 0);
-  val copy = I;
   fun extend _ = empty;
-  fun merge _ _ = empty;
+  fun merge _ = empty;
 );
 
 val thy_ord = int_ord o pairself (#2 o Management_Data.get);

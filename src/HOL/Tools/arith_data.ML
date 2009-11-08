@@ -41,13 +41,12 @@ structure Arith_Facts = Named_Thms
 
 val get_arith_facts = Arith_Facts.get;
 
-structure Arith_Tactics = TheoryDataFun
+structure Arith_Tactics = Theory_Data
 (
   type T = (serial * (string * (bool -> Proof.context -> int -> tactic))) list;
   val empty = [];
-  val copy = I;
   val extend = I;
-  fun merge _ = AList.merge (op =) (K true);
+  fun merge data : T = AList.merge (op =) (K true) data;
 );
 
 fun add_tactic name tac = Arith_Tactics.map (cons (serial (), (name, tac)));

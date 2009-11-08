@@ -122,13 +122,12 @@ fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2
           merge (eq_snd op =) (notes, notes')),
             merge (eq_snd op =) (dependencies, dependencies')));
 
-structure Locales = TheoryDataFun
+structure Locales = Theory_Data
 (
   type T = locale Name_Space.table;
   val empty : T = Name_Space.empty_table "locale";
-  val copy = I;
   val extend = I;
-  fun merge _ = Name_Space.join_tables (K merge_locale);
+  val merge = Name_Space.join_tables (K merge_locale);
 );
 
 val intern = Name_Space.intern o #1 o Locales.get;
@@ -332,7 +331,7 @@ fun print_locale thy show_facts raw_name =
 
 (*** Registrations: interpretations in theories ***)
 
-structure Registrations = TheoryDataFun
+structure Registrations = Theory_Data
 (
   type T = ((string * (morphism * morphism)) * stamp) list *
     (* registrations, in reverse order of declaration *)
@@ -340,8 +339,7 @@ structure Registrations = TheoryDataFun
     (* alist of mixin lists, per list mixins in reverse order of declaration *)
   val empty = ([], []);
   val extend = I;
-  val copy = I;
-  fun merge _ ((r1, m1), (r2, m2)) : T =
+  fun merge ((r1, m1), (r2, m2)) : T =
     (Library.merge (eq_snd op =) (r1, r2),
       AList.join (op =) (K (Library.merge (eq_snd op =))) (m1, m2));
     (* FIXME consolidate with dependencies, consider one data slot only *)

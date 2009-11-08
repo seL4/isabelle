@@ -19,15 +19,14 @@ struct
 
 open Predicate_Compile_Aux;
 
-structure Data = TheoryDataFun
+structure Data = Theory_Data
 (
   type T =
     {const_spec_table : thm list Symtab.table};
   val empty =
     {const_spec_table = Symtab.empty};
-  val copy = I;
   val extend = I;
-  fun merge _
+  fun merge
     ({const_spec_table = const_spec_table1},
      {const_spec_table = const_spec_table2}) =
      {const_spec_table = Symtab.merge (K true) (const_spec_table1, const_spec_table2)}

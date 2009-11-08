@@ -20,7 +20,7 @@ open Codegen;
 fun merge_rules tabs =
   Symtab.join (fn _ => AList.merge (Thm.eq_thm_prop) (K true)) tabs;
 
-structure CodegenData = TheoryDataFun
+structure CodegenData = Theory_Data
 (
   type T =
     {intros : (thm * (string * int)) list Symtab.table,
@@ -28,10 +28,9 @@ structure CodegenData = TheoryDataFun
      eqns : (thm * string) list Symtab.table};
   val empty =
     {intros = Symtab.empty, graph = Graph.empty, eqns = Symtab.empty};
-  val copy = I;
   val extend = I;
-  fun merge _ ({intros=intros1, graph=graph1, eqns=eqns1},
-    {intros=intros2, graph=graph2, eqns=eqns2}) =
+  fun merge ({intros=intros1, graph=graph1, eqns=eqns1},
+    {intros=intros2, graph=graph2, eqns=eqns2}) : T =
     {intros = merge_rules (intros1, intros2),
      graph = Graph.merge (K true) (graph1, graph2),
      eqns = merge_rules (eqns1, eqns2)};

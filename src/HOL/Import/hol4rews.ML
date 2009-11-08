@@ -11,25 +11,23 @@ datatype ImportStatus =
        | Generating of string
        | Replaying of string
 
-structure HOL4DefThy = TheoryDataFun
+structure HOL4DefThy = Theory_Data
 (
   type T = ImportStatus
   val empty = NoImport
-  val copy = I
   val extend = I
-  fun merge _ (NoImport,NoImport) = NoImport
-    | merge _ _ = (warning "Import status set during merge"; NoImport)
+  fun merge (NoImport, NoImport) = NoImport
+    | merge _ = (warning "Import status set during merge"; NoImport)
 )
 
-structure ImportSegment = TheoryDataFun
+structure ImportSegment = Theory_Data
 (
   type T = string
   val empty = ""
-  val copy = I
   val extend = I
-  fun merge _ ("",arg) = arg
-    | merge _ (arg,"") = arg
-    | merge _ (s1,s2) =
+  fun merge ("",arg) = arg
+    | merge (arg,"") = arg
+    | merge (s1,s2) =
       if s1 = s2
       then s1
       else error "Trying to merge two different import segments"
@@ -38,42 +36,38 @@ structure ImportSegment = TheoryDataFun
 val get_import_segment = ImportSegment.get
 val set_import_segment = ImportSegment.put
 
-structure HOL4UNames = TheoryDataFun
+structure HOL4UNames = Theory_Data
 (
   type T = string list
   val empty = []
-  val copy = I
   val extend = I
-  fun merge _ ([],[]) = []
-    | merge _ _ = error "Used names not empty during merge"
+  fun merge ([], []) = []
+    | merge _ = error "Used names not empty during merge"
 )
 
-structure HOL4Dump = TheoryDataFun
+structure HOL4Dump = Theory_Data
 (
   type T = string * string * string list
   val empty = ("","",[])
-  val copy = I
   val extend = I
-  fun merge _ (("","",[]),("","",[])) = ("","",[])
-    | merge _ _ = error "Dump data not empty during merge"
+  fun merge (("","",[]),("","",[])) = ("","",[])
+    | merge _ = error "Dump data not empty during merge"
 )
 
-structure HOL4Moves = TheoryDataFun
+structure HOL4Moves = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = Symtab.merge (K true)
+  fun merge data = Symtab.merge (K true) data
 )
 
-structure HOL4Imports = TheoryDataFun
+structure HOL4Imports = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = Symtab.merge (K true)
+  fun merge data = Symtab.merge (K true) data
 )
 
 fun get_segment2 thyname thy =
@@ -87,85 +81,76 @@ fun set_segment thyname segname thy =
         HOL4Imports.put imps' thy
     end
 
-structure HOL4CMoves = TheoryDataFun
+structure HOL4CMoves = Theory_Data
 (
   type T = string Symtab.table
   val empty = Symtab.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = Symtab.merge (K true)
+  fun merge data = Symtab.merge (K true) data
 )
 
-structure HOL4Maps = TheoryDataFun
+structure HOL4Maps = Theory_Data
 (
-  type T = (string option) StringPair.table
+  type T = string option StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Thms = TheoryDataFun
+structure HOL4Thms = Theory_Data
 (
   type T = holthm StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4ConstMaps = TheoryDataFun
+structure HOL4ConstMaps = Theory_Data
 (
   type T = (bool * string * typ option) StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Rename = TheoryDataFun
+structure HOL4Rename = Theory_Data
 (
   type T = string StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4DefMaps = TheoryDataFun
+structure HOL4DefMaps = Theory_Data
 (
   type T = string StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4TypeMaps = TheoryDataFun
+structure HOL4TypeMaps = Theory_Data
 (
   type T = (bool * string) StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Pending = TheoryDataFun
+structure HOL4Pending = Theory_Data
 (
   type T = ((term * term) list * thm) StringPair.table
   val empty = StringPair.empty
-  val copy = I
   val extend = I
-  fun merge _ : T * T -> T = StringPair.merge (K true)
+  fun merge data = StringPair.merge (K true) data
 )
 
-structure HOL4Rewrites = TheoryDataFun
+structure HOL4Rewrites = Theory_Data
 (
   type T = thm list
   val empty = []
-  val copy = I
   val extend = I
-  fun merge _ = Library.merge Thm.eq_thm_prop
+  val merge = Thm.merge_thms
 )
 
 val hol4_debug = Unsynchronized.ref false

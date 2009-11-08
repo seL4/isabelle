@@ -1247,14 +1247,13 @@ fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 (**** theory data ****)
 
-structure ProofData = TheoryDataFun
+structure ProofData = Theory_Data
 (
   type T = (stamp * (proof * proof)) list * (stamp * (typ list -> proof -> proof option)) list;
 
   val empty = ([], []);
-  val copy = I;
   val extend = I;
-  fun merge _ ((rules1, procs1), (rules2, procs2)) : T =
+  fun merge ((rules1, procs1), (rules2, procs2)) : T =
     (AList.merge (op =) (K true) (rules1, rules2),
       AList.merge (op =) (K true) (procs1, procs2));
 );

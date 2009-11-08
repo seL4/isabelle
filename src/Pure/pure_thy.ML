@@ -54,13 +54,12 @@ struct
 
 (** theory data **)
 
-structure FactsData = TheoryDataFun
+structure FactsData = Theory_Data
 (
   type T = Facts.T * thm list;
   val empty = (Facts.empty, []);
-  val copy = I;
   fun extend (facts, _) = (facts, []);
-  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), []);
+  fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), []);
 );
 
 
@@ -246,13 +245,12 @@ val applC_syntax =
   ("_applC", typ "('b => 'a) => cargs => logic", Mixfix ("(1_/ _)", [1000, 1000], 999)),
   ("_applC", typ "('b => 'a) => cargs => aprop", Mixfix ("(1_/ _)", [1000, 1000], 999))];
 
-structure OldApplSyntax = TheoryDataFun
+structure OldApplSyntax = Theory_Data
 (
   type T = bool;
   val empty = false;
-  val copy = I;
   val extend = I;
-  fun merge _ (b1, b2) : T =
+  fun merge (b1, b2) : T =
     if b1 = b2 then b1
     else error "Cannot merge theories with different application syntax";
 );
@@ -269,7 +267,7 @@ val old_appl_syntax_setup =
 
 val _ = Context.>> (Context.map_theory
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
-   OldApplSyntax.init #>
+   OldApplSyntax.put false #>
    Sign.add_types
    [(Binding.name "fun", 2, NoSyn),
     (Binding.name "prop", 0, NoSyn),

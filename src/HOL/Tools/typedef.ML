@@ -36,13 +36,12 @@ type info =
   Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
   Rep_induct: thm, Abs_induct: thm};
 
-structure TypedefData = TheoryDataFun
+structure TypedefData = Theory_Data
 (
   type T = info Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ tabs : T = Symtab.merge (K true) tabs;
+  fun merge data = Symtab.merge (K true) data;
 );
 
 val get_info = Symtab.lookup o TypedefData.get;

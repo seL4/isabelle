@@ -18,13 +18,12 @@ struct
 
 (* theory data *)
 
-structure IndCasesData = TheoryDataFun
+structure IndCasesData = Theory_Data
 (
   type T = (simpset -> cterm -> thm) Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ tabs : T = Symtab.merge (K true) tabs;
+  fun merge data = Symtab.merge (K true) data;
 );
 
 

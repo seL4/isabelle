@@ -15,12 +15,12 @@ end;
 structure Value : VALUE =
 struct
 
-structure Evaluator = TheoryDataFun(
+structure Evaluator = Theory_Data
+(
   type T = (string * (Proof.context -> term -> term)) list;
   val empty = [];
-  val copy = I;
   val extend = I;
-  fun merge _ data = AList.merge (op =) (K true) data;
+  fun merge data : T = AList.merge (op =) (K true) data;
 )
 
 val add_evaluator = Evaluator.map o AList.update (op =);

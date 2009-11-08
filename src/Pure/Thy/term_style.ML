@@ -19,13 +19,12 @@ struct
 fun err_dup_style name =
   error ("Duplicate declaration of antiquote style: " ^ quote name);
 
-structure StyleData = TheoryDataFun
+structure StyleData = Theory_Data
 (
   type T = ((Proof.context -> term -> term) parser * stamp) Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ tabs : T = Symtab.merge (eq_snd (op =)) tabs
+  fun merge data : T = Symtab.merge (eq_snd (op =)) data
     handle Symtab.DUP dup => err_dup_style dup;
 );
 

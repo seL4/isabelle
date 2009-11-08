@@ -349,13 +349,12 @@ fun skolem_thm (s, th) =
 
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of
   Skolem functions.*)
-structure ThmCache = TheoryDataFun
+structure ThmCache = Theory_Data
 (
   type T = thm list Thmtab.table * unit Symtab.table;
   val empty = (Thmtab.empty, Symtab.empty);
-  val copy = I;
   val extend = I;
-  fun merge _ ((cache1, seen1), (cache2, seen2)) : T =
+  fun merge ((cache1, seen1), (cache2, seen2)) : T =
     (Thmtab.merge (K true) (cache1, cache2), Symtab.merge (K true) (seen1, seen2));
 );
 

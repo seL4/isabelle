@@ -252,12 +252,12 @@ fun add_fixdefs
 (*********** monadic notation and pattern matching compilation ***********)
 (*************************************************************************)
 
-structure FixrecMatchData = TheoryDataFun (
+structure FixrecMatchData = Theory_Data
+(
   type T = string Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge (K true);
+  fun merge data = Symtab.merge (K true) data;
 );
 
 (* associate match functions with pattern constants *)
@@ -523,8 +523,7 @@ val _ = OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.th
 end;
 
 val setup =
-  FixrecMatchData.init
-  #> Attrib.setup @{binding fixrec_simp}
+  Attrib.setup @{binding fixrec_simp}
                      (Attrib.add_del fixrec_simp_add fixrec_simp_del)
                      "declaration of fixrec simp rule"
   #> Method.setup @{binding fixrec_simp}

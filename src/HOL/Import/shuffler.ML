@@ -72,13 +72,12 @@ fun mk_obj_eq th =
        | _ => raise THM("Not an equality",0,[th]))
     handle _ => raise THM("Couldn't make object equality",0,[th])  (* FIXME avoid handle _ *)
 
-structure ShuffleData = TheoryDataFun
+structure ShuffleData = Theory_Data
 (
   type T = thm list
   val empty = []
-  val copy = I
   val extend = I
-  fun merge _ = Library.merge Thm.eq_thm_prop
+  val merge = Thm.merge_thms
 )
 
 fun print_shuffles thy =

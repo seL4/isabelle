@@ -16,13 +16,12 @@ open Codegen;
 
 val const_of = dest_Const o head_of o fst o Logic.dest_equals;
 
-structure ModuleData = TheoryDataFun
+structure ModuleData = Theory_Data
 (
   type T = string Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge (K true);
+  fun merge data = Symtab.merge (K true) data;
 );
 
 fun add_thm_target module_name thm thy =

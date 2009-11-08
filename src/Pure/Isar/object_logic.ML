@@ -47,18 +47,17 @@ datatype data = Data of
 fun make_data (base_sort, judgment, atomize_rulify) =
   Data {base_sort = base_sort, judgment = judgment, atomize_rulify = atomize_rulify};
 
-structure ObjectLogicData = TheoryDataFun
+structure ObjectLogicData = Theory_Data
 (
   type T = data;
   val empty = make_data (NONE, NONE, ([], []));
-  val copy = I;
   val extend = I;
 
   fun merge_opt eq (SOME x, SOME y) =
         if eq (x, y) then SOME x else error "Attempt to merge different object-logics"
     | merge_opt _ (x, y) = if is_some x then x else y;
 
-  fun merge _
+  fun merge
      (Data {base_sort = base_sort1, judgment = judgment1, atomize_rulify = (atomize1, rulify1)},
       Data {base_sort = base_sort2, judgment = judgment2, atomize_rulify = (atomize2, rulify2)}) =
     make_data (merge_opt (op =) (base_sort1, base_sort2), merge_opt (op =) (judgment1, judgment2),

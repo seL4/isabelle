@@ -56,13 +56,12 @@ fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
       val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
     in make_thmproc ((pre, post), functrans) end;
 
-structure Code_Preproc_Data = TheoryDataFun
+structure Code_Preproc_Data = Theory_Data
 (
   type T = thmproc;
   val empty = make_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []);
-  fun copy spec = spec;
-  val extend = copy;
-  fun merge _ = merge_thmproc;
+  val extend = I;
+  val merge = merge_thmproc;
 );
 
 fun the_thmproc thy = case Code_Preproc_Data.get thy

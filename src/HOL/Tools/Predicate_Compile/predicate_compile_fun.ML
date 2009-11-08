@@ -56,13 +56,12 @@ fun is_constructor thy t =
 fun is_constr thy = is_some o Code.get_datatype_of_constr thy;
 
 (* Table from constant name (string) to term of inductive predicate *)
-structure Pred_Compile_Preproc = TheoryDataFun
+structure Pred_Compile_Preproc = Theory_Data
 (
   type T = string Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge (op =);
+  fun merge data : T = Symtab.merge (op =) data;   (* FIXME handle Symtab.DUP ?? *)
 )
 
 fun pred_of_function thy name = Symtab.lookup (Pred_Compile_Preproc.get thy) name

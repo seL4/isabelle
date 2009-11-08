@@ -64,13 +64,12 @@ fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 
 (** additional theory data **)
 
-structure BrowserInfoData = TheoryDataFun
+structure BrowserInfoData = Theory_Data
 (
   type T = {name: string, session: string list, is_local: bool};
   val empty = {name = "", session = [], is_local = false}: T;
-  val copy = I;
   fun extend _ = empty;
-  fun merge _ _ = empty;
+  fun merge _ = empty;
 );
 
 val put_info = BrowserInfoData.put;

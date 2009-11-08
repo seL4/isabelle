@@ -15,13 +15,12 @@ struct
 
 open DatatypeAux;
 
-structure SizeData = TheoryDataFun
+structure SizeData = Theory_Data
 (
   type T = (string * thm list) Symtab.table;
   val empty = Symtab.empty;
-  val copy = I
   val extend = I
-  fun merge _ = Symtab.merge (K true);
+  fun merge data = Symtab.merge (K true) data;
 );
 
 val lookup_size = SizeData.get #> Symtab.lookup;

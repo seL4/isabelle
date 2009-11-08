@@ -65,13 +65,12 @@ val empty_binding: binding = (Binding.empty, []);
 
 (* theory data *)
 
-structure Attributes = TheoryDataFun
+structure Attributes = Theory_Data
 (
   type T = ((src -> attribute) * string) Name_Space.table;
   val empty : T = Name_Space.empty_table "attribute";
-  val copy = I;
   val extend = I;
-  fun merge _ tables : T = Name_Space.merge_tables tables;
+  fun merge data : T = Name_Space.merge_tables data;
 );
 
 fun print_attributes thy =
@@ -321,13 +320,12 @@ val _ = Context.>> (Context.map_theory
 
 (* naming *)
 
-structure Configs = TheoryDataFun
+structure Configs = Theory_Data
 (
   type T = Config.value Config.T Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge (K true);
+  fun merge data = Symtab.merge (K true) data;
 );
 
 fun print_configs ctxt =

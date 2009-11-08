@@ -125,13 +125,12 @@ fun unnegate_raw_param (name, value) =
                           | _ => value)
   | NONE => (name, value)
 
-structure TheoryData = TheoryDataFun(
+structure TheoryData = Theory_Data(
   type T = {params: raw_param list, registered_auto: bool}
   val empty = {params = rev default_default_params, registered_auto = false}
-  val copy = I
   val extend = I
-  fun merge _ ({params = ps1, registered_auto = a1},
-               {params = ps2, registered_auto = a2}) =
+  fun merge ({params = ps1, registered_auto = a1},
+               {params = ps2, registered_auto = a2}) : T =
     {params = AList.merge (op =) (op =) (ps1, ps2),
      registered_auto = a1 orelse a2})
 

@@ -60,13 +60,12 @@ type run_args = {pre: Proof.state, post: Toplevel.state option,
 type run_action = int -> run_args -> unit
 type action = init_action * run_action * done_action
 
-structure Actions = TheoryDataFun
+structure Actions = Theory_Data
 (
   type T = (int * run_action * done_action) list
   val empty = []
-  val copy = I
   val extend = I
-  fun merge _ = Library.merge (K true)
+  fun merge data = Library.merge (K true) data  (* FIXME ?!? *)
 )
 
 

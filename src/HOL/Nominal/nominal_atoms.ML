@@ -42,13 +42,12 @@ type atom_info =
    cp_inst : thm Symtab.table,
    dj_thms : thm Symtab.table};
 
-structure NominalData = TheoryDataFun
+structure NominalData = Theory_Data
 (
   type T = atom_info Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ x = Symtab.merge (K true) x;
+  fun merge data = Symtab.merge (K true) data;
 );
 
 fun make_atom_info ((((((pt_class, fs_class), cp_classes), at_inst), pt_inst), cp_inst), dj_thms) =

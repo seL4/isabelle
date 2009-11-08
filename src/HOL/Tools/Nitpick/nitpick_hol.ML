@@ -179,14 +179,13 @@ type extended_context = {
   unrolled_preds: unrolled list Unsynchronized.ref,
   wf_cache: wf_cache Unsynchronized.ref}
 
-structure TheoryData = TheoryDataFun(
+structure TheoryData = Theory_Data(
   type T = {frac_types: (string * (string * string) list) list,
             codatatypes: (string * (string * styp list)) list}
   val empty = {frac_types = [], codatatypes = []}
-  val copy = I
   val extend = I
-  fun merge _ ({frac_types = fs1, codatatypes = cs1},
-               {frac_types = fs2, codatatypes = cs2}) =
+  fun merge ({frac_types = fs1, codatatypes = cs1},
+               {frac_types = fs2, codatatypes = cs2}) : T =
     {frac_types = AList.merge (op =) (op =) (fs1, fs2),
      codatatypes = AList.merge (op =) (op =) (cs1, cs2)})
 

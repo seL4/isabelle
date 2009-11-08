@@ -167,7 +167,7 @@ fun get_var_type t =
 
 (* theory data *)
 
-structure ExtractionData = TheoryDataFun
+structure ExtractionData = Theory_Data
 (
   type T =
     {realizes_eqns : rules,
@@ -187,20 +187,19 @@ structure ExtractionData = TheoryDataFun
      defs = [],
      expand = [],
      prep = NONE};
-  val copy = I;
   val extend = I;
 
-  fun merge _
-    (({realizes_eqns = realizes_eqns1, typeof_eqns = typeof_eqns1, types = types1,
+  fun merge
+    ({realizes_eqns = realizes_eqns1, typeof_eqns = typeof_eqns1, types = types1,
        realizers = realizers1, defs = defs1, expand = expand1, prep = prep1},
       {realizes_eqns = realizes_eqns2, typeof_eqns = typeof_eqns2, types = types2,
-       realizers = realizers2, defs = defs2, expand = expand2, prep = prep2}) : T * T) =
+       realizers = realizers2, defs = defs2, expand = expand2, prep = prep2}) : T =
     {realizes_eqns = merge_rules realizes_eqns1 realizes_eqns2,
      typeof_eqns = merge_rules typeof_eqns1 typeof_eqns2,
      types = AList.merge (op =) (K true) (types1, types2),
      realizers = Symtab.merge_list (eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
-     expand = Library.merge (op =) (expand1, expand2),
+     expand = Library.merge (op =) (expand1, expand2),   (* FIXME proper aconv !?! *)
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
 );
 

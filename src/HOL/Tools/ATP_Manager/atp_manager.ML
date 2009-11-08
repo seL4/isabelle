@@ -226,13 +226,12 @@ fun messages opt_limit =
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
-structure Provers = TheoryDataFun
+structure Provers = Theory_Data
 (
   type T = (ATP_Wrapper.prover * stamp) Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ tabs : T = Symtab.merge (eq_snd op =) tabs
+  fun merge data : T = Symtab.merge (eq_snd op =) data
     handle Symtab.DUP dup => err_dup_prover dup;
 );
 

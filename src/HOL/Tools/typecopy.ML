@@ -30,13 +30,12 @@ type info = {
   proj_def: thm
 };
 
-structure TypecopyData = TheoryDataFun
+structure TypecopyData = Theory_Data
 (
   type T = info Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge (K true);
+  fun merge data = Symtab.merge (K true) data;
 );
 
 val get_info = Symtab.lookup o TypecopyData.get;

@@ -148,13 +148,12 @@ fun merge_target strict target (Target { serial = serial1, serializer = serializ
   else
     error ("Incompatible serializers: " ^ quote target);
 
-structure CodeTargetData = TheoryDataFun
+structure CodeTargetData = Theory_Data
 (
   type T = target Symtab.table * string list;
   val empty = (Symtab.empty, []);
-  val copy = I;
   val extend = I;
-  fun merge _ ((target1, exc1) : T, (target2, exc2)) =
+  fun merge ((target1, exc1), (target2, exc2)) : T =
     (Symtab.join (merge_target true) (target1, target2), Library.merge (op =) (exc1, exc2));
 );
 

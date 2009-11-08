@@ -185,7 +185,7 @@ type 'a codegen =
 
 (* theory data *)
 
-structure CodegenData = TheoryDataFun
+structure CodegenData = Theory_Data
 (
   type T =
     {codegens : (string * term codegen) list,
@@ -198,16 +198,15 @@ structure CodegenData = TheoryDataFun
   val empty =
     {codegens = [], tycodegens = [], consts = [], types = [],
      preprocs = [], modules = Symtab.empty};
-  val copy = I;
   val extend = I;
 
-  fun merge _
+  fun merge
     ({codegens = codegens1, tycodegens = tycodegens1,
       consts = consts1, types = types1,
       preprocs = preprocs1, modules = modules1} : T,
      {codegens = codegens2, tycodegens = tycodegens2,
       consts = consts2, types = types2,
-      preprocs = preprocs2, modules = modules2}) =
+      preprocs = preprocs2, modules = modules2}) : T =
     {codegens = AList.merge (op =) (K true) (codegens1, codegens2),
      tycodegens = AList.merge (op =) (K true) (tycodegens1, tycodegens2),
      consts = AList.merge (op =) (K true) (consts1, consts2),
@@ -287,13 +286,12 @@ fun preprocess_term thy t =
     | _ => err ()
   end;
 
-structure UnfoldData = TheoryDataFun
+structure UnfoldData = Theory_Data
 (
   type T = simpset;
   val empty = empty_ss;
-  val copy = I;
   val extend = I;
-  fun merge _ = merge_ss;
+  val merge = merge_ss;
 );
 
 val map_unfold = UnfoldData.map;

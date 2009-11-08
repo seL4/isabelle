@@ -84,13 +84,12 @@ type nominal_datatype_info =
    distinct : thm list,
    inject : thm list};
 
-structure NominalDatatypesData = TheoryDataFun
+structure NominalDatatypesData = Theory_Data
 (
   type T = nominal_datatype_info Symtab.table;
   val empty = Symtab.empty;
-  val copy = I;
   val extend = I;
-  fun merge _ tabs : T = Symtab.merge (K true) tabs;
+  fun merge data = Symtab.merge (K true) data;
 );
 
 val get_nominal_datatypes = NominalDatatypesData.get;

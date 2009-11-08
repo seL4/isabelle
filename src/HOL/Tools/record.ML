@@ -81,13 +81,12 @@ fun named_cterm_instantiate values thm =
     cterm_instantiate (map (apfst getvar) values) thm
   end;
 
-structure IsTupleThms = TheoryDataFun
+structure IsTupleThms = Theory_Data
 (
   type T = thm Symtab.table;
   val empty = Symtab.make [tuple_istuple];
-  val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge Thm.eq_thm_prop;
+  fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
 fun do_typedef name repT alphas thy =
@@ -381,7 +380,7 @@ fun make_record_data
   equalities = equalities, extinjects=extinjects, extsplit = extsplit, splits = splits,
   extfields = extfields, fieldext = fieldext }: record_data;
 
-structure RecordsData = TheoryDataFun
+structure RecordsData = Theory_Data
 (
   type T = record_data;
   val empty =
@@ -390,10 +389,8 @@ structure RecordsData = TheoryDataFun
           simpset = HOL_basic_ss, defset = HOL_basic_ss,
           foldcong = HOL_basic_ss, unfoldcong = HOL_basic_ss}
        Symtab.empty [] Symtab.empty Symtab.empty Symtab.empty Symtab.empty;
-
-  val copy = I;
   val extend = I;
-  fun merge _
+  fun merge
    ({records = recs1,
      sel_upd =
       {selectors = sels1, updates = upds1,
@@ -425,7 +422,7 @@ structure RecordsData = TheoryDataFun
         foldcong = Simplifier.merge_ss (fc1, fc2),
         unfoldcong = Simplifier.merge_ss (uc1, uc2)}
       (Symtab.merge Thm.eq_thm_prop (equalities1, equalities2))
-      (Library.merge Thm.eq_thm_prop (extinjects1, extinjects2))
+      (Thm.merge_thms (extinjects1, extinjects2))
       (Symtab.merge Thm.eq_thm_prop (extsplit1, extsplit2))
       (Symtab.merge (fn ((a, b, c, d), (w, x, y, z)) =>
           Thm.eq_thm (a, w) andalso Thm.eq_thm (b, x) andalso

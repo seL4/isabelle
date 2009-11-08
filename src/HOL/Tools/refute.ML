@@ -201,7 +201,7 @@ struct
     };
 
 
-  structure RefuteData = TheoryDataFun
+  structure RefuteData = Theory_Data
   (
     type T =
       {interpreters: (string * (theory -> model -> arguments -> term ->
@@ -210,11 +210,10 @@ struct
         (int -> bool) -> term option)) list,
        parameters: string Symtab.table};
     val empty = {interpreters = [], printers = [], parameters = Symtab.empty};
-    val copy = I;
     val extend = I;
-    fun merge _
+    fun merge
       ({interpreters = in1, printers = pr1, parameters = pa1},
-       {interpreters = in2, printers = pr2, parameters = pa2}) =
+       {interpreters = in2, printers = pr2, parameters = pa2}) : T =
       {interpreters = AList.merge (op =) (K true) (in1, in2),
        printers = AList.merge (op =) (K true) (pr1, pr2),
        parameters = Symtab.merge (op=) (pa1, pa2)};

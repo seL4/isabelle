@@ -42,7 +42,7 @@ open DatatypeAux;
 
 (* data management *)
 
-structure DatatypesData = TheoryDataFun
+structure DatatypesData = Theory_Data
 (
   type T =
     {types: info Symtab.table,
@@ -51,11 +51,10 @@ structure DatatypesData = TheoryDataFun
 
   val empty =
     {types = Symtab.empty, constrs = Symtab.empty, cases = Symtab.empty};
-  val copy = I;
   val extend = I;
-  fun merge _
+  fun merge
     ({types = types1, constrs = constrs1, cases = cases1},
-     {types = types2, constrs = constrs2, cases = cases2}) =
+     {types = types2, constrs = constrs2, cases = cases2}) : T =
     {types = Symtab.merge (K true) (types1, types2),
      constrs = Symtab.join (K (AList.merge (op =) (K true))) (constrs1, constrs2),
      cases = Symtab.merge (K true) (cases1, cases2)};

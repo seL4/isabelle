@@ -1724,13 +1724,12 @@ end;
 
 (* authentic derivation names *)
 
-structure Oracles = TheoryDataFun
+structure Oracles = Theory_Data
 (
   type T = unit Name_Space.table;
   val empty : T = Name_Space.empty_table "oracle";
-  val copy = I;
   val extend = I;
-  fun merge _ oracles : T = Name_Space.merge_tables oracles;
+  fun merge data : T = Name_Space.merge_tables data;
 );
 
 val extern_oracles = map #1 o Name_Space.extern_table o Oracles.get;

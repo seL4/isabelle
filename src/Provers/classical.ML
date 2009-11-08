@@ -835,13 +835,12 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 
 (* global clasets *)
 
-structure GlobalClaset = TheoryDataFun
+structure GlobalClaset = Theory_Data
 (
   type T = claset * context_cs;
   val empty = (empty_cs, empty_context_cs);
-  val copy = I;
   val extend = I;
-  fun merge _ ((cs1, ctxt_cs1), (cs2, ctxt_cs2)) =
+  fun merge ((cs1, ctxt_cs1), (cs2, ctxt_cs2)) =
     (merge_cs (cs1, cs2), merge_context_cs (ctxt_cs1, ctxt_cs2));
 );
 

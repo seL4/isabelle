@@ -19,14 +19,13 @@ struct
 
 fun err_vcs () = error "undischarged Boogie verification conditions found"
 
-structure VCs = TheoryDataFun
+structure VCs = Theory_Data
 (
-  type T = (Term.term * bool) Symtab.table option
+  type T = (term * bool) Symtab.table option
   val empty = NONE
-  val copy = I
   val extend = I
-  fun merge _ (NONE, NONE) = NONE
-    | merge _ (_, _) = err_vcs ()
+  fun merge (NONE, NONE) = NONE
+    | merge _ = err_vcs ()
 )
 
 fun set vcs = VCs.map (fn

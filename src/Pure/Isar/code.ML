@@ -703,13 +703,12 @@ fun del_eqn thm thy = case mk_eqn_liberal thy thm
 
 (* c.f. src/HOL/Tools/recfun_codegen.ML *)
 
-structure Code_Target_Attr = TheoryDataFun (
+structure Code_Target_Attr = Theory_Data
+(
   type T = (string -> thm -> theory -> theory) option;
   val empty = NONE;
-  val copy = I;
   val extend = I;
-  fun merge _ (NONE, f2) = f2
-    | merge _ (f1, _) = f1;
+  fun merge (f1, f2) = if is_some f1 then f1 else f2;
 );
 
 fun set_code_target_attr f = Code_Target_Attr.map (K (SOME f));

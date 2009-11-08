@@ -18,13 +18,12 @@ struct
 
 (* sub-tactics store *)
 
-structure Sub_Tactics = TheoryDataFun
+structure Sub_Tactics = Theory_Data
 (
   type T = (Proof.context -> int -> tactic) Symtab.table
   val empty = Symtab.empty
-  val copy = I
   val extend = I
-  fun merge _ = Symtab.merge (K true)
+  fun merge data = Symtab.merge (K true) data
 )
 
 fun add_sub_tactic tac = Sub_Tactics.map (Symtab.update_new tac)

@@ -37,13 +37,12 @@ fun traced f x = if !trace then (tracing (f x); x) else x;
 
 (** certificates and oracle for "trivial type classes" **)
 
-structure Triv_Class_Data = TheoryDataFun
+structure Triv_Class_Data = Theory_Data
 (
   type T = (class * thm) list;
   val empty = [];
-  val copy = I;
   val extend = I;
-  fun merge pp = AList.merge (op =) (K true);
+  fun merge data : T = AList.merge (op =) (K true) data;
 );
 
 fun add_const_alias thm thy =
