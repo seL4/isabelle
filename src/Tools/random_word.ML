@@ -18,7 +18,7 @@ sig
   val pick_weighted: (int * 'a) list -> 'a
 end;
 
-structure RandomWord: RANDOM_WORD =
+structure Random_Word: RANDOM_WORD =
 struct
 
 (* random words: 0w0 <= result <= max_word *)

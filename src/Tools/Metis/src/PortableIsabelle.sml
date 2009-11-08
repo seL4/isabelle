@@ -33,10 +33,10 @@ fun CRITICAL e = NAMED_CRITICAL "metis" e;
 (* Generating random values.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val randomWord = RandomWord.next_word;
-val randomBool = RandomWord.next_bool;
-fun randomInt n = RandomWord.next_int 0 (n - 1);
-val randomReal = RandomWord.next_real;
+val randomWord = Random_Word.next_word;
+val randomBool = Random_Word.next_bool;
+fun randomInt n = Random_Word.next_int 0 (n - 1);
+val randomReal = Random_Word.next_real;
 
 end;
 
