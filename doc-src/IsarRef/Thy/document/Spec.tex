@@ -277,7 +277,7 @@ Arbitrary operations on the background context may be wrapped-up as
   \end{matharray}
 
   \begin{rail}
-    'declaration' target? text
+    'declaration' ('(pervasive)')? target? text
     ;
     'declare' target? (thmrefs + 'and')
     ;
@@ -290,6 +290,10 @@ Arbitrary operations on the background context may be wrapped-up as
   local theory under construction.  In later application contexts, the
   function is transformed according to the morphisms being involved in
   the interpretation hierarchy.
+
+  If the \isa{{\isachardoublequote}{\isacharparenleft}pervasive{\isacharparenright}{\isachardoublequote}} option is given, the corresponding
+  declaration is applied to all possible contexts involved, including
+  the global background theory.
 
   \item \hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}~\isa{thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,

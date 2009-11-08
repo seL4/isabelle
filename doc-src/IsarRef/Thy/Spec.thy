@@ -257,7 +257,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'declaration' target? text
+    'declaration' ('(pervasive)')? target? text
     ;
     'declare' target? (thmrefs + 'and')
     ;
@@ -270,6 +270,10 @@ text {*
   local theory under construction.  In later application contexts, the
   function is transformed according to the morphisms being involved in
   the interpretation hierarchy.
+
+  If the @{text "(pervasive)"} option is given, the corresponding
+  declaration is applied to all possible contexts involved, including
+  the global background theory.
 
   \item @{command "declare"}~@{text thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,
