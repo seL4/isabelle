@@ -227,7 +227,7 @@ structure Selected_Solver = Generic_Data
   type T = string
   val empty = no_solver
   val extend = I
-  fun merge (_, s) = s
+  fun merge (s, _) = s
 )
 
 val solver_name_of = Selected_Solver.get
