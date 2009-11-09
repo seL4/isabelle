@@ -515,6 +515,18 @@ by (induct xss rule: convex_pd_induct, simp_all)
 lemma convex_map_approx: "convex_map\<cdot>(approx n)\<cdot>xs = approx n\<cdot>xs"
 by (induct xs rule: convex_pd_induct, simp_all)
 
+lemma ep_pair_convex_map: "ep_pair e p \<Longrightarrow> ep_pair (convex_map\<cdot>e) (convex_map\<cdot>p)"
+apply default
+apply (induct_tac x rule: convex_pd_induct, simp_all add: ep_pair.e_inverse)
+apply (induct_tac y rule: convex_pd_induct, simp_all add: ep_pair.e_p_below monofun_cfun)
+done
+
+lemma deflation_convex_map: "deflation d \<Longrightarrow> deflation (convex_map\<cdot>d)"
+apply default
+apply (induct_tac x rule: convex_pd_induct, simp_all add: deflation.idem)
+apply (induct_tac x rule: convex_pd_induct, simp_all add: deflation.below monofun_cfun)
+done
+
 
 subsection {* Conversions to other powerdomains *}
 
