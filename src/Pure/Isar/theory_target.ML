@@ -190,9 +190,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     val b' = Morphism.binding phi b;
     val rhs' = Morphism.term phi rhs;
     val arg = (b', Term.close_schematic_term rhs');
-(*    val similar_body = Type.similar_types (rhs, rhs'); *)
-    val same_shape = op aconv o pairself (Term.map_types (fn _ => Term.dummyT));
-    val similar_body = same_shape (rhs, rhs');
+    val same_shape = Term.aconv_untyped (rhs, rhs');
     (* FIXME workaround based on educated guess *)
     val prefix' = Binding.prefix_of b';
     val class_global =
@@ -200,12 +198,12 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
       not (null prefix') andalso
       fst (snd (split_last prefix')) = Class_Target.class_prefix target;
   in
-    not (is_class andalso (similar_body orelse class_global)) ?
+    not (is_class andalso (same_shape orelse class_global)) ?
       (Context.mapping_result
         (Sign.add_abbrev PrintMode.internal arg)
         (ProofContext.add_abbrev PrintMode.internal arg)
       #-> (fn (lhs' as Const (d, _), _) =>
-          similar_body ?
+          same_shape ?
             (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;

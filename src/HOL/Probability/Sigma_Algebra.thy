@@ -235,4 +235,3 @@ lemma (in sigma_algebra) sigma_subset:
   by (simp add: sigma_def sigma_sets_subset)
 
 end
-

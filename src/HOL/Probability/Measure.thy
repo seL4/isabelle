@@ -46,8 +46,8 @@ definition
 definition
   measurable  where
   "measurable a b = {f . sigma_algebra a & sigma_algebra b &
-			 f \<in> (space a -> space b) &
-			 (\<forall>y \<in> sets b. (f -` y) \<inter> (space a) \<in> sets a)}"
+                         f \<in> (space a -> space b) &
+                         (\<forall>y \<in> sets b. (f -` y) \<inter> (space a) \<in> sets a)}"
 
 definition
   measure_preserving  where
@@ -258,23 +258,23 @@ proof -
       fix x
       assume x: "x \<in> smallest_ccdi_sets M"
       thus "x \<in> C"
-	proof (induct rule: smallest_ccdi_sets.induct)
-	  case (Basic x)
-	  thus ?case
-	    by (metis Basic subsetD sbC)
-	next
-	  case (Compl x)
-	  thus ?case
-	    by (blast intro: closed_cdi_Compl [OF ccdi, simplified])
- 	next
-	  case (Inc A)
-	  thus ?case
-	       by (auto intro: closed_cdi_Inc [OF ccdi, simplified]) 
-	next
-	  case (Disj A)
-	  thus ?case
-	       by (auto intro: closed_cdi_Disj [OF ccdi, simplified]) 
-	qed
+        proof (induct rule: smallest_ccdi_sets.induct)
+          case (Basic x)
+          thus ?case
+            by (metis Basic subsetD sbC)
+        next
+          case (Compl x)
+          thus ?case
+            by (blast intro: closed_cdi_Compl [OF ccdi, simplified])
+        next
+          case (Inc A)
+          thus ?case
+               by (auto intro: closed_cdi_Inc [OF ccdi, simplified]) 
+        next
+          case (Disj A)
+          thus ?case
+               by (auto intro: closed_cdi_Disj [OF ccdi, simplified]) 
+        qed
     qed
   finally show ?thesis .
 qed
@@ -292,12 +292,12 @@ proof -
   have "sigma_sets (space M) (sets M) \<subseteq> C \<inter> sigma_sets (space M) (sets M)" 
     proof (rule sigma_property_disjoint_lemma) 
       show "sets M \<subseteq> C \<inter> sigma_sets (space M) (sets M)"
-	by (metis Int_greatest Set.subsetI sbC sigma_sets.Basic)
+        by (metis Int_greatest Set.subsetI sbC sigma_sets.Basic)
     next
       show "closed_cdi \<lparr>space = space M, sets = C \<inter> sigma_sets (space M) (sets M)\<rparr>"
-	by (simp add: closed_cdi_def compl inc disj)
+        by (simp add: closed_cdi_def compl inc disj)
            (metis PowI Set.subsetI le_infI2 sigma_sets_into_sp space_closed
-	     IntE sigma_sets.Compl range_subsetD sigma_sets.Union)
+             IntE sigma_sets.Compl range_subsetD sigma_sets.Union)
     qed
   thus ?thesis
     by blast
@@ -349,7 +349,7 @@ proof -
       case 0 show ?case by simp
     next
       case (Suc m) thus ?case
-	by (metis Suc_eq_plus1 assms nat_add_commute nat_add_left_commute subset_trans)
+        by (metis Suc_eq_plus1 assms nat_add_commute nat_add_left_commute subset_trans)
     qed
   }
   hence "!!m n. m < n \<Longrightarrow> A m \<subseteq> A n"
@@ -371,17 +371,17 @@ proof -
     have "(measure M \<circ> A) n =
           setsum (measure M \<circ> (\<lambda>i. A (Suc i) - A i)) {0..<n}"
       proof (induct n)
-	case 0 thus ?case by (auto simp add: A0 empty_measure)
+        case 0 thus ?case by (auto simp add: A0 empty_measure)
       next
-	case (Suc m) 
-	have "A (Suc m) = A m \<union> (A (Suc m) - A m)"
-	  by (metis ASuc Un_Diff_cancel Un_absorb1)
-	hence "measure M (A (Suc m)) =
+        case (Suc m) 
+        have "A (Suc m) = A m \<union> (A (Suc m) - A m)"
+          by (metis ASuc Un_Diff_cancel Un_absorb1)
+        hence "measure M (A (Suc m)) =
                measure M (A m) + measure M (A (Suc m) - A m)" 
-	  by (subst measure_additive) 
+          by (subst measure_additive) 
              (auto simp add: measure_additive range_subsetD [OF A]) 
-	with Suc show ?case
-	  by simp
+        with Suc show ?case
+          by simp
       qed
   }
   hence Meq: "measure M o A = (\<lambda>n. setsum (measure M o (\<lambda>i. A(Suc i) - A i)) {0..<n})"
@@ -390,13 +390,13 @@ proof -
     proof (rule UN_finite2_eq [where k=1], simp) 
       fix i
       show "(\<Union>i\<in>{0..<i}. A (Suc i) - A i) = (\<Union>i\<in>{0..<Suc i}. A i)"
-	proof (induct i)
-	  case 0 thus ?case by (simp add: A0)
-	next
-	  case (Suc i) 
-	  thus ?case
-	    by (auto simp add: atLeastLessThanSuc intro: subsetD [OF ASuc])
-	qed
+        proof (induct i)
+          case 0 thus ?case by (simp add: A0)
+        next
+          case (Suc i) 
+          thus ?case
+            by (auto simp add: atLeastLessThanSuc intro: subsetD [OF ASuc])
+        qed
     qed
   have A1: "\<And>i. A (Suc i) - A i \<in> sets M"
     by (metis A Diff range_subsetD)
@@ -461,23 +461,23 @@ next
     assume A: "range A \<subseteq> (vimage f) ` (sets b)"
     have  "(\<Union>i. A i) \<in> (vimage f) ` (sets b)"
       proof -
-	def B \<equiv> "\<lambda>i. @v. v \<in> sets b \<and> f -` v = A i"
-	{ 
-	  fix i
-	  have "A i \<in> (vimage f) ` (sets b)" using A
-	    by blast
-	  hence "\<exists>v. v \<in> sets b \<and> f -` v = A i"
-	    by blast
-	  hence "B i \<in> sets b \<and> f -` B i = A i" 
-	    by (simp add: B_def) (erule someI_ex)
-	} note B = this
-	show ?thesis
-	  proof
-	    show "(\<Union>i. A i) = f -` (\<Union>i. B i)"
-	      by (simp add: vimage_UN B) 
-	   show "(\<Union>i. B i) \<in> sets b" using B
-	     by (auto intro: sigma_algebra.countable_UN [OF b]) 
-	  qed
+        def B \<equiv> "\<lambda>i. @v. v \<in> sets b \<and> f -` v = A i"
+        { 
+          fix i
+          have "A i \<in> (vimage f) ` (sets b)" using A
+            by blast
+          hence "\<exists>v. v \<in> sets b \<and> f -` v = A i"
+            by blast
+          hence "B i \<in> sets b \<and> f -` B i = A i" 
+            by (simp add: B_def) (erule someI_ex)
+        } note B = this
+        show ?thesis
+          proof
+            show "(\<Union>i. A i) = f -` (\<Union>i. B i)"
+              by (simp add: vimage_UN B) 
+           show "(\<Union>i. B i) \<in> sets b" using B
+             by (auto intro: sigma_algebra.countable_UN [OF b]) 
+          qed
       qed
   }
   thus "\<forall>A::nat \<Rightarrow> 'a set.
@@ -496,26 +496,26 @@ proof -
       fix x
       assume "x \<in> sigma_sets X B"
       thus "f -` x \<inter> space M \<in> sets M \<and> x \<subseteq> X"
-	proof induct
-	  case (Basic a)
-	  thus ?case
-	    by (auto simp add: ba) (metis B subsetD PowD) 
+        proof induct
+          case (Basic a)
+          thus ?case
+            by (auto simp add: ba) (metis B subsetD PowD) 
         next
-	  case Empty
-	  thus ?case
-	    by auto
+          case Empty
+          thus ?case
+            by auto
         next
-	  case (Compl a)
-	  have [simp]: "f -` X \<inter> space M = space M"
-	    by (auto simp add: funcset_mem [OF f]) 
-	  thus ?case
-	    by (auto simp add: vimage_Diff Diff_Int_distrib2 compl_sets Compl)
-	next
-	  case (Union a)
-	  thus ?case
-	    by (simp add: vimage_UN, simp only: UN_extend_simps(4))
-	       (blast intro: countable_UN)
-	qed
+          case (Compl a)
+          have [simp]: "f -` X \<inter> space M = space M"
+            by (auto simp add: funcset_mem [OF f]) 
+          thus ?case
+            by (auto simp add: vimage_Diff Diff_Int_distrib2 compl_sets Compl)
+        next
+          case (Union a)
+          thus ?case
+            by (simp add: vimage_UN, simp only: UN_extend_simps(4))
+               (blast intro: countable_UN)
+        qed
     qed
   thus ?thesis
     by (simp add: measurable_def sigma_algebra_axioms sigma_algebra_sigma B f) 
@@ -553,122 +553,122 @@ proof -
   show ?thesis using fmp
     proof (clarsimp simp add: measure_preserving_def m1 m2) 
       assume fm: "f \<in> measurable m1 (m a)" 
-	 and mam: "measure_space (m a)"
-	 and meq: "\<forall>y\<in>a. measure m1 (f -` y \<inter> space m1) = measure m2 y"
+         and mam: "measure_space (m a)"
+         and meq: "\<forall>y\<in>a. measure m1 (f -` y \<inter> space m1) = measure m2 y"
       have "f \<in> measurable m1 (sigma (space (m a)) (sets (m a)))"
-	by (rule subsetD [OF measurable_subset fm]) 
+        by (rule subsetD [OF measurable_subset fm]) 
       also have "... = measurable m1 m2"
-	by (rule measurable_eqI) (simp_all add: m_def setsm2 sigma_def) 
+        by (rule measurable_eqI) (simp_all add: m_def setsm2 sigma_def) 
       finally have f12: "f \<in> measurable m1 m2" .
       hence ffn: "f \<in> space m1 \<rightarrow> space m2"
-	by (simp add: measurable_def) 
+        by (simp add: measurable_def) 
       have "space m1 \<subseteq> f -` (space m2)"
-	by auto (metis PiE ffn)
+        by auto (metis PiE ffn)
       hence fveq [simp]: "(f -` (space m2)) \<inter> space m1 = space m1"
-	by blast
+        by blast
       {
-	fix y
-	assume y: "y \<in> sets m2" 
-	have ama: "algebra (m a)"  using mam
-	  by (simp add: measure_space_def sigma_algebra_iff) 
-	have spa: "space m2 \<in> a" using algebra.top [OF ama]
-	  by (simp add: m_def) 
-	have "sigma_sets (space m2) a = sigma_sets (space (m a)) (sets (m a))"
-	  by (simp add: m_def) 
-	also have "... \<subseteq> {s . measure m1 ((f -` s) \<inter> space m1) = measure m2 s}"
-	  proof (rule algebra.sigma_property_disjoint, auto simp add: ama) 
-	    fix x
-	    assume x: "x \<in> a"
-	    thus "measure m1 (f -` x \<inter> space m1) = measure m2 x"
-	      by (simp add: meq)
-	  next
-	    fix s
-	    assume eq: "measure m1 (f -` s \<inter> space m1) = measure m2 s"
-	       and s: "s \<in> sigma_sets (space m2) a"
-	    hence s2: "s \<in> sets m2"
-	      by (simp add: setsm2) 
-	    thus "measure m1 (f -` (space m2 - s) \<inter> space m1) =
+        fix y
+        assume y: "y \<in> sets m2" 
+        have ama: "algebra (m a)"  using mam
+          by (simp add: measure_space_def sigma_algebra_iff) 
+        have spa: "space m2 \<in> a" using algebra.top [OF ama]
+          by (simp add: m_def) 
+        have "sigma_sets (space m2) a = sigma_sets (space (m a)) (sets (m a))"
+          by (simp add: m_def) 
+        also have "... \<subseteq> {s . measure m1 ((f -` s) \<inter> space m1) = measure m2 s}"
+          proof (rule algebra.sigma_property_disjoint, auto simp add: ama) 
+            fix x
+            assume x: "x \<in> a"
+            thus "measure m1 (f -` x \<inter> space m1) = measure m2 x"
+              by (simp add: meq)
+          next
+            fix s
+            assume eq: "measure m1 (f -` s \<inter> space m1) = measure m2 s"
+               and s: "s \<in> sigma_sets (space m2) a"
+            hence s2: "s \<in> sets m2"
+              by (simp add: setsm2) 
+            thus "measure m1 (f -` (space m2 - s) \<inter> space m1) =
                   measure m2 (space m2 - s)" using f12
-	      by (simp add: vimage_Diff Diff_Int_distrib2 eq m1 m2
-		    measure_space.measure_compl measurable_def)  
-	         (metis fveq meq spa) 
-	  next
-	    fix A
-	      assume A0: "A 0 = {}"
-	 	 and ASuc: "!!n.  A n \<subseteq> A (Suc n)"
-		 and rA1: "range A \<subseteq> 
-		           {s. measure m1 (f -` s \<inter> space m1) = measure m2 s}"
-		 and "range A \<subseteq> sigma_sets (space m2) a"
-	      hence rA2: "range A \<subseteq> sets m2" by (metis setsm2)
-	      have eq1: "!!i. measure m1 (f -` A i \<inter> space m1) = measure m2 (A i)"
-		using rA1 by blast
-	      have "(measure m2 \<circ> A) = measure m1 o (\<lambda>i. (f -` A i \<inter> space m1))" 
-		by (simp add: o_def eq1) 
-	      also have "... ----> measure m1 (\<Union>i. f -` A i \<inter> space m1)"
-		proof (rule measure_space.measure_countable_increasing [OF m1])
-		  show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1"
-		    using f12 rA2 by (auto simp add: measurable_def)
-		  show "f -` A 0 \<inter> space m1 = {}" using A0
-		    by blast
-		  show "\<And>n. f -` A n \<inter> space m1 \<subseteq> f -` A (Suc n) \<inter> space m1"
-		    using ASuc by auto
-		qed
-	      also have "... = measure m1 (f -` (\<Union>i. A i) \<inter> space m1)"
-		by (simp add: vimage_UN)
-	      finally have "(measure m2 \<circ> A) ----> measure m1 (f -` (\<Union>i. A i) \<inter> space m1)" .
-	      moreover
-	      have "(measure m2 \<circ> A) ----> measure m2 (\<Union>i. A i)"
-		by (rule measure_space.measure_countable_increasing 
-		          [OF m2 rA2, OF A0 ASuc])
-	      ultimately 
-	      show "measure m1 (f -` (\<Union>i. A i) \<inter> space m1) =
+              by (simp add: vimage_Diff Diff_Int_distrib2 eq m1 m2
+                    measure_space.measure_compl measurable_def)  
+                 (metis fveq meq spa) 
+          next
+            fix A
+              assume A0: "A 0 = {}"
+                 and ASuc: "!!n.  A n \<subseteq> A (Suc n)"
+                 and rA1: "range A \<subseteq> 
+                           {s. measure m1 (f -` s \<inter> space m1) = measure m2 s}"
+                 and "range A \<subseteq> sigma_sets (space m2) a"
+              hence rA2: "range A \<subseteq> sets m2" by (metis setsm2)
+              have eq1: "!!i. measure m1 (f -` A i \<inter> space m1) = measure m2 (A i)"
+                using rA1 by blast
+              have "(measure m2 \<circ> A) = measure m1 o (\<lambda>i. (f -` A i \<inter> space m1))" 
+                by (simp add: o_def eq1) 
+              also have "... ----> measure m1 (\<Union>i. f -` A i \<inter> space m1)"
+                proof (rule measure_space.measure_countable_increasing [OF m1])
+                  show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1"
+                    using f12 rA2 by (auto simp add: measurable_def)
+                  show "f -` A 0 \<inter> space m1 = {}" using A0
+                    by blast
+                  show "\<And>n. f -` A n \<inter> space m1 \<subseteq> f -` A (Suc n) \<inter> space m1"
+                    using ASuc by auto
+                qed
+              also have "... = measure m1 (f -` (\<Union>i. A i) \<inter> space m1)"
+                by (simp add: vimage_UN)
+              finally have "(measure m2 \<circ> A) ----> measure m1 (f -` (\<Union>i. A i) \<inter> space m1)" .
+              moreover
+              have "(measure m2 \<circ> A) ----> measure m2 (\<Union>i. A i)"
+                by (rule measure_space.measure_countable_increasing 
+                          [OF m2 rA2, OF A0 ASuc])
+              ultimately 
+              show "measure m1 (f -` (\<Union>i. A i) \<inter> space m1) =
                     measure m2 (\<Union>i. A i)"
-		by (rule LIMSEQ_unique) 
-	  next
-	    fix A :: "nat => 'a2 set"
-	      assume dA: "disjoint_family A"
-		 and rA1: "range A \<subseteq> 
-		           {s. measure m1 (f -` s \<inter> space m1) = measure m2 s}"
-		 and "range A \<subseteq> sigma_sets (space m2) a"
-	      hence rA2: "range A \<subseteq> sets m2" by (metis setsm2)
-	      hence Um2: "(\<Union>i. A i) \<in> sets m2"
-		by (metis range_subsetD setsm2 sigma_sets.Union)
-	      have "!!i. measure m1 (f -` A i \<inter> space m1) = measure m2 (A i)"
-		using rA1 by blast
-	      hence "measure m2 o A = measure m1 o (\<lambda>i. f -` A i \<inter> space m1)"
-		by (simp add: o_def) 
-	      also have "... sums measure m1 (\<Union>i. f -` A i \<inter> space m1)" 
-		proof (rule measure_space.measure_countably_additive [OF m1] )
-		  show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1"
-		    using f12 rA2 by (auto simp add: measurable_def)
-		  show "disjoint_family (\<lambda>i. f -` A i \<inter> space m1)" using dA
-		    by (auto simp add: disjoint_family_def) 
-		  show "(\<Union>i. f -` A i \<inter> space m1) \<in> sets m1"
-		    proof (rule sigma_algebra.countable_UN [OF sa1])
-		      show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1" using f12 rA2
-			by (auto simp add: measurable_def) 
-		    qed
- 		qed
-	      finally have "(measure m2 o A) sums measure m1 (\<Union>i. f -` A i \<inter> space m1)" .
-	      with measure_space.measure_countably_additive [OF m2 rA2 dA Um2] 
-	      have "measure m1 (\<Union>i. f -` A i \<inter> space m1) = measure m2 (\<Union>i. A i)"
-		by (metis sums_unique) 
+                by (rule LIMSEQ_unique) 
+          next
+            fix A :: "nat => 'a2 set"
+              assume dA: "disjoint_family A"
+                 and rA1: "range A \<subseteq> 
+                           {s. measure m1 (f -` s \<inter> space m1) = measure m2 s}"
+                 and "range A \<subseteq> sigma_sets (space m2) a"
+              hence rA2: "range A \<subseteq> sets m2" by (metis setsm2)
+              hence Um2: "(\<Union>i. A i) \<in> sets m2"
+                by (metis range_subsetD setsm2 sigma_sets.Union)
+              have "!!i. measure m1 (f -` A i \<inter> space m1) = measure m2 (A i)"
+                using rA1 by blast
+              hence "measure m2 o A = measure m1 o (\<lambda>i. f -` A i \<inter> space m1)"
+                by (simp add: o_def) 
+              also have "... sums measure m1 (\<Union>i. f -` A i \<inter> space m1)" 
+                proof (rule measure_space.measure_countably_additive [OF m1] )
+                  show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1"
+                    using f12 rA2 by (auto simp add: measurable_def)
+                  show "disjoint_family (\<lambda>i. f -` A i \<inter> space m1)" using dA
+                    by (auto simp add: disjoint_family_def) 
+                  show "(\<Union>i. f -` A i \<inter> space m1) \<in> sets m1"
+                    proof (rule sigma_algebra.countable_UN [OF sa1])
+                      show "range (\<lambda>i. f -` A i \<inter> space m1) \<subseteq> sets m1" using f12 rA2
+                        by (auto simp add: measurable_def) 
+                    qed
+                qed
+              finally have "(measure m2 o A) sums measure m1 (\<Union>i. f -` A i \<inter> space m1)" .
+              with measure_space.measure_countably_additive [OF m2 rA2 dA Um2] 
+              have "measure m1 (\<Union>i. f -` A i \<inter> space m1) = measure m2 (\<Union>i. A i)"
+                by (metis sums_unique) 
 
-	      moreover have "measure m1 (f -` (\<Union>i. A i) \<inter> space m1) = measure m1 (\<Union>i. f -` A i \<inter> space m1)"
-		by (simp add: vimage_UN)
-	      ultimately show "measure m1 (f -` (\<Union>i. A i) \<inter> space m1) =
+              moreover have "measure m1 (f -` (\<Union>i. A i) \<inter> space m1) = measure m1 (\<Union>i. f -` A i \<inter> space m1)"
+                by (simp add: vimage_UN)
+              ultimately show "measure m1 (f -` (\<Union>i. A i) \<inter> space m1) =
                     measure m2 (\<Union>i. A i)" 
-		by metis
-	  qed
-	finally have "sigma_sets (space m2) a 
+                by metis
+          qed
+        finally have "sigma_sets (space m2) a 
               \<subseteq> {s . measure m1 ((f -` s) \<inter> space m1) = measure m2 s}" .
-	hence "measure m1 (f -` y \<inter> space m1) = measure m2 y" using y
-	  by (force simp add: setsm2) 
+        hence "measure m1 (f -` y \<inter> space m1) = measure m2 y" using y
+          by (force simp add: setsm2) 
       }
       thus "f \<in> measurable m1 m2 \<and>
        (\<forall>y\<in>sets m2.
            measure m1 (f -` y \<inter> space m1) = measure m2 y)"
-	by (blast intro: f12) 
+        by (blast intro: f12) 
     qed
 qed
 
