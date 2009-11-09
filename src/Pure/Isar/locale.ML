@@ -72,8 +72,6 @@ sig
     morphism -> theory -> theory
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> theory -> theory
-  val add_registration_eqs: string * morphism -> thm list -> morphism -> theory -> theory
-  val amend_registration_legacy: morphism -> string * morphism -> theory -> theory
   val add_dependency: string -> string * morphism -> morphism -> theory -> theory
 
   (* Diagnostic *)
@@ -239,7 +237,7 @@ fun add thy depth export (name, morph) (deps, marked) =
 
 in
 
-(* Note that while identifiers always have the external (exported) view, activate_dep is
+(* Note that while identifiers always have the external (exported) view, activate_dep
   is presented with the internal view. *)
 
 fun roundup thy activate_dep export (name, morph) (marked, input) =
@@ -479,36 +477,6 @@ fun add_registration (name, base_morph) mixin export thy =
         (* activate import hierarchy as far as not already active *)
         |> Context.theory_map (activate_facts' export (name, base_morph))
       end
-  end;
-
-fun amend_registration_legacy morph (name, base_morph) thy =
-  (* legacy, never modify base morphism *)
-  let
-    val regs = Registrations.get thy |> fst |> map fst;
-    val base = instance_of thy name base_morph;
-    fun match (name', (morph', _)) =
-      name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
-    val i = find_index match (rev regs);
-    val _ =
-      if i = ~1 then error ("No registration of locale " ^
-        quote (extern thy name) ^ " and parameter instantiation " ^
-        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available")
-      else ();
-  in
-    Registrations.map ((apfst o nth_map (length regs - 1 - i))
-      (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
-  end;
-
-fun add_registration_eqs (dep, proto_morph) eqns export thy =
-  let
-    val morph = if null eqns then proto_morph
-      else proto_morph $> Element.eq_morphism thy eqns;
-  in
-    (get_idents (Context.Theory thy), thy)
-    |> roundup thy (fn (dep', morph') =>
-        Registrations.map (apfst (cons ((dep', (morph', export)), stamp ())))) export (dep, morph)
-    |> snd
-    |> Context.theory_map (activate_facts (dep, morph $> export))
   end;
 
 
