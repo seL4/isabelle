@@ -343,15 +343,17 @@ fun constrset_of_consts thy cs =
   let
     val _ = map (fn (c, _) => if (is_some o AxClass.class_of_param thy) c
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) cs;
-    fun no_constr (c, ty) = error ("Not a datatype constructor: " ^ string_of_const thy c
-      ^ " :: " ^ string_of_typ thy ty);
+    fun no_constr s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of_const thy c
+      ^ " :: " ^ string_of_typ thy ty ^ "\n" ^ enclose "(" ")" s);
     fun last_typ c_ty ty =
       let
-        val frees = OldTerm.typ_tfrees ty;
+        val tfrees = Term.add_tfreesT ty [];
         val (tyco, vs) = ((apsnd o map) (dest_TFree) o dest_Type o snd o strip_type) ty
-          handle TYPE _ => no_constr c_ty
-        val _ = if has_duplicates (eq_fst (op =)) vs then no_constr c_ty else ();
-        val _ = if length frees <> length vs then no_constr c_ty else ();
+          handle TYPE _ => no_constr "bad type" c_ty
+        val _ = if has_duplicates (eq_fst (op =)) vs
+          then no_constr "duplicate type variables in datatype" c_ty else ();
+        val _ = if length tfrees <> length vs
+          then no_constr "type variables missing in datatype" c_ty else ();
       in (tyco, vs) end;
     fun ty_sorts (c, ty) =
       let
