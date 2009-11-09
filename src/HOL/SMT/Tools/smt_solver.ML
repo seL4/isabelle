@@ -222,21 +222,20 @@ fun add_solver_info (n, i) = Solvers.map (Symtab.map_entry n (apsnd (K i)))
 
 (* selected solver *)
 
-structure SelectedSolver = Generic_Data
+structure Selected_Solver = Generic_Data
 (
-  type T = serial * string
-  val empty = (serial (), no_solver)
+  type T = string
+  val empty = no_solver
   val extend = I
-  fun merge (sl1 as (s1, _), sl2 as (s2, _)) =
-    if s1 > s2 then sl1 else sl2   (* FIXME depends on accidental load order !?! *)
+  fun merge (_, s) = s
 )
 
-val solver_name_of = snd o SelectedSolver.get
+val solver_name_of = Selected_Solver.get
 
 fun select_solver name gen =
   if is_none (lookup_solver (Context.theory_of gen) name)
   then error ("SMT solver not registered: " ^ quote name)
-  else SelectedSolver.map (K (serial (), name)) gen
+  else Selected_Solver.map (K name) gen
 
 fun raw_solver_of gen =
   (case lookup_solver (Context.theory_of gen) (solver_name_of gen) of
