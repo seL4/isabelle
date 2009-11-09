@@ -2,7 +2,6 @@ header {*Caratheodory Extension Theorem*}
 
 theory Caratheodory
   imports Sigma_Algebra SupInf SeriesPlus
-
 begin
 
 text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}
@@ -136,7 +135,7 @@ proof -
     proof 
       fix n
       show "(\<Sum>i\<Colon>nat = 0\<Colon>nat..<Suc (Suc n). f (binaryset A B i)) = f A + f B"
-	by (induct n)  (auto simp add: binaryset_def f) 
+        by (induct n)  (auto simp add: binaryset_def f) 
     qed
   moreover
   have "... ----> f A + f B" by (rule LIMSEQ_const) 
@@ -198,30 +197,30 @@ lemma (in algebra) lambda_system_Int:
   proof -
     from xl yl show ?thesis
       proof (auto simp add: positive_def lambda_system_eq Int)
-	fix u
-	assume x: "x \<in> sets M" and y: "y \<in> sets M" and u: "u \<in> sets M"
+        fix u
+        assume x: "x \<in> sets M" and y: "y \<in> sets M" and u: "u \<in> sets M"
            and fx: "\<forall>z\<in>sets M. f (z \<inter> x) + f (z - x) = f z"
            and fy: "\<forall>z\<in>sets M. f (z \<inter> y) + f (z - y) = f z"
-	have "u - x \<inter> y \<in> sets M"
-	  by (metis Diff Diff_Int Un u x y)
-	moreover
-	have "(u - (x \<inter> y)) \<inter> y = u \<inter> y - x" by blast
-	moreover
-	have "u - x \<inter> y - y = u - y" by blast
-	ultimately
-	have ey: "f (u - x \<inter> y) = f (u \<inter> y - x) + f (u - y)" using fy
-	  by force
-	have "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y) 
+        have "u - x \<inter> y \<in> sets M"
+          by (metis Diff Diff_Int Un u x y)
+        moreover
+        have "(u - (x \<inter> y)) \<inter> y = u \<inter> y - x" by blast
+        moreover
+        have "u - x \<inter> y - y = u - y" by blast
+        ultimately
+        have ey: "f (u - x \<inter> y) = f (u \<inter> y - x) + f (u - y)" using fy
+          by force
+        have "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y) 
               = (f (u \<inter> (x \<inter> y)) + f (u \<inter> y - x)) + f (u - y)"
-	  by (simp add: ey) 
-	also have "... =  (f ((u \<inter> y) \<inter> x) + f (u \<inter> y - x)) + f (u - y)"
-	  by (simp add: Int_ac) 
-	also have "... = f (u \<inter> y) + f (u - y)"
-	  using fx [THEN bspec, of "u \<inter> y"] Int y u
-	  by force
-	also have "... = f u"
-	  by (metis fy u) 
-	finally show "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y) = f u" .
+          by (simp add: ey) 
+        also have "... =  (f ((u \<inter> y) \<inter> x) + f (u \<inter> y - x)) + f (u - y)"
+          by (simp add: Int_ac) 
+        also have "... = f (u \<inter> y) + f (u - y)"
+          using fx [THEN bspec, of "u \<inter> y"] Int y u
+          by force
+        also have "... = f u"
+          by (metis fy u) 
+        finally show "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y) = f u" .
       qed
   qed
 
@@ -478,11 +477,11 @@ proof -
   have U_eq: "f (\<Union>i. A i) = suminf (f o A)" 
     proof (rule antisym)
       show "f (\<Union>i. A i) \<le> suminf (f \<circ> A)"
-	by (rule countably_subadditiveD [OF csa A'' disj U_in sumfA]) 
+        by (rule countably_subadditiveD [OF csa A'' disj U_in sumfA]) 
       show "suminf (f \<circ> A) \<le> f (\<Union>i. A i)"
-	by (rule suminf_le [OF sumfA]) 
+        by (rule suminf_le [OF sumfA]) 
            (metis algebra.additive_sum [OF alg_ls] pos disj UN_Un Un_UNIV_right
-	          lambda_system_positive lambda_system_additive 
+                  lambda_system_positive lambda_system_additive 
                   subset_Un_eq increasingD [OF inc] A' A'' UNION_in_sets U_in) 
     qed
   {
@@ -491,58 +490,58 @@ proof -
     have "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) = f a"
     proof -
       have summ: "summable (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A)" using pos A'' 
-	apply -
-	apply (rule summable_comparison_test [OF _ sumfA]) 
-	apply (rule_tac x="0" in exI) 
-	apply (simp add: positive_def) 
-	apply (auto simp add: )
-	apply (subst abs_of_nonneg)
-	apply (metis A'' Int UNIV_I a image_subset_iff)
-	apply (blast intro:  increasingD [OF inc] a)   
-	done
+        apply -
+        apply (rule summable_comparison_test [OF _ sumfA]) 
+        apply (rule_tac x="0" in exI) 
+        apply (simp add: positive_def) 
+        apply (auto simp add: )
+        apply (subst abs_of_nonneg)
+        apply (metis A'' Int UNIV_I a image_subset_iff)
+        apply (blast intro:  increasingD [OF inc] a)   
+        done
       show ?thesis
       proof (rule antisym)
-	have "range (\<lambda>i. a \<inter> A i) \<subseteq> sets M" using A''
-	  by blast
-	moreover 
-	have "disjoint_family (\<lambda>i. a \<inter> A i)" using disj
-	  by (auto simp add: disjoint_family_def) 
-	moreover 
-	have "a \<inter> (\<Union>i. A i) \<in> sets M"
-	  by (metis Int U_in a)
-	ultimately 
-	have "f (a \<inter> (\<Union>i. A i)) \<le> suminf (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A)"
-	  using countably_subadditiveD [OF csa, of "(\<lambda>i. a \<inter> A i)"] summ
-	  by (simp add: o_def) 
-	moreover 
-	have "suminf (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A)  \<le> f a - f (a - (\<Union>i. A i))"
-	  proof (rule suminf_le [OF summ])
-	    fix n
-	    have UNION_in: "(\<Union>i\<in>{0..<n}. A i) \<in> sets M"
-	      by (metis A'' UNION_in_sets) 
-	    have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
-	      by (blast intro: increasingD [OF inc] A'' Int UNION_in_sets a) 
-	    have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system M f"
-	      using algebra.UNION_in_sets [OF lambda_system_algebra [OF pos]]
-	      by (simp add: A) 
-	    hence eq_fa: "f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i)) = f a"
-	      by (simp add: lambda_system_eq UNION_in Diff_Compl a)
-	    have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
-	      by (blast intro: increasingD [OF inc] Diff UNION_eq_Union_image 
+        have "range (\<lambda>i. a \<inter> A i) \<subseteq> sets M" using A''
+          by blast
+        moreover 
+        have "disjoint_family (\<lambda>i. a \<inter> A i)" using disj
+          by (auto simp add: disjoint_family_def) 
+        moreover 
+        have "a \<inter> (\<Union>i. A i) \<in> sets M"
+          by (metis Int U_in a)
+        ultimately 
+        have "f (a \<inter> (\<Union>i. A i)) \<le> suminf (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A)"
+          using countably_subadditiveD [OF csa, of "(\<lambda>i. a \<inter> A i)"] summ
+          by (simp add: o_def) 
+        moreover 
+        have "suminf (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A)  \<le> f a - f (a - (\<Union>i. A i))"
+          proof (rule suminf_le [OF summ])
+            fix n
+            have UNION_in: "(\<Union>i\<in>{0..<n}. A i) \<in> sets M"
+              by (metis A'' UNION_in_sets) 
+            have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
+              by (blast intro: increasingD [OF inc] A'' Int UNION_in_sets a) 
+            have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system M f"
+              using algebra.UNION_in_sets [OF lambda_system_algebra [OF pos]]
+              by (simp add: A) 
+            hence eq_fa: "f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i)) = f a"
+              by (simp add: lambda_system_eq UNION_in Diff_Compl a)
+            have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
+              by (blast intro: increasingD [OF inc] Diff UNION_eq_Union_image 
                                UNION_in U_in a) 
-	    thus "setsum (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A) {0..<n} \<le> f a - f (a - (\<Union>i. A i))"
-	      using eq_fa
-	      by (simp add: suminf_le [OF summ] lambda_system_strong_sum pos 
+            thus "setsum (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A) {0..<n} \<le> f a - f (a - (\<Union>i. A i))"
+              using eq_fa
+              by (simp add: suminf_le [OF summ] lambda_system_strong_sum pos 
                             a A disj)
-	  qed
-	ultimately show "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) \<le> f a" 
-	  by arith
+          qed
+        ultimately show "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) \<le> f a" 
+          by arith
       next
-	have "f a \<le> f (a \<inter> (\<Union>i. A i) \<union> (a - (\<Union>i. A i)))" 
-	  by (blast intro:  increasingD [OF inc] a U_in)
-	also have "... \<le>  f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))"
-	  by (blast intro: subadditiveD [OF sa] Int Diff U_in) 
-	finally show "f a \<le> f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))" .
+        have "f a \<le> f (a \<inter> (\<Union>i. A i) \<union> (a - (\<Union>i. A i)))" 
+          by (blast intro:  increasingD [OF inc] a U_in)
+        also have "... \<le>  f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))"
+          by (blast intro: subadditiveD [OF sa] Int Diff U_in) 
+        finally show "f a \<le> f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))" .
         qed
      qed
   }
@@ -654,20 +653,20 @@ proof (rule Inf_eq)
   have sums: "(\<lambda>i. f (A i \<inter> s)) sums f (\<Union>i. A i \<inter> s)"
     proof (rule countably_additiveD [OF ca]) 
       show "range (\<lambda>n. A n \<inter> s) \<subseteq> sets M" using A s
-	by blast
+        by blast
       show "disjoint_family (\<lambda>n. A n \<inter> s)" using disj
-	by (auto simp add: disjoint_family_def)
+        by (auto simp add: disjoint_family_def)
       show "(\<Union>i. A i \<inter> s) \<in> sets M" using A s
-	by (metis UN_extend_simps(4) s seq)
+        by (metis UN_extend_simps(4) s seq)
     qed
   hence "f s = suminf (\<lambda>i. f (A i \<inter> s))"
     by (metis Int_commute UN_simps(4) seq sums_iff) 
   also have "... \<le> suminf (f \<circ> A)" 
     proof (rule summable_le [OF _ _ sm]) 
       show "\<forall>n. f (A n \<inter> s) \<le> (f \<circ> A) n" using A s
-	by (force intro: increasingD [OF inc]) 
+        by (force intro: increasingD [OF inc]) 
       show "summable (\<lambda>i. f (A i \<inter> s))" using sums
-	by (simp add: sums_iff) 
+        by (simp add: sums_iff) 
     qed
   also have "... = z" by (rule si) 
   finally show "f s \<le> z" .
@@ -722,9 +721,9 @@ proof -
     proof (auto)
       fix n
       have "\<bar>f (disjointed A n)\<bar> = f (disjointed A n)" using posf dA
-	by (auto simp add: positive_def image_subset_iff)
+        by (auto simp add: positive_def image_subset_iff)
       also have "... \<le> f (A n)" 
-	by (metis increasingD [OF inc] UNIV_I dA image_subset_iff disjointed_subset A)
+        by (metis increasingD [OF inc] UNIV_I dA image_subset_iff disjointed_subset A)
       finally show "\<bar>f (disjointed A n)\<bar> \<le> f (A n)" .
     qed
   from Series.summable_le2 [OF this sm]
@@ -787,32 +786,32 @@ proof (auto simp add: countably_subadditive_def o_def, rule field_le_epsilon)
         and ll: "!!n. ll n \<le> Inf (measure_set M f (A n)) + e * (1/2)^(Suc n)"
       by auto blast
     have llpos: "!!n. 0 \<le> ll n"
-	by (metis BBsums sums_iff o_apply posf positive_imp_pos suminf_ge_zero 
+        by (metis BBsums sums_iff o_apply posf positive_imp_pos suminf_ge_zero 
               range_subsetD BB) 
     have sll: "summable ll &
                suminf ll \<le> suminf (\<lambda>n. Inf (measure_set M f (A n))) + e"
       proof -
-	have "(\<lambda>n. e * (1/2)^(Suc n)) sums (e*1)"
-	  by (rule sums_mult [OF power_half_series]) 
-	hence sum0: "summable (\<lambda>n. e * (1 / 2) ^ Suc n)"
-	  and eqe:  "(\<Sum>n. e * (1 / 2) ^ n / 2) = e"
-	  by (auto simp add: sums_iff) 
-	have 0: "suminf (\<lambda>n. Inf (measure_set M f (A n))) +
+        have "(\<lambda>n. e * (1/2)^(Suc n)) sums (e*1)"
+          by (rule sums_mult [OF power_half_series]) 
+        hence sum0: "summable (\<lambda>n. e * (1 / 2) ^ Suc n)"
+          and eqe:  "(\<Sum>n. e * (1 / 2) ^ n / 2) = e"
+          by (auto simp add: sums_iff) 
+        have 0: "suminf (\<lambda>n. Inf (measure_set M f (A n))) +
                  suminf (\<lambda>n. e * (1/2)^(Suc n)) =
                  suminf (\<lambda>n. Inf (measure_set M f (A n)) + e * (1/2)^(Suc n))"
-	  by (rule suminf_add [OF sum1 sum0]) 
-	have 1: "\<forall>n. \<bar>ll n\<bar> \<le> Inf (measure_set M f (A n)) + e * (1/2) ^ Suc n"
-	  by (metis ll llpos abs_of_nonneg)
-	have 2: "summable (\<lambda>n. Inf (measure_set M f (A n)) + e*(1/2)^(Suc n))"
-	  by (rule summable_add [OF sum1 sum0]) 
-	have "suminf ll \<le> (\<Sum>n. Inf (measure_set M f (A n)) + e*(1/2) ^ Suc n)"
-	  using Series.summable_le2 [OF 1 2] by auto
-	also have "... = (\<Sum>n. Inf (measure_set M f (A n))) + 
+          by (rule suminf_add [OF sum1 sum0]) 
+        have 1: "\<forall>n. \<bar>ll n\<bar> \<le> Inf (measure_set M f (A n)) + e * (1/2) ^ Suc n"
+          by (metis ll llpos abs_of_nonneg)
+        have 2: "summable (\<lambda>n. Inf (measure_set M f (A n)) + e*(1/2)^(Suc n))"
+          by (rule summable_add [OF sum1 sum0]) 
+        have "suminf ll \<le> (\<Sum>n. Inf (measure_set M f (A n)) + e*(1/2) ^ Suc n)"
+          using Series.summable_le2 [OF 1 2] by auto
+        also have "... = (\<Sum>n. Inf (measure_set M f (A n))) + 
                          (\<Sum>n. e * (1 / 2) ^ Suc n)"
-	  by (metis 0) 
-	also have "... = (\<Sum>n. Inf (measure_set M f (A n))) + e"
-	  by (simp add: eqe) 
-	finally show ?thesis using  Series.summable_le2 [OF 1 2] by auto
+          by (metis 0) 
+        also have "... = (\<Sum>n. Inf (measure_set M f (A n))) + e"
+          by (simp add: eqe) 
+        finally show ?thesis using  Series.summable_le2 [OF 1 2] by auto
       qed
     def C \<equiv> "(split BB) o nat_to_nat2"
     have C: "!!n. C n \<in> sets M"
@@ -822,24 +821,24 @@ proof (auto simp add: countably_subadditive_def o_def, rule field_le_epsilon)
       done
     have sbC: "(\<Union>i. A i) \<subseteq> (\<Union>i. C i)"
       proof (auto simp add: C_def)
-	fix x i
-	assume x: "x \<in> A i"
-	with sbBB [of i] obtain j where "x \<in> BB i j"
-	  by blast	  
-	thus "\<exists>i. x \<in> split BB (nat_to_nat2 i)"
-	  by (metis nat_to_nat2_surj internal_split_def prod.cases 
+        fix x i
+        assume x: "x \<in> A i"
+        with sbBB [of i] obtain j where "x \<in> BB i j"
+          by blast        
+        thus "\<exists>i. x \<in> split BB (nat_to_nat2 i)"
+          by (metis nat_to_nat2_surj internal_split_def prod.cases 
                 prod_case_split surj_f_inv_f)
       qed 
     have "(f \<circ> C) = (f \<circ> (\<lambda>(x, y). BB x y)) \<circ> nat_to_nat2"
       by (rule ext)  (auto simp add: C_def) 
     also have "... sums suminf ll" 
       proof (rule suminf_2dimen)
-	show "\<And>m n. 0 \<le> (f \<circ> (\<lambda>(x, y). BB x y)) (m, n)" using posf BB 
-	  by (force simp add: positive_def)
-	show "\<And>m. (\<lambda>n. (f \<circ> (\<lambda>(x, y). BB x y)) (m, n)) sums ll m"using BBsums BB
-	  by (force simp add: o_def)
-	show "summable ll" using sll
-	  by auto
+        show "\<And>m n. 0 \<le> (f \<circ> (\<lambda>(x, y). BB x y)) (m, n)" using posf BB 
+          by (force simp add: positive_def)
+        show "\<And>m. (\<lambda>n. (f \<circ> (\<lambda>(x, y). BB x y)) (m, n)) sums ll m"using BBsums BB
+          by (force simp add: o_def)
+        show "summable ll" using sll
+          by auto
       qed
     finally have Csums: "(f \<circ> C) sums suminf ll" .
     have "Inf (measure_set M f (\<Union>i. A i)) \<le> suminf ll"
@@ -882,24 +881,24 @@ proof (auto dest: sets_into_space
       from inf_measure_close [OF posf e s]
       obtain A l where A: "range A \<subseteq> sets M" and disj: "disjoint_family A"
                    and sUN: "s \<subseteq> (\<Union>i. A i)" and fsums: "(f \<circ> A) sums l"
-	           and l: "l \<le> Inf (measure_set M f s) + e"
-	by auto
+                   and l: "l \<le> Inf (measure_set M f s) + e"
+        by auto
       have [simp]: "!!x. x \<in> sets M \<Longrightarrow>
                       (f o (\<lambda>z. z \<inter> (space M - x)) o A) = (f o (\<lambda>z. z - x) o A)"
-	by (rule ext, simp, metis A Int_Diff Int_space_eq2 range_subsetD)
+        by (rule ext, simp, metis A Int_Diff Int_space_eq2 range_subsetD)
       have  [simp]: "!!n. f (A n \<inter> x) + f (A n - x) = f (A n)"
-	by (subst additiveD [OF add, symmetric])
- 	   (auto simp add: x range_subsetD [OF A] Int_Diff_Un Int_Diff_disjoint)
+        by (subst additiveD [OF add, symmetric])
+           (auto simp add: x range_subsetD [OF A] Int_Diff_Un Int_Diff_disjoint)
       have fsumb: "summable (f \<circ> A)"
-	by (metis fsums sums_iff) 
+        by (metis fsums sums_iff) 
       { fix u
-	assume u: "u \<in> sets M"
-	have [simp]: "\<And>n. \<bar>f (A n \<inter> u)\<bar> \<le> f (A n)"
-	  by (simp add: positive_imp_pos [OF posf]  increasingD [OF inc] 
+        assume u: "u \<in> sets M"
+        have [simp]: "\<And>n. \<bar>f (A n \<inter> u)\<bar> \<le> f (A n)"
+          by (simp add: positive_imp_pos [OF posf]  increasingD [OF inc] 
                         u Int  range_subsetD [OF A]) 
-	have 1: "summable (f o (\<lambda>z. z\<inter>u) o A)" 
+        have 1: "summable (f o (\<lambda>z. z\<inter>u) o A)" 
           by (rule summable_comparison_test [OF _ fsumb]) simp
-	have 2: "Inf (measure_set M f (s\<inter>u)) \<le> suminf (f o (\<lambda>z. z\<inter>u) o A)"
+        have 2: "Inf (measure_set M f (s\<inter>u)) \<le> suminf (f o (\<lambda>z. z\<inter>u) o A)"
           proof (rule Inf_lower) 
             show "suminf (f \<circ> (\<lambda>z. z \<inter> u) \<circ> A) \<in> measure_set M f (s \<inter> u)"
               apply (simp add: measure_set_def) 
@@ -920,14 +919,14 @@ proof (auto dest: sets_into_space
         and sum2: "summable (f o (\<lambda>z. z \<inter> (space M - x)) o A)"
         and inf2: "Inf (measure_set M f (s \<inter> (space M - x))) 
                    \<le> suminf (f o (\<lambda>z. z \<inter> (space M - x)) o A)"
-	by (metis Diff lesum top x)+
+        by (metis Diff lesum top x)+
       hence "Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))
            \<le> suminf (f o (\<lambda>s. s\<inter>x) o A) + suminf (f o (\<lambda>s. s-x) o A)"
-	by (simp add: x)
+        by (simp add: x)
       also have "... \<le> suminf (f o A)" using suminf_add [OF sum1 sum2] 
-	by (simp add: x) (simp add: o_def) 
+        by (simp add: x) (simp add: o_def) 
       also have "... \<le> Inf (measure_set M f s) + e"
-	by (metis fsums l sums_unique) 
+        by (metis fsums l sums_unique) 
       finally show "Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))
         \<le> Inf (measure_set M f s) + e" .
     qed
@@ -940,7 +939,7 @@ proof (auto dest: sets_into_space
     also have "... \<le> Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))" 
       apply (rule subadditiveD) 
       apply (iprover intro: algebra.countably_subadditive_subadditive algebra_Pow 
-	       inf_measure_positive inf_measure_countably_subadditive posf inc)
+               inf_measure_positive inf_measure_countably_subadditive posf inc)
       apply (auto simp add: subsetD [OF s])  
       done
     finally show ?thesis .

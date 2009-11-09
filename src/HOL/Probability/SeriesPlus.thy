@@ -1,6 +1,5 @@
 theory SeriesPlus
   imports Complex_Main Nat_Int_Bij 
-
 begin
 
 text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}
@@ -28,9 +27,9 @@ proof (simp add: sums_def)
     proof -
       fix m
       have "0 \<le> suminf (\<lambda>n. f (m,n))"
-	by (rule suminf_0_le, simp add: f_nneg, metis fsums sums_iff)
+        by (rule suminf_0_le, simp add: f_nneg, metis fsums sums_iff)
       thus "0 \<le> g m" using fsums [of m] 
-	by (auto simp add: sums_iff) 
+        by (auto simp add: sums_iff) 
     qed
   show "(\<lambda>n. \<Sum>x = 0..<n. f (nat_to_nat2 x)) ----> suminf g"
   proof (rule increasing_LIMSEQ, simp add: f_nneg)
@@ -48,14 +47,14 @@ proof (simp add: sums_def)
       by (rule setsum_mono2) (auto simp add: ij) 
     also have "... = setsum (\<lambda>m. setsum (\<lambda>n. f (m,n)) {0..j}) {0..<Suc i}"
       by (metis atLeast0AtMost atLeast0LessThan lessThan_Suc_atMost
-	        setsum_cartesian_product split_eta) 
+                setsum_cartesian_product split_eta) 
     also have "... \<le> setsum g {0..<Suc i}" 
       proof (rule setsum_mono, simp add: less_Suc_eq_le) 
-	fix m
-	assume m: "m \<le> i"
-	thus " (\<Sum>n = 0..j. f (m, n)) \<le> g m" using fsums [of m]
-	  by (auto simp add: sums_iff) 
-	   (metis atLeastLessThanSuc_atLeastAtMost f_nneg series_pos_le f_nneg) 
+        fix m
+        assume m: "m \<le> i"
+        thus " (\<Sum>n = 0..j. f (m, n)) \<le> g m" using fsums [of m]
+          by (auto simp add: sums_iff) 
+           (metis atLeastLessThanSuc_atLeastAtMost f_nneg series_pos_le f_nneg) 
       qed
     finally have  "(\<Sum>x = 0..<n. f (nat_to_nat2 x)) \<le> setsum g {0..<Suc i}" .
     also have "... \<le> suminf g" 
@@ -73,13 +72,13 @@ proof (simp add: sums_def)
     { fix m
       assume m: "m<N"
       hence enneg: "0 < e / (2 * real N)" using e
-	by (simp add: zero_less_divide_iff) 
+        by (simp add: zero_less_divide_iff) 
       hence  "\<exists>j. \<bar>(\<Sum>n = 0..<j. f (m, n)) - g m\<bar> < e/(2 * real N)"
-	using fsums [of m] m
+        using fsums [of m] m
         by (force simp add: sums_def LIMSEQ_def dist_real_def)
       hence "\<exists>j. g m < setsum (\<lambda>n. f (m,n)) {0..<j} + e/(2 * real N)" 
-	using fsums [of m]
-	by (auto simp add: sums_iff) 
+        using fsums [of m]
+        by (auto simp add: sums_iff) 
            (metis abs_diff_less_iff add_less_cancel_right eq_diff_eq') 
     }
     hence "\<exists>jj. \<forall>m. m<N \<longrightarrow> g m < (\<Sum>n = 0..<jj m. f (m, n)) + e/(2 * real N)"
@@ -103,13 +102,13 @@ proof (simp add: sums_def)
     def NIJ \<equiv> "Max (nat_to_nat2 -` IJ)"
     have IJsb: "IJ \<subseteq> nat_to_nat2 ` {0..NIJ}"
       proof (auto simp add: NIJ_def)
-	fix i j
-	assume ij:"(i,j) \<in> IJ"
-	hence "(i,j) = nat_to_nat2 (inv nat_to_nat2 (i,j))"
-	  by (metis nat_to_nat2_surj surj_f_inv_f) 
-	thus "(i,j) \<in> nat_to_nat2 ` {0..Max (nat_to_nat2 -` IJ)}"
-	  by (rule image_eqI) 
-	     (simp add: ij finite_vimageI [OF finite_IJ nat_to_nat2_inj]
+        fix i j
+        assume ij:"(i,j) \<in> IJ"
+        hence "(i,j) = nat_to_nat2 (inv nat_to_nat2 (i,j))"
+          by (metis nat_to_nat2_surj surj_f_inv_f) 
+        thus "(i,j) \<in> nat_to_nat2 ` {0..Max (nat_to_nat2 -` IJ)}"
+          by (rule image_eqI) 
+             (simp add: ij finite_vimageI [OF finite_IJ nat_to_nat2_inj]
                     nat_to_nat2_surj surj_f_inv_f) 
       qed
     have "setsum f IJ \<le> setsum f (nat_to_nat2 `{0..NIJ})"

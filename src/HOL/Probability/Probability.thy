@@ -1,5 +1,5 @@
-theory Probability imports
-	Measure
+theory Probability
+imports Measure
 begin
 
 end
