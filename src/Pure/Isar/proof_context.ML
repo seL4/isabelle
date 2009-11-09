@@ -1032,7 +1032,10 @@ fun notation add mode args ctxt =
     (Local_Syntax.update_modesyntax (theory_of ctxt) add mode (map_filter (const_syntax ctxt) args));
 
 fun target_notation add mode args phi =
-  let val args' = filter (fn (t, _) => Type.similar_types (t, Morphism.term phi t)) args;
+  let
+    val args' = args |> map_filter (fn (t, mx) =>
+      let val t' = Morphism.term phi t
+      in if Term.aconv_untyped (t, t') then SOME (t', mx) else NONE end);
   in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
 
 end;
