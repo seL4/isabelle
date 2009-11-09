@@ -152,6 +152,7 @@ end
 
 fun certify ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
 fun certify_var ctxt idx T = certify ctxt (Var (("x", idx), T))
+fun certify_free ctxt idx T = certify ctxt (Free ("x" ^ string_of_int idx, T))
 
 fun varify ctxt =
   let
@@ -437,6 +438,36 @@ fun unfold_distinct_conv ct =
   (Conv.rewr_conv dist3 then_conv binop_conv set_conv unfold_distinct_conv)) ct
 end
 
+(** proving abstractions **)
+
+fun fold_map_op f ct =
+  let val (cf, cu) = Thm.dest_comb ct
+  in f cu #>> Thm.capply cf end
+
+fun fold_map_binop f1 f2 ct =
+  let val ((cf, cu1), cu2) = apfst Thm.dest_comb (Thm.dest_comb ct)
+  in f1 cu1 ##>> f2 cu2 #>> uncurry (Thm.mk_binop cf) end
+
+fun abstraction_context ctxt = (ctxt, certify_var, 1, false, Ctermtab.empty)
+fun abstraction_context' ctxt = (ctxt, certify_free, 1, true, Ctermtab.empty)
+
+fun fresh_abstraction ct (cx as (ctxt, mk_var, idx, gen, tab)) =
+  (case Ctermtab.lookup tab ct of
+    SOME cv => (cv, cx)
+  | NONE =>
+      let val cv = mk_var ctxt idx (#T (Thm.rep_cterm ct))
+      in (cv, (ctxt, mk_var, idx + 1, gen, Ctermtab.update (ct, cv) tab)) end)
+
+fun prove_abstraction tac ct (ctxt, _, _, gen, tab) =
+  let
+    val insts = map swap (Ctermtab.dest tab)
+    val thm = Goal.prove_internal [] ct (fn _ => tac 1)
+  in
+    if gen
+    then fold SMT_Normalize.instantiate_free insts thm
+    else Thm.instantiate ([], insts) thm
+  end
+
 
 (* core proof rules *)
 
@@ -688,10 +719,27 @@ local
 
   val nnf_rules = thm_net_of [@{thm not_not}]
 
+  fun abstract ct =
+    (case Thm.term_of ct of
+      @{term False} => pair
+    | @{term Not} $ _ => fold_map_op abstract
+    | @{term "op &"} $ _ $ _ => fold_map_binop abstract abstract
+    | @{term "op |"} $ _ $ _ => fold_map_binop abstract abstract
+    | @{term "op -->"} $ _ $ _ => fold_map_binop abstract abstract
+    | @{term "op = :: bool => _"} $ _ $ _ => fold_map_binop abstract abstract
+    | _ => fresh_abstraction) ct
+
+  fun abstracted ctxt ct =
+    abstraction_context' ctxt
+    |> abstract (Thm.dest_arg ct)
+    |>> T.mk_prop
+    |-> prove_abstraction (Classical.best_tac HOL_cs)
+
   fun prove_nnf ctxt =
     try_apply ctxt "nnf" [
       ("conj/disj", prove_conj_disj_eq o Thm.dest_arg),
       ("rule", the o net_instance nnf_rules),
+      ("abstract", abstracted ctxt),
       ("tactic", by_tac' (Classical.best_tac HOL_cs))]
 in
 fun nnf ctxt ps ct =
@@ -984,21 +1032,7 @@ local
   end
 
   local
-    fun make_ctxt ctxt = (ctxt, Ctermtab.empty, 1)
-    fun fresh ct (cx as (ctxt, tab, idx)) =
-      (case Ctermtab.lookup tab ct of
-        SOME cv => (cv, cx)
-      | NONE =>
-          let val cv = certify_var ctxt idx (#T (Thm.rep_cterm ct))
-          in (cv, (ctxt, Ctermtab.update (ct, cv) tab, idx + 1)) end)
-
-    fun fold_map_op f ct =
-      let val (cf, cu) = Thm.dest_comb ct
-      in f cu #>> Thm.capply cf end
-
-    fun fold_map_binop f1 f2 ct =
-      let val ((cf, cu1), cu2) = apfst Thm.dest_comb (Thm.dest_comb ct)
-      in f1 cu1 ##>> f2 cu2 #>> uncurry (Thm.mk_binop cf) end
+    fun fresh ct = fresh_abstraction ct
 
     fun mult f1 f2 ct t u =
       if is_number t 
@@ -1041,17 +1075,12 @@ local
       | _ => conj ct)
   in
   fun prove_arith ctxt thms ct =
-    let
-      val (goal, (_, tab, _)) =
-        make_ctxt ctxt
-        |> fold_map (fold_map_op ineq o Thm.cprop_of) thms
-        ||>> fold_map_op disj ct
-        |>> uncurry (fold_rev (Thm.mk_binop @{cterm "op ==>"}))
-    in
-      Goal.prove_internal [] goal (fn _ => Arith_Data.arith_tac ctxt 1)
-      |> Thm.instantiate ([], map swap (Ctermtab.dest tab))
-      |> fold (fn th1 => fn th2 => Thm.implies_elim th2 th1) thms
-    end
+    abstraction_context ctxt
+    |> fold_map (fold_map_op ineq o Thm.cprop_of) thms
+    ||>> fold_map_op disj ct
+    |>> uncurry (fold_rev (Thm.mk_binop @{cterm "op ==>"}))
+    |-> prove_abstraction (Arith_Data.arith_tac ctxt)
+    |> fold (fn th1 => fn th2 => Thm.implies_elim th2 th1) thms
   end
 in
 fun arith_lemma ctxt thms ct =
