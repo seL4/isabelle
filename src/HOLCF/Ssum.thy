@@ -226,6 +226,15 @@ unfolding ssum_map_def by simp
 lemma ssum_map_sinr [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
 unfolding ssum_map_def by simp
 
+lemma ssum_map_map:
+  "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
+    ssum_map\<cdot>f1\<cdot>g1\<cdot>(ssum_map\<cdot>f2\<cdot>g2\<cdot>p) =
+     ssum_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
+apply (induct p, simp)
+apply (case_tac "f2\<cdot>x = \<bottom>", simp, simp)
+apply (case_tac "g2\<cdot>y = \<bottom>", simp, simp)
+done
+
 lemma ep_pair_ssum_map:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"
   shows "ep_pair (ssum_map\<cdot>e1\<cdot>e2) (ssum_map\<cdot>p1\<cdot>p2)"

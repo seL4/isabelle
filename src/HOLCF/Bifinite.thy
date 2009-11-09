@@ -114,6 +114,11 @@ where
 lemma cprod_map_Pair [simp]: "cprod_map\<cdot>f\<cdot>g\<cdot>(x, y) = (f\<cdot>x, g\<cdot>y)"
 unfolding cprod_map_def by simp
 
+lemma cprod_map_map:
+  "cprod_map\<cdot>f1\<cdot>g1\<cdot>(cprod_map\<cdot>f2\<cdot>g2\<cdot>p) =
+    cprod_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
+by (induct p) simp
+
 lemma ep_pair_cprod_map:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"
   shows "ep_pair (cprod_map\<cdot>e1\<cdot>e2) (cprod_map\<cdot>p1\<cdot>p2)"
@@ -201,6 +206,11 @@ where
 
 lemma cfun_map_beta [simp]: "cfun_map\<cdot>a\<cdot>b\<cdot>f\<cdot>x = b\<cdot>(f\<cdot>(a\<cdot>x))"
 unfolding cfun_map_def by simp
+
+lemma cfun_map_map:
+  "cfun_map\<cdot>f1\<cdot>g1\<cdot>(cfun_map\<cdot>f2\<cdot>g2\<cdot>p) =
+    cfun_map\<cdot>(\<Lambda> x. f2\<cdot>(f1\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
+by (rule ext_cfun) simp
 
 lemma ep_pair_cfun_map:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"

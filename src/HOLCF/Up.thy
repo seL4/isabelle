@@ -303,6 +303,9 @@ unfolding u_map_def by simp
 lemma u_map_up [simp]: "u_map\<cdot>f\<cdot>(up\<cdot>x) = up\<cdot>(f\<cdot>x)"
 unfolding u_map_def by simp
 
+lemma u_map_map: "u_map\<cdot>f\<cdot>(u_map\<cdot>g\<cdot>p) = u_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>p"
+by (induct p) simp_all
+
 lemma ep_pair_u_map: "ep_pair e p \<Longrightarrow> ep_pair (u_map\<cdot>e) (u_map\<cdot>p)"
 apply default
 apply (case_tac x, simp, simp add: ep_pair.e_inverse)

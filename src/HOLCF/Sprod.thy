@@ -245,6 +245,16 @@ lemma sprod_map_spair [simp]:
   "x \<noteq> \<bottom> \<Longrightarrow> y \<noteq> \<bottom> \<Longrightarrow> sprod_map\<cdot>f\<cdot>g\<cdot>(:x, y:) = (:f\<cdot>x, g\<cdot>y:)"
 by (simp add: sprod_map_def)
 
+lemma sprod_map_map:
+  "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
+    sprod_map\<cdot>f1\<cdot>g1\<cdot>(sprod_map\<cdot>f2\<cdot>g2\<cdot>p) =
+     sprod_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
+apply (induct p, simp)
+apply (case_tac "f2\<cdot>x = \<bottom>", simp)
+apply (case_tac "g2\<cdot>y = \<bottom>", simp)
+apply simp
+done
+
 lemma ep_pair_sprod_map:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"
   shows "ep_pair (sprod_map\<cdot>e1\<cdot>e2) (sprod_map\<cdot>p1\<cdot>p2)"
