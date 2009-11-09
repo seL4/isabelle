@@ -264,7 +264,7 @@ proof -
     by (simp add: borel_measurable_eq_borel_measurable compl_sets) 
 qed
 
-lemma (in measure_space) borel_measurable_plus_borel_measurable:
+lemma (in measure_space) borel_measurable_add_borel_measurable:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x + g x) \<in> borel_measurable M"
@@ -352,18 +352,18 @@ lemma (in measure_space) borel_measurable_times_borel_measurable:
 proof -
   have 1: "(\<lambda>x. 0 + (f x + g x)\<twosuperior> * inverse 4) \<in> borel_measurable M"
     by (fast intro: affine_borel_measurable borel_measurable_square 
-                    borel_measurable_plus_borel_measurable f g) 
+                    borel_measurable_add_borel_measurable f g) 
   have "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) = 
         (\<lambda>x. 0 + ((f x + -g x) ^ 2 * inverse -4))"
     by (simp add: Ring_and_Field.minus_divide_right) 
   also have "... \<in> borel_measurable M" 
     by (fast intro: affine_borel_measurable borel_measurable_square 
-                    borel_measurable_plus_borel_measurable 
+                    borel_measurable_add_borel_measurable 
                     borel_measurable_uminus_borel_measurable f g)
   finally have 2: "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) \<in> borel_measurable M" .
   show ?thesis
     apply (simp add: times_eq_sum_squares real_diff_def) 
-    using 1 2 apply (simp add: borel_measurable_plus_borel_measurable) 
+    using 1 2 apply (simp add: borel_measurable_add_borel_measurable) 
     done
 qed
 
@@ -372,7 +372,7 @@ lemma (in measure_space) borel_measurable_diff_borel_measurable:
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
 unfolding real_diff_def
-  by (fast intro: borel_measurable_plus_borel_measurable 
+  by (fast intro: borel_measurable_add_borel_measurable 
                   borel_measurable_uminus_borel_measurable f g)
 
 lemma (in measure_space) mono_convergent_borel_measurable:
@@ -409,7 +409,7 @@ proof -
     by (auto simp add: borel_measurable_le_iff) 
 qed
 
-lemma (in measure_space) borel_measurable_SIGMA_borel_measurable:
+lemma (in measure_space) borel_measurable_setsum_borel_measurable:
   assumes s: "finite s"
   shows "(!!i. i \<in> s ==> f i \<in> borel_measurable M) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) s) \<in> borel_measurable M" using s
 proof (induct s)
@@ -419,7 +419,7 @@ proof (induct s)
 next
   case (insert x s)
   thus ?case
-    by (auto simp add: borel_measurable_plus_borel_measurable) 
+    by (auto simp add: borel_measurable_add_borel_measurable) 
 qed
 
 end
