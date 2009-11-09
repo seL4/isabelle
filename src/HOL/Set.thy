@@ -1645,6 +1645,14 @@ by blast
 lemma image_vimage_eq [simp]: "f ` (f -` A) = A Int range f"
 by blast
 
+lemma vimage_const [simp]: "((\<lambda>x. c) -` A) = (if c \<in> A then UNIV else {})"
+  by auto
+
+lemma vimage_if [simp]: "((\<lambda>x. if x \<in> B then c else d) -` A) = 
+   (if c \<in> A then (if d \<in> A then UNIV else B)
+    else if d \<in> A then -B else {})"  
+  by (auto simp add: vimage_def) 
+
 lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
 by blast
 

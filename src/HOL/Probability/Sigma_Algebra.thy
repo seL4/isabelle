@@ -71,7 +71,7 @@ locale sigma_algebra = algebra +
   assumes countable_UN [intro]:
          "!!A. range A \<subseteq> sets M \<Longrightarrow> (\<Union>i::nat. A i) \<in> sets M"
 
-lemma (in sigma_algebra) countable_INT:
+lemma (in sigma_algebra) countable_INT [intro]:
   assumes a: "range a \<subseteq> sets M"
   shows "(\<Inter>i::nat. a i) \<in> sets M"
 proof -
@@ -83,6 +83,15 @@ proof -
   ultimately show ?thesis by metis
 qed
 
+lemma (in sigma_algebra) gen_countable_UN:
+  fixes f :: "nat \<Rightarrow> 'c"
+  shows  "I = range f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> (\<Union>x\<in>I. A x) \<in> sets M"
+by auto
+
+lemma (in sigma_algebra) gen_countable_INT:
+  fixes f :: "nat \<Rightarrow> 'c"
+  shows  "I = range f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> (\<Inter>x\<in>I. A x) \<in> sets M"
+by auto
 
 lemma algebra_Pow:
      "algebra (| space = sp, sets = Pow sp |)"
