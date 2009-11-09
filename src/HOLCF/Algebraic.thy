@@ -478,6 +478,7 @@ apply (rule finite_range_fd_take)
 apply (rule fd_take_covers)
 done
 
+
 subsection {* Defining algebraic deflations by ideal completion *}
 
 typedef (open) 'a alg_defl =
@@ -612,6 +613,8 @@ done
 interpretation cast: deflation "cast\<cdot>d"
 by (rule deflation_cast)
 
+declare cast.idem [simp]
+
 lemma cast_approx: "cast\<cdot>(approx n\<cdot>A) = defl_approx n (cast\<cdot>A)"
 apply (rule alg_defl.principal_induct)
 apply (rule adm_eq)
@@ -647,6 +650,61 @@ apply (simp add: cast_alg_defl_principal)
 apply (simp add: below_fin_defl_def)
 done
 
+lemma cast_eq_imp_eq: "cast\<cdot>A = cast\<cdot>B \<Longrightarrow> A = B"
+by (simp add: below_antisym cast_below_imp_below)
+
+lemma cast_strict1 [simp]: "cast\<cdot>\<bottom> = \<bottom>"
+apply (subst inst_alg_defl_pcpo)
+apply (subst cast_alg_defl_principal)
+apply (rule Abs_fin_defl_inverse)
+apply (simp add: finite_deflation_UU)
+done
+
+lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
+by (rule cast.below [THEN UU_I])
+
+
+subsection {* Deflation membership relation *}
+
+definition
+  in_deflation :: "'a::profinite \<Rightarrow> 'a alg_defl \<Rightarrow> bool" (infixl ":::" 50)
+where
+  "x ::: A \<longleftrightarrow> cast\<cdot>A\<cdot>x = x"
+
+lemma adm_in_deflation: "adm (\<lambda>x. x ::: A)"
+unfolding in_deflation_def by simp
+
+lemma in_deflationI: "cast\<cdot>A\<cdot>x = x \<Longrightarrow> x ::: A"
+unfolding in_deflation_def .
+
+lemma cast_fixed: "x ::: A \<Longrightarrow> cast\<cdot>A\<cdot>x = x"
+unfolding in_deflation_def .
+
+lemma cast_in_deflation [simp]: "cast\<cdot>A\<cdot>x ::: A"
+unfolding in_deflation_def by (rule cast.idem)
+
+lemma bottom_in_deflation [simp]: "\<bottom> ::: A"
+unfolding in_deflation_def by (rule cast_strict2)
+
+lemma subdeflationD: "A \<sqsubseteq> B \<Longrightarrow> x ::: A \<Longrightarrow> x ::: B"
+unfolding in_deflation_def
+ apply (rule deflation.belowD)
+   apply (rule deflation_cast)
+  apply (erule monofun_cfun_arg)
+ apply assumption
+done
+
+lemma rev_subdeflationD: "x ::: A \<Longrightarrow> A \<sqsubseteq> B \<Longrightarrow> x ::: B"
+by (rule subdeflationD)
+
+lemma subdeflationI: "(\<And>x. x ::: A \<Longrightarrow> x ::: B) \<Longrightarrow> A \<sqsubseteq> B"
+apply (rule cast_below_imp_below)
+apply (rule cast.belowI)
+apply (simp add: in_deflation_def)
+done
+
+text "Identity deflation:"
+
 lemma "cast\<cdot>(\<Squnion>i. alg_defl_principal (Abs_fin_defl (approx i)))\<cdot>x = x"
 apply (subst contlub_cfun_arg)
 apply (rule chainI)
@@ -658,6 +716,8 @@ apply (rule chainE)
 apply (rule chain_approx)
 apply (simp add: cast_alg_defl_principal Abs_fin_defl_inverse finite_deflation_approx)
 done
+
+subsection {* Bifinite domains and algebraic deflations *}
 
 text {* This lemma says that if we have an ep-pair from
 a bifinite domain into a universal domain, then e oo p
