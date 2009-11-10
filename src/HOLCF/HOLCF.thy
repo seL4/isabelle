@@ -7,6 +7,7 @@ HOLCF -- a semantic extension of HOL by the LCF logic.
 theory HOLCF
 imports
   Domain ConvexPD Algebraic Universal Sum_Cpo Main
+  Representable
 uses
   "holcf_logic.ML"
   "Tools/adm_tac.ML"
