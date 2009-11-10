@@ -18,7 +18,6 @@ sig
   val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
   val is_utf8_trailer: symbol -> bool
-  val name_of: symbol -> string
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
@@ -136,10 +135,6 @@ fun malformed_msg s = "Malformed symbolic character: " ^ quote (separate_chars s
 
 fun is_regular s =
   not_eof s andalso s <> sync andalso s <> malformed andalso s <> end_malformed;
-
-fun name_of s = if is_symbolic s
-  then (unsuffix ">" o unprefix "\\<") s
-  else error (malformed_msg s);
 
 
 (* ascii symbols *)
