@@ -580,9 +580,9 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
            val schema = atom_schema_of_rep R1
            val r1 = fold1 (#kk_product kk) (unary_var_seq ~1 (length schema))
                     |> rel_expr_from_rel_expr kk R1' R1
+           val kk_xeq = (if is_one_rep R1' then #kk_subset else #kk_rel_eq) kk
          in
-           #kk_comprehension kk (decls_for_atom_schema ~1 schema)
-                                (#kk_subset kk r1 r)
+           #kk_comprehension kk (decls_for_atom_schema ~1 schema) (kk_xeq r1 r)
          end
      | Func (Unit, (Atom (2, j0))) =>
        #kk_rel_if kk (#kk_rel_eq kk r (Kodkod.Atom (j0 + 1)))
@@ -616,7 +616,7 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
                val r3 = atom_from_formula kk j0 (#kk_subset kk r1 r)
              in
                #kk_comprehension kk (decls_for_atom_schema ~1 (schema @ [x]))
-                                 (#kk_rel_eq kk r2 r3)
+                                 (#kk_subset kk r2 r3)
              end
            end
          | _ => raise REP ("Nitpick_Kodkod.func_from_no_opt_rel_expr",
@@ -641,10 +641,11 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
                                               (length ran_schema))
                          |> rel_expr_from_rel_expr kk R2' R2
           val app = kk_n_fold_join kk true R1' R2' dom_prod r
+          val kk_xeq = (if is_one_rep R2' then #kk_subset else #kk_rel_eq) kk
         in
           #kk_comprehension kk (decls_for_atom_schema ~1
                                                       (dom_schema @ ran_schema))
-                               (#kk_subset kk ran_prod app)
+                               (kk_xeq ran_prod app)
         end
     | _ => raise REP ("Nitpick_Kodkod.func_from_no_opt_rel_expr",
                       [old_R, Func (R1, R2)])
