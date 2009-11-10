@@ -135,9 +135,8 @@ fun unnegate_raw_param (name, value) =
 structure Data = Theory_Data(
   type T = {params: raw_param list}
   val empty = {params = rev default_default_params}
-  val copy = I
   val extend = I
-  fun merge ({params = ps1}, {params = ps2}) =
+  fun merge ({params = ps1}, {params = ps2}) : T =
     {params = AList.merge (op =) (op =) (ps1, ps2)})
 
 (* raw_param -> theory -> theory *)
