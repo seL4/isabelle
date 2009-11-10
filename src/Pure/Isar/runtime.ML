@@ -14,7 +14,7 @@ sig
   val exn_message: (exn -> Position.T) -> exn -> string
   val debugging: ('a -> 'b) -> 'a -> 'b
   val controlled_execution: ('a -> 'b) -> 'a -> 'b
-  val toplevel_error: (exn -> string) -> ('a -> 'b) -> 'a -> 'b
+  val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
 end;
 
 structure Runtime: RUNTIME =
@@ -96,12 +96,9 @@ fun controlled_execution f =
   |> debugging
   |> Future.interruptible_task;
 
-fun toplevel_error exn_message f x =
-  let val ctxt = Option.map Context.proof_of (Context.thread_data ()) in
-    f x handle exn =>
-      (Output.error_msg (exn_message (exn_context ctxt exn));
-        raise TOPLEVEL_ERROR)
-  end;
+fun toplevel_error output_exn f x =
+  let val ctxt = Option.map Context.proof_of (Context.thread_data ())
+  in f x handle exn => (output_exn (exn_context ctxt exn); raise TOPLEVEL_ERROR) end;
 
 end;
 

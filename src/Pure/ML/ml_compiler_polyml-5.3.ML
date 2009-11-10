@@ -154,7 +154,10 @@ fun eval verbose pos toks =
       (case phase2 of
         NONE => err "Static Errors"
       | SOME code =>
-          apply_result ((code |> Runtime.debugging |> Runtime.toplevel_error exn_message) ())));
+          apply_result
+            ((code
+              |> Runtime.debugging
+              |> Runtime.toplevel_error (Output.error_msg o exn_message)) ())));
 
 
     (* compiler invocation *)
