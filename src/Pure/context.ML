@@ -325,6 +325,12 @@ fun merge_refs (ref1, ref2) =
 
 (* primitives *)
 
+local
+  val lock = Mutex.mutex ();
+in
+  fun SYNCHRONIZED e = SimpleThread.synchronized "theory" lock e;
+end;
+
 fun create_thy self draft ids data ancestry history =
   let val identity = make_identity self draft (serial ()) ids;
   in vitalize (Theory (identity, data, ancestry, history)) end;
@@ -339,7 +345,7 @@ fun change_thy draft' f thy =
       else (NONE, extend_data data, make_ancestry [thy] (extend_ancestors_of thy));
     val ids' = insert_id draft id ids;
     val data'' = f data';
-    val thy' = NAMED_CRITICAL "theory" (fn () =>
+    val thy' = SYNCHRONIZED (fn () =>
       (check_thy thy; create_thy self' draft' ids' data'' ancestry' history));
   in thy' end;
 
@@ -352,7 +358,7 @@ fun copy_thy thy =
     val Theory ({draft, id, ids, ...}, data, ancestry, history) = thy;
     val ids' = insert_id draft id ids;
     val data' = copy_data data;
-    val thy' = NAMED_CRITICAL "theory" (fn () =>
+    val thy' = SYNCHRONIZED (fn () =>
       (check_thy thy; create_thy NONE true ids' data' ancestry history));
   in thy' end;
 
@@ -368,7 +374,7 @@ fun merge_thys pp (thy1, thy2) =
     val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
     val ancestry = make_ancestry [] [];
     val history = make_history "" 0;
-    val thy' = NAMED_CRITICAL "theory" (fn () =>
+    val thy' = SYNCHRONIZED (fn () =>
      (check_thy thy1; check_thy thy2; create_thy NONE true ids data ancestry history));
   in thy' end;
 
@@ -392,7 +398,7 @@ fun begin_thy pp name imports =
 
       val ancestry = make_ancestry parents ancestors;
       val history = make_history name 0;
-      val thy' = NAMED_CRITICAL "theory" (fn () =>
+      val thy' = SYNCHRONIZED (fn () =>
         (map check_thy imports; create_thy NONE true ids data ancestry history));
     in thy' end;
 
@@ -405,7 +411,7 @@ fun history_stage f thy =
     val _ = stage = finished andalso raise THEORY ("Theory already finished", [thy]);
     val history' = make_history name (f stage);
     val thy' as Theory (identity', data', ancestry', _) = name_thy thy;
-    val thy'' = NAMED_CRITICAL "theory" (fn () =>
+    val thy'' = SYNCHRONIZED (fn () =>
       (check_thy thy'; vitalize (Theory (identity', data', ancestry', history'))));
   in thy'' end;
 
