@@ -781,6 +781,54 @@ lemma upd_snd_conv [simp, code]:
   "apsnd f (x, y) = (x, f y)" 
   by (simp add: apsnd_def)
 
+lemma fst_apfst [simp]:
+  "fst (apfst f x) = f (fst x)"
+  by (cases x) simp
+
+lemma fst_apsnd [simp]:
+  "fst (apsnd f x) = fst x"
+  by (cases x) simp
+
+lemma snd_apfst [simp]:
+  "snd (apfst f x) = snd x"
+  by (cases x) simp
+
+lemma snd_apsnd [simp]:
+  "snd (apsnd f x) = f (snd x)"
+  by (cases x) simp
+
+lemma apfst_compose:
+  "apfst f (apfst g x) = apfst (f \<circ> g) x"
+  by (cases x) simp
+
+lemma apsnd_compose:
+  "apsnd f (apsnd g x) = apsnd (f \<circ> g) x"
+  by (cases x) simp
+
+lemma apfst_apsnd [simp]:
+  "apfst f (apsnd g x) = (f (fst x), g (snd x))"
+  by (cases x) simp
+
+lemma apsnd_apfst [simp]:
+  "apsnd f (apfst g x) = (g (fst x), f (snd x))"
+  by (cases x) simp
+
+lemma apfst_id [simp] :
+  "apfst id = id"
+  by (simp add: expand_fun_eq)
+
+lemma apsnd_id [simp] :
+  "apsnd id = id"
+  by (simp add: expand_fun_eq)
+
+lemma apfst_eq_conv [simp]:
+  "apfst f x = apfst g x \<longleftrightarrow> f (fst x) = g (fst x)"
+  by (cases x) simp
+
+lemma apsnd_eq_conv [simp]:
+  "apsnd f x = apsnd g x \<longleftrightarrow> f (snd x) = g (snd x)"
+  by (cases x) simp
+
 
 text {*
   Disjoint union of a family of sets -- Sigma.
