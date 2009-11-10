@@ -113,7 +113,7 @@ fun add_default_code tyco thy =
     thy
     |> Code.add_datatype [constr]
     |> Code.add_eqn proj_eq
-    |> TheoryTarget.instantiation ([tyco], vs, [HOLogic.class_eq])
+    |> Theory_Target.instantiation ([tyco], vs, [HOLogic.class_eq])
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition
          (NONE, (Attrib.empty_binding, eq)))

@@ -349,7 +349,7 @@ val no_syn = #3 (Syntax.no_syn ((),()));
 
 fun add_declaration name decl thy =
   thy
-  |> TheoryTarget.init name
+  |> Theory_Target.init name
   |> (fn lthy => LocalTheory.declaration false (decl lthy) lthy)
   |> LocalTheory.exit_global;
 

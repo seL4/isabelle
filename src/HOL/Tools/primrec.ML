@@ -270,9 +270,9 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
       (Binding.qualify false prefix b, Code.add_default_eqn_attrib :: attrs)) spec;
-    fun simp_attr_binding prefix = (Binding.qualify true prefix (Binding.name "simps"),
-      map (Attrib.internal o K)
-        [Simplifier.simp_add, Nitpick_Simps.add, Quickcheck_RecFun_Simps.add]);
+    fun simp_attr_binding prefix =
+      (Binding.qualify true prefix (Binding.name "simps"),
+        map (Attrib.internal o K) [Simplifier.simp_add, Nitpick_Simps.add]);
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial ())
@@ -293,14 +293,14 @@ end;
 
 fun add_primrec_global fixes specs thy =
   let
-    val lthy = TheoryTarget.init NONE thy;
+    val lthy = Theory_Target.init NONE thy;
     val (simps, lthy') = add_primrec fixes specs lthy;
     val simps' = ProofContext.export lthy' lthy simps;
   in (simps', LocalTheory.exit_global lthy') end;
 
 fun add_primrec_overloaded ops fixes specs thy =
   let
-    val lthy = TheoryTarget.overloading ops thy;
+    val lthy = Theory_Target.overloading ops thy;
     val (simps, lthy') = add_primrec fixes specs lthy;
     val simps' = ProofContext.export lthy' lthy simps;
   in (simps', LocalTheory.exit_global lthy') end;

@@ -152,7 +152,8 @@ fun desymbolize upper "" = if upper then "X" else "x"
   | desymbolize upper s =
       let
         val xs as (x :: _) = Symbol.explode s;
-        val ys = if Symbol.is_ascii_letter x orelse Symbol.is_symbolic x then xs
+        val ys =
+          if Symbol.is_ascii_letter x orelse Symbol.is_symbolic x then xs
           else "x" :: xs;
         fun is_valid x =
           Symbol.is_ascii_letter x orelse Symbol.is_ascii_digit x orelse x = "'";
@@ -161,15 +162,17 @@ fun desymbolize upper "" = if upper then "X" else "x"
           | sep xs = "_" :: xs;
         fun desep ("_" :: xs) = xs
           | desep xs = xs;
-        fun desymb x xs = if is_valid x
-            then x :: xs
-          else if Symbol.is_symbolic x
-            then "_" :: explode (Symbol.name_of x) @ sep xs
+        fun desymb x xs =
+          if is_valid x then x :: xs
           else
-            sep xs
-        fun upper_lower cs = if upper then nth_map 0 Symbol.to_ascii_upper cs
-          else (if forall Symbol.is_ascii_upper cs
-            then map else nth_map 0) Symbol.to_ascii_lower cs;
+            (case Symbol.decode x of
+              Symbol.Sym name => "_" :: explode name @ sep xs
+            | _ => sep xs);
+        fun upper_lower cs =
+          if upper then nth_map 0 Symbol.to_ascii_upper cs
+          else
+            (if forall Symbol.is_ascii_upper cs then map else nth_map 0)
+              Symbol.to_ascii_lower cs;
       in fold_rev desymb ys [] |> desep |> upper_lower |> implode end;
 
 end;

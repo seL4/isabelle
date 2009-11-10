@@ -774,7 +774,7 @@ fun gen_add_locale prep_decl
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms ([], []) (rev notes) (rev deps')
-      |> TheoryTarget.init (SOME name)
+      |> Theory_Target.init (SOME name)
       |> fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes';
 
   in (name, loc_ctxt) end;
@@ -842,7 +842,7 @@ local
 fun gen_sublocale prep_expr intern raw_target expression thy =
   let
     val target = intern thy raw_target;
-    val target_ctxt = TheoryTarget.init (SOME target) thy;
+    val target_ctxt = Theory_Target.init (SOME target) thy;
     val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
     fun after_qed witss = ProofContext.theory
       (fold (fn ((dep, morph), wits) => Locale.add_dependency

@@ -924,9 +924,9 @@ val global_setup =
   Attrib.setup @{binding arith_split} (Scan.succeed (Thm.declaration_attribute add_split))
     "declaration of split rules for arithmetic procedure" #>
   Method.setup @{binding linarith}
-    (Args.bang_facts >> (fn prems => fn ctxt =>
+    (Scan.succeed (fn ctxt =>
       METHOD (fn facts =>
-        HEADGOAL (Method.insert_tac (prems @ Arith_Data.get_arith_facts ctxt @ facts)
+        HEADGOAL (Method.insert_tac (Arith_Data.get_arith_facts ctxt @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
   Arith_Data.add_tactic "linear arithmetic" gen_tac;
 

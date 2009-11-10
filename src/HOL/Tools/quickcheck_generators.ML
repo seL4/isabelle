@@ -82,7 +82,7 @@ fun mk_random_typecopy tyco vs constr T' thy =
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in   
     thy
-    |> TheoryTarget.instantiation ([tyco], vs, @{sort random})
+    |> Theory_Target.instantiation ([tyco], vs, @{sort random})
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
     |> snd
@@ -216,8 +216,7 @@ fun random_aux_specification prfx name eqs lthy =
     |-> (fn proto_simps => prove_simps proto_simps)
     |-> (fn simps => LocalTheory.note Thm.generatedK ((b,
            Code.add_default_eqn_attrib :: map (Attrib.internal o K)
-          [Simplifier.simp_add, Nitpick_Simps.add, Quickcheck_RecFun_Simps.add]),
-            simps))
+          [Simplifier.simp_add, Nitpick_Simps.add]), simps))
     |> snd
   end
 
@@ -301,7 +300,7 @@ fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy
       (HOLogic.mk_random T size, nth random_auxs k $ mk_size_arg k $ size)) Ts;
   in
     thy
-    |> TheoryTarget.instantiation (tycos, vs, @{sort random})
+    |> Theory_Target.instantiation (tycos, vs, @{sort random})
     |> random_aux_specification prfx random_auxN auxs_eqs
     |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
     |-> (fn random_defs' => fold_map (fn random_def =>

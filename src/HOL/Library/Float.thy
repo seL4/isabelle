@@ -1378,8 +1378,8 @@ lemma lb_mod: fixes k :: int assumes "0 \<le> real x" and "real k * y \<le> real
   assumes "0 < real lb" "real lb \<le> y" (is "?lb \<le> y") "y \<le> real ub" (is "y \<le> ?ub")
   shows "real (lb_mod prec x ub lb) \<le> ?x - ?k * y"
 proof -
-  have "?lb \<le> ?ub" by (auto!)
-  have "0 \<le> ?lb" and "?lb \<noteq> 0" by (auto!)
+  have "?lb \<le> ?ub" using assms by auto
+  have "0 \<le> ?lb" and "?lb \<noteq> 0" using assms by auto
   have "?k * y \<le> ?x" using assms by auto
   also have "\<dots> \<le> ?x / ?lb * ?ub" by (metis mult_left_mono[OF `?lb \<le> ?ub` `0 \<le> ?x`] divide_right_mono[OF _ `0 \<le> ?lb` ] times_divide_eq_left nonzero_mult_divide_cancel_right[OF `?lb \<noteq> 0`])
   also have "\<dots> \<le> real (ceiling_fl (float_divr prec x lb)) * ?ub" by (metis mult_right_mono order_trans `0 \<le> ?lb` `?lb \<le> ?ub` float_divr ceiling_fl)
@@ -1390,8 +1390,8 @@ lemma ub_mod: fixes k :: int and x :: float assumes "0 \<le> real x" and "real x
   assumes "0 < real lb" "real lb \<le> y" (is "?lb \<le> y") "y \<le> real ub" (is "y \<le> ?ub")
   shows "?x - ?k * y \<le> real (ub_mod prec x ub lb)"
 proof -
-  have "?lb \<le> ?ub" by (auto!)
-  hence "0 \<le> ?lb" and "0 \<le> ?ub" and "?ub \<noteq> 0" by (auto!)
+  have "?lb \<le> ?ub" using assms by auto
+  hence "0 \<le> ?lb" and "0 \<le> ?ub" and "?ub \<noteq> 0" using assms by auto
   have "real (floor_fl (float_divl prec x ub)) * ?lb \<le> ?x / ?ub * ?lb" by (metis mult_right_mono order_trans `0 \<le> ?lb` `?lb \<le> ?ub` float_divl floor_fl)
   also have "\<dots> \<le> ?x" by (metis mult_left_mono[OF `?lb \<le> ?ub` `0 \<le> ?x`] divide_right_mono[OF _ `0 \<le> ?ub` ] times_divide_eq_left nonzero_mult_divide_cancel_right[OF `?ub \<noteq> 0`])
   also have "\<dots> \<le> ?k * y" using assms by auto

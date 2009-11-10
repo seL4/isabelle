@@ -397,11 +397,8 @@ val perm_simp_options =
   Scan.succeed (perm_asm_full_simp_tac_i NO_DEBUG_tac));
 
 val perm_simp_meth =
-  Args.bang_facts -- Scan.lift perm_simp_options --|
-  Method.sections (Simplifier.simp_modifiers') >>
-  (fn (prems, tac) => fn ctxt => METHOD (fn facts =>
-    HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-      (CHANGED_PROP oo tac) (simpset_of ctxt))));
+  Scan.lift perm_simp_options --| Method.sections (Simplifier.simp_modifiers') >>
+  (fn tac => fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o tac (simpset_of ctxt)));
 
 (* setup so that the simpset is used which is active at the moment when the tactic is called *)
 fun local_simp_meth_setup tac =

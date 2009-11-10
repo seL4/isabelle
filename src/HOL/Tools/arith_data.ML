@@ -65,8 +65,8 @@ val verbose_arith_tac = gen_arith_tac true;
 val setup =
   Arith_Facts.setup #>
   Method.setup @{binding arith}
-    (Args.bang_facts >> (fn prems => fn ctxt =>
-      METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ get_arith_facts ctxt @ facts)
+    (Scan.succeed (fn ctxt =>
+      METHOD (fn facts => HEADGOAL (Method.insert_tac (get_arith_facts ctxt @ facts)
         THEN' verbose_arith_tac ctxt))))
     "various arithmetic decision procedures";
 

@@ -390,7 +390,7 @@ val _ =
 val _ =
   OuterSyntax.command "context" "enter local theory context" K.thy_decl
     (P.name --| P.begin >> (fn name =>
-      Toplevel.print o Toplevel.begin_local_theory true (TheoryTarget.context name)));
+      Toplevel.print o Toplevel.begin_local_theory true (Theory_Target.context name)));
 
 
 (* locales *)
@@ -452,7 +452,7 @@ val _ =
   OuterSyntax.command "instantiation" "instantiate and prove type arity" K.thy_decl
    (P.multi_arity --| P.begin
      >> (fn arities => Toplevel.print o
-         Toplevel.begin_local_theory true (TheoryTarget.instantiation_cmd arities)));
+         Toplevel.begin_local_theory true (Theory_Target.instantiation_cmd arities)));
 
 val _ =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
@@ -470,7 +470,7 @@ val _ =
       Scan.optional (P.$$$ "(" |-- (P.$$$ "unchecked" >> K false) --| P.$$$ ")") true
       >> P.triple1) --| P.begin
    >> (fn operations => Toplevel.print o
-         Toplevel.begin_local_theory true (TheoryTarget.overloading_cmd operations)));
+         Toplevel.begin_local_theory true (Theory_Target.overloading_cmd operations)));
 
 
 (* code generation *)

@@ -37,8 +37,7 @@ open Function_Common
 val simp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Code.add_default_eqn_attribute,
-     Nitpick_Simps.add,
-     Quickcheck_RecFun_Simps.add]
+     Nitpick_Simps.add]
 
 val psimp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,

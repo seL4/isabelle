@@ -144,7 +144,7 @@ fun prove_size_thms (info : info) new_type_names thy =
       |> PureThy.add_defs false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
            (map Binding.name def_names ~~ (size_fns ~~ rec_combs1)))
-      ||> TheoryTarget.instantiation
+      ||> Theory_Target.instantiation
            (map (#1 o snd) descr', map dest_TFree paramTs, [HOLogic.class_size])
       ||>> fold_map define_overloaded
         (def_names' ~~ map Logic.mk_equals (overloaded_size_fns ~~ map (app fs') rec_combs1))

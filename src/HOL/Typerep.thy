@@ -50,7 +50,7 @@ fun add_typerep tyco thy =
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in
     thy
-    |> TheoryTarget.instantiation ([tyco], vs, @{sort typerep})
+    |> Theory_Target.instantiation ([tyco], vs, @{sort typerep})
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, (Attrib.empty_binding, eq)))
     |> snd

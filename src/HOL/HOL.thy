@@ -2003,16 +2003,6 @@ subsubsection {* Quickcheck *}
 
 quickcheck_params [size = 5, iterations = 50]
 
-ML {*
-structure Quickcheck_RecFun_Simps = Named_Thms
-(
-  val name = "quickcheck_recfun_simp"
-  val description = "simplification rules of recursive functions as needed by Quickcheck"
-)
-*}
-
-setup Quickcheck_RecFun_Simps.setup
-
 
 subsubsection {* Nitpick setup *}
 
