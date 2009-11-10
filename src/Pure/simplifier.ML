@@ -189,8 +189,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
         in Variable.export_terms ctxt' lthy lhss' end
         |> map (Thm.cterm_of (ProofContext.theory_of lthy)),
        proc = proc,
-       identifier = identifier}
-      |> morph_simproc (LocalTheory.target_morphism lthy);
+       identifier = identifier};
   in
     lthy |> LocalTheory.declaration false (fn phi =>
       let
