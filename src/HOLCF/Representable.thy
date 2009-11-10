@@ -1,3 +1,7 @@
+(*  Title:      HOLCF/Representable.thy
+    Author:     Brian Huffman
+*)
+
 header {* Representable Types *}
 
 theory Representable
