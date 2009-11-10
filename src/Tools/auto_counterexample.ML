@@ -28,12 +28,12 @@ val _ =
 
 (* configuration *)
 
-structure Data = TheoryDataFun(
+structure Data = Theory_Data
+(
   type T = (string * (Proof.state -> bool * Proof.state)) list
   val empty = []
-  val copy = I
   val extend = I
-  fun merge _ (tools1, tools2) = AList.merge (op =) (K true) (tools1, tools2)
+  fun merge data : T = AList.merge (op =) (K true) data
 )
 
 val register_tool = Data.map o AList.update (op =)
