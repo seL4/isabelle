@@ -179,6 +179,28 @@ apply (frule_tac x=nat in spec)
 apply (simp add: step)
 done
 
+lemma parallel_fix_ind:
+  assumes adm: "adm (\<lambda>x. P (fst x) (snd x))"
+  assumes base: "P \<bottom> \<bottom>"
+  assumes step: "\<And>x y. P x y \<Longrightarrow> P (F\<cdot>x) (G\<cdot>y)"
+  shows "P (fix\<cdot>F) (fix\<cdot>G)"
+proof -
+  from adm have adm': "adm (split P)"
+    unfolding split_def .
+  have "\<And>i. P (iterate i\<cdot>F\<cdot>\<bottom>) (iterate i\<cdot>G\<cdot>\<bottom>)"
+    by (induct_tac i, simp add: base, simp add: step)
+  hence "\<And>i. split P (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>)"
+    by simp
+  hence "split P (\<Squnion>i. (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>))"
+    by - (rule admD [OF adm'], simp, assumption)
+  hence "split P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>, \<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
+    by (simp add: thelub_Pair)
+  hence "P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>) (\<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
+    by simp
+  thus "P (fix\<cdot>F) (fix\<cdot>G)"
+    by (simp add: fix_def2)
+qed
+
 subsection {* Recursive let bindings *}
 
 definition
