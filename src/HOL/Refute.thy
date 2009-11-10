@@ -8,7 +8,7 @@ Basic setup and documentation for the 'refute' (and 'refute_params') command.
 header {* Refute *}
 
 theory Refute
-imports Hilbert_Choice List Record
+imports Hilbert_Choice List
 uses
   "Tools/prop_logic.ML"
   "Tools/sat_solver.ML"
