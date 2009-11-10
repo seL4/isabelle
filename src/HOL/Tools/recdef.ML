@@ -201,8 +201,9 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
         tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
                congs wfs name R eqs;
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
-    val simp_att = if null tcs then [Simplifier.simp_add, Nitpick_Simps.add,
-      Code.add_default_eqn_attribute, Quickcheck_RecFun_Simps.add] else [];
+    val simp_att =
+      if null tcs then [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]
+      else [];
 
     val ((simps' :: rules', [induct']), thy) =
       thy

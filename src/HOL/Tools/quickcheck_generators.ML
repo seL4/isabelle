@@ -216,8 +216,7 @@ fun random_aux_specification prfx name eqs lthy =
     |-> (fn proto_simps => prove_simps proto_simps)
     |-> (fn simps => LocalTheory.note Thm.generatedK ((b,
            Code.add_default_eqn_attrib :: map (Attrib.internal o K)
-          [Simplifier.simp_add, Nitpick_Simps.add, Quickcheck_RecFun_Simps.add]),
-            simps))
+          [Simplifier.simp_add, Nitpick_Simps.add]), simps))
     |> snd
   end
 
