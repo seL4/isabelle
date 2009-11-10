@@ -33,6 +33,7 @@ sig
   exception TERMINATE
   exception TOPLEVEL_ERROR
   val program: (unit -> 'a) -> 'a
+  val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
   val empty: transition
   val init_of: transition -> string option
@@ -226,10 +227,18 @@ exception TERMINATE = Runtime.TERMINATE;
 exception EXCURSION_FAIL = Runtime.EXCURSION_FAIL;
 exception TOPLEVEL_ERROR = Runtime.TOPLEVEL_ERROR;
 
-fun program f =
- (f
+fun program body =
+ (body
   |> Runtime.controlled_execution
-  |> Runtime.toplevel_error ML_Compiler.exn_message) ();
+  |> Runtime.toplevel_error (Output.error_msg o ML_Compiler.exn_message)) ();
+
+fun thread interrupts body =
+  Thread.fork
+    (((fn () => body () handle Exn.Interrupt => ())
+        |> Runtime.debugging
+        |> Runtime.toplevel_error
+          (fn exn => priority ("## INTERNAL ERROR ##\n" ^ ML_Compiler.exn_message exn))),
+      SimpleThread.attributes interrupts);
 
 
 (* node transactions -- maintaining stable checkpoints *)

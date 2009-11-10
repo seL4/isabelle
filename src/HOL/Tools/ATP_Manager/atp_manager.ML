@@ -119,7 +119,7 @@ fun print_new_messages () =
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, cancelling, messages, store} =>
     if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
-    else let val manager = SOME (SimpleThread.fork false (fn () =>
+    else let val manager = SOME (Toplevel.thread false (fn () =>
       let
         fun time_limit timeout_heap =
           (case try Thread_Heap.min timeout_heap of
@@ -258,7 +258,7 @@ fun start_prover name birth_time death_time i proof_state =
           "external prover " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
             Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
 
-        val _ = SimpleThread.fork true (fn () =>
+        val _ = Toplevel.thread true (fn () =>
           let
             val _ = register birth_time death_time (Thread.self (), desc);
             val problem = ATP_Wrapper.problem_of_goal (! full_types) i (ctxt, (facts, goal));

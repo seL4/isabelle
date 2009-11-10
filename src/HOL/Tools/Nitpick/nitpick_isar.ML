@@ -427,7 +427,7 @@ fun pick_nits override_params auto subgoal state =
                            |>> equal "genuine")
   in
     if auto orelse blocking then go ()
-    else (SimpleThread.fork true (fn () => (go (); ())); (false, state))
+    else (Toplevel.thread true (fn () => (go (); ())); (false, state))
   end
 
 (* (TableFun().key * string list) list option * int option
