@@ -26,11 +26,11 @@ open Nitpick
 
 val auto = Unsynchronized.ref false;
 
-val _ = ProofGeneralPgip.add_preference Preferences.category_tracing
-            (setmp_CRITICAL auto false
-                 (fn () => Preferences.bool_pref auto
-                               "auto-nitpick"
-                               "Whether to run Nitpick automatically.") ())
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+    (Preferences.bool_pref auto
+      "auto-nitpick"
+      "Whether to run Nitpick automatically.")
 
 type raw_param = string * string list
 
