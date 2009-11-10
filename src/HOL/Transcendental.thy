@@ -25,7 +25,7 @@ lemma lemma_realpow_diff_sumr:
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ (Suc n - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
 by (simp add: setsum_right_distrib lemma_realpow_diff mult_ac
-         del: setsum_op_ivl_Suc cong: strong_setsum_cong)
+         del: setsum_op_ivl_Suc)
 
 lemma lemma_realpow_diff_sumr2:
   fixes y :: "'a::{comm_ring,monoid_mult}" shows
@@ -1981,11 +1981,11 @@ done
 lemma cos_monotone_0_pi: assumes "0 \<le> y" and "y < x" and "x \<le> pi"
   shows "cos x < cos y"
 proof -
-  have "- (x - y) < 0" by (auto!)
+  have "- (x - y) < 0" using assms by auto
 
   from MVT2[OF `y < x` DERIV_cos[THEN impI, THEN allI]]
   obtain z where "y < z" and "z < x" and cos_diff: "cos x - cos y = (x - y) * - sin z" by auto
-  hence "0 < z" and "z < pi" by (auto!)
+  hence "0 < z" and "z < pi" using assms by auto
   hence "0 < sin z" using sin_gt_zero_pi by auto
   hence "cos x - cos y < 0" unfolding cos_diff minus_mult_commute[symmetric] using `- (x - y) < 0` by (rule mult_pos_neg2)
   thus ?thesis by auto
@@ -2002,7 +2002,7 @@ qed
 lemma cos_monotone_minus_pi_0: assumes "-pi \<le> y" and "y < x" and "x \<le> 0"
   shows "cos y < cos x"
 proof -
-  have "0 \<le> -x" and "-x < -y" and "-y \<le> pi" by (auto!)
+  have "0 \<le> -x" and "-x < -y" and "-y \<le> pi" using assms by auto
   from cos_monotone_0_pi[OF this]
   show ?thesis unfolding cos_minus .
 qed
@@ -2017,7 +2017,8 @@ qed
 
 lemma sin_monotone_2pi': assumes "- (pi / 2) \<le> y" and "y \<le> x" and "x \<le> pi / 2" shows "sin y \<le> sin x"
 proof -
-  have "0 \<le> y + pi / 2" and "y + pi / 2 \<le> x + pi / 2" and "x + pi /2 \<le> pi" using pi_ge_two by (auto!)
+  have "0 \<le> y + pi / 2" and "y + pi / 2 \<le> x + pi / 2" and "x + pi /2 \<le> pi"
+    using pi_ge_two and assms by auto
   from cos_monotone_0_pi'[OF this] show ?thesis unfolding minus_sin_cos_eq[symmetric] by auto
 qed
 
@@ -2179,14 +2180,14 @@ proof -
   have "\<forall> x'. y \<le> x' \<and> x' \<le> x \<longrightarrow> DERIV tan x' :> inverse (cos x'^2)"
   proof (rule allI, rule impI)
     fix x' :: real assume "y \<le> x' \<and> x' \<le> x"
-    hence "-(pi/2) < x'" and "x' < pi/2" by (auto!)
+    hence "-(pi/2) < x'" and "x' < pi/2" using assms by auto
     from cos_gt_zero_pi[OF this]
     have "cos x' \<noteq> 0" by auto
     thus "DERIV tan x' :> inverse (cos x'^2)" by (rule DERIV_tan)
   qed
   from MVT2[OF `y < x` this] 
   obtain z where "y < z" and "z < x" and tan_diff: "tan x - tan y = (x - y) * inverse ((cos z)\<twosuperior>)" by auto
-  hence "- (pi / 2) < z" and "z < pi / 2" by (auto!)
+  hence "- (pi / 2) < z" and "z < pi / 2" using assms by auto
   hence "0 < cos z" using cos_gt_zero_pi by auto
   hence inv_pos: "0 < inverse ((cos z)\<twosuperior>)" by auto
   have "0 < x - y" using `y < x` by auto
