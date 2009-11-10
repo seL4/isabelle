@@ -137,7 +137,7 @@ structure Data = Theory_Data(
   val empty = {params = rev default_default_params}
   val copy = I
   val extend = I
-  fun merge _ ({params = ps1}, {params = ps2}) =
+  fun merge ({params = ps1}, {params = ps2}) =
     {params = AList.merge (op =) (op =) (ps1, ps2)})
 
 (* raw_param -> theory -> theory *)
