@@ -19,7 +19,7 @@ sig
   val overloading_cmd: (string * string * bool) list -> theory -> local_theory
 end;
 
-structure TheoryTarget: THEORY_TARGET =
+structure Theory_Target: THEORY_TARGET =
 struct
 
 (* context data *)

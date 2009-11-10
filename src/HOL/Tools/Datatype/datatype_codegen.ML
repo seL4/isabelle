@@ -411,7 +411,7 @@ fun add_equality vs dtcos thy =
         #> fold_rev Code.add_eqn thms);
   in
     thy
-    |> TheoryTarget.instantiation (dtcos, vs, [HOLogic.class_eq])
+    |> Theory_Target.instantiation (dtcos, vs, [HOLogic.class_eq])
     |> fold_map add_def dtcos
     |-> (fn def_thms => Class.prove_instantiation_exit_result (map o Morphism.thm)
          (fn _ => fn def_thms => tac def_thms) def_thms)

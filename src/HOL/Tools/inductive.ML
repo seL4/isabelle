@@ -895,7 +895,7 @@ fun add_inductive_global group flags cnames_syn pnames pre_intros monos thy =
   let
     val name = Sign.full_name thy (fst (fst (hd cnames_syn)));
     val ctxt' = thy
-      |> TheoryTarget.init NONE
+      |> Theory_Target.init NONE
       |> LocalTheory.set_group group
       |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
       |> LocalTheory.exit;

@@ -103,7 +103,7 @@ exception UNDEF = Runtime.UNDEF;
 
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
-val loc_init = TheoryTarget.context;
+val loc_init = Theory_Target.context;
 val loc_exit = LocalTheory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
@@ -192,7 +192,7 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 
 (* print state *)
 
-val pretty_context = LocalTheory.pretty o Context.cases (TheoryTarget.init NONE) I;
+val pretty_context = LocalTheory.pretty o Context.cases (Theory_Target.init NONE) I;
 
 fun print_state_context state =
   (case try node_of state of

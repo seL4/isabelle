@@ -64,7 +64,7 @@ let
         o HOLogic.dest_eq o HOLogic.dest_Trueprop) t ^ "_triv";
     in
       thy
-      |> TheoryTarget.instantiation ([tyco], vs, @{sort term_of})
+      |> Theory_Target.instantiation ([tyco], vs, @{sort term_of})
       |> `(fn lthy => Syntax.check_term lthy eq)
       |-> (fn eq => Specification.definition (NONE, ((Binding.name (triv_name_of eq), []), eq)))
       |> snd
