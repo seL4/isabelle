@@ -150,7 +150,8 @@ fun add_istuple_type (name, alphas) (leftT, rightT) thy =
     val thm_thy =
       cdef_thy
       |> IsTupleThms.map (Symtab.insert Thm.eq_thm_prop (isom_name, istuple))
-      |> Sign.parent_path;
+      |> Sign.parent_path
+      |> Code.add_default_eqn isom_def;
   in
     ((isom, cons $ isom), thm_thy)
   end;
