@@ -223,7 +223,7 @@ val const_proper = Scan.peek (named_term o ProofContext.read_const_proper o Cont
 
 val bang_facts = Scan.peek (fn context =>
   P.position ($$$ "!") >> (fn (_, pos) =>
-    (warning ("use of prems in proof method" ^ Position.str_of pos);
+    (legacy_feature ("use of cumulative prems (!) in proof method" ^ Position.str_of pos);
       Assumption.all_prems_of (Context.proof_of context))) || Scan.succeed []);
 
 val from_to =
