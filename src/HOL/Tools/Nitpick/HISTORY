@@ -6,7 +6,14 @@ Version 2010
     "nitpick_ind_intro" to "nitpick_intro"
   * Replaced "special_depth" and "skolemize_depth" options by "specialize"
     and "skolemize"
+  * Renamed "coalesce_type_vars" to "merge_type_vars"
+  * Optimized Kodkod encoding of datatypes whose constructors don't appear in
+    the formula to falsify
+  * Added support for codatatype view of datatypes
+  * Fixed soundness bug related to sets of sets
   * Fixed monotonicity check
+  * Fixed error in display of uncurried constants
+  * Speeded up scope enumeration
 
 Version 1.2.2 (16 Oct 2009)
 

@@ -146,6 +146,7 @@ sig
   val eq_ix: indexname * indexname -> bool
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
+  val aconv_untyped: term * term -> bool
   val could_unify: term * term -> bool
   val strip_abs_eta: int -> term -> (string * typ) list * term
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
@@ -523,6 +524,17 @@ fun tm1 aconv tm2 =
       (t1 $ u1, t2 $ u2) => t1 aconv t2 andalso u1 aconv u2
     | (Abs (_, T1, t1), Abs (_, T2, t2)) => t1 aconv t2 andalso T1 = T2
     | (a1, a2) => a1 = a2);
+
+fun aconv_untyped (tm1, tm2) =
+  pointer_eq (tm1, tm2) orelse
+    (case (tm1, tm2) of
+      (t1 $ u1, t2 $ u2) => aconv_untyped (t1, t2) andalso aconv_untyped (u1, u2)
+    | (Abs (_, _, t1), Abs (_, _, t2)) => aconv_untyped (t1, t2)
+    | (Const (a, _), Const (b, _)) => a = b
+    | (Free (x, _), Free (y, _)) => x = y
+    | (Var (xi, _), Var (yj, _)) => xi = yj
+    | (Bound i, Bound j) => i = j
+    | _ => false);
 
 
 (*A fast unification filter: true unless the two terms cannot be unified.

@@ -17,8 +17,8 @@ definition indicator_fn where
 
 definition mono_convergent where
   "mono_convergent u f s \<equiv>
-	(\<forall>x m n. m \<le> n \<and> x \<in> s \<longrightarrow> u m x \<le> u n x) \<and>
-	(\<forall>x \<in> s. (\<lambda>i. u i x) ----> f x)"
+        (\<forall>x m n. m \<le> n \<and> x \<in> s \<longrightarrow> u m x \<le> u n x) \<and>
+        (\<forall>x \<in> s. (\<lambda>i. u i x) ----> f x)"
 
 lemma in_borel_measurable:
    "f \<in> borel_measurable M \<longleftrightarrow>
@@ -222,7 +222,7 @@ lemma (in measure_space) borel_measurable_less_borel_measurable:
   shows "{w \<in> space M. f w < g w} \<in> sets M"
 proof -
   have "{w \<in> space M. f w < g w} =
-	(\<Union>r\<in>\<rat>. {w \<in> space M. f w < r} \<inter> {w \<in> space M. r < g w })"
+        (\<Union>r\<in>\<rat>. {w \<in> space M. f w < r} \<inter> {w \<in> space M. r < g w })"
     by (auto simp add: Rats_dense_in_real)
   thus ?thesis using f g 
     by (simp add: borel_measurable_less_iff [of f]  
@@ -247,7 +247,7 @@ lemma (in measure_space) borel_measurable_eq_borel_measurable:
   shows "{w \<in> space M. f w = g w} \<in> sets M"
 proof -
   have "{w \<in> space M. f w = g w} =
-	{w \<in> space M. f w \<le> g w} \<inter> {w \<in> space M. g w \<le> f w}"
+        {w \<in> space M. f w \<le> g w} \<inter> {w \<in> space M. g w \<le> f w}"
     by auto
   thus ?thesis using f g 
     by (simp add: borel_measurable_leq_borel_measurable Int) 

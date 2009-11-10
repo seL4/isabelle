@@ -215,7 +215,7 @@ fun fresh_ctype_for_type ({ext_ctxt as {thy, ...}, alpha_T, max_fresh,
           | NONE =>
             let
               val _ = Unsynchronized.change datatype_cache (cons (z, CRec z))
-              val xs = datatype_constrs thy T
+              val xs = datatype_constrs ext_ctxt T
               val (all_Cs, constr_Cs) =
                 fold_rev (fn (_, T') => fn (all_Cs, constr_Cs) =>
                              let
@@ -505,7 +505,7 @@ fun solve _ UnsolvableCSet = (print_g "*** Problem: Unsolvable"; NONE)
                                 map prop_for_comp comps @
                                 map prop_for_sign_expr sexps)
     in
-      case silence (SatSolver.invoke_solver "dpll") prop of
+      case SatSolver.invoke_solver "dpll" prop of
         SatSolver.SATISFIABLE asgns =>
         SOME (literals_from_assignments max_var asgns lits
               |> tap print_solution)
@@ -708,7 +708,7 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
                   (CFun (left_set_C, S Neg,
                          CFun (right_set_C, S Neg, left_set_C)),
                    (gamma, cset |> add_ctype_is_right_unique right_set_C
-                          (* FIXME: |> add_is_sub_ctype right_set_C left_set_C *)))
+                                |> add_is_sub_ctype right_set_C left_set_C))
                 end
               | @{const_name ord_fun_inst.less_eq_fun} =>
                 do_fragile_set_operation T accum
@@ -784,10 +784,8 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
   let
     (* typ -> ctype *)
     val ctype_for = fresh_ctype_for_type cdata
-    (* term -> accumulator -> ctype * accumulator *)
-    val do_term = consider_term cdata
     (* term -> accumulator -> accumulator *)
-    val do_boolean_term = snd oo do_term
+    val do_term = snd oo consider_term cdata
     (* sign -> term -> accumulator -> accumulator *)
     fun do_formula _ _ (_, UnsolvableCSet) = unsolvable_accum
       | do_formula sn t (accum as (gamma as {bounds, frees, consts}, cset)) =
@@ -812,11 +810,8 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
           (* term -> term -> accumulator *)
           fun do_equals t1 t2 =
             case sn of
-              Pos => do_boolean_term t accum
-            | Neg => let
-                       val (C1, accum) = do_term t1 accum
-                       val (C2, accum) = do_term t2 accum
-                     in accum (* FIXME: ||> add_ctypes_equal C1 C2 *) end
+              Pos => do_term t accum
+            | Neg => fold do_term [t1, t2] accum
         in
           case t of
             Const (s0 as @{const_name all}, _) $ Abs (_, T1, t1) =>
@@ -844,10 +839,10 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
           | @{const "op -->"} $ t1 $ t2 =>
             accum |> do_contra_formula t1 |> do_co_formula t2
           | Const (@{const_name If}, _) $ t1 $ t2 $ t3 =>
-            accum |> do_boolean_term t1 |> do_co_formula t2 |> do_co_formula t3
+            accum |> do_term t1 |> fold do_co_formula [t2, t3]
           | Const (@{const_name Let}, _) $ t1 $ t2 =>
             do_co_formula (betapply (t2, t1)) accum
-          | _ => do_boolean_term t accum
+          | _ => do_term t accum
         end
         |> tap (fn _ => print_g ("\<Gamma> \<turnstile> " ^
                                  Syntax.string_of_term ctxt t ^

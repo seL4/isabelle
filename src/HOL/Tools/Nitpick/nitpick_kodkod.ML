@@ -343,7 +343,6 @@ fun decls_for_atom_schema j0 schema =
 
 (* The type constraint below is a workaround for a Poly/ML bug. *)
 
-(* FIXME: clean up *)
 (* kodkod_constrs -> rep -> Kodkod.rel_expr -> Kodkod.formula *)
 fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
                      R r =
@@ -371,7 +370,6 @@ fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
       Kodkod.True
   end
 fun kk_n_ary_function kk R (r as Kodkod.Rel _) =
-    (* FIXME: weird test *)
     if not (is_opt_rep R) then
       if r = suc_rel then
         Kodkod.False
@@ -582,9 +580,9 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
            val schema = atom_schema_of_rep R1
            val r1 = fold1 (#kk_product kk) (unary_var_seq ~1 (length schema))
                     |> rel_expr_from_rel_expr kk R1' R1
+           val kk_xeq = (if is_one_rep R1' then #kk_subset else #kk_rel_eq) kk
          in
-           #kk_comprehension kk (decls_for_atom_schema ~1 schema)
-                                (#kk_subset kk r1 r)
+           #kk_comprehension kk (decls_for_atom_schema ~1 schema) (kk_xeq r1 r)
          end
      | Func (Unit, (Atom (2, j0))) =>
        #kk_rel_if kk (#kk_rel_eq kk r (Kodkod.Atom (j0 + 1)))
@@ -618,7 +616,7 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
                val r3 = atom_from_formula kk j0 (#kk_subset kk r1 r)
              in
                #kk_comprehension kk (decls_for_atom_schema ~1 (schema @ [x]))
-                                 (#kk_rel_eq kk r2 r3)
+                                 (#kk_subset kk r2 r3)
              end
            end
          | _ => raise REP ("Nitpick_Kodkod.func_from_no_opt_rel_expr",
@@ -643,10 +641,11 @@ and func_from_no_opt_rel_expr kk R1 R2 (Atom x) r =
                                               (length ran_schema))
                          |> rel_expr_from_rel_expr kk R2' R2
           val app = kk_n_fold_join kk true R1' R2' dom_prod r
+          val kk_xeq = (if is_one_rep R2' then #kk_subset else #kk_rel_eq) kk
         in
           #kk_comprehension kk (decls_for_atom_schema ~1
                                                       (dom_schema @ ran_schema))
-                               (#kk_subset kk ran_prod app)
+                               (kk_xeq ran_prod app)
         end
     | _ => raise REP ("Nitpick_Kodkod.func_from_no_opt_rel_expr",
                       [old_R, Func (R1, R2)])
@@ -716,8 +715,8 @@ fun nfa_transitions_for_constr ext_ctxt kk rel_table dtypes (x as (_, T)) =
 (* extended_context -> kodkod_constrs -> nut NameTable.table -> dtype_spec list
    -> dtype_spec -> nfa_entry option *)
 fun nfa_entry_for_datatype _ _ _ _ ({co = true, ...} : dtype_spec) = NONE
-  | nfa_entry_for_datatype ext_ctxt kk rel_table dtypes
-                           ({typ, constrs, ...} : dtype_spec) =
+  | nfa_entry_for_datatype _ _ _ _ {shallow = true, ...} = NONE
+  | nfa_entry_for_datatype ext_ctxt kk rel_table dtypes {typ, constrs, ...} =
     SOME (typ, maps (nfa_transitions_for_constr ext_ctxt kk rel_table dtypes
                      o #const) constrs)
 
@@ -884,12 +883,13 @@ fun partition_axioms_for_datatype j0 (kk as {kk_rel_eq, kk_union, ...})
 
 (* extended_context -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
    -> dtype_spec -> Kodkod.formula list *)
-fun other_axioms_for_datatype ext_ctxt ofs kk rel_table (dtype as {typ, ...}) =
-  let val j0 = offset_of_type ofs typ in
-    sel_axioms_for_datatype ext_ctxt j0 kk rel_table dtype @
-    uniqueness_axioms_for_datatype ext_ctxt kk rel_table dtype @
-    partition_axioms_for_datatype j0 kk rel_table dtype
-  end
+fun other_axioms_for_datatype _ _ _ _ {shallow = true, ...} = []
+  | other_axioms_for_datatype ext_ctxt ofs kk rel_table (dtype as {typ, ...}) =
+    let val j0 = offset_of_type ofs typ in
+      sel_axioms_for_datatype ext_ctxt j0 kk rel_table dtype @
+      uniqueness_axioms_for_datatype ext_ctxt kk rel_table dtype @
+      partition_axioms_for_datatype j0 kk rel_table dtype
+    end
 
 (* extended_context -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
    -> dtype_spec list -> Kodkod.formula list *)

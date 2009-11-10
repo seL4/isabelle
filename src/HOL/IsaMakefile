@@ -103,6 +103,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
+  $(SRC)/Tools/Auto_Counterexample.thy \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_preproc.ML \
@@ -115,6 +116,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/auto_counterexample.ML \
   $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/cong_tac.ML \

@@ -10,7 +10,9 @@ signature NITPICK_ISAR =
 sig
   type params = Nitpick.params
 
+  val auto: bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
+  val setup : theory -> theory
 end
 
 structure Nitpick_Isar : NITPICK_ISAR =
@@ -21,6 +23,14 @@ open Nitpick_HOL
 open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick
+
+val auto = Unsynchronized.ref false;
+
+val _ = ProofGeneralPgip.add_preference Preferences.category_tracing
+            (setmp_CRITICAL auto false
+                 (fn () => Preferences.bool_pref auto
+                               "auto-nitpick"
+                               "Whether to run Nitpick automatically.") ())
 
 type raw_param = string * string list
 
@@ -33,12 +43,11 @@ val default_default_params =
    ("wf", ["smart"]),
    ("sat_solver", ["smart"]),
    ("batch_size", ["smart"]),
-   ("auto", ["false"]),
    ("blocking", ["true"]),
    ("falsify", ["true"]),
    ("user_axioms", ["smart"]),
    ("assms", ["true"]),
-   ("coalesce_type_vars", ["false"]),
+   ("merge_type_vars", ["false"]),
    ("destroy_constrs", ["true"]),
    ("specialize", ["true"]),
    ("skolemize", ["true"]),
@@ -47,7 +56,6 @@ val default_default_params =
    ("fast_descrs", ["true"]),
    ("peephole_optim", ["true"]),
    ("timeout", ["30 s"]),
-   ("auto_timeout", ["5 s"]),
    ("tac_timeout", ["500 ms"]),
    ("sym_break", ["20"]),
    ("sharing_depth", ["3"]),
@@ -70,12 +78,11 @@ val negated_params =
   [("dont_box", "box"),
    ("non_mono", "mono"),
    ("non_wf", "wf"),
-   ("no_auto", "auto"),
    ("non_blocking", "blocking"),
    ("satisfy", "falsify"),
    ("no_user_axioms", "user_axioms"),
    ("no_assms", "assms"),
-   ("dont_coalesce_type_vars", "coalesce_type_vars"),
+   ("dont_merge_type_vars", "merge_type_vars"),
    ("dont_destroy_constrs", "destroy_constrs"),
    ("dont_specialize", "specialize"),
    ("dont_skolemize", "skolemize"),
@@ -125,30 +132,22 @@ fun unnegate_raw_param (name, value) =
                           | _ => value)
   | NONE => (name, value)
 
-structure TheoryData = Theory_Data(
-  type T = {params: raw_param list, registered_auto: bool}
-  val empty = {params = rev default_default_params, registered_auto = false}
+structure Data = Theory_Data(
+  type T = {params: raw_param list}
+  val empty = {params = rev default_default_params}
+  val copy = I
   val extend = I
-  fun merge ({params = ps1, registered_auto = a1},
-               {params = ps2, registered_auto = a2}) : T =
-    {params = AList.merge (op =) (op =) (ps1, ps2),
-     registered_auto = a1 orelse a2})
+  fun merge ({params = ps1}, {params = ps2}) =
+    {params = AList.merge (op =) (op =) (ps1, ps2)})
 
 (* raw_param -> theory -> theory *)
 fun set_default_raw_param param thy =
-  let val {params, registered_auto} = TheoryData.get thy in
-    TheoryData.put
-      {params = AList.update (op =) (unnegate_raw_param param) params,
-       registered_auto = registered_auto} thy
+  let val {params} = Data.get thy in
+    Data.put {params = AList.update (op =) (unnegate_raw_param param) params}
+             thy
   end
 (* theory -> raw_param list *)
-val default_raw_params = #params o TheoryData.get
-
-(* theory -> theory *)
-fun set_registered_auto thy =
-  TheoryData.put {params = default_raw_params thy, registered_auto = true} thy
-(* theory -> bool *)
-val is_registered_auto = #registered_auto o TheoryData.get
+val default_raw_params = #params o Data.get
 
 (* string -> bool *)
 fun is_punctuation s = (s = "," orelse s = "-" orelse s = "\<midarrow>")
@@ -304,7 +303,7 @@ fun extract_params ctxt auto default_params override_params =
     val overlord = lookup_bool "overlord"
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
-    val coalesce_type_vars = lookup_bool "coalesce_type_vars"
+    val merge_type_vars = lookup_bool "merge_type_vars"
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
     val skolemize = lookup_bool "skolemize"
@@ -312,8 +311,7 @@ fun extract_params ctxt auto default_params override_params =
     val uncurry = lookup_bool "uncurry"
     val fast_descrs = lookup_bool "fast_descrs"
     val peephole_optim = lookup_bool "peephole_optim"
-    val timeout = if auto then lookup_time "auto_timeout"
-                  else lookup_time "timeout"
+    val timeout = if auto then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
     val sym_break = Int.max (0, lookup_int "sym_break")
     val sharing_depth = Int.max (1, lookup_int "sharing_depth")
@@ -325,8 +323,8 @@ fun extract_params ctxt auto default_params override_params =
     val show_consts = show_all orelse lookup_bool "show_consts"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
     val evals = lookup_term_list "eval"
-    val max_potential = if auto then 0
-                        else Int.max (0, lookup_int "max_potential")
+    val max_potential =
+      if auto then 0 else Int.max (0, lookup_int "max_potential")
     val max_genuine = Int.max (0, lookup_int "max_genuine")
     val check_potential = lookup_bool "check_potential"
     val check_genuine = lookup_bool "check_genuine"
@@ -340,7 +338,7 @@ fun extract_params ctxt auto default_params override_params =
      monos = monos, wfs = wfs, sat_solver = sat_solver, blocking = blocking,
      falsify = falsify, debug = debug, verbose = verbose, overlord = overlord,
      user_axioms = user_axioms, assms = assms,
-     coalesce_type_vars = coalesce_type_vars, destroy_constrs = destroy_constrs,
+     merge_type_vars = merge_type_vars, destroy_constrs = destroy_constrs,
      specialize = specialize, skolemize = skolemize,
      star_linear_preds = star_linear_preds, uncurry = uncurry,
      fast_descrs = fast_descrs, peephole_optim = peephole_optim,
@@ -411,7 +409,7 @@ fun handle_exceptions ctxt f x =
        | Refute.REFUTE (loc, details) =>
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
-(* raw_param list -> bool -> int -> Proof.state -> Proof.state *)
+(* raw_param list -> bool -> int -> Proof.state -> bool * Proof.state *)
 fun pick_nits override_params auto subgoal state =
   let
     val thy = Proof.theory_of state
@@ -420,70 +418,49 @@ fun pick_nits override_params auto subgoal state =
     val _ = List.app check_raw_param override_params
     val params as {blocking, debug, ...} =
       extract_params ctxt auto (default_raw_params thy) override_params
-    (* unit -> Proof.state *)
+    (* unit -> bool * Proof.state *)
     fun go () =
-      (if auto then perhaps o try
-       else if debug then fn f => fn x => f x
-       else handle_exceptions ctxt)
-      (fn state => pick_nits_in_subgoal state params auto subgoal |> snd)
-      state
+      (false, state)
+      |> (if auto then perhaps o try
+          else if debug then fn f => fn x => f x
+          else handle_exceptions ctxt)
+         (fn (_, state) => pick_nits_in_subgoal state params auto subgoal
+                           |>> equal "genuine")
   in
-    if auto orelse blocking then
-      go ()
-    else
-      (SimpleThread.fork true (fn () => (go (); ()));
-       state)
+    if auto orelse blocking then go ()
+    else (SimpleThread.fork true (fn () => (go (); ())); (false, state))
   end
 
 (* (TableFun().key * string list) list option * int option
    -> Toplevel.transition -> Toplevel.transition *)
 fun nitpick_trans (opt_params, opt_subgoal) =
   Toplevel.keep (K ()
-      o pick_nits (these opt_params) false (the_default 1 opt_subgoal)
+      o snd o pick_nits (these opt_params) false (the_default 1 opt_subgoal)
       o Toplevel.proof_of)
 
 (* raw_param -> string *)
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
 
-(* bool -> Proof.state -> Proof.state *)
-fun pick_nits_auto interactive state =
-  let val thy = Proof.theory_of state in
-    ((interactive andalso not (!Toplevel.quiet)
-      andalso the (general_lookup_bool false (default_raw_params thy)
-                  (SOME false) "auto"))
-     ? pick_nits [] true 0) state
-  end
-
-(* theory -> theory *)
-fun register_auto thy =
-  (not (is_registered_auto thy)
-   ? (set_registered_auto
-      #> Context.theory_map (Specification.add_theorem_hook pick_nits_auto)))
-  thy
-
 (* (TableFun().key * string) list option -> Toplevel.transition
    -> Toplevel.transition *)
 fun nitpick_params_trans opt_params =
   Toplevel.theory
-      (fn thy =>
-          let val thy = fold set_default_raw_param (these opt_params) thy in
-            writeln ("Default parameters for Nitpick:\n" ^
-                     (case rev (default_raw_params thy) of
-                        [] => "none"
-                      | params =>
-                        (map check_raw_param params;
-                         params |> map string_for_raw_param |> sort_strings
-                                |> cat_lines)));
-            register_auto thy
-          end)
+      (fold set_default_raw_param (these opt_params)
+       #> tap (fn thy => 
+                  writeln ("Default parameters for Nitpick:\n" ^
+                           (case rev (default_raw_params thy) of
+                              [] => "none"
+                            | params =>
+                              (map check_raw_param params;
+                               params |> map string_for_raw_param
+                                      |> sort_strings |> cat_lines)))))
 
 (* OuterParse.token list
    -> (Toplevel.transition -> Toplevel.transition) * OuterParse.token list *)
-fun scan_nitpick_command tokens =
-  (scan_params -- Scan.option OuterParse.nat) tokens |>> nitpick_trans
-fun scan_nitpick_params_command tokens =
-  scan_params tokens |>> nitpick_params_trans
+val scan_nitpick_command =
+  (scan_params -- Scan.option OuterParse.nat) #>> nitpick_trans
+val scan_nitpick_params_command = scan_params #>> nitpick_params_trans
 
 val _ = OuterSyntax.improper_command "nitpick"
             "try to find a counterexample for a given subgoal using Kodkod"
@@ -491,5 +468,11 @@ val _ = OuterSyntax.improper_command "nitpick"
 val _ = OuterSyntax.command "nitpick_params"
             "set and display the default parameters for Nitpick"
             OuterKeyword.thy_decl scan_nitpick_params_command
+
+(* Proof.state -> bool * Proof.state *)
+fun auto_nitpick state =
+  if not (!auto) then (false, state) else pick_nits [] true 1 state
+
+val setup = Auto_Counterexample.register_tool ("nitpick", auto_nitpick)
 
 end;

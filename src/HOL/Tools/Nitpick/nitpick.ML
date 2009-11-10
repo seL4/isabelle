@@ -23,7 +23,7 @@ sig
     overlord: bool,
     user_axioms: bool option,
     assms: bool,
-    coalesce_type_vars: bool,
+    merge_type_vars: bool,
     destroy_constrs: bool,
     specialize: bool,
     skolemize: bool,
@@ -88,7 +88,7 @@ type params = {
   overlord: bool,
   user_axioms: bool option,
   assms: bool,
-  coalesce_type_vars: bool,
+  merge_type_vars: bool,
   destroy_constrs: bool,
   specialize: bool,
   skolemize: bool,
@@ -137,6 +137,15 @@ fun pretties_for_formulas _ _ [] = []
                                  Pretty.str (if j = 1 then "." else ";")])
                (length ts downto 1) ts))]
 
+(* unit -> string *)
+fun install_kodkodi_message () =
+  "Nitpick requires the external Java program Kodkodi. To install it, download \
+  \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
+  \directory's full path to \"" ^
+  Path.implode (Path.expand (Path.appends
+      (Path.variable "ISABELLE_HOME_USER" ::
+       map Path.basic ["etc", "components"]))) ^ "\"."
+
 val max_liberal_delay_ms = 200
 val max_liberal_delay_percent = 2
 
@@ -166,6 +175,9 @@ fun is_tfree_with_weaselly_sort thy (TFree (_, S)) =
 val has_weaselly_sorts =
   exists_type o exists_subtype o is_tfree_with_weaselly_sort
 
+(* (unit -> string) -> Pretty.T *)
+fun plazy f = Pretty.blk (0, pstrs (f ()))
+
 (* Time.time -> Proof.state -> params -> bool -> term -> string * Proof.state *)
 fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                            orig_t =
@@ -175,7 +187,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val ctxt = Proof.context_of state
     val {cards_assigns, maxes_assigns, iters_assigns, bisim_depths, boxes,
          monos, wfs, sat_solver, blocking, falsify, debug, verbose, overlord,
-         user_axioms, assms, coalesce_type_vars, destroy_constrs, specialize,
+         user_axioms, assms, merge_type_vars, destroy_constrs, specialize,
          skolemize, star_linear_preds, uncurry, fast_descrs, peephole_optim,
          tac_timeout, sym_break, sharing_depth, flatten_props, max_threads,
          show_skolems, show_datatypes, show_consts, evals, formats,
@@ -187,7 +199,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val pprint =
       if auto then
         Unsynchronized.change state_ref o Proof.goal_message o K
-        o curry Pretty.blk 0 o cons (Pretty.str "") o single
+        o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Markup.hilite
       else
         priority o Pretty.string_of
@@ -198,9 +210,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     (* string -> unit *)
     val print = pprint o curry Pretty.blk 0 o pstrs
     (* (unit -> string) -> unit *)
-    fun print_m f = pprint_m (curry Pretty.blk 0 o pstrs o f)
-    fun print_v f = pprint_v (curry Pretty.blk 0 o pstrs o f)
-    fun print_d f = pprint_d (curry Pretty.blk 0 o pstrs o f)
+    val print_m = pprint_m o K o plazy
+    val print_v = pprint_v o K o plazy
+    val print_d = pprint_d o K o plazy
 
     (* unit -> unit *)
     fun check_deadline () =
@@ -220,7 +232,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                     neg_t
     val (assms_t, evals) =
       assms_t :: evals
-      |> coalesce_type_vars ? coalesce_type_vars_in_terms
+      |> merge_type_vars ? merge_type_vars_in_terms
       |> hd pairf tl
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
@@ -251,7 +263,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
        intro_table = intro_table, ground_thm_table = ground_thm_table,
        ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
        special_funs = Unsynchronized.ref [],
-       unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref []}
+       unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
+       constr_cache = Unsynchronized.ref []}
     val frees = Term.add_frees assms_t []
     val _ = null (Term.add_tvars assms_t [])
             orelse raise NOT_SUPPORTED "schematic type variables"
@@ -283,6 +296,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
             handle TYPE (_, Ts, ts) =>
                    raise TYPE ("Nitpick.pick_them_nits_in_term", Ts, ts)
 
+    val core_u = nut_from_term thy fast_descrs (!special_funs) Eq core_t
+    val def_us = map (nut_from_term thy fast_descrs (!special_funs) DefEq)
+                     def_ts
+    val nondef_us = map (nut_from_term thy fast_descrs (!special_funs) Eq)
+                        nondef_ts
+    val (free_names, const_names) =
+      fold add_free_and_const_names (core_u :: def_us @ nondef_us) ([], [])
+    val (sel_names, nonsel_names) =
+      List.partition (is_sel o nickname_of) const_names
+    val would_be_genuine = got_all_user_axioms andalso none_true wfs
+(*
+    val _ = List.app (priority o string_for_nut ctxt)
+                     (core_u :: def_us @ nondef_us)
+*)
+
     val unique_scope = forall (equal 1 o length o snd) cards_assigns
     (* typ -> bool *)
     fun is_free_type_monotonic T =
@@ -298,6 +326,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         not (is_pure_typedef thy T) orelse is_univ_typedef thy T
         orelse is_number_type thy T
         orelse formulas_monotonic ext_ctxt T def_ts nondef_ts core_t
+    fun is_datatype_shallow T =
+      not (exists (equal T o domain_type o type_of) sel_names)
     val Ts = ground_types_in_terms ext_ctxt (core_t :: def_ts @ nondef_ts)
              |> sort TermOrd.typ_ord
     val (all_dataTs, all_free_Ts) =
@@ -326,7 +356,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
         ()
     val mono_Ts = mono_dataTs @ mono_free_Ts
     val nonmono_Ts = nonmono_dataTs @ nonmono_free_Ts
-
+    val shallow_dataTs = filter is_datatype_shallow mono_dataTs
 (*
     val _ = priority "Monotonic datatypes:"
     val _ = List.app (priority o string_for_type ctxt) mono_dataTs
@@ -338,19 +368,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val _ = List.app (priority o string_for_type ctxt) nonmono_free_Ts
 *)
 
-    val core_u = nut_from_term thy fast_descrs (!special_funs) Eq core_t
-    val def_us = map (nut_from_term thy fast_descrs (!special_funs) DefEq)
-                     def_ts
-    val nondef_us = map (nut_from_term thy fast_descrs (!special_funs) Eq)
-                        nondef_ts
-    val (free_names, const_names) =
-      fold add_free_and_const_names (core_u :: def_us @ nondef_us) ([], [])
-    val nonsel_names = filter_out (is_sel o nickname_of) const_names
-    val would_be_genuine = got_all_user_axioms andalso none_true wfs
-(*
-    val _ = List.app (priority o string_for_nut ctxt)
-                     (core_u :: def_us @ nondef_us)
-*)
     val need_incremental = Int.max (max_potential, max_genuine) >= 2
     val effective_sat_solver =
       if sat_solver <> "smart" then
@@ -627,15 +644,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
           case Kodkod.solve_any_problem overlord deadline max_threads
                                         max_solutions (map fst problems) of
             Kodkod.NotInstalled =>
-            (print_m (fn () =>
-                         "Nitpick requires the external Java program Kodkodi. \
-                         \To install it, download the package from Isabelle's \
-                         \web page and add the \"kodkodi-x.y.z\" directory's \
-                         \full path to \"" ^
-                         Path.implode (Path.expand (Path.appends
-                             (Path.variable "ISABELLE_HOME" ::
-                              (map Path.basic ["etc", "components"])))) ^
-                         "\".");
+            (print_m install_kodkodi_message;
              (max_potential, max_genuine, donno + 1))
           | Kodkod.Normal ([], unsat_js) =>
             (update_checked_problems problems unsat_js;
@@ -778,11 +787,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                    case scope_count (do_filter (!generated_problems)) scope of
                      0 => I
                    | n =>
-                     if scope_count (do_filter (these (!checked_problems)))
-                                    scope = n then
-                       Integer.add 1
-                     else
-                       I) (!generated_scopes) 0
+                     scope_count (do_filter (these (!checked_problems)))
+                                 scope = n
+                     ? Integer.add 1) (!generated_scopes) 0
       in
         "Nitpick " ^ did_so_and_so ^
         (if is_some (!checked_problems) andalso total > 0 then
@@ -812,8 +819,19 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
           run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
         end
 
-    val _ = scopes := all_scopes ext_ctxt sym_break cards_assigns maxes_assigns
-                                 iters_assigns bisim_depths mono_Ts nonmono_Ts
+    val (skipped, the_scopes) =
+      all_scopes ext_ctxt sym_break cards_assigns maxes_assigns iters_assigns
+                 bisim_depths mono_Ts nonmono_Ts shallow_dataTs
+    val _ = if skipped > 0 then
+              print_m (fn () => "Too many scopes. Dropping " ^
+                                string_of_int skipped ^ " scope" ^
+                                plural_s skipped ^
+                                ". (Consider using \"mono\" or \
+                                \\"merge_type_vars\" to prevent this.)")
+            else
+              ()
+    val _ = scopes := the_scopes
+
     val batches = batch_list batch_size (!scopes)
     val outcome_code =
       (run_batches 0 (length batches) batches (max_potential, max_genuine, 0)
@@ -839,16 +857,21 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
 (* Proof.state -> params -> bool -> term -> string * Proof.state *)
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...})
                       auto orig_assm_ts orig_t =
-  let
-    val deadline = Option.map (curry Time.+ (Time.now ())) timeout
-    val outcome as (outcome_code, _) =
-      time_limit (if debug then NONE else timeout)
-          (pick_them_nits_in_term deadline state params auto orig_assm_ts)
-          orig_t
-  in
-    if expect = "" orelse outcome_code = expect then outcome
-    else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-  end
+  if getenv "KODKODI" = "" then
+    (if auto then ()
+     else warning (Pretty.string_of (plazy install_kodkodi_message));
+     ("unknown", state))
+  else
+    let
+      val deadline = Option.map (curry Time.+ (Time.now ())) timeout
+      val outcome as (outcome_code, _) =
+        time_limit (if debug then NONE else timeout)
+            (pick_them_nits_in_term deadline state params auto orig_assm_ts)
+            orig_t
+    in
+      if expect = "" orelse outcome_code = expect then outcome
+      else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+    end
 
 (* Proof.state -> params -> thm -> int -> string * Proof.state *)
 fun pick_nits_in_subgoal state params auto subgoal =

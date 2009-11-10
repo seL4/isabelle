@@ -42,7 +42,6 @@ sig
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
-  val similar_types: term * term -> bool
   val no_tvars: typ -> typ
   val varify: (string * sort) list -> term -> ((string * sort) * indexname) list * term
   val freeze_thaw_type: typ -> typ * (typ -> typ)
@@ -234,23 +233,6 @@ fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
 fun strip_sorts (Type (a, Ts)) = Type (a, map strip_sorts Ts)
   | strip_sorts (TFree (x, _)) = TFree (x, [])
   | strip_sorts (TVar (xi, _)) = TVar (xi, []);
-
-
-(* equivalence up to renaming of atomic types *)
-
-local
-
-fun standard_types t =
-  let
-    val Ts = fold_types (fold_atyps (insert (op =))) t [];
-    val Ts' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length Ts));
-  in map_types (map_atyps (perhaps (AList.lookup (op =) (Ts ~~ Ts')))) t end;
-
-in
-
-val similar_types = op aconv o pairself (Term.map_types strip_sorts o standard_types);
-
-end;
 
 
 (* no_tvars *)

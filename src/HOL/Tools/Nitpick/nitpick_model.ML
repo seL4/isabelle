@@ -133,12 +133,14 @@ val dest_plain_fun =
       | aux t = raise TERM ("Nitpick_Model.dest_plain_fun", [t])
   in apsnd (pairself rev) o aux end
 
-(* typ -> term -> term list * term *)
-fun break_in_two (Type ("*", [T1, T2]))
-                 (Const (@{const_name Pair}, _) $ t1 $ t2) =
-    break_in_two T2 t2 |>> cons t1
-  | break_in_two _ (Const (@{const_name Pair}, _) $ t1 $ t2) = ([t1], t2)
-  | break_in_two _ t = raise TERM ("Nitpick_Model.break_in_two", [t])
+(* typ -> typ -> typ -> term -> term * term *)
+fun break_in_two T T1 T2 t =
+  let
+    val ps = HOLogic.flat_tupleT_paths T
+    val cut = length (HOLogic.strip_tupleT T1)
+    val (ps1, ps2) = pairself HOLogic.flat_tupleT_paths (T1, T2)
+    val (ts1, ts2) = t |> HOLogic.strip_ptuple ps |> chop cut
+  in (HOLogic.mk_ptuple ps1 T1 ts1, HOLogic.mk_ptuple ps2 T2 ts2) end
 (* typ -> term -> term -> term *)
 fun pair_up (Type ("*", [T1', T2']))
             (t1 as Const (@{const_name Pair},
@@ -153,12 +155,12 @@ fun multi_pair_up T1 t1 (ts2, ts3) = map2 (pair o pair_up T1 t1) ts2 ts3
 (* typ -> typ -> typ -> term -> term *)
 fun typecast_fun (Type ("fun", [T1', T2'])) T1 T2 t =
     let
-      (* typ -> typ -> typ -> term -> term *)
-      fun do_curry T1a T1b T2 t =
+      (* typ -> typ -> typ -> typ -> term -> term *)
+      fun do_curry T1 T1a T1b T2 t =
         let
           val (maybe_opt, ps) = dest_plain_fun t
           val ps =
-            ps |>> map (break_in_two T1a #>> mk_flat_tuple T1a)
+            ps |>> map (break_in_two T1 T1a T1b)
                |> uncurry (map2 (fn (t1a, t1b) => fn t2 => (t1a, (t1b, t2))))
                |> AList.coalesce (op =)
                |> map (apsnd (make_plain_fun maybe_opt T1b T2))
@@ -185,7 +187,7 @@ fun typecast_fun (Type ("fun", [T1', T2'])) T1 T2 t =
         case factor_out_types T1' T1 of
           ((_, NONE), (_, NONE)) => t |> do_arrow T1' T2' T1 T2
         | ((_, NONE), (T1a, SOME T1b)) =>
-          t |> do_curry T1a T1b T2 |> do_arrow T1' T2' T1a (T1b --> T2)
+          t |> do_curry T1 T1a T1b T2 |> do_arrow T1' T2' T1a (T1b --> T2)
         | ((T1a', SOME T1b'), (_, NONE)) =>
           t |> do_arrow T1a' (T1b' --> T2') T1 T2 |> do_uncurry T1' T2'
         | _ => raise TYPE ("Nitpick_Model.typecast_fun.do_fun", [T1, T1'], [])
@@ -329,7 +331,8 @@ fun reconstruct_term (maybe_name, base_name, step_name, abs_name)
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
           NONE => atom for_auto T j
-        | SOME {constrs, co, ...} =>
+        | SOME {shallow = true, ...} => atom for_auto T j
+        | SOME {co, constrs, ...} =>
           let
             (* styp -> int list *)
             fun tuples_for_const (s, T) =
@@ -527,7 +530,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
                        evals, case_names, def_table, nondef_table, user_nondefs,
                        simp_table, psimp_table, intro_table, ground_thm_table,
                        ersatz_table, skolems, special_funs, unrolled_preds,
-                       wf_cache},
+                       wf_cache, constr_cache},
          card_assigns, bisim_depth, datatypes, ofs} : scope) formats all_frees
         free_names sel_names nonsel_names rel_table bounds =
   let
@@ -545,7 +548,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
        intro_table = intro_table, ground_thm_table = ground_thm_table,
        ersatz_table = ersatz_table, skolems = skolems,
        special_funs = special_funs, unrolled_preds = unrolled_preds,
-       wf_cache = wf_cache}
+       wf_cache = wf_cache, constr_cache = constr_cache}
     val scope = {ext_ctxt = ext_ctxt, card_assigns = card_assigns,
                  bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
     (* typ -> typ -> rep -> int list list -> term *)
@@ -585,8 +588,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
                    |> term_for_rep T T' (rep_of name)
       in
         Pretty.block (Pretty.breaks
-            [(setmp_CRITICAL show_question_marks false o setmp_show_all_types)
-                 (Syntax.pretty_term ctxt) t1,
+            [setmp_show_all_types (Syntax.pretty_term ctxt) t1,
              Pretty.str oper, Syntax.pretty_term ctxt t2])
       end
     (* dtype_spec -> Pretty.T *)
@@ -600,11 +602,12 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
     (* typ -> dtype_spec list *)
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        precise = false, constrs = []}]
+        precise = false, shallow = false, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
-      List.partition #co datatypes
-      ||> append (integer_datatype nat_T @ integer_datatype int_T)
+      datatypes |> filter_out #shallow
+                |> List.partition #co
+                ||> append (integer_datatype nat_T @ integer_datatype int_T)
     val block_of_datatypes =
       if show_datatypes andalso not (null datatypes) then
         [Pretty.big_list ("Datatype" ^ plural_s_for_list datatypes ^ ":")

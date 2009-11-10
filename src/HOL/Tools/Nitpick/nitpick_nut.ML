@@ -749,8 +749,9 @@ fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
            (~1 upto num_sels_for_constr_type T - 1)
 (* scope -> dtype_spec -> nut list * rep NameTable.table
    -> nut list * rep NameTable.table *)
-fun choose_rep_for_sels_of_datatype scope ({constrs, ...} : dtype_spec) =
-  fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
+fun choose_rep_for_sels_of_datatype _ ({shallow = true, ...} : dtype_spec) = I
+  | choose_rep_for_sels_of_datatype scope {constrs, ...} =
+    fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
 (* scope -> rep NameTable.table -> nut list * rep NameTable.table *)
 fun choose_reps_for_all_sels (scope as {datatypes, ...}) =
   fold (choose_rep_for_sels_of_datatype scope) datatypes o pair []
@@ -1058,11 +1059,12 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
                                Op2 (And, bool_T, Any,
                                     case u2 of
                                       Op2 (Lambda, _, _, u21, u22) =>
-                                      if num_occs_in_nut u21 u22 = 0 then (* FIXME: move to s_op2 *)
+                                      if num_occs_in_nut u21 u22 = 0 then
                                         u22
                                       else
                                         Op2 (Apply, bool_T, Any, u2, x_u)
                                     | _ => Op2 (Apply, bool_T, Any, u2, x_u),
+
                                     Op2 (Eq, bool_T, Any, y_u,
                                          Op2 (Apply, ran_T, Any, u1, x_u)))))
                      |> sub
