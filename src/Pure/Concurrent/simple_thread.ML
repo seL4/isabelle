@@ -27,21 +27,24 @@ fun interrupt thread = Thread.interrupt thread handle Thread _ => ();
 
 (* basic synchronization *)
 
-fun synchronized name lock e = Exn.release (uninterruptible (fn restore_attributes => fn () =>
-  let
-    val immediate =
-      if Mutex.trylock lock then true
-      else
-        let
-          val _ = Multithreading.tracing 5 (fn () => name ^ ": locking ...");
-          val time = Multithreading.real_time Mutex.lock lock;
-          val _ = Multithreading.tracing_time true time
-            (fn () => name ^ ": locked after " ^ Time.toString time);
-        in false end;
-    val result = Exn.capture (restore_attributes e) ();
-    val _ =
-      if immediate then () else Multithreading.tracing 5 (fn () => name ^ ": unlocking ...");
-    val _ = Mutex.unlock lock;
-  in result end) ());
+fun synchronized name lock e =
+  if Multithreading.available then
+    Exn.release (uninterruptible (fn restore_attributes => fn () =>
+    let
+      val immediate =
+        if Mutex.trylock lock then true
+        else
+          let
+            val _ = Multithreading.tracing 5 (fn () => name ^ ": locking ...");
+            val time = Multithreading.real_time Mutex.lock lock;
+            val _ = Multithreading.tracing_time true time
+              (fn () => name ^ ": locked after " ^ Time.toString time);
+          in false end;
+      val result = Exn.capture (restore_attributes e) ();
+      val _ =
+        if immediate then () else Multithreading.tracing 5 (fn () => name ^ ": unlocking ...");
+      val _ = Mutex.unlock lock;
+    in result end) ())
+  else e ();
 
 end;
