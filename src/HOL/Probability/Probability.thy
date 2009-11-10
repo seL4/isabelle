@@ -1,5 +1,5 @@
 theory Probability
-imports Measure
+imports Measure Borel
 begin
 
 end
