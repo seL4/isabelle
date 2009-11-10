@@ -87,11 +87,9 @@ in
 
 fun method_setup name =
   Method.setup name
-    (Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
-      Method.sections modifiers >>
-      (fn (prems, n) => fn ctxt => METHOD (fn facts =>
-        HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-        ObjectLogic.atomize_prems_tac THEN' prover_tac ctxt n))))
+    (Scan.lift (Scan.option OuterParse.nat) --| Method.sections modifiers >>
+      (fn opt_lim => fn ctxt =>
+        SIMPLE_METHOD' (ObjectLogic.atomize_prems_tac THEN' prover_tac ctxt opt_lim)))
     "intuitionistic proof search";
 
 end;
