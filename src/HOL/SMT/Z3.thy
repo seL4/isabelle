@@ -21,6 +21,8 @@ lemmas [z3_rewrite] =
   refl eq_commute conj_commute disj_commute simp_thms nnf_simps
   ring_distribs field_eq_simps if_True if_False
 
+lemma [z3_rewrite]: "(P \<noteq> Q) = (Q = (\<not>P))" by fast
+
 lemma [z3_rewrite]: "(\<not>False \<longrightarrow> P) = P" by fast
 lemma [z3_rewrite]: "(P \<longrightarrow> Q) = (Q \<or> \<not>P)" by fast
 lemma [z3_rewrite]: "(\<not>P \<longrightarrow> Q) = (P \<or> Q)" by fast
