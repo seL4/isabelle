@@ -1,2 +1,1 @@
-
-use_thy "Number_Theory";
+use_thys ["Number_Theory"];

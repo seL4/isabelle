@@ -1,1 +1,1 @@
-use_thy "Boogie";
+use_thys ["Boogie"];

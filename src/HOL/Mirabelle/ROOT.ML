@@ -1,1 +1,1 @@
-use_thy "Mirabelle_Test";
+use_thys ["Mirabelle_Test"];

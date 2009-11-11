@@ -1,2 +1,1 @@
-
-use_thy "Bali"
+use_thys ["Bali"];

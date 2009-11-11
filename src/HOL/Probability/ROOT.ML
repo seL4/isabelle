@@ -1,1 +1,1 @@
-use_thy "Probability";
+use_thys ["Probability"];

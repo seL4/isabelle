@@ -1,5 +1,5 @@
 (* Classical Higher-order Logic -- batteries included *)
 
-use_thy "Complex_Main";
+use_thys ["Complex_Main"];
 
 val HOL_proofs = ! Proofterm.proofs;

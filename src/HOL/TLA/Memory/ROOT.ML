@@ -1,4 +1,1 @@
-
-(* $Id$ *)
-
-time_use_thy "MemoryImplementation";
+use_thys ["MemoryImplementation"];

@@ -1,2 +1,1 @@
-
-use_thy "Hoare_Parallel";
+use_thys ["Hoare_Parallel"];

@@ -1,11 +1,11 @@
 (*  Title:      HOLCF/IOA/ABP/ROOT.ML
-    ID:         $Id$
     Author:     Olaf Mueller
 
 This is the ROOT file for the Alternating Bit Protocol performed in
-I/O-Automata.  *)
+I/O-Automata.
+*)
 
 goals_limit := 1;
 
 use "Check.ML";
-time_use_thy "Correctness";
+use_thys ["Correctness"];

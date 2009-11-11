@@ -1,2 +1,1 @@
-(* $ID$ *)
-use_thy "Hypercomplex";
+use_thys ["Hypercomplex"];

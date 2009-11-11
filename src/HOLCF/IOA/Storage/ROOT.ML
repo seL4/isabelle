@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/Storage/ROOT.ML
-    ID:         $Id$
     Author:     Olaf Mueller
 
 Memory storage case study.
@@ -7,4 +6,4 @@ Memory storage case study.
 
 goals_limit := 1;
 
-time_use_thy "Correctness";
+use_thys ["Correctness"];

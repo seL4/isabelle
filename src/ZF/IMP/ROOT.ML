@@ -1,5 +1,4 @@
 (*  Title:      ZF/IMP/ROOT.ML
-    ID:         $Id$
     Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 
@@ -12,4 +11,4 @@ MIT Press, 1993.
 
 *)
 
-time_use_thy "Equiv";
+use_thys ["Equiv"];

@@ -1,5 +1,3 @@
-(* $Id$ *)
+no_document use_thys ["While_Combinator"];
 
-no_document use_thy "While_Combinator";
-
-use_thy "MicroJava";
+use_thys ["MicroJava"];

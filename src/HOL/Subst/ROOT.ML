@@ -1,7 +1,6 @@
 (*  Title:      HOL/Subst/ROOT.ML
-    ID:         $Id$
-    Authors:     Martin Coen, Cambridge University Computer Laboratory
-                 Konrad Slind, TU Munich
+    Authors:    Martin Coen, Cambridge University Computer Laboratory
+                Konrad Slind, TU Munich
     Copyright   1993  University of Cambridge,
                 1996  TU Munich
 
@@ -24,4 +23,4 @@ Unify        -  the unification function
 
 *)
 
-time_use_thy "Unify";
+use_thys ["Unify"];

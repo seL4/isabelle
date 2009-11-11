@@ -1,13 +1,12 @@
 (*  Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
-
 *)
 
 (*Verifying security protocols using UNITY*)
-no_document use_thy "../Auth/Public";
+no_document use_thys ["../Auth/Public"];
 
-(*Basic meta-theory*)
-use_thy "UNITY_Main";
+use_thys [
+  "UNITY_Main",     (*Basic meta-theory*)
+  "UNITY_Examples"  (*Examples*)
+];
 
-(*Examples*)
-use_thy "UNITY_Examples";
