@@ -1754,11 +1754,12 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val ([inject', induct', surjective', split_meta'], thm_thy) =
       defs_thy
-      |> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
+      |> PureThy.add_thms (map (Thm.no_attributes o apfst Binding.name)
            [("ext_inject", inject),
             ("ext_induct", induct),
             ("ext_surjective", surject),
-            ("ext_split", split_meta)];
+            ("ext_split", split_meta)])
+      ||> Code.add_default_eqn ext_def;
 
   in (thm_thy, extT, induct', inject', split_meta', ext_def) end;
 
