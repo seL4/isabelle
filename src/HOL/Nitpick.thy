@@ -8,7 +8,7 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
-imports Map Quickcheck SAT
+imports Map SAT
 uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/kodkod_sat.ML")
      ("Tools/Nitpick/nitpick_util.ML")
