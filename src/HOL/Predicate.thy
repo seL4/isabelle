@@ -802,14 +802,14 @@ and next @{code Empty} = NONE
   | next (@{code Insert} (x, P)) = SOME (x, P)
   | next (@{code Join} (P, xq)) = (case yield P
      of NONE => next xq
-      | SOME (x, Q) => SOME (x, @{code Seq} (fn _ => @{code Join} (Q, xq))))
+      | SOME (x, Q) => SOME (x, @{code Seq} (fn _ => @{code Join} (Q, xq))));
 
 fun anamorph f k x = (if k = 0 then ([], x)
   else case f x
    of NONE => ([], x)
     | SOME (v, y) => let
         val (vs, z) = anamorph f (k - 1) y
-      in (v :: vs, z) end)
+      in (v :: vs, z) end);
 
 fun yieldn P = anamorph yield P;
 
