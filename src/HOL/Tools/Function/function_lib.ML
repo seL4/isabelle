@@ -30,8 +30,8 @@ fun tupled_lambda vars t =
     | (Const ("Pair", Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>  
       (HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
     | _ => raise Match
-                 
-                 
+
+
 fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
     let
       val (n, body) = Term.dest_abs a
@@ -39,7 +39,7 @@ fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
       (Free (n, T), body)
     end
   | dest_all _ = raise Match
-                         
+
 
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
 fun dest_all_all (t as (Const ("all",_) $ _)) = 
@@ -50,7 +50,7 @@ fun dest_all_all (t as (Const ("all",_) $ _)) =
       (v :: vs, b')
     end
   | dest_all_all t = ([],t)
-                     
+
 
 (* FIXME: similar to Variable.focus *)
 fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
@@ -161,9 +161,9 @@ fun regroup_conv neu cn ac is ct =
    Goal.prove_internal []
      (cterm_of thy
        (Logic.mk_equals (t,
-          if is = []
+          if null is
           then mk (Const (neu, ty), foldr1 mk (map (nth xs) js))
-          else if js = []
+          else if null js
             then mk (foldr1 mk (map (nth xs) is), Const (neu, ty))
             else mk (foldr1 mk (map (nth xs) is), foldr1 mk (map (nth xs) js)))))
      (K (rewrite_goals_tac ac
