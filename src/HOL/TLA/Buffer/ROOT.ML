@@ -1,4 +1,1 @@
-
-(* $Id$ *)
-
-time_use_thy "DBuffer";
+use_thys ["DBuffer"];

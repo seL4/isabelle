@@ -4,4 +4,4 @@
 The Hahn-Banach theorem for real vector spaces (Isabelle/Isar).
 *)
 
-use_thy "Hahn_Banach";
+use_thys ["Hahn_Banach"];

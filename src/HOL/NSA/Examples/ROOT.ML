@@ -1,1 +1,1 @@
-use_thy "NSPrimes";
+use_thys ["NSPrimes"];

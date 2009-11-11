@@ -1,7 +1,5 @@
 (*  Title:      HOLCF/IOA/ex/ROOT.ML
-    ID:         $Id$
     Author:     Olaf Mueller
 *)
 
-time_use_thy "TrivEx";
-time_use_thy "TrivEx2";
+use_thys ["TrivEx", "TrivEx2"];

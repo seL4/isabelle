@@ -1,2 +1,2 @@
 (*side-entry for HOL-Base*)
-use_thy "HOL";
+use_thys ["HOL"];

@@ -1,5 +1,4 @@
-(*  Title:      ZF/Resid/ROOT
-    ID:         $Id$
+(*  Title:      ZF/Resid/ROOT.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
@@ -12,4 +11,4 @@ Gerard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
 J. Functional Programming 4(3) 1994, 371-394.
 *)
 
-time_use_thy "Confluence";
+use_thys ["Confluence"];

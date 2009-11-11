@@ -1,2 +1,1 @@
-
-use_thy "W0";
+use_thys ["W0"];

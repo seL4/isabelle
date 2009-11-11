@@ -1,2 +1,1 @@
-
-use_thy "Decision_Procs";
+use_thys ["Decision_Procs"];

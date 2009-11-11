@@ -1,1 +1,1 @@
-use_thy "SMT_Examples";
+use_thys ["SMT_Examples"];

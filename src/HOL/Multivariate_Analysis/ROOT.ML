@@ -1,1 +1,1 @@
-use_thy "Multivariate_Analysis";
+use_thys ["Multivariate_Analysis"];

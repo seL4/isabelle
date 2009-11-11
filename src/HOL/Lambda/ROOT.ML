@@ -11,4 +11,4 @@ no_document use_thys ["Code_Integer"];
 use_thys ["Eta", "StrongNorm", "Standardization"];
 if HOL_proofs < 2 then
   warning "HOL proof terms required for running theory WeakNorm"
-else use_thy "WeakNorm";
+else use_thys ["WeakNorm"];

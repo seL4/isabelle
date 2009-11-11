@@ -1,1 +1,1 @@
-use_thy "Example";
+use_thys ["Example"];

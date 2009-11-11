@@ -1,5 +1,4 @@
 (*  Title:      ZF/Coind/ROOT.ML
-    ID:         $Id$
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
@@ -13,4 +12,4 @@ Written up as
     Report, Computer Lab, University of Cambridge (1995).
 *)
 
-time_use_thy "ECR";
+use_thys ["ECR"];

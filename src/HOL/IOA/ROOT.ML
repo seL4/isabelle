@@ -1,5 +1,4 @@
 (*  Title:      HOL/IOA/ROOT.ML
-    ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen
 
@@ -25,4 +24,4 @@ year=1995}
 ftp://ftp.informatik.tu-muenchen.de/local/lehrstuhl/nipkow/tacas.dvi.gz
 *)
 
-use_thy "Solve";
+use_thys ["Solve"];
