@@ -7,6 +7,10 @@ typedef (see also ~~/src/HOL/Tools/typedef.ML).
 
 signature PCPODEF =
 sig
+  val add_pcpodef: bool -> binding option -> binding * string list * mixfix ->
+    term -> (binding * binding) option -> tactic -> theory -> theory
+  val add_cpodef: bool -> binding option -> binding * string list * mixfix ->
+    term -> (binding * binding) option -> tactic -> theory -> theory
   val pcpodef_proof: (bool * binding) * (binding * string list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
   val pcpodef_proof_cmd: (bool * binding) * (binding * string list * mixfix) * string
@@ -97,16 +101,17 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
           |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo})
             (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
         val cpo_thms' = map (Thm.transfer theory') cpo_thms;
+        fun make thm = Drule.standard (thm OF cpo_thms');
       in
         theory'
         |> Sign.add_path (Binding.name_of name)
         |> PureThy.add_thms
           ([((Binding.prefix_name "adm_" name, admissible'), []),
-            ((Binding.prefix_name "cont_" Rep_name, @{thm typedef_cont_Rep} OF cpo_thms'), []),
-            ((Binding.prefix_name "cont_" Abs_name, @{thm typedef_cont_Abs} OF cpo_thms'), []),
-            ((Binding.prefix_name "lub_" name, @{thm typedef_lub} OF cpo_thms'), []),
-            ((Binding.prefix_name "thelub_" name, @{thm typedef_thelub} OF cpo_thms'), []),
-            ((Binding.prefix_name "compact_" name, @{thm typedef_compact} OF cpo_thms'), [])])
+            ((Binding.prefix_name "cont_" Rep_name, make @{thm typedef_cont_Rep}), []),
+            ((Binding.prefix_name "cont_" Abs_name, make @{thm typedef_cont_Abs}), []),
+            ((Binding.prefix_name "lub_" name, make @{thm typedef_lub}), []),
+            ((Binding.prefix_name "thelub_" name, make @{thm typedef_thelub}), []),
+            ((Binding.prefix_name "compact_" name, make @{thm typedef_compact}), [])])
         |> snd
         |> Sign.parent_path
       end;
@@ -120,16 +125,17 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
           |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
             (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);
         val pcpo_thms' = map (Thm.transfer theory') pcpo_thms;
+        fun make thm = Drule.standard (thm OF pcpo_thms');
       in
         theory'
         |> Sign.add_path (Binding.name_of name)
         |> PureThy.add_thms
-          ([((Binding.suffix_name "_strict" Rep_name, @{thm typedef_Rep_strict} OF pcpo_thms'), []),
-            ((Binding.suffix_name "_strict" Abs_name, @{thm typedef_Abs_strict} OF pcpo_thms'), []),
-            ((Binding.suffix_name "_strict_iff" Rep_name, @{thm typedef_Rep_strict_iff} OF pcpo_thms'), []),
-            ((Binding.suffix_name "_strict_iff" Abs_name, @{thm typedef_Abs_strict_iff} OF pcpo_thms'), []),
-            ((Binding.suffix_name "_defined" Rep_name, @{thm typedef_Rep_defined} OF pcpo_thms'), []),
-            ((Binding.suffix_name "_defined" Abs_name, @{thm typedef_Abs_defined} OF pcpo_thms'), [])])
+          ([((Binding.suffix_name "_strict" Rep_name, make @{thm typedef_Rep_strict}), []),
+            ((Binding.suffix_name "_strict" Abs_name, make @{thm typedef_Abs_strict}), []),
+            ((Binding.suffix_name "_strict_iff" Rep_name, make @{thm typedef_Rep_strict_iff}), []),
+            ((Binding.suffix_name "_strict_iff" Abs_name, make @{thm typedef_Abs_strict_iff}), []),
+            ((Binding.suffix_name "_defined" Rep_name, make @{thm typedef_Rep_defined}), []),
+            ((Binding.suffix_name "_defined" Abs_name, make @{thm typedef_Abs_defined}), [])])
         |> snd
         |> Sign.parent_path
       end;
@@ -149,6 +155,30 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
   handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in cpodef " ^ quote (Binding.str_of name));
 
+
+(* tactic interface *)
+
+local
+
+fun gen_add_pcpodef pcpo def opt_name typ set opt_morphs tac thy =
+  let
+    val name = the_default (#1 typ) opt_name;
+    val (goal1, goal2, pcpodef_result) =
+      prepare_pcpodef Syntax.check_term pcpo def name typ set opt_morphs thy;
+    val thm1 = Goal.prove_global thy [] [] goal1 (K tac)
+      handle ERROR msg => cat_error msg
+        ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
+    val thm2 = Goal.prove_global thy [] [] goal2 (K tac)
+      handle ERROR msg => cat_error msg
+        ("Failed to prove admissibility of " ^ quote (Syntax.string_of_term_global thy set));
+  in pcpodef_result thm1 thm2 thy end;
+
+in
+
+val add_pcpodef = gen_add_pcpodef true;
+val add_cpodef = gen_add_pcpodef false;
+
+end;
 
 (* proof interface *)
 
