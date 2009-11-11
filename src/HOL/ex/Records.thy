@@ -334,4 +334,8 @@ lemma "\<exists>r. xpos r = x"
   done
 
 
+subsection {* Some code generation *}
+
+export_code foo1 foo3 foo5 foo10 foo11 in SML file -
+
 end
