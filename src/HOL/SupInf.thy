@@ -88,6 +88,12 @@ proof (auto simp add: Sup_real_def)
   finally show "(LEAST z. \<forall>x\<in>X. x \<le> z) \<le> z" .
 qed
 
+lemma less_SupE:
+  fixes y :: real
+  assumes "y < Sup X" "X \<noteq> {}"
+  obtains x where "x\<in>X" "y < x"
+by (metis SupInf.Sup_least assms linorder_not_less that)
+
 lemma Sup_singleton [simp]: "Sup {x::real} = x"
   by (force intro: Least_equality simp add: Sup_real_def)
  
@@ -457,6 +463,38 @@ proof-
   have "min x y \<le> Inf {x,y}" using Inf_finite_ge_iff[OF f, of "min x y"]
     by simp
   ultimately show ?thesis by arith
+qed
+
+lemma reals_complete_interval:
+  fixes a::real and b::real
+  assumes "a < b" and "P a" and "~P b"
+  shows "\<exists>c. a \<le> c & c \<le> b & (\<forall>x. a \<le> x & x < c --> P x) &
+             (\<forall>d. (\<forall>x. a \<le> x & x < d --> P x) --> d \<le> c)"
+proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], auto)
+  show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
+    by (rule SupInf.Sup_upper [where z=b], auto)
+       (metis prems real_le_linear real_less_def) 
+next
+  show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
+    apply (rule SupInf.Sup_least) 
+    apply (auto simp add: )
+    apply (metis less_le_not_le)
+    apply (metis `a<b` `~ P b` real_le_linear real_less_def) 
+    done
+next
+  fix x
+  assume x: "a \<le> x" and lt: "x < Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
+  show "P x"
+    apply (rule less_SupE [OF lt], auto)
+    apply (metis less_le_not_le)
+    apply (metis x) 
+    done
+next
+  fix d
+    assume 0: "\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x"
+    thus "d \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
+      by (rule_tac z="b" in SupInf.Sup_upper, auto) 
+         (metis `a<b` `~ P b` real_le_linear real_less_def) 
 qed
 
 end
