@@ -13,7 +13,8 @@ no_document use_thys [
   "Codegenerator_Pretty_Test",
   "NormalForm",
   "Predicate_Compile",
-  "Predicate_Compile_ex"
+  "Predicate_Compile_ex",
+  "Predicate_Compile_Quickcheck"
 ];
 
 use_thys [

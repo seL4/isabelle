@@ -37,6 +37,8 @@ Styles can be also applied for antiquotations prop, term_type and typeof.
 
 *** HOL ***
 
+* A tabled implementation of the reflexive transitive closure
+
 * New commands "code_pred" and "values" to invoke the predicate compiler
 and to enumerate values of inductive predicates.
 
