@@ -1047,7 +1047,6 @@ fun print_failed_mode options thy modes p m rs i =
     let
       val _ = tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
       p ^ " violates mode " ^ string_of_mode thy p m)
-      val _ = tracing (string_of_clause thy p (nth rs i))
     in () end
   else ()
 
