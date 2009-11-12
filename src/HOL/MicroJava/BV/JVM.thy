@@ -117,11 +117,7 @@ proof -
 
   from phi' have "check_types G maxs maxr phi'" by(simp add: check_types_def)
   also from w have "phi' = map OK (map ok_val phi')" 
-    apply (clarsimp simp add: wt_step_def not_Err_eq) 
-    apply (rule map_id [symmetric])
-    apply (erule allE, erule impE, assumption)
-    apply clarsimp
-    done    
+    by (auto simp add: wt_step_def not_Err_eq intro!: nth_equalityI)
   finally 
   have check_types:
     "check_types G maxs maxr (map OK (map ok_val phi'))" .

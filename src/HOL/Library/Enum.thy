@@ -72,7 +72,7 @@ lemma n_lists_Nil [simp]: "n_lists n [] = (if n = 0 then [[]] else [])"
   by (induct n) simp_all
 
 lemma length_n_lists: "length (n_lists n xs) = length xs ^ n"
-  by (induct n) (auto simp add: length_concat map_compose [symmetric] o_def listsum_triv)
+  by (induct n) (auto simp add: length_concat o_def listsum_triv)
 
 lemma length_n_lists_elem: "ys \<in> set (n_lists n xs) \<Longrightarrow> length ys = n"
   by (induct n arbitrary: ys) auto
@@ -246,7 +246,7 @@ proof -
     by (auto simp add: image_def)
   have "set (map set (sublists xs)) = Pow (set xs)"
     by (induct xs)
-      (simp_all add: aux Let_def Pow_insert Un_commute)
+      (simp_all add: aux Let_def Pow_insert Un_commute comp_def del: map_map)
   then show ?thesis by simp
 qed
 

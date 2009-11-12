@@ -68,7 +68,7 @@ next
 
     with fst_eq Cons 
     show "unique (map f (a # list)) = unique (a # list)"
-      by (simp add: unique_def fst_set)
+      by (simp add: unique_def fst_set image_compose)
   qed
 qed
 
@@ -292,7 +292,7 @@ lemma comp_method [rule_format (no_asm)]: "\<lbrakk> ws_prog G; is_class G C\<rb
 apply (simp add: method_def)
 apply (frule wf_subcls1)
 apply (simp add: comp_class_rec)
-apply (simp add: map_compose [THEN sym] split_iter split_compose del: map_compose)
+apply (simp add: split_iter split_compose map_map[symmetric] del: map_map)
 apply (rule_tac R="%x y. ((x S) = (Option.map (\<lambda>(D, rT, b). 
   (D, rT, snd (snd (compMethod G D (S, rT, b))))) (y S)))" 
   in class_rec_relation)

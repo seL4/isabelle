@@ -94,6 +94,9 @@ zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and
 zdiv_zmult_zmult2.  div_mult_mult1 is now [simp] by default.
 INCOMPATIBILITY.
 
+* Added theorem List.map_map as [simp]. Removed List.map_compose.
+INCOMPATIBILITY.
+
 * New testing tool "Mirabelle" for automated (proof) tools. Applies
 several tools and tactics like sledgehammer, metis, or quickcheck, to
 every proof step in a theory. To be used in batch mode via the

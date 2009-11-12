@@ -1113,7 +1113,7 @@ lemma test_bit_rsplit:
 
 lemma word_rcat_bl: "word_rcat wl == of_bl (concat (map to_bl wl))"
   unfolding word_rcat_def to_bl_def' of_bl_def
-  by (clarsimp simp add : bin_rcat_bl map_compose)
+  by (clarsimp simp add : bin_rcat_bl)
 
 lemma size_rcat_lem':
   "size (concat (map to_bl wl)) = length wl * size (hd wl)"
