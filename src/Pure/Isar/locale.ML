@@ -518,7 +518,7 @@ fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 
 fun add_decls add loc decl =
   ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, stamp ()))) #>
-  add_thmss loc Thm.internalK
+  add_thmss loc ""
     [((Binding.conceal Binding.empty, [Attrib.internal (decl_attrib decl)]),
       [([Drule.dummy_thm], [])])];
 

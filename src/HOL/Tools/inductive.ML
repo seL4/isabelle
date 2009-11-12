@@ -663,7 +663,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
 
     val ((rec_const, (_, fp_def)), lthy') = lthy
       |> LocalTheory.conceal
-      |> LocalTheory.define Thm.internalK
+      |> LocalTheory.define ""
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
          ((Binding.empty, [Attrib.internal (K Nitpick_Defs.add)]),
          fold_rev lambda params
@@ -686,13 +686,13 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
           end) (cnames_syn ~~ cs);
     val (consts_defs, lthy'') = lthy'
       |> LocalTheory.conceal
-      |> fold_map (LocalTheory.define Thm.internalK) specs
+      |> fold_map (LocalTheory.define "") specs
       ||> LocalTheory.restore_naming lthy';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos lthy'';
     val ((_, [mono']), lthy''') =
-      LocalTheory.note Thm.internalK (apfst Binding.conceal Attrib.empty_binding, [mono]) lthy'';
+      LocalTheory.note "" (apfst Binding.conceal Attrib.empty_binding, [mono]) lthy'';
 
   in (lthy''', rec_name, mono', fp_def', map (#2 o #2) consts_defs,
     list_comb (rec_const, params), preds, argTs, bs, xs)

@@ -1126,7 +1126,7 @@ fun gen_assms prepp exp args ctxt =
   in
     ctxt2
     |> auto_bind_facts (flat propss)
-    |> note_thmss Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
+    |> note_thmss "" (map fst args ~~ map (map (fn th => ([th], []))) premss)
   end;
 
 in
