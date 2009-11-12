@@ -128,21 +128,14 @@ fun mk_tracing s t =
 (* destruction of intro rules *)
 
 (* FIXME: look for other place where this functionality was used before *)
-fun strip_intro_concl nparams intro = let
-  val _ $ u = Logic.strip_imp_concl intro
-  val (pred, all_args) = strip_comb u
-  val (params, args) = chop nparams all_args
-in (pred, (params, args)) end
+fun strip_intro_concl nparams intro =
+  let
+    val _ $ u = Logic.strip_imp_concl intro
+    val (pred, all_args) = strip_comb u
+    val (params, args) = chop nparams all_args
+  in (pred, (params, args)) end
 
 (** data structures **)
-
-(* new datatype for modes: *)
-(*
-datatype instantiation = Input | Output
-type arg_mode = Tuple of instantiation list | Atom of instantiation | HigherOrderMode of mode
-type mode = arg_mode list
-type tmode = Mode of mode * 
-*)
 
 fun gen_split_smode (mk_tuple, strip_tuple) smode ts =
   let
@@ -274,7 +267,7 @@ fun lookup_predfun_data thy name mode =
     (AList.lookup (op =) (snd (#functions (the_pred_data thy name))) mode)
 
 fun the_predfun_data thy name mode = case lookup_predfun_data thy name mode
-  of NONE => error ("No function defined for mode " ^ string_of_mode mode ^
+  of NONE => error ("No function defined for mode " ^ string_of_mode thy name mode ^
     " of predicate " ^ name)
    | SOME data => data;
 
@@ -291,7 +284,7 @@ fun lookup_random_function_data thy name mode =
   (AList.lookup (op =) (snd (#random_functions (the_pred_data thy name))) mode)
 
 fun the_random_function_data thy name mode = case lookup_random_function_data thy name mode of
-     NONE => error ("No random function defined for mode " ^ string_of_mode mode ^
+     NONE => error ("No random function defined for mode " ^ string_of_mode thy name mode ^
        " of predicate " ^ name)
    | SOME data => data
 
@@ -310,7 +303,7 @@ fun lookup_depth_limited_function_data thy name mode =
 
 fun the_depth_limited_function_data thy name mode =
   case lookup_depth_limited_function_data thy name mode of
-    NONE => error ("No depth-limited function defined for mode " ^ string_of_mode mode
+    NONE => error ("No depth-limited function defined for mode " ^ string_of_mode thy name mode
       ^ " of predicate " ^ name)
    | SOME data => data
 
@@ -325,7 +318,7 @@ fun lookup_annotated_function_data thy name mode =
     (AList.lookup (op =) (snd (#annotated_functions (the_pred_data thy name))) mode)
 
 fun the_annotated_function_data thy name mode = case lookup_annotated_function_data thy name mode
-  of NONE => error ("No annotated function defined for mode " ^ string_of_mode mode
+  of NONE => error ("No annotated function defined for mode " ^ string_of_mode thy name mode
     ^ " of predicate " ^ name)
    | SOME data => data
 
@@ -337,17 +330,17 @@ val defined_annotated_functions = fst o #annotated_functions oo the_pred_data
 
 (* diagnostic display functions *)
 
-fun print_modes options modes =
+fun print_modes options thy modes =
   if show_modes options then
     tracing ("Inferred modes:\n" ^
       cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
-        string_of_mode ms)) modes))
+        (string_of_mode thy s) ms)) modes))
   else ()
 
 fun print_pred_mode_table string_of_entry thy pred_mode_table =
   let
-    fun print_mode pred (mode, entry) =  "mode : " ^ (string_of_mode mode)
-      ^ (string_of_entry pred mode entry)  
+    fun print_mode pred (mode, entry) =  "mode : " ^ string_of_mode thy pred mode
+      ^ string_of_entry pred mode entry
     fun print_pred (pred, modes) =
       "predicate " ^ pred ^ ": " ^ cat_lines (map (print_mode pred) modes)
     val _ = tracing (cat_lines (map print_pred pred_mode_table))
@@ -417,25 +410,29 @@ fun print_all_modes thy =
     fun print (pred, modes) u =
       let
         val _ = writeln ("predicate: " ^ pred)
-        val _ = writeln ("modes: " ^ (commas (map string_of_mode modes)))
-      in u end  
+        val _ = writeln ("modes: " ^ (commas (map (string_of_mode thy pred) modes)))
+      in u end
   in
     fold print (all_modes_of thy) ()
   end
 
 (* validity checks *)
 
-fun check_expected_modes (options : Predicate_Compile_Aux.options) modes =
-  case expected_modes options of
-    SOME (s, ms) => (case AList.lookup (op =) modes s of
-      SOME modes =>
-        if not (eq_set (op =) (ms, modes)) then
-          error ("expected modes were not inferred:\n"
-          ^ "inferred modes for " ^ s ^ ": " ^ commas (map string_of_mode modes)
-          ^ "\n expected modes for " ^ s ^ ": " ^ commas (map string_of_mode ms))
-        else ()
-      | NONE => ())
-  | NONE => ()
+fun check_expected_modes preds (options : Predicate_Compile_Aux.options) modes =
+      case expected_modes options of
+      SOME (s, ms) => (case AList.lookup (op =) modes s of
+        SOME modes =>
+          let
+            val modes' = map (translate_mode (the (AList.lookup (op =) preds s))) modes
+          in
+            if not (eq_set eq_mode' (ms, modes')) then
+              error ("expected modes were not inferred:\n"
+              ^ "  inferred modes for " ^ s ^ ": " ^ commas (map string_of_mode' modes')  ^ "\n"
+              ^ "  expected modes for " ^ s ^ ": " ^ commas (map string_of_mode' ms))
+            else ()
+          end
+        | NONE => ())
+    | NONE => ()
 
 (* importing introduction rules *)
 
@@ -652,20 +649,6 @@ fun dependencies_of thy name =
     (data, keys)
   end;
 *)
-
-(* guessing number of parameters *)
-fun find_indexes pred xs =
-  let
-    fun find is n [] = is
-      | find is n (x :: xs) = find (if pred x then (n :: is) else is) (n + 1) xs;
-  in rev (find [] 0 xs) end;
-
-fun guess_nparams T =
-  let
-    val argTs = binder_types T
-    val nparams = fold Integer.max
-      (map (fn x => x + 1) (find_indexes is_predT argTs)) 0
-  in nparams end;
 
 fun add_intro thm thy = let
    val (name, T) = dest_Const (fst (strip_intro_concl 0 (prop_of thm)))
@@ -1081,7 +1064,7 @@ fun print_failed_mode options thy modes p m rs i =
   if show_mode_inference options then
     let
       val _ = tracing ("Clause " ^ string_of_int (i + 1) ^ " of " ^
-      p ^ " violates mode " ^ string_of_mode m)
+      p ^ " violates mode " ^ string_of_mode thy p m)
       val _ = tracing (string_of_clause thy p (nth rs i))
     in () end
   else ()
@@ -2264,8 +2247,8 @@ fun add_equations_of steps options prednames thy =
     val moded_clauses =
       #infer_modes (dest_steps steps) options thy extra_modes all_modes param_vs clauses
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
-    val _ = check_expected_modes options modes
-    val _ = print_modes options modes
+    val _ = check_expected_modes preds options modes
+    val _ = print_modes options thy modes
       (*val _ = print_moded_clauses thy moded_clauses*)
     val _ = print_step options "Defining executable functions..."
     val thy' = fold (#define_functions (dest_steps steps) preds) modes thy
@@ -2389,7 +2372,8 @@ val annotated_comp_modifiers = Comp_Mod.Comp_Modifiers
   additional_arguments = K [],
   wrap_compilation =
     fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
-      mk_tracing ("calling predicate " ^ s ^ " with mode " ^ string_of_mode mode) compilation,
+      mk_tracing ("calling predicate " ^ s ^
+        " with mode " ^ string_of_mode' (translate_mode T mode)) compilation,
   transform_additional_arguments = K I : (indprem -> term list -> term list)
   }
 

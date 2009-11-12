@@ -10,7 +10,7 @@ sig
   val preprocess : Predicate_Compile_Aux.options -> string -> theory -> theory
 end;
 
-structure Predicate_Compile : PREDICATE_COMPILE =
+structure Predicate_Compile (*: PREDICATE_COMPILE*) =
 struct
 
 (* options *)
@@ -183,9 +183,24 @@ val parse_mode = gen_parse_mode parse_smode
 
 val parse_mode' = gen_parse_mode parse_smode'
 
+(* New parser for modes *)
+
+(* grammar:
+E = T "=>" E | T
+T = F * T | F
+F = i | o | bool | ( E )
+*)
+fun new_parse_mode1 xs =
+  (Args.$$$ "i" >> K Input || Args.$$$ "o" >> K Output ||
+    Args.$$$ "bool" >> K Bool || Args.$$$ "(" |-- new_parse_mode3 --| Args.$$$ ")") xs
+and new_parse_mode2 xs =
+  (new_parse_mode1 --| Args.$$$ "*" -- new_parse_mode2 >> Pair || new_parse_mode1) xs
+and new_parse_mode3 xs =
+  (new_parse_mode2 --| Args.$$$ "=>" -- new_parse_mode3 >> Fun || new_parse_mode2) xs
+
 val opt_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-    P.enum1 "," (parse_mode || parse_mode') --| P.$$$ ")" >> SOME) NONE
+    P.enum1 "," new_parse_mode3 --| P.$$$ ")" >> SOME) NONE
 
 (* Parser for options *)
 
