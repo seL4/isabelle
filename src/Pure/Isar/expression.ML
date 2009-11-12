@@ -713,7 +713,7 @@ fun assumes_to_notes (Assumes asms) axms =
       fold_map (fn (a, spec) => fn axs =>
           let val (ps, qs) = chop (length spec) axs
           in ((a, [(ps, [])]), qs) end) asms axms
-      |> apfst (curry Notes Thm.assumptionK)
+      |> apfst (curry Notes "")
   | assumes_to_notes e axms = (e, axms);
 
 fun defines_to_notes thy (Defines defs) =
