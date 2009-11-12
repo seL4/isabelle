@@ -9,7 +9,7 @@ sig
   val setup : theory -> theory
   val code_pred : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
   val code_pred_cmd : Predicate_Compile_Aux.options -> string -> Proof.context -> Proof.state
-  val values_cmd : string list -> Predicate_Compile_Aux.smode option list option
+  val values_cmd : string list -> Predicate_Compile_Aux.mode' option list option
     -> int option * (bool * bool) -> int -> string -> Toplevel.state -> unit
   val register_predicate : (string * thm list * thm * int) -> theory -> theory
   val register_intros : string * thm list -> theory -> theory
@@ -957,7 +957,6 @@ fun modes_of_term modes t =
                     (iss ~~ args1)))
           end
         end)) (AList.lookup op = modes name)
-
   in
     case strip_comb (Envir.eta_contract t) of
       (Const (name, _), args) => the_default default (mk_modes name args)
@@ -1513,7 +1512,7 @@ fun create_constname_of_mode options thy prefix name T mode =
       (fold (fn NONE => I | SOME mode => cons (string_of_mode mode)) (fst mode) [])
     val system_proposal = prefix ^ (Long_Name.base_name name) ^
       (if HOmode = "" then "_" else "_for_" ^ HOmode ^ "_yields_") ^ string_of_mode (snd mode)
-    val name = the_default system_proposal (user_proposal options name (translate_mode T mode))
+    val name = the_default system_proposal (proposed_names options name (translate_mode T mode))
   in
     Sign.full_bname thy name
   end;
@@ -2076,7 +2075,7 @@ fun dest_prem thy params t =
     else Sidecond t
   | _ => Sidecond t)
     
-fun prepare_intrs thy prednames intros =
+fun prepare_intrs options thy prednames intros =
   let
     val intrs = map prop_of intros
     val nparams = nparams_of thy (hd prednames)
@@ -2136,7 +2135,11 @@ fun prepare_intrs thy prednames intros =
           (Rs as _ :: _, Type ("bool", [])) =>
             map SOME (all_smodes_of_typs Rs) | _ => [NONE]) Ts), all_smodes_of_typs Us)
       end
-    val all_modes = map (fn (s, T) => (s, modes_of_typ T)) preds
+    val all_modes = map (fn (s, T) =>
+      case proposed_modes options s of
+        NONE => (s, modes_of_typ T)
+      | SOME modes' => (s, map (translate_mode' nparams) modes'))
+        preds
   in (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) end;
 
 (* sanity check of introduction rules *)
@@ -2244,7 +2247,7 @@ fun add_equations_of steps options prednames thy =
       (*val _ = check_intros_elim_match thy prednames*)
       (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val (preds, nparams, all_vs, param_vs, extra_modes, clauses, all_modes) =
-      prepare_intrs thy prednames (maps (intros_of thy) prednames)
+      prepare_intrs options thy prednames (maps (intros_of thy) prednames)
     val _ = print_step options "Infering modes..."
     val moded_clauses =
       #infer_modes (dest_steps steps) options thy extra_modes all_modes param_vs clauses
@@ -2505,7 +2508,7 @@ fun analyze_compr thy compfuns param_user_modes (depth_limit, (random, annotated
     val user_mode' = map (rpair NONE) user_mode
     val all_modes_of = if random then all_random_modes_of else all_modes_of
     fun fits_to is NONE = true
-      | fits_to is (SOME pm) = (is = pm)
+      | fits_to is (SOME pm) = (is = (snd (translate_mode' 0 pm)))
     fun valid ((SOME (Mode (_, is, ms))) :: ms') (pm :: pms) =
         fits_to is pm andalso valid (ms @ ms') pms
       | valid (NONE :: ms') pms = valid ms' pms
@@ -2579,14 +2582,7 @@ fun values ctxt param_user_modes options k t_compr =
   in if k = ~1 orelse length ts < k then elemsT
     else Const (@{const_name Set.union}, setT --> setT --> setT) $ elemsT $ cont
   end;
-  (*
-fun random_values ctxt k t = 
-  let
-    val thy = ProofContext.theory_of ctxt
-    val _ = 
-  in
-  end;
-  *)
+
 fun values_cmd print_modes param_user_modes options k raw_t state =
   let
     val ctxt = Toplevel.context_of state;

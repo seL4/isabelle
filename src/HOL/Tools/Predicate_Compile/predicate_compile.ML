@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/Predicate_Compile/predicate_compile.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-FIXME.
+Entry point for the predicate compiler; definition of Toplevel commands code_pred and values
 *)
 
 signature PREDICATE_COMPILE =
@@ -105,15 +105,16 @@ fun preprocess options const thy =
     (Graph.strong_conn gr) thy
   end
 
-fun extract_options ((modes, raw_options), const) =
+fun extract_options (((expected_modes, proposed_modes), raw_options), const) =
   let
     fun chk s = member (op =) raw_options s
   in
     Options {
-      expected_modes = Option.map ((pair const) o (map fst)) modes,
-      user_proposals =
-        the_default [] (Option.map (map_filter
-          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name))) modes),
+      expected_modes = Option.map (pair const) expected_modes,
+      proposed_modes = if not (null proposed_modes) then [(const, map fst proposed_modes)] else [],
+      proposed_names =
+        map_filter
+          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name)) proposed_modes,
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
@@ -128,17 +129,18 @@ fun extract_options ((modes, raw_options), const) =
     }
   end
 
-fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
+fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) lthy =
   let
      val thy = ProofContext.theory_of lthy
      val const = Code.read_const thy raw_const
-     val options = extract_options ((modes, raw_options), const)
+     val options = extract_options (((expected_modes, proposed_modes), raw_options), const)
   in
     if (is_inductify options) then
       let
         val lthy' = LocalTheory.theory (preprocess options const) lthy
           |> LocalTheory.checkpoint
-        val const = case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
+        val const =
+          case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
             SOME c => c
           | NONE => const
         val _ = print_step options "Starting Predicate Compile Core..."
@@ -159,7 +161,7 @@ local structure P = OuterParse
 in
 
 (* Parser for mode annotations *)
-
+(* FIXME: remove old parser *)
 (*val parse_argmode' = P.nat >> rpair NONE || P.$$$ "(" |-- P.enum1 "," --| P.$$$ ")"*)
 datatype raw_argmode = Argmode of string | Argmode_Tuple of string list
 
@@ -205,8 +207,12 @@ val mode_and_opt_proposal = new_parse_mode3 --
   Scan.optional (Args.$$$ "as" |-- P.xname >> SOME) NONE
 
 val opt_modes =
-  Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-    P.enum1 "," mode_and_opt_proposal --| P.$$$ ")" >> SOME) NONE
+  Scan.optional (P.$$$ "(" |-- Args.$$$ "modes" |-- P.$$$ ":" |--
+    P.enum1 "," mode_and_opt_proposal --| P.$$$ ")") []
+
+val opt_expected_modes =
+  Scan.optional (P.$$$ "(" |-- Args.$$$ "expected_modes" |-- P.$$$ ":" |--
+    P.enum "," new_parse_mode3 --| P.$$$ ")" >> SOME) NONE
 
 (* Parser for options *)
 
@@ -219,10 +225,10 @@ val scan_options =
 
 val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
-val opt_smode = (P.$$$ "_" >> K NONE) || (parse_smode >> SOME)
+val opt_mode = (P.$$$ "_" >> K NONE) || (new_parse_mode3 >> SOME)
 
 val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-  P.enum ", " opt_smode --| P.$$$ "]" >> SOME) NONE
+  P.enum ", " opt_mode --| P.$$$ "]" >> SOME) NONE
 
 val value_options =
   let
@@ -238,7 +244,8 @@ val value_options =
 
 val _ = OuterSyntax.local_theory_to_proof "code_pred"
   "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal (opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
+  OuterKeyword.thy_goal
+  (opt_expected_modes -- opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
 
 val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
   (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional P.nat ~1 -- P.term

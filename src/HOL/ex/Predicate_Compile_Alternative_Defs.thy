@@ -3,24 +3,10 @@ imports Main
 begin
 
 section {* Set operations *}
-(*
-definition Empty where "Empty == {}"
-declare empty_def[symmetric, code_pred_inline]
-*)
+
 declare eq_reflection[OF empty_def, code_pred_inline] 
-(*
-definition Union where "Union A B == A Un B"
-
-lemma [code_pred_intros]: "A x ==> Union A B x"
-and  [code_pred_intros] : "B x ==> Union A B x"
-unfolding Union_def Un_def Collect_def mem_def by auto
-
-code_pred Union
-unfolding Union_def Un_def Collect_def mem_def by auto
-
-declare Union_def[symmetric, code_pred_inline]
-*)
 declare eq_reflection[OF Un_def, code_pred_inline]
+declare eq_reflection[OF UNION_def, code_pred_inline]
 
 section {* Alternative list definitions *}
  
@@ -48,7 +34,6 @@ proof -
     apply fastsimp
     done
 qed
-
 
 subsection {* Alternative rules for list_all2 *}
 
