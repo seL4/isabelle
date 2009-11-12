@@ -1102,7 +1102,7 @@ lemma test_bit_rsplit:
    apply simp
   apply (rule bin_nth_rsplit)
      apply simp_all
-  apply (simp add : word_size rev_map map_compose [symmetric])
+  apply (simp add : word_size rev_map)
   apply (rule trans)
    defer
    apply (rule map_ident [THEN fun_cong])

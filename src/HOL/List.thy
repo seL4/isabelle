@@ -704,9 +704,6 @@ by (induct xs) auto
 lemma map_map [simp]: "map f (map g xs) = map (f \<circ> g) xs"
 by (induct xs) auto
 
-lemma map_compose: "map (f \<circ> g) xs = map f (map g xs)"
-by simp
-
 lemma rev_map: "rev (map f xs) = map f (rev xs)"
 by (induct xs) auto
 

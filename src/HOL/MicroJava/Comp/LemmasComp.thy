@@ -311,7 +311,7 @@ apply (simp add: inj_on_def split_beta)
 apply (simp add: split_beta compMethod_def)
 apply (simp add: map_of_map [THEN sym])
 apply (simp add: split_beta)
-apply (simp add: map_compose [THEN sym] Fun.comp_def split_beta)
+apply (simp add: Fun.comp_def split_beta)
 apply (subgoal_tac "(\<lambda>x\<Colon>(vname list \<times> fdecl list \<times> stmt \<times> expr) mdecl.
                     (fst x, Object,
                      snd (compMethod G Object

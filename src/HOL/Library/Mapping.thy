@@ -128,7 +128,7 @@ lemma size_tabulate:
 lemma bulkload_tabulate:
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
   by (rule sym)
-    (auto simp add: bulkload_def tabulate_def expand_fun_eq map_of_eq_None_iff map_compose [symmetric] comp_def)
+    (auto simp add: bulkload_def tabulate_def expand_fun_eq map_of_eq_None_iff comp_def)
 
 
 subsection {* Some technical code lemmas *}

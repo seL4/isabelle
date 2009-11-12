@@ -186,7 +186,7 @@ proof (induct U)
               by (rule typing.App)
           qed
           with Cons True show ?thesis
-            by (simp add: map_compose [symmetric] comp_def)
+            by (simp add: comp_def)
         qed
       next
         case False
