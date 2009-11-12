@@ -1448,7 +1448,7 @@ fun kodkod_formula_from_nut ofs liberal
           fold kk_join [to_integer u1, to_integer u2] nat_subtract_rel
       | Op2 (Apply, _, R, u1, u2) =>
         if is_Cst Unrep u2 andalso is_set_type (type_of u1)
-           andalso not (is_opt_rep (rep_of u1)) then
+           andalso is_FreeName u1 then
           false_atom
         else
           to_apply R u1 u2

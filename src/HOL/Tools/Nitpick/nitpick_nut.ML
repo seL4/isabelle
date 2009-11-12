@@ -96,6 +96,7 @@ sig
   val nickname_of : nut -> string
   val is_skolem_name : nut -> bool
   val is_eval_name : nut -> bool
+  val is_FreeName : nut -> bool
   val is_Cst : cst -> nut -> bool
   val fold_nut : (nut -> 'a -> 'a) -> nut -> 'a -> 'a
   val map_nut : (nut -> nut) -> nut -> nut
@@ -367,6 +368,8 @@ fun is_skolem_name u =
 fun is_eval_name u =
   String.isPrefix eval_prefix (nickname_of u)
   handle NUT ("Nitpick_Nut.nickname_of", _) => false
+fun is_FreeName (FreeName _) = true
+  | is_FreeName _ = false
 (* cst -> nut -> bool *)
 fun is_Cst cst (Cst (cst', _, _)) = (cst = cst')
   | is_Cst _ _ = false
@@ -764,9 +767,8 @@ fun choose_rep_for_bound_var scope v table =
 
 (* A nut is said to be constructive if whenever it evaluates to unknown in our
    three-valued logic, it would evaluate to a unrepresentable value ("unrep")
-   according to the HOL semantics. For example, "Suc n" is
-   constructive if "n" is representable or "Unrep", because unknown implies
-   unrep. *)
+   according to the HOL semantics. For example, "Suc n" is constructive if "n"
+   is representable or "Unrep", because unknown implies unrep. *)
 (* nut -> bool *)
 fun is_constructive u =
   is_Cst Unrep u orelse
@@ -830,13 +832,9 @@ fun s_op2 oper T R u1 u2 =
       else if is_Cst Unrep u2 then
         if is_constructive u1 then
           Cst (Unrep, T, R)
-        else if is_boolean_type T andalso not (is_opt_rep (rep_of u1)) then
-          (* Selectors are an unfortunate exception to the rule that non-"Opt"
-             predicates return "False" for unrepresentable domain values. *)
-          case u1 of
-             ConstName (s, _, _) => if is_sel s then unknown_boolean T R
-                                    else Cst (False, T, Formula Neut)
-           | _ => Cst (False, T, Formula Neut)
+        else if is_boolean_type T then
+          if is_FreeName u1 then Cst (False, T, Formula Neut)
+          else unknown_boolean T R
         else case u1 of
           Op2 (Apply, _, _, ConstName (@{const_name List.append}, _, _), _) =>
           Cst (Unrep, T, R)
