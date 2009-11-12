@@ -562,6 +562,14 @@ constdefs
   Sumr :: "('b => 'c) => 'a + 'b => 'c"
   "Sumr == sum_case undefined"
 
+lemma [code]:
+  "Suml f (Inl x) = f x"
+  by (simp add: Suml_def)
+
+lemma [code]:
+  "Sumr f (Inr x) = f x"
+  by (simp add: Sumr_def)
+
 lemma Suml_inject: "Suml f = Suml g ==> f = g"
   by (unfold Suml_def) (erule sum_case_inject)
 

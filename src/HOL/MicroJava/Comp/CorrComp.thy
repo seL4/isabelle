@@ -552,7 +552,7 @@ apply (frule method_yields_wf_java_mdecl, assumption, assumption)
 
 apply (simp only: wf_java_mdecl_def)
 apply (subgoal_tac "(\<forall>y\<in>set pns. y \<notin> set (map fst lvars))")
-apply (simp add: init_vars_def locvars_xstate_def locvars_locals_def galldefs unique_def split_def map_of_map_as_map_upd)
+apply (simp add: init_vars_def locvars_xstate_def locvars_locals_def galldefs unique_def split_def map_of_map_as_map_upd del: map_map)
 apply (intro strip)
 apply (simp (no_asm_simp) only: append_Cons [THEN sym])
 apply (rule progression_lvar_init_aux)

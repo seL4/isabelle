@@ -269,12 +269,6 @@ lemma sl_triple_conv:
   (states G maxs maxr, JVMType.le G maxs maxr, JVMType.sup G maxs maxr)"
   by (simp (no_asm) add: states_def JVMType.le_def JVMType.sup_def)
 
-
-lemma map_id [rule_format]:
-  "(\<forall>n < length xs. f (g (xs!n)) = xs!n) \<longrightarrow> map f (map g xs) = xs"
-  by (induct xs, auto)
-
-
 lemma is_type_pTs:
   "\<lbrakk> wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; ((mn,pTs),rT,code) \<in> set mdecls \<rbrakk>
   \<Longrightarrow> set pTs \<subseteq> types G"

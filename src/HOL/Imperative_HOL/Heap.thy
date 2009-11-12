@@ -231,7 +231,7 @@ text {* FIXME: Does there exist a "canonical" array axiomatisation in
 the literature?  *}
 
 lemma array_get_set_eq [simp]: "get_array r (set_array r x h) = x"
-  by (simp add: get_array_def set_array_def)
+  by (simp add: get_array_def set_array_def o_def)
 
 lemma array_get_set_neq [simp]: "r =!!= s \<Longrightarrow> get_array r (set_array s x h) = get_array r h"
   by (simp add: noteq_arrs_def get_array_def set_array_def)

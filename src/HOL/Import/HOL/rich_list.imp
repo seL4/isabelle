@@ -130,7 +130,7 @@ thm_maps
   "MAP_o" > "HOL4Base.rich_list.MAP_o"
   "MAP_SNOC" > "HOL4Base.rich_list.MAP_SNOC"
   "MAP_REVERSE" > "List.rev_map"
-  "MAP_MAP_o" > "List.map_compose"
+  "MAP_MAP_o" > "List.map_map"
   "MAP_FOLDR" > "HOL4Base.rich_list.MAP_FOLDR"
   "MAP_FOLDL" > "HOL4Base.rich_list.MAP_FOLDL"
   "MAP_FLAT" > "List.map_concat"

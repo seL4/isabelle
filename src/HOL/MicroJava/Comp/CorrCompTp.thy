@@ -132,7 +132,7 @@ apply (simp add: local_env_snd index_def)
 apply (case_tac "vname = This")
 apply (simp add: inited_LT_def)
 apply (simp add: inited_LT_def)
-apply (simp (no_asm_simp) only: map_compose map_append [THEN sym] map.simps [THEN sym])
+apply (simp (no_asm_simp) only: map_map [symmetric] map_append [symmetric] map.simps [symmetric])
 apply (subgoal_tac "length (takeWhile (\<lambda>z. z \<noteq> vname) (pns @ map fst lvars)) < length (pTs @ map snd lvars)")
 apply (simp (no_asm_simp) only: List.nth_map ok_val.simps)
 apply (subgoal_tac "map_of lvars = map_of (map (\<lambda> p. (fst p, snd p)) lvars)")
@@ -166,7 +166,7 @@ done
 lemma inited_LT_at_index_no_err: " i < length (inited_LT C pTs lvars)
   \<Longrightarrow> inited_LT C pTs lvars ! i \<noteq> Err"
 apply (simp only: inited_LT_def)
-apply (simp only: map_compose map_append [THEN sym] map.simps [THEN sym] length_map)
+apply (simp only: map_map [symmetric] map_append [symmetric] map.simps [symmetric] length_map)
 apply (simp only: nth_map)
 apply simp
 done

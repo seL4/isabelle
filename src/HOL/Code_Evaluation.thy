@@ -145,7 +145,7 @@ code_const Const and App
   (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))")
 
 code_const "term_of \<Colon> String.literal \<Rightarrow> term"
-  (Eval "HOLogic.mk'_message'_string")
+  (Eval "HOLogic.mk'_literal")
 
 code_reserved Eval HOLogic
 

@@ -352,20 +352,32 @@ fun subtract_cls c_clauses ax_clauses =
       filter (not o known) c_clauses
   end;
 
-fun valid_facts facts =
-  Facts.fold_static (fn (name, ths) =>
-    if Facts.is_concealed facts name orelse
-      (run_blacklist_filter andalso is_package_def name) then I
-    else
-      let val xname = Facts.extern facts name in
-        if Name_Space.is_hidden xname then I
-        else cons (xname, filter_out Res_Axioms.bad_for_atp ths)
-      end) facts [];
-
 fun all_valid_thms ctxt =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
+    val full_space =
+      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
+
+    fun valid_facts facts =
+      (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
+        let
+          fun check_thms a =
+            (case try (ProofContext.get_thms ctxt) a of
+              NONE => false
+            | SOME ths1 => Thm.eq_thms (ths0, ths1));
+
+          val name1 = Facts.extern facts name;
+          val name2 = Name_Space.extern full_space name;
+          val ths = filter_out Res_Axioms.bad_for_atp ths0;
+        in
+          if Facts.is_concealed facts name orelse null ths orelse
+            run_blacklist_filter andalso is_package_def name then I
+          else
+            (case find_first check_thms [name1, name2, name] of
+              NONE => I
+            | SOME a => cons (a, ths))
+        end);
   in valid_facts global_facts @ valid_facts local_facts end;
 
 fun multi_name a th (n, pairs) =

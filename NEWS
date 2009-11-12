@@ -37,6 +37,9 @@ Styles can be also applied for antiquotations prop, term_type and typeof.
 
 *** HOL ***
 
+* New commands "code_pred" and "values" to invoke the predicate compiler
+and to enumerate values of inductive predicates.
+
 * Combined former theories Divides and IntDiv to one theory Divides
 in the spirit of other number theory theories in HOL;  some constants
 (and to a lesser extent also facts) have been suffixed with _nat und _int
@@ -89,6 +92,9 @@ div_mult_mult1_if, div_mult_mult1 and div_mult_mult2 have been
 generalized to class semiring_div, subsuming former theorems
 zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and
 zdiv_zmult_zmult2.  div_mult_mult1 is now [simp] by default.
+INCOMPATIBILITY.
+
+* Added theorem List.map_map as [simp]. Removed List.map_compose.
 INCOMPATIBILITY.
 
 * New testing tool "Mirabelle" for automated (proof) tools. Applies

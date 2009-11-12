@@ -453,8 +453,7 @@ thm int.lone int.right.rone
 
 subsection {* Interpretation in theory, then sublocale *}
 
-interpretation (* fol: *) logic "op +" "minus"
-(* FIXME declaration of qualified names *)
+interpretation fol: logic "op +" "minus"
   by unfold_locales (rule int_assoc int_minus2)+
 
 locale logic2 =
@@ -464,17 +463,15 @@ locale logic2 =
     and notnot: "-- (-- x) = x"
 begin
 
-(* FIXME interpretation below fails
 definition lor (infixl "||" 50) where
   "x || y = --(-- x && -- y)"
-*)
 
 end
 
 sublocale logic < two: logic2
   by unfold_locales (rule assoc notnot)+
 
-thm two.assoc
+thm fol.two.assoc
 
 
 subsection {* Declarations and sublocale *}

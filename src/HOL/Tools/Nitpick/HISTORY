@@ -10,7 +10,7 @@ Version 2010
   * Optimized Kodkod encoding of datatypes whose constructors don't appear in
     the formula to falsify
   * Added support for codatatype view of datatypes
-  * Fixed soundness bug related to sets of sets
+  * Fixed soundness bugs related to sets and sets of sets
   * Fixed monotonicity check
   * Fixed error in display of uncurried constants
   * Speeded up scope enumeration

@@ -1102,7 +1102,7 @@ lemma test_bit_rsplit:
    apply simp
   apply (rule bin_nth_rsplit)
      apply simp_all
-  apply (simp add : word_size rev_map map_compose [symmetric])
+  apply (simp add : word_size rev_map)
   apply (rule trans)
    defer
    apply (rule map_ident [THEN fun_cong])
@@ -1113,7 +1113,7 @@ lemma test_bit_rsplit:
 
 lemma word_rcat_bl: "word_rcat wl == of_bl (concat (map to_bl wl))"
   unfolding word_rcat_def to_bl_def' of_bl_def
-  by (clarsimp simp add : bin_rcat_bl map_compose)
+  by (clarsimp simp add : bin_rcat_bl)
 
 lemma size_rcat_lem':
   "size (concat (map to_bl wl)) = length wl * size (hd wl)"

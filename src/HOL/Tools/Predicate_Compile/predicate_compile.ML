@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/Predicate_Compile/predicate_compile.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-FIXME.
+Entry point for the predicate compiler; definition of Toplevel commands code_pred and values
 *)
 
 signature PREDICATE_COMPILE =
@@ -10,7 +10,7 @@ sig
   val preprocess : Predicate_Compile_Aux.options -> string -> theory -> theory
 end;
 
-structure Predicate_Compile : PREDICATE_COMPILE =
+structure Predicate_Compile (*: PREDICATE_COMPILE*) =
 struct
 
 (* options *)
@@ -105,12 +105,16 @@ fun preprocess options const thy =
     (Graph.strong_conn gr) thy
   end
 
-fun extract_options ((modes, raw_options), const) =
+fun extract_options (((expected_modes, proposed_modes), raw_options), const) =
   let
     fun chk s = member (op =) raw_options s
   in
     Options {
-      expected_modes = Option.map (pair const) modes,
+      expected_modes = Option.map (pair const) expected_modes,
+      proposed_modes = if not (null proposed_modes) then [(const, map fst proposed_modes)] else [],
+      proposed_names =
+        map_filter
+          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name)) proposed_modes,
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
@@ -125,17 +129,18 @@ fun extract_options ((modes, raw_options), const) =
     }
   end
 
-fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
+fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) lthy =
   let
      val thy = ProofContext.theory_of lthy
      val const = Code.read_const thy raw_const
-     val options = extract_options ((modes, raw_options), const)
+     val options = extract_options (((expected_modes, proposed_modes), raw_options), const)
   in
     if (is_inductify options) then
       let
         val lthy' = LocalTheory.theory (preprocess options const) lthy
           |> LocalTheory.checkpoint
-        val const = case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
+        val const =
+          case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
             SOME c => c
           | NONE => const
         val _ = print_step options "Starting Predicate Compile Core..."
@@ -146,7 +151,7 @@ fun code_pred_cmd ((modes, raw_options), raw_const) lthy =
       Predicate_Compile_Core.code_pred_cmd options raw_const lthy
   end
 
-val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
+val setup = Predicate_Compile_Core.setup
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "skip_proof", "inductify", "random", "depth_limited",
@@ -157,35 +162,25 @@ in
 
 (* Parser for mode annotations *)
 
-(*val parse_argmode' = P.nat >> rpair NONE || P.$$$ "(" |-- P.enum1 "," --| P.$$$ ")"*)
-datatype raw_argmode = Argmode of string | Argmode_Tuple of string list
+fun parse_mode_basic_expr xs =
+  (Args.$$$ "i" >> K Input || Args.$$$ "o" >> K Output ||
+    Args.$$$ "bool" >> K Bool || Args.$$$ "(" |-- parse_mode_expr --| Args.$$$ ")") xs
+and parse_mode_tuple_expr xs =
+  (parse_mode_basic_expr --| Args.$$$ "*" -- parse_mode_tuple_expr >> Pair || parse_mode_basic_expr)
+    xs
+and parse_mode_expr xs =
+  (parse_mode_tuple_expr --| Args.$$$ "=>" -- parse_mode_expr >> Fun || parse_mode_tuple_expr) xs
 
-val parse_argmode' =
-  ((Args.$$$ "i" || Args.$$$ "o") >> Argmode) ||
-  (Args.$$$ "(" |-- P.enum1 "," (Args.$$$ "i" || Args.$$$ "o") --| Args.$$$ ")" >> Argmode_Tuple)
-
-fun mk_numeral_mode ss = flat (map_index (fn (i, s) => if s = "i" then [i + 1] else []) ss)
-
-val parse_smode' = P.$$$ "[" |-- P.enum1 "," parse_argmode' --| P.$$$ "]"
-  >> (fn m => flat (map_index
-    (fn (i, Argmode s) => if s = "i" then [(i + 1, NONE)] else []
-      | (i, Argmode_Tuple ss) => [(i + 1, SOME (mk_numeral_mode ss))]) m))
-
-val parse_smode = (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]")
-  >> map (rpair (NONE : int list option))
-
-fun gen_parse_mode smode_parser =
-  (Scan.optional
-    ((P.enum "=>" ((Args.$$$ "X" >> K NONE) || (smode_parser >> SOME))) --| Args.$$$ "==>") [])
-    -- smode_parser
-
-val parse_mode = gen_parse_mode parse_smode
-
-val parse_mode' = gen_parse_mode parse_smode'
+val mode_and_opt_proposal = parse_mode_expr --
+  Scan.optional (Args.$$$ "as" |-- P.xname >> SOME) NONE
 
 val opt_modes =
-  Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-    P.enum1 "," (parse_mode || parse_mode') --| P.$$$ ")" >> SOME) NONE
+  Scan.optional (P.$$$ "(" |-- Args.$$$ "modes" |-- P.$$$ ":" |--
+    P.enum1 "," mode_and_opt_proposal --| P.$$$ ")") []
+
+val opt_expected_modes =
+  Scan.optional (P.$$$ "(" |-- Args.$$$ "expected_modes" |-- P.$$$ ":" |--
+    P.enum "," parse_mode_expr --| P.$$$ ")" >> SOME) NONE
 
 (* Parser for options *)
 
@@ -198,10 +193,10 @@ val scan_options =
 
 val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
-val opt_smode = (P.$$$ "_" >> K NONE) || (parse_smode >> SOME)
+val opt_mode = (P.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 
 val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-  P.enum ", " opt_smode --| P.$$$ "]" >> SOME) NONE
+  P.enum ", " opt_mode --| P.$$$ "]" >> SOME) NONE
 
 val value_options =
   let
@@ -217,7 +212,8 @@ val value_options =
 
 val _ = OuterSyntax.local_theory_to_proof "code_pred"
   "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal (opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
+  OuterKeyword.thy_goal
+  (opt_expected_modes -- opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
 
 val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
   (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional P.nat ~1 -- P.term

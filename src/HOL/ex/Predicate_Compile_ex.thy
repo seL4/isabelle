@@ -6,31 +6,35 @@ subsection {* Basic predicates *}
 
 inductive False' :: "bool"
 
-code_pred (mode : []) False' .
+code_pred (expected_modes: bool) False' .
 code_pred [depth_limited] False' .
 code_pred [random] False' .
 
 inductive EmptySet :: "'a \<Rightarrow> bool"
 
-code_pred (mode: [], [1]) EmptySet .
+code_pred (expected_modes: o => bool, i => bool) EmptySet .
 
 definition EmptySet' :: "'a \<Rightarrow> bool"
 where "EmptySet' = {}"
 
-code_pred (mode: [], [1]) [inductify] EmptySet' .
+code_pred (expected_modes: o => bool, i => bool) [inductify] EmptySet' .
 
 inductive EmptyRel :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
 
-code_pred (mode: [], [1], [2], [1, 2]) EmptyRel .
+code_pred (expected_modes: o => o => bool, i => o => bool, o => i => bool, i => i => bool) EmptyRel .
 
 inductive EmptyClosure :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 code_pred
-  (mode: [] ==> [], [] ==> [1], [] ==> [2], [] ==> [1, 2],
-         [1] ==> [], [1] ==> [1], [1] ==> [2], [1] ==> [1, 2],
-         [2] ==> [], [2] ==> [1], [2] ==> [2], [2] ==> [1, 2],
-         [1, 2] ==> [], [1, 2] ==> [1], [1, 2] ==> [2], [1, 2] ==> [1, 2])
+  (expected_modes: (o => o => bool) => o => o => bool, (o => o => bool) => i => o => bool,
+         (o => o => bool) => o => i => bool, (o => o => bool) => i => i => bool,
+         (i => o => bool) => o => o => bool, (i => o => bool) => i => o => bool,
+         (i => o => bool) => o => i => bool, (i => o => bool) => i => i => bool,
+         (o => i => bool) => o => o => bool, (o => i => bool) => i => o => bool,
+         (o => i => bool) => o => i => bool, (o => i => bool) => i => i => bool,
+         (i => i => bool) => o => o => bool, (i => i => bool) => i => o => bool,
+         (i => i => bool) => o => i => bool, (i => i => bool) => i => i => bool)
   EmptyClosure .
 
 thm EmptyClosure.equation
@@ -39,20 +43,21 @@ inductive False'' :: "bool"
 where
   "False \<Longrightarrow> False''"
 
-code_pred (mode: []) False'' .
+code_pred (expected_modes: []) False'' .
 
 inductive EmptySet'' :: "'a \<Rightarrow> bool"
 where
   "False \<Longrightarrow> EmptySet'' x"
 
-code_pred (mode: [1]) EmptySet'' .
-code_pred (mode: [], [1]) [inductify] EmptySet'' .
+code_pred (expected_modes: [1]) EmptySet'' .
+code_pred (expected_modes: [], [1]) [inductify] EmptySet'' .
 *)
+
 inductive True' :: "bool"
 where
   "True \<Longrightarrow> True'"
 
-code_pred (mode: []) True' .
+code_pred (expected_modes: bool) True' .
 
 consts a' :: 'a
 
@@ -60,14 +65,28 @@ inductive Fact :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 where
 "Fact a' a'"
 
-code_pred (mode: [], [1], [2], [1, 2]) Fact .
+code_pred (expected_modes: o => o => bool, i => o => bool, o => i => bool, i => i => bool) Fact .
 
 inductive zerozero :: "nat * nat => bool"
 where
   "zerozero (0, 0)"
 
-code_pred (mode: [i], [(i, o)], [(o, i)], [o]) zerozero .
+code_pred (expected_modes: i => bool, i * o => bool, o * i => bool, o => bool) zerozero .
 code_pred [random] zerozero .
+
+inductive JamesBond :: "nat => int => code_numeral => bool"
+where
+  "JamesBond 0 0 7"
+
+code_pred JamesBond .
+
+values "{(a, b, c). JamesBond a b c}"
+values "{(a, c, b). JamesBond a b c}"
+values "{(b, a, c). JamesBond a b c}"
+values "{(b, c, a). JamesBond a b c}"
+values "{(c, a, b). JamesBond a b c}"
+values "{(c, b, a). JamesBond a b c}"
+
 
 subsection {* Alternative Rules *}
 
@@ -77,22 +96,22 @@ inductive is_C_or_D
 where
   "(x = C) \<or> (x = D) ==> is_C_or_D x"
 
-code_pred (mode: [1]) is_C_or_D .
+code_pred (expected_modes: i => bool) is_C_or_D .
 thm is_C_or_D.equation
 
 inductive is_D_or_E
 where
   "(x = D) \<or> (x = E) ==> is_D_or_E x"
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_D_or_E D"
 by (auto intro: is_D_or_E.intros)
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_D_or_E E"
 by (auto intro: is_D_or_E.intros)
 
-code_pred (mode: [], [1]) is_D_or_E
+code_pred (expected_modes: o => bool, i => bool) is_D_or_E
 proof -
   case is_D_or_E
   from this(1) show thesis
@@ -115,11 +134,11 @@ inductive is_F_or_G
 where
   "x = F \<or> x = G ==> is_F_or_G x"
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_F_or_G F"
 by (auto intro: is_F_or_G.intros)
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_F_or_G G"
 by (auto intro: is_F_or_G.intros)
 
@@ -130,7 +149,7 @@ where
 
 text {* Compilation of is_FGH requires elimination rule for is_F_or_G *}
 
-code_pred (mode: [], [1]) is_FGH
+code_pred (expected_modes: o => bool, i => bool) is_FGH
 proof -
   case is_F_or_G
   from this(1) show thesis
@@ -156,7 +175,7 @@ definition "equals == (op =)"
 inductive zerozero' :: "nat * nat => bool" where
   "equals (x, y) (0, 0) ==> zerozero' (x, y)"
 
-code_pred (mode: [1]) zerozero' .
+code_pred (expected_modes: i => bool) zerozero' .
 
 lemma zerozero'_eq: "zerozero' x == zerozero x"
 proof -
@@ -176,7 +195,7 @@ definition "zerozero'' x == zerozero' x"
 
 text {* if preprocessing fails, zerozero'' will not have all modes. *}
 
-code_pred (mode: [o], [(i, o)], [(o,i)], [i]) [inductify] zerozero'' .
+code_pred (expected_modes: i * i => bool, i * o => bool, o * i => bool, o => bool) [inductify] zerozero'' .
 
 subsection {* Numerals *}
 
@@ -214,7 +233,7 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "even n \<Longrightarrow> odd (Suc n)"
   | "odd n \<Longrightarrow> even (Suc n)"
 
-code_pred (mode: [], [1]) even .
+code_pred (expected_modes: i => bool, o => bool) even .
 code_pred [depth_limited] even .
 code_pred [random] even .
 
@@ -237,7 +256,7 @@ values [depth_limit = 7] 10 "{n. even n}"
 
 definition odd' where "odd' x == \<not> even x"
 
-code_pred (mode: [1]) [inductify] odd' .
+code_pred (expected_modes: i => bool) [inductify] odd' .
 code_pred [inductify, depth_limited] odd' .
 code_pred [inductify, random] odd' .
 
@@ -249,7 +268,7 @@ inductive is_even :: "nat \<Rightarrow> bool"
 where
   "n mod 2 = 0 \<Longrightarrow> is_even n"
 
-code_pred (mode: [1]) is_even .
+code_pred (expected_modes: i => bool) is_even .
 
 subsection {* append predicate *}
 
@@ -257,7 +276,8 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
     "append [] xs xs"
   | "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
-code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append .
+code_pred (modes: i => i => o => bool as "concat", o => o => i => bool as "slice", o => i => i => bool as prefix,
+  i => o => i => bool as suffix) append .
 code_pred [depth_limited] append .
 code_pred [random] append .
 code_pred [annotated] append .
@@ -270,11 +290,12 @@ thm append.annotated_equation
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
-values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-values [random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
 
-value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
-value [code] "Predicate.the (append_3 ([]::int list))"
+values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
+values [random] 1 "{(ys, zs). append [1::nat, 2] ys zs}"
+
+value [code] "Predicate.the (concat [0::int, 1, 2] [3, 4, 5])"
+value [code] "Predicate.the (slice ([]::int list))"
 
 
 text {* tricky case with alternative rules *}
@@ -287,9 +308,10 @@ where
 lemma append2_Nil: "append2 [] (xs::'b list) xs"
   by (simp add: append2.intros(1))
 
-lemmas [code_pred_intros] = append2_Nil append2.intros(2)
+lemmas [code_pred_intro] = append2_Nil append2.intros(2)
 
-code_pred (mode: [1, 2], [3], [2, 3], [1, 3], [1, 2, 3]) append2
+code_pred (expected_modes: i => i => o => bool, o => o => i => bool, o => i => i => bool,
+  i => o => i => bool, i => i => i => bool) append2
 proof -
   case append2
   from append2(1) show thesis
@@ -309,13 +331,13 @@ where
   "tupled_append ([], xs, xs)"
 | "tupled_append (xs, ys, zs) \<Longrightarrow> tupled_append (x # xs, ys, x # zs)"
 
-code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append .
+code_pred (expected_modes: i * i * o => bool, o * o * i => bool, o * i * i => bool,
+  i * o * i => bool, i * i * i => bool) tupled_append .
 code_pred [random] tupled_append .
 thm tupled_append.equation
-(*
-TODO: values with tupled modes
-values "{xs. tupled_append ([1,2,3], [4,5], xs)}"
-*)
+
+(*TODO: values with tupled modes*)
+(*values "{xs. tupled_append ([1,2,3], [4,5], xs)}"*)
 
 inductive tupled_append'
 where
@@ -323,7 +345,8 @@ where
 | "[| ys = fst (xa, y); x # zs = snd (xa, y);
  tupled_append' (xs, ys, zs) |] ==> tupled_append' (x # xs, xa, y)"
 
-code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) tupled_append' .
+code_pred (expected_modes: i * i * o => bool, o * o * i => bool, o * i * i => bool,
+  i * o * i => bool, i * i * i => bool) tupled_append' .
 thm tupled_append'.equation
 
 inductive tupled_append'' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -331,7 +354,8 @@ where
   "tupled_append'' ([], xs, xs)"
 | "ys = fst yszs ==> x # zs = snd yszs ==> tupled_append'' (xs, ys, zs) \<Longrightarrow> tupled_append'' (x # xs, yszs)"
 
-code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) [inductify] tupled_append'' .
+code_pred (expected_modes: i * i * o => bool, o * o * i => bool, o * i * i => bool,
+  i * o * i => bool, i * i * i => bool) [inductify] tupled_append'' .
 thm tupled_append''.equation
 
 inductive tupled_append''' :: "'a list \<times> 'a list \<times> 'a list \<Rightarrow> bool"
@@ -339,7 +363,8 @@ where
   "tupled_append''' ([], xs, xs)"
 | "yszs = (ys, zs) ==> tupled_append''' (xs, yszs) \<Longrightarrow> tupled_append''' (x # xs, ys, x # zs)"
 
-code_pred (mode: [(i,i,o)], [(i,o,i)], [(o,i,i)], [(o,o,i)], [i]) [inductify] tupled_append''' .
+code_pred (expected_modes: i * i * o => bool, o * o * i => bool, o * i * i => bool,
+  i * o * i => bool, i * i * i => bool) [inductify] tupled_append''' .
 thm tupled_append'''.equation
 
 subsection {* map_ofP predicate *}
@@ -349,7 +374,7 @@ where
   "map_ofP ((a, b)#xs) a b"
 | "map_ofP xs a b \<Longrightarrow> map_ofP (x#xs) a b"
 
-code_pred (mode: [1], [1, 2], [1, 2, 3], [1, 3]) map_ofP .
+code_pred (expected_modes: i => o => o => bool, i => i => o => bool, i => o => i => bool, i => i => i => bool) map_ofP .
 thm map_ofP.equation
 
 subsection {* filter predicate *}
@@ -361,7 +386,7 @@ where
 | "P x ==> filter1 P xs ys ==> filter1 P (x#xs) (x#ys)"
 | "\<not> P x ==> filter1 P xs ys ==> filter1 P (x#xs) ys"
 
-code_pred (mode: [1] ==> [1], [1] ==> [1, 2]) filter1 .
+code_pred (expected_modes: (i => bool) => i => o => bool, (i => bool) => i => i => bool) filter1 .
 code_pred [depth_limited] filter1 .
 code_pred [random] filter1 .
 
@@ -373,7 +398,7 @@ where
 | "P x ==> filter2 P xs ys ==> filter2 P (x#xs) (x#ys)"
 | "\<not> P x ==> filter2 P xs ys ==> filter2 P (x#xs) ys"
 
-code_pred (mode: [1, 2, 3], [1, 2]) filter2 .
+code_pred (expected_modes: i => i => i => bool, i => i => o => bool) filter2 .
 code_pred [depth_limited] filter2 .
 code_pred [random] filter2 .
 thm filter2.equation
@@ -384,7 +409,7 @@ for P
 where
   "List.filter P xs = ys ==> filter3 P xs ys"
 
-code_pred (mode: [] ==> [1], [] ==> [1, 2], [1] ==> [1], [1] ==> [1, 2]) filter3 .
+code_pred (expected_modes: (o => bool) => i => o => bool, (o => bool) => i => i => bool , (i => bool) => i => o => bool, (i => bool) => i => i => bool) filter3 .
 code_pred [depth_limited] filter3 .
 thm filter3.depth_limited_equation
 
@@ -392,7 +417,7 @@ inductive filter4
 where
   "List.filter P xs = ys ==> filter4 P xs ys"
 
-code_pred (mode: [1, 2], [1, 2, 3]) filter4 .
+code_pred (expected_modes: i => i => o => bool, i => i => i => bool) filter4 .
 code_pred [depth_limited] filter4 .
 code_pred [random] filter4 .
 
@@ -402,7 +427,7 @@ inductive rev where
     "rev [] []"
   | "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
 
-code_pred (mode: [1], [2], [1, 2]) rev .
+code_pred (expected_modes: i => o => bool, o => i => bool, i => i => bool) rev .
 
 thm rev.equation
 
@@ -412,7 +437,7 @@ inductive tupled_rev where
   "tupled_rev ([], [])"
 | "tupled_rev (xs, xs') \<Longrightarrow> tupled_append (xs', [x], ys) \<Longrightarrow> tupled_rev (x#xs, ys)"
 
-code_pred (mode: [(i, o)], [(o, i)], [i]) tupled_rev .
+code_pred (expected_modes: i * o => bool, o * i => bool, i * i => bool) tupled_rev .
 thm tupled_rev.equation
 
 subsection {* partition predicate *}
@@ -423,7 +448,8 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-code_pred (mode: [1] ==> [1], [1] ==> [2, 3], [1] ==> [1, 2], [1] ==> [1, 3], [1] ==> [1, 2, 3]) partition .
+code_pred (expected_modes: (i => bool) => i => o => o => bool, (i => bool) => o => i => i => bool,
+  (i => bool) => i => i => o => bool, (i => bool) => i => o => i => bool, (i => bool) => i => i => i => bool) partition .
 code_pred [depth_limited] partition .
 code_pred [random] partition .
 
@@ -438,18 +464,21 @@ inductive tupled_partition :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<
   | "f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, x # ys, zs)"
   | "\<not> f x \<Longrightarrow> tupled_partition f (xs, ys, zs) \<Longrightarrow> tupled_partition f (x # xs, ys, x # zs)"
 
-code_pred (mode: [i] ==> [i], [i] ==> [(i, i, o)], [i] ==> [(i, o, i)], [i] ==> [(o, i, i)], [i] ==> [(i, o, o)]) tupled_partition .
+code_pred (expected_modes: (i => bool) => i => bool, (i => bool) => (i * i * o) => bool, (i => bool) => (i * o * i) => bool,
+  (i => bool) => (o * i * i) => bool, (i => bool) => (i * o * o) => bool) tupled_partition .
 
 thm tupled_partition.equation
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "r a b \<Longrightarrow> tranclp r a b"
   "r a b \<Longrightarrow> tranclp r b c \<Longrightarrow> tranclp r a c"
   by auto
 
 subsection {* transitive predicate *}
 
-code_pred (mode: [1] ==> [1, 2], [1] ==> [1], [2] ==> [1, 2], [2] ==> [2], [] ==> [1, 2], [] ==> [1], [] ==> [2], [] ==> []) tranclp
+code_pred (modes: (i => o => bool) => i => i => bool, (i => o => bool) => i => o => bool as forwards_trancl,
+  (o => i => bool) => i => i => bool, (o => i => bool) => o => i => bool as backwards_trancl, (o => o => bool) => i => i => bool, (o => o => bool) => i => o => bool,
+  (o => o => bool) => o => i => bool, (o => o => bool) => o => o => bool) tranclp
 proof -
   case tranclp
   from this converse_tranclpE[OF this(1)] show thesis by metis
@@ -476,10 +505,9 @@ values "{m. succ m 0}"
 text {* values command needs mode annotation of the parameter succ
 to disambiguate which mode is to be chosen. *} 
 
-values [mode: [1]] 20 "{n. tranclp succ 10 n}"
-values [mode: [2]] 10 "{n. tranclp succ n 10}"
+values [mode: i => o => bool] 20 "{n. tranclp succ 10 n}"
+values [mode: o => i => bool] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
-
 
 subsection {* IMP *}
 
@@ -548,9 +576,8 @@ values 3
 values 5
  "{as . steps (par (or (pre 0 nil) (pre 1 nil)) (pre 2 nil)) as (par nil nil)}"
 
-(* FIXME:
 values 3 "{(a,q). step (par nil nil) a q}"
-*)
+
 
 inductive tupled_step :: "(proc \<times> nat \<times> proc) \<Rightarrow> bool"
 where
@@ -570,8 +597,8 @@ inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
   | "k \<ge> l \<Longrightarrow> divmod_rel (k - l) l q r \<Longrightarrow> divmod_rel k l (Suc q) r"
 
 code_pred divmod_rel ..
-
-value [code] "Predicate.the (divmod_rel_1_2 1705 42)"
+thm divmod_rel.equation
+value [code] "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
 
 subsection {* Minimum *}
 
@@ -657,7 +684,7 @@ where
 | "is_ord (MKT n l r h) =
  ((\<forall>n' \<in> set_of l. n' < n) \<and> (\<forall>n' \<in> set_of r. n < n') \<and> is_ord l \<and> is_ord r)"
 
-code_pred (mode: [1], [1, 2]) [inductify] set_of .
+code_pred (expected_modes: i => o => bool, i => i => bool) [inductify] set_of .
 thm set_of.equation
 
 code_pred [inductify] is_ord .
@@ -673,19 +700,15 @@ code_pred [inductify] rel_comp .
 thm rel_comp.equation
 code_pred [inductify] Image .
 thm Image.equation
-(*TODO: *)
-
-declare Id_on_def[unfolded UNION_def, code_pred_def]
-
-code_pred [inductify] Id_on .
+code_pred (expected_modes: (o => bool) => o => bool, (o => bool) => i * o => bool,
+  (o => bool) => o * i => bool, (o => bool) => i => bool) [inductify] Id_on .
 thm Id_on.equation
 code_pred [inductify] Domain .
 thm Domain.equation
 code_pred [inductify] Range .
 thm Range.equation
 code_pred [inductify] Field .
-declare Sigma_def[unfolded UNION_def, code_pred_def]
-declare refl_on_def[unfolded UNION_def, code_pred_def]
+thm Field.equation
 code_pred [inductify] refl_on .
 thm refl_on.equation
 code_pred [inductify] total_on .
@@ -708,21 +731,82 @@ thm size_listP.random_equation
 
 (*values [random] 1 "{xs. size_listP (xs::nat list) (5::nat)}"*)
 
-code_pred [inductify] concat .
-code_pred [inductify] hd .
-code_pred [inductify] tl .
+code_pred (expected_modes: i => o => bool, o => i => bool, i => i => bool) [inductify] List.concat .
+thm concatP.equation
+
+values "{ys. concatP [[1, 2], [3, (4::int)]] ys}"
+values "{ys. concatP [[1, 2], [3]] [1, 2, (3::nat)]}"
+
+code_pred [inductify, depth_limited] List.concat .
+thm concatP.depth_limited_equation
+
+values [depth_limit = 3] 3
+  "{xs. concatP xs ([0] :: nat list)}"
+
+values [depth_limit = 5] 3
+  "{xs. concatP xs ([1] :: int list)}"
+
+values [depth_limit = 5] 3
+  "{xs. concatP xs ([1] :: nat list)}"
+
+values [depth_limit = 5] 3
+  "{xs. concatP xs [(1::int), 2]}"
+
+code_pred (expected_modes: i => o => bool, i => i => bool) [inductify] hd .
+thm hdP.equation
+values "{x. hdP [1, 2, (3::int)] x}"
+values "{(xs, x). hdP [1, 2, (3::int)] 1}"
+ 
+code_pred (expected_modes: i => o => bool, i => i => bool) [inductify] tl .
+thm tlP.equation
+values "{x. tlP [1, 2, (3::nat)] x}"
+values "{x. tlP [1, 2, (3::int)] [3]}"
+
 code_pred [inductify] last .
+thm lastP.equation
+
 code_pred [inductify] butlast .
+thm butlastP.equation
+
 code_pred [inductify] take .
+thm takeP.equation
+
 code_pred [inductify] drop .
+thm dropP.equation
 code_pred [inductify] zip .
+thm zipP.equation
+
 (*code_pred [inductify] upt .*)
 code_pred [inductify] remdups .
+thm remdupsP.equation
+code_pred [inductify, depth_limited] remdups .
+values [depth_limit = 4] 5 "{xs. remdupsP xs [1, (2::int)]}"
+
 code_pred [inductify] remove1 .
+thm remove1P.equation
+values "{xs. remove1P 1 xs [2, (3::int)]}"
+
 code_pred [inductify] removeAll .
+thm removeAllP.equation
+code_pred [inductify, depth_limited] removeAll .
+
+values [depth_limit = 4] 10 "{xs. removeAllP 1 xs [(2::nat)]}"
+
 code_pred [inductify] distinct .
+thm distinct.equation
+
 code_pred [inductify] replicate .
+thm replicateP.equation
+values 5 "{(n, xs). replicateP n (0::int) xs}"
+
 code_pred [inductify] splice .
+thm splice.simps
+thm spliceP.equation
+
+values "{xs. spliceP xs [1, 2, 3] [1, 1, 1, 2, 1, (3::nat)]}"
+(* TODO: correct error messages:*)
+(* values {(xs, ys, zs). spliceP xs ... } *)
+
 code_pred [inductify] List.rev .
 code_pred [inductify] map .
 code_pred [inductify] foldr .
@@ -786,7 +870,7 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 | "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
 | "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
 
-code_pred (mode: [], [1]) S\<^isub>4p .
+code_pred (expected_modes: o => bool, i => bool) S\<^isub>4p .
 
 subsection {* Lambda *}
 
@@ -838,10 +922,58 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
 
-code_pred (mode: [1, 2], [1, 2, 3]) typing .
+code_pred (expected_modes: i => i => o => bool, i => i => i => bool) typing .
 thm typing.equation
 
-code_pred (mode: [1], [1, 2]) beta .
+code_pred (modes: i => o => bool as reduce') beta .
 thm beta.equation
+
+values "{x. App (Abs (Atom 0) (Var 0)) (Var 1) \<rightarrow>\<^sub>\<beta> x}"
+
+definition "reduce t = Predicate.the (reduce' t)"
+
+value "reduce (App (Abs (Atom 0) (Var 0)) (Var 1))"
+
+code_pred [random] typing .
+
+values [random] 1 "{(\<Gamma>, t, T). \<Gamma> \<turnstile> t : T}"
+
+subsection {* A minimal example of yet another semantics *}
+
+text {* thanks to Elke Salecker *}
+
+types
+vname = nat
+vvalue = int
+var_assign = "vname \<Rightarrow> vvalue"  --"variable assignment"
+
+datatype ir_expr = 
+  IrConst vvalue
+| ObjAddr vname
+| Add ir_expr ir_expr
+
+datatype val =
+  IntVal  vvalue
+
+record  configuration =
+Env :: var_assign
+
+inductive eval_var ::
+"ir_expr \<Rightarrow> configuration \<Rightarrow> val \<Rightarrow> bool"
+where
+  irconst: "eval_var (IrConst i) conf (IntVal i)"
+| objaddr: "\<lbrakk> Env conf n = i \<rbrakk> \<Longrightarrow> eval_var (ObjAddr n) conf (IntVal i)"
+| plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow> eval_var (Add l r) conf (IntVal (vl+vr))"
+
+(* TODO: breaks if code_pred_intro is used? *)
+(*
+lemmas [code_pred_intro] = irconst objaddr plus
+*)
+thm eval_var.cases
+
+code_pred eval_var . (*by (rule eval_var.cases)*)
+thm eval_var.equation
+
+values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) val}"
 
 end
