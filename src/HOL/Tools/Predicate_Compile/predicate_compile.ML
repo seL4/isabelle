@@ -161,49 +161,17 @@ local structure P = OuterParse
 in
 
 (* Parser for mode annotations *)
-(* FIXME: remove old parser *)
-(*val parse_argmode' = P.nat >> rpair NONE || P.$$$ "(" |-- P.enum1 "," --| P.$$$ ")"*)
-datatype raw_argmode = Argmode of string | Argmode_Tuple of string list
 
-val parse_argmode' =
-  ((Args.$$$ "i" || Args.$$$ "o") >> Argmode) ||
-  (Args.$$$ "(" |-- P.enum1 "," (Args.$$$ "i" || Args.$$$ "o") --| Args.$$$ ")" >> Argmode_Tuple)
-
-fun mk_numeral_mode ss = flat (map_index (fn (i, s) => if s = "i" then [i + 1] else []) ss)
-
-val parse_smode' = P.$$$ "[" |-- P.enum1 "," parse_argmode' --| P.$$$ "]"
-  >> (fn m => flat (map_index
-    (fn (i, Argmode s) => if s = "i" then [(i + 1, NONE)] else []
-      | (i, Argmode_Tuple ss) => [(i + 1, SOME (mk_numeral_mode ss))]) m))
-
-val parse_smode = (P.$$$ "[" |-- P.enum "," P.nat --| P.$$$ "]")
-  >> map (rpair (NONE : int list option))
-
-fun gen_parse_mode smode_parser =
-  (Scan.optional
-    ((P.enum "=>" ((Args.$$$ "X" >> K NONE) || (smode_parser >> SOME))) --| Args.$$$ "==>") [])
-    -- smode_parser
-
-val parse_mode = gen_parse_mode parse_smode
-
-val parse_mode' = gen_parse_mode parse_smode'
-
-(* New parser for modes *)
-
-(* grammar:
-E = T "=>" E | T
-T = F * T | F
-F = i | o | bool | ( E )
-*)
-fun new_parse_mode1 xs =
+fun parse_mode_basic_expr xs =
   (Args.$$$ "i" >> K Input || Args.$$$ "o" >> K Output ||
-    Args.$$$ "bool" >> K Bool || Args.$$$ "(" |-- new_parse_mode3 --| Args.$$$ ")") xs
-and new_parse_mode2 xs =
-  (new_parse_mode1 --| Args.$$$ "*" -- new_parse_mode2 >> Pair || new_parse_mode1) xs
-and new_parse_mode3 xs =
-  (new_parse_mode2 --| Args.$$$ "=>" -- new_parse_mode3 >> Fun || new_parse_mode2) xs
+    Args.$$$ "bool" >> K Bool || Args.$$$ "(" |-- parse_mode_expr --| Args.$$$ ")") xs
+and parse_mode_tuple_expr xs =
+  (parse_mode_basic_expr --| Args.$$$ "*" -- parse_mode_tuple_expr >> Pair || parse_mode_basic_expr)
+    xs
+and parse_mode_expr xs =
+  (parse_mode_tuple_expr --| Args.$$$ "=>" -- parse_mode_expr >> Fun || parse_mode_tuple_expr) xs
 
-val mode_and_opt_proposal = new_parse_mode3 --
+val mode_and_opt_proposal = parse_mode_expr --
   Scan.optional (Args.$$$ "as" |-- P.xname >> SOME) NONE
 
 val opt_modes =
@@ -212,7 +180,7 @@ val opt_modes =
 
 val opt_expected_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "expected_modes" |-- P.$$$ ":" |--
-    P.enum "," new_parse_mode3 --| P.$$$ ")" >> SOME) NONE
+    P.enum "," parse_mode_expr --| P.$$$ ")" >> SOME) NONE
 
 (* Parser for options *)
 
@@ -225,7 +193,7 @@ val scan_options =
 
 val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
 
-val opt_mode = (P.$$$ "_" >> K NONE) || (new_parse_mode3 >> SOME)
+val opt_mode = (P.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 
 val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
   P.enum ", " opt_mode --| P.$$$ "]" >> SOME) NONE
