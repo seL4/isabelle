@@ -1503,7 +1503,7 @@ in
   (introthm, elimthm)
 end;
 
-fun create_constname_of_mode thy prefix name mode = 
+fun create_constname_of_mode options thy prefix name T mode = 
   let
     fun string_of_mode mode = if null mode then "0"
       else space_implode "_"
@@ -1511,9 +1511,11 @@ fun create_constname_of_mode thy prefix name mode =
         ^ space_implode "p" (map string_of_int pis)) mode)
     val HOmode = space_implode "_and_"
       (fold (fn NONE => I | SOME mode => cons (string_of_mode mode)) (fst mode) [])
+    val system_proposal = prefix ^ (Long_Name.base_name name) ^
+      (if HOmode = "" then "_" else "_for_" ^ HOmode ^ "_yields_") ^ string_of_mode (snd mode)
+    val name = the_default system_proposal (user_proposal options name (translate_mode T mode))
   in
-    (Sign.full_bname thy (prefix ^ (Long_Name.base_name name))) ^
-      (if HOmode = "" then "_" else "_for_" ^ HOmode ^ "_yields_") ^ (string_of_mode (snd mode))
+    Sign.full_bname thy name
   end;
 
 fun split_tupleT is T =
@@ -1542,12 +1544,12 @@ fun mk_arg xin xout pis T =
     HOLogic.mk_tuple args
   end
 
-fun create_definitions preds (name, modes) thy =
+fun create_definitions options preds (name, modes) thy =
   let
     val compfuns = PredicateCompFuns.compfuns
     val T = AList.lookup (op =) preds name |> the
     fun create_definition (mode as (iss, is)) thy = let
-      val mode_cname = create_constname_of_mode thy "" name mode
+      val mode_cname = create_constname_of_mode options thy "" name T mode
       val mode_cbasename = Long_Name.base_name mode_cname
       val Ts = binder_types T
       val (Ts1, Ts2) = chop (length iss) Ts
@@ -1617,13 +1619,13 @@ fun create_definitions preds (name, modes) thy =
     fold create_definition modes thy
   end;
 
-fun define_functions comp_modifiers compfuns preds (name, modes) thy =
+fun define_functions comp_modifiers compfuns options preds (name, modes) thy =
   let
     val T = AList.lookup (op =) preds name |> the
     fun create_definition mode thy =
       let
         val function_name_prefix = Comp_Mod.function_name_prefix comp_modifiers
-        val mode_cname = create_constname_of_mode thy function_name_prefix name mode
+        val mode_cname = create_constname_of_mode options thy function_name_prefix name T mode
         val funT = Comp_Mod.funT_of comp_modifiers compfuns mode T
       in
         thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
@@ -2220,7 +2222,7 @@ datatype steps = Steps of
   {
   compile_preds : theory -> string list -> string list -> (string * typ) list
     -> (moded_clause list) pred_mode_table -> term pred_mode_table,
-  define_functions : (string * typ) list -> string * mode list -> theory -> theory,
+  define_functions : options -> (string * typ) list -> string * mode list -> theory -> theory,
   infer_modes : options -> theory -> (string * mode list) list -> (string * mode list) list
     -> string list -> (string * (term list * indprem list) list) list
     -> moded_clause list pred_mode_table,
@@ -2251,7 +2253,7 @@ fun add_equations_of steps options prednames thy =
     val _ = print_modes options thy modes
       (*val _ = print_moded_clauses thy moded_clauses*)
     val _ = print_step options "Defining executable functions..."
-    val thy' = fold (#define_functions (dest_steps steps) preds) modes thy
+    val thy' = fold (#define_functions (dest_steps steps) options preds) modes thy
       |> Theory.checkpoint
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
@@ -2356,7 +2358,7 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
 val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   {function_name_of = random_function_name_of,
   set_function_name = set_random_function_name,
-  function_name_prefix = "random",
+  function_name_prefix = "random_",
   funT_of = K random_function_funT_of : (compilation_funs -> mode -> typ -> typ),
   additional_arguments = fn names => [Free (Name.variant names "size", @{typ code_numeral})],
   wrap_compilation = K (K (K (K (K I))))
@@ -2367,7 +2369,7 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
 val annotated_comp_modifiers = Comp_Mod.Comp_Modifiers
   {function_name_of = annotated_function_name_of,
   set_function_name = set_annotated_function_name,
-  function_name_prefix = "annotated",
+  function_name_prefix = "annotated_",
   funT_of = funT_of : (compilation_funs -> mode -> typ -> typ),
   additional_arguments = K [],
   wrap_compilation =

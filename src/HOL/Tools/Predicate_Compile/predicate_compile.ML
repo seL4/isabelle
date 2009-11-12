@@ -110,7 +110,10 @@ fun extract_options ((modes, raw_options), const) =
     fun chk s = member (op =) raw_options s
   in
     Options {
-      expected_modes = Option.map (pair const) modes,
+      expected_modes = Option.map ((pair const) o (map fst)) modes,
+      user_proposals =
+        the_default [] (Option.map (map_filter
+          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name))) modes),
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
@@ -198,9 +201,12 @@ and new_parse_mode2 xs =
 and new_parse_mode3 xs =
   (new_parse_mode2 --| Args.$$$ "=>" -- new_parse_mode3 >> Fun || new_parse_mode2) xs
 
+val mode_and_opt_proposal = new_parse_mode3 --
+  Scan.optional (Args.$$$ "as" |-- P.xname >> SOME) NONE
+
 val opt_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-    P.enum1 "," new_parse_mode3 --| P.$$$ ")" >> SOME) NONE
+    P.enum1 "," mode_and_opt_proposal --| P.$$$ ")" >> SOME) NONE
 
 (* Parser for options *)
 
