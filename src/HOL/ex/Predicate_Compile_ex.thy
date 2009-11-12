@@ -69,6 +69,20 @@ where
 code_pred (mode: [i], [(i, o)], [(o, i)], [o]) zerozero .
 code_pred [random] zerozero .
 
+inductive JamesBond :: "nat => int => code_numeral => bool"
+where
+  "JamesBond 0 0 7"
+
+code_pred JamesBond .
+
+values "{(a, b, c). JamesBond a b c}"
+values "{(a, c, b). JamesBond a b c}"
+values "{(b, a, c). JamesBond a b c}"
+values "{(b, c, a). JamesBond a b c}"
+values "{(c, a, b). JamesBond a b c}"
+values "{(c, b, a). JamesBond a b c}"
+
+
 subsection {* Alternative Rules *}
 
 datatype char = C | D | E | F | G | H
@@ -270,8 +284,9 @@ thm append.annotated_equation
 values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
 values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
+
 values [depth_limit = 3] "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-values [random] 15 "{(ys, zs). append [1::nat, 2] ys zs}"
+values [random] 1 "{(ys, zs). append [1::nat, 2] ys zs}"
 
 value [code] "Predicate.the (append_1_2 [0::int, 1, 2] [3, 4, 5])"
 value [code] "Predicate.the (append_3 ([]::int list))"
@@ -479,7 +494,6 @@ to disambiguate which mode is to be chosen. *}
 values [mode: [1]] 20 "{n. tranclp succ 10 n}"
 values [mode: [2]] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
-
 
 subsection {* IMP *}
 
@@ -708,21 +722,82 @@ thm size_listP.random_equation
 
 (*values [random] 1 "{xs. size_listP (xs::nat list) (5::nat)}"*)
 
-code_pred [inductify] concat .
-code_pred [inductify] hd .
-code_pred [inductify] tl .
+code_pred (mode: [1], [2], [1, 2]) [inductify] concat .
+thm concatP.equation
+
+values "{ys. concatP [[1, 2], [3, (4::int)]] ys}"
+values "{ys. concatP [[1, 2], [3]] [1, 2, (3::nat)]}"
+
+code_pred [inductify, depth_limited] concat .
+thm concatP.depth_limited_equation
+
+values  [depth_limit = 3] 3
+  "{xs. concatP xs ([0] :: nat list)}"
+
+values [depth_limit = 5] 3
+  "{xs. concatP xs ([1] :: int list)}"
+
+values [depth_limit = 5] 3
+  "{xs. concatP xs ([1] :: nat list)}"
+
+values [depth_limit = 5] 3
+  "{xs. concatP xs [(1::int), 2]}"
+
+code_pred (mode: [1], [1, 2]) [inductify] hd .
+thm hdP.equation
+values "{x. hdP [1, 2, (3::int)] x}"
+values "{(xs, x). hdP [1, 2, (3::int)] 1}"
+ 
+code_pred (mode: [1], [1, 2]) [inductify] tl .
+thm tlP.equation
+values "{x. tlP [1, 2, (3::nat)] x}"
+values "{x. tlP [1, 2, (3::int)] [3]}"
+
 code_pred [inductify] last .
+thm lastP.equation
+
 code_pred [inductify] butlast .
+thm butlastP.equation
+
 code_pred [inductify] take .
+thm takeP.equation
+
 code_pred [inductify] drop .
+thm dropP.equation
 code_pred [inductify] zip .
+thm zipP.equation
+
 (*code_pred [inductify] upt .*)
 code_pred [inductify] remdups .
+thm remdupsP.equation
+code_pred [inductify, depth_limited] remdups .
+values [depth_limit = 4] 5 "{xs. remdupsP xs [1, (2::int)]}"
+
 code_pred [inductify] remove1 .
+thm remove1P.equation
+values "{xs. remove1P 1 xs [2, (3::int)]}"
+
 code_pred [inductify] removeAll .
+thm removeAllP.equation
+code_pred [inductify, depth_limited] removeAll .
+
+values [depth_limit = 4] 10 "{xs. removeAllP 1 xs [(2::nat)]}"
+
 code_pred [inductify] distinct .
+thm distinct.equation
+
 code_pred [inductify] replicate .
+thm replicateP.equation
+values 5 "{(n, xs). replicateP n (0::int) xs}"
+
 code_pred [inductify] splice .
+thm splice.simps
+thm spliceP.equation
+
+values "{xs. spliceP xs [1, 2, 3] [1, 1, 1, 2, 1, (3::nat)]}"
+(* TODO: correct error messages:*)
+(* values {(xs, ys, zs). spliceP xs ... } *)
+
 code_pred [inductify] List.rev .
 code_pred [inductify] map .
 code_pred [inductify] foldr .
@@ -843,5 +918,9 @@ thm typing.equation
 
 code_pred (mode: [1], [1, 2]) beta .
 thm beta.equation
+
+code_pred [random] typing .
+
+values [random] "{(\<Gamma>, t, T). \<Gamma> \<turnstile> t : T}"
 
 end
