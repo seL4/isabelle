@@ -103,11 +103,11 @@ inductive is_D_or_E
 where
   "(x = D) \<or> (x = E) ==> is_D_or_E x"
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_D_or_E D"
 by (auto intro: is_D_or_E.intros)
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_D_or_E E"
 by (auto intro: is_D_or_E.intros)
 
@@ -134,11 +134,11 @@ inductive is_F_or_G
 where
   "x = F \<or> x = G ==> is_F_or_G x"
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_F_or_G F"
 by (auto intro: is_F_or_G.intros)
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "is_F_or_G G"
 by (auto intro: is_F_or_G.intros)
 
@@ -308,7 +308,7 @@ where
 lemma append2_Nil: "append2 [] (xs::'b list) xs"
   by (simp add: append2.intros(1))
 
-lemmas [code_pred_intros] = append2_Nil append2.intros(2)
+lemmas [code_pred_intro] = append2_Nil append2.intros(2)
 
 code_pred (expected_modes: i => i => o => bool, o => o => i => bool, o => i => i => bool,
   i => o => i => bool, i => i => i => bool) append2
@@ -469,7 +469,7 @@ code_pred (expected_modes: (i => bool) => i => bool, (i => bool) => (i * i * o) 
 
 thm tupled_partition.equation
 
-lemma [code_pred_intros]:
+lemma [code_pred_intro]:
   "r a b \<Longrightarrow> tranclp r a b"
   "r a b \<Longrightarrow> tranclp r b c \<Longrightarrow> tranclp r a c"
   by auto
@@ -965,9 +965,9 @@ where
 | objaddr: "\<lbrakk> Env conf n = i \<rbrakk> \<Longrightarrow> eval_var (ObjAddr n) conf (IntVal i)"
 | plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow> eval_var (Add l r) conf (IntVal (vl+vr))"
 
-(* TODO: breaks if code_pred_intros is used? *)
+(* TODO: breaks if code_pred_intro is used? *)
 (*
-lemmas [code_pred_intros] = irconst objaddr plus
+lemmas [code_pred_intro] = irconst objaddr plus
 *)
 thm eval_var.cases
 

@@ -36,7 +36,7 @@ sig
   val eval_ref : (unit -> term Predicate.pred) option Unsynchronized.ref
   val random_eval_ref : (unit -> int * int -> term Predicate.pred * (int * int))
     option Unsynchronized.ref
-  val code_pred_intros_attrib : attribute
+  val code_pred_intro_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (* temporary for testing of the compilation *)
   datatype compilation_funs = CompilationFuns of {
@@ -2418,19 +2418,16 @@ val add_quickcheck_equations = gen_add_equations
 
 fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
 
-val code_pred_intros_attrib = attrib add_intro;
+val code_pred_intro_attrib = attrib add_intro;
 
 
 (*FIXME
 - Naming of auxiliary rules necessary?
-- add default code equations P x y z = P_i_i_i x y z
 *)
 
 val setup = PredData.put (Graph.empty) #>
-  Attrib.setup @{binding code_pred_intros} (Scan.succeed (attrib add_intro))
+  Attrib.setup @{binding code_pred_intro} (Scan.succeed (attrib add_intro))
     "adding alternative introduction rules for code generation of inductive predicates"
-  (*FIXME name discrepancy in attribs and ML code*)
-  (*FIXME intros should be better named intro*)
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
 fun generic_code_pred prep_const options raw_const lthy =
