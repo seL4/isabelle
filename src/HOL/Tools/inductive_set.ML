@@ -485,7 +485,7 @@ fun add_ind_set_def
     (* define inductive sets using previously defined predicates *)
     val (defs, lthy2) = lthy1
       |> LocalTheory.conceal  (* FIXME ?? *)
-      |> fold_map (LocalTheory.define Thm.internalK)
+      |> fold_map (LocalTheory.define "")
         (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
            fold_rev lambda params (HOLogic.Collect_const U $
              HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))

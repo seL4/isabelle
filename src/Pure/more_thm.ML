@@ -91,7 +91,6 @@ sig
   val generatedK : string
   val lemmaK: string
   val corollaryK: string
-  val internalK: string
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
@@ -421,7 +420,6 @@ val theoremK = "theorem";
 val generatedK = "generatedK"
 val lemmaK = "lemma";
 val corollaryK = "corollary";
-val internalK = Markup.internalK;
 
 fun get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 

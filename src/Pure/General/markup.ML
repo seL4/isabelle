@@ -14,7 +14,6 @@ sig
   val name: string -> T -> T
   val bindingN: string val binding: string -> T
   val kindN: string
-  val internalK: string
   val entityN: string val entity: string -> T
   val defN: string
   val refN: string
@@ -153,8 +152,6 @@ val (bindingN, binding) = markup_string "binding" nameN;
 (* kind *)
 
 val kindN = "kind";
-
-val internalK = "internal";
 
 
 (* formal entities *)

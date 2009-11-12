@@ -355,7 +355,7 @@ fun define_predicates specs thy =
               thy
               |> Sign.map_naming Name_Space.conceal
               |> Inductive.add_inductive_global (serial ())
-                {quiet_mode = false, verbose = false, kind = Thm.internalK,
+                {quiet_mode = false, verbose = false, kind = "",
                   alt_name = Binding.empty, coind = false, no_elim = false,
                   no_ind = false, skip_mono = false, fork_mono = false}
                 (map (fn (s, T) =>
