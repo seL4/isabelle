@@ -828,28 +828,6 @@ code_const Seq and Empty and Insert and Join
 
 code_abort not_unique
 
-text {* dummy setup for @{text code_pred} and @{text values} keywords *}
-
-ML {*
-local
-
-structure P = OuterParse;
-
-val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
-
-in
-
-val _ = OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
-  OuterKeyword.thy_goal (P.term_group >> (K (Proof.theorem_i NONE (K I) [[]])));
-
-val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions"
-  OuterKeyword.diag ((opt_modes -- P.term)
-    >> (fn (modes, t) => Toplevel.no_timing o Toplevel.keep
-        (K ())));
-
-end
-*}
-
 no_notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and
