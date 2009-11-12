@@ -67,11 +67,29 @@ fun string_of_mode' mode' =
       | string_of_mode1 Output = "o"
       | string_of_mode1 Bool = "bool"
       | string_of_mode1 mode = "(" ^ (string_of_mode3 mode) ^ ")"
-    and string_of_mode2 (Pair (m1, m2))  = string_of_mode3 m1 ^ " * " ^  string_of_mode2 m2
+    and string_of_mode2 (Pair (m1, m2)) = string_of_mode3 m1 ^ " * " ^  string_of_mode2 m2
       | string_of_mode2 mode = string_of_mode1 mode
     and string_of_mode3 (Fun (m1, m2)) = string_of_mode2 m1 ^ " => " ^ string_of_mode3 m2
       | string_of_mode3 mode = string_of_mode2 mode
   in string_of_mode3 mode' end
+
+fun ascii_string_of_mode' mode' =
+  let
+    fun ascii_string_of_mode' Input = "i"
+      | ascii_string_of_mode' Output = "o"
+      | ascii_string_of_mode' Bool = "b"
+      | ascii_string_of_mode' (Pair (m1, m2)) =
+          "P" ^ ascii_string_of_mode' m1 ^ ascii_string_of_mode'_Pair m2
+      | ascii_string_of_mode' (Fun (m1, m2)) = 
+          "F" ^ ascii_string_of_mode' m1 ^ ascii_string_of_mode'_Fun m2 ^ "B"
+    and ascii_string_of_mode'_Fun (Fun (m1, m2)) =
+          ascii_string_of_mode' m1 ^ (if m2 = Bool then "" else "_" ^ ascii_string_of_mode'_Fun m2)
+      | ascii_string_of_mode'_Fun Bool = "B"
+      | ascii_string_of_mode'_Fun m = ascii_string_of_mode' m
+    and ascii_string_of_mode'_Pair (Pair (m1, m2)) =
+          ascii_string_of_mode' m1 ^ ascii_string_of_mode'_Pair m2
+      | ascii_string_of_mode'_Pair m = ascii_string_of_mode' m
+  in ascii_string_of_mode'_Fun mode' end
 
 fun translate_mode T (iss, is) =
   let

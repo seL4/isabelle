@@ -339,7 +339,6 @@ thm tupled_append.equation
 (*TODO: values with tupled modes*)
 (*values "{xs. tupled_append ([1,2,3], [4,5], xs)}"*)
 
-
 inductive tupled_append'
 where
 "tupled_append' ([], xs, xs)"
@@ -505,9 +504,9 @@ values "{m. succ m 0}"
 
 text {* values command needs mode annotation of the parameter succ
 to disambiguate which mode is to be chosen. *} 
-(* TODO: adopt to new mode syntax *)
-values [mode: [1]] 20 "{n. tranclp succ 10 n}"
-values [mode: [2]] 10 "{n. tranclp succ n 10}"
+
+values [mode: i => o => bool] 20 "{n. tranclp succ 10 n}"
+values [mode: o => i => bool] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
 
 subsection {* IMP *}
@@ -598,8 +597,8 @@ inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
   | "k \<ge> l \<Longrightarrow> divmod_rel (k - l) l q r \<Longrightarrow> divmod_rel k l (Suc q) r"
 
 code_pred divmod_rel ..
-
-value [code] "Predicate.the (divmod_rel_1_2 1705 42)"
+thm divmod_rel.equation
+value [code] "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
 
 subsection {* Minimum *}
 

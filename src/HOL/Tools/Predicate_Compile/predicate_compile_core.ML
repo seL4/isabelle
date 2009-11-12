@@ -1504,14 +1504,8 @@ end;
 
 fun create_constname_of_mode options thy prefix name T mode = 
   let
-    fun string_of_mode mode = if null mode then "0"
-      else space_implode "_"
-        (map (fn (i, NONE) => string_of_int i | (i, SOME pis) => string_of_int i ^ "p"
-        ^ space_implode "p" (map string_of_int pis)) mode)
-    val HOmode = space_implode "_and_"
-      (fold (fn NONE => I | SOME mode => cons (string_of_mode mode)) (fst mode) [])
-    val system_proposal = prefix ^ (Long_Name.base_name name) ^
-      (if HOmode = "" then "_" else "_for_" ^ HOmode ^ "_yields_") ^ string_of_mode (snd mode)
+    val system_proposal = prefix ^ (Long_Name.base_name name)
+      ^ "_" ^ ascii_string_of_mode' (translate_mode T mode)
     val name = the_default system_proposal (proposed_names options name (translate_mode T mode))
   in
     Sign.full_bname thy name
