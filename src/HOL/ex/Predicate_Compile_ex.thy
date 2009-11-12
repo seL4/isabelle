@@ -926,14 +926,55 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
 code_pred (expected_modes: i => i => o => bool, i => i => i => bool) typing .
 thm typing.equation
 
-code_pred (modes: i => o => bool as reduce) beta .
+code_pred (modes: i => o => bool as reduce') beta .
 thm beta.equation
 
- 
 values "{x. App (Abs (Atom 0) (Var 0)) (Var 1) \<rightarrow>\<^sub>\<beta> x}"
+
+definition "reduce t = Predicate.the (reduce' t)"
+
+value "reduce (App (Abs (Atom 0) (Var 0)) (Var 1))"
 
 code_pred [random] typing .
 
 values [random] 1 "{(\<Gamma>, t, T). \<Gamma> \<turnstile> t : T}"
+
+subsection {* A minimal example of yet another semantics *}
+
+text {* thanks to Elke Salecker *}
+
+types
+vname = nat
+vvalue = int
+var_assign = "vname \<Rightarrow> vvalue"  --"variable assignment"
+
+datatype ir_expr = 
+  IrConst vvalue
+| ObjAddr vname
+| Add ir_expr ir_expr
+
+datatype val =
+  IntVal  vvalue
+
+record  configuration =
+Env :: var_assign
+
+inductive eval_var ::
+"ir_expr \<Rightarrow> configuration \<Rightarrow> val \<Rightarrow> bool"
+where
+  irconst: "eval_var (IrConst i) conf (IntVal i)"
+| objaddr: "\<lbrakk> Env conf n = i \<rbrakk> \<Longrightarrow> eval_var (ObjAddr n) conf (IntVal i)"
+| plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow> eval_var (Add l r) conf (IntVal (vl+vr))"
+
+(* TODO: breaks if code_pred_intros is used? *)
+(*
+lemmas [code_pred_intros] = irconst objaddr plus
+*)
+thm eval_var.cases
+
+code_pred eval_var . (*by (rule eval_var.cases)*)
+thm eval_var.equation
+
+values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) val}"
 
 end
