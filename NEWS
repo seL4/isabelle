@@ -37,6 +37,9 @@ Styles can be also applied for antiquotations prop, term_type and typeof.
 
 *** HOL ***
 
+* New commands "code_pred" and "values" to invoke the predicate compiler
+and to enumerate values of inductive predicates.
+
 * Combined former theories Divides and IntDiv to one theory Divides
 in the spirit of other number theory theories in HOL;  some constants
 (and to a lesser extent also facts) have been suffixed with _nat und _int

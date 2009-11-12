@@ -6,7 +6,9 @@ distribution.
 
 Contributions to this Isabelle version
 --------------------------------------
-
+* November 2009: Lukas Bulwahn, TUM
+  Predicate Compiler: a compiler for inductive predicates to equational specfications
+ 
 * November 2009: Sascha Boehme, TUM
   HOL-Boogie: an interactive prover back-end for Boogie and VCC
 
