@@ -151,7 +151,7 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
       Predicate_Compile_Core.code_pred_cmd options raw_const lthy
   end
 
-val setup = Predicate_Compile_Fun.setup_oracle #> Predicate_Compile_Core.setup
+val setup = Predicate_Compile_Core.setup
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "skip_proof", "inductify", "random", "depth_limited",

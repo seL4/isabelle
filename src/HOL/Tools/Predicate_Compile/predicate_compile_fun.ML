@@ -6,29 +6,14 @@ Preprocessing functions to predicates.
 
 signature PREDICATE_COMPILE_FUN =
 sig
-val define_predicates : (string * thm list) list -> theory -> (string * thm list) list * theory
+  val define_predicates : (string * thm list) list -> theory -> (string * thm list) list * theory
   val rewrite_intro : theory -> thm -> thm list
-  val setup_oracle : theory -> theory
   val pred_of_function : theory -> string -> string option
 end;
 
 structure Predicate_Compile_Fun : PREDICATE_COMPILE_FUN =
 struct
 
-
-(* Oracle for preprocessing  *)
-
-val (oracle : (string * (cterm -> thm)) option Unsynchronized.ref) = Unsynchronized.ref NONE;
-
-fun the_oracle () =
-  case !oracle of
-    NONE => error "Oracle is not setup"
-  | SOME (_, oracle) => oracle
-             
-val setup_oracle = Thm.add_oracle (Binding.name "pred_compile_preprocessing", I) #->
-  (fn ora => fn thy => let val _ = (oracle := SOME ora) in thy end)
-  
-  
 fun is_funtype (Type ("fun", [_, _])) = true
   | is_funtype _ = false;
 
@@ -393,9 +378,6 @@ fun define_predicates specs thy =
           in ([], thy) end
   end
 
-(* preprocessing intro rules - uses oracle *)
-
-(* theory -> thm -> thm *)
 fun rewrite_intro thy intro =
   let
     fun lookup_pred (Const (name, T)) =
@@ -435,7 +417,7 @@ fun rewrite_intro thy intro =
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
   in
-    map (Drule.standard o the_oracle () o cterm_of thy) intro_ts'
-  end; 
+    map (Drule.standard o (Skip_Proof.make_thm thy)) intro_ts'
+  end
 
 end;
