@@ -7,6 +7,7 @@ Finite model generation for HOL formulas using Kodkod.
 
 signature NITPICK =
 sig
+  type styp = Nitpick_Util.styp
   type params = {
     cards_assigns: (typ option * int list) list,
     maxes_assigns: (styp option * int list) list,
@@ -231,9 +232,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                   else
                     neg_t
     val (assms_t, evals) =
-      assms_t :: evals
-      |> merge_type_vars ? merge_type_vars_in_terms
-      |> hd pairf tl
+      assms_t :: evals |> merge_type_vars ? merge_type_vars_in_terms
+                       |> pairf hd tl
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
 (*

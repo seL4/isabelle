@@ -7,6 +7,7 @@ Auxiliary HOL-related functions used by Nitpick.
 
 signature NITPICK_HOL =
 sig
+  type styp = Nitpick_Util.styp
   type const_table = term list Symtab.table
   type special_fun = (styp * int list * term list) * styp
   type unrolled = styp * styp
@@ -1499,7 +1500,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
               SOME n =>
               let
                 val (dataT, res_T) = nth_range_type n T
-                                     |> domain_type pairf range_type
+                                     |> pairf domain_type range_type
               in
                 (optimized_case_def ext_ctxt dataT res_T
                  |> do_term (depth + 1) Ts, ts)
@@ -1675,8 +1676,8 @@ fun uncached_is_well_founded_inductive_pred
          | NONE =>
            let
              val goal = prop |> cterm_of thy |> Goal.init
-             val wf = silence (exists (terminates_by ctxt tac_timeout goal))
-                              termination_tacs
+             val wf = exists (terminates_by ctxt tac_timeout goal)
+                             termination_tacs
            in Unsynchronized.change cached_wf_props (cons (prop, wf)); wf end
        end)
     handle List.Empty => false

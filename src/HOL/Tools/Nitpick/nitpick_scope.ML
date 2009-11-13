@@ -7,6 +7,7 @@ Scope enumerator for Nitpick.
 
 signature NITPICK_SCOPE =
 sig
+  type styp = Nitpick_Util.styp
   type extended_context = Nitpick_HOL.extended_context
 
   type constr_spec = {
