@@ -123,13 +123,12 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{local\_theory}\verb|type local_theory = Proof.context| \\
-  \indexdef{}{ML}{TheoryTarget.init}\verb|TheoryTarget.init: string option -> theory -> local_theory| \\[1ex]
-  \indexdef{}{ML}{LocalTheory.define}\verb|LocalTheory.define: string ->|\isasep\isanewline%
+  \indexdef{}{ML}{Theory\_Target.init}\verb|Theory_Target.init: string option -> theory -> local_theory| \\[1ex]
+  \indexdef{}{ML}{Local\_Theory.define}\verb|Local_Theory.define: string ->|\isasep\isanewline%
 \verb|    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->|\isasep\isanewline%
 \verb|    (term * (string * thm)) * local_theory| \\
-  \indexdef{}{ML}{LocalTheory.note}\verb|LocalTheory.note: string ->|\isasep\isanewline%
-\verb|    Attrib.binding * thm list -> local_theory ->|\isasep\isanewline%
-\verb|    (string * thm list) * local_theory| \\
+  \indexdef{}{ML}{Local\_Theory.note}\verb|Local_Theory.note: Attrib.binding * thm list ->|\isasep\isanewline%
+\verb|    local_theory -> (string * thm list) * local_theory| \\
   \end{mldecls}
 
   \begin{description}
@@ -141,7 +140,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   any value \isa{lthy{\isacharcolon}}~\verb|local_theory| can be also used
   with operations on expecting a regular \isa{ctxt{\isacharcolon}}~\verb|Proof.context|.
 
-  \item \verb|TheoryTarget.init|~\isa{NONE\ thy} initializes a
+  \item \verb|Theory_Target.init|~\isa{NONE\ thy} initializes a
   trivial local theory from the given background theory.
   Alternatively, \isa{SOME\ name} may be given to initialize a
   \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} context (a fully-qualified
@@ -149,7 +148,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   --- normally the Isar toplevel already takes care to initialize the
   local theory context.
 
-  \item \verb|LocalTheory.define|~\isa{kind\ {\isacharparenleft}{\isacharparenleft}b{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}a{\isacharcomma}\ rhs{\isacharparenright}{\isacharparenright}\ lthy} defines a local entity according to the specification that is
+  \item \verb|Local_Theory.define|~\isa{kind\ {\isacharparenleft}{\isacharparenleft}b{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}a{\isacharcomma}\ rhs{\isacharparenright}{\isacharparenright}\ lthy} defines a local entity according to the specification that is
   given relatively to the current \isa{lthy} context.  In
   particular the term of the RHS may refer to earlier local entities
   from the auxiliary context, or hypothetical parameters from the
@@ -169,11 +168,11 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   \hyperlink{attribute.simplified}{\mbox{\isa{simplified}}} are better avoided.
 
   The \isa{kind} determines the theorem kind tag of the resulting
-  fact.  Typical examples are \verb|Thm.definitionK|, \verb|Thm.theoremK|, or \verb|Thm.internalK|.
+  fact.  Typical examples are \verb|Thm.definitionK| or \verb|Thm.theoremK|.
 
-  \item \verb|LocalTheory.note|~\isa{kind\ {\isacharparenleft}a{\isacharcomma}\ ths{\isacharparenright}\ lthy} is
-  analogous to \verb|LocalTheory.define|, but defines facts instead of
-  terms.  There is also a slightly more general variant \verb|LocalTheory.notes| that defines several facts (with attribute
+  \item \verb|Local_Theory.note|~\isa{{\isacharparenleft}a{\isacharcomma}\ ths{\isacharparenright}\ lthy} is
+  analogous to \verb|Local_Theory.define|, but defines facts instead of
+  terms.  There is also a slightly more general variant \verb|Local_Theory.notes| that defines several facts (with attribute
   expressions) simultaneously.
 
   This is essentially the internal version of the \hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}

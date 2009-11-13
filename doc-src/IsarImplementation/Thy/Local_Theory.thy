@@ -97,13 +97,12 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type local_theory: Proof.context} \\
-  @{index_ML TheoryTarget.init: "string option -> theory -> local_theory"} \\[1ex]
-  @{index_ML LocalTheory.define: "string ->
+  @{index_ML Theory_Target.init: "string option -> theory -> local_theory"} \\[1ex]
+  @{index_ML Local_Theory.define: "string ->
     (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory"} \\
-  @{index_ML LocalTheory.note: "string ->
-    Attrib.binding * thm list -> local_theory ->
-    (string * thm list) * local_theory"} \\
+  @{index_ML Local_Theory.note: "Attrib.binding * thm list ->
+    local_theory -> (string * thm list) * local_theory"} \\
   \end{mldecls}
 
   \begin{description}
@@ -116,7 +115,7 @@ text %mlref {*
   with operations on expecting a regular @{text "ctxt:"}~@{ML_type
   Proof.context}.
 
-  \item @{ML TheoryTarget.init}~@{text "NONE thy"} initializes a
+  \item @{ML Theory_Target.init}~@{text "NONE thy"} initializes a
   trivial local theory from the given background theory.
   Alternatively, @{text "SOME name"} may be given to initialize a
   @{command locale} or @{command class} context (a fully-qualified
@@ -124,7 +123,7 @@ text %mlref {*
   --- normally the Isar toplevel already takes care to initialize the
   local theory context.
 
-  \item @{ML LocalTheory.define}~@{text "kind ((b, mx), (a, rhs))
+  \item @{ML Local_Theory.define}~@{text "kind ((b, mx), (a, rhs))
   lthy"} defines a local entity according to the specification that is
   given relatively to the current @{text "lthy"} context.  In
   particular the term of the RHS may refer to earlier local entities
@@ -145,13 +144,13 @@ text %mlref {*
   @{attribute simplified} are better avoided.
 
   The @{text kind} determines the theorem kind tag of the resulting
-  fact.  Typical examples are @{ML Thm.definitionK}, @{ML
-  Thm.theoremK}, or @{ML Thm.internalK}.
+  fact.  Typical examples are @{ML Thm.definitionK} or @{ML
+  Thm.theoremK}.
 
-  \item @{ML LocalTheory.note}~@{text "kind (a, ths) lthy"} is
-  analogous to @{ML LocalTheory.define}, but defines facts instead of
+  \item @{ML Local_Theory.note}~@{text "(a, ths) lthy"} is
+  analogous to @{ML Local_Theory.define}, but defines facts instead of
   terms.  There is also a slightly more general variant @{ML
-  LocalTheory.notes} that defines several facts (with attribute
+  Local_Theory.notes} that defines several facts (with attribute
   expressions) simultaneously.
 
   This is essentially the internal version of the @{command lemmas}
