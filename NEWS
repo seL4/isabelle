@@ -241,6 +241,8 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
     sizechange -> size_change
     induct_scheme -> induction_schema
 
+* Lemma name change: replaced "anti_sym" by "antisym" everywhere.
+
 
 *** ML ***
 
