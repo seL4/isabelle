@@ -242,8 +242,7 @@ fun add_fixdefs
         ((thm_name, [src]), [thm])
       end;
     val (thmss, lthy'') = lthy'
-      |> fold_map (LocalTheory.note Thm.generatedK)
-        (induct_note :: map unfold_note unfold_thms);
+      |> fold_map (LocalTheory.note "") (induct_note :: map unfold_note unfold_thms);
   in
     (lthy'', names, fixdef_thms, map snd unfold_thms)
   end;
@@ -465,7 +464,7 @@ fun gen_fixrec
       val simps2 : (Attrib.binding * thm list) list =
         map (apsnd (fn thm => [thm])) (flat simps);
       val (_, lthy'') = lthy'
-        |> fold_map (LocalTheory.note Thm.generatedK) (simps1 @ simps2);
+        |> fold_map (LocalTheory.note "") (simps1 @ simps2);
     in
       lthy''
     end

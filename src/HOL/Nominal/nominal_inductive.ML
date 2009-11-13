@@ -561,7 +561,7 @@ fun prove_strong_ind s avoids ctxt =
             (strong_raw_induct, [ind_case_names, Rule_Cases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
             [ind_case_names, Rule_Cases.consumes 1]);
-        val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.generatedK
+        val ((_, [strong_induct']), ctxt') = LocalTheory.note ""
           ((rec_qualified (Binding.name "strong_induct"),
             map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
           ctxt;
@@ -569,12 +569,12 @@ fun prove_strong_ind s avoids ctxt =
           Project_Rule.projects ctxt (1 upto length names) strong_induct'
       in
         ctxt' |>
-        LocalTheory.note Thm.generatedK
+        LocalTheory.note ""
           ((rec_qualified (Binding.name "strong_inducts"),
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (Rule_Cases.consumes 1))]),
            strong_inducts) |> snd |>
-        LocalTheory.notes Thm.generatedK (map (fn ((name, elim), (_, cases)) =>
+        LocalTheory.notes "" (map (fn ((name, elim), (_, cases)) =>
             ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
               [Attrib.internal (K (Rule_Cases.case_names (map snd cases))),
                Attrib.internal (K (Rule_Cases.consumes 1))]), [([elim], [])]))
@@ -664,7 +664,7 @@ fun prove_eqvt s xatoms ctxt =
       end) atoms
   in
     ctxt |>
-    LocalTheory.notes Thm.generatedK (map (fn (name, ths) =>
+    LocalTheory.notes "" (map (fn (name, ths) =>
         ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "eqvt"),
           [Attrib.internal (K NominalThmDecls.eqvt_add)]), [(ths, [])]))
       (names ~~ transp thss)) |> snd

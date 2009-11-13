@@ -277,10 +277,8 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     lthy
     |> set_group ? LocalTheory.set_group (serial ())
     |> add_primrec_simple fixes (map snd spec)
-    |-> (fn (prefix, simps) => fold_map (LocalTheory.note Thm.generatedK)
-          (attr_bindings prefix ~~ simps)
-    #-> (fn simps' => LocalTheory.note Thm.generatedK
-          (simp_attr_binding prefix, maps snd simps')))
+    |-> (fn (prefix, simps) => fold_map (LocalTheory.note "") (attr_bindings prefix ~~ simps)
+      #-> (fn simps' => LocalTheory.note "" (simp_attr_binding prefix, maps snd simps')))
     |>> snd
   end;
 

@@ -469,7 +469,7 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
-  in lthy |> LocalTheory.notes Thm.generatedK facts |>> map snd end;
+  in lthy |> LocalTheory.notes "" facts |>> map snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
@@ -880,7 +880,7 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
       |> Specification.read_spec (cnames_syn @ pnames_syn) intro_srcs;
     val (cs, ps) = chop (length cnames_syn) vars;
     val monos = Attrib.eval_thms lthy raw_monos;
-    val flags = {quiet_mode = false, verbose = verbose, kind = Thm.generatedK,
+    val flags = {quiet_mode = false, verbose = verbose, kind = "",
       alt_name = Binding.empty, coind = coind, no_elim = false, no_ind = false,
       skip_mono = false, fork_mono = not int};
   in

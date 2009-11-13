@@ -44,7 +44,7 @@ val psimp_attribs = map (Attrib.internal o K)
      Nitpick_Psimps.add]
 
 fun note_theorem ((binding, atts), ths) =
-  LocalTheory.note Thm.generatedK ((binding, atts), ths)
+  LocalTheory.note "" ((binding, atts), ths)
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
@@ -55,7 +55,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lt
                    |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
-        fold_map (LocalTheory.note Thm.generatedK) spec lthy
+        fold_map (LocalTheory.note "") spec lthy
 
       val saved_simps = maps snd saved_spec_simps
       val simps_by_f = sort saved_simps

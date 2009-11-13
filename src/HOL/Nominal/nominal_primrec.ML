@@ -367,11 +367,11 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       (fn thss => fn goal_ctxt =>
          let
            val simps = ProofContext.export goal_ctxt lthy' (flat thss);
-           val (simps', lthy'') = fold_map (LocalTheory.note Thm.generatedK)
+           val (simps', lthy'') = fold_map (LocalTheory.note "")
              (names_atts' ~~ map single simps) lthy'
          in
            lthy''
-           |> LocalTheory.note Thm.generatedK ((qualify (Binding.name "simps"),
+           |> LocalTheory.note "" ((qualify (Binding.name "simps"),
                 map (Attrib.internal o K) [Simplifier.simp_add, Nitpick_Simps.add]),
                 maps snd simps')
            |> snd
