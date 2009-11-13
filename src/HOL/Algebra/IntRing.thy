@@ -12,26 +12,6 @@ section {* The Ring of Integers *}
 
 subsection {* Some properties of @{typ int} *}
 
-lemma dvds_imp_abseq:
-  "\<lbrakk>l dvd k; k dvd l\<rbrakk> \<Longrightarrow> abs l = abs (k::int)"
-apply (subst abs_split, rule conjI)
- apply (clarsimp, subst abs_split, rule conjI)
-  apply (clarsimp)
-  apply (cases "k=0", simp)
-  apply (cases "l=0", simp)
-  apply (simp add: zdvd_anti_sym)
- apply clarsimp
- apply (cases "k=0", simp)
- apply (simp add: zdvd_anti_sym)
-apply (clarsimp, subst abs_split, rule conjI)
- apply (clarsimp)
- apply (cases "l=0", simp)
- apply (simp add: zdvd_anti_sym)
-apply (clarsimp)
-apply (subgoal_tac "-l = -k", simp)
-apply (intro zdvd_anti_sym, simp+)
-done
-
 lemma abseq_imp_dvd:
   assumes a_lk: "abs l = abs (k::int)"
   shows "l dvd k"
@@ -55,7 +35,7 @@ qed
 lemma dvds_eq_abseq:
   "(l dvd k \<and> k dvd l) = (abs l = abs (k::int))"
 apply rule
- apply (simp add: dvds_imp_abseq)
+ apply (simp add: zdvd_antisym_abs)
 apply (rule conjI)
  apply (simp add: abseq_imp_dvd)+
 done

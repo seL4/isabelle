@@ -16,7 +16,7 @@ thm_maps
   "DIVIDES_MULT" > "Divides.dvd_mult2"
   "DIVIDES_LE" > "Divides.dvd_imp_le"
   "DIVIDES_FACT" > "HOL4Base.divides.DIVIDES_FACT"
-  "DIVIDES_ANTISYM" > "Divides.dvd_anti_sym"
+  "DIVIDES_ANTISYM" > "Divides.dvd_antisym"
   "DIVIDES_ADD_2" > "HOL4Base.divides.DIVIDES_ADD_2"
   "DIVIDES_ADD_1" > "Ring_and_Field.dvd_add"
   "ALL_DIVIDES_0" > "Divides.dvd_0_right"

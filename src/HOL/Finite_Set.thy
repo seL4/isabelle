@@ -2344,7 +2344,7 @@ done
 lemma card_bij_eq:
   "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
      finite A; finite B |] ==> card A = card B"
-by (auto intro: le_anti_sym card_inj_on_le)
+by (auto intro: le_antisym card_inj_on_le)
 
 
 subsubsection {* Cardinality of products *}
