@@ -310,7 +310,8 @@ fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
 local
 
 fun init_target _ NONE = global_target
-  | init_target thy (SOME target) = if Locale.defined thy (Locale.intern thy target)
+  | init_target thy (SOME target) =
+      if Locale.defined thy (Locale.intern thy target)
       then make_target target true (Class_Target.is_class thy target) ([], [], []) []
       else error ("No such locale: " ^ quote target);
 

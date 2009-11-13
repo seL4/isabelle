@@ -33,8 +33,10 @@ sig
     (term * term) * local_theory
   val define: string -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
-  val note: string -> Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
-  val notes: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
+  val notes: (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    local_theory -> (string * thm list) list * local_theory
+  val notes_kind: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
   val type_syntax: bool -> declaration -> local_theory -> local_theory
   val term_syntax: bool -> declaration -> local_theory -> local_theory
@@ -186,12 +188,13 @@ fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
 val define = apsnd checkpoint ooo operation2 #define;
-val notes = apsnd checkpoint ooo operation2 #notes;
+val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val type_syntax = checkpoint ooo operation2 #type_syntax;
 val term_syntax = checkpoint ooo operation2 #term_syntax;
 val declaration = checkpoint ooo operation2 #declaration;
 
-fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
+val notes = notes_kind "";
+fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args

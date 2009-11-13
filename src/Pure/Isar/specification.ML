@@ -208,10 +208,10 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
     val th = prove lthy2 raw_th;
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
 
-    val ((def_name, [th']), lthy4) = lthy3
-      |> LocalTheory.note Thm.definitionK
-        ((name, Predicate_Compile_Preproc_Const_Defs.add_attrib ::
-            Code.add_default_eqn_attrib :: atts), [th]);
+    val ([(def_name, [th'])], lthy4) = lthy3
+      |> LocalTheory.notes_kind Thm.definitionK
+        [((name, Predicate_Compile_Preproc_Const_Defs.add_attrib ::
+            Code.add_default_eqn_attrib :: atts), [([th], [])])];
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy4) lhs;
     val _ =
@@ -270,7 +270,7 @@ fun gen_theorems prep_fact prep_att kind raw_facts lthy =
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
-    val (res, lthy') = lthy |> LocalTheory.notes kind facts;
+    val (res, lthy') = lthy |> LocalTheory.notes_kind kind facts;
     val _ = Proof_Display.print_results true lthy' ((kind, ""), res);
   in (res, lthy') end;
 
@@ -359,14 +359,15 @@ fun gen_theorem prep_att prep_stmt
         burrow (map Goal.norm_result o ProofContext.export goal_ctxt' lthy) results
       in
         lthy
-        |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
+        |> LocalTheory.notes_kind kind
+          (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           if Binding.is_empty name andalso null atts then
             (Proof_Display.print_results true lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') = lthy'
-                |> LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])];
+                |> LocalTheory.notes_kind kind [((name, atts), [(maps #2 res, [])])];
               val _ = Proof_Display.print_results true lthy' ((kind, res_name), res);
             in lthy'' end)
         |> after_qed results'

@@ -505,7 +505,7 @@ fun add_ind_set_def
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, split_conv]) 1))
         in
-          lthy |> LocalTheory.note "" ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
+          lthy |> LocalTheory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),
               [conv_thm]) |> snd
         end) (preds ~~ cs ~~ cs_info ~~ defs) lthy2;
