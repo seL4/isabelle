@@ -2411,9 +2411,9 @@ fun generic_code_pred prep_const options raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
-    val lthy' = LocalTheory.theory (PredData.map
+    val lthy' = Local_Theory.theory (PredData.map
         (extend (fetch_pred_data thy) (depending_preds_of thy) const)) lthy
-      |> LocalTheory.checkpoint
+      |> Local_Theory.checkpoint
     val thy' = ProofContext.theory_of lthy'
     val preds = Graph.all_succs (PredData.get thy') [const] |> filter_out (has_elim thy')
     fun mk_cases const =
@@ -2437,7 +2437,7 @@ fun generic_code_pred prep_const options raw_const lthy =
         val global_thms = ProofContext.export goal_ctxt
           (ProofContext.init (ProofContext.theory_of goal_ctxt)) (map the_single thms)
       in
-        goal_ctxt |> LocalTheory.theory (fold set_elim global_thms #>
+        goal_ctxt |> Local_Theory.theory (fold set_elim global_thms #>
           (if is_random options then
             (add_equations options [const] #>
             add_quickcheck_equations options [const])

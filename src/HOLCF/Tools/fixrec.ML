@@ -209,7 +209,7 @@ fun add_fixdefs
       | defs (l::[]) r = [one_def l r]
       | defs (l::ls) r = one_def l (mk_fst r) :: defs ls (mk_snd r);
     val fixdefs = defs lhss fixpoint;
-    val define_all = fold_map (LocalTheory.define Thm.definitionK);
+    val define_all = fold_map (Local_Theory.define Thm.definitionK);
     val (fixdef_thms : (term * (string * thm)) list, lthy') = lthy
       |> define_all (map (apfst fst) fixes ~~ fixdefs);
     fun pair_equalI (thm1, thm2) = @{thm Pair_equalI} OF [thm1, thm2];
@@ -242,7 +242,7 @@ fun add_fixdefs
         ((thm_name, [src]), [thm])
       end;
     val (thmss, lthy'') = lthy'
-      |> fold_map LocalTheory.note (induct_note :: map unfold_note unfold_thms);
+      |> fold_map Local_Theory.note (induct_note :: map unfold_note unfold_thms);
   in
     (lthy'', names, fixdef_thms, map snd unfold_thms)
   end;
@@ -464,7 +464,7 @@ fun gen_fixrec
       val simps2 : (Attrib.binding * thm list) list =
         map (apsnd (fn thm => [thm])) (flat simps);
       val (_, lthy'') = lthy'
-        |> fold_map LocalTheory.note (simps1 @ simps2);
+        |> fold_map Local_Theory.note (simps1 @ simps2);
     in
       lthy''
     end

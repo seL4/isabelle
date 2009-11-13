@@ -775,7 +775,7 @@ fun gen_add_locale prep_decl
       |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms ([], []) (rev notes) (rev deps')
       |> Theory_Target.init (SOME name)
-      |> fold (fn (kind, facts) => LocalTheory.notes_kind kind facts #> snd) notes';
+      |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 
   in (name, loc_ctxt) end;
 

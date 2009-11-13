@@ -177,7 +177,7 @@ local
 fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   let
     val b = Binding.name name;
-    val naming = LocalTheory.naming_of lthy;
+    val naming = Local_Theory.naming_of lthy;
     val simproc = make_simproc
       {name = Name_Space.full_name naming b,
        lhss =
@@ -191,7 +191,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
        proc = proc,
        identifier = identifier};
   in
-    lthy |> LocalTheory.declaration false (fn phi =>
+    lthy |> Local_Theory.declaration false (fn phi =>
       let
         val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;
@@ -335,7 +335,8 @@ val _ = Context.>> (Context.map_theory
     "declaration of Simplifier rewrite rule" #>
   Attrib.setup (Binding.name congN) (Attrib.add_del cong_add cong_del)
     "declaration of Simplifier congruence rule" #>
-  Attrib.setup (Binding.name "simproc") simproc_att "declaration of simplification procedures" #>
+  Attrib.setup (Binding.name "simproc") simproc_att
+    "declaration of simplification procedures" #>
   Attrib.setup (Binding.name "simplified") simplified "simplified rule"));
 
 

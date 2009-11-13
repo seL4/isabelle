@@ -153,11 +153,11 @@ val fun_config = FunctionConfig { sequential=true, default="%x. undefined" (*FIX
 fun gen_fun add config fixes statements int lthy =
   let val group = serial () in
     lthy
-      |> LocalTheory.set_group group
+      |> Local_Theory.set_group group
       |> add fixes statements config
       |> by_pat_completeness_auto int
-      |> LocalTheory.restore
-      |> LocalTheory.set_group group
+      |> Local_Theory.restore
+      |> Local_Theory.set_group group
       |> termination_by (Function_Common.get_termination_prover lthy) int
   end;
 

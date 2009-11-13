@@ -51,7 +51,7 @@ sig
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
 end;
 
-structure LocalTheory: LOCAL_THEORY =
+structure Local_Theory: LOCAL_THEORY =
 struct
 
 (** local theory data **)

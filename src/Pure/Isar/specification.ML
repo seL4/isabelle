@@ -202,18 +202,18 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
           in (b, mx) end);
     val name = Thm.def_binding_optional b raw_name;
     val ((lhs, (_, raw_th)), lthy2) = lthy
-      |> LocalTheory.define Thm.definitionK
+      |> Local_Theory.define Thm.definitionK
         (var, ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
 
     val ([(def_name, [th'])], lthy4) = lthy3
-      |> LocalTheory.notes_kind Thm.definitionK
+      |> Local_Theory.notes_kind Thm.definitionK
         [((name, Predicate_Compile_Preproc_Const_Defs.add_attrib ::
             Code.add_default_eqn_attrib :: atts), [([th], [])])];
 
-    val lhs' = Morphism.term (LocalTheory.target_morphism lthy4) lhs;
+    val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
     val _ =
       if not do_print then ()
       else print_consts lthy4 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
@@ -243,7 +243,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
           in (b, mx) end);
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME ?!? *)
-      |> LocalTheory.abbrev mode (var, rhs) |> snd
+      |> Local_Theory.abbrev mode (var, rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
 
     val _ = if not do_print then () else print_consts lthy' (K false) [(x, T)];
@@ -256,7 +256,7 @@ val abbreviation_cmd = gen_abbrev true read_free_spec;
 (* notation *)
 
 fun gen_notation prep_const add mode args lthy =
-  lthy |> LocalTheory.notation add mode (map (apfst (prep_const lthy)) args);
+  lthy |> Local_Theory.notation add mode (map (apfst (prep_const lthy)) args);
 
 val notation = gen_notation (K I);
 val notation_cmd = gen_notation ProofContext.read_const;
@@ -270,7 +270,7 @@ fun gen_theorems prep_fact prep_att kind raw_facts lthy =
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
-    val (res, lthy') = lthy |> LocalTheory.notes_kind kind facts;
+    val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts;
     val _ = Proof_Display.print_results true lthy' ((kind, ""), res);
   in (res, lthy') end;
 
@@ -345,7 +345,7 @@ structure TheoremHook = Generic_Data
 fun gen_theorem prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
   let
-    val _ = LocalTheory.affirm lthy;
+    val _ = Local_Theory.affirm lthy;
     val thy = ProofContext.theory_of lthy;
 
     val attrib = prep_att thy;
@@ -359,7 +359,7 @@ fun gen_theorem prep_att prep_stmt
         burrow (map Goal.norm_result o ProofContext.export goal_ctxt' lthy) results
       in
         lthy
-        |> LocalTheory.notes_kind kind
+        |> Local_Theory.notes_kind kind
           (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           if Binding.is_empty name andalso null atts then
@@ -367,7 +367,7 @@ fun gen_theorem prep_att prep_stmt
           else
             let
               val ([(res_name, _)], lthy'') = lthy'
-                |> LocalTheory.notes_kind kind [((name, atts), [(maps #2 res, [])])];
+                |> Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])];
               val _ = Proof_Display.print_results true lthy' ((kind, res_name), res);
             in lthy'' end)
         |> after_qed results'

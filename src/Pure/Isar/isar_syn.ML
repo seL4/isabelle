@@ -288,7 +288,7 @@ val _ =
 (* use ML text *)
 
 fun propagate_env (context as Context.Proof lthy) =
-      Context.Proof (LocalTheory.map_contexts (ML_Env.inherit context) lthy)
+      Context.Proof (Local_Theory.map_contexts (ML_Env.inherit context) lthy)
   | propagate_env context = context;
 
 fun propagate_env_prf prf = Proof.map_contexts

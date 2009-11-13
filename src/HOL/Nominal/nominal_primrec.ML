@@ -280,9 +280,8 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       else primrec_err ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
     val (defs_thms, lthy') = lthy |>
-      set_group ? LocalTheory.set_group (serial ()) |>
-      fold_map (apfst (snd o snd) oo
-        LocalTheory.define Thm.definitionK o fst) defs';
+      set_group ? Local_Theory.set_group (serial ()) |>
+      fold_map (apfst (snd o snd) oo Local_Theory.define Thm.definitionK o fst) defs';
     val qualify = Binding.qualify false
       (space_implode "_" (map (Long_Name.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;
@@ -367,10 +366,11 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       (fn thss => fn goal_ctxt =>
          let
            val simps = ProofContext.export goal_ctxt lthy' (flat thss);
-           val (simps', lthy'') = fold_map LocalTheory.note (names_atts' ~~ map single simps) lthy';
+           val (simps', lthy'') =
+            fold_map Local_Theory.note (names_atts' ~~ map single simps) lthy';
          in
            lthy''
-           |> LocalTheory.note ((qualify (Binding.name "simps"),
+           |> Local_Theory.note ((qualify (Binding.name "simps"),
                 map (Attrib.internal o K) [Simplifier.simp_add, Nitpick_Simps.add]),
                 maps snd simps')
            |> snd

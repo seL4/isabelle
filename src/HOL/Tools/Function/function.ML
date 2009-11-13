@@ -52,13 +52,14 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lt
                    |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
-        fold_map LocalTheory.note spec lthy
+        fold_map Local_Theory.note spec lthy
 
       val saved_simps = maps snd saved_spec_simps
       val simps_by_f = sort saved_simps
 
       fun add_for_f fname simps =
-        LocalTheory.note ((mod_binding (Binding.qualify true fname (Binding.name label)), []), simps)
+        Local_Theory.note
+          ((mod_binding (Binding.qualify true fname (Binding.name label)), []), simps)
         #> snd
     in
       (saved_simps,
@@ -97,14 +98,14 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
             |> addsmps (conceal_partial o Binding.qualify false "partial")
                  "psimps" conceal_partial psimp_attribs psimps
             ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
-            ||>> LocalTheory.note ((conceal_partial (qualify "pinduct"),
+            ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
                    [Attrib.internal (K (Rule_Cases.case_names cnames)),
                     Attrib.internal (K (Rule_Cases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
-            ||>> LocalTheory.note ((Binding.conceal (qualify "termination"), []), [termination])
-            ||> (snd o LocalTheory.note ((qualify "cases",
+            ||>> Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination])
+            ||> (snd o Local_Theory.note ((qualify "cases",
                    [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
-            ||> fold_option (snd oo curry LocalTheory.note (qualify "domintros", [])) domintros
+            ||> fold_option (snd oo curry Local_Theory.note (qualify "domintros", [])) domintros
 
           val cdata = FunctionCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
                                       pinducts=snd pinducts', termination=termination',
@@ -114,11 +115,11 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
             else Specification.print_consts lthy (K false) (map fst fixes)
         in
           lthy
-          |> LocalTheory.declaration false (add_function_data o morph_function_data cdata)
+          |> Local_Theory.declaration false (add_function_data o morph_function_data cdata)
         end
     in
       lthy
-        |> is_external ? LocalTheory.set_group (serial ())
+        |> is_external ? Local_Theory.set_group (serial ())
         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
@@ -152,7 +153,7 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
           in
             lthy
             |> add_simps I "simps" I simp_attribs tsimps |> snd
-            |> LocalTheory.note
+            |> Local_Theory.note
                ((qualify "induct",
                  [Attrib.internal (K (Rule_Cases.case_names case_names))]),
                 tinduct) |> snd
@@ -174,12 +175,12 @@ val termination_proof_cmd = gen_termination_proof Syntax.read_term;
 
 fun termination term_opt lthy =
   lthy
-  |> LocalTheory.set_group (serial ())
+  |> Local_Theory.set_group (serial ())
   |> termination_proof term_opt;
 
 fun termination_cmd term_opt lthy =
   lthy
-  |> LocalTheory.set_group (serial ())
+  |> Local_Theory.set_group (serial ())
   |> termination_proof_cmd term_opt;
 
 

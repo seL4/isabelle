@@ -484,13 +484,13 @@ fun add_ind_set_def
 
     (* define inductive sets using previously defined predicates *)
     val (defs, lthy2) = lthy1
-      |> LocalTheory.conceal  (* FIXME ?? *)
-      |> fold_map (LocalTheory.define "")
+      |> Local_Theory.conceal  (* FIXME ?? *)
+      |> fold_map (Local_Theory.define "")
         (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.empty_binding,
            fold_rev lambda params (HOLogic.Collect_const U $
              HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
            (cnames_syn ~~ cs_info ~~ preds))
-      ||> LocalTheory.restore_naming lthy1;
+      ||> Local_Theory.restore_naming lthy1;
 
     (* prove theorems for converting predicate to set notation *)
     val lthy3 = fold
@@ -505,7 +505,7 @@ fun add_ind_set_def
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, split_conv]) 1))
         in
-          lthy |> LocalTheory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
+          lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),
               [conv_thm]) |> snd
         end) (preds ~~ cs ~~ cs_info ~~ defs) lthy2;
@@ -515,7 +515,7 @@ fun add_ind_set_def
       if Binding.is_empty alt_name then
         Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
       else alt_name;
-    val cnames = map (LocalTheory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
+    val cnames = map (Local_Theory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
     val (intrs', elims', induct, lthy4) =
