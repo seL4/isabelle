@@ -87,6 +87,7 @@ fun prove_cpo
       thy
       |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo})
           (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
+    (* transfer thms so that they will know about the new cpo instance *)
     val cpo_thms' = map (Thm.transfer thy2) cpo_thms;
     fun make thm = Drule.standard (thm OF cpo_thms');
     val ([adm, cont_Rep, cont_Abs, lub, thelub, compact], thy3) =
@@ -152,7 +153,7 @@ fun prove_pcpo
 fun declare_type_name a =
   Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-fun prepare prep_term _ name (t, vs, mx) raw_set opt_morphs thy =
+fun prepare prep_term name (t, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Pcpodef" "pcpodefs";
     val ctxt = ProofContext.init thy;
@@ -167,7 +168,6 @@ fun prepare prep_term _ name (t, vs, mx) raw_set opt_morphs thy =
     (*lhs*)
     val defS = Sign.defaultS thy;
     val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
-    val lhs_sorts = map snd lhs_tfrees;
     val tname = Binding.map_name (Syntax.type_name mx) t;
     val full_tname = Sign.full_name thy tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
@@ -175,7 +175,7 @@ fun prepare prep_term _ name (t, vs, mx) raw_set opt_morphs thy =
     val morphs = opt_morphs
       |> the_default (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name);
   in
-    (newT, oldT, set, morphs, lhs_sorts)
+    (newT, oldT, set, morphs)
   end
 
 fun add_podef def opt_name typ set opt_morphs tac thy =
@@ -188,21 +188,20 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT));
 
     val RepC = Const (Rep_name, newT --> oldT);
-    val below_def = Logic.mk_equals (below_const newT,
+    val below_eqn = Logic.mk_equals (below_const newT,
       Abs ("x", newT, Abs ("y", newT, below_const oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))));
     val lthy3 = thy2
       |> Theory_Target.instantiation ([full_tname], lhs_tfrees, @{sort po});
-    val below_def' = Syntax.check_term lthy3 below_def;
-    val ((_, (_, below_definition')), lthy4) = lthy3
+    val ((_, (_, below_ldef)), lthy4) = lthy3
       |> Specification.definition (NONE,
-          ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_def'));
+          ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_eqn));
     val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy4);
-    val below_definition = singleton (ProofContext.export lthy4 ctxt_thy) below_definition';
+    val below_def = singleton (ProofContext.export lthy4 ctxt_thy) below_ldef;
     val thy5 = lthy4
       |> Class.prove_instantiation_instance
-          (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_definition]) 1))
+          (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_def]) 1))
       |> LocalTheory.exit_global;
-  in ((info, below_definition), thy5) end;
+  in ((info, below_def), thy5) end;
 
 fun prepare_cpodef
       (prep_term: Proof.context -> 'a -> term)
@@ -214,8 +213,8 @@ fun prepare_cpodef
       (thy: theory)
     : term * term * (thm -> thm -> theory -> (Typedef.info * cpo_info) * theory) =
   let
-    val (newT, oldT, set, morphs as (Rep_name, Abs_name), lhs_sorts) =
-      prepare prep_term def name typ raw_set opt_morphs thy;
+    val (newT, oldT, set, morphs as (Rep_name, Abs_name)) =
+      prepare prep_term name typ raw_set opt_morphs thy;
 
     val goal_nonempty =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set)));
@@ -247,8 +246,8 @@ fun prepare_pcpodef
       (thy: theory)
     : term * term * (thm -> thm -> theory -> (Typedef.info * cpo_info * pcpo_info) * theory) =
   let
-    val (newT, oldT, set, morphs as (Rep_name, Abs_name), lhs_sorts) =
-      prepare prep_term def name typ raw_set opt_morphs thy;
+    val (newT, oldT, set, morphs as (Rep_name, Abs_name)) =
+      prepare prep_term name typ raw_set opt_morphs thy;
 
     val goal_UU_mem =
       HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (@{const_name UU}, oldT), set));
