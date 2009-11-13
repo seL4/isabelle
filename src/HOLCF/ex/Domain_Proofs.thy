@@ -94,13 +94,13 @@ instantiation foo :: (rep) rep
 begin
 
 definition emb_foo :: "'a foo \<rightarrow> udom"
-where "emb_foo = (\<Lambda> x. Rep_foo x)"
+where "emb_foo \<equiv> (\<Lambda> x. Rep_foo x)"
 
 definition prj_foo :: "udom \<rightarrow> 'a foo"
-where "prj_foo = (\<Lambda> y. Abs_foo (cast\<cdot>(foo_typ\<cdot>REP('a))\<cdot>y))"
+where "prj_foo \<equiv> (\<Lambda> y. Abs_foo (cast\<cdot>(foo_typ\<cdot>REP('a))\<cdot>y))"
 
 definition approx_foo :: "nat \<Rightarrow> 'a foo \<rightarrow> 'a foo"
-where "approx_foo = (\<lambda>i. prj oo cast\<cdot>(approx i\<cdot>(foo_typ\<cdot>REP('a))) oo emb)"
+where "approx_foo \<equiv> repdef_approx Rep_foo Abs_foo (foo_typ\<cdot>REP('a))"
 
 instance
 apply (rule typedef_rep_class)
@@ -117,13 +117,13 @@ instantiation bar :: (rep) rep
 begin
 
 definition emb_bar :: "'a bar \<rightarrow> udom"
-where "emb_bar = (\<Lambda> x. Rep_bar x)"
+where "emb_bar \<equiv> (\<Lambda> x. Rep_bar x)"
 
 definition prj_bar :: "udom \<rightarrow> 'a bar"
-where "prj_bar = (\<Lambda> y. Abs_bar (cast\<cdot>(bar_typ\<cdot>REP('a))\<cdot>y))"
+where "prj_bar \<equiv> (\<Lambda> y. Abs_bar (cast\<cdot>(bar_typ\<cdot>REP('a))\<cdot>y))"
 
 definition approx_bar :: "nat \<Rightarrow> 'a bar \<rightarrow> 'a bar"
-where "approx_bar = (\<lambda>i. prj oo cast\<cdot>(approx i\<cdot>(bar_typ\<cdot>REP('a))) oo emb)"
+where "approx_bar \<equiv> repdef_approx Rep_bar Abs_bar (bar_typ\<cdot>REP('a))"
 
 instance
 apply (rule typedef_rep_class)
@@ -140,13 +140,13 @@ instantiation baz :: (rep) rep
 begin
 
 definition emb_baz :: "'a baz \<rightarrow> udom"
-where "emb_baz = (\<Lambda> x. Rep_baz x)"
+where "emb_baz \<equiv> (\<Lambda> x. Rep_baz x)"
 
 definition prj_baz :: "udom \<rightarrow> 'a baz"
-where "prj_baz = (\<Lambda> y. Abs_baz (cast\<cdot>(baz_typ\<cdot>REP('a))\<cdot>y))"
+where "prj_baz \<equiv> (\<Lambda> y. Abs_baz (cast\<cdot>(baz_typ\<cdot>REP('a))\<cdot>y))"
 
 definition approx_baz :: "nat \<Rightarrow> 'a baz \<rightarrow> 'a baz"
-where "approx_baz = (\<lambda>i. prj oo cast\<cdot>(approx i\<cdot>(baz_typ\<cdot>REP('a))) oo emb)"
+where "approx_baz \<equiv> repdef_approx Rep_baz Abs_baz (baz_typ\<cdot>REP('a))"
 
 instance
 apply (rule typedef_rep_class)
