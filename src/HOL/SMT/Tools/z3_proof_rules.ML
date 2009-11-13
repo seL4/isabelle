@@ -97,7 +97,7 @@ fun thm_of (Thm thm) = thm
   | thm_of (Literals (thm, _)) = thm
 
 fun meta_eq_of (MetaEq thm) = thm
-  | meta_eq_of p = thm_of p COMP @{thm eq_reflection}
+  | meta_eq_of p = mk_meta_eq (thm_of p)
 
 datatype proof =
   Unproved of {
@@ -1088,6 +1088,60 @@ fun arith_lemma ctxt thms ct =
   in with_conv (all_distrib_conv ctxt) (prove_arith ctxt thms') ct end
 end
 
+(** theory simpset **)
+local
+  val antisym_le1 = mk_meta_eq @{thm order_class.antisym_conv}
+  val antisym_le2 = mk_meta_eq @{thm linorder_class.antisym_conv2}
+  val antisym_less1 = mk_meta_eq @{thm linorder_class.antisym_conv1}
+  val antisym_less2 = mk_meta_eq @{thm linorder_class.antisym_conv3}
+
+  fun eq_prop t thm = HOLogic.mk_Trueprop t aconv Thm.prop_of thm
+
+  fun prove_antisym_le ss ((le as Const(_, T)) $ r $ s) =
+    let
+      val prems = Simplifier.prems_of_ss ss
+      val less = Const (@{const_name less}, T)
+    in
+      (case find_first (eq_prop (le $ s $ r)) prems of
+        NONE =>
+          find_first (eq_prop (HOLogic.mk_not (less $ r $ s))) prems
+          |> Option.map (fn thm => thm RS antisym_less1)
+      | SOME thm => SOME (thm RS antisym_le1))
+    end
+    handle THM _ => NONE
+
+  fun prove_antisym_less ss (_ $ ((less as Const(_,T)) $ r $ s)) =
+    let
+      val prems = prems_of_ss ss
+      val le = Const (@{const_name less_eq}, T)
+    in
+      (case find_first (eq_prop (le $ r $ s)) prems of
+        NONE =>
+          find_first (eq_prop (HOLogic.mk_not (less $ s $ r))) prems
+          |> Option.map (fn thm => thm RS antisym_less2)
+    | SOME thm => SOME (thm RS antisym_le2))
+  end
+  handle THM _ => NONE
+in
+val z3_simpset = HOL_ss addsimps @{thms array_rules}
+  addsimps @{thms ring_distribs} addsimps @{thms field_eq_simps}
+  addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
+  addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}
+  addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
+  addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
+  addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
+  addsimprocs [
+    Simplifier.simproc @{theory} "fast_int_arith" [
+      "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
+    Simplifier.simproc @{theory} "fast_real_arith" [
+      "(m::real) < n", "(m::real) <= n", "(m::real) = n"]
+      (K Lin_Arith.simproc),
+    Simplifier.simproc @{theory} "antisym le" ["(x::'a::order) <= y"]
+      (K prove_antisym_le),
+    Simplifier.simproc @{theory} "antisym less" ["~ (x::'a::linorder) < y"]
+      (K prove_antisym_less)]
+end
+
 (** theory lemmas: linear arithmetic, arrays **)
 local
   val array_ss = HOL_ss addsimps @{thms array_rules}
@@ -1098,14 +1152,19 @@ local
   fun full_arith_tac ctxt thms =
     Tactic.cut_facts_tac thms
     THEN' Arith_Data.arith_tac ctxt
+
+  fun simp_arith_tac ctxt thms =
+    Tactic.cut_facts_tac thms
+    THEN' Simplifier.asm_full_simp_tac z3_simpset
+    THEN' Arith_Data.arith_tac ctxt
 in
 fun th_lemma ctxt thms ct =
   Thm (try_apply ctxt "th-lemma" [
     ("abstract arith", arith_lemma ctxt thms),
     ("array", by_tac' (array_tac thms)),
-    ("full arith", by_tac' (full_arith_tac ctxt thms))] (T.mk_prop ct))
+    ("full arith", by_tac' (full_arith_tac ctxt thms)),
+    ("simp arith", by_tac' (simp_arith_tac ctxt thms))] (T.mk_prop ct))
 end
-
 
 (** rewriting: prove equalities:
       * ACI of conjunction/disjunction
@@ -1190,20 +1249,7 @@ local
     Tactic.rtac iffI_rule THEN_ALL_NEW arith_tac ctxt
     ORELSE' arith_tac ctxt
 
-  val simpset = HOL_ss addsimps @{thms array_rules}
-    addsimps @{thms ring_distribs} addsimps @{thms field_eq_simps}
-    addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
-    addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}
-    addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
-    addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
-    addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
-    addsimprocs [
-      Simplifier.simproc @{theory} "fast_int_arith" [
-        "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
-      Simplifier.simproc @{theory} "fast_real_arith" [
-        "(m::real) < n", "(m::real) <= n", "(m::real) = n"]
-        (K Lin_Arith.simproc)]
-  val simp_tac = CHANGED o Simplifier.simp_tac simpset
+  val simp_tac = CHANGED o Simplifier.simp_tac z3_simpset
     ORELSE' Classical.best_tac HOL_cs
 in
 fun rewrite ctxt thms ct =
