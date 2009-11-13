@@ -6,6 +6,10 @@ distribution.
 
 Contributions to this Isabelle version
 --------------------------------------
+
+* November 2009: Stefan Berghofer, Lukas Bulwahn, TUM
+  A tabled implementation of the reflexive transitive closure
+
 * November 2009: Lukas Bulwahn, TUM
   Predicate Compiler: a compiler for inductive predicates to equational specfications
  

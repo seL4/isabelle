@@ -596,7 +596,7 @@ lemma le_refl: "n \<le> (n::nat)"
 lemma le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::nat)"
   by (rule order_trans)
 
-lemma le_anti_sym: "[| m \<le> n; n \<le> m |] ==> m = (n::nat)"
+lemma le_antisym: "[| m \<le> n; n \<le> m |] ==> m = (n::nat)"
   by (rule antisym)
 
 lemma nat_less_le: "((m::nat) < n) = (m \<le> n & m \<noteq> n)"
@@ -1611,14 +1611,14 @@ by (simp add: dvd_def)
 lemma nat_dvd_1_iff_1 [simp]: "m dvd (1::nat) \<longleftrightarrow> m = 1"
 by (simp add: dvd_def)
 
-lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
+lemma dvd_antisym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
   unfolding dvd_def
   by (force dest: mult_eq_self_implies_10 simp add: mult_assoc mult_eq_1_iff)
 
 text {* @{term "op dvd"} is a partial order *}
 
 interpretation dvd: order "op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"
-  proof qed (auto intro: dvd_refl dvd_trans dvd_anti_sym)
+  proof qed (auto intro: dvd_refl dvd_trans dvd_antisym)
 
 lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
 unfolding dvd_def

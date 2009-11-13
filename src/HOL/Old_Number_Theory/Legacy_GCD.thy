@@ -23,7 +23,7 @@ definition
 text {* Uniqueness *}
 
 lemma is_gcd_unique: "is_gcd a b m \<Longrightarrow> is_gcd a b n \<Longrightarrow> m = n"
-  by (simp add: is_gcd_def) (blast intro: dvd_anti_sym)
+  by (simp add: is_gcd_def) (blast intro: dvd_antisym)
 
 text {* Connection to divides relation *}
 
@@ -156,7 +156,7 @@ lemma relprime_dvd_mult_iff: "gcd k n = 1 ==> (k dvd m * n) = (k dvd m)"
   by (auto intro: relprime_dvd_mult dvd_mult2)
 
 lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
-  apply (rule dvd_anti_sym)
+  apply (rule dvd_antisym)
    apply (rule gcd_greatest)
     apply (rule_tac n = k in relprime_dvd_mult)
      apply (simp add: gcd_assoc)
@@ -223,7 +223,7 @@ proof(auto)
   assume H: "d dvd a" "d dvd b" "\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d"
   from H(3)[rule_format] gcd_dvd1[of a b] gcd_dvd2[of a b] 
   have th: "gcd a b dvd d" by blast
-  from dvd_anti_sym[OF th gcd_greatest[OF H(1,2)]]  show "d = gcd a b" by blast 
+  from dvd_antisym[OF th gcd_greatest[OF H(1,2)]]  show "d = gcd a b" by blast 
 qed
 
 lemma gcd_eq: assumes H: "\<forall>d. d dvd x \<and> d dvd y \<longleftrightarrow> d dvd u \<and> d dvd v"

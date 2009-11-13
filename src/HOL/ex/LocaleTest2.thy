@@ -29,7 +29,7 @@ subsubsection {* Definitions *}
 locale dpo =
   fixes le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>" 50)
   assumes refl [intro, simp]: "x \<sqsubseteq> x"
-    and anti_sym [intro]: "[| x \<sqsubseteq> y; y \<sqsubseteq> x |] ==> x = y"
+    and antisym [intro]: "[| x \<sqsubseteq> y; y \<sqsubseteq> x |] ==> x = y"
     and trans [trans]: "[| x \<sqsubseteq> y; y \<sqsubseteq> z |] ==> x \<sqsubseteq> z"
 
 begin
@@ -87,7 +87,7 @@ proof -
   assume inf: "is_inf x y i"
   assume inf': "is_inf x y i'"
   show ?thesis
-  proof (rule anti_sym)
+  proof (rule antisym)
     from inf' show "i \<sqsubseteq> i'"
     proof (rule is_inf_greatest)
       from inf show "i \<sqsubseteq> x" ..
@@ -159,7 +159,7 @@ proof -
   assume sup: "is_sup x y s"
   assume sup': "is_sup x y s'"
   show ?thesis
-  proof (rule anti_sym)
+  proof (rule antisym)
     from sup show "s \<sqsubseteq> s'"
     proof (rule is_sup_least)
       from sup' show "x \<sqsubseteq> s'" ..
@@ -457,7 +457,7 @@ proof
     moreover
     { assume c: "x \<sqsubseteq> y | x \<sqsubseteq> z"
       from c have "?l = x"
-        by (metis (*anti_sym*) (*c*) (*circular*) (*join_assoc*)(* join_commute *) join_connection2 (*join_left*) join_related2 meet_connection(* meet_related2*) total trans)
+        by (metis (*antisym*) (*c*) (*circular*) (*join_assoc*)(* join_commute *) join_connection2 (*join_left*) join_related2 meet_connection(* meet_related2*) total trans)
       also from c have "... = ?r"
         by (metis join_commute join_related2 meet_connection meet_related2 total)
       finally have "?l = ?r" . }

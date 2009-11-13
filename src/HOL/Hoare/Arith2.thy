@@ -58,7 +58,7 @@ lemma gcd_nnn: "0<n ==> n = gcd n n"
   apply (frule cd_nnn)
   apply (rule some_equality [symmetric])
   apply (blast dest: cd_le)
-  apply (blast intro: le_anti_sym dest: cd_le)
+  apply (blast intro: le_antisym dest: cd_le)
   done
 
 lemma gcd_swap: "gcd m n = gcd n m"
