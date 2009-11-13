@@ -172,7 +172,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
         #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])])));
 
     (*facts*)
-    val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
+    val (facts, thy') = axioms_thy |> PureThy.note_thmss ""
       (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
 
     val _ =
@@ -329,8 +329,9 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val (facts, goal_ctxt) = elems_ctxt
           |> (snd o ProofContext.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
-          |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
-                [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
+          |-> (fn ths =>
+            ProofContext.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
+            #2 #> pair ths);
       in ((prems, stmt, SOME facts), goal_ctxt) end);
 
 structure TheoremHook = Generic_Data
@@ -372,8 +373,7 @@ fun gen_theorem prep_att prep_stmt
       end;
   in
     goal_ctxt
-    |> ProofContext.note_thmss Thm.assumptionK
-      [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
+    |> ProofContext.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)

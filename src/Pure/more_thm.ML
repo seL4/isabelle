@@ -84,14 +84,11 @@ sig
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
-  val axiomK: string
-  val assumptionK: string
   val definitionK: string
   val theoremK: string
   val generatedK : string
   val lemmaK: string
   val corollaryK: string
-  val internalK: string
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
@@ -414,14 +411,11 @@ fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name
 
 (* theorem kinds *)
 
-val axiomK = "axiom";
-val assumptionK = "assumption";
 val definitionK = "definition";
 val theoremK = "theorem";
 val generatedK = "generatedK"
 val lemmaK = "lemma";
 val corollaryK = "corollary";
-val internalK = Markup.internalK;
 
 fun get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 

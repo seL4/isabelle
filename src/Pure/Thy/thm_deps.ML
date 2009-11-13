@@ -79,9 +79,7 @@ fun unused_thms (base_thys, thys) =
           NONE => I
         | SOME grp => Inttab.update (grp, ()))) thms Inttab.empty;
     val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, grps') =>
-      if member (op =) [Thm.theoremK, Thm.generatedK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK]
-        (Thm.get_kind th) andalso not concealed andalso is_unused (a, th)
-      then
+      if not concealed andalso is_unused (a, th) then
         (case group of
            NONE => ((a, th) :: thms, grps')
          | SOME grp =>

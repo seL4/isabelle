@@ -460,7 +460,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
       |> Inductive.add_inductive_i
           {quiet_mode = true,
             verbose = ! trace,
-            kind = Thm.internalK,
+            kind = "",
             alt_name = Binding.empty,
             coind = false,
             no_elim = false,
@@ -519,7 +519,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
-    LocalTheory.define Thm.internalK
+    LocalTheory.define ""
       ((Binding.name (function_name fname), mixfix),
         ((Binding.conceal (Binding.name fdefname), []), f_def)) lthy
   end

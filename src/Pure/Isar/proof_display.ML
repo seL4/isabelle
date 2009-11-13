@@ -91,7 +91,7 @@ fun pretty_facts ctxt =
 in
 
 fun print_results do_print ctxt ((kind, name), facts) =
-  if not do_print orelse kind = "" orelse kind = Thm.internalK then ()
+  if not do_print orelse kind = "" then ()
   else if name = "" then
     Pretty.writeln (Pretty.block (Pretty.str kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
   else Pretty.writeln

@@ -156,7 +156,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
       thy0
       |> Sign.map_naming Name_Space.conceal
       |> Inductive.add_inductive_global (serial ())
-          {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
+          {quiet_mode = #quiet config, verbose = false, kind = "",
             alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))

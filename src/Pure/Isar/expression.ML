@@ -682,7 +682,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val (_, thy'') =
             thy'
             |> Sign.mandatory_path (Binding.name_of abinding)
-            |> PureThy.note_thmss Thm.internalK
+            |> PureThy.note_thmss ""
               [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
@@ -696,7 +696,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val (_, thy'''') =
             thy'''
             |> Sign.mandatory_path (Binding.name_of binding)
-            |> PureThy.note_thmss Thm.internalK
+            |> PureThy.note_thmss ""
                  [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
                   ((Binding.conceal (Binding.name axiomsN), []),
                     [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
@@ -713,7 +713,7 @@ fun assumes_to_notes (Assumes asms) axms =
       fold_map (fn (a, spec) => fn axs =>
           let val (ps, qs) = chop (length spec) axs
           in ((a, [(ps, [])]), qs) end) asms axms
-      |> apfst (curry Notes Thm.assumptionK)
+      |> apfst (curry Notes "")
   | assumes_to_notes e axms = (e, axms);
 
 fun defines_to_notes thy (Defines defs) =
@@ -755,7 +755,7 @@ fun gen_add_locale prep_decl
 
     val notes =
       if is_some asm then
-        [(Thm.internalK, [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
+        [("", [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
           [([Assumption.assume (cterm_of thy' (the asm))],
             [(Attrib.internal o K) Locale.witness_add])])])]
       else [];

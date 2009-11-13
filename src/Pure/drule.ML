@@ -710,13 +710,11 @@ val protect = Thm.capply (certify Logic.protectC);
 
 val protectI =
   store_thm (Binding.conceal (Binding.name "protectI"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
+    (standard (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A)));
 
 val protectD =
   store_thm (Binding.conceal (Binding.name "protectD"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim prop_def (Thm.assume (protect A)))));
+    (standard (Thm.equal_elim prop_def (Thm.assume (protect A))));
 
 val protect_cong =
   store_standard_thm_open (Binding.name "protect_cong") (Thm.reflexive (protect A));
@@ -734,8 +732,7 @@ fun implies_intr_protected asms th =
 
 val termI =
   store_thm (Binding.conceal (Binding.name "termI"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
+    (standard (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A))));
 
 fun mk_term ct =
   let
@@ -764,15 +761,14 @@ val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
 
 val sort_constraintI =
   store_thm (Binding.conceal (Binding.name "sort_constraintI"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T))));
+    (standard (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T)));
 
 val sort_constraint_eq =
   store_thm (Binding.conceal (Binding.name "sort_constraint_eq"))
-    (Thm.kind_rule Thm.internalK (standard
+    (standard
       (Thm.equal_intr
         (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
-        (implies_intr_list [A, C] (Thm.assume A)))));
+        (implies_intr_list [A, C] (Thm.assume A))));
 
 end;
 
