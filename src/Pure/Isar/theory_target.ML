@@ -77,14 +77,14 @@ local
 
 fun direct_decl decl =
   let val decl0 = Morphism.form decl in
-    LocalTheory.theory (Context.theory_map decl0) #>
-    LocalTheory.target (Context.proof_map decl0)
+    Local_Theory.theory (Context.theory_map decl0) #>
+    Local_Theory.target (Context.proof_map decl0)
   end;
 
 fun target_decl add (Target {target, ...}) pervasive decl lthy =
   let
-    val global_decl = Morphism.transform (LocalTheory.global_morphism lthy) decl;
-    val target_decl = Morphism.transform (LocalTheory.target_morphism lthy) decl;
+    val global_decl = Morphism.transform (Local_Theory.global_morphism lthy) decl;
+    val target_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
   in
     if target = "" then
       lthy
@@ -92,7 +92,7 @@ fun target_decl add (Target {target, ...}) pervasive decl lthy =
     else
       lthy
       |> pervasive ? direct_decl global_decl
-      |> LocalTheory.target (add target target_decl)
+      |> Local_Theory.target (add target target_decl)
   end;
 
 in
@@ -104,8 +104,8 @@ val declaration = target_decl Locale.add_declaration;
 end;
 
 fun class_target (Target {target, ...}) f =
-  LocalTheory.raw_theory f #>
-  LocalTheory.target (Class_Target.refresh_syntax target);
+  Local_Theory.raw_theory f #>
+  Local_Theory.target (Class_Target.refresh_syntax target);
 
 
 (* notes *)
@@ -161,19 +161,19 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
     val thy = ProofContext.theory_of lthy;
     val facts' = facts
       |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi
-          (LocalTheory.full_name lthy (fst a))) bs))
+          (Local_Theory.full_name lthy (fst a))) bs))
       |> PureThy.map_facts (import_export_proof lthy);
     val local_facts = PureThy.map_facts #1 facts'
       |> Attrib.map_facts (Attrib.attribute_i thy);
     val target_facts = PureThy.map_facts #1 facts'
-      |> is_locale ? Element.facts_map (Element.morph_ctxt (LocalTheory.target_morphism lthy));
+      |> is_locale ? Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy));
     val global_facts = PureThy.map_facts #2 facts'
       |> Attrib.map_facts (if is_locale then K I else Attrib.attribute_i thy);
   in
     lthy
-    |> LocalTheory.theory (PureThy.note_thmss kind global_facts #> snd)
-    |> not is_locale ? LocalTheory.target (ProofContext.note_thmss kind global_facts #> snd)
-    |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts #> snd)
+    |> not is_locale ? Local_Theory.target (ProofContext.note_thmss kind global_facts #> snd)
+    |> is_locale ? Local_Theory.target (Locale.add_thmss target kind target_facts)
     |> ProofContext.note_thmss kind local_facts
   end;
 
@@ -212,22 +212,22 @@ fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ q
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
   let
-    val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
+    val xs = filter depends (#1 (ProofContext.inferred_fixes (Local_Theory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
     val (const, lthy') = lthy |>
       (case Class_Target.instantiation_param lthy b of
         SOME c' =>
           if mx3 <> NoSyn then syntax_error c'
-          else LocalTheory.theory_result (AxClass.declare_overloaded (c', U))
+          else Local_Theory.theory_result (AxClass.declare_overloaded (c', U))
             ##> Class_Target.confirm_declaration b
         | NONE =>
             (case Overloading.operation lthy b of
               SOME (c', _) =>
                 if mx3 <> NoSyn then syntax_error c'
-                else LocalTheory.theory_result (Overloading.declare (c', U))
+                else Local_Theory.theory_result (Overloading.declare (c', U))
                   ##> Overloading.confirm b
-            | NONE => LocalTheory.theory_result (Sign.declare_const ((b, U), mx3))));
+            | NONE => Local_Theory.theory_result (Sign.declare_const ((b, U), mx3))));
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
@@ -242,7 +242,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
-    val target_ctxt = LocalTheory.target_of lthy;
+    val target_ctxt = Local_Theory.target_of lthy;
 
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
     val t' = Assumption.export_term lthy target_ctxt t;
@@ -253,14 +253,14 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
   in
     lthy |>
      (if is_locale then
-        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal (b, global_rhs))
+        Local_Theory.theory_result (Sign.add_abbrev PrintMode.internal (b, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta false (locale_const ta prmode ((b, mx2), lhs')) #>
             is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
           end)
       else
-        LocalTheory.theory
+        Local_Theory.theory
           (Sign.add_abbrev (#1 prmode) (b, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
     |> ProofContext.add_abbrev PrintMode.internal (b, t) |> snd
@@ -278,7 +278,7 @@ fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
     val name' = Thm.def_binding_optional b name;
     val (rhs', rhs_conv) =
       LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
-    val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];
+    val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
 
     (*const*)
@@ -287,7 +287,7 @@ fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
 
     (*def*)
     val (global_def, lthy3) = lthy2
-      |> LocalTheory.theory_result
+      |> Local_Theory.theory_result
         (case Overloading.operation lthy b of
           SOME (_, checked) => Overloading.define checked name' (fst (dest_Const lhs'), rhs')
         | NONE =>
@@ -310,7 +310,8 @@ fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
 local
 
 fun init_target _ NONE = global_target
-  | init_target thy (SOME target) = if Locale.defined thy (Locale.intern thy target)
+  | init_target thy (SOME target) =
+      if Locale.defined thy (Locale.intern thy target)
       then make_target target true (Class_Target.is_class thy target) ([], [], []) []
       else error ("No such locale: " ^ quote target);
 
@@ -323,7 +324,7 @@ fun init_ctxt (Target {target, is_locale, is_class, instantiation, overloading})
 
 fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
   Data.put ta #>
-  LocalTheory.init (Long_Name.base_name target)
+  Local_Theory.init (Long_Name.base_name target)
    {pretty = pretty ta,
     abbrev = abbrev ta,
     define = define ta,
@@ -332,7 +333,7 @@ fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
     term_syntax = term_syntax ta,
     declaration = declaration ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
-    exit = LocalTheory.target_of o
+    exit = Local_Theory.target_of o
       (if not (null (#1 instantiation)) then Class_Target.conclude_instantiation
        else if not (null overloading) then Overloading.conclude
        else I)}

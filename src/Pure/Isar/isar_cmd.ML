@@ -181,7 +181,7 @@ fun add_defs ((unchecked, overloaded), args) =
 fun declaration pervasive (txt, pos) =
   txt |> ML_Context.expression pos
     "val declaration: Morphism.declaration"
-    ("Context.map_proof (LocalTheory.declaration " ^ Bool.toString pervasive ^ " declaration)")
+    ("Context.map_proof (Local_Theory.declaration " ^ Bool.toString pervasive ^ " declaration)")
   |> Context.proof_map;
 
 

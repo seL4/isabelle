@@ -456,11 +456,10 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
   let
     val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
       lthy
-      |> LocalTheory.conceal
+      |> Local_Theory.conceal
       |> Inductive.add_inductive_i
           {quiet_mode = true,
             verbose = ! trace,
-            kind = "",
             alt_name = Binding.empty,
             coind = false,
             no_elim = false,
@@ -471,7 +470,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
           [] (* no parameters *)
           (map (fn t => (Attrib.empty_binding, t)) intrs) (* intro rules *)
           [] (* no special monos *)
-      ||> LocalTheory.restore_naming lthy
+      ||> Local_Theory.restore_naming lthy
 
     val cert = cterm_of (ProofContext.theory_of lthy)
     fun requantify orig_intro thm =
@@ -519,7 +518,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
-    LocalTheory.define ""
+    Local_Theory.define ""
       ((Binding.name (function_name fname), mixfix),
         ((Binding.conceal (Binding.name fdefname), []), f_def)) lthy
   end
@@ -929,7 +928,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
           PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
       val (_, lthy) =
-          LocalTheory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), mk_acc domT R) lthy
+          Local_Theory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), mk_acc domT R) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses

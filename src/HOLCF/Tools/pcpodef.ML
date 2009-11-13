@@ -201,7 +201,7 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
     val thy5 = lthy4
       |> Class.prove_instantiation_instance
           (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_definition]) 1))
-      |> LocalTheory.exit_global;
+      |> Local_Theory.exit_global;
   in ((info, below_definition), thy5) end;
 
 fun prepare_cpodef

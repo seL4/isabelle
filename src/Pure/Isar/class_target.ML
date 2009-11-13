@@ -405,9 +405,9 @@ structure Instantiation = Proof_Data
 
 fun mk_instantiation (arities, params) =
   Instantiation { arities = arities, params = params };
-fun get_instantiation lthy = case Instantiation.get (LocalTheory.target_of lthy)
+fun get_instantiation lthy = case Instantiation.get (Local_Theory.target_of lthy)
  of Instantiation data => data;
-fun map_instantiation f = (LocalTheory.target o Instantiation.map)
+fun map_instantiation f = (Local_Theory.target o Instantiation.map)
   (fn Instantiation { arities, params } => mk_instantiation (f (arities, params)));
 
 fun the_instantiation lthy = case get_instantiation lthy
@@ -526,14 +526,14 @@ fun init_instantiation (tycos, vs, sort) thy =
 
 fun confirm_declaration b = (map_instantiation o apsnd)
   (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
-  #> LocalTheory.target synchronize_inst_syntax
+  #> Local_Theory.target synchronize_inst_syntax
 
 fun gen_instantiation_instance do_proof after_qed lthy =
   let
     val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
-      LocalTheory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
+      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
       #> after_qed;
   in
     lthy
@@ -548,7 +548,7 @@ fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed 
     (fn {context, ...} => tac context)) ts) lthy) I;
 
 fun prove_instantiation_exit tac = prove_instantiation_instance tac
-  #> LocalTheory.exit_global;
+  #> Local_Theory.exit_global;
 
 fun prove_instantiation_exit_result f tac x lthy =
   let

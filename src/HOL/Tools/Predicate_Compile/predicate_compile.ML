@@ -137,8 +137,8 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
   in
     if (is_inductify options) then
       let
-        val lthy' = LocalTheory.theory (preprocess options const) lthy
-          |> LocalTheory.checkpoint
+        val lthy' = Local_Theory.theory (preprocess options const) lthy
+          |> Local_Theory.checkpoint
         val const =
           case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
             SOME c => c

@@ -190,7 +190,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
       in
         lthy
         |> random_aux_primrec aux_eq'
-        ||>> fold_map (LocalTheory.define Thm.definitionK) proj_defs
+        ||>> fold_map (Local_Theory.define Thm.definitionK) proj_defs
         |-> (fn (aux_simp, proj_defs) => prove_eqs aux_simp proj_defs)
       end;
 
@@ -214,7 +214,7 @@ fun random_aux_specification prfx name eqs lthy =
     lthy
     |> random_aux_primrec_multi (name ^ prfx) proto_eqs
     |-> (fn proto_simps => prove_simps proto_simps)
-    |-> (fn simps => LocalTheory.note ""
+    |-> (fn simps => Local_Theory.note
       ((b, Code.add_default_eqn_attrib :: map (Attrib.internal o K)
           [Simplifier.simp_add, Nitpick_Simps.add]), simps))
     |> snd

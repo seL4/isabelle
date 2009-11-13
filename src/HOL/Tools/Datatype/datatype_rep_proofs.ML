@@ -175,9 +175,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       thy1
       |> Sign.map_naming Name_Space.conceal
       |> Inductive.add_inductive_global (serial ())
-          {quiet_mode = #quiet config, verbose = false, kind = "",
-           alt_name = Binding.name big_rec_name, coind = false, no_elim = true, no_ind = false,
-           skip_mono = true, fork_mono = false}
+          {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
+           coind = false, no_elim = true, no_ind = false, skip_mono = true, fork_mono = false}
           (map (fn s => ((Binding.name s, UnivT'), NoSyn)) rep_set_names') []
           (map (fn x => (Attrib.empty_binding, x)) intr_ts) []
       ||> Sign.restore_naming thy1
