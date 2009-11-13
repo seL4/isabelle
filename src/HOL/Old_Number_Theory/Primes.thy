@@ -97,7 +97,7 @@ qed
 text {* Elementary theory of divisibility *}
 lemma divides_ge: "(a::nat) dvd b \<Longrightarrow> b = 0 \<or> a \<le> b" unfolding dvd_def by auto
 lemma divides_antisym: "(x::nat) dvd y \<and> y dvd x \<longleftrightarrow> x = y"
-  using dvd_anti_sym[of x y] by auto
+  using dvd_antisym[of x y] by auto
 
 lemma divides_add_revr: assumes da: "(d::nat) dvd a" and dab:"d dvd (a + b)"
   shows "d dvd b"

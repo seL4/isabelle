@@ -935,7 +935,7 @@ proof-
           p: "prime p" "p dvd m" by blast
         from dvd_trans[OF p(2) m(1)] p(1) H have "p = n" by blast
         with p(2) have "n dvd m"  by simp
-        hence "m=n"  using dvd_anti_sym[OF m(1)] by simp }
+        hence "m=n"  using dvd_antisym[OF m(1)] by simp }
       with n1 have "prime n"  unfolding prime_def by auto }
     ultimately have ?thesis using n by blast}
   ultimately       show ?thesis by auto

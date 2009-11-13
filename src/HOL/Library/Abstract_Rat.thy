@@ -206,7 +206,7 @@ proof
       apply simp
       apply algebra
       done
-    from zdvd_dvd_eq[OF bz coprime_dvd_mult_int[OF gcd1(2) raw_dvd(2)]
+    from zdvd_antisym_abs[OF coprime_dvd_mult_int[OF gcd1(2) raw_dvd(2)]
       coprime_dvd_mult_int[OF gcd1(4) raw_dvd(4)]]
       have eq1: "b = b'" using pos by arith  
       with eq have "a = a'" using pos by simp

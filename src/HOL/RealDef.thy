@@ -321,7 +321,7 @@ apply (simp add: real_le_def)
 apply (auto intro: real_le_lemma)
 done
 
-lemma real_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
+lemma real_le_antisym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
 by (cases z, cases w, simp add: real_le)
 
 lemma real_trans_lemma:
@@ -347,8 +347,8 @@ instance real :: order
 proof
   fix u v :: real
   show "u < v \<longleftrightarrow> u \<le> v \<and> \<not> v \<le> u" 
-    by (auto simp add: real_less_def intro: real_le_anti_sym)
-qed (assumption | rule real_le_refl real_le_trans real_le_anti_sym)+
+    by (auto simp add: real_less_def intro: real_le_antisym)
+qed (assumption | rule real_le_refl real_le_trans real_le_antisym)+
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma real_le_linear: "(z::real) \<le> w | w \<le> z"

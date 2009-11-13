@@ -1986,15 +1986,18 @@ lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
 
 subsection {* The divides relation *}
 
-lemma zdvd_anti_sym:
-    "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
+lemma zdvd_antisym_nonneg:
+    "0 <= m ==> 0 <= n ==> m dvd n ==> n dvd m ==> m = (n::int)"
   apply (simp add: dvd_def, auto)
-  apply (simp add: mult_assoc zero_less_mult_iff zmult_eq_1_iff)
+  apply (auto simp add: mult_assoc zero_le_mult_iff zmult_eq_1_iff)
   done
 
-lemma zdvd_dvd_eq: assumes "a \<noteq> 0" and "(a::int) dvd b" and "b dvd a" 
+lemma zdvd_antisym_abs: assumes "(a::int) dvd b" and "b dvd a" 
   shows "\<bar>a\<bar> = \<bar>b\<bar>"
-proof-
+proof cases
+  assume "a = 0" with assms show ?thesis by simp
+next
+  assume "a \<noteq> 0"
   from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast 
   from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
   from k k' have "a = a*k*k'" by simp
@@ -2326,7 +2329,7 @@ lemmas zmult_1_right = mult_1_right [of "z::int", standard]
 
 lemmas zle_refl = order_refl [of "w::int", standard]
 lemmas zle_trans = order_trans [where 'a=int and x="i" and y="j" and z="k", standard]
-lemmas zle_anti_sym = order_antisym [of "z::int" "w", standard]
+lemmas zle_antisym = order_antisym [of "z::int" "w", standard]
 lemmas zle_linear = linorder_linear [of "z::int" "w", standard]
 lemmas zless_linear = linorder_less_linear [where 'a = int]
 

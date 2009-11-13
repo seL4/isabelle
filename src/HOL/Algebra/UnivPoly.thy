@@ -811,7 +811,7 @@ qed
 lemma deg_eqI:
   "[| !!m. n < m ==> coeff P p m = \<zero>;
       !!n. n ~= 0 ==> coeff P p n ~= \<zero>; p \<in> carrier P |] ==> deg R p = n"
-by (fast intro: le_anti_sym deg_aboveI deg_belowI)
+by (fast intro: le_antisym deg_aboveI deg_belowI)
 
 text {* Degree and polynomial operations *}
 
@@ -826,11 +826,11 @@ lemma deg_monom_le:
 
 lemma deg_monom [simp]:
   "[| a ~= \<zero>; a \<in> carrier R |] ==> deg R (monom P a n) = n"
-  by (fastsimp intro: le_anti_sym deg_aboveI deg_belowI)
+  by (fastsimp intro: le_antisym deg_aboveI deg_belowI)
 
 lemma deg_const [simp]:
   assumes R: "a \<in> carrier R" shows "deg R (monom P a 0) = 0"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg R (monom P a 0) <= 0" by (rule deg_aboveI) (simp_all add: R)
 next
   show "0 <= deg R (monom P a 0)" by (rule deg_belowI) (simp_all add: R)
@@ -838,7 +838,7 @@ qed
 
 lemma deg_zero [simp]:
   "deg R \<zero>\<^bsub>P\<^esub> = 0"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg R \<zero>\<^bsub>P\<^esub> <= 0" by (rule deg_aboveI) simp_all
 next
   show "0 <= deg R \<zero>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
@@ -846,7 +846,7 @@ qed
 
 lemma deg_one [simp]:
   "deg R \<one>\<^bsub>P\<^esub> = 0"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg R \<one>\<^bsub>P\<^esub> <= 0" by (rule deg_aboveI) simp_all
 next
   show "0 <= deg R \<one>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
@@ -854,7 +854,7 @@ qed
 
 lemma deg_uminus [simp]:
   assumes R: "p \<in> carrier P" shows "deg R (\<ominus>\<^bsub>P\<^esub> p) = deg R p"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg R (\<ominus>\<^bsub>P\<^esub> p) <= deg R p" by (simp add: deg_aboveI deg_aboveD R)
 next
   show "deg R p <= deg R (\<ominus>\<^bsub>P\<^esub> p)"
@@ -878,7 +878,7 @@ begin
 lemma deg_smult [simp]:
   assumes R: "a \<in> carrier R" "p \<in> carrier P"
   shows "deg R (a \<odot>\<^bsub>P\<^esub> p) = (if a = \<zero> then 0 else deg R p)"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg R (a \<odot>\<^bsub>P\<^esub> p) <= (if a = \<zero> then 0 else deg R p)"
     using R by (rule deg_smult_ring)
 next
@@ -920,7 +920,7 @@ begin
 lemma deg_mult [simp]:
   "[| p ~= \<zero>\<^bsub>P\<^esub>; q ~= \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==>
   deg R (p \<otimes>\<^bsub>P\<^esub> q) = deg R p + deg R q"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   assume "p \<in> carrier P" " q \<in> carrier P"
   then show "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q" by (rule deg_mult_ring)
 next

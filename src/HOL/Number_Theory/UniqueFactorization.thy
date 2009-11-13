@@ -844,7 +844,7 @@ lemma multiplicity_eq_nat:
     mult_eq [simp]: "!!p. prime p \<Longrightarrow> multiplicity p x = multiplicity p y"
   shows "x = y"
 
-  apply (rule dvd_anti_sym)
+  apply (rule dvd_antisym)
   apply (auto intro: multiplicity_dvd'_nat) 
 done
 
@@ -854,7 +854,7 @@ lemma multiplicity_eq_int:
     mult_eq [simp]: "!!p. prime p \<Longrightarrow> multiplicity p x = multiplicity p y"
   shows "x = y"
 
-  apply (rule dvd_anti_sym [transferred])
+  apply (rule dvd_antisym [transferred])
   apply (auto intro: multiplicity_dvd'_int) 
 done
 

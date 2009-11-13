@@ -312,13 +312,13 @@ lemma gcd_pos_int [simp]: "(gcd (m::int) n > 0) = (m ~= 0 | n ~= 0)"
   by (insert gcd_zero_int [of m n], insert gcd_ge_0_int [of m n], arith)
 
 lemma gcd_commute_nat: "gcd (m::nat) n = gcd n m"
-  by (rule dvd_anti_sym, auto)
+  by (rule dvd_antisym, auto)
 
 lemma gcd_commute_int: "gcd (m::int) n = gcd n m"
   by (auto simp add: gcd_int_def gcd_commute_nat)
 
 lemma gcd_assoc_nat: "gcd (gcd (k::nat) m) n = gcd k (gcd m n)"
-  apply (rule dvd_anti_sym)
+  apply (rule dvd_antisym)
   apply (blast intro: dvd_trans)+
 done
 
@@ -339,23 +339,18 @@ lemmas gcd_ac_int = gcd_assoc_int gcd_commute_int gcd_left_commute_int
 lemma gcd_unique_nat: "(d::nat) dvd a \<and> d dvd b \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
   apply auto
-  apply (rule dvd_anti_sym)
+  apply (rule dvd_antisym)
   apply (erule (1) gcd_greatest_nat)
   apply auto
 done
 
 lemma gcd_unique_int: "d >= 0 & (d::int) dvd a \<and> d dvd b \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
-  apply (case_tac "d = 0")
-  apply force
-  apply (rule iffI)
-  apply (rule zdvd_anti_sym)
-  apply arith
-  apply (subst gcd_pos_int)
-  apply clarsimp
-  apply (drule_tac x = "d + 1" in spec)
-  apply (frule zdvd_imp_le)
-  apply (auto intro: gcd_greatest_int)
+apply (case_tac "d = 0")
+ apply simp
+apply (rule iffI)
+ apply (rule zdvd_antisym_nonneg)
+ apply (auto intro: gcd_greatest_int)
 done
 
 lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x"
@@ -417,7 +412,7 @@ lemma coprime_dvd_mult_iff_int: "coprime (k::int) n \<Longrightarrow>
   by (auto intro: coprime_dvd_mult_int)
 
 lemma gcd_mult_cancel_nat: "coprime k n \<Longrightarrow> gcd ((k::nat) * m) n = gcd m n"
-  apply (rule dvd_anti_sym)
+  apply (rule dvd_antisym)
   apply (rule gcd_greatest_nat)
   apply (rule_tac n = k in coprime_dvd_mult_nat)
   apply (simp add: gcd_assoc_nat)
@@ -1381,11 +1376,11 @@ by(metis lcm_dvd2_int dvd_trans)
 
 lemma lcm_unique_nat: "(a::nat) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  by (auto intro: dvd_anti_sym lcm_least_nat lcm_dvd1_nat lcm_dvd2_nat)
+  by (auto intro: dvd_antisym lcm_least_nat lcm_dvd1_nat lcm_dvd2_nat)
 
 lemma lcm_unique_int: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  by (auto intro: dvd_anti_sym [transferred] lcm_least_int)
+  by (auto intro: dvd_antisym [transferred] lcm_least_int)
 
 lemma lcm_proj2_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm x y = y"
   apply (rule sym)
