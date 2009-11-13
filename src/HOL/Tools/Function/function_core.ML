@@ -460,7 +460,6 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
       |> Inductive.add_inductive_i
           {quiet_mode = true,
             verbose = ! trace,
-            kind = "",
             alt_name = Binding.empty,
             coind = false,
             no_elim = false,
