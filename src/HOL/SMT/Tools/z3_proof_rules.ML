@@ -222,7 +222,6 @@ local
   and dest_disj3 = precompose (destd I) @{lemma "~(P | Q) ==> ~Q" by fast}
   and dest_disj4 = precompose (destd dn2) @{lemma "~(P | ~Q) ==> Q" by fast}
 
-  val is_neg = (fn @{term Not} $ _ => true | _ => false)
   fun dest_disj_rules t =
     (case dest_disj_term' is_neg t of
       SOME (true, true) => SOME (dest_disj2, dest_disj4)
@@ -458,7 +457,7 @@ fun fresh_abstraction ct (cx as (ctxt, mk_var, idx, gen, tab)) =
       let val cv = mk_var ctxt idx (#T (Thm.rep_cterm ct))
       in (cv, (ctxt, mk_var, idx + 1, gen, Ctermtab.update (ct, cv) tab)) end)
 
-fun prove_abstraction tac ct (ctxt, _, _, gen, tab) =
+fun prove_abstraction tac ct (_, _, _, gen, tab) =
   let
     val insts = map swap (Ctermtab.dest tab)
     val thm = Goal.prove_internal [] ct (fn _ => tac 1)
@@ -1096,11 +1095,14 @@ local
   val antisym_less2 = mk_meta_eq @{thm linorder_class.antisym_conv3}
 
   fun eq_prop t thm = HOLogic.mk_Trueprop t aconv Thm.prop_of thm
+  fun dest_binop ((c as Const _) $ t $ u) = (c, t, u)
+    | dest_binop t = raise TERM ("dest_binop", [t])
 
-  fun prove_antisym_le ss ((le as Const(_, T)) $ r $ s) =
+  fun prove_antisym_le ss t =
     let
+      val (le, r, s) = dest_binop t
+      val less = Const (@{const_name less}, Term.fastype_of le)
       val prems = Simplifier.prems_of_ss ss
-      val less = Const (@{const_name less}, T)
     in
       (case find_first (eq_prop (le $ s $ r)) prems of
         NONE =>
@@ -1110,16 +1112,17 @@ local
     end
     handle THM _ => NONE
 
-  fun prove_antisym_less ss (_ $ ((less as Const(_,T)) $ r $ s)) =
+  fun prove_antisym_less ss t =
     let
+      val (less, r, s) = dest_binop (HOLogic.dest_not t)
+      val le = Const (@{const_name less_eq}, Term.fastype_of less)
       val prems = prems_of_ss ss
-      val le = Const (@{const_name less_eq}, T)
     in
       (case find_first (eq_prop (le $ r $ s)) prems of
         NONE =>
           find_first (eq_prop (HOLogic.mk_not (less $ s $ r))) prems
           |> Option.map (fn thm => thm RS antisym_less2)
-    | SOME thm => SOME (thm RS antisym_le2))
+      | SOME thm => SOME (thm RS antisym_le2))
   end
   handle THM _ => NONE
 in
@@ -1249,7 +1252,7 @@ local
     Tactic.rtac iffI_rule THEN_ALL_NEW arith_tac ctxt
     ORELSE' arith_tac ctxt
 
-  val simp_tac = CHANGED o Simplifier.simp_tac z3_simpset
+  fun simp_tac thms = CHANGED o Simplifier.simp_tac (z3_simpset addsimps thms)
     ORELSE' Classical.best_tac HOL_cs
 in
 fun rewrite ctxt thms ct =
@@ -1261,7 +1264,7 @@ fun rewrite ctxt thms ct =
       ("distinct", distinct),
       ("arith", by_tac' (arith_eq_tac ctxt)),
       ("classical", by_tac' (Classical.best_tac HOL_cs)),
-      ("simp", by_tac' simp_tac),
+      ("simp", by_tac' (simp_tac thms)),
       ("full arith", by_tac' (Arith_Data.arith_tac ctxt))] (T.mk_prop ct))
   end
 end

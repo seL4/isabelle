@@ -142,7 +142,7 @@ local
       SApp (SConst (@{const_name nat}, _), [SApp (SNum (i, _), _)]) => SOME i
     | _ => NONE)
 in
-fun bv_rotate mk_name T ts =
+fun bv_rotate mk_name _ ts =
   dest_nat (hd ts) |> Option.map (fn i => (mk_name i, tl ts))
 
 fun bv_extend mk_name T ts =
@@ -196,7 +196,7 @@ local
 
   fun group_quant qname vs (t as Const (q, _) $ Abs (n, T, u)) =
         if q = qname then group_quant qname ((n, T) :: vs) u else (vs, t)
-    | group_quant qname vs t = (vs, t)
+    | group_quant _ vs t = (vs, t)
 
   fun dest_trigger (@{term trigger} $ tl $ t) = (HOLogic.dest_list tl, t)
     | dest_trigger t = ([], t)
@@ -208,11 +208,11 @@ local
 
   fun trans Ts t =
     (case Term.strip_comb t of
-      (t1 as Const (qn, qT), [t2 as Abs (n, T, t3)]) =>
+      (Const (qn, _), [Abs (n, T, t1)]) =>
         (case quantifier qn of
           SOME q =>
             let
-              val (vs, u) = group_quant qn [(n, T)] t3
+              val (vs, u) = group_quant qn [(n, T)] t1
               val Us = map snd vs @ Ts
               val (ps, b) = dest_trigger u
             in SQuant (q, rev vs, map (pat (trans Us) []) ps, trans Us b) end
@@ -277,7 +277,7 @@ local
 
   fun sep loc t =
     (case t of
-      SVar i => pair t
+      SVar _ => pair t
     | SApp (c as SConst (@{const_name If}, _), u :: us) =>
         mark sep false u ##>> fold_map (sep loc) us #>> app c o (op ::)
     | SApp (c, us) =>
@@ -429,7 +429,7 @@ local
         let val (n, ns') = fresh_typ ns
         in (n, (vars, ns', add_typ (T, n) sgn)) end)
 
-  fun rep_var bs (n, T) (vars, ns, sgn) =
+  fun rep_var bs (_, T) (vars, ns, sgn) =
     let val (n', vars') = fresh_name vars
     in (vars', ns, sgn) |> rep_typ bs T |>> pair n' end
 
@@ -458,9 +458,9 @@ fun signature_of prefixes markers builtins thy ts =
     fun sign loc t =
       (case t of
         SVar i => pair (SVar i)
-      | SApp (c as SConst (@{const_name term}, _), [u]) =>
+      | SApp (SConst (@{const_name term}, _), [u]) =>
           sign true u #>> app term_marker o single
-      | SApp (c as SConst (@{const_name formula}, _), [u]) =>
+      | SApp (SConst (@{const_name formula}, _), [u]) =>
           sign false u #>> app formula_marker o single
       | SApp (SConst (c as (_, T)), ts) =>
           (case builtin_lookup (builtin_fun loc) thy c ts of

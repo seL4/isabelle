@@ -130,7 +130,8 @@ fun translate (t, cs) =
   in
     (case (can HOLogic.dest_number t, cs) of
       (true, [c]) => trans 0 T c #>> (fn (_, u) => [mk_eq u ([], t)])
-    | (_, (es, _) :: _) => fold_map (trans (length es) T) cs #>> map (mk_eq t))
+    | (_, (es, _) :: _) => fold_map (trans (length es) T) cs #>> map (mk_eq t)
+    | _ => raise TERM ("translate: no cases", [t]))
   end
 
 

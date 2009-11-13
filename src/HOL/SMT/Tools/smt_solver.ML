@@ -144,7 +144,7 @@ fun use_certificate ctxt ps =
       true)
   end
 
-fun run_locally f ctxt env_var args ps =
+fun run_locally f env_var args ps =
   if getenv env_var = ""
   then f ("Undefined Isabelle environment variable: " ^ quote env_var)
   else
@@ -173,7 +173,7 @@ fun run ctxt {env_var, remote_name} args (problem_path, proof_path) =
   let val ps = [File.shell_path problem_path, ">", File.shell_path proof_path]
   in
     if use_certificate ctxt ps then ()
-    else run_locally (run_remote remote_name args ps) ctxt env_var args ps
+    else run_locally (run_remote remote_name args ps) env_var args ps
   end
 
 in

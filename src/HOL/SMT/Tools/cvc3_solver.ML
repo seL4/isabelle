@@ -23,11 +23,11 @@ val is_unknown = String.isPrefix "Unknown."
 
 fun raise_cex real = raise SMT_Solver.SMT_COUNTEREXAMPLE (real, [])
 
-fun core_oracle ({context, output, recon, ...} : SMT_Solver.proof_data) =
+fun core_oracle ({output, ...} : SMT_Solver.proof_data) =
   let
     val empty_line = (fn "" => true | _ => false)
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
-    val (l, ls) = split_first (dropwhile empty_line output)
+    val (l, _) = split_first (dropwhile empty_line output)
   in
     if is_unsat l then @{cprop False}
     else if is_sat l then raise_cex true

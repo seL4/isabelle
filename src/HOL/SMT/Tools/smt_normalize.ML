@@ -285,14 +285,14 @@ local
   fun add_sym t = if AList.defined (op =) defs t then insert (op =) t else I
   fun add_syms thms = fold (Term.fold_aterms add_sym o Thm.prop_of) thms []
 
-  fun unfold_conv ctxt ct =
+  fun unfold_conv ct =
     (case AList.lookup (op =) defs (Term.head_of (Thm.term_of ct)) of
       SOME (_, eq) => Conv.rewr_conv eq
     | NONE => Conv.all_conv) ct
 in
 fun add_abs_min_max_rules ctxt thms =
   if Config.get ctxt unfold_defs
-  then map (Conv.fconv_rule (More_Conv.bottom_conv unfold_conv ctxt)) thms
+  then map (Conv.fconv_rule (More_Conv.bottom_conv (K unfold_conv) ctxt)) thms
   else map fst (map_filter (AList.lookup (op =) defs) (add_syms thms)) @ thms
 end
 
@@ -319,13 +319,12 @@ local
     let
       val cvs' = used_vars cvs ct
       val ct' = fold_rev Thm.cabs cvs' ct
-      val mk_repl = fold (fn ct => fn cu => Thm.capply cu ct) cvs'
     in
       (case Termtab.lookup defs (Thm.term_of ct') of
         SOME (_, eq) => (make_def cvs' eq, cx)
       | NONE =>
           let
-            val {t, T, ...} = Thm.rep_cterm ct'
+            val {T, ...} = Thm.rep_cterm ct'
             val (n, nctxt') = fresh_name "" nctxt
             val eq = Thm.assume (mk_meta_eq (cert ctxt (Free (n, T))) ct')
           in (make_def cvs' eq, (nctxt', add_def ct' eq defs)) end)
@@ -410,8 +409,8 @@ fun explicit_application ctxt thms =
       (case Term.strip_comb (Thm.term_of ct) of
         (Const (n, _), ts) => app_conv tb (const n) (length ts) ctxt
       | (Free (n, _), ts) => app_conv tb (free n) (length ts) ctxt
-      | (Abs _, ts) => nary_conv (abs_conv sub_conv tb ctxt) (sub_conv tb ctxt)
-      | (_, ts) => nary_conv Conv.all_conv (sub_conv tb ctxt)) ct
+      | (Abs _, _) => nary_conv (abs_conv sub_conv tb ctxt) (sub_conv tb ctxt)
+      | (_, _) => nary_conv Conv.all_conv (sub_conv tb ctxt)) ct
     and app_conv tb n i ctxt =
       (case Symtab.lookup tb n of
         NONE => nary_conv Conv.all_conv (sub_conv tb ctxt)
