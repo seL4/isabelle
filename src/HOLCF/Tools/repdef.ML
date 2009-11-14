@@ -126,7 +126,7 @@ fun gen_add_repdef
     val thy4 = lthy3
       |> Class.prove_instantiation_instance
           (K (Tactic.rtac (@{thm typedef_rep_class} OF typedef_thms) 1))
-      |> LocalTheory.exit_global;
+      |> Local_Theory.exit_global;
 
     (*other theorems*)
     val typedef_thms' = map (Thm.transfer thy4)
