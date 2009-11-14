@@ -1224,26 +1224,29 @@ qed
 (* A function with positive derivative is increasing. 
    A simple proof using the MVT, by Jeremy Avigad. And variants.
 *)
-
 lemma DERIV_pos_imp_increasing:
   fixes a::real and b::real and f::"real => real"
   assumes "a < b" and "\<forall>x. a \<le> x & x \<le> b --> (EX y. DERIV f x :> y & y > 0)"
   shows "f a < f b"
 proof (rule ccontr)
   assume "~ f a < f b"
-  from assms have "EX l z. a < z & z < b & DERIV f z :> l
+  have "EX l z. a < z & z < b & DERIV f z :> l
       & f b - f a = (b - a) * l"
-    by (metis MVT DERIV_isCont differentiableI real_less_def)
+    apply (rule MVT)
+      using assms
+      apply auto
+      apply (metis DERIV_isCont)
+     apply (metis differentiableI real_less_def)
+    done
   then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
       and "f b - f a = (b - a) * l"
     by auto
   
   from prems have "~(l > 0)"
-    by (metis assms(1) linorder_not_le mult_le_0_iff real_le_eq_diff)
+    by (metis linorder_not_le mult_le_0_iff real_le_eq_diff)
   with prems show False
     by (metis DERIV_unique real_less_def)
 qed
-
 
 lemma DERIV_nonneg_imp_nonincreasing:
   fixes a::real and b::real and f::"real => real"
@@ -1258,10 +1261,11 @@ proof (rule ccontr, cases "a = b")
   assume "a ~= b"
   with assms have "EX l z. a < z & z < b & DERIV f z :> l
       & f b - f a = (b - a) * l"
-    apply (intro MVT)
-    apply auto
-    apply (metis DERIV_isCont)
-    apply (metis differentiableI real_less_def)
+    apply -
+    apply (rule MVT)
+      apply auto
+      apply (metis DERIV_isCont)
+     apply (metis differentiableI real_less_def)
     done
   then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
       and "f b - f a = (b - a) * l"
@@ -1281,7 +1285,8 @@ lemma DERIV_neg_imp_decreasing:
 proof -
   have "(%x. -f x) a < (%x. -f x) b"
     apply (rule DERIV_pos_imp_increasing [of a b "%x. -f x"])
-    apply (insert prems, auto)
+    using assms
+    apply auto
     apply (metis DERIV_minus neg_0_less_iff_less)
     done
   thus ?thesis
@@ -1296,7 +1301,8 @@ lemma DERIV_nonpos_imp_nonincreasing:
 proof -
   have "(%x. -f x) a \<le> (%x. -f x) b"
     apply (rule DERIV_nonneg_imp_nonincreasing [of a b "%x. -f x"])
-    apply (insert prems, auto)
+    using assms
+    apply auto
     apply (metis DERIV_minus neg_0_le_iff_le)
     done
   thus ?thesis
