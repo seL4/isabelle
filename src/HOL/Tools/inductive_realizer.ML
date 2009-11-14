@@ -14,7 +14,7 @@ end;
 structure InductiveRealizer : INDUCTIVE_REALIZER =
 struct
 
-(* FIXME: LocalTheory.note should return theorems with proper names! *)  (* FIXME ?? *)
+(* FIXME: Local_Theory.note should return theorems with proper names! *)  (* FIXME ?? *)
 fun name_of_thm thm =
   (case Proofterm.fold_proof_atoms false (fn PThm (_, ((name, _, _), _)) => cons name | _ => I)
       [Thm.proof_of thm] [] of
@@ -351,8 +351,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     val (ind_info, thy3') = thy2 |>
       Inductive.add_inductive_global (serial ())
-        {quiet_mode = false, verbose = false, kind = Thm.generatedK, alt_name = Binding.empty,
-          coind = false, no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
+        {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
+          no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Binding.name (Long_Name.base_name (name_of_thm intr)), []),
            subst_atomic rlzpreds' (Logic.unvarify rintr)))

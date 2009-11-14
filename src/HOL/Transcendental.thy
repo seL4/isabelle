@@ -1213,6 +1213,9 @@ apply (erule lemma_DERIV_subst [OF DERIV_exp exp_ln])
 apply (simp_all add: abs_if isCont_ln)
 done
 
+lemma DERIV_ln_divide: "0 < x ==> DERIV ln x :> 1 / x"
+  by (rule DERIV_ln[THEN DERIV_cong], simp, simp add: divide_inverse)
+
 lemma ln_series: assumes "0 < x" and "x < 2"
   shows "ln x = (\<Sum> n. (-1)^n * (1 / real (n + 1)) * (x - 1)^(Suc n))" (is "ln x = suminf (?f (x - 1))")
 proof -
@@ -1702,9 +1705,8 @@ apply (auto intro: DERIV_cos DERIV_isCont simp add: differentiable_def)
 apply (drule_tac f = cos in Rolle)
 apply (drule_tac [5] f = cos in Rolle)
 apply (auto dest!: DERIV_cos [THEN DERIV_unique] simp add: differentiable_def)
-apply (drule_tac y1 = xa in order_le_less_trans [THEN sin_gt_zero])
-apply (assumption, rule_tac y=y in order_less_le_trans, simp_all) 
-apply (drule_tac y1 = y in order_le_less_trans [THEN sin_gt_zero], assumption, simp_all) 
+apply (metis order_less_le_trans real_less_def sin_gt_zero)
+apply (metis order_less_le_trans real_less_def sin_gt_zero)
 done
 
 lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
@@ -2436,14 +2438,8 @@ apply (rule arctan_lbound [of x, THEN dense, THEN exE], clarify)
 apply (rule arctan_ubound [of x, THEN dense, THEN exE], clarify)
 apply (subgoal_tac "isCont arctan (tan (arctan x))", simp)
 apply (erule (1) isCont_inverse_function2 [where f=tan])
-apply (clarify, rule arctan_tan)
-apply (erule (1) order_less_le_trans)
-apply (erule (1) order_le_less_trans)
-apply (clarify, rule isCont_tan)
-apply (rule less_imp_neq [symmetric])
-apply (rule cos_gt_zero_pi)
-apply (erule (1) order_less_le_trans)
-apply (erule (1) order_le_less_trans)
+apply (metis arctan_tan order_le_less_trans order_less_le_trans)
+apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans real_less_def)
 done
 
 lemma DERIV_arcsin:
@@ -3119,8 +3115,7 @@ done
 lemma polar_ex2:
      "y < 0 ==> \<exists>r a. x = r * cos a & y = r * sin a"
 apply (insert polar_ex1 [where x=x and y="-y"], simp, clarify)
-apply (rule_tac x = r in exI)
-apply (rule_tac x = "-a" in exI, simp)
+apply (metis cos_minus minus_minus minus_mult_right sin_minus)
 done
 
 lemma polar_Ex: "\<exists>r a. x = r * cos a & y = r * sin a"

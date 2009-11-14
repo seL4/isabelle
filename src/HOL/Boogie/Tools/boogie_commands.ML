@@ -38,7 +38,7 @@ fun boogie_vc name lthy =
   | SOME vc =>
       let
         fun store thm = Boogie_VCs.discharge (name, thm)
-        fun after_qed [[thm]] = LocalTheory.theory (store thm)
+        fun after_qed [[thm]] = Local_Theory.theory (store thm)
           | after_qed _ = I
       in
         lthy

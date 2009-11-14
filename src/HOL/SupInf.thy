@@ -118,7 +118,7 @@ lemma Sup_eq:
   shows "(!!x. x \<in> X \<Longrightarrow> x \<le> a) 
         \<Longrightarrow> (!!y. (!!x. x \<in> X \<Longrightarrow> x \<le> y) \<Longrightarrow> a \<le> y) \<Longrightarrow> Sup X = a"
   by (metis Sup_least Sup_upper add_le_cancel_left diff_add_cancel insert_absorb
-        insert_not_empty real_le_anti_sym)
+        insert_not_empty real_le_antisym)
 
 lemma Sup_le:
   fixes S :: "real set"
@@ -317,7 +317,7 @@ lemma Inf_eq:
   fixes a :: real
   shows "(!!x. x \<in> X \<Longrightarrow> a \<le> x) \<Longrightarrow> (!!y. (!!x. x \<in> X \<Longrightarrow> y \<le> x) \<Longrightarrow> y \<le> a) \<Longrightarrow> Inf X = a"
   by (metis Inf_greatest Inf_lower add_le_cancel_left diff_add_cancel
-        insert_absorb insert_not_empty real_le_anti_sym)
+        insert_absorb insert_not_empty real_le_antisym)
 
 lemma Inf_ge: 
   fixes S :: "real set"
@@ -397,7 +397,7 @@ lemma Inf_finite_le_iff:
   fixes S :: "real set"
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists> x \<in> S. a \<ge> x)"
 by (metis Inf_finite_Min Inf_finite_ge_iff Inf_finite_in Min_le
-          real_le_anti_sym real_le_linear)
+          real_le_antisym real_le_linear)
 
 lemma Inf_finite_gt_iff: 
   fixes S :: "real set"

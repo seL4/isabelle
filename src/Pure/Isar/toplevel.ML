@@ -105,16 +105,16 @@ exception UNDEF = Runtime.UNDEF;
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
 val loc_init = Theory_Target.context;
-val loc_exit = LocalTheory.exit_global;
+val loc_exit = Local_Theory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy
   | loc_begin (SOME loc) (Context.Proof lthy) = loc_init loc (loc_exit lthy);
 
 fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
-  | loc_finish NONE (Context.Proof _) = Context.Proof o LocalTheory.restore
+  | loc_finish NONE (Context.Proof _) = Context.Proof o Local_Theory.restore
   | loc_finish (SOME _) (Context.Proof lthy) = fn lthy' =>
-      Context.Proof (LocalTheory.reinit (LocalTheory.raw_theory (K (loc_exit lthy')) lthy));
+      Context.Proof (Local_Theory.reinit (Local_Theory.raw_theory (K (loc_exit lthy')) lthy));
 
 
 (* datatype node *)
@@ -193,7 +193,7 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 
 (* print state *)
 
-val pretty_context = LocalTheory.pretty o Context.cases (Theory_Target.init NONE) I;
+val pretty_context = Local_Theory.pretty o Context.cases (Theory_Target.init NONE) I;
 
 fun print_state_context state =
   (case try node_of state of
@@ -259,7 +259,7 @@ fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful ex
   | stale_error some = some;
 
 fun map_theory f (Theory (gthy, ctxt)) =
-      Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, ctxt)
+      Theory (Context.mapping f (Local_Theory.raw_theory f) gthy, ctxt)
   | map_theory _ node = node;
 
 in

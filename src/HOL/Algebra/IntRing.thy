@@ -12,52 +12,11 @@ section {* The Ring of Integers *}
 
 subsection {* Some properties of @{typ int} *}
 
-lemma dvds_imp_abseq:
-  "\<lbrakk>l dvd k; k dvd l\<rbrakk> \<Longrightarrow> abs l = abs (k::int)"
-apply (subst abs_split, rule conjI)
- apply (clarsimp, subst abs_split, rule conjI)
-  apply (clarsimp)
-  apply (cases "k=0", simp)
-  apply (cases "l=0", simp)
-  apply (simp add: zdvd_anti_sym)
- apply clarsimp
- apply (cases "k=0", simp)
- apply (simp add: zdvd_anti_sym)
-apply (clarsimp, subst abs_split, rule conjI)
- apply (clarsimp)
- apply (cases "l=0", simp)
- apply (simp add: zdvd_anti_sym)
-apply (clarsimp)
-apply (subgoal_tac "-l = -k", simp)
-apply (intro zdvd_anti_sym, simp+)
-done
-
-lemma abseq_imp_dvd:
-  assumes a_lk: "abs l = abs (k::int)"
-  shows "l dvd k"
-proof -
-  from a_lk
-      have "nat (abs l) = nat (abs k)" by simp
-  hence "nat (abs l) dvd nat (abs k)" by simp
-  hence "int (nat (abs l)) dvd k" by (subst int_dvd_iff)
-  hence "abs l dvd k" by simp
-  thus "l dvd k" 
-  apply (unfold dvd_def, cases "l<0")
-   defer 1 apply clarsimp
-  proof (clarsimp)
-    fix k
-    assume l0: "l < 0"
-    have "- (l * k) = l * (-k)" by simp
-    thus "\<exists>ka. - (l * k) = l * ka" by fast
-  qed
-qed
-
 lemma dvds_eq_abseq:
   "(l dvd k \<and> k dvd l) = (abs l = abs (k::int))"
 apply rule
- apply (simp add: dvds_imp_abseq)
-apply (rule conjI)
- apply (simp add: abseq_imp_dvd)+
+ apply (simp add: zdvd_antisym_abs)
+apply (simp add: dvd_if_abs_eq)
 done
 
 

@@ -73,7 +73,7 @@ lemma Collect_less_le:
     with w have "real(Suc(natceiling(inverse(g w - f w)))) > inverse(g w - f w)"
       by (metis lessI order_le_less_trans real_natceiling_ge real_of_nat_less_iff)       hence "inverse(real(Suc(natceiling(inverse(g w - f w)))))
              < inverse(inverse(g w - f w))" 
-      by (metis less_iff_diff_less_0 less_imp_inverse_less linorder_neqE_ordered_idom nz positive_imp_inverse_positive real_le_anti_sym real_less_def w)
+      by (metis less_iff_diff_less_0 less_imp_inverse_less linorder_neqE_ordered_idom nz positive_imp_inverse_positive real_le_antisym real_less_def w)
     hence "inverse(real(Suc(natceiling(inverse(g w - f w))))) < g w - f w"
       by (metis inverse_inverse_eq order_less_le_trans real_le_refl) 
     thus "\<exists>n. f w \<le> g w - inverse(real(Suc n))" using w

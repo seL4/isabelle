@@ -18,7 +18,7 @@ record 'a gorder = "'a eq_object" +
 locale weak_partial_order = equivalence L for L (structure) +
   assumes le_refl [intro, simp]:
       "x \<in> carrier L ==> x \<sqsubseteq> x"
-    and weak_le_anti_sym [intro]:
+    and weak_le_antisym [intro]:
       "[| x \<sqsubseteq> y; y \<sqsubseteq> x; x \<in> carrier L; y \<in> carrier L |] ==> x .= y"
     and le_trans [trans]:
       "[| x \<sqsubseteq> y; y \<sqsubseteq> z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L |] ==> x \<sqsubseteq> z"
@@ -636,7 +636,7 @@ proof (rule finite_sup_insertI)
   fix s
   assume sup: "least L s (Upper L {x, y, z})"
   show "x \<squnion> (y \<squnion> z) .= s"
-  proof (rule weak_le_anti_sym)
+  proof (rule weak_le_antisym)
     from sup L show "x \<squnion> (y \<squnion> z) \<sqsubseteq> s"
       by (fastsimp intro!: join_le elim: least_Upper_above)
   next
@@ -877,7 +877,7 @@ proof (rule finite_inf_insertI)
   fix i
   assume inf: "greatest L i (Lower L {x, y, z})"
   show "x \<sqinter> (y \<sqinter> z) .= i"
-  proof (rule weak_le_anti_sym)
+  proof (rule weak_le_antisym)
     from inf L show "i \<sqsubseteq> x \<sqinter> (y \<sqinter> z)"
       by (fastsimp intro!: meet_le elim: greatest_Lower_below)
   next
@@ -1089,11 +1089,11 @@ locale partial_order = weak_partial_order +
   assumes eq_is_equal: "op .= = op ="
 begin
 
-declare weak_le_anti_sym [rule del]
+declare weak_le_antisym [rule del]
 
-lemma le_anti_sym [intro]:
+lemma le_antisym [intro]:
   "[| x \<sqsubseteq> y; y \<sqsubseteq> x; x \<in> carrier L; y \<in> carrier L |] ==> x = y"
-  using weak_le_anti_sym unfolding eq_is_equal .
+  using weak_le_antisym unfolding eq_is_equal .
 
 lemma lless_eq:
   "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y & x \<noteq> y"

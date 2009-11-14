@@ -6,6 +6,7 @@ header {* Representable Types *}
 
 theory Representable
 imports Algebraic Universal Ssum Sprod One ConvexPD
+uses ("Tools/repdef.ML")
 begin
 
 subsection {* Class of representable types *}
@@ -174,16 +175,21 @@ setup {* Sign.add_const_constraint
 setup {* Sign.add_const_constraint
   (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"}) *}
 
+definition
+  repdef_approx ::
+    "('a::pcpo \<Rightarrow> udom) \<Rightarrow> (udom \<Rightarrow> 'a) \<Rightarrow> udom alg_defl \<Rightarrow> nat \<Rightarrow> 'a \<rightarrow> 'a"
+where
+  "repdef_approx Rep Abs t = (\<lambda>i. \<Lambda> x. Abs (cast\<cdot>(approx i\<cdot>t)\<cdot>(Rep x)))"
+
 lemma typedef_rep_class:
   fixes Rep :: "'a::pcpo \<Rightarrow> udom"
   fixes Abs :: "udom \<Rightarrow> 'a::pcpo"
   fixes t :: TypeRep
   assumes type: "type_definition Rep Abs {x. x ::: t}"
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  assumes emb: "emb = (\<Lambda> x. Rep x)"
-  assumes prj: "prj = (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
-  assumes approx:
-    "(approx :: nat \<Rightarrow> 'a \<rightarrow> 'a) = (\<lambda>i. prj oo cast\<cdot>(approx i\<cdot>t) oo emb)"
+  assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
+  assumes prj: "prj \<equiv> (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
+  assumes approx: "(approx :: nat \<Rightarrow> 'a \<rightarrow> 'a) \<equiv> repdef_approx Rep Abs t"
   shows "OFCLASS('a, rep_class)"
 proof
   have adm: "adm (\<lambda>x. x \<in> {x. x ::: t})"
@@ -198,6 +204,19 @@ proof
     apply (rule beta_cfun)
     apply (rule typedef_cont_Abs [OF type below adm])
     apply simp_all
+    done
+  have cast_cast_approx:
+    "\<And>i x. cast\<cdot>t\<cdot>(cast\<cdot>(approx i\<cdot>t)\<cdot>x) = cast\<cdot>(approx i\<cdot>t)\<cdot>x"
+    apply (rule cast_fixed)
+    apply (rule subdeflationD)
+    apply (rule approx.below)
+    apply (rule cast_in_deflation)
+    done
+  have approx':
+    "approx = (\<lambda>i. \<Lambda>(x::'a). prj\<cdot>(cast\<cdot>(approx i\<cdot>t)\<cdot>(emb\<cdot>x)))"
+    unfolding approx repdef_approx_def
+    apply (subst cast_cast_approx [symmetric])
+    apply (simp add: prj_beta [symmetric] emb_beta [symmetric])
     done
   have emb_in_deflation: "\<And>x::'a. emb\<cdot>x ::: t"
     using type_definition.Rep [OF type]
@@ -216,22 +235,15 @@ proof
     apply (simp add: emb_prj cast.below)
     done
   show "chain (approx :: nat \<Rightarrow> 'a \<rightarrow> 'a)"
-    unfolding approx by simp
+    unfolding approx' by simp
   show "\<And>x::'a. (\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx
+    unfolding approx'
     apply (simp add: lub_distribs)
     apply (subst cast_fixed [OF emb_in_deflation])
     apply (rule prj_emb)
     done
-  have cast_cast_approx:
-    "\<And>i x. cast\<cdot>t\<cdot>(cast\<cdot>(approx i\<cdot>t)\<cdot>x) = cast\<cdot>(approx i\<cdot>t)\<cdot>x"
-    apply (rule cast_fixed)
-    apply (rule subdeflationD)
-    apply (rule approx.below)
-    apply (rule cast_in_deflation)
-    done
   show "\<And>(i::nat) (x::'a). approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    unfolding approx
+    unfolding approx'
     apply simp
     apply (simp add: emb_prj)
     apply (simp add: cast_cast_approx)
@@ -239,7 +251,7 @@ proof
   show "\<And>i::nat. finite {x::'a. approx i\<cdot>x = x}"
     apply (rule_tac B="(\<lambda>x. prj\<cdot>x) ` {x. cast\<cdot>(approx i\<cdot>t)\<cdot>x = x}"
            in finite_subset)
-    apply (clarsimp simp add: approx)
+    apply (clarsimp simp add: approx')
     apply (drule_tac f="\<lambda>x. emb\<cdot>x" in arg_cong)
     apply (rule image_eqI)
     apply (rule prj_emb [symmetric])
@@ -269,8 +281,8 @@ lemma typedef_REP:
   fixes t :: TypeRep
   assumes type: "type_definition Rep Abs {x. x ::: t}"
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  assumes emb: "emb = (\<Lambda> x. Rep x)"
-  assumes prj: "prj = (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
+  assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
+  assumes prj: "prj \<equiv> (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
   shows "REP('a) = t"
 proof -
   have adm: "adm (\<lambda>x. x \<in> {x. x ::: t})"
@@ -302,6 +314,11 @@ proof -
     apply (simp add: cast_REP emb_prj)
     done
 qed
+
+lemma adm_mem_Collect_in_deflation: "adm (\<lambda>x. x \<in> {x. x ::: A})"
+unfolding mem_Collect_eq by (rule adm_in_deflation)
+
+use "Tools/repdef.ML"
 
 
 subsection {* Instances of class @{text rep} *}

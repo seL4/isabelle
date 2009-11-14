@@ -466,15 +466,14 @@ fun prove_strong_ind s alt_name avoids ctxt =
             NONE => (rec_qualified (Binding.name "strong_induct"),
                      rec_qualified (Binding.name "strong_inducts"))
           | SOME s => (Binding.name s, Binding.name (s ^ "s"));
-        val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.generatedK
+        val ((_, [strong_induct']), ctxt') = ctxt |> Local_Theory.note
           ((induct_name,
-            map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
-          ctxt;
+            map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct]);
         val strong_inducts =
           Project_Rule.projects ctxt' (1 upto length names) strong_induct'
       in
         ctxt' |>
-        LocalTheory.note Thm.generatedK
+        Local_Theory.note
           ((inducts_name,
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (Rule_Cases.consumes 1))]),

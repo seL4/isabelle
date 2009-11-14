@@ -204,7 +204,7 @@ lemma zcong_zgcd_zmult_zmod:
     apply (case_tac [2] "0 \<le> ka")
   apply (metis zdvd_mult_div_cancel dvd_refl dvd_mult_left zmult_commute zrelprime_zdvd_zmult)
   apply (metis abs_dvd_iff abs_of_nonneg zadd_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs zmult_1_right zmult_commute)
-  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff zle_anti_sym zle_linear zle_refl zmult_commute zrelprime_zdvd_zmult)
+  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff zle_antisym zle_linear zle_refl zmult_commute zrelprime_zdvd_zmult)
   apply (metis dvd_triv_left)
   done
 

@@ -191,7 +191,7 @@ thm_maps
   "LESS_EQ_ADD_SUB" > "Nat.add_diff_assoc"
   "LESS_EQ_ADD" > "Nat.le_add1"
   "LESS_EQ_0" > "Nat.le_0_eq"
-  "LESS_EQUAL_ANTISYM" > "Nat.le_anti_sym"
+  "LESS_EQUAL_ANTISYM" > "Nat.le_antisym"
   "LESS_EQUAL_ADD" > "HOL4Base.arithmetic.LESS_EQUAL_ADD"
   "LESS_EQ" > "Nat.le_simps_3"
   "LESS_DIV_EQ_ZERO" > "Divides.div_less"

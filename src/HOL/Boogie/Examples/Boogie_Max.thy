@@ -57,14 +57,20 @@ boogie_vc max
 proof (split_vc (verbose) try: fast simp)
   print_cases
   case L_14_5c
-  thus ?case by (metis abs_of_nonneg zabs_less_one_iff zle_linear)
+  thus ?case by (metis less_le_not_le zle_add1_eq_le zless_linear)
 next
   case L_14_5b
-  thus ?case by (metis less_le_not_le linorder_not_le xt1(10) zle_linear
-    zless_add1_eq)
+  thus ?case by (metis less_le_not_le xt1(10) zle_linear zless_add1_eq)
 next
   case L_14_5a
-  thus ?case by (metis less_le_not_le zle_add1_eq_le zless_linear)
+  note max0 = `max0 = array 0`
+  {
+    fix i :: int
+    assume "0 \<le> i \<and> i < 1"
+    hence "i = 0" by simp
+    with max0 have "array i \<le> max0" by simp
+  }
+  thus ?case by simp
 qed
 
 boogie_end

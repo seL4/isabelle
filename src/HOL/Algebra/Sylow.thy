@@ -344,7 +344,7 @@ apply (blast intro!: M1_subset_G intro:
 done
 
 lemma (in sylow_central) card_H_eq: "card(H) = p^a"
-by (blast intro: le_anti_sym lemma_leq1 lemma_leq2)
+by (blast intro: le_antisym lemma_leq1 lemma_leq2)
 
 lemma (in sylow) sylow_thm: "\<exists>H. subgroup H G & card(H) = p^a"
 apply (cut_tac lemma_A1, clarify)

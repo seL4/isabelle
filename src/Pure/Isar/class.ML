@@ -281,7 +281,7 @@ fun gen_class prep_class_spec bname raw_supclasses raw_elems thy =
   in
     thy
     |> Expression.add_locale bname Binding.empty supexpr elems
-    |> snd |> LocalTheory.exit_global
+    |> snd |> Local_Theory.exit_global
     |> adjungate_axclass bname class base_sort sups supsort supparam_names global_syntax
     ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
