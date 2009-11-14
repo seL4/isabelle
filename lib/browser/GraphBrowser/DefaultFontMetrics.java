@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/DefaultFontMetrics.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   Default font metrics which is used when no graphics context

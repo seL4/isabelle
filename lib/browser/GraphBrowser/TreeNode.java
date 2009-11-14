@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/TreeNode.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This class contains methods for storing and manipulating directory

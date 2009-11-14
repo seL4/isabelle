@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/Vertex.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This class contains attributes and methods common to all kinds of

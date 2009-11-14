@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      GraphBrowser/Spline.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This class is used for drawing spline curves (which are not yet
   supported by the Java AWT).

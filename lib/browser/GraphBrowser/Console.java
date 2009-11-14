@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/Console.java
-  ID:         $Id$
   Author:     Gerwin Klein, TU Muenchen
 
   This is the graph browser's main class when run as a console application.
