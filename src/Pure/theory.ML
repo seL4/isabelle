@@ -195,7 +195,7 @@ end;
 
 (* dependencies *)
 
-fun dependencies thy unchecked is_def name lhs rhs =
+fun dependencies thy unchecked def description lhs rhs =
   let
     val pp = Syntax.pp_global thy;
     val consts = Sign.consts_of thy;
@@ -210,14 +210,14 @@ fun dependencies thy unchecked is_def name lhs rhs =
       if null rhs_extras then ()
       else error ("Specification depends on extra type variables: " ^
         commas_quote (map (Pretty.string_of_typ pp o TFree) rhs_extras) ^
-        "\nThe error(s) above occurred in " ^ quote name);
-  in Defs.define pp unchecked is_def name (prep lhs) (map prep rhs) end;
+        "\nThe error(s) above occurred in " ^ quote description);
+  in Defs.define pp unchecked def description (prep lhs) (map prep rhs) end;
 
 fun add_deps a raw_lhs raw_rhs thy =
   let
     val lhs :: rhs = map (dest_Const o Sign.cert_term thy o Const) (raw_lhs :: raw_rhs);
-    val name = if a = "" then (#1 lhs ^ " axiom") else a;
-  in thy |> map_defs (dependencies thy false false name lhs rhs) end;
+    val description = if a = "" then #1 lhs ^ " axiom" else a;
+  in thy |> map_defs (dependencies thy false NONE description lhs rhs) end;
 
 fun specify_const decl thy =
   let val (t as Const const, thy') = Sign.declare_const decl thy
@@ -256,7 +256,7 @@ fun check_def thy unchecked overloaded (b, tm) defs =
     val (lhs_const, rhs) = Sign.cert_def ctxt tm;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
-  in defs |> dependencies thy unchecked true name lhs_const rhs_consts end
+  in defs |> dependencies thy unchecked (SOME name) name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.str_of b) ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term_global thy tm)]));
@@ -290,7 +290,7 @@ fun gen_add_finals prep_term overloaded args thy =
     fun const_of (Const const) = const
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = dependencies thy false false (c ^ " axiom") (c, T) [];
+    fun specify (c, T) = dependencies thy false NONE (c ^ " axiom") (c, T) [];
     val finalize = specify o check_overloading thy overloaded o const_of o
       Sign.cert_term thy o prep_term thy;
   in thy |> map_defs (fold finalize args) end;

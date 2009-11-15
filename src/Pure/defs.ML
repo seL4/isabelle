@@ -10,16 +10,16 @@ sig
   val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
-  val all_specifications_of: T -> (string * {is_def: bool, name: string,
+  val all_specifications_of: T -> (string * {def: string option, description: string,
     lhs: typ list, rhs: (string * typ list) list} list) list
-  val specifications_of: T -> string -> {is_def: bool, name: string,
+  val specifications_of: T -> string -> {def: string option, description: string,
     lhs: typ list, rhs: (string * typ list) list} list
   val dest: T ->
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
   val empty: T
   val merge: Pretty.pp -> T * T -> T
-  val define: Pretty.pp -> bool -> bool -> string ->
+  val define: Pretty.pp -> bool -> string option -> string ->
     string * typ list -> (string * typ list) list -> T -> T
 end
 
@@ -52,7 +52,8 @@ fun match_args (Ts, Us) =
 
 (* datatype defs *)
 
-type spec = {is_def: bool, name: string, lhs: args, rhs: (string * args) list};
+type spec =
+  {def: string option, description: string, lhs: args, rhs: (string * args) list};
 
 type def =
  {specs: spec Inttab.table,                 (*source specifications*)
@@ -86,7 +87,7 @@ val reducts_of = lookup_list #reducts;
 fun dest (Defs defs) =
   let
     val restricts = Symtab.fold (fn (c, {restricts, ...}) =>
-      fold (fn (args, name) => cons ((c, args), name)) restricts) defs [];
+      fold (fn (args, description) => cons ((c, args), description)) restricts) defs [];
     val reducts = Symtab.fold (fn (c, {reducts, ...}) =>
       fold (fn (args, deps) => cons ((c, args), deps)) reducts) defs [];
   in {restricts = restricts, reducts = reducts} end;
@@ -96,8 +97,8 @@ val empty = Defs Symtab.empty;
 
 (* specifications *)
 
-fun disjoint_specs c (i, {lhs = Ts, name = a, ...}: spec) =
-  Inttab.forall (fn (j, {lhs = Us, name = b, ...}: spec) =>
+fun disjoint_specs c (i, {lhs = Ts, description = a, ...}: spec) =
+  Inttab.forall (fn (j, {lhs = Us, description = b, ...}: spec) =>
     i = j orelse disjoint_args (Ts, Us) orelse
       error ("Clash of specifications " ^ quote a ^ " and " ^ quote b ^
         " for constant " ^ quote c));
@@ -132,9 +133,9 @@ fun acyclic pp (c, args) (d, Us) =
 fun wellformed pp defs (c, args) (d, Us) =
   forall is_TVar Us orelse
   (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
-    SOME (Ts, name) =>
+    SOME (Ts, description) =>
       err pp (c, args) (d, Us) "Malformed"
-        ("\n(restriction " ^ prt pp (d, Ts) ^ " from " ^ quote name ^ ")")
+        ("\n(restriction " ^ prt pp (d, Ts) ^ " from " ^ quote description ^ ")")
   | NONE => true);
 
 fun reduction pp defs const deps =
@@ -201,14 +202,14 @@ fun merge pp (Defs defs1, Defs defs2) =
 
 (* define *)
 
-fun define pp unchecked is_def name (c, args) deps (Defs defs) =
+fun define pp unchecked def description (c, args) deps (Defs defs) =
   let
     val restr =
       if plain_args args orelse
         (case args of [Type (_, rec_args)] => plain_args rec_args | _ => false)
-      then [] else [(args, name)];
+      then [] else [(args, description)];
     val spec =
-      (serial (), {is_def = is_def, name = name, lhs = args, rhs = deps});
+      (serial (), {def = def, description = description, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
   in Defs (defs' |> (if unchecked then I else dependencies pp (c, args) restr deps)) end;
 
