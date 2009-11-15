@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/GraphView.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This class defines the window in which the graph is displayed. It

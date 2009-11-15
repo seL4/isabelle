@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      awtUtilities/MessageDialog.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This class defines a dialog window for displaying messages and buttons.
 ***************************************************************************/

@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/GraphBrowserFrame.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This class is the frame for the stand-alone application. It contains

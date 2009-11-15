@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      GraphBrowser/Graph.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This class contains the core of the layout algorithm and methods for
   drawing and PostScript output.

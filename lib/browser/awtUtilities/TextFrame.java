@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      Graph/TextFrame.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This class defines a simple text viewer.
 ***************************************************************************/

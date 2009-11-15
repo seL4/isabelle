@@ -325,16 +325,16 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
 fun isabelle_document verbose format name tags path result_path =
   let
     val s = "\"$ISABELLE_TOOL\" document -c -o '" ^ format ^ "' \
-      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^
-      " 2>&1" ^ (if verbose then "" else " >/dev/null");
+      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^ " 2>&1";
     val doc_path = Path.append result_path (Path.ext format (Path.basic name));
-  in
-    if verbose then writeln s else ();
-    system s;
-    File.exists doc_path orelse
-      error ("No document: " ^ quote (show_path doc_path));
-    doc_path
-  end;
+    val _ = if verbose then writeln s else ();
+    val (out, rc) = system_out s;
+    val _ =
+      if not (File.exists doc_path) orelse rc <> 0 then
+        cat_error out ("Failed to build document " ^ quote (show_path doc_path))
+      else if verbose then writeln out
+      else ();
+  in doc_path end;
 
 fun isabelle_browser graph =
   let

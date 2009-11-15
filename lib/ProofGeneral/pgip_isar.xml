@@ -1,8 +1,6 @@
-
 <!-- Title:      Pure/pgip_isar.xml
-     ID:         $Id$
      Author:     David Aspinall, University of Edinburgh
-		 Christoph Lüth, University of Bremen
+     Author:     Christoph Lüth, University of Bremen
 
 This file contains the configuration messages which configure 
 PGIP interfaces for Isabelle/Isar, in particular, explaining

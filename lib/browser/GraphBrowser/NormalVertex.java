@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/NormalVertex.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This class represents an ordinary vertex. It contains methods for
