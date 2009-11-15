@@ -14,7 +14,7 @@ definition
   listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   "listall P xs \<equiv> (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
 
-declare listall_def [extraction_expand]
+declare listall_def [extraction_expand_def]
 
 theorem listall_nil: "listall P []"
   by (simp add: listall_def)

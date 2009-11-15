@@ -15,7 +15,7 @@ sig
     -> theory -> theory
   val add_realizers : (thm * (string list * string * string)) list
     -> theory -> theory
-  val add_expand_thms : thm list -> theory -> theory
+  val add_expand_thm : bool -> thm -> theory -> theory
   val add_types : (xstring * ((term -> term option) list *
     (term -> typ -> term -> typ -> term) option)) list -> theory -> theory
   val extract : (thm * string list) list -> theory -> theory
@@ -342,21 +342,16 @@ fun realizes_of thy vs t prop =
 
 (** expanding theorems / definitions **)
 
-fun add_expand_thm thm thy =
+fun add_expand_thm is_def thm thy =
   let
     val {realizes_eqns, typeof_eqns, types, realizers,
       defs, expand, prep} = ExtractionData.get thy;
 
     val name = Thm.get_name thm;
-    val _ = name <> "" orelse error "add_expand_thms: unnamed theorem";
-
-    val is_def =
-      (case strip_comb (fst (Logic.dest_equals (prop_of thm))) of
-         (Const _, ts) => forall is_Var ts andalso not (has_duplicates (op =) ts)
-           andalso (Thm.get_kind thm = Thm.definitionK orelse can (Thm.axiom thy) name)
-       | _ => false) handle TERM _ => false;
+    val _ = name <> "" orelse error "add_expand_thm: unnamed theorem";
   in
-    (ExtractionData.put (if is_def then
+    thy |> ExtractionData.put
+      (if is_def then
         {realizes_eqns = realizes_eqns,
          typeof_eqns = add_rule ([],
            Logic.dest_equals (prop_of (Drule.abs_def thm))) typeof_eqns,
@@ -366,12 +361,11 @@ fun add_expand_thm thm thy =
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
          realizers = realizers, defs = defs,
-         expand = insert (op =) (name, prop_of thm) expand, prep = prep}) thy)
+         expand = insert (op =) (name, prop_of thm) expand, prep = prep})
   end;
 
-val add_expand_thms = fold add_expand_thm;
-
-val extraction_expand = Thm.declaration_attribute (fn th => Context.mapping (add_expand_thm th) I);
+fun extraction_expand is_def =
+  Thm.declaration_attribute (fn th => Context.mapping (add_expand_thm is_def th) I);
 
 
 (** types with computational content **)
@@ -431,8 +425,10 @@ val _ = Context.>> (Context.map_theory
       "(realizes (r) (!!x. PROP P (x))) ==  \
     \  (!!x. PROP realizes (r (x)) (PROP P (x)))"] #>
 
-   Attrib.setup (Binding.name "extraction_expand") (Scan.succeed extraction_expand)
-     "specify theorems / definitions to be expanded during extraction"));
+   Attrib.setup (Binding.name "extraction_expand") (Scan.succeed (extraction_expand false))
+     "specify theorems to be expanded during extraction" #>
+   Attrib.setup (Binding.name "extraction_expand_def") (Scan.succeed (extraction_expand true))
+     "specify definitions to be expanded during extraction"));
 
 
 (**** extract program ****)
