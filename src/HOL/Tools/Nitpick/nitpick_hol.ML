@@ -189,8 +189,8 @@ structure Data = Theory_Data(
   val extend = I
   fun merge ({frac_types = fs1, codatatypes = cs1},
                {frac_types = fs2, codatatypes = cs2}) : T =
-    {frac_types = AList.merge (op =) (op =) (fs1, fs2),
-     codatatypes = AList.merge (op =) (op =) (cs1, cs2)})
+    {frac_types = AList.merge (op =) (K true) (fs1, fs2),
+     codatatypes = AList.merge (op =) (K true) (cs1, cs2)})
 
 (* term * term -> term *)
 fun s_conj (t1, @{const True}) = t1

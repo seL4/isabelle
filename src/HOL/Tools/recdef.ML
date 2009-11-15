@@ -96,7 +96,7 @@ structure GlobalRecdefData = Theory_Data
     (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =
       (Symtab.merge (K true) (tab1, tab2),
         mk_hints (Thm.merge_thms (simps1, simps2),
-          AList.merge (op =) Thm.eq_thm_prop (congs1, congs2),
+          AList.merge (op =) (K true) (congs1, congs2),
           Thm.merge_thms (wfs1, wfs2)));
 );
 
