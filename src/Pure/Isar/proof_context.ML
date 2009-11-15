@@ -883,8 +883,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
           |> singleton (Variable.polymorphic ctxt);
 
         fun prove_fact th =
-          Goal.prove ctxt [] [] prop (K (ALLGOALS (fact_tac [th])))
-          |> Thm.default_position_of th;
+          Goal.prove ctxt [] [] prop (K (ALLGOALS (fact_tac [th])));
         val res =
           (case get_first (try prove_fact) (potential_facts ctxt prop) of
             SOME res => res
@@ -934,12 +933,12 @@ fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
     val name = full_name ctxt b;
     val _ = Context_Position.report_visible ctxt (Markup.local_fact_decl name) pos;
 
-    val facts = PureThy.name_thmss false pos name raw_facts;
+    val facts = PureThy.name_thmss false name raw_facts;
     fun app (th, attrs) x =
       swap (Library.foldl_map
         (Thm.proof_attributes (surround (Thm.kind kind) (attrs @ more_attrs))) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
-    val thms = PureThy.name_thms false false pos name (flat res);
+    val thms = PureThy.name_thms false false name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
   in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
 

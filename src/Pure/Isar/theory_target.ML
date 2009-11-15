@@ -132,7 +132,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = PureThy.name_thm true true Position.none name th'';
+    val result = PureThy.name_thm true true name th'';
 
     (*import fixes*)
     val (tvars, vars) =
@@ -152,7 +152,7 @@ fun import_export_proof ctxt (name, raw_th) =
         NONE => raise THM ("Failed to re-import result", 0, [result'])
       | SOME res => LocalDefs.trans_props ctxt [res, Thm.symmetric concl_conv])
       |> Goal.norm_result
-      |> PureThy.name_thm false false Position.none name;
+      |> PureThy.name_thm false false name;
 
   in (result'', result) end;
 
