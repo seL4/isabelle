@@ -41,12 +41,19 @@ structure Rules = Generic_Data
 val get = Item_Net.content o Rules.get o Context.Proof;
 val get_global = Item_Net.content o Rules.get o Context.Theory;
 
-fun add class (ts, ths) = Local_Theory.declaration true
-  (fn phi =>
-    let
-      val ts' = map (Morphism.term phi) ts;
-      val ths' = map (Morphism.thm phi) ths;
-    in Rules.map (Item_Net.update (class, (ts', ths'))) end);
+fun add class (ts, ths) lthy =
+  let
+    val cts = map (Thm.cterm_of (ProofContext.theory_of lthy)) ts;
+  in
+    lthy |> Local_Theory.declaration true
+      (fn phi =>
+        let
+          val (ts', ths') =
+            Morphism.fact phi (map Drule.mk_term cts @ ths)
+            |> chop (length cts)
+            |>> map (Thm.term_of o Drule.dest_term);
+        in Rules.map (Item_Net.update (class, (ts', ths'))) end)
+  end;
 
 fun add_global class spec =
   Context.theory_map (Rules.map (Item_Net.update (class, spec)));
