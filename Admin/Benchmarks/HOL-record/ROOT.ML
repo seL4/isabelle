@@ -1,6 +1,6 @@
 (*  Title:      Admin/Benchmarks/HOL-record/ROOT.ML
 
-Some benchmark on large record
+Some benchmark on large record.
 *)
 
 val tests = ["RecordBenchmark"];

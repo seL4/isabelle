@@ -1,12 +1,9 @@
 (*  Title:      Admin/Benchmarks/HOL-datatype/Verilog.thy
-    ID:         $Id$
+
+Example from Daryl: a Verilog grammar.
 *)
 
 theory Verilog imports Main begin
-
-(* ------------------------------------------------------------------------- *)
-(* Example from Daryl: a Verilog grammar.                                    *)
-(* ------------------------------------------------------------------------- *)
 
 datatype
   Source_text

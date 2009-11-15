@@ -1,6 +1,5 @@
 (*  Title:      Admin/Benchmarks/HOL-record/RecordBenchmark.thy
-    Author:     Norbert Schirmer
-                DFKI
+    Author:     Norbert Schirmer, DFKI
 *)
 
 header {* Benchmark for large record *}
@@ -391,7 +390,6 @@ lemma "\<exists>r. A155 r = x"
   apply (tactic {*simp_tac 
            (HOL_basic_ss addsimprocs [Record.record_ex_sel_eq_simproc]) 1*})
   done
-
 
 
 end

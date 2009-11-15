@@ -1,12 +1,9 @@
 (*  Title:      Admin/Benchmarks/HOL-datatype/Instructions.thy
-    ID:         $Id$
+
+Example from Konrad: 68000 instruction set.
 *)
 
 theory Instructions imports Main begin
-
-(* ------------------------------------------------------------------------- *)
-(* Example from Konrad: 68000 instruction set.                               *)
-(* ------------------------------------------------------------------------- *)
 
 datatype Size = Byte | Word | Long
 
