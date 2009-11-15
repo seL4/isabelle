@@ -6,7 +6,7 @@
 
 default: HOL-datatype
 images:
-test: HOL-datatype
+test: HOL-datatype HOL-record
 all: images test
 
 
@@ -29,8 +29,12 @@ $(LOG)/HOL-datatype.gz: $(OUT)/HOL HOL-datatype/Brackin.thy \
   HOL-datatype/Verilog.thy
 	@$(ISABELLE_TOOL) usedir -s HOL-datatype $(OUT)/HOL HOL-datatype
 
+HOL-record: HOL $(LOG)/HOL-record.gz
+
+$(LOG)/HOL-record.gz: HOL-record/RecordBenchmark.thy 
+	@$(ISABELLE_TOOL) usedir -s HOL-record $(OUT)/HOL HOL-record
 
 ## clean
 
 clean:
-	@rm -f $(LOG)/HOL-datatype.gz
+	@rm -f $(LOG)/HOL-datatype.gz $(LOG)/HOL-record.gz

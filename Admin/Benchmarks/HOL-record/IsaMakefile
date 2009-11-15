@@ -1,0 +1,34 @@
+#
+# $Id$
+#
+
+## targets
+
+default: HOL-record
+images:
+test: HOL-record
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+
+## HOL-record
+
+HOL:
+	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
+
+HOL-record: HOL $(LOG)/HOL-record.gz
+
+$(LOG)/HOL-record.gz: RecordBenchmark.thy 
+	@cd ..; $(ISABELLE_TOOL) usedir -s HOL-record $(OUT)/HOL HOL-record
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-record.gz
