@@ -28,10 +28,10 @@ sig
     (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val axiomatization: (binding * typ option * mixfix) list ->
     (Attrib.binding * term list) list -> theory ->
-    (term list * (string * thm list) list) * theory
+    (term list * thm list list) * theory
   val axiomatization_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list -> theory ->
-    (term list * (string * thm list) list) * theory
+    (term list * thm list list) * theory
   val definition:
     (binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
@@ -169,16 +169,18 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
         fold_map Thm.add_axiom
           (map (apfst (fn a => Binding.map_name (K a) b))
             (PureThy.name_multi (Name.of_binding b) (map subst props)))
-        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])])));
+        #>> (fn ths => ((b, atts), [(ths, [])])));
 
     (*facts*)
-    val (facts, thy') = axioms_thy |> PureThy.note_thmss ""
-      (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
+    val (facts, facts_lthy) = axioms_thy
+      |> Theory_Target.init NONE
+      |> Spec_Rules.add Spec_Rules.Unknown (consts, maps (maps #1 o #2) axioms)
+      |> Local_Theory.notes axioms;
 
     val _ =
       if not do_print then ()
-      else print_consts (ProofContext.init thy') (K false) xs;
-  in ((consts, facts), thy') end;
+      else print_consts facts_lthy (K false) xs;
+  in ((consts, map #2 facts), Local_Theory.exit_global facts_lthy) end;
 
 val axiomatization = gen_axioms false check_specification;
 val axiomatization_cmd = gen_axioms true read_specification;
