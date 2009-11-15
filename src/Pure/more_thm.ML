@@ -279,9 +279,10 @@ in
 
 val forall_elim_vars = forall_elim_vars_aux Term.strip_all_vars;
 
-fun forall_elim_var i th = forall_elim_vars_aux
-  (fn Const ("all", _) $ Abs (a, T, _) => [(a, T)]
-  | _ => raise THM ("forall_elim_vars", i, [th])) i th;
+fun forall_elim_var i th =
+  forall_elim_vars_aux
+    (fn Const ("all", _) $ Abs (a, T, _) => [(a, T)]
+      | _ => raise THM ("forall_elim_vars", i, [th])) i th;
 
 end;
 

@@ -1068,8 +1068,9 @@ fun generalize ([], []) _ th = th
         val Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...}) = th;
         val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
 
-        val bad_type = if null tfrees then K false else
-          Term.exists_subtype (fn TFree (a, _) => member (op =) tfrees a | _ => false);
+        val bad_type =
+          if null tfrees then K false
+          else Term.exists_subtype (fn TFree (a, _) => member (op =) tfrees a | _ => false);
         fun bad_term (Free (x, T)) = bad_type T orelse member (op =) frees x
           | bad_term (Var (_, T)) = bad_type T
           | bad_term (Const (_, T)) = bad_type T
