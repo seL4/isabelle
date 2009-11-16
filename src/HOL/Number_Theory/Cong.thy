@@ -20,7 +20,7 @@ of results to "Primes" and "GCD".
 
 The original theory, "IntPrimes", by Thomas M. Rasmussen, defined and
 developed the congruence relations on the integers. The notion was
-extended to the natural numbers by Chiaeb. Jeremy Avigad combined
+extended to the natural numbers by Chaieb. Jeremy Avigad combined
 these, revised and tidied them, made the development uniform for the
 natural numbers and the integers, and added a number of new theorems.
 
