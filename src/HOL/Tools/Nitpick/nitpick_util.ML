@@ -5,18 +5,9 @@
 General-purpose functions used by the Nitpick modules.
 *)
 
-infix 6 nat_minus
-infix 7 pairf
-
-signature BASIC_NITPICK_UTIL =
-sig
-  type styp = string * typ
-end;
-
 signature NITPICK_UTIL =
 sig
-  include BASIC_NITPICK_UTIL
-
+  type styp = string * typ
   datatype polarity = Pos | Neg | Neut
 
   exception ARG of string * string
@@ -27,9 +18,9 @@ sig
 
   val nitpick_prefix : string
   val curry3 : ('a * 'b * 'c -> 'd) -> 'a -> 'b -> 'c -> 'd
-  val pairf : ('a -> 'b) * ('a -> 'c) -> 'a -> 'b * 'c
+  val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
   val int_for_bool : bool -> int
-  val nat_minus : int * int -> int
+  val nat_minus : int -> int -> int
   val reasonable_power : int -> int -> int
   val exact_log : int -> int -> int
   val exact_root : int -> int -> int
@@ -63,7 +54,6 @@ sig
   val subscript : string -> string
   val nat_subscript : int -> string
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
-  val silence : ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
   val setmp_show_all_types : ('a -> 'b) -> 'a -> 'b
   val indent_size : int
@@ -90,13 +80,13 @@ val nitpick_prefix = "Nitpick."
 (* ('a * 'b * 'c -> 'd) -> 'a -> 'b -> 'c -> 'd *)
 fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 
-(* ('a -> 'b) * ('a -> 'c) -> 'a -> 'b * 'c *)
-fun (f pairf g) = fn x => (f x, g x)
+(* ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c *)
+fun pairf f g x = (f x, g x)
 
 (* bool -> int *)
 fun int_for_bool b = if b then 1 else 0
-(* int * int -> int *)
-fun (i nat_minus j) = if i > j then i - j else 0
+(* int -> int -> int *)
+fun nat_minus i j = if i > j then i - j else 0
 
 val max_exponent = 16384
 
@@ -263,15 +253,6 @@ val nat_subscript = subscript o signed_string_of_int
 fun time_limit NONE f = f
   | time_limit (SOME delay) f = TimeLimit.timeLimit delay f
 
-(* (string -> unit) Unsynchronized.ref -> ('a -> 'b) -> 'a -> 'b *)
-fun silence_one out_fn = setmp_CRITICAL out_fn (K ())
-
-(* ('a -> 'b) -> 'a -> 'b *)
-fun silence f =
-  fold silence_one
-       [Output.writeln_fn, Output.priority_fn, Output.tracing_fn,
-        Output.warning_fn, Output.error_fn, Output.debug_fn] f
-
 (* Time.time option -> tactic -> tactic *)
 fun DETERM_TIMEOUT delay tac st =
   Seq.of_list (the_list (time_limit delay (fn () => SINGLE tac st) ()))
@@ -302,6 +283,3 @@ fun maybe_quote y =
   end
 
 end;
-
-structure Basic_Nitpick_Util : BASIC_NITPICK_UTIL = Nitpick_Util;
-open Basic_Nitpick_Util;

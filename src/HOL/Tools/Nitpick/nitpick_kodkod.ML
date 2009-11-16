@@ -216,7 +216,7 @@ fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
      ("int_add", tabulate_int_op2 debug univ_card (int_card, j0) (op +))
    else if Kodkod.Rel x = nat_subtract_rel then
      ("nat_subtract",
-      tabulate_op2 debug univ_card (nat_card, j0) j0 (op nat_minus))
+      tabulate_op2 debug univ_card (nat_card, j0) j0 (uncurry nat_minus))
    else if Kodkod.Rel x = int_subtract_rel then
      ("int_subtract", tabulate_int_op2 debug univ_card (int_card, j0) (op -))
    else if Kodkod.Rel x = nat_multiply_rel then
