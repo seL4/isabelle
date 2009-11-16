@@ -459,7 +459,7 @@ in
       in
         SOME [(HOLogic.natT :: Ts, subgoal1), (Ts, subgoal2)]
       end
-    (* "?P ((?n::nat) mod (number_of ?k)) =
+    (* ?P ((?n::nat) mod (number_of ?k)) =
          ((number_of ?k = 0 --> ?P ?n) & (~ (number_of ?k = 0) -->
            (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P j))) *)
     | (Const ("Divides.div_class.mod", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
@@ -491,7 +491,7 @@ in
       in
         SOME [(Ts, subgoal1), (split_type :: split_type :: Ts, subgoal2)]
       end
-    (* "?P ((?n::nat) div (number_of ?k)) =
+    (* ?P ((?n::nat) div (number_of ?k)) =
          ((number_of ?k = 0 --> ?P 0) & (~ (number_of ?k = 0) -->
            (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P i))) *)
     | (Const ("Divides.div_class.div", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
@@ -523,7 +523,7 @@ in
       in
         SOME [(Ts, subgoal1), (split_type :: split_type :: Ts, subgoal2)]
       end
-    (* "?P ((?n::int) mod (number_of ?k)) =
+    (* ?P ((?n::int) mod (number_of ?k)) =
          ((iszero (number_of ?k) --> ?P ?n) &
           (neg (number_of (uminus ?k)) -->
             (ALL i j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P j)) &
@@ -575,7 +575,7 @@ in
       in
         SOME [(Ts, subgoal1), (Ts', subgoal2), (Ts', subgoal3)]
       end
-    (* "?P ((?n::int) div (number_of ?k)) =
+    (* ?P ((?n::int) div (number_of ?k)) =
          ((iszero (number_of ?k) --> ?P 0) &
           (neg (number_of (uminus ?k)) -->
             (ALL i. (EX j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j) --> ?P i)) &
