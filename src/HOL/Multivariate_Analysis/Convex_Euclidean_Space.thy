@@ -379,6 +379,9 @@ lemma mem_convex:
   shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
   using assms unfolding convex_alt by auto
 
+lemma convex_vec1:"convex (vec1 ` s) = convex (s::real set)"
+  unfolding convex_def Ball_def forall_vec1 unfolding vec1_dest_vec1_simps image_iff by auto
+
 lemma convex_empty[intro]: "convex {}"
   unfolding convex_def by simp
 
@@ -3379,6 +3382,4 @@ lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_conn
 lemma connected_sphere: "2 \<le> CARD('n) \<Longrightarrow> connected {x::real^'n::finite. norm(x - a) = r}"
   using path_connected_sphere path_connected_imp_connected by auto
  
-(** In continuous_at_vec1_norm : Use \<And> instead of \<forall>. **)
-
 end

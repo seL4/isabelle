@@ -1642,6 +1642,9 @@ subsection{* Linear functions. *}
 
 definition "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *s x) = c *s f x)"
 
+lemma linearI: assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
+  shows "linear f" using assms unfolding linear_def by auto
+
 lemma linear_compose_cmul: "linear f ==> linear (\<lambda>x. (c::'a::comm_semiring) *s f x)"
   by (vector linear_def Cart_eq ring_simps)
 
@@ -1811,6 +1814,11 @@ next
     unfolding linear_def smult_conv_scaleR
     by (simp add: f.add f.scaleR)
 qed
+
+lemma bounded_linearI': fixes f::"real^'n::finite \<Rightarrow> real^'m::finite"
+  assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
+  shows "bounded_linear f" unfolding linear_conv_bounded_linear[THEN sym]
+  by(rule linearI[OF assms])
 
 subsection{* Bilinear functions. *}
 
@@ -2470,6 +2478,11 @@ lemma vec1_sub: "vec1(x - y) = vec1 x - vec1 y" by (vector vec1_def)
 lemma vec1_cmul: "vec1(c* x) = c *s vec1 x " by (vector vec1_def)
 lemma vec1_neg: "vec1(- x) = - vec1 x " by (vector vec1_def)
 
+lemma vec1_0[simp]:"vec1 0 = 0" unfolding vec1_def Cart_eq by auto
+
+lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_ext,rule) unfolding image_iff defer
+  apply(rule_tac x="dest_vec1 x" in bexI) by auto
+
 lemma vec1_setsum: assumes fS: "finite S"
   shows "vec1(setsum f S) = setsum (vec1 o f) S"
   apply (induct rule: finite_induct[OF fS])
@@ -2511,6 +2524,14 @@ lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
   by (simp only: dist_real vec1_component)
 lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
   by (metis vec1_dest_vec1 norm_vec1)
+
+lemmas vec1_dest_vec1_simps = forall_vec1 vec1_add[THEN sym] dist_vec1 vec1_sub[THEN sym] vec1_dest_vec1 norm_vec1 dest_vec1_cmul
+   vec1_eq vec1_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
+
+lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
+  unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
+  unfolding smult_conv_scaleR[THEN sym] unfolding vec1_dest_vec1_simps
+  apply(rule conjI) defer apply(rule conjI) defer apply(rule_tac x=1 in exI) by auto
 
 lemma linear_vmul_dest_vec1:
   fixes f:: "'a::semiring_1^'n \<Rightarrow> 'a^1"

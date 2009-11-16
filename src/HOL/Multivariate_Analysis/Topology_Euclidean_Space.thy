@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Topology_Euclidian_Space.thy
+(*  title:      HOL/Library/Topology_Euclidian_Space.thy
     Author:     Amine Chaieb, University of Cambridge
     Author:     Robert Himmelmann, TU Muenchen
 *)
@@ -274,6 +274,11 @@ lemma open_ball[intro, simp]: "open (ball x e)"
 lemma centre_in_ball[simp]: "x \<in> ball x e \<longleftrightarrow> e > 0" by (metis mem_ball dist_self)
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
   unfolding open_dist subset_eq mem_ball Ball_def dist_commute ..
+
+lemma openE[elim?]:
+  assumes "open S" "x\<in>S" 
+  obtains e where "e>0" "ball x e \<subseteq> S"
+  using assms unfolding open_contains_ball by auto
 
 lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
@@ -4011,6 +4016,9 @@ lemma linear_continuous_on:
   shows "bounded_linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
+lemma continuous_on_vec1:"continuous_on A (vec1::real\<Rightarrow>real^1)"
+  by(rule linear_continuous_on[OF bounded_linear_vec1])
+
 text{* Also bilinear functions, in composition form.                             *}
 
 lemma bilinear_continuous_at_compose:
@@ -4194,6 +4202,8 @@ lemma Lim_vmul:
   fixes c :: "'a \<Rightarrow> real" and v :: "'b::real_normed_vector"
   shows "(c ---> d) net ==> ((\<lambda>x. c(x) *\<^sub>R v) ---> d *\<^sub>R v) net"
   by (intro tendsto_intros)
+
+lemmas Lim_intros = Lim_add Lim_const Lim_sub Lim_cmul Lim_vmul Lim_within_id
 
 lemma continuous_vmul:
   fixes c :: "'a::metric_space \<Rightarrow> real" and v :: "'b::real_normed_vector"
@@ -4621,6 +4631,15 @@ lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
 by(simp_all add: Cart_eq vector_less_def vector_less_eq_def dest_vec1_def forall_1)
 
+lemma vec1_interval:fixes a::"real" shows
+  "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
+  "vec1 ` {a<..<b} = {vec1 a<..<vec1 b}"
+  apply(rule_tac[!] set_ext) unfolding image_iff vector_less_def unfolding mem_interval
+  unfolding forall_1  unfolding dest_vec1_def[THEN sym, of] unfolding vec1_dest_vec1_simps
+  apply rule defer apply(rule_tac x="dest_vec1 x" in bexI) prefer 3 apply rule defer
+  apply(rule_tac x="dest_vec1 x" in bexI) by auto
+
+
 lemma interval_eq_empty: fixes a :: "real^'n::finite" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
  "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i. b$i < a$i))" (is ?th2)
@@ -4801,6 +4820,12 @@ proof-
   }
   thus ?thesis unfolding open_dist using open_interval_lemma by auto
 qed
+
+lemma open_interval_real: fixes a :: "real" shows "open {a<..<b}"
+  using open_interval[of "vec1 a" "vec1 b"] unfolding open_contains_ball
+  apply-apply(rule,erule_tac x="vec1 x" in ballE) apply(erule exE,rule_tac x=e in exI)
+  unfolding subset_eq mem_ball apply(rule) defer apply(rule,erule conjE,erule_tac x="vec1 xa" in ballE)
+  by(auto simp add: vec1_dest_vec1_simps vector_less_def forall_1) 
 
 lemma closed_interval: fixes a :: "real^'n::finite" shows "closed {a .. b}"
 proof-
