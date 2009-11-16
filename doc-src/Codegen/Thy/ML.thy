@@ -24,7 +24,6 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
-  @{index_ML Code.add_eqnl: "string * (thm * bool) list lazy -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_pre: "(simpset -> simpset) -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_post: "(simpset -> simpset) -> theory -> theory"} \\
   @{index_ML Code_Preproc.add_functrans: "string * (theory -> (thm * bool) list -> (thm * bool) list option)
@@ -43,10 +42,6 @@ text %mlref {*
 
   \item @{ML Code.del_eqn}~@{text "thm"}~@{text "thy"} removes function
      theorem @{text "thm"} from executable content, if present.
-
-  \item @{ML Code.add_eqnl}~@{text "(const, lthms)"}~@{text "thy"} adds
-     suspended code equations @{text lthms} for constant
-     @{text const} to executable content.
 
   \item @{ML Code_Preproc.map_pre}~@{text "f"}~@{text "thy"} changes
      the preprocessor simpset.

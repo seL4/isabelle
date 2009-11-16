@@ -11,7 +11,7 @@ fun list_case f1 f2 (a :: lista) = f2 a lista
 
 datatype 'a queue = AQueue of 'a list * 'a list;
 
-val empty : 'a queue = AQueue ([], [])
+val empty : 'a queue = AQueue ([], []);
 
 fun dequeue (AQueue ([], [])) = (NONE, AQueue ([], []))
   | dequeue (AQueue (xs, y :: ys)) = (SOME y, AQueue (xs, ys))

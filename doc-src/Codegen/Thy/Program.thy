@@ -356,46 +356,7 @@ text {*
   For datatypes, instances of @{class eq} are implicitly derived
   when possible.  For other types, you may instantiate @{text eq}
   manually like any other type class.
-
-  Though this @{text eq} class is designed to get rarely in
-  the way, in some cases the automatically derived code equations
-  for equality on a particular type may not be appropriate.
-  As example, watch the following datatype representing
-  monomorphic parametric types (where type constructors
-  are referred to by natural numbers):
 *}
-
-datatype %quote monotype = Mono nat "monotype list"
-(*<*)
-lemma monotype_eq:
-  "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<equiv> 
-     eq_class.eq tyco1 tyco2 \<and> eq_class.eq typargs1 typargs2" by (simp add: eq)
-(*>*)
-
-text {*
-  \noindent Then code generation for SML would fail with a message
-  that the generated code contains illegal mutual dependencies:
-  the theorem @{thm monotype_eq [no_vars]} already requires the
-  instance @{text "monotype \<Colon> eq"}, which itself requires
-  @{thm monotype_eq [no_vars]};  Haskell has no problem with mutually
-  recursive @{text instance} and @{text function} definitions,
-  but the SML serialiser does not support this.
-
-  In such cases, you have to provide your own equality equations
-  involving auxiliary constants.  In our case,
-  @{const [show_types] list_all2} can do the job:
-*}
-
-lemma %quote monotype_eq_list_all2 [code]:
-  "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<longleftrightarrow>
-     eq_class.eq tyco1 tyco2 \<and> list_all2 eq_class.eq typargs1 typargs2"
-  by (simp add: eq list_all2_eq [symmetric])
-
-text {*
-  \noindent does not depend on instance @{text "monotype \<Colon> eq"}:
-*}
-
-text %quote {*@{code_stmts "eq_class.eq :: monotype \<Rightarrow> monotype \<Rightarrow> bool" (SML)}*}
 
 
 subsection {* Explicit partiality *}
