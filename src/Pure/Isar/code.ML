@@ -268,7 +268,7 @@ fun map_exec_purge touched f thy =
    of SOME cs => invoke_purge_all thy (complete_class_params thy cs) (! data)
     | NONE => empty_data))) thy;
 
-val purge_data = (Code_Data.map o apsnd) (K (Unsynchronized.ref empty_data));
+val purge_data = (Code_Data.map o apsnd) (fn _ => Unsynchronized.ref empty_data);
 
 fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, [])), [])))
