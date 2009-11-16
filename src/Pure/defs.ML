@@ -10,10 +10,10 @@ sig
   val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
-  val all_specifications_of: T -> (string * {def: string option, description: string,
-    lhs: typ list, rhs: (string * typ list) list} list) list
-  val specifications_of: T -> string -> {def: string option, description: string,
-    lhs: typ list, rhs: (string * typ list) list} list
+  type spec =
+    {def: string option, description: string, lhs: typ list, rhs: (string * typ list) list}
+  val all_specifications_of: T -> (string * spec list) list
+  val specifications_of: T -> string -> spec list
   val dest: T ->
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
