@@ -87,6 +87,17 @@ by (simp add: linorder_not_less [symmetric])
 lemma log_ln: "ln x = log (exp(1)) x"
 by (simp add: log_def)
 
+lemma DERIV_log: "x > 0 ==> DERIV (%y. log b y) x :> 1 / (ln b * x)"
+  apply (subst log_def)
+  apply (subgoal_tac "(%y. ln y / ln b) = (%y. (1 / ln b) * ln y)")
+  apply (erule ssubst)
+  apply (subgoal_tac "1 / (ln b * x) = (1 / ln b) * (1 / x)")
+  apply (erule ssubst)
+  apply (rule DERIV_cmult)
+  apply (erule DERIV_ln_divide)
+  apply auto
+done
+
 lemma powr_log_cancel [simp]:
      "[| 0 < a; a \<noteq> 1; 0 < x |] ==> a powr (log a x) = x"
 by (simp add: powr_def log_def)
@@ -152,8 +163,19 @@ lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0
   apply (rule powr_realpow [THEN sym], simp)
 done
 
-lemma ln_pwr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
+lemma ln_powr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
 by (unfold powr_def, simp)
+
+lemma log_powr: "0 < x ==> 0 \<le> y ==> log b (x powr y) = y * log b x"
+  apply (case_tac "y = 0")
+  apply force
+  apply (auto simp add: log_def ln_powr field_simps)
+done
+
+lemma log_nat_power: "0 < x ==> log b (x^n) = real n * log b x"
+  apply (subst powr_realpow [symmetric])
+  apply (auto simp add: log_powr)
+done
 
 lemma ln_bound: "1 <= x ==> ln x <= x"
   apply (subgoal_tac "ln(1 + (x - 1)) <= x - 1")
@@ -207,7 +229,7 @@ lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
   apply (rule mult_imp_le_div_pos)
   apply (assumption)
   apply (subst mult_commute)
-  apply (subst ln_pwr [THEN sym])
+  apply (subst ln_powr [THEN sym])
   apply auto
   apply (rule ln_bound)
   apply (erule ge_one_powr_ge_zero)
