@@ -112,14 +112,17 @@ end
 (* splitting method *)
 
 local
-  val split_rules = [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+  val intro_rules = [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+  val elim_rules = [@{thm conjE}, @{thm TrueE}]
+  val split_tac = REPEAT_ALL_NEW
+    (Tactic.resolve_tac intro_rules ORELSE' Tactic.eresolve_tac elim_rules)
 
   fun ALL_GOALS false tac = ALLGOALS tac
     | ALL_GOALS true tac = PARALLEL_GOALS (HEADGOAL tac)
 
   fun prep_tac ctxt ((parallel, verbose), subs) facts =
     HEADGOAL (Method.insert_tac facts)
-    THEN HEADGOAL (REPEAT_ALL_NEW (Tactic.resolve_tac split_rules))
+    THEN HEADGOAL split_tac
     THEN unique_case_names (ProofContext.theory_of ctxt)
     THEN ALL_GOALS parallel (SUBGOAL (fn (t, i) =>
       TRY (sub_tactics_tac ctxt (verbose, subs) (case_name_of t) i)))
