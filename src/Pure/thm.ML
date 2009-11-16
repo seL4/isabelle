@@ -540,7 +540,7 @@ fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
 fun raw_body (Thm (Deriv {body, ...}, _)) = body;
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  Pt.fulfill_proof (Theory.deref thy_ref)
+  Pt.fulfill_norm_proof (Theory.deref thy_ref)
     (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
 and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
 

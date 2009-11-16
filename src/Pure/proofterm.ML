@@ -109,18 +109,20 @@ sig
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
-  val fulfill_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
+  val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
   val add_prf_rrule: proof * proof -> theory -> theory
-  val add_prf_rproc: (typ list -> proof -> proof option) -> theory -> theory
+  val add_prf_rproc: (typ list -> proof -> (proof * proof) option) -> theory -> theory
+  val no_skel: proof
+  val normal_skel: proof
   val rewrite_proof: theory -> (proof * proof) list *
-    (typ list -> proof -> proof option) list -> proof -> proof
+    (typ list -> proof -> (proof * proof) option) list -> proof -> proof
   val rewrite_proof_notypes: (proof * proof) list *
-    (typ list -> proof -> proof option) list -> proof -> proof
+    (typ list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
 end
 
@@ -1169,28 +1171,30 @@ fun could_unify prf1 prf2 =
 
 (**** rewriting on proof terms ****)
 
-val skel0 = PBound 0;
+val no_skel = PBound 0;
+val normal_skel = Hyp (Var ((Name.uu, 0), propT));
 
 fun rewrite_prf tymatch (rules, procs) prf =
   let
-    fun rew _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, skel0)
-      | rew _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, skel0)
-      | rew Ts prf = (case get_first (fn r => r Ts prf) procs of
-          SOME prf' => SOME (prf', skel0)
-        | NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
-            (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
-               handle PMatch => NONE) (filter (could_unify prf o fst) rules));
+    fun rew _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, no_skel)
+      | rew _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, no_skel)
+      | rew Ts prf =
+          (case get_first (fn r => r Ts prf) procs of
+            NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
+              (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
+                 handle PMatch => NONE) (filter (could_unify prf o fst) rules)
+          | some => some);
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars (~1) 0 prf'
-            in SOME (the_default (prf'', skel0) (rew Ts prf'')) end
+            in SOME (the_default (prf'', no_skel) (rew Ts prf'')) end
       | rew0 Ts (prf as Abst (_, _, prf' % SOME (Bound 0))) =
           if prf_loose_bvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars 0 (~1) prf'
-            in SOME (the_default (prf'', skel0) (rew Ts prf'')) end
+            in SOME (the_default (prf'', no_skel) (rew Ts prf'')) end
       | rew0 Ts prf = rew Ts prf;
 
     fun rew1 _ (Hyp (Var _)) _ = NONE
@@ -1205,20 +1209,20 @@ fun rewrite_prf tymatch (rules, procs) prf =
     and rew2 Ts skel (prf % SOME t) = (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
-              in SOME (the_default prf' (rew2 Ts skel0 prf')) end
-          | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf of
+              in SOME (the_default prf' (rew2 Ts no_skel prf')) end
+          | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => no_skel) prf of
               SOME prf' => SOME (prf' % SOME t)
             | NONE => NONE))
       | rew2 Ts skel (prf % NONE) = Option.map (fn prf' => prf' % NONE)
-          (rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf)
+          (rew1 Ts (case skel of skel' % _ => skel' | _ => no_skel) prf)
       | rew2 Ts skel (prf1 %% prf2) = (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
-              in SOME (the_default prf' (rew2 Ts skel0 prf')) end
+              in SOME (the_default prf' (rew2 Ts no_skel prf')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 %% skel2 => (skel1, skel2)
-              | _ => (skel0, skel0))
+              | _ => (no_skel, no_skel))
             in case rew1 Ts skel1 prf1 of
                 SOME prf1' => (case rew1 Ts skel2 prf2 of
                     SOME prf2' => SOME (prf1' %% prf2')
@@ -1228,16 +1232,16 @@ fun rewrite_prf tymatch (rules, procs) prf =
                   | NONE => NONE)
             end)
       | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (the_default dummyT T :: Ts)
-              (case skel of Abst (_, _, skel') => skel' | _ => skel0) prf of
+              (case skel of Abst (_, _, skel') => skel' | _ => no_skel) prf of
             SOME prf' => SOME (Abst (s, T, prf'))
           | NONE => NONE)
       | rew2 Ts skel (AbsP (s, t, prf)) = (case rew1 Ts
-              (case skel of AbsP (_, _, skel') => skel' | _ => skel0) prf of
+              (case skel of AbsP (_, _, skel') => skel' | _ => no_skel) prf of
             SOME prf' => SOME (AbsP (s, t, prf'))
           | NONE => NONE)
       | rew2 _ _ _ = NONE;
 
-  in the_default prf (rew1 [] skel0 prf) end;
+  in the_default prf (rew1 [] no_skel prf) end;
 
 fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
   Sign.typ_match thy (f ()) tyenv handle Type.TYPE_MATCH => raise PMatch);
@@ -1249,7 +1253,9 @@ fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 structure ProofData = Theory_Data
 (
-  type T = (stamp * (proof * proof)) list * (stamp * (typ list -> proof -> proof option)) list;
+  type T =
+    (stamp * (proof * proof)) list *
+    (stamp * (typ list -> proof -> (proof * proof) option)) list;
 
   val empty = ([], []);
   val extend = I;
@@ -1277,27 +1283,26 @@ fun promise_proof thy i prop =
         | _ => false));
   in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
 
-fun fulfill_proof _ [] body0 = body0
-  | fulfill_proof thy ps body0 =
-      let
-        val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
-        val oracles = fold (fn (_, PBody {oracles, ...}) => merge_oracles oracles) ps oracles0;
-        val thms = fold (fn (_, PBody {thms, ...}) => merge_thms thms) ps thms0;
-        val proofs = fold (fn (i, PBody {proof, ...}) => Inttab.update (i, proof)) ps Inttab.empty;
+fun fulfill_norm_proof thy ps body0 =
+  let
+    val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
+    val oracles = fold (fn (_, PBody {oracles, ...}) => merge_oracles oracles) ps oracles0;
+    val thms = fold (fn (_, PBody {thms, ...}) => merge_thms thms) ps thms0;
+    val proofs = fold (fn (i, PBody {proof, ...}) => Inttab.update (i, proof)) ps Inttab.empty;
 
-        fun fill (Promise (i, prop, Ts)) =
-            (case Inttab.lookup proofs i of
-              NONE => NONE
-            | SOME prf => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) prf))
-          | fill _ = NONE;
-        val (rules, procs) = get_data thy;
-        val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
-      in PBody {oracles = oracles, thms = thms, proof = proof} end;
+    fun fill (Promise (i, prop, Ts)) =
+          (case Inttab.lookup proofs i of
+            NONE => NONE
+          | SOME prf => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) prf, normal_skel))
+      | fill _ = NONE;
+    val (rules, procs) = get_data thy;
+    val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
+  in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
 fun fulfill_proof_future _ [] body = Future.value body
   | fulfill_proof_future thy promises body =
       Future.fork_deps (map snd promises) (fn () =>
-        fulfill_proof thy (map (apsnd Future.join) promises) body);
+        fulfill_norm_proof thy (map (apsnd Future.join) promises) body);
 
 
 (***** theorems *****)
