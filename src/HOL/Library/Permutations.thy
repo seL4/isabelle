@@ -152,78 +152,66 @@ proof-
   thus ?thesis by auto
 qed
 
-lemma hassize_insert: "a \<notin> F \<Longrightarrow> insert a F hassize n \<Longrightarrow> F hassize (n - 1)"
-  by (auto simp add: hassize_def)
+lemma card_permutations: assumes Sn: "card S = n" and fS: "finite S"
+  shows "card {p. p permutes S} = fact n"
+using fS Sn proof (induct arbitrary: n)
+  case empty thus ?case by (simp add: permutes_empty)
+next
+  case (insert x F)
+  { fix n assume H0: "card (insert x F) = n"
+    let ?xF = "{p. p permutes insert x F}"
+    let ?pF = "{p. p permutes F}"
+    let ?pF' = "{(b, p). b \<in> insert x F \<and> p \<in> ?pF}"
+    let ?g = "(\<lambda>(b, p). Fun.swap x b id \<circ> p)"
+    from permutes_insert[of x F]
+    have xfgpF': "?xF = ?g ` ?pF'" .
+    have Fs: "card F = n - 1" using `x \<notin> F` H0 `finite F` by auto
+    from insert.hyps Fs have pFs: "card ?pF = fact (n - 1)" using `finite F` by auto
+    moreover hence "finite ?pF" using fact_gt_zero_nat by (auto intro: card_ge_0_finite)
+    ultimately have pF'f: "finite ?pF'" using H0 `finite F`
+      apply (simp only: Collect_split Collect_mem_eq)
+      apply (rule finite_cartesian_product)
+      apply simp_all
+      done
 
-lemma hassize_permutations: assumes Sn: "S hassize n"
-  shows "{p. p permutes S} hassize (fact n)"
-proof-
-  from Sn have fS:"finite S" by (simp add: hassize_def)
-
-  have "\<forall>n. (S hassize n) \<longrightarrow> ({p. p permutes S} hassize (fact n))"
-  proof(rule finite_induct[where F = S])
-    from fS show "finite S" .
-  next
-    show "\<forall>n. ({} hassize n) \<longrightarrow> ({p. p permutes {}} hassize fact n)"
-      by (simp add: hassize_def permutes_empty)
-  next
-    fix x F
-    assume fF: "finite F" and xF: "x \<notin> F"
-      and H: "\<forall>n. (F hassize n) \<longrightarrow> ({p. p permutes F} hassize fact n)"
-    {fix n assume H0: "insert x F hassize n"
-      let ?xF = "{p. p permutes insert x F}"
-      let ?pF = "{p. p permutes F}"
-      let ?pF' = "{(b, p). b \<in> insert x F \<and> p \<in> ?pF}"
-      let ?g = "(\<lambda>(b, p). Fun.swap x b id \<circ> p)"
-      from permutes_insert[of x F]
-      have xfgpF': "?xF = ?g ` ?pF'" .
-      from hassize_insert[OF xF H0] have Fs: "F hassize (n - 1)" .
-      from H Fs have pFs: "?pF hassize fact (n - 1)" by blast
-      hence pF'f: "finite ?pF'" using H0 unfolding hassize_def
-        apply (simp only: Collect_split Collect_mem_eq)
-        apply (rule finite_cartesian_product)
-        apply simp_all
-        done
-
-      have ginj: "inj_on ?g ?pF'"
-      proof-
-        {
-          fix b p c q assume bp: "(b,p) \<in> ?pF'" and cq: "(c,q) \<in> ?pF'"
-            and eq: "?g (b,p) = ?g (c,q)"
-          from bp cq have ths: "b \<in> insert x F" "c \<in> insert x F" "x \<in> insert x F" "p permutes F" "q permutes F" by auto
-          from ths(4) xF eq have "b = ?g (b,p) x" unfolding permutes_def
-            by (auto simp add: swap_def fun_upd_def expand_fun_eq)
-          also have "\<dots> = ?g (c,q) x" using ths(5) xF eq
-            by (auto simp add: swap_def fun_upd_def expand_fun_eq)
-          also have "\<dots> = c"using ths(5) xF unfolding permutes_def
-            by (auto simp add: swap_def fun_upd_def expand_fun_eq)
-          finally have bc: "b = c" .
-          hence "Fun.swap x b id = Fun.swap x c id" by simp
-          with eq have "Fun.swap x b id o p = Fun.swap x b id o q" by simp
-          hence "Fun.swap x b id o (Fun.swap x b id o p) = Fun.swap x b id o (Fun.swap x b id o q)" by simp
-          hence "p = q" by (simp add: o_assoc)
-          with bc have "(b,p) = (c,q)" by simp }
-        thus ?thesis  unfolding inj_on_def by blast
-      qed
-      from xF H0 have n0: "n \<noteq> 0 " by (auto simp add: hassize_def)
-      hence "\<exists>m. n = Suc m" by arith
-      then obtain m where n[simp]: "n = Suc m" by blast
-      from pFs H0 have xFc: "card ?xF = fact n"
-        unfolding xfgpF' card_image[OF ginj] hassize_def
-        apply (simp only: Collect_split Collect_mem_eq card_cartesian_product)
-        by simp
-      from finite_imageI[OF pF'f, of ?g] have xFf: "finite ?xF" unfolding xfgpF' by simp
-      have "?xF hassize fact n"
-        using xFf xFc
-        unfolding hassize_def  xFf by blast }
-    thus "\<forall>n. (insert x F hassize n) \<longrightarrow> ({p. p permutes insert x F} hassize fact n)"
-      by blast
-  qed
-  with Sn show ?thesis by blast
+    have ginj: "inj_on ?g ?pF'"
+    proof-
+      {
+        fix b p c q assume bp: "(b,p) \<in> ?pF'" and cq: "(c,q) \<in> ?pF'"
+          and eq: "?g (b,p) = ?g (c,q)"
+        from bp cq have ths: "b \<in> insert x F" "c \<in> insert x F" "x \<in> insert x F" "p permutes F" "q permutes F" by auto
+        from ths(4) `x \<notin> F` eq have "b = ?g (b,p) x" unfolding permutes_def
+          by (auto simp add: swap_def fun_upd_def expand_fun_eq)
+        also have "\<dots> = ?g (c,q) x" using ths(5) `x \<notin> F` eq
+          by (auto simp add: swap_def fun_upd_def expand_fun_eq)
+        also have "\<dots> = c"using ths(5) `x \<notin> F` unfolding permutes_def
+          by (auto simp add: swap_def fun_upd_def expand_fun_eq)
+        finally have bc: "b = c" .
+        hence "Fun.swap x b id = Fun.swap x c id" by simp
+        with eq have "Fun.swap x b id o p = Fun.swap x b id o q" by simp
+        hence "Fun.swap x b id o (Fun.swap x b id o p) = Fun.swap x b id o (Fun.swap x b id o q)" by simp
+        hence "p = q" by (simp add: o_assoc)
+        with bc have "(b,p) = (c,q)" by simp
+      }
+      thus ?thesis  unfolding inj_on_def by blast
+    qed
+    from `x \<notin> F` H0 have n0: "n \<noteq> 0 " using `finite F` by auto
+    hence "\<exists>m. n = Suc m" by arith
+    then obtain m where n[simp]: "n = Suc m" by blast
+    from pFs H0 have xFc: "card ?xF = fact n"
+      unfolding xfgpF' card_image[OF ginj] using `finite F` `finite ?pF`
+      apply (simp only: Collect_split Collect_mem_eq card_cartesian_product)
+      by simp
+    from finite_imageI[OF pF'f, of ?g] have xFf: "finite ?xF" unfolding xfgpF' by simp
+    have "card ?xF = fact n"
+      using xFf xFc unfolding xFf by blast
+  }
+  thus ?case using insert by simp
 qed
 
-lemma finite_permutations: "finite S ==> finite {p. p permutes S}"
-  using hassize_permutations[of S] unfolding hassize_def by blast
+lemma finite_permutations: assumes fS: "finite S" shows "finite {p. p permutes S}"
+  using card_permutations[OF refl fS] fact_gt_zero_nat
+  by (auto intro: card_ge_0_finite)
 
 (* ------------------------------------------------------------------------- *)
 (* Permutations of index set for iterated operations.                        *)

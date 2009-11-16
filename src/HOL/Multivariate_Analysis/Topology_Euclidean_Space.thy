@@ -5629,7 +5629,7 @@ proof-
   moreover
   have "d \<subseteq> ?D" unfolding subset_eq using assms by auto
   hence *:"inj_on (basis::'n\<Rightarrow>real^'n) d" using subset_inj_on[OF basis_inj, of "d"] by auto
-  have "?B hassize (card d)" unfolding hassize_def and card_image[OF *] by auto
+  have "card ?B = card d" unfolding card_image[OF *] by auto
 
   ultimately show ?thesis using dim_unique[of "basis ` d" ?A] by auto
 qed
