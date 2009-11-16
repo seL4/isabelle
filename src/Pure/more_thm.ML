@@ -75,9 +75,6 @@ sig
   val untag_rule: string -> thm -> thm
   val tag: Properties.property -> attribute
   val untag: string -> attribute
-  val position_of: thm -> Position.T
-  val default_position: Position.T -> thm -> thm
-  val default_position_of: thm -> thm -> thm
   val def_name: string -> string
   val def_name_optional: string -> string -> string
   val def_binding_optional: Binding.binding -> Binding.binding -> Binding.binding
@@ -378,14 +375,6 @@ fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
 
 fun tag tg x = rule_attribute (K (tag_rule tg)) x;
 fun untag s x = rule_attribute (K (untag_rule s)) x;
-
-
-(* position *)
-
-val position_of = Position.of_properties o Thm.get_tags;
-
-fun default_position pos = Thm.map_tags (Position.default_properties pos);
-val default_position_of = default_position o position_of;
 
 
 (* def_name *)
