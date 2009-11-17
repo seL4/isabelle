@@ -5,7 +5,6 @@
 Nitpick examples.
 *)
 
-Toplevel.debug := true;
 if getenv "KODKODI" = "" then
   ()
 else
