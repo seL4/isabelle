@@ -354,7 +354,7 @@ fun define_predicates specs thy =
             val (ind_result, thy') =
               thy
               |> Sign.map_naming Name_Space.conceal
-              |> Inductive.add_inductive_global (serial ())
+              |> Inductive.add_inductive_global
                 {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
                   no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
                 (map (fn (s, T) =>

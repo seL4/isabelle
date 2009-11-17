@@ -421,7 +421,6 @@ local
 (* code adapted from HOL/Tools/primrec.ML *)
 
 fun gen_fixrec
-  (set_group : bool)
   prep_spec
   (strict : bool)
   raw_fixes
@@ -473,8 +472,8 @@ fun gen_fixrec
 
 in
 
-val add_fixrec = gen_fixrec false Specification.check_spec;
-val add_fixrec_cmd = gen_fixrec true Specification.read_spec;
+val add_fixrec = gen_fixrec Specification.check_spec;
+val add_fixrec_cmd = gen_fixrec Specification.read_spec;
 
 end; (* local *)
 

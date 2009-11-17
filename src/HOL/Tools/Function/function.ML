@@ -20,8 +20,6 @@ sig
 
     val termination_proof : term option -> local_theory -> Proof.state
     val termination_proof_cmd : string option -> local_theory -> Proof.state
-    val termination : term option -> local_theory -> Proof.state
-    val termination_cmd : string option -> local_theory -> Proof.state
 
     val setup : theory -> theory
     val get_congs : Proof.context -> thm list
@@ -119,7 +117,6 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config lth
         end
     in
       lthy
-        |> is_external ? Local_Theory.set_group (serial ())
         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
@@ -170,18 +167,8 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
       |> Proof.theorem_i NONE afterqed [[(goal, [])]]
     end
 
-val termination_proof = gen_termination_proof Syntax.check_term;
-val termination_proof_cmd = gen_termination_proof Syntax.read_term;
-
-fun termination term_opt lthy =
-  lthy
-  |> Local_Theory.set_group (serial ())
-  |> termination_proof term_opt;
-
-fun termination_cmd term_opt lthy =
-  lthy
-  |> Local_Theory.set_group (serial ())
-  |> termination_proof_cmd term_opt;
+val termination_proof = gen_termination_proof Syntax.check_term
+val termination_proof_cmd = gen_termination_proof Syntax.read_term
 
 
 (* Datatype hook to declare datatype congs as "function_congs" *)
@@ -217,13 +204,13 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (function_parser default_config
-     >> (fn ((config, fixes), statements) => add_function_cmd fixes statements config));
+     >> (fn ((config, fixes), statements) => add_function_cmd fixes statements config))
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
-  (Scan.option P.term >> termination_cmd);
+  (Scan.option P.term >> termination_proof_cmd)
 
-end;
+end
 
 
 end
