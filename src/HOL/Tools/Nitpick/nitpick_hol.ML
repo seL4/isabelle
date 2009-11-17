@@ -1416,8 +1416,8 @@ fun is_constr_pattern_formula thy t =
     SOME t' => is_constr_pattern_lhs thy t'
   | NONE => false
 
-val unfold_max_depth = 63
-val axioms_max_depth = 63
+val unfold_max_depth = 255
+val axioms_max_depth = 255
 
 (* extended_context -> term -> term *)
 fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
