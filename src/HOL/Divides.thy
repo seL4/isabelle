@@ -2030,9 +2030,11 @@ apply (erule disjE)
                       split_neg_lemma [of concl: "%x y. P y"])
 done
 
-(* Enable arith to deal with div 2 and mod 2: *)
-declare split_zdiv [of _ _ "number_of k", simplified, standard, arith_split]
-declare split_zmod [of _ _ "number_of k", simplified, standard, arith_split]
+(* Enable arith to deal with @{term div} and @{term mod} when
+   these are applied to some constant that is of the form
+   @{term "number_of k"}: *)
+declare split_zdiv [of _ _ "number_of k", standard, arith_split]
+declare split_zmod [of _ _ "number_of k", standard, arith_split]
 
 
 subsubsection{*Speeding up the Division Algorithm with Shifting*}
