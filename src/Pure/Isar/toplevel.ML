@@ -419,7 +419,13 @@ fun generic_theory f = transaction (fn _ =>
     | _ => raise UNDEF));
 
 fun theory' f = transaction (fn int =>
-  (fn Theory (Context.Theory thy, _) => Theory (Context.Theory (f int thy), NONE)
+  (fn Theory (Context.Theory thy, _) =>
+      let val thy' = thy
+        |> Sign.new_group
+        |> Theory.checkpoint
+        |> f int
+        |> Sign.reset_group;
+      in Theory (Context.Theory thy', NONE) end
     | _ => raise UNDEF));
 
 fun theory f = theory' (K f);
@@ -442,7 +448,10 @@ fun local_theory_presentation loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val finish = loc_finish loc gthy;
-          val lthy' = f int (loc_begin loc gthy);
+          val lthy' = loc_begin loc gthy
+            |> Local_Theory.new_group
+            |> f int
+            |> Local_Theory.reset_group;
         in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF));
 
@@ -491,14 +500,14 @@ fun begin_proof init finish = transaction (fn int =>
 in
 
 fun local_theory_to_proof' loc f = begin_proof
-  (fn int => fn gthy => f int (loc_begin loc gthy))
-  (loc_finish loc);
+  (fn int => fn gthy => f int (Local_Theory.new_group (loc_begin loc gthy)))
+  (fn gthy => loc_finish loc gthy o Local_Theory.reset_group);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
-  (K (fn Context.Theory thy => f thy | _ => raise UNDEF))
-  (K (Context.Theory o ProofContext.theory_of));
+  (K (fn Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy)) | _ => raise UNDEF))
+  (K (Context.Theory o Sign.reset_group o ProofContext.theory_of));
 
 end;
 
@@ -531,7 +540,7 @@ fun skip_proof f = transaction (fn _ =>
 
 fun skip_proof_to_theory pred = transaction (fn _ =>
   (fn SkipProof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
-  | _ => raise UNDEF));
+    | _ => raise UNDEF));
 
 
 
