@@ -438,7 +438,7 @@ in
       in
         SOME [(Ts, subgoal1), (split_type :: Ts, subgoal2)]
       end
-    (* ?P (nat ?i) = ((ALL n. ?i = int n --> ?P n) & (?i < 0 --> ?P 0)) *)
+    (* ?P (nat ?i) = ((ALL n. ?i = of_nat n --> ?P n) & (?i < 0 --> ?P 0)) *)
     | (Const ("Int.nat", _), [t1]) =>
       let
         val rev_terms   = rev terms
@@ -449,12 +449,12 @@ in
                             (map (incr_boundvars 1) rev_terms)
         val terms2      = map (subst_term [(split_term, zero_nat)]) rev_terms
         val t1'         = incr_boundvars 1 t1
-        val t1_eq_int_n = Const ("op =", HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1' $
+        val t1_eq_nat_n = Const ("op =", HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1' $
                             (Const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) $ n)
         val t1_lt_zero  = Const (@{const_name HOL.less},
                             HOLogic.intT --> HOLogic.intT --> HOLogic.boolT) $ t1 $ zero_int
         val not_false   = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
-        val subgoal1    = (HOLogic.mk_Trueprop t1_eq_int_n) :: terms1 @ [not_false]
+        val subgoal1    = (HOLogic.mk_Trueprop t1_eq_nat_n) :: terms1 @ [not_false]
         val subgoal2    = (HOLogic.mk_Trueprop t1_lt_zero) :: terms2 @ [not_false]
       in
         SOME [(HOLogic.natT :: Ts, subgoal1), (Ts, subgoal2)]
@@ -524,13 +524,15 @@ in
         SOME [(Ts, subgoal1), (split_type :: split_type :: Ts, subgoal2)]
       end
     (* ?P ((?n::int) mod (number_of ?k)) =
-         ((iszero (number_of ?k) --> ?P ?n) &
-          (neg (number_of (uminus ?k)) -->
-            (ALL i j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P j)) &
-          (neg (number_of ?k) -->
-            (ALL i j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P j))) *)
+         ((number_of ?k = 0 --> ?P ?n) &
+          (0 < number_of ?k -->
+            (ALL i j.
+              0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P j)) &
+          (number_of ?k < 0 -->
+            (ALL i j.
+              number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P j))) *)
     | (Const ("Divides.div_class.mod",
-        Type ("fun", [Type ("Int.int", []), _])), [t1, t2 as (number_of $ k)]) =>
+        Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name HOL.zero}, split_type)
@@ -540,33 +542,33 @@ in
         val terms2_3                = map (subst_term [(incr_boundvars 2 split_term, j)])
                                         (map (incr_boundvars 2) rev_terms)
         val t1'                     = incr_boundvars 2 t1
-        val (t2' as (_ $ k'))       = incr_boundvars 2 t2
-        val iszero_t2               = Const ("Int.iszero", split_type --> HOLogic.boolT) $ t2
-        val neg_minus_k             = Const ("Int.neg", split_type --> HOLogic.boolT) $
-                                        (number_of $
-                                          (Const (@{const_name HOL.uminus},
-                                            HOLogic.intT --> HOLogic.intT) $ k'))
+        val t2'                     = incr_boundvars 2 t2
+        val t2_eq_zero              = Const ("op =",
+                                        split_type --> split_type --> HOLogic.boolT) $ t2 $ zero
+        val zero_lt_t2              = Const (@{const_name HOL.less},
+                                        split_type --> split_type --> HOLogic.boolT) $ zero $ t2'
+        val t2_lt_zero              = Const (@{const_name HOL.less},
+                                        split_type --> split_type --> HOLogic.boolT) $ t2' $ zero
         val zero_leq_j              = Const (@{const_name HOL.less_eq},
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
+        val j_leq_zero              = Const (@{const_name HOL.less_eq},
+                                        split_type --> split_type --> HOLogic.boolT) $ j $ zero
         val j_lt_t2                 = Const (@{const_name HOL.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
+        val t2_lt_j                 = Const (@{const_name HOL.less},
+                                        split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                        (Const (@{const_name HOL.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name HOL.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val neg_t2                  = Const ("Int.neg", split_type --> HOLogic.boolT) $ t2'
-        val t2_lt_j                 = Const (@{const_name HOL.less},
-                                        split_type --> split_type--> HOLogic.boolT) $ t2' $ j
-        val j_leq_zero              = Const (@{const_name HOL.less_eq},
-                                        split_type --> split_type --> HOLogic.boolT) $ j $ zero
         val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
-        val subgoal1                = (HOLogic.mk_Trueprop iszero_t2) :: terms1 @ [not_false]
-        val subgoal2                = (map HOLogic.mk_Trueprop [neg_minus_k, zero_leq_j])
+        val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
+        val subgoal2                = (map HOLogic.mk_Trueprop [zero_lt_t2, zero_leq_j])
                                         @ hd terms2_3
                                         :: (if tl terms2_3 = [] then [not_false] else [])
                                         @ (map HOLogic.mk_Trueprop [j_lt_t2, t1_eq_t2_times_i_plus_j])
                                         @ (if tl terms2_3 = [] then [] else tl terms2_3 @ [not_false])
-        val subgoal3                = (map HOLogic.mk_Trueprop [neg_t2, t2_lt_j])
+        val subgoal3                = (map HOLogic.mk_Trueprop [t2_lt_zero, t2_lt_j])
                                         @ hd terms2_3
                                         :: (if tl terms2_3 = [] then [not_false] else [])
                                         @ (map HOLogic.mk_Trueprop [j_leq_zero, t1_eq_t2_times_i_plus_j])
@@ -576,13 +578,15 @@ in
         SOME [(Ts, subgoal1), (Ts', subgoal2), (Ts', subgoal3)]
       end
     (* ?P ((?n::int) div (number_of ?k)) =
-         ((iszero (number_of ?k) --> ?P 0) &
-          (neg (number_of (uminus ?k)) -->
-            (ALL i. (EX j. 0 <= j & j < number_of ?k & ?n = number_of ?k * i + j) --> ?P i)) &
-          (neg (number_of ?k) -->
-            (ALL i. (EX j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j) --> ?P i))) *)
+         ((number_of ?k = 0 --> ?P 0) &
+          (0 < number_of ?k -->
+            (ALL i j.
+              0 <= j & j < number_of ?k & ?n = number_of ?k * i + j --> ?P i)) &
+          (number_of ?k < 0 -->
+            (ALL i j.
+              number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P i))) *)
     | (Const ("Divides.div_class.div",
-        Type ("fun", [Type ("Int.int", []), _])), [t1, t2 as (number_of $ k)]) =>
+        Type ("fun", [Type ("Int.int", []), _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name HOL.zero}, split_type)
@@ -592,38 +596,37 @@ in
         val terms2_3                = map (subst_term [(incr_boundvars 2 split_term, i)])
                                         (map (incr_boundvars 2) rev_terms)
         val t1'                     = incr_boundvars 2 t1
-        val (t2' as (_ $ k'))       = incr_boundvars 2 t2
-        val iszero_t2               = Const ("Int.iszero", split_type --> HOLogic.boolT) $ t2
-        val neg_minus_k             = Const ("Int.neg", split_type --> HOLogic.boolT) $
-                                        (number_of $
-                                          (Const (@{const_name HOL.uminus},
-                                            HOLogic.intT --> HOLogic.intT) $ k'))
+        val t2'                     = incr_boundvars 2 t2
+        val t2_eq_zero              = Const ("op =",
+                                        split_type --> split_type --> HOLogic.boolT) $ t2 $ zero
+        val zero_lt_t2              = Const (@{const_name HOL.less},
+                                        split_type --> split_type --> HOLogic.boolT) $ zero $ t2'
+        val t2_lt_zero              = Const (@{const_name HOL.less},
+                                        split_type --> split_type --> HOLogic.boolT) $ t2' $ zero
         val zero_leq_j              = Const (@{const_name HOL.less_eq},
                                         split_type --> split_type --> HOLogic.boolT) $ zero $ j
+        val j_leq_zero              = Const (@{const_name HOL.less_eq},
+                                        split_type --> split_type --> HOLogic.boolT) $ j $ zero
         val j_lt_t2                 = Const (@{const_name HOL.less},
                                         split_type --> split_type--> HOLogic.boolT) $ j $ t2'
-        val t1_eq_t2_times_i_plus_j = Const ("op =",
-                                        split_type --> split_type --> HOLogic.boolT) $ t1' $
+        val t2_lt_j                 = Const (@{const_name HOL.less},
+                                        split_type --> split_type--> HOLogic.boolT) $ t2' $ j
+        val t1_eq_t2_times_i_plus_j = Const ("op =", split_type --> split_type --> HOLogic.boolT) $ t1' $
                                        (Const (@{const_name HOL.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name HOL.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val neg_t2                  = Const ("Int.neg", split_type --> HOLogic.boolT) $ t2'
-        val t2_lt_j                 = Const (@{const_name HOL.less},
-                                        split_type --> split_type--> HOLogic.boolT) $ t2' $ j
-        val j_leq_zero              = Const (@{const_name HOL.less_eq},
-                                        split_type --> split_type --> HOLogic.boolT) $ j $ zero
         val not_false               = HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.false_const)
-        val subgoal1                = (HOLogic.mk_Trueprop iszero_t2) :: terms1 @ [not_false]
-        val subgoal2                = (HOLogic.mk_Trueprop neg_minus_k)
-                                        :: terms2_3
-                                        @ not_false
-                                        :: (map HOLogic.mk_Trueprop
-                                             [zero_leq_j, j_lt_t2, t1_eq_t2_times_i_plus_j])
-        val subgoal3                = (HOLogic.mk_Trueprop neg_t2)
-                                        :: terms2_3
-                                        @ not_false
-                                        :: (map HOLogic.mk_Trueprop
-                                             [t2_lt_j, j_leq_zero, t1_eq_t2_times_i_plus_j])
+        val subgoal1                = (HOLogic.mk_Trueprop t2_eq_zero) :: terms1 @ [not_false]
+        val subgoal2                = (map HOLogic.mk_Trueprop [zero_lt_t2, zero_leq_j])
+                                        @ hd terms2_3
+                                        :: (if tl terms2_3 = [] then [not_false] else [])
+                                        @ (map HOLogic.mk_Trueprop [j_lt_t2, t1_eq_t2_times_i_plus_j])
+                                        @ (if tl terms2_3 = [] then [] else tl terms2_3 @ [not_false])
+        val subgoal3                = (map HOLogic.mk_Trueprop [t2_lt_zero, t2_lt_j])
+                                        @ hd terms2_3
+                                        :: (if tl terms2_3 = [] then [not_false] else [])
+                                        @ (map HOLogic.mk_Trueprop [j_leq_zero, t1_eq_t2_times_i_plus_j])
+                                        @ (if tl terms2_3 = [] then [] else tl terms2_3 @ [not_false])
         val Ts'                     = split_type :: split_type :: Ts
       in
         SOME [(Ts, subgoal1), (Ts', subgoal2), (Ts', subgoal3)]
@@ -886,12 +889,12 @@ fun raw_tac ctxt ex =
      (l <= min m n + k) = (l <= m+k & l <= n+k)
   *)
   refute_tac (K true)
-    (* Splitting is also done inside simple_tac, but not completely --   *)
-    (* split_tac may use split theorems that have not been implemented in    *)
-    (* simple_tac (cf. pre_decomp and split_once_items above), and       *)
-    (* split_limit may trigger.                                   *)
-    (* Therefore splitting outside of simple_tac may allow us to prove   *)
-    (* some goals that simple_tac alone would fail on.                   *)
+    (* Splitting is also done inside simple_tac, but not completely --    *)
+    (* split_tac may use split theorems that have not been implemented in *)
+    (* simple_tac (cf. pre_decomp and split_once_items above), and        *)
+    (* split_limit may trigger.                                           *)
+    (* Therefore splitting outside of simple_tac may allow us to prove    *)
+    (* some goals that simple_tac alone would fail on.                    *)
     (REPEAT_DETERM o split_tac (#splits (get_arith_data ctxt)))
     (lin_arith_tac ctxt ex);
 
