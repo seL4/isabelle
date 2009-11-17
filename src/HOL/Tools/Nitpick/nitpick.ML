@@ -434,11 +434,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
                          def_us
         val nondef_us = map (choose_reps_in_nut scope liberal rep_table false)
                             nondef_us
-(*###
-*)
+(*
         val _ = List.app (priority o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
                           core_u :: def_us @ nondef_us)
+*)
         val (free_rels, pool, rel_table) =
           rename_free_vars free_names initial_pool NameTable.empty
         val (sel_rels, pool, rel_table) =
