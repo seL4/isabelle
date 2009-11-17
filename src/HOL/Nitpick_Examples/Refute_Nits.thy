@@ -17,7 +17,7 @@ nitpick [expect = genuine] 1
 nitpick [expect = genuine] 2
 nitpick [expect = genuine]
 nitpick [card = 5, expect = genuine]
-nitpick [sat_solver = MiniSat, expect = genuine] 2
+nitpick [sat_solver = SAT4J, expect = genuine] 2
 oops
 
 subsection {* Examples and Test Cases *}
