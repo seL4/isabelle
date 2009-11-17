@@ -51,7 +51,7 @@ sig
     (Attrib.binding * string) list ->
     (Facts.ref * Attrib.src list) list ->
     bool -> local_theory -> inductive_result * local_theory
-  val add_inductive_global: serial -> inductive_flags ->
+  val add_inductive_global: inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
     thm list -> theory -> inductive_result * theory
   val arities_of: thm -> (string * int) list
@@ -886,19 +886,17 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
       coind = coind, no_elim = false, no_ind = false, skip_mono = false, fork_mono = not int};
   in
     lthy
-    |> Local_Theory.set_group (serial ())
     |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos
   end;
 
 val add_inductive_i = gen_add_inductive_i add_ind_def;
 val add_inductive = gen_add_inductive add_ind_def;
 
-fun add_inductive_global group flags cnames_syn pnames pre_intros monos thy =
+fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
   let
     val name = Sign.full_name thy (fst (fst (hd cnames_syn)));
     val ctxt' = thy
       |> Theory_Target.init NONE
-      |> Local_Theory.set_group group
       |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
       |> Local_Theory.exit;
     val info = #2 (the_inductive ctxt' name);

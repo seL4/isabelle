@@ -568,7 +568,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       thy3
       |> Sign.map_naming Name_Space.conceal
-      |> Inductive.add_inductive_global (serial ())
+      |> Inductive.add_inductive_global
           {quiet_mode = false, verbose = false, alt_name = Binding.name big_rep_name,
            coind = false, no_elim = true, no_ind = false, skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T --> HOLogic.boolT), NoSyn))
@@ -1511,7 +1511,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10
       |> Sign.map_naming Name_Space.conceal
-      |> Inductive.add_inductive_global (serial ())
+      |> Inductive.add_inductive_global
           {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
            coind = false, no_elim = false, no_ind = false, skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))

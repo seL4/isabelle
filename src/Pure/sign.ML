@@ -121,6 +121,8 @@ sig
   val del_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
   val add_trrules_i: ast Syntax.trrule list -> theory -> theory
   val del_trrules_i: ast Syntax.trrule list -> theory -> theory
+  val new_group: theory -> theory
+  val reset_group: theory -> theory
   val add_path: string -> theory -> theory
   val root_path: theory -> theory
   val parent_path: theory -> theory
@@ -609,6 +611,9 @@ val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 
 
 (* naming *)
+
+val new_group = map_naming Name_Space.new_group;
+val reset_group = map_naming Name_Space.reset_group;
 
 val add_path = map_naming o Name_Space.add_path;
 val root_path = map_naming Name_Space.root_path;

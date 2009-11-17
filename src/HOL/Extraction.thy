@@ -13,20 +13,6 @@ begin
 subsection {* Setup *}
 
 setup {*
-let
-fun realizes_set_proc (Const ("realizes", Type ("fun", [Type ("Null", []), _])) $ r $
-      (Const ("op :", _) $ x $ S)) = (case strip_comb S of
-        (Var (ixn, U), ts) => SOME (list_comb (Var (ixn, U), ts @ [x]))
-      | (Free (s, U), ts) => SOME (list_comb (Free (s, U), ts @ [x]))
-      | _ => NONE)
-  | realizes_set_proc (Const ("realizes", Type ("fun", [T, _])) $ r $
-      (Const ("op :", _) $ x $ S)) = (case strip_comb S of
-        (Var (ixn, U), ts) => SOME (list_comb (Var (ixn, T --> U), r :: ts @ [x]))
-      | (Free (s, U), ts) => SOME (list_comb (Free (s, T --> U), r :: ts @ [x]))
-      | _ => NONE)
-  | realizes_set_proc _ = NONE;
-
-in
   Extraction.add_types
       [("bool", ([], NONE))] #>
   Extraction.set_preprocessor (fn thy =>
@@ -35,7 +21,6 @@ in
       Proofterm.rewrite_proof thy
         (RewriteHOLProof.rews, ProofRewriteRules.rprocs true) o
       ProofRewriteRules.elim_vars (curry Const @{const_name default}))
-end
 *}
 
 lemmas [extraction_expand] =
