@@ -1,5 +1,5 @@
 theory Multivariate_Analysis
-imports Convex_Euclidean_Space Determinants
+imports Determinants Derivative
 begin
 
 end

@@ -1058,7 +1058,9 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
   Multivariate_Analysis/Finite_Cartesian_Product.thy	\
   Multivariate_Analysis/Euclidean_Space.thy		\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
-  Multivariate_Analysis/Convex_Euclidean_Space.thy
+  Multivariate_Analysis/Convex_Euclidean_Space.thy      \
+  Multivariate_Analysis/Brouwer_Fixpoint.thy            \
+  Multivariate_Analysis/Derivative.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 
