@@ -1092,6 +1092,12 @@ fun kodkod_formula_from_nut ofs liberal
                   else
                     kk_rel_eq r1 r2
                 end)
+         | Op2 (The, T, _, u1, u2) =>
+           to_f_with_polarity polar
+                              (Op2 (The, T, Opt (Atom (2, bool_j0)), u1, u2))
+         | Op2 (Eps, T, _, u1, u2) =>
+           to_f_with_polarity polar
+                              (Op2 (Eps, T, Opt (Atom (2, bool_j0)), u1, u2))
          | Op2 (Apply, T, _, u1, u2) =>
            (case (polar, rep_of u1) of
               (Neg, Func (R, Formula Neut)) => kk_subset (to_opt R u2) (to_r u1)
