@@ -1047,8 +1047,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
                         \$JAVA_LIBRARY_PATH\" \
                         \LD_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
                         \$LD_LIBRARY_PATH\" \
-                        \\"$ISABELLE_TOOL\" java \
-                        \de.tum.in.isabelle.Kodkodi.Kodkodi" ^
+                        \\"$KODKODI\"/bin/kodkodi" ^
                         (if ms >= 0 then " -max-msecs " ^ Int.toString ms
                          else "") ^
                         (if max_solutions > 1 then " -solve-all" else "") ^
