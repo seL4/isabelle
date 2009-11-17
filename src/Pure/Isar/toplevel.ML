@@ -302,7 +302,8 @@ datatype trans =
 local
 
 fun apply_tr int (Init (_, f, exit)) (State (NONE, _)) =
-      State (SOME (Theory (Context.Theory (Theory.checkpoint (f int)), NONE), exit), NONE)
+      State (SOME (Theory (Context.Theory
+          (Theory.checkpoint (Runtime.controlled_execution f int)), NONE), exit), NONE)
   | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
       State (NONE, prev)
   | apply_tr _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
