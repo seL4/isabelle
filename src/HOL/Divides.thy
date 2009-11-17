@@ -2030,9 +2030,9 @@ apply (erule disjE)
                       split_neg_lemma [of concl: "%x y. P y"])
 done
 
-(* Enable arith to deal with @{term div} and @{term mod} when
-   these are applied to some constant that is of the form
-   @{term "number_of k"}: *)
+text {* Enable (lin)arith to deal with @{const div} and @{const mod}
+  when these are applied to some constant that is of the form
+  @{term "number_of k"}: *}
 declare split_zdiv [of _ _ "number_of k", standard, arith_split]
 declare split_zmod [of _ _ "number_of k", standard, arith_split]
 
