@@ -5,4 +5,9 @@
 Nitpick examples.
 *)
 
-setmp_noncritical quick_and_dirty true (try use_thy) "Nitpick_Examples";
+Toplevel.debug := true;
+if getenv "KODKODI" = "" then
+  ()
+else
+  setmp_noncritical quick_and_dirty true use_thys
+                    ["Nitpick_Examples"];
