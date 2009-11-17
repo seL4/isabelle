@@ -1109,13 +1109,13 @@ fun def_props_for_const thy fast_descrs table (x as (s, _)) =
     |> map_filter (try (Refute.specialize_type thy x))
     |> filter (equal (Const x) o term_under_def)
 
-(* term -> term *)
+(* theory -> term -> term option *)
 fun normalized_rhs_of thy t =
   let
-    (* term -> term *)
-    fun aux (v as Var _) t = lambda v t
-      | aux (c as Const (@{const_name TYPE}, T)) t = lambda c t
-      | aux _ _ = raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
+    (* term option -> term option *)
+    fun aux (v as Var _) (SOME t) = SOME (lambda v t)
+      | aux (c as Const (@{const_name TYPE}, T)) (SOME t) = SOME (lambda c t)
+      | aux _ _ = NONE
     val (lhs, rhs) =
       case t of
         Const (@{const_name "=="}, _) $ t1 $ t2 => (t1, t2)
@@ -1123,7 +1123,7 @@ fun normalized_rhs_of thy t =
         (t1, t2)
       | _ => raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
     val args = strip_comb lhs |> snd
-  in fold_rev aux args rhs end
+  in fold_rev aux args (SOME rhs) end
 
 (* theory -> const_table -> styp -> term option *)
 fun def_of_const thy table (x as (s, _)) =
@@ -1131,7 +1131,7 @@ fun def_of_const thy table (x as (s, _)) =
     NONE
   else
     x |> def_props_for_const thy false table |> List.last
-      |> normalized_rhs_of thy |> prefix_abs_vars s |> SOME
+      |> normalized_rhs_of thy |> Option.map (prefix_abs_vars s)
     handle List.Empty => NONE
 
 datatype fixpoint_kind = Lfp | Gfp | NoFp

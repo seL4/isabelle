@@ -1158,8 +1158,10 @@ fun choose_reps_in_nut (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns,
             let
               val u1' = sub u1
               val opt1 = is_opt_rep (rep_of u1')
+              val opt = (oper = Eps orelse opt1)
               val unopt_R = best_one_rep_for_type scope T |> optable_rep ofs T
-              val R = unopt_R |> (oper = Eps orelse opt1) ? opt_rep ofs T
+              val R = if is_boolean_type T then bool_rep polar opt
+                      else unopt_R |> opt ? opt_rep ofs T
               val u = Op2 (oper, T, R, u1', sub u2)
             in
               if is_precise_type datatypes T orelse not opt1 then
