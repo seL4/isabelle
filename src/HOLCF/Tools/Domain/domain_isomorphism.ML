@@ -134,7 +134,7 @@ fun add_fixdefs
     val eqns = map mk_eqn projs;
 
     (* register constant definitions *)
-    val (fixdef_thms, thy2) =
+    val (fixdef_thms, thy) =
       (PureThy.add_defs false o map Thm.no_attributes)
         (map (Binding.suffix_name "_def") binds ~~ eqns) thy;
 
@@ -143,7 +143,7 @@ fun add_fixdefs
       let
         val tac = rewrite_goals_tac fixdef_thms THEN beta_tac 1;
         val goal = Logic.mk_equals (lhs, rhs);
-      in Goal.prove_global thy2 [] [] goal (K tac) end;
+      in Goal.prove_global thy [] [] goal (K tac) end;
     val proj_thms = map prove_proj projs;
 
     (* mk_tuple lhss == fixpoint *)
@@ -151,11 +151,11 @@ fun add_fixdefs
     val tuple_fixdef_thm = foldr1 pair_equalI proj_thms;
 
     val cont_thm =
-      Goal.prove_global thy2 [] [] (mk_trp (mk_cont functional))
+      Goal.prove_global thy [] [] (mk_trp (mk_cont functional))
         (K (beta_tac 1));
     val tuple_unfold_thm =
       (@{thm def_cont_fix_eq} OF [tuple_fixdef_thm, cont_thm])
-      |> LocalDefs.unfold (ProofContext.init thy2) @{thms split_conv};
+      |> LocalDefs.unfold (ProofContext.init thy) @{thms split_conv};
 
     fun mk_unfold_thms [] thm = []
       | mk_unfold_thms (n::[]) thm = [(n, thm)]
@@ -166,11 +166,11 @@ fun add_fixdefs
     val unfold_binds = map (Binding.suffix_name "_unfold") binds;
 
     (* register unfold theorems *)
-    val (unfold_thms, thy3) =
+    val (unfold_thms, thy) =
       (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
-        (mk_unfold_thms unfold_binds tuple_unfold_thm) thy2;
+        (mk_unfold_thms unfold_binds tuple_unfold_thm) thy;
   in
-    (unfold_thms, thy3)
+    (unfold_thms, thy)
   end;
 
 
@@ -312,7 +312,7 @@ fun gen_domain_isomorphism
       in
         Sign.declare_const ((typ_bind, typ_type), NoSyn) thy
       end;
-    val (typ_consts, thy2) = fold_map declare_typ_const doms thy;
+    val (typ_consts, thy) = fold_map declare_typ_const doms thy;
 
     (* defining equations for type combinators *)
     val defl_tab1 = defl_tab; (* FIXME: use theory data *)
@@ -327,7 +327,7 @@ fun gen_domain_isomorphism
 
     (* register recursive definition of type combinators *)
     val typ_binds = map (Binding.suffix_name "_typ" o #2) doms;
-    val (typ_unfold_thms, thy3) = add_fixdefs (typ_binds ~~ defl_specs) thy2;
+    val (typ_unfold_thms, thy) = add_fixdefs (typ_binds ~~ defl_specs) thy;
 
     (* define types using deflation combinators *)
     fun make_repdef ((vs, tbind, mx, _), typ_const) thy =
@@ -335,13 +335,13 @@ fun gen_domain_isomorphism
         fun tfree a = TFree (a, the (AList.lookup (op =) sorts a))
         val reps = map (mk_Rep_of o tfree) vs;
         val defl = Library.foldl mk_capply (typ_const, reps);
-        val ((_, _, _, {REP, ...}), thy') =
+        val ((_, _, _, {REP, ...}), thy) =
           Repdef.add_repdef false NONE (tbind, vs, mx) defl NONE thy;
       in
-        (REP, thy')
+        (REP, thy)
       end;
-    val (REP_thms, thy4) =
-      fold_map make_repdef (doms ~~ typ_consts) thy3;
+    val (REP_thms, thy) =
+      fold_map make_repdef (doms ~~ typ_consts) thy;
 
     (* FIXME: use theory data for this *)
     val REP_simps = REP_thms @
@@ -356,12 +356,12 @@ fun gen_domain_isomorphism
           simp_tac (HOL_basic_ss addsimps REP_simps) 1
           THEN resolve_tac typ_unfold_thms 1;
       in
-        Goal.prove_global thy4 [] [] goal (K tac)
+        Goal.prove_global thy [] [] goal (K tac)
       end;
     val REP_eqn_thms = map mk_REP_eqn_thm dom_eqns;
 
   in
-    thy4
+    thy
   end;
 
 val domain_isomorphism = gen_domain_isomorphism cert_typ;
