@@ -409,6 +409,13 @@ lemma
   using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_20"]]
   by smt
 
+lemma                                                                         
+  assumes "(n + m) mod 2 = 0" and "n mod 4 = 3"                               
+  shows "n mod 2 = 1 & m mod 2 = (1::int)"      
+  using assms
+  using [[smt_cert="$ISABELLE_SMT/Examples/cert/z3_linarith_21"]]
+  by smt
+
 
 subsection {* Linear arithmetic with quantifiers *}
 
