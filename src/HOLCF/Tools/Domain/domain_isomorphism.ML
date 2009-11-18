@@ -320,14 +320,16 @@ fun gen_domain_isomorphism
       Symtab.make (map (fst o dest_Type o fst) dom_eqns ~~ typ_consts);
     val defl_tab' = Symtab.merge (K true) (defl_tab1, defl_tab2);
     fun free a = Free (Library.unprefix "'" a, deflT);
-    fun mk_defl_spec (lhs, rhs) =
-      mk_eqs (defl_of_typ defl_tab' free lhs, defl_of_typ defl_tab' free rhs);
+    fun mk_defl_spec (lhsT, rhsT) =
+      mk_eqs (defl_of_typ defl_tab' free lhsT,
+              defl_of_typ defl_tab' free rhsT);
     val defl_specs = map mk_defl_spec dom_eqns;
 
     (* register recursive definition of type combinators *)
     val typ_binds = map (Binding.suffix_name "_typ" o #2) doms;
     val (typ_unfold_thms, thy3) = add_fixdefs (typ_binds ~~ defl_specs) thy2;
 
+    (* define types using deflation combinators *)
     fun make_repdef ((vs, tbind, mx, _), typ_const) thy =
       let
         fun tfree a = TFree (a, the (AList.lookup (op =) sorts a))
@@ -340,6 +342,23 @@ fun gen_domain_isomorphism
       end;
     val (REP_thms, thy4) =
       fold_map make_repdef (doms ~~ typ_consts) thy3;
+
+    (* FIXME: use theory data for this *)
+    val REP_simps = REP_thms @
+      @{thms REP_cfun REP_ssum REP_sprod REP_cprod REP_up
+             REP_upper REP_lower REP_convex};
+
+    (* prove REP equations *)
+    fun mk_REP_eqn_thm (lhsT, rhsT) =
+      let
+        val goal = mk_eqs (mk_Rep_of lhsT, mk_Rep_of rhsT);
+        val tac =
+          simp_tac (HOL_basic_ss addsimps REP_simps) 1
+          THEN resolve_tac typ_unfold_thms 1;
+      in
+        Goal.prove_global thy4 [] [] goal (K tac)
+      end;
+    val REP_eqn_thms = map mk_REP_eqn_thm dom_eqns;
 
   in
     thy4
