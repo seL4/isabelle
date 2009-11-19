@@ -1,6 +1,6 @@
 (*  Title:      HOL/Library/Convex_Euclidean_Space.thy
-    Author:                       John Harrison
-    Translated to from HOL light: Robert Himmelmann, TU Muenchen *)
+    Author:                     John Harrison
+    Translation from HOL light: Robert Himmelmann, TU Muenchen *)
 
 header {* Multivariate calculus in Euclidean space. *}
 

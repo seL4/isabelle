@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* November 2009: Robert Himmelmann, TUM
+  Derivation and Brouwer's fixpoint theorem in Multivariate Analysis
+
 * November 2009: Stefan Berghofer, Lukas Bulwahn, TUM
   A tabled implementation of the reflexive transitive closure
 

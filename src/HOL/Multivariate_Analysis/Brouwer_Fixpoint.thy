@@ -13,8 +13,8 @@
 (*              (c) Copyright, John Harrison 1998-2008                       *)
 (* ========================================================================= *)
 
-(* Author:                       John Harrison
-   Translated to from HOL light: Robert Himmelmann, TU Muenchen *)
+(* Author:                     John Harrison
+   Translation from HOL light: Robert Himmelmann, TU Muenchen *)
 
 header {* Results connected with topological dimension. *}
 
