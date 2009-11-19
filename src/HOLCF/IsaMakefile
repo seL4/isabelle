@@ -65,6 +65,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/cont_proc.ML \
   Tools/Domain/domain_extender.ML \
   Tools/Domain/domain_axioms.ML \
+  Tools/Domain/domain_isomorphism.ML \
   Tools/Domain/domain_library.ML \
   Tools/Domain/domain_syntax.ML \
   Tools/Domain/domain_theorems.ML \
