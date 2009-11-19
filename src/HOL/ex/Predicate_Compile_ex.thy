@@ -479,6 +479,8 @@ lemma [code_pred_intro]:
 
 subsection {* transitive predicate *}
 
+text {* Also look at the tabled transitive closure in the Library *}
+
 code_pred (modes: (i => o => bool) => i => i => bool, (i => o => bool) => i => o => bool as forwards_trancl,
   (o => i => bool) => i => i => bool, (o => i => bool) => o => i => bool as backwards_trancl, (o => o => bool) => i => i => bool, (o => o => bool) => i => o => bool,
   (o => o => bool) => o => i => bool, (o => o => bool) => o => o => bool) tranclp
@@ -511,6 +513,28 @@ to disambiguate which mode is to be chosen. *}
 values [mode: i => o => bool] 20 "{n. tranclp succ 10 n}"
 values [mode: o => i => bool] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
+
+inductive example_graph :: "int => int => bool"
+where
+  "example_graph 0 1"
+| "example_graph 1 2"
+| "example_graph 1 3"
+| "example_graph 4 7"
+| "example_graph 4 5"
+| "example_graph 5 6"
+| "example_graph 7 6"
+| "example_graph 7 8"
+ 
+inductive not_reachable_in_example_graph :: "int => int => bool"
+where "\<not> (tranclp example_graph x y) ==> not_reachable_in_example_graph x y"
+
+code_pred (expected_modes: i => i => bool) not_reachable_in_example_graph .
+
+thm not_reachable_in_example_graph.equation
+
+value "not_reachable_in_example_graph 0 3"
+value "not_reachable_in_example_graph 4 8"
+value "not_reachable_in_example_graph 5 6"
 
 subsection {* IMP *}
 

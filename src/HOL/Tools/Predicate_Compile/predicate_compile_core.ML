@@ -1674,8 +1674,8 @@ fun is_constructor thy t =
 
 (* MAJOR FIXME:  prove_params should be simple
  - different form of introrule for parameters ? *)
-fun prove_param thy NONE t = TRY (rtac @{thm refl} 1)
-  | prove_param thy (m as SOME (Mode (mode, is, ms))) t =
+fun prove_param options thy NONE t = TRY (rtac @{thm refl} 1)
+  | prove_param options thy (m as SOME (Mode (mode, is, ms))) t =
   let
     val  (f, args) = strip_comb (Envir.eta_contract t)
     val (params, _) = chop (length ms) args
@@ -1687,16 +1687,15 @@ fun prove_param thy NONE t = TRY (rtac @{thm refl} 1)
     | Free _ => TRY (rtac @{thm refl} 1)
     | Abs _ => error "prove_param: No valid parameter term"
   in
-    REPEAT_DETERM (etac @{thm thin_rl} 1)
-    THEN REPEAT_DETERM (rtac @{thm ext} 1)
-    THEN print_tac "prove_param"
+    REPEAT_DETERM (rtac @{thm ext} 1)
+    THEN print_tac' options "prove_param"
     THEN f_tac
-    THEN print_tac "after simplification in prove_args"
-    THEN (EVERY (map2 (prove_param thy) ms params))
+    THEN print_tac' options "after simplification in prove_args"
+    THEN (EVERY (map2 (prove_param options thy) ms params))
     THEN (REPEAT_DETERM (atac 1))
   end
 
-fun prove_expr thy (Mode (mode, is, ms), t, us) (premposition : int) =
+fun prove_expr options thy (Mode (mode, is, ms), t, us) (premposition : int) =
   case strip_comb t of
     (Const (name, T), args) =>  
       let
@@ -1704,16 +1703,16 @@ fun prove_expr thy (Mode (mode, is, ms), t, us) (premposition : int) =
         val (args1, args2) = chop (length ms) args
       in
         rtac @{thm bindI} 1
-        THEN print_tac "before intro rule:"
+        THEN print_tac' options "before intro rule:"
         (* for the right assumption in first position *)
         THEN rotate_tac premposition 1
         THEN debug_tac (Display.string_of_thm (ProofContext.init thy) introrule)
         THEN rtac introrule 1
-        THEN print_tac "after intro rule"
+        THEN print_tac' options "after intro rule"
         (* work with parameter arguments *)
-        THEN (atac 1)
-        THEN (print_tac "parameter goal")
-        THEN (EVERY (map2 (prove_param thy) ms args1))
+        THEN atac 1
+        THEN print_tac' options "parameter goal"
+        THEN (EVERY (map2 (prove_param options thy) ms args1))
         THEN (REPEAT_DETERM (atac 1))
       end
   | _ => rtac @{thm bindI} 1
@@ -1721,7 +1720,7 @@ fun prove_expr thy (Mode (mode, is, ms), t, us) (premposition : int) =
       (HOL_basic_ss' addsimps [@{thm "split_eta"}, @{thm "split_beta"}, @{thm "fst_conv"},
          @{thm "snd_conv"}, @{thm pair_collapse}]) 1
     THEN (atac 1)
-    THEN print_tac "after prove parameter call"
+    THEN print_tac' options "after prove parameter call"
     
 
 fun SOLVED tac st = FILTER (fn st' => nprems_of st' = nprems_of st - 1) tac st; 
@@ -1773,9 +1772,9 @@ fun prove_clause options thy nargs modes (iss, is) (_, clauses) (ts, moded_ps) =
     val (in_ts, clause_out_ts) = split_smode is ts;
     fun prove_prems out_ts [] =
       (prove_match thy out_ts)
-      THEN print_tac "before simplifying assumptions"
+      THEN print_tac' options "before simplifying assumptions"
       THEN asm_full_simp_tac HOL_basic_ss' 1
-      THEN print_tac "before single intro rule"
+      THEN print_tac' options "before single intro rule"
       THEN (rtac (if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}) 1)
     | prove_prems out_ts ((p, mode as Mode ((iss, is), _, param_modes)) :: ps) =
       let
@@ -1785,11 +1784,11 @@ fun prove_clause options thy nargs modes (iss, is) (_, clauses) (ts, moded_ps) =
               val (_, out_ts''') = split_smode is us
               val rec_tac = prove_prems out_ts''' ps
             in
-              print_tac "before clause:"
+              print_tac' options "before clause:"
               THEN asm_simp_tac HOL_basic_ss 1
-              THEN print_tac "before prove_expr:"
-              THEN prove_expr thy (mode, t, us) premposition
-              THEN print_tac "after prove_expr:"
+              THEN print_tac' options "before prove_expr:"
+              THEN prove_expr options thy (mode, t, us) premposition
+              THEN print_tac' options "after prove_expr:"
               THEN rec_tac
             end
           | Negprem (us, t) =>
@@ -1800,13 +1799,18 @@ fun prove_clause options thy nargs modes (iss, is) (_, clauses) (ts, moded_ps) =
               val (_, params) = strip_comb t
             in
               rtac @{thm bindI} 1
+              THEN print_tac' options "before prove_neg_expr:"
               THEN (if (is_some name) then
-                  simp_tac (HOL_basic_ss addsimps
+                  print_tac' options ("before unfolding definition " ^
+                    (Display.string_of_thm_global thy
+                      (predfun_definition_of thy (the name) (iss, is))))
+                  THEN simp_tac (HOL_basic_ss addsimps
                     [predfun_definition_of thy (the name) (iss, is)]) 1
                   THEN rtac @{thm not_predI} 1
+                  THEN print_tac' options "after applying rule not_predI"
                   THEN simp_tac (HOL_basic_ss addsimps [@{thm not_False_eq_True}]) 1
                   THEN (REPEAT_DETERM (atac 1))
-                  THEN (EVERY (map2 (prove_param thy) param_modes params))
+                  THEN (EVERY (map2 (prove_param options thy) param_modes params))
                 else
                   rtac @{thm not_predI'} 1)
                   THEN simp_tac (HOL_basic_ss addsimps [@{thm not_False_eq_True}]) 1
@@ -1815,9 +1819,9 @@ fun prove_clause options thy nargs modes (iss, is) (_, clauses) (ts, moded_ps) =
           | Sidecond t =>
            rtac @{thm bindI} 1
            THEN rtac @{thm if_predI} 1
-           THEN print_tac "before sidecond:"
+           THEN print_tac' options "before sidecond:"
            THEN prove_sidecond thy modes t
-           THEN print_tac "after sidecond:"
+           THEN print_tac' options "after sidecond:"
            THEN prove_prems [] ps)
       in (prove_match thy out_ts)
           THEN rest_tac
@@ -1848,7 +1852,7 @@ fun prove_one_direction options thy clauses preds modes pred mode moded_clauses 
            (fn i => EVERY' (select_sup (length moded_clauses) i) i) 
              (1 upto (length moded_clauses))))
     THEN (EVERY (map2 (prove_clause options thy nargs modes mode) clauses moded_clauses))
-    THEN print_tac "proved one direction"
+    THEN print_tac' options "proved one direction"
   end;
 
 (** Proof in the other direction **)
