@@ -111,10 +111,10 @@ fun extract_options (((expected_modes, proposed_modes), raw_options), const) =
   in
     Options {
       expected_modes = Option.map (pair const) expected_modes,
-      proposed_modes = if not (null proposed_modes) then [(const, map fst proposed_modes)] else [],
+      proposed_modes = Option.map (pair const o map fst) proposed_modes,
       proposed_names =
-        map_filter
-          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name)) proposed_modes,
+        the_default [] (Option.map (map_filter
+          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name))) proposed_modes),
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
@@ -176,7 +176,7 @@ val mode_and_opt_proposal = parse_mode_expr --
 
 val opt_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "modes" |-- P.$$$ ":" |--
-    P.enum1 "," mode_and_opt_proposal --| P.$$$ ")") []
+    P.enum "," mode_and_opt_proposal --| P.$$$ ")" >> SOME) NONE
 
 val opt_expected_modes =
   Scan.optional (P.$$$ "(" |-- Args.$$$ "expected_modes" |-- P.$$$ ":" |--

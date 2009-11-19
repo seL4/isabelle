@@ -23,7 +23,7 @@ val target = "Quickcheck"
 
 val options = Options {
   expected_modes = NONE,
-  proposed_modes = [],
+  proposed_modes = NONE,
   proposed_names = [],
   show_steps = true,
   show_intermediate_results = true,

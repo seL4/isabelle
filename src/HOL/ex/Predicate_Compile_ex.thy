@@ -87,6 +87,9 @@ values "{(b, c, a). JamesBond a b c}"
 values "{(c, a, b). JamesBond a b c}"
 values "{(c, b, a). JamesBond a b c}"
 
+values "{(a, b). JamesBond 0 b a}"
+values "{(c, a). JamesBond a 0 c}"
+values "{(a, c). JamesBond a 0 c}"
 
 subsection {* Alternative Rules *}
 
@@ -724,7 +727,7 @@ thm inv_image.equation
 
 subsection {* Inverting list functions *}
 
-code_pred [inductify, show_intermediate_results] length .
+code_pred [inductify] length .
 code_pred [inductify, random] length .
 thm size_listP.equation
 thm size_listP.random_equation
@@ -804,8 +807,6 @@ thm splice.simps
 thm spliceP.equation
 
 values "{xs. spliceP xs [1, 2, 3] [1, 1, 1, 2, 1, (3::nat)]}"
-(* TODO: correct error messages:*)
-(* values {(xs, ys, zs). spliceP xs ... } *)
 
 code_pred [inductify] List.rev .
 code_pred [inductify] map .
@@ -965,13 +966,8 @@ where
 | objaddr: "\<lbrakk> Env conf n = i \<rbrakk> \<Longrightarrow> eval_var (ObjAddr n) conf (IntVal i)"
 | plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow> eval_var (Add l r) conf (IntVal (vl+vr))"
 
-(* TODO: breaks if code_pred_intro is used? *)
-(*
-lemmas [code_pred_intro] = irconst objaddr plus
-*)
-thm eval_var.cases
 
-code_pred eval_var . (*by (rule eval_var.cases)*)
+code_pred eval_var .
 thm eval_var.equation
 
 values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) val}"
