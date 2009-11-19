@@ -16,8 +16,8 @@ The definitions and proofs below are for the following recursive
 datatypes:
 
 domain 'a foo = Foo1 | Foo2 (lazy 'a) (lazy "'a bar")
-   and 'a bar = Bar (lazy 'a) (lazy "'a baz")
-   and 'a baz = Baz (lazy 'a) (lazy "'a foo convex_pd")
+   and 'a bar = Bar (lazy "'a baz \<rightarrow> tr")
+   and 'a baz = Baz (lazy "'a foo convex_pd \<rightarrow> tr")
 
 *)
 
@@ -33,14 +33,14 @@ definition
 where
   "foo_bar_baz_deflF = (\<Lambda> a. Abs_CFun (\<lambda>(t1, t2, t3). 
     ( ssum_defl\<cdot>REP(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>t2))
-    , sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>t3)
-    , sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(convex_defl\<cdot>t1)))))"
+    , u_defl\<cdot>(cfun_defl\<cdot>t3\<cdot>REP(tr))
+    , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>t1)\<cdot>REP(tr)))))"
 
 lemma foo_bar_baz_deflF_beta:
   "foo_bar_baz_deflF\<cdot>a\<cdot>t =
     ( ssum_defl\<cdot>REP(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(fst (snd t))))
-    , sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(snd (snd t)))
-    , sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(convex_defl\<cdot>(fst t))))"
+    , u_defl\<cdot>(cfun_defl\<cdot>(snd (snd t))\<cdot>REP(tr))
+    , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(fst t))\<cdot>REP(tr)))"
 unfolding foo_bar_baz_deflF_def
 by (simp add: split_def)
 
@@ -62,11 +62,11 @@ lemma foo_defl_unfold:
 unfolding foo_defl_def bar_defl_def baz_defl_def
 by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma bar_defl_unfold: "bar_defl\<cdot>a = sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(baz_defl\<cdot>a))"
+lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(baz_defl\<cdot>a)\<cdot>REP(tr))"
 unfolding foo_defl_def bar_defl_def baz_defl_def
 by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma baz_defl_unfold: "baz_defl\<cdot>a = sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a)))"
+lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a))\<cdot>REP(tr))"
 unfolding foo_defl_def bar_defl_def baz_defl_def
 by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
@@ -191,11 +191,11 @@ lemma REP_foo': "REP('a foo) = REP(one \<oplus> 'a\<^sub>\<bottom> \<otimes> ('a
 unfolding REP_foo REP_bar REP_baz REP_simps
 by (rule foo_defl_unfold)
 
-lemma REP_bar': "REP('a bar) = REP('a\<^sub>\<bottom> \<otimes> ('a baz)\<^sub>\<bottom>)"
+lemma REP_bar': "REP('a bar) = REP(('a baz \<rightarrow> tr)\<^sub>\<bottom>)"
 unfolding REP_foo REP_bar REP_baz REP_simps
 by (rule bar_defl_unfold)
 
-lemma REP_baz': "REP('a baz) = REP('a\<^sub>\<bottom> \<otimes> ('a foo convex_pd)\<^sub>\<bottom>)"
+lemma REP_baz': "REP('a baz) = REP(('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom>)"
 unfolding REP_foo REP_bar REP_baz REP_simps
 by (rule baz_defl_unfold)
 
@@ -211,16 +211,16 @@ where "foo_rep \<equiv> coerce"
 definition foo_abs :: "one \<oplus> ('a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>) \<rightarrow> 'a foo"
 where "foo_abs \<equiv> coerce"
 
-definition bar_rep :: "'a bar \<rightarrow> 'a\<^sub>\<bottom> \<otimes> ('a baz)\<^sub>\<bottom>"
+definition bar_rep :: "'a bar \<rightarrow> ('a baz \<rightarrow> tr)\<^sub>\<bottom>"
 where "bar_rep \<equiv> coerce"
 
-definition bar_abs :: "'a\<^sub>\<bottom> \<otimes> ('a baz)\<^sub>\<bottom> \<rightarrow> 'a bar"
+definition bar_abs :: "('a baz \<rightarrow> tr)\<^sub>\<bottom> \<rightarrow> 'a bar"
 where "bar_abs \<equiv> coerce"
 
-definition baz_rep :: "'a baz \<rightarrow> 'a\<^sub>\<bottom> \<otimes> ('a foo convex_pd)\<^sub>\<bottom>"
+definition baz_rep :: "'a baz \<rightarrow> ('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom>"
 where "baz_rep \<equiv> coerce"
 
-definition baz_abs :: "'a\<^sub>\<bottom> \<otimes> ('a foo convex_pd)\<^sub>\<bottom> \<rightarrow> 'a baz"
+definition baz_abs :: "('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom> \<rightarrow> 'a baz"
 where "baz_abs \<equiv> coerce"
 
 text {* Prove isomorphism rules. *}
@@ -268,14 +268,9 @@ variables are used in positive and negative positions. *}
 
 definition
   foo_bar_baz_mapF ::
-  "(_ \<rightarrow> _)
-     \<rightarrow> (_ foo \<rightarrow> _ foo) \<times> (_ bar \<rightarrow> _ bar) \<times> (_ baz \<rightarrow> _ baz)
-     \<rightarrow> (_ foo \<rightarrow> _ foo) \<times> (_ bar \<rightarrow> _ bar) \<times> (_ baz \<rightarrow> _ baz)"
-(*
-  "('a \<rightarrow> 'b)
-     \<rightarrow> ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('a baz \<rightarrow> 'b baz)
-     \<rightarrow> ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('a baz \<rightarrow> 'b baz)"
-*)
+    "('a \<rightarrow> 'b) \<rightarrow>
+     ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('b baz \<rightarrow> 'a baz) \<rightarrow>
+     ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('b baz \<rightarrow> 'a baz)"
 where
   "foo_bar_baz_mapF = (\<Lambda> f. Abs_CFun (\<lambda>(d1, d2, d3).
     (
@@ -283,9 +278,9 @@ where
         ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>d2))
           oo foo_rep
     ,
-      bar_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>d3) oo bar_rep
+      bar_abs oo u_map\<cdot>(cfun_map\<cdot>d3\<cdot>ID) oo bar_rep
     ,
-      baz_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>(convex_map\<cdot>d1)) oo baz_rep
+      baz_abs oo u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>d1)\<cdot>ID) oo baz_rep
     )))"
 
 lemma foo_bar_baz_mapF_beta:
@@ -295,9 +290,9 @@ lemma foo_bar_baz_mapF_beta:
         ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>(fst (snd d))))
           oo foo_rep
     ,
-      bar_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>(snd (snd d))) oo bar_rep
+      bar_abs oo u_map\<cdot>(cfun_map\<cdot>(snd (snd d))\<cdot>ID) oo bar_rep
     ,
-      baz_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>(convex_map\<cdot>(fst d))) oo baz_rep
+      baz_abs oo u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>(fst d))\<cdot>ID) oo baz_rep
     )"
 unfolding foo_bar_baz_mapF_def
 by (simp add: split_def)
@@ -310,7 +305,7 @@ where "foo_map = (\<Lambda> f. fst (fix\<cdot>(foo_bar_baz_mapF\<cdot>f)))"
 definition bar_map :: "('a \<rightarrow> 'b) \<rightarrow> ('a bar \<rightarrow> 'b bar)"
 where "bar_map = (\<Lambda> f. fst (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f))))"
 
-definition baz_map :: "('a \<rightarrow> 'b) \<rightarrow> ('a baz \<rightarrow> 'b baz)"
+definition baz_map :: "('a \<rightarrow> 'b) \<rightarrow> ('b baz \<rightarrow> 'a baz)"
 where "baz_map = (\<Lambda> f. snd (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f))))"
 
 text {* Prove isodefl rules for all map functions simultaneously. *}
@@ -323,8 +318,7 @@ lemma isodefl_foo_bar_baz:
   isodefl (baz_map\<cdot>d) (baz_defl\<cdot>t)"
  apply (simp add: foo_map_def bar_map_def baz_map_def)
  apply (simp add: foo_defl_def bar_defl_def baz_defl_def)
- apply (rule parallel_fix_ind
-  [where F="foo_bar_baz_deflF\<cdot>t" and G="foo_bar_baz_mapF\<cdot>d"])
+ apply (rule parallel_fix_ind)
    apply (intro adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id)
   apply (simp only: fst_strict snd_strict isodefl_bottom simp_thms)
  apply (simp only: foo_bar_baz_mapF_beta
@@ -336,7 +330,8 @@ lemma isodefl_foo_bar_baz:
   isodefl_foo_abs
   isodefl_bar_abs
   isodefl_baz_abs
-  isodefl_ssum isodefl_sprod isodefl_ID_REP isodefl_u isodefl_convex
+  isodefl_ssum isodefl_sprod isodefl_ID_REP
+  isodefl_u isodefl_convex isodefl_cfun
   isodefl_d
  )
  apply assumption+
