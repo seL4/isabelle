@@ -1562,12 +1562,12 @@ lemma fashoda: fixes b::"real^2"
   obtains z where "z \<in> path_image f" "z \<in> path_image g" proof-
   fix P Q S presume "P \<or> Q \<or> S" "P \<Longrightarrow> thesis" "Q \<Longrightarrow> thesis" "S \<Longrightarrow> thesis" thus thesis by auto
 next have "{a..b} \<noteq> {}" using assms(3) using path_image_nonempty by auto
-  hence "a \<le> b" unfolding interval_eq_empty vector_less_eq_def by(auto simp add: not_less)
-  thus "a$1 = b$1 \<or> a$2 = b$2 \<or> (a$1 < b$1 \<and> a$2 < b$2)" unfolding vector_less_eq_def forall_2 by auto
+  hence "a \<le> b" unfolding interval_eq_empty vector_le_def by(auto simp add: not_less)
+  thus "a$1 = b$1 \<or> a$2 = b$2 \<or> (a$1 < b$1 \<and> a$2 < b$2)" unfolding vector_le_def forall_2 by auto
 next assume as:"a$1 = b$1" have "\<exists>z\<in>path_image g. z$2 = (pathstart f)$2" apply(rule connected_ivt_component)
     apply(rule connected_path_image assms)+apply(rule pathstart_in_path_image,rule pathfinish_in_path_image)
     unfolding assms using assms(3)[unfolded path_image_def subset_eq,rule_format,of "f 0"]
-    unfolding pathstart_def by(auto simp add: vector_less_eq_def) then guess z .. note z=this
+    unfolding pathstart_def by(auto simp add: vector_le_def) then guess z .. note z=this
   have "z \<in> {a..b}" using z(1) assms(4) unfolding path_image_def by blast 
   hence "z = f 0" unfolding Cart_eq forall_2 unfolding z(2) pathstart_def
     using assms(3)[unfolded path_image_def subset_eq mem_interval,rule_format,of "f 0" 1]
@@ -1576,7 +1576,7 @@ next assume as:"a$1 = b$1" have "\<exists>z\<in>path_image g. z$2 = (pathstart f
 next assume as:"a$2 = b$2" have "\<exists>z\<in>path_image f. z$1 = (pathstart g)$1" apply(rule connected_ivt_component)
     apply(rule connected_path_image assms)+apply(rule pathstart_in_path_image,rule pathfinish_in_path_image)
     unfolding assms using assms(4)[unfolded path_image_def subset_eq,rule_format,of "g 0"]
-    unfolding pathstart_def by(auto simp add: vector_less_eq_def) then guess z .. note z=this
+    unfolding pathstart_def by(auto simp add: vector_le_def) then guess z .. note z=this
   have "z \<in> {a..b}" using z(1) assms(3) unfolding path_image_def by blast 
   hence "z = g 0" unfolding Cart_eq forall_2 unfolding z(2) pathstart_def
     using assms(4)[unfolded path_image_def subset_eq mem_interval,rule_format,of "g 0" 2]
@@ -1693,7 +1693,7 @@ proof-
       path_image(linepath(vector[(pathfinish g)$1,a$2 - 1])(vector[b$1 + 1,a$2 - 1])) \<union>
       path_image(linepath(vector[b$1 + 1,a$2 - 1])(vector[b$1 + 1,b$2 + 3]))" using assms(1-2)
       by(auto simp add: pathstart_join pathfinish_join path_image_join path_image_linepath path_join path_linepath) 
-  have abab: "{a..b} \<subseteq> {?a..?b}" by(auto simp add:vector_less_eq_def forall_2 vector_2)
+  have abab: "{a..b} \<subseteq> {?a..?b}" by(auto simp add:vector_le_def forall_2 vector_2)
   guess z apply(rule fashoda[of ?P1 ?P2 ?a ?b])
     unfolding pathstart_join pathfinish_join pathstart_linepath pathfinish_linepath vector_2 proof-
     show "path ?P1" "path ?P2" using assms by(auto simp add: pathstart_join pathfinish_join path_join)

@@ -4619,17 +4619,17 @@ qed
 lemma interval: fixes a :: "'a::ord^'n::finite" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
   "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
-  by (auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
+  by (auto simp add: expand_set_eq vector_less_def vector_le_def)
 
 lemma mem_interval: fixes a :: "'a::ord^'n::finite" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
-  using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
+  using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_le_def)
 
 lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
  "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_less_eq_def dest_vec1_def forall_1)
+by(simp_all add: Cart_eq vector_less_def vector_le_def dest_vec1_def forall_1)
 
 lemma vec1_interval:fixes a::"real" shows
   "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
@@ -4690,7 +4690,7 @@ lemma subset_interval_imp: fixes a :: "real^'n::finite" shows
 
 lemma interval_sing: fixes a :: "'a::linorder^'n::finite" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
-apply(auto simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+apply(auto simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
@@ -4703,17 +4703,17 @@ proof(simp add: subset_eq, rule)
   { fix i
     have "a $ i \<le> x $ i"
       using x order_less_imp_le[of "a$i" "x$i"]
-      by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+      by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
   }
   moreover
   { fix i
     have "x $ i \<le> b $ i"
       using x order_less_imp_le[of "x$i" "b$i"]
-      by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+      by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
   }
   ultimately
   show "a \<le> x \<and> x \<le> b"
-    by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+    by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
 qed
 
 lemma subset_interval: fixes a :: "real^'n::finite" shows
@@ -5026,12 +5026,12 @@ lemma ex_1: "(\<exists>x::1. P x) \<longleftrightarrow> P 1"
 
 lemma interval_cases_1: fixes x :: "real^1" shows
  "x \<in> {a .. b} ==> x \<in> {a<..<b} \<or> (x = a) \<or> (x = b)"
-  by(simp add:  Cart_eq vector_less_def vector_less_eq_def all_1, auto)
+  by(simp add:  Cart_eq vector_less_def vector_le_def all_1, auto)
 
 lemma in_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b) \<and>
   (x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp add: Cart_eq vector_less_def vector_less_eq_def all_1 dest_vec1_def)
+by(simp add: Cart_eq vector_less_def vector_le_def all_1 dest_vec1_def)
 
 lemma interval_eq_empty_1: fixes a :: "real^1" shows
   "{a .. b} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a"
@@ -5067,10 +5067,10 @@ lemma disjoint_interval_1: fixes a :: "real^1" shows
 
 lemma open_closed_interval_1: fixes a :: "real^1" shows
  "{a<..<b} = {a .. b} - {a, b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
+  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
 
 lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
+  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
 
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
@@ -5742,30 +5742,30 @@ lemma image_affinity_interval: fixes m::real
             else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
 proof(cases "m=0")
   { fix x assume "x \<le> c" "c \<le> x"
-    hence "x=c" unfolding vector_less_eq_def and Cart_eq by (auto intro: order_antisym) }
+    hence "x=c" unfolding vector_le_def and Cart_eq by (auto intro: order_antisym) }
   moreover case True
-  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}" unfolding True by(auto simp add: vector_less_eq_def)
+  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}" unfolding True by(auto simp add: vector_le_def)
   ultimately show ?thesis by auto
 next
   case False
   { fix y assume "a \<le> y" "y \<le> b" "m > 0"
     hence "m *\<^sub>R a + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R b + c"
-      unfolding vector_less_eq_def by(auto simp add: vector_smult_component vector_add_component)
+      unfolding vector_le_def by(auto simp add: vector_smult_component vector_add_component)
   } moreover
   { fix y assume "a \<le> y" "y \<le> b" "m < 0"
     hence "m *\<^sub>R b + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R a + c"
-      unfolding vector_less_eq_def by(auto simp add: vector_smult_component vector_add_component mult_left_mono_neg elim!:ballE)
+      unfolding vector_le_def by(auto simp add: vector_smult_component vector_add_component mult_left_mono_neg elim!:ballE)
   } moreover
   { fix y assume "m > 0"  "m *\<^sub>R a + c \<le> y"  "y \<le> m *\<^sub>R b + c"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
-      unfolding image_iff Bex_def mem_interval vector_less_eq_def
+      unfolding image_iff Bex_def mem_interval vector_le_def
       apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: pos_le_divide_eq pos_divide_le_eq real_mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
-      unfolding image_iff Bex_def mem_interval vector_less_eq_def
+      unfolding image_iff Bex_def mem_interval vector_le_def
       apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: neg_le_divide_eq neg_divide_le_eq real_mult_commute diff_le_iff)
