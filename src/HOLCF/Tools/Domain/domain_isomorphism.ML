@@ -433,14 +433,16 @@ fun gen_domain_isomorphism
         val rep_iso_thm = make @{thm domain_rep_iso};
         val abs_iso_thm = make @{thm domain_abs_iso};
         val isodefl_thm = make @{thm isodefl_abs_rep};
-        val rep_iso_bind = Binding.suffix_name "_rep_iso" tbind;
-        val abs_iso_bind = Binding.suffix_name "_abs_iso" tbind;
-        val isodefl_bind = Binding.prefix_name "isodefl_abs_rep_" tbind;
-        val (_, thy) = thy |>
-          (PureThy.add_thms o map Thm.no_attributes)
-            [(rep_iso_bind, rep_iso_thm),
-             (abs_iso_bind, abs_iso_thm),
-             (isodefl_bind, isodefl_thm)];
+        val rep_iso_bind = Binding.name "rep_iso";
+        val abs_iso_bind = Binding.name "abs_iso";
+        val isodefl_bind = Binding.name "isodefl_abs_rep";
+        val (_, thy) = thy
+          |> Sign.add_path (Binding.name_of tbind)
+          |> (PureThy.add_thms o map Thm.no_attributes)
+              [(rep_iso_bind, rep_iso_thm),
+               (abs_iso_bind, abs_iso_thm),
+               (isodefl_bind, isodefl_thm)]
+          ||> Sign.parent_path;
       in
         (((rep_iso_thm, abs_iso_thm), isodefl_thm), thy)
       end;
