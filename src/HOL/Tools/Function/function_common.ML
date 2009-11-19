@@ -259,11 +259,17 @@ fun check_defs ctxt fixes eqs =
             (fname, length args)
           end
 
-      val _ = AList.group (op =) (map check eqs)
+      val grouped_args = AList.group (op =) (map check eqs)
+      val _ = grouped_args
         |> map (fn (fname, ars) =>
              length (distinct (op =) ars) = 1
              orelse error ("Function " ^ quote fname ^
                            " has different numbers of arguments in different equations"))
+
+      val not_defined = subtract (op =) (map fst grouped_args) fnames
+      val _ = null not_defined
+        orelse error ("No defining equations for function" ^
+          plural " " "s " not_defined ^ commas_quote not_defined)
 
       fun check_sorts ((fname, fT), _) =
           Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)
