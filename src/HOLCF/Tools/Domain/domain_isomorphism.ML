@@ -10,6 +10,10 @@ sig
      (string list * binding * mixfix * typ) list -> theory -> theory
   val domain_isomorphism_cmd:
      (string list * binding * mixfix * string) list -> theory -> theory
+  val add_defl_const: (string * term) -> theory -> theory
+  val get_defl_consts: theory -> (string * term) list
+  val add_map_const: (string * string) -> theory -> theory
+  val get_map_consts: theory -> (string * string) list
 end;
 
 structure Domain_Isomorphism :> DOMAIN_ISOMORPHISM =
@@ -198,17 +202,19 @@ fun add_fixdefs
 
 
 (******************************************************************************)
+(****************** deflation combinators and map functions *******************)
+(******************************************************************************)
 
-(* FIXME: use theory data for this *)
-val defl_tab : term Symtab.table =
-    Symtab.make [(@{type_name "->"}, @{term "cfun_defl"}),
-                 (@{type_name "++"}, @{term "ssum_defl"}),
-                 (@{type_name "**"}, @{term "sprod_defl"}),
-                 (@{type_name "*"}, @{term "cprod_defl"}),
-                 (@{type_name "u"}, @{term "u_defl"}),
-                 (@{type_name "upper_pd"}, @{term "upper_defl"}),
-                 (@{type_name "lower_pd"}, @{term "lower_defl"}),
-                 (@{type_name "convex_pd"}, @{term "convex_defl"})];
+structure DeflData = Theory_Data
+(
+  type T = term Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge data = Symtab.merge (K true) data;
+);
+
+fun add_defl_const data = DeflData.map (Symtab.insert (K true) data);
+fun get_defl_consts thy = Symtab.dest (DeflData.get thy);
 
 fun defl_of_typ
     (tab : term Symtab.table)
@@ -226,16 +232,16 @@ fun defl_of_typ
                   else error ("defl_of_typ: type variable under unsupported type constructor " ^ c);
   in defl_of T end;
 
-(* FIXME: use theory data for this *)
-val map_tab : string Symtab.table =
-    Symtab.make [(@{type_name "->"}, @{const_name "cfun_map"}),
-                 (@{type_name "++"}, @{const_name "ssum_map"}),
-                 (@{type_name "**"}, @{const_name "sprod_map"}),
-                 (@{type_name "*"}, @{const_name "cprod_map"}),
-                 (@{type_name "u"}, @{const_name "u_map"}),
-                 (@{type_name "upper_pd"}, @{const_name "upper_map"}),
-                 (@{type_name "lower_pd"}, @{const_name "lower_map"}),
-                 (@{type_name "convex_pd"}, @{const_name "convex_map"})];
+structure MapData = Theory_Data
+(
+  type T = string Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge data = Symtab.merge (K true) data;
+);
+
+fun add_map_const data = MapData.map (Symtab.insert (K true) data);
+fun get_map_consts thy = Symtab.dest (MapData.get thy);
 
 fun map_of_typ
     (tab : string Symtab.table)
@@ -328,10 +334,11 @@ fun gen_domain_isomorphism
     val (defl_consts, thy) = fold_map declare_defl_const doms thy;
 
     (* defining equations for type combinators *)
-    val defl_tab1 = defl_tab; (* FIXME: use theory data *)
+    val defl_tab1 = DeflData.get thy;
     val defl_tab2 =
       Symtab.make (map (fst o dest_Type o fst) dom_eqns ~~ defl_consts);
     val defl_tab' = Symtab.merge (K true) (defl_tab1, defl_tab2);
+    val thy = DeflData.put defl_tab' thy;
     fun mk_defl_spec (lhsT, rhsT) =
       mk_eqs (defl_of_typ defl_tab' lhsT,
               defl_of_typ defl_tab' rhsT);
@@ -436,11 +443,12 @@ fun gen_domain_isomorphism
       fold_map declare_map_const (dom_binds ~~ dom_eqns);
 
     (* defining equations for map functions *)
-    val map_tab1 = map_tab; (* FIXME: use theory data *)
+    val map_tab1 = MapData.get thy;
     val map_tab2 =
       Symtab.make (map (fst o dest_Type o fst) dom_eqns
                    ~~ map (fst o dest_Const) map_consts);
     val map_tab' = Symtab.merge (K true) (map_tab1, map_tab2);
+    val thy = MapData.put map_tab' thy;
     fun mk_map_spec ((rep_const, abs_const), (lhsT, rhsT)) =
       let
         val lhs = map_of_typ map_tab' lhsT;
