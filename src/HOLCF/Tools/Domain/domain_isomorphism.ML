@@ -304,7 +304,7 @@ fun gen_domain_isomorphism
         | dups => error ("Duplicate parameter(s) for domain " ^ quote (Binding.str_of tname) ^
             " : " ^ commas dups))
       end) doms;
-    val dom_names = map fst new_doms;
+    val dom_binds = map (fn (_, tbind, _, _) => tbind) doms;
 
     (* declare type combinator constants *)
     fun declare_typ_const (vs, tbind, mx, rhs) thy =
@@ -328,7 +328,7 @@ fun gen_domain_isomorphism
     val defl_specs = map mk_defl_spec dom_eqns;
 
     (* register recursive definition of type combinators *)
-    val typ_binds = map (Binding.suffix_name "_typ" o #2) doms;
+    val typ_binds = map (Binding.suffix_name "_typ") dom_binds;
     val (typ_unfold_thms, thy) = add_fixdefs (typ_binds ~~ defl_specs) thy;
 
     (* define types using deflation combinators *)
@@ -342,8 +342,7 @@ fun gen_domain_isomorphism
       in
         (REP, thy)
       end;
-    val (REP_thms, thy) =
-      fold_map make_repdef (doms ~~ typ_consts) thy;
+    val (REP_thms, thy) = fold_map make_repdef (doms ~~ typ_consts) thy;
 
     (* FIXME: use theory data for this *)
     val REP_simps = REP_thms @
@@ -351,7 +350,7 @@ fun gen_domain_isomorphism
              REP_upper REP_lower REP_convex};
 
     (* prove REP equations *)
-    fun mk_REP_eqn_thm (lhsT, rhsT) =
+    fun mk_REP_eq_thm (lhsT, rhsT) =
       let
         val goal = mk_eqs (mk_Rep_of lhsT, mk_Rep_of rhsT);
         val tac =
@@ -360,13 +359,19 @@ fun gen_domain_isomorphism
       in
         Goal.prove_global thy [] [] goal (K tac)
       end;
-    val REP_eqn_thms = map mk_REP_eqn_thm dom_eqns;
+    val REP_eq_thms = map mk_REP_eq_thm dom_eqns;
+
+    (* register REP equations *)
+    val REP_eq_binds = map (Binding.prefix_name "REP_eq_") dom_binds;
+    val (_, thy) = thy |>
+      (PureThy.add_thms o map Thm.no_attributes)
+        (REP_eq_binds ~~ REP_eq_thms);
 
     (* define rep/abs functions *)
-    fun mk_rep_abs ((_, tbind, _, _), (lhsT, rhsT)) thy =
+    fun mk_rep_abs (tbind, (lhsT, rhsT)) thy =
       let
         val rep_type = cfunT (lhsT, rhsT);
-        val abs_type = cfunT (lhsT, rhsT);
+        val abs_type = cfunT (rhsT, lhsT);
         val rep_bind = Binding.suffix_name "_rep" tbind;
         val abs_bind = Binding.suffix_name "_abs" tbind;
         val (rep_const, thy) = thy |>
@@ -383,7 +388,29 @@ fun gen_domain_isomorphism
         ((rep_def, abs_def), thy)
       end;
     val (rep_abs_defs, thy) = thy |>
-      fold_map mk_rep_abs (doms ~~ dom_eqns);
+      fold_map mk_rep_abs (dom_binds ~~ dom_eqns);
+
+    (* prove isomorphism and isodefl rules *)
+    fun mk_iso_thms ((tbind, REP_eq), (rep_def, abs_def)) thy =
+      let
+        fun make thm = Drule.standard (thm OF [REP_eq, abs_def, rep_def]);
+        val rep_iso_thm = make @{thm domain_rep_iso};
+        val abs_iso_thm = make @{thm domain_abs_iso};
+        val isodefl_thm = make @{thm isodefl_abs_rep};
+        val rep_iso_bind = Binding.suffix_name "_rep_iso" tbind;
+        val abs_iso_bind = Binding.suffix_name "_abs_iso" tbind;
+        val isodefl_bind = Binding.prefix_name "isodefl_abs_rep_" tbind;
+        val (_, thy) = thy |>
+          (PureThy.add_thms o map Thm.no_attributes)
+            [(rep_iso_bind, rep_iso_thm),
+             (abs_iso_bind, abs_iso_thm),
+             (isodefl_bind, isodefl_thm)];
+      in
+        (((rep_iso_thm, abs_iso_thm), isodefl_thm), thy)
+      end;
+    val ((iso_thms, isodefl_abs_rep_thms), thy) = thy
+      |> fold_map mk_iso_thms (dom_binds ~~ REP_eq_thms ~~ rep_abs_defs)
+      |>> ListPair.unzip;
 
   in
     thy
