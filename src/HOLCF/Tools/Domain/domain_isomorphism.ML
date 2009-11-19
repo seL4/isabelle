@@ -101,6 +101,8 @@ fun mk_fix t =
 fun mk_Rep_of T =
   Const (@{const_name Rep_of}, Term.itselfT T --> deflT) $ Logic.mk_type T;
 
+fun coerce_const T = Const (@{const_name coerce}, T);
+
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
@@ -359,6 +361,29 @@ fun gen_domain_isomorphism
         Goal.prove_global thy [] [] goal (K tac)
       end;
     val REP_eqn_thms = map mk_REP_eqn_thm dom_eqns;
+
+    (* define rep/abs functions *)
+    fun mk_rep_abs ((_, tbind, _, _), (lhsT, rhsT)) thy =
+      let
+        val rep_type = cfunT (lhsT, rhsT);
+        val abs_type = cfunT (lhsT, rhsT);
+        val rep_bind = Binding.suffix_name "_rep" tbind;
+        val abs_bind = Binding.suffix_name "_abs" tbind;
+        val (rep_const, thy) = thy |>
+          Sign.declare_const ((rep_bind, rep_type), NoSyn);
+        val (abs_const, thy) = thy |>
+          Sign.declare_const ((abs_bind, abs_type), NoSyn);
+        val rep_eqn = Logic.mk_equals (rep_const, coerce_const rep_type);
+        val abs_eqn = Logic.mk_equals (abs_const, coerce_const abs_type);
+        val ([rep_def, abs_def], thy) = thy |>
+          (PureThy.add_defs false o map Thm.no_attributes)
+            [(Binding.suffix_name "_rep_def" tbind, rep_eqn),
+             (Binding.suffix_name "_abs_def" tbind, abs_eqn)];
+      in
+        ((rep_def, abs_def), thy)
+      end;
+    val (rep_abs_defs, thy) = thy |>
+      fold_map mk_rep_abs (doms ~~ dom_eqns);
 
   in
     thy
