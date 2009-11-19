@@ -7,13 +7,11 @@ Defines new types satisfying the given domain equations.
 signature DOMAIN_ISOMORPHISM =
 sig
   val domain_isomorphism:
-     (string list * binding * mixfix * typ) list -> theory -> theory
+    (string list * binding * mixfix * typ) list -> theory -> theory
   val domain_isomorphism_cmd:
-     (string list * binding * mixfix * string) list -> theory -> theory
-  val add_defl_const: (string * term) -> theory -> theory
-  val get_defl_consts: theory -> (string * term) list
-  val add_map_const: (string * string) -> theory -> theory
-  val get_map_consts: theory -> (string * string) list
+    (string list * binding * mixfix * string) list -> theory -> theory
+  val add_type_constructor:
+    (string * term * string * thm  * thm) -> theory -> theory
 end;
 
 structure Domain_Isomorphism :> DOMAIN_ISOMORPHISM =
@@ -26,6 +24,50 @@ val beta_ss =
     addsimprocs [@{simproc cont_proc}];
 
 val beta_tac = simp_tac beta_ss;
+
+(******************************************************************************)
+(******************************** theory data *********************************)
+(******************************************************************************)
+
+structure DeflData = Theory_Data
+(
+  type T = term Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge data = Symtab.merge (K true) data;
+);
+
+structure MapData = Theory_Data
+(
+  type T = string Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge data = Symtab.merge (K true) data;
+);
+
+structure RepData = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  val merge = Thm.merge_thms;
+);
+
+structure IsodeflData = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  val merge = Thm.merge_thms;
+);
+
+fun add_type_constructor
+  (tname, defl_const, map_name, REP_thm, isodefl_thm) =
+    DeflData.map (Symtab.insert (K true) (tname, defl_const))
+    #> MapData.map (Symtab.insert (K true) (tname, map_name))
+    #> RepData.map (Thm.add_thm REP_thm)
+    #> IsodeflData.map (Thm.add_thm isodefl_thm);
+
 
 (******************************************************************************)
 (******************************* building types *******************************)
@@ -205,17 +247,6 @@ fun add_fixdefs
 (****************** deflation combinators and map functions *******************)
 (******************************************************************************)
 
-structure DeflData = Theory_Data
-(
-  type T = term Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data = Symtab.merge (K true) data;
-);
-
-fun add_defl_const data = DeflData.map (Symtab.insert (K true) data);
-fun get_defl_consts thy = Symtab.dest (DeflData.get thy);
-
 fun defl_of_typ
     (tab : term Symtab.table)
     (T : typ) : term =
@@ -231,17 +262,6 @@ fun defl_of_typ
                   then mk_Rep_of T
                   else error ("defl_of_typ: type variable under unsupported type constructor " ^ c);
   in defl_of T end;
-
-structure MapData = Theory_Data
-(
-  type T = string Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data = Symtab.merge (K true) data;
-);
-
-fun add_map_const data = MapData.map (Symtab.insert (K true) data);
-fun get_map_consts thy = Symtab.dest (MapData.get thy);
 
 fun map_of_typ
     (tab : string Symtab.table)
@@ -361,16 +381,13 @@ fun gen_domain_isomorphism
         (REP, thy)
       end;
     val (REP_thms, thy) = fold_map make_repdef (doms ~~ defl_consts) thy;
-
-    (* FIXME: use theory data for this *)
-    val REP_simps = REP_thms @
-      @{thms REP_cfun REP_ssum REP_sprod REP_cprod REP_up
-             REP_upper REP_lower REP_convex};
+    val thy = RepData.map (fold Thm.add_thm REP_thms) thy;
 
     (* prove REP equations *)
     fun mk_REP_eq_thm (lhsT, rhsT) =
       let
         val goal = mk_eqs (mk_Rep_of lhsT, mk_Rep_of rhsT);
+        val REP_simps = RepData.get thy;
         val tac =
           simp_tac (HOL_basic_ss addsimps REP_simps) 1
           THEN resolve_tac defl_unfold_thms 1;
@@ -483,13 +500,14 @@ fun gen_domain_isomorphism
           @{thms adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id};
         val bottom_rules =
           @{thms fst_strict snd_strict isodefl_bottom simp_thms};
-        (* FIXME: use theory data for this *)
         val isodefl_rules =
-          @{thms conjI isodefl_ID_REP} @ isodefl_abs_rep_thms @
-          @{thms isodefl_cfun isodefl_ssum isodefl_sprod isodefl_cprod
-                 isodefl_u isodefl_upper isodefl_lower isodefl_convex};
+          @{thms conjI isodefl_ID_REP}
+          @ isodefl_abs_rep_thms
+          @ IsodeflData.get thy;
         fun tacf {prems, ...} = EVERY
           [simp_tac (HOL_basic_ss addsimps start_thms) 1,
+           (* FIXME: how reliable is unification here? *)
+           (* Maybe I should instantiate the rule. *)
            rtac @{thm parallel_fix_ind} 1,
            REPEAT (resolve_tac adm_rules 1),
            simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
@@ -510,6 +528,7 @@ fun gen_domain_isomorphism
     val (isodefl_thms, thy) = thy |>
       (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
         (conjuncts isodefl_binds isodefl_thm);
+    val thy = IsodeflData.map (fold Thm.add_thm isodefl_thms) thy;
   in
     thy
   end;
