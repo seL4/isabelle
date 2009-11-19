@@ -529,6 +529,29 @@ fun gen_domain_isomorphism
       (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
         (conjuncts isodefl_binds isodefl_thm);
     val thy = IsodeflData.map (fold Thm.add_thm isodefl_thms) thy;
+
+    (* prove map_ID theorems *)
+    fun prove_map_ID_thm
+        (((map_const, (lhsT, _)), REP_thm), isodefl_thm) =
+      let
+        val Ts = snd (dest_Type lhsT);
+        val lhs = Library.foldl mk_capply (map_const, map ID_const Ts);
+        val goal = mk_eqs (lhs, ID_const lhsT);
+        val tac = EVERY
+          [rtac @{thm isodefl_REP_imp_ID} 1,
+           stac REP_thm 1,
+           rtac isodefl_thm 1,
+           REPEAT (rtac @{thm isodefl_ID_REP} 1)];
+      in
+        Goal.prove_global thy [] [] goal (K tac)
+      end;
+    val map_ID_binds = map (Binding.suffix_name "_map_ID") dom_binds;
+    val map_ID_thms =
+      map prove_map_ID_thm
+        (map_consts ~~ dom_eqns ~~ REP_thms ~~ isodefl_thms);
+    val (_, thy) = thy |>
+      (PureThy.add_thms o map Thm.no_attributes)
+        (map_ID_binds ~~ map_ID_thms);
   in
     thy
   end;
