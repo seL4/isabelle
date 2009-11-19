@@ -2226,12 +2226,12 @@ fun add_code_equations thy nparams preds result_thmss =
             val args = map2 (curry Free) arg_names Ts
             val predfun = Const (predfun_name_of thy predname full_mode,
               Ts ---> PredicateCompFuns.mk_predT @{typ unit})
-            val rhs = PredicateCompFuns.mk_Eval (list_comb (predfun, args), @{term "Unity"})
+            val rhs = @{term Predicate.holds} $ (list_comb (predfun, args))
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
             val def = predfun_definition_of thy predname full_mode
             val tac = fn _ => Simplifier.simp_tac
-              (HOL_basic_ss addsimps [def, @{thm eval_pred}]) 1
+              (HOL_basic_ss addsimps [def, @{thm holds_eq}, @{thm eval_pred}]) 1
             val eq = Goal.prove (ProofContext.init thy) arg_names [] eq_term tac
           in
             (pred, result_thms @ [eq])
