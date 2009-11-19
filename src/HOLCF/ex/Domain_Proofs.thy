@@ -31,10 +31,10 @@ definition
   foo_bar_baz_typF ::
     "TypeRep \<rightarrow> TypeRep \<times> TypeRep \<times> TypeRep \<rightarrow> TypeRep \<times> TypeRep \<times> TypeRep"
 where
-  "foo_bar_baz_typF = (\<Lambda> a (t1, t2, t3). 
+  "foo_bar_baz_typF = (\<Lambda> a. Abs_CFun (\<lambda>(t1, t2, t3). 
     ( ssum_typ\<cdot>REP(one)\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>t2))
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>t3)
-    , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(convex_typ\<cdot>t1))))"
+    , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(convex_typ\<cdot>t1)))))"
 
 lemma foo_bar_baz_typF_beta:
   "foo_bar_baz_typF\<cdot>a\<cdot>t =
@@ -42,7 +42,7 @@ lemma foo_bar_baz_typF_beta:
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(snd (snd t)))
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(convex_typ\<cdot>(fst t))))"
 unfolding foo_bar_baz_typF_def
-by (simp add: csplit_def cfst_def csnd_def)
+by (simp add: split_def)
 
 text {* Individual type combinators are projected from the fixed point. *}
 
@@ -268,11 +268,16 @@ variables are used in positive and negative positions. *}
 
 definition
   foo_bar_baz_mapF ::
+  "(_ \<rightarrow> _)
+     \<rightarrow> (_ foo \<rightarrow> _ foo) \<times> (_ bar \<rightarrow> _ bar) \<times> (_ baz \<rightarrow> _ baz)
+     \<rightarrow> (_ foo \<rightarrow> _ foo) \<times> (_ bar \<rightarrow> _ bar) \<times> (_ baz \<rightarrow> _ baz)"
+(*
   "('a \<rightarrow> 'b)
      \<rightarrow> ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('a baz \<rightarrow> 'b baz)
      \<rightarrow> ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('a baz \<rightarrow> 'b baz)"
+*)
 where
-  "foo_bar_baz_mapF = (\<Lambda> f (d1, d2, d3).
+  "foo_bar_baz_mapF = (\<Lambda> f. Abs_CFun (\<lambda>(d1, d2, d3).
     (
       foo_abs oo
         ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>d2))
@@ -281,7 +286,7 @@ where
       bar_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>d3) oo bar_rep
     ,
       baz_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>(convex_map\<cdot>d1)) oo baz_rep
-    ))"
+    )))"
 
 lemma foo_bar_baz_mapF_beta:
   "foo_bar_baz_mapF\<cdot>f\<cdot>d =
@@ -295,7 +300,7 @@ lemma foo_bar_baz_mapF_beta:
       baz_abs oo sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>(convex_map\<cdot>(fst d))) oo baz_rep
     )"
 unfolding foo_bar_baz_mapF_def
-by (simp add: csplit_def cfst_def csnd_def)
+by (simp add: split_def)
 
 text {* Individual map functions are projected from the fixed point. *}
 
@@ -368,23 +373,64 @@ done
 
 subsection {* Step 5: Define copy functions, prove reach lemmas *}
 
-definition "foo_bar_baz_copy = foo_bar_baz_mapF\<cdot>ID"
-definition "foo_copy = (\<Lambda> f. fst (foo_bar_baz_copy\<cdot>f))"
-definition "bar_copy = (\<Lambda> f. fst (snd (foo_bar_baz_copy\<cdot>f)))"
-definition "baz_copy = (\<Lambda> f. snd (snd (foo_bar_baz_copy\<cdot>f)))"
+text {* Define copy functions just like the old domain package does. *}
+
+definition
+  foo_copy ::
+    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
+       'a foo \<rightarrow> 'a foo"
+where
+  "foo_copy = Abs_CFun (\<lambda>(d1, d2, d3). foo_abs oo
+        ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>d2))
+          oo foo_rep)"
+
+definition
+  bar_copy ::
+    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
+       'a bar \<rightarrow> 'a bar"
+where
+  "bar_copy = Abs_CFun (\<lambda>(d1, d2, d3). bar_abs oo
+        sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>d3) oo bar_rep)"
+
+definition
+  baz_copy ::
+    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
+       'a baz \<rightarrow> 'a baz"
+where
+  "baz_copy = Abs_CFun (\<lambda>(d1, d2, d3). baz_abs oo
+        sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(convex_map\<cdot>d1)) oo baz_rep)"
+
+definition
+  foo_bar_baz_copy ::
+    "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
+     ('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz)"
+where
+  "foo_bar_baz_copy = (\<Lambda> f. (foo_copy\<cdot>f, bar_copy\<cdot>f, baz_copy\<cdot>f))"
 
 lemma fix_foo_bar_baz_copy:
   "fix\<cdot>foo_bar_baz_copy = (foo_map\<cdot>ID, bar_map\<cdot>ID, baz_map\<cdot>ID)"
-unfolding foo_bar_baz_copy_def foo_map_def bar_map_def baz_map_def
-by simp
+unfolding foo_map_def bar_map_def baz_map_def
+apply (subst beta_cfun, simp)+
+apply (subst pair_collapse)+
+apply (rule cfun_arg_cong)
+unfolding foo_bar_baz_copy_def
+unfolding foo_copy_def bar_copy_def baz_copy_def
+unfolding foo_bar_baz_mapF_def
+unfolding split_def
+apply (subst beta_cfun, simp)+
+apply (rule refl)
+done
 
 lemma foo_reach: "fst (fix\<cdot>foo_bar_baz_copy)\<cdot>x = x"
-unfolding fix_foo_bar_baz_copy by (simp add: foo_map_ID)
+unfolding fix_foo_bar_baz_copy fst_conv snd_conv
+unfolding foo_map_ID by (rule ID1)
 
 lemma bar_reach: "fst (snd (fix\<cdot>foo_bar_baz_copy))\<cdot>x = x"
-unfolding fix_foo_bar_baz_copy by (simp add: bar_map_ID)
+unfolding fix_foo_bar_baz_copy fst_conv snd_conv
+unfolding bar_map_ID by (rule ID1)
 
 lemma baz_reach: "snd (snd (fix\<cdot>foo_bar_baz_copy))\<cdot>x = x"
-unfolding fix_foo_bar_baz_copy by (simp add: baz_map_ID)
+unfolding fix_foo_bar_baz_copy fst_conv snd_conv
+unfolding baz_map_ID by (rule ID1)
 
 end
