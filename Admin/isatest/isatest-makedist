@@ -104,15 +104,15 @@ $SSH macbroy21 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
 sleep 15
 $SSH macbroy23 "$MAKEALL -l HOL images $HOME/settings/at-sml-dev-e"
 sleep 15
-$SSH atbroy99 "$MAKEALL $HOME/settings/at64-poly"
+$SSH macbroy24 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
 $SSH macbroy2 "$MAKEALL $HOME/settings/mac-poly64-M4; $MAKEALL $HOME/settings/mac-poly64-M8; $MAKEALL $HOME/settings/mac-poly-M4; $MAKEALL $HOME/settings/mac-poly-M8"
 sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
 $SSH macbroy6 "sleep 10800; $MAKEALL $HOME/settings/at-mac-poly-5.1-para"
-sleep 15
-$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
+#sleep 15
+#$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
