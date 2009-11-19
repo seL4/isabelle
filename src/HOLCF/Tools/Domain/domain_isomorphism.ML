@@ -121,6 +121,9 @@ fun mk_Rep_of T =
 
 fun coerce_const T = Const (@{const_name coerce}, T);
 
+fun isodefl_const T =
+  Const (@{const_name isodefl}, (T ->> T) --> deflT --> HOLogic.boolT);
+
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
@@ -132,7 +135,7 @@ fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u));
 
 fun add_fixdefs
     (spec : (binding * term) list)
-    (thy : theory) : thm list * theory =
+    (thy : theory) : (thm list * thm list) * theory =
   let
     val binds = map fst spec;
     val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
@@ -190,7 +193,7 @@ fun add_fixdefs
       (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
         (mk_unfold_thms unfold_binds tuple_unfold_thm) thy;
   in
-    (unfold_thms, thy)
+    ((proj_thms, unfold_thms), thy)
   end;
 
 
@@ -336,7 +339,8 @@ fun gen_domain_isomorphism
 
     (* register recursive definition of deflation combinators *)
     val defl_binds = map (Binding.suffix_name "_defl") dom_binds;
-    val (defl_unfold_thms, thy) = add_fixdefs (defl_binds ~~ defl_specs) thy;
+    val ((defl_apply_thms, defl_unfold_thms), thy) =
+      add_fixdefs (defl_binds ~~ defl_specs) thy;
 
     (* define types using deflation combinators *)
     fun make_repdef ((vs, tbind, mx, _), defl_const) thy =
@@ -447,7 +451,47 @@ fun gen_domain_isomorphism
 
     (* register recursive definition of map functions *)
     val map_binds = map (Binding.suffix_name "_map") dom_binds;
-    val (map_unfold_thms, thy) = add_fixdefs (map_binds ~~ map_specs) thy;
+    val ((map_apply_thms, map_unfold_thms), thy) =
+      add_fixdefs (map_binds ~~ map_specs) thy;
+
+    (* prove isodefl rules for map functions *)
+    val isodefl_thm =
+      let
+        fun unprime a = Library.unprefix "'" a;
+        fun mk_d (TFree (a, _)) = Free ("d" ^ unprime a, deflT);
+        fun mk_f (T as TFree (a, _)) = Free ("f" ^ unprime a, T ->> T);
+        fun mk_assm T = mk_trp (isodefl_const T $ mk_f T $ mk_d T);
+        fun mk_goal ((map_const, defl_const), (T as Type (c, Ts), rhsT)) =
+          let
+            val map_term = Library.foldl mk_capply (map_const, map mk_f Ts);
+            val defl_term = Library.foldl mk_capply (defl_const, map mk_d Ts);
+          in isodefl_const T $ map_term $ defl_term end;
+        val assms = (map mk_assm o snd o dest_Type o fst o hd) dom_eqns;
+        val goals = map mk_goal (map_consts ~~ defl_consts ~~ dom_eqns);
+        val goal = mk_trp (foldr1 HOLogic.mk_conj goals);
+        val start_thms =
+          @{thm split_def} :: defl_apply_thms @ map_apply_thms;
+        val adm_rules =
+          @{thms adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id};
+        val bottom_rules =
+          @{thms fst_strict snd_strict isodefl_bottom simp_thms};
+        (* FIXME: use theory data for this *)
+        val isodefl_rules =
+          @{thms conjI isodefl_ID_REP} @ isodefl_abs_rep_thms @
+          @{thms isodefl_cfun isodefl_ssum isodefl_sprod isodefl_cprod
+                 isodefl_u isodefl_upper isodefl_lower isodefl_convex};
+        fun tacf {prems, ...} = EVERY
+          [simp_tac (HOL_basic_ss addsimps start_thms) 1,
+           rtac @{thm parallel_fix_ind} 1,
+           REPEAT (resolve_tac adm_rules 1),
+           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
+           simp_tac beta_ss 1,
+           simp_tac (HOL_basic_ss addsimps @{thms fst_conv snd_conv}) 1,
+           REPEAT (etac @{thm conjE} 1),
+           REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)];
+      in
+        Goal.prove_global thy [] assms goal tacf
+      end;
   in
     thy
   end;
