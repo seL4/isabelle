@@ -159,6 +159,25 @@ lemma ep_pair_coerce:
  apply simp
 done
 
+text {* Isomorphism lemmas used internally by the domain package: *}
+
+lemma domain_abs_iso:
+  fixes abs and rep
+  assumes REP: "REP('b) = REP('a)"
+  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
+  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  shows "rep\<cdot>(abs\<cdot>x) = x"
+unfolding abs_def rep_def by (simp add: REP)
+
+lemma domain_rep_iso:
+  fixes abs and rep
+  assumes REP: "REP('b) = REP('a)"
+  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
+  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  shows "abs\<cdot>(rep\<cdot>x) = x"
+unfolding abs_def rep_def by (simp add: REP [symmetric])
+
+
 subsection {* Proving a subtype is representable *}
 
 text {*
@@ -671,8 +690,6 @@ where
           Abs_fin_defl (udom_emb oo
             f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo udom_prj))))"
 
-definition "one_typ = REP(one)"
-definition "tr_typ = REP(tr)"
 definition "cfun_typ = TypeRep_fun2 cfun_map"
 definition "ssum_typ = TypeRep_fun2 ssum_map"
 definition "sprod_typ = TypeRep_fun2 sprod_map"
@@ -787,12 +804,6 @@ done
 
 text {* REP of type constructor = type combinator *}
 
-lemma REP_one: "REP(one) = one_typ"
-by (simp only: one_typ_def)
-
-lemma REP_tr: "REP(tr) = tr_typ"
-by (simp only: tr_typ_def)
-
 lemma REP_cfun: "REP('a \<rightarrow> 'b) = cfun_typ\<cdot>REP('a)\<cdot>REP('b)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
 apply (simp add: cast_REP cast_cfun_typ)
@@ -859,8 +870,6 @@ apply (simp add: convex_map_map cfcomp1)
 done
 
 lemmas REP_simps =
-  REP_one
-  REP_tr
   REP_cfun
   REP_ssum
   REP_sprod
@@ -944,6 +953,14 @@ apply (simp add: expand_cfun_eq)
 apply (simp add: emb_coerce coerce_prj REP)
 done
 
+lemma isodefl_abs_rep:
+  fixes abs and rep and d
+  assumes REP: "REP('b) = REP('a)"
+  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
+  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  shows "isodefl d t \<Longrightarrow> isodefl (abs oo d oo rep) t"
+unfolding abs_def rep_def using REP by (rule isodefl_coerce)
+
 lemma isodefl_cfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
     isodefl (cfun_map\<cdot>d1\<cdot>d2) (cfun_typ\<cdot>t1\<cdot>t2)"
@@ -978,12 +995,6 @@ apply (simp add: cast_u_typ cast_isodefl)
 apply (simp add: emb_u_def prj_u_def)
 apply (simp add: u_map_map)
 done
-
-lemma isodefl_one: "isodefl (ID :: one \<rightarrow> one) one_typ"
-unfolding one_typ_def by (rule isodefl_ID_REP)
-
-lemma isodefl_tr: "isodefl (ID :: tr \<rightarrow> tr) tr_typ"
-unfolding tr_typ_def by (rule isodefl_ID_REP)
 
 lemma isodefl_upper:
   "isodefl d t \<Longrightarrow> isodefl (upper_map\<cdot>d) (upper_typ\<cdot>t)"

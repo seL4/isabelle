@@ -32,13 +32,13 @@ definition
     "TypeRep \<rightarrow> TypeRep \<times> TypeRep \<times> TypeRep \<rightarrow> TypeRep \<times> TypeRep \<times> TypeRep"
 where
   "foo_bar_baz_typF = (\<Lambda> a (t1, t2, t3). 
-    ( ssum_typ\<cdot>one_typ\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>t2))
+    ( ssum_typ\<cdot>REP(one)\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>t2))
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>t3)
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(convex_typ\<cdot>t1))))"
 
 lemma foo_bar_baz_typF_beta:
   "foo_bar_baz_typF\<cdot>a\<cdot>t =
-    ( ssum_typ\<cdot>one_typ\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(fst (snd t))))
+    ( ssum_typ\<cdot>REP(one)\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(fst (snd t))))
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(snd (snd t)))
     , sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(convex_typ\<cdot>(fst t))))"
 unfolding foo_bar_baz_typF_def
@@ -58,7 +58,7 @@ where "baz_typ = (\<Lambda> a. snd (snd (fix\<cdot>(foo_bar_baz_typF\<cdot>a))))
 text {* Unfold rules for each combinator. *}
 
 lemma foo_typ_unfold:
-  "foo_typ\<cdot>a = ssum_typ\<cdot>one_typ\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(bar_typ\<cdot>a)))"
+  "foo_typ\<cdot>a = ssum_typ\<cdot>REP(one)\<cdot>(sprod_typ\<cdot>(u_typ\<cdot>a)\<cdot>(u_typ\<cdot>(bar_typ\<cdot>a)))"
 unfolding foo_typ_def bar_typ_def baz_typ_def
 by (subst fix_eq, simp add: foo_bar_baz_typF_beta)
 
@@ -206,41 +206,56 @@ subsection {* Step 3: Define rep and abs functions *}
 text {* Define them all using @{text coerce}! *}
 
 definition foo_rep :: "'a foo \<rightarrow> one \<oplus> ('a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>)"
-where "foo_rep = coerce"
+where "foo_rep \<equiv> coerce"
 
 definition foo_abs :: "one \<oplus> ('a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>) \<rightarrow> 'a foo"
-where "foo_abs = coerce"
+where "foo_abs \<equiv> coerce"
 
 definition bar_rep :: "'a bar \<rightarrow> 'a\<^sub>\<bottom> \<otimes> ('a baz)\<^sub>\<bottom>"
-where "bar_rep = coerce"
+where "bar_rep \<equiv> coerce"
 
 definition bar_abs :: "'a\<^sub>\<bottom> \<otimes> ('a baz)\<^sub>\<bottom> \<rightarrow> 'a bar"
-where "bar_abs = coerce"
+where "bar_abs \<equiv> coerce"
 
 definition baz_rep :: "'a baz \<rightarrow> 'a\<^sub>\<bottom> \<otimes> ('a foo convex_pd)\<^sub>\<bottom>"
-where "baz_rep = coerce"
+where "baz_rep \<equiv> coerce"
 
 definition baz_abs :: "'a\<^sub>\<bottom> \<otimes> ('a foo convex_pd)\<^sub>\<bottom> \<rightarrow> 'a baz"
-where "baz_abs = coerce"
+where "baz_abs \<equiv> coerce"
+
+text {* Prove isomorphism rules. *}
+
+lemma foo_abs_iso: "foo_rep\<cdot>(foo_abs\<cdot>x) = x"
+by (rule domain_abs_iso [OF REP_foo' foo_abs_def foo_rep_def])
+
+lemma foo_rep_iso: "foo_abs\<cdot>(foo_rep\<cdot>x) = x"
+by (rule domain_rep_iso [OF REP_foo' foo_abs_def foo_rep_def])
+
+lemma bar_abs_iso: "bar_rep\<cdot>(bar_abs\<cdot>x) = x"
+by (rule domain_abs_iso [OF REP_bar' bar_abs_def bar_rep_def])
+
+lemma bar_rep_iso: "bar_abs\<cdot>(bar_rep\<cdot>x) = x"
+by (rule domain_rep_iso [OF REP_bar' bar_abs_def bar_rep_def])
+
+lemma baz_abs_iso: "baz_rep\<cdot>(baz_abs\<cdot>x) = x"
+by (rule domain_abs_iso [OF REP_baz' baz_abs_def baz_rep_def])
+
+lemma baz_rep_iso: "baz_abs\<cdot>(baz_rep\<cdot>x) = x"
+by (rule domain_rep_iso [OF REP_baz' baz_abs_def baz_rep_def])
 
 text {* Prove isodefl rules using @{text isodefl_coerce}. *}
 
 lemma isodefl_foo_abs:
   "isodefl d t \<Longrightarrow> isodefl (foo_abs oo d oo foo_rep) t"
-unfolding foo_abs_def foo_rep_def
-by (rule isodefl_coerce [OF REP_foo'])
+by (rule isodefl_abs_rep [OF REP_foo' foo_abs_def foo_rep_def])
 
 lemma isodefl_bar_abs:
   "isodefl d t \<Longrightarrow> isodefl (bar_abs oo d oo bar_rep) t"
-unfolding bar_abs_def bar_rep_def
-by (rule isodefl_coerce [OF REP_bar'])
+by (rule isodefl_abs_rep [OF REP_bar' bar_abs_def bar_rep_def])
 
 lemma isodefl_baz_abs:
   "isodefl d t \<Longrightarrow> isodefl (baz_abs oo d oo baz_rep) t"
-unfolding baz_abs_def baz_rep_def
-by (rule isodefl_coerce [OF REP_baz'])
-
-text {* TODO: prove iso predicate for rep and abs. *}
+by (rule isodefl_abs_rep [OF REP_baz' baz_abs_def baz_rep_def])
 
 (********************************************************************)
 
@@ -316,7 +331,7 @@ lemma isodefl_foo_bar_baz:
   isodefl_foo_abs
   isodefl_bar_abs
   isodefl_baz_abs
-  isodefl_ssum isodefl_sprod isodefl_one isodefl_u isodefl_convex
+  isodefl_ssum isodefl_sprod isodefl_ID_REP isodefl_u isodefl_convex
   isodefl_d
  )
  apply assumption+
