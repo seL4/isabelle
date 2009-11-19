@@ -307,7 +307,7 @@ fun gen_domain_isomorphism
     (thy: theory)
     : theory =
   let
-    val _ = Theory.requires thy "Domain" "domain definitions";
+    val _ = Theory.requires thy "Representable" "domain isomorphisms";
 
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
