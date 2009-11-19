@@ -12,6 +12,8 @@ Version 2010
   * Added support for codatatype view of datatypes
   * Fixed soundness bugs related to sets and sets of sets
   * Fixed monotonicity check
+  * Fixed error when processing definitions that resulted in an exception
+  * Fixed error in Kodkod encoding of "The" and "Eps"
   * Fixed error in display of uncurried constants
   * Speeded up scope enumeration
 

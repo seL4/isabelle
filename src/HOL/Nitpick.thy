@@ -213,7 +213,7 @@ definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
 (* While Nitpick normally avoids to unfold definitions for locales, it
    unfortunately needs to unfold them when dealing with the following built-in
    constants. A cleaner approach would be to change "Nitpick_HOL" and
-   "Nitpick_Nits" so that they handle the unexpanded overloaded constants
+   "Nitpick_Nut" so that they handle the unexpanded overloaded constants
    directly, but this is slightly more tricky to implement. *)
 lemmas [nitpick_def] = div_int_inst.div_int div_int_inst.mod_int
     div_nat_inst.div_nat div_nat_inst.mod_nat lower_semilattice_fun_inst.inf_fun

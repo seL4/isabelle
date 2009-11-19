@@ -18,6 +18,7 @@ sig
     thm
 
   (*setup*)
+  val trace_assms: bool Config.T
   val setup: theory -> theory
 end
 
@@ -474,6 +475,9 @@ datatype assms = Some of thm list | Many of thm Net.net
 
 val true_false = @{lemma "True == ~ False" by simp}
 
+val (trace_assms, trace_assms_setup) =
+  Attrib.config_bool "z3_trace_assms" false
+
 local
   val TT_eq = @{lemma "(P = (~False)) == P" by simp}
   val remove_trigger = @{lemma "trigger t p == p"
@@ -491,10 +495,15 @@ local
 
   val threshold = 10
   
+  fun trace ctxt thm =
+    if Config.get ctxt trace_assms
+    then tracing (Display.string_of_thm ctxt thm)
+    else ()
+
   val lookup = (fn Some thms => first_of thms | Many net => net_instance net)
   fun lookup_assm ctxt assms ct =
     (case lookup assms ct of
-      SOME thm => thm
+      SOME thm => (trace ctxt thm; thm)
     | _ => z3_exn ("not asserted: " ^
         quote (Syntax.string_of_term ctxt (Thm.term_of ct))))
 in
@@ -1392,6 +1401,6 @@ fun prove ctxt assms =
 
   in (fn ptab => fn idx => result (fst (lookup idx ptab))) end
 
-val setup = Z3_Rewrite_Rules.setup
+val setup = trace_assms_setup #> Z3_Rewrite_Rules.setup
 
 end

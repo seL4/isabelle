@@ -784,8 +784,8 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
   let
     (* typ -> ctype *)
     val ctype_for = fresh_ctype_for_type cdata
-    (* term -> accumulator -> accumulator *)
-    val do_term = snd oo consider_term cdata
+    (* term -> accumulator -> ctype * accumulator *)
+    val do_term = consider_term cdata
     (* sign -> term -> accumulator -> accumulator *)
     fun do_formula _ _ (_, UnsolvableCSet) = unsolvable_accum
       | do_formula sn t (accum as (gamma as {bounds, frees, consts}, cset)) =
@@ -810,8 +810,11 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
           (* term -> term -> accumulator *)
           fun do_equals t1 t2 =
             case sn of
-              Pos => do_term t accum
-            | Neg => fold do_term [t1, t2] accum
+              Pos => do_term t accum |> snd
+            | Neg => let
+                       val (C1, accum) = do_term t1 accum
+                       val (C2, accum) = do_term t2 accum
+                     in accum ||> add_ctypes_equal C1 C2 end
         in
           case t of
             Const (s0 as @{const_name all}, _) $ Abs (_, T1, t1) =>
@@ -839,10 +842,10 @@ fun consider_general_formula (cdata as {ext_ctxt as {ctxt, ...}, ...}) =
           | @{const "op -->"} $ t1 $ t2 =>
             accum |> do_contra_formula t1 |> do_co_formula t2
           | Const (@{const_name If}, _) $ t1 $ t2 $ t3 =>
-            accum |> do_term t1 |> fold do_co_formula [t2, t3]
+            accum |> do_term t1 |> snd |> fold do_co_formula [t2, t3]
           | Const (@{const_name Let}, _) $ t1 $ t2 =>
             do_co_formula (betapply (t2, t1)) accum
-          | _ => do_term t accum
+          | _ => do_term t accum |> snd
         end
         |> tap (fn _ => print_g ("\<Gamma> \<turnstile> " ^
                                  Syntax.string_of_term ctxt t ^
@@ -873,7 +876,7 @@ fun consider_definitional_axiom (cdata as {ext_ctxt as {thy, ...}, ...}) t =
     I
   else
     let
-      (* term -> accumulator -> accumulator *)
+      (* term -> accumulator -> ctype * accumulator *)
       val do_term = consider_term cdata
       (* typ -> term -> accumulator -> accumulator *)
       fun do_all abs_T body_t accum =

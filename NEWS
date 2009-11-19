@@ -96,6 +96,14 @@ zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and
 zdiv_zmult_zmult2.  div_mult_mult1 is now [simp] by default.
 INCOMPATIBILITY.
 
+* Extended Multivariate Analysis to include derivation and Brouwer's fixpoint
+theorem.
+
+* Removed predicate "M hassize n" (<--> card M = n & finite M). Was only used
+in Multivariate Analysis. Renamed vector_less_eq_def to vector_le_def, the
+more usual name.
+INCOMPATIBILITY.
+
 * Added theorem List.map_map as [simp]. Removed List.map_compose.
 INCOMPATIBILITY.
 

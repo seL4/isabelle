@@ -239,7 +239,7 @@ fun common_prefix eq ([], _) = []
 
 local
 
-fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lthy =
+fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lthy =
   let
     val (fixes', spec) = fst (prep_spec (raw_fixes @ raw_params) raw_spec lthy);
     val fixes = List.take (fixes', length raw_fixes);
@@ -280,7 +280,6 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       else primrec_err ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
     val (defs_thms, lthy') = lthy |>
-      set_group ? Local_Theory.set_group (serial ()) |>
       fold_map (apfst (snd o snd) oo Local_Theory.define Thm.definitionK o fst) defs';
     val qualify = Binding.qualify false
       (space_implode "_" (map (Long_Name.base_name o #1) defs));
@@ -384,8 +383,8 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
 
 in
 
-val add_primrec = gen_primrec false Specification.check_spec (K I);
-val add_primrec_cmd = gen_primrec true Specification.read_spec Syntax.read_term;
+val add_primrec = gen_primrec Specification.check_spec (K I);
+val add_primrec_cmd = gen_primrec Specification.read_spec Syntax.read_term;
 
 end;
 

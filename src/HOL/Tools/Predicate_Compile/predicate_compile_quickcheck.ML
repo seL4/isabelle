@@ -23,7 +23,7 @@ val target = "Quickcheck"
 
 val options = Options {
   expected_modes = NONE,
-  proposed_modes = [],
+  proposed_modes = NONE,
   proposed_names = [],
   show_steps = true,
   show_intermediate_results = true,
@@ -83,7 +83,7 @@ fun quickcheck ctxt t =
     val intro = Goal.prove (ProofContext.init thy') (map fst vs') [] t tac
     val _ = tracing (Display.string_of_thm ctxt' intro)
     val thy'' = thy'
-      |> Context.theory_map (Predicate_Compile_Preproc_Const_Defs.add_thm intro)
+      |> Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro)
       |> Predicate_Compile.preprocess options full_constname
       |> Predicate_Compile_Core.add_equations options [full_constname]
       (*  |> Predicate_Compile_Core.add_depth_limited_equations Predicate_Compile_Aux.default_options [full_constname]*)

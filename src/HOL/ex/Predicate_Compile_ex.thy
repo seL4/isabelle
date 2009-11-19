@@ -87,6 +87,9 @@ values "{(b, c, a). JamesBond a b c}"
 values "{(c, a, b). JamesBond a b c}"
 values "{(c, b, a). JamesBond a b c}"
 
+values "{(a, b). JamesBond 0 b a}"
+values "{(c, a). JamesBond a 0 c}"
+values "{(a, c). JamesBond a 0 c}"
 
 subsection {* Alternative Rules *}
 
@@ -476,6 +479,8 @@ lemma [code_pred_intro]:
 
 subsection {* transitive predicate *}
 
+text {* Also look at the tabled transitive closure in the Library *}
+
 code_pred (modes: (i => o => bool) => i => i => bool, (i => o => bool) => i => o => bool as forwards_trancl,
   (o => i => bool) => i => i => bool, (o => i => bool) => o => i => bool as backwards_trancl, (o => o => bool) => i => i => bool, (o => o => bool) => i => o => bool,
   (o => o => bool) => o => i => bool, (o => o => bool) => o => o => bool) tranclp
@@ -508,6 +513,28 @@ to disambiguate which mode is to be chosen. *}
 values [mode: i => o => bool] 20 "{n. tranclp succ 10 n}"
 values [mode: o => i => bool] 10 "{n. tranclp succ n 10}"
 values 20 "{(n, m). tranclp succ n m}"
+
+inductive example_graph :: "int => int => bool"
+where
+  "example_graph 0 1"
+| "example_graph 1 2"
+| "example_graph 1 3"
+| "example_graph 4 7"
+| "example_graph 4 5"
+| "example_graph 5 6"
+| "example_graph 7 6"
+| "example_graph 7 8"
+ 
+inductive not_reachable_in_example_graph :: "int => int => bool"
+where "\<not> (tranclp example_graph x y) ==> not_reachable_in_example_graph x y"
+
+code_pred (expected_modes: i => i => bool) not_reachable_in_example_graph .
+
+thm not_reachable_in_example_graph.equation
+
+value "not_reachable_in_example_graph 0 3"
+value "not_reachable_in_example_graph 4 8"
+value "not_reachable_in_example_graph 5 6"
 
 subsection {* IMP *}
 
@@ -724,7 +751,7 @@ thm inv_image.equation
 
 subsection {* Inverting list functions *}
 
-code_pred [inductify, show_intermediate_results] length .
+code_pred [inductify] length .
 code_pred [inductify, random] length .
 thm size_listP.equation
 thm size_listP.random_equation
@@ -804,8 +831,6 @@ thm splice.simps
 thm spliceP.equation
 
 values "{xs. spliceP xs [1, 2, 3] [1, 1, 1, 2, 1, (3::nat)]}"
-(* TODO: correct error messages:*)
-(* values {(xs, ys, zs). spliceP xs ... } *)
 
 code_pred [inductify] List.rev .
 code_pred [inductify] map .
@@ -965,13 +990,8 @@ where
 | objaddr: "\<lbrakk> Env conf n = i \<rbrakk> \<Longrightarrow> eval_var (ObjAddr n) conf (IntVal i)"
 | plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow> eval_var (Add l r) conf (IntVal (vl+vr))"
 
-(* TODO: breaks if code_pred_intro is used? *)
-(*
-lemmas [code_pred_intro] = irconst objaddr plus
-*)
-thm eval_var.cases
 
-code_pred eval_var . (*by (rule eval_var.cases)*)
+code_pred eval_var .
 thm eval_var.equation
 
 values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) val}"

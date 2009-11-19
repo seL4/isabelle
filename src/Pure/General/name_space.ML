@@ -34,8 +34,11 @@ sig
   type naming
   val default_naming: naming
   val conceal: naming -> naming
-  val set_group: serial -> naming -> naming
+  val get_group: naming -> serial option
+  val set_group: serial option -> naming -> naming
   val set_theory_name: string -> naming -> naming
+  val new_group: naming -> naming
+  val reset_group: naming -> naming
   val add_path: string -> naming -> naming
   val root_path: naming -> naming
   val parent_path: naming -> naming
@@ -241,11 +244,17 @@ val default_naming = make_naming (false, NONE, "", []);
 val conceal = map_naming (fn (_, group, theory_name, path) =>
   (true, group, theory_name, path));
 
-fun set_group group = map_naming (fn (conceal, _, theory_name, path) =>
-  (conceal, SOME group, theory_name, path));
-
 fun set_theory_name theory_name = map_naming (fn (conceal, group, _, path) =>
   (conceal, group, theory_name, path));
+
+
+fun get_group (Naming {group, ...}) = group;
+
+fun set_group group = map_naming (fn (conceal, _, theory_name, path) =>
+  (conceal, group, theory_name, path));
+
+fun new_group naming = set_group (SOME (serial ())) naming;
+val reset_group = set_group NONE;
 
 fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);

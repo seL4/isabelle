@@ -40,12 +40,14 @@ fun retrieve (Items {net, ...}) = order_list o Net.unify_term net;
 
 (* standard operations *)
 
-fun member (Items {eq, index, net, ...}) x =
-  exists (fn t => exists (fn (_, y) => eq (x, y)) (Net.unify_term net t)) (index x);
+fun member (Items {eq, index, content, net, ...}) x =
+  (case index x of
+    [] => Library.member eq content x
+  | t :: _ => exists (fn (_, y) => eq (x, y)) (Net.unify_term net t));
 
 fun cons x (Items {eq, index, content, next, net}) =
   mk_items eq index (x :: content) (next - 1)
-    (fold (fn t => Net.insert_term_safe (eq o pairself #2) (t, (next, x))) (index x) net);
+    (fold (fn t => Net.insert_term (K false) (t, (next, x))) (index x) net);
 
 
 fun merge (items1, Items {content = content2, ...}) =

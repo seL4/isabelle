@@ -89,9 +89,7 @@ fun pred_of f =
 
 fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
   | mk_param thy lookup_pred t =
-  let
-  val _ = tracing ("called param with " ^ (Syntax.string_of_term_global thy t))
-  in if Predicate_Compile_Aux.is_predT (fastype_of t) then
+  if Predicate_Compile_Aux.is_predT (fastype_of t) then
     t
   else
     let
@@ -109,7 +107,7 @@ fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
       val pred_body = HOLogic.mk_eq (body', resvar)
       val param = fold_rev lambda (vs' @ [resvar]) pred_body
     in param end
-  end
+    
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
 
@@ -354,7 +352,7 @@ fun define_predicates specs thy =
             val (ind_result, thy') =
               thy
               |> Sign.map_naming Name_Space.conceal
-              |> Inductive.add_inductive_global (serial ())
+              |> Inductive.add_inductive_global
                 {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
                   no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
                 (map (fn (s, T) =>

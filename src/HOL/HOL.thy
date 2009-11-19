@@ -2060,7 +2060,6 @@ structure Predicate_Compile_Inline_Defs = Named_Thms
 setup {*
   Predicate_Compile_Alternative_Defs.setup
   #> Predicate_Compile_Inline_Defs.setup
-  #> Predicate_Compile_Preproc_Const_Defs.setup
 *}
 
 

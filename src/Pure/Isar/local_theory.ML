@@ -14,7 +14,8 @@ sig
   val full_name: local_theory -> binding -> string
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
   val conceal: local_theory -> local_theory
-  val set_group: serial -> local_theory -> local_theory
+  val new_group: local_theory -> local_theory
+  val reset_group: local_theory -> local_theory
   val restore_naming: local_theory -> local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
@@ -42,7 +43,7 @@ sig
   val term_syntax: bool -> declaration -> local_theory -> local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val init: string -> operations -> Proof.context -> local_theory
+  val init: serial option -> string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
   val reinit: local_theory -> local_theory
   val exit: local_theory -> Proof.context
@@ -114,7 +115,8 @@ fun map_naming f = map_lthy (fn (naming, theory_prefix, operations, target) =>
   (f naming, theory_prefix, operations, target));
 
 val conceal = map_naming Name_Space.conceal;
-val set_group = map_naming o Name_Space.set_group;
+val new_group = map_naming Name_Space.new_group;
+val reset_group = map_naming Name_Space.reset_group;
 
 val restore_naming = map_naming o K o naming_of;
 
@@ -203,9 +205,10 @@ fun notation add mode raw_args lthy =
 
 (* init *)
 
-fun init theory_prefix operations target =
+fun init group theory_prefix operations target =
   let val naming =
     Sign.naming_of (ProofContext.theory_of target)
+    |> Name_Space.set_group group
     |> Name_Space.mandatory_path theory_prefix;
   in
     target |> Data.map
@@ -215,8 +218,8 @@ fun init theory_prefix operations target =
   end;
 
 fun restore lthy =
-  let val {theory_prefix, operations, target, ...} = get_lthy lthy
-  in init theory_prefix operations target end;
+  let val {naming, theory_prefix, operations, target} = get_lthy lthy
+  in init (Name_Space.get_group naming) theory_prefix operations target end;
 
 val reinit = checkpoint o operation #reinit;
 

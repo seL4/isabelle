@@ -1009,14 +1009,20 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
 (** record simprocs **)
 
 fun future_forward_prf_standard thy prf prop () =
-   let val thm = if !quick_and_dirty then Skip_Proof.make_thm thy prop 
-                 else Goal.future_result (ProofContext.init thy) (Future.fork_pri ~1 prf) prop;
-   in Drule.standard thm end;
+  let val thm =
+    if ! quick_and_dirty then Skip_Proof.make_thm thy prop
+    else if Goal.future_enabled () then
+      Goal.future_result (ProofContext.init thy) (Future.fork_pri ~1 prf) prop
+    else prf ()
+  in Drule.standard thm end;
 
 fun prove_common immediate stndrd thy asms prop tac =
-  let val prv = if !quick_and_dirty then Skip_Proof.prove 
-                else if immediate then Goal.prove else Goal.prove_future;
-      val prf = prv (ProofContext.init thy) [] asms prop tac
+  let
+    val prv =
+      if ! quick_and_dirty then Skip_Proof.prove
+      else if immediate orelse not (Goal.future_enabled ()) then Goal.prove
+      else Goal.prove_future;
+    val prf = prv (ProofContext.init thy) [] asms prop tac;
   in if stndrd then Drule.standard prf else prf end;
 
 val prove_future_global = prove_common false;

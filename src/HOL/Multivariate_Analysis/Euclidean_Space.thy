@@ -94,7 +94,7 @@ end
 
 instantiation "^" :: (ord,type) ord
  begin
-definition vector_less_eq_def:
+definition vector_le_def:
   "less_eq (x :: 'a ^'b) y = (ALL i. x$i <= y$i)"
 definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i. x$i < y$i)"
 

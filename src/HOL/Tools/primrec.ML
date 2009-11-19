@@ -198,7 +198,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
       (list_comb (Const (rec_name, dummyT), fs @ map Bound (0 :: (length ls downto 1))))
     val rhs = singleton (Syntax.check_terms ctxt)
       (TypeInfer.constrain varT raw_rhs);
-  in (var, ((Binding.name def_name, []), rhs)) end;
+  in (var, ((Binding.conceal (Binding.name def_name), []), rhs)) end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)
@@ -265,7 +265,7 @@ fun add_primrec_simple fixes ts lthy =
 
 local
 
-fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
+fun gen_primrec prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
@@ -275,7 +275,6 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
         map (Attrib.internal o K) [Simplifier.simp_add, Nitpick_Simps.add]);
   in
     lthy
-    |> set_group ? Local_Theory.set_group (serial ())
     |> add_primrec_simple fixes (map snd spec)
     |-> (fn (prefix, simps) => fold_map Local_Theory.note (attr_bindings prefix ~~ simps)
       #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')))
@@ -284,8 +283,8 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
 
 in
 
-val add_primrec = gen_primrec false Specification.check_spec;
-val add_primrec_cmd = gen_primrec true Specification.read_spec;
+val add_primrec = gen_primrec Specification.check_spec;
+val add_primrec_cmd = gen_primrec Specification.read_spec;
 
 end;
 

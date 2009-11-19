@@ -1058,7 +1058,9 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
   Multivariate_Analysis/Finite_Cartesian_Product.thy	\
   Multivariate_Analysis/Euclidean_Space.thy		\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
-  Multivariate_Analysis/Convex_Euclidean_Space.thy
+  Multivariate_Analysis/Convex_Euclidean_Space.thy      \
+  Multivariate_Analysis/Brouwer_Fixpoint.thy            \
+  Multivariate_Analysis/Derivative.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 
@@ -1340,7 +1342,9 @@ $(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
   SMT/Examples/cert/z3_linarith_19					\
   SMT/Examples/cert/z3_linarith_19.proof				\
   SMT/Examples/cert/z3_linarith_20					\
-  SMT/Examples/cert/z3_linarith_20.proof SMT/Examples/cert/z3_mono_01	\
+  SMT/Examples/cert/z3_linarith_20.proof 				\
+  SMT/Examples/cert/z3_linarith_21					\
+  SMT/Examples/cert/z3_linarith_21.proof SMT/Examples/cert/z3_mono_01	\
   SMT/Examples/cert/z3_mono_01.proof SMT/Examples/cert/z3_mono_02	\
   SMT/Examples/cert/z3_mono_02.proof SMT/Examples/cert/z3_nat_arith_01	\
   SMT/Examples/cert/z3_nat_arith_01.proof				\

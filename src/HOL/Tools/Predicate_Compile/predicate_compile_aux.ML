@@ -282,7 +282,7 @@ fun equals_conv lhs_cv rhs_cv ct =
 
 datatype options = Options of {  
   expected_modes : (string * mode' list) option,
-  proposed_modes : (string * mode' list) list,
+  proposed_modes : (string * mode' list) option,
   proposed_names : ((string * mode') * string) list,
   show_steps : bool,
   show_proof_trace : bool,
@@ -299,7 +299,7 @@ datatype options = Options of {
 };
 
 fun expected_modes (Options opt) = #expected_modes opt
-fun proposed_modes (Options opt) name = AList.lookup (op =) (#proposed_modes opt) name
+fun proposed_modes (Options opt) = #proposed_modes opt
 fun proposed_names (Options opt) name mode = AList.lookup (eq_pair (op =) eq_mode')
   (#proposed_names opt) (name, mode)
 
@@ -318,7 +318,7 @@ fun is_annotated (Options opt) = #annotated opt
 
 val default_options = Options {
   expected_modes = NONE,
-  proposed_modes = [],
+  proposed_modes = NONE,
   proposed_names = [],
   show_steps = false,
   show_intermediate_results = false,
