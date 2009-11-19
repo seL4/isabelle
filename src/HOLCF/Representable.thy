@@ -5,8 +5,10 @@
 header {* Representable Types *}
 
 theory Representable
-imports Algebraic Universal Ssum Sprod One ConvexPD
-uses ("Tools/repdef.ML")
+imports Algebraic Universal Ssum Sprod One ConvexPD Fixrec
+uses
+  ("Tools/repdef.ML")
+  ("Tools/Domain/domain_isomorphism.ML")
 begin
 
 subsection {* Class of representable types *}
@@ -1028,5 +1030,36 @@ apply (simp add: cast_convex_defl cast_isodefl)
 apply (simp add: emb_convex_pd_def prj_convex_pd_def)
 apply (simp add: convex_map_map)
 done
+
+subsection {* Constructing Domain Isomorphisms *}
+
+use "Tools/Domain/domain_isomorphism.ML"
+
+setup {*
+  fold Domain_Isomorphism.add_type_constructor
+    [(@{type_name "->"}, @{term cfun_defl}, @{const_name cfun_map},
+        @{thm REP_cfun}, @{thm isodefl_cfun}),
+
+     (@{type_name "++"}, @{term ssum_defl}, @{const_name ssum_map},
+        @{thm REP_ssum}, @{thm isodefl_ssum}),
+
+     (@{type_name "**"}, @{term sprod_defl}, @{const_name sprod_map},
+        @{thm REP_sprod}, @{thm isodefl_sprod}),
+
+     (@{type_name "*"}, @{term cprod_defl}, @{const_name cprod_map},
+        @{thm REP_cprod}, @{thm isodefl_cprod}),
+
+     (@{type_name "u"}, @{term u_defl}, @{const_name u_map},
+        @{thm REP_up}, @{thm isodefl_u}),
+
+     (@{type_name "upper_pd"}, @{term upper_defl}, @{const_name upper_map},
+        @{thm REP_upper}, @{thm isodefl_upper}),
+
+     (@{type_name "lower_pd"}, @{term lower_defl}, @{const_name lower_map},
+        @{thm REP_lower}, @{thm isodefl_lower}),
+
+     (@{type_name "convex_pd"}, @{term convex_defl}, @{const_name convex_map},
+        @{thm REP_convex}, @{thm isodefl_convex})]
+*}
 
 end
