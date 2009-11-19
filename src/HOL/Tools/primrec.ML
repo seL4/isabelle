@@ -259,7 +259,7 @@ fun add_primrec_simple fixes ts lthy =
     val ((prefix, (fs, defs)), prove) = distill lthy fixes ts;
   in
     lthy
-    |> fold_map (Local_Theory.define Thm.definitionK) defs
+    |> fold_map Local_Theory.define defs
     |-> (fn defs => `(fn lthy => (prefix, prove lthy defs)))
   end;
 

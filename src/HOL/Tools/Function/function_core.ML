@@ -518,7 +518,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
-    Local_Theory.define ""
+    Local_Theory.define
       ((Binding.name (function_name fname), mixfix),
         ((Binding.conceal (Binding.name fdefname), []), f_def)) lthy
   end

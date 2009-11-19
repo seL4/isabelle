@@ -130,8 +130,8 @@ fun prove_size_thms (info : info) new_type_names thy =
     fun define_overloaded (def_name, eq) lthy =
       let
         val (Free (c, _), rhs) = (Logic.dest_equals o Syntax.check_term lthy) eq;
-        val ((_, (_, thm)), lthy') = lthy |> Local_Theory.define Thm.definitionK
-          ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs));
+        val ((_, (_, thm)), lthy') = lthy
+          |> Local_Theory.define ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs));
         val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy');
         val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;

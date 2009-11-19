@@ -146,7 +146,7 @@ fun define_projections fixes mutual fsum lthy =
       fun def ((MutualPart {i=i, i'=i', fvar=(fname, fT), cargTs, f_def, ...}), (_, mixfix)) lthy =
           let
             val ((f, (_, f_defthm)), lthy') =
-              Local_Theory.define ""
+              Local_Theory.define
                 ((Binding.name fname, mixfix),
                   ((Binding.conceal (Binding.name (fname ^ "_def")), []),
                   Term.subst_bound (fsum, f_def))) lthy

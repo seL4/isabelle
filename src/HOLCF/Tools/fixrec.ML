@@ -209,9 +209,8 @@ fun add_fixdefs
       | defs (l::[]) r = [one_def l r]
       | defs (l::ls) r = one_def l (mk_fst r) :: defs ls (mk_snd r);
     val fixdefs = defs lhss fixpoint;
-    val define_all = fold_map (Local_Theory.define Thm.definitionK);
     val (fixdef_thms : (term * (string * thm)) list, lthy') = lthy
-      |> define_all (map (apfst fst) fixes ~~ fixdefs);
+      |> fold_map Local_Theory.define (map (apfst fst) fixes ~~ fixdefs);
     fun pair_equalI (thm1, thm2) = @{thm Pair_equalI} OF [thm1, thm2];
     val tuple_fixdef_thm = foldr1 pair_equalI (map (snd o snd) fixdef_thms);
     val P = Var (("P", 0), map Term.fastype_of lhss ---> HOLogic.boolT);
