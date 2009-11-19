@@ -492,6 +492,16 @@ fun gen_domain_isomorphism
       in
         Goal.prove_global thy [] assms goal tacf
       end;
+    val isodefl_binds = map (Binding.prefix_name "isodefl_") dom_binds;
+    fun conjuncts [] thm = []
+      | conjuncts (n::[]) thm = [(n, thm)]
+      | conjuncts (n::ns) thm = let
+          val thmL = thm RS @{thm conjunct1};
+          val thmR = thm RS @{thm conjunct2};
+        in (n, thmL):: conjuncts ns thmR end;
+    val (isodefl_thms, thy) = thy |>
+      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.standard))
+        (conjuncts isodefl_binds isodefl_thm);
   in
     thy
   end;
