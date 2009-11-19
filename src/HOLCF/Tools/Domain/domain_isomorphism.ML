@@ -197,14 +197,14 @@ fun is_closed_dtyp (DatatypeAux.DtTFree a) = false
 
 (* FIXME: use theory data for this *)
 val defl_tab : term Symtab.table =
-    Symtab.make [(@{type_name "->"}, @{term "cfun_typ"}),
-                 (@{type_name "++"}, @{term "ssum_typ"}),
-                 (@{type_name "**"}, @{term "sprod_typ"}),
-                 (@{type_name "*"}, @{term "cprod_typ"}),
-                 (@{type_name "u"}, @{term "u_typ"}),
-                 (@{type_name "upper_pd"}, @{term "upper_typ"}),
-                 (@{type_name "lower_pd"}, @{term "lower_typ"}),
-                 (@{type_name "convex_pd"}, @{term "convex_typ"})];
+    Symtab.make [(@{type_name "->"}, @{term "cfun_defl"}),
+                 (@{type_name "++"}, @{term "ssum_defl"}),
+                 (@{type_name "**"}, @{term "sprod_defl"}),
+                 (@{type_name "*"}, @{term "cprod_defl"}),
+                 (@{type_name "u"}, @{term "u_defl"}),
+                 (@{type_name "upper_pd"}, @{term "upper_defl"}),
+                 (@{type_name "lower_pd"}, @{term "lower_defl"}),
+                 (@{type_name "convex_pd"}, @{term "convex_defl"})];
 
 fun defl_of_typ
     (tab : term Symtab.table)
@@ -306,20 +306,20 @@ fun gen_domain_isomorphism
       end) doms;
     val dom_binds = map (fn (_, tbind, _, _) => tbind) doms;
 
-    (* declare type combinator constants *)
-    fun declare_typ_const (vs, tbind, mx, rhs) thy =
+    (* declare deflation combinator constants *)
+    fun declare_defl_const (vs, tbind, mx, rhs) thy =
       let
-        val typ_type = Library.foldr cfunT (map (K deflT) vs, deflT);
-        val typ_bind = Binding.suffix_name "_typ" tbind;
+        val defl_type = Library.foldr cfunT (map (K deflT) vs, deflT);
+        val defl_bind = Binding.suffix_name "_defl" tbind;
       in
-        Sign.declare_const ((typ_bind, typ_type), NoSyn) thy
+        Sign.declare_const ((defl_bind, defl_type), NoSyn) thy
       end;
-    val (typ_consts, thy) = fold_map declare_typ_const doms thy;
+    val (defl_consts, thy) = fold_map declare_defl_const doms thy;
 
     (* defining equations for type combinators *)
     val defl_tab1 = defl_tab; (* FIXME: use theory data *)
     val defl_tab2 =
-      Symtab.make (map (fst o dest_Type o fst) dom_eqns ~~ typ_consts);
+      Symtab.make (map (fst o dest_Type o fst) dom_eqns ~~ defl_consts);
     val defl_tab' = Symtab.merge (K true) (defl_tab1, defl_tab2);
     fun free a = Free (Library.unprefix "'" a, deflT);
     fun mk_defl_spec (lhsT, rhsT) =
@@ -327,22 +327,22 @@ fun gen_domain_isomorphism
               defl_of_typ defl_tab' free rhsT);
     val defl_specs = map mk_defl_spec dom_eqns;
 
-    (* register recursive definition of type combinators *)
-    val typ_binds = map (Binding.suffix_name "_typ") dom_binds;
-    val (typ_unfold_thms, thy) = add_fixdefs (typ_binds ~~ defl_specs) thy;
+    (* register recursive definition of deflation combinators *)
+    val defl_binds = map (Binding.suffix_name "_defl") dom_binds;
+    val (defl_unfold_thms, thy) = add_fixdefs (defl_binds ~~ defl_specs) thy;
 
     (* define types using deflation combinators *)
-    fun make_repdef ((vs, tbind, mx, _), typ_const) thy =
+    fun make_repdef ((vs, tbind, mx, _), defl_const) thy =
       let
         fun tfree a = TFree (a, the (AList.lookup (op =) sorts a))
         val reps = map (mk_Rep_of o tfree) vs;
-        val defl = Library.foldl mk_capply (typ_const, reps);
+        val defl = Library.foldl mk_capply (defl_const, reps);
         val ((_, _, _, {REP, ...}), thy) =
           Repdef.add_repdef false NONE (tbind, vs, mx) defl NONE thy;
       in
         (REP, thy)
       end;
-    val (REP_thms, thy) = fold_map make_repdef (doms ~~ typ_consts) thy;
+    val (REP_thms, thy) = fold_map make_repdef (doms ~~ defl_consts) thy;
 
     (* FIXME: use theory data for this *)
     val REP_simps = REP_thms @
@@ -355,7 +355,7 @@ fun gen_domain_isomorphism
         val goal = mk_eqs (mk_Rep_of lhsT, mk_Rep_of rhsT);
         val tac =
           simp_tac (HOL_basic_ss addsimps REP_simps) 1
-          THEN resolve_tac typ_unfold_thms 1;
+          THEN resolve_tac defl_unfold_thms 1;
       in
         Goal.prove_global thy [] [] goal (K tac)
       end;

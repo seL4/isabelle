@@ -690,14 +690,14 @@ where
           Abs_fin_defl (udom_emb oo
             f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo udom_prj))))"
 
-definition "cfun_typ = TypeRep_fun2 cfun_map"
-definition "ssum_typ = TypeRep_fun2 ssum_map"
-definition "sprod_typ = TypeRep_fun2 sprod_map"
-definition "cprod_typ = TypeRep_fun2 cprod_map"
-definition "u_typ = TypeRep_fun1 u_map"
-definition "upper_typ = TypeRep_fun1 upper_map"
-definition "lower_typ = TypeRep_fun1 lower_map"
-definition "convex_typ = TypeRep_fun1 convex_map"
+definition "cfun_defl = TypeRep_fun2 cfun_map"
+definition "ssum_defl = TypeRep_fun2 ssum_map"
+definition "sprod_defl = TypeRep_fun2 sprod_map"
+definition "cprod_defl = TypeRep_fun2 cprod_map"
+definition "u_defl = TypeRep_fun1 u_map"
+definition "upper_defl = TypeRep_fun1 upper_map"
+definition "lower_defl = TypeRep_fun1 lower_map"
+definition "convex_defl = TypeRep_fun1 convex_map"
 
 lemma Rep_fin_defl_mono: "a \<sqsubseteq> b \<Longrightarrow> Rep_fin_defl a \<sqsubseteq> Rep_fin_defl b"
 unfolding below_fin_defl_def .
@@ -746,124 +746,124 @@ proof -
                    Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
 qed
 
-lemma cast_cfun_typ:
-  "cast\<cdot>(cfun_typ\<cdot>A\<cdot>B) = udom_emb oo cfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
-unfolding cfun_typ_def
+lemma cast_cfun_defl:
+  "cast\<cdot>(cfun_defl\<cdot>A\<cdot>B) = udom_emb oo cfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
+unfolding cfun_defl_def
 apply (rule cast_TypeRep_fun2)
 apply (erule (1) finite_deflation_cfun_map)
 done
 
-lemma cast_ssum_typ:
-  "cast\<cdot>(ssum_typ\<cdot>A\<cdot>B) = udom_emb oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
-unfolding ssum_typ_def
+lemma cast_ssum_defl:
+  "cast\<cdot>(ssum_defl\<cdot>A\<cdot>B) = udom_emb oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
+unfolding ssum_defl_def
 apply (rule cast_TypeRep_fun2)
 apply (erule (1) finite_deflation_ssum_map)
 done
 
-lemma cast_sprod_typ:
-  "cast\<cdot>(sprod_typ\<cdot>A\<cdot>B) = udom_emb oo sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
-unfolding sprod_typ_def
+lemma cast_sprod_defl:
+  "cast\<cdot>(sprod_defl\<cdot>A\<cdot>B) = udom_emb oo sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
+unfolding sprod_defl_def
 apply (rule cast_TypeRep_fun2)
 apply (erule (1) finite_deflation_sprod_map)
 done
 
-lemma cast_cprod_typ:
-  "cast\<cdot>(cprod_typ\<cdot>A\<cdot>B) = udom_emb oo cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
-unfolding cprod_typ_def
+lemma cast_cprod_defl:
+  "cast\<cdot>(cprod_defl\<cdot>A\<cdot>B) = udom_emb oo cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
+unfolding cprod_defl_def
 apply (rule cast_TypeRep_fun2)
 apply (erule (1) finite_deflation_cprod_map)
 done
 
-lemma cast_u_typ:
-  "cast\<cdot>(u_typ\<cdot>A) = udom_emb oo u_map\<cdot>(cast\<cdot>A) oo udom_prj"
-unfolding u_typ_def
+lemma cast_u_defl:
+  "cast\<cdot>(u_defl\<cdot>A) = udom_emb oo u_map\<cdot>(cast\<cdot>A) oo udom_prj"
+unfolding u_defl_def
 apply (rule cast_TypeRep_fun1)
 apply (erule finite_deflation_u_map)
 done
 
-lemma cast_upper_typ:
-  "cast\<cdot>(upper_typ\<cdot>A) = udom_emb oo upper_map\<cdot>(cast\<cdot>A) oo udom_prj"
-unfolding upper_typ_def
+lemma cast_upper_defl:
+  "cast\<cdot>(upper_defl\<cdot>A) = udom_emb oo upper_map\<cdot>(cast\<cdot>A) oo udom_prj"
+unfolding upper_defl_def
 apply (rule cast_TypeRep_fun1)
 apply (erule finite_deflation_upper_map)
 done
 
-lemma cast_lower_typ:
-  "cast\<cdot>(lower_typ\<cdot>A) = udom_emb oo lower_map\<cdot>(cast\<cdot>A) oo udom_prj"
-unfolding lower_typ_def
+lemma cast_lower_defl:
+  "cast\<cdot>(lower_defl\<cdot>A) = udom_emb oo lower_map\<cdot>(cast\<cdot>A) oo udom_prj"
+unfolding lower_defl_def
 apply (rule cast_TypeRep_fun1)
 apply (erule finite_deflation_lower_map)
 done
 
-lemma cast_convex_typ:
-  "cast\<cdot>(convex_typ\<cdot>A) = udom_emb oo convex_map\<cdot>(cast\<cdot>A) oo udom_prj"
-unfolding convex_typ_def
+lemma cast_convex_defl:
+  "cast\<cdot>(convex_defl\<cdot>A) = udom_emb oo convex_map\<cdot>(cast\<cdot>A) oo udom_prj"
+unfolding convex_defl_def
 apply (rule cast_TypeRep_fun1)
 apply (erule finite_deflation_convex_map)
 done
 
 text {* REP of type constructor = type combinator *}
 
-lemma REP_cfun: "REP('a \<rightarrow> 'b) = cfun_typ\<cdot>REP('a)\<cdot>REP('b)"
+lemma REP_cfun: "REP('a \<rightarrow> 'b) = cfun_defl\<cdot>REP('a)\<cdot>REP('b)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_cfun_typ)
+apply (simp add: cast_REP cast_cfun_defl)
 apply (simp add: cfun_map_def)
 apply (simp only: prj_cfun_def emb_cfun_def)
 apply (simp add: expand_cfun_eq ep_pair.e_eq_iff [OF ep_pair_udom])
 done
 
 
-lemma REP_ssum: "REP('a \<oplus> 'b) = ssum_typ\<cdot>REP('a)\<cdot>REP('b)"
+lemma REP_ssum: "REP('a \<oplus> 'b) = ssum_defl\<cdot>REP('a)\<cdot>REP('b)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_ssum_typ)
+apply (simp add: cast_REP cast_ssum_defl)
 apply (simp add: prj_ssum_def)
 apply (simp add: emb_ssum_def)
 apply (simp add: ssum_map_map cfcomp1)
 done
 
-lemma REP_sprod: "REP('a \<otimes> 'b) = sprod_typ\<cdot>REP('a)\<cdot>REP('b)"
+lemma REP_sprod: "REP('a \<otimes> 'b) = sprod_defl\<cdot>REP('a)\<cdot>REP('b)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_sprod_typ)
+apply (simp add: cast_REP cast_sprod_defl)
 apply (simp add: prj_sprod_def)
 apply (simp add: emb_sprod_def)
 apply (simp add: sprod_map_map cfcomp1)
 done
 
-lemma REP_cprod: "REP('a \<times> 'b) = cprod_typ\<cdot>REP('a)\<cdot>REP('b)"
+lemma REP_cprod: "REP('a \<times> 'b) = cprod_defl\<cdot>REP('a)\<cdot>REP('b)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_cprod_typ)
+apply (simp add: cast_REP cast_cprod_defl)
 apply (simp add: prj_cprod_def)
 apply (simp add: emb_cprod_def)
 apply (simp add: cprod_map_map cfcomp1)
 done
 
-lemma REP_up: "REP('a u) = u_typ\<cdot>REP('a)"
+lemma REP_up: "REP('a u) = u_defl\<cdot>REP('a)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_u_typ)
+apply (simp add: cast_REP cast_u_defl)
 apply (simp add: prj_u_def)
 apply (simp add: emb_u_def)
 apply (simp add: u_map_map cfcomp1)
 done
 
-lemma REP_upper: "REP('a upper_pd) = upper_typ\<cdot>REP('a)"
+lemma REP_upper: "REP('a upper_pd) = upper_defl\<cdot>REP('a)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_upper_typ)
+apply (simp add: cast_REP cast_upper_defl)
 apply (simp add: prj_upper_pd_def)
 apply (simp add: emb_upper_pd_def)
 apply (simp add: upper_map_map cfcomp1)
 done
 
-lemma REP_lower: "REP('a lower_pd) = lower_typ\<cdot>REP('a)"
+lemma REP_lower: "REP('a lower_pd) = lower_defl\<cdot>REP('a)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_lower_typ)
+apply (simp add: cast_REP cast_lower_defl)
 apply (simp add: prj_lower_pd_def)
 apply (simp add: emb_lower_pd_def)
 apply (simp add: lower_map_map cfcomp1)
 done
 
-lemma REP_convex: "REP('a convex_pd) = convex_typ\<cdot>REP('a)"
+lemma REP_convex: "REP('a convex_pd) = convex_defl\<cdot>REP('a)"
 apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_convex_typ)
+apply (simp add: cast_REP cast_convex_defl)
 apply (simp add: prj_convex_pd_def)
 apply (simp add: emb_convex_pd_def)
 apply (simp add: convex_map_map cfcomp1)
@@ -963,59 +963,59 @@ unfolding abs_def rep_def using REP by (rule isodefl_coerce)
 
 lemma isodefl_cfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (cfun_map\<cdot>d1\<cdot>d2) (cfun_typ\<cdot>t1\<cdot>t2)"
+    isodefl (cfun_map\<cdot>d1\<cdot>d2) (cfun_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
-apply (simp add: cast_cfun_typ cast_isodefl)
+apply (simp add: cast_cfun_defl cast_isodefl)
 apply (simp add: emb_cfun_def prj_cfun_def)
 apply (simp add: cfun_map_map cfcomp1)
 done
 
 lemma isodefl_ssum:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (ssum_map\<cdot>d1\<cdot>d2) (ssum_typ\<cdot>t1\<cdot>t2)"
+    isodefl (ssum_map\<cdot>d1\<cdot>d2) (ssum_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
-apply (simp add: cast_ssum_typ cast_isodefl)
+apply (simp add: cast_ssum_defl cast_isodefl)
 apply (simp add: emb_ssum_def prj_ssum_def)
 apply (simp add: ssum_map_map isodefl_strict)
 done
 
 lemma isodefl_sprod:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (sprod_map\<cdot>d1\<cdot>d2) (sprod_typ\<cdot>t1\<cdot>t2)"
+    isodefl (sprod_map\<cdot>d1\<cdot>d2) (sprod_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
-apply (simp add: cast_sprod_typ cast_isodefl)
+apply (simp add: cast_sprod_defl cast_isodefl)
 apply (simp add: emb_sprod_def prj_sprod_def)
 apply (simp add: sprod_map_map isodefl_strict)
 done
 
 lemma isodefl_u:
-  "isodefl d t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_typ\<cdot>t)"
+  "isodefl d t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
 apply (rule isodeflI)
-apply (simp add: cast_u_typ cast_isodefl)
+apply (simp add: cast_u_defl cast_isodefl)
 apply (simp add: emb_u_def prj_u_def)
 apply (simp add: u_map_map)
 done
 
 lemma isodefl_upper:
-  "isodefl d t \<Longrightarrow> isodefl (upper_map\<cdot>d) (upper_typ\<cdot>t)"
+  "isodefl d t \<Longrightarrow> isodefl (upper_map\<cdot>d) (upper_defl\<cdot>t)"
 apply (rule isodeflI)
-apply (simp add: cast_upper_typ cast_isodefl)
+apply (simp add: cast_upper_defl cast_isodefl)
 apply (simp add: emb_upper_pd_def prj_upper_pd_def)
 apply (simp add: upper_map_map)
 done
 
 lemma isodefl_lower:
-  "isodefl d t \<Longrightarrow> isodefl (lower_map\<cdot>d) (lower_typ\<cdot>t)"
+  "isodefl d t \<Longrightarrow> isodefl (lower_map\<cdot>d) (lower_defl\<cdot>t)"
 apply (rule isodeflI)
-apply (simp add: cast_lower_typ cast_isodefl)
+apply (simp add: cast_lower_defl cast_isodefl)
 apply (simp add: emb_lower_pd_def prj_lower_pd_def)
 apply (simp add: lower_map_map)
 done
 
 lemma isodefl_convex:
-  "isodefl d t \<Longrightarrow> isodefl (convex_map\<cdot>d) (convex_typ\<cdot>t)"
+  "isodefl d t \<Longrightarrow> isodefl (convex_map\<cdot>d) (convex_defl\<cdot>t)"
 apply (rule isodeflI)
-apply (simp add: cast_convex_typ cast_isodefl)
+apply (simp add: cast_convex_defl cast_isodefl)
 apply (simp add: emb_convex_pd_def prj_convex_pd_def)
 apply (simp add: convex_map_map)
 done
