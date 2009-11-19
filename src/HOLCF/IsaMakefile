@@ -52,6 +52,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Pcpo.thy \
   Porder.thy \
   Product_Cpo.thy \
+  Representable.thy \
   Sprod.thy \
   Ssum.thy \
   Sum_Cpo.thy \
@@ -69,6 +70,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/Domain/domain_theorems.ML \
   Tools/fixrec.ML \
   Tools/pcpodef.ML \
+  Tools/repdef.ML \
   holcf_logic.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
