@@ -988,6 +988,15 @@ apply (simp add: emb_sprod_def prj_sprod_def)
 apply (simp add: sprod_map_map isodefl_strict)
 done
 
+lemma isodefl_cprod:
+  "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
+    isodefl (cprod_map\<cdot>d1\<cdot>d2) (cprod_defl\<cdot>t1\<cdot>t2)"
+apply (rule isodeflI)
+apply (simp add: cast_cprod_defl cast_isodefl)
+apply (simp add: emb_cprod_def prj_cprod_def)
+apply (simp add: cprod_map_map cfcomp1)
+done
+
 lemma isodefl_u:
   "isodefl d t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
 apply (rule isodeflI)
