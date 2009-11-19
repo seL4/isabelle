@@ -112,13 +112,13 @@ done
 (*uniqueness of GCDs*)
 lemma is_gcd_unique: "\<lbrakk> is_gcd m a b; is_gcd n a b \<rbrakk> \<Longrightarrow> m=n"
 apply (simp add: is_gcd_def);
-apply (blast intro: dvd_anti_sym)
+apply (blast intro: dvd_antisym)
 done
 
 
 text {*
-@{thm[display] dvd_anti_sym}
-\rulename{dvd_anti_sym}
+@{thm[display] dvd_antisym}
+\rulename{dvd_antisym}
 
 \begin{isabelle}
 proof\ (prove):\ step\ 1\isanewline
@@ -154,7 +154,7 @@ lemma gcd_dvd_gcd_mult: "gcd m n dvd gcd (k*m) n"
   apply (auto intro: dvd_trans [of _ m])
   done
 
-(*This is half of the proof (by dvd_anti_sym) of*)
+(*This is half of the proof (by dvd_antisym) of*)
 lemma gcd_mult_cancel: "gcd k n = 1 \<Longrightarrow> gcd (k*m) n = gcd m n"
   oops
 
