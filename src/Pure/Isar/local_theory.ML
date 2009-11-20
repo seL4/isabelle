@@ -32,7 +32,7 @@ sig
   val pretty: local_theory -> Pretty.T list
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val define: string -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+  val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
   val notes: (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -63,8 +63,7 @@ type operations =
  {pretty: local_theory -> Pretty.T list,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
-  define: string ->
-    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+  define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -185,11 +184,12 @@ fun global_morphism lthy = standard_morphism lthy (ProofContext.init (ProofConte
 (* basic operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
+fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
-val define = apsnd checkpoint ooo operation2 #define;
+val define = apsnd checkpoint oo operation1 #define;
 val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val type_syntax = checkpoint ooo operation2 #type_syntax;
 val term_syntax = checkpoint ooo operation2 #term_syntax;

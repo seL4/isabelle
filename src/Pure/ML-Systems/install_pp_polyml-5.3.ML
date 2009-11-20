@@ -3,6 +3,9 @@
 Extra toplevel pretty-printing for Poly/ML 5.3.0.
 *)
 
+PolyML.addPrettyPrinter (fn depth => fn pretty => fn var =>
+  pretty (Synchronized.value var, depth));
+
 PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
   (case Future.peek x of
     NONE => PolyML.PrettyString "<future>"

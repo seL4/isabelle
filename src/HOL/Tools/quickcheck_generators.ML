@@ -190,7 +190,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
       in
         lthy
         |> random_aux_primrec aux_eq'
-        ||>> fold_map (Local_Theory.define Thm.definitionK) proj_defs
+        ||>> fold_map Local_Theory.define proj_defs
         |-> (fn (aux_simp, proj_defs) => prove_eqs aux_simp proj_defs)
       end;
 

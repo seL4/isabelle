@@ -280,7 +280,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
       else primrec_err ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
     val (defs_thms, lthy') = lthy |>
-      fold_map (apfst (snd o snd) oo Local_Theory.define Thm.definitionK o fst) defs';
+      fold_map (apfst (snd o snd) oo Local_Theory.define o fst) defs';
     val qualify = Binding.qualify false
       (space_implode "_" (map (Long_Name.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;

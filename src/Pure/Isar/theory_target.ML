@@ -270,7 +270,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
 
 (* define *)
 
-fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
+fun define ta ((b, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
@@ -301,7 +301,7 @@ fun define ta kind ((b, mx), ((name, atts), rhs)) lthy =
 
     (*note*)
     val ([(res_name, [res])], lthy4) = lthy3
-      |> notes ta kind [((name', atts), [([def], [])])];
+      |> notes ta "" [((name', atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
 
 
