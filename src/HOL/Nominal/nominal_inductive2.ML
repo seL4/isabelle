@@ -15,9 +15,9 @@ structure NominalInductive2 : NOMINAL_INDUCTIVE2 =
 struct
 
 val inductive_forall_name = "HOL.induct_forall";
-val inductive_forall_def = thm "induct_forall_def";
-val inductive_atomize = thms "induct_atomize";
-val inductive_rulify = thms "induct_rulify";
+val inductive_forall_def = @{thm induct_forall_def};
+val inductive_atomize = @{thms induct_atomize};
+val inductive_rulify = @{thms induct_rulify};
 
 fun rulify_term thy = MetaSimplifier.rewrite_term thy inductive_rulify [];
 
