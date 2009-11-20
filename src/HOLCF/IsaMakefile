@@ -100,6 +100,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Focus_ex.thy \
   ex/Hoare.thy \
   ex/Loop.thy \
+  ex/New_Domain.thy \
   ex/Powerdomain_ex.thy \
   ex/Stream.thy \
   ex/ROOT.ML
