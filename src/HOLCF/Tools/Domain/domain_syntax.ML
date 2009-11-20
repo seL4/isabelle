@@ -196,7 +196,8 @@ fun add_syntax
   in thy''
        |> ContConsts.add_consts_i
            (maps fst ctt @ 
-            (if length eqs'>1 then [const_copy] else[])@
+            (if length eqs'>1 andalso not definitional
+             then [const_copy] else []) @
             [const_bisim])
        |> Sign.add_trrules_i (maps snd ctt)
   end; (* let *)

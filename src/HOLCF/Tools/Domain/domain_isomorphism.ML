@@ -563,12 +563,13 @@ fun gen_domain_isomorphism
     val new_dts =
       map (apsnd (map (fst o dest_TFree)) o dest_Type o fst) dom_eqns;
     val copy_arg_type = tupleT (map (fn (T, _) => T ->> T) dom_eqns);
+    val copy_arg = Free ("f", copy_arg_type);
     val copy_args =
       let fun mk_copy_args [] t = []
             | mk_copy_args (_::[]) t = [t]
             | mk_copy_args (_::xs) t =
               HOLogic.mk_fst t :: mk_copy_args xs (HOLogic.mk_snd t);
-      in mk_copy_args doms (Free ("f", copy_arg_type)) end;
+      in mk_copy_args doms copy_arg end;
     fun copy_of_dtyp (T, dt) =
         if DatatypeAux.is_rec_type dt
         then copy_of_dtyp' (T, dt)
@@ -591,7 +592,7 @@ fun gen_domain_isomorphism
         val dtyp = DatatypeAux.dtyp_of_typ new_dts rhsT;
         val body = copy_of_dtyp (rhsT, dtyp);
         val comp = mk_cfcomp (abs_const, mk_cfcomp (body, rep_const));
-        val rhs = big_lambda (Free ("f", copy_arg_type)) comp;
+        val rhs = big_lambda copy_arg comp;
         val eqn = Logic.mk_equals (copy_const, rhs);
         val ([copy_def], thy) =
           thy
@@ -603,6 +604,29 @@ fun gen_domain_isomorphism
     val ((copy_consts, copy_defs), thy) = thy
       |> fold_map define_copy (dom_binds ~~ rep_abs_consts ~~ dom_eqns)
       |>> ListPair.unzip;
+
+    (* define combined copy combinator *)
+    val ((c_const, c_def_thms), thy) =
+      if length doms = 1
+      then ((hd copy_consts, []), thy)
+      else
+        let
+          val c_type = copy_arg_type ->> copy_arg_type;
+          val c_name = space_implode "_" (map Binding.name_of dom_binds);
+          val c_bind = Binding.name (c_name ^ "_copy");
+          val c_body =
+              mk_tuple (map (mk_capply o rpair copy_arg) copy_consts);
+          val c_rhs = big_lambda copy_arg c_body;
+          val (c_const, thy) =
+            Sign.declare_const ((c_bind, c_type), NoSyn) thy;
+          val c_eqn = Logic.mk_equals (c_const, c_rhs);
+          val (c_def_thms, thy) =
+            thy
+            |> Sign.add_path c_name
+            |> (PureThy.add_defs false o map Thm.no_attributes)
+                [(Binding.name "copy_def", c_eqn)]
+            ||> Sign.parent_path;
+        in ((c_const, c_def_thms), thy) end;
 
   in
     thy
