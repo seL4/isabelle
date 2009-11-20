@@ -322,6 +322,10 @@ also the system manual.
 * The isabelle makeall tool now operates on all components with
 IsaMakefile, not just hardwired "logics".
 
+* New component "isabelle wwwfind [start|stop|status] [HEAP]"
+Provides web interface for find_theorems on HEAP. Depends on lighttpd 
+webserver being installed.
+
 * Discontinued support for Poly/ML 4.x versions.
 
 * Removed "compress" option from isabelle-process and isabelle usedir;
