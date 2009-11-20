@@ -558,6 +558,52 @@ fun gen_domain_isomorphism
     val (_, thy) = thy |>
       (PureThy.add_thms o map Thm.no_attributes)
         (map_ID_binds ~~ map_ID_thms);
+
+    (* define copy combinators *)
+    val new_dts =
+      map (apsnd (map (fst o dest_TFree)) o dest_Type o fst) dom_eqns;
+    val copy_arg_type = tupleT (map (fn (T, _) => T ->> T) dom_eqns);
+    val copy_args =
+      let fun mk_copy_args [] t = []
+            | mk_copy_args (_::[]) t = [t]
+            | mk_copy_args (_::xs) t =
+              HOLogic.mk_fst t :: mk_copy_args xs (HOLogic.mk_snd t);
+      in mk_copy_args doms (Free ("f", copy_arg_type)) end;
+    fun copy_of_dtyp (T, dt) =
+        if DatatypeAux.is_rec_type dt
+        then copy_of_dtyp' (T, dt)
+        else ID_const T
+    and copy_of_dtyp' (T, DatatypeAux.DtRec i) = nth copy_args i
+      | copy_of_dtyp' (T, DatatypeAux.DtTFree a) = ID_const T
+      | copy_of_dtyp' (T as Type (_, Ts), DatatypeAux.DtType (c, ds)) =
+        case Symtab.lookup map_tab' c of
+          SOME f =>
+          Library.foldl mk_capply
+            (Const (f, mapT T), map copy_of_dtyp (Ts ~~ ds))
+        | NONE =>
+          (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID_const T);
+    fun define_copy ((tbind, (rep_const, abs_const)), (lhsT, rhsT)) thy =
+      let
+        val copy_type = copy_arg_type ->> (lhsT ->> lhsT);
+        val copy_bind = Binding.suffix_name "_copy" tbind;
+        val (copy_const, thy) = thy |>
+          Sign.declare_const ((copy_bind, copy_type), NoSyn);
+        val dtyp = DatatypeAux.dtyp_of_typ new_dts rhsT;
+        val body = copy_of_dtyp (rhsT, dtyp);
+        val comp = mk_cfcomp (abs_const, mk_cfcomp (body, rep_const));
+        val rhs = big_lambda (Free ("f", copy_arg_type)) comp;
+        val eqn = Logic.mk_equals (copy_const, rhs);
+        val ([copy_def], thy) =
+          thy
+          |> Sign.add_path (Binding.name_of tbind)
+          |> (PureThy.add_defs false o map Thm.no_attributes)
+              [(Binding.name "copy_def", eqn)]
+          ||> Sign.parent_path;
+      in ((copy_const, copy_def), thy) end;
+    val ((copy_consts, copy_defs), thy) = thy
+      |> fold_map define_copy (dom_binds ~~ rep_abs_consts ~~ dom_eqns)
+      |>> ListPair.unzip;
+
   in
     thy
   end;

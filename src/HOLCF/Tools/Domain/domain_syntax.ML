@@ -163,10 +163,10 @@ fun calc_syntax
     val Case_trans = maps one_case_trans cons';
     end;
     end;
-    val rep_abs_consts =
-        if definitional then [] else [const_rep, const_abs];
+    val optional_consts =
+        if definitional then [] else [const_rep, const_abs, const_copy];
 
-  in (rep_abs_consts @ [const_when, const_copy] @ 
+  in (optional_consts @ [const_when] @ 
       consts_con @ consts_dis @ consts_mat @ consts_pat @ consts_sel @
       [const_take, const_finite],
       (case_trans::(abscon_trans @ Case_trans)))
