@@ -359,17 +359,11 @@ proof -
             from gcd2 have gcd4: "gcd b' a' = 1"
               by (simp add: gcd_commute_int[of a' b'])
             have one: "num dvd b'"
-              by (rule coprime_dvd_mult_int[OF gcd3], simp add: dvd_def, rule exI[of _ a'], simp add: eq2 algebra_simps)
-            have two: "b' dvd num" by (rule coprime_dvd_mult_int[OF gcd4], simp add: dvd_def, rule exI[of _ den], simp add: eq2 algebra_simps)
-            from one two
-            obtain k k' where k: "num = b' * k" and k': "b' = num * k'"
-              unfolding dvd_def by auto
-            hence "num = num * (k * k')" by (simp add: algebra_simps)
-            with num0 have prod: "k * k' = 1" by auto
-            from zero_less_mult_iff[of b' k] b'p num k have kp: "k > 0"
-              by auto
-            from prod pos_zmult_eq_1_iff[OF kp, of k'] have "k = 1" by auto
-            with k have numb': "num = b'" by auto
+              by (metis coprime_dvd_mult_int[OF gcd3] dvd_triv_right eq2)
+            have two: "b' dvd num"
+              by (metis coprime_dvd_mult_int[OF gcd4] dvd_triv_left eq2 zmult_commute)
+            from zdvd_antisym_abs[OF one two] b'p num
+            have numb': "num = b'" by auto
             with eq2 b'0 have "a' = den" by auto
             with numb' adiv bdiv Pair show ?thesis by simp
           qed
