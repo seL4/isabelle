@@ -18,7 +18,7 @@ function usage()
   echo "    status       show www and scgi port statuses"
   echo
   echo "  Options are:"
-  echo "    -l		 make log file"
+  echo "    -l           make log file"
   echo "    -c           specify lighttpd config file"
   echo "                 (default: $WWWCONFIG)"
   echo
