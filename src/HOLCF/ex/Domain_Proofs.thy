@@ -375,8 +375,8 @@ definition
     "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
        'a foo \<rightarrow> 'a foo"
 where
-  "foo_copy = Abs_CFun (\<lambda>(d1, d2, d3). foo_abs oo
-        ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>d2))
+  "foo_copy = (\<Lambda> p. foo_abs oo
+        ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(fst (snd p))))
           oo foo_rep)"
 
 definition
@@ -384,16 +384,16 @@ definition
     "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
        'a bar \<rightarrow> 'a bar"
 where
-  "bar_copy = Abs_CFun (\<lambda>(d1, d2, d3). bar_abs oo
-        sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>d3) oo bar_rep)"
+  "bar_copy = (\<Lambda> p. bar_abs oo
+        u_map\<cdot>(cfun_map\<cdot>(snd (snd p))\<cdot>ID) oo bar_rep)"
 
 definition
   baz_copy ::
     "('a foo \<rightarrow> 'a foo) \<times> ('a bar \<rightarrow> 'a bar) \<times> ('a baz \<rightarrow> 'a baz) \<rightarrow>
        'a baz \<rightarrow> 'a baz"
 where
-  "baz_copy = Abs_CFun (\<lambda>(d1, d2, d3). baz_abs oo
-        sprod_map\<cdot>(u_map\<cdot>ID)\<cdot>(u_map\<cdot>(convex_map\<cdot>d1)) oo baz_rep)"
+  "baz_copy = (\<Lambda> p. baz_abs oo
+        u_map\<cdot>(cfun_map\<cdot>(convex_map\<cdot>(fst p))\<cdot>ID) oo baz_rep)"
 
 definition
   foo_bar_baz_copy ::
@@ -408,10 +408,9 @@ unfolding foo_map_def bar_map_def baz_map_def
 apply (subst beta_cfun, simp)+
 apply (subst pair_collapse)+
 apply (rule cfun_arg_cong)
+unfolding foo_bar_baz_mapF_def split_def
 unfolding foo_bar_baz_copy_def
 unfolding foo_copy_def bar_copy_def baz_copy_def
-unfolding foo_bar_baz_mapF_def
-unfolding split_def
 apply (subst beta_cfun, simp)+
 apply (rule refl)
 done
