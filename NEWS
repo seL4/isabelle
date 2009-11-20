@@ -252,6 +252,43 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
 * Lemma name change: replaced "anti_sym" by "antisym" everywhere.
 
 
+*** HOLCF ***
+
+* Theory 'Representable.thy' defines a class 'rep' of domains that are
+representable (via an ep-pair) in the universal domain type 'udom'.
+Instances are provided for all type constructors defined in HOLCF.
+
+* The 'new_domain' command is a purely definitional version of the
+domain package, for representable domains.  Syntax is identical to the
+old domain package.  The 'new_domain' package also supports indirect
+recursion using previously-defined type constructors.  See
+HOLCF/ex/New_Domain.thy for examples.
+
+* Method 'fixrec_simp' unfolds one step of a fixrec-defined constant
+on the left-hand side of an equation, and then performs
+simplification.  Rewriting is done using rules declared with the
+'fixrec_simp' attribute.  The 'fixrec_simp' method is intended as a
+replacement for 'fixpat'; see HOLCF/ex/Fixrec_ex.thy for examples.
+
+* The pattern-match compiler in 'fixrec' can now handle constructors
+with HOL function types.  Pattern-match combinators for the Pair
+constructor are pre-configured.
+
+* The 'fixrec' package now produces better fixed-point induction rules
+for mutually-recursive definitions:  Induction rules have conclusions
+of the form "P foo bar" instead of "P <foo, bar>".
+
+* The constant "sq_le" (with infix syntax "<<" or "\<sqsubseteq>") has
+been renamed to "below".  The name "below" now replaces "less" in many
+theorem names.  (Legacy theorem names using "less" are still
+supported as well.)
+
+* The 'fixrec' package now supports "bottom patterns".  Bottom
+patterns can be used to generate strictness rules, or to make
+functions more strict (much like the bang-patterns supported by the
+Glasgow Haskell Compiler).  See HOLCF/ex/Fixrec_ex.thy for examples.
+
+
 *** ML ***
 
 * Theory and context data is now introduced by the simplified and
