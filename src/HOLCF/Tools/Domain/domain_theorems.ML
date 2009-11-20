@@ -998,7 +998,7 @@ in (* local *)
       handle THM _ =>
              (warning "Induction proofs failed (THM raised)."; ([], TrueI))
            | ERROR _ =>
-             (warning "Induction proofs failed (ERROR raised)."; ([], TrueI));
+             (warning "Cannot prove induction rule"; ([], TrueI));
 
 
 end; (* local *)
