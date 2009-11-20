@@ -1,0 +1,7 @@
+# the path to lighttpd
+LIGHTTPD="/usr/sbin/lighttpd"
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+
+WWWFINDDIR="$COMPONENT"
+WWWCONFIG="$WWWFINDDIR/lighttpd.conf"
