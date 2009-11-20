@@ -471,6 +471,9 @@ unfolding lower_join_def by simp
 lemma lower_map_ident: "lower_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: lower_pd_induct, simp_all)
 
+lemma lower_map_ID: "lower_map\<cdot>ID = ID"
+by (simp add: expand_cfun_eq ID_def lower_map_ident)
+
 lemma lower_map_map:
   "lower_map\<cdot>f\<cdot>(lower_map\<cdot>g\<cdot>xs) = lower_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
 by (induct xs rule: lower_pd_induct, simp_all)

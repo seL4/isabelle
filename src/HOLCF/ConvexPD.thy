@@ -495,6 +495,9 @@ unfolding convex_join_def by simp
 lemma convex_map_ident: "convex_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: convex_pd_induct, simp_all)
 
+lemma convex_map_ID: "convex_map\<cdot>ID = ID"
+by (simp add: expand_cfun_eq ID_def convex_map_ident)
+
 lemma convex_map_map:
   "convex_map\<cdot>f\<cdot>(convex_map\<cdot>g\<cdot>xs) = convex_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
 by (induct xs rule: convex_pd_induct, simp_all)

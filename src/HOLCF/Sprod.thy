@@ -245,6 +245,9 @@ lemma sprod_map_spair [simp]:
   "x \<noteq> \<bottom> \<Longrightarrow> y \<noteq> \<bottom> \<Longrightarrow> sprod_map\<cdot>f\<cdot>g\<cdot>(:x, y:) = (:f\<cdot>x, g\<cdot>y:)"
 by (simp add: sprod_map_def)
 
+lemma sprod_map_ID: "sprod_map\<cdot>ID\<cdot>ID = ID"
+unfolding sprod_map_def by (simp add: expand_cfun_eq eta_cfun)
+
 lemma sprod_map_map:
   "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
     sprod_map\<cdot>f1\<cdot>g1\<cdot>(sprod_map\<cdot>f2\<cdot>g2\<cdot>p) =
