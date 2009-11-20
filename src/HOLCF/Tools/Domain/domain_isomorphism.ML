@@ -11,7 +11,7 @@ sig
   val domain_isomorphism_cmd:
     (string list * binding * mixfix * string) list -> theory -> theory
   val add_type_constructor:
-    (string * term * string * thm  * thm) -> theory -> theory
+    (string * term * string * thm  * thm * thm) -> theory -> theory
   val get_map_tab:
     theory -> string Symtab.table
 end;
@@ -63,12 +63,21 @@ structure IsodeflData = Theory_Data
   val merge = Thm.merge_thms;
 );
 
+structure MapIdData = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  val merge = Thm.merge_thms;
+);
+
 fun add_type_constructor
-  (tname, defl_const, map_name, REP_thm, isodefl_thm) =
+  (tname, defl_const, map_name, REP_thm, isodefl_thm, map_ID_thm) =
     DeflData.map (Symtab.insert (K true) (tname, defl_const))
     #> MapData.map (Symtab.insert (K true) (tname, map_name))
     #> RepData.map (Thm.add_thm REP_thm)
-    #> IsodeflData.map (Thm.add_thm isodefl_thm);
+    #> IsodeflData.map (Thm.add_thm isodefl_thm)
+    #> MapIdData.map (Thm.add_thm map_ID_thm);
 
 val get_map_tab = MapData.get;
 
@@ -558,6 +567,7 @@ fun gen_domain_isomorphism
     val (_, thy) = thy |>
       (PureThy.add_thms o map Thm.no_attributes)
         (map_ID_binds ~~ map_ID_thms);
+    val thy = MapIdData.map (fold Thm.add_thm map_ID_thms) thy;
 
     (* define copy combinators *)
     val new_dts =
@@ -568,7 +578,7 @@ fun gen_domain_isomorphism
       let fun mk_copy_args [] t = []
             | mk_copy_args (_::[]) t = [t]
             | mk_copy_args (_::xs) t =
-              HOLogic.mk_fst t :: mk_copy_args xs (HOLogic.mk_snd t);
+                mk_fst t :: mk_copy_args xs (mk_snd t);
       in mk_copy_args doms copy_arg end;
     fun copy_of_dtyp (T, dt) =
         if DatatypeAux.is_rec_type dt
@@ -627,6 +637,46 @@ fun gen_domain_isomorphism
                 [(Binding.name "copy_def", c_eqn)]
             ||> Sign.parent_path;
         in ((c_const, c_def_thms), thy) end;
+
+    (* fixed-point lemma for combined copy combinator *)
+    val fix_copy_lemma =
+      let
+        fun mk_map_ID (map_const, (Type (c, Ts), rhsT)) =
+          Library.foldl mk_capply (map_const, map ID_const Ts);
+        val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns));
+        val goal = mk_eqs (mk_fix c_const, rhs);
+        val rules =
+          [@{thm pair_collapse}, @{thm split_def}]
+          @ map_apply_thms
+          @ c_def_thms @ copy_defs
+          @ MapIdData.get thy;
+        val tac = simp_tac (beta_ss addsimps rules) 1;
+      in
+        Goal.prove_global thy [] [] goal (K tac)
+      end;
+
+    (* prove reach lemmas *)
+    val reach_thm_projs =
+      let fun mk_projs (x::[]) t = [(x, t)]
+            | mk_projs (x::xs) t = (x, mk_fst t) :: mk_projs xs (mk_snd t);
+      in mk_projs dom_binds (mk_fix c_const) end;
+    fun prove_reach_thm (((bind, t), map_ID_thm), (lhsT, rhsT)) thy =
+      let
+        val x = Free ("x", lhsT);
+        val goal = mk_eqs (mk_capply (t, x), x);
+        val rules =
+          fix_copy_lemma :: map_ID_thm :: @{thms fst_conv snd_conv ID1};
+        val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
+        val reach_thm = Goal.prove_global thy [] [] goal (K tac);
+      in
+        thy
+        |> Sign.add_path (Binding.name_of bind)
+        |> yield_singleton (PureThy.add_thms o map Thm.no_attributes)
+            (Binding.name "reach", reach_thm)
+        ||> Sign.parent_path
+      end;
+    val (reach_thms, thy) = thy |>
+      fold_map prove_reach_thm (reach_thm_projs ~~ map_ID_thms ~~ dom_eqns);
 
   in
     thy

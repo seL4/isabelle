@@ -150,7 +150,7 @@ fun calc_axioms
                    mk_ex("n",(%%:(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
 
   in (dnam,
-      (if definitional then [reach_ax] else [abs_iso_ax, rep_iso_ax, reach_ax]),
+      (if definitional then [] else [abs_iso_ax, rep_iso_ax, reach_ax]),
       (if definitional then [when_def] else [when_def, copy_def]) @
       con_defs @ dis_defs @ mat_defs @ pat_defs @ sel_defs @
       [take_def, finite_def])

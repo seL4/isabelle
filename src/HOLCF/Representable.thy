@@ -1038,28 +1038,28 @@ use "Tools/Domain/domain_isomorphism.ML"
 setup {*
   fold Domain_Isomorphism.add_type_constructor
     [(@{type_name "->"}, @{term cfun_defl}, @{const_name cfun_map},
-        @{thm REP_cfun}, @{thm isodefl_cfun}),
+        @{thm REP_cfun}, @{thm isodefl_cfun}, @{thm cfun_map_ID}),
 
      (@{type_name "++"}, @{term ssum_defl}, @{const_name ssum_map},
-        @{thm REP_ssum}, @{thm isodefl_ssum}),
+        @{thm REP_ssum}, @{thm isodefl_ssum}, @{thm ssum_map_ID}),
 
      (@{type_name "**"}, @{term sprod_defl}, @{const_name sprod_map},
-        @{thm REP_sprod}, @{thm isodefl_sprod}),
+        @{thm REP_sprod}, @{thm isodefl_sprod}, @{thm sprod_map_ID}),
 
      (@{type_name "*"}, @{term cprod_defl}, @{const_name cprod_map},
-        @{thm REP_cprod}, @{thm isodefl_cprod}),
+        @{thm REP_cprod}, @{thm isodefl_cprod}, @{thm cprod_map_ID}),
 
      (@{type_name "u"}, @{term u_defl}, @{const_name u_map},
-        @{thm REP_up}, @{thm isodefl_u}),
+        @{thm REP_up}, @{thm isodefl_u}, @{thm u_map_ID}),
 
      (@{type_name "upper_pd"}, @{term upper_defl}, @{const_name upper_map},
-        @{thm REP_upper}, @{thm isodefl_upper}),
+        @{thm REP_upper}, @{thm isodefl_upper}, @{thm upper_map_ID}),
 
      (@{type_name "lower_pd"}, @{term lower_defl}, @{const_name lower_map},
-        @{thm REP_lower}, @{thm isodefl_lower}),
+        @{thm REP_lower}, @{thm isodefl_lower}, @{thm lower_map_ID}),
 
      (@{type_name "convex_pd"}, @{term convex_defl}, @{const_name convex_map},
-        @{thm REP_convex}, @{thm isodefl_convex})]
+        @{thm REP_convex}, @{thm isodefl_convex}, @{thm convex_map_ID})]
 *}
 
 end
