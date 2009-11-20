@@ -12,6 +12,8 @@ sig
     (string list * binding * mixfix * string) list -> theory -> theory
   val add_type_constructor:
     (string * term * string * thm  * thm) -> theory -> theory
+  val get_map_tab:
+    theory -> string Symtab.table
 end;
 
 structure Domain_Isomorphism :> DOMAIN_ISOMORPHISM =
@@ -67,6 +69,8 @@ fun add_type_constructor
     #> MapData.map (Symtab.insert (K true) (tname, map_name))
     #> RepData.map (Thm.add_thm REP_thm)
     #> IsodeflData.map (Thm.add_thm isodefl_thm);
+
+val get_map_tab = MapData.get;
 
 
 (******************************************************************************)

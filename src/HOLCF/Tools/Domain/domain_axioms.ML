@@ -6,10 +6,11 @@ Syntax generator for domain command.
 
 signature DOMAIN_AXIOMS =
 sig
-  val copy_of_dtyp : (int -> term) -> Datatype.dtyp -> term
+  val copy_of_dtyp :
+      string Symtab.table -> (int -> term) -> Datatype.dtyp -> term
 
   val calc_axioms :
-      bool ->
+      bool -> string Symtab.table ->
       string -> Domain_Library.eq list -> int -> Domain_Library.eq ->
       string * (string * term) list * (string * term) list
 
@@ -36,16 +37,18 @@ val copy_tab : string Symtab.table =
                  (@{type_name "*"}, @{const_name "cprod_map"}),
                  (@{type_name "u"}, @{const_name "u_map"})];
 
-fun copy_of_dtyp r dt = if DatatypeAux.is_rec_type dt then copy r dt else ID
-and copy r (DatatypeAux.DtRec i) = r i
-  | copy r (DatatypeAux.DtTFree a) = ID
-  | copy r (DatatypeAux.DtType (c, ds)) =
-    case Symtab.lookup copy_tab c of
-      SOME f => list_ccomb (%%:f, map (copy_of_dtyp r) ds)
+fun copy_of_dtyp tab r dt =
+    if DatatypeAux.is_rec_type dt then copy tab r dt else ID
+and copy tab r (DatatypeAux.DtRec i) = r i
+  | copy tab r (DatatypeAux.DtTFree a) = ID
+  | copy tab r (DatatypeAux.DtType (c, ds)) =
+    case Symtab.lookup tab c of
+      SOME f => list_ccomb (%%:f, map (copy_of_dtyp tab r) ds)
     | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
 
 fun calc_axioms
     (definitional : bool)
+    (map_tab : string Symtab.table)
     (comp_dname : string)
     (eqs : eq list)
     (n : int)
@@ -65,13 +68,15 @@ fun calc_axioms
     val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
 
     val when_def = ("when_def",%%:(dname^"_when") == 
-                              List.foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
-                                                                                      Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
-          
+        List.foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
+          Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
+
     val copy_def =
-        let fun r i = proj (Bound 0) eqs i;
-        in ("copy_def", %%:(dname^"_copy") ==
-                        /\ "f" (dc_abs oo (copy_of_dtyp r (dtyp_of_eq eqn)) oo dc_rep)) end;
+      let fun r i = proj (Bound 0) eqs i;
+      in
+        ("copy_def", %%:(dname^"_copy") == /\ "f"
+          (dc_abs oo (copy_of_dtyp map_tab r (dtyp_of_eq eqn)) oo dc_rep))
+      end;
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
 
@@ -231,8 +236,10 @@ fun add_axioms definitional comp_dnam (eqs : eq list) thy' =
           #> add_axioms_infer axs
           #> Sign.parent_path;
 
+    val map_tab = Domain_Isomorphism.get_map_tab thy';
+
     val thy = thy'
-      |> fold add_one (mapn (calc_axioms definitional comp_dname eqs) 0 eqs);
+      |> fold add_one (mapn (calc_axioms definitional map_tab comp_dname eqs) 0 eqs);
 
   in
     thy
