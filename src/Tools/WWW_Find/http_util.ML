@@ -1,8 +1,9 @@
-(*  Title:      http_util.ML
+(*  Title:      Tools/WWW_Find/http_util.ML
     Author:     Timothy Bourke, NICTA
 
 Rudimentary utility functions for HTTP.
 *)
+
 signature HTTP_UTIL =
 sig
   val crlf : string

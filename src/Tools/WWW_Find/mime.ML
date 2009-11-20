@@ -1,4 +1,4 @@
-(*  Title:      mime_types.ML
+(*  Title:      Tools/WWW_Find/mime.ML
     Author:     Timothy Bourke, NICTA
 
 Rudimentary support for mime_types.

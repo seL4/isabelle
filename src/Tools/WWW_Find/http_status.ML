@@ -1,8 +1,9 @@
-(*  Title:      http_status.ML
+(*  Title:      Tools/WWW_Find/http_status.ML
     Author:     Timothy Bourke, NICTA
 
 HTTP status codes and reasons.
 *)
+
 signature HTTP_STATUS =
 sig
   type t

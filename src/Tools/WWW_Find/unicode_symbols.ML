@@ -1,7 +1,7 @@
-(*  Title:      Pure/Thy/unicode_symbols.ML
+(*  Title:      Tools/WWW_Find/unicode_symbols.ML
     Author:     Timothy Bourke, NICTA
 
-Parse the etc/symbols file.
+Parse the ISABELLE_HOME/etc/symbols file.
 *)
 
 signature UNICODE_SYMBOLS =
@@ -14,7 +14,7 @@ val utf8_to_symbols   : string -> string
 val utf8              : int list -> string
 end;
 
-structure UnicodeSymbols (*: UNICODE_SYMBOLS*) =
+structure UnicodeSymbols : UNICODE_SYMBOLS =
 struct
 
 local (* Lexer *)

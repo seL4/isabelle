@@ -1,7 +1,7 @@
-(*  Title:      find_theorems.ML
+(*  Title:      Tools/WWW_Find/find_theorems.ML
     Author:     Timothy Bourke, NICTA
 
-    Simple find_theorems server
+Simple find_theorems server.
 *)
 
 local

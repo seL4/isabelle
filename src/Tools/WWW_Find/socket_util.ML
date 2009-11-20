@@ -1,4 +1,4 @@
-(*  Title:      socket_util.ML
+(*  Title:      Tools/WWW_Find/socket_util.ML
     Author:     Emden R. Gansner and John H. Reppy
                 SML Basis Library, section 10
 

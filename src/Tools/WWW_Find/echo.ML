@@ -1,7 +1,7 @@
-(*  Title:      echo.ML
+(*  Title:      Tools/WWW_Find/echo.ML
     Author:     Timothy Bourke, NICTA
 
-    Install simple echo server.
+Install simple echo server.
 *)
 
 local

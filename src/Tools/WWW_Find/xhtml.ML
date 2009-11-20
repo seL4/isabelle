@@ -1,8 +1,9 @@
-(*  Title:      xhtml.ML
+(*  Title:      Tools/WWW_Find/xhtml.ML
     Author:     Timothy Bourke, NICTA
 
 Rudimentary XHTML construction.
 *)
+
 signature XHTML =
 sig
   type attribute
