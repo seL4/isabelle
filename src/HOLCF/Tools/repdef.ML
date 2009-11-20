@@ -172,7 +172,7 @@ fun mk_repdef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
     ((def, the_default (Binding.map_name (Syntax.type_name mx) t) opt_name), (t, vs, mx), A, morphs);
 
 val _ =
-  OuterSyntax.command "repdef" "HOLCF definition of representable domains" K.thy_goal
+  OuterSyntax.command "repdef" "HOLCF definition of representable domains" K.thy_decl
     (repdef_decl >>
       (Toplevel.print oo (Toplevel.theory o mk_repdef)));
 
