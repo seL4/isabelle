@@ -121,8 +121,12 @@ fun gen_add_repdef
     val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy3);
     val [emb_def, prj_def, approx_def] =
       ProofContext.export lthy3 ctxt_thy [emb_ldef, prj_ldef, approx_ldef];
+    val type_definition_thm =
+      MetaSimplifier.rewrite_rule
+        (the_list (#set_def info))
+        (#type_definition info);
     val typedef_thms =
-      [#type_definition info, #below_def cpo_info, emb_def, prj_def, approx_def];
+      [type_definition_thm, #below_def cpo_info, emb_def, prj_def, approx_def];
     val thy4 = lthy3
       |> Class.prove_instantiation_instance
           (K (Tactic.rtac (@{thm typedef_rep_class} OF typedef_thms) 1))
@@ -130,7 +134,7 @@ fun gen_add_repdef
 
     (*other theorems*)
     val typedef_thms' = map (Thm.transfer thy4)
-      [#type_definition info, #below_def cpo_info, emb_def, prj_def];
+      [type_definition_thm, #below_def cpo_info, emb_def, prj_def];
     val ([REP_thm], thy5) = thy4
       |> Sign.add_path (Binding.name_of name)
       |> PureThy.add_thms
