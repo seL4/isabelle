@@ -98,9 +98,8 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type local_theory: Proof.context} \\
   @{index_ML Theory_Target.init: "string option -> theory -> local_theory"} \\[1ex]
-  @{index_ML Local_Theory.define: "string ->
-    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
-    (term * (string * thm)) * local_theory"} \\
+  @{index_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
+    local_theory -> (term * (string * thm)) * local_theory"} \\
   @{index_ML Local_Theory.note: "Attrib.binding * thm list ->
     local_theory -> (string * thm list) * local_theory"} \\
   \end{mldecls}
@@ -123,7 +122,7 @@ text %mlref {*
   --- normally the Isar toplevel already takes care to initialize the
   local theory context.
 
-  \item @{ML Local_Theory.define}~@{text "kind ((b, mx), (a, rhs))
+  \item @{ML Local_Theory.define}~@{text "((b, mx), (a, rhs))
   lthy"} defines a local entity according to the specification that is
   given relatively to the current @{text "lthy"} context.  In
   particular the term of the RHS may refer to earlier local entities
@@ -142,10 +141,6 @@ text %mlref {*
   for example).  This means that attributes should be usually plain
   declarations such as @{attribute simp}, while non-trivial rules like
   @{attribute simplified} are better avoided.
-
-  The @{text kind} determines the theorem kind tag of the resulting
-  fact.  Typical examples are @{ML Thm.definitionK} or @{ML
-  Thm.theoremK}.
 
   \item @{ML Local_Theory.note}~@{text "(a, ths) lthy"} is
   analogous to @{ML Local_Theory.define}, but defines facts instead of
