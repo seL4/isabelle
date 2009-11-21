@@ -33,6 +33,18 @@ function fail()
   exit 2
 }
 
+function checkplatform()
+{
+  PLAT=$(uname -s)
+  case "$PLAT" in
+    Linux)
+      ;;
+    *)
+      fail "Platform $PLAT currently not supported by $PRG component."
+      ;;
+  esac
+}
+
 function kill_by_port () {
   IPADDR='[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*'
   PID=$(netstat -nltp 2>/dev/null \
@@ -45,6 +57,10 @@ function kill_by_port () {
 function show_socket_status () {
   netstat -latp 2>/dev/null | grep ":$1 "
 }
+
+## platform support check
+
+checkplatform
 
 ## process command line
 
