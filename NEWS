@@ -361,7 +361,7 @@ IsaMakefile, not just hardwired "logics".
 
 * New component "isabelle wwwfind [start|stop|status] [HEAP]"
 Provides web interface for find_theorems on HEAP. Depends on lighttpd 
-webserver being installed.
+webserver being installed. Currently supported on Linux only.
 
 * Discontinued support for Poly/ML 4.x versions.
 
