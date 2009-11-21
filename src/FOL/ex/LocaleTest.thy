@@ -195,7 +195,6 @@ locale logic_def =
 begin
 
 thm lor_def
-(* Can we get rid the the additional hypothesis, caused by Local_Theory.notes? *)
 
 lemma "x || y = --(-- x && --y)"
   by (unfold lor_def) (rule refl)
