@@ -44,10 +44,10 @@ sig
   val strip_sorts: typ -> typ
   val no_tvars: typ -> typ
   val varify: (string * sort) list -> term -> ((string * sort) * indexname) list * term
-  val freeze_thaw_type: typ -> typ * (typ -> typ)
-  val freeze_type: typ -> typ
-  val freeze_thaw: term -> term * (term -> term)
-  val freeze: term -> term
+  val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
+  val legacy_freeze_type: typ -> typ
+  val legacy_freeze_thaw: term -> term * (term -> term)
+  val legacy_freeze: term -> term
 
   (*matching and unification*)
   exception TYPE_MATCH
@@ -277,17 +277,16 @@ fun thaw_one alist (a, sort) = TVar (the (AList.lookup (op =) alist a), sort)
 
 in
 
-(*this sort of code could replace unvarifyT*)
-fun freeze_thaw_type T =
+fun legacy_freeze_thaw_type T =
   let
     val used = OldTerm.add_typ_tfree_names (T, [])
     and tvars = map #1 (OldTerm.add_typ_tvars (T, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
-val freeze_type = #1 o freeze_thaw_type;
+val legacy_freeze_type = #1 o legacy_freeze_thaw_type;
 
-fun freeze_thaw t =
+fun legacy_freeze_thaw t =
   let
     val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
     and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
@@ -299,7 +298,7 @@ fun freeze_thaw t =
       map_types (map_type_tfree (thaw_one (map swap alist)))))
   end;
 
-val freeze = #1 o freeze_thaw;
+val legacy_freeze = #1 o legacy_freeze_thaw;
 
 end;
 

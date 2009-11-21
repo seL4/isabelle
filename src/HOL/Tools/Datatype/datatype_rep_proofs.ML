@@ -365,7 +365,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       let
         val prop = Thm.prop_of thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
-          (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
+          (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.legacy_freeze prop;
         val used = OldTerm.add_term_tfree_names (a, []);
 
         fun mk_thm i =

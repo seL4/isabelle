@@ -1267,7 +1267,7 @@ val varifyT = #2 o varifyT' [];
 fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
   let
     val prop1 = attach_tpairs tpairs prop;
-    val prop2 = Type.freeze prop1;
+    val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
     Thm (deriv_rule1 (Pt.freezeT prop1) der,

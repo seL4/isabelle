@@ -310,7 +310,7 @@ fun prep_realizer thy =
       val vars' = filter_out (fn v =>
         member (op =) rtypes (tname_of (body_type (fastype_of v)))) vars;
       val T = etype_of thy' vs [] prop;
-      val (T', thw) = Type.freeze_thaw_type
+      val (T', thw) = Type.legacy_freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
       val t = map_types thw (OldGoals.simple_read_term thy' T' s1);
       val r' = freeze_thaw (condrew thy' eqns
@@ -720,8 +720,8 @@ fun extract thms thy =
          NONE =>
            let
              val corr_prop = Reconstruct.prop_of prf;
-             val ft = Type.freeze t;
-             val fu = Type.freeze u;
+             val ft = Type.legacy_freeze t;
+             val fu = Type.legacy_freeze u;
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
                |> Sign.add_consts_i [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]

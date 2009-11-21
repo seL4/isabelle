@@ -45,7 +45,7 @@ fun unify_consts thy cs intr_ts =
       let val consts = map snd (filter (fn (c, _) => c = cname) intr_consts)
       in fold (Sign.typ_unify thy) ((replicate (length consts) cT) ~~ consts) end;
     val (env, _) = fold unify rec_consts (Vartab.empty, i');
-    val subst = Type.freeze o map_types (Envir.norm_type env)
+    val subst = Type.legacy_freeze o map_types (Envir.norm_type env)
 
   in (map subst cs', map subst intr_ts')
   end) handle Type.TUNIFY =>
