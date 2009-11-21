@@ -383,7 +383,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
 
     val res = Conjunction.intr_balanced (map_index project branches)
                  |> fold_rev implies_intr (map cprop_of newgoals @ steps)
-                 |> (fn thm => Thm.generalize ([], [Rn]) (Thm.maxidx_of thm + 1) thm)
+                 |> Drule.generalize ([], [Rn])
 
     val nbranches = length branches
     val npres = length pres

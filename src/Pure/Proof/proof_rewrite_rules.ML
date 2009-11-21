@@ -6,8 +6,9 @@ Simplification functions for proof terms involving meta level rules.
 
 signature PROOF_REWRITE_RULES =
 sig
-  val rew : bool -> typ list -> Proofterm.proof -> Proofterm.proof option
-  val rprocs : bool -> (typ list -> Proofterm.proof -> Proofterm.proof option) list
+  val rew : bool -> typ list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option
+  val rprocs : bool ->
+    (typ list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option) list
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
   val elim_defs : theory -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
@@ -183,7 +184,7 @@ fun rew b _ =
         end
 
       | rew' _ = NONE;
-  in rew' end;
+  in rew' #> Option.map (rpair no_skel) end;
 
 fun rprocs b = [rew b];
 val _ = Context.>> (Context.map_theory (fold Proofterm.add_prf_rproc (rprocs false)));

@@ -342,9 +342,6 @@ lemma abs_ln_one_plus_x_minus_x_bound:
   apply auto
 done
 
-lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
-  by (rule DERIV_ln[THEN DERIV_cong], simp, simp add: divide_inverse)
-
 lemma ln_x_over_x_mono: "exp 1 <= x ==> x <= y ==> (ln y / y) <= (ln x / x)"  
 proof -
   assume "exp 1 <= x" and "x <= y"

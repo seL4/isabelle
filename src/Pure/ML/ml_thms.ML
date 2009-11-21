@@ -53,15 +53,14 @@ val by = Args.$$$ "by";
 val goal = Scan.unless (by || and_) Args.name;
 
 val _ = ML_Context.add_antiq "lemma"
-  (fn pos => Args.context -- Args.mode "open" --
+  (fn _ => Args.context -- Args.mode "open" --
       Scan.lift (OuterParse.and_list1 (Scan.repeat1 goal) --
         (by |-- Method.parse -- Scan.option Method.parse)) >>
     (fn ((ctxt, is_open), (raw_propss, methods)) => fn {struct_name, background} =>
       let
         val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
         val i = serial ();
-        val prep_result =
-          Goal.norm_result #> Thm.default_position pos #> not is_open ? Thm.close_derivation;
+        val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
         fun after_qed res goal_ctxt =
           put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt (flat res))) goal_ctxt;
         val ctxt' = ctxt

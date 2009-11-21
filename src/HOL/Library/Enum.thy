@@ -10,7 +10,7 @@ subsection {* Class @{text enum} *}
 
 class enum =
   fixes enum :: "'a list"
-  assumes UNIV_enum [code]: "UNIV = set enum"
+  assumes UNIV_enum: "UNIV = set enum"
     and enum_distinct: "distinct enum"
 begin
 
@@ -72,7 +72,7 @@ lemma n_lists_Nil [simp]: "n_lists n [] = (if n = 0 then [[]] else [])"
   by (induct n) simp_all
 
 lemma length_n_lists: "length (n_lists n xs) = length xs ^ n"
-  by (induct n) (auto simp add: length_concat map_compose [symmetric] o_def listsum_triv)
+  by (induct n) (auto simp add: length_concat o_def listsum_triv)
 
 lemma length_n_lists_elem: "ys \<in> set (n_lists n xs) \<Longrightarrow> length ys = n"
   by (induct n arbitrary: ys) auto
@@ -113,10 +113,6 @@ proof (rule card_distinct)
   finally show "card (set (n_lists n xs)) = length (n_lists n xs)"
     by (simp add: length_n_lists)
 qed
-
-lemma map_of_zip_map: (*FIXME move to Map.thy*)
-  "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
-  by (induct xs) (simp_all add: expand_fun_eq)
 
 lemma map_of_zip_enum_is_Some:
   assumes "length ys = length (enum \<Colon> 'a\<Colon>enum list)"
@@ -250,7 +246,7 @@ proof -
     by (auto simp add: image_def)
   have "set (map set (sublists xs)) = Pow (set xs)"
     by (induct xs)
-      (simp_all add: aux Let_def Pow_insert Un_commute)
+      (simp_all add: aux Let_def Pow_insert Un_commute comp_def del: map_map)
   then show ?thesis by simp
 qed
 

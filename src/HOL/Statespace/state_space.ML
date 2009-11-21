@@ -155,13 +155,13 @@ fun add_locale name expr elems thy =
   thy 
   |> Expression.add_locale (Binding.name name) (Binding.name name) expr elems
   |> snd
-  |> LocalTheory.exit;
+  |> Local_Theory.exit;
 
 fun add_locale_cmd name expr elems thy =
   thy 
   |> Expression.add_locale_cmd (Binding.name name) Binding.empty expr elems
   |> snd
-  |> LocalTheory.exit;
+  |> Local_Theory.exit;
 
 type statespace_info =
  {args: (string * sort) list, (* type arguments *)
@@ -350,8 +350,8 @@ val no_syn = #3 (Syntax.no_syn ((),()));
 fun add_declaration name decl thy =
   thy
   |> Theory_Target.init name
-  |> (fn lthy => LocalTheory.declaration false (decl lthy) lthy)
-  |> LocalTheory.exit_global;
+  |> (fn lthy => Local_Theory.declaration false (decl lthy) lthy)
+  |> Local_Theory.exit_global;
 
 fun parent_components thy (Ts, pname, renaming) =
   let
@@ -430,7 +430,7 @@ fun statespace_definition state_type args name parents parent_comps components t
           let
             fun upd (n,v) =
               let
-                val nT = ProofContext.infer_type (LocalTheory.target_of lthy) n
+                val nT = ProofContext.infer_type (Local_Theory.target_of lthy) n
               in Context.proof_map
                   (update_declinfo (Morphism.term phi (Free (n,nT)),v))
               end;

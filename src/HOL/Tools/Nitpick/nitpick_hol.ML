@@ -7,6 +7,7 @@ Auxiliary HOL-related functions used by Nitpick.
 
 signature NITPICK_HOL =
 sig
+  type styp = Nitpick_Util.styp
   type const_table = term list Symtab.table
   type special_fun = (styp * int list * term list) * styp
   type unrolled = styp * styp
@@ -189,8 +190,8 @@ structure Data = Theory_Data(
   val extend = I
   fun merge ({frac_types = fs1, codatatypes = cs1},
                {frac_types = fs2, codatatypes = cs2}) : T =
-    {frac_types = AList.merge (op =) (op =) (fs1, fs2),
-     codatatypes = AList.merge (op =) (op =) (cs1, cs2)})
+    {frac_types = AList.merge (op =) (K true) (fs1, fs2),
+     codatatypes = AList.merge (op =) (K true) (cs1, cs2)})
 
 (* term * term -> term *)
 fun s_conj (t1, @{const True}) = t1
@@ -1044,7 +1045,7 @@ fun all_axioms_of thy =
     (* theory list -> term list *)
     val axioms_of_thys = maps Thm.axioms_of #> map (apsnd prop_of)
     val specs = Defs.all_specifications_of (Theory.defs_of thy)
-    val def_names = specs |> maps snd |> filter #is_def |> map #name
+    val def_names = specs |> maps snd |> map_filter #def
                     |> OrdList.make fast_string_ord
     val thys = thy :: Theory.ancestors_of thy
     val (built_in_thys, user_thys) = List.partition is_built_in_theory thys
@@ -1108,13 +1109,13 @@ fun def_props_for_const thy fast_descrs table (x as (s, _)) =
     |> map_filter (try (Refute.specialize_type thy x))
     |> filter (equal (Const x) o term_under_def)
 
-(* term -> term *)
+(* theory -> term -> term option *)
 fun normalized_rhs_of thy t =
   let
-    (* term -> term *)
-    fun aux (v as Var _) t = lambda v t
-      | aux (c as Const (@{const_name TYPE}, T)) t = lambda c t
-      | aux _ _ = raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
+    (* term option -> term option *)
+    fun aux (v as Var _) (SOME t) = SOME (lambda v t)
+      | aux (c as Const (@{const_name TYPE}, T)) (SOME t) = SOME (lambda c t)
+      | aux _ _ = NONE
     val (lhs, rhs) =
       case t of
         Const (@{const_name "=="}, _) $ t1 $ t2 => (t1, t2)
@@ -1122,7 +1123,7 @@ fun normalized_rhs_of thy t =
         (t1, t2)
       | _ => raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
     val args = strip_comb lhs |> snd
-  in fold_rev aux args rhs end
+  in fold_rev aux args (SOME rhs) end
 
 (* theory -> const_table -> styp -> term option *)
 fun def_of_const thy table (x as (s, _)) =
@@ -1130,7 +1131,7 @@ fun def_of_const thy table (x as (s, _)) =
     NONE
   else
     x |> def_props_for_const thy false table |> List.last
-      |> normalized_rhs_of thy |> prefix_abs_vars s |> SOME
+      |> normalized_rhs_of thy |> Option.map (prefix_abs_vars s)
     handle List.Empty => NONE
 
 datatype fixpoint_kind = Lfp | Gfp | NoFp
@@ -1415,8 +1416,8 @@ fun is_constr_pattern_formula thy t =
     SOME t' => is_constr_pattern_lhs thy t'
   | NONE => false
 
-val unfold_max_depth = 63
-val axioms_max_depth = 63
+val unfold_max_depth = 255
+val axioms_max_depth = 255
 
 (* extended_context -> term -> term *)
 fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
@@ -1499,7 +1500,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
               SOME n =>
               let
                 val (dataT, res_T) = nth_range_type n T
-                                     |> domain_type pairf range_type
+                                     |> pairf domain_type range_type
               in
                 (optimized_case_def ext_ctxt dataT res_T
                  |> do_term (depth + 1) Ts, ts)
@@ -1675,8 +1676,8 @@ fun uncached_is_well_founded_inductive_pred
          | NONE =>
            let
              val goal = prop |> cterm_of thy |> Goal.init
-             val wf = silence (exists (terminates_by ctxt tac_timeout goal))
-                              termination_tacs
+             val wf = exists (terminates_by ctxt tac_timeout goal)
+                             termination_tacs
            in Unsynchronized.change cached_wf_props (cons (prop, wf)); wf end
        end)
     handle List.Empty => false

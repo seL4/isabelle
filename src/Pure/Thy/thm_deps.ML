@@ -59,17 +59,17 @@ fun unused_thms (base_thys, thys) =
         end;
     fun add_facts facts = Facts.fold_static (add_fact (Facts.space_of facts)) facts;
 
-    val thms =
+    val new_thms =
       fold (add_facts o PureThy.facts_of) thys []
       |> sort_distinct (string_ord o pairself #1);
 
-    val tab =
+    val used =
       Proofterm.fold_body_thms
         (fn (a, prop, _) => a <> "" ? Symtab.insert_list (op =) (a, prop))
-        (map (Proofterm.strip_thm o Thm.proof_body_of o #1 o #2) thms) Symtab.empty;
+        (map (Proofterm.strip_thm o Thm.proof_body_of o #1 o #2) new_thms) Symtab.empty;
 
     fun is_unused (a, th) =
-      not (member (op aconv) (Symtab.lookup_list tab a) (Thm.prop_of th));
+      not (member (op aconv) (Symtab.lookup_list used a) (Thm.prop_of th));
 
     (* groups containing at least one used theorem *)
     val used_groups = fold (fn (a, (th, _, group)) =>
@@ -77,20 +77,20 @@ fun unused_thms (base_thys, thys) =
       else
         (case group of
           NONE => I
-        | SOME grp => Inttab.update (grp, ()))) thms Inttab.empty;
-    val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, grps') =>
-      if member (op =) [Thm.theoremK, Thm.generatedK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK]
-        (Thm.get_kind th) andalso not concealed andalso is_unused (a, th)
+        | SOME grp => Inttab.update (grp, ()))) new_thms Inttab.empty;
+
+    val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, seen_groups) =>
+      if not concealed andalso
+        member (op =) [Thm.theoremK, Thm.lemmaK, Thm.corollaryK] (Thm.get_kind th) andalso
+        is_unused (a, th)
       then
         (case group of
-           NONE => ((a, th) :: thms, grps')
+           NONE => ((a, th) :: thms, seen_groups)
          | SOME grp =>
-             (* do not output theorem if another theorem in group has been used *)
-             if Inttab.defined used_groups grp then q
-             (* output at most one unused theorem per group *)
-             else if Inttab.defined grps' grp then q
-             else ((a, th) :: thms, Inttab.update (grp, ()) grps'))
-      else q) thms ([], Inttab.empty)
+             if Inttab.defined used_groups grp orelse
+               Inttab.defined seen_groups grp then q
+             else ((a, th) :: thms, Inttab.update (grp, ()) seen_groups))
+      else q) new_thms ([], Inttab.empty);
   in rev thms' end;
 
 end;

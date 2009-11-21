@@ -1,12 +1,9 @@
 (*  Title:      Admin/Benchmarks/HOL-datatype/SML.thy
-    ID:         $Id$
+
+Example from Myra: part of the syntax of SML.
 *)
 
 theory SML imports Main begin
-
-(* ------------------------------------------------------------------------- *)
-(* Example from Myra: part of the syntax of SML.                             *)
-(* ------------------------------------------------------------------------- *)
 
 datatype
   string = EMPTY_STRING | CONS_STRING nat string

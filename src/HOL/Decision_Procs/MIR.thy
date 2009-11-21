@@ -1522,7 +1522,7 @@ proof(clarify)
   also fix y have "\<dots> = (\<exists>x. (Ifm (y#bs) ?cyes) \<and> (Ifm (x#bs) ?cno))"
     using bound0_I[OF yes_nb, where bs="bs" and b'="y"] by blast
   also have "\<dots> = (Ifm bs (decr ?cyes) \<and> Ifm bs (E ?cno))"
-    by (auto simp add: decr[OF yes_nb])
+    by (auto simp add: decr[OF yes_nb] simp del: partition_filter_conv)
   also have "\<dots> = (Ifm bs (conj (decr ?cyes) (qe ?cno)))"
     using qe[rule_format, OF no_qf] by auto
   finally have "Ifm bs (E p) = Ifm bs (CJNB qe p)" 
@@ -5298,7 +5298,8 @@ proof-
     { fix t n assume tnY: "(t,n) \<in> set ?Y" 
       hence "(t,n) \<in> set ?SS" by simp
       hence "\<exists> (t',n') \<in> set ?S. simp_num_pair (t',n') = (t,n)"
-        by (auto simp add: split_def) (rule_tac x="((aa,ba),(ab,bb))" in bexI, simp_all)
+        by (auto simp add: split_def simp del: map_map)
+           (rule_tac x="((aa,ba),(ab,bb))" in bexI, simp_all)
       then obtain t' n' where tn'S: "(t',n') \<in> set ?S" and tns: "simp_num_pair (t',n') = (t,n)" by blast
       from tn'S Snb have tnb: "numbound0 t'" and np: "n' > 0" by auto
       from simp_num_pair_l[OF tnb np tns]

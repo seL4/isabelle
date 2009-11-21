@@ -218,6 +218,10 @@ next
   ultimately show ?case by simp
 qed
 
+lemma map_of_zip_map:
+  "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
+  by (induct xs) (simp_all add: expand_fun_eq)
+
 lemma finite_range_map_of: "finite (range (map_of xys))"
 apply (induct xys)
  apply (simp_all add: image_constant)

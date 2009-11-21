@@ -466,6 +466,9 @@ unfolding upper_join_def by simp
 lemma upper_map_ident: "upper_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: upper_pd_induct, simp_all)
 
+lemma upper_map_ID: "upper_map\<cdot>ID = ID"
+by (simp add: expand_cfun_eq ID_def upper_map_ident)
+
 lemma upper_map_map:
   "upper_map\<cdot>f\<cdot>(upper_map\<cdot>g\<cdot>xs) = upper_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
 by (induct xs rule: upper_pd_induct, simp_all)

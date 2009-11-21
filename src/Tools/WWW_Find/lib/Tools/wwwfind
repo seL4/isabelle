@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+#
+# Author: Timothy Bourke, NICTA
+#         Based on scripts by Makarius Wenzel, TU Muenchen
+#
+# DESCRIPTION: run find theorems web server
+ 
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: $ISABELLE_TOOL $PRG [Command] [Options] [HEAP]"
+  echo
+  echo "  Command must be one of:"
+  echo "    start        start lighttpd and isabelle"
+  echo "    stop         stop lighttpd and isabelle"
+  echo "    status       show www and scgi port statuses"
+  echo
+  echo "  Options are:"
+  echo "    -l           make log file"
+  echo "    -c           specify lighttpd config file"
+  echo "                 (default: $WWWCONFIG)"
+  echo
+  echo "  Provide a web interface to find_theorems against the given HEAP"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function checkplatform()
+{
+  PLAT=$(uname -s)
+  case "$PLAT" in
+    Linux)
+      ;;
+    *)
+      fail "Platform $PLAT currently not supported by $PRG component."
+      ;;
+  esac
+}
+
+function kill_by_port () {
+  IPADDR='[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*'
+  PID=$(netstat -nltp 2>/dev/null \
+        | sed -ne "s#^.*${IPADDR}:$1 *${IPADDR}:.*LISTEN *\([0-9]*\)/.*#\1#p")
+  if [ "$PID" != "" ]; then
+    kill -9 $PID
+  fi
+}
+
+function show_socket_status () {
+  netstat -latp 2>/dev/null | grep ":$1 "
+}
+
+## platform support check
+
+checkplatform
+
+## process command line
+
+case "$1" in
+  start|stop|status)
+    COMMAND="$1"
+    ;;
+  *)
+    usage
+    ;;
+esac
+
+shift
+
+# options
+
+NO_OPTS=true
+LOGFILE=false
+
+while getopts "lc:" OPT
+do
+  NO_OPTS=""
+  case "$OPT" in
+    l)
+      LOGFILE=true
+      ;;
+    c)
+      USER_CONFIG="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+# args
+
+INPUT=""
+
+if [ "$#" -ge 1 ]; then
+  INPUT="$1"
+  shift
+fi
+
+[ -z "$INPUT" ] && INPUT="$ISABELLE_LOGIC"
+
+[ -x "$LIGHTTPD" ] || fail "lighttpd not found at $LIGHTTPD"
+
+if [ -n "$USER_CONFIG" ]; then
+  WWWCONFIG="$USER_CONFIG"
+else
+  TMP=$(mktemp "/tmp/lighttpd.conf.$$.XXX")
+  echo "server.document-root = \"$WWWFINDDIR/www\"" > "$TMP"
+  cat "$WWWCONFIG" >> "$TMP"
+  WWWCONFIG="$TMP"
+fi
+
+
+## main
+
+WWWPORT=`sed -e 's/[ 	]*//g' -ne 's/server.port=\([0-9][0-9]*\),\?/\1/p' "$WWWCONFIG"`
+SCGIPORT=`sed -e 's/[ 	]*//g' -ne 's/"port"=>\([0-9][0-9]*\),\?/\1/p' "$WWWCONFIG"`
+MLSTARTSERVER="ScgiServer.server' 10 \"/\" $SCGIPORT;"
+
+case "$COMMAND" in
+  start)
+    "$LIGHTTPD" -f "$WWWCONFIG"
+    if [ "$LOGFILE" = true ]; then
+      (cd "$WWWFINDDIR"; \
+       nohup "$ISABELLE_PROCESS" -r -u -e "$MLSTARTSERVER" "$INPUT") &
+    else
+      (cd "$WWWFINDDIR"; \
+       nohup "$ISABELLE_PROCESS" -r -u -e "$MLSTARTSERVER" \
+         "$INPUT" > /dev/null 2> /dev/null) &
+    fi
+    ;;
+  stop)
+    kill_by_port $SCGIPORT
+    kill_by_port $WWWPORT
+    ;;
+  status)
+    show_socket_status $WWWPORT
+    show_socket_status $SCGIPORT
+    ;;
+esac
+

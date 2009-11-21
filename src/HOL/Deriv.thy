@@ -273,6 +273,11 @@ lemma DERIV_cmult:
       "DERIV f x :> D ==> DERIV (%x. c * f x) x :> c*D"
 by (drule DERIV_mult' [OF DERIV_const], simp)
 
+lemma DERIV_cdivide: "DERIV f x :> D ==> DERIV (%x. f x / c) x :> D / c"
+  apply (subgoal_tac "DERIV (%x. (1 / c) * f x) x :> (1 / c) * D", force)
+  apply (erule DERIV_cmult)
+  done
+
 text {* Standard version *}
 lemma DERIV_chain: "[| DERIV f (g x) :> Da; DERIV g x :> Db |] ==> DERIV (f o g) x :> Da * Db"
 by (drule (1) DERIV_chain', simp add: o_def real_scaleR_def mult_commute)
@@ -702,14 +707,10 @@ apply (cut_tac P = "% (u,v) . a \<le> u & u \<le> v & v \<le> b --> (\<exists>M.
 apply safe
 apply simp_all
 apply (rename_tac x xa ya M Ma)
-apply (cut_tac x = M and y = Ma in linorder_linear, safe)
-apply (rule_tac x = Ma in exI, clarify)
-apply (cut_tac x = xb and y = xa in linorder_linear, force)
-apply (rule_tac x = M in exI, clarify)
-apply (cut_tac x = xb and y = xa in linorder_linear, force)
+apply (metis linorder_not_less order_le_less real_le_trans)
 apply (case_tac "a \<le> x & x \<le> b")
-apply (rule_tac [2] x = 1 in exI)
-prefer 2 apply force
+ prefer 2
+ apply (rule_tac x = 1 in exI, force)
 apply (simp add: LIM_eq isCont_iff)
 apply (drule_tac x = x in spec, auto)
 apply (erule_tac V = "\<forall>M. \<exists>x. a \<le> x & x \<le> b & ~ f x \<le> M" in thin_rl)
@@ -815,7 +816,7 @@ subsection {* Local extrema *}
 
 text{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
 
-lemma DERIV_left_inc:
+lemma DERIV_pos_inc_right:
   fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
       and l:   "0 < l"
@@ -845,7 +846,7 @@ proof -
   qed
 qed
 
-lemma DERIV_left_dec:
+lemma DERIV_neg_dec_left:
   fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
       and l:   "l < 0"
@@ -875,6 +876,21 @@ proof -
   qed
 qed
 
+
+lemma DERIV_pos_inc_left:
+  fixes f :: "real => real"
+  shows "DERIV f x :> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x - h) < f(x)"
+  apply (rule DERIV_neg_dec_left [of "%x. - f x" x "-l", simplified])
+  apply (auto simp add: DERIV_minus) 
+  done
+
+lemma DERIV_neg_dec_right:
+  fixes f :: "real => real"
+  shows "DERIV f x :> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x) > f(x + h)"
+  apply (rule DERIV_pos_inc_right [of "%x. - f x" x "-l", simplified])
+  apply (auto simp add: DERIV_minus) 
+  done
+
 lemma DERIV_local_max:
   fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
@@ -885,7 +901,7 @@ proof (cases rule: linorder_cases [of l 0])
   case equal thus ?thesis .
 next
   case less
-  from DERIV_left_dec [OF der less]
+  from DERIV_neg_dec_left [OF der less]
   obtain d' where d': "0 < d'"
              and lt: "\<forall>h > 0. h < d' \<longrightarrow> f x < f (x-h)" by blast
   from real_lbound_gt_zero [OF d d']
@@ -894,7 +910,7 @@ next
   show ?thesis by (auto simp add: abs_if)
 next
   case greater
-  from DERIV_left_inc [OF der greater]
+  from DERIV_pos_inc_right [OF der greater]
   obtain d' where d': "0 < d'"
              and lt: "\<forall>h > 0. h < d' \<longrightarrow> f x < f (x + h)" by blast
   from real_lbound_gt_zero [OF d d']
@@ -1205,6 +1221,93 @@ next
   ultimately show ?thesis using neq by (force simp add: add_commute)
 qed
 
+(* A function with positive derivative is increasing. 
+   A simple proof using the MVT, by Jeremy Avigad. And variants.
+*)
+lemma DERIV_pos_imp_increasing:
+  fixes a::real and b::real and f::"real => real"
+  assumes "a < b" and "\<forall>x. a \<le> x & x \<le> b --> (EX y. DERIV f x :> y & y > 0)"
+  shows "f a < f b"
+proof (rule ccontr)
+  assume "~ f a < f b"
+  have "EX l z. a < z & z < b & DERIV f z :> l
+      & f b - f a = (b - a) * l"
+    apply (rule MVT)
+      using assms
+      apply auto
+      apply (metis DERIV_isCont)
+     apply (metis differentiableI real_less_def)
+    done
+  then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
+      and "f b - f a = (b - a) * l"
+    by auto
+  
+  from prems have "~(l > 0)"
+    by (metis linorder_not_le mult_le_0_iff real_le_eq_diff)
+  with prems show False
+    by (metis DERIV_unique real_less_def)
+qed
+
+lemma DERIV_nonneg_imp_nonincreasing:
+  fixes a::real and b::real and f::"real => real"
+  assumes "a \<le> b" and
+    "\<forall>x. a \<le> x & x \<le> b --> (\<exists>y. DERIV f x :> y & y \<ge> 0)"
+  shows "f a \<le> f b"
+proof (rule ccontr, cases "a = b")
+  assume "~ f a \<le> f b"
+  assume "a = b"
+  with prems show False by auto
+  next assume "~ f a \<le> f b"
+  assume "a ~= b"
+  with assms have "EX l z. a < z & z < b & DERIV f z :> l
+      & f b - f a = (b - a) * l"
+    apply -
+    apply (rule MVT)
+      apply auto
+      apply (metis DERIV_isCont)
+     apply (metis differentiableI real_less_def)
+    done
+  then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
+      and "f b - f a = (b - a) * l"
+    by auto
+  from prems have "~(l >= 0)"
+    by (metis diff_self le_eqI le_iff_diff_le_0 real_le_antisym real_le_linear
+              split_mult_pos_le)
+  with prems show False
+    by (metis DERIV_unique order_less_imp_le)
+qed
+
+lemma DERIV_neg_imp_decreasing:
+  fixes a::real and b::real and f::"real => real"
+  assumes "a < b" and
+    "\<forall>x. a \<le> x & x \<le> b --> (\<exists>y. DERIV f x :> y & y < 0)"
+  shows "f a > f b"
+proof -
+  have "(%x. -f x) a < (%x. -f x) b"
+    apply (rule DERIV_pos_imp_increasing [of a b "%x. -f x"])
+    using assms
+    apply auto
+    apply (metis DERIV_minus neg_0_less_iff_less)
+    done
+  thus ?thesis
+    by simp
+qed
+
+lemma DERIV_nonpos_imp_nonincreasing:
+  fixes a::real and b::real and f::"real => real"
+  assumes "a \<le> b" and
+    "\<forall>x. a \<le> x & x \<le> b --> (\<exists>y. DERIV f x :> y & y \<le> 0)"
+  shows "f a \<ge> f b"
+proof -
+  have "(%x. -f x) a \<le> (%x. -f x) b"
+    apply (rule DERIV_nonneg_imp_nonincreasing [of a b "%x. -f x"])
+    using assms
+    apply auto
+    apply (metis DERIV_minus neg_0_le_iff_le)
+    done
+  thus ?thesis
+    by simp
+qed
 
 subsection {* Continuous injective functions *}
 

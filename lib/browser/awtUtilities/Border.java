@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      awtUtilities/Border.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This class defines a nice 3D border.
 ***************************************************************************/

@@ -237,6 +237,7 @@
     "open"
     "output"
     "overloaded"
+    "pervasive"
     "recursor_eqns"
     "shows"
     "structure"

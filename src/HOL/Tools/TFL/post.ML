@@ -27,7 +27,7 @@ structure S = USyntax
  * have a tactic directly applied to them.
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
-    map (Type.freeze o HOLogic.dest_Trueprop)
+    map (Type.legacy_freeze o HOLogic.dest_Trueprop)
       (fold_rev (union (op aconv) o prems_of) rules []);
 
 (*---------------------------------------------------------------------------

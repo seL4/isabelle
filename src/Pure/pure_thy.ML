@@ -20,9 +20,9 @@ sig
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val name_multi: string -> 'a list -> (string * 'a) list
-  val name_thm: bool -> bool -> Position.T -> string -> thm -> thm
-  val name_thms: bool -> bool -> Position.T -> string -> thm list -> thm list
-  val name_thmss: bool -> Position.T -> string -> (thm list * 'a) list -> (thm list * 'a) list
+  val name_thm: bool -> bool -> string -> thm -> thm
+  val name_thms: bool -> bool -> string -> thm list -> thm list
+  val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
   val store_thms: binding * thm list -> theory -> thm list * theory
   val store_thm: binding * thm -> theory -> thm * theory
   val store_thm_open: binding * thm -> theory -> thm * theory
@@ -122,17 +122,15 @@ fun name_multi name [x] = [(name, x)]
   | name_multi "" xs = map (pair "") xs
   | name_multi name xs = map_index (fn (i, x) => (name ^ "_" ^ string_of_int (i + 1), x)) xs;
 
-fun name_thm pre official pos name thm = thm
+fun name_thm pre official name thm = thm
   |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
-  |> (if Thm.has_name_hint thm andalso pre orelse name = "" then I else Thm.put_name_hint name)
-  |> Thm.default_position pos
-  |> Thm.default_position (Position.thread_data ());
+  |> (if Thm.has_name_hint thm andalso pre orelse name = "" then I else Thm.put_name_hint name);
 
-fun name_thms pre official pos name xs =
-  map (uncurry (name_thm pre official pos)) (name_multi name xs);
+fun name_thms pre official name xs =
+  map (uncurry (name_thm pre official)) (name_multi name xs);
 
-fun name_thmss official pos name fact =
-  burrow_fact (name_thms true official pos name) fact;
+fun name_thmss official name fact =
+  burrow_fact (name_thms true official name) fact;
 
 
 (* enter_thms *)
@@ -153,20 +151,19 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
 
 (* store_thm(s) *)
 
-fun store_thms (b, thms) = enter_thms (name_thms true true Position.none)
-  (name_thms false true Position.none) I (b, thms);
+fun store_thms (b, thms) =
+  enter_thms (name_thms true true) (name_thms false true) I (b, thms);
 
 fun store_thm (b, th) = store_thms (b, [th]) #>> the_single;
 
 fun store_thm_open (b, th) =
-  enter_thms (name_thms true false Position.none) (name_thms false false Position.none) I
-    (b, [th]) #>> the_single;
+  enter_thms (name_thms true false) (name_thms false false) I (b, [th]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((b, thms), atts) =
-  enter_thms pre_name (name_thms false true Position.none)
+  enter_thms pre_name (name_thms false true)
     (Library.foldl_map (Thm.theory_attributes atts)) (b, thms);
 
 fun gen_add_thmss pre_name =
@@ -175,8 +172,8 @@ fun gen_add_thmss pre_name =
 fun gen_add_thms pre_name args =
   apfst (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
 
-val add_thmss = gen_add_thmss (name_thms true true Position.none);
-val add_thms = gen_add_thms (name_thms true true Position.none);
+val add_thmss = gen_add_thmss (name_thms true true);
+val add_thms = gen_add_thms (name_thms true true);
 val add_thm = yield_singleton add_thms;
 
 
@@ -197,7 +194,7 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
 
     fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
-      (name_thmss true pos) (name_thms false true pos) (apsnd flat o Library.foldl_map app)
+      (name_thmss true) (name_thms false true) (apsnd flat o Library.foldl_map app)
       (b, map (fn (ths, atts) => (ths, surround (Thm.kind kind) (atts @ more_atts))) ths_atts);
   in ((name, thms), thy') end);
 

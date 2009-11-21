@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace.
+;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Boogie + HOL-Nominal + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -40,6 +40,10 @@
     "axiomatization"
     "axioms"
     "back"
+    "boogie_end"
+    "boogie_open"
+    "boogie_status"
+    "boogie_vc"
     "by"
     "cannot_undo"
     "case"
@@ -204,6 +208,7 @@
     "refute_params"
     "remove_thy"
     "rep_datatype"
+    "repdef"
     "sect"
     "section"
     "setup"
@@ -298,6 +303,7 @@
     "outputs"
     "overloaded"
     "permissive"
+    "pervasive"
     "post"
     "pre"
     "rename"
@@ -341,6 +347,7 @@
     "atp_kill"
     "atp_messages"
     "atp_minimize"
+    "boogie_status"
     "cd"
     "class_deps"
     "code_deps"
@@ -432,6 +439,8 @@
     "axclass"
     "axiomatization"
     "axioms"
+    "boogie_end"
+    "boogie_open"
     "class"
     "classes"
     "classrel"
@@ -518,6 +527,7 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
+    "boogie_vc"
     "code_pred"
     "corollary"
     "cpodef"
@@ -531,6 +541,7 @@
     "pcpodef"
     "recdef_tc"
     "rep_datatype"
+    "repdef"
     "specification"
     "subclass"
     "sublocale"

@@ -132,7 +132,7 @@ fun mk_bound thy i T =
   in mk_preterm (ct, [(i, ct)]) end
 
 local
-fun mk_quant q thy (n, T) e =
+fun mk_quant q thy (_, T) e =
   let
     val (ct, vs) = dest_preterm e
     val cv =

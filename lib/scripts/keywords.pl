@@ -6,7 +6,7 @@
 
 ## arguments
 
-my ($keywords_name, $target_tool, $sessions) = @ARGV;
+my ($keywords_name, $sessions) = @ARGV;
 
 
 ## keywords
@@ -109,106 +109,12 @@ sub emacs_output {
 
   close OUTPUT;
   select;
-  print STDERR "${target_tool}: ${file}\n";
-}
-
-
-## jEdit output
-
-sub jedit_output {
-  my %keyword_types = (
-    "minor"           => "KEYWORD4",
-    "control"         => "INVALID",
-    "diag"            => "LABEL",
-    "theory-begin"    => "KEYWORD3",
-    "theory-switch"   => "KEYWORD3",
-    "theory-end"      => "KEYWORD3",
-    "theory-heading"  => "OPERATOR",
-    "theory-decl"     => "OPERATOR",
-    "theory-script"   => "KEYWORD1",
-    "theory-goal"     => "OPERATOR",
-    "qed"             => "OPERATOR",
-    "qed-block"       => "OPERATOR",
-    "qed-global"      => "OPERATOR",
-    "proof-heading"   => "OPERATOR",
-    "proof-goal"      => "OPERATOR",
-    "proof-block"     => "OPERATOR",
-    "proof-open"      => "OPERATOR",
-    "proof-close"     => "OPERATOR",
-    "proof-chain"     => "OPERATOR",
-    "proof-decl"      => "OPERATOR",
-    "proof-asm"       => "KEYWORD2",
-    "proof-asm-goal"  => "KEYWORD2",
-    "proof-script"    => "KEYWORD1"
-  );
-  my $file = "isabelle.xml";
-  open (OUTPUT, "> ${file}") || die "$!";
-  select OUTPUT;
-
-  print <<'EOF';
-<?xml version="1.0"?>
-<!DOCTYPE MODE SYSTEM "xmode.dtd">
-EOF
-  print "<!-- Generated from ${sessions}. -->\n";
-  print "<!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->\n";
-  print <<'EOF';
-<MODE>
-  <PROPS>
-    <PROPERTY NAME="commentStart" VALUE="(*"/>
-    <PROPERTY NAME="commentEnd" VALUE="*)"/>
-    <PROPERTY NAME="noWordSep" VALUE="_'.?"/>
-    <PROPERTY NAME="indentOpenBrackets" VALUE="{"/>
-    <PROPERTY NAME="indentCloseBrackets" VALUE="}"/>
-    <PROPERTY NAME="unalignedOpenBrackets" VALUE="(" />
-    <PROPERTY NAME="unalignedCloseBrackets" VALUE=")" />
-    <PROPERTY NAME="tabSize" VALUE="2" />
-    <PROPERTY NAME="indentSize" VALUE="2" />
-  </PROPS>
-  <RULES IGNORE_CASE="FALSE" HIGHLIGHT_DIGITS="FALSE" ESCAPE="\">
-    <SPAN TYPE="COMMENT1" NO_ESCAPE="TRUE">
-      <BEGIN>(*</BEGIN>
-      <END>*)</END>
-    </SPAN>
-    <SPAN TYPE="COMMENT3" NO_ESCAPE="TRUE">
-      <BEGIN>{*</BEGIN>
-      <END>*}</END>
-    </SPAN>
-    <SPAN TYPE="LITERAL1">
-      <BEGIN>`</BEGIN>
-      <END>`</END>
-    </SPAN>
-    <SPAN TYPE="LITERAL3">
-      <BEGIN>"</BEGIN>
-      <END>"</END>
-    </SPAN>
-    <KEYWORDS>
-EOF
-
-  for my $name (sort(keys(%keywords))) {
-    my $kind = $keywords{$name};
-    my $type = $keyword_types{$kind};
-    if ($kind ne "minor" or $name =~ m/^[A-Za-z0-9_]+$/) {
-      $name =~ s/&/&amp;/g;
-      $name =~ s/</&lt;/g;
-      $name =~ s/>/&lt;/g;
-      print "      <${type}>${name}</${type}>\n";
-    }
-  }
-
-  print <<'EOF';
-    </KEYWORDS>
-  </RULES>
-</MODE>
-EOF
-
-  close OUTPUT;
-  select;
-  print STDERR "${target_tool}: ${file}\n";
+  print STDERR "${file}\n";
 }
 
 
 ## main
 
 &collect_keywords();
-eval "${target_tool}_output()";
+&emacs_output();
 

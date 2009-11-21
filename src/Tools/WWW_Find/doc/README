@@ -1,0 +1,28 @@
+Requirements
+------------
+  lighttpd
+  polyml (other ML systems untested)
+
+Quick setup
+-----------
+*  install lighttpd if necessary
+   (and optionally disable automatic startup on default www port)
+
+Quick instructions
+------------------
+* start the server with:
+    isabelle wwwfind start
+  (add -l for logging from ML)
+
+* connect (by default) on port 8000:
+    http://localhost:8000/isabelle/find_theorems
+
+* test with the echo server:
+    http://localhost:8000/isabelle/echo
+
+* check the status with:
+    isabelle wwwfind status
+
+* stop the server with:
+    isabelle wwwfind stop
+

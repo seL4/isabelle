@@ -14,7 +14,8 @@ sig
   val full_name: local_theory -> binding -> string
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> local_theory -> local_theory
   val conceal: local_theory -> local_theory
-  val set_group: serial -> local_theory -> local_theory
+  val new_group: local_theory -> local_theory
+  val reset_group: local_theory -> local_theory
   val restore_naming: local_theory -> local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
@@ -31,16 +32,18 @@ sig
   val pretty: local_theory -> Pretty.T list
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val define: string -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+  val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
-  val note: string -> Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
-  val notes: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
+  val notes: (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    local_theory -> (string * thm list) list * local_theory
+  val notes_kind: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
   val type_syntax: bool -> declaration -> local_theory -> local_theory
   val term_syntax: bool -> declaration -> local_theory -> local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val init: string -> operations -> Proof.context -> local_theory
+  val init: serial option -> string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
   val reinit: local_theory -> local_theory
   val exit: local_theory -> Proof.context
@@ -49,7 +52,7 @@ sig
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
 end;
 
-structure LocalTheory: LOCAL_THEORY =
+structure Local_Theory: LOCAL_THEORY =
 struct
 
 (** local theory data **)
@@ -60,8 +63,7 @@ type operations =
  {pretty: local_theory -> Pretty.T list,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
-  define: string ->
-    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+  define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -112,7 +114,8 @@ fun map_naming f = map_lthy (fn (naming, theory_prefix, operations, target) =>
   (f naming, theory_prefix, operations, target));
 
 val conceal = map_naming Name_Space.conceal;
-val set_group = map_naming o Name_Space.set_group;
+val new_group = map_naming Name_Space.new_group;
+val reset_group = map_naming Name_Space.reset_group;
 
 val restore_naming = map_naming o K o naming_of;
 
@@ -181,17 +184,19 @@ fun global_morphism lthy = standard_morphism lthy (ProofContext.init (ProofConte
 (* basic operations *)
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
+fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
 val abbrev = apsnd checkpoint ooo operation2 #abbrev;
-val define = apsnd checkpoint ooo operation2 #define;
-val notes = apsnd checkpoint ooo operation2 #notes;
+val define = apsnd checkpoint oo operation1 #define;
+val notes_kind = apsnd checkpoint ooo operation2 #notes;
 val type_syntax = checkpoint ooo operation2 #type_syntax;
 val term_syntax = checkpoint ooo operation2 #term_syntax;
 val declaration = checkpoint ooo operation2 #declaration;
 
-fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
+val notes = notes_kind "";
+fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
@@ -200,9 +205,10 @@ fun notation add mode raw_args lthy =
 
 (* init *)
 
-fun init theory_prefix operations target =
+fun init group theory_prefix operations target =
   let val naming =
     Sign.naming_of (ProofContext.theory_of target)
+    |> Name_Space.set_group group
     |> Name_Space.mandatory_path theory_prefix;
   in
     target |> Data.map
@@ -212,8 +218,8 @@ fun init theory_prefix operations target =
   end;
 
 fun restore lthy =
-  let val {theory_prefix, operations, target, ...} = get_lthy lthy
-  in init theory_prefix operations target end;
+  let val {naming, theory_prefix, operations, target} = get_lthy lthy
+  in init (Name_Space.get_group naming) theory_prefix operations target end;
 
 val reinit = checkpoint o operation #reinit;
 

@@ -54,7 +54,6 @@ This Pure module implements the core notions of
 \begin{mldecls}
   \indexdef{}{ML}{Code.add\_eqn}\verb|Code.add_eqn: thm -> theory -> theory| \\
   \indexdef{}{ML}{Code.del\_eqn}\verb|Code.del_eqn: thm -> theory -> theory| \\
-  \indexdef{}{ML}{Code.add\_eqnl}\verb|Code.add_eqnl: string * (thm * bool) list lazy -> theory -> theory| \\
   \indexdef{}{ML}{Code\_Preproc.map\_pre}\verb|Code_Preproc.map_pre: (simpset -> simpset) -> theory -> theory| \\
   \indexdef{}{ML}{Code\_Preproc.map\_post}\verb|Code_Preproc.map_post: (simpset -> simpset) -> theory -> theory| \\
   \indexdef{}{ML}{Code\_Preproc.add\_functrans}\verb|Code_Preproc.add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option)|\isasep\isanewline%
@@ -73,10 +72,6 @@ This Pure module implements the core notions of
 
   \item \verb|Code.del_eqn|~\isa{thm}~\isa{thy} removes function
      theorem \isa{thm} from executable content, if present.
-
-  \item \verb|Code.add_eqnl|~\isa{{\isacharparenleft}const{\isacharcomma}\ lthms{\isacharparenright}}~\isa{thy} adds
-     suspended code equations \isa{lthms} for constant
-     \isa{const} to executable content.
 
   \item \verb|Code_Preproc.map_pre|~\isa{f}~\isa{thy} changes
      the preprocessor simpset.

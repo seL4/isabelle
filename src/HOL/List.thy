@@ -272,13 +272,16 @@ fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [x] \<longleftrightarrow> True" |
 "sorted (x#y#zs) \<longleftrightarrow> x <= y \<and> sorted (y#zs)"
 
-primrec insort :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"insort x [] = [x]" |
-"insort x (y#ys) = (if x <= y then (x#y#ys) else y#(insort x ys))"
+primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
+"insort_key f x [] = [x]" |
+"insort_key f x (y#ys) = (if f x \<le> f y then (x#y#ys) else y#(insort_key f x ys))"
 
-primrec sort :: "'a list \<Rightarrow> 'a list" where
-"sort [] = []" |
-"sort (x#xs) = insort x (sort xs)"
+primrec sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list" where
+"sort_key f [] = []" |
+"sort_key f (x#xs) = insort_key f x (sort_key f xs)"
+
+abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
+abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
 
 end
 
@@ -698,8 +701,8 @@ by (rule ext, induct_tac xs) auto
 lemma map_append [simp]: "map f (xs @ ys) = map f xs @ map f ys"
 by (induct xs) auto
 
-lemma map_compose: "map (f o g) xs = map f (map g xs)"
-by (induct xs) (auto simp add: o_def)
+lemma map_map [simp]: "map f (map g xs) = map (f \<circ> g) xs"
+by (induct xs) auto
 
 lemma rev_map: "rev (map f xs) = map f (rev xs)"
 by (induct xs) auto
@@ -1183,6 +1186,12 @@ proof -
   then show ?thesis by (auto simp add: partition_filter1 partition_filter2) 
 qed
 
+lemma partition_filter_conv[simp]:
+  "partition f xs = (filter f xs,filter (Not o f) xs)"
+unfolding partition_filter2[symmetric]
+unfolding partition_filter1[symmetric] by simp
+
+declare partition.simps[simp del]
 
 subsubsection {* @{text concat} *}
 
@@ -1722,6 +1731,9 @@ done
 
 subsubsection {* @{text takeWhile} and @{text dropWhile} *}
 
+lemma length_takeWhile_le: "length (takeWhile P xs) \<le> length xs"
+  by (induct xs) auto
+
 lemma takeWhile_dropWhile_id [simp]: "takeWhile P xs @ dropWhile P xs = xs"
 by (induct xs) auto
 
@@ -1734,6 +1746,15 @@ lemma takeWhile_append2 [simp]:
 by (induct xs) auto
 
 lemma takeWhile_tail: "\<not> P x ==> takeWhile P (xs @ (x#l)) = takeWhile P xs"
+by (induct xs) auto
+
+lemma takeWhile_nth: "j < length (takeWhile P xs) \<Longrightarrow> takeWhile P xs ! j = xs ! j"
+apply (subst (3) takeWhile_dropWhile_id[symmetric]) unfolding nth_append by auto
+
+lemma dropWhile_nth: "j < length (dropWhile P xs) \<Longrightarrow> dropWhile P xs ! j = xs ! (j + length (takeWhile P xs))"
+apply (subst (3) takeWhile_dropWhile_id[symmetric]) unfolding nth_append by auto
+
+lemma length_dropWhile_le: "length (dropWhile P xs) \<le> length xs"
 by (induct xs) auto
 
 lemma dropWhile_append1 [simp]:
@@ -1765,6 +1786,66 @@ by (induct xs) (auto dest: set_takeWhileD)
 lemma distinct_dropWhile[simp]: "distinct xs ==> distinct (dropWhile P xs)"
 by (induct xs) auto
 
+lemma takeWhile_map: "takeWhile P (map f xs) = map f (takeWhile (P \<circ> f) xs)"
+by (induct xs) auto
+
+lemma dropWhile_map: "dropWhile P (map f xs) = map f (dropWhile (P \<circ> f) xs)"
+by (induct xs) auto
+
+lemma takeWhile_eq_take: "takeWhile P xs = take (length (takeWhile P xs)) xs"
+by (induct xs) auto
+
+lemma dropWhile_eq_drop: "dropWhile P xs = drop (length (takeWhile P xs)) xs"
+by (induct xs) auto
+
+lemma hd_dropWhile:
+  "dropWhile P xs \<noteq> [] \<Longrightarrow> \<not> P (hd (dropWhile P xs))"
+using assms by (induct xs) auto
+
+lemma takeWhile_eq_filter:
+  assumes "\<And> x. x \<in> set (dropWhile P xs) \<Longrightarrow> \<not> P x"
+  shows "takeWhile P xs = filter P xs"
+proof -
+  have A: "filter P xs = filter P (takeWhile P xs @ dropWhile P xs)"
+    by simp
+  have B: "filter P (dropWhile P xs) = []"
+    unfolding filter_empty_conv using assms by blast
+  have "filter P xs = takeWhile P xs"
+    unfolding A filter_append B
+    by (auto simp add: filter_id_conv dest: set_takeWhileD)
+  thus ?thesis ..
+qed
+
+lemma takeWhile_eq_take_P_nth:
+  "\<lbrakk> \<And> i. \<lbrakk> i < n ; i < length xs \<rbrakk> \<Longrightarrow> P (xs ! i) ; n < length xs \<Longrightarrow> \<not> P (xs ! n) \<rbrakk> \<Longrightarrow>
+  takeWhile P xs = take n xs"
+proof (induct xs arbitrary: n)
+  case (Cons x xs)
+  thus ?case
+  proof (cases n)
+    case (Suc n') note this[simp]
+    have "P x" using Cons.prems(1)[of 0] by simp
+    moreover have "takeWhile P xs = take n' xs"
+    proof (rule Cons.hyps)
+      case goal1 thus "P (xs ! i)" using Cons.prems(1)[of "Suc i"] by simp
+    next case goal2 thus ?case using Cons by auto
+    qed
+    ultimately show ?thesis by simp
+   qed simp
+qed simp
+
+lemma nth_length_takeWhile:
+  "length (takeWhile P xs) < length xs \<Longrightarrow> \<not> P (xs ! length (takeWhile P xs))"
+by (induct xs) auto
+
+lemma length_takeWhile_less_P_nth:
+  assumes all: "\<And> i. i < j \<Longrightarrow> P (xs ! i)" and "j \<le> length xs"
+  shows "j \<le> length (takeWhile P xs)"
+proof (rule classical)
+  assume "\<not> ?thesis"
+  hence "length (takeWhile P xs) < length xs" using assms by simp
+  thus ?thesis using all `\<not> ?thesis` nth_length_takeWhile[of P xs] by auto
+qed
 
 text{* The following two lemmmas could be generalized to an arbitrary
 property. *}
@@ -1838,19 +1919,32 @@ lemma zip_rev:
 "length xs = length ys ==> zip (rev xs) (rev ys) = rev (zip xs ys)"
 by (induct rule:list_induct2, simp_all)
 
+lemma zip_map_map:
+  "zip (map f xs) (map g ys) = map (\<lambda> (x, y). (f x, g y)) (zip xs ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs) note Cons_x_xs = Cons.hyps
+  show ?case
+  proof (cases ys)
+    case (Cons y ys')
+    show ?thesis unfolding Cons using Cons_x_xs by simp
+  qed simp
+qed simp
+
+lemma zip_map1:
+  "zip (map f xs) ys = map (\<lambda>(x, y). (f x, y)) (zip xs ys)"
+using zip_map_map[of f xs "\<lambda>x. x" ys] by simp
+
+lemma zip_map2:
+  "zip xs (map f ys) = map (\<lambda>(x, y). (x, f y)) (zip xs ys)"
+using zip_map_map[of "\<lambda>x. x" xs f ys] by simp
+
 lemma map_zip_map:
- "map f (zip (map g xs) ys) = map (%(x,y). f(g x, y)) (zip xs ys)"
-apply(induct xs arbitrary:ys) apply simp
-apply(case_tac ys)
-apply simp_all
-done
+  "map f (zip (map g xs) ys) = map (%(x,y). f(g x, y)) (zip xs ys)"
+unfolding zip_map1 by auto
 
 lemma map_zip_map2:
- "map f (zip xs (map g ys)) = map (%(x,y). f(x, g y)) (zip xs ys)"
-apply(induct xs arbitrary:ys) apply simp
-apply(case_tac ys)
-apply simp_all
-done
+  "map f (zip xs (map g ys)) = map (%(x,y). f(x, g y)) (zip xs ys)"
+unfolding zip_map2 by auto
 
 text{* Courtesy of Andreas Lochbihler: *}
 lemma zip_same_conv_map: "zip xs xs = map (\<lambda>x. (x, x)) xs"
@@ -1866,6 +1960,9 @@ done
 lemma set_zip:
 "set (zip xs ys) = {(xs!i, ys!i) | i. i < min (length xs) (length ys)}"
 by(simp add: set_conv_nth cong: rev_conj_cong)
+
+lemma zip_same: "((a,b) \<in> set (zip xs xs)) = (a \<in> set xs \<and> a = b)"
+by(induct xs) auto
 
 lemma zip_update:
   "zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
@@ -1893,6 +1990,16 @@ apply (case_tac xs, simp)
 apply (case_tac ys, simp_all)
 done
 
+lemma zip_takeWhile_fst: "zip (takeWhile P xs) ys = takeWhile (P \<circ> fst) (zip xs ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs) thus ?case by (cases ys) auto
+qed simp
+
+lemma zip_takeWhile_snd: "zip xs (takeWhile P ys) = takeWhile (P \<circ> snd) (zip xs ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs) thus ?case by (cases ys) auto
+qed simp
+
 lemma set_zip_leftD:
   "(x,y)\<in> set (zip xs ys) \<Longrightarrow> x \<in> set xs"
 by (induct xs ys rule:list_induct2') auto
@@ -1913,6 +2020,35 @@ lemma zip_eq_conv:
   "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
   by (auto simp add: zip_map_fst_snd)
 
+lemma distinct_zipI1:
+  "distinct xs \<Longrightarrow> distinct (zip xs ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs)
+  show ?case
+  proof (cases ys)
+    case (Cons y ys')
+    have "(x, y) \<notin> set (zip xs ys')"
+      using Cons.prems by (auto simp: set_zip)
+    thus ?thesis
+      unfolding Cons zip_Cons_Cons distinct.simps
+      using Cons.hyps Cons.prems by simp
+  qed simp
+qed simp
+
+lemma distinct_zipI2:
+  "distinct xs \<Longrightarrow> distinct (zip xs ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs)
+  show ?case
+  proof (cases ys)
+    case (Cons y ys')
+     have "(x, y) \<notin> set (zip xs ys')"
+      using Cons.prems by (auto simp: set_zip)
+    thus ?thesis
+      unfolding Cons zip_Cons_Cons distinct.simps
+      using Cons.hyps Cons.prems by simp
+  qed simp
+qed simp
 
 subsubsection {* @{text list_all2} *}
 
@@ -2258,6 +2394,12 @@ by (induct xs) auto
 
 lemma length_concat: "length (concat xss) = listsum (map length xss)"
 by (induct xss) simp_all
+
+lemma listsum_map_filter:
+  fixes f :: "'a \<Rightarrow> 'b \<Colon> comm_monoid_add"
+  assumes "\<And> x. \<lbrakk> x \<in> set xs ; \<not> P x \<rbrakk> \<Longrightarrow> f x = 0"
+  shows "listsum (map f (filter P xs)) = listsum (map f xs)"
+using assms by (induct xs) auto
 
 text{* For efficient code generation ---
        @{const listsum} is not tail recursive but @{const foldl} is. *}
@@ -2640,6 +2782,11 @@ lemma length_remdups_concat:
  "length(remdups(concat xss)) = card(\<Union>xs \<in> set xss. set xs)"
 by(simp add: set_concat distinct_card[symmetric])
 
+lemma length_remdups_card_conv: "length(remdups xs) = card(set xs)"
+proof -
+  have xs: "concat[xs] = xs" by simp
+  from length_remdups_concat[of "[xs]"] show ?thesis unfolding xs by simp
+qed
 
 subsubsection {* @{text remove1} *}
 
@@ -3083,6 +3230,12 @@ that instead of multisets to state the correctness property. *}
 context linorder
 begin
 
+lemma length_insert[simp] : "length (insort_key f x xs) = Suc (length xs)"
+by (induct xs, auto)
+
+lemma length_sort[simp]: "length (sort_key f xs) = length xs"
+by (induct xs, auto)
+
 lemma sorted_Cons: "sorted (x#xs) = (sorted xs & (ALL y:set xs. x <= y))"
 apply(induct xs arbitrary: x) apply simp
 by simp (blast intro: order_trans)
@@ -3092,37 +3245,88 @@ lemma sorted_append:
 by (induct xs) (auto simp add:sorted_Cons)
 
 lemma sorted_nth_mono:
-  "sorted xs \<Longrightarrow> i <= j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i <= xs!j"
+  "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
 by (induct xs arbitrary: i j) (auto simp:nth_Cons' sorted_Cons)
 
-lemma set_insort: "set(insort x xs) = insert x (set xs)"
+lemma sorted_rev_nth_mono:
+  "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
+using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
+      rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
+by auto
+
+lemma sorted_nth_monoI:
+  "(\<And> i j. \<lbrakk> i \<le> j ; j < length xs \<rbrakk> \<Longrightarrow> xs ! i \<le> xs ! j) \<Longrightarrow> sorted xs"
+proof (induct xs)
+  case (Cons x xs)
+  have "sorted xs"
+  proof (rule Cons.hyps)
+    fix i j assume "i \<le> j" and "j < length xs"
+    with Cons.prems[of "Suc i" "Suc j"]
+    show "xs ! i \<le> xs ! j" by auto
+  qed
+  moreover
+  {
+    fix y assume "y \<in> set xs"
+    then obtain j where "j < length xs" and "xs ! j = y"
+      unfolding in_set_conv_nth by blast
+    with Cons.prems[of 0 "Suc j"]
+    have "x \<le> y"
+      by auto
+  }
+  ultimately
+  show ?case
+    unfolding sorted_Cons by auto
+qed simp
+
+lemma sorted_equals_nth_mono:
+  "sorted xs = (\<forall>j < length xs. \<forall>i \<le> j. xs ! i \<le> xs ! j)"
+by (auto intro: sorted_nth_monoI sorted_nth_mono)
+
+lemma set_insort: "set(insort_key f x xs) = insert x (set xs)"
 by (induct xs) auto
 
-lemma set_sort[simp]: "set(sort xs) = set xs"
+lemma set_sort[simp]: "set(sort_key f xs) = set xs"
 by (induct xs) (simp_all add:set_insort)
 
-lemma distinct_insort: "distinct (insort x xs) = (x \<notin> set xs \<and> distinct xs)"
+lemma distinct_insort: "distinct (insort_key f x xs) = (x \<notin> set xs \<and> distinct xs)"
 by(induct xs)(auto simp:set_insort)
 
-lemma distinct_sort[simp]: "distinct (sort xs) = distinct xs"
+lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
 by(induct xs)(simp_all add:distinct_insort set_sort)
 
+lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
+by(induct xs)(auto simp:sorted_Cons set_insort)
+
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
-apply (induct xs)
- apply(auto simp:sorted_Cons set_insort)
-done
+using sorted_insort_key[where f="\<lambda>x. x"] by simp
+
+theorem sorted_sort_key[simp]: "sorted (map f (sort_key f xs))"
+by(induct xs)(auto simp:sorted_insort_key)
 
 theorem sorted_sort[simp]: "sorted (sort xs)"
-by (induct xs) (auto simp:sorted_insort)
+by(induct xs)(auto simp:sorted_insort)
 
-lemma insort_is_Cons: "\<forall>x\<in>set xs. a \<le> x \<Longrightarrow> insort a xs = a # xs"
+lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
 by (cases xs) auto
 
 lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
-by (induct xs, auto simp add: sorted_Cons)
+by(induct xs)(auto simp add: sorted_Cons)
+
+lemma insort_key_remove1: "\<lbrakk> a \<in> set xs; sorted (map f xs) ; inj_on f (set xs) \<rbrakk>
+  \<Longrightarrow> insort_key f a (remove1 a xs) = xs"
+proof (induct xs)
+  case (Cons x xs)
+  thus ?case
+  proof (cases "x = a")
+    case False
+    hence "f x \<noteq> f a" using Cons.prems by auto
+    hence "f x < f a" using Cons.prems by (auto simp: sorted_Cons)
+    thus ?thesis using Cons by (auto simp: sorted_Cons insort_is_Cons)
+  qed (auto simp: sorted_Cons insort_is_Cons)
+qed simp
 
 lemma insort_remove1: "\<lbrakk> a \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> insort a (remove1 a xs) = xs"
-by (induct xs, auto simp add: sorted_Cons insort_is_Cons)
+using insort_key_remove1[where f="\<lambda>x. x"] by simp
 
 lemma sorted_remdups[simp]:
   "sorted l \<Longrightarrow> sorted (remdups l)"
@@ -3178,6 +3382,11 @@ next
   case 3 then show ?case by (cases n) simp_all
 qed
 
+lemma sorted_dropWhile: "sorted xs \<Longrightarrow> sorted (dropWhile P xs)"
+  unfolding dropWhile_eq_drop by (rule sorted_drop)
+
+lemma sorted_takeWhile: "sorted xs \<Longrightarrow> sorted (takeWhile P xs)"
+  apply (subst takeWhile_eq_take) by (rule sorted_take)
 
 end
 
@@ -3772,6 +3981,12 @@ where
   | "length_unique (x#xs) =
       (if x \<in> set xs then length_unique xs else Suc (length_unique xs))"
 
+primrec
+  concat_map :: "('a => 'b list) => 'a list => 'b list"
+where
+  "concat_map f [] = []"
+  | "concat_map f (x#xs) = f x @ concat_map f xs"
+
 text {*
   Only use @{text mem} for generating executable code.  Otherwise use
   @{prop "x : set xs"} instead --- it is much easier to reason about.
@@ -3865,7 +4080,11 @@ by (induct xs) auto
 
 lemma length_remdups_length_unique [code_unfold]:
   "length (remdups xs) = length_unique xs"
-  by (induct xs) simp_all
+by (induct xs) simp_all
+
+lemma concat_map_code[code_unfold]:
+  "concat(map f xs) = concat_map f xs"
+by (induct xs) simp_all
 
 declare INFI_def [code_unfold]
 declare SUPR_def [code_unfold]
@@ -3923,6 +4142,11 @@ lemma setsum_set_upt_conv_listsum [code_unfold]:
   "setsum f (set [m..<n]) = listsum (map f [m..<n])"
 by (rule setsum_set_distinct_conv_listsum) simp
 
+text {* General equivalence between @{const listsum} and @{const setsum} *}
+lemma listsum_setsum_nth:
+  "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
+using setsum_set_upt_conv_listsum[of "op ! xs" 0 "length xs"]
+by (simp add: map_nth)
 
 text {* Code for summation over ints. *}
 

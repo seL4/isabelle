@@ -467,7 +467,7 @@ val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
 val add_tvars = fold_types add_tvarsT;
 val add_var_names = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
 val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
-val add_tfree_namesT = fold_atyps (fn TFree (xi, _) => insert (op =) xi | _ => I);
+val add_tfree_namesT = fold_atyps (fn TFree (a, _) => insert (op =) a | _ => I);
 val add_tfree_names = fold_types add_tfree_namesT;
 val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;

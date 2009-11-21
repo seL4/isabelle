@@ -54,6 +54,7 @@ fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
       val pre = Simplifier.merge_ss (pre1, pre2);
       val post = Simplifier.merge_ss (post1, post2);
       val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
+        (* FIXME handle AList.DUP (!?) *)
     in make_thmproc ((pre, post), functrans) end;
 
 structure Code_Preproc_Data = Theory_Data

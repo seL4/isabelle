@@ -58,7 +58,6 @@ local
         SOME type_name => ((type_name, false), thy)
       | NONE =>
           let
-            val bname = Binding.name isa_name
             val args = Name.variant_list [] (replicate arity "'")
             val (T, thy') =
               ObjectLogic.typedecl (Binding.name isa_name, args, NoSyn) thy
@@ -324,7 +323,7 @@ fun typ tds =
 
 local
   fun mk_nary _ t [] = t
-    | mk_nary f _ (t :: ts) = fold f ts t
+    | mk_nary f _ ts = uncurry (fold_rev f) (split_last ts)
 
   fun mk_distinct T ts =
     Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $ 
@@ -376,7 +375,6 @@ local
       val dT = Term.fastype_of t and rT = mk_wordT (msb - lsb)
       val nT = @{typ nat}
       val mk_nat_num = HOLogic.mk_number @{typ nat}
-      val m = HOLogic.mk_number @{typ nat}
     in
       Const (@{const_name boogie_bv_extract}, [nT, nT, dT] ---> rT) $
         mk_nat_num msb $ mk_nat_num lsb $ t
@@ -451,8 +449,8 @@ fun expr tds fds =
       binexp ">" (binop @{term "op < :: int => _"} o swap) ||
       binexp ">=" (binop @{term "op <= :: int => _"} o swap) ||
       binexp "+" (binop @{term "op + :: int => _"}) ||
-      binexp "-" (binop @{term "op + :: int => _"}) ||
-      binexp "*" (binop @{term "op + :: int => _"}) ||
+      binexp "-" (binop @{term "op - :: int => _"}) ||
+      binexp "*" (binop @{term "op * :: int => _"}) ||
       binexp "/" (binop @{term boogie_div}) ||
       binexp "%" (binop @{term boogie_mod}) ||
       scan_line "select" num :|-- (fn arity =>

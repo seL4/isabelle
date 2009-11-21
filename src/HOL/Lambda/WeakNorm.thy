@@ -148,7 +148,7 @@ proof (induct U)
               hence "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift t 0) (map (\<lambda>t. t[u/i]) as) : Ts"
                 by (rule lift_types)
               thus "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> map (\<lambda>t. lift (t[u/i]) 0) as : Ts"
-                by (simp_all add: map_compose [symmetric] o_def)
+                by (simp_all add: o_def)
             qed
             with asred show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<degree>\<degree> map (\<lambda>t. lift t 0) as' : T'"
               by (rule subject_reduction')
@@ -167,7 +167,7 @@ proof (induct U)
           also note rred
           finally have "(Var 0 \<degree>\<degree> map (\<lambda>t. lift (t[u/i]) 0) as)[u \<degree> a[u/i]/0] \<rightarrow>\<^sub>\<beta>\<^sup>* r" .
           with rnf Cons eq show ?thesis
-            by (simp add: map_compose [symmetric] o_def) iprover
+            by (simp add: o_def) iprover
         qed
       next
         assume neq: "x \<noteq> i"

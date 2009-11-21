@@ -6,29 +6,14 @@ Preprocessing functions to predicates.
 
 signature PREDICATE_COMPILE_FUN =
 sig
-val define_predicates : (string * thm list) list -> theory -> (string * thm list) list * theory
+  val define_predicates : (string * thm list) list -> theory -> (string * thm list) list * theory
   val rewrite_intro : theory -> thm -> thm list
-  val setup_oracle : theory -> theory
   val pred_of_function : theory -> string -> string option
 end;
 
 structure Predicate_Compile_Fun : PREDICATE_COMPILE_FUN =
 struct
 
-
-(* Oracle for preprocessing  *)
-
-val (oracle : (string * (cterm -> thm)) option Unsynchronized.ref) = Unsynchronized.ref NONE;
-
-fun the_oracle () =
-  case !oracle of
-    NONE => error "Oracle is not setup"
-  | SOME (_, oracle) => oracle
-             
-val setup_oracle = Thm.add_oracle (Binding.name "pred_compile_preprocessing", I) #->
-  (fn ora => fn thy => let val _ = (oracle := SOME ora) in thy end)
-  
-  
 fun is_funtype (Type ("fun", [_, _])) = true
   | is_funtype _ = false;
 
@@ -104,9 +89,7 @@ fun pred_of f =
 
 fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
   | mk_param thy lookup_pred t =
-  let
-  val _ = tracing ("called param with " ^ (Syntax.string_of_term_global thy t))
-  in if Predicate_Compile_Aux.is_predT (fastype_of t) then
+  if Predicate_Compile_Aux.is_predT (fastype_of t) then
     t
   else
     let
@@ -124,7 +107,7 @@ fun mk_param thy lookup_pred (t as Free (v, _)) = lookup_pred t
       val pred_body = HOLogic.mk_eq (body', resvar)
       val param = fold_rev lambda (vs' @ [resvar]) pred_body
     in param end
-  end
+    
 (* creates the list of premises for every intro rule *)
 (* theory -> term -> (string list, term list list) *)
 
@@ -369,10 +352,9 @@ fun define_predicates specs thy =
             val (ind_result, thy') =
               thy
               |> Sign.map_naming Name_Space.conceal
-              |> Inductive.add_inductive_global (serial ())
-                {quiet_mode = false, verbose = false, kind = Thm.internalK,
-                  alt_name = Binding.empty, coind = false, no_elim = false,
-                  no_ind = false, skip_mono = false, fork_mono = false}
+              |> Inductive.add_inductive_global
+                {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
+                  no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
                 (map (fn (s, T) =>
                   ((Binding.name s, T), NoSyn)) (distinct (op =) (map dest_Free preds)))
                 pnames
@@ -393,9 +375,6 @@ fun define_predicates specs thy =
           in ([], thy) end
   end
 
-(* preprocessing intro rules - uses oracle *)
-
-(* theory -> thm -> thm *)
 fun rewrite_intro thy intro =
   let
     fun lookup_pred (Const (name, T)) =
@@ -435,7 +414,7 @@ fun rewrite_intro thy intro =
         |> map (fn (concl'::conclprems, _) =>
           Logic.list_implies ((flat prems') @ conclprems, concl')))
   in
-    map (Drule.standard o the_oracle () o cterm_of thy) intro_ts'
-  end; 
+    map (Drule.standard o (Skip_Proof.make_thm thy)) intro_ts'
+  end
 
 end;

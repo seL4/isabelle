@@ -28,10 +28,10 @@ sig
     (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val axiomatization: (binding * typ option * mixfix) list ->
     (Attrib.binding * term list) list -> theory ->
-    (term list * (string * thm list) list) * theory
+    (term list * thm list list) * theory
   val axiomatization_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list -> theory ->
-    (term list * (string * thm list) list) * theory
+    (term list * thm list list) * theory
   val definition:
     (binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
@@ -169,16 +169,18 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
         fold_map Thm.add_axiom
           (map (apfst (fn a => Binding.map_name (K a) b))
             (PureThy.name_multi (Name.of_binding b) (map subst props)))
-        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])])));
+        #>> (fn ths => ((b, atts), [(ths, [])])));
 
     (*facts*)
-    val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
-      (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
+    val (facts, facts_lthy) = axioms_thy
+      |> Theory_Target.init NONE
+      |> Spec_Rules.add Spec_Rules.Unknown (consts, maps (maps #1 o #2) axioms)
+      |> Local_Theory.notes axioms;
 
     val _ =
       if not do_print then ()
-      else print_consts (ProofContext.init thy') (K false) xs;
-  in ((consts, facts), thy') end;
+      else print_consts facts_lthy (K false) xs;
+  in ((consts, map #2 facts), Local_Theory.exit_global facts_lthy) end;
 
 val axiomatization = gen_axioms false check_specification;
 val axiomatization_cmd = gen_axioms true read_specification;
@@ -202,18 +204,16 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
           in (b, mx) end);
     val name = Thm.def_binding_optional b raw_name;
     val ((lhs, (_, raw_th)), lthy2) = lthy
-      |> LocalTheory.define Thm.definitionK
-        (var, ((Binding.suffix_name "_raw" name, []), rhs));
+      |> Local_Theory.define (var, ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
 
-    val ((def_name, [th']), lthy4) = lthy3
-      |> LocalTheory.note Thm.definitionK
-        ((name, Predicate_Compile_Preproc_Const_Defs.add_attrib ::
-            Code.add_default_eqn_attrib :: atts), [th]);
+    val ([(def_name, [th'])], lthy4) = lthy3
+      |> Local_Theory.notes_kind Thm.definitionK
+        [((name, Code.add_default_eqn_attrib :: atts), [([th], [])])];
 
-    val lhs' = Morphism.term (LocalTheory.target_morphism lthy4) lhs;
+    val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
     val _ =
       if not do_print then ()
       else print_consts lthy4 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
@@ -243,7 +243,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
           in (b, mx) end);
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME ?!? *)
-      |> LocalTheory.abbrev mode (var, rhs) |> snd
+      |> Local_Theory.abbrev mode (var, rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
 
     val _ = if not do_print then () else print_consts lthy' (K false) [(x, T)];
@@ -256,7 +256,7 @@ val abbreviation_cmd = gen_abbrev true read_free_spec;
 (* notation *)
 
 fun gen_notation prep_const add mode args lthy =
-  lthy |> LocalTheory.notation add mode (map (apfst (prep_const lthy)) args);
+  lthy |> Local_Theory.notation add mode (map (apfst (prep_const lthy)) args);
 
 val notation = gen_notation (K I);
 val notation_cmd = gen_notation ProofContext.read_const;
@@ -270,7 +270,7 @@ fun gen_theorems prep_fact prep_att kind raw_facts lthy =
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
-    val (res, lthy') = lthy |> LocalTheory.notes kind facts;
+    val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts;
     val _ = Proof_Display.print_results true lthy' ((kind, ""), res);
   in (res, lthy') end;
 
@@ -329,8 +329,9 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val (facts, goal_ctxt) = elems_ctxt
           |> (snd o ProofContext.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
-          |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
-                [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
+          |-> (fn ths =>
+            ProofContext.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
+            #2 #> pair ths);
       in ((prems, stmt, SOME facts), goal_ctxt) end);
 
 structure TheoremHook = Generic_Data
@@ -344,7 +345,7 @@ structure TheoremHook = Generic_Data
 fun gen_theorem prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
   let
-    val _ = LocalTheory.affirm lthy;
+    val _ = Local_Theory.affirm lthy;
     val thy = ProofContext.theory_of lthy;
 
     val attrib = prep_att thy;
@@ -358,22 +359,22 @@ fun gen_theorem prep_att prep_stmt
         burrow (map Goal.norm_result o ProofContext.export goal_ctxt' lthy) results
       in
         lthy
-        |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
+        |> Local_Theory.notes_kind kind
+          (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           if Binding.is_empty name andalso null atts then
             (Proof_Display.print_results true lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') = lthy'
-                |> LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])];
+                |> Local_Theory.notes_kind kind [((name, atts), [(maps #2 res, [])])];
               val _ = Proof_Display.print_results true lthy' ((kind, res_name), res);
             in lthy'' end)
         |> after_qed results'
       end;
   in
     goal_ctxt
-    |> ProofContext.note_thmss Thm.assumptionK
-      [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
+    |> ProofContext.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)

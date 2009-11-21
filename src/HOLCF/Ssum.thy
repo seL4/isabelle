@@ -226,6 +226,9 @@ unfolding ssum_map_def by simp
 lemma ssum_map_sinr [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
 unfolding ssum_map_def by simp
 
+lemma ssum_map_ID: "ssum_map\<cdot>ID\<cdot>ID = ID"
+unfolding ssum_map_def by (simp add: expand_cfun_eq eta_cfun)
+
 lemma ssum_map_map:
   "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
     ssum_map\<cdot>f1\<cdot>g1\<cdot>(ssum_map\<cdot>f2\<cdot>g2\<cdot>p) =

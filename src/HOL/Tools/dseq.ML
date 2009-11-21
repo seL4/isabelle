@@ -6,7 +6,7 @@ Sequences with recursion depth limit.
 
 signature DSEQ =
 sig
-  type 'a seq = int -> 'a Seq.seq;
+  type 'a seq = int * int * int -> 'a Seq.seq;
   val maps: ('a -> 'b seq) -> 'a seq -> 'b seq
   val map: ('a -> 'b) -> 'a seq -> 'b seq
   val append: 'a seq -> 'a seq -> 'a seq
@@ -16,37 +16,42 @@ sig
   val guard: bool -> unit seq
   val of_list: 'a list -> 'a seq
   val list_of: 'a seq -> 'a list
-  val pull: 'a seq -> ('a * 'a seq) option
+  val pull: 'a seq -> ('a * 'a Seq.seq) option
   val hd: 'a seq -> 'a
+  val generator: (int -> 'a * 'b) -> 'a seq
 end;
 
 structure DSeq : DSEQ =
 struct
 
-type 'a seq = int -> 'a Seq.seq;
+type 'a seq = int * int * int -> 'a Seq.seq;
 
-fun maps f s 0 = Seq.empty
-  | maps f s i = Seq.maps (fn a => f a i) (s (i - 1));
+fun maps f s (0, _, _) = Seq.empty
+  | maps f s (i, j, k) = Seq.maps (fn a => f a (i, j, k)) (s (i - 1, j, k));
 
-fun map f s i = Seq.map f (s i);
+fun map f s p = Seq.map f (s p);
 
-fun append s1 s2 i = Seq.append (s1 i) (s2 i);
+fun append s1 s2 p = Seq.append (s1 p) (s2 p);
 
-fun interleave s1 s2 i = Seq.interleave (s1 i, s2 i);
+fun interleave s1 s2 p = Seq.interleave (s1 p, s2 p);
 
-fun single x i = Seq.single x;
+fun single x _ = Seq.single x;
 
-fun empty i = Seq.empty;
+fun empty _ = Seq.empty;
 
 fun guard b = if b then single () else empty;
 
-fun of_list xs i = Seq.of_list xs;
+fun of_list xs _ = Seq.of_list xs;
 
-fun list_of s = Seq.list_of (s ~1);
+fun list_of s = Seq.list_of (s (~1, 0, 0));
 
-fun pull s = Seq.pull (s ~1) |> (Option.map o apsnd) K; (*FIXME*)
+fun pull s = Seq.pull (s (~1, 0, 0));
 
-fun hd s = Seq.hd (s ~1);
+fun hd s = Seq.hd (s (~1, 0, 0));
+
+fun generator g (i, 0, k) = Seq.empty
+  | generator g (i, j, k) =
+      Seq.make (fn () => SOME (fst (g k), generator g (i, j-1, k)));
 
 end;
 

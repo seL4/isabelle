@@ -166,7 +166,7 @@ proof -
       by (simp add: check_types_def)
     also from step
     have [symmetric]: "map OK (map ok_val phi) = phi" 
-      by (auto intro!: map_id simp add: wt_step_def)
+      by (auto intro!: nth_equalityI simp add: wt_step_def)
     finally have "check_types G mxs ?mxr (map OK (map ok_val phi))" .
   }
   moreover {  

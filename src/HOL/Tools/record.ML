@@ -1008,19 +1008,25 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
 
 (** record simprocs **)
 
-fun quick_and_dirty_prove stndrd thy asms prop tac =
-  if ! quick_and_dirty then
-    Goal.prove (ProofContext.init thy) [] []
-      (Logic.list_implies (map Logic.varify asms, Logic.varify prop))
-      (K (Skip_Proof.cheat_tac @{theory HOL}))
-      (*Drule.standard can take quite a while for large records, thats why
-        we varify the proposition manually here.*)
-  else
-    let val prf = Goal.prove (ProofContext.init thy) [] asms prop tac
-    in if stndrd then Drule.standard prf else prf end;
+fun future_forward_prf_standard thy prf prop () =
+  let val thm =
+    if ! quick_and_dirty then Skip_Proof.make_thm thy prop
+    else if Goal.future_enabled () then
+      Goal.future_result (ProofContext.init thy) (Future.fork_pri ~1 prf) prop
+    else prf ()
+  in Drule.standard thm end;
 
-fun quick_and_dirty_prf noopt opt () =
-  if ! quick_and_dirty then noopt () else opt ();
+fun prove_common immediate stndrd thy asms prop tac =
+  let
+    val prv =
+      if ! quick_and_dirty then Skip_Proof.prove
+      else if immediate orelse not (Goal.future_enabled ()) then Goal.prove
+      else Goal.prove_future;
+    val prf = prv (ProofContext.init thy) [] asms prop tac;
+  in if stndrd then Drule.standard prf else prf end;
+
+val prove_future_global = prove_common false;
+val prove_global = prove_common true;
 
 fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
   (case get_updates thy u of
@@ -1400,7 +1406,7 @@ val record_ex_sel_eq_simproc =
     (fn thy => fn ss => fn t =>
       let
         fun prove prop =
-          quick_and_dirty_prove true thy [] prop
+          prove_global true thy [] prop
             (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
                 addsimps simp_thms addsimprocs [record_split_simproc (K ~1)]) 1);
 
@@ -1665,6 +1671,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       typ_thy
       |> Sign.add_consts_i [Syntax.no_syn (apfst (Binding.name o base) ext_decl)]
       |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name ext_spec)]
+      ||> Theory.checkpoint
     val ([ext_def], defs_thy) =
       timeit_msg "record extension constructor def:" mk_defs;
 
@@ -1696,7 +1703,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
       end;
 
-    val prove_standard = quick_and_dirty_prove true defs_thy;
+    val prove_standard = prove_future_global true defs_thy;
 
     fun inject_prf () =
       simplify HOL_ss
@@ -2045,6 +2052,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           #> fold Code.add_default_eqn upd_defs
           #> fold Code.add_default_eqn derived_defs
           #> pair defs)
+      ||> Theory.checkpoint
     val (((sel_defs, upd_defs), derived_defs), defs_thy) =
       timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
         mk_defs;
@@ -2115,8 +2123,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* 3rd stage: thms_thy *)
 
-    fun prove stndrd = quick_and_dirty_prove stndrd defs_thy;
-    val prove_standard = quick_and_dirty_prove true defs_thy;
+    fun prove stndrd = prove_future_global stndrd defs_thy;
+    val prove_standard = prove_future_global true defs_thy;
+    val future_forward_prf = future_forward_prf_standard defs_thy;
 
     fun prove_simp stndrd ss simps =
       let val tac = simp_all_tac ss simps
@@ -2167,7 +2176,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       end;
     val induct = timeit_msg "record induct proof:" induct_prf;
 
-    fun cases_scheme_prf_opt () =
+    fun cases_scheme_prf () =
       let
         val _ $ (Pvar $ _) = concl_of induct_scheme;
         val ind =
@@ -2175,19 +2184,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
             [(cterm_of defs_thy Pvar, cterm_of defs_thy
               (lambda w (HOLogic.imp $ HOLogic.mk_eq (r0, w) $ C)))]
             induct_scheme;
-        in Drule.standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
+        in ObjectLogic.rulify (mp OF [ind, refl]) end;
 
-    fun cases_scheme_prf_noopt () =
-      prove_standard [] cases_scheme_prop
-        (fn _ =>
-          EVERY1
-           [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]),
-            try_param_tac rN induct_scheme,
-            rtac impI,
-            REPEAT o etac allE,
-            etac mp,
-            rtac refl]);
-    val cases_scheme_prf = quick_and_dirty_prf cases_scheme_prf_noopt cases_scheme_prf_opt;
+    val cases_scheme_prf = future_forward_prf cases_scheme_prf cases_scheme_prop;
     val cases_scheme = timeit_msg "record cases_scheme proof:" cases_scheme_prf;
 
     fun cases_prf () =
@@ -2226,7 +2225,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val split_meta_standard =
       timeit_msg "record split_meta standard:" split_meta_standardise;
 
-    fun split_object_prf_opt () =
+    fun split_object_prf () =
       let
         val cPI= cterm_of defs_thy (lambda r0 (Trueprop (P $ r0)));
         val _ $ Abs (_, _, P $ _) = fst (Logic.dest_equals (concl_of split_meta_standard));
@@ -2247,17 +2246,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           |> equal_elim (symmetric split_meta') (*!!r. P r*)
           |> meta_to_obj_all                    (*All r. P r*)
           |> implies_intr cr                    (* 2 ==> 1 *)
-     in Drule.standard (thr COMP (thl COMP iffI)) end;
+     in thr COMP (thl COMP iffI) end;
 
-    fun split_object_prf_noopt () =
-      prove_standard [] split_object_prop
-        (fn _ =>
-          EVERY1
-           [rtac iffI,
-            REPEAT o rtac allI, etac allE, atac,
-            rtac allI, rtac induct_scheme, REPEAT o etac allE, atac]);
 
-    val split_object_prf = quick_and_dirty_prf split_object_prf_noopt split_object_prf_opt;
+    val split_object_prf = future_forward_prf split_object_prf split_object_prop;
     val split_object = timeit_msg "record split_object proof:" split_object_prf;
 
 

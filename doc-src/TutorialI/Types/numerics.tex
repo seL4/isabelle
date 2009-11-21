@@ -1,4 +1,3 @@
-
 \section{Numbers}
 \label{sec:numbers}
 
@@ -192,7 +191,7 @@ Section~\ref{sec:proving-euclid} discusses proofs involving this
 relation.  Here are some of the facts proved about it:
 \begin{isabelle}
 \isasymlbrakk m\ dvd\ n;\ n\ dvd\ m\isasymrbrakk \ \isasymLongrightarrow \ m\ =\ n%
-\rulenamedx{dvd_anti_sym}\isanewline
+\rulenamedx{dvd_antisym}\isanewline
 \isasymlbrakk k\ dvd\ m;\ k\ dvd\ n\isasymrbrakk \ \isasymLongrightarrow \ k\ dvd\ (m\ +\ n)
 \rulenamedx{dvd_add}
 \end{isabelle}
@@ -348,8 +347,7 @@ using the division operator are automatically simplified to lowest terms:
 \ 1.\ P\ (2\ /\ 5)
 \end{isabelle}
 Exponentiation can express floating-point values such as
-\isa{2 * 10\isacharcircum6}, but at present no special simplification
-is performed.
+\isa{2 * 10\isacharcircum6}, which will be simplified to integers.
 
 \begin{warn}
 Types \isa{rat}, \isa{real} and \isa{complex} are provided by theory HOL-Complex, which is

@@ -531,7 +531,7 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
             | _ => raise SAME ()
           else if r22 = nat_subtract_rel then
             case (r21, r1) of
-              (Atom j1, Atom j2) => from_nat (to_nat j1 nat_minus to_nat j2)
+              (Atom j1, Atom j2) => from_nat (nat_minus (to_nat j1) (to_nat j2))
             | _ => raise SAME ()
           else if r22 = nat_multiply_rel then
             case (r21, r1) of
@@ -581,11 +581,11 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
             let
               val arity2 = arity_of_rel_expr r2
               val arity1 = arity - arity2
-              val n1 = Int.min (arity1 nat_minus j0, n)
+              val n1 = Int.min (nat_minus arity1 j0, n)
               val n2 = n - n1
               (* unit -> rel_expr *)
               fun one () = aux arity1 r1 j0 n1
-              fun two () = aux arity2 r2 (j0 nat_minus arity1) n2
+              fun two () = aux arity2 r2 (nat_minus j0 arity1) n2
             in
               case (n1, n2) of
                 (0, _) => s_rel_if (s_some r1) (two ()) (empty_n_ary_rel n2)

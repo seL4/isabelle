@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/GraphBrowser.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This is the graph browser's main class. It contains the "main(...)"

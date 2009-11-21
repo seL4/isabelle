@@ -216,7 +216,7 @@ fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
      ("int_add", tabulate_int_op2 debug univ_card (int_card, j0) (op +))
    else if Kodkod.Rel x = nat_subtract_rel then
      ("nat_subtract",
-      tabulate_op2 debug univ_card (nat_card, j0) j0 (op nat_minus))
+      tabulate_op2 debug univ_card (nat_card, j0) j0 (uncurry nat_minus))
    else if Kodkod.Rel x = int_subtract_rel then
      ("int_subtract", tabulate_int_op2 debug univ_card (int_card, j0) (op -))
    else if Kodkod.Rel x = nat_multiply_rel then
@@ -1092,6 +1092,12 @@ fun kodkod_formula_from_nut ofs liberal
                   else
                     kk_rel_eq r1 r2
                 end)
+         | Op2 (The, T, _, u1, u2) =>
+           to_f_with_polarity polar
+                              (Op2 (The, T, Opt (Atom (2, bool_j0)), u1, u2))
+         | Op2 (Eps, T, _, u1, u2) =>
+           to_f_with_polarity polar
+                              (Op2 (Eps, T, Opt (Atom (2, bool_j0)), u1, u2))
          | Op2 (Apply, T, _, u1, u2) =>
            (case (polar, rep_of u1) of
               (Neg, Func (R, Formula Neut)) => kk_subset (to_opt R u2) (to_r u1)
@@ -1448,7 +1454,7 @@ fun kodkod_formula_from_nut ofs liberal
           fold kk_join [to_integer u1, to_integer u2] nat_subtract_rel
       | Op2 (Apply, _, R, u1, u2) =>
         if is_Cst Unrep u2 andalso is_set_type (type_of u1)
-           andalso not (is_opt_rep (rep_of u1)) then
+           andalso is_FreeName u1 then
           false_atom
         else
           to_apply R u1 u2

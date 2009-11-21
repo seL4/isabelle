@@ -132,7 +132,8 @@ fun future_result ctxt result prop =
       cert (Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop))))
       |> Thm.weaken_sorts (Variable.sorts_of ctxt);
     val global_result = result |> Future.map
-      (Thm.adjust_maxidx_thm ~1 #>
+      (Drule.flexflex_unique #>
+        Thm.adjust_maxidx_thm ~1 #>
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
         Thm.generalize (map #1 tfrees, []) 0);

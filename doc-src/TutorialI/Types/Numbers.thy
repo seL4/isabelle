@@ -118,8 +118,8 @@ text{*
 @{thm[display] mod_by_0 [no_vars]}
 \rulename{mod_by_0}
 
-@{thm[display] dvd_anti_sym[no_vars]}
-\rulename{dvd_anti_sym}
+@{thm[display] dvd_antisym[no_vars]}
+\rulename{dvd_antisym}
 
 @{thm[display] dvd_add[no_vars]}
 \rulename{dvd_add}

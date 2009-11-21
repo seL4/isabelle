@@ -21,8 +21,8 @@ sig
   val forall_elim_list: cterm list -> thm -> thm
   val gen_all: thm -> thm
   val lift_all: cterm -> thm -> thm
-  val freeze_thaw: thm -> thm * (thm -> thm)
-  val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
+  val legacy_freeze_thaw: thm -> thm * (thm -> thm)
+  val legacy_freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
@@ -325,7 +325,7 @@ val standard =
   reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.
   Similar code in type/freeze_thaw*)
 
-fun freeze_thaw_robust th =
+fun legacy_freeze_thaw_robust th =
  let val fth = Thm.freezeT th
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
@@ -346,9 +346,8 @@ fun freeze_thaw_robust th =
  end;
 
 (*Basic version of the function above. No option to rename Vars apart in thaw.
-  The Frees created from Vars have nice names. FIXME: does not check for
-  clashes with variables in the assumptions, so delete and use freeze_thaw_robust instead?*)
-fun freeze_thaw th =
+  The Frees created from Vars have nice names.*)
+fun legacy_freeze_thaw th =
  let val fth = Thm.freezeT th
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
@@ -710,13 +709,11 @@ val protect = Thm.capply (certify Logic.protectC);
 
 val protectI =
   store_thm (Binding.conceal (Binding.name "protectI"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
+    (standard (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A)));
 
 val protectD =
   store_thm (Binding.conceal (Binding.name "protectD"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim prop_def (Thm.assume (protect A)))));
+    (standard (Thm.equal_elim prop_def (Thm.assume (protect A))));
 
 val protect_cong =
   store_standard_thm_open (Binding.name "protect_cong") (Thm.reflexive (protect A));
@@ -734,8 +731,7 @@ fun implies_intr_protected asms th =
 
 val termI =
   store_thm (Binding.conceal (Binding.name "termI"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
+    (standard (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A))));
 
 fun mk_term ct =
   let
@@ -764,15 +760,14 @@ val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
 
 val sort_constraintI =
   store_thm (Binding.conceal (Binding.name "sort_constraintI"))
-    (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T))));
+    (standard (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T)));
 
 val sort_constraint_eq =
   store_thm (Binding.conceal (Binding.name "sort_constraint_eq"))
-    (Thm.kind_rule Thm.internalK (standard
+    (standard
       (Thm.equal_intr
         (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
-        (implies_intr_list [A, C] (Thm.assume A)))));
+        (implies_intr_list [A, C] (Thm.assume A))));
 
 end;
 

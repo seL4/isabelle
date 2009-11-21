@@ -2019,9 +2019,11 @@ version of MiniSat is bundled in \texttt{nativesolver.\allowbreak tgz}, which
 you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
 version of MiniSat, the JNI version can be used incrementally.
 
+%%% No longer true:
+%%% "It is bundled with Kodkodi and requires no further installation or
+%%% configuration steps. Alternatively,"
 \item[$\bullet$] \textbf{\textit{PicoSAT}}: PicoSAT is an efficient solver
-written in C. It is bundled with Kodkodi and requires no further installation or
-configuration steps. Alternatively, you can install a standard version of
+written in C. You can install a standard version of
 PicoSAT and set the environment variable \texttt{PICOSAT\_HOME} to the directory
 that contains the \texttt{picosat} executable. The C sources for PicoSAT are
 available at \url{http://fmv.jku.at/picosat/} and are also bundled with Kodkodi.
@@ -2078,11 +2080,11 @@ variable \texttt{HAIFASAT\_\allowbreak HOME} to the directory that contains the
 \url{http://cs.technion.ac.il/~gershman/HaifaSat.htm}.
 
 \item[$\bullet$] \textbf{\textit{smart}}: If \textit{sat\_solver} is set to
-\textit{smart}, Nitpick selects the first solver among MiniSatJNI, MiniSat,
-PicoSAT, zChaffJNI, zChaff, RSat, BerkMin, BerkMinAlloy, and Jerusat that is
-recognized by Isabelle. If none is found, it falls back on SAT4J, which should
-always be available. If \textit{verbose} is enabled, Nitpick displays which SAT
-solver was chosen.
+\textit{smart}, Nitpick selects the first solver among MiniSat,
+PicoSAT, zChaff, RSat, BerkMin, BerkMinAlloy, Jerusat, MiniSatJNI, and zChaffJNI
+that is recognized by Isabelle. If none is found, it falls back on SAT4J, which
+should always be available. If \textit{verbose} (\S\ref{output-format}) is
+enabled, Nitpick displays which SAT solver was chosen.
 \end{enum}
 \fussy
 
@@ -2469,8 +2471,8 @@ morphisms could possibly confuse Nitpick, resulting in spurious counterexamples.
 
 \item[$\bullet$] Local definitions are not supported and result in an error.
 
-\item[$\bullet$] All constants and types whose names start with
-\textit{Nitpick}{.} are reserved for internal use.
+%\item[$\bullet$] All constants and types whose names start with
+%\textit{Nitpick}{.} are reserved for internal use.
 \end{enum}
 
 \let\em=\sl

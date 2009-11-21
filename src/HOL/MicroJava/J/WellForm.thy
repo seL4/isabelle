@@ -284,8 +284,7 @@ apply (simp only: field_def)
 apply (frule fields_rec, assumption)
 apply (rule HOL.trans)
 apply (simp add: o_def)
-apply (simp (no_asm_use) 
-  add: split_beta split_def o_def map_compose [THEN sym] del: map_compose)
+apply (simp (no_asm_use) add: split_beta split_def o_def)
 done
 
 lemma method_Object [simp]:

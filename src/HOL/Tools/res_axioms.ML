@@ -29,8 +29,7 @@ struct
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
-(* FIXME legacy *)
-fun freeze_thm th = #1 (Drule.freeze_thaw th);
+fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
 fun type_has_empty_sort (TFree (_, [])) = true
   | type_has_empty_sort (TVar (_, [])) = true

@@ -7,6 +7,7 @@ Model reconstruction for Nitpick.
 
 signature NITPICK_MODEL =
 sig
+  type styp = Nitpick_Util.styp
   type scope = Nitpick_Scope.scope
   type rep = Nitpick_Rep.rep
   type nut = Nitpick_Nut.nut
@@ -636,7 +637,7 @@ fun reconstruct_hol_model {show_skolems, show_datatypes, show_consts}
       ||> filter_out (equal @{const_name bisim_iterator_max} o nickname_of)
     val free_names =
       map (fn x as (s, T) =>
-              case filter (equal x o nickname_of pairf (unbox_type o type_of))
+              case filter (equal x o pairf nickname_of (unbox_type o type_of))
                           free_names of
                 [name] => name
               | [] => FreeName (s, T, Any)
@@ -698,8 +699,8 @@ fun prove_hol_model (scope as {ext_ctxt as {thy, ctxt, ...}, card_assigns, ...})
              | TimeLimit.TimeOut => false
       end
   in
-    if silence try_out false then SOME true
-    else if silence try_out true then SOME false
+    if try_out false then SOME true
+    else if try_out true then SOME false
     else NONE
   end
 

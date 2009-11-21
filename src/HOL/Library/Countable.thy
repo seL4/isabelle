@@ -165,7 +165,7 @@ by (rule countable_classI[of "\<lambda>x. case x of None \<Rightarrow> 0
 text {* Lists *}
 
 lemma from_nat_to_nat_map [simp]: "map from_nat (map to_nat xs) = xs"
-  by (simp add: comp_def map_compose [symmetric])
+  by (simp add: comp_def)
 
 primrec
   list_encode :: "'a\<Colon>countable list \<Rightarrow> nat"

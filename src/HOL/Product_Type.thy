@@ -777,7 +777,7 @@ lemma apfst_conv [simp, code]:
   "apfst f (x, y) = (f x, y)" 
   by (simp add: apfst_def)
 
-lemma upd_snd_conv [simp, code]:
+lemma apsnd_conv [simp, code]:
   "apsnd f (x, y) = (x, f y)" 
   by (simp add: apsnd_def)
 
@@ -829,6 +829,9 @@ lemma apsnd_eq_conv [simp]:
   "apsnd f x = apsnd g x \<longleftrightarrow> f (snd x) = g (snd x)"
   by (cases x) simp
 
+lemma apsnd_apfst_commute:
+  "apsnd f (apfst g p) = apfst g (apsnd f p)"
+  by simp
 
 text {*
   Disjoint union of a family of sets -- Sigma.

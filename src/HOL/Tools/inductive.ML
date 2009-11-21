@@ -39,8 +39,8 @@ sig
   val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
     thm list list * local_theory
   type inductive_flags =
-    {quiet_mode: bool, verbose: bool, kind: string, alt_name: binding,
-     coind: bool, no_elim: bool, no_ind: bool, skip_mono: bool, fork_mono: bool}
+    {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
+      no_elim: bool, no_ind: bool, skip_mono: bool, fork_mono: bool}
   val add_inductive_i:
     inductive_flags -> ((binding * typ) * mixfix) list ->
     (string * typ) list -> (Attrib.binding * term) list -> thm list -> local_theory ->
@@ -51,7 +51,7 @@ sig
     (Attrib.binding * string) list ->
     (Facts.ref * Attrib.src list) list ->
     bool -> local_theory -> inductive_result * local_theory
-  val add_inductive_global: serial -> inductive_flags ->
+  val add_inductive_global: inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
     thm list -> theory -> inductive_result * theory
   val arities_of: thm -> (string * int) list
@@ -71,7 +71,7 @@ sig
     term list -> (Attrib.binding * term) list -> thm list ->
     term list -> (binding * mixfix) list ->
     local_theory -> inductive_result * local_theory
-  val declare_rules: string -> binding -> bool -> bool -> string list ->
+  val declare_rules: binding -> bool -> bool -> string list ->
     thm list -> binding list -> Attrib.src list list -> (thm * string list) list ->
     thm -> local_theory -> thm list * thm list * thm * local_theory
   val add_ind_def: add_ind_def
@@ -469,7 +469,7 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
-  in lthy |> LocalTheory.notes Thm.generatedK facts |>> map snd end;
+  in lthy |> Local_Theory.notes facts |>> map snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
@@ -509,7 +509,8 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
 
     fun mk_ind_prem r =
       let
-        fun subst s = (case dest_predicate cs params s of
+        fun subst s =
+          (case dest_predicate cs params s of
             SOME (_, i, ys, (_, Ts)) =>
               let
                 val k = length Ts;
@@ -520,10 +521,11 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
                   HOLogic.mk_binop inductive_conj_name
                     (list_comb (incr_boundvars k s, bs), P))
               in (Q, case Ts of [] => SOME (s, P) | _ => NONE) end
-          | NONE => (case s of
-              (t $ u) => (fst (subst t) $ fst (subst u), NONE)
-            | (Abs (a, T, t)) => (Abs (a, T, fst (subst t)), NONE)
-            | _ => (s, NONE)));
+          | NONE =>
+              (case s of
+                (t $ u) => (fst (subst t) $ fst (subst u), NONE)
+              | (Abs (a, T, t)) => (Abs (a, T, fst (subst t)), NONE)
+              | _ => (s, NONE)));
 
         fun mk_prem s prems =
           (case subst s of
@@ -618,16 +620,17 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
         SOME (_, i, ts, (Ts, Us)) =>
           let
             val l = length Us;
-            val zs = map Bound (l - 1 downto 0)
+            val zs = map Bound (l - 1 downto 0);
           in
             list_abs (map (pair "z") Us, list_comb (p,
               make_bool_args' bs i @ make_args argTs
                 ((map (incr_boundvars l) ts ~~ Ts) @ (zs ~~ Us))))
           end
-      | NONE => (case t of
-          t1 $ t2 => subst t1 $ subst t2
-        | Abs (x, T, u) => Abs (x, T, subst u)
-        | _ => t));
+      | NONE =>
+          (case t of
+            t1 $ t2 => subst t1 $ subst t2
+          | Abs (x, T, u) => Abs (x, T, subst u)
+          | _ => t));
 
     (* transform an introduction rule into a conjunction  *)
     (*   [| p_i t; ... |] ==> p_j u                       *)
@@ -662,13 +665,13 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       else alt_name;
 
     val ((rec_const, (_, fp_def)), lthy') = lthy
-      |> LocalTheory.conceal
-      |> LocalTheory.define Thm.internalK
+      |> Local_Theory.conceal
+      |> Local_Theory.define
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
          ((Binding.empty, [Attrib.internal (K Nitpick_Defs.add)]),
          fold_rev lambda params
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
-      ||> LocalTheory.restore_naming lthy;
+      ||> Local_Theory.restore_naming lthy;
     val fp_def' = Simplifier.rewrite (HOL_basic_ss addsimps [fp_def])
       (cterm_of (ProofContext.theory_of lthy') (list_comb (rec_const, params)));
     val specs =
@@ -685,21 +688,21 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
                 make_args argTs (xs ~~ Ts)))))
           end) (cnames_syn ~~ cs);
     val (consts_defs, lthy'') = lthy'
-      |> LocalTheory.conceal
-      |> fold_map (LocalTheory.define Thm.internalK) specs
-      ||> LocalTheory.restore_naming lthy';
+      |> Local_Theory.conceal
+      |> fold_map Local_Theory.define specs
+      ||> Local_Theory.restore_naming lthy';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos lthy'';
     val ((_, [mono']), lthy''') =
-      LocalTheory.note Thm.internalK (apfst Binding.conceal Attrib.empty_binding, [mono]) lthy'';
+      Local_Theory.note (apfst Binding.conceal Attrib.empty_binding, [mono]) lthy'';
 
   in (lthy''', rec_name, mono', fp_def', map (#2 o #2) consts_defs,
     list_comb (rec_const, params), preds, argTs, bs, xs)
   end;
 
-fun declare_rules kind rec_binding coind no_ind cnames
-      intrs intr_bindings intr_atts elims raw_induct lthy =
+fun declare_rules rec_binding coind no_ind cnames
+    intrs intr_bindings intr_atts elims raw_induct lthy =
   let
     val rec_name = Binding.name_of rec_binding;
     fun rec_qualified qualified = Binding.qualify qualified rec_name;
@@ -716,7 +719,7 @@ fun declare_rules kind rec_binding coind no_ind cnames
 
     val (intrs', lthy1) =
       lthy |>
-      LocalTheory.notes kind
+      Local_Theory.notes
         (map (rec_qualified false) intr_bindings ~~ intr_atts ~~
           map (fn th => [([th],
            [Attrib.internal (K (Context_Rules.intro_query NONE)),
@@ -724,16 +727,16 @@ fun declare_rules kind rec_binding coind no_ind cnames
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), lthy2) =
       lthy1 |>
-      LocalTheory.note kind ((rec_qualified true (Binding.name "intros"), []), intrs') ||>>
+      Local_Theory.note ((rec_qualified true (Binding.name "intros"), []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
-        LocalTheory.note kind
+        Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
             [Attrib.internal (K (Rule_Cases.case_names cases)),
              Attrib.internal (K (Rule_Cases.consumes 1)),
              Attrib.internal (K (Induct.cases_pred name)),
              Attrib.internal (K (Context_Rules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
-      LocalTheory.note kind
+      Local_Theory.note
         ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),
           map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
@@ -742,7 +745,7 @@ fun declare_rules kind rec_binding coind no_ind cnames
       else
         let val inducts = cnames ~~ Project_Rule.projects lthy2 (1 upto length cnames) induct' in
           lthy2 |>
-          LocalTheory.notes kind [((rec_qualified true (Binding.name "inducts"), []),
+          Local_Theory.notes [((rec_qualified true (Binding.name "inducts"), []),
             inducts |> map (fn (name, th) => ([th],
               [Attrib.internal (K ind_case_names),
                Attrib.internal (K (Rule_Cases.consumes 1)),
@@ -751,8 +754,8 @@ fun declare_rules kind rec_binding coind no_ind cnames
   in (intrs', elims', induct', lthy3) end;
 
 type inductive_flags =
-  {quiet_mode: bool, verbose: bool, kind: string, alt_name: binding,
-   coind: bool, no_elim: bool, no_ind: bool, skip_mono: bool, fork_mono: bool};
+  {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
+    no_elim: bool, no_ind: bool, skip_mono: bool, fork_mono: bool};
 
 type add_ind_def =
   inductive_flags ->
@@ -760,8 +763,7 @@ type add_ind_def =
   term list -> (binding * mixfix) list ->
   local_theory -> inductive_result * local_theory;
 
-fun add_ind_def
-    {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
+fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
     cs intros monos params cnames_syn lthy =
   let
     val _ = null cnames_syn andalso error "No inductive predicates given";
@@ -769,7 +771,7 @@ fun add_ind_def
     val _ = message (quiet_mode andalso not verbose)
       ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^ commas_quote names);
 
-    val cnames = map (LocalTheory.full_name lthy o #1) cnames_syn;  (* FIXME *)
+    val cnames = map (Local_Theory.full_name lthy o #1) cnames_syn;  (* FIXME *)
     val ((intr_names, intr_atts), intr_ts) =
       apfst split_list (split_list (map (check_rule lthy cs params) intros));
 
@@ -797,7 +799,7 @@ fun add_ind_def
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs lthy1);
 
-    val (intrs', elims', induct, lthy2) = declare_rules kind rec_name coind no_ind
+    val (intrs', elims', induct, lthy2) = declare_rules rec_name coind no_ind
       cnames intrs intr_names intr_atts elims raw_induct lthy1;
 
     val result =
@@ -808,7 +810,7 @@ fun add_ind_def
        induct = induct};
 
     val lthy3 = lthy2
-      |> LocalTheory.declaration false (fn phi =>
+      |> Local_Theory.declaration false (fn phi =>
         let val result' = morph_result phi result;
         in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
   in (result, lthy3) end;
@@ -817,7 +819,7 @@ fun add_ind_def
 (* external interfaces *)
 
 fun gen_add_inductive_i mk_def
-    (flags as {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono})
+    (flags as {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono})
     cnames_syn pnames spec monos lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -870,7 +872,7 @@ fun gen_add_inductive_i mk_def
   in
     lthy
     |> mk_def flags cs intros monos ps preds
-    ||> fold (snd oo LocalTheory.abbrev Syntax.mode_default) abbrevs
+    ||> fold (snd oo Local_Theory.abbrev Syntax.mode_default) abbrevs
   end;
 
 fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos int lthy =
@@ -880,26 +882,23 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
       |> Specification.read_spec (cnames_syn @ pnames_syn) intro_srcs;
     val (cs, ps) = chop (length cnames_syn) vars;
     val monos = Attrib.eval_thms lthy raw_monos;
-    val flags = {quiet_mode = false, verbose = verbose, kind = Thm.generatedK,
-      alt_name = Binding.empty, coind = coind, no_elim = false, no_ind = false,
-      skip_mono = false, fork_mono = not int};
+    val flags = {quiet_mode = false, verbose = verbose, alt_name = Binding.empty,
+      coind = coind, no_elim = false, no_ind = false, skip_mono = false, fork_mono = not int};
   in
     lthy
-    |> LocalTheory.set_group (serial ())
     |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos
   end;
 
 val add_inductive_i = gen_add_inductive_i add_ind_def;
 val add_inductive = gen_add_inductive add_ind_def;
 
-fun add_inductive_global group flags cnames_syn pnames pre_intros monos thy =
+fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
   let
     val name = Sign.full_name thy (fst (fst (hd cnames_syn)));
     val ctxt' = thy
       |> Theory_Target.init NONE
-      |> LocalTheory.set_group group
       |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
-      |> LocalTheory.exit;
+      |> Local_Theory.exit;
     val info = #2 (the_inductive ctxt' name);
   in (info, ProofContext.theory_of ctxt') end;
 

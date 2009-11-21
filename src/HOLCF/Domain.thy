@@ -5,7 +5,7 @@
 header {* Domain package *}
 
 theory Domain
-imports Ssum Sprod Up One Tr Fixrec
+imports Ssum Sprod Up One Tr Fixrec Representable
 uses
   ("Tools/cont_consts.ML")
   ("Tools/cont_proc.ML")

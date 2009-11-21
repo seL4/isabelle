@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_ml.ML
+(*  Title:      Tools/code/code_ml.ML_
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer for SML and OCaml.
@@ -25,29 +25,34 @@ val target_SML = "SML";
 val target_OCaml = "OCaml";
 val target_Eval = "Eval";
 
-datatype ml_stmt =
-    MLExc of string * int
-  | MLVal of string * ((typscheme * iterm) * (thm * bool))
-  | MLFuns of (string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)) list * string list
-  | MLDatas of (string * ((vname * sort) list * (string * itype list) list)) list
-  | MLClass of string * (vname * ((class * string) list * (string * itype) list))
-  | MLClassinst of string * ((class * (string * (vname * sort) list))
+datatype ml_binding =
+    ML_Function of string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)
+  | ML_Instance of string * ((class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
       * ((string * const) * (thm * bool)) list));
 
-fun stmt_names_of (MLExc (name, _)) = [name]
-  | stmt_names_of (MLVal (name, _)) = [name]
-  | stmt_names_of (MLFuns (fs, _)) = map fst fs
-  | stmt_names_of (MLDatas ds) = map fst ds
-  | stmt_names_of (MLClass (name, _)) = [name]
-  | stmt_names_of (MLClassinst (name, _)) = [name];
+datatype ml_stmt =
+    ML_Exc of string * int
+  | ML_Val of ml_binding
+  | ML_Funs of ml_binding list * string list
+  | ML_Datas of (string * ((vname * sort) list * (string * itype list) list)) list
+  | ML_Class of string * (vname * ((class * string) list * (string * itype) list));
+
+fun stmt_name_of_binding (ML_Function (name, _)) = name
+  | stmt_name_of_binding (ML_Instance (name, _)) = name;
+
+fun stmt_names_of (ML_Exc (name, _)) = [name]
+  | stmt_names_of (ML_Val binding) = [stmt_name_of_binding binding]
+  | stmt_names_of (ML_Funs (bindings, _)) = map stmt_name_of_binding bindings
+  | stmt_names_of (ML_Datas ds) = map fst ds
+  | stmt_names_of (ML_Class (name, _)) = [name];
 
 
 (** SML serailizer **)
 
 fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_cons =
   let
-    fun pr_dicts fxy ds =
+    fun pr_dicts is_pseudo_fun fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = first_upper v ^ "_"
           | pr_dictvar (v, (i, _)) = first_upper v ^ string_of_int (i+1) ^ "_";
@@ -58,7 +63,9 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_con
           | pr_proj (ps as _ :: _) p =
               brackets [Pretty.enum " o" "(" ")" ps, p];
         fun pr_dict fxy (DictConst (inst, dss)) =
-              brackify fxy ((str o deresolve) inst :: map (pr_dicts BR) dss)
+              brackify fxy ((str o deresolve) inst ::
+                (if is_pseudo_fun inst then [str "()"]
+                else map (pr_dicts is_pseudo_fun BR) dss))
           | pr_dict fxy (DictVar (classrels, v)) =
               pr_proj (map (str o deresolve) classrels) ((str o pr_dictvar) v)
       in case ds
@@ -66,11 +73,11 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_con
         | [d] => pr_dict fxy d
         | _ :: _ => (Pretty.list "(" ")" o map (pr_dict NOBR)) ds
       end;
-    fun pr_tyvar_dicts vs =
+    fun pr_tyvar_dicts is_pseudo_fun vs =
       vs
       |> map (fn (v, sort) => map_index (fn (i, _) =>
            DictVar ([], (v, (i, length sort)))) sort)
-      |> map (pr_dicts BR);
+      |> map (pr_dicts is_pseudo_fun BR);
     fun pr_tycoexpr fxy (tyco, tys) =
       let
         val tyco' = (str o deresolve) tyco
@@ -83,144 +90,155 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_con
          of NONE => pr_tycoexpr fxy (tyco, tys)
           | SOME (i, pr) => pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) = str ("'" ^ v);
-    fun pr_term is_closure thm vars fxy (IConst c) =
-          pr_app is_closure thm vars fxy (c, [])
-      | pr_term is_closure thm vars fxy (IVar NONE) =
+    fun pr_term is_pseudo_fun thm vars fxy (IConst c) =
+          pr_app is_pseudo_fun thm vars fxy (c, [])
+      | pr_term is_pseudo_fun thm vars fxy (IVar NONE) =
           str "_"
-      | pr_term is_closure thm vars fxy (IVar (SOME v)) =
+      | pr_term is_pseudo_fun thm vars fxy (IVar (SOME v)) =
           str (lookup_var vars v)
-      | pr_term is_closure thm vars fxy (t as t1 `$ t2) =
+      | pr_term is_pseudo_fun thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
-           of SOME c_ts => pr_app is_closure thm vars fxy c_ts
+           of SOME c_ts => pr_app is_pseudo_fun thm vars fxy c_ts
             | NONE => brackify fxy
-               [pr_term is_closure thm vars NOBR t1, pr_term is_closure thm vars BR t2])
-      | pr_term is_closure thm vars fxy (t as _ `|=> _) =
+               [pr_term is_pseudo_fun thm vars NOBR t1, pr_term is_pseudo_fun thm vars BR t2])
+      | pr_term is_pseudo_fun thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
             fun pr (pat, ty) =
-              pr_bind is_closure thm NOBR pat
+              pr_bind is_pseudo_fun thm NOBR pat
               #>> (fn p => concat [str "fn", p, str "=>"]);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (ps @ [pr_term is_closure thm vars' NOBR t']) end
-      | pr_term is_closure thm vars fxy (ICase (cases as (_, t0))) =
+          in brackets (ps @ [pr_term is_pseudo_fun thm vars' NOBR t']) end
+      | pr_term is_pseudo_fun thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
-                then pr_case is_closure thm vars fxy cases
-                else pr_app is_closure thm vars fxy c_ts
-            | NONE => pr_case is_closure thm vars fxy cases)
-    and pr_app' is_closure thm vars (app as ((c, ((_, iss), tys)), ts)) =
+                then pr_case is_pseudo_fun thm vars fxy cases
+                else pr_app is_pseudo_fun thm vars fxy c_ts
+            | NONE => pr_case is_pseudo_fun thm vars fxy cases)
+    and pr_app' is_pseudo_fun thm vars (app as ((c, ((_, iss), tys)), ts)) =
       if is_cons c then
         let
           val k = length tys
         in if k < 2 then 
-          (str o deresolve) c :: map (pr_term is_closure thm vars BR) ts
+          (str o deresolve) c :: map (pr_term is_pseudo_fun thm vars BR) ts
         else if k = length ts then
-          [(str o deresolve) c, Pretty.enum "," "(" ")" (map (pr_term is_closure thm vars NOBR) ts)]
-        else [pr_term is_closure thm vars BR (Code_Thingol.eta_expand k app)] end
-      else if is_closure c
+          [(str o deresolve) c, Pretty.enum "," "(" ")" (map (pr_term is_pseudo_fun thm vars NOBR) ts)]
+        else [pr_term is_pseudo_fun thm vars BR (Code_Thingol.eta_expand k app)] end
+      else if is_pseudo_fun c
         then (str o deresolve) c @@ str "()"
       else
         (str o deresolve) c
-          :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term is_closure thm vars BR) ts
-    and pr_app is_closure thm vars = gen_pr_app (pr_app' is_closure) (pr_term is_closure)
+          :: (map (pr_dicts is_pseudo_fun BR) o filter_out null) iss @ map (pr_term is_pseudo_fun thm vars BR) ts
+    and pr_app is_pseudo_fun thm vars = gen_pr_app (pr_app' is_pseudo_fun) (pr_term is_pseudo_fun)
       syntax_const thm vars
-    and pr_bind is_closure = gen_pr_bind (pr_term is_closure)
-    and pr_case is_closure thm vars fxy (cases as ((_, [_]), _)) =
+    and pr_bind is_pseudo_fun = gen_pr_bind (pr_term is_pseudo_fun)
+    and pr_case is_pseudo_fun thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
-              |> pr_bind is_closure thm NOBR pat
-              |>> (fn p => semicolon [str "val", p, str "=", pr_term is_closure thm vars NOBR t])
+              |> pr_bind is_pseudo_fun thm NOBR pat
+              |>> (fn p => semicolon [str "val", p, str "=", pr_term is_pseudo_fun thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.chunks [
               [str ("let"), Pretty.fbrk, Pretty.chunks ps] |> Pretty.block,
-              [str ("in"), Pretty.fbrk, pr_term is_closure thm vars' NOBR body] |> Pretty.block,
+              [str ("in"), Pretty.fbrk, pr_term is_pseudo_fun thm vars' NOBR body] |> Pretty.block,
               str ("end")
             ]
           end
-      | pr_case is_closure thm vars fxy (((t, ty), clause :: clauses), _) =
+      | pr_case is_pseudo_fun thm vars fxy (((t, ty), clause :: clauses), _) =
           let
             fun pr delim (pat, body) =
               let
-                val (p, vars') = pr_bind is_closure thm NOBR pat vars;
+                val (p, vars') = pr_bind is_pseudo_fun thm NOBR pat vars;
               in
-                concat [str delim, p, str "=>", pr_term is_closure thm vars' NOBR body]
+                concat [str delim, p, str "=>", pr_term is_pseudo_fun thm vars' NOBR body]
               end;
           in
             brackets (
               str "case"
-              :: pr_term is_closure thm vars NOBR t
+              :: pr_term is_pseudo_fun thm vars NOBR t
               :: pr "of" clause
               :: map (pr "|") clauses
             )
           end
-      | pr_case is_closure thm vars fxy ((_, []), _) =
+      | pr_case is_pseudo_fun thm vars fxy ((_, []), _) =
           (concat o map str) ["raise", "Fail", "\"empty case\""];
-    fun pr_stmt (MLExc (name, n)) =
+    fun pr_binding is_pseudo_fun needs_typ definer (ML_Function (name, ((vs, ty), eqs as eq :: eqs'))) =
           let
-            val exc_str =
-              (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name;
+            val vs_dict = filter_out (null o snd) vs;
+            val shift = if null eqs' then I else
+              map (Pretty.block o single o Pretty.block o single);
+            fun pr_eq definer ((ts, t), (thm, _)) =
+              let
+                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
+                val vars = reserved
+                  |> intro_base_names
+                       (is_none o syntax_const) deresolve consts
+                  |> intro_vars ((fold o Code_Thingol.fold_varnames)
+                       (insert (op =)) ts []);
+                val prolog = if needs_typ then
+                  concat [str definer, (str o deresolve) name, str ":", pr_typ NOBR ty]
+                    else Pretty.strs [definer, deresolve name];
+              in
+                concat (
+                  prolog
+                  :: (if is_pseudo_fun name then [str "()"]
+                      else pr_tyvar_dicts is_pseudo_fun vs_dict
+                        @ map (pr_term is_pseudo_fun thm vars BR) ts)
+                  @ str "="
+                  @@ pr_term is_pseudo_fun thm vars NOBR t
+                )
+              end
           in
-            (concat o map str) (
-              (if n = 0 then "val" else "fun")
-              :: deresolve name
-              :: replicate n "_"
-              @ "="
-              :: "raise"
-              :: "Fail"
-              @@ exc_str
+            (Pretty.block o Pretty.fbreaks o shift) (
+              pr_eq definer eq
+              :: map (pr_eq "|") eqs'
             )
           end
-      | pr_stmt (MLVal (name, (((vs, ty), t), (thm, _)))) =
+      | pr_binding is_pseudo_fun _ definer (ML_Instance (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
           let
-            val consts = Code_Thingol.add_constnames t [];
-            val vars = reserved
-              |> intro_base_names
-                  (is_none o syntax_const) deresolve consts;
+            fun pr_superclass (_, (classrel, dss)) =
+              concat [
+                (str o Long_Name.base_name o deresolve) classrel,
+                str "=",
+                pr_dicts is_pseudo_fun NOBR [DictConst dss]
+              ];
+            fun pr_classparam ((classparam, c_inst), (thm, _)) =
+              concat [
+                (str o Long_Name.base_name o deresolve) classparam,
+                str "=",
+                pr_app (K false) thm reserved NOBR (c_inst, [])
+              ];
           in
-            concat [
-              str "val",
-              (str o deresolve) name,
-              str ":",
-              pr_typ NOBR ty,
-              str "=",
-              pr_term (K false) thm vars NOBR t
-            ]
-          end
-      | pr_stmt (MLFuns (funn :: funns, pseudo_funs)) =
+            concat (
+              str definer
+              :: (str o deresolve) inst
+              :: (if is_pseudo_fun inst then [str "()"]
+                  else pr_tyvar_dicts is_pseudo_fun arity)
+              @ str "="
+              :: Pretty.enum "," "{" "}"
+                (map pr_superclass superarities @ map pr_classparam classparam_insts)
+              :: str ":"
+              @@ pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
+            )
+          end;
+    fun pr_stmt (ML_Exc (name, n)) =
+          (concat o map str) (
+            (if n = 0 then "val" else "fun")
+            :: deresolve name
+            :: replicate n "_"
+            @ "="
+            :: "raise"
+            :: "Fail"
+            @@ (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name ^ ";"
+          )
+      | pr_stmt (ML_Val binding) =
+          semicolon [pr_binding (K false) true "val" binding]
+      | pr_stmt (ML_Funs (binding :: bindings, pseudo_funs)) =
           let
-            fun pr_funn definer (name, ((vs, ty), eqs as eq :: eqs')) =
-              let
-                val vs_dict = filter_out (null o snd) vs;
-                val shift = if null eqs' then I else
-                  map (Pretty.block o single o Pretty.block o single);
-                fun pr_eq definer ((ts, t), (thm, _)) =
-                  let
-                    val consts = fold Code_Thingol.add_constnames (t :: ts) [];
-                    val vars = reserved
-                      |> intro_base_names
-                           (is_none o syntax_const) deresolve consts
-                      |> intro_vars ((fold o Code_Thingol.fold_varnames)
-                           (insert (op =)) ts []);
-                  in
-                    concat (
-                      str definer
-                      :: (str o deresolve) name
-                      :: (if member (op =) pseudo_funs name then [str "()"]
-                          else pr_tyvar_dicts vs_dict
-                            @ map (pr_term (member (op =) pseudo_funs) thm vars BR) ts)
-                      @ str "="
-                      @@ pr_term (member (op =) pseudo_funs) thm vars NOBR t
-                    )
-                  end
-              in
-                (Pretty.block o Pretty.fbreaks o shift) (
-                  pr_eq definer eq
-                  :: map (pr_eq "|") eqs'
-                )
-              end;
+            val pr_binding' = pr_binding (member (op =) pseudo_funs) false;
             fun pr_pseudo_fun name = concat [
                 str "val",
                 (str o deresolve) name,
@@ -228,10 +246,11 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_con
                 (str o deresolve) name,
                 str "();"
               ];
-            val (ps, p) = split_last (pr_funn "fun" funn :: map (pr_funn "and") funns);
+            val (ps, p) = split_last
+              (pr_binding' "fun" binding :: map (pr_binding' "and") bindings);
             val pseudo_ps = map pr_pseudo_fun pseudo_funs;
           in Pretty.chunks (ps @ Pretty.block ([p, str ";"]) :: pseudo_ps) end
-     | pr_stmt (MLDatas (datas as (data :: datas'))) =
+     | pr_stmt (ML_Datas (datas as (data :: datas'))) =
           let
             fun pr_co (co, []) =
                   str (deresolve co)
@@ -258,7 +277,7 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_con
             val (ps, p) = split_last
               (pr_data "datatype" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @| Pretty.block ([p, str ";"])) end
-     | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
+     | pr_stmt (ML_Class (class, (v, (superclasses, classparams)))) =
           let
             val w = first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
@@ -300,32 +319,6 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_con
               :: map pr_superclass_proj superclasses
               @ map pr_classparam_proj classparams
             )
-          end
-     | pr_stmt (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
-          let
-            fun pr_superclass (_, (classrel, dss)) =
-              concat [
-                (str o Long_Name.base_name o deresolve) classrel,
-                str "=",
-                pr_dicts NOBR [DictConst dss]
-              ];
-            fun pr_classparam ((classparam, c_inst), (thm, _)) =
-              concat [
-                (str o Long_Name.base_name o deresolve) classparam,
-                str "=",
-                pr_app (K false) thm reserved NOBR (c_inst, [])
-              ];
-          in
-            semicolon ([
-              str (if null arity then "val" else "fun"),
-              (str o deresolve) inst ] @
-              pr_tyvar_dicts arity @ [
-              str "=",
-              Pretty.enum "," "{" "}"
-                (map pr_superclass superarities @ map pr_classparam classparam_insts),
-              str ":",
-              pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
-            ])
           end;
   in pr_stmt end;
 
@@ -354,14 +347,16 @@ val literals_sml = Literals {
 
 fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_cons =
   let
-    fun pr_dicts fxy ds =
+    fun pr_dicts is_pseudo_fun fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = "_" ^ first_upper v
           | pr_dictvar (v, (i, _)) = "_" ^ first_upper v ^ string_of_int (i+1);
         fun pr_proj ps p =
           fold_rev (fn p2 => fn p1 => Pretty.block [p1, str ".", str p2]) ps p
         fun pr_dict fxy (DictConst (inst, dss)) =
-              brackify fxy ((str o deresolve) inst :: map (pr_dicts BR) dss)
+              brackify fxy ((str o deresolve) inst ::
+                (if is_pseudo_fun inst then [str "()"]
+                else map (pr_dicts is_pseudo_fun BR) dss))
           | pr_dict fxy (DictVar (classrels, v)) =
               pr_proj (map deresolve classrels) ((str o pr_dictvar) v)
       in case ds
@@ -369,11 +364,11 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
         | [d] => pr_dict fxy d
         | _ :: _ => (Pretty.list "(" ")" o map (pr_dict NOBR)) ds
       end;
-    fun pr_tyvar_dicts vs =
+    fun pr_tyvar_dicts is_pseudo_fun vs =
       vs
       |> map (fn (v, sort) => map_index (fn (i, _) =>
            DictVar ([], (v, (i, length sort)))) sort)
-      |> map (pr_dicts BR);
+      |> map (pr_dicts is_pseudo_fun BR);
     fun pr_tycoexpr fxy (tyco, tys) =
       let
         val tyco' = (str o deresolve) tyco
@@ -386,103 +381,73 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
          of NONE => pr_tycoexpr fxy (tyco, tys)
           | SOME (i, pr) => pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) = str ("'" ^ v);
-    fun pr_term is_closure thm vars fxy (IConst c) =
-          pr_app is_closure thm vars fxy (c, [])
-      | pr_term is_closure thm vars fxy (IVar NONE) =
+    fun pr_term is_pseudo_fun thm vars fxy (IConst c) =
+          pr_app is_pseudo_fun thm vars fxy (c, [])
+      | pr_term is_pseudo_fun thm vars fxy (IVar NONE) =
           str "_"
-      | pr_term is_closure thm vars fxy (IVar (SOME v)) =
+      | pr_term is_pseudo_fun thm vars fxy (IVar (SOME v)) =
           str (lookup_var vars v)
-      | pr_term is_closure thm vars fxy (t as t1 `$ t2) =
+      | pr_term is_pseudo_fun thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
-           of SOME c_ts => pr_app is_closure thm vars fxy c_ts
+           of SOME c_ts => pr_app is_pseudo_fun thm vars fxy c_ts
             | NONE =>
-                brackify fxy [pr_term is_closure thm vars NOBR t1, pr_term is_closure thm vars BR t2])
-      | pr_term is_closure thm vars fxy (t as _ `|=> _) =
+                brackify fxy [pr_term is_pseudo_fun thm vars NOBR t1, pr_term is_pseudo_fun thm vars BR t2])
+      | pr_term is_pseudo_fun thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
-            val (ps, vars') = fold_map (pr_bind is_closure thm BR o fst) binds vars;
-          in brackets (str "fun" :: ps @ str "->" @@ pr_term is_closure thm vars' NOBR t') end
-      | pr_term is_closure thm vars fxy (ICase (cases as (_, t0))) = (case Code_Thingol.unfold_const_app t0
+            val (ps, vars') = fold_map (pr_bind is_pseudo_fun thm BR o fst) binds vars;
+          in brackets (str "fun" :: ps @ str "->" @@ pr_term is_pseudo_fun thm vars' NOBR t') end
+      | pr_term is_pseudo_fun thm vars fxy (ICase (cases as (_, t0))) = (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
-                then pr_case is_closure thm vars fxy cases
-                else pr_app is_closure thm vars fxy c_ts
-            | NONE => pr_case is_closure thm vars fxy cases)
-    and pr_app' is_closure thm vars (app as ((c, ((_, iss), tys)), ts)) =
+                then pr_case is_pseudo_fun thm vars fxy cases
+                else pr_app is_pseudo_fun thm vars fxy c_ts
+            | NONE => pr_case is_pseudo_fun thm vars fxy cases)
+    and pr_app' is_pseudo_fun thm vars (app as ((c, ((_, iss), tys)), ts)) =
       if is_cons c then
         if length tys = length ts
         then case ts
          of [] => [(str o deresolve) c]
-          | [t] => [(str o deresolve) c, pr_term is_closure thm vars BR t]
+          | [t] => [(str o deresolve) c, pr_term is_pseudo_fun thm vars BR t]
           | _ => [(str o deresolve) c, Pretty.enum "," "(" ")"
-                    (map (pr_term is_closure thm vars NOBR) ts)]
-        else [pr_term is_closure thm vars BR (Code_Thingol.eta_expand (length tys) app)]
-      else if is_closure c
+                    (map (pr_term is_pseudo_fun thm vars NOBR) ts)]
+        else [pr_term is_pseudo_fun thm vars BR (Code_Thingol.eta_expand (length tys) app)]
+      else if is_pseudo_fun c
         then (str o deresolve) c @@ str "()"
       else (str o deresolve) c
-        :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term is_closure thm vars BR) ts)
-    and pr_app is_closure = gen_pr_app (pr_app' is_closure) (pr_term is_closure)
+        :: ((map (pr_dicts is_pseudo_fun BR) o filter_out null) iss @ map (pr_term is_pseudo_fun thm vars BR) ts)
+    and pr_app is_pseudo_fun = gen_pr_app (pr_app' is_pseudo_fun) (pr_term is_pseudo_fun)
       syntax_const
-    and pr_bind is_closure = gen_pr_bind (pr_term is_closure)
-    and pr_case is_closure thm vars fxy (cases as ((_, [_]), _)) =
+    and pr_bind is_pseudo_fun = gen_pr_bind (pr_term is_pseudo_fun)
+    and pr_case is_pseudo_fun thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
-              |> pr_bind is_closure thm NOBR pat
+              |> pr_bind is_pseudo_fun thm NOBR pat
               |>> (fn p => concat
-                  [str "let", p, str "=", pr_term is_closure thm vars NOBR t, str "in"])
+                  [str "let", p, str "=", pr_term is_pseudo_fun thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
           in
             brackify_block fxy (Pretty.chunks ps) []
-              (pr_term is_closure thm vars' NOBR body)
+              (pr_term is_pseudo_fun thm vars' NOBR body)
           end
-      | pr_case is_closure thm vars fxy (((t, ty), clause :: clauses), _) =
+      | pr_case is_pseudo_fun thm vars fxy (((t, ty), clause :: clauses), _) =
           let
             fun pr delim (pat, body) =
               let
-                val (p, vars') = pr_bind is_closure thm NOBR pat vars;
-              in concat [str delim, p, str "->", pr_term is_closure thm vars' NOBR body] end;
+                val (p, vars') = pr_bind is_pseudo_fun thm NOBR pat vars;
+              in concat [str delim, p, str "->", pr_term is_pseudo_fun thm vars' NOBR body] end;
           in
             brackets (
               str "match"
-              :: pr_term is_closure thm vars NOBR t
+              :: pr_term is_pseudo_fun thm vars NOBR t
               :: pr "with" clause
               :: map (pr "|") clauses
             )
           end
-      | pr_case is_closure thm vars fxy ((_, []), _) =
+      | pr_case is_pseudo_fun thm vars fxy ((_, []), _) =
           (concat o map str) ["failwith", "\"empty case\""];
-    fun pr_stmt (MLExc (name, n)) =
-          let
-            val exc_str =
-              (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name;
-          in
-            (concat o map str) (
-              "let"
-              :: deresolve name
-              :: replicate n "_"
-              @ "="
-              :: "failwith"
-              @@ exc_str
-            )
-          end
-      | pr_stmt (MLVal (name, (((vs, ty), t), (thm, _)))) =
-          let
-            val consts = Code_Thingol.add_constnames t [];
-            val vars = reserved
-              |> intro_base_names
-                  (is_none o syntax_const) deresolve consts;
-          in
-            concat [
-              str "let",
-              (str o deresolve) name,
-              str ":",
-              pr_typ NOBR ty,
-              str "=",
-              pr_term (K false) thm vars NOBR t
-            ]
-          end
-      | pr_stmt (MLFuns (funn :: funns, pseudo_funs)) =
+    fun pr_binding is_pseudo_fun needs_typ definer (ML_Function (name, ((vs, ty), eqs))) =
           let
             fun pr_eq ((ts, t), (thm, _)) =
               let
@@ -494,9 +459,9 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
                       (insert (op =)) ts []);
               in concat [
                 (Pretty.block o Pretty.commas)
-                  (map (pr_term (member (op =) pseudo_funs) thm vars NOBR) ts),
+                  (map (pr_term is_pseudo_fun thm vars NOBR) ts),
                 str "->",
-                pr_term (member (op =) pseudo_funs) thm vars NOBR t
+                pr_term is_pseudo_fun thm vars NOBR t
               ] end;
             fun pr_eqs is_pseudo [((ts, t), (thm, _))] =
                   let
@@ -509,9 +474,9 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
                   in
                     concat (
                       (if is_pseudo then [str "()"]
-                        else map (pr_term (member (op =) pseudo_funs) thm vars BR) ts)
+                        else map (pr_term is_pseudo_fun thm vars BR) ts)
                       @ str "="
-                      @@ pr_term (member (op =) pseudo_funs) thm vars NOBR t
+                      @@ pr_term is_pseudo_fun thm vars NOBR t
                     )
                   end
               | pr_eqs _ (eqs as (eq as (([_], _), _)) :: eqs') =
@@ -548,13 +513,58 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
                            o single o pr_eq) eqs'
                     )
                   end;
-            fun pr_funn definer (name, ((vs, ty), eqs)) =
-              concat (
-                str definer
-                :: (str o deresolve) name
-                :: pr_tyvar_dicts (filter_out (null o snd) vs)
-                @| pr_eqs (member (op =) pseudo_funs name) eqs
-              );
+            val prolog = if needs_typ then
+              concat [str definer, (str o deresolve) name, str ":", pr_typ NOBR ty]
+                else Pretty.strs [definer, deresolve name];
+          in
+            concat (
+              prolog
+              :: pr_tyvar_dicts is_pseudo_fun (filter_out (null o snd) vs)
+              @| pr_eqs (is_pseudo_fun name) eqs
+            )
+          end
+      | pr_binding is_pseudo_fun _ definer (ML_Instance (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
+          let
+            fun pr_superclass (_, (classrel, dss)) =
+              concat [
+                (str o deresolve) classrel,
+                str "=",
+                pr_dicts is_pseudo_fun NOBR [DictConst dss]
+              ];
+            fun pr_classparam_inst ((classparam, c_inst), (thm, _)) =
+              concat [
+                (str o deresolve) classparam,
+                str "=",
+                pr_app (K false) thm reserved NOBR (c_inst, [])
+              ];
+          in
+            concat (
+              str definer
+              :: (str o deresolve) inst
+              :: pr_tyvar_dicts is_pseudo_fun arity
+              @ str "="
+              @@ brackets [
+                enum_default "()" ";" "{" "}" (map pr_superclass superarities
+                  @ map pr_classparam_inst classparam_insts),
+                str ":",
+                pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
+              ]
+            )
+          end;
+     fun pr_stmt (ML_Exc (name, n)) =
+          (concat o map str) (
+            "let"
+            :: deresolve name
+            :: replicate n "_"
+            @ "="
+            :: "failwith"
+            @@ (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name ^ ";;"
+          )
+      | pr_stmt (ML_Val binding) =
+           Pretty.block [pr_binding (K false) true "let" binding, str ";;"]
+      | pr_stmt (ML_Funs (binding :: bindings, pseudo_funs)) =
+          let
+            val pr_binding' = pr_binding (member (op =) pseudo_funs) false;
             fun pr_pseudo_fun name = concat [
                 str "let",
                 (str o deresolve) name,
@@ -563,10 +573,10 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
                 str "();;"
               ];
             val (ps, p) = split_last
-              (pr_funn "let rec" funn :: map (pr_funn "and") funns);
+              (pr_binding' "let rec" binding :: map (pr_binding' "and") bindings);
             val pseudo_ps = map pr_pseudo_fun pseudo_funs;
           in Pretty.chunks (ps @ Pretty.block ([p, str ";;"]) :: pseudo_ps) end
-     | pr_stmt (MLDatas (datas as (data :: datas'))) =
+     | pr_stmt (ML_Datas (datas as (data :: datas'))) =
           let
             fun pr_co (co, []) =
                   str (deresolve co)
@@ -593,7 +603,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
             val (ps, p) = split_last
               (pr_data "type" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @| Pretty.block ([p, str ";;"])) end
-     | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
+     | pr_stmt (ML_Class (class, (v, (superclasses, classparams)))) =
           let
             val w = "_" ^ first_upper v;
             fun pr_superclass_field (class, classrel) =
@@ -623,36 +633,8 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved deresolve is_c
               )
             ]
             :: map pr_classparam_proj classparams
-          ) end
-     | pr_stmt (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
-          let
-            fun pr_superclass (_, (classrel, dss)) =
-              concat [
-                (str o deresolve) classrel,
-                str "=",
-                pr_dicts NOBR [DictConst dss]
-              ];
-            fun pr_classparam_inst ((classparam, c_inst), (thm, _)) =
-              concat [
-                (str o deresolve) classparam,
-                str "=",
-                pr_app (K false) thm reserved NOBR (c_inst, [])
-              ];
-          in
-            concat (
-              str "let"
-              :: (str o deresolve) inst
-              :: pr_tyvar_dicts arity
-              @ str "="
-              @@ (Pretty.enclose "(" ");;" o Pretty.breaks) [
-                enum_default "()" ";" "{" "}" (map pr_superclass superarities
-                  @ map pr_classparam_inst classparam_insts),
-                str ":",
-                pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
-              ]
-            )
-          end;
-  in pr_stmt end;
+          ) end;
+ in pr_stmt end;
 
 fun pr_ocaml_module name content =
   Pretty.chunks (
@@ -744,32 +726,41 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         val base' = if upper then first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
-    fun rearrange_fun name (tysm as (vs, ty), raw_eqs) =
+    fun ml_binding_of_stmt (name, Code_Thingol.Fun (_, (tysm as (vs, ty), raw_eqs))) =
+          let
+            val eqs = filter (snd o snd) raw_eqs;
+            val (eqs', is_value) = if null (filter_out (null o snd) vs) then case eqs
+               of [(([], t), thm)] => if (not o null o fst o Code_Thingol.unfold_fun) ty
+                  then ([(([IVar (SOME "x")], t `$ IVar (SOME "x")), thm)], NONE)
+                  else (eqs, SOME (name, member (op =) (Code_Thingol.add_constnames t []) name))
+                | _ => (eqs, NONE)
+              else (eqs, NONE)
+          in (ML_Function (name, (tysm, eqs')), is_value) end
+      | ml_binding_of_stmt (name, Code_Thingol.Classinst (stmt as ((_, (_, arity)), _))) =
+          (ML_Instance (name, stmt), if null arity then SOME (name, false) else NONE)
+      | ml_binding_of_stmt (name, _) =
+          error ("Binding block containing illegal statement: " ^ labelled_name name)
+    fun add_fun (name, stmt) =
       let
-        val eqs = filter (snd o snd) raw_eqs;
-        val (eqs', is_value) = if null (filter_out (null o snd) vs) then case eqs
-         of [(([], t), thm)] => if (not o null o fst o Code_Thingol.unfold_fun) ty
-            then ([(([IVar (SOME "x")], t `$ IVar (SOME "x")), thm)], false)
-            else (eqs, not (member (op =) (Code_Thingol.add_constnames t []) name))
-          | _ => (eqs, false)
-          else (eqs, false)
-      in ((name, (tysm, eqs')), is_value) end;
-    fun check_kind [((name, (tysm, [(([], t), thm)])), true)] = MLVal (name, ((tysm, t), thm))
-      | check_kind [((name, ((vs, ty), [])), _)] =
-          MLExc (name, (length o filter_out (null o snd)) vs + (length o fst o Code_Thingol.unfold_fun) ty)
-      | check_kind funns =
-          MLFuns (map fst funns, map_filter
-            (fn ((name, ((vs, _), [(([], _), _)])), _) =>
-                  if null (filter_out (null o snd) vs) then SOME name else NONE
-              | _ => NONE) funns);
-    fun add_funs stmts = fold_map
-        (fn (name, Code_Thingol.Fun (_, stmt)) =>
-              map_nsp_fun_yield (mk_name_stmt false name)
-              #>> rpair (rearrange_fun name stmt)
-          | (name, _) =>
-              error ("Function block containing illegal statement: " ^ labelled_name name)
-        ) stmts
-      #>> (split_list #> apsnd check_kind);
+        val (binding, some_value_name) = ml_binding_of_stmt (name, stmt);
+        val ml_stmt = case binding
+         of ML_Function (name, ((vs, ty), [])) =>
+              ML_Exc (name, (length o filter_out (null o snd)) vs + (length o fst o Code_Thingol.unfold_fun) ty)
+          | _ => case some_value_name
+             of NONE => ML_Funs ([binding], [])
+              | SOME (name, true) => ML_Funs ([binding], [name])
+              | SOME (name, false) => ML_Val binding
+      in
+        map_nsp_fun_yield (mk_name_stmt false name)
+        #>> (fn name' => ([name'], ml_stmt))
+      end;
+    fun add_funs stmts =
+      let
+        val ml_stmt = ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst);
+      in
+        fold_map (fn (name, _) => map_nsp_fun_yield (mk_name_stmt false name)) stmts
+        #>> rpair ml_stmt
+      end;
     fun add_datatypes stmts =
       fold_map
         (fn (name, Code_Thingol.Datatype (_, stmt)) =>
@@ -782,7 +773,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
       #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Datatype block without data statement: "
                   ^ (commas o map (labelled_name o fst)) stmts)
-             | stmts => MLDatas stmts)));
+             | stmts => ML_Datas stmts)));
     fun add_class stmts =
       fold_map
         (fn (name, Code_Thingol.Class (_, stmt)) =>
@@ -797,11 +788,10 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
       #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Class block without class statement: "
                   ^ (commas o map (labelled_name o fst)) stmts)
-             | [stmt] => MLClass stmt)));
-    fun add_inst [(name, Code_Thingol.Classinst stmt)] =
-      map_nsp_fun_yield (mk_name_stmt false name)
-      #>> (fn base => ([base], MLClassinst (name, stmt)));
-    fun add_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
+             | [stmt] => ML_Class stmt)));
+    fun add_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
+          add_fun stmt
+      | add_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
           add_funs stmts
       | add_stmts ((stmts as (_, Code_Thingol.Datatypecons _)::_)) =
           add_datatypes stmts
@@ -813,8 +803,10 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
           add_class stmts
       | add_stmts ((stmts as (_, Code_Thingol.Classparam _)::_)) =
           add_class stmts
-      | add_stmts ((stmts as [(_, Code_Thingol.Classinst _)])) =
-          add_inst stmts
+      | add_stmts ([stmt as (_, Code_Thingol.Classinst _)]) =
+          add_fun stmt
+      | add_stmts ((stmts as (_, Code_Thingol.Classinst _)::_)) =
+          add_funs stmts
       | add_stmts stmts = error ("Illegal mutual dependencies: " ^
           (commas o map (labelled_name o fst)) stmts);
     fun add_stmts' stmts nsp_nodes =

@@ -96,7 +96,7 @@ structure GlobalRecdefData = Theory_Data
     (tab2, {simps = simps2, congs = congs2, wfs = wfs2})) : T =
       (Symtab.merge (K true) (tab1, tab2),
         mk_hints (Thm.merge_thms (simps1, simps2),
-          AList.merge (op =) Thm.eq_thm_prop (congs1, congs2),
+          AList.merge (op =) (K true) (congs1, congs2),
           Thm.merge_thms (wfs1, wfs2)));
 );
 
@@ -263,7 +263,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    Specification.theorem Thm.internalK NONE (K I)
+    Specification.theorem "" NONE (K I)
       (Binding.conceal (Binding.name bname), atts) []
       (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;

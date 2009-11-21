@@ -160,7 +160,7 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}\\
 \hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = AQueue ([],~[])\\
+\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun dequeue (AQueue ([],~[])) = (NONE,~AQueue ([],~[]))\\
 \hspace*{0pt} ~| dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\

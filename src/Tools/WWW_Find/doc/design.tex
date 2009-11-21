@@ -1,0 +1,330 @@
+% $Id$
+%
+% vim:nojs: tw=76 sw=4 sts=4 fo=awn fdm=marker
+%
+% 20090406 T. Bourke
+%	Original document.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper,draft]{article} % XXX
+%\documentclass[a4paper,final]{article}
+% Preamble
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{ifdraft}
+
+\bibliographystyle{abbrv} % alpha
+
+\newcommand{\refsec}[1]{Section~\ref{sec:#1}}
+\newcommand{\reffig}[1]{Figure~\ref{fig:#1}}
+\newcommand{\reftab}[1]{Table~\ref{tab:#1}}
+
+%
+\usepackage{acronym}
+\usepackage{pst-all}
+\usepackage{url}
+
+\title{Isabelle find\_theorems on the web}
+\author{T. Bourke\thanks{NICTA}}
+
+\special{!/pdfmark where
+ {pop} {userdict /pdfmark /cleartomark load put} ifelse
+ [ /Author   (T. Bourke, NICTA)
+   /Title    (IsabelleWWW: find_theorems
+	      ($Date: 2008-10-03 16:09:02 +1000 (Fri, 03 Oct 2008) $))
+   /Subject  (Web interface to find_theorems)
+   /Keywords (isabelle, sml, http, www)
+   /DOCINFO pdfmark}
+
+\begin{document}
+% Title page and abstract
+\maketitle
+
+\begin{abstract}
+The Isabelle find\_theorems command processes queries against a theory 
+database and returns a list of matching theorems.
+It is usually given from the Proof General or command-line interface.
+This document describes a web server implementation.
+Two design alternatives are presented and an overview of an implementation 
+of one is described.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+This document describes the design and implementation of a web interface for 
+the Isabelle find\_theorems command.
+The design requirements and their consequences are detailed in \refsec{req}.
+Two architectures were considered: \begin{enumerate}
+
+\item \emph{one process}: integrate a web server into Isabelle.
+
+\item \emph{two processes}: run Isabelle as a web server module.
+
+\end{enumerate}
+A brief evaluation of the one process architecture is presented in 
+\refsec{oneproc}.
+An implementation of the two process is presented in \refsec{twoproc}.
+
+\section{Design requirements}\label{sec:req}
+
+The main requirements are:\begin{enumerate}
+\item The system will allow users to search for theorems from a web browser.
+\item It will allow queries across disparate Isabelle theories.
+\item It will, at a minimum, handle theories from the L4.verified project.
+\item It will run on a secure network.
+\item There will be at most ten simultaneous users.
+\end{enumerate}
+
+\noindent
+Several \emph{a priori} choices are fixed:\begin{enumerate}
+\item The search will run against an Isabelle heap.
+\item A single heap will be built from the theories to be searched.
+\item The system must be persistent, for two reasons: \begin{enumerate}
+    \item Isabelle is slow to start against large heaps.
+    \item Later enhancements may require tracking states at the server.
+\end{enumerate}
+\end{enumerate}
+
+\section{Evaluation: Isabelle web server}\label{sec:oneproc}
+
+The advantage of integrating a web server into Isabelle is that the 
+find\_theorems service could be provided by a single process, which, in 
+principle, would simplify administration.
+Implementing even a simple \ac{HTTP} service from scratch is an unacceptable 
+cost and fraught with potential problems and limitations.
+It is preferable to adapt an existing system.
+
+As Isabelle is written in \ac{SML}, only \ac{HTTP} services also written in 
+\ac{SML} can realistically be considered.
+In principle Isabelle compiles on both Poly/ML and \ac{SML/NJ}, but in 
+practice the former is faster, more widely used, and better supported.
+In particular, the L4.verified project does not build effectively on 
+\ac{SML/NJ}.
+This further limits the potential to adapt an existing system.
+
+There are three \ac{SML} web server projects:\\
+\centerline{\begin{tabular}{ll}
+SMLServer &
+    \url{http://www.smlserver.org}\\
+FoxNet web server &
+    \url{http://www.cs.cmu.edu/~fox/}\\
+Swerve web server &
+    \url{http://mlton.org/Swerve}
+\end{tabular}}
+
+Unfortunately, none of these projects is suitable.
+
+The SMLServer is an Apache web server plugin.
+It runs \ac{SML} programs that generate dynamic web pages.
+SMLServer is based on the MLKit compiler.
+It is unlikely that Isabelle and the l4.verified heaps could be compiled in 
+MLKit, at least not without significant effort.
+
+The FoxNet web server was developed as part of the Fox project at \ac{CMU}.
+The source is not readily available.
+
+The Swerve web server is part of an unpublished book on systems programming 
+in \ac{SML}.
+The source code is available and it is readily patched to run under the 
+latest version of SML/NJ (110.67).
+Adapting it to Poly/ML would require non-trivial effort because it is based 
+on \ac{CML}, whose implementation on SML/NJ makes use of continuations 
+(SMLofNJ.cont).
+
+\section{Implementation: Isabelle web module}\label{sec:twoproc}
+
+The description of the two process solution is divided into two subsections.
+The first contains an overview of the architecture and web server specifics.
+The second contains a summary of an \ac{SML} implementation of the web 
+module in Isabelle.
+
+\subsection{Architecture and web server}\label{sec:oneproc:arch}
+
+\newcommand{\component}[1]{%
+    \rput(0,0){\psframe(-.8,-.6)(.8,.6)}%
+    \rput(0,0){\parbox{4.3em}{\centering{#1}}}}
+
+\begin{figure}
+\centering%
+\begin{pspicture}(-4.8,0)(3.3,4)%\psgrid
+    \newpsstyle{conn}{arrows=->}%
+    %
+    \rput(-2.2,3.3){\component{web server}}%
+    \rput( 2.2,3.3){\component{web module}}%
+    \rput(-2.2,0.7){\component{web client}}%
+    \rput(-4.2,3.4){%
+	\psellipse(0,-.2)(.4,.2)%
+	\psframe[linestyle=none,fillstyle=solid,fillcolor=white]%
+		(-.4,-.2)(.4,.1)%
+	\psellipse(0,.1)(.4,.2)%
+	\psline(-.38,-.2)(-.38,.1)\psline(.38,-.2)(.38,.1)%
+    }%
+    \psline[style=conn,arrows=<->](-3.0,3.3)(-3.8,3.3)%
+    %
+    \rput[rB](3.3,2.15){server}%
+    \psline[linestyle=dashed](-4.8,2)(3.3,2)%
+    \rput[rt](3.3,1.90){network}%
+    %
+    \rput[B](0.0,3.55){\psframebox*{module protocol}}%
+    \psline[style=conn](-1.4,3.4)(1.4,3.4)%
+    \psline[style=conn](1.4,3.2)(-1.4,3.2)%
+    %
+    \rput[B]{90}(-2.4,2.0){\psframebox*{\ac{HTTP}}}%
+    \psline[style=conn](-2.1,2.7)(-2.1,1.3)%
+    \psline[style=conn](-2.3,1.3)(-2.3,2.7)%
+\end{pspicture}
+\caption{Overview of web module architecture\label{fig:modulearch}}
+\end{figure}
+
+An overview of a simple web server architecture is presented in 
+\reffig{modulearch}.
+A \emph{web client} requests a \ac{URL} from a \emph{web server} over 
+\ac{HTTP}.
+The web server processes the request by fetching static elements from its 
+local file system and communicating with \emph{web modules} to dynamically 
+generate other elements.
+The elements are sent back across the network to the web client.
+
+The web server communicates with web modules over a \emph{module protocol}, 
+which dictates a means of passing requests and receiving responses.
+There are several common module protocols.
+
+In the \ac{CGI}, the web server executes processes to service dynamic 
+\acp{URL}.
+Request details are placed in environment variables and sent on the standard 
+input channels of processes, responses are read from the standard output 
+channels of processes and transmitted back to web clients.
+
+The chief disadvantage of \ac{CGI} is that it creates a new process for 
+every request.
+Fast \ac{CGI} web modules, on the other hand, run persistently in a loop.
+They receive and respond to web server requests over a duplex socket.
+The Fast \ac{CGI} protocol is quite complicated.
+There are, however, alternatives like \ac{SCGI} that are easier for web 
+modules to support.
+This is important when programming in \ac{SML} because both the number of 
+developers and available libraries are small.
+
+An \ac{SCGI} web module listens on a socket for requests from a web server.
+Requests are sent as stream of bytes.
+The first part of the request is a null-delimited sequence of name and value 
+pairs.
+The second part is unparsed text sent from the web client.
+The web module responds by sending text, usually \ac{HTTP} headers followed 
+by \ac{HTML} data, back over the socket.
+The whole protocol can be described in two 
+pages.\footnote{\url{http://python.ca/scgi/protocol.txt}}
+
+Both the Apache and Lighttpd web servers support the \ac{SCGI} protocol.
+Lighttpd was chosen because it seemed to be small, fast, and easy to 
+configure.
+Two settings are required to connect lighttpd to an \ac{SCGI} web module: 
+\begin{verbatim}
+server.modules = ( "mod_scgi" )
+scgi.server = ("/isabelle" => ((
+		  "host" => "127.0.0.1",
+		  "port" => 64000,
+		  "check-local" => "disable")))
+\end{verbatim}
+In this example, the \texttt{scgi.server} entry directs the web server to 
+pass all \acp{URL} beginning with \texttt{/isabelle} to the web module 
+listening on port \texttt{64000}.
+
+\subsection{Implementation in \acs{SML}}\label{sec:oneproc:impl}
+
+\begin{table}
+\begin{tabular}{lp{.70\textwidth}}
+\textbf{Module}	     &	\textbf{Description}\\\hline
+Mime		     &	Rudimentary support for mime types.\\
+HttpStatus	     &	\ac{HTTP} header status codes.\\
+HttpUtil	     &	Produce \ac{HTTP} headers and parse query strings.\\
+Xhtml		     &	Rudimentary support for generating \ac{HTML}.\\
+SocketUtil	     &	Routines from The Standard ML Basis Library
+			book.\footnote{Chapter 10, Gansner and Reppy, 
+			Cambridge University Press.}\\
+\textbf{ScgiReq}     &	Parse \ac{SCGI} requests.\\
+\textbf{ScgiServer}  &	\ac{SCGI} server event loop and dispatch.\\
+\textbf{FindTheorems}&	\ac{HTML} interface to find\_theorems.
+\end{tabular}
+\caption{Web module implementation\label{tab:moduleimpl}}
+\end{table}
+
+The find\_theorems web module is implemented in \ac{SML}.
+It uses elements of the Pure library in Isabelle.
+The program comprises the nine modules shown in \reftab{moduleimpl}.
+The three most important ones are shown in bold: ScgiReq, ScgiServer, and 
+FindTheorems.
+
+ScgiReq implements the client-side of the \ac{SCGI} protocol.
+It maps a binary input stream into a request data type.
+
+ScgiServer is a generic, multi-threaded \ac{SCGI} request dispatcher.
+It accepts \ac{SCGI} requests on a designated socket, selects an appropriate 
+handler from an internal list, and calls the handler in a new thread.
+
+FindTheorems registers a handler with ScgiServer.
+It parses \ac{SCGI}/\ac{HTTP} requests, calls the Isabelle find\_theorems 
+function, and returns the results as \ac{HTML}.
+The \ac{HTML} generation of individual theorems is handled by the \ac{HTML} 
+print mode of Isabelle, but the form fields and page structure were manually 
+implemented.
+
+The module is built by using a \texttt{ROOT.ML} file inside a heap that 
+contains the theories to be searched.
+The server is started by calling \texttt{ScgiServer.server}.
+Scripts have been created to automate this process.
+
+\subsection{Handling symbols}\label{sec:unicode}
+
+Isabelle theorems are usually written in mathematical notation.
+Internally, however, Isabelle only manipulates \acs{ASCII} strings.
+Symbols are encoded by strings that begin with a backslash and contain a 
+symbol name between angle braces, for example, the symbol~$\longrightarrow$ 
+becomes~\verb+\<longrightarrow>+.
+The existing Thy/Html module in the Isabelle Pure theory converts many of 
+these symbols to \ac{HTML} entities.
+Custom routines are required to convert the missing symbols to \ac{HTML} 
+\emph{numeric character references}, which are the Unicode codepoints of 
+symbols printed in decimal between \verb+&#+ and \verb+;+.
+Further, other routines were required for converting \acs{UTF-8} encoded 
+strings sent from web browsers into Isabelle's symbol encoding.
+
+Isabelle is distributed with a text file that maps Isabelle symbols to 
+Unicode codepoints.
+A module was written to parse this file into symbol tables that map back and 
+forth between Isabelle symbols and Unicode codepoints, and also between 
+Isabelle \acs{ASCII} abbreviations (like \verb+-->+ for $\longrightarrow$) 
+and Unicode codepoints.
+
+The conversion from Isabelle symbols to \ac{HTML} numeric character 
+references is handled by a new printing mode, which is based in large part 
+on the existing \ac{HTML} printing mode.
+The new mode is used in combination with the existing \texttt{xsymbol} mode, 
+to ensure that Isabelle symbols are used instead of \acs{ASCII} 
+abbreviations.
+
+The conversion from \acs{UTF-8} is handled by a custom routine.
+Additionally, there is a JavaScript routine that converts from Isabelle 
+symbol encodings to \acs{UTF-8}, so that users can conveniently view 
+manually-entered or pasted mathematical characters in the web browser 
+interface.
+
+\section{Abbreviations}\label{sec:abbr}
+
+\begin{acronym}[SML/NJ] % longest acronym here
+    \acro{ASCII}{American Standard Code for Information Interchange}
+    \acro{CGI}{Common Gateway Interface}
+    \acro{CML}{Concurrent ML}
+    \acro{CMU}{Carnegie Mellon University}
+    \acro{HTML}{Hyper Text Markup Language}
+    \acro{HTTP}{Hyper Text Transfer Protocol}
+    \acro{ML}{Meta Language}
+    \acro{SCGI}{Simple CGI}
+    \acro{SML}{Standard ML}
+    \acro{SML/NJ}{Standard ML of New Jersey}
+    \acro{URL}{Universal Resource Locator}
+    \acro{UTF-8}{8-bit Unicode Transformation Format}
+    \acro{WWW}{World Wide Web}
+\end{acronym}
+
+\end{document}

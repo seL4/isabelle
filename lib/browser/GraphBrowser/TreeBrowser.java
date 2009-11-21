@@ -1,6 +1,5 @@
 /***************************************************************************
   Title:      GraphBrowser/TreeBrowser.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
 
   This class defines the browser window which is used to display directory

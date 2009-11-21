@@ -94,7 +94,7 @@ end
 
 instantiation "^" :: (ord,type) ord
  begin
-definition vector_less_eq_def:
+definition vector_le_def:
   "less_eq (x :: 'a ^'b) y = (ALL i. x$i <= y$i)"
 definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i. x$i < y$i)"
 
@@ -1642,6 +1642,9 @@ subsection{* Linear functions. *}
 
 definition "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *s x) = c *s f x)"
 
+lemma linearI: assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
+  shows "linear f" using assms unfolding linear_def by auto
+
 lemma linear_compose_cmul: "linear f ==> linear (\<lambda>x. (c::'a::comm_semiring) *s f x)"
   by (vector linear_def Cart_eq ring_simps)
 
@@ -1811,6 +1814,11 @@ next
     unfolding linear_def smult_conv_scaleR
     by (simp add: f.add f.scaleR)
 qed
+
+lemma bounded_linearI': fixes f::"real^'n::finite \<Rightarrow> real^'m::finite"
+  assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
+  shows "bounded_linear f" unfolding linear_conv_bounded_linear[THEN sym]
+  by(rule linearI[OF assms])
 
 subsection{* Bilinear functions. *}
 
@@ -2470,6 +2478,11 @@ lemma vec1_sub: "vec1(x - y) = vec1 x - vec1 y" by (vector vec1_def)
 lemma vec1_cmul: "vec1(c* x) = c *s vec1 x " by (vector vec1_def)
 lemma vec1_neg: "vec1(- x) = - vec1 x " by (vector vec1_def)
 
+lemma vec1_0[simp]:"vec1 0 = 0" unfolding vec1_def Cart_eq by auto
+
+lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_ext,rule) unfolding image_iff defer
+  apply(rule_tac x="dest_vec1 x" in bexI) by auto
+
 lemma vec1_setsum: assumes fS: "finite S"
   shows "vec1(setsum f S) = setsum (vec1 o f) S"
   apply (induct rule: finite_induct[OF fS])
@@ -2511,6 +2524,14 @@ lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
   by (simp only: dist_real vec1_component)
 lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
   by (metis vec1_dest_vec1 norm_vec1)
+
+lemmas vec1_dest_vec1_simps = forall_vec1 vec1_add[THEN sym] dist_vec1 vec1_sub[THEN sym] vec1_dest_vec1 norm_vec1 dest_vec1_cmul
+   vec1_eq vec1_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
+
+lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
+  unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
+  unfolding smult_conv_scaleR[THEN sym] unfolding vec1_dest_vec1_simps
+  apply(rule conjI) defer apply(rule conjI) defer apply(rule_tac x=1 in exI) by auto
 
 lemma linear_vmul_dest_vec1:
   fixes f:: "'a::semiring_1^'n \<Rightarrow> 'a^1"
@@ -3415,21 +3436,18 @@ apply (rule span_superset)
 apply (auto simp add: Collect_def mem_def)
 done
 
-lemma has_size_stdbasis: "{basis i ::real ^'n::finite | i. i \<in> (UNIV :: 'n set)} hassize CARD('n)" (is "?S hassize ?n")
+lemma finite_stdbasis: "finite {basis i ::real^'n::finite |i. i\<in> (UNIV:: 'n set)}" (is "finite ?S")
 proof-
   have eq: "?S = basis ` UNIV" by blast
-  show ?thesis unfolding eq
-    apply (rule hassize_image_inj[OF basis_inj])
-    by (simp add: hassize_def)
+  show ?thesis unfolding eq by auto
 qed
 
-lemma finite_stdbasis: "finite {basis i ::real^'n::finite |i. i\<in> (UNIV:: 'n set)}"
-  using has_size_stdbasis[unfolded hassize_def]
-  ..
+lemma card_stdbasis: "card {basis i ::real^'n::finite |i. i\<in> (UNIV :: 'n set)} = CARD('n)" (is "card ?S = _")
+proof-
+  have eq: "?S = basis ` UNIV" by blast
+  show ?thesis unfolding eq using card_image[OF basis_inj] by simp
+qed
 
-lemma card_stdbasis: "card {basis i ::real^'n::finite |i. i\<in> (UNIV :: 'n set)} = CARD('n)"
-  using has_size_stdbasis[unfolded hassize_def]
-  ..
 
 lemma independent_stdbasis_lemma:
   assumes x: "(x::'a::semiring_1 ^ 'n) \<in> span (basis ` S)"
@@ -3550,7 +3568,7 @@ qed
 lemma exchange_lemma:
   assumes f:"finite (t:: ('a::field^'n) set)" and i: "independent s"
   and sp:"s \<subseteq> span t"
-  shows "\<exists>t'. (t' hassize card t) \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
+  shows "\<exists>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
 using f i sp
 proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
   fix n:: nat and s t :: "('a ^'n) set"
@@ -3559,21 +3577,21 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
                 independent x \<longrightarrow>
                 x \<subseteq> span xa \<longrightarrow>
                 m = card (xa - x) \<longrightarrow>
-                (\<exists>t'. (t' hassize card xa) \<and>
+                (\<exists>t'. (card t' = card xa) \<and> finite t' \<and>
                       x \<subseteq> t' \<and> t' \<subseteq> x \<union> xa \<and> x \<subseteq> span t')"
     and ft: "finite t" and s: "independent s" and sp: "s \<subseteq> span t"
     and n: "n = card (t - s)"
-  let ?P = "\<lambda>t'. (t' hassize card t) \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
+  let ?P = "\<lambda>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
   let ?ths = "\<exists>t'. ?P t'"
   {assume st: "s \<subseteq> t"
     from st ft span_mono[OF st] have ?ths apply - apply (rule exI[where x=t])
-      by (auto simp add: hassize_def intro: span_superset)}
+      by (auto intro: span_superset)}
   moreover
   {assume st: "t \<subseteq> s"
 
     from spanning_subset_independent[OF st s sp]
       st ft span_mono[OF st] have ?ths apply - apply (rule exI[where x=t])
-      by (auto simp add: hassize_def intro: span_superset)}
+      by (auto intro: span_superset)}
   moreover
   {assume st: "\<not> s \<subseteq> t" "\<not> t \<subseteq> s"
     from st(2) obtain b where b: "b \<in> t" "b \<notin> s" by blast
@@ -3584,20 +3602,20 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
     {assume stb: "s \<subseteq> span(t -{b})"
       from ft have ftb: "finite (t -{b})" by auto
       from H[rule_format, OF cardlt ftb s stb]
-      obtain u where u: "u hassize card (t-{b})" "s \<subseteq> u" "u \<subseteq> s \<union> (t - {b})" "s \<subseteq> span u" by blast
+      obtain u where u: "card u = card (t-{b})" "s \<subseteq> u" "u \<subseteq> s \<union> (t - {b})" "s \<subseteq> span u" and fu: "finite u" by blast
       let ?w = "insert b u"
       have th0: "s \<subseteq> insert b u" using u by blast
       from u(3) b have "u \<subseteq> s \<union> t" by blast
       then have th1: "insert b u \<subseteq> s \<union> t" using u b by blast
       have bu: "b \<notin> u" using b u by blast
-      from u(1) have fu: "finite u" by (simp add: hassize_def)
-      from u(1) ft b have "u hassize (card t - 1)" by auto
+      from u(1) ft b have "card u = (card t - 1)" by auto
       then
-      have th2: "insert b u hassize card t"
-        using  card_insert_disjoint[OF fu bu] ct0 by (auto simp add: hassize_def)
+      have th2: "card (insert b u) = card t"
+        using card_insert_disjoint[OF fu bu] ct0 by auto
       from u(4) have "s \<subseteq> span u" .
       also have "\<dots> \<subseteq> span (insert b u)" apply (rule span_mono) by blast
-      finally have th3: "s \<subseteq> span (insert b u)" .      from th0 th1 th2 th3 have th: "?P ?w"  by blast
+      finally have th3: "s \<subseteq> span (insert b u)" .
+      from th0 th1 th2 th3 fu have th: "?P ?w"  by blast
       from th have ?ths by blast}
     moreover
     {assume stb: "\<not> s \<subseteq> span(t -{b})"
@@ -3619,9 +3637,9 @@ proof(induct c\<equiv>"card(t - s)" arbitrary: s t rule: nat_less_induct)
       then have sp': "s \<subseteq> span (insert a (t - {b}))" by blast
 
       from H[rule_format, OF mlt ft' s sp' refl] obtain u where
-        u: "u hassize card (insert a (t -{b}))" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t -{b})"
+        u: "card u = card (insert a (t -{b}))" "finite u" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t -{b})"
         "s \<subseteq> span u" by blast
-      from u a b ft at ct0 have "?P u" by (auto simp add: hassize_def)
+      from u a b ft at ct0 have "?P u" by auto
       then have ?ths by blast }
     ultimately have ?ths by blast
   }
@@ -3634,7 +3652,7 @@ qed
 lemma independent_span_bound:
   assumes f: "finite t" and i: "independent (s::('a::field^'n) set)" and sp:"s \<subseteq> span t"
   shows "finite s \<and> card s \<le> card t"
-  by (metis exchange_lemma[OF f i sp] hassize_def finite_subset card_mono)
+  by (metis exchange_lemma[OF f i sp] finite_subset card_mono)
 
 
 lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x\<in> (UNIV::'a::finite set)}"
@@ -3702,39 +3720,44 @@ lemma maximal_independent_subset:
 
 (* Notion of dimension.                                                      *)
 
-definition "dim V = (SOME n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (B hassize n))"
+definition "dim V = (SOME n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = n))"
 
-lemma basis_exists:  "\<exists>B. (B :: (real ^'n::finite) set) \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (B hassize dim V)"
-unfolding dim_def some_eq_ex[of "\<lambda>n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (B hassize n)"]
-unfolding hassize_def
+lemma basis_exists:  "\<exists>B. (B :: (real ^'n::finite) set) \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = dim V)"
+unfolding dim_def some_eq_ex[of "\<lambda>n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = n)"]
 using maximal_independent_subset[of V] independent_bound
 by auto
 
 (* Consequences of independence or spanning for cardinality.                 *)
 
-lemma independent_card_le_dim: "(B::(real ^'n::finite) set) \<subseteq> V \<Longrightarrow> independent B \<Longrightarrow> finite B \<and> card B \<le> dim V"
-by (metis basis_exists[of V] independent_span_bound[where ?'a=real] hassize_def subset_trans)
+lemma independent_card_le_dim: 
+  assumes "(B::(real ^'n::finite) set) \<subseteq> V" and "independent B" shows "card B \<le> dim V"
+proof -
+  from basis_exists[of V] `B \<subseteq> V`
+  obtain B' where "independent B'" and "B \<subseteq> span B'" and "card B' = dim V" by blast
+  with independent_span_bound[OF _ `independent B` `B \<subseteq> span B'`] independent_bound[of B']
+  show ?thesis by auto
+qed
 
 lemma span_card_ge_dim:  "(B::(real ^'n::finite) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> finite B \<Longrightarrow> dim V \<le> card B"
-  by (metis basis_exists[of V] independent_span_bound hassize_def subset_trans)
+  by (metis basis_exists[of V] independent_span_bound subset_trans)
 
 lemma basis_card_eq_dim:
   "B \<subseteq> (V:: (real ^'n::finite) set) \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> finite B \<and> card B = dim V"
-  by (metis order_eq_iff independent_card_le_dim span_card_ge_dim independent_mono)
+  by (metis order_eq_iff independent_card_le_dim span_card_ge_dim independent_mono independent_bound)
 
-lemma dim_unique: "(B::(real ^'n::finite) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> B hassize n \<Longrightarrow> dim V = n"
-  by (metis basis_card_eq_dim hassize_def)
+lemma dim_unique: "(B::(real ^'n::finite) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = n \<Longrightarrow> dim V = n"
+  by (metis basis_card_eq_dim)
 
 (* More lemmas about dimension.                                              *)
 
 lemma dim_univ: "dim (UNIV :: (real^'n::finite) set) = CARD('n)"
   apply (rule dim_unique[of "{basis i |i. i\<in> (UNIV :: 'n set)}"])
-  by (auto simp only: span_stdbasis has_size_stdbasis independent_stdbasis)
+  by (auto simp only: span_stdbasis card_stdbasis finite_stdbasis independent_stdbasis)
 
 lemma dim_subset:
   "(S:: (real ^'n::finite) set) \<subseteq> T \<Longrightarrow> dim S \<le> dim T"
   using basis_exists[of T] basis_exists[of S]
-  by (metis independent_span_bound[where ?'a = real and ?'n = 'n] subset_eq hassize_def)
+  by (metis independent_card_le_dim subset_trans)
 
 lemma dim_subset_univ: "dim (S:: (real^'n::finite) set) \<le> CARD('n)"
   by (metis dim_subset subset_UNIV dim_univ)
@@ -3750,7 +3773,7 @@ proof-
       then have iaB: "independent (insert a B)" using iB aV  BV by (simp add: independent_insert)
       from aV BV have th0: "insert a B \<subseteq> V" by blast
       from aB have "a \<notin>B" by (auto simp add: span_superset)
-      with independent_card_le_dim[OF th0 iaB] dVB  have False by auto}
+      with independent_card_le_dim[OF th0 iaB] dVB independent_bound[OF iB] have False by auto }
     then have "a \<in> span B"  by blast}
   then show ?thesis by blast
 qed
@@ -3777,8 +3800,8 @@ proof-
   then show ?thesis unfolding dependent_def by blast
 qed
 
-lemma card_eq_dim: "(B:: (real ^'n::finite) set) \<subseteq> V \<Longrightarrow> B hassize dim V \<Longrightarrow> independent B \<longleftrightarrow> V \<subseteq> span B"
-  by (metis hassize_def order_eq_iff card_le_dim_spanning
+lemma card_eq_dim: "(B:: (real ^'n::finite) set) \<subseteq> V \<Longrightarrow> card B = dim V \<Longrightarrow> finite B \<Longrightarrow> independent B \<longleftrightarrow> V \<subseteq> span B"
+  by (metis order_eq_iff card_le_dim_spanning
     card_ge_dim_independent)
 
 (* ------------------------------------------------------------------------- *)
@@ -3797,8 +3820,8 @@ proof-
   have th0: "dim S \<le> dim (span S)"
     by (auto simp add: subset_eq intro: dim_subset span_superset)
   from basis_exists[of S]
-  obtain B where B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "B hassize dim S" by blast
-  from B have fB: "finite B" "card B = dim S" unfolding hassize_def by blast+
+  obtain B where B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S" by blast
+  from B have fB: "finite B" "card B = dim S" using independent_bound by blast+
   have bSS: "B \<subseteq> span S" using B(1) by (metis subset_eq span_inc)
   have sssB: "span S \<subseteq> span B" using span_mono[OF B(3)] by (simp add: span_span)
   from span_card_ge_dim[OF bSS sssB fB(1)] th0 show ?thesis
@@ -3822,8 +3845,8 @@ lemma dim_image_le:
   assumes lf: "linear f" shows "dim (f ` S) \<le> dim (S:: (real ^'n::finite) set)"
 proof-
   from basis_exists[of S] obtain B where
-    B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "B hassize dim S" by blast
-  from B have fB: "finite B" "card B = dim S" unfolding hassize_def by blast+
+    B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S" by blast
+  from B have fB: "finite B" "card B = dim S" using independent_bound by blast+
   have "dim (f ` S) \<le> card (f ` B)"
     apply (rule span_card_ge_dim)
     using lf B fB by (auto simp add: span_linear_image spans_image subset_image_iff)
@@ -3947,10 +3970,10 @@ qed
 
 lemma orthogonal_basis_exists:
   fixes V :: "(real ^'n::finite) set"
-  shows "\<exists>B. independent B \<and> B \<subseteq> span V \<and> V \<subseteq> span B \<and> (B hassize dim V) \<and> pairwise orthogonal B"
+  shows "\<exists>B. independent B \<and> B \<subseteq> span V \<and> V \<subseteq> span B \<and> (card B = dim V) \<and> pairwise orthogonal B"
 proof-
-  from basis_exists[of V] obtain B where B: "B \<subseteq> V" "independent B" "V \<subseteq> span B" "B hassize dim V" by blast
-  from B have fB: "finite B" "card B = dim V" by (simp_all add: hassize_def)
+  from basis_exists[of V] obtain B where B: "B \<subseteq> V" "independent B" "V \<subseteq> span B" "card B = dim V" by blast
+  from B have fB: "finite B" "card B = dim V" using independent_bound by auto
   from basis_orthogonal[OF fB(1)] obtain C where
     C: "finite C" "card C \<le> card B" "span C = span B" "pairwise orthogonal C" by blast
   from C B
@@ -3961,7 +3984,7 @@ proof-
   from C fB have "card C \<le> dim V" by simp
   moreover have "dim V \<le> card C" using span_card_ge_dim[OF CSV SVC C(1)]
     by (simp add: dim_span)
-  ultimately have CdV: "C hassize dim V" unfolding hassize_def using C(1) by simp
+  ultimately have CdV: "card C = dim V" using C(1) by simp
   from C B CSV CdV iC show ?thesis by auto
 qed
 
@@ -3978,9 +4001,9 @@ lemma span_not_univ_orthogonal:
 proof-
   from sU obtain a where a: "a \<notin> span S" by blast
   from orthogonal_basis_exists obtain B where
-    B: "independent B" "B \<subseteq> span S" "S \<subseteq> span B" "B hassize dim S" "pairwise orthogonal B"
+    B: "independent B" "B \<subseteq> span S" "S \<subseteq> span B" "card B = dim S" "pairwise orthogonal B"
     by blast
-  from B have fB: "finite B" "card B = dim S" by (simp_all add: hassize_def)
+  from B have fB: "finite B" "card B = dim S" using independent_bound by auto
   from span_mono[OF B(2)] span_mono[OF B(3)]
   have sSB: "span S = span B" by (simp add: span_span)
   let ?a = "a - setsum (\<lambda>b. (a\<bullet>b / (b\<bullet>b)) *s b) B"
@@ -4228,20 +4251,18 @@ lemma subspace_isomorphism:
   and d: "dim S = dim T"
   shows "\<exists>f. linear f \<and> f ` S = T \<and> inj_on f S"
 proof-
-  from basis_exists[of S] obtain B where
-    B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "B hassize dim S" by blast
-  from basis_exists[of T] obtain C where
-    C: "C \<subseteq> T" "independent C" "T \<subseteq> span C" "C hassize dim T" by blast
+  from basis_exists[of S] independent_bound obtain B where
+    B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S" and fB: "finite B" by blast
+  from basis_exists[of T] independent_bound obtain C where
+    C: "C \<subseteq> T" "independent C" "T \<subseteq> span C" "card C = dim T" and fC: "finite C" by blast
   from B(4) C(4) card_le_inj[of B C] d obtain f where
-    f: "f ` B \<subseteq> C" "inj_on f B" unfolding hassize_def by auto
+    f: "f ` B \<subseteq> C" "inj_on f B" using `finite B` `finite C` by auto
   from linear_independent_extend[OF B(2)] obtain g where
     g: "linear g" "\<forall>x\<in> B. g x = f x" by blast
-  from B(4) have fB: "finite B" by (simp add: hassize_def)
-  from C(4) have fC: "finite C" by (simp add: hassize_def)
   from inj_on_iff_eq_card[OF fB, of f] f(2)
   have "card (f ` B) = card B" by simp
   with B(4) C(4) have ceq: "card (f ` B) = card C" using d
-    by (simp add: hassize_def)
+    by simp
   have "g ` B = f ` B" using g(2)
     by (auto simp add: image_iff)
   also have "\<dots> = C" using card_subset_eq[OF fC f(1) ceq] .
@@ -4557,9 +4578,9 @@ lemma linear_injective_imp_surjective:
 proof-
   let ?U = "UNIV :: (real ^'n) set"
   from basis_exists[of ?U] obtain B
-    where B: "B \<subseteq> ?U" "independent B" "?U \<subseteq> span B" "B hassize dim ?U"
+    where B: "B \<subseteq> ?U" "independent B" "?U \<subseteq> span B" "card B = dim ?U"
     by blast
-  from B(4) have d: "dim ?U = card B" by (simp add: hassize_def)
+  from B(4) have d: "dim ?U = card B" by simp
   have th: "?U \<subseteq> span (f ` B)"
     apply (rule card_ge_dim_independent)
     apply blast
@@ -4619,11 +4640,10 @@ lemma linear_surjective_imp_injective:
 proof-
   let ?U = "UNIV :: (real ^'n) set"
   from basis_exists[of ?U] obtain B
-    where B: "B \<subseteq> ?U" "independent B" "?U \<subseteq> span B" "B hassize dim ?U"
+    where B: "B \<subseteq> ?U" "independent B" "?U \<subseteq> span B" and d: "card B = dim ?U"
     by blast
   {fix x assume x: "x \<in> span B" and fx: "f x = 0"
-    from B(4) have fB: "finite B" by (simp add: hassize_def)
-    from B(4) have d: "dim ?U = card B" by (simp add: hassize_def)
+    from B(2) have fB: "finite B" using independent_bound by auto
     have fBi: "independent (f ` B)"
       apply (rule card_le_dim_spanning[of "f ` B" ?U])
       apply blast
@@ -4631,7 +4651,7 @@ proof-
       unfolding span_linear_image[OF lf] surj_def subset_eq image_iff
       apply blast
       using fB apply (blast intro: finite_imageI)
-      unfolding d
+      unfolding d[symmetric]
       apply (rule card_image_le)
       apply (rule fB)
       done

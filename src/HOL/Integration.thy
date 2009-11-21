@@ -542,7 +542,7 @@ lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(
  apply (erule subst)
  apply (subst listsum_subtractf [symmetric])
  apply (rule listsum_abs [THEN order_trans])
- apply (subst map_compose [symmetric, unfolded o_def])
+ apply (subst map_map [unfolded o_def])
  apply (subgoal_tac "e = (\<Sum>(u, x, v)\<leftarrow>D. (e / (b - a)) * (v - u))")
   apply (erule ssubst)
   apply (simp add: abs_minus_commute)

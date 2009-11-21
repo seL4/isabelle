@@ -575,6 +575,25 @@ lemma rtrancl_eq_or_trancl:
   "(x,y) \<in> R\<^sup>* = (x=y \<or> x\<noteq>y \<and> (x,y) \<in> R\<^sup>+)"
   by (fast elim: trancl_into_rtrancl dest: rtranclD)
 
+lemma trancl_unfold_right: "r^+ = r^* O r"
+by (auto dest: tranclD2 intro: rtrancl_into_trancl1)
+
+lemma trancl_unfold_left: "r^+ = r O r^*"
+by (auto dest: tranclD intro: rtrancl_into_trancl2)
+
+
+text {* Simplifying nested closures *}
+
+lemma rtrancl_trancl_absorb[simp]: "(R^*)^+ = R^*"
+by (simp add: trans_rtrancl)
+
+lemma trancl_rtrancl_absorb[simp]: "(R^+)^* = R^*"
+by (subst reflcl_trancl[symmetric]) simp
+
+lemma rtrancl_reflcl_absorb[simp]: "(R^*)^= = R^*"
+by auto
+
+
 text {* @{text Domain} and @{text Range} *}
 
 lemma Domain_rtrancl [simp]: "Domain (R^*) = UNIV"

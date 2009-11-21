@@ -37,6 +37,11 @@ Styles can be also applied for antiquotations prop, term_type and typeof.
 
 *** HOL ***
 
+* A tabled implementation of the reflexive transitive closure
+
+* New commands "code_pred" and "values" to invoke the predicate compiler
+and to enumerate values of inductive predicates.
+
 * Combined former theories Divides and IntDiv to one theory Divides
 in the spirit of other number theory theories in HOL;  some constants
 (and to a lesser extent also facts) have been suffixed with _nat und _int
@@ -89,6 +94,17 @@ div_mult_mult1_if, div_mult_mult1 and div_mult_mult2 have been
 generalized to class semiring_div, subsuming former theorems
 zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and
 zdiv_zmult_zmult2.  div_mult_mult1 is now [simp] by default.
+INCOMPATIBILITY.
+
+* Extended Multivariate Analysis to include derivation and Brouwer's fixpoint
+theorem.
+
+* Removed predicate "M hassize n" (<--> card M = n & finite M). Was only used
+in Multivariate Analysis. Renamed vector_less_eq_def to vector_le_def, the
+more usual name.
+INCOMPATIBILITY.
+
+* Added theorem List.map_map as [simp]. Removed List.map_compose.
 INCOMPATIBILITY.
 
 * New testing tool "Mirabelle" for automated (proof) tools. Applies
@@ -233,6 +249,45 @@ replaced by: (auto intro!: DERIV_intros).  INCOMPATIBILITY.
     sizechange -> size_change
     induct_scheme -> induction_schema
 
+* Lemma name change: replaced "anti_sym" by "antisym" everywhere.
+
+
+*** HOLCF ***
+
+* Theory 'Representable.thy' defines a class 'rep' of domains that are
+representable (via an ep-pair) in the universal domain type 'udom'.
+Instances are provided for all type constructors defined in HOLCF.
+
+* The 'new_domain' command is a purely definitional version of the
+domain package, for representable domains.  Syntax is identical to the
+old domain package.  The 'new_domain' package also supports indirect
+recursion using previously-defined type constructors.  See
+HOLCF/ex/New_Domain.thy for examples.
+
+* Method 'fixrec_simp' unfolds one step of a fixrec-defined constant
+on the left-hand side of an equation, and then performs
+simplification.  Rewriting is done using rules declared with the
+'fixrec_simp' attribute.  The 'fixrec_simp' method is intended as a
+replacement for 'fixpat'; see HOLCF/ex/Fixrec_ex.thy for examples.
+
+* The pattern-match compiler in 'fixrec' can now handle constructors
+with HOL function types.  Pattern-match combinators for the Pair
+constructor are pre-configured.
+
+* The 'fixrec' package now produces better fixed-point induction rules
+for mutually-recursive definitions:  Induction rules have conclusions
+of the form "P foo bar" instead of "P <foo, bar>".
+
+* The constant "sq_le" (with infix syntax "<<" or "\<sqsubseteq>") has
+been renamed to "below".  The name "below" now replaces "less" in many
+theorem names.  (Legacy theorem names using "less" are still
+supported as well.)
+
+* The 'fixrec' package now supports "bottom patterns".  Bottom
+patterns can be used to generate strictness rules, or to make
+functions more strict (much like the bang-patterns supported by the
+Glasgow Haskell Compiler).  See HOLCF/ex/Fixrec_ex.thy for examples.
+
 
 *** ML ***
 
@@ -303,6 +358,10 @@ also the system manual.
 
 * The isabelle makeall tool now operates on all components with
 IsaMakefile, not just hardwired "logics".
+
+* New component "isabelle wwwfind [start|stop|status] [HEAP]"
+Provides web interface for find_theorems on HEAP. Depends on lighttpd 
+webserver being installed. Currently supported on Linux only.
 
 * Discontinued support for Poly/ML 4.x versions.
 

@@ -236,10 +236,10 @@ Consider the following function and its corresponding
 \hspace*{0pt}\\
 \hspace*{0pt}datatype boola = True | False;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun anda x True = x\\
-\hspace*{0pt} ~| anda x False = False\\
-\hspace*{0pt} ~| anda True x = x\\
-\hspace*{0pt} ~| anda False x = False;\\
+\hspace*{0pt}fun anda p True = p\\
+\hspace*{0pt} ~| anda p False = False\\
+\hspace*{0pt} ~| anda True p = p\\
+\hspace*{0pt} ~| anda False p = False;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
 \hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = False\\

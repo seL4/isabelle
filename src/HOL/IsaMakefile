@@ -103,7 +103,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
-  $(SRC)/Tools/Auto_Counterexample.thy \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_preproc.ML \
@@ -382,8 +381,9 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Order_Relation.thy Library/Nested_Environment.thy		\
   Library/Ramsey.thy Library/Zorn.thy Library/Library/ROOT.ML		\
   Library/Library/document/root.tex Library/Library/document/root.bib	\
-  Library/While_Combinator.thy Library/Product_ord.thy			\
-  Library/Char_nat.thy Library/Char_ord.thy Library/Option_ord.thy	\
+  Library/Transitive_Closure_Table.thy Library/While_Combinator.thy \
+  Library/Product_ord.thy	Library/Char_nat.thy \
+  Library/Char_ord.thy Library/Option_ord.thy	\
   Library/Sublist_Order.thy Library/List_lexord.thy			\
   Library/Coinductive_List.thy Library/AssocList.thy			\
   Library/Formal_Power_Series.thy Library/Binomial.thy			\
@@ -429,12 +429,11 @@ $(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.thy Subst/ROOT.ML		\
 
 HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
-$(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Com.thy Induct/Comb.thy	\
-  Induct/LFilter.thy Induct/LList.thy Induct/Ordinals.thy	\
-  Induct/PropLog.thy Induct/QuoNestedDataType.thy		\
-  Induct/QuoDataType.thy Induct/ROOT.ML Induct/Sexp.thy		\
-  Induct/Sigma_Algebra.thy Induct/SList.thy Induct/ABexp.thy	\
-  Induct/Term.thy Induct/Tree.thy Induct/document/root.tex
+$(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Com.thy Induct/Comb.thy		\
+  Induct/Ordinals.thy Induct/PropLog.thy Induct/QuoNestedDataType.thy	\
+  Induct/QuoDataType.thy Induct/ROOT.ML Induct/Sexp.thy			\
+  Induct/Sigma_Algebra.thy Induct/ABexp.thy Induct/Term.thy		\
+  Induct/Tree.thy Induct/document/root.tex
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Induct
 
 
@@ -1058,7 +1057,9 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
   Multivariate_Analysis/Finite_Cartesian_Product.thy	\
   Multivariate_Analysis/Euclidean_Space.thy		\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
-  Multivariate_Analysis/Convex_Euclidean_Space.thy
+  Multivariate_Analysis/Convex_Euclidean_Space.thy      \
+  Multivariate_Analysis/Brouwer_Fixpoint.thy            \
+  Multivariate_Analysis/Derivative.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 
@@ -1340,7 +1341,9 @@ $(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
   SMT/Examples/cert/z3_linarith_19					\
   SMT/Examples/cert/z3_linarith_19.proof				\
   SMT/Examples/cert/z3_linarith_20					\
-  SMT/Examples/cert/z3_linarith_20.proof SMT/Examples/cert/z3_mono_01	\
+  SMT/Examples/cert/z3_linarith_20.proof 				\
+  SMT/Examples/cert/z3_linarith_21					\
+  SMT/Examples/cert/z3_linarith_21.proof SMT/Examples/cert/z3_mono_01	\
   SMT/Examples/cert/z3_mono_01.proof SMT/Examples/cert/z3_mono_02	\
   SMT/Examples/cert/z3_mono_02.proof SMT/Examples/cert/z3_nat_arith_01	\
   SMT/Examples/cert/z3_nat_arith_01.proof				\

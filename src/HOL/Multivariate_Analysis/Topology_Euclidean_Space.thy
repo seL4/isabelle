@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Topology_Euclidian_Space.thy
+(*  title:      HOL/Library/Topology_Euclidian_Space.thy
     Author:     Amine Chaieb, University of Cambridge
     Author:     Robert Himmelmann, TU Muenchen
 *)
@@ -274,6 +274,11 @@ lemma open_ball[intro, simp]: "open (ball x e)"
 lemma centre_in_ball[simp]: "x \<in> ball x e \<longleftrightarrow> e > 0" by (metis mem_ball dist_self)
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
   unfolding open_dist subset_eq mem_ball Ball_def dist_commute ..
+
+lemma openE[elim?]:
+  assumes "open S" "x\<in>S" 
+  obtains e where "e>0" "ball x e \<subseteq> S"
+  using assms unfolding open_contains_ball by auto
 
 lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
@@ -4011,6 +4016,9 @@ lemma linear_continuous_on:
   shows "bounded_linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
+lemma continuous_on_vec1:"continuous_on A (vec1::real\<Rightarrow>real^1)"
+  by(rule linear_continuous_on[OF bounded_linear_vec1])
+
 text{* Also bilinear functions, in composition form.                             *}
 
 lemma bilinear_continuous_at_compose:
@@ -4194,6 +4202,8 @@ lemma Lim_vmul:
   fixes c :: "'a \<Rightarrow> real" and v :: "'b::real_normed_vector"
   shows "(c ---> d) net ==> ((\<lambda>x. c(x) *\<^sub>R v) ---> d *\<^sub>R v) net"
   by (intro tendsto_intros)
+
+lemmas Lim_intros = Lim_add Lim_const Lim_sub Lim_cmul Lim_vmul Lim_within_id
 
 lemma continuous_vmul:
   fixes c :: "'a::metric_space \<Rightarrow> real" and v :: "'b::real_normed_vector"
@@ -4609,17 +4619,26 @@ qed
 lemma interval: fixes a :: "'a::ord^'n::finite" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
   "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
-  by (auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
+  by (auto simp add: expand_set_eq vector_less_def vector_le_def)
 
 lemma mem_interval: fixes a :: "'a::ord^'n::finite" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
-  using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
+  using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_le_def)
 
 lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
  "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_less_eq_def dest_vec1_def forall_1)
+by(simp_all add: Cart_eq vector_less_def vector_le_def dest_vec1_def forall_1)
+
+lemma vec1_interval:fixes a::"real" shows
+  "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
+  "vec1 ` {a<..<b} = {vec1 a<..<vec1 b}"
+  apply(rule_tac[!] set_ext) unfolding image_iff vector_less_def unfolding mem_interval
+  unfolding forall_1  unfolding dest_vec1_def[THEN sym, of] unfolding vec1_dest_vec1_simps
+  apply rule defer apply(rule_tac x="dest_vec1 x" in bexI) prefer 3 apply rule defer
+  apply(rule_tac x="dest_vec1 x" in bexI) by auto
+
 
 lemma interval_eq_empty: fixes a :: "real^'n::finite" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
@@ -4671,7 +4690,7 @@ lemma subset_interval_imp: fixes a :: "real^'n::finite" shows
 
 lemma interval_sing: fixes a :: "'a::linorder^'n::finite" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
-apply(auto simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+apply(auto simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
@@ -4684,17 +4703,17 @@ proof(simp add: subset_eq, rule)
   { fix i
     have "a $ i \<le> x $ i"
       using x order_less_imp_le[of "a$i" "x$i"]
-      by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+      by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
   }
   moreover
   { fix i
     have "x $ i \<le> b $ i"
       using x order_less_imp_le[of "x$i" "b$i"]
-      by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+      by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
   }
   ultimately
   show "a \<le> x \<and> x \<le> b"
-    by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
+    by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
 qed
 
 lemma subset_interval: fixes a :: "real^'n::finite" shows
@@ -4801,6 +4820,12 @@ proof-
   }
   thus ?thesis unfolding open_dist using open_interval_lemma by auto
 qed
+
+lemma open_interval_real: fixes a :: "real" shows "open {a<..<b}"
+  using open_interval[of "vec1 a" "vec1 b"] unfolding open_contains_ball
+  apply-apply(rule,erule_tac x="vec1 x" in ballE) apply(erule exE,rule_tac x=e in exI)
+  unfolding subset_eq mem_ball apply(rule) defer apply(rule,erule conjE,erule_tac x="vec1 xa" in ballE)
+  by(auto simp add: vec1_dest_vec1_simps vector_less_def forall_1) 
 
 lemma closed_interval: fixes a :: "real^'n::finite" shows "closed {a .. b}"
 proof-
@@ -5001,12 +5026,12 @@ lemma ex_1: "(\<exists>x::1. P x) \<longleftrightarrow> P 1"
 
 lemma interval_cases_1: fixes x :: "real^1" shows
  "x \<in> {a .. b} ==> x \<in> {a<..<b} \<or> (x = a) \<or> (x = b)"
-  by(simp add:  Cart_eq vector_less_def vector_less_eq_def all_1, auto)
+  by(simp add:  Cart_eq vector_less_def vector_le_def all_1, auto)
 
 lemma in_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b) \<and>
   (x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp add: Cart_eq vector_less_def vector_less_eq_def all_1 dest_vec1_def)
+by(simp add: Cart_eq vector_less_def vector_le_def all_1 dest_vec1_def)
 
 lemma interval_eq_empty_1: fixes a :: "real^1" shows
   "{a .. b} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a"
@@ -5042,10 +5067,10 @@ lemma disjoint_interval_1: fixes a :: "real^1" shows
 
 lemma open_closed_interval_1: fixes a :: "real^1" shows
  "{a<..<b} = {a .. b} - {a, b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
+  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
 
 lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
+  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
 
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
@@ -5604,7 +5629,7 @@ proof-
   moreover
   have "d \<subseteq> ?D" unfolding subset_eq using assms by auto
   hence *:"inj_on (basis::'n\<Rightarrow>real^'n) d" using subset_inj_on[OF basis_inj, of "d"] by auto
-  have "?B hassize (card d)" unfolding hassize_def and card_image[OF *] by auto
+  have "card ?B = card d" unfolding card_image[OF *] by auto
 
   ultimately show ?thesis using dim_unique[of "basis ` d" ?A] by auto
 qed
@@ -5717,30 +5742,30 @@ lemma image_affinity_interval: fixes m::real
             else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
 proof(cases "m=0")
   { fix x assume "x \<le> c" "c \<le> x"
-    hence "x=c" unfolding vector_less_eq_def and Cart_eq by (auto intro: order_antisym) }
+    hence "x=c" unfolding vector_le_def and Cart_eq by (auto intro: order_antisym) }
   moreover case True
-  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}" unfolding True by(auto simp add: vector_less_eq_def)
+  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}" unfolding True by(auto simp add: vector_le_def)
   ultimately show ?thesis by auto
 next
   case False
   { fix y assume "a \<le> y" "y \<le> b" "m > 0"
     hence "m *\<^sub>R a + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R b + c"
-      unfolding vector_less_eq_def by(auto simp add: vector_smult_component vector_add_component)
+      unfolding vector_le_def by(auto simp add: vector_smult_component vector_add_component)
   } moreover
   { fix y assume "a \<le> y" "y \<le> b" "m < 0"
     hence "m *\<^sub>R b + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R a + c"
-      unfolding vector_less_eq_def by(auto simp add: vector_smult_component vector_add_component mult_left_mono_neg elim!:ballE)
+      unfolding vector_le_def by(auto simp add: vector_smult_component vector_add_component mult_left_mono_neg elim!:ballE)
   } moreover
   { fix y assume "m > 0"  "m *\<^sub>R a + c \<le> y"  "y \<le> m *\<^sub>R b + c"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
-      unfolding image_iff Bex_def mem_interval vector_less_eq_def
+      unfolding image_iff Bex_def mem_interval vector_le_def
       apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: pos_le_divide_eq pos_divide_le_eq real_mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
-      unfolding image_iff Bex_def mem_interval vector_less_eq_def
+      unfolding image_iff Bex_def mem_interval vector_le_def
       apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
       by(auto simp add: neg_le_divide_eq neg_divide_le_eq real_mult_commute diff_le_iff)

@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      GraphBrowser/Region.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This is an auxiliary class which is used by the layout algorithm when
   calculating coordinates with the "pendulum method". A "region" is a

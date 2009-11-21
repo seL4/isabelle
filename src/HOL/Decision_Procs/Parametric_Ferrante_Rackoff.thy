@@ -1233,7 +1233,7 @@ proof(clarify)
   also have "\<dots> = (\<exists>x. (Ifm vs (y#bs) ?cyes) \<and> (Ifm vs (x#bs) ?cno))"
     using bound0_I[OF yes_nb, where bs="bs" and b'="y"] by blast
   also have "\<dots> = (Ifm vs bs (decr0 ?cyes) \<and> Ifm vs bs (E ?cno))"
-    by (auto simp add: decr0[OF yes_nb])
+    by (auto simp add: decr0[OF yes_nb] simp del: partition_filter_conv)
   also have "\<dots> = (Ifm vs bs (conj (decr0 ?cyes) (qe ?cno)))"
     using qe[rule_format, OF no_qf] by auto
   finally have "Ifm vs bs (E p) = Ifm vs bs (CJNB qe p)" 

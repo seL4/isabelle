@@ -137,7 +137,7 @@ fun inline_equations options thy th =
     th'
   end
 
-fun store_thm_in_table options ignore_consts thy th=
+fun store_thm_in_table options ignore thy th=
   let
     val th = th
       |> inline_equations options thy
@@ -153,29 +153,29 @@ fun store_thm_in_table options ignore_consts thy th=
       else if (is_introlike th) then (defining_const_of_introrule th, th)
       else error "store_thm: unexpected definition format"
   in
-    if not (member (op =) ignore_consts const) then
-      Symtab.cons_list (const, th)
-    else I
+    if ignore const then I else Symtab.cons_list (const, th)
   end
 
 fun make_const_spec_table options thy =
   let
-    fun store ignore_const f =
-      fold (store_thm_in_table options ignore_const thy)
+    fun store ignore f =
+      fold (store_thm_in_table options ignore thy)
         (map (Thm.transfer thy) (f (ProofContext.init thy)))
     val table = Symtab.empty
-      |> store [] Predicate_Compile_Alternative_Defs.get
-    val ignore_consts = Symtab.keys table
+      |> store (K false) Predicate_Compile_Alternative_Defs.get
+    val ignore = Symtab.defined table
   in
     table
-    |> store ignore_consts Predicate_Compile_Preproc_Const_Defs.get
-    |> store ignore_consts Nitpick_Simps.get
-    |> store ignore_consts Nitpick_Intros.get
+    |> store ignore (fn ctxt => maps
+      (fn (roughly, (ts, ths)) => if roughly = Spec_Rules.Equational then ths else [])
+        (Spec_Rules.get ctxt))
+    |> store ignore Nitpick_Simps.get
+    |> store ignore Nitpick_Intros.get
   end
 
 fun get_specification table constname =
   case Symtab.lookup table constname of
-    SOME thms => thms
+    SOME thms => thms                  
   | NONE => error ("get_specification: lookup of constant " ^ quote constname ^ " failed")
 
 val logic_operator_names =
@@ -186,9 +186,11 @@ val special_cases = member (op =) [
     @{const_name "False"},
     @{const_name "Suc"}, @{const_name Nat.zero_nat_inst.zero_nat},
     @{const_name Nat.one_nat_inst.one_nat},
-@{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"}, @{const_name "HOL.zero_class.zero"},
+@{const_name "HOL.ord_class.less"}, @{const_name "HOL.ord_class.less_eq"},
+@{const_name "HOL.zero_class.zero"},
 @{const_name "HOL.one_class.one"},  @{const_name HOL.plus_class.plus},
 @{const_name Nat.ord_nat_inst.less_eq_nat},
+@{const_name Nat.ord_nat_inst.less_nat},
 @{const_name number_nat_inst.number_of_nat},
   @{const_name Int.Bit0},
   @{const_name Int.Bit1},

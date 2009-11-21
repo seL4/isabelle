@@ -112,14 +112,20 @@ end
 (* splitting method *)
 
 local
-  val split_rules = [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+  val intro_rules = [@{thm impI}, @{thm conjI}, @{thm TrueI}]
+  val elim_rules = [@{thm conjE}, @{thm TrueE}]
+  val split_tac = REPEAT_ALL_NEW
+    (Tactic.resolve_tac intro_rules ORELSE' Tactic.eresolve_tac elim_rules)
 
-  fun prep_tac ctxt args facts =
+  fun ALL_GOALS false tac = ALLGOALS tac
+    | ALL_GOALS true tac = PARALLEL_GOALS (HEADGOAL tac)
+
+  fun prep_tac ctxt ((parallel, verbose), subs) facts =
     HEADGOAL (Method.insert_tac facts)
-    THEN HEADGOAL (REPEAT_ALL_NEW (Tactic.resolve_tac split_rules))
+    THEN HEADGOAL split_tac
     THEN unique_case_names (ProofContext.theory_of ctxt)
-    THEN ALLGOALS (SUBGOAL (fn (t, i) =>
-      TRY (sub_tactics_tac ctxt args (case_name_of t) i)))
+    THEN ALL_GOALS parallel (SUBGOAL (fn (t, i) =>
+      TRY (sub_tactics_tac ctxt (verbose, subs) (case_name_of t) i)))
 
   val drop_assert_at = Conv.concl_conv ~1 (Conv.try_conv (Conv.arg_conv
     (Conv.rewr_conv (as_meta_eq @{thm assert_at_def}))))
@@ -136,12 +142,14 @@ local
           (ProofContext.theory_of ctxt, Thm.prop_of st) names)
         Tactical.all_tac st))
 
-  val verbose_opt = Args.parens (Args.$$$ "verbose") >> K true
+  val options =
+    Args.parens (Args.$$$ "verbose") >> K (false, true) ||
+    Args.parens (Args.$$$ "fast_verbose") >> K (true, true)
   val sub_tactics = Args.$$$ "try" -- Args.colon |-- Scan.repeat1 Args.name
 in
 val setup_split_vc = Method.setup @{binding split_vc}
-  (Scan.lift (Scan.optional verbose_opt false -- Scan.optional sub_tactics [])
-    >> split_vc)
+  (Scan.lift (Scan.optional options (true, false) --
+    Scan.optional sub_tactics []) >> split_vc)
   ("Splits a Boogie-generated verification conditions into smaller problems" ^
    " and tries to solve the splinters with the supplied sub-tactics.")
 end

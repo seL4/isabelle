@@ -105,16 +105,16 @@ exception UNDEF = Runtime.UNDEF;
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
 val loc_init = Theory_Target.context;
-val loc_exit = LocalTheory.exit_global;
+val loc_exit = Local_Theory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy
   | loc_begin (SOME loc) (Context.Proof lthy) = loc_init loc (loc_exit lthy);
 
 fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
-  | loc_finish NONE (Context.Proof _) = Context.Proof o LocalTheory.restore
+  | loc_finish NONE (Context.Proof _) = Context.Proof o Local_Theory.restore
   | loc_finish (SOME _) (Context.Proof lthy) = fn lthy' =>
-      Context.Proof (LocalTheory.reinit (LocalTheory.raw_theory (K (loc_exit lthy')) lthy));
+      Context.Proof (Local_Theory.reinit (Local_Theory.raw_theory (K (loc_exit lthy')) lthy));
 
 
 (* datatype node *)
@@ -193,7 +193,7 @@ val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_for
 
 (* print state *)
 
-val pretty_context = LocalTheory.pretty o Context.cases (Theory_Target.init NONE) I;
+val pretty_context = Local_Theory.pretty o Context.cases (Theory_Target.init NONE) I;
 
 fun print_state_context state =
   (case try node_of state of
@@ -259,7 +259,7 @@ fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful ex
   | stale_error some = some;
 
 fun map_theory f (Theory (gthy, ctxt)) =
-      Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, ctxt)
+      Theory (Context.mapping f (Local_Theory.raw_theory f) gthy, ctxt)
   | map_theory _ node = node;
 
 in
@@ -302,7 +302,8 @@ datatype trans =
 local
 
 fun apply_tr int (Init (_, f, exit)) (State (NONE, _)) =
-      State (SOME (Theory (Context.Theory (Theory.checkpoint (f int)), NONE), exit), NONE)
+      State (SOME (Theory (Context.Theory
+          (Theory.checkpoint (Runtime.controlled_execution f int)), NONE), exit), NONE)
   | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
       State (NONE, prev)
   | apply_tr _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
@@ -419,7 +420,13 @@ fun generic_theory f = transaction (fn _ =>
     | _ => raise UNDEF));
 
 fun theory' f = transaction (fn int =>
-  (fn Theory (Context.Theory thy, _) => Theory (Context.Theory (f int thy), NONE)
+  (fn Theory (Context.Theory thy, _) =>
+      let val thy' = thy
+        |> Sign.new_group
+        |> Theory.checkpoint
+        |> f int
+        |> Sign.reset_group;
+      in Theory (Context.Theory thy', NONE) end
     | _ => raise UNDEF));
 
 fun theory f = theory' (K f);
@@ -442,7 +449,10 @@ fun local_theory_presentation loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val finish = loc_finish loc gthy;
-          val lthy' = f int (loc_begin loc gthy);
+          val lthy' = loc_begin loc gthy
+            |> Local_Theory.new_group
+            |> f int
+            |> Local_Theory.reset_group;
         in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF));
 
@@ -491,14 +501,14 @@ fun begin_proof init finish = transaction (fn int =>
 in
 
 fun local_theory_to_proof' loc f = begin_proof
-  (fn int => fn gthy => f int (loc_begin loc gthy))
-  (loc_finish loc);
+  (fn int => fn gthy => f int (Local_Theory.new_group (loc_begin loc gthy)))
+  (fn gthy => loc_finish loc gthy o Local_Theory.reset_group);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
-  (K (fn Context.Theory thy => f thy | _ => raise UNDEF))
-  (K (Context.Theory o ProofContext.theory_of));
+  (K (fn Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy)) | _ => raise UNDEF))
+  (K (Context.Theory o Sign.reset_group o ProofContext.theory_of));
 
 end;
 
@@ -531,7 +541,7 @@ fun skip_proof f = transaction (fn _ =>
 
 fun skip_proof_to_theory pred = transaction (fn _ =>
   (fn SkipProof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
-  | _ => raise UNDEF));
+    | _ => raise UNDEF));
 
 
 

@@ -126,8 +126,8 @@ structure OverloadingData = Proof_Data
   fun init _ = [];
 );
 
-val get_overloading = OverloadingData.get o LocalTheory.target_of;
-val map_overloading = LocalTheory.target o OverloadingData.map;
+val get_overloading = OverloadingData.get o Local_Theory.target_of;
+val map_overloading = Local_Theory.target o OverloadingData.map;
 
 fun operation lthy b = get_overloading lthy
   |> get_first (fn ((c, _), (v, checked)) =>
@@ -169,7 +169,7 @@ fun define checked b (c, t) = Thm.add_def (not checked) true
   (b, Logic.mk_equals (Const (c, Term.fastype_of t), t));
 
 fun confirm b = map_overloading (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
-  #> LocalTheory.target synchronize_syntax
+  #> Local_Theory.target synchronize_syntax
 
 fun conclude lthy =
   let

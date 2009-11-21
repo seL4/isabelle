@@ -174,10 +174,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
       thy1
       |> Sign.map_naming Name_Space.conceal
-      |> Inductive.add_inductive_global (serial ())
-          {quiet_mode = #quiet config, verbose = false, kind = Thm.internalK,
-           alt_name = Binding.name big_rec_name, coind = false, no_elim = true, no_ind = false,
-           skip_mono = true, fork_mono = false}
+      |> Inductive.add_inductive_global
+          {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
+           coind = false, no_elim = true, no_ind = false, skip_mono = true, fork_mono = false}
           (map (fn s => ((Binding.name s, UnivT'), NoSyn)) rep_set_names') []
           (map (fn x => (Attrib.empty_binding, x)) intr_ts) []
       ||> Sign.restore_naming thy1
@@ -366,7 +365,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       let
         val prop = Thm.prop_of thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
-          (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
+          (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.legacy_freeze prop;
         val used = OldTerm.add_term_tfree_names (a, []);
 
         fun mk_thm i =

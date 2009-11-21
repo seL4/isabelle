@@ -356,7 +356,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
 \hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat\\
+\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
 \hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
@@ -667,7 +667,7 @@ Conceptually, any datatype is spanned by a set of
 \hspace*{0pt}\\
 \hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = AQueue ([],~[])\\
+\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\
 \hspace*{0pt} ~| dequeue (AQueue (xs,~[])) =\\
@@ -797,123 +797,9 @@ Surely you have already noticed how equality is treated
   \isa{eq} constraints through all dependent code equations.
   For datatypes, instances of \isa{eq} are implicitly derived
   when possible.  For other types, you may instantiate \isa{eq}
-  manually like any other type class.
-
-  Though this \isa{eq} class is designed to get rarely in
-  the way, in some cases the automatically derived code equations
-  for equality on a particular type may not be appropriate.
-  As example, watch the following datatype representing
-  monomorphic parametric types (where type constructors
-  are referred to by natural numbers):%
+  manually like any other type class.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{datatype}\isamarkupfalse%
-\ monotype\ {\isacharequal}\ Mono\ nat\ {\isachardoublequoteopen}monotype\ list{\isachardoublequoteclose}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-\noindent Then code generation for SML would fail with a message
-  that the generated code contains illegal mutual dependencies:
-  the theorem \isa{eq{\isacharunderscore}class{\isachardot}eq\ {\isacharparenleft}Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}{\isacharparenright}\ {\isasymequiv}\ eq{\isacharunderscore}class{\isachardot}eq\ tyco{\isadigit{1}}\ tyco{\isadigit{2}}\ {\isasymand}\ eq{\isacharunderscore}class{\isachardot}eq\ typargs{\isadigit{1}}\ typargs{\isadigit{2}}} already requires the
-  instance \isa{monotype\ {\isasymColon}\ eq}, which itself requires
-  \isa{eq{\isacharunderscore}class{\isachardot}eq\ {\isacharparenleft}Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}{\isacharparenright}\ {\isasymequiv}\ eq{\isacharunderscore}class{\isachardot}eq\ tyco{\isadigit{1}}\ tyco{\isadigit{2}}\ {\isasymand}\ eq{\isacharunderscore}class{\isachardot}eq\ typargs{\isadigit{1}}\ typargs{\isadigit{2}}};  Haskell has no problem with mutually
-  recursive \isa{instance} and \isa{function} definitions,
-  but the SML serialiser does not support this.
-
-  In such cases, you have to provide your own equality equations
-  involving auxiliary constants.  In our case,
-  \isa{list{\isacharunderscore}all{\isadigit{2}}} can do the job:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{lemma}\isamarkupfalse%
-\ monotype{\isacharunderscore}eq{\isacharunderscore}list{\isacharunderscore}all{\isadigit{2}}\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}eq{\isacharunderscore}class{\isachardot}eq\ {\isacharparenleft}Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
-\ \ \ \ \ eq{\isacharunderscore}class{\isachardot}eq\ tyco{\isadigit{1}}\ tyco{\isadigit{2}}\ {\isasymand}\ list{\isacharunderscore}all{\isadigit{2}}\ eq{\isacharunderscore}class{\isachardot}eq\ typargs{\isadigit{1}}\ typargs{\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ eq\ list{\isacharunderscore}all{\isadigit{2}}{\isacharunderscore}eq\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent does not depend on instance \isa{monotype\ {\isasymColon}\ eq}:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-%
-\begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
-\hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun null [] = true\\
-\hspace*{0pt} ~| null (x ::~xs) = false;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun eq{\char95}nat (Suc nat') Zero{\char95}nat = false\\
-\hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat (Suc nat') = false\\
-\hspace*{0pt} ~| eq{\char95}nat (Suc nat) (Suc nat') = eq{\char95}nat nat nat'\\
-\hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat Zero{\char95}nat = true;\\
-\hspace*{0pt}\\
-\hspace*{0pt}datatype monotype = Mono of nat * monotype list;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun list{\char95}all2 p (x ::~xs) (y ::~ys) = p x y andalso list{\char95}all2 p xs ys\\
-\hspace*{0pt} ~| list{\char95}all2 p xs [] = null xs\\
-\hspace*{0pt} ~| list{\char95}all2 p [] ys = null ys;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun eq{\char95}monotype (Mono (tyco1,~typargs1)) (Mono (tyco2,~typargs2)) =\\
-\hspace*{0pt} ~eq{\char95}nat tyco1 tyco2 andalso list{\char95}all2 eq{\char95}monotype typargs1 typargs2;\\
-\hspace*{0pt}\\
-\hspace*{0pt}end;~(*struct Example*)%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
 %
 \isamarkupsubsection{Explicit partiality%
 }

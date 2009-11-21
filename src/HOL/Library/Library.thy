@@ -51,6 +51,7 @@ imports
   SML_Quickcheck
   State_Monad
   Sum_Of_Squares
+  Transitive_Closure_Table
   Univ_Poly
   While_Combinator
   Word

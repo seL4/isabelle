@@ -557,7 +557,7 @@ qed
 lemma deg_eqI:
   "[| !!m. n < m ==> coeff p m = 0;
       !!n. n ~= 0 ==> coeff p n ~= 0|] ==> deg p = n"
-by (fast intro: le_anti_sym deg_aboveI deg_belowI)
+by (fast intro: le_antisym deg_aboveI deg_belowI)
 
 (* Degree and polynomial operations *)
 
@@ -571,11 +571,11 @@ by (rule deg_aboveI) simp
 
 lemma deg_monom [simp]:
   "a ~= 0 ==> deg (monom a n::'a::ring up) = n"
-by (fastsimp intro: le_anti_sym deg_aboveI deg_belowI)
+by (fastsimp intro: le_antisym deg_aboveI deg_belowI)
 
 lemma deg_const [simp]:
   "deg (monom (a::'a::ring) 0) = 0"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg (monom a 0) <= 0" by (rule deg_aboveI) simp
 next
   show "0 <= deg (monom a 0)" by (rule deg_belowI) simp
@@ -583,7 +583,7 @@ qed
 
 lemma deg_zero [simp]:
   "deg 0 = 0"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg 0 <= 0" by (rule deg_aboveI) simp
 next
   show "0 <= deg 0" by (rule deg_belowI) simp
@@ -591,7 +591,7 @@ qed
 
 lemma deg_one [simp]:
   "deg 1 = 0"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg 1 <= 0" by (rule deg_aboveI) simp
 next
   show "0 <= deg 1" by (rule deg_belowI) simp
@@ -612,7 +612,7 @@ qed
 
 lemma deg_uminus [simp]:
   "deg (-p::('a::ring) up) = deg p"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg (- p) <= deg p" by (simp add: deg_aboveI deg_aboveD)
 next
   show "deg p <= deg (- p)" 
@@ -626,7 +626,7 @@ qed (simp add: deg_aboveI deg_aboveD)+
 
 lemma deg_smult [simp]:
   "deg ((a::'a::domain) *s p) = (if a = 0 then 0 else deg p)"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg (a *s p) <= (if a = 0 then 0 else deg p)" by (rule deg_smult_ring)
 next
   show "(if a = 0 then 0 else deg p) <= deg (a *s p)"
@@ -657,7 +657,7 @@ qed
 
 lemma deg_mult [simp]:
   "[| (p::'a::domain up) ~= 0; q ~= 0|] ==> deg (p * q) = deg p + deg q"
-proof (rule le_anti_sym)
+proof (rule le_antisym)
   show "deg (p * q) <= deg p + deg q" by (rule deg_mult_ring)
 next
   let ?s = "(%i. coeff p i * coeff q (deg p + deg q - i))"

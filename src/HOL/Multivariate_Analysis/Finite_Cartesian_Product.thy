@@ -8,15 +8,6 @@ theory Finite_Cartesian_Product
 imports Main (*FIXME: ATP_Linkup is only needed for metis at a few places. We could dispense of that by changing the proofs.*)
 begin
 
-definition hassize (infixr "hassize" 12) where
-  "(S hassize n) = (finite S \<and> card S = n)"
-
-lemma hassize_image_inj: assumes f: "inj_on f S" and S: "S hassize n"
-  shows "f ` S hassize n"
-  using f S card_image[OF f]
-    by (simp add: hassize_def inj_on_def)
-
-
 subsection {* Finite Cartesian products, with indexing and lambdas. *}
 
 typedef (open Cart)

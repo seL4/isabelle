@@ -570,6 +570,9 @@ subsubsection {* Derived operations *}
 definition if_pred :: "bool \<Rightarrow> unit pred" where
   if_pred_eq: "if_pred b = (if b then single () else \<bottom>)"
 
+definition holds :: "unit pred \<Rightarrow> bool" where
+  holds_eq: "holds P = eval P ()"
+
 definition not_pred :: "unit pred \<Rightarrow> unit pred" where
   not_pred_eq: "not_pred P = (if eval P () then \<bottom> else single ())"
 
@@ -592,7 +595,54 @@ lemma not_predE: "eval (not_pred (Pred (\<lambda>u. P))) x \<Longrightarrow> (\<
 lemma not_predE': "eval (not_pred P) x \<Longrightarrow> (\<not> eval P x \<Longrightarrow> thesis) \<Longrightarrow> thesis"
   unfolding not_pred_eq
   by (auto split: split_if_asm elim: botE)
+lemma "f () = False \<or> f () = True"
+by simp
 
+lemma closure_of_bool_cases:
+assumes "(f :: unit \<Rightarrow> bool) = (%u. False) \<Longrightarrow> P f"
+assumes "f = (%u. True) \<Longrightarrow> P f"
+shows "P f"
+proof -
+  have "f = (%u. False) \<or> f = (%u. True)"
+    apply (cases "f ()")
+    apply (rule disjI2)
+    apply (rule ext)
+    apply (simp add: unit_eq)
+    apply (rule disjI1)
+    apply (rule ext)
+    apply (simp add: unit_eq)
+    done
+  from this prems show ?thesis by blast
+qed
+
+lemma unit_pred_cases:
+assumes "P \<bottom>"
+assumes "P (single ())"
+shows "P Q"
+using assms
+unfolding bot_pred_def Collect_def empty_def single_def
+apply (cases Q)
+apply simp
+apply (rule_tac f="fun" in closure_of_bool_cases)
+apply auto
+apply (subgoal_tac "(%x. () = x) = (%x. True)") 
+apply auto
+done
+
+lemma holds_if_pred:
+  "holds (if_pred b) = b"
+unfolding if_pred_eq holds_eq
+by (cases b) (auto intro: singleI elim: botE)
+
+lemma if_pred_holds:
+  "if_pred (holds P) = P"
+unfolding if_pred_eq holds_eq
+by (rule unit_pred_cases) (auto intro: singleI elim: botE)
+
+lemma is_empty_holds:
+  "is_empty P \<longleftrightarrow> \<not> holds P"
+unfolding is_empty_def holds_eq
+by (rule unit_pred_cases) (auto elim: botE intro: singleI)
 
 subsubsection {* Implementation *}
 
@@ -828,28 +878,6 @@ code_const Seq and Empty and Insert and Join
 
 code_abort not_unique
 
-text {* dummy setup for @{text code_pred} and @{text values} keywords *}
-
-ML {*
-local
-
-structure P = OuterParse;
-
-val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
-
-in
-
-val _ = OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
-  OuterKeyword.thy_goal (P.term_group >> (K (Proof.theorem_i NONE (K I) [[]])));
-
-val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions"
-  OuterKeyword.diag ((opt_modes -- P.term)
-    >> (fn (modes, t) => Toplevel.no_timing o Toplevel.keep
-        (K ())));
-
-end
-*}
-
 no_notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and
@@ -860,7 +888,7 @@ no_notation
   bind (infixl "\<guillemotright>=" 70)
 
 hide (open) type pred seq
-hide (open) const Pred eval single bind is_empty singleton if_pred not_pred
+hide (open) const Pred eval single bind is_empty singleton if_pred not_pred holds
   Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map not_unique the
 
 end

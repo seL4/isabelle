@@ -52,6 +52,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Pcpo.thy \
   Porder.thy \
   Product_Cpo.thy \
+  Representable.thy \
   Sprod.thy \
   Ssum.thy \
   Sum_Cpo.thy \
@@ -64,11 +65,13 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/cont_proc.ML \
   Tools/Domain/domain_extender.ML \
   Tools/Domain/domain_axioms.ML \
+  Tools/Domain/domain_isomorphism.ML \
   Tools/Domain/domain_library.ML \
   Tools/Domain/domain_syntax.ML \
   Tools/Domain/domain_theorems.ML \
   Tools/fixrec.ML \
   Tools/pcpodef.ML \
+  Tools/repdef.ML \
   holcf_logic.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
@@ -97,6 +100,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Focus_ex.thy \
   ex/Hoare.thy \
   ex/Loop.thy \
+  ex/New_Domain.thy \
   ex/Powerdomain_ex.thy \
   ex/Stream.thy \
   ex/ROOT.ML

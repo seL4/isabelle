@@ -243,6 +243,160 @@ next
   with Fract `q = Fract a b` `b \<noteq> 0` show C by auto
 qed
 
+subsubsection {* Function @{text normalize} *}
+
+text{*
+Decompose a fraction into normalized, i.e. coprime numerator and denominator:
+*}
+
+definition normalize :: "rat \<Rightarrow> int \<times> int" where
+"normalize x \<equiv> THE pair. x = Fract (fst pair) (snd pair) &
+                   snd pair > 0 & gcd (fst pair) (snd pair) = 1"
+
+declare normalize_def[code del]
+
+lemma Fract_norm: "Fract (a div gcd a b) (b div gcd a b) = Fract a b"
+proof (cases "a = 0 | b = 0")
+  case True then show ?thesis by (auto simp add: eq_rat)
+next
+  let ?c = "gcd a b"
+  case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
+  then have "?c \<noteq> 0" by simp
+  then have "Fract ?c ?c = Fract 1 1" by (simp add: eq_rat)
+  moreover have "Fract (a div ?c * ?c + a mod ?c) (b div ?c * ?c + b mod ?c) = Fract a b"
+    by (simp add: semiring_div_class.mod_div_equality)
+  moreover have "a mod ?c = 0" by (simp add: dvd_eq_mod_eq_0 [symmetric])
+  moreover have "b mod ?c = 0" by (simp add: dvd_eq_mod_eq_0 [symmetric])
+  ultimately show ?thesis
+    by (simp add: mult_rat [symmetric])
+qed
+
+text{* Proof by Ren\'e Thiemann: *}
+lemma normalize_code[code]:
+"normalize (Fract a b) =
+ (if b > 0 then (let g = gcd a b in (a div g, b div g))
+  else if b = 0 then (0,1)
+  else (let g = - gcd a b in (a div g, b div g)))"
+proof -
+  let ?cond = "% r p. r = Fract (fst p) (snd p) & snd p > 0 &
+                 gcd (fst p) (snd p) = 1"
+  show ?thesis
+  proof (cases "b = 0")
+    case True
+    thus ?thesis
+    proof (simp add: normalize_def)
+      show "(THE pair. ?cond (Fract a 0) pair) = (0,1)"
+      proof
+        show "?cond (Fract a 0) (0,1)"
+          by (simp add: rat_number_collapse)
+      next
+        fix pair
+        assume cond: "?cond (Fract a 0) pair"
+        show "pair = (0,1)"
+        proof (cases pair)
+          case (Pair den num)
+          with cond have num: "num > 0" by auto
+          with Pair cond have den: "den = 0" by (simp add: eq_rat)
+          show ?thesis
+          proof (cases "num = 1", simp add: Pair den)
+            case False
+            with num have gr: "num > 1" by auto
+            with den have "gcd den num = num" by auto
+            with Pair cond False gr show ?thesis by auto
+          qed
+        qed
+      qed
+    qed
+  next
+    { fix a b :: int assume b: "b > 0"
+      hence b0: "b \<noteq> 0" and "b >= 0" by auto
+      let ?g = "gcd a b"
+      from b0 have g0: "?g \<noteq> 0" by auto
+      then have gp: "?g > 0" by simp
+      then have gs: "?g <= b" by (metis b gcd_le2_int)
+      from gcd_dvd1_int[of a b] obtain a' where a': "a = ?g * a'"
+        unfolding dvd_def by auto
+      from gcd_dvd2_int[of a b] obtain b' where b': "b = ?g * b'"
+        unfolding dvd_def by auto
+      hence b'2: "b' * ?g = b" by (simp add: ring_simps)
+      with b0 have b'0: "b' \<noteq> 0" by auto
+      from b b' zero_less_mult_iff[of ?g b'] gp have b'p: "b' > 0" by arith
+      have "normalize (Fract a b) = (a div ?g, b div ?g)"
+      proof (simp add: normalize_def)
+        show "(THE pair. ?cond (Fract a b) pair) = (a div ?g, b div ?g)"
+        proof
+          have "1 = b div b" using b0 by auto
+          also have "\<dots> <= b div ?g" by (rule zdiv_mono2[OF `b >= 0` gp gs])
+          finally have div0: "b div ?g > 0" by simp
+          show "?cond (Fract a b) (a div ?g, b div ?g)"
+            by (simp add: b0 Fract_norm div_gcd_coprime_int div0)
+        next
+          fix pair assume cond: "?cond (Fract a b) pair"
+          show "pair = (a div ?g, b div ?g)"
+          proof (cases pair)
+            case (Pair den num)
+            with cond
+            have num: "num > 0" and num0: "num \<noteq> 0" and gcd: "gcd den num = 1"
+              by auto
+            obtain g where g: "g = ?g" by auto
+            with gp have gg0: "g > 0" by auto
+            from cond Pair eq_rat(1)[OF b0 num0]
+            have eq: "a * num = den * b" by auto
+            hence "a' * g * num = den * g * b'"
+              using a'[simplified g[symmetric]] b'[simplified g[symmetric]]
+              by simp
+            hence "a' * num * g = b' * den * g" by (simp add: algebra_simps)
+            hence eq2: "a' * num = b' * den" using gg0 by auto
+            have "a div ?g = ?g * a' div ?g" using a' by force
+            hence adiv: "a div ?g = a'" using g0 by auto
+            have "b div ?g = ?g * b' div ?g" using b' by force
+            hence bdiv: "b div ?g = b'" using g0 by auto
+            from div_gcd_coprime_int[of a b] b0
+            have "gcd (a div ?g) (b div ?g) = 1" by auto
+            with adiv bdiv have gcd2: "gcd a' b' = 1" by auto
+            from gcd have gcd3: "gcd num den = 1"
+              by (simp add: gcd_commute_int[of den num])
+            from gcd2 have gcd4: "gcd b' a' = 1"
+              by (simp add: gcd_commute_int[of a' b'])
+            have one: "num dvd b'"
+              by (metis coprime_dvd_mult_int[OF gcd3] dvd_triv_right eq2)
+            have two: "b' dvd num"
+              by (metis coprime_dvd_mult_int[OF gcd4] dvd_triv_left eq2 zmult_commute)
+            from zdvd_antisym_abs[OF one two] b'p num
+            have numb': "num = b'" by auto
+            with eq2 b'0 have "a' = den" by auto
+            with numb' adiv bdiv Pair show ?thesis by simp
+          qed
+        qed
+      qed
+    }
+    note main = this
+    assume "b \<noteq> 0"
+    hence "b > 0 | b < 0" by arith
+    thus ?thesis
+    proof
+      assume b: "b > 0" thus ?thesis by (simp add: Let_def main[OF b])
+    next
+      assume b: "b < 0"
+      thus ?thesis
+        by(simp add:main Let_def minus_rat_cancel[of a b, symmetric]
+                    zdiv_zminus2 del:minus_rat_cancel)
+    qed
+  qed
+qed
+
+lemma normalize_id: "normalize (Fract a b) = (p,q) \<Longrightarrow> Fract p q = Fract a b"
+by(auto simp add: normalize_code Let_def Fract_norm dvd_div_neg rat_number_collapse
+        split:split_if_asm)
+
+lemma normalize_denom_pos: "normalize (Fract a b) = (p,q) \<Longrightarrow> q > 0"
+by(auto simp add: normalize_code Let_def dvd_div_neg pos_imp_zdiv_neg_iff nonneg1_imp_zdiv_pos_iff
+        split:split_if_asm)
+
+lemma normalize_coprime: "normalize (Fract a b) = (p,q) \<Longrightarrow> coprime p q"
+by(auto simp add: normalize_code Let_def dvd_div_neg div_gcd_coprime_int
+        split:split_if_asm)
+
 
 subsubsection {* The field of rational numbers *}
 
@@ -850,22 +1004,6 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]:
 
 
 subsection {* Implementation of rational numbers as pairs of integers *}
-
-lemma Fract_norm: "Fract (a div gcd a b) (b div gcd a b) = Fract a b"
-proof (cases "a = 0 \<or> b = 0")
-  case True then show ?thesis by (auto simp add: eq_rat)
-next
-  let ?c = "gcd a b"
-  case False then have "a \<noteq> 0" and "b \<noteq> 0" by auto
-  then have "?c \<noteq> 0" by simp
-  then have "Fract ?c ?c = Fract 1 1" by (simp add: eq_rat)
-  moreover have "Fract (a div ?c * ?c + a mod ?c) (b div ?c * ?c + b mod ?c) = Fract a b"
-    by (simp add: semiring_div_class.mod_div_equality)
-  moreover have "a mod ?c = 0" by (simp add: dvd_eq_mod_eq_0 [symmetric])
-  moreover have "b mod ?c = 0" by (simp add: dvd_eq_mod_eq_0 [symmetric])
-  ultimately show ?thesis
-    by (simp add: mult_rat [symmetric])
-qed
 
 definition Fract_norm :: "int \<Rightarrow> int \<Rightarrow> rat" where
   [simp, code del]: "Fract_norm a b = Fract a b"

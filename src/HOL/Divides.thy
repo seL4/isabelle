@@ -2030,9 +2030,11 @@ apply (erule disjE)
                       split_neg_lemma [of concl: "%x y. P y"])
 done
 
-(* Enable arith to deal with div 2 and mod 2: *)
-declare split_zdiv [of _ _ "number_of k", simplified, standard, arith_split]
-declare split_zmod [of _ _ "number_of k", simplified, standard, arith_split]
+text {* Enable (lin)arith to deal with @{const div} and @{const mod}
+  when these are applied to some constant that is of the form
+  @{term "number_of k"}: *}
+declare split_zdiv [of _ _ "number_of k", standard, arith_split]
+declare split_zmod [of _ _ "number_of k", standard, arith_split]
 
 
 subsubsection{*Speeding up the Division Algorithm with Shifting*}
@@ -2155,6 +2157,10 @@ by (drule zdiv_mono1_neg, auto)
 lemma div_nonpos_pos_le0: "[| (a::int) \<le> 0; b > 0 |] ==> a div b \<le> 0"
 by (drule zdiv_mono1, auto)
 
+text{* Now for some equivalences of the form @{text"a div b >=< 0 \<longleftrightarrow> \<dots>"}
+conditional upon the sign of @{text a} or @{text b}. There are many more.
+They should all be simp rules unless that causes too much search. *}
+
 lemma pos_imp_zdiv_nonneg_iff: "(0::int) < b ==> (0 \<le> a div b) = (0 \<le> a)"
 apply auto
 apply (drule_tac [2] zdiv_mono1)
@@ -2164,7 +2170,7 @@ apply (blast intro: div_neg_pos_less0)
 done
 
 lemma neg_imp_zdiv_nonneg_iff:
-     "b < (0::int) ==> (0 \<le> a div b) = (a \<le> (0::int))"
+  "b < (0::int) ==> (0 \<le> a div b) = (a \<le> (0::int))"
 apply (subst zdiv_zminus_zminus [symmetric])
 apply (subst pos_imp_zdiv_nonneg_iff, auto)
 done
@@ -2176,6 +2182,16 @@ by (simp add: linorder_not_le [symmetric] pos_imp_zdiv_nonneg_iff)
 (*Again the law fails for \<le>: consider a = -1, b = -2 when a div b = 0*)
 lemma neg_imp_zdiv_neg_iff: "b < (0::int) ==> (a div b < 0) = (0 < a)"
 by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
+
+lemma nonneg1_imp_zdiv_pos_iff:
+  "(0::int) <= a \<Longrightarrow> (a div b > 0) = (a >= b & b>0)"
+apply rule
+ apply rule
+  using div_pos_pos_trivial[of a b]apply arith
+ apply(cases "b=0")apply simp
+ using div_nonneg_neg_le0[of a b]apply arith
+using int_one_le_iff_zero_less[of "a div b"] zdiv_mono1[of b a b]apply simp
+done
 
 
 subsubsection {* The Divides Relation *}

@@ -1301,6 +1301,10 @@ lemma abs_dvd_iff [simp]: "(abs m) dvd k \<longleftrightarrow> m dvd k"
 lemma dvd_abs_iff [simp]: "m dvd (abs k) \<longleftrightarrow> m dvd k"
   by (simp add: abs_if)
 
+lemma dvd_if_abs_eq:
+  "abs l = abs (k) \<Longrightarrow> l dvd k"
+by(subst abs_dvd_iff[symmetric]) simp
+
 end
 
 class ordered_field = field + ordered_idom

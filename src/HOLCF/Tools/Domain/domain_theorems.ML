@@ -141,6 +141,8 @@ let
 
 val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
 val pg = pg' thy;
+val map_tab = Domain_Isomorphism.get_map_tab thy;
+
 
 (* ----- getting the axioms and definitions --------------------------------- *)
 
@@ -599,7 +601,8 @@ local
       val lhs = dc_copy`%"f"`(con_app con args);
       fun one_rhs arg =
           if DatatypeAux.is_rec_type (dtyp_of arg)
-          then Domain_Axioms.copy_of_dtyp (proj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
+          then Domain_Axioms.copy_of_dtyp map_tab
+                 (proj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
           else (%# arg);
       val rhs = con_app2 con one_rhs args;
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
@@ -660,6 +663,7 @@ end; (* let *)
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
 val global_ctxt = ProofContext.init thy;
+val map_tab = Domain_Isomorphism.get_map_tab thy;
 
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
@@ -727,7 +731,8 @@ local
           fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
           fun one_rhs arg =
               if DatatypeAux.is_rec_type (dtyp_of arg)
-              then Domain_Axioms.copy_of_dtyp mk_take (dtyp_of arg) ` (%# arg)
+              then Domain_Axioms.copy_of_dtyp map_tab
+                     mk_take (dtyp_of arg) ` (%# arg)
               else (%# arg);
           val lhs = (dc_take dn $ (%%:"Suc" $ %:"n"))`(con_app con args);
           val rhs = con_app2 con one_rhs args;
@@ -993,7 +998,7 @@ in (* local *)
       handle THM _ =>
              (warning "Induction proofs failed (THM raised)."; ([], TrueI))
            | ERROR _ =>
-             (warning "Induction proofs failed (ERROR raised)."; ([], TrueI));
+             (warning "Cannot prove induction rule"; ([], TrueI));
 
 
 end; (* local *)

@@ -16,7 +16,7 @@ extended gcd, lcm, primes to the integers. Amine Chaieb provided
 another extension of the notions to the integers, and added a number
 of results to "Primes" and "GCD". IntPrimes also defined and developed
 the congruence relations on the integers. The notion was extended to
-the natural numbers by Chiaeb.
+the natural numbers by Chaieb.
 
 Jeremy Avigad combined all of these, made everything uniform for the
 natural numbers and the integers, and added a number of new theorems.

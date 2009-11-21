@@ -540,7 +540,7 @@ fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
 fun raw_body (Thm (Deriv {body, ...}, _)) = body;
 
 fun fulfill_body (Thm (Deriv {promises, body}, {thy_ref, ...})) =
-  Pt.fulfill_proof (Theory.deref thy_ref)
+  Pt.fulfill_norm_proof (Theory.deref thy_ref)
     (map #1 promises ~~ fulfill_bodies (map #2 promises)) body
 and fulfill_bodies futures = map fulfill_body (Exn.release_all (Future.join_results futures));
 
@@ -1068,8 +1068,9 @@ fun generalize ([], []) _ th = th
         val Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...}) = th;
         val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
 
-        val bad_type = if null tfrees then K false else
-          Term.exists_subtype (fn TFree (a, _) => member (op =) tfrees a | _ => false);
+        val bad_type =
+          if null tfrees then K false
+          else Term.exists_subtype (fn TFree (a, _) => member (op =) tfrees a | _ => false);
         fun bad_term (Free (x, T)) = bad_type T orelse member (op =) frees x
           | bad_term (Var (_, T)) = bad_type T
           | bad_term (Const (_, T)) = bad_type T
@@ -1266,7 +1267,7 @@ val varifyT = #2 o varifyT' [];
 fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
   let
     val prop1 = attach_tpairs tpairs prop;
-    val prop2 = Type.freeze prop1;
+    val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
     Thm (deriv_rule1 (Pt.freezeT prop1) der,

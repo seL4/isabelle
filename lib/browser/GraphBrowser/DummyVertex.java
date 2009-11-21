@@ -1,8 +1,6 @@
 /***************************************************************************
   Title:      GraphBrowser/DummyVertex.java
-  ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
 
   This class represents a dummy vertex, which is used to simplify the
   layout algorithm.

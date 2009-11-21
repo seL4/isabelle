@@ -873,7 +873,7 @@ proof-
 have th: "\<not> (\<forall>m. m \<le> j)" "\<exists>n. \<not> n \<le> i" by arith+
 from th show ?thesis 
 apply (auto)
-apply (rule le_anti_sym)
+apply (rule le_antisym)
 apply (subst nrows_le)
 apply (simp add: singleton_matrix_def, auto)
 apply (subst RepAbs_matrix)
@@ -889,7 +889,7 @@ proof-
 have th: "\<not> (\<forall>m. m \<le> j)" "\<exists>n. \<not> n \<le> i" by arith+
 from th show ?thesis 
 apply (auto)
-apply (rule le_anti_sym)
+apply (rule le_antisym)
 apply (subst ncols_le)
 apply (simp add: singleton_matrix_def, auto)
 apply (subst RepAbs_matrix)
@@ -1004,7 +1004,7 @@ lemma mult_matrix_singleton_right[simp]:
   apply (subst foldseq_almostzero[of _ j])
   apply (simp add: prems)+
   apply (auto)
-  apply (metis comm_monoid_add.mult_1 le_anti_sym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
+  apply (metis comm_monoid_add.mult_1 le_antisym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
   done
 
 lemma mult_matrix_ext:
