@@ -1,11 +1,11 @@
 Checklist for official releases
 ===============================
 
-- test mosml, polyml-5.2, polyml-5.1, polyml-5.0;
+- test mosml, polyml-5.2.1, polyml-5.2, polyml-5.1, polyml-5.0;
 
 - test sparc-solaris, x86-solaris;
 
-- test ProofGeneral;
+- test Proof General;
 
 - test Scala wrapper;
 
