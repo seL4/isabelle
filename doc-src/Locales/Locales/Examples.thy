@@ -26,7 +26,7 @@ text {*
 \[
   @{text "\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> \<dots>"}
 \]
-  where variables~@{text "x\<^sub>1"}, \ldots,~@{text "x\<^sub>n"} are called
+  where the variables~@{text "x\<^sub>1"}, \ldots,~@{text "x\<^sub>n"} are called
   \emph{parameters} and the premises $@{text "A\<^sub>1"}, \ldots,~@{text
   "A\<^sub>m"}$ \emph{assumptions}.  A formula~@{text "C"}
   is a \emph{theorem} in the context if it is a conclusion
