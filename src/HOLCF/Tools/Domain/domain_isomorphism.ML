@@ -519,7 +519,9 @@ fun gen_domain_isomorphism
           @{thms conjI isodefl_ID_REP}
           @ isodefl_abs_rep_thms
           @ IsodeflData.get thy;
-        fun tacf {prems, ...} = EVERY
+      in
+        Goal.prove_global thy [] assms goal (fn {prems, ...} =>
+         EVERY
           [simp_tac (HOL_basic_ss addsimps start_thms) 1,
            (* FIXME: how reliable is unification here? *)
            (* Maybe I should instantiate the rule. *)
@@ -529,9 +531,7 @@ fun gen_domain_isomorphism
            simp_tac beta_ss 1,
            simp_tac (HOL_basic_ss addsimps @{thms fst_conv snd_conv}) 1,
            REPEAT (etac @{thm conjE} 1),
-           REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)];
-      in
-        Goal.prove_global thy [] assms goal tacf
+           REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end;
     val isodefl_binds = map (Binding.prefix_name "isodefl_") dom_binds;
     fun conjuncts [] thm = []
