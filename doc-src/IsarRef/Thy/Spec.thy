@@ -288,13 +288,62 @@ text {*
 section {* Locales \label{sec:locale} *}
 
 text {*
-  Locales are named local contexts, consisting of a list of
+  Locales are parametric named local contexts, consisting of a list of
   declaration elements that are modeled after the Isar proof context
   commands (cf.\ \secref{sec:proof-context}).
 *}
 
 
-subsection {* Locale specifications *}
+subsection {* Locale expressions \label{sec:locale-expr} *}
+
+text {*
+  A \emph{locale expression} denotes a structured context composed of
+  instances of existing locales.  The context consists of a list of
+  instances of declaration elements from the locales.  Two locale
+  instances are equal if they are of the same locale and the
+  parameters are instantiated with equivalent terms.  Declaration
+  elements from equal instances are never repeated, thus avoiding
+  duplicate declarations.
+
+  \indexouternonterm{localeexpr}
+  \begin{rail}
+    localeexpr: (instance + '+') ('for' (fixes + 'and'))?
+    ;
+    instance: (qualifier ':')? nameref (posinsts | namedinsts)
+    ;
+    qualifier: name ('?' | '!')?
+    ;
+    posinsts: (term | '_')*
+    ;
+    namedinsts: 'where' (name '=' term + 'and')
+    ;
+  \end{rail}
+
+  A locale instance consists of a reference to a locale and either
+  positional or named parameter instantiations.  Identical
+  instantiations (that is, those that instante a parameter by itself)
+  may be omitted.  The notation `\_' enables to omit the instantiation
+  for a parameter inside a positional instantiation.
+
+  Terms in instantiations are from the context the locale expressions
+  is declared in.  Local names may be added to this context with the
+  optional for clause.  In addition, syntax declarations from one
+  instance are effective when parsing subsequent instances of the same
+  expression.
+
+  Instances have an optional qualifier which applies to names in
+  declarations.  Names include local definitions and theorem names.
+  If present, the qualifier itself is either optional
+  (``\texttt{?}''), which means that it may be omitted on input of the
+  qualified name, or mandatory (``\texttt{!}'').  If neither
+  ``\texttt{?}'' nor ``\texttt{!}'' are present, the command's default
+  is used.  For @{command "interpretation"} and @{command "interpret"}
+  the default is ``mandatory'', for @{command "locale"} and @{command
+  "sublocale"} the default is ``optional''.
+*}
+
+
+subsection {* Locale declarations *}
 
 text {*
   \begin{matharray}{rcl}
@@ -305,31 +354,22 @@ text {*
     @{method_def unfold_locales} & : & @{text method} \\
   \end{matharray}
 
-  \indexouternonterm{contextexpr}\indexouternonterm{contextelem}
+  \indexouternonterm{contextelem}
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}
   \begin{rail}
-    'locale' name ('=' localeexpr)? 'begin'?
+    'locale' name ('=' locale)? 'begin'?
     ;
-    'print\_locale' '!'? localeexpr
+    'print\_locale' '!'? nameref
     ;
-    localeexpr: ((contextexpr '+' (contextelem+)) | contextexpr | (contextelem+))
+    locale: contextelem+ | localeexpr ('+' (contextelem+))?
     ;
-
-    contextexpr: nameref | '(' contextexpr ')' |
-    (contextexpr (name mixfix? +)) | (contextexpr + '+')
-    ;
-    contextelem: fixes | constrains | assumes | defines | notes
-    ;
-    fixes: 'fixes' ((name ('::' type)? structmixfix? | vars) + 'and')
-    ;
-    constrains: 'constrains' (name '::' type + 'and')
-    ;
-    assumes: 'assumes' (thmdecl? props + 'and')
-    ;
-    defines: 'defines' (thmdecl? prop proppat? + 'and')
-    ;
-    notes: 'notes' (thmdef? thmrefs + 'and')
+    contextelem:
+    'fixes' (fixes + 'and')
+    | 'constrains' (name '::' type + 'and')
+    | 'assumes' (props + 'and')
+    | 'defines' (thmdecl? prop proppat? + 'and')
+    | 'notes' (thmdef? thmrefs + 'and')
     ;
   \end{rail}
 
@@ -345,22 +385,17 @@ text {*
   care of the most general typing that the combined context elements
   may acquire.
 
-  The @{text import} consists of a structured context expression,
-  consisting of references to existing locales, renamed contexts, or
-  merged contexts.  Renaming uses positional notation: @{text "c
-  x\<^sub>1 \<dots> x\<^sub>n"} means that (a prefix of) the fixed
-  parameters of context @{text c} are named @{text "x\<^sub>1, \<dots>,
-  x\<^sub>n"}; a ``@{text _}'' (underscore) means to skip that
-  position.  Renaming by default deletes concrete syntax, but new
-  syntax may by specified with a mixfix annotation.  An exeption of
-  this rule is the special syntax declared with ``@{text
-  "(\<STRUCTURE>)"}'' (see below), which is neither deleted nor can it
-  be changed.  Merging proceeds from left-to-right, suppressing any
-  duplicates stemming from different paths through the import
-  hierarchy.
+  The @{text import} consists of a structured locale expression; see
+  \secref{sec:proof-context} above.  Its for clause defines the local
+  parameters of the @{text import}.  In addition, locale parameters
+  whose instantance is omitted automatically extend the (possibly
+  empty) for clause: they are inserted at its beginning.  This means
+  that these parameters may be referred to from within the expression
+  and also in the subsequent context elements and provides a
+  notational convenience for the inheritance of parameters in locale
+  declarations.
 
-  The @{text body} consists of basic context elements, further context
-  expressions may be included as well.
+  The @{text body} consists of context elements.
 
   \begin{description}
 
@@ -371,7 +406,9 @@ text {*
   implicitly in this context.
 
   \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
-  constraint @{text \<tau>} on the local parameter @{text x}.
+  constraint @{text \<tau>} on the local parameter @{text x}.  This
+  element is deprecated.  The type constaint should be introduced in
+  the for clause or the relevant @{element "fixes"} element.
 
   \item @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
   introduces local premises, similar to @{command "assume"} within a
@@ -401,7 +438,7 @@ text {*
   \secref{sec:goals}, term bindings may be included as expected,
   though.
   
-  \medskip By default, locale specifications are ``closed up'' by
+  \medskip Locale specifications are ``closed up'' by
   turning the given text into a predicate definition @{text
   loc_axioms} and deriving the original assumptions as local lemmas
   (modulo local definitions).  The predicate statement covers only the
@@ -444,57 +481,72 @@ text {*
 *}
 
 
-subsection {* Interpretation of locales *}
+subsection {* Locale interpretations *}
 
 text {*
-  Locale expressions (more precisely, \emph{context expressions}) may
-  be instantiated, and the instantiated facts added to the current
-  context.  This requires a proof of the instantiated specification
-  and is called \emph{locale interpretation}.  Interpretation is
-  possible in theories and locales (command @{command
-  "interpretation"}) and also within a proof body (command @{command
-  "interpret"}).
+  Locale expressions may be instantiated, and the instantiated facts
+  added to the current context.  This requires a proof of the
+  instantiated specification and is called \emph{locale
+  interpretation}.  Interpretation is possible in locales @{command
+  "sublocale"}, theories (command @{command "interpretation"}) and
+  also within a proof body (command @{command "interpret"}).
 
   \begin{matharray}{rcl}
+    @{command_def "sublocale"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpretation"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-    @{command_def "interpret"} & : & @{text "proof(state) | proof(chain \<rightarrow> proof(prove)"} \\
+    @{command_def "interpret"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
+    @{command_def "print_interps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \indexouternonterm{interp}
   \begin{rail}
-    'interpretation' (interp | name ('<' | subseteq) contextexpr)
+    'sublocale' nameref ('<' | subseteq) localeexpr
     ;
-    'interpret' interp
+    'interpretation' localeepxr equations?
     ;
-    instantiation: ('[' (inst+) ']')?
+    'interpret' localeexpr
     ;
-    interp: (name ':')? \\ (contextexpr instantiation |
-      name instantiation 'where' (thmdecl? prop + 'and'))
+    'print\_interps' nameref
+    ;
+    equations: 'where' (thmdecl? prop + 'and')
     ;
   \end{rail}
 
   \begin{description}
 
+  \item @{command "sublocale"}~@{text "name \<subseteq> expr"}
+  interprets @{text expr} in the locale @{text name}.  A proof that
+  the specification of @{text name} implies the specification of
+  @{text expr} is required.  As in the localized version of the
+  theorem command, the proof is in the context of @{text name}.  After
+  the proof obligation has been dischared, the facts of @{text expr}
+  become part of locale @{text name} as \emph{derived} context
+  elements and are available when the context @{text name} is
+  subsequently entered.  Note that, like import, this is dynamic:
+  facts added to a locale part of @{text expr} after interpretation
+  become also available in @{text name}.
+
+  Only specification fragments of @{text expr} that are not already
+  part of @{text name} (be it imported, derived or a derived fragment
+  of the import) are considered in this process.  This enables
+  circular interpretations to the extent that no infinite chains are
+  generated in the locale hierarchy.
+
+  If interpretations of @{text name} exist in the current theory, the
+  command adds interpretations for @{text expr} as well, with the same
+  qualifier, although only for fragments of @{text expr} that are not
+  interpreted in the theory already.
+
   \item @{command "interpretation"}~@{text "expr insts \<WHERE> eqns"}
+  interprets @{text expr} in the theory.  The command generates proof
+  obligations for the instantiated specifications (assumes and defines
+  elements).  Once these are discharged by the user, instantiated
+  facts are added to the theory in a post-processing phase.
 
-  The first form of @{command "interpretation"} interprets @{text
-  expr} in the theory.  The instantiation is given as a list of terms
-  @{text insts} and is positional.  All parameters must receive an
-  instantiation term --- with the exception of defined parameters.
-  These are, if omitted, derived from the defining equation and other
-  instantiations.  Use ``@{text _}'' to omit an instantiation term.
-
-  The command generates proof obligations for the instantiated
-  specifications (assumes and defines elements).  Once these are
-  discharged by the user, instantiated facts are added to the theory
-  in a post-processing phase.
-
-  Additional equations, which are unfolded in facts during
+  Additional equations, which are unfolded during
   post-processing, may be given after the keyword @{keyword "where"}.
   This is useful for interpreting concepts introduced through
   definition specification elements.  The equations must be proved.
-  Note that if equations are present, the context expression is
-  restricted to a locale name.
 
   The command is aware of interpretations already active in the
   theory, but does not simplify the goal automatically.  In order to
@@ -506,47 +558,12 @@ text {*
   already be active.  The command will only process facts for new
   parts.
 
-  The context expression may be preceded by a name, which takes effect
-  in the post-processing of facts.  It is used to prefix fact names,
-  for example to avoid accidental hiding of other facts.
-
   Adding facts to locales has the effect of adding interpreted facts
   to the theory for all active interpretations also.  That is,
   interpretations dynamically participate in any facts added to
   locales.
 
-  \item @{command "interpretation"}~@{text "name \<subseteq> expr"}
-
-  This form of the command interprets @{text expr} in the locale
-  @{text name}.  It requires a proof that the specification of @{text
-  name} implies the specification of @{text expr}.  As in the
-  localized version of the theorem command, the proof is in the
-  context of @{text name}.  After the proof obligation has been
-  dischared, the facts of @{text expr} become part of locale @{text
-  name} as \emph{derived} context elements and are available when the
-  context @{text name} is subsequently entered.  Note that, like
-  import, this is dynamic: facts added to a locale part of @{text
-  expr} after interpretation become also available in @{text name}.
-  Like facts of renamed context elements, facts obtained by
-  interpretation may be accessed by prefixing with the parameter
-  renaming (where the parameters are separated by ``@{text _}'').
-
-  Unlike interpretation in theories, instantiation is confined to the
-  renaming of parameters, which may be specified as part of the
-  context expression @{text expr}.  Using defined parameters in @{text
-  name} one may achieve an effect similar to instantiation, though.
-
-  Only specification fragments of @{text expr} that are not already
-  part of @{text name} (be it imported, derived or a derived fragment
-  of the import) are considered by interpretation.  This enables
-  circular interpretations.
-
-  If interpretations of @{text name} exist in the current theory, the
-  command adds interpretations for @{text expr} as well, with the same
-  prefix and attributes, although only for fragments of @{text expr}
-  that are not interpreted in the theory already.
-
-  \item @{command "interpret"}~@{text "expr insts \<WHERE> eqns"}
+  \item @{command "interpret"}~@{text "expr insts"}
   interprets @{text expr} in the proof context and is otherwise
   similar to interpretation in theories.
 
@@ -558,7 +575,7 @@ text {*
     the Simplifier or Classical Reasoner.  Since the behavior of such
     automated reasoning tools is \emph{not} stable under
     interpretation morphisms, manual declarations might have to be
-    issued.
+    added to revert such declarations.
   \end{warn}
 
   \begin{warn}
@@ -566,9 +583,8 @@ text {*
     interpretations.  This happens if the same specification fragment
     is interpreted twice and the instantiation of the second
     interpretation is more general than the interpretation of the
-    first.  A warning is issued, since it is likely that these could
-    have been generalized in the first place.  The locale package does
-    not attempt to remove subsumed interpretations.
+    first.  The locale package does not attempt to remove subsumed
+    interpretations.
   \end{warn}
 *}
 
