@@ -1,40 +1,16 @@
-Subject: Announcing Isabelle2009
+Subject: Announcing Isabelle2009-1
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2009 is now available.
+Isabelle2009-1 is now available.
 
-This release significantly improves upon Isabelle2008, see the NEWS
+This release improves upon Isabelle2009 in many ways, see the NEWS
 file in the distribution for more details.  Some important changes
 are:
 
-* Complete re-implementation of locales, with proper support for local
-syntax, and more general locale expressions.
-
-* New 'find_consts' and 'find_theorems' facilities, together with
-"auto solve" feature of toplevel goal statements.
-
-* HOL: reorganization of main logic images.
-
-* HOL: improved implementation of Sledgehammer, based on generic ATP
-manager; support for remote ATPs.
-
-* HOL: numerous library improvements.
-
-* Updated and extended versions of main reference manuals.
-
-* Simplified arrangement of Isabelle startup scripts and settings
-directory.
-
-* Simplified programming interfaces for all Isar language elements.
-
-* General high-level support for concurrent ML programming.
-
-* Parallel proof checking within Isar theories.
-
-* Haskabelle importer from Haskell source files to Isar theories.
+* FIXME
 
 
-You may get Isabelle2009 from the following mirror sites:
+You may get Isabelle2009-1 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/
