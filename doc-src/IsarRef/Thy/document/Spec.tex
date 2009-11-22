@@ -310,13 +310,63 @@ Arbitrary operations on the background context may be wrapped-up as
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Locales are named local contexts, consisting of a list of
+Locales are parametric named local contexts, consisting of a list of
   declaration elements that are modeled after the Isar proof context
   commands (cf.\ \secref{sec:proof-context}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Locale specifications%
+\isamarkupsubsection{Locale expressions \label{sec:locale-expr}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A \emph{locale expression} denotes a structured context composed of
+  instances of existing locales.  The context consists of a list of
+  instances of declaration elements from the locales.  Two locale
+  instances are equal if they are of the same locale and the
+  parameters are instantiated with equivalent terms.  Declaration
+  elements from equal instances are never repeated, thus avoiding
+  duplicate declarations.
+
+  \indexouternonterm{localeexpr}
+  \begin{rail}
+    localeexpr: (instance + '+') ('for' (fixes + 'and'))?
+    ;
+    instance: (qualifier ':')? nameref (posinsts | namedinsts)
+    ;
+    qualifier: name ('?' | '!')?
+    ;
+    posinsts: (term | '_')*
+    ;
+    namedinsts: 'where' (name '=' term + 'and')
+    ;
+  \end{rail}
+
+  A locale instance consists of a reference to a locale and either
+  positional or named parameter instantiations.  Identical
+  instantiations (that is, those that instante a parameter by itself)
+  may be omitted.  The notation `\_' enables to omit the instantiation
+  for a parameter inside a positional instantiation.
+
+  Terms in instantiations are from the context the locale expressions
+  is declared in.  Local names may be added to this context with the
+  optional for clause.  In addition, syntax declarations from one
+  instance are effective when parsing subsequent instances of the same
+  expression.
+
+  Instances have an optional qualifier which applies to names in
+  declarations.  Names include local definitions and theorem names.
+  If present, the qualifier itself is either optional
+  (``\texttt{?}''), which means that it may be omitted on input of the
+  qualified name, or mandatory (``\texttt{!}'').  If neither
+  ``\texttt{?}'' nor ``\texttt{!}'' are present, the command's default
+  is used.  For \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}} and \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}
+  the default is ``mandatory'', for \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} and \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}} the default is ``optional''.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Locale declarations%
 }
 \isamarkuptrue%
 %
@@ -329,31 +379,22 @@ Locales are named local contexts, consisting of a list of
     \indexdef{}{method}{unfold\_locales}\hypertarget{method.unfold-locales}{\hyperlink{method.unfold-locales}{\mbox{\isa{unfold{\isacharunderscore}locales}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \indexouternonterm{contextexpr}\indexouternonterm{contextelem}
+  \indexouternonterm{contextelem}
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}
   \begin{rail}
-    'locale' name ('=' localeexpr)? 'begin'?
+    'locale' name ('=' locale)? 'begin'?
     ;
-    'print\_locale' '!'? localeexpr
+    'print\_locale' '!'? nameref
     ;
-    localeexpr: ((contextexpr '+' (contextelem+)) | contextexpr | (contextelem+))
+    locale: contextelem+ | localeexpr ('+' (contextelem+))?
     ;
-
-    contextexpr: nameref | '(' contextexpr ')' |
-    (contextexpr (name mixfix? +)) | (contextexpr + '+')
-    ;
-    contextelem: fixes | constrains | assumes | defines | notes
-    ;
-    fixes: 'fixes' ((name ('::' type)? structmixfix? | vars) + 'and')
-    ;
-    constrains: 'constrains' (name '::' type + 'and')
-    ;
-    assumes: 'assumes' (thmdecl? props + 'and')
-    ;
-    defines: 'defines' (thmdecl? prop proppat? + 'and')
-    ;
-    notes: 'notes' (thmdef? thmrefs + 'and')
+    contextelem:
+    'fixes' (fixes + 'and')
+    | 'constrains' (name '::' type + 'and')
+    | 'assumes' (props + 'and')
+    | 'defines' (thmdecl? prop proppat? + 'and')
+    | 'notes' (thmdef? thmrefs + 'and')
     ;
   \end{rail}
 
@@ -369,19 +410,17 @@ Locales are named local contexts, consisting of a list of
   care of the most general typing that the combined context elements
   may acquire.
 
-  The \isa{import} consists of a structured context expression,
-  consisting of references to existing locales, renamed contexts, or
-  merged contexts.  Renaming uses positional notation: \isa{{\isachardoublequote}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isachardoublequote}} means that (a prefix of) the fixed
-  parameters of context \isa{c} are named \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub n{\isachardoublequote}}; a ``\isa{{\isacharunderscore}}'' (underscore) means to skip that
-  position.  Renaming by default deletes concrete syntax, but new
-  syntax may by specified with a mixfix annotation.  An exeption of
-  this rule is the special syntax declared with ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymSTRUCTURE}{\isacharparenright}{\isachardoublequote}}'' (see below), which is neither deleted nor can it
-  be changed.  Merging proceeds from left-to-right, suppressing any
-  duplicates stemming from different paths through the import
-  hierarchy.
+  The \isa{import} consists of a structured locale expression; see
+  \secref{sec:proof-context} above.  Its for clause defines the local
+  parameters of the \isa{import}.  In addition, locale parameters
+  whose instantance is omitted automatically extend the (possibly
+  empty) for clause: they are inserted at its beginning.  This means
+  that these parameters may be referred to from within the expression
+  and also in the subsequent context elements and provides a
+  notational convenience for the inheritance of parameters in locale
+  declarations.
 
-  The \isa{body} consists of basic context elements, further context
-  expressions may be included as well.
+  The \isa{body} consists of context elements.
 
   \begin{description}
 
@@ -391,7 +430,9 @@ Locales are named local contexts, consisting of a list of
   implicitly in this context.
 
   \item \hyperlink{element.constrains}{\mbox{\isa{\isakeyword{constrains}}}}~\isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isachardoublequote}} introduces a type
-  constraint \isa{{\isasymtau}} on the local parameter \isa{x}.
+  constraint \isa{{\isasymtau}} on the local parameter \isa{x}.  This
+  element is deprecated.  The type constaint should be introduced in
+  the for clause or the relevant \hyperlink{element.fixes}{\mbox{\isa{\isakeyword{fixes}}}} element.
 
   \item \hyperlink{element.assumes}{\mbox{\isa{\isakeyword{assumes}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}
   introduces local premises, similar to \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} within a
@@ -421,7 +462,7 @@ Locales are named local contexts, consisting of a list of
   \secref{sec:goals}, term bindings may be included as expected,
   though.
   
-  \medskip By default, locale specifications are ``closed up'' by
+  \medskip Locale specifications are ``closed up'' by
   turning the given text into a predicate definition \isa{loc{\isacharunderscore}axioms} and deriving the original assumptions as local lemmas
   (modulo local definitions).  The predicate statement covers only the
   newly specified assumptions, omitting the content of included locale
@@ -461,56 +502,73 @@ Locales are named local contexts, consisting of a list of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Interpretation of locales%
+\isamarkupsubsection{Locale interpretations%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Locale expressions (more precisely, \emph{context expressions}) may
-  be instantiated, and the instantiated facts added to the current
-  context.  This requires a proof of the instantiated specification
-  and is called \emph{locale interpretation}.  Interpretation is
-  possible in theories and locales (command \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}) and also within a proof body (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
+Locale expressions may be instantiated, and the instantiated facts
+  added to the current context.  This requires a proof of the
+  instantiated specification and is called \emph{locale
+  interpretation}.  Interpretation is possible in locales \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}, theories (command \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}) and
+  also within a proof body (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
 
   \begin{matharray}{rcl}
+    \indexdef{}{command}{sublocale}\hypertarget{command.sublocale}{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
     \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{interpret}\hypertarget{command.interpret}{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{interpret}\hypertarget{command.interpret}{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{print\_interps}\hypertarget{command.print-interps}{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
   \end{matharray}
 
   \indexouternonterm{interp}
   \begin{rail}
-    'interpretation' (interp | name ('<' | subseteq) contextexpr)
+    'sublocale' nameref ('<' | subseteq) localeexpr
     ;
-    'interpret' interp
+    'interpretation' localeepxr equations?
     ;
-    instantiation: ('[' (inst+) ']')?
+    'interpret' localeexpr
     ;
-    interp: (name ':')? \\ (contextexpr instantiation |
-      name instantiation 'where' (thmdecl? prop + 'and'))
+    'print\_interps' nameref
+    ;
+    equations: 'where' (thmdecl? prop + 'and')
     ;
   \end{rail}
 
   \begin{description}
 
+  \item \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}~\isa{{\isachardoublequote}name\ {\isasymsubseteq}\ expr{\isachardoublequote}}
+  interprets \isa{expr} in the locale \isa{name}.  A proof that
+  the specification of \isa{name} implies the specification of
+  \isa{expr} is required.  As in the localized version of the
+  theorem command, the proof is in the context of \isa{name}.  After
+  the proof obligation has been dischared, the facts of \isa{expr}
+  become part of locale \isa{name} as \emph{derived} context
+  elements and are available when the context \isa{name} is
+  subsequently entered.  Note that, like import, this is dynamic:
+  facts added to a locale part of \isa{expr} after interpretation
+  become also available in \isa{name}.
+
+  Only specification fragments of \isa{expr} that are not already
+  part of \isa{name} (be it imported, derived or a derived fragment
+  of the import) are considered in this process.  This enables
+  circular interpretations to the extent that no infinite chains are
+  generated in the locale hierarchy.
+
+  If interpretations of \isa{name} exist in the current theory, the
+  command adds interpretations for \isa{expr} as well, with the same
+  qualifier, although only for fragments of \isa{expr} that are not
+  interpreted in the theory already.
+
   \item \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}~\isa{{\isachardoublequote}expr\ insts\ {\isasymWHERE}\ eqns{\isachardoublequote}}
+  interprets \isa{expr} in the theory.  The command generates proof
+  obligations for the instantiated specifications (assumes and defines
+  elements).  Once these are discharged by the user, instantiated
+  facts are added to the theory in a post-processing phase.
 
-  The first form of \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}} interprets \isa{expr} in the theory.  The instantiation is given as a list of terms
-  \isa{insts} and is positional.  All parameters must receive an
-  instantiation term --- with the exception of defined parameters.
-  These are, if omitted, derived from the defining equation and other
-  instantiations.  Use ``\isa{{\isacharunderscore}}'' to omit an instantiation term.
-
-  The command generates proof obligations for the instantiated
-  specifications (assumes and defines elements).  Once these are
-  discharged by the user, instantiated facts are added to the theory
-  in a post-processing phase.
-
-  Additional equations, which are unfolded in facts during
+  Additional equations, which are unfolded during
   post-processing, may be given after the keyword \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}}.
   This is useful for interpreting concepts introduced through
   definition specification elements.  The equations must be proved.
-  Note that if equations are present, the context expression is
-  restricted to a locale name.
 
   The command is aware of interpretations already active in the
   theory, but does not simplify the goal automatically.  In order to
@@ -522,43 +580,12 @@ Locale expressions (more precisely, \emph{context expressions}) may
   already be active.  The command will only process facts for new
   parts.
 
-  The context expression may be preceded by a name, which takes effect
-  in the post-processing of facts.  It is used to prefix fact names,
-  for example to avoid accidental hiding of other facts.
-
   Adding facts to locales has the effect of adding interpreted facts
   to the theory for all active interpretations also.  That is,
   interpretations dynamically participate in any facts added to
   locales.
 
-  \item \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}~\isa{{\isachardoublequote}name\ {\isasymsubseteq}\ expr{\isachardoublequote}}
-
-  This form of the command interprets \isa{expr} in the locale
-  \isa{name}.  It requires a proof that the specification of \isa{name} implies the specification of \isa{expr}.  As in the
-  localized version of the theorem command, the proof is in the
-  context of \isa{name}.  After the proof obligation has been
-  dischared, the facts of \isa{expr} become part of locale \isa{name} as \emph{derived} context elements and are available when the
-  context \isa{name} is subsequently entered.  Note that, like
-  import, this is dynamic: facts added to a locale part of \isa{expr} after interpretation become also available in \isa{name}.
-  Like facts of renamed context elements, facts obtained by
-  interpretation may be accessed by prefixing with the parameter
-  renaming (where the parameters are separated by ``\isa{{\isacharunderscore}}'').
-
-  Unlike interpretation in theories, instantiation is confined to the
-  renaming of parameters, which may be specified as part of the
-  context expression \isa{expr}.  Using defined parameters in \isa{name} one may achieve an effect similar to instantiation, though.
-
-  Only specification fragments of \isa{expr} that are not already
-  part of \isa{name} (be it imported, derived or a derived fragment
-  of the import) are considered by interpretation.  This enables
-  circular interpretations.
-
-  If interpretations of \isa{name} exist in the current theory, the
-  command adds interpretations for \isa{expr} as well, with the same
-  prefix and attributes, although only for fragments of \isa{expr}
-  that are not interpreted in the theory already.
-
-  \item \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}~\isa{{\isachardoublequote}expr\ insts\ {\isasymWHERE}\ eqns{\isachardoublequote}}
+  \item \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}~\isa{{\isachardoublequote}expr\ insts{\isachardoublequote}}
   interprets \isa{expr} in the proof context and is otherwise
   similar to interpretation in theories.
 
@@ -570,7 +597,7 @@ Locale expressions (more precisely, \emph{context expressions}) may
     the Simplifier or Classical Reasoner.  Since the behavior of such
     automated reasoning tools is \emph{not} stable under
     interpretation morphisms, manual declarations might have to be
-    issued.
+    added to revert such declarations.
   \end{warn}
 
   \begin{warn}
@@ -578,9 +605,8 @@ Locale expressions (more precisely, \emph{context expressions}) may
     interpretations.  This happens if the same specification fragment
     is interpreted twice and the instantiation of the second
     interpretation is more general than the interpretation of the
-    first.  A warning is issued, since it is likely that these could
-    have been generalized in the first place.  The locale package does
-    not attempt to remove subsumed interpretations.
+    first.  The locale package does not attempt to remove subsumed
+    interpretations.
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
