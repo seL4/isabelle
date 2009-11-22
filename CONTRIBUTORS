@@ -4,23 +4,24 @@ who is listed as an author in one of the source files of this Isabelle
 distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2009-1
+-------------------------------
 
 * November 2009: Robert Himmelmann, TUM
   Derivation and Brouwer's fixpoint theorem in Multivariate Analysis
 
-* November 2009: Stefan Berghofer, Lukas Bulwahn, TUM
-  A tabled implementation of the reflexive transitive closure
+* November 2009: Stefan Berghofer and Lukas Bulwahn, TUM
+  A tabled implementation of the reflexive transitive closure.
 
 * November 2009: Lukas Bulwahn, TUM
-  Predicate Compiler: a compiler for inductive predicates to equational specfications
+  Predicate Compiler: a compiler for inductive predicates to
+  equational specifications.
  
 * November 2009: Sascha Boehme, TUM
-  HOL-Boogie: an interactive prover back-end for Boogie and VCC
+  HOL-Boogie: an interactive prover back-end for Boogie and VCC.
 
 * October 2009: Jasmin Blanchette, TUM
-  Nitpick: yet another counterexample generator for Isabelle/HOL
+  Nitpick: yet another counterexample generator for Isabelle/HOL.
 
 * October 2009: Sascha Boehme, TUM
   Extension of SMT method: proof-reconstruction for the SMT solver Z3.
@@ -55,11 +56,11 @@ Contributions to this Isabelle version
   for code generation.
 
 * June 2009: Florian Haftmann, TUM
-  HOL/Library/Tree: searchtrees implementing mappings, ready to use
+  HOL/Library/Tree: search trees implementing mappings, ready to use
   for code generation.
 
 * March 2009: Philipp Meyer, TUM
-  Minimalization algorithm for results from sledgehammer call.
+  Minimization tool for results from Sledgehammer.
 
 
 Contributions to Isabelle2009

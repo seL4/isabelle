@@ -11,11 +11,11 @@ System requirements
 
    Isabelle requires a regular Unix platform (e.g. GNU Linux) with the
    following additional software:
-     * A full Standard ML Compiler (works best with Poly/ML 5.2.1).
+
+     * A full Standard ML Compiler (works best with Poly/ML 5.3.0).
      * The GNU bash shell (version 3.x or 2.x).
      * Perl (version 5.x).
-     * GNU Emacs (version 21, 22, 23) or XEmacs (version 21.4.x)
-       -- for the Proof General interface.
+     * GNU Emacs (version 22 or 23) -- for the Proof General interface.
      * A complete LaTeX installation -- for document preparation.
 
 Installation
