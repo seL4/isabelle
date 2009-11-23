@@ -956,7 +956,8 @@ fun kodkod_formula_from_nut ofs liberal
         (case u of
            Cst (False, _, _) => Kodkod.False
          | Cst (True, _, _) => Kodkod.True
-         | Op1 (Not, _, _, u1) => kk_not (to_f u1)
+         | Op1 (Not, _, _, u1) =>
+           kk_not (to_f_with_polarity (flip_polarity polar) u1)
          | Op1 (Finite, _, _, u1) =>
            let val opt1 = is_opt_rep (rep_of u1) in
              case polar of
@@ -968,10 +969,14 @@ fun kodkod_formula_from_nut ofs liberal
              | Neg => Kodkod.True
            end
          | Op1 (Cast, _, _, u1) => to_f_with_polarity polar u1
-         | Op2 (All, _, _, u1, u2) => kk_all (untuple to_decl u1) (to_f u2)
-         | Op2 (Exist, _, _, u1, u2) => kk_exist (untuple to_decl u1) (to_f u2)
-         | Op2 (Or, _, _, u1, u2) => kk_or (to_f u1) (to_f u2)
-         | Op2 (And, _, _, u1, u2) => kk_and (to_f u1) (to_f u2)
+         | Op2 (All, _, _, u1, u2) =>
+           kk_all (untuple to_decl u1) (to_f_with_polarity polar u2)
+         | Op2 (Exist, _, _, u1, u2) =>
+           kk_exist (untuple to_decl u1) (to_f_with_polarity polar u2)
+         | Op2 (Or, _, _, u1, u2) =>
+           kk_or (to_f_with_polarity polar u1) (to_f_with_polarity polar u2)
+         | Op2 (And, _, _, u1, u2) =>
+           kk_and (to_f_with_polarity polar u1) (to_f_with_polarity polar u2)
          | Op2 (Less, T, Formula polar, u1, u2) =>
            formula_from_opt_atom polar bool_j0
                (to_r (Op2 (Less, T, Opt bool_atom_R, u1, u2)))
@@ -1105,9 +1110,10 @@ fun kodkod_formula_from_nut ofs liberal
               to_f_with_polarity polar
                  (Op2 (Apply, T, Opt (Atom (2, offset_of_type ofs T)), u1, u2)))
          | Op3 (Let, _, _, u1, u2, u3) =>
-           kk_formula_let [to_expr_assign u1 u2] (to_f u3)
+           kk_formula_let [to_expr_assign u1 u2] (to_f_with_polarity polar u3)
          | Op3 (If, _, _, u1, u2, u3) =>
-           kk_formula_if (to_f u1) (to_f u2) (to_f u3)
+           kk_formula_if (to_f u1) (to_f_with_polarity polar u2)
+                         (to_f_with_polarity polar u3)
          | FormulaReg (j, _, _) => Kodkod.FormulaReg j
          | _ => raise NUT ("Nitpick_Kodkod.to_f", [u]))
       | Atom (2, j0) => formula_from_atom j0 (to_r u)
