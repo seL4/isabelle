@@ -453,9 +453,33 @@ The key to this error message is the matrix at the bottom. The rows
   \isa{{\isacharless}}, \isa{{\isacharless}{\isacharequal}} and \isa{{\isacharquery}}.
 
   For the failed proof attempts, the unfinished subgoals are also
-  printed. Looking at these will often point to a missing lemma.
+  printed. Looking at these will often point to a missing lemma.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{The \isa{size{\isacharunderscore}change} method%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Some termination goals that are beyond the powers of
+  \isa{lexicographic{\isacharunderscore}order} can be solved automatically by the
+  more powerful \isa{size{\isacharunderscore}change} method, which uses a variant of
+  the size-change principle, together with some other
+  techniques. While the details are discussed
+  elsewhere\cite{krauss_phd},
+  here are a few typical situations where
+  \isa{lexicographic{\isacharunderscore}order} has difficulties and \isa{size{\isacharunderscore}change}
+  may be worth a try:
+  \begin{itemize}
+  \item Arguments are permuted in a recursive call.
+  \item Several mutually recursive functions with multiple arguments.
+  \item Unusual control flow (e.g., when some recursive calls cannot
+  occur in sequence).
+  \end{itemize}
 
-%  As a more real example, here is quicksort:%
+  Loading the theory \isa{Multiset} makes the \isa{size{\isacharunderscore}change}
+  method a bit stronger: it can then use multiset orders internally.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
