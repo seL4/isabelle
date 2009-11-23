@@ -514,10 +514,12 @@ fun typedef_info thy s =
           set_name = set_prefix ^ s, Rep_inverse = SOME Rep_inverse}
   | NONE => NONE
 
+(* FIXME: use antiquotation for "code_numeral" below or detect "rep_datatype",
+   e.g., by adding a field to "DatatypeAux.info". *)
 (* string -> bool *)
 fun is_basic_datatype s =
     s mem [@{type_name "*"}, @{type_name bool}, @{type_name unit},
-           @{type_name nat}, @{type_name int}]
+           @{type_name nat}, @{type_name int}, "Code_Numeral.code_numeral"]
 (* theory -> string -> bool *)
 val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
@@ -539,7 +541,7 @@ fun is_univ_typedef thy (Type (s, _)) =
           try (fst o dest_Const o snd o Logic.dest_equals o prop_of) thm
         | NONE =>
           try (fst o dest_Const o snd o HOLogic.dest_mem
-               o HOLogic.dest_Trueprop) prop_of_Rep) = SOME @{const_name UNIV}
+               o HOLogic.dest_Trueprop) prop_of_Rep) = SOME @{const_name top}
      | NONE => false)
   | is_univ_typedef _ _ = false
 fun is_datatype thy (T as Type (s, _)) =
@@ -1288,8 +1290,10 @@ fun optimized_typedef_axioms thy (abs_s, abs_Ts) =
   end
 (* theory -> styp -> term *)
 fun inverse_axiom_for_rep_fun thy (x as (_, T)) =
-  typedef_info thy (fst (dest_Type (domain_type T)))
-  |> the |> #Rep_inverse |> the |> prop_of |> Refute.specialize_type thy x
+  let val abs_T = domain_type T in
+    typedef_info thy (fst (dest_Type abs_T)) |> the |> #Rep_inverse |> the
+    |> prop_of |> Refute.specialize_type thy x
+  end
 
 (* theory -> int * styp -> term *)
 fun constr_case_body thy (j, (x as (_, T))) =
@@ -1404,6 +1408,7 @@ fun lhs_of_equation t =
   | _ => NONE
 (* theory -> term -> bool *)
 fun is_constr_pattern _ (Bound _) = true
+  | is_constr_pattern _ (Var _) = true
   | is_constr_pattern thy t =
     case strip_comb t of
       (Const (x as (s, _)), args) =>
@@ -1445,7 +1450,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
           else
             raise SAME ())
          handle SAME () => betapply (do_term depth Ts t0, do_term depth Ts t1))
-      | Const (@{const_name refl_on}, T) $ Const (@{const_name UNIV}, _) $ t2 =>
+      | Const (@{const_name refl_on}, T) $ Const (@{const_name top}, _) $ t2 =>
         do_const depth Ts t (@{const_name refl'}, range_type T) [t2]
       | (t0 as Const (x as (@{const_name Sigma}, T))) $ t1
         $ (t2 as Abs (_, _, t2')) =>
@@ -1492,7 +1497,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
                 if is_finite_type ext_ctxt (domain_type T) then
                   (Abs ("A", domain_type T, @{const True}), ts)
                 else case ts of
-                  [Const (@{const_name UNIV}, _)] => (@{const False}, [])
+                  [Const (@{const_name top}, _)] => (@{const False}, [])
                 | _ => (Const x, ts)
               else
                 (Const x, ts)
@@ -3004,10 +3009,14 @@ fun axioms_for_term
           end
       end
     (* int -> term -> accumulator -> accumulator *)
+    and add_def_axiom depth = add_axiom fst apfst depth
     and add_nondef_axiom depth = add_axiom snd apsnd depth
-    and add_def_axiom depth t =
-      (if head_of t = @{const "==>"} then add_nondef_axiom
-       else add_axiom fst apfst) depth t
+    and add_maybe_def_axiom depth t =
+      (if head_of t <> @{const "==>"} then add_def_axiom
+       else add_nondef_axiom) depth t
+    and add_eq_axiom depth t =
+      (if is_constr_pattern_formula thy t then add_def_axiom
+       else add_nondef_axiom) depth t
     (* int -> term -> accumulator -> accumulator *)
     and add_axioms_for_term depth t (accum as (xs, axs)) =
       case t of
@@ -3029,29 +3038,33 @@ fun axioms_for_term
                  val ax1 = try (Refute.specialize_type thy x) of_class
                  val ax2 = Option.map (Refute.specialize_type thy x o snd)
                                       (Refute.get_classdef thy class)
-               in fold (add_def_axiom depth) (map_filter I [ax1, ax2]) accum end
+               in
+                 fold (add_maybe_def_axiom depth) (map_filter I [ax1, ax2])
+                      accum
+               end
              else if is_constr thy x then
                accum
              else if is_equational_fun ext_ctxt x then
-               fold (add_def_axiom depth) (equational_fun_axioms ext_ctxt x)
+               fold (add_eq_axiom depth) (equational_fun_axioms ext_ctxt x)
                     accum
              else if is_abs_fun thy x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
                      |> is_funky_typedef thy (range_type T)
-                        ? fold (add_def_axiom depth)
+                        ? fold (add_maybe_def_axiom depth)
                                (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
              else if is_rep_fun thy x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
                      |> is_funky_typedef thy (range_type T)
-                        ? fold (add_def_axiom depth)
+                        ? fold (add_maybe_def_axiom depth)
                                (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
                      |> add_axioms_for_term depth
                                             (Const (mate_of_rep_fun thy x))
-                     |> add_def_axiom depth (inverse_axiom_for_rep_fun thy x)
+                     |> add_maybe_def_axiom depth
+                                            (inverse_axiom_for_rep_fun thy x)
              else
                accum |> user_axioms <> SOME false
                         ? fold (add_nondef_axiom depth)
@@ -3076,9 +3089,10 @@ fun axioms_for_term
       | Type (z as (_, Ts)) =>
         fold (add_axioms_for_type depth) Ts
         #> (if is_pure_typedef thy T then
-              fold (add_def_axiom depth) (optimized_typedef_axioms thy z)
+              fold (add_maybe_def_axiom depth) (optimized_typedef_axioms thy z)
             else if max_bisim_depth >= 0 andalso is_codatatype thy T then
-              fold (add_def_axiom depth) (codatatype_bisim_axioms ext_ctxt T)
+              fold (add_maybe_def_axiom depth)
+                   (codatatype_bisim_axioms ext_ctxt T)
             else
               I)
     (* int -> typ -> sort -> accumulator -> accumulator *)
