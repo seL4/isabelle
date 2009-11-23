@@ -10,9 +10,11 @@ Version 2010
   * Optimized Kodkod encoding of datatypes whose constructors don't appear in
     the formula to falsify
   * Added support for codatatype view of datatypes
-  * Fixed soundness bugs related to sets and sets of sets
+  * Fixed soundness bugs related to sets, sets of sets, and (co)inductive
+    predicates
   * Fixed monotonicity check
-  * Fixed error when processing definitions that resulted in an exception
+  * Fixed error when processing definitions
+  * Fixed error in "star_linear_preds" optimization
   * Fixed error in Kodkod encoding of "The" and "Eps"
   * Fixed error in display of uncurried constants
   * Speeded up scope enumeration
@@ -70,7 +72,7 @@ Version 1.2.0 (27 Jul 2009)
   * Improved precision of "trancl" and "rtrancl"
   * Optimized Kodkod encoding of "tranclp" and "rtranclp"
   * Made detection of inconsistent scope specifications more robust
-  * Fixed a few Kodkod generation bugs that resulted in exceptions
+  * Fixed a few Kodkod generation bugs
 
 Version 1.1.1 (24 Jun 2009)
 
@@ -79,8 +81,7 @@ Version 1.1.1 (24 Jun 2009)
   * Improved precision of some set constructs
   * Fiddled with the automatic monotonicity check
   * Fixed performance issues related to scope enumeration
-  * Fixed a few Kodkod generation bugs that resulted in exceptions or stack
-    overflows
+  * Fixed a few Kodkod generation bugs
 
 Version 1.1.0 (16 Jun 2009)
 
@@ -117,7 +118,7 @@ Version 1.0.3 (17 Mar 2009)
   * Fixed soundness issue in handling of non-definitional axioms
   * Fixed soundness issue in handling of "Abs_" and "Rep_" functions for "unit",
     "nat", "int", and "*"
-  * Fixed a few Kodkod generation bugs that resulted in exceptions
+  * Fixed a few Kodkod generation bugs
   * Optimized "div", "mod", and "dvd" on "nat" and "int"
 
 Version 1.0.2 (12 Mar 2009)
@@ -152,7 +153,7 @@ Version 1.0.1 (6 Mar 2009)
     infinite loop for "Nominal.perm"
   * Added support for multiple instantiations of non-well-founded inductive
     predicates, which previously raised an exception
-  * Fixed a Kodkod generation bug that resulted in an exception
+  * Fixed a Kodkod generation bug
   * Altered order of scope enumeration and automatic SAT solver selection
   * Optimized "Eps", "nat_case", and "list_case"
   * Improved output formatting

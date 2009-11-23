@@ -100,8 +100,7 @@ fun is_precise_type dtypes (Type ("fun", Ts)) =
     forall (is_precise_type dtypes) Ts
   | is_precise_type dtypes (Type ("*", Ts)) = forall (is_precise_type dtypes) Ts
   | is_precise_type dtypes T =
-    T <> nat_T andalso T <> int_T
-    andalso #precise (the (datatype_spec dtypes T))
+    not (is_integer_type T) andalso #precise (the (datatype_spec dtypes T))
     handle Option.Option => true
 fun is_fully_comparable_type dtypes (Type ("fun", [T1, T2])) =
     is_precise_type dtypes T1 andalso is_fully_comparable_type dtypes T2

@@ -712,15 +712,16 @@ fun choose_rep_for_const (scope as {ext_ctxt as {thy, ctxt, ...}, datatypes,
              else if is_rep_fun thy x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
              else if all_precise orelse is_skolem_name v
-                     orelse s mem [@{const_name undefined_fast_The},
-                                   @{const_name undefined_fast_Eps},
-                                   @{const_name bisim}] then
+                     orelse original_name s
+                            mem [@{const_name undefined_fast_The},
+                                 @{const_name undefined_fast_Eps},
+                                 @{const_name bisim},
+                                 @{const_name bisim_iterator_max}] then
                best_non_opt_set_rep_for_type
              else if original_name s
                      mem [@{const_name set}, @{const_name distinct},
                           @{const_name ord_class.less},
-                          @{const_name ord_class.less_eq},
-                          @{const_name bisim_iterator_max}] then
+                          @{const_name ord_class.less_eq}] then
                best_set_rep_for_type
              else
                best_opt_set_rep_for_type) scope T
