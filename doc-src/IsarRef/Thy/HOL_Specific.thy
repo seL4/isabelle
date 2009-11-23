@@ -452,20 +452,16 @@ text {*
 
   \end{description}
 
-  %FIXME check
-
   Recursive definitions introduced by the @{command (HOL) "function"}
   command accommodate
   reasoning by induction (cf.\ \secref{sec:cases-induct}): rule @{text
   "c.induct"} (where @{text c} is the name of the function definition)
   refers to a specific induction rule, with parameters named according
-  to the user-specified equations.
-  For the @{command (HOL) "primrec"} the induction principle coincides
+  to the user-specified equations. Cases are numbered (starting from 1).
+
+  For @{command (HOL) "primrec"}, the induction principle coincides
   with structural recursion on the datatype the recursion is carried
   out.
-  Case names of @{command (HOL)
-  "primrec"} are that of the datatypes involved, while those of
-  @{command (HOL) "function"} are numbered (starting from 1).
 
   The equations provided by these packages may be referred later as
   theorem list @{text "f.simps"}, where @{text f} is the (collective)
