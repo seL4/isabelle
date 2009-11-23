@@ -383,14 +383,15 @@ lemma connected_local:
                  ~(e2 = {}))"
 unfolding connected_def openin_open by (safe, blast+)
 
-lemma exists_diff: "(\<exists>S. P(UNIV - S)) \<longleftrightarrow> (\<exists>S. P S)" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma exists_diff:
+  fixes P :: "'a set \<Rightarrow> bool"
+  shows "(\<exists>S. P(- S)) \<longleftrightarrow> (\<exists>S. P S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
-
   {assume "?lhs" hence ?rhs by blast }
   moreover
   {fix S assume H: "P S"
-    have "S = UNIV - (UNIV - S)" by auto
-    with H have "P (UNIV - (UNIV - S))" by metis }
+    have "S = - (- S)" by auto
+    with H have "P (- (- S))" by metis }
   ultimately show ?thesis by metis
 qed
 
@@ -398,11 +399,11 @@ lemma connected_clopen: "connected S \<longleftrightarrow>
         (\<forall>T. openin (subtopology euclidean S) T \<and>
             closedin (subtopology euclidean S) T \<longrightarrow> T = {} \<or> T = S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
-  have " \<not> connected S \<longleftrightarrow> (\<exists>e1 e2. open e1 \<and> open (UNIV - e2) \<and> S \<subseteq> e1 \<union> (UNIV - e2) \<and> e1 \<inter> (UNIV - e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (UNIV - e2) \<inter> S \<noteq> {})"
+  have " \<not> connected S \<longleftrightarrow> (\<exists>e1 e2. open e1 \<and> open (- e2) \<and> S \<subseteq> e1 \<union> (- e2) \<and> e1 \<inter> (- e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (- e2) \<inter> S \<noteq> {})"
     unfolding connected_def openin_open closedin_closed
     apply (subst exists_diff) by blast
-  hence th0: "connected S \<longleftrightarrow> \<not> (\<exists>e2 e1. closed e2 \<and> open e1 \<and> S \<subseteq> e1 \<union> (UNIV - e2) \<and> e1 \<inter> (UNIV - e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (UNIV - e2) \<inter> S \<noteq> {})"
-    (is " _ \<longleftrightarrow> \<not> (\<exists>e2 e1. ?P e2 e1)") apply (simp add: closed_def Compl_eq_Diff_UNIV) by metis
+  hence th0: "connected S \<longleftrightarrow> \<not> (\<exists>e2 e1. closed e2 \<and> open e1 \<and> S \<subseteq> e1 \<union> (- e2) \<and> e1 \<inter> (- e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (- e2) \<inter> S \<noteq> {})"
+    (is " _ \<longleftrightarrow> \<not> (\<exists>e2 e1. ?P e2 e1)") apply (simp add: closed_def) by metis
 
   have th1: "?rhs \<longleftrightarrow> \<not> (\<exists>t' t. closed t'\<and>t = S\<inter>t' \<and> t\<noteq>{} \<and> t\<noteq>S \<and> (\<exists>t'. open t' \<and> t = S \<inter> t'))"
     (is "_ \<longleftrightarrow> \<not> (\<exists>t' t. ?Q t' t)")
@@ -558,8 +559,8 @@ qed
 lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<longrightarrow> x \<in> S)"
   unfolding closed_def
   apply (subst open_subopen)
-  apply (simp add: islimpt_def subset_eq Compl_eq_Diff_UNIV)
-  by (metis DiffE DiffI UNIV_I insertCI insert_absorb mem_def)
+  apply (simp add: islimpt_def subset_eq)
+  by (metis ComplE ComplI insertCI insert_absorb mem_def)
 
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
   unfolding islimpt_def by auto
@@ -719,12 +720,12 @@ subsection{* Closure of a Set *}
 
 definition "closure S = S \<union> {x | x. x islimpt S}"
 
-lemma closure_interior: "closure S = UNIV - interior (UNIV - S)"
+lemma closure_interior: "closure S = - interior (- S)"
 proof-
   { fix x
-    have "x\<in>UNIV - interior (UNIV - S) \<longleftrightarrow> x \<in> closure S"  (is "?lhs = ?rhs")
+    have "x\<in>- interior (- S) \<longleftrightarrow> x \<in> closure S"  (is "?lhs = ?rhs")
     proof
-      let ?exT = "\<lambda> y. (\<exists>T. open T \<and> y \<in> T \<and> T \<subseteq> UNIV - S)"
+      let ?exT = "\<lambda> y. (\<exists>T. open T \<and> y \<in> T \<and> T \<subseteq> - S)"
       assume "?lhs"
       hence *:"\<not> ?exT x"
         unfolding interior_def
@@ -746,10 +747,10 @@ proof-
     by blast
 qed
 
-lemma interior_closure: "interior S = UNIV - (closure (UNIV - S))"
+lemma interior_closure: "interior S = - (closure (- S))"
 proof-
   { fix x
-    have "x \<in> interior S \<longleftrightarrow> x \<in> UNIV - (closure (UNIV - S))"
+    have "x \<in> interior S \<longleftrightarrow> x \<in> - (closure (- S))"
       unfolding interior_def closure_def islimpt_def
       by auto
   }
@@ -759,7 +760,7 @@ qed
 
 lemma closed_closure[simp, intro]: "closed (closure S)"
 proof-
-  have "closed (UNIV - interior (UNIV -S))" by blast
+  have "closed (- interior (-S))" by blast
   thus ?thesis using closure_interior[of S] by simp
 qed
 
@@ -844,8 +845,8 @@ lemma closure_subset_eq: "closure S \<subseteq> S \<longleftrightarrow> closed S
 
 lemma open_inter_closure_eq_empty:
   "open S \<Longrightarrow> (S \<inter> closure T) = {} \<longleftrightarrow> S \<inter> T = {}"
-  using open_subset_interior[of S "UNIV - T"]
-  using interior_subset[of "UNIV - T"]
+  using open_subset_interior[of S "- T"]
+  using interior_subset[of "- T"]
   unfolding closure_interior
   by auto
 
@@ -873,16 +874,16 @@ proof
     by blast
 qed
 
-lemma closure_complement: "closure(UNIV - S) = UNIV - interior(S)"
+lemma closure_complement: "closure(- S) = - interior(S)"
 proof-
-  have "S = UNIV - (UNIV - S)"
+  have "S = - (- S)"
     by auto
   thus ?thesis
     unfolding closure_interior
     by auto
 qed
 
-lemma interior_complement: "interior(UNIV - S) = UNIV - closure(S)"
+lemma interior_complement: "interior(- S) = - closure(S)"
   unfolding closure_interior
   by blast
 
@@ -893,7 +894,7 @@ definition "frontier S = closure S - interior S"
 lemma frontier_closed: "closed(frontier S)"
   by (simp add: frontier_def closed_Diff)
 
-lemma frontier_closures: "frontier S = (closure S) \<inter> (closure(UNIV - S))"
+lemma frontier_closures: "frontier S = (closure S) \<inter> (closure(- S))"
   by (auto simp add: frontier_def interior_closure)
 
 lemma frontier_straddle:
@@ -937,10 +938,10 @@ next
   { fix T assume "a \<in> T"  "open T" "a\<in>S"
     then obtain e where "e>0" and balle: "ball a e \<subseteq> T" unfolding open_contains_ball using `?rhs` by auto
     obtain x where "x \<notin> S" "dist a x < e" using `?rhs` using `e>0` by auto
-    hence "\<exists>y\<in>UNIV - S. y \<in> T \<and> y \<noteq> a" using balle `a\<in>S` unfolding ball_def by (rule_tac x=x in bexI)auto
+    hence "\<exists>y\<in>- S. y \<in> T \<and> y \<noteq> a" using balle `a\<in>S` unfolding ball_def by (rule_tac x=x in bexI)auto
   }
-  hence "a islimpt (UNIV - S) \<or> a\<notin>S" unfolding islimpt_def by auto
-  ultimately show ?lhs unfolding frontier_closures using closure_def[of "UNIV - S"] by auto
+  hence "a islimpt (- S) \<or> a\<notin>S" unfolding islimpt_def by auto
+  ultimately show ?lhs unfolding frontier_closures using closure_def[of "- S"] by auto
 qed
 
 lemma frontier_subset_closed: "closed S \<Longrightarrow> frontier S \<subseteq> S"
@@ -958,12 +959,12 @@ proof-
   thus ?thesis using frontier_subset_closed[of S] by auto
 qed
 
-lemma frontier_complement: "frontier(UNIV - S) = frontier S"
+lemma frontier_complement: "frontier(- S) = frontier S"
   by (auto simp add: frontier_def closure_complement interior_complement)
 
 lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> open S"
-  using frontier_complement frontier_subset_eq[of "UNIV - S"]
-  unfolding open_closed Compl_eq_Diff_UNIV by auto
+  using frontier_complement frontier_subset_eq[of "- S"]
+  unfolding open_closed by auto
 
 subsection{* Common nets and The "within" modifier for nets. *}
 
@@ -2957,11 +2958,11 @@ lemma compact_imp_fip:
   shows "s \<inter> (\<Inter> f) \<noteq> {}"
 proof
   assume as:"s \<inter> (\<Inter> f) = {}"
-  hence "s \<subseteq> \<Union>op - UNIV ` f" by auto
-  moreover have "Ball (op - UNIV ` f) open" using open_Diff closed_Diff using assms(2) by auto
-  ultimately obtain f' where f':"f' \<subseteq> op - UNIV ` f"  "finite f'"  "s \<subseteq> \<Union>f'" using assms(1)[unfolded compact_eq_heine_borel, THEN spec[where x="(\<lambda>t. UNIV - t) ` f"]] by auto
-  hence "finite (op - UNIV ` f') \<and> op - UNIV ` f' \<subseteq> f" by(auto simp add: Diff_Diff_Int)
-  hence "s \<inter> \<Inter>op - UNIV ` f' \<noteq> {}" using assms(3)[THEN spec[where x="op - UNIV ` f'"]] by auto
+  hence "s \<subseteq> \<Union> uminus ` f" by auto
+  moreover have "Ball (uminus ` f) open" using open_Diff closed_Diff using assms(2) by auto
+  ultimately obtain f' where f':"f' \<subseteq> uminus ` f"  "finite f'"  "s \<subseteq> \<Union>f'" using assms(1)[unfolded compact_eq_heine_borel, THEN spec[where x="(\<lambda>t. - t) ` f"]] by auto
+  hence "finite (uminus ` f') \<and> uminus ` f' \<subseteq> f" by(auto simp add: Diff_Diff_Int)
+  hence "s \<inter> \<Inter>uminus ` f' \<noteq> {}" using assms(3)[THEN spec[where x="uminus ` f'"]] by auto
   thus False using f'(3) unfolding subset_eq and Union_iff by blast
 qed
 
@@ -4548,6 +4549,11 @@ proof-
   thus ?thesis using compact_closed_sums[OF compact_sing[of a] assms] by auto
 qed
 
+lemma translation_Compl:
+  fixes a :: "'a::ab_group_add"
+  shows "(\<lambda>x. a + x) ` (- t) = - ((\<lambda>x. a + x) ` t)"
+  apply (auto simp add: image_iff) apply(rule_tac x="x - a" in bexI) by auto
+
 lemma translation_UNIV:
   fixes a :: "'a::ab_group_add" shows "range (\<lambda>x. a + x) = UNIV"
   apply (auto simp add: image_iff) apply(rule_tac x="x - a" in exI) by auto
@@ -4561,10 +4567,10 @@ lemma closure_translation:
   fixes a :: "'a::real_normed_vector"
   shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
 proof-
-  have *:"op + a ` (UNIV - s) = UNIV - op + a ` s"
+  have *:"op + a ` (- s) = - op + a ` s"
     apply auto unfolding image_iff apply(rule_tac x="x - a" in bexI) by auto
-  show ?thesis unfolding closure_interior translation_diff translation_UNIV
-    using interior_translation[of a "UNIV - s"] unfolding * by auto
+  show ?thesis unfolding closure_interior translation_Compl
+    using interior_translation[of a "- s"] unfolding * by auto
 qed
 
 lemma frontier_translation:
@@ -5163,14 +5169,14 @@ text{* Openness of halfspaces.                                                  
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
 proof-
-  have "UNIV - {x. b \<le> inner a x} = {x. inner a x < b}" by auto
-  thus ?thesis using closed_halfspace_ge[unfolded closed_def Compl_eq_Diff_UNIV, of b a] by auto
+  have "- {x. b \<le> inner a x} = {x. inner a x < b}" by auto
+  thus ?thesis using closed_halfspace_ge[unfolded closed_def, of b a] by auto
 qed
 
 lemma open_halfspace_gt: "open {x. inner a x > b}"
 proof-
-  have "UNIV - {x. b \<ge> inner a x} = {x. inner a x > b}" by auto
-  thus ?thesis using closed_halfspace_le[unfolded closed_def Compl_eq_Diff_UNIV, of a b] by auto
+  have "- {x. b \<ge> inner a x} = {x. inner a x > b}" by auto
+  thus ?thesis using closed_halfspace_le[unfolded closed_def, of a b] by auto
 qed
 
 lemma open_halfspace_component_lt:
