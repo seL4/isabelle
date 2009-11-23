@@ -1496,14 +1496,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
         let
           val (const, ts) =
             if is_built_in_const fast_descrs x then
-              if s = @{const_name finite} then
-                if is_finite_type ext_ctxt (domain_type T) then
-                  (Abs ("A", domain_type T, @{const True}), ts)
-                else case ts of
-                  [Const (@{const_name top}, _)] => (@{const False}, [])
-                | _ => (Const x, ts)
-              else
-                (Const x, ts)
+              (Const x, ts)
             else case AList.lookup (op =) case_names s of
               SOME n =>
               let

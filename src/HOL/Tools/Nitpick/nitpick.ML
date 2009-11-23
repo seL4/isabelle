@@ -251,7 +251,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
     val intro_table = inductive_intro_table ctxt def_table
     val ground_thm_table = ground_theorem_table thy
     val ersatz_table = ersatz_table thy
-    val (ext_ctxt as {skolems, special_funs, wf_cache, ...}) =
+    val (ext_ctxt as {wf_cache, ...}) =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        user_axioms = user_axioms, debug = debug, wfs = wfs,
        destroy_constrs = destroy_constrs, specialize = specialize,
@@ -296,11 +296,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto orig_assm_ts
             handle TYPE (_, Ts, ts) =>
                    raise TYPE ("Nitpick.pick_them_nits_in_term", Ts, ts)
 
-    val core_u = nut_from_term thy fast_descrs (!special_funs) Eq core_t
-    val def_us = map (nut_from_term thy fast_descrs (!special_funs) DefEq)
-                     def_ts
-    val nondef_us = map (nut_from_term thy fast_descrs (!special_funs) Eq)
-                        nondef_ts
+    val core_u = nut_from_term ext_ctxt Eq core_t
+    val def_us = map (nut_from_term ext_ctxt DefEq) def_ts
+    val nondef_us = map (nut_from_term ext_ctxt Eq) nondef_ts
     val (free_names, const_names) =
       fold add_free_and_const_names (core_u :: def_us @ nondef_us) ([], [])
     val (sel_names, nonsel_names) =

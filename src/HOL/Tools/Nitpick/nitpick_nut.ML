@@ -106,7 +106,7 @@ sig
   val name_ord : (nut * nut) -> order
   val the_name : 'a NameTable.table -> nut -> 'a
   val the_rel : nut NameTable.table -> nut -> Kodkod.n_ary_index
-  val nut_from_term : theory -> bool -> special_fun list -> op2 -> term -> nut
+  val nut_from_term : extended_context -> op2 -> term -> nut
   val choose_reps_for_free_vars :
     scope -> nut list -> rep NameTable.table -> nut list * rep NameTable.table
   val choose_reps_for_consts :
@@ -464,8 +464,8 @@ fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
 fun factorize (z as (Type ("*", _), _)) = maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
-(* theory -> bool -> special_fun list -> op2 -> term -> nut *)
-fun nut_from_term thy fast_descrs special_funs eq =
+(* extended_context -> op2 -> term -> nut *)
+fun nut_from_term (ext_ctxt as {thy, fast_descrs, special_funs, ...}) eq =
   let
     (* string list -> typ list -> term -> nut *)
     fun aux eq ss Ts t =
@@ -596,7 +596,11 @@ fun nut_from_term thy fast_descrs special_funs eq =
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (@{const_name Suc}, T), []) => Cst (Suc, T, Any)
         | (Const (@{const_name finite}, T), [t1]) =>
-          Op1 (Finite, bool_T, Any, sub t1)
+          (if is_finite_type ext_ctxt (domain_type T) then
+             Cst (True, bool_T, Any)
+           else case t1 of
+             Const (@{const_name top}, _) => Cst (False, bool_T, Any)
+           | _ => Op1 (Finite, bool_T, Any, sub t1))
         | (Const (@{const_name nat}, T), []) => Cst (IntToNat, T, Any)
         | (Const (@{const_name zero_nat_inst.zero_nat}, T), []) =>
           Cst (Num 0, T, Any)
@@ -678,7 +682,7 @@ fun nut_from_term thy fast_descrs special_funs eq =
              | NONE => if null ts then ConstName (s, T, Any)
                        else do_apply t0 ts)
         | (Free (s, T), []) => FreeName (s, T, Any)
-        | (Var _, []) => raise TERM ("Nitpick_Nut.nut_from_term", [t])
+        | (Var _, []) => raise TERM ("Nitpick_Nut.nut_from_term.aux", [t])
         | (Bound j, []) =>
           BoundName (length Ts - j - 1, nth Ts j, Any, nth ss j)
         | (Abs (s, T, t1), []) =>
