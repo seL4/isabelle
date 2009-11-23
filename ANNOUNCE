@@ -7,8 +7,24 @@ This release improves upon Isabelle2009 in many ways, see the NEWS
 file in the distribution for more details.  Some important changes
 are:
 
-* FIXME
+* Proof method "smt" for a combination of first-order logic with equality,
+linear and nonlinear (natural/integer/real) arithmetic, and fixed-size bitvectors.
 
+* Counterexample generator tool »nitpick« based on the Kodkod relational model finder.
+
+* Predicate compiler turning inductive into (executable) equational specifications.
+
+* Refined number theory.
+
+* Various parts of multivariate analysis.
+
+* HOL-Boogie: an interactive prover back-end for Boogie and VCC.
+
+* Revised tutorial on locales.
+
+* New definitional domain package for HOLCF.
+
+* Support for Poly/ML 5.3.0, with improved reporting of compiler errors and run-time exceptions, including detailed source positions.
 
 You may get Isabelle2009-1 from the following mirror sites:
 
