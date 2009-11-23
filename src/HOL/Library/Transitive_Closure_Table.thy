@@ -185,7 +185,7 @@ next
     by (auto simp add: rtranclp_eq_rtrancl_path)
 qed
 
-declare rtranclp_eq_rtrancl_tab_nil [code_unfold]
+declare rtranclp_eq_rtrancl_tab_nil [code_unfold, code_inline del]
 
 declare rtranclp_eq_rtrancl_tab_nil[THEN iffD2, code_pred_intro]
 
@@ -224,7 +224,11 @@ values "{x. test\<^sup>*\<^sup>* C A}"
 values "{x. test\<^sup>*\<^sup>* A x}"
 values "{x. test\<^sup>*\<^sup>* x C}"
 
-hide const test
+value "test\<^sup>*\<^sup>* A C"
+value "test\<^sup>*\<^sup>* C A"
+
+hide type ty
+hide const test A B C
 
 end
 
