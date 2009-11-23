@@ -456,13 +456,10 @@ text {*
   \secref{sec:object-logic}).  Separate introduction rules @{text
   loc_axioms.intro} and @{text loc.intro} are provided as well.
   
-  \item @{command "print_locale"}~@{text "import + body"} prints the
-  specified locale expression in a flattened form.  The notable
-  special case @{command "print_locale"}~@{text loc} just prints the
-  contents of the named locale, but keep in mind that type-inference
-  will normalize type variables according to the usual alphabetical
-  order.  The command omits @{element "notes"} elements by default.
-  Use @{command "print_locale"}@{text "!"} to get them included.
+  \item @{command "print_locale"}~@{text "locale"} prints the
+  contents of the named locale.  The command omits @{element "notes"}
+  elements by default.  Use @{command "print_locale"}@{text "!"} to
+  have them included.
 
   \item @{command "print_locales"} prints the names of all locales
   of the current theory.
@@ -537,7 +534,7 @@ text {*
   qualifier, although only for fragments of @{text expr} that are not
   interpreted in the theory already.
 
-  \item @{command "interpretation"}~@{text "expr insts \<WHERE> eqns"}
+  \item @{command "interpretation"}~@{text "expr \<WHERE> eqns"}
   interprets @{text expr} in the theory.  The command generates proof
   obligations for the instantiated specifications (assumes and defines
   elements).  Once these are discharged by the user, instantiated
@@ -563,19 +560,24 @@ text {*
   interpretations dynamically participate in any facts added to
   locales.
 
-  \item @{command "interpret"}~@{text "expr insts"}
+  \item @{command "interpret"}~@{text "expr"}
   interprets @{text expr} in the proof context and is otherwise
   similar to interpretation in theories.
+
+  \item @{command "print_interps"}~@{text "locale"} lists all
+  interpretations of @{text "locale"} in the current theory, including
+  those due to a combination of an @{command "interpretation"} and
+  one or several @{command "sublocale"} declarations.
 
   \end{description}
 
   \begin{warn}
     Since attributes are applied to interpreted theorems,
     interpretation may modify the context of common proof tools, e.g.\
-    the Simplifier or Classical Reasoner.  Since the behavior of such
-    automated reasoning tools is \emph{not} stable under
-    interpretation morphisms, manual declarations might have to be
-    added to revert such declarations.
+    the Simplifier or Classical Reasoner.  As the behavior of such
+    tools is \emph{not} stable under interpretation morphisms, manual
+    declarations might have to be added to the target context of the
+    interpretation to revert such declarations.
   \end{warn}
 
   \begin{warn}
