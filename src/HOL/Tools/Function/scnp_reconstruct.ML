@@ -73,7 +73,7 @@ structure Multiset_Setup = Theory_Data
 
 val multiset_setup = Multiset_Setup.put o SOME
 
-fun undef x = error "undef"
+fun undef _ = error "undef"
 fun get_multiset_setup thy = Multiset_Setup.get thy
   |> the_default (Multiset
 { msetT = undef, mk_mset=undef,
@@ -153,14 +153,13 @@ fun set_finite_tac i =
 
 (* Reconstruction *)
 
-fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
+fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
   let
     val thy = ProofContext.theory_of ctxt
     val Multiset
           { msetT, mk_mset,
-            mset_regroup_conv, mset_member_tac,
-            mset_nonempty_tac, mset_pwleq_tac, set_of_simps,
-            smsI', wmsI2'', wmsI1, reduction_pair=ms_rp } 
+            mset_regroup_conv, mset_pwleq_tac, set_of_simps,
+            smsI', wmsI2'', wmsI1, reduction_pair=ms_rp, ...} 
         = get_multiset_setup thy
 
     fun measure_fn p = nth (Termination.get_measures D p)
@@ -179,7 +178,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
 
     fun prove_lev strict g =
       let
-        val G (p, q, el) = nth gs g
+        val G (p, q, _) = nth gs g
 
         fun less_proof strict (j, b) (i, a) =
           let
@@ -307,11 +306,10 @@ fun print_cell (SOME (Less _)) = "<"
   | print_cell (SOME (False _)) = "-"
   | print_cell (NONE) = "?"
 
-fun print_error ctxt D = CALLS (fn (cs, i) =>
+fun print_error ctxt D = CALLS (fn (cs, _) =>
   let
     val np = get_num_points D
     val ms = map_range (get_measures D) np
-    val tys = map_range (get_types D) np
     fun index xs = (1 upto length xs) ~~ xs
     fun outp s t f xs = map (fn (x, y) => s ^ Int.toString x ^ t ^ f y ^ "\n") xs
     val ims = index (map index ms)

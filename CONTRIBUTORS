@@ -7,8 +7,11 @@ distribution.
 Contributions to Isabelle2009-1
 -------------------------------
 
+* November 2009, Brian Huffman, PSU
+  New definitional domain package for HOLCF.
+
 * November 2009: Robert Himmelmann, TUM
-  Derivation and Brouwer's fixpoint theorem in Multivariate Analysis
+  Derivation and Brouwer's fixpoint theorem in Multivariate Analysis.
 
 * November 2009: Stefan Berghofer and Lukas Bulwahn, TUM
   A tabled implementation of the reflexive transitive closure.

@@ -14,7 +14,7 @@ HOST=$(hostname -s)
 LOGDIR="$HOME/log"
 LOG="$LOGDIR/test-${DATE}-${HOST}.log"
 
-TEST_NAME="minimal-test@${HOST}"
+TEST_NAME="minimal-test"
 PUBLISH_TEST="/home/isabelle-repository/repos/testtool/publish_test.py"
 
 

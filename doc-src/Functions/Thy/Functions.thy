@@ -309,8 +309,6 @@ text {*
 *** At command "fun".\newline
 \end{isabelle}
 *}
-
-
 text {*
   The key to this error message is the matrix at the bottom. The rows
   of that matrix correspond to the different recursive calls (In our
@@ -326,27 +324,30 @@ text {*
 
   For the failed proof attempts, the unfinished subgoals are also
   printed. Looking at these will often point to a missing lemma.
-
-%  As a more real example, here is quicksort:
 *}
-(*
-function qs :: "nat list \<Rightarrow> nat list"
-where
-  "qs [] = []"
-| "qs (x#xs) = qs [y\<in>xs. y < x] @ x # qs [y\<in>xs. y \<ge> x]"
-by pat_completeness auto
 
-termination apply lexicographic_order
+subsection {* The @{text size_change} method *}
 
-text {* If we try @{text "lexicographic_order"} method, we get the
-  following error *}
-termination by (lexicographic_order simp:l2)
+text {*
+  Some termination goals that are beyond the powers of
+  @{text lexicographic_order} can be solved automatically by the
+  more powerful @{text size_change} method, which uses a variant of
+  the size-change principle, together with some other
+  techniques. While the details are discussed
+  elsewhere\cite{krauss_phd},
+  here are a few typical situations where
+  @{text lexicographic_order} has difficulties and @{text size_change}
+  may be worth a try:
+  \begin{itemize}
+  \item Arguments are permuted in a recursive call.
+  \item Several mutually recursive functions with multiple arguments.
+  \item Unusual control flow (e.g., when some recursive calls cannot
+  occur in sequence).
+  \end{itemize}
 
-lemma l: "x \<le> y \<Longrightarrow> x < Suc y" by arith
-
-function 
-
-*)
+  Loading the theory @{text Multiset} makes the @{text size_change}
+  method a bit stronger: it can then use multiset orders internally.
+*}
 
 section {* Mutual Recursion *}
 

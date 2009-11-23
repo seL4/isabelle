@@ -452,20 +452,16 @@ text {*
 
   \end{description}
 
-  %FIXME check
-
   Recursive definitions introduced by the @{command (HOL) "function"}
   command accommodate
   reasoning by induction (cf.\ \secref{sec:cases-induct}): rule @{text
   "c.induct"} (where @{text c} is the name of the function definition)
   refers to a specific induction rule, with parameters named according
-  to the user-specified equations.
-  For the @{command (HOL) "primrec"} the induction principle coincides
+  to the user-specified equations. Cases are numbered (starting from 1).
+
+  For @{command (HOL) "primrec"}, the induction principle coincides
   with structural recursion on the datatype the recursion is carried
   out.
-  Case names of @{command (HOL)
-  "primrec"} are that of the datatypes involved, while those of
-  @{command (HOL) "function"} are numbered (starting from 1).
 
   The equations provided by these packages may be referred later as
   theorem list @{text "f.simps"}, where @{text f} is the (collective)
@@ -510,6 +506,7 @@ text {*
     @{method_def (HOL) pat_completeness} & : & @{text method} \\
     @{method_def (HOL) relation} & : & @{text method} \\
     @{method_def (HOL) lexicographic_order} & : & @{text method} \\
+    @{method_def (HOL) size_change} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -517,6 +514,9 @@ text {*
     ;
     'lexicographic\_order' ( clasimpmod * )
     ;
+    'size\_change' ( orders ( clasimpmod * ) )
+    ;
+    orders: ( 'max' | 'min' | 'ms' ) *
   \end{rail}
 
   \begin{description}
@@ -543,6 +543,18 @@ text {*
 
   In case of failure, extensive information is printed, which can help
   to analyse the situation (cf.\ \cite{isabelle-function}).
+
+  \item @{method (HOL) "size_change"} also works on termination goals,
+  using a variation of the size-change principle, together with a
+  graph decomposition technique (see \cite{krauss_phd} for details).
+  Three kinds of orders are used internally: @{text max}, @{text min},
+  and @{text ms} (multiset), which is only available when the theory
+  @{text Multiset} is loaded. When no order kinds are given, they are
+  tried in order. The search for a termination proof uses SAT solving
+  internally.
+
+ For local descent proofs, the same context modifiers as for @{method
+  auto} are accepted, see \secref{sec:clasimp}.
 
   \end{description}
 *}
