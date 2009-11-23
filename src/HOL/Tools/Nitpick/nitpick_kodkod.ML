@@ -1370,10 +1370,10 @@ fun kodkod_formula_from_nut ofs liberal
                   u1 u2
       | Op2 (Composition, _, R, u1, u2) =>
         let
-          val (a_T, b_T) = HOLogic.dest_prodT (domain_type (type_of u2))
-          val (_, c_T) = HOLogic.dest_prodT (domain_type (type_of u1))
-          val ab_k = card_of_domain_from_rep 2 (rep_of u2)
-          val bc_k = card_of_domain_from_rep 2 (rep_of u1)
+          val (a_T, b_T) = HOLogic.dest_prodT (domain_type (type_of u1))
+          val (_, c_T) = HOLogic.dest_prodT (domain_type (type_of u2))
+          val ab_k = card_of_domain_from_rep 2 (rep_of u1)
+          val bc_k = card_of_domain_from_rep 2 (rep_of u2)
           val ac_k = card_of_domain_from_rep 2 R
           val a_k = exact_root 2 (ac_k * ab_k div bc_k)
           val b_k = exact_root 2 (ab_k * bc_k div ac_k)
@@ -1385,8 +1385,8 @@ fun kodkod_formula_from_nut ofs liberal
         in
           (case body_R of
              Formula Neut =>
-             kk_join (to_rep (Func (Struct [a_R, b_R], Formula Neut)) u2)
-                     (to_rep (Func (Struct [b_R, c_R], Formula Neut)) u1)
+             kk_join (to_rep (Func (Struct [a_R, b_R], Formula Neut)) u1)
+                     (to_rep (Func (Struct [b_R, c_R], Formula Neut)) u2)
            | Opt (Atom (2, _)) =>
              let
                (* Kodkod.rel_expr -> rep -> rep -> nut -> Kodkod.rel_expr *)
@@ -1394,8 +1394,8 @@ fun kodkod_formula_from_nut ofs liberal
                  kk_join (to_rep (Func (Struct [R1, R2], body_R)) u) r
                (* Kodkod.rel_expr -> Kodkod.rel_expr *)
                fun do_term r =
-                 kk_product (kk_join (do_nut r a_R b_R u2)
-                                     (do_nut r b_R c_R u1)) r
+                 kk_product (kk_join (do_nut r a_R b_R u1)
+                                     (do_nut r b_R c_R u2)) r
              in kk_union (do_term true_atom) (do_term false_atom) end
            | _ => raise NUT ("Nitpick_Kodkod.to_r (Composition)", [u]))
           |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, c_R], body_R))
