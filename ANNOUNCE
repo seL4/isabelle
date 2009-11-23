@@ -7,24 +7,35 @@ This release improves upon Isabelle2009 in many ways, see the NEWS
 file in the distribution for more details.  Some important changes
 are:
 
-* Proof method "smt" for a combination of first-order logic with equality,
-linear and nonlinear (natural/integer/real) arithmetic, and fixed-size bitvectors.
+* Isabelle tool "wwwfind" provides web interface for 'find_theorems'
+on a given logic image.
 
-* Counterexample generator tool »nitpick« based on the Kodkod relational model finder.
-
-* Predicate compiler turning inductive into (executable) equational specifications.
-
-* Refined number theory.
-
-* Various parts of multivariate analysis.
+* HOL-SMT: proof method "smt" for a combination of first-order logic
+with equality, linear and nonlinear (natural/integer/real) arithmetic,
+and fixed-size bitvectors.
 
 * HOL-Boogie: an interactive prover back-end for Boogie and VCC.
 
+* HOL: Counterexample generator tool Nitpick based on the Kodkod
+relational model finder.
+
+* HOL: predicate compiler turning inductive into (executable)
+equational specifications.
+
+* HOL: refined number theory.
+
+* HOL: various parts of multivariate analysis.
+
+* HOLCF: new definitional domain package.
+
 * Revised tutorial on locales.
 
-* New definitional domain package for HOLCF.
+* Support for Poly/ML 5.3.0, with improved reporting of compiler
+errors and run-time exceptions, including detailed source positions.
 
-* Support for Poly/ML 5.3.0, with improved reporting of compiler errors and run-time exceptions, including detailed source positions.
+* Parallel checking of nested Isar proofs, with improved scalability
+up to 8 cores.
+
 
 You may get Isabelle2009-1 from the following mirror sites:
 

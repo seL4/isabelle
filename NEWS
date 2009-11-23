@@ -114,19 +114,17 @@ theory, eventually leading to Lebesgue integration and probability.
 fixpoint theorem.
 
 * Reorganization of number theory, INCOMPATIBILITY:
-  - new number theory development for nat and int, in
-    theories Divides and GCD as well as in new session
-    Number_Theory
-  - some constants and facts now suffixed with _nat and
-    _int accordingly
-  - former session NumberTheory now named Old_Number_Theory,
-    including theories Legacy_GCD and Primes (prefer Number_Theory
-    if possible)
+  - new number theory development for nat and int, in theories Divides
+    and GCD as well as in new session Number_Theory
+  - some constants and facts now suffixed with _nat and _int
+    accordingly
+  - former session NumberTheory now named Old_Number_Theory, including
+    theories Legacy_GCD and Primes (prefer Number_Theory if possible)
   - moved theory Pocklington from src/HOL/Library to
     src/HOL/Old_Number_Theory
 
-* Theory GCD includes functions Gcd/GCD and Lcm/LCM for the gcd and lcm
-of finite and infinite sets. It is shown that they form a complete
+* Theory GCD includes functions Gcd/GCD and Lcm/LCM for the gcd and
+lcm of finite and infinite sets. It is shown that they form a complete
 lattice.
 
 * Class semiring_div requires superclass no_zero_divisors and proof of
@@ -198,8 +196,6 @@ O_assoc[symmetric].  The same applies to the curried version "R OO S".
 abbreviation for "inv_into UNIV".  Lemmas are renamed accordingly.
 INCOMPATIBILITY.
 
---
-
 * Most rules produced by inductive and datatype package have mandatory
 prefixes.  INCOMPATIBILITY.
 
@@ -208,8 +204,9 @@ the attribute of the same name.  Each of the theorems in the list
 DERIV_intros assumes composition with an additional function and
 matches a variable to the derivative, which has to be solved by the
 Simplifier.  Hence (auto intro!: DERIV_intros) computes the derivative
-of most elementary terms.  Former Maclauren.DERIV_tac and Maclauren.deriv_tac
-should be replaced by (auto intro!: DERIV_intros).  INCOMPATIBILITY.
+of most elementary terms.  Former Maclauren.DERIV_tac and
+Maclauren.deriv_tac should be replaced by (auto intro!: DERIV_intros).
+INCOMPATIBILITY.
 
 * Code generator attributes follow the usual underscore convention:
     code_unfold     replaces    code unfold
@@ -274,7 +271,8 @@ as well.)
 * The 'fixrec' package now supports "bottom patterns".  Bottom
 patterns can be used to generate strictness rules, or to make
 functions more strict (much like the bang-patterns supported by the
-Glasgow Haskell Compiler).  See src/HOLCF/ex/Fixrec_ex.thy for examples.
+Glasgow Haskell Compiler).  See src/HOLCF/ex/Fixrec_ex.thy for
+examples.
 
 
 *** ML ***
