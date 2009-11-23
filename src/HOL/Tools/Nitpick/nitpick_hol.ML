@@ -1740,9 +1740,12 @@ val is_linear_inductive_pred_def =
       | do_lfp_def _ = false
   in do_lfp_def o strip_abs_body end
 
-(* typ -> typ -> term -> term *)
-fun ap_split tuple_T =
-  HOLogic.mk_psplits (HOLogic.flat_tupleT_paths tuple_T) tuple_T
+(* int -> int list list *)
+fun n_ptuple_paths 0 = []
+  | n_ptuple_paths 1 = []
+  | n_ptuple_paths n = [] :: map (cons 2) (n_ptuple_paths (n - 1))
+(* int -> typ -> typ -> term -> term *)
+val ap_n_split = HOLogic.mk_psplits o n_ptuple_paths
 
 (* term -> term * term *)
 val linear_pred_base_and_step_rhss =
@@ -1776,16 +1779,17 @@ val linear_pred_base_and_step_rhss =
                                |> List.foldl s_disj @{const False} 
         in
           (list_abs (tl xs, incr_bv (~1, j, base_body))
-           |> ap_split tuple_T bool_T,
+           |> ap_n_split (length arg_Ts) tuple_T bool_T,
            Abs ("y", tuple_T, list_abs (tl xs, step_body)
-                              |> ap_split tuple_T bool_T))
+                              |> ap_n_split (length arg_Ts) tuple_T bool_T))
         end
       | aux t =
         raise TERM ("Nitpick_HOL.linear_pred_base_and_step_rhss.aux", [t])
   in aux end
 
 (* extended_context -> styp -> term -> term *)
-fun closed_linear_pred_const (ext_ctxt as {simp_table, ...}) (x as (s, T)) def =
+fun starred_linear_pred_const (ext_ctxt as {simp_table, ...}) (x as (s, T))
+                              def =
   let
     val j = maxidx_of_term def + 1
     val (outer, fp_app) = strip_abs def
@@ -1832,7 +1836,7 @@ fun unrolled_inductive_pred_const (ext_ctxt as {thy, star_linear_preds,
       unrolled_const (* already done *)
     else if not gfp andalso is_linear_inductive_pred_def def
          andalso star_linear_preds then
-      closed_linear_pred_const ext_ctxt x def
+      starred_linear_pred_const ext_ctxt x def
     else
       let
         val j = maxidx_of_term def + 1
