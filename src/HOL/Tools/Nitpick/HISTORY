@@ -10,8 +10,8 @@ Version 2010
   * Optimized Kodkod encoding of datatypes whose constructors don't appear in
     the formula to falsify
   * Added support for codatatype view of datatypes
-  * Fixed soundness bugs related to sets, sets of sets, and (co)inductive
-    predicates
+  * Fixed soundness bugs related to sets, sets of sets, (co)inductive
+    predicates, and typedefs
   * Fixed monotonicity check
   * Fixed error when processing definitions
   * Fixed error in "star_linear_preds" optimization
