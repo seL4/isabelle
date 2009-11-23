@@ -148,7 +148,7 @@ fun mk_sum_skel rel =
     val cs = Function_Lib.dest_binop_list @{const_name Lattices.sup} rel
     fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
       let
-        val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ Gam)
+        val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ _)
           = Term.strip_qnt_body "Ex" c
       in cons r o cons l end
   in
@@ -181,7 +181,6 @@ fun get_descent (_, _, _, _, D) c m1 m2 =
 
 fun dest_call D (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
   let
-    val n = get_num_points D
     val (sk, _, _, _, _) = D
     val vs = Term.strip_qnt_vars "Ex" c
 
@@ -196,7 +195,7 @@ fun dest_call D (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
   | dest_call D t = error "dest_call"
 
 
-fun derive_desc_aux thy tac c (vs, p, l', q, r', Gam) m1 m2 D =
+fun derive_desc_aux thy tac c (vs, _, l', _, r', Gam) m1 m2 D =
   case get_descent D c m1 m2 of
     SOME _ => D
   | NONE => let
@@ -225,7 +224,7 @@ fun derive_descent thy tac c m1 m2 D =
 
 (* all descents in one go *)
 fun derive_descents thy tac c D =
-  let val cdesc as (vs, p, l', q, r', Gam) = dest_call D c
+  let val cdesc as (_, p, _, q, _, _) = dest_call D c
   in fold_product (derive_desc_aux thy tac c cdesc)
        (get_measures D p) (get_measures D q) D
   end
@@ -280,7 +279,7 @@ fun wf_union_tac ctxt st =
     let
       val thy = ProofContext.theory_of ctxt
       val cert = cterm_of (theory_of_thm st)
-      val ((trueprop $ (wf $ rel)) :: ineqs) = prems_of st
+      val ((_ $ (_ $ rel)) :: ineqs) = prems_of st
 
       fun mk_compr ineq =
           let

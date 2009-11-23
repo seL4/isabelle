@@ -75,7 +75,7 @@ fun mk_scheme' ctxt cases concl =
     let
       fun mk_branch concl =
           let
-            val (ctxt', ws, Cs, _ $ Pxs) = dest_hhf ctxt concl
+            val (_, ws, Cs, _ $ Pxs) = dest_hhf ctxt concl
             val (P, xs) = strip_comb Pxs
           in
             SchemeBranch { P=P, xs=map dest_Free xs, ws=ws, Cs=Cs }
@@ -103,7 +103,7 @@ fun mk_scheme' ctxt cases concl =
 
             fun mk_rcinfo pr =
                 let
-                  val (ctxt'', Gvs, Gas, _ $ Phyp) = dest_hhf ctxt' pr
+                  val (_, Gvs, Gas, _ $ Phyp) = dest_hhf ctxt' pr
                   val (P', rcs) = strip_comb Phyp
                 in
                   (bidx P', Gvs, Gas, rcs)
@@ -151,7 +151,7 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
        |> mk_forall_rename ("P", Pbool)
     end
 
-fun mk_wf ctxt R (IndScheme {T, ...}) =
+fun mk_wf R (IndScheme {T, ...}) =
     HOLogic.Trueprop $ (Const (@{const_name wf}, mk_relT T --> HOLogic.boolT) $ R)
 
 fun mk_ineqs R (IndScheme {T, cases, branches}) =
@@ -197,8 +197,6 @@ fun mk_ineqs R (IndScheme {T, cases, branches}) =
       map f cases
     end
 
-
-fun mk_hol_imp a b = HOLogic.imp $ a $ b
 
 fun mk_ind_goal thy branches =
     let
@@ -256,7 +254,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
             val (relevant_cases, ineqss') = filter (fn ((_, SchemeCase {bidx=bidx', ...}), _) => bidx' = bidx) (scases_idx ~~ ineqss)
                                             |> split_list
                            
-            fun prove_case (cidx, SchemeCase {qs, oqnames, gs, lhs, rs, ...}) ineq_press =
+            fun prove_case (cidx, SchemeCase {qs, gs, lhs, rs, ...}) ineq_press =
                 let
                   val case_hyps = map (assume o cert o HOLogic.mk_Trueprop o HOLogic.mk_eq) (fxs ~~ lhs)
                            
@@ -364,7 +362,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
     val ineqss = mk_ineqs R scheme
                    |> map (map (pairself (assume o cert)))
     val complete = map_range (mk_completeness ctxt scheme #> cert #> assume) (length branches)
-    val wf_thm = mk_wf ctxt R scheme |> cert |> assume
+    val wf_thm = mk_wf R scheme |> cert |> assume
 
     val (descent, pres) = split_list (flat ineqss)
     val newgoals = complete @ pres @ wf_thm :: descent 

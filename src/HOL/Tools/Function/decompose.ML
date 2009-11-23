@@ -74,7 +74,7 @@ fun solve_trivial_tac D = Termination.CALLS
      | _ => no_tac)
   | _ => no_tac)
 
-fun decompose_tac' ctxt cont err_cont D = Termination.CALLS (fn (cs, i) =>
+fun decompose_tac' cont err_cont D = Termination.CALLS (fn (cs, i) =>
     let
       val G = mk_dgraph D cs
       val sccs = TermGraph.strong_conn G
@@ -94,12 +94,7 @@ fun decompose_tac' ctxt cont err_cont D = Termination.CALLS (fn (cs, i) =>
 
 fun decompose_tac ctxt chain_tac cont err_cont =
     derive_chains ctxt chain_tac
-    (decompose_tac' ctxt cont err_cont)
-
-fun auto_decompose_tac ctxt =
-    Termination.TERMINATION ctxt
-      (decompose_tac ctxt (auto_tac (clasimpset_of ctxt))
-                     (K (K all_tac)) (K (K no_tac)))
+    (decompose_tac' cont err_cont)
 
 
 end

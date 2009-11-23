@@ -97,8 +97,6 @@ datatype clause_info =
 
 
 (* Theory dependencies. *)
-val Pair_inject = @{thm Product_Type.Pair_inject};
-
 val acc_induct_rule = @{thm accp_induct_rule};
 
 val ex1_implies_ex = @{thm FunDef.fundef_ex1_existence};
@@ -199,7 +197,7 @@ fun abstract_over_list vs body =
 
 fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
     let
-        val Globals {h, fvar, x, ...} = globals
+        val Globals {h, ...} = globals
 
         val ClauseContext { ctxt, qs, cqs, ags, ... } = cdata
         val cert = Thm.cterm_of (ProofContext.theory_of ctxt)
@@ -298,7 +296,7 @@ fun get_compat_thm thy cts i j ctxi ctxj =
 (* Generates the replacement lemma in fully quantified form. *)
 fun mk_replacement_lemma thy h ih_elim clause =
     let
-        val ClauseInfo {cdata=ClauseContext {qs, lhs, rhs, cqs, ags, case_hyp, ...}, RCs, tree, ...} = clause
+        val ClauseInfo {cdata=ClauseContext {qs, lhs, cqs, ags, case_hyp, ...}, RCs, tree, ...} = clause
         local open Conv in
         val ih_conv = arg1_conv o arg_conv o arg_conv
         end
@@ -321,7 +319,7 @@ fun mk_replacement_lemma thy h ih_elim clause =
     end
 
 
-fun mk_uniqueness_clause thy globals f compat_store clausei clausej RLj =
+fun mk_uniqueness_clause thy globals compat_store clausei clausej RLj =
     let
         val Globals {h, y, x, fvar, ...} = globals
         val ClauseInfo {no=i, cdata=cctxi as ClauseContext {ctxt=ctxti, lhs=lhsi, case_hyp, ...}, ...} = clausei
@@ -355,10 +353,10 @@ fun mk_uniqueness_clause thy globals f compat_store clausei clausej RLj =
 
 
 
-fun mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
+fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
     let
         val Globals {x, y, ranT, fvar, ...} = globals
-        val ClauseInfo {cdata = ClauseContext {lhs, rhs, qs, cqs, ags, case_hyp, ...}, lGI, RCs, ...} = clausei
+        val ClauseInfo {cdata = ClauseContext {lhs, rhs, cqs, ags, case_hyp, ...}, lGI, RCs, ...} = clausei
         val rhsC = Pattern.rewrite_term thy [(fvar, f)] [] rhs
 
         val ih_intro_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_intro
@@ -372,7 +370,7 @@ fun mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_cases compat_store c
         val P = cterm_of thy (mk_eq (y, rhsC))
         val G_lhs_y = assume (cterm_of thy (HOLogic.mk_Trueprop (G $ lhs $ y)))
 
-        val unique_clauses = map2 (mk_uniqueness_clause thy globals f compat_store clausei) clauses rep_lemmas
+        val unique_clauses = map2 (mk_uniqueness_clause thy globals compat_store clausei) clauses rep_lemmas
 
         val uniqueness = G_cases
                            |> forall_elim (cterm_of thy lhs)
@@ -430,7 +428,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
 
         val _ = trace_msg (K "Proving cases for unique existence...")
         val (ex1s, values) =
-            split_list (map (mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
+            split_list (map (mk_uniqueness_case thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
 
         val _ = trace_msg (K "Proving: Graph is a function")
         val graph_is_function = complete
@@ -523,7 +521,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
         ((Binding.conceal (Binding.name fdefname), []), f_def)) lthy
   end
 
-fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
+fun define_recursion_relation Rname domT qglrs clauses RCss lthy =
   let
     val RT = domT --> domT --> boolT
     val (Rvar as (n, T)) = singleton (Variable.variant_frees lthy []) (Rname, RT)
@@ -700,8 +698,6 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
         |> implies_intr D_dcl
         |> implies_intr D_subset
 
-  val subset_induct_all = fold_rev (forall_intr o cterm_of thy) [P, a, D] subset_induct_rule
-
   val simple_induct_rule =
       subset_induct_rule
         |> forall_intr (cterm_of thy D)
@@ -724,7 +720,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
     let
       val thy = ProofContext.theory_of ctxt
-      val ClauseInfo {cdata = ClauseContext {qs, gs, lhs, rhs, cqs, ...},
+      val ClauseInfo {cdata = ClauseContext {gs, lhs, cqs, ...},
                       qglr = (oqs, _, _, _), ...} = clause
       val goal = HOLogic.mk_Trueprop (mk_acc domT R $ lhs)
                           |> fold_rev (curry Logic.mk_implies) gs
@@ -748,8 +744,8 @@ val in_rel_def = @{thm FunDef.in_rel_def};
 
 fun mk_nest_term_case thy globals R' ihyp clause =
     let
-      val Globals {x, z, ...} = globals
-      val ClauseInfo {cdata = ClauseContext {qs,cqs,ags,lhs,rhs,case_hyp,...},tree,
+      val Globals {z, ...} = globals
+      val ClauseInfo {cdata = ClauseContext {qs, cqs, ags, lhs, case_hyp, ...},tree,
                       qglr=(oqs, _, _, _), ...} = clause
 
       val ih_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ihyp
@@ -868,7 +864,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
 
       fun mk_trsimp clause psimp =
           let
-            val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {ctxt, cqs, qs, gs, lhs, rhs, ...}, ...} = clause
+            val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {ctxt, cqs, gs, lhs, rhs, ...}, ...} = clause
             val thy = ProofContext.theory_of ctxt
             val rhs_f = Pattern.rewrite_term thy [(fvar, f)] [] rhs
 
@@ -925,7 +921,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
       val trees = map (Function_Ctx_Tree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
 
       val ((R, RIntro_thmss, R_elim), lthy) =
-          PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
+          PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT abstract_qglrs clauses RCss) lthy
 
       val (_, lthy) =
           Local_Theory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), mk_acc domT R) lthy

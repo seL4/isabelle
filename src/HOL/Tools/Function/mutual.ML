@@ -28,8 +28,6 @@ open Function_Common
 
 type qgar = string * (string * typ) list * term list * term list * term
 
-fun name_of_fqgar ((f, _, _, _, _): qgar) = f
-
 datatype mutual_part =
   MutualPart of 
    {
@@ -82,7 +80,6 @@ fun mk_prod_abs e (t1, t2) =
 fun analyze_eqs ctxt defname fs eqs =
     let
       val num = length fs
-        val fnames = map fst fs
         val fqgars = map (split_def ctxt) eqs
         val arity_of = map (fn (fname,_,_,args,_) => (fname, length args)) fqgars
                        |> AList.lookup (op =) #> the
@@ -108,7 +105,7 @@ fun analyze_eqs ctxt defname fs eqs =
         val ([fsum_var_name], _) = Variable.add_fixes [ defname ^ "_sum" ] ctxt
         val fsum_var = (fsum_var_name, fsum_type)
 
-        fun define (fvar as (n, T)) caTs resultT i =
+        fun define (fvar as (n, _)) caTs resultT i =
             let
                 val vars = map_index (fn (j,T) => Free ("x" ^ string_of_int j, T)) caTs (* FIXME: Bind xs properly *)
                 val i' = find_index (fn Ta => Ta = resultT) dresultTs + 1 
@@ -170,8 +167,8 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
       val thy = ProofContext.theory_of ctxt
                 
       val oqnames = map fst pre_qs
-      val (qs, ctxt') = Variable.variant_fixes oqnames ctxt
-                        |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
+      val (qs, _) = Variable.variant_fixes oqnames ctxt
+        |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
                         
       fun inst t = subst_bounds (rev qs, t)
       val gs = map inst pre_gs
@@ -192,7 +189,7 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
 
 fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs) import (export : thm -> thm) sum_psimp_eq =
     let
-      val (MutualPart {f=SOME f, f_defthm=SOME f_def, ...}) = get_part fname parts
+      val (MutualPart {f=SOME f, ...}) = get_part fname parts
 
       val psimp = import sum_psimp_eq
       val (simp, restore_cond) = case cprems_of psimp of
@@ -223,7 +220,7 @@ fun mk_applied_form ctxt caTs thm =
     end
 
 
-fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, RST, parts, ...}) =
+fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
     let
       val cert = cterm_of (ProofContext.theory_of lthy)
       val newPs = map2 (fn Pname => fn MutualPart {cargTs, ...} => 
@@ -266,8 +263,8 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, RST, parts, ...})
 fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) proof =
     let
       val result = inner_cont proof
-      val FunctionResult {fs=[f], G, R, cases, psimps, trsimps, simple_pinducts=[simple_pinduct],
-                        termination,domintros} = result
+      val FunctionResult {G, R, cases, psimps, trsimps, simple_pinducts=[simple_pinduct],
+        termination, domintros, ...} = result
                                                                                                                
       val (all_f_defs, fs) = map (fn MutualPart {f_defthm = SOME f_def, f = SOME f, cargTs, ...} =>
                                      (mk_applied_form lthy cargTs (symmetric f_def), f))

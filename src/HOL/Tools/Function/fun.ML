@@ -44,7 +44,7 @@ fun check_pats ctxt geq =
              ())
           end
           
-      val (fname, qs, gs, args, rhs) = split_def ctxt geq 
+      val (_, qs, gs, args, _) = split_def ctxt geq 
                                        
       val _ = if not (null gs) then err "Conditional equations" else ()
       val _ = map check_constr_pattern args

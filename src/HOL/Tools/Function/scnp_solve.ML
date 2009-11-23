@@ -76,7 +76,7 @@ fun sat_solver x =
   Function_Common.PROFILE "sat_solving..." (SatSolver.invoke_solver (!solver)) x
 
 (* "Virtual constructors" for various propositional variables *)
-fun var_constrs (gp as GP (arities, gl)) =
+fun var_constrs (gp as GP (arities, _)) =
   let
     val n = Int.max (num_graphs gp, num_prog_pts gp)
     val k = fold Integer.max arities 1

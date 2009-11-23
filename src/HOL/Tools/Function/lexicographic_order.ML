@@ -75,10 +75,6 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
       fold_rev Logic.all vars (Logic.list_implies (prems, concl))
     end
 
-fun prove thy solve_tac t =
-    cterm_of thy t |> Goal.init
-    |> SINGLE solve_tac |> the
-
 fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
     let
       val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
@@ -137,8 +133,6 @@ fun prove_row (Less less_thm :: _) =
 
 (** Error reporting **)
 
-fun pr_table table = writeln (cat_lines (map (fn r => implode (map pr_cell r)) table))
-
 fun pr_goals ctxt st =
     Goal_Display.pretty_goals ctxt {total = true, main = false, maxgoals = Thm.nprems_of st} st
      |> Pretty.chunks
@@ -190,7 +184,7 @@ fun no_order_msg ctxt table tl measure_funs =
 fun lex_order_tac quiet ctxt solve_tac (st: thm) =
     let
       val thy = ProofContext.theory_of ctxt
-      val ((trueprop $ (wf $ rel)) :: tl) = prems_of st
+      val ((_ $ (_ $ rel)) :: tl) = prems_of st
 
       val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
 

@@ -14,9 +14,6 @@ fun map_option f NONE = NONE
 fun fold_option f NONE y = y
   | fold_option f (SOME x) y = f x y;
 
-fun fold_map_option f NONE y = (NONE, y)
-  | fold_map_option f (SOME x) y = apfst SOME (f x y);
-
 (* Ex: "The variable" ^ plural " is" "s are" vs *)
 fun plural sg pl [x] = sg
   | plural sg pl _ = pl
@@ -53,7 +50,7 @@ fun dest_all_all (t as (Const ("all",_) $ _)) =
 
 
 (* FIXME: similar to Variable.focus *)
-fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
+fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (n,T,b)) =
     let
       val [(n', _)] = Variable.variant_frees ctx [] [(n,T)]
       val (_, ctx') = ProofContext.add_fixes [(Binding.name n', SOME T, NoSyn)] ctx
