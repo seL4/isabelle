@@ -554,7 +554,8 @@ fun consider_term (cdata as {ext_ctxt as {ctxt, thy, def_table, ...}, alpha_T,
       end
     fun do_equals T (gamma, cset) =
       let val C = ctype_for (domain_type T) in
-        (CFun (C, S Neg, CFun (C, S Neg, ctype_for (nth_range_type 2 T))),
+        (CFun (C, S Neg, CFun (C, V (Unsynchronized.inc max_fresh),
+                               ctype_for (nth_range_type 2 T))),
          (gamma, cset |> add_ctype_is_right_unique C))
       end
     fun do_robust_set_operation T (gamma, cset) =
