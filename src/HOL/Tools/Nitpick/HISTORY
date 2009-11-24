@@ -11,7 +11,7 @@ Version 2010
     the formula to falsify
   * Added support for codatatype view of datatypes
   * Fixed soundness bugs related to sets, sets of sets, (co)inductive
-    predicates, typedefs, "finite", and negative literals
+    predicates, typedefs, "finite", "rel_comp", and negative literals
   * Fixed monotonicity check
   * Fixed error when processing definitions
   * Fixed error in "star_linear_preds" optimization

@@ -1001,6 +1001,7 @@ fun kodkod_formula_from_nut ofs liberal
                raise NUT ("Nitpick_Kodkod.to_f (Subset)", [u])
              else
                let
+                 (* FIXME: merge with similar code below *)
                  (* bool -> nut -> Kodkod.rel_expr *)
                  fun set_to_r widen u =
                    if widen then
@@ -1389,14 +1390,24 @@ fun kodkod_formula_from_nut ofs liberal
                      (to_rep (Func (Struct [b_R, c_R], Formula Neut)) u2)
            | Opt (Atom (2, _)) =>
              let
-               (* Kodkod.rel_expr -> rep -> rep -> nut -> Kodkod.rel_expr *)
-               fun do_nut r R1 R2 u =
-                 kk_join (to_rep (Func (Struct [R1, R2], body_R)) u) r
-               (* Kodkod.rel_expr -> Kodkod.rel_expr *)
-               fun do_term r =
-                 kk_product (kk_join (do_nut r a_R b_R u1)
-                                     (do_nut r b_R c_R u2)) r
-             in kk_union (do_term true_atom) (do_term false_atom) end
+               (* FIXME: merge with similar code above *)
+               (* rep -> rep -> nut -> Kodkod.rel_expr *)
+               fun must R1 R2 u =
+                 kk_join (to_rep (Func (Struct [R1, R2], body_R)) u) true_atom
+               fun may R1 R2 u =
+                 kk_difference
+                     (full_rel_for_rep (Struct [R1, R2]))
+                     (kk_join (to_rep (Func (Struct [R1, R2], body_R)) u)
+                              false_atom)
+             in
+               kk_union
+                   (kk_product (kk_join (must a_R b_R u1) (must b_R c_R u2))
+                               true_atom)
+                   (kk_product (kk_difference
+                                   (full_rel_for_rep (Struct [a_R, c_R]))
+                                   (kk_join (may a_R b_R u1) (may b_R c_R u2)))
+                               false_atom)
+             end
            | _ => raise NUT ("Nitpick_Kodkod.to_r (Composition)", [u]))
           |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, c_R], body_R))
         end
