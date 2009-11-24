@@ -7,9 +7,10 @@ header {* Loading the code generator modules *}
 theory Code_Generator
 imports Pure
 uses
+  "~~/src/Tools/auto_solve.ML"
   "~~/src/Tools/auto_counterexample.ML"
-  "~~/src/Tools/value.ML"
   "~~/src/Tools/quickcheck.ML"
+  "~~/src/Tools/value.ML"
   "~~/src/Tools/Code/code_preproc.ML" 
   "~~/src/Tools/Code/code_thingol.ML"
   "~~/src/Tools/Code/code_printer.ML"

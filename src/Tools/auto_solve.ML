@@ -27,16 +27,16 @@ val limit = Unsynchronized.ref 5;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
+    (Preferences.nat_pref auto_time_limit
+      "auto-solve-time-limit"
+      "Time limit for seeking automatic solutions (in milliseconds).");
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
   (setmp_CRITICAL auto true (fn () =>
     Preferences.bool_pref auto
       "auto-solve"
       "Try to solve newly declared lemmas with existing theorems.") ());
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
-    (Preferences.nat_pref auto_time_limit
-      "auto-solve-time-limit"
-      "Time limit for seeking automatic solutions (in milliseconds).");
 
 
 (* hook *)

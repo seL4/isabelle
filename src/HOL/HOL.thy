@@ -8,7 +8,6 @@ theory HOL
 imports Pure "~~/src/Tools/Code_Generator"
 uses
   ("Tools/hologic.ML")
-  "~~/src/Tools/auto_solve.ML"
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
