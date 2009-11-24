@@ -2647,7 +2647,7 @@ fun add_to_uncurry_table thy t =
         let val table = aux t2 [] table in aux t1 (t2 :: args) table end
       | aux (Abs (_, _, t')) _ table = aux t' [] table
       | aux (t as Const (x as (s, _))) args table =
-        if is_built_in_const false x orelse is_constr_like thy x orelse is_sel s
+        if is_built_in_const true x orelse is_constr_like thy x orelse is_sel s
            orelse s = @{const_name Sigma} then
           table
         else
