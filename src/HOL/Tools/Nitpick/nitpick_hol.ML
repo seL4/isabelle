@@ -1440,7 +1440,7 @@ fun unfold_defs_in_term (ext_ctxt as {thy, destroy_constrs, fast_descrs,
         ((if is_number_type thy ran_T then
             let
               val j = t1 |> HOLogic.dest_numeral
-                         |> ran_T <> int_T ? curry Int.max 0
+                         |> ran_T = nat_T ? Integer.max 0
               val s = numeral_prefix ^ signed_string_of_int j
             in
               if is_integer_type ran_T then
@@ -1656,7 +1656,7 @@ fun uncached_is_well_founded_inductive_pred
        let
          val binders_T = HOLogic.mk_tupleT (binder_types T)
          val rel_T = HOLogic.mk_prodT (binders_T, binders_T) --> bool_T
-         val j = List.foldl Int.max 0 (map maxidx_of_term intro_ts) + 1
+         val j = fold Integer.max (map maxidx_of_term intro_ts) 0 + 1
          val rel = (("R", j), rel_T)
          val prop = Const (@{const_name wf}, rel_T --> bool_T) $ Var rel ::
                     map (wf_constraint_for_triple rel) triples
@@ -2922,7 +2922,7 @@ fun special_congruence_axiom (s, T) (js1, ts1, x1) (js2, ts2, x2) =
   let
     val (bounds1, bounds2) = pairself (map Var o special_bounds) (ts1, ts2)
     val Ts = binder_types T
-    val max_j = fold (fold (curry Int.max)) [js1, js2] ~1
+    val max_j = fold (fold Integer.max) [js1, js2] ~1
     val (eqs, (args1, args2)) =
       fold (fn j => case pairself (fn ps => AList.lookup (op =) ps j)
                                   (js1 ~~ ts1, js2 ~~ ts2) of
