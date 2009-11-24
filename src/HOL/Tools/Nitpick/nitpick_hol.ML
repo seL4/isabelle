@@ -2471,7 +2471,7 @@ fun skolemize_term_and_more (ext_ctxt as {thy, def_table, skolems, ...})
                        list_comb (f (),
                                   map Bound (length trunk_arg_Ts - 1 downto 0))
                    in
-                     List.foldl absdummy
+                     List.foldr absdummy
                                 (Const (set_oper, [set_T, set_T] ---> set_T)
                                         $ app pos $ app neg) trunk_arg_Ts
                    end
