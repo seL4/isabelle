@@ -1322,7 +1322,7 @@ fun kodkod_formula_from_nut ofs liberal
                       (kk_rel_if (kk_or (kk_some (kk_join r1 true_atom))
                                         (kk_subset (full_rel_for_rep R)
                                                    (kk_join r1 false_atom)))
-                                 (to_rep R u2) Kodkod.None)
+                                 (to_rep R u2) (empty_rel_for_rep R))
           end
         else
           let val r1 = to_rep (Func (R, Formula Neut)) u1 in
@@ -1335,20 +1335,20 @@ fun kodkod_formula_from_nut ofs liberal
             val r2 = to_rep R u2
           in
             kk_union (kk_rel_if (kk_one (kk_join r1 true_atom))
-                                (kk_join r1 true_atom) Kodkod.None)
+                                (kk_join r1 true_atom) (empty_rel_for_rep R))
                      (kk_rel_if (kk_or (kk_subset r2 (kk_join r1 true_atom))
                                        (kk_subset (full_rel_for_rep R)
                                                   (kk_join r1 false_atom)))
-                                r2 Kodkod.None)
+                                r2 (empty_rel_for_rep R))
           end
         else
           let
             val r1 = to_rep (Func (unopt_rep R, Formula Neut)) u1
             val r2 = to_rep R u2
           in
-            kk_union (kk_rel_if (kk_one r1) r1 Kodkod.None)
+            kk_union (kk_rel_if (kk_one r1) r1 (empty_rel_for_rep R))
                      (kk_rel_if (kk_or (kk_no r1) (kk_subset r2 r1))
-                                r2 Kodkod.None)
+                                r2 (empty_rel_for_rep R))
           end
       | Op2 (Triad, T, Opt (Atom (2, j0)), u1, u2) =>
         let
@@ -1754,8 +1754,10 @@ fun kodkod_formula_from_nut ofs liberal
       else Kodkod.False
     (* nut -> Kodkod.rel_expr -> Kodkod.rel_expr *)
     and to_compare_with_unrep u r =
-      if is_opt_rep (rep_of u) then kk_rel_if (kk_some (to_r u)) r Kodkod.None
-      else r
+      if is_opt_rep (rep_of u) then
+        kk_rel_if (kk_some (to_r u)) r (empty_rel_for_rep (rep_of u))
+      else
+        r
   in to_f_with_polarity Pos u end
 
 end;
