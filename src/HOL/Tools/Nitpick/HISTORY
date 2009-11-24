@@ -1,4 +1,4 @@
-Version 2010
+Version 2009-1
 
   * Moved into Isabelle/HOL "Main"
   * Renamed "nitpick_const_def" to "nitpick_def", "nitpick_const_simp" to
