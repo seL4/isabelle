@@ -16,7 +16,7 @@ and fixed-size bitvectors.
 
 * HOL-Boogie: an interactive prover back-end for Boogie and VCC.
 
-* HOL: Counterexample generator tool Nitpick based on the Kodkod
+* HOL: counterexample generator tool Nitpick based on the Kodkod
 relational model finder.
 
 * HOL: predicate compiler turning inductive into (executable)
