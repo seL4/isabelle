@@ -591,7 +591,7 @@ text {*
   ( \textbf{and} \textit{name} ``\textbf{=}'' \textit{term} )$^*$ \\
   \textit{instance} & ::=
   & [ \textit{qualifier} ``\textbf{:}'' ]
-    \textit{qualified-name} ( \textit{pos-insts} $|$ \textit{named-inst} ) \\
+    \textit{name} ( \textit{pos-insts} $|$ \textit{named-inst} ) \\
   \textit{expression}  & ::= 
   & \textit{instance} ( ``\textbf{+}'' \textit{instance} )$^*$
     [ \textbf{for} \textit{fixes} ( \textbf{and} \textit{fixes} )$^*$ ] \\[2ex]
@@ -625,8 +625,8 @@ text {*
 
   \textit{toplevel} & ::=
   & \textbf{print\_locales} \\
-  & | & \textbf{print\_locale} [ ``\textbf{!}'' ] \textit{locale} \\
-  & | & \textbf{print\_interps} \textit{locale}
+  & | & \textbf{print\_locale} [ ``\textbf{!}'' ] \textit{name} \\
+  & | & \textbf{print\_interps} \textit{name}
 \end{tabular}
 \end{center}
 \hrule

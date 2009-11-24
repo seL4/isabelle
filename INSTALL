@@ -17,7 +17,7 @@ system, the Isabelle sources, and some major object-logics.  A minimal
 site installation of Isabelle on Linux/x86 works like this:
 
   tar -C /usr/local -xzf Isabelle.tar.gz
-  tar -C /usr/local -xzf polyml_x86-linux.tar.gz
+  tar -C /usr/local -xzf polyml.tar.gz
   tar -C /usr/local -xzf HOL_x86-linux.tar.gz
 
 The install prefix given above may be changed as appropriate; there is

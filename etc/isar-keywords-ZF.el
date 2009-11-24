@@ -19,6 +19,7 @@
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"
+    "ProofGeneral\\.pr"
     "ProofGeneral\\.process_pgip"
     "ProofGeneral\\.restart"
     "ProofGeneral\\.undo"
@@ -271,6 +272,7 @@
 (defconst isar-keywords-diag
   '("ML_command"
     "ML_val"
+    "ProofGeneral\\.pr"
     "cd"
     "class_deps"
     "commit"

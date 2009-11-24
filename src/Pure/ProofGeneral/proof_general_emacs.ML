@@ -190,6 +190,12 @@ end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
+fun prP () =
+  OuterSyntax.improper_command "ProofGeneral.pr" "print state (internal)" K.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
+      if Toplevel.is_toplevel state orelse Toplevel.is_theory state then tell_clear_goals ()
+      else (Toplevel.quiet := false; Toplevel.print_state true state))));
+
 fun undoP () = (*undo without output -- historical*)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)));
@@ -219,7 +225,8 @@ fun process_pgipP () =
       (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
 
 fun init_outer_syntax () = List.app (fn f => f ())
-  [undoP, restartP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
+  [prP, undoP, restartP, kill_proofP, inform_file_processedP,
+    inform_file_retractedP, process_pgipP];
 
 end;
 

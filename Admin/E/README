@@ -1,4 +1,3 @@
-
 This distribution of E 1.0-004 has been compiled according to the
 README included in the official version from
 http://www4.informatik.tu-muenchen.de/~schulz/WORK/eprover.html
@@ -8,23 +7,12 @@ http://www4.informatik.tu-muenchen.de/~schulz/WORK/eprover.html
   $ ./configure
   $ make
 
-The resulting PROVER/eproof executable has been changed to be
-relocatable:
-
-  $ diff eproof-orig eproof
-  1c1
-  < #!/bin/bash -f
-  ---
-  > #!/usr/bin/env bash
-  3c3,4
-  < EXECPATH=/Users/schulz/SOURCES/Projects/E/PROVER
-  ---
-  > set -o noglob
-  > EXECPATH="$(cd "$(dirname "$0")"; pwd)"
+The PROVER/eproof executable has been replaced by a version written in
+perl (by Sascha Boehme).
 
 Now the main executables in PROVER/ are moved to the platform-specific
 target directory (E/x86-linux etc.).
 
 
-	Makarius
-	07-Apr-2009
+        Makarius
+        23-Nov-2009
