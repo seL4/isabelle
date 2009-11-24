@@ -218,7 +218,7 @@ apply( clarsimp)
 apply( rule conjI)
 apply(  force elim!: NewC_conforms)
 apply( rule conf_obj_AddrI)
-apply(  rule_tac [2] rtranclp.rtrancl_refl)
+apply(  rule_tac [2] rtrancl.rtrancl_refl)
 apply( simp (no_asm))
 
 -- "for Cast"

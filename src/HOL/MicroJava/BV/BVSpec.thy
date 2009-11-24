@@ -1,8 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/BVSpec.thy
-    ID:         $Id$
     Author:     Cornelia Pusch, Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
-
 *)
 
 header {* \isaheader{The Bytecode Verifier}\label{sec:BVSpec} *}

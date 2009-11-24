@@ -1,6 +1,4 @@
-(*
-    ID:         $Id$
-    Author:     Gerwin Klein
+(*  Author:     Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
@@ -40,7 +38,7 @@ lemma (in lbvs) phi_len [simp]:
 lemma (in lbvs) wtl_suc_pc:
   assumes all: "wtl ins c 0 s\<^sub>0 \<noteq> \<top>" 
   assumes pc:  "pc+1 < length ins"
-  shows "wtl (take (pc+1) ins) c 0 s0 \<le>\<^sub>r \<phi>!(pc+1)"
+  shows "wtl (take (pc+1) ins) c 0 s0 \<sqsubseteq>\<^sub>r \<phi>!(pc+1)"
 proof -
   from all pc
   have "wtc c (pc+1) (wtl (take (pc+1) ins) c 0 s0) \<noteq> T" by (rule wtl_all)

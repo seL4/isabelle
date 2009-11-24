@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/JVM.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Gerwin Klein
     Copyright   2000 TUM
 *)
@@ -7,7 +6,7 @@
 header {* \isaheader{LBV for the JVM}\label{sec:JVM} *}
 
 theory LBVJVM
-imports LBVCorrect LBVComplete Typing_Framework_JVM
+imports Typing_Framework_JVM
 begin
 
 types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> JVMType.state list"

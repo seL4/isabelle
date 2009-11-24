@@ -9,44 +9,47 @@ header {* \isaheader{Relations between Java Types} *}
 theory TypeRel imports Decl begin
 
 -- "direct subclass, cf. 8.1.3"
-inductive
-  subcls1 :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<prec>C1 _" [71,71,71] 70)
+
+inductive_set
+  subcls1 :: "'c prog => (cname \<times> cname) set"
+  and subcls1' :: "'c prog => cname \<Rightarrow> cname => bool" ("_ \<turnstile> _ \<prec>C1 _" [71,71,71] 70)
   for G :: "'c prog"
 where
-  subcls1I: "\<lbrakk>class G C = Some (D,rest); C \<noteq> Object\<rbrakk> \<Longrightarrow> G\<turnstile>C\<prec>C1D"
+  "G \<turnstile> C \<prec>C1 D \<equiv> (C, D) \<in> subcls1 G"
+  | subcls1I: "\<lbrakk>class G C = Some (D,rest); C \<noteq> Object\<rbrakk> \<Longrightarrow> G \<turnstile> C \<prec>C1 D"
 
 abbreviation
-  subcls  :: "'c prog => [cname, cname] => bool" ("_ \<turnstile> _ \<preceq>C _"  [71,71,71] 70)
-  where "G\<turnstile>C \<preceq>C  D \<equiv> (subcls1 G)^** C D"
-  
+  subcls  :: "'c prog => cname \<Rightarrow> cname => bool" ("_ \<turnstile> _ \<preceq>C _"  [71,71,71] 70)
+  where "G \<turnstile> C \<preceq>C D \<equiv> (C, D) \<in> (subcls1 G)^*"
+
 lemma subcls1D: 
   "G\<turnstile>C\<prec>C1D \<Longrightarrow> C \<noteq> Object \<and> (\<exists>fs ms. class G C = Some (D,fs,ms))"
 apply (erule subcls1.cases)
 apply auto
 done
 
-lemma subcls1_def2: 
-  "subcls1 G = (\<lambda>C D. (C, D) \<in>
-     (SIGMA C: {C. is_class G C} . {D. C\<noteq>Object \<and> fst (the (class G C))=D}))"
-  by (auto simp add: is_class_def expand_fun_eq dest: subcls1D intro: subcls1I)
+lemma subcls1_def2:
+  "subcls1 P =
+     (SIGMA C:{C. is_class P C}. {D. C\<noteq>Object \<and> fst (the (class P C))=D})"
+  by (auto simp add: is_class_def dest: subcls1D intro: subcls1I)
 
-lemma finite_subcls1: "finite {(C, D). subcls1 G C D}"
+lemma finite_subcls1: "finite (subcls1 G)"
 apply(simp add: subcls1_def2 del: mem_Sigma_iff)
 apply(rule finite_SigmaI [OF finite_is_class])
 apply(rule_tac B = "{fst (the (class G C))}" in finite_subset)
 apply  auto
 done
 
-lemma subcls_is_class: "(subcls1 G)^++ C D ==> is_class G C"
+lemma subcls_is_class: "(C, D) \<in> (subcls1 G)^+  ==> is_class G C"
 apply (unfold is_class_def)
-apply(erule tranclp_trans_induct)
+apply(erule trancl_trans_induct)
 apply (auto dest!: subcls1D)
 done
 
 lemma subcls_is_class2 [rule_format (no_asm)]: 
   "G\<turnstile>C\<preceq>C D \<Longrightarrow> is_class G D \<longrightarrow> is_class G C"
 apply (unfold is_class_def)
-apply (erule rtranclp_induct)
+apply (erule rtrancl_induct)
 apply  (drule_tac [2] subcls1D)
 apply  auto
 done
@@ -54,48 +57,28 @@ done
 constdefs
   class_rec :: "'c prog \<Rightarrow> cname \<Rightarrow> 'a \<Rightarrow>
     (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
-  "class_rec G == wfrec {(C, D). (subcls1 G)^--1 C D}
+  "class_rec G == wfrec ((subcls1 G)^-1)
     (\<lambda>r C t f. case class G C of
          None \<Rightarrow> undefined
        | Some (D,fs,ms) \<Rightarrow> 
            f C fs ms (if C = Object then t else r D t f))"
 
-lemma class_rec_lemma: "wfP ((subcls1 G)^--1) \<Longrightarrow> class G C = Some (D,fs,ms) \<Longrightarrow>
- class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
-  by (simp add: class_rec_def wfrec [to_pred, where r="(subcls1 G)^--1", simplified]
-    cut_apply [where r="{(C, D). subcls1 G D C}", simplified, OF subcls1I])
+lemma class_rec_lemma:
+  assumes wf: "wf ((subcls1 G)^-1)"
+    and cls: "class G C = Some (D, fs, ms)"
+  shows "class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
+proof -
+  from wf have step: "\<And>H a. wfrec ((subcls1 G)\<inverse>) H a =
+    H (cut (wfrec ((subcls1 G)\<inverse>) H) ((subcls1 G)\<inverse>) a) a"
+    by (rule wfrec)
+  have cut: "\<And>f. C \<noteq> Object \<Longrightarrow> cut f ((subcls1 G)\<inverse>) C D = f D"
+    by (rule cut_apply [where r="(subcls1 G)^-1", simplified, OF subcls1I, OF cls])
+  from cls show ?thesis by (simp add: step cut class_rec_def)
+qed
 
 definition
-  "wf_class G = wfP ((subcls1 G)^--1)"
+  "wf_class G = wf ((subcls1 G)^-1)"
 
-lemma class_rec_func (*[code]*):
-  "class_rec G C t f = (if wf_class G then
-    (case class G C
-      of None \<Rightarrow> undefined
-       | Some (D, fs, ms) \<Rightarrow> f C fs ms (if C = Object then t else class_rec G D t f))
-    else class_rec G C t f)"
-proof (cases "wf_class G")
-  case False then show ?thesis by auto
-next
-  case True
-  from `wf_class G` have wf: "wfP ((subcls1 G)^--1)"
-    unfolding wf_class_def .
-  show ?thesis
-  proof (cases "class G C")
-    case None
-    with wf show ?thesis
-      by (simp add: class_rec_def wfrec [to_pred, where r="(subcls1 G)^--1", simplified]
-        cut_apply [where r="{(C, D).subcls1 G D C}", simplified, OF subcls1I])
-  next
-    case (Some x) show ?thesis
-    proof (cases x)
-      case (fields D fs ms)
-      then have is_some: "class G C = Some (D, fs, ms)" using Some by simp
-      note class_rec = class_rec_lemma [OF wf is_some]
-      show ?thesis unfolding class_rec by (simp add: is_some)
-    qed
-  qed
-qed
 
 text {* Code generator setup (FIXME!) *}
 
@@ -115,7 +98,7 @@ consts
 defs method_def: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
 
-lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wfP ((subcls1 G)^--1)|] ==>
+lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
   method (G,C) = (if C = Object then empty else method (G,D)) ++  
   map_of (map (\<lambda>(s,m). (s,(C,m))) ms)"
 apply (unfold method_def)
@@ -129,7 +112,7 @@ done
 defs fields_def: "fields \<equiv> \<lambda>(G,C). class_rec G C []    (\<lambda>C fs ms ts.
                            map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
 
-lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wfP ((subcls1 G)^--1)|] ==>
+lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
  fields (G,C) = 
   map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ (if C = Object then [] else fields (G,D))"
 apply (unfold fields_def)

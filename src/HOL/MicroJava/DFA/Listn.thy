@@ -1,8 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/Listn.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
-
-Lists of a fixed length
 *)
 
 header {* \isaheader{Fixed Length Lists} *}
@@ -326,49 +324,49 @@ lemma acc_le_listI [intro!]:
   "\<lbrakk> order r; acc r \<rbrakk> \<Longrightarrow> acc(Listn.le r)"
 apply (unfold acc_def)
 apply (subgoal_tac
- "wfP (SUP n. (\<lambda>ys xs. size xs = n & size ys = n & xs <_(Listn.le r) ys))")
- apply (erule wfP_subset)
+ "wf(UN n. {(ys,xs). size xs = n \<and> size ys = n \<and> xs <_(Listn.le r) ys})")
+ apply (erule wf_subset)
  apply (blast intro: lesssub_list_impl_same_size)
-apply (rule wfP_SUP)
+apply (rule wf_UN)
  prefer 2
  apply clarify
  apply (rename_tac m n)
  apply (case_tac "m=n")
   apply simp
- apply (fast intro!: equals0I_aux dest: not_sym)
+ apply (fast intro!: equals0I dest: not_sym)
 apply clarify
 apply (rename_tac n)
 apply (induct_tac n)
  apply (simp add: lesssub_def cong: conj_cong)
 apply (rename_tac k)
-apply (simp add: wfP_eq_minimal)
+apply (simp add: wf_eq_minimal)
 apply (simp (no_asm) add: length_Suc_conv cong: conj_cong)
 apply clarify
 apply (rename_tac M m)
-apply (case_tac "\<exists>x xs. size xs = k & x#xs : M")
+apply (case_tac "\<exists>x xs. size xs = k \<and> x#xs \<in> M")
  prefer 2
  apply (erule thin_rl)
  apply (erule thin_rl)
  apply blast
-apply (erule_tac x = "{a. \<exists>xs. size xs = k & a#xs:M}" in allE)
+apply (erule_tac x = "{a. \<exists>xs. size xs = k \<and> a#xs:M}" in allE)
 apply (erule impE)
  apply blast
 apply (thin_tac "\<exists>x xs. ?P x xs")
 apply clarify
 apply (rename_tac maxA xs)
-apply (erule_tac x = "{ys. size ys = size xs & maxA#ys : M}" in allE)
+apply (erule_tac x = "{ys. size ys = size xs \<and> maxA#ys \<in> M}" in allE)
 apply (erule impE)
  apply blast
 apply clarify
-apply (thin_tac "m : M")
-apply (thin_tac "maxA#xs : M")
+apply (thin_tac "m \<in> M")
+apply (thin_tac "maxA#xs \<in> M")
 apply (rule bexI)
  prefer 2
  apply assumption
 apply clarify
 apply simp
 apply blast
-done 
+done
 
 lemma closed_listI:
   "closed S f \<Longrightarrow> closed (list n S) (map2 f)"

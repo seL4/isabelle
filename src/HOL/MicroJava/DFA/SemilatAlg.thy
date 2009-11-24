@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/SemilatAlg.thy
-    ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2002 Technische Universitaet Muenchen
 *)
@@ -9,7 +8,6 @@ header {* \isaheader{More on Semilattices} *}
 theory SemilatAlg
 imports Typing_Framework Product
 begin
-
 
 constdefs 
   lesubstep_type :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"

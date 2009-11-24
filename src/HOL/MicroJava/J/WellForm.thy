@@ -5,7 +5,9 @@
 
 header {* \isaheader{Well-formedness of Java programs} *}
 
-theory WellForm imports TypeRel SystemClasses begin
+theory WellForm
+imports TypeRel SystemClasses
+begin
 
 text {*
 for static checks on expressions and statements, see WellType.
@@ -133,13 +135,13 @@ lemma is_class_xcpt [simp]: "ws_prog G \<Longrightarrow> is_class G (Xcpt x)"
   apply (auto intro!: map_of_SomeI)
   done
 
-lemma subcls1_wfD: "[|G\<turnstile>C\<prec>C1D; ws_prog G|] ==> D \<noteq> C \<and> \<not> (subcls1 G)^++ D C"
-apply( frule tranclp.r_into_trancl [where r="subcls1 G"])
+lemma subcls1_wfD: "[|G\<turnstile>C\<prec>C1D; ws_prog G|] ==> D \<noteq> C \<and> (D, C) \<notin> (subcls1 G)^+"
+apply( frule trancl.r_into_trancl [where r="subcls1 G"])
 apply( drule subcls1D)
 apply(clarify)
 apply( drule (1) class_wf_struct)
 apply( unfold ws_cdecl_def)
-apply(force simp add: reflcl_tranclp [THEN sym] simp del: reflcl_tranclp)
+apply(force simp add: reflcl_trancl [THEN sym] simp del: reflcl_trancl)
 done
 
 lemma wf_cdecl_supD: 
@@ -148,46 +150,49 @@ apply (unfold ws_cdecl_def)
 apply (auto split add: option.split_asm)
 done
 
-lemma subcls_asym: "[|ws_prog G; (subcls1 G)^++ C D|] ==> \<not> (subcls1 G)^++ D C"
-apply(erule tranclp.cases)
+lemma subcls_asym: "[|ws_prog G; (C, D) \<in> (subcls1 G)^+|] ==> (D, C) \<notin> (subcls1 G)^+"
+apply(erule trancl.cases)
 apply(fast dest!: subcls1_wfD )
-apply(fast dest!: subcls1_wfD intro: tranclp_trans)
+apply(fast dest!: subcls1_wfD intro: trancl_trans)
 done
 
-lemma subcls_irrefl: "[|ws_prog G; (subcls1 G)^++ C D|] ==> C \<noteq> D"
-apply (erule tranclp_trans_induct)
+lemma subcls_irrefl: "[|ws_prog G; (C, D) \<in> (subcls1 G)^+|] ==> C \<noteq> D"
+apply (erule trancl_trans_induct)
 apply  (auto dest: subcls1_wfD subcls_asym)
 done
 
-lemma acyclic_subcls1: "ws_prog G ==> acyclicP (subcls1 G)"
-apply (simp add: acyclic_def [to_pred])
+lemma acyclic_subcls1: "ws_prog G ==> acyclic (subcls1 G)"
+apply (simp add: acyclic_def)
 apply (fast dest: subcls_irrefl)
 done
 
-lemma wf_subcls1: "ws_prog G ==> wfP ((subcls1 G)^--1)"
-apply (rule finite_acyclic_wf [to_pred])
-apply ( subst finite_converse [to_pred])
+lemma wf_subcls1: "ws_prog G ==> wf ((subcls1 G)^-1)"
+apply (rule finite_acyclic_wf)
+apply ( subst finite_converse)
 apply ( rule finite_subcls1)
-apply (subst acyclic_converse [to_pred])
+apply (subst acyclic_converse)
 apply (erule acyclic_subcls1)
 done
 
-
-lemma subcls_induct: 
-"[|wf_prog wf_mb G; !!C. \<forall>D. (subcls1 G)^++ C D --> P D ==> P C|] ==> P C"
+lemma subcls_induct_struct: 
+"[|ws_prog G; !!C. \<forall>D. (C, D) \<in> (subcls1 G)^+ --> P D ==> P C|] ==> P C"
 (is "?A \<Longrightarrow> PROP ?P \<Longrightarrow> _")
 proof -
   assume p: "PROP ?P"
   assume ?A thus ?thesis apply -
-apply (drule wf_prog_ws_prog)
 apply(drule wf_subcls1)
-apply(drule wfP_trancl)
-apply(simp only: tranclp_converse)
-apply(erule_tac a = C in wfP_induct)
+apply(drule wf_trancl)
+apply(simp only: trancl_converse)
+apply(erule_tac a = C in wf_induct)
 apply(rule p)
 apply(auto)
 done
 qed
+
+lemma subcls_induct: 
+"[|wf_prog wf_mb G; !!C. \<forall>D. (C, D) \<in> (subcls1 G)^+ --> P D ==> P C|] ==> P C"
+(is "?A \<Longrightarrow> PROP ?P \<Longrightarrow> _")
+by (fact subcls_induct_struct [OF wf_prog_ws_prog])
 
 lemma subcls1_induct:
 "[|is_class G C; wf_prog wf_mb G; P Object;  
@@ -222,22 +227,6 @@ apply (unfold is_class_def)
 apply auto
 done
 qed
-
-lemma subcls_induct_struct: 
-"[|ws_prog G; !!C. \<forall>D. (subcls1 G)^++ C D --> P D ==> P C|] ==> P C"
-(is "?A \<Longrightarrow> PROP ?P \<Longrightarrow> _")
-proof -
-  assume p: "PROP ?P"
-  assume ?A thus ?thesis apply -
-apply(drule wf_subcls1)
-apply(drule wfP_trancl)
-apply(simp only: tranclp_converse)
-apply(erule_tac a = C in wfP_induct)
-apply(rule p)
-apply(auto)
-done
-qed
-
 
 lemma subcls1_induct_struct:
 "[|is_class G C; ws_prog G; P Object;  
@@ -337,7 +326,7 @@ apply( simp (no_asm_simp) only: split_tupled_all)
 apply( simp (no_asm))
 apply( erule UnE)
 apply(  force)
-apply( erule r_into_rtranclp [THEN rtranclp_trans])
+apply( erule r_into_rtrancl [THEN rtrancl_trans])
 apply auto
 done
 
@@ -379,9 +368,9 @@ apply(auto dest!: widen_fields_defpl)
 done
 
 lemma fields_mono_lemma [rule_format (no_asm)]: 
-  "[|ws_prog G; (subcls1 G)^** C' C|] ==>  
+  "[|ws_prog G; (C', C) \<in> (subcls1 G)^*|] ==>  
   x \<in> set (fields (G,C)) --> x \<in> set (fields (G,C'))"
-apply(erule converse_rtranclp_induct)
+apply(erule converse_rtrancl_induct)
 apply( safe dest!: subcls1D)
 apply(subst fields_rec)
 apply(  auto)
@@ -400,10 +389,10 @@ lemma widen_cfs_fields:
 "[|field (G,C) fn = Some (fd, fT); G\<turnstile>D\<preceq>C C; ws_prog G|]==>  
   map_of (fields (G,D)) (fn, fd) = Some fT"
 apply (drule field_fields)
-apply (drule rtranclpD)
+apply (drule rtranclD)
 apply safe
 apply (frule subcls_is_class)
-apply (drule tranclp_into_rtranclp)
+apply (drule trancl_into_rtrancl)
 apply (fast dest: fields_mono)
 done
 
@@ -435,10 +424,10 @@ apply(  erule_tac V = "?P --> ?Q" in thin_rl)
 apply (frule map_of_SomeD)
 apply (clarsimp simp add: wf_cdecl_def)
 apply( clarify)
-apply( rule rtranclp_trans)
+apply( rule rtrancl_trans)
 prefer 2
 apply(  assumption)
-apply( rule r_into_rtranclp)
+apply( rule r_into_rtrancl)
 apply( fast intro: subcls1I)
 done
 
@@ -471,10 +460,10 @@ apply (frule map_of_SomeD)
 apply (clarsimp simp add: ws_cdecl_def)
 apply blast
 apply clarify
-apply( rule rtranclp_trans)
+apply( rule rtrancl_trans)
 prefer 2
 apply(  assumption)
-apply( rule r_into_rtranclp)
+apply( rule r_into_rtrancl)
 apply( fast intro: subcls1I)
 done
 
@@ -482,15 +471,15 @@ lemma subcls_widen_methd [rule_format (no_asm)]:
   "[|G\<turnstile>T'\<preceq>C T; wf_prog wf_mb G|] ==>  
    \<forall>D rT b. method (G,T) sig = Some (D,rT ,b) --> 
   (\<exists>D' rT' b'. method (G,T') sig = Some (D',rT',b') \<and> G\<turnstile>D'\<preceq>C D \<and> G\<turnstile>rT'\<preceq>rT)"
-apply( drule rtranclpD)
+apply( drule rtranclD)
 apply( erule disjE)
 apply(  fast)
 apply( erule conjE)
-apply( erule tranclp_trans_induct)
+apply( erule trancl_trans_induct)
 prefer 2
 apply(  clarify)
 apply(  drule spec, drule spec, drule spec, erule (1) impE)
-apply(  fast elim: widen_trans rtranclp_trans)
+apply(  fast elim: widen_trans rtrancl_trans)
 apply( clarify)
 apply( drule subcls1D)
 apply( clarify)
@@ -510,7 +499,7 @@ apply( simp (no_asm_simp) only: split_tupled_all)
 apply( unfold wf_cdecl_def)
 apply( drule map_of_SomeD)
 apply (auto simp add: wf_mrT_def)
-apply (rule rtranclp_trans)
+apply (rule rtrancl_trans)
 defer
 apply (rule method_wf_mhead [THEN conjunct1])
 apply (simp only: wf_prog_def)
