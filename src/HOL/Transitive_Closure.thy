@@ -33,6 +33,11 @@ where
     r_into_trancl [intro, Pure.intro]: "(a, b) : r ==> (a, b) : r^+"
   | trancl_into_trancl [Pure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a, c) : r^+"
 
+declare rtrancl_def [nitpick_def del]
+        rtranclp_def [nitpick_def del]
+        trancl_def [nitpick_def del]
+        tranclp_def [nitpick_def del]
+
 notation
   rtranclp  ("(_^**)" [1000] 1000) and
   tranclp  ("(_^++)" [1000] 1000)
