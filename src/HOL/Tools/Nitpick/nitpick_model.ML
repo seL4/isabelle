@@ -53,11 +53,16 @@ val step_mixfix = "_\<^bsub>step\<^esub>"
 val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
 val non_opt_name = nitpick_prefix ^ "non_opt"
 
+(* string -> int -> string *)
+fun atom_suffix s j =
+  nat_subscript (j + 1)
+  |> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
+     ? prefix "\<^isub>,"
 (* string -> typ -> int -> string *)
 fun atom_name prefix (T as Type (s, _)) j =
-    prefix ^ substring (short_name s, 0, 1) ^ nat_subscript (j + 1)
+    prefix ^ substring (short_name s, 0, 1) ^ atom_suffix s j
   | atom_name prefix (T as TFree (s, _)) j =
-    prefix ^ perhaps (try (unprefix "'")) s ^ nat_subscript (j + 1)
+    prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s j
   | atom_name _ T _ = raise TYPE ("Nitpick_Model.atom_name", [T], [])
 (* bool -> typ -> int -> term *)
 fun atom for_auto T j =
