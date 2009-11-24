@@ -51,7 +51,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = (uncurry take) (length (hd descr), recTs);
 
     val {maxidx, ...} = rep_thm induct;
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
@@ -62,7 +62,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
           Abs ("z", T', Const ("True", T''))) induct_Ps;
         val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx+1), T), Bound 0) $
           Var (("P", 0), HOLogic.boolT))
-        val insts = Library.take (i, dummyPs) @ (P::(Library.drop (i + 1, dummyPs)));
+        val insts = (uncurry take) (i, dummyPs) @ (P::((uncurry drop) (i + 1, dummyPs)));
         val cert = cterm_of thy;
         val insts' = (map cert induct_Ps) ~~ (map cert insts);
         val induct' = refl RS ((nth
@@ -98,7 +98,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = (uncurry take) (length (hd descr), recTs);
 
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
@@ -283,7 +283,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = (uncurry take) (length (hd descr), recTs);
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
     fun mk_dummyT dt = binder_types (typ_of_dtyp descr' sorts dt) ---> T';
@@ -306,7 +306,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
               val Ts' = Ts @ map mk_dummyT (filter is_rec_type cargs);
               val frees' = map (uncurry (mk_Free "x")) (Ts' ~~ (1 upto length Ts'));
-              val frees = Library.take (length cargs, frees');
+              val frees = (uncurry take) (length cargs, frees');
               val free = mk_Free "f" (Ts ---> T') j
             in
              (free, list_abs_free (map dest_Free frees',
@@ -314,14 +314,14 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
             end) (constrs ~~ (1 upto length constrs)));
 
           val caseT = (map (snd o dest_Free) fns1) @ [T] ---> T';
-          val fns = flat (Library.take (i, case_dummy_fns)) @
-            fns2 @ flat (Library.drop (i + 1, case_dummy_fns));
+          val fns = flat ((uncurry take) (i, case_dummy_fns)) @
+            fns2 @ flat ((uncurry drop) (i + 1, case_dummy_fns));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
           val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
           val def = (Binding.name (Long_Name.base_name name ^ "_def"),
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
-              list_comb (reccomb, (flat (Library.take (i, case_dummy_fns))) @
-                fns2 @ (flat (Library.drop (i + 1, case_dummy_fns))) )));
+              list_comb (reccomb, (flat ((uncurry take) (i, case_dummy_fns))) @
+                fns2 @ (flat ((uncurry drop) (i + 1, case_dummy_fns))) )));
           val ([def_thm], thy') =
             thy
             |> Sign.declare_const decl |> snd
@@ -329,7 +329,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
 
         in (defs @ [def_thm], thy')
         end) (hd descr ~~ newTs ~~ case_names ~~
-          Library.take (length newTs, reccomb_names)) ([], thy1)
+          (uncurry take) (length newTs, reccomb_names)) ([], thy1)
       ||> Theory.checkpoint;
 
     val case_thms = map (map (fn t => Skip_Proof.prove_global thy2 [] [] t
@@ -353,7 +353,7 @@ fun prove_split_thms (config : config) new_type_names descr sorts constr_inject 
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = (uncurry take) (length (hd descr), recTs);
 
     fun prove_split_thms ((((((t1, t2), inject), dist_rewrites'),
         exhaustion), case_thms'), T) =

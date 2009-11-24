@@ -265,7 +265,7 @@ fun present_span lex default_tags span state state'
       if nesting = 0 andalso not (Toplevel.is_proof state) then tag_stack
       else if nesting >= 0 then (tag', replicate nesting tag @ tags)
       else
-        (case Library.drop (~ nesting - 1, tags) of
+        (case (uncurry drop) (~ nesting - 1, tags) of
           tgs :: tgss => (tgs, tgss)
         | [] => err_bad_nesting (Position.str_of cmd_pos));
 

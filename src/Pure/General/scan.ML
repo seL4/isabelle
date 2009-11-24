@@ -221,7 +221,7 @@ fun unlift scan = pass () scan;
 
 fun trace scan xs =
   let val (y, xs') = scan xs
-  in ((y, Library.take (length xs - length xs', xs)), xs') end;
+  in ((y, (uncurry take) (length xs - length xs', xs)), xs') end;
 
 
 (* stopper *)

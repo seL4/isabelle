@@ -139,7 +139,7 @@ fun ext "" path = path
 val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
   (case take_suffix (fn c => c <> ".") (explode s) of
     ([], _) => (Path [Basic s], "")
-  | (cs, e) => (Path [Basic (implode (Library.take (length cs - 1, cs)))], implode e)));
+  | (cs, e) => (Path [Basic (implode ((uncurry take) (length cs - 1, cs)))], implode e)));
 
 
 (* expand variables *)

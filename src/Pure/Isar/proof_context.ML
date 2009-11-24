@@ -1340,7 +1340,7 @@ fun pretty_ctxt ctxt =
       val suppressed = len - ! prems_limit;
       val prt_prems = if null prems then []
         else [Pretty.big_list "prems:" ((if suppressed <= 0 then [] else [Pretty.str "..."]) @
-          map (Display.pretty_thm ctxt) (Library.drop (suppressed, prems)))];
+          map (Display.pretty_thm ctxt) ((uncurry drop) (suppressed, prems)))];
     in prt_structs @ prt_fixes @ prt_prems end;
 
 

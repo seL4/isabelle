@@ -77,8 +77,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       subtract (op =) (List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs)) (hd tyvars);
     val leafTs = leafTs' @ map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
-    val oldTs = Library.drop (length (hd descr), recTs);
+    val newTs = (uncurry take) (length (hd descr), recTs);
+    val oldTs = (uncurry drop) (length (hd descr), recTs);
     val sumT = if null leafTs then HOLogic.unitT
       else Balanced_Tree.make (fn (T, U) => Type ("+", [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
@@ -193,7 +193,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1)))
                 (types_syntax ~~ tyvars ~~
-                  (Library.take (length newTs, rep_set_names)) ~~ new_type_names) ||>
+                  ((uncurry take) (length newTs, rep_set_names)) ~~ new_type_names) ||>
       Sign.add_path big_name;
 
     (*********************** definition of constructors ***********************)
@@ -472,7 +472,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
       iso_inj_thms_unfolded;
 
     val iso_thms = if length descr = 1 then [] else
-      Library.drop (length newTs, split_conj_thm
+      (uncurry drop) (length newTs, split_conj_thm
         (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
            [(indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),

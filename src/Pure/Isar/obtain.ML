@@ -232,12 +232,12 @@ fun unify_params vars thesis_var raw_rule ctxt =
         err ("Failed to unify variable " ^
           string_of_term (Free (x, Envir.norm_type tyenv T)) ^ " against parameter " ^
           string_of_term (Syntax.mark_boundT (y, Envir.norm_type tyenv U)) ^ " in") rule;
-    val (tyenv, _) = fold unify (map #1 vars ~~ Library.take (m, params))
+    val (tyenv, _) = fold unify (map #1 vars ~~ (uncurry take) (m, params))
       (Vartab.empty, Int.max (maxidx, Thm.maxidx_of rule));
     val norm_type = Envir.norm_type tyenv;
 
     val xs = map (apsnd norm_type o fst) vars;
-    val ys = map (apsnd norm_type) (Library.drop (m, params));
+    val ys = map (apsnd norm_type) ((uncurry drop) (m, params));
     val ys' = map Name.internal (Name.variant_list (map fst xs) (map fst ys)) ~~ map #2 ys;
     val terms = map (Drule.mk_term o cert o Free) (xs @ ys');
 

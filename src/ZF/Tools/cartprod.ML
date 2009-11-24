@@ -97,7 +97,7 @@ fun ap_split (Type("*", [T1,T2])) T3 u   =
 (*Makes a nested tuple from a list, following the product type structure*)
 fun mk_tuple pair (Type("*", [T1,T2])) tms = 
         pair $ (mk_tuple pair T1 tms)
-             $ (mk_tuple pair T2 (Library.drop (length (factors T1), tms)))
+             $ (mk_tuple pair T2 ((uncurry drop) (length (factors T1), tms)))
   | mk_tuple pair T (t::_) = t;
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)

@@ -1163,9 +1163,9 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (SOME (fold_rev (disch true)
-                (Library.take (i, prems))
+                ((uncurry take) (i, prems))
                 (Drule.imp_cong_rule eqn (reflexive (Drule.list_implies
-                  (Library.drop (i, prems), concl))))) :: eqns)
+                  ((uncurry drop) (i, prems), concl))))) :: eqns)
                   ss (length prems') ~1
             end
 

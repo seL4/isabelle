@@ -193,8 +193,7 @@ end;
 fun mk_pat (c,l) =
   let val L = length (binder_types (type_of c))
       fun build (prfx,tag,plist) =
-          let val args   = Library.take (L,plist)
-              and plist' = Library.drop(L,plist)
+          let val (args, plist') = chop L plist
           in (prfx,tag,list_comb(c,args)::plist') end
   in map build l end;
 

@@ -1003,7 +1003,7 @@ val shrink_proof =
               | _ => error "shrink: proof not in normal form");
             val vs = vars_of prop;
             val (ts', ts'') = chop (length vs) ts;
-            val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
+            val insts = (uncurry take) (length ts', map (fst o dest_Var) vs) ~~ ts';
             val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
               insert (op =) ixn (case AList.lookup (op =) insts ixn of
                   SOME (SOME t) => if is_proj t then union (op =) ixns ixns' else ixns'

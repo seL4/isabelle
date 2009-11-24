@@ -321,7 +321,7 @@ fun last_extT T =
 fun rec_id i T =
   let
     val rTs = dest_recTs T;
-    val rTs' = if i < 0 then rTs else Library.take (i, rTs);
+    val rTs' = if i < 0 then rTs else (uncurry take) (i, rTs);
   in implode (map #1 rTs') end;
 
 
@@ -1582,7 +1582,7 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
       (Logic.strip_assums_concl (prop_of rule')));
     (*ca indicates if rule is a case analysis or induction rule*)
     val (x, ca) =
-      (case rev (Library.drop (length params, ys)) of
+      (case rev ((uncurry drop) (length params, ys)) of
         [] => (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
           (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
       | [x] => (head_of x, false));
@@ -1635,7 +1635,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         else if len > 16 then
           let
             fun group16 [] = []
-              | group16 xs = Library.take (16, xs) :: group16 (Library.drop (16, xs));
+              | group16 xs = (uncurry take) (16, xs) :: group16 ((uncurry drop) (16, xs));
             val vars' = group16 vars;
             val (composites, (thy', i')) = fold_map mk_even_istuple vars' (thy, i);
           in
@@ -1772,7 +1772,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
 fun chunks [] [] = []
   | chunks [] xs = [xs]
-  | chunks (l :: ls) xs = Library.take (l, xs) :: chunks ls (Library.drop (l, xs));
+  | chunks (l :: ls) xs = (uncurry take) (l, xs) :: chunks ls ((uncurry drop) (l, xs));
 
 fun chop_last [] = error "chop_last: list should not be empty"
   | chop_last [x] = ([], x)
@@ -1881,12 +1881,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extension_names = map (unsuffix ext_typeN o fst o #extension) parents @ [extN];
     val extension_id = implode extension_names;
 
-    fun rec_schemeT n = mk_recordT (map #extension (Library.drop (n, parents))) extT;
+    fun rec_schemeT n = mk_recordT (map #extension ((uncurry drop) (n, parents))) extT;
     val rec_schemeT0 = rec_schemeT 0;
 
     fun recT n =
       let val (c, Ts) = extension in
-        mk_recordT (map #extension (Library.drop (n, parents)))
+        mk_recordT (map #extension ((uncurry drop) (n, parents)))
           (Type (c, subst_last HOLogic.unitT Ts))
       end;
     val recT0 = recT 0;
@@ -1896,7 +1896,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         val (args', more) = chop_last args;
         fun mk_ext' ((name, T), args) more = mk_ext (name, T) (args @ [more]);
         fun build Ts =
-          fold_rev mk_ext' (Library.drop (n, (extension_names ~~ Ts) ~~ chunks parent_chunks args'))
+          fold_rev mk_ext' ((uncurry drop) (n, (extension_names ~~ Ts) ~~ chunks parent_chunks args'))
             more;
       in
         if more = HOLogic.unit
@@ -1989,7 +1989,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val (accessor_thms, updator_thms, upd_acc_cong_assists) =
       timeit_msg "record getting tree access/updates:" get_access_update_thms;
 
-    fun lastN xs = Library.drop (parent_fields_len, xs);
+    fun lastN xs = (uncurry drop) (parent_fields_len, xs);
 
     (*selectors*)
     fun mk_sel_spec ((c, T), thm) =

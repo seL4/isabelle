@@ -46,7 +46,7 @@ fun inst_mutual_rule ctxt insts avoiding rules =
         val m = length vars and n = length inst;
         val _ = if m >= n + 2 then () else error "Too few variables in conclusion of rule";
         val P :: x :: ys = vars;
-        val zs = Library.drop (m - n - 2, ys);
+        val zs = (uncurry drop) (m - n - 2, ys);
       in
         (P, tuple_fun (map #2 avoiding) (Term.dest_Var P)) ::
         (x, tuple (map Free avoiding)) ::
@@ -71,7 +71,7 @@ fun rename_params_rule internal xs rule =
         val p = length ps;
         val ys =
           if p < n then []
-          else map (tune o #1) (Library.take (p - n, ps)) @ xs;
+          else map (tune o #1) ((uncurry take) (p - n, ps)) @ xs;
       in Logic.list_rename_params (ys, prem) end;
     fun rename_prems prop =
       let val (As, C) = Logic.strip_horn (Thm.prop_of rule)

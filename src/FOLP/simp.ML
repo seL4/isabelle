@@ -419,11 +419,11 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
     if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
     else case Seq.pull(cong_tac i thm) of
             SOME(thm',_) =>
-                    let val ps = prems_of thm and ps' = prems_of thm';
+                    let val ps = prems_of thm
+                        and ps' = prems_of thm';
                         val n = length(ps')-length(ps);
                         val a = length(Logic.strip_assums_hyp(List.nth(ps,i-1)))
-                        val l = map (fn p => length(Logic.strip_assums_hyp(p)))
-                                    (Library.take(n,Library.drop(i-1,ps')));
+                        val l = map (length o Logic.strip_assums_hyp) (take n (drop (i-1) ps'));
                     in (simp_refl(rev(l),a,REW::ss),thm',anet,ats,cs) end
           | NONE => (REW::ss,thm,anet,ats,cs);
 
@@ -535,7 +535,7 @@ fun eta_Var(ixn,T) = exp_abs(T,Var(ixn,T),0);
 fun Pinst(f,fT,(eq,eqT),k,i,T,yik,Ts) =
 let fun xn_list(x,n) =
         let val ixs = map_range (fn i => (x^(radixstring(26,"a",i)),0)) (n - 1);
-        in ListPair.map eta_Var (ixs, Library.take(n+1,Ts)) end
+        in ListPair.map eta_Var (ixs, take (n+1) Ts) end
     val lhs = list_comb(f,xn_list("X",k-1))
     val rhs = list_comb(f,xn_list("X",i-1) @ [Bound 0] @ yik)
 in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;

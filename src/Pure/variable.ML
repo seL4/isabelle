@@ -345,7 +345,7 @@ fun export_inst inner outer =
     val fixes_inner = fixes_of inner;
     val fixes_outer = fixes_of outer;
 
-    val gen_fixes = map #2 (Library.take (length fixes_inner - length fixes_outer, fixes_inner));
+    val gen_fixes = map #2 ((uncurry take) (length fixes_inner - length fixes_outer, fixes_inner));
     val still_fixed = not o member (op =) gen_fixes;
 
     val type_occs_inner = type_occs_of inner;
