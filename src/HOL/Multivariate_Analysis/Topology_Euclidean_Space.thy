@@ -2437,7 +2437,7 @@ proof(simp only: cauchy_def, rule, rule)
   thus "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < e"  using dist_triangle_half_l[of _ l e _] by (rule_tac x=N in exI) auto
 qed
 
-lemma cauchy_imp_bounded: assumes "Cauchy s" shows "bounded {y. (\<exists>n::nat. y = s n)}"
+lemma cauchy_imp_bounded: assumes "Cauchy s" shows "bounded (range s)"
 proof-
   from assms obtain N::nat where "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < 1" unfolding cauchy_def apply(erule_tac x= 1 in allE) by auto
   hence N:"\<forall>n. N \<le> n \<longrightarrow> dist (s N) (s n) < 1" by auto
@@ -2448,7 +2448,7 @@ proof-
   ultimately show "?thesis"
     unfolding bounded_any_center [where a="s N"]
     apply(rule_tac x="max a 1" in exI) apply auto
-    apply(erule_tac x=n in allE) apply(erule_tac x=n in ballE) by auto
+    apply(erule_tac x=y in allE) apply(erule_tac x=y in ballE) by auto
 qed
 
 lemma compact_imp_complete: assumes "compact s" shows "complete s"
@@ -2474,12 +2474,12 @@ qed
 instance heine_borel < complete_space
 proof
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
-  hence "bounded (range f)" unfolding image_def
-    using cauchy_imp_bounded [of f] by auto
+  hence "bounded (range f)"
+    by (rule cauchy_imp_bounded)
   hence "compact (closure (range f))"
     using bounded_closed_imp_compact [of "closure (range f)"] by auto
   hence "complete (closure (range f))"
-    using compact_imp_complete by auto
+    by (rule compact_imp_complete)
   moreover have "\<forall>n. f n \<in> closure (range f)"
     using closure_subset [of "range f"] by auto
   ultimately have "\<exists>l\<in>closure (range f). (f ---> l) sequentially"
@@ -2732,10 +2732,10 @@ qed
 lemma sequence_infinite_lemma:
   fixes l :: "'a::metric_space" (* TODO: generalize *)
   assumes "\<forall>n::nat. (f n  \<noteq> l)"  "(f ---> l) sequentially"
-  shows "infinite {y. (\<exists> n. y = f n)}"
-proof(rule ccontr)
-  let ?A = "(\<lambda>x. dist x l) ` {y. \<exists>n. y = f n}"
-  assume "\<not> infinite {y. \<exists>n. y = f n}"
+  shows "infinite (range f)"
+proof
+  let ?A = "(\<lambda>x. dist x l) ` range f"
+  assume "finite (range f)"
   hence **:"finite ?A" "?A \<noteq> {}" by auto
   obtain k where k:"dist (f k) l = Min ?A" using Min_in[OF **] by auto
   have "0 < Min ?A" using assms(1) unfolding dist_nz unfolding Min_gr_iff[OF **] by auto
@@ -2746,7 +2746,7 @@ qed
 
 lemma sequence_unique_limpt:
   fixes l :: "'a::metric_space" (* TODO: generalize *)
-  assumes "\<forall>n::nat. (f n \<noteq> l)"  "(f ---> l) sequentially"  "l' islimpt {y.  (\<exists>n. y = f n)}"
+  assumes "\<forall>n::nat. (f n \<noteq> l)"  "(f ---> l) sequentially"  "l' islimpt (range f)"
   shows "l' = l"
 proof(rule ccontr)
   def e \<equiv> "dist l' l"
@@ -2773,8 +2773,8 @@ proof-
       case False thus "l\<in>s" using as(1) by auto
     next
       case True note cas = this
-      with as(2) have "infinite {y. \<exists>n. y = x n}" using sequence_infinite_lemma[of x l] by auto
-      then obtain l' where "l'\<in>s" "l' islimpt {y. \<exists>n. y = x n}" using assms[THEN spec[where x="{y. \<exists>n. y = x n}"]] as(1) by auto
+      with as(2) have "infinite (range x)" using sequence_infinite_lemma[of x l] by auto
+      then obtain l' where "l'\<in>s" "l' islimpt (range x)" using assms[THEN spec[where x="range x"]] as(1) by auto
       thus "l\<in>s" using sequence_unique_limpt[of x l l'] using as cas by auto
     qed  }
   thus ?thesis unfolding closed_sequential_limits by fast
@@ -3031,21 +3031,22 @@ qed
 text{* Strengthen it to the intersection actually being a singleton.             *}
 
 lemma decreasing_closed_nest_sing:
+  fixes s :: "nat \<Rightarrow> 'a::heine_borel set"
   assumes "\<forall>n. closed(s n)"
           "\<forall>n. s n \<noteq> {}"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
           "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y\<in>(s n). dist x y < e"
-  shows "\<exists>a::'a::heine_borel. \<Inter> {t. (\<exists>n::nat. t = s n)} = {a}"
+  shows "\<exists>a. \<Inter>(range s) = {a}"
 proof-
   obtain a where a:"\<forall>n. a \<in> s n" using decreasing_closed_nest[of s] using assms by auto
-  { fix b assume b:"b \<in> \<Inter>{t. \<exists>n. t = s n}"
+  { fix b assume b:"b \<in> \<Inter>(range s)"
     { fix e::real assume "e>0"
       hence "dist a b < e" using assms(4 )using b using a by blast
     }
     hence "dist a b = 0" by (metis dist_eq_0_iff dist_nz real_less_def)
   }
-  with a have "\<Inter>{t. \<exists>n. t = s n} = {a}"  by auto
-  thus ?thesis by auto
+  with a have "\<Inter>(range s) = {a}" unfolding image_def by auto
+  thus ?thesis ..
 qed
 
 text{* Cauchy-type criteria for uniform convergence. *}
