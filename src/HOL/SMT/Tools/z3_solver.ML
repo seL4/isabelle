@@ -22,10 +22,12 @@ val (options, options_setup) = Attrib.config_string "z3_options" ""
 
 fun add xs ys = ys @ xs
 
+fun explode_options s = String.tokens (Symbol.is_ascii_blank o str) s
+
 fun get_options ctxt =
   ["MODEL=true", "PRE_SIMPLIFY_EXPR=false", "CONTEXT_SIMPLIFIER=false"]
   |> Config.get ctxt proofs ? add ["DISPLAY_PROOF=true", "PROOF_MODE=2"]
-  |> add (space_explode " " (Config.get ctxt options))
+  |> add (explode_options (Config.get ctxt options))
 
 fun pretty_config context = [
   Pretty.str ("With proofs: " ^
