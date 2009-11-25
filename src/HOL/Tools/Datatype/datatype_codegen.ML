@@ -217,19 +217,19 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
        invoke_codegen thy defs dep module brack (eta_expand c ts (i+1)) gr
     else
       let
-        val ts1 = (uncurry take) (i, ts);
-        val t :: ts2 = (uncurry drop) (i, ts);
+        val ts1 = take i ts;
+        val t :: ts2 = drop i ts;
         val names = List.foldr OldTerm.add_term_names
           (map (fst o fst o dest_Var) (List.foldr OldTerm.add_term_vars [] ts1)) ts1;
-        val (Ts, dT) = split_last ((uncurry take) (i+1, fst (strip_type T)));
+        val (Ts, dT) = split_last (take (i+1) (fst (strip_type T)));
 
         fun pcase [] [] [] gr = ([], gr)
           | pcase ((cname, cargs)::cs) (t::ts) (U::Us) gr =
               let
                 val j = length cargs;
                 val xs = Name.variant_list names (replicate j "x");
-                val Us' = (uncurry take) (j, fst (strip_type U));
-                val frees = map Free (xs ~~ Us');
+                val Us' = take j (fst (strip_type U));
+                val frees = map2 (curry Free) xs Us';
                 val (cp, gr0) = invoke_codegen thy defs dep module false
                   (list_comb (Const (cname, Us' ---> dT), frees)) gr;
                 val t' = Envir.beta_norm (list_comb (t, frees));

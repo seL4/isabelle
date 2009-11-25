@@ -158,7 +158,7 @@ fun match ast pat =
       (case (ast, pat) of
         (Appl asts, Appl pats) =>
           let val a = length asts and p = length pats in
-            if a > p then (Appl ((uncurry take) (p, asts)), (uncurry drop) (p, asts))
+            if a > p then (Appl (take p asts), drop p asts)
             else (ast, [])
           end
       | _ => (ast, []));

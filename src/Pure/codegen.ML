@@ -579,11 +579,11 @@ fun replace_quotes [] [] = []
 fun eta_expand t ts i =
   let
     val k = length ts;
-    val Ts = (uncurry drop) (k, binder_types (fastype_of t));
+    val Ts = drop k (binder_types (fastype_of t));
     val j = i - k
   in
     List.foldr (fn (T, t) => Abs ("x", T, t))
-      (list_comb (t, ts @ map Bound (j-1 downto 0))) ((uncurry take) (j, Ts))
+      (list_comb (t, ts @ map Bound (j-1 downto 0))) (take j Ts)
   end;
 
 fun mk_app _ p [] = p

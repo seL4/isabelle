@@ -128,7 +128,7 @@ fun add_drop_redundant thy (thm, proper) thms =
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
     fun matches_args args' = length args <= length args' andalso
-      Pattern.matchess thy (args, (map incr_idx o curry (uncurry take) (length args)) args');
+      Pattern.matchess thy (args, (map incr_idx o take (length args)) args');
     fun drop (thm', proper') = if (proper orelse not proper')
       andalso matches_args (args_of thm') then 
         (warning ("Code generator: dropping redundant code equation\n" ^

@@ -328,7 +328,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
        ((Binding.empty, [nth exhaust index]), [Induct.cases_type tname])]) dt_names);
     val unnamed_rules = map (fn induct =>
       ((Binding.empty, [induct]), [Rule_Cases.inner_rule, Induct.induct_type ""]))
-        ((uncurry drop) (length dt_names, inducts));
+        (drop (length dt_names) inducts);
   in
     thy9
     |> PureThy.add_thmss ([((prfx (Binding.name "simps"), simps), []),

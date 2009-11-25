@@ -231,7 +231,7 @@ fun gen_pr_app pr_app pr_term syntax_const thm vars fxy (app as ((c, (_, tys)), 
    of NONE => brackify fxy (pr_app thm vars app)
     | SOME (k, pr) =>
         let
-          fun pr' fxy ts = pr (pr_term thm) thm vars fxy (ts ~~ curry (uncurry take) k tys);
+          fun pr' fxy ts = pr (pr_term thm) thm vars fxy (ts ~~ take k tys);
         in if k = length ts
           then pr' fxy ts
         else if k < length ts

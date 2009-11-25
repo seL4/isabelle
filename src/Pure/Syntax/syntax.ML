@@ -499,7 +499,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
         (("Ambiguous input" ^ Position.str_of pos ^
           "\nproduces " ^ string_of_int len ^ " parse trees" ^
           (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-          map show_pt ((uncurry take) (limit, pts)))));
+          map show_pt (take limit pts))));
     SynTrans.pts_to_asts ctxt (lookup_tr parse_ast_trtab) pts
   end;
 
@@ -545,7 +545,7 @@ fun disambig _ _ [t] = t
         else cat_error (ambig_msg ()) (cat_lines
           (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of_term pp) ((uncurry take) (limit, results))))
+            map (Pretty.string_of_term pp) (take limit results)))
       end;
 
 fun standard_parse_term pp check get_sort map_const map_free map_type map_sort

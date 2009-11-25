@@ -121,9 +121,9 @@ fun sequential_preproc (config as FunctionConfig {sequential, ...}) ctxt fixes s
                            (Function_Split.split_all_equations ctxt compleqs)
 
           fun restore_spec thms =
-              bnds ~~ (uncurry take) (length bnds, Library.unflat spliteqs thms)
+              bnds ~~ take (length bnds) (unflat spliteqs thms)
               
-          val spliteqs' = flat ((uncurry take) (length bnds, spliteqs))
+          val spliteqs' = flat (take (length bnds) spliteqs)
           val fnames = map (fst o fst) fixes
           val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) spliteqs'
 

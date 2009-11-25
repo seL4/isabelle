@@ -124,8 +124,8 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
               let
                 val fnameT' as (fname', _) = dest_Const f;
                 val (_, rpos, _) = the (AList.lookup (op =) rec_eqns fnameT');
-                val ls = (uncurry take) (rpos, ts);
-                val rest = (uncurry drop) (rpos, ts);
+                val ls = take rpos ts;
+                val rest = drop rpos ts;
                 val (x', rs) = (hd rest, tl rest)
                   handle Empty => raise RecError ("not enough arguments\
                    \ in recursive application\nof function " ^ quote fname' ^ " on rhs");

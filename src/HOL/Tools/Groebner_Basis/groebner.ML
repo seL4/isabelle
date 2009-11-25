@@ -899,7 +899,7 @@ fun isolate_variables evs ps eq =
   val (qs,p) = isolate_monomials vars eq
   val rs = ideal (qs @ ps) p 
               (fn (s,t) => TermOrd.term_ord (term_of s, term_of t))
- in (eq,(uncurry take) (length qs, rs) ~~ vars)
+ in (eq, take (length qs) rs ~~ vars)
  end;
  fun subst_in_poly i p = Thm.rhs_of (ring_normalize_conv (vsubst i p));
 in

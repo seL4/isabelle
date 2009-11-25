@@ -67,7 +67,7 @@ fun dt_of_intrs thy vs nparms intrs =
     val Tvs = map TVar iTs;
     val (Const (s, _), ts) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (prop_of (hd intrs))));
-    val params = map dest_Var ((uncurry take) (nparms, ts));
+    val params = map dest_Var (take nparms ts);
     val tname = Binding.name (space_implode "_" (Long_Name.base_name s ^ "T" :: vs));
     fun constr_of_intr intr = (Binding.name (Long_Name.base_name (name_of_thm intr)),
       map (Logic.unvarifyT o snd) (subtract (op =) params (rev (Term.add_vars (prop_of intr) []))) @

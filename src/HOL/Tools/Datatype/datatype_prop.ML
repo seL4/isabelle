@@ -72,7 +72,7 @@ fun make_injs descr sorts =
         end;
   in
     map2 (fn d => fn T => fold_rev (make_inj T) (#3 (snd d)) [])
-      (hd descr) ((uncurry take) (length (hd descr), get_rec_types descr' sorts))
+      (hd descr) (take (length (hd descr)) (get_rec_types descr' sorts))
   end;
 
 
@@ -82,7 +82,7 @@ fun make_distincts descr sorts =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = (uncurry take) (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun prep_constr (cname, cargs) = (cname, map (typ_of_dtyp descr' sorts) cargs);
 
@@ -168,14 +168,12 @@ fun make_casedists descr sorts =
           HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))))
       end;
 
-    fun make_casedist ((_, (_, _, constrs)), T) =
+    fun make_casedist ((_, (_, _, constrs))) T =
       let val prems = map (make_casedist_prem T) constrs
       in Logic.list_implies (prems, HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT)))
       end
 
-  in map make_casedist
-    ((hd descr) ~~ (uncurry take) (length (hd descr), get_rec_types descr' sorts))
-  end;
+  in map2 make_casedist (hd descr) (take (length (hd descr)) (get_rec_types descr' sorts)) end;
 
 (*************** characteristic equations for primrec combinator **************)
 
@@ -257,7 +255,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = (uncurry take) (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
@@ -280,7 +278,7 @@ fun make_cases new_type_names descr sorts thy =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = (uncurry take) (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun make_case T comb_t ((cname, cargs), f) =
       let
@@ -304,7 +302,7 @@ fun make_splits new_type_names descr sorts thy =
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used' = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = (uncurry take) (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
     val T' = TFree (Name.variant used' "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);
 
@@ -415,7 +413,7 @@ fun make_nchotomys descr sorts =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = (uncurry take) (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun mk_eqn T (cname, cargs) =
       let

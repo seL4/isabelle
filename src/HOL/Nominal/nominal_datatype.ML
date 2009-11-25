@@ -766,8 +766,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       Sign.intern_const thy7 ("Abs_" ^ s)) new_type_names;
 
     val recTs = get_rec_types descr'' sorts;
-    val newTs' = (uncurry take) (length new_type_names, recTs');
-    val newTs = (uncurry take) (length new_type_names, recTs);
+    val newTs' = take (length new_type_names) recTs';
+    val newTs = take (length new_type_names) recTs;
 
     val full_new_type_names = map (Sign.full_bname thy) new_type_names;
 

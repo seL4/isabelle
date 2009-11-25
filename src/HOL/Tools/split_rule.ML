@@ -74,8 +74,8 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
       let
         val cterm = Thm.cterm_of (Thm.theory_of_thm rl)
         val (Us', U') = strip_type T;
-        val Us = (uncurry take) (length ts, Us');
-        val U = (uncurry drop) (length ts, Us') ---> U';
+        val Us = take (length ts) Us';
+        val U = drop (length ts) Us' ---> U';
         val T' = maps HOLogic.flatten_tupleT Us ---> U;
         fun mk_tuple (v as Var ((a, _), T)) (xs, insts) =
               let
