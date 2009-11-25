@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Boogie + HOL-Nominal + HOL-Statespace.
+;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Boogie + HOL-Nominal + HOL-SMT + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -218,6 +218,7 @@
     "show"
     "simproc_setup"
     "sledgehammer"
+    "smt_status"
     "sorry"
     "specification"
     "statespace"
@@ -406,6 +407,7 @@
     "refute"
     "remove_thy"
     "sledgehammer"
+    "smt_status"
     "term"
     "thm"
     "thm_deps"

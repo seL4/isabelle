@@ -12,7 +12,8 @@ cd "$ISABELLE_HOME/etc"
 
 isabelle keywords \
   "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" \
-  "$LOG/IOA.gz" "$LOG/HOL-Boogie.gz" "$LOG/HOL-Nominal.gz" "$LOG/HOL-Statespace.gz"
+  "$LOG/IOA.gz" "$LOG/HOL-Boogie.gz" "$LOG/HOL-Nominal.gz" "$LOG/HOL-SMT.gz" \
+  "$LOG/HOL-Statespace.gz"
 
 isabelle keywords -k ZF \
   "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
