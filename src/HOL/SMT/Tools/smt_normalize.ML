@@ -234,14 +234,18 @@ local
   fun conv ctxt = Simplifier.rewrite (Simplifier.context ctxt nat_ss)
 
   val uses_nat_type = Term.exists_type (Term.exists_subtype (equal @{typ nat}))
+  val uses_nat_int =
+    Term.exists_subterm (member (op aconv) [@{term int}, @{term nat}])
 in
 fun nat_as_int ctxt thms =
   let
-    fun norm thm uses_nat =
-      if not (uses_nat_type (Thm.prop_of thm)) then (thm, uses_nat)
-      else (Conv.fconv_rule (conv ctxt) thm, true)
-    val (thms', uses_nat) = fold_map norm thms false
-  in if uses_nat then nat_embedding @ thms' else thms' end
+    fun norm thm = thm
+      |> uses_nat_type (Thm.prop_of thm) ? Conv.fconv_rule (conv ctxt)
+    val thms' = map norm thms
+  in
+    if exists (uses_nat_int o Thm.prop_of) thms' then nat_embedding @ thms'
+    else thms'
+  end
 end
 
 
