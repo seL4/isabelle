@@ -5,16 +5,15 @@
 header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 
 theory Inductive 
-imports Lattices Sum_Type
+imports Complete_Lattice
 uses
   ("Tools/inductive.ML")
   "Tools/dseq.ML"
   ("Tools/inductive_codegen.ML")
-  ("Tools/Datatype/datatype_aux.ML")
-  ("Tools/Datatype/datatype_prop.ML")
-  ("Tools/Datatype/datatype_rep_proofs.ML")
+  "Tools/Datatype/datatype_aux.ML"
+  "Tools/Datatype/datatype_prop.ML"
+  "Tools/Datatype/datatype_case.ML"
   ("Tools/Datatype/datatype_abs_proofs.ML")
-  ("Tools/Datatype/datatype_case.ML")
   ("Tools/Datatype/datatype.ML")
   ("Tools/old_primrec.ML")
   ("Tools/primrec.ML")
@@ -282,11 +281,7 @@ subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 
-use "Tools/Datatype/datatype_aux.ML"
-use "Tools/Datatype/datatype_prop.ML"
-use "Tools/Datatype/datatype_rep_proofs.ML"
 use "Tools/Datatype/datatype_abs_proofs.ML"
-use "Tools/Datatype/datatype_case.ML"
 use "Tools/Datatype/datatype.ML"
 setup Datatype.setup
 

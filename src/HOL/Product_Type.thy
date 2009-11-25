@@ -6,12 +6,10 @@
 header {* Cartesian products *}
 
 theory Product_Type
-imports Inductive
+imports Typedef Inductive Fun
 uses
   ("Tools/split_rule.ML")
   ("Tools/inductive_set.ML")
-  ("Tools/inductive_realizer.ML")
-  ("Tools/Datatype/datatype_realizer.ML")
 begin
 
 subsection {* @{typ bool} is a datatype *}
@@ -1195,16 +1193,7 @@ val unit_all_eq2 = thm "unit_all_eq2";
 val unit_eq = thm "unit_eq";
 *}
 
-
-subsection {* Further inductive packages *}
-
-use "Tools/inductive_realizer.ML"
-setup InductiveRealizer.setup
-
 use "Tools/inductive_set.ML"
 setup Inductive_Set.setup
-
-use "Tools/Datatype/datatype_realizer.ML"
-setup DatatypeRealizer.setup
 
 end

@@ -7,10 +7,9 @@ Datatype package for Isabelle/HOL.
 signature DATATYPE =
 sig
   include DATATYPE_COMMON
-  val add_datatype : config -> string list -> (string list * binding * mixfix *
-    (binding * typ list * mixfix) list) list -> theory -> string list * theory
-  val datatype_cmd : string list -> (string list * binding * mixfix *
-    (binding * string list * mixfix) list) list -> theory -> theory
+  val derive_datatype_props : config -> string list -> string list option
+    -> descr list -> (string * sort) list -> thm -> thm list list -> thm list list
+    -> theory -> string list * theory
   val rep_datatype : config -> (string list -> Proof.context -> Proof.context)
     -> string list option -> term list -> theory -> Proof.state
   val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state
@@ -30,6 +29,8 @@ sig
     (term * term) list -> term * (term * (int * bool)) list
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
   val read_typ: theory -> string -> (string * sort) list -> typ * (string * sort) list
+  val cert_typ: theory -> typ -> (string * sort) list -> typ * (string * sort) list
+  val mk_case_names_induct: descr -> attribute
   val setup: theory -> theory
 end;
 
@@ -442,89 +443,6 @@ val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global default_config (
 
 
 
-(** definitional introduction of datatypes **)
-
-fun gen_add_datatype prep_typ config new_type_names dts thy =
-  let
-    val _ = Theory.requires thy "Datatype" "datatype definitions";
-
-    (* this theory is used just for parsing *)
-    val tmp_thy = thy |>
-      Theory.copy |>
-      Sign.add_types (map (fn (tvs, tname, mx, _) =>
-        (tname, length tvs, mx)) dts);
-
-    val (tyvars, _, _, _)::_ = dts;
-    val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
-      let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
-      in
-        (case duplicates (op =) tvs of
-          [] =>
-            if eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
-            else error ("Mutually recursive datatypes must have same type parameters")
-        | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
-            " : " ^ commas dups))
-      end) dts);
-    val dt_names = map fst new_dts;
-
-    val _ =
-      (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
-        [] => ()
-      | dups => error ("Duplicate datatypes: " ^ commas dups));
-
-    fun prep_dt_spec ((tvs, tname, mx, constrs), tname') (dts', constr_syntax, sorts, i) =
-      let
-        fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
-          let
-            val (cargs', sorts'') = fold_map (prep_typ tmp_thy) cargs sorts';
-            val _ =
-              (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
-                [] => ()
-              | vs => error ("Extra type variables on rhs: " ^ commas vs))
-          in (constrs @ [(Sign.full_name_path tmp_thy tname'
-                  (Binding.map_name (Syntax.const_name mx') cname),
-                   map (dtyp_of_typ new_dts) cargs')],
-              constr_syntax' @ [(cname, mx')], sorts'')
-          end handle ERROR msg => cat_error msg
-           ("The error above occured in constructor " ^ quote (Binding.str_of cname) ^
-            " of datatype " ^ quote (Binding.str_of tname));
-
-        val (constrs', constr_syntax', sorts') =
-          fold prep_constr constrs ([], [], sorts)
-
-      in
-        case duplicates (op =) (map fst constrs') of
-           [] =>
-             (dts' @ [(i, (Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname),
-                map DtTFree tvs, constrs'))],
-              constr_syntax @ [constr_syntax'], sorts', i + 1)
-         | dups => error ("Duplicate constructors " ^ commas dups ^
-             " in datatype " ^ quote (Binding.str_of tname))
-      end;
-
-    val (dts', constr_syntax, sorts', i) =
-      fold prep_dt_spec (dts ~~ new_type_names) ([], [], [], 0);
-    val sorts = sorts' @ (map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars));
-    val dt_info = get_all thy;
-    val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
-    val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
-      if #strict config then error ("Nonemptiness check failed for datatype " ^ s)
-      else raise exn;
-
-    val _ = message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
-    val ((inject, distinct, induct), thy') = thy |>
-      DatatypeRepProofs.representation_proofs config dt_info new_type_names descr sorts
-        types_syntax constr_syntax (mk_case_names_induct (flat descr));
-  in
-    derive_datatype_props config dt_names (SOME new_type_names) descr sorts
-      induct inject distinct thy'
-  end;
-
-val add_datatype = gen_add_datatype cert_typ;
-val datatype_cmd = snd ooo gen_add_datatype read_typ default_config;
-
-
-
 (** package setup **)
 
 (* setup theory *)
@@ -540,25 +458,7 @@ local
 
 structure P = OuterParse and K = OuterKeyword
 
-fun prep_datatype_decls args =
-  let
-    val names = map
-      (fn ((((NONE, _), t), _), _) => Binding.name_of t | ((((SOME t, _), _), _), _) => t) args;
-    val specs = map (fn ((((_, vs), t), mx), cons) =>
-      (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in (names, specs) end;
-
-val parse_datatype_decl =
-  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_infix --
-    (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix)));
-
-val parse_datatype_decls = P.and_list1 parse_datatype_decl >> prep_datatype_decls;
-
 in
-
-val _ =
-  OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
-    (parse_datatype_decls >> (fn (names, specs) => Toplevel.theory (datatype_cmd names specs)));
 
 val _ =
   OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_goal

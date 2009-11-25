@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/datatype_rep_proofs.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Definitional introduction of datatypes
-Proof of characteristic theorems:
+Definitional introduction of datatypes with proof of characteristic theorems:
 
  - injectivity of constructors
  - distinctness of constructors
@@ -12,14 +11,16 @@ Proof of characteristic theorems:
 signature DATATYPE_REP_PROOFS =
 sig
   include DATATYPE_COMMON
-  val representation_proofs : config -> info Symtab.table ->
-    string list -> descr list -> (string * sort) list ->
-      (binding * mixfix) list -> (binding * mixfix) list list -> attribute
-        -> theory -> (thm list list * thm list list * thm) * theory
+  val add_datatype : config -> string list -> (string list * binding * mixfix *
+    (binding * typ list * mixfix) list) list -> theory -> string list * theory
+  val datatype_cmd : string list -> (string list * binding * mixfix *
+    (binding * string list * mixfix) list) list -> theory -> theory
 end;
 
 structure DatatypeRepProofs : DATATYPE_REP_PROOFS =
 struct
+
+(** auxiliary **)
 
 open DatatypeAux;
 
@@ -27,37 +28,39 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 
-
-(** theory context references **)
-
 fun exh_thm_of (dt_info : info Symtab.table) tname =
   #exhaust (the (Symtab.lookup dt_info tname));
 
-(******************************************************************************)
+val node_name = @{type_name "Datatype.node"};
+val In0_name = @{const_name "Datatype.In0"};
+val In1_name = @{const_name "Datatype.In1"};
+val Scons_name = @{const_name "Datatype.Scons"};
+val Leaf_name = @{const_name "Datatype.Leaf"};
+val Numb_name = @{const_name "Datatype.Numb"};
+val Lim_name = @{const_name "Datatype.Lim"};
+val Suml_name = @{const_name "Sum_Type.Suml"};
+val Sumr_name = @{const_name "Sum_Type.Sumr"};
+
+val In0_inject = @{thm In0_inject};
+val In1_inject = @{thm In1_inject};
+val Scons_inject = @{thm Scons_inject};
+val Leaf_inject = @{thm Leaf_inject};
+val In0_eq = @{thm In0_eq};
+val In1_eq = @{thm In1_eq};
+val In0_not_In1 = @{thm In0_not_In1};
+val In1_not_In0 = @{thm In1_not_In0};
+val Lim_inject = @{thm Lim_inject};
+val Suml_inject = @{thm Suml_inject};
+val Sumr_inject = @{thm Sumr_inject};
+
+
+
+(** proof of characteristic theorems **)
 
 fun representation_proofs (config : config) (dt_info : info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
   let
-    val Datatype_thy = ThyInfo.the_theory "Datatype" thy;
-    val node_name = "Datatype.node";
-    val In0_name = "Datatype.In0";
-    val In1_name = "Datatype.In1";
-    val Scons_name = "Datatype.Scons";
-    val Leaf_name = "Datatype.Leaf";
-    val Numb_name = "Datatype.Numb";
-    val Lim_name = "Datatype.Lim";
-    val Suml_name = "Datatype.Suml";
-    val Sumr_name = "Datatype.Sumr";
-
-    val [In0_inject, In1_inject, Scons_inject, Leaf_inject,
-         In0_eq, In1_eq, In0_not_In1, In1_not_In0,
-         Lim_inject, Suml_inject, Sumr_inject] = map (PureThy.get_thm Datatype_thy)
-          ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject",
-           "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
-           "Lim_inject", "Suml_inject", "Sumr_inject"];
-
     val descr' = flat descr;
-
     val big_name = space_implode "_" new_type_names;
     val thy1 = Sign.add_path big_name thy;
     val big_rec_name = big_name ^ "_rep_set";
@@ -83,7 +86,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
     val UnivT = HOLogic.mk_setT Univ_elT;
     val UnivT' = Univ_elT --> HOLogic.boolT;
-    val Collect = Const ("Collect", UnivT' --> UnivT);
+    val Collect = Const (@{const_name Collect}, UnivT' --> UnivT);
 
     val In0 = Const (In0_name, Univ_elT --> Univ_elT);
     val In1 = Const (In1_name, Univ_elT --> Univ_elT);
@@ -100,9 +103,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
               val Type (_, [T1, T2]) = T
           in
             if i <= n2 then
-              Const ("Sum_Type.Inl", T1 --> T) $ (mk_inj' T1 n2 i)
+              Const (@{const_name "Sum_Type.Inl"}, T1 --> T) $ (mk_inj' T1 n2 i)
             else
-              Const ("Sum_Type.Inr", T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
+              Const (@{const_name "Sum_Type.Inr"}, T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
           end
       in mk_inj' sumT (length leafTs) (1 + find_index (fn T'' => T'' = T') leafTs)
       end;
@@ -628,5 +631,124 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
   in
     ((constr_inject', distinct_thms', dt_induct'), thy7)
   end;
+
+
+
+(** definitional introduction of datatypes **)
+
+fun gen_add_datatype prep_typ config new_type_names dts thy =
+  let
+    val _ = Theory.requires thy "Datatype" "datatype definitions";
+
+    (* this theory is used just for parsing *)
+    val tmp_thy = thy |>
+      Theory.copy |>
+      Sign.add_types (map (fn (tvs, tname, mx, _) =>
+        (tname, length tvs, mx)) dts);
+
+    val (tyvars, _, _, _)::_ = dts;
+    val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
+      let val full_tname = Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname)
+      in
+        (case duplicates (op =) tvs of
+          [] =>
+            if eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
+            else error ("Mutually recursive datatypes must have same type parameters")
+        | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
+            " : " ^ commas dups))
+      end) dts);
+    val dt_names = map fst new_dts;
+
+    val _ =
+      (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
+        [] => ()
+      | dups => error ("Duplicate datatypes: " ^ commas dups));
+
+    fun prep_dt_spec (tvs, tname, mx, constrs) tname' (dts', constr_syntax, sorts, i) =
+      let
+        fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
+          let
+            val (cargs', sorts'') = fold_map (prep_typ tmp_thy) cargs sorts';
+            val _ =
+              (case subtract (op =) tvs (fold (curry OldTerm.add_typ_tfree_names) cargs' []) of
+                [] => ()
+              | vs => error ("Extra type variables on rhs: " ^ commas vs))
+          in (constrs @ [(Sign.full_name_path tmp_thy tname'
+                  (Binding.map_name (Syntax.const_name mx') cname),
+                   map (dtyp_of_typ new_dts) cargs')],
+              constr_syntax' @ [(cname, mx')], sorts'')
+          end handle ERROR msg => cat_error msg
+           ("The error above occured in constructor " ^ quote (Binding.str_of cname) ^
+            " of datatype " ^ quote (Binding.str_of tname));
+
+        val (constrs', constr_syntax', sorts') =
+          fold prep_constr constrs ([], [], sorts)
+
+      in
+        case duplicates (op =) (map fst constrs') of
+           [] =>
+             (dts' @ [(i, (Sign.full_name tmp_thy (Binding.map_name (Syntax.type_name mx) tname),
+                map DtTFree tvs, constrs'))],
+              constr_syntax @ [constr_syntax'], sorts', i + 1)
+         | dups => error ("Duplicate constructors " ^ commas dups ^
+             " in datatype " ^ quote (Binding.str_of tname))
+      end;
+
+    val (dts', constr_syntax, sorts', i) =
+      fold2 prep_dt_spec dts new_type_names ([], [], [], 0);
+    val sorts = sorts' @ map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars);
+    val dt_info = Datatype.get_all thy;
+    val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
+    val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
+      if #strict config then error ("Nonemptiness check failed for datatype " ^ s)
+      else raise exn;
+
+    val _ = message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
+
+  in
+    thy
+    |> representation_proofs config dt_info new_type_names descr sorts
+        types_syntax constr_syntax (Datatype.mk_case_names_induct (flat descr))
+    |-> (fn (inject, distinct, induct) => Datatype.derive_datatype_props
+        config dt_names (SOME new_type_names) descr sorts
+        induct inject distinct)
+  end;
+
+val add_datatype = gen_add_datatype Datatype.cert_typ;
+val datatype_cmd = snd ooo gen_add_datatype Datatype.read_typ default_config;
+
+local
+
+structure P = OuterParse and K = OuterKeyword
+
+fun prep_datatype_decls args =
+  let
+    val names = map
+      (fn ((((NONE, _), t), _), _) => Binding.name_of t | ((((SOME t, _), _), _), _) => t) args;
+    val specs = map (fn ((((_, vs), t), mx), cons) =>
+      (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
+  in (names, specs) end;
+
+val parse_datatype_decl =
+  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_infix --
+    (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix)));
+
+val parse_datatype_decls = P.and_list1 parse_datatype_decl >> prep_datatype_decls;
+
+in
+
+val _ =
+  OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
+    (parse_datatype_decls >> (fn (names, specs) => Toplevel.theory (datatype_cmd names specs)));
+
+end;
+
+end;
+
+structure Datatype =
+struct
+
+open Datatype;
+open DatatypeRepProofs;
 
 end;
