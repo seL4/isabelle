@@ -95,7 +95,7 @@ local
       else Mixfix (syn ^ "()'(/" ^ args ^ "')", replicate i 0, 1000)
     end
 
-  fun process_attributes T =
+  fun maybe_builtin T =
     let
       fun const name = SOME (Const (name, T))
 
@@ -152,7 +152,7 @@ local
       (case lookup_const thy isa_name U of
         SOME t => (((name, t), false), thy)
       | NONE => 
-          (case process_attributes U atts of
+          (case maybe_builtin U atts of
             SOME t => (((name, t), false), thy)
           | NONE =>
               thy
@@ -161,13 +161,30 @@ local
               |> apfst (rpair true o pair name)))
     end
 
-  fun const_names ((name, _), ((_, t), new)) =
+  fun new_names ((name, t), new) =
     if new then SOME (fst (Term.dest_Const t) ^ " (as " ^ name ^ ")") else NONE
+
+  fun uniques fns fds =
+    let
+      fun is_unique (name, (([], T), atts)) =
+            (case AList.lookup (op =) atts "unique" of
+              SOME _ => Symtab.lookup fds name
+            | NONE => NONE)
+        | is_unique _ = NONE
+      fun mk_unique_axiom T ts =
+        Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $
+          HOLogic.mk_list T ts
+    in
+      map_filter is_unique fns
+      |> map (swap o Term.dest_Const)
+      |> AList.group (op =)
+      |> map (fn (T, ns) => mk_unique_axiom T (map (Const o rpair T) ns))
+    end
 in
 fun declare_functions verbose fns =
   fold_map declare fns #-> (fn fds =>
-  log verbose "Declared constants:" (map_filter const_names (fns ~~ fds)) #>
-  rpair (Symtab.make (map fst fds)))
+  log verbose "Declared constants:" (map_filter new_names fds) #>
+  rpair (` (uniques fns) (Symtab.make (map fst fds))))
 end
 
 
@@ -492,10 +509,10 @@ fun fun_decls verbose tds = Scan.depend (fn thy =>
       scan_count (attribute tds Symtab.empty) i >> pair name)) >>
     (fn fns => declare_functions verbose fns thy))
 
-fun axioms verbose tds fds = Scan.depend (fn thy =>
+fun axioms verbose tds fds unique_axs = Scan.depend (fn thy =>
   Scan.repeat (scan_line "axiom" num :|-- (fn i =>
     expr tds fds --| scan_count (attribute tds fds) i)) >>
-    (fn axs => (add_axioms verbose axs thy, ())))
+    (fn axs => (add_axioms verbose (unique_axs @ axs) thy, ())))
 
 fun var_decls tds fds = Scan.depend (fn thy =>
   Scan.repeat (scan_line "var-decl" (str -- num) :|-- (fn (_, i) =>
@@ -508,8 +525,8 @@ fun vcs verbose tds fds = Scan.depend (fn thy =>
 
 fun parse verbose thy = Scan.pass thy
  (type_decls verbose :|-- (fn tds =>
-  fun_decls verbose tds :|-- (fn fds =>
-  axioms verbose tds fds |--
+  fun_decls verbose tds :|-- (fn (unique_axs, fds) =>
+  axioms verbose tds fds unique_axs |--
   var_decls tds fds |--
   vcs verbose tds fds)))
 
