@@ -201,6 +201,15 @@ else
     [ -n "$XSYMBOL_INSTALLFONTS" -a "$XSYMBOL_SETUP" = true ] && installfonts
   fi
 
+  if [ $(uname -s) = Darwin -a -d "$HOME/Library/Fonts" ]
+  then
+    if [ ! -f "$HOME/Library/Fonts/XSymb0Medium.ttf" -o ! -f "$HOME/Library/Fonts/XSymb1Medium.ttf" ]
+    then
+      cp -f "$SUPER/x-symbol/etc/fonts-ttf/XSymb0Medium.ttf" "$HOME/Library/Fonts/"
+      cp -f "$SUPER/x-symbol/etc/fonts-ttf/XSymb1Medium.ttf" "$HOME/Library/Fonts/"
+    fi
+  fi
+
   ARGS["${#ARGS[@]}"]="-l"
   ARGS["${#ARGS[@]}"]="$SUPER/isar/interface-setup.el"
 
