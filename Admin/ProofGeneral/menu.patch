@@ -1,0 +1,24 @@
+--- a/isar/isar.el	2008-07-10 20:47:49.000000000 +0200
++++ b/isar/isar.el	2009-11-26 15:17:36.000000000 +0100
+@@ -339,8 +339,9 @@
+      (error "Aborted."))
+   [(control p)])
+ 
+-(proof-definvisible isar-cmd-refute	"refute" [r])
+ (proof-definvisible isar-cmd-quickcheck "quickcheck" [(control q)])
++(proof-definvisible isar-cmd-nitpick "nitpick" [(control n)])
++(proof-definvisible isar-cmd-refute "refute" [r])
+ (proof-definvisible isar-cmd-sledgehammer "sledgehammer" [(control s)])
+ 
+ (defpgdefault menu-entries
+@@ -349,8 +350,9 @@
+    (list
+     (cons "Commands"
+           (list
+-           ["refute"             isar-cmd-refute         t]
+            ["quickcheck"         isar-cmd-quickcheck     t]
++           ["nitpick"            isar-cmd-nitpick        t]
++           ["refute"             isar-cmd-refute         t]
+            ["sledgehammer"       isar-cmd-sledgehammer   t]
+ 	   ["display draft"	 isar-cmd-display-draft  t])))
+    (list
