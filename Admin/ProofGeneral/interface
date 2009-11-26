@@ -207,6 +207,7 @@ else
     then
       cp -f "$SUPER/x-symbol/etc/fonts-ttf/XSymb0Medium.ttf" "$HOME/Library/Fonts/"
       cp -f "$SUPER/x-symbol/etc/fonts-ttf/XSymb1Medium.ttf" "$HOME/Library/Fonts/"
+      sleep 3
     fi
   fi
 
