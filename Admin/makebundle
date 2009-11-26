@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+#
+# makebundle -- re-package with add-on components
+
+## global settings
+
+TMP="/var/tmp/isabelle-makebundle$$"
+
+
+## diagnostics
+
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG ARCHIVE COMPONENTS"
+  echo
+  echo "  Re-package Isabelle distribution with add-on components."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -lt 1 ] && usage
+
+ARCHIVE="$1"; shift
+
+declare -a COMPONENTS
+COMPONENTS=("$@")
+
+
+## main
+
+mkdir "$TMP" || fail "Cannot create directory $TMP"
+
+ARCHIVE_DIR="$(cd $(dirname "$ARCHIVE"); echo "$PWD")"
+ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
+ISABELLE_HOME="$TMP/$ISABELLE_NAME"
+
+[ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
+tar -C "$TMP" -x -z -f "$ARCHIVE"
+
+echo "#bundled components" >> "$ISABELLE_HOME/etc/components"
+
+for COMPONENT in "${COMPONENTS[@]}"
+do
+  tar -C "$ISABELLE_HOME/contrib" -x -z -f "$COMPONENT"
+  NAME="$(basename "$COMPONENT" .tar.gz)"
+  [ -d "$ISABELLE_HOME/contrib/$NAME" ] || fail "Bad archive content $COMPONENT"
+
+  if [ -e "$ISABELLE_HOME/contrib/$NAME/etc/settings" ]; then
+    echo "component $NAME"
+    echo "contrib/$NAME" >> "$ISABELLE_HOME/etc/components"
+  else
+    echo "package $NAME"
+  fi
+done
+
+tar -C "$TMP" -c -z \
+  -f "${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle.tar.gz" \
+  Isabelle "$ISABELLE_NAME"
+
+
+# clean up
+cd /tmp
+rm -rf "$TMP"
