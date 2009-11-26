@@ -537,8 +537,8 @@ fun isnum x = x mem_string ["0","1","2","3","4","5","6","7","8","9"]
  fun token s =
   Scan.repeat ($$ " ") |-- word s --| Scan.repeat ($$ " ")
  val numeral = Scan.one isnum
- val decimalint = Scan.repeat numeral >> (rat_of_string o implode)
- val decimalfrac = Scan.repeat numeral
+ val decimalint = Scan.repeat1 numeral >> (rat_of_string o implode)
+ val decimalfrac = Scan.repeat1 numeral
     >> (fn s => rat_of_string(implode s) // pow10 (length s))
  val decimalsig =
     decimalint -- Scan.option (Scan.$$ "." |-- decimalfrac)
