@@ -10,8 +10,7 @@ Definitional introduction of datatypes with proof of characteristic theorems:
 
 signature DATATYPE_REP_PROOFS =
 sig
-  include DATATYPE_COMMON
-  val add_datatype : config -> string list -> (string list * binding * mixfix *
+  val add_datatype : DatatypeAux.config -> string list -> (string list * binding * mixfix *
     (binding * typ list * mixfix) list) list -> theory -> string list * theory
   val datatype_cmd : string list -> (string list * binding * mixfix *
     (binding * string list * mixfix) list) list -> theory -> theory
@@ -50,6 +49,8 @@ val In1_eq = @{thm In1_eq};
 val In0_not_In1 = @{thm In0_not_In1};
 val In1_not_In0 = @{thm In1_not_In0};
 val Lim_inject = @{thm Lim_inject};
+val Inl_inject = @{thm Inl_inject};
+val Inr_inject = @{thm Inr_inject};
 val Suml_inject = @{thm Suml_inject};
 val Sumr_inject = @{thm Sumr_inject};
 
@@ -697,7 +698,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     val (dts', constr_syntax, sorts', i) =
       fold2 prep_dt_spec dts new_type_names ([], [], [], 0);
     val sorts = sorts' @ map (rpair (Sign.defaultS tmp_thy)) (subtract (op =) (map fst sorts') tyvars);
-    val dt_info = Datatype.get_all thy;
+    val dt_info = Datatype_Data.get_all thy;
     val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
       if #strict config then error ("Nonemptiness check failed for datatype " ^ s)
@@ -708,14 +709,14 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
   in
     thy
     |> representation_proofs config dt_info new_type_names descr sorts
-        types_syntax constr_syntax (Datatype.mk_case_names_induct (flat descr))
-    |-> (fn (inject, distinct, induct) => Datatype.derive_datatype_props
+        types_syntax constr_syntax (Datatype_Data.mk_case_names_induct (flat descr))
+    |-> (fn (inject, distinct, induct) => Datatype_Data.derive_datatype_props
         config dt_names (SOME new_type_names) descr sorts
         induct inject distinct)
   end;
 
-val add_datatype = gen_add_datatype Datatype.cert_typ;
-val datatype_cmd = snd ooo gen_add_datatype Datatype.read_typ default_config;
+val add_datatype = gen_add_datatype Datatype_Data.cert_typ;
+val datatype_cmd = snd ooo gen_add_datatype Datatype_Data.read_typ default_config;
 
 local
 
@@ -742,13 +743,5 @@ val _ =
     (parse_datatype_decls >> (fn (names, specs) => Toplevel.theory (datatype_cmd names specs)));
 
 end;
-
-end;
-
-structure Datatype =
-struct
-
-open Datatype;
-open DatatypeRepProofs;
 
 end;

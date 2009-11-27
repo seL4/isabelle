@@ -168,10 +168,11 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Datatype/datatype_aux.ML \
   Tools/Datatype/datatype_case.ML \
   Tools/Datatype/datatype_codegen.ML \
-  Tools/Datatype/datatype.ML \
+  Tools/Datatype/datatype_data.ML \
   Tools/Datatype/datatype_prop.ML \
   Tools/Datatype/datatype_realizer.ML \
   Tools/Datatype/datatype_rep_proofs.ML \
+  Tools/Datatype/datatype.ML \
   Tools/dseq.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/decompose.ML \

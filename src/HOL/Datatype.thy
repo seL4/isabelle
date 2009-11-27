@@ -11,6 +11,7 @@ theory Datatype
 imports Product_Type Sum_Type Nat
 uses
   ("Tools/Datatype/datatype_rep_proofs.ML")
+  ("Tools/Datatype/datatype.ML")
   ("Tools/inductive_realizer.ML")
   ("Tools/Datatype/datatype_realizer.ML")
 begin
@@ -520,6 +521,7 @@ hide (open) type node item
 hide (open) const Push Node Atom Leaf Numb Lim Split Case
 
 use "Tools/Datatype/datatype_rep_proofs.ML"
+use "Tools/Datatype/datatype.ML"
 
 use "Tools/inductive_realizer.ML"
 setup InductiveRealizer.setup
