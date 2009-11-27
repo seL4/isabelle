@@ -6,16 +6,19 @@ Code generator facilities for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
-  val find_shortest_path: Datatype.descr -> int -> (string * int) option
+  include DATATYPE_COMMON
+  val find_shortest_path: descr -> int -> (string * int) option
   val setup: theory -> theory
 end;
 
 structure DatatypeCodegen : DATATYPE_CODEGEN =
 struct
 
+open DatatypeAux
+
 (** find shortest path to constructor with no recursive arguments **)
 
-fun find_nonempty (descr: Datatype.descr) is i =
+fun find_nonempty (descr: descr) is i =
   let
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
     fun arg_nonempty (_, DatatypeAux.DtRec i) = if member (op =) is i
@@ -40,7 +43,7 @@ open Codegen;
 
 (* datatype definition *)
 
-fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
+fun add_dt_defs thy defs dep module (descr: descr) sorts gr =
   let
     val descr' = filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
     val rtnames = map (#1 o snd) (filter (fn (_, (_, _, cs)) =>
@@ -274,12 +277,12 @@ fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
 
 fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
    (c as Const (s, T), ts) =>
-     (case Datatype.info_of_case thy s of
+     (case Datatype_Data.info_of_case thy s of
         SOME {index, descr, ...} =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           SOME (pretty_case thy defs dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts gr )
-      | NONE => case (Datatype.info_of_constr thy (s, T), strip_type T) of
+      | NONE => case (Datatype_Data.info_of_constr thy (s, T), strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           let
@@ -294,7 +297,7 @@ fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
  | _ => NONE);
 
 fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
-      (case Datatype.get_info thy s of
+      (case Datatype_Data.get_info thy s of
          NONE => NONE
        | SOME {descr, sorts, ...} =>
            if is_some (get_assoc_type thy s) then NONE else
@@ -329,7 +332,7 @@ fun mk_constr_consts thy vs dtco cos =
 fun mk_case_cert thy tyco =
   let
     val raw_thms =
-      (#case_rewrites o Datatype.the_info thy) tyco;
+      (#case_rewrites o Datatype_Data.the_info thy) tyco;
     val thms as hd_thm :: _ = raw_thms
       |> Conjunction.intr_balanced
       |> Thm.unvarify
@@ -362,9 +365,9 @@ fun mk_case_cert thy tyco =
 
 fun mk_eq_eqns thy dtco =
   let
-    val (vs, cos) = Datatype.the_spec thy dtco;
+    val (vs, cos) = Datatype_Data.the_spec thy dtco;
     val { descr, index, inject = inject_thms, distinct = distinct_thms, ... } =
-      Datatype.the_info thy dtco;
+      Datatype_Data.the_info thy dtco;
     val ty = Type (dtco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
@@ -424,11 +427,11 @@ fun add_equality vs dtcos thy =
 
 fun add_all_code config dtcos thy =
   let
-    val (vs :: _, coss) = (split_list o map (Datatype.the_spec thy)) dtcos;
+    val (vs :: _, coss) = (split_list o map (Datatype_Data.the_spec thy)) dtcos;
     val any_css = map2 (mk_constr_consts thy vs) dtcos coss;
     val css = if exists is_none any_css then []
       else map_filter I any_css;
-    val case_rewrites = maps (#case_rewrites o Datatype.the_info thy) dtcos;
+    val case_rewrites = maps (#case_rewrites o Datatype_Data.the_info thy) dtcos;
     val certs = map (mk_case_cert thy) dtcos;
   in
     if null css then thy
@@ -446,6 +449,6 @@ fun add_all_code config dtcos thy =
 val setup = 
   add_codegen "datatype" datatype_codegen
   #> add_tycodegen "datatype" datatype_tycodegen
-  #> Datatype.interpretation add_all_code
+  #> Datatype_Data.interpretation add_all_code
 
 end;
