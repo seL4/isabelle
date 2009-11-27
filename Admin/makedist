@@ -93,7 +93,7 @@ echo "###"
 { wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
   fail "Failed to retrieve $VERSION"
 
-IDENT=$(echo * | sed 's/${REPOS_NAME}-//')
+IDENT=$(echo * | sed "s/${REPOS_NAME}-//")
 
 rm -f "${REPOS_NAME}-${IDENT}/.hg_archival.txt"
 rm -f "${REPOS_NAME}-${IDENT}/.hgtags"
