@@ -177,26 +177,22 @@ val map_monos = InductiveData.map o apsnd;
 
 fun mk_mono thm =
   let
-    val concl = concl_of thm;
-    fun eq2mono thm' = [thm' RS (thm' RS eq_to_mono)] @
-      (case concl of
-          (_ $ (_ $ (Const ("Not", _) $ _) $ _)) => []
-        | _ => [thm' RS (thm' RS eq_to_mono2)]);
+    fun eq2mono thm' = thm' RS (thm' RS eq_to_mono);
     fun dest_less_concl thm = dest_less_concl (thm RS @{thm le_funD})
       handle THM _ => thm RS @{thm le_boolD}
   in
-    case concl of
+    case concl_of thm of
       Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
     | _ $ (Const ("op =", _) $ _ $ _) => eq2mono thm
     | _ $ (Const (@{const_name HOL.less_eq}, _) $ _ $ _) =>
-      [dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
-         (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))]
-    | _ => [thm]
+      dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
+        (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))
+    | _ => thm
   end handle THM _ =>
     error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm_without_context thm);
 
-val mono_add = Thm.declaration_attribute (map_monos o fold Thm.add_thm o mk_mono);
-val mono_del = Thm.declaration_attribute (map_monos o fold Thm.del_thm o mk_mono);
+val mono_add = Thm.declaration_attribute (map_monos o Thm.add_thm o mk_mono);
+val mono_del = Thm.declaration_attribute (map_monos o Thm.del_thm o mk_mono);
 
 
 
@@ -338,7 +334,7 @@ fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
       REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST
         [atac 1,
-         resolve_tac (maps mk_mono monos @ get_monos ctxt) 1,
+         resolve_tac (map mk_mono monos @ get_monos ctxt) 1,
          etac @{thm le_funE} 1, dtac @{thm le_boolD} 1])]));
 
 
