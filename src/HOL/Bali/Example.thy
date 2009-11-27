@@ -1,10 +1,11 @@
 (*  Title:      HOL/Bali/Example.thy
-    ID:         $Id$
     Author:     David von Oheimb
 *)
 header {* Example Bali program *}
 
-theory Example imports Eval WellForm begin
+theory Example
+imports Eval WellForm
+begin
 
 text {*
 The following example Bali program includes:
@@ -1235,24 +1236,24 @@ syntax
 
 translations
   "obj_a"   <= "\<lparr>tag=Arr (PrimT Boolean) (CONST two)
-                ,values=CONST empty(Inr 0\<mapsto>Bool False)(Inr (CONST one)\<mapsto>Bool False)\<rparr>"
+                ,values=CONST empty(CONST Inr 0\<mapsto>Bool False)(CONST Inr (CONST one)\<mapsto>Bool False)\<rparr>"
   "obj_b"   <= "\<lparr>tag=CInst (CONST Ext)
-                ,values=(CONST empty(Inl (CONST vee, CONST Base)\<mapsto>Null   ) 
-                              (Inl (CONST vee, CONST Ext )\<mapsto>Intg 0))\<rparr>"
+                ,values=(CONST empty(CONST Inl (CONST vee, CONST Base)\<mapsto>Null   ) 
+                              (CONST Inl (CONST vee, CONST Ext )\<mapsto>Intg 0))\<rparr>"
   "obj_c"   == "\<lparr>tag=CInst (SXcpt NullPointer),values=CONST empty\<rparr>"
-  "arr_N"   == "CONST empty(Inl (CONST arr, CONST Base)\<mapsto>Null)"
-  "arr_a"   == "CONST empty(Inl (CONST arr, CONST Base)\<mapsto>Addr a)"
-  "globs1"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
-                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_N\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)"
-  "globs2"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
-                     (Inl a\<mapsto>obj_a)
-                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_a\<rparr>)"
-  "globs3"  == "globs2(Inl b\<mapsto>obj_b)"
-  "globs8"  == "globs3(Inl c\<mapsto>obj_c)"
+  "arr_N"   == "CONST empty(CONST Inl (CONST arr, CONST Base)\<mapsto>Null)"
+  "arr_a"   == "CONST empty(CONST Inl (CONST arr, CONST Base)\<mapsto>Addr a)"
+  "globs1"  == "CONST empty(CONST Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
+                     (CONST Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_N\<rparr>)
+                     (CONST Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)"
+  "globs2"  == "CONST empty(CONST Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
+                     (CONST Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
+                     (CONST Inl a\<mapsto>obj_a)
+                     (CONST Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_a\<rparr>)"
+  "globs3"  == "globs2(CONST Inl b\<mapsto>obj_b)"
+  "globs8"  == "globs3(CONST Inl c\<mapsto>obj_c)"
   "locs3"   == "CONST empty(VName (CONST e)\<mapsto>Addr b)"
-  "locs4"   == "CONST empty(VName (CONST z)\<mapsto>Null)(Inr()\<mapsto>Addr b)"
+  "locs4"   == "CONST empty(VName (CONST z)\<mapsto>Null)(CONST Inr()\<mapsto>Addr b)"
   "locs8"   == "locs3(VName (CONST z)\<mapsto>Addr c)"
   "s0"  == "       st (CONST empty) (CONST empty)"
   "s0'" == " Norm  s0"
