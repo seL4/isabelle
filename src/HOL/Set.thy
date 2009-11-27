@@ -1556,6 +1556,9 @@ lemma imp_mono: "Q1 --> P1 ==> P2 --> Q2 ==> (P1 --> P2) --> (Q1 --> Q2)"
 
 lemma imp_refl: "P --> P" ..
 
+lemma not_mono: "Q --> P ==> ~ P --> ~ Q"
+  by iprover
+
 lemma ex_mono: "(!!x. P x --> Q x) ==> (EX x. P x) --> (EX x. Q x)"
   by iprover
 
@@ -1574,9 +1577,6 @@ lemmas basic_monos =
   ex_mono Collect_mono in_mono
 
 lemma eq_to_mono: "a = b ==> c = d ==> b --> d ==> a --> c"
-  by iprover
-
-lemma eq_to_mono2: "a = b ==> c = d ==> ~ b --> ~ d ==> ~ a --> ~ c"
   by iprover
 
 
@@ -1724,7 +1724,6 @@ val bspec = @{thm bspec}
 val contra_subsetD = @{thm contra_subsetD}
 val distinct_lemma = @{thm distinct_lemma}
 val eq_to_mono = @{thm eq_to_mono}
-val eq_to_mono2 = @{thm eq_to_mono2}
 val equalityCE = @{thm equalityCE}
 val equalityD1 = @{thm equalityD1}
 val equalityD2 = @{thm equalityD2}
