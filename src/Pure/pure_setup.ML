@@ -39,6 +39,11 @@ else if String.isPrefix "polyml" ml_system
 then use "ML-Systems/install_pp_polyml.ML"
 else ();
 
+if ml_system = "polyml-5.0" orelse ml_system = "polyml-5.1" then
+  Secure.use_text ML_Parse.global_context (0, "") false
+    "PolyML.Compiler.maxInlineSize := 20"
+else ();
+
 
 (* ML toplevel use commands *)
 
