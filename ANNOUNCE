@@ -26,11 +26,16 @@ equational specifications.
 
 * HOL: various parts of multivariate analysis.
 
+* HOL-Library: proof method "sos" (sum of squares) for nonlinear real
+arithmetic, based on external semidefinite programming solvers.
+
 * HOLCF: new definitional domain package.
 
 * Revised tutorial on locales.
 
-* Support for Poly/ML 5.3.0, with improved reporting of compiler
+* ML: tacticals for subgoal focus.
+
+* ML: support for Poly/ML 5.3.0, with improved reporting of compiler
 errors and run-time exceptions, including detailed source positions.
 
 * Parallel checking of nested Isar proofs, with improved scalability
