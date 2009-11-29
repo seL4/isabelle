@@ -181,7 +181,9 @@ esac
 
 case "$OUTPUT" in
   "")
-    [ -z "$READONLY" -a -w "$INFILE" ] && OUTFILE="$INFILE"
+    if [ -z "$READONLY" -a -w "$INFILE" ]; then
+      perl -e "exit (((stat('$INFILE'))[2] & 0222) != 0 ? 0 : 1);" && OUTFILE="$INFILE"
+    fi
     ;;
   */*)
     OUTFILE="$OUTPUT"
