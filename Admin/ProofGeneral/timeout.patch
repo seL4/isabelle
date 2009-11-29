@@ -1,0 +1,11 @@
+--- a/generic/proof-config.el	2008-07-21 18:37:10.000000000 +0200
++++ b/generic/proof-config.el	2009-11-29 17:41:37.409062091 +0100
+@@ -1493,7 +1493,7 @@
+    :type '(choice string (const nil))
+    :group 'proof-shell)
+ 
+-(defcustom proof-shell-quit-timeout 4
++(defcustom proof-shell-quit-timeout 12
+   ;; FIXME could add option to quiz user before rude kill.
+   "The number of seconds to wait after sending proof-shell-quit-cmd.
+ After this timeout, the proof shell will be killed off more rudely.
