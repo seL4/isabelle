@@ -102,6 +102,42 @@ proof -
     by (simp add: closed_vimage_fst closed_vimage_snd closed_Int)
 qed
 
+lemma openI: (* TODO: move *)
+  assumes "\<And>x. x \<in> S \<Longrightarrow> \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S"
+  shows "open S"
+proof -
+  have "open (\<Union>{T. open T \<and> T \<subseteq> S})" by auto
+  moreover have "\<Union>{T. open T \<and> T \<subseteq> S} = S" by (auto dest!: assms)
+  ultimately show "open S" by simp
+qed
+
+lemma subset_fst_imageI: "A \<times> B \<subseteq> S \<Longrightarrow> y \<in> B \<Longrightarrow> A \<subseteq> fst ` S"
+  unfolding image_def subset_eq by force
+
+lemma subset_snd_imageI: "A \<times> B \<subseteq> S \<Longrightarrow> x \<in> A \<Longrightarrow> B \<subseteq> snd ` S"
+  unfolding image_def subset_eq by force
+
+lemma open_image_fst: assumes "open S" shows "open (fst ` S)"
+proof (rule openI)
+  fix x assume "x \<in> fst ` S"
+  then obtain y where "(x, y) \<in> S" by auto
+  then obtain A B where "open A" "open B" "x \<in> A" "y \<in> B" "A \<times> B \<subseteq> S"
+    using `open S` unfolding open_prod_def by auto
+  from `A \<times> B \<subseteq> S` `y \<in> B` have "A \<subseteq> fst ` S" by (rule subset_fst_imageI)
+  with `open A` `x \<in> A` have "open A \<and> x \<in> A \<and> A \<subseteq> fst ` S" by simp
+  then show "\<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> fst ` S" by - (rule exI)
+qed
+
+lemma open_image_snd: assumes "open S" shows "open (snd ` S)"
+proof (rule openI)
+  fix y assume "y \<in> snd ` S"
+  then obtain x where "(x, y) \<in> S" by auto
+  then obtain A B where "open A" "open B" "x \<in> A" "y \<in> B" "A \<times> B \<subseteq> S"
+    using `open S` unfolding open_prod_def by auto
+  from `A \<times> B \<subseteq> S` `x \<in> A` have "B \<subseteq> snd ` S" by (rule subset_snd_imageI)
+  with `open B` `y \<in> B` have "open B \<and> y \<in> B \<and> B \<subseteq> snd ` S" by simp
+  then show "\<exists>T. open T \<and> y \<in> T \<and> T \<subseteq> snd ` S" by - (rule exI)
+qed
 
 subsection {* Product is a metric space *}
 
