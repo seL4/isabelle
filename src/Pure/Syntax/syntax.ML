@@ -496,7 +496,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
     else if ! ambiguity_is_error then error (ambiguity_msg pos)
     else
       (warning (cat_lines
-        (("Ambiguous input " ^ Position.str_of pos ^
+        (("Ambiguous input" ^ Position.str_of pos ^
           "\nproduces " ^ string_of_int len ^ " parse trees" ^
           (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
           map show_pt (Library.take (limit, pts)))));
