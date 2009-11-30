@@ -502,7 +502,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)
       (map (fn (_, (class, (c, _))) => (c, [[class]])) class_params);
-    fun resort_check ts ctxt = case resort_terms pp algebra consts improve_constraints ts
+    fun resort_check ts ctxt = case resort_terms (Syntax.pp ctxt) algebra consts improve_constraints ts
      of NONE => NONE
       | SOME ts' => SOME (ts', ctxt);
     val lookup_inst_param = AxClass.lookup_inst_param consts params;
