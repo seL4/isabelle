@@ -243,7 +243,7 @@ fun add_dummies f [] _ thy =
       thy
       |> f (map snd dts)
       |-> (fn dtinfo => pair (map fst dts, SOME dtinfo))
-    handle DatatypeAux.Datatype_Empty name' =>
+    handle Datatype_Aux.Datatype_Empty name' =>
       let
         val name = Long_Name.base_name name';
         val dname = Name.variant used "Dummy";
@@ -398,7 +398,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val (thm', thy') = PureThy.store_thm (Binding.qualified_name (space_implode "_"
           (Long_Name.qualify qualifier "induct" :: vs' @ Ps @ ["correctness"])), thm) thy;
         val thms = map (fn th => zero_var_indexes (rotate_prems ~1 (th RS mp)))
-          (DatatypeAux.split_conj_thm thm');
+          (Datatype_Aux.split_conj_thm thm');
         val ([thms'], thy'') = PureThy.add_thmss
           [((Binding.qualified_name (space_implode "_"
              (Long_Name.qualify qualifier "inducts" :: vs' @ Ps @

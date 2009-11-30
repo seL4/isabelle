@@ -406,12 +406,12 @@ struct
 (* TRANSLATION HOL -> PROPOSITIONAL LOGIC, BOOLEAN ASSIGNMENT -> MODEL       *)
 (* ------------------------------------------------------------------------- *)
 
-  fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
+  fun typ_of_dtyp descr typ_assoc (Datatype_Aux.DtTFree a) =
     (* replace a 'DtTFree' variable by the associated type *)
-    the (AList.lookup (op =) typ_assoc (DatatypeAux.DtTFree a))
-    | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
+    the (AList.lookup (op =) typ_assoc (Datatype_Aux.DtTFree a))
+    | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtType (s, ds)) =
     Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-    | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
+    | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtRec i) =
     let
       val (s, ds, _) = the (AList.lookup (op =) descr i)
     in
@@ -946,7 +946,7 @@ struct
             (* sanity check: every element in 'dtyps' must be a *)
             (* 'DtTFree'                                        *)
             val _ = if Library.exists (fn d =>
-              case d of DatatypeAux.DtTFree _ => false | _ => true) typs then
+              case d of Datatype_Aux.DtTFree _ => false | _ => true) typs then
               raise REFUTE ("ground_types", "datatype argument (for type "
                 ^ Syntax.string_of_typ_global thy T ^ ") is not a variable")
             else ()
@@ -958,11 +958,11 @@ struct
               val dT = typ_of_dtyp descr typ_assoc d
             in
               case d of
-                DatatypeAux.DtTFree _ =>
+                Datatype_Aux.DtTFree _ =>
                 collect_types dT acc
-              | DatatypeAux.DtType (_, ds) =>
+              | Datatype_Aux.DtType (_, ds) =>
                 collect_types dT (fold_rev collect_dtyp ds acc)
-              | DatatypeAux.DtRec i =>
+              | Datatype_Aux.DtRec i =>
                 if dT mem acc then
                   acc  (* prevent infinite recursion *)
                 else
@@ -971,7 +971,7 @@ struct
                     (* if the current type is a recursive IDT (i.e. a depth *)
                     (* is required), add it to 'acc'                        *)
                     val acc_dT = if Library.exists (fn (_, ds) =>
-                      Library.exists DatatypeAux.is_rec_type ds) dconstrs then
+                      Library.exists Datatype_Aux.is_rec_type ds) dconstrs then
                         insert (op =) dT acc
                       else acc
                     (* collect argument types *)
@@ -985,7 +985,7 @@ struct
           in
             (* argument types 'Ts' could be added here, but they are also *)
             (* added by 'collect_dtyp' automatically                      *)
-            collect_dtyp (DatatypeAux.DtRec index) acc
+            collect_dtyp (Datatype_Aux.DtRec index) acc
           end
         | NONE =>
           (* not an inductive datatype, e.g. defined via "typedef" or *)
@@ -1157,7 +1157,7 @@ struct
             in
               (* recursive datatype? *)
               Library.exists (fn (_, ds) =>
-                Library.exists DatatypeAux.is_rec_type ds) constrs
+                Library.exists Datatype_Aux.is_rec_type ds) constrs
             end
           | NONE => false)
         | _ => false) types
@@ -1952,7 +1952,7 @@ struct
               val typ_assoc           = dtyps ~~ Ts
               (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
               val _ = if Library.exists (fn d =>
-                  case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
+                  case d of Datatype_Aux.DtTFree _ => false | _ => true) dtyps
                 then
                   raise REFUTE ("IDT_interpreter",
                     "datatype argument (for type "
@@ -2076,7 +2076,7 @@ struct
               val typ_assoc           = dtyps ~~ Ts
               (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
               val _ = if Library.exists (fn d =>
-                  case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
+                  case d of Datatype_Aux.DtTFree _ => false | _ => true) dtyps
                 then
                   raise REFUTE ("IDT_constructor_interpreter",
                     "datatype argument (for type "
@@ -2135,7 +2135,7 @@ struct
               val typ_assoc           = dtyps ~~ Ts'
               (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
               val _ = if Library.exists (fn d =>
-                  case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
+                  case d of Datatype_Aux.DtTFree _ => false | _ => true) dtyps
                 then
                   raise REFUTE ("IDT_constructor_interpreter",
                     "datatype argument (for type "
@@ -2350,7 +2350,7 @@ struct
                   (* sanity check: every element in 'dtyps' must be a *)
                   (*               'DtTFree'                          *)
                   val _ = if Library.exists (fn d =>
-                    case d of DatatypeAux.DtTFree _ => false
+                    case d of Datatype_Aux.DtTFree _ => false
                             | _ => true) dtyps
                     then
                       raise REFUTE ("IDT_recursion_interpreter",
@@ -2372,10 +2372,10 @@ struct
                     (case AList.lookup op= acc d of
                       NONE =>
                       (case d of
-                        DatatypeAux.DtTFree _ =>
+                        Datatype_Aux.DtTFree _ =>
                         (* add the association, proceed *)
                         rec_typ_assoc ((d, T)::acc) xs
-                      | DatatypeAux.DtType (s, ds) =>
+                      | Datatype_Aux.DtType (s, ds) =>
                         let
                           val (s', Ts) = dest_Type T
                         in
@@ -2385,7 +2385,7 @@ struct
                             raise REFUTE ("IDT_recursion_interpreter",
                               "DtType/Type mismatch")
                         end
-                      | DatatypeAux.DtRec i =>
+                      | Datatype_Aux.DtRec i =>
                         let
                           val (_, ds, _) = the (AList.lookup (op =) descr i)
                           val (_, Ts)    = dest_Type T
@@ -2401,7 +2401,7 @@ struct
                         raise REFUTE ("IDT_recursion_interpreter",
                           "different type associations for the same dtyp"))
                   val typ_assoc = filter
-                    (fn (DatatypeAux.DtTFree _, _) => true | (_, _) => false)
+                    (fn (Datatype_Aux.DtTFree _, _) => true | (_, _) => false)
                     (rec_typ_assoc []
                       (#2 (the (AList.lookup (op =) descr idt_index)) ~~ (snd o dest_Type) IDT))
                   (* sanity check: typ_assoc must associate types to the   *)
@@ -2417,7 +2417,7 @@ struct
                   val mc_intrs = map (fn (idx, (_, _, cs)) =>
                     let
                       val c_return_typ = typ_of_dtyp descr typ_assoc
-                        (DatatypeAux.DtRec idx)
+                        (Datatype_Aux.DtRec idx)
                     in
                       (idx, map (fn (cname, cargs) =>
                         (#1 o interpret thy (typs, []) {maxvars=0,
@@ -2471,7 +2471,7 @@ struct
                   val _ = map (fn (idx, intrs) =>
                     let
                       val T = typ_of_dtyp descr typ_assoc
-                        (DatatypeAux.DtRec idx)
+                        (Datatype_Aux.DtRec idx)
                     in
                       if length intrs <> size_of_type thy (typs, []) T then
                         raise REFUTE ("IDT_recursion_interpreter",
@@ -2552,7 +2552,7 @@ struct
                         val (_, _, constrs) = the (AList.lookup (op =) descr idx)
                         val (_, dtyps)      = List.nth (constrs, c)
                         val rec_dtyps_args  = filter
-                          (DatatypeAux.is_rec_type o fst) (dtyps ~~ args)
+                          (Datatype_Aux.is_rec_type o fst) (dtyps ~~ args)
                         (* map those indices to interpretations *)
                         val rec_dtyps_intrs = map (fn (dtyp, arg) =>
                           let
@@ -2565,18 +2565,18 @@ struct
                         (* takes the dtyp and interpretation of an element, *)
                         (* and computes the interpretation for the          *)
                         (* corresponding recursive argument                 *)
-                        fun rec_intr (DatatypeAux.DtRec i) (Leaf xs) =
+                        fun rec_intr (Datatype_Aux.DtRec i) (Leaf xs) =
                           (* recursive argument is "rec_i params elem" *)
                           compute_array_entry i (find_index (fn x => x = True) xs)
-                          | rec_intr (DatatypeAux.DtRec _) (Node _) =
+                          | rec_intr (Datatype_Aux.DtRec _) (Node _) =
                           raise REFUTE ("IDT_recursion_interpreter",
                             "interpretation for IDT is a node")
-                          | rec_intr (DatatypeAux.DtType ("fun", [dt1, dt2]))
+                          | rec_intr (Datatype_Aux.DtType ("fun", [dt1, dt2]))
                             (Node xs) =
                           (* recursive argument is something like     *)
                           (* "\<lambda>x::dt1. rec_? params (elem x)" *)
                           Node (map (rec_intr dt2) xs)
-                          | rec_intr (DatatypeAux.DtType ("fun", [_, _]))
+                          | rec_intr (Datatype_Aux.DtType ("fun", [_, _]))
                             (Leaf _) =
                           raise REFUTE ("IDT_recursion_interpreter",
                             "interpretation for function dtyp is a leaf")
@@ -3169,7 +3169,7 @@ struct
           val typ_assoc           = dtyps ~~ Ts
           (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
           val _ = if Library.exists (fn d =>
-              case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
+              case d of Datatype_Aux.DtTFree _ => false | _ => true) dtyps
             then
               raise REFUTE ("IDT_printer", "datatype argument (for type " ^
                 Syntax.string_of_typ_global thy (Type (s, Ts)) ^ ") is not a variable")

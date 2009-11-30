@@ -23,7 +23,7 @@ end;
 structure Primrec : PRIMREC =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 exception PrimrecError of string * term option;
 

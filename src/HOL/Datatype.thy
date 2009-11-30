@@ -1,16 +1,13 @@
 (*  Title:      HOL/Datatype.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
-
-Could <*> be generalized to a general summation (Sigma)?
 *)
 
-header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
+header {* Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
 
 theory Datatype
 imports Product_Type Sum_Type Nat
 uses
-  ("Tools/Datatype/datatype_rep_proofs.ML")
   ("Tools/Datatype/datatype.ML")
   ("Tools/inductive_realizer.ML")
   ("Tools/Datatype/datatype_realizer.ML")
@@ -520,13 +517,12 @@ text {* hides popular names *}
 hide (open) type node item
 hide (open) const Push Node Atom Leaf Numb Lim Split Case
 
-use "Tools/Datatype/datatype_rep_proofs.ML"
 use "Tools/Datatype/datatype.ML"
 
 use "Tools/inductive_realizer.ML"
 setup InductiveRealizer.setup
 
 use "Tools/Datatype/datatype_realizer.ML"
-setup DatatypeRealizer.setup
+setup Datatype_Realizer.setup
 
 end

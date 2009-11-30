@@ -1,38 +1,39 @@
-(*  Title:      HOL/Tools/datatype_prop.ML
+(*  Title:      HOL/Tools/Datatype/datatype_prop.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Characteristic properties of datatypes.
+Datatype package: characteristic properties of datatypes.
 *)
 
 signature DATATYPE_PROP =
 sig
+  include DATATYPE_COMMON
   val indexify_names: string list -> string list
   val make_tnames: typ list -> string list
-  val make_injs : DatatypeAux.descr list -> (string * sort) list -> term list list
-  val make_distincts : DatatypeAux.descr list ->
+  val make_injs : descr list -> (string * sort) list -> term list list
+  val make_distincts : descr list ->
     (string * sort) list -> (int * term list) list (*no symmetric inequalities*)
-  val make_ind : DatatypeAux.descr list -> (string * sort) list -> term
-  val make_casedists : DatatypeAux.descr list -> (string * sort) list -> term list
-  val make_primrec_Ts : DatatypeAux.descr list -> (string * sort) list ->
+  val make_ind : descr list -> (string * sort) list -> term
+  val make_casedists : descr list -> (string * sort) list -> term list
+  val make_primrec_Ts : descr list -> (string * sort) list ->
     string list -> typ list * typ list
-  val make_primrecs : string list -> DatatypeAux.descr list ->
+  val make_primrecs : string list -> descr list ->
     (string * sort) list -> theory -> term list
-  val make_cases : string list -> DatatypeAux.descr list ->
+  val make_cases : string list -> descr list ->
     (string * sort) list -> theory -> term list list
-  val make_splits : string list -> DatatypeAux.descr list ->
+  val make_splits : string list -> descr list ->
     (string * sort) list -> theory -> (term * term) list
-  val make_weak_case_congs : string list -> DatatypeAux.descr list ->
+  val make_weak_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> term list
-  val make_case_congs : string list -> DatatypeAux.descr list ->
+  val make_case_congs : string list -> descr list ->
     (string * sort) list -> theory -> term list
-  val make_nchotomys : DatatypeAux.descr list ->
+  val make_nchotomys : descr list ->
     (string * sort) list -> term list
 end;
 
-structure DatatypeProp : DATATYPE_PROP =
+structure Datatype_Prop : DATATYPE_PROP =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 fun indexify_names names =
   let

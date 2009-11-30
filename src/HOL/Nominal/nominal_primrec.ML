@@ -21,7 +21,7 @@ end;
 structure NominalPrimrec : NOMINAL_PRIMREC =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 exception RecError of string;
 

@@ -1,30 +1,32 @@
-(*  Title:      HOL/Tools/datatype_case.ML
+(*  Title:      HOL/Tools/Datatype/datatype_case.ML
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer, TU Muenchen
 
-Nested case expressions on datatypes.
+Datatype package: nested case expressions on datatypes.
 *)
 
 signature DATATYPE_CASE =
 sig
-  datatype config = Error | Warning | Quiet;
-  val make_case: (string * typ -> DatatypeAux.info option) ->
+  datatype config = Error | Warning | Quiet
+  type info = Datatype_Aux.info
+  val make_case: (string * typ -> info option) ->
     Proof.context -> config -> string list -> term -> (term * term) list ->
     term * (term * (int * bool)) list
-  val dest_case: (string -> DatatypeAux.info option) -> bool ->
+  val dest_case: (string -> info option) -> bool ->
     string list -> term -> (term * (term * term) list) option
-  val strip_case: (string -> DatatypeAux.info option) -> bool ->
+  val strip_case: (string -> info option) -> bool ->
     term -> (term * (term * term) list) option
-  val case_tr: bool -> (theory -> string * typ -> DatatypeAux.info option)
-    -> Proof.context -> term list -> term
-  val case_tr': (theory -> string -> DatatypeAux.info option) ->
+  val case_tr: bool -> (theory -> string * typ -> info option) ->
+    Proof.context -> term list -> term
+  val case_tr': (theory -> string -> info option) ->
     string -> Proof.context -> term list -> term
 end;
 
-structure DatatypeCase : DATATYPE_CASE =
+structure Datatype_Case : DATATYPE_CASE =
 struct
 
 datatype config = Error | Warning | Quiet;
+type info = Datatype_Aux.info;
 
 exception CASE_ERROR of string * int;
 
@@ -36,10 +38,10 @@ fun match_type thy pat ob = Sign.typ_match thy (pat, ob) Vartab.empty;
 
 fun ty_info tab sT =
   case tab sT of
-    SOME ({descr, case_name, index, sorts, ...} : DatatypeAux.info) =>
+    SOME ({descr, case_name, index, sorts, ...} : info) =>
       let
         val (_, (tname, dts, constrs)) = nth descr index;
-        val mk_ty = DatatypeAux.typ_of_dtyp descr sorts;
+        val mk_ty = Datatype_Aux.typ_of_dtyp descr sorts;
         val T = Type (tname, map mk_ty dts)
       in
         SOME {case_name = case_name,
@@ -84,7 +86,7 @@ fun fresh_constr ty_match ty_inst colty used c =
     val (_, Ty) = dest_Const c
     val Ts = binder_types Ty;
     val names = Name.variant_list used
-      (DatatypeProp.make_tnames (map Logic.unvarifyT Ts));
+      (Datatype_Prop.make_tnames (map Logic.unvarifyT Ts));
     val ty = body_type Ty;
     val ty_theta = ty_match ty colty handle Type.TYPE_MATCH =>
       raise CASE_ERROR ("type mismatch", ~1)

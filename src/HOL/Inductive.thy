@@ -280,11 +280,11 @@ use "Tools/Datatype/datatype_abs_proofs.ML"
 use "Tools/Datatype/datatype_data.ML"
 setup Datatype_Data.setup
 
+use "Tools/Datatype/datatype_codegen.ML"
+setup Datatype_Codegen.setup
+
 use "Tools/old_primrec.ML"
 use "Tools/primrec.ML"
-
-use "Tools/Datatype/datatype_codegen.ML"
-setup DatatypeCodegen.setup
 
 use "Tools/inductive_codegen.ML"
 setup InductiveCodegen.setup
@@ -301,7 +301,7 @@ let
   fun fun_tr ctxt [cs] =
     let
       val x = Free (Name.variant (Term.add_free_names cs []) "x", dummyT);
-      val ft = DatatypeCase.case_tr true Datatype_Data.info_of_constr
+      val ft = Datatype_Case.case_tr true Datatype_Data.info_of_constr
                  ctxt [x, cs]
     in lambda x ft end
 in [("_lam_pats_syntax", fun_tr)] end

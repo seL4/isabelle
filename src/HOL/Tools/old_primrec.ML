@@ -21,7 +21,7 @@ end;
 structure OldPrimrec : OLD_PRIMREC =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 exception RecError of string;
 
