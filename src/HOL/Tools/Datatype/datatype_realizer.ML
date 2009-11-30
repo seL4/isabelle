@@ -28,15 +28,10 @@ fun forall_intr_prf (t, prf) =
 fun prf_of thm =
   Reconstruct.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
-fun prf_subst_vars inst =
-  Proofterm.map_proof_terms (subst_vars ([], inst)) I;
-
 fun is_unit t = snd (strip_type (fastype_of t)) = HOLogic.unitT;
 
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";
-
-fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
 fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy =
   let

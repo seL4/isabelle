@@ -930,10 +930,7 @@ fun read_const_exprs thy =
           ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
         fun belongs_here c =
           not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
-      in case some_thyname
-       of NONE => cs
-        | SOME thyname => filter belongs_here cs
-      end;
+      in if is_some some_thyname then cs else filter belongs_here cs end;
     fun read_const_expr "*" = ([], consts_of NONE)
       | read_const_expr s = if String.isSuffix ".*" s
           then ([], consts_of (SOME (unsuffix ".*" s)))

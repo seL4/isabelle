@@ -42,7 +42,7 @@ fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           (map (str o lookup_var tyvars) vnames) @ str "." @@ Pretty.brk 1;
     fun pr_tycoexpr tyvars fxy (tyco, tys) =
       brackify fxy (str tyco :: map (pr_typ tyvars BR) tys)
-    and pr_typ tyvars fxy (tycoexpr as tyco `%% tys) = (case syntax_tyco tyco
+    and pr_typ tyvars fxy (tyco `%% tys) = (case syntax_tyco tyco
          of NONE => pr_tycoexpr tyvars fxy (deresolve tyco, tys)
           | SOME (i, pr) => pr (pr_typ tyvars) fxy tys)
       | pr_typ tyvars fxy (ITyVar v) = (str o lookup_var tyvars) v;

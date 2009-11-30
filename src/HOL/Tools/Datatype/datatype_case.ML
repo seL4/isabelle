@@ -227,7 +227,6 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                   val nrows = maps (expand constructors used' pty) rows;
                   val subproblems = partition ty_match ty_inst type_of used'
                     constructors pty range_ty nrows;
-                  val new_formals = map #new_formals subproblems
                   val constructors' = map #constructor subproblems
                   val news = map (fn {new_formals, group, ...} =>
                     {path = new_formals @ rstp, rows = group}) subproblems;

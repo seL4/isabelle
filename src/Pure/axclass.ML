@@ -257,12 +257,11 @@ fun lookup_inst_param consts params (c, T) = case get_inst_tyco consts (c, T)
   | NONE => NONE;
 
 fun unoverload_const thy (c_ty as (c, _)) =
-  case class_of_param thy c
-   of SOME class (* FIXME unused? *) =>
-     (case get_inst_tyco (Sign.consts_of thy) c_ty
-       of SOME tyco => try (param_of_inst thy) (c, tyco) |> the_default c
-        | NONE => c)
-    | NONE => c;
+  if is_some (class_of_param thy c)
+  then case get_inst_tyco (Sign.consts_of thy) c_ty
+   of SOME tyco => try (param_of_inst thy) (c, tyco) |> the_default c
+    | NONE => c
+  else c;
 
 
 (** instances **)

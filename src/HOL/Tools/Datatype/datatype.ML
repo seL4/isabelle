@@ -36,7 +36,6 @@ val In0_name = @{const_name "Datatype.In0"};
 val In1_name = @{const_name "Datatype.In1"};
 val Scons_name = @{const_name "Datatype.Scons"};
 val Leaf_name = @{const_name "Datatype.Leaf"};
-val Numb_name = @{const_name "Datatype.Numb"};
 val Lim_name = @{const_name "Datatype.Lim"};
 val Suml_name = @{const_name "Sum_Type.Suml"};
 val Sumr_name = @{const_name "Sum_Type.Sumr"};

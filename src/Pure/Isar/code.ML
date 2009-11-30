@@ -240,7 +240,7 @@ structure Code_Data = TheoryDataFun
     (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty)))), Unsynchronized.ref empty_data);
   fun copy (spec, data) = (spec, Unsynchronized.ref (! data));
   val extend = copy;
-  fun merge pp ((spec1, data1), (spec2, data2)) =
+  fun merge _ ((spec1, _), (spec2, _)) =
     (merge_spec (spec1, spec2), Unsynchronized.ref empty_data);
 );
 
@@ -511,7 +511,7 @@ fun typscheme_eqns thy c [] =
               |> map (fn v => TFree (v, []));
         val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
       in typscheme thy (c, ty) end
-  | typscheme_eqns thy c (thms as thm :: _) = typscheme_eqn thy thm;
+  | typscheme_eqns thy c (thm :: _) = typscheme_eqn thy thm;
 
 fun assert_eqns_const thy c eqns =
   let

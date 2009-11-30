@@ -101,7 +101,7 @@ fun register (dt_infos : (string * info) list) =
 
 fun the_spec thy dtco =
   let
-    val info as { descr, index, sorts = raw_sorts, ... } = the_info thy dtco;
+    val { descr, index, sorts = raw_sorts, ... } = the_info thy dtco;
     val SOME (_, dtys, raw_cos) = AList.lookup (op =) descr index;
     val sorts = map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v))
       o Datatype_Aux.dest_DtTFree) dtys;
@@ -114,7 +114,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
     val info = the_info thy raw_tyco;
     val descr = #descr info;
 
-    val SOME (_, dtys, raw_cos) = AList.lookup (op =) descr (#index info);
+    val SOME (_, dtys, _) = AList.lookup (op =) descr (#index info);
     val vs = map ((fn v => (v, (the o AList.lookup (op =) (#sorts info)) v))
       o dest_DtTFree) dtys;
 
