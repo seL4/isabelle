@@ -261,18 +261,13 @@ text {* Package setup. *}
 theorems basic_monos =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   Collect_mono in_mono vimage_mono
-  imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
-  not_all not_ex
-  Ball_def Bex_def
-  induct_rulify_fallback
 
 use "Tools/inductive.ML"
 setup Inductive.setup
 
 theorems [mono] =
   imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
-  imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
-  not_all not_ex
+  imp_mono not_mono
   Ball_def Bex_def
   induct_rulify_fallback
 
