@@ -968,6 +968,458 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Inductive Predicates%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+To execute inductive predicates, a special preprocessor, the predicate
+ compiler, generates code equations from the introduction rules of the predicates.
+The mechanisms of this compiler are described in \cite{Berghofer-Bulwahn-Haftmann:2009:TPHOL}.
+Consider the simple predicate \isa{append} given by these two
+introduction rules:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isa{append\ {\isacharbrackleft}{\isacharbrackright}\ ys\ ys}\\
+\noindent\isa{append\ xs\ ys\ zs\ {\isasymLongrightarrow}\ append\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ ys\ {\isacharparenleft}x\ {\isacharhash}\ zs{\isacharparenright}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent To invoke the compiler, simply use \indexdef{}{command}{code\_pred}\hypertarget{command.code-pred}{\hyperlink{command.code-pred}{\mbox{\isa{\isacommand{code{\isacharunderscore}pred}}}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{code{\isacharunderscore}pred}\isamarkupfalse%
+\ append\ \isacommand{{\isachardot}}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The \hyperlink{command.code-pred}{\mbox{\isa{\isacommand{code{\isacharunderscore}pred}}}} command takes the name
+of the inductive predicate and then you put a period to discharge
+a trivial correctness proof. 
+The compiler infers possible modes 
+for the predicate and produces the derived code equations.
+Modes annotate which (parts of the) arguments are to be taken as input,
+and which output. Modes are similar to types, but use the notation \isa{i}
+for input and \isa{o} for output.
+ 
+For \isa{append}, the compiler can infer the following modes:
+\begin{itemize}
+\item \isa{i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ bool}
+\item \isa{i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ bool}
+\item \isa{o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ bool}
+\end{itemize}
+You can compute sets of predicates using \indexdef{}{command}{values}\hypertarget{command.values}{\hyperlink{command.values}{\mbox{\isa{\isacommand{values}}}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{values}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}zs{\isachardot}\ append\ {\isacharbrackleft}{\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharcomma}{\isadigit{2}}{\isacharcomma}{\isadigit{3}}{\isacharbrackright}\ {\isacharbrackleft}{\isadigit{4}}{\isacharcomma}{\isadigit{5}}{\isacharbrackright}\ zs{\isacharbraceright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent outputs \isa{{\isacharbraceleft}{\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharcomma}\ {\isadigit{4}}{\isacharcomma}\ {\isadigit{5}}{\isacharbrackright}{\isacharbraceright}}, and%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{values}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isachardot}\ append\ xs\ ys\ {\isacharbrackleft}{\isacharparenleft}{\isadigit{2}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharcomma}{\isadigit{3}}{\isacharbrackright}{\isacharbraceright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent outputs \isa{{\isacharbraceleft}{\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}{\isacharbrackleft}{\isadigit{2}}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isadigit{3}}{\isacharbrackright}{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}{\isacharbrackleft}{\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharbraceright}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\noindent If you are only interested in the first elements of the set
+comprehension (with respect to a depth-first search on the introduction rules), you can
+pass an argument to
+\hyperlink{command.values}{\mbox{\isa{\isacommand{values}}}} to specify the number of elements you want:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{values}\isamarkupfalse%
+\ {\isadigit{1}}\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isachardot}\ append\ xs\ ys\ {\isacharbrackleft}{\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharcomma}{\isadigit{2}}{\isacharcomma}{\isadigit{3}}{\isacharcomma}{\isadigit{4}}{\isacharbrackright}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\isacommand{values}\isamarkupfalse%
+\ {\isadigit{3}}\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isachardot}\ append\ xs\ ys\ {\isacharbrackleft}{\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharcomma}{\isadigit{2}}{\isacharcomma}{\isadigit{3}}{\isacharcomma}{\isadigit{4}}{\isacharbrackright}{\isacharbraceright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The \hyperlink{command.values}{\mbox{\isa{\isacommand{values}}}} command can only compute set
+ comprehensions for which a mode has been inferred.
+
+The code equations for a predicate are made available as theorems with
+ the suffix \isa{equation}, and can be inspected with:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{thm}\isamarkupfalse%
+\ append{\isachardot}equation%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent More advanced options are described in the following subsections.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Alternative names for functions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+By default, the functions generated from a predicate are named after the predicate with the
+mode mangled into the name (e.g., \isa{append{\isacharunderscore}i{\isacharunderscore}i{\isacharunderscore}o}).
+You can specify your own names as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{code{\isacharunderscore}pred}\isamarkupfalse%
+\ {\isacharparenleft}modes{\isacharcolon}\ i\ {\isacharequal}{\isachargreater}\ i\ {\isacharequal}{\isachargreater}\ o\ {\isacharequal}{\isachargreater}\ bool\ as\ concat{\isacharcomma}\isanewline
+\ \ o\ {\isacharequal}{\isachargreater}\ o\ {\isacharequal}{\isachargreater}\ i\ {\isacharequal}{\isachargreater}\ bool\ as\ split{\isacharcomma}\isanewline
+\ \ i\ {\isacharequal}{\isachargreater}\ o\ {\isacharequal}{\isachargreater}\ i\ {\isacharequal}{\isachargreater}\ bool\ as\ suffix{\isacharparenright}\ append\ \isacommand{{\isachardot}}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isamarkupsubsubsection{Alternative introduction rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Sometimes the introduction rules of an predicate are not executable because they contain
+non-executable constants or specific modes could not be inferred.
+It is also possible that the introduction rules yield a function that loops forever
+due to the execution in a depth-first search manner.
+Therefore, you can declare alternative introduction rules for predicates with the attribute
+\hyperlink{attribute.code-pred-intro}{\mbox{\isa{code{\isacharunderscore}pred{\isacharunderscore}intro}}}.
+For example, the transitive closure is defined by:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isa{r\ a\ b\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ b}\\
+\noindent \isa{{\isasymlbrakk}r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ b{\isacharsemicolon}\ r\ b\ c{\isasymrbrakk}\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ c}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent These rules do not suit well for executing the transitive closure 
+with the mode \isa{{\isacharparenleft}i\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ bool}, as the second rule will
+cause an infinite loop in the recursive call.
+This can be avoided using the following alternative rules which are
+declared to the predicate compiler by the attribute \hyperlink{attribute.code-pred-intro}{\mbox{\isa{code{\isacharunderscore}pred{\isacharunderscore}intro}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharunderscore}pred{\isacharunderscore}intro{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}r\ a\ b\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ b{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}r\ a\ b\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ b\ c\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ c{\isachardoublequoteclose}\isanewline
+\isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent After declaring all alternative rules for the transitive closure,
+you invoke \hyperlink{command.code-pred}{\mbox{\isa{\isacommand{code{\isacharunderscore}pred}}}} as usual.
+As you have declared alternative rules for the predicate, you are urged to prove that these
+introduction rules are complete, i.e., that you can derive an elimination rule for the
+alternative rules:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{code{\isacharunderscore}pred}\isamarkupfalse%
+\ tranclp\isanewline
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ tranclp\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ this\ converse{\isacharunderscore}tranclpE{\isacharbrackleft}OF\ this{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharbrackright}\ \isacommand{show}\isamarkupfalse%
+\ thesis\ \isacommand{by}\isamarkupfalse%
+\ metis\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Alternative rules can also be used for constants that have not
+been defined inductively. For example, the lexicographic order which
+is defined as:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\begin{isabelle}%
+lexord\ r\ {\isasymequiv}\isanewline
+{\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\isanewline
+\isaindent{\ }{\isasymexists}a\ v{\isachardot}\ y\ {\isacharequal}\ x\ {\isacharat}\ a\ {\isacharhash}\ v\ {\isasymor}\isanewline
+\isaindent{\ {\isasymexists}a\ v{\isachardot}\ }{\isacharparenleft}{\isasymexists}u\ a\ b\ v\ w{\isachardot}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\ {\isasymand}\ x\ {\isacharequal}\ u\ {\isacharat}\ a\ {\isacharhash}\ v\ {\isasymand}\ y\ {\isacharequal}\ u\ {\isacharat}\ b\ {\isacharhash}\ w{\isacharparenright}{\isacharbraceright}%
+\end{isabelle}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent To make it executable, you can derive the following two rules and prove the
+elimination rule:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharunderscore}pred{\isacharunderscore}intro{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}append\ xs\ {\isacharparenleft}a\ {\isacharhash}\ v{\isacharparenright}\ ys\ {\isasymLongrightarrow}\ lexord\ r\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharunderscore}pred{\isacharunderscore}intro{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}append\ u\ {\isacharparenleft}a\ {\isacharhash}\ v{\isacharparenright}\ xs\ {\isasymLongrightarrow}\ append\ u\ {\isacharparenleft}b\ {\isacharhash}\ w{\isacharparenright}\ ys\ {\isasymLongrightarrow}\ r\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\isanewline
+\ \ {\isasymLongrightarrow}\ lexord\ r\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{code{\isacharunderscore}pred}\isamarkupfalse%
+\ lexord%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isamarkupsubsubsection{Options for values%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In the presence of higher-order predicates, multiple modes for some predicate could be inferred
+that are not disambiguated by the pattern of the set comprehension.
+To disambiguate the modes for the arguments of a predicate, you can state
+the modes explicitly in the \hyperlink{command.values}{\mbox{\isa{\isacommand{values}}}} command. 
+Consider the simple predicate \isa{succ}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ succ\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}succ\ {\isadigit{0}}\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}succ\ x\ y\ {\isasymLongrightarrow}\ succ\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}pred}\isamarkupfalse%
+\ succ%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent For this, the predicate compiler can infer modes \isa{o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ bool}, \isa{i\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ bool},
+  \isa{o\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ bool} and \isa{i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ bool}.
+The invocation of \hyperlink{command.values}{\mbox{\isa{\isacommand{values}}}} \isa{{\isacharbraceleft}n{\isachardot}\ tranclp\ succ\ {\isadigit{1}}{\isadigit{0}}\ n{\isacharbraceright}} loops, as multiple
+modes for the predicate \isa{succ} are possible and here the first mode \isa{o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ bool}
+is chosen. To choose another mode for the argument, you can declare the mode for the argument between
+the \hyperlink{command.values}{\mbox{\isa{\isacommand{values}}}} and the number of elements.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{values}\isamarkupfalse%
+\ {\isacharbrackleft}mode{\isacharcolon}\ i\ {\isacharequal}{\isachargreater}\ o\ {\isacharequal}{\isachargreater}\ bool{\isacharbrackright}\ {\isadigit{2}}{\isadigit{0}}\ {\isachardoublequoteopen}{\isacharbraceleft}n{\isachardot}\ tranclp\ succ\ {\isadigit{1}}{\isadigit{0}}\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\isacommand{values}\isamarkupfalse%
+\ {\isacharbrackleft}mode{\isacharcolon}\ o\ {\isacharequal}{\isachargreater}\ i\ {\isacharequal}{\isachargreater}\ bool{\isacharbrackright}\ {\isadigit{1}}{\isadigit{0}}\ {\isachardoublequoteopen}{\isacharbraceleft}n{\isachardot}\ tranclp\ succ\ n\ {\isadigit{1}}{\isadigit{0}}{\isacharbraceright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isamarkupsubsubsection{Embedding into functional code within Isabelle/HOL%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+To embed the computation of an inductive predicate into functions that are defined in Isabelle/HOL,
+you have a number of options:
+\begin{itemize}
+\item You want to use the first-order predicate with the mode
+  where all arguments are input. Then you can use the predicate directly, e.g.
+\begin{quote}
+  \isa{valid{\isacharunderscore}suffix\ ys\ zs\ {\isacharequal}}\\
+  \isa{{\isacharparenleft}if\ append\ {\isacharbrackleft}Suc\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{2}}{\isacharbrackright}\ ys\ zs\ then\ Some\ ys\ else\ None{\isacharparenright}}
+\end{quote}
+\item If you know that the execution returns only one value (it is deterministic), then you can
+  use the combinator \isa{Predicate{\isachardot}the}, e.g., a functional concatenation of lists
+  is defined with
+\begin{quote}
+  \isa{functional{\isacharunderscore}concat\ xs\ ys\ {\isacharequal}\ Predicate{\isachardot}the\ {\isacharparenleft}append{\isacharunderscore}i{\isacharunderscore}i{\isacharunderscore}o\ xs\ ys{\isacharparenright}}
+\end{quote}
+  Note that if the evaluation does not return a unique value, it raises a run-time error
+  \isa{not{\isacharunderscore}unique}.
+\end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Further Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Further examples for compiling inductive predicates can be found in
+the \isa{HOL{\isacharslash}ex{\isacharslash}Predicate{\isacharunderscore}Compile{\isacharunderscore}ex} theory file.
+There are also some examples in the Archive of Formal Proofs, notably
+in the \isa{POPLmark{\isacharminus}deBruijn} and the \isa{FeatherweightJava} sessions.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
 %
 \endisadelimtheory
@@ -982,7 +1434,7 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 %
 \endisadelimtheory
 \isanewline
-\ \end{isabellebody}%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"
