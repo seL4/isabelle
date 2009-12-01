@@ -311,7 +311,7 @@ struct
     fun int_from_string s =
       case Int.fromString s of
         SOME i => i
-      | NONE   => error ("token " ^ quote s ^ "in DIMACS CNF file is not a number")
+      | NONE   => error ("token " ^ quote s ^ " in DIMACS CNF file is not a number")
     (* int list -> int list list *)
     fun clauses xs =
       let
@@ -350,7 +350,7 @@ struct
     o (map (map literal_from_int))
     o clauses
     o (map int_from_string)
-    o (maps (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
+    o (maps (String.tokens (fn c => c mem [#" ", #"\t", #"\n"])))
     o filter_preamble
     o filter (fn l => l <> "")
     o split_lines
