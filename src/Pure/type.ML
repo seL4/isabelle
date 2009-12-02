@@ -19,6 +19,7 @@ sig
     types: decl Name_Space.table,
     log_types: string list}
   val empty_tsig: tsig
+  val build_tsig: (Name_Space.T * Sorts.algebra) * sort * decl Name_Space.table -> tsig
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
   val eq_sort: tsig -> sort * sort -> bool
