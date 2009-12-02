@@ -210,7 +210,7 @@ proof -
     member (foldl (\<lambda>B A. Fset (member B \<inter> A)) (Coset []) (List.map member As))"
     by (rule foldl_apply_inv) simp
   then show "Inter (Set As) = foldl inter (Coset []) As"
-    by (simp add: Inter_set image_set inter inter_def_raw foldl_map)
+    by (simp add: Inf_set_fold image_set inter inter_def_raw foldl_map)
   show "Inter (Coset []) = empty"
     by simp
 qed
@@ -229,7 +229,7 @@ proof -
     member (foldl (\<lambda>B A. Fset (member B \<union> A)) empty (List.map member As))"
     by (rule foldl_apply_inv) simp
   then show "Union (Set As) = foldl union empty As"
-    by (simp add: Union_set image_set union_def_raw foldl_map)
+    by (simp add: Sup_set_fold image_set union_def_raw foldl_map)
   show "Union (Coset []) = Coset []"
     by simp
 qed
