@@ -370,19 +370,18 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
 
 fun find_nonempty descr is i =
   let
-    val (_, _, constrs) = the (AList.lookup (op =) descr i);
     fun arg_nonempty (_, DtRec i) = if member (op =) is i
           then NONE
           else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
-    fun max xs = Library.foldl
-      (fn (NONE, _) => NONE
-        | (SOME i, SOME j) => SOME (Int.max (i, j))
-        | (_, NONE) => NONE) (SOME 0, xs);
+    fun max_inf (SOME i) (SOME j) = Integer.max i j
+      | max_inf _ _ = NONE;
+    fun max xs = fold max_inf xs (SOME 0);
+    val (_, _, constrs) = the (AList.lookup (op =) descr i);
     val xs = sort (int_ord o pairself snd)
       (map_filter (fn (s, dts) => Option.map (pair s)
         (max (map (arg_nonempty o strip_dtyp) dts))) constrs)
-  in case xs of [] => NONE | x :: _ => SOME x end;
+  in if null xs then NONE else SOME (hd xs) end;
 
 fun find_shortest_path descr i = find_nonempty descr [i] i;
 
