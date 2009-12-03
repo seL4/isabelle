@@ -241,15 +241,42 @@ end
    specifying their meaning are added.
 *)
 local
-  (** Add the marker symbols "term" and "formulas" to separate formulas and
+  local
+    fun cons_nr (SConst _) = 0
+      | cons_nr (SFree _) = 1
+      | cons_nr (SNum _) = 2
+
+    fun struct_ord (t, u) = int_ord (cons_nr t, cons_nr u)
+    
+    fun atoms_ord (SConst (n, _), SConst (m, _)) = fast_string_ord (n, m)
+      | atoms_ord (SFree (n, _), SFree (m, _)) = fast_string_ord (n, m)
+      | atoms_ord (SNum (i, _), SNum (j, _)) = int_ord (i, j)
+      | atoms_ord _ = sys_error "atoms_ord"
+
+    fun types_ord (SConst (_, T), SConst (_, U)) = TermOrd.typ_ord (T, U)
+      | types_ord (SFree (_, T), SFree (_, U)) = TermOrd.typ_ord (T, U)
+      | types_ord (SNum (_, T), SNum (_, U)) = TermOrd.typ_ord (T, U)
+      | types_ord _ = sys_error "types_ord"
+
+    fun fast_sym_ord tu =
+      (case struct_ord tu of
+        EQUAL => (case atoms_ord tu of EQUAL => types_ord tu | ord => ord)
+      | ord => ord)
+  in
+  structure Stab = Table(type key = sym val ord = fast_sym_ord)
+  end
+
+
+  (** Add the marker symbols "term" and "formula" to separate formulas and
       terms. **)
 
   val connectives = map make_sconst [@{term True}, @{term False},
     @{term Not}, @{term "op &"}, @{term "op |"}, @{term "op -->"},
     @{term "op = :: bool => _"}]
 
-  fun note false c (ps, fs) = (insert (op =) c ps, fs)
-    | note true c (ps, fs) = (ps, insert (op =) c fs)
+  fun insert_sym c = Stab.map_default (c, ()) I
+  fun note false c (ps, fs) = (insert_sym c ps, fs)
+    | note true c (ps, fs) = (ps, insert_sym c fs)
 
   val term_marker = SConst (@{const_name term}, Term.dummyT)
   val formula_marker = SConst (@{const_name formula}, Term.dummyT)
@@ -316,7 +343,7 @@ local
       val rule = Conv.fconv_rule (unterm_conv ctxt) thm
       val prop = Thm.prop_of thm
       val inst = instantiate (Term.add_tvar_names prop [])
-      fun inst_for T = (singleton intermediate (inst T prop), rule)
+      fun inst_for T = (rule, singleton intermediate (inst T prop))
     in (make_sconst (head_of (Thm.prop_of rule)), inst_for) end
 
   val logicals = map (prepare @{context})
@@ -342,10 +369,15 @@ local
         (n = m) andalso Sign.typ_instance thy (T, U)
     | is_instance _ _ = false
 
-  fun lookup_logical thy (c as SConst (_, T)) =
-        AList.lookup (is_instance thy) logicals c
-        |> Option.map (fn inst_for => inst_for T)
-    | lookup_logical _ _ = NONE
+  fun rule_for thy c T =
+    AList.lookup (is_instance thy) logicals c
+    |> Option.map (fn inst_for => inst_for T)
+
+  fun lookup_logical thy (c as SConst (_, T)) (thms, ts) =
+        (case rule_for thy c T of
+          SOME (thm, t) => (thm :: thms, t :: ts)
+        | NONE => (thms, ts))
+    | lookup_logical _ _ tss = tss
 
   val s_eq = make_sconst @{term "op = :: bool => _"}
   val s_True = mark_term (SApp (make_sconst @{term True}, []))
@@ -367,7 +399,7 @@ local
         | SApp (c as SConst (@{const_name formula}, _), [u]) =>
             SApp (c, [rewr env false u])
         | SApp (c, us) =>
-            let val f = if not loc andalso member (op =) ls c then holds else I
+            let val f = if not loc andalso Stab.defined ls c then holds else I
             in f (SApp (rewr_iff c, map (rewr env loc) us)) end
         | SLet (v, u1, u2) =>
             SLet (v, rewr env loc u1, rewr (is_term u1 :: env) loc u2)
@@ -378,14 +410,12 @@ local
 in
 fun separate thy ts =
   let
-    val (ts', (ps, fs)) = fold_map (sep false) ts ([], [])
-    val eq_name = (fn
-        (SConst (n, _), SConst (m, _)) => n = m
-      | (SFree (n, _), SFree (m, _)) => n = m
-      | _ => false)
-    val ls = filter (member eq_name fs) ps
-    val (us, thms) = split_list (map_filter (lookup_logical thy) fs)
-  in (thms, us @ rewrite ls ts') end
+    val (ts', (ps, fs)) = fold_map (sep false) ts (Stab.empty, Stab.empty)
+    fun insert (px as (p, _)) = if Stab.defined fs p then Stab.update px else I
+  in
+    Stab.fold (lookup_logical thy o fst) fs ([], [])
+    ||> append (rewrite (Stab.fold insert ps Stab.empty) ts')
+  end
 end
 
 
