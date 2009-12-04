@@ -126,7 +126,7 @@ by (rule Rep_Prod_inverse)
 
 lemma "Inl \<equiv> \<lambda>a. Abs_Sum (Inl_Rep a)"
 nitpick [card = 1, expect = none]
-by (rule Inl_def)
+by (simp only: Inl_def o_def)
 
 lemma "Inl \<equiv> \<lambda>a. Abs_Sum (Inr_Rep a)"
 nitpick [card = 1, card "'a + 'a" = 2, expect = genuine]
