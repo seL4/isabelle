@@ -1,0 +1,89 @@
+--- a/isar/isabelle-system.el	2008-07-17 00:37:36.000000000 +0200
++++ b/isar/isabelle-system.el	2009-11-30 17:06:05.508481278 +0100
+@@ -97,8 +97,8 @@
+   (if (or proof-rsh-command
+ 	  (file-executable-p isa-isatool-command))
+       (let ((setting (isa-shell-command-to-string
+-		      (concat isa-isatool-command
+-			      " getenv -b " envvar))))
++		      (concat "\"" isa-isatool-command
++			      "\" getenv -b " envvar))))
+ 	(if (string-equal setting "")
+ 	    default
+ 	  setting))
+@@ -125,15 +125,12 @@
+   :type 'file
+   :group 'isabelle)
+ 
+-(defvar isabelle-prog-name nil
+-  "Set from `isabelle-set-prog-name', has name of logic appended sometimes.")
+-
+ (defun isa-tool-list-logics ()
+   "Generate a list of available object logics."
+   (if (isa-set-isatool-command)
+       (delete "" (split-string
+ 		  (isa-shell-command-to-string
+-		   (concat isa-isatool-command " findlogics")) "[ \t]"))))
++		   (concat "\"" isa-isatool-command "\" findlogics")) "[ \t]"))))
+ 
+ (defcustom isabelle-logics-available nil
+   "*List of logics available to use with Isabelle.
+@@ -177,7 +174,7 @@
+ 
+ (defun isabelle-set-prog-name (&optional filename)
+   "Make proper command line for running Isabelle.
+-This function sets `isabelle-prog-name' and `proof-prog-name'."
++This function sets `proof-prog-name' and `isar-prog-args'."
+   (let*
+       ;; The ISABELLE and PROOFGENERAL_LOGIC values (set when run
+       ;; under the interface wrapper script) indicate command line
+@@ -187,21 +184,20 @@
+ 		  (getenv "ISABELLE")	  ; command line override 
+ 		  (isa-getenv "ISABELLE") ; choose to match isatool
+ 		  "isabelle"))		  ; to 
+-       (isabelle-opts (getenv "ISABELLE_OPTIONS"))
+-       (opts (concat " -PI"  ;; Proof General + Isar
+-	      (if proof-shell-unicode " -m PGASCII" "")
+-	      (if (and isabelle-opts (not (equal isabelle-opts "")))
+-		  (concat " " isabelle-opts) "")))
++       (isabelle-opts (split-string (getenv "ISABELLE_OPTIONS")))
++       (opts (append (list "-PI")  ;; Proof General + Isar
++		     (if proof-shell-unicode (list "-m" "PGASCII") nil)
++		     isabelle-opts))
+        (logic (or isabelle-chosen-logic
+ 		  (getenv "PROOFGENERAL_LOGIC")))
+        (logicarg (if (and logic (not (equal logic "")))
+-		     (concat " " logic) "")))
++		     (list logic) nil)))
+     (setq isabelle-chosen-logic-prev isabelle-chosen-logic)
+-    (setq isabelle-prog-name (concat isabelle opts logicarg))
+-    (setq proof-prog-name isabelle-prog-name)))
++    (setq isar-prog-args (append opts logicarg))
++    (setq proof-prog-name isabelle)))
+ 
+ (defun isabelle-choose-logic (logic)
+-  "Adjust isabelle-prog-name and proof-prog-name for running LOGIC."
++  "Adjust proof-prog-name and isar-prog-args for running LOGIC."
+   (interactive
+    (list (completing-read
+ 	  "Use logic: "
+@@ -224,9 +220,7 @@
+   (if (isa-set-isatool-command)
+       (apply 'start-process
+ 	     "isa-view-doc" nil
+-	     (append (split-string
+-		      isa-isatool-command) 
+-		     (list "doc" docname)))))
++	     (list isa-isatool-command "doc" docname))))
+ 
+ (defun isa-tool-list-docs ()
+   "Generate a list of documentation files available, with descriptions.
+@@ -236,7 +230,7 @@
+ passed to isa-tool-doc-command, DOCNAME will be viewed."
+   (if (isa-set-isatool-command)
+       (let ((docs (isa-shell-command-to-string
+-		   (concat isa-isatool-command " doc"))))
++		   (concat "\"" isa-isatool-command "\" doc"))))
+ 	(unless (string-equal docs "")
+ 	  (mapcan
+ 	   (function (lambda (docdes)

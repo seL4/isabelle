@@ -48,8 +48,9 @@ PROOFGENERAL_EMACS="$(choosefrom \
   /Applications/Emacs.app/Contents/MacOS/Emacs \
   "")"
 
+declare -a EMACS_OPTIONS=()
 if [ -n "$PROOFGENERAL_EMACS" ]; then
-  EMACS_OPTIONS="-p $PROOFGENERAL_EMACS"
+  EMACS_OPTIONS=(-p "$PROOFGENERAL_EMACS")
 fi
 
 
@@ -57,7 +58,7 @@ fi
 
 OUTPUT="/tmp/isabelle$$.out"
 
-( "$ISABELLE_TOOL" emacs $EMACS_OPTIONS "$@" ) > "$OUTPUT" 2>&1
+( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
 RC=$?
 
 if [ "$RC" != 0 ]; then

@@ -4,7 +4,8 @@
 
 ## global settings
 
-REPOS="http://isabelle.in.tum.de/repos/isabelle"
+REPOS_NAME="isabelle-release"
+REPOS="http://isabelle.in.tum.de/repos/${REPOS_NAME}"
 
 DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 
@@ -92,12 +93,12 @@ echo "###"
 { wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
   fail "Failed to retrieve $VERSION"
 
-IDENT=$(echo * | sed 's/isabelle-//')
+IDENT=$(echo * | sed "s/${REPOS_NAME}-//")
 
-rm -f "isabelle-$IDENT/.hg_archival.txt"
-rm -f "isabelle-$IDENT/.hgtags"
-rm -f "isabelle-$IDENT/.hgignore"
-rm -f "isabelle-$IDENT/README_REPOSITORY"
+rm -f "${REPOS_NAME}-${IDENT}/.hg_archival.txt"
+rm -f "${REPOS_NAME}-${IDENT}/.hgtags"
+rm -f "${REPOS_NAME}-${IDENT}/.hgignore"
+rm -f "${REPOS_NAME}-${IDENT}/README_REPOSITORY"
 
 
 # dist name
@@ -118,7 +119,7 @@ mkdir -p "$DISTBASE" || { purge_tmp; fail "Unable to create distribution base di
 [ -e "$DISTBASE/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/$DISTNAME already exists!"; }
 
 cd "$DISTBASE"
-mv "$DISTPREFIX/$TMP/isabelle-$IDENT" "$DISTNAME"
+mv "$DISTPREFIX/$TMP/${REPOS_NAME}-${IDENT}" "$DISTNAME"
 purge_tmp
 
 cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"

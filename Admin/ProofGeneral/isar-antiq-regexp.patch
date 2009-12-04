@@ -1,0 +1,21 @@
+--- a/isar/isar-syntax.el	Wed Aug 06 11:43:47 2008 +0200
++++ b/isar/isar-syntax.el	Thu Sep 18 15:21:16 2008 +0200
+@@ -252,14 +252,9 @@
+ 
+ ;; antiquotations
+ 
+-;; the \{0,10\} bound is there because otherwise font-lock sometimes hangs for
+-;; incomplete antiquotations like @{text bla"} (even though it is supposed to
+-;; stop at eol anyway).
+-
+-(defconst isar-antiq-regexp
+-  (concat "@{\\(?:[^\"{}]+\\|" isar-string "\\)\\{0,10\\}}")
+-  "Regexp matching Isabelle/Isar antiquoations.")
+-
++(defconst isar-antiq-regexp 
++  (concat "@{\\(?:[^\"{}]\\|" isar-string "\\)*}") 
++  "Regexp matching Isabelle/Isar antiquotations.")
+ 
+ ;; keyword nesting
+ 
+
