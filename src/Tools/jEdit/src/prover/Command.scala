@@ -97,7 +97,7 @@ class Command(
     doc.states.getOrElse(this, empty_cmd_state)
 
   def status(doc: ProofDocument) = cmd_state(doc).state.status
-  def result_document(doc: ProofDocument) = cmd_state(doc).result_document
+  def results(doc: ProofDocument) = cmd_state(doc).results
   def markup_root(doc: ProofDocument) = cmd_state(doc).markup_root
   def highlight(doc: ProofDocument) = cmd_state(doc).highlight
   def type_at(doc: ProofDocument, offset: Int) = cmd_state(doc).type_at(offset)
@@ -109,13 +109,12 @@ class Command_State(val command: Command) extends Accumulator
 {
   protected override var _state = new State(command)
 
-  def result_document: org.w3c.dom.Document =
-    XML.document(
-      command.state.results ::: state.results match {
-        case Nil => XML.Elem("message", Nil, Nil)
-        case List(elem) => elem
-        case elems => XML.Elem("messages", Nil, elems)
-      }, "style")
+  def results: XML.Tree =
+    (command.state.results ::: state.results) match {
+      case Nil => XML.Elem("message", Nil, Nil)
+      case List(elem) => elem
+      case elems => XML.Elem("messages", Nil, elems)
+    }
 
   def markup_root: Markup_Text =
     (command.state.markup_root /: state.markup_root.markup)(_ + _)
