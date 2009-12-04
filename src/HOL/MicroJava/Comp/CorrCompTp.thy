@@ -1122,6 +1122,8 @@ apply simp
 apply simp+
 done
 
+declare not_Err_eq [iff del]
+
 lemma bc_mt_corresp_Load: "\<lbrakk> i < length LT; LT ! i \<noteq> Err; mxr = length LT \<rbrakk>
   \<Longrightarrow> bc_mt_corresp [Load i] 
          (\<lambda>(ST, LT). pushST [ok_val (LT ! i)] (ST, LT)) (ST, LT) cG rT mxr (Suc 0)"
@@ -1138,7 +1140,7 @@ apply (simp (no_asm_simp))
   apply (frule listE_nth_in) apply assumption
 apply (subgoal_tac "LT ! i \<in> {x. \<exists>y\<in>types cG. x = OK y}")
 apply (drule CollectD) apply (erule bexE)
-apply (simp (no_asm_simp) )
+apply (simp (no_asm_simp))
 apply blast
 apply blast
 done

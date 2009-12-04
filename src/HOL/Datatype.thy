@@ -1,15 +1,19 @@
 (*  Title:      HOL/Datatype.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
-
-Could <*> be generalized to a general summation (Sigma)?
 *)
 
-header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
+header {* Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums *}
 
 theory Datatype
-imports Nat Product_Type
+imports Product_Type Sum_Type Nat
+uses
+  ("Tools/Datatype/datatype.ML")
+  ("Tools/inductive_realizer.ML")
+  ("Tools/Datatype/datatype_realizer.ML")
 begin
+
+subsection {* The datatype universe *}
 
 typedef (Node)
   ('a,'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
@@ -513,75 +517,12 @@ text {* hides popular names *}
 hide (open) type node item
 hide (open) const Push Node Atom Leaf Numb Lim Split Case
 
+use "Tools/Datatype/datatype.ML"
 
-section {* Datatypes *}
+use "Tools/inductive_realizer.ML"
+setup InductiveRealizer.setup
 
-subsection {* Representing sums *}
-
-rep_datatype (sum) Inl Inr
-proof -
-  fix P
-  fix s :: "'a + 'b"
-  assume x: "\<And>x\<Colon>'a. P (Inl x)" and y: "\<And>y\<Colon>'b. P (Inr y)"
-  then show "P s" by (auto intro: sumE [of s])
-qed simp_all
-
-lemma sum_case_KK[simp]: "sum_case (%x. a) (%x. a) = (%x. a)"
-  by (rule ext) (simp split: sum.split)
-
-lemma surjective_sum: "sum_case (%x::'a. f (Inl x)) (%y::'b. f (Inr y)) s = f(s)"
-  apply (rule_tac s = s in sumE)
-   apply (erule ssubst)
-   apply (rule sum.cases(1))
-  apply (erule ssubst)
-  apply (rule sum.cases(2))
-  done
-
-lemma sum_case_weak_cong: "s = t ==> sum_case f g s = sum_case f g t"
-  -- {* Prevents simplification of @{text f} and @{text g}: much faster. *}
-  by simp
-
-lemma sum_case_inject:
-  "sum_case f1 f2 = sum_case g1 g2 ==> (f1 = g1 ==> f2 = g2 ==> P) ==> P"
-proof -
-  assume a: "sum_case f1 f2 = sum_case g1 g2"
-  assume r: "f1 = g1 ==> f2 = g2 ==> P"
-  show P
-    apply (rule r)
-     apply (rule ext)
-     apply (cut_tac x = "Inl x" in a [THEN fun_cong], simp)
-    apply (rule ext)
-    apply (cut_tac x = "Inr x" in a [THEN fun_cong], simp)
-    done
-qed
-
-constdefs
-  Suml :: "('a => 'c) => 'a + 'b => 'c"
-  "Suml == (%f. sum_case f undefined)"
-
-  Sumr :: "('b => 'c) => 'a + 'b => 'c"
-  "Sumr == sum_case undefined"
-
-lemma [code]:
-  "Suml f (Inl x) = f x"
-  by (simp add: Suml_def)
-
-lemma [code]:
-  "Sumr f (Inr x) = f x"
-  by (simp add: Sumr_def)
-
-lemma Suml_inject: "Suml f = Suml g ==> f = g"
-  by (unfold Suml_def) (erule sum_case_inject)
-
-lemma Sumr_inject: "Sumr f = Sumr g ==> f = g"
-  by (unfold Sumr_def) (erule sum_case_inject)
-
-primrec Projl :: "'a + 'b => 'a"
-where Projl_Inl: "Projl (Inl x) = x"
-
-primrec Projr :: "'a + 'b => 'b"
-where Projr_Inr: "Projr (Inr x) = x"
-
-hide (open) const Suml Sumr Projl Projr
+use "Tools/Datatype/datatype_realizer.ML"
+setup Datatype_Realizer.setup
 
 end

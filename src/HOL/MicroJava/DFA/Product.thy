@@ -1,9 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/Product.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM
-
-Products as semilattices
 *)
 
 header {* \isaheader{Products as Semilattices} *}
@@ -49,16 +46,14 @@ apply simp
 apply blast
 done 
 
-
 lemma acc_le_prodI [intro!]:
-  "\<lbrakk> acc rA; acc rB \<rbrakk> \<Longrightarrow> acc(Product.le rA rB)"
+  "\<lbrakk> acc r\<^isub>A; acc r\<^isub>B \<rbrakk> \<Longrightarrow> acc(Product.le r\<^isub>A r\<^isub>B)"
 apply (unfold acc_def)
-apply (rule wfP_subset)
- apply (erule wf_lex_prod [to_pred, THEN wfP_wf_eq [THEN iffD2]])
+apply (rule wf_subset)
+ apply (erule wf_lex_prod)
  apply assumption
 apply (auto simp add: lesssub_def less_prod_Pair_conv lex_prod_def)
 done
-
 
 lemma closed_lift2_sup:
   "\<lbrakk> closed (err A) (lift2 f); closed (err B) (lift2 g) \<rbrakk> \<Longrightarrow> 

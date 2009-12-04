@@ -1,15 +1,9 @@
-(*  Title:      HOL/Tools/datatype_abs_proofs.ML
+(*  Title:      HOL/Tools/Datatype/datatype_abs_proofs.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Proofs and defintions independent of concrete representation
-of datatypes  (i.e. requiring only abstract properties such as
-injectivity / distinctness of constructors and induction)
-
- - case distinction (exhaustion) theorems
- - characteristic equations for primrec combinators
- - characteristic equations for case combinators
- - equations for splitting "P (case ...)" expressions
- - "nchotomy" and "case_cong" theorems for TFL
+Datatype package: proofs and defintions independent of concrete
+representation of datatypes  (i.e. requiring only abstract
+properties: injectivity / distinctness of constructors and induction).
 *)
 
 signature DATATYPE_ABS_PROOFS =
@@ -38,10 +32,10 @@ sig
       thm list -> thm list list -> theory -> thm list * theory
 end;
 
-structure DatatypeAbsProofs: DATATYPE_ABS_PROOFS =
+structure Datatype_Abs_Proofs: DATATYPE_ABS_PROOFS =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 (************************ case distinction theorems ***************************)
 
@@ -51,7 +45,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     val {maxidx, ...} = rep_thm induct;
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
@@ -62,7 +56,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
           Abs ("z", T', Const ("True", T''))) induct_Ps;
         val P = Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx+1), T), Bound 0) $
           Var (("P", 0), HOLogic.boolT))
-        val insts = Library.take (i, dummyPs) @ (P::(Library.drop (i + 1, dummyPs)));
+        val insts = take i dummyPs @ (P::(drop (i + 1) dummyPs));
         val cert = cterm_of thy;
         val insts' = (map cert induct_Ps) ~~ (map cert insts);
         val induct' = refl RS ((nth
@@ -78,7 +72,7 @@ fun prove_casedist_thms (config : config) new_type_names descr sorts induct case
       end;
 
     val casedist_thms = map_index prove_casedist_thm
-      (newTs ~~ DatatypeProp.make_casedists descr sorts)
+      (newTs ~~ Datatype_Prop.make_casedists descr sorts)
   in
     thy
     |> store_thms_atts "exhaust" new_type_names (map single case_names_exhausts) casedist_thms
@@ -98,7 +92,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
@@ -109,7 +103,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
           (1 upto (length descr'));
     val rec_set_names = map (Sign.full_bname thy0) rec_set_names';
 
-    val (rec_result_Ts, reccomb_fn_Ts) = DatatypeProp.make_primrec_Ts descr sorts used;
+    val (rec_result_Ts, reccomb_fn_Ts) = Datatype_Prop.make_primrec_Ts descr sorts used;
 
     val rec_set_Ts = map (fn (T1, T2) =>
       reccomb_fn_Ts @ [T1, T2] ---> HOLogic.boolT) (recTs ~~ rec_result_Ts);
@@ -260,7 +254,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
          REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)]))
-           (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
+           (Datatype_Prop.make_primrecs new_type_names descr sorts thy2)
 
   in
     thy2
@@ -283,7 +277,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
     fun mk_dummyT dt = binder_types (typ_of_dtyp descr' sorts dt) ---> T';
@@ -305,8 +299,8 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
             let
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
               val Ts' = Ts @ map mk_dummyT (filter is_rec_type cargs);
-              val frees' = map (uncurry (mk_Free "x")) (Ts' ~~ (1 upto length Ts'));
-              val frees = Library.take (length cargs, frees');
+              val frees' = map2 (mk_Free "x") Ts' (1 upto length Ts');
+              val frees = take (length cargs) frees';
               val free = mk_Free "f" (Ts ---> T') j
             in
              (free, list_abs_free (map dest_Free frees',
@@ -314,14 +308,14 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
             end) (constrs ~~ (1 upto length constrs)));
 
           val caseT = (map (snd o dest_Free) fns1) @ [T] ---> T';
-          val fns = flat (Library.take (i, case_dummy_fns)) @
-            fns2 @ flat (Library.drop (i + 1, case_dummy_fns));
+          val fns = flat (take i case_dummy_fns) @
+            fns2 @ flat (drop (i + 1) case_dummy_fns);
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
           val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
           val def = (Binding.name (Long_Name.base_name name ^ "_def"),
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
-              list_comb (reccomb, (flat (Library.take (i, case_dummy_fns))) @
-                fns2 @ (flat (Library.drop (i + 1, case_dummy_fns))) )));
+              list_comb (reccomb, (flat (take i case_dummy_fns)) @
+                fns2 @ (flat (drop (i + 1) case_dummy_fns)))));
           val ([def_thm], thy') =
             thy
             |> Sign.declare_const decl |> snd
@@ -329,12 +323,12 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
 
         in (defs @ [def_thm], thy')
         end) (hd descr ~~ newTs ~~ case_names ~~
-          Library.take (length newTs, reccomb_names)) ([], thy1)
+          take (length newTs) reccomb_names) ([], thy1)
       ||> Theory.checkpoint;
 
     val case_thms = map (map (fn t => Skip_Proof.prove_global thy2 [] [] t
       (fn _ => EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1])))
-          (DatatypeProp.make_cases new_type_names descr sorts thy2)
+          (Datatype_Prop.make_cases new_type_names descr sorts thy2)
   in
     thy2
     |> Context.theory_map ((fold o fold) Nitpick_Simps.add_thm case_thms)
@@ -353,7 +347,7 @@ fun prove_split_thms (config : config) new_type_names descr sorts constr_inject 
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
+    val newTs = take (length (hd descr)) recTs;
 
     fun prove_split_thms ((((((t1, t2), inject), dist_rewrites'),
         exhaustion), case_thms'), T) =
@@ -370,7 +364,7 @@ fun prove_split_thms (config : config) new_type_names descr sorts constr_inject 
       end;
 
     val split_thm_pairs = map prove_split_thms
-      ((DatatypeProp.make_splits new_type_names descr sorts thy) ~~ constr_inject ~~
+      ((Datatype_Prop.make_splits new_type_names descr sorts thy) ~~ constr_inject ~~
         dist_rewrites ~~ casedist_thms ~~ case_thms ~~ newTs);
 
     val (split_thms, split_asm_thms) = ListPair.unzip split_thm_pairs
@@ -388,7 +382,7 @@ fun prove_weak_case_congs new_type_names descr sorts thy =
        Skip_Proof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
          (fn {prems, ...} => EVERY [rtac ((hd prems) RS arg_cong) 1])
 
-    val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
+    val weak_case_congs = map prove_weak_case_cong (Datatype_Prop.make_weak_case_congs
       new_type_names descr sorts thy)
 
   in thy |> store_thms "weak_case_cong" new_type_names weak_case_congs end;
@@ -413,7 +407,7 @@ fun prove_nchotomys (config : config) new_type_names descr sorts casedist_thms t
       end;
 
     val nchotomys =
-      map prove_nchotomy (DatatypeProp.make_nchotomys descr sorts ~~ casedist_thms)
+      map prove_nchotomy (Datatype_Prop.make_nchotomys descr sorts ~~ casedist_thms)
 
   in thy |> store_thms "nchotomy" new_type_names nchotomys end;
 
@@ -438,7 +432,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
             end)
       end;
 
-    val case_congs = map prove_case_cong (DatatypeProp.make_case_congs
+    val case_congs = map prove_case_cong (Datatype_Prop.make_case_congs
       new_type_names descr sorts thy ~~ nchotomys ~~ case_thms)
 
   in thy |> store_thms "case_cong" new_type_names case_congs end;

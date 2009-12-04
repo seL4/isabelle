@@ -6,7 +6,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Nat Product_Type Power
+imports Power Product_Type Sum_Type
 begin
 
 subsection {* Definition and basic properties *}
@@ -1157,8 +1157,8 @@ lemma strong_setsum_cong[cong]:
    ==> setsum (%x. f x) A = setsum (%x. g x) B"
 by(fastsimp simp: simp_implies_def setsum_def intro: comm_monoid_add.fold_image_cong)
 
-lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
-by (rule setsum_cong[OF refl], auto);
+lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A"
+by (rule setsum_cong[OF refl], auto)
 
 lemma setsum_reindex_cong:
    "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 

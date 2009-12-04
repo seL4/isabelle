@@ -138,7 +138,7 @@ fun add_drop_redundant thy (thm, proper) thms =
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
     fun matches_args args' = length args <= length args' andalso
-      Pattern.matchess thy (args, (map incr_idx o curry Library.take (length args)) args');
+      Pattern.matchess thy (args, (map incr_idx o take (length args)) args');
     fun drop (thm', proper') = if (proper orelse not proper')
       andalso matches_args (args_of thm') then 
         (warning ("Code generator: dropping redundant code equation\n" ^
@@ -256,7 +256,7 @@ structure Code_Data = TheoryDataFun
     (Symtab.empty, (Symtab.empty, Symtab.empty)))), Unsynchronized.ref empty_data);
   fun copy (spec, data) = (spec, Unsynchronized.ref (! data));
   val extend = copy;
-  fun merge _ ((spec1, data1), (spec2, data2)) =
+  fun merge _ ((spec1, _), (spec2, _)) =
     (merge_spec (spec1, spec2), Unsynchronized.ref empty_data);
 );
 

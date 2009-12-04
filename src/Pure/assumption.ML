@@ -88,12 +88,12 @@ val _ = Context.>>
 (* local assumptions *)
 
 fun local_assumptions_of inner outer =
-  Library.drop (length (all_assumptions_of outer), all_assumptions_of inner);
+  drop (length (all_assumptions_of outer)) (all_assumptions_of inner);
 
 val local_assms_of = maps #2 oo local_assumptions_of;
 
 fun local_prems_of inner outer =
-  Library.drop (length (all_prems_of outer), all_prems_of inner);
+  drop (length (all_prems_of outer)) (all_prems_of inner);
 
 
 (* add assumptions *)

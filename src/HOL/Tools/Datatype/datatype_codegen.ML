@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/datatype_codegen.ML
+(*  Title:      HOL/Tools/Datatype/datatype_codegen.ML
     Author:     Stefan Berghofer and Florian Haftmann, TU Muenchen
 
 Code generator facilities for inductive datatypes.
@@ -6,33 +6,11 @@ Code generator facilities for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
-  val find_shortest_path: Datatype.descr -> int -> (string * int) option
   val setup: theory -> theory
 end;
 
-structure DatatypeCodegen : DATATYPE_CODEGEN =
+structure Datatype_Codegen : DATATYPE_CODEGEN =
 struct
-
-(** find shortest path to constructor with no recursive arguments **)
-
-fun find_nonempty (descr: Datatype.descr) is i =
-  let
-    val (_, _, constrs) = the (AList.lookup (op =) descr i);
-    fun arg_nonempty (_, DatatypeAux.DtRec i) = if member (op =) is i
-          then NONE
-          else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
-      | arg_nonempty _ = SOME 0;
-    fun max xs = Library.foldl
-      (fn (NONE, _) => NONE
-        | (SOME i, SOME j) => SOME (Int.max (i, j))
-        | (_, NONE) => NONE) (SOME 0, xs);
-    val xs = sort (int_ord o pairself snd)
-      (map_filter (fn (s, dts) => Option.map (pair s)
-        (max (map (arg_nonempty o DatatypeAux.strip_dtyp) dts))) constrs)
-  in case xs of [] => NONE | x :: _ => SOME x end;
-
-fun find_shortest_path descr i = find_nonempty descr [i] i;
-
 
 (** SML code generator **)
 
@@ -40,11 +18,11 @@ open Codegen;
 
 (* datatype definition *)
 
-fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
+fun add_dt_defs thy defs dep module descr sorts gr =
   let
-    val descr' = filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
+    val descr' = filter (can (map Datatype_Aux.dest_DtTFree o #2 o snd)) descr;
     val rtnames = map (#1 o snd) (filter (fn (_, (_, _, cs)) =>
-      exists (exists DatatypeAux.is_rec_type o snd) cs) descr');
+      exists (exists Datatype_Aux.is_rec_type o snd) cs) descr');
 
     val (_, (tname, _, _)) :: _ = descr';
     val node_id = tname ^ " (type)";
@@ -53,8 +31,8 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
     fun mk_dtdef prfx [] gr = ([], gr)
       | mk_dtdef prfx ((_, (tname, dts, cs))::xs) gr =
           let
-            val tvs = map DatatypeAux.dest_DtTFree dts;
-            val cs' = map (apsnd (map (DatatypeAux.typ_of_dtyp descr sorts))) cs;
+            val tvs = map Datatype_Aux.dest_DtTFree dts;
+            val cs' = map (apsnd (map (Datatype_Aux.typ_of_dtyp descr sorts))) cs;
             val ((_, type_id), gr') = mk_type_id module' tname gr;
             val (ps, gr'') = gr' |>
               fold_map (fn (cname, cargs) =>
@@ -84,8 +62,8 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
     fun mk_term_of_def gr prfx [] = []
       | mk_term_of_def gr prfx ((_, (tname, dts, cs)) :: xs) =
           let
-            val cs' = map (apsnd (map (DatatypeAux.typ_of_dtyp descr sorts))) cs;
-            val dts' = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
+            val cs' = map (apsnd (map (Datatype_Aux.typ_of_dtyp descr sorts))) cs;
+            val dts' = map (Datatype_Aux.typ_of_dtyp descr sorts) dts;
             val T = Type (tname, dts');
             val rest = mk_term_of_def gr "and " xs;
             val (eqs, _) = fold_map (fn (cname, Ts) => fn prfx =>
@@ -107,12 +85,12 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
     fun mk_gen_of_def gr prfx [] = []
       | mk_gen_of_def gr prfx ((i, (tname, dts, cs)) :: xs) =
           let
-            val tvs = map DatatypeAux.dest_DtTFree dts;
-            val Us = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
+            val tvs = map Datatype_Aux.dest_DtTFree dts;
+            val Us = map (Datatype_Aux.typ_of_dtyp descr sorts) dts;
             val T = Type (tname, Us);
             val (cs1, cs2) =
-              List.partition (exists DatatypeAux.is_rec_type o snd) cs;
-            val SOME (cname, _) = find_shortest_path descr i;
+              List.partition (exists Datatype_Aux.is_rec_type o snd) cs;
+            val SOME (cname, _) = Datatype_Aux.find_shortest_path descr i;
 
             fun mk_delay p = Pretty.block
               [str "fn () =>", Pretty.brk 1, p];
@@ -122,14 +100,14 @@ fun add_dt_defs thy defs dep module (descr: Datatype.descr) sorts gr =
             fun mk_constr s b (cname, dts) =
               let
                 val gs = map (fn dt => mk_app false (mk_gen gr module' false rtnames s
-                    (DatatypeAux.typ_of_dtyp descr sorts dt))
-                  [str (if b andalso DatatypeAux.is_rec_type dt then "0"
+                    (Datatype_Aux.typ_of_dtyp descr sorts dt))
+                  [str (if b andalso Datatype_Aux.is_rec_type dt then "0"
                      else "j")]) dts;
-                val Ts = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
+                val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) dts;
                 val xs = map str
-                  (DatatypeProp.indexify_names (replicate (length dts) "x"));
+                  (Datatype_Prop.indexify_names (replicate (length dts) "x"));
                 val ts = map str
-                  (DatatypeProp.indexify_names (replicate (length dts) "t"));
+                  (Datatype_Prop.indexify_names (replicate (length dts) "t"));
                 val (_, id) = get_const_id gr cname
               in
                 mk_let
@@ -217,19 +195,19 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
        invoke_codegen thy defs dep module brack (eta_expand c ts (i+1)) gr
     else
       let
-        val ts1 = Library.take (i, ts);
-        val t :: ts2 = Library.drop (i, ts);
+        val ts1 = take i ts;
+        val t :: ts2 = drop i ts;
         val names = List.foldr OldTerm.add_term_names
           (map (fst o fst o dest_Var) (List.foldr OldTerm.add_term_vars [] ts1)) ts1;
-        val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
+        val (Ts, dT) = split_last (take (i+1) (fst (strip_type T)));
 
         fun pcase [] [] [] gr = ([], gr)
           | pcase ((cname, cargs)::cs) (t::ts) (U::Us) gr =
               let
                 val j = length cargs;
                 val xs = Name.variant_list names (replicate j "x");
-                val Us' = Library.take (j, fst (strip_type U));
-                val frees = map Free (xs ~~ Us');
+                val Us' = take j (fst (strip_type U));
+                val frees = map2 (curry Free) xs Us';
                 val (cp, gr0) = invoke_codegen thy defs dep module false
                   (list_comb (Const (cname, Us' ---> dT), frees)) gr;
                 val t' = Envir.beta_norm (list_comb (t, frees));
@@ -274,12 +252,12 @@ fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
 
 fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
    (c as Const (s, T), ts) =>
-     (case Datatype.info_of_case thy s of
+     (case Datatype_Data.info_of_case thy s of
         SOME {index, descr, ...} =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           SOME (pretty_case thy defs dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts gr )
-      | NONE => case (Datatype.info_of_constr thy (s, T), strip_type T) of
+      | NONE => case (Datatype_Data.info_of_constr thy (s, T), strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
           let
@@ -294,7 +272,7 @@ fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
  | _ => NONE);
 
 fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
-      (case Datatype.get_info thy s of
+      (case Datatype_Data.get_info thy s of
          NONE => NONE
        | SOME {descr, sorts, ...} =>
            if is_some (get_assoc_type thy s) then NONE else
@@ -329,7 +307,7 @@ fun mk_constr_consts thy vs dtco cos =
 fun mk_case_cert thy tyco =
   let
     val raw_thms =
-      (#case_rewrites o Datatype.the_info thy) tyco;
+      (#case_rewrites o Datatype_Data.the_info thy) tyco;
     val thms as hd_thm :: _ = raw_thms
       |> Conjunction.intr_balanced
       |> Thm.unvarify
@@ -362,9 +340,9 @@ fun mk_case_cert thy tyco =
 
 fun mk_eq_eqns thy dtco =
   let
-    val (vs, cos) = Datatype.the_spec thy dtco;
+    val (vs, cos) = Datatype_Data.the_spec thy dtco;
     val { descr, index, inject = inject_thms, distinct = distinct_thms, ... } =
-      Datatype.the_info thy dtco;
+      Datatype_Data.the_info thy dtco;
     val ty = Type (dtco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
@@ -375,10 +353,10 @@ fun mk_eq_eqns thy dtco =
        | _ => NONE) cos;
     fun prep_inject (trueprop $ (equiv $ (_ $ t1 $ t2) $ rhs)) =
       trueprop $ (equiv $ mk_eq (t1, t2) $ rhs);
-    val injects = map prep_inject (nth (DatatypeProp.make_injs [descr] vs) index);
+    val injects = map prep_inject (nth (Datatype_Prop.make_injs [descr] vs) index);
     fun prep_distinct (trueprop $ (not $ (_ $ t1 $ t2))) =
       [trueprop $ false_eq (t1, t2), trueprop $ false_eq (t2, t1)];
-    val distincts = maps prep_distinct (snd (nth (DatatypeProp.make_distincts [descr] vs) index));
+    val distincts = maps prep_distinct (snd (nth (Datatype_Prop.make_distincts [descr] vs) index));
     val refl = HOLogic.mk_Trueprop (true_eq (Free ("x", ty), Free ("x", ty)));
     val simpset = Simplifier.context (ProofContext.init thy) (HOL_basic_ss addsimps 
       (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
@@ -424,16 +402,16 @@ fun add_equality vs dtcos thy =
 
 fun add_all_code config dtcos thy =
   let
-    val (vs :: _, coss) = (split_list o map (Datatype.the_spec thy)) dtcos;
+    val (vs :: _, coss) = (split_list o map (Datatype_Data.the_spec thy)) dtcos;
     val any_css = map2 (mk_constr_consts thy vs) dtcos coss;
     val css = if exists is_none any_css then []
       else map_filter I any_css;
-    val case_rewrites = maps (#case_rewrites o Datatype.the_info thy) dtcos;
+    val case_rewrites = maps (#case_rewrites o Datatype_Data.the_info thy) dtcos;
     val certs = map (mk_case_cert thy) dtcos;
   in
     if null css then thy
     else thy
-      |> tap (fn _ => DatatypeAux.message config "Registering datatype for code generator ...")
+      |> tap (fn _ => Datatype_Aux.message config "Registering datatype for code generator ...")
       |> fold Code.add_datatype css
       |> fold_rev Code.add_default_eqn case_rewrites
       |> fold Code.add_case certs
@@ -446,6 +424,6 @@ fun add_all_code config dtcos thy =
 val setup = 
   add_codegen "datatype" datatype_codegen
   #> add_tycodegen "datatype" datatype_tycodegen
-  #> Datatype.interpretation add_all_code
+  #> Datatype_Data.interpretation add_all_code
 
 end;

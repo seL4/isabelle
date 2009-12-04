@@ -1,8 +1,8 @@
-(*  Title:      HOL/Tools/datatype_realizer.ML
+(*  Title:      HOL/Tools/Datatype/datatype_realizer.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Porgram extraction from proofs involving datatypes:
-Realizers for induction and case analysis
+Program extraction from proofs involving datatypes:
+realizers for induction and case analysis.
 *)
 
 signature DATATYPE_REALIZER =
@@ -11,10 +11,10 @@ sig
   val setup: theory -> theory
 end;
 
-structure DatatypeRealizer : DATATYPE_REALIZER =
+structure Datatype_Realizer : DATATYPE_REALIZER =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 fun subsets i j = if i <= j then
        let val is = subsets (i+1) j
@@ -28,15 +28,10 @@ fun forall_intr_prf (t, prf) =
 fun prf_of thm =
   Reconstruct.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
-fun prf_subst_vars inst =
-  Proofterm.map_proof_terms (subst_vars ([], inst)) I;
-
 fun is_unit t = snd (strip_type (fastype_of t)) = HOLogic.unitT;
 
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";
-
-fun mk_realizes T = Const ("realizes", T --> HOLogic.boolT --> HOLogic.boolT);
 
 fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy =
   let
@@ -60,7 +55,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
       (fn ((i, (_, _, constrs)), T) => fold_map (fn (cname, cargs) => fn j =>
         let
           val Ts = map (typ_of_dtyp descr sorts) cargs;
-          val tnames = Name.variant_list pnames (DatatypeProp.make_tnames Ts);
+          val tnames = Name.variant_list pnames (Datatype_Prop.make_tnames Ts);
           val recs = filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
@@ -97,7 +92,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
           if (j: int) = i then HOLogic.mk_fst t
           else mk_proj j is (HOLogic.mk_snd t);
 
-    val tnames = DatatypeProp.make_tnames recTs;
+    val tnames = Datatype_Prop.make_tnames recTs;
     val fTs = map fastype_of rec_fns;
     val ps = map (fn ((((i, _), T), U), s) => Abs ("x", T, make_pred i U T
       (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Bound 0) (Bound 0)))
@@ -132,7 +127,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
         (Binding.qualified_name (space_implode "_" (ind_name :: vs @ ["correctness"])), thm)
       ||> Sign.restore_naming thy;
 
-    val ivs = rev (Term.add_vars (Logic.varify (DatatypeProp.make_ind [descr] sorts)) []);
+    val ivs = rev (Term.add_vars (Logic.varify (Datatype_Prop.make_ind [descr] sorts)) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
     val ivs1 = map Var (filter_out (fn (_, T) =>
       tname_of (body_type T) mem ["set", "bool"]) ivs);
@@ -169,7 +164,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
     fun make_casedist_prem T (cname, cargs) =
       let
         val Ts = map (typ_of_dtyp descr sorts) cargs;
-        val frees = Name.variant_list ["P", "y"] (DatatypeProp.make_tnames Ts) ~~ Ts;
+        val frees = Name.variant_list ["P", "y"] (Datatype_Prop.make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
         val r = Free ("r" ^ Long_Name.base_name cname, Ts ---> rT)
       in (r, list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop

@@ -173,19 +173,19 @@ apply (unfold ObjectC_def BaseC_def ExtC_def class_def)
 apply (simp (no_asm))
 done
 
-lemma not_Object_subcls [elim!]: "(subcls1 tprg)^++ Object C ==> R"
-apply (auto dest!: tranclpD subcls1D)
+lemma not_Object_subcls [elim!]: "(Object, C) \<in> (subcls1 tprg)^+ ==> R"
+apply (auto dest!: tranclD subcls1D)
 done
 
 lemma subcls_ObjectD [dest!]: "tprg\<turnstile>Object\<preceq>C C ==> C = Object"
-apply (erule rtranclp_induct)
+apply (erule rtrancl_induct)
 apply  auto
 apply (drule subcls1D)
 apply auto
 done
 
-lemma not_Base_subcls_Ext [elim!]: "(subcls1 tprg)^++ Base Ext ==> R"
-apply (auto dest!: tranclpD subcls1D)
+lemma not_Base_subcls_Ext [elim!]: "(Base, Ext) \<in> (subcls1 tprg)^+  ==> R"
+apply (auto dest!: tranclD subcls1D)
 done
 
 lemma class_tprgD: 
@@ -194,11 +194,11 @@ apply (unfold ObjectC_def ClassCastC_def NullPointerC_def OutOfMemoryC_def BaseC
 apply (auto split add: split_if_asm simp add: map_of_Cons)
 done
 
-lemma not_class_subcls_class [elim!]: "(subcls1 tprg)^++ C C ==> R"
-apply (auto dest!: tranclpD subcls1D)
+lemma not_class_subcls_class [elim!]: "(C, C) \<in> (subcls1 tprg)^+ ==> R"
+apply (auto dest!: tranclD subcls1D)
 apply (frule class_tprgD)
 apply (auto dest!:)
-apply (drule rtranclpD)
+apply (drule rtranclD)
 apply auto
 done
 
@@ -206,7 +206,7 @@ lemma unique_classes: "unique tprg"
 apply (simp (no_asm) add: ObjectC_def BaseC_def ExtC_def NullPointerC_def ClassCastC_def OutOfMemoryC_def)
 done
 
-lemmas subcls_direct = subcls1I [THEN r_into_rtranclp [where r="subcls1 G"], standard]
+lemmas subcls_direct = subcls1I [THEN r_into_rtrancl [where r="subcls1 G"], standard]
 
 lemma Ext_subcls_Base [simp]: "tprg\<turnstile>Ext\<preceq>C Base"
 apply (rule subcls_direct)
@@ -220,12 +220,12 @@ done
 
 declare ty_expr_ty_exprs_wt_stmt.intros [intro!]
 
-lemma acyclic_subcls1': "acyclicP (subcls1 tprg)"
-apply (rule acyclicI [to_pred])
+lemma acyclic_subcls1': "acyclic (subcls1 tprg)"
+apply (rule acyclicI)
 apply safe
 done
 
-lemmas wf_subcls1' = acyclic_subcls1' [THEN finite_subcls1 [THEN finite_acyclic_wf_converse [to_pred]]]
+lemmas wf_subcls1' = acyclic_subcls1' [THEN finite_subcls1 [THEN finite_acyclic_wf_converse]]
 
 lemmas fields_rec' = wf_subcls1' [THEN [2] fields_rec_lemma]
 
@@ -346,7 +346,7 @@ apply (simp (no_asm))
 apply (fold ExtC_def)
 apply (rule mp) defer apply (rule wf_foo_Ext)
 apply (auto simp add: wf_mdecl_def)
-apply (drule rtranclpD)
+apply (drule rtranclD)
 apply auto
 done
 

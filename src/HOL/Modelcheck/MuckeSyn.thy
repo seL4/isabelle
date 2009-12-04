@@ -130,7 +130,7 @@ in
 
 fun move_mus i state =
 let val sign = Thm.theory_of_thm state;
-    val (subgoal::_) = Library.drop(i-1,prems_of state);
+    val subgoal = nth (prems_of state) i;
     val concl = Logic.strip_imp_concl subgoal; (* recursive mu's in prems? *)
     val redex = search_mu concl;
     val idx = let val t = #maxidx (rep_thm state) in 
@@ -222,9 +222,9 @@ val Mucke_ss = @{simpset} addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 (* the interface *)
 
 fun mc_mucke_tac defs i state =
-  (case Library.drop (i - 1, Thm.prems_of state) of
-    [] => no_tac state
-  | subgoal :: _ =>
+  (case try (nth (Thm.prems_of state)) i of
+    NONE => no_tac state
+  | SOME subgoal =>
       EVERY [
         REPEAT (etac thin_rl i),
         cut_facts_tac (mk_lam_defs defs) i,

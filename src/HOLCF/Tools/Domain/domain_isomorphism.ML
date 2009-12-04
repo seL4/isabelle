@@ -581,12 +581,12 @@ fun gen_domain_isomorphism
                 mk_fst t :: mk_copy_args xs (mk_snd t);
       in mk_copy_args doms copy_arg end;
     fun copy_of_dtyp (T, dt) =
-        if DatatypeAux.is_rec_type dt
+        if Datatype_Aux.is_rec_type dt
         then copy_of_dtyp' (T, dt)
         else ID_const T
-    and copy_of_dtyp' (T, DatatypeAux.DtRec i) = nth copy_args i
-      | copy_of_dtyp' (T, DatatypeAux.DtTFree a) = ID_const T
-      | copy_of_dtyp' (T as Type (_, Ts), DatatypeAux.DtType (c, ds)) =
+    and copy_of_dtyp' (T, Datatype_Aux.DtRec i) = nth copy_args i
+      | copy_of_dtyp' (T, Datatype_Aux.DtTFree a) = ID_const T
+      | copy_of_dtyp' (T as Type (_, Ts), Datatype_Aux.DtType (c, ds)) =
         case Symtab.lookup map_tab' c of
           SOME f =>
           Library.foldl mk_capply
@@ -599,7 +599,7 @@ fun gen_domain_isomorphism
         val copy_bind = Binding.suffix_name "_copy" tbind;
         val (copy_const, thy) = thy |>
           Sign.declare_const ((copy_bind, copy_type), NoSyn);
-        val dtyp = DatatypeAux.dtyp_of_typ new_dts rhsT;
+        val dtyp = Datatype_Aux.dtyp_of_typ new_dts rhsT;
         val body = copy_of_dtyp (rhsT, dtyp);
         val comp = mk_cfcomp (abs_const, mk_cfcomp (body, rep_const));
         val rhs = big_lambda copy_arg comp;

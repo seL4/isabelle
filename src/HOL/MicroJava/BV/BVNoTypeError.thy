@@ -4,7 +4,9 @@
 
 header {* \isaheader{Welltyped Programs produce no Type Errors} *}
 
-theory BVNoTypeError imports "../JVM/JVMDefensive" BVSpecTypeSafe begin
+theory BVNoTypeError
+imports "../JVM/JVMDefensive" BVSpecTypeSafe
+begin
 
 text {*
   Some simple lemmas about the type testing functions of the

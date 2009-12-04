@@ -144,7 +144,7 @@ fun make is_open rule_struct (thy, prop) cases =
           (Option.map (curry Logic.nth_prem i) rule_struct, Logic.nth_prem (i, prop))) () of
         NONE => (name, NONE)
       | SOME p => (name, extract_case is_open thy p name concls)) :: cs, i - 1);
-  in fold_rev add_case (Library.drop (n - nprems, cases)) ([], n) |> #1 end;
+  in fold_rev add_case (drop (n - nprems) cases) ([], n) |> #1 end;
 
 in
 
@@ -205,8 +205,8 @@ fun consume defs facts ((xx, n), th) =
     th
     |> unfold_prems n defs
     |> unfold_prems_concls defs
-    |> Drule.multi_resolve (Library.take (m, facts))
-    |> Seq.map (pair (xx, (n - m, Library.drop (m, facts))))
+    |> Drule.multi_resolve (take m facts)
+    |> Seq.map (pair (xx, (n - m, drop m facts)))
   end;
 
 end;
@@ -345,7 +345,7 @@ fun equal_cterms ts us =
 fun prep_rule n th =
   let
     val th' = Thm.permute_prems 0 n th;
-    val prems = Library.take (Thm.nprems_of th' - n, Drule.cprems_of th');
+    val prems = take (Thm.nprems_of th' - n) (Drule.cprems_of th');
     val th'' = Drule.implies_elim_list th' (map Thm.assume prems);
   in (prems, (n, th'')) end;
 

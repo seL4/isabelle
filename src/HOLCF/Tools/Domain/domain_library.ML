@@ -230,7 +230,7 @@ type eq =
 val mk_arg = I;
 
 fun rec_of ((_,dtyp),_,_) =
-    case dtyp of DatatypeAux.DtRec i => i | _ => ~1;
+    case dtyp of Datatype_Aux.DtRec i => i | _ => ~1;
 (* FIXME: what about indirect recursion? *)
 
 fun is_lazy arg = fst (first arg);
@@ -246,12 +246,12 @@ fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
 
 (* ----- combinators for making dtyps ----- *)
 
-fun mk_uD T = DatatypeAux.DtType(@{type_name "u"}, [T]);
-fun mk_sprodD (T, U) = DatatypeAux.DtType(@{type_name "**"}, [T, U]);
-fun mk_ssumD (T, U) = DatatypeAux.DtType(@{type_name "++"}, [T, U]);
-fun mk_liftD T = DatatypeAux.DtType(@{type_name "lift"}, [T]);
-val unitD = DatatypeAux.DtType(@{type_name "unit"}, []);
-val boolD = DatatypeAux.DtType(@{type_name "bool"}, []);
+fun mk_uD T = Datatype_Aux.DtType(@{type_name "u"}, [T]);
+fun mk_sprodD (T, U) = Datatype_Aux.DtType(@{type_name "**"}, [T, U]);
+fun mk_ssumD (T, U) = Datatype_Aux.DtType(@{type_name "++"}, [T, U]);
+fun mk_liftD T = Datatype_Aux.DtType(@{type_name "lift"}, [T]);
+val unitD = Datatype_Aux.DtType(@{type_name "unit"}, []);
+val boolD = Datatype_Aux.DtType(@{type_name "bool"}, []);
 val oneD = mk_liftD unitD;
 val trD = mk_liftD boolD;
 fun big_sprodD ds = case ds of [] => oneD | _ => foldr1 mk_sprodD ds;

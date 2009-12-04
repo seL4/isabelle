@@ -13,7 +13,7 @@ end;
 structure Size: SIZE =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 structure SizeData = Theory_Data
 (
@@ -177,7 +177,7 @@ fun prove_size_thms (info : info) new_type_names thy =
     fun gen_mk_size_eq p size_of size_ofp size_const T (cname, cargs) =
       let
         val Ts = map (typ_of_dtyp descr sorts) cargs;
-        val tnames = Name.variant_list f_names (DatatypeProp.make_tnames Ts);
+        val tnames = Name.variant_list f_names (Datatype_Prop.make_tnames Ts);
         val ts = map_filter (fn (sT as (s, T), dt) =>
           Option.map (fn sz => sz $ Free sT)
             (if p dt then size_of_type size_of extra_size size_ofp T

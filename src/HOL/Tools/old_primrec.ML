@@ -21,7 +21,7 @@ end;
 structure OldPrimrec : OLD_PRIMREC =
 struct
 
-open DatatypeAux;
+open Datatype_Aux;
 
 exception RecError of string;
 
@@ -124,8 +124,8 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
               let
                 val fnameT' as (fname', _) = dest_Const f;
                 val (_, rpos, _) = the (AList.lookup (op =) rec_eqns fnameT');
-                val ls = Library.take (rpos, ts);
-                val rest = Library.drop (rpos, ts);
+                val ls = take rpos ts;
+                val rest = drop rpos ts;
                 val (x', rs) = (hd rest, tl rest)
                   handle Empty => raise RecError ("not enough arguments\
                    \ in recursive application\nof function " ^ quote fname' ^ " on rhs");
@@ -246,7 +246,7 @@ local
 fun gen_primrec_i note def alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
-    val dt_info = Datatype.get_all thy;
+    val dt_info = Datatype_Data.get_all thy;
     val rec_eqns = fold_rev (process_eqn thy o snd) eqns [] ;
     val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;

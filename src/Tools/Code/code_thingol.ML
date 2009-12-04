@@ -226,7 +226,7 @@ fun eta_expand k (c as (_, (_, tys)), ts) =
     val l = k - j;
     val ctxt = (fold o fold_varnames) Name.declare ts Name.context;
     val vs_tys = (map o apfst) SOME
-      (Name.names ctxt "a" ((curry Library.take l o curry Library.drop j) tys));
+      (Name.names ctxt "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst c `$$ ts @ map (IVar o fst) vs_tys end;
 
 fun contains_dictvar t =
@@ -773,7 +773,7 @@ and translate_case thy algbr eqngr thm (num_args, (t_pos, case_pats)) (c_ty, ts)
         val clauses = if null case_pats
           then mk_clause (fn ([t], body) => (t, body)) [ty] (the_single ts_clause)
           else maps (fn ((constr as IConst (_, (_, tys)), n), t) =>
-            mk_clause (fn (ts, body) => (constr `$$ ts, body)) (curry Library.take n tys) t)
+            mk_clause (fn (ts, body) => (constr `$$ ts, body)) (take n tys) t)
               (constrs ~~ ts_clause);
       in ((t, ty), clauses) end;
   in
@@ -788,7 +788,7 @@ and translate_app_case thy algbr eqngr thm (case_scheme as (num_args, _)) ((c, t
   if length ts < num_args then
     let
       val k = length ts;
-      val tys = (curry Library.take (num_args - k) o curry Library.drop k o fst o strip_type) ty;
+      val tys = (take (num_args - k) o drop k o fst o strip_type) ty;
       val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
       val vs = Name.names ctxt "a" tys;
     in
@@ -797,8 +797,8 @@ and translate_app_case thy algbr eqngr thm (case_scheme as (num_args, _)) ((c, t
       #>> (fn (tys, t) => map2 (fn (v, _) => pair (SOME v)) vs tys `|==> t)
     end
   else if length ts > num_args then
-    translate_case thy algbr eqngr thm case_scheme ((c, ty), Library.take (num_args, ts))
-    ##>> fold_map (translate_term thy algbr eqngr thm) (Library.drop (num_args, ts))
+    translate_case thy algbr eqngr thm case_scheme ((c, ty), take num_args ts)
+    ##>> fold_map (translate_term thy algbr eqngr thm) (drop num_args ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
     translate_case thy algbr eqngr thm case_scheme ((c, ty), ts)
@@ -930,10 +930,7 @@ fun read_const_exprs thy =
           ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
         fun belongs_here c =
           not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
-      in case some_thyname
-       of NONE => cs
-        | SOME thyname => filter belongs_here cs
-      end;
+      in if is_some some_thyname then cs else filter belongs_here cs end;
     fun read_const_expr "*" = ([], consts_of NONE)
       | read_const_expr s = if String.isSuffix ".*" s
           then ([], consts_of (SOME (unsuffix ".*" s)))

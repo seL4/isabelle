@@ -8,8 +8,8 @@ structure SumTree =
 struct
 
 (* Theory dependencies *)
-val proj_in_rules = [@{thm "Datatype.Projl_Inl"}, @{thm "Datatype.Projr_Inr"}]
-val sumcase_split_ss = HOL_basic_ss addsimps (@{thm "Product_Type.split"} :: @{thms "sum.cases"})
+val proj_in_rules = [@{thm Projl_Inl}, @{thm Projr_Inr}]
+val sumcase_split_ss = HOL_basic_ss addsimps (@{thm Product_Type.split} :: @{thms sum.cases})
 
 (* top-down access in balanced tree *)
 fun access_top_down {left, right, init} len i =
@@ -31,8 +31,8 @@ fun mk_inj ST n i =
 fun mk_proj ST n i = 
     access_top_down 
     { init = (ST, I : term -> term),
-      left = (fn (T as Type ("+", [LT, RT]), proj) => (LT, App (Const (@{const_name Datatype.Projl}, T --> LT)) o proj)),
-      right =(fn (T as Type ("+", [LT, RT]), proj) => (RT, App (Const (@{const_name Datatype.Projr}, T --> RT)) o proj))} n i
+      left = (fn (T as Type ("+", [LT, RT]), proj) => (LT, App (Const (@{const_name Sum_Type.Projl}, T --> LT)) o proj)),
+      right =(fn (T as Type ("+", [LT, RT]), proj) => (RT, App (Const (@{const_name Sum_Type.Projr}, T --> RT)) o proj))} n i
     |> snd
 
 fun mk_sumcases T fs =

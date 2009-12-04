@@ -9,7 +9,6 @@ theory Effect
 imports JVMType "../JVM/JVMExceptions"
 begin
 
-
 types
   succ_type = "(p_count \<times> state_type option) list"
 

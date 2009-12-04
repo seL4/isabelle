@@ -95,7 +95,7 @@ in
 
 fun if_full_simp_tac sset i state =
 let val sign = Thm.theory_of_thm state;
-        val (subgoal::_) = Library.drop(i-1,prems_of state);
+        val subgoal = nth (prems_of state) i;
         val prems = Logic.strip_imp_prems subgoal;
         val concl = Logic.strip_imp_concl subgoal;
         val prems = prems @ [concl];

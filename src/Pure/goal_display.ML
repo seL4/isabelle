@@ -99,7 +99,7 @@ fun pretty_goals ctxt {total, main, maxgoals} state =
       (if main then [prt_term B] else []) @
        (if ngoals = 0 then [Pretty.str "No subgoals!"]
         else if ngoals > maxgoals then
-          pretty_subgoals (Library.take (maxgoals, As)) @
+          pretty_subgoals (take maxgoals As) @
           (if total then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
            else [])
         else pretty_subgoals As) @

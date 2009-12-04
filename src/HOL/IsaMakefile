@@ -168,10 +168,10 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Datatype/datatype_aux.ML \
   Tools/Datatype/datatype_case.ML \
   Tools/Datatype/datatype_codegen.ML \
-  Tools/Datatype/datatype.ML \
+  Tools/Datatype/datatype_data.ML \
   Tools/Datatype/datatype_prop.ML \
   Tools/Datatype/datatype_realizer.ML \
-  Tools/Datatype/datatype_rep_proofs.ML \
+  Tools/Datatype/datatype.ML \
   Tools/dseq.ML \
   Tools/Function/context_tree.ML \
   Tools/Function/decompose.ML \
@@ -849,20 +849,20 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL Library/Executable_Set.thy		\
   MicroJava/J/JListExample.thy MicroJava/JVM/JVMExec.thy		\
   MicroJava/JVM/JVMInstructions.thy MicroJava/JVM/JVMState.thy		\
   MicroJava/JVM/JVMExecInstr.thy MicroJava/JVM/JVMListExample.thy	\
-  MicroJava/JVM/JVMExceptions.thy MicroJava/BV/BVSpec.thy		\
+  MicroJava/JVM/JVMExceptions.thy MicroJava/DFA/Abstract_BV.thy		\
+  MicroJava/DFA/Err.thy MicroJava/DFA/Kildall.thy			\
+  MicroJava/DFA/LBVComplete.thy MicroJava/DFA/LBVCorrect.thy		\
+  MicroJava/DFA/LBVSpec.thy MicroJava/DFA/Listn.thy			\
+  MicroJava/DFA/Opt.thy MicroJava/DFA/Product.thy			\
+  MicroJava/DFA/SemilatAlg.thy MicroJava/DFA/Semilat.thy		\
+  MicroJava/DFA/Semilattices.thy MicroJava/DFA/Typing_Framework_err.thy	\
+  MicroJava/DFA/Typing_Framework.thy MicroJava/BV/BVSpec.thy		\
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/Correct.thy		\
-  MicroJava/BV/Err.thy MicroJava/BV/JType.thy MicroJava/BV/JVM.thy	\
-  MicroJava/BV/JVMType.thy MicroJava/BV/Kildall.thy			\
-  MicroJava/BV/LBVSpec.thy MicroJava/BV/Listn.thy MicroJava/BV/Opt.thy	\
-  MicroJava/BV/Product.thy MicroJava/BV/Semilat.thy			\
+  MicroJava/BV/JType.thy MicroJava/BV/JVM.thy MicroJava/BV/JVMType.thy	\
   MicroJava/BV/Effect.thy MicroJava/BV/EffectMono.thy			\
-  MicroJava/BV/Typing_Framework.thy					\
-  MicroJava/BV/Typing_Framework_err.thy					\
   MicroJava/BV/Typing_Framework_JVM.thy MicroJava/BV/BVExample.thy	\
-  MicroJava/BV/LBVSpec.thy MicroJava/BV/LBVCorrect.thy			\
-  MicroJava/BV/LBVComplete.thy MicroJava/BV/LBVJVM.thy			\
-  MicroJava/document/root.bib MicroJava/document/root.tex		\
-  MicroJava/document/introduction.tex
+  MicroJava/BV/LBVJVM.thy MicroJava/document/root.bib			\
+  MicroJava/document/root.tex MicroJava/document/introduction.tex
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL MicroJava
 
 

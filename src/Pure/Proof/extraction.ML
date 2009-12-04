@@ -461,7 +461,7 @@ fun extract thms thy =
             end
           else (vs', tye)
 
-      in fold_rev add_args (Library.take (n, vars) ~~ Library.take (n, ts)) ([], []) end;
+      in fold_rev add_args (take n vars ~~ take n ts) ([], []) end;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
     fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);

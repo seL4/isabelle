@@ -496,7 +496,7 @@ fun all_scopes (ext_ctxt as {thy, ...}) sym_break cards_asgns maxes_asgns
                                   bisim_depths mono_Ts nonmono_Ts
     val ranks = map rank_of_block blocks
     val all = all_combinations_ordered_smartly (map (rpair 0) ranks)
-    val head = Library.take (max_scopes, all)
+    val head = take max_scopes all
     val descs = map_filter (scope_descriptor_from_combination ext_ctxt blocks)
                            head
   in

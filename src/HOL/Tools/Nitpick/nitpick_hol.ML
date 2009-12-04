@@ -516,7 +516,7 @@ fun typedef_info thy s =
   | NONE => NONE
 
 (* FIXME: use antiquotation for "code_numeral" below or detect "rep_datatype",
-   e.g., by adding a field to "DatatypeAux.info". *)
+   e.g., by adding a field to "Datatype_Aux.info". *)
 (* string -> bool *)
 fun is_basic_datatype s =
     s mem [@{type_name "*"}, @{type_name bool}, @{type_name unit},

@@ -59,7 +59,7 @@ fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
 
 fun prep_inst (concl, xs) =
   let val vs = Induct.vars_of concl
-  in map_filter prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
+  in map_filter prep_var (drop (length vs - length xs) vs ~~ xs) end;
 
 in
 

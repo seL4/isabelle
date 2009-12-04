@@ -213,7 +213,7 @@ fun make_bool_args f g [] i = []
 fun make_bool_args' xs =
   make_bool_args (K HOLogic.false_const) (K HOLogic.true_const) xs;
 
-fun arg_types_of k c = Library.drop (k, binder_types (fastype_of c));
+fun arg_types_of k c = drop k (binder_types (fastype_of c));
 
 fun find_arg T x [] = sys_error "find_arg"
   | find_arg T x ((p as (_, (SOME _, _))) :: ps) =

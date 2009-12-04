@@ -183,7 +183,7 @@ fun encode_raw "" = ""
         val raw1 = raw0 o implode;
         val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
     
-        fun encode cs = enc (Library.take_prefix raw_chr cs)
+        fun encode cs = enc (take_prefix raw_chr cs)
         and enc ([], []) = []
           | enc (cs, []) = [raw1 cs]
           | enc ([], d :: ds) = raw2 d :: encode ds
@@ -198,11 +198,11 @@ fun encode_raw "" = ""
 
 fun beginning n cs =
   let
-    val drop_blanks = #1 o Library.take_suffix is_ascii_blank;
+    val drop_blanks = #1 o take_suffix is_ascii_blank;
     val all_cs = drop_blanks cs;
     val dots = if length all_cs > n then " ..." else "";
   in
-    (drop_blanks (Library.take (n, all_cs))
+    (drop_blanks (take n all_cs)
       |> map (fn c => if is_ascii_blank c then space else c)
       |> implode) ^ dots
   end;
@@ -491,8 +491,8 @@ val escape = implode o map esc o sym_explode;
 
 fun strip_blanks s =
   sym_explode s
-  |> Library.take_prefix is_blank |> #2
-  |> Library.take_suffix is_blank |> #1
+  |> take_prefix is_blank |> #2
+  |> take_suffix is_blank |> #1
   |> implode;
 
 
@@ -516,7 +516,7 @@ fun bump_string str =
           then chr (ord s + 1) :: ss
           else "a" :: s :: ss;
 
-    val (ss, qs) = apfst rev (Library.take_suffix is_quasi (sym_explode str));
+    val (ss, qs) = apfst rev (take_suffix is_quasi (sym_explode str));
     val ss' = if symbolic_end ss then "'" :: ss else bump ss;
   in implode (rev ss' @ qs) end;
 

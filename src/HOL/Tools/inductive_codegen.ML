@@ -104,7 +104,7 @@ fun is_constrt thy =
   let
     val cnstrs = flat (maps
       (map (fn (_, (_, _, cs)) => map (apsnd length) cs) o #descr o snd)
-      (Symtab.dest (Datatype.get_all thy)));
+      (Symtab.dest (Datatype_Data.get_all thy)));
     fun check t = (case strip_comb t of
         (Var _, []) => true
       | (Const (s, _), ts) => (case AList.lookup (op =) cnstrs s of

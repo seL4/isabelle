@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/BV/Typing_Framework.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)
