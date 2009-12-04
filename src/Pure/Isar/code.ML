@@ -574,7 +574,7 @@ fun typscheme_eqns thy c [] =
               |> map (fn v => TFree (v, []));
         val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
       in raw_typscheme thy (c, ty) end
-  | typscheme_eqns thy c (thms as thm :: _) = typscheme_eqn thy thm;
+  | typscheme_eqns thy c (thm :: _) = typscheme_eqn thy thm;
 
 fun assert_eqns_const thy c eqns =
   let
