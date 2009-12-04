@@ -2665,6 +2665,10 @@ apply(subgoal_tac "length (remdups xs) <= length xs")
 apply(rule length_remdups_leq)
 done
 
+lemma remdups_filter: "remdups(filter P xs) = filter P (remdups xs)"
+apply(induct xs)
+apply auto
+done
 
 lemma distinct_map:
   "distinct(map f xs) = (distinct xs & inj_on f (set xs))"
