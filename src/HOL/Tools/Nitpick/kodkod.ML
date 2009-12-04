@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/kodkod.ML
+(*  Title:      HOL/Tools/Nitpick/kodkod.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 

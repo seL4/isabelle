@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick_tests.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_tests.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 

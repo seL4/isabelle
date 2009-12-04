@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick_kodkod.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_kodkod.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 
@@ -785,7 +785,7 @@ fun acyclicity_axioms_for_datatypes ext_ctxt kk rel_table dtypes =
    -> Kodkod.rel_expr -> constr_spec -> int -> Kodkod.formula *)
 fun sel_axiom_for_sel ext_ctxt j0
         (kk as {kk_all, kk_implies, kk_formula_if, kk_subset, kk_rel_eq, kk_no,
-                kk_join, kk_project, ...}) rel_table dom_r
+                kk_join, ...}) rel_table dom_r
         ({const, delta, epsilon, exclusive, explicit_max, ...} : constr_spec)
         n =
   let
