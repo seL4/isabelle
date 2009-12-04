@@ -27,6 +27,11 @@ Requirements to build from sources
   https://xhtmlrenderer.dev.java.net/
   Netbeans Library "Flying-Saucer" = .../core-renderer.jar
 
+* Cobra Renderer
+  http://lobobrowser.org/cobra.jsp
+  Netbeans Library "Cobra-Renderer" = .../cobra.jar
+  Netbenas Library "Rhino-JavaScript" = .../js.jar
+
 * Isabelle/Pure Scala components
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
 
