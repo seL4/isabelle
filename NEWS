@@ -1,6 +1,22 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* Reorganized theory Sum_Type.thy; Inl and Inr now have
+authentic syntax.  INCOMPATIBILITY.
+
+* Code generation: ML and OCaml code is decorated with signatures.
+
+
+*** ML ***
+
+* Curried take and drop.  INCOMPATIBILITY.
+
+
 New in Isabelle2009-1 (December 2009)
 -------------------------------------
 
