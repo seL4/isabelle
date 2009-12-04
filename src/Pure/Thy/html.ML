@@ -49,7 +49,8 @@ fun html_mode f x = PrintMode.with_modes [htmlN] f x;
 
 local
   val html_syms = Symtab.make
-   [("\\<spacespace>", (2, "&nbsp;&nbsp;")),
+   [("'", (1, "&#39;")),
+    ("\\<spacespace>", (2, "&nbsp;&nbsp;")),
     ("\\<exclamdown>", (1, "&iexcl;")),
     ("\\<cent>", (1, "&cent;")),
     ("\\<pounds>", (1, "&pound;")),
@@ -197,7 +198,8 @@ local
   fun output_sym s =
     if Symbol.is_raw s then (1, Symbol.decode_raw s)
     else
-      (case Symtab.lookup html_syms s of SOME x => x
+      (case Symtab.lookup html_syms s of
+        SOME x => x
       | NONE => (size s, XML.text s));
 
   fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
