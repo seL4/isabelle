@@ -62,16 +62,16 @@ fun add_code number_of negative unbounded target thy =
       let
         fun dest_bit (IConst (c, _)) = if c = bit0' then 0
               else if c = bit1' then 1
-              else Code_Printer.nerror thm "Illegal numeral expression: illegal bit"
-          | dest_bit _ = Code_Printer.nerror thm "Illegal numeral expression: illegal bit";
+              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal bit"
+          | dest_bit _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal bit";
         fun dest_num (IConst (c, _)) = if c = pls' then SOME 0
               else if c = min' then
                 if negative then SOME ~1 else NONE
-              else Code_Printer.nerror thm "Illegal numeral expression: illegal leading digit"
+              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal leading digit"
           | dest_num (t1 `$ t2) =
               let val (n, b) = (dest_num t2, dest_bit t1)
               in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
-          | dest_num _ = Code_Printer.nerror thm "Illegal numeral expression: illegal term";
+          | dest_num _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal term";
       in dest_num end;
     fun pretty literals [pls', min', bit0', bit1'] _ thm _ _ [(t, _)] =
       (Code_Printer.str o Code_Printer.literal_numeral literals unbounded
