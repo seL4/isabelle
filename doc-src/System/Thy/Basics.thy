@@ -298,6 +298,10 @@ text {* Any directory may be registered as an explicit \emph{Isabelle
   @{setting ISABELLE_HOME_USER} is included in the same manner (if
   that directory exists).  Thus users can easily add private
   components to @{verbatim "$ISABELLE_HOME_USER/etc/components"}.
+
+  It is also possible to initialize components programmatically via
+  the \verb,init_component, shell function, say within the
+  \verb,settings, script of another component.
 *}
 
 
