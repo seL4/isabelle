@@ -67,7 +67,7 @@ fun add_literal_char target =
     fun pretty literals nibbles' _ thm _ _ [(t1, _), (t2, _)] =
       case decode_char nibbles' (t1, t2)
        of SOME c => (Code_Printer.str o Code_Printer.literal_char literals) c
-        | NONE => Code_Printer.nerror thm "Illegal character expression";
+        | NONE => Code_Printer.eqn_error thm "Illegal character expression";
   in Code_Target.add_syntax_const target
     @{const_name Char} (SOME (2, (cs_nibbles, pretty)))
   end;
@@ -79,8 +79,8 @@ fun add_literal_string target =
        of SOME ts => (case implode_string char' nibbles'
           (Code_Printer.literal_char literals) (Code_Printer.literal_string literals) ts
              of SOME p => p
-              | NONE => Code_Printer.nerror thm "Illegal message expression")
-        | NONE => Code_Printer.nerror thm "Illegal message expression";
+              | NONE => Code_Printer.eqn_error thm "Illegal message expression")
+        | NONE => Code_Printer.eqn_error thm "Illegal message expression";
   in Code_Target.add_syntax_const target 
     @{const_name STR} (SOME (1, (cs_summa, pretty)))
   end;

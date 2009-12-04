@@ -488,9 +488,9 @@ fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (stmt as Class _) = stmt
   | map_terms_stmt f (stmt as Classrel _) = stmt
   | map_terms_stmt f (stmt as Classparam _) = stmt
-  | map_terms_stmt f (Classinst (arity, (superarities, classparms))) =
-      Classinst (arity, (superarities, (map o apfst o apsnd) (fn const =>
-        case f (IConst const) of IConst const' => const') classparms));
+  | map_terms_stmt f (Classinst (arity, (superinsts, classparams))) =
+      Classinst (arity, (superinsts, (map o apfst o apsnd) (fn const =>
+        case f (IConst const) of IConst const' => const') classparams));
 
 fun is_cons program name = case Graph.get_node program name
  of Datatypecons _ => true
@@ -677,8 +677,8 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr (class, tyco) =
       ##>> fold_map (translate_tyvar_sort thy algbr eqngr) vs
       ##>> fold_map translate_superarity superclasses
       ##>> fold_map translate_classparam_inst classparams
-      #>> (fn ((((class, tyco), arity), superarities), classparams) =>
-             Classinst ((class, (tyco, arity)), (superarities, classparams)));
+      #>> (fn ((((class, tyco), arity), superinsts), classparams) =>
+             Classinst ((class, (tyco, arity)), (superinsts, classparams)));
   in ensure_stmt lookup_instance (declare_instance thy) stmt_inst (class, tyco) end
 and translate_typ thy algbr eqngr (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
