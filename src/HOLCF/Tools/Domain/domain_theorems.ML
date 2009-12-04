@@ -600,7 +600,7 @@ local
     let
       val lhs = dc_copy`%"f"`(con_app con args);
       fun one_rhs arg =
-          if DatatypeAux.is_rec_type (dtyp_of arg)
+          if Datatype_Aux.is_rec_type (dtyp_of arg)
           then Domain_Axioms.copy_of_dtyp map_tab
                  (proj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
           else (%# arg);
@@ -730,7 +730,7 @@ local
         let
           fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
           fun one_rhs arg =
-              if DatatypeAux.is_rec_type (dtyp_of arg)
+              if Datatype_Aux.is_rec_type (dtyp_of arg)
               then Domain_Axioms.copy_of_dtyp map_tab
                      mk_take (dtyp_of arg) ` (%# arg)
               else (%# arg);

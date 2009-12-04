@@ -162,7 +162,7 @@ fun gen_add_domain
     fun one_con (con,args,mx) =
         ((Syntax.const_name mx (Binding.name_of con)),
          ListPair.map (fn ((lazy,sel,tp),vn) =>
-           mk_arg ((lazy, DatatypeAux.dtyp_of_typ new_dts tp),
+           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
                    Option.map Binding.name_of sel,vn))
                       (args,(mk_var_names(map (typid o third) args)))
         ) : cons;
@@ -237,7 +237,7 @@ fun gen_add_new_domain
     fun one_con (con,args,mx) =
         ((Syntax.const_name mx (Binding.name_of con)),
          ListPair.map (fn ((lazy,sel,tp),vn) =>
-           mk_arg ((lazy, DatatypeAux.dtyp_of_typ new_dts tp),
+           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp),
                    Option.map Binding.name_of sel,vn))
                       (args,(mk_var_names(map (typid o third) args)))
         ) : cons;

@@ -38,10 +38,10 @@ val copy_tab : string Symtab.table =
                  (@{type_name "u"}, @{const_name "u_map"})];
 
 fun copy_of_dtyp tab r dt =
-    if DatatypeAux.is_rec_type dt then copy tab r dt else ID
-and copy tab r (DatatypeAux.DtRec i) = r i
-  | copy tab r (DatatypeAux.DtTFree a) = ID
-  | copy tab r (DatatypeAux.DtType (c, ds)) =
+    if Datatype_Aux.is_rec_type dt then copy tab r dt else ID
+and copy tab r (Datatype_Aux.DtRec i) = r i
+  | copy tab r (Datatype_Aux.DtTFree a) = ID
+  | copy tab r (Datatype_Aux.DtType (c, ds)) =
     case Symtab.lookup tab c of
       SOME f => list_ccomb (%%:f, map (copy_of_dtyp tab r) ds)
     | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);

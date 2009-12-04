@@ -374,7 +374,7 @@ fun find_nonempty descr is i =
           then NONE
           else Option.map (Integer.add 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
-    fun max_inf (SOME i) (SOME j) = Integer.max i j
+    fun max_inf (SOME i) (SOME j) = SOME (Integer.max i j)
       | max_inf _ _ = NONE;
     fun max xs = fold max_inf xs (SOME 0);
     val (_, _, constrs) = the (AList.lookup (op =) descr i);
