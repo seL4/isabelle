@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nitpick/Tools/nitpick_hol.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_hol.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009
 
@@ -78,6 +78,7 @@ sig
   val mk_flat_tuple : typ -> term list -> term
   val dest_n_tuple : int -> term -> term list
   val instantiate_type : theory -> typ -> typ -> typ -> typ
+  val is_real_datatype : theory -> string -> bool
   val is_codatatype : theory -> typ -> bool
   val is_pure_typedef : theory -> typ -> bool
   val is_univ_typedef : theory -> typ -> bool
@@ -1985,11 +1986,13 @@ fun pull_out_universal_constrs thy def t =
     fun do_term Ts def t args seen =
       case t of
         (t0 as Const (@{const_name "=="}, _)) $ t1 $ t2 =>
-        do_eq_or_imp Ts def t0 t1 t2 seen
-      | (t0 as @{const "==>"}) $ t1 $ t2 => do_eq_or_imp Ts def t0 t1 t2 seen
+        do_eq_or_imp Ts true def t0 t1 t2 seen
+      | (t0 as @{const "==>"}) $ t1 $ t2 =>
+        do_eq_or_imp Ts false def t0 t1 t2 seen
       | (t0 as Const (@{const_name "op ="}, _)) $ t1 $ t2 =>
-        do_eq_or_imp Ts def t0 t1 t2 seen
-      | (t0 as @{const "op -->"}) $ t1 $ t2 => do_eq_or_imp Ts def t0 t1 t2 seen
+        do_eq_or_imp Ts true def t0 t1 t2 seen
+      | (t0 as @{const "op -->"}) $ t1 $ t2 =>
+        do_eq_or_imp Ts false def t0 t1 t2 seen
       | Abs (s, T, t') =>
         let val (t', seen) = do_term (T :: Ts) def t' [] seen in
           (list_comb (Abs (s, T, t'), args), seen)
@@ -1999,11 +2002,12 @@ fun pull_out_universal_constrs thy def t =
           do_term Ts def t1 (t2 :: args) seen
         end
       | _ => pull_out_constr_comb thy Ts def k 0 t args seen
-    (* typ list -> bool -> term -> term -> term -> term list
+    (* typ list -> bool -> bool -> term -> term -> term -> term list
        -> term * term list *)
-    and do_eq_or_imp Ts def t0 t1 t2 seen =
+    and do_eq_or_imp Ts eq def t0 t1 t2 seen =
       let
-        val (t2, seen) = do_term Ts def t2 [] seen
+        val (t2, seen) = if eq andalso def then (t2, seen)
+                         else do_term Ts false t2 [] seen
         val (t1, seen) = do_term Ts false t1 [] seen
       in (t0 $ t1 $ t2, seen) end
     val (concl, seen) = do_term [] def t [] []
