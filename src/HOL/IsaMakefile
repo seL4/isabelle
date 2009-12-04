@@ -369,6 +369,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Sum_Of_Squares/sos_wrapper.ML					\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
   Library/Glbs.thy Library/normarith.ML Library/Executable_Set.thy	\
+  Library/Crude_Executable_Set.thy					\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
   Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
@@ -381,9 +382,9 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Order_Relation.thy Library/Nested_Environment.thy		\
   Library/Ramsey.thy Library/Zorn.thy Library/Library/ROOT.ML		\
   Library/Library/document/root.tex Library/Library/document/root.bib	\
-  Library/Transitive_Closure_Table.thy Library/While_Combinator.thy \
-  Library/Product_ord.thy	Library/Char_nat.thy \
-  Library/Char_ord.thy Library/Option_ord.thy	\
+  Library/Transitive_Closure_Table.thy Library/While_Combinator.thy	\
+  Library/Product_ord.thy Library/Char_nat.thy				\
+  Library/Char_ord.thy Library/Option_ord.thy				\
   Library/Sublist_Order.thy Library/List_lexord.thy			\
   Library/Coinductive_List.thy Library/AssocList.thy			\
   Library/Formal_Power_Series.thy Library/Binomial.thy			\

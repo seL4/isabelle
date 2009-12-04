@@ -711,7 +711,7 @@ and translate_term thy algbr eqngr thm (Const (c, ty)) =
 and translate_eqn thy algbr eqngr (thm, proper) =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
-      o Logic.unvarify o prop_of) thm;
+      o Code.subst_signatures thy o Logic.unvarify o prop_of) thm;
   in
     fold_map (translate_term thy algbr eqngr (SOME thm)) args
     ##>> translate_term thy algbr eqngr (SOME thm) rhs
@@ -888,7 +888,7 @@ fun ensure_value thy algbr eqngr t =
     val stmt_value =
       fold_map (translate_tyvar_sort thy algbr eqngr) vs
       ##>> translate_typ thy algbr eqngr ty
-      ##>> translate_term thy algbr eqngr NONE t
+      ##>> translate_term thy algbr eqngr NONE (Code.subst_signatures thy t)
       #>> (fn ((vs, ty), t) => Fun
         (Term.dummy_patternN, ((vs, ty), [(([], t), (Drule.dummy_thm, true))])));
     fun term_value (dep, (naming, program1)) =
