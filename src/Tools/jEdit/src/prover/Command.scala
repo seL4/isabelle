@@ -109,12 +109,8 @@ class Command_State(val command: Command) extends Accumulator
 {
   protected override var _state = new State(command)
 
-  def results: XML.Tree =
-    (command.state.results ::: state.results) match {
-      case Nil => XML.Elem("message", Nil, Nil)
-      case List(elem) => elem
-      case elems => XML.Elem("messages", Nil, elems)
-    }
+  def results: List[XML.Tree] =
+    command.state.results ::: state.results
 
   def markup_root: Markup_Text =
     (command.state.markup_root /: state.markup_root.markup)(_ + _)
