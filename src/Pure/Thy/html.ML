@@ -58,7 +58,8 @@ local
   val hidden = XML.text #> (span Markup.hiddenN |-> enclose);
 
   val html_syms = Symtab.make
-   [("'", (1, "&#39;")),
+   [("\n", (0, "<br/>")),
+    ("'", (1, "&#39;")),
     ("\\<spacespace>", (2, "&nbsp;&nbsp;")),
     ("\\<exclamdown>", (1, "&iexcl;")),
     ("\\<cent>", (1, "&cent;")),
@@ -231,12 +232,9 @@ local
 in
 
 fun output_width str =
-  if not (exists_string (fn s => s = "\\" orelse s = "<" orelse s = ">" orelse s = "&") str)
-  then Output.default_output str
-  else
-    let val (syms, width) = fold_map (fn (w, s) => fn width => (s, w + width))
-      (output_syms (Symbol.explode str)) 0
-    in (implode syms, width) end;
+  let val (syms, width) =
+    fold_map (fn (w, s) => fn width => (s, w + width)) (output_syms (Symbol.explode str)) 0
+  in (implode syms, width) end;
 
 val output = #1 o output_width;
 
