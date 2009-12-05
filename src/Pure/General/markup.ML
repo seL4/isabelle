@@ -34,6 +34,7 @@ sig
   val widthN: string
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
+  val hiddenN: string val hidden: T
   val tclassN: string val tclass: string -> T
   val tyconN: string val tycon: string -> T
   val fixed_declN: string val fixed_decl: string -> T
@@ -189,6 +190,11 @@ val widthN = "width";
 val (breakN, break) = markup_int "break" widthN;
 
 val (fbreakN, fbreak) = markup_elem "fbreak";
+
+
+(* hidden text *)
+
+val (hiddenN, hidden) = markup_elem "hidden";
 
 
 (* logical entities *)

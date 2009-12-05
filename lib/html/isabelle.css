@@ -18,8 +18,11 @@ body { background-color: #FFFFFF; }
 hr { height: 0px; border: 0px; }
 
 
-/* inner and outer syntax markup */
+/* basic syntax markup */
 
+.hidden, hidden { font-size: 0.1pt; visibility: hidden; }
+
+.tclass, tclass               { color: red; }
 .tfree, tfree                 { color: purple; }
 .tvar, tvar                   { color: purple; }
 .free, free                   { color: blue; }
@@ -31,8 +34,8 @@ hr { height: 0px; border: 0px; }
 .inner_string, inner_string   { color: brown; }
 .inner_comment, inner_comment { color: #8B0000; }
 
-.loc, loc              { color: brown; }
-.tclass, tclass        { color: red; }
+.bold, bold  { font-weight: bold; }
+.loc, loc  { color: brown; }
 
 .keyword, keyword      { font-weight: bold; }
 .command, command      { font-weight: bold; }
@@ -45,3 +48,4 @@ hr { height: 0px; border: 0px; }
 .malformed, malformed  { background-color: #FF6A6A; }
 
 .malformed_span, malformed_span { background-color: #FF6A6A; }
+

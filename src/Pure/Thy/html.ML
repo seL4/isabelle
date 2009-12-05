@@ -45,11 +45,21 @@ val htmlN = "HTML";
 fun html_mode f x = PrintMode.with_modes [htmlN] f x;
 
 
+(* common markup *)
+
+fun span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
+
+val _ = Markup.add_mode htmlN (fn (name, _) => span name);
+
+
 (* symbol output *)
 
 local
+  val hidden = XML.text #> (span Markup.hiddenN |-> enclose);
+
   val html_syms = Symtab.make
-   [("'", (1, "&#39;")),
+   [("\n", (0, "<br/>")),
+    ("'", (1, "&#39;")),
     ("\\<spacespace>", (2, "&nbsp;&nbsp;")),
     ("\\<exclamdown>", (1, "&iexcl;")),
     ("\\<cent>", (1, "&cent;")),
@@ -190,10 +200,10 @@ local
     ("\\<longleftrightarrow>", (3, "&lt;-&gt;")),
     ("\\<longrightarrow>", (3, "--&gt;")),
     ("\\<rightarrow>", (2, "-&gt;")),
-    ("\\<^bsub>", (0, "<sub>")),
-    ("\\<^esub>", (0, "</sub>")),
-    ("\\<^bsup>", (0, "<sup>")),
-    ("\\<^esup>", (0, "</sup>"))];
+    ("\\<^bsub>", (0, hidden "\\<^bsub>" ^ "<sub>")),
+    ("\\<^esub>", (0, hidden "\\<^esub>" ^ "</sub>")),
+    ("\\<^bsup>", (0, hidden "\\<^bsup>" ^ "<sup>")),
+    ("\\<^esup>", (0, hidden "\\<^esup>" ^ "</sup>"))];
 
   fun output_sym s =
     if Symbol.is_raw s then (1, Symbol.decode_raw s)
@@ -202,39 +212,35 @@ local
         SOME x => x
       | NONE => (size s, XML.text s));
 
-  fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
-  fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
-  fun output_loc s = apsnd (enclose "<span class=\"loc\">" "</span>") (output_sym s);
+  fun output_markup (bg, en) s1 s2 =
+    let val (n, txt) = output_sym s2
+    in (n, hidden s1 ^ enclose bg en txt) end;
 
-  fun output_syms ("\\<^sub>" :: s :: ss) = output_sub s :: output_syms ss
-    | output_syms ("\\<^isub>" :: s :: ss) = output_sub s :: output_syms ss
-    | output_syms ("\\<^sup>" :: s :: ss) = output_sup s :: output_syms ss
-    | output_syms ("\\<^isup>" :: s :: ss) = output_sup s :: output_syms ss
-    | output_syms ("\\<^loc>" :: s :: ss) = output_loc s :: output_syms ss
+  val output_sub = output_markup ("<sub>", "</sub>");
+  val output_sup = output_markup ("<sup>", "</sup>");
+  val output_bold = output_markup (span "bold");
+  val output_loc = output_markup (span "loc");
+
+  fun output_syms (s1 :: s2 :: ss) =
+        if s1 = "\\<^sub>" orelse s1 = "\\<^isub>" then output_sub s1 s2 :: output_syms ss
+        else if s1 = "\\<^sup>" orelse s1 = "\\<^isup>" then output_sup s1 s2 :: output_syms ss
+        else if s1 = "\\<^bold>" then output_bold s1 s2 :: output_syms ss
+        else if s1 = "\\<^loc>" then output_loc s1 s2 :: output_syms ss
+        else output_sym s1 :: output_syms (s2 :: ss)
     | output_syms (s :: ss) = output_sym s :: output_syms ss
     | output_syms [] = [];
 in
 
 fun output_width str =
-  if not (exists_string (fn s => s = "\\" orelse s = "<" orelse s = ">" orelse s = "&") str)
-  then Output.default_output str
-  else
-    let val (syms, width) = fold_map (fn (w, s) => fn width => (s, w + width))
-      (output_syms (Symbol.explode str)) 0
-    in (implode syms, width) end;
+  let val (syms, width) =
+    fold_map (fn (w, s) => fn width => (s, w + width)) (output_syms (Symbol.explode str)) 0
+  in (implode syms, width) end;
 
 val output = #1 o output_width;
 
 val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
 
 end;
-
-
-(* common markup *)
-
-fun span s = ("<span class=" ^ quote (XML.text s) ^ ">", "</span>");
-
-val _ = Markup.add_mode htmlN (fn (name, _) => span name);
 
 
 
