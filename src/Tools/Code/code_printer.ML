@@ -11,7 +11,7 @@ sig
   type const = Code_Thingol.const
   type dict = Code_Thingol.dict
 
-  val nerror: thm -> string -> 'a
+  val eqn_error: thm -> string -> 'a
 
   val @@ : 'a * 'a -> 'a list
   val @| : 'a list * 'a -> 'a list
@@ -19,6 +19,7 @@ sig
   val concat: Pretty.T list -> Pretty.T
   val brackets: Pretty.T list -> Pretty.T
   val semicolon: Pretty.T list -> Pretty.T
+  val doublesemicolon: Pretty.T list -> Pretty.T
   val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
 
   val first_upper: string -> string
@@ -68,11 +69,11 @@ sig
     -> fixity -> (iterm * itype) list -> Pretty.T)) option -> proto_const_syntax option
   val activate_const_syntax: theory -> literals
     -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming
-  val gen_pr_app: (thm -> var_ctxt -> const * iterm list -> Pretty.T list)
+  val gen_print_app: (thm -> var_ctxt -> const * iterm list -> Pretty.T list)
     -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> (string -> const_syntax option)
     -> thm -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
-  val gen_pr_bind: (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
+  val gen_print_bind: (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> fixity
     -> iterm -> var_ctxt -> Pretty.T * var_ctxt
 
@@ -86,7 +87,7 @@ struct
 
 open Code_Thingol;
 
-fun nerror thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm);
+fun eqn_error thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm);
 
 (** assembling text pieces **)
 
@@ -98,6 +99,7 @@ val str = PrintMode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
 val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
+fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
 
@@ -182,11 +184,11 @@ fun fixity_lrx L L = false
 
 fun fixity NOBR _ = false
   | fixity _ NOBR = false
-  | fixity (INFX (pr, lr)) (INFX (pr_ctxt, lr_ctxt)) =
-      pr < pr_ctxt
-      orelse pr = pr_ctxt
+  | fixity (INFX (pr, lr)) (INFX (print_ctxt, lr_ctxt)) =
+      pr < print_ctxt
+      orelse pr = print_ctxt
         andalso fixity_lrx lr lr_ctxt
-      orelse pr_ctxt = ~1
+      orelse print_ctxt = ~1
   | fixity BR (INFX _) = false
   | fixity _ _ = true;
 
@@ -219,32 +221,32 @@ type proto_const_syntax = int * (string list * (literals -> string list
     -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
 
 fun simple_const_syntax (SOME (n, f)) = SOME (n,
-      ([], (fn _ => fn _ => fn pr => fn thm => fn vars => f (pr vars))))
+      ([], (fn _ => fn _ => fn print => fn thm => fn vars => f (print vars))))
   | simple_const_syntax NONE = NONE;
 
 fun activate_const_syntax thy literals (n, (cs, f)) naming =
   fold_map (Code_Thingol.ensure_declared_const thy) cs naming
   |-> (fn cs' => pair (n, f literals cs'));
 
-fun gen_pr_app pr_app pr_term syntax_const thm vars fxy (app as ((c, (_, tys)), ts)) =
+fun gen_print_app print_app_expr print_term syntax_const thm vars fxy (app as ((c, (_, tys)), ts)) =
   case syntax_const c
-   of NONE => brackify fxy (pr_app thm vars app)
-    | SOME (k, pr) =>
+   of NONE => brackify fxy (print_app_expr thm vars app)
+    | SOME (k, print) =>
         let
-          fun pr' fxy ts = pr (pr_term thm) thm vars fxy (ts ~~ take k tys);
+          fun print' fxy ts = print (print_term thm) thm vars fxy (ts ~~ take k tys);
         in if k = length ts
-          then pr' fxy ts
+          then print' fxy ts
         else if k < length ts
           then case chop k ts of (ts1, ts2) =>
-            brackify fxy (pr' APP ts1 :: map (pr_term thm vars BR) ts2)
-          else pr_term thm vars fxy (Code_Thingol.eta_expand k app)
+            brackify fxy (print' APP ts1 :: map (print_term thm vars BR) ts2)
+          else print_term thm vars fxy (Code_Thingol.eta_expand k app)
         end;
 
-fun gen_pr_bind pr_term thm (fxy : fixity) pat vars =
+fun gen_print_bind print_term thm (fxy : fixity) pat vars =
   let
     val vs = Code_Thingol.fold_varnames (insert (op =)) pat [];
     val vars' = intro_vars vs vars;
-  in (pr_term thm vars' fxy pat, vars') end;
+  in (print_term thm vars' fxy pat, vars') end;
 
 
 (* mixfix syntax *)
@@ -260,13 +262,13 @@ fun mk_mixfix prep_arg (fixity_this, mfx) =
     val i = (length o filter is_arg) mfx;
     fun fillin _ [] [] =
           []
-      | fillin pr (Arg fxy :: mfx) (a :: args) =
-          (pr fxy o prep_arg) a :: fillin pr mfx args
-      | fillin pr (Pretty p :: mfx) args =
-          p :: fillin pr mfx args;
+      | fillin print (Arg fxy :: mfx) (a :: args) =
+          (print fxy o prep_arg) a :: fillin print mfx args
+      | fillin print (Pretty p :: mfx) args =
+          p :: fillin print mfx args;
   in
-    (i, fn pr => fn fixity_ctxt => fn args =>
-      gen_brackify (fixity fixity_this fixity_ctxt) (fillin pr mfx args))
+    (i, fn print => fn fixity_ctxt => fn args =>
+      gen_brackify (fixity fixity_this fixity_ctxt) (fillin print mfx args))
   end;
 
 fun parse_infix prep_arg (x, i) s =

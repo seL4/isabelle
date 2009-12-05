@@ -49,10 +49,10 @@ lemma Inl_Rep_not_Inr_Rep: "Inl_Rep a \<noteq> Inr_Rep b"
   by (auto simp add: Inl_Rep_def Inr_Rep_def expand_fun_eq)
 
 definition Inl :: "'a \<Rightarrow> 'a + 'b" where
-   "Inl = Abs_Sum \<circ> Inl_Rep"
+  "Inl = Abs_Sum \<circ> Inl_Rep"
 
 definition Inr :: "'b \<Rightarrow> 'a + 'b" where
-   "Inr = Abs_Sum \<circ> Inr_Rep"
+  "Inr = Abs_Sum \<circ> Inr_Rep"
 
 lemma inj_Inl [simp]: "inj_on Inl A"
 by (auto simp add: Inl_def intro!: comp_inj_on Inl_Rep_inject inj_on_Abs_Sum Inl_RepI)
@@ -159,6 +159,7 @@ proof
   from assms have "Sumr f ?s = Sumr g ?s" by simp
   then show "f x = g x" by simp
 qed
+
 
 subsection {* The Disjoint Sum of Sets *}
 
