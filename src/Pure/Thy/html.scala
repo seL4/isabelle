@@ -6,6 +6,9 @@ Basic HTML output.
 
 package isabelle
 
+import scala.collection.mutable.ListBuffer
+
+
 object HTML
 {
   // common elements and attributes
@@ -14,28 +17,35 @@ object HTML
   val DIV = "div"
   val SPAN = "span"
   val BR = "br"
+  val PRE = "pre"
   val CLASS = "class"
 
 
   // document markup
 
-  def body(trees: List[XML.Tree]): XML.Tree =
-    XML.Elem(BODY, Nil, trees)
-
-  def div(trees: List[XML.Tree]): XML.Tree =
-    XML.Elem(DIV, Nil, trees)
-
-  val br: XML.Tree = XML.Elem(BR, Nil, Nil)
-
   def spans(tree: XML.Tree): List[XML.Tree] =
     tree match {
       case XML.Elem(name, _, ts) =>
         List(XML.Elem(SPAN, List((CLASS, name)), ts.flatMap(spans)))
-      case text @ XML.Text(txt) =>
-        txt.split("\n").toList match {
-          case line :: lines if !lines.isEmpty =>
-            XML.Text(line) :: lines.flatMap(l => List(br, XML.Text(l)))
-          case _ => List(text)
+      case XML.Text(txt) =>
+        val ts = new ListBuffer[XML.Tree]
+        val t = new StringBuilder
+        def flush_text() {
+          if (!t.isEmpty) {
+            ts + XML.Text(t.toString)
+            t.clear
+          }
         }
+        for (sym <- Symbol.elements(txt)) {
+          sym match {
+            case "\n" =>
+              flush_text()
+              ts + XML.elem(BR)
+            case _ =>
+              t ++ sym.toString
+          }
+        }
+        flush_text()
+        ts.toList
     }
 }
