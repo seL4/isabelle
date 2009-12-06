@@ -12,7 +12,10 @@ import isabelle.XML
 
 import java.io.StringReader
 import java.awt.{BorderLayout, Dimension}
+
 import javax.swing.{JButton, JPanel, JScrollPane}
+
+import java.util.logging.{Logger, Level}
 
 import org.lobobrowser.html.parser._
 import org.lobobrowser.html.test._
@@ -36,7 +39,12 @@ class StateViewDockable(view : View, position : String) extends JPanel {
     setPreferredSize(new Dimension(500, 250))
   setLayout(new BorderLayout)
 
+
+  // global logging
   
+  Logger.getLogger("org.lobobrowser").setLevel(Level.WARNING)
+
+
   // document template with styles
 
   private def try_file(name: String): String =
