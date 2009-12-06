@@ -33,31 +33,34 @@ object XML
   /* string representation */
 
   private def append_text(text: String, s: StringBuilder) {
-    for (c <- text.elements) c match {
-      case '<' => s.append("&lt;")
-      case '>' => s.append("&gt;")
-      case '&' => s.append("&amp;")
-      case '"' => s.append("&quot;")
-      case '\'' => s.append("&apos;")
-      case _ => s.append(c)
+    if (text == null) s ++ text
+    else {
+      for (c <- text.elements) c match {
+        case '<' => s ++ "&lt;"
+        case '>' => s ++ "&gt;"
+        case '&' => s ++ "&amp;"
+        case '"' => s ++ "&quot;"
+        case '\'' => s ++ "&apos;"
+        case _ => s + c
+      }
     }
   }
 
   private def append_elem(name: String, atts: Attributes, s: StringBuilder) {
-    s.append(name)
+    s ++ name
     for ((a, x) <- atts) {
-      s.append(" "); s.append(a); s.append("=\""); append_text(x, s); s.append("\"")
+      s ++ " "; s ++ a; s ++ "=\""; append_text(x, s); s ++ "\""
     }
   }
 
   private def append_tree(tree: Tree, s: StringBuilder) {
     tree match {
       case Elem(name, atts, Nil) =>
-        s.append("<"); append_elem(name, atts, s); s.append("/>")
+        s ++ "<"; append_elem(name, atts, s); s ++ "/>"
       case Elem(name, atts, ts) =>
-        s.append("<"); append_elem(name, atts, s); s.append(">")
+        s ++ "<"; append_elem(name, atts, s); s ++ ">"
         for (t <- ts) append_tree(t, s)
-        s.append("</"); s.append(name); s.append(">")
+        s ++ "</"; s ++ name; s ++ ">"
       case Text(text) => append_text(text, s)
     }
   }
