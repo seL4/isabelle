@@ -13,8 +13,7 @@ import scala.util.matching.Regex
 
 object Symbol
 {
-
-  /** Symbol regexps **/
+  /* Symbol regexps */
 
   private val plain = new Regex("""(?xs)
     [^\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
@@ -31,35 +30,57 @@ object Symbol
   val regex = new Regex(plain + "|" + symbol + "|" + bad_symbol + "| .")
 
   // prefix of another symbol
-  def is_open(s: String): Boolean =
+  def is_open(s: CharSequence): Boolean =
   {
     val len = s.length
-    len == 1 && Character.isLowSurrogate(s(0)) ||
+    len == 1 && Character.isHighSurrogate(s.charAt(0)) ||
     s == "\\" ||
     s == "\\<" ||
-    len > 2 && s(len - 1) != '>'
+    len > 2 && s.charAt(len - 1) != '>'
   }
 
 
-  /** Decoding offsets **/
+  /* elements */
 
-  class Index(text: String)
+  private def could_open(c: Char): Boolean =
+    c == '\\' || Character.isHighSurrogate(c)
+
+  def elements(text: CharSequence) = new Iterator[CharSequence] {
+    private val matcher = regex.pattern.matcher(text)
+    private var i = 0
+    def hasNext = i < text.length
+    def next = {
+      val len =
+        if (could_open(text.charAt(i))) {
+          matcher.region(i, text.length).lookingAt
+          matcher.group.length
+        }
+        else 1
+      val s = text.subSequence(i, i + len)
+      i += len
+      s
+    }
+  }
+
+
+  /* decoding offsets */
+
+  class Index(text: CharSequence)
   {
     case class Entry(chr: Int, sym: Int)
     val index: Array[Entry] =
     {
-      val length = text.length
       val matcher = regex.pattern.matcher(text)
       val buf = new mutable.ArrayBuffer[Entry]
       var chr = 0
       var sym = 0
-      while (chr < length) {
-        val c = text(chr)
+      while (chr < text.length) {
         val len =
-          if (c == '\\' || Character.isHighSurrogate(c)) {
-            matcher.region(chr, length).lookingAt
+          if (could_open(text.charAt(chr))) {
+            matcher.region(chr, text.length).lookingAt
             matcher.group.length
-          } else 1
+          }
+          else 1
         chr += len
         sym += 1
         if (len > 1) buf += Entry(chr, sym)
@@ -86,7 +107,7 @@ object Symbol
   }
 
 
-  /** Recoding text **/
+  /* recoding text */
 
   private class Recoder(list: List[(String, String)])
   {
@@ -195,6 +216,5 @@ object Symbol
 
     def decode(text: String) = decoder.recode(text)
     def encode(text: String) = encoder.recode(text)
-
   }
 }
